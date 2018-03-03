@@ -1,9 +1,4 @@
 export {configureStore, createDefaultMiddleware} from "./configureStore";
 
-import createNextState from "immer";
-import {combineReducers} from "redux";
-
-export {
-    createNextState,
-    combineReducers,
-};
+export {default as createNextState} from "immer";
+export {combineReducers} from "redux";
