@@ -5,5 +5,10 @@
   "main": "index.js",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
-  "private": false
+  "private": false,
+  "devDependencies": {
+    "rollup": "^0.56.3",
+    "rollup-plugin-commonjs": "^8.3.0",
+    "rollup-plugin-node-resolve": "^3.0.3"
+  }
 }
