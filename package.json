@@ -1,0 +1,9 @@
+{
+  "name": "@acemarke/redux-starter-kit",
+  "version": "0.0.1",
+  "description": "A simple set of tools to make using Redux easier",
+  "main": "index.js",
+  "author": "Mark Erikson <mark@isquaredsoftware.com>",
+  "license": "MIT",
+  "private": false
+}
