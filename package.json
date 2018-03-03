@@ -1,6 +1,6 @@
 {
   "name": "@acemarke/redux-starter-kit",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A simple set of tools to make using Redux easier",
   "main": "dist/redux-starter-kit.cjs.js",
   "module": "dist/redux-starter-kit.esm.js",
