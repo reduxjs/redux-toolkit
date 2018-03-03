@@ -58,6 +58,10 @@ extglob@^0.3.1:
   dependencies:
     is-extglob "^1.0.0"
 
+fast-equals@^1.0.6:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/fast-equals/-/fast-equals-1.1.0.tgz#10eb07e48dbbacb74214ef6856f2bbea69f3114f"
+
 filename-regex@^2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/filename-regex/-/filename-regex-2.0.1.tgz#c1c4b9bee3e09725ddb106b75c1e301fe2f18b26"
@@ -94,6 +98,12 @@ glob-parent@^2.0.0:
   resolved "https://registry.yarnpkg.com/glob-parent/-/glob-parent-2.0.0.tgz#81383d72db054fcccf5336daa902f182f6edbb28"
   dependencies:
     is-glob "^2.0.0"
+
+identitate@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/identitate/-/identitate-1.0.0.tgz#b524bad1c865bd8509abecc749466feb1fab3dd9"
+  dependencies:
+    pathington "^1.0.1"
 
 immer@^1.1.1:
   version "1.1.1"
@@ -241,6 +251,10 @@ path-parse@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.5.tgz#3c1adf871ea9cd6c9431b6ea2bd74a0ff055c4c1"
 
+pathington@^1.0.1, pathington@^1.1.4:
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/pathington/-/pathington-1.1.5.tgz#9c0110287e769d1ee26f6758c7339d920a6cf5c7"
+
 preserve@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/preserve/-/preserve-0.2.0.tgz#815ed1f6ebc65926f865b310c0713bcb3315ce4b"
@@ -287,6 +301,10 @@ repeat-string@^1.5.2:
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/repeat-string/-/repeat-string-1.6.1.tgz#8dcae470e1c88abc2d600fff4a776286da75e637"
 
+reselect@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/reselect/-/reselect-3.0.1.tgz#efdaa98ea7451324d092b2b2163a6a1d7a9a2147"
+
 resolve@^1.1.6, resolve@^1.4.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.5.0.tgz#1f09acce796c9a762579f31b2c1cc4c3cddf9f36"
@@ -322,9 +340,24 @@ rollup@^0.56.3:
   version "0.56.3"
   resolved "https://registry.yarnpkg.com/rollup/-/rollup-0.56.3.tgz#7900695531afa1badd3235f285cc4aa0d49ce254"
 
+selectorator@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/selectorator/-/selectorator-3.2.0.tgz#d54c780e0bc7b37c40ff4c05da429e205c5d9a5c"
+  dependencies:
+    fast-equals "^1.0.6"
+    identitate "^1.0.0"
+    reselect "^3.0.1"
+    unchanged "^1.0.4"
+
 symbol-observable@^1.0.3:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/symbol-observable/-/symbol-observable-1.2.0.tgz#c22688aed4eab3cdc2dfeacbb561660560a00804"
+
+unchanged@^1.0.4:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/unchanged/-/unchanged-1.0.6.tgz#23f88006d5a06234173de5131aa9798dd3ae02f7"
+  dependencies:
+    pathington "^1.1.4"
 
 vlq@^0.2.1:
   version "0.2.3"
