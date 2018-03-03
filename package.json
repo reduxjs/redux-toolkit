@@ -2,7 +2,9 @@
   "name": "@acemarke/redux-starter-kit",
   "version": "0.0.1",
   "description": "A simple set of tools to make using Redux easier",
-  "main": "index.js",
+  "main": "dist/redux-starter-kit.cjs.js",
+  "module": "dist/redux-starter-kit.esm.js",
+  "browser": "dist/redux-starter-kit.umd.js",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
   "private": false,
@@ -10,5 +12,14 @@
     "rollup": "^0.56.3",
     "rollup-plugin-commonjs": "^8.3.0",
     "rollup-plugin-node-resolve": "^3.0.3"
-  }
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "node test/test.js",
+    "pretest": "yarn build"
+  },
+  "files":[
+    "dist"
+  ]
 }
