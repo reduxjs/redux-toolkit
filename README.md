@@ -23,7 +23,7 @@ This package is _not_ intended to solve every possible complaint about Redux, an
 
 - A `configureStore()` function with simplified configuration options.  It can automatically combine your slice reducers, adds whatever Redux middleware you supply, includes `redux-thunk` by default, and enables use of the Redux DevTools Extension.
 - A `createReducer()` utility that lets you supply a lookup table of action types to case reducer functions, rather than writing switch statements.  In addition, it automatically uses the [`immer` library](https://github.com/mweststrate/immer) to let you write simpler immutable updates with normal mutative code, like `state.todos[3].completed = true`.
-- An improved version of the widely used `createSelector` utility for creating memoized selector functions, which can accept string keypaths as "input selectors" (re-exported from the [`selectorator` library](https://github.com/planttheidea/selectorator).
+- An improved version of the widely used `createSelector` utility for creating memoized selector functions, which can accept string keypaths as "input selectors" (re-exported from the [`selectorator` library](https://github.com/planttheidea/selectorator)).
 
 
 ### API Reference
