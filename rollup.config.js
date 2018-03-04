@@ -6,7 +6,7 @@ import pkg from './package.json';
 export default [
     // browser-friendly UMD build
     // If we aim to support legacy browsers such as IE, Safari <10 or Opera Mini
-    // we must transpile back to ES2015
+    // we must transpile back to ES5
     {
         input: 'src/index.js',
         output: {
@@ -31,7 +31,7 @@ export default [
     // CommonJS (for Node) 
     // Most webpack config skip transpiling node_modules code by default
     // If we aim to support legacy browsers such as IE, Safari <10 or Opera Mini
-    // we must transpile back to ES2015
+    // we must transpile back to ES5
     {
         input: 'src/index.js',
         external: [],
