@@ -40,8 +40,7 @@ function configureStore({
     reducer: Object<string, Function> | Function,
     // An array of Redux middlewares.  If not supplied, defaults to just redux-thunk.
     middleware: Array<MiddlewareFunction>,
-    // Built-in support for devtools.
-    // Defaults to NODE_ENV !== production
+    // Built-in support for devtools. Defaults to true.
     devTools: boolean,
     // Same as current createStore.
     preloadedState : State,
@@ -59,7 +58,7 @@ import {configureStore} from "@acemarke/redux-starter-kit";
 import rootReducer from "./reducers";
 
 const store = configureStore(rootReducer);
-// The store now has redux-thunk added, and if in dev, the Redux DevTools Extension is turned on
+// The store now has redux-thunk added and the Redux DevTools Extension is turned on
 ```
 
 Full example:
@@ -98,7 +97,7 @@ const preloadedState = {
 const store = configureStore({
     reducer,
     middleware,
-    devTools : true,
+    devTools : NODE_ENV !== 'production',
     preloadedState,
     enhancers : [reduxBatch],
 });
@@ -106,7 +105,7 @@ const store = configureStore({
 // The store has been created with these options:
 // - The slice reducers were automatically passed to combineReducers()
 // - redux-thunk and redux-logger were added as middleware
-// - The Redux DevTools Extension is enabled for both development and production
+// - The Redux DevTools Extension is disabled for production
 // - The middleware, batch, and devtools enhancers were automatically composed together
 ```
 
