@@ -145,12 +145,13 @@ const todosReducer = createReducer([], {
 
 ```js
 const notifications = (state, payload, { error, meta }) => {
-  // As stated by FSA docs, by convention, if error is true, the payload SHOULD be an error object
+  // As stated by FSA docs, by convention, if error is true, the payload SHOULD be an error object.
   if (payload instanceof Error) {
     state.push({ intent: "danger", message: payload.message });
   }
   
-  // If you don't want to follow this convention, you can use the error and meta properties
+  // You can also use the error and meta properties, they are useful if you don't want to follow this convention.
+  // (Of course you are free to use those properties for other use cases. Error handling is just an example.)
   if (error) {
     state.push({ intent: meta.intent, message: payload });
   }
