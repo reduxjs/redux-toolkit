@@ -1,23 +1,16 @@
-const todos = (state = [], action) => {
-  switch (action.type) {
-    case 'ADD_TODO':
-      return [
-        ...state,
-        {
-          id: action.id,
-          text: action.text,
-          completed: false
-        }
-      ]
-    case 'TOGGLE_TODO':
-      return state.map(todo =>
-        (todo.id === action.id) 
-          ? {...todo, completed: !todo.completed}
-          : todo
-      )
-    default:
-      return state
+import { createReducer } from '@acemarke/redux-starter-kit'
+
+const todos = createReducer([], {
+  ADD_TODO(state, payload) {
+    state.push({
+      ...payload,
+      completed: false
+    })
+  },
+  TOGGLE_TODO(state, payload) {
+    const todo = state.find(todo => todo.id === payload)
+    todo.completed = !todo.completed
   }
-}
+})
 
 export default todos

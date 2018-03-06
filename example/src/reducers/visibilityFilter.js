@@ -1,10 +1,9 @@
-const visibilityFilter = (state = 'SHOW_ALL', action) => {
-  switch (action.type) {
-    case 'SET_VISIBILITY_FILTER':
-      return action.filter
-    default:
-      return state
+import { createReducer } from '@acemarke/redux-starter-kit'
+
+const visibilityFilter = createReducer('SHOW_ALL', {
+  SET_VISIBILITY_FILTER(state, payload) {
+    return payload
   }
-}
+})
 
 export default visibilityFilter

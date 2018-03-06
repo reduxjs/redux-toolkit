@@ -1,18 +1,20 @@
 let nextTodoId = 0
 export const addTodo = (text) => ({
   type: 'ADD_TODO',
-  id: nextTodoId++,
-  text
+  payload: {
+    id: nextTodoId++,
+    text
+  }
 })
 
-export const setVisibilityFilter = (filter) => ({
+export const setVisibilityFilter = (payload) => ({
   type: 'SET_VISIBILITY_FILTER',
-  filter
+  payload
 })
 
-export const toggleTodo = (id) => ({
+export const toggleTodo = (payload) => ({
   type: 'TOGGLE_TODO',
-  id
+  payload
 })
 
 export const VisibilityFilters = {
