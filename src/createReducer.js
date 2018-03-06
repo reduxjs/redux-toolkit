@@ -3,14 +3,15 @@ import { isFSA } from "flux-standard-action";
 
 export function createReducer(initialState, actionsMap) {
     return function(state = initialState, action) {
-        const {type, payload, ...rest} = action;
+        const {type, ...rest} = action;
 
         return createNextState(state, draft => {
             const caseReducer = actionsMap[type];
 
             if(caseReducer) {
                 if (isFSA(action)) {
-                    return caseReducer(draft, payload, rest);
+                    const {payload, error, meta} = rest
+                    return caseReducer(draft, payload, { error, meta });
                 }
 
                 return caseReducer(draft,  rest);
