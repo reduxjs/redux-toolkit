@@ -4,8 +4,6 @@ import thunk from "redux-thunk";
 
 import isPlainObject from "./isPlainObject";
 
-const IS_DEVELOPMENT = process.env.NODE_ENV !== "production";
-
 export function createDefaultMiddleware(...additional) {
     return [thunk, ...additional];
 }
@@ -14,7 +12,7 @@ export function configureStore(options = {}) {
     const {
         reducer,
         middleware = createDefaultMiddleware(),
-        devTools = IS_DEVELOPMENT,
+        devTools = true,
         preloadedState,
         enhancers = [],
     } = options;
