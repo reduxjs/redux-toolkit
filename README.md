@@ -141,27 +141,23 @@ const todosReducer = createReducer([], {
 });
 ```
 
-`createReducer` supports [Flux Standand Actions (FSA)](https://github.com/redux-utilities/flux-standard-action).
+`createReducer` supports [Flux Standand Actions (FSA)](https://github.com/redux-utilities/flux-standard-action):
 
 ```js
-// As stated by FSA docs, by convention, if error is true, the payload SHOULD be an error object
-const notifications = (state, payload) => {
-  if (payload instanceof Error) {
-    return state.push({ intent: "danger", message: payload.message });
-  }
-  return state;
-};
-
-// You can also read error and meta properties, it's useful if you don't want to follow all FSA conventions
 const notifications = (state, payload, { error, meta }) => {
-  if (error) {
-    return state.push({ intent: meta.intent, message: payload });
+  // As stated by FSA docs, by convention, if error is true, the payload SHOULD be an error object
+  if (payload instanceof Error) {
+    state.push({ intent: "danger", message: payload.message });
   }
-  return state;
+  
+  // If you don't want to follow this convention, you can use the error and meta properties
+  if (error) {
+    state.push({ intent: meta.intent, message: payload });
+  }
 };
 ```
 
-If you don't want to use FSA in your project, that's not an issue:
+If you don't use FSA in your project, that's not an issue:
 
 ```js
 const addInvoice = (date, dueDate, amount) => ({
