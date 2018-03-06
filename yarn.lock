@@ -614,6 +614,12 @@ fill-range@^2.1.0:
     repeat-element "^1.1.2"
     repeat-string "^1.5.2"
 
+flux-standard-action@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/flux-standard-action/-/flux-standard-action-2.0.1.tgz#9e2947f5904edd48f9fab7516ddb8dea6f612075"
+  dependencies:
+    lodash "^4.0.0"
+
 for-in@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"

@@ -26,6 +26,7 @@
     "dist"
   ],
   "dependencies": {
+    "flux-standard-action": "^2.0.1",
     "immer": "^1.1.1",
     "redux": "^3.7.2",
     "redux-devtools-extension": "^2.13.2",
