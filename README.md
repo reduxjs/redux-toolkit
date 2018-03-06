@@ -14,7 +14,7 @@ The `redux-starter-kit` package is intended to help address three common complai
 
 We can't solve every use case, but in the spirit of [`create-react-app`](https://github.com/facebook/create-react-app) and [`apollo-boost`](https://dev-blog.apollodata.com/zero-config-graphql-state-management-27b1f1b3c2c3), we can try to provide some tools that abstract over the setup process and handle the most common use cases, as well as include some useful utilities that will let the user simplify their application code.
 
-This package is _not_ intended to solve every possible complaint about Redux, and is deliberately limited in scope.  It does _not_ address concepts like "reusable encapsulated Redux modules", data fetching, folder or file structures, managing entity relationships in the store, and so on.  
+This package is _not_ intended to solve every possible complaint about Redux, and is deliberately limited in scope.  It does _not_ address concepts like "reusable encapsulated Redux modules", data fetching, folder or file structures, managing entity relationships in the store, and so on.
 
 
 ### What's Included
@@ -141,7 +141,36 @@ const todosReducer = createReducer([], {
 });
 ```
 
+`createReducer` supports [Flux Standand Actions (FSA)](https://github.com/redux-utilities/flux-standard-action):
 
+```js
+const notifications = (state, payload, { error, meta }) => {
+  // As stated by FSA docs, by convention, if error is true, the payload SHOULD be an error object.
+  if (payload instanceof Error) {
+    state.push({ intent: "danger", message: payload.message });
+  }
+  
+  // You can also use the error and meta properties, they are useful if you don't want to follow this convention.
+  // (Of course you are free to use those properties for other use cases. Error handling is just an example.)
+  if (error) {
+    state.push({ intent: meta.intent, message: payload });
+  }
+};
+```
+
+If you don't use FSA in your project, that's not an issue:
+
+```js
+const addInvoice = (date, dueDate, amount) => ({
+  type: ADD_INVOICE,
+  date,
+  dueDate,
+  amount
+});
+
+const addInvoiceCaseReducer = (state, { date, dueDate, amount }) =>
+  state.push({ date, dueDate, amount });
+```
 
 #### `createSelector`
 
