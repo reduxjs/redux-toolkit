@@ -1,4 +1,4 @@
-export {configureStore, createDefaultMiddleware} from "./configureStore";
+export {configureStore, defaultMiddleware} from "./configureStore";
 export {createReducer} from "./createReducer";
 
 export {default as createNextState} from "immer";
