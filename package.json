@@ -20,7 +20,7 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "test": "node test/test.js",
-    "pretest": "yarn build"
+    "pretest": "npm run build"
   },
   "files": [
     "dist"
