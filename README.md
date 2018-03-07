@@ -167,11 +167,10 @@ function toggleTodo(state, action) {
 
     const todo = state[index];
     // Updates the todo object immutably withot relying on immer
-    return [
-        ...state.slice(0, index),
-        {...todo, completed: !todo.completed},
-        ...state.slice(index + 1),
-    ];
+    return state.map((todo, i) => {
+        if(i !== index) return todo;
+        return {...todo, completed : !todo.completed};
+    });
 }
 
 const todosReducer = createReducer([], {
