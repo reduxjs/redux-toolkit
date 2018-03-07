@@ -127,13 +127,15 @@ Example usage:
 ```js
 import {createReducer} from "@acemarke/redux-starter-kit";
 
-function addTodo(state, newTodo) {
+function addTodo(state, action) {
+    const {newTodo} = action.payload;
+
     // Can safely call state.push() here
     state.push({...newTodo, completed : false});
 }
 
-function toggleTodo(state, payload) {
-    const {index} = payload;
+function toggleTodo(state, action) {
+    const {index} = action.payload;
 
     const todo = state[index];
     // Can directly modify the todo object
