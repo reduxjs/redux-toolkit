@@ -17,9 +17,11 @@
     "rollup-plugin-node-resolve": "^3.0.3"
   },
   "scripts": {
-    "build": "rollup -c",
+    "install": "npm install --prefix example",
+    "start": "npm start --prefix example",
+    "build": "rollup -c && npm run build --prefix example",
     "dev": "rollup -c -w",
-    "test": "node test/test.js",
+    "test": "npm test --prefix example",
     "pretest": "npm run build"
   },
   "files": [
