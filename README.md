@@ -14,7 +14,7 @@ The `redux-starter-kit` package is intended to help address three common complai
 
 We can't solve every use case, but in the spirit of [`create-react-app`](https://github.com/facebook/create-react-app) and [`apollo-boost`](https://dev-blog.apollodata.com/zero-config-graphql-state-management-27b1f1b3c2c3), we can try to provide some tools that abstract over the setup process and handle the most common use cases, as well as include some useful utilities that will let the user simplify their application code.
 
-This package is _not_ intended to solve every possible complaint about Redux, and is deliberately limited in scope.  It does _not_ address concepts like "reusable encapsulated Redux modules", data fetching, folder or file structures, managing entity relationships in the store, and so on.  
+This package is _not_ intended to solve every possible complaint about Redux, and is deliberately limited in scope.  It does _not_ address concepts like "reusable encapsulated Redux modules", data fetching, folder or file structures, managing entity relationships in the store, and so on.
 
 
 ### What's Included
@@ -57,7 +57,7 @@ import {configureStore} from "@acemarke/redux-starter-kit";
 
 import rootReducer from "./reducers";
 
-const store = configureStore(rootReducer);
+const store = configureStore({ reducer: rootReducer });
 // The store now has redux-thunk added and the Redux DevTools Extension is turned on
 ```
 
@@ -108,6 +108,11 @@ const store = configureStore({
 // - The Redux DevTools Extension is disabled for production
 // - The middleware, batch, and devtools enhancers were automatically composed together
 ```
+
+
+#### `createDefaultMiddleware`
+
+Adds redux-thunk to the given array of middlewares. Useful if you need to add custom middlewares without removing redux-thunk.
 
 
 #### `createReducer`
@@ -180,3 +185,8 @@ const getContents = createSelector({foo : "foo", bar : "nested.bar" });
 #### `createNextState`
 
 The default immutable update function from the [`immer` library](https://github.com/mweststrate/immer#api), re-exported here as `createNextState` (also commonly referred to as `produce`)
+
+
+#### `combineReducers`
+
+Redux's `combineReducers`, re-exported for convenience. While `configureStore` calls this internally, you may wish to call it yourself to compose multiple levels of slice reducers.
