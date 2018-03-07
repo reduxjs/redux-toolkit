@@ -8,7 +8,7 @@
     "react-scripts": "^1.0.2"
   },
   "dependencies": {
-    "@acemarke/redux-starter-kit": "0.0.4",
+    "@acemarke/redux-starter-kit": "0.0.6",
     "prop-types": "^15.5.10",
     "react": "^15.5.0",
     "react-dom": "^15.5.0",
