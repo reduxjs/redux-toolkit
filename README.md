@@ -64,7 +64,7 @@ const store = configureStore({ reducer: rootReducer });
 Full example:
 
 ```js
-import {configureStore, defaultMiddleware} from "@acemarke/redux-starter-kit";
+import {configureStore, getDefaultMiddleware} from "@acemarke/redux-starter-kit";
 
 // We'll use redux-logger just as an example of adding another middleware
 import logger from "redux-logger";
@@ -80,7 +80,7 @@ const reducer = {
     visibility : visibilityReducer
 };
 
-const middleware = [...defaultMiddleware, logger];
+const middleware = [...getDefaultMiddleware(), logger];
 
 const preloadedState = {
     todos: [{
@@ -110,9 +110,9 @@ const store = configureStore({
 ```
 
 
-#### `defaultMiddleware`
+#### `getDefaultMiddleware`
 
-`defaultMiddleware` is useful if you need to add custom middlewares without removing redux-starter-kit's default middleware. Currently it is an array that includes only `redux-thunk`.
+`getDefaultMiddleware` is useful if you need to add custom middlewares without removing redux-starter-kit's default middleware. Currently it returns an array with `redux-thunk`.
 
 
 #### `createReducer`
