@@ -159,9 +159,9 @@ For more specifics, see the [`selectorator` usage documentation](https://github.
 ```js
 function createSelector(
     // Can either be:
-    //    - An array containing selector functions and string keypaths
+    //    - An array containing selector functions, string keypaths, and argument objects
     //    - An object whose keys are selector functions and string keypaths
-    paths : Array<Function | string> | Object<string, string | Function>
+    paths : Array<Function | string | Object> | Object<string, string | Function>
 )
 ```
 
@@ -177,6 +177,11 @@ const getSubtotal = createSelector(['shop.items'], (items) => {
 const getTax = createSelector([getSubtotal, 'shop.taxPercent'], (subtotal, taxPercent) => {
   // return value here
 });
+
+// Define input selector using a custom argument index to access a prop
+const getTabContent = createSelector([{ path: 'tabIndex', argIndex: 1 }], (tabIndex) => {
+  // return value here
+})
 
 const getContents = createSelector({foo : "foo", bar : "nested.bar" });
 // Returns an object like:  {foo, bar}
