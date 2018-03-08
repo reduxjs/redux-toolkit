@@ -1,11 +1,9 @@
 import { connect } from 'react-redux'
-import { createSelector } from '@acemarke/redux-starter-kit'
+import createSelector from 'selectorator'
 import { setVisibilityFilter } from '../actions'
 import Link from '../components/Link'
 
-const getFilter = (_, props) => props.filter
-
-const getVisibility = createSelector(['visibilityFilter', getFilter], (visibilityFilter, filter) => (
+const getVisibility = createSelector(['visibilityFilter', { path: 'filter', argIndex: 1 }], (visibilityFilter, filter) => (
   filter === visibilityFilter
 ))
 
