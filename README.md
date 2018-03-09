@@ -6,7 +6,7 @@
 
 **A simple set of tools to make using Redux easier**
 
-[NPM:  @acemarke/redux-starter-kit](https://www.npmjs.com/package/@acemarke/redux-starter-kit)
+`npm install @acemarke/redux-starter-kit`
 
 ### Purpose
 
