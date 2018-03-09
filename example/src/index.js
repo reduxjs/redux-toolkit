@@ -5,7 +5,20 @@ import { Provider } from 'react-redux'
 import App from './components/App'
 import reducer from './reducers'
 
-const store = configureStore({ reducer })
+const preloadedState = {
+  todos: [{
+    id: 0,
+    text: 'Eat food',
+    completed: true
+  }, {
+    id: 1,
+    text: 'Exercise',
+    completed: false
+  }],
+  visibilityFilter : 'SHOW_COMPLETED'
+}
+
+const store = configureStore({ reducer, preloadedState })
 
 render(
   <Provider store={store}>
