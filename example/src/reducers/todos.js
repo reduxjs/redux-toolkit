@@ -1,17 +1,17 @@
-import { createReducer } from '@acemarke/redux-starter-kit'
+import {createReducer} from "@acemarke/redux-starter-kit";
 
-const todos = createReducer([], {
-  ADD_TODO(state, action) {
-    state.push({
-      id: action.id,
-      text: action.text,
-      completed: false
-    })
-  },
-  TOGGLE_TODO(state, action) {
-    const todo = state.find(todo => todo.id === action.id)
-    todo.completed = !todo.completed
-  }
-})
+function addTodo(state, {id, text}) {
+  // Can safely call state.push() here
+  state.push({id, text, completed : false});
+}
 
-export default todos
+function toggleTodo(state, {id}) {
+  const todo = state.find(todo => todo.id === id);
+  // Can directly modify the todo object
+  todo.completed = !todo.completed;
+}
+
+export default createReducer([], {
+  ADD_TODO : addTodo,
+  TOGGLE_TODO : toggleTodo
+});
