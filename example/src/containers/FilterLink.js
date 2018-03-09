@@ -3,13 +3,11 @@ import createSelector from 'selectorator'
 import { setVisibilityFilter } from '../actions'
 import Link from '../components/Link'
 
-const getVisibility = createSelector(['visibilityFilter', { path: 'filter', argIndex: 1 }], (visibilityFilter, filter) => (
-  filter === visibilityFilter
-))
-
-const mapStateToProps = (state, ownProps) => ({
-  active: getVisibility(state, ownProps)
+const getVisibility = createSelector(['visibilityFilter', { path: 'filter', argIndex: 1 }], (visibilityFilter, filter) => {
+  return filter === visibilityFilter
 })
+
+const mapStateToProps = createSelector({ active: getVisibility })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   onClick: () => {

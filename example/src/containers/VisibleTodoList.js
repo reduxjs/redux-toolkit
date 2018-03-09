@@ -3,22 +3,18 @@ import { createSelector } from '@acemarke/redux-starter-kit'
 import { toggleTodo } from '../actions'
 import TodoList from '../components/TodoList'
 
-const getVisibleTodos = createSelector(['todos', 'visibilityFilter'], (todos, filter) => {
-  switch (filter) {
-    case 'SHOW_ALL':
-      return todos
+const getVisibleTodos = createSelector(['visibilityFilter', 'todos'], (visibilityFilter, todos) => {
+  switch (visibilityFilter) {
     case 'SHOW_COMPLETED':
       return todos.filter(t => t.completed)
     case 'SHOW_ACTIVE':
       return todos.filter(t => !t.completed)
     default:
-      throw new Error('Unknown filter: ' + filter)
+      return todos
   }
 })
 
-const mapStateToProps = (state) => ({
-  todos: getVisibleTodos(state)
-})
+const mapStateToProps = createSelector({ todos: getVisibleTodos })
 
 const mapDispatchToProps = {
   onTodoClick: toggleTodo
