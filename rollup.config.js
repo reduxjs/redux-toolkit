@@ -9,11 +9,7 @@ export default [
   // we must transpile back to ES5
   {
     input: 'src/index.js',
-    output: {
-      name: 'redux-starter-kit',
-      file: pkg.browser,
-      format: 'umd'
-    },
+    output: { name: 'redux-starter-kit', file: pkg.browser, format: 'umd' },
     plugins: [
       babel({
         babelrc: false,
@@ -32,8 +28,7 @@ export default [
   // we must transpile back to ES5
   {
     input: 'src/index.js',
-    external: [],
-    output: [{ file: pkg.main, format: 'cjs' }],
+    output: { file: pkg.main, format: 'cjs' },
     plugins: [
       babel({
         babelrc: false,
@@ -49,7 +44,6 @@ export default [
   // transpilations so we can deliver ES6+ code
   {
     input: 'src/index.js',
-    external: [],
-    output: [{ file: pkg.module, format: 'es' }]
+    output: { file: pkg.module, format: 'es' }
   }
 ]
