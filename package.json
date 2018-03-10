@@ -7,7 +7,6 @@
   "browser": "dist/redux-starter-kit.umd.js",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
-  "private": false,
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-preset-env": "^1.6.1",
@@ -21,6 +20,7 @@
     "dev": "rollup -c -w",
     "test": "npm run build"
   },
+  "repository": "markerikson/redux-starter-kit",
   "files": [
     "dist"
   ],
@@ -30,5 +30,6 @@
     "redux-devtools-extension": "^2.13.2",
     "redux-thunk": "^2.2.0",
     "selectorator": "^3.3.0"
-  }
+  },
+  "sideEffects": false
 }
