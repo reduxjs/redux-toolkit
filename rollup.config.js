@@ -3,12 +3,15 @@ import babel from 'rollup-plugin-babel'
 import commonjs from 'rollup-plugin-commonjs'
 import pkg from './package.json'
 
+const input = 'src/index'
+const exclude = 'node_modules/**'
+
 export default [
   // browser-friendly UMD build
   {
-    input: 'src/index.js',
+    input,
     output: { name: 'redux-starter-kit', file: pkg.browser, format: 'umd' },
-    plugins: [babel({ exclude: 'node_modules/**' }), resolve(), commonjs()]
+    plugins: [babel({ exclude }), resolve(), commonjs()]
   },
 
   // CommonJS (for Node) and ES module (for bundlers) build.
@@ -17,11 +20,11 @@ export default [
   // builds from a single configuration where possible, using
   // the `targets` option which can specify `dest` and `format`)
   {
-    input: 'src/index.js',
+    input,
     output: [
       { file: pkg.main, format: 'cjs' },
       { file: pkg.module, format: 'es' }
     ],
-    plugins: babel({ exclude: 'node_modules/**' })
+    plugins: babel({ exclude })
   }
 ]
