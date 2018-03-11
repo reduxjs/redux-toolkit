@@ -66,7 +66,7 @@ Full example:
 ```js
 import {
   configureStore,
-  createDefaultMiddleware
+  getDefaultMiddleware
 } from '@acemarke/redux-starter-kit'
 
 // We'll use redux-logger just as an example of adding another middleware
@@ -83,7 +83,7 @@ const reducer = {
   visibility: visibilityReducer
 }
 
-const middleware = createDefaultMiddleware(logger)
+const middleware = [...getDefaultMiddleware(), logger]
 
 const preloadedState = {
   todos: [
@@ -114,9 +114,9 @@ const store = configureStore({
 // - The middleware, batch, and devtools enhancers were automatically composed together
 ```
 
-#### `createDefaultMiddleware`
+#### `getDefaultMiddleware`
 
-Adds redux-thunk to the given array of middlewares. Useful if you need to add custom middlewares without removing redux-thunk.
+`getDefaultMiddleware` is useful if you need to add custom middlewares without removing redux-starter-kit's default middleware. Currently it returns an array with `redux-thunk`.
 
 #### `createReducer`
 

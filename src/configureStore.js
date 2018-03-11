@@ -4,14 +4,14 @@ import thunk from 'redux-thunk'
 
 import isPlainObject from './isPlainObject'
 
-export function createDefaultMiddleware(...additional) {
-  return [thunk, ...additional]
+export function getDefaultMiddleware() {
+  return [thunk]
 }
 
 export function configureStore(options = {}) {
   const {
     reducer,
-    middleware = createDefaultMiddleware(),
+    middleware = getDefaultMiddleware(),
     devTools = true,
     preloadedState,
     enhancers = []
