@@ -10,16 +10,7 @@ export default [
   {
     input: 'src/index.js',
     output: { name: 'redux-starter-kit', file: pkg.browser, format: 'umd' },
-    plugins: [
-      babel({
-        babelrc: false,
-        exclude: 'node_modules/**',
-        runtimeHelpers: true,
-        presets: [['babel-preset-env', { modules: false }]]
-      }),
-      resolve(),
-      commonjs()
-    ]
+    plugins: [babel({ exclude: 'node_modules/**' }), resolve(), commonjs()]
   },
 
   // CommonJS (for Node)
@@ -29,14 +20,7 @@ export default [
   {
     input: 'src/index.js',
     output: { file: pkg.main, format: 'cjs' },
-    plugins: [
-      babel({
-        babelrc: false,
-        exclude: 'node_modules/**',
-        runtimeHelpers: true,
-        presets: [['babel-preset-env', { modules: false }]]
-      })
-    ]
+    plugins: [babel({ exclude: 'node_modules/**' })]
   },
 
   // ES module (for bundlers) build.
