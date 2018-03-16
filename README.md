@@ -1,8 +1,11 @@
 # redux-starter-kit
 
+[![npm version](https://img.shields.io/npm/v/@acemarke/redux-starter-kit.svg?style=flat-square)](https://www.npmjs.com/package/@acemarke/redux-starter-kit)
+[![npm downloads](https://img.shields.io/npm/dm/@acemarke/redux-starter-kit.svg?style=flat-square)](https://www.npmjs.com/package/@acemarke/redux-starter-kit)
+
 **A simple set of tools to make using Redux easier**
 
-[NPM: @acemarke/redux-starter-kit](https://www.npmjs.com/package/@acemarke/redux-starter-kit)
+`npm install @acemarke/redux-starter-kit`
 
 ### Purpose
 
