@@ -1,68 +1,63 @@
-import { createReducer } from "./createReducer";
+import { createReducer } from './createReducer'
 
 describe('createReducer', () => {
   describe('given impure reducers with immer', () => {
     function addTodo(state, action) {
-      const {newTodo} = action.payload;
+      const { newTodo } = action.payload
 
       // Can safely call state.push() here
-      state.push({...newTodo, completed : false});
+      state.push({ ...newTodo, completed: false })
     }
-    
+
     function toggleTodo(state, action) {
-      const {index} = action.payload;
+      const { index } = action.payload
 
-      const todo = state[index];
+      const todo = state[index]
       // Can directly modify the todo object
-      todo.completed = !todo.completed;
+      todo.completed = !todo.completed
     }
-    
-    const todosReducer = createReducer([], {
-      ADD_TODO : addTodo,
-      TOGGLE_TODO : toggleTodo
-    });
 
-    behavesLikeReducer(todosReducer);
-  });
-  
+    const todosReducer = createReducer([], {
+      ADD_TODO: addTodo,
+      TOGGLE_TODO: toggleTodo
+    })
+
+    behavesLikeReducer(todosReducer)
+  })
+
   describe('given pure reducers with immutable updates', () => {
     function addTodo(state, action) {
-      const {newTodo} = action.payload;
+      const { newTodo } = action.payload
 
       // Updates the state immutably without relying on immer
-      return [
-        ...state,
-        {...newTodo, completed : false},
-      ];
+      return [...state, { ...newTodo, completed: false }]
     }
-    
-    function toggleTodo(state, action) {
-      const {index} = action.payload;
 
-      const todo = state[index];
+    function toggleTodo(state, action) {
+      const { index } = action.payload
+
+      const todo = state[index]
       // Updates the todo object immutably withot relying on immer
       return state.map((todo, i) => {
-        if(i !== index) return todo;
-        return {...todo, completed : !todo.completed};
-      });
+        if (i !== index) return todo
+        return { ...todo, completed: !todo.completed }
+      })
     }
-    
+
     const todosReducer = createReducer([], {
-      ADD_TODO : addTodo,
-      TOGGLE_TODO : toggleTodo
-    });
-    
-    behavesLikeReducer(todosReducer);
-  });
+      ADD_TODO: addTodo,
+      TOGGLE_TODO: toggleTodo
+    })
+
+    behavesLikeReducer(todosReducer)
+  })
 })
 
 function behavesLikeReducer(todosReducer) {
   it('should handle initial state', () => {
-    expect(
-      todosReducer(undefined, {})
-    ).toEqual([])
+    expect(todosReducer(undefined, {})).toEqual([])
   })
-  
+
   it('should handle ADD_TODO', () => {
     expect(
       todosReducer([], {
@@ -77,71 +72,86 @@ function behavesLikeReducer(todosReducer) {
     ])
 
     expect(
-      todosReducer([
+      todosReducer(
+        [
+          {
+            text: 'Run the tests',
+            completed: false
+          }
+        ],
         {
-          text: 'Run the tests',
-          completed: false
+          type: 'ADD_TODO',
+          payload: { newTodo: { text: 'Use Redux' } }
         }
-      ], {
-        type: 'ADD_TODO',
-        payload: { newTodo: { text: 'Use Redux' } }
-      })
+      )
     ).toEqual([
       {
         text: 'Run the tests',
         completed: false
-      }, {
+      },
+      {
         text: 'Use Redux',
         completed: false
       }
     ])
 
     expect(
-      todosReducer([
+      todosReducer(
+        [
+          {
+            text: 'Run the tests',
+            completed: false
+          },
+          {
+            text: 'Use Redux',
+            completed: false
+          }
+        ],
         {
-          text: 'Run the tests',
-          completed: false
-        }, {
-          text: 'Use Redux',
-          completed: false
+          type: 'ADD_TODO',
+          payload: { newTodo: { text: 'Fix the tests' } }
         }
-      ], {
-        type: 'ADD_TODO',
-        payload: { newTodo: { text: 'Fix the tests' } }
-      })
+      )
     ).toEqual([
       {
         text: 'Run the tests',
         completed: false
-      }, {
+      },
+      {
         text: 'Use Redux',
         completed: false
-      }, {
+      },
+      {
         text: 'Fix the tests',
         completed: false
       }
     ])
   })
-  
+
   it('should handle TOGGLE_TODO', () => {
     expect(
-      todosReducer([
+      todosReducer(
+        [
+          {
+            text: 'Run the tests',
+            completed: false
+          },
+          {
+            text: 'Use Redux',
+            completed: false
+          }
+        ],
         {
-          text: 'Run the tests',
-          completed: false
-        }, {
-          text: 'Use Redux',
-          completed: false 
+          type: 'TOGGLE_TODO',
+          payload: { index: 0 }
         }
-      ], {
-        type: 'TOGGLE_TODO',
-        payload: { index: 0 }
-      })
+      )
     ).toEqual([
       {
         text: 'Run the tests',
         completed: true
-      }, {
+      },
+      {
         text: 'Use Redux',
         completed: false
       }
