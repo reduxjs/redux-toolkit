@@ -10,7 +10,15 @@
   "private": false,
   "devDependencies": {
     "babel-core": "^6.26.0",
+    "babel-eslint": "^7.2.3",
     "babel-preset-env": "^1.6.1",
+    "eslint": "^4.17.0",
+    "eslint-config-react-app": "^2.1.0",
+    "eslint-plugin-flowtype": "^2.44.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-jsx-a11y": "^5.1.1",
+    "eslint-plugin-react": "^7.6.1",
+    "prettier": "^1.10.2",
     "rollup": "^0.56.3",
     "rollup-plugin-babel": "^3.0.3",
     "rollup-plugin-commonjs": "^8.3.0",
@@ -19,7 +27,10 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "test": "npm run build"
+    "format": "prettier --write \"**/*.{js,md}\"",
+    "format:check": "prettier --list-different \"**/*.{js,md}\"",
+    "lint": "eslint src",
+    "prepare": "npm run format:check && npm run lint && npm run build"
   },
   "files": [
     "dist"
