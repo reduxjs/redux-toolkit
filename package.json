@@ -7,11 +7,11 @@
   "browser": "dist/redux-starter-kit.umd.js",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
-  "private": false,
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-eslint": "^7.2.3",
     "babel-jest": "^22.4.1",
+    "babel-plugin-external-helpers": "^6.22.0",
     "babel-preset-env": "^1.6.1",
     "eslint": "^4.17.0",
     "eslint-config-react-app": "^2.1.0",
@@ -35,6 +35,7 @@
     "dev": "rollup -c -w",
     "prepare": "npm run format:check && npm run lint && npm test && npm run build"
   },
+  "repository": "markerikson/redux-starter-kit",
   "files": [
     "dist"
   ],
@@ -47,5 +48,6 @@
   },
   "jest": {
     "testEnvironment": "node"
-  }
+  },
+  "sideEffects": false
 }
