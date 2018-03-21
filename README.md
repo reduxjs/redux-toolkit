@@ -233,3 +233,8 @@ The default immutable update function from the [`immer` library](https://github.
 #### `combineReducers`
 
 Redux's `combineReducers`, re-exported for convenience. While `configureStore` calls this internally, you may wish to call it yourself to compose multiple levels of slice reducers.
+
+#### `compose`
+
+Redux's `compose`. It composes functions from right to left.
+This is a functional programming utility. You might want to use it to apply several store custom enhancers/ functions in a row.
