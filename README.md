@@ -133,22 +133,18 @@ Example usage:
 ```js
 import { createReducer } from '@acemarke/redux-starter-kit'
 
-function addTodo(state, action) {
-  const { newTodo } = action.payload
-
+function addTodo(state, { id, text }) {
   // Can safely call state.push() here
-  state.push({ ...newTodo, completed: false })
+  state.push({ id, text, completed: false })
 }
 
-function toggleTodo(state, action) {
-  const { index } = action.payload
-
-  const todo = state[index]
+function toggleTodo(state, { id }) {
+  const todo = state.find(todo => todo.id === id)
   // Can directly modify the todo object
   todo.completed = !todo.completed
 }
 
-const todosReducer = createReducer([], {
+export default createReducer([], {
   ADD_TODO: addTodo,
   TOGGLE_TODO: toggleTodo
 })

@@ -26,13 +26,15 @@
     "rollup-plugin-node-resolve": "^3.0.3"
   },
   "scripts": {
-    "build": "rollup -c",
+    "build": "rollup -c && npm run build --prefix example",
     "dev": "rollup -c -w",
     "format": "prettier --write \"**/*.{js,md}\"",
     "format:check": "prettier --list-different \"**/*.{js,md}\"",
+    "install": "npm install --prefix example",
     "lint": "eslint src",
     "prepare": "npm run format:check && npm run lint && npm test && npm run build",
-    "test": "jest"
+    "start": "npm start --prefix example",
+    "test": "jest && npm test --prefix example"
   },
   "repository": "markerikson/redux-starter-kit",
   "files": [
