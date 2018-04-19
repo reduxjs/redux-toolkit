@@ -36,7 +36,6 @@ describe('createReducer', () => {
     function toggleTodo(state, action) {
       const { index } = action.payload
 
-      const todo = state[index]
       // Updates the todo object immutably withot relying on immer
       return state.map((todo, i) => {
         if (i !== index) return todo
