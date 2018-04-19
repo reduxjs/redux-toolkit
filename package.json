@@ -34,7 +34,7 @@
     "lint": "eslint src",
     "prepare": "npm run format:check && npm run lint && npm test && npm run build",
     "start": "npm start --prefix example",
-    "test": "jest && npm test --prefix example"
+    "test": "jest && CI=true npm test --prefix example"
   },
   "repository": "markerikson/redux-starter-kit",
   "files": [
