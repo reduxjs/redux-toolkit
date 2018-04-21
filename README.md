@@ -25,7 +25,6 @@ This package is _not_ intended to solve every possible complaint about Redux, an
 
 * A `configureStore()` function with simplified configuration options. It can automatically combine your slice reducers, adds whatever Redux middleware you supply, includes `redux-thunk` by default, and enables use of the Redux DevTools Extension.
 * A `createReducer()` utility that lets you supply a lookup table of action types to case reducer functions, rather than writing switch statements. In addition, it automatically uses the [`immer` library](https://github.com/mweststrate/immer) to let you write simpler immutable updates with normal mutative code, like `state.todos[3].completed = true`.
-* An improved version of the widely used `createSelector` utility for creating memoized selector functions, which can accept string keypaths as "input selectors" (re-exported from the [`selectorator` library](https://github.com/planttheidea/selectorator)).
 
 ### API Reference
 
@@ -182,59 +181,3 @@ const todosReducer = createReducer([], {
   TOGGLE_TODO: toggleTodo
 })
 ```
-
-#### `createSelector`
-
-The `createSelector` utility from the [`selectorator` library](https://github.com/planttheidea/selectorator), re-exported for ease of use. It acts as a superset of the standard `createSelector` function from [Reselect](https://github.com/reactjs/reselect). The primary improvements are the ability to define "input selectors" using string keypaths, or return an object result based on an object of keypaths. It also accepts an object of customization options for more specific use cases.
-
-For more specifics, see the [`selectorator` usage documentation](https://github.com/planttheidea/selectorator#usage).
-
-```js
-function createSelector(
-    // Can either be:
-    //    - An array containing selector functions, string keypaths, and argument objects
-    //    - An object whose keys are selector functions and string keypaths
-    paths : Array<Function | string | Object> | Object<string, string | Function>
-)
-```
-
-Example usage:
-
-```js
-// Define input selector using a string keypath
-const getSubtotal = createSelector(['shop.items'], items => {
-  // return value here
-})
-
-// Define input selectors as a mix of other selectors and string keypaths
-const getTax = createSelector(
-  [getSubtotal, 'shop.taxPercent'],
-  (subtotal, taxPercent) => {
-    // return value here
-  }
-)
-
-// Define input selector using a custom argument index to access a prop
-const getTabContent = createSelector(
-  [{ path: 'tabIndex', argIndex: 1 }],
-  tabIndex => {
-    // return value here
-  }
-)
-
-const getContents = createSelector({ foo: 'foo', bar: 'nested.bar' })
-// Returns an object like:  {foo, bar}
-```
-
-#### `createNextState`
-
-The default immutable update function from the [`immer` library](https://github.com/mweststrate/immer#api), re-exported here as `createNextState` (also commonly referred to as `produce`)
-
-#### `combineReducers`
-
-Redux's `combineReducers`, re-exported for convenience. While `configureStore` calls this internally, you may wish to call it yourself to compose multiple levels of slice reducers.
-
-#### `compose`
-
-Redux's `compose`. It composes functions from right to left.
-This is a functional programming utility. You might want to use it to apply several store custom enhancers/ functions in a row.
