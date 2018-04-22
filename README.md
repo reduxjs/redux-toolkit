@@ -186,11 +186,9 @@ const todosReducer = createReducer([], {
 
 While `redux-starter-kit` automatically sets up a store for you with recommended middlewares and some additional helper functions, we have recommendations for optional packages that you may find useful in your Redux application code.
 
-#### [`selectorator`](https://github.com/planttheidea/selectorator)
+#### [`selectorator`](https://github.com/planttheidea/selectorator#usage)
 
 It acts as a superset of the standard `createSelector` function from [Reselect](https://github.com/reactjs/reselect). The primary improvements are the ability to define "input selectors" using string keypaths, or return an object result based on an object of keypaths. It also accepts an object of customization options for more specific use cases.
-
-For more specifics, see the [`selectorator` usage documentation](https://github.com/planttheidea/selectorator#usage).
 
 ```js
 function createSelector(
