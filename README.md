@@ -181,3 +181,58 @@ const todosReducer = createReducer([], {
   TOGGLE_TODO: toggleTodo
 })
 ```
+
+### Recommended Packages
+
+While `redux-starter-kit` automatically sets up a store for you with recommended middlewares and some additional helper functions, we have recommendations for optional packages that you may find useful in your Redux application code.
+
+#### [`selectorator`](https://github.com/planttheidea/selectorator)
+
+It acts as a superset of the standard `createSelector` function from [Reselect](https://github.com/reactjs/reselect). The primary improvements are the ability to define "input selectors" using string keypaths, or return an object result based on an object of keypaths. It also accepts an object of customization options for more specific use cases.
+
+For more specifics, see the [`selectorator` usage documentation](https://github.com/planttheidea/selectorator#usage).
+
+```js
+function createSelector(
+    // Can either be:
+    //    - An array containing selector functions, string keypaths, and argument objects
+    //    - An object whose keys are selector functions and string keypaths
+    paths : Array<Function | string | Object> | Object<string, string | Function>
+)
+```
+
+Example usage:
+
+```js
+// Define input selector using a string keypath
+const getSubtotal = createSelector(['shop.items'], items => {
+  // return value here
+})
+
+// Define input selectors as a mix of other selectors and string keypaths
+const getTax = createSelector(
+  [getSubtotal, 'shop.taxPercent'],
+  (subtotal, taxPercent) => {
+    // return value here
+  }
+)
+
+// Define input selector using a custom argument index to access a prop
+const getTabContent = createSelector(
+  [{ path: 'tabIndex', argIndex: 1 }],
+  tabIndex => {
+    // return value here
+  }
+)
+
+const getContents = createSelector({ foo: 'foo', bar: 'nested.bar' })
+// Returns an object like:  {foo, bar}
+```
+
+#### [`immer`](https://github.com/mweststrate/immer#api)
+
+Our `createReducer` function already uses Immer to allow for easier immutable updates in reduces, but you can also install it and use `createNextState` directly (also commonly referred to as `produce`).
+
+#### [`redux`](https://github.com/reactjs/redux)
+
+We handle the tricky parts and majority of the boilerplate of configuring a Redux store with `configureStore`, but Redux has several other utility functions built in that you may find useful. `combineReducers` is called by `configureStore` internally, but you may wish to call it yourself to compose multiple levels of slice reducers. `compose` is a functional programming utility that composes functions from right to left. You might want to use it to apply several store custom enhancers/ functions in a row.
