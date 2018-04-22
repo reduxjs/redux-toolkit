@@ -231,7 +231,7 @@ const getContents = createSelector({ foo: 'foo', bar: 'nested.bar' })
 
 #### [`immer`](https://github.com/mweststrate/immer#api)
 
-Our `createReducer` function already uses Immer to allow for easier immutable updates in reduces, but you can also install it and use `createNextState` directly (also commonly referred to as `produce`).
+Our `createReducer` function already uses Immer to allow for easier immutable updates in reducers, but you can also install it and use `createNextState` directly (also commonly referred to as `produce`).
 
 #### [`redux`](https://github.com/reactjs/redux)
 
