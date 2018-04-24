@@ -23,7 +23,8 @@
     "rollup": "^0.56.3",
     "rollup-plugin-babel": "^3.0.3",
     "rollup-plugin-commonjs": "^8.3.0",
-    "rollup-plugin-node-resolve": "^3.0.3"
+    "rollup-plugin-node-resolve": "^3.0.3",
+    "typescript": "^2.8.3"
   },
   "scripts": {
     "build": "rollup -c",
@@ -31,8 +32,9 @@
     "format": "prettier --write \"**/*.{js,md}\"",
     "format:check": "prettier --list-different \"**/*.{js,md}\"",
     "lint": "eslint src",
-    "prepare": "npm run format:check && npm run lint && npm test && npm run build",
-    "test": "jest"
+    "prepare": "npm run format:check && npm run lint && npm run type && npm test && npm run build",
+    "test": "jest",
+    "type": "tsc"
   },
   "repository": "markerikson/redux-starter-kit",
   "files": [
