@@ -24,6 +24,7 @@
     "rollup-plugin-babel": "^3.0.3",
     "rollup-plugin-commonjs": "^8.3.0",
     "rollup-plugin-node-resolve": "^3.0.3",
+    "ts-jest": "^22.4.4",
     "typescript": "^2.8.3"
   },
   "scripts": {
@@ -45,8 +46,7 @@
     "redux": "^3.7.2",
     "redux-devtools-extension": "^2.13.2",
     "redux-thunk": "^2.2.0",
-    "selectorator": "^3.3.0",
-    "ts-jest": "^22.4.4"
+    "selectorator": "^3.3.0"
   },
   "jest": {
     "moduleFileExtensions": [
