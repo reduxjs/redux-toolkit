@@ -45,10 +45,23 @@
     "redux": "^3.7.2",
     "redux-devtools-extension": "^2.13.2",
     "redux-thunk": "^2.2.0",
-    "selectorator": "^3.3.0"
+    "selectorator": "^3.3.0",
+    "ts-jest": "^22.4.4"
   },
   "jest": {
-    "testEnvironment": "node"
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "testEnvironment": "node",
+    "transform": {
+      "^.+\\.jsx?$": "babel-jest",
+      "^.+\\.tsx?$": "ts-jest"
+    }
   },
   "sideEffects": false
 }
