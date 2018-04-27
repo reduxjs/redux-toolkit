@@ -1,10 +1,9 @@
 import resolve from 'rollup-plugin-node-resolve'
-import babel from 'rollup-plugin-babel'
 import commonjs from 'rollup-plugin-commonjs'
+import typescript from 'rollup-plugin-typescript'
 import pkg from './package.json'
 
-const input = 'src/index'
-const exclude = 'node_modules/**'
+const input = 'src/index.ts'
 
 export default [
   // browser-friendly UMD build
@@ -15,13 +14,7 @@ export default [
       file: pkg.browser,
       format: 'umd'
     },
-    plugins: [
-      babel({
-        exclude
-      }),
-      resolve(),
-      commonjs()
-    ]
+    plugins: [typescript(), resolve(), commonjs()]
   },
 
   // CommonJS (for Node) and ES module (for bundlers) build.
@@ -36,6 +29,6 @@ export default [
       { file: pkg.module, format: 'es' }
     ],
     external: Object.keys(pkg.dependencies),
-    plugins: babel({ exclude })
+    plugins: typescript()
   }
 ]

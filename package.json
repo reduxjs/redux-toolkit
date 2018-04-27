@@ -8,22 +8,12 @@
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
   "devDependencies": {
-    "babel-core": "^6.26.0",
-    "babel-eslint": "^7.2.3",
-    "babel-plugin-external-helpers": "^6.22.0",
-    "babel-preset-env": "^1.6.1",
-    "eslint": "^4.17.0",
-    "eslint-config-react-app": "^2.1.0",
-    "eslint-plugin-flowtype": "^2.44.0",
-    "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-jsx-a11y": "^5.1.1",
-    "eslint-plugin-react": "^7.6.1",
     "jest": "^22.4.2",
     "prettier": "^1.10.2",
     "rollup": "^0.56.3",
-    "rollup-plugin-babel": "^3.0.3",
     "rollup-plugin-commonjs": "^8.3.0",
     "rollup-plugin-node-resolve": "^3.0.3",
+    "rollup-plugin-typescript": "^0.8.1",
     "ts-jest": "^22.4.4",
     "typescript": "^2.8.3"
   },
@@ -32,10 +22,8 @@
     "dev": "rollup -c -w",
     "format": "prettier --write \"**/*.{js,md}\"",
     "format:check": "prettier --list-different \"**/*.{js,md}\"",
-    "lint": "eslint src",
-    "prepare": "npm run format:check && npm run lint && npm run type && npm test && npm run build",
-    "test": "jest",
-    "type": "tsc"
+    "prepare": "npm run format:check && npm test && npm run build",
+    "test": "jest"
   },
   "repository": "markerikson/redux-starter-kit",
   "files": [
@@ -58,8 +46,8 @@
       "node"
     ],
     "testEnvironment": "node",
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "transform": {
-      "^.+\\.jsx?$": "babel-jest",
       "^.+\\.tsx?$": "ts-jest"
     }
   },
