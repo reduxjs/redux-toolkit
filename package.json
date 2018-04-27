@@ -8,6 +8,7 @@
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
   "devDependencies": {
+    "@types/jest": "^22.2.3",
     "jest": "^22.4.2",
     "prettier": "^1.10.2",
     "rollup": "^0.56.3",
@@ -22,8 +23,9 @@
     "dev": "rollup -c -w",
     "format": "prettier --write \"**/*.{js,md}\"",
     "format:check": "prettier --list-different \"**/*.{js,md}\"",
-    "prepare": "npm run format:check && npm test && npm run build",
-    "test": "jest"
+    "prepare": "npm run format:check && npm run type && npm test && npm run build",
+    "test": "jest",
+    "type": "tsc --noEmit"
   },
   "repository": "markerikson/redux-starter-kit",
   "files": [
