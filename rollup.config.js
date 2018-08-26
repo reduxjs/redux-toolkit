@@ -4,7 +4,7 @@ import typescript from 'rollup-plugin-typescript'
 import pkg from './package.json'
 import latestTypescript from 'typescript'
 
-const input = 'src/index.ts'
+const input = 'src/index.d.ts'
 
 export default [
   // browser-friendly UMD build
