@@ -1,20 +1,19 @@
 import {
+  createStore,
+  compose,
+  applyMiddleware,
+  combineReducers,
   Middleware,
   Reducer,
   ReducersMapObject,
-  Store,
-  StoreEnhancer,
-  applyMiddleware,
-  combineReducers,
-  compose,
-  createStore
+  StoreEnhancer
 } from 'redux'
 import { composeWithDevTools } from 'redux-devtools-extension'
 import thunk from 'redux-thunk'
 
 import isPlainObject from './isPlainObject'
 
-export function getDefaultMiddleware(): Middleware[] {
+export function getDefaultMiddleware() {
   return [thunk]
 }
 
@@ -26,7 +25,7 @@ export function configureStore<S>(
     preloadedState?: S
     enhancers?: StoreEnhancer<S>[]
   } = {}
-): Store<S> {
+) {
   const {
     reducer,
     middleware = getDefaultMiddleware(),
@@ -35,7 +34,7 @@ export function configureStore<S>(
     enhancers = []
   } = options
 
-  let rootReducer: Reducer<S>
+  let rootReducer
 
   if (typeof reducer === 'function') {
     rootReducer = reducer
@@ -47,21 +46,17 @@ export function configureStore<S>(
     )
   }
 
-  const middlewareEnhancer: StoreEnhancer<S> = applyMiddleware(...middleware)
+  const middlewareEnhancer = applyMiddleware(...middleware)
 
-  const storeEnhancers: StoreEnhancer<S>[] = [middlewareEnhancer, ...enhancers]
+  const storeEnhancers = [middlewareEnhancer, ...enhancers]
 
   let finalCompose: (...funcs: Function[]) => StoreEnhancer<S> = devTools
     ? composeWithDevTools
     : compose
 
-  const composedEnhancer: StoreEnhancer<S> = finalCompose(...storeEnhancers)
+  const composedEnhancer = finalCompose(...storeEnhancers)
 
-  const store: Store<S> = createStore(
-    rootReducer,
-    preloadedState,
-    composedEnhancer
-  )
+  const store = createStore(rootReducer, preloadedState, composedEnhancer)
 
   return store
 }
