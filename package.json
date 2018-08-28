@@ -26,7 +26,7 @@
     "format:check": "prettier --list-different \"**/*.{js,md}\"",
     "prepare": "npm run format:check && npm run type && npm test && npm run build",
     "test": "jest",
-    "type": "tsc --noEmit"
+    "type": "tsc"
   },
   "repository": "markerikson/redux-starter-kit",
   "files": [
