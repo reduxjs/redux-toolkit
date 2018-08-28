@@ -8,23 +8,35 @@
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
   "devDependencies": {
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/preset-typescript": "^7.0.0",
     "@types/jest": "^23.3.1",
     "@types/node": "^10.9.2",
-    "jest": "^23.5.0",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-eslint": "^8.2.2",
+    "eslint": "^4.17.0",
+    "eslint-config-react-app": "^3.0.0-next.a671462c",
+    "eslint-plugin-flowtype": "^2.44.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-jsx-a11y": "^6.1.1",
+    "eslint-plugin-react": "^7.6.1",
+    "jest": "^22.4.2",
     "prettier": "^1.10.2",
-    "rollup": "^0.56.3",
+    "rollup": "^0.65.0",
+    "rollup-plugin-babel": "^4.0.2",
     "rollup-plugin-commonjs": "^8.3.0",
     "rollup-plugin-node-resolve": "^3.0.3",
-    "rollup-plugin-typescript": "^0.8.1",
-    "ts-jest": "^23.1.4",
-    "typescript": "^3.0.1"
+    "typescript": "^3.0.1",
+    "typescript-eslint-parser": "^18.0.0"
   },
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "format": "prettier --write \"**/*.{js,md}\"",
-    "format:check": "prettier --list-different \"**/*.{js,md}\"",
-    "prepare": "npm run format:check && npm run type && npm test && npm run build",
+    "format": "prettier --write \"**/*.{js,ts,md}\"",
+    "format:check": "prettier --list-different \"**/*.{js,ts,md}\"",
+    "lint": "eslint --ext js,ts src",
+    "prepare": "npm run format:check && npm run lint && npm run type && npm test && npm run build",
     "test": "jest",
     "type": "tsc"
   },
@@ -51,7 +63,7 @@
     "testEnvironment": "node",
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "transform": {
-      "^.+\\.tsx?$": "ts-jest"
+      "^.+\\.tsx?$": "babel-jest"
     }
   },
   "sideEffects": false

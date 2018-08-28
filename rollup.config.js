@@ -1,10 +1,14 @@
 import resolve from 'rollup-plugin-node-resolve'
+import babel from 'rollup-plugin-babel'
 import commonjs from 'rollup-plugin-commonjs'
-import typescript from 'rollup-plugin-typescript'
 import pkg from './package.json'
-import latestTypescript from 'typescript'
 
 const input = 'src/index.d.ts'
+const extensions = ['.ts']
+const plugins = [
+  babel({ extensions, exclude: 'node_modules/**' }),
+  resolve({ extensions })
+]
 
 export default [
   // browser-friendly UMD build
@@ -15,11 +19,7 @@ export default [
       file: pkg.browser,
       format: 'umd'
     },
-    plugins: [
-      typescript({ typescript: latestTypescript }),
-      resolve(),
-      commonjs()
-    ]
+    plugins: [...plugins, commonjs()]
   },
 
   // CommonJS (for Node) and ES module (for bundlers) build.
@@ -34,6 +34,6 @@ export default [
       { file: pkg.module, format: 'es' }
     ],
     external: Object.keys(pkg.dependencies),
-    plugins: typescript({ typescript: latestTypescript })
+    plugins
   }
 ]
