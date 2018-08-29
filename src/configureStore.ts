@@ -6,7 +6,8 @@ import {
   Middleware,
   Reducer,
   ReducersMapObject,
-  StoreEnhancer
+  StoreEnhancer,
+  DeepPartial
 } from 'redux'
 import { composeWithDevTools } from 'redux-devtools-extension'
 import thunk from 'redux-thunk'
@@ -17,46 +18,41 @@ export function getDefaultMiddleware() {
   return [thunk]
 }
 
-export function configureStore<S>(
-  options: {
-    reducer?: Reducer<S> | ReducersMapObject
-    middleware?: Middleware[]
-    devTools?: boolean
-    preloadedState?: S
-    enhancers?: StoreEnhancer<S>[]
-  } = {}
-) {
-  const {
-    reducer,
-    middleware = getDefaultMiddleware(),
-    devTools = true,
-    preloadedState,
-    enhancers = []
-  } = options
+export function configureStore<S>(options: {
+  reducer: Reducer<S> | ReducersMapObject<S>
+  middleware?: Middleware[]
+  devTools?: boolean
+  preloadedState?: DeepPartial<S>
+  enhancers?: StoreEnhancer[]
+}) {
+  options = options || {}
 
   let rootReducer
 
-  if (typeof reducer === 'function') {
-    rootReducer = reducer
-  } else if (isPlainObject(reducer)) {
-    rootReducer = combineReducers(reducer)
+  if (typeof options.reducer === 'function') {
+    rootReducer = options.reducer
+  } else if (isPlainObject(options.reducer)) {
+    rootReducer = combineReducers(options.reducer)
   } else {
     throw new Error(
       'Reducer argument must be a function or an object of functions that can be passed to combineReducers'
     )
   }
 
-  const middlewareEnhancer = applyMiddleware(...middleware)
+  const middlewareEnhancer = applyMiddleware(
+    ...(options.middleware || getDefaultMiddleware())
+  )
 
-  const storeEnhancers = [middlewareEnhancer, ...enhancers]
+  const storeEnhancers = [middlewareEnhancer, ...(options.enhancers || [])]
 
-  let finalCompose: (...funcs: Function[]) => StoreEnhancer<S> = devTools
-    ? composeWithDevTools
-    : compose
+  let finalCompose: (...funcs: Function[]) => StoreEnhancer =
+    options.devTools !== false ? composeWithDevTools : compose
 
   const composedEnhancer = finalCompose(...storeEnhancers)
 
-  const store = createStore(rootReducer, preloadedState, composedEnhancer)
+  const store = options.preloadedState
+    ? createStore(rootReducer, options.preloadedState, composedEnhancer)
+    : createStore(rootReducer, composedEnhancer)
 
   return store
 }

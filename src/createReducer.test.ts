@@ -1,15 +1,31 @@
+import { Reducer } from 'redux'
 import { createReducer } from './createReducer'
+
+interface Todo {
+  text: string
+  completed: boolean
+}
+
+type State = Todo[]
+
+interface AddTodo {
+  payload: { newTodo: { text: string } }
+}
+
+interface ToggleTodo {
+  payload: { index: number }
+}
 
 describe('createReducer', () => {
   describe('given impure reducers with immer', () => {
-    function addTodo(state, action) {
+    function addTodo(state: State = [], action: AddTodo) {
       const { newTodo } = action.payload
 
       // Can safely call state.push() here
       state.push({ ...newTodo, completed: false })
     }
 
-    function toggleTodo(state, action) {
+    function toggleTodo(state: State = [], action: ToggleTodo) {
       const { index } = action.payload
 
       const todo = state[index]
@@ -26,14 +42,14 @@ describe('createReducer', () => {
   })
 
   describe('given pure reducers with immutable updates', () => {
-    function addTodo(state, action) {
+    function addTodo(state: State = [], action: AddTodo) {
       const { newTodo } = action.payload
 
       // Updates the state immutably without relying on immer
       return [...state, { ...newTodo, completed: false }]
     }
 
-    function toggleTodo(state, action) {
+    function toggleTodo(state: State = [], action: ToggleTodo) {
       const { index } = action.payload
 
       // Updates the todo object immutably withot relying on immer
@@ -52,9 +68,9 @@ describe('createReducer', () => {
   })
 })
 
-function behavesLikeReducer(todosReducer) {
+function behavesLikeReducer(todosReducer: Reducer<State>) {
   it('should handle initial state', () => {
-    expect(todosReducer(undefined, {})).toEqual([])
+    expect(todosReducer(undefined, { type: 'INIT' })).toEqual([])
   })
 
   it('should handle ADD_TODO', () => {

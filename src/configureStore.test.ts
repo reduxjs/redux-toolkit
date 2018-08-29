@@ -16,7 +16,9 @@ describe('configureStore', () => {
   jest.spyOn(redux, 'compose')
   jest.spyOn(redux, 'createStore')
   jest.spyOn(devtools, 'composeWithDevTools')
-  function reducer() {}
+  function reducer() {
+    return true
+  }
 
   beforeEach(() => jest.clearAllMocks())
 
@@ -27,7 +29,6 @@ describe('configureStore', () => {
       expect(devtools.composeWithDevTools).toHaveBeenCalled()
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
-        undefined,
         expect.any(Function)
       )
     })
@@ -46,7 +47,6 @@ describe('configureStore', () => {
       expect(devtools.composeWithDevTools).toHaveBeenCalled()
       expect(redux.createStore).toHaveBeenCalledWith(
         expect.any(Function),
-        undefined,
         expect.any(Function)
       )
     })
@@ -67,7 +67,6 @@ describe('configureStore', () => {
       expect(devtools.composeWithDevTools).toHaveBeenCalled()
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
-        undefined,
         expect.any(Function)
       )
     })
@@ -75,7 +74,7 @@ describe('configureStore', () => {
 
   describe('given custom middleware', () => {
     it('calls createStore with custom middleware and without default middleware', () => {
-      const thank = store => next => action => next(action)
+      const thank: redux.Middleware = store => next => action => next(action)
       expect(configureStore({ middleware: [thank], reducer })).toBeInstanceOf(
         Object
       )
@@ -83,7 +82,6 @@ describe('configureStore', () => {
       expect(devtools.composeWithDevTools).toHaveBeenCalled()
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
-        undefined,
         expect.any(Function)
       )
     })
@@ -98,7 +96,6 @@ describe('configureStore', () => {
       expect(redux.compose).toHaveBeenCalled()
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
-        undefined,
         expect.any(Function)
       )
     })
@@ -106,12 +103,14 @@ describe('configureStore', () => {
 
   describe('given preloadedState', () => {
     it('calls createStore with preloadedState', () => {
-      expect(configureStore({ reducer })).toBeInstanceOf(Object)
+      expect(configureStore({ preloadedState: true, reducer })).toBeInstanceOf(
+        Object
+      )
       expect(redux.applyMiddleware).toHaveBeenCalledWith(thunk)
       expect(devtools.composeWithDevTools).toHaveBeenCalled()
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
-        undefined,
+        true,
         expect.any(Function)
       )
     })
@@ -119,7 +118,7 @@ describe('configureStore', () => {
 
   describe('given enhancers', () => {
     it('calls createStore with enhancers', () => {
-      const enhancer = next => next
+      const enhancer: redux.StoreEnhancer = next => next
       expect(configureStore({ enhancers: [enhancer], reducer })).toBeInstanceOf(
         Object
       )
@@ -127,7 +126,6 @@ describe('configureStore', () => {
       expect(devtools.composeWithDevTools).toHaveBeenCalled()
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
-        undefined,
         expect.any(Function)
       )
     })

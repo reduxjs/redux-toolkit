@@ -1,11 +1,12 @@
 import createNextState from 'immer'
-import { Reducer, ReducersMapObject } from 'redux'
+
+export type ImpureReducer<S> = (state: S | undefined, action: any) => S | void
 
 export function createReducer<S>(
   initialState: S,
-  actionsMap: ReducersMapObject
-): Reducer<S> {
-  return function(state = initialState, action) {
+  actionsMap: Record<string, ImpureReducer<S>>
+) {
+  return function(state = initialState, action: any) {
     return createNextState(state, draft => {
       const caseReducer = actionsMap[action.type]
 

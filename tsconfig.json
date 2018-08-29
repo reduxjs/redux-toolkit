@@ -2,6 +2,7 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "noEmit": true,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "strict": true
   }
 }

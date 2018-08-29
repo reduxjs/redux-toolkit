@@ -3,8 +3,8 @@ import vm from 'vm'
 
 describe('isPlainObject', () => {
   it('returns true only if plain object', () => {
-    function Test() {
-      this.prop = 1
+    class Test {
+      prop = 1
     }
 
     const sandbox = { fromAnotherRealm: false }
