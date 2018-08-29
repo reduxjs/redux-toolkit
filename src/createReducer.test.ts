@@ -1,12 +1,10 @@
 import { Reducer } from 'redux'
 import { createReducer } from './createReducer'
 
-interface Todo {
+type State = {
   text: string
   completed: boolean
-}
-
-type State = Todo[]
+}[]
 
 interface AddTodo {
   payload: { newTodo: { text: string } }
