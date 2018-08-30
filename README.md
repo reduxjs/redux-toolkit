@@ -25,7 +25,6 @@ This package is _not_ intended to solve every possible complaint about Redux, an
 
 * A `configureStore()` function with simplified configuration options. It can automatically combine your slice reducers, adds whatever Redux middleware you supply, includes `redux-thunk` by default, and enables use of the Redux DevTools Extension.
 * A `createReducer()` utility that lets you supply a lookup table of action types to case reducer functions, rather than writing switch statements. In addition, it automatically uses the [`immer` library](https://github.com/mweststrate/immer) to let you write simpler immutable updates with normal mutative code, like `state.todos[3].completed = true`.
-* An improved version of the widely used `createSelector` utility for creating memoized selector functions, which can accept string keypaths as "input selectors" (re-exported from the [`selectorator` library](https://github.com/planttheidea/selectorator)).
 
 ### API Reference
 
@@ -183,11 +182,13 @@ const todosReducer = createReducer([], {
 })
 ```
 
-#### `createSelector`
+### Recommended Packages
 
-The `createSelector` utility from the [`selectorator` library](https://github.com/planttheidea/selectorator), re-exported for ease of use. It acts as a superset of the standard `createSelector` function from [Reselect](https://github.com/reactjs/reselect). The primary improvements are the ability to define "input selectors" using string keypaths, or return an object result based on an object of keypaths. It also accepts an object of customization options for more specific use cases.
+While `redux-starter-kit` automatically sets up a store for you with recommended middlewares and some additional helper functions, we have recommendations for optional packages that you may find useful in your Redux application code.
 
-For more specifics, see the [`selectorator` usage documentation](https://github.com/planttheidea/selectorator#usage).
+#### [`selectorator`](https://github.com/planttheidea/selectorator#usage)
+
+It acts as a superset of the standard `createSelector` function from [Reselect](https://github.com/reactjs/reselect). The primary improvements are the ability to define "input selectors" using string keypaths, or return an object result based on an object of keypaths. It also accepts an object of customization options for more specific use cases.
 
 ```js
 function createSelector(
@@ -226,15 +227,10 @@ const getContents = createSelector({ foo: 'foo', bar: 'nested.bar' })
 // Returns an object like:  {foo, bar}
 ```
 
-#### `createNextState`
+#### [`immer`](https://github.com/mweststrate/immer#api)
 
-The default immutable update function from the [`immer` library](https://github.com/mweststrate/immer#api), re-exported here as `createNextState` (also commonly referred to as `produce`)
+Our `createReducer` function already uses Immer to allow for easier immutable updates in reducers, but you can also install it and use `createNextState` directly (also commonly referred to as `produce`).
 
-#### `combineReducers`
+#### [`redux`](https://github.com/reactjs/redux)
 
-Redux's `combineReducers`, re-exported for convenience. While `configureStore` calls this internally, you may wish to call it yourself to compose multiple levels of slice reducers.
-
-#### `compose`
-
-Redux's `compose`. It composes functions from right to left.
-This is a functional programming utility. You might want to use it to apply several store custom enhancers/ functions in a row.
+We handle the tricky parts and majority of the boilerplate of configuring a Redux store with `configureStore`, but Redux has several other utility functions built in that you may find useful. `combineReducers` is called by `configureStore` internally, but you may wish to call it yourself to compose multiple levels of slice reducers. `compose` is a functional programming utility that composes functions from right to left. You might want to use it to apply several store custom enhancers/ functions in a row.
