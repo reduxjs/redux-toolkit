@@ -1,6 +1,6 @@
 import createNextState from 'immer'
 
-export type ImpureReducer<S> = (state: S | undefined, action: any) => S | void
+export type ImpureReducer<S> = (state: S, action: any) => S | void
 
 export function createReducer<S>(
   initialState: S,

@@ -16,14 +16,14 @@ interface ToggleTodo {
 
 describe('createReducer', () => {
   describe('given impure reducers with immer', () => {
-    function addTodo(state: State = [], action: AddTodo) {
+    function addTodo(state: State, action: AddTodo) {
       const { newTodo } = action.payload
 
       // Can safely call state.push() here
       state.push({ ...newTodo, completed: false })
     }
 
-    function toggleTodo(state: State = [], action: ToggleTodo) {
+    function toggleTodo(state: State, action: ToggleTodo) {
       const { index } = action.payload
 
       const todo = state[index]
@@ -40,14 +40,14 @@ describe('createReducer', () => {
   })
 
   describe('given pure reducers with immutable updates', () => {
-    function addTodo(state: State = [], action: AddTodo) {
+    function addTodo(state: State, action: AddTodo) {
       const { newTodo } = action.payload
 
       // Updates the state immutably without relying on immer
       return [...state, { ...newTodo, completed: false }]
     }
 
-    function toggleTodo(state: State = [], action: ToggleTodo) {
+    function toggleTodo(state: State, action: ToggleTodo) {
       const { index } = action.payload
 
       // Updates the todo object immutably withot relying on immer
