@@ -1,6 +1,5 @@
-import createNextState from 'immer';
+import { createReducer } from './createReducer';
 
-const defaultReducer = (state) => state;
 const getType = (slice, action) =>
   slice ? `${slice}/${action}` : action;
 
@@ -19,11 +18,7 @@ export default function createSlice({
     {},
   );
 
-  const reducer = (state = initialState, { type, payload }) => {
-    const actionReducer = reducerMap[type] || defaultReducer;
-    const produce = (draft) => actionReducer(draft, payload);
-    return createNextState(state, produce);
-  };
+  const reducer = createReducer(initialState, reducerMap);
 
   const actionMap = actionKeys.reduce(
     (map, action) => {
