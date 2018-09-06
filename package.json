@@ -35,7 +35,6 @@
     "prepare": "npm run format:check && npm run lint && npm test && npm run build",
     "test": "jest"
   },
-  "repository": "markerikson/redux-starter-kit",
   "files": [
     "dist"
   ],
