@@ -1,7 +1,8 @@
 {
   "name": "@acemarke/redux-starter-kit",
-  "version": "0.0.1",
+  "version": "0.0.7",
   "description": "A simple set of tools to make using Redux easier",
+  "repository": "https://github.com/markerikson/redux-starter-kit",
   "main": "dist/redux-starter-kit.cjs.js",
   "module": "dist/redux-starter-kit.esm.js",
   "browser": "dist/redux-starter-kit.umd.js",
@@ -41,7 +42,6 @@
     "test": "jest",
     "type": "tsc"
   },
-  "repository": "markerikson/redux-starter-kit",
   "files": [
     "dist"
   ],
