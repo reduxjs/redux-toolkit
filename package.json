@@ -14,8 +14,6 @@
     "@babel/preset-env": "^7.0.0",
     "@babel/preset-typescript": "^7.0.0",
     "@types/jest": "^23.3.1",
-    "@types/node": "^10.9.2",
-    "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "^8.2.2",
     "eslint": "^4.17.0",
     "eslint-config-react-app": "^3.0.0-next.a671462c",
