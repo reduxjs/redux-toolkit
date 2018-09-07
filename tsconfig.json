@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "dist",
+    "emitDeclarationOnly": true,
     "esModuleInterop": true,
-    "noEmit": true,
     "noUnusedLocals": true,
     "strict": true
   }
