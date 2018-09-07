@@ -6,6 +6,7 @@
   "main": "dist/redux-starter-kit.cjs.js",
   "module": "dist/redux-starter-kit.esm.js",
   "browser": "dist/redux-starter-kit.umd.js",
+  "types": "dist/index.d.ts",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
   "devDependencies": {
