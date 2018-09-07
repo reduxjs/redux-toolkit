@@ -1,76 +1,72 @@
 import { Reducer } from 'redux'
 import { createReducer } from './createReducer'
 
-type State = {
+interface Todo {
   text: string
   completed: boolean
-}[]
+}
+
+type State = Todo[]
 
 interface AddTodo {
+  type: 'ADD_TODO'
   payload: { newTodo: { text: string } }
 }
 
 interface ToggleTodo {
+  type: 'TOGGLE_TODO'
   payload: { index: number }
 }
 
 describe('createReducer', () => {
   describe('given impure reducers with immer', () => {
-    function addTodo(state: State, action: AddTodo) {
-      const { newTodo } = action.payload
+    const todosReducer = createReducer<State, AddTodo | ToggleTodo>([], {
+      ADD_TODO(state, action) {
+        const { newTodo } = action.payload
 
-      // Can safely call state.push() here
-      state.push({ ...newTodo, completed: false })
-    }
+        // Can safely call state.push() here
+        state.push({ ...newTodo, completed: false })
+      },
 
-    function toggleTodo(state: State, action: ToggleTodo) {
-      const { index } = action.payload
+      TOGGLE_TODO(state, action) {
+        const { index } = action.payload
 
-      const todo = state[index]
-      // Can directly modify the todo object
-      todo.completed = !todo.completed
-    }
-
-    const todosReducer = createReducer([], {
-      ADD_TODO: addTodo,
-      TOGGLE_TODO: toggleTodo
+        const todo = state[index]
+        // Can directly modify the todo object
+        todo.completed = !todo.completed
+      }
     })
 
     behavesLikeReducer(todosReducer)
   })
 
   describe('given pure reducers with immutable updates', () => {
-    function addTodo(state: State, action: AddTodo) {
-      const { newTodo } = action.payload
+    const todosReducer = createReducer<State, AddTodo | ToggleTodo>([], {
+      ADD_TODO(state, action) {
+        const { newTodo } = action.payload
 
-      // Updates the state immutably without relying on immer
-      return [...state, { ...newTodo, completed: false }]
-    }
+        // Updates the state immutably without relying on immer
+        return [...state, { ...newTodo, completed: false }]
+      },
 
-    function toggleTodo(state: State, action: ToggleTodo) {
-      const { index } = action.payload
+      TOGGLE_TODO(state, action) {
+        const { index } = action.payload
 
-      // Updates the todo object immutably withot relying on immer
-      return state.map((todo, i) => {
-        if (i !== index) return todo
-        return { ...todo, completed: !todo.completed }
-      })
-    }
-
-    const todosReducer = createReducer([], {
-      ADD_TODO: addTodo,
-      TOGGLE_TODO: toggleTodo
+        // Updates the todo object immutably withot relying on immer
+        return state.map((todo, i) => {
+          if (i !== index) return todo
+          return { ...todo, completed: !todo.completed }
+        })
+      }
     })
 
     behavesLikeReducer(todosReducer)
   })
 })
 
-function behavesLikeReducer(todosReducer: Reducer<State>) {
-  it('should handle initial state', () => {
-    expect(todosReducer(undefined, { type: 'INIT' })).toEqual([])
-  })
-
+function behavesLikeReducer(
+  todosReducer: Reducer<State, AddTodo | ToggleTodo>
+) {
   it('should handle ADD_TODO', () => {
     expect(
       todosReducer([], {
