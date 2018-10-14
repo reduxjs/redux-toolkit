@@ -27,6 +27,8 @@ This package is _not_ intended to solve every possible complaint about Redux, an
 
 - A `configureStore()` function with simplified configuration options. It can automatically combine your slice reducers, adds whatever Redux middleware you supply, includes `redux-thunk` by default, and enables use of the Redux DevTools Extension.
 - A `createReducer()` utility that lets you supply a lookup table of action types to case reducer functions, rather than writing switch statements. In addition, it automatically uses the [`immer` library](https://github.com/mweststrate/immer) to let you write simpler immutable updates with normal mutative code, like `state.todos[3].completed = true`.
+- A `createAction()` utility that returns an action creator function for the given action type string. The function itself has `toString()` defined, so that it can be used in place of the type constant.
+- A `createSlice()` function that accepts a set of reducer functions, a slice name, and an initial state value, and automatically generates corresponding action creators, types, and simple selector functions.
 - An improved version of the widely used `createSelector` utility for creating memoized selector functions, which can accept string keypaths as "input selectors" (re-exported from the [`selectorator` library](https://github.com/planttheidea/selectorator)).
 
 ### API Reference
@@ -180,6 +182,92 @@ const todosReducer = createReducer([], {
   ADD_TODO: addTodo,
   TOGGLE_TODO: toggleTodo
 })
+```
+
+#### `createAction`
+
+A utility function to create an action creator for the given action type string. The action creator accepts a single argument, which will be included in the action object as a field called `payload`. The action creator function will also have its `toString()` overriden so that it returns the action type, allowing it to be used in reducer logic that is looking for that action type.
+
+```js
+// actions.js
+import { createAction } from 'redux-starter-kit'
+
+export const increment = createAction('increment')
+
+console.log(increment)
+// "increment"
+
+const theAction = increment(5)
+console.log(theAction)
+// {type : "increment", payload : 5}
+
+// reducer.js
+import { increment } from './actions'
+
+function counterReducer(state = 0, action) {
+  switch (action.type) {
+    // action creator can be used directly as the type for comparisons
+    case increment: {
+      return state + action.payload
+    }
+    default:
+      return state
+  }
+}
+```
+
+#### `createSlice`
+
+A function that accepts an initial state, an object full of reducer functions, and optionally a "slice name", and automatically generates action creators, action types, and selectors that correspond to the reducers and state.
+
+The reducers will be wrapped in the `createReducer()` utility, and so they can safely "mutate" the state they are given.
+
+```js
+import { createSlice } from 'redux-starter-kit'
+import { createStore, combineReducers } from 'redux'
+
+const counter = createSlice({
+  slice: 'counter', // slice is optional, and could be blank ''
+  initialState: 0,
+  reducers: {
+    increment: state => state + 1,
+    decrement: state => state - 1,
+    multiply: (state, action) => state * payload
+  }
+})
+
+const user = createSlice({
+  slice: 'user',
+  initialState: { name: '' },
+  reducers: {
+    setUserName: (state, payload) => {
+      state.name = action.payload // mutate the state all you want with immer
+    }
+  }
+})
+
+const reducer = combineReducers({
+  counter: counter.reducer,
+  user: user.reducer
+})
+
+const store = createStore(reducer)
+
+store.dispatch(counter.actions.increment())
+// -> { counter: 1, user: {} }
+store.dispatch(counter.actions.increment())
+// -> { counter: 1, user: {} }
+store.dispatch(counter.actions.multiply(3))
+// -> { counter: 6, user: {} }
+console.log(`${counter.actions.decrement}`)
+// -> counter/decrement
+store.dispatch(user.actions.setUserName('eric'))
+// -> { counter: 6, user: { name: 'eric' } }
+const state = store.getState()
+console.log(user.selectors.getUser(state))
+// -> { name: 'eric' }
+console.log(counter.selectors.getCounter(state))
+// -> 6
 ```
 
 #### `createSelector`
