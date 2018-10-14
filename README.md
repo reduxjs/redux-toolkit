@@ -1,11 +1,13 @@
 # redux-starter-kit
 
-[![npm version](https://img.shields.io/npm/v/@acemarke/redux-starter-kit.svg?style=flat-square)](https://www.npmjs.com/package/@acemarke/redux-starter-kit)
-[![npm downloads](https://img.shields.io/npm/dm/@acemarke/redux-starter-kit.svg?style=flat-square)](https://www.npmjs.com/package/@acemarke/redux-starter-kit)
+[![npm version](https://img.shields.io/npm/v/redux-starter-kit.svg?style=flat-square)](https://www.npmjs.com/package/redux-starter-kit)
+[![npm downloads](https://img.shields.io/npm/dm/redux-starter-kit.svg?style=flat-square)](https://www.npmjs.com/package/redux-starter-kit)
 
 **A simple set of tools to make using Redux easier**
 
-`npm install @acemarke/redux-starter-kit`
+`npm install redux-starter-kit`
+
+(Special thanks to Github user @shotak for donating to the package name.)
 
 ### Purpose
 
@@ -52,7 +54,7 @@ function configureStore({
 Basic usage:
 
 ```js
-import { configureStore } from '@acemarke/redux-starter-kit'
+import { configureStore } from 'redux-starter-kit'
 
 import rootReducer from './reducers'
 
@@ -63,10 +65,7 @@ const store = configureStore({ reducer: rootReducer })
 Full example:
 
 ```js
-import {
-  configureStore,
-  getDefaultMiddleware
-} from '@acemarke/redux-starter-kit'
+import { configureStore, getDefaultMiddleware } from 'redux-starter-kit'
 
 // We'll use redux-logger just as an example of adding another middleware
 import logger from 'redux-logger'
@@ -131,7 +130,7 @@ function createReducer(
 Example usage:
 
 ```js
-import { createReducer } from '@acemarke/redux-starter-kit'
+import { createReducer } from 'redux-starter-kit'
 
 function addTodo(state, action) {
   const { newTodo } = action.payload
@@ -157,7 +156,7 @@ const todosReducer = createReducer([], {
 This doesn't mean that you _have to_ write code in your case reducers that mutates the existing `state` value, you can still write code that updates the state immutably. You can think of `immer` as a safety net, if the code is written in a way that mutates the state directly, `immer` will make sure that such update happens immutably. On the other hand the following code is still valid:
 
 ```js
-import { createReducer } from '@acemarke/redux-starter-kit'
+import { createReducer } from 'redux-starter-kit'
 
 function addTodo(state, action) {
   const { newTodo } = action.payload
