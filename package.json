@@ -1,5 +1,5 @@
 {
-  "name": "@acemarke/redux-starter-kit",
+  "name": "redux-starter-kit",
   "version": "0.0.7",
   "description": "A simple set of tools to make using Redux easier",
   "repository": "https://github.com/markerikson/redux-starter-kit",
