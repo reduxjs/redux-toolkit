@@ -216,6 +216,18 @@ function counterReducer(state = 0, action) {
 }
 ```
 
+Since action creators returned by `createAction` have `toString()` overridden, they can be used in `createReducer` as a key in the `actionsMap`:
+
+```js
+// reducer.js
+import { createReducer } from 'redux-starter-kit'
+import { increment } from './actions'
+
+const counterReducer = createReducer(0, {
+  [increment]: (state, action) => state + action.payload
+})
+```
+
 #### `createSlice`
 
 A function that accepts an initial state, an object full of reducer functions, and optionally a "slice name", and automatically generates action creators, action types, and selectors that correspond to the reducers and state.
