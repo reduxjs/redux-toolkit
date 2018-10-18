@@ -244,7 +244,7 @@ const counter = createSlice({
   reducers: {
     increment: state => state + 1,
     decrement: state => state - 1,
-    multiply: (state, action) => state * payload
+    multiply: (state, action) => state * action.payload
   }
 })
 
@@ -252,7 +252,7 @@ const user = createSlice({
   slice: 'user',
   initialState: { name: '' },
   reducers: {
-    setUserName: (state, payload) => {
+    setUserName: (state, action) => {
       state.name = action.payload // mutate the state all you want with immer
     }
   }
