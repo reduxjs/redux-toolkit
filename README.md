@@ -228,6 +228,22 @@ const counterReducer = createReducer(0, {
 })
 ```
 
+`createAction(type, payloadCreator)` also takes a 2nd parameter which can be used to transform the parameters passed to the action creator into the payload.
+
+```js
+import { createAction } from 'redux-starter-kit'
+
+export const addUser = createAction('addUser', (userId, data) => ({
+  userId,
+  data: data
+}))
+const theAction = addUser(1, {
+  email: 'info@example.com'
+})
+console.log(theAction)
+// {type: "addUser", payload: {userId: 1, data: {email: "info@example.com"}}}
+```
+
 #### `createSlice`
 
 A function that accepts an initial state, an object full of reducer functions, and optionally a "slice name", and automatically generates action creators, action types, and selectors that correspond to the reducers and state.
