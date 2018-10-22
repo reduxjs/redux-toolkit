@@ -77,6 +77,10 @@ describe('createSlice', () => {
       expect(reducer(undefined, actions.increment())).toEqual(1)
     })
 
+    it('should return the correct type of the reducer', () => {
+      expect(String(reducer)).toEqual('cool')
+    })
+
     it('should create selector with correct name', () => {
       expect(selectors.hasOwnProperty('getCool')).toBe(true)
     })
