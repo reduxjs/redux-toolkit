@@ -50,6 +50,17 @@ describe('createReducer', () => {
 
     behavesLikeReducer(todosReducer)
   })
+
+  describe('given a slice, reducer.toString()', () => {
+    it('should return the slice', () => {
+      const reducer = createReducer([], {}, 'todo')
+      expect(String(reducer)).toBe('todo')
+    })
+    it('should return an empty string when provided slice is empty or not a string', () => {
+      const reducer = createReducer([], {})
+      expect(String(reducer)).toBe('')
+    })
+  })
 })
 
 function behavesLikeReducer(todosReducer) {
