@@ -12,7 +12,7 @@ export function createSlice({ slice = '', reducers = {}, initialState }) {
     return map
   }, {})
 
-  const reducer = createReducer(initialState, reducerMap)
+  const reducer = createReducer(initialState, reducerMap, slice)
 
   const actionMap = actionKeys.reduce((map, action) => {
     const type = getType(slice, action)
