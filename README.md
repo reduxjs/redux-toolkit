@@ -268,7 +268,7 @@ const store = createStore(reducer)
 store.dispatch(counter.actions.increment())
 // -> { counter: 1, user: {} }
 store.dispatch(counter.actions.increment())
-// -> { counter: 1, user: {} }
+// -> { counter: 2, user: {} }
 store.dispatch(counter.actions.multiply(3))
 // -> { counter: 6, user: {} }
 console.log(`${counter.actions.decrement}`)
