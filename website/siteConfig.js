@@ -30,10 +30,6 @@ const siteConfig = {
   // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
     { doc: 'introduction/quick-start', label: 'Quick Start' },
-    {
-      doc: 'using-redux-starter-kit/connect-mapstate',
-      label: 'Using redux-starter-kit'
-    },
     { doc: 'api', label: 'API' }
   ],
 
