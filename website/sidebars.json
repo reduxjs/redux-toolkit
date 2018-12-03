@@ -1,0 +1,20 @@
+{
+  "docs": {
+    "Introduction": [
+      "introduction/quick-start",
+      "introduction/basic-tutorial",
+      "introduction/why-use-redux-starter-kit"
+    ],
+    "Using redux-starter-kit": [
+      "using-redux-starter-kit/connect-mapstate",
+      "using-redux-starter-kit/connect-mapdispatch"
+    ],
+    "API Reference": [
+      "api",
+      "api/provider"
+    ],
+    "Guides": [
+      "troubleshooting"
+    ]
+  }
+}
