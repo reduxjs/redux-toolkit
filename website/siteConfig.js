@@ -9,8 +9,8 @@
 // site configuration options.
 
 const siteConfig = {
-  title: "React Redux", // Title for your website.
-  tagline: "React Redux Documentation",
+  title: "Redux Starter kit", // Title for your website.
+  tagline: "Redux Starter kit Documentation",
   url: "https://redux-starter-kit.js.org", // Your website URL
   baseUrl: "/",
   docsUrl : "",
