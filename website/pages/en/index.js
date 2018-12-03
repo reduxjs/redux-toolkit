@@ -52,7 +52,8 @@ const ProjectTitle = () => (
     {siteConfig.title}
     <small>
       <MarkdownBlock>
-        Official React bindings for [Redux](https://github.com/reduxjs/redux)
+        A simple set of tools to make using
+        [Redux](https://github.com/reduxjs/redux) easier
       </MarkdownBlock>
     </small>
   </h2>
@@ -93,9 +94,6 @@ const Installation = () => (
     style={{ textAlign: 'center' }}
   >
     <h2>Installation</h2>
-    <MarkdownBlock>
-      Redux starter kit requires **Redux 4.0.0 or later.**
-    </MarkdownBlock>
     <MarkdownBlock>``` npm install --save redux-starter-kit ```</MarkdownBlock>
   </div>
 )
