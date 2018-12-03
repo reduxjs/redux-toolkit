@@ -10,13 +10,14 @@ This website was created with [Docusaurus](https://docusaurus.io/).
 
 # Get Started in 5 Minutes
 
-1. Make sure all the dependencies for the website are installed:
+1.  Make sure all the dependencies for the website are installed:
 
 ```sh
 # Install dependencies
 $ yarn
 ```
-2. Run your dev server:
+
+2.  Run your dev server:
 
 ```sh
 # Start the site
@@ -72,6 +73,7 @@ For more information about docs, click [here](https://docusaurus.io/docs/en/navi
 Edit blog posts by navigating to `website/blog` and editing the corresponding post:
 
 `website/blog/post-to-be-edited.md`
+
 ```markdown
 ---
 id: post-needs-edit
@@ -87,7 +89,7 @@ For more information about blog posts, click [here](https://docusaurus.io/docs/e
 
 ## Adding a new docs page to an existing sidebar
 
-1. Create the doc as a new markdown file in `/docs`, example `docs/newly-created-doc.md`:
+1.  Create the doc as a new markdown file in `/docs`, example `docs/newly-created-doc.md`:
 
 ```md
 ---
@@ -98,7 +100,7 @@ title: This Doc Needs To Be Edited
 My new content here..
 ```
 
-1. Refer to that doc's ID in an existing sidebar in `website/sidebar.json`:
+1.  Refer to that doc's ID in an existing sidebar in `website/sidebar.json`:
 
 ```javascript
 // Add newly-created-doc to the Getting Started category of docs
@@ -118,9 +120,10 @@ For more information about adding new docs, click [here](https://docusaurus.io/d
 
 ## Adding a new blog post
 
-1. Make sure there is a header link to your blog in `website/siteConfig.js`:
+1.  Make sure there is a header link to your blog in `website/siteConfig.js`:
 
 `website/siteConfig.js`
+
 ```javascript
 headerLinks: [
     ...
@@ -129,7 +132,7 @@ headerLinks: [
 ]
 ```
 
-2. Create the blog post with the format `YYYY-MM-DD-My-Blog-Post-Title.md` in `website/blog`:
+2.  Create the blog post with the format `YYYY-MM-DD-My-Blog-Post-Title.md` in `website/blog`:
 
 `website/blog/2018-05-21-New-Blog-Post.md`
 
@@ -148,9 +151,10 @@ For more information about blog posts, click [here](https://docusaurus.io/docs/e
 
 ## Adding items to your site's top navigation bar
 
-1. Add links to docs, custom pages or external links by editing the headerLinks field of `website/siteConfig.js`:
+1.  Add links to docs, custom pages or external links by editing the headerLinks field of `website/siteConfig.js`:
 
 `website/siteConfig.js`
+
 ```javascript
 {
   headerLinks: [
@@ -171,10 +175,11 @@ For more information about the navigation bar, click [here](https://docusaurus.i
 
 ## Adding custom pages
 
-1. Docusaurus uses React components to build pages. The components are saved as .js files in `website/pages/en`:
-1. If you want your page to show up in your navigation header, you will need to update `website/siteConfig.js` to add to the `headerLinks` element:
+1.  Docusaurus uses React components to build pages. The components are saved as .js files in `website/pages/en`:
+1.  If you want your page to show up in your navigation header, you will need to update `website/siteConfig.js` to add to the `headerLinks` element:
 
 `website/siteConfig.js`
+
 ```javascript
 {
   headerLinks: [

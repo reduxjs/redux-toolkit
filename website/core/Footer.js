@@ -5,17 +5,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const React = require("react");
+const React = require('react')
 
 class Footer extends React.Component {
   docUrl(doc, language) {
-    const baseUrl = this.props.config.baseUrl;
-    return `${baseUrl}docs/${language ? `${language}/` : ""}${doc}`;
+    const baseUrl = this.props.config.baseUrl
+    return `${baseUrl}docs/${language ? `${language}/` : ''}${doc}`
   }
 
   pageUrl(doc, language) {
-    const baseUrl = this.props.config.baseUrl;
-    return baseUrl + (language ? `${language}/` : "") + doc;
+    const baseUrl = this.props.config.baseUrl
+    return baseUrl + (language ? `${language}/` : '') + doc
   }
 
   render() {
@@ -34,16 +34,16 @@ class Footer extends React.Component {
           </a>
           <div>
             <h5>Docs</h5>
-            <a href={this.docUrl("introduction/quick-start")}>Introduction</a>
+            <a href={this.docUrl('introduction/quick-start')}>Introduction</a>
             <a
               href={this.docUrl(
-                "using-redux-starter-kit/connect-extracting-data-with-mapStateToProps"
+                'using-redux-starter-kit/connect-extracting-data-with-mapStateToProps'
               )}
             >
               Using redux-starter-kit
             </a>
-            <a href={this.docUrl("api")}>API Reference</a>
-            <a href={this.docUrl("troubleshooting")}>Guides</a>
+            <a href={this.docUrl('api')}>API Reference</a>
+            <a href={this.docUrl('troubleshooting')}>Guides</a>
           </div>
           <div>
             <h5>Community</h5>
@@ -72,8 +72,8 @@ class Footer extends React.Component {
           </div>
         </section>
       </footer>
-    );
+    )
   }
 }
 
-module.exports = Footer;
+module.exports = Footer

@@ -9,11 +9,11 @@
 // site configuration options.
 
 const siteConfig = {
-  title: "Redux Starter kit", // Title for your website.
-  tagline: "Redux Starter kit Documentation",
-  url: "https://redux-starter-kit.js.org", // Your website URL
-  baseUrl: "/",
-  docsUrl : "",
+  title: 'Redux Starter kit', // Title for your website.
+  tagline: 'Redux Starter kit Documentation',
+  url: 'https://redux-starter-kit.js.org', // Your website URL
+  baseUrl: '/',
+  docsUrl: '',
   algolia: {
     apiKey: '2d058d216b7fd5d68d481fd48ee72c06',
     indexName: 'redux-starter-kit',
@@ -21,31 +21,31 @@ const siteConfig = {
   },
 
   // Used for publishing and more
-  projectName: "redux-starter-kit",
-  organizationName: "reduxjs",
+  projectName: 'redux-starter-kit',
+  organizationName: 'reduxjs',
   // For top-level user or org sites, the organization is still the same.
   // e.g., for the https://JoelMarcey.github.io site, it would be set like...
   //   organizationName: 'JoelMarcey'
 
   // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
-    { doc: "introduction/quick-start", label: "Quick Start" },
+    { doc: 'introduction/quick-start', label: 'Quick Start' },
     {
-      doc: "using-redux-starter-kit/connect-mapstate",
-      label: "Using redux-starter-kit"
+      doc: 'using-redux-starter-kit/connect-mapstate',
+      label: 'Using redux-starter-kit'
     },
-    { doc: "api", label: "API" }
+    { doc: 'api', label: 'API' }
   ],
 
   /* path to images for header/footer */
   // headerIcon: "img/redux.svg",
   // footerIcon: "img/redux.svg",
-  favicon: "img/favicon/favicon.ico",
+  favicon: 'img/favicon/favicon.ico',
 
   /* Colors for website */
   colors: {
-    primaryColor: "#764ABC",
-    secondaryColor: "#764ABC"
+    primaryColor: '#764ABC',
+    secondaryColor: '#764ABC'
   },
 
   /* Custom fonts for website */
@@ -67,24 +67,24 @@ const siteConfig = {
 
   highlight: {
     // Highlight.js theme to use for syntax highlighting in code blocks.
-    theme: "monokai"
+    theme: 'monokai'
   },
 
   // Add custom scripts here that would be placed in <script> tags.
-  scripts: ["https://buttons.github.io/buttons.js"],
+  scripts: ['https://buttons.github.io/buttons.js'],
 
   // On page navigation for the current documentation page.
-  onPageNav: "separate",
+  onPageNav: 'separate',
   // No .html extensions for paths.
   cleanUrl: true,
 
   // Open Graph and Twitter card images.
-  ogImage: "img/docusaurus.png",
-  twitterImage: "img/docusaurus.png",
+  ogImage: 'img/docusaurus.png',
+  twitterImage: 'img/docusaurus.png',
 
   // You may provide arbitrary config keys to be used as needed by your
   // template. For example, if you need your repo's URL...
-  repoUrl: "https://github.com/reduxjs/redux-starter-kit"
-};
+  repoUrl: 'https://github.com/reduxjs/redux-starter-kit'
+}
 
-module.exports = siteConfig;
+module.exports = siteConfig

@@ -5,16 +5,16 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const React = require("react");
+const React = require('react')
 
-const CompLibrary = require("../../core/CompLibrary.js");
+const CompLibrary = require('../../core/CompLibrary.js')
 
-const MarkdownBlock = CompLibrary.MarkdownBlock; /* Used to read markdown */
+const MarkdownBlock = CompLibrary.MarkdownBlock /* Used to read markdown */
 
-const siteConfig = require(`${process.cwd()}/siteConfig.js`);
+const siteConfig = require(`${process.cwd()}/siteConfig.js`)
 
 function docUrl(doc, language) {
-  return `${siteConfig.baseUrl}docs/${language ? `${language}/` : ""}${doc}`;
+  return `${siteConfig.baseUrl}docs/${language ? `${language}/` : ''}${doc}`
 }
 
 class Button extends React.Component {
@@ -25,13 +25,13 @@ class Button extends React.Component {
           {this.props.children}
         </a>
       </div>
-    );
+    )
   }
 }
 
 Button.defaultProps = {
-  target: "_self"
-};
+  target: '_self'
+}
 
 const SplashContainer = props => (
   <div className="homeContainer">
@@ -39,13 +39,13 @@ const SplashContainer = props => (
       <div className="wrapper homeWrapper">{props.children}</div>
     </div>
   </div>
-);
+)
 
 const Logo = props => (
   <div className="projectLogo">
     <img src={props.img_src} alt="Project Logo" />
   </div>
-);
+)
 
 const ProjectTitle = () => (
   <h2 className="projectTitle">
@@ -56,7 +56,7 @@ const ProjectTitle = () => (
       </MarkdownBlock>
     </small>
   </h2>
-);
+)
 
 const PromoSection = props => (
   <div className="section promoSection">
@@ -64,17 +64,17 @@ const PromoSection = props => (
       <div className="pluginRowBlock">{props.children}</div>
     </div>
   </div>
-);
+)
 
 class HomeSplash extends React.Component {
   render() {
-    const language = this.props.language || "";
+    const language = this.props.language || ''
     return (
       <SplashContainer>
         <div className="inner">
           <ProjectTitle />
           <PromoSection>
-            <Button href={docUrl("introduction/quick-start", language)}>
+            <Button href={docUrl('introduction/quick-start', language)}>
               Quick Start
             </Button>
             <Button href="https://github.com/reduxjs/redux-starter-kit">
@@ -83,24 +83,26 @@ class HomeSplash extends React.Component {
           </PromoSection>
         </div>
       </SplashContainer>
-    );
+    )
   }
 }
 
 const Installation = () => (
   <div
     className="productShowcaseSection paddingBottom"
-    style={{ textAlign: "center" }}
+    style={{ textAlign: 'center' }}
   >
     <h2>Installation</h2>
-    <MarkdownBlock>Redux starter kit requires **Redux 4.0.0 or later.**</MarkdownBlock>
+    <MarkdownBlock>
+      Redux starter kit requires **Redux 4.0.0 or later.**
+    </MarkdownBlock>
     <MarkdownBlock>``` npm install --save redux-starter-kit ```</MarkdownBlock>
   </div>
-);
+)
 
 class Index extends React.Component {
   render() {
-    const language = this.props.language || "";
+    const language = this.props.language || ''
 
     return (
       <div>
@@ -109,8 +111,8 @@ class Index extends React.Component {
           <Installation />
         </div>
       </div>
-    );
+    )
   }
 }
 
-module.exports = Index;
+module.exports = Index
