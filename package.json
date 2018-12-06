@@ -32,7 +32,7 @@
     "format": "prettier --write \"**/*.{js,md}\"",
     "format:check": "prettier --list-different \"**/*.{js,md}\"",
     "lint": "eslint src",
-    "prepare": "npm run format:check && npm run lint && npm test && npm run build",
+    "prepare": "npm run lint && npm test && npm run build",
     "test": "jest"
   },
   "files": [
