@@ -7,7 +7,6 @@ hide_title: true
 
 # `configureStore`
 
-
 A friendlier abstraction over the standard Redux `createStore` function. Takes a single configuration object parameter, with the following options:
 
 ```js

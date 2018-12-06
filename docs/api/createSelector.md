@@ -7,7 +7,6 @@ hide_title: true
 
 # `createSelector`
 
-
 The `createSelector` utility from the [`selectorator` library](https://github.com/planttheidea/selectorator), re-exported for ease of use. It acts as a superset of the standard `createSelector` function from [Reselect](https://github.com/reactjs/reselect). The primary improvements are the ability to define "input selectors" using string keypaths, or return an object result based on an object of keypaths. It also accepts an object of customization options for more specific use cases.
 
 For more specifics, see the [`selectorator` usage documentation](https://github.com/planttheidea/selectorator#usage).

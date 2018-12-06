@@ -9,8 +9,6 @@ hide_title: true
 
 `redux-starter-kit` re-exports additional functions from other dependencies as well.
 
-
-
 ## `createNextState`
 
 The default immutable update function from the [`immer` library](https://github.com/mweststrate/immer#api), re-exported here as `createNextState` (also commonly referred to as `produce`)

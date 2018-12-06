@@ -7,7 +7,6 @@ hide_title: true
 
 # `createSlice`
 
-
 A function that accepts an initial state, an object full of reducer functions, and optionally a "slice name", and automatically generates action creators, action types, and selectors that correspond to the reducers and state.
 
 The reducers will be wrapped in the [`createReducer()` utility](createReducer.md), and so they can safely "mutate" the state they are given.
