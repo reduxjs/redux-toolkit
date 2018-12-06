@@ -1,0 +1,16 @@
+{
+  "docs": {
+    "Introduction": [
+      "introduction/quick-start"
+    ],
+    "API Reference": [
+      "api/configureStore",
+      "api/getDefaultMiddleware",
+      "api/createReducer",
+      "api/createAction",
+      "api/createSlice",
+      "api/createSelector",
+      "api/other-exports"
+    ]
+  }
+}
