@@ -4,19 +4,13 @@
       "introduction/quick-start"
     ],
     "API Reference": [
-      "api",
       "api/configureStore",
       "api/getDefaultMiddleware",
       "api/createReducer",
       "api/createAction",
       "api/createSlice",
       "api/createSelector",
-      "api/createNextState",
-      "api/combineReducers",
-      "api/compose"
-    ],
-    "Guides": [
-      "troubleshooting"
+      "api/other-exports"
     ]
   }
 }
