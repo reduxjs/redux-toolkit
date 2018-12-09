@@ -9,7 +9,7 @@ const React = require('react')
 
 const CompLibrary = require('../../core/CompLibrary.js')
 
-const MarkdownBlock = CompLibrary.MarkdownBlock /* Used to read markdown */
+const {MarkdownBlock, GridBlock, Container} = CompLibrary; /* Used to read markdown */
 
 const siteConfig = require(`${process.cwd()}/siteConfig.js`)
 
@@ -17,11 +17,14 @@ function docUrl(doc, language) {
   return `${siteConfig.baseUrl}${language ? `${language}/` : ''}${doc}`
 }
 
+function imgUrl(img) {
+  return `${siteConfig.baseUrl}img/${img}`;
+}
 class Button extends React.Component {
   render() {
     return (
       <div className="pluginWrapper buttonWrapper">
-        <a className="button" href={this.props.href} target={this.props.target}>
+        <a className="button hero" href={this.props.href} target={this.props.target}>
           {this.props.children}
         </a>
       </div>
@@ -48,15 +51,16 @@ const Logo = props => (
 )
 
 const ProjectTitle = () => (
-  <h2 className="projectTitle">
-    {siteConfig.title}
-    <small>
-      <MarkdownBlock>
-        A simple set of tools to make using
-        [Redux](https://github.com/reduxjs/redux) easier
-      </MarkdownBlock>
-    </small>
-  </h2>
+  <React.Fragment>
+    <div style={{display : "flex", justifyContent : "center", alignItems : "center"}}>
+      <img src={"img/redux.svg"} alt="Redux logo" width={100} height={100}/>
+      <h1 className="projectTitle">{siteConfig.title}</h1>
+    </div>
+
+    <h2 style={{marginTop : "0.5em"}}>
+          A simple set of tools to make using Redux easier
+    </h2>
+  </React.Fragment>
 )
 
 const PromoSection = props => (
@@ -75,11 +79,8 @@ class HomeSplash extends React.Component {
         <div className="inner">
           <ProjectTitle />
           <PromoSection>
-            <Button href={docUrl('introduction/quick-start', language)}>
-              Quick Start
-            </Button>
-            <Button href="https://github.com/reduxjs/redux-starter-kit">
-              Github
+            <Button href={docUrl("introduction/quick-start", language)}>
+              Get Started
             </Button>
           </PromoSection>
         </div>

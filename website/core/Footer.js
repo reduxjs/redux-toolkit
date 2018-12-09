@@ -9,8 +9,8 @@ const React = require('react')
 
 class Footer extends React.Component {
   docUrl(doc, language) {
-    const baseUrl = this.props.config.baseUrl
-    return `${baseUrl}docs/${language ? `${language}/` : ''}${doc}`
+    const baseUrl = this.props.config.baseUrl;
+    return `${baseUrl}${language ? `${language}/` : ""}${doc}`;
   }
 
   pageUrl(doc, language) {
@@ -34,30 +34,27 @@ class Footer extends React.Component {
           </a>
           <div>
             <h5>Docs</h5>
-            <a href={this.docUrl('introduction/quick-start')}>Introduction</a>
-            <a
-              href={this.docUrl(
-                'using-redux-starter-kit/connect-extracting-data-with-mapStateToProps'
-              )}
-            >
-              Using redux-starter-kit
+            <a href={this.docUrl("introduction/quick-start")}>
+              Quick Start
             </a>
             <a href={this.docUrl('api')}>API Reference</a>
-            <a href={this.docUrl('troubleshooting')}>Guides</a>
           </div>
           <div>
             <h5>Community</h5>
             <a
-              href="http://stackoverflow.com/questions/tagged/redux-starter-kit"
+              href="http://stackoverflow.com/questions/tagged/redux"
               target="_blank"
               rel="noreferrer noopener"
             >
               Stack Overflow
             </a>
+            <a href="https://discord.gg/0ZcbPKXt5bZ6au5t">
+              Discord
+            </a>
           </div>
           <div>
             <h5>More</h5>
-            <a href="https://github.com/reduxjs/redux-starter-kit/">GitHub</a>
+            <a href="https://github.com/reduxjs/redux/">GitHub</a>
             <a
               className="github-button"
               href={this.props.config.repoUrl}
@@ -71,6 +68,15 @@ class Footer extends React.Component {
             </a>
           </div>
         </section>
+        <section className="copyright">
+          {this.props.config.copyright}<br />
+          Some icons copyright <a
+            href="https://fontawesome.com/license/free"
+            style={{color : "white"}}
+          >
+             Font Awesome
+          </a>
+          </section>
       </footer>
     )
   }
