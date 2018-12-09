@@ -9,7 +9,7 @@ hide_title: true
 
 ## Purpose
 
-The `redux-starter-kit` package is intended to help address three common complaints about Redux:
+The **`redux-starter-kit`** package is intended to help address three common concerns about Redux:
 
 - "Configuring a Redux store is too complicated"
 - "I have to add a lot of packages to get Redux to do anything useful"
@@ -17,7 +17,11 @@ The `redux-starter-kit` package is intended to help address three common complai
 
 We can't solve every use case, but in the spirit of [`create-react-app`](https://github.com/facebook/create-react-app) and [`apollo-boost`](https://dev-blog.apollodata.com/zero-config-graphql-state-management-27b1f1b3c2c3), we can try to provide some tools that abstract over the setup process and handle the most common use cases, as well as include some useful utilities that will let the user simplify their application code.
 
-This package is _not_ intended to solve every possible complaint about Redux, and is deliberately limited in scope. It does _not_ address concepts like "reusable encapsulated Redux modules", data fetching, folder or file structures, managing entity relationships in the store, and so on.
+This package is _not_ intended to solve every possible concern about Redux, and is deliberately limited in scope. It does _not_ address concepts like "reusable encapsulated Redux modules", data fetching, folder or file structures, managing entity relationships in the store, and so on.
+
+That said, **these tools should be beneficial to all Redux users**.  Whether you're a brand new Redux user setting up your 
+first project, or an experienced user who wants to simplify an existing application, **`redux-starter-kit`** can help 
+you make your Redux code better.
 
 ## What's Included
 
