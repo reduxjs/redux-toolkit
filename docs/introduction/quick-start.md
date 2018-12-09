@@ -35,10 +35,10 @@ you make your Redux code better.
 
 ## Installation
 
-`redux-startr-kit` is available as a package on NPM for use with a module bundler or in a Node application:
+`redux-starter-kit` is available as a package on NPM for use with a module bundler or in a Node application:
 
 ```bash
-npm install --save redux-startr-kit
+npm install --save redux-starter-kit
 ```
 
 It is also available as a precompiled UMD package that defines a `window['redux-starter-kit']` global variable.
