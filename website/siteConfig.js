@@ -10,7 +10,7 @@
 
 const siteConfig = {
   title: 'Redux Starter Kit', // Title for your website.
-  tagline: 'Redux Starter Kit Documentation',
+  tagline: 'A simple set of tools to make using Redux easier',
   url: 'https://redux-starter-kit.js.org', // Your website URL
   baseUrl: '/',
   docsUrl: '',
@@ -30,13 +30,15 @@ const siteConfig = {
   // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
     { doc: 'introduction/quick-start', label: 'Quick Start' },
-    { doc: 'api/configureStore', label: 'API' }
+    { doc: 'api/configureStore', label: 'API' },
+
+    { href : "https://www.github.com/reduxjs/redux-starter-kit", label : "Github"},
   ],
 
   /* path to images for header/footer */
-  // headerIcon: "img/redux.svg",
-  // footerIcon: "img/redux.svg",
-  favicon: 'img/favicon/favicon.ico',
+  headerIcon: "img/redux_white.svg",
+  footerIcon: "img/redux_white.svg",
+  favicon: "img/favicon/favicon.ico",
 
   /* Colors for website */
   colors: {
@@ -59,7 +61,7 @@ const siteConfig = {
   */
 
   // This copyright info is used in /core/Footer.js and blog RSS/Atom feeds.
-  copyright: `Copyright © ${new Date().getFullYear()} The Redux Team`,
+  copyright: 'Copyright (c) 2015-present Dan Abramov and the Redux documentation authors.',
 
   highlight: {
     // Highlight.js theme to use for syntax highlighting in code blocks.
@@ -67,7 +69,12 @@ const siteConfig = {
   },
 
   // Add custom scripts here that would be placed in <script> tags.
-  scripts: ['https://buttons.github.io/buttons.js'],
+  scripts: [
+    "/scripts/sidebarScroll.js",
+    "/scripts/codeblock.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js",
+    "https://buttons.github.io/buttons.js",
+  ],
 
   // On page navigation for the current documentation page.
   onPageNav: 'separate',
@@ -75,12 +82,14 @@ const siteConfig = {
   cleanUrl: true,
 
   // Open Graph and Twitter card images.
-  ogImage: 'img/docusaurus.png',
-  twitterImage: 'img/docusaurus.png',
+  ogImage: "img/redux-logo-landscape.png",
+  twitterImage: "img/redux-logo-landscape.png",
 
   // You may provide arbitrary config keys to be used as needed by your
   // template. For example, if you need your repo's URL...
-  repoUrl: 'https://github.com/reduxjs/redux-starter-kit'
+  repoUrl: 'https://github.com/reduxjs/redux-starter-kit',
+
+  gaTrackingId : "UA-130598673-3",
 }
 
 module.exports = siteConfig
