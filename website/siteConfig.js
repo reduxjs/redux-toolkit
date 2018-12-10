@@ -10,15 +10,18 @@
 
 const siteConfig = {
   title: 'Redux Starter Kit', // Title for your website.
-  tagline: 'A simple set of tools to make using Redux easier',
+  tagline: 'A simple batteries-included toolset to make using Redux easier',
   url: 'https://redux-starter-kit.js.org', // Your website URL
   baseUrl: '/',
   docsUrl: '',
+    // Disable search until we get a new key from Algolia
+    /*
   algolia: {
     apiKey: '2d058d216b7fd5d68d481fd48ee72c06',
     indexName: 'redux-starter-kit',
     algoliaOptions: {}
   },
+  */
 
   // Used for publishing and more
   projectName: 'redux-starter-kit',
