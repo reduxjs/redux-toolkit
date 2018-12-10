@@ -75,7 +75,32 @@ class Footer extends React.Component {
             style={{color : "white"}}
           >
              Font Awesome
-          </a>
+          </a>  and <a
+            href="https://thenounproject.com"
+            style={{color : "white"}}
+        >
+            Noun Project
+        </a> (<a
+            href="https://thenounproject.com/term/snap/1984955/"
+            style={{color : "white"}}
+        >
+            Nate Gallagher
+        </a>, <a
+            href="https://thenounproject.com/term/brain/1551075/"
+            style={{color : "white"}}
+        >
+            BomSymbols
+        </a>, <a
+            href="https://thenounproject.com/term/bicep/1338504/"
+            style={{color : "white"}}
+        >
+            zidney
+        </a>, <a
+            href="https://thenounproject.com/term/checklist/437165//"
+            style={{color : "white"}}
+        >
+            David
+        </a>)
           </section>
       </footer>
     )
