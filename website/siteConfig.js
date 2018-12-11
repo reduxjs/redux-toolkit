@@ -14,14 +14,12 @@ const siteConfig = {
   url: 'https://redux-starter-kit.js.org', // Your website URL
   baseUrl: '/',
   docsUrl: '',
-  // Disable search until we get a new key from Algolia
-  /*
   algolia: {
-    apiKey: '2d058d216b7fd5d68d481fd48ee72c06',
+    apiKey: '82d838443b672336bf63cab4772d9eb4',
     indexName: 'redux-starter-kit',
     algoliaOptions: {}
   },
-  */
+  
 
   // Used for publishing and more
   projectName: 'redux-starter-kit',
