@@ -9,8 +9,8 @@ const React = require('react')
 
 class Footer extends React.Component {
   docUrl(doc, language) {
-    const baseUrl = this.props.config.baseUrl;
-    return `${baseUrl}${language ? `${language}/` : ""}${doc}`;
+    const baseUrl = this.props.config.baseUrl
+    return `${baseUrl}${language ? `${language}/` : ''}${doc}`
   }
 
   pageUrl(doc, language) {
@@ -34,9 +34,7 @@ class Footer extends React.Component {
           </a>
           <div>
             <h5>Docs</h5>
-            <a href={this.docUrl("introduction/quick-start")}>
-              Quick Start
-            </a>
+            <a href={this.docUrl('introduction/quick-start')}>Quick Start</a>
             <a href={this.docUrl('api')}>API Reference</a>
           </div>
           <div>
@@ -48,9 +46,7 @@ class Footer extends React.Component {
             >
               Stack Overflow
             </a>
-            <a href="https://discord.gg/0ZcbPKXt5bZ6au5t">
-              Discord
-            </a>
+            <a href="https://discord.gg/0ZcbPKXt5bZ6au5t">Discord</a>
           </div>
           <div>
             <h5>More</h5>
@@ -69,39 +65,49 @@ class Footer extends React.Component {
           </div>
         </section>
         <section className="copyright">
-          {this.props.config.copyright}<br />
-          Some icons copyright <a
+          {this.props.config.copyright}
+          <br />
+          Some icons copyright{' '}
+          <a
             href="https://fontawesome.com/license/free"
-            style={{color : "white"}}
+            style={{ color: 'white' }}
           >
-             Font Awesome
-          </a>  and <a
-            href="https://thenounproject.com"
-            style={{color : "white"}}
-        >
+            Font Awesome
+          </a>{' '}
+          and{' '}
+          <a href="https://thenounproject.com" style={{ color: 'white' }}>
             Noun Project
-        </a> (<a
+          </a>{' '}
+          (
+          <a
             href="https://thenounproject.com/term/snap/1984955/"
-            style={{color : "white"}}
-        >
+            style={{ color: 'white' }}
+          >
             Nate Gallagher
-        </a>, <a
+          </a>
+          ,{' '}
+          <a
             href="https://thenounproject.com/term/brain/1551075/"
-            style={{color : "white"}}
-        >
+            style={{ color: 'white' }}
+          >
             BomSymbols
-        </a>, <a
+          </a>
+          ,{' '}
+          <a
             href="https://thenounproject.com/term/bicep/1338504/"
-            style={{color : "white"}}
-        >
+            style={{ color: 'white' }}
+          >
             zidney
-        </a>, <a
+          </a>
+          ,{' '}
+          <a
             href="https://thenounproject.com/term/checklist/437165//"
-            style={{color : "white"}}
-        >
+            style={{ color: 'white' }}
+          >
             David
-        </a>)
-          </section>
+          </a>
+          )
+        </section>
       </footer>
     )
   }

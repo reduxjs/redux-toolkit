@@ -31,7 +31,6 @@ This package is _not_ intended to solve every possible complaint about Redux, an
 - A `createSlice()` function that accepts a set of reducer functions, a slice name, and an initial state value, and automatically generates corresponding action creators, types, and simple selector functions.
 - An improved version of the widely used `createSelector` utility for creating memoized selector functions, which can accept string keypaths as "input selectors" (re-exported from the [`selectorator` library](https://github.com/planttheidea/selectorator)).
 
-
 ## Documentation
 
 The `redux-starter-kit` docs are now published at **https://redux-starter-kit.js.org**.

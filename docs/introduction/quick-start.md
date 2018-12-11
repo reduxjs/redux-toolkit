@@ -19,8 +19,8 @@ We can't solve every use case, but in the spirit of [`create-react-app`](https:/
 
 This package is _not_ intended to solve every possible concern about Redux, and is deliberately limited in scope. It does _not_ address concepts like "reusable encapsulated Redux modules", data fetching, folder or file structures, managing entity relationships in the store, and so on.
 
-That said, **these tools should be beneficial to all Redux users**.  Whether you're a brand new Redux user setting up your 
-first project, or an experienced user who wants to simplify an existing application, **`redux-starter-kit`** can help 
+That said, **these tools should be beneficial to all Redux users**. Whether you're a brand new Redux user setting up your
+first project, or an experienced user who wants to simplify an existing application, **`redux-starter-kit`** can help
 you make your Redux code better.
 
 ## What's Included
@@ -43,7 +43,6 @@ npm install --save redux-starter-kit
 
 It is also available as a precompiled UMD package that defines a `window['redux-starter-kit']` global variable.
 The UMD package can be used as a [`<script>` tag](https://unpkg.com/redux-starter-kit/dist/redux-starter-kit.umd.js) directly.
-
 
 ## Help and Discussion
 

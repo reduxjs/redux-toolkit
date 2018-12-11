@@ -1,13 +1,14 @@
-const React = require("react");
-const siteConfig = require(`${process.cwd()}/siteConfig.js`);
+const React = require('react')
+const siteConfig = require(`${process.cwd()}/siteConfig.js`)
 
 class ErrorPage extends React.Component {
   getTrackingScript() {
     if (!siteConfig.gaTrackingId) {
-      return null;
+      return null
     }
 
-    return {__html:`
+    return {
+      __html: `
       ga('create', "${siteConfig.gaTrackingId}");
       ga('send', {
         hitType: 'event',
@@ -19,11 +20,11 @@ class ErrorPage extends React.Component {
   }
 
   render() {
-    const trackingScript = this.getTrackingScript();
+    const trackingScript = this.getTrackingScript()
 
     return (
       <div className="error-page">
-      {trackingScript && <script dangerouslySetInnerHTML={trackingScript}/>}
+        {trackingScript && <script dangerouslySetInnerHTML={trackingScript} />}
         <div className="error-message">
           <div className=" error-message-container container">
             <span>404 </span>
@@ -32,11 +33,10 @@ class ErrorPage extends React.Component {
           </div>
         </div>
       </div>
-    );
+    )
   }
 }
 
-ErrorPage.title = "Page Not Found"
+ErrorPage.title = 'Page Not Found'
 
-
-module.exports = ErrorPage;
+module.exports = ErrorPage
