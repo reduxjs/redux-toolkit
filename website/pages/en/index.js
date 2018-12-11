@@ -9,7 +9,11 @@ const React = require('react')
 
 const CompLibrary = require('../../core/CompLibrary.js')
 
-const {MarkdownBlock, GridBlock, Container} = CompLibrary; /* Used to read markdown */
+const {
+  MarkdownBlock,
+  GridBlock,
+  Container
+} = CompLibrary /* Used to read markdown */
 
 const siteConfig = require(`${process.cwd()}/siteConfig.js`)
 
@@ -18,13 +22,17 @@ function docUrl(doc, language) {
 }
 
 function imgUrl(img) {
-  return `${siteConfig.baseUrl}img/${img}`;
+  return `${siteConfig.baseUrl}img/${img}`
 }
 class Button extends React.Component {
   render() {
     return (
       <div className="pluginWrapper buttonWrapper">
-        <a className="button hero" href={this.props.href} target={this.props.target}>
+        <a
+          className="button hero"
+          href={this.props.href}
+          target={this.props.target}
+        >
           {this.props.children}
         </a>
       </div>
@@ -44,17 +52,20 @@ const SplashContainer = props => (
   </div>
 )
 
-
 const ProjectTitle = () => (
   <React.Fragment>
-    <div style={{display : "flex", justifyContent : "center", alignItems : "center"}}>
-      <img src={"img/redux.svg"} alt="Redux logo" width={100} height={100}/>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}
+    >
+      <img src={'img/redux.svg'} alt="Redux logo" width={100} height={100} />
       <h1 className="projectTitle">{siteConfig.title}</h1>
     </div>
 
-    <h2 style={{marginTop : "0.5em"}}>
-        {siteConfig.tagline}
-    </h2>
+    <h2 style={{ marginTop: '0.5em' }}>{siteConfig.tagline}</h2>
   </React.Fragment>
 )
 
@@ -74,7 +85,7 @@ class HomeSplash extends React.Component {
         <div className="inner">
           <ProjectTitle />
           <PromoSection>
-            <Button href={docUrl("introduction/quick-start", language)}>
+            <Button href={docUrl('introduction/quick-start', language)}>
               Get Started
             </Button>
           </PromoSection>
@@ -100,39 +111,58 @@ const Block = props => (
     background={props.background}
     className={props.className}
   >
-    <GridBlock align="center" contents={props.children} layout={props.layout}/>
+    <GridBlock align="center" contents={props.children} layout={props.layout} />
   </Container>
-);
+)
 const FeaturesTop = props => (
   <Block layout="fourColumn" className="featureBlock">
     {[
       {
         content: `Includes utilities to simplify common use cases like **store setup, creating reducers, immutable update logic**, and more.`,
-        image : imgUrl("noun_snap_1984955.svg"),
+        image: imgUrl('noun_snap_1984955.svg'),
         imageAlign: 'top',
-        title: "Simple"
+        title: 'Simple'
       },
       {
-        content: "Provides **good defaults for store setup out of the box**, and includes **the most commonly used Redux addons built-in**.",
+        content:
+          'Provides **good defaults for store setup out of the box**, and includes **the most commonly used Redux addons built-in**.',
         image: imgUrl('noun_Brain_1551075.svg'),
         imageAlign: 'top',
-        title: "Opinionated"
+        title: 'Opinionated'
       },
-      { // .
+      {
+        // .
         content: `Takes inspiration from libraries like Immer and Autodux to let you **write "mutative" immutable update logic**, and even **create entire "slices" of state automatically**.`,
         image: imgUrl('noun_Bicep_1338504.svg'),
         imageAlign: 'top',
-        title: "Powerful"
+        title: 'Powerful'
       },
       {
-        content: "Lets you focus on the core logic your app needs, so you can **do more work with less code**.",
+        content:
+          'Lets you focus on the core logic your app needs, so you can **do more work with less code**.',
         image: imgUrl('noun_Checklist_437165.svg'),
         imageAlign: 'top',
-        title: "Effective"
-      },
+        title: 'Effective'
+      }
     ]}
   </Block>
-);
+)
+const OtherLibraries = props => (
+  <Block layout="twoColumn" className="libBlock">
+    {[
+      {
+        content: 'A predictable state container for JavaScript applications',
+        title:
+          '[Redux ![link2](img/external-link-square-alt-solid.svg)](https://redux.js.org) '
+      },
+      {
+        content: 'Official React bindings for Redux',
+        title:
+          '[React-Redux ![link2](img/external-link-square-alt-solid.svg)](https://react-redux.js.org) '
+      }
+    ]}
+  </Block>
+)
 class Index extends React.Component {
   render() {
     const language = this.props.language || ''
@@ -144,6 +174,12 @@ class Index extends React.Component {
           <div className="productShowcaseSection">
             <Container background="light">
               <FeaturesTop />
+            </Container>
+            <Container>
+              <h2 style={{ marginTop: '0.5em' }}>
+                Other Libraries from the Redux Team
+              </h2>
+              <OtherLibraries />
             </Container>
           </div>
         </div>
