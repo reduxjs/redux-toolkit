@@ -72,7 +72,7 @@ a:visited {
   max-height: 60px;
 }
 .featureBlock .blockContent > div p {
-  text-align: justify;
+  text-align: left;
 }
 .libBlock > div p {
   text-align: center;
