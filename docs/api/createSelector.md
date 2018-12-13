@@ -11,7 +11,7 @@ The `createSelector` utility from the [`selectorator` library](https://github.co
 
 For more specifics, see the [`selectorator` usage documentation](https://github.com/planttheidea/selectorator#usage).
 
-```js
+```ts
 function createSelector(
     // Can either be:
     //    - An array containing selector functions, string keypaths, and argument objects

@@ -9,7 +9,7 @@ hide_title: true
 
 A utility function to create reducers that handle specific action types, similar to the example function in the ["Reducing Boilerplate" Redux docs page](https://redux.js.org/recipes/reducing-boilerplate#generating-reducers). Takes an initial state value and an object that maps action types to case reducer functions. Internally, it uses the [`immer` library](https://github.com/mweststrate/immer), so you can write code in your case reducers that mutates the existing `state` value, and it will correctly generate immutably-updated state values instead.
 
-```js
+```ts
 function createReducer(
   initialState: State,
   actionsMap: Object<String, Function>

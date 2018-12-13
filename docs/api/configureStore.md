@@ -9,7 +9,7 @@ hide_title: true
 
 A friendlier abstraction over the standard Redux `createStore` function. Takes a single configuration object parameter, with the following options:
 
-```js
+```ts
 function configureStore({
     // A single reducer function that will be used as the root reducer,
     // or an object of slice reducers that will be passed to combineReducers()
