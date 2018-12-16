@@ -13,10 +13,10 @@ For more specifics, see the [`selectorator` usage documentation](https://github.
 
 ```ts
 function createSelector(
-    // Can either be:
-    //    - An array containing selector functions, string keypaths, and argument objects
-    //    - An object whose keys are selector functions and string keypaths
-    paths : Array<Function | string | Object> | Object<string, string | Function>
+  // Can either be:
+  //    - An array containing selector functions, string keypaths, and argument objects
+  //    - An object whose keys are selector functions and string keypaths
+  paths: Array<Function | string | Object> | Object<string, string | Function>
 )
 ```
 

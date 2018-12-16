@@ -19,7 +19,6 @@ const siteConfig = {
     indexName: 'redux-starter-kit',
     algoliaOptions: {}
   },
-  
 
   // Used for publishing and more
   projectName: 'redux-starter-kit',
