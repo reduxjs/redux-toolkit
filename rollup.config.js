@@ -1,6 +1,7 @@
 import resolve from 'rollup-plugin-node-resolve'
 import babel from 'rollup-plugin-babel'
 import commonjs from 'rollup-plugin-commonjs'
+import replace from 'rollup-plugin-replace'
 import pkg from './package.json'
 
 const input = 'src/index'
@@ -17,9 +18,12 @@ export default [
     },
     plugins: [
       babel({
-        exclude
+        exclude: "node_modules/**",
       }),
       resolve(),
+      replace({
+        'process.env.NODE_ENV': JSON.stringify('development')
+      }),
       commonjs()
     ]
   },

@@ -3,10 +3,17 @@ import * as redux from 'redux'
 import * as devtools from 'redux-devtools-extension'
 
 import thunk from 'redux-thunk'
+import immutableStateInvariant from 'redux-immutable-state-invariant'
 
 describe('getDefaultMiddleware', () => {
-  it('returns an array with redux-thunk', () => {
-    expect(getDefaultMiddleware()).toEqual([thunk])
+  it('returns an array with only redux-thunk in production', () => {
+    expect(getDefaultMiddleware(true)).toEqual([thunk])
+  })
+
+  it('returns an array with additional middleware in development', () => {
+    const middleware = getDefaultMiddleware(false)
+    expect(middleware).toContain(thunk)
+    expect(middleware.length).toBeGreaterThan(1)
   })
 })
 
@@ -16,6 +23,7 @@ describe('configureStore', () => {
   jest.spyOn(redux, 'compose')
   jest.spyOn(redux, 'createStore')
   jest.spyOn(devtools, 'composeWithDevTools')
+
   function reducer() {}
 
   beforeEach(() => jest.clearAllMocks())
@@ -23,7 +31,7 @@ describe('configureStore', () => {
   describe('given a function reducer', () => {
     it('calls createStore with the reducer', () => {
       expect(configureStore({ reducer })).toBeInstanceOf(Object)
-      expect(redux.applyMiddleware).toHaveBeenCalledWith(thunk)
+      expect(redux.applyMiddleware).toHaveBeenCalled()
       expect(devtools.composeWithDevTools).toHaveBeenCalled()
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
@@ -42,7 +50,7 @@ describe('configureStore', () => {
       }
       expect(configureStore({ reducer })).toBeInstanceOf(Object)
       expect(redux.combineReducers).toHaveBeenCalledWith(reducer)
-      expect(redux.applyMiddleware).toHaveBeenCalledWith(thunk)
+      expect(redux.applyMiddleware).toHaveBeenCalled()
       expect(devtools.composeWithDevTools).toHaveBeenCalled()
       expect(redux.createStore).toHaveBeenCalledWith(
         expect.any(Function),
@@ -94,7 +102,7 @@ describe('configureStore', () => {
       expect(configureStore({ devTools: false, reducer })).toBeInstanceOf(
         Object
       )
-      expect(redux.applyMiddleware).toHaveBeenCalledWith(thunk)
+      expect(redux.applyMiddleware).toHaveBeenCalled()
       expect(redux.compose).toHaveBeenCalled()
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
@@ -107,7 +115,7 @@ describe('configureStore', () => {
   describe('given preloadedState', () => {
     it('calls createStore with preloadedState', () => {
       expect(configureStore({ reducer })).toBeInstanceOf(Object)
-      expect(redux.applyMiddleware).toHaveBeenCalledWith(thunk)
+      expect(redux.applyMiddleware).toHaveBeenCalled()
       expect(devtools.composeWithDevTools).toHaveBeenCalled()
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
@@ -123,7 +131,7 @@ describe('configureStore', () => {
       expect(configureStore({ enhancers: [enhancer], reducer })).toBeInstanceOf(
         Object
       )
-      expect(redux.applyMiddleware).toHaveBeenCalledWith(thunk)
+      expect(redux.applyMiddleware).toHaveBeenCalled()
       expect(devtools.composeWithDevTools).toHaveBeenCalled()
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,

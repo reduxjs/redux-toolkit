@@ -1,11 +1,25 @@
 import { createStore, compose, applyMiddleware, combineReducers } from 'redux'
 import { composeWithDevTools } from 'redux-devtools-extension'
 import thunk from 'redux-thunk'
+import createImmutableStateInvariantMiddleware from 'redux-immutable-state-invariant'
+import createSerializableStateInvariantMiddleware from './serializableStateInvariantMiddleware'
 
 import isPlainObject from './isPlainObject'
 
-export function getDefaultMiddleware() {
-  return [thunk]
+const IS_PRODUCTION = process.env.NODE_ENV === 'production'
+
+export function getDefaultMiddleware(isProduction = IS_PRODUCTION) {
+  let middlewareArray = [thunk]
+
+  if (!isProduction) {
+    middlewareArray = [
+      createImmutableStateInvariantMiddleware(),
+      thunk,
+      createSerializableStateInvariantMiddleware()
+    ]
+  }
+
+  return middlewareArray
 }
 
 export function configureStore(options = {}) {
