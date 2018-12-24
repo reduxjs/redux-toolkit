@@ -12,7 +12,7 @@ describe('getDefaultMiddleware', () => {
 
   it('returns an array with additional middleware in development', () => {
     const middleware = getDefaultMiddleware(false)
-    expect(middleware[middleware.length - 1]).toEqual(thunk)
+    expect(middleware).toContain(thunk)
     expect(middleware.length).toBeGreaterThan(1)
   })
 })
