@@ -24,7 +24,11 @@ export default [
       replace({
         'process.env.NODE_ENV': JSON.stringify('development')
       }),
-      commonjs()
+        commonjs({
+            namedExports: {
+                'node_modules/curriable/dist/curriable.js': ['curry', '__'],
+            }
+        })
     ]
   },
 
