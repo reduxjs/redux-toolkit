@@ -62,10 +62,10 @@ export function findNonSerializableValue(
 export default function createSerializableStateInvariantMiddleware(
   options = {}
 ) {
-  const { isSerializable = isPlain, ignore } = options
+  const { isSerializable = isPlain } = options
 
   return storeAPI => next => action => {
-    const foundActionNonSerializableValue = findNonSerializableValue(action)
+    const foundActionNonSerializableValue = findNonSerializableValue(action, [], isSerializable)
 
     if (foundActionNonSerializableValue) {
       const { keyPath, value } = foundActionNonSerializableValue
