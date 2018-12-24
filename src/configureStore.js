@@ -45,9 +45,16 @@ export function configureStore(options = {}) {
 
   const middlewareEnhancer = applyMiddleware(...middleware)
 
-  const storeEnhancers = [middlewareEnhancer, ...enhancers]
+  let finalCompose = compose
 
-  let finalCompose = devTools ? composeWithDevTools : compose
+  if(devTools) {
+    finalCompose = composeWithDevTools({
+        // Enable capture of stack traces for dispatched Redux actions
+        trace : !IS_PRODUCTION
+    })
+  }
+
+  const storeEnhancers = [middlewareEnhancer, ...enhancers]
 
   const composedEnhancer = finalCompose(...storeEnhancers)
 
