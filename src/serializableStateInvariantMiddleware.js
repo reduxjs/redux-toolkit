@@ -1,6 +1,6 @@
 import isPlainObject from './isPlainObject'
 
-function isPlain(val) {
+export function isPlain(val) {
   return (
     typeof val === 'undefined' ||
     typeof val === 'string' ||
