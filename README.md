@@ -1,5 +1,6 @@
-# redux-starter-kit
+# Redux Starter Kit
 
+[![build status](https://img.shields.io/travis/reduxjs/redux-starter-kit/master.svg?style=flat-square)](https://travis-ci.org/reduxjs/redux-starter-kit)
 [![npm version](https://img.shields.io/npm/v/redux-starter-kit.svg?style=flat-square)](https://www.npmjs.com/package/redux-starter-kit)
 [![npm downloads](https://img.shields.io/npm/dm/redux-starter-kit.svg?style=flat-square)](https://www.npmjs.com/package/redux-starter-kit)
 
