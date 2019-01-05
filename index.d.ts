@@ -9,7 +9,6 @@ import {
   Store
 } from 'redux'
 
-// The `redux-starter-kit` typings are a superset of the `redux` typings.
 export {
   Action,
   ActionCreator,
@@ -104,3 +103,38 @@ export interface PayloadAction<P = any, T = any> extends Action<T> {
 export function createAction<P = any, T = any>(
   type: T
 ): ActionCreator<PayloadAction<P, T>>
+
+/* createReducer() */
+
+/**
+ * An *action handler* is a reducer for a speficic action type passed to
+ * `createReducer()`. In contrast to a normal Redux reducer, it is never
+ * called with an `undefined` state because the initial state is explicitly
+ * passed as the first argument to `createReducer()`.
+ */
+export interface ActionHandler<S, A> {
+  (state: S, action: A): S
+}
+
+/**
+ * A mapping from action types to action handlers, meant to be passed to
+ * `createReducer()`.
+ */
+export interface ActionHandlersMapObject<S, A extends Action = AnyAction> {
+  [actionType: string]: ActionHandler<S, A>
+}
+
+/**
+ * A utility function to create reducers that handle specific action types.
+ * case reducer functions. Internally, it uses the `immer` library, so you
+ * can write code in your case reducers that mutates the existing state value,
+ * and it will correctly generate immutably-updated state values instead.
+ *
+ * @param initialState The initial state to be returned by the reducer.
+ * @param actionsMap A mapping from action types to action handlers
+ *   (action-type-specific reducer functions).
+ */
+export function createReducer<S, A extends Action = AnyAction>(
+  initialState: S,
+  actionsMap: ActionHandlersMapObject<S, A>
+): Reducer<S, A>
