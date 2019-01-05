@@ -138,3 +138,75 @@ export function createReducer<S, A extends Action = AnyAction>(
   initialState: S,
   actionsMap: ActionHandlersMapObject<S, A>
 ): Reducer<S, A>
+
+/* createSlice() */
+
+/**
+ * A *slice* bundles a reducer, creators for the actions handled by that
+ * reducer, and selectors for the reducer's state.
+ */
+export interface Slice<
+  S,
+  A extends Action = AnyAction,
+  AT extends string = string
+> {
+  /**
+   * The slice's reducer.
+   */
+  reducer: Reducer<S, A>
+
+  /**
+   * Action creators for the types of actions that are handled by the slice
+   * reducer.
+   */
+  actions: { [type in AT]: ActionCreator<PayloadAction> }
+
+  /**
+   * Selectors for the slice reducer state. `createSlice()` inserts a single
+   * selector that returns the entire slice state and whose name is
+   * automatically derived from the slice name (e.g., `getCounter` for a slice
+   * named `counter`).
+   */
+  selectors: { [key: string]: (state: any) => S }
+}
+
+/**
+ * A configuration object for `createSlice()`.
+ */
+export interface SliceConfiguration<
+  S,
+  A extends Action = AnyAction,
+  AT extends string = string
+> {
+  /**
+   * The slice's name. Used to namespace the generated action types and to
+   * name the selector for retrieving the reducer's state.
+   */
+  slice?: string
+
+  /**
+   * The initial state to be returned by the slice reducer.
+   */
+  initialState: S
+
+  /**
+   * A mapping from action types to handlers (reducer functions) for these
+   * actions. For every action type, a matching action creator will be
+   * generated.
+   */
+  reducers: { [key in AT]: ActionHandler<S, A> }
+}
+
+/**
+ * A function that accepts an initial state, an object full of reducer
+ * functions, and optionally a "slice name", and automatically generates
+ * action creators, action types, and selectors that correspond to the
+ * reducers and state.
+ *
+ * The reducers are wrapped with `createReducer()`.
+ */
+export function createSlice<
+  S,
+  A extends Action = AnyAction,
+  AT extends string = string
+>(config: SliceConfiguration<S, A, AT>): Slice<S, A, AT>

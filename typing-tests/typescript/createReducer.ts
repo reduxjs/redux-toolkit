@@ -1,5 +1,4 @@
-import { createReducer, Reducer } from 'redux-starter-kit'
-import { bindActionCreators, AnyAction } from 'redux'
+import { AnyAction, createReducer, Reducer } from 'redux-starter-kit'
 
 /*
  * Test: createReducer() infers type of returned reducer.
