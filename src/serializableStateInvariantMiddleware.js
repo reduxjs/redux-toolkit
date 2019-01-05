@@ -7,8 +7,8 @@ export function isPlain(val) {
     typeof val === 'boolean' ||
     typeof val === 'number' ||
     Array.isArray(val) ||
-    val === null ||
-    isPlainObject(val)
+    isPlainObject(val) ||
+    val === null
   )
 }
 
@@ -66,11 +66,7 @@ export default function createSerializableStateInvariantMiddleware(
   const { isSerializable = isPlain } = options
 
   return storeAPI => next => action => {
-    const foundActionNonSerializableValue = findNonSerializableValue(
-      action,
-      [],
-      isSerializable
-    )
+    const foundActionNonSerializableValue = findNonSerializableValue(action, [], isSerializable)
 
     if (foundActionNonSerializableValue) {
       const { keyPath, value } = foundActionNonSerializableValue
