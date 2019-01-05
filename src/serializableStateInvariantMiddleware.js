@@ -3,12 +3,12 @@ import isPlainObject from './isPlainObject'
 export function isPlain(val) {
   return (
     typeof val === 'undefined' ||
+    val === null ||
     typeof val === 'string' ||
     typeof val === 'boolean' ||
     typeof val === 'number' ||
     Array.isArray(val) ||
-    isPlainObject(val) ||
-    val === null
+    isPlainObject(val) 
   )
 }
 
