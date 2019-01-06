@@ -60,6 +60,25 @@ describe('findNonSerializableValue', () => {
 
     expect(result).toEqual({ keyPath: '<root>', value })
   })
+
+  it('Should accept null as a valid value', () => {
+    const map = new Map()
+    const symbol = Symbol.for('testSymbol')
+
+    function testFunction() {}
+
+    const obj = {
+      a: 42,
+      b: {
+        b1: 1
+      },
+      c: null
+    }
+
+    const result = findNonSerializableValue(obj)
+
+    expect(result).toEqual(false)
+  })
 })
 
 describe('serializableStateInvariantMiddleware', () => {
