@@ -22,6 +22,7 @@ export {
   compose
 } from 'redux'
 export { default as createSelector } from 'selectorator'
+export { produce as createNextState } from 'immer'
 
 /* configureStore() */
 
