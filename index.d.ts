@@ -17,7 +17,9 @@ export {
   Reducer,
   ReducersMapObject,
   Store,
-  StoreEnhancer
+  StoreEnhancer,
+  combineReducers,
+  compose
 } from 'redux'
 export { default as createSelector } from 'selectorator'
 
