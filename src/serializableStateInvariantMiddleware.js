@@ -47,7 +47,8 @@ export function findNonSerializableValue(
       if (typeof nestedValue === 'object') {
         foundNestedSerializable = findNonSerializableValue(
           nestedValue,
-          nestedPath
+          nestedPath,
+          isSerializable
         )
 
         if (foundNestedSerializable) {
