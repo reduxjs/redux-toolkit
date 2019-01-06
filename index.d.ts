@@ -91,6 +91,11 @@ export interface PayloadAction<P = any, T = any> extends Action<T> {
   payload: P
 }
 
+export interface PayloadActionCreator<P = any, T = any> {
+  (): Action<T>
+  (payload: P): PayloadAction<P, T>
+}
+
 /**
  * A utility function to create an action creator for the given action type
  * string. The action creator accepts a single argument, which will be included
@@ -102,7 +107,7 @@ export interface PayloadAction<P = any, T = any> extends Action<T> {
  */
 export function createAction<P = any, T = any>(
   type: T
-): ActionCreator<PayloadAction<P, T>>
+): PayloadActionCreator<P, T>
 
 /* createReducer() */
 

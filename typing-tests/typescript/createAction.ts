@@ -1,4 +1,11 @@
-import { createAction, PayloadAction, ActionCreator } from 'redux-starter-kit'
+import {
+  createAction,
+  PayloadAction,
+  ActionCreator,
+  PayloadActionCreator,
+  Action,
+  AnyAction
+} from 'redux-starter-kit'
 
 /* PayloadAction */
 
@@ -35,6 +42,40 @@ import { createAction, PayloadAction, ActionCreator } from 'redux-starter-kit'
   const action3: PayloadAction<number, number> = { type: '', payload: 5 }
 }
 
+/* PayloadActionCreator */
+
+/*
+ * Test: PayloadActionCreator returns Action or PayloadAction depending
+ * on whether a payload is passed.
+ */
+{
+  const actionCreator: PayloadActionCreator = (payload?: number) => ({
+    type: 'action',
+    payload
+  })
+
+  let action: Action
+  let payloadAction: PayloadAction
+
+  action = actionCreator()
+  action = actionCreator(1)
+  payloadAction = actionCreator(1)
+
+  // typings:expect-error
+  payloadAction = actionCreator()
+}
+
+/*
+ * Test: PayloadActionCreator is compatible with ActionCreator.
+ */
+{
+  const payloadActionCreator: PayloadActionCreator = (payload?: number) => ({
+    type: 'action',
+    payload
+  })
+  const actionCreator: ActionCreator<AnyAction> = payloadActionCreator
+}
+
 /* createAction() */
 
 /*
@@ -42,10 +83,10 @@ import { createAction, PayloadAction, ActionCreator } from 'redux-starter-kit'
  */
 {
   const increment = createAction<number>('increment')
-  const incrementNumber: ActionCreator<PayloadAction<number>> = increment
+  const n: number = increment(1).payload
 
   // typings:expect-error
-  const incrementString: ActionCreator<PayloadAction<string>> = increment
+  const s: string = increment(1).payload
 }
 
 /*
@@ -53,6 +94,6 @@ import { createAction, PayloadAction, ActionCreator } from 'redux-starter-kit'
  */
 {
   const increment = createAction('increment')
-  const incrementNumber: ActionCreator<PayloadAction<number>> = increment
-  const incrementString: ActionCreator<PayloadAction<string>> = increment
+  const n: number = increment(1).payload
+  const s: string = increment(1).payload
 }
