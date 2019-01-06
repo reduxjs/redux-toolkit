@@ -18,17 +18,17 @@ export default [
     },
     plugins: [
       babel({
-        exclude: "node_modules/**",
+        exclude: 'node_modules/**'
       }),
       resolve(),
       replace({
         'process.env.NODE_ENV': JSON.stringify('development')
       }),
-        commonjs({
-            namedExports: {
-                'node_modules/curriable/dist/curriable.js': ['curry', '__'],
-            }
-        })
+      commonjs({
+        namedExports: {
+          'node_modules/curriable/dist/curriable.js': ['curry', '__']
+        }
+      })
     ]
   },
 

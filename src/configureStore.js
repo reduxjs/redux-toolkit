@@ -47,10 +47,10 @@ export function configureStore(options = {}) {
 
   let finalCompose = compose
 
-  if(devTools) {
+  if (devTools) {
     finalCompose = composeWithDevTools({
-        // Enable capture of stack traces for dispatched Redux actions
-        trace : !IS_PRODUCTION
+      // Enable capture of stack traces for dispatched Redux actions
+      trace: !IS_PRODUCTION
     })
   }
 

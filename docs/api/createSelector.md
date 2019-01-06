@@ -24,9 +24,12 @@ Example usage:
 
 ```js
 // Define input selector using a string keypath
-const getSubtotal = createSelector(['shop.items'], items => {
-  // return value here
-})
+const getSubtotal = createSelector(
+  ['shop.items'],
+  items => {
+    // return value here
+  }
+)
 
 // Define input selectors as a mix of other selectors and string keypaths
 const getTax = createSelector(
