@@ -19,6 +19,7 @@ export {
   Store,
   StoreEnhancer
 } from 'redux'
+export { default as createSelector } from 'selectorator'
 
 /* configureStore() */
 
