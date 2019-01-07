@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "lib": ["es2015"],
+    "noEmit": true,
+    "strict": true
+  },
+  "include": ["src"]
+}

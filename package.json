@@ -11,6 +11,9 @@
   "devDependencies": {
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
+    "@babel/preset-typescript": "^7.1.0",
+    "@types/jest": "^23.3.12",
+    "@types/node": "^10.12.18",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "^10.0.1",
     "eslint": "^4.17.0",
@@ -24,7 +27,8 @@
     "rollup": "^1.0.2",
     "rollup-plugin-babel": "^4.2.0",
     "rollup-plugin-commonjs": "^9.2.0",
-    "rollup-plugin-node-resolve": "^4.0.0"
+    "rollup-plugin-node-resolve": "^4.0.0",
+    "typescript": "^3.2.2"
   },
   "scripts": {
     "build": "rollup -c",
@@ -33,7 +37,8 @@
     "format:check": "prettier --list-different \"**/*.{js,md}\"",
     "lint": "eslint src",
     "prepare": "npm run lint && npm test && npm run build",
-    "test": "jest"
+    "test": "jest",
+    "tsc": "tsc"
   },
   "files": [
     "dist"
@@ -47,7 +52,16 @@
     "selectorator": "^4.0.1"
   },
   "jest": {
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json"
+    ],
+    "testRegex": "^.+\\.test\\.(ts|js)$",
+    "transform": {
+      "^.+\\.(ts|js)$": "babel-jest"
+    }
   },
   "sideEffects": false
 }
