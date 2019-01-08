@@ -1,3 +1,4 @@
+import { Reducer } from 'redux'
 import { configureStore } from './configureStore'
 
 import createSerializableStateInvariantMiddleware, {
@@ -87,7 +88,7 @@ describe('serializableStateInvariantMiddleware', () => {
   })
 
   it('Should log an error when a non-serializable action is dispatched', () => {
-    const reducer = (state = 0, action) => state + 1
+    const reducer: Reducer = (state = 0, action) => state + 1
 
     const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware()
 
@@ -103,7 +104,13 @@ describe('serializableStateInvariantMiddleware', () => {
 
     expect(console.error).toHaveBeenCalled()
 
-    const [message, keyPath, value, action] = console.error.mock.calls[0]
+    const [
+      message,
+      keyPath,
+      value,
+      action
+    ] = (console.error as jest.Mock).mock.calls[0]
+
     expect(message).toContain('detected in an action, in the path: `%s`')
     expect(keyPath).toBe('type')
     expect(value).toBe(type)
@@ -119,7 +126,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const badValue = new Map()
 
-    const reducer = (state = initialState, action) => {
+    const reducer: Reducer = (state = initialState, action) => {
       switch (action.type) {
         case ACTION_TYPE: {
           return {
@@ -144,7 +151,13 @@ describe('serializableStateInvariantMiddleware', () => {
 
     expect(console.error).toHaveBeenCalled()
 
-    const [message, keyPath, value, actionType] = console.error.mock.calls[0]
+    const [
+      message,
+      keyPath,
+      value,
+      actionType
+    ] = (console.error as jest.Mock).mock.calls[0]
+
     expect(message).toContain('detected in the state, in the path: `%s`')
     expect(keyPath).toBe('testSlice.a')
     expect(value).toBe(badValue)
