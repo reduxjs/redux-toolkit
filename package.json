@@ -42,7 +42,8 @@
     "tsc": "tsc"
   },
   "files": [
-    "dist"
+    "dist",
+    "index.d.ts"
   ],
   "dependencies": {
     "immer": "^1.9.3",
