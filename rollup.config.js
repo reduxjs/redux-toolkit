@@ -6,6 +6,8 @@ import pkg from './package.json'
 const input = 'src/index'
 const exclude = 'node_modules/**'
 
+const extensions = ['.ts', '.js']
+
 export default [
   // browser-friendly UMD build
   {
@@ -17,10 +19,14 @@ export default [
     },
     plugins: [
       babel({
+        extensions,
         exclude: 'node_modules/**'
       }),
-      resolve(),
+      resolve({
+        extensions
+      }),
       commonjs({
+        extensions,
         namedExports: {
           'node_modules/curriable/dist/curriable.js': ['curry', '__']
         }
@@ -40,6 +46,14 @@ export default [
       { file: pkg.module, format: 'es' }
     ],
     external: Object.keys(pkg.dependencies),
-    plugins: babel({ exclude })
+    plugins: [
+      babel({
+        extensions,
+        exclude
+      }),
+      resolve({
+        extensions
+      })
+    ]
   }
 ]
