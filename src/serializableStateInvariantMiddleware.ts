@@ -1,6 +1,14 @@
 import isPlainObject from './isPlainObject'
+import { Middleware } from 'redux'
 
-export function isPlain(val) {
+/**
+ * Returns true if the passed value is "plain", i.e. a value that is either
+ * directly JSON-serializable (boolean, number, string, array, plain object)
+ * or `undefined`.
+ *
+ * @param val The value to check.
+ */
+export function isPlain(val: any) {
   return (
     typeof val === 'undefined' ||
     val === null ||
@@ -25,10 +33,10 @@ const NON_SERIALIZABLE_ACTION_MESSAGE = [
 ].join('\n')
 
 export function findNonSerializableValue(
-  obj,
-  path = [],
-  isSerializable = isPlain
-) {
+  obj: any,
+  path: string[] = [],
+  isSerializable: (value: any) => boolean = isPlain
+): any {
   let foundNestedSerializable
 
   if (!isSerializable(obj)) {
@@ -61,9 +69,28 @@ export function findNonSerializableValue(
   return false
 }
 
+/**
+ * Options for `createSerializableStateInvariantMiddleware()`.
+ */
+export interface SerializableStateInvariantMiddlewareOptions {
+  /**
+   * The function to check if a value is considered serializable. This
+   * function is applied recursively to every value contained in the
+   * state. Defaults to `isPlain()`.
+   */
+  isSerializable?: (value: any) => boolean
+}
+
+/**
+ * Creates a middleware that, after every state change, checks if the new
+ * state is serializable. If a non-serializable value is found within the
+ * state, an error is printed to the console.
+ *
+ * @param options Middleware options.
+ */
 export default function createSerializableStateInvariantMiddleware(
-  options = {}
-) {
+  options: SerializableStateInvariantMiddlewareOptions = {}
+): Middleware {
   const { isSerializable = isPlain } = options
 
   return storeAPI => next => action => {

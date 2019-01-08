@@ -3,7 +3,6 @@ import * as redux from 'redux'
 import * as devtools from 'redux-devtools-extension'
 
 import thunk from 'redux-thunk'
-import immutableStateInvariant from 'redux-immutable-state-invariant'
 
 describe('getDefaultMiddleware', () => {
   it('returns an array with only redux-thunk in production', () => {
@@ -24,12 +23,14 @@ describe('configureStore', () => {
   jest.spyOn(redux, 'createStore')
   jest.spyOn(devtools, 'composeWithDevTools')
 
-  function reducer() {}
+  const reducer: redux.Reducer<{}, redux.AnyAction> = (state = {}, action) =>
+    state
 
   beforeEach(() => jest.clearAllMocks())
 
   describe('given a function reducer', () => {
     it('calls createStore with the reducer', () => {
+      configureStore({ reducer })
       expect(configureStore({ reducer })).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalled()
       expect(devtools.composeWithDevTools).toHaveBeenCalled()
@@ -83,7 +84,7 @@ describe('configureStore', () => {
 
   describe('given custom middleware', () => {
     it('calls createStore with custom middleware and without default middleware', () => {
-      const thank = store => next => action => next(action)
+      const thank: redux.Middleware = store => next => action => next(action)
       expect(configureStore({ middleware: [thank], reducer })).toBeInstanceOf(
         Object
       )
@@ -127,7 +128,7 @@ describe('configureStore', () => {
 
   describe('given enhancers', () => {
     it('calls createStore with enhancers', () => {
-      const enhancer = next => next
+      const enhancer: redux.StoreEnhancer = next => next
       expect(configureStore({ enhancers: [enhancer], reducer })).toBeInstanceOf(
         Object
       )
