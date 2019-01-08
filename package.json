@@ -29,7 +29,8 @@
     "rollup-plugin-babel": "^4.2.0",
     "rollup-plugin-commonjs": "^9.2.0",
     "rollup-plugin-node-resolve": "^4.0.0",
-    "typescript": "^3.2.2"
+    "typescript": "^3.2.2",
+    "typings-tester": "^0.3.2"
   },
   "scripts": {
     "build": "rollup -c",

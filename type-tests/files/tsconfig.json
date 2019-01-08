@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "lib": ["es2015"],
+    "strict": true,
+    "baseUrl": "../..",
+    "paths": {
+      "redux-starter-kit": ["index.d.ts"]
+    }
+  }
+}

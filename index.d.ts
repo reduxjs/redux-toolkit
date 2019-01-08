@@ -5,6 +5,7 @@ export {
   AnyAction,
   Middleware,
   Reducer,
+  Store,
   StoreEnhancer
 } from 'redux'
 export { default as createSelector } from 'selectorator'
