@@ -29,7 +29,7 @@ This approach works well, but is a bit boilerplate-y and error-prone. For instan
 The `createReducer` helper streamlines the implementation of such reducers. It takes two arguments. The first one is the initial state. The second is an object mapping from action types to _case reducers_, each of which handles one specific action type.
 
 ```js
-const counterReducer = createReducr(0, {
+const counterReducer = createReducer(0, {
   increment: (state, action) => state + action.payload,
   decrement: (state, action) => state - action.payload
 })
@@ -41,7 +41,7 @@ If you created action creators using `createAction()`, you can use those directl
 const increment = createAction('increment')
 const decrement = createAction('decrement')
 
-const counterReducer = createReducr(0, {
+const counterReducer = createReducer(0, {
   [increment]: (state, action) => state + action.payload,
   [decrement]: (state, action) => state - action.payload
 })
@@ -55,7 +55,7 @@ Redux requires reducer functions to be pure and treat state values as immutable.
 const addTodo = createAction('todos/add')
 const toggleTodo = createAction('todos/toggle')
 
-const todosReducer = createReducr([], {
+const todosReducer = createReducer([], {
   [addTodo]: (state, action) => {
     const todo = action.payload
     return [...state, todo]
@@ -80,7 +80,7 @@ To make things easier, `createReducer` uses [immer](https://github.com/mweststra
 const addTodo = createAction('todos/add')
 const toggleTodo = createAction('todos/toggle')
 
-const todosReducer = createReducr([], {
+const todosReducer = createReducer([], {
   [addTodo]: (state, action) => {
     // This push() operation gets translated into the same
     // extended-array creation as in the previous example.
@@ -99,7 +99,7 @@ const todosReducer = createReducr([], {
 If you choose to write reducers in this style, make sure to learn about  the [pitfalls mentioned in the immer docs](https://github.com/mweststrate/immer#pitfalls) . Most importantly, you need to ensure that you either mutate the `state` argument or return a new state, _but not both_. For example, the following reducer would throw an exception if a `toggleTodo` action is passed:
 
 ```js
-const todosReducer = createReducr([], {
+const todosReducer = createReducer([], {
   [toggleTodo]: (state, action) => {
     const index = action.payload
     const todo = state[index]
