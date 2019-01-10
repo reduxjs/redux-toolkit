@@ -7,6 +7,8 @@ hide_title: true
 
 # `createReducer()`
 
+A utility that simplifies creating Redux reducer functions, by defining them as lookup tables of functions to handle each action type.  It also allows you to drastically simplify immutable update logic, by writing "mutative" code inside your reducers.
+
 Redux [reducers](https://redux.js.org/basics/reducers) are often implemented using a `switch` statement, with one `case` for every handled action type.
 
 ```js
