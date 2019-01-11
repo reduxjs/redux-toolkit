@@ -13,7 +13,7 @@ export default [
     input,
     output: {
       name: 'redux-starter-kit',
-      file: pkg.browser,
+      file: pkg.unpkg,
       format: 'umd'
     },
     plugins: [
