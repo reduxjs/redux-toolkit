@@ -122,3 +122,25 @@ import {
     enhancers: ['not a store enhancer']
   })
 }
+
+/**
+ * Test: configureStore() state type inference works when specifying both a
+ * reducer object and a partial preloaded state.
+ */
+{
+  let counterReducer1: Reducer<number> = () => 0
+  let counterReducer2: Reducer<number> = () => 0
+
+  const store = configureStore({
+    reducer: {
+      counter1: counterReducer1,
+      counter2: counterReducer2
+    },
+    preloadedState: {
+      counter1: 0
+    }
+  })
+
+  const counter1: number = store.getState().counter1
+  const counter2: number = store.getState().counter2
+}

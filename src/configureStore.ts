@@ -47,7 +47,11 @@ export function getDefaultMiddleware(
 /**
  * Options for `configureStore()`.
  */
-export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
+export interface ConfigureStoreOptions<
+  S = any,
+  A extends Action = AnyAction,
+  PS extends S = S
+> {
   /**
    * A single reducer function that will be used as the root reducer, or an
    * object of slice reducers that will be passed to `combineReducers()`.
@@ -72,7 +76,7 @@ export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
    * function (either directly or indirectly by passing an object as `reducer`),
    * this must be an object with the same shape as the reducer map keys.
    */
-  preloadedState?: DeepPartial<S>
+  preloadedState?: DeepPartial<PS>
 
   /**
    * The store enhancers to apply. See Redux's `createStore()`. If you only
@@ -87,9 +91,11 @@ export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
  * @param config The store configuration.
  * @returns A configured Redux store.
  */
-export function configureStore<S = any, A extends Action = AnyAction>(
-  options: ConfigureStoreOptions<S, A>
-): Store<S, A> {
+export function configureStore<
+  S = any,
+  A extends Action = AnyAction,
+  PS extends S = S
+>(options: ConfigureStoreOptions<S, A, PS>): Store<S, A> {
   const {
     reducer = undefined,
     middleware = getDefaultMiddleware(),
@@ -132,7 +138,7 @@ export function configureStore<S = any, A extends Action = AnyAction>(
 
   const store: Store<S, A> = createStore(
     rootReducer,
-    preloadedState,
+    preloadedState as DeepPartial<S>,
     composedEnhancer
   )
 
