@@ -51,8 +51,8 @@ export function createAction<P = any, T extends string = string>(
  * @param action The action creator whose action type to get.
  * @returns The action type used by the action creator.
  */
-export function getType<P, T extends string>(
-  actionCreator: PayloadActionCreator<P, T>
+export function getType<T extends string>(
+  actionCreator: PayloadActionCreator<any, T>
 ): T {
   return `${actionCreator}` as T
 }
