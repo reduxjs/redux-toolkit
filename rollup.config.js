@@ -3,7 +3,7 @@ import babel from 'rollup-plugin-babel'
 import commonjs from 'rollup-plugin-commonjs'
 import pkg from './package.json'
 
-const input = './src/index.ts'
+const input = './src/index'
 const exclude = 'node_modules/**'
 
 const extensions = ['.ts', '.js']
