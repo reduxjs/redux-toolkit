@@ -48,9 +48,9 @@ export function createReducer<S = any, A extends Action = AnyAction>(
   actionsMap: CaseReducersMapObject<S, A>
 ): Reducer<S, A> {
   return function(state = initialState, action): S {
-    return createNextState(state, draft => {
+    return createNextState(state, (draft: S) => {
       const caseReducer = actionsMap[action.type]
       return caseReducer ? caseReducer(draft as S, action) : draft
-    }) as S
+    })
   }
 }
