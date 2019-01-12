@@ -5,17 +5,19 @@ import { Action } from 'redux'
  * type of action returned by `createAction()` action creators.
  *
  * @template P The type of the action's payload.
+ * @template T the type used for the action type.
  */
-export interface PayloadAction<P = any> extends Action<string> {
+export interface PayloadAction<P = any, T extends string = string>
+  extends Action<T> {
   payload: P
 }
 
 /**
  * An action creator that produces actions with a `payload` attribute.
  */
-export interface PayloadActionCreator<P = any> {
-  (): Action<string>
-  (payload: P): PayloadAction<P>
+export interface PayloadActionCreator<P = any, T extends string = string> {
+  (): Action<T>
+  (payload: P): PayloadAction<P, T>
 }
 
 /**
@@ -27,10 +29,12 @@ export interface PayloadActionCreator<P = any> {
  *
  * @param type The action type to use for created actions.
  */
-export function createAction<P = any>(type: string): PayloadActionCreator<P> {
-  function actionCreator(): Action<string>
-  function actionCreator(payload: P): PayloadAction<P>
-  function actionCreator(payload?: P) {
+export function createAction<P = any, T extends string = string>(
+  type: T
+): PayloadActionCreator<P> {
+  function actionCreator(): Action<T>
+  function actionCreator(payload: P): PayloadAction<P, T>
+  function actionCreator(payload?: P): Action<T> | PayloadAction<P, T> {
     return { type, payload }
   }
 
@@ -47,6 +51,8 @@ export function createAction<P = any>(type: string): PayloadActionCreator<P> {
  * @param action The action creator whose action type to get.
  * @returns The action type used by the action creator.
  */
-export function getType<P>(actionCreator: PayloadActionCreator<P>): string {
-  return `${actionCreator}`
+export function getType<P, T extends string>(
+  actionCreator: PayloadActionCreator<P, T>
+): T {
+  return `${actionCreator}` as T
 }
