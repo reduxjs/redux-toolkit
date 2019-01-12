@@ -32,36 +32,49 @@ const NON_SERIALIZABLE_ACTION_MESSAGE = [
   '(See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)'
 ].join('\n')
 
-export function findNonSerializableValue(
-  obj: any,
-  path: string[] = [],
-  isSerializable: (value: any) => boolean = isPlain
-): any {
-  let foundNestedSerializable
+interface NonSerializableValue {
+  keyPath: string
+  value: unknown
+}
 
-  if (!isSerializable(obj)) {
-    return { keyPath: path.join('.') || '<root>', value: obj }
+export function findNonSerializableValue(
+  value: unknown,
+  path: ReadonlyArray<string> = [],
+  isSerializable: (value: unknown) => boolean = isPlain
+): NonSerializableValue | false {
+  let foundNestedSerializable: NonSerializableValue | false
+
+  if (!isSerializable(value)) {
+    return {
+      keyPath: path.join('.') || '<root>',
+      value: value
+    }
   }
 
-  for (let property in obj) {
-    if (obj.hasOwnProperty(property)) {
-      const nestedPath = path.concat(property)
-      const nestedValue = obj[property]
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
 
-      if (!isSerializable(nestedValue)) {
-        return { keyPath: nestedPath.join('.'), value: nestedValue }
+  for (const property of Object.keys(value)) {
+    const nestedPath = path.concat(property)
+    const nestedValue: unknown = (value as any)[property]
+
+    if (!isSerializable(nestedValue)) {
+      return {
+        keyPath: nestedPath.join('.'),
+        value: nestedValue
       }
+    }
 
-      if (typeof nestedValue === 'object') {
-        foundNestedSerializable = findNonSerializableValue(
-          nestedValue,
-          nestedPath,
-          isSerializable
-        )
+    if (typeof nestedValue === 'object') {
+      foundNestedSerializable = findNonSerializableValue(
+        nestedValue,
+        nestedPath,
+        isSerializable
+      )
 
-        if (foundNestedSerializable) {
-          return foundNestedSerializable
-        }
+      if (foundNestedSerializable) {
+        return foundNestedSerializable
       }
     }
   }
