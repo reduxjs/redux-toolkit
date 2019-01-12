@@ -2,8 +2,11 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "lib": ["es2015"],
+    "module": "es2015",
+    "moduleResolution": "node",
     "noEmit": true,
-    "strict": true
+    "strict": true,
+    "target": "es2018"
   },
   "include": ["src"]
 }
