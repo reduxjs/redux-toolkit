@@ -47,11 +47,7 @@ export function getDefaultMiddleware(
 /**
  * Options for `configureStore()`.
  */
-export interface ConfigureStoreOptions<
-  S = any,
-  A extends Action = AnyAction,
-  PS extends S = S
-> {
+export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
   /**
    * A single reducer function that will be used as the root reducer, or an
    * object of slice reducers that will be passed to `combineReducers()`.
@@ -76,7 +72,11 @@ export interface ConfigureStoreOptions<
    * function (either directly or indirectly by passing an object as `reducer`),
    * this must be an object with the same shape as the reducer map keys.
    */
-  preloadedState?: DeepPartial<PS>
+  // NOTE: The needlessly complicated `S extends any ? S : S` instead of just
+  // `S` ensures that the TypeScript compiler doesn't attempt to infer `S`
+  // based on the value passed as `preloadedState`, which might be a partial
+  // state rather than the full thing.
+  preloadedState?: DeepPartial<S extends any ? S : S>
 
   /**
    * The store enhancers to apply. See Redux's `createStore()`. If you only
@@ -91,11 +91,9 @@ export interface ConfigureStoreOptions<
  * @param config The store configuration.
  * @returns A configured Redux store.
  */
-export function configureStore<
-  S = any,
-  A extends Action = AnyAction,
-  PS extends S = S
->(options: ConfigureStoreOptions<S, A, PS>): Store<S, A> {
+export function configureStore<S = any, A extends Action = AnyAction>(
+  options: ConfigureStoreOptions<S, A>
+): Store<S, A> {
   const {
     reducer = undefined,
     middleware = getDefaultMiddleware(),
