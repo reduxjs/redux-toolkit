@@ -1,4 +1,4 @@
-import { applyMiddleware } from 'redux'
+import { applyMiddleware, Dispatch } from 'redux'
 import {
   AnyAction,
   configureStore,
@@ -143,4 +143,23 @@ import {
 
   const counter1: number = store.getState().counter1
   const counter2: number = store.getState().counter2
+}
+
+/**
+ * Test: Returned store allows dispatching thunks.
+ */
+{
+  const store = configureStore({
+    reducer: () => 0
+  })
+
+  function incrementMaybe() {
+    return (dispatch: Dispatch) => {
+      if (Math.random() > 0.5) {
+        dispatch({ type: 'increment' })
+      }
+    }
+  }
+
+  store.dispatch(incrementMaybe())
 }

@@ -10,10 +10,11 @@ import {
   AnyAction,
   StoreEnhancer,
   Store,
-  DeepPartial
+  DeepPartial,
+  Dispatch
 } from 'redux'
 import { composeWithDevTools } from 'redux-devtools-extension'
-import thunk from 'redux-thunk'
+import thunk, { ThunkDispatch, ThunkMiddleware } from 'redux-thunk'
 import createImmutableStateInvariantMiddleware from 'redux-immutable-state-invariant'
 import createSerializableStateInvariantMiddleware from './serializableStateInvariantMiddleware'
 
@@ -28,10 +29,10 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production'
  *
  * @return The default middleware used by `configureStore()`.
  */
-export function getDefaultMiddleware(
+export function getDefaultMiddleware<S = any, A extends Action = AnyAction>(
   isProduction = IS_PRODUCTION
-): Middleware[] {
-  let middlewareArray: Middleware[] = [thunk]
+): [ThunkMiddleware<S, A>, ...Middleware<{}, S>[]] {
+  let middlewareArray: [ThunkMiddleware<S, A>, ...Middleware<{}, S>[]] = [thunk]
 
   if (!isProduction) {
     middlewareArray = [
@@ -58,7 +59,7 @@ export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
    * An array of Redux middleware to install. If not supplied, defaults to
    * the set of middleware returned by `getDefaultMiddleware()`.
    */
-  middleware?: Middleware[]
+  middleware?: Middleware<{}, S>[]
 
   /**
    * Whether to enable Redux DevTools integration. Defaults to `true`.
@@ -86,6 +87,15 @@ export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
 }
 
 /**
+ * A Redux store returned by `configureStore()`. Supports dispatching
+ * side-effectful _thunks_ in addition to plain actions.
+ */
+export interface EnhancedStore<S = any, A extends Action = AnyAction>
+  extends Store<S, A> {
+  dispatch: ThunkDispatch<S, any, A>
+}
+
+/**
  * A friendly abstraction over the standard Redux `createStore()` function.
  *
  * @param config The store configuration.
@@ -93,7 +103,7 @@ export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
  */
 export function configureStore<S = any, A extends Action = AnyAction>(
   options: ConfigureStoreOptions<S, A>
-): Store<S, A> {
+): EnhancedStore<S, A> {
   const {
     reducer = undefined,
     middleware = getDefaultMiddleware(),
@@ -134,11 +144,9 @@ export function configureStore<S = any, A extends Action = AnyAction>(
 
   const composedEnhancer = finalCompose(...storeEnhancers) as StoreEnhancer
 
-  const store: Store<S, A> = createStore(
+  return createStore(
     rootReducer,
     preloadedState as DeepPartial<S>,
     composedEnhancer
   )
-
-  return store
 }
