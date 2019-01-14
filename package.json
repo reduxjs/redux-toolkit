@@ -38,7 +38,7 @@
     "format": "prettier --write \"src/*.ts\" \"**/*.md\"",
     "format:check": "prettier --list-different \"src/*.ts\" \"**/*.md\"",
     "lint": "eslint src",
-    "prepare": "npm run lint && npm test && npm run build",
+    "prepare": "npm run tsc && npm run lint && npm test && npm run build",
     "test": "jest",
     "tsc": "tsc"
   },
