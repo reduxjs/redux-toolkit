@@ -1,4 +1,3 @@
-import { Immutable } from 'immer'
 import { Action, AnyAction, ActionCreator, Reducer } from 'redux'
 import { createAction, PayloadAction } from './createAction'
 import { createReducer, CaseReducersMapObject } from './createReducer'
@@ -51,7 +50,7 @@ export interface CreateSliceOptions<
   /**
    * The initial state to be returned by the slice reducer.
    */
-  initialState: Immutable<S>
+  initialState: S
 
   /**
    * A mapping from action types to action-type-specific *case reducer*
@@ -79,7 +78,7 @@ export function createSlice<
   CR extends CaseReducersMapObject<S, A> = CaseReducersMapObject<S, A>
 >(
   options: CreateSliceOptions<S, A, CR>
-): Slice<Immutable<S>, A, Extract<keyof CR, string>> {
+): Slice<S, A, Extract<keyof CR, string>> {
   const { slice = '', initialState } = options
   const reducers = options.reducers || {}
   const actionKeys = Object.keys(reducers)

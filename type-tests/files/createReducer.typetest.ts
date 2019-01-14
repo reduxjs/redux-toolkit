@@ -58,25 +58,14 @@ import { AnyAction, createReducer, Reducer } from 'redux-starter-kit'
 }
 
 /*
- * Test: createReducer() reducers are typed to return readonly states.
+ * Test: createReducer() ensures state type is mutable within a case reducer.
  */
 {
-  const initialCounters = {
-    a: 0,
-    b: 0
-  }
+  const initialState: { readonly counter: number } = { counter: 0 }
 
-  const reducer = createReducer(initialCounters, {
-    incrementA: state => {
-      state.a += 1
-    },
-    incrementB: state => {
-      state.b += 1
+  createReducer(initialState, {
+    increment: state => {
+      state.counter += 1
     }
   })
-
-  const newCounters = reducer(initialCounters, { type: 'incrementA' })
-
-  // typings:expect-error
-  newCounters.a++
 }
