@@ -1,4 +1,4 @@
-import createNextState from 'immer'
+import createNextState, { Draft, Immutable } from 'immer'
 import { AnyAction, Action, Reducer } from 'redux'
 
 /**
@@ -16,7 +16,7 @@ import { AnyAction, Action, Reducer } from 'redux'
  * translated to copy operations that result in a new state.
  */
 export type CaseReducer<S = any, A extends Action = AnyAction> = (
-  state: S,
+  state: Draft<S>,
   action: A
 ) => S | void
 
@@ -44,13 +44,16 @@ export interface CaseReducersMapObject<S = any, A extends Action = AnyAction> {
  *   case redeucers.
  */
 export function createReducer<S = any, A extends Action = AnyAction>(
-  initialState: S,
+  initialState: Immutable<S>,
   actionsMap: CaseReducersMapObject<S, A>
-): Reducer<S, A> {
-  return function(state = initialState, action): S {
-    return createNextState(state, (draft: S) => {
+): Reducer<Immutable<S>, A> {
+  return function(state = initialState, action): Immutable<S> {
+    // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
+    // than an Immutable<S>, and TypeScript cannot find out how to reconcile
+    // these two types.
+    return createNextState(state, (draft: Draft<S>) => {
       const caseReducer = actionsMap[action.type]
-      return caseReducer ? caseReducer(draft as S, action) : draft
+      return caseReducer ? caseReducer(draft, action) : undefined
     })
   }
 }

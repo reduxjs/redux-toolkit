@@ -56,3 +56,27 @@ import { AnyAction, createReducer, Reducer } from 'redux-starter-kit'
     decrement: decrementHandler
   })
 }
+
+/*
+ * Test: createReducer() reducers are typed to return readonly states.
+ */
+{
+  const initialCounters = {
+    a: 0,
+    b: 0
+  }
+
+  const reducer = createReducer(initialCounters, {
+    incrementA: state => {
+      state.a += 1
+    },
+    incrementB: state => {
+      state.b += 1
+    }
+  })
+
+  const newCounters = reducer(initialCounters, { type: 'incrementA' })
+
+  // typings:expect-error
+  newCounters.a++
+}
