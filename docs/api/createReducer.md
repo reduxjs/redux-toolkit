@@ -84,6 +84,7 @@ const todosReducer = createReducer([], {
   [addTodo]: (state, action) => {
     // This push() operation gets translated into the same
     // extended-array creation as in the previous example.
+    const todo = action.payload
     state.push(todo)
   },
   [toggleTodo]: (state, action) => {
