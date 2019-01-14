@@ -15,7 +15,6 @@ import {
 } from 'redux'
 import { composeWithDevTools } from 'redux-devtools-extension'
 import thunk, { ThunkDispatch, ThunkMiddleware } from 'redux-thunk'
-import createImmutableStateInvariantMiddleware from 'redux-immutable-state-invariant'
 import createSerializableStateInvariantMiddleware from './serializableStateInvariantMiddleware'
 
 import isPlainObject from './isPlainObject'
@@ -29,12 +28,15 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production'
  *
  * @return The default middleware used by `configureStore()`.
  */
-export function getDefaultMiddleware<S = any, A extends Action = AnyAction>(
-  isProduction = IS_PRODUCTION
-): [ThunkMiddleware<S, A>, ...Middleware<{}, S>[]] {
+export function getDefaultMiddleware<S = any, A extends Action = AnyAction>(): [
+  ThunkMiddleware<S, A>,
+  ...Middleware<{}, S>[]
+] {
   let middlewareArray: [ThunkMiddleware<S, A>, ...Middleware<{}, S>[]] = [thunk]
 
-  if (!isProduction) {
+  if (process.env.NODE_ENV !== 'production') {
+    const createImmutableStateInvariantMiddleware = require('redux-immutable-state-invariant').default
+
     middlewareArray = [
       createImmutableStateInvariantMiddleware(),
       thunk,
