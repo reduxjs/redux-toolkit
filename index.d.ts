@@ -14,16 +14,16 @@ export {
   configureStore,
   ConfigureStoreOptions,
   getDefaultMiddleware
-} from './src/configureStore'
+} from './dist/configureStore'
 export {
   createAction,
   getType,
   PayloadAction,
   PayloadActionCreator
-} from './src/createAction'
-export { createReducer } from './src/createReducer'
-export { createSlice, CreateSliceOptions, Slice } from './src/createSlice'
+} from './dist/createAction'
+export { createReducer } from './dist/createReducer'
+export { createSlice, CreateSliceOptions, Slice } from './dist/createSlice'
 export {
   default as createSerializableStateInvariantMiddleware,
   isPlain
-} from './src/serializableStateInvariantMiddleware'
+} from './dist/serializableStateInvariantMiddleware'

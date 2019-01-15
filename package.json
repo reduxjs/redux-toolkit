@@ -25,6 +25,7 @@
     "eslint-plugin-react": "^7.6.1",
     "jest": "^22.4.2",
     "prettier": "^1.10.2",
+    "rimraf": "^2.6.3",
     "rollup": "^1.0.2",
     "rollup-plugin-babel": "^4.2.0",
     "rollup-plugin-commonjs": "^9.2.0",
@@ -39,9 +40,10 @@
     "format": "prettier --write \"src/*.ts\" \"**/*.md\"",
     "format:check": "prettier --list-different \"src/*.ts\" \"**/*.md\"",
     "lint": "eslint 'src/**/*.ts'",
-    "prepare": "npm run tsc && npm run lint && npm test && npm run build",
+    "prepare": "npm run tsc && npm run lint && npm test && npm run build && npm run tsc:declarations",
     "test": "jest",
-    "tsc": "tsc"
+    "tsc": "tsc --noEmit",
+    "tsc:declarations": "tsc -d --emitDeclarationOnly && rimraf 'dist/*.test.d.ts'"
   },
   "files": [
     "dist",
