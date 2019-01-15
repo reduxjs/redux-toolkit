@@ -10,8 +10,7 @@ import {
   AnyAction,
   StoreEnhancer,
   Store,
-  DeepPartial,
-  Dispatch
+  DeepPartial
 } from 'redux'
 import { composeWithDevTools } from 'redux-devtools-extension'
 import thunk, { ThunkDispatch, ThunkMiddleware } from 'redux-thunk'
@@ -35,7 +34,8 @@ export function getDefaultMiddleware<S = any, A extends Action = AnyAction>(): [
   let middlewareArray: [ThunkMiddleware<S, A>, ...Middleware<{}, S>[]] = [thunk]
 
   if (process.env.NODE_ENV !== 'production') {
-    const createImmutableStateInvariantMiddleware = require('redux-immutable-state-invariant').default
+    const createImmutableStateInvariantMiddleware = require('redux-immutable-state-invariant')
+      .default
 
     middlewareArray = [
       createImmutableStateInvariantMiddleware(),

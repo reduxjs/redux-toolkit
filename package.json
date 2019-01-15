@@ -30,6 +30,7 @@
     "rollup-plugin-commonjs": "^9.2.0",
     "rollup-plugin-node-resolve": "^4.0.0",
     "typescript": "^3.2.2",
+    "typescript-eslint-parser": "eslint/typescript-eslint-parser",
     "typings-tester": "^0.3.2"
   },
   "scripts": {
@@ -37,7 +38,7 @@
     "dev": "rollup -c -w",
     "format": "prettier --write \"src/*.ts\" \"**/*.md\"",
     "format:check": "prettier --list-different \"src/*.ts\" \"**/*.md\"",
-    "lint": "eslint src",
+    "lint": "eslint 'src/**/*.ts'",
     "prepare": "npm run tsc && npm run lint && npm test && npm run build",
     "test": "jest",
     "tsc": "tsc"

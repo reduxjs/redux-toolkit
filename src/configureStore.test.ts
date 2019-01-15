@@ -12,7 +12,7 @@ describe('getDefaultMiddleware', () => {
   })
 
   it('returns an array with only redux-thunk in production', () => {
-    process.env.NODE_ENV = "production";
+    process.env.NODE_ENV = 'production'
 
     expect(getDefaultMiddleware()).toEqual([thunk])
   })
@@ -31,8 +31,7 @@ describe('configureStore', () => {
   jest.spyOn(redux, 'createStore')
   jest.spyOn(devtools, 'composeWithDevTools')
 
-  const reducer: redux.Reducer<{}, redux.AnyAction> = (state = {}, action) =>
-    state
+  const reducer: redux.Reducer = (state = {}, _action) => state
 
   beforeEach(() => jest.clearAllMocks())
 
@@ -92,7 +91,7 @@ describe('configureStore', () => {
 
   describe('given custom middleware', () => {
     it('calls createStore with custom middleware and without default middleware', () => {
-      const thank: redux.Middleware = store => next => action => next(action)
+      const thank: redux.Middleware = _store => next => action => next(action)
       expect(configureStore({ middleware: [thank], reducer })).toBeInstanceOf(
         Object
       )

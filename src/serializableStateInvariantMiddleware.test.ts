@@ -39,7 +39,6 @@ describe('findNonSerializableValue', () => {
   it('Should return the first non-serializable value it finds', () => {
     const map = new Map()
     const symbol = Symbol.for('testSymbol')
-    function testFunction() {}
 
     const obj = {
       a: 42,
@@ -63,11 +62,6 @@ describe('findNonSerializableValue', () => {
   })
 
   it('Should accept null as a valid value', () => {
-    const map = new Map()
-    const symbol = Symbol.for('testSymbol')
-
-    function testFunction() {}
-
     const obj = {
       a: 42,
       b: {
@@ -88,7 +82,7 @@ describe('serializableStateInvariantMiddleware', () => {
   })
 
   it('Should log an error when a non-serializable action is dispatched', () => {
-    const reducer: Reducer = (state = 0, action) => state + 1
+    const reducer: Reducer = (state = 0, _action) => state + 1
 
     const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware()
 

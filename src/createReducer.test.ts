@@ -1,6 +1,6 @@
 import { createReducer, CaseReducer } from './createReducer'
 import { PayloadAction } from './createAction'
-import { Reducer, Action } from 'redux'
+import { Reducer } from 'redux'
 
 interface Todo {
   text: string
@@ -63,7 +63,7 @@ describe('createReducer', () => {
   })
 })
 
-function behavesLikeReducer<S, A extends Action>(todosReducer: TodosReducer) {
+function behavesLikeReducer(todosReducer: TodosReducer) {
   it('should handle initial state', () => {
     const initialAction = { type: '', payload: undefined }
     expect(todosReducer(undefined, initialAction)).toEqual([])
