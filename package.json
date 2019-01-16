@@ -45,7 +45,8 @@
   },
   "files": [
     "dist",
-    "index.d.ts"
+    "index.d.ts",
+    "src"
   ],
   "dependencies": {
     "immer": "^1.10.5",
