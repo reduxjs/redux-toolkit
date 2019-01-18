@@ -25,6 +25,9 @@ function configureStore({
 })
 ```
 
+For details on how the `middleware` parameter works and the list of middleware that are added by default, see the
+[`getDefaultMiddleware` docs page](./getDefaultMiddleware.md)
+
 Basic usage:
 
 ```js

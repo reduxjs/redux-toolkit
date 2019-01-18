@@ -61,7 +61,7 @@ state values for mutations.  It can detect mutations in reducers during a dispat
 dispatches (such as in a component or a selector).  When a mutation is detect, it will throw an error and indicate the key
 path for where the mutated value was detected in the state tree.
 - `serializable-state-invariant-middleware`: a custom middleware created specifically for use in `redux-starter-kit`.  Similar in
-concept to `redux-immutable-state-invariant`, but deeply checks In adyour state tree and your actions for non-serializable values
+concept to `redux-immutable-state-invariant`, but deeply checks your state tree and your actions for non-serializable values
 such as functions, Promises, Symbols, and other non-plain-JS-data values.  When a non-serializable value is detected, a
 console error will be printed with the key path for where the non-serializable value was detected.
 
