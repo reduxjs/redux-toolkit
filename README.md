@@ -4,11 +4,6 @@
 
 [![npm version](https://img.shields.io/npm/v/redux-starter-kit.svg?style=flat-square)](https://www.npmjs.com/package/redux-starter-kit)
 
-**A simple set of tools to make using Redux easier**
-
-`npm install redux-starter-kit`
-
-(Special thanks to Github user @shotak for dona
 
 **A simple set of tools to make using Redux easier**
 
