@@ -27,8 +27,8 @@ import { increment } from './actions'
 
 function counterReducer(state = 0, action) {
   switch (action.type) {
-    // action creator can be used directly as the type for comparisons
-    case increment: {
+    // action creator's `toString()` can be used as the type for comparisons
+    case increment.toString(): {
       return state + action.payload
     }
     default:
