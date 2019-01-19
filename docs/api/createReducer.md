@@ -7,7 +7,7 @@ hide_title: true
 
 # `createReducer()`
 
-A utility that simplifies creating Redux reducer functions, by defining them as lookup tables of functions to handle each action type.  It also allows you to drastically simplify immutable update logic, by writing "mutative" code inside your reducers.
+A utility that simplifies creating Redux reducer functions, by defining them as lookup tables of functions to handle each action type. It also allows you to drastically simplify immutable update logic, by writing "mutative" code inside your reducers.
 
 Redux [reducers](https://redux.js.org/basics/reducers) are often implemented using a `switch` statement, with one `case` for every handled action type.
 
@@ -49,7 +49,7 @@ const counterReducer = createReducer(0, {
 
 ## Direct State Mutation
 
-Redux requires reducer functions to be pure and treat state values as immutable.  While this is essential for making state updates predictable and observable, it can sometimes make the implementation of such updates awkward. Consider the following example:
+Redux requires reducer functions to be pure and treat state values as immutable. While this is essential for making state updates predictable and observable, it can sometimes make the implementation of such updates awkward. Consider the following example:
 
 ```js
 const addTodo = createAction('todos/add')
@@ -72,7 +72,7 @@ const todosReducer = createReducer([], {
 })
 ```
 
-The  `addTodo` reducer is pretty easy to follow if you know the [ES6 spread syntax](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax).  However, the code for  `toggleTodo` is much less straightforward, especially considering that it only sets a single flag.
+The `addTodo` reducer is pretty easy to follow if you know the [ES6 spread syntax](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax). However, the code for `toggleTodo` is much less straightforward, especially considering that it only sets a single flag.
 
 To make things easier, `createReducer` uses [immer](https://github.com/mweststrate/immer) to let you write reducers as if they were mutating the state directly. In reality, the reducer receives a proxy state that translates all mutations into equivalent copy operations.
 
@@ -97,7 +97,7 @@ const todosReducer = createReducer([], {
 })
 ```
 
-If you choose to write reducers in this style, make sure to learn about  the [pitfalls mentioned in the immer docs](https://github.com/mweststrate/immer#pitfalls) . Most importantly, you need to ensure that you either mutate the `state` argument or return a new state, _but not both_. For example, the following reducer would throw an exception if a `toggleTodo` action is passed:
+If you choose to write reducers in this style, make sure to learn about the [pitfalls mentioned in the immer docs](https://github.com/mweststrate/immer#pitfalls) . Most importantly, you need to ensure that you either mutate the `state` argument or return a new state, _but not both_. For example, the following reducer would throw an exception if a `toggleTodo` action is passed:
 
 ```js
 const todosReducer = createReducer([], {
@@ -111,11 +111,7 @@ const todosReducer = createReducer([], {
     // ... and returns a new value. This will throw an
     // exception. In this example, the easiest fix is
     // to remove the `return` statement.
-    return [
-      ...state.slice(0, index),
-      todo,
-      ...state.slice(index + 1)
-    ]
+    return [...state.slice(0, index), todo, ...state.slice(index + 1)]
   }
 })
 ```

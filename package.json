@@ -1,6 +1,6 @@
 {
   "name": "redux-starter-kit",
-  "version": "0.3.3",
+  "version": "0.4.0-1",
   "description": "A simple set of tools to make using Redux easier",
   "repository": "https://github.com/markerikson/redux-starter-kit",
   "main": "dist/redux-starter-kit.cjs.js",
@@ -9,10 +9,14 @@
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
   "devDependencies": {
-    "babel-core": "^6.26.0",
-    "babel-eslint": "^7.2.3",
-    "babel-plugin-external-helpers": "^6.22.0",
-    "babel-preset-env": "^1.6.1",
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/preset-typescript": "^7.1.0",
+    "@types/jest": "^23.3.12",
+    "@types/node": "^10.12.18",
+    "@types/redux-immutable-state-invariant": "^2.1.0",
+    "babel-core": "7.0.0-bridge.0",
+    "babel-eslint": "^10.0.1",
     "eslint": "^4.17.0",
     "eslint-config-react-app": "^2.1.0",
     "eslint-plugin-flowtype": "^2.44.0",
@@ -21,26 +25,31 @@
     "eslint-plugin-react": "^7.6.1",
     "jest": "^22.4.2",
     "prettier": "^1.10.2",
-    "rollup": "^0.56.3",
-    "rollup-plugin-babel": "^3.0.3",
-    "rollup-plugin-commonjs": "^8.3.0",
-    "rollup-plugin-node-resolve": "^3.0.3",
-    "rollup-plugin-replace": "^2.1.0"
+    "rollup": "^1.0.2",
+    "rollup-plugin-babel": "^4.2.0",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-node-resolve": "^4.0.0",
+    "typescript": "^3.2.2",
+    "typescript-eslint-parser": "eslint/typescript-eslint-parser",
+    "typings-tester": "^0.3.2"
   },
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "format": "prettier --write \"**/*.{js,md}\"",
-    "format:check": "prettier --list-different \"**/*.{js,md}\"",
-    "lint": "eslint src",
-    "prepare": "npm run lint && npm test && npm run build",
-    "test": "jest"
+    "format": "prettier --write \"src/*.ts\" \"**/*.md\"",
+    "format:check": "prettier --list-different \"src/*.ts\" \"**/*.md\"",
+    "lint": "eslint 'src/**/*.ts'",
+    "prepare": "npm run tsc && npm run lint && npm test && npm run build",
+    "test": "jest",
+    "tsc": "tsc"
   },
   "files": [
-    "dist"
+    "dist",
+    "index.d.ts",
+    "src"
   ],
   "dependencies": {
-    "immer": "^1.9.3",
+    "immer": "^1.10.5",
     "redux": "^4.0.0",
     "redux-devtools-extension": "^2.13.7",
     "redux-immutable-state-invariant": "^2.1.0",
@@ -48,7 +57,16 @@
     "selectorator": "^4.0.1"
   },
   "jest": {
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json"
+    ],
+    "testRegex": "^.+\\.test\\.(ts|js)$",
+    "transform": {
+      "^.+\\.(ts|js)$": "babel-jest"
+    }
   },
   "sideEffects": false
 }

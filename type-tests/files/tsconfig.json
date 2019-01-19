@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "module": "es2015",
+    "moduleResolution": "node",
+    "strict": true,
+    "target": "es2018",
+    "baseUrl": "../..",
+    "paths": {
+      "redux-starter-kit": ["index.d.ts"]
+    }
+  }
+}
