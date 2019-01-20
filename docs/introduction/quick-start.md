@@ -27,11 +27,11 @@ you make your Redux code better.
 
 `redux-starter-kit` includes:
 
-- A [`configureStore()` function](./configureStore.md) with simplified configuration options. It can automatically combine your slice reducers, adds whatever Redux middleware you supply, includes `redux-thunk` by default, and enables use of the Redux DevTools Extension.
-- A [`createReducer()` utility](./createReducer.md) that lets you supply a lookup table of action types to case reducer functions, rather than writing switch statements. In addition, it automatically uses the [`immer` library](https://github.com/mweststrate/immer) to let you write simpler immutable updates with normal mutative code, like `state.todos[3].completed = true`.
-- A [`createAction()` utility](./createAction.md) that returns an action creator function for the given action type string. The function itself has `toString()` defined, so that it can be used in place of the type constant.
-- A [`createSlice()` function](./createSlice.md) that accepts a set of reducer functions, a slice name, and an initial state value, and automatically generates corresponding action creators, types, and simple selector functions.
-- An improved version of the widely used [`createSelector` utility](./createSelector.md) for creating memoized selector functions, which can accept string keypaths as "input selectors" (re-exported from the [`selectorator` library](https://github.com/planttheidea/selectorator)).
+- A [`configureStore()` function](../api/configureStore.md) with simplified configuration options. It can automatically combine your slice reducers, adds whatever Redux middleware you supply, includes `redux-thunk` by default, and enables use of the Redux DevTools Extension.
+- A [`createReducer()` utility](../api/createReducer.md) that lets you supply a lookup table of action types to case reducer functions, rather than writing switch statements. In addition, it automatically uses the [`immer` library](https://github.com/mweststrate/immer) to let you write simpler immutable updates with normal mutative code, like `state.todos[3].completed = true`.
+- A [`createAction()` utility](../api/createAction.md) that returns an action creator function for the given action type string. The function itself has `toString()` defined, so that it can be used in place of the type constant.
+- A [`createSlice()` function](../api/createSlice.md) that accepts a set of reducer functions, a slice name, and an initial state value, and automatically generates corresponding action creators, types, and simple selector functions.
+- An improved version of the widely used [`createSelector` utility](../api/createSelector.md) for creating memoized selector functions, which can accept string keypaths as "input selectors" (re-exported from the [`selectorator` library](https://github.com/planttheidea/selectorator)).
 
 ## Installation
 
