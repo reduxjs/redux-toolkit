@@ -1,3 +1,4 @@
+export { combineReducers, compose } from 'redux'
 export { default as createNextState } from 'immer'
 export { default as createSelector } from 'selectorator'
 
