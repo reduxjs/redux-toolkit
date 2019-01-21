@@ -15,6 +15,9 @@ import {
     reducers: {
       increment: (state: number, action) => state + action.payload,
       decrement: (state: number, action) => state - action.payload
+    },
+    extraReducers: {
+      "OTHER_ACTION_TYPE" : (state : number, action ) => state + action.payload.count
     }
   })
 
