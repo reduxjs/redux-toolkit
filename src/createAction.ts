@@ -18,6 +18,7 @@ export interface PayloadAction<P = any, T extends string = string>
 export interface PayloadActionCreator<P = any, T extends string = string> {
   (): Action<T>
   (payload: P): PayloadAction<P, T>
+  type : string
 }
 
 /**
@@ -39,6 +40,8 @@ export function createAction<P = any, T extends string = string>(
   }
 
   actionCreator.toString = () => `${type}`
+
+  actionCreator.type = type
 
   return actionCreator
 }
