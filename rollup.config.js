@@ -1,11 +1,12 @@
 import resolve from 'rollup-plugin-node-resolve'
 import babel from 'rollup-plugin-babel'
 import commonjs from 'rollup-plugin-commonjs'
-import replace from 'rollup-plugin-replace'
 import pkg from './package.json'
 
-const input = 'src/index'
+const input = './src/index'
 const exclude = 'node_modules/**'
+
+const extensions = ['.ts', '.js']
 
 export default [
   // browser-friendly UMD build
@@ -13,22 +14,23 @@ export default [
     input,
     output: {
       name: 'redux-starter-kit',
-      file: pkg.browser,
+      file: pkg.unpkg,
       format: 'umd'
     },
     plugins: [
       babel({
-        exclude: "node_modules/**",
+        extensions,
+        exclude: 'node_modules/**'
       }),
-      resolve(),
-      replace({
-        'process.env.NODE_ENV': JSON.stringify('development')
+      resolve({
+        extensions
       }),
-        commonjs({
-            namedExports: {
-                'node_modules/curriable/dist/curriable.js': ['curry', '__'],
-            }
-        })
+      commonjs({
+        extensions,
+        namedExports: {
+          'node_modules/curriable/dist/curriable.js': ['curry', '__']
+        }
+      })
     ]
   },
 
@@ -44,6 +46,14 @@ export default [
       { file: pkg.module, format: 'es' }
     ],
     external: Object.keys(pkg.dependencies),
-    plugins: babel({ exclude })
+    plugins: [
+      babel({
+        extensions,
+        exclude
+      }),
+      resolve({
+        extensions
+      })
+    ]
   }
 ]

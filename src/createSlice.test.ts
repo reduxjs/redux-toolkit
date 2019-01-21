@@ -87,18 +87,20 @@ describe('createSlice', () => {
   })
 
   describe('when mutating state object', () => {
+    const initialState = { user: '' }
+
     const { actions, reducer } = createSlice({
       reducers: {
         setUserName: (state, action) => {
           state.user = action.payload
         }
       },
-      initialState: { user: '' },
+      initialState,
       slice: 'user'
     })
 
     it('should set the username', () => {
-      expect(reducer({}, actions.setUserName('eric'))).toEqual({
+      expect(reducer(initialState, actions.setUserName('eric'))).toEqual({
         user: 'eric'
       })
     })
