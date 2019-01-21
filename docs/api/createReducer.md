@@ -35,7 +35,9 @@ const counterReducer = createReducer(0, {
 })
 ```
 
-If you created action creators using `createAction()`, you can use those directly as keys for the case reducers.
+Action creators that were generated using [`createAction`](./createAction.md) may be used directly as the keys here, using
+computed property syntax. (If you are using TypeScript, you may have to use `actionCreator.type` or `actionCreator.toString()`
+to force the TS compiler to accept the computed property.)
 
 ```js
 const increment = createAction('increment')
@@ -43,7 +45,7 @@ const decrement = createAction('decrement')
 
 const counterReducer = createReducer(0, {
   [increment]: (state, action) => state + action.payload,
-  [decrement]: (state, action) => state - action.payload
+  [decrement.type]: (state, action) => state - action.payload
 })
 ```
 

@@ -18,7 +18,7 @@ export interface PayloadAction<P = any, T extends string = string>
 export interface PayloadActionCreator<P = any, T extends string = string> {
   (): Action<T>
   (payload: P): PayloadAction<P, T>
-  type : string
+  type: string
 }
 
 /**

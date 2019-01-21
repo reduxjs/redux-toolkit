@@ -72,7 +72,7 @@ If two fields from `reducers` and `extraReducers` happen to end up with the same
 the function from `reducers` will be used to handle that action type.
 
 Action creators that were generated using [`createAction`](./createAction.md) may be used directly as the keys here, using
-computed property syntax.  (If you are using TypeScript, you may have to use `actionCreator.type` or `actionCreator.toString()`
+computed property syntax. (If you are using TypeScript, you may have to use `actionCreator.type` or `actionCreator.toString()`
 to force the TS compiler to accept the computed property.)
 
 ## Return Value
