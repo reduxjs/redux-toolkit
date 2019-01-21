@@ -54,10 +54,10 @@ import {
  * on whether a payload is passed.
  */
 {
-  const actionCreator: PayloadActionCreator = (payload?: number) => ({
+  const actionCreator: PayloadActionCreator = Object.assign((payload?: number) => ({
     type: 'action',
     payload
-  })
+  }), {type : 'action'})
 
   let action: Action
   let payloadAction: PayloadAction
@@ -74,18 +74,20 @@ import {
  * Test: PayloadActionCreator is compatible with ActionCreator.
  */
 {
-  const payloadActionCreator: PayloadActionCreator = (payload?: number) => ({
+  const payloadActionCreator: PayloadActionCreator = Object.assign((payload?: number) => ({
     type: 'action',
     payload
-  })
+  }), {type : 'action'})
   const actionCreator: ActionCreator<AnyAction> = payloadActionCreator
 
-  const payloadActionCreator2: PayloadActionCreator<number> = (
+  const payloadActionCreator2: PayloadActionCreator<number> = Object.assign((
     payload?: number
   ) => ({
     type: 'action',
     payload: payload || 1
-  })
+  }), {type : 'action'})
+
+
   const actionCreator2: ActionCreator<
     PayloadAction<number>
   > = payloadActionCreator2
