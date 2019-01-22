@@ -69,7 +69,7 @@ describe('createSlice', () => {
 
     it('should have the correct action for increment', () => {
       expect(actions.increment()).toEqual({
-        type: 'cool/increment',
+        type: 'increment',
         payload: undefined
       })
     })
@@ -113,9 +113,7 @@ describe('createSlice', () => {
     const { reducer } = createSlice({
       reducers: {
         increment: state => state + 1,
-        multiply: (state, action) => state * action.payload
-      },
-      extraReducers: {
+        multiply: (state, action) => state * action.payload,
         [addMore.type]: (state, action) => state + action.payload.amount
       },
       initialState: 0
