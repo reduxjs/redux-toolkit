@@ -54,10 +54,13 @@ import {
  * on whether a payload is passed.
  */
 {
-  const actionCreator: PayloadActionCreator = Object.assign((payload?: number) => ({
-    type: 'action',
-    payload
-  }), {type : 'action'})
+  const actionCreator: PayloadActionCreator = Object.assign(
+    (payload?: number) => ({
+      type: 'action',
+      payload
+    }),
+    { type: 'action' }
+  )
 
   let action: Action
   let payloadAction: PayloadAction
@@ -74,19 +77,22 @@ import {
  * Test: PayloadActionCreator is compatible with ActionCreator.
  */
 {
-  const payloadActionCreator: PayloadActionCreator = Object.assign((payload?: number) => ({
-    type: 'action',
-    payload
-  }), {type : 'action'})
+  const payloadActionCreator: PayloadActionCreator = Object.assign(
+    (payload?: number) => ({
+      type: 'action',
+      payload
+    }),
+    { type: 'action' }
+  )
   const actionCreator: ActionCreator<AnyAction> = payloadActionCreator
 
-  const payloadActionCreator2: PayloadActionCreator<number> = Object.assign((
-    payload?: number
-  ) => ({
-    type: 'action',
-    payload: payload || 1
-  }), {type : 'action'})
-
+  const payloadActionCreator2: PayloadActionCreator<number> = Object.assign(
+    (payload?: number) => ({
+      type: 'action',
+      payload: payload || 1
+    }),
+    { type: 'action' }
+  )
 
   const actionCreator2: ActionCreator<
     PayloadAction<number>
@@ -99,7 +105,7 @@ import {
  * Test: createAction() has type parameter for the action payload.
  */
 {
-  const increment = createAction<number>('increment')
+  const increment = createAction<number, 'increment'>('increment')
   const n: number = increment(1).payload
 
   // typings:expect-error
@@ -113,4 +119,17 @@ import {
   const increment = createAction('increment')
   const n: number = increment(1).payload
   const s: string = increment(1).payload
+}
+/*
+ * Test: createAction().type is a string literal.
+ */
+{
+  const increment = createAction('increment')
+  const n: string = increment(1).type
+  const s: 'increment' = increment(1).type
+
+  // typings:expect-error
+  const r: 'other' = increment(1).type
+  // typings:expect-error
+  const q: number = increment(1).type
 }
