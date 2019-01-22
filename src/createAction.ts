@@ -39,7 +39,7 @@ export function createAction<P = any, T extends string = string>(
     return { type, payload }
   }
 
-  actionCreator.toString = () => `${type}`
+  actionCreator.toString = (): T => `${type}` as T
 
   actionCreator.type = type
 
