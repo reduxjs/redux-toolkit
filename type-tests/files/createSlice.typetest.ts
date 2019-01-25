@@ -2,13 +2,16 @@ import {
   AnyAction,
   createSlice,
   PayloadAction,
-  Reducer
+  Reducer,
+  createAction
 } from 'redux-starter-kit'
 
 /*
  * Test: createSlice() infers the returned slice's type.
  */
 {
+  const firstAction = createAction<{ count: number }>('FIRST_ACTION')
+
   const slice = createSlice({
     slice: 'counter',
     initialState: 0,
@@ -17,7 +20,8 @@ import {
       decrement: (state: number, action) => state - action.payload
     },
     extraReducers: {
-      "OTHER_ACTION_TYPE" : (state : number, action ) => state + action.payload.count
+      [firstAction.type]: (state: number, action) =>
+        state + action.payload.count
     }
   })
 
