@@ -1,12 +1,17 @@
-import { Action, AnyAction, ActionCreator, Reducer } from 'redux'
+import { Action, AnyAction, Reducer } from 'redux'
 import { createAction, PayloadAction } from './createAction'
 import { createReducer, CaseReducersMapObject } from './createReducer'
 import { createSliceSelector, createSelectorName } from './sliceSelector'
 
+/**
+ * An action creator atttached to a slice.
+ */
+export type SliceActionCreator<P> = (payload: P) => PayloadAction<P>
+
 export interface Slice<
   S = any,
   A extends Action = AnyAction,
-  AT extends string = string
+  AP extends { [key: string]: any } = { [key: string]: any }
 > {
   /**
    * The slice name.
@@ -22,7 +27,7 @@ export interface Slice<
    * Action creators for the types of actions that are handled by the slice
    * reducer.
    */
-  actions: { [type in AT]: ActionCreator<A> }
+  actions: { [type in keyof AP]: SliceActionCreator<AP[type]> }
 
   /**
    * Selectors for the slice reducer state. `createSlice()` inserts a single
@@ -68,6 +73,18 @@ export interface CreateSliceOptions<
   extraReducers?: CR2
 }
 
+type ExtractPayloads<
+  S,
+  A extends PayloadAction,
+  CR extends CaseReducersMapObject<S, A>
+> = {
+  [type in keyof CR]: CR[type] extends (state: S) => any
+    ? void
+    : (CR[type] extends (state: S, action: PayloadAction<infer P>) => any
+        ? P
+        : never)
+}
+
 function getType(slice: string, actionKey: string): string {
   return slice ? `${slice}/${actionKey}` : actionKey
 }
@@ -82,11 +99,11 @@ function getType(slice: string, actionKey: string): string {
  */
 export function createSlice<
   S = any,
-  A extends PayloadAction = PayloadAction,
+  A extends PayloadAction = PayloadAction<any>,
   CR extends CaseReducersMapObject<S, A> = CaseReducersMapObject<S, A>
 >(
   options: CreateSliceOptions<S, A, CR>
-): Slice<S, A, Extract<keyof CR, string>> {
+): Slice<S, A, ExtractPayloads<S, A, CR>> {
   const { slice = '', initialState } = options
   const reducers = options.reducers || {}
   const extraReducers = options.extraReducers || {}

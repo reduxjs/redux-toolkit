@@ -49,3 +49,27 @@ import {
   // typings:expect-error
   const stringValue: string = slice.selectors.getCounter(0)
 }
+
+/*
+ * Test: Slice action creator types are inferred.
+ */
+{
+  const counter = createSlice({
+    slice: 'counter',
+    initialState: 0,
+    reducers: {
+      increment: state => state + 1,
+      decrement: state => state - 1,
+      multiply: (state, action: PayloadAction<number>) => state * action.payload
+    }
+  })
+
+  counter.actions.increment()
+  counter.actions.multiply(2)
+
+  // typings:expect-error
+  counter.actions.multiply()
+
+  // typings:expect-error
+  counter.actions.multiply('2')
+}
