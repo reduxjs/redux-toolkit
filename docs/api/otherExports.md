@@ -9,31 +9,32 @@ hide_title: true
 
 `redux-starter-kit` exports some of its internal utilities, and re-exports additional functions from other dependencies as well.
 
-
 ## Internal Exports
-
 
 ### `createSerializableStateInvariantMiddleware`
 
 Creates an instance of the `serializable-state-invariant` middleware described in [`getDefaultMiddleware`](./getDefaultMiddleware.md).
 
 Accepts an options object with an `isSerializable` parameter, which will be used
-to determine if a value is considered serializable or not.  If not provided, this
+to determine if a value is considered serializable or not. If not provided, this
 defaults to `isPlain`.
 
 Example:
 
 ```js
-import {configureStore, createSerializableStateInvariantMiddleware} from "redux-starter-kit";
+import {
+  configureStore,
+  createSerializableStateInvariantMiddleware
+} from 'redux-starter-kit'
 
 const serializableMiddleware = createSerializableStateInvariantMiddleware({
-    isSerializable: () => true // all values will be accepted
-});
+  isSerializable: () => true // all values will be accepted
+})
 
 const store = configureStore({
-    reducer,
-    middleware : [serializableMiddleware],
-});
+  reducer,
+  middleware: [serializableMiddleware]
+})
 ```
 
 ### `isPlain`
@@ -55,7 +56,6 @@ function isPlain(val) {
   )
 }
 ```
-
 
 ## Exports from Other Libraries
 

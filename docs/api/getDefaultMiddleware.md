@@ -15,7 +15,7 @@ By default, [`configureStore`](./configureStore.md) adds some middleware to the 
 
 ```js
 const store = configureStore({
-    reducer : rootReducer,
+  reducer: rootReducer
 })
 
 // Store has one or more middleware added, because the middleware list was not customized
@@ -25,8 +25,8 @@ If you want to customize the list of middleware, you can supply an array of midd
 
 ```js
 const store = configureStore({
-    reducer : rootReducer,
-    middleware : [thunk, logger],
+  reducer: rootReducer,
+  middleware: [thunk, logger]
 })
 
 // Store specifically has the thunk and logger middleware applied
@@ -40,30 +40,29 @@ middleware added as well:
 
 ```js
 const store = configureStore({
-    reducer : rootReducer,
-    middleware: [...getDefaultMiddleware(), logger]
+  reducer: rootReducer,
+  middleware: [...getDefaultMiddleware(), logger]
 })
 
 // Store has all of the default middleware added, _plus_ the logger middleware
 ```
 
-
 ## Included Default Middleware
 
 ### Development
 
-One of the goals of `redux-starter-kit` is to provide opinionated defaults and prevent common mistakes.  As part of that,
-`getDefaultMiddleware` includes some middleware that are added **in development builds of your app only** to 
+One of the goals of `redux-starter-kit` is to provide opinionated defaults and prevent common mistakes. As part of that,
+`getDefaultMiddleware` includes some middleware that are added **in development builds of your app only** to
 provide runtime checks for two common issues:
 
-- [`redux-immutable-state-invariant`](https://github.com/leoasis/redux-immutable-state-invariant): deeply compares 
-state values for mutations.  It can detect mutations in reducers during a dispatch, and also mutations that occur between
-dispatches (such as in a component or a selector).  When a mutation is detect, it will throw an error and indicate the key
-path for where the mutated value was detected in the state tree.
-- `serializable-state-invariant-middleware`: a custom middleware created specifically for use in `redux-starter-kit`.  Similar in
-concept to `redux-immutable-state-invariant`, but deeply checks your state tree and your actions for non-serializable values
-such as functions, Promises, Symbols, and other non-plain-JS-data values.  When a non-serializable value is detected, a
-console error will be printed with the key path for where the non-serializable value was detected.
+- [`redux-immutable-state-invariant`](https://github.com/leoasis/redux-immutable-state-invariant): deeply compares
+  state values for mutations. It can detect mutations in reducers during a dispatch, and also mutations that occur between
+  dispatches (such as in a component or a selector). When a mutation is detect, it will throw an error and indicate the key
+  path for where the mutated value was detected in the state tree.
+- `serializable-state-invariant-middleware`: a custom middleware created specifically for use in `redux-starter-kit`. Similar in
+  concept to `redux-immutable-state-invariant`, but deeply checks your state tree and your actions for non-serializable values
+  such as functions, Promises, Symbols, and other non-plain-JS-data values. When a non-serializable value is detected, a
+  console error will be printed with the key path for where the non-serializable value was detected.
 
 In addition to these development tool middleware, it also adds [`redux-thunk`](https://github.com/reduxjs/redux-thunk)
 by default, since thunks are the basic recommended side effects middleware for Redux.
@@ -71,7 +70,7 @@ by default, since thunks are the basic recommended side effects middleware for R
 Currently, the return value is:
 
 ```js
-[immutableStateInvariant, thunk, serializableStateInvariant]
+;[immutableStateInvariant, thunk, serializableStateInvariant]
 ```
 
 ### Production
@@ -79,5 +78,5 @@ Currently, the return value is:
 Currently, the return value is:
 
 ```js
-[thunk]
+;[thunk]
 ```

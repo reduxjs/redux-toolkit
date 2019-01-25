@@ -1,4 +1,5 @@
 import { createSlice } from './createSlice'
+import { createAction } from './createAction'
 
 describe('createSlice', () => {
   describe('when slice is empty', () => {
@@ -103,6 +104,27 @@ describe('createSlice', () => {
       expect(reducer(initialState, actions.setUserName('eric'))).toEqual({
         user: 'eric'
       })
+    })
+  })
+
+  describe('when passing extra reducers', () => {
+    const addMore = createAction('ADD_MORE')
+
+    const { reducer } = createSlice({
+      reducers: {
+        increment: state => state + 1,
+        multiply: (state, action) => state * action.payload
+      },
+      extraReducers: {
+        [addMore.type]: (state, action) => state + action.payload.amount
+      },
+      initialState: 0
+    })
+
+    it('should call extra reducers when their actions are dispatched', () => {
+      const result = reducer(10, addMore({ amount: 5 }))
+
+      expect(result).toBe(15)
     })
   })
 })

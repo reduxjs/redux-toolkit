@@ -14,13 +14,15 @@ A function that accepts an initial state, an object full of reducer functions, a
 `createSlice` accepts a single configuration object parameter, with the following options:
 
 ```ts
-function createSlice({
+function configureStore({
     // An object of "case reducers". Key names will be used to generate actions.
     reducers: Object<string, ReducerFunction>
     // The initial state for the reducer
     initialState: any,
     // An optional name, used in action types and selectors
     slice?: string,
+    // An additional object of "case reducers". Keys should be other action types.
+    extraReducers?: Object<string, ReducerFunction>
 })
 ```
 
@@ -54,6 +56,24 @@ will be generated. This selector assume the slice data exists in an object, with
 return the value at that key name. If not provided, a selector named `getState` will be generated that just returns
 its argument.
 
+### `extraReducers`
+
+One of the key concepts of Redux is that each slice reducer "owns" its slice of state, and that many slice reducers
+can independently respond to the same action type. `extraReducers` allows `createSlice` to respond to other action types
+besides the types it has generated.
+
+Like `reducers`, `extraReducers` should be an object containing Redux case reducer functions. However, the keys should
+be other Redux string action type constants, and `createSlice` will _not_ auto-generate action types or action creators
+for reducers included in this parameter.
+
+As with `reducers`, these reducers will also be passed to `createReducer` and may "mutate" their state safely.
+
+If two fields from `reducers` and `extraReducers` happen to end up with the same action type string,
+the function from `reducers` will be used to handle that action type.
+
+Action creators that were generated using [`createAction`](./createAction.md) may be used directly as the keys here, using
+computed property syntax. (If you are using TypeScript, you may have to use `actionCreator.type` or `actionCreator.toString()`
+to force the TS compiler to accept the computed property.)
 
 ## Return Value
 
@@ -88,7 +108,6 @@ for references in a larger codebase.
 >   separate files, and each file tries to import the other so it can listen to other actions, unexpected
 >   behavior may occur.
 
-
 ## Examples
 
 ```js
@@ -107,10 +126,15 @@ const counter = createSlice({
 
 const user = createSlice({
   slice: 'user',
-  initialState: { name: '' },
+  initialState: { name: '', age: 20 },
   reducers: {
     setUserName: (state, action) => {
       state.name = action.payload // mutate the state all you want with immer
+    }
+  },
+  extraReducers: {
+    [counter.actions.increment]: (state, action) => {
+      state.age += 1
     }
   }
 })
@@ -123,18 +147,18 @@ const reducer = combineReducers({
 const store = createStore(reducer)
 
 store.dispatch(counter.actions.increment())
-// -> { counter: 1, user: {} }
+// -> { counter: 1, user: {name : '', age: 20} }
 store.dispatch(counter.actions.increment())
-// -> { counter: 2, user: {} }
+// -> { counter: 2, user: {name: '', age: 21} }
 store.dispatch(counter.actions.multiply(3))
-// -> { counter: 6, user: {} }
+// -> { counter: 6, user: {name: '', age: 22} }
 console.log(`${counter.actions.decrement}`)
-// -> counter/decrement
+// -> "counter/decrement"
 store.dispatch(user.actions.setUserName('eric'))
-// -> { counter: 6, user: { name: 'eric' } }
+// -> { counter: 6, user: { name: 'eric', age: 22} }
 const state = store.getState()
 console.log(user.selectors.getUser(state))
-// -> { name: 'eric' }
+// -> { name: 'eric', age: 22 }
 console.log(counter.selectors.getCounter(state))
 // -> 6
 ```

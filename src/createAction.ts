@@ -18,6 +18,7 @@ export interface PayloadAction<P = any, T extends string = string>
 export interface PayloadActionCreator<P = any, T extends string = string> {
   (): Action<T>
   (payload: P): PayloadAction<P, T>
+  type: T
 }
 
 /**
@@ -31,14 +32,16 @@ export interface PayloadActionCreator<P = any, T extends string = string> {
  */
 export function createAction<P = any, T extends string = string>(
   type: T
-): PayloadActionCreator<P> {
+): PayloadActionCreator<P, T> {
   function actionCreator(): Action<T>
   function actionCreator(payload: P): PayloadAction<P, T>
   function actionCreator(payload?: P): Action<T> | PayloadAction<P, T> {
     return { type, payload }
   }
 
-  actionCreator.toString = () => `${type}`
+  actionCreator.toString = (): T => `${type}` as T
+
+  actionCreator.type = type
 
   return actionCreator
 }
