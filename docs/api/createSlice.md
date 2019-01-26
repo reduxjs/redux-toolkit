@@ -14,7 +14,7 @@ A function that accepts an initial state, an object full of reducer functions, a
 `createSlice` accepts a single configuration object parameter, with the following options:
 
 ```ts
-function configureStore({
+function createSlice({
     // An object of "case reducers". Key names will be used to generate actions.
     reducers: Object<string, ReducerFunction>
     // The initial state for the reducer
