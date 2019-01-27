@@ -16,13 +16,10 @@ import { AnyAction, createReducer, Reducer } from 'redux-starter-kit'
     decrement: decrementHandler
   })
 
-  const numberReducer: Reducer<number, CounterAction> = reducer
+  const numberReducer: Reducer<number> = reducer
 
   // typings:expect-error
-  const stringReducer: Reducer<string, CounterAction> = reducer
-
-  // typings:expect-error
-  const anyActionReducer: Reducer<number, AnyAction> = reducer
+  const stringReducer: Reducer<string> = reducer
 }
 
 /**
