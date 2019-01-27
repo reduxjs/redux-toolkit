@@ -46,14 +46,14 @@ export interface CaseReducersMapObject<S = any, A extends Action = AnyAction> {
 export function createReducer<S = any, A extends Action = AnyAction>(
   initialState: S,
   actionsMap: CaseReducersMapObject<S, A>
-): Reducer<S, A> {
+): Reducer<S> {
   return function(state = initialState, action): S {
     // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
     // than an Immutable<S>, and TypeScript cannot find out how to reconcile
     // these two types.
     return createNextState(state, (draft: Draft<S>) => {
       const caseReducer = actionsMap[action.type]
-      return caseReducer ? caseReducer(draft, action) : undefined
+      return caseReducer ? caseReducer(draft, action as A) : undefined
     })
   }
 }
