@@ -14,7 +14,7 @@
 
 ### Purpose
 
-The `redux-starter-kit` package is intended to help address three common concerns about Redux:
+The Redux Starter Kit package is intended to help address three common concerns about Redux:
 
 - "Configuring a Redux store is too complicated"
 - "I have to add a lot of packages to get Redux to do anything useful"
@@ -26,7 +26,7 @@ This package is _not_ intended to solve every possible concern about Redux, and 
 
 ### What's Included
 
-`redux-starter-kit` includes:
+Redux Starter Kit includes:
 
 - A `configureStore()` function with simplified configuration options. It can automatically combine your slice reducers, adds whatever Redux middleware you supply, includes `redux-thunk` by default, and enables use of the Redux DevTools Extension.
 - A `createReducer()` utility that lets you supply a lookup table of action types to case reducer functions, rather than writing switch statements. In addition, it automatically uses the [`immer` library](https://github.com/mweststrate/immer) to let you write simpler immutable updates with normal mutative code, like `state.todos[3].completed = true`.
@@ -36,6 +36,6 @@ This package is _not_ intended to solve every possible concern about Redux, and 
 
 ## Documentation
 
-The `redux-starter-kit` docs are now published at **https://redux-starter-kit.js.org**.
+The Redux Starter Kit docs are now published at **https://redux-starter-kit.js.org**.
 
 We're currently expanding and rewriting our docs content - check back soon for more updates!
