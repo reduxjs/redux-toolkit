@@ -3,6 +3,9 @@
     "Introduction": [
       "introduction/quick-start"
     ],
+    "Using Redux Starter Kit" : [
+      "usage/usage-guide"
+    ],
     "API Reference": [
       "api/configureStore",
       "api/getDefaultMiddleware",
