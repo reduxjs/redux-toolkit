@@ -40,10 +40,10 @@ let action = increment()
 action = increment(3)
 // returns { type: 'counter/increment', payload: 3 }
 
-increment.toString()
+console.log(increment.toString())
 // 'counter/increment'
 
-`The action type is: ${increment}`
+console.log(`The action type is: ${increment}`)
 // 'The action type is: counter/increment'
 ```
 
@@ -67,7 +67,7 @@ This works because object keys that are not natively supported by JavaScript (li
 
 In principle, Redux lets you use any kind of value as an action type. Instead of strings, you could theoretically use numbers, [symbols](https://developer.mozilla.org/en-US/docs/Glossary/Symbol), or anything else ([although it's recommended that the value should at least be serializable](https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)).
 
-However,  `redux-starter-kit` rests on the assumption that you use string action types. Specifically, some of its features rely on the fact that with strings, the `toString()` method of an `createAction()` action creator returns the matching action type. This is not the case for non-string action types because `toString()` will return the string-converted type value rather than the type itself.
+However, Redux Starter Kit rests on the assumption that you use string action types. Specifically, some of its features rely on the fact that with strings, the `toString()` method of an `createAction()` action creator returns the matching action type. This is not the case for non-string action types because `toString()` will return the string-converted type value rather than the type itself.
 
 ```js
 const INCREMENT = Symbol('increment')

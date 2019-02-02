@@ -7,7 +7,7 @@ hide_title: true
 
 # Other Exports
 
-`redux-starter-kit` exports some of its internal utilities, and re-exports additional functions from other dependencies as well.
+Redux Starter Kit exports some of its internal utilities, and re-exports additional functions from other dependencies as well.
 
 ## Internal Exports
 

@@ -9,7 +9,7 @@ hide_title: true
 
 ## Purpose
 
-The **`redux-starter-kit`** package is intended to help address three common concerns about Redux:
+The **Redux Starter Kit** package is intended to help address three common concerns about Redux:
 
 - "Configuring a Redux store is too complicated"
 - "I have to add a lot of packages to get Redux to do anything useful"
@@ -20,12 +20,12 @@ We can't solve every use case, but in the spirit of [`create-react-app`](https:/
 This package is _not_ intended to solve every possible concern about Redux, and is deliberately limited in scope. It does _not_ address concepts like "reusable encapsulated Redux modules", data fetching, folder or file structures, managing entity relationships in the store, and so on.
 
 That said, **these tools should be beneficial to all Redux users**. Whether you're a brand new Redux user setting up your
-first project, or an experienced user who wants to simplify an existing application, **`redux-starter-kit`** can help
+first project, or an experienced user who wants to simplify an existing application, **Redux Starter Kit** can help
 you make your Redux code better.
 
 ## What's Included
 
-`redux-starter-kit` includes:
+Redux Starter Kit includes:
 
 - A [`configureStore()` function](../api/configureStore.md) with simplified configuration options. It can automatically combine your slice reducers, adds whatever Redux middleware you supply, includes `redux-thunk` by default, and enables use of the Redux DevTools Extension.
 - A [`createReducer()` utility](../api/createReducer.md) that lets you supply a lookup table of action types to case reducer functions, rather than writing switch statements. In addition, it automatically uses the [`immer` library](https://github.com/mweststrate/immer) to let you write simpler immutable updates with normal mutative code, like `state.todos[3].completed = true`.
@@ -35,7 +35,7 @@ you make your Redux code better.
 
 ## Installation
 
-`redux-starter-kit` is available as a package on NPM for use with a module bundler or in a Node application:
+Redux Starter Kit is available as a package on NPM for use with a module bundler or in a Node application:
 
 ```bash
 npm install --save redux-starter-kit
