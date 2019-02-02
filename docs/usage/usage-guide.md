@@ -19,16 +19,16 @@ Let's look at some of the ways that Redux Starter Kit can help make your Redux-r
 
 ## Store Setup
 
-Every Redux app needs to configure and create a Redux store. The store setup process needs to handle several different aspects:
+Every Redux app needs to configure and create a Redux store. This usually involves several steps:
 
-- Importing (or possibly creating) the root reducer function
-- Setting up middleware, likely including at least one middleware to handle async logic
-- Configuring the Redux DevTools
+- Importing or creating the root reducer function
+- Setting up middleware, likely including at least one middleware to handle asynchronous logic
+- Configuring the [Redux DevTools Extension](https://github.com/zalmoxisus/redux-devtools-extension)
 - Possibly altering some of the logic based on whether the application is being built for development or production.
 
-### Hand-Written Store Setup
+### Manual Store Setup
 
-The [Configuring Your Store](https://redux.js.org/recipes/configuring-your-store) page in the Redux docs gives example recipes that show a suggested approach for setting up the store. The last hand-written example in that page looks like this:
+The following example from the [Configuring Your Store](https://redux.js.org/recipes/configuring-your-store) page in the Redux docs shows a typical store setup process:
 
 ```js
 import { applyMiddleware, compose, createStore } from 'redux'
@@ -56,30 +56,28 @@ export default function configureStore(preloadedState) {
 }
 ```
 
-This code is reasonably straightforward to follow, but it can be simplified using the `configureStore` function from Redux Starter Kit.
-
-### Simplifying Store Setup with `configureStore`
-
-`configureStore` is intended to help with several common issues around store setup:
+This example is readable, but the process isn't always straightforward:
 
 - The basic Redux `createStore` function takes positional arguments: `(rootReducer, preloadedState, enhancer)`. Sometimes it's easy to forget which parameter is which.
 - The process of setting up middleware and enhancers can be confusing, especially if you're trying to add several pieces of configuration.
-- The Redux DevTools Extension docs initially suggest using some hand-written code that checks the global namespace to see if the extension is available.
+- The Redux DevTools Extension docs initially suggest using [some hand-written code that checks the global namespace to see if the extension is available](https://github.com/zalmoxisus/redux-devtools-extension#11-basic-store). Many users copy and paste those snippets, which make the setup code harder to read.
+
+### Simplifying Store Setup with `configureStore`
 
 `configureStore` helps with those issues by:
 
 - Having an options object with "named" parameters, which can be easier to read.
 - Letting you provide arrays of middleware and enhancers you want to add to the store, and calling `applyMiddleware` and `compose` for you automatically
-- Turning on the Redux DevTools Extension automatically
+- Enabling the Redux DevTools Extension automatically
 
 In addition, `configureStore` adds some middleware by default, each with a specific goal:
 
-- `redux-thunk` is the most commonly used middleware for working with both synchronous and async logic outside of components
+- [`redux-thunk`](https://github.com/reduxjs/redux-thunk) is the most commonly used middleware for working with both synchronous and async logic outside of components
 - In development, middleware that check for common mistakes like mutating the state or using non-serializable values.
 
 This means the store setup code itself is a bit shorter and easier to read, and also that you get good default behavior out of the box.
 
-The fastest way to use is it is to just pass the root reducer function as a parameter named `reducer`:
+The simplest way to use is it is to just pass the root reducer function as a parameter named `reducer`:
 
 ```js
 import { configureStore } from 'redux-starter-kit'
@@ -92,7 +90,7 @@ const store = configureStore({
 export default store
 ```
 
-You can also pass an object full of slice reducers, and `configureStore` will call `combineReducers` for you:
+You can also pass an object full of ["slice reducers"](https://redux.js.org/recipes/structuring-reducers/splitting-reducer-logic), and `configureStore` will call [`combineReducers`](https://redux.js.org/api/combinereducers) for you:
 
 ```js
 import usersReducer from './usersReducer'
@@ -106,9 +104,9 @@ const store = configureStore({
 })
 ```
 
-(Note that this only works for one level of reducers. If you want to nest reducers, you'll need to call `combineReducers` yourself to handle the nesting.)
+Note that this only works for one level of reducers. If you want to nest reducers, you'll need to call `combineReducers` yourself to handle the nesting.
 
-If you need customize the store setup, you can pass additional options. Here's what the hot reloading example might look like using Redux Starter Kit:
+If you need to customize the store setup, you can pass additional options. Here's what the hot reloading example might look like using Redux Starter Kit:
 
 ```js
 import { configureStore, getDefaultMiddleware } from 'redux-starter-kit'
@@ -133,11 +131,11 @@ export default function configureAppStore(preloadedState) {
 }
 ```
 
-If you provide the `middleware` argument, `configureStore` will only use whatever middleware you've listed. If you want to have some custom middleware _and_ the defaults all together, you can call `getDefaultMiddleware()` and include the results in the `middleware` array you define.
+If you provide the `middleware` argument, `configureStore` will only use whatever middleware you've listed. If you want to have some custom middleware _and_ the defaults all together, you can call [`getDefaultMiddleware`](../api/getDefaultMiddleware.md) and include the results in the `middleware` array you provide.
 
 ## Writing Reducers
 
-Reducers are the most important Redux concept. A typical reducer function needs to:
+[Reducers](https://redux.js.org/basics/reducers) are the most important Redux concept. A typical reducer function needs to:
 
 - Look at the `type` field of the action object to see how it should respond
 - Update its state immutably, by making copies of the parts of the state that need to change and only modifying those copies.
@@ -222,16 +220,18 @@ case "UPDATE_VALUE":
 
 Can be simplified down to just:
 
+```js
 updateValue(state, action) {
-const {someId, someValue} = action.payload;
-state.first.second[someId] = someValue;
+    const {someId, someValue} = action.payload;
+    state.first.second[someId] = someValue;
 }
+```
 
 Much better!
 
 ### Defining Functions in Objects
 
-Note that in modern JavaScript, there are several legal ways to define both keys and functions in an object (and this isn't specific to Redux), and you can mix and match different key definitions and function definitions. For example, these are all legal ways to define a function inside an object:
+In modern JavaScript, there are several legal ways to define both keys and functions in an object (and this isn't specific to Redux), and you can mix and match different key definitions and function definitions. For example, these are all legal ways to define a function inside an object:
 
 ```js
 const keyName = "ADD_TODO4";
@@ -255,17 +255,12 @@ Using the ["object literal function shorthand"](https://www.sitepoint.com/es6-en
 
 ### Considerations for Using `createReducer`
 
-While the Redux Starter Kit `createReducer` function can be really helpful, there are a few things to be aware of when using it.
+While the Redux Starter Kit `createReducer` function can be really helpful, keep in mind that:
 
-#### Be Careful when Using "Mutative" Reducer Logic
+- The "mutative" code only works correctly inside of our `createReducer` function
+- Immer won't let you mix "mutating" the draft state and also returning a new state value
 
-Writing reducers that "mutate" their state _only_ works if you are using Immer, either through our "magic" `createReducer` function or by calling Immer's `produce` function yourself. **If those reducers are used without Immer, they _will_ actually mutate the state!**
-
-It's also not obvious just by looking at the code that this function is actually safe and updates the state immutably. Please make sure you understand the concepts of immutable updates fully. If you do use this, it may help to add some comments to your code that explain your reducers are using Redux Starter Kit and Immer, so that other developers aren't confused when they see this code.
-
-#### Don't "Mutate" State and Return New Values
-
-Immer will let you "mutate" the draft state _or_ return a new updated value, but not both in the same function. If you try to do both, it will warn you. See the [Immer docs on returning values](https://github.com/mweststrate/immer#returning-data-from-producers) for more details.
+See the [`createReducer` API reference](../api/createReducer.md) for more details.
 
 ## Writing Action Creators
 
@@ -294,6 +289,59 @@ addTodo({ text: 'Buy milk' })
 
 Currently, `createAction` does not let you customize how the `payload` field is defined. You need to pass the entire `payload` you want as the one argument to the action creator. This could be a simple value, or an object full of data. (We may eventually add the ability for `createAction` to accept an argument for a callback that customizes the payload, or allows adding other fields like `meta` to the action.)
 
+### Using Action Creators as Action Types
+
+Redux reducers need to look for specific action types to determine how they should update their state. Normally, this is done by defining action type strings and action creator functions separately. Redux Starter Kit's `createAction` function uses a couple tricks to make this easier.
+
+First, `createAction` overrides the `toString()` method on the action creators it generates. **This means that the action creator itself can be used as the "action type" reference in some places**, such as the keys provided to `createReducer`.
+
+Second, the action type is also defined as a `type` field on the action creator.
+
+```js
+const actionCreator = createAction("SOME_ACTION_TYPE");
+
+console.log(actionCreator.toString())
+// "SOME_ACTION_TYPE"
+
+console.log(actionCreator.type);
+// "SOME_ACTION_TYPE"
+
+const reducer = createReducer((}, {
+    // actionCreator.toString() will automatically be called here
+    [actionCreator] : (state, action) => {}
+
+    // Or, you can reference the .type field:
+    [actionCreator.type] : (state, action) => { }
+});
+```
+
+This means you don't have to write or use a separate action type variable, or repeat the name and value of an action type like `const SOME_ACTION_TYPE = "SOME_ACTION_TYPE"`.
+
+Unfortunately, the implicit conversion to a string doesn't happen for switch statements. If you want to use one of these action creators in a switch statement, you need to call `actionCreator.toString()` yourself:
+
+```js
+const actionCreator = createAction('SOME_ACTION_TYPE')
+
+const reducer = (state = {}, action) => {
+  switch (action.type) {
+    // ERROR: this won't work correctly!
+    case actionCreator: {
+      break
+    }
+    // CORRECT: this will work as expected
+    case actionCreator.toString(): {
+      break
+    }
+    // CORRECT: this will also work right
+    case actionCreator.type: {
+      break
+    }
+  }
+}
+```
+
+If you are using Redux Starter Kit with TypeScript, note that the TypeScript compiler may not accept the implicit `toString()` conversion when the action creator is used as an object key. In that case, you may need to either manually cast it to a string (`actionCreator as string`), or use the `.type` field as the key.
+
 ## Creating Slices of State
 
 Redux state is typically organized into "slices", defined by the reducers that are passed to `combineReducers`:
@@ -315,7 +363,7 @@ In this example, both `users` and `posts` would be considered "slices". Both of 
 - Define how that state is updated
 - Define which specific actions result in state updates
 
-The common approach is to define a slice's reducer function in its own file, and the action creators in a second file. Because both functions need to refer to the same action types, so those are usually defined in a third file and imported in both places:
+The common approach is to define a slice's reducer function in its own file, and the action creators in a second file. Because both functions need to refer to the same action types, those are usually defined in a third file and imported in both places:
 
 ```js
 // postsConstants.js
@@ -341,6 +389,7 @@ const initialState = []
 export default function postsReducer(state = initialState, action) {
   switch (action.type) {
     case CREATE_POST: {
+      // omit implementation
     }
     default:
       return state
@@ -348,7 +397,7 @@ export default function postsReducer(state = initialState, action) {
 }
 ```
 
-The only truly _important_ part here is the reducer itself. Consider the other parts:
+The only truly necessary part here is the reducer itself. Consider the other parts:
 
 - We could have written the action types as inline strings in both places.
 - The action creators are good, but they're not _required_ to use Redux - a component could skip supplying a `mapDispatch` argument to `connect`, and just call `this.props.dispatch({type : "CREATE_POST", payload : {id : 123, title : "Hello World"}})` itself.
@@ -374,6 +423,8 @@ const initialState = []
 export default function postsReducer(state = initialState, action) {
   switch (action.type) {
     case CREATE_POST: {
+      // Omit actual code
+      break
     }
     default:
       return state
@@ -381,7 +432,7 @@ export default function postsReducer(state = initialState, action) {
 }
 ```
 
-That simplifies things because we don't need to have multiple files, and we can remove the redundant imports of the action type constants. But, we're still have to write the action types and the action creators by hand.
+That simplifies things because we don't need to have multiple files, and we can remove the redundant imports of the action type constants. But, we still have to write the action types and the action creators by hand.
 
 ### Simplifying Slices with `createSlice`
 
@@ -393,9 +444,9 @@ Here's how that posts example would look with `createSlice:
 const postsSlice = createSlice({
   initialState: [],
   reducers: {
-    createPost() {},
-    updatePost() {},
-    deletePost() {}
+    createPost(state, action) {},
+    updatePost(state, action) {},
+    deletePost(state, action) {}
   }
 })
 
@@ -426,9 +477,9 @@ const postsSlice = createSlice({
   slice: 'posts',
   initialState: [],
   reducers: {
-    createPost() {},
-    updatePost() {},
-    deletePost() {}
+    createPost(state, action) {},
+    updatePost(state, action) {},
+    deletePost(state, action) {}
   }
 })
 
@@ -437,3 +488,40 @@ const { createPost } = slice.actions
 console.log(createPost({ id: 123, title: 'Hello World' }))
 // {type : "posts/createPost", payload : {id : 123, title : "Hello World"}}
 ```
+
+### Exporting and Using Slices
+
+Most of the time, you'll want to define a slice, and export its action creators and reducers. The recommended way to do this is using ES6 destructuring and export syntax:
+
+```js
+const postsSlice = createSlice({
+  slice: 'posts',
+  initialState: [],
+  reducers: {
+    createPost(state, action) {},
+    updatePost(state, action) {},
+    deletePost(state, action) {}
+  }
+})
+
+// Extract the action creators object and the reducer
+const { actions, reducer } = slice
+// Extract and export each action creator by name
+export const { createPost, updatePost, deletePost } = actions
+// Export the reducer, either as a default or named export
+export default reducer
+```
+
+You could also just export the slice object itself directly if you prefer.
+
+Slices defined this way are very similar in concept to the ["Redux Ducks" pattern](https://github.com/erikras/ducks-modular-redux) for defining and exporting action creators and reducers. However, there are a couple potential downsides to be aware of when importing and exporting slices.
+
+First, **Redux action types are not meant to be exclusive to a single slice**. Conceptually, each slice reducer "owns" its own piece of the Redux state, but it should be able to listen to any action type and update its state appropriately. For example, many different slices might want to respond to a "user logged out" action by clearing data or resetting back to initial state values. Keep that in mind as you design your state shape and create your slices.
+
+Second, **JS modules can have "circular reference" problems if two modules try to import each other**. This can result in imports being undefined, which will likely break the code that needs that import. Specifically in the case of "ducks" or slices, this can occur if slices defined in two different files both want to respond to actions defined in the other file.
+
+This CodeSandbox example demonstrates the problem:
+
+<iframe src="https://codesandbox.io/embed/rw7ppj4z0m" style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden; margin-bottom: 20px" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+
+If you encounter this, you may need to restructure your code in a way that avoids the circular references.
