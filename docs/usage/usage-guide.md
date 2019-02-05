@@ -306,7 +306,7 @@ console.log(actionCreator.toString())
 console.log(actionCreator.type);
 // "SOME_ACTION_TYPE"
 
-const reducer = createReducer((}, {
+const reducer = createReducer({}, {
     // actionCreator.toString() will automatically be called here
     [actionCreator] : (state, action) => {}
 
