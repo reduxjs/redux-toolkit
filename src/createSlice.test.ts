@@ -1,130 +1,84 @@
 import { createSlice } from './createSlice'
-import { createAction } from './createAction'
+import { createAction, PayloadAction } from './createAction'
 
 describe('createSlice', () => {
-  describe('when slice is empty', () => {
-    const { actions, reducer, selectors } = createSlice({
-      reducers: {
-        increment: state => state + 1,
-        multiply: (state, action) => state * action.payload
-      },
-      initialState: 0
-    })
-
-    it('should create increment action', () => {
-      expect(actions.hasOwnProperty('increment')).toBe(true)
-    })
-
-    it('should create multiply action', () => {
-      expect(actions.hasOwnProperty('multiply')).toBe(true)
-    })
-
-    it('should have the correct action for increment', () => {
-      expect(actions.increment()).toEqual({
-        type: 'increment',
-        payload: undefined
-      })
-    })
-
-    it('should have the correct action for multiply', () => {
-      expect(actions.multiply(3)).toEqual({
-        type: 'multiply',
-        payload: 3
-      })
-    })
-
-    describe('when using reducer', () => {
-      it('should return the correct value from reducer with increment', () => {
-        expect(reducer(undefined, actions.increment())).toEqual(1)
-      })
-
-      it('should return the correct value from reducer with multiply', () => {
-        expect(reducer(2, actions.multiply(3))).toEqual(6)
-      })
-    })
-
-    describe('when using selectors', () => {
-      it('should create selector with correct name', () => {
-        expect(selectors.hasOwnProperty('getState')).toBe(true)
-      })
-
-      it('should return the slice state data', () => {
-        expect(selectors.getState(2)).toEqual(2)
-      })
-    })
+  const slice = createSlice({
+    name: 'counter',
+    initialState: 0,
+    actions: {
+      increment: state => state + 1,
+      multiply: (state, { payload }: PayloadAction<number>) => state * payload
+    }
   })
 
-  describe('when passing slice', () => {
-    const { actions, reducer, selectors } = createSlice({
-      reducers: {
-        increment: state => state + 1
-      },
-      initialState: 0,
-      slice: 'cool'
-    })
-
-    it('should create increment action', () => {
-      expect(actions.hasOwnProperty('increment')).toBe(true)
-    })
-
-    it('should have the correct action for increment', () => {
-      expect(actions.increment()).toEqual({
-        type: 'cool/increment',
-        payload: undefined
-      })
-    })
-
-    it('should return the correct value from reducer', () => {
-      expect(reducer(undefined, actions.increment())).toEqual(1)
-    })
-
-    it('should create selector with correct name', () => {
-      expect(selectors.hasOwnProperty('getCool')).toBe(true)
-    })
-
-    it('should return the slice state data', () => {
-      expect(selectors.getCool({ cool: 2 })).toEqual(2)
-    })
+  it('should create action creators for `actions`', () => {
+    expect(slice.actions).toHaveProperty('increment')
+    expect(slice.actions).toHaveProperty('multiply')
   })
 
-  describe('when mutating state object', () => {
-    const initialState = { user: '' }
-
-    const { actions, reducer } = createSlice({
-      reducers: {
-        setUserName: (state, action) => {
-          state.user = action.payload
-        }
-      },
-      initialState,
-      slice: 'user'
-    })
-
-    it('should set the username', () => {
-      expect(reducer(initialState, actions.setUserName('eric'))).toEqual({
-        user: 'eric'
-      })
-    })
+  it('should namespace action types', () => {
+    expect(slice.actions.increment().type).toBe('counter/increment')
+    expect(slice.actions.multiply(2).type).toBe('counter/multiply')
   })
 
-  describe('when passing extra reducers', () => {
-    const addMore = createAction('ADD_MORE')
+  it('should support action payloads', () => {
+    expect(slice.actions.multiply(2).payload).toBe(2)
+  })
 
-    const { reducer } = createSlice({
-      reducers: {
-        increment: state => state + 1,
-        multiply: (state, action) => state * action.payload
-      },
-      extraReducers: {
-        [addMore.type]: (state, action) => state + action.payload.amount
-      },
-      initialState: 0
+  it('should not generate action creators for `extraReducers`', () => {
+    expect(slice.actions).not.toHaveProperty('RESET_APP')
+  })
+
+  it('should apply case reducers passed in `actions`', () => {
+    const state1 = slice(undefined, slice.actions.increment())
+    const state2 = slice(state1, slice.actions.multiply(3))
+    expect(state1).toBe(1)
+    expect(state2).toBe(3)
+  })
+})
+
+describe('when mutating state object', () => {
+  const initialState = { user: '' }
+
+  const slice = createSlice({
+    name: 'user',
+    actions: {
+      setUserName: (state, action) => {
+        state.user = action.payload
+      }
+    },
+    initialState
+  })
+
+  it('should set the username', () => {
+    expect(slice(initialState, slice.actions.setUserName('eric'))).toEqual({
+      user: 'eric'
     })
+  })
+})
 
-    it('should call extra reducers when their actions are dispatched', () => {
-      const result = reducer(10, addMore({ amount: 5 }))
+describe('when passing extra reducers', () => {
+  const addMore = createAction('ADD_MORE')
 
-      expect(result).toBe(15)
-    })
+  const slice = createSlice({
+    name: 'counter',
+    actions: {
+      increment: state => state + 1,
+      multiply: (state, action) => state * action.payload
+    },
+    extraReducers: {
+      [addMore.type]: (state, action) => state + action.payload.amount
+    },
+    initialState: 0
+  })
+
+  it('should call extra reducers when their actions are dispatched', () => {
+    const result = slice(10, addMore({ amount: 5 }))
+
+    expect(result).toBe(15)
+  })
+
+  it('should not generate action creators for extra reducers ', () => {
+    expect(slice.actions).not.toHaveProperty('RESET_APP')
   })
 })

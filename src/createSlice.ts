@@ -1,41 +1,31 @@
 import { Action, AnyAction, Reducer } from 'redux'
 import { createAction, PayloadAction } from './createAction'
 import { createReducer, CaseReducersMapObject } from './createReducer'
-import { createSliceSelector, createSelectorName } from './sliceSelector'
 
 /**
  * An action creator atttached to a slice.
  */
 export type SliceActionCreator<P> = (payload: P) => PayloadAction<P>
 
+/**
+ * A "slice" is a reducer with attached set of action creators. Each of the
+ * corresponding action types is considered to be "owned" by the slice, and
+ * is namespaced with the slice's name.
+ */
 export interface Slice<
   S = any,
   A extends Action = AnyAction,
   AP extends { [key: string]: any } = { [key: string]: any }
-> {
+> extends Reducer<S, A> {
   /**
-   * The slice name.
+   * The slice's name. Used as namespace for the slice's action types.
    */
-  slice: string
+  sliceName: string
 
   /**
-   * The slice's reducer.
-   */
-  reducer: Reducer<S, A>
-
-  /**
-   * Action creators for the types of actions that are handled by the slice
-   * reducer.
+   * The action creators for the action types "owned" by the slice.
    */
   actions: { [type in keyof AP]: SliceActionCreator<AP[type]> }
-
-  /**
-   * Selectors for the slice reducer state. `createSlice()` inserts a single
-   * selector that returns the entire slice state and whose name is
-   * automatically derived from the slice name (e.g., `getCounter` for a slice
-   * named `counter`).
-   */
-  selectors: { [key: string]: (state: any) => S }
 }
 
 /**
@@ -48,10 +38,9 @@ export interface CreateSliceOptions<
   CR2 extends CaseReducersMapObject<S, A> = CaseReducersMapObject<S, A>
 > {
   /**
-   * The slice's name. Used to namespace the generated action types and to
-   * name the selector for retrieving the reducer's state.
+   * The slice's name. Used to namespace the generated action types.
    */
-  slice?: string
+  name: string
 
   /**
    * The initial state to be returned by the slice reducer.
@@ -59,21 +48,24 @@ export interface CreateSliceOptions<
   initialState: S
 
   /**
-   * A mapping from action types to action-type-specific *case reducer*
-   * functions. For every action type, a matching action creator will be
-   * generated using `createAction()`.
+   * An object whose keys are names of actions to generate action
+   * creators for, and whose values are *case reducers* to handle
+   * these actions. The latter are passed to `createReducer()`
+   * (together with the case reducers from `extraReducers`, if
+   * specified) to generate the slice reducer.
    */
-  reducers: CR
+  actions: CR
 
   /**
    * A mapping from action types to action-type-specific *case reducer*
-   * functions. These reducers should have existing action types used
-   * as the keys, and action creators will _not_ be generated.
+   * functions. No action creators are generated for these action types.
+   * The case reducers are passed to `createReducer()` (together with
+   * the ones from `actions`) to generate the slice reducer.
    */
   extraReducers?: CR2
 }
 
-type ExtractPayloads<
+type CaseReducerActionPayloads<
   S,
   A extends PayloadAction,
   CR extends CaseReducersMapObject<S, A>
@@ -85,7 +77,7 @@ type ExtractPayloads<
         : never)
 }
 
-function getType(slice: string, actionKey: string): string {
+function getSliceActionType(slice: string, actionKey: string): string {
   return slice ? `${slice}/${actionKey}` : actionKey
 }
 
@@ -103,36 +95,41 @@ export function createSlice<
   CR extends CaseReducersMapObject<S, A> = CaseReducersMapObject<S, A>
 >(
   options: CreateSliceOptions<S, A, CR>
-): Slice<S, A, ExtractPayloads<S, A, CR>> {
-  const { slice = '', initialState } = options
-  const reducers = options.reducers || {}
+): Slice<S, A, CaseReducerActionPayloads<S, A, CR>> {
+  const { name, initialState } = options
+  const actionCaseReducers = options.actions || {}
   const extraReducers = options.extraReducers || {}
-  const actionKeys = Object.keys(reducers)
 
-  const reducerMap = actionKeys.reduce((map, actionKey) => {
-    map[getType(slice, actionKey)] = reducers[actionKey]
-    return map
-  }, extraReducers)
+  if (!name) {
+    throw new Error('Missing slice name')
+  }
 
-  const reducer = createReducer(initialState, reducerMap)
+  const actionNames = Object.keys(actionCaseReducers)
 
-  const actionMap = actionKeys.reduce(
+  const reducer = createReducer(initialState, {
+    ...extraReducers,
+    ...actionNames.reduce(
+      (map, actionName) => {
+        const actionType = getSliceActionType(name, actionName)
+        const caseReducer = actionCaseReducers[actionName]
+        map[actionType] = caseReducer
+        return map
+      },
+      {} as CaseReducersMapObject<S, A>
+    )
+  })
+
+  const actions = actionNames.reduce(
     (map, action) => {
-      const type = getType(slice, action)
+      const type = getSliceActionType(name, action)
       map[action] = createAction(type)
       return map
     },
     {} as any
   )
 
-  const selectors = {
-    [createSelectorName(slice)]: createSliceSelector(slice)
-  }
-
-  return {
-    slice,
-    reducer,
-    actions: actionMap,
-    selectors
-  }
+  return Object.assign(reducer, {
+    sliceName: name,
+    actions
+  })
 }

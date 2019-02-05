@@ -13,9 +13,9 @@ import {
   const firstAction = createAction<{ count: number }>('FIRST_ACTION')
 
   const slice = createSlice({
-    slice: 'counter',
+    name: 'counter',
     initialState: 0,
-    reducers: {
+    actions: {
       increment: (state: number, action) => state + action.payload,
       decrement: (state: number, action) => state - action.payload
     },
@@ -27,12 +27,12 @@ import {
 
   /* Reducer */
 
-  const reducer: Reducer<number, PayloadAction> = slice.reducer
+  const reducer: Reducer<number, PayloadAction> = slice
 
   // typings:expect-error
-  const stringReducer: Reducer<string, PayloadAction> = slice.reducer
+  const stringReducer: Reducer<string, PayloadAction> = slice
   // typings:expect-error
-  const anyActionReducer: Reducer<string, AnyAction> = slice.reducer
+  const anyActionReducer: Reducer<string, AnyAction> = slice
 
   /* Actions */
 
@@ -41,13 +41,6 @@ import {
 
   // typings:expect-error
   slice.actions.other(1)
-
-  /* Selector */
-
-  const value: number = slice.selectors.getCounter(0)
-
-  // typings:expect-error
-  const stringValue: string = slice.selectors.getCounter(0)
 }
 
 /*
@@ -55,9 +48,9 @@ import {
  */
 {
   const counter = createSlice({
-    slice: 'counter',
+    name: 'counter',
     initialState: 0,
-    reducers: {
+    actions: {
       increment: state => state + 1,
       decrement: state => state - 1,
       multiply: (state, action: PayloadAction<number>) => state * action.payload
