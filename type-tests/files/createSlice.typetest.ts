@@ -1,4 +1,5 @@
 import {
+  Action,
   AnyAction,
   createSlice,
   PayloadAction,
@@ -63,6 +64,10 @@ import {
       multiply: (state, action: PayloadAction<number>) => state * action.payload
     }
   })
+
+  const increment: () => Action<'increment'> = counter.actions.increment
+  const multiply: (payload: number) => PayloadAction<number, 'multiply'> =
+    counter.actions.multiply
 
   counter.actions.increment()
   counter.actions.multiply(2)

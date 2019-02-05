@@ -6,11 +6,12 @@ import { createSliceSelector, createSelectorName } from './sliceSelector'
 /**
  * An action creator atttached to a slice.
  */
-export type SliceActionCreator<P> = (payload: P) => PayloadAction<P>
+export type SliceActionCreator<P, T extends string = string> = P extends void
+  ? () => Action<T>
+  : (payload: P) => PayloadAction<P, T>
 
 export interface Slice<
   S = any,
-  A extends Action = AnyAction,
   AP extends { [key: string]: any } = { [key: string]: any }
 > {
   /**
@@ -21,13 +22,15 @@ export interface Slice<
   /**
    * The slice's reducer.
    */
-  reducer: Reducer<S, A>
+  reducer: Reducer<S>
 
   /**
    * Action creators for the types of actions that are handled by the slice
    * reducer.
    */
-  actions: { [type in keyof AP]: SliceActionCreator<AP[type]> }
+  actions: {
+    [type in keyof AP]: SliceActionCreator<AP[type], Extract<type, string>>
+  }
 
   /**
    * Selectors for the slice reducer state. `createSlice()` inserts a single
@@ -101,9 +104,7 @@ export function createSlice<
   S = any,
   A extends PayloadAction = PayloadAction<any>,
   CR extends CaseReducersMapObject<S, A> = CaseReducersMapObject<S, A>
->(
-  options: CreateSliceOptions<S, A, CR>
-): Slice<S, A, ExtractPayloads<S, A, CR>> {
+>(options: CreateSliceOptions<S, A, CR>): Slice<S, ExtractPayloads<S, A, CR>> {
   const { slice = '', initialState } = options
   const reducers = options.reducers || {}
   const extraReducers = options.extraReducers || {}
