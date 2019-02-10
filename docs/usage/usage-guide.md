@@ -505,7 +505,7 @@ const postsSlice = createSlice({
 })
 
 // Extract the action creators object and the reducer
-const { actions, reducer } = slice
+const { actions, reducer } = postsSlice
 // Extract and export each action creator by name
 export const { createPost, updatePost, deletePost } = actions
 // Export the reducer, either as a default or named export
