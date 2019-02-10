@@ -196,7 +196,7 @@ const todosReducer = createReducer([], {
         // Can still return an immutably-updated value if we want to
         return state.filter( (todo, i) => i !== action.payload.index)
     }
-}
+})
 ```
 
 The ability to "mutate" the state is especially helpful when trying to update deeply nested state. This complex and painful code:
@@ -462,7 +462,7 @@ console.log(postsSlice)
 }
 */
 
-const { createPost } = slice.actions
+const { createPost } = postsSlice.actions
 
 console.log(createPost({ id: 123, title: 'Hello World' }))
 // {type : "createPost", payload : {id : 123, title : "Hello World"}}
@@ -483,7 +483,7 @@ const postsSlice = createSlice({
   }
 })
 
-const { createPost } = slice.actions
+const { createPost } = postsSlice.actions
 
 console.log(createPost({ id: 123, title: 'Hello World' }))
 // {type : "posts/createPost", payload : {id : 123, title : "Hello World"}}
@@ -505,7 +505,7 @@ const postsSlice = createSlice({
 })
 
 // Extract the action creators object and the reducer
-const { actions, reducer } = slice
+const { actions, reducer } = postsSlice
 // Extract and export each action creator by name
 export const { createPost, updatePost, deletePost } = actions
 // Export the reducer, either as a default or named export
