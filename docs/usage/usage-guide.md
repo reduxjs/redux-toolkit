@@ -483,7 +483,7 @@ const postsSlice = createSlice({
   }
 })
 
-const { createPost } = slice.actions
+const { createPost } = postsSlice.actions
 
 console.log(createPost({ id: 123, title: 'Hello World' }))
 // {type : "posts/createPost", payload : {id : 123, title : "Hello World"}}
