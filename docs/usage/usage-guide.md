@@ -462,7 +462,7 @@ console.log(postsSlice)
 }
 */
 
-const { createPost } = slice.actions
+const { createPost } = postsSlice.actions
 
 console.log(createPost({ id: 123, title: 'Hello World' }))
 // {type : "createPost", payload : {id : 123, title : "Hello World"}}
