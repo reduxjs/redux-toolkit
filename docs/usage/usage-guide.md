@@ -196,7 +196,7 @@ const todosReducer = createReducer([], {
         // Can still return an immutably-updated value if we want to
         return state.filter( (todo, i) => i !== action.payload.index)
     }
-}
+})
 ```
 
 The ability to "mutate" the state is especially helpful when trying to update deeply nested state. This complex and painful code:
