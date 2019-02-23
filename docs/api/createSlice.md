@@ -147,9 +147,9 @@ const reducer = combineReducers({
 const store = createStore(reducer)
 
 store.dispatch(counter.actions.increment())
-// -> { counter: 1, user: {name : '', age: 20} }
+// -> { counter: 1, user: {name : '', age: 21} }
 store.dispatch(counter.actions.increment())
-// -> { counter: 2, user: {name: '', age: 21} }
+// -> { counter: 2, user: {name: '', age: 22} }
 store.dispatch(counter.actions.multiply(3))
 // -> { counter: 6, user: {name: '', age: 22} }
 console.log(`${counter.actions.decrement}`)
