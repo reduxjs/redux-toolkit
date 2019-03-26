@@ -17,6 +17,7 @@ export default [
       file: pkg.unpkg,
       format: 'umd'
     },
+    external: Object.keys(pkg.dependencies),
     plugins: [
       babel({
         extensions,

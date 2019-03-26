@@ -8,7 +8,7 @@
     "target": "es2018",
     "baseUrl": "../..",
     "paths": {
-      "redux-starter-kit": ["index.d.ts"]
+      "redux-starter-kit": ["dist/index.d.ts"]
     }
   }
 }
