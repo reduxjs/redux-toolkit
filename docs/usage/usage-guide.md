@@ -169,7 +169,7 @@ function todosReducer(state = [], action) {
                 };
             });
         } ,
-        "REMOVE_TODO" : (state, action) => {
+        case "REMOVE_TODO": {
             return state.filter( (todo, i) => i !== action.payload.index)
         }
         default : return state;
