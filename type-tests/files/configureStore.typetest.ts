@@ -92,6 +92,22 @@ import {
 }
 
 /*
+ * Test: configureStore() accepts devTools EnhancerOptions.
+ */
+{
+  configureStore({
+    reducer: () => 0,
+    devTools: { name: 'myApp' }
+  })
+
+  // typings:expect-error
+  configureStore({
+    reducer: () => 0,
+    devTools: { appname: 'myApp' }
+  })
+}
+
+/*
  * Test: configureStore() accepts preloadedState.
  */
 {
