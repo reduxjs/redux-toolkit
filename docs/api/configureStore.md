@@ -21,7 +21,7 @@ function configureStore({
     // An array of Redux middlewares.  If not supplied, uses getDefaultMiddleware()
     middleware?: MiddlewareFunction[],
     // Enable support for the Redux DevTools Extension. Defaults to true.
-    devTools?: boolean,
+    devTools?: boolean | EnhancerOptions,
     // Same as current createStore.
     preloadedState?: State,
     // An optional array of Redux store enhancers
@@ -52,7 +52,9 @@ For more details on how the `middleware` parameter works and the list of middlew
 
 ### `devTools`
 
-A boolean indicating whether `configureStore` should automatically enable support for [the Redux DevTools browser extension](https://github.com/zalmoxisus/redux-devtools-extension).
+If this is a boolean, it will be used to indicate  whether `configureStore` should automatically enable support for [the Redux DevTools browser extension](https://github.com/zalmoxisus/redux-devtools-extension).
+
+If it is an object of `redux-devtools-extension` [`EnhancerOptions`](https://github.com/zalmoxisus/redux-devtools-extension/blob/master/docs/API/Arguments.md#windowdevtoolsextensionconfig), `configureStore` will use the user provided configuration options.
 
 Defaults to true.
 
