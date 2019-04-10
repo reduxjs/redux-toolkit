@@ -2,6 +2,11 @@ import createNextState, { Draft } from 'immer'
 import { AnyAction, Action, Reducer } from 'redux'
 
 /**
+ * Defines a mapping from action types to corresponding action object shapes.
+ */
+export type Actions<T extends keyof any = string> = Record<T, Action>
+
+/**
  * An *case reducer* is a reducer function for a speficic action type. Case
  * reducers can be composed to full reducers using `createReducer()`.
  *
@@ -23,8 +28,8 @@ export type CaseReducer<S = any, A extends Action = AnyAction> = (
 /**
  * A mapping from action types to case reducers for `createReducer()`.
  */
-export interface CaseReducersMapObject<S = any, A extends Action = AnyAction> {
-  [actionType: string]: CaseReducer<S, A>
+export type CaseReducers<S, AS extends Actions> = {
+  [T in keyof AS]: AS[T] extends Action ? CaseReducer<S, AS[T]> : void
 }
 
 /**
@@ -43,17 +48,17 @@ export interface CaseReducersMapObject<S = any, A extends Action = AnyAction> {
  * @param actionsMap A mapping from action types to action-type-specific
  *   case redeucers.
  */
-export function createReducer<S = any, A extends Action = AnyAction>(
-  initialState: S,
-  actionsMap: CaseReducersMapObject<S, A>
-): Reducer<S> {
+export function createReducer<
+  S,
+  CR extends CaseReducers<S, any> = CaseReducers<S, any>
+>(initialState: S, actionsMap: CR): Reducer<S> {
   return function(state = initialState, action): S {
     // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
     // than an Immutable<S>, and TypeScript cannot find out how to reconcile
     // these two types.
     return createNextState(state, (draft: Draft<S>) => {
       const caseReducer = actionsMap[action.type]
-      return caseReducer ? caseReducer(draft, action as A) : undefined
+      return caseReducer ? caseReducer(draft, action) : undefined
     })
   }
 }

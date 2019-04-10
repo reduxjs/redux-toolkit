@@ -23,7 +23,7 @@ import { AnyAction, createReducer, Reducer } from 'redux-starter-kit'
 }
 
 /**
- * Test: createReducer() type parameters can be specified expliclity.
+ * Test: createReducer() state type can be specified expliclity.
  */
 {
   type CounterAction =
@@ -36,19 +36,13 @@ import { AnyAction, createReducer, Reducer } from 'redux-starter-kit'
   const decrementHandler = (state: number, action: CounterAction) =>
     state - action.payload
 
-  createReducer<number, CounterAction>(0, {
+  createReducer<number>(0, {
     increment: incrementHandler,
     decrement: decrementHandler
   })
 
   // typings:expect-error
-  createReducer<string, CounterAction>(0, {
-    increment: incrementHandler,
-    decrement: decrementHandler
-  })
-
-  // typings:expect-error
-  createReducer<number, AnyAction>(0, {
+  createReducer<string>(0, {
     increment: incrementHandler,
     decrement: decrementHandler
   })
