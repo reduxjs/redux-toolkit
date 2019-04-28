@@ -21,7 +21,7 @@ function configureStore({
     // An array of Redux middlewares.  If not supplied, uses getDefaultMiddleware()
     middleware?: MiddlewareFunction[],
     // Enable support for the Redux DevTools Extension. Defaults to true.
-    devTools?: boolean,
+    devTools?: boolean | EnhancerOptions,
     // Same as current createStore.
     preloadedState?: State,
     // An optional array of Redux store enhancers
@@ -52,13 +52,17 @@ For more details on how the `middleware` parameter works and the list of middlew
 
 ### `devTools`
 
-A boolean indicating whether `configureStore` should automatically enable support for [the Redux DevTools browser extension](https://github.com/zalmoxisus/redux-devtools-extension).
+If this is a boolean, it will be used to indicate whether `configureStore` should automatically enable support for [the Redux DevTools browser extension](https://github.com/zalmoxisus/redux-devtools-extension).
 
-Defaults to true.
+If it is an object, then the DevTools Extension will be enabled, and the options object will be passed to `composeWithDevtools()`. See
+the DevTools Extension docs for [`EnhancerOptions`](https://github.com/zalmoxisus/redux-devtools-extension/blob/master/docs/API/Arguments.md#windowdevtoolsextensionconfig) for
+a list of the specific options that are available.
+
+Defaults to `true`.
 
 The Redux DevTools Extension recently added [support for showing action stack traces](https://github.com/zalmoxisus/redux-devtools-extension/blob/d4ef75691ad294646f74bca38b973b19850a37cf/docs/Features/Trace.md) that show exactly where each action was dispatched. Capturing the traces can add a bit of overhead, so the DevTools Extension allows users to configure whether action stack traces are captured.
 
-If this parameter is true, then `configureStore` will enable capturing action stack traces in development mode only.
+If the DevTools are enabled by passing `true` or an object, then `configureStore` will default to enabling capturing action stack traces in development mode only.
 
 ### `preloadedState`
 

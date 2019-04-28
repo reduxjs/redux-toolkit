@@ -12,7 +12,7 @@ import {
   Store,
   DeepPartial
 } from 'redux'
-import { composeWithDevTools } from 'redux-devtools-extension'
+import { composeWithDevTools, EnhancerOptions } from 'redux-devtools-extension'
 import thunk, { ThunkDispatch, ThunkMiddleware } from 'redux-thunk'
 import { createSerializableStateInvariantMiddleware } from './serializableStateInvariantMiddleware'
 
@@ -65,8 +65,10 @@ export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
 
   /**
    * Whether to enable Redux DevTools integration. Defaults to `true`.
+   *
+   * Additional configuration can be done by passing enhancer options
    */
-  devTools?: boolean
+  devTools?: boolean | EnhancerOptions
 
   /**
    * The initial state. You may optionally specify it to hydrate the state
@@ -133,12 +135,8 @@ export function configureStore<S = any, A extends Action = AnyAction>(
   if (devTools) {
     finalCompose = composeWithDevTools({
       // Enable capture of stack traces for dispatched Redux actions
-
-      // @ts-ignore redux-devtools-extension doesn't have `trace` defined in
-      // its type definition file yet:
-      //
-      // https://github.com/zalmoxisus/redux-devtools-extension/pull/624
-      trace: !IS_PRODUCTION
+      trace: !IS_PRODUCTION,
+      ...(typeof devTools === 'object' && devTools)
     })
   }
 

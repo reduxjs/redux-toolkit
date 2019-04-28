@@ -120,6 +120,25 @@ describe('configureStore', () => {
     })
   })
 
+  describe('with devTools options', () => {
+    it('calls createStore with devTools enhancer and option', () => {
+      const options = {
+        name: 'myApp',
+        trace: true
+      }
+      expect(configureStore({ devTools: options, reducer })).toBeInstanceOf(
+        Object
+      )
+      expect(redux.applyMiddleware).toHaveBeenCalled()
+      expect(devtools.composeWithDevTools).toHaveBeenCalledWith(options)
+      expect(redux.createStore).toHaveBeenCalledWith(
+        reducer,
+        undefined,
+        expect.any(Function)
+      )
+    })
+  })
+
   describe('given preloadedState', () => {
     it('calls createStore with preloadedState', () => {
       expect(configureStore({ reducer })).toBeInstanceOf(Object)
