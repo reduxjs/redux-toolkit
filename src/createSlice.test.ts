@@ -1,12 +1,13 @@
 import { createSlice } from './createSlice'
-import { createAction } from './createAction'
+import { createAction, PayloadAction } from './createAction'
 
 describe('createSlice', () => {
   describe('when slice is empty', () => {
     const { actions, reducer, selectors } = createSlice({
       reducers: {
         increment: state => state + 1,
-        multiply: (state, action) => state * action.payload
+        multiply: (state, action: PayloadAction<number>) =>
+          state * action.payload
       },
       initialState: 0
     })
