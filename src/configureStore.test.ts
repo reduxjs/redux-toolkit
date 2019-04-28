@@ -124,8 +124,8 @@ describe('configureStore', () => {
     it('calls createStore with devTools enhancer and option', () => {
       const options = {
         name: 'myApp',
-        trace: true,
-      };
+        trace: true
+      }
       expect(configureStore({ devTools: options, reducer })).toBeInstanceOf(
         Object
       )

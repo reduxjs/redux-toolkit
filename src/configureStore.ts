@@ -136,7 +136,7 @@ export function configureStore<S = any, A extends Action = AnyAction>(
     finalCompose = composeWithDevTools({
       // Enable capture of stack traces for dispatched Redux actions
       trace: !IS_PRODUCTION,
-      ...typeof devTools === 'object' && devTools,
+      ...(typeof devTools === 'object' && devTools)
     })
   }
 
