@@ -53,12 +53,10 @@ export function createReducer<
   CR extends CaseReducers<S, any> = CaseReducers<S, any>
 >(initialState: S, actionsMap: CR): Reducer<S> {
   return function(state = initialState, action): S {
-    // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
-    // than an Immutable<S>, and TypeScript cannot find out how to reconcile
-    // these two types.
+    // `fixed` immer type issue
     return createNextState(state, (draft: Draft<S>) => {
       const caseReducer = actionsMap[action.type]
       return caseReducer ? caseReducer(draft, action) : undefined
-    })
+    }) as S
   }
 }
