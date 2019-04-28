@@ -20,7 +20,7 @@ export default [
     plugins: [
       babel({
         extensions,
-        exclude: 'node_modules/**'
+        exclude
       }),
       resolve({
         extensions

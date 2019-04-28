@@ -1,7 +1,8 @@
 import { Reducer } from 'redux'
 import { configureStore } from './configureStore'
 
-import createSerializableStateInvariantMiddleware, {
+import {
+  createSerializableStateInvariantMiddleware,
   findNonSerializableValue
 } from './serializableStateInvariantMiddleware'
 

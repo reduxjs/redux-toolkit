@@ -14,7 +14,7 @@ import {
 } from 'redux'
 import { composeWithDevTools } from 'redux-devtools-extension'
 import thunk, { ThunkDispatch, ThunkMiddleware } from 'redux-thunk'
-import createSerializableStateInvariantMiddleware from './serializableStateInvariantMiddleware'
+import { createSerializableStateInvariantMiddleware } from './serializableStateInvariantMiddleware'
 
 import isPlainObject from './isPlainObject'
 

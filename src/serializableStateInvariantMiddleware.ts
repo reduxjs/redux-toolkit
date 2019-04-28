@@ -101,7 +101,7 @@ export interface SerializableStateInvariantMiddlewareOptions {
  *
  * @param options Middleware options.
  */
-export default function createSerializableStateInvariantMiddleware(
+export function createSerializableStateInvariantMiddleware(
   options: SerializableStateInvariantMiddlewareOptions = {}
 ): Middleware {
   const { isSerializable = isPlain } = options
