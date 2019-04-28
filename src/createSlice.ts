@@ -7,25 +7,19 @@ type Stringify<T> = T extends string ? T : string
 /**
  * An action creator atttached to a slice.
  */
-export type SliceActionCreator<
-  A,
-  SN extends string = string
-> = A extends PayloadAction<infer P, infer T>
+export type SliceActionCreator<A> = A extends PayloadAction<infer P, infer T>
   ? {
       (payload: P): PayloadAction<P, T>
       type: T
-      slice: SN
     }
   : A extends Action<infer T>
   ? {
       (): PayloadAction<undefined, Stringify<T>>
       type: T
-      slice: SN
     }
   : {
       (): PayloadAction<void>
       type: string
-      slice: SN
     }
 
 export interface Slice<
@@ -47,7 +41,7 @@ export interface Slice<
    * Action creators for the types of actions that are handled by the slice
    * reducer.
    */
-  actions: { [type in keyof AP]: SliceActionCreator<AP[type], SN> }
+  actions: { [type in keyof AP]: SliceActionCreator<AP[type]> }
 
   /**
    * Selectors for the slice reducer state. `createSlice()` inserts a single
@@ -138,7 +132,7 @@ export function createSlice<
   const actionMap = actionKeys.reduce(
     (map, action) => {
       const type = getType(slice, action)
-      map[action] = createAction(type, slice)
+      map[action] = createAction(type)
       return map
     },
     {} as any

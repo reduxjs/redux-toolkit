@@ -59,7 +59,7 @@ import {
       type: 'action',
       payload
     }),
-    { type: 'action', slice: '' }
+    { type: 'action' }
   )
 
   let action: Action
@@ -82,7 +82,7 @@ import {
       type: 'action',
       payload
     }),
-    { type: 'action', slice: 'slice' }
+    { type: 'action' }
   )
   const actionCreator: ActionCreator<AnyAction> = payloadActionCreator
 
@@ -91,7 +91,7 @@ import {
       type: 'action',
       payload: payload || 1
     }),
-    { type: 'action', slice: 'slice' }
+    { type: 'action' }
   )
 
   const actionCreator2: ActionCreator<
