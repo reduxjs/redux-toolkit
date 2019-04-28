@@ -15,10 +15,11 @@ export interface PayloadAction<P = any, T extends string = string>
 /**
  * An action creator that produces actions with a `payload` attribute.
  */
-export interface PayloadActionCreator<P = any, T extends string = string> {
+export interface PayloadActionCreator<P = any, T extends string = string, SN extends string = string> {
   (): Action<T>
   (payload: P): PayloadAction<P, T>
-  type: T
+  type: T;
+  slice: SN;
 }
 
 /**
@@ -30,9 +31,10 @@ export interface PayloadActionCreator<P = any, T extends string = string> {
  *
  * @param type The action type to use for created actions.
  */
-export function createAction<P = any, T extends string = string>(
-  type: T
-): PayloadActionCreator<P, T> {
+export function createAction<P = any, T extends string = string, SN extends string = string>(
+  type: T,
+  slice: SN = '' as SN,
+): PayloadActionCreator<P, T, SN> {
   function actionCreator(): Action<T>
   function actionCreator(payload: P): PayloadAction<P, T>
   function actionCreator(payload?: P): Action<T> | PayloadAction<P, T> {
@@ -42,6 +44,8 @@ export function createAction<P = any, T extends string = string>(
   actionCreator.toString = (): T => `${type}` as T
 
   actionCreator.type = type
+
+  actionCreator.slice = slice;
 
   return actionCreator
 }
