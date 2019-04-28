@@ -56,14 +56,14 @@ describe('createSlice', () => {
   })
 
   describe('when passing slice', () => {
-    const { actions, reducer, selectors } = createSlice({
+    const coolSlice = createSlice({
       reducers: {
         increment: state => state + 1
       },
       initialState: 0,
       slice: 'cool'
     })
-
+    const { actions, reducer, selectors } = coolSlice
     it('should create increment action', () => {
       expect(actions.hasOwnProperty('increment')).toBe(true)
     })
@@ -93,7 +93,10 @@ describe('createSlice', () => {
 
     const { actions, reducer } = createSlice({
       reducers: {
-        setUserName: (state, action) => {
+        setUserName: (
+          state,
+          action: PayloadAction<any, 'user/setUserName'>
+        ) => {
           state.user = action.payload
         }
       },
