@@ -42,6 +42,7 @@
     "lint": "eslint \"src/**/*.ts\"",
     "prepare": "npm run tsc && npm run lint && npm test && npm run build",
     "test": "jest",
+    "tsc:dev": "tsc -w",
     "tsc": "tsc"
   },
   "files": [
