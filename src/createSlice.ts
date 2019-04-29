@@ -8,10 +8,20 @@ type Stringify<T> = T extends string ? T : string
  * An action creator atttached to a slice.
  */
 export type SliceActionCreator<A> = A extends PayloadAction<infer P, infer T>
-  ? {
-      (payload: P): PayloadAction<P, T>
-      type: T
-    }
+  ? unknown extends P // hacky check for payload type `any`, needed so `any` doesn't trigger the ternary check for undefined
+    ? {
+        (payload: P): PayloadAction<P, T>
+        type: T
+      }
+    : P extends undefined | never | void
+    ? {
+        (): PayloadAction<P, T>
+        type: T
+      }
+    : {
+        (payload: P): PayloadAction<P, T>
+        type: T
+      }
   : A extends Action<infer T>
   ? {
       (): PayloadAction<undefined, Stringify<T>>
