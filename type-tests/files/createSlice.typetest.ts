@@ -60,7 +60,8 @@ import {
     reducers: {
       increment: state => state + 1,
       decrement: state => state - 1,
-      multiply: (state, action: PayloadAction<number>) => state * action.payload
+      multiply: (state, action: PayloadAction<number, 'counter/multiply'>) =>
+        state * action.payload
     }
   })
 
@@ -72,4 +73,59 @@ import {
 
   // typings:expect-error
   counter.actions.multiply('2')
+}
+
+/** Test: Typecasting of payload types works as expected */
+{
+  const formInitialState = {
+    name: '',
+    surname: '',
+    middlename: ''
+  }
+
+  const formSlice = createSlice({
+    slice: 'form',
+    reducers: {
+      setName: (state, action: PayloadAction<string, 'form/setName'>) => {
+        state.name = action.payload
+      },
+      setSurname: (state, action: PayloadAction<string, 'form/setSurname'>) => {
+        state.surname = action.payload
+      },
+      setMiddlename: (
+        state,
+        action: PayloadAction<string, 'form/setMiddlename'>
+      ) => {
+        state.middlename = action.payload
+      },
+      resetForm: (state, _: PayloadAction<undefined, 'form/resetForm'>) =>
+        formInitialState
+    },
+    initialState: formInitialState
+  })
+
+  let setName: {
+    (payload: string): PayloadAction<string, 'form/setName'>
+    type: 'form/setName'
+  }
+
+  let setMiddlename: {
+    (payload: string): PayloadAction<string, 'form/setMiddlename'>
+    type: 'form/setMiddlename'
+  }
+
+  let setSurname: {
+    (payload: string): PayloadAction<string, 'form/setSurname'>
+    type: 'form/setSurname'
+  }
+
+  let resetForm: {
+    (): PayloadAction<undefined, 'form/resetForm'>
+    type: 'form/resetForm'
+  }
+
+  setName = formSlice.actions.setName
+  setSurname = formSlice.actions.setSurname
+  setMiddlename = formSlice.actions.setMiddlename
+  resetForm = formSlice.actions.resetForm
 }
