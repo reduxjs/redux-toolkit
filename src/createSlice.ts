@@ -6,7 +6,7 @@ import { createSliceSelector, createSelectorName } from './sliceSelector'
 /**
  * An action creator atttached to a slice.
  */
-export type SliceActionCreator<P> = P extends void
+export type SliceActionCreator<P> = [P] extends [void]
   ? () => PayloadAction<void>
   : (payload: P) => PayloadAction<P>
 
