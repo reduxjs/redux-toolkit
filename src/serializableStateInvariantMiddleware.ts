@@ -123,7 +123,11 @@ export function createSerializableStateInvariantMiddleware(
 
     const state = storeAPI.getState()
 
-    const foundStateNonSerializableValue = findNonSerializableValue(state)
+    const foundStateNonSerializableValue = findNonSerializableValue(
+      state,
+      [],
+      isSerializable
+    )
 
     if (foundStateNonSerializableValue) {
       const { keyPath, value } = foundStateNonSerializableValue
