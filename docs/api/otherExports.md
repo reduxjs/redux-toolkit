@@ -20,6 +20,7 @@ Accepts an options object with `isSerializable` and `getEntries` parameters.  Th
 Example:
 
 ```js
+import { Iterable } from 'immutable';
 import {
   configureStore,
   createSerializableStateInvariantMiddleware,
