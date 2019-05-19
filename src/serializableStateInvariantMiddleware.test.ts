@@ -158,4 +158,43 @@ describe('serializableStateInvariantMiddleware', () => {
     expect(value).toBe(badValue)
     expect(actionType).toBe(ACTION_TYPE)
   })
+
+  it('Should use the supplied isSerializable function to determine serializability', () => {
+    const ACTION_TYPE = 'TEST_ACTION'
+
+    const initialState = {
+      a: 0
+    }
+
+    const badValue = new Map()
+
+    const reducer: Reducer = (state = initialState, action) => {
+      switch (action.type) {
+        case ACTION_TYPE: {
+          return {
+            a: badValue
+          }
+        }
+        default:
+          return state
+      }
+    }
+
+    const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware({
+      isSerializable: (value: any) => true
+    })
+
+    const store = configureStore({
+      reducer: {
+        testSlice: reducer
+      },
+      middleware: [serializableStateInvariantMiddleware]
+    })
+
+    store.dispatch({ type: ACTION_TYPE })
+
+    // Supplied 'isSerializable' considers all values serializable, hence
+    // no error logging is expected:
+    expect(console.error).not.toHaveBeenCalled()
+  })
 })
