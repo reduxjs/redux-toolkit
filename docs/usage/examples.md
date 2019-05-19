@@ -17,6 +17,8 @@ for now until we have a chance to specifically create some examples
 
 - [Reducing Boilerplate in Redux with Redux Starter Kit](https://medium.com/@jeromefranco/reducing-boilerplate-in-redux-with-redux-starter-kit-c5bd9115e75b)
   - (Note: Medium post - may be behind the paywall. Open in Incognito mode if blocked.)
+- [Refactor TodoMVC with Redux Starter Kit](https://magarcia.io/2019/01/26/todomvc-redux-starter-kit/)
+- [Reducing Boilerplate with Redux Starter Kit](https://blog.producement.com/tech/react/redux/2019/05/12/redux-starter-kit.html)
 - Shawn "swyx" Wang: "Redux Tetris" FCC Livestreams
   - [Using the Experimental `useSelector` and `useDispatch` Hooks from React-Redux v7 Alpha](https://www.youtube.com/watch?v=rOr4s5Pax_o)
   - [Using `createSlice` vs `createReducer` in `redux-starter-kit`](https://www.youtube.com/watch?v=wqrCPqTeM_c)
