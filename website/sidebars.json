@@ -4,7 +4,8 @@
       "introduction/quick-start"
     ],
     "Using Redux Starter Kit" : [
-      "usage/usage-guide"
+      "usage/usage-guide",
+      "usage/examples"
     ],
     "API Reference": [
       "api/configureStore",
