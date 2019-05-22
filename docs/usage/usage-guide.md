@@ -168,8 +168,8 @@ function todosReducer(state = [], action) {
                     completed : !todo.completed
                 };
             });
-        } ,
-        "REMOVE_TODO" : (state, action) => {
+        }
+        case "REMOVE_TODO": {
             return state.filter( (todo, i) => i !== action.payload.index)
         }
         default : return state;
