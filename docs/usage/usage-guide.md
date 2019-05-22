@@ -223,7 +223,7 @@ Can be simplified down to just:
 ```js
 updateValue(state, action) {
     const {someId, someValue} = action.payload;
-    state.first.second[someId] = someValue;
+    state.first.second[someId].fourth = someValue;
 }
 ```
 
