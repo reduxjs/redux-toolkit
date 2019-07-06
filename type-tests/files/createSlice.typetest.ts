@@ -60,12 +60,16 @@ import {
     reducers: {
       increment: state => state + 1,
       decrement: state => state - 1,
-      multiply: (state, action: PayloadAction<number>) => state * action.payload
+      multiply: (state, { payload }: PayloadAction<number | number[]>) =>
+        Array.isArray(payload)
+          ? payload.reduce((acc, val) => acc * val, state)
+          : state * payload
     }
   })
 
   counter.actions.increment()
   counter.actions.multiply(2)
+  counter.actions.multiply([2, 3, 4])
 
   // typings:expect-error
   counter.actions.multiply()

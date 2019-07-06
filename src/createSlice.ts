@@ -5,8 +5,12 @@ import { createSliceSelector, createSelectorName } from './sliceSelector'
 
 /**
  * An action creator atttached to a slice.
+ *
+ * The `P` generic is wrapped with a single-element tuple to prevent the
+ * conditional from being checked distributively, thus preserving unions
+ * of contra-variant types.
  */
-export type SliceActionCreator<P> = P extends void
+export type SliceActionCreator<P> = [P] extends [void]
   ? () => PayloadAction<void>
   : (payload: P) => PayloadAction<P>
 
