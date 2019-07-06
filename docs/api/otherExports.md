@@ -15,20 +15,28 @@ Redux Starter Kit exports some of its internal utilities, and re-exports additio
 
 Creates an instance of the `serializable-state-invariant` middleware described in [`getDefaultMiddleware`](./getDefaultMiddleware.md).
 
-Accepts an options object with an `isSerializable` parameter, which will be used
-to determine if a value is considered serializable or not. If not provided, this
-defaults to `isPlain`.
+Accepts an options object with `isSerializable` and `getEntries` parameters.  The former, `isSerializable`, will be used to determine if a value is considered serializable or not. If not provided, this defaults to `isPlain`.  The latter, `getEntries`, will be used to retrieve nested values.  If not provided, `Object.entries` will be used by default.
 
 Example:
 
 ```js
+import { Iterable } from 'immutable';
 import {
   configureStore,
-  createSerializableStateInvariantMiddleware
+  createSerializableStateInvariantMiddleware,
+  isPlain
 } from 'redux-starter-kit'
 
+// Augment middleware to consider Immutable.JS iterables serializable
+const isSerializable = (value) =>
+  Iterable.isIterable(value) || isPlain(value)
+
+const getEntries = (value) =>
+  Iterable.isIterable(value) ? value.entries() : Object.entries(value)
+
 const serializableMiddleware = createSerializableStateInvariantMiddleware({
-  isSerializable: () => true // all values will be accepted
+  isSerializable,
+  getEntries,
 })
 
 const store = configureStore({
