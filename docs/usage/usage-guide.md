@@ -77,7 +77,7 @@ In addition, `configureStore` adds some middleware by default, each with a speci
 
 This means the store setup code itself is a bit shorter and easier to read, and also that you get good default behavior out of the box.
 
-The simplest way to use is it is to just pass the root reducer function as a parameter named `reducer`:
+The simplest way to use it is to just pass the root reducer function as a parameter named `reducer`:
 
 ```js
 import { configureStore } from 'redux-starter-kit'
