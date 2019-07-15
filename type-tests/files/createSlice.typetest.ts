@@ -77,3 +77,27 @@ import {
   // typings:expect-error
   counter.actions.multiply('2')
 }
+
+
+
+/*
+ * Test: Slice action creator types properties are correct
+ */
+{
+  const counter = createSlice({
+    slice: 'counter',
+    initialState: 0,
+    reducers: {
+      increment: state => state + 1,
+      decrement: state => state - 1,
+      multiply: (state, { payload }: PayloadAction<number | number[]>) =>
+        Array.isArray(payload)
+          ? payload.reduce((acc, val) => acc * val, state)
+          : state * payload
+    }
+  })
+
+  const x: "increment" = counter.actions.increment.type;
+  const y: "decrement" = counter.actions.decrement.type;
+  const z: "multiply" = counter.actions.multiply.type;
+}

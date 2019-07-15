@@ -1,23 +1,19 @@
 import { Reducer } from 'redux'
-import { createAction, PayloadAction } from './createAction'
+import { createAction, PayloadAction, PayloadActionCreator, Diff } from './createAction'
 import { createReducer, CaseReducers } from './createReducer'
 import { createSliceSelector, createSelectorName } from './sliceSelector'
 
 /**
  * An action creator atttached to a slice.
  *
- * The `P` generic is wrapped with a single-element tuple to prevent the
- * conditional from being checked distributively, thus preserving unions
- * of contra-variant types.
+ * @deprecated please use PayloadActionCreator directly
  */
-export type SliceActionCreator<P> = [P] extends [void]
-  ? () => PayloadAction<void>
-  : (payload: P) => PayloadAction<P>
+export type SliceActionCreator<P> = PayloadActionCreator<P>
 
 export interface Slice<
   S = any,
   AP extends { [key: string]: any } = { [key: string]: any }
-> {
+  > {
   /**
    * The slice name.
    */
@@ -32,7 +28,7 @@ export interface Slice<
    * Action creators for the types of actions that are handled by the slice
    * reducer.
    */
-  actions: { [type in keyof AP]: SliceActionCreator<AP[type]> }
+  actions: { [type in keyof AP]: PayloadActionCreator<AP[type], Diff<type, number | symbol>> }
 
   /**
    * Selectors for the slice reducer state. `createSlice()` inserts a single
@@ -49,7 +45,7 @@ export interface Slice<
 export interface CreateSliceOptions<
   S = any,
   CR extends CaseReducers<S, any> = CaseReducers<S, any>
-> {
+  > {
   /**
    * The slice's name. Used to namespace the generated action types and to
    * name the selector for retrieving the reducer's state.
@@ -78,10 +74,10 @@ export interface CreateSliceOptions<
 
 type CaseReducerActionPayloads<CR extends CaseReducers<any, any>> = {
   [T in keyof CR]: CR[T] extends (state: any) => any
-    ? void
-    : (CR[T] extends (state: any, action: PayloadAction<infer P>) => any
-        ? P
-        : void)
+  ? void
+  : (CR[T] extends (state: any, action: PayloadAction<infer P>) => any
+    ? P
+    : void)
 }
 
 function getType(slice: string, actionKey: string): string {
