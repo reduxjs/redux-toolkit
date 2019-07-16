@@ -12,14 +12,28 @@ export interface PayloadAction<P = any, T extends string = string>
   payload: P
 }
 
+export type Diff<T, U> = T extends U ? never : T;
+
 /**
  * An action creator that produces actions with a `payload` attribute.
  */
-export interface PayloadActionCreator<P = any, T extends string = string> {
-  (): Action<T>
-  (payload: P): PayloadAction<P, T>
-  type: T
-}
+export type PayloadActionCreator<P = any, T extends string = string> = { type: T } & (
+  /*
+  * The `P` generic is wrapped with a single-element tuple to prevent the
+  * conditional from being checked distributively, thus preserving unions
+  * of contra-variant types.
+  */
+  [undefined] extends [P] ? {
+    (payload?: undefined): PayloadAction<undefined, T>
+    <PT extends Diff<P, undefined>>(payload?: PT): PayloadAction<PT, T>
+  }
+  : [void] extends [P] ? {
+    (): PayloadAction<undefined, T>
+  }
+  : {
+    <PT extends P>(payload: PT): PayloadAction<PT, T>
+  }
+);
 
 /**
  * A utility function to create an action creator for the given action type
@@ -33,9 +47,7 @@ export interface PayloadActionCreator<P = any, T extends string = string> {
 export function createAction<P = any, T extends string = string>(
   type: T
 ): PayloadActionCreator<P, T> {
-  function actionCreator(): Action<T>
-  function actionCreator(payload: P): PayloadAction<P, T>
-  function actionCreator(payload?: P): Action<T> | PayloadAction<P, T> {
+  function actionCreator(payload?: P): PayloadAction<undefined | P, T> {
     return { type, payload }
   }
 
@@ -43,7 +55,7 @@ export function createAction<P = any, T extends string = string>(
 
   actionCreator.type = type
 
-  return actionCreator
+  return actionCreator as any
 }
 
 /**
