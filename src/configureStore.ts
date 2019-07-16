@@ -94,10 +94,13 @@ export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
  * A Redux store returned by `configureStore()`. Supports dispatching
  * side-effectful _thunks_ in addition to plain actions.
  */
-export interface EnhancedStore<S = any, A extends Action = AnyAction>
+export interface EnhancedStore<S = any, A extends Action = AnyAction, ED extends EnhancedDispatch = UseThunkDispatch>
   extends Store<S, A> {
-  dispatch: ThunkDispatch<S, any, A>
+  dispatch: ED extends UseThunkDispatch ? ThunkDispatch<S, any, A> : ED;
 }
+
+type UseThunkDispatch = 'useThunkDispatch';
+type EnhancedDispatch = UseThunkDispatch | ((...args: any[]) => any);
 
 /**
  * A friendly abstraction over the standard Redux `createStore()` function.
@@ -105,9 +108,13 @@ export interface EnhancedStore<S = any, A extends Action = AnyAction>
  * @param config The store configuration.
  * @returns A configured Redux store.
  */
-export function configureStore<S = any, A extends Action = AnyAction>(
+export function configureStore<
+  ED extends EnhancedDispatch = UseThunkDispatch,
+  S = any,
+  A extends Action = AnyAction
+>(
   options: ConfigureStoreOptions<S, A>
-): EnhancedStore<S, A> {
+): EnhancedStore<S, A, ED> {
   const {
     reducer = undefined,
     middleware = getDefaultMiddleware(),
@@ -148,5 +155,5 @@ export function configureStore<S = any, A extends Action = AnyAction>(
     rootReducer,
     preloadedState as DeepPartial<S>,
     composedEnhancer
-  )
+  ) as EnhancedStore<S, A, ED>
 }
