@@ -7,6 +7,8 @@ import {
   AnyAction
 } from 'redux-starter-kit'
 
+function expectType<T>(p: T) { }
+
 /* PayloadAction */
 
 /*
@@ -50,7 +52,7 @@ import {
 /* PayloadActionCreator */
 
 /*
- * Test: PayloadActionCreator returns Action or PayloadAction depending
+ * Test: PayloadActionCreator returns correctly typed PayloadAction depending
  * on whether a payload is passed.
  */
 {
@@ -62,16 +64,14 @@ import {
     { type: 'action' }
   ) as PayloadActionCreator
 
-  let action: Action
-  let payloadAction: PayloadAction
-
-  action = actionCreator()
-  action = actionCreator(undefined)
-  action = actionCreator(1)
-  payloadAction = actionCreator(1)
+  expectType<PayloadAction<number>>(actionCreator(1));
+  expectType<PayloadAction<undefined>>(actionCreator());
+  expectType<PayloadAction<undefined>>(actionCreator(undefined));
 
   // typings:expect-error
-  payloadAction = actionCreator()
+  expectType<PayloadAction<number>>(actionCreator());
+  // typings:expect-error
+  expectType<PayloadAction<undefined>>(actionCreator(1));
 }
 
 /*

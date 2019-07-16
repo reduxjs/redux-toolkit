@@ -24,26 +24,11 @@ export type PayloadActionCreator<P = any, T extends string = string> = { type: T
   * of contra-variant types.
   */
   [undefined] extends [P] ? {
-    // not sure which behavious fits better
-
-    /*
-    * actionCreator() => Action<T>
-    * actionCreator(undefined) => Action<T>
-    * actionCreator("foo") => PayloadAction<"foo", T>
-    */
-    (payload?: undefined): Action<T>
+    (payload?: undefined): PayloadAction<undefined, T>
     <PT extends Diff<P, undefined>>(payload?: PT): PayloadAction<PT, T>
-
-    /*
-    * actionCreator() => Action<T>
-    * actionCreator(undefined) => PayloadAction<undefined, T>
-    * actionCreator("foo") => PayloadAction<"foo", T>
-    */
-    // (): Action<T>
-    // <PT extends P>(payload: PT): PayloadAction<PT, T>
   }
   : [void] extends [P] ? {
-    (): Action<T>
+    (): PayloadAction<undefined, T>
   }
   : {
     <PT extends P>(payload: PT): PayloadAction<PT, T>
@@ -62,7 +47,7 @@ export type PayloadActionCreator<P = any, T extends string = string> = { type: T
 export function createAction<P = any, T extends string = string>(
   type: T
 ): PayloadActionCreator<P, T> {
-  function actionCreator(payload?: P): Action<T> | PayloadAction<P, T> {
+  function actionCreator(payload?: P): PayloadAction<undefined | P, T> {
     return { type, payload }
   }
 
