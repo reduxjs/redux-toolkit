@@ -1,5 +1,5 @@
 import { Reducer } from 'redux'
-import { createAction, PayloadAction, PayloadActionCreator, Diff } from './createAction'
+import { createAction, PayloadAction, PayloadActionCreator } from './createAction'
 import { createReducer, CaseReducers } from './createReducer'
 import { createSliceSelector, createSelectorName } from './sliceSelector'
 
@@ -28,7 +28,7 @@ export interface Slice<
    * Action creators for the types of actions that are handled by the slice
    * reducer.
    */
-  actions: { [type in keyof AP]: PayloadActionCreator<AP[type], Diff<type, number | symbol>> }
+  actions: { [type in keyof AP]: PayloadActionCreator<AP[type]> }
 
   /**
    * Selectors for the slice reducer state. `createSlice()` inserts a single

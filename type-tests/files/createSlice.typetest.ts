@@ -81,7 +81,7 @@ import {
 
 
 /*
- * Test: Slice action creator types properties are correct
+ * Test: Slice action creator types properties are "string"
  */
 {
   const counter = createSlice({
@@ -97,7 +97,12 @@ import {
     }
   })
 
-  const x: "increment" = counter.actions.increment.type;
-  const y: "decrement" = counter.actions.decrement.type;
-  const z: "multiply" = counter.actions.multiply.type;
+  const s: string = counter.actions.increment.type;
+  const t: string = counter.actions.decrement.type;
+  const u: string = counter.actions.multiply.type;
+
+  // typings:expect-error
+  const x: "counter/increment" = counter.actions.increment.type;
+  // typings:expect-error
+  const y: "increment" = counter.actions.increment.type;
 }
