@@ -14,6 +14,9 @@ import {
 } from 'redux'
 import { composeWithDevTools, EnhancerOptions } from 'redux-devtools-extension'
 import thunk, { ThunkDispatch, ThunkMiddleware } from 'redux-thunk'
+
+// UMD-DEV-ONLY: import createImmutableStateInvariantMiddleware from 'redux-immutable-state-invariant'
+
 import { createSerializableStateInvariantMiddleware } from './serializableStateInvariantMiddleware'
 
 import isPlainObject from './isPlainObject'
@@ -34,14 +37,13 @@ export function getDefaultMiddleware<S = any, A extends Action = AnyAction>(): [
   let middlewareArray: [ThunkMiddleware<S, A>, ...Middleware<{}, S>[]] = [thunk]
 
   if (process.env.NODE_ENV !== 'production') {
+    /* START_REMOVE_UMD */
     const createImmutableStateInvariantMiddleware = require('redux-immutable-state-invariant')
       .default
+    middlewareArray.unshift(createImmutableStateInvariantMiddleware())
+    /* STOP_REMOVE_UMD */
 
-    middlewareArray = [
-      createImmutableStateInvariantMiddleware(),
-      thunk,
-      createSerializableStateInvariantMiddleware()
-    ]
+    middlewareArray.push(createSerializableStateInvariantMiddleware())
   }
 
   return middlewareArray
