@@ -5,7 +5,7 @@
   "repository": "https://github.com/markerikson/redux-starter-kit",
   "main": "dist/redux-starter-kit.cjs.js",
   "module": "dist/redux-starter-kit.esm.js",
-  "unpkg": "dist/redux-starter-kit.umd.js",
+  "unpkg": "dist/redux-starter-kit.umd.min.js",
   "types": "dist/typings.d.ts",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
