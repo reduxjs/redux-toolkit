@@ -7,7 +7,9 @@ import {
   AnyAction
 } from 'redux-starter-kit'
 
-function expectType<T>(p: T) { }
+function expectType<T>(p: T): T {
+  return p
+}
 
 /* PayloadAction */
 
@@ -64,14 +66,14 @@ function expectType<T>(p: T) { }
     { type: 'action' }
   ) as PayloadActionCreator
 
-  expectType<PayloadAction<number>>(actionCreator(1));
-  expectType<PayloadAction<undefined>>(actionCreator());
-  expectType<PayloadAction<undefined>>(actionCreator(undefined));
+  expectType<PayloadAction<number>>(actionCreator(1))
+  expectType<PayloadAction<undefined>>(actionCreator())
+  expectType<PayloadAction<undefined>>(actionCreator(undefined))
 
   // typings:expect-error
-  expectType<PayloadAction<number>>(actionCreator());
+  expectType<PayloadAction<number>>(actionCreator())
   // typings:expect-error
-  expectType<PayloadAction<undefined>>(actionCreator(1));
+  expectType<PayloadAction<undefined>>(actionCreator(1))
 }
 
 /*
@@ -110,7 +112,7 @@ function expectType<T>(p: T) { }
   const n: number = increment(1).payload
 
   // typings:expect-error
-  increment("").payload
+  increment('').payload
 }
 
 /*
@@ -119,7 +121,7 @@ function expectType<T>(p: T) { }
 {
   const increment = createAction('increment')
   const n: number = increment(1).payload
-  const s: string = increment("1").payload
+  const s: string = increment('1').payload
 
   // but infers the payload type to be the argument type
   // typings:expect-error
@@ -137,4 +139,43 @@ function expectType<T>(p: T) { }
   const r: 'other' = increment(1).type
   // typings:expect-error
   const q: number = increment(1).type
+}
+
+/*
+ * Test: type still present when using prepareAction
+ */
+{
+  const strLenAction = createAction('strLen', (payload: string) => ({
+    payload: payload.length
+  }))
+
+  expectType<string>(strLenAction('test').type)
+}
+
+/*
+ * Test: changing payload type with prepareAction
+ */
+{
+  const strLenAction = createAction('strLen', (payload: string) => ({
+    payload: payload.length
+  }))
+  expectType<number>(strLenAction('test').payload)
+
+  // typings:expect-error
+  expectType<string>(strLenAction('test').payload)
+}
+
+/*
+ * Test: adding metadata with prepareAction
+ */
+{
+  const strLenMetaAction = createAction('strLenMeta', (payload: string) => ({
+    payload,
+    meta: payload.length
+  }))
+
+  expectType<number>(strLenMetaAction('test').meta)
+
+  // typings:expect-error
+  expectType<string>(strLenMetaAction('test').meta)
 }

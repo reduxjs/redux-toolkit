@@ -15,6 +15,50 @@ describe('createAction', () => {
       expect(`${actionCreator}`).toEqual('A_TYPE')
     })
   })
+
+  describe('when passing a prepareAction method only returning a payload', () => {
+    it('should use the payload returned from the prepareAction method', () => {
+      const actionCreator = createAction('A_TYPE', (a: number) => ({
+        payload: a * 2
+      }))
+      expect(actionCreator(5).payload).toBe(10)
+    })
+    it('should not have a meta attribute on the resulting Action', () => {
+      const actionCreator = createAction('A_TYPE', (a: number) => ({
+        payload: a * 2
+      }))
+      expect('meta' in actionCreator(5)).toBeFalsy()
+    })
+  })
+
+  describe('when passing a prepareAction method returning a payload and meta', () => {
+    it('should use the payload returned from the prepareAction method', () => {
+      const actionCreator = createAction('A_TYPE', (a: number) => ({
+        payload: a * 2,
+        meta: a / 2
+      }))
+      expect(actionCreator(5).payload).toBe(10)
+    })
+    it('should use the meta returned from the prepareAction method', () => {
+      const actionCreator = createAction('A_TYPE', (a: number) => ({
+        payload: a * 2,
+        meta: a / 2
+      }))
+      expect(actionCreator(10).meta).toBe(5)
+    })
+  })
+
+  describe('when passing a prepareAction that accepts multiple arguments', () => {
+    it('should pass all arguments of the resulting actionCreator to prepareAction', () => {
+      const actionCreator = createAction(
+        'A_TYPE',
+        (a: string, b: string, c: string) => ({
+          payload: a + b + c
+        })
+      )
+      expect(actionCreator('1', '2', '3').payload).toBe('123')
+    })
+  })
 })
 
 describe('getType', () => {

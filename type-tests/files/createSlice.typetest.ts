@@ -6,6 +6,10 @@ import {
   createAction
 } from 'redux-starter-kit'
 
+function expectType<T>(t: T) {
+  return t
+}
+
 /*
  * Test: createSlice() infers the returned slice's type.
  */
@@ -78,8 +82,6 @@ import {
   counter.actions.multiply('2')
 }
 
-
-
 /*
  * Test: Slice action creator types properties are "string"
  */
@@ -97,12 +99,48 @@ import {
     }
   })
 
-  const s: string = counter.actions.increment.type;
-  const t: string = counter.actions.decrement.type;
-  const u: string = counter.actions.multiply.type;
+  const s: string = counter.actions.increment.type
+  const t: string = counter.actions.decrement.type
+  const u: string = counter.actions.multiply.type
 
   // typings:expect-error
-  const x: "counter/increment" = counter.actions.increment.type;
+  const x: 'counter/increment' = counter.actions.increment.type
   // typings:expect-error
-  const y: "increment" = counter.actions.increment.type;
+  const y: 'increment' = counter.actions.increment.type
+}
+
+/*
+ * Test: Slice action creator types are inferred for enhanced reducers.
+ */
+{
+  const counter = createSlice({
+    slice: 'counter',
+    initialState: 0,
+    reducers: {
+      strLen: {
+        reducer: s => s,
+        prepare: (payload: string) => ({
+          payload: payload.length
+        })
+      },
+      strLenMeta: {
+        reducer: s => s,
+        prepare: (payload: string) => ({
+          payload,
+          meta: payload.length
+        })
+      }
+    }
+  })
+
+  expectType<string>(counter.actions.strLen('test').type)
+  expectType<number>(counter.actions.strLen('test').payload)
+  expectType<string>(counter.actions.strLenMeta('test').payload)
+  expectType<number>(counter.actions.strLenMeta('test').meta)
+
+  // typings:expect-error
+  expectType<string>(counter.actions.strLen('test').payload)
+
+  // typings:expect-error
+  expectType<string>(counter.actions.strLenMeta('test').meta)
 }

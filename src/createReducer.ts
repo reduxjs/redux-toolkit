@@ -1,10 +1,16 @@
 import createNextState, { Draft } from 'immer'
 import { AnyAction, Action, Reducer } from 'redux'
+import { PrepareAction, PayloadAction } from './createAction'
 
 /**
  * Defines a mapping from action types to corresponding action object shapes.
  */
 export type Actions<T extends keyof any = string> = Record<T, Action>
+
+export type EnhancedReducer<S = any, A extends Action = AnyAction> = {
+  prepare: PrepareAction<A extends { payload: infer P } ? P : undefined>
+  reducer: CaseReducer<S, A>
+}
 
 /**
  * An *case reducer* is a reducer function for a speficic action type. Case
@@ -29,7 +35,15 @@ export type CaseReducer<S = any, A extends Action = AnyAction> = (
  * A mapping from action types to case reducers for `createReducer()`.
  */
 export type CaseReducers<S, AS extends Actions> = {
-  [T in keyof AS]: AS[T] extends Action ? CaseReducer<S, AS[T]> : void
+  [T in keyof AS]:
+    | CaseReducer<S, AS[T]>
+    | (AS[T] extends PayloadAction ? EnhancedReducer<S, AS[T]> : never)
+}
+
+export function isEnhancedReducer<S, A extends Action>(
+  caseReducer: CaseReducer<S, A> | EnhancedReducer<S, A> | void
+): caseReducer is EnhancedReducer<S, A> {
+  return !!caseReducer && 'reducer' in caseReducer
 }
 
 /**
@@ -58,7 +72,11 @@ export function createReducer<
     // these two types.
     return createNextState(state, (draft: Draft<S>) => {
       const caseReducer = actionsMap[action.type]
-      return caseReducer ? caseReducer(draft, action) : undefined
+      return !caseReducer
+        ? undefined
+        : isEnhancedReducer(caseReducer)
+        ? caseReducer.reducer(draft, action)
+        : caseReducer(draft, action)
     })
   }
 }
