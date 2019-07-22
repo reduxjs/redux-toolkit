@@ -71,6 +71,16 @@ describe('configureStore', () => {
   describe('given no reducer', () => {
     it('throws', () => {
       expect(configureStore).toThrow(
+        '"reducer" argument is mandatory. Check that you provide it and you do not make a typo.'
+      )
+    })
+  })
+
+  describe('given invalid reducer', () => {
+    it('throws', () => {
+      const reducer: any = 'invalid reducer'
+
+      expect(() => configureStore({ reducer })).toThrow(
         'Reducer argument must be a function or an object of functions that can be passed to combineReducers'
       )
     })
