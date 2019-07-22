@@ -125,6 +125,12 @@ export function configureStore<S = any, A extends Action = AnyAction>(
   } else if (isPlainObject(reducer)) {
     rootReducer = combineReducers(reducer)
   } else {
+    if (reducer === undefined) {
+      throw new Error(
+        '"reducer" argument is mandatory. Check that you provide it and you do not make a typo.'
+      )
+    }
+
     throw new Error(
       'Reducer argument must be a function or an object of functions that can be passed to combineReducers'
     )
