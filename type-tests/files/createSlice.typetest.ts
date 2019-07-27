@@ -67,19 +67,29 @@ function expectType<T>(t: T) {
       multiply: (state, { payload }: PayloadAction<number | number[]>) =>
         Array.isArray(payload)
           ? payload.reduce((acc, val) => acc * val, state)
-          : state * payload
+          : state * payload,
+      addTwo: {
+        reducer: (s, { payload }) => s + payload,
+        prepare: (a: number, b: number) => ({
+          payload: a + b
+        })
+      }
     }
   })
 
   counter.actions.increment()
   counter.actions.multiply(2)
   counter.actions.multiply([2, 3, 4])
+  counter.actions.addTwo(1, 2)
 
   // typings:expect-error
   counter.actions.multiply()
 
   // typings:expect-error
   counter.actions.multiply('2')
+
+  // typings:expect-error
+  counter.actions.addTwo(1)
 }
 
 /*
@@ -143,4 +153,35 @@ function expectType<T>(t: T) {
 
   // typings:expect-error
   expectType<string>(counter.actions.strLenMeta('test').meta)
+}
+
+/*
+ * Test: createReducer accepts EnhancedReducer
+ */
+{
+  /*
+    TODO: is this possible to type? currently unfortunately failing
+    prepared payload does not match action payload - should cause an error.
+
+    But instead it seems to just loosen the type to EnhancedCaseReducer<S, PayloadAction<any>>, 
+    in which case the CaseReducer<S, PayloadAction<string>> and PrepareAction<number> aren't colliding any more.
+  */
+
+  // typings:expect-error
+  const counter = createSlice({
+    slice: 'counter',
+    initialState: { counter: 0 },
+    reducers: {
+      increment: {
+        reducer(state, action: PayloadAction<string>) {
+          state.counter += action.payload.length
+        },
+        prepare(x: string) {
+          return {
+            payload: 6
+          }
+        }
+      }
+    }
+  })
 }

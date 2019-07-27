@@ -67,28 +67,3 @@ function expectType<T>(p: T) {}
     }
   })
 }
-
-/*
- * Test: createReducer accepts EnhancedReducer
- */
-{
-  // TODO: is this possible to type? currently unfortunately failing
-  // prepared payload does not match action payload - should cause an error
-
-  // typings:expect-error
-  createReducer(
-    { counter: 0 },
-    {
-      increment: {
-        reducer(state, action) {
-          state.counter += action.payload.length
-        },
-        prepare() {
-          return {
-            payload: 6
-          }
-        }
-      }
-    }
-  )
-}

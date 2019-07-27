@@ -18,8 +18,8 @@ export type PayloadAction<
 export type Diff<T, U> = T extends U ? never : T
 
 export type PrepareAction<P> =
-  | ((...args: any) => { payload: P })
-  | ((...args: any) => { payload: P; meta: any })
+  | ((...args: any[]) => { payload: P })
+  | ((...args: any[]) => { payload: P; meta: any })
 
 /**
  * An action creator that produces actions with a `payload` attribute.
@@ -30,7 +30,7 @@ export type PayloadActionCreator<
   PA extends PrepareAction<P> | void = void
 > = {
   type: T
-} & (PA extends (...args: any) => any
+} & (PA extends (...args: any[]) => any
   ? (ReturnType<PA> extends { meta: infer M }
       ? (...args: Parameters<PA>) => PayloadAction<P, T, M>
       : (...args: Parameters<PA>) => PayloadAction<P, T>)
@@ -78,6 +78,9 @@ export function createAction(type: string, prepareAction?: Function) {
   function actionCreator(...args: any[]) {
     if (prepareAction) {
       let prepared = prepareAction(...args)
+      if (!prepared) {
+        throw new Error('prepareAction did not return an object')
+      }
       return 'meta' in prepared
         ? { type, payload: prepared.payload, meta: prepared.meta }
         : { type, payload: prepared.payload }

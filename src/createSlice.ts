@@ -1,10 +1,11 @@
 import { Reducer } from 'redux'
 import {
   createAction,
+  PayloadAction,
   PayloadActionCreator,
   PrepareAction
 } from './createAction'
-import { createReducer, CaseReducers, isEnhancedReducer } from './createReducer'
+import { createReducer, CaseReducers, CaseReducer } from './createReducer'
 import { createSliceSelector, createSelectorName } from './sliceSelector'
 
 /**
@@ -16,9 +17,7 @@ export type SliceActionCreator<P> = PayloadActionCreator<P>
 
 export interface Slice<
   S = any,
-  Actions extends {
-    [type: string]: PayloadActionCreator<any, string, any>
-  } = {}
+  AC extends { [key: string]: any } = { [key: string]: any }
 > {
   /**
    * The slice name.
@@ -34,7 +33,7 @@ export interface Slice<
    * Action creators for the types of actions that are handled by the slice
    * reducer.
    */
-  actions: Actions
+  actions: AC
 
   /**
    * Selectors for the slice reducer state. `createSlice()` inserts a single
@@ -50,7 +49,7 @@ export interface Slice<
  */
 export interface CreateSliceOptions<
   S = any,
-  CR extends CaseReducers<S, any> = CaseReducers<S, any>
+  CR extends SliceCaseReducers<S, any> = SliceCaseReducers<S, any>
 > {
   /**
    * The slice's name. Used to namespace the generated action types and to
@@ -78,20 +77,25 @@ export interface CreateSliceOptions<
   extraReducers?: CaseReducers<S, any>
 }
 
-export type MappedSliceActionCreator<P> = P extends {
-  prepare: PrepareAction<infer OP>
-}
-  ? PayloadActionCreator<OP, any, P['prepare']>
-  : P extends (state: any) => any
-  ? SliceActionCreator<void>
-  : P extends (state: any, action: infer Action) => any
-  ? Action extends { payload: infer Payload }
-    ? SliceActionCreator<Payload>
-    : never
-  : never
+type PayloadActions<T extends keyof any = string> = Record<T, PayloadAction>
 
-type MappedActions<CR extends CaseReducers<any, any>> = {
-  [T in keyof CR]: MappedSliceActionCreator<CR[T]>
+type EnhancedCaseReducer<S, A extends PayloadAction> = {
+  reducer: CaseReducer<S, A>
+  prepare: PrepareAction<A['payload']>
+}
+
+type SliceCaseReducers<S, PA extends PayloadActions> = {
+  [T in keyof PA]: CaseReducer<S, PA[T]> | EnhancedCaseReducer<S, PA[T]>
+}
+
+type CaseReducerActions<CR extends SliceCaseReducers<any, any>> = {
+  [T in keyof CR]: CR[T] extends (state: any) => any
+    ? PayloadActionCreator<void>
+    : (CR[T] extends (state: any, action: PayloadAction<infer P>) => any
+        ? PayloadActionCreator<P>
+        : CR[T] extends { prepare: PrepareAction<infer P> }
+        ? PayloadActionCreator<P, string, CR[T]['prepare']>
+        : PayloadActionCreator<void>)
 }
 
 function getType(slice: string, actionKey: string): string {
@@ -106,16 +110,20 @@ function getType(slice: string, actionKey: string): string {
  *
  * The `reducer` argument is passed to `createReducer()`.
  */
-export function createSlice<S, CR extends CaseReducers<S, any>>(
+export function createSlice<S, CR extends SliceCaseReducers<S, any>>(
   options: CreateSliceOptions<S, CR>
-): Slice<S, MappedActions<CR>> {
+): Slice<S, CaseReducerActions<CR>> {
   const { slice = '', initialState } = options
   const reducers = options.reducers || {}
   const extraReducers = options.extraReducers || {}
   const actionKeys = Object.keys(reducers)
 
   const reducerMap = actionKeys.reduce((map, actionKey) => {
-    map[getType(slice, actionKey)] = reducers[actionKey]
+    let maybeEnhancedReducer = reducers[actionKey]
+    map[getType(slice, actionKey)] =
+      typeof maybeEnhancedReducer === 'function'
+        ? maybeEnhancedReducer
+        : maybeEnhancedReducer.reducer
     return map
   }, extraReducers)
 
@@ -123,13 +131,12 @@ export function createSlice<S, CR extends CaseReducers<S, any>>(
 
   const actionMap = actionKeys.reduce(
     (map, action) => {
+      let maybeEnhancedReducer = reducers[action]
       const type = getType(slice, action)
-      const reducer = reducers[action]
-      if (isEnhancedReducer(reducer)) {
-        map[action] = createAction(type, reducer.prepare)
-      } else {
-        map[action] = createAction(type)
-      }
+      map[action] =
+        typeof maybeEnhancedReducer === 'function'
+          ? createAction(type)
+          : createAction(type, maybeEnhancedReducer.prepare)
       return map
     },
     {} as any
