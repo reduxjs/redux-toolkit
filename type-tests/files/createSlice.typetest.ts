@@ -124,17 +124,21 @@ function expectType<T>(t: T) {
  */
 {
   const counter = createSlice({
-    slice: 'counter',
-    initialState: 0,
+    slice: 'test',
+    initialState: { counter: 0, concat: "" },
     reducers: {
-      strLen: {
-        reducer: s => s,
+      incrementByStrLen: {
+        reducer: (state, action: PayloadAction<number>) => {
+          state.counter += action.payload
+        },
         prepare: (payload: string) => ({
           payload: payload.length
         })
       },
-      strLenMeta: {
-        reducer: s => s,
+      concatMetaStrLen: {
+        reducer: (state, action: PayloadAction<string>) => {
+          state.concat += action.payload
+        },
         prepare: (payload: string) => ({
           payload,
           meta: payload.length
@@ -143,10 +147,10 @@ function expectType<T>(t: T) {
     }
   })
 
-  expectType<string>(counter.actions.strLen('test').type)
-  expectType<number>(counter.actions.strLen('test').payload)
-  expectType<string>(counter.actions.strLenMeta('test').payload)
-  expectType<number>(counter.actions.strLenMeta('test').meta)
+  expectType<string>(counter.actions.incrementByStrLen('test').type)
+  expectType<number>(counter.actions.incrementByStrLen('test').payload)
+  expectType<string>(counter.actions.concatMetaStrLen('test').payload)
+  expectType<number>(counter.actions.concatMetaStrLen('test').meta)
 
   // typings:expect-error
   expectType<string>(counter.actions.strLen('test').payload)
@@ -156,17 +160,9 @@ function expectType<T>(t: T) {
 }
 
 /*
- * Test: createReducer accepts EnhancedReducer
+ * Test: prepared payload does not match action payload - should cause an error.
  */
 {
-  /*
-    TODO: is this possible to type? currently unfortunately failing
-    prepared payload does not match action payload - should cause an error.
-
-    But instead it seems to just loosen the type to EnhancedCaseReducer<S, PayloadAction<any>>, 
-    in which case the CaseReducer<S, PayloadAction<string>> and PrepareAction<number> aren't colliding any more.
-  */
-
   // typings:expect-error
   const counter = createSlice({
     slice: 'counter',
