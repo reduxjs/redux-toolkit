@@ -98,6 +98,17 @@ type CaseReducerActions<CR extends SliceCaseReducers<any, any>> = {
         : PayloadActionCreator<void>)
 }
 
+type NoInfer<T> = [T][T extends any ? 0 : never];
+type SliceCaseReducersCheck<S, ACR> = {
+    [P in keyof ACR] : ACR[P] extends {
+        reducer(s:S, action?: { payload: infer O }): any 
+    } ? {
+        prepare(...a:never[]): { payload: O }
+    } : {
+
+    }
+}
+
 function getType(slice: string, actionKey: string): string {
   return slice ? `${slice}/${actionKey}` : actionKey
 }
@@ -110,6 +121,9 @@ function getType(slice: string, actionKey: string): string {
  *
  * The `reducer` argument is passed to `createReducer()`.
  */
+export function createSlice<S, CR extends SliceCaseReducers<S, any>>(
+  options: CreateSliceOptions<S, CR> & { reducers: SliceCaseReducersCheck<S, NoInfer<CR>> }
+): Slice<S, CaseReducerActions<CR>>
 export function createSlice<S, CR extends SliceCaseReducers<S, any>>(
   options: CreateSliceOptions<S, CR>
 ): Slice<S, CaseReducerActions<CR>> {
