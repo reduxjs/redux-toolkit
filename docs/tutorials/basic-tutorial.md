@@ -168,9 +168,9 @@ That saved us a few lines again, and at least we're not repeating the word `INCR
 
 ### Introducing: `createReducer`
 
-Now, let's look at the reducer function. While you can use any conditional logic you want in a Redux reducer, including `if` statements and loops, the most common approach is to check the `action.type` field and do some specific logic for each action type. A reducer will also provide an initial state value, and return the default state if the action isn't something it cares about.
+Now, let's look at the reducer function. While you can use any conditional logic you want in a Redux reducer, including `if` statements and loops, the most common approach is to check the `action.type` field and do some specific logic for each action type. A reducer will also provide an initial state value, and return the existing state if the action isn't something it cares about.
 
-Redux Starter Kit includes a [`createReducer` function](../api/createReducer.md) that lets you write reducers using a "lookup table" objects, where each key in the object is a Redux action type string, and the values are reducer functions. We can use it to directly replace the existing `counter` function definition. Since we need to use the action type strings as the keys, we can use the [ES6 object "computed property" syntax](http://javascript.info/object#computed-properties) to create keys from the type string variables.
+Redux Starter Kit includes a [`createReducer` function](../api/createReducer.md) that lets you write reducers using a "lookup table" object, where each key in the object is a Redux action type string, and the values are reducer functions. We can use it to directly replace the existing `counter` function definition. Since we need to use the action type strings as the keys, we can use the [ES6 object "computed property" syntax](http://javascript.info/object#computed-properties) to create keys from the type string variables.
 
 ```js
 const increment = createAction('INCREMENT')
@@ -195,7 +195,7 @@ To see the complete code so far, see [this CodeSandbox showing the use of `creat
 
 ### Introducing: `createSlice`
 
-Let's review what the counter example looks like so far:
+Let's review what the counter example looks like at this point:
 
 ```js
 const increment = createAction('INCREMENT')
@@ -215,7 +215,7 @@ document.getElementById('increment').addEventListener('click', () => {
 })
 ```
 
-That's not bad, but we can make one more major change to ths. Why do we even need to generate the action creators separately, or write out those action type strings? The really important part here is the reducer functions.
+That's not bad, but we can make one more major change to this. Why do we even need to generate the action creators separately, or write out those action type strings? The really important part here is the reducer functions.
 
 That's where the [`createSlice` function](../api/createSlice.md) comes in. It allows us to provide an object with the reducer functions, and it will automatically generate the action type strings and action creator functions based on the names of the reducers we listed.
 
