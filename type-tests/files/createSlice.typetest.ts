@@ -6,6 +6,10 @@ import {
   createAction
 } from 'redux-starter-kit'
 
+function expectType<T>(t: T) {
+  return t
+}
+
 /*
  * Test: createSlice() infers the returned slice's type.
  */
@@ -63,22 +67,30 @@ import {
       multiply: (state, { payload }: PayloadAction<number | number[]>) =>
         Array.isArray(payload)
           ? payload.reduce((acc, val) => acc * val, state)
-          : state * payload
+          : state * payload,
+      addTwo: {
+        reducer: (s, { payload }) => s + payload,
+        prepare: (a: number, b: number) => ({
+          payload: a + b
+        })
+      }
     }
   })
 
   counter.actions.increment()
   counter.actions.multiply(2)
   counter.actions.multiply([2, 3, 4])
+  counter.actions.addTwo(1, 2)
 
   // typings:expect-error
   counter.actions.multiply()
 
   // typings:expect-error
   counter.actions.multiply('2')
+
+  // typings:expect-error
+  counter.actions.addTwo(1)
 }
-
-
 
 /*
  * Test: Slice action creator types properties are "string"
@@ -97,12 +109,75 @@ import {
     }
   })
 
-  const s: string = counter.actions.increment.type;
-  const t: string = counter.actions.decrement.type;
-  const u: string = counter.actions.multiply.type;
+  const s: string = counter.actions.increment.type
+  const t: string = counter.actions.decrement.type
+  const u: string = counter.actions.multiply.type
 
   // typings:expect-error
-  const x: "counter/increment" = counter.actions.increment.type;
+  const x: 'counter/increment' = counter.actions.increment.type
   // typings:expect-error
-  const y: "increment" = counter.actions.increment.type;
+  const y: 'increment' = counter.actions.increment.type
+}
+
+/*
+ * Test: Slice action creator types are inferred for enhanced reducers.
+ */
+{
+  const counter = createSlice({
+    slice: 'test',
+    initialState: { counter: 0, concat: "" },
+    reducers: {
+      incrementByStrLen: {
+        reducer: (state, action: PayloadAction<number>) => {
+          state.counter += action.payload
+        },
+        prepare: (payload: string) => ({
+          payload: payload.length
+        })
+      },
+      concatMetaStrLen: {
+        reducer: (state, action: PayloadAction<string>) => {
+          state.concat += action.payload
+        },
+        prepare: (payload: string) => ({
+          payload,
+          meta: payload.length
+        })
+      }
+    }
+  })
+
+  expectType<string>(counter.actions.incrementByStrLen('test').type)
+  expectType<number>(counter.actions.incrementByStrLen('test').payload)
+  expectType<string>(counter.actions.concatMetaStrLen('test').payload)
+  expectType<number>(counter.actions.concatMetaStrLen('test').meta)
+
+  // typings:expect-error
+  expectType<string>(counter.actions.strLen('test').payload)
+
+  // typings:expect-error
+  expectType<string>(counter.actions.strLenMeta('test').meta)
+}
+
+/*
+ * Test: prepared payload does not match action payload - should cause an error.
+ */
+{
+  // typings:expect-error
+  const counter = createSlice({
+    slice: 'counter',
+    initialState: { counter: 0 },
+    reducers: {
+      increment: {
+        reducer(state, action: PayloadAction<string>) {
+          state.counter += action.payload.length
+        },
+        prepare(x: string) {
+          return {
+            payload: 6
+          }
+        }
+      }
+    }
+  })
 }

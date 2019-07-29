@@ -128,4 +128,48 @@ describe('createSlice', () => {
       expect(result).toBe(15)
     })
   })
+
+  describe('behaviour with enhanced case reducers', () => {
+    it('should pass all arguments to the prepare function', () => {
+      const prepare = jest.fn((payload, somethingElse) => ({ payload }))
+
+      const testSlice = createSlice({
+        slice: 'test',
+        initialState: 0,
+        reducers: {
+          testReducer: {
+            reducer: s => s,
+            prepare
+          }
+        }
+      })
+
+      expect(testSlice.actions.testReducer('a', 1)).toEqual({
+        type: 'test/testReducer',
+        payload: 'a'
+      })
+      expect(prepare).toHaveBeenCalledWith('a', 1)
+    })
+
+    it('should call the reducer function', () => {
+      const reducer = jest.fn()
+
+      const testSlice = createSlice({
+        slice: 'test',
+        initialState: 0,
+        reducers: {
+          testReducer: {
+            reducer,
+            prepare: payload => ({ payload })
+          }
+        }
+      })
+
+      testSlice.reducer(0, testSlice.actions.testReducer('testPayload'))
+      expect(reducer).toHaveBeenCalledWith(
+        0,
+        expect.objectContaining({ payload: 'testPayload' })
+      )
+    })
+  })
 })

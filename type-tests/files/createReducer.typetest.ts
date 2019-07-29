@@ -1,4 +1,11 @@
-import { AnyAction, createReducer, Reducer } from 'redux-starter-kit'
+import {
+  AnyAction,
+  createReducer,
+  Reducer,
+  PayloadAction
+} from 'redux-starter-kit'
+
+function expectType<T>(p: T) {}
 
 /*
  * Test: createReducer() infers type of returned reducer.
