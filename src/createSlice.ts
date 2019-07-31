@@ -3,7 +3,9 @@ import {
   createAction,
   PayloadAction,
   PayloadActionCreator,
-  PrepareAction
+  PrepareAction,
+  ActionCreatorWithoutPayload,
+  ActionCreatorWithPreparedPayload
 } from './createAction'
 import { createReducer, CaseReducers, CaseReducer } from './createReducer'
 import { createSliceSelector, createSelectorName } from './sliceSelector'
@@ -16,9 +18,9 @@ import { createSliceSelector, createSelectorName } from './sliceSelector'
 export type SliceActionCreator<P> = PayloadActionCreator<P>
 
 export interface Slice<
-  S = any,
-  AC extends { [key: string]: any } = { [key: string]: any }
-> {
+  State = any,
+  ActionCreators extends { [key: string]: any } = { [key: string]: any }
+  > {
   /**
    * The slice name.
    */
@@ -27,13 +29,13 @@ export interface Slice<
   /**
    * The slice's reducer.
    */
-  reducer: Reducer<S>
+  reducer: Reducer<State>
 
   /**
    * Action creators for the types of actions that are handled by the slice
    * reducer.
    */
-  actions: AC
+  actions: ActionCreators
 
   /**
    * Selectors for the slice reducer state. `createSlice()` inserts a single
@@ -41,16 +43,16 @@ export interface Slice<
    * automatically derived from the slice name (e.g., `getCounter` for a slice
    * named `counter`).
    */
-  selectors: { [key: string]: (state: any) => S }
+  selectors: { [key: string]: (state: any) => State }
 }
 
 /**
  * Options for `createSlice()`.
  */
 export interface CreateSliceOptions<
-  S = any,
-  CR extends SliceCaseReducers<S, any> = SliceCaseReducers<S, any>
-> {
+  State = any,
+  CR extends SliceCaseReducers<State, any> = SliceCaseReducers<State, any>
+  > {
   /**
    * The slice's name. Used to namespace the generated action types and to
    * name the selector for retrieving the reducer's state.
@@ -60,7 +62,7 @@ export interface CreateSliceOptions<
   /**
    * The initial state to be returned by the slice reducer.
    */
-  initialState: S
+  initialState: State
 
   /**
    * A mapping from action types to action-type-specific *case reducer*
@@ -74,40 +76,51 @@ export interface CreateSliceOptions<
    * functions. These reducers should have existing action types used
    * as the keys, and action creators will _not_ be generated.
    */
-  extraReducers?: CaseReducers<S, any>
+  extraReducers?: CaseReducers<State, any>
 }
 
-type PayloadActions<T extends keyof any = string> = Record<T, PayloadAction>
+type PayloadActions<Types extends keyof any = string> = Record<Types, PayloadAction>
 
-type EnhancedCaseReducer<S, A extends PayloadAction> = {
-  reducer: CaseReducer<S, A>
-  prepare: PrepareAction<A['payload']>
+type EnhancedCaseReducer<State, Action extends PayloadAction> = {
+  reducer: CaseReducer<State, Action>
+  prepare: PrepareAction<Action['payload']>
 }
 
-type SliceCaseReducers<S, PA extends PayloadActions> = {
-  [T in keyof PA]: CaseReducer<S, PA[T]> | EnhancedCaseReducer<S, PA[T]>
+type SliceCaseReducers<State, PA extends PayloadActions> = {
+  [ActionType in keyof PA]: CaseReducer<State, PA[ActionType]> | EnhancedCaseReducer<State, PA[ActionType]>
 }
 
-type CaseReducerActions<CR extends SliceCaseReducers<any, any>> = {
-  [T in keyof CR]: CR[T] extends (state: any) => any
-    ? PayloadActionCreator<void>
-    : (CR[T] extends (state: any, action: PayloadAction<infer P>) => any
-        ? PayloadActionCreator<P>
-        : CR[T] extends { prepare: PrepareAction<infer P> }
-        ? PayloadActionCreator<P, string, CR[T]['prepare']>
-        : PayloadActionCreator<void>)
+type IfIsReducerFunctionWithoutAction<R, True, False = never> = R extends (state: any) => any ? True : False;
+type IfIsEnhancedReducer<R, True, False = never> = R extends { prepare: Function } ? True : False;
+
+type PayloadForReducer<R> = R extends (state: any, action: PayloadAction<infer P>) => any ? P : void;
+type PrepareActionForReducer<R> = R extends { prepare: infer Prepare } ? Prepare : never;
+
+type CaseReducerActions<CaseReducers extends SliceCaseReducers<any, any>> = {
+  [Type in keyof CaseReducers]:
+  IfIsEnhancedReducer<CaseReducers[Type],
+    ActionCreatorWithPreparedPayload<PrepareActionForReducer<CaseReducers[Type]>>,
+    IfIsReducerFunctionWithoutAction<CaseReducers[Type],
+      ActionCreatorWithoutPayload,
+      PayloadActionCreator<PayloadForReducer<CaseReducers[Type]>>
+    >
+  >
 }
 
 type NoInfer<T> = [T][T extends any ? 0 : never];
-type SliceCaseReducersCheck<S, ACR> = {
-    [P in keyof ACR] : ACR[P] extends {
-        reducer(s:S, action?: { payload: infer O }): any 
-    } ? {
-        prepare(...a:never[]): { payload: O }
-    } : {
 
-    }
+type SliceCaseReducersCheck<S, ACR> = {
+  [P in keyof ACR]: ACR[P] extends {
+    reducer(s: S, action?: { payload: infer O }): any
+  } ? {
+    prepare(...a: never[]): { payload: O }
+  } : {
+
+  }
 }
+
+type RestrictEnhancedReducersToMatchReducerAndPrepare<S, CR extends SliceCaseReducers<S, any>> =
+  { reducers: SliceCaseReducersCheck<S, NoInfer<CR>> };
 
 function getType(slice: string, actionKey: string): string {
   return slice ? `${slice}/${actionKey}` : actionKey
@@ -121,12 +134,14 @@ function getType(slice: string, actionKey: string): string {
  *
  * The `reducer` argument is passed to `createReducer()`.
  */
-export function createSlice<S, CR extends SliceCaseReducers<S, any>>(
-  options: CreateSliceOptions<S, CR> & { reducers: SliceCaseReducersCheck<S, NoInfer<CR>> }
-): Slice<S, CaseReducerActions<CR>>
-export function createSlice<S, CR extends SliceCaseReducers<S, any>>(
-  options: CreateSliceOptions<S, CR>
-): Slice<S, CaseReducerActions<CR>> {
+export function createSlice<State, CaseReducers extends SliceCaseReducers<State, any>>(
+  options: CreateSliceOptions<State, CaseReducers> & RestrictEnhancedReducersToMatchReducerAndPrepare<State, CaseReducers>
+): Slice<State, CaseReducerActions<CaseReducers>>
+
+// internal definition is a little less restrictive
+export function createSlice<State, CaseReducers extends SliceCaseReducers<State, any>>(
+  options: CreateSliceOptions<State, CaseReducers>
+): Slice<State, CaseReducerActions<CaseReducers>> {
   const { slice = '', initialState } = options
   const reducers = options.reducers || {}
   const extraReducers = options.extraReducers || {}

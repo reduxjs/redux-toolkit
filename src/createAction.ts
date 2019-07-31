@@ -19,24 +19,19 @@ export type PrepareAction<P> =
   | ((...args: any[]) => { payload: P; meta: any })
 
 
-type ActionCreatorWithPreparedPayload<PA extends PrepareAction<any> | void, T extends string> = PA extends PrepareAction<infer P> ? (...args: Parameters<PA>) => PayloadAction<P, T, MetaOrVoid<PA>> : void;
+export type ActionCreatorWithPreparedPayload<PA extends PrepareAction<any> | void, T extends string = string> =
+  WithTypeProperty<T, PA extends PrepareAction<infer P> ? (...args: Parameters<PA>) => PayloadAction<P, T, MetaOrVoid<PA>> : void>;
 
-type ActionCreatorWithOptionalPayload<P, T extends string> = {
-  (payload?: undefined): PayloadAction<undefined, T>
-  <PT extends Diff<P, undefined>>(payload?: PT): PayloadAction<PT, T>
-};
+export type ActionCreatorWithOptionalPayload<P, T extends string = string> =
+  WithTypeProperty<T, {
+    (payload?: undefined): PayloadAction<undefined, T>
+    <PT extends Diff<P, undefined>>(payload?: PT): PayloadAction<PT, T>
+  }>;
 
-type ActionCreatorWithoutPayload<T extends string> = () => PayloadAction<undefined, T>;
+export type ActionCreatorWithoutPayload<T extends string = string> = WithTypeProperty<T, () => PayloadAction<undefined, T>>;
 
-type ActionCreatorWithPayload<P, T extends string> = <PT extends P>(payload: PT) => PayloadAction<PT, T>;
-
-type ActionCreatorWithoutPreparedPayload<P, T extends string> = IfMaybeUndefined<P,
-  ActionCreatorWithOptionalPayload<P, T>,
-  IfVoid<P,
-    ActionCreatorWithoutPayload<T>,
-    ActionCreatorWithPayload<P, T>
-  >
->;
+export type ActionCreatorWithPayload<P, T extends string = string> =
+  WithTypeProperty<T, <PT extends P>(payload: PT) => PayloadAction<PT, T>>;
 
 /**
  * An action creator that produces actions with a `payload` attribute.
@@ -45,12 +40,18 @@ export type PayloadActionCreator<
   P = any,
   T extends string = string,
   PA extends PrepareAction<P> | void = void
-  > = WithTypeProperty<T,
-    IfPrepareActionMethodProvided<PA,
-      ActionCreatorWithPreparedPayload<PA, T>,
-      ActionCreatorWithoutPreparedPayload<P, T>
+  > =
+  IfPrepareActionMethodProvided<PA,
+    ActionCreatorWithPreparedPayload<PA, T>,
+    IfMaybeUndefined<P,
+      ActionCreatorWithOptionalPayload<P, T>,
+      IfVoid<P,
+        ActionCreatorWithoutPayload<T>,
+        ActionCreatorWithPayload<P, T>
+      >
     >
-  >;
+  >
+  ;
 
 /**
  * A utility function to create an action creator for the given action type
