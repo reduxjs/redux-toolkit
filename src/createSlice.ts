@@ -100,8 +100,10 @@ type CaseReducerActions<CaseReducers extends SliceCaseReducers<any, any>> = {
   [Type in keyof CaseReducers]:
   IfIsEnhancedReducer<CaseReducers[Type],
     ActionCreatorWithPreparedPayload<PrepareActionForReducer<CaseReducers[Type]>>,
+    // else
     IfIsReducerFunctionWithoutAction<CaseReducers[Type],
       ActionCreatorWithoutPayload,
+      // else
       PayloadActionCreator<PayloadForReducer<CaseReducers[Type]>>
     >
   >

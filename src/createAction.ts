@@ -43,10 +43,13 @@ export type PayloadActionCreator<
   > =
   IfPrepareActionMethodProvided<PA,
     ActionCreatorWithPreparedPayload<PA, T>,
+    // else
     IfMaybeUndefined<P,
       ActionCreatorWithOptionalPayload<P, T>,
+      // else
       IfVoid<P,
         ActionCreatorWithoutPayload<T>,
+        // else
         ActionCreatorWithPayload<P, T>
       >
     >
