@@ -125,7 +125,7 @@ console.log(incrementOriginal())
 const incrementNew = createAction('INCREMENT')
 
 console.log(incrementNew())
-// type: "INCREMENT"}
+// {type: "INCREMENT"}
 ```
 
 But what if we need to reference the action type string in a reducer? With `createAction`, you can do that in two ways. First, the action creator's `toString()` method has been overridden, and will return the action type string. Second, the type string is also available as a `.type` field on the function:
