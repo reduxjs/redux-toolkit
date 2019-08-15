@@ -555,3 +555,75 @@ export default Link
 Again, note that most of this doesn't have to do with RSK specifically, but it's good to try to consistently use some of the recommended best practices in this example code.
 
 With that done, we should be able to add a couple todos, toggle the state of some of them, and then switch the filters to change the display list.
+
+
+
+## Optimizing Todo Filtering
+
+The `VisibleTodoList` component currently uses a function called `getVisibleTodos` to do the work of filtering the todos array for display.  This is a "selector function", as described in the Redux docs page on [Computing Derived Data](https://redux.js.org/recipes/computing-derived-data).  It encapsulate the process of reading values from the Redux store and extracting part or all of those values for use.
+
+However, the code as currently written has a problem.  If the filter is set to `SHOW_COMPLETED` or `SHOW_ACTIVE`, it will _always_ return a new array _every_ time it is called.  Since it's being used in a `mapState` function, that means it will return a new array reference when _any_ action is dispatched.  
+
+In this tiny todo example app, that isn't a problem. The only actions we have involve altering the todos list or filtering it, anyway. But, in a real app, many other actions will be dispatched. Imagine if this todo app had a counter in it, and `"INCREMENT"` was dispatched while the list is filtered.  We would create a new list, and the `TodoList` would have to re-render even though nothing changed.
+
+While this isn't a real performance issue now, it's worth showing how we can improve the behavior.
+
+Redux apps commonly use a library called [Reselect](https://github.com/reduxjs/reselect), which has a `createSelector` function that lets you define "memoized" selector functions.  These memoized selectors only recalculate values if the inputs have actually changed.
+
+RSK re-exports the `createSelector` function from Reselect, so we can import that and use it in `VisibleTodoList`.
+
+```diff
+import { connect } from 'react-redux'
++import { createSelector } from 'redux-starter-kit'
+import { toggleTodo } from 'features/todos/todosSlice'
+import TodoList from '../components/TodoList'
+import { VisibilityFilters } from 'features/filters/filtersSlice'
+
+-const getVisibleTodos = (todos, filter) => {
+-  switch (filter) {
+-    case VisibilityFilters.SHOW_ALL:
+-      return todos
+-    case VisibilityFilters.SHOW_COMPLETED:
+-      return todos.filter(t => t.completed)
+-    case VisibilityFilters.SHOW_ACTIVE:
+-      return todos.filter(t => !t.completed)
+-    default:
+-      throw new Error('Unknown filter: ' + filter)
+-  }
+-}
+
++const selectTodos = state => state.todos
++const selectFilter = state => state.visibilityFilter
+
++const selectVisibleTodos = createSelector(
++  [selectTodos, selectFilter],
++  (todos, filter) => {
++    switch (filter) {
++      case VisibilityFilters.SHOW_ALL:
++        return todos
++      case VisibilityFilters.SHOW_COMPLETED:
++        return todos.filter(t => t.completed)
++      case VisibilityFilters.SHOW_ACTIVE:
++        return todos.filter(t => !t.completed)
++      default:
++        throw new Error('Unknown filter: ' + filter)
++    }
++  }
++}
++)
+
+const mapStateToProps = state => ({
+- todos: getVisibleTodos(state.todos, state.visibilityFilter)
++ todos: selectVisibleTodos(state)
+})
+
+const mapDispatchToProps = { toggleTodo }
+```
+
+First, we import `createSelector` from RSK, and define a couple one-line selector functions that grab the `todos` and `visibilityFilter` fields from their `state` argument.  
+
+We then call `createSelector`, and pass those two small selector functions in the "input selectors" array.  `createSelector` will call those, take the return values, and pass those to the "output selector" we've defined, which can then do the filtering and return the final result.
+
+There's a couple small changes in how this is defined and used.  While you can give selector functions any name you want, `selectX` is a more common naming convention than `getX`.  Also, because the input selectors take care of reading the necessary values, we can just call `selectVisibleTodos(state)`, with `state` as the only argument.
+
+If we re-run the app, the filtering logic _should_ work exactly the same as before from what you can see in the UI.
