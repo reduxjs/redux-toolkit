@@ -627,3 +627,50 @@ We then call `createSelector`, and pass those two small selector functions in th
 There's a couple small changes in how this is defined and used.  While you can give selector functions any name you want, `selectX` is a more common naming convention than `getX`.  Also, because the input selectors take care of reading the necessary values, we can just call `selectVisibleTodos(state)`, with `state` as the only argument.
 
 If we re-run the app, the filtering logic _should_ work exactly the same as before from what you can see in the UI.
+
+
+## Cleanup
+
+That's the end of the actual conversion work.  We now have a bunch of action and reducer files that are no longer being used, so we should delete those to clean up the project.
+
+We can safely remove `actions/index.js`, `reducers/todos.js`, `reducers/visibilityFilter.js`, and the associated test files.
+
+We can also try completely switching from the "folder-by-type" structure to a "feature folder" structure, by moving all of the component files into the matching feature folders.
+
+If we do that, the final source code structure looks like this:
+
+- `/src`
+  - `/components`
+    - `App.js`
+  - `/features`
+    - `/filters`
+      - `FilterLink.js`
+      - `filtersSlice.js`
+      - `Footer.js`
+      - `Link.js`
+    - `/todos`
+      - `AddTodo.js`
+      - `Todo.js`
+      - `TodoList.js`
+      - `todosSlice.js`
+      - `todosSlice.spec.js`
+      - `VisibleTodoList.js`
+  - `/reducers`
+    - `index.js`
+  - `index.js`
+
+
+Everyone has different preferences on what makes a "maintainable" folder structure, but overall that result looks pretty consistent and easy to follow.
+
+## Summary
+
+In this tutorial, you saw:
+
+- How to use RSK in a typical React application, including adding the package, writing "slice" files, and dispatching actions from React components
+- How to use "mutable" reducers, prepare action payloads, and write selector functions
+- Some techniques for simplifying React-Redux code, like using the "object shorthand" form of `mapDispatch`
+- Examples of using a "feature folder" structure for organizing your code.
+
+Hopefully that has helped illustrate how to actually use these methods in practice.
+
+Now that you've finished this page, it's time to look at the Advanced Tutorial, where we'll look at how to use RSK in an app that does async data fetching and uses TypeScript.
