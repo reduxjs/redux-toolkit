@@ -84,7 +84,7 @@ If you have [the Redux DevTools browser extension](https://github.com/zalmoxisus
 
 
 
-## Creating a Todos Slice
+## Creating the Todos Slice
 
 The first big step for rewriting the app is to convert the todos logic into a new "slice".
 
@@ -355,5 +355,203 @@ describe('addTodo', () => {
 
 ### Updating the Root Reducer
 
+We have a shiny new todos reducer function, but it isn't hooked up to anything yet.  
+
+The first step is to go update our root reducer to use the reducer from the todos slice instead of the original reducer.  We just need to change the import statement in `reducers/index.js`:
+
+```diff
+import { combineReducers } from 'redux'
+-import todos from './todos'
++import todosReducer from 'features/todos/todosSlice'
+import visibilityFilter from './visibilityFilter'
+
+export default combineReducers({
+- todos,
++ todos: todosReducer,
+  visibilityFilter
+})
+```
+
+While we could have kept the imported function named as `todos` so that we can use the object literal shorthand with `combineReducers`, it's a little more clear if we name the imported function `todosReducer` and define the field as `todos: todosReducer`.
+
+### Updating the Add Todo Component
+
+If we reload the app, we should still see that `state.todos` is an empty array.  But, if we click on "Add Todo", nothing will happen.  We're still dispatching actions whose type is `'ADD_TODO'`, while our todos slice is looking for an action type of `'todos/addTodo'`.  We need to import the correct action creator and use it in the `AddTodo.js` file.
+
+While we're at it, there's a couple other problems with how the `AddTodo` component is written.  First, it's currently using a React "callback ref" to read the current text value from the input when you click "Add Todo".  This works, but the standard "React way" to handle form fields is with the "controlled inputs" pattern, where the current field value is stored in the component's state.
+
+Second, the connected component is getting `dispatch` as a prop.  Again, this works, but the normal way to use connect is to [pass action creator functions to `connect`](https://react-redux.js.org/using-react-redux/connect-mapdispatch), and then dispatch the actions by calling the functions that were passed in as props.
+
+Since we've got this component open, we can fix those issues too.  Here's what the final version looks like:
+
+```js
+import React, { useState } from 'react'
+import { connect } from 'react-redux'
+import { addTodo } from 'features/todos/todosSlice'
+
+const mapDispatch = { addTodo }
+
+const AddTodo = ({ addTodo }) => {
+  const [todoText, setTodoText] = useState('')
+
+  const onChange = e => setTodoText(e.target.value)
+
+  return (
+    <div>
+      <form
+        onSubmit={e => {
+          e.preventDefault()
+          if (!todoText.trim()) {
+            return
+          }
+          addTodo(todoText)
+          setTodoText('')
+        }}
+      >
+        <input value={todoText} onChange={onChange} />
+        <button type="submit">Add Todo</button>
+      </form>
+    </div>
+  )
+}
+
+export default connect(
+  null,
+  mapDispatch
+)(AddTodo)
+```
+
+We start by importing the correct `addTodo` action creator from our todos slice.
+
+The input is now being handled as a standard "controlled input", with the text value being stored in the component's state.  We can use that state text value in the form's submit handler.
+
+Finally, we use the ["object shorthand" form of `mapDispatch`](https://react-redux.js.org/using-react-redux/connect-mapdispatch#defining-mapdispatchtoprops-as-an-object) to simplify passing the action creators to `connect`.  The "bound" version of `addTodo` is passed in to the component as a prop, and it will dispatch the action as soon as we call it.
 
 
+### Updating the Todo List
+
+The `TodoList` and `VisibleTodoList` components have similar issues: they're using the older `toggleTodo` action creator, and the `connect` setup isn't using the "object shorthand" form of `mapDispatch`.  We can fix both of those.
+
+
+```diff
+// VisibleTodoList.js
+-import { toggleTodo } from '../actions'
++import { toggleTodo } from 'features/todos/todosSlice'
+
+-const mapDispatchToProps = dispatch => ({
+- toggleTodo: id => dispatch(toggleTodo(id))
+-})
++const mapDispatchToProps = { toggleTodo }
+
+
+// TodoList.js
+-     <Todo key={todo.id} {...todo} onClick={() => toggleTodo(todo.id)} />
+      <Todo
+        key={todo.id}
+        {...todo}
++       onClick={() => toggleTodo({ id: todo.id })}
+      />
+
+```
+
+And with that, we should now be able to add and toggle todos again, but using our new todos slice!
+
+
+## Creating and Using the Filters Slice
+
+Now that we've created the todos slice and hooked it up to the UI, we can do the same for the filter selection logic as well.
+
+### Writing the Filters Slice
+
+The filter logic is really simple.  We have one action, which sets the current filter value by returning what's in the action.  Here's the whole slice:
+
+```js
+import { createSlice } from 'redux-starter-kit'
+
+export const VisibilityFilters = {
+  SHOW_ALL: 'SHOW_ALL',
+  SHOW_COMPLETED: 'SHOW_COMPLETED',
+  SHOW_ACTIVE: 'SHOW_ACTIVE'
+}
+
+const filtersSlice = createSlice({
+  slice: 'visibilityFilters',
+  initialState: VisibilityFilters.SHOW_ALL,
+  reducers: {
+    setVisibilityFilter(state, action) {
+      return action.payload
+    }
+  }
+})
+
+export const { setVisibilityFilter } = filtersSlice.actions
+
+export default filtersSlice.reducer
+```
+
+We've copied over the `VisibilityFilters` enum object that was originally in `actions/index.js`.  The slice code just creates the one reducer, we export the action creator and reducer, and we're done.
+
+
+### Using the Filters Slice
+
+As with the todos reducer, we need to import and add the visibility reducer to our root reducer:
+
+```diff
+import todosReducer from 'features/todos/todosSlice'
+-import visibilityFilter from './visibilityFilter'
++import visibilityFilterReducer from 'features/filters/filtersSlice'
+
+export default combineReducers({
+  todos: todosReducer,
+- visibilityFilter
++ visibilityFilter: visibilityFilterReducer
+})
+```
+
+From there, we need to dispatch the `setVisibilityFilter` action when the user clicks on the buttons.  First, for consistency, we should update `VisibleTodoList.js` and `Footer.js` to use the `VisibilityFilter` enum that's exported from the filter slice file, instead of the one from the actions file.
+
+From there, the link components will take just a bit more work.  `FilterLink` is currently creating new functions that capture the current value of `ownProps.filter`, so that `Link` is just getting a function called `onClick`.  While that's a valid way to do it, for consistency we'd like to continue using the object shorthand form of `mapDispatch`, and modify `Link` to pass the filter value in when it dispatches the action.
+
+```diff
+// FilterLink.js
+-import { setVisibilityFilter } from '../actions'
++import { setVisibilityFilter } from 'features/filters/filtersSlice'
+
+-const mapDispatchToProps = (dispatch, ownProps) => ({
+- onClick: () => dispatch(setVisibilityFilter(ownProps.filter))
+-})
++const mapDispatchToProps = { setVisibilityFilter }
+
+
+// Link.js
+import React from 'react'
+import PropTypes from 'prop-types'
+
+-const Link = ({ active, children, onClick }) => (
++const Link = ({ active, children, setVisibilityFilter, filter }) => (
+  <button
+-    onClick={onClick}
++    onClick={() => setVisibilityFilter(filter)}
+    disabled={active}
+    style={{
+      marginLeft: '4px'
+    }}
+  >
+    {children}
+  </button>
+)
+
+Link.propTypes = {
+  active: PropTypes.bool.isRequired,
+  children: PropTypes.node.isRequired,
+- onClick: PropTypes.func.isRequired
++ setVisibilityFilter: PropTypes.func.isRequired,
++ filter: PropTypes.string.isRequired
+} 
+
+export default Link
+```
+
+Again, note that most of this doesn't have to do with RSK specifically, but it's good to try to consistently use some of the recommended best practices in this example code.
+
+With that done, we should be able to add a couple todos, toggle the state of some of them, and then switch the filters to change the display list.
