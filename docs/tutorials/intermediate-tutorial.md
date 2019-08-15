@@ -245,8 +245,115 @@ In our todos slice, `addTodo` needs two fields, `id` and `text`, so we put those
 (As a sneak peek: there _is_ a way to customize how action object payloads are created.  We'll look at that later in this tutorial, or you can look through [the `createAction` API docs](../api/createAction.md) for an explanation.)
 
 
+### Updating the Todos Tests
 
-# TODO:
+The original todos reducer has a tests file with it.  We can port those over to work with our todos slice, and verify that they both work the same way.
 
-- prepare callbacks
-- all the other code I haven't even gotten to yet
+The first step is to copy `reducers/todos.spec.js` over to `features/todos/todosSlice.spec.js`, and change the import path to read the reducer from the slice file.
+
+Once that is done, we need to update the tests to match how RSK works.
+
+The first issue is that the test file hardcodes action types like `'ADD_TODO"`.  RSK's action types look like `'todos/addTodo'`.  We can reference that by also importing the action creators from the todos slice, and replacing the original type constants in the test with `addTodo.type`.
+
+The other problem is that the action objects in the tests look like `{type, id, text}`, whereas RSK always puts those extra values inside `action.payload`.  So, we need to modify the test actions to match that.
+
+(We really _could_ just replace all the inline action objects in the test with calls like  `addTodo({id : 0, text: "Buy milk"})`, but this is a simpler set of changes to show for now.)
+
+An example of the changes would be
+
+```diff
+// Change the imports to get the action creators
+-import todos from './todosSlice'
++import todos, { addTodo, toggleTodo } from './todosSlice'
+
+// later, in a test:
+  it('should handle ADD_TODO', () => {
+    expect(
+      todos([], {
+-       type: 'ADD_TODO',
+-       text: 'Run the tests',
+-       id: 0
++       type: addTodo.type,
++       payload: {
++         text: 'Run the tests',
++         id: 0
++       }
+      })
+    ).toEqual([
+```
+
+After those changes, all the tests in `todosSlice.spec.js` should pass, proving that our new RSK slice reducer works exactly the same as the original hand-written reducer!
+
+### Implementing Todo IDs
+
+In the original code, each newly added todo gets an ID value from an incrementing number:
+
+```js
+let nextTodoId = 0
+export const addTodo = text => ({
+  type: 'ADD_TODO',
+  id: nextTodoId++,
+  text
+})
+```
+
+Right now, our todos slice doesn't do that, because the `addTodo` action creator is automatically generated for us.  
+
+We _could_ add that behavior for requiring that whatever code dispatches the add todo should have to pass in a new ID, like `addTodo({id: 1, text: "Buy milk"})`, but that would be annoying. Why should the caller have to track that value? Also, what if there are multiple parts of the app that would need to dispatch that action?  It would be better to encapsulate that logic in the action creator.
+
+RSK allows you to customize how the `payload` field is created in your action objects.  If you are using `createAction` by itself, you can pass a "prepare callback" as the second argument.  Here's what this would look like:
+
+```js
+let nextTodoId = 0
+
+export const addTodo = createAction('ADD_TODO', (text) => {
+    return {
+        payload: {id: nextTodoId++, text}
+    }
+});
+```
+
+**Note that the "prepare callback" _must_ return an object with a field called `payload` inside!**  Otherwise, the action's payload will be undefined.
+
+If you're using `createSlice`, it automatically calls `createAction` for you.  If you need to customize the payload there, you can do so by passing an object containing `reducer` and `prepare` functions to the `reducers` object, instead of just the reducer function by itself:
+
+```js
+let nextTodoId = 0
+
+const todosSlice = createSlice({
+  slice: 'todos',
+  initialState: [],
+  reducers: {
+    addTodo: {
+      reducer(state, action) {
+        const { id, text } = action.payload
+        state.push({ id, text, completed: false })
+      },
+      prepare(text) {
+        return { payload: { text, id: nextTodoId++ } }
+      }
+    }
+  }
+}
+```
+
+We can add an additional test that confirms this works:
+
+```js
+describe('addTodo', () => {
+  it('should generate incrementing todo IDs', () => {
+    const action1 = addTodo('a')
+    const action2 = addTodo('b')
+
+    expect(action1.payload).toEqual({ id: 0, text: 'a' })
+    expect(action2.payload).toEqual({ id: 1, text: 'b' })
+  })
+})
+```
+
+## Using the New Todos Slice
+
+### Updating the Root Reducer
+
+
+
