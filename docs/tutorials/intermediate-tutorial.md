@@ -7,9 +7,9 @@ hide_title: true
 
 # Intermediate Tutorial: Redux Starter Kit in Action
 
-In the [Basic Tutorial](./basic-tutorial.md), you saw the main API functions that are included in Redux Starter Kit, and some short examples of why and how to use them.  You also saw that you can use Redux and RSK from a plain JS script tag in an HTML page, without using React, NPM, Webpack, or any build tools.
+In the [Basic Tutorial](./basic-tutorial.md), you saw the main API functions that are included in Redux Starter Kit, and some short examples of why and how to use them. You also saw that you can use Redux and RSK from a plain JS script tag in an HTML page, without using React, NPM, Webpack, or any build tools.
 
-In this tutorial, you'll see how to use those APIs in a small React app.  Specifically, we're going to convert the [original Redux "todos" example app](https://redux.js.org/introduction/examples#todos) to use RSK instead.
+In this tutorial, you'll see how to use those APIs in a small React app. Specifically, we're going to convert the [original Redux "todos" example app](https://redux.js.org/introduction/examples#todos) to use RSK instead.
 
 This will show several several concepts:
 
@@ -19,8 +19,7 @@ This will show several several concepts:
 
 Also, while this isn't specific to RSK, we'll look at a couple ways you can improve your React-Redux code as well.
 
-The complete source code for the converted application from this tutorial is available at [github.com/markerikson/rsk-convert-todos-example](https://github.com/markerikson/rsk-convert-todos-example).  We'll be walking through the conversion process as shown in this repo's history.
-
+The complete source code for the converted application from this tutorial is available at [github.com/markerikson/rsk-convert-todos-example](https://github.com/markerikson/rsk-convert-todos-example). We'll be walking through the conversion process as shown in this repo's history.
 
 ## Reviewing the Redux Todos Example
 
@@ -30,18 +29,17 @@ If we inspect [the current "todos" example source code](https://github.com/redux
 - The [`actions` file](https://github.com/reduxjs/redux/blob/9c9a4d2a1c62c9dbddcbb05488f8bd77d24c81de/examples/todos/src/actions/index.js) has hand-written action creator functions, and the action type strings are being duplicated between the actions file and the reducer files
 - The code is laid out using a ["folder-by-type" structure](https://redux.js.org/faq/code-structure#what-should-my-file-structure-look-like-how-should-i-group-my-action-creators-and-reducers-in-my-project-where-should-my-selectors-go), with separate files for `actions` and `reducers`
 - The React components are written using a strict version of the ["container/presentational" pattern](https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0), where [the "presentational" components are in one folder](https://github.com/reduxjs/redux/tree/9c9a4d2a1c62c9dbddcbb05488f8bd77d24c81de/examples/todos/src/components), and the [Redux "container" connection definitions are in a different folder](https://github.com/reduxjs/redux/tree/9c9a4d2a1c62c9dbddcbb05488f8bd77d24c81de/examples/todos/src/containers)
-- Some of the code isn't following some of the recommended Redux "best practices" patterns.  We'll look at some specific examples as we go through this tutorial.
+- Some of the code isn't following some of the recommended Redux "best practices" patterns. We'll look at some specific examples as we go through this tutorial.
 
-On the one hand, this is a small example app.  It's meant to illustrate the basics of actually using React and Redux together, and not necessarily be used as "the right way" to do things in a full-scale production application.  On the other hand, most people will use patterns they see in docs and examples, and there's definitely room for improvement here.
-
+On the one hand, this is a small example app. It's meant to illustrate the basics of actually using React and Redux together, and not necessarily be used as "the right way" to do things in a full-scale production application. On the other hand, most people will use patterns they see in docs and examples, and there's definitely room for improvement here.
 
 ## Initial Conversion Steps
 
 ### Adding Redux Starter Kit to the Project
 
-I started by copying the Redux "todos" source code to a fresh Create-React-App project, and added Prettier to the project to help make sure the code is formatted consistently.  I've also added a `jsconfig.json` file to enable us to use "absolute import paths" that start from the `/src` folder.  You can see [the initial commit here]().
+I started by copying the Redux "todos" source code to a fresh Create-React-App project, and added Prettier to the project to help make sure the code is formatted consistently. I've also added a `jsconfig.json` file to enable us to use "absolute import paths" that start from the `/src` folder. You can see [the initial commit here]().
 
-In the Basic Tutorial, we just linked to Redux Starter Kit as an individual script tag.  But, in a typical application, you need to add RSK as a package dependency in your project.  This can be done with either the NPM or Yarn package managers:
+In the Basic Tutorial, we just linked to Redux Starter Kit as an individual script tag. But, in a typical application, you need to add RSK as a package dependency in your project. This can be done with either the NPM or Yarn package managers:
 
 ```bash
 # If you're using NPM:
@@ -57,9 +55,9 @@ With that done, we can start to work on the code.
 
 ### Converting the Store to Use `configureStore`
 
-Just like with the "counter" example, we can replace the plain Redux `createStore` function with RSK's `configureStore`.  This will automatically set up the Redux DevTools Extension for us.
+Just like with the "counter" example, we can replace the plain Redux `createStore` function with RSK's `configureStore`. This will automatically set up the Redux DevTools Extension for us.
 
-The changes here are simple.  We update `src/index.js` to import `configureStore` instead of `createStore`, and replace the function call.  Remember that `configureStore` takes an options object as a parameter with named fields, so instead of passing `rootReducer` directly as the first parameter, we pass it as an object field named `reducer`:
+The changes here are simple. We update `src/index.js` to import `configureStore` instead of `createStore`, and replace the function call. Remember that `configureStore` takes an options object as a parameter with named fields, so instead of passing `rootReducer` directly as the first parameter, we pass it as an object field named `reducer`:
 
 ```diff
 import React from "react";
@@ -76,13 +74,11 @@ import rootReducer from "./reducers";
 +});
 ```
 
-**Note that we're still using the same root reducer function that's already in the application, and a Redux store is still being created.  All that's changed is the store is automatically set up with tools to aid you in development.**
+**Note that we're still using the same root reducer function that's already in the application, and a Redux store is still being created. All that's changed is the store is automatically set up with tools to aid you in development.**
 
-If you have [the Redux DevTools browser extension](https://github.com/zalmoxisus/redux-devtools-extension) installed, you should now be able to see the current state if you start the application in development mode and open the DevTools Extension.  It should look like this:
+If you have [the Redux DevTools browser extension](https://github.com/zalmoxisus/redux-devtools-extension) installed, you should now be able to see the current state if you start the application in development mode and open the DevTools Extension. It should look like this:
 
 ![Redux DevTools Extension screenshot showing initial state](assets/tutorials/intermediate/int-tut-01-redux-devtools.png)
-
-
 
 ## Creating the Todos Slice
 
@@ -90,11 +86,11 @@ The first big step for rewriting the app is to convert the todos logic into a ne
 
 ### Understanding Slices
 
-Right now, the todos code is split into two parts.  The reducer logic is in `reducers/todos.js`, while the action creators are in `actions/index.js`.  In a larger app, we might even see the action type constants in their own file, like `constants/todos.js`, so they can be reused in both places.
+Right now, the todos code is split into two parts. The reducer logic is in `reducers/todos.js`, while the action creators are in `actions/index.js`. In a larger app, we might even see the action type constants in their own file, like `constants/todos.js`, so they can be reused in both places.
 
-We _could_ replace those using RSK's [`createReducer`](../api/createReducer.md) and [`createAction`](../api/createAction.md) functions.  However, the RSK [`createSlice` function](../api/createSlice.md) allows us to consolidate that logic in one place.  It uses `createReducer` and `createAction` internally, so **in most apps, you won't need to use them yourself - `createSlice` is all you need**.
+We _could_ replace those using RSK's [`createReducer`](../api/createReducer.md) and [`createAction`](../api/createAction.md) functions. However, the RSK [`createSlice` function](../api/createSlice.md) allows us to consolidate that logic in one place. It uses `createReducer` and `createAction` internally, so **in most apps, you won't need to use them yourself - `createSlice` is all you need**.
 
-You may be wondering, "what is a 'slice', anyway?".  A normal Redux application has a JS object at the top of its state tree, and that object is the result of calling the Redux [`combineReducers` function](https://redux.js.org/api/combinereducers) to join multiple reducer functions into one larger "root reducer".  **We refer to one key/value section of that object as a "slice", and we use the term ["slice reducer"](https://redux.js.org/recipes/structuring-reducers/splitting-reducer-logic) to describe the reducer function responsible for updating that slice of the state**.
+You may be wondering, "what is a 'slice', anyway?". A normal Redux application has a JS object at the top of its state tree, and that object is the result of calling the Redux [`combineReducers` function](https://redux.js.org/api/combinereducers) to join multiple reducer functions into one larger "root reducer". **We refer to one key/value section of that object as a "slice", and we use the term ["slice reducer"](https://redux.js.org/recipes/structuring-reducers/splitting-reducer-logic) to describe the reducer function responsible for updating that slice of the state**.
 
 In this app, the root reducer looks like:
 
@@ -108,8 +104,7 @@ export default combineReducers({
 })
 ```
 
-So, the combined state looks like `{todos: [], visibilityFilter: "SHOW_ALL"}`.  `state.todos` is a "slice", and the `todos` reducer function is a "slice reducer".
-
+So, the combined state looks like `{todos: [], visibilityFilter: "SHOW_ALL"}`. `state.todos` is a "slice", and the `todos` reducer function is a "slice reducer".
 
 ### Examining the Original Todos Reducer
 
@@ -147,13 +142,11 @@ We can see that it handles three cases:
 
 It also initializes the state with a default value of `[]`, and does a default export of the reducer function.
 
-
 ### Writing the Slice Reducer
 
 We can do the same work with `createSlice`, but we can do it in a simpler way.
 
-We'll start by adding a new file called `/features/todos/todosSlice.js`.  Note that while it doesn't matter how you actually structure your folders and files, we've found that [a "feature folder" approach](https://redux.js.org/faq/code-structure#what-should-my-file-structure-look-like-how-should-i-group-my-action-creators-and-reducers-in-my-project-where-should-my-selectors-go) usually works better for most applications.  The file name is also entirely up to you, but a convention of `someFeatureSlice.js` is reasonable to use.
-
+We'll start by adding a new file called `/features/todos/todosSlice.js`. Note that while it doesn't matter how you actually structure your folders and files, we've found that [a "feature folder" approach](https://redux.js.org/faq/code-structure#what-should-my-file-structure-look-like-how-should-i-group-my-action-creators-and-reducers-in-my-project-where-should-my-selectors-go) usually works better for most applications. The file name is also entirely up to you, but a convention of `someFeatureSlice.js` is reasonable to use.
 
 In this file, we'll add the following logic:
 
@@ -187,24 +180,23 @@ export default todosSlice.reducer
 Let's break down what this does:
 
 - `createSlice` takes an options object as its argument, with these options:
-    - `slice`: a string that is used as the prefix for generated action types
-    - `initialState`: the initial state value for the reducer
-    - `reducers`: an object, where the keys will become action type strings, and the functions are reducers that will be run when that action type is dispatched.  (These are sometimes referred to as ["case reducers"](https://redux.js.org/recipes/structuring-reducers/splitting-reducer-logic), because they're similar to a `case` in a `switch` statement)
+  - `slice`: a string that is used as the prefix for generated action types
+  - `initialState`: the initial state value for the reducer
+  - `reducers`: an object, where the keys will become action type strings, and the functions are reducers that will be run when that action type is dispatched. (These are sometimes referred to as ["case reducers"](https://redux.js.org/recipes/structuring-reducers/splitting-reducer-logic), because they're similar to a `case` in a `switch` statement)
 
 So, the `addTodo` case reducer function will be run when an action with the type `"todos/addTodo"` is dispatched.
 
-There's no `default` handler here.  The reducer generated by `createSlice` will automatically handle all other action types by returning the current state, so we don't have to list that ourselves.
-
+There's no `default` handler here. The reducer generated by `createSlice` will automatically handle all other action types by returning the current state, so we don't have to list that ourselves.
 
 #### "Mutable" Update Logic
 
-Notice that the `addTodo` reducer is calling `state.push()`.  Normally, this is bad, because [the `array.push()` function mutates the existing array](https://doesitmutate.xyz/#push), and **[Redux reducers must _never_ mutate state!](https://redux.js.org/basics/reducers#handling-actions)**.
+Notice that the `addTodo` reducer is calling `state.push()`. Normally, this is bad, because [the `array.push()` function mutates the existing array](https://doesitmutate.xyz/#push), and **[Redux reducers must _never_ mutate state!](https://redux.js.org/basics/reducers#handling-actions)**.
 
-However, `createSlice` and `createReducer` wrap your function with [`produce` from the Immer library](https://github.com/immerjs/immer).  **This means you can write code that "mutates" the state inside the reducer, and Immer will safely return a correct immutably updated result.**
+However, `createSlice` and `createReducer` wrap your function with [`produce` from the Immer library](https://github.com/immerjs/immer). **This means you can write code that "mutates" the state inside the reducer, and Immer will safely return a correct immutably updated result.**
 
-Similarly, `toggleTodo` doesn't map over the array or copy the matching todo object.  Instead, it just finds the matching todo object, and then mutates it by assigning `todo.completed = !todo.completed`.  Again, Immer knows this object was updated, and makes copies of both the todo object and the containing array.
+Similarly, `toggleTodo` doesn't map over the array or copy the matching todo object. Instead, it just finds the matching todo object, and then mutates it by assigning `todo.completed = !todo.completed`. Again, Immer knows this object was updated, and makes copies of both the todo object and the containing array.
 
-Normal immutable update logic tends to obscure what you're actually trying to do because of all of the extra copying that has to happen.  Here, the intent should be much more clear: we're adding an item to the end of an array, and we're modifying a field in a todo entry.
+Normal immutable update logic tends to obscure what you're actually trying to do because of all of the extra copying that has to happen. Here, the intent should be much more clear: we're adding an item to the end of an array, and we're modifying a field in a todo entry.
 
 #### Exporting the Slice Functions
 
@@ -222,42 +214,39 @@ Normal immutable update logic tends to obscure what you're actually trying to do
 
 **Notice that it auto-generated the appropriate action creator functions _and_ action types for each of our reducers - we don't have to write those by hand!**
 
-We'll need to use the action creators and the reducer in other files, so at a minimum we would need to export the slice object.  However, we can use a Redux community code convention called [the "ducks" pattern](https://github.com/erikras/ducks-modular-redux).  Simply put, **it suggests that you should put all your action creators and reducers in one file, do named exports of the action creators, and a default export of the reducer function**.
+We'll need to use the action creators and the reducer in other files, so at a minimum we would need to export the slice object. However, we can use a Redux community code convention called [the "ducks" pattern](https://github.com/erikras/ducks-modular-redux). Simply put, **it suggests that you should put all your action creators and reducers in one file, do named exports of the action creators, and a default export of the reducer function**.
 
-Thanks to `createSlice`, we already have our action creators and the reducer right here in one file.  All we have to do is export them separately, and our todos slice file now matches the common "ducks" pattern.
-
+Thanks to `createSlice`, we already have our action creators and the reducer right here in one file. All we have to do is export them separately, and our todos slice file now matches the common "ducks" pattern.
 
 #### Working with Action Payloads
 
 Speaking of the action creators, let's go back and re-examine the reducer logic for a minute.
 
-By default, the action creators from the RSK `createAction` function only accept one argument.  That argument, whatever it is, is put into the action object as a field called `payload`.
+By default, the action creators from the RSK `createAction` function only accept one argument. That argument, whatever it is, is put into the action object as a field called `payload`.
 
-There's nothing special about the field `action.payload` by itself.  Redux doesn't know or care about that name.  But, like "ducks", the name `payload` comes from another Redux community convention called ["Flux Standard Actions"](https://github.com/redux-utilities/flux-standard-action).  
+There's nothing special about the field `action.payload` by itself. Redux doesn't know or care about that name. But, like "ducks", the name `payload` comes from another Redux community convention called ["Flux Standard Actions"](https://github.com/redux-utilities/flux-standard-action).
 
-Actions usually need to include some extra data along with the `type` field.  The original Redux code for `addTodo` has an action object that looks like `{type, id, text}`.  **The FSA convention suggests that rather than having data fields with random names directly in the action object, you should always put your data inside a field named `payload`**.  
+Actions usually need to include some extra data along with the `type` field. The original Redux code for `addTodo` has an action object that looks like `{type, id, text}`. **The FSA convention suggests that rather than having data fields with random names directly in the action object, you should always put your data inside a field named `payload`**.
 
+It's up to the reducer to establish what it thinks `payload` should be for each action type, and whatever code dispatches the action needs to pass in values that match that expectation. If only one value is needed, you could potentially use that as the whole `payload` value directly. More commonly, you'd need to pass in multiple values, in which case `payload` should be an object containing those values.
 
-It's up to the reducer to establish what it thinks `payload` should be for each action type, and whatever code dispatches the action needs to pass in values that match that expectation.  If only one value is needed, you could potentially use that as the whole `payload` value directly.  More commonly, you'd need to pass in multiple values, in which case `payload` should be an object containing those values.
+In our todos slice, `addTodo` needs two fields, `id` and `text`, so we put those into an object as `payload`. For `toggleTodo`, the only value we need is the `id` of the todo being changed. We could have made that the `payload`, but I prefer always having `payload` be an object, so I made it `action.payload.id` instead.
 
-In our todos slice, `addTodo` needs two fields, `id` and `text`, so we put those into an object as `payload`.  For `toggleTodo`, the only value we need is the `id` of the todo being changed.  We could have made that the `payload`, but I prefer always having `payload` be an object, so I made it `action.payload.id` instead.
-
-(As a sneak peek: there _is_ a way to customize how action object payloads are created.  We'll look at that later in this tutorial, or you can look through [the `createAction` API docs](../api/createAction.md) for an explanation.)
-
+(As a sneak peek: there _is_ a way to customize how action object payloads are created. We'll look at that later in this tutorial, or you can look through [the `createAction` API docs](../api/createAction.md) for an explanation.)
 
 ### Updating the Todos Tests
 
-The original todos reducer has a tests file with it.  We can port those over to work with our todos slice, and verify that they both work the same way.
+The original todos reducer has a tests file with it. We can port those over to work with our todos slice, and verify that they both work the same way.
 
 The first step is to copy `reducers/todos.spec.js` over to `features/todos/todosSlice.spec.js`, and change the import path to read the reducer from the slice file.
 
 Once that is done, we need to update the tests to match how RSK works.
 
-The first issue is that the test file hardcodes action types like `'ADD_TODO"`.  RSK's action types look like `'todos/addTodo'`.  We can reference that by also importing the action creators from the todos slice, and replacing the original type constants in the test with `addTodo.type`.
+The first issue is that the test file hardcodes action types like `'ADD_TODO"`. RSK's action types look like `'todos/addTodo'`. We can reference that by also importing the action creators from the todos slice, and replacing the original type constants in the test with `addTodo.type`.
 
-The other problem is that the action objects in the tests look like `{type, id, text}`, whereas RSK always puts those extra values inside `action.payload`.  So, we need to modify the test actions to match that.
+The other problem is that the action objects in the tests look like `{type, id, text}`, whereas RSK always puts those extra values inside `action.payload`. So, we need to modify the test actions to match that.
 
-(We really _could_ just replace all the inline action objects in the test with calls like  `addTodo({id : 0, text: "Buy milk"})`, but this is a simpler set of changes to show for now.)
+(We really _could_ just replace all the inline action objects in the test with calls like `addTodo({id : 0, text: "Buy milk"})`, but this is a simpler set of changes to show for now.)
 
 An example of the changes would be
 
@@ -297,25 +286,25 @@ export const addTodo = text => ({
 })
 ```
 
-Right now, our todos slice doesn't do that, because the `addTodo` action creator is automatically generated for us.  
+Right now, our todos slice doesn't do that, because the `addTodo` action creator is automatically generated for us.
 
-We _could_ add that behavior for requiring that whatever code dispatches the add todo should have to pass in a new ID, like `addTodo({id: 1, text: "Buy milk"})`, but that would be annoying. Why should the caller have to track that value? Also, what if there are multiple parts of the app that would need to dispatch that action?  It would be better to encapsulate that logic in the action creator.
+We _could_ add that behavior for requiring that whatever code dispatches the add todo should have to pass in a new ID, like `addTodo({id: 1, text: "Buy milk"})`, but that would be annoying. Why should the caller have to track that value? Also, what if there are multiple parts of the app that would need to dispatch that action? It would be better to encapsulate that logic in the action creator.
 
-RSK allows you to customize how the `payload` field is created in your action objects.  If you are using `createAction` by itself, you can pass a "prepare callback" as the second argument.  Here's what this would look like:
+RSK allows you to customize how the `payload` field is created in your action objects. If you are using `createAction` by itself, you can pass a "prepare callback" as the second argument. Here's what this would look like:
 
 ```js
 let nextTodoId = 0
 
-export const addTodo = createAction('ADD_TODO', (text) => {
-    return {
-        payload: {id: nextTodoId++, text}
-    }
-});
+export const addTodo = createAction('ADD_TODO', text => {
+  return {
+    payload: { id: nextTodoId++, text }
+  }
+})
 ```
 
-**Note that the "prepare callback" _must_ return an object with a field called `payload` inside!**  Otherwise, the action's payload will be undefined.
+**Note that the "prepare callback" _must_ return an object with a field called `payload` inside!** Otherwise, the action's payload will be undefined.
 
-If you're using `createSlice`, it automatically calls `createAction` for you.  If you need to customize the payload there, you can do so by passing an object containing `reducer` and `prepare` functions to the `reducers` object, instead of just the reducer function by itself:
+If you're using `createSlice`, it automatically calls `createAction` for you. If you need to customize the payload there, you can do so by passing an object containing `reducer` and `prepare` functions to the `reducers` object, instead of just the reducer function by itself:
 
 ```js
 let nextTodoId = 0
@@ -355,9 +344,9 @@ describe('addTodo', () => {
 
 ### Updating the Root Reducer
 
-We have a shiny new todos reducer function, but it isn't hooked up to anything yet.  
+We have a shiny new todos reducer function, but it isn't hooked up to anything yet.
 
-The first step is to go update our root reducer to use the reducer from the todos slice instead of the original reducer.  We just need to change the import statement in `reducers/index.js`:
+The first step is to go update our root reducer to use the reducer from the todos slice instead of the original reducer. We just need to change the import statement in `reducers/index.js`:
 
 ```diff
 import { combineReducers } from 'redux'
@@ -376,13 +365,13 @@ While we could have kept the imported function named as `todos` so that we can u
 
 ### Updating the Add Todo Component
 
-If we reload the app, we should still see that `state.todos` is an empty array.  But, if we click on "Add Todo", nothing will happen.  We're still dispatching actions whose type is `'ADD_TODO'`, while our todos slice is looking for an action type of `'todos/addTodo'`.  We need to import the correct action creator and use it in the `AddTodo.js` file.
+If we reload the app, we should still see that `state.todos` is an empty array. But, if we click on "Add Todo", nothing will happen. We're still dispatching actions whose type is `'ADD_TODO'`, while our todos slice is looking for an action type of `'todos/addTodo'`. We need to import the correct action creator and use it in the `AddTodo.js` file.
 
-While we're at it, there's a couple other problems with how the `AddTodo` component is written.  First, it's currently using a React "callback ref" to read the current text value from the input when you click "Add Todo".  This works, but the standard "React way" to handle form fields is with the "controlled inputs" pattern, where the current field value is stored in the component's state.
+While we're at it, there's a couple other problems with how the `AddTodo` component is written. First, it's currently using a React "callback ref" to read the current text value from the input when you click "Add Todo". This works, but the standard "React way" to handle form fields is with the "controlled inputs" pattern, where the current field value is stored in the component's state.
 
-Second, the connected component is getting `dispatch` as a prop.  Again, this works, but the normal way to use connect is to [pass action creator functions to `connect`](https://react-redux.js.org/using-react-redux/connect-mapdispatch), and then dispatch the actions by calling the functions that were passed in as props.
+Second, the connected component is getting `dispatch` as a prop. Again, this works, but the normal way to use connect is to [pass action creator functions to `connect`](https://react-redux.js.org/using-react-redux/connect-mapdispatch), and then dispatch the actions by calling the functions that were passed in as props.
 
-Since we've got this component open, we can fix those issues too.  Here's what the final version looks like:
+Since we've got this component open, we can fix those issues too. Here's what the final version looks like:
 
 ```js
 import React, { useState } from 'react'
@@ -423,15 +412,13 @@ export default connect(
 
 We start by importing the correct `addTodo` action creator from our todos slice.
 
-The input is now being handled as a standard "controlled input", with the text value being stored in the component's state.  We can use that state text value in the form's submit handler.
+The input is now being handled as a standard "controlled input", with the text value being stored in the component's state. We can use that state text value in the form's submit handler.
 
-Finally, we use the ["object shorthand" form of `mapDispatch`](https://react-redux.js.org/using-react-redux/connect-mapdispatch#defining-mapdispatchtoprops-as-an-object) to simplify passing the action creators to `connect`.  The "bound" version of `addTodo` is passed in to the component as a prop, and it will dispatch the action as soon as we call it.
-
+Finally, we use the ["object shorthand" form of `mapDispatch`](https://react-redux.js.org/using-react-redux/connect-mapdispatch#defining-mapdispatchtoprops-as-an-object) to simplify passing the action creators to `connect`. The "bound" version of `addTodo` is passed in to the component as a prop, and it will dispatch the action as soon as we call it.
 
 ### Updating the Todo List
 
-The `TodoList` and `VisibleTodoList` components have similar issues: they're using the older `toggleTodo` action creator, and the `connect` setup isn't using the "object shorthand" form of `mapDispatch`.  We can fix both of those.
-
+The `TodoList` and `VisibleTodoList` components have similar issues: they're using the older `toggleTodo` action creator, and the `connect` setup isn't using the "object shorthand" form of `mapDispatch`. We can fix both of those.
 
 ```diff
 // VisibleTodoList.js
@@ -456,14 +443,13 @@ The `TodoList` and `VisibleTodoList` components have similar issues: they're usi
 
 And with that, we should now be able to add and toggle todos again, but using our new todos slice!
 
-
 ## Creating and Using the Filters Slice
 
 Now that we've created the todos slice and hooked it up to the UI, we can do the same for the filter selection logic as well.
 
 ### Writing the Filters Slice
 
-The filter logic is really simple.  We have one action, which sets the current filter value by returning what's in the action.  Here's the whole slice:
+The filter logic is really simple. We have one action, which sets the current filter value by returning what's in the action. Here's the whole slice:
 
 ```js
 import { createSlice } from 'redux-starter-kit'
@@ -489,8 +475,7 @@ export const { setVisibilityFilter } = filtersSlice.actions
 export default filtersSlice.reducer
 ```
 
-We've copied over the `VisibilityFilters` enum object that was originally in `actions/index.js`.  The slice code just creates the one reducer, we export the action creator and reducer, and we're done.
-
+We've copied over the `VisibilityFilters` enum object that was originally in `actions/index.js`. The slice code just creates the one reducer, we export the action creator and reducer, and we're done.
 
 ### Using the Filters Slice
 
@@ -508,9 +493,9 @@ export default combineReducers({
 })
 ```
 
-From there, we need to dispatch the `setVisibilityFilter` action when the user clicks on the buttons.  First, for consistency, we should update `VisibleTodoList.js` and `Footer.js` to use the `VisibilityFilter` enum that's exported from the filter slice file, instead of the one from the actions file.
+From there, we need to dispatch the `setVisibilityFilter` action when the user clicks on the buttons. First, for consistency, we should update `VisibleTodoList.js` and `Footer.js` to use the `VisibilityFilter` enum that's exported from the filter slice file, instead of the one from the actions file.
 
-From there, the link components will take just a bit more work.  `FilterLink` is currently creating new functions that capture the current value of `ownProps.filter`, so that `Link` is just getting a function called `onClick`.  While that's a valid way to do it, for consistency we'd like to continue using the object shorthand form of `mapDispatch`, and modify `Link` to pass the filter value in when it dispatches the action.
+From there, the link components will take just a bit more work. `FilterLink` is currently creating new functions that capture the current value of `ownProps.filter`, so that `Link` is just getting a function called `onClick`. While that's a valid way to do it, for consistency we'd like to continue using the object shorthand form of `mapDispatch`, and modify `Link` to pass the filter value in when it dispatches the action.
 
 ```diff
 // FilterLink.js
@@ -547,7 +532,7 @@ Link.propTypes = {
 - onClick: PropTypes.func.isRequired
 + setVisibilityFilter: PropTypes.func.isRequired,
 + filter: PropTypes.string.isRequired
-} 
+}
 
 export default Link
 ```
@@ -556,19 +541,17 @@ Again, note that most of this doesn't have to do with RSK specifically, but it's
 
 With that done, we should be able to add a couple todos, toggle the state of some of them, and then switch the filters to change the display list.
 
-
-
 ## Optimizing Todo Filtering
 
-The `VisibleTodoList` component currently uses a function called `getVisibleTodos` to do the work of filtering the todos array for display.  This is a "selector function", as described in the Redux docs page on [Computing Derived Data](https://redux.js.org/recipes/computing-derived-data).  It encapsulate the process of reading values from the Redux store and extracting part or all of those values for use.
+The `VisibleTodoList` component currently uses a function called `getVisibleTodos` to do the work of filtering the todos array for display. This is a "selector function", as described in the Redux docs page on [Computing Derived Data](https://redux.js.org/recipes/computing-derived-data). It encapsulate the process of reading values from the Redux store and extracting part or all of those values for use.
 
-However, the code as currently written has a problem.  If the filter is set to `SHOW_COMPLETED` or `SHOW_ACTIVE`, it will _always_ return a new array _every_ time it is called.  Since it's being used in a `mapState` function, that means it will return a new array reference when _any_ action is dispatched.  
+However, the code as currently written has a problem. If the filter is set to `SHOW_COMPLETED` or `SHOW_ACTIVE`, it will _always_ return a new array _every_ time it is called. Since it's being used in a `mapState` function, that means it will return a new array reference when _any_ action is dispatched.
 
-In this tiny todo example app, that isn't a problem. The only actions we have involve altering the todos list or filtering it, anyway. But, in a real app, many other actions will be dispatched. Imagine if this todo app had a counter in it, and `"INCREMENT"` was dispatched while the list is filtered.  We would create a new list, and the `TodoList` would have to re-render even though nothing changed.
+In this tiny todo example app, that isn't a problem. The only actions we have involve altering the todos list or filtering it, anyway. But, in a real app, many other actions will be dispatched. Imagine if this todo app had a counter in it, and `"INCREMENT"` was dispatched while the list is filtered. We would create a new list, and the `TodoList` would have to re-render even though nothing changed.
 
 While this isn't a real performance issue now, it's worth showing how we can improve the behavior.
 
-Redux apps commonly use a library called [Reselect](https://github.com/reduxjs/reselect), which has a `createSelector` function that lets you define "memoized" selector functions.  These memoized selectors only recalculate values if the inputs have actually changed.
+Redux apps commonly use a library called [Reselect](https://github.com/reduxjs/reselect), which has a `createSelector` function that lets you define "memoized" selector functions. These memoized selectors only recalculate values if the inputs have actually changed.
 
 RSK re-exports the `createSelector` function from Reselect, so we can import that and use it in `VisibleTodoList`.
 
@@ -620,18 +603,17 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = { toggleTodo }
 ```
 
-First, we import `createSelector` from RSK, and define a couple one-line selector functions that grab the `todos` and `visibilityFilter` fields from their `state` argument.  
+First, we import `createSelector` from RSK, and define a couple one-line selector functions that grab the `todos` and `visibilityFilter` fields from their `state` argument.
 
-We then call `createSelector`, and pass those two small selector functions in the "input selectors" array.  `createSelector` will call those, take the return values, and pass those to the "output selector" we've defined, which can then do the filtering and return the final result.
+We then call `createSelector`, and pass those two small selector functions in the "input selectors" array. `createSelector` will call those, take the return values, and pass those to the "output selector" we've defined, which can then do the filtering and return the final result.
 
-There's a couple small changes in how this is defined and used.  While you can give selector functions any name you want, `selectX` is a more common naming convention than `getX`.  Also, because the input selectors take care of reading the necessary values, we can just call `selectVisibleTodos(state)`, with `state` as the only argument.
+There's a couple small changes in how this is defined and used. While you can give selector functions any name you want, `selectX` is a more common naming convention than `getX`. Also, because the input selectors take care of reading the necessary values, we can just call `selectVisibleTodos(state)`, with `state` as the only argument.
 
 If we re-run the app, the filtering logic _should_ work exactly the same as before from what you can see in the UI.
 
-
 ## Cleanup
 
-That's the end of the actual conversion work.  We now have a bunch of action and reducer files that are no longer being used, so we should delete those to clean up the project.
+That's the end of the actual conversion work. We now have a bunch of action and reducer files that are no longer being used, so we should delete those to clean up the project.
 
 We can safely remove `actions/index.js`, `reducers/todos.js`, `reducers/visibilityFilter.js`, and the associated test files.
 
@@ -658,7 +640,6 @@ If we do that, the final source code structure looks like this:
   - `/reducers`
     - `index.js`
   - `index.js`
-
 
 Everyone has different preferences on what makes a "maintainable" folder structure, but overall that result looks pretty consistent and easy to follow.
 
