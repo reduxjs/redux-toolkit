@@ -269,10 +269,10 @@ document.getElementById('incrementAsync').addEventListener('click', function() {
 })
 ```
 
-You can see that we're keeping the async handling separate from the reducer logic, and we dispatch an action when the store needs to be updated.  Redux Starter Kit doesn't change anything about that.
+You can see that we're keeping the async handling separate from the reducer logic, and we dispatch an action when the store needs to be updated. Redux Starter Kit doesn't change anything about that.
 
 Here's the complete example in a sandbox:
 
 <iframe src="https://codesandbox.io/embed/counter-vanilla-redux-starter-kit-6gkxx?fontsize=14&view=editor" title="counter-vanilla createSlice - Redux Starter Kit" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media" style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
-Now that you know the basics of each function, the next step is to try using them in a _slightly_ larger example to see more of how they work. We'll cover that in the Intermediate Tutorial.
+Now that you know the basics of each function, the next step is to try using them in a _slightly_ larger example to see more of how they work. We'll cover that in the [Intermediate Tutorial](./intermediate-tutorial.md).
