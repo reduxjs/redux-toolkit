@@ -101,6 +101,10 @@ export interface SerializableStateInvariantMiddlewareOptions {
    * to `undefined`.
    */
   getEntries?: (value: any) => [string, any][],
+  /**
+   * An array of ignored actions from serialization check, Defaults to []
+   */
+  ignoredActions?: string[],
 }
 
 /**
@@ -113,9 +117,13 @@ export interface SerializableStateInvariantMiddlewareOptions {
 export function createSerializableStateInvariantMiddleware(
   options: SerializableStateInvariantMiddlewareOptions = {}
 ): Middleware {
-  const { isSerializable = isPlain, getEntries } = options
+  const { isSerializable = isPlain, getEntries, ignoredActions = [] } = options
 
   return storeAPI => next => action => {
+    if (ignoredActions.length && ignoredActions.indexOf(action.type) !== -1) {
+      return next(action)
+    }
+
     const foundActionNonSerializableValue = findNonSerializableValue(
       action,
       [],
@@ -138,7 +146,7 @@ export function createSerializableStateInvariantMiddleware(
       [],
       isSerializable,
       getEntries,
-      )
+    )
 
     if (foundStateNonSerializableValue) {
       const { keyPath, value } = foundStateNonSerializableValue

@@ -30,10 +30,14 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production'
  *
  * @return The default middleware used by `configureStore()`.
  */
-export function getDefaultMiddleware<S = any, A extends Action = AnyAction>(): [
+export function getDefaultMiddleware<S = any, A extends Action = AnyAction>(data?: any): [
   ThunkMiddleware<S, A>,
   ...Middleware<{}, S>[]
 ] {
+  const {
+    ignoreSerializable = []
+  } = data || {}
+  
   let middlewareArray: [ThunkMiddleware<S, A>, ...Middleware<{}, S>[]] = [thunk]
 
   if (process.env.NODE_ENV !== 'production') {
@@ -43,7 +47,9 @@ export function getDefaultMiddleware<S = any, A extends Action = AnyAction>(): [
     middlewareArray.unshift(createImmutableStateInvariantMiddleware())
     /* STOP_REMOVE_UMD */
 
-    middlewareArray.push(createSerializableStateInvariantMiddleware())
+    middlewareArray.push(
+      createSerializableStateInvariantMiddleware({ ignoredActions: ignoreSerializable })
+    )
   }
 
   return middlewareArray
