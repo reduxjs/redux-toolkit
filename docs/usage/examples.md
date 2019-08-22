@@ -25,6 +25,8 @@ for now until we have a chance to specifically create some examples
 
 ## Example Projects
 
+Simple Todo-App using Typescript, latest React Hooks syntax, React-Bootstrap and persisted store to localStorage: [JamesInnes2169/todo-app-react-hooks-redux](https://github.com/JamesInnes2169/todo-app-react-hooks-redux)
+
 Mark Erikson has converted a couple of other people's projects to use Redux Starter Kit, to help show the process
 and how much simpler the code can be when using RSK.
 
