@@ -11,7 +11,7 @@ In the [Basic Tutorial](./basic-tutorial.md), you saw the main API functions tha
 
 In this tutorial, you'll see how to use those APIs in a small React app. Specifically, we're going to convert the [original Redux "todos" example app](https://redux.js.org/introduction/examples#todos) to use RSK instead.
 
-This will show several several concepts:
+This will show several concepts:
 
 - How to convert "plain Redux" code to use RSK
 - How to use RSK in a typical React+Redux app
