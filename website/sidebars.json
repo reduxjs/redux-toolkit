@@ -5,7 +5,8 @@
     ],
     "Tutorials": [
       "tutorials/basic-tutorial",
-      "tutorials/intermediate-tutorial"
+      "tutorials/intermediate-tutorial",
+      "tutorials/advanced-tutorial"
     ],
     "Using Redux Starter Kit" : [
       "usage/usage-guide",
