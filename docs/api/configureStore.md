@@ -22,10 +22,12 @@ function configureStore({
     middleware?: MiddlewareFunction[],
     // Enable support for the Redux DevTools Extension. Defaults to true.
     devTools?: boolean | EnhancerOptions,
-    // Same as current createStore.
+    // Same as current createStore
     preloadedState?: State,
     // An optional array of Redux store enhancers
     enhancers?: ReduxStoreEnhancer[],
+    // Inject a custom thunk argument
+    extraThunkArgument?: any,
 })
 ```
 
@@ -75,6 +77,10 @@ An optional array of Redux store enhancers. If included, these will be passed to
 This should _not_ include `applyMiddleware()` or
 the Redux DevTools Extension `composeWithDevTools`, as those are already handled by `configureStore`.
 
+### `extraThunkArgument`
+
+See [Redux Thunk | Injecting a Custom Argument](https://github.com/reduxjs/redux-thunk#injecting-a-custom-argument)
+
 ## Usage
 
 ### Basic Example
@@ -107,7 +113,10 @@ const reducer = {
   visibility: visibilityReducer
 }
 
-const middleware = [...getDefaultMiddleware(), logger]
+const middleware = [
+  ...getDefaultMiddleware(/* extraThunkArgument */),
+  logger,
+]
 
 const preloadedState = {
   todos: [
@@ -128,7 +137,11 @@ const store = configureStore({
   middleware,
   devTools: process.env.NODE_ENV !== 'production',
   preloadedState,
-  enhancers: [reduxBatch]
+  enhancers: [reduxBatch],
+  /**
+   * Cannot provide both a middleware and an extraThunkArgument
+   */
+  // extraThunkArgument: { api, whatever }
 })
 
 // The store has been created with these options:

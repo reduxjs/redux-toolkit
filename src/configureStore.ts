@@ -30,11 +30,13 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production'
  *
  * @return The default middleware used by `configureStore()`.
  */
-export function getDefaultMiddleware<S = any, A extends Action = AnyAction>(): [
-  ThunkMiddleware<S, A>,
+export function getDefaultMiddleware<S = any, A extends Action = AnyAction, E = any>(extraThunkArgument?: E): [
+  ThunkMiddleware<S, A, E>,
   ...Middleware<{}, S>[]
 ] {
-  let middlewareArray: [ThunkMiddleware<S, A>, ...Middleware<{}, S>[]] = [thunk]
+  let middlewareArray: [ThunkMiddleware<S, A, E>, ...Middleware<{}, S>[]] = [
+    extraThunkArgument ? thunk.withExtraArgument(extraThunkArgument) : thunk,
+  ]
 
   if (process.env.NODE_ENV !== 'production') {
     /* START_REMOVE_UMD */
@@ -52,12 +54,12 @@ export function getDefaultMiddleware<S = any, A extends Action = AnyAction>(): [
 /**
  * Options for `configureStore()`.
  */
-export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
+export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction, E = any> {
   /**
    * A single reducer function that will be used as the root reducer, or an
    * object of slice reducers that will be passed to `combineReducers()`.
    */
-  reducer: Reducer<S, A> | ReducersMapObject<S, A>
+  reducer?: Reducer<S, A> | ReducersMapObject<S, A>
 
   /**
    * An array of Redux middleware to install. If not supplied, defaults to
@@ -90,15 +92,21 @@ export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
    * need to add middleware, you can use the `middleware` parameter instaead.
    */
   enhancers?: StoreEnhancer[]
+
+  /**
+   * Inject a custom thunk argument.
+   * @see https://github.com/reduxjs/redux-thunk#injecting-a-custom-argument
+   */
+  extraThunkArgument?: E
 }
 
 /**
  * A Redux store returned by `configureStore()`. Supports dispatching
  * side-effectful _thunks_ in addition to plain actions.
  */
-export interface EnhancedStore<S = any, A extends Action = AnyAction>
+export interface EnhancedStore<S = any, A extends Action = AnyAction, E = any>
   extends Store<S, A> {
-  dispatch: ThunkDispatch<S, any, A>
+  dispatch: ThunkDispatch<S, E, A>
 }
 
 /**
@@ -107,16 +115,22 @@ export interface EnhancedStore<S = any, A extends Action = AnyAction>
  * @param config The store configuration.
  * @returns A configured Redux store.
  */
-export function configureStore<S = any, A extends Action = AnyAction>(
-  options: ConfigureStoreOptions<S, A>
-): EnhancedStore<S, A> {
+export function configureStore<S = any, A extends Action = AnyAction, E = any>(
+  options: ConfigureStoreOptions<S, A, E> = {}
+): EnhancedStore<S, A, E> {
   const {
-    reducer = undefined,
-    middleware = getDefaultMiddleware(),
+    reducer,
     devTools = true,
-    preloadedState = undefined,
-    enhancers = []
-  } = options || {}
+    preloadedState,
+    enhancers = [],
+    extraThunkArgument,
+  } = options
+
+  if (options.middleware && extraThunkArgument) {
+    throw new Error('Cannot supply both a middleware and an extraThunkArgument')
+  }
+
+  const middleware = options.middleware || getDefaultMiddleware(extraThunkArgument)
 
   let rootReducer: Reducer<S, A>
 
@@ -144,11 +158,11 @@ export function configureStore<S = any, A extends Action = AnyAction>(
 
   const storeEnhancers = [middlewareEnhancer, ...enhancers]
 
-  const composedEnhancer = finalCompose(...storeEnhancers) as StoreEnhancer
+  const composedEnhancer = finalCompose(...storeEnhancers)
 
-  return createStore(
+  return createStore<S, A, { dispatch: ThunkDispatch<S, E, A> }, unknown>(
     rootReducer,
-    preloadedState as DeepPartial<S>,
-    composedEnhancer
+    preloadedState,
+    composedEnhancer as StoreEnhancer<{ dispatch: ThunkDispatch<S, E, A> }>
   )
 }
