@@ -376,3 +376,169 @@ Let's see if this works!
 <iframe src="https://codesandbox.io/embed/rsk-github-issues-example-m3jix?fontsize=14&module=%2Fsrc%2Fapp%2FApp.tsx&view=preview" title="rsk-github-issues-example-02-issues-display" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
 If you're thinking "hey, this looks and behaves exactly like the previous example"... then that's great! That means we've correctly converted the first bit of logic to Redux so far. If you want to confirm that there's Redux logic running, try clicking the "Open in New Window" button and inspect the store in the Redux DevTools Extension.
+
+## Converting the Issues List Page
+
+Our next task is to convert the `<IssuesListPage>` component to fetch and store issues via Redux. Currently, `<IssuesListPage>` is storing all data in `useState` hooks, including the fetched issues. It fetches the issues by making an AJAX call in a `useEffect` hook.
+
+As mentioned at the start, there's nothing actually wrong with this! Having React components fetch and store their own data is totally fine. But, for the purposes of this tutorial, we want to see how the Redux conversion process looks.
+
+### Reviewing the Issues List Component
+
+Here's the initial chunk of `<IssuesListPage>`:
+
+```ts
+export const IssuesListPage = ({
+  org,
+  repo,
+  page = 1,
+  setJumpToPage,
+  showIssueComments
+}: ILProps) => {
+  const [issuesResult, setIssues] = useState<IssuesResult>({
+    pageLinks: null,
+    pageCount: 1,
+    issues: []
+  })
+  const [numIssues, setNumIssues] = useState<number>(-1)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [issuesError, setIssuesError] = useState<Error | null>(null)
+
+  const { issues, pageCount } = issuesResult
+
+  useEffect(() => {
+    async function fetchEverything() {
+      async function fetchIssues() {
+        const issuesResult = await getIssues(org, repo, page)
+        setIssues(issuesResult)
+      }
+
+      async function fetchIssueCount() {
+        const repoDetails = await getRepoDetails(org, repo)
+        setNumIssues(repoDetails.open_issues_count)
+      }
+
+      try {
+        await Promise.all([fetchIssues(), fetchIssueCount()])
+        setIssuesError(null)
+      } catch (err) {
+        console.error(err)
+        setIssuesError(err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    setIsLoading(true)
+
+    fetchEverything()
+  }, [org, repo, page])
+
+  // omit rendering
+}
+```
+
+The `useEffect` callback defines an outer `async function fetchEverything()` and calls it immediately. This is because we can't declare the `useEffect` callback itself as async. React expects that the return value from a `useEffect` callback will be a cleanup function. Since all async functions return a `Promise` automatically, React would see that `Promise` instead, and that would prevent React from actually cleaning up correctly.
+
+Inside, we define two more async functions to fetch issues and the open issues count, and call them both. We then wait for both functions to resolve successfully. (There's a few other ways we could have organized this logic, but this was sufficient for the example.)
+
+### Thinking in Thunks
+
+#### What is a "Thunk"?
+
+The Redux core (ie, `createStore`) is completely synchronous. When you call `store.dispatch()`, the store runs the root reducer, saves the return value, runs the subscriber callbacks, and returns, with no pause. By default, any asynchronicity has to happen outside of the store.
+
+But, what if you want to have async logic interact with the store by dispatching or checking the current store state? That's where [Redux middleware](https://redux.js.org/advanced/middleware) come in. They extend the store, and allow you to:
+
+- Execute extra logic when any action is dispatched (such as logging the action and state)
+- Pause, modify, delay, replace, or halt dispatched actions
+- Write extra code that has access to `dispatch` and `getState`
+- Teach `dispatch` how to accept other values besides plain action objects, such as functions and promises, by intercepting them and dispatching real action objects instead
+
+The most common Redux middleware is [`redux-thunk`](https://github.com/reduxjs/redux-thunk). The word "thunk" means "a function that delays a calculation until later". In our case, adding the thunk middleware to our Redux store lets us pass functions directly to `store.dispatch()`. The thunk middleware will see the function, prevent it from actually reaching the "real" store, and call our function and pass in `dispatch` and `getState` as arguments. So, a "thunk function" looks like this:
+
+```js
+function exampleThunkFunction(dispatch, getState) {
+  // do something useful with dispatching or the store state here
+}
+
+// normally an error, but okay if the thunk middleware is added
+store.dispatch(exampleThunkFunction)
+```
+
+Inside of a thunk function, you can write any code you want. The most common usage would be fetching some data via an AJAX call, and dispatching an action to load that data into the Redux store. The `async/await` syntax makes it easier to write thunks that do AJAX calls.
+
+Normally, we don't write action objects directly in our code - we use action creator functions to make them, and use them like `dispatch(addTodo())`. In the same way, we typically write "thunk action creator" functions that return the thunk functions, like:
+
+```js
+function exampleThunk() {
+  return function exampleThunkFunction(dispatch, getState) {
+    // do something useful with dispatching or the store state here
+  }
+}
+
+// normally an error, but okay if the thunk middleware is added
+store.dispatch(exampleThunk())
+```
+
+#### Why Use Thunks?
+
+You might be wondering what the point of all this is. There's a few reasons to use thunks:
+
+- Thunks allow us to write reusable logic that interacts with _a_ Redux store, but without needing to reference a specific store instance.
+- Thunks enable us to move more complex logic outside of our components
+- From a component's point of view, it doesn't care whether it's dispatching a plain action or kicking off some async logic - it just calls `dispatch(doSomething())` and moves on.
+- Thunks can return values like promises, allowing logic inside the component to wait for something else to finish.
+
+For further explanations, see [these articles explaining thunks in the `redux-thunk` documentation](https://github.com/reduxjs/redux-thunk#why-do-i-need-this).
+
+#### Writing Thunks in Redux Starter Kit
+
+Writing thunk functions requires that the `redux-thunk` middleware be added to the store as part of the setup process. Redux Starter Kit's `configureStore` function does automatically - [`thunk` is one of the default middleware](../api/getDefaultMiddleware.md).
+
+However, Redux Starter Kit does not currently provide any special functions or syntax for writing thunk functions. In particular, they cannot be defined as part of a `createSlice()` call. You have to write them separate from the reducer logic.
+
+In a typical Redux app, thunk action creators are usually defined in an "actions" file, alongside the plain action creators. Thunks typically dispatch plain actions, such as `dispatch(dataLoaded(response.data))`.
+
+Because we don't have separate "actions" files, it makes sense to write these thunks directly in our "slice" files. That way, they have access to the plain action creators from the slice, and it's easy to find where the thunk function lives.
+
+### Fetching Issues
+
+#### Adding a Reusable Thunk Function Type
+
+Since the thunk middleware is already set up, we don't have to do any work there. However, the TypeScript types for thunks are kind of long and confusing, and we'd normally have to repeat the same type declaration for every thunk function we write.
+
+Before we go any further, let's add a type declaration we can reuse instead.
+
+> - [Add AppThunk type]()
+
+**app/store.ts**
+
+```diff
+-import { configureStore } from 'redux-starter-kit'
++import { configureStore, ActionCreator, Action } from 'redux-starter-kit'
++import { ThunkAction } from 'redux-thunk'
+
+-import rootReducer from './rootReducer'
++import rootReducer, { RootState } from './rootReducer'
+
+export type AppDispatch = typeof store.dispatch
+
++export type AppThunk = ActionCreator<
++  ThunkAction<void, RootState, null, Action<string>>
++>
+```
+
+The `AppThunk` type declares that:
+
+- This function is an "action creator" (which takes some arguments, and returns a specific action type)
+- The "action" that we're returning is specifically a thunk function. The thunk is customized with some additional type parameters:
+  1. Return value: the thunk doesn't return anything
+  2. State type for `getState`: returns our `RootState` type
+  3. "Extra argument": the thunk middleware can be customized to pass in an extra value, but we aren't doing that in this app
+  4. Action types accepted by `dispatch`: any action whose `type` is a string.
+
+There are many cases where you would want different type settings here, but these are probably the most common settings, so we can avoid repeating
+
+
+# TODO Everything else here
