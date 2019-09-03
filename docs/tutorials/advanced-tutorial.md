@@ -27,7 +27,7 @@ The complete source code for the converted application from this tutorial is ava
 
 ## Reviewing the Starting Example Application
 
-The example application for this tutorial is a Github Issues viewer app. It allows the user to enter the names of a Github org and repositry, fetch the current list of open issues, page through the issues list, and view the contents and comments of a specific issue.
+The example application for this tutorial is a Github Issues viewer app. It allows the user to enter the names of a Github org and repository, fetch the current list of open issues, page through the issues list, and view the contents and comments of a specific issue.
 
 The starting commit for this application is a plain React implementation that uses function components with hooks for state and side effects like data fetching. The code is already written in TypeScript, and the styling is done via CSS Modules.
 
@@ -284,7 +284,7 @@ import { combineReducers } from 'redux-starter-kit'
 +})
 ```
 
-### Converting Issues Display
+### Converting the Issues Display
 
 Now that the issues display slice is hooked up to the store, we can update `<App>` to use that instead of its internal component state.
 
@@ -492,6 +492,8 @@ You might be wondering what the point of all this is. There's a few reasons to u
 
 For further explanations, see [these articles explaining thunks in the `redux-thunk` documentation](https://github.com/reduxjs/redux-thunk#why-do-i-need-this).
 
+There are many other kinds of Redux middleware that add async capabilities. The most popular are [`redux-saga`](), which uses generator functions, and [`redux-observable`](), which uses RxJS observables. For some comparisons, see the [Redux FAQ entry on "how do I choose an async middleware?"](https://redux.js.org/faq/actions#what-async-middleware-should-i-use-how-do-you-decide-between-thunks-sagas-observables-or-something-else).
+
 #### Writing Thunks in Redux Starter Kit
 
 Writing thunk functions requires that the `redux-thunk` middleware be added to the store as part of the setup process. Redux Starter Kit's `configureStore` function does automatically - [`thunk` is one of the default middleware](../api/getDefaultMiddleware.md).
@@ -502,7 +504,7 @@ In a typical Redux app, thunk action creators are usually defined in an "actions
 
 Because we don't have separate "actions" files, it makes sense to write these thunks directly in our "slice" files. That way, they have access to the plain action creators from the slice, and it's easy to find where the thunk function lives.
 
-### Fetching Issues
+### Fetching Github Repo Details
 
 #### Adding a Reusable Thunk Function Type
 
@@ -538,7 +540,360 @@ The `AppThunk` type declares that:
   3. "Extra argument": the thunk middleware can be customized to pass in an extra value, but we aren't doing that in this app
   4. Action types accepted by `dispatch`: any action whose `type` is a string.
 
-There are many cases where you would want different type settings here, but these are probably the most common settings, so we can avoid repeating
+There are many cases where you would want different type settings here, but these are probably the most common settings. This way, we can avoid repeating that same type declaration every time we write a thunk.
 
+#### Adding the Repo Details Slice
+
+Now that we have that type, we can write a slice of state for fetching details on a repo.
+
+> - [Add a slice for storing repo details]()
+
+**features/repoSearch/repoDetailsSlice.ts**
+
+```ts
+import { createSlice, PayloadAction } from 'redux-starter-kit'
+
+import { AppThunk } from 'app/store'
+
+import { RepoDetails, getRepoDetails } from 'api/githubAPI'
+
+interface RepoDetailsState {
+  openIssuesCount: number
+  error: string | null
+}
+
+const initialState: RepoDetailsState = {
+  openIssuesCount: -1,
+  error: null
+}
+
+const repoDetails = createSlice({
+  slice: 'repoDetails',
+  initialState,
+  reducers: {
+    getRepoDetailsSuccess(state, action: PayloadAction<RepoDetails>) {
+      state.openIssuesCount = action.payload.open_issues_count
+      state.error = null
+    },
+    getRepoDetailsFailed(state, action: PayloadAction<string>) {
+      state.openIssuesCount = -1
+      state.error = action.payload
+    }
+  }
+})
+
+export const {
+  getRepoDetailsSuccess,
+  getRepoDetailsFailed
+} = repoDetails.actions
+
+export default repoDetails.reducer
+
+export const fetchIssuesCount: AppThunk = (
+  org: string,
+  repo: string
+) => async dispatch => {
+  try {
+    const repoDetails = await getRepoDetails(org, repo)
+    dispatch(getRepoDetailsSuccess(repoDetails))
+  } catch (err) {
+    dispatch(getRepoDetailsFailed(err.toString()))
+  }
+}
+```
+
+The first part of this should look straightforward. We declare our slice state shape, the initial state value, and write a slice with reducers that store the open issues count or an error string, then export the action creators and reducer.
+
+Down at the bottom, we have our first data fetching thunk. The important things to notice here are:
+
+- **The thunk is defined separately from the slice**, since RSK currently has no special syntax for defining thunks as part of a slice.
+- **We declare the thunk action creator as an arrow function, and use the `AppThunk` type we just created.** You can use either arrow functions or the `function` keyword to write thunk functions, but because we defined the `AppThunk` type as "an action creator that returns a thunk function", we need to apply that type to the action creator function. TS won't currently allow us to declare a type for a function declared with the `function` keyword, so we use an arrow function. (If we changed `AppThunk` to be just the "thunk function" part, we could write `function fetchIssuesCount() : AppThunk` as the return value instead.)
+- **We use the `async/await` syntax for the thunk function itself.** Again, this isn't required, but `async/await` usually results in simpler code than nested Promise `.then()` chains.
+- **Inside the thunk, we dispatch the plain action creators that were generated by the `createSlice` call**.
+
+While not shown, we also add the slice reducer to our root reducer.
+
+### Fetching Repo Details in the Issues List
+
+Now that the repo details slice exists, we can use it in the `<IssuesListPage>` component.
+
+> - [Update IssuesListPage to fetch repo details via Redux]()
+
+**features/issuesList/IssuesListPage.tsx**
+
+```diff
+import React, { useState, useEffect } from 'react'
++import { useSelector, useDispatch } from 'react-redux'
+
+-import { getIssues, getRepoDetails, IssuesResult } from 'api/githubAPI'
++import { getIssues, IssuesResult } from 'api/githubAPI'
+
++import { fetchIssuesCount } from 'features/repoSearch/repoDetailsSlice'
++import { RootState } from 'app/rootReducer'
+
+// omit code
+
+export const IssuesListPage = ({
+  org,
+  repo,
+  page = 1,
+  setJumpToPage,
+  showIssueComments
+}: ILProps) => {
++ const dispatch = useDispatch()
+
+  const [issuesResult, setIssues] = useState<IssuesResult>({
+    pageLinks: null,
+    pageCount: 1,
+    issues: []
+  })
+- const [numIssues, setNumIssues] = useState<number>(-1)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [issuesError, setIssuesError] = useState<Error | null>(null)
++ const openIssueCount = useSelector(
++   (state: RootState) => state.repoDetails.openIssuesCount
++ )
+
+  useEffect(() => {
+    async function fetchEverything() {
+      async function fetchIssues() {
+        const issuesResult = await getIssues(org, repo, page)
+        setIssues(issuesResult)
+      }
+
+-     async function fetchIssueCount() {
+-       const repoDetails = await getRepoDetails(org, repo)
+-       setNumIssues(repoDetails.open_issues_count)
+-     }
+
+      try {
+-       await Promise.all([fetchIssues(), fetchIssueCount()])
++       await Promise.all([
++         fetchIssues(),
++         dispatch(fetchIssuesCount(org, repo))
++       ])
+        setIssuesError(null)
+      } catch (err) {
+        console.error(err)
+        setIssuesError(err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    setIsLoading(true)
+
+    fetchEverything()
+- }, [org, repo, page])
++ }, [org, repo, page, dispatch])
+```
+
+In `<IssuesListPage>`, we import the new `fetchIssuesCount` thunk, and rewrite the component to read the open issues count value from the Redux store.
+
+Inside our `useEffect`, we drop the `fetchIssueCount` function, and dispatch `fetchIssueCount` instead.
+
+### Fetching Issues for a Repo
+
+Next up, we need to replace the logic for fetching a list of open issues.
+
+> - [Add a slice for tracking issues state]()
+
+**features/issuesList/issuesSlice.ts**
+
+```ts
+import { createSlice, PayloadAction } from 'redux-starter-kit'
+import { Links } from 'parse-link-header'
+
+import { Issue, IssuesResult, getIssue, getIssues } from 'api/githubAPI'
+import { AppThunk } from 'app/store'
+
+interface IssuesState {
+  issuesByNumber: Record<number, Issue>
+  currentPageIssues: number[]
+  pageCount: number
+  pageLinks: Links | null
+  isLoading: boolean
+  error: string | null
+}
+
+const issuesInitialState: IssuesState = {
+  issuesByNumber: {},
+  currentPageIssues: [],
+  pageCount: 0,
+  pageLinks: {},
+  isLoading: false,
+  error: null
+}
+
+function startLoading(state: IssuesState) {
+  state.isLoading = true
+}
+
+function loadingFailed(state: IssuesState, action: PayloadAction<string>) {
+  state.isLoading = false
+  state.error = action.payload
+}
+
+const issues = createSlice({
+  slice: 'issues',
+  initialState: issuesInitialState,
+  reducers: {
+    getIssueStart: startLoading,
+    getIssuesStart: startLoading,
+    getIssueSuccess(state, { payload }: PayloadAction<Issue>) {
+      const { number } = payload
+      state.issuesByNumber[number] = payload
+      state.isLoading = false
+      state.error = null
+    },
+    getIssuesSuccess(state, { payload }: PayloadAction<IssuesResult>) {
+      const { pageCount, issues, pageLinks } = payload
+      state.pageCount = pageCount
+      state.pageLinks = pageLinks
+      state.isLoading = false
+      state.error = null
+
+      issues.forEach(issue => {
+        state.issuesByNumber[issue.number] = issue
+      })
+
+      state.currentPageIssues = issues.map(issue => issue.number)
+    },
+    getIssueFailure: loadingFailed,
+    getIssuesFailure: loadingFailed
+  }
+})
+
+export const {
+  getIssuesStart,
+  getIssuesSuccess,
+  getIssueStart,
+  getIssueSuccess,
+  getIssueFailure,
+  getIssuesFailure
+} = issues.actions
+
+export default issues.reducer
+
+export const fetchIssues: AppThunk = (
+  org: string,
+  repo: string,
+  page?: number
+) => async dispatch => {
+  try {
+    dispatch(getIssuesStart())
+    const issues = await getIssues(org, repo, page)
+    dispatch(getIssuesSuccess(issues))
+  } catch (err) {
+    dispatch(getIssuesFailure(err.toString()))
+  }
+}
+
+export const fetchIssue: AppThunk = (
+  org: string,
+  repo: string,
+  number: number
+) => async dispatch => {
+  try {
+    dispatch(getIssueStart())
+    const issue = await getIssue(org, repo, number)
+    dispatch(getIssueSuccess(issue))
+  } catch (err) {
+    dispatch(getIssueFailure(err.toString()))
+  }
+}
+```
+
+This slice is a bit longer, but it's the same basic approach as before: write the slice with reducers that handle API call results, then write thunks that do the fetching and dispatch actions with those results. The only new and interesting bits in this slice are:
+
+- Our "start fetching" and "fetch failed" reducer logic is the same for both the single issue and multiple issue fetch cases. So, we write those functions outside the slice once, then reuse them multiple times with different names inside the `reducers` object.
+- The Github API returns an array of issue entries, but we [want to store the data in a "normalized" structure to make it easy to look up an issue by its number](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape). In this case, we use a plain object as a lookup table, by declaring that it is a `Record<number, Issue>`.
+
+### Fetching Issues in the Issues List
+
+Now we can finish converting the `<IssuesListPage>` component by swapping out the issues fetching logic.
+
+> - [Update IssuesListPage to fetch issues data via Redux]()
+
+Let's look at the changes.
+
+```diff
+-import React, { useState, useEffect } from 'react'
++import React, { useEffect } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+
+-import { getIssues, IssuesResult } from 'api/githubAPI'
+
+import { fetchIssuesCount } from 'features/repoSearch/repoDetailsSlice'
+import { RootState } from 'app/rootReducer'
+
+import { IssuesPageHeader } from './IssuesPageHeader'
+import { IssuesList } from './IssuesList'
+import { IssuePagination, OnPageChangeCallback } from './IssuePagination'
++import { fetchIssues } from './issuesSlice'
+
+// omit code
+
+  const dispatch = useDispatch()
+
+- const [issuesResult, setIssues] = useState<IssuesResult>({
+-   pageLinks: null,
+-   pageCount: 1,
+-   issues: []
+- })
+- const [isLoading, setIsLoading] = useState<boolean>(false)
+- const [issuesError, setIssuesError] = useState<Error | null>(null)
++ const {
++   currentPageIssues,
++   isLoading,
++   error: issuesError,
++   issuesByNumber,
++   pageCount
++ } = useSelector((state: RootState) => state.issues)
+
+
+  const openIssueCount = useSelector(
+    (state: RootState) => state.repoDetails.openIssuesCount
+  )
+
+- const { issues, pageCount } = issuesResult
++ const issues = currentPageIssues.map(
++   issueNumber => issuesByNumber[issueNumber]
++ )
+
+  useEffect(() => {
+-   async function fetchEverything() {
+-     async function fetchIssues() {
+-       const issuesResult = await getIssues(org, repo, page)
+-       setIssues(issuesResult)
+-     }
+-
+-     try {
+-       await Promise.all([
+-        fetchIssues(),
+-        dispatch(fetchIssuesCount(org, repo))
+-       ])
+-       setIssuesError(null)
+-     } catch (err) {
+-       console.error(err)
+-       setIssuesError(err)
+-     } finally {
+-       setIsLoading(false)
+-     }
+-   }
+-
+-    setIsLoading(true)
+-
+-    fetchEverything()
++    dispatch(fetchIssues(org, repo, page))
++    dispatch(fetchIssuesCount(org, repo))
+  }, [org, repo, page, dispatch])
+```
+
+We remove the remaining `useState` hooks from `<IssuesListPage>`, add another `useSelector` to retrieve the actual issues data from the Redux store, and construct the list of issues to render by mapping over the "current page issue IDs" array to look up each issue object by its ID.
+
+In our `useEffect`, we delete the rest of the data fetching logic that's directly in the component, and just dispatch both data fetching thunks.
+
+This simplifies the logic in the component, but it didn't remove the work being done - it just moved it elsewhere. Again, it's not that either approach is "right" or "wrong" - it's just a question of where you want the data and the logic to live, and which approach is more maintainable for your app and situation.
 
 # TODO Everything else here
