@@ -504,7 +504,7 @@ In a typical Redux app, thunk action creators are usually defined in an "actions
 
 Because we don't have separate "actions" files, it makes sense to write these thunks directly in our "slice" files. That way, they have access to the plain action creators from the slice, and it's easy to find where the thunk function lives.
 
-### Fetching Github Repo Details
+### Logic for Fetching Github Repo Details
 
 #### Adding a Reusable Thunk Function Type
 
@@ -692,7 +692,7 @@ In `<IssuesListPage>`, we import the new `fetchIssuesCount` thunk, and rewrite t
 
 Inside our `useEffect`, we drop the `fetchIssueCount` function, and dispatch `fetchIssueCount` instead.
 
-### Fetching Issues for a Repo
+### Logic for Fetching Issues for a Repo
 
 Next up, we need to replace the logic for fetching a list of open issues.
 
@@ -817,6 +817,8 @@ Now we can finish converting the `<IssuesListPage>` component by swapping out th
 
 Let's look at the changes.
 
+**features/issuesList/IssuesListPage.tsx**
+
 ```diff
 -import React, { useState, useEffect } from 'react'
 +import React, { useEffect } from 'react'
@@ -896,4 +898,283 @@ In our `useEffect`, we delete the rest of the data fetching logic that's directl
 
 This simplifies the logic in the component, but it didn't remove the work being done - it just moved it elsewhere. Again, it's not that either approach is "right" or "wrong" - it's just a question of where you want the data and the logic to live, and which approach is more maintainable for your app and situation.
 
-# TODO Everything else here
+## Converting the Issue Details Page
+
+The last major chunk of work left in the conversion is the `<IssueDetailsPage>` component. Let's take a look at what it does.
+
+### Reviewing the Issue Details Component
+
+Here's the current first half of `<IssueDetailsPage>`, containing the state and data fetching:
+
+```ts
+export const IssueDetailsPage = ({
+  org,
+  repo,
+  issueId,
+  showIssuesList
+}: IDProps) => {
+  const [issue, setIssue] = useState<Issue | null>(null)
+  const [comments, setComments] = useState<Comment[]>([])
+  const [commentsError, setCommentsError] = useState<Error | null>(null)
+
+  useEffect(() => {
+    async function fetchIssue() {
+      try {
+        setCommentsError(null)
+        const issue = await getIssue(org, repo, issueId)
+        setIssue(issue)
+      } catch (err) {
+        setCommentsError(err)
+      }
+    }
+
+    fetchIssue()
+  }, [org, repo, issueId])
+
+  useEffect(() => {
+    async function fetchComments() {
+      if (issue !== null) {
+        const comments = await getComments(issue.comments_url)
+        setComments(comments)
+      }
+    }
+
+    fetchComments()
+  }, [issue])
+
+  // omit rendering
+}
+```
+
+It's very similar to `<IssuesListPage>`. We store the current displayed `Issue`, the fetched comments, and a potential error. We have `useEffect` hooks that fetch the current issue by its ID, and fetch the comments whenever the issue changes.
+
+### Fetching the Current Issue
+
+We conveniently already have the Redux logic for fetching a single issue - we wrote that already as part of `issuesSlice.ts`. So, we can immediately jump straight to using that here in `<IssueDetailsPage>`.
+
+> - [Update IssueDetailsPage to fetch issue data via Redux]()
+
+**features/issueDetails/IssueDetailsPage.tsx**
+
+```diff
+import React, { useState, useEffect } from 'react'
++import { useSelector, useDispatch } from 'react-redux'
+import ReactMarkdown from 'react-markdown'
+import classnames from 'classnames'
+
+import { insertMentionLinks } from 'utils/stringUtils'
+-import { getIssue, getComments, Issue, Comment } from 'api/githubAPI'
++import { getComments, Comment } from 'api/githubAPI'
+import { IssueLabels } from 'components/IssueLabels'
++import { RootState } from 'app/rootReducer'
++import { fetchIssue } from 'features/issuesList/issuesSlice'
+
+
+export const IssueDetailsPage = ({
+  org,
+  repo,
+  issueId,
+  showIssuesList
+}: IDProps) => {
+- const [issue, setIssue] = useState<Issue | null>(null)
+  const [comments, setComments] = useState<Comment[]>([])
+- const [commentsError, setCommentsError] = useState<Error | null>(null)
++ const [commentsError] = useState<Error | null>(null)
+
++ const dispatch = useDispatch()
+
++ const issue = useSelector(
++   (state: RootState) => state.issues.issuesByNumber[issueId]
++ )
+
+  useEffect(() => {
+-   async function fetchIssue() {
+-     try {
+-       setCommentsError(null)
+-       const issue = await getIssue(org, repo, issueId)
+-       setIssue(issue)
+-     } catch (err) {
+-       setCommentsError(err)
+-     }
+-    }
+-    fetchIssue()
++   if (!issue) {
++      dispatch(fetchIssue(org, repo, issueId))
++   }
++   // Since we may have the issue already, ensure we're scrolled to the top
++   window.scrollTo({ top: 0 })
+- }, [org, repo, issueId])
++ }, [org, repo, issueId, issue, dispatch])
+```
+
+We continue the usual pattern. We drop the existing `useState` hooks, pull in `useDispatch` and the necessary state via `useSelector`, and dispatch the `fetchIssue` thunk to fetch data.
+
+Interestingly, there's actually a bit of a change in behavior here. The original React code was storing the fetched issues in `<IssuesListPage>`, and `<IssueDetailsPage>` was always having to do a separate fetch for its own issue. Because we're now storing issues in the Redux store, most of the time the listed issue _should_ be already cached, and we don't even need to fetch it. Now, it's totally possible to do something similar with just React - all we'd have to do is pass the issue down from the parent component. Still, having that data in Redux makes it easier to do the caching.
+
+(As an interesting side note: the original code always caused the page to jump back to the top, because the issue didn't exist during the first render, so there was no content. If the issue _does_ exist and we render it right away, the page may retain the scroll position from the issues list, so we have to enforce scrolling back to the top.)
+
+### Logic for Fetching Comments
+
+We have one more slice left to write - we need to fetch and store comments for the current issue.
+
+> - [Add a slice for tracking comments data]()
+
+**features/issueDetails/commentsSlice.ts**
+
+```ts
+import { createSlice, PayloadAction } from 'redux-starter-kit'
+
+import { Comment, getComments, Issue } from 'api/githubAPI'
+import { AppThunk } from 'app/store'
+
+interface CommentsState {
+  commentsByIssue: Record<number, Comment[] | undefined>
+  loading: boolean
+  error: string | null
+}
+
+interface CommentLoaded {
+  issueId: number
+  comments: Comment[]
+}
+
+const initialState: CommentsState = {
+  commentsByIssue: {},
+  loading: false,
+  error: null
+}
+
+const comments = createSlice({
+  slice: 'comments',
+  initialState,
+  reducers: {
+    getCommentsStart(state) {
+      state.loading = true
+      state.error = null
+    },
+    getCommentsSuccess(state, action: PayloadAction<CommentLoaded>) {
+      const { comments, issueId } = action.payload
+      state.commentsByIssue[issueId] = comments
+      state.loading = false
+      state.error = null
+    },
+    getCommentsFailure(state, action: PayloadAction<string>) {
+      state.loading = false
+      state.error = action.payload
+    }
+  }
+})
+
+export const {
+  getCommentsStart,
+  getCommentsSuccess,
+  getCommentsFailure
+} = comments.actions
+export default comments.reducer
+
+export const fetchComments: AppThunk = (issue: Issue) => async dispatch => {
+  try {
+    dispatch(getCommentsStart())
+    const comments = await getComments(issue.comments_url)
+    dispatch(getCommentsSuccess({ issueId: issue.number, comments }))
+  } catch (err) {
+    dispatch(getCommentsFailure(err))
+  }
+}
+```
+
+The slice should look pretty familiar at this point. Our main bit of state is a lookup table of comments keyed by an issue ID. After the slice, we add a thunk to fetch the comments for a given issue, and dispatch the action to save the resulting array in the slice.
+
+### Fetching the Issue Comments
+
+The final step is to swap the comments fetching logic in `<IssueDetailsPage>`.
+
+> - [Update IssueDetailsPage to fetch comments via Redux]()
+
+**features/issueDetails/IssueDetailsPage.tsx**
+
+```diff
+-import React, { useState, useEffect } from 'react'
++import React, { useEffect } from 'react'
+-import { useSelector, useDispatch } from 'react-redux'
++import { useSelector, useDispatch, shallowEqual } from 'react-redux'
+import ReactMarkdown from 'react-markdown'
+import classnames from 'classnames'
+
+import { insertMentionLinks } from 'utils/stringUtils'
+-import { getComments, Comment } from 'api/githubAPI'
+import { IssueLabels } from 'components/IssueLabels'
+import { RootState } from 'app/rootReducer'
+import { fetchIssue } from 'features/issuesList/issuesSlice'
+
+import { IssueMeta } from './IssueMeta'
+import { IssueComments } from './IssueComments'
++import { fetchComments } from './commentsSlice'
+
+export const IssueDetailsPage = ({
+  org,
+  repo,
+  issueId,
+  showIssuesList
+}: IDProps) => {
+- const [comments, setComments] = useState<Comment[]>([])
+- const [commentsError] = useState<Error | null>(null)
+-
+  const dispatch = useDispatch()
+
+  const issue = useSelector(
+    (state: RootState) => state.issues.issuesByNumber[issueId]
+  )
+
++ const { commentsLoading, commentsError, comments } = useSelector(
++   (state: RootState) => {
++     return {
++       commentsLoading: state.comments.loading,
++       commentsError: state.comments.error,
++       comments: state.comments.commentsByIssue[issueId]
++     }
++   },
++   shallowEqual
++ )
+
+// omit effect
+  useEffect(() => {
+-   async function fetchComments() {
+-     if (issue) {
+-       const comments = await getComments(issue.comments_url)
+-       setComments(comments)
+-     }
+-   }
+-   fetchComments()
++   if (issue) {
++     dispatch(fetchComments(issue))
++   }
+- }, [issue])
++ }, [issue, dispatch])
+```
+
+We add another `useSelector` hook to pull out the current comments data. In this case, we need three different pieces: the loading flag, a potential error, and the actual comments array for this issue.
+
+However, this leads to a performance problem. Every time this selector runs, it returns a new object: `{commentsLoading, commentsError, comments}`. **Unlike `connect`, `useSelector` relies on reference equality by default.** So, returning a new object will cause this component to rerender every time an action is dispatched, even if the comments are the same!
+
+There's a few ways to fix this:
+
+- We could write those as separate `useSelector` calls
+- We could use a memoized selector, such as `createSelector` from Reselect
+- We can use the React-Redux `shallowEqual` function to compare the results, so that the re-render only happens if the object's _contents_ have changed.
+
+In this case, we'll add `shallowEqual` as the comparison function for `useSelector`.
+
+## Summary
+
+And with that, we're done! The entire Github Issues app should now be fetching its data via thunks, storing the data in Redux, and interacting with the store via React-Redux hooks. We have Typescript types for our Github API calls, the API types are being used for the Redux state slices, and the store state types are being used in our React components.
+
+There's more that could be done to add more type safety if we wanted (like trying to constrain which possible action types can be passed to `dispatch`), but this gives us a reasonable "80% solution" without too much extra effort.
+
+Hopefully you now have a solid understand of how Redux Starter Kit looks in a real world application.
+
+Let's wrap this up with one more look at the complete source code and the running app:
+
+<iframe src="https://codesandbox.io/embed/rsk-github-issues-example-03-final-m55m4?fontsize=14&module=%2Fsrc%2Ffeatures%2FissueDetails%2FcommentsSlice.ts&view=editor" title="rsk-github-issues-example-03-final" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+
+Now, go out there and build something!
