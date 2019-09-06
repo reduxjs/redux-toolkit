@@ -7,7 +7,7 @@ hide_title: true
 
 # Advanced Tutorial: Redux Starter Kit in Practice
 
-in the [Intermediate Tutorial](./intermediate-tutorial.md), you saw how to use Redux Starter Kit in a typical basic React app, as well as how to convert some existing plain Redux code to use RSK instead. You also saw how to write "mutative" immutable updates in reducer functions, and how to write a "prepare callback" to generate an action payload.
+In the [Intermediate Tutorial](./intermediate-tutorial.md), you saw how to use Redux Starter Kit in a typical basic React app, as well as how to convert some existing plain Redux code to use RSK instead. You also saw how to write "mutative" immutable updates in reducer functions, and how to write a "prepare callback" to generate an action payload.
 
 In this tutorial, you'll see how to use Redux Starter Kit as part of a larger "real world" app that is bigger than a todo list example. This tutorial will show several concepts:
 
