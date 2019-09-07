@@ -6,20 +6,32 @@ import { Action } from 'redux'
  *
  * @template P The type of the action's payload.
  * @template T the type used for the action type.
+ * @template M The type of the action's meta (optional)
  */
 export type PayloadAction<
   P = any,
   T extends string = string,
   M = void
-> = Action<T> & {
-  payload: P
-} & ([M] extends [void] ? {} : { meta: M })
-
-export type Diff<T, U> = T extends U ? never : T
+  > = WithOptionalMeta<M, WithPayload<P, Action<T>>>;
 
 export type PrepareAction<P> =
   | ((...args: any[]) => { payload: P })
   | ((...args: any[]) => { payload: P; meta: any })
+
+
+export type ActionCreatorWithPreparedPayload<PA extends PrepareAction<any> | void, T extends string = string> =
+  WithTypeProperty<T, PA extends PrepareAction<infer P> ? (...args: Parameters<PA>) => PayloadAction<P, T, MetaOrVoid<PA>> : void>;
+
+export type ActionCreatorWithOptionalPayload<P, T extends string = string> =
+  WithTypeProperty<T, {
+    (payload?: undefined): PayloadAction<undefined, T>
+    <PT extends Diff<P, undefined>>(payload?: PT): PayloadAction<PT, T>
+  }>;
+
+export type ActionCreatorWithoutPayload<T extends string = string> = WithTypeProperty<T, () => PayloadAction<undefined, T>>;
+
+export type ActionCreatorWithPayload<P, T extends string = string> =
+  WithTypeProperty<T, <PT extends P>(payload: PT) => PayloadAction<PT, T>>;
 
 /**
  * An action creator that produces actions with a `payload` attribute.
@@ -28,29 +40,21 @@ export type PayloadActionCreator<
   P = any,
   T extends string = string,
   PA extends PrepareAction<P> | void = void
-> = {
-  type: T
-} & (PA extends (...args: any[]) => any
-  ? (ReturnType<PA> extends { meta: infer M }
-      ? (...args: Parameters<PA>) => PayloadAction<P, T, M>
-      : (...args: Parameters<PA>) => PayloadAction<P, T>)
-  : (/*
-     * The `P` generic is wrapped with a single-element tuple to prevent the
-     * conditional from being checked distributively, thus preserving unions
-     * of contra-variant types.
-     */
-    [undefined] extends [P]
-      ? {
-          (payload?: undefined): PayloadAction<undefined, T>
-          <PT extends Diff<P, undefined>>(payload?: PT): PayloadAction<PT, T>
-        }
-      : [void] extends [P]
-      ? {
-          (): PayloadAction<undefined, T>
-        }
-      : {
-          <PT extends P>(payload: PT): PayloadAction<PT, T>
-        }))
+  > =
+  IfPrepareActionMethodProvided<PA,
+    ActionCreatorWithPreparedPayload<PA, T>,
+    // else
+    IfMaybeUndefined<P,
+      ActionCreatorWithOptionalPayload<P, T>,
+      // else
+      IfVoid<P,
+        ActionCreatorWithoutPayload<T>,
+        // else
+        ActionCreatorWithPayload<P, T>
+      >
+    >
+  >
+  ;
 
 /**
  * A utility function to create an action creator for the given action type
@@ -60,6 +64,8 @@ export type PayloadActionCreator<
  * allowing it to be used in reducer logic that is looking for that action type.
  *
  * @param type The action type to use for created actions.
+ * @param prepare (optional) a method that takes any number of arguments and returns { payload } or { payload, meta }.
+ *                If this is given, the resulting action creator will pass it's arguments to this method to calculate payload & meta.
  */
 
 export function createAction<P = any, T extends string = string>(
@@ -108,3 +114,23 @@ export function getType<T extends string>(
 ): T {
   return `${actionCreator}` as T
 }
+
+// helper types for more readable typings
+
+type Diff<T, U> = T extends U ? never : T
+
+type WithPayload<P, T> = T & { payload: P };
+
+type WithOptionalMeta<M, T> = T & ([M] extends [void] ? {} : { meta: M })
+
+type WithTypeProperty<T, MergeIn> = {
+  type: T
+} & MergeIn;
+
+type IfPrepareActionMethodProvided<PA extends PrepareAction<any> | void, True, False> = PA extends (...args: any[]) => any ? True : False;
+
+type MetaOrVoid<PA extends PrepareAction<any>> = (ReturnType<PA> extends { meta: infer M } ? M : void);
+
+type IfMaybeUndefined<P, True, False> = [undefined] extends [P] ? True : False;
+
+type IfVoid<P, True, False> = [void] extends [P] ? True : False;
