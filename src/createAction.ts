@@ -12,26 +12,41 @@ export type PayloadAction<
   P = any,
   T extends string = string,
   M = void
-  > = WithOptionalMeta<M, WithPayload<P, Action<T>>>;
+> = WithOptionalMeta<M, WithPayload<P, Action<T>>>
 
 export type PrepareAction<P> =
   | ((...args: any[]) => { payload: P })
   | ((...args: any[]) => { payload: P; meta: any })
 
+export type ActionCreatorWithPreparedPayload<
+  PA extends PrepareAction<any> | void,
+  T extends string = string
+> = WithTypeProperty<
+  T,
+  PA extends PrepareAction<infer P>
+    ? (...args: Parameters<PA>) => PayloadAction<P, T, MetaOrVoid<PA>>
+    : void
+>
 
-export type ActionCreatorWithPreparedPayload<PA extends PrepareAction<any> | void, T extends string = string> =
-  WithTypeProperty<T, PA extends PrepareAction<infer P> ? (...args: Parameters<PA>) => PayloadAction<P, T, MetaOrVoid<PA>> : void>;
-
-export type ActionCreatorWithOptionalPayload<P, T extends string = string> =
-  WithTypeProperty<T, {
+export type ActionCreatorWithOptionalPayload<
+  P,
+  T extends string = string
+> = WithTypeProperty<
+  T,
+  {
     (payload?: undefined): PayloadAction<undefined, T>
     <PT extends Diff<P, undefined>>(payload?: PT): PayloadAction<PT, T>
-  }>;
+  }
+>
 
-export type ActionCreatorWithoutPayload<T extends string = string> = WithTypeProperty<T, () => PayloadAction<undefined, T>>;
+export type ActionCreatorWithoutPayload<
+  T extends string = string
+> = WithTypeProperty<T, () => PayloadAction<undefined, T>>
 
-export type ActionCreatorWithPayload<P, T extends string = string> =
-  WithTypeProperty<T, <PT extends P>(payload: PT) => PayloadAction<PT, T>>;
+export type ActionCreatorWithPayload<
+  P,
+  T extends string = string
+> = WithTypeProperty<T, <PT extends P>(payload: PT) => PayloadAction<PT, T>>
 
 /**
  * An action creator that produces actions with a `payload` attribute.
@@ -40,21 +55,22 @@ export type PayloadActionCreator<
   P = any,
   T extends string = string,
   PA extends PrepareAction<P> | void = void
-  > =
-  IfPrepareActionMethodProvided<PA,
-    ActionCreatorWithPreparedPayload<PA, T>,
+> = IfPrepareActionMethodProvided<
+  PA,
+  ActionCreatorWithPreparedPayload<PA, T>,
+  // else
+  IfMaybeUndefined<
+    P,
+    ActionCreatorWithOptionalPayload<P, T>,
     // else
-    IfMaybeUndefined<P,
-      ActionCreatorWithOptionalPayload<P, T>,
+    IfVoid<
+      P,
+      ActionCreatorWithoutPayload<T>,
       // else
-      IfVoid<P,
-        ActionCreatorWithoutPayload<T>,
-        // else
-        ActionCreatorWithPayload<P, T>
-      >
+      ActionCreatorWithPayload<P, T>
     >
   >
-  ;
+>
 
 /**
  * A utility function to create an action creator for the given action type
@@ -119,18 +135,26 @@ export function getType<T extends string>(
 
 type Diff<T, U> = T extends U ? never : T
 
-type WithPayload<P, T> = T & { payload: P };
+type WithPayload<P, T> = T & { payload: P }
 
 type WithOptionalMeta<M, T> = T & ([M] extends [void] ? {} : { meta: M })
 
 type WithTypeProperty<T, MergeIn> = {
   type: T
-} & MergeIn;
+} & MergeIn
 
-type IfPrepareActionMethodProvided<PA extends PrepareAction<any> | void, True, False> = PA extends (...args: any[]) => any ? True : False;
+type IfPrepareActionMethodProvided<
+  PA extends PrepareAction<any> | void,
+  True,
+  False
+> = PA extends (...args: any[]) => any ? True : False
 
-type MetaOrVoid<PA extends PrepareAction<any>> = (ReturnType<PA> extends { meta: infer M } ? M : void);
+type MetaOrVoid<PA extends PrepareAction<any>> = ReturnType<PA> extends {
+  meta: infer M
+}
+  ? M
+  : void
 
-type IfMaybeUndefined<P, True, False> = [undefined] extends [P] ? True : False;
+type IfMaybeUndefined<P, True, False> = [undefined] extends [P] ? True : False
 
-type IfVoid<P, True, False> = [void] extends [P] ? True : False;
+type IfVoid<P, True, False> = [void] extends [P] ? True : False

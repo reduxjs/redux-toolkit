@@ -25,7 +25,7 @@
     "eslint-plugin-jsx-a11y": "^6.2.1",
     "eslint-plugin-react": "^7.12.4",
     "jest": "^24.7.1",
-    "prettier": "^1.17.0",
+    "prettier": "^1.18.2",
     "react": "^16.8.6",
     "rollup": "^1.9.0",
     "rollup-plugin-babel": "^4.3.2",
@@ -43,7 +43,7 @@
     "format": "prettier --write \"src/*.ts\" \"**/*.md\"",
     "format:check": "prettier --list-different \"src/*.ts\" \"**/*.md\"",
     "lint": "eslint \"src/**/*.ts\"",
-    "prepare": "npm run tsc && npm run lint && npm test && npm run build",
+    "prepare": "npm run tsc && npm run lint && npm run format:check && npm test && npm run build",
     "test": "jest",
     "tsc": "tsc"
   },
