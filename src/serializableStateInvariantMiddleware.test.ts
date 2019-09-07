@@ -4,7 +4,7 @@ import { configureStore } from './configureStore'
 import {
   createSerializableStateInvariantMiddleware,
   findNonSerializableValue,
-  isPlain,
+  isPlain
 } from './serializableStateInvariantMiddleware'
 
 describe('findNonSerializableValue', () => {
@@ -161,35 +161,33 @@ describe('serializableStateInvariantMiddleware', () => {
   })
 
   describe('consumer tolerated structures', () => {
-    const nonSerializableValue = new Map();
-    
+    const nonSerializableValue = new Map()
+
     const nestedSerializableObjectWithBadValue = {
-      isSerializable: true, 
-      entries: (): [string, any][] =>
-        [
-          ['good-string', 'Good!'],
-          ['good-number', 1337],
-          ['bad-map-instance', nonSerializableValue],
-        ],
-    };
-  
-    const serializableObject = { 
-      isSerializable: true, 
-      entries: (): [string, any][] => 
-        [
-          ['first', 1], 
-          ['second', 'B!'], 
-          ['third', nestedSerializableObjectWithBadValue]
-        ],
-    };
+      isSerializable: true,
+      entries: (): [string, any][] => [
+        ['good-string', 'Good!'],
+        ['good-number', 1337],
+        ['bad-map-instance', nonSerializableValue]
+      ]
+    }
+
+    const serializableObject = {
+      isSerializable: true,
+      entries: (): [string, any][] => [
+        ['first', 1],
+        ['second', 'B!'],
+        ['third', nestedSerializableObjectWithBadValue]
+      ]
+    }
 
     it('Should log an error when a non-serializable value is nested in state', () => {
       const ACTION_TYPE = 'TEST_ACTION'
-  
+
       const initialState = {
         a: 0
       }
-  
+
       const reducer: Reducer = (state = initialState, action) => {
         switch (action.type) {
           case ACTION_TYPE: {
@@ -201,46 +199,47 @@ describe('serializableStateInvariantMiddleware', () => {
             return state
         }
       }
-  
+
       // use default options
       const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware()
-  
+
       const store = configureStore({
         reducer: {
           testSlice: reducer
         },
         middleware: [serializableStateInvariantMiddleware]
       })
-  
+
       store.dispatch({ type: ACTION_TYPE })
-  
-  
+
       expect(console.error).toHaveBeenCalled()
-  
+
       const [
         message,
         keyPath,
         value,
         actionType
       ] = (console.error as jest.Mock).mock.calls[0]
-  
+
       // since default options are used, the `entries` function in `serializableObject` will cause the error
       expect(message).toContain('detected in the state, in the path: `%s`')
       expect(keyPath).toBe('testSlice.a.entries')
       expect(value).toBe(serializableObject.entries)
-      expect(actionType).toBe(ACTION_TYPE)  
+      expect(actionType).toBe(ACTION_TYPE)
     })
 
     it('Should use consumer supplied isSerializable and getEntries options to tolerate certain structures', () => {
       const ACTION_TYPE = 'TEST_ACTION'
-    
+
       const initialState = {
         a: 0
       }
-    
-      const isSerializable = (val: any): boolean => val.isSerializable || isPlain(val);
-      const getEntries = (val: any): [string, any][] => val.isSerializable ? val.entries() : Object.entries(val);
-    
+
+      const isSerializable = (val: any): boolean =>
+        val.isSerializable || isPlain(val)
+      const getEntries = (val: any): [string, any][] =>
+        val.isSerializable ? val.entries() : Object.entries(val)
+
       const reducer: Reducer = (state = initialState, action) => {
         switch (action.type) {
           case ACTION_TYPE: {
@@ -252,34 +251,36 @@ describe('serializableStateInvariantMiddleware', () => {
             return state
         }
       }
-    
-      const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware({ isSerializable, getEntries })
-    
+
+      const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware(
+        { isSerializable, getEntries }
+      )
+
       const store = configureStore({
         reducer: {
           testSlice: reducer
         },
         middleware: [serializableStateInvariantMiddleware]
       })
-    
+
       store.dispatch({ type: ACTION_TYPE })
-        
+
       expect(console.error).toHaveBeenCalled()
-    
+
       const [
         message,
         keyPath,
         value,
         actionType
       ] = (console.error as jest.Mock).mock.calls[0]
-    
+
       // error reported is from a nested class instance, rather than the `entries` function `serializableObject`
       expect(message).toContain('detected in the state, in the path: `%s`')
       expect(keyPath).toBe('testSlice.a.third.bad-map-instance')
       expect(value).toBe(nonSerializableValue)
-      expect(actionType).toBe(ACTION_TYPE)  
-    })  
-  });
+      expect(actionType).toBe(ACTION_TYPE)
+    })
+  })
   it('Should use the supplied isSerializable function to determine serializability', () => {
     const ACTION_TYPE = 'TEST_ACTION'
 
@@ -301,9 +302,11 @@ describe('serializableStateInvariantMiddleware', () => {
       }
     }
 
-    const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware({
-      isSerializable: (value: any) => true
-    })
+    const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware(
+      {
+        isSerializable: (value: any) => true
+      }
+    )
 
     const store = configureStore({
       reducer: {

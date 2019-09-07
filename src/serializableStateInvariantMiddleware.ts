@@ -56,7 +56,7 @@ export function findNonSerializableValue(
     return false
   }
 
-  const entries = getEntries != null ? getEntries(value) : Object.entries(value);
+  const entries = getEntries != null ? getEntries(value) : Object.entries(value)
 
   for (const [property, nestedValue] of entries) {
     const nestedPath = path.concat(property)
@@ -94,13 +94,13 @@ export interface SerializableStateInvariantMiddlewareOptions {
    * function is applied recursively to every value contained in the
    * state. Defaults to `isPlain()`.
    */
-  isSerializable?: (value: any) => boolean,
+  isSerializable?: (value: any) => boolean
   /**
    * The function that will be used to retrieve entries from each
    * value.  If unspecified, `Object.entries` will be used. Defaults
    * to `undefined`.
    */
-  getEntries?: (value: any) => [string, any][],
+  getEntries?: (value: any) => [string, any][]
 }
 
 /**
@@ -120,7 +120,7 @@ export function createSerializableStateInvariantMiddleware(
       action,
       [],
       isSerializable,
-      getEntries,
+      getEntries
     )
 
     if (foundActionNonSerializableValue) {
@@ -137,8 +137,8 @@ export function createSerializableStateInvariantMiddleware(
       state,
       [],
       isSerializable,
-      getEntries,
-      )
+      getEntries
+    )
 
     if (foundStateNonSerializableValue) {
       const { keyPath, value } = foundStateNonSerializableValue
