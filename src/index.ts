@@ -1,6 +1,6 @@
 export { combineReducers, compose } from 'redux'
 export { default as createNextState } from 'immer'
-export { default as createSelector } from 'selectorator'
+export { createSelector } from 'reselect'
 
 export * from './configureStore'
 export * from './createAction'
