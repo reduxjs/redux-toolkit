@@ -10,6 +10,6 @@ export {
   compose
 } from 'redux'
 export { default as createNextState } from 'immer'
-export { default as createSelector } from 'reselect'
+export { createSelector } from 'reselect'
 
 export * from '.'
