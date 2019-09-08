@@ -1,10 +1,5 @@
-import {
-  AnyAction,
-  createSlice,
-  PayloadAction,
-  Reducer,
-  createAction
-} from 'redux-starter-kit'
+import { AnyAction, Reducer } from 'redux'
+import { createSlice, PayloadAction, createAction } from '../../src'
 
 function expectType<T>(t: T) {
   return t

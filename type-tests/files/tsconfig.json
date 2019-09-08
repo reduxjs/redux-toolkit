@@ -8,7 +8,7 @@
     "target": "es2018",
     "baseUrl": "../..",
     "paths": {
-      "redux-starter-kit": ["dist/typings.d.ts"]
+      "redux-starter-kit": ["src/typings.d.ts"]
     }
   }
 }
