@@ -1,8 +1,30 @@
-import { Action, AnyAction, Middleware } from 'redux'
-import thunk, { ThunkMiddleware } from 'redux-thunk'
+import { Middleware } from 'redux'
+import thunkMiddleware from 'redux-thunk'
 // UMD-DEV-ONLY: import createImmutableStateInvariantMiddleware from 'redux-immutable-state-invariant'
 
-import { createSerializableStateInvariantMiddleware } from './serializableStateInvariantMiddleware'
+import {
+  createSerializableStateInvariantMiddleware,
+  SerializableStateInvariantMiddlewareOptions
+} from './serializableStateInvariantMiddleware'
+
+function isBoolean(x: any): x is boolean {
+  return typeof x === 'boolean'
+}
+
+interface ThunkOptions<E = any> {
+  extraArgument: E
+}
+
+interface ImmutableStateInvariantMiddlewareOptions {
+  isImmutable?: (value: any) => boolean
+  ignore?: string[]
+}
+
+interface GetDefaultMiddlewareOptions {
+  thunk?: boolean | ThunkOptions
+  immutableCheck?: boolean | ImmutableStateInvariantMiddlewareOptions
+  serializableCheck?: boolean | SerializableStateInvariantMiddlewareOptions
+}
 
 /**
  * Returns any array containing the default middleware installed by
@@ -11,20 +33,57 @@ import { createSerializableStateInvariantMiddleware } from './serializableStateI
  *
  * @return The default middleware used by `configureStore()`.
  */
-export function getDefaultMiddleware<S = any, A extends Action = AnyAction>(): [
-  ThunkMiddleware<S, A>,
-  ...Middleware<{}, S>[]
-] {
-  let middlewareArray: [ThunkMiddleware<S, A>, ...Middleware<{}, S>[]] = [thunk]
+export function getDefaultMiddleware<S = any>(
+  options: GetDefaultMiddlewareOptions = {}
+): Middleware<{}, S>[] {
+  const {
+    thunk = true,
+    immutableCheck = true,
+    serializableCheck = true
+  } = options
+
+  let middlewareArray: Middleware<{}, S>[] = []
+
+  if (thunk) {
+    if (isBoolean(thunk)) {
+      middlewareArray.push(thunkMiddleware)
+    } else {
+      middlewareArray.push(
+        thunkMiddleware.withExtraArgument(thunk.extraArgument)
+      )
+    }
+  }
 
   if (process.env.NODE_ENV !== 'production') {
     /* START_REMOVE_UMD */
-    const createImmutableStateInvariantMiddleware = require('redux-immutable-state-invariant')
-      .default
-    middlewareArray.unshift(createImmutableStateInvariantMiddleware())
+    if (immutableCheck) {
+      const createImmutableStateInvariantMiddleware = require('redux-immutable-state-invariant')
+        .default
+
+      let immutableOptions: ImmutableStateInvariantMiddlewareOptions = {}
+
+      if (!isBoolean(immutableCheck)) {
+        immutableOptions = immutableCheck
+      }
+
+      middlewareArray.unshift(
+        createImmutableStateInvariantMiddleware(immutableOptions)
+      )
+    }
+
     /* STOP_REMOVE_UMD */
 
-    middlewareArray.push(createSerializableStateInvariantMiddleware())
+    if (serializableCheck) {
+      let serializableOptions: SerializableStateInvariantMiddlewareOptions = {}
+
+      if (!isBoolean(serializableCheck)) {
+        serializableOptions = serializableCheck
+      }
+
+      middlewareArray.push(
+        createSerializableStateInvariantMiddleware(serializableOptions)
+      )
+    }
   }
 
   return middlewareArray
