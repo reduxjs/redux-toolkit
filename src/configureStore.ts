@@ -12,42 +12,20 @@ import {
   Store,
   DeepPartial
 } from 'redux'
-import { composeWithDevTools, EnhancerOptions } from 'redux-devtools-extension'
-import thunk, { ThunkDispatch, ThunkMiddleware } from 'redux-thunk'
-
-// UMD-DEV-ONLY: import createImmutableStateInvariantMiddleware from 'redux-immutable-state-invariant'
-
-import { createSerializableStateInvariantMiddleware } from './serializableStateInvariantMiddleware'
+import {
+  composeWithDevTools,
+  EnhancerOptions as DevToolsOptions
+} from 'redux-devtools-extension'
+import { ThunkDispatch } from 'redux-thunk'
 
 import isPlainObject from './isPlainObject'
+import { getDefaultMiddleware } from './getDefaultMiddleware'
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
-/**
- * Returns any array containing the default middleware installed by
- * `configureStore()`. Useful if you want to configure your store with a custom
- * `middleware` array but still keep the default set.
- *
- * @return The default middleware used by `configureStore()`.
- */
-export function getDefaultMiddleware<S = any, A extends Action = AnyAction>(): [
-  ThunkMiddleware<S, A>,
-  ...Middleware<{}, S>[]
-] {
-  let middlewareArray: [ThunkMiddleware<S, A>, ...Middleware<{}, S>[]] = [thunk]
-
-  if (process.env.NODE_ENV !== 'production') {
-    /* START_REMOVE_UMD */
-    const createImmutableStateInvariantMiddleware = require('redux-immutable-state-invariant')
-      .default
-    middlewareArray.unshift(createImmutableStateInvariantMiddleware())
-    /* STOP_REMOVE_UMD */
-
-    middlewareArray.push(createSerializableStateInvariantMiddleware())
-  }
-
-  return middlewareArray
-}
+export type ConfigureEnhancersCallback = (
+  defaultEnhancers: StoreEnhancer[]
+) => StoreEnhancer[]
 
 /**
  * Options for `configureStore()`.
@@ -68,12 +46,13 @@ export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
   /**
    * Whether to enable Redux DevTools integration. Defaults to `true`.
    *
-   * Additional configuration can be done by passing enhancer options
+   * Additional configuration can be done by passing Redux DevTools options
    */
-  devTools?: boolean | EnhancerOptions
+  devTools?: boolean | DevToolsOptions
 
   /**
-   * The initial state. You may optionally specify it to hydrate the state
+   * The initial state, same as Redux's createStore.
+   * You may optionally specify it to hydrate the state
    * from the server in universal apps, or to restore a previously serialized
    * user session. If you use `combineReducers()` to produce the root reducer
    * function (either directly or indirectly by passing an object as `reducer`),
@@ -86,10 +65,14 @@ export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
   preloadedState?: DeepPartial<S extends any ? S : S>
 
   /**
-   * The store enhancers to apply. See Redux's `createStore()`. If you only
-   * need to add middleware, you can use the `middleware` parameter instaead.
+   * The store enhancers to apply. See Redux's `createStore()`.
+   * All enhancers will be included before the DevTools Extension enhancer.
+   * If you need to customize the order of enhancers, supply a callback
+   * function that will receive the original array (ie, `[applyMiddleware]`),
+   * and should return a new array (such as `[applyMiddleware, offline]`).
+   * If you only need to add middleware, you can use the `middleware` parameter instaead.
    */
-  enhancers?: StoreEnhancer[]
+  enhancers?: StoreEnhancer[] | ConfigureEnhancersCallback
 }
 
 /**
@@ -115,7 +98,7 @@ export function configureStore<S = any, A extends Action = AnyAction>(
     middleware = getDefaultMiddleware(),
     devTools = true,
     preloadedState = undefined,
-    enhancers = []
+    enhancers = undefined
   } = options || {}
 
   let rootReducer: Reducer<S, A>
@@ -142,7 +125,13 @@ export function configureStore<S = any, A extends Action = AnyAction>(
     })
   }
 
-  const storeEnhancers = [middlewareEnhancer, ...enhancers]
+  let storeEnhancers: StoreEnhancer[] = [middlewareEnhancer]
+
+  if (Array.isArray(enhancers)) {
+    storeEnhancers = [middlewareEnhancer, ...enhancers]
+  } else if (typeof enhancers === 'function') {
+    storeEnhancers = enhancers(storeEnhancers)
+  }
 
   const composedEnhancer = finalCompose(...storeEnhancers) as StoreEnhancer
 

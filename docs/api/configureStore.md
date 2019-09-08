@@ -7,26 +7,62 @@ hide_title: true
 
 # `configureStore`
 
-A friendlier abstraction over the standard Redux `createStore` function.
+A friendly abstraction over the standard Redux `createStore` function that adds good defaults
+to the store setup for a better development experience.
 
 ## Parameters
 
 `configureStore` accepts a single configuration object parameter, with the following options:
 
 ```ts
-function configureStore({
-    // A single reducer function that will be used as the root reducer,
-    // or an object of slice reducers that will be passed to combineReducers()
-    reducer: Object<string, ReducerFunction> | ReducerFunction,
-    // An array of Redux middlewares.  If not supplied, uses getDefaultMiddleware()
-    middleware?: MiddlewareFunction[],
-    // Enable support for the Redux DevTools Extension. Defaults to true.
-    devTools?: boolean | EnhancerOptions,
-    // Same as current createStore.
-    preloadedState?: State,
-    // An optional array of Redux store enhancers
-    enhancers?: ReduxStoreEnhancer[],
-})
+type ConfigureEnhancersCallback = (
+  defaultEnhancers: StoreEnhancer[]
+) => StoreEnhancer[]
+
+interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
+  /**
+   * A single reducer function that will be used as the root reducer, or an
+   * object of slice reducers that will be passed to `combineReducers()`.
+   */
+  reducer: Reducer<S, A> | ReducersMapObject<S, A>
+
+  /**
+   * An array of Redux middleware to install. If not supplied, defaults to
+   * the set of middleware returned by `getDefaultMiddleware()`.
+   */
+  middleware?: Middleware<{}, S>[]
+
+  /**
+   * Whether to enable Redux DevTools integration. Defaults to `true`.
+   *
+   * Additional configuration can be done by passing Redux DevTools options
+   */
+  devTools?: boolean | DevToolsOptions
+
+  /**
+   * The initial state, same as Redux's createStore.
+   * You may optionally specify it to hydrate the state
+   * from the server in universal apps, or to restore a previously serialized
+   * user session. If you use `combineReducers()` to produce the root reducer
+   * function (either directly or indirectly by passing an object as `reducer`),
+   * this must be an object with the same shape as the reducer map keys.
+   */
+  preloadedState?: DeepPartial<S extends any ? S : S>
+
+  /**
+   * The store enhancers to apply. See Redux's `createStore()`.
+   * All enhancers will be included before the DevTools Extension enhancer.
+   * If you need to customize the order of enhancers, supply a callback
+   * function that will receive the original array (ie, `[applyMiddleware]`),
+   * and should return a new array (such as `[applyMiddleware, offline]`).
+   * If you only need to add middleware, use the `middleware` parameter instead.
+   */
+  enhancers?: StoreEnhancer[] | ConfigureEnhancersCallback
+}
+
+function configureStore<S = any, A extends Action = AnyAction>(
+  options: ConfigureStoreOptions<S, A>
+): EnhancedStore<S, A>
 ```
 
 ### `reducer`
@@ -70,10 +106,20 @@ An optional initial state value to be passed to the Redux `createStore` function
 
 ### `enhancers`
 
-An optional array of Redux store enhancers. If included, these will be passed to [the Redux `compose` function](https://redux.js.org/api/compose), and the combined enhancer will be passed to `createStore`.
+An optional array of Redux store enhancers, or a callback function to customize the array of enhancers.
 
-This should _not_ include `applyMiddleware()` or
-the Redux DevTools Extension `composeWithDevTools`, as those are already handled by `configureStore`.
+If defined as an array, these will be passed to [the Redux `compose` function](https://redux.js.org/api/compose), and the combined enhancer will be passed to `createStore`.
+
+This should _not_ include `applyMiddleware()` or the Redux DevTools Extension `composeWithDevTools`, as those are already handled by `configureStore`.
+
+Example: `enhancers: [offline]` will result in a final setup of `[applyMiddleware, offline, devToolsExtension]`.
+
+If defined as a callback function, it will be called with the existing array of enhancers _without_ the DevTools Extension (currently `[applyMiddleware]`),
+and should return a new array of enhancers. This is primarily useful for cases where a store enhancer needs to be added
+in front of `applyMiddleware`, such as `redux-first-router` or `redux-offline`.
+
+Example: `enhancers: (defaultEnhancers) => [offline, ...defaultEnhancers]` will result in a final setup
+of `[offline, applyMiddleware, devToolsExtension]`.
 
 ## Usage
 

@@ -1,28 +1,13 @@
-import { configureStore, getDefaultMiddleware } from './configureStore'
+import { configureStore } from './configureStore'
 import * as redux from 'redux'
 import * as devtools from 'redux-devtools-extension'
-
-import thunk from 'redux-thunk'
-
-describe('getDefaultMiddleware', () => {
-  const ORIGINAL_NODE_ENV = process.env.NODE_ENV
-
-  afterEach(() => {
-    process.env.NODE_ENV = ORIGINAL_NODE_ENV
-  })
-
-  it('returns an array with only redux-thunk in production', () => {
-    process.env.NODE_ENV = 'production'
-
-    expect(getDefaultMiddleware()).toEqual([thunk])
-  })
-
-  it('returns an array with additional middleware in development', () => {
-    const middleware = getDefaultMiddleware()
-    expect(middleware).toContain(thunk)
-    expect(middleware.length).toBeGreaterThan(1)
-  })
-})
+import {
+  StoreCreator,
+  StoreEnhancer,
+  StoreEnhancerStoreCreator,
+  Reducer,
+  AnyAction
+} from 'redux'
 
 describe('configureStore', () => {
   jest.spyOn(redux, 'applyMiddleware')
@@ -165,6 +150,29 @@ describe('configureStore', () => {
         undefined,
         expect.any(Function)
       )
+    })
+
+    it('accepts a callback for customizing enhancers', () => {
+      let dummyEnhancerCalled = false
+
+      const dummyEnhancer: StoreEnhancer = (
+        createStore: StoreEnhancerStoreCreator
+      ) => (reducer, ...args: any[]) => {
+        dummyEnhancerCalled = true
+
+        return createStore(reducer, ...args)
+      }
+
+      const reducer = () => ({})
+
+      const store = configureStore({
+        reducer,
+        enhancers: defaultEnhancers => {
+          return [...defaultEnhancers, dummyEnhancer]
+        }
+      })
+
+      expect(dummyEnhancerCalled).toBe(true)
     })
   })
 })

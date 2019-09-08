@@ -1,12 +1,12 @@
-import { applyMiddleware, Dispatch } from 'redux'
 import {
+  applyMiddleware,
+  Dispatch,
   AnyAction,
-  configureStore,
   Middleware,
-  PayloadAction,
   Reducer,
   Store
-} from 'redux-starter-kit'
+} from 'redux'
+import { configureStore, PayloadAction } from '../../src'
 
 /*
  * Test: configureStore() requires a valid reducer or reducer map.

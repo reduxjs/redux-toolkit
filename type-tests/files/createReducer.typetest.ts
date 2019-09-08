@@ -1,9 +1,5 @@
-import {
-  AnyAction,
-  createReducer,
-  Reducer,
-  PayloadAction
-} from 'redux-starter-kit'
+import { Reducer } from 'redux'
+import { createReducer } from '../../src'
 
 function expectType<T>(p: T) {}
 

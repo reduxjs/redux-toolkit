@@ -1,11 +1,5 @@
-import {
-  createAction,
-  PayloadAction,
-  ActionCreator,
-  PayloadActionCreator,
-  Action,
-  AnyAction
-} from 'redux-starter-kit'
+import { Action, AnyAction, ActionCreator } from 'redux'
+import { createAction, PayloadAction, PayloadActionCreator } from '../../src'
 
 function expectType<T>(p: T): T {
   return p
