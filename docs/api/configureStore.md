@@ -7,7 +7,8 @@ hide_title: true
 
 # `configureStore`
 
-A friendlier abstraction over the standard Redux `createStore` function.
+A friendly abstraction over the standard Redux `createStore` function that adds good defaults
+to the store setup for a better development experience.
 
 ## Parameters
 
@@ -54,7 +55,7 @@ interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
    * If you need to customize the order of enhancers, supply a callback
    * function that will receive the original array (ie, `[applyMiddleware]`),
    * and should return a new array (such as `[applyMiddleware, offline]`).
-   * If you only need to add middleware, you can use the `middleware` parameter instaead.
+   * If you only need to add middleware, use the `middleware` parameter instead.
    */
   enhancers?: StoreEnhancer[] | ConfigureEnhancersCallback
 }
