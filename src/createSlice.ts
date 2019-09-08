@@ -8,7 +8,6 @@ import {
   ActionCreatorWithPreparedPayload
 } from './createAction'
 import { createReducer, CaseReducers, CaseReducer } from './createReducer'
-import { createSliceSelector, createSelectorName } from './sliceSelector'
 
 /**
  * An action creator atttached to a slice.
@@ -36,14 +35,6 @@ export interface Slice<
    * reducer.
    */
   actions: ActionCreators
-
-  /**
-   * Selectors for the slice reducer state. `createSlice()` inserts a single
-   * selector that returns the entire slice state and whose name is
-   * automatically derived from the slice name (e.g., `getCounter` for a slice
-   * named `counter`).
-   */
-  selectors: { [key: string]: (state: any) => State }
 }
 
 /**
@@ -54,8 +45,7 @@ export interface CreateSliceOptions<
   CR extends SliceCaseReducers<State, any> = SliceCaseReducers<State, any>
 > {
   /**
-   * The slice's name. Used to namespace the generated action types and to
-   * name the selector for retrieving the reducer's state.
+   * The slice's name. Used to namespace the generated action types.
    */
   slice?: string
 
@@ -156,7 +146,7 @@ function getType(slice: string, actionKey: string): string {
 /**
  * A function that accepts an initial state, an object full of reducer
  * functions, and optionally a "slice name", and automatically generates
- * action creators, action types, and selectors that correspond to the
+ * action creators and action types that correspond to the
  * reducers and state.
  *
  * The `reducer` argument is passed to `createReducer()`.
@@ -205,14 +195,9 @@ export function createSlice<
     {} as any
   )
 
-  const selectors = {
-    [createSelectorName(slice)]: createSliceSelector(slice)
-  }
-
   return {
     slice,
     reducer,
-    actions: actionMap,
-    selectors
+    actions: actionMap
   }
 }
