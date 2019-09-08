@@ -1,6 +1,13 @@
 import { configureStore } from './configureStore'
 import * as redux from 'redux'
 import * as devtools from 'redux-devtools-extension'
+import {
+  StoreCreator,
+  StoreEnhancer,
+  StoreEnhancerStoreCreator,
+  Reducer,
+  AnyAction
+} from 'redux'
 
 describe('configureStore', () => {
   jest.spyOn(redux, 'applyMiddleware')
@@ -143,6 +150,29 @@ describe('configureStore', () => {
         undefined,
         expect.any(Function)
       )
+    })
+
+    it('accepts a callback for customizing enhancers', () => {
+      let dummyEnhancerCalled = false
+
+      const dummyEnhancer: StoreEnhancer = (
+        createStore: StoreEnhancerStoreCreator
+      ) => (reducer, ...args: any[]) => {
+        dummyEnhancerCalled = true
+
+        return createStore(reducer, ...args)
+      }
+
+      const reducer = () => ({})
+
+      const store = configureStore({
+        reducer,
+        enhancers: defaultEnhancers => {
+          return [...defaultEnhancers, dummyEnhancer]
+        }
+      })
+
+      expect(dummyEnhancerCalled).toBe(true)
     })
   })
 })

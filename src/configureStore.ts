@@ -20,6 +20,10 @@ import { getDefaultMiddleware } from './getDefaultMiddleware'
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
+export type ConfigureEnhancersCallback = (
+  defaultEnhancers: StoreEnhancer[]
+) => StoreEnhancer[]
+
 /**
  * Options for `configureStore()`.
  */
@@ -60,7 +64,7 @@ export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
    * The store enhancers to apply. See Redux's `createStore()`. If you only
    * need to add middleware, you can use the `middleware` parameter instaead.
    */
-  enhancers?: StoreEnhancer[]
+  enhancers?: StoreEnhancer[] | ConfigureEnhancersCallback
 }
 
 /**
@@ -86,7 +90,7 @@ export function configureStore<S = any, A extends Action = AnyAction>(
     middleware = getDefaultMiddleware(),
     devTools = true,
     preloadedState = undefined,
-    enhancers = []
+    enhancers = undefined
   } = options || {}
 
   let rootReducer: Reducer<S, A>
@@ -113,7 +117,13 @@ export function configureStore<S = any, A extends Action = AnyAction>(
     })
   }
 
-  const storeEnhancers = [middlewareEnhancer, ...enhancers]
+  let storeEnhancers: StoreEnhancer[] = [middlewareEnhancer]
+
+  if (Array.isArray(enhancers)) {
+    storeEnhancers = [middlewareEnhancer, ...enhancers]
+  } else if (typeof enhancers === 'function') {
+    storeEnhancers = enhancers(storeEnhancers)
+  }
 
   const composedEnhancer = finalCompose(...storeEnhancers) as StoreEnhancer
 
