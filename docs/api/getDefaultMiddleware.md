@@ -70,7 +70,7 @@ by default, since thunks are the basic recommended side effects middleware for R
 Currently, the return value is:
 
 ```js
-;[immutableStateInvariant, thunk, serializableStateInvariant]
+const middleware = [thunk, immutableStateInvariant, serializableStateInvariant]
 ```
 
 ### Production
@@ -78,5 +78,67 @@ Currently, the return value is:
 Currently, the return value is:
 
 ```js
-;[thunk]
+const middleware = [thunk]
+```
+
+## Customizing the Included Middleware
+
+`getDefaultMiddleware` accepts an options object that allows customizing each middleware in two ways:
+
+- Each middleware can be excluded from inclusion in the array by passing `false` for its corresponding field
+- Each middleware can have its options customized by passing the matching options object for its corresponding field
+
+This example shows excluding the serializable state check middleware, and passing a specific value for the thunk
+middleware's "extra argument":
+
+```ts
+const customizedMiddleware = getDefaultMiddleware({
+  thunk: {
+    extraArgument: myCustomApiService
+  },
+  serializableCheck: false
+})
+```
+
+## API Reference
+
+```ts
+interface ThunkOptions<E = any> {
+  extraArgument: E
+}
+
+interface ImmutableStateInvariantMiddlewareOptions {
+  isImmutable?: (value: any) => boolean
+  ignore?: string[]
+}
+
+interface SerializableStateInvariantMiddlewareOptions {
+  /**
+   * The function to check if a value is considered serializable. This
+   * function is applied recursively to every value contained in the
+   * state. Defaults to `isPlain()`.
+   */
+  isSerializable?: (value: any) => boolean
+  /**
+   * The function that will be used to retrieve entries from each
+   * value.  If unspecified, `Object.entries` will be used. Defaults
+   * to `undefined`.
+   */
+  getEntries?: (value: any) => [string, any][]
+
+  /**
+   * An array of action types to ignore when checking for serializability, Defaults to []
+   */
+  ignoredActions?: string[]
+}
+
+interface GetDefaultMiddlewareOptions {
+  thunk?: boolean | ThunkOptions
+  immutableCheck?: boolean | ImmutableStateInvariantMiddlewareOptions
+  serializableCheck?: boolean | SerializableStateInvariantMiddlewareOptions
+}
+
+function getDefaultMiddleware<S = any>(
+  options: GetDefaultMiddlewareOptions = {}
+): Middleware<{}, S>[]
 ```
