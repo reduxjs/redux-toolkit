@@ -40,13 +40,6 @@ function expectType<T>(t: T) {
 
   // typings:expect-error
   slice.actions.other(1)
-
-  /* Selector */
-
-  const value: number = slice.selectors.getCounter(0)
-
-  // typings:expect-error
-  const stringValue: string = slice.selectors.getCounter(0)
 }
 
 /*

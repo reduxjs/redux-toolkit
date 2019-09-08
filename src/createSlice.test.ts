@@ -3,7 +3,7 @@ import { createAction, PayloadAction } from './createAction'
 
 describe('createSlice', () => {
   describe('when slice is empty', () => {
-    const { actions, reducer, selectors } = createSlice({
+    const { actions, reducer } = createSlice({
       reducers: {
         increment: state => state + 1,
         multiply: (state, action: PayloadAction<number>) =>
@@ -43,20 +43,10 @@ describe('createSlice', () => {
         expect(reducer(2, actions.multiply(3))).toEqual(6)
       })
     })
-
-    describe('when using selectors', () => {
-      it('should create selector with correct name', () => {
-        expect(selectors.hasOwnProperty('getState')).toBe(true)
-      })
-
-      it('should return the slice state data', () => {
-        expect(selectors.getState(2)).toEqual(2)
-      })
-    })
   })
 
   describe('when passing slice', () => {
-    const { actions, reducer, selectors } = createSlice({
+    const { actions, reducer } = createSlice({
       reducers: {
         increment: state => state + 1
       },
@@ -77,14 +67,6 @@ describe('createSlice', () => {
 
     it('should return the correct value from reducer', () => {
       expect(reducer(undefined, actions.increment())).toEqual(1)
-    })
-
-    it('should create selector with correct name', () => {
-      expect(selectors.hasOwnProperty('getCool')).toBe(true)
-    })
-
-    it('should return the slice state data', () => {
-      expect(selectors.getCool({ cool: 2 })).toEqual(2)
     })
   })
 

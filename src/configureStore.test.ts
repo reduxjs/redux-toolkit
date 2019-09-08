@@ -1,13 +1,7 @@
 import { configureStore } from './configureStore'
 import * as redux from 'redux'
 import * as devtools from 'redux-devtools-extension'
-import {
-  StoreCreator,
-  StoreEnhancer,
-  StoreEnhancerStoreCreator,
-  Reducer,
-  AnyAction
-} from 'redux'
+import { StoreEnhancer, StoreEnhancerStoreCreator } from 'redux'
 
 describe('configureStore', () => {
   jest.spyOn(redux, 'applyMiddleware')
