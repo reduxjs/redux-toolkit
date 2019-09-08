@@ -281,6 +281,7 @@ describe('serializableStateInvariantMiddleware', () => {
       expect(actionType).toBe(ACTION_TYPE)
     })
   })
+
   it('Should use the supplied isSerializable function to determine serializability', () => {
     const ACTION_TYPE = 'TEST_ACTION'
 
@@ -304,7 +305,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware(
       {
-        isSerializable: (value: any) => true
+        isSerializable: () => true
       }
     )
 
@@ -320,5 +321,34 @@ describe('serializableStateInvariantMiddleware', () => {
     // Supplied 'isSerializable' considers all values serializable, hence
     // no error logging is expected:
     expect(console.error).not.toHaveBeenCalled()
+  })
+
+  it('should not check serializability for ignored action types', () => {
+    let numTimesCalled = 0
+
+    const serializableStateMiddleware = createSerializableStateInvariantMiddleware(
+      {
+        isSerializable: () => {
+          numTimesCalled++
+          return true
+        },
+        ignoredActions: ['IGNORE_ME']
+      }
+    )
+
+    const store = configureStore({
+      reducer: () => ({}),
+      middleware: [serializableStateMiddleware]
+    })
+
+    expect(numTimesCalled).toBe(0)
+
+    store.dispatch({ type: 'IGNORE_ME' })
+
+    expect(numTimesCalled).toBe(0)
+
+    store.dispatch({ type: 'ANY_OTHER_ACTION' })
+
+    expect(numTimesCalled).toBeGreaterThan(0)
   })
 })
