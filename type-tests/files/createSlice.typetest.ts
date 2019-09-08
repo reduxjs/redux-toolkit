@@ -125,7 +125,7 @@ function expectType<T>(t: T) {
 {
   const counter = createSlice({
     slice: 'test',
-    initialState: { counter: 0, concat: "" },
+    initialState: { counter: 0, concat: '' },
     reducers: {
       incrementByStrLen: {
         reducer: (state, action: PayloadAction<number>) => {

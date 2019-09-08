@@ -7,46 +7,14 @@ hide_title: true
 
 # `createSelector`
 
-The `createSelector` utility from the [`selectorator` library](https://github.com/planttheidea/selectorator), re-exported for ease of use. It acts as a superset of the standard `createSelector` function from [Reselect](https://github.com/reactjs/reselect). The primary improvements are the ability to define "input selectors" using string keypaths, or return an object result based on an object of keypaths. It also accepts an object of customization options for more specific use cases.
+The `createSelector` utility from the [Reselect library](https://github.com/reduxjs/reselect), re-exported for ease of use.
 
-For more specifics, see the [`selectorator` usage documentation](https://github.com/planttheidea/selectorator#usage).
+For more details on using `createSelector`, see:
 
-```ts
-function createSelector(
-  // Can either be:
-  //    - An array containing selector functions, string keypaths, and argument objects
-  //    - An object whose keys are selector functions and string keypaths
-  paths: Array<Function | string | Object> | Object<string, string | Function>
-)
-```
+- The [Reselect API documentation](https://github.com/reduxjs/reselect)
+- [Idiomatic Redux: Using Reselect Selectors for Encapsulation and Performance](https://blog.isquaredsoftware.com/2017/12/idiomatic-redux-using-reselect-selectors/)
+- [React/Redux Links: Reducers and Selectors](https://github.com/markerikson/react-redux-links/blob/master/redux-reducers-selectors.md)
 
-Example usage:
-
-```js
-// Define input selector using a string keypath
-const getSubtotal = createSelector(
-  ['shop.items'],
-  items => {
-    // return value here
-  }
-)
-
-// Define input selectors as a mix of other selectors and string keypaths
-const getTax = createSelector(
-  [getSubtotal, 'shop.taxPercent'],
-  (subtotal, taxPercent) => {
-    // return value here
-  }
-)
-
-// Define input selector using a custom argument index to access a prop
-const getTabContent = createSelector(
-  [{ path: 'tabIndex', argIndex: 1 }],
-  tabIndex => {
-    // return value here
-  }
-)
-
-const getContents = createSelector({ foo: 'foo', bar: 'nested.bar' })
-// Returns an object like:  {foo, bar}
-```
+> **Note**: Prior to v0.7, RSK re-exported `createSelector` from [`selectorator`](https://github.com/planttheidea/selectorator), which
+> allowed using string keypaths as input selectors. This was removed, as it ultimately did not provide enough benefits, and
+> the string keypaths made static typing for selectors difficult.
