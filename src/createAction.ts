@@ -1,4 +1,5 @@
 import { Action } from 'redux'
+import { IsUnknownOrNonInferrable } from './tsHelpers'
 
 /**
  * An action with a string type and an associated payload. This is the
@@ -46,7 +47,16 @@ export type ActionCreatorWithoutPayload<
 export type ActionCreatorWithPayload<
   P,
   T extends string = string
-> = WithTypeProperty<T, <PT extends P>(payload: PT) => PayloadAction<PT, T>>
+> = WithTypeProperty<
+  T,
+  IsUnknownOrNonInferrable<
+    P,
+    // TS < 3.5 infers non-inferrable types to {}, which does not take `null`. This enforces `undefined` instead.
+    <PT extends unknown>(payload: PT) => PayloadAction<PT, T>,
+    // default behaviour
+    <PT extends P>(payload: PT) => PayloadAction<PT, T>
+  >
+>
 
 /**
  * An action creator that produces actions with a `payload` attribute.
