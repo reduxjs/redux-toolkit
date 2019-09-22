@@ -7,7 +7,7 @@ hide_title: true
 
 # `createSlice`
 
-A function that accepts an initial state, an object full of reducer functions, and optionally a "slice name",
+A function that accepts an initial state, an object full of reducer functions, and a "slice name",
 and automatically generates action creators and action types that correspond to the reducers and state.
 
 ## Parameters
@@ -20,8 +20,8 @@ function createSlice({
     reducers: Object<string, ReducerFunction>
     // The initial state for the reducer
     initialState: any,
-    // An optional name, used in action types
-    slice?: string,
+    // A name, used in action types
+    name: string,
     // An additional object of "case reducers". Keys should be other action types.
     extraReducers?: Object<string, ReducerFunction>
 })
@@ -44,9 +44,9 @@ state they are given.
 
 The initial state value for this slice of state.
 
-### `slice`
+### `name`
 
-An optional string name for this slice of state. Generated action type constants will use this as a prefix.
+A string name for this slice of state. Generated action type constants will use this as a prefix.
 
 ### `extraReducers`
 
@@ -73,7 +73,7 @@ to force the TS compiler to accept the computed property.)
 
 ```ts
 {
-    slice : string,
+    name : string,
     reducer : ReducerFunction,
     actions : Object<string, ActionCreator},
 }
@@ -104,7 +104,7 @@ import { createSlice } from 'redux-starter-kit'
 import { createStore, combineReducers } from 'redux'
 
 const counter = createSlice({
-  slice: 'counter', // slice is optional, and could be blank ''
+  name: 'counter',
   initialState: 0,
   reducers: {
     increment: state => state + 1,
@@ -114,7 +114,7 @@ const counter = createSlice({
 })
 
 const user = createSlice({
-  slice: 'user',
+  name: 'user',
   initialState: { name: '', age: 20 },
   reducers: {
     setUserName: (state, action) => {
