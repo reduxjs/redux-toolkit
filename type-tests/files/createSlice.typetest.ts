@@ -12,7 +12,7 @@ function expectType<T>(t: T) {
   const firstAction = createAction<{ count: number }>('FIRST_ACTION')
 
   const slice = createSlice({
-    slice: 'counter',
+    name: 'counter',
     initialState: 0,
     reducers: {
       increment: (state: number, action) => state + action.payload,
@@ -47,7 +47,7 @@ function expectType<T>(t: T) {
  */
 {
   const counter = createSlice({
-    slice: 'counter',
+    name: 'counter',
     initialState: 0,
     reducers: {
       increment: state => state + 1,
@@ -85,7 +85,7 @@ function expectType<T>(t: T) {
  */
 {
   const counter = createSlice({
-    slice: 'counter',
+    name: 'counter',
     initialState: 0,
     reducers: {
       increment: state => state + 1,
@@ -112,7 +112,7 @@ function expectType<T>(t: T) {
  */
 {
   const counter = createSlice({
-    slice: 'test',
+    name: 'test',
     initialState: { counter: 0, concat: '' },
     reducers: {
       incrementByStrLen: {
@@ -153,7 +153,7 @@ function expectType<T>(t: T) {
 {
   // typings:expect-error
   const counter = createSlice({
-    slice: 'counter',
+    name: 'counter',
     initialState: { counter: 0 },
     reducers: {
       increment: {

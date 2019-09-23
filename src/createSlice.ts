@@ -23,7 +23,7 @@ export interface Slice<
   /**
    * The slice name.
    */
-  slice: string
+  name: string
 
   /**
    * The slice's reducer.
@@ -47,7 +47,7 @@ export interface CreateSliceOptions<
   /**
    * The slice's name. Used to namespace the generated action types.
    */
-  slice?: string
+  name: string
 
   /**
    * The initial state to be returned by the slice reducer.
@@ -140,12 +140,12 @@ type RestrictEnhancedReducersToMatchReducerAndPrepare<
 > = { reducers: SliceCaseReducersCheck<S, NoInfer<CR>> }
 
 function getType(slice: string, actionKey: string): string {
-  return slice ? `${slice}/${actionKey}` : actionKey
+  return `${slice}/${actionKey}`
 }
 
 /**
  * A function that accepts an initial state, an object full of reducer
- * functions, and optionally a "slice name", and automatically generates
+ * functions, and a "slice name", and automatically generates
  * action creators and action types that correspond to the
  * reducers and state.
  *
@@ -166,14 +166,17 @@ export function createSlice<
 >(
   options: CreateSliceOptions<State, CaseReducers>
 ): Slice<State, CaseReducerActions<CaseReducers>> {
-  const { slice = '', initialState } = options
+  const { name, initialState } = options
+  if (!name) {
+    throw new Error('`name` is a required option for createSlice')
+  }
   const reducers = options.reducers || {}
   const extraReducers = options.extraReducers || {}
   const actionKeys = Object.keys(reducers)
 
   const reducerMap = actionKeys.reduce((map, actionKey) => {
     let maybeEnhancedReducer = reducers[actionKey]
-    map[getType(slice, actionKey)] =
+    map[getType(name, actionKey)] =
       typeof maybeEnhancedReducer === 'function'
         ? maybeEnhancedReducer
         : maybeEnhancedReducer.reducer
@@ -185,7 +188,7 @@ export function createSlice<
   const actionMap = actionKeys.reduce(
     (map, action) => {
       let maybeEnhancedReducer = reducers[action]
-      const type = getType(slice, action)
+      const type = getType(name, action)
       map[action] =
         typeof maybeEnhancedReducer === 'function'
           ? createAction(type)
@@ -196,7 +199,7 @@ export function createSlice<
   )
 
   return {
-    slice,
+    name,
     reducer,
     actions: actionMap
   }
