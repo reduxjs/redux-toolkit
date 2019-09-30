@@ -591,8 +591,9 @@ export const fetchIssuesCount = (
   org: string,
   repo: string
 ): AppThunk => async dispatch => {
+  let repoDetails
   try {
-    const repoDetails = await getRepoDetails(org, repo)
+    repoDetails = await getRepoDetails(org, repo)
   } catch (err) {
     dispatch(getRepoDetailsFailed(err.toString()))
     return
@@ -780,8 +781,9 @@ export const fetchIssues = (
   page?: number
 ): AppThunk => async dispatch => {
   dispatch(getIssuesStart())
+  let issues
   try {
-    const issues = await getIssues(org, repo, page)
+    issues = await getIssues(org, repo, page)
   } catch (err) {
     dispatch(getIssuesFailure(err.toString()))
     return
@@ -795,8 +797,9 @@ export const fetchIssue = (
   number: number
 ): AppThunk => async dispatch => {
   dispatch(getIssueStart())
+  let issue
   try {
-    const issue = await getIssue(org, repo, number)
+    issue = await getIssue(org, repo, number)
   } catch (err) {
     dispatch(getIssueFailure(err.toString()))
     return
@@ -921,8 +924,9 @@ export const IssueDetailsPage = ({
   useEffect(() => {
     async function fetchIssue() {
       setCommentsError(null)
+      let issue
       try {
-        const issue = await getIssue(org, repo, issueId)
+        issue = await getIssue(org, repo, issueId)
       } catch (err) {
         setCommentsError(err)
         return
@@ -991,13 +995,14 @@ export const IssueDetailsPage = ({
 
   useEffect(() => {
 -   async function fetchIssue() {
+-     setCommentsError(null)
+-     let issue
 -     try {
--       setCommentsError(null)
--       const issue = await getIssue(org, repo, issueId)
--       setIssue(issue)
+-       issue = await getIssue(org, repo, issueId)
 -     } catch (err) {
 -       setCommentsError(err)
 -     }
+-     setIssue(issue)
 -    }
 -    fetchIssue()
 +   if (!issue) {
@@ -1076,8 +1081,9 @@ export default comments.reducer
 
 export const fetchComments = (issue: Issue): AppThunk => async dispatch => {
   dispatch(getCommentsStart())
+  let comments
   try {
-    const comments = await getComments(issue.comments_url)
+    comments = await getComments(issue.comments_url)
   } catch (err) {
     dispatch(getCommentsFailure(err))
     return
