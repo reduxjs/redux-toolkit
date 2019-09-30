@@ -593,10 +593,11 @@ export const fetchIssuesCount = (
 ): AppThunk => async dispatch => {
   try {
     const repoDetails = await getRepoDetails(org, repo)
-    dispatch(getRepoDetailsSuccess(repoDetails))
   } catch (err) {
     dispatch(getRepoDetailsFailed(err.toString()))
+    return
   }
+  dispatch(getRepoDetailsSuccess(repoDetails))
 }
 ```
 
@@ -778,13 +779,14 @@ export const fetchIssues = (
   repo: string,
   page?: number
 ): AppThunk => async dispatch => {
+  dispatch(getIssuesStart())
   try {
-    dispatch(getIssuesStart())
     const issues = await getIssues(org, repo, page)
-    dispatch(getIssuesSuccess(issues))
   } catch (err) {
     dispatch(getIssuesFailure(err.toString()))
+    return
   }
+  dispatch(getIssuesSuccess(issues))
 }
 
 export const fetchIssue = (
@@ -792,13 +794,14 @@ export const fetchIssue = (
   repo: string,
   number: number
 ): AppThunk => async dispatch => {
+  dispatch(getIssueStart())
   try {
-    dispatch(getIssueStart())
     const issue = await getIssue(org, repo, number)
-    dispatch(getIssueSuccess(issue))
   } catch (err) {
     dispatch(getIssueFailure(err.toString()))
+    return
   }
+  dispatch(getIssueSuccess(issue))
 }
 ```
 
@@ -917,13 +920,14 @@ export const IssueDetailsPage = ({
 
   useEffect(() => {
     async function fetchIssue() {
+      setCommentsError(null)
       try {
-        setCommentsError(null)
         const issue = await getIssue(org, repo, issueId)
-        setIssue(issue)
       } catch (err) {
         setCommentsError(err)
+        return
       }
+      setIssue(issue)
     }
 
     fetchIssue()
@@ -1071,13 +1075,14 @@ export const {
 export default comments.reducer
 
 export const fetchComments = (issue: Issue): AppThunk => async dispatch => {
+  dispatch(getCommentsStart())
   try {
-    dispatch(getCommentsStart())
     const comments = await getComments(issue.comments_url)
-    dispatch(getCommentsSuccess({ issueId: issue.number, comments }))
   } catch (err) {
     dispatch(getCommentsFailure(err))
+    return
   }
+  dispatch(getCommentsSuccess({ issueId: issue.number, comments }))
 }
 ```
 
