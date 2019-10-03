@@ -10,7 +10,7 @@ hide_title: true
 A helper function for defining a Redux [action](https://redux.js.org/basics/actions) type and creator.
 
 ```js
-function createAction(type)
+function createAction(type, prepareAction?)
 ```
 
 The usual way to define an action in Redux is to separately declare an _action type_ constant and an _action creator_ function for constructing actions of that type.
@@ -46,6 +46,40 @@ console.log(increment.toString())
 console.log(`The action type is: ${increment}`)
 // 'The action type is: counter/increment'
 ```
+
+## Using the optional second argument
+
+In cases where you want to create actions with some logic (e.g. generating a random ID in the action creator or getting the current date), you can use the second argument to `createAction` to provide this logic.
+
+```js
+import v4 from 'uuid/v4'
+
+const addTodo = createAction('todos/add', function prepare(text) {
+  return {
+    payload: {
+      text,
+      id: v4(),
+      createdAt: new Date().toISOString()
+    }
+  }
+})
+
+console.log(addTodo('Write more docs'))
+/**
+ * {
+ *   type: 'todos/add',
+ *   payload: {
+ *     text: 'Write more docs',
+ *     id: '1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed',
+ *     createdAt: '2019-10-03T07:53:36.581Z'
+ *   }
+ * }
+ **/
+```
+
+The prepare function must return an object with a payload field (otherwise the payload of created actions will be `undefined`). Additionally, the object can have a field `meta` that will also be added to created actions. This may contain extra information about the action. These two fields (payload and meta) adhere to the specification of [Flux Standard Actions](https://github.com/redux-utilities/flux-standard-action#actions).
+
+**Note:** The type field will be added automatically.
 
 ## Usage with createReducer()
 
