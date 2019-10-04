@@ -75,7 +75,7 @@ to force the TS compiler to accept the computed property.)
 {
     slice : string,
     reducer : ReducerFunction,
-    actions : Object<string, ActionCreator},
+    actions : Object<string, ActionCreator>,
 }
 ```
 
