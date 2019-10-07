@@ -180,6 +180,7 @@ function expectType<T>(t: T) {
   }
 
   const mySlice = createSlice({
+    name: 'name',
     initialState,
     reducers: {
       setName: (state, action) => {
