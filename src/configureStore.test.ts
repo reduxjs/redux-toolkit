@@ -50,7 +50,7 @@ describe('configureStore', () => {
   describe('given no reducer', () => {
     it('throws', () => {
       expect(configureStore).toThrow(
-        'Reducer argument must be a function or an object of functions that can be passed to combineReducers'
+        '"reducer" is a required argument, and must be a function or an object of functions that can be passed to combineReducers'
       )
     })
   })
