@@ -12,6 +12,7 @@ The `createSelector` utility from the [Reselect library](https://github.com/redu
 For more details on using `createSelector`, see:
 
 - The [Reselect API documentation](https://github.com/reduxjs/reselect)
+- [React-Redux docs: Hooks API - Using memoizing selectors](https://react-redux.js.org/next/api/hooks#using-memoizing-selectors)
 - [Idiomatic Redux: Using Reselect Selectors for Encapsulation and Performance](https://blog.isquaredsoftware.com/2017/12/idiomatic-redux-using-reselect-selectors/)
 - [React/Redux Links: Reducers and Selectors](https://github.com/markerikson/react-redux-links/blob/master/redux-reducers-selectors.md)
 

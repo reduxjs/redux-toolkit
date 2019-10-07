@@ -109,7 +109,7 @@ export function configureStore<S = any, A extends Action = AnyAction>(
     rootReducer = combineReducers(reducer)
   } else {
     throw new Error(
-      'Reducer argument must be a function or an object of functions that can be passed to combineReducers'
+      '"reducer" is a required argument, and must be a function or an object of functions that can be passed to combineReducers'
     )
   }
 
