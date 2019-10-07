@@ -35,6 +35,8 @@ export interface Slice<
    * reducer.
    */
   actions: ActionCreators
+
+  caseReducers: SliceCaseReducers<State, any>
 }
 
 /**
@@ -42,7 +44,10 @@ export interface Slice<
  */
 export interface CreateSliceOptions<
   State = any,
-  CR extends SliceCaseReducers<State, any> = SliceCaseReducers<State, any>
+  CR extends SliceCaseReducerDefinitions<
+    State,
+    any
+  > = SliceCaseReducerDefinitions<State, any>
 > {
   /**
    * The slice's name. Used to namespace the generated action types.
@@ -74,15 +79,19 @@ type PayloadActions<Types extends keyof any = string> = Record<
   PayloadAction
 >
 
-type EnhancedCaseReducer<State, Action extends PayloadAction> = {
+type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
   reducer: CaseReducer<State, Action>
   prepare: PrepareAction<Action['payload']>
 }
 
-type SliceCaseReducers<State, PA extends PayloadActions> = {
+type SliceCaseReducerDefinitions<State, PA extends PayloadActions> = {
   [ActionType in keyof PA]:
     | CaseReducer<State, PA[ActionType]>
-    | EnhancedCaseReducer<State, PA[ActionType]>
+    | CaseReducerWithPrepare<State, PA[ActionType]>
+}
+
+type SliceCaseReducers<State, PA extends PayloadActions> = {
+  [ActionType in keyof PA]: CaseReducer<State, PA[ActionType]>
 }
 
 type IfIsReducerFunctionWithoutAction<R, True, False = never> = R extends (
@@ -90,7 +99,7 @@ type IfIsReducerFunctionWithoutAction<R, True, False = never> = R extends (
 ) => any
   ? True
   : False
-type IfIsEnhancedReducer<R, True, False = never> = R extends {
+type IfIsCaseReducerWithPrepare<R, True, False = never> = R extends {
   prepare: Function
 }
   ? True
@@ -106,8 +115,10 @@ type PrepareActionForReducer<R> = R extends { prepare: infer Prepare }
   ? Prepare
   : never
 
-type CaseReducerActions<CaseReducers extends SliceCaseReducers<any, any>> = {
-  [Type in keyof CaseReducers]: IfIsEnhancedReducer<
+type CaseReducerActions<
+  CaseReducers extends SliceCaseReducerDefinitions<any, any>
+> = {
+  [Type in keyof CaseReducers]: IfIsCaseReducerWithPrepare<
     CaseReducers[Type],
     ActionCreatorWithPreparedPayload<
       PrepareActionForReducer<CaseReducers[Type]>
@@ -134,9 +145,9 @@ type SliceCaseReducersCheck<S, ACR> = {
     : {}
 }
 
-type RestrictEnhancedReducersToMatchReducerAndPrepare<
+type RestrictCaseReducerDefinitionsToMatchReducerAndPrepare<
   S,
-  CR extends SliceCaseReducers<S, any>
+  CR extends SliceCaseReducerDefinitions<S, any>
 > = { reducers: SliceCaseReducersCheck<S, NoInfer<CR>> }
 
 function getType(slice: string, actionKey: string): string {
@@ -153,16 +164,16 @@ function getType(slice: string, actionKey: string): string {
  */
 export function createSlice<
   State,
-  CaseReducers extends SliceCaseReducers<State, any>
+  CaseReducers extends SliceCaseReducerDefinitions<State, any>
 >(
   options: CreateSliceOptions<State, CaseReducers> &
-    RestrictEnhancedReducersToMatchReducerAndPrepare<State, CaseReducers>
+    RestrictCaseReducerDefinitionsToMatchReducerAndPrepare<State, CaseReducers>
 ): Slice<State, CaseReducerActions<CaseReducers>>
 
 // internal definition is a little less restrictive
 export function createSlice<
   State,
-  CaseReducers extends SliceCaseReducers<State, any>
+  CaseReducers extends SliceCaseReducerDefinitions<State, any>
 >(
   options: CreateSliceOptions<State, CaseReducers>
 ): Slice<State, CaseReducerActions<CaseReducers>> {
@@ -172,35 +183,40 @@ export function createSlice<
   }
   const reducers = options.reducers || {}
   const extraReducers = options.extraReducers || {}
-  const actionKeys = Object.keys(reducers)
+  const reducerNames = Object.keys(reducers)
 
-  const reducerMap = actionKeys.reduce((map, actionKey) => {
-    let maybeEnhancedReducer = reducers[actionKey]
-    map[getType(name, actionKey)] =
-      typeof maybeEnhancedReducer === 'function'
-        ? maybeEnhancedReducer
-        : maybeEnhancedReducer.reducer
-    return map
-  }, extraReducers)
+  const sliceCaseReducersByName: SliceCaseReducers<State, any> = {}
+  const sliceCaseReducersByType: SliceCaseReducers<State, any> = {}
+  const actionCreators: any = {}
 
-  const reducer = createReducer(initialState, reducerMap)
+  reducerNames.forEach(reducerName => {
+    const maybeReducerWithPrepare = reducers[reducerName]
+    const type = getType(name, reducerName)
 
-  const actionMap = actionKeys.reduce(
-    (map, action) => {
-      let maybeEnhancedReducer = reducers[action]
-      const type = getType(name, action)
-      map[action] =
-        typeof maybeEnhancedReducer === 'function'
-          ? createAction(type)
-          : createAction(type, maybeEnhancedReducer.prepare)
-      return map
-    },
-    {} as any
-  )
+    let caseReducer: CaseReducer<State, any>
+    let prepareCallback: PrepareAction<any> | undefined
+
+    if (typeof maybeReducerWithPrepare === 'function') {
+      caseReducer = maybeReducerWithPrepare
+    } else {
+      caseReducer = maybeReducerWithPrepare.reducer
+      prepareCallback = maybeReducerWithPrepare.prepare
+    }
+
+    sliceCaseReducersByName[reducerName] = caseReducer
+    sliceCaseReducersByType[type] = caseReducer
+    actionCreators[reducerName] = prepareCallback
+      ? createAction(type, prepareCallback)
+      : createAction(type)
+  })
+
+  const finalCaseReducers = { ...extraReducers, ...sliceCaseReducersByType }
+  const reducer = createReducer(initialState, finalCaseReducers)
 
   return {
     name,
     reducer,
-    actions: actionMap
+    actions: actionCreators,
+    caseReducers: sliceCaseReducersByName
   }
 }

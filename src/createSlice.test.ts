@@ -35,7 +35,7 @@ describe('createSlice', () => {
   })
 
   describe('when passing slice', () => {
-    const { actions, reducer } = createSlice({
+    const { actions, reducer, caseReducers } = createSlice({
       reducers: {
         increment: state => state + 1
       },
@@ -56,6 +56,12 @@ describe('createSlice', () => {
 
     it('should return the correct value from reducer', () => {
       expect(reducer(undefined, actions.increment())).toEqual(1)
+    })
+
+    it('should include the generated case reducers', () => {
+      expect(caseReducers).toBeTruthy()
+      expect(caseReducers.increment).toBeTruthy()
+      expect(typeof caseReducers.increment).toBe('function')
     })
   })
 

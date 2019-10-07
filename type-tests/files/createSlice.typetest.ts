@@ -148,6 +148,25 @@ function expectType<T>(t: T) {
 }
 
 /*
+ * Test: returned case reducer has the correct type
+ */
+{
+  const counter = createSlice({
+    name: 'counter',
+    initialState: 0,
+    reducers: {
+      increment(state, action: PayloadAction<number>) {
+        return state + action.payload
+      }
+    }
+  })
+
+  expectType<(state: number, action: PayloadAction<number>) => number | void>(
+    counter.caseReducers.increment
+  )
+}
+
+/*
  * Test: prepared payload does not match action payload - should cause an error.
  */
 {
