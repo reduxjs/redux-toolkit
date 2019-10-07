@@ -49,9 +49,9 @@ console.log(`The action type is: ${increment}`)
 
 ## Using Prepare Callbacks to Customize Action Contents
 
-By default, the generated action creators accept a single argument, which becomes `action.payload`.  This requires the caller to construct the entire payload correctly and pass it in.
+By default, the generated action creators accept a single argument, which becomes `action.payload`. This requires the caller to construct the entire payload correctly and pass it in.
 
-In many cases, you may want to write additional logic to customize the creation of the `payload`  value, such as accepting multiple parameters for the action creator, generating a random ID, or getting the current timestamp.  To do this, `createAction` accepts an optional second argument: a "prepare callback" that will be used to construct the payload value.  
+In many cases, you may want to write additional logic to customize the creation of the `payload` value, such as accepting multiple parameters for the action creator, generating a random ID, or getting the current timestamp. To do this, `createAction` accepts an optional second argument: a "prepare callback" that will be used to construct the payload value.
 
 ```js
 import v4 from 'uuid/v4'
