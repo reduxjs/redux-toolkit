@@ -141,10 +141,10 @@ function expectType<T>(t: T) {
   expectType<number>(counter.actions.concatMetaStrLen('test').meta)
 
   // typings:expect-error
-  expectType<string>(counter.actions.strLen('test').payload)
+  expectType<string>(counter.actions.incrementByStrLen('test').payload)
 
   // typings:expect-error
-  expectType<string>(counter.actions.strLenMeta('test').meta)
+  expectType<string>(counter.actions.concatMetaStrLen('test').meta)
 }
 
 /*
@@ -168,4 +168,31 @@ function expectType<T>(t: T) {
       }
     }
   })
+}
+
+
+/*
+ * Test: if no Payload Type is specified, accept any payload
+ * see https://github.com/reduxjs/redux-starter-kit/issues/165
+ */
+{
+  const initialState = {
+    name: null
+  };
+
+
+  const mySlice = createSlice({
+    initialState,
+    reducers: {
+      setName: (state, action) => {
+        state.name = action.payload;
+      }
+    }
+  });
+
+  const x = mySlice.actions.setName;
+
+  mySlice.actions.setName(null);
+  mySlice.actions.setName("asd");
+  mySlice.actions.setName(5);
 }
