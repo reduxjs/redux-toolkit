@@ -288,7 +288,7 @@ addTodo({ text: 'Buy milk' })
 // {type : "ADD_TODO", payload : {text : "Buy milk"}})
 ```
 
-Currently, `createAction` does not let you customize how the `payload` field is defined. You need to pass the entire `payload` you want as the one argument to the action creator. This could be a simple value, or an object full of data. (We may eventually add the ability for `createAction` to accept an argument for a callback that customizes the payload, or allows adding other fields like `meta` to the action.)
+`createAction` also accepts a prepare callback which allows you to customize the resulting action contents and add other fields like `meta`. Refer to the `prepare` callback spec [here](https://redux-starter-kit.js.org/api/createaction#using-prepare-callbacks-to-customize-action-contents).
 
 ### Using Action Creators as Action Types
 
