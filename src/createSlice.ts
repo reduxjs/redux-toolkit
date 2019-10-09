@@ -1,4 +1,4 @@
-import { Reducer } from 'redux'
+import { Reducer, Action } from 'redux'
 import {
   createAction,
   PayloadAction,
@@ -17,8 +17,8 @@ import { createReducer, CaseReducers, CaseReducer } from './createReducer'
 export type SliceActionCreator<P> = PayloadActionCreator<P>
 
 export interface Slice<
-  State = any,
-  ActionCreators extends { [key: string]: any } = { [key: string]: any }
+  CaseReducers extends SliceCaseReducerDefinitions<State, PayloadActions>,
+  State = any
 > {
   /**
    * The slice name.
@@ -34,9 +34,9 @@ export interface Slice<
    * Action creators for the types of actions that are handled by the slice
    * reducer.
    */
-  actions: ActionCreators
+  actions: CaseReducerActions<CaseReducers>
 
-  caseReducers: SliceCaseReducers<State, any>
+  caseReducers: OnlyCaseReducers<CaseReducers, State>
 }
 
 /**
@@ -115,6 +115,13 @@ type PrepareActionForReducer<R> = R extends { prepare: infer Prepare }
   ? Prepare
   : never
 
+type ActionForReducer<R, ActionType = Action<string>> = R extends (
+  state: any,
+  action: PayloadAction<infer P>
+) => any
+  ? PayloadAction<P>
+  : ActionType
+
 type CaseReducerActions<
   CaseReducers extends SliceCaseReducerDefinitions<any, any>
 > = {
@@ -130,6 +137,16 @@ type CaseReducerActions<
       // else
       PayloadActionCreator<PayloadForReducer<CaseReducers[Type]>>
     >
+  >
+}
+
+type OnlyCaseReducers<
+  CaseReducers extends SliceCaseReducerDefinitions<any, any>,
+  State = any
+> = {
+  [Type in keyof CaseReducers]: CaseReducer<
+    State,
+    ActionForReducer<CaseReducers[Type]>
   >
 }
 
@@ -168,7 +185,7 @@ export function createSlice<
 >(
   options: CreateSliceOptions<State, CaseReducers> &
     RestrictCaseReducerDefinitionsToMatchReducerAndPrepare<State, CaseReducers>
-): Slice<State, CaseReducerActions<CaseReducers>>
+): Slice<CaseReducers, State>
 
 // internal definition is a little less restrictive
 export function createSlice<
@@ -176,7 +193,7 @@ export function createSlice<
   CaseReducers extends SliceCaseReducerDefinitions<State, any>
 >(
   options: CreateSliceOptions<State, CaseReducers>
-): Slice<State, CaseReducerActions<CaseReducers>> {
+): Slice<CaseReducers, State> {
   const { name, initialState } = options
   if (!name) {
     throw new Error('`name` is a required option for createSlice')
@@ -217,6 +234,6 @@ export function createSlice<
     name,
     reducer,
     actions: actionCreators,
-    caseReducers: sliceCaseReducersByName
+    caseReducers: sliceCaseReducersByName as any
   }
 }
