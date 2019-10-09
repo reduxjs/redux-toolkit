@@ -164,6 +164,16 @@ function expectType<T>(t: T) {
   expectType<(state: number, action: PayloadAction<number>) => number | void>(
     counter.caseReducers.increment
   )
+
+  // typings:expect-error
+  expectType<(state: number, action: PayloadAction<string>) => number | void>(
+    counter.caseReducers.increment
+  )
+
+  // typings:expect-error
+  expectType<(state: number, action: PayloadAction<string>) => number | void>(
+    counter.caseReducers.someThingNonExistant
+  )
 }
 
 /*
