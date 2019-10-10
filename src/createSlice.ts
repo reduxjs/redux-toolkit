@@ -1,4 +1,4 @@
-import { Reducer, Action } from 'redux'
+import { Reducer } from 'redux'
 import {
   createAction,
   PayloadAction,
@@ -36,7 +36,7 @@ export interface Slice<
    */
   actions: CaseReducerActions<CaseReducers>
 
-  caseReducers: OnlyCaseReducers<CaseReducers, State>
+  caseReducers: SliceDefinedCaseReducers<CaseReducers, State>
 }
 
 /**
@@ -90,10 +90,6 @@ type SliceCaseReducerDefinitions<State, PA extends PayloadActions> = {
     | CaseReducerWithPrepare<State, PA[ActionType]>
 }
 
-type SliceCaseReducers<State, PA extends PayloadActions> = {
-  [ActionType in keyof PA]: CaseReducer<State, PA[ActionType]>
-}
-
 type IfIsReducerFunctionWithoutAction<R, True, False = never> = R extends (
   state: any
 ) => any
@@ -115,7 +111,7 @@ type PrepareActionForReducer<R> = R extends { prepare: infer Prepare }
   ? Prepare
   : never
 
-type ActionForReducer<R, ActionType = Action<string>> = R extends (
+type ActionForReducer<R> = R extends (
   state: any,
   action: PayloadAction<infer P>
 ) => any
@@ -144,7 +140,7 @@ type CaseReducerActions<
   >
 }
 
-type OnlyCaseReducers<
+type SliceDefinedCaseReducers<
   CaseReducers extends SliceCaseReducerDefinitions<any, any>,
   State = any
 > = {
@@ -206,9 +202,9 @@ export function createSlice<
   const extraReducers = options.extraReducers || {}
   const reducerNames = Object.keys(reducers)
 
-  const sliceCaseReducersByName: SliceCaseReducers<State, any> = {}
-  const sliceCaseReducersByType: SliceCaseReducers<State, any> = {}
-  const actionCreators: any = {}
+  const sliceCaseReducersByName: Record<string, CaseReducer> = {}
+  const sliceCaseReducersByType: Record<string, CaseReducer> = {}
+  const actionCreators: Record<string, PayloadActionCreator> = {}
 
   reducerNames.forEach(reducerName => {
     const maybeReducerWithPrepare = reducers[reducerName]
@@ -237,7 +233,7 @@ export function createSlice<
   return {
     name,
     reducer,
-    actions: actionCreators,
+    actions: actionCreators as any,
     caseReducers: sliceCaseReducersByName as any
   }
 }
