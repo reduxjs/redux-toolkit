@@ -157,19 +157,36 @@ function expectType<T>(t: T) {
     reducers: {
       increment(state, action: PayloadAction<number>) {
         return state + action.payload
+      },
+      decrement: {
+        reducer(state, action: PayloadAction<number>) {
+          return state - action.payload
+        },
+        prepare(amount: number) {
+          return { payload: amount }
+        }
       }
     }
   })
 
+  // Should match positively
   expectType<(state: number, action: PayloadAction<number>) => number | void>(
     counter.caseReducers.increment
   )
 
+  // Should not mismatch the payload if it's a simple reducer
   // typings:expect-error
   expectType<(state: number, action: PayloadAction<string>) => number | void>(
     counter.caseReducers.increment
   )
 
+  // Should not mismatch the payload if it's a reducer with a prepare callback
+  // typings:expect-error
+  expectType<(state: number, action: PayloadAction<string>) => number | void>(
+    counter.caseReducers.decrement
+  )
+
+  // Should not include entries that don't exist
   // typings:expect-error
   expectType<(state: number, action: PayloadAction<string>) => number | void>(
     counter.caseReducers.someThingNonExistant
