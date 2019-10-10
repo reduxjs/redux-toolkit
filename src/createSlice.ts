@@ -111,10 +111,10 @@ type PrepareActionForReducer<R> = R extends { prepare: infer Prepare }
   ? Prepare
   : never
 
-type ActionForReducer<R> = R extends (
-  state: any,
+type ActionForReducer<R, S> = R extends (
+  state: S,
   action: PayloadAction<infer P>
-) => any
+) => S
   ? PayloadAction<P>
   : R extends {
       reducer(state: any, action: PayloadAction<infer P>): any
@@ -146,7 +146,7 @@ type SliceDefinedCaseReducers<
 > = {
   [Type in keyof CaseReducers]: CaseReducer<
     State,
-    ActionForReducer<CaseReducers[Type]>
+    ActionForReducer<CaseReducers[Type], State>
   >
 }
 
