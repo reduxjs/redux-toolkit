@@ -120,7 +120,11 @@ type ActionForReducer<R, ActionType = Action<string>> = R extends (
   action: PayloadAction<infer P>
 ) => any
   ? PayloadAction<P>
-  : ActionType
+  : R extends {
+      reducer(state: any, action: PayloadAction<infer P>): any
+    }
+  ? PayloadAction<P>
+  : unknown
 
 type CaseReducerActions<
   CaseReducers extends SliceCaseReducerDefinitions<any, any>
