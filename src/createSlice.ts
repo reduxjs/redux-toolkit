@@ -17,8 +17,10 @@ import { createReducer, CaseReducers, CaseReducer } from './createReducer'
 export type SliceActionCreator<P> = PayloadActionCreator<P>
 
 export interface Slice<
-  CaseReducers extends SliceCaseReducerDefinitions<State, PayloadActions>,
-  State = any
+  State = any,
+  CaseReducers extends SliceCaseReducerDefinitions<State, PayloadActions> = {
+    [key: string]: any
+  }
 > {
   /**
    * The slice name.
@@ -185,7 +187,7 @@ export function createSlice<
 >(
   options: CreateSliceOptions<State, CaseReducers> &
     RestrictCaseReducerDefinitionsToMatchReducerAndPrepare<State, CaseReducers>
-): Slice<CaseReducers, State>
+): Slice<State, CaseReducers>
 
 // internal definition is a little less restrictive
 export function createSlice<
@@ -193,7 +195,7 @@ export function createSlice<
   CaseReducers extends SliceCaseReducerDefinitions<State, any>
 >(
   options: CreateSliceOptions<State, CaseReducers>
-): Slice<CaseReducers, State> {
+): Slice<State, CaseReducers> {
   const { name, initialState } = options
   if (!name) {
     throw new Error('`name` is a required option for createSlice')

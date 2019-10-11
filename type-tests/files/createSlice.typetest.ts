@@ -174,6 +174,11 @@ function expectType<T>(t: T) {
     counter.caseReducers.increment
   )
 
+  // Should match positively for reducers with prepare callback
+  expectType<(state: number, action: PayloadAction<number>) => number | void>(
+    counter.caseReducers.decrement
+  )
+
   // Should not mismatch the payload if it's a simple reducer
   // typings:expect-error
   expectType<(state: number, action: PayloadAction<string>) => number | void>(
