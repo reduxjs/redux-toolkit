@@ -225,6 +225,7 @@ Here's what our counter example would look like using `createSlice` instead:
 
 ```js
 const counterSlice = createSlice({
+  name: 'counter',
   initialState: 0,
   reducers: {
     increment: state => state + 1,
