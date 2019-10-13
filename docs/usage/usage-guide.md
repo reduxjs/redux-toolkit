@@ -288,7 +288,7 @@ addTodo({ text: 'Buy milk' })
 // {type : "ADD_TODO", payload : {text : "Buy milk"}})
 ```
 
-`createAction` also accepts a prepare callback which allows you to customize the resulting action contents and add other fields like `meta`. Refer to the `prepare` callback spec [here](https://redux-starter-kit.js.org/api/createaction#using-prepare-callbacks-to-customize-action-contents).
+`createAction` also accepts a "prepare callback" argument, which allows you to customize the resulting `payload` field and optionally add a `meta` field. See the [`createAction` API reference](https://redux-starter-kit.js.org/api/createaction#using-prepare-callbacks-to-customize-action-contents) for details on defining action creators with a prepare callback.
 
 ### Using Action Creators as Action Types
 
