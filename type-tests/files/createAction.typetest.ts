@@ -19,7 +19,7 @@ function expectType<T>(p: T): T {
 }
 
 /*
- * Test: PayloadAction type parameter is optional (defaults to `any`).
+ * Test: PayloadAction type parameter is required.
  */
 {
   // typings:expect-error
@@ -61,12 +61,10 @@ function expectType<T>(p: T): T {
       payload
     }),
     { type: 'action' }
-  ) as PayloadActionCreator<number>
+  ) as PayloadActionCreator<number | undefined>
 
   expectType<PayloadAction<number>>(actionCreator(1))
-  // typings:expect-error
   expectType<PayloadAction<undefined>>(actionCreator())
-  // typings:expect-error
   expectType<PayloadAction<undefined>>(actionCreator(undefined))
 
   // typings:expect-error
@@ -118,12 +116,9 @@ function expectType<T>(p: T): T {
  * Test: createAction() type parameter is required, not inferred (defaults to `void`).
  */
 {
-  const increment = createAction<number>('increment')
+  const increment = createAction('increment')
+  // typings:expect-error
   const n: number = increment(1).payload
-  // typings:expect-error
-  const s: string = increment('1').payload
-  // typings:expect-error
-  const t: string = increment(1).payload
 }
 /*
  * Test: createAction().type is a string literal.
