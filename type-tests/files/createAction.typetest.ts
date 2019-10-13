@@ -22,8 +22,11 @@ function expectType<T>(p: T): T {
  * Test: PayloadAction type parameter is optional (defaults to `any`).
  */
 {
+  // typings:expect-error
   const action: PayloadAction = { type: '', payload: 5 }
+  // typings:expect-error
   const numberPayload: number = action.payload
+  // typings:expect-error
   const stringPayload: string = action.payload
 }
 
@@ -31,7 +34,7 @@ function expectType<T>(p: T): T {
  * Test: PayloadAction has a string type tag.
  */
 {
-  const action: PayloadAction = { type: '', payload: 5 }
+  const action: PayloadAction<number> = { type: '', payload: 5 }
 
   // typings:expect-error
   const action2: PayloadAction = { type: 1, payload: 5 }
@@ -41,7 +44,7 @@ function expectType<T>(p: T): T {
  * Test: PayloadAction is compatible with Action<string>
  */
 {
-  const action: PayloadAction = { type: '', payload: 5 }
+  const action: PayloadAction<number> = { type: '', payload: 5 }
   const stringAction: Action<string> = action
 }
 
@@ -58,10 +61,12 @@ function expectType<T>(p: T): T {
       payload
     }),
     { type: 'action' }
-  ) as PayloadActionCreator
+  ) as PayloadActionCreator<number>
 
   expectType<PayloadAction<number>>(actionCreator(1))
+  // typings:expect-error
   expectType<PayloadAction<undefined>>(actionCreator())
+  // typings:expect-error
   expectType<PayloadAction<undefined>>(actionCreator(undefined))
 
   // typings:expect-error
@@ -110,14 +115,13 @@ function expectType<T>(p: T): T {
 }
 
 /*
- * Test: createAction() type parameter is optional (defaults to `any`).
+ * Test: createAction() type parameter is required, not inferred (defaults to `void`).
  */
 {
-  const increment = createAction('increment')
+  const increment = createAction<number>('increment')
   const n: number = increment(1).payload
+  // typings:expect-error
   const s: string = increment('1').payload
-
-  // but infers the payload type to be the argument type
   // typings:expect-error
   const t: string = increment(1).payload
 }
@@ -125,7 +129,7 @@ function expectType<T>(p: T): T {
  * Test: createAction().type is a string literal.
  */
 {
-  const increment = createAction('increment')
+  const increment = createAction<number, 'increment'>('increment')
   const n: string = increment(1).type
   const s: 'increment' = increment(1).type
 
