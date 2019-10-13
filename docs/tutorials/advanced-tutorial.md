@@ -21,7 +21,7 @@ In the process, we'll look at a few examples of TypeScript techniques you can us
 >
 > In addition, this tutorial does not mean you _must_ convert your React app logic completely to Redux. [It's up to you to decide what state should live in React components, and what should be in Redux](https://redux.js.org/faq/organizing-state#do-i-have-to-put-all-my-state-into-redux-should-i-ever-use-reacts-setstate). This is just an example of how you _could_ convert logic to use Redux if you choose to.
 
-The complete source code for the converted application from this tutorial is available at [github.com/markerikson/rsk-github-issues-example](https://github.com/markerikson/rsk-github-issues-example). We'll be walking through the conversion process as shown in this repo's history. Links to meaningful individual commits will be highlighted in quote blocks, like this:
+The complete source code for the converted application from this tutorial is available at [github.com/reduxjs/rsk-github-issues-example](https://github.com/reduxjs/rsk-github-issues-example). We'll be walking through the conversion process as shown in this repo's history. Links to meaningful individual commits will be highlighted in quote blocks, like this:
 
 > - Commit message here
 
@@ -52,7 +52,7 @@ The codebase is already laid out in a "feature folder" structure, The main piece
 
 Since this app doesn't yet use Redux at all, the first step is to install Redux Starter Kit and React-Redux. Since this is a TypeScript app, we'll also need to add `@types/react-redux` as well. Add those packages to the project via either Yarn or NPM.
 
-> - [Add Redux Starter Kit and React-Redux packages](https://github.com/markerikson/rsk-github-issues-example/commit/8f69804d8940ba40604949ca682a7ae968e8bc4f)
+> - [Add Redux Starter Kit and React-Redux packages](https://github.com/reduxjs/rsk-github-issues-example/commit/8f69804d8940ba40604949ca682a7ae968e8bc4f)
 
 Next, we need to set up the usual pieces: a root reducer function, the Redux store, and the `<Provider>` to make that store available to our component tree.
 
@@ -60,7 +60,7 @@ In the process, we're going to set up "Hot Module Replacement" for our app. That
 
 #### Creating the Root Reducer
 
-> - [Add store and root reducer with reducer HMR](https://github.com/markerikson/rsk-github-issues-example/commit/26054ea8be1a44cac75fd55f497ce20e264de2b0)
+> - [Add store and root reducer with reducer HMR](https://github.com/reduxjs/rsk-github-issues-example/commit/26054ea8be1a44cac75fd55f497ce20e264de2b0)
 
 First, we'll create the root reducer function. We don't have any slices yet, so it will just return an empty object.
 
@@ -113,7 +113,7 @@ The `require('./rootReducer').default` looks a bit odd. That's because we're mix
 
 Now that the store has been created, we can add it to the React component tree.
 
-> - [Render Redux Provider with app HMR](https://github.com/markerikson/rsk-github-issues-example/commit/49cf5caebd427e7bb6b7ab07098c3bbb12134faf)
+> - [Render Redux Provider with app HMR](https://github.com/reduxjs/rsk-github-issues-example/commit/49cf5caebd427e7bb6b7ab07098c3bbb12134faf)
 
 As with the root reducer, we can hot-reload the React component tree whenever a component file changes. The best way is to write a function that imports the `<App>` component and renders it, call that once on startup to show the React component tree as usual, and then reuse that function any time a component is changed.
 
@@ -170,7 +170,7 @@ The first step is to look at the data that is currently being kept in `<App>`, a
 
 Let's look at the source for the whole slice, and then break down what it's doing:
 
-> - [Add initial state slice for UI display](https://github.com/markerikson/rsk-github-issues-example/commit/ec809346d5afe8f96bb56e487c2e41d274d80c69)
+> - [Add initial state slice for UI display](https://github.com/reduxjs/rsk-github-issues-example/commit/ec809346d5afe8f96bb56e487c2e41d274d80c69)
 
 **features/issuesDisplay/issuesDisplaySlice.ts**
 
@@ -288,7 +288,7 @@ import { combineReducers } from 'redux-starter-kit'
 
 Now that the issues display slice is hooked up to the store, we can update `<App>` to use that instead of its internal component state.
 
-> - [Convert main issues display control to Redux](https://github.com/markerikson/rsk-github-issues-example/commit/07bea70da4439c4c38b9b8d4eb0f10c67e6feee2)
+> - [Convert main issues display control to Redux](https://github.com/reduxjs/rsk-github-issues-example/commit/07bea70da4439c4c38b9b8d4eb0f10c67e6feee2)
 
 We need to make three groups of changes to the `App` component:
 
@@ -514,7 +514,7 @@ Since the thunk middleware is already set up, we don't have to do any work there
 
 Before we go any further, let's add a type declaration we can reuse instead.
 
-> - [Add AppThunk type](https://github.com/markerikson/rsk-github-issues-example/commit/2ac93bb089705847a8ce349864d885a5039eff4b)
+> - [Add AppThunk type](https://github.com/reduxjs/rsk-github-issues-example/commit/2ac93bb089705847a8ce349864d885a5039eff4b)
 
 **app/store.ts**
 
@@ -544,7 +544,7 @@ There are many cases where you would want different type settings here, but thes
 
 Now that we have that type, we can write a slice of state for fetching details on a repo.
 
-> - [Add a slice for storing repo details](https://github.com/markerikson/rsk-github-issues-example/commit/da9291bf428a96c3f2e8862f42e3be08461d514c)
+> - [Add a slice for storing repo details](https://github.com/reduxjs/rsk-github-issues-example/commit/da9291bf428a96c3f2e8862f42e3be08461d514c)
 
 **features/repoSearch/repoDetailsSlice.ts**
 
@@ -615,7 +615,7 @@ While not shown, we also add the slice reducer to our root reducer.
 
 Now that the repo details slice exists, we can use it in the `<IssuesListPage>` component.
 
-> - [Update IssuesListPage to fetch repo details via Redux](https://github.com/markerikson/rsk-github-issues-example/commit/964134a00bc1a54ba8758ca274049c9174e88f9a)
+> - [Update IssuesListPage to fetch repo details via Redux](https://github.com/reduxjs/rsk-github-issues-example/commit/964134a00bc1a54ba8758ca274049c9174e88f9a)
 
 **features/issuesList/IssuesListPage.tsx**
 
@@ -694,7 +694,7 @@ Inside our `useEffect`, we drop the `fetchIssueCount` function, and dispatch `fe
 
 Next up, we need to replace the logic for fetching a list of open issues.
 
-> - [Add a slice for tracking issues state](https://github.com/markerikson/rsk-github-issues-example/commit/b2e5919651a5076e3857da96321bc979a8ae54b9)
+> - [Add a slice for tracking issues state](https://github.com/reduxjs/rsk-github-issues-example/commit/b2e5919651a5076e3857da96321bc979a8ae54b9)
 
 **features/issuesList/issuesSlice.ts**
 
@@ -811,7 +811,7 @@ This slice is a bit longer, but it's the same basic approach as before: write th
 
 Now we can finish converting the `<IssuesListPage>` component by swapping out the issues fetching logic.
 
-> - [Update IssuesListPage to fetch issues data via Redux](https://github.com/markerikson/rsk-github-issues-example/commit/8dbdc0726ccecf354a01351786196648c752c0a6)
+> - [Update IssuesListPage to fetch issues data via Redux](https://github.com/reduxjs/rsk-github-issues-example/commit/8dbdc0726ccecf354a01351786196648c752c0a6)
 
 Let's look at the changes.
 
@@ -950,7 +950,7 @@ It's very similar to `<IssuesListPage>`. We store the current displayed `Issue`,
 
 We conveniently already have the Redux logic for fetching a single issue - we wrote that already as part of `issuesSlice.ts`. So, we can immediately jump straight to using that here in `<IssueDetailsPage>`.
 
-> - [Update IssueDetailsPage to fetch issue data via Redux](https://github.com/markerikson/rsk-github-issues-example/commit/46bcddbe1078574fab649a13f61a6bf3d0f42839)
+> - [Update IssueDetailsPage to fetch issue data via Redux](https://github.com/reduxjs/rsk-github-issues-example/commit/46bcddbe1078574fab649a13f61a6bf3d0f42839)
 
 **features/issueDetails/IssueDetailsPage.tsx**
 
@@ -1015,7 +1015,7 @@ Interestingly, there's actually a bit of a change in behavior here. The original
 
 We have one more slice left to write - we need to fetch and store comments for the current issue.
 
-> - [Add a slice for tracking comments data](https://github.com/markerikson/rsk-github-issues-example/commit/46bcddbe1078574fab649a13f61a6bf3d0f42839)
+> - [Add a slice for tracking comments data](https://github.com/reduxjs/rsk-github-issues-example/commit/46bcddbe1078574fab649a13f61a6bf3d0f42839)
 
 **features/issueDetails/commentsSlice.ts**
 
@@ -1087,7 +1087,7 @@ The slice should look pretty familiar at this point. Our main bit of state is a 
 
 The final step is to swap the comments fetching logic in `<IssueDetailsPage>`.
 
-> - [Update IssueDetailsPage to fetch comments via Redux](https://github.com/markerikson/rsk-github-issues-example/commit/9d1246a4d89f21da1f0e5377f040bc766e1fc0fd)
+> - [Update IssueDetailsPage to fetch comments via Redux](https://github.com/reduxjs/rsk-github-issues-example/commit/9d1246a4d89f21da1f0e5377f040bc766e1fc0fd)
 
 **features/issueDetails/IssueDetailsPage.tsx**
 
