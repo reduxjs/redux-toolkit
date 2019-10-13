@@ -163,7 +163,7 @@ In this file, we'll add the following logic:
 import { createSlice } from 'redux-starter-kit'
 
 const todosSlice = createSlice({
-  slice: 'todos',
+  name: 'todos',
   initialState: [],
   reducers: {
     addTodo(state, action) {
@@ -189,7 +189,7 @@ export default todosSlice.reducer
 Let's break down what this does:
 
 - `createSlice` takes an options object as its argument, with these options:
-  - `slice`: a string that is used as the prefix for generated action types
+  - `name`: a string that is used as the prefix for generated action types
   - `initialState`: the initial state value for the reducer
   - `reducers`: an object, where the keys will become action type strings, and the functions are reducers that will be run when that action type is dispatched. (These are sometimes referred to as ["case reducers"](https://redux.js.org/recipes/structuring-reducers/splitting-reducer-logic), because they're similar to a `case` in a `switch` statement)
 
@@ -213,11 +213,16 @@ Normal immutable update logic tends to obscure what you're actually trying to do
 
 ```js
 {
-    reducer: (state, action) => newState,
-    actions: {
-        addTodo: (payload) => ({type: "todos/addTodo", payload}),
-        toggleTodo: (payload) => ({type: "todos/toggleTodo", payload})
-    }
+  name: "todos",
+  reducer: (state, action) => newState,
+  actions: {
+    addTodo: (payload) => ({type: "todos/addTodo", payload}),
+    toggleTodo: (payload) => ({type: "todos/toggleTodo", payload})
+  },
+  caseReducers: {
+    addTodo: (state, action) => newState,
+    toggleTodo: (state, action) => newState,
+  }
 }
 ```
 
@@ -325,7 +330,7 @@ If you're using `createSlice`, it automatically calls `createAction` for you. If
 let nextTodoId = 0
 
 const todosSlice = createSlice({
-  slice: 'todos',
+  name: 'todos',
   initialState: [],
   reducers: {
     addTodo: {
@@ -484,7 +489,7 @@ export const VisibilityFilters = {
 }
 
 const filtersSlice = createSlice({
-  slice: 'visibilityFilters',
+  name: 'visibilityFilters',
   initialState: VisibilityFilters.SHOW_ALL,
   reducers: {
     setVisibilityFilter(state, action) {
