@@ -206,7 +206,7 @@ let initialState: CurrentDisplayState = {
 }
 
 const issuesDisplaySlice = createSlice({
-  slice: 'issuesDisplay',
+  name: 'issuesDisplay',
   initialState,
   reducers: {
     displayRepo(state, action: PayloadAction<CurrentRepo>) {
@@ -566,7 +566,7 @@ const initialState: RepoDetailsState = {
 }
 
 const repoDetails = createSlice({
-  slice: 'repoDetails',
+  name: 'repoDetails',
   initialState,
   reducers: {
     getRepoDetailsSuccess(state, action: PayloadAction<RepoDetails>) {
@@ -733,7 +733,7 @@ function loadingFailed(state: IssuesState, action: PayloadAction<string>) {
 }
 
 const issues = createSlice({
-  slice: 'issues',
+  name: 'issues',
   initialState: issuesInitialState,
   reducers: {
     getIssueStart: startLoading,
@@ -1043,7 +1043,7 @@ const initialState: CommentsState = {
 }
 
 const comments = createSlice({
-  slice: 'comments',
+  name: 'comments',
   initialState,
   reducers: {
     getCommentsStart(state) {
