@@ -12,7 +12,7 @@ function expectType<T>(t: T) {
   const firstAction = createAction<{ count: number }>('FIRST_ACTION')
 
   const slice = createSlice({
-    slice: 'counter',
+    name: 'counter',
     initialState: 0,
     reducers: {
       increment: (state: number, action) => state + action.payload,
@@ -47,7 +47,7 @@ function expectType<T>(t: T) {
  */
 {
   const counter = createSlice({
-    slice: 'counter',
+    name: 'counter',
     initialState: 0,
     reducers: {
       increment: state => state + 1,
@@ -85,7 +85,7 @@ function expectType<T>(t: T) {
  */
 {
   const counter = createSlice({
-    slice: 'counter',
+    name: 'counter',
     initialState: 0,
     reducers: {
       increment: state => state + 1,
@@ -112,7 +112,7 @@ function expectType<T>(t: T) {
  */
 {
   const counter = createSlice({
-    slice: 'test',
+    name: 'test',
     initialState: { counter: 0, concat: '' },
     reducers: {
       incrementByStrLen: {
@@ -148,12 +148,63 @@ function expectType<T>(t: T) {
 }
 
 /*
+ * Test: returned case reducer has the correct type
+ */
+{
+  const counter = createSlice({
+    name: 'counter',
+    initialState: 0,
+    reducers: {
+      increment(state, action: PayloadAction<number>) {
+        return state + action.payload
+      },
+      decrement: {
+        reducer(state, action: PayloadAction<number>) {
+          return state - action.payload
+        },
+        prepare(amount: number) {
+          return { payload: amount }
+        }
+      }
+    }
+  })
+
+  // Should match positively
+  expectType<(state: number, action: PayloadAction<number>) => number | void>(
+    counter.caseReducers.increment
+  )
+
+  // Should match positively for reducers with prepare callback
+  expectType<(state: number, action: PayloadAction<number>) => number | void>(
+    counter.caseReducers.decrement
+  )
+
+  // Should not mismatch the payload if it's a simple reducer
+  // typings:expect-error
+  expectType<(state: number, action: PayloadAction<string>) => number | void>(
+    counter.caseReducers.increment
+  )
+
+  // Should not mismatch the payload if it's a reducer with a prepare callback
+  // typings:expect-error
+  expectType<(state: number, action: PayloadAction<string>) => number | void>(
+    counter.caseReducers.decrement
+  )
+
+  // Should not include entries that don't exist
+  // typings:expect-error
+  expectType<(state: number, action: PayloadAction<string>) => number | void>(
+    counter.caseReducers.someThingNonExistant
+  )
+}
+
+/*
  * Test: prepared payload does not match action payload - should cause an error.
  */
 {
   // typings:expect-error
   const counter = createSlice({
-    slice: 'counter',
+    name: 'counter',
     initialState: { counter: 0 },
     reducers: {
       increment: {
@@ -180,6 +231,7 @@ function expectType<T>(t: T) {
   }
 
   const mySlice = createSlice({
+    name: 'name',
     initialState,
     reducers: {
       setName: (state, action) => {

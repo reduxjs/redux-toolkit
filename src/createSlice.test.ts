@@ -2,56 +2,45 @@ import { createSlice } from './createSlice'
 import { createAction, PayloadAction } from './createAction'
 
 describe('createSlice', () => {
-  describe('when slice is empty', () => {
-    const { actions, reducer } = createSlice({
-      reducers: {
-        increment: state => state + 1,
-        multiply: (state, action: PayloadAction<number>) =>
-          state * action.payload
-      },
-      initialState: 0
+  describe('when slice is undefined', () => {
+    it('should throw an error', () => {
+      expect(() =>
+        // @ts-ignore
+        createSlice({
+          reducers: {
+            increment: state => state + 1,
+            multiply: (state, action: PayloadAction<number>) =>
+              state * action.payload
+          },
+          initialState: 0
+        })
+      ).toThrowError()
     })
+  })
 
-    it('should create increment action', () => {
-      expect(actions.hasOwnProperty('increment')).toBe(true)
-    })
-
-    it('should create multiply action', () => {
-      expect(actions.hasOwnProperty('multiply')).toBe(true)
-    })
-
-    it('should have the correct action for increment', () => {
-      expect(actions.increment()).toEqual({
-        type: 'increment',
-        payload: undefined
-      })
-    })
-
-    it('should have the correct action for multiply', () => {
-      expect(actions.multiply(3)).toEqual({
-        type: 'multiply',
-        payload: 3
-      })
-    })
-
-    describe('when using reducer', () => {
-      it('should return the correct value from reducer with increment', () => {
-        expect(reducer(undefined, actions.increment())).toEqual(1)
-      })
-
-      it('should return the correct value from reducer with multiply', () => {
-        expect(reducer(2, actions.multiply(3))).toEqual(6)
-      })
+  describe('when slice is an empty string', () => {
+    it('should throw an error', () => {
+      expect(() =>
+        createSlice({
+          name: '',
+          reducers: {
+            increment: state => state + 1,
+            multiply: (state, action: PayloadAction<number>) =>
+              state * action.payload
+          },
+          initialState: 0
+        })
+      ).toThrowError()
     })
   })
 
   describe('when passing slice', () => {
-    const { actions, reducer } = createSlice({
+    const { actions, reducer, caseReducers } = createSlice({
       reducers: {
         increment: state => state + 1
       },
       initialState: 0,
-      slice: 'cool'
+      name: 'cool'
     })
 
     it('should create increment action', () => {
@@ -68,6 +57,12 @@ describe('createSlice', () => {
     it('should return the correct value from reducer', () => {
       expect(reducer(undefined, actions.increment())).toEqual(1)
     })
+
+    it('should include the generated case reducers', () => {
+      expect(caseReducers).toBeTruthy()
+      expect(caseReducers.increment).toBeTruthy()
+      expect(typeof caseReducers.increment).toBe('function')
+    })
   })
 
   describe('when mutating state object', () => {
@@ -80,7 +75,7 @@ describe('createSlice', () => {
         }
       },
       initialState,
-      slice: 'user'
+      name: 'user'
     })
 
     it('should set the username', () => {
@@ -94,6 +89,7 @@ describe('createSlice', () => {
     const addMore = createAction('ADD_MORE')
 
     const { reducer } = createSlice({
+      name: 'test',
       reducers: {
         increment: state => state + 1,
         multiply: (state, action) => state * action.payload
@@ -116,7 +112,7 @@ describe('createSlice', () => {
       const prepare = jest.fn((payload, somethingElse) => ({ payload }))
 
       const testSlice = createSlice({
-        slice: 'test',
+        name: 'test',
         initialState: 0,
         reducers: {
           testReducer: {
@@ -137,7 +133,7 @@ describe('createSlice', () => {
       const reducer = jest.fn()
 
       const testSlice = createSlice({
-        slice: 'test',
+        name: 'test',
         initialState: 0,
         reducers: {
           testReducer: {
