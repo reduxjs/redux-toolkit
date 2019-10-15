@@ -230,7 +230,7 @@ export function createSlice<
   })
 
   const finalCaseReducers = { ...extraReducers, ...sliceCaseReducersByType }
-  const reducer = createReducer(initialState, finalCaseReducers)
+  const reducer = createReducer(initialState, finalCaseReducers as any)
 
   return {
     name,
