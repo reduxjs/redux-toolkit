@@ -1,6 +1,6 @@
 {
   "name": "redux-starter-kit",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "A simple set of tools to make using Redux easier",
   "repository": "https://github.com/reduxjs/redux-starter-kit",
   "main": "dist/redux-starter-kit.cjs.js",
