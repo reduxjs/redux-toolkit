@@ -5,6 +5,7 @@ env:
   - TYPESCRIPT_VERSION=3.5
   - TYPESCRIPT_VERSION=3.4
   - TYPESCRIPT_VERSION=3.3
-install: npm ci --ignore-scripts
-after_install: npm install typescript@$TYPESCRIPT_VERSION
+install:
+  - npm ci --ignore-scripts
+  - npm install typescript@$TYPESCRIPT_VERSION
 script: npm run prepare
