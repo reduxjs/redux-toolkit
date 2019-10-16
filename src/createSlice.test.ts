@@ -86,7 +86,7 @@ describe('createSlice', () => {
   })
 
   describe('when passing extra reducers', () => {
-    const addMore = createAction('ADD_MORE')
+    const addMore = createAction<{ amount: number }>('ADD_MORE')
 
     const { reducer } = createSlice({
       name: 'test',
