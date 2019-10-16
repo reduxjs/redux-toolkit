@@ -172,3 +172,16 @@ function expectType<T>(p: T): T {
   // typings:expect-error
   expectType<string>(strLenMetaAction('test').meta)
 }
+
+/*
+ * regression test for https://github.com/reduxjs/redux-starter-kit/issues/214
+ */
+{
+  const action = createAction<{ input?: string }>('ACTION')
+  const t: string|undefined = action({input: ""}).payload.input;
+  
+  // typings:expect-error
+  const u: number = action({input: ""}).payload.input;
+  // typings:expect-error
+  const v: number = action({input: 3}).payload.input;
+}

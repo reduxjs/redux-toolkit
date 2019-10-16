@@ -13,8 +13,8 @@ export type IsUnknown<T, True, False = never> = unknown extends T
   : False
 
 export type IsEmptyObj<T, True, False = never> = T extends any
-  ? {} extends T
-    ? IsUnknown<T, False, IsAny<T, False, True>>
+  ? keyof T extends never
+    ? IsUnknown<T, False, True>
     : False
   : never
 
@@ -24,11 +24,11 @@ export type IsEmptyObj<T, True, False = never> = T extends any
  * * versions below 3.5 will return `{}` for unresolvable interference
  * * versions above will return `unknown`
  * */
-export type AtLeastTS35<True, False> = IsUnknown<
+export type AtLeastTS35<True, False> = [True, False][IsUnknown<
   ReturnType<<T>() => T>,
-  True,
-  False
->
+  0,
+  1
+>]
 
 export type IsUnknownOrNonInferrable<T, True, False> = AtLeastTS35<
   IsUnknown<T, True, False>,
