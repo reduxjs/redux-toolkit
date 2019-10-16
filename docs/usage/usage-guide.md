@@ -443,6 +443,7 @@ Here's how that posts example would look with `createSlice:
 
 ```js
 const postsSlice = createSlice({
+  name: 'posts',
   initialState: [],
   reducers: {
     createPost(state, action) {},
@@ -454,6 +455,7 @@ const postsSlice = createSlice({
 console.log(postsSlice)
 /*
 {
+    name: 'posts',
     actions : {
         createPost,
         updatePost,
@@ -471,11 +473,9 @@ console.log(createPost({ id: 123, title: 'Hello World' }))
 
 `createSlice` looked at all of the functions that were defined in the `reducers` field, and for every "case reducer" function provided, generates an action creator that uses the name of the reducer as the action type itself. So, the `createPost` reducer became an action type of `"createPost"`, and the `createPost()` action creator will return an action with that type.
 
-You can also optionally define a `slice` parameter with a string that will be used as the prefix of the action types:
-
 ```js
 const postsSlice = createSlice({
-  slice: 'posts',
+  name: 'posts',
   initialState: [],
   reducers: {
     createPost(state, action) {},
@@ -496,7 +496,7 @@ Most of the time, you'll want to define a slice, and export its action creators 
 
 ```js
 const postsSlice = createSlice({
-  slice: 'posts',
+  name: 'posts',
   initialState: [],
   reducers: {
     createPost(state, action) {},
