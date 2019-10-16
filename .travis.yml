@@ -1,2 +1,11 @@
 language: node_js
 node_js: node
+env:
+  - TYPESCRIPT_VERSION=3.6
+  - TYPESCRIPT_VERSION=3.5
+  - TYPESCRIPT_VERSION=3.4
+  - TYPESCRIPT_VERSION=3.3
+install:
+  - npm ci --ignore-scripts
+  - npm install typescript@$TYPESCRIPT_VERSION
+script: npm run prepare

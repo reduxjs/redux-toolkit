@@ -10,7 +10,7 @@ import { IsUnknownOrNonInferrable } from './tsHelpers'
  * @template M The type of the action's meta (optional)
  */
 export type PayloadAction<
-  P = any,
+  P = void,
   T extends string = string,
   M = void
 > = WithOptionalMeta<M, WithPayload<P, Action<T>>>
@@ -62,7 +62,7 @@ export type ActionCreatorWithPayload<
  * An action creator that produces actions with a `payload` attribute.
  */
 export type PayloadActionCreator<
-  P = any,
+  P = void,
   T extends string = string,
   PA extends PrepareAction<P> | void = void
 > = IfPrepareActionMethodProvided<
@@ -94,7 +94,7 @@ export type PayloadActionCreator<
  *                If this is given, the resulting action creator will pass it's arguments to this method to calculate payload & meta.
  */
 
-export function createAction<P = any, T extends string = string>(
+export function createAction<P = void, T extends string = string>(
   type: T
 ): PayloadActionCreator<P, T>
 

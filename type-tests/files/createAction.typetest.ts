@@ -19,11 +19,14 @@ function expectType<T>(p: T): T {
 }
 
 /*
- * Test: PayloadAction type parameter is optional (defaults to `any`).
+ * Test: PayloadAction type parameter is required.
  */
 {
+  // typings:expect-error
   const action: PayloadAction = { type: '', payload: 5 }
+  // typings:expect-error
   const numberPayload: number = action.payload
+  // typings:expect-error
   const stringPayload: string = action.payload
 }
 
@@ -31,7 +34,7 @@ function expectType<T>(p: T): T {
  * Test: PayloadAction has a string type tag.
  */
 {
-  const action: PayloadAction = { type: '', payload: 5 }
+  const action: PayloadAction<number> = { type: '', payload: 5 }
 
   // typings:expect-error
   const action2: PayloadAction = { type: 1, payload: 5 }
@@ -41,7 +44,7 @@ function expectType<T>(p: T): T {
  * Test: PayloadAction is compatible with Action<string>
  */
 {
-  const action: PayloadAction = { type: '', payload: 5 }
+  const action: PayloadAction<number> = { type: '', payload: 5 }
   const stringAction: Action<string> = action
 }
 
@@ -58,7 +61,7 @@ function expectType<T>(p: T): T {
       payload
     }),
     { type: 'action' }
-  ) as PayloadActionCreator
+  ) as PayloadActionCreator<number | undefined>
 
   expectType<PayloadAction<number>>(actionCreator(1))
   expectType<PayloadAction<undefined>>(actionCreator())
@@ -110,22 +113,18 @@ function expectType<T>(p: T): T {
 }
 
 /*
- * Test: createAction() type parameter is optional (defaults to `any`).
+ * Test: createAction() type parameter is required, not inferred (defaults to `void`).
  */
 {
   const increment = createAction('increment')
-  const n: number = increment(1).payload
-  const s: string = increment('1').payload
-
-  // but infers the payload type to be the argument type
   // typings:expect-error
-  const t: string = increment(1).payload
+  const n: number = increment(1).payload
 }
 /*
  * Test: createAction().type is a string literal.
  */
 {
-  const increment = createAction('increment')
+  const increment = createAction<number, 'increment'>('increment')
   const n: string = increment(1).type
   const s: 'increment' = increment(1).type
 
@@ -172,4 +171,17 @@ function expectType<T>(p: T): T {
 
   // typings:expect-error
   expectType<string>(strLenMetaAction('test').meta)
+}
+
+/*
+ * regression test for https://github.com/reduxjs/redux-starter-kit/issues/214
+ */
+{
+  const action = createAction<{ input?: string }>('ACTION')
+  const t: string|undefined = action({input: ""}).payload.input;
+  
+  // typings:expect-error
+  const u: number = action({input: ""}).payload.input;
+  // typings:expect-error
+  const v: number = action({input: 3}).payload.input;
 }
