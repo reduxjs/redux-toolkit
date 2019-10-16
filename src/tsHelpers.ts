@@ -24,7 +24,11 @@ export type IsEmptyObj<T, True, False = never> = T extends any
  * * versions below 3.5 will return `{}` for unresolvable interference
  * * versions above will return `unknown`
  * */
-export type AtLeastTS35<True, False> = [True, False][IsUnknown<ReturnType<<T>() => T>, 0, 1>]
+export type AtLeastTS35<True, False> = [True, False][IsUnknown<
+  ReturnType<<T>() => T>,
+  0,
+  1
+>]
 
 export type IsUnknownOrNonInferrable<T, True, False> = AtLeastTS35<
   IsUnknown<T, True, False>,
