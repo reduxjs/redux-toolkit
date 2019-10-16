@@ -73,7 +73,7 @@ export interface CreateSliceOptions<
    * functions. These reducers should have existing action types used
    * as the keys, and action creators will _not_ be generated.
    */
-  extraReducers?: CaseReducers<State, any>
+  extraReducers?: CaseReducers<NoInfer<State>, any>
 }
 
 type PayloadActions<Types extends keyof any = string> = Record<
@@ -230,7 +230,7 @@ export function createSlice<
   })
 
   const finalCaseReducers = { ...extraReducers, ...sliceCaseReducersByType }
-  const reducer = createReducer(initialState, finalCaseReducers)
+  const reducer = createReducer(initialState, finalCaseReducers as any)
 
   return {
     name,
