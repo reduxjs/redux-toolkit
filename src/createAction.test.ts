@@ -2,7 +2,7 @@ import { createAction, getType } from './createAction'
 
 describe('createAction', () => {
   it('should create an action', () => {
-    const actionCreator = createAction('A_TYPE')
+    const actionCreator = createAction<string>('A_TYPE')
     expect(actionCreator('something')).toEqual({
       type: 'A_TYPE',
       payload: 'something'
