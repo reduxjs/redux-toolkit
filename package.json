@@ -43,5 +43,16 @@
     "redux-thunk": "^2.2.0",
     "reselect": "^4.0.0"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "jest": {
+    "globals": {
+      "ts-jest": {
+        "diagnostics": {
+          "ignoreCodes": [
+            6133
+          ]
+        }
+      }
+    }
+  }
 }
