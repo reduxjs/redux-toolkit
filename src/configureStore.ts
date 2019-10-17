@@ -118,11 +118,15 @@ export function configureStore<S = any, A extends Action = AnyAction>(
   let finalCompose = compose
 
   if (devTools) {
-    finalCompose = composeWithDevTools({
-      // Enable capture of stack traces for dispatched Redux actions
-      trace: !IS_PRODUCTION,
-      ...(typeof devTools === 'object' && devTools)
-    })
+    const devToolsOptions: DevToolsOptions = Object.assign(
+      {
+        // Enable capture of stack traces for dispatched Redux actions
+        trace: !IS_PRODUCTION
+      },
+      typeof devTools === 'object' ? devTools : {}
+    )
+
+    finalCompose = composeWithDevTools(devToolsOptions)
   }
 
   let storeEnhancers: StoreEnhancer[] = [middlewareEnhancer]
