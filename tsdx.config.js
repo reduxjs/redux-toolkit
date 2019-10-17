@@ -15,7 +15,8 @@ module.exports = {
         config.output.file = join(__dirname, pkg.main)
         break
       case 'umd':
-        console.log({ plugins: config.plugins})
+        delete config.external
+        //console.log(config)
         config.output.indent = false
         config.plugins.push(
           replace({
@@ -31,6 +32,11 @@ module.exports = {
         )
         if (env === 'production') {
           config.output.file = join(__dirname, pkg.unpkg)
+        } else {
+          config.output.file = config.output.file.replace(
+            'umd.development',
+            'umd'
+          )
         }
         break
     }
