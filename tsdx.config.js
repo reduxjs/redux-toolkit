@@ -11,9 +11,6 @@ module.exports = {
     const { env, format } = options
     // eslint-disable-next-line default-case
     switch (format) {
-      case 'cjs':
-        config.output.file = join(__dirname, pkg.main)
-        break
       case 'umd':
         delete config.external
         //console.log(config)

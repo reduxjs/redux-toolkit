@@ -3,7 +3,7 @@
   "version": "0.9.0-alpha.0",
   "description": "A simple set of tools to make using Redux easier",
   "repository": "https://github.com/reduxjs/redux-starter-kit",
-  "main": "dist/redux-starter-kit.cjs.js",
+  "main": "dist/index.js",
   "module": "dist/redux-starter-kit.esm.js",
   "unpkg": "dist/redux-starter-kit.umd.min.js",
   "types": "dist/typings.d.ts",
