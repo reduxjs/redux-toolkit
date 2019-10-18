@@ -4,23 +4,36 @@ import { Reducer } from 'redux'
 
 interface Todo {
   text: string
-  completed: boolean
+  completed?: boolean
+}
+
+interface AddTodoPayload {
+  newTodo: Todo
+}
+
+interface ToggleTodoPayload {
+  index: number
 }
 
 type TodoState = Todo[]
-type TodosReducer = Reducer<TodoState, PayloadAction>
-type TodosCaseReducer = CaseReducer<TodoState, PayloadAction>
+type TodosReducer = Reducer<TodoState, PayloadAction<any>>
+type AddTodoReducer = CaseReducer<TodoState, PayloadAction<AddTodoPayload>>
+
+type ToggleTodoReducer = CaseReducer<
+  TodoState,
+  PayloadAction<ToggleTodoPayload>
+>
 
 describe('createReducer', () => {
   describe('given impure reducers with immer', () => {
-    const addTodo: TodosCaseReducer = (state, action) => {
+    const addTodo: AddTodoReducer = (state, action) => {
       const { newTodo } = action.payload
 
       // Can safely call state.push() here
       state.push({ ...newTodo, completed: false })
     }
 
-    const toggleTodo: TodosCaseReducer = (state, action) => {
+    const toggleTodo: ToggleTodoReducer = (state, action) => {
       const { index } = action.payload
 
       const todo = state[index]
@@ -37,14 +50,14 @@ describe('createReducer', () => {
   })
 
   describe('given pure reducers with immutable updates', () => {
-    const addTodo: TodosCaseReducer = (state, action) => {
+    const addTodo: AddTodoReducer = (state, action) => {
       const { newTodo } = action.payload
 
       // Updates the state immutably without relying on immer
-      return [...state, { ...newTodo, completed: false }]
+      return state.concat({ ...newTodo, completed: false })
     }
 
-    const toggleTodo: TodosCaseReducer = (state, action) => {
+    const toggleTodo: ToggleTodoReducer = (state, action) => {
       const { index } = action.payload
 
       // Updates the todo object immutably withot relying on immer
