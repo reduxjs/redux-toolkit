@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "module": "dist/redux-starter-kit.esm.js",
   "unpkg": "dist/redux-starter-kit.umd.min.js",
-  "types": "dist/typings.d.ts",
+  "types": "dist/index.d.ts",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
   "devDependencies": {
@@ -33,7 +33,9 @@
     "test": "tsdx test"
   },
   "files": [
-    "dist",
+    "dist/*.js",
+    "dist/*.js.map",
+    "dist/index.d.ts",
     "src"
   ],
   "dependencies": {
