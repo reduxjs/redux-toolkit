@@ -54,7 +54,7 @@ describe('createReducer', () => {
       const { newTodo } = action.payload
 
       // Updates the state immutably without relying on immer
-      return [...state, { ...newTodo, completed: false }]
+      return state.concat({ ...newTodo, completed: false })
     }
 
     const toggleTodo: ToggleTodoReducer = (state, action) => {

@@ -138,7 +138,7 @@ describe('createSlice', () => {
         reducers: {
           testReducer: {
             reducer,
-            prepare: payload => ({ payload })
+            prepare: (payload: any) => ({ payload })
           }
         }
       })
