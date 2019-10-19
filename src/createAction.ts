@@ -8,16 +8,19 @@ import { IsUnknownOrNonInferrable } from './tsHelpers'
  * @template P The type of the action's payload.
  * @template T the type used for the action type.
  * @template M The type of the action's meta (optional)
+ * @template E The type of the action's error (optional)
  */
 export type PayloadAction<
   P = void,
   T extends string = string,
-  M = void
-> = WithOptionalMeta<M, WithPayload<P, Action<T>>>
+  M = void,
+  E = void
+> = WithOptional<M, E, WithPayload<P, Action<T>>>
 
 export type PrepareAction<P> =
   | ((...args: any[]) => { payload: P })
   | ((...args: any[]) => { payload: P; meta: any })
+  | ((...args: any[]) => { payload: P; meta: any; error: any })
 
 export type ActionCreatorWithPreparedPayload<
   PA extends PrepareAction<any> | void,
@@ -25,7 +28,9 @@ export type ActionCreatorWithPreparedPayload<
 > = WithTypeProperty<
   T,
   PA extends PrepareAction<infer P>
-    ? (...args: Parameters<PA>) => PayloadAction<P, T, MetaOrVoid<PA>>
+    ? (
+        ...args: Parameters<PA>
+      ) => PayloadAction<P, T, MetaOrVoid<PA>, ErrorOrVoid<PA>>
     : void
 >
 
@@ -113,9 +118,13 @@ export function createAction(type: string, prepareAction?: Function) {
       if (!prepared) {
         throw new Error('prepareAction did not return an object')
       }
-      return 'meta' in prepared
-        ? { type, payload: prepared.payload, meta: prepared.meta }
-        : { type, payload: prepared.payload }
+
+      return {
+        type,
+        payload: prepared.payload,
+        ...('meta' in prepared && { meta: prepared.meta }),
+        ...('error' in prepared && { error: prepared.error })
+      }
     }
     return { type, payload: args[0] }
   }
@@ -147,7 +156,9 @@ type Diff<T, U> = T extends U ? never : T
 
 type WithPayload<P, T> = T & { payload: P }
 
-type WithOptionalMeta<M, T> = T & ([M] extends [void] ? {} : { meta: M })
+type WithOptional<M, E, T> = T &
+  ([M] extends [void] ? {} : { meta: M }) &
+  ([E] extends [void] ? {} : { error: E })
 
 type WithTypeProperty<T, MergeIn> = {
   type: T
@@ -163,6 +174,12 @@ type MetaOrVoid<PA extends PrepareAction<any>> = ReturnType<PA> extends {
   meta: infer M
 }
   ? M
+  : void
+
+type ErrorOrVoid<PA extends PrepareAction<any>> = ReturnType<PA> extends {
+  error: infer E
+}
+  ? E
   : void
 
 type IfMaybeUndefined<P, True, False> = [undefined] extends [P] ? True : False
