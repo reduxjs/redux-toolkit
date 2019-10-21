@@ -157,7 +157,7 @@ function expectType<T>(p: T): T {
   // typings:expect-error
   expectType<string>(strLenAction('test').payload)
   // typings:expect-error
-  expectType<boolean>(strLenAction('test').error)
+  const error: any = strLenAction('test').error
 }
 
 /*
@@ -174,7 +174,7 @@ function expectType<T>(p: T): T {
   // typings:expect-error
   expectType<string>(strLenMetaAction('test').meta)
   // typings:expect-error
-  expectType<boolean>(strLenMetaAction('test').error)
+  const error: any = strLenMetaAction('test').error
 }
 
 /*
