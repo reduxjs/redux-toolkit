@@ -48,6 +48,50 @@ describe('createAction', () => {
     })
   })
 
+  describe('when passing a prepareAction method returning a payload and error', () => {
+    it('should use the payload returned from the prepareAction method', () => {
+      const actionCreator = createAction('A_TYPE', (a: number) => ({
+        payload: a * 2,
+        error: true
+      }))
+      expect(actionCreator(5).payload).toBe(10)
+    })
+    it('should use the error returned from the prepareAction method', () => {
+      const actionCreator = createAction('A_TYPE', (a: number) => ({
+        payload: a * 2,
+        error: true
+      }))
+      expect(actionCreator(10).error).toBe(true)
+    })
+  })
+
+  describe('when passing a prepareAction method returning a payload, meta and error', () => {
+    it('should use the payload returned from the prepareAction method', () => {
+      const actionCreator = createAction('A_TYPE', (a: number) => ({
+        payload: a * 2,
+        meta: a / 2,
+        error: true
+      }))
+      expect(actionCreator(5).payload).toBe(10)
+    })
+    it('should use the error returned from the prepareAction method', () => {
+      const actionCreator = createAction('A_TYPE', (a: number) => ({
+        payload: a * 2,
+        meta: a / 2,
+        error: true
+      }))
+      expect(actionCreator(10).error).toBe(true)
+    })
+    it('should use the meta returned from the prepareAction method', () => {
+      const actionCreator = createAction('A_TYPE', (a: number) => ({
+        payload: a * 2,
+        meta: a / 2,
+        error: true
+      }))
+      expect(actionCreator(10).meta).toBe(5)
+    })
+  })
+
   describe('when passing a prepareAction that accepts multiple arguments', () => {
     it('should pass all arguments of the resulting actionCreator to prepareAction', () => {
       const actionCreator = createAction(
