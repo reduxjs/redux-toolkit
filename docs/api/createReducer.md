@@ -99,7 +99,7 @@ const todosReducer = createReducer([], {
 })
 ```
 
-If you choose to write reducers in this style, make sure to learn about the [pitfalls mentioned in the immer docs](https://github.com/mweststrate/immer#pitfalls) . Most importantly, you need to ensure that you either mutate the `state` argument or return a new state, _but not both_. For example, the following reducer would throw an exception if a `toggleTodo` action is passed:
+If you choose to write reducers in this style, make sure to learn about the [pitfalls mentioned in the immer docs](https://immerjs.github.io/immer/docs/pitfalls) . Most importantly, you need to ensure that you either mutate the `state` argument or return a new state, _but not both_. For example, the following reducer would throw an exception if a `toggleTodo` action is passed:
 
 ```js
 const todosReducer = createReducer([], {
