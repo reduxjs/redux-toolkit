@@ -672,7 +672,7 @@ Everyone has different preferences on what makes a "maintainable" folder structu
 Now, let's see the final version of the code in action!
 
 <iframe src="https://codesandbox.io/embed/rsk-convert-todos-example-l0h14?fontsize=14&module=%2Fsrc%2Ffeatures%2Ftodos%2FtodosSlice.js&view=editor"
-     style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+     style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
      title="rsk-convert-todos-example"
      allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
      sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
