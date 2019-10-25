@@ -626,7 +626,6 @@ import { VisibilityFilters } from 'features/filters/filtersSlice'
 +        throw new Error('Unknown filter: ' + filter)
 +    }
 +  }
-+}
 +)
 
 const mapStateToProps = state => ({
