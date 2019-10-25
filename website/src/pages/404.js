@@ -1,15 +1,18 @@
-const React = require('react')
-const siteConfig = require(`${process.cwd()}/siteConfig.js`)
+import React from 'react'
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
-class ErrorPage extends React.Component {
-  getTrackingScript() {
+function ErrorPage() {
+  const context = useDocusaurusContext();
+  const { siteConfig = {} } = context;
+
+  function getTrackingScript() {
     if (!siteConfig.gaTrackingId) {
       return null
     }
 
     return {
       __html: `
-      ga('create', "${siteConfig.gaTrackingId}");
+      ga('create', "${siteConfig.themeConfig.googleAnalytics.trackingID}");
       ga('send', {
         hitType: 'event',
         eventCategory: '404 Response',
@@ -19,24 +22,22 @@ class ErrorPage extends React.Component {
     }
   }
 
-  render() {
-    const trackingScript = this.getTrackingScript()
+  const trackingScript = getTrackingScript()
 
-    return (
-      <div className="error-page">
-        {trackingScript && <script dangerouslySetInnerHTML={trackingScript} />}
-        <div className="error-message">
-          <div className=" error-message-container container">
-            <span>404 </span>
-            <p>Page Not Found.</p>
-            <a href="/">Return to the front page</a>
-          </div>
+  return (
+    <div className="error-page">
+      {trackingScript && <script dangerouslySetInnerHTML={trackingScript} />}
+      <div className="error-message">
+        <div className=" error-message-container container">
+          <span>404 </span>
+          <p>Page Not Found.</p>
+          <a href="/">Return to the front page</a>
         </div>
       </div>
-    )
-  }
+    </div>
+  )
 }
 
 ErrorPage.title = 'Page Not Found'
 
-module.exports = ErrorPage
+export default ErrorPage
