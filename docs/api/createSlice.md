@@ -113,7 +113,7 @@ const counter = createSlice({
     decrement: state => state - 1,
     multiply: {
       reducer: (state, action) => state * action.payload,
-      prepare: value => ({payload: value || 2}) // fallback if the payload is a falsy value
+      prepare: value => ({ payload: value || 2 }) // fallback if the payload is a falsy value
     }
   }
 })
