@@ -82,6 +82,8 @@ to force the TS compiler to accept the computed property.)
 Each function defined in the `reducers` argument will have a corresponding action creator generated using [`createAction`](./createAction.md)
 and included in the result's `actions` field using the same function name.
 
+If you need to customize the creation of the payload value of an action creator by means of a [`prepare callback`](https://redux-starter-kit.js.org/api/createaction#using-prepare-callbacks-to-customize-action-contents), the value of the appropriate field of the `reducers` argument object should be an object instead of a function. This object must contain two properties: reducer and prepare. The value of the reducer field should be the case reducer function while the value of the prepare field should be the prepare callback function.
+
 The generated `reducer` function is suitable for passing to the Redux `combineReducers` function as a "slice reducer".
 
 You may want to consider destructuring the action creators and exporting them individually, for ease of searching
@@ -109,7 +111,10 @@ const counter = createSlice({
   reducers: {
     increment: state => state + 1,
     decrement: state => state - 1,
-    multiply: (state, action) => state * action.payload
+    multiply: {
+      reducer: (state, action) => state * action.payload,
+      prepare: value => ({payload: value || 2}) // fallback if the payload is a falsy value
+    }
   }
 })
 
@@ -141,6 +146,8 @@ store.dispatch(counter.actions.increment())
 // -> { counter: 2, user: {name: '', age: 22} }
 store.dispatch(counter.actions.multiply(3))
 // -> { counter: 6, user: {name: '', age: 22} }
+store.dispatch(counter.actions.multiply())
+// -> { counter: 12, user: {name: '', age: 22} }
 console.log(`${counter.actions.decrement}`)
 // -> "counter/decrement"
 store.dispatch(user.actions.setUserName('eric'))
