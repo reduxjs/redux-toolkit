@@ -1,5 +1,6 @@
 import { Action, AnyAction, ActionCreator } from 'redux'
 import { createAction, PayloadAction, PayloadActionCreator } from '../../src'
+import { IsAny } from 'src/tsHelpers'
 
 function expectType<T>(p: T): T {
   return p
@@ -218,4 +219,23 @@ function expectType<T>(p: T): T {
   const u: number = action({input: ""}).payload.input;
   // typings:expect-error
   const v: number = action({input: 3}).payload.input;
+}
+/*
+ * regression test for https://github.com/reduxjs/redux-starter-kit/issues/224
+ */
+{
+  const oops = createAction('oops', (x: any) => ({ payload: x, error: x, meta: x }))
+
+  type Ret = ReturnType<typeof oops>;
+
+  const payload: IsAny<Ret['payload'], true, false> = true;
+  const error: IsAny<Ret['error'], true, false> = true;
+  const meta: IsAny<Ret['meta'], true, false> = true;
+
+  // typings:expect-error
+  const payloadNotAny: IsAny<Ret['payload'], true, false> = false;
+  // typings:expect-error
+  const errorNotAny: IsAny<Ret['error'], true, false> = false;
+  // typings:expect-error
+  const metaNotAny: IsAny<Ret['meta'], true, false> = false;
 }
