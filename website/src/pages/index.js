@@ -13,30 +13,30 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './styles.module.css';
 
-const siteConfig = require(`../../docusaurus.config.js`)
+// const siteConfig = require(`../../docusaurus.config.js`)
 
 const features = [
   {
     content: <p>Includes utilities to simplify common use cases like <strong>store setup, creating reducers, immutable update logic</strong>, and more.</p>,
-    image: imgUrl('noun_snap_1984955.svg'),
+    image: 'img/noun_snap_1984955.svg',
     imageAlign: 'top',
     title: 'Simple'
   },
   {
     content: <p>Provides <strong>good defaults for store setup out of the box</strong>, and includes <strong>the most commonly used Redux addons built-in</strong>.</p>,
-    image: imgUrl('noun_Brain_1551075.svg'),
+    image: 'img/noun_Brain_1551075.svg',
     imageAlign: 'top',
     title: 'Opinionated'
   },
   {
     content: <p>Takes inspiration from libraries like Immer and Autodux to let you <strong>write "mutative" immutable update logic</strong>, and even <strong>create entire "slices" of state automatically</strong>.</p>,
-    image: imgUrl('noun_Bicep_1338504.svg'),
+    image: 'img/noun_Bicep_1338504.svg',
     imageAlign: 'top',
     title: 'Powerful'
   },
   {
     content: <p>Lets you focus on the core logic your app needs, so you can <strong>do more work with less code</strong>.</p>,
-    image: imgUrl('noun_Checklist_437165.svg'),
+    image: 'img/noun_Checklist_437165.svg',
     imageAlign: 'top',
     title: 'Effective'
   }
@@ -140,14 +140,6 @@ function Home() {
       </main>
     </Layout>
   );
-}
-
-function docUrl(doc, language) {
-  return `${siteConfig.baseUrl}${language ? `${language}/` : ''}${doc}`
-}
-
-function imgUrl(img) {
-  return `${siteConfig.baseUrl}img/${img}`
 }
 
 export default Home;
