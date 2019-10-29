@@ -26,42 +26,47 @@ export type PrepareAction<P> =
 export type ActionCreatorWithPreparedPayload<
   PA extends PrepareAction<any> | void,
   T extends string = string
-> = WithTypeProperty<
-  T,
-  PA extends PrepareAction<infer P>
-    ? (
+> = PA extends PrepareAction<infer P>
+  ? WithTypePropertyAndMatch<
+      (
         ...args: Parameters<PA>
-      ) => PayloadAction<P, T, MetaOrNever<PA>, ErrorOrNever<PA>>
-    : void
->
+      ) => PayloadAction<P, T, MetaOrNever<PA>, ErrorOrNever<PA>>,
+      T,
+      P,
+      MetaOrNever<PA>,
+      ErrorOrNever<PA>
+    >
+  : void
 
 export type ActionCreatorWithOptionalPayload<
   P,
   T extends string = string
-> = WithTypeProperty<
-  T,
+> = WithTypePropertyAndMatch<
   {
     (payload?: undefined): PayloadAction<undefined, T>
     <PT extends Diff<P, undefined>>(payload?: PT): PayloadAction<PT, T>
-  }
+  },
+  T,
+  P | undefined
 >
 
 export type ActionCreatorWithoutPayload<
   T extends string = string
-> = WithTypeProperty<T, () => PayloadAction<undefined, T>>
+> = WithTypePropertyAndMatch<() => PayloadAction<undefined, T>, T, undefined>
 
 export type ActionCreatorWithPayload<
   P,
   T extends string = string
-> = WithTypeProperty<
-  T,
+> = WithTypePropertyAndMatch<
   IsUnknownOrNonInferrable<
     P,
     // TS < 3.5 infers non-inferrable types to {}, which does not take `null`. This enforces `undefined` instead.
     <PT extends unknown>(payload: PT) => PayloadAction<PT, T>,
     // default behaviour
     <PT extends P>(payload: PT) => PayloadAction<PT, T>
-  >
+  >,
+  T,
+  P
 >
 
 /**
@@ -134,6 +139,9 @@ export function createAction(type: string, prepareAction?: Function) {
 
   actionCreator.type = type
 
+  actionCreator.match = (action: Action<unknown>): action is PayloadAction =>
+    action.type === type
+
   return actionCreator
 }
 
@@ -161,9 +169,21 @@ type WithOptional<M, E, T> = T &
   ([M] extends [never] ? {} : { meta: M }) &
   ([E] extends [never] ? {} : { error: E })
 
-type WithTypeProperty<T, MergeIn> = {
+type WithTypeProperty<MergeIn, T extends string> = {
   type: T
 } & MergeIn
+
+type WithMatch<MergeIn, T extends string, P, M = never, E = never> = {
+  match(action: Action<unknown>): action is PayloadAction<P, T, M, E>
+} & MergeIn
+
+type WithTypePropertyAndMatch<
+  MergeIn,
+  T extends string,
+  P,
+  M = never,
+  E = never
+> = WithTypeProperty<WithMatch<MergeIn, T, P, M, E>, T>
 
 type IfPrepareActionMethodProvided<
   PA extends PrepareAction<any> | void,

@@ -213,29 +213,109 @@ function expectType<T>(p: T): T {
  */
 {
   const action = createAction<{ input?: string }>('ACTION')
-  const t: string|undefined = action({input: ""}).payload.input;
-  
+  const t: string | undefined = action({ input: '' }).payload.input
+
   // typings:expect-error
-  const u: number = action({input: ""}).payload.input;
+  const u: number = action({ input: '' }).payload.input
   // typings:expect-error
-  const v: number = action({input: 3}).payload.input;
+  const v: number = action({ input: 3 }).payload.input
 }
+
 /*
  * regression test for https://github.com/reduxjs/redux-starter-kit/issues/224
  */
 {
-  const oops = createAction('oops', (x: any) => ({ payload: x, error: x, meta: x }))
+  const oops = createAction('oops', (x: any) => ({
+    payload: x,
+    error: x,
+    meta: x
+  }))
 
-  type Ret = ReturnType<typeof oops>;
+  type Ret = ReturnType<typeof oops>
 
-  const payload: IsAny<Ret['payload'], true, false> = true;
-  const error: IsAny<Ret['error'], true, false> = true;
-  const meta: IsAny<Ret['meta'], true, false> = true;
+  const payload: IsAny<Ret['payload'], true, false> = true
+  const error: IsAny<Ret['error'], true, false> = true
+  const meta: IsAny<Ret['meta'], true, false> = true
 
   // typings:expect-error
-  const payloadNotAny: IsAny<Ret['payload'], true, false> = false;
+  const payloadNotAny: IsAny<Ret['payload'], true, false> = false
   // typings:expect-error
-  const errorNotAny: IsAny<Ret['error'], true, false> = false;
+  const errorNotAny: IsAny<Ret['error'], true, false> = false
   // typings:expect-error
-  const metaNotAny: IsAny<Ret['meta'], true, false> = false;
+  const metaNotAny: IsAny<Ret['meta'], true, false> = false
+}
+
+/**
+ * Test: createAction.match()
+ */
+{
+  // simple use case
+  {
+    const actionCreator = createAction<string, 'test'>('test')
+    const x: Action<unknown> = {} as any
+    if (actionCreator.match(x)) {
+      expectType<'test'>(x.type)
+      expectType<string>(x.payload)
+    } else {
+      // typings:expect-error
+      expectType<'test'>(x.type)
+      // typings:expect-error
+      expectType<any>(x.payload)
+    }
+  }
+
+  // special case: optional argument
+  {
+    const actionCreator = createAction<string | undefined, 'test'>('test')
+    const x: Action<unknown> = {} as any
+    if (actionCreator.match(x)) {
+      expectType<'test'>(x.type)
+      expectType<string | undefined>(x.payload)
+    }
+  }
+
+  // special case: without argument
+  {
+    const actionCreator = createAction('test')
+    const x: Action<unknown> = {} as any
+    if (actionCreator.match(x)) {
+      expectType<'test'>(x.type)
+      // typings:expect-error
+      expectType<{}>(x.payload)
+    }
+  }
+
+  // special case: with prepareAction
+  {
+    const actionCreator = createAction('test', () => ({
+      payload: '',
+      meta: '',
+      error: false
+    }))
+    const x: Action<unknown> = {} as any
+    if (actionCreator.match(x)) {
+      expectType<'test'>(x.type)
+      expectType<string>(x.payload)
+      expectType<string>(x.meta)
+      expectType<boolean>(x.error)
+      // typings:expect-error
+      expectType<number>(x.payload)
+      // typings:expect-error
+      expectType<number>(x.meta)
+      // typings:expect-error
+      expectType<number>(x.error)
+    }
+  }
+  // potential use: as array filter
+  {
+    const actionCreator = createAction<string, 'test'>('test')
+    const x: Array<Action<unknown>> = []
+    expectType<Array<PayloadAction<string, 'test'>>>(
+      x.filter(actionCreator.match)
+    )
+    // typings:expect-error
+    expectType<Array<PayloadAction<number, 'test'>>>(
+      x.filter(actionCreator.match)
+    )
+  }
 }
