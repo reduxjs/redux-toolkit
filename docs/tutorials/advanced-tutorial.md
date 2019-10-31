@@ -520,7 +520,7 @@ Before we go any further, let's add a type declaration we can reuse instead.
 
 ```diff
 -import { configureStore } from 'redux-starter-kit'
-+import { configureStore, ActionCreator, Action } from 'redux-starter-kit'
++import { configureStore, Action } from 'redux-starter-kit'
 +import { ThunkAction } from 'redux-thunk'
 
 -import rootReducer from './rootReducer'
