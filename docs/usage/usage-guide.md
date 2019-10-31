@@ -439,7 +439,7 @@ That simplifies things because we don't need to have multiple files, and we can 
 
 To simplify this process, Redux Starter Kit includes a `createSlice` function that will auto-generate the action types and action creators for you, based on the names of the reducer functions you provide.
 
-Here's how that posts example would look with `createSlice:
+Here's how that posts example would look with `createSlice`:
 
 ```js
 const postsSlice = createSlice({
@@ -468,10 +468,10 @@ console.log(postsSlice)
 const { createPost } = postsSlice.actions
 
 console.log(createPost({ id: 123, title: 'Hello World' }))
-// {type : "createPost", payload : {id : 123, title : "Hello World"}}
+// {type : "posts/createPost", payload : {id : 123, title : "Hello World"}}
 ```
 
-`createSlice` looked at all of the functions that were defined in the `reducers` field, and for every "case reducer" function provided, generates an action creator that uses the name of the reducer as the action type itself. So, the `createPost` reducer became an action type of `"createPost"`, and the `createPost()` action creator will return an action with that type.
+`createSlice` looked at all of the functions that were defined in the `reducers` field, and for every "case reducer" function provided, generates an action creator that uses the name of the reducer as the action type itself. So, the `createPost` reducer became an action type of `"posts/createPost"`, and the `createPost()` action creator will return an action with that type.
 
 ```js
 const postsSlice = createSlice({
