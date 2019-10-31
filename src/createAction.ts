@@ -13,13 +13,14 @@ import { IsUnknownOrNonInferrable } from './tsHelpers'
 export type PayloadAction<
   P = void,
   T extends string = string,
-  M = void,
-  E = void
+  M = never,
+  E = never
 > = WithOptional<M, E, WithPayload<P, Action<T>>>
 
 export type PrepareAction<P> =
   | ((...args: any[]) => { payload: P })
   | ((...args: any[]) => { payload: P; meta: any })
+  | ((...args: any[]) => { payload: P; error: any })
   | ((...args: any[]) => { payload: P; meta: any; error: any })
 
 export type ActionCreatorWithPreparedPayload<
@@ -30,7 +31,7 @@ export type ActionCreatorWithPreparedPayload<
   PA extends PrepareAction<infer P>
     ? (
         ...args: Parameters<PA>
-      ) => PayloadAction<P, T, MetaOrVoid<PA>, ErrorOrVoid<PA>>
+      ) => PayloadAction<P, T, MetaOrNever<PA>, ErrorOrNever<PA>>
     : void
 >
 
@@ -157,8 +158,8 @@ type Diff<T, U> = T extends U ? never : T
 type WithPayload<P, T> = T & { payload: P }
 
 type WithOptional<M, E, T> = T &
-  ([M] extends [void] ? {} : { meta: M }) &
-  ([E] extends [void] ? {} : { error: E })
+  ([M] extends [never] ? {} : { meta: M }) &
+  ([E] extends [never] ? {} : { error: E })
 
 type WithTypeProperty<T, MergeIn> = {
   type: T
@@ -170,17 +171,17 @@ type IfPrepareActionMethodProvided<
   False
 > = PA extends (...args: any[]) => any ? True : False
 
-type MetaOrVoid<PA extends PrepareAction<any>> = ReturnType<PA> extends {
+type MetaOrNever<PA extends PrepareAction<any>> = ReturnType<PA> extends {
   meta: infer M
 }
   ? M
-  : void
+  : never
 
-type ErrorOrVoid<PA extends PrepareAction<any>> = ReturnType<PA> extends {
+type ErrorOrNever<PA extends PrepareAction<any>> = ReturnType<PA> extends {
   error: infer E
 }
   ? E
-  : void
+  : never
 
 type IfMaybeUndefined<P, True, False> = [undefined] extends [P] ? True : False
 
