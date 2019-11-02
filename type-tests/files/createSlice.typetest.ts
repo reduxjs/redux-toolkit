@@ -1,4 +1,4 @@
-import { AnyAction, Reducer } from 'redux'
+import { AnyAction, Reducer, Action } from 'redux'
 import { createSlice, PayloadAction, createAction } from '../../src'
 
 function expectType<T>(t: T) {
@@ -245,4 +245,30 @@ function expectType<T>(t: T) {
   mySlice.actions.setName(null)
   mySlice.actions.setName('asd')
   mySlice.actions.setName(5)
+}
+
+/**
+ * Test: actions.x.match()
+ */
+{
+  const mySlice = createSlice({
+    name: 'name',
+    initialState: { name: 'test' },
+    reducers: {
+      setName: (state, action: PayloadAction<string>) => {
+        state.name = action.payload
+      }
+    }
+  })
+
+  const x: Action<unknown> = {} as any
+  if (mySlice.actions.setName.match(x)) {
+    expectType<string>(x.type)
+    expectType<string>(x.payload)
+  } else {
+    // typings:expect-error
+    expectType<string>(x.type)
+    // typings:expect-error
+    expectType<string>(x.payload)
+  }
 }
