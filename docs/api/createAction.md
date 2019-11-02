@@ -147,7 +147,7 @@ This has different uses:
 
 This `match` method is a [TypeScript type guard](https://www.typescriptlang.org/docs/handbook/advanced-types.html#user-defined-type-guards) and can be used to discriminate the `payload` type of an action.
 
-This behavior can be particularly useful when used in custom middewares, where manual casts might be neccessary otherwise.
+This behavior can be particularly useful when used in custom middlewares, where manual casts might be neccessary otherwise.
 
 ```typescript
 const increment = createAction<number>('INCREMENT')
