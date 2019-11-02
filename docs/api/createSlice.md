@@ -17,7 +17,7 @@ and automatically generates action creators and action types that correspond to 
 ```ts
 function createSlice({
     // An object of "case reducers". Key names will be used to generate actions.
-    reducers: Object<string, ReducerFunction>
+    reducers: Object<string, ReducerFunction | ReducerAndPrepareObject>
     // The initial state for the reducer
     initialState: any,
     // A name, used in action types
@@ -39,6 +39,10 @@ descriptive names.
 
 This object will be passed to [`createReducer`](./createReducer.md), so the reducers may safely "mutate" the
 state they are given.
+
+#### Customizing Generated Action Creators
+
+If you need to customize the creation of the payload value of an action creator by means of a [`prepare callback`](./createAction.md#using-prepare-callbacks-to-customize-action-contents), the value of the appropriate field of the `reducers` argument object should be an object instead of a function. This object must contain two properties: `reducer` and `prepare`. The value of the `reducer` field should be the case reducer function while the value of the `prepare` field should be the prepare callback function.
 
 ### `initialState`
 
@@ -81,8 +85,6 @@ to force the TS compiler to accept the computed property.)
 
 Each function defined in the `reducers` argument will have a corresponding action creator generated using [`createAction`](./createAction.md)
 and included in the result's `actions` field using the same function name.
-
-If you need to customize the creation of the payload value of an action creator by means of a [`prepare callback`](./createAction.md#using-prepare-callbacks-to-customize-action-contents), the value of the appropriate field of the `reducers` argument object should be an object instead of a function. This object must contain two properties: reducer and prepare. The value of the reducer field should be the case reducer function while the value of the prepare field should be the prepare callback function.
 
 The generated `reducer` function is suitable for passing to the Redux `combineReducers` function as a "slice reducer".
 

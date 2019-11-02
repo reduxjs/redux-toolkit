@@ -68,13 +68,25 @@ function isPlain(val) {
 
 ### `createNextState`
 
-The default immutable update function from the [`immer` library](https://github.com/mweststrate/immer#api), re-exported here as `createNextState` (also commonly referred to as `produce`)
+The default immutable update function from the [`immer` library](https://immerjs.github.io/immer/), re-exported here as `createNextState` (also commonly referred to as [`produce`](https://immerjs.github.io/immer/docs/produce))
 
 ### `combineReducers`
 
-Redux's `combineReducers`, re-exported for convenience. While `configureStore` calls this internally, you may wish to call it yourself to compose multiple levels of slice reducers.
+Redux's [`combineReducers`](https://redux.js.org/api/combinereducers), re-exported for convenience. While `configureStore` calls this internally, you may wish to call it yourself to compose multiple levels of slice reducers.
 
 ### `compose`
 
-Redux's `compose`. It composes functions from right to left.
+Redux's [`compose`](https://redux.js.org/api/compose). It composes functions from right to left.
 This is a functional programming utility. You might want to use it to apply several store custom enhancers/ functions in a row.
+
+### `bindActionCreators`
+
+Redux's [`bindActionCreators`](https://redux.js.org/api/bindactioncreators). It wraps action creators with `dispatch()` so that they dispatch immediately when called.
+
+### `createStore`
+
+Redux's [`createStore`](https://redux.js.org/api/createstore). You should not need to use this directly.
+
+### `applyMiddleware`
+
+Redux's [`applyMiddleware`](https://redux.js.org/api/applymiddleware). You should not need to use this directly.
