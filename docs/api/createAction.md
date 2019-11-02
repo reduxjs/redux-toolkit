@@ -136,3 +136,40 @@ const counterReducer = createReducer(0, {
 ```
 
 For this reason, **we strongly recommend you to only use string action types**.
+
+## actionCreator.match
+
+Every generated actionCreator has a `.match(action)` method that can be used to determine if the passed action is of the same type as an action that would be created by the action creator.
+
+This has different uses:
+
+### As a TypeScript TypeGuard
+
+This `match` method is a [TypeScript type guard](https://www.typescriptlang.org/docs/handbook/advanced-types.html#user-defined-type-guards) and can be used to discriminate the `payload` type of an action.
+
+This behavior can be particularly useful when used in custom middlewares, where manual casts might be neccessary otherwise.
+
+```typescript
+const increment = createAction<number>('INCREMENT')
+
+function someFunction(action: Action) {
+  // accessing action.payload would result in an error here
+  if (increment.match(action)) {
+    // action.payload can be used as `number` here
+  }
+}
+```
+
+### With redux-observable
+
+The `match` method can also be used as a filter method, which makes it powerful when used with redux-observable:
+
+```typescript
+const increment = createAction<number>('INCREMENT')
+
+export const epic = (actions$: Observable<Action>) =>
+  actions$.filter(increment.match).map(action => {
+    // action.payload can be safely used as number here (and will also be correctly inferred by TypeScript)
+    // ...
+  })
+```
