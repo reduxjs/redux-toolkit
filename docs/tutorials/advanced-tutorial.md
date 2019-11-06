@@ -34,7 +34,7 @@ The starting commit for this application is a plain React implementation that us
 Let's start by viewing the original plain React app in action:
 
 <iframe src="https://codesandbox.io/embed/rsk-github-issues-example-01-plain-react-nvmdy?fontsize=14&view=preview"
-     style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+     style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
      title="rsk-github-issues-example-01-plain-react"
      allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
      sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
@@ -381,7 +381,7 @@ Unlike typical `connect` + `mapDispatch` usage, here we call `dispatch()` direct
 Let's see if this works!
 
 <iframe  src="https://codesandbox.io/embed/rsk-github-issues-example-8kex1?fontsize=14&module=%2Fsrc%2Fapp%2FApp.tsx&view=preview"
-     style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+     style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
      title="rsk-github-issues-example-02-issues-display"
      allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
      sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
@@ -1219,7 +1219,7 @@ Hopefully you now have a solid understand of how Redux Starter Kit looks in a re
 Let's wrap this up with one more look at the complete source code and the running app:
 
 <iframe src="https://codesandbox.io/embed/rsk-github-issues-example-8i4jn?fontsize=14&module=%2Fsrc%2Ffeatures%2FissueDetails%2FcommentsSlice.ts&view=editor"
-     style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+     style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
      title="rsk-github-issues-example-03-final"
      allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
      sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"

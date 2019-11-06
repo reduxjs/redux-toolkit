@@ -523,6 +523,6 @@ Second, **JS modules can have "circular reference" problems if two modules try t
 
 This CodeSandbox example demonstrates the problem:
 
-<iframe src="https://codesandbox.io/embed/rw7ppj4z0m" style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden; margin-bottom: 20px" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+<iframe src="https://codesandbox.io/embed/rw7ppj4z0m" style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }} sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
 If you encounter this, you may need to restructure your code in a way that avoids the circular references.
