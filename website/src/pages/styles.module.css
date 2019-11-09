@@ -70,13 +70,9 @@
   max-height: 16px;
 }
 
-.lightBackground {
-  background: #f7f7f7;
-}
-
 .getStarted:hover {
   background: #fff;
-  color: var(--ifm-color-primary)
+  color: var(--ifm-color-primary);
 }
 
 .secondTitle {
