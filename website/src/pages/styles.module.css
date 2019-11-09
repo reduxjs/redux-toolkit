@@ -44,7 +44,8 @@
   margin-bottom: 20px;
 }
 
-.featureImage {
+.blockImage svg {
+  fill: currentColor;
   width: 60px;
   height: 60px;
 }
@@ -64,10 +65,11 @@
   margin: 0.3em 0;
 }
 
-.libLinkImg {
+.featureAnchor svg {
   margin-left: 5px;
   max-width: 16px;
   max-height: 16px;
+  fill: currentColor;
 }
 
 .getStarted:hover {
