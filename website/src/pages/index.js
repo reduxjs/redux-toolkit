@@ -133,7 +133,6 @@ function Home() {
   const context = useDocusaurusContext()
   const { siteConfig = {} } = context
   const [theme] = useTheme()
-  console.log('theme is', theme)
 
   return (
     <Layout title={siteConfig.title} description={siteConfig.tagline}>
