@@ -5,8 +5,8 @@
     "publish-gh-pages": "docusaurus deploy"
   },
   "dependencies": {
-    "@docusaurus/core": "^2.0.0-alpha.30",
-    "@docusaurus/preset-classic": "^2.0.0-alpha.30",
+    "@docusaurus/core": "^2.0.0-alpha.33",
+    "@docusaurus/preset-classic": "^2.0.0-alpha.33",
     "classnames": "^2.2.6",
     "react": "^16.10.2",
     "react-dom": "^16.10.2"
