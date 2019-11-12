@@ -11,10 +11,7 @@ module.exports = {
           routeBasePath: ''
         },
         theme: {
-          customCss: [
-            require.resolve('./src/css/custom.css'),
-            require.resolve('./src/css/monokai.css')
-          ]
+          customCss: require.resolve('./src/css/custom.css')
         }
       }
     ]
