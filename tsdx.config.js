@@ -8,12 +8,12 @@ const pkg = require('./package.json')
 module.exports = {
   rollup(config, options) {
     config.output.name = 'RTK'
+
     const { env, format } = options
     // eslint-disable-next-line default-case
     switch (format) {
       case 'umd':
         delete config.external
-        //console.log(config)
         config.output.indent = false
         config.plugins.push(
           replace({

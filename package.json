@@ -3,6 +3,16 @@
   "version": "1.0.3",
   "description": "The official, opinionated, batteries-included toolset for efficient Redux development",
   "repository": "https://github.com/reduxjs/redux-toolkit",
+  "keywords": [
+    "redux",
+    "react",
+    "starter",
+    "toolkit",
+    "reducer",
+    "slice",
+    "immer",
+    "immutable"
+  ],
   "publishConfig": {
     "access": "public"
   },
@@ -26,7 +36,7 @@
     "typings-tester": "^0.3.2"
   },
   "scripts": {
-    "build": "tsdx build --format cjs,esm,umd",
+    "build": "tsdx build --format cjs,esm,umd --name redux-toolkit",
     "dev": "tsdx watch  --format cjs,esm,umd",
     "format": "prettier --write \"src/*.ts\" \"**/*.md\"",
     "format:check": "prettier --list-different \"src/*.ts\" \"**/*.md\"",
