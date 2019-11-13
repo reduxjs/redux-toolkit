@@ -1,5 +1,5 @@
 {
-  "name": "redux-toolkit",
+  "name": "@reduxjs/redux-toolkit",
   "version": "1.0.1",
   "description": "A simple set of tools to make using Redux easier",
   "repository": "https://github.com/reduxjs/redux-toolkit",
