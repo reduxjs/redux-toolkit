@@ -51,7 +51,7 @@ const store = configureStore({
 
 ### Development
 
-One of the goals of Redux Starter Kit is to provide opinionated defaults and prevent common mistakes. As part of that,
+One of the goals of Redux Toolkit is to provide opinionated defaults and prevent common mistakes. As part of that,
 `getDefaultMiddleware` includes some middleware that are added **in development builds of your app only** to
 provide runtime checks for two common issues:
 
@@ -59,7 +59,7 @@ provide runtime checks for two common issues:
   state values for mutations. It can detect mutations in reducers during a dispatch, and also mutations that occur between
   dispatches (such as in a component or a selector). When a mutation is detect, it will throw an error and indicate the key
   path for where the mutated value was detected in the state tree.
-- `serializable-state-invariant-middleware`: a custom middleware created specifically for use in Redux Starter Kit. Similar in
+- `serializable-state-invariant-middleware`: a custom middleware created specifically for use in Redux Toolkit. Similar in
   concept to `redux-immutable-state-invariant`, but deeply checks your state tree and your actions for non-serializable values
   such as functions, Promises, Symbols, and other non-plain-JS-data values. When a non-serializable value is detected, a
   console error will be printed with the key path for where the non-serializable value was detected.

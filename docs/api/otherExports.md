@@ -7,7 +7,7 @@ hide_title: true
 
 # Other Exports
 
-Redux Starter Kit exports some of its internal utilities, and re-exports additional functions from other dependencies as well.
+Redux Toolkit exports some of its internal utilities, and re-exports additional functions from other dependencies as well.
 
 ## Internal Exports
 
@@ -25,7 +25,7 @@ import {
   configureStore,
   createSerializableStateInvariantMiddleware,
   isPlain
-} from 'redux-starter-kit'
+} from '@reduxjs/toolkit'
 
 // Augment middleware to consider Immutable.JS iterables serializable
 const isSerializable = value => Iterable.isIterable(value) || isPlain(value)
