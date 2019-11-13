@@ -2,11 +2,12 @@
   "scripts": {
     "start": "docusaurus start",
     "build": "docusaurus build",
+    "swizzle": "docusaurus swizzle",
     "publish-gh-pages": "docusaurus deploy"
   },
   "dependencies": {
-    "@docusaurus/core": "^2.0.0-alpha.33",
-    "@docusaurus/preset-classic": "^2.0.0-alpha.33",
+    "@docusaurus/core": "^2.0.0-alpha.34",
+    "@docusaurus/preset-classic": "^2.0.0-alpha.34",
     "classnames": "^2.2.6",
     "react": "^16.10.2",
     "react-dom": "^16.10.2"

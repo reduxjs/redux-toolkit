@@ -8,7 +8,7 @@ module.exports = {
         docs: {
           path: '../docs',
           sidebarPath: require.resolve('./sidebars.json'),
-          routeBasePath: ''
+          routeBasePath: '/'
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css')
@@ -23,6 +23,9 @@ module.exports = {
   title: 'Redux Starter Kit',
   url: 'https://redux-starter-kit.js.org',
   themeConfig: {
+    prism: {
+      theme: require('./src/js/monokaiTheme')
+    },
     footer: {
       style: 'dark',
       logo: {
@@ -69,7 +72,7 @@ module.exports = {
       copyright: `Copyright (c) 2015-present Dan Abramov and the Redux documentation authors.`
     },
     image: 'img/redux-logo-landscape.png',
-    twitterImage: 'img/redux-logo-twitter.png',
+    // twitterImage: 'img/redux-logo-twitter.png',
     navbar: {
       title: 'Redux Starter Kit',
       logo: {

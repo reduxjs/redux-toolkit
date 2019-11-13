@@ -8,7 +8,6 @@
 import React from 'react'
 import classnames from 'classnames'
 import Layout from '@theme/Layout'
-import useTheme from '@theme/hooks/useTheme'
 import Link from '@docusaurus/Link'
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
 import useBaseUrl from '@docusaurus/useBaseUrl'
@@ -102,7 +101,7 @@ const otherLiraries = [
     image: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        ariaHidden="true"
+        aria-hidden="true"
         data-icon="external-link-square-alt"
         data-prefix="fas"
         viewBox="0 0 448 512"
@@ -132,7 +131,6 @@ const otherLiraries = [
 function Home() {
   const context = useDocusaurusContext()
   const { siteConfig = {} } = context
-  const [theme] = useTheme()
 
   return (
     <Layout title={siteConfig.title} description={siteConfig.tagline}>
