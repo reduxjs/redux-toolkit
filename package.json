@@ -1,11 +1,14 @@
 {
-  "name": "redux-starter-kit",
-  "version": "1.0.1",
-  "description": "A simple set of tools to make using Redux easier",
-  "repository": "https://github.com/reduxjs/redux-starter-kit",
+  "name": "@reduxjs/toolkit",
+  "version": "1.0.3",
+  "description": "The official, opinionated, batteries-included toolset for efficient Redux development",
+  "repository": "https://github.com/reduxjs/redux-toolkit",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/index.js",
-  "module": "dist/redux-starter-kit.esm.js",
-  "unpkg": "dist/redux-starter-kit.umd.min.js",
+  "module": "dist/redux-toolkit.esm.js",
+  "unpkg": "dist/redux-toolkit.umd.min.js",
   "types": "dist/index.d.ts",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",

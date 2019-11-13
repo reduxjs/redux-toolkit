@@ -223,7 +223,7 @@ function expectType<T>(t: T) {
 
 /*
  * Test: if no Payload Type is specified, accept any payload
- * see https://github.com/reduxjs/redux-starter-kit/issues/165
+ * see https://github.com/reduxjs/redux-toolkit/issues/165
  */
 {
   const initialState = {

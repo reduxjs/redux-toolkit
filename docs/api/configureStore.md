@@ -126,7 +126,7 @@ of `[offline, applyMiddleware, devToolsExtension]`.
 ### Basic Example
 
 ```js
-import { configureStore } from 'redux-starter-kit'
+import { configureStore } from '@reduxjs/toolkit'
 
 import rootReducer from './reducers'
 
@@ -137,7 +137,7 @@ const store = configureStore({ reducer: rootReducer })
 ### Full Example
 
 ```js
-import { configureStore, getDefaultMiddleware } from 'redux-starter-kit'
+import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit'
 
 // We'll use redux-logger just as an example of adding another middleware
 import logger from 'redux-logger'

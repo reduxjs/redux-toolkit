@@ -101,7 +101,7 @@ const Installation = () => (
     style={{ textAlign: 'center' }}
   >
     <h2>Installation</h2>
-    <MarkdownBlock>``` npm install --save redux-starter-kit ```</MarkdownBlock>
+    <MarkdownBlock>``` npm install --save @reduxjs/toolkit ```</MarkdownBlock>
   </div>
 )
 
