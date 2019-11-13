@@ -11,11 +11,11 @@ The Redux core library is deliberately unopinionated. It lets you decide how you
 
 This is good in some cases, because it gives you flexibility, but that flexibility isn't always needed. Sometimes we just want the simplest possible way to get started, with some good default behavior out of the box. Or, maybe you're writing a larger application and finding yourself writing some similar code, and you'd like to cut down on how much of that code you have to write by hand.
 
-As described in the [Quick Start](../introduction/quick-start.md) page, the goal of Redux Starter Kit is to help simplify common Redux use cases. It is not intended to be a complete solution for everything you might want to do with Redux, but it should make a lot of the Redux-related code you need to write a lot simpler (or in some cases, eliminate some of the hand-written code entirely).
+As described in the [Quick Start](../introduction/quick-start.md) page, the goal of Redux Toolkit is to help simplify common Redux use cases. It is not intended to be a complete solution for everything you might want to do with Redux, but it should make a lot of the Redux-related code you need to write a lot simpler (or in some cases, eliminate some of the hand-written code entirely).
 
-Redux Starter Kit exports several individual functions that you can use in your application, and adds dependencies on some other packages that are commonly used with Redux. This lets you decide how to use these in your own application, whether it be a brand new project or updating a large existing app.
+Redux Toolkit exports several individual functions that you can use in your application, and adds dependencies on some other packages that are commonly used with Redux. This lets you decide how to use these in your own application, whether it be a brand new project or updating a large existing app.
 
-Let's look at some of the ways that Redux Starter Kit can help make your Redux-related code better.
+Let's look at some of the ways that Redux Toolkit can help make your Redux-related code better.
 
 ## Store Setup
 
@@ -80,7 +80,7 @@ This means the store setup code itself is a bit shorter and easier to read, and 
 The simplest way to use it is to just pass the root reducer function as a parameter named `reducer`:
 
 ```js
-import { configureStore } from 'redux-starter-kit'
+import { configureStore } from '@reduxjs/toolkit'
 import rootReducer from './reducers'
 
 const store = configureStore({
@@ -106,10 +106,10 @@ const store = configureStore({
 
 Note that this only works for one level of reducers. If you want to nest reducers, you'll need to call `combineReducers` yourself to handle the nesting.
 
-If you need to customize the store setup, you can pass additional options. Here's what the hot reloading example might look like using Redux Starter Kit:
+If you need to customize the store setup, you can pass additional options. Here's what the hot reloading example might look like using Redux Toolkit:
 
 ```js
-import { configureStore, getDefaultMiddleware } from 'redux-starter-kit'
+import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit'
 
 import monitorReducersEnhancer from './enhancers/monitorReducers'
 import loggerMiddleware from './middleware/logger'
@@ -146,7 +146,7 @@ The other common pain points around writing reducers have to do with updating st
 
 ### Simplifying Reducers with `createReducer`
 
-Since the "lookup table" approach is popular, Redux Starter Kit includes a `createReducer` function similar to the one shown in the Redux docs. However, our `createReducer` utility has some special "magic" that makes it even better. It uses the [Immer](https://github.com/mweststrate/immer) library internally, which lets you write code that "mutates" some data, but actually applies the updates immutably. This makes it effectively impossible to accidentally mutate state in a reducer.
+Since the "lookup table" approach is popular, Redux Toolkit includes a `createReducer` function similar to the one shown in the Redux docs. However, our `createReducer` utility has some special "magic" that makes it even better. It uses the [Immer](https://github.com/mweststrate/immer) library internally, which lets you write code that "mutates" some data, but actually applies the updates immutably. This makes it effectively impossible to accidentally mutate state in a reducer.
 
 In general, any Redux reducer that uses a `switch` statement can be converted to use `createReducer` directly. Each `case` in the switch becomes a key in the object passed to `createReducer`. Immutable update logic, like spreading objects or copying arrays, can probably be converted to direct "mutation". It's also fine to keep the immutable updates as-is and return the updated copies, too.
 
@@ -256,7 +256,7 @@ Using the ["object literal function shorthand"](https://www.sitepoint.com/es6-en
 
 ### Considerations for Using `createReducer`
 
-While the Redux Starter Kit `createReducer` function can be really helpful, keep in mind that:
+While the Redux Toolkit `createReducer` function can be really helpful, keep in mind that:
 
 - The "mutative" code only works correctly inside of our `createReducer` function
 - Immer won't let you mix "mutating" the draft state and also returning a new state value
@@ -280,7 +280,7 @@ function addTodo(text) {
 
 ### Defining Action Creators with `createAction`
 
-Writing action creators by hand can get tedious. Redux Starter Kit provides a function called `createAction`, which simply generates an action creator that uses the given action type, and turns its argument into the `payload` field:
+Writing action creators by hand can get tedious. Redux Toolkit provides a function called `createAction`, which simply generates an action creator that uses the given action type, and turns its argument into the `payload` field:
 
 ```js
 const addTodo = createAction('ADD_TODO')
@@ -288,11 +288,11 @@ addTodo({ text: 'Buy milk' })
 // {type : "ADD_TODO", payload : {text : "Buy milk"}})
 ```
 
-`createAction` also accepts a "prepare callback" argument, which allows you to customize the resulting `payload` field and optionally add a `meta` field. See the [`createAction` API reference](https://redux-starter-kit.js.org/api/createaction#using-prepare-callbacks-to-customize-action-contents) for details on defining action creators with a prepare callback.
+`createAction` also accepts a "prepare callback" argument, which allows you to customize the resulting `payload` field and optionally add a `meta` field. See the [`createAction` API reference](../api/createAction.md#using-prepare-callbacks-to-customize-action-contents) for details on defining action creators with a prepare callback.
 
 ### Using Action Creators as Action Types
 
-Redux reducers need to look for specific action types to determine how they should update their state. Normally, this is done by defining action type strings and action creator functions separately. Redux Starter Kit's `createAction` function uses a couple tricks to make this easier.
+Redux reducers need to look for specific action types to determine how they should update their state. Normally, this is done by defining action type strings and action creator functions separately. Redux Toolkit `createAction` function uses a couple tricks to make this easier.
 
 First, `createAction` overrides the `toString()` method on the action creators it generates. **This means that the action creator itself can be used as the "action type" reference in some places**, such as the keys provided to `createReducer`.
 
@@ -341,7 +341,7 @@ const reducer = (state = {}, action) => {
 }
 ```
 
-If you are using Redux Starter Kit with TypeScript, note that the TypeScript compiler may not accept the implicit `toString()` conversion when the action creator is used as an object key. In that case, you may need to either manually cast it to a string (`actionCreator as string`), or use the `.type` field as the key.
+If you are using Redux Toolkit with TypeScript, note that the TypeScript compiler may not accept the implicit `toString()` conversion when the action creator is used as an object key. In that case, you may need to either manually cast it to a string (`actionCreator as string`), or use the `.type` field as the key.
 
 ## Creating Slices of State
 
@@ -437,7 +437,7 @@ That simplifies things because we don't need to have multiple files, and we can 
 
 ### Simplifying Slices with `createSlice`
 
-To simplify this process, Redux Starter Kit includes a `createSlice` function that will auto-generate the action types and action creators for you, based on the names of the reducer functions you provide.
+To simplify this process, Redux Toolkit includes a `createSlice` function that will auto-generate the action types and action creators for you, based on the names of the reducer functions you provide.
 
 Here's how that posts example would look with `createSlice`:
 
