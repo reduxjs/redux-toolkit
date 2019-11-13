@@ -9,9 +9,10 @@
 // site configuration options.
 
 const siteConfig = {
-  title: 'Redux Starter Kit', // Title for your website.
-  tagline: 'A simple batteries-included toolset to make using Redux easier',
-  url: 'https://redux-starter-kit.js.org', // Your website URL
+  title: 'Redux Toolkit', // Title for your website.
+  tagline:
+    'The official, opinionated, batteries-included toolset for efficient Redux development',
+  url: 'https://redux-toolkit.js.org', // Your website URL
   baseUrl: '/',
   docsUrl: '',
   algolia: {
@@ -21,7 +22,7 @@ const siteConfig = {
   },
 
   // Used for publishing and more
-  projectName: 'redux-starter-kit',
+  projectName: 'redux-toolkit',
   organizationName: 'reduxjs',
   // For top-level user or org sites, the organization is still the same.
   // e.g., for the https://JoelMarcey.github.io site, it would be set like...
@@ -33,7 +34,7 @@ const siteConfig = {
     { doc: 'api/configureStore', label: 'API' },
 
     {
-      href: 'https://www.github.com/reduxjs/redux-starter-kit',
+      href: 'https://www.github.com/reduxjs/redux-toolkit',
       label: 'Github'
     }
   ],
@@ -91,7 +92,7 @@ const siteConfig = {
 
   // You may provide arbitrary config keys to be used as needed by your
   // template. For example, if you need your repo's URL...
-  repoUrl: 'https://github.com/reduxjs/redux-starter-kit',
+  repoUrl: 'https://github.com/reduxjs/redux-toolkit',
 
   gaTrackingId: 'UA-130598673-3'
 }
