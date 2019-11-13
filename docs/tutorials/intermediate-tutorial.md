@@ -66,17 +66,17 @@ The changes here are simple. We update `src/index.js` to import `configureStore`
 
 > - [Convert store setup to use configureStore](https://github.com/reduxjs/rsk-convert-todos-example/commit/600d02599025c489c531650623930992daf129a0)
 
-```diff
+```diff {3-4,9-12}
 import React from "react";
 import { render } from "react-dom";
--import { createStore } from "redux";
-+import { configureStore } from "redux-starter-kit";
+- import { createStore } from "redux";
++ import { configureStore } from "redux-starter-kit";
 import { Provider } from "react-redux";
 import App from "./components/App";
 import rootReducer from "./reducers";
 
--const store = createStore(rootReducer);
-+const store = configureStore({
+- const store = createStore(rootReducer);
++ const store = configureStore({
 +   reducer: rootReducer,
 +});
 ```
@@ -85,7 +85,7 @@ import rootReducer from "./reducers";
 
 If you have [the Redux DevTools browser extension](https://github.com/zalmoxisus/redux-devtools-extension) installed, you should now be able to see the current state if you start the application in development mode and open the DevTools Extension. It should look like this:
 
-![Redux DevTools Extension screenshot showing initial state](assets/tutorials/intermediate/int-tut-01-redux-devtools.png)
+![Redux DevTools Extension screenshot showing initial state](/assets/tutorials/intermediate/int-tut-01-redux-devtools.png)
 
 ## Creating the Todos Slice
 
