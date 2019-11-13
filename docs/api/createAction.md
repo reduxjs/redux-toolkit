@@ -168,8 +168,11 @@ The `match` method can also be used as a filter method, which makes it powerful 
 const increment = createAction<number>('INCREMENT')
 
 export const epic = (actions$: Observable<Action>) =>
-  actions$.filter(increment.match).map(action => {
-    // action.payload can be safely used as number here (and will also be correctly inferred by TypeScript)
-    // ...
-  })
+  actions$.pipe(
+    filter(increment.match),
+    map(action => {
+      // action.payload can be safely used as number here (and will also be correctly inferred by TypeScript)
+      // ...
+    })
+  )
 ```
