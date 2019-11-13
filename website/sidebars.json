@@ -1,17 +1,12 @@
 {
   "docs": {
-    "Introduction": [
-      "introduction/quick-start"
-    ],
+    "Introduction": ["introduction/quick-start"],
     "Tutorials": [
       "tutorials/basic-tutorial",
       "tutorials/intermediate-tutorial",
       "tutorials/advanced-tutorial"
     ],
-    "Using Redux Starter Kit" : [
-      "usage/usage-guide",
-      "usage/examples"
-    ],
+    "Using Redux Toolkit": ["usage/usage-guide"],
     "API Reference": [
       "api/configureStore",
       "api/getDefaultMiddleware",

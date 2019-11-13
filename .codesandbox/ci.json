@@ -1,7 +1,4 @@
 {
-  // a list of sandboxes that you want generated for a PR, if this list
-  // is not set we will default to `vanilla`. The built library will automatically
-  // be installed in the fork of these sandboxes.
   "sandboxes": [
     "vanilla",
     "vanilla-ts",

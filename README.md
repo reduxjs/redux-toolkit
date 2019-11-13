@@ -1,20 +1,19 @@
-# Redux Starter Kit
+# Redux Toolkit
 
-[![build status](https://img.shields.io/travis/reduxjs/redux-starter-kit/master.svg?style=flat-square)](https://travis-ci.org/reduxjs/redux-starter-kit)
+[![build status](https://img.shields.io/travis/reduxjs/toolkit/master.svg?style=flat-square)](https://travis-ci.org/reduxjs/redux-toolkit)
+[![npm version](https://img.shields.io/npm/v/@reduxjs/toolkit.svg?style=flat-square)](https://www.npmjs.com/package/@reduxjs/toolkit)
+[![npm downloads](https://img.shields.io/npm/dm/@reduxjs/toolkit.svg?style=flat-square)](https://www.npmjs.com/package/@reduxjs/toolkit) (RTK)
+[![npm downloads](https://img.shields.io/npm/dm/redux-starter-kit.svg?style=flat-square)](https://www.npmjs.com/package/redux-starter-kit) (RSK)
 
-[![npm version](https://img.shields.io/npm/v/redux-starter-kit.svg?style=flat-square)](https://www.npmjs.com/package/redux-starter-kit)
+**The official, opinionated, batteries-included toolset for efficient Redux development**
 
-[![npm downloads](https://img.shields.io/npm/dm/redux-starter-kit.svg?style=flat-square)](https://www.npmjs.com/package/redux-starter-kit)
+`npm install @reduxjs/toolkit`
 
-**A simple set of tools to make using Redux easier**
-
-`npm install redux-starter-kit`
-
-(Special thanks to Github user @shotak for donating to the package name.)
+(Formerly known as "Redux Starter Kit")
 
 ### Purpose
 
-The Redux Starter Kit package is intended to help address three common concerns about Redux:
+The **Redux Toolkit** package is intended to be the standard way to write Redux logic. It was originally created to help address three common concerns about Redux:
 
 - "Configuring a Redux store is too complicated"
 - "I have to add a lot of packages to get Redux to do anything useful"
@@ -22,11 +21,11 @@ The Redux Starter Kit package is intended to help address three common concerns 
 
 We can't solve every use case, but in the spirit of [`create-react-app`](https://github.com/facebook/create-react-app) and [`apollo-boost`](https://dev-blog.apollodata.com/zero-config-graphql-state-management-27b1f1b3c2c3), we can try to provide some tools that abstract over the setup process and handle the most common use cases, as well as include some useful utilities that will let the user simplify their application code.
 
-This package is _not_ intended to solve every possible concern about Redux, and is deliberately limited in scope. It does _not_ address concepts like "reusable encapsulated Redux modules", data fetching, folder or file structures, managing entity relationships in the store, and so on.
+This package is _not_ intended to solve every possible use case for Redux, and is deliberately limited in scope. It does _not_ address concepts like "reusable encapsulated Redux modules", data fetching, folder or file structures, managing entity relationships in the store, and so on.
 
 ### What's Included
 
-Redux Starter Kit includes:
+Redux Toolkit includes:
 
 - A `configureStore()` function with simplified configuration options. It can automatically combine your slice reducers, adds whatever Redux middleware you supply, includes `redux-thunk` by default, and enables use of the Redux DevTools Extension.
 - A `createReducer()` utility that lets you supply a lookup table of action types to case reducer functions, rather than writing switch statements. In addition, it automatically uses the [`immer` library](https://github.com/mweststrate/immer) to let you write simpler immutable updates with normal mutative code, like `state.todos[3].completed = true`.
@@ -36,6 +35,4 @@ Redux Starter Kit includes:
 
 ## Documentation
 
-The Redux Starter Kit docs are now published at **https://redux-starter-kit.js.org**.
-
-We're currently expanding and rewriting our docs content - check back soon for more updates!
+The Redux Toolkit docs are available at **https://redux-toolkit.js.org**.

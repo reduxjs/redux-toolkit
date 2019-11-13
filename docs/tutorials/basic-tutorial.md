@@ -5,11 +5,11 @@ sidebar_label: Basic Tutorial
 hide_title: true
 ---
 
-# Basic Tutorial: Introducing Redux Starter Kit
+# Basic Tutorial: Introducing Redux Toolkit
 
-Welcome to Redux Starter Kit ! This tutorial will show you the basic functions that are included with Redux Starter Kit (also known as "RSK" for short).
+Welcome to Redux Toolkit ! This tutorial will show you the basic functions that are included with Redux Toolkit (also known as "RTK" for short).
 
-This tutorial assumes that you are already familiar with the concepts of the core Redux library, as well as how to use it with React. If you aren't, please take some time to read through the [Redux docs](https://redux.js.org) and [React-Redux docs](https://react-redux.js.org) first, as the explanations here focus on how RSK usage differs from "typical" Redux code.
+This tutorial assumes that you are already familiar with the concepts of the core Redux library, as well as how to use it with React. If you aren't, please take some time to read through the [Redux docs](https://redux.js.org) and [React-Redux docs](https://react-redux.js.org) first, as the explanations here focus on how RTK usage differs from "typical" Redux code.
 
 ## Introduction: Writing a Counter Application
 
@@ -86,9 +86,9 @@ In addition, switch statements bother many people. It would be nice if we could 
 
 ### Introducing: `configureStore`
 
-Redux Starter Kit includes several functions to help simplify your Redux code. The first function we'll look at is [`configureStore`](../api/configureStore.md).
+Redux Toolkit includes several functions to help simplify your Redux code. The first function we'll look at is [`configureStore`](../api/configureStore.md).
 
-Normally, you create a Redux store by calling `createStore()` and passing in your root reducer function. Redux Starter Kit has a `configureStore()` function that wraps `createStore()` to do the same thing, but also sets up some useful development tools for you as part of the store creation process.
+Normally, you create a Redux store by calling `createStore()` and passing in your root reducer function. Redux Toolkit has a `configureStore()` function that wraps `createStore()` to do the same thing, but also sets up some useful development tools for you as part of the store creation process.
 
 We can easily replace the existing `createStore` call with `configureStore` instead. `configureStore` accepts a single object with named fields, instead of multiple function arguments, so we need to pass our reducer function as a field named `reducer`:
 
@@ -170,7 +170,7 @@ That saved us a few lines again, and at least we're not repeating the word `INCR
 
 Now, let's look at the reducer function. While you can use any conditional logic you want in a Redux reducer, including `if` statements and loops, the most common approach is to check the `action.type` field and do some specific logic for each action type. A reducer will also provide an initial state value, and return the existing state if the action isn't something it cares about.
 
-Redux Starter Kit includes a [`createReducer` function](../api/createReducer.md) that lets you write reducers using a "lookup table" object, where each key in the object is a Redux action type string, and the values are reducer functions. We can use it to directly replace the existing `counter` function definition. Since we need to use the action type strings as the keys, we can use the [ES6 object "computed property" syntax](http://javascript.info/object#computed-properties) to create keys from the type string variables.
+Redux Toolkit includes a [`createReducer` function](../api/createReducer.md) that lets you write reducers using a "lookup table" object, where each key in the object is a Redux action type string, and the values are reducer functions. We can use it to directly replace the existing `counter` function definition. Since we need to use the action type strings as the keys, we can use the [ES6 object "computed property" syntax](http://javascript.info/object#computed-properties) to create keys from the type string variables.
 
 ```js
 const increment = createAction('INCREMENT')
@@ -258,7 +258,7 @@ Let's recap what the functions do:
 - `createReducer`: accepts an initial state value and a lookup table of action types to reducer functions, and creates a reducer that handles all of those action types
 - `createSlice`: accepts an initial state and a lookup table with reducer names and functions, and automatically generates action creator functions, action type strings, and a reducer function.
 
-Notice that none of these changed anything about how Redux works. We're still creating a Redux store, dispatching action objects that describe "what happened", and returning updated state using a reducer function. Also, notice that the Redux Starter Kit functions can be used no matter what approach was used to build the UI, since they just handle the "plain Redux store" part of the code. Our example used the store with a "vanilla JS" UI, but we could use this same store with React, Angular, Vue, or any other UI layer.
+Notice that none of these changed anything about how Redux works. We're still creating a Redux store, dispatching action objects that describe "what happened", and returning updated state using a reducer function. Also, notice that the Redux Toolkit functions can be used no matter what approach was used to build the UI, since they just handle the "plain Redux store" part of the code. Our example used the store with a "vanilla JS" UI, but we could use this same store with React, Angular, Vue, or any other UI layer.
 
 Finally, if you look carefully at the example, you'll see that there's one place where we've written some async logic - the "increment async" button:
 
@@ -270,7 +270,7 @@ document.getElementById('incrementAsync').addEventListener('click', function() {
 })
 ```
 
-You can see that we're keeping the async handling separate from the reducer logic, and we dispatch an action when the store needs to be updated. Redux Starter Kit doesn't change anything about that.
+You can see that we're keeping the async handling separate from the reducer logic, and we dispatch an action when the store needs to be updated. Redux Toolkit doesn't change anything about that.
 
 Here's the complete example in a sandbox:
 

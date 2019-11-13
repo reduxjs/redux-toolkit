@@ -209,7 +209,7 @@ function expectType<T>(p: T): T {
 }
 
 /*
- * regression test for https://github.com/reduxjs/redux-starter-kit/issues/214
+ * regression test for https://github.com/reduxjs/redux-toolkit/issues/214
  */
 {
   const action = createAction<{ input?: string }>('ACTION')
@@ -222,7 +222,7 @@ function expectType<T>(p: T): T {
 }
 
 /*
- * regression test for https://github.com/reduxjs/redux-starter-kit/issues/224
+ * regression test for https://github.com/reduxjs/redux-toolkit/issues/224
  */
 {
   const oops = createAction('oops', (x: any) => ({

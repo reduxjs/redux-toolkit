@@ -104,7 +104,7 @@ for references in a larger codebase.
 ## Examples
 
 ```js
-import { createSlice } from 'redux-starter-kit'
+import { createSlice } from '@reduxjs/toolkit'
 import { createStore, combineReducers } from 'redux'
 
 const counter = createSlice({

@@ -9,7 +9,7 @@ hide_title: true
 
 ## Purpose
 
-The **Redux Starter Kit** package is intended to help address three common concerns about Redux:
+The **Redux Toolkit** package is intended to be the standard way to write Redux logic. It was originally created to help address three common concerns about Redux:
 
 - "Configuring a Redux store is too complicated"
 - "I have to add a lot of packages to get Redux to do anything useful"
@@ -20,12 +20,12 @@ We can't solve every use case, but in the spirit of [`create-react-app`](https:/
 This package is _not_ intended to solve every possible concern about Redux, and is deliberately limited in scope. It does _not_ address concepts like "reusable encapsulated Redux modules", data fetching, folder or file structures, managing entity relationships in the store, and so on.
 
 That said, **these tools should be beneficial to all Redux users**. Whether you're a brand new Redux user setting up your
-first project, or an experienced user who wants to simplify an existing application, **Redux Starter Kit** can help
+first project, or an experienced user who wants to simplify an existing application, **Redux Toolkit** can help
 you make your Redux code better.
 
 ## What's Included
 
-Redux Starter Kit includes:
+Redux Toolkit includes:
 
 - A [`configureStore()` function](../api/configureStore.md) with simplified configuration options. It can automatically combine your slice reducers, adds whatever Redux middleware you supply, includes `redux-thunk` by default, and enables use of the Redux DevTools Extension.
 - A [`createReducer()` utility](../api/createReducer.md) that lets you supply a lookup table of action types to case reducer functions, rather than writing switch statements. In addition, it automatically uses the [`immer` library](https://github.com/mweststrate/immer) to let you write simpler immutable updates with normal mutative code, like `state.todos[3].completed = true`.
@@ -35,14 +35,18 @@ Redux Starter Kit includes:
 
 ## Installation
 
-Redux Starter Kit is available as a package on NPM for use with a module bundler or in a Node application:
+Redux Toolkit is available as a package on NPM for use with a module bundler or in a Node application:
 
 ```bash
-npm install --save redux-starter-kit
+# NPM
+npm install --save @reduxjs/toolkit
+
+# Yarn
+yarn add @reduxjs/toolkit
 ```
 
-It is also available as a precompiled UMD package that defines a `window['redux-starter-kit']` global variable.
-The UMD package can be used as a [`<script>` tag](https://unpkg.com/redux-starter-kit/dist/redux-starter-kit.umd.js) directly.
+It is also available as a precompiled UMD package that defines a `window.RTK` global variable.
+The UMD package can be used as a [`<script>` tag](https://unpkg.com/@reduxjs/toolkit/dist/redux-toolkit.umd.js) directly.
 
 ## Help and Discussion
 

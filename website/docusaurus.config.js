@@ -16,12 +16,15 @@ module.exports = {
       }
     ]
   ],
-  projectName: 'redux-starter-kit',
+  projectName: 'redux-toolkit',
   baseUrl: '/',
   favicon: 'img/favicon/favicon.ico',
-  tagline: 'A simple batteries-included toolset to make using Redux easier',
-  title: 'Redux Starter Kit',
-  url: 'https://redux-starter-kit.js.org',
+  tagline: 'The official, opinionated, batteries-included toolset for efficient Redux development',
+  title: 'Redux Toolkit',
+  url: 'https://redux-toolkit.js.org',
+  customFields: {
+    repoUrl: 'https://github.com/reduxjs/redux-toolkit',
+  },
   themeConfig: {
     prism: {
       theme: require('./src/js/monokaiTheme')
@@ -64,7 +67,7 @@ module.exports = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://www.github.com/reduxjs/redux/'
+              href: 'https://www.github.com/reduxjs/redux-toolkit'
             }
           ]
         }

@@ -93,7 +93,7 @@ const features = [
   }
 ]
 
-const otherLiraries = [
+const otherLibraries = [
   {
     content: 'A predictable state container for JavaScript applications',
     title: 'Redux',
@@ -186,7 +186,7 @@ function Home() {
             </div>
           </section>
         )}
-        {otherLiraries && otherLiraries.length && (
+        {otherLibraries && otherLibraries.length && (
           <section className={styles.features}>
             <div className="container">
               <div className="row">
@@ -197,7 +197,7 @@ function Home() {
                 </div>
               </div>
               <div className="row">
-                {otherLiraries.map(({ image, title, content, link }, idx) => (
+                {otherLibraries.map(({ image, title, content, link }, idx) => (
                   <div
                     key={idx}
                     className={classnames('col col--6', styles.feature)}
