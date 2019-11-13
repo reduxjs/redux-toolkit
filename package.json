@@ -1,7 +1,7 @@
 {
   "name": "@reduxjs/redux-toolkit",
   "version": "1.0.2",
-  "description": "A simple set of tools to make using Redux easier",
+  "description": "The official, opinionated, batteries-included toolset for efficient Redux development",
   "repository": "https://github.com/reduxjs/redux-toolkit",
   "publishConfig": {
     "access": "public"
