@@ -3,6 +3,9 @@
   "version": "1.0.1",
   "description": "A simple set of tools to make using Redux easier",
   "repository": "https://github.com/reduxjs/redux-toolkit",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/index.js",
   "module": "dist/redux-toolkit.esm.js",
   "unpkg": "dist/redux-toolkit.umd.min.js",
