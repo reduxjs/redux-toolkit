@@ -5,15 +5,15 @@ sidebar_label: Advanced Tutorial
 hide_title: true
 ---
 
-# Advanced Tutorial: Redux Starter Kit in Practice
+# Advanced Tutorial: Redux Toolkit in Practice
 
-In the [Intermediate Tutorial](./intermediate-tutorial.md), you saw how to use Redux Starter Kit in a typical basic React app, as well as how to convert some existing plain Redux code to use RSK instead. You also saw how to write "mutative" immutable updates in reducer functions, and how to write a "prepare callback" to generate an action payload.
+In the [Intermediate Tutorial](./intermediate-tutorial.md), you saw how to use Redux Toolkit in a typical basic React app, as well as how to convert some existing plain Redux code to use RTK instead. You also saw how to write "mutative" immutable updates in reducer functions, and how to write a "prepare callback" to generate an action payload.
 
-In this tutorial, you'll see how to use Redux Starter Kit as part of a larger "real world" app that is bigger than a todo list example. This tutorial will show several concepts:
+In this tutorial, you'll see how to use Redux Toolkit as part of a larger "real world" app that is bigger than a todo list example. This tutorial will show several concepts:
 
 - How to convert a "plain React" app to use Redux
-- How async logic like data fetching fits into RSK
-- How to use RSK with TypeScript
+- How async logic like data fetching fits into RTK
+- How to use RTK with TypeScript
 
 In the process, we'll look at a few examples of TypeScript techniques you can use to improve your code, and we'll see how to use the new [React-Redux hooks APIs](https://react-redux.js.org/api/hooks) as an alternative to [the traditional `connect` API](https://react-redux.js.org/api/connect).
 
@@ -21,7 +21,7 @@ In the process, we'll look at a few examples of TypeScript techniques you can us
 >
 > In addition, this tutorial does not mean you _must_ convert your React app logic completely to Redux. [It's up to you to decide what state should live in React components, and what should be in Redux](https://redux.js.org/faq/organizing-state#do-i-have-to-put-all-my-state-into-redux-should-i-ever-use-reacts-setstate). This is just an example of how you _could_ convert logic to use Redux if you choose to.
 
-The complete source code for the converted application from this tutorial is available at [github.com/reduxjs/rsk-github-issues-example](https://github.com/reduxjs/rsk-github-issues-example). We'll be walking through the conversion process as shown in this repo's history. Links to meaningful individual commits will be highlighted in quote blocks, like this:
+The complete source code for the converted application from this tutorial is available at [github.com/reduxjs/rtk-github-issues-example](https://github.com/reduxjs/rtk-github-issues-example). We'll be walking through the conversion process as shown in this repo's history. Links to meaningful individual commits will be highlighted in quote blocks, like this:
 
 > - Commit message here
 
@@ -55,9 +55,9 @@ The codebase is already laid out in a "feature folder" structure, The main piece
 
 ## Setting Up the Redux Store
 
-Since this app doesn't yet use Redux at all, the first step is to install Redux Starter Kit and React-Redux. Since this is a TypeScript app, we'll also need to add `@types/react-redux` as well. Add those packages to the project via either Yarn or NPM.
+Since this app doesn't yet use Redux at all, the first step is to install Redux Toolkit and React-Redux. Since this is a TypeScript app, we'll also need to add `@types/react-redux` as well. Add those packages to the project via either Yarn or NPM.
 
-> - [Add Redux Starter Kit and React-Redux packages](https://github.com/reduxjs/rsk-github-issues-example/commit/83ae4753952060956a303a3aa983c8300facb974)
+> - [Add Redux Toolkit and React-Redux packages](https://github.com/reduxjs/rtk-github-issues-example/commit/83ae4753952060956a303a3aa983c8300facb974)
 
 Next, we need to set up the usual pieces: a root reducer function, the Redux store, and the `<Provider>` to make that store available to our component tree.
 
@@ -65,7 +65,7 @@ In the process, we're going to set up "Hot Module Replacement" for our app. That
 
 #### Creating the Root Reducer
 
-> - [Add store and root reducer with reducer HMR](https://github.com/reduxjs/rsk-github-issues-example/commit/e80552e59e7832208c964ba1eefcfad24d41f317)
+> - [Add store and root reducer with reducer HMR](https://github.com/reduxjs/rtk-github-issues-example/commit/e80552e59e7832208c964ba1eefcfad24d41f317)
 
 First, we'll create the root reducer function. We don't have any slices yet, so it will just return an empty object.
 
@@ -76,7 +76,7 @@ We could manually write a TS type with the correct types for each state slice, b
 **app/rootReducer.ts**
 
 ```ts
-import { combineReducers } from 'redux-starter-kit'
+import { combineReducers } from '@reduxjs/toolkit'
 
 const rootReducer = combineReducers({})
 
@@ -92,7 +92,7 @@ Next, we'll create the store instance, including hot-reloading the root reducer.
 **app/store.ts**
 
 ```ts
-import { configureStore } from 'redux-starter-kit'
+import { configureStore } from '@reduxjs/toolkit'
 
 import rootReducer from './rootReducer'
 
@@ -118,7 +118,7 @@ The `require('./rootReducer').default` looks a bit odd. That's because we're mix
 
 Now that the store has been created, we can add it to the React component tree.
 
-> - [Render Redux Provider with app HMR](https://github.com/reduxjs/rsk-github-issues-example/commit/647d4858da979d330a043fc629bd08a6bf21c23d)
+> - [Render Redux Provider with app HMR](https://github.com/reduxjs/rtk-github-issues-example/commit/647d4858da979d330a043fc629bd08a6bf21c23d)
 
 As with the root reducer, we can hot-reload the React component tree whenever a component file changes. The best way is to write a function that imports the `<App>` component and renders it, call that once on startup to show the React component tree as usual, and then reuse that function any time a component is changed.
 
@@ -175,12 +175,12 @@ The first step is to look at the data that is currently being kept in `<App>`, a
 
 Let's look at the source for the whole slice, and then break down what it's doing:
 
-> - [Add initial state slice for UI display](https://github.com/reduxjs/rsk-github-issues-example/commit/daf082e161eaede49b48d92fdf8cb921ed80ea9b)
+> - [Add initial state slice for UI display](https://github.com/reduxjs/rtk-github-issues-example/commit/daf082e161eaede49b48d92fdf8cb921ed80ea9b)
 
 **features/issuesDisplay/issuesDisplaySlice.ts**
 
 ```ts
-import { createSlice, PayloadAction } from 'redux-starter-kit'
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 interface CurrentDisplay {
   displayType: 'issues' | 'comments'
@@ -279,7 +279,7 @@ As with other examples, we then need to import and add the issues display slice 
 **app/rootReducer.ts**
 
 ```diff
-import { combineReducers } from 'redux-starter-kit'
+import { combineReducers } from '@reduxjs/toolkit'
 
 +import issuesDisplayReducer from 'features/issuesDisplay/issuesDisplaySlice'
 
@@ -293,7 +293,7 @@ import { combineReducers } from 'redux-starter-kit'
 
 Now that the issues display slice is hooked up to the store, we can update `<App>` to use that instead of its internal component state.
 
-> - [Convert main issues display control to Redux](https://github.com/reduxjs/rsk-github-issues-example/commit/e518e1936d5bdaeeb3cf3d6d0ac8496d12c1109b)
+> - [Convert main issues display control to Redux](https://github.com/reduxjs/rtk-github-issues-example/commit/e518e1936d5bdaeeb3cf3d6d0ac8496d12c1109b)
 
 We need to make three groups of changes to the `App` component:
 
@@ -509,11 +509,11 @@ There are many other kinds of Redux middleware that add async capabilities. The 
 However, while sagas and observables are useful, most apps do not need the power and capabilities they provide. So, **thunks are
 the default recommended approach for writing async logic with Redux**.
 
-#### Writing Thunks in Redux Starter Kit
+#### Writing Thunks in Redux Toolkit
 
-Writing thunk functions requires that the `redux-thunk` middleware be added to the store as part of the setup process. Redux Starter Kit's `configureStore` function does automatically - [`thunk` is one of the default middleware](../api/getDefaultMiddleware.md).
+Writing thunk functions requires that the `redux-thunk` middleware be added to the store as part of the setup process. Redux Toolkit's `configureStore` function does automatically - [`thunk` is one of the default middleware](../api/getDefaultMiddleware.md).
 
-However, Redux Starter Kit does not currently provide any special functions or syntax for writing thunk functions. In particular, they cannot be defined as part of a `createSlice()` call. You have to write them separate from the reducer logic.
+However, Redux Toolkit does not currently provide any special functions or syntax for writing thunk functions. In particular, they cannot be defined as part of a `createSlice()` call. You have to write them separate from the reducer logic.
 
 In a typical Redux app, thunk action creators are usually defined in an "actions" file, alongside the plain action creators. Thunks typically dispatch plain actions, such as `dispatch(dataLoaded(response.data))`.
 
@@ -532,8 +532,8 @@ Before we go any further, let's add a type declaration we can reuse instead.
 **app/store.ts**
 
 ```diff
--import { configureStore } from 'redux-starter-kit'
-+import { configureStore, Action } from 'redux-starter-kit'
+-import { configureStore } from '@reduxjs/toolkit'
++import { configureStore, Action } from '@reduxjs/toolkit'
 +import { ThunkAction } from 'redux-thunk'
 
 -import rootReducer from './rootReducer'
@@ -562,7 +562,7 @@ Now that we have that type, we can write a slice of state for fetching details o
 **features/repoSearch/repoDetailsSlice.ts**
 
 ```ts
-import { createSlice, PayloadAction } from 'redux-starter-kit'
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 
@@ -617,7 +617,7 @@ The first part of this should look straightforward. We declare our slice state s
 
 Down at the bottom, we have our first data fetching thunk. The important things to notice here are:
 
-- **The thunk is defined separately from the slice**, since RSK currently has no special syntax for defining thunks as part of a slice.
+- **The thunk is defined separately from the slice**, since RTK currently has no special syntax for defining thunks as part of a slice.
 - **We declare the thunk action creator as an arrow function, and use the `AppThunk` type we just created.** You can use either arrow functions or the `function` keyword to write thunk functions and thunk action creators, so we could also have written this as `function fetchIssueCount() : AppThunk` instead.
 - **We use the `async/await` syntax for the thunk function itself.** Again, this isn't required, but `async/await` usually results in simpler code than nested Promise `.then()` chains.
 - **Inside the thunk, we dispatch the plain action creators that were generated by the `createSlice` call**.
@@ -739,12 +739,12 @@ Inside our `useEffect`, we drop the `fetchIssueCount` function, and dispatch `fe
 
 Next up, we need to replace the logic for fetching a list of open issues.
 
-> - [Add a slice for tracking issues state](https://github.com/reduxjs/rsk-github-issues-example/commit/a358f4da20242a6213acdd71988f0f60d7a9a61e)
+> - [Add a slice for tracking issues state](https://github.com/reduxjs/rtk-github-issues-example/commit/a358f4da20242a6213acdd71988f0f60d7a9a61e)
 
 **features/issuesList/issuesSlice.ts**
 
 ```ts
-import { createSlice, PayloadAction } from 'redux-starter-kit'
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Links } from 'parse-link-header'
 
 import { Issue, IssuesResult, getIssue, getIssues } from 'api/githubAPI'
@@ -856,7 +856,7 @@ This slice is a bit longer, but it's the same basic approach as before: write th
 
 Now we can finish converting the `<IssuesListPage>` component by swapping out the issues fetching logic.
 
-> - [Update IssuesListPage to fetch issues data via Redux](https://github.com/reduxjs/rsk-github-issues-example/commit/24a615f2ef5fbac793a4d0ea4163defd6ffd9222)
+> - [Update IssuesListPage to fetch issues data via Redux](https://github.com/reduxjs/rtk-github-issues-example/commit/24a615f2ef5fbac793a4d0ea4163defd6ffd9222)
 
 Let's look at the changes.
 
@@ -995,7 +995,7 @@ It's very similar to `<IssuesListPage>`. We store the current displayed `Issue`,
 
 We conveniently already have the Redux logic for fetching a single issue - we wrote that already as part of `issuesSlice.ts`. So, we can immediately jump straight to using that here in `<IssueDetailsPage>`.
 
-> - [Update IssueDetailsPage to fetch issue data via Redux](https://github.com/reduxjs/rsk-github-issues-example/commit/fdd589dafa1ebb6b67a58d2f6a45c2be2ca54708)
+> - [Update IssueDetailsPage to fetch issue data via Redux](https://github.com/reduxjs/rtk-github-issues-example/commit/fdd589dafa1ebb6b67a58d2f6a45c2be2ca54708)
 
 **features/issueDetails/IssueDetailsPage.tsx**
 
@@ -1060,12 +1060,12 @@ Interestingly, there's actually a bit of a change in behavior here. The original
 
 We have one more slice left to write - we need to fetch and store comments for the current issue.
 
-> - [Add a slice for tracking comments data](https://github.com/reduxjs/rsk-github-issues-example/commit/002d92e75f76fcc8dffe9a4ba61f7c03d4ce2222)
+> - [Add a slice for tracking comments data](https://github.com/reduxjs/rtk-github-issues-example/commit/002d92e75f76fcc8dffe9a4ba61f7c03d4ce2222)
 
 **features/issueDetails/commentsSlice.ts**
 
 ```ts
-import { createSlice, PayloadAction } from 'redux-starter-kit'
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { Comment, getComments, Issue } from 'api/githubAPI'
 import { AppThunk } from 'app/store'
@@ -1132,7 +1132,7 @@ The slice should look pretty familiar at this point. Our main bit of state is a 
 
 The final step is to swap the comments fetching logic in `<IssueDetailsPage>`.
 
-> - [Update IssueDetailsPage to fetch comments via Redux](https://github.com/reduxjs/rsk-github-issues-example/commit/b9ec0600c98f875f0b331de335077f01a31e624d)
+> - [Update IssueDetailsPage to fetch comments via Redux](https://github.com/reduxjs/rtk-github-issues-example/commit/b9ec0600c98f875f0b331de335077f01a31e624d)
 
 **features/issueDetails/IssueDetailsPage.tsx**
 
@@ -1214,7 +1214,7 @@ And with that, we're done! The entire Github Issues app should now be fetching i
 
 There's more that could be done to add more type safety if we wanted (like trying to constrain which possible action types can be passed to `dispatch`), but this gives us a reasonable "80% solution" without too much extra effort.
 
-Hopefully you now have a solid understand of how Redux Starter Kit looks in a real world application.
+Hopefully you now have a solid understand of how Redux Toolkit looks in a real world application.
 
 Let's wrap this up with one more look at the complete source code and the running app:
 
