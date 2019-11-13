@@ -1,5 +1,5 @@
 {
-  "name": "@reduxjs/redux-toolkit",
+  "name": "@reduxjs/toolkit",
   "version": "1.0.2",
   "description": "The official, opinionated, batteries-included toolset for efficient Redux development",
   "repository": "https://github.com/reduxjs/redux-toolkit",

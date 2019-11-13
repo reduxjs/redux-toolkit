@@ -1,6 +1,6 @@
 # Redux Toolkit
 
-[![build status](https://img.shields.io/travis/reduxjs/redux-toolkit/master.svg?style=flat-square)](https://travis-ci.org/reduxjs/redux-toolkit)
+[![build status](https://img.shields.io/travis/reduxjs/toolkit/master.svg?style=flat-square)](https://travis-ci.org/reduxjs/redux-toolkit)
 [![npm version](https://img.shields.io/npm/v/@reduxjs/toolkit.svg?style=flat-square)](https://www.npmjs.com/package/@reduxjs/toolkit)
 [![npm downloads](https://img.shields.io/npm/dm/@reduxjs/toolkit.svg?style=flat-square)](https://www.npmjs.com/package/@reduxjs/toolkit) (RTK)
 [![npm downloads](https://img.shields.io/npm/dm/redux-starter-kit.svg?style=flat-square)](https://www.npmjs.com/package/redux-starter-kit) (RSK)
