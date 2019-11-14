@@ -28,7 +28,7 @@ module.exports = {
   },
   themeConfig: {
     prism: {
-      theme: require('./src/js/monokaiTheme'),
+      theme: require('./src/js/monokaiTheme.js'),
     },
     footer: {
       style: 'dark',
