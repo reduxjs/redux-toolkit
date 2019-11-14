@@ -1,11 +1,4 @@
 /**
- * Copyright (c) 2017-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-/**
  * CSS files with the .module.css suffix will be treated as CSS modules
  * and scoped locally.
  */
@@ -37,7 +30,7 @@
 }
 
 .featureBlock {
-  padding: 40px 0 0 0;
+  margin-top: 40px;
 }
 
 .blockImage {
@@ -53,6 +46,12 @@
 .featureTitle {
   font-size: 30px;
   padding: 10px 0;
+}
+
+@media screen and (max-width: 966px) {
+  .featureContent {
+    text-align: center;
+  }
 }
 
 .title {
