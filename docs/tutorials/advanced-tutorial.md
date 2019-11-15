@@ -33,9 +33,9 @@ The starting commit for this application is a plain React implementation that us
 
 Let's start by viewing the original plain React app in action:
 
-<iframe src="https://codesandbox.io/embed/rsk-github-issues-example-01-plain-react-nvmdy?fontsize=14&view=preview"
+<iframe src="https://codesandbox.io/embed/rsk-github-issues-example-8jf6d?fontsize=14&hidenavigation=1&theme=dark&view=preview"
      style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
-     title="rsk-github-issues-example-01-plain-react"
+     title="rtk-github-issues-example-01-plain-react"
      allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
      sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
@@ -57,7 +57,7 @@ The codebase is already laid out in a "feature folder" structure, The main piece
 
 Since this app doesn't yet use Redux at all, the first step is to install Redux Toolkit and React-Redux. Since this is a TypeScript app, we'll also need to add `@types/react-redux` as well. Add those packages to the project via either Yarn or NPM.
 
-> - [Add Redux Toolkit and React-Redux packages](https://github.com/reduxjs/rtk-github-issues-example/commit/83ae4753952060956a303a3aa983c8300facb974)
+> - [Add Redux Toolkit and React-Redux packages](https://github.com/reduxjs/rtk-github-issues-example/commit/05e5287453174598eece1ff17f8862b7e7fcaf08)
 
 Next, we need to set up the usual pieces: a root reducer function, the Redux store, and the `<Provider>` to make that store available to our component tree.
 
@@ -65,7 +65,7 @@ In the process, we're going to set up "Hot Module Replacement" for our app. That
 
 #### Creating the Root Reducer
 
-> - [Add store and root reducer with reducer HMR](https://github.com/reduxjs/rtk-github-issues-example/commit/e80552e59e7832208c964ba1eefcfad24d41f317)
+> - [Add store and root reducer with reducer HMR](https://github.com/reduxjs/rtk-github-issues-example/commit/262fbe422c517388de26e6a53c1586b171c5b061)
 
 First, we'll create the root reducer function. We don't have any slices yet, so it will just return an empty object.
 
@@ -118,7 +118,7 @@ The `require('./rootReducer').default` looks a bit odd. That's because we're mix
 
 Now that the store has been created, we can add it to the React component tree.
 
-> - [Render Redux Provider with app HMR](https://github.com/reduxjs/rtk-github-issues-example/commit/647d4858da979d330a043fc629bd08a6bf21c23d)
+> - [Render Redux Provider with app HMR](https://github.com/reduxjs/rtk-github-issues-example/commit/df3c9b7279470a03feb2c6327c5a2fe951c8360c)
 
 As with the root reducer, we can hot-reload the React component tree whenever a component file changes. The best way is to write a function that imports the `<App>` component and renders it, call that once on startup to show the React component tree as usual, and then reuse that function any time a component is changed.
 
@@ -175,7 +175,7 @@ The first step is to look at the data that is currently being kept in `<App>`, a
 
 Let's look at the source for the whole slice, and then break down what it's doing:
 
-> - [Add initial state slice for UI display](https://github.com/reduxjs/rtk-github-issues-example/commit/daf082e161eaede49b48d92fdf8cb921ed80ea9b)
+> - [Add initial state slice for UI display](https://github.com/reduxjs/rtk-github-issues-example/commit/daeff01b1d1a022f89d7045570c2f8c79daf5c90)
 
 **features/issuesDisplay/issuesDisplaySlice.ts**
 
@@ -293,7 +293,7 @@ import { combineReducers } from '@reduxjs/toolkit'
 
 Now that the issues display slice is hooked up to the store, we can update `<App>` to use that instead of its internal component state.
 
-> - [Convert main issues display control to Redux](https://github.com/reduxjs/rtk-github-issues-example/commit/e518e1936d5bdaeeb3cf3d6d0ac8496d12c1109b)
+> - [Convert main issues display control to Redux](https://github.com/reduxjs/rtk-github-issues-example/commit/ca6b0085f068ce0c379998c46752b4e2e3688e61)
 
 We need to make three groups of changes to the `App` component:
 
@@ -380,9 +380,9 @@ Unlike typical `connect` + `mapDispatch` usage, here we call `dispatch()` direct
 
 Let's see if this works!
 
-<iframe  src="https://codesandbox.io/embed/rsk-github-issues-example-8kex1?fontsize=14&module=%2Fsrc%2Fapp%2FApp.tsx&view=preview"
+<iframe  src="https://codesandbox.io/embed/rtk-github-issues-example-02-issues-display-tdx2w?fontsize=14&hidenavigation=1&module=%2Fsrc%2Fapp%2FApp.tsx&theme=dark&view=preview"
      style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
-     title="rsk-github-issues-example-02-issues-display"
+     title="rtk-github-issues-example-02-issues-display"
      allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
      sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
@@ -527,7 +527,7 @@ Since the thunk middleware is already set up, we don't have to do any work there
 
 Before we go any further, let's add a type declaration we can reuse instead.
 
-> - [Add AppThunk type](https://github.com/reduxjs/rsk-github-issues-example/commit/8672da8c91a4b82a1bc29cfe24409e55e1f02928)
+> - [Add AppThunk type](https://github.com/reduxjs/rtk-github-issues-example/commit/9cdbe41d4c4a1ea6799d9542b1aa809670002094)
 
 **app/store.ts**
 
@@ -557,7 +557,7 @@ There are many cases where you would want different type settings here, but thes
 
 Now that we have that type, we can write a slice of state for fetching details on a repo.
 
-> - [Add a slice for storing repo details](https://github.com/reduxjs/rsk-github-issues-example/commit/061f8230b4e8f77664b023c17786a22e57f8ed3a)
+> - [Add a slice for storing repo details](https://github.com/reduxjs/rtk-github-issues-example/commit/b6bb2e2ff7952b1b8ada5da4ea7f40a6fc56b7c2)
 
 **features/repoSearch/repoDetailsSlice.ts**
 
@@ -660,7 +660,7 @@ For sake of simplicity, we'll stick with the logic as-is for the rest of the tut
 
 Now that the repo details slice exists, we can use it in the `<IssuesListPage>` component.
 
-> - [Update IssuesListPage to fetch repo details via Redux](https://github.com/reduxjs/rsk-github-issues-example/commit/efe41bcebb835e714e197a66c93998d02efaeab2)
+> - [Update IssuesListPage to fetch repo details via Redux](https://github.com/reduxjs/rtk-github-issues-example/commit/74d4ff8b1da54db7eef586ad2515408bd4a88e96)
 
 **features/issuesList/IssuesListPage.tsx**
 
@@ -739,7 +739,7 @@ Inside our `useEffect`, we drop the `fetchIssueCount` function, and dispatch `fe
 
 Next up, we need to replace the logic for fetching a list of open issues.
 
-> - [Add a slice for tracking issues state](https://github.com/reduxjs/rtk-github-issues-example/commit/a358f4da20242a6213acdd71988f0f60d7a9a61e)
+> - [Add a slice for tracking issues state](https://github.com/reduxjs/rtk-github-issues-example/commit/4fa1bfffd787639f5f3d0dbab12758ccc851e293)
 
 **features/issuesList/issuesSlice.ts**
 
@@ -856,7 +856,7 @@ This slice is a bit longer, but it's the same basic approach as before: write th
 
 Now we can finish converting the `<IssuesListPage>` component by swapping out the issues fetching logic.
 
-> - [Update IssuesListPage to fetch issues data via Redux](https://github.com/reduxjs/rtk-github-issues-example/commit/24a615f2ef5fbac793a4d0ea4163defd6ffd9222)
+> - [Update IssuesListPage to fetch issues data via Redux](https://github.com/reduxjs/rtk-github-issues-example/commit/d3f4b39fa9edf9a89ab967c256494cd217984fb2)
 
 Let's look at the changes.
 
@@ -995,7 +995,7 @@ It's very similar to `<IssuesListPage>`. We store the current displayed `Issue`,
 
 We conveniently already have the Redux logic for fetching a single issue - we wrote that already as part of `issuesSlice.ts`. So, we can immediately jump straight to using that here in `<IssueDetailsPage>`.
 
-> - [Update IssueDetailsPage to fetch issue data via Redux](https://github.com/reduxjs/rtk-github-issues-example/commit/fdd589dafa1ebb6b67a58d2f6a45c2be2ca54708)
+> - [Update IssueDetailsPage to fetch issue data via Redux](https://github.com/reduxjs/rtk-github-issues-example/commit/52bdf2aa94e9a0dcd3ae8d54a48f0d968040b81e)
 
 **features/issueDetails/IssueDetailsPage.tsx**
 
@@ -1060,7 +1060,7 @@ Interestingly, there's actually a bit of a change in behavior here. The original
 
 We have one more slice left to write - we need to fetch and store comments for the current issue.
 
-> - [Add a slice for tracking comments data](https://github.com/reduxjs/rtk-github-issues-example/commit/002d92e75f76fcc8dffe9a4ba61f7c03d4ce2222)
+> - [Add a slice for tracking comments data](https://github.com/reduxjs/rtk-github-issues-example/commit/2ee7670c3965ebb5cec7d946671ffa950997e0ae)
 
 **features/issueDetails/commentsSlice.ts**
 
@@ -1132,7 +1132,7 @@ The slice should look pretty familiar at this point. Our main bit of state is a 
 
 The final step is to swap the comments fetching logic in `<IssueDetailsPage>`.
 
-> - [Update IssueDetailsPage to fetch comments via Redux](https://github.com/reduxjs/rtk-github-issues-example/commit/b9ec0600c98f875f0b331de335077f01a31e624d)
+> - [Update IssueDetailsPage to fetch comments via Redux](https://github.com/reduxjs/rtk-github-issues-example/commit/5cc20e09893574c3115ceead530a6a295392449b)
 
 **features/issueDetails/IssueDetailsPage.tsx**
 
@@ -1218,9 +1218,9 @@ Hopefully you now have a solid understand of how Redux Toolkit looks in a real w
 
 Let's wrap this up with one more look at the complete source code and the running app:
 
-<iframe src="https://codesandbox.io/embed/rsk-github-issues-example-8i4jn?fontsize=14&module=%2Fsrc%2Ffeatures%2FissueDetails%2FcommentsSlice.ts&view=editor"
+<iframe src="https://codesandbox.io/embed/rtk-github-issues-example-03-final-ihttc?fontsize=14&hidenavigation=1&module=%2Fsrc%2Ffeatures%2FissueDetails%2FcommentsSlice.ts&theme=dark&view=editor"
      style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
-     title="rsk-github-issues-example-03-final"
+     title="rtk-github-issues-example03-final"
      allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
      sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>

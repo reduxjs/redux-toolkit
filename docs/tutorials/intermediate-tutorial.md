@@ -41,8 +41,8 @@ On the one hand, this is a small example app. It's meant to illustrate the basic
 
 Since the original todos example is in the Redux repo, we start by copying the Redux "todos" source code to a fresh Create-React-App project, and adding Prettier to the project to help make sure the code is formatted consistently. There's also a `jsconfig.json` file to enable us to use "absolute import paths" that start from the `/src` folder.
 
-> - [Initial commit](https://github.com/reduxjs/rtk-convert-todos-example/commit/75de243d3110940cab9dd9c908d84dc3e00f74db).
-> - [Add jsconfig.json to support absolute imports](https://github.com/reduxjs/rtk-convert-todos-example/commit/6384782b7373597a2d646cdef088eda989ca31fc)
+> - [Initial commit](https://github.com/reduxjs/rtk-convert-todos-example/commit/a8e0a9a9d77b9dcd9e881079e7cca449084ca7b1).
+> - [Add jsconfig.json to support absolute imports](https://github.com/reduxjs/rtk-convert-todos-example/commit/b866e205b9ebece84367f11d2faabc557bd08e23)
 
 In the Basic Tutorial, we just linked to Redux Toolkit as an individual script tag. But, in a typical application, you need to add RTK as a package dependency in your project. This can be done with either the NPM or Yarn package managers:
 
@@ -56,6 +56,8 @@ yarn add @reduxjs/toolkit
 
 Once that's complete, you should add and commit the modified `package.json` file and the "lock file" from your package manager (`package-lock.json` for NPM, or `yarn.lock` for Yarn).
 
+> - [Add Redux Toolkit](https://github.com/reduxjs/rtk-convert-todos-example/commit/c3f47aeaecf855561e4db9d452b928f1b8b6c016)
+
 With that done, we can start to work on the code.
 
 ### Converting the Store to Use `configureStore`
@@ -64,7 +66,7 @@ Just like with the "counter" example, we can replace the plain Redux `createStor
 
 The changes here are simple. We update `src/index.js` to import `configureStore` instead of `createStore`, and replace the function call. Remember that `configureStore` takes an options object as a parameter with named fields, so instead of passing `rootReducer` directly as the first parameter, we pass it as an object field named `reducer`:
 
-> - [Convert store setup to use configureStore](https://github.com/reduxjs/rtk-convert-todos-example/commit/600d02599025c489c531650623930992daf129a0)
+> - [Convert store setup to use configureStore](https://github.com/reduxjs/rtk-convert-todos-example/commit/cdfc15edbd82beda9ef0521aa191574b6cc7695a)
 
 ```diff
 import React from "react";
@@ -157,7 +159,7 @@ We'll start by adding a new file called `/features/todos/todosSlice.js`. Note th
 
 In this file, we'll add the following logic:
 
-> - [Add an initial todos slice](https://github.com/reduxjs/rtk-convert-todos-example/commit/e053eaa1028efa8442cca46c8b2b74631c31b647)
+> - [Add an initial todos slice](https://github.com/reduxjs/rtk-convert-todos-example/commit/48ce059dbb0fce1b961631821534fbcb766d3471)
 
 ```js
 import { createSlice } from '@reduxjs/toolkit'
@@ -254,7 +256,7 @@ The original todos reducer has a tests file with it. We can port those over to w
 
 The first step is to copy `reducers/todos.spec.js` over to `features/todos/todosSlice.spec.js`, and change the import path to read the reducer from the slice file.
 
-> - [Copy tests to todos slice](https://github.com/reduxjs/rtk-convert-todos-example/commit/1df3f69b5d63faeeacc52d6e1901ff433e93485c)
+> - [Copy tests to todos slice](https://github.com/reduxjs/rtk-convert-todos-example/commit/b603312ddf55899e8a75522d407c40474948ae0b)
 
 Once that is done, we need to update the tests to match how RTK works.
 
@@ -264,7 +266,7 @@ The other problem is that the action objects in the tests look like `{type, id, 
 
 (We really _could_ just replace all the inline action objects in the test with calls like `addTodo({id : 0, text: "Buy milk"})`, but this is a simpler set of changes to show for now.)
 
-> - [Port the todos tests to work with the todos slice](https://github.com/reduxjs/rtk-convert-todos-example/commit/14bd79d9a2746a9f450e201c1d2196f2d75d9c8a)
+> - [Port the todos tests to work with the todos slice](https://github.com/reduxjs/rtk-convert-todos-example/commit/39dbbf37bd4c559db956c8291bbd0bf1135546bb)
 
 An example of the changes would be:
 
@@ -310,7 +312,7 @@ We _could_ add that behavior for requiring that whatever code dispatches the add
 
 RTK allows you to customize how the `payload` field is created in your action objects. If you are using `createAction` by itself, you can pass a "prepare callback" as the second argument. Here's what this would look like:
 
-> - [Implement addTodo ID generation](https://github.com/reduxjs/rtk-convert-todos-example/commit/0c3542417ceb758b017fab5b388a1c5c11d5ec49)
+> - [Implement addTodo ID generation](https://github.com/reduxjs/rtk-convert-todos-example/commit/0c9e3b721c209d368d23a70cf8faca8f308ff8df)
 
 ```js
 let nextTodoId = 0
@@ -368,7 +370,7 @@ We have a shiny new todos reducer function, but it isn't hooked up to anything y
 
 The first step is to go update our root reducer to use the reducer from the todos slice instead of the original reducer. We just need to change the import statement in `reducers/index.js`:
 
-> - [Use the todos slice reducer](https://github.com/reduxjs/rtk-convert-todos-example/commit/522b0f369d6f8c75816992f17ce7d628c674f237)
+> - [Use the todos slice reducer](https://github.com/reduxjs/rtk-convert-todos-example/commit/7b6e005377c856d7415e328387188260330ebae4)
 
 ```diff
 import { combineReducers } from 'redux'
@@ -395,7 +397,7 @@ Second, the connected component is getting `dispatch` as a prop. Again, this wor
 
 Since we've got this component open, we can fix those issues too. Here's what the final version looks like:
 
-> - [Update AddTodo to dispatch the new action type](https://github.com/reduxjs/rtk-convert-todos-example/commit/94815318491324785b3ec39be3c9d374b12598fd)
+> - [Update AddTodo to dispatch the new action type](https://github.com/reduxjs/rtk-convert-todos-example/commit/d7082409ebaa113b74f6989bf70ee09600f37d0b)
 
 ```js
 import React, { useState } from 'react'
@@ -444,7 +446,7 @@ Finally, we use the ["object shorthand" form of `mapDispatch`](https://react-red
 
 The `TodoList` and `VisibleTodoList` components have similar issues: they're using the older `toggleTodo` action creator, and the `connect` setup isn't using the "object shorthand" form of `mapDispatch`. We can fix both of those.
 
-> - [Update TodoList to dispatch the new toggle action type](https://github.com/reduxjs/rtk-convert-todos-example/commit/a795a69ed4833abd724a38b5af8061abda21d3f0)
+> - [Update TodoList to dispatch the new toggle action type](https://github.com/reduxjs/rtk-convert-todos-example/commit/b47b2124d6a28386b7461bccb9216682a81edb3e)
 
 ```diff
 // VisibleTodoList.js
@@ -467,7 +469,7 @@ Now that we've created the todos slice and hooked it up to the UI, we can do the
 
 The filter logic is really simple. We have one action, which sets the current filter value by returning what's in the action. Here's the whole slice:
 
-> - [Add the filters slice](https://github.com/reduxjs/rtk-convert-todos-example/commit/81166a81bd0f764ca6f49c7f5455358d1cf8f9c9)
+> - [Add the filters slice](https://github.com/reduxjs/rtk-convert-todos-example/commit/b77f4155e3b45bce24d0d0ef6e2f7b0c3bd11ee1)
 
 ```js
 import { createSlice } from '@reduxjs/toolkit'
@@ -499,7 +501,7 @@ We've copied over the `VisibilityFilters` enum object that was originally in `ac
 
 As with the todos reducer, we need to import and add the visibility reducer to our root reducer:
 
-> - [Use the filters slice reducer](https://github.com/reduxjs/rtk-convert-todos-example/commit/4d1cf1952db1e67655c9e532b1ceb14f66305a1b)
+> - [Use the filters slice reducer](https://github.com/reduxjs/rtk-convert-todos-example/commit/623c47b1987914a1d90142824892686ec76c20a1)
 
 ```diff
 import todosReducer from 'features/todos/todosSlice'
@@ -517,7 +519,7 @@ From there, we need to dispatch the `setVisibilityFilter` action when the user c
 
 From there, the link components will take just a bit more work. `FilterLink` is currently creating new functions that capture the current value of `ownProps.filter`, so that `Link` is just getting a function called `onClick`. While that's a valid way to do it, for consistency we'd like to continue using the object shorthand form of `mapDispatch`, and modify `Link` to pass the filter value in when it dispatches the action.
 
-> - [Use the new filters action in the UI](https://github.com/reduxjs/rtk-convert-todos-example/commit/f8678207127a97f9a65a7ec645051f3077f4c446)
+> - [Use the new filters action in the UI](https://github.com/reduxjs/rtk-convert-todos-example/commit/776b39088384513ff68af41039fe5fc5188fe8fb)
 
 ```diff
 // FilterLink.js
@@ -577,7 +579,7 @@ Redux apps commonly use a library called [Reselect](https://github.com/reduxjs/r
 
 RTK re-exports the `createSelector` function from Reselect, so we can import that and use it in `VisibleTodoList`.
 
-> - [Convert visible todos to a memoized selector](https://github.com/reduxjs/rtk-convert-todos-example/commit/dc08ec8a0ac1f4212accc152f807d8f8b648b740)
+> - [Convert visible todos to a memoized selector](https://github.com/reduxjs/rtk-convert-todos-example/commit/4fc943b7111381974f20f74750a114b5e52ce1b2)
 
 ```diff
 import { connect } from 'react-redux'
@@ -642,8 +644,8 @@ We can safely remove `actions/index.js`, `reducers/todos.js`, `reducers/visibili
 
 We can also try completely switching from the "folder-by-type" structure to a "feature folder" structure, by moving all of the component files into the matching feature folders.
 
-> - [Remove unused action and reducer files](https://github.com/reduxjs/rtk-convert-todos-example/commit/0d7a9a3fa1e2f0c1af163926ef3556c6d1841527)
-> - [Consolidate components into feature folders](https://github.com/reduxjs/rtk-convert-todos-example/commit/ff63f4c6a83ae7515a4e6b26ba2bb5c26cfd17dc)
+> - [Remove unused action and reducer files](https://github.com/reduxjs/rtk-convert-todos-example/commit/fbc0b965949e082748b8613b734612226ffe9e94)
+> - [Consolidate components into feature folders](https://github.com/reduxjs/rtk-convert-todos-example/commit/138cc162b1cc9c64ab67fae0a1171d07940414e6)
 
 If we do that, the final source code structure looks like this:
 
@@ -671,12 +673,12 @@ Everyone has different preferences on what makes a "maintainable" folder structu
 
 Now, let's see the final version of the code in action!
 
-<iframe src="https://codesandbox.io/embed/rsk-convert-todos-example-l0h14?fontsize=14&module=%2Fsrc%2Ffeatures%2Ftodos%2FtodosSlice.js&view=editor"
+<iframe src="https://codesandbox.io/embed/rtk-convert-todos-example-uqqy3?fontsize=14&hidenavigation=1&module=%2Fsrc%2Ffeatures%2Ftodos%2FtodosSlice.js&theme=dark&view=editor"
      style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
-     title="rsk-convert-todos-example"
+     title="rtk-convert-todos-example"
      allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
      sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
-   ></iframe>
+></iframe>
 
 ## Summary
 
