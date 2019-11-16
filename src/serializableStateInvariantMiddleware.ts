@@ -20,22 +20,6 @@ export function isPlain(val: any) {
   )
 }
 
-function rich(strings: string[], ...keys: unknown[]) {
-  const arr: unknown[] = [strings[0]]
-
-  for (let i = 0; i < keys.length; i += 1) {
-    arr.push(keys[i], strings[i + 1])
-  }
-
-  return arr
-}
-
-const NON_SERIALIZABLE_ACTION_MESSAGE = [
-  'A non-serializable value was detected in an action, in the path: `%s`. Value: %o',
-  'Take a look at the logic that dispatched this action:  %o.',
-  '(See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)'
-].join('\n')
-
 interface NonSerializableValue {
   keyPath: string
   value: unknown
