@@ -2,6 +2,6 @@
   "sandboxes": [
     "vanilla",
     "vanilla-ts",
-    "github/reduxjs/rsk-github-issues-example"
+    "github/reduxjs/rtk-github-issues-example"
   ]
 }

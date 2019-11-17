@@ -191,7 +191,7 @@ const counter = createReducer(0, {
 })
 ```
 
-To see the complete code so far, see [this CodeSandbox showing the use of `createAction` and `createReducer`](https://codesandbox.io/s/counter-vanilla-redux-starter-kit-sjouq).
+To see the complete code so far, see [this CodeSandbox showing the use of `createAction` and `createReducer`](https://codesandbox.io/s/counter-vanilla-redux-toolkit-sjouq).
 
 ### Introducing: `createSlice`
 
@@ -274,6 +274,11 @@ You can see that we're keeping the async handling separate from the reducer logi
 
 Here's the complete example in a sandbox:
 
-<iframe src="https://codesandbox.io/embed/counter-vanilla-redux-starter-kit-6gkxx?fontsize=14&view=editor" title="counter-vanilla createSlice - Redux Starter Kit" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media" style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }} sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+<iframe src="https://codesandbox.io/embed/counter-vanilla-createslice-redux-toolkit-6gkxx?fontsize=14&hidenavigation=1&theme=dark&view=editor"
+     style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }} 
+     title="counter-vanilla createSlice - Redux Toolkit"
+     allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+     sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
+></iframe>
 
 Now that you know the basics of each function, the next step is to try using them in a _slightly_ larger example to see more of how they work. We'll cover that in the [Intermediate Tutorial](./intermediate-tutorial.md).
