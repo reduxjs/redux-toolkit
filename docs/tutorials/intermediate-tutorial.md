@@ -68,7 +68,7 @@ The changes here are simple. We update `src/index.js` to import `configureStore`
 
 > - [Convert store setup to use configureStore](https://github.com/reduxjs/rtk-convert-todos-example/commit/cdfc15edbd82beda9ef0521aa191574b6cc7695a)
 
-```diff
+```diff {3-4,9-12}
 import React from "react";
 import { render } from "react-dom";
 -import { createStore } from "redux";
@@ -77,8 +77,8 @@ import { Provider } from "react-redux";
 import App from "./components/App";
 import rootReducer from "./reducers";
 
--const store = createStore(rootReducer);
-+const store = configureStore({
+- const store = createStore(rootReducer);
++ const store = configureStore({
 +   reducer: rootReducer,
 +});
 ```
@@ -87,7 +87,7 @@ import rootReducer from "./reducers";
 
 If you have [the Redux DevTools browser extension](https://github.com/zalmoxisus/redux-devtools-extension) installed, you should now be able to see the current state if you start the application in development mode and open the DevTools Extension. It should look like this:
 
-![Redux DevTools Extension screenshot showing initial state](assets/tutorials/intermediate/int-tut-01-redux-devtools.png)
+![Redux DevTools Extension screenshot showing initial state](/assets/tutorials/intermediate/int-tut-01-redux-devtools.png)
 
 ## Creating the Todos Slice
 
@@ -674,7 +674,7 @@ Everyone has different preferences on what makes a "maintainable" folder structu
 Now, let's see the final version of the code in action!
 
 <iframe src="https://codesandbox.io/embed/rtk-convert-todos-example-uqqy3?fontsize=14&hidenavigation=1&module=%2Fsrc%2Ffeatures%2Ftodos%2FtodosSlice.js&theme=dark&view=editor"
-     style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+     style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
      title="rtk-convert-todos-example"
      allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
      sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"

@@ -275,7 +275,7 @@ You can see that we're keeping the async handling separate from the reducer logi
 Here's the complete example in a sandbox:
 
 <iframe src="https://codesandbox.io/embed/counter-vanilla-createslice-redux-toolkit-6gkxx?fontsize=14&hidenavigation=1&theme=dark&view=editor"
-     style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+     style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }} 
      title="counter-vanilla createSlice - Redux Toolkit"
      allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
      sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
