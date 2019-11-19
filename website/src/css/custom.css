@@ -14,6 +14,8 @@
   --ifm-color-primary-lighter: #9b7bce;
   --ifm-color-primary-lightest: #b49cda;
   --ifm-code-font-size: 95%;
+  --ifm-code-border-radius: 3px;
+  --ifm-code-background: rgba(27, 31, 35, 0.05);
 }
 
 @media screen and (max-width: 996px) {
