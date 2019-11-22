@@ -7,7 +7,7 @@ import { AnyAction, Action, Reducer } from 'redux'
 export type Actions<T extends keyof any = string> = Record<T, Action>
 
 /**
- * An *case reducer* is a reducer function for a speficic action type. Case
+ * An *case reducer* is a reducer function for a specific action type. Case
  * reducers can be composed to full reducers using `createReducer()`.
  *
  * Unlike a normal Redux reducer, a case reducer is never called with an
@@ -46,7 +46,7 @@ export type CaseReducers<S, AS extends Actions> = {
  *
  * @param initialState The initial state to be returned by the reducer.
  * @param actionsMap A mapping from action types to action-type-specific
- *   case redeucers.
+ *   case reducers.
  */
 export function createReducer<
   S,
