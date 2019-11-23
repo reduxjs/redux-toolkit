@@ -1,5 +1,5 @@
 import { Reducer } from 'redux'
-import { createReducer, createAction } from '../../src'
+import { createReducer, createAction, ActionReducerMapBuilder } from '../../src'
 
 function expectType<T>(p: T) {}
 
@@ -67,49 +67,10 @@ function expectType<T>(p: T) {}
 /** Test:  alternative builder callback for actionMap */
 {
   const increment = createAction<number, 'increment'>('increment')
-  const decrement = createAction<number, 'decrement'>('decrement')
 
-  const reducer = createReducer(0, builder => {
-    builder.addCase(increment, (state, action) => {
-      expectType<number>(state)
-      expectType<{ type: 'increment'; payload: number }>(action)
-      // typings:expect-error
-      expectType<string>(state)
-      // typings:expect-error
-      expectType<{ type: 'increment'; payload: string }>(action)
-      // typings:expect-error
-      expectType<{ type: 'decrement'; payload: number }>(action)
-    })
-
-    builder.addCase('increment', (state, action) => {
-      expectType<number>(state)
-      expectType<{ type: 'increment' }>(action)
-      // typings:expect-error
-      expectType<{ type: 'decrement' }>(action)
-      // typings:expect-error - this cannot be inferred and has to be manually specified
-      expectType<{ type: 'increment'; payload: number }>(action)
-    })
-
-    builder.addCase(
-      increment,
-      (state, action: ReturnType<typeof increment>) => state
-    )
-    // typings:expect-error
-    builder.addCase(
-      increment,
-      (state, action: ReturnType<typeof decrement>) => state
-    )
-
-    builder.addCase(
-      'increment',
-      (state, action: ReturnType<typeof increment>) => state
-    )
-    // typings:expect-error
-    builder.addCase(
-      'decrement',
-      (state, action: ReturnType<typeof increment>) => state
-    )
-  })
+  const reducer = createReducer(0, builder =>
+    expectType<ActionReducerMapBuilder<number>>(builder)
+  )
 
   expectType<number>(reducer(0, increment(5)))
   // typings:expect-error

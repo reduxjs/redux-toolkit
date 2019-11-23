@@ -1,5 +1,10 @@
 import { AnyAction, Reducer, Action } from 'redux'
-import { createSlice, PayloadAction, createAction } from '../../src'
+import {
+  createSlice,
+  PayloadAction,
+  createAction,
+  ActionReducerMapBuilder
+} from '../../src'
 
 function expectType<T>(t: T) {
   return t
@@ -271,4 +276,16 @@ function expectType<T>(t: T) {
     // typings:expect-error
     expectType<string>(x.payload)
   }
+}
+
+/** Test:  alternative builder callback for extraReducers */
+{
+  createSlice({
+    name: 'test',
+    initialState: 0,
+    reducers: {},
+    extraReducers: builder => {
+      expectType<ActionReducerMapBuilder<number>>(builder)
+    }
+  })
 }
