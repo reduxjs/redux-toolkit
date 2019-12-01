@@ -146,10 +146,10 @@ const increment = createAction<number, 'increment'>('increment')
 const decrement = createAction<number, 'decrement'>('decrement')
 createReducer(0, builder =>
   builder
-    .add(increment, (state, action) => {
+    .addCase(increment, (state, action) => {
       // action is inferred correctly here
     })
-    .add(decrement, (state, action: PayloadAction<string>) => {
+    .addCase(decrement, (state, action: PayloadAction<string>) => {
       // this would error out
     })
 )

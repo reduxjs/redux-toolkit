@@ -130,7 +130,7 @@ const counter = createSlice({
   },
   // "builder callback API"
   extraReducers: builder =>
-    builder.add(incrementBy, (state, action) => {
+    builder.addCase(incrementBy, (state, action) => {
       return state + action.payload
     })
 })
