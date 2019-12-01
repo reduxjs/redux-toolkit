@@ -51,7 +51,7 @@ const counterReducer = createReducer(0, {
 
 ### The "builder callback" API
 
-Instead of using a simple object as an argument to `createReducer`, you can also use a callback that receives a `ActionReducerMapBuilder` instance:
+Instead of using a simple object as an argument to `createReducer`, you can also provide a callback that receives an `ActionReducerMapBuilder` instance:
 
 ```typescript
 createReducer(0, builder =>
@@ -61,7 +61,7 @@ createReducer(0, builder =>
 )
 ```
 
-This is intended for use with TypeScript, as passing a plain object full of reducer functions cannot infer their types correctly in this case.  It has no real benefit when used with plain JS.
+This is intended for use with TypeScript, as passing a plain object full of reducer functions cannot infer their types correctly in this case. It has no real benefit when used with plain JS.
 
 We recommend using this API if stricter type safety is necessary when defining reducer argument objects.
 
