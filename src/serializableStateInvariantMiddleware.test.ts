@@ -1,4 +1,6 @@
 import { Reducer } from 'redux'
+import { Console } from 'console'
+import { Writable } from 'stream'
 import { configureStore } from './configureStore'
 
 import {
@@ -79,8 +81,33 @@ describe('findNonSerializableValue', () => {
 })
 
 describe('serializableStateInvariantMiddleware', () => {
+  let log = ''
+  const originalConsole = window.console
+
   beforeEach(() => {
-    console.error = jest.fn()
+    log = ''
+
+    const writable = new Writable({
+      write(chunk, encoding, callback) {
+        log += chunk
+        callback()
+      }
+    })
+
+    const mockConsole = new Console({
+      stdout: writable,
+      stderr: writable
+    })
+
+    Object.defineProperty(window, 'console', {
+      value: mockConsole
+    })
+  })
+
+  afterEach(() => {
+    Object.defineProperty(window, 'console', {
+      value: originalConsole
+    })
   })
 
   it('Should log an error when a non-serializable action is dispatched', () => {
@@ -98,19 +125,12 @@ describe('serializableStateInvariantMiddleware', () => {
 
     store.dispatch(dispatchedAction)
 
-    expect(console.error).toHaveBeenCalled()
-
-    const [
-      message,
-      keyPath,
-      value,
-      action
-    ] = (console.error as jest.Mock).mock.calls[0]
-
-    expect(message).toContain('detected in an action, in the path: `%s`')
-    expect(keyPath).toBe('type')
-    expect(value).toBe(type)
-    expect(action).toBe(dispatchedAction)
+    expect(log).toMatchInlineSnapshot(`
+      "A non-serializable value was detected in an action, in the path: \`type\`. Value: Symbol(SOME_CONSTANT) 
+      Take a look at the logic that dispatched this action:  { type: Symbol(SOME_CONSTANT) } 
+      (See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)
+      "
+    `)
   })
 
   it('Should log an error when a non-serializable value is in state', () => {
@@ -145,19 +165,12 @@ describe('serializableStateInvariantMiddleware', () => {
 
     store.dispatch({ type: ACTION_TYPE })
 
-    expect(console.error).toHaveBeenCalled()
-
-    const [
-      message,
-      keyPath,
-      value,
-      actionType
-    ] = (console.error as jest.Mock).mock.calls[0]
-
-    expect(message).toContain('detected in the state, in the path: `%s`')
-    expect(keyPath).toBe('testSlice.a')
-    expect(value).toBe(badValue)
-    expect(actionType).toBe(ACTION_TYPE)
+    expect(log).toMatchInlineSnapshot(`
+      "A non-serializable value was detected in the state, in the path: \`testSlice.a\`. Value: Map {} 
+      Take a look at the reducer(s) handling this action type: TEST_ACTION.
+      (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)
+      "
+    `)
   })
 
   describe('consumer tolerated structures', () => {
@@ -212,20 +225,13 @@ describe('serializableStateInvariantMiddleware', () => {
 
       store.dispatch({ type: ACTION_TYPE })
 
-      expect(console.error).toHaveBeenCalled()
-
-      const [
-        message,
-        keyPath,
-        value,
-        actionType
-      ] = (console.error as jest.Mock).mock.calls[0]
-
       // since default options are used, the `entries` function in `serializableObject` will cause the error
-      expect(message).toContain('detected in the state, in the path: `%s`')
-      expect(keyPath).toBe('testSlice.a.entries')
-      expect(value).toBe(serializableObject.entries)
-      expect(actionType).toBe(ACTION_TYPE)
+      expect(log).toMatchInlineSnapshot(`
+        "A non-serializable value was detected in the state, in the path: \`testSlice.a.entries\`. Value: [Function: entries] 
+        Take a look at the reducer(s) handling this action type: TEST_ACTION.
+        (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)
+        "
+      `)
     })
 
     it('Should use consumer supplied isSerializable and getEntries options to tolerate certain structures', () => {
@@ -265,20 +271,13 @@ describe('serializableStateInvariantMiddleware', () => {
 
       store.dispatch({ type: ACTION_TYPE })
 
-      expect(console.error).toHaveBeenCalled()
-
-      const [
-        message,
-        keyPath,
-        value,
-        actionType
-      ] = (console.error as jest.Mock).mock.calls[0]
-
       // error reported is from a nested class instance, rather than the `entries` function `serializableObject`
-      expect(message).toContain('detected in the state, in the path: `%s`')
-      expect(keyPath).toBe('testSlice.a.third.bad-map-instance')
-      expect(value).toBe(nonSerializableValue)
-      expect(actionType).toBe(ACTION_TYPE)
+      expect(log).toMatchInlineSnapshot(`
+        "A non-serializable value was detected in the state, in the path: \`testSlice.a.third.bad-map-instance\`. Value: Map {} 
+        Take a look at the reducer(s) handling this action type: TEST_ACTION.
+        (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)
+        "
+      `)
     })
   })
 
@@ -320,7 +319,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
     // Supplied 'isSerializable' considers all values serializable, hence
     // no error logging is expected:
-    expect(console.error).not.toHaveBeenCalled()
+    expect(log).toBe('')
   })
 
   it('should not check serializability for ignored action types', () => {

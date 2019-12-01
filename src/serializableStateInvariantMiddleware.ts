@@ -20,18 +20,6 @@ export function isPlain(val: any) {
   )
 }
 
-const NON_SERIALIZABLE_STATE_MESSAGE = [
-  'A non-serializable value was detected in the state, in the path: `%s`. Value: %o',
-  'Take a look at the reducer(s) handling this action type: %s.',
-  '(See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)'
-].join('\n')
-
-const NON_SERIALIZABLE_ACTION_MESSAGE = [
-  'A non-serializable value was detected in an action, in the path: `%s`. Value: %o',
-  'Take a look at the logic that dispatched this action:  %o.',
-  '(See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)'
-].join('\n')
-
 interface NonSerializableValue {
   keyPath: string
   value: unknown
@@ -135,7 +123,13 @@ export function createSerializableStateInvariantMiddleware(
     if (foundActionNonSerializableValue) {
       const { keyPath, value } = foundActionNonSerializableValue
 
-      console.error(NON_SERIALIZABLE_ACTION_MESSAGE, keyPath, value, action)
+      console.error(
+        `A non-serializable value was detected in an action, in the path: \`${keyPath}\`. Value:`,
+        value,
+        '\nTake a look at the logic that dispatched this action: ',
+        action,
+        '\n(See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)'
+      )
     }
 
     const result = next(action)
@@ -152,7 +146,13 @@ export function createSerializableStateInvariantMiddleware(
     if (foundStateNonSerializableValue) {
       const { keyPath, value } = foundStateNonSerializableValue
 
-      console.error(NON_SERIALIZABLE_STATE_MESSAGE, keyPath, value, action.type)
+      console.error(
+        `A non-serializable value was detected in the state, in the path: \`${keyPath}\`. Value:`,
+        value,
+        `
+Take a look at the reducer(s) handling this action type: ${action.type}.
+(See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)`
+      )
     }
 
     return result
