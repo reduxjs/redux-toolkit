@@ -111,21 +111,21 @@ for references in a larger codebase.
 
 ## Examples
 
-```js
-import { createSlice } from '@reduxjs/toolkit'
+```ts
+import { createSlice, createAction, PayloadAction } from '@reduxjs/toolkit'
 import { createStore, combineReducers } from 'redux'
 
-const incrementBy = createAction < number > 'incrementBy'
+const incrementBy = createAction<number>('incrementBy')
 
 const counter = createSlice({
   name: 'counter',
-  initialState: 0,
+  initialState: 0 as number,
   reducers: {
     increment: state => state + 1,
     decrement: state => state - 1,
     multiply: {
-      reducer: (state, action) => state * action.payload,
-      prepare: value => ({ payload: value || 2 }) // fallback if the payload is a falsy value
+      reducer: (state, action: PayloadAction<number>) => state * action.payload,
+      prepare: (value: number) => ({ payload: value || 2 }) // fallback if the payload is a falsy value
     }
   },
   // "builder callback API"
