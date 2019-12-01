@@ -11,7 +11,7 @@ Redux Toolkit is written in TypeScript, and its API is designed to enable great 
 
 This page is intended to give an overview of all common usecases and the most probable pitfalls you might encounter when using RTK with TypeScript.
 
-**If you encounter any problems with the Types that are not described on this page, please open an Issue!**
+**If you encounter any problems with the types that are not described on this page, please open an issue for discussion.**
 
 ## Using `configureStore` with TypeScript
 
