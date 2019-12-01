@@ -1,5 +1,5 @@
 ---
-id: with-typescript
+id: usage-with-typescript
 title: Usage With TypeScript
 sidebar_label: Usage With TypeScript
 hide_title: true
@@ -7,20 +7,20 @@ hide_title: true
 
 # Usage With TypeScript
 
-It is one of Redux Toolkit's design targets to offer great integration with TypeScript.
+Redux Toolkit is written in TypeScript, and its API is designed to enable great integration with TypeScript applications.
 
 This page is intended to give an overview of all common usecases and the most probable pitfalls you might encounter when using RTK with TypeScript.
 
 **If you encounter any problems with the Types that are not described on this page, please open an Issue!**
 
-## Using configureStore with TypeScript
+## Using `configureStore` with TypeScript
 
 Using [configureStore](../api/configureStore.ms) should not need any additional typings. You might, however, want to extract the `RootState` type and the `Dispatch` type.
 
 ### Getting the `State` type
 
-The easiest way of getting the `State` type is to define the root reducer in advance and extract it's `ReturnType`.  
-It's recommend to give it a different name like `RootState` to prevent confusion, as the type name `State` is usually overused.
+The easiest way of getting the `State` type is to define the root reducer in advance and extract its `ReturnType`.  
+It is recommend to give the type a different name like `RootState` to prevent confusion, as the type name `State` is usually overused.
 
 ```typescript
 import { combineReducers } from '@reduxjs/toolkit'
@@ -31,7 +31,7 @@ export type RootState = ReturnType<typeof rootReducer>
 ### Getting the `Dispatch` type
 
 If you want to get the `Dispatch` type from your store, you can extract it after creating the store.  
-It's recommend to give it a different name like `AppDispatch` to prevent confusion, as the type name `Dispatch` is usually overused.
+It is recommend to give the type a different name like `AppDispatch` to prevent confusion, as the type name `Dispatch` is usually overused.
 
 ```typescript
 import { configureStore } from '@reduxjs/toolkit'
@@ -44,7 +44,7 @@ export type AppDispatch = typeof store.dispatch
 
 ### Extending the `Dispatch` type
 
-By default, this `AppDispatch` type will account only for the already included `redux-thunk` middleware. If you're adding additional middlewares that provide different return types for some actions, you can overload that `AppDispatch` type. While you can just extend the `AppDispatch` type, it's recommended to do so on the store, to keep everything more consistent:
+By default, this `AppDispatch` type will account only for the already included `redux-thunk` middleware. If you're adding additional middlewares that provide different return types for some actions, you can overload that `AppDispatch` type. While you can just extend the `AppDispatch` type, it's recommended to do so by adding additional type overloads for `dispatch` on the store, to keep everything more consistent:
 
 ```typescript
 const _store = configureStore({
@@ -60,11 +60,11 @@ export const store: EnhancedStoreType = _store
 export type AppDispatch = typeof store.dispatch
 ```
 
-### Using the extracted `Dispatch` type with react-redux
+### Using the extracted `Dispatch` type with React-Redux
 
-The default `useDispatch` hook of react-redux does not contain any types that take middlewares into account. It is recommended you create your own copy of `useDispatch` that is correctly typed to your store. See [the react-redux documentation](https://react-redux.js.org/using-react-redux/static-typing#typing-the-usedispatch-hook) on this.
+By default, the React-Redux `useDispatch` hook does not contain any types that take middlewares into account. If you need a more specific type for the `dispatch` function when dispatching, you may specify the type of the returned `dispatch` function, or create a custom-typed version of `useSelector`. See [the React-Redux documentation](https://react-redux.js.org/using-react-redux/static-typing#typing-the-usedispatch-hook) for details.
 
-## createAction
+## `createAction`
 
 For most use cases, there is no need to have a literal definition of `action.type`, so the following can be used:
 
@@ -106,9 +106,9 @@ function test(action: Action) {
 }
 ```
 
-This `match` method is also very useful in combination with `redux.observable` and rxjs's filter method.
+This `match` method is also very useful in combination with `redux-observable` and RxJS's `filter` method.
 
-## createReducer
+## `createReducer`
 
 The default way of calling `createReducer` would be with a map object, like this:
 
@@ -135,11 +135,11 @@ Unfortunately, as the keys are only strings, using that API TypeScript can neith
 }
 ```
 
-This is why we're offering an alternative API.
+As an alternative, RTK includes a type-safe reducer builder API.
 
-### Recommendation for TS users: the alternative builder API
+### Building Type-Safe Reducer Argument Objects
 
-Instead of using a Map Object as an argument to `createReducer`, you can also use a callback that receives a `ActionReducerMapBuilder` object:
+Instead of using a simple object as an argument to `createReducer`, you can also use a callback that receives a `ActionReducerMapBuilder` instance:
 
 ```typescript
 {
@@ -157,7 +157,9 @@ Instead of using a Map Object as an argument to `createReducer`, you can also us
 }
 ```
 
-## createSlice
+We recommend using this API if stricter type safety is necessary when defining reducer argument objects.
+
+## `createSlice`
 
 As `createSlice` creates your actions as well as your reducer for you, you don't have to worry about type safety here.
 Action types can just be provided inline:
@@ -219,6 +221,6 @@ function myCustomMiddleware(action: Action) {
 
 If you actually _need_ that type, unfortunately there is no other way than manual casting.
 
-### Type safety with extraReducers
+### Type safety with `extraReducers`
 
-Like in `createReducer`, the `extraReducers` map object is not easy to fully type. So, like with `createReducer`, you can also use a _builder callback_ style for that. (See example above.)
+Like in `createReducer`, the `extraReducers` map object is not easy to fully type. So, like with `createReducer`, you may also use the "builder callback" approach for defining the reducer object argument. See [the `createReducer` section above](#createReducer) for an example.
