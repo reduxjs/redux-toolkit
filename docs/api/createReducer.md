@@ -49,6 +49,22 @@ const counterReducer = createReducer(0, {
 })
 ```
 
+### The "builder callback" API
+
+Instead of using a simple object as an argument to `createReducer`, you can also provide a callback that receives an `ActionReducerMapBuilder` instance:
+
+```typescript
+createReducer(0, builder =>
+  builder.add(increment, (state, action) => {
+    // action is inferred correctly here
+  })
+)
+```
+
+This is intended for use with TypeScript, as passing a plain object full of reducer functions cannot infer their types correctly in this case. It has no real benefit when used with plain JS.
+
+We recommend using this API if stricter type safety is necessary when defining reducer argument objects.
+
 ## Direct State Mutation
 
 Redux requires reducer functions to be pure and treat state values as immutable. While this is essential for making state updates predictable and observable, it can sometimes make the implementation of such updates awkward. Consider the following example:

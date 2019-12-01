@@ -142,19 +142,17 @@ As an alternative, RTK includes a type-safe reducer builder API.
 Instead of using a simple object as an argument to `createReducer`, you can also use a callback that receives a `ActionReducerMapBuilder` instance:
 
 ```typescript
-{
-  const increment = createAction<number, 'increment'>('increment')
-  const decrement = createAction<number, 'decrement'>('decrement')
-  createReducer(0, builder =>
-    builder
-      .add(increment, (state, action) => {
-        // action is inferred correctly here
-      })
-      .add(decrement, (state, action: PayloadAction<string>) => {
-        // this would error out
-      })
-  )
-}
+const increment = createAction<number, 'increment'>('increment')
+const decrement = createAction<number, 'decrement'>('decrement')
+createReducer(0, builder =>
+  builder
+    .add(increment, (state, action) => {
+      // action is inferred correctly here
+    })
+    .add(decrement, (state, action: PayloadAction<string>) => {
+      // this would error out
+    })
+)
 ```
 
 We recommend using this API if stricter type safety is necessary when defining reducer argument objects.
