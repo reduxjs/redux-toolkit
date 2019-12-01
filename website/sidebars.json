@@ -6,7 +6,7 @@
       "tutorials/intermediate-tutorial",
       "tutorials/advanced-tutorial"
     ],
-    "Using Redux Toolkit": ["usage/usage-guide"],
+    "Using Redux Toolkit": ["usage/usage-guide", "usage/with-typescript"],
     "API Reference": [
       "api/configureStore",
       "api/getDefaultMiddleware",
