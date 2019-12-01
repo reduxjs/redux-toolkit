@@ -105,6 +105,57 @@ describe('createSlice', () => {
 
       expect(result).toBe(15)
     })
+
+    describe('alternative builder callback for extraReducers', () => {
+      const increment = createAction<number, 'increment'>('increment')
+
+      test('can be used with actionCreators', () => {
+        const slice = createSlice({
+          name: 'counter',
+          initialState: 0,
+          reducers: {},
+          extraReducers: builder =>
+            builder.addCase(
+              increment,
+              (state, action) => state + action.payload
+            )
+        })
+        expect(slice.reducer(0, increment(5))).toBe(5)
+      })
+
+      test('can be used with string action types', () => {
+        const slice = createSlice({
+          name: 'counter',
+          initialState: 0,
+          reducers: {},
+          extraReducers: builder =>
+            builder.addCase(
+              'increment',
+              (state, action: { type: 'increment'; payload: number }) =>
+                state + action.payload
+            )
+        })
+        expect(slice.reducer(0, increment(5))).toBe(5)
+      })
+
+      test('prevents the same action type from being specified twice', () => {
+        expect(() =>
+          createSlice({
+            name: 'counter',
+            initialState: 0,
+            reducers: {},
+            extraReducers: builder =>
+              builder
+                .addCase('increment', state => state + 1)
+                .addCase('increment', state => state + 1)
+          })
+        ).toThrowErrorMatchingInlineSnapshot(
+          `"addCase cannot be called with two reducers for the same action type"`
+        )
+      })
+
+      // for further tests, see the test of createReducer that goes way more into depth on this
+    })
   })
 
   describe('behaviour with enhanced case reducers', () => {

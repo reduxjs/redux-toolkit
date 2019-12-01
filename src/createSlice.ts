@@ -8,6 +8,10 @@ import {
   ActionCreatorWithPreparedPayload
 } from './createAction'
 import { createReducer, CaseReducers, CaseReducer } from './createReducer'
+import {
+  ActionReducerMapBuilder,
+  executeReducerBuilderCallback
+} from './mapBuilders'
 
 /**
  * An action creator atttached to a slice.
@@ -72,8 +76,12 @@ export interface CreateSliceOptions<
    * A mapping from action types to action-type-specific *case reducer*
    * functions. These reducers should have existing action types used
    * as the keys, and action creators will _not_ be generated.
+   * Alternatively, a callback that receives a *builder* object to define
+   * case reducers via calls to `builder.addCase(actionCreatorOrType, reducer)`.
    */
-  extraReducers?: CaseReducers<NoInfer<State>, any>
+  extraReducers?:
+    | CaseReducers<NoInfer<State>, any>
+    | ((builder: ActionReducerMapBuilder<NoInfer<State>>) => void)
 }
 
 type PayloadActions<Types extends keyof any = string> = Record<
@@ -201,7 +209,13 @@ export function createSlice<
     throw new Error('`name` is a required option for createSlice')
   }
   const reducers = options.reducers || {}
-  const extraReducers = options.extraReducers || {}
+  const extraReducers =
+    typeof options.extraReducers === 'undefined'
+      ? {}
+      : typeof options.extraReducers === 'function'
+      ? executeReducerBuilderCallback(options.extraReducers)
+      : options.extraReducers
+
   const reducerNames = Object.keys(reducers)
 
   const sliceCaseReducersByName: Record<string, CaseReducer> = {}

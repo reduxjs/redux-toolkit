@@ -1,5 +1,5 @@
 import { createReducer, CaseReducer } from './createReducer'
-import { PayloadAction } from './createAction'
+import { PayloadAction, createAction } from './createAction'
 import { Reducer } from 'redux'
 
 interface Todo {
@@ -73,6 +73,73 @@ describe('createReducer', () => {
     })
 
     behavesLikeReducer(todosReducer)
+  })
+
+  describe('alternative builder callback for actionMap', () => {
+    const increment = createAction<number, 'increment'>('increment')
+    const decrement = createAction<number, 'decrement'>('decrement')
+
+    test('can be used with ActionCreators', () => {
+      const reducer = createReducer(0, builder =>
+        builder
+          .addCase(increment, (state, action) => state + action.payload)
+          .addCase(decrement, (state, action) => state - action.payload)
+      )
+      expect(reducer(0, increment(5))).toBe(5)
+      expect(reducer(5, decrement(5))).toBe(0)
+    })
+    test('can be used with string types', () => {
+      const reducer = createReducer(0, builder =>
+        builder
+          .addCase(
+            'increment',
+            (state, action: { type: 'increment'; payload: number }) =>
+              state + action.payload
+          )
+          .addCase(
+            'decrement',
+            (state, action: { type: 'decrement'; payload: number }) =>
+              state - action.payload
+          )
+      )
+      expect(reducer(0, increment(5))).toBe(5)
+      expect(reducer(5, decrement(5))).toBe(0)
+    })
+    test('can be used with ActionCreators and string types combined', () => {
+      const reducer = createReducer(0, builder =>
+        builder
+          .addCase(increment, (state, action) => state + action.payload)
+          .addCase(
+            'decrement',
+            (state, action: { type: 'decrement'; payload: number }) =>
+              state - action.payload
+          )
+      )
+      expect(reducer(0, increment(5))).toBe(5)
+      expect(reducer(5, decrement(5))).toBe(0)
+    })
+    test('will throw if the same type is used twice', () => {
+      expect(() =>
+        createReducer(0, builder =>
+          builder
+            .addCase(increment, (state, action) => state + action.payload)
+            .addCase(increment, (state, action) => state + action.payload)
+            .addCase(decrement, (state, action) => state - action.payload)
+        )
+      ).toThrowErrorMatchingInlineSnapshot(
+        `"addCase cannot be called with two reducers for the same action type"`
+      )
+      expect(() =>
+        createReducer(0, builder =>
+          builder
+            .addCase(increment, (state, action) => state + action.payload)
+            .addCase('increment', state => state + 1)
+            .addCase(decrement, (state, action) => state - action.payload)
+        )
+      ).toThrowErrorMatchingInlineSnapshot(
+        `"addCase cannot be called with two reducers for the same action type"`
+      )
+    })
   })
 })
 

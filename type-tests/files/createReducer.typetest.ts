@@ -1,5 +1,5 @@
 import { Reducer } from 'redux'
-import { createReducer } from '../../src'
+import { createReducer, createAction, ActionReducerMapBuilder } from '../../src'
 
 function expectType<T>(p: T) {}
 
@@ -62,4 +62,17 @@ function expectType<T>(p: T) {}
       state.counter += 1
     }
   })
+}
+
+/** Test:  alternative builder callback for actionMap */
+{
+  const increment = createAction<number, 'increment'>('increment')
+
+  const reducer = createReducer(0, builder =>
+    expectType<ActionReducerMapBuilder<number>>(builder)
+  )
+
+  expectType<number>(reducer(0, increment(5)))
+  // typings:expect-error
+  expectType<string>(reducer(0, increment(5)))
 }
