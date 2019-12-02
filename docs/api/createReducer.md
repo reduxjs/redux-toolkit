@@ -55,7 +55,7 @@ Instead of using a simple object as an argument to `createReducer`, you can also
 
 ```typescript
 createReducer(0, builder =>
-  builder.add(increment, (state, action) => {
+  builder.addCase(increment, (state, action) => {
     // action is inferred correctly here
   })
 )
