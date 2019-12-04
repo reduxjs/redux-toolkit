@@ -140,7 +140,7 @@ console.log(increment.type)
 // "INCREMENT"
 ```
 
-We can use `createAction` to simplify the the previous counter example.
+We can use `createAction` to simplify the previous counter example.
 
 ```js
 const increment = createAction('INCREMENT')
