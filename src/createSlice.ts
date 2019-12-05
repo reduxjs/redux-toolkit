@@ -1,4 +1,4 @@
-import { Reducer } from 'redux'
+import { Reducer, Middleware } from 'redux'
 import {
   createAction,
   PayloadAction,
@@ -12,6 +12,12 @@ import {
   ActionReducerMapBuilder,
   executeReducerBuilderCallback
 } from './mapBuilders'
+import {
+  CaseListeners,
+  ValidCaseListeners,
+  createActionListenerMiddleware
+} from './createActionListenerMiddleware'
+import { IsUnspecifiedRecord } from './tsHelpers'
 
 /**
  * An action creator atttached to a slice.
@@ -24,7 +30,8 @@ export interface Slice<
   State = any,
   CaseReducers extends SliceCaseReducerDefinitions<State, PayloadActions> = {
     [key: string]: any
-  }
+  },
+  Listeners extends CaseListeners = CaseListeners
 > {
   /**
    * The slice name.
@@ -43,6 +50,8 @@ export interface Slice<
   actions: CaseReducerActions<CaseReducers>
 
   caseReducers: SliceDefinedCaseReducers<CaseReducers, State>
+
+  middleware: IsUnspecifiedRecord<Listeners, undefined, Middleware>
 }
 
 /**
@@ -53,7 +62,8 @@ export interface CreateSliceOptions<
   CR extends SliceCaseReducerDefinitions<
     State,
     any
-  > = SliceCaseReducerDefinitions<State, any>
+  > = SliceCaseReducerDefinitions<State, any>,
+  Listeners extends CaseListeners = CaseListeners
 > {
   /**
    * The slice's name. Used to namespace the generated action types.
@@ -82,6 +92,8 @@ export interface CreateSliceOptions<
   extraReducers?:
     | CaseReducers<NoInfer<State>, any>
     | ((builder: ActionReducerMapBuilder<NoInfer<State>>) => void)
+
+  actionListeners?: ValidCaseListeners<Listeners>
 }
 
 type PayloadActions<Types extends keyof any = string> = Record<
@@ -191,19 +203,21 @@ function getType(slice: string, actionKey: string): string {
  */
 export function createSlice<
   State,
-  CaseReducers extends SliceCaseReducerDefinitions<State, any>
+  CaseReducers extends SliceCaseReducerDefinitions<State, any>,
+  Listeners extends CaseListeners
 >(
-  options: CreateSliceOptions<State, CaseReducers> &
+  options: CreateSliceOptions<State, CaseReducers, Listeners> &
     RestrictCaseReducerDefinitionsToMatchReducerAndPrepare<State, CaseReducers>
-): Slice<State, CaseReducers>
+): Slice<State, CaseReducers, Listeners>
 
 // internal definition is a little less restrictive
 export function createSlice<
   State,
-  CaseReducers extends SliceCaseReducerDefinitions<State, any>
+  CaseReducers extends SliceCaseReducerDefinitions<State, any>,
+  Listeners extends CaseListeners
 >(
-  options: CreateSliceOptions<State, CaseReducers>
-): Slice<State, CaseReducers> {
+  options: CreateSliceOptions<State, CaseReducers, Listeners>
+): Slice<State, CaseReducers, Listeners> {
   const { name, initialState } = options
   if (!name) {
     throw new Error('`name` is a required option for createSlice')
@@ -246,10 +260,17 @@ export function createSlice<
   const finalCaseReducers = { ...extraReducers, ...sliceCaseReducersByType }
   const reducer = createReducer(initialState, finalCaseReducers as any)
 
+  const actionListeners = options.actionListeners
+  const middleware =
+    actionListeners && Object.keys(actionListeners!).length > 0
+      ? createActionListenerMiddleware(actionListeners as any)
+      : undefined
+
   return {
     name,
     reducer,
     actions: actionCreators as any,
-    caseReducers: sliceCaseReducersByName as any
+    caseReducers: sliceCaseReducersByName as any,
+    middleware: middleware as any
   }
 }

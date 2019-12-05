@@ -34,3 +34,9 @@ export type IsUnknownOrNonInferrable<T, True, False> = AtLeastTS35<
   IsUnknown<T, True, False>,
   IsEmptyObj<T, True, False>
 >
+
+export type IsUnspecifiedRecord<
+  T extends Record<string, any>,
+  True,
+  False
+> = string extends keyof T ? True : False
