@@ -226,12 +226,9 @@ describe('serializableStateInvariantMiddleware', () => {
       store.dispatch({ type: ACTION_TYPE })
 
       // since default options are used, the `entries` function in `serializableObject` will cause the error
-      expect(log).toMatchInlineSnapshot(`
-        "A non-serializable value was detected in the state, in the path: \`testSlice.a.entries\`. Value: [Function: entries] 
-        Take a look at the reducer(s) handling this action type: TEST_ACTION.
-        (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)
-        "
-      `)
+      expect(log).toMatch(
+        /^A non-serializable value was detected in the state, in the path: \`testSlice.a.entries\`. Value:/
+      )
     })
 
     it('Should use consumer supplied isSerializable and getEntries options to tolerate certain structures', () => {
