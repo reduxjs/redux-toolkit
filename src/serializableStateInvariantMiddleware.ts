@@ -1,5 +1,6 @@
 import isPlainObject from './isPlainObject'
 import { Middleware } from 'redux'
+import { validate as devModeValidateAction } from './developmentValidations'
 
 /**
  * Returns true if the passed value is "plain", i.e. a value that is either
@@ -107,6 +108,10 @@ export function createSerializableStateInvariantMiddleware(
   options: SerializableStateInvariantMiddlewareOptions = {}
 ): Middleware {
   const { isSerializable = isPlain, getEntries, ignoredActions = [] } = options
+
+  if (process.env.NODE_ENV !== 'production') {
+    ignoredActions.push(devModeValidateAction.type)
+  }
 
   return storeAPI => next => action => {
     if (ignoredActions.length && ignoredActions.indexOf(action.type) !== -1) {

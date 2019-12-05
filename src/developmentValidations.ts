@@ -6,7 +6,7 @@ interface ValidationMeta {
   seenSliceMiddlewares: symbol[]
 }
 
-const validate = createAction(
+export const validate = createAction(
   '__REDUX_TOOLKIT_DEVELOPMENT_MODE_VALIDATION__',
   () => ({
     payload: undefined,
