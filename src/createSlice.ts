@@ -18,6 +18,7 @@ import {
   createActionListenerMiddleware
 } from './createActionListenerMiddleware'
 import { IsUnspecifiedRecord } from './tsHelpers'
+import { devModeWrapSlice } from './developmentValidations'
 
 /**
  * An action creator atttached to a slice.
@@ -266,11 +267,17 @@ export function createSlice<
       ? createActionListenerMiddleware(actionListeners as any)
       : undefined
 
-  return {
+  const slice = {
     name,
     reducer,
     actions: actionCreators as any,
     caseReducers: sliceCaseReducersByName as any,
     middleware: middleware as any
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    return devModeWrapSlice(slice)
+  } else {
+    return slice
   }
 }

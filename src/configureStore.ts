@@ -20,6 +20,7 @@ import { ThunkDispatch } from 'redux-thunk'
 
 import isPlainObject from './isPlainObject'
 import { getDefaultMiddleware } from './getDefaultMiddleware'
+import { devModeWrapStore } from './developmentValidations'
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
@@ -135,9 +136,15 @@ export function configureStore<S = any, A extends Action = AnyAction>(
 
   const composedEnhancer = finalCompose(...storeEnhancers) as StoreEnhancer
 
-  return createStore(
+  const store: EnhancedStore<S, A> = createStore(
     rootReducer,
     preloadedState as DeepPartial<S>,
     composedEnhancer
   )
+
+  if (process.env.NODE_ENV !== 'production') {
+    return devModeWrapStore(store)
+  } else {
+    return store
+  }
 }
