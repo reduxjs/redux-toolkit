@@ -1,5 +1,14 @@
 import { Action, AnyAction, ActionCreator } from 'redux'
-import { createAction, PayloadAction, PayloadActionCreator } from '../../src'
+import {
+  createAction,
+  PayloadAction,
+  PayloadActionCreator,
+  ActionCreatorWithoutPayload,
+  ActionCreatorWithOptionalPayload,
+  ActionCreatorWithPayload,
+  ActionCreatorWithNonInferrablePayload,
+  ActionCreatorWithPreparedPayload
+} from '../../src'
 import { IsAny } from 'src/tsHelpers'
 
 function expectType<T>(p: T): T {
@@ -318,4 +327,19 @@ function expectType<T>(p: T): T {
       x.filter(actionCreator.match)
     )
   }
+}
+{
+  expectType<ActionCreatorWithOptionalPayload<string | undefined>>(
+    createAction<string | undefined>('')
+  )
+  expectType<ActionCreatorWithoutPayload>(createAction<void>(''))
+  expectType<ActionCreatorWithNonInferrablePayload>(createAction(''))
+  expectType<ActionCreatorWithPayload<string>>(createAction<string>(''))
+  expectType<ActionCreatorWithPreparedPayload<[0], 1, '', 2, 3>>(
+    createAction('', (_: 0) => ({
+      payload: 1 as const,
+      error: 2 as const,
+      meta: 3 as const
+    }))
+  )
 }

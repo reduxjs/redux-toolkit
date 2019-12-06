@@ -5,7 +5,7 @@ import {
   PayloadActionCreator,
   PrepareAction,
   ActionCreatorWithoutPayload,
-  ActionCreatorWithPreparedPayload
+  _ActionCreatorWithPreparedPayload
 } from './createAction'
 import { createReducer, CaseReducers, CaseReducer } from './createReducer'
 import {
@@ -137,7 +137,7 @@ type CaseReducerActions<
 > = {
   [Type in keyof CaseReducers]: IfIsCaseReducerWithPrepare<
     CaseReducers[Type],
-    ActionCreatorWithPreparedPayload<
+    _ActionCreatorWithPreparedPayload<
       PrepareActionForReducer<CaseReducers[Type]>
     >,
     // else
@@ -220,7 +220,7 @@ export function createSlice<
 
   const sliceCaseReducersByName: Record<string, CaseReducer> = {}
   const sliceCaseReducersByType: Record<string, CaseReducer> = {}
-  const actionCreators: Record<string, PayloadActionCreator> = {}
+  const actionCreators: Record<string, Function> = {}
 
   reducerNames.forEach(reducerName => {
     const maybeReducerWithPrepare = reducers[reducerName]
