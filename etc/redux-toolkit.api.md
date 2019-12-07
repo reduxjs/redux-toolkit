@@ -18,32 +18,61 @@ import { Store } from 'redux';
 import { StoreEnhancer } from 'redux';
 import { ThunkDispatch } from 'redux-thunk';
 
-// Warning: (ae-forgotten-export) The symbol "WithTypePropertyAndMatch" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "BaseActionCreator" needs to be exported by the entry point index.d.ts
+// Warning: (ae-missing-release-tag) "ActionCreatorWithNonInferrablePayload" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export interface ActionCreatorWithNonInferrablePayload<T extends string = string> extends BaseActionCreator<unknown, T> {
+    // (undocumented)
+    <PT extends unknown>(payload: PT): PayloadAction<PT, T>;
+}
+
 // Warning: (ae-missing-release-tag) "ActionCreatorWithOptionalPayload" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export type ActionCreatorWithOptionalPayload<P, T extends string = string> = WithTypePropertyAndMatch<{
+export interface ActionCreatorWithOptionalPayload<P, T extends string = string> extends BaseActionCreator<P, T> {
+    // (undocumented)
     (payload?: undefined): PayloadAction<undefined, T>;
+    // Warning: (ae-forgotten-export) The symbol "Diff" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
     <PT extends Diff<P, undefined>>(payload?: PT): PayloadAction<PT, T>;
-}, T, P | undefined>;
+}
 
 // Warning: (ae-missing-release-tag) "ActionCreatorWithoutPayload" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export type ActionCreatorWithoutPayload<T extends string = string> = WithTypePropertyAndMatch<() => PayloadAction<undefined, T>, T, undefined>;
+export interface ActionCreatorWithoutPayload<T extends string = string> extends BaseActionCreator<undefined, T> {
+    // (undocumented)
+    (): PayloadAction<undefined, T>;
+}
 
-// Warning: (ae-forgotten-export) The symbol "IsUnknownOrNonInferrable" needs to be exported by the entry point index.d.ts
 // Warning: (ae-missing-release-tag) "ActionCreatorWithPayload" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export type ActionCreatorWithPayload<P, T extends string = string> = WithTypePropertyAndMatch<IsUnknownOrNonInferrable<P, <PT extends unknown>(payload: PT) => PayloadAction<PT, T>, <PT extends P>(payload: PT) => PayloadAction<PT, T>>, T, P>;
+export interface ActionCreatorWithPayload<P, T extends string = string> extends BaseActionCreator<P, T> {
+    // (undocumented)
+    <PT extends P>(payload: PT): PayloadAction<PT, T>;
+    // (undocumented)
+    (payload: P): PayloadAction<P, T>;
+}
 
-// Warning: (ae-forgotten-export) The symbol "MetaOrNever" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ErrorOrNever" needs to be exported by the entry point index.d.ts
 // Warning: (ae-missing-release-tag) "ActionCreatorWithPreparedPayload" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export type ActionCreatorWithPreparedPayload<PA extends PrepareAction<any> | void, T extends string = string> = PA extends PrepareAction<infer P> ? WithTypePropertyAndMatch<(...args: Parameters<PA>) => PayloadAction<P, T, MetaOrNever<PA>, ErrorOrNever<PA>>, T, P, MetaOrNever<PA>, ErrorOrNever<PA>> : void;
+export interface ActionCreatorWithPreparedPayload<Args extends unknown[], P, T extends string = string, E = never, M = never> extends BaseActionCreator<P, T, M, E> {
+    // (undocumented)
+    (...args: Args): PayloadAction<P, T, M, E>;
+}
+
+// Warning: (ae-missing-release-tag) "_ActionCreatorWithPreparedPayload" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export type _ActionCreatorWithPreparedPayload<PA extends PrepareAction<any> | void, T extends string = string> = PA extends PrepareAction<infer P> ? ActionCreatorWithPreparedPayload<Parameters<PA>, P, T, ReturnType<PA> extends {
+    error: infer E;
+} ? E : never, ReturnType<PA> extends {
+    meta: infer M;
+} ? M : never> : void;
 
 // Warning: (ae-missing-release-tag) "ActionReducerMapBuilder" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -167,20 +196,26 @@ export function getType<T extends string>(actionCreator: PayloadActionCreator<an
 // @public
 export function isPlain(val: any): boolean;
 
-// Warning: (ae-forgotten-export) The symbol "WithOptional" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "WithPayload" needs to be exported by the entry point index.d.ts
 // Warning: (ae-missing-release-tag) "PayloadAction" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type PayloadAction<P = void, T extends string = string, M = never, E = never> = WithOptional<M, E, WithPayload<P, Action<T>>>;
+export type PayloadAction<P = void, T extends string = string, M = never, E = never> = {
+    payload: P;
+    type: T;
+} & ([M] extends [never] ? {} : {
+    meta: M;
+}) & ([E] extends [never] ? {} : {
+    error: E;
+});
 
 // Warning: (ae-forgotten-export) The symbol "IfPrepareActionMethodProvided" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "IfMaybeUndefined" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "IsUnknownOrNonInferrable" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "IfVoid" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "IfMaybeUndefined" needs to be exported by the entry point index.d.ts
 // Warning: (ae-missing-release-tag) "PayloadActionCreator" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type PayloadActionCreator<P = void, T extends string = string, PA extends PrepareAction<P> | void = void> = IfPrepareActionMethodProvided<PA, ActionCreatorWithPreparedPayload<PA, T>, IfMaybeUndefined<P, ActionCreatorWithOptionalPayload<P, T>, IfVoid<P, ActionCreatorWithoutPayload<T>, ActionCreatorWithPayload<P, T>>>>;
+export type PayloadActionCreator<P = void, T extends string = string, PA extends PrepareAction<P> | void = void> = IfPrepareActionMethodProvided<PA, _ActionCreatorWithPreparedPayload<PA, T>, IsUnknownOrNonInferrable<P, ActionCreatorWithNonInferrablePayload<T>, IfVoid<P, ActionCreatorWithoutPayload<T>, IfMaybeUndefined<P, ActionCreatorWithOptionalPayload<P, T>, ActionCreatorWithPayload<P, T>>>>>;
 
 // Warning: (ae-missing-release-tag) "PrepareAction" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -232,10 +267,6 @@ export type SliceActionCreator<P> = PayloadActionCreator<P>;
 
 
 export * from "redux";
-
-// Warnings were encountered during analysis:
-//
-// dist/createAction.d.ts:29:5 - (ae-forgotten-export) The symbol "Diff" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
