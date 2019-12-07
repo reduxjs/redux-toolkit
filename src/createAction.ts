@@ -64,9 +64,9 @@ interface BaseActionCreator<P, T extends string, M = never, E = never> {
 export interface ActionCreatorWithPreparedPayload<
   Args extends unknown[],
   P,
-  T extends string,
-  E,
-  M
+  T extends string = string,
+  E = never,
+  M = never
 > extends BaseActionCreator<P, T, M, E> {
   (...args: Args): PayloadAction<P, T, M, E>
 }

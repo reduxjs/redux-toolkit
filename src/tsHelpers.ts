@@ -2,9 +2,7 @@
 // return True if T is `any`, otherwise return False
 export type IsAny<T, True, False = never> =
   | True
-  | False extends (T extends never
-? True
-: False)
+  | False extends (T extends never ? True : False)
   ? True
   : False
 
