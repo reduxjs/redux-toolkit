@@ -104,9 +104,9 @@ function expectType<T>(p: T): T {
     { type: 'action' }
   ) as PayloadActionCreator<number>
 
-  const actionCreator2: ActionCreator<
-    PayloadAction<number>
-  > = payloadActionCreator2
+  const actionCreator2: ActionCreator<PayloadAction<
+    number
+  >> = payloadActionCreator2
 }
 
 /* createAction() */
@@ -337,9 +337,9 @@ function expectType<T>(p: T): T {
   expectType<ActionCreatorWithPayload<string>>(createAction<string>(''))
   expectType<ActionCreatorWithPreparedPayload<[0], 1, '', 2, 3>>(
     createAction('', (_: 0) => ({
-      payload: 1 as const,
-      error: 2 as const,
-      meta: 3 as const
+      payload: 1 as 1,
+      error: 2 as 2,
+      meta: 3 as 3
     }))
   )
 }

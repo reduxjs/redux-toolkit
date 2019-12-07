@@ -1,5 +1,5 @@
 import { Action } from 'redux'
-import { IsUnknownOrNonInferrable } from './tsHelpers'
+import { IsUnknownOrNonInferrable, IfMaybeUndefined, IfVoid } from './tsHelpers'
 
 /**
  * An action with a string type and an associated payload. This is the
@@ -198,7 +198,3 @@ type IfPrepareActionMethodProvided<
   True,
   False
 > = PA extends (...args: any[]) => any ? True : False
-
-type IfMaybeUndefined<P, True, False> = [undefined] extends [P] ? True : False
-
-type IfVoid<P, True, False> = [void] extends [P] ? True : False
