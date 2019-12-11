@@ -1,6 +1,5 @@
 import { Reducer } from 'redux'
-import { Console } from 'console'
-import { Writable } from 'stream'
+import { getLog } from 'console-testing-library'
 import { configureStore } from './configureStore'
 
 import {
@@ -81,35 +80,6 @@ describe('findNonSerializableValue', () => {
 })
 
 describe('serializableStateInvariantMiddleware', () => {
-  let log = ''
-  const originalConsole = window.console
-
-  beforeEach(() => {
-    log = ''
-
-    const writable = new Writable({
-      write(chunk, encoding, callback) {
-        log += chunk
-        callback()
-      }
-    })
-
-    const mockConsole = new Console({
-      stdout: writable,
-      stderr: writable
-    })
-
-    Object.defineProperty(window, 'console', {
-      value: mockConsole
-    })
-  })
-
-  afterEach(() => {
-    Object.defineProperty(window, 'console', {
-      value: originalConsole
-    })
-  })
-
   it('Should log an error when a non-serializable action is dispatched', () => {
     const reducer: Reducer = (state = 0, _action) => state + 1
 
@@ -125,11 +95,12 @@ describe('serializableStateInvariantMiddleware', () => {
 
     store.dispatch(dispatchedAction)
 
-    expect(log).toMatchInlineSnapshot(`
+    expect(getLog().log).toMatchInlineSnapshot(`
       "A non-serializable value was detected in an action, in the path: \`type\`. Value: Symbol(SOME_CONSTANT) 
-      Take a look at the logic that dispatched this action:  { type: Symbol(SOME_CONSTANT) } 
-      (See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)
-      "
+      Take a look at the logic that dispatched this action:  Object {
+        \\"type\\": Symbol(SOME_CONSTANT),
+      } 
+      (See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)"
     `)
   })
 
@@ -165,11 +136,10 @@ describe('serializableStateInvariantMiddleware', () => {
 
     store.dispatch({ type: ACTION_TYPE })
 
-    expect(log).toMatchInlineSnapshot(`
+    expect(getLog().log).toMatchInlineSnapshot(`
       "A non-serializable value was detected in the state, in the path: \`testSlice.a\`. Value: Map {} 
       Take a look at the reducer(s) handling this action type: TEST_ACTION.
-      (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)
-      "
+      (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)"
     `)
   })
 
@@ -226,9 +196,11 @@ describe('serializableStateInvariantMiddleware', () => {
       store.dispatch({ type: ACTION_TYPE })
 
       // since default options are used, the `entries` function in `serializableObject` will cause the error
-      expect(log).toMatch(
-        /^A non-serializable value was detected in the state, in the path: \`testSlice.a.entries\`. Value:/
-      )
+      expect(getLog().log).toMatchInlineSnapshot(`
+        "A non-serializable value was detected in the state, in the path: \`testSlice.a.entries\`. Value: [Function entries] 
+        Take a look at the reducer(s) handling this action type: TEST_ACTION.
+        (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)"
+      `)
     })
 
     it('Should use consumer supplied isSerializable and getEntries options to tolerate certain structures', () => {
@@ -269,11 +241,10 @@ describe('serializableStateInvariantMiddleware', () => {
       store.dispatch({ type: ACTION_TYPE })
 
       // error reported is from a nested class instance, rather than the `entries` function `serializableObject`
-      expect(log).toMatchInlineSnapshot(`
+      expect(getLog().log).toMatchInlineSnapshot(`
         "A non-serializable value was detected in the state, in the path: \`testSlice.a.third.bad-map-instance\`. Value: Map {} 
         Take a look at the reducer(s) handling this action type: TEST_ACTION.
-        (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)
-        "
+        (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)"
       `)
     })
   })
@@ -316,7 +287,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
     // Supplied 'isSerializable' considers all values serializable, hence
     // no error logging is expected:
-    expect(log).toBe('')
+    expect(getLog().log).toBe('')
   })
 
   it('should not check serializability for ignored action types', () => {
