@@ -1,6 +1,8 @@
 import { Middleware } from 'redux'
 import thunkMiddleware from 'redux-thunk'
-// UMD-DEV-ONLY: import createImmutableStateInvariantMiddleware from 'redux-immutable-state-invariant'
+/* START_REMOVE_UMD */
+import createImmutableStateInvariantMiddleware from 'redux-immutable-state-invariant'
+/* STOP_REMOVE_UMD */
 
 import {
   createSerializableStateInvariantMiddleware,
@@ -55,10 +57,10 @@ export function getDefaultMiddleware<S = any>(
   }
 
   if (process.env.NODE_ENV !== 'production') {
-    /* START_REMOVE_UMD */
     if (immutableCheck) {
-      const createImmutableStateInvariantMiddleware = require('redux-immutable-state-invariant')
-        .default
+      /* PROD_START_REMOVE_UMD */
+
+      // UMD-ONLY: const createImmutableStateInvariantMiddleware = require('redux-immutable-state-invariant').default
 
       let immutableOptions: ImmutableStateInvariantMiddlewareOptions = {}
 
@@ -69,9 +71,9 @@ export function getDefaultMiddleware<S = any>(
       middlewareArray.unshift(
         createImmutableStateInvariantMiddleware(immutableOptions)
       )
-    }
 
-    /* STOP_REMOVE_UMD */
+      /* PROD_STOP_REMOVE_UMD */
+    }
 
     if (serializableCheck) {
       let serializableOptions: SerializableStateInvariantMiddlewareOptions = {}
