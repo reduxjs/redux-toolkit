@@ -57,7 +57,7 @@ provide runtime checks for two common issues:
 
 - [`redux-immutable-state-invariant`](https://github.com/leoasis/redux-immutable-state-invariant): deeply compares
   state values for mutations. It can detect mutations in reducers during a dispatch, and also mutations that occur between
-  dispatches (such as in a component or a selector). When a mutation is detect, it will throw an error and indicate the key
+  dispatches (such as in a component or a selector). When a mutation is detected, it will throw an error and indicate the key
   path for where the mutated value was detected in the state tree.
 - `serializable-state-invariant-middleware`: a custom middleware created specifically for use in Redux Toolkit. Similar in
   concept to `redux-immutable-state-invariant`, but deeply checks your state tree and your actions for non-serializable values
