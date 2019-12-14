@@ -3,7 +3,12 @@ import {
   createSlice,
   PayloadAction,
   createAction,
-  ActionReducerMapBuilder
+  ActionReducerMapBuilder,
+  ActionCreatorWithOptionalPayload,
+  ActionCreatorWithNonInferrablePayload,
+  ActionCreatorWithoutPayload,
+  ActionCreatorWithPayload,
+  ActionCreatorWithPreparedPayload
 } from '../../src'
 
 function expectType<T>(t: T) {
@@ -56,7 +61,8 @@ function expectType<T>(t: T) {
     initialState: 0,
     reducers: {
       increment: state => state + 1,
-      decrement: state => state - 1,
+      decrement: (state, { payload = 1 }: PayloadAction<number | undefined>) =>
+        state - payload,
       multiply: (state, { payload }: PayloadAction<number | number[]>) =>
         Array.isArray(payload)
           ? payload.reduce((acc, val) => acc * val, state)
@@ -70,9 +76,24 @@ function expectType<T>(t: T) {
     }
   })
 
+  expectType<ActionCreatorWithoutPayload>(counter.actions.increment)
   counter.actions.increment()
+
+  expectType<ActionCreatorWithOptionalPayload<number | undefined>>(
+    counter.actions.decrement
+  )
+  counter.actions.decrement()
+  counter.actions.decrement(2)
+
+  expectType<ActionCreatorWithPayload<number | number[]>>(
+    counter.actions.multiply
+  )
   counter.actions.multiply(2)
   counter.actions.multiply([2, 3, 4])
+
+  expectType<ActionCreatorWithPreparedPayload<[number, number], number>>(
+    counter.actions.addTwo
+  )
   counter.actions.addTwo(1, 2)
 
   // typings:expect-error
@@ -244,6 +265,8 @@ function expectType<T>(t: T) {
       }
     }
   })
+
+  expectType<ActionCreatorWithNonInferrablePayload>(mySlice.actions.setName)
 
   const x = mySlice.actions.setName
 

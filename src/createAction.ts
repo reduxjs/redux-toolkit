@@ -1,5 +1,5 @@
 import { Action } from 'redux'
-import { IsUnknownOrNonInferrable } from './tsHelpers'
+import { IsUnknownOrNonInferrable, IfMaybeUndefined, IfVoid } from './tsHelpers'
 
 /**
  * An action with a string type and an associated payload. This is the
@@ -15,7 +15,19 @@ export type PayloadAction<
   T extends string = string,
   M = never,
   E = never
-> = WithOptional<M, E, WithPayload<P, Action<T>>>
+> = {
+  payload: P
+  type: T
+} & ([M] extends [never]
+  ? {}
+  : {
+      meta: M
+    }) &
+  ([E] extends [never]
+    ? {}
+    : {
+        error: E
+      })
 
 export type PrepareAction<P> =
   | ((...args: any[]) => { payload: P })
@@ -23,51 +35,64 @@ export type PrepareAction<P> =
   | ((...args: any[]) => { payload: P; error: any })
   | ((...args: any[]) => { payload: P; meta: any; error: any })
 
-export type ActionCreatorWithPreparedPayload<
+export type _ActionCreatorWithPreparedPayload<
   PA extends PrepareAction<any> | void,
   T extends string = string
 > = PA extends PrepareAction<infer P>
-  ? WithTypePropertyAndMatch<
-      (
-        ...args: Parameters<PA>
-      ) => PayloadAction<P, T, MetaOrNever<PA>, ErrorOrNever<PA>>,
-      T,
+  ? ActionCreatorWithPreparedPayload<
+      Parameters<PA>,
       P,
-      MetaOrNever<PA>,
-      ErrorOrNever<PA>
+      T,
+      ReturnType<PA> extends {
+        error: infer E
+      }
+        ? E
+        : never,
+      ReturnType<PA> extends {
+        meta: infer M
+      }
+        ? M
+        : never
     >
   : void
 
-export type ActionCreatorWithOptionalPayload<
-  P,
-  T extends string = string
-> = WithTypePropertyAndMatch<
-  {
-    (payload?: undefined): PayloadAction<undefined, T>
-    <PT extends Diff<P, undefined>>(payload?: PT): PayloadAction<PT, T>
-  },
-  T,
-  P | undefined
->
+interface BaseActionCreator<P, T extends string, M = never, E = never> {
+  type: T
+  match(action: Action<unknown>): action is PayloadAction<P, T, M, E>
+}
 
-export type ActionCreatorWithoutPayload<
-  T extends string = string
-> = WithTypePropertyAndMatch<() => PayloadAction<undefined, T>, T, undefined>
-
-export type ActionCreatorWithPayload<
+export interface ActionCreatorWithPreparedPayload<
+  Args extends unknown[],
   P,
+  T extends string = string,
+  E = never,
+  M = never
+> extends BaseActionCreator<P, T, M, E> {
+  (...args: Args): PayloadAction<P, T, M, E>
+}
+
+export interface ActionCreatorWithOptionalPayload<P, T extends string = string>
+  extends BaseActionCreator<P, T> {
+  (payload?: undefined): PayloadAction<undefined, T>
+  <PT extends Diff<P, undefined>>(payload?: PT): PayloadAction<PT, T>
+}
+
+export interface ActionCreatorWithoutPayload<T extends string = string>
+  extends BaseActionCreator<undefined, T> {
+  (): PayloadAction<undefined, T>
+}
+
+export interface ActionCreatorWithPayload<P, T extends string = string>
+  extends BaseActionCreator<P, T> {
+  <PT extends P>(payload: PT): PayloadAction<PT, T>
+  (payload: P): PayloadAction<P, T>
+}
+
+export interface ActionCreatorWithNonInferrablePayload<
   T extends string = string
-> = WithTypePropertyAndMatch<
-  IsUnknownOrNonInferrable<
-    P,
-    // TS < 3.5 infers non-inferrable types to {}, which does not take `null`. This enforces `undefined` instead.
-    <PT extends unknown>(payload: PT) => PayloadAction<PT, T>,
-    // default behaviour
-    <PT extends P>(payload: PT) => PayloadAction<PT, T>
-  >,
-  T,
-  P
->
+> extends BaseActionCreator<unknown, T> {
+  <PT extends unknown>(payload: PT): PayloadAction<PT, T>
+}
 
 /**
  * An action creator that produces actions with a `payload` attribute.
@@ -78,17 +103,22 @@ export type PayloadActionCreator<
   PA extends PrepareAction<P> | void = void
 > = IfPrepareActionMethodProvided<
   PA,
-  ActionCreatorWithPreparedPayload<PA, T>,
+  _ActionCreatorWithPreparedPayload<PA, T>,
   // else
-  IfMaybeUndefined<
+  IsUnknownOrNonInferrable<
     P,
-    ActionCreatorWithOptionalPayload<P, T>,
+    ActionCreatorWithNonInferrablePayload<T>,
     // else
     IfVoid<
       P,
       ActionCreatorWithoutPayload<T>,
       // else
-      ActionCreatorWithPayload<P, T>
+      IfMaybeUndefined<
+        P,
+        ActionCreatorWithOptionalPayload<P, T>,
+        // else
+        ActionCreatorWithPayload<P, T>
+      >
     >
   >
 >
@@ -117,7 +147,7 @@ export function createAction<
   prepareAction: PA
 ): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>
 
-export function createAction(type: string, prepareAction?: Function) {
+export function createAction(type: string, prepareAction?: Function): any {
   function actionCreator(...args: any[]) {
     if (prepareAction) {
       let prepared = prepareAction(...args)
@@ -163,46 +193,8 @@ export function getType<T extends string>(
 
 type Diff<T, U> = T extends U ? never : T
 
-type WithPayload<P, T> = T & { payload: P }
-
-type WithOptional<M, E, T> = T &
-  ([M] extends [never] ? {} : { meta: M }) &
-  ([E] extends [never] ? {} : { error: E })
-
-type WithTypeProperty<MergeIn, T extends string> = {
-  type: T
-} & MergeIn
-
-type WithMatch<MergeIn, T extends string, P, M = never, E = never> = {
-  match(action: Action<unknown>): action is PayloadAction<P, T, M, E>
-} & MergeIn
-
-type WithTypePropertyAndMatch<
-  MergeIn,
-  T extends string,
-  P,
-  M = never,
-  E = never
-> = WithTypeProperty<WithMatch<MergeIn, T, P, M, E>, T>
-
 type IfPrepareActionMethodProvided<
   PA extends PrepareAction<any> | void,
   True,
   False
 > = PA extends (...args: any[]) => any ? True : False
-
-type MetaOrNever<PA extends PrepareAction<any>> = ReturnType<PA> extends {
-  meta: infer M
-}
-  ? M
-  : never
-
-type ErrorOrNever<PA extends PrepareAction<any>> = ReturnType<PA> extends {
-  error: infer E
-}
-  ? E
-  : never
-
-type IfMaybeUndefined<P, True, False> = [undefined] extends [P] ? True : False
-
-type IfVoid<P, True, False> = [void] extends [P] ? True : False
