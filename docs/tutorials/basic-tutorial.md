@@ -122,7 +122,7 @@ console.log(incrementOriginal())
 // {type: "INCREMENT"}
 
 // Or, use `createAction` to generate the action creator:
-const incrementNew = createAction('INCREMENT')
+const incrementNew = createAction(INCREMENT)
 
 console.log(incrementNew())
 // {type: "INCREMENT"}
