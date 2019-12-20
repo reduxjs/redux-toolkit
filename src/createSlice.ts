@@ -94,11 +94,29 @@ type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
   prepare: PrepareAction<Action['payload']>
 }
 
-type SliceCaseReducerDefinitions<State, PA extends PayloadActions> = {
-  [ActionType in keyof PA]:
-    | CaseReducer<State, PA[ActionType]>
-    | CaseReducerWithPrepare<State, PA[ActionType]>
-}
+createSlice({
+  name: 'asd',
+  initialState: 5,
+  reducers: {
+    x(state, _: PayloadAction<number>) {
+      return state
+    },
+    y: {
+      prepare(payload: number) {
+        return { payload }
+      },
+      reducer(state, action) {
+        return action.payload
+      }
+    }
+  }
+}).actions.x(5)
+
+type SliceCaseReducerDefinitions<State, CR> = {
+  [type: string]:
+    | CaseReducer<State, PayloadAction<any>>
+    | CaseReducerWithPrepare<State, PayloadAction<any>>
+} & SliceCaseReducersCheck<State, CR>
 
 type IfIsReducerFunctionWithoutAction<R, True, False = never> = R extends (
   state: any
@@ -172,11 +190,6 @@ type SliceCaseReducersCheck<S, ACR> = {
     : {}
 }
 
-type RestrictCaseReducerDefinitionsToMatchReducerAndPrepare<
-  S,
-  CR extends SliceCaseReducerDefinitions<S, any>
-> = { reducers: SliceCaseReducersCheck<S, NoInfer<CR>> }
-
 function getType(slice: string, actionKey: string): string {
   return `${slice}/${actionKey}`
 }
@@ -191,11 +204,8 @@ function getType(slice: string, actionKey: string): string {
  */
 export function createSlice<
   State,
-  CaseReducers extends SliceCaseReducerDefinitions<State, any>
->(
-  options: CreateSliceOptions<State, CaseReducers> &
-    RestrictCaseReducerDefinitionsToMatchReducerAndPrepare<State, CaseReducers>
-): Slice<State, CaseReducers>
+  CaseReducers extends SliceCaseReducerDefinitions<NoInfer<State>, CaseReducers>
+>(options: CreateSliceOptions<State, CaseReducers>): Slice<State, CaseReducers>
 
 // internal definition is a little less restrictive
 export function createSlice<
