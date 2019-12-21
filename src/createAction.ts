@@ -14,6 +14,8 @@ import {
  * @template T the type used for the action type.
  * @template M The type of the action's meta (optional)
  * @template E The type of the action's error (optional)
+ *
+ * @public
  */
 export type PayloadAction<
   P = void,
@@ -34,12 +36,24 @@ export type PayloadAction<
         error: E
       })
 
+/**
+ * A "prepare" method to be used as the second parameter of `createAction`.
+ * Takes any number of arguments and returns a Flux Standard Action without
+ * type (will be added later) that *must* contain a payload (might be undefined).
+ *
+ * @public
+ */
 export type PrepareAction<P> =
   | ((...args: any[]) => { payload: P })
   | ((...args: any[]) => { payload: P; meta: any })
   | ((...args: any[]) => { payload: P; error: any })
   | ((...args: any[]) => { payload: P; meta: any; error: any })
 
+/**
+ * Internal version of `ActionCreatorWithPreparedPayload`. Not to be used externally.
+ *
+ * @internal
+ */
 export type _ActionCreatorWithPreparedPayload<
   PA extends PrepareAction<any> | void,
   T extends string = string
@@ -61,11 +75,24 @@ export type _ActionCreatorWithPreparedPayload<
     >
   : void
 
+/**
+ * Basic type for all action creators.
+ */
 interface BaseActionCreator<P, T extends string, M = never, E = never> {
   type: T
   match(action: Action<unknown>): action is PayloadAction<P, T, M, E>
 }
 
+/**
+ * An action creator that takes multiple arguments that are passed to a `PrepareAction` method to create the final Action.
+ * @typeParam Args arguments for the action creator function
+ * @typeParam P `payload` type
+ * @typeParam T `type` name
+ * @typeParam E optional `error` type
+ * @typeParam M optional `meta` type
+ *
+ * @public
+ */
 export interface ActionCreatorWithPreparedPayload<
   Args extends unknown[],
   P,
@@ -76,23 +103,43 @@ export interface ActionCreatorWithPreparedPayload<
   (...args: Args): PayloadAction<P, T, M, E>
 }
 
+/**
+ * An action creator of type `T` that takes an optional payload of type `P`.
+ *
+ * @public
+ */
 export interface ActionCreatorWithOptionalPayload<P, T extends string = string>
   extends BaseActionCreator<P, T> {
   (payload?: undefined): PayloadAction<undefined, T>
   <PT extends Diff<P, undefined>>(payload?: PT): PayloadAction<PT, T>
 }
 
+/**
+ * An action creator of type `T` that takes no payload.
+ *
+ * @public
+ */
 export interface ActionCreatorWithoutPayload<T extends string = string>
   extends BaseActionCreator<undefined, T> {
   (): PayloadAction<undefined, T>
 }
 
+/**
+ * An action creator of type `T` that requires a payload of type P.
+ *
+ * @public
+ */
 export interface ActionCreatorWithPayload<P, T extends string = string>
   extends BaseActionCreator<P, T> {
   <PT extends P>(payload: PT): PayloadAction<PT, T>
   (payload: P): PayloadAction<P, T>
 }
 
+/**
+ * An action creator of type `T` whose `payload` type could not be inferred. Accepts everything as `payload`.
+ *
+ * @public
+ */
 export interface ActionCreatorWithNonInferrablePayload<
   T extends string = string
 > extends BaseActionCreator<unknown, T> {
@@ -101,6 +148,12 @@ export interface ActionCreatorWithNonInferrablePayload<
 
 /**
  * An action creator that produces actions with a `payload` attribute.
+ *
+ * @typeParam P the `payload` type
+ * @typeParam T the `type` of the resulting action
+ * @typeParam PA if the resulting action is preprocessed by a `prepare` method, the signature of said method.
+ *
+ * @public
  */
 export type PayloadActionCreator<
   P = void,
