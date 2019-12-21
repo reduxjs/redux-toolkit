@@ -42,7 +42,10 @@ export interface Slice<
    */
   actions: CaseReducerActions<CaseReducers>
 
-  caseReducers: SliceDefinedCaseReducers<CaseReducers, State>
+  /**
+   * The reducers defined by `reducers` for easy access if they were defined inline when calling createSlice.
+   */
+  caseReducers: SliceDefinedCaseReducers<CaseReducers>
 }
 
 /**
@@ -89,36 +92,23 @@ type PayloadActions<Types extends keyof any = string> = Record<
   PayloadAction
 >
 
-type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
+export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
   reducer: CaseReducer<State, Action>
   prepare: PrepareAction<Action['payload']>
 }
 
-type SliceCaseReducerDefinitions<State, CR> = {
+export type SliceCaseReducerDefinitions<State, CR> = {
   [K: string]:
     | CaseReducer<State, PayloadAction<any>>
     | CaseReducerWithPrepare<State, PayloadAction<any>>
 } & SliceCaseReducersCheck<State, CR>
 
-type ActionForReducer<R, S> = R extends (
-  state: S,
-  action: PayloadAction<infer P>
-) => S
-  ? PayloadAction<P>
-  : R extends {
-      reducer(state: any, action: PayloadAction<infer P>): any
-    }
-  ? PayloadAction<P>
-  : unknown
-
-type CaseReducerActions<
+export type CaseReducerActions<
   CaseReducers extends SliceCaseReducerDefinitions<any, any>
 > = {
   [Type in keyof CaseReducers]: CaseReducers[Type] extends { prepare: any }
     ? ActionCreatorForCaseReducerWithPrepare<CaseReducers[Type]>
-    : CaseReducers[Type] extends (state: any, action: any) => any
-    ? ActionCreatorForCaseReducer<CaseReducers[Type]>
-    : never
+    : ActionCreatorForCaseReducer<CaseReducers[Type]>
 }
 
 type ActionCreatorForCaseReducerWithPrepare<
@@ -135,13 +125,13 @@ type ActionCreatorForCaseReducer<CR> = CR extends (
   : ActionCreatorWithoutPayload
 
 type SliceDefinedCaseReducers<
-  CaseReducers extends SliceCaseReducerDefinitions<any, any>,
-  State = any
+  CaseReducers extends SliceCaseReducerDefinitions<any, any>
 > = {
-  [Type in keyof CaseReducers]: CaseReducer<
-    State,
-    ActionForReducer<CaseReducers[Type], State>
-  >
+  [Type in keyof CaseReducers]: CaseReducers[Type] extends {
+    reducer: infer Reducer
+  }
+    ? Reducer
+    : CaseReducers[Type]
 }
 
 type NoInfer<T> = [T][T extends any ? 0 : never]
