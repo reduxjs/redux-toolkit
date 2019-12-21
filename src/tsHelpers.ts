@@ -1,10 +1,8 @@
 // taken from https://github.com/joonhocho/tsdef
 // return True if T is `any`, otherwise return False
 export type IsAny<T, True, False = never> =
-  | True
-  | False extends (T extends never ? True : False)
-  ? True
-  : False
+  // test if we are going the left AND right path in the condition
+  true | false extends (T extends never ? true : false) ? True : False
 
 // taken from https://github.com/joonhocho/tsdef
 // return True if T is `unknown`, otherwise return False

@@ -1,5 +1,10 @@
 import { Action } from 'redux'
-import { IsUnknownOrNonInferrable, IfMaybeUndefined, IfVoid } from './tsHelpers'
+import {
+  IsUnknownOrNonInferrable,
+  IfMaybeUndefined,
+  IfVoid,
+  IsAny
+} from './tsHelpers'
 
 /**
  * An action with a string type and an associated payload. This is the
@@ -105,19 +110,23 @@ export type PayloadActionCreator<
   PA,
   _ActionCreatorWithPreparedPayload<PA, T>,
   // else
-  IsUnknownOrNonInferrable<
+  IsAny<
     P,
-    ActionCreatorWithNonInferrablePayload<T>,
-    // else
-    IfVoid<
+    ActionCreatorWithPayload<any, T>,
+    IsUnknownOrNonInferrable<
       P,
-      ActionCreatorWithoutPayload<T>,
+      ActionCreatorWithNonInferrablePayload<T>,
       // else
-      IfMaybeUndefined<
+      IfVoid<
         P,
-        ActionCreatorWithOptionalPayload<P, T>,
+        ActionCreatorWithoutPayload<T>,
         // else
-        ActionCreatorWithPayload<P, T>
+        IfMaybeUndefined<
+          P,
+          ActionCreatorWithOptionalPayload<P, T>,
+          // else
+          ActionCreatorWithPayload<P, T>
+        >
       >
     >
   >

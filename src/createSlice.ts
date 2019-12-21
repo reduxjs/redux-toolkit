@@ -94,50 +94,11 @@ type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
   prepare: PrepareAction<Action['payload']>
 }
 
-createSlice({
-  name: 'asd',
-  initialState: 5,
-  reducers: {
-    x(state, _: PayloadAction<number>) {
-      return state
-    },
-    y: {
-      prepare(payload: number) {
-        return { payload }
-      },
-      reducer(state, action) {
-        return action.payload
-      }
-    }
-  }
-}).actions.x(5)
-
 type SliceCaseReducerDefinitions<State, CR> = {
-  [type: string]:
+  [K: string]:
     | CaseReducer<State, PayloadAction<any>>
     | CaseReducerWithPrepare<State, PayloadAction<any>>
 } & SliceCaseReducersCheck<State, CR>
-
-type IfIsReducerFunctionWithoutAction<R, True, False = never> = R extends (
-  state: any
-) => any
-  ? True
-  : False
-type IfIsCaseReducerWithPrepare<R, True, False = never> = R extends {
-  prepare: Function
-}
-  ? True
-  : False
-
-type PayloadForReducer<R> = R extends (
-  state: any,
-  action: PayloadAction<infer P>
-) => any
-  ? P
-  : void
-type PrepareActionForReducer<R> = R extends { prepare: infer Prepare }
-  ? Prepare
-  : never
 
 type ActionForReducer<R, S> = R extends (
   state: S,
@@ -153,20 +114,25 @@ type ActionForReducer<R, S> = R extends (
 type CaseReducerActions<
   CaseReducers extends SliceCaseReducerDefinitions<any, any>
 > = {
-  [Type in keyof CaseReducers]: IfIsCaseReducerWithPrepare<
-    CaseReducers[Type],
-    _ActionCreatorWithPreparedPayload<
-      PrepareActionForReducer<CaseReducers[Type]>
-    >,
-    // else
-    IfIsReducerFunctionWithoutAction<
-      CaseReducers[Type],
-      ActionCreatorWithoutPayload,
-      // else
-      PayloadActionCreator<PayloadForReducer<CaseReducers[Type]>>
-    >
-  >
+  [Type in keyof CaseReducers]: CaseReducers[Type] extends { prepare: any }
+    ? ActionCreatorForCaseReducerWithPrepare<CaseReducers[Type]>
+    : CaseReducers[Type] extends (state: any, action: any) => any
+    ? ActionCreatorForCaseReducer<CaseReducers[Type]>
+    : never
 }
+
+type ActionCreatorForCaseReducerWithPrepare<
+  CR extends { prepare: any }
+> = _ActionCreatorWithPreparedPayload<CR['prepare'], string>
+
+type ActionCreatorForCaseReducer<CR> = CR extends (
+  state: any,
+  action: infer Action
+) => any
+  ? Action extends { payload: infer P }
+    ? PayloadActionCreator<P>
+    : ActionCreatorWithoutPayload
+  : ActionCreatorWithoutPayload
 
 type SliceDefinedCaseReducers<
   CaseReducers extends SliceCaseReducerDefinitions<any, any>,
@@ -204,13 +170,7 @@ function getType(slice: string, actionKey: string): string {
  */
 export function createSlice<
   State,
-  CaseReducers extends SliceCaseReducerDefinitions<NoInfer<State>, CaseReducers>
->(options: CreateSliceOptions<State, CaseReducers>): Slice<State, CaseReducers>
-
-// internal definition is a little less restrictive
-export function createSlice<
-  State,
-  CaseReducers extends SliceCaseReducerDefinitions<State, any>
+  CaseReducers extends SliceCaseReducerDefinitions<State, CaseReducers>
 >(
   options: CreateSliceOptions<State, CaseReducers>
 ): Slice<State, CaseReducers> {
@@ -239,11 +199,11 @@ export function createSlice<
     let caseReducer: CaseReducer<State, any>
     let prepareCallback: PrepareAction<any> | undefined
 
-    if (typeof maybeReducerWithPrepare === 'function') {
-      caseReducer = maybeReducerWithPrepare
-    } else {
+    if ('reducer' in maybeReducerWithPrepare) {
       caseReducer = maybeReducerWithPrepare.reducer
       prepareCallback = maybeReducerWithPrepare.prepare
+    } else {
+      caseReducer = maybeReducerWithPrepare
     }
 
     sliceCaseReducersByName[reducerName] = caseReducer
