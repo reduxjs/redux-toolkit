@@ -20,9 +20,12 @@ import {
  */
 export type SliceActionCreator<P> = PayloadActionCreator<P>
 
+/**
+ * The return value of `createSlice`
+ */
 export interface Slice<
   State = any,
-  CaseReducers extends SliceCaseReducerDefinitions<State, PayloadActions> = {
+  CaseReducers extends SliceCaseReducerDefinitions<State, any> = {
     [key: string]: any
   }
 > {
@@ -87,22 +90,28 @@ export interface CreateSliceOptions<
     | ((builder: ActionReducerMapBuilder<NoInfer<State>>) => void)
 }
 
-type PayloadActions<Types extends keyof any = string> = Record<
-  Types,
-  PayloadAction
->
-
+/**
+ * A CaseReducer with a `prepare` method.
+ */
 export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
   reducer: CaseReducer<State, Action>
   prepare: PrepareAction<Action['payload']>
 }
 
+/**
+ * The type describing a slice's `reducers` option.
+ * Also checks itself, so it has to be passed "itself" as it's second option.
+ * See the method signature of `createSlice`.
+ */
 export type SliceCaseReducerDefinitions<State, CR> = {
   [K: string]:
     | CaseReducer<State, PayloadAction<any>>
     | CaseReducerWithPrepare<State, PayloadAction<any>>
 } & SliceCaseReducersCheck<State, CR>
 
+/**
+ * Derives the slice's `actions` property from the `reducers` options
+ */
 export type CaseReducerActions<
   CaseReducers extends SliceCaseReducerDefinitions<any, any>
 > = {
@@ -111,10 +120,16 @@ export type CaseReducerActions<
     : ActionCreatorForCaseReducer<CaseReducers[Type]>
 }
 
+/**
+ * Get a `PayloadActionCreator` type for a passed `CaseReducerWithPrepare`
+ */
 type ActionCreatorForCaseReducerWithPrepare<
   CR extends { prepare: any }
 > = _ActionCreatorWithPreparedPayload<CR['prepare'], string>
 
+/**
+ * Get a `PayloadActionCreator` type for a passed `CaseReducer`
+ */
 type ActionCreatorForCaseReducer<CR> = CR extends (
   state: any,
   action: infer Action
@@ -124,6 +139,10 @@ type ActionCreatorForCaseReducer<CR> = CR extends (
     : ActionCreatorWithoutPayload
   : ActionCreatorWithoutPayload
 
+/**
+ * Extracts the CaseReducers out of a `reducers` object, even if they are
+ * tested into a `CaseReducerWithPrepare`.
+ */
 type SliceDefinedCaseReducers<
   CaseReducers extends SliceCaseReducerDefinitions<any, any>
 > = {
@@ -134,8 +153,18 @@ type SliceDefinedCaseReducers<
     : CaseReducers[Type]
 }
 
+/**
+ * Helper type. Passes T out again, but boxes it in a way that it cannot
+ * "widen" the type by accident if it is a generic that should be inferred
+ * from elsewhere.
+ */
 type NoInfer<T> = [T][T extends any ? 0 : never]
 
+/**
+ * Used on a `reducers` object.
+ * Ensures that if a CaseReducer is a `CaseReducerWithPrepare`, that
+ * the `reducer` and the `prepare` function use the same type of `payload`.
+ */
 type SliceCaseReducersCheck<S, ACR> = {
   [P in keyof ACR]: ACR[P] extends {
     reducer(s: S, action?: { payload: infer O }): any
