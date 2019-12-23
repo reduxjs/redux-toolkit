@@ -17,6 +17,8 @@ import {
  * An action creator atttached to a slice.
  *
  * @deprecated please use PayloadActionCreator directly
+ *
+ * @public
  */
 export type SliceActionCreator<P> = PayloadActionCreator<P>
 
@@ -206,6 +208,8 @@ function getType(slice: string, actionKey: string): string {
  * reducers and state.
  *
  * The `reducer` argument is passed to `createReducer()`.
+ *
+ * @public
  */
 export function createSlice<
   State,

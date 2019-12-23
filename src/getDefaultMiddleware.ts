@@ -34,6 +34,8 @@ interface GetDefaultMiddlewareOptions {
  * `middleware` array but still keep the default set.
  *
  * @return The default middleware used by `configureStore()`.
+ *
+ * @public
  */
 export function getDefaultMiddleware<S = any>(
   options: GetDefaultMiddlewareOptions = {}

@@ -18,66 +18,45 @@ import { Store } from 'redux';
 import { StoreEnhancer } from 'redux';
 import { ThunkDispatch } from 'redux-thunk';
 
-// Warning: (ae-forgotten-export) The symbol "BaseActionCreator" needs to be exported by the entry point index.d.ts
-//
 // @public
 export interface ActionCreatorWithNonInferrablePayload<T extends string = string> extends BaseActionCreator<unknown, T> {
-    // (undocumented)
     <PT extends unknown>(payload: PT): PayloadAction<PT, T>;
 }
 
 // @public
 export interface ActionCreatorWithOptionalPayload<P, T extends string = string> extends BaseActionCreator<P, T> {
-    // (undocumented)
     (payload?: undefined): PayloadAction<undefined, T>;
-    // Warning: (ae-forgotten-export) The symbol "Diff" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
     <PT extends Diff<P, undefined>>(payload?: PT): PayloadAction<PT, T>;
 }
 
 // @public
 export interface ActionCreatorWithoutPayload<T extends string = string> extends BaseActionCreator<undefined, T> {
-    // (undocumented)
     (): PayloadAction<undefined, T>;
 }
 
 // @public
 export interface ActionCreatorWithPayload<P, T extends string = string> extends BaseActionCreator<P, T> {
-    // (undocumented)
     <PT extends P>(payload: PT): PayloadAction<PT, T>;
-    // (undocumented)
     (payload: P): PayloadAction<P, T>;
 }
 
 // @public
 export interface ActionCreatorWithPreparedPayload<Args extends unknown[], P, T extends string = string, E = never, M = never> extends BaseActionCreator<P, T, M, E> {
-    // (undocumented)
     (...args: Args): PayloadAction<P, T, M, E>;
 }
 
-// Warning: (ae-missing-release-tag) "ActionReducerMapBuilder" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export interface ActionReducerMapBuilder<State> {
-    // Warning: (ae-forgotten-export) The symbol "TypedActionCreator" needs to be exported by the entry point index.d.ts
     addCase<ActionCreator extends TypedActionCreator<string>>(actionCreator: ActionCreator, reducer: CaseReducer<State, ReturnType<ActionCreator>>): ActionReducerMapBuilder<State>;
     addCase<Type extends string, A extends Action<Type>>(type: Type, reducer: CaseReducer<State, A>): ActionReducerMapBuilder<State>;
 }
 
-// Warning: (ae-missing-release-tag) "Actions" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
+// @public @deprecated
 export type Actions<T extends keyof any = string> = Record<T, Action>;
 
-// Warning: (ae-missing-release-tag) "CaseReducer" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export type CaseReducer<S = any, A extends Action = AnyAction> = (state: Draft<S>, action: A) => S | void;
 
-// Warning: (ae-forgotten-export) The symbol "ActionCreatorForCaseReducerWithPrepare" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ActionCreatorForCaseReducer" needs to be exported by the entry point index.d.ts
-//
 // @public
 export type CaseReducerActions<CaseReducers extends SliceCaseReducerDefinitions<any, any>> = {
     [Type in keyof CaseReducers]: CaseReducers[Type] extends {
@@ -85,9 +64,7 @@ export type CaseReducerActions<CaseReducers extends SliceCaseReducerDefinitions<
     } ? ActionCreatorForCaseReducerWithPrepare<CaseReducers[Type]> : ActionCreatorForCaseReducer<CaseReducers[Type]>;
 };
 
-// Warning: (ae-missing-release-tag) "CaseReducers" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
+// @public @deprecated
 export type CaseReducers<S, AS extends Actions> = {
     [T in keyof AS]: AS[T] extends Action ? CaseReducer<S, AS[T]> : void;
 };
@@ -98,18 +75,12 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
     prepare: PrepareAction<Action['payload']>;
 };
 
-// Warning: (ae-missing-release-tag) "ConfigureEnhancersCallback" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 export type ConfigureEnhancersCallback = (defaultEnhancers: StoreEnhancer[]) => StoreEnhancer[];
 
-// Warning: (ae-missing-release-tag) "configureStore" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function configureStore<S = any, A extends Action = AnyAction>(options: ConfigureStoreOptions<S, A>): EnhancedStore<S, A>;
 
-// Warning: (ae-missing-release-tag) "ConfigureStoreOptions" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
     devTools?: boolean | EnhancerOptions;
@@ -119,20 +90,14 @@ export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
     reducer: Reducer<S, A> | ReducersMapObject<S, A>;
 }
 
-// Warning: (ae-missing-release-tag) "createAction" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-// Warning: (ae-missing-release-tag) "createAction" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function createAction<P = void, T extends string = string>(type: T): PayloadActionCreator<P, T>;
 
-// @public (undocumented)
+// @public
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
 
 export { createNextState }
 
-// Warning: (ae-missing-release-tag) "createReducer" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-// Warning: (ae-missing-release-tag) "createReducer" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function createReducer<S, CR extends CaseReducers<S, any> = CaseReducers<S, any>>(initialState: S, actionsMap: CR): Reducer<S>;
 
@@ -141,52 +106,35 @@ export function createReducer<S>(initialState: S, builderCallback: (builder: Act
 
 export { createSelector }
 
-// Warning: (ae-missing-release-tag) "createSerializableStateInvariantMiddleware" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function createSerializableStateInvariantMiddleware(options?: SerializableStateInvariantMiddlewareOptions): Middleware;
 
-// Warning: (ae-missing-release-tag) "createSlice" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function createSlice<State, CaseReducers extends SliceCaseReducerDefinitions<State, CaseReducers>>(options: CreateSliceOptions<State, CaseReducers>): Slice<State, CaseReducers>;
 
 // @public
 export interface CreateSliceOptions<State = any, CR extends SliceCaseReducerDefinitions<State, any> = SliceCaseReducerDefinitions<State, any>> {
-    // Warning: (ae-forgotten-export) The symbol "NoInfer" needs to be exported by the entry point index.d.ts
     extraReducers?: CaseReducers<NoInfer<State>, any> | ((builder: ActionReducerMapBuilder<NoInfer<State>>) => void);
     initialState: State;
     name: string;
     reducers: CR;
 }
 
-// Warning: (ae-missing-release-tag) "EnhancedStore" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export interface EnhancedStore<S = any, A extends Action = AnyAction> extends Store<S, A> {
     // (undocumented)
     dispatch: ThunkDispatch<S, any, A>;
 }
 
-// Warning: (ae-forgotten-export) The symbol "NonSerializableValue" needs to be exported by the entry point index.d.ts
-// Warning: (ae-missing-release-tag) "findNonSerializableValue" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export function findNonSerializableValue(value: unknown, path?: ReadonlyArray<string>, isSerializable?: (value: unknown) => boolean, getEntries?: (value: unknown) => [string, any][]): NonSerializableValue | false;
 
-// Warning: (ae-forgotten-export) The symbol "GetDefaultMiddlewareOptions" needs to be exported by the entry point index.d.ts
-// Warning: (ae-missing-release-tag) "getDefaultMiddleware" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function getDefaultMiddleware<S = any>(options?: GetDefaultMiddlewareOptions): Middleware<{}, S>[];
 
-// Warning: (ae-missing-release-tag) "getType" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function getType<T extends string>(actionCreator: PayloadActionCreator<any, T>): T;
 
-// Warning: (ae-missing-release-tag) "isPlain" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function isPlain(val: any): boolean;
 
@@ -200,13 +148,6 @@ export type PayloadAction<P = void, T extends string = string, M = never, E = ne
     error: E;
 });
 
-// Warning: (ae-forgotten-export) The symbol "IfPrepareActionMethodProvided" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "_ActionCreatorWithPreparedPayload" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "IsAny" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "IsUnknownOrNonInferrable" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "IfVoid" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "IfMaybeUndefined" needs to be exported by the entry point index.d.ts
-//
 // @public
 export type PayloadActionCreator<P = void, T extends string = string, PA extends PrepareAction<P> | void = void> = IfPrepareActionMethodProvided<PA, _ActionCreatorWithPreparedPayload<PA, T>, IsAny<P, ActionCreatorWithPayload<any, T>, IsUnknownOrNonInferrable<P, ActionCreatorWithNonInferrablePayload<T>, IfVoid<P, ActionCreatorWithoutPayload<T>, IfMaybeUndefined<P, ActionCreatorWithOptionalPayload<P, T>, ActionCreatorWithPayload<P, T>>>>>>;
 
@@ -225,8 +166,6 @@ export type PrepareAction<P> = ((...args: any[]) => {
     error: any;
 });
 
-// Warning: (ae-missing-release-tag) "SerializableStateInvariantMiddlewareOptions" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export interface SerializableStateInvariantMiddlewareOptions {
     getEntries?: (value: any) => [string, any][];
@@ -239,19 +178,14 @@ export interface Slice<State = any, CaseReducers extends SliceCaseReducerDefinit
     [key: string]: any;
 }> {
     actions: CaseReducerActions<CaseReducers>;
-    // Warning: (ae-forgotten-export) The symbol "SliceDefinedCaseReducers" needs to be exported by the entry point index.d.ts
     caseReducers: SliceDefinedCaseReducers<CaseReducers>;
     name: string;
     reducer: Reducer<State>;
 }
 
-// Warning: (ae-missing-release-tag) "SliceActionCreator" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public @deprecated
 export type SliceActionCreator<P> = PayloadActionCreator<P>;
 
-// Warning: (ae-forgotten-export) The symbol "SliceCaseReducersCheck" needs to be exported by the entry point index.d.ts
-//
 // @public
 export type SliceCaseReducerDefinitions<State, CR> = {
     [K: string]: CaseReducer<State, PayloadAction<any>> | CaseReducerWithPrepare<State, PayloadAction<any>>;

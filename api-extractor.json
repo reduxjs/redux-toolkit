@@ -324,14 +324,9 @@
         "logLevel": "warning"
         // "addToApiReportFile": false
       },
-
-      "ae-missing-release-tag": {
-        "logLevel": "none",
-        "addToApiReportFile": true
-      },
       "ae-forgotten-export": {
         "logLevel": "none",
-        "addToApiReportFile": true
+        "addToApiReportFile": false
       }
       //
       // . . .
