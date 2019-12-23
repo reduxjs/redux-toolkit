@@ -56,13 +56,6 @@ export interface ActionCreatorWithPreparedPayload<Args extends unknown[], P, T e
     (...args: Args): PayloadAction<P, T, M, E>;
 }
 
-// @internal
-export type _ActionCreatorWithPreparedPayload<PA extends PrepareAction<any> | void, T extends string = string> = PA extends PrepareAction<infer P> ? ActionCreatorWithPreparedPayload<Parameters<PA>, P, T, ReturnType<PA> extends {
-    error: infer E;
-} ? E : never, ReturnType<PA> extends {
-    meta: infer M;
-} ? M : never> : void;
-
 // Warning: (ae-missing-release-tag) "ActionReducerMapBuilder" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -208,11 +201,11 @@ export type PayloadAction<P = void, T extends string = string, M = never, E = ne
 });
 
 // Warning: (ae-forgotten-export) The symbol "IfPrepareActionMethodProvided" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "_ActionCreatorWithPreparedPayload" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "IsAny" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "IsUnknownOrNonInferrable" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "IfVoid" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "IfMaybeUndefined" needs to be exported by the entry point index.d.ts
-// Warning: (ae-incompatible-release-tags) The symbol "PayloadActionCreator" is marked as @public, but its signature references "_ActionCreatorWithPreparedPayload" which is marked as @internal
 //
 // @public
 export type PayloadActionCreator<P = void, T extends string = string, PA extends PrepareAction<P> | void = void> = IfPrepareActionMethodProvided<PA, _ActionCreatorWithPreparedPayload<PA, T>, IsAny<P, ActionCreatorWithPayload<any, T>, IsUnknownOrNonInferrable<P, ActionCreatorWithNonInferrablePayload<T>, IfVoid<P, ActionCreatorWithoutPayload<T>, IfMaybeUndefined<P, ActionCreatorWithOptionalPayload<P, T>, ActionCreatorWithPayload<P, T>>>>>>;
