@@ -8,7 +8,8 @@ import {
   ActionCreatorWithNonInferrablePayload,
   ActionCreatorWithoutPayload,
   ActionCreatorWithPayload,
-  ActionCreatorWithPreparedPayload
+  ActionCreatorWithPreparedPayload,
+  SliceCaseReducerDefinitions
 } from '../../src'
 
 function expectType<T>(t: T) {
@@ -311,4 +312,60 @@ function expectType<T>(t: T) {
       expectType<ActionReducerMapBuilder<number>>(builder)
     }
   })
+}
+
+/** Test: wrapping createSlice should be possible */
+{
+  interface GenericState<T> {
+    data?: T
+    status: 'loading' | 'finished' | 'error'
+  }
+
+  const createGenericSlice = <
+    T,
+    Reducers extends SliceCaseReducerDefinitions<GenericState<T>, Reducers>
+  >({
+    name = '',
+    initialState,
+    reducers
+  }: {
+    name: string
+    initialState: GenericState<T>
+    reducers: Reducers // I've tried many different types here. Not final
+  }) => {
+    return createSlice({
+      name,
+      initialState,
+      reducers: {
+        start(state) {
+          state.status = 'loading'
+        },
+        success(state: GenericState<T>, action: PayloadAction<T>) {
+          state.data = action.payload
+          state.status = 'finished'
+        },
+        ...reducers
+      }
+    })
+  }
+
+  const wrappedSlice = createGenericSlice({
+    name: 'test',
+    initialState: { status: 'loading' } as GenericState<string>,
+    reducers: {
+      magic(state) {
+        state.status = 'finished'
+        state.data = 'hocus pocus'
+      }
+    }
+  })
+
+  expectType<ActionCreatorWithPayload<string>>(wrappedSlice.actions.success)
+
+  type WrappedSliceState = Parameters<
+    (typeof wrappedSlice)['caseReducers']['start']
+  >[0]
+  expectType<GenericState<string>>((0 as any) as WrappedSliceState)
+  // typings:expect-error
+  expectType<GenericState<number>>((0 as any) as WrappedSliceState)
 }
