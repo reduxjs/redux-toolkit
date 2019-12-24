@@ -195,6 +195,26 @@ createSlice({
 })
 ```
 
+### Defining the type of your `initialState`
+
+You might have noticed that it is not a good idea to pass your `SliceState` type as a generic to `createSlice`. This is due to the fact that in almost all cases, follow-up generic parameters to `createSlice` need to be inferred, and TypeScript cannot mix explicit declaration and inference of generic types within the same "generic block".
+
+Instead, you can use the construct `initialState: myInitialState as SliceState`.
+
+```ts
+type SliceState = { state: 'loading' } | { state: 'finished'; data: string }
+
+createSlice({
+  name: 'test',
+  initialState: { state: 'loading' } as SliceState,
+  reducers: {
+    // ...
+  }
+})
+```
+
+which will result in a `Slice<SliceState, ...>`.
+
 ### On the "type" property of slice action Reducers
 
 As TS cannot combine two string literals (`slice.name` and the key of `actionMap`) into a new literal, all actionCreators created by createSlice are of type 'string'. This is usually not a problem, as these types are only rarely used as literals.
@@ -222,3 +242,62 @@ If you actually _need_ that type, unfortunately there is no other way than manua
 ### Type safety with `extraReducers`
 
 Like in `createReducer`, the `extraReducers` map object is not easy to fully type. So, like with `createReducer`, you may also use the "builder callback" approach for defining the reducer object argument. See [the `createReducer` section above](#createReducer) for an example.
+
+### Wrapping createSlice
+
+If you want to wrap `createSlice` in a "higher-order slice-generator function" to abstract repeating patterns in your code, you have have to use the `SliceCaseReducers` and `ValidateSliceCaseReducers` types in a very specific way.
+
+Here is an example of such a "generic" wrapped `createSlice` call:
+
+```ts
+interface GenericState<T> {
+  data?: T
+  status: 'loading' | 'finished' | 'error'
+}
+
+const createGenericSlice = <
+  T,
+  Reducers extends SliceCaseReducers<GenericState<T>>
+>({
+  name = '',
+  initialState,
+  reducers
+}: {
+  name: string
+  initialState: GenericState<T>
+  reducers: ValidateSliceCaseReducers<GenericState<T>, Reducers>
+}) => {
+  return createSlice({
+    name,
+    initialState,
+    reducers: {
+      start(state) {
+        state.status = 'loading'
+      },
+      /**
+       * If you want to write to values of the state that depend on the generic
+       * (in this case: `state.data`, which is T), you might need to specify the
+       * State type manually here, as it defaults to `Draft<GenericState<T>>`,
+       * which can sometimes be problematic with yet-unresolved generics.
+       * This is a general problem when working with immer's Draft type and generics.
+       */
+      success(state: GenericState<T>, action: PayloadAction<T>) {
+        state.data = action.payload
+        state.status = 'finished'
+      },
+      ...reducers
+    }
+  })
+}
+
+const wrappedSlice = createGenericSlice({
+  name: 'test',
+  initialState: { status: 'loading' } as GenericState<string>,
+  reducers: {
+    magic(state) {
+      state.status = 'finished'
+      state.data = 'hocus pocus'
+    }
+  }
+})
+```
