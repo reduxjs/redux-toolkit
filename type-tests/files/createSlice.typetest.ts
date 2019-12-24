@@ -332,7 +332,7 @@ function expectType<T>(t: T) {
   }: {
     name: string
     initialState: GenericState<T>
-    reducers: Reducers & ValidateSliceCaseReducers<GenericState<T>, Reducers>
+    reducers: ValidateSliceCaseReducers<GenericState<T>, Reducers>
   }) => {
     return createSlice({
       name,

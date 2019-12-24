@@ -117,7 +117,7 @@ export interface CreateSliceOptions<State = any, CR extends SliceCaseReducers<St
     extraReducers?: CaseReducers<NoInfer<State>, any> | ((builder: ActionReducerMapBuilder<NoInfer<State>>) => void);
     initialState: State;
     name: string;
-    reducers: CR & ValidateSliceCaseReducers<State, CR>;
+    reducers: ValidateSliceCaseReducers<State, CR>;
 }
 
 // @public
@@ -190,7 +190,7 @@ export type SliceCaseReducers<State> = {
 };
 
 // @public
-export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = {
+export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = ACR & {
     [P in keyof ACR]: ACR[P] extends {
         reducer(s: S, action?: {
             payload: infer O;

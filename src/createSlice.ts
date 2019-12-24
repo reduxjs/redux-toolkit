@@ -77,7 +77,7 @@ export interface CreateSliceOptions<
    * functions. For every action type, a matching action creator will be
    * generated using `createAction()`.
    */
-  reducers: CR & ValidateSliceCaseReducers<State, CR>
+  reducers: ValidateSliceCaseReducers<State, CR>
 
   /**
    * A mapping from action types to action-type-specific *case reducer*
@@ -181,15 +181,19 @@ type NoInfer<T> = [T][T extends any ? 0 : never]
  *
  * @public
  */
-export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = {
-  [P in keyof ACR]: ACR[P] extends {
-    reducer(s: S, action?: { payload: infer O }): any
+export type ValidateSliceCaseReducers<
+  S,
+  ACR extends SliceCaseReducers<S>
+> = ACR &
+  {
+    [P in keyof ACR]: ACR[P] extends {
+      reducer(s: S, action?: { payload: infer O }): any
+    }
+      ? {
+          prepare(...a: never[]): { payload: O }
+        }
+      : {}
   }
-    ? {
-        prepare(...a: never[]): { payload: O }
-      }
-    : {}
-}
 
 function getType(slice: string, actionKey: string): string {
   return `${slice}/${actionKey}`
