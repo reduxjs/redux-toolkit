@@ -241,7 +241,7 @@ If you actually _need_ that type, unfortunately there is no other way than manua
 
 ### Type safety with `extraReducers`
 
-Like in `createReducer`, the `extraReducers` map object is not easy to fully type. So, like with `createReducer`, you may also use the "builder callback" approach for defining the reducer object argument. See [the `createReducer` section above](#createReducer) for an example.
+Like in `createReducer`, the `extraReducers` map object is not easy to fully type. So, like with `createReducer`, you may also use the "builder callback" approach for defining the reducer object argument. See [the `createReducer` section above](#createreducer) for an example.
 
 ### Wrapping `createSlice`
 
