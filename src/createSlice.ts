@@ -48,7 +48,7 @@ export interface Slice<
   actions: CaseReducerActions<CaseReducers>
 
   /**
-   * The individual case reducer functions that were passed in the `reducers` parameter.  
+   * The individual case reducer functions that were passed in the `reducers` parameter.
    * This enables reuse and testing if they were defined inline when calling `createSlice`.
    */
   caseReducers: SliceDefinedCaseReducers<CaseReducers>
