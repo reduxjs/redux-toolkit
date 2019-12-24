@@ -9,8 +9,9 @@ import {
   ActionCreatorWithoutPayload,
   ActionCreatorWithPayload,
   ActionCreatorWithPreparedPayload,
-  SliceCaseReducerDefinitions
+  SliceCaseReducers
 } from '../../src'
+import { ValidateSliceCaseReducers } from 'src/createSlice'
 
 function expectType<T>(t: T) {
   return t
@@ -323,7 +324,7 @@ function expectType<T>(t: T) {
 
   const createGenericSlice = <
     T,
-    Reducers extends SliceCaseReducerDefinitions<GenericState<T>, Reducers>
+    Reducers extends SliceCaseReducers<GenericState<T>>
   >({
     name = '',
     initialState,
@@ -331,7 +332,7 @@ function expectType<T>(t: T) {
   }: {
     name: string
     initialState: GenericState<T>
-    reducers: Reducers // I've tried many different types here. Not final
+    reducers: Reducers & ValidateSliceCaseReducers<GenericState<T>, Reducers>
   }) => {
     return createSlice({
       name,
@@ -354,6 +355,10 @@ function expectType<T>(t: T) {
     initialState: { status: 'loading' } as GenericState<string>,
     reducers: {
       magic(state) {
+        expectType<GenericState<string>>(state)
+        // typings:expect-error
+        expectType<GenericState<number>>(state)
+
         state.status = 'finished'
         state.data = 'hocus pocus'
       }
@@ -361,11 +366,5 @@ function expectType<T>(t: T) {
   })
 
   expectType<ActionCreatorWithPayload<string>>(wrappedSlice.actions.success)
-
-  type WrappedSliceState = Parameters<
-    (typeof wrappedSlice)['caseReducers']['start']
-  >[0]
-  expectType<GenericState<string>>((0 as any) as WrappedSliceState)
-  // typings:expect-error
-  expectType<GenericState<number>>((0 as any) as WrappedSliceState)
+  expectType<ActionCreatorWithoutPayload<string>>(wrappedSlice.actions.magic)
 }

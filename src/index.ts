@@ -39,7 +39,8 @@ export {
   CreateSliceOptions,
   Slice,
   CaseReducerActions,
-  SliceCaseReducerDefinitions,
+  SliceCaseReducers,
+  ValidateSliceCaseReducers,
   CaseReducerWithPrepare,
   SliceActionCreator
 } from './createSlice'

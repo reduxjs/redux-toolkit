@@ -29,9 +29,7 @@ export type SliceActionCreator<P> = PayloadActionCreator<P>
  */
 export interface Slice<
   State = any,
-  CaseReducers extends SliceCaseReducerDefinitions<State, any> = {
-    [key: string]: any
-  }
+  CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>
 > {
   /**
    * The slice name.
@@ -62,10 +60,7 @@ export interface Slice<
  */
 export interface CreateSliceOptions<
   State = any,
-  CR extends SliceCaseReducerDefinitions<
-    State,
-    any
-  > = SliceCaseReducerDefinitions<State, any>
+  CR extends SliceCaseReducers<State> = SliceCaseReducers<State>
 > {
   /**
    * The slice's name. Used to namespace the generated action types.
@@ -82,7 +77,7 @@ export interface CreateSliceOptions<
    * functions. For every action type, a matching action creator will be
    * generated using `createAction()`.
    */
-  reducers: CR
+  reducers: CR & ValidateSliceCaseReducers<State, CR>
 
   /**
    * A mapping from action types to action-type-specific *case reducer*
@@ -113,20 +108,18 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
  *
  * @public
  */
-export type SliceCaseReducerDefinitions<State, CR> = {
+export type SliceCaseReducers<State> = {
   [K: string]:
     | CaseReducer<State, PayloadAction<any>>
     | CaseReducerWithPrepare<State, PayloadAction<any>>
-} & SliceCaseReducersCheck<State, CR>
+}
 
 /**
  * Derives the slice's `actions` property from the `reducers` options
  *
  * @public
  */
-export type CaseReducerActions<
-  CaseReducers extends SliceCaseReducerDefinitions<any, any>
-> = {
+export type CaseReducerActions<CaseReducers extends SliceCaseReducers<any>> = {
   [Type in keyof CaseReducers]: CaseReducers[Type] extends { prepare: any }
     ? ActionCreatorForCaseReducerWithPrepare<CaseReducers[Type]>
     : ActionCreatorForCaseReducer<CaseReducers[Type]>
@@ -161,9 +154,7 @@ type ActionCreatorForCaseReducer<CR> = CR extends (
  *
  * @internal
  */
-type SliceDefinedCaseReducers<
-  CaseReducers extends SliceCaseReducerDefinitions<any, any>
-> = {
+type SliceDefinedCaseReducers<CaseReducers extends SliceCaseReducers<any>> = {
   [Type in keyof CaseReducers]: CaseReducers[Type] extends {
     reducer: infer Reducer
   }
@@ -185,9 +176,12 @@ type NoInfer<T> = [T][T extends any ? 0 : never]
  * Ensures that if a CaseReducer is a `CaseReducerWithPrepare`, that
  * the `reducer` and the `prepare` function use the same type of `payload`.
  *
- * @internal
+ * This type is only ever useful if you want to write your own wrapper around
+ * `createSlice`. Please don't use it otherwise!
+ *
+ * @public
  */
-type SliceCaseReducersCheck<S, ACR> = {
+export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = {
   [P in keyof ACR]: ACR[P] extends {
     reducer(s: S, action?: { payload: infer O }): any
   }
@@ -213,7 +207,7 @@ function getType(slice: string, actionKey: string): string {
  */
 export function createSlice<
   State,
-  CaseReducers extends SliceCaseReducerDefinitions<State, CaseReducers>
+  CaseReducers extends SliceCaseReducers<State>
 >(
   options: CreateSliceOptions<State, CaseReducers>
 ): Slice<State, CaseReducers> {

@@ -58,7 +58,7 @@ export type Actions<T extends keyof any = string> = Record<T, Action>;
 export type CaseReducer<S = any, A extends Action = AnyAction> = (state: Draft<S>, action: A) => S | void;
 
 // @public
-export type CaseReducerActions<CaseReducers extends SliceCaseReducerDefinitions<any, any>> = {
+export type CaseReducerActions<CaseReducers extends SliceCaseReducers<any>> = {
     [Type in keyof CaseReducers]: CaseReducers[Type] extends {
         prepare: any;
     } ? ActionCreatorForCaseReducerWithPrepare<CaseReducers[Type]> : ActionCreatorForCaseReducer<CaseReducers[Type]>;
@@ -110,14 +110,14 @@ export { createSelector }
 export function createSerializableStateInvariantMiddleware(options?: SerializableStateInvariantMiddlewareOptions): Middleware;
 
 // @public
-export function createSlice<State, CaseReducers extends SliceCaseReducerDefinitions<State, CaseReducers>>(options: CreateSliceOptions<State, CaseReducers>): Slice<State, CaseReducers>;
+export function createSlice<State, CaseReducers extends SliceCaseReducers<State>>(options: CreateSliceOptions<State, CaseReducers>): Slice<State, CaseReducers>;
 
 // @public
-export interface CreateSliceOptions<State = any, CR extends SliceCaseReducerDefinitions<State, any> = SliceCaseReducerDefinitions<State, any>> {
+export interface CreateSliceOptions<State = any, CR extends SliceCaseReducers<State> = SliceCaseReducers<State>> {
     extraReducers?: CaseReducers<NoInfer<State>, any> | ((builder: ActionReducerMapBuilder<NoInfer<State>>) => void);
     initialState: State;
     name: string;
-    reducers: CR;
+    reducers: CR & ValidateSliceCaseReducers<State, CR>;
 }
 
 // @public
@@ -174,9 +174,7 @@ export interface SerializableStateInvariantMiddlewareOptions {
 }
 
 // @public
-export interface Slice<State = any, CaseReducers extends SliceCaseReducerDefinitions<State, any> = {
-    [key: string]: any;
-}> {
+export interface Slice<State = any, CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>> {
     actions: CaseReducerActions<CaseReducers>;
     caseReducers: SliceDefinedCaseReducers<CaseReducers>;
     name: string;
@@ -187,9 +185,22 @@ export interface Slice<State = any, CaseReducers extends SliceCaseReducerDefinit
 export type SliceActionCreator<P> = PayloadActionCreator<P>;
 
 // @public
-export type SliceCaseReducerDefinitions<State, CR> = {
+export type SliceCaseReducers<State> = {
     [K: string]: CaseReducer<State, PayloadAction<any>> | CaseReducerWithPrepare<State, PayloadAction<any>>;
-} & SliceCaseReducersCheck<State, CR>;
+};
+
+// @public
+export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = {
+    [P in keyof ACR]: ACR[P] extends {
+        reducer(s: S, action?: {
+            payload: infer O;
+        }): any;
+    } ? {
+        prepare(...a: never[]): {
+            payload: O;
+        };
+    } : {};
+};
 
 
 export * from "redux";
