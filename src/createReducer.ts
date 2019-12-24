@@ -9,7 +9,7 @@ import {
  * Defines a mapping from action types to corresponding action object shapes.
  *
  * @deprecated This should not be used manually - it is only used for internal
- *             interference purposes and should not have any further value.
+ *             inference purposes and should not have any further value.
  *             It might be removed in the future.
  * @public
  */
@@ -40,7 +40,7 @@ export type CaseReducer<S = any, A extends Action = AnyAction> = (
  * A mapping from action types to case reducers for `createReducer()`.
  *
  * @deprecated This should not be used manually - it is only used
- *             for internal interference purposes and using it manually
+ *             for internal inference purposes and using it manually
  *             would lead to type erasure.
  *             It might be removed in the future.
  * @public
