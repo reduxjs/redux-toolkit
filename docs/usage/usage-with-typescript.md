@@ -243,7 +243,7 @@ If you actually _need_ that type, unfortunately there is no other way than manua
 
 Like in `createReducer`, the `extraReducers` map object is not easy to fully type. So, like with `createReducer`, you may also use the "builder callback" approach for defining the reducer object argument. See [the `createReducer` section above](#createReducer) for an example.
 
-### Wrapping createSlice
+### Wrapping `createSlice`
 
 If you want to wrap `createSlice` in a "higher-order slice-generator function" to abstract repeating patterns in your code, you have have to use the `SliceCaseReducers` and `ValidateSliceCaseReducers` types in a very specific way.
 
