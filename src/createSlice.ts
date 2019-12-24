@@ -103,8 +103,6 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
 
 /**
  * The type describing a slice's `reducers` option.
- * Also checks itself, so it has to be passed "itself" as it's second option.
- * See the method signature of `createSlice`.
  *
  * @public
  */
@@ -172,9 +170,11 @@ type SliceDefinedCaseReducers<CaseReducers extends SliceCaseReducers<any>> = {
 type NoInfer<T> = [T][T extends any ? 0 : never]
 
 /**
- * Used on a `reducers` object.
+ * Used on a SliceCaseReducers object.
  * Ensures that if a CaseReducer is a `CaseReducerWithPrepare`, that
  * the `reducer` and the `prepare` function use the same type of `payload`.
+ *
+ * Might do additional such checks in the future.
  *
  * This type is only ever useful if you want to write your own wrapper around
  * `createSlice`. Please don't use it otherwise!
