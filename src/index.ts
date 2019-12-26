@@ -1,10 +1,3 @@
-export * from 'redux'
-export { default as createNextState } from 'immer'
-export { createSelector } from 'reselect'
-
-export * from './configureStore'
-export * from './createAction'
-export * from './createReducer'
-export * from './createSlice'
-export * from './serializableStateInvariantMiddleware'
-export * from './getDefaultMiddleware'
+throw new Error(
+  '🚨  redux-starter-kit has been renamed to @reduxjs/toolkit. Please uninstall redux-starter-kit and install @reduxjs/toolkit instead. Learn more about this change here: https://github.com/reduxjs/redux-toolkit/releases/tag/v1.0.4 . Thanks! :)'
+)
