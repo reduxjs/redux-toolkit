@@ -245,7 +245,7 @@ Like in `createReducer`, the `extraReducers` map object is not easy to fully typ
 
 ### Wrapping `createSlice`
 
-If you want to wrap `createSlice` in a "higher-order slice-generator function" to abstract repeating patterns in your code, you have have to use the `SliceCaseReducers` and `ValidateSliceCaseReducers` types in a very specific way.
+If you need to reuse reducer logic, it is common to write ["higher-order reducers"](https://redux.js.org/recipes/structuring-reducers/reusing-reducer-logic#customizing-behavior-with-higher-order-reducers) that wrap a reducer function with additional common behavior.  This can be done with `createSlice` as well, but due to the complexity of the types for `createSlice`, you have to use the `SliceCaseReducers` and `ValidateSliceCaseReducers` types in a very specific way.
 
 Here is an example of such a "generic" wrapped `createSlice` call:
 
