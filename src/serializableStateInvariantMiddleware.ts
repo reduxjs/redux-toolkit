@@ -7,6 +7,8 @@ import { Middleware } from 'redux'
  * or `undefined`.
  *
  * @param val The value to check.
+ *
+ * @public
  */
 export function isPlain(val: any) {
   return (
@@ -25,6 +27,9 @@ interface NonSerializableValue {
   value: unknown
 }
 
+/**
+ * @public
+ */
 export function findNonSerializableValue(
   value: unknown,
   path: ReadonlyArray<string> = [],
@@ -75,6 +80,8 @@ export function findNonSerializableValue(
 
 /**
  * Options for `createSerializableStateInvariantMiddleware()`.
+ *
+ * @public
  */
 export interface SerializableStateInvariantMiddlewareOptions {
   /**
@@ -102,6 +109,8 @@ export interface SerializableStateInvariantMiddlewareOptions {
  * state, an error is printed to the console.
  *
  * @param options Middleware options.
+ *
+ * @public
  */
 export function createSerializableStateInvariantMiddleware(
   options: SerializableStateInvariantMiddlewareOptions = {}

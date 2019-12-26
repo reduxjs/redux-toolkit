@@ -8,8 +8,10 @@ import {
   ActionCreatorWithNonInferrablePayload,
   ActionCreatorWithoutPayload,
   ActionCreatorWithPayload,
-  ActionCreatorWithPreparedPayload
+  ActionCreatorWithPreparedPayload,
+  SliceCaseReducers
 } from '../../src'
+import { ValidateSliceCaseReducers } from 'src/createSlice'
 
 function expectType<T>(t: T) {
   return t
@@ -311,4 +313,58 @@ function expectType<T>(t: T) {
       expectType<ActionReducerMapBuilder<number>>(builder)
     }
   })
+}
+
+/** Test: wrapping createSlice should be possible */
+{
+  interface GenericState<T> {
+    data?: T
+    status: 'loading' | 'finished' | 'error'
+  }
+
+  const createGenericSlice = <
+    T,
+    Reducers extends SliceCaseReducers<GenericState<T>>
+  >({
+    name = '',
+    initialState,
+    reducers
+  }: {
+    name: string
+    initialState: GenericState<T>
+    reducers: ValidateSliceCaseReducers<GenericState<T>, Reducers>
+  }) => {
+    return createSlice({
+      name,
+      initialState,
+      reducers: {
+        start(state) {
+          state.status = 'loading'
+        },
+        success(state: GenericState<T>, action: PayloadAction<T>) {
+          state.data = action.payload
+          state.status = 'finished'
+        },
+        ...reducers
+      }
+    })
+  }
+
+  const wrappedSlice = createGenericSlice({
+    name: 'test',
+    initialState: { status: 'loading' } as GenericState<string>,
+    reducers: {
+      magic(state) {
+        expectType<GenericState<string>>(state)
+        // typings:expect-error
+        expectType<GenericState<number>>(state)
+
+        state.status = 'finished'
+        state.data = 'hocus pocus'
+      }
+    }
+  })
+
+  expectType<ActionCreatorWithPayload<string>>(wrappedSlice.actions.success)
+  expectType<ActionCreatorWithoutPayload<string>>(wrappedSlice.actions.magic)
 }

@@ -23,12 +23,19 @@ import { getDefaultMiddleware } from './getDefaultMiddleware'
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
+/**
+ * Callback function type, to be used in `ConfigureStoreOptions.enhancers`
+ *
+ * @public
+ */
 export type ConfigureEnhancersCallback = (
   defaultEnhancers: StoreEnhancer[]
 ) => StoreEnhancer[]
 
 /**
  * Options for `configureStore()`.
+ *
+ * @public
  */
 export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
   /**
@@ -78,9 +85,14 @@ export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
 /**
  * A Redux store returned by `configureStore()`. Supports dispatching
  * side-effectful _thunks_ in addition to plain actions.
+ *
+ * @public
  */
 export interface EnhancedStore<S = any, A extends Action = AnyAction>
   extends Store<S, A> {
+  /**
+   * @inheritdoc
+   */
   dispatch: ThunkDispatch<S, any, A>
 }
 
@@ -89,6 +101,8 @@ export interface EnhancedStore<S = any, A extends Action = AnyAction>
  *
  * @param config The store configuration.
  * @returns A configured Redux store.
+ *
+ * @public
  */
 export function configureStore<S = any, A extends Action = AnyAction>(
   options: ConfigureStoreOptions<S, A>

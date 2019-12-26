@@ -8,6 +8,8 @@ export interface TypedActionCreator<Type extends string> {
 
 /**
  * A builder for an action <-> reducer map.
+ *
+ * @public
  */
 export interface ActionReducerMapBuilder<State> {
   /**

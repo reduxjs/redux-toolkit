@@ -7,6 +7,11 @@ import {
 
 /**
  * Defines a mapping from action types to corresponding action object shapes.
+ *
+ * @deprecated This should not be used manually - it is only used for internal
+ *             inference purposes and should not have any further value.
+ *             It might be removed in the future.
+ * @public
  */
 export type Actions<T extends keyof any = string> = Record<T, Action>
 
@@ -23,6 +28,8 @@ export type Actions<T extends keyof any = string> = Record<T, Action>
  * cause the store state to be mutated directly; instead, thanks to
  * [immer](https://github.com/mweststrate/immer), the mutations are
  * translated to copy operations that result in a new state.
+ *
+ * @public
  */
 export type CaseReducer<S = any, A extends Action = AnyAction> = (
   state: Draft<S>,
@@ -31,6 +38,12 @@ export type CaseReducer<S = any, A extends Action = AnyAction> = (
 
 /**
  * A mapping from action types to case reducers for `createReducer()`.
+ *
+ * @deprecated This should not be used manually - it is only used
+ *             for internal inference purposes and using it manually
+ *             would lead to type erasure.
+ *             It might be removed in the future.
+ * @public
  */
 export type CaseReducers<S, AS extends Actions> = {
   [T in keyof AS]: AS[T] extends Action ? CaseReducer<S, AS[T]> : void
@@ -51,6 +64,8 @@ export type CaseReducers<S, AS extends Actions> = {
  * @param initialState The initial state to be returned by the reducer.
  * @param actionsMap A mapping from action types to action-type-specific
  *   case reducers.
+ *
+ * @public
  */
 export function createReducer<
   S,
@@ -70,6 +85,8 @@ export function createReducer<
  * @param initialState The initial state to be returned by the reducer.
  * @param builderCallback A callback that receives a *builder* object to define
  *   case reducers via calls to `builder.addCase(actionCreatorOrType, reducer)`.
+ *
+ * @public
  */
 export function createReducer<S>(
   initialState: S,

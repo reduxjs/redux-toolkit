@@ -17,14 +17,19 @@ import {
  * An action creator atttached to a slice.
  *
  * @deprecated please use PayloadActionCreator directly
+ *
+ * @public
  */
 export type SliceActionCreator<P> = PayloadActionCreator<P>
 
+/**
+ * The return value of `createSlice`
+ *
+ * @public
+ */
 export interface Slice<
   State = any,
-  CaseReducers extends SliceCaseReducerDefinitions<State, PayloadActions> = {
-    [key: string]: any
-  }
+  CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>
 > {
   /**
    * The slice name.
@@ -42,18 +47,21 @@ export interface Slice<
    */
   actions: CaseReducerActions<CaseReducers>
 
-  caseReducers: SliceDefinedCaseReducers<CaseReducers, State>
+  /**
+   * The individual case reducer functions that were passed in the `reducers` parameter.
+   * This enables reuse and testing if they were defined inline when calling `createSlice`.
+   */
+  caseReducers: SliceDefinedCaseReducers<CaseReducers>
 }
 
 /**
  * Options for `createSlice()`.
+ *
+ * @public
  */
 export interface CreateSliceOptions<
   State = any,
-  CR extends SliceCaseReducerDefinitions<
-    State,
-    any
-  > = SliceCaseReducerDefinitions<State, any>
+  CR extends SliceCaseReducers<State> = SliceCaseReducers<State>
 > {
   /**
    * The slice's name. Used to namespace the generated action types.
@@ -70,7 +78,7 @@ export interface CreateSliceOptions<
    * functions. For every action type, a matching action creator will be
    * generated using `createAction()`.
    */
-  reducers: CR
+  reducers: ValidateSliceCaseReducers<State, CR>
 
   /**
    * A mapping from action types to action-type-specific *case reducer*
@@ -84,98 +92,109 @@ export interface CreateSliceOptions<
     | ((builder: ActionReducerMapBuilder<NoInfer<State>>) => void)
 }
 
-type PayloadActions<Types extends keyof any = string> = Record<
-  Types,
-  PayloadAction
->
-
-type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
+/**
+ * A CaseReducer with a `prepare` method.
+ *
+ * @public
+ */
+export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
   reducer: CaseReducer<State, Action>
   prepare: PrepareAction<Action['payload']>
 }
 
-type SliceCaseReducerDefinitions<State, PA extends PayloadActions> = {
-  [ActionType in keyof PA]:
-    | CaseReducer<State, PA[ActionType]>
-    | CaseReducerWithPrepare<State, PA[ActionType]>
+/**
+ * The type describing a slice's `reducers` option.
+ *
+ * @public
+ */
+export type SliceCaseReducers<State> = {
+  [K: string]:
+    | CaseReducer<State, PayloadAction<any>>
+    | CaseReducerWithPrepare<State, PayloadAction<any>>
 }
 
-type IfIsReducerFunctionWithoutAction<R, True, False = never> = R extends (
-  state: any
-) => any
-  ? True
-  : False
-type IfIsCaseReducerWithPrepare<R, True, False = never> = R extends {
-  prepare: Function
+/**
+ * Derives the slice's `actions` property from the `reducers` options
+ *
+ * @public
+ */
+export type CaseReducerActions<CaseReducers extends SliceCaseReducers<any>> = {
+  [Type in keyof CaseReducers]: CaseReducers[Type] extends { prepare: any }
+    ? ActionCreatorForCaseReducerWithPrepare<CaseReducers[Type]>
+    : ActionCreatorForCaseReducer<CaseReducers[Type]>
 }
-  ? True
-  : False
 
-type PayloadForReducer<R> = R extends (
+/**
+ * Get a `PayloadActionCreator` type for a passed `CaseReducerWithPrepare`
+ *
+ * @internal
+ */
+type ActionCreatorForCaseReducerWithPrepare<
+  CR extends { prepare: any }
+> = _ActionCreatorWithPreparedPayload<CR['prepare'], string>
+
+/**
+ * Get a `PayloadActionCreator` type for a passed `CaseReducer`
+ *
+ * @internal
+ */
+type ActionCreatorForCaseReducer<CR> = CR extends (
   state: any,
-  action: PayloadAction<infer P>
+  action: infer Action
 ) => any
-  ? P
-  : void
-type PrepareActionForReducer<R> = R extends { prepare: infer Prepare }
-  ? Prepare
-  : never
+  ? Action extends { payload: infer P }
+    ? PayloadActionCreator<P>
+    : ActionCreatorWithoutPayload
+  : ActionCreatorWithoutPayload
 
-type ActionForReducer<R, S> = R extends (
-  state: S,
-  action: PayloadAction<infer P>
-) => S
-  ? PayloadAction<P>
-  : R extends {
-      reducer(state: any, action: PayloadAction<infer P>): any
-    }
-  ? PayloadAction<P>
-  : unknown
-
-type CaseReducerActions<
-  CaseReducers extends SliceCaseReducerDefinitions<any, any>
-> = {
-  [Type in keyof CaseReducers]: IfIsCaseReducerWithPrepare<
-    CaseReducers[Type],
-    _ActionCreatorWithPreparedPayload<
-      PrepareActionForReducer<CaseReducers[Type]>
-    >,
-    // else
-    IfIsReducerFunctionWithoutAction<
-      CaseReducers[Type],
-      ActionCreatorWithoutPayload,
-      // else
-      PayloadActionCreator<PayloadForReducer<CaseReducers[Type]>>
-    >
-  >
+/**
+ * Extracts the CaseReducers out of a `reducers` object, even if they are
+ * tested into a `CaseReducerWithPrepare`.
+ *
+ * @internal
+ */
+type SliceDefinedCaseReducers<CaseReducers extends SliceCaseReducers<any>> = {
+  [Type in keyof CaseReducers]: CaseReducers[Type] extends {
+    reducer: infer Reducer
+  }
+    ? Reducer
+    : CaseReducers[Type]
 }
 
-type SliceDefinedCaseReducers<
-  CaseReducers extends SliceCaseReducerDefinitions<any, any>,
-  State = any
-> = {
-  [Type in keyof CaseReducers]: CaseReducer<
-    State,
-    ActionForReducer<CaseReducers[Type], State>
-  >
-}
-
+/**
+ * Helper type. Passes T out again, but boxes it in a way that it cannot
+ * "widen" the type by accident if it is a generic that should be inferred
+ * from elsewhere.
+ *
+ * @internal
+ */
 type NoInfer<T> = [T][T extends any ? 0 : never]
 
-type SliceCaseReducersCheck<S, ACR> = {
-  [P in keyof ACR]: ACR[P] extends {
-    reducer(s: S, action?: { payload: infer O }): any
-  }
-    ? {
-        prepare(...a: never[]): { payload: O }
-      }
-    : {}
-}
-
-type RestrictCaseReducerDefinitionsToMatchReducerAndPrepare<
+/**
+ * Used on a SliceCaseReducers object.
+ * Ensures that if a CaseReducer is a `CaseReducerWithPrepare`, that
+ * the `reducer` and the `prepare` function use the same type of `payload`.
+ *
+ * Might do additional such checks in the future.
+ *
+ * This type is only ever useful if you want to write your own wrapper around
+ * `createSlice`. Please don't use it otherwise!
+ *
+ * @public
+ */
+export type ValidateSliceCaseReducers<
   S,
-  CR extends SliceCaseReducerDefinitions<S, any>
-> = { reducers: SliceCaseReducersCheck<S, NoInfer<CR>> }
+  ACR extends SliceCaseReducers<S>
+> = ACR &
+  {
+    [P in keyof ACR]: ACR[P] extends {
+      reducer(s: S, action?: { payload: infer O }): any
+    }
+      ? {
+          prepare(...a: never[]): { payload: O }
+        }
+      : {}
+  }
 
 function getType(slice: string, actionKey: string): string {
   return `${slice}/${actionKey}`
@@ -188,19 +207,12 @@ function getType(slice: string, actionKey: string): string {
  * reducers and state.
  *
  * The `reducer` argument is passed to `createReducer()`.
+ *
+ * @public
  */
 export function createSlice<
   State,
-  CaseReducers extends SliceCaseReducerDefinitions<State, any>
->(
-  options: CreateSliceOptions<State, CaseReducers> &
-    RestrictCaseReducerDefinitionsToMatchReducerAndPrepare<State, CaseReducers>
-): Slice<State, CaseReducers>
-
-// internal definition is a little less restrictive
-export function createSlice<
-  State,
-  CaseReducers extends SliceCaseReducerDefinitions<State, any>
+  CaseReducers extends SliceCaseReducers<State>
 >(
   options: CreateSliceOptions<State, CaseReducers>
 ): Slice<State, CaseReducers> {
@@ -229,11 +241,11 @@ export function createSlice<
     let caseReducer: CaseReducer<State, any>
     let prepareCallback: PrepareAction<any> | undefined
 
-    if (typeof maybeReducerWithPrepare === 'function') {
-      caseReducer = maybeReducerWithPrepare
-    } else {
+    if ('reducer' in maybeReducerWithPrepare) {
       caseReducer = maybeReducerWithPrepare.reducer
       prepareCallback = maybeReducerWithPrepare.prepare
+    } else {
+      caseReducer = maybeReducerWithPrepare
     }
 
     sliceCaseReducersByName[reducerName] = caseReducer
