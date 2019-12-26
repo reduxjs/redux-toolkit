@@ -1,5 +1,9 @@
 import { Reducer } from 'redux'
-import { getLog } from 'console-testing-library'
+import {
+  mockConsole,
+  createConsole,
+  getLog
+} from 'console-testing-library/pure'
 import { configureStore } from './configureStore'
 
 import {
@@ -7,6 +11,13 @@ import {
   findNonSerializableValue,
   isPlain
 } from './serializableStateInvariantMiddleware'
+
+// Mocking console
+let restore = () => {}
+beforeEach(() => {
+  restore = mockConsole(createConsole())
+})
+afterEach(() => restore())
 
 describe('findNonSerializableValue', () => {
   it('Should return false if no matching values are found', () => {
