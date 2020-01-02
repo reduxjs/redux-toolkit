@@ -101,7 +101,7 @@ module.exports = {
         },
         { to: 'api/configureStore', label: 'API', position: 'right' },
         {
-          href: 'https://www.github.com/reduxjs/redux-starter-kit',
+          href: 'https://github.com/reduxjs/redux-toolkit',
           label: 'GitHub',
           position: 'right'
         }
