@@ -567,7 +567,7 @@ With that done, we should be able to add a couple todos, toggle the state of som
 
 ## Optimizing Todo Filtering
 
-The `VisibleTodoList` component currently uses a function called `getVisibleTodos` to do the work of filtering the todos array for display. This is a "selector function", as described in the Redux docs page on [Computing Derived Data](https://redux.js.org/recipes/computing-derived-data). It encapsulate the process of reading values from the Redux store and extracting part or all of those values for use.
+The `VisibleTodoList` component currently uses a function called `getVisibleTodos` to do the work of filtering the todos array for display. This is a "selector function", as described in the Redux docs page on [Computing Derived Data](https://redux.js.org/recipes/computing-derived-data). It encapsulates the process of reading values from the Redux store and extracting part or all of those values for use.
 
 However, the code as currently written has a problem. If the filter is set to `SHOW_COMPLETED` or `SHOW_ACTIVE`, it will _always_ return a new array _every_ time it is called. Since it's being used in a `mapState` function, that means it will return a new array reference when _any_ action is dispatched.
 
