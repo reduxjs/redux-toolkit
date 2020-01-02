@@ -1214,7 +1214,7 @@ And with that, we're done! The entire Github Issues app should now be fetching i
 
 There's more that could be done to add more type safety if we wanted (like trying to constrain which possible action types can be passed to `dispatch`), but this gives us a reasonable "80% solution" without too much extra effort.
 
-Hopefully you now have a solid understand of how Redux Toolkit looks in a real world application.
+Hopefully you now have a solid understanding of how Redux Toolkit looks in a real world application.
 
 Let's wrap this up with one more look at the complete source code and the running app:
 
