@@ -1,3 +1,5 @@
+import { Middleware } from 'redux'
+
 /**
  * return True if T is `any`, otherwise return False
  * taken from https://github.com/joonhocho/tsdef
@@ -60,3 +62,33 @@ export type IsUnknownOrNonInferrable<T, True, False> = AtLeastTS35<
   IsUnknown<T, True, False>,
   IsEmptyObj<T, True, IsUnknown<T, True, False>>
 >
+
+export type DispatchForMiddlewares<M> = M extends ReadonlyArray<any>
+  ? UnionToIntersection<
+      M[number] extends infer MiddlewareValues
+        ? MiddlewareValues extends Middleware<infer DispatchExt, any, any>
+          ? DispatchExt extends Function
+            ? DispatchExt
+            : never
+          : never
+        : never
+    >
+  : never
+
+/**
+ * Helper-type: prepends item `A` to tuple `B`. If `A` is `never`, just returns `B`.
+ */
+export type Unshift<A extends any, B extends any[]> = [A] extends [never]
+  ? B
+  : ((a: A, ...b: B) => any) extends (...x: infer Args) => any
+  ? Args
+  : never
+
+/**
+ * Convert a Union type `(A|B)` to and intersecion type `(A&B)`
+ */
+type UnionToIntersection<U> = (U extends any
+  ? (k: U) => void
+  : never) extends ((k: infer I) => void)
+  ? I
+  : never

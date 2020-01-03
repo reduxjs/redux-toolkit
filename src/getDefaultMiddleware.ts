@@ -1,5 +1,5 @@
-import { Middleware } from 'redux'
-import thunkMiddleware from 'redux-thunk'
+import { Middleware, AnyAction } from 'redux'
+import thunkMiddleware, { ThunkMiddleware } from 'redux-thunk'
 /* START_REMOVE_UMD */
 import createImmutableStateInvariantMiddleware from 'redux-immutable-state-invariant'
 /* STOP_REMOVE_UMD */
@@ -8,6 +8,7 @@ import {
   createSerializableStateInvariantMiddleware,
   SerializableStateInvariantMiddlewareOptions
 } from './serializableStateInvariantMiddleware'
+import { Unshift } from './tsHelpers'
 
 function isBoolean(x: any): x is boolean {
   return typeof x === 'boolean'
@@ -28,6 +29,24 @@ interface GetDefaultMiddlewareOptions {
   serializableCheck?: boolean | SerializableStateInvariantMiddlewareOptions
 }
 
+export type DefaultMiddlewareResult<
+  S,
+  O extends GetDefaultMiddlewareOptions
+> = Unshift<
+  O extends { thunk: false }
+    ? never
+    : O extends { thunk: { extraArgument: infer E } }
+    ? ThunkMiddleware<S, AnyAction, E>
+    : ThunkMiddleware<S>,
+  Unshift<
+    O extends { immutableCheck: false } ? never : Middleware<{}, S>,
+    Unshift<
+      O extends { serializableCheck: false } ? never : Middleware<{}, S>,
+      []
+    >
+  >
+>
+
 /**
  * Returns any array containing the default middleware installed by
  * `configureStore()`. Useful if you want to configure your store with a custom
@@ -37,9 +56,17 @@ interface GetDefaultMiddlewareOptions {
  *
  * @public
  */
-export function getDefaultMiddleware<S = any>(
-  options: GetDefaultMiddlewareOptions = {}
-): Middleware<{}, S>[] {
+export function getDefaultMiddleware<
+  S = any,
+  O extends Partial<GetDefaultMiddlewareOptions> = {
+    thunk: true
+    immutableCheck: true
+    serializableCheck: true
+  }
+>(
+  options: O = {} as O
+): //[ThunkMiddleware<S>] {
+DefaultMiddlewareResult<S, O> {
   const {
     thunk = true,
     immutableCheck = true,
@@ -90,5 +117,5 @@ export function getDefaultMiddleware<S = any>(
     }
   }
 
-  return middlewareArray
+  return middlewareArray as any
 }
