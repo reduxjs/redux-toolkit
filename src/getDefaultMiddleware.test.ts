@@ -1,4 +1,4 @@
-import { createStore, applyMiddleware, AnyAction } from 'redux'
+import { AnyAction } from 'redux'
 import { getDefaultMiddleware } from './getDefaultMiddleware'
 import { configureStore } from './configureStore'
 import thunk, { ThunkAction } from 'redux-thunk'

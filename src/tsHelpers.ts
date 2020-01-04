@@ -76,15 +76,6 @@ export type DispatchForMiddlewares<M> = M extends ReadonlyArray<any>
   : never
 
 /**
- * Helper-type: prepends item `A` to tuple `B`. If `A` is `never`, just returns `B`.
- */
-export type Unshift<A extends any, B extends any[]> = [A] extends [never]
-  ? B
-  : ((a: A, ...b: B) => any) extends (...x: infer Args) => any
-  ? Args
-  : never
-
-/**
  * Convert a Union type `(A|B)` to and intersecion type `(A&B)`
  */
 type UnionToIntersection<U> = (U extends any

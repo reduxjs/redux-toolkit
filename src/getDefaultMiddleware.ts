@@ -8,7 +8,6 @@ import {
   createSerializableStateInvariantMiddleware,
   SerializableStateInvariantMiddlewareOptions
 } from './serializableStateInvariantMiddleware'
-import { Unshift } from './tsHelpers'
 
 function isBoolean(x: any): x is boolean {
   return typeof x === 'boolean'
@@ -29,23 +28,13 @@ interface GetDefaultMiddlewareOptions {
   serializableCheck?: boolean | SerializableStateInvariantMiddlewareOptions
 }
 
-export type DefaultMiddlewareResult<
-  S,
-  O extends GetDefaultMiddlewareOptions
-> = Unshift<
-  O extends { thunk: false }
-    ? never
-    : O extends { thunk: { extraArgument: infer E } }
-    ? ThunkMiddleware<S, AnyAction, E>
-    : ThunkMiddleware<S>,
-  Unshift<
-    O extends { immutableCheck: false } ? never : Middleware<{}, S>,
-    Unshift<
-      O extends { serializableCheck: false } ? never : Middleware<{}, S>,
-      []
-    >
-  >
->
+type ThunkMiddlewareFor<S, O extends GetDefaultMiddlewareOptions> = O extends {
+  thunk: false
+}
+  ? never
+  : O extends { thunk: { extraArgument: infer E } }
+  ? ThunkMiddleware<S, AnyAction, E>
+  : ThunkMiddleware<S>
 
 /**
  * Returns any array containing the default middleware installed by
@@ -63,10 +52,7 @@ export function getDefaultMiddleware<
     immutableCheck: true
     serializableCheck: true
   }
->(
-  options: O = {} as O
-): //[ThunkMiddleware<S>] {
-DefaultMiddlewareResult<S, O> {
+>(options: O = {} as O): Array<Middleware<{}, S> | ThunkMiddlewareFor<S, O>> {
   const {
     thunk = true,
     immutableCheck = true,
