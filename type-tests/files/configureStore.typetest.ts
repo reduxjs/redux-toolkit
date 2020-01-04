@@ -166,21 +166,22 @@ import thunk, { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
  * Test: Dispatch typings
  */
 {
-  type StoreA = number
-  type StoreB = string
-
+  type StateA = number
+  const reducerA = () => 0
   function thunkA() {
-    return ((() => {}) as any) as ThunkAction<Promise<'A'>, StoreA, any, any>
+    return ((() => {}) as any) as ThunkAction<Promise<'A'>, StateA, any, any>
   }
+
+  type StateB = string
   function thunkB() {
-    return (dispatch: Dispatch, getState: () => StoreB) => {}
+    return (dispatch: Dispatch, getState: () => StateB) => {}
   }
   /**
    * Test: by default, dispatching Thunks is possible
    */
   {
     const store = configureStore({
-      reducer: () => 0
+      reducer: reducerA
     })
 
     store.dispatch(thunkA())
@@ -192,7 +193,7 @@ import thunk, { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
    */
   {
     const store = configureStore({
-      reducer: () => 0,
+      reducer: reducerA,
       middleware: []
     })
     // typings:expect-error
@@ -205,8 +206,8 @@ import thunk, { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
    */
   {
     const store = configureStore({
-      reducer: () => 0,
-      middleware: [thunk] as [ThunkMiddleware<number>]
+      reducer: reducerA,
+      middleware: [thunk] as [ThunkMiddleware<StateA>]
     })
     store.dispatch(thunkA())
     // typings:expect-error
@@ -217,8 +218,8 @@ import thunk, { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
    */
   {
     const store = configureStore({
-      reducer: () => 0,
-      middleware: getDefaultMiddleware<number>()
+      reducer: reducerA,
+      middleware: getDefaultMiddleware<StateA>()
     })
 
     store.dispatch(thunkA())
@@ -230,8 +231,8 @@ import thunk, { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
    */
   {
     const store = configureStore({
-      reducer: () => 0,
-      middleware: ([] as any) as [Middleware<(a: number) => boolean, number>]
+      reducer: reducerA,
+      middleware: ([] as any) as [Middleware<(a: StateA) => boolean, StateA>]
     })
     const result: boolean = store.dispatch(5)
     // typings:expect-error
@@ -242,11 +243,11 @@ import thunk, { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
    */
   {
     const store = configureStore({
-      reducer: () => 0,
+      reducer: reducerA,
       middleware: ([] as any) as [
-        Middleware<(a: 'a') => 'A', number>,
-        Middleware<(b: 'b') => 'B', number>,
-        ThunkMiddleware<number>
+        Middleware<(a: 'a') => 'A', StateA>,
+        Middleware<(b: 'b') => 'B', StateA>,
+        ThunkMiddleware<StateA>
       ]
     })
     const result: 'A' = store.dispatch('a')
@@ -259,10 +260,10 @@ import thunk, { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
    */
   {
     const store = configureStore({
-      reducer: () => 0,
+      reducer: reducerA,
       middleware: [
-        ((() => {}) as any) as Middleware<(a: 'a') => 'A', number>,
-        ...getDefaultMiddleware<number>()
+        ((() => {}) as any) as Middleware<(a: 'a') => 'A', StateA>,
+        ...getDefaultMiddleware<StateA>()
       ] as const
     })
     const result1: 'A' = store.dispatch('a')
