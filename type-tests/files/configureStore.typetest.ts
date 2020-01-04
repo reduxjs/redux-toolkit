@@ -254,20 +254,4 @@ import thunk, { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
     const result2: 'B' = store.dispatch('b')
     const result3: Promise<'A'> = store.dispatch(thunkA())
   }
-  // skip-3.3 ("as const" not available)
-  /**
-   * Test: custom middleware and getDefaultMiddleware
-   */
-  {
-    const store = configureStore({
-      reducer: reducerA,
-      middleware: [
-        ((() => {}) as any) as Middleware<(a: 'a') => 'A', StateA>,
-        ...getDefaultMiddleware<StateA>()
-      ] as const
-    })
-    const result1: 'A' = store.dispatch('a')
-    const result2: Promise<'A'> = store.dispatch(thunkA())
-  }
-  // end-skip-3.3
 }
