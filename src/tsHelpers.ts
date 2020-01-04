@@ -63,6 +63,10 @@ export type IsUnknownOrNonInferrable<T, True, False> = AtLeastTS35<
   IsEmptyObj<T, True, IsUnknown<T, True, False>>
 >
 
+/**
+ * Combines all dispatch signatures of all middlewares in the array `M` into
+ * one intersected dispatch signature.
+ */
 export type DispatchForMiddlewares<M> = M extends ReadonlyArray<any>
   ? UnionToIntersection<
       M[number] extends infer MiddlewareValues
