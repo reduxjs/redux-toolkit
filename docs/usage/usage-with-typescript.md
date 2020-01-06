@@ -15,7 +15,7 @@ This page is intended to give an overview of all common usecases and the most pr
 
 ## Using `configureStore` with TypeScript
 
-Using [configureStore](../api/configureStore.ms) should not need any additional typings. You might, however, want to extract the `RootState` type and the `Dispatch` type.
+Using [configureStore](../api/configureStore) should not need any additional typings. You might, however, want to extract the `RootState` type and the `Dispatch` type.
 
 ### Getting the `State` type
 
