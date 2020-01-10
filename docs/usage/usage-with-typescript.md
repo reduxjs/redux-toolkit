@@ -42,23 +42,39 @@ const store = configureStore({
 export type AppDispatch = typeof store.dispatch
 ```
 
-### Extending the `Dispatch` type
+### Correct typings for the `Dispatch` type
 
-By default, this `AppDispatch` type will account only for the already included `redux-thunk` middleware. If you're adding additional middlewares that provide different return types for some actions, you can overload that `AppDispatch` type. While you can just extend the `AppDispatch` type, it's recommended to do so by adding additional type overloads for `dispatch` on the store, to keep everything more consistent:
+The type of the `dispatch` function type will be directly inferred from the `middleware` option. So if you add _correctly types_ middlewares, `dispatch` should already be correctly typed.
 
-```typescript
-const _store = configureStore({
-  /* ... */
+There might however be cases, where TypeScript decides to simplify your provided middleware array down to just `Array<Middleware>`. In that case, you have to either specify the array type manually as a tuple, or in TS versions >= 3.4, just add `as const` to your definition.
+
+Please note that when calling `getDefaultMiddleware` in TypeScript, you have to provide the state type to it.
+
+```ts
+import { configureStore } from '@reduxjs/toolkit'
+import additionalMiddleware from 'additional-middleware'
+// @ts-ignore
+import untypedMiddleware from 'untyped-middleware'
+import rootReducer from './rootReducer'
+
+type RootState = ReturnType<typeof rootReducer>
+const store = configureStore({
+  reducer: rootReducer,
+  middleware: [
+    // getDefaultMiddleware needs to be called with the state type
+    ...getDefaultMiddleware<RootState>(),
+    // correctly typed middlewares can just be used
+    additionalMiddleware,
+    // you can also manually type middlewares manually
+    untypedMiddleware as Middleware<
+      (action: Action<'specialAction'>) => number,
+      RootState
+    >
+  ] as const // prevent this from becoming just `Array<Middleware>`
 })
-
-type EnhancedStoreType = {
-  dispatch(action: MyCustomActionType): MyCustomReturnType
-  dispatch(action: MyCustomActionType2): MyCustomReturnType2
-} & typeof _store
-
-export const store: EnhancedStoreType = _store
-export type AppDispatch = typeof store.dispatch
 ```
+
+If you need any additional reference or examples, [the type tests for `configureStore`](https://github.com/reduxjs/redux-toolkit/blob/master/type-tests/files/configureStore.typetest.ts) contain many different scenarios on how to type this.
 
 ### Using the extracted `Dispatch` type with React-Redux
 

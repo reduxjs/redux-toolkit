@@ -26,8 +26,8 @@ import { ThunkAction } from 'redux-thunk'
       middleware: [
         ((() => {}) as any) as Middleware<(a: 'a') => 'A', StateA>,
         ...getDefaultMiddleware<StateA>()
-      ]
-    } as const)
+      ] as const
+    })
     const result1: 'A' = store.dispatch('a')
     const result2: Promise<'A'> = store.dispatch(thunkA())
     // typings:expect-error
