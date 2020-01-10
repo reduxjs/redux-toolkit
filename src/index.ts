@@ -1,6 +1,7 @@
 export * from 'redux'
-export { default as createNextState } from 'immer'
+export { default as createNextState, Draft } from 'immer'
 export { createSelector } from 'reselect'
+export { ThunkAction } from 'redux-thunk'
 
 export {
   // js
