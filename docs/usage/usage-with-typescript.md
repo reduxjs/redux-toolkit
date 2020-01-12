@@ -165,8 +165,7 @@ const slice = createSlice({
   name: 'test',
   initialState: 0,
   reducers: {
-    increment: (state, action: PayloadAction<number>) =>
-      state + action.payload
+    increment: (state, action: PayloadAction<number>) => state + action.payload
   }
 })
 // now available:
