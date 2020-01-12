@@ -121,18 +121,16 @@ createReducer(0, {
 Unfortunately, as the keys are only strings, using that API TypeScript can neither infer nor validate the action types for you:
 
 ```typescript
-{
-  const increment = createAction<number, 'increment'>('increment')
-  const decrement = createAction<number, 'decrement'>('decrement')
-  createReducer(0, {
-    [increment.type]: (state, action) => {
-      // action is any here
-    },
-    [decrement.type]: (state, action: PayloadAction<string>) => {
-      // even though action should actually be PayloadAction<number>, TypeScript can't detect that and won't give a warning here.
-    }
-  })
-}
+const increment = createAction<number, 'increment'>('increment')
+const decrement = createAction<number, 'decrement'>('decrement')
+createReducer(0, {
+  [increment.type]: (state, action) => {
+    // action is any here
+  },
+  [decrement.type]: (state, action: PayloadAction<string>) => {
+    // even though action should actually be PayloadAction<number>, TypeScript can't detect that and won't give a warning here.
+  }
+})
 ```
 
 As an alternative, RTK includes a type-safe reducer builder API.
@@ -163,20 +161,18 @@ As `createSlice` creates your actions as well as your reducer for you, you don't
 Action types can just be provided inline:
 
 ```typescript
-{
-  const slice = createSlice({
-    name: 'test',
-    initialState: 0,
-    reducers: {
-      increment: (state, action: PayloadAction<number>) =>
-        state + action.payload
-    }
-  })
-  // now available:
-  slice.actions.increment(2)
-  // also available:
-  slice.caseReducers.increment(0, { type: 'increment', payload: 5 })
-}
+const slice = createSlice({
+  name: 'test',
+  initialState: 0,
+  reducers: {
+    increment: (state, action: PayloadAction<number>) =>
+      state + action.payload
+  }
+})
+// now available:
+slice.actions.increment(2)
+// also available:
+slice.caseReducers.increment(0, { type: 'increment', payload: 5 })
 ```
 
 If you have too many reducers and defining them inline would be messy, you can also define them outside the `createSlice` call and type them as `CaseReducer`:
@@ -219,7 +215,7 @@ which will result in a `Slice<SliceState, ...>`.
 
 As TS cannot combine two string literals (`slice.name` and the key of `actionMap`) into a new literal, all actionCreators created by createSlice are of type 'string'. This is usually not a problem, as these types are only rarely used as literals.
 
-In most cases that type would be required as a literal, the `slice.action.myAction.match` [type predicate](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates) should prove as a viable alternative:
+In most cases that type would be required as a literal, the `slice.actions.myAction.match` [type predicate](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates) should prove as a viable alternative:
 
 ```typescript
 const slice = createSlice({
