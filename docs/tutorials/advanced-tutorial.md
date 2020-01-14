@@ -245,7 +245,7 @@ The org and repo values are simple strings, and the current issues page is just 
 
 We can define types for a couple of those pieces by themselves for reuse in the action types later, and also combine them into a larger type for the entire state we plan to track.
 
-The "current display" part requires a bit of extra work, because the type listed for the state includes a page number, but the UI won't include one when dispatches an action to switch to the issues list. So, we define a separate type for that action's contents.
+The "current display" part requires a bit of extra work, because the type listed for the state includes a page number, but the UI won't include one when it dispatches an action to switch to the issues list. So, we define a separate type for that action's contents.
 
 #### Declaring Types for Slice State and Actions
 
