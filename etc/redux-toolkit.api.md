@@ -17,6 +17,7 @@ import { Reducer } from 'redux';
 import { ReducersMapObject } from 'redux';
 import { Store } from 'redux';
 import { StoreEnhancer } from 'redux';
+import { ThunkAction } from 'redux-thunk';
 import { ThunkMiddleware } from 'redux-thunk';
 
 // @public
@@ -121,6 +122,8 @@ export interface CreateSliceOptions<State = any, CR extends SliceCaseReducers<St
     reducers: ValidateSliceCaseReducers<State, CR>;
 }
 
+export { Draft }
+
 // @public
 export interface EnhancedStore<S = any, A extends Action = AnyAction, M extends Middlewares<S> = Middlewares<S>> extends Store<S, A> {
     dispatch: DispatchForMiddlewares<M> & Dispatch<A>;
@@ -192,6 +195,8 @@ export type SliceActionCreator<P> = PayloadActionCreator<P>;
 export type SliceCaseReducers<State> = {
     [K: string]: CaseReducer<State, PayloadAction<any>> | CaseReducerWithPrepare<State, PayloadAction<any>>;
 };
+
+export { ThunkAction }
 
 // @public
 export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = ACR & {
