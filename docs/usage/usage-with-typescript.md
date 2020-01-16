@@ -44,11 +44,11 @@ export type AppDispatch = typeof store.dispatch
 
 ### Correct typings for the `Dispatch` type
 
-The type of the `dispatch` function type will be directly inferred from the `middleware` option. So if you add _correctly types_ middlewares, `dispatch` should already be correctly typed.
+The type of the `dispatch` function type will be directly inferred from the `middleware` option. So if you add _correctly typed_ middlewares, `dispatch` should already be correctly typed.
 
 There might however be cases, where TypeScript decides to simplify your provided middleware array down to just `Array<Middleware>`. In that case, you have to either specify the array type manually as a tuple, or in TS versions >= 3.4, just add `as const` to your definition.
 
-Please note that when calling `getDefaultMiddleware` in TypeScript, you have to provide the state type to it.
+Please note that when calling `getDefaultMiddleware` in TypeScript, you have to provide the state type as a generic argument.
 
 ```ts
 import { configureStore } from '@reduxjs/toolkit'
@@ -72,6 +72,8 @@ const store = configureStore({
     >
   ] as const // prevent this from becoming just `Array<Middleware>`
 })
+
+type AppDispatch = typeof store.dispatch
 ```
 
 If you need any additional reference or examples, [the type tests for `configureStore`](https://github.com/reduxjs/redux-toolkit/blob/master/type-tests/files/configureStore.typetest.ts) contain many different scenarios on how to type this.
