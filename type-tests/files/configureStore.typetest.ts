@@ -6,7 +6,8 @@ import {
   Reducer,
   Store
 } from 'redux'
-import { configureStore, PayloadAction } from '../../src'
+import { configureStore, PayloadAction, getDefaultMiddleware } from 'src'
+import thunk, { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
 
 /*
  * Test: configureStore() requires a valid reducer or reducer map.
@@ -162,20 +163,95 @@ import { configureStore, PayloadAction } from '../../src'
 }
 
 /**
- * Test: Returned store allows dispatching thunks.
+ * Test: Dispatch typings
  */
 {
-  const store = configureStore({
-    reducer: () => 0
-  })
-
-  function incrementMaybe() {
-    return (dispatch: Dispatch) => {
-      if (Math.random() > 0.5) {
-        dispatch({ type: 'increment' })
-      }
-    }
+  type StateA = number
+  const reducerA = () => 0
+  function thunkA() {
+    return ((() => {}) as any) as ThunkAction<Promise<'A'>, StateA, any, any>
   }
 
-  store.dispatch(incrementMaybe())
+  type StateB = string
+  function thunkB() {
+    return (dispatch: Dispatch, getState: () => StateB) => {}
+  }
+  /**
+   * Test: by default, dispatching Thunks is possible
+   */
+  {
+    const store = configureStore({
+      reducer: reducerA
+    })
+
+    store.dispatch(thunkA())
+    // typings:expect-error
+    store.dispatch(thunkB())
+  }
+  /**
+   * Test: removing the Thunk Middleware
+   */
+  {
+    const store = configureStore({
+      reducer: reducerA,
+      middleware: []
+    })
+    // typings:expect-error
+    store.dispatch(thunkA())
+    // typings:expect-error
+    store.dispatch(thunkB())
+  }
+  /**
+   * Test: adding the thunk middleware by hand
+   */
+  {
+    const store = configureStore({
+      reducer: reducerA,
+      middleware: [thunk] as [ThunkMiddleware<StateA>]
+    })
+    store.dispatch(thunkA())
+    // typings:expect-error
+    store.dispatch(thunkB())
+  }
+  /**
+   * Test: using getDefaultMiddleware
+   */
+  {
+    const store = configureStore({
+      reducer: reducerA,
+      middleware: getDefaultMiddleware<StateA>()
+    })
+
+    store.dispatch(thunkA())
+    // typings:expect-error
+    store.dispatch(thunkB())
+  }
+  /**
+   * Test: custom middleware
+   */
+  {
+    const store = configureStore({
+      reducer: reducerA,
+      middleware: ([] as any) as [Middleware<(a: StateA) => boolean, StateA>]
+    })
+    const result: boolean = store.dispatch(5)
+    // typings:expect-error
+    const result2: string = store.dispatch(5)
+  }
+  /**
+   * Test: multiple custom middleware
+   */
+  {
+    const store = configureStore({
+      reducer: reducerA,
+      middleware: ([] as any) as [
+        Middleware<(a: 'a') => 'A', StateA>,
+        Middleware<(b: 'b') => 'B', StateA>,
+        ThunkMiddleware<StateA>
+      ]
+    })
+    const result: 'A' = store.dispatch('a')
+    const result2: 'B' = store.dispatch('b')
+    const result3: Promise<'A'> = store.dispatch(thunkA())
+  }
 }

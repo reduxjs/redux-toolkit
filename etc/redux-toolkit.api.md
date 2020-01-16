@@ -9,6 +9,7 @@ import { AnyAction } from 'redux';
 import { default as createNextState } from 'immer';
 import { createSelector } from 'reselect';
 import { DeepPartial } from 'redux';
+import { Dispatch } from 'redux';
 import { Draft } from 'immer';
 import { EnhancerOptions } from 'redux-devtools-extension';
 import { Middleware } from 'redux';
@@ -17,7 +18,7 @@ import { ReducersMapObject } from 'redux';
 import { Store } from 'redux';
 import { StoreEnhancer } from 'redux';
 import { ThunkAction } from 'redux-thunk';
-import { ThunkDispatch } from 'redux-thunk';
+import { ThunkMiddleware } from 'redux-thunk';
 
 // @public
 export interface ActionCreatorWithNonInferrablePayload<T extends string = string> extends BaseActionCreator<unknown, T> {
@@ -80,13 +81,13 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
 export type ConfigureEnhancersCallback = (defaultEnhancers: StoreEnhancer[]) => StoreEnhancer[];
 
 // @public
-export function configureStore<S = any, A extends Action = AnyAction>(options: ConfigureStoreOptions<S, A>): EnhancedStore<S, A>;
+export function configureStore<S = any, A extends Action = AnyAction, M extends Middlewares<S> = [ThunkMiddleware<S>]>(options: ConfigureStoreOptions<S, A, M>): EnhancedStore<S, A, M>;
 
 // @public
-export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
+export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction, M extends Middlewares<S> = Middlewares<S>> {
     devTools?: boolean | EnhancerOptions;
     enhancers?: StoreEnhancer[] | ConfigureEnhancersCallback;
-    middleware?: Middleware<{}, S>[];
+    middleware?: M;
     preloadedState?: DeepPartial<S extends any ? S : S>;
     reducer: Reducer<S, A> | ReducersMapObject<S, A>;
 }
@@ -124,16 +125,19 @@ export interface CreateSliceOptions<State = any, CR extends SliceCaseReducers<St
 export { Draft }
 
 // @public
-export interface EnhancedStore<S = any, A extends Action = AnyAction> extends Store<S, A> {
-    // (undocumented)
-    dispatch: ThunkDispatch<S, any, A>;
+export interface EnhancedStore<S = any, A extends Action = AnyAction, M extends Middlewares<S> = Middlewares<S>> extends Store<S, A> {
+    dispatch: DispatchForMiddlewares<M> & Dispatch<A>;
 }
 
 // @public (undocumented)
 export function findNonSerializableValue(value: unknown, path?: ReadonlyArray<string>, isSerializable?: (value: unknown) => boolean, getEntries?: (value: unknown) => [string, any][]): NonSerializableValue | false;
 
 // @public
-export function getDefaultMiddleware<S = any>(options?: GetDefaultMiddlewareOptions): Middleware<{}, S>[];
+export function getDefaultMiddleware<S = any, O extends Partial<GetDefaultMiddlewareOptions> = {
+    thunk: true;
+    immutableCheck: true;
+    serializableCheck: true;
+}>(options?: O): Array<Middleware<{}, S> | ThunkMiddlewareFor<S, O>>;
 
 // @public
 export function getType<T extends string>(actionCreator: PayloadActionCreator<any, T>): T;

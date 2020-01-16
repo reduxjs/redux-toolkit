@@ -10,16 +10,18 @@ import {
   AnyAction,
   StoreEnhancer,
   Store,
-  DeepPartial
+  DeepPartial,
+  Dispatch
 } from 'redux'
 import {
   composeWithDevTools,
   EnhancerOptions as DevToolsOptions
 } from 'redux-devtools-extension'
-import { ThunkDispatch } from 'redux-thunk'
+import { ThunkMiddleware } from 'redux-thunk'
 
 import isPlainObject from './isPlainObject'
 import { getDefaultMiddleware } from './getDefaultMiddleware'
+import { DispatchForMiddlewares } from './tsHelpers'
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
@@ -37,7 +39,11 @@ export type ConfigureEnhancersCallback = (
  *
  * @public
  */
-export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
+export interface ConfigureStoreOptions<
+  S = any,
+  A extends Action = AnyAction,
+  M extends Middlewares<S> = Middlewares<S>
+> {
   /**
    * A single reducer function that will be used as the root reducer, or an
    * object of slice reducers that will be passed to `combineReducers()`.
@@ -48,7 +54,7 @@ export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
    * An array of Redux middleware to install. If not supplied, defaults to
    * the set of middleware returned by `getDefaultMiddleware()`.
    */
-  middleware?: Middleware<{}, S>[]
+  middleware?: M
 
   /**
    * Whether to enable Redux DevTools integration. Defaults to `true`.
@@ -82,18 +88,25 @@ export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
   enhancers?: StoreEnhancer[] | ConfigureEnhancersCallback
 }
 
+type Middlewares<S> = ReadonlyArray<Middleware<{}, S>>
+
 /**
  * A Redux store returned by `configureStore()`. Supports dispatching
  * side-effectful _thunks_ in addition to plain actions.
  *
  * @public
  */
-export interface EnhancedStore<S = any, A extends Action = AnyAction>
-  extends Store<S, A> {
+export interface EnhancedStore<
+  S = any,
+  A extends Action = AnyAction,
+  M extends Middlewares<S> = Middlewares<S>
+> extends Store<S, A> {
   /**
+   * The `dispatch` method of your store, enhanced by all it's middlewares.
+   *
    * @inheritdoc
    */
-  dispatch: ThunkDispatch<S, any, A>
+  dispatch: DispatchForMiddlewares<M> & Dispatch<A>
 }
 
 /**
@@ -104,9 +117,11 @@ export interface EnhancedStore<S = any, A extends Action = AnyAction>
  *
  * @public
  */
-export function configureStore<S = any, A extends Action = AnyAction>(
-  options: ConfigureStoreOptions<S, A>
-): EnhancedStore<S, A> {
+export function configureStore<
+  S = any,
+  A extends Action = AnyAction,
+  M extends Middlewares<S> = [ThunkMiddleware<S>]
+>(options: ConfigureStoreOptions<S, A, M>): EnhancedStore<S, A, M> {
   const {
     reducer = undefined,
     middleware = getDefaultMiddleware(),
@@ -147,7 +162,7 @@ export function configureStore<S = any, A extends Action = AnyAction>(
     storeEnhancers = enhancers(storeEnhancers)
   }
 
-  const composedEnhancer = finalCompose(...storeEnhancers) as StoreEnhancer
+  const composedEnhancer = finalCompose(...storeEnhancers) as any
 
   return createStore(
     rootReducer,

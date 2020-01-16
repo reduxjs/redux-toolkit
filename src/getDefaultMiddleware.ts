@@ -1,5 +1,5 @@
-import { Middleware } from 'redux'
-import thunkMiddleware from 'redux-thunk'
+import { Middleware, AnyAction } from 'redux'
+import thunkMiddleware, { ThunkMiddleware } from 'redux-thunk'
 /* PROD_START_REMOVE_UMD */
 import createImmutableStateInvariantMiddleware from 'redux-immutable-state-invariant'
 /* PROD_STOP_REMOVE_UMD */
@@ -28,6 +28,14 @@ interface GetDefaultMiddlewareOptions {
   serializableCheck?: boolean | SerializableStateInvariantMiddlewareOptions
 }
 
+type ThunkMiddlewareFor<S, O extends GetDefaultMiddlewareOptions> = O extends {
+  thunk: false
+}
+  ? never
+  : O extends { thunk: { extraArgument: infer E } }
+  ? ThunkMiddleware<S, AnyAction, E>
+  : ThunkMiddleware<S>
+
 /**
  * Returns any array containing the default middleware installed by
  * `configureStore()`. Useful if you want to configure your store with a custom
@@ -37,9 +45,14 @@ interface GetDefaultMiddlewareOptions {
  *
  * @public
  */
-export function getDefaultMiddleware<S = any>(
-  options: GetDefaultMiddlewareOptions = {}
-): Middleware<{}, S>[] {
+export function getDefaultMiddleware<
+  S = any,
+  O extends Partial<GetDefaultMiddlewareOptions> = {
+    thunk: true
+    immutableCheck: true
+    serializableCheck: true
+  }
+>(options: O = {} as O): Array<Middleware<{}, S> | ThunkMiddlewareFor<S, O>> {
   const {
     thunk = true,
     immutableCheck = true,
@@ -86,5 +99,5 @@ export function getDefaultMiddleware<S = any>(
     }
   }
 
-  return middlewareArray
+  return middlewareArray as any
 }
