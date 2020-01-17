@@ -329,4 +329,44 @@ describe('serializableStateInvariantMiddleware', () => {
 
     expect(numTimesCalled).toBeGreaterThan(0)
   })
+
+  it('should not check serializability for ignored slice names', () => {
+    const ACTION_TYPE = 'TEST_ACTION'
+    const SLICE_NAME = 'testSlice'
+
+    const initialState = {
+      a: 0
+    }
+
+    const badValue = new Map()
+
+    const reducer: Reducer = (state = initialState, action) => {
+      switch (action.type) {
+        case ACTION_TYPE: {
+          return {
+            a: badValue
+          }
+        }
+        default:
+          return state
+      }
+    }
+
+    const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware(
+      {
+        ignoredSlices: [SLICE_NAME]
+      }
+    )
+
+    const store = configureStore({
+      reducer: {
+        [SLICE_NAME]: reducer
+      },
+      middleware: [serializableStateInvariantMiddleware]
+    })
+
+    store.dispatch({ type: ACTION_TYPE })
+
+    expect(getLog().log).toBe('')
+  })
 })
