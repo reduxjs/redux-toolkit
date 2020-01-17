@@ -52,10 +52,12 @@ export function findNonSerializableValue(
 
   const entries = getEntries != null ? getEntries(value) : Object.entries(value)
 
+  const hasIgnoredPaths = ignoredPaths.length > 0
+
   for (const [property, nestedValue] of entries) {
     const nestedPath = path.concat(property)
 
-    if (ignoredPaths.indexOf(nestedPath.join('.')) >= 0) {
+    if (hasIgnoredPaths && ignoredPaths.indexOf(nestedPath.join('.')) >= 0) {
       continue
     }
 
