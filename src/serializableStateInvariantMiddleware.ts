@@ -35,13 +35,9 @@ export function findNonSerializableValue(
   path: ReadonlyArray<string> = [],
   isSerializable: (value: unknown) => boolean = isPlain,
   getEntries?: (value: unknown) => [string, any][],
-  ignoredSlices: string[] = []
+  ignoredPaths: string[] = []
 ): NonSerializableValue | false {
   let foundNestedSerializable: NonSerializableValue | false
-
-  if (ignoredSlices.includes(path[0])) {
-    return false
-  }
 
   if (!isSerializable(value)) {
     return {
@@ -59,6 +55,10 @@ export function findNonSerializableValue(
   for (const [property, nestedValue] of entries) {
     const nestedPath = path.concat(property)
 
+    if (ignoredPaths.indexOf(nestedPath.join('.')) >= 0) {
+      continue
+    }
+
     if (!isSerializable(nestedValue)) {
       return {
         keyPath: nestedPath.join('.'),
@@ -72,7 +72,7 @@ export function findNonSerializableValue(
         nestedPath,
         isSerializable,
         getEntries,
-        ignoredSlices
+        ignoredPaths
       )
 
       if (foundNestedSerializable) {
@@ -109,9 +109,9 @@ export interface SerializableStateInvariantMiddlewareOptions {
   ignoredActions?: string[]
 
   /**
-   * An array of slice names to ignore when  checking for serializability, Defaults to []
+   * An array of dot-separated path strings to ignore when checking for serializability, Defaults to []
    */
-  ignoredSlices?: string[]
+  ignoredPaths?: string[]
 }
 
 /**
@@ -130,7 +130,7 @@ export function createSerializableStateInvariantMiddleware(
     isSerializable = isPlain,
     getEntries,
     ignoredActions = [],
-    ignoredSlices = []
+    ignoredPaths = []
   } = options
 
   return storeAPI => next => action => {
@@ -166,7 +166,7 @@ export function createSerializableStateInvariantMiddleware(
       [],
       isSerializable,
       getEntries,
-      ignoredSlices
+      ignoredPaths
     )
 
     if (foundStateNonSerializableValue) {

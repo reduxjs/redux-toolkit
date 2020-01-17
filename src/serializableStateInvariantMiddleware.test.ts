@@ -332,7 +332,6 @@ describe('serializableStateInvariantMiddleware', () => {
 
   it('should not check serializability for ignored slice names', () => {
     const ACTION_TYPE = 'TEST_ACTION'
-    const SLICE_NAME = 'testSlice'
 
     const initialState = {
       a: 0
@@ -344,7 +343,12 @@ describe('serializableStateInvariantMiddleware', () => {
       switch (action.type) {
         case ACTION_TYPE: {
           return {
-            a: badValue
+            a: badValue,
+            b: {
+              c: badValue,
+              d: badValue
+            },
+            e: { f: badValue }
           }
         }
         default:
@@ -354,19 +358,31 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware(
       {
-        ignoredSlices: [SLICE_NAME]
+        ignoredPaths: [
+          // Test for ignoring a single value
+          'testSlice.a',
+          // Test for ignoring a single nested value
+          'testSlice.b.c',
+          // Test for ignoring an object and its children
+          'testSlice.e'
+        ]
       }
     )
 
     const store = configureStore({
       reducer: {
-        [SLICE_NAME]: reducer
+        testSlice: reducer
       },
       middleware: [serializableStateInvariantMiddleware]
     })
 
     store.dispatch({ type: ACTION_TYPE })
 
-    expect(getLog().log).toBe('')
+    // testSlice.b.d was not covered in ignoredPaths, so will still log the error
+    expect(getLog().log).toMatchInlineSnapshot(`
+      "A non-serializable value was detected in the state, in the path: \`testSlice.b.d\`. Value: Map {} 
+      Take a look at the reducer(s) handling this action type: TEST_ACTION.
+      (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)"
+    `)
   })
 })
