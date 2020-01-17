@@ -39,7 +39,7 @@ export function findNonSerializableValue(
 ): NonSerializableValue | false {
   let foundNestedSerializable: NonSerializableValue | false
 
-  if (path.length && ignoredSlices.includes(path[0])) {
+  if (ignoredSlices.includes(path[0])) {
     return false
   }
 
