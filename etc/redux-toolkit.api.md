@@ -130,7 +130,7 @@ export interface EnhancedStore<S = any, A extends Action = AnyAction, M extends 
 }
 
 // @public (undocumented)
-export function findNonSerializableValue(value: unknown, path?: ReadonlyArray<string>, isSerializable?: (value: unknown) => boolean, getEntries?: (value: unknown) => [string, any][]): NonSerializableValue | false;
+export function findNonSerializableValue(value: unknown, path?: ReadonlyArray<string>, isSerializable?: (value: unknown) => boolean, getEntries?: (value: unknown) => [string, any][], ignoredPaths?: string[]): NonSerializableValue | false;
 
 // @public
 export function getDefaultMiddleware<S = any, O extends Partial<GetDefaultMiddlewareOptions> = {
@@ -177,6 +177,7 @@ export type PrepareAction<P> = ((...args: any[]) => {
 export interface SerializableStateInvariantMiddlewareOptions {
     getEntries?: (value: any) => [string, any][];
     ignoredActions?: string[];
+    ignoredPaths?: string[];
     isSerializable?: (value: any) => boolean;
 }
 

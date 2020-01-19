@@ -34,7 +34,8 @@ export function findNonSerializableValue(
   value: unknown,
   path: ReadonlyArray<string> = [],
   isSerializable: (value: unknown) => boolean = isPlain,
-  getEntries?: (value: unknown) => [string, any][]
+  getEntries?: (value: unknown) => [string, any][],
+  ignoredPaths: string[] = []
 ): NonSerializableValue | false {
   let foundNestedSerializable: NonSerializableValue | false
 
@@ -51,8 +52,14 @@ export function findNonSerializableValue(
 
   const entries = getEntries != null ? getEntries(value) : Object.entries(value)
 
+  const hasIgnoredPaths = ignoredPaths.length > 0
+
   for (const [property, nestedValue] of entries) {
     const nestedPath = path.concat(property)
+
+    if (hasIgnoredPaths && ignoredPaths.indexOf(nestedPath.join('.')) >= 0) {
+      continue
+    }
 
     if (!isSerializable(nestedValue)) {
       return {
@@ -66,7 +73,8 @@ export function findNonSerializableValue(
         nestedValue,
         nestedPath,
         isSerializable,
-        getEntries
+        getEntries,
+        ignoredPaths
       )
 
       if (foundNestedSerializable) {
@@ -101,6 +109,11 @@ export interface SerializableStateInvariantMiddlewareOptions {
    * An array of action types to ignore when checking for serializability, Defaults to []
    */
   ignoredActions?: string[]
+
+  /**
+   * An array of dot-separated path strings to ignore when checking for serializability, Defaults to []
+   */
+  ignoredPaths?: string[]
 }
 
 /**
@@ -115,7 +128,12 @@ export interface SerializableStateInvariantMiddlewareOptions {
 export function createSerializableStateInvariantMiddleware(
   options: SerializableStateInvariantMiddlewareOptions = {}
 ): Middleware {
-  const { isSerializable = isPlain, getEntries, ignoredActions = [] } = options
+  const {
+    isSerializable = isPlain,
+    getEntries,
+    ignoredActions = [],
+    ignoredPaths = []
+  } = options
 
   return storeAPI => next => action => {
     if (ignoredActions.length && ignoredActions.indexOf(action.type) !== -1) {
@@ -149,7 +167,8 @@ export function createSerializableStateInvariantMiddleware(
       state,
       [],
       isSerializable,
-      getEntries
+      getEntries,
+      ignoredPaths
     )
 
     if (foundStateNonSerializableValue) {

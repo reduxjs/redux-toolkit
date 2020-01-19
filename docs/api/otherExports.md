@@ -15,7 +15,26 @@ Redux Toolkit exports some of its internal utilities, and re-exports additional 
 
 Creates an instance of the `serializable-state-invariant` middleware described in [`getDefaultMiddleware`](./getDefaultMiddleware.md).
 
-Accepts an options object with `isSerializable` and `getEntries` parameters. The former, `isSerializable`, will be used to determine if a value is considered serializable or not. If not provided, this defaults to `isPlain`. The latter, `getEntries`, will be used to retrieve nested values. If not provided, `Object.entries` will be used by default.
+Accepts a single configuration object parameter, with the following options:
+
+```ts
+function createSerializableStateInvariantMiddleware({
+  // The function to check if a value is considered serializable.
+  // This function is applied recursively to every value contained in the state.
+  // Defaults to `isPlain()`.
+  isSerializable?: (value: any) => boolean
+  // The function that will be used to retrieve entries from each value.
+  // If unspecified, `Object.entries` will be used.
+  // Defaults to `undefined`.
+  getEntries?: (value: any) => [string, any][]
+  // An array of action types to ignore when checking for serializability.
+  // Defaults to []
+  ignoredActions?: string[]
+  // An array of dot-separated path strings to ignore when checking for serializability.
+  // Defaults to []
+  ignoredPaths?: string[]
+})
+```
 
 Example:
 
