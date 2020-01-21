@@ -28,7 +28,7 @@ const rootReducer = combineReducers({})
 export type RootState = ReturnType<typeof rootReducer>
 ```
 
-If you pass the reducers directly to `configureStore()` you can get the `State` type from the store instead.
+If you pass the reducers directly to `configureStore()`, you can get the `State` type from the store instead.
 
 ```typescript
 import { configureStore } from '@reduxjs/toolkit'
