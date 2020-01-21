@@ -28,6 +28,17 @@ const rootReducer = combineReducers({})
 export type RootState = ReturnType<typeof rootReducer>
 ```
 
+If you pass the reducers directly to `configureStore()` you can get the `State` type from the store instead.
+
+```typescript
+import { configureStore } from '@reduxjs/toolkit'
+import rootReducer from './rootReducer'
+const store = configureStore({
+  reducer: rootReducer
+})
+export type RootState = ReturnType<typeof store.getState>
+```
+
 ### Getting the `Dispatch` type
 
 If you want to get the `Dispatch` type from your store, you can extract it after creating the store.  
