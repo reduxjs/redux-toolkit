@@ -59,7 +59,7 @@ provide runtime checks for two common issues:
   state values for mutations. It can detect mutations in reducers during a dispatch, and also mutations that occur between
   dispatches (such as in a component or a selector). When a mutation is detected, it will throw an error and indicate the key
   path for where the mutated value was detected in the state tree.
-- `serializable-state-invariant-middleware`: a custom middleware created specifically for use in Redux Toolkit. Similar in
+- [`serializable-state-invariant-middleware`](./otherExports.md): a custom middleware created specifically for use in Redux Toolkit. Similar in
   concept to `redux-immutable-state-invariant`, but deeply checks your state tree and your actions for non-serializable values
   such as functions, Promises, Symbols, and other non-plain-JS-data values. When a non-serializable value is detected, a
   console error will be printed with the key path for where the non-serializable value was detected.
@@ -130,6 +130,11 @@ interface SerializableStateInvariantMiddlewareOptions {
    * An array of action types to ignore when checking for serializability, Defaults to []
    */
   ignoredActions?: string[]
+
+  /**
+   * An array of dot-separated path strings to ignore when checking for serializability, Defaults to []
+   */
+  ignoredPaths?: string[]
 }
 
 interface GetDefaultMiddlewareOptions {
