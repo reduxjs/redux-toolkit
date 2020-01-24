@@ -541,7 +541,7 @@ Before we go any further, let's add a type declaration we can reuse instead.
 
 export type AppDispatch = typeof store.dispatch
 
-+export type AppThunk = ThunkAction<void, RootState, null, Action<string>>
++export type AppThunk = ThunkAction<void, RootState, unknown, Action<string>>
 ```
 
 The `AppThunk` type declares that the "action" that we're using is specifically a thunk function. The thunk is customized with some additional type parameters:
