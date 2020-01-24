@@ -17,10 +17,12 @@ import {
   composeWithDevTools,
   EnhancerOptions as DevToolsOptions
 } from 'redux-devtools-extension'
-import { ThunkMiddleware } from 'redux-thunk'
 
 import isPlainObject from './isPlainObject'
-import { getDefaultMiddleware } from './getDefaultMiddleware'
+import {
+  getDefaultMiddleware,
+  ThunkMiddlewareFor
+} from './getDefaultMiddleware'
 import { DispatchForMiddlewares } from './tsHelpers'
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
@@ -120,7 +122,7 @@ export interface EnhancedStore<
 export function configureStore<
   S = any,
   A extends Action = AnyAction,
-  M extends Middlewares<S> = [ThunkMiddleware<S>]
+  M extends Middlewares<S> = [ThunkMiddlewareFor<S>]
 >(options: ConfigureStoreOptions<S, A, M>): EnhancedStore<S, A, M> {
   const {
     reducer = undefined,
