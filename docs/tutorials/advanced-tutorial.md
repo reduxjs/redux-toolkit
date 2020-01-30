@@ -261,9 +261,9 @@ The main type you will use when declaring action types in reducers is **`Payload
 Let's look at a specific reducer as an example:
 
 ```ts
-    setCurrentPage(state, action: PayloadAction<number>) {
-      state.page = action.payload
-    },
+setCurrentPage(state, action: PayloadAction<number>) {
+    state.page = action.payload
+},
 ```
 
 We don't have to declare a type for `state`, because `createSlice` already knows that this should be the same type as our `initialState`: the `CurrentDisplayState` type.
