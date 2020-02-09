@@ -37,10 +37,9 @@ export type ThunkMiddlewareFor<
   ? never
   : O extends { thunk: { extraArgument: infer E } }
   ? ThunkMiddleware<S, AnyAction, E>
-    /*
-     * The ThunkMiddleware with a `null` ExtraArgument is here to provide backwards-compatibility.
-     */
-  : ThunkMiddleware<S, AnyAction, null> | ThunkMiddleware<S, AnyAction>
+  :
+      | ThunkMiddleware<S, AnyAction, null> //The ThunkMiddleware with a `null` ExtraArgument is here to provide backwards-compatibility.
+      | ThunkMiddleware<S, AnyAction>
 
 /**
  * Returns any array containing the default middleware installed by
