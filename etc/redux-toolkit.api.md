@@ -81,7 +81,7 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
 export type ConfigureEnhancersCallback = (defaultEnhancers: StoreEnhancer[]) => StoreEnhancer[];
 
 // @public
-export function configureStore<S = any, A extends Action = AnyAction, M extends Middlewares<S> = [ThunkMiddleware<S>]>(options: ConfigureStoreOptions<S, A, M>): EnhancedStore<S, A, M>;
+export function configureStore<S = any, A extends Action = AnyAction, M extends Middlewares<S> = [ThunkMiddlewareFor<S>]>(options: ConfigureStoreOptions<S, A, M>): EnhancedStore<S, A, M>;
 
 // @public
 export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction, M extends Middlewares<S> = Middlewares<S>> {

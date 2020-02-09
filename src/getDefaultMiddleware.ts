@@ -28,13 +28,18 @@ interface GetDefaultMiddlewareOptions {
   serializableCheck?: boolean | SerializableStateInvariantMiddlewareOptions
 }
 
-type ThunkMiddlewareFor<S, O extends GetDefaultMiddlewareOptions> = O extends {
+export type ThunkMiddlewareFor<
+  S,
+  O extends GetDefaultMiddlewareOptions = {}
+> = O extends {
   thunk: false
 }
   ? never
   : O extends { thunk: { extraArgument: infer E } }
   ? ThunkMiddleware<S, AnyAction, E>
-  : ThunkMiddleware<S>
+  :
+      | ThunkMiddleware<S, AnyAction, null> //The ThunkMiddleware with a `null` ExtraArgument is here to provide backwards-compatibility.
+      | ThunkMiddleware<S, AnyAction>
 
 /**
  * Returns any array containing the default middleware installed by

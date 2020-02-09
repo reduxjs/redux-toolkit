@@ -254,4 +254,20 @@ import thunk, { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
     const result2: 'B' = store.dispatch('b')
     const result3: Promise<'A'> = store.dispatch(thunkA())
   }
+  /**
+   * Accepts thunk with `unknown`, `undefined` or `null` ThunkAction extraArgument per default
+   */
+  {
+    const store = configureStore({ reducer: {} })
+    // undefined is the default value for the ThunkMiddleware extraArgument
+    store.dispatch(function() {} as ThunkAction<void, {}, undefined, AnyAction>)
+    // null was previously documented in the redux docs
+    store.dispatch(function() {} as ThunkAction<void, {}, null, AnyAction>)
+    // unknown is the best way to type a ThunkAction if you do not care
+    // about the value of the extraArgument, as it will always work with every
+    // ThunkMiddleware, no matter the actual extraArgument type
+    store.dispatch(function() {} as ThunkAction<void, {}, unknown, AnyAction>)
+    // typings:expect-error
+    store.dispatch(function() {} as ThunkAction<void, {}, boolean, AnyAction>)
+  }
 }
