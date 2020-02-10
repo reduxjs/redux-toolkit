@@ -6,7 +6,7 @@ import {
   Predicate,
   EntityMap
 } from './models'
-import { createStateOperator, DidMutate } from './state_adapter'
+import { createStateOperator } from './state_adapter'
 import { selectIdValue } from './utils'
 
 export function createUnsortedStateAdapter<T>(
@@ -15,67 +15,66 @@ export function createUnsortedStateAdapter<T>(
 export function createUnsortedStateAdapter<T>(selectId: IdSelector<T>): any {
   type R = EntityState<T>
 
-  function addOneMutably(entity: T, state: R): DidMutate
-  function addOneMutably(entity: any, state: any): DidMutate {
+  function addOneMutably(entity: T, state: R): void
+  function addOneMutably(entity: any, state: any): void {
     const key = selectIdValue(entity, selectId)
 
     if (key in state.entities) {
-      return DidMutate.None
+      return
     }
 
     state.ids.push(key)
     state.entities[key] = entity
-
-    return DidMutate.Both
   }
 
-  function addManyMutably(entities: T[], state: R): DidMutate
-  function addManyMutably(entities: any[], state: any): DidMutate {
-    let didMutate = false
-
+  function addManyMutably(entities: T[], state: R): void
+  function addManyMutably(entities: any[], state: any): void {
     for (const entity of entities) {
-      didMutate = addOneMutably(entity, state) !== DidMutate.None || didMutate
+      addOneMutably(entity, state)
     }
-
-    return didMutate ? DidMutate.Both : DidMutate.None
   }
 
-  function setAllMutably(entities: T[], state: R): DidMutate
-  function setAllMutably(entities: any[], state: any): DidMutate {
+  function setAllMutably(entities: T[], state: R): void
+  function setAllMutably(entities: any[], state: any): void {
     state.ids = []
     state.entities = {}
 
     addManyMutably(entities, state)
-
-    return DidMutate.Both
   }
 
-  function removeOneMutably(key: T, state: R): DidMutate
-  function removeOneMutably(key: any, state: any): DidMutate {
+  function removeOneMutably(key: T, state: R): void
+  function removeOneMutably(key: any, state: any): void {
     return removeManyMutably([key], state)
   }
 
-  function removeManyMutably(keys: T[], state: R): DidMutate
-  function removeManyMutably(predicate: Predicate<T>, state: R): DidMutate
+  function removeManyMutably(keys: T[], state: R): void
+  function removeManyMutably(predicate: Predicate<T>, state: R): void
   function removeManyMutably(
     keysOrPredicate: any[] | Predicate<T>,
     state: any
-  ): DidMutate {
-    const keys =
-      keysOrPredicate instanceof Array
-        ? keysOrPredicate
-        : state.ids.filter((key: any) => keysOrPredicate(state.entities[key]))
+  ): void {
+    let keysToRemove: any[] = []
 
-    const didMutate =
-      keys
-        .filter((key: any) => key in state.entities)
-        .map((key: any) => delete state.entities[key]).length > 0
+    if (keysOrPredicate instanceof Array) {
+      keysToRemove = keysOrPredicate
+    } else {
+      keysToRemove = state.ids.filter((key: any) =>
+        keysOrPredicate(state.entities[key])
+      )
+    }
+
+    let didMutate = false
+
+    keysToRemove.forEach(key => {
+      if (key in state.entities) {
+        delete state.entities[key]
+        didMutate = true
+      }
+    })
 
     if (didMutate) {
       state.ids = state.ids.filter((id: any) => id in state.entities)
     }
-
-    return didMutate ? DidMutate.Both : DidMutate.None
   }
 
   function removeAll<S extends R>(state: S): S
@@ -111,13 +110,13 @@ export function createUnsortedStateAdapter<T>(selectId: IdSelector<T>): any {
     return hasNewKey
   }
 
-  function updateOneMutably(update: Update<T>, state: R): DidMutate
-  function updateOneMutably(update: any, state: any): DidMutate {
+  function updateOneMutably(update: Update<T>, state: R): void
+  function updateOneMutably(update: any, state: any): void {
     return updateManyMutably([update], state)
   }
 
-  function updateManyMutably(updates: Update<T>[], state: R): DidMutate
-  function updateManyMutably(updates: any[], state: any): DidMutate {
+  function updateManyMutably(updates: Update<T>[], state: R): void
+  function updateManyMutably(updates: any[], state: any): void {
     const newKeys: { [id: string]: string } = {}
 
     updates = updates.filter(update => update.id in state.entities)
@@ -130,17 +129,12 @@ export function createUnsortedStateAdapter<T>(selectId: IdSelector<T>): any {
 
       if (didMutateIds) {
         state.ids = state.ids.map((id: any) => newKeys[id] || id)
-        return DidMutate.Both
-      } else {
-        return DidMutate.EntitiesOnly
       }
     }
-
-    return DidMutate.None
   }
 
-  function mapMutably(map: EntityMap<T>, state: R): DidMutate
-  function mapMutably(map: any, state: any): DidMutate {
+  function mapMutably(map: EntityMap<T>, state: R): void
+  function mapMutably(map: any, state: any): void {
     const changes: Update<T>[] = state.ids.reduce(
       (changes: any[], id: string | number) => {
         const change = map(state.entities[id])
@@ -156,13 +150,13 @@ export function createUnsortedStateAdapter<T>(selectId: IdSelector<T>): any {
     return updateManyMutably(updates, state)
   }
 
-  function upsertOneMutably(entity: T, state: R): DidMutate
-  function upsertOneMutably(entity: any, state: any): DidMutate {
+  function upsertOneMutably(entity: T, state: R): void
+  function upsertOneMutably(entity: any, state: any): void {
     return upsertManyMutably([entity], state)
   }
 
-  function upsertManyMutably(entities: T[], state: R): DidMutate
-  function upsertManyMutably(entities: any[], state: any): DidMutate {
+  function upsertManyMutably(entities: T[], state: R): void
+  function upsertManyMutably(entities: any[], state: any): void {
     const added: any[] = []
     const updated: any[] = []
 
@@ -175,19 +169,8 @@ export function createUnsortedStateAdapter<T>(selectId: IdSelector<T>): any {
       }
     }
 
-    const didMutateByUpdated = updateManyMutably(updated, state)
-    const didMutateByAdded = addManyMutably(added, state)
-
-    switch (true) {
-      case didMutateByAdded === DidMutate.None &&
-        didMutateByUpdated === DidMutate.None:
-        return DidMutate.None
-      case didMutateByAdded === DidMutate.Both ||
-        didMutateByUpdated === DidMutate.Both:
-        return DidMutate.Both
-      default:
-        return DidMutate.EntitiesOnly
-    }
+    updateManyMutably(updated, state)
+    addManyMutably(added, state)
   }
 
   return {
