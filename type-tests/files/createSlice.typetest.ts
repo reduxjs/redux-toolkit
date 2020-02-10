@@ -175,6 +175,65 @@ function expectType<T>(t: T) {
   expectType<string>(counter.actions.concatMetaStrLen('test').meta)
 }
 
+/**
+ * Test: access meta and error from reducer
+ */
+{
+  const counter = createSlice({
+    name: 'test',
+    initialState: { counter: 0, concat: '' },
+    reducers: {
+      // case: meta and error not used in reducer
+      testDefaultMetaAndError: {
+        reducer(_, action: PayloadAction<number, string>) {},
+        prepare: (payload: number) => ({
+          payload,
+          meta: 'meta' as 'meta',
+          error: 'error' as 'error'
+        })
+      },
+      // case: meta and error marked as "unknown" in reducer
+      testUnknownMetaAndError: {
+        reducer(_, action: PayloadAction<number, string, unknown, unknown>) {},
+        prepare: (payload: number) => ({
+          payload,
+          meta: 'meta' as 'meta',
+          error: 'error' as 'error'
+        })
+      },
+      // case: meta and error are typed in the reducer as returned by prepare
+      testMetaAndError: {
+        reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
+        prepare: (payload: number) => ({
+          payload,
+          meta: 'meta' as 'meta',
+          error: 'error' as 'error'
+        })
+      },
+      // case: meta is typed differently in the reducer than returned from prepare
+      testErroneousMeta: {
+        // typings:expect-error
+        reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
+        prepare: (payload: number) => ({
+          payload,
+          meta: 1,
+          error: 'error' as 'error'
+        })
+      },
+      // case: error is typed differently in the reducer than returned from prepare
+      testErroneousError: {
+        // typings:expect-error
+        reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
+        prepare: (payload: number) => ({
+          payload,
+          meta: 'meta' as 'meta',
+          error: 1
+        })
+      }
+    }
+  })
+}
+
 /*
  * Test: returned case reducer has the correct type
  */

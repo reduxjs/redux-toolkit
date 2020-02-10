@@ -110,7 +110,7 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
 export type SliceCaseReducers<State> = {
   [K: string]:
     | CaseReducer<State, PayloadAction<any>>
-    | CaseReducerWithPrepare<State, PayloadAction<any>>
+    | CaseReducerWithPrepare<State, PayloadAction<any, string, any, any>>
 }
 
 /**
@@ -187,11 +187,13 @@ export type ValidateSliceCaseReducers<
   ACR extends SliceCaseReducers<S>
 > = ACR &
   {
-    [P in keyof ACR]: ACR[P] extends {
-      reducer(s: S, action?: { payload: infer O }): any
+    [T in keyof ACR]: ACR[T] extends {
+      prepare(
+        ...a: never[]
+      ): { payload: infer P; meta?: infer M; error?: infer E }
     }
       ? {
-          prepare(...a: never[]): { payload: O }
+          reducer(s: S, action: PayloadAction<P, string, M, E>): any
         }
       : {}
   }
