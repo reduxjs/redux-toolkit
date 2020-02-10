@@ -1,3 +1,4 @@
+import createNextState, { Draft } from 'immer'
 import { EntityState } from './models'
 
 export enum DidMutate {
@@ -13,24 +14,16 @@ export function createStateOperator<V, R>(
   mutator: (arg: any, state: any) => DidMutate
 ): any {
   return function operation<S extends EntityState<V>>(arg: R, state: any): S {
-    const clonedEntityState: EntityState<V> = {
-      ids: [...state.ids],
-      entities: { ...state.entities }
-    }
+    // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
+    // than an Immutable<S>, and TypeScript cannot find out how to reconcile
+    // these two types.
+    return createNextState(state, (draft: Draft<EntityState<V>>) => {
+      const { ids: originalIds } = draft
+      const didMutate = mutator(arg, draft)
 
-    const didMutate = mutator(arg, clonedEntityState)
-
-    if (didMutate === DidMutate.Both) {
-      return Object.assign({}, state, clonedEntityState)
-    }
-
-    if (didMutate === DidMutate.EntitiesOnly) {
-      return {
-        ...state,
-        entities: clonedEntityState.entities
+      if (didMutate === DidMutate.EntitiesOnly) {
+        draft.ids = originalIds
       }
-    }
-
-    return state
+    })
   }
 }
