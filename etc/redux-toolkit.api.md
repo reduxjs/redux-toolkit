@@ -202,13 +202,9 @@ export { ThunkAction }
 // @public
 export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = ACR & {
     [T in keyof ACR]: ACR[T] extends {
-        prepare(...a: never[]): {
-            payload: infer P;
-            meta?: infer M;
-            error?: infer E;
-        };
+        reducer(s: S, action?: infer A): any;
     } ? {
-        reducer(s: S, action: PayloadAction<P, string, M, E>): any;
+        prepare(...a: never[]): Omit<A, 'type'>;
     } : {};
 };
 

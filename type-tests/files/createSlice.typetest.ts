@@ -70,7 +70,7 @@ function expectType<T>(t: T) {
           ? payload.reduce((acc, val) => acc * val, state)
           : state * payload,
       addTwo: {
-        reducer: (s, { payload }) => s + payload,
+        reducer: (s, { payload }: PayloadAction<number>) => s + payload,
         prepare: (a: number, b: number) => ({
           payload: a + b
         })
@@ -212,8 +212,8 @@ function expectType<T>(t: T) {
       },
       // case: meta is typed differently in the reducer than returned from prepare
       testErroneousMeta: {
-        // typings:expect-error
         reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
+        // typings:expect-error
         prepare: (payload: number) => ({
           payload,
           meta: 1,
@@ -222,8 +222,8 @@ function expectType<T>(t: T) {
       },
       // case: error is typed differently in the reducer than returned from prepare
       testErroneousError: {
-        // typings:expect-error
         reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
+        // typings:expect-error
         prepare: (payload: number) => ({
           payload,
           meta: 'meta' as 'meta',
