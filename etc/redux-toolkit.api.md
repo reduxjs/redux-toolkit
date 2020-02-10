@@ -194,21 +194,21 @@ export type SliceActionCreator<P> = PayloadActionCreator<P>;
 
 // @public
 export type SliceCaseReducers<State> = {
-    [K: string]: CaseReducer<State, PayloadAction<any>> | CaseReducerWithPrepare<State, PayloadAction<any>>;
+    [K: string]: CaseReducer<State, PayloadAction<any>> | CaseReducerWithPrepare<State, PayloadAction<any, string, any, any>>;
 };
 
 export { ThunkAction }
 
 // @public
 export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = ACR & {
-    [P in keyof ACR]: ACR[P] extends {
-        reducer(s: S, action?: {
-            payload: infer O;
-        }): any;
-    } ? {
+    [T in keyof ACR]: ACR[T] extends {
         prepare(...a: never[]): {
-            payload: O;
+            payload: infer P;
+            meta?: infer M;
+            error?: infer E;
         };
+    } ? {
+        reducer(s: S, action: PayloadAction<P, string, M, E>): any;
     } : {};
 };
 
