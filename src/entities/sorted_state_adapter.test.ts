@@ -272,7 +272,7 @@ describe('Sorted State Adapter', () => {
       [TheGreatGatsby, AnimalFarm, AClockworkOrange],
       state
     )
-    const changes = { id: 'A New Id', title: AnimalFarm.title }
+    const changes = { id: 'A New Id', title: 'A New Hope' }
 
     const withUpdates = adapter.updateOne(
       {
