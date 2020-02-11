@@ -42,7 +42,12 @@ describe('Entity State', () => {
       reducers: {
         addOne: adapter.addOne,
         removeOne(state, action: PayloadAction<string>) {
-          return adapter.removeOne(state, action)
+          // TODO The nested `produce` calls don't mutate `state` here as I would have expected.
+          // TODO (note that `state` here is actually an Immer Draft<S>, from `createReducer`)
+          // TODO However, this works if we _return_ the new plain result value instead
+          // TODO See https://github.com/immerjs/immer/issues/533
+          const result = adapter.removeOne(state, action)
+          return result
         }
       },
       extraReducers: builder => {
