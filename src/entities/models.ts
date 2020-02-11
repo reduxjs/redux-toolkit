@@ -1,3 +1,5 @@
+import { PayloadAction } from '../createAction'
+
 export type ComparerStr<T> = (a: T, b: T) => string
 export type ComparerNum<T> = (a: T, b: T) => number
 
@@ -32,6 +34,8 @@ export type Predicate<T> = (entity: T) => boolean
 
 export type EntityMap<T> = (entity: T) => T
 
+export type TypeOrPayloadAction<T> = T | PayloadAction<T>
+
 export interface EntityState<T> {
   ids: string[] | number[]
   entities: Dictionary<T>
@@ -43,27 +47,61 @@ export interface EntityDefinition<T> {
 }
 
 export interface EntityStateAdapter<T> {
-  addOne<S extends EntityState<T>>(entity: T, state: S): S
-  addMany<S extends EntityState<T>>(entities: T[], state: S): S
+  addOne<S extends EntityState<T>>(state: S, entity: TypeOrPayloadAction<T>): S
+  addMany<S extends EntityState<T>>(
+    state: S,
+    entities: TypeOrPayloadAction<T[]>
+  ): S
 
-  setAll<S extends EntityState<T>>(entities: T[], state: S): S
+  setAll<S extends EntityState<T>>(
+    state: S,
+    entities: TypeOrPayloadAction<T[]>
+  ): S
 
-  removeOne<S extends EntityState<T>>(key: string, state: S): S
-  removeOne<S extends EntityState<T>>(key: number, state: S): S
+  removeOne<S extends EntityState<T>>(
+    state: S,
+    key: TypeOrPayloadAction<string>
+  ): S
+  removeOne<S extends EntityState<T>>(
+    state: S,
+    key: TypeOrPayloadAction<number>
+  ): S
 
-  removeMany<S extends EntityState<T>>(keys: string[], state: S): S
-  removeMany<S extends EntityState<T>>(keys: number[], state: S): S
-  removeMany<S extends EntityState<T>>(predicate: Predicate<T>, state: S): S
+  removeMany<S extends EntityState<T>>(
+    state: S,
+    keys: TypeOrPayloadAction<string[]>
+  ): S
+  removeMany<S extends EntityState<T>>(
+    state: S,
+    keys: TypeOrPayloadAction<number[]>
+  ): S
+  /** @deprecated Should not pass functions inside of Redux actions */
+  removeMany<S extends EntityState<T>>(state: S, predicate: Predicate<T>): S
 
   removeAll<S extends EntityState<T>>(state: S): S
 
-  updateOne<S extends EntityState<T>>(update: Update<T>, state: S): S
-  updateMany<S extends EntityState<T>>(updates: Update<T>[], state: S): S
+  updateOne<S extends EntityState<T>>(
+    state: S,
+    update: TypeOrPayloadAction<Update<T>>
+  ): S
+  updateMany<S extends EntityState<T>>(
+    state: S,
+    updates: TypeOrPayloadAction<Update<T>[]>
+  ): S
 
-  upsertOne<S extends EntityState<T>>(entity: T, state: S): S
-  upsertMany<S extends EntityState<T>>(entities: T[], state: S): S
+  upsertOne<S extends EntityState<T>>(
+    state: S,
+    entity: TypeOrPayloadAction<T>
+  ): S
+  upsertMany<S extends EntityState<T>>(
+    state: S,
+    entities: TypeOrPayloadAction<T[]>
+  ): S
 
-  map<S extends EntityState<T>>(map: EntityMap<T>, state: S): S
+  map<S extends EntityState<T>>(
+    state: S,
+    map: TypeOrPayloadAction<EntityMap<T>>
+  ): S
 }
 
 export interface EntitySelectors<T, V> {

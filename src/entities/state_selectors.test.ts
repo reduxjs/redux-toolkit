@@ -24,10 +24,11 @@ describe('Entity State Selectors', () => {
       })
 
       state = {
-        books: adapter.setAll(
-          [AClockworkOrange, AnimalFarm, TheGreatGatsby],
-          adapter.getInitialState()
-        )
+        books: adapter.setAll(adapter.getInitialState(), [
+          AClockworkOrange,
+          AnimalFarm,
+          TheGreatGatsby
+        ])
       }
 
       selectors = adapter.getSelectors((state: State) => state.books)
@@ -70,10 +71,11 @@ describe('Entity State Selectors', () => {
         selectId: (book: BookModel) => book.id
       })
 
-      state = adapter.setAll(
-        [AClockworkOrange, AnimalFarm, TheGreatGatsby],
-        adapter.getInitialState()
-      )
+      state = adapter.setAll(adapter.getInitialState(), [
+        AClockworkOrange,
+        AnimalFarm,
+        TheGreatGatsby
+      ])
 
       selectors = adapter.getSelectors()
     })

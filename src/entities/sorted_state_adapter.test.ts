@@ -1,5 +1,6 @@
 import { EntityStateAdapter, EntityState, Update } from './models'
 import { createEntityAdapter } from './create_adapter'
+import { createAction } from '../createAction'
 import {
   BookModel,
   TheGreatGatsby,
@@ -26,14 +27,29 @@ describe('Sorted State Adapter', () => {
   beforeEach(() => {
     adapter = createEntityAdapter({
       selectId: (book: BookModel) => book.id,
-      sortComparer: (a, b) => a.title.localeCompare(b.title)
+      sortComparer: (a, b) => {
+        //console.log(`${a.title}, ${b.title}`)
+        return a.title.localeCompare(b.title)
+      }
     })
 
     state = { ids: [], entities: {} }
   })
 
   it('should let you add one entity to the state', () => {
-    const withOneEntity = adapter.addOne(TheGreatGatsby, state)
+    const withOneEntity = adapter.addOne(state, TheGreatGatsby)
+
+    expect(withOneEntity).toEqual({
+      ids: [TheGreatGatsby.id],
+      entities: {
+        [TheGreatGatsby.id]: TheGreatGatsby
+      }
+    })
+  })
+
+  it('should let you add one entity to the state as an FSA', () => {
+    const bookAction = createAction<BookModel>('books/add')
+    const withOneEntity = adapter.addOne(state, bookAction(TheGreatGatsby))
 
     expect(withOneEntity).toEqual({
       ids: [TheGreatGatsby.id],
@@ -44,20 +60,20 @@ describe('Sorted State Adapter', () => {
   })
 
   it('should not change state if you attempt to re-add an entity', () => {
-    const withOneEntity = adapter.addOne(TheGreatGatsby, state)
+    const withOneEntity = adapter.addOne(state, TheGreatGatsby)
 
-    const readded = adapter.addOne(TheGreatGatsby, withOneEntity)
+    const readded = adapter.addOne(withOneEntity, TheGreatGatsby)
 
     expect(readded).toBe(withOneEntity)
   })
 
   it('should let you add many entities to the state', () => {
-    const withOneEntity = adapter.addOne(TheGreatGatsby, state)
+    const withOneEntity = adapter.addOne(state, TheGreatGatsby)
 
-    const withManyMore = adapter.addMany(
-      [AClockworkOrange, AnimalFarm],
-      withOneEntity
-    )
+    const withManyMore = adapter.addMany(withOneEntity, [
+      AClockworkOrange,
+      AnimalFarm
+    ])
 
     expect(withManyMore).toEqual({
       ids: [AClockworkOrange.id, AnimalFarm.id, TheGreatGatsby.id],
@@ -70,12 +86,12 @@ describe('Sorted State Adapter', () => {
   })
 
   it('should remove existing and add new ones on setAll', () => {
-    const withOneEntity = adapter.addOne(TheGreatGatsby, state)
+    const withOneEntity = adapter.addOne(state, TheGreatGatsby)
 
-    const withAll = adapter.setAll(
-      [AClockworkOrange, AnimalFarm],
-      withOneEntity
-    )
+    const withAll = adapter.setAll(withOneEntity, [
+      AClockworkOrange,
+      AnimalFarm
+    ])
 
     expect(withAll).toEqual({
       ids: [AClockworkOrange.id, AnimalFarm.id],
@@ -87,12 +103,12 @@ describe('Sorted State Adapter', () => {
   })
 
   it('should remove existing and add new ones on addAll (deprecated)', () => {
-    const withOneEntity = adapter.addOne(TheGreatGatsby, state)
+    const withOneEntity = adapter.addOne(state, TheGreatGatsby)
 
-    const withAll = adapter.setAll(
-      [AClockworkOrange, AnimalFarm],
-      withOneEntity
-    )
+    const withAll = adapter.setAll(withOneEntity, [
+      AClockworkOrange,
+      AnimalFarm
+    ])
 
     expect(withAll).toEqual({
       ids: [AClockworkOrange.id, AnimalFarm.id],
@@ -104,9 +120,9 @@ describe('Sorted State Adapter', () => {
   })
 
   it('should let you add remove an entity from the state', () => {
-    const withOneEntity = adapter.addOne(TheGreatGatsby, state)
+    const withOneEntity = adapter.addOne(state, TheGreatGatsby)
 
-    const withoutOne = adapter.removeOne(TheGreatGatsby.id, state)
+    const withoutOne = adapter.removeOne(state, TheGreatGatsby.id)
 
     expect(withoutOne).toEqual({
       ids: [],
@@ -115,15 +131,16 @@ describe('Sorted State Adapter', () => {
   })
 
   it('should let you remove many entities by id from the state', () => {
-    const withAll = adapter.setAll(
-      [TheGreatGatsby, AClockworkOrange, AnimalFarm],
-      state
-    )
+    const withAll = adapter.setAll(state, [
+      TheGreatGatsby,
+      AClockworkOrange,
+      AnimalFarm
+    ])
 
-    const withoutMany = adapter.removeMany(
-      [TheGreatGatsby.id, AClockworkOrange.id],
-      withAll
-    )
+    const withoutMany = adapter.removeMany(withAll, [
+      TheGreatGatsby.id,
+      AClockworkOrange.id
+    ])
 
     expect(withoutMany).toEqual({
       ids: [AnimalFarm.id],
@@ -134,12 +151,13 @@ describe('Sorted State Adapter', () => {
   })
 
   it('should let you remove many entities by a predicate from the state', () => {
-    const withAll = adapter.setAll(
-      [TheGreatGatsby, AClockworkOrange, AnimalFarm],
-      state
-    )
+    const withAll = adapter.setAll(state, [
+      TheGreatGatsby,
+      AClockworkOrange,
+      AnimalFarm
+    ])
 
-    const withoutMany = adapter.removeMany(p => p.id.startsWith('a'), withAll)
+    const withoutMany = adapter.removeMany(withAll, p => p.id.startsWith('a'))
 
     expect(withoutMany).toEqual({
       ids: [TheGreatGatsby.id],
@@ -150,10 +168,11 @@ describe('Sorted State Adapter', () => {
   })
 
   it('should let you remove all entities from the state', () => {
-    const withAll = adapter.setAll(
-      [TheGreatGatsby, AClockworkOrange, AnimalFarm],
-      state
-    )
+    const withAll = adapter.setAll(state, [
+      TheGreatGatsby,
+      AClockworkOrange,
+      AnimalFarm
+    ])
 
     const withoutAll = adapter.removeAll(withAll)
 
@@ -164,16 +183,13 @@ describe('Sorted State Adapter', () => {
   })
 
   it('should let you update an entity in the state', () => {
-    const withOne = adapter.addOne(TheGreatGatsby, state)
+    const withOne = adapter.addOne(state, TheGreatGatsby)
     const changes = { title: 'A New Hope' }
 
-    const withUpdates = adapter.updateOne(
-      {
-        id: TheGreatGatsby.id,
-        changes
-      },
-      withOne
-    )
+    const withUpdates = adapter.updateOne(withOne, {
+      id: TheGreatGatsby.id,
+      changes
+    })
 
     expect(withUpdates).toEqual({
       ids: [TheGreatGatsby.id],
@@ -187,46 +203,38 @@ describe('Sorted State Adapter', () => {
   })
 
   it('should not change state if you attempt to update an entity that has not been added', () => {
-    const withUpdates = adapter.updateOne(
-      {
-        id: TheGreatGatsby.id,
-        changes: { title: 'A New Title' }
-      },
-      state
-    )
+    const withUpdates = adapter.updateOne(state, {
+      id: TheGreatGatsby.id,
+      changes: { title: 'A New Title' }
+    })
 
     expect(withUpdates).toBe(state)
   })
 
   it('should not change ids state if you attempt to update an entity that does not impact sorting', () => {
-    const withAll = adapter.setAll(
-      [TheGreatGatsby, AClockworkOrange, AnimalFarm],
-      state
-    )
+    const withAll = adapter.setAll(state, [
+      TheGreatGatsby,
+      AClockworkOrange,
+      AnimalFarm
+    ])
     const changes = { title: 'The Great Gatsby II' }
 
-    const withUpdates = adapter.updateOne(
-      {
-        id: TheGreatGatsby.id,
-        changes
-      },
-      withAll
-    )
+    const withUpdates = adapter.updateOne(withAll, {
+      id: TheGreatGatsby.id,
+      changes
+    })
 
     expect(withAll.ids).toBe(withUpdates.ids)
   })
 
   it('should let you update the id of entity', () => {
-    const withOne = adapter.addOne(TheGreatGatsby, state)
+    const withOne = adapter.addOne(state, TheGreatGatsby)
     const changes = { id: 'A New Id' }
 
-    const withUpdates = adapter.updateOne(
-      {
-        id: TheGreatGatsby.id,
-        changes
-      },
-      withOne
-    )
+    const withUpdates = adapter.updateOne(withOne, {
+      id: TheGreatGatsby.id,
+      changes
+    })
 
     expect(withUpdates).toEqual({
       ids: [changes.id],
@@ -240,19 +248,17 @@ describe('Sorted State Adapter', () => {
   })
 
   it('should resort correctly if same id but sort key update', () => {
-    const withAll = adapter.setAll(
-      [TheGreatGatsby, AnimalFarm, AClockworkOrange],
-      state
-    )
+    const withAll = adapter.setAll(state, [
+      TheGreatGatsby,
+      AnimalFarm,
+      AClockworkOrange
+    ])
     const changes = { title: 'A New Hope' }
 
-    const withUpdates = adapter.updateOne(
-      {
-        id: TheGreatGatsby.id,
-        changes
-      },
-      withAll
-    )
+    const withUpdates = adapter.updateOne(withAll, {
+      id: TheGreatGatsby.id,
+      changes
+    })
 
     expect(withUpdates).toEqual({
       ids: [AClockworkOrange.id, TheGreatGatsby.id, AnimalFarm.id],
@@ -268,19 +274,17 @@ describe('Sorted State Adapter', () => {
   })
 
   it('should resort correctly if the id and sort key update', () => {
-    const withOne = adapter.setAll(
-      [TheGreatGatsby, AnimalFarm, AClockworkOrange],
-      state
-    )
+    const withOne = adapter.setAll(state, [
+      TheGreatGatsby,
+      AnimalFarm,
+      AClockworkOrange
+    ])
     const changes = { id: 'A New Id', title: 'A New Hope' }
 
-    const withUpdates = adapter.updateOne(
-      {
-        id: TheGreatGatsby.id,
-        changes
-      },
-      withOne
-    )
+    const withUpdates = adapter.updateOne(withOne, {
+      id: TheGreatGatsby.id,
+      changes
+    })
 
     expect(withUpdates).toEqual({
       ids: [AClockworkOrange.id, changes.id, AnimalFarm.id],
@@ -298,15 +302,12 @@ describe('Sorted State Adapter', () => {
   it('should let you update many entities by id in the state', () => {
     const firstChange = { title: 'Zack' }
     const secondChange = { title: 'Aaron' }
-    const withMany = adapter.setAll([TheGreatGatsby, AClockworkOrange], state)
+    const withMany = adapter.setAll(state, [TheGreatGatsby, AClockworkOrange])
 
-    const withUpdates = adapter.updateMany(
-      [
-        { id: TheGreatGatsby.id, changes: firstChange },
-        { id: AClockworkOrange.id, changes: secondChange }
-      ],
-      withMany
-    )
+    const withUpdates = adapter.updateMany(withMany, [
+      { id: TheGreatGatsby.id, changes: firstChange },
+      { id: AClockworkOrange.id, changes: secondChange }
+    ])
 
     expect(withUpdates).toEqual({
       ids: [AClockworkOrange.id, TheGreatGatsby.id],
@@ -327,19 +328,18 @@ describe('Sorted State Adapter', () => {
     const firstChange = { ...TheGreatGatsby, title: 'First change' }
     const secondChange = { ...AClockworkOrange, title: 'Second change' }
 
-    const withMany = adapter.setAll(
-      [TheGreatGatsby, AClockworkOrange, AnimalFarm],
-      state
-    )
+    const withMany = adapter.setAll(state, [
+      TheGreatGatsby,
+      AClockworkOrange,
+      AnimalFarm
+    ])
 
-    const withUpdates = adapter.map(
-      book =>
-        book.title === TheGreatGatsby.title
-          ? firstChange
-          : book.title === AClockworkOrange.title
-          ? secondChange
-          : book,
-      withMany
+    const withUpdates = adapter.map(withMany, book =>
+      book.title === TheGreatGatsby.title
+        ? firstChange
+        : book.title === AClockworkOrange.title
+        ? secondChange
+        : book
     )
 
     expect(withUpdates).toEqual({
@@ -359,7 +359,7 @@ describe('Sorted State Adapter', () => {
   })
 
   it('should let you add one entity to the state with upsert()', () => {
-    const withOneEntity = adapter.upsertOne(TheGreatGatsby, state)
+    const withOneEntity = adapter.upsertOne(state, TheGreatGatsby)
     expect(withOneEntity).toEqual({
       ids: [TheGreatGatsby.id],
       entities: {
@@ -369,13 +369,13 @@ describe('Sorted State Adapter', () => {
   })
 
   it('should let you update an entity in the state with upsert()', () => {
-    const withOne = adapter.addOne(TheGreatGatsby, state)
+    const withOne = adapter.addOne(state, TheGreatGatsby)
     const changes = { title: 'A New Hope' }
 
-    const withUpdates = adapter.upsertOne(
-      { ...TheGreatGatsby, ...changes },
-      withOne
-    )
+    const withUpdates = adapter.upsertOne(withOne, {
+      ...TheGreatGatsby,
+      ...changes
+    })
     expect(withUpdates).toEqual({
       ids: [TheGreatGatsby.id],
       entities: {
@@ -389,12 +389,12 @@ describe('Sorted State Adapter', () => {
 
   it('should let you upsert many entities in the state', () => {
     const firstChange = { title: 'Zack' }
-    const withMany = adapter.setAll([TheGreatGatsby], state)
+    const withMany = adapter.setAll(state, [TheGreatGatsby])
 
-    const withUpserts = adapter.upsertMany(
-      [{ ...TheGreatGatsby, ...firstChange }, AClockworkOrange],
-      withMany
-    )
+    const withUpserts = adapter.upsertMany(withMany, [
+      { ...TheGreatGatsby, ...firstChange },
+      AClockworkOrange
+    ])
 
     expect(withUpserts).toEqual({
       ids: [AClockworkOrange.id, TheGreatGatsby.id],
