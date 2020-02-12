@@ -77,6 +77,9 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
     prepare: PrepareAction<Action['payload']>;
 };
 
+// @public (undocumented)
+export type Comparer<T> = ComparerNum<T> | ComparerStr<T>;
+
 // @public
 export type ConfigureEnhancersCallback = (defaultEnhancers: StoreEnhancer[]) => StoreEnhancer[];
 
@@ -97,6 +100,12 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 
 // @public
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
+
+// @public (undocumented)
+export function createEntityAdapter<T>(options?: {
+    selectId?: IdSelector<T>;
+    sortComparer?: false | Comparer<T>;
+}): EntityAdapter<T>;
 
 export { createNextState }
 
@@ -122,11 +131,44 @@ export interface CreateSliceOptions<State = any, CR extends SliceCaseReducers<St
     reducers: ValidateSliceCaseReducers<State, CR>;
 }
 
+// @public (undocumented)
+export abstract class Dictionary<T> implements DictionaryNum<T> {
+    // (undocumented)
+    [id: string]: T | undefined;
+}
+
 export { Draft }
 
 // @public
 export interface EnhancedStore<S = any, A extends Action = AnyAction, M extends Middlewares<S> = Middlewares<S>> extends Store<S, A> {
     dispatch: DispatchForMiddlewares<M> & Dispatch<A>;
+}
+
+// @public (undocumented)
+export interface EntityAdapter<T> extends EntityStateAdapter<T> {
+    // (undocumented)
+    getInitialState(): EntityState<T>;
+    // (undocumented)
+    getInitialState<S extends object>(state: S): EntityState<T> & S;
+    // (undocumented)
+    getSelectors(): EntitySelectors<T, EntityState<T>>;
+    // (undocumented)
+    getSelectors<V>(selectState: (state: V) => EntityState<T>): EntitySelectors<T, V>;
+    // (undocumented)
+    selectId: IdSelector<T>;
+    // (undocumented)
+    sortComparer: false | Comparer<T>;
+}
+
+// @public (undocumented)
+export type EntityMap<T> = (entity: T) => T;
+
+// @public (undocumented)
+export interface EntityState<T> {
+    // (undocumented)
+    entities: Dictionary<T>;
+    // (undocumented)
+    ids: string[] | number[];
 }
 
 // @public (undocumented)
@@ -141,6 +183,9 @@ export function getDefaultMiddleware<S = any, O extends Partial<GetDefaultMiddle
 
 // @public
 export function getType<T extends string>(actionCreator: PayloadActionCreator<any, T>): T;
+
+// @public (undocumented)
+export type IdSelector<T> = IdSelectorStr<T> | IdSelectorNum<T>;
 
 // @public
 export function isPlain(val: any): boolean;
@@ -157,6 +202,9 @@ export type PayloadAction<P = void, T extends string = string, M = never, E = ne
 
 // @public
 export type PayloadActionCreator<P = void, T extends string = string, PA extends PrepareAction<P> | void = void> = IfPrepareActionMethodProvided<PA, _ActionCreatorWithPreparedPayload<PA, T>, IsAny<P, ActionCreatorWithPayload<any, T>, IsUnknownOrNonInferrable<P, ActionCreatorWithNonInferrablePayload<T>, IfVoid<P, ActionCreatorWithoutPayload<T>, IfMaybeUndefined<P, ActionCreatorWithOptionalPayload<P, T>, ActionCreatorWithPayload<P, T>>>>>>;
+
+// @public (undocumented)
+export type Predicate<T> = (entity: T) => boolean;
 
 // @public
 export type PrepareAction<P> = ((...args: any[]) => {
@@ -198,6 +246,9 @@ export type SliceCaseReducers<State> = {
 };
 
 export { ThunkAction }
+
+// @public (undocumented)
+export type Update<T> = UpdateStr<T> | UpdateNum<T>;
 
 // @public
 export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = ACR & {
