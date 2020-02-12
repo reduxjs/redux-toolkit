@@ -77,7 +77,7 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
     prepare: PrepareAction<Action['payload']>;
 };
 
-// @public (undocumented)
+// @alpha (undocumented)
 export type Comparer<T> = ComparerNum<T> | ComparerStr<T>;
 
 // @public
@@ -101,7 +101,7 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 // @public
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export function createAsyncThunk<ActionType extends string, PayloadCreator extends AsyncActionCreator<unknown, Dispatch, unknown, undefined>>(type: ActionType, payloadCreator: PayloadCreator): {
     (args?: Parameters<PayloadCreator>[0]["args"] | undefined): (dispatch: any, getState: any, extra: any) => Promise<any>;
     pending: ActionCreatorWithPayload<{
@@ -120,7 +120,7 @@ export function createAsyncThunk<ActionType extends string, PayloadCreator exten
     }, string>;
 };
 
-// @public (undocumented)
+// @alpha (undocumented)
 export function createEntityAdapter<T>(options?: {
     selectId?: IdSelector<T>;
     sortComparer?: false | Comparer<T>;
@@ -150,7 +150,7 @@ export interface CreateSliceOptions<State = any, CR extends SliceCaseReducers<St
     reducers: ValidateSliceCaseReducers<State, CR>;
 }
 
-// @public (undocumented)
+// @alpha (undocumented)
 export abstract class Dictionary<T> implements DictionaryNum<T> {
     // (undocumented)
     [id: string]: T | undefined;
@@ -163,7 +163,7 @@ export interface EnhancedStore<S = any, A extends Action = AnyAction, M extends 
     dispatch: DispatchForMiddlewares<M> & Dispatch<A>;
 }
 
-// @public (undocumented)
+// @alpha (undocumented)
 export interface EntityAdapter<T> extends EntityStateAdapter<T> {
     // (undocumented)
     getInitialState(): EntityState<T>;
@@ -179,10 +179,10 @@ export interface EntityAdapter<T> extends EntityStateAdapter<T> {
     sortComparer: false | Comparer<T>;
 }
 
-// @public (undocumented)
+// @alpha (undocumented)
 export type EntityMap<T> = (entity: T) => T;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export interface EntityState<T> {
     // (undocumented)
     entities: Dictionary<T>;
@@ -203,7 +203,7 @@ export function getDefaultMiddleware<S = any, O extends Partial<GetDefaultMiddle
 // @public
 export function getType<T extends string>(actionCreator: PayloadActionCreator<any, T>): T;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export type IdSelector<T> = IdSelectorStr<T> | IdSelectorNum<T>;
 
 // @public
@@ -222,7 +222,7 @@ export type PayloadAction<P = void, T extends string = string, M = never, E = ne
 // @public
 export type PayloadActionCreator<P = void, T extends string = string, PA extends PrepareAction<P> | void = void> = IfPrepareActionMethodProvided<PA, _ActionCreatorWithPreparedPayload<PA, T>, IsAny<P, ActionCreatorWithPayload<any, T>, IsUnknownOrNonInferrable<P, ActionCreatorWithNonInferrablePayload<T>, IfVoid<P, ActionCreatorWithoutPayload<T>, IfMaybeUndefined<P, ActionCreatorWithOptionalPayload<P, T>, ActionCreatorWithPayload<P, T>>>>>>;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export type Predicate<T> = (entity: T) => boolean;
 
 // @public
@@ -266,7 +266,7 @@ export type SliceCaseReducers<State> = {
 
 export { ThunkAction }
 
-// @public (undocumented)
+// @alpha (undocumented)
 export type Update<T> = UpdateStr<T> | UpdateNum<T>;
 
 // @public

@@ -26,6 +26,13 @@ export type AsyncActionCreator<
   E extends unknown
 > = (params: AsyncThunkParams<A, D, S, E>) => any
 
+/**
+ *
+ * @param type
+ * @param payloadCreator
+ *
+ * @alpha
+ */
 export function createAsyncThunk<
   ActionType extends string,
   PayloadCreator extends AsyncActionCreator<

@@ -3,17 +3,26 @@ import { PayloadAction } from '../createAction'
 export type ComparerStr<T> = (a: T, b: T) => string
 export type ComparerNum<T> = (a: T, b: T) => number
 
+/**
+ * @alpha
+ */
 export type Comparer<T> = ComparerNum<T> | ComparerStr<T>
 
 export type IdSelectorStr<T> = (model: T) => string
 export type IdSelectorNum<T> = (model: T) => number
 
+/**
+ * @alpha
+ */
 export type IdSelector<T> = IdSelectorStr<T> | IdSelectorNum<T>
 
 export interface DictionaryNum<T> {
   [id: number]: T | undefined
 }
 
+/**
+ * @alpha
+ */
 export abstract class Dictionary<T> implements DictionaryNum<T> {
   [id: string]: T | undefined
 }
@@ -28,14 +37,26 @@ export interface UpdateNum<T> {
   changes: Partial<T>
 }
 
+/**
+ * @alpha
+ */
 export type Update<T> = UpdateStr<T> | UpdateNum<T>
 
+/**
+ * @alpha
+ */
 export type Predicate<T> = (entity: T) => boolean
 
+/**
+ * @alpha
+ */
 export type EntityMap<T> = (entity: T) => T
 
 export type TypeOrPayloadAction<T> = T | PayloadAction<T>
 
+/**
+ * @alpha
+ */
 export interface EntityState<T> {
   ids: string[] | number[]
   entities: Dictionary<T>
@@ -111,6 +132,9 @@ export interface EntitySelectors<T, V> {
   selectTotal: (state: V) => number
 }
 
+/**
+ * @alpha
+ */
 export interface EntityAdapter<T> extends EntityStateAdapter<T> {
   selectId: IdSelector<T>
   sortComparer: false | Comparer<T>
