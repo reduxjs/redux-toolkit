@@ -12,6 +12,7 @@ describe('Unsorted State Adapter', () => {
   let state: EntityState<BookModel>
 
   beforeAll(() => {
+    //eslint-disable-next-line
     Object.defineProperty(Array.prototype, 'unwantedField', {
       enumerable: true,
       configurable: true,
