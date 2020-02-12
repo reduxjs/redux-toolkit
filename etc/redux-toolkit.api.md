@@ -112,13 +112,13 @@ export { createSelector }
 export function createSerializableStateInvariantMiddleware(options?: SerializableStateInvariantMiddlewareOptions): Middleware;
 
 // @public
-export function createSlice<State, CaseReducers extends SliceCaseReducers<State>>(options: CreateSliceOptions<State, CaseReducers>): Slice<State, CaseReducers>;
+export function createSlice<Name extends string, State, CaseReducers extends SliceCaseReducers<State>>(options: CreateSliceOptions<Name, State, CaseReducers>): Slice<Name, State, CaseReducers>;
 
 // @public
-export interface CreateSliceOptions<State = any, CR extends SliceCaseReducers<State> = SliceCaseReducers<State>> {
+export interface CreateSliceOptions<Name extends string, State = any, CR extends SliceCaseReducers<State> = SliceCaseReducers<State>> {
     extraReducers?: CaseReducers<NoInfer<State>, any> | ((builder: ActionReducerMapBuilder<NoInfer<State>>) => void);
     initialState: State;
-    name: string;
+    name: Name;
     reducers: ValidateSliceCaseReducers<State, CR>;
 }
 
@@ -182,10 +182,10 @@ export interface SerializableStateInvariantMiddlewareOptions {
 }
 
 // @public
-export interface Slice<State = any, CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>> {
+export interface Slice<Name extends string, State = any, CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>> {
     actions: CaseReducerActions<CaseReducers>;
     caseReducers: SliceDefinedCaseReducers<CaseReducers>;
-    name: string;
+    name: Name;
     reducer: Reducer<State>;
 }
 
