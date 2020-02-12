@@ -102,6 +102,25 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
 
 // @public (undocumented)
+export function createAsyncThunk<ActionType extends string, PayloadCreator extends AsyncActionCreator<unknown, Dispatch, unknown, undefined>>(type: ActionType, payloadCreator: PayloadCreator): {
+    (args?: Parameters<PayloadCreator>[0]["args"] | undefined): (dispatch: any, getState: any, extra: any) => Promise<any>;
+    pending: ActionCreatorWithPayload<{
+        args: Parameters<PayloadCreator>[0]["args"];
+    }, string>;
+    rejected: ActionCreatorWithPayload<{
+        args: Parameters<PayloadCreator>[0]["args"];
+        error: Error;
+    }, string>;
+    fulfilled: ActionCreatorWithPayload<{
+        args: Parameters<PayloadCreator>[0]["args"];
+        result: Await<ReturnType<PayloadCreator>>;
+    }, ActionType>;
+    finished: ActionCreatorWithPayload<{
+        args: Parameters<PayloadCreator>[0]["args"];
+    }, string>;
+};
+
+// @public (undocumented)
 export function createEntityAdapter<T>(options?: {
     selectId?: IdSelector<T>;
     sortComparer?: false | Comparer<T>;

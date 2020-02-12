@@ -73,3 +73,5 @@ export {
   IdSelector,
   Comparer
 } from './entities/models'
+
+export { createAsyncThunk } from './createAsyncThunk'
