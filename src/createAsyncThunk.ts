@@ -1,30 +1,11 @@
 import { Dispatch } from 'redux'
 import { createAction } from './createAction'
 
-export type Await<T> = T extends {
-  then(onfulfilled?: (value: infer U) => unknown): unknown
-}
-  ? U
-  : T
-
-export interface AsyncThunkParams<
-  A,
-  D extends Dispatch,
-  S extends unknown,
-  E extends unknown
-> {
-  args: A
+type AsyncThunksArgs<S, E, D extends Dispatch = Dispatch> = {
   dispatch: D
-  getState: () => S
+  getState: S
   extra: E
 }
-
-export type AsyncActionCreator<
-  A,
-  D extends Dispatch,
-  S extends unknown,
-  E extends unknown
-> = (params: AsyncThunkParams<A, D, S, E>) => any
 
 /**
  *
@@ -35,19 +16,23 @@ export type AsyncActionCreator<
  */
 export function createAsyncThunk<
   ActionType extends string,
-  PayloadCreator extends AsyncActionCreator<
+  Returned,
+  ActionParams = never,
+  TA extends AsyncThunksArgs<any, any, any> = AsyncThunksArgs<
     unknown,
-    Dispatch,
     unknown,
-    undefined
+    Dispatch
   >
->(type: ActionType, payloadCreator: PayloadCreator) {
-  // TODO This results in some hideous-looking inferred types for the actions
-  type ActionParams = Parameters<PayloadCreator>[0]['args']
-
+>(
+  type: ActionType,
+  payloadCreator: (
+    args: ActionParams,
+    thunkArgs: TA
+  ) => Promise<Returned> | Returned
+) {
   const fulfilled = createAction(
     type + '/fulfilled',
-    (result: Await<ReturnType<PayloadCreator>>, args: ActionParams) => {
+    (result: Returned, args: ActionParams) => {
       return {
         payload: result,
         meta: { args }
@@ -80,17 +65,20 @@ export function createAsyncThunk<
     }
   )
 
-  function actionCreator(args?: ActionParams) {
-    return async (dispatch: any, getState: any, extra: any) => {
+  function actionCreator(args: ActionParams) {
+    return async (
+      dispatch: TA['dispatch'],
+      getState: TA['getState'],
+      extra: TA['extra']
+    ) => {
       try {
         dispatch(pending(args))
         // TODO Also ugly types
-        const result: Await<ReturnType<PayloadCreator>> = await payloadCreator({
-          args,
+        const result = (await payloadCreator(args, {
           dispatch,
           getState,
           extra
-        })
+        } as TA)) as Returned
 
         // TODO How do we avoid errors in here from hitting the catch clause?
         return dispatch(fulfilled(result, args))
