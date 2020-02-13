@@ -4,7 +4,7 @@ describe('createAsyncThunk', () => {
   it('creates the action types', () => {
     const thunkActionCreator = createAsyncThunk('testType', async () => 42)
 
-    expect(thunkActionCreator.fulfilled.type).toBe('testType')
+    expect(thunkActionCreator.fulfilled.type).toBe('testType/fulfilled')
     expect(thunkActionCreator.pending.type).toBe('testType/pending')
     expect(thunkActionCreator.finished.type).toBe('testType/finished')
     expect(thunkActionCreator.rejected.type).toBe('testType/rejected')
@@ -34,17 +34,17 @@ describe('createAsyncThunk', () => {
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      thunkActionCreator.pending({ args })
+      thunkActionCreator.pending(args)
     )
 
     expect(dispatch).toHaveBeenNthCalledWith(
       2,
-      thunkActionCreator.fulfilled({ args, result })
+      thunkActionCreator.fulfilled(result, args)
     )
 
     expect(dispatch).toHaveBeenNthCalledWith(
       3,
-      thunkActionCreator.finished({ args })
+      thunkActionCreator.finished(args)
     )
   })
 
@@ -66,17 +66,17 @@ describe('createAsyncThunk', () => {
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      thunkActionCreator.pending({ args })
+      thunkActionCreator.pending(args)
     )
 
     expect(dispatch).toHaveBeenNthCalledWith(
       2,
-      thunkActionCreator.rejected({ args, error })
+      thunkActionCreator.rejected(error, args)
     )
 
     expect(dispatch).toHaveBeenNthCalledWith(
       3,
-      thunkActionCreator.finished({ args })
+      thunkActionCreator.finished(args)
     )
   })
 })

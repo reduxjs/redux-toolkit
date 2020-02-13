@@ -1,5 +1,5 @@
 import { Dispatch } from 'redux'
-import { ActionCreatorWithPayload, createAction } from './createAction'
+import { createAction } from './createAction'
 
 export type Await<T> = T extends {
   then(onfulfilled?: (value: infer U) => unknown): unknown
@@ -42,45 +42,64 @@ export function createAsyncThunk<
     undefined
   >
 >(type: ActionType, payloadCreator: PayloadCreator) {
+  // TODO This results in some hideous-looking inferred types for the actions
   type ActionParams = Parameters<PayloadCreator>[0]['args']
 
-  const fulfilled = createAction(type) as ActionCreatorWithPayload<
-    { args: ActionParams; result: Await<ReturnType<PayloadCreator>> },
-    ActionType
-  >
+  const fulfilled = createAction(
+    type + '/fulfilled',
+    (result: Await<ReturnType<PayloadCreator>>, args: ActionParams) => {
+      return {
+        payload: result,
+        meta: { args }
+      }
+    }
+  )
 
-  const pending = createAction(type + '/pending') as ActionCreatorWithPayload<
-    { args: ActionParams },
-    string
-  >
+  const pending = createAction(type + '/pending', (args: ActionParams) => {
+    return {
+      payload: undefined,
+      meta: { args }
+    }
+  })
 
-  const finished = createAction(type + '/finished') as ActionCreatorWithPayload<
-    { args: ActionParams },
-    string
-  >
+  const finished = createAction(type + '/finished', (args: ActionParams) => {
+    return {
+      payload: undefined,
+      meta: { args }
+    }
+  })
 
-  const rejected = createAction(type + '/rejected') as ActionCreatorWithPayload<
-    { args: ActionParams; error: Error },
-    string
-  >
+  const rejected = createAction(
+    type + '/rejected',
+    (error: Error, args: ActionParams) => {
+      return {
+        payload: undefined,
+        error,
+        meta: { args }
+      }
+    }
+  )
 
   function actionCreator(args?: ActionParams) {
     return async (dispatch: any, getState: any, extra: any) => {
       try {
-        dispatch(pending({ args }))
+        dispatch(pending(args))
+        // TODO Also ugly types
         const result: Await<ReturnType<PayloadCreator>> = await payloadCreator({
           args,
           dispatch,
           getState,
           extra
         })
+
         // TODO How do we avoid errors in here from hitting the catch clause?
-        return dispatch(fulfilled({ args, result }))
+        return dispatch(fulfilled(result, args))
       } catch (err) {
         // TODO Errors aren't serializable
-        dispatch(rejected({ args, error: err }))
+        dispatch(rejected(err, args))
       } finally {
-        dispatch(finished({ args }))
+        // TODO IS there really a benefit from a "finished" action?
+        dispatch(finished(args))
       }
     }
   }
