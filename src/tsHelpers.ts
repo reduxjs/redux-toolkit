@@ -87,3 +87,5 @@ type UnionToIntersection<U> = (U extends any
   : never) extends ((k: infer I) => void)
   ? I
   : never
+
+export type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>

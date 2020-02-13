@@ -146,7 +146,7 @@ export default todos
 We can see that it handles three cases:
 
 - It adds a new todo by copying the existing `state` array and adding a new todo entry at the end
-- It handles toggling a todo entry by copying the existing array use `state.map()`, copies and replaces the todo object that needs to be updated, and leaves all other todo entries alone.
+- It handles toggling a todo entry by copying the existing array using `state.map()`, copies and replaces the todo object that needs to be updated, and leaves all other todo entries alone.
 - It responds to all other actions by returning the existing state (effectively saying "I don't care about that action").
 
 It also initializes the state with a default value of `[]`, and does a default export of the reducer function.

@@ -12,6 +12,7 @@ import {
   ActionReducerMapBuilder,
   executeReducerBuilderCallback
 } from './mapBuilders'
+import { Omit } from './tsHelpers'
 
 /**
  * An action creator atttached to a slice.
@@ -110,7 +111,7 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
 export type SliceCaseReducers<State> = {
   [K: string]:
     | CaseReducer<State, PayloadAction<any>>
-    | CaseReducerWithPrepare<State, PayloadAction<any>>
+    | CaseReducerWithPrepare<State, PayloadAction<any, string, any, any>>
 }
 
 /**
@@ -187,11 +188,11 @@ export type ValidateSliceCaseReducers<
   ACR extends SliceCaseReducers<S>
 > = ACR &
   {
-    [P in keyof ACR]: ACR[P] extends {
-      reducer(s: S, action?: { payload: infer O }): any
+    [T in keyof ACR]: ACR[T] extends {
+      reducer(s: S, action?: infer A): any
     }
       ? {
-          prepare(...a: never[]): { payload: O }
+          prepare(...a: never[]): Omit<A, 'type'>
         }
       : {}
   }
