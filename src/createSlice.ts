@@ -28,9 +28,9 @@ export type SliceActionCreator<P> = PayloadActionCreator<P>
  * @public
  */
 export interface Slice<
-  Name extends string,
   State = any,
-  CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>
+  CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+  Name extends string = string
 > {
   /**
    * The slice name.
@@ -61,9 +61,9 @@ export interface Slice<
  * @public
  */
 export interface CreateSliceOptions<
-  Name extends string,
   State = any,
-  CR extends SliceCaseReducers<State> = SliceCaseReducers<State>
+  CR extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+  Name extends string = string
 > {
   /**
    * The slice's name. Used to namespace the generated action types.
@@ -213,12 +213,12 @@ function getType(slice: string, actionKey: string): string {
  * @public
  */
 export function createSlice<
-  Name extends string,
   State,
-  CaseReducers extends SliceCaseReducers<State>
+  CaseReducers extends SliceCaseReducers<State>,
+  Name extends string = string
 >(
-  options: CreateSliceOptions<Name, State, CaseReducers>
-): Slice<Name, State, CaseReducers> {
+  options: CreateSliceOptions<State, CaseReducers, Name>
+): Slice<State, CaseReducers, Name> {
   const { name, initialState } = options
   if (!name) {
     throw new Error('`name` is a required option for createSlice')
