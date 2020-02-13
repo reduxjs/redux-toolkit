@@ -45,11 +45,6 @@ export type Update<T> = UpdateStr<T> | UpdateNum<T>
 /**
  * @alpha
  */
-export type Predicate<T> = (entity: T) => boolean
-
-/**
- * @alpha
- */
 export type EntityMap<T> = (entity: T) => T
 
 export type TypeOrPayloadAction<T> = T | PayloadAction<T>
@@ -96,8 +91,6 @@ export interface EntityStateAdapter<T> {
     state: S,
     keys: TypeOrPayloadAction<number[]>
   ): S
-  /** @deprecated Should not pass functions inside of Redux actions */
-  removeMany<S extends EntityState<T>>(state: S, predicate: Predicate<T>): S
 
   removeAll<S extends EntityState<T>>(state: S): S
 

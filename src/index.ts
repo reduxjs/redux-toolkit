@@ -69,7 +69,6 @@ export {
   EntityAdapter,
   Update,
   EntityMap,
-  Predicate,
   IdSelector,
   Comparer
 } from './entities/models'

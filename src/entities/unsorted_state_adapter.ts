@@ -3,7 +3,6 @@ import {
   EntityStateAdapter,
   IdSelector,
   Update,
-  Predicate,
   EntityMap
 } from './models'
 import { createStateOperator } from './state_adapter'
@@ -47,25 +46,10 @@ export function createUnsortedStateAdapter<T>(selectId: IdSelector<T>): any {
     return removeManyMutably([key], state)
   }
 
-  function removeManyMutably(keys: T[], state: R): void
-  function removeManyMutably(predicate: Predicate<T>, state: R): void
-  function removeManyMutably(
-    keysOrPredicate: any[] | Predicate<T>,
-    state: any
-  ): void {
-    let keysToRemove: any[] = []
-
-    if (keysOrPredicate instanceof Array) {
-      keysToRemove = keysOrPredicate
-    } else {
-      keysToRemove = state.ids.filter((key: any) =>
-        keysOrPredicate(state.entities[key])
-      )
-    }
-
+  function removeManyMutably(keys: any[], state: R): void {
     let didMutate = false
 
-    keysToRemove.forEach(key => {
+    keys.forEach(key => {
       if (key in state.entities) {
         delete state.entities[key]
         didMutate = true
@@ -73,7 +57,9 @@ export function createUnsortedStateAdapter<T>(selectId: IdSelector<T>): any {
     })
 
     if (didMutate) {
-      state.ids = state.ids.filter((id: any) => id in state.entities)
+      // Work around TS not letting us call array methods if it's not a single known type
+      const ids = state.ids as string[]
+      state.ids = ids.filter((id: any) => id in state.entities)
     }
   }
 

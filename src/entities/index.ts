@@ -5,7 +5,6 @@ export {
   EntityAdapter,
   Update,
   EntityMap,
-  Predicate,
   IdSelector,
   Comparer
 } from './models'
