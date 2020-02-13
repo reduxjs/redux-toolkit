@@ -104,20 +104,18 @@ export function createAction<PA extends PrepareAction<any>, T extends string = s
 // @alpha (undocumented)
 export function createAsyncThunk<ActionType extends string, PayloadCreator extends AsyncActionCreator<unknown, Dispatch, unknown, undefined>>(type: ActionType, payloadCreator: PayloadCreator): {
     (args?: Parameters<PayloadCreator>[0]["args"] | undefined): (dispatch: any, getState: any, extra: any) => Promise<any>;
-    pending: ActionCreatorWithPayload<{
+    pending: import("./createAction").ActionCreatorWithPreparedPayload<[Parameters<PayloadCreator>[0]["args"]], undefined, string, never, {
         args: Parameters<PayloadCreator>[0]["args"];
-    }, string>;
-    rejected: ActionCreatorWithPayload<{
+    }>;
+    rejected: import("./createAction").ActionCreatorWithPreparedPayload<[Error, Parameters<PayloadCreator>[0]["args"]], undefined, string, Error, {
         args: Parameters<PayloadCreator>[0]["args"];
-        error: Error;
-    }, string>;
-    fulfilled: ActionCreatorWithPayload<{
+    }>;
+    fulfilled: import("./createAction").ActionCreatorWithPreparedPayload<[Await<ReturnType<PayloadCreator>>, Parameters<PayloadCreator>[0]["args"]], Await<ReturnType<PayloadCreator>>, string, never, {
         args: Parameters<PayloadCreator>[0]["args"];
-        result: Await<ReturnType<PayloadCreator>>;
-    }, ActionType>;
-    finished: ActionCreatorWithPayload<{
+    }>;
+    finished: import("./createAction").ActionCreatorWithPreparedPayload<[Parameters<PayloadCreator>[0]["args"]], undefined, string, never, {
         args: Parameters<PayloadCreator>[0]["args"];
-    }, string>;
+    }>;
 };
 
 // @alpha (undocumented)
@@ -221,9 +219,6 @@ export type PayloadAction<P = void, T extends string = string, M = never, E = ne
 
 // @public
 export type PayloadActionCreator<P = void, T extends string = string, PA extends PrepareAction<P> | void = void> = IfPrepareActionMethodProvided<PA, _ActionCreatorWithPreparedPayload<PA, T>, IsAny<P, ActionCreatorWithPayload<any, T>, IsUnknownOrNonInferrable<P, ActionCreatorWithNonInferrablePayload<T>, IfVoid<P, ActionCreatorWithoutPayload<T>, IfMaybeUndefined<P, ActionCreatorWithOptionalPayload<P, T>, ActionCreatorWithPayload<P, T>>>>>>;
-
-// @alpha (undocumented)
-export type Predicate<T> = (entity: T) => boolean;
 
 // @public
 export type PrepareAction<P> = ((...args: any[]) => {
