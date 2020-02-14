@@ -11,6 +11,46 @@ describe('createAsyncThunk', () => {
     expect(thunkActionCreator.rejected.type).toBe('testType/rejected')
   })
 
+  it('should accept a config object', () => {
+    const thunkActionCreator = createAsyncThunk(
+      { type: 'testType' },
+      async () => 42
+    )
+
+    expect(thunkActionCreator.fulfilled.type).toBe('testType/fulfilled')
+    expect(thunkActionCreator.pending.type).toBe('testType/pending')
+    expect(thunkActionCreator.finished.type).toBe('testType/finished')
+    expect(thunkActionCreator.rejected.type).toBe('testType/rejected')
+  })
+
+  it('should rethrow error', async () => {
+    const dispatch = jest.fn()
+
+    const args = 123
+    let generatedRequestId = ''
+
+    const error = new Error('Panic!')
+
+    const thunkActionCreator = createAsyncThunk(
+      { type: 'testType', rethrow: true },
+      async (args: number, { requestId }) => {
+        generatedRequestId = requestId
+        throw error
+      }
+    )
+
+    const thunkFunction = thunkActionCreator(args)
+
+    await expect(thunkFunction(dispatch, undefined, undefined)).rejects.toThrow(
+      error
+    )
+
+    expect(dispatch).toHaveBeenNthCalledWith(
+      2,
+      thunkActionCreator.rejected(error, generatedRequestId, args)
+    )
+  })
+
   it('works without passing arguments to the payload creator', async () => {
     const thunkActionCreator = createAsyncThunk('testType', async () => 42)
 

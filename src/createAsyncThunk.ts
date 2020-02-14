@@ -9,15 +9,37 @@ type AsyncThunksArgs<S, E, D extends Dispatch = Dispatch> = {
   requestId: string
 }
 
+interface ThunkActionCreatorConfig {
+  type: string
+  rethrow?: boolean
+}
+
+type ActionType = string | ThunkActionCreatorConfig
+
+function isConfig(type: ActionType): type is ThunkActionCreatorConfig {
+  return (type as ThunkActionCreatorConfig).type !== undefined
+}
+
+function buildOptions(
+  config: string | ThunkActionCreatorConfig
+): ThunkActionCreatorConfig {
+  return isConfig(config)
+    ? config
+    : {
+        type: config,
+        rethrow: false
+      }
+}
+
 /**
  *
- * @param type
+ * @param config
  * @param payloadCreator
  *
  * @alpha
  */
 export function createAsyncThunk<
-  ActionType extends string,
+  ActionType extends string | ThunkActionCreatorConfig,
   Returned,
   ActionParams = void,
   TA extends AsyncThunksArgs<any, any, any> = AsyncThunksArgs<
@@ -26,12 +48,14 @@ export function createAsyncThunk<
     Dispatch
   >
 >(
-  type: ActionType,
+  config: ActionType,
   payloadCreator: (
     args: ActionParams,
     thunkArgs: TA
   ) => Promise<Returned> | Returned
 ) {
+  const { type, rethrow } = buildOptions(config)
+
   const fulfilled = createAction(
     type + '/fulfilled',
     (result: Returned, requestId: string, args: ActionParams) => {
@@ -96,6 +120,7 @@ export function createAsyncThunk<
       } catch (err) {
         // TODO Errors aren't serializable
         dispatch(rejected(err, requestId, args))
+        if (rethrow) throw err
       } finally {
         // TODO IS there really a benefit from a "finished" action?
         dispatch(finished(requestId, args))

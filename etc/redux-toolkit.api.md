@@ -102,7 +102,7 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
 
 // @alpha (undocumented)
-export function createAsyncThunk<ActionType extends string, Returned, ActionParams = void, TA extends AsyncThunksArgs<any, any, any> = AsyncThunksArgs<unknown, unknown, Dispatch>>(type: ActionType, payloadCreator: (args: ActionParams, thunkArgs: TA) => Promise<Returned> | Returned): {
+export function createAsyncThunk<ActionType extends string | ThunkActionCreatorConfig, Returned, ActionParams = void, TA extends AsyncThunksArgs<any, any, any> = AsyncThunksArgs<unknown, unknown, Dispatch>>(config: ActionType, payloadCreator: (args: ActionParams, thunkArgs: TA) => Promise<Returned> | Returned): {
     (args: ActionParams): (dispatch: TA["dispatch"], getState: TA["getState"], extra: TA["extra"]) => Promise<any>;
     pending: import("./createAction").ActionCreatorWithPreparedPayload<[string, ActionParams], undefined, string, never, {
         args: ActionParams;
