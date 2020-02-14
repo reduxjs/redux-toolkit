@@ -57,9 +57,7 @@ export function createUnsortedStateAdapter<T>(selectId: IdSelector<T>): any {
     })
 
     if (didMutate) {
-      // Work around TS not letting us call array methods if it's not a single known type
-      const ids = state.ids as string[]
-      state.ids = ids.filter((id: any) => id in state.entities)
+      state.ids = state.ids.filter(id => id in state.entities)
     }
   }
 

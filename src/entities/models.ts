@@ -1,21 +1,23 @@
 import { PayloadAction } from '../createAction'
 
-export type ComparerStr<T> = (a: T, b: T) => string
-export type ComparerNum<T> = (a: T, b: T) => number
+/**
+ * @alpha
+ */
+export type EntityId = number | string
 
 /**
  * @alpha
  */
-export type Comparer<T> = ComparerNum<T> | ComparerStr<T>
-
-export type IdSelectorStr<T> = (model: T) => string
-export type IdSelectorNum<T> = (model: T) => number
+export type Comparer<T> = (a: T, b: T) => EntityId
 
 /**
  * @alpha
  */
-export type IdSelector<T> = IdSelectorStr<T> | IdSelectorNum<T>
+export type IdSelector<T> = (model: T) => EntityId
 
+/**
+ * @alpha
+ */
 export interface DictionaryNum<T> {
   [id: number]: T | undefined
 }
@@ -47,13 +49,16 @@ export type Update<T> = UpdateStr<T> | UpdateNum<T>
  */
 export type EntityMap<T> = (entity: T) => T
 
+/**
+ * @alpha
+ */
 export type TypeOrPayloadAction<T> = T | PayloadAction<T>
 
 /**
  * @alpha
  */
 export interface EntityState<T> {
-  ids: string[] | number[]
+  ids: EntityId[]
   entities: Dictionary<T>
 }
 
