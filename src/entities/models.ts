@@ -69,32 +69,33 @@ export interface EntityDefinition<T> {
 
 export interface EntityStateAdapter<T> {
   addOne<S extends EntityState<T>>(state: S, entity: TypeOrPayloadAction<T>): S
+  addOne<S extends EntityState<T>>(state: S, action: PayloadAction<T>): S
+
   addMany<S extends EntityState<T>>(
     state: S,
     entities: TypeOrPayloadAction<T[]>
   ): S
+  addMany<S extends EntityState<T>>(state: S, entities: PayloadAction<T[]>): S
 
   setAll<S extends EntityState<T>>(
     state: S,
     entities: TypeOrPayloadAction<T[]>
   ): S
+  setAll<S extends EntityState<T>>(state: S, entities: PayloadAction<T[]>): S
 
   removeOne<S extends EntityState<T>>(
     state: S,
-    key: TypeOrPayloadAction<string>
+    key: TypeOrPayloadAction<EntityId>
   ): S
-  removeOne<S extends EntityState<T>>(
-    state: S,
-    key: TypeOrPayloadAction<number>
-  ): S
+  removeOne<S extends EntityState<T>>(state: S, key: PayloadAction<EntityId>): S
 
   removeMany<S extends EntityState<T>>(
     state: S,
-    keys: TypeOrPayloadAction<string[]>
+    keys: TypeOrPayloadAction<EntityId[]>
   ): S
   removeMany<S extends EntityState<T>>(
     state: S,
-    keys: TypeOrPayloadAction<number[]>
+    keys: PayloadAction<number[]>
   ): S
 
   removeAll<S extends EntityState<T>>(state: S): S
@@ -103,28 +104,44 @@ export interface EntityStateAdapter<T> {
     state: S,
     update: TypeOrPayloadAction<Update<T>>
   ): S
+  updateOne<S extends EntityState<T>>(
+    state: S,
+    update: PayloadAction<Update<T>>
+  ): S
+
   updateMany<S extends EntityState<T>>(
     state: S,
     updates: TypeOrPayloadAction<Update<T>[]>
+  ): S
+  updateMany<S extends EntityState<T>>(
+    state: S,
+    updates: PayloadAction<Update<T>[]>
   ): S
 
   upsertOne<S extends EntityState<T>>(
     state: S,
     entity: TypeOrPayloadAction<T>
   ): S
+  upsertOne<S extends EntityState<T>>(state: S, entity: PayloadAction<T>): S
+
   upsertMany<S extends EntityState<T>>(
     state: S,
     entities: TypeOrPayloadAction<T[]>
+  ): S
+  upsertMany<S extends EntityState<T>>(
+    state: S,
+    entities: PayloadAction<T[]>
   ): S
 
   map<S extends EntityState<T>>(
     state: S,
     map: TypeOrPayloadAction<EntityMap<T>>
   ): S
+  map<S extends EntityState<T>>(state: S, map: PayloadAction<EntityMap<T>>): S
 }
 
 export interface EntitySelectors<T, V> {
-  selectIds: (state: V) => string[] | number[]
+  selectIds: (state: V) => EntityId[]
   selectEntities: (state: V) => Dictionary<T>
   selectAll: (state: V) => T[]
   selectTotal: (state: V) => number
