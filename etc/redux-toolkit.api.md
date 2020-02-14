@@ -78,7 +78,7 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
 };
 
 // @alpha (undocumented)
-export type Comparer<T> = ComparerNum<T> | ComparerStr<T>;
+export type Comparer<T> = (a: T, b: T) => EntityId;
 
 // @public
 export type ConfigureEnhancersCallback = (defaultEnhancers: StoreEnhancer[]) => StoreEnhancer[];
@@ -102,19 +102,23 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
 
 // @alpha (undocumented)
-export function createAsyncThunk<ActionType extends string, PayloadCreator extends AsyncActionCreator<unknown, Dispatch, unknown, undefined>>(type: ActionType, payloadCreator: PayloadCreator): {
-    (args?: Parameters<PayloadCreator>[0]["args"] | undefined): (dispatch: any, getState: any, extra: any) => Promise<any>;
-    pending: import("./createAction").ActionCreatorWithPreparedPayload<[Parameters<PayloadCreator>[0]["args"]], undefined, string, never, {
-        args: Parameters<PayloadCreator>[0]["args"];
+export function createAsyncThunk<ActionType extends string, Returned, ActionParams = void, TA extends AsyncThunksArgs<any, any, any> = AsyncThunksArgs<unknown, unknown, Dispatch>>(type: ActionType, payloadCreator: (args: ActionParams, thunkArgs: TA) => Promise<Returned> | Returned): {
+    (args: ActionParams): (dispatch: TA["dispatch"], getState: TA["getState"], extra: TA["extra"]) => Promise<any>;
+    pending: import("./createAction").ActionCreatorWithPreparedPayload<[string, ActionParams], undefined, string, never, {
+        args: ActionParams;
+        requestId: string;
     }>;
-    rejected: import("./createAction").ActionCreatorWithPreparedPayload<[Error, Parameters<PayloadCreator>[0]["args"]], undefined, string, Error, {
-        args: Parameters<PayloadCreator>[0]["args"];
+    rejected: import("./createAction").ActionCreatorWithPreparedPayload<[Error, string, ActionParams], undefined, string, Error, {
+        args: ActionParams;
+        requestId: string;
     }>;
-    fulfilled: import("./createAction").ActionCreatorWithPreparedPayload<[Await<ReturnType<PayloadCreator>>, Parameters<PayloadCreator>[0]["args"]], Await<ReturnType<PayloadCreator>>, string, never, {
-        args: Parameters<PayloadCreator>[0]["args"];
+    fulfilled: import("./createAction").ActionCreatorWithPreparedPayload<[Returned, string, ActionParams], Returned, string, never, {
+        args: ActionParams;
+        requestId: string;
     }>;
-    finished: import("./createAction").ActionCreatorWithPreparedPayload<[Parameters<PayloadCreator>[0]["args"]], undefined, string, never, {
-        args: Parameters<PayloadCreator>[0]["args"];
+    finished: import("./createAction").ActionCreatorWithPreparedPayload<[string, ActionParams], undefined, string, never, {
+        args: ActionParams;
+        requestId: string;
     }>;
 };
 
@@ -185,7 +189,7 @@ export interface EntityState<T> {
     // (undocumented)
     entities: Dictionary<T>;
     // (undocumented)
-    ids: string[] | number[];
+    ids: EntityId[];
 }
 
 // @public (undocumented)
@@ -202,7 +206,7 @@ export function getDefaultMiddleware<S = any, O extends Partial<GetDefaultMiddle
 export function getType<T extends string>(actionCreator: PayloadActionCreator<any, T>): T;
 
 // @alpha (undocumented)
-export type IdSelector<T> = IdSelectorStr<T> | IdSelectorNum<T>;
+export type IdSelector<T> = (model: T) => EntityId;
 
 // @public
 export function isPlain(val: any): boolean;
