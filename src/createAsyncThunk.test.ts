@@ -1,4 +1,5 @@
 import { createAsyncThunk } from './createAsyncThunk'
+import { configureStore } from './configureStore'
 
 describe('createAsyncThunk', () => {
   it('creates the action types', () => {
@@ -8,6 +9,27 @@ describe('createAsyncThunk', () => {
     expect(thunkActionCreator.pending.type).toBe('testType/pending')
     expect(thunkActionCreator.finished.type).toBe('testType/finished')
     expect(thunkActionCreator.rejected.type).toBe('testType/rejected')
+  })
+
+  it('works without passing arguments to the payload creator', async () => {
+    const thunkActionCreator = createAsyncThunk('testType', async () => 42)
+
+    let timesReducerCalled = 0
+
+    const reducer = () => {
+      timesReducerCalled++
+    }
+
+    const store = configureStore({
+      reducer
+    })
+
+    // reset from however many times the store called it
+    timesReducerCalled = 0
+
+    await store.dispatch(thunkActionCreator())
+
+    expect(timesReducerCalled).toBe(3)
   })
 
   it('accepts arguments and dispatches the actions on resolve', async () => {
@@ -36,17 +58,17 @@ describe('createAsyncThunk', () => {
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      thunkActionCreator.pending(args, generatedRequestId)
+      thunkActionCreator.pending(generatedRequestId, args)
     )
 
     expect(dispatch).toHaveBeenNthCalledWith(
       2,
-      thunkActionCreator.fulfilled(result, args, generatedRequestId)
+      thunkActionCreator.fulfilled(result, generatedRequestId, args)
     )
 
     expect(dispatch).toHaveBeenNthCalledWith(
       3,
-      thunkActionCreator.finished(args, generatedRequestId)
+      thunkActionCreator.finished(generatedRequestId, args)
     )
   })
 
@@ -72,17 +94,17 @@ describe('createAsyncThunk', () => {
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      thunkActionCreator.pending(args, generatedRequestId)
+      thunkActionCreator.pending(generatedRequestId, args)
     )
 
     expect(dispatch).toHaveBeenNthCalledWith(
       2,
-      thunkActionCreator.rejected(error, args, generatedRequestId)
+      thunkActionCreator.rejected(error, generatedRequestId, args)
     )
 
     expect(dispatch).toHaveBeenNthCalledWith(
       3,
-      thunkActionCreator.finished(args, generatedRequestId)
+      thunkActionCreator.finished(generatedRequestId, args)
     )
   })
 })
