@@ -1,10 +1,12 @@
 import { Dispatch } from 'redux'
+import nanoid from 'nanoid'
 import { createAction } from './createAction'
 
 type AsyncThunksArgs<S, E, D extends Dispatch = Dispatch> = {
   dispatch: D
   getState: S
   extra: E
+  requestId: string
 }
 
 /**
@@ -39,8 +41,6 @@ export function createAsyncThunk<
       }
     }
   )
-
-  let requestIdCounter = 0
 
   const pending = createAction(
     type + '/pending',
@@ -79,8 +79,7 @@ export function createAsyncThunk<
       getState: TA['getState'],
       extra: TA['extra']
     ) => {
-      requestIdCounter++
-      const requestId = `${requestIdCounter}`
+      const requestId = nanoid()
 
       try {
         dispatch(pending(args, requestId))
@@ -88,7 +87,8 @@ export function createAsyncThunk<
         const result = (await payloadCreator(args, {
           dispatch,
           getState,
-          extra
+          extra,
+          requestId
         } as TA)) as Returned
 
         // TODO How do we avoid errors in here from hitting the catch clause?

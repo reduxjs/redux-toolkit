@@ -17,12 +17,13 @@ describe('createAsyncThunk', () => {
 
     const result = 42
     const args = 123
-    const requestId = '1'
+    let generatedRequestId = ''
 
     const thunkActionCreator = createAsyncThunk(
       'testType',
-      async (args: number) => {
+      async (args: number, { requestId }) => {
         passedArgs = args
+        generatedRequestId = requestId
         return result
       }
     )
@@ -35,17 +36,17 @@ describe('createAsyncThunk', () => {
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      thunkActionCreator.pending(args, requestId)
+      thunkActionCreator.pending(args, generatedRequestId)
     )
 
     expect(dispatch).toHaveBeenNthCalledWith(
       2,
-      thunkActionCreator.fulfilled(result, args, requestId)
+      thunkActionCreator.fulfilled(result, args, generatedRequestId)
     )
 
     expect(dispatch).toHaveBeenNthCalledWith(
       3,
-      thunkActionCreator.finished(args, requestId)
+      thunkActionCreator.finished(args, generatedRequestId)
     )
   })
 
@@ -53,13 +54,14 @@ describe('createAsyncThunk', () => {
     const dispatch = jest.fn()
 
     const args = 123
-    const requestId = '1'
+    let generatedRequestId = ''
 
     const error = new Error('Panic!')
 
     const thunkActionCreator = createAsyncThunk(
       'testType',
-      async (args: number) => {
+      async (args: number, { requestId }) => {
+        generatedRequestId = requestId
         throw error
       }
     )
@@ -70,17 +72,17 @@ describe('createAsyncThunk', () => {
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      thunkActionCreator.pending(args, requestId)
+      thunkActionCreator.pending(args, generatedRequestId)
     )
 
     expect(dispatch).toHaveBeenNthCalledWith(
       2,
-      thunkActionCreator.rejected(error, args, requestId)
+      thunkActionCreator.rejected(error, args, generatedRequestId)
     )
 
     expect(dispatch).toHaveBeenNthCalledWith(
       3,
-      thunkActionCreator.finished(args, requestId)
+      thunkActionCreator.finished(args, generatedRequestId)
     )
   })
 })
