@@ -32,35 +32,43 @@ export function createAsyncThunk<
 ) {
   const fulfilled = createAction(
     type + '/fulfilled',
-    (result: Returned, args: ActionParams) => {
+    (result: Returned, args: ActionParams, requestId: string) => {
       return {
         payload: result,
-        meta: { args }
+        meta: { args, requestId }
       }
     }
   )
 
-  const pending = createAction(type + '/pending', (args: ActionParams) => {
-    return {
-      payload: undefined,
-      meta: { args }
-    }
-  })
+  let requestIdCounter = 0
 
-  const finished = createAction(type + '/finished', (args: ActionParams) => {
-    return {
-      payload: undefined,
-      meta: { args }
+  const pending = createAction(
+    type + '/pending',
+    (args: ActionParams, requestId: string) => {
+      return {
+        payload: undefined,
+        meta: { args, requestId }
+      }
     }
-  })
+  )
+
+  const finished = createAction(
+    type + '/finished',
+    (args: ActionParams, requestId: string) => {
+      return {
+        payload: undefined,
+        meta: { args, requestId }
+      }
+    }
+  )
 
   const rejected = createAction(
     type + '/rejected',
-    (error: Error, args: ActionParams) => {
+    (error: Error, args: ActionParams, requestId: string) => {
       return {
         payload: undefined,
         error,
-        meta: { args }
+        meta: { args, requestId }
       }
     }
   )
@@ -71,8 +79,11 @@ export function createAsyncThunk<
       getState: TA['getState'],
       extra: TA['extra']
     ) => {
+      requestIdCounter++
+      const requestId = `${requestIdCounter}`
+
       try {
-        dispatch(pending(args))
+        dispatch(pending(args, requestId))
         // TODO Also ugly types
         const result = (await payloadCreator(args, {
           dispatch,
@@ -81,13 +92,13 @@ export function createAsyncThunk<
         } as TA)) as Returned
 
         // TODO How do we avoid errors in here from hitting the catch clause?
-        return dispatch(fulfilled(result, args))
+        return dispatch(fulfilled(result, args, requestId))
       } catch (err) {
         // TODO Errors aren't serializable
-        dispatch(rejected(err, args))
+        dispatch(rejected(err, args, requestId))
       } finally {
         // TODO IS there really a benefit from a "finished" action?
-        dispatch(finished(args))
+        dispatch(finished(args, requestId))
       }
     }
   }

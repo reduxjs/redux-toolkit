@@ -17,6 +17,7 @@ describe('createAsyncThunk', () => {
 
     const result = 42
     const args = 123
+    const requestId = '1'
 
     const thunkActionCreator = createAsyncThunk(
       'testType',
@@ -34,17 +35,17 @@ describe('createAsyncThunk', () => {
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      thunkActionCreator.pending(args)
+      thunkActionCreator.pending(args, requestId)
     )
 
     expect(dispatch).toHaveBeenNthCalledWith(
       2,
-      thunkActionCreator.fulfilled(result, args)
+      thunkActionCreator.fulfilled(result, args, requestId)
     )
 
     expect(dispatch).toHaveBeenNthCalledWith(
       3,
-      thunkActionCreator.finished(args)
+      thunkActionCreator.finished(args, requestId)
     )
   })
 
@@ -52,6 +53,7 @@ describe('createAsyncThunk', () => {
     const dispatch = jest.fn()
 
     const args = 123
+    const requestId = '1'
 
     const error = new Error('Panic!')
 
@@ -68,17 +70,17 @@ describe('createAsyncThunk', () => {
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      thunkActionCreator.pending(args)
+      thunkActionCreator.pending(args, requestId)
     )
 
     expect(dispatch).toHaveBeenNthCalledWith(
       2,
-      thunkActionCreator.rejected(error, args)
+      thunkActionCreator.rejected(error, args, requestId)
     )
 
     expect(dispatch).toHaveBeenNthCalledWith(
       3,
-      thunkActionCreator.finished(args)
+      thunkActionCreator.finished(args, requestId)
     )
   })
 })
