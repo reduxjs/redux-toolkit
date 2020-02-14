@@ -20,7 +20,7 @@ describe('createAsyncThunk', () => {
 
     const thunkActionCreator = createAsyncThunk(
       'testType',
-      async ({ args }) => {
+      async (args: number) => {
         passedArgs = args
         return result
       }
@@ -51,14 +51,16 @@ describe('createAsyncThunk', () => {
   it('accepts arguments and dispatches the actions on reject', async () => {
     const dispatch = jest.fn()
 
-    let passedArgs: any
     const args = 123
 
     const error = new Error('Panic!')
 
-    const thunkActionCreator = createAsyncThunk('testType', async () => {
-      throw error
-    })
+    const thunkActionCreator = createAsyncThunk(
+      'testType',
+      async (args: number) => {
+        throw error
+      }
+    )
 
     const thunkFunction = thunkActionCreator(args)
 
