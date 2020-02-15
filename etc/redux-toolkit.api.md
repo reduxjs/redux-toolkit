@@ -102,35 +102,29 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
 
 // @alpha (undocumented)
-export function createAsyncThunk<ActionType extends string, Returned, ActionParams = void, TA extends AsyncThunksArgs<any, any, any> = AsyncThunksArgs<unknown, unknown, Dispatch>>(type: ActionType, payloadCreator: (args: ActionParams, thunkArgs: TA) => Promise<Returned> | Returned): ((args: ActionParams) => (dispatch: TA["dispatch"], getState: TA["getState"], extra: TA["extra"]) => Promise<import("./createAction").PayloadAction<undefined, string, {
-    args: ActionParams;
+export function createAsyncThunk<ActionType extends string, Returned, ThunkArg = void, ThunkAPI extends BaseThunkAPI<any, any, any> = BaseThunkAPI<unknown, unknown, Dispatch>>(type: ActionType, payloadCreator: (arg: ThunkArg, thunkAPI: ThunkAPI) => Promise<Returned> | Returned): ((arg: ThunkArg) => (dispatch: ThunkAPI["dispatch"], getState: ThunkAPI["getState"], extra: ThunkAPI["extra"]) => Promise<import("./createAction").PayloadAction<undefined, string, {
+    arg: ThunkArg;
     requestId: string;
-} | {
     aborted: boolean;
-    abortReason: string;
-    args: ActionParams;
-    requestId: string;
+    abortReason: string | undefined;
 }, any> | import("./createAction").PayloadAction<Returned, string, {
-    args: ActionParams;
+    arg: ThunkArg;
     requestId: string;
 }, never>> & {
     abort: (reason?: string) => void;
 }) & {
-    pending: import("./createAction").ActionCreatorWithPreparedPayload<[string, ActionParams], undefined, string, never, {
-        args: ActionParams;
+    pending: import("./createAction").ActionCreatorWithPreparedPayload<[string, ThunkArg], undefined, string, never, {
+        arg: ThunkArg;
         requestId: string;
     }>;
-    rejected: import("./createAction").ActionCreatorWithPreparedPayload<[Error, string, ActionParams], undefined, string, any, {
-        args: ActionParams;
+    rejected: import("./createAction").ActionCreatorWithPreparedPayload<[Error, string, ThunkArg], undefined, string, any, {
+        arg: ThunkArg;
         requestId: string;
-    } | {
         aborted: boolean;
-        abortReason: string;
-        args: ActionParams;
-        requestId: string;
+        abortReason: string | undefined;
     }>;
-    fulfilled: import("./createAction").ActionCreatorWithPreparedPayload<[Returned, string, ActionParams], Returned, string, never, {
-        args: ActionParams;
+    fulfilled: import("./createAction").ActionCreatorWithPreparedPayload<[Returned, string, ThunkArg], Returned, string, never, {
+        arg: ThunkArg;
         requestId: string;
     }>;
 };
@@ -258,6 +252,18 @@ export interface SerializableStateInvariantMiddlewareOptions {
     ignoredActions?: string[];
     ignoredPaths?: string[];
     isSerializable?: (value: any) => boolean;
+}
+
+// @alpha (undocumented)
+export interface SerializedError {
+    // (undocumented)
+    code?: string;
+    // (undocumented)
+    message?: string;
+    // (undocumented)
+    name?: string;
+    // (undocumented)
+    stack?: string;
 }
 
 // @public

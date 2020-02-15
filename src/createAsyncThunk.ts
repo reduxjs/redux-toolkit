@@ -10,6 +10,9 @@ type BaseThunkAPI<S, E, D extends Dispatch = Dispatch> = {
   signal: AbortSignal
 }
 
+/**
+ * @alpha
+ */
 export interface SerializedError {
   name?: string
   message?: string
