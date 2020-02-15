@@ -1,6 +1,7 @@
 import { createAsyncThunk, Dispatch, createReducer, AnyAction } from 'src'
 import { ThunkDispatch } from 'redux-thunk'
 import { promises } from 'fs'
+import { unwrapResult } from 'src/createAsyncThunk'
 
 function expectType<T>(t: T) {
   return t
@@ -44,7 +45,7 @@ function fn() {}
   }
 
   promise
-    .then(async.unwrapResult)
+    .then(unwrapResult)
     .then(result => {
       expectType<number>(result)
       // typings:expect-error
