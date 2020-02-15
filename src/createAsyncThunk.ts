@@ -9,6 +9,36 @@ type AsyncThunksArgs<S, E, D extends Dispatch = Dispatch> = {
   requestId: string
 }
 
+interface SimpleError {
+  name?: string
+  message?: string
+  stack?: string
+  code?: string
+}
+
+const commonProperties: (keyof SimpleError)[] = [
+  'name',
+  'message',
+  'stack',
+  'code'
+]
+
+// Reworked from https://github.com/sindresorhus/serialize-error
+export const miniSerializeError = (value: any): any => {
+  if (typeof value === 'object' && value !== null) {
+    const simpleError: SimpleError = {}
+    for (const property of commonProperties) {
+      if (typeof value[property] === 'string') {
+        simpleError[property] = value[property]
+      }
+    }
+
+    return simpleError
+  }
+
+  return value
+}
+
 /**
  *
  * @param type
@@ -52,16 +82,6 @@ export function createAsyncThunk<
     }
   )
 
-  const finished = createAction(
-    type + '/finished',
-    (requestId: string, args: ActionParams) => {
-      return {
-        payload: undefined,
-        meta: { args, requestId }
-      }
-    }
-  )
-
   const rejected = createAction(
     type + '/rejected',
     (error: Error, requestId: string, args: ActionParams) => {
@@ -81,32 +101,34 @@ export function createAsyncThunk<
     ) => {
       const requestId = nanoid()
 
+      let result: Returned
       try {
         dispatch(pending(requestId, args))
-        // TODO Also ugly types
-        const result = (await payloadCreator(args, {
+
+        result = (await payloadCreator(args, {
           dispatch,
           getState,
           extra,
           requestId
         } as TA)) as Returned
-
-        // TODO How do we avoid errors in here from hitting the catch clause?
-        return dispatch(fulfilled(result, requestId, args))
       } catch (err) {
-        // TODO Errors aren't serializable
-        dispatch(rejected(err, requestId, args))
-      } finally {
-        // TODO IS there really a benefit from a "finished" action?
-        dispatch(finished(requestId, args))
+        const serializedError = miniSerializeError(err)
+        dispatch(rejected(serializedError, requestId, args))
+        // Rethrow this so the user can handle if desired
+        throw err
       }
+
+      // We dispatch "success" _after_ the catch, to avoid having any errors
+      // here get swallowed by the try/catch block,
+      // per https://twitter.com/dan_abramov/status/770914221638942720
+      // and https://redux-toolkit.js.org/tutorials/advanced-tutorial#async-error-handling-logic-in-thunks
+      return dispatch(fulfilled(result!, requestId, args))
     }
   }
 
   actionCreator.pending = pending
   actionCreator.rejected = rejected
   actionCreator.fulfilled = fulfilled
-  actionCreator.finished = finished
 
   return actionCreator
 }

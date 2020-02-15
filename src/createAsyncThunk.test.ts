@@ -1,4 +1,4 @@
-import { createAsyncThunk } from './createAsyncThunk'
+import { createAsyncThunk, miniSerializeError } from './createAsyncThunk'
 import { configureStore } from './configureStore'
 
 describe('createAsyncThunk', () => {
@@ -7,7 +7,6 @@ describe('createAsyncThunk', () => {
 
     expect(thunkActionCreator.fulfilled.type).toBe('testType/fulfilled')
     expect(thunkActionCreator.pending.type).toBe('testType/pending')
-    expect(thunkActionCreator.finished.type).toBe('testType/finished')
     expect(thunkActionCreator.rejected.type).toBe('testType/rejected')
   })
 
@@ -29,7 +28,7 @@ describe('createAsyncThunk', () => {
 
     await store.dispatch(thunkActionCreator())
 
-    expect(timesReducerCalled).toBe(3)
+    expect(timesReducerCalled).toBe(2)
   })
 
   it('accepts arguments and dispatches the actions on resolve', async () => {
@@ -65,11 +64,6 @@ describe('createAsyncThunk', () => {
       2,
       thunkActionCreator.fulfilled(result, generatedRequestId, args)
     )
-
-    expect(dispatch).toHaveBeenNthCalledWith(
-      3,
-      thunkActionCreator.finished(generatedRequestId, args)
-    )
   })
 
   it('accepts arguments and dispatches the actions on reject', async () => {
@@ -90,21 +84,23 @@ describe('createAsyncThunk', () => {
 
     const thunkFunction = thunkActionCreator(args)
 
-    await thunkFunction(dispatch, undefined, undefined)
+    try {
+      await thunkFunction(dispatch, undefined, undefined)
+    } catch (e) {}
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
       thunkActionCreator.pending(generatedRequestId, args)
     )
 
-    expect(dispatch).toHaveBeenNthCalledWith(
-      2,
-      thunkActionCreator.rejected(error, generatedRequestId, args)
-    )
+    expect(dispatch).toHaveBeenCalledTimes(2)
 
-    expect(dispatch).toHaveBeenNthCalledWith(
-      3,
-      thunkActionCreator.finished(generatedRequestId, args)
-    )
+    console.log(dispatch.mock.calls)
+
+    // Have to check the bits of the action separately since the error was processed
+    const errorAction = dispatch.mock.calls[1][0]
+    expect(errorAction.error).toEqual(miniSerializeError(error))
+    expect(errorAction.meta.requestId).toBe(generatedRequestId)
+    expect(errorAction.meta.args).toBe(args)
   })
 })

@@ -22,6 +22,5 @@ function fn() {}
         expectType<number>(action.payload)
       })
       .addCase(async.rejected, (_, action) => {})
-      .addCase(async.finished, (_, action) => {})
   )
 }
