@@ -2,7 +2,7 @@ import { Dispatch } from 'redux'
 import nanoid from 'nanoid'
 import { createAction } from './createAction'
 
-type AsyncThunksArgs<S, E, D extends Dispatch = Dispatch> = {
+type BaseThunkAPI<S, E, D extends Dispatch = Dispatch> = {
   dispatch: D
   getState: S
   extra: E
@@ -10,14 +10,14 @@ type AsyncThunksArgs<S, E, D extends Dispatch = Dispatch> = {
   signal: AbortSignal
 }
 
-interface SimpleError {
+export interface SerializedError {
   name?: string
   message?: string
   stack?: string
   code?: string
 }
 
-const commonProperties: (keyof SimpleError)[] = [
+const commonProperties: (keyof SerializedError)[] = [
   'name',
   'message',
   'stack',
@@ -27,7 +27,7 @@ const commonProperties: (keyof SimpleError)[] = [
 // Reworked from https://github.com/sindresorhus/serialize-error
 export const miniSerializeError = (value: any): any => {
   if (typeof value === 'object' && value !== null) {
-    const simpleError: SimpleError = {}
+    const simpleError: SerializedError = {}
     for (const property of commonProperties) {
       if (typeof value[property] === 'string') {
         simpleError[property] = value[property]
@@ -50,8 +50,8 @@ export const miniSerializeError = (value: any): any => {
 export function createAsyncThunk<
   ActionType extends string,
   Returned,
-  ActionParams = void,
-  TA extends AsyncThunksArgs<any, any, any> = AsyncThunksArgs<
+  ThunkArg = void,
+  ThunkAPI extends BaseThunkAPI<any, any, any> = BaseThunkAPI<
     unknown,
     unknown,
     Dispatch
@@ -59,54 +59,52 @@ export function createAsyncThunk<
 >(
   type: ActionType,
   payloadCreator: (
-    args: ActionParams,
-    thunkArgs: TA
+    arg: ThunkArg,
+    thunkAPI: ThunkAPI
   ) => Promise<Returned> | Returned
 ) {
   const fulfilled = createAction(
     type + '/fulfilled',
-    (result: Returned, requestId: string, args: ActionParams) => {
+    (result: Returned, requestId: string, arg: ThunkArg) => {
       return {
         payload: result,
-        meta: { args, requestId }
+        meta: { arg, requestId }
       }
     }
   )
 
   const pending = createAction(
     type + '/pending',
-    (requestId: string, args: ActionParams) => {
+    (requestId: string, arg: ThunkArg) => {
       return {
         payload: undefined,
-        meta: { args, requestId }
+        meta: { arg, requestId }
       }
     }
   )
 
   const rejected = createAction(
     type + '/rejected',
-    (error: Error, requestId: string, args: ActionParams) => {
+    (error: Error, requestId: string, arg: ThunkArg) => {
+      const aborted = error && error.name === 'AbortError'
       return {
         payload: undefined,
         error: miniSerializeError(error),
         meta: {
-          args,
+          arg,
           requestId,
-          ...(error &&
-            error.name === 'AbortError' && {
-              aborted: true,
-              abortReason: error.message
-            })
+          aborted,
+          abortReason: aborted ? error.message : undefined
         }
       }
     }
   )
 
-  function actionCreator(args: ActionParams) {
+  function actionCreator(arg: ThunkArg) {
     return (
-      dispatch: TA['dispatch'],
-      getState: TA['getState'],
-      extra: TA['extra']
+      dispatch: ThunkAPI['dispatch'],
+      getState: ThunkAPI['getState'],
+      extra: ThunkAPI['extra']
     ) => {
       const requestId = nanoid()
       const abortController = new AbortController()
@@ -117,7 +115,7 @@ export function createAsyncThunk<
         abortAction = rejected(
           { name: 'AbortError', message: reason },
           requestId,
-          args
+          arg
         )
         dispatch(abortAction)
       }
@@ -125,18 +123,18 @@ export function createAsyncThunk<
       const promise = (async function() {
         let finalAction: ReturnType<typeof fulfilled | typeof rejected>
         try {
-          dispatch(pending(requestId, args))
+          dispatch(pending(requestId, arg))
 
           finalAction = fulfilled(
-            await payloadCreator(args, {
+            await payloadCreator(arg, {
               dispatch,
               getState,
               extra,
               requestId,
               signal: abortController.signal
-            } as TA),
+            } as ThunkAPI),
             requestId,
-            args
+            arg
           )
         } catch (err) {
           if (err && err.name === 'AbortError' && abortAction) {
@@ -145,10 +143,10 @@ export function createAsyncThunk<
             // return a copy of the dispatched abortAction, but attach the AbortError to it.
             return { ...abortAction, error: miniSerializeError(err) }
           }
-          finalAction = rejected(err, requestId, args)
+          finalAction = rejected(err, requestId, arg)
         }
 
-        // We dispatch "success" _after_ the catch, to avoid having any errors
+        // We dispatch the result action _after_ the catch, to avoid having any errors
         // here get swallowed by the try/catch block,
         // per https://twitter.com/dan_abramov/status/770914221638942720
         // and https://redux-toolkit.js.org/tutorials/advanced-tutorial#async-error-handling-logic-in-thunks

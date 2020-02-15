@@ -39,7 +39,7 @@ describe('createAsyncThunk', () => {
   it('accepts arguments and dispatches the actions on resolve', async () => {
     const dispatch = jest.fn()
 
-    let passedArgs: any
+    let passedArg: any
 
     const result = 42
     const args = 123
@@ -47,8 +47,8 @@ describe('createAsyncThunk', () => {
 
     const thunkActionCreator = createAsyncThunk(
       'testType',
-      async (args: number, { requestId }) => {
-        passedArgs = args
+      async (arg: number, { requestId }) => {
+        passedArg = arg
         generatedRequestId = requestId
         return result
       }
@@ -58,7 +58,7 @@ describe('createAsyncThunk', () => {
 
     await thunkFunction(dispatch, undefined, undefined)
 
-    expect(passedArgs).toBe(args)
+    expect(passedArg).toBe(args)
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -100,13 +100,11 @@ describe('createAsyncThunk', () => {
 
     expect(dispatch).toHaveBeenCalledTimes(2)
 
-    console.log(dispatch.mock.calls)
-
     // Have to check the bits of the action separately since the error was processed
     const errorAction = dispatch.mock.calls[1][0]
     expect(errorAction.error).toEqual(miniSerializeError(error))
     expect(errorAction.meta.requestId).toBe(generatedRequestId)
-    expect(errorAction.meta.args).toBe(args)
+    expect(errorAction.meta.arg).toBe(args)
   })
 })
 

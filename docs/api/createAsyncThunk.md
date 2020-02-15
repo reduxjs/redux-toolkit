@@ -68,7 +68,7 @@ The `payloadCreator` function can contain whatever logic you need to calculate a
 
 The `payloadCreator` function will be called with two arguments:
 
-- `thunkArg`: a single value, containing the first parameter that was passed to the thunk action creator when it was dispatched. This is useful for passing in values like item IDs that may be needed as part of the request. If you need to pass in multiple values, pass them together in an object when you dispatch the thunk, like `dispatch(fetchUsers({status: 'active', sortBy: 'name'}))`.
+- `arg`: a single value, containing the first parameter that was passed to the thunk action creator when it was dispatched. This is useful for passing in values like item IDs that may be needed as part of the request. If you need to pass in multiple values, pass them together in an object when you dispatch the thunk, like `dispatch(fetchUsers({status: 'active', sortBy: 'name'}))`.
 - `thunkAPI`: an object containing all of the parameters that are normally passed to a Redux thunk function, as well as additional options:
   - `dispatch`: the Redux store `dispatch` method
   - `getState`: the Redux store `getState` method
@@ -110,7 +110,7 @@ interface PendingAction<ThunkArg> {
   payload: undefined
   meta: {
     requestId: string
-    thunkArg: ThunkArg
+    arg: ThunkArg
   }
 }
 
@@ -119,7 +119,7 @@ interface FulfilledAction<ThunkArg, PromiseResult> {
   payload: PromiseResult
   meta: {
     requestId: string
-    thunkArg: ThunkArg
+    arg: ThunkArg
   }
 }
 
@@ -129,7 +129,7 @@ interface RejectedAction<ThunkArg> {
   error: SerializedError | any
   meta: {
     requestId: string
-    thunkArg: ThunkArg
+    arg: ThunkArg
     aborted: boolean
     abortReason?: string
   }
@@ -137,18 +137,18 @@ interface RejectedAction<ThunkArg> {
 
 type Pending = <ThunkArg>(
   requestId: string,
-  thunkArg: ThunkArg
+  arg: ThunkArg
 ) => PendingAction<ThunkArg>
 
 type Fulfilled = <ThunkArg, PromiseResult>(
   payload: PromiseResult,
   requestId: string,
-  thunkArg: ThunkArg
+  arg: ThunkArg
 ) => FulfilledAction<ThunkArg, PromiseResult>
 
 type Rejected = <ThunkArg>(
   requestId: string,
-  thunkArg: ThunkArg
+  arg: ThunkArg
 ) => RejectedAction<ThunkArg>
 ```
 

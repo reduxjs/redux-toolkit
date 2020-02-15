@@ -73,4 +73,8 @@ export {
   Comparer
 } from './entities/models'
 
-export { createAsyncThunk, unwrapResult } from './createAsyncThunk'
+export {
+  createAsyncThunk,
+  unwrapResult,
+  SerializedError
+} from './createAsyncThunk'
