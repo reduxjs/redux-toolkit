@@ -1,5 +1,6 @@
 import { createAsyncThunk, Dispatch, createReducer, AnyAction } from 'src'
 import { ThunkDispatch } from 'redux-thunk'
+import { promises } from 'fs'
 
 function expectType<T>(t: T) {
   return t
@@ -29,7 +30,8 @@ function fn() {}
       })
   )
 
-  const result = await dispatch(async(3))
+  const promise = dispatch(async(3))
+  const result = await promise
 
   if (async.fulfilled.match(result)) {
     expectType<ReturnType<typeof async['fulfilled']>>(result)
@@ -40,4 +42,15 @@ function fn() {}
     // typings:expect-error
     expectType<ReturnType<typeof async['fulfilled']>>(result)
   }
+
+  promise
+    .then(async.unwrapResult)
+    .then(result => {
+      expectType<number>(result)
+      // typings:expect-error
+      expectType<Error>(result)
+    })
+    .catch(error => {
+      // catch is always any-typed, nothing we can do here
+    })
 })()

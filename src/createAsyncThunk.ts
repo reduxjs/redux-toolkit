@@ -2,6 +2,8 @@ import { Dispatch } from 'redux'
 import nanoid from 'nanoid'
 import { createAction } from './createAction'
 
+type Await<P> = P extends PromiseLike<infer T> ? T : P
+
 type AsyncThunksArgs<S, E, D extends Dispatch = Dispatch> = {
   dispatch: D
   getState: S
@@ -129,5 +131,19 @@ export function createAsyncThunk<
     }
   }
 
-  return Object.assign(actionCreator, { pending, rejected, fulfilled })
+  function unwrapResult(
+    returned: Await<ReturnType<ReturnType<typeof actionCreator>>>
+  ) {
+    if (rejected.match(returned)) {
+      throw returned.error
+    }
+    return returned.payload
+  }
+
+  return Object.assign(actionCreator, {
+    pending,
+    rejected,
+    fulfilled,
+    unwrapResult
+  })
 }

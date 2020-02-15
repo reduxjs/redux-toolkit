@@ -121,6 +121,13 @@ export function createAsyncThunk<ActionType extends string, Returned, ActionPara
         args: ActionParams;
         requestId: string;
     }>;
+    unwrapResult: (returned: import("./createAction").PayloadAction<Returned, string, {
+        args: ActionParams;
+        requestId: string;
+    }, never> | import("./createAction").PayloadAction<undefined, string, {
+        args: ActionParams;
+        requestId: string;
+    }, Error>) => Returned;
 };
 
 // @alpha (undocumented)
