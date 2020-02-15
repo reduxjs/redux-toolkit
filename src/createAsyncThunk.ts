@@ -101,34 +101,33 @@ export function createAsyncThunk<
     ) => {
       const requestId = nanoid()
 
-      let result: Returned
+      let finalAction: ReturnType<typeof fulfilled | typeof rejected>
       try {
         dispatch(pending(requestId, args))
 
-        result = (await payloadCreator(args, {
-          dispatch,
-          getState,
-          extra,
-          requestId
-        } as TA)) as Returned
+        finalAction = fulfilled(
+          await payloadCreator(args, {
+            dispatch,
+            getState,
+            extra,
+            requestId
+          } as TA),
+          requestId,
+          args
+        )
       } catch (err) {
         const serializedError = miniSerializeError(err)
-        dispatch(rejected(serializedError, requestId, args))
-        // Rethrow this so the user can handle if desired
-        throw err
+        finalAction = rejected(serializedError, requestId, args)
       }
 
       // We dispatch "success" _after_ the catch, to avoid having any errors
       // here get swallowed by the try/catch block,
       // per https://twitter.com/dan_abramov/status/770914221638942720
       // and https://redux-toolkit.js.org/tutorials/advanced-tutorial#async-error-handling-logic-in-thunks
-      return dispatch(fulfilled(result!, requestId, args))
+      dispatch(finalAction)
+      return finalAction
     }
   }
 
-  actionCreator.pending = pending
-  actionCreator.rejected = rejected
-  actionCreator.fulfilled = fulfilled
-
-  return actionCreator
+  return Object.assign(actionCreator, { pending, rejected, fulfilled })
 }
