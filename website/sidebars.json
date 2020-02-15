@@ -14,6 +14,7 @@
       "api/createAction",
       "api/createSlice",
       "api/createSelector",
+      "api/createAsyncThunk",
       "api/other-exports"
     ]
   }
