@@ -86,17 +86,17 @@ export function createAsyncThunk<
   const rejected = createAction(
     type + '/rejected',
     (error: Error, requestId: string, args: ActionParams) => {
-      if (error.name === 'AbortError') {
-        return {
-          payload: undefined,
-          error: miniSerializeError(error),
-          meta: { args, requestId, aborted: true, abortReason: error.message }
-        }
-      }
       return {
         payload: undefined,
         error: miniSerializeError(error),
-        meta: { args, requestId }
+        meta: {
+          args,
+          requestId,
+          ...(error.name === 'AbortError' && {
+            aborted: true,
+            abortReason: error.message
+          })
+        }
       }
     }
   )
