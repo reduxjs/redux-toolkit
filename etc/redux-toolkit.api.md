@@ -102,8 +102,13 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
 
 // @alpha (undocumented)
-export function createAsyncThunk<ActionType extends string, Returned, ActionParams = void, TA extends AsyncThunksArgs<any, any, any> = AsyncThunksArgs<unknown, unknown, Dispatch>>(type: ActionType, payloadCreator: (args: ActionParams, thunkArgs: TA) => Promise<Returned> | Returned): {
-    (args: ActionParams): (dispatch: TA["dispatch"], getState: TA["getState"], extra: TA["extra"]) => Promise<any>;
+export function createAsyncThunk<ActionType extends string, Returned, ActionParams = void, TA extends AsyncThunksArgs<any, any, any> = AsyncThunksArgs<unknown, unknown, Dispatch>>(type: ActionType, payloadCreator: (args: ActionParams, thunkArgs: TA) => Promise<Returned> | Returned): ((args: ActionParams) => (dispatch: TA["dispatch"], getState: TA["getState"], extra: TA["extra"]) => Promise<import("./createAction").PayloadAction<Returned, string, {
+    args: ActionParams;
+    requestId: string;
+}, never> | import("./createAction").PayloadAction<undefined, string, {
+    args: ActionParams;
+    requestId: string;
+}, Error>>) & {
     pending: import("./createAction").ActionCreatorWithPreparedPayload<[string, ActionParams], undefined, string, never, {
         args: ActionParams;
         requestId: string;
@@ -116,6 +121,13 @@ export function createAsyncThunk<ActionType extends string, Returned, ActionPara
         args: ActionParams;
         requestId: string;
     }>;
+    unwrapResult: (returned: import("./createAction").PayloadAction<Returned, string, {
+        args: ActionParams;
+        requestId: string;
+    }, never> | import("./createAction").PayloadAction<undefined, string, {
+        args: ActionParams;
+        requestId: string;
+    }, Error>) => Returned;
 };
 
 // @alpha (undocumented)
