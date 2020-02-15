@@ -92,24 +92,24 @@ export function createAsyncThunk<
         meta: {
           args,
           requestId,
-          ...(error.name === 'AbortError' && {
-            aborted: true,
-            abortReason: error.message
-          })
+          ...(error &&
+            error.name === 'AbortError' && {
+              aborted: true,
+              abortReason: error.message
+            })
         }
       }
     }
   )
 
   function actionCreator(args: ActionParams) {
-    const abortController = new AbortController()
-
-    return function thunkAction(
+    return (
       dispatch: TA['dispatch'],
       getState: TA['getState'],
       extra: TA['extra']
-    ) {
+    ) => {
       const requestId = nanoid()
+      const abortController = new AbortController()
       let abortAction: ReturnType<typeof rejected> | undefined
 
       function abort(reason: string = 'Aborted.') {
