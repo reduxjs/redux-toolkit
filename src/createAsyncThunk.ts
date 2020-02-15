@@ -115,7 +115,7 @@ export function createAsyncThunk<
       function abort(reason: string = 'Aborted.') {
         abortController.abort()
         abortAction = rejected(
-          new DOMException(reason, 'AbortError'),
+          { name: 'AbortError', message: reason },
           requestId,
           args
         )
@@ -139,11 +139,7 @@ export function createAsyncThunk<
             args
           )
         } catch (err) {
-          if (
-            err instanceof DOMException &&
-            err.name === 'AbortError' &&
-            abortAction
-          ) {
+          if (err && err.name === 'AbortError' && abortAction) {
             // abortAction has already been dispatched, no further action should be dispatched
             // by this thunk.
             // return a copy of the dispatched abortAction, but attach the AbortError to it.
