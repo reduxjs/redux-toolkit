@@ -116,10 +116,6 @@ export function createAsyncThunk<ActionType extends string, Returned, ActionPara
         args: ActionParams;
         requestId: string;
     }>;
-    finished: import("./createAction").ActionCreatorWithPreparedPayload<[string, ActionParams], undefined, string, never, {
-        args: ActionParams;
-        requestId: string;
-    }>;
 };
 
 // @alpha (undocumented)
