@@ -104,83 +104,63 @@ export function createAsyncThunk<
   function actionCreator(args: ActionParams) {
     const abortController = new AbortController()
 
-    let dispatchAbort:
-      | undefined
-      | ((reason: string) => ReturnType<typeof rejected>)
-
-    let abortReason: string
-
-    function abort(reason: string = 'Aborted.') {
-      abortController.abort()
-      if (dispatchAbort) {
-        dispatchAbort(reason)
-      } else {
-        abortReason = reason
-      }
-    }
-
-    async function thunkAction(
+    return function thunkAction(
       dispatch: TA['dispatch'],
       getState: TA['getState'],
       extra: TA['extra']
     ) {
       const requestId = nanoid()
       let abortAction: ReturnType<typeof rejected> | undefined
-      dispatchAbort = reason => {
+
+      function abort(reason: string = 'Aborted.') {
+        abortController.abort()
         abortAction = rejected(
           new DOMException(reason, 'AbortError'),
           requestId,
           args
         )
         dispatch(abortAction)
-        return abortAction
-      }
-      // if the thunkAction.abort() method has been called before the thunkAction was dispatched,
-      // just dispatch an aborted-action and never start with the thunk
-      if (abortController.signal.aborted) {
-        return dispatchAbort(abortReason)
       }
 
-      let finalAction: ReturnType<typeof fulfilled | typeof rejected>
-      try {
-        dispatch(pending(requestId, args))
+      const promise = (async function() {
+        let finalAction: ReturnType<typeof fulfilled | typeof rejected>
+        try {
+          dispatch(pending(requestId, args))
 
-        finalAction = fulfilled(
-          await payloadCreator(args, {
-            dispatch,
-            getState,
-            extra,
+          finalAction = fulfilled(
+            await payloadCreator(args, {
+              dispatch,
+              getState,
+              extra,
+              requestId,
+              signal: abortController.signal
+            } as TA),
             requestId,
-            signal: abortController.signal
-          } as TA),
-          requestId,
-          args
-        )
-      } catch (err) {
-        if (
-          err instanceof DOMException &&
-          err.name === 'AbortError' &&
-          abortAction
-        ) {
-          // abortAction has already been dispatched, no further action should be dispatched
-          // by this thunk.
-          // return a copy of the dispatched abortAction, but attach the AbortError to it.
-          return Object.assign({}, abortAction, {
-            error: miniSerializeError(err)
-          })
+            args
+          )
+        } catch (err) {
+          if (
+            err instanceof DOMException &&
+            err.name === 'AbortError' &&
+            abortAction
+          ) {
+            // abortAction has already been dispatched, no further action should be dispatched
+            // by this thunk.
+            // return a copy of the dispatched abortAction, but attach the AbortError to it.
+            return { ...abortAction, error: miniSerializeError(err) }
+          }
+          finalAction = rejected(err, requestId, args)
         }
-        finalAction = rejected(err, requestId, args)
-      }
 
-      // We dispatch "success" _after_ the catch, to avoid having any errors
-      // here get swallowed by the try/catch block,
-      // per https://twitter.com/dan_abramov/status/770914221638942720
-      // and https://redux-toolkit.js.org/tutorials/advanced-tutorial#async-error-handling-logic-in-thunks
-      dispatch(finalAction)
-      return finalAction
+        // We dispatch "success" _after_ the catch, to avoid having any errors
+        // here get swallowed by the try/catch block,
+        // per https://twitter.com/dan_abramov/status/770914221638942720
+        // and https://redux-toolkit.js.org/tutorials/advanced-tutorial#async-error-handling-logic-in-thunks
+        dispatch(finalAction)
+        return finalAction
+      })()
+      return Object.assign(promise, { abort })
     }
-
-    return Object.assign(thunkAction, { abort })
   }
 
   return Object.assign(actionCreator, {
