@@ -2,13 +2,12 @@ import { Dispatch } from 'redux'
 import nanoid from 'nanoid'
 import { createAction } from './createAction'
 
-type Await<P> = P extends PromiseLike<infer T> ? T : P
-
 type AsyncThunksArgs<S, E, D extends Dispatch = Dispatch> = {
   dispatch: D
   getState: S
   extra: E
   requestId: string
+  signal: AbortSignal
 }
 
 interface SimpleError {
@@ -89,61 +88,92 @@ export function createAsyncThunk<
     (error: Error, requestId: string, args: ActionParams) => {
       return {
         payload: undefined,
-        error,
-        meta: { args, requestId }
+        error: miniSerializeError(error),
+        meta: {
+          args,
+          requestId,
+          ...(error &&
+            error.name === 'AbortError' && {
+              aborted: true,
+              abortReason: error.message
+            })
+        }
       }
     }
   )
 
   function actionCreator(args: ActionParams) {
-    return async (
+    return (
       dispatch: TA['dispatch'],
       getState: TA['getState'],
       extra: TA['extra']
     ) => {
       const requestId = nanoid()
+      const abortController = new AbortController()
+      let abortAction: ReturnType<typeof rejected> | undefined
 
-      let finalAction: ReturnType<typeof fulfilled | typeof rejected>
-      try {
-        dispatch(pending(requestId, args))
-
-        finalAction = fulfilled(
-          await payloadCreator(args, {
-            dispatch,
-            getState,
-            extra,
-            requestId
-          } as TA),
+      function abort(reason: string = 'Aborted.') {
+        abortController.abort()
+        abortAction = rejected(
+          { name: 'AbortError', message: reason },
           requestId,
           args
         )
-      } catch (err) {
-        const serializedError = miniSerializeError(err)
-        finalAction = rejected(serializedError, requestId, args)
+        dispatch(abortAction)
       }
 
-      // We dispatch "success" _after_ the catch, to avoid having any errors
-      // here get swallowed by the try/catch block,
-      // per https://twitter.com/dan_abramov/status/770914221638942720
-      // and https://redux-toolkit.js.org/tutorials/advanced-tutorial#async-error-handling-logic-in-thunks
-      dispatch(finalAction)
-      return finalAction
-    }
-  }
+      const promise = (async function() {
+        let finalAction: ReturnType<typeof fulfilled | typeof rejected>
+        try {
+          dispatch(pending(requestId, args))
 
-  function unwrapResult(
-    returned: Await<ReturnType<ReturnType<typeof actionCreator>>>
-  ) {
-    if (rejected.match(returned)) {
-      throw returned.error
+          finalAction = fulfilled(
+            await payloadCreator(args, {
+              dispatch,
+              getState,
+              extra,
+              requestId,
+              signal: abortController.signal
+            } as TA),
+            requestId,
+            args
+          )
+        } catch (err) {
+          if (err && err.name === 'AbortError' && abortAction) {
+            // abortAction has already been dispatched, no further action should be dispatched
+            // by this thunk.
+            // return a copy of the dispatched abortAction, but attach the AbortError to it.
+            return { ...abortAction, error: miniSerializeError(err) }
+          }
+          finalAction = rejected(err, requestId, args)
+        }
+
+        // We dispatch "success" _after_ the catch, to avoid having any errors
+        // here get swallowed by the try/catch block,
+        // per https://twitter.com/dan_abramov/status/770914221638942720
+        // and https://redux-toolkit.js.org/tutorials/advanced-tutorial#async-error-handling-logic-in-thunks
+        dispatch(finalAction)
+        return finalAction
+      })()
+      return Object.assign(promise, { abort })
     }
-    return returned.payload
   }
 
   return Object.assign(actionCreator, {
     pending,
     rejected,
-    fulfilled,
-    unwrapResult
+    fulfilled
   })
+}
+
+/**
+ * @alpha
+ */
+export function unwrapResult<T>(
+  returned: { error: any } | { payload: NonNullable<T> }
+): NonNullable<T> {
+  if ('error' in returned) {
+    throw returned.error
+  }
+  return returned.payload
 }

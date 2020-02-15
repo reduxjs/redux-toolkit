@@ -1,5 +1,10 @@
-import { createAsyncThunk, miniSerializeError } from './createAsyncThunk'
+import {
+  createAsyncThunk,
+  miniSerializeError,
+  unwrapResult
+} from './createAsyncThunk'
 import { configureStore } from './configureStore'
+import { AnyAction } from 'redux'
 
 describe('createAsyncThunk', () => {
   it('creates the action types', () => {
@@ -102,5 +107,87 @@ describe('createAsyncThunk', () => {
     expect(errorAction.error).toEqual(miniSerializeError(error))
     expect(errorAction.meta.requestId).toBe(generatedRequestId)
     expect(errorAction.meta.args).toBe(args)
+  })
+})
+
+describe('createAsyncThunk with abortController', () => {
+  const asyncThunk = createAsyncThunk('test', function abortablePayloadCreator(
+    _: any,
+    { signal }
+  ) {
+    return new Promise((resolve, reject) => {
+      if (signal.aborted) {
+        reject(
+          new DOMException(
+            'This should never be reached as it should already be handled.',
+            'AbortError'
+          )
+        )
+      }
+      signal.addEventListener('abort', () => {
+        reject(new DOMException('Was aborted while running', 'AbortError'))
+      })
+      setTimeout(resolve, 100)
+    })
+  })
+
+  let store = configureStore({
+    reducer(store: AnyAction[] = []) {
+      return store
+    }
+  })
+
+  beforeEach(() => {
+    store = configureStore({
+      reducer(store: AnyAction[] = [], action) {
+        return [...store, action]
+      }
+    })
+  })
+
+  test('normal usage', async () => {
+    await store.dispatch(asyncThunk({}))
+    expect(store.getState()).toEqual([
+      expect.any(Object),
+      expect.objectContaining({ type: 'test/pending' }),
+      expect.objectContaining({ type: 'test/fulfilled' })
+    ])
+  })
+
+  test('abort after dispatch', async () => {
+    const promise = store.dispatch(asyncThunk({}))
+    promise.abort('AbortReason')
+    const result = await promise
+    const expectedAbortedAction = {
+      type: 'test/rejected',
+      error: {
+        message: 'AbortReason',
+        name: 'AbortError'
+      },
+      meta: { aborted: true, abortReason: 'AbortReason' }
+    }
+    // abortedAction with reason is dispatched after test/pending is dispatched
+    expect(store.getState()).toMatchObject([
+      {},
+      { type: 'test/pending' },
+      expectedAbortedAction
+    ])
+
+    // same abortedAction is returned, but with the AbortError from the abortablePayloadCreator
+    expect(result).toMatchObject({
+      ...expectedAbortedAction,
+      error: {
+        message: 'Was aborted while running',
+        name: 'AbortError'
+      }
+    })
+
+    // calling unwrapResult on the returned object re-throws the error from the abortablePayloadCreator
+    expect(() => unwrapResult(result)).toThrowError(
+      expect.objectContaining({
+        message: 'Was aborted while running',
+        name: 'AbortError'
+      })
+    )
   })
 })
