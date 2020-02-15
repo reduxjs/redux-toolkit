@@ -83,20 +83,16 @@ export function createAsyncThunk<
     }
   )
 
-  const aborted = createAction(
-    type + '/aborted',
-    (requestId: string, args: ActionParams, abortError: DOMException) => {
-      return {
-        payload: undefined,
-        meta: { args, requestId, reason: abortError.message },
-        error: miniSerializeError(abortError)
-      }
-    }
-  )
-
   const rejected = createAction(
     type + '/rejected',
     (error: Error, requestId: string, args: ActionParams) => {
+      if (error.name === 'AbortError') {
+        return {
+          payload: undefined,
+          error: miniSerializeError(error),
+          meta: { args, requestId, aborted: true, abortReason: error.message }
+        }
+      }
       return {
         payload: undefined,
         error: miniSerializeError(error),
@@ -110,7 +106,7 @@ export function createAsyncThunk<
 
     let dispatchAbort:
       | undefined
-      | ((reason: string) => ReturnType<typeof aborted>)
+      | ((reason: string) => ReturnType<typeof rejected>)
 
     let abortReason: string
 
@@ -129,12 +125,12 @@ export function createAsyncThunk<
       extra: TA['extra']
     ) {
       const requestId = nanoid()
-      let abortAction: ReturnType<typeof aborted> | undefined
+      let abortAction: ReturnType<typeof rejected> | undefined
       dispatchAbort = reason => {
-        abortAction = aborted(
+        abortAction = rejected(
+          new DOMException(reason, 'AbortError'),
           requestId,
-          args,
-          new DOMException(reason, 'AbortError')
+          args
         )
         dispatch(abortAction)
         return abortAction

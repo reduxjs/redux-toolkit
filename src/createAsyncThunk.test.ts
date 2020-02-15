@@ -160,12 +160,12 @@ describe('createAsyncThunk with abortController', () => {
     thunkAction.abort('AbortReason')
     const result = await promise
     const expectedAbortedAction = {
-      type: 'test/aborted',
+      type: 'test/rejected',
       error: {
         message: 'AbortReason',
         name: 'AbortError'
       },
-      meta: { reason: 'AbortReason' }
+      meta: { aborted: true, abortReason: 'AbortReason' }
     }
     // abortedAction with reason is dispatched after test/pending is dispatched
     expect(store.getState()).toMatchObject([
@@ -198,12 +198,12 @@ describe('createAsyncThunk with abortController', () => {
     const result = await store.dispatch(thunkAction)
 
     const expectedAbortedAction = {
-      type: 'test/aborted',
+      type: 'test/rejected',
       error: {
         message: 'AbortReason',
         name: 'AbortError'
       },
-      meta: { reason: 'AbortReason' }
+      meta: { aborted: true, abortReason: 'AbortReason' }
     }
     // abortedAction with reason is dispatched without test/pending being dispatched
     expect(store.getState()).toMatchObject([{}, expectedAbortedAction])
