@@ -105,13 +105,11 @@ export function createAction<PA extends PrepareAction<any>, T extends string = s
 export function createAsyncThunk<ActionType extends string, Returned, ActionParams = void, TA extends AsyncThunksArgs<any, any, any> = AsyncThunksArgs<unknown, unknown, Dispatch>>(type: ActionType, payloadCreator: (args: ActionParams, thunkArgs: TA) => Promise<Returned> | Returned): ((args: ActionParams) => (dispatch: TA["dispatch"], getState: TA["getState"], extra: TA["extra"]) => Promise<import("./createAction").PayloadAction<undefined, string, {
     args: ActionParams;
     requestId: string;
+} | {
     aborted: boolean;
     abortReason: string;
-} | {
     args: ActionParams;
     requestId: string;
-    aborted?: undefined;
-    abortReason?: undefined;
 }, any> | import("./createAction").PayloadAction<Returned, string, {
     args: ActionParams;
     requestId: string;
@@ -125,13 +123,11 @@ export function createAsyncThunk<ActionType extends string, Returned, ActionPara
     rejected: import("./createAction").ActionCreatorWithPreparedPayload<[Error, string, ActionParams], undefined, string, any, {
         args: ActionParams;
         requestId: string;
+    } | {
         aborted: boolean;
         abortReason: string;
-    } | {
         args: ActionParams;
         requestId: string;
-        aborted?: undefined;
-        abortReason?: undefined;
     }>;
     fulfilled: import("./createAction").ActionCreatorWithPreparedPayload<[Returned, string, ActionParams], Returned, string, never, {
         args: ActionParams;
