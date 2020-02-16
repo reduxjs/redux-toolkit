@@ -1,6 +1,13 @@
 import { Dispatch } from 'redux'
 import nanoid from 'nanoid'
-import { createAction } from './createAction'
+import {
+  createAction,
+  PayloadAction,
+  ActionCreatorWithPreparedPayload
+} from './createAction'
+
+// @ts-ignore we need the import of these types due to a bundling issue.
+type _Keep = PayloadAction | ActionCreatorWithPreparedPayload<any, unknown>
 
 export type BaseThunkAPI<S, E, D extends Dispatch = Dispatch> = {
   dispatch: D

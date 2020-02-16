@@ -102,28 +102,28 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
 
 // @alpha (undocumented)
-export function createAsyncThunk<Returned, ThunkArg = void, State = unknown, Extra = unknown, DispatchType extends Dispatch = Dispatch, ActionType extends string = string, ThunkAPI extends BaseThunkAPI<any, any, any> = BaseThunkAPI<State, Extra, DispatchType>>(type: ActionType, payloadCreator: (arg: ThunkArg, thunkAPI: ThunkAPI) => Promise<Returned> | Returned): ((arg: ThunkArg) => (dispatch: ThunkAPI["dispatch"], getState: ThunkAPI["getState"], extra: ThunkAPI["extra"]) => Promise<import("./createAction").PayloadAction<undefined, string, {
+export function createAsyncThunk<Returned, ThunkArg = void, State = unknown, Extra = unknown, DispatchType extends Dispatch = Dispatch, ActionType extends string = string, ThunkAPI extends BaseThunkAPI<any, any, any> = BaseThunkAPI<State, Extra, DispatchType>>(type: ActionType, payloadCreator: (arg: ThunkArg, thunkAPI: ThunkAPI) => Promise<Returned> | Returned): ((arg: ThunkArg) => (dispatch: ThunkAPI["dispatch"], getState: ThunkAPI["getState"], extra: ThunkAPI["extra"]) => Promise<PayloadAction<undefined, string, {
     arg: ThunkArg;
     requestId: string;
     aborted: boolean;
     abortReason: string | undefined;
-}, any> | import("./createAction").PayloadAction<Returned, string, {
+}, any> | PayloadAction<Returned, string, {
     arg: ThunkArg;
     requestId: string;
 }, never>> & {
     abort: (reason?: string) => void;
 }) & {
-    pending: import("./createAction").ActionCreatorWithPreparedPayload<[string, ThunkArg], undefined, string, never, {
+    pending: ActionCreatorWithPreparedPayload<[string, ThunkArg], undefined, string, never, {
         arg: ThunkArg;
         requestId: string;
     }>;
-    rejected: import("./createAction").ActionCreatorWithPreparedPayload<[Error, string, ThunkArg], undefined, string, any, {
+    rejected: ActionCreatorWithPreparedPayload<[Error, string, ThunkArg], undefined, string, any, {
         arg: ThunkArg;
         requestId: string;
         aborted: boolean;
         abortReason: string | undefined;
     }>;
-    fulfilled: import("./createAction").ActionCreatorWithPreparedPayload<[Returned, string, ThunkArg], Returned, string, never, {
+    fulfilled: ActionCreatorWithPreparedPayload<[Returned, string, ThunkArg], Returned, string, never, {
         arg: ThunkArg;
         requestId: string;
     }>;
