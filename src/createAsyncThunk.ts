@@ -2,9 +2,9 @@ import { Dispatch } from 'redux'
 import nanoid from 'nanoid'
 import { createAction } from './createAction'
 
-type BaseThunkAPI<S, E, D extends Dispatch = Dispatch> = {
+export type BaseThunkAPI<S, E, D extends Dispatch = Dispatch> = {
   dispatch: D
-  getState: S
+  getState: () => S
   extra: E
   requestId: string
   signal: AbortSignal

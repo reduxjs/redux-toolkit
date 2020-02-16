@@ -1,4 +1,5 @@
-import { createAsyncThunk } from './createAsyncThunk'
+import { Dispatch } from 'redux'
+import { createAsyncThunk, BaseThunkAPI } from './createAsyncThunk'
 import { createAction, PayloadAction } from './createAction'
 import { createSlice } from './createSlice'
 import { configureStore } from './configureStore'
@@ -34,9 +35,18 @@ describe('Combined entity slice', () => {
       { id: 'a', title: 'First' }
     ]
 
-    const fetchBooksTAC = createAsyncThunk('books/fetch', async () => {
-      return fakeBooks
-    })
+    const fetchBooksTAC = createAsyncThunk<
+      string,
+      BookModel[],
+      void,
+      BaseThunkAPI<{ books: BooksState }, any, Dispatch>
+    >(
+      'books/fetch',
+      async (arg, { getState, dispatch, extra, requestId, signal }) => {
+        const state = getState()
+        return fakeBooks
+      }
+    )
 
     const booksSlice = createSlice({
       name: 'books',
