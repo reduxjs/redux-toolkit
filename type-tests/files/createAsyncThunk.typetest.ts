@@ -6,12 +6,10 @@ import { unwrapResult } from 'src/createAsyncThunk'
 function expectType<T>(t: T) {
   return t
 }
-function fn() {}
+const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
 
-// basic usage
+  // basic usage
 ;(async function() {
-  const dispatch = fn as ThunkDispatch<{}, any, AnyAction>
-
   const async = createAsyncThunk('test', (id: number) =>
     Promise.resolve(id * 2)
   )
@@ -31,7 +29,7 @@ function fn() {}
       })
   )
 
-  const promise = dispatch(async(3))
+  const promise = defaultDispatch(async(3))
   const result = await promise
 
   if (async.fulfilled.match(result)) {
@@ -70,12 +68,20 @@ function fn() {}
     { id: 'a', title: 'First' }
   ]
 
+  const correctDispatch = (() => {}) as ThunkDispatch<
+    BookModel[],
+    { userAPI: Function },
+    AnyAction
+  >
+
   // Verify that the the first type args to createAsyncThunk line up right
   const fetchBooksTAC = createAsyncThunk<
     BookModel[],
     number,
-    BooksState,
-    { userAPI: Function }
+    {
+      state: BooksState
+      extra: { userAPI: Function }
+    }
   >(
     'books/fetch',
     async (arg, { getState, dispatch, extra, requestId, signal }) => {
@@ -87,4 +93,8 @@ function fn() {}
       return fakeBooks
     }
   )
+
+  correctDispatch(fetchBooksTAC(1))
+  // typings:expect-error
+  defaultDispatch(fetchBooksTAC(1))
 })()

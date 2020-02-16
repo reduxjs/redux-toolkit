@@ -20,6 +20,8 @@ export type IsUnknown<T, True, False = never> = unknown extends T
   ? IsAny<T, False, True>
   : False
 
+export type FallbackIfUnknown<T, Fallback> = IsUnknown<T, Fallback, T>
+
 /**
  * @internal
  */

@@ -1,10 +1,12 @@
-import { Dispatch } from 'redux'
+import { Dispatch, AnyAction } from 'redux'
 import nanoid from 'nanoid'
 import {
   createAction,
   PayloadAction,
   ActionCreatorWithPreparedPayload
 } from './createAction'
+import { ThunkDispatch } from 'redux-thunk'
+import { FallbackIfUnknown } from './tsHelpers'
 
 // @ts-ignore we need the import of these types due to a bundling issue.
 type _Keep = PayloadAction | ActionCreatorWithPreparedPayload<any, unknown>
@@ -50,6 +52,39 @@ export const miniSerializeError = (value: any): any => {
   return value
 }
 
+type AsyncThunkConfig = {
+  state?: unknown
+  dispatch?: Dispatch
+  extra?: unknown
+}
+
+type GetState<ThunkApiConfig> = ThunkApiConfig extends {
+  state: infer State
+}
+  ? State
+  : unknown
+type GetExtra<ThunkApiConfig> = ThunkApiConfig extends { extra: infer Extra }
+  ? Extra
+  : unknown
+type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
+  dispatch: infer Dispatch
+}
+  ? FallbackIfUnknown<
+      Dispatch,
+      ThunkDispatch<
+        GetState<ThunkApiConfig>,
+        GetExtra<ThunkApiConfig>,
+        AnyAction
+      >
+    >
+  : ThunkDispatch<GetState<ThunkApiConfig>, GetExtra<ThunkApiConfig>, AnyAction>
+
+type GetThunkAPI<ThunkApiConfig> = BaseThunkAPI<
+  GetState<ThunkApiConfig>,
+  GetExtra<ThunkApiConfig>,
+  GetDispatch<ThunkApiConfig>
+>
+
 /**
  *
  * @param type
@@ -60,20 +95,12 @@ export const miniSerializeError = (value: any): any => {
 export function createAsyncThunk<
   Returned,
   ThunkArg = void,
-  State = unknown,
-  Extra = unknown,
-  DispatchType extends Dispatch = Dispatch,
-  ActionType extends string = string,
-  ThunkAPI extends BaseThunkAPI<any, any, any> = BaseThunkAPI<
-    State,
-    Extra,
-    DispatchType
-  >
+  ThunkApiConfig extends AsyncThunkConfig = {}
 >(
-  type: ActionType,
+  type: string,
   payloadCreator: (
     arg: ThunkArg,
-    thunkAPI: ThunkAPI
+    thunkAPI: GetThunkAPI<ThunkApiConfig>
   ) => Promise<Returned> | Returned
 ) {
   const fulfilled = createAction(
@@ -115,9 +142,9 @@ export function createAsyncThunk<
 
   function actionCreator(arg: ThunkArg) {
     return (
-      dispatch: ThunkAPI['dispatch'],
-      getState: ThunkAPI['getState'],
-      extra: ThunkAPI['extra']
+      dispatch: GetDispatch<ThunkApiConfig>,
+      getState: () => GetState<ThunkApiConfig>,
+      extra: GetExtra<ThunkApiConfig>
     ) => {
       const requestId = nanoid()
       const abortController = new AbortController()
@@ -145,7 +172,7 @@ export function createAsyncThunk<
               extra,
               requestId,
               signal: abortController.signal
-            } as ThunkAPI),
+            }),
             requestId,
             arg
           )
