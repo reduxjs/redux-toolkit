@@ -1,13 +1,13 @@
 import { Reducer } from 'redux'
 import {
+  ActionCreatorWithoutPayload,
   createAction,
   PayloadAction,
   PayloadActionCreator,
   PrepareAction,
-  ActionCreatorWithoutPayload,
   _ActionCreatorWithPreparedPayload
 } from './createAction'
-import { createReducer, CaseReducers, CaseReducer } from './createReducer'
+import { CaseReducer, CaseReducers, createReducer } from './createReducer'
 import {
   ActionReducerMapBuilder,
   executeReducerBuilderCallback
@@ -30,12 +30,13 @@ export type SliceActionCreator<P> = PayloadActionCreator<P>
  */
 export interface Slice<
   State = any,
-  CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>
+  CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+  Name extends string = string
 > {
   /**
    * The slice name.
    */
-  name: string
+  name: Name
 
   /**
    * The slice's reducer.
@@ -62,12 +63,13 @@ export interface Slice<
  */
 export interface CreateSliceOptions<
   State = any,
-  CR extends SliceCaseReducers<State> = SliceCaseReducers<State>
+  CR extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+  Name extends string = string
 > {
   /**
    * The slice's name. Used to namespace the generated action types.
    */
-  name: string
+  name: Name
 
   /**
    * The initial state to be returned by the slice reducer.
@@ -213,10 +215,11 @@ function getType(slice: string, actionKey: string): string {
  */
 export function createSlice<
   State,
-  CaseReducers extends SliceCaseReducers<State>
+  CaseReducers extends SliceCaseReducers<State>,
+  Name extends string = string
 >(
-  options: CreateSliceOptions<State, CaseReducers>
-): Slice<State, CaseReducers> {
+  options: CreateSliceOptions<State, CaseReducers, Name>
+): Slice<State, CaseReducers, Name> {
   const { name, initialState } = options
   if (!name) {
     throw new Error('`name` is a required option for createSlice')
