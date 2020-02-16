@@ -1,5 +1,4 @@
-import { Dispatch } from 'redux'
-import { createAsyncThunk, BaseThunkAPI } from './createAsyncThunk'
+import { createAsyncThunk } from './createAsyncThunk'
 import { createAction, PayloadAction } from './createAction'
 import { createSlice } from './createSlice'
 import { configureStore } from './configureStore'
@@ -38,7 +37,9 @@ describe('Combined entity slice', () => {
     const fetchBooksTAC = createAsyncThunk<
       BookModel[],
       void,
-      { books: BooksState }
+      {
+        state: { books: BooksState }
+      }
     >(
       'books/fetch',
       async (arg, { getState, dispatch, extra, requestId, signal }) => {
