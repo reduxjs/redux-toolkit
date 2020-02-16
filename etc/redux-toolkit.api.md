@@ -102,7 +102,7 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
 
 // @alpha (undocumented)
-export function createAsyncThunk<ActionType extends string, Returned, ThunkArg = void, ThunkAPI extends BaseThunkAPI<any, any, any> = BaseThunkAPI<unknown, unknown, Dispatch>>(type: ActionType, payloadCreator: (arg: ThunkArg, thunkAPI: ThunkAPI) => Promise<Returned> | Returned): ((arg: ThunkArg) => (dispatch: ThunkAPI["dispatch"], getState: ThunkAPI["getState"], extra: ThunkAPI["extra"]) => Promise<import("./createAction").PayloadAction<undefined, string, {
+export function createAsyncThunk<Returned, ThunkArg = void, State = unknown, Extra = unknown, DispatchType extends Dispatch = Dispatch, ActionType extends string = string, ThunkAPI extends BaseThunkAPI<any, any, any> = BaseThunkAPI<State, Extra, DispatchType>>(type: ActionType, payloadCreator: (arg: ThunkArg, thunkAPI: ThunkAPI) => Promise<Returned> | Returned): ((arg: ThunkArg) => (dispatch: ThunkAPI["dispatch"], getState: ThunkAPI["getState"], extra: ThunkAPI["extra"]) => Promise<import("./createAction").PayloadAction<undefined, string, {
     arg: ThunkArg;
     requestId: string;
     aborted: boolean;
