@@ -56,7 +56,7 @@ describe('createAsyncThunk', () => {
 
     const thunkFunction = thunkActionCreator(args)
 
-    await thunkFunction(dispatch, undefined, undefined)
+    await thunkFunction(dispatch, () => {}, undefined)
 
     expect(passedArg).toBe(args)
 
@@ -90,7 +90,7 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, undefined, undefined)
+      await thunkFunction(dispatch, () => {}, undefined)
     } catch (e) {}
 
     expect(dispatch).toHaveBeenNthCalledWith(
