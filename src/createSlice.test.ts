@@ -202,3 +202,65 @@ describe('createSlice', () => {
     })
   })
 })
+
+test('createSlice with predicate for reducer', () => {
+  const slice = createSlice({
+    name: 'test',
+    initialState: {
+      status: 'idle'
+    } as { status: 'working' | 'idle'; workItem?: string },
+    reducers: {
+      startWork: {
+        predicate: state => state.status === 'idle',
+        reducer(state, action: PayloadAction<string>) {
+          state.status = 'working'
+          state.workItem = action.payload
+        }
+      },
+      finishWork: {
+        predicate: state => state.status === 'working',
+        reducer(state) {
+          state.status = 'idle'
+          state.workItem = undefined
+        }
+      }
+    }
+  })
+
+  expect(slice.reducer({ status: 'idle' }, slice.actions.startWork('workItem')))
+    .toMatchInlineSnapshot(`
+    Object {
+      "status": "working",
+      "workItem": "workItem",
+    }
+  `)
+  expect(
+    slice.reducer(
+      { status: 'working', workItem: 'shouldNotChange' },
+      slice.actions.startWork('workItem')
+    )
+  ).toMatchInlineSnapshot(`
+    Object {
+      "status": "working",
+      "workItem": "shouldNotChange",
+    }
+  `)
+  expect(
+    slice.reducer(
+      { status: 'idle', workItem: 'shouldNotChange' },
+      slice.actions.finishWork()
+    )
+  ).toMatchInlineSnapshot(`
+    Object {
+      "status": "idle",
+      "workItem": "shouldNotChange",
+    }
+  `)
+  expect(slice.reducer({ status: 'working' }, slice.actions.finishWork()))
+    .toMatchInlineSnapshot(`
+    Object {
+      "status": "idle",
+      "workItem": undefined,
+    }
+  `)
+})

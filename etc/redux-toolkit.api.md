@@ -62,8 +62,10 @@ export type CaseReducer<S = any, A extends Action = AnyAction> = (state: Draft<S
 // @public
 export type CaseReducerActions<CaseReducers extends SliceCaseReducers<any>> = {
     [Type in keyof CaseReducers]: CaseReducers[Type] extends {
-        prepare: any;
-    } ? ActionCreatorForCaseReducerWithPrepare<CaseReducers[Type]> : ActionCreatorForCaseReducer<CaseReducers[Type]>;
+        prepare: AnyFunction;
+    } ? ActionCreatorForCaseReducerWithPrepare<CaseReducers[Type]> : CaseReducers[Type] extends {
+        reducer: AnyFunction;
+    } ? ActionCreatorForCaseReducer<CaseReducers[Type]['reducer']> : ActionCreatorForCaseReducer<CaseReducers[Type]>;
 };
 
 // @public @deprecated
@@ -74,7 +76,8 @@ export type CaseReducers<S, AS extends Actions> = {
 // @public
 export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
     reducer: CaseReducer<State, Action>;
-    prepare: PrepareAction<Action['payload']>;
+    prepare?: PrepareAction<Action['payload']>;
+    predicate?: Predicate<State, Action>;
 };
 
 // @public
@@ -202,9 +205,17 @@ export { ThunkAction }
 // @public
 export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = ACR & {
     [T in keyof ACR]: ACR[T] extends {
+        prepare: AnyFunction;
         reducer(s: S, action?: infer A): any;
     } ? {
         prepare(...a: never[]): Omit<A, 'type'>;
+    } : {};
+} & {
+    [T in keyof ACR]: ACR[T] extends {
+        predicate: AnyFunction;
+        reducer(s: S, action?: infer A): any;
+    } ? {
+        predicate: Predicate<S, A>;
     } : {};
 };
 

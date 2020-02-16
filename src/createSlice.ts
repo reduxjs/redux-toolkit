@@ -12,7 +12,8 @@ import {
   ActionReducerMapBuilder,
   executeReducerBuilderCallback
 } from './mapBuilders'
-import { Omit } from './tsHelpers'
+import { Omit, AnyFunction } from './tsHelpers'
+import { Draft } from 'immer'
 
 /**
  * An action creator atttached to a slice.
@@ -100,8 +101,14 @@ export interface CreateSliceOptions<
  */
 export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
   reducer: CaseReducer<State, Action>
-  prepare: PrepareAction<Action['payload']>
+  prepare?: PrepareAction<Action['payload']>
+  predicate?: Predicate<State, Action>
 }
+
+export type Predicate<State, Action> = (
+  state: Draft<State>,
+  action: Action
+) => boolean
 
 /**
  * The type describing a slice's `reducers` option.
@@ -120,8 +127,12 @@ export type SliceCaseReducers<State> = {
  * @public
  */
 export type CaseReducerActions<CaseReducers extends SliceCaseReducers<any>> = {
-  [Type in keyof CaseReducers]: CaseReducers[Type] extends { prepare: any }
+  [Type in keyof CaseReducers]: CaseReducers[Type] extends {
+    prepare: AnyFunction
+  }
     ? ActionCreatorForCaseReducerWithPrepare<CaseReducers[Type]>
+    : CaseReducers[Type] extends { reducer: AnyFunction }
+    ? ActionCreatorForCaseReducer<CaseReducers[Type]['reducer']>
     : ActionCreatorForCaseReducer<CaseReducers[Type]>
 }
 
@@ -189,10 +200,21 @@ export type ValidateSliceCaseReducers<
 > = ACR &
   {
     [T in keyof ACR]: ACR[T] extends {
+      prepare: AnyFunction
       reducer(s: S, action?: infer A): any
     }
       ? {
           prepare(...a: never[]): Omit<A, 'type'>
+        }
+      : {}
+  } &
+  {
+    [T in keyof ACR]: ACR[T] extends {
+      predicate: AnyFunction
+      reducer(s: S, action?: infer A): any
+    }
+      ? {
+          predicate: Predicate<S, A>
         }
       : {}
   }
@@ -243,8 +265,19 @@ export function createSlice<
     let prepareCallback: PrepareAction<any> | undefined
 
     if ('reducer' in maybeReducerWithPrepare) {
-      caseReducer = maybeReducerWithPrepare.reducer
-      prepareCallback = maybeReducerWithPrepare.prepare
+      const { reducer, predicate, prepare } = maybeReducerWithPrepare
+      if (predicate) {
+        caseReducer = (state, action) => {
+          if (predicate(state, action)) {
+            return reducer(state, action)
+          }
+        }
+      } else {
+        caseReducer = reducer
+      }
+      if (prepare) {
+        prepareCallback = prepare
+      }
     } else {
       caseReducer = maybeReducerWithPrepare
     }
