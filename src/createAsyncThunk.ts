@@ -51,13 +51,16 @@ export const miniSerializeError = (value: any): any => {
  * @alpha
  */
 export function createAsyncThunk<
-  ActionType extends string,
   Returned,
   ThunkArg = void,
+  State = unknown,
+  Extra = unknown,
+  DispatchType extends Dispatch = Dispatch,
+  ActionType extends string = string,
   ThunkAPI extends BaseThunkAPI<any, any, any> = BaseThunkAPI<
-    unknown,
-    unknown,
-    Dispatch
+    State,
+    Extra,
+    DispatchType
   >
 >(
   type: ActionType,

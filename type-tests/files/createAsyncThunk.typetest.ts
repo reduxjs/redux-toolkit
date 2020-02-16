@@ -55,3 +55,36 @@ function fn() {}
       // catch is always any-typed, nothing we can do here
     })
 })()
+
+// More complex usage of thunk args
+;(async function() {
+  interface BookModel {
+    id: string
+    title: string
+  }
+
+  type BooksState = BookModel[]
+
+  const fakeBooks: BookModel[] = [
+    { id: 'b', title: 'Second' },
+    { id: 'a', title: 'First' }
+  ]
+
+  // Verify that the the first type args to createAsyncThunk line up right
+  const fetchBooksTAC = createAsyncThunk<
+    BookModel[],
+    number,
+    BooksState,
+    { userAPI: Function }
+  >(
+    'books/fetch',
+    async (arg, { getState, dispatch, extra, requestId, signal }) => {
+      const state = getState()
+
+      expectType<number>(arg)
+      expectType<BookModel[]>(state)
+      expectType<{ userAPI: Function }>(extra)
+      return fakeBooks
+    }
+  )
+})()

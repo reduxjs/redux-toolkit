@@ -36,10 +36,9 @@ describe('Combined entity slice', () => {
     ]
 
     const fetchBooksTAC = createAsyncThunk<
-      string,
       BookModel[],
       void,
-      BaseThunkAPI<{ books: BooksState }, any, Dispatch>
+      { books: BooksState }
     >(
       'books/fetch',
       async (arg, { getState, dispatch, extra, requestId, signal }) => {
