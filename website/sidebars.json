@@ -15,6 +15,7 @@
       "api/createSlice",
       "api/createSelector",
       "api/createAsyncThunk",
+      "api/createEntityAdapter",
       "api/other-exports"
     ]
   }

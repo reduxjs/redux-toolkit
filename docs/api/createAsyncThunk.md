@@ -50,6 +50,8 @@ dispatch(fetchUserById(123))
 
 ## Parameters
 
+`createAsyncThunk` accepts two parameters: a string action `type` value, and a `payloadCreator` callback.
+
 ### `type`
 
 A string that will be used to generate additional Redux action type constants, representing the lifecycle of an async request:
