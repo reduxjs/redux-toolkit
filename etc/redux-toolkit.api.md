@@ -103,16 +103,15 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
 
 // @alpha (undocumented)
-export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}>(type: string, payloadCreator: (arg: ThunkArg, thunkAPI: GetThunkAPI<ThunkApiConfig>) => Promise<Returned> | Returned): ((arg: ThunkArg) => (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<undefined, string, {
+export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}>(type: string, payloadCreator: (arg: ThunkArg, thunkAPI: GetThunkAPI<ThunkApiConfig>) => Promise<Returned> | Returned): ((arg: ThunkArg) => (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
+    arg: ThunkArg;
+    requestId: string;
+}, never> | PayloadAction<undefined, string, {
     arg: ThunkArg;
     requestId: string;
     aborted: boolean;
-    abortReason: string | undefined;
-}, any> | PayloadAction<Returned, string, {
-    arg: ThunkArg;
-    requestId: string;
-}, never>> & {
-    abort: (reason?: string) => void;
+}, any>> & {
+    abort: (reason?: string | undefined) => void;
 }) & {
     pending: ActionCreatorWithPreparedPayload<[string, ThunkArg], undefined, string, never, {
         arg: ThunkArg;
@@ -122,7 +121,6 @@ export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig exten
         arg: ThunkArg;
         requestId: string;
         aborted: boolean;
-        abortReason: string | undefined;
     }>;
     fulfilled: ActionCreatorWithPreparedPayload<[Returned, string, ThunkArg], Returned, string, never, {
         arg: ThunkArg;
