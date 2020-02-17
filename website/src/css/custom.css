@@ -16,7 +16,6 @@
   --ifm-code-font-size: 95%;
   --ifm-code-border-radius: 3px;
   --ifm-code-background: rgba(27, 31, 35, 0.05);
-  --ifm-link-color: blue;
 }
 
 @media screen and (max-width: 996px) {
@@ -36,6 +35,11 @@
   display: block;
   margin: 0 calc(-1 * var(--ifm-pre-padding));
   padding: 0 var(--ifm-pre-padding);
+}
+
+a code,
+code a {
+  color: inherit;
 }
 
 a.contents__link > code {
