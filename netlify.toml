@@ -2,3 +2,6 @@
   base    = "website"
   publish = "website/build"
   command = "npm run build"
+
+[build.environment]
+NODE_VERSION = "10"
