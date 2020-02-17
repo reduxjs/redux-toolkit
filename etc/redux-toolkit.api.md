@@ -293,7 +293,10 @@ export function unwrapResult<T>(returned: {
 }): NonNullable<T>;
 
 // @alpha (undocumented)
-export type Update<T> = UpdateStr<T> | UpdateNum<T>;
+export type Update<T> = {
+    id: EntityId;
+    changes: Partial<T>;
+};
 
 // @public
 export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = ACR & {
