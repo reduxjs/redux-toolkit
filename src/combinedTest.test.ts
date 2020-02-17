@@ -54,12 +54,22 @@ describe('Combined entity slice', () => {
       reducers: {
         addOne: adapter.addOne,
         removeOne(state, action: PayloadAction<string>) {
-          // TODO The nested `produce` calls don't mutate `state` here as I would have expected.
-          // TODO (note that `state` here is actually an Immer Draft<S>, from `createReducer`)
-          // TODO However, this works if we _return_ the new plain result value instead
-          // TODO See https://github.com/immerjs/immer/issues/533
+          const sizeBefore = state.ids.length
+          // Originally, having nested `produce` calls don't mutate `state` here as I would have expected.
+          // (note that `state` here is actually an Immer Draft<S>, from `createReducer`)
+          // One woarkound was to return the new plain result value instead
+          // See https://github.com/immerjs/immer/issues/533
+          // However, after tweaking `createStateOperator` to check if the argument is a draft,
+          // we can just treat the operator as strictly mutating, without returning a result,
+          // and the result should be correct.
           const result = adapter.removeOne(state, action)
-          return result
+
+          const sizeAfter = state.ids.length
+          if (sizeBefore > 0) {
+            expect(sizeAfter).toBe(sizeBefore - 1)
+          }
+
+          //Deliberately _don't_ return result
         }
       },
       extraReducers: builder => {
@@ -75,11 +85,9 @@ describe('Combined entity slice', () => {
             state.loading === 'pending' &&
             action.meta.requestId === state.lastRequestId
           ) {
-            return {
-              ...adapter.setAll(state, action.payload),
-              loading: 'finished',
-              lastRequestId: null
-            }
+            adapter.setAll(state, action.payload)
+            state.loading = 'finished'
+            state.lastRequestId = null
           }
         })
       }
@@ -101,6 +109,9 @@ describe('Combined entity slice', () => {
     expect(booksAfterLoaded.ids).toEqual(['a', 'b'])
     expect(booksAfterLoaded.lastRequestId).toBe(null)
     expect(booksAfterLoaded.loading).toBe('finished')
+
+    store.dispatch(addOne({ id: 'd', title: 'Remove Me' }))
+    store.dispatch(removeOne('d'))
 
     store.dispatch(addOne({ id: 'c', title: 'Middle' }))
 
