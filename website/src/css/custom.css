@@ -51,6 +51,13 @@
   }
 }
 
+blockquote {
+  color: var(--ifm-font-base-color);
+  background-color: var(--ifm-blockquote-color);
+  border-left: 6px solid var(--ifm-blockquote-color-dark);
+  border-radius: var(--ifm-global-radius);
+}
+
 .docusaurus-highlight-code-line {
   background-color: rgb(72, 77, 91);
   display: block;
