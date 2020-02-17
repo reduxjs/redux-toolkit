@@ -162,7 +162,7 @@ describe('createAsyncThunk with abortController', () => {
         message: 'AbortReason',
         name: 'AbortError'
       },
-      meta: { aborted: true, abortReason: 'AbortReason' }
+      meta: { aborted: true }
     }
     // abortedAction with reason is dispatched after test/pending is dispatched
     expect(store.getState()).toMatchObject([
@@ -172,24 +172,15 @@ describe('createAsyncThunk with abortController', () => {
     ])
 
     // same abortedAction is returned, but with the AbortError from the abortablePayloadCreator
-    expect(result).toMatchObject({
-      ...expectedAbortedAction,
-      error: {
-        message: 'Was aborted while running',
-        name: 'AbortError'
-      }
-    })
+    expect(result).toMatchObject(expectedAbortedAction)
 
     // calling unwrapResult on the returned object re-throws the error from the abortablePayloadCreator
     expect(() => unwrapResult(result)).toThrowError(
-      expect.objectContaining({
-        message: 'Was aborted while running',
-        name: 'AbortError'
-      })
+      expect.objectContaining(expectedAbortedAction.error)
     )
   })
 
-  test('even when the payloadCreator does not directly support the signal, no further actions ', async () => {
+  test('even when the payloadCreator does not directly support the signal, no further actions are dispatched', async () => {
     const unawareAsyncThunk = createAsyncThunk('unaware', async () => {
       await new Promise(resolve => setTimeout(resolve, 100))
       return 'finished'
@@ -221,5 +212,25 @@ describe('createAsyncThunk with abortController', () => {
     expect(() => unwrapResult(result)).toThrowError(
       expect.objectContaining(expectedAbortedAction.error)
     )
+  })
+
+  test('dispatch(asyncThunk) returns on abort and does not wait for the promiseProvider to finish', async () => {
+    let running = false
+    const longRunningAsyncThunk = createAsyncThunk('longRunning', async () => {
+      running = true
+      await new Promise(resolve => setTimeout(resolve, 30000))
+      running = false
+    })
+
+    const promise = store.dispatch(longRunningAsyncThunk())
+    expect(running).toBeTruthy()
+    promise.abort()
+    const result = await promise
+    expect(running).toBeTruthy()
+    expect(result).toMatchObject({
+      type: 'longRunning/rejected',
+      error: { message: 'Aborted.', name: 'AbortError' },
+      meta: { aborted: true }
+    })
   })
 })
