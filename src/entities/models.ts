@@ -29,20 +29,10 @@ export abstract class Dictionary<T> implements DictionaryNum<T> {
   [id: string]: T | undefined
 }
 
-export interface UpdateStr<T> {
-  id: string
-  changes: Partial<T>
-}
-
-export interface UpdateNum<T> {
-  id: number
-  changes: Partial<T>
-}
-
 /**
  * @alpha
  */
-export type Update<T> = UpdateStr<T> | UpdateNum<T>
+export type Update<T> = { id: EntityId; changes: Partial<T> }
 
 /**
  * @alpha
@@ -92,10 +82,6 @@ export interface EntityStateAdapter<T> {
   removeMany<S extends EntityState<T>>(
     state: S,
     keys: TypeOrPayloadAction<EntityId[]>
-  ): S
-  removeMany<S extends EntityState<T>>(
-    state: S,
-    keys: PayloadAction<number[]>
   ): S
 
   removeAll<S extends EntityState<T>>(state: S): S
