@@ -178,20 +178,22 @@ export function createAsyncThunk<
           )
         } catch (err) {
           if (err && err.name === 'AbortError' && abortAction) {
-            // abortAction has already been dispatched, no further action should be dispatched
-            // by this thunk.
-            // return a copy of the dispatched abortAction, but attach the AbortError to it.
-            return { ...abortAction, error: miniSerializeError(err) }
+            abortAction = { ...abortAction, error: miniSerializeError(err) }
           }
           finalAction = rejected(err, requestId, arg)
         }
-
         // We dispatch the result action _after_ the catch, to avoid having any errors
         // here get swallowed by the try/catch block,
         // per https://twitter.com/dan_abramov/status/770914221638942720
         // and https://redux-toolkit.js.org/tutorials/advanced-tutorial#async-error-handling-logic-in-thunks
-        dispatch(finalAction)
-        return finalAction
+
+        // If abortAction has been set, we return that and do not dispatch any more fulfilled/rejected actions.
+        if (abortAction) {
+          return abortAction
+        } else {
+          dispatch(finalAction)
+          return finalAction
+        }
       })()
       return Object.assign(promise, { abort })
     }

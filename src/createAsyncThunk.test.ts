@@ -188,4 +188,38 @@ describe('createAsyncThunk with abortController', () => {
       })
     )
   })
+
+  test('even when the payloadCreator does not directly support the signal, no further actions ', async () => {
+    const unawareAsyncThunk = createAsyncThunk('unaware', async () => {
+      await new Promise(resolve => setTimeout(resolve, 100))
+      return 'finished'
+    })
+
+    const promise = store.dispatch(unawareAsyncThunk())
+    promise.abort('AbortReason')
+    const result = await promise
+
+    const expectedAbortedAction = {
+      type: 'unaware/rejected',
+      error: {
+        message: 'AbortReason',
+        name: 'AbortError'
+      }
+    }
+
+    // abortedAction with reason is dispatched after test/pending is dispatched
+    expect(store.getState()).toEqual([
+      expect.any(Object),
+      expect.objectContaining({ type: 'unaware/pending' }),
+      expect.objectContaining(expectedAbortedAction)
+    ])
+
+    // same abortedAction is returned, but with the AbortError from the abortablePayloadCreator
+    expect(result).toMatchObject(expectedAbortedAction)
+
+    // calling unwrapResult on the returned object re-throws the error from the abortablePayloadCreator
+    expect(() => unwrapResult(result)).toThrowError(
+      expect.objectContaining(expectedAbortedAction.error)
+    )
+  })
 })
