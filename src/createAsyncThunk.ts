@@ -133,8 +133,7 @@ export function createAsyncThunk<
         meta: {
           arg,
           requestId,
-          aborted,
-          abortReason: aborted ? error.message : undefined
+          aborted
         }
       }
     }
@@ -147,49 +146,45 @@ export function createAsyncThunk<
       extra: GetExtra<ThunkApiConfig>
     ) => {
       const requestId = nanoid()
-      const abortController = new AbortController()
-      let abortAction: ReturnType<typeof rejected> | undefined
 
-      function abort(reason: string = 'Aborted.') {
-        abortController.abort()
-        abortAction = rejected(
-          { name: 'AbortError', message: reason },
-          requestId,
-          arg
+      const abortController = new AbortController()
+      let abortReason: string | undefined
+
+      const abortedPromise = new Promise<never>((_, reject) =>
+        abortController.signal.addEventListener('abort', () =>
+          reject({ name: 'AbortError', message: abortReason || 'Aborted.' })
         )
-        dispatch(abortAction)
+      )
+
+      function abort(reason?: string) {
+        abortReason = reason
+        abortController.abort()
       }
 
       const promise = (async function() {
         let finalAction: ReturnType<typeof fulfilled | typeof rejected>
         try {
           dispatch(pending(requestId, arg))
-
-          finalAction = fulfilled(
-            await payloadCreator(arg, {
-              dispatch,
-              getState,
-              extra,
-              requestId,
-              signal: abortController.signal
-            }),
-            requestId,
-            arg
-          )
+          finalAction = await Promise.race([
+            abortedPromise,
+            Promise.resolve(
+              payloadCreator(arg, {
+                dispatch,
+                getState,
+                extra,
+                requestId,
+                signal: abortController.signal
+              })
+            ).then(result => fulfilled(result, requestId, arg))
+          ])
         } catch (err) {
-          if (err && err.name === 'AbortError' && abortAction) {
-            // abortAction has already been dispatched, no further action should be dispatched
-            // by this thunk.
-            // return a copy of the dispatched abortAction, but attach the AbortError to it.
-            return { ...abortAction, error: miniSerializeError(err) }
-          }
           finalAction = rejected(err, requestId, arg)
         }
-
         // We dispatch the result action _after_ the catch, to avoid having any errors
         // here get swallowed by the try/catch block,
         // per https://twitter.com/dan_abramov/status/770914221638942720
         // and https://redux-toolkit.js.org/tutorials/advanced-tutorial#async-error-handling-logic-in-thunks
+
         dispatch(finalAction)
         return finalAction
       })()
