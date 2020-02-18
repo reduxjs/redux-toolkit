@@ -16,7 +16,11 @@
   --ifm-code-font-size: 95%;
   --ifm-code-border-radius: 3px;
   --ifm-code-background: rgba(27, 31, 35, 0.05);
-  --ifm-link-color: blue;
+
+  --ifm-blockquote-color: #ecf4f9;
+  --ifm-blockquote-color-dark: #cbddea;
+
+  --ifm-pre-background: rgb(39, 40, 34);
 
   --ra-admonition-color: #ecf4f9;
   --ra-admonition-color-dark: #2a98b9;
@@ -52,6 +56,11 @@
   display: block;
   margin: 0 calc(-1 * var(--ifm-pre-padding));
   padding: 0 var(--ifm-pre-padding);
+}
+
+a code,
+code a {
+  color: inherit;
 }
 
 a.contents__link > code {
