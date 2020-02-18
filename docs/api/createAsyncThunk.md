@@ -211,6 +211,90 @@ const onClick = () => {
 }
 ```
 
+## Cancellation
+
+If you want to cancel your running thunk before it has finished, you can use the `abort` method of the promise returned by `dispatch(fetchUserById(userId))`.
+
+A real-life example of that would look like this:
+
+```ts
+function MyComponent(props: { userId: string }) {
+  React.useEffect(() => {
+    // Dispatching the thunk returns a promise
+    const promise = dispatch(fetchUserById(props.userId))
+    return () => {
+      // `createAsyncThunk` attaches an `abort()` method to the promise
+      promise.abort()
+    }
+  }, [props.userId])
+}
+```
+
+After a thunk has been cancelled this way, it will dispatch (and return) a `"thunkName/rejected"` action with an `AbortError` on the `error` property. The thunk will not dispatch any further actions.
+
+Additionally, your `payloadCreator` can use the `AbortSignal` it is passed via `thunkApi.signal` to actually cancel a costly asynchronous action.
+
+The `fetch` api of modern browsers already comes with support for an `AbortSignal`:
+
+```ts
+const fetchUserById = createAsyncThunk(
+  'users/fetchById',
+  async (userId, thunkAPI) => {
+    const response = await fetch(`https://reqres.in/api/users/${userId}`, {
+      signal: thunkAPI.signal
+    })
+    return await response.json()
+  }
+)
+```
+
+### Checking Cancellation Status
+
+### Reading the Signal Value
+
+You can use the `signal.aborted` property to regularly check if the thunk has been aborted and in that case stop costly long-running work:
+
+```ts
+const readStream = createAsyncThunk('readStream', async (stream: ReadableStream, {signal}) => {
+  const reader = stream.getReader();
+
+  let done = false;
+  let result = "";
+
+  while (!done) {
+    if (signal.aborted) {
+      throw new Error("stop the work, this has been aborted!");
+    }
+    const read = await reader.read();
+    result += read.value;
+    done = read.done;
+  }
+  return result;
+}
+```
+
+#### Listening for Abort Events
+
+You can also call `signal.addEventListener('abort', callback)` to have logic inside the thunk be notified when `promise.abort()` was called.
+
+```ts
+const readStream = createAsyncThunk(
+  'readStream',
+  (arg, { signal }) =>
+    new Promise((resolve, reject) => {
+      signal.addEventListener('abort', () => {
+        reject(new DOMException('Was aborted while running', 'AbortError'))
+      })
+
+      startActionA(arg)
+        .then(startActionB)
+        .then(startActionC)
+        .then(startActionD)
+        .then(resolve)
+    })
+)
+```
+
 ## Examples
 
 Requesting a user by ID, with loading state, and only one request at a time:
@@ -276,84 +360,4 @@ const UsersComponent = () => {
 
   // render UI here
 }
-```
-
-## Cancellation
-
-If you want to cancel your running thunk before it has finished, you can use the `abort` method of the promise returned by `dispatch(fetchUserById(userId))`.
-
-A real-life example of that would look like this:
-
-```ts
-function MyComponent(props: { userId: string }) {
-  React.useEffect(() => {
-    const promise = dispatch(fetchUserById(props.userId))
-    return () => {
-      promise.abort()
-    }
-  }, [props.userId])
-}
-```
-
-After a thunk has been cancelled this way, it will dispatch (and return) a `thunkName/rejected` action with an `AbortError` on the `error` property. The thunk will not dispatch any further actions.
-
-Additionally, your `payloadCreator` can use the `AbortSignal` it is passed via `thunkApi.signal` to actually cancel a costly asynchronous action.
-
-The `fetch` api of modern browsers aleady comes with support for an `AbortSignal`:
-
-```ts
-const fetchUserById = createAsyncThunk(
-  'users/fetchById',
-  async (userId, thunkAPI) => {
-    const response = await fetch(`https://reqres.in/api/users/${userId}`, {
-      signal: thunkAPI.signal
-    })
-    return await response.json()
-  }
-)
-```
-
-But of course, you can also use it manually.
-
-### using `signal.aborted`
-
-You can use the `signal.aborted` property to regularly check if the thunk has been aborted and in that case stop costly long-running work:
-
-```ts
-const readStream = createAsyncThunk('readStream', async (stream: ReadableStream, {signal}) => {
-  const reader = stream.getReader();
-
-  let done = false;
-  let result = "";
-
-  while (!done) {
-    if (signal.aborted) {
-      throw new Error("stop the work, this has been aborted!");
-    }
-    const read = await reader.read();
-    result += read.value;
-    done = read.done;
-  }
-  return result;
-}
-```
-
-### using `signal.addEventListener('abort', () => ...)`
-
-```ts
-const readStream = createAsyncThunk(
-  'readStream',
-  (arg, { signal }) =>
-    new Promise((resolve, reject) => {
-      signal.addEventListener('abort', () => {
-        reject(new DOMException('Was aborted while running', 'AbortError'))
-      })
-
-      startActionA(arg)
-        .then(startActionB)
-        .then(startActionC)
-        .then(startActionD)
-        .then(resolve)
-    })
-)
 ```
