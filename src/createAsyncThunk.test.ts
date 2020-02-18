@@ -229,7 +229,7 @@ describe('createAsyncThunk with abortController', () => {
     expect(running).toBeTruthy()
     expect(result).toMatchObject({
       type: 'longRunning/rejected',
-      error: { message: 'Aborted.', name: 'AbortError' },
+      error: { message: 'Aborted', name: 'AbortError' },
       meta: { aborted: true }
     })
   })

@@ -152,7 +152,7 @@ export function createAsyncThunk<
 
       const abortedPromise = new Promise<never>((_, reject) =>
         abortController.signal.addEventListener('abort', () =>
-          reject({ name: 'AbortError', message: abortReason || 'Aborted.' })
+          reject({ name: 'AbortError', message: abortReason || 'Aborted' })
         )
       )
 
