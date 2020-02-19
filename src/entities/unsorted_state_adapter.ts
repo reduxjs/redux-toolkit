@@ -110,6 +110,8 @@ export function createUnsortedStateAdapter<T>(selectId: IdSelector<T>): any {
       if (update.id in state.entities) {
         // If there are multiple updates to one entity, merge them together
         updatesPerEntity[update.id] = {
+          // Spreads ignore falsy values, so this works even if there isn't
+          // an existing update already at this key
           ...updatesPerEntity[update.id],
           ...update
         }

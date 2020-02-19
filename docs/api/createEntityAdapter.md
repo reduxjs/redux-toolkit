@@ -290,6 +290,14 @@ const bookIds = simpleSelectors.selectIds(store.getState().books)
 const allBooks = globalizedSelectors.selectAll(store.getState())
 ```
 
+## Notes
+
+### Applying Multiple Updates
+
+If `updateMany()` is called with multiple updates targeted to the same ID, they will be merged into a single update, with later updates overwriting the earlier ones.
+
+For both `updateOne()` and `updateMany()`, changing the ID of one existing entity to match the ID of a second existing entity will cause the first to replace the second completely.
+
 ## Examples
 
 Exercising several of the CRUD methods and selectors:
