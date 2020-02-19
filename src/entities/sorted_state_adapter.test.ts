@@ -123,7 +123,7 @@ describe('Sorted State Adapter', () => {
   it('should let you add remove an entity from the state', () => {
     const withOneEntity = adapter.addOne(state, TheGreatGatsby)
 
-    const withoutOne = adapter.removeOne(state, TheGreatGatsby.id)
+    const withoutOne = adapter.removeOne(withOneEntity, TheGreatGatsby.id)
 
     expect(withoutOne).toEqual({
       ids: [],
@@ -193,6 +193,30 @@ describe('Sorted State Adapter', () => {
     })
 
     expect(withUpdates).toBe(state)
+  })
+
+  it('Replaces an existing entity if you change the ID while updating', () => {
+    const withAdded = adapter.setAll(state, [
+      { id: 'a', title: 'First' },
+      { id: 'b', title: 'Second' },
+      { id: 'c', title: 'Third' }
+    ])
+
+    const withUpdated = adapter.updateOne(withAdded, {
+      id: 'b',
+      changes: {
+        id: 'c'
+      }
+    })
+
+    const { ids, entities } = withUpdated
+
+    expect(ids.length).toBe(2)
+    expect(entities.a).toBeTruthy()
+    expect(entities.b).not.toBeTruthy()
+    expect(entities.c).toBeTruthy()
+    expect(entities.c!.id).toBe('c')
+    expect(entities.c!.title).toBe('Second')
   })
 
   it('should not change ids state if you attempt to update an entity that does not impact sorting', () => {

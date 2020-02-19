@@ -218,6 +218,40 @@ describe('Unsorted State Adapter', () => {
     })
   })
 
+  it("doesn't break when multiple renames of one item occur", () => {
+    const withA = adapter.addOne(state, { id: 'a', title: 'First' })
+
+    const withUpdates = adapter.updateMany(withA, [
+      { id: 'a', changes: { id: 'b' } },
+      { id: 'a', changes: { id: 'c' } }
+    ])
+
+    const { ids, entities } = withUpdates
+
+    console.log(withUpdates)
+
+    /*
+      Original code failed with a mish-mash of values, like:
+
+      {
+        ids: [ 'c' ],
+        entities: { b: { id: 'b', title: 'First' }, c: { id: 'c' } }
+      }
+
+      We now expect that only 'c' will be left:
+
+      { 
+        ids: [ 'c' ], 
+        entities: { c: { id: 'c', title: 'First' } } 
+      }
+    */
+    expect(ids.length).toBe(1)
+    expect(ids).toEqual(['c'])
+    expect(entities.a).toBeFalsy()
+    expect(entities.b).toBeFalsy()
+    expect(entities.c).toBeTruthy()
+  })
+
   it('should let you map over entities in the state', () => {
     const firstChange = { ...TheGreatGatsby, title: 'First change' }
     const secondChange = { ...AClockworkOrange, title: 'Second change' }

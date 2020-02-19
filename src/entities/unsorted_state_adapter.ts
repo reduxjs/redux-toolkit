@@ -103,7 +103,20 @@ export function createUnsortedStateAdapter<T>(selectId: IdSelector<T>): any {
   function updateManyMutably(updates: any[], state: any): void {
     const newKeys: { [id: string]: string } = {}
 
-    updates = updates.filter(update => update.id in state.entities)
+    const updatesPerEntity: { [id: string]: Update<T> } = {}
+
+    updates.forEach(update => {
+      // Only apply updates to entities that currently exist
+      if (update.id in state.entities) {
+        // If there are multiple updates to one entity, merge them together
+        updatesPerEntity[update.id] = {
+          ...updatesPerEntity[update.id],
+          ...update
+        }
+      }
+    })
+
+    updates = Object.values(updatesPerEntity)
 
     const didMutateEntities = updates.length > 0
 

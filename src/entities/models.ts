@@ -8,7 +8,7 @@ export type EntityId = number | string
 /**
  * @alpha
  */
-export type Comparer<T> = (a: T, b: T) => EntityId
+export type Comparer<T> = (a: T, b: T) => number
 
 /**
  * @alpha
