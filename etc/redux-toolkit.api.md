@@ -79,7 +79,7 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
 };
 
 // @alpha (undocumented)
-export type Comparer<T> = (a: T, b: T) => EntityId;
+export type Comparer<T> = (a: T, b: T) => number;
 
 // @public
 export type ConfigureEnhancersCallback = (defaultEnhancers: StoreEnhancer[]) => StoreEnhancer[];
