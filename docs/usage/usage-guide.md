@@ -526,3 +526,106 @@ This CodeSandbox example demonstrates the problem:
 <iframe src="https://codesandbox.io/embed/rw7ppj4z0m" style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }} sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
 If you encounter this, you may need to restructure your code in a way that avoids the circular references.
+
+## Managing Async Requests
+
+### Redux Data Fetching Patterns
+
+Data fetching logic for Redux typically follows a predictable pattern:
+
+- A "start" action is dispatched before the request, to indicate that the request is in progress. This may be used to track loading state to allow skipping duplicate requests or show loading indicators in the UI.
+- The async request is made
+- Depending on the request result, the async logic dispatches either a "success" action containing the result data, or a "failure" action containing error details. The reducer logic clears the loading state in both cases, and either processes the result data from the success case, or stores the error value for potential display.
+
+These steps are not required, but are [recommended in the Redux tutorials as a suggested pattern](https://redux.js.org/advanced/async-actions).
+
+A typical implementation might look like:
+
+```js
+const getRepoDetailsStarted = () => ({
+  type: "repoDetails/fetchStarted"
+})
+
+const getRepoDetailsSuccess = (repoDetails) => {
+  type: "repoDetails/fetchSucceeded",
+  payload: repoDetails
+}
+
+const getRepoDetailsFailed = (error) => {
+  type: "repoDetails/fetchFailed",
+  error
+}
+
+const fetchIssuesCount = (org, repo) => async dispatch => {
+  dispatch(getRepoDetailsStarted())
+  try {
+    const repoDetails = await getRepoDetails(org, repo)
+    dispatch(getRepoDetailsSuccess(repoDetails))
+  } catch (err) {
+    dispatch(getRepoDetailsFailed(err.toString()))
+  }
+}
+```
+
+However, writing code using this approach is tedious. Each separate type of request needs repeated similar implementation:
+
+- Unique action types need to be defined for the three different cases
+- Each of those action types usually has a corresponding action creator function
+- A thunk has to be written that dispatches the correct actions in the right sequence
+
+`createAsyncThunk` abstracts this pattern by generating the action types and action creators and generating a thunk that dispatches those actions.
+
+### Async Requests with `createAsyncThunk`
+
+As a developer, you are probably most concerned with the actual logic needed to make an API request, what action type names show up in the Redux action history log, and how your reducers should process the fetched data. The repetitive details of defining the multiple action types and dispatching the actions in the right sequence aren't what matters.
+
+`createAsyncThunk` simplifies this process - you only need to provide a string for the action type prefix and a payload creator callback that does the actual async logic and returns a promise with the result. In return, `createAsyncThunk` will give you a thunk that will take care of dispatching the right actions based on the promise you return, and action types that you can handle in your reducers:
+
+```js {5-11,22-25,30}
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { userAPI } from './userAPI'
+
+// First, create the thunk
+const fetchUserById = createAsyncThunk(
+  'users/fetchByIdStatus',
+  async (userId, thunkAPI) => {
+    const response = await userAPI.fetchById(userId)
+    return response.data
+  }
+)
+
+// Then, handle actions in your reducers:
+const usersSlice = createSlice({
+  name: 'users',
+  initialState: { entities: [], loading: 'idle' },
+  reducers: {
+    // standard reducer logic, with auto-generated action types per reducer
+  },
+  extraReducers: {
+    // Add reducers for additional action types here, and handle loading state as needed
+    [fetchUserById.fulfilled]: (state, action) => {
+      // Add user to the state array
+      state.entities.push(action.payload)
+    }
+  }
+})
+
+// Later, dispatch the thunk as needed in the app
+dispatch(fetchUserById(123))
+```
+
+The thunk action creator accepts a single argument, which will be passed as the first argument to your payload creator callback.
+
+The payload creator will also receive a `thunkAPI` object containing the parameters that are normally passed to a standard Redux thunk function, as well as an auto-generated unique random request ID string and an [`AbortController.signal` object](https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal):
+
+```ts
+interface ThunkAPI {
+  dispatch: Function
+  getState: Function
+  extra?: any
+  requestId: string
+  signal: AbortSignal
+}
+```
+
+You can use any of these as needed inside the payload callback to determine what the final result should be.

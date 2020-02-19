@@ -1,21 +1,54 @@
-import { AnyAction, Reducer, Action } from 'redux'
+import { Action, AnyAction, Reducer } from 'redux'
+import { ValidateSliceCaseReducers } from 'src/createSlice'
 import {
-  createSlice,
-  PayloadAction,
-  createAction,
-  ActionReducerMapBuilder,
-  ActionCreatorWithOptionalPayload,
   ActionCreatorWithNonInferrablePayload,
+  ActionCreatorWithOptionalPayload,
   ActionCreatorWithoutPayload,
   ActionCreatorWithPayload,
   ActionCreatorWithPreparedPayload,
+  ActionReducerMapBuilder,
+  createAction,
+  createSlice,
+  PayloadAction,
   SliceCaseReducers
 } from '../../src'
-import { ValidateSliceCaseReducers } from 'src/createSlice'
 
 function expectType<T>(t: T) {
   return t
 }
+
+/*
+ * Test: Slice name is strongly typed.
+ */
+
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: 0,
+  reducers: {
+    increment: (state: number, action) => state + action.payload,
+    decrement: (state: number, action) => state - action.payload
+  }
+})
+
+const uiSlice = createSlice({
+  name: 'ui',
+  initialState: 0,
+  reducers: {
+    goToNext: (state: number, action) => state + action.payload,
+    goToPrevious: (state: number, action) => state - action.payload
+  }
+})
+
+const actionCreators = {
+  [counterSlice.name]: { ...counterSlice.actions },
+  [uiSlice.name]: { ...uiSlice.actions }
+}
+
+expectType<typeof counterSlice.actions>(actionCreators.counter)
+expectType<typeof uiSlice.actions>(actionCreators.ui)
+
+// typings:expect-error
+const value = actionCreators.anyKey
 
 /*
  * Test: createSlice() infers the returned slice's type.

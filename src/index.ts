@@ -61,3 +61,20 @@ export {
   // types
   ActionReducerMapBuilder
 } from './mapBuilders'
+
+export { createEntityAdapter } from './entities/create_adapter'
+export {
+  Dictionary,
+  EntityState,
+  EntityAdapter,
+  Update,
+  EntityMap,
+  IdSelector,
+  Comparer
+} from './entities/models'
+
+export {
+  createAsyncThunk,
+  unwrapResult,
+  SerializedError
+} from './createAsyncThunk'

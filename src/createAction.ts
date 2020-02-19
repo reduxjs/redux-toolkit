@@ -5,6 +5,7 @@ import {
   IfVoid,
   IsAny
 } from './tsHelpers'
+import isPlainObject from './isPlainObject'
 
 /**
  * An action with a string type and an associated payload. This is the
@@ -293,6 +294,22 @@ export function createAction(type: string, prepareAction?: Function): any {
     action.type === type
 
   return actionCreator
+}
+
+export function isFSA<
+  Payload = undefined,
+  Type extends string = string,
+  Meta = undefined
+>(action: any): action is PayloadAction<Payload, Type, Meta> {
+  return (
+    isPlainObject(action) &&
+    typeof (action as any).type === 'string' &&
+    Object.keys(action).every(isValidKey)
+  )
+}
+
+function isValidKey(key: string) {
+  return ['type', 'payload', 'error', 'meta'].indexOf(key) > -1
 }
 
 /**
