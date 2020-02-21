@@ -170,32 +170,38 @@ export interface EnhancerOptions {
   traceLimit?: number
 }
 
-/**
- * @public
- */
-export const composeWithDevTools: {
+type DevToolsCompose = {
   (options: EnhancerOptions): typeof compose
   <StoreExt>(...funcs: Array<StoreEnhancer<StoreExt>>): StoreEnhancer<StoreExt>
-} =
-  typeof window !== 'undefined' &&
-  (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
-    ? (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
-    : function() {
-        if (arguments.length === 0) return undefined
-        if (typeof arguments[0] === 'object') return compose
-        return compose.apply(null, (arguments as any) as Function[])
-      }
+}
+
+type DevToolsEnhancer = (options: EnhancerOptions) => StoreEnhancer<any>
+
+declare global {
+  interface Window {
+    __REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: DevToolsCompose
+    __REDUX_DEVTOOLS_EXTENSION__?: DevToolsEnhancer
+  }
+}
 
 /**
  * @public
  */
-export const devToolsEnhancer: {
-  (options: EnhancerOptions): StoreEnhancer<any>
-} =
-  typeof window !== 'undefined' && (window as any).__REDUX_DEVTOOLS_EXTENSION__
-    ? (window as any).__REDUX_DEVTOOLS_EXTENSION__
-    : function() {
-        return function(noop) {
-          return noop
-        }
-      }
+export const composeWithDevTools: DevToolsCompose =
+  window?.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ ??
+  (function() {
+    if (arguments.length === 0) return undefined
+    if (typeof arguments[0] === 'object') return compose
+    return compose(...arguments)
+  } as DevToolsCompose)
+
+/**
+ * @public
+ */
+export const devToolsEnhancer: DevToolsEnhancer =
+  window?.__REDUX_DEVTOOLS_EXTENSION__ ??
+  function() {
+    return function(noop) {
+      return noop
+    }
+  }
