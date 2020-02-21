@@ -29,7 +29,6 @@ describe('Sorted State Adapter', () => {
     adapter = createEntityAdapter({
       selectId: (book: BookModel) => book.id,
       sortComparer: (a, b) => {
-        //console.log(`${a.title}, ${b.title}`)
         return a.title.localeCompare(b.title)
       }
     })

@@ -16,7 +16,7 @@ import {
 import {
   composeWithDevTools,
   EnhancerOptions as DevToolsOptions
-} from 'redux-devtools-extension'
+} from './devtoolsExtension'
 
 import isPlainObject from './isPlainObject'
 import {
