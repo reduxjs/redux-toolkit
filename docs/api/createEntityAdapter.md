@@ -365,7 +365,10 @@ console.log(store.getState().books)
 // {ids: ["a"], entities: {a: {id: "a", title: "First (altered)"}}, loading: 'pending' }
 
 store.dispatch(
-  booksReceived([{ id: 'b', title: 'Book 3' }, { id: 'c', title: 'Book 2' }])
+  booksReceived([
+    { id: 'b', title: 'Book 3' },
+    { id: 'c', title: 'Book 2' }
+  ])
 )
 
 console.log(booksSelectors.selectIds(store.getState()))
