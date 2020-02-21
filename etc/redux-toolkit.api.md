@@ -18,6 +18,7 @@ import { ReducersMapObject } from 'redux';
 import { Store } from 'redux';
 import { StoreEnhancer } from 'redux';
 import { ThunkAction } from 'redux-thunk';
+import { ThunkDispatch } from 'redux-thunk';
 import { ThunkMiddleware } from 'redux-thunk';
 
 // @public
@@ -77,6 +78,9 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
     prepare: PrepareAction<Action['payload']>;
 };
 
+// @alpha (undocumented)
+export type Comparer<T> = (a: T, b: T) => number;
+
 // @public
 export type ConfigureEnhancersCallback = (defaultEnhancers: StoreEnhancer[]) => StoreEnhancer[];
 
@@ -97,6 +101,38 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 
 // @public
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
+
+// @alpha (undocumented)
+export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}>(type: string, payloadCreator: (arg: ThunkArg, thunkAPI: GetThunkAPI<ThunkApiConfig>) => Promise<Returned> | Returned): ((arg: ThunkArg) => (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
+    arg: ThunkArg;
+    requestId: string;
+}, never> | PayloadAction<undefined, string, {
+    arg: ThunkArg;
+    requestId: string;
+    aborted: boolean;
+}, any>> & {
+    abort: (reason?: string | undefined) => void;
+}) & {
+    pending: ActionCreatorWithPreparedPayload<[string, ThunkArg], undefined, string, never, {
+        arg: ThunkArg;
+        requestId: string;
+    }>;
+    rejected: ActionCreatorWithPreparedPayload<[Error, string, ThunkArg], undefined, string, any, {
+        arg: ThunkArg;
+        requestId: string;
+        aborted: boolean;
+    }>;
+    fulfilled: ActionCreatorWithPreparedPayload<[Returned, string, ThunkArg], Returned, string, never, {
+        arg: ThunkArg;
+        requestId: string;
+    }>;
+};
+
+// @alpha (undocumented)
+export function createEntityAdapter<T>(options?: {
+    selectId?: IdSelector<T>;
+    sortComparer?: false | Comparer<T>;
+}): EntityAdapter<T>;
 
 export { createNextState }
 
@@ -122,11 +158,44 @@ export interface CreateSliceOptions<State = any, CR extends SliceCaseReducers<St
     reducers: ValidateSliceCaseReducers<State, CR>;
 }
 
+// @alpha (undocumented)
+export abstract class Dictionary<T> implements DictionaryNum<T> {
+    // (undocumented)
+    [id: string]: T | undefined;
+}
+
 export { Draft }
 
 // @public
 export interface EnhancedStore<S = any, A extends Action = AnyAction, M extends Middlewares<S> = Middlewares<S>> extends Store<S, A> {
     dispatch: DispatchForMiddlewares<M> & Dispatch<A>;
+}
+
+// @alpha (undocumented)
+export interface EntityAdapter<T> extends EntityStateAdapter<T> {
+    // (undocumented)
+    getInitialState(): EntityState<T>;
+    // (undocumented)
+    getInitialState<S extends object>(state: S): EntityState<T> & S;
+    // (undocumented)
+    getSelectors(): EntitySelectors<T, EntityState<T>>;
+    // (undocumented)
+    getSelectors<V>(selectState: (state: V) => EntityState<T>): EntitySelectors<T, V>;
+    // (undocumented)
+    selectId: IdSelector<T>;
+    // (undocumented)
+    sortComparer: false | Comparer<T>;
+}
+
+// @alpha (undocumented)
+export type EntityMap<T> = (entity: T) => T;
+
+// @alpha (undocumented)
+export interface EntityState<T> {
+    // (undocumented)
+    entities: Dictionary<T>;
+    // (undocumented)
+    ids: EntityId[];
 }
 
 // @public (undocumented)
@@ -141,6 +210,9 @@ export function getDefaultMiddleware<S = any, O extends Partial<GetDefaultMiddle
 
 // @public
 export function getType<T extends string>(actionCreator: PayloadActionCreator<any, T>): T;
+
+// @alpha (undocumented)
+export type IdSelector<T> = (model: T) => EntityId;
 
 // @public
 export function isPlain(val: any): boolean;
@@ -181,6 +253,18 @@ export interface SerializableStateInvariantMiddlewareOptions {
     isSerializable?: (value: any) => boolean;
 }
 
+// @alpha (undocumented)
+export interface SerializedError {
+    // (undocumented)
+    code?: string;
+    // (undocumented)
+    message?: string;
+    // (undocumented)
+    name?: string;
+    // (undocumented)
+    stack?: string;
+}
+
 // @public
 export interface Slice<State = any, CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>, Name extends string = string> {
     actions: CaseReducerActions<CaseReducers>;
@@ -198,6 +282,19 @@ export type SliceCaseReducers<State> = {
 };
 
 export { ThunkAction }
+
+// @alpha (undocumented)
+export function unwrapResult<T>(returned: {
+    error: any;
+} | {
+    payload: NonNullable<T>;
+}): NonNullable<T>;
+
+// @alpha (undocumented)
+export type Update<T> = {
+    id: EntityId;
+    changes: Partial<T>;
+};
 
 // @public
 export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = ACR & {

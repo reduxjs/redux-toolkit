@@ -4,6 +4,7 @@ node_modules
 dist
 lib
 es
+yarn.lock
 
 
 .idea/
