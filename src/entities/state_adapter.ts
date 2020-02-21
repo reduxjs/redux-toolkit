@@ -1,19 +1,22 @@
-import createNextState, { Draft, isDraft } from 'immer'
+import createNextState, { isDraft } from 'immer'
 import { EntityState } from './models'
 import { PayloadAction, isFSA } from '../createAction'
 
 export function createStateOperator<V, R>(
   mutator: (arg: R, state: EntityState<V>) => void
-): EntityState<V>
-export function createStateOperator<V, R>(
-  mutator: (arg: any, state: any) => void
-): any {
+) {
   return function operation<S extends EntityState<V>>(
-    state: any,
+    state: S,
     arg: R | PayloadAction<R>
   ): S {
-    const runMutator = (draft: Draft<EntityState<V>>) => {
-      if (isFSA(arg)) {
+    function isPayloadActionArgument(
+      arg: R | PayloadAction<R>
+    ): arg is PayloadAction<R> {
+      return isFSA(arg)
+    }
+
+    const runMutator = (draft: EntityState<V>) => {
+      if (isPayloadActionArgument(arg)) {
         mutator(arg.payload, draft)
       } else {
         mutator(arg, draft)

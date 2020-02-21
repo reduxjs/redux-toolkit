@@ -1,4 +1,4 @@
-import { EntityStateAdapter, EntityState, Update } from './models'
+import { EntityStateAdapter, EntityState } from './models'
 import { createEntityAdapter } from './create_adapter'
 import { createAction } from '../createAction'
 import {

@@ -296,11 +296,14 @@ export function createAction(type: string, prepareAction?: Function): any {
   return actionCreator
 }
 
-export function isFSA<
-  Payload = undefined,
-  Type extends string = string,
-  Meta = undefined
->(action: any): action is PayloadAction<Payload, Type, Meta> {
+export function isFSA(
+  action: unknown
+): action is {
+  type: string
+  payload?: unknown
+  error?: unknown
+  meta?: unknown
+} {
   return (
     isPlainObject(action) &&
     typeof (action as any).type === 'string' &&
