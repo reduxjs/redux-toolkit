@@ -32,12 +32,12 @@
     "eslint-config-react-app": "^5.0.1",
     "invariant": "^2.2.4",
     "json-stringify-safe": "^5.0.1",
-    "prettier": "^1.18.2",
+    "prettier": "^1.19.1",
     "react": "^16.8.6",
     "rollup-plugin-strip-code": "^0.2.6",
     "tsdx": "^0.11.0",
     "tslib": "^1.10.0",
-    "typescript": "^3.6.3",
+    "typescript": "^3.8.2",
     "typings-tester": "^0.3.2"
   },
   "scripts": {
