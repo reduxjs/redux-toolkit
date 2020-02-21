@@ -1,11 +1,11 @@
 import { Middleware, AnyAction } from 'redux'
 import thunkMiddleware, { ThunkMiddleware } from 'redux-thunk'
-/* PROD_START_REMOVE_UMD */
 import {
+  /* PROD_START_REMOVE_UMD */
   createImmutableStateInvariantMiddleware,
+  /* PROD_STOP_REMOVE_UMD */
   ImmutableStateInvariantMiddlewareOptions
 } from './immutableStateInvariantMiddleware'
-/* PROD_STOP_REMOVE_UMD */
 
 import {
   createSerializableStateInvariantMiddleware,
