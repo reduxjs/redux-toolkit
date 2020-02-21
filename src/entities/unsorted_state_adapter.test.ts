@@ -228,8 +228,6 @@ describe('Unsorted State Adapter', () => {
 
     const { ids, entities } = withUpdates
 
-    console.log(withUpdates)
-
     /*
       Original code failed with a mish-mash of values, like:
 
