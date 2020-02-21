@@ -1,18 +1,64 @@
-import invariant from 'invariant'
-import stringify from 'json-stringify-safe'
 import { Middleware } from 'redux'
 
-const BETWEEN_DISPATCHES_MESSAGE = [
-  'A state mutation was detected between dispatches, in the path `%s`.',
-  'This may cause incorrect behavior.',
-  '(http://redux.js.org/docs/Troubleshooting.html#never-mutate-reducer-arguments)'
-].join(' ')
+type EntryProcessor = (key: string, value: any) => any
 
-const INSIDE_DISPATCH_MESSAGE = [
-  'A state mutation was detected inside a dispatch, in the path: `%s`.',
-  'Take a look at the reducer(s) handling the action %s.',
-  '(http://redux.js.org/docs/Troubleshooting.html#never-mutate-reducer-arguments)'
-].join(' ')
+const isProduction: boolean = process.env.NODE_ENV === 'production'
+const prefix: string = 'Invariant failed'
+
+// Throw an error if the condition fails
+// Strip out error messages for production
+// > Not providing an inline default argument for message as the result is smaller
+function invariant(condition: any, message?: string) {
+  if (condition) {
+    return
+  }
+  // Condition not passed
+
+  // In production we strip the message but still throw
+  if (isProduction) {
+    throw new Error(prefix)
+  }
+
+  // When not in production we allow the message to pass through
+  // *This block will be removed in production builds*
+  throw new Error(`${prefix}: ${message || ''}`)
+}
+
+function stringify(
+  obj: any,
+  serializer?: EntryProcessor,
+  indent?: string | number,
+  decycler?: EntryProcessor
+): string {
+  return JSON.stringify(obj, getSerialize(serializer, decycler), indent)
+}
+
+function getSerialize(
+  serializer?: EntryProcessor,
+  decycler?: EntryProcessor
+): EntryProcessor {
+  let stack: any[] = [],
+    keys: any[] = []
+
+  if (!decycler)
+    decycler = function(_: string, value: any) {
+      if (stack[0] === value) return '[Circular ~]'
+      return (
+        '[Circular ~.' + keys.slice(0, stack.indexOf(value)).join('.') + ']'
+      )
+    }
+
+  return function(this: any, key: string, value: any) {
+    if (stack.length > 0) {
+      var thisPos = stack.indexOf(this)
+      ~thisPos ? stack.splice(thisPos + 1) : stack.push(this)
+      ~thisPos ? keys.splice(thisPos, Infinity, key) : keys.push(key)
+      if (~stack.indexOf(value)) value = decycler!.call(this, key, value)
+    } else stack.push(value)
+
+    return serializer == null ? value : serializer.call(this, key, value)
+  }
+}
 
 export function isImmutableDefault(value: unknown): boolean {
   return (
@@ -150,8 +196,11 @@ export function createImmutableStateInvariantMiddleware(
 
       invariant(
         !result.wasMutated,
-        BETWEEN_DISPATCHES_MESSAGE,
-        (result.path || []).join('.')
+        `A state mutation was detected between dispatches, in the path '${(
+          result.path || []
+        ).join(
+          '.'
+        )}'.  This may cause incorrect behavior. (http://redux.js.org/docs/Troubleshooting.html#never-mutate-reducer-arguments)`
       )
 
       const dispatchedAction = next(action)
@@ -164,9 +213,13 @@ export function createImmutableStateInvariantMiddleware(
       result.wasMutated &&
         invariant(
           !result.wasMutated,
-          INSIDE_DISPATCH_MESSAGE,
-          (result.path || []).join('.'),
-          stringify(action)
+          `A state mutation was detected inside a dispatch, in the path: ${(
+            result.path || []
+          ).join(
+            '.'
+          )}. Take a look at the reducer(s) handling the action ${stringify(
+            action
+          )}. (http://redux.js.org/docs/Troubleshooting.html#never-mutate-reducer-arguments)`
         )
 
       return dispatchedAction
