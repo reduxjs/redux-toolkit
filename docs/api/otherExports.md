@@ -11,7 +11,7 @@ Redux Toolkit exports some of its internal utilities, and re-exports additional 
 
 ## Internal Exports
 
-### `createImmutalStateInvariantMiddleware`
+### `createImmutableStateInvariantMiddleware`
 
 Creates an instance of the `immutable-state-invariant` middleware described in [`getDefaultMiddleware`](./getDefaultMiddleware.md).
 
