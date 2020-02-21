@@ -5,13 +5,13 @@
 ```ts
 
 import { Action } from 'redux';
+import { ActionCreator } from 'redux';
 import { AnyAction } from 'redux';
 import { default as createNextState } from 'immer';
 import { createSelector } from 'reselect';
 import { DeepPartial } from 'redux';
 import { Dispatch } from 'redux';
 import { Draft } from 'immer';
-import { EnhancerOptions } from 'redux-devtools-extension';
 import { Middleware } from 'redux';
 import { Reducer } from 'redux';
 import { ReducersMapObject } from 'redux';
