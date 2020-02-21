@@ -1,8 +1,11 @@
 import { Middleware, AnyAction } from 'redux'
 import thunkMiddleware, { ThunkMiddleware } from 'redux-thunk'
-/* PROD_START_REMOVE_UMD */
-import createImmutableStateInvariantMiddleware from 'redux-immutable-state-invariant'
-/* PROD_STOP_REMOVE_UMD */
+import {
+  /* PROD_START_REMOVE_UMD */
+  createImmutableStateInvariantMiddleware,
+  /* PROD_STOP_REMOVE_UMD */
+  ImmutableStateInvariantMiddlewareOptions
+} from './immutableStateInvariantMiddleware'
 
 import {
   createSerializableStateInvariantMiddleware,
@@ -15,11 +18,6 @@ function isBoolean(x: any): x is boolean {
 
 interface ThunkOptions<E = any> {
   extraArgument: E
-}
-
-interface ImmutableStateInvariantMiddlewareOptions {
-  isImmutable?: (value: any) => boolean
-  ignore?: string[]
 }
 
 interface GetDefaultMiddlewareOptions {
