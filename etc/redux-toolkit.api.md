@@ -159,7 +159,7 @@ export interface CreateSliceOptions<State = any, CR extends SliceCaseReducers<St
 }
 
 // @alpha (undocumented)
-export abstract class Dictionary<T> implements DictionaryNum<T> {
+export interface Dictionary<T> extends DictionaryNum<T> {
     // (undocumented)
     [id: string]: T | undefined;
 }

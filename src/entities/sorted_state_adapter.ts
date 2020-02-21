@@ -130,7 +130,7 @@ export function createSortedStateAdapter<T>(
       state.entities[selectId(model)] = model
     })
 
-    const allEntities = Object.values(state.entities)
+    const allEntities = Object.values(state.entities) as T[]
     allEntities.sort(sort)
 
     const newSortedIds = allEntities.map(selectId)

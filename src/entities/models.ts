@@ -24,13 +24,9 @@ export interface DictionaryNum<T> {
 
 /**
  * @alpha
- * why was this a class, not an interface?
  */
-export abstract class Dictionary<T> implements DictionaryNum<T> {
-  // I get why you're adding "undefined" here, but there is not one check for it actually not being undefined down the line
-  // on the contrary, some casts to `any` were necessary because `Object.entities(dictionary).sort()` were not possible any more
-  // due to the `sort` assuming parameters of T.
-  [id: string]: T
+export interface Dictionary<T> extends DictionaryNum<T> {
+  [id: string]: T | undefined
 }
 
 /**
