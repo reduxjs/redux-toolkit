@@ -24,11 +24,10 @@
   "license": "MIT",
   "devDependencies": {
     "@microsoft/api-extractor": "^7.7.0",
-    "@types/invariant": "^2.2.31",
     "@types/jest": "^24.0.11",
     "@types/json-stringify-safe": "^5.0.0",
+    "@types/nanoid": "^2.1.0",
     "@types/node": "^10.14.4",
-    "@types/redux-immutable-state-invariant": "^2.1.1",
     "console-testing-library": "^0.3.1",
     "eslint-config-react-app": "^5.0.1",
     "invariant": "^2.2.4",
@@ -58,11 +57,9 @@
     "src"
   ],
   "dependencies": {
-    "@types/nanoid": "^2.1.0",
     "immer": "^4.0.1",
     "nanoid": "^2.1.11",
     "redux": "^4.0.0",
-    "redux-immutable-state-invariant": "^2.1.0",
     "redux-thunk": "^2.3.0",
     "reselect": "^4.0.0"
   },
