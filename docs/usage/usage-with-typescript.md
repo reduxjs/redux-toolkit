@@ -346,3 +346,54 @@ const wrappedSlice = createGenericSlice({
   }
 })
 ```
+
+## `createAsyncThunk`
+
+In the most common use cases, you might not need any special types for `createAsyncThunk`.
+Just provide a type for the first argument to the `payloadCreator` argument as you would for any function argument and the resulting thunk will accept the same type as input parameter.
+The return type of the `payloadCreator` will also be reflected in all generated action types.
+
+```ts
+interface Returned {
+  // ...
+}
+
+const fetchUserById = createAsyncThunk(
+  'users/fetchById',
+  // if you type your function argument here
+  async (userId: number) => {
+    const response = await fetch(`https://reqres.in/api/users/${userId}`)
+    return (await response.json()) as Returned
+  }
+)
+
+// the parameter of `fetchUserById` is automatically inferred to `number` here
+// and dispatching the resulting thunkAction will return a Promise of a correctly
+// typed "fulfilled" or "rejected" action.
+const lastReturnedAction = await store.dispatch(fetchUserById(3))
+```
+
+If you want to use `thunkApi.dispatch`, `thunkApi.getStore()` or `thunkApi.extra` from within the `payloadCreator`, you will need to define some generic arguments, as the types for these arguments cannot be inferred. Also, as TS cannot mix explicit and inferred generic parameters, from this point on you'll have to define the `Returned` and `ThunkArg` generic parameter as well.
+
+```ts
+const fetchUserById = createAsyncThunk<
+  Returned,
+  number,
+  {
+    dispatch: AppDispatch
+    state: State
+    extra: {
+      jwt: string
+    }
+  }
+>('users/fetchById', async (userId, thunkApi) => {
+  const response = await fetch(`https://reqres.in/api/users/${userId}`, {
+    headers: {
+      Authorization: `Bearer ${thunkApi.extra.jwt}`
+    }
+  })
+  return await response.json()
+})
+```
+
+While this notation for `state`, `dispatch` and `extra` might seem uncommon at first, it allows you to provide only the types for these you actually need - so for example, if you are not accessing `getState` within your `actionProducer`, there is no need to provide a type for `state`.
