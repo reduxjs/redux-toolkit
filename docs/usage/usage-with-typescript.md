@@ -233,6 +233,33 @@ createSlice({
 
 which will result in a `Slice<SliceState, ...>`.
 
+### The `prepare` notation and typing the `meta` and `error` action property
+
+If you want to add a `meta` or `error` property to your action, you have to use the `prepare` notation.
+
+Using this notation with TypeScript looks like this:
+
+```ts
+const blogSlice = createSlice({
+  name: 'blogData',
+  initialState,
+  reducers: {
+    receivedAll: {
+      reducer(
+        state,
+        action: PayloadAction<Page[], string, { currentPage: number }>
+      ) {
+        state.all = action.payload
+        state.meta = action.meta
+      },
+      prepare(payload: Page[], currentPage: number) {
+        return { payload, meta: { currentPage } }
+      }
+    }
+  }
+})
+```
+
 ### On the "type" property of slice action Reducers
 
 As TS cannot combine two string literals (`slice.name` and the key of `actionMap`) into a new literal, all actionCreators created by createSlice are of type 'string'. This is usually not a problem, as these types are only rarely used as literals.
