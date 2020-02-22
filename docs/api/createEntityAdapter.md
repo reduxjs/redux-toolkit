@@ -52,7 +52,7 @@ const booksAdapter = createEntityAdapter({
 const booksSlice = createSlice({
   name: 'books',
   initialState: booksAdapter.getInitialState(),
-  reducer: {
+  reducers: {
     // Can pass adapter functions directly as case reducers.  Because we're passing this
     // as a value, `createSlice` will auto-generate the `bookAdded` action type / creator
     bookAdded: booksAdapter.addOne,

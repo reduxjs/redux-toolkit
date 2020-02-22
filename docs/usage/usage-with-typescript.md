@@ -397,3 +397,33 @@ const fetchUserById = createAsyncThunk<
 ```
 
 While this notation for `state`, `dispatch` and `extra` might seem uncommon at first, it allows you to provide only the types for these you actually need - so for example, if you are not accessing `getState` within your `actionProducer`, there is no need to provide a type for `state`.
+
+## `createEntityAdapter`
+
+Typing `createEntityAdapter` only requires you to specify the entity type as the only generic argument.
+
+So the example from the `createEntityAdapter` documentation would look like this in TypeScript:
+
+```ts
+interface Book {
+  bookId: number
+  title: string
+  // ...
+}
+
+const booksAdapter = createEntityAdapter<Book>({
+  selectId: book => book.bookId,
+  sortComparer: (a, b) => a.title.localeCompare(b.title)
+})
+
+const booksSlice = createSlice({
+  name: 'books',
+  initialState: booksAdapter.getInitialState(),
+  reducers: {
+    bookAdded: booksAdapter.addOne,
+    booksReceived(state, action: PayloadAction<{ books: Book[] }>) {
+      booksAdapter.setAll(state, action.payload.books)
+    }
+  }
+})
+```
