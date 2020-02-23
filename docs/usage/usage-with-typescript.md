@@ -396,20 +396,21 @@ const wrappedSlice = createGenericSlice({
 
 In the most common use cases, you should not need to explicitly declare any types for the `createAsyncThunk` call itself.
 
-Just provide a type for the first argument to the `payloadCreator` argument as you would for any function argument, and the resulting thunk will accept the same type as input parameter.
+Just provide a type for the first argument to the `payloadCreator` argument as you would for any function argument, and the resulting thunk will accept the same type as its input parameter.
 The return type of the `payloadCreator` will also be reflected in all generated action types.
 
-```ts {8,17}
-interface Returned {
+```ts {8,11,18}
+interface MyData {
   // ...
 }
 
 const fetchUserById = createAsyncThunk(
   'users/fetchById',
-  // if you type your function argument here
+  // Declare the type your function argument here:
   async (userId: number) => {
     const response = await fetch(`https://reqres.in/api/users/${userId}`)
-    return (await response.json()) as Returned
+    // Inferred return type: Promise<MyData>
+    return (await response.json()) as MyData
   }
 )
 
@@ -419,13 +420,15 @@ const fetchUserById = createAsyncThunk(
 const lastReturnedAction = await store.dispatch(fetchUserById(3))
 ```
 
-The second argument to the `payloadCreator` is a `thunkApi` object containing references to the `dispatch`, `getState`, and `extra` arguments from the thunk middleware. If you want to use these from within the `payloadCreator`, you will need to define some generic arguments, as the types for these arguments cannot be inferred. Also, as TS cannot mix explicit and inferred generic parameters, from this point on you'll have to define the `Returned` and `ThunkArg` generic parameter as well.
+The second argument to the `payloadCreator`, known as `thunkApi`, is an object containing references to the `dispatch`, `getState`, and `extra` arguments from the thunk middleware. If you want to use these from within the `payloadCreator`, you will need to define some generic arguments, as the types for these arguments cannot be inferred. Also, as TS cannot mix explicit and inferred generic parameters, from this point on you'll have to define the `Returned` and `ThunkArg` generic parameter as well.
 
 To define the types for these arguments, pass an object as the third generic argument, with type declarations for some or all of these fields: `{dispatch?, state?, extra?}`.
 
-```ts {2-10}
+```ts {2-12}
 const fetchUserById = createAsyncThunk<
-  Returned,
+  // Return type of the payload creator
+  Promise<MyData>,
+  // First argument to the payload creator
   number,
   {
     dispatch: AppDispatch
@@ -440,7 +443,7 @@ const fetchUserById = createAsyncThunk<
       Authorization: `Bearer ${thunkApi.extra.jwt}`
     }
   })
-  return await response.json()
+  return (await response.json()) as MyData
 })
 ```
 
