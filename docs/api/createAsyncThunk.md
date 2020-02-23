@@ -276,22 +276,24 @@ const readStream = createAsyncThunk('readStream', async (stream: ReadableStream,
 #### Listening for Abort Events
 
 You can also call `signal.addEventListener('abort', callback)` to have logic inside the thunk be notified when `promise.abort()` was called.
+This can for example be used in conjunction with an axios `CancelToken`:
 
 ```ts
-const readStream = createAsyncThunk(
-  'readStream',
-  (arg, { signal }) =>
-    new Promise((resolve, reject) => {
-      signal.addEventListener('abort', () => {
-        reject(new DOMException('Was aborted while running', 'AbortError'))
-      })
+import { createAsyncThunk } from '@reduxjs/toolkit'
+import axios from 'axios'
 
-      startActionA(arg)
-        .then(startActionB)
-        .then(startActionC)
-        .then(startActionD)
-        .then(resolve)
+const fetchUserById = createAsyncThunk(
+  'users/fetchById',
+  async (userId, { signal }) => {
+    const source = axios.CancelToken.source()
+    signal.addEventListener('abort', () => {
+      source.cancel()
     })
+    const response = await axios.get(`https://reqres.in/api/users/${userId}`, {
+      cancelToken: source.token
+    })
+    return response.data
+  }
 )
 ```
 
