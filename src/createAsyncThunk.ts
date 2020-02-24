@@ -89,6 +89,7 @@ type GetThunkAPI<ThunkApiConfig> = BaseThunkAPI<
  *
  * @param type
  * @param payloadCreator
+ * @param rethrow
  *
  * @alpha
  */
@@ -101,7 +102,8 @@ export function createAsyncThunk<
   payloadCreator: (
     arg: ThunkArg,
     thunkAPI: GetThunkAPI<ThunkApiConfig>
-  ) => Promise<Returned> | Returned
+  ) => Promise<Returned> | Returned,
+  rethrow?: boolean
 ) {
   const fulfilled = createAction(
     type + '/fulfilled',
@@ -139,13 +141,14 @@ export function createAsyncThunk<
     }
   )
 
-  function actionCreator(arg: ThunkArg) {
+  function actionCreator(arg: ThunkArg, rethrow: boolean = false) {
     return (
       dispatch: GetDispatch<ThunkApiConfig>,
       getState: () => GetState<ThunkApiConfig>,
       extra: GetExtra<ThunkApiConfig>
     ) => {
       const requestId = nanoid()
+      let rethrowErr
 
       const abortController = new AbortController()
       let abortReason: string | undefined
@@ -179,6 +182,7 @@ export function createAsyncThunk<
           ])
         } catch (err) {
           finalAction = rejected(err, requestId, arg)
+          rethrowErr = err
         }
         // We dispatch the result action _after_ the catch, to avoid having any errors
         // here get swallowed by the try/catch block,
@@ -186,17 +190,26 @@ export function createAsyncThunk<
         // and https://redux-toolkit.js.org/tutorials/advanced-tutorial#async-error-handling-logic-in-thunks
 
         dispatch(finalAction)
+
+        if (rethrow && rethrowErr) {
+          throw rethrowErr
+        }
+
         return finalAction
       })()
       return Object.assign(promise, { abort })
     }
   }
 
-  return Object.assign(actionCreator, {
-    pending,
-    rejected,
-    fulfilled
-  })
+  return Object.assign(
+    actionCreator,
+    {
+      pending,
+      rejected,
+      fulfilled
+    },
+    rethrow
+  )
 }
 
 /**

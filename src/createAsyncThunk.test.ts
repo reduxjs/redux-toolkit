@@ -106,6 +106,47 @@ describe('createAsyncThunk', () => {
     expect(errorAction.meta.requestId).toBe(generatedRequestId)
     expect(errorAction.meta.arg).toBe(args)
   })
+
+  it('accepts arguments, dispatches actions and then throws when rethrow is specified', async () => {
+    const dispatch = jest.fn()
+
+    let passedArg: any
+
+    const result = 42
+    const args = 123
+    let generatedRequestId = ''
+
+    let rethrowErr
+
+    const error = new Error('Panic!')
+
+    const thunkActionCreator = createAsyncThunk(
+      'app/fakeRequest',
+      async (arg: number, { requestId }) => {
+        passedArg = arg
+        generatedRequestId = requestId
+        throw error
+      },
+      true
+    )
+
+    const thunkFunction = thunkActionCreator(args, true)
+
+    try {
+      await thunkFunction(dispatch, () => {}, undefined)
+    } catch (err) {
+      rethrowErr = err
+    }
+
+    expect(rethrowErr).toBeTruthy()
+    expect(dispatch).toHaveBeenCalledTimes(2)
+
+    // Have to check the bits of the action separately since the error was processed
+    const errorAction = dispatch.mock.calls[1][0]
+    expect(errorAction.error).toEqual(miniSerializeError(error))
+    expect(errorAction.meta.requestId).toBe(generatedRequestId)
+    expect(errorAction.meta.arg).toBe(args)
+  })
 })
 
 describe('createAsyncThunk with abortController', () => {

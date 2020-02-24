@@ -103,7 +103,7 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
 
 // @alpha (undocumented)
-export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}>(type: string, payloadCreator: (arg: ThunkArg, thunkAPI: GetThunkAPI<ThunkApiConfig>) => Promise<Returned> | Returned): ((arg: ThunkArg) => (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
+export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}>(type: string, payloadCreator: (arg: ThunkArg, thunkAPI: GetThunkAPI<ThunkApiConfig>) => Promise<Returned> | Returned, rethrow?: boolean): (((arg: ThunkArg, rethrow?: boolean) => (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
     arg: ThunkArg;
     requestId: string;
 }, never> | PayloadAction<undefined, string, {
@@ -126,7 +126,30 @@ export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig exten
         arg: ThunkArg;
         requestId: string;
     }>;
-};
+} & false) | (((arg: ThunkArg, rethrow?: boolean) => (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
+    arg: ThunkArg;
+    requestId: string;
+}, never> | PayloadAction<undefined, string, {
+    arg: ThunkArg;
+    requestId: string;
+    aborted: boolean;
+}, any>> & {
+    abort: (reason?: string | undefined) => void;
+}) & {
+    pending: ActionCreatorWithPreparedPayload<[string, ThunkArg], undefined, string, never, {
+        arg: ThunkArg;
+        requestId: string;
+    }>;
+    rejected: ActionCreatorWithPreparedPayload<[Error, string, ThunkArg], undefined, string, any, {
+        arg: ThunkArg;
+        requestId: string;
+        aborted: boolean;
+    }>;
+    fulfilled: ActionCreatorWithPreparedPayload<[Returned, string, ThunkArg], Returned, string, never, {
+        arg: ThunkArg;
+        requestId: string;
+    }>;
+} & true);
 
 // @alpha (undocumented)
 export function createEntityAdapter<T>(options?: {
