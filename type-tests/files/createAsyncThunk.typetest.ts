@@ -1,7 +1,9 @@
 import { createAsyncThunk, Dispatch, createReducer, AnyAction } from 'src'
 import { ThunkDispatch } from 'redux-thunk'
-import { promises } from 'fs'
-import { unwrapResult } from 'src/createAsyncThunk'
+import { unwrapResult, SerializedError } from 'src/createAsyncThunk'
+
+import apiRequest, { AxiosError } from 'axios'
+import { IsAny } from 'src/tsHelpers'
 
 function expectType<T>(t: T) {
   return t
@@ -25,7 +27,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
       })
       .addCase(async.rejected, (_, action) => {
         expectType<ReturnType<typeof async['rejected']>>(action)
-        expectType<Error>(action.error)
+        expectType<Partial<Error> | undefined>(action.error)
       })
   )
 
@@ -98,3 +100,84 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
   // typings:expect-error
   defaultDispatch(fetchBooksTAC(1))
 })()
+/**
+ * returning a rejected action from the promise creator is possible
+ */
+;(async () => {
+  type ReturnValue = { data: 'success' }
+  type RejectValue = { data: 'error' }
+
+  const fetchBooksTAC = createAsyncThunk<
+    ReturnValue,
+    number,
+    {
+      rejectValue: RejectValue
+    }
+  >('books/fetch', async (arg, { rejectWithValue }) => {
+    return rejectWithValue({ data: 'error' })
+  })
+
+  const returned = await defaultDispatch(fetchBooksTAC(1))
+  if (fetchBooksTAC.rejected.match(returned)) {
+    expectType<undefined | RejectValue>(returned.payload)
+    expectType<RejectValue>(returned.payload!)
+  } else {
+    expectType<ReturnValue>(returned.payload)
+  }
+})()
+
+{
+  interface Item {
+    name: string
+  }
+
+  interface ErrorFromServer {
+    error: string
+  }
+
+  interface CallsResponse {
+    data: Item[]
+  }
+
+  const fetchLiveCallsError = createAsyncThunk<
+    Item[],
+    string,
+    {
+      rejectValue: ErrorFromServer
+    }
+  >('calls/fetchLiveCalls', async (organizationId, { rejectWithValue }) => {
+    try {
+      const result = await apiRequest.get<CallsResponse>(
+        `organizations/${organizationId}/calls/live/iwill404`
+      )
+      return result.data.data
+    } catch (err) {
+      let error: AxiosError<ErrorFromServer> = err // cast for access to AxiosError properties
+      if (!error.response) {
+        // let it be handled as any other unknown error
+        throw err
+      }
+      return rejectWithValue(error.response && error.response.data)
+    }
+  })
+
+  defaultDispatch(fetchLiveCallsError('asd')).then(result => {
+    if (fetchLiveCallsError.fulfilled.match(result)) {
+      //success
+      expectType<ReturnType<typeof fetchLiveCallsError['fulfilled']>>(result)
+      expectType<Item[]>(result.payload)
+    } else {
+      expectType<ReturnType<typeof fetchLiveCallsError['rejected']>>(result)
+      if (result.payload) {
+        // rejected with value
+        expectType<ErrorFromServer>(result.payload)
+      } else {
+        // rejected by throw
+        expectType<undefined>(result.payload)
+        expectType<SerializedError>(result.error)
+        // typings:expect-error
+        expectType<IsAny<typeof result['error'], true, false>>(true)
+      }
+    }
+  })
+}
