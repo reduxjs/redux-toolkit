@@ -22,17 +22,6 @@ Running the `build` task will create both a CommonJS module-per-module build and
 npm run build
 ```
 
-To create just a CommonJS module-per-module build:
-```
-npm run build:lib
-```
-
-To create just a UMD build:
-```
-npm run build:umd
-npm run build:umd:min
-```
-
 ### Testing and Linting
 
 To run the tests:
