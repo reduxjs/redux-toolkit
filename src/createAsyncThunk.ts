@@ -1,5 +1,4 @@
 import { Dispatch, AnyAction } from 'redux'
-import nanoid from 'nanoid'
 import {
   createAction,
   PayloadAction,
@@ -7,6 +6,7 @@ import {
 } from './createAction'
 import { ThunkDispatch } from 'redux-thunk'
 import { FallbackIfUnknown } from './tsHelpers'
+import { nanoid } from './nanoid'
 
 // @ts-ignore we need the import of these types due to a bundling issue.
 type _Keep = PayloadAction | ActionCreatorWithPreparedPayload<any, unknown>
