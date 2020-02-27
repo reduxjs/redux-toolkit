@@ -2,6 +2,7 @@ language: node_js
 node_js: node
 env:
   - TYPESCRIPT_VERSION=rc
+  - TYPESCRIPT_VERSION=3.8
   - TYPESCRIPT_VERSION=3.7
   - TYPESCRIPT_VERSION=3.6
   - TYPESCRIPT_VERSION=3.5
