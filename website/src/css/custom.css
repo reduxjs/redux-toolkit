@@ -65,6 +65,11 @@ blockquote {
   padding: 0 var(--ifm-pre-padding);
 }
 
+code {
+  background-color: var(--ifm-color-emphasis-300);
+  border-radius: 0.2rem;
+}
+
 a code,
 code a {
   color: inherit;
@@ -154,4 +159,3 @@ a:visited {
   fill: black;
   stroke: black;
 }
-
