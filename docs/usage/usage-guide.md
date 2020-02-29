@@ -560,7 +560,6 @@ There are many kinds of async middleware for Redux, and each lets you write your
 
 Redux Toolkit does not currently provide any special APIs or syntax for writing thunk functions. In particular, **they cannot be defined as part of a `createSlice()` call**. You have to write them separate from the reducer logic, exactly the same as with plain Redux code.
 
-
 Thunks typically dispatch plain actions, such as `dispatch(dataLoaded(response.data))`.
 
 Many Redux apps have structured their code using a "folder-by-type" approach. In that structure, thunk action creators are usually defined in an "actions" file, alongside the plain action creators.
