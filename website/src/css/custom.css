@@ -30,8 +30,8 @@
   --ra-admonition-color-success: #f1fdf9;
   --ra-admonition-color-success-dark: #00bf88;
 
-  --ra-admonition-color-warning: #fffbf5;
-  --ra-admonition-color-warning-dark: #f0ad4e;
+  --ra-admonition-color-caution: #fffbf5;
+  --ra-admonition-color-caution-dark: #f0ad4e;
 
   --ra-admonition-color-error: #fff2f2;
   --ra-admonition-color-error-dark: #d9534f;
@@ -135,21 +135,25 @@ a:visited {
 }
 
 .admonition.admonition-note,
-.admonition.admonition-info {
+.admonition.admonition-info,
+.admonition.admonition-important,
+.admonition.admonition-secondary {
   --ra-admonition-color: #ecf4f9;
   background-color: var(--ra-admonition-color);
 }
 
-.admonition.admonition-success {
+.admonition.admonition-success,
+.admonition.admonition-tip {
   background-color: var(--ra-admonition-color-success);
   border-left-color: var(--ra-admonition-color-success-dark);
 }
 
-.admonition.admonition-warning {
-  background-color: var(--ra-admonition-color-warning);
-  border-left-color: var(--ra-admonition-color-warning-dark);
+.admonition.admonition-caution {
+  background-color: var(--ra-admonition-color-caution);
+  border-left-color: var(--ra-admonition-color-caution-dark);
 }
 
+.admonition.admonition-warning,
 .admonition.admonition-danger {
   background-color: var(--ra-admonition-color-error);
   border-left-color: var(--ra-admonition-color-error-dark);
