@@ -525,4 +525,125 @@ This CodeSandbox example demonstrates the problem:
 
 <iframe src="https://codesandbox.io/embed/rw7ppj4z0m" style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }} sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
-If you encounter this, you may need to restructure your code in a way that avoids the circular references.
+If you encounter this, you may need to restructure your code in a way that avoids the circular references. This will usually require extracting shared code to a separate common file that both modules can import and use. In this case, you might define some common action types in a separate file using `createAction`, import those action creators into each slice file, and handle them using the `extraReducers` argument.
+
+The article [How to fix circular dependency issues in JS](https://medium.com/visual-development/how-to-fix-nasty-circular-dependency-issues-once-and-for-all-in-javascript-typescript-a04c987cf0de) has additional info and examples that can help with this issue.
+
+## Asynchronous Logic and Data Fetching
+
+### Using Middleware to Enable Async Logic
+
+By itself, a Redux store doesn't know anything about async logic. It only knows how to synchronously dispatch actions, update the state by calling the root reducer function, and notify the UI that something has changed. Any asynchronicity has to happen outside the store.
+
+But, what if you want to have async logic interact with the store by dispatching or checking the current store state? That's where [Redux middleware](https://redux.js.org/advanced/middleware) come in. They extend the store, and allow you to:
+
+- Execute extra logic when any action is dispatched (such as logging the action and state)
+- Pause, modify, delay, replace, or halt dispatched actions
+- Write extra code that has access to `dispatch` and `getState`
+- Teach `dispatch` how to accept other values besides plain action objects, such as functions and promises, by intercepting them and dispatching real action objects instead
+
+[The most common reason to use middleware is to allow different kinds of async logic to interact with the store](https://redux.js.org/faq/actions#how-can-i-represent-side-effects-such-as-ajax-calls-why-do-we-need-things-like-action-creators-thunks-and-middleware-to-do-async-behavior). This allows you to write code that can dispatch actions and check the store state, while keeping that logic separate from your UI.
+
+There are many kinds of async middleware for Redux, and each lets you write your logic using different syntax. The most common async middleware are:
+
+- [`redux-thunk`](https://github.com/reduxjs/redux-thunk), which lets you write plain functions that may contain async logic directly
+- [`redux-saga`](https://github.com/redux-saga/redux-saga), which uses generator functions that return descriptions of behavior so they can be executed by the middleware
+- [`redux-observable`](https://github.com/redux-observable/redux-observable/), which uses the RxJS observable library to create chains of functions that process actions
+
+[Each of these libraries has different use cases and tradeoffs](https://redux.js.org/faq/actions#what-async-middleware-should-i-use-how-do-you-decide-between-thunks-sagas-observables-or-something-else).
+
+**We recommend [using the Redux Thunk middleware as the standard approach](https://github.com/reduxjs/redux-thunk)**, as it is sufficient for most typical use cases (such as basic AJAX data fetching). In addition, use of the `async/await` syntax in thunks makes them easier to read.
+
+**The Redux Toolkit `configureStore` function [automatically sets up the thunk middleware by default](../api/getDefaultMiddleware.md)**, so you can immediately start writing thunks as part of your application code.
+
+### Defining Async Logic in Slices
+
+Redux Toolkit does not currently provide any special APIs or syntax for writing thunk functions. In particular, **they cannot be defined as part of a `createSlice()` call**. You have to write them separate from the reducer logic, exactly the same as with plain Redux code.
+
+:::note
+The upcoming [Redux Toolkit v1.3.0 release](https://github.com/reduxjs/redux-toolkit/issues/373), currently in alpha testing, will include [a `createAsyncThunk` API ](https://deploy-preview-374--redux-starter-kit-docs.netlify.com/api/createAsyncThunk) that simplifies the process of writing thunks for async logic.
+:::
+
+Thunks typically dispatch plain actions, such as `dispatch(dataLoaded(response.data))`.
+
+Many Redux apps have structured their code using a "folder-by-type" approach. In that structure, thunk action creators are usually defined in an "actions" file, alongside the plain action creators.
+
+Because we don't have separate "actions" files, **it makes sense to write these thunks directly in our "slice" files**. That way, they have access to the plain action creators from the slice, and it's easy to find where the thunk function lives.
+
+A typical slice file that includes thunks would look like this:
+
+```js
+// First, define the reducer and action creators via `createSlice`
+const usersSlice = createSlice({
+  name: 'users',
+  initialState: {
+    loading: 'idle',
+    users: []
+  },
+  reducers: {
+    usersLoading(state, action) {
+      // Use a "state machine" approach for loading state instead of booleans
+      if (state.loading === 'idle') {
+        state.loading = 'pending'
+      }
+    },
+    usersReceived(state, action) {
+      if (state.loading === 'pending') {
+        state.loading = 'idle'
+        state.users = action.payload
+      }
+    }
+  }
+})
+
+// Destructure and export the plain action creators
+export const { usersLoading, usersReceived } = usersSlice.actions
+
+// Define a thunk that dispatches those action creators
+const fetchUsers = () => async dispatch => {
+  dispatch(usersLoading())
+  const response = await usersAPI.fetchAll()
+  dispatch(usersReceived(response.data))
+}
+```
+
+### Redux Data Fetching Patterns
+
+Data fetching logic for Redux typically follows a predictable pattern:
+
+- A "start" action is dispatched before the request, to indicate that the request is in progress. This may be used to track loading state to allow skipping duplicate requests or show loading indicators in the UI.
+- The async request is made
+- Depending on the request result, the async logic dispatches either a "success" action containing the result data, or a "failure" action containing error details. The reducer logic clears the loading state in both cases, and either processes the result data from the success case, or stores the error value for potential display.
+
+These steps are not required, but are [recommended in the Redux tutorials as a suggested pattern](https://redux.js.org/advanced/async-actions).
+
+A typical implementation might look like:
+
+```js
+const getRepoDetailsStarted = () => ({
+  type: "repoDetails/fetchStarted"
+})
+const getRepoDetailsSuccess = (repoDetails) => {
+  type: "repoDetails/fetchSucceeded",
+  payload: repoDetails
+}
+const getRepoDetailsFailed = (error) => {
+  type: "repoDetails/fetchFailed",
+  error
+}
+const fetchIssuesCount = (org, repo) => async dispatch => {
+  dispatch(getRepoDetailsStarted())
+  try {
+    const repoDetails = await getRepoDetails(org, repo)
+    dispatch(getRepoDetailsSuccess(repoDetails))
+  } catch (err) {
+    dispatch(getRepoDetailsFailed(err.toString()))
+  }
+}
+```
+
+:::note
+The upcoming [`createAsyncThunk` API in RTK v1.3.0](https://deploy-preview-374--redux-starter-kit-docs.netlify.com/api/createAsyncThunk) will automate this process by generating the action types and dispatching them automatically for you.
+:::
+
+It's up to you to write reducer logic that handles these action types. We recommend [treating your loading state as a "state machine"](https://redux.js.org/style-guide/style-guide#treat-reducers-as-state-machines) instead of writing boolean flags like `isLoading`.
