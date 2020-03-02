@@ -80,7 +80,7 @@ document.getElementById('increment').addEventListener('click', () => {
 })
 ```
 
-Since the example is small, that doesn't make too much of a difference in appearance. Size-wise, we saved a couple lines by using a default argument, but writing those action creator functions made things bigger. And, there's some duplication here. Writing `const INCREMENT = 'INCREMENT"` just looks silly :) Especially when it's only being used in two places - the action creator and the reducer.
+Since the example is small, that doesn't make too much of a difference in appearance. Size-wise, we saved a couple lines by using a default argument, but writing those action creator functions made things bigger. And, there's some duplication here. Writing `const INCREMENT = 'INCREMENT'` just looks silly :) Especially when it's only being used in two places - the action creator and the reducer.
 
 In addition, switch statements bother many people. It would be nice if we could replace it with some kind of a lookup table instead.
 
