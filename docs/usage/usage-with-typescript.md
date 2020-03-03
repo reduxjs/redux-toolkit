@@ -420,14 +420,14 @@ const fetchUserById = createAsyncThunk(
 const lastReturnedAction = await store.dispatch(fetchUserById(3))
 ```
 
-The second argument to the `payloadCreator`, known as `thunkApi`, is an object containing references to the `dispatch`, `getState`, and `extra` arguments from the thunk middleware. If you want to use these from within the `payloadCreator`, you will need to define some generic arguments, as the types for these arguments cannot be inferred. Also, as TS cannot mix explicit and inferred generic parameters, from this point on you'll have to define the `Returned` and `ThunkArg` generic parameter as well.
+The second argument to the `payloadCreator`, known as `thunkApi`, is an object containing references to the `dispatch`, `getState`, and `extra` arguments from the thunk middleware as well as a utility function called `rejectWithValue`. If you want to use these from within the `payloadCreator`, you will need to define some generic arguments, as the types for these arguments cannot be inferred. Also, as TS cannot mix explicit and inferred generic parameters, from this point on you'll have to define the `Returned` and `ThunkArg` generic parameter as well.
 
-To define the types for these arguments, pass an object as the third generic argument, with type declarations for some or all of these fields: `{dispatch?, state?, extra?}`.
+To define the types for these arguments, pass an object as the third generic argument, with type declarations for some or all of these fields: `{dispatch?, state?, extra?, rejectValue?}`.
 
-```ts {2-12}
+```ts
 const fetchUserById = createAsyncThunk<
   // Return type of the payload creator
-  Promise<MyData>,
+  MyData,
   // First argument to the payload creator
   number,
   {
@@ -447,7 +447,98 @@ const fetchUserById = createAsyncThunk<
 })
 ```
 
-While this notation for `state`, `dispatch` and `extra` might seem uncommon at first, it allows you to provide only the types for these you actually need - so for example, if you are not accessing `getState` within your `payloadCreator`, there is no need to provide a type for `state`.
+If you are performing a request that you know will typically either be a success or have an expected error format, you can pass in a type to `rejectValue` and `return rejectWithValue(knownPayload)` in the action creator. This allows you to reference the error payload in the reducer as well as in a component after dispatching the `createAsyncThunk` action.
+
+```ts
+interface MyKnownError {
+  errorMessage: string
+  // ...
+}
+interface UserAttributes {
+  id: string
+  first_name: string
+  last_name: string
+  email: string
+}
+
+const updateUser = createAsyncThunk<
+  // Return type of the payload creator
+  MyData,
+  // First argument to the payload creator
+  UserAttributes,
+  // Types for ThunkAPI
+  {
+    extra: {
+      jwt: string
+    }
+    rejectValue: MyKnownError
+  }
+>('users/update', async (user, thunkApi) => {
+  const { id, ...userData } = user
+  const response = await fetch(`https://reqres.in/api/users/${id}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${thunkApi.extra.jwt}`
+    },
+    body: JSON.stringify(userData)
+  })
+  if (response.status === 400) {
+    // Return the known error for future handling
+    return thunkApi.rejectWithValue((await response.json()) as MyKnownError)
+  }
+  return (await response.json()) as MyData
+})
+```
+
+While this notation for `state`, `dispatch`, `extra` and `rejectValue` might seem uncommon at first, it allows you to provide only the types for these you actually need - so for example, if you are not accessing `getState` within your `payloadCreator`, there is no need to provide a type for `state`. The same can be said about `rejectValue` - if you don't need to access any potential error payload, you can ignore it.
+
+In addition, you can leverage checks against `action.payload` and `match` as provided by `createAction` as a type-guard for when you want to access known properties on defined types. Example:
+
+- In a reducer
+
+```ts
+const usersSlice = createSlice({
+  name: 'users',
+  initialState: {
+    entities: {},
+    error: null
+  },
+  reducers: {},
+  extraReducers: builder => {
+    builder.addCase(updateUser.fulfilled, (state, { payload }) => {
+      state.entities[payload.id] = payload
+    })
+    builder.addCase(updateUser.rejected, (state, action) => {
+      if (action.payload) {
+        // Since we passed in `MyKnownError` to `rejectType` in `updateUser`, the type information will be available here.
+        state.error = action.payload.errorMessage
+      } else {
+        state.error = action.error
+      }
+    })
+  }
+})
+```
+
+- In a component
+
+```ts
+const handleUpdateUser = async userData => {
+  const resultAction = await dispatch(updateUser(userData))
+  if (updateUser.fulfilled.match(resultAction)) {
+    const user = unwrapResult(resultAction)
+    showToast('success', `Updated ${user.name}`)
+  } else {
+    if (resultAction.payload) {
+      // Since we passed in `MyKnownError` to `rejectType` in `updateUser`, the type information will be available here.
+      // Note: this would also be a good place to do any handling that relies on the `rejectedWithValue` payload, such as setting field errors
+      showToast('error', `Update failed: ${resultAction.payload.errorMessage}`)
+    } else {
+      showToast('error', `Update failed: ${resultAction.error.message}`)
+    }
+  }
+}
+```
 
 ## `createEntityAdapter`
 
