@@ -15,7 +15,7 @@ import {
 import { Omit } from './tsHelpers'
 
 /**
- * An action creator atttached to a slice.
+ * An action creator attached to a slice.
  *
  * @deprecated please use PayloadActionCreator directly
  *
