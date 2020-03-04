@@ -11,12 +11,18 @@ import { nanoid } from './nanoid'
 // @ts-ignore we need the import of these types due to a bundling issue.
 type _Keep = PayloadAction | ActionCreatorWithPreparedPayload<any, unknown>
 
-export type BaseThunkAPI<S, E, D extends Dispatch = Dispatch> = {
+export type BaseThunkAPI<
+  S,
+  E,
+  D extends Dispatch = Dispatch,
+  RejectedValue = undefined
+> = {
   dispatch: D
   getState: () => S
   extra: E
   requestId: string
   signal: AbortSignal
+  rejectWithValue(value: RejectedValue): RejectWithValue<RejectedValue>
 }
 
 /**
@@ -29,15 +35,19 @@ export interface SerializedError {
   code?: string
 }
 
-const commonProperties: (keyof SerializedError)[] = [
+const commonProperties: Array<keyof SerializedError> = [
   'name',
   'message',
   'stack',
   'code'
 ]
 
+class RejectWithValue<RejectValue> {
+  constructor(public readonly value: RejectValue) {}
+}
+
 // Reworked from https://github.com/sindresorhus/serialize-error
-export const miniSerializeError = (value: any): any => {
+export const miniSerializeError = (value: any): SerializedError => {
   if (typeof value === 'object' && value !== null) {
     const simpleError: SerializedError = {}
     for (const property of commonProperties) {
@@ -49,13 +59,14 @@ export const miniSerializeError = (value: any): any => {
     return simpleError
   }
 
-  return value
+  return { message: String(value) }
 }
 
 type AsyncThunkConfig = {
   state?: unknown
   dispatch?: Dispatch
   extra?: unknown
+  rejectValue?: unknown
 }
 
 type GetState<ThunkApiConfig> = ThunkApiConfig extends {
@@ -82,8 +93,15 @@ type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
 type GetThunkAPI<ThunkApiConfig> = BaseThunkAPI<
   GetState<ThunkApiConfig>,
   GetExtra<ThunkApiConfig>,
-  GetDispatch<ThunkApiConfig>
+  GetDispatch<ThunkApiConfig>,
+  GetRejectValue<ThunkApiConfig>
 >
+
+type GetRejectValue<ThunkApiConfig> = ThunkApiConfig extends {
+  rejectValue: infer RejectValue
+}
+  ? RejectValue
+  : unknown
 
 /**
  *
@@ -101,8 +119,13 @@ export function createAsyncThunk<
   payloadCreator: (
     arg: ThunkArg,
     thunkAPI: GetThunkAPI<ThunkApiConfig>
-  ) => Promise<Returned> | Returned
+  ) =>
+    | Promise<Returned | RejectWithValue<GetRejectValue<ThunkApiConfig>>>
+    | Returned
+    | RejectWithValue<GetRejectValue<ThunkApiConfig>>
 ) {
+  type RejectedValue = GetRejectValue<ThunkApiConfig>
+
   const fulfilled = createAction(
     type + '/fulfilled',
     (result: Returned, requestId: string, arg: ThunkArg) => {
@@ -125,11 +148,16 @@ export function createAsyncThunk<
 
   const rejected = createAction(
     type + '/rejected',
-    (error: Error, requestId: string, arg: ThunkArg) => {
-      const aborted = error && error.name === 'AbortError'
+    (
+      error: Error | null,
+      requestId: string,
+      arg: ThunkArg,
+      payload?: RejectedValue
+    ) => {
+      const aborted = !!error && error.name === 'AbortError'
       return {
-        payload: undefined,
-        error: miniSerializeError(error),
+        payload,
+        error: miniSerializeError(error || 'Rejected'),
         meta: {
           arg,
           requestId,
@@ -139,6 +167,34 @@ export function createAsyncThunk<
     }
   )
 
+  let displayedWarning = false
+
+  const AC =
+    typeof AbortController !== 'undefined'
+      ? AbortController
+      : class implements AbortController {
+          signal: AbortSignal = {
+            aborted: false,
+            addEventListener() {},
+            dispatchEvent() {
+              return false
+            },
+            onabort() {},
+            removeEventListener() {}
+          }
+          abort() {
+            if (process.env.NODE_ENV === 'development') {
+              if (!displayedWarning) {
+                displayedWarning = true
+                console.info(
+                  `This platform does not implement AbortController. 
+If you want to use the AbortController to react to \`abort\` events, please consider importing a polyfill like 'abortcontroller-polyfill/dist/abortcontroller-polyfill-only'.`
+                )
+              }
+            }
+          }
+        }
+
   function actionCreator(arg: ThunkArg) {
     return (
       dispatch: GetDispatch<ThunkApiConfig>,
@@ -147,7 +203,7 @@ export function createAsyncThunk<
     ) => {
       const requestId = nanoid()
 
-      const abortController = new AbortController()
+      const abortController = new AC()
       let abortReason: string | undefined
 
       const abortedPromise = new Promise<never>((_, reject) =>
@@ -173,9 +229,17 @@ export function createAsyncThunk<
                 getState,
                 extra,
                 requestId,
-                signal: abortController.signal
+                signal: abortController.signal,
+                rejectWithValue(value: RejectedValue) {
+                  return new RejectWithValue(value)
+                }
               })
-            ).then(result => fulfilled(result, requestId, arg))
+            ).then(result => {
+              if (result instanceof RejectWithValue) {
+                return rejected(null, requestId, arg, result.value)
+              }
+              return fulfilled(result, requestId, arg)
+            })
           ])
         } catch (err) {
           finalAction = rejected(err, requestId, arg)
@@ -199,14 +263,23 @@ export function createAsyncThunk<
   })
 }
 
+type ActionTypesWithOptionalErrorAction =
+  | { error: any }
+  | { error?: never; payload: any }
+type PayloadForActionTypesExcludingErrorActions<T> = T extends { error: any }
+  ? never
+  : T extends { payload: infer P }
+  ? P
+  : never
+
 /**
  * @alpha
  */
-export function unwrapResult<T>(
-  returned: { error: any } | { payload: NonNullable<T> }
-): NonNullable<T> {
+export function unwrapResult<R extends ActionTypesWithOptionalErrorAction>(
+  returned: R
+): PayloadForActionTypesExcludingErrorActions<R> {
   if ('error' in returned) {
     throw returned.error
   }
-  return returned.payload
+  return (returned as any).payload
 }
