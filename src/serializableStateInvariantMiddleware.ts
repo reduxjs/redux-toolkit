@@ -128,6 +128,9 @@ export interface SerializableStateInvariantMiddlewareOptions {
 export function createSerializableStateInvariantMiddleware(
   options: SerializableStateInvariantMiddlewareOptions = {}
 ): Middleware {
+  if (process.env.NODE_ENV === 'production') {
+    return () => next => action => next(action)
+  }
   const {
     isSerializable = isPlain,
     getEntries,

@@ -183,7 +183,7 @@ export function createAsyncThunk<
             removeEventListener() {}
           }
           abort() {
-            if (process.env.NODE_ENV === 'development') {
+            if (process.env.NODE_ENV !== 'production') {
               if (!displayedWarning) {
                 displayedWarning = true
                 console.info(

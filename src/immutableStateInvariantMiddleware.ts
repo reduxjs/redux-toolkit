@@ -179,6 +179,10 @@ export interface ImmutableStateInvariantMiddlewareOptions {
 export function createImmutableStateInvariantMiddleware(
   options: ImmutableStateInvariantMiddlewareOptions = {}
 ): Middleware {
+  if (process.env.NODE_ENV === 'production') {
+    return () => next => action => next(action)
+  }
+
   const { isImmutable = isImmutableDefault, ignoredPaths } = options
   const track = trackForMutations.bind(null, isImmutable, ignoredPaths)
 
