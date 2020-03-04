@@ -167,6 +167,34 @@ export function createAsyncThunk<
     }
   )
 
+  let displayedWarning = false
+
+  const AC =
+    typeof AbortController !== 'undefined'
+      ? AbortController
+      : class implements AbortController {
+          signal: AbortSignal = {
+            aborted: false,
+            addEventListener() {},
+            dispatchEvent() {
+              return false
+            },
+            onabort() {},
+            removeEventListener() {}
+          }
+          abort() {
+            if (process.env.NODE_ENV === 'development') {
+              if (!displayedWarning) {
+                displayedWarning = true
+                console.info(
+                  `This platform does not implement AbortController. 
+If you want to use the AbortController to react to \`abort\` events, please consider importing a polyfill like 'abortcontroller-polyfill/dist/abortcontroller-polyfill-only'.`
+                )
+              }
+            }
+          }
+        }
+
   function actionCreator(arg: ThunkArg) {
     return (
       dispatch: GetDispatch<ThunkApiConfig>,
@@ -175,7 +203,7 @@ export function createAsyncThunk<
     ) => {
       const requestId = nanoid()
 
-      const abortController = new AbortController()
+      const abortController = new AC()
       let abortReason: string | undefined
 
       const abortedPromise = new Promise<never>((_, reject) =>

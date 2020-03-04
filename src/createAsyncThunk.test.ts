@@ -6,6 +6,12 @@ import {
 import { configureStore } from './configureStore'
 import { AnyAction } from 'redux'
 
+import {
+  mockConsole,
+  createConsole,
+  getLog
+} from 'console-testing-library/pure'
+
 describe('createAsyncThunk', () => {
   it('creates the action types', () => {
     const thunkActionCreator = createAsyncThunk('testType', async () => 42)
@@ -406,6 +412,48 @@ describe('createAsyncThunk with abortController', () => {
       type: 'longRunning/rejected',
       error: { message: 'Aborted', name: 'AbortError' },
       meta: { aborted: true }
+    })
+  })
+
+  describe('behaviour with missing AbortController', () => {
+    let keepAbortController: typeof AbortController
+    let freshlyLoadedModule: typeof import('./createAsyncThunk')
+    let restore: () => void
+    let nodeEnv: string
+
+    beforeEach(() => {
+      keepAbortController = window.AbortController
+      delete window.AbortController
+      jest.resetModules()
+      freshlyLoadedModule = require('./createAsyncThunk')
+      restore = mockConsole(createConsole())
+      nodeEnv = process.env.NODE_ENV!
+      process.env.NODE_ENV = 'development'
+    })
+
+    afterEach(() => {
+      process.env.NODE_ENV = nodeEnv
+      restore()
+      window.AbortController = keepAbortController
+      jest.resetModules()
+    })
+
+    test('calling `abort` on an asyncThunk works with a FallbackAbortController if no global abortController is not available', async () => {
+      const longRunningAsyncThunk = freshlyLoadedModule.createAsyncThunk(
+        'longRunning',
+        async () => {
+          await new Promise(resolve => setTimeout(resolve, 30000))
+        }
+      )
+
+      store.dispatch(longRunningAsyncThunk()).abort()
+      // should only log once, even if called twice
+      store.dispatch(longRunningAsyncThunk()).abort()
+
+      expect(getLog().log).toMatchInlineSnapshot(`
+        "This platform does not implement AbortController. 
+        If you want to use the AbortController to react to \`abort\` events, please consider importing a polyfill like 'abortcontroller-polyfill/dist/abortcontroller-polyfill-only'."
+      `)
     })
   })
 })
