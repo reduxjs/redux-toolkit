@@ -385,4 +385,27 @@ describe('serializableStateInvariantMiddleware', () => {
       (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)"
     `)
   })
+
+  it('should not check serializability for meta.args by default', () => {
+    const badValue = new Map()
+
+    const reducer: Reducer = (state = 42, action) => {
+      return state
+    }
+
+    const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware()
+
+    const store = configureStore({
+      reducer: {
+        testSlice: reducer
+      },
+      middleware: [serializableStateInvariantMiddleware]
+    })
+
+    store.dispatch({ type: 'testAction', meta: { args: { badValue } } })
+
+    const { log } = getLog()
+    expect(log).toBe('')
+    const q = 42
+  })
 })
