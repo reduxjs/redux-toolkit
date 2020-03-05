@@ -12,6 +12,12 @@ import {
   getLog
 } from 'console-testing-library/pure'
 
+declare global {
+  interface Window {
+    AbortController: AbortController
+  }
+}
+
 describe('createAsyncThunk', () => {
   it('creates the action types', () => {
     const thunkActionCreator = createAsyncThunk('testType', async () => 42)
@@ -416,7 +422,7 @@ describe('createAsyncThunk with abortController', () => {
   })
 
   describe('behaviour with missing AbortController', () => {
-    let keepAbortController: typeof AbortController
+    let keepAbortController: typeof window['AbortController']
     let freshlyLoadedModule: typeof import('./createAsyncThunk')
     let restore: () => void
     let nodeEnv: string
