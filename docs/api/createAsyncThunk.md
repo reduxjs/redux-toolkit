@@ -325,9 +325,9 @@ import { userAPI } from './userAPI'
 
 const fetchUserById = createAsyncThunk(
   'users/fetchByIdStatus',
-  async (userId, { getState }) => {
-    const { loading } = getState().users
-    if (loading !== 'idle') {
+  async (userId, { getState, requestId }) => {
+    const { currentRequestId, loading } = getState().users
+    if (loading !== 'pending' || requestId !== currentRequestId) {
       return
     }
     const response = await userAPI.fetchById(userId)
@@ -340,6 +340,7 @@ const usersSlice = createSlice({
   initialState: {
     entities: [],
     loading: 'idle',
+    currentRequestId: undefined,
     error: null
   },
   reducers: {},
@@ -347,18 +348,23 @@ const usersSlice = createSlice({
     [fetchUserById.pending]: (state, action) => {
       if (state.loading === 'idle') {
         state.loading = 'pending'
+        state.currentRequestId = action.meta.requestId
       }
     },
     [fetchUserById.fulfilled]: (state, action) => {
-      if (state.loading === 'pending') {
+      const { requestId } = action.meta
+      if (state.loading === 'pending' && state.currentRequestId === requestId) {
         state.loading = 'idle'
-        state.push(action.payload)
+        state.entities.push(action.payload)
+        state.currentRequestId = undefined
       }
     },
     [fetchUserById.rejected]: (state, action) => {
-      if (state.loading === 'pending') {
+      const { requestId } = action.meta
+      if (state.loading === 'pending' && state.currentRequestId === requestId) {
         state.loading = 'idle'
         state.error = action.error
+        state.currentRequestId = undefined
       }
     }
   }
