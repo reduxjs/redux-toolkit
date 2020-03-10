@@ -48,6 +48,16 @@ yarn add @reduxjs/toolkit
 It is also available as a precompiled UMD package that defines a `window.RTK` global variable.
 The UMD package can be used as a [`<script>` tag](https://unpkg.com/@reduxjs/toolkit/dist/redux-toolkit.umd.js) directly.
 
+## Create a React Redux App
+
+The recommended way to start new apps with React and Redux is by using the [official Redux+JS template](https://github.com/reduxjs/cra-template-redux) for [Create React App](https://github.com/facebook/create-react-app), which takes advantage of **[Redux Toolkit](https://redux-toolkit.js.org/)** and React Redux's integration with React components.
+
+```sh
+npx create-react-app my-app --template redux
+cd my-app
+npm start
+```
+
 ## Help and Discussion
 
 The **[#redux channel](https://discord.gg/0ZcbPKXt5bZ6au5t)** of the **[Reactiflux Discord community](http://www.reactiflux.com)** is our official resource for all questions related to learning and using Redux. Reactiflux is a great place to hang out, ask questions, and learn - come join us!
