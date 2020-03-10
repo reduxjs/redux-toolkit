@@ -112,6 +112,7 @@ export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig exten
     aborted: boolean;
 }, SerializedError>> & {
     abort: (reason?: string | undefined) => void;
+    getStatus: () => "pending" | "rejected" | "fulfilled";
 }) & {
     pending: ActionCreatorWithPreparedPayload<[string, ThunkArg], undefined, string, never, {
         arg: ThunkArg;

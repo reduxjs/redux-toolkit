@@ -201,6 +201,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
       getState: () => GetState<ThunkApiConfig>,
       extra: GetExtra<ThunkApiConfig>
     ) => {
+      let status: 'pending' | 'rejected' | 'fulfilled' = 'pending'
       const requestId = nanoid()
 
       const abortController = new AC()
@@ -217,9 +218,14 @@ If you want to use the AbortController to react to \`abort\` events, please cons
         abortController.abort()
       }
 
+      function getStatus() {
+        return status
+      }
+
       const promise = (async function() {
         let finalAction: ReturnType<typeof fulfilled | typeof rejected>
         try {
+          status = 'pending'
           dispatch(pending(requestId, arg))
           finalAction = await Promise.race([
             abortedPromise,
@@ -236,12 +242,15 @@ If you want to use the AbortController to react to \`abort\` events, please cons
               })
             ).then(result => {
               if (result instanceof RejectWithValue) {
+                status = 'rejected'
                 return rejected(null, requestId, arg, result.value)
               }
+              status = 'fulfilled'
               return fulfilled(result, requestId, arg)
             })
           ])
         } catch (err) {
+          status = 'rejected'
           finalAction = rejected(err, requestId, arg)
         }
         // We dispatch the result action _after_ the catch, to avoid having any errors
@@ -252,7 +261,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
         dispatch(finalAction)
         return finalAction
       })()
-      return Object.assign(promise, { abort })
+      return Object.assign(promise, { abort, getStatus })
     }
   }
 

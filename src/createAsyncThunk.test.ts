@@ -293,6 +293,64 @@ describe('createAsyncThunk', () => {
     expect(errorAction.meta.requestId).toBe(generatedRequestId)
     expect(errorAction.meta.arg).toBe(args)
   })
+
+  it('returns the status of a fulfilled promise via getStatus()', async () => {
+    let store = configureStore({
+      reducer(store: AnyAction[] = []) {
+        return store
+      }
+    })
+
+    const args = 123
+    let generatedRequestId = ''
+
+    const longRunningAsyncThunk = createAsyncThunk(
+      'longRunning',
+      async (args: number, { requestId }) => {
+        generatedRequestId = requestId
+
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+    )
+
+    const promise = store.dispatch(longRunningAsyncThunk(args))
+    expect(promise.getStatus()).toEqual('pending')
+
+    const result = await promise
+    expect(promise.getStatus()).toEqual('fulfilled')
+    expect(result.type).toContain('fulfilled')
+    expect(result.meta.requestId).toBe(generatedRequestId)
+    expect(result.meta.arg).toBe(args)
+  })
+
+  it('returns the status of a rejected promise via getStatus()', async () => {
+    let store = configureStore({
+      reducer(store: AnyAction[] = []) {
+        return store
+      }
+    })
+
+    const args = 123
+    let generatedRequestId = ''
+
+    const errorThunk = createAsyncThunk(
+      'errorThunk',
+      async (args: number, { requestId }) => {
+        generatedRequestId = requestId
+
+        throw new Error('Panic!')
+      }
+    )
+
+    const promise = store.dispatch(errorThunk(args))
+    expect(promise.getStatus()).toEqual('pending')
+
+    const result = await promise
+    expect(promise.getStatus()).toEqual('rejected')
+    expect(result.type).toContain('rejected')
+    expect(result.meta.requestId).toBe(generatedRequestId)
+    expect(result.meta.arg).toBe(args)
+  })
 })
 
 describe('createAsyncThunk with abortController', () => {
