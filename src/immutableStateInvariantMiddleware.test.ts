@@ -5,6 +5,7 @@ import {
   trackForMutations,
   ImmutableStateInvariantMiddlewareOptions
 } from './immutableStateInvariantMiddleware'
+import { mockConsole, createConsole, getLog } from 'console-testing-library'
 
 describe('createImmutableStateInvariantMiddleware', () => {
   let state: { foo: { bar: number[]; baz: string } }
@@ -120,6 +121,42 @@ describe('createImmutableStateInvariantMiddleware', () => {
     expect(() => {
       dispatch({ type: 'SOME_ACTION' })
     }).not.toThrow()
+  })
+
+  it('Should print a warning if execution takes too long', () => {
+    state.foo.bar = new Array(10000).fill({ value: 'more' })
+
+    const next: Dispatch = action => action
+
+    const dispatch = middleware({ warnAfter: 4 })(next)
+
+    const restore = mockConsole(createConsole())
+    try {
+      dispatch({ type: 'SOME_ACTION' })
+      expect(getLog().log).toMatch(
+        /^ImmutableStateInvariantMiddleware took \d*ms, which is more than the warning threshold of 4ms./
+      )
+    } finally {
+      restore()
+    }
+  })
+
+  it('Should not print a warning if "next" takes too long', () => {
+    const next: Dispatch = action => {
+      const started = Date.now()
+      while (Date.now() - started < 8) {}
+      return action
+    }
+
+    const dispatch = middleware({ warnAfter: 4 })(next)
+
+    const restore = mockConsole(createConsole())
+    try {
+      dispatch({ type: 'SOME_ACTION' })
+      expect(getLog().log).toEqual('')
+    } finally {
+      restore()
+    }
   })
 })
 

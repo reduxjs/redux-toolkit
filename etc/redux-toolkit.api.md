@@ -251,6 +251,7 @@ export interface SerializableStateInvariantMiddlewareOptions {
     ignoredActions?: string[];
     ignoredPaths?: string[];
     isSerializable?: (value: any) => boolean;
+    warnAfter?: number;
 }
 
 // @alpha (undocumented)

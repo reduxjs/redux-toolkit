@@ -1,4 +1,5 @@
 import { Middleware } from 'redux'
+import { getTimeMeasureUtils } from './utils'
 
 type EntryProcessor = (key: string, value: any) => any
 
@@ -174,6 +175,7 @@ type IsImmutableFunc = (value: any) => boolean
 export interface ImmutableStateInvariantMiddlewareOptions {
   isImmutable?: IsImmutableFunc
   ignoredPaths?: string[]
+  warnAfter?: number
 }
 
 export function createImmutableStateInvariantMiddleware(
@@ -183,7 +185,11 @@ export function createImmutableStateInvariantMiddleware(
     return () => next => action => next(action)
   }
 
-  const { isImmutable = isImmutableDefault, ignoredPaths } = options
+  const {
+    isImmutable = isImmutableDefault,
+    ignoredPaths,
+    warnAfter = 32
+  } = options
   const track = trackForMutations.bind(null, isImmutable, ignoredPaths)
 
   return ({ getState }) => {
@@ -192,39 +198,51 @@ export function createImmutableStateInvariantMiddleware(
 
     let result
     return next => action => {
-      state = getState()
-
-      result = tracker.detectMutations()
-      // Track before potentially not meeting the invariant
-      tracker = track(state)
-
-      invariant(
-        !result.wasMutated,
-        `A state mutation was detected between dispatches, in the path '${(
-          result.path || []
-        ).join(
-          '.'
-        )}'.  This may cause incorrect behavior. (http://redux.js.org/docs/Troubleshooting.html#never-mutate-reducer-arguments)`
+      const measureUtils = getTimeMeasureUtils(
+        warnAfter,
+        'ImmutableStateInvariantMiddleware'
       )
 
-      const dispatchedAction = next(action)
-      state = getState()
+      measureUtils.measureTime(() => {
+        state = getState()
 
-      result = tracker.detectMutations()
-      // Track before potentially not meeting the invariant
-      tracker = track(state)
+        result = tracker.detectMutations()
+        // Track before potentially not meeting the invariant
+        tracker = track(state)
 
-      result.wasMutated &&
         invariant(
           !result.wasMutated,
-          `A state mutation was detected inside a dispatch, in the path: ${(
+          `A state mutation was detected between dispatches, in the path '${(
             result.path || []
           ).join(
             '.'
-          )}. Take a look at the reducer(s) handling the action ${stringify(
-            action
-          )}. (http://redux.js.org/docs/Troubleshooting.html#never-mutate-reducer-arguments)`
+          )}'.  This may cause incorrect behavior. (http://redux.js.org/docs/Troubleshooting.html#never-mutate-reducer-arguments)`
         )
+      })
+
+      const dispatchedAction = next(action)
+
+      measureUtils.measureTime(() => {
+        state = getState()
+
+        result = tracker.detectMutations()
+        // Track before potentially not meeting the invariant
+        tracker = track(state)
+
+        result.wasMutated &&
+          invariant(
+            !result.wasMutated,
+            `A state mutation was detected inside a dispatch, in the path: ${(
+              result.path || []
+            ).join(
+              '.'
+            )}. Take a look at the reducer(s) handling the action ${stringify(
+              action
+            )}. (http://redux.js.org/docs/Troubleshooting.html#never-mutate-reducer-arguments)`
+          )
+      })
+
+      measureUtils.warnIfExceeded()
 
       return dispatchedAction
     }
