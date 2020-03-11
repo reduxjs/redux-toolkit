@@ -54,8 +54,6 @@ The recommended way to start new apps with React and Redux Toolkit is by using t
 
 ```sh
 npx create-react-app my-app --template redux
-cd my-app
-npm start
 ```
 
 ## Help and Discussion
