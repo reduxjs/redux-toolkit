@@ -124,15 +124,11 @@ export interface ActionCreatorWithPreparedPayload<
 export interface ActionCreatorWithOptionalPayload<P, T extends string = string>
   extends BaseActionCreator<P, T> {
   /**
-   * Calling this {@link redux#ActionCreator} without arguments will
-   * return a {@link PayloadAction} of type `T` with a payload of `undefined`
-   */
-  (payload?: undefined): PayloadAction<undefined, T>
-  /**
    * Calling this {@link redux#ActionCreator} with an argument will
-   * return a {@link PayloadAction} of type `T` with a payload of `P`
+   * return a {@link PayloadAction} of type `T` with a payload of `P`.
+   * Calling it without an argument will return a PayloadAction with a payload of `undefined`.
    */
-  <PT extends Diff<P, undefined>>(payload?: PT): PayloadAction<PT, T>
+  (payload?: P): PayloadAction<P, T>
 }
 
 /**
@@ -160,12 +156,6 @@ export interface ActionCreatorWithoutPayload<T extends string = string>
  */
 export interface ActionCreatorWithPayload<P, T extends string = string>
   extends BaseActionCreator<P, T> {
-  /**
-   * Calling this {@link redux#ActionCreator} with an argument will
-   * return a {@link PayloadAction} of type `T` with a payload of `P`
-   * If possible, `P` will be narrowed down to the exact type of the payload argument.
-   */
-  <PT extends P>(payload: PT): PayloadAction<PT, T>
   /**
    * Calling this {@link redux#ActionCreator} with an argument will
    * return a {@link PayloadAction} of type `T` with a payload of `P`
@@ -332,8 +322,6 @@ export function getType<T extends string>(
 }
 
 // helper types for more readable typings
-
-type Diff<T, U> = T extends U ? never : T
 
 type IfPrepareActionMethodProvided<
   PA extends PrepareAction<any> | void,

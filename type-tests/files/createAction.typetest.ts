@@ -73,9 +73,9 @@ function expectType<T>(p: T): T {
     { type: 'action' }
   ) as PayloadActionCreator<number | undefined>
 
-  expectType<PayloadAction<number>>(actionCreator(1))
-  expectType<PayloadAction<undefined>>(actionCreator())
-  expectType<PayloadAction<undefined>>(actionCreator(undefined))
+  expectType<PayloadAction<number | undefined>>(actionCreator(1))
+  expectType<PayloadAction<number | undefined>>(actionCreator())
+  expectType<PayloadAction<number | undefined>>(actionCreator(undefined))
 
   // typings:expect-error
   expectType<PayloadAction<number>>(actionCreator())
@@ -104,9 +104,9 @@ function expectType<T>(p: T): T {
     { type: 'action' }
   ) as PayloadActionCreator<number>
 
-  const actionCreator2: ActionCreator<
-    PayloadAction<number>
-  > = payloadActionCreator2
+  const actionCreator2: ActionCreator<PayloadAction<
+    number
+  >> = payloadActionCreator2
 }
 
 /* createAction() */
