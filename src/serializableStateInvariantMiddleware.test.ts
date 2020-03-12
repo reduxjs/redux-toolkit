@@ -408,4 +408,51 @@ describe('serializableStateInvariantMiddleware', () => {
     expect(log).toBe('')
     const q = 42
   })
+
+  it('Should print a warning if execution takes too long', () => {
+    const reducer: Reducer = (state = 42, action) => {
+      return state
+    }
+
+    const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware(
+      { warnAfter: 4 }
+    )
+
+    const store = configureStore({
+      reducer: {
+        testSlice: reducer
+      },
+      middleware: [serializableStateInvariantMiddleware]
+    })
+
+    store.dispatch({
+      type: 'SOME_ACTION',
+      payload: new Array(10000).fill({ value: 'more' })
+    })
+    expect(getLog().log).toMatch(
+      /^SerializableStateInvariantMiddleware took \d*ms, which is more than the warning threshold of 4ms./
+    )
+  })
+
+  it('Should not print a warning if "reducer" takes too long', () => {
+    const reducer: Reducer = (state = 42, action) => {
+      const started = Date.now()
+      while (Date.now() - started < 8) {}
+      return state
+    }
+
+    const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware(
+      { warnAfter: 4 }
+    )
+
+    const store = configureStore({
+      reducer: {
+        testSlice: reducer
+      },
+      middleware: [serializableStateInvariantMiddleware]
+    })
+
+    store.dispatch({ type: 'SOME_ACTION' })
+    expect(getLog().log).toMatch('')
+  })
 })

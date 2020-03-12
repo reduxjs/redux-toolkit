@@ -1,5 +1,6 @@
 import isPlainObject from './isPlainObject'
 import { Middleware } from 'redux'
+import { getTimeMeasureUtils } from './utils'
 
 /**
  * Returns true if the passed value is "plain", i.e. a value that is either
@@ -114,6 +115,10 @@ export interface SerializableStateInvariantMiddlewareOptions {
    * An array of dot-separated path strings to ignore when checking for serializability, Defaults to []
    */
   ignoredPaths?: string[]
+  /**
+   * Execution time warning threshold. If the middleware takes longer than `warnAfter` ms, a warning will be displayed in the console. Defaults to 32
+   */
+  warnAfter?: number
 }
 
 /**
@@ -135,7 +140,8 @@ export function createSerializableStateInvariantMiddleware(
     isSerializable = isPlain,
     getEntries,
     ignoredActions = [],
-    ignoredPaths = []
+    ignoredPaths = [],
+    warnAfter = 32
   } = options
 
   return storeAPI => next => action => {
@@ -143,48 +149,58 @@ export function createSerializableStateInvariantMiddleware(
       return next(action)
     }
 
-    const foundActionNonSerializableValue = findNonSerializableValue(
-      action,
-      [],
-      isSerializable,
-      getEntries
+    const measureUtils = getTimeMeasureUtils(
+      warnAfter,
+      'SerializableStateInvariantMiddleware'
     )
-
-    if (foundActionNonSerializableValue) {
-      const { keyPath, value } = foundActionNonSerializableValue
-
-      console.error(
-        `A non-serializable value was detected in an action, in the path: \`${keyPath}\`. Value:`,
-        value,
-        '\nTake a look at the logic that dispatched this action: ',
+    measureUtils.measureTime(() => {
+      const foundActionNonSerializableValue = findNonSerializableValue(
         action,
-        '\n(See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)'
+        [],
+        isSerializable,
+        getEntries
       )
-    }
+
+      if (foundActionNonSerializableValue) {
+        const { keyPath, value } = foundActionNonSerializableValue
+
+        console.error(
+          `A non-serializable value was detected in an action, in the path: \`${keyPath}\`. Value:`,
+          value,
+          '\nTake a look at the logic that dispatched this action: ',
+          action,
+          '\n(See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)'
+        )
+      }
+    })
 
     const result = next(action)
 
-    const state = storeAPI.getState()
+    measureUtils.measureTime(() => {
+      const state = storeAPI.getState()
 
-    const foundStateNonSerializableValue = findNonSerializableValue(
-      state,
-      [],
-      isSerializable,
-      getEntries,
-      ignoredPaths
-    )
+      const foundStateNonSerializableValue = findNonSerializableValue(
+        state,
+        [],
+        isSerializable,
+        getEntries,
+        ignoredPaths
+      )
 
-    if (foundStateNonSerializableValue) {
-      const { keyPath, value } = foundStateNonSerializableValue
+      if (foundStateNonSerializableValue) {
+        const { keyPath, value } = foundStateNonSerializableValue
 
-      console.error(
-        `A non-serializable value was detected in the state, in the path: \`${keyPath}\`. Value:`,
-        value,
-        `
+        console.error(
+          `A non-serializable value was detected in the state, in the path: \`${keyPath}\`. Value:`,
+          value,
+          `
 Take a look at the reducer(s) handling this action type: ${action.type}.
 (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)`
-      )
-    }
+        )
+      }
+    })
+
+    measureUtils.warnIfExceeded()
 
     return result
   }
