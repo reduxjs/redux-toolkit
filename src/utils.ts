@@ -1,3 +1,5 @@
+import { Middleware } from 'redux'
+
 export function getTimeMeasureUtils(maxDelay: number, fnName: string) {
   let elapsed = 0
   return {
@@ -19,3 +21,7 @@ It is disabled in production builds, so you don't need to worry about that.`)
     }
   }
 }
+
+export function noop() {}
+
+export const noopMiddleware: Middleware = () => next => action => next(action)

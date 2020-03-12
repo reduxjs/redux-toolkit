@@ -1,6 +1,6 @@
 import isPlainObject from './isPlainObject'
 import { Middleware } from 'redux'
-import { getTimeMeasureUtils } from './utils'
+import { getTimeMeasureUtils, noopMiddleware } from './utils'
 
 /**
  * Returns true if the passed value is "plain", i.e. a value that is either
@@ -134,7 +134,7 @@ export function createSerializableStateInvariantMiddleware(
   options: SerializableStateInvariantMiddlewareOptions = {}
 ): Middleware {
   if (process.env.NODE_ENV === 'production') {
-    return () => next => action => next(action)
+    return noopMiddleware
   }
   const {
     isSerializable = isPlain,

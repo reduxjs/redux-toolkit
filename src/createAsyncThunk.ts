@@ -7,6 +7,7 @@ import {
 import { ThunkDispatch } from 'redux-thunk'
 import { FallbackIfUnknown } from './tsHelpers'
 import { nanoid } from './nanoid'
+import { noop } from './utils'
 
 // @ts-ignore we need the import of these types due to a bundling issue.
 type _Keep = PayloadAction | ActionCreatorWithPreparedPayload<any, unknown>
@@ -175,12 +176,12 @@ export function createAsyncThunk<
       : class implements AbortController {
           signal: AbortSignal = {
             aborted: false,
-            addEventListener() {},
+            addEventListener: noop,
             dispatchEvent() {
               return false
             },
-            onabort() {},
-            removeEventListener() {}
+            onabort: noop,
+            removeEventListener: noop
           }
           abort() {
             if (process.env.NODE_ENV !== 'production') {

@@ -1,5 +1,5 @@
 import { Middleware } from 'redux'
-import { getTimeMeasureUtils } from './utils'
+import { getTimeMeasureUtils, noopMiddleware } from './utils'
 
 type EntryProcessor = (key: string, value: any) => any
 
@@ -182,7 +182,7 @@ export function createImmutableStateInvariantMiddleware(
   options: ImmutableStateInvariantMiddlewareOptions = {}
 ): Middleware {
   if (process.env.NODE_ENV === 'production') {
-    return () => next => action => next(action)
+    return noopMiddleware
   }
 
   const {
