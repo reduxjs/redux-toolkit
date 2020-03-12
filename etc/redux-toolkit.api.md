@@ -28,8 +28,7 @@ export interface ActionCreatorWithNonInferrablePayload<T extends string = string
 
 // @public
 export interface ActionCreatorWithOptionalPayload<P, T extends string = string> extends BaseActionCreator<P, T> {
-    (payload?: undefined): PayloadAction<undefined, T>;
-    <PT extends Diff<P, undefined>>(payload?: PT): PayloadAction<PT, T>;
+    (payload?: P): PayloadAction<P, T>;
 }
 
 // @public
@@ -39,7 +38,6 @@ export interface ActionCreatorWithoutPayload<T extends string = string> extends 
 
 // @public
 export interface ActionCreatorWithPayload<P, T extends string = string> extends BaseActionCreator<P, T> {
-    <PT extends P>(payload: PT): PayloadAction<PT, T>;
     (payload: P): PayloadAction<P, T>;
 }
 
