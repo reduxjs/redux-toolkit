@@ -1,8 +1,9 @@
-import { Action } from 'redux'
+import { Action, ActionCreator } from 'redux'
 import { CaseReducer, CaseReducers } from './createReducer'
+import { CaseMiddleware } from './createMiddleware'
 
-export interface TypedActionCreator<Type extends string> {
-  (...args: any[]): Action<Type>
+export interface TypedActionCreator<Type = string>
+  extends ActionCreator<Action<Type>> {
   type: Type
 }
 
@@ -51,6 +52,56 @@ export function executeReducerBuilderCallback<S>(
         )
       }
       actionsMap[type] = reducer
+      return builder
+    }
+  }
+  builderCallback(builder)
+  return actionsMap
+}
+
+/**
+ * A builder for an action <-> middleware map.
+ *
+ * @public
+ */
+export interface ActionMiddlewareMapBuilder {
+  /**
+   * Add a case mid for actions created by this action creator.
+   * @param actionCreator
+   * @param middleware
+   */
+  addCase<TAC extends TypedActionCreator>(
+    actionCreator: TAC,
+    middleware: CaseMiddleware<ReturnType<TAC>>
+  ): ActionMiddlewareMapBuilder
+  /**
+   * Add a case reducer for actions with the specified type.
+   * @param type
+   * @param mid
+   */
+  addCase(type: string, mid: CaseMiddleware): ActionMiddlewareMapBuilder
+}
+
+export function executeMiddlewareBuilderCallback(
+  builderCallback: (builder: ActionMiddlewareMapBuilder) => void
+): { [key: string]: CaseMiddleware } {
+  const actionsMap: { [key: string]: CaseMiddleware } = {}
+  const builder = {
+    addCase(
+      typeOrActionCreator: string | TypedActionCreator,
+      middleware: CaseMiddleware
+    ) {
+      const type =
+        typeof typeOrActionCreator === 'string'
+          ? typeOrActionCreator
+          : typeOrActionCreator.type
+      if (type in actionsMap) {
+        throw new Error(
+          'addCase cannot be called with two middleware cases for the same action type'
+        )
+      }
+
+      actionsMap[type] = middleware
       return builder
     }
   }
