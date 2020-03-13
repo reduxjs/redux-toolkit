@@ -27,6 +27,12 @@ export {
 } from './createAction'
 export {
   // js
+  createMiddleware,
+  // types
+  CaseMiddleware
+} from './createMiddleware'
+export {
+  // js
   createReducer,
   // types
   Actions,
@@ -59,5 +65,6 @@ export {
 } from './getDefaultMiddleware'
 export {
   // types
+  ActionMiddlewareMapBuilder,
   ActionReducerMapBuilder
 } from './mapBuilders'
