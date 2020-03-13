@@ -5,6 +5,7 @@
 ```ts
 
 import { Action } from 'redux';
+import { ActionCreator } from 'redux';
 import { AnyAction } from 'redux';
 import { default as createNextState } from 'immer';
 import { createSelector } from 'reselect';
@@ -48,6 +49,12 @@ export interface ActionCreatorWithPreparedPayload<Args extends unknown[], P, T e
 }
 
 // @public
+export interface ActionMiddlewareMapBuilder {
+    addCase<TAC extends TypedActionCreator>(actionCreator: TAC, middleware: CaseMiddleware<ReturnType<TAC>>): ActionMiddlewareMapBuilder;
+    addCase(type: string, mid: CaseMiddleware): ActionMiddlewareMapBuilder;
+}
+
+// @public
 export interface ActionReducerMapBuilder<State> {
     addCase<ActionCreator extends TypedActionCreator<string>>(actionCreator: ActionCreator, reducer: CaseReducer<State, ReturnType<ActionCreator>>): ActionReducerMapBuilder<State>;
     addCase<Type extends string, A extends Action<Type>>(type: Type, reducer: CaseReducer<State, A>): ActionReducerMapBuilder<State>;
@@ -55,6 +62,9 @@ export interface ActionReducerMapBuilder<State> {
 
 // @public @deprecated
 export type Actions<T extends keyof any = string> = Record<T, Action>;
+
+// @public
+export type CaseMiddleware<A extends Action = AnyAction> = (action: A, dispatch: Dispatch) => Promise<void> | void;
 
 // @public
 export type CaseReducer<S = any, A extends Action = AnyAction> = (state: Draft<S>, action: A) => S | void;
@@ -97,6 +107,9 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 
 // @public
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
+
+// @public
+export function createMiddleware(builderCallback: (builder: ActionMiddlewareMapBuilder) => void): Middleware;
 
 export { createNextState }
 
