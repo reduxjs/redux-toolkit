@@ -7,9 +7,32 @@
 
 **The official, opinionated, batteries-included toolset for efficient Redux development**
 
-`npm install @reduxjs/toolkit`
-
 (Formerly known as "Redux Starter Kit")
+
+## Installation
+
+### Using Create React App
+
+The recommended way to start new apps with React and Redux Toolkit is by using the [official Redux+JS template](https://github.com/reduxjs/cra-template-redux) for [Create React App](https://github.com/facebook/create-react-app), which takes advantage of React Redux's integration with React components.
+
+```sh
+npx create-react-app my-app --template redux
+```
+
+### An Existing App
+
+Redux Toolkit is available as a package on NPM for use with a module bundler or in a Node application:
+
+```bash
+# NPM
+npm install @reduxjs/toolkit
+
+# Yarn
+yarn add @reduxjs/toolkit
+```
+
+It is also available as a precompiled UMD package that defines a `window.RTK` global variable.
+The UMD package can be used as a [`<script>` tag](https://unpkg.com/@reduxjs/toolkit/dist/redux-toolkit.umd.js) directly.
 
 ## Purpose
 
