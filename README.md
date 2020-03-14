@@ -11,7 +11,7 @@
 
 (Formerly known as "Redux Starter Kit")
 
-### Purpose
+## Purpose
 
 The **Redux Toolkit** package is intended to be the standard way to write Redux logic. It was originally created to help address three common concerns about Redux:
 
@@ -23,7 +23,7 @@ We can't solve every use case, but in the spirit of [`create-react-app`](https:/
 
 This package is _not_ intended to solve every possible use case for Redux, and is deliberately limited in scope. It does _not_ address concepts like "reusable encapsulated Redux modules", data fetching, folder or file structures, managing entity relationships in the store, and so on.
 
-### What's Included
+## What's Included
 
 Redux Toolkit includes:
 
