@@ -43,7 +43,7 @@ The recommended way to start new apps with React and Redux Toolkit is by using t
 npx create-react-app my-app --template redux
 ```
 
-### An Existing React App
+### An Existing App
 
 Redux Toolkit is available as a package on NPM for use with a module bundler or in a Node application:
 
