@@ -19,7 +19,6 @@ function extractReducers<T>(
     sortComparer,
     getInitialState,
     getSelectors,
-    map,
     ...rest
   } = adapter
   return rest

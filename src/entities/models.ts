@@ -38,11 +38,6 @@ export type Update<T> = { id: EntityId; changes: Partial<T> }
 /**
  * @alpha
  */
-export type EntityMap<T> = (entity: T) => T
-
-/**
- * @alpha
- */
 export interface EntityState<T> {
   ids: EntityId[]
   entities: Dictionary<T>
@@ -53,7 +48,7 @@ export interface EntityDefinition<T> {
   sortComparer: false | Comparer<T>
 }
 
-type PreventAny<S, T> = IsAny<S, EntityState<T>, S>
+export type PreventAny<S, T> = IsAny<S, EntityState<T>, S>
 
 export interface EntityStateAdapter<T> {
   addOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
@@ -123,8 +118,6 @@ export interface EntityStateAdapter<T> {
     state: PreventAny<S, T>,
     entities: PayloadAction<T[]>
   ): S
-
-  map<S extends EntityState<T>>(state: PreventAny<S, T>, map: EntityMap<T>): S
 }
 
 export interface EntitySelectors<T, V> {
