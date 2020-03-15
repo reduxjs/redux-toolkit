@@ -186,9 +186,6 @@ export interface EntityAdapter<T> extends EntityStateAdapter<T> {
 }
 
 // @alpha (undocumented)
-export type EntityMap<T> = (entity: T) => T;
-
-// @alpha (undocumented)
 export interface EntityState<T> {
     // (undocumented)
     entities: Dictionary<T>;
