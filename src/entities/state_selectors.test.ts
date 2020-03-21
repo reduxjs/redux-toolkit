@@ -57,6 +57,13 @@ describe('Entity State Selectors', () => {
 
       expect(total).toEqual(3)
     })
+
+    it('should create a selector for selecting a single item by ID', () => {
+      const first = selectors.selectById(state, AClockworkOrange.id)
+      expect(first).toBe(AClockworkOrange)
+      const second = selectors.selectById(state, AnimalFarm.id)
+      expect(second).toBe(AnimalFarm)
+    })
   })
 
   describe('Uncomposed Selectors', () => {
@@ -109,6 +116,13 @@ describe('Entity State Selectors', () => {
       const total = selectors.selectTotal(state)
 
       expect(total).toEqual(3)
+    })
+
+    it('should create a selector for selecting a single item by ID', () => {
+      const first = selectors.selectById(state, AClockworkOrange.id)
+      expect(first).toBe(AClockworkOrange)
+      const second = selectors.selectById(state, AnimalFarm.id)
+      expect(second).toBe(AnimalFarm)
     })
   })
 })
