@@ -1,4 +1,5 @@
 import { PayloadAction } from '../createAction'
+import { IsAny } from '../tsHelpers'
 
 /**
  * @alpha
@@ -37,11 +38,6 @@ export type Update<T> = { id: EntityId; changes: Partial<T> }
 /**
  * @alpha
  */
-export type EntityMap<T> = (entity: T) => T
-
-/**
- * @alpha
- */
 export interface EntityState<T> {
   ids: EntityId[]
   entities: Dictionary<T>
@@ -52,50 +48,76 @@ export interface EntityDefinition<T> {
   sortComparer: false | Comparer<T>
 }
 
+export type PreventAny<S, T> = IsAny<S, EntityState<T>, S>
+
 export interface EntityStateAdapter<T> {
-  addOne<S extends EntityState<T>>(state: S, entity: T): S
-  addOne<S extends EntityState<T>>(state: S, action: PayloadAction<T>): S
-
-  addMany<S extends EntityState<T>>(state: S, entities: T[]): S
-  addMany<S extends EntityState<T>>(state: S, entities: PayloadAction<T[]>): S
-
-  setAll<S extends EntityState<T>>(state: S, entities: T[]): S
-  setAll<S extends EntityState<T>>(state: S, entities: PayloadAction<T[]>): S
-
-  removeOne<S extends EntityState<T>>(state: S, key: EntityId): S
-  removeOne<S extends EntityState<T>>(state: S, key: PayloadAction<EntityId>): S
-
-  removeMany<S extends EntityState<T>>(state: S, keys: EntityId[]): S
-  removeMany<S extends EntityState<T>>(
-    state: S,
-    keys: PayloadAction<EntityId[]>
+  addOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
+  addOne<S extends EntityState<T>>(
+    state: PreventAny<S, T>,
+    action: PayloadAction<T>
   ): S
 
-  removeAll<S extends EntityState<T>>(state: S): S
-
-  updateOne<S extends EntityState<T>>(state: S, update: Update<T>): S
-  updateOne<S extends EntityState<T>>(
-    state: S,
-    update: PayloadAction<Update<T>>
-  ): S
-
-  updateMany<S extends EntityState<T>>(state: S, updates: Update<T>[]): S
-  updateMany<S extends EntityState<T>>(
-    state: S,
-    updates: PayloadAction<Update<T>[]>
-  ): S
-
-  upsertOne<S extends EntityState<T>>(state: S, entity: T): S
-  upsertOne<S extends EntityState<T>>(state: S, entity: PayloadAction<T>): S
-
-  upsertMany<S extends EntityState<T>>(state: S, entities: T[]): S
-  upsertMany<S extends EntityState<T>>(
-    state: S,
+  addMany<S extends EntityState<T>>(state: PreventAny<S, T>, entities: T[]): S
+  addMany<S extends EntityState<T>>(
+    state: PreventAny<S, T>,
     entities: PayloadAction<T[]>
   ): S
 
-  map<S extends EntityState<T>>(state: S, map: EntityMap<T>): S
-  map<S extends EntityState<T>>(state: S, map: PayloadAction<EntityMap<T>>): S
+  setAll<S extends EntityState<T>>(state: PreventAny<S, T>, entities: T[]): S
+  setAll<S extends EntityState<T>>(
+    state: PreventAny<S, T>,
+    entities: PayloadAction<T[]>
+  ): S
+
+  removeOne<S extends EntityState<T>>(state: PreventAny<S, T>, key: EntityId): S
+  removeOne<S extends EntityState<T>>(
+    state: PreventAny<S, T>,
+    key: PayloadAction<EntityId>
+  ): S
+
+  removeMany<S extends EntityState<T>>(
+    state: PreventAny<S, T>,
+    keys: EntityId[]
+  ): S
+  removeMany<S extends EntityState<T>>(
+    state: PreventAny<S, T>,
+    keys: PayloadAction<EntityId[]>
+  ): S
+
+  removeAll<S extends EntityState<T>>(state: PreventAny<S, T>): S
+
+  updateOne<S extends EntityState<T>>(
+    state: PreventAny<S, T>,
+    update: Update<T>
+  ): S
+  updateOne<S extends EntityState<T>>(
+    state: PreventAny<S, T>,
+    update: PayloadAction<Update<T>>
+  ): S
+
+  updateMany<S extends EntityState<T>>(
+    state: PreventAny<S, T>,
+    updates: Update<T>[]
+  ): S
+  updateMany<S extends EntityState<T>>(
+    state: PreventAny<S, T>,
+    updates: PayloadAction<Update<T>[]>
+  ): S
+
+  upsertOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
+  upsertOne<S extends EntityState<T>>(
+    state: PreventAny<S, T>,
+    entity: PayloadAction<T>
+  ): S
+
+  upsertMany<S extends EntityState<T>>(
+    state: PreventAny<S, T>,
+    entities: T[]
+  ): S
+  upsertMany<S extends EntityState<T>>(
+    state: PreventAny<S, T>,
+    entities: PayloadAction<T[]>
+  ): S
 }
 
 export interface EntitySelectors<T, V> {

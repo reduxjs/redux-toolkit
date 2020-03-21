@@ -331,40 +331,6 @@ describe('Sorted State Adapter', () => {
     })
   })
 
-  it('should let you map over entities in the state', () => {
-    const firstChange = { ...TheGreatGatsby, title: 'First change' }
-    const secondChange = { ...AClockworkOrange, title: 'Second change' }
-
-    const withMany = adapter.setAll(state, [
-      TheGreatGatsby,
-      AClockworkOrange,
-      AnimalFarm
-    ])
-
-    const withUpdates = adapter.map(withMany, book =>
-      book.title === TheGreatGatsby.title
-        ? firstChange
-        : book.title === AClockworkOrange.title
-        ? secondChange
-        : book
-    )
-
-    expect(withUpdates).toEqual({
-      ids: [AnimalFarm.id, TheGreatGatsby.id, AClockworkOrange.id],
-      entities: {
-        [AnimalFarm.id]: AnimalFarm,
-        [TheGreatGatsby.id]: {
-          ...TheGreatGatsby,
-          ...firstChange
-        },
-        [AClockworkOrange.id]: {
-          ...AClockworkOrange,
-          ...secondChange
-        }
-      }
-    })
-  })
-
   it('should let you add one entity to the state with upsert()', () => {
     const withOneEntity = adapter.upsertOne(state, TheGreatGatsby)
     expect(withOneEntity).toEqual({

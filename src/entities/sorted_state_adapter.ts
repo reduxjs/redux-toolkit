@@ -3,9 +3,7 @@ import {
   IdSelector,
   Comparer,
   EntityStateAdapter,
-  Update,
-  EntityMap,
-  EntityId
+  Update
 } from './models'
 import { createStateOperator } from './state_adapter'
 import { createUnsortedStateAdapter } from './unsorted_state_adapter'
@@ -72,21 +70,6 @@ export function createSortedStateAdapter<T>(
     }
   }
 
-  function mapMutably(updatesOrMap: EntityMap<T>, state: R): void {
-    const updates: Update<T>[] = state.ids.reduce(
-      (changes: Update<T>[], id: EntityId) => {
-        const change = updatesOrMap(state.entities[id]!)
-        if (change !== state.entities[id]) {
-          changes.push({ id, changes: change })
-        }
-        return changes
-      },
-      []
-    )
-
-    updateManyMutably(updates, state)
-  }
-
   function upsertOneMutably(entity: T, state: R): void {
     return upsertManyMutably([entity], state)
   }
@@ -151,7 +134,6 @@ export function createSortedStateAdapter<T>(
     setAll: createStateOperator(setAllMutably),
     addMany: createStateOperator(addManyMutably),
     updateMany: createStateOperator(updateManyMutably),
-    upsertMany: createStateOperator(upsertManyMutably),
-    map: createStateOperator(mapMutably)
+    upsertMany: createStateOperator(upsertManyMutably)
   }
 }

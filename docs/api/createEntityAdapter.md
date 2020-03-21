@@ -118,8 +118,6 @@ export interface Dictionary<T> extends DictionaryNum<T> {
 
 export type Update<T> = { id: EntityId; changes: Partial<T> }
 
-export type EntityMap<T> = (entity: T) => T
-
 export interface EntityState<T> {
   ids: EntityId[]
   entities: Dictionary<T>
@@ -171,9 +169,6 @@ export interface EntityStateAdapter<T> {
     state: S,
     entities: PayloadAction<T[]>
   ): S
-
-  map<S extends EntityState<T>>(state: S, map: EntityMap<T>): S
-  map<S extends EntityState<T>>(state: S, map: PayloadAction<EntityMap<T>>): S
 }
 
 export interface EntitySelectors<T, V> {
@@ -208,7 +203,6 @@ The primary content of an entity adapter is a set of generated reducer functions
 - `updateMany`: accepts an array of update objects, and updates all corresponding entities
 - `upsertOne`: accepts a single entity. If an entity with that ID exists, the fields in the update will be merged into the existing entity, with any matching fields overwriting the existing values. If the entity does not exist, it will be added.
 - `upsertMany`: accepts an array of entities that will be upserted.
-- `map`: accepts a callback function that will be run against each existing entity, and may return a change description object. Afterwards, all changes will be merged into the corresponding existing entities.
 
 Each method has a signature that looks like:
 

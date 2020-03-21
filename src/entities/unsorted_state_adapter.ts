@@ -3,7 +3,6 @@ import {
   EntityStateAdapter,
   IdSelector,
   Update,
-  EntityMap,
   EntityId
 } from './models'
 import { createStateOperator } from './state_adapter'
@@ -57,7 +56,7 @@ export function createUnsortedStateAdapter<T>(
     }
   }
 
-  function removeAll<S extends R>(state: S): S {
+  function removeAll(state: R): any {
     return Object.assign({}, state, {
       ids: [],
       entities: {}
@@ -120,22 +119,6 @@ export function createUnsortedStateAdapter<T>(
     }
   }
 
-  function mapMutably(map: EntityMap<T>, state: R): void {
-    const changes: Update<T>[] = state.ids.reduce(
-      (changes: Update<T>[], id: EntityId) => {
-        const change = map(state.entities[id]!)
-        if (change !== state.entities[id]) {
-          changes.push({ id, changes: change })
-        }
-        return changes
-      },
-      []
-    )
-    const updates = changes.filter(({ id }) => id in state.entities)
-
-    return updateManyMutably(updates, state)
-  }
-
   function upsertOneMutably(entity: T, state: R): void {
     return upsertManyMutably([entity], state)
   }
@@ -167,7 +150,6 @@ export function createUnsortedStateAdapter<T>(
     upsertOne: createStateOperator(upsertOneMutably),
     upsertMany: createStateOperator(upsertManyMutably),
     removeOne: createStateOperator(removeOneMutably),
-    removeMany: createStateOperator(removeManyMutably),
-    map: createStateOperator(mapMutably)
+    removeMany: createStateOperator(removeManyMutably)
   }
 }
