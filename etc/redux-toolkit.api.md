@@ -13,8 +13,12 @@ import { DeepPartial } from 'redux';
 import { Dispatch } from 'redux';
 import { Draft } from 'immer';
 import { Middleware } from 'redux';
+import { OutputParametricSelector } from 'reselect';
+import { OutputSelector } from 'reselect';
+import { ParametricSelector } from 'reselect';
 import { Reducer } from 'redux';
 import { ReducersMapObject } from 'redux';
+import { Selector } from 'reselect';
 import { Store } from 'redux';
 import { StoreEnhancer } from 'redux';
 import { ThunkAction } from 'redux-thunk';
@@ -212,6 +216,12 @@ export type IdSelector<T> = (model: T) => EntityId;
 // @public
 export function isPlain(val: any): boolean;
 
+export { OutputParametricSelector }
+
+export { OutputSelector }
+
+export { ParametricSelector }
+
 // @public
 export type PayloadAction<P = void, T extends string = string, M = never, E = never> = {
     payload: P;
@@ -239,6 +249,8 @@ export type PrepareAction<P> = ((...args: any[]) => {
     meta: any;
     error: any;
 });
+
+export { Selector }
 
 // @public
 export interface SerializableStateInvariantMiddlewareOptions {
