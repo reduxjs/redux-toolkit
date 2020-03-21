@@ -176,6 +176,7 @@ export interface EntitySelectors<T, V> {
   selectEntities: (state: V) => Dictionary<T>
   selectAll: (state: V) => T[]
   selectTotal: (state: V) => number
+  selectById: (state: V, id: EntityId) => T | undefined
 }
 
 export interface EntityAdapter<T> extends EntityStateAdapter<T> {
@@ -247,12 +248,13 @@ const booksSlice = createSlice({
 
 ### Selector Functions
 
-The entity adapter will contain a `getSelectors()` function that returns a set of four selectors that know how to read the contents of an entity state object:
+The entity adapter will contain a `getSelectors()` function that returns a set of selectors that know how to read the contents of an entity state object:
 
 - `selectIds`: returns the `state.ids` array
 - `selectEntities`: returns the `state.entities` lookup table
 - `selectAll`: maps over the `state.ids` array, and returns an array of entities in the same order
 - `selectTotal`: returns the total number of entities being stored in this state
+- `selectById`: given the state and an entity ID, returns the entity with that ID or `undefined`
 
 Each selector function will be created using the `createSelector` function from Reselect, to enable memoizing calculation of the results.
 

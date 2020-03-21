@@ -125,6 +125,7 @@ export interface EntitySelectors<T, V> {
   selectEntities: (state: V) => Dictionary<T>
   selectAll: (state: V) => T[]
   selectTotal: (state: V) => number
+  selectById: (state: V, id: EntityId) => T | undefined
 }
 
 /**
