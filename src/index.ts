@@ -1,7 +1,13 @@
 import { enableES5 } from 'immer'
 export * from 'redux'
 export { default as createNextState, Draft } from 'immer'
-export { createSelector } from 'reselect'
+export {
+  createSelector,
+  Selector,
+  OutputParametricSelector,
+  OutputSelector,
+  ParametricSelector
+} from 'reselect'
 export { ThunkAction } from 'redux-thunk'
 
 // We deliberately enable Immer's ES5 support, on the grounds that
