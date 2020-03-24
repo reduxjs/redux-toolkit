@@ -709,7 +709,7 @@ To better understand the purpose of the entity adapter, let's take a look at som
 
 #### Normalizing by hand
 
-The below is a very basic example of normalizing the response from a our `fetchAll` api request that returns data in the shape of `{ users: [{id: 1, first_name: 'normalized', last_name: 'person'}] }`
+Normalizing data doesn't require any special libraries. Here's a basic example of how you might normalize the response from a `fetchAll` APIrequest that returns data in the shape of `{ users: [{id: 1, first_name: 'normalized', last_name: 'person'}] }`, using some hand-written logic:
 
 ```js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
@@ -804,9 +804,7 @@ export const slice = createSlice({
     removeUser: usersAdapter.removeOne
   },
   extraReducers: builder => {
-    builder.addCase(fetchUsers.fulfilled, (state, action) => {
-      usersAdapter.upsertMany(state, action.payload)
-    })
+    builder.addCase(fetchUsers.fulfilled, usersAdapter.upsertMany)
   }
 })
 
@@ -868,7 +866,7 @@ To see this all working together, you can view the full code of this example usa
 
 #### Working with entities without an id property
 
-If your data set does not have an `id` property, createEntityAdapter offers a `selectId` argument that you can use.
+By default, `createEntityAdapter` assumes that your data has unique IDs in an `entity.id` field.  If your data set stores its ID in a different field, you can pass in a `selectId` argument that returns the appropriate field.
 
 ```js
 // In this instance, our user data always has a primary key of `idx`
@@ -879,7 +877,7 @@ const userData = {
   ]
 }
 
-// Being that our primary key is `idx` and not `id`, let the entity adapter know that with `selectId`
+// Since our primary key is `idx` and not `id`, pass in an ID selector to return that field instead
 export const usersAdapter = createEntityAdapter({
   selectId: user => user.idx
 })
