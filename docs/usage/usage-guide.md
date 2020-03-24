@@ -755,7 +755,9 @@ const userEntity = new schema.Entity('users')
 
 export const fetchUsers = createAsyncThunk('users/fetchAll', async () => {
   const response = await userAPI.fetchAll()
-  return response.data
+  // Normalize the data before passing it to our reducer
+  const normalized = normalize(response.data, [userEntity])
+  return normalized.entities
 })
 
 export const slice = createSlice({
@@ -767,9 +769,8 @@ export const slice = createSlice({
   reducers: {},
   extraReducers: builder => {
     builder.addCase(fetchUsers.fulfilled, (state, action) => {
-      const normalizedData = normalize(action.payload, userEntity)
-      state.entities = normalizedData.entities.users
-      state.ids = Object.keys(normalizedData.entities.users)
+      state.entities = action.payload.users
+      state.ids = Object.keys(action.payload.users)
     })
   }
 })
