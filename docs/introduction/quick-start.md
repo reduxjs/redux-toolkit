@@ -17,7 +17,7 @@ The **Redux Toolkit** package is intended to be the standard way to write Redux 
 
 We can't solve every use case, but in the spirit of [`create-react-app`](https://github.com/facebook/create-react-app) and [`apollo-boost`](https://dev-blog.apollodata.com/zero-config-graphql-state-management-27b1f1b3c2c3), we can try to provide some tools that abstract over the setup process and handle the most common use cases, as well as include some useful utilities that will let the user simplify their application code.
 
-This package is _not_ intended to solve every possible concern about Redux, and is deliberately limited in scope. It does _not_ address concepts like "reusable encapsulated Redux modules", data fetching, folder or file structures, managing entity relationships in the store, and so on.
+Because of that, this package is deliberately limited in scope. It does _not_ address concepts like "reusable encapsulated Redux modules", data caching, folder or file structures, managing entity relationships in the store, and so on.
 
 That said, **these tools should be beneficial to all Redux users**. Whether you're a brand new Redux user setting up your
 first project, or an experienced user who wants to simplify an existing application, **Redux Toolkit** can help
@@ -25,12 +25,14 @@ you make your Redux code better.
 
 ## What's Included
 
-Redux Toolkit includes:
+Redux Toolkit includes these APIs:
 
-- A [`configureStore()` function](../api/configureStore.md) with simplified configuration options. It can automatically combine your slice reducers, adds whatever Redux middleware you supply, includes `redux-thunk` by default, and enables use of the Redux DevTools Extension.
-- A [`createReducer()` utility](../api/createReducer.md) that lets you supply a lookup table of action types to case reducer functions, rather than writing switch statements. In addition, it automatically uses the [`immer` library](https://github.com/mweststrate/immer) to let you write simpler immutable updates with normal mutative code, like `state.todos[3].completed = true`.
-- A [`createAction()` utility](../api/createAction.md) that returns an action creator function for the given action type string. The function itself has `toString()` defined, so that it can be used in place of the type constant.
-- A [`createSlice()` function](../api/createSlice.md) that accepts a set of reducer functions, a slice name, and an initial state value, and automatically generates a slice reducer with corresponding action creators and action types.
+- [`configureStore()`](../api/configureStore.md): wraps `createStore` to provide simplified configuration options and good defaults. It can automatically combine your slice reducers, adds whatever Redux middleware you supply, includes `redux-thunk` by default, and enables use of the Redux DevTools Extension.
+- [`createReducer()`](../api/createReducer.md): that lets you supply a lookup table of action types to case reducer functions, rather than writing switch statements. In addition, it automatically uses the [`immer` library](https://github.com/mweststrate/immer) to let you write simpler immutable updates with normal mutative code, like `state.todos[3].completed = true`.
+- [`createAction()`](../api/createAction.md): generates an action creator function for the given action type string. The function itself has `toString()` defined, so that it can be used in place of the type constant.
+- [`createSlice()`](../api/createSlice.md): accepts an object of reducer functions, a slice name, and an initial state value, and automatically generates a slice reducer with corresponding action creators and action types.
+- [`createAsyncThunk`](../api/createAsyncThunk.md): accepts an action type string and a function that returns a promise, and generates a thunk that dispatches `pending/resolved/rejected` action types based on that promise
+- [`createEntityAdapter`](../api/createEntityAdapter.md): generates a set of reusable reducers and selectors to manage normalized data in the store
 - The [`createSelector` utility](../api/createSelector.md) from the [Reselect](https://github.com/reduxjs/reselect) library, re-exported for ease of use.
 
 ## Installation

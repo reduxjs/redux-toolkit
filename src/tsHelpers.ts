@@ -20,6 +20,8 @@ export type IsUnknown<T, True, False = never> = unknown extends T
   ? IsAny<T, False, True>
   : False
 
+export type FallbackIfUnknown<T, Fallback> = IsUnknown<T, Fallback, T>
+
 /**
  * @internal
  */
@@ -83,8 +85,8 @@ export type DispatchForMiddlewares<M> = M extends ReadonlyArray<any>
  * Convert a Union type `(A|B)` to and intersecion type `(A&B)`
  */
 type UnionToIntersection<U> = (U extends any
-  ? (k: U) => void
-  : never) extends ((k: infer I) => void)
+? (k: U) => void
+: never) extends (k: infer I) => void
   ? I
   : never
 

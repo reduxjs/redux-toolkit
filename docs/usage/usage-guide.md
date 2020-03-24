@@ -560,10 +560,6 @@ There are many kinds of async middleware for Redux, and each lets you write your
 
 Redux Toolkit does not currently provide any special APIs or syntax for writing thunk functions. In particular, **they cannot be defined as part of a `createSlice()` call**. You have to write them separate from the reducer logic, exactly the same as with plain Redux code.
 
-:::note
-The upcoming [Redux Toolkit v1.3.0 release](https://github.com/reduxjs/redux-toolkit/issues/373), currently in alpha testing, will include [a `createAsyncThunk` API ](https://deploy-preview-374--redux-starter-kit-docs.netlify.com/api/createAsyncThunk) that simplifies the process of writing thunks for async logic.
-:::
-
 Thunks typically dispatch plain actions, such as `dispatch(dataLoaded(response.data))`.
 
 Many Redux apps have structured their code using a "folder-by-type" approach. In that structure, thunk action creators are usually defined in an "actions" file, alongside the plain action creators.
@@ -642,8 +638,65 @@ const fetchIssuesCount = (org, repo) => async dispatch => {
 }
 ```
 
-:::note
-The upcoming [`createAsyncThunk` API in RTK v1.3.0](https://deploy-preview-374--redux-starter-kit-docs.netlify.com/api/createAsyncThunk) will automate this process by generating the action types and dispatching them automatically for you.
-:::
+However, writing code using this approach is tedious. Each separate type of request needs repeated similar implementation:
 
-It's up to you to write reducer logic that handles these action types. We recommend [treating your loading state as a "state machine"](https://redux.js.org/style-guide/style-guide#treat-reducers-as-state-machines) instead of writing boolean flags like `isLoading`.
+- Unique action types need to be defined for the three different cases
+- Each of those action types usually has a corresponding action creator function
+- A thunk has to be written that dispatches the correct actions in the right sequence
+
+`createAsyncThunk` abstracts this pattern by generating the action types and action creators and generating a thunk that dispatches those actions.
+
+### Async Requests with `createAsyncThunk`
+
+As a developer, you are probably most concerned with the actual logic needed to make an API request, what action type names show up in the Redux action history log, and how your reducers should process the fetched data. The repetitive details of defining the multiple action types and dispatching the actions in the right sequence aren't what matters.
+
+`createAsyncThunk` simplifies this process - you only need to provide a string for the action type prefix and a payload creator callback that does the actual async logic and returns a promise with the result. In return, `createAsyncThunk` will give you a thunk that will take care of dispatching the right actions based on the promise you return, and action types that you can handle in your reducers:
+
+```js {5-11,22-25,30}
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { userAPI } from './userAPI'
+
+// First, create the thunk
+const fetchUserById = createAsyncThunk(
+  'users/fetchByIdStatus',
+  async (userId, thunkAPI) => {
+    const response = await userAPI.fetchById(userId)
+    return response.data
+  }
+)
+
+// Then, handle actions in your reducers:
+const usersSlice = createSlice({
+  name: 'users',
+  initialState: { entities: [], loading: 'idle' },
+  reducers: {
+    // standard reducer logic, with auto-generated action types per reducer
+  },
+  extraReducers: {
+    // Add reducers for additional action types here, and handle loading state as needed
+    [fetchUserById.fulfilled]: (state, action) => {
+      // Add user to the state array
+      state.entities.push(action.payload)
+    }
+  }
+})
+
+// Later, dispatch the thunk as needed in the app
+dispatch(fetchUserById(123))
+```
+
+The thunk action creator accepts a single argument, which will be passed as the first argument to your payload creator callback.
+
+The payload creator will also receive a `thunkAPI` object containing the parameters that are normally passed to a standard Redux thunk function, as well as an auto-generated unique random request ID string and an [`AbortController.signal` object](https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal):
+
+```ts
+interface ThunkAPI {
+  dispatch: Function
+  getState: Function
+  extra?: any
+  requestId: string
+  signal: AbortSignal
+}
+```
+
+You can use any of these as needed inside the payload callback to determine what the final result should be.

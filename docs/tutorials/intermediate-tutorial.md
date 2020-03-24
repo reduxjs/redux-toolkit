@@ -430,10 +430,7 @@ const AddTodo = ({ addTodo }) => {
   )
 }
 
-export default connect(
-  null,
-  mapDispatch
-)(AddTodo)
+export default connect(null, mapDispatch)(AddTodo)
 ```
 
 We start by importing the correct `addTodo` action creator from our todos slice.

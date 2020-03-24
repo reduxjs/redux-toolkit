@@ -5,6 +5,7 @@ import {
   IfVoid,
   IsAny
 } from './tsHelpers'
+import isPlainObject from './isPlainObject'
 
 /**
  * An action with a string type and an associated payload. This is the
@@ -123,15 +124,11 @@ export interface ActionCreatorWithPreparedPayload<
 export interface ActionCreatorWithOptionalPayload<P, T extends string = string>
   extends BaseActionCreator<P, T> {
   /**
-   * Calling this {@link redux#ActionCreator} without arguments will
-   * return a {@link PayloadAction} of type `T` with a payload of `undefined`
-   */
-  (payload?: undefined): PayloadAction<undefined, T>
-  /**
    * Calling this {@link redux#ActionCreator} with an argument will
-   * return a {@link PayloadAction} of type `T` with a payload of `P`
+   * return a {@link PayloadAction} of type `T` with a payload of `P`.
+   * Calling it without an argument will return a PayloadAction with a payload of `undefined`.
    */
-  <PT extends Diff<P, undefined>>(payload?: PT): PayloadAction<PT, T>
+  (payload?: P): PayloadAction<P, T>
 }
 
 /**
@@ -159,12 +156,6 @@ export interface ActionCreatorWithoutPayload<T extends string = string>
  */
 export interface ActionCreatorWithPayload<P, T extends string = string>
   extends BaseActionCreator<P, T> {
-  /**
-   * Calling this {@link redux#ActionCreator} with an argument will
-   * return a {@link PayloadAction} of type `T` with a payload of `P`
-   * If possible, `P` will be narrowed down to the exact type of the payload argument.
-   */
-  <PT extends P>(payload: PT): PayloadAction<PT, T>
   /**
    * Calling this {@link redux#ActionCreator} with an argument will
    * return a {@link PayloadAction} of type `T` with a payload of `P`
@@ -295,6 +286,25 @@ export function createAction(type: string, prepareAction?: Function): any {
   return actionCreator
 }
 
+export function isFSA(
+  action: unknown
+): action is {
+  type: string
+  payload?: unknown
+  error?: unknown
+  meta?: unknown
+} {
+  return (
+    isPlainObject(action) &&
+    typeof (action as any).type === 'string' &&
+    Object.keys(action).every(isValidKey)
+  )
+}
+
+function isValidKey(key: string) {
+  return ['type', 'payload', 'error', 'meta'].indexOf(key) > -1
+}
+
 /**
  * Returns the action type of the actions created by the passed
  * `createAction()`-generated action creator (arbitrary action creators
@@ -312,8 +322,6 @@ export function getType<T extends string>(
 }
 
 // helper types for more readable typings
-
-type Diff<T, U> = T extends U ? never : T
 
 type IfPrepareActionMethodProvided<
   PA extends PrepareAction<any> | void,

@@ -385,4 +385,74 @@ describe('serializableStateInvariantMiddleware', () => {
       (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)"
     `)
   })
+
+  it('should not check serializability for meta.args by default', () => {
+    const badValue = new Map()
+
+    const reducer: Reducer = (state = 42, action) => {
+      return state
+    }
+
+    const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware()
+
+    const store = configureStore({
+      reducer: {
+        testSlice: reducer
+      },
+      middleware: [serializableStateInvariantMiddleware]
+    })
+
+    store.dispatch({ type: 'testAction', meta: { args: { badValue } } })
+
+    const { log } = getLog()
+    expect(log).toBe('')
+    const q = 42
+  })
+
+  it('Should print a warning if execution takes too long', () => {
+    const reducer: Reducer = (state = 42, action) => {
+      return state
+    }
+
+    const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware(
+      { warnAfter: 4 }
+    )
+
+    const store = configureStore({
+      reducer: {
+        testSlice: reducer
+      },
+      middleware: [serializableStateInvariantMiddleware]
+    })
+
+    store.dispatch({
+      type: 'SOME_ACTION',
+      payload: new Array(10000).fill({ value: 'more' })
+    })
+    expect(getLog().log).toMatch(
+      /^SerializableStateInvariantMiddleware took \d*ms, which is more than the warning threshold of 4ms./
+    )
+  })
+
+  it('Should not print a warning if "reducer" takes too long', () => {
+    const reducer: Reducer = (state = 42, action) => {
+      const started = Date.now()
+      while (Date.now() - started < 8) {}
+      return state
+    }
+
+    const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware(
+      { warnAfter: 4 }
+    )
+
+    const store = configureStore({
+      reducer: {
+        testSlice: reducer
+      },
+      middleware: [serializableStateInvariantMiddleware]
+    })
+
+    store.dispatch({ type: 'SOME_ACTION' })
+    expect(getLog().log).toMatch('')
+  })
 })
