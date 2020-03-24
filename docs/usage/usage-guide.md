@@ -732,6 +732,7 @@ export const slice = createSlice({
       // reduce the collection by the id property into a shape of { 1: { ...user }}
       const byId = action.payload.users.reduce((byId, user) => {
         byId[user.id] = user
+        return byId
       }, {})
       state.entities = byId
       state.ids = Object.keys(byId)
