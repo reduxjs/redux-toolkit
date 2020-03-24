@@ -700,3 +700,207 @@ interface ThunkAPI {
 ```
 
 You can use any of these as needed inside the payload callback to determine what the final result should be.
+
+### Normalizing data with `createEntityAdapter`
+
+`createEntityAdapter` provides a standardized way to store your data in a slice by taking a collection and putting it into the shape of `{ ids: [], entities: {} }`. Along with this predefined state shape, it generates a set of `reducer functions` and `selectors` that know how to work with the data.
+
+To better understand the purpose of the entity adapter, let's take a look at some of the current methods for normalizing data.
+
+#### Normalizing by hand
+
+The below is a very basic example of normalizing the response from a our `fetchAll` api request that returns data in the shape of `{ users: [{id: 1, first_name: 'normalized', last_name: 'person'}] }`
+
+```js
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import userAPI from './userAPI'
+
+export const fetchUsers = createAsyncThunk('users/fetchAll', async () => {
+  const response = await userAPI.fetchAll()
+  return response.data
+})
+
+export const slice = createSlice({
+  name: 'users',
+  initialState: {
+    ids: [],
+    entities: {}
+  },
+  reducers: {},
+  extraReducers: builder => {
+    builder.addCase(fetchUsers.fulfilled, (state, action) => {
+      // reduce the collection by the id property into a shape of { 1: { ...user }}
+      const byId = action.payload.users.reduce((byId, user) => {
+        byId[user.id] = user
+      }, {})
+      state.entities = byId
+      state.ids = Object.keys(byId)
+    })
+  }
+})
+```
+
+#### Normalizing with normalizr
+
+This is a very basic example of using the normalizr library with redux-toolkit
+
+```js
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { normalize, schema } from 'normalizr'
+
+import userAPI from './userAPI'
+
+const userEntity = new schema.Entity('users')
+
+export const fetchUsers = createAsyncThunk('users/fetchAll', async () => {
+  const response = await userAPI.fetchAll()
+  return response.data
+})
+
+export const slice = createSlice({
+  name: 'users',
+  initialState: {
+    ids: [],
+    entities: {}
+  },
+  reducers: {},
+  extraReducers: builder => {
+    builder.addCase(fetchUsers.fulfilled, (state, action) => {
+      const normalizedData = normalize(action.payload, userEntity)
+      state.entities = normalizedData.entities.users
+      state.ids = Object.keys(normalizedData.entities.users)
+    })
+  }
+})
+```
+
+#### Normalizing with `createEntityAdapter`
+
+This is an identitical implementation using RTK's `createEntityAdapter`.
+
+```js
+import {
+  createSlice,
+  createAsyncThunk,
+  createEntityAdapter
+} from '@reduxjs/toolkit'
+import userAPI from './userAPI'
+
+export const fetchUsers = createAsyncThunk('users/fetchAll', async () => {
+  const response = await userAPI.fetchAll()
+  return response.data
+})
+
+export const usersAdapter = createEntityAdapter()
+
+// By default, `createEntityAdapter` gives you `{ ids: [], entities: {} }`. If you want to track 'loading' or other keys, you would initialize them here like this: `getInitialState({ loading: false, activeRequestId: null })`
+const initialState = usersAdapter.getInitialState()
+
+export const slice = createSlice({
+  name: 'users',
+  initialState,
+  reducers: {
+    removeUser: usersAdapter.removeOne
+  },
+  extraReducers: builder => {
+    builder.addCase(fetchUsers.fulfilled, (state, action) => {
+      usersAdapter.upsertMany(state, action.payload)
+    })
+  }
+})
+
+const reducer = slice.reducer
+export default reducer
+
+export const { removeUser } = slice.actions
+```
+
+#### Using selectors with `createEntityAdapter`
+
+The entity adapter providers a selector factory that generates the most common selectors for you. Taking the example above, we can add selectors to our `usersSlice` like this:
+
+```js
+const {
+  selectIds,
+  selectEntities,
+  selectAll,
+  selectTotal
+} = usersAdapter.getSelectors(state => state.users)
+
+export const selectUserIds = state => selectIds(state)
+export const selectUserEntities = state => selectEntities(state)
+export const selectAllUsers = state => selectAll(state)
+export const selectTotalUsers = state => selectTotal(state)
+```
+
+You could then use these selectors in a component like this:
+
+```js
+import React from 'react'
+import { useSelector } from 'react-redux'
+import { selectTotalUsers, selectAllUsers } from './usersSlice'
+
+import styles from './UsersList.module.css'
+
+export function UsersList() {
+  const count = useSelector(selectTotalUsers)
+  const users = useSelector(selectAllUsers)
+
+  return (
+    <div>
+      <div className={styles.row}>
+        There are <span className={styles.value}>{count}</span> users.{' '}
+        {count === 0 && `Why don't you fetch some more?`}
+      </div>
+      {users.map(user => (
+        <div key={user.id}>
+          <div>{`${user.first_name} ${user.last_name}`}</div>
+          <div></div>
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+To see this all working together, you can view the full code of this example usage on [CodeSandbox](https://codesandbox.io/s/rtk-entities-basic-example-4jg0m)
+
+#### Working with entities without an id property
+
+If your data set does not have an `id` property, createEntityAdapter offers a `selectId` argument that you can use.
+
+```js
+// In this instance, our user data always has a primary key of `idx`
+const userData = {
+  users: [
+    { idx: 1, first_name: 'Test' },
+    { idx: 2, first_name: 'Two' }
+  ]
+}
+
+// Being that our primary key is `idx` and not `id`, let the entity adapter know that with `selectId`
+export const usersAdapter = createEntityAdapter({
+  selectId: user => user.idx
+})
+```
+
+#### Sorting your entities by a default key
+
+`createEntityAdapter` provides a `sortComparer` argument that you can leverage to sort the collection of `ids` in state. This can be very useful for when you want to guarantee a sort order and your data doesn't come presorted.
+
+```js
+// In this instance, our user data always has a primary key of `idx`
+const userData = {
+  users: [
+    { id: 1, first_name: 'Test' },
+    { id: 2, first_name: 'Banana' }
+  ]
+}
+
+// Sort by `first_name`. `ids` would be ordered like `ids: [ 2, 1 ]` being that B comes before T
+export const usersAdapter = createEntityAdapter({
+  sortComparer: (a, b) => a.first_name.localeCompare(b.first_name)
+})
+
+// When using the provided `selectAll` selector with this `sortComparer`, your collection would be returned as [{ id: 2, first_name: 'Banana' }, { id: 1, first_name: 'Test' }]
+```
