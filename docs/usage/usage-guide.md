@@ -701,15 +701,13 @@ interface ThunkAPI {
 
 You can use any of these as needed inside the payload callback to determine what the final result should be.
 
-### Normalizing data with `createEntityAdapter`
+## Managing Normalized Data
 
-`createEntityAdapter` provides a standardized way to store your data in a slice by taking a collection and putting it into the shape of `{ ids: [], entities: {} }`. Along with this predefined state shape, it generates a set of `reducer functions` and `selectors` that know how to work with the data.
-
-To better understand the purpose of the entity adapter, let's take a look at some of the current methods for normalizing data.
+Most applications typically deal with data that is deeply nested or relational. The goal of normalizing data is to efficiently organize the data in your state. This is typically done by storing collections as dictionaries with the key of an `id`, while storing a sorted array of those `ids`. For a more in-depth explanation and further examples, there is a great reference in the [Redux documentation](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape#normalizing-state-shape).
 
 #### Normalizing by hand
 
-Normalizing data doesn't require any special libraries. Here's a basic example of how you might normalize the response from a `fetchAll` APIrequest that returns data in the shape of `{ users: [{id: 1, first_name: 'normalized', last_name: 'person'}] }`, using some hand-written logic:
+Normalizing data doesn't require any special libraries. Here's a basic example of how you might normalize the response from a `fetchAll` API request that returns data in the shape of `{ users: [{id: 1, first_name: 'normalized', last_name: 'person'}] }`, using some hand-written logic:
 
 ```js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
@@ -741,9 +739,11 @@ export const slice = createSlice({
 })
 ```
 
+Although we're capable of writing this code, it becomes very repetitive and tends to be error prone as your application grows. The situation is made even worse when handling updates to normalized data, and is why it is recommended to use a well-tested normalization library.
+
 #### Normalizing with normalizr
 
-This is a very basic example of using the normalizr library with redux-toolkit
+[normalizr](https://github.com/paularmstrong/normalizr) is a popular existing library for normalizing data. You can use it on its own without Redux, but it is very commonly used with Redux.
 
 ```js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
@@ -777,7 +777,7 @@ export const slice = createSlice({
 
 #### Normalizing with `createEntityAdapter`
 
-This is an identitical implementation using RTK's `createEntityAdapter`.
+`createEntityAdapter` provides a standardized way to store your data in a slice by taking a collection and putting it into the shape of `{ ids: [], entities: {} }`. Along with this predefined state shape, it generates a set of `reducer functions` and `selectors` that know how to work with the data.
 
 ```js
 import {
@@ -819,17 +819,13 @@ export const { removeUser } = slice.actions
 The entity adapter providers a selector factory that generates the most common selectors for you. Taking the example above, we can add selectors to our `usersSlice` like this:
 
 ```js
-const {
-  selectIds,
-  selectEntities,
-  selectAll,
-  selectTotal
+// Rename the exports for readibility in component usage
+export const {
+  selectIds: selectUserIds,
+  selectEntities: selectUserEntities,
+  selectAll: selectAllUsers,
+  selectTotal: selectTotalUsers
 } = usersAdapter.getSelectors(state => state.users)
-
-export const selectUserIds = state => selectIds(state)
-export const selectUserEntities = state => selectEntities(state)
-export const selectAllUsers = state => selectAll(state)
-export const selectTotalUsers = state => selectTotal(state)
 ```
 
 You could then use these selectors in a component like this:
@@ -866,7 +862,7 @@ To see this all working together, you can view the full code of this example usa
 
 #### Working with entities without an id property
 
-By default, `createEntityAdapter` assumes that your data has unique IDs in an `entity.id` field.  If your data set stores its ID in a different field, you can pass in a `selectId` argument that returns the appropriate field.
+By default, `createEntityAdapter` assumes that your data has unique IDs in an `entity.id` field. If your data set stores its ID in a different field, you can pass in a `selectId` argument that returns the appropriate field.
 
 ```js
 // In this instance, our user data always has a primary key of `idx`
@@ -896,10 +892,9 @@ const userData = {
   ]
 }
 
-// Sort by `first_name`. `ids` would be ordered like `ids: [ 2, 1 ]` being that B comes before T
+// Sort by `first_name`. `state.ids` would be ordered like `ids: [ 2, 1 ]` being that B comes before T
+// When using the provided `selectAll` selector, your collection would be returned sorted as [{ id: 2, first_name: 'Banana' }, { id: 1, first_name: 'Test' }]
 export const usersAdapter = createEntityAdapter({
   sortComparer: (a, b) => a.first_name.localeCompare(b.first_name)
 })
-
-// When using the provided `selectAll` selector with this `sortComparer`, your collection would be returned as [{ id: 2, first_name: 'Banana' }, { id: 1, first_name: 'Test' }]
 ```
