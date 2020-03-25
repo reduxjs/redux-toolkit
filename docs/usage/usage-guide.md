@@ -743,7 +743,7 @@ Although we're capable of writing this code, it becomes very repetitive and tend
 
 #### Normalizing with normalizr
 
-[normalizr](https://github.com/paularmstrong/normalizr) is a popular existing library for normalizing data. You can use it on its own without Redux, but it is very commonly used with Redux.
+[normalizr](https://github.com/paularmstrong/normalizr) is a popular existing library for normalizing data. You can use it on its own without Redux, but it is very commonly used with Redux. The typical usage is to format collections fom an API response and then process them in your reducers.
 
 ```js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
@@ -790,6 +790,7 @@ import userAPI from './userAPI'
 
 export const fetchUsers = createAsyncThunk('users/fetchAll', async () => {
   const response = await userAPI.fetchAll()
+  // In this case, `response.data` would be [{id: 1, first_name: 'Example', last_name: 'User'}]
   return response.data
 })
 
@@ -815,13 +816,112 @@ export default reducer
 export const { removeUser } = slice.actions
 ```
 
+#### Combining a normalization library and `createEntityAdapter`
+
+If you're already using `normalizr` or another normalization library, you could consider using it along with `createEntityAdapter`. To expand on the examples above, here is a demonstration of how we could use `normalizr` to format a payload, then leverage the utilities `createEntityAdapter` provides.
+
+```js
+// features/articles/articlesSlice.js
+import {
+  createSlice,
+  createEntityAdapter,
+  createAsyncThunk,
+  createSelector
+} from '@reduxjs/toolkit'
+import fakeAPI from '../../services/fakeAPI'
+import { normalize, schema } from 'normalizr'
+
+// Define normalizr entity schemas
+export const userEntity = new schema.Entity('users')
+export const commentEntity = new schema.Entity('comments', {
+  commenter: userEntity
+})
+export const articleEntity = new schema.Entity('articles', {
+  author: userEntity,
+  comments: [commentEntity]
+})
+
+const articlesAdapter = createEntityAdapter()
+
+export const fetchArticle = createAsyncThunk(
+  'articles/fetchArticle',
+  async id => {
+    const data = await fakeAPI.articles.show(id)
+    // Normalize the data so reducers can responded to a predictable payload, in this case:
+    // `action.payload = { users: {}, articles: {}, comments: {} }`
+    const normalized = normalize(data, articleEntity)
+    return normalized.entities
+  }
+)
+
+export const slice = createSlice({
+  name: 'articles',
+  initialState: articlesAdapter.getInitialState(),
+  reducers: {},
+  extraReducers: {
+    [fetchArticle.fulfilled]: (state, action) => {
+      // We use `Object.values()` being that the payload was processed with normalizr
+      articlesAdapter.upsertMany(state, Object.values(action.payload.articles))
+    }
+  }
+})
+
+const reducer = slice.reducer
+export default reducer
+
+// features/users/usersSlice.js
+
+import { createSlice, createEntityAdapter } from '@reduxjs/toolkit'
+import { fetchArticle } from '../articles/articlesSlice'
+
+const usersAdapter = createEntityAdapter()
+
+export const slice = createSlice({
+  name: 'users',
+  initialState: usersAdapter.getInitialState(),
+  reducers: {},
+  extraReducers: builder => {
+    builder.addCase(fetchArticle.fulfilled, (state, action) => {
+      // We use `Object.values()` being that the payload was processed with normalizr in the `fetchArticle` thunk
+      usersAdapter.upsertMany(state, Object.values(action.payload.users))
+    })
+  }
+})
+
+const reducer = slice.reducer
+export default reducer
+
+// features/comments/commentsSlice.js
+
+import { createSlice, createEntityAdapter } from '@reduxjs/toolkit'
+import { fetchArticle } from '../articles/articlesSlice'
+
+const commentsAdapter = createEntityAdapter()
+
+export const slice = createSlice({
+  name: 'comments',
+  initialState: commentsAdapter.getInitialState(),
+  reducers: {},
+  extraReducers: {
+    [fetchArticle.fulfilled]: (state, action) => {
+      // We use `Object.values()` being that the payload was processed with normalizr in the `fetchArticle` thunk
+      commentsAdapter.upsertMany(state, Object.values(action.payload.comments))
+    }
+  }
+})
+
+const reducer = slice.reducer
+export default reducer
+```
+
 #### Using selectors with `createEntityAdapter`
 
-The entity adapter providers a selector factory that generates the most common selectors for you. Taking the example above, we can add selectors to our `usersSlice` like this:
+The entity adapter providers a selector factory that generates the most common selectors for you. Taking the examples above, we can add selectors to our `usersSlice` like this:
 
 ```js
 // Rename the exports for readibility in component usage
 export const {
+  selectById: selectUserById,
   selectIds: selectUserIds,
   selectEntities: selectUserEntities,
   selectAll: selectAllUsers,
