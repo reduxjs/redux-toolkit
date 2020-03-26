@@ -820,6 +820,8 @@ export const { removeUser } = slice.actions
 
 If you're already using `normalizr` or another normalization library, you could consider using it along with `createEntityAdapter`. To expand on the examples above, here is a demonstration of how we could use `normalizr` to format a payload, then leverage the utilities `createEntityAdapter` provides.
 
+**Note:** `upsertMany` (as well as `addMany` and `setAll`) allows you to pass in an object that is in the shape of `{ 1: { id: 1, ... }}` as an alternative to `T[]` and is shown here.
+
 ```js
 // features/articles/articlesSlice.js
 import {
@@ -860,8 +862,7 @@ export const slice = createSlice({
   reducers: {},
   extraReducers: {
     [fetchArticle.fulfilled]: (state, action) => {
-      // We use `Object.values()` being that the payload was processed with normalizr
-      articlesAdapter.upsertMany(state, Object.values(action.payload.articles))
+      articlesAdapter.upsertMany(state, action.payload.articles)
     }
   }
 })
@@ -882,8 +883,7 @@ export const slice = createSlice({
   reducers: {},
   extraReducers: builder => {
     builder.addCase(fetchArticle.fulfilled, (state, action) => {
-      // We use `Object.values()` being that the payload was processed with normalizr in the `fetchArticle` thunk
-      usersAdapter.upsertMany(state, Object.values(action.payload.users))
+      usersAdapter.upsertMany(state, action.payload.users)
     })
   }
 })
@@ -904,8 +904,7 @@ export const slice = createSlice({
   reducers: {},
   extraReducers: {
     [fetchArticle.fulfilled]: (state, action) => {
-      // We use `Object.values()` being that the payload was processed with normalizr in the `fetchArticle` thunk
-      commentsAdapter.upsertMany(state, Object.values(action.payload.comments))
+      commentsAdapter.upsertMany(state, action.payload.comments)
     }
   }
 })

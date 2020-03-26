@@ -569,3 +569,55 @@ const booksSlice = createSlice({
   }
 })
 ```
+
+### Using `createEntityAdapter` along with `normalizr`
+
+When using a library like [normalizr](), your normalized data will resemble this shape:
+
+```js
+{
+  result: 1,
+  entities: {
+    1: { id: 1, other: 'property' },
+    2: { id: 2, other: 'property' }
+  }
+}
+```
+
+The methods `addMany`, `upsertMany`, and `setAll` all allow you to pass in the `entities` portion of this directly with no extra conversion steps. Here is an example of how that would look:
+
+```ts
+type Author = { id: number; name: string }
+type Article = { id: number; title: string }
+type Comment = { id: number; commenter: number }
+
+export const fetchArticle = createAsyncThunk(
+  'articles/fetchArticle',
+  async (id: number) => {
+    const data = await fakeAPI.articles.show(id)
+    // Normalize the data so reducers can responded to a predictable payload, in this case: `action.payload = { users: { 1: { id: 1 }}, articles: {1: { id: 1 }}, comments: {1: { id: 1 }} }`
+    // Note: at the time of writing, normalizr does not automatically infer the result, so we provide that to the Generic
+    const normalized = normalize<
+      any,
+      {
+        articles: { [key: string]: Article }
+        users: { [key: string]: Author }
+        comments: { [key: string]: Comment }
+      }
+    >(data, articleEntity)
+    return normalized.entities
+  }
+)
+
+export const slice = createSlice({
+  name: 'articles',
+  initialState: articlesAdapter.getInitialState(),
+  reducers: {},
+  extraReducers: builder => {
+    builder.addCase(fetchArticle.fulfilled, (state, action) => {
+      // The type signature on action.payload matches what we passed into the Generic for `normalize`, allowing us to access specific properties on `payload.articles` if desired
+      articlesAdapter.upsertMany(state, action.payload.articles)
+    })
+  }
+})
+```
