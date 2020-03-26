@@ -41,8 +41,12 @@ function extractReducers<T>(
   })
 
   expectType<ActionCreatorWithPayload<Entity>>(slice.actions.addOne)
-  expectType<ActionCreatorWithPayload<Entity[]>>(slice.actions.addMany)
-  expectType<ActionCreatorWithPayload<Entity[]>>(slice.actions.setAll)
+  expectType<ActionCreatorWithPayload<Entity[] | Record<string, Entity>>>(
+    slice.actions.addMany
+  )
+  expectType<ActionCreatorWithPayload<Entity[] | Record<string, Entity>>>(
+    slice.actions.setAll
+  )
   expectType<ActionCreatorWithPayload<EntityId>>(slice.actions.removeOne)
   expectType<ActionCreatorWithPayload<EntityId[]>>(slice.actions.removeMany)
   expectType<ActionCreatorWithoutPayload>(slice.actions.removeAll)
@@ -51,7 +55,9 @@ function extractReducers<T>(
     slice.actions.updateMany
   )
   expectType<ActionCreatorWithPayload<Entity>>(slice.actions.upsertOne)
-  expectType<ActionCreatorWithPayload<Entity[]>>(slice.actions.upsertMany)
+  expectType<ActionCreatorWithPayload<Entity[] | Record<string, Entity>>>(
+    slice.actions.upsertMany
+  )
 }
 
 /**
