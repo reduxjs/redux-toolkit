@@ -69,6 +69,24 @@ describe('Unsorted State Adapter', () => {
     })
   })
 
+  it('should let you add many entities to the state from a dictionary', () => {
+    const withOneEntity = adapter.addOne(state, TheGreatGatsby)
+
+    const withManyMore = adapter.addMany(withOneEntity, {
+      [AClockworkOrange.id]: AClockworkOrange,
+      [AnimalFarm.id]: AnimalFarm
+    })
+
+    expect(withManyMore).toEqual({
+      ids: [TheGreatGatsby.id, AClockworkOrange.id, AnimalFarm.id],
+      entities: {
+        [TheGreatGatsby.id]: TheGreatGatsby,
+        [AClockworkOrange.id]: AClockworkOrange,
+        [AnimalFarm.id]: AnimalFarm
+      }
+    })
+  })
+
   it('should remove existing and add new ones on setAll', () => {
     const withOneEntity = adapter.addOne(state, TheGreatGatsby)
 
@@ -230,14 +248,11 @@ describe('Unsorted State Adapter', () => {
 
     /*
       Original code failed with a mish-mash of values, like:
-
       {
         ids: [ 'c' ],
         entities: { b: { id: 'b', title: 'First' }, c: { id: 'c' } }
       }
-
       We now expect that only 'c' will be left:
-
       { 
         ids: [ 'c' ], 
         entities: { c: { id: 'c', title: 'First' } } 
@@ -287,6 +302,27 @@ describe('Unsorted State Adapter', () => {
       { ...TheGreatGatsby, ...firstChange },
       AClockworkOrange
     ])
+
+    expect(withUpserts).toEqual({
+      ids: [TheGreatGatsby.id, AClockworkOrange.id],
+      entities: {
+        [TheGreatGatsby.id]: {
+          ...TheGreatGatsby,
+          ...firstChange
+        },
+        [AClockworkOrange.id]: AClockworkOrange
+      }
+    })
+  })
+
+  it('should let you upsert many entities in the state when passing in a dictionary', () => {
+    const firstChange = { title: 'Zack' }
+    const withMany = adapter.setAll(state, [TheGreatGatsby])
+
+    const withUpserts = adapter.upsertMany(withMany, {
+      [TheGreatGatsby.id]: { ...TheGreatGatsby, ...firstChange },
+      [AClockworkOrange.id]: AClockworkOrange
+    })
 
     expect(withUpserts).toEqual({
       ids: [TheGreatGatsby.id, AClockworkOrange.id],

@@ -57,16 +57,22 @@ export interface EntityStateAdapter<T> {
     action: PayloadAction<T>
   ): S
 
-  addMany<S extends EntityState<T>>(state: PreventAny<S, T>, entities: T[]): S
   addMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: PayloadAction<T[]>
+    entities: T[] | Record<string, T>
+  ): S
+  addMany<S extends EntityState<T>>(
+    state: PreventAny<S, T>,
+    entities: PayloadAction<T[] | Record<string, T>>
   ): S
 
-  setAll<S extends EntityState<T>>(state: PreventAny<S, T>, entities: T[]): S
   setAll<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: PayloadAction<T[]>
+    entities: T[] | Record<string, T>
+  ): S
+  setAll<S extends EntityState<T>>(
+    state: PreventAny<S, T>,
+    entities: PayloadAction<T[] | Record<string, T>>
   ): S
 
   removeOne<S extends EntityState<T>>(state: PreventAny<S, T>, key: EntityId): S
@@ -112,11 +118,11 @@ export interface EntityStateAdapter<T> {
 
   upsertMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: T[]
+    entities: T[] | Record<string, T>
   ): S
   upsertMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: PayloadAction<T[]>
+    entities: PayloadAction<T[] | Record<string, T>>
   ): S
 }
 
