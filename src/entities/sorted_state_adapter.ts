@@ -3,7 +3,8 @@ import {
   IdSelector,
   Comparer,
   EntityStateAdapter,
-  Update
+  Update,
+  EntityId
 } from './models'
 import { createStateOperator } from './state_adapter'
 import { createUnsortedStateAdapter } from './unsorted_state_adapter'
@@ -23,7 +24,10 @@ export function createSortedStateAdapter<T>(
     return addManyMutably([entity], state)
   }
 
-  function addManyMutably(newModels: T[] | Record<string, T>, state: R): void {
+  function addManyMutably(
+    newModels: T[] | Record<EntityId, T>,
+    state: R
+  ): void {
     if (!Array.isArray(newModels)) {
       newModels = Object.values(newModels)
     }
@@ -37,7 +41,7 @@ export function createSortedStateAdapter<T>(
     }
   }
 
-  function setAllMutably(models: T[] | Record<string, T>, state: R): void {
+  function setAllMutably(models: T[] | Record<EntityId, T>, state: R): void {
     if (!Array.isArray(models)) {
       models = Object.values(models)
     }
@@ -82,7 +86,7 @@ export function createSortedStateAdapter<T>(
   }
 
   function upsertManyMutably(
-    entities: T[] | Record<string, T>,
+    entities: T[] | Record<EntityId, T>,
     state: R
   ): void {
     if (!Array.isArray(entities)) {

@@ -24,7 +24,7 @@ export function createUnsortedStateAdapter<T>(
     state.entities[key] = entity
   }
 
-  function addManyMutably(entities: T[] | Record<string, T>, state: R): void {
+  function addManyMutably(entities: T[] | Record<EntityId, T>, state: R): void {
     if (!Array.isArray(entities)) {
       entities = Object.values(entities)
     }
@@ -34,7 +34,7 @@ export function createUnsortedStateAdapter<T>(
     }
   }
 
-  function setAllMutably(entities: T[] | Record<string, T>, state: R): void {
+  function setAllMutably(entities: T[] | Record<EntityId, T>, state: R): void {
     if (!Array.isArray(entities)) {
       entities = Object.values(entities)
     }
@@ -132,7 +132,7 @@ export function createUnsortedStateAdapter<T>(
   }
 
   function upsertManyMutably(
-    entities: T[] | Record<string, T>,
+    entities: T[] | Record<EntityId, T>,
     state: R
   ): void {
     if (!Array.isArray(entities)) {
