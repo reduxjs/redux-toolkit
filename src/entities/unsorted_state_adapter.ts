@@ -135,12 +135,12 @@ export function createUnsortedStateAdapter<T>(
     entities: T[] | Record<string, T>,
     state: R
   ): void {
-    const added: T[] = []
-    const updated: Update<T>[] = []
-
     if (!Array.isArray(entities)) {
       entities = Object.values(entities)
     }
+
+    const added: T[] = []
+    const updated: Update<T>[] = []
 
     for (const entity of entities) {
       const id = selectIdValue(entity, selectId)
