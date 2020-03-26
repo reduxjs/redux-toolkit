@@ -860,8 +860,8 @@ export const slice = createSlice({
   reducers: {},
   extraReducers: {
     [fetchArticle.fulfilled]: (state, action) => {
-      // We use `Object.values()` being that the payload was processed with normalizr
-      articlesAdapter.upsertMany(state, Object.values(action.payload.articles))
+      // `upsertMany` (as well as `addMany` and `setAll`) allows you to pass in an object that is in the shape of { 1: { id: 1, ... }} as an alternative to T[]
+      articlesAdapter.upsertMany(state, action.payload.articles)
     }
   }
 })
@@ -882,8 +882,8 @@ export const slice = createSlice({
   reducers: {},
   extraReducers: builder => {
     builder.addCase(fetchArticle.fulfilled, (state, action) => {
-      // We use `Object.values()` being that the payload was processed with normalizr in the `fetchArticle` thunk
-      usersAdapter.upsertMany(state, Object.values(action.payload.users))
+      // `upsertMany` (as well as `addMany` and `setAll`) allows you to pass in an object that is in the shape of { 1: { id: 1, ... }} as an alternative to T[]
+      usersAdapter.upsertMany(state, action.payload.users)
     })
   }
 })
@@ -904,8 +904,8 @@ export const slice = createSlice({
   reducers: {},
   extraReducers: {
     [fetchArticle.fulfilled]: (state, action) => {
-      // We use `Object.values()` being that the payload was processed with normalizr in the `fetchArticle` thunk
-      commentsAdapter.upsertMany(state, Object.values(action.payload.comments))
+      // `upsertMany` (as well as `addMany` and `setAll`) allows you to pass in an object that is in the shape of { 1: { id: 1, ... }} as an alternative to T[]
+      commentsAdapter.upsertMany(state, action.payload.comments)
     }
   }
 })
