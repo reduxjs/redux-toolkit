@@ -816,6 +816,8 @@ export default reducer
 export const { removeUser } = slice.actions
 ```
 
+You can view the full code of this example usage on [CodeSandbox](https://codesandbox.io/s/rtk-entities-basic-example-1xubt)
+
 #### Combining a normalization library and `createEntityAdapter`
 
 If you're already using `normalizr` or another normalization library, you could consider using it along with `createEntityAdapter`. To expand on the examples above, here is a demonstration of how we could use `normalizr` to format a payload, then leverage the utilities `createEntityAdapter` provides.
@@ -913,6 +915,8 @@ const reducer = slice.reducer
 export default reducer
 ```
 
+You can view the full code of this example normalizr usage on [CodeSandbox](https://codesandbox.io/s/rtk-entities-basic-example-with-normalizr-bm3ie)
+
 #### Using selectors with `createEntityAdapter`
 
 The entity adapter providers a selector factory that generates the most common selectors for you. Taking the examples above, we can add selectors to our `usersSlice` like this:
@@ -957,8 +961,6 @@ export function UsersList() {
   )
 }
 ```
-
-To see this all working together, you can view the full code of this example usage on [CodeSandbox](https://codesandbox.io/s/rtk-entities-basic-example-4jg0m)
 
 #### Working with entities without an id property
 
