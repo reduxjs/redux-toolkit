@@ -136,6 +136,9 @@ export function createEntityAdapter<T>(options?: {
     sortComparer?: false | Comparer<T>;
 }): EntityAdapter<T>;
 
+// @public (undocumented)
+export function createImmutableStateInvariantMiddleware(options?: ImmutableStateInvariantMiddlewareOptions): Middleware;
+
 export { createNextState }
 
 // @public
@@ -212,6 +215,19 @@ export function getType<T extends string>(actionCreator: PayloadActionCreator<an
 
 // @alpha (undocumented)
 export type IdSelector<T> = (model: T) => EntityId;
+
+// @public (undocumented)
+export interface ImmutableStateInvariantMiddlewareOptions {
+    // (undocumented)
+    ignoredPaths?: string[];
+    // (undocumented)
+    isImmutable?: IsImmutableFunc;
+    // (undocumented)
+    warnAfter?: number;
+}
+
+// @public (undocumented)
+export function isImmutableDefault(value: unknown): boolean;
 
 // @public
 export function isPlain(val: any): boolean;

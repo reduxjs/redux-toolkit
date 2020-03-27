@@ -69,13 +69,13 @@ export function isImmutableDefault(value: unknown): boolean {
 
 export function trackForMutations(
   isImmutable: IsImmutableFunc,
-  ingorePaths: string[] | undefined,
+  ignorePaths: string[] | undefined,
   obj: any
 ) {
-  const trackedProperties = trackProperties(isImmutable, ingorePaths, obj)
+  const trackedProperties = trackProperties(isImmutable, ignorePaths, obj)
   return {
     detectMutations() {
-      return detectMutations(isImmutable, ingorePaths, trackedProperties, obj)
+      return detectMutations(isImmutable, ignorePaths, trackedProperties, obj)
     }
   }
 }
