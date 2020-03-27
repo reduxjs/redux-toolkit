@@ -61,6 +61,11 @@ function getSerialize(
   }
 }
 
+/**
+ * The default `isImmutable` function.
+ *
+ * @public
+ */
 export function isImmutableDefault(value: unknown): boolean {
   return (
     typeof value !== 'object' || value === null || typeof value === 'undefined'
@@ -172,12 +177,27 @@ function detectMutations(
 }
 
 type IsImmutableFunc = (value: any) => boolean
+
+/**
+ * Options for `createImmutableStateInvariantMiddleware()`.
+ *
+ * @public
+ */
 export interface ImmutableStateInvariantMiddlewareOptions {
   isImmutable?: IsImmutableFunc
   ignoredPaths?: string[]
   warnAfter?: number
 }
 
+/**
+ * Creates a middleware that checks whether any state was mutated in between
+ * dispatches or during a dispatch. If any mutations are detected, an error is
+ * thrown.
+ *
+ * @param options Middleware options.
+ *
+ * @public
+ */
 export function createImmutableStateInvariantMiddleware(
   options: ImmutableStateInvariantMiddlewareOptions = {}
 ): Middleware {
