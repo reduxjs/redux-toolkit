@@ -792,14 +792,15 @@ import userAPI from './userAPI'
 
 export const fetchUsers = createAsyncThunk('users/fetchAll', async () => {
   const response = await userAPI.fetchAll()
-  // In this case, `response.data` would be [{id: 1, first_name: 'Example', last_name: 'User'}]
+  // In this case, `response.data` would be:
+  //  [{id: 1, first_name: 'Example', last_name: 'User'}]
   return response.data
 })
 
 export const usersAdapter = createEntityAdapter()
 
 // By default, `createEntityAdapter` gives you `{ ids: [], entities: {} }`.
-// If you want to track 'loading' or other keys, you would initialize them here like this:
+// If you want to track 'loading' or other keys, you would initialize them here:
 // `getInitialState({ loading: false, activeRequestId: null })`
 const initialState = usersAdapter.getInitialState()
 
@@ -855,7 +856,7 @@ export const fetchArticle = createAsyncThunk(
   'articles/fetchArticle',
   async id => {
     const data = await fakeAPI.articles.show(id)
-    // Normalize the data so reducers can responded to a predictable payload, in this case:
+    // Normalize the data so reducers can load a predictable payload, like:
     // `action.payload = { users: {}, articles: {}, comments: {} }`
     const normalized = normalize(data, articleEntity)
     return normalized.entities
@@ -968,7 +969,7 @@ export function UsersList() {
 }
 ```
 
-### Working with entities without an id property
+### Specifying Alternate ID Fields
 
 By default, `createEntityAdapter` assumes that your data has unique IDs in an `entity.id` field. If your data set stores its ID in a different field, you can pass in a `selectId` argument that returns the appropriate field.
 
@@ -981,13 +982,14 @@ const userData = {
   ]
 }
 
-// Since our primary key is `idx` and not `id`, pass in an ID selector to return that field instead
+// Since our primary key is `idx` and not `id`,
+// pass in an ID selector to return that field instead
 export const usersAdapter = createEntityAdapter({
   selectId: user => user.idx
 })
 ```
 
-### Sorting your entities by a default key
+### Sorting Entities
 
 `createEntityAdapter` provides a `sortComparer` argument that you can leverage to sort the collection of `ids` in state. This can be very useful for when you want to guarantee a sort order and your data doesn't come presorted.
 
@@ -1000,8 +1002,9 @@ const userData = {
   ]
 }
 
-// Sort by `first_name`. `state.ids` would be ordered like `ids: [ 2, 1 ]`, since B comes before T
-// When using the provided `selectAll` selector, your collection would be returned sorted as:
+// Sort by `first_name`. `state.ids` would be ordered as
+// `ids: [ 2, 1 ]`, since 'B' comes before 'T'.
+// When using the provided `selectAll` selector, the result would be sorted:
 // [{ id: 2, first_name: 'Banana' }, { id: 1, first_name: 'Test' }]
 export const usersAdapter = createEntityAdapter({
   sortComparer: (a, b) => a.first_name.localeCompare(b.first_name)
