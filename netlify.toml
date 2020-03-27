@@ -1,6 +1,6 @@
 [build]
   base    = "website"
-  publish = "build"
+  publish = "website/build"
   command = "npm run build"
 
 [build.environment]
