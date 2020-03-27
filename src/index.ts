@@ -60,6 +60,13 @@ export {
 } from './createSlice'
 export {
   // js
+  createImmutableStateInvariantMiddleware,
+  isImmutableDefault,
+  // types
+  ImmutableStateInvariantMiddlewareOptions
+} from './immutableStateInvariantMiddleware'
+export {
+  // js
   createSerializableStateInvariantMiddleware,
   findNonSerializableValue,
   isPlain,
