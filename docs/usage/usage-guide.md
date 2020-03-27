@@ -700,3 +700,313 @@ interface ThunkAPI {
 ```
 
 You can use any of these as needed inside the payload callback to determine what the final result should be.
+
+## Managing Normalized Data
+
+Most applications typically deal with data that is deeply nested or relational. The goal of normalizing data is to efficiently organize the data in your state. This is typically done by storing collections as objects with the key of an `id`, while storing a sorted array of those `ids`. For a more in-depth explanation and further examples, there is a great reference in the [Redux docs page on "Normalizing State Shape"](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape).
+
+### Normalizing by hand
+
+Normalizing data doesn't require any special libraries. Here's a basic example of how you might normalize the response from a `fetchAll` API request that returns data in the shape of `{ users: [{id: 1, first_name: 'normalized', last_name: 'person'}] }`, using some hand-written logic:
+
+```js
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import userAPI from './userAPI'
+
+export const fetchUsers = createAsyncThunk('users/fetchAll', async () => {
+  const response = await userAPI.fetchAll()
+  return response.data
+})
+
+export const slice = createSlice({
+  name: 'users',
+  initialState: {
+    ids: [],
+    entities: {}
+  },
+  reducers: {},
+  extraReducers: builder => {
+    builder.addCase(fetchUsers.fulfilled, (state, action) => {
+      // reduce the collection by the id property into a shape of { 1: { ...user }}
+      const byId = action.payload.users.reduce((byId, user) => {
+        byId[user.id] = user
+        return byId
+      }, {})
+      state.entities = byId
+      state.ids = Object.keys(byId)
+    })
+  }
+})
+```
+
+Although we're capable of writing this code, it does become repetitive, especially if you're handling multiple types of data. In addition, this example only handles loading entries into the state, not updating them.
+
+### Normalizing with `normalizr`
+
+[`normalizr`](https://github.com/paularmstrong/normalizr) is a popular existing library for normalizing data. You can use it on its own without Redux, but it is very commonly used with Redux. The typical usage is to format collections from an API response and then process them in your reducers.
+
+```js
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { normalize, schema } from 'normalizr'
+
+import userAPI from './userAPI'
+
+const userEntity = new schema.Entity('users')
+
+export const fetchUsers = createAsyncThunk('users/fetchAll', async () => {
+  const response = await userAPI.fetchAll()
+  // Normalize the data before passing it to our reducer
+  const normalized = normalize(response.data, [userEntity])
+  return normalized.entities
+})
+
+export const slice = createSlice({
+  name: 'users',
+  initialState: {
+    ids: [],
+    entities: {}
+  },
+  reducers: {},
+  extraReducers: builder => {
+    builder.addCase(fetchUsers.fulfilled, (state, action) => {
+      state.entities = action.payload.users
+      state.ids = Object.keys(action.payload.users)
+    })
+  }
+})
+```
+
+As with the hand-written version, this doesn't handle adding additional entries into the state, or updating them later - it's just loading in everything that was received.
+
+### Normalizing with `createEntityAdapter`
+
+Redux Toolkit's `createEntityAdapter` API provides a standardized way to store your data in a slice by taking a collection and putting it into the shape of `{ ids: [], entities: {} }`. Along with this predefined state shape, it generates a set of reducer functions and selectors that know how to work with the data.
+
+```js
+import {
+  createSlice,
+  createAsyncThunk,
+  createEntityAdapter
+} from '@reduxjs/toolkit'
+import userAPI from './userAPI'
+
+export const fetchUsers = createAsyncThunk('users/fetchAll', async () => {
+  const response = await userAPI.fetchAll()
+  // In this case, `response.data` would be:
+  //  [{id: 1, first_name: 'Example', last_name: 'User'}]
+  return response.data
+})
+
+export const usersAdapter = createEntityAdapter()
+
+// By default, `createEntityAdapter` gives you `{ ids: [], entities: {} }`.
+// If you want to track 'loading' or other keys, you would initialize them here:
+// `getInitialState({ loading: false, activeRequestId: null })`
+const initialState = usersAdapter.getInitialState()
+
+export const slice = createSlice({
+  name: 'users',
+  initialState,
+  reducers: {
+    removeUser: usersAdapter.removeOne
+  },
+  extraReducers: builder => {
+    builder.addCase(fetchUsers.fulfilled, usersAdapter.upsertMany)
+  }
+})
+
+const reducer = slice.reducer
+export default reducer
+
+export const { removeUser } = slice.actions
+```
+
+You can [view the full code of this example usage on CodeSandbox](https://codesandbox.io/s/rtk-entities-basic-example-1xubt)
+
+### Using `createEntityAdapter` with Normalization Libraries
+
+If you're already using `normalizr` or another normalization library, you could consider using it along with `createEntityAdapter`. To expand on the examples above, here is a demonstration of how we could use `normalizr` to format a payload, then leverage the utilities `createEntityAdapter` provides.
+
+By default, the `setAll`, `addMany`, and `upsertMany` CRUD methods expect an array of entities. However, they also allow you to pass in an object that is in the shape of `{ 1: { id: 1, ... }}` as an alternative, which makes it easier to insert pre-normalized data.
+
+```js
+// features/articles/articlesSlice.js
+import {
+  createSlice,
+  createEntityAdapter,
+  createAsyncThunk,
+  createSelector
+} from '@reduxjs/toolkit'
+import fakeAPI from '../../services/fakeAPI'
+import { normalize, schema } from 'normalizr'
+
+// Define normalizr entity schemas
+export const userEntity = new schema.Entity('users')
+export const commentEntity = new schema.Entity('comments', {
+  commenter: userEntity
+})
+export const articleEntity = new schema.Entity('articles', {
+  author: userEntity,
+  comments: [commentEntity]
+})
+
+const articlesAdapter = createEntityAdapter()
+
+export const fetchArticle = createAsyncThunk(
+  'articles/fetchArticle',
+  async id => {
+    const data = await fakeAPI.articles.show(id)
+    // Normalize the data so reducers can load a predictable payload, like:
+    // `action.payload = { users: {}, articles: {}, comments: {} }`
+    const normalized = normalize(data, articleEntity)
+    return normalized.entities
+  }
+)
+
+export const slice = createSlice({
+  name: 'articles',
+  initialState: articlesAdapter.getInitialState(),
+  reducers: {},
+  extraReducers: {
+    [fetchArticle.fulfilled]: (state, action) => {
+      // Handle the fetch result by inserting the articles here
+      articlesAdapter.upsertMany(state, action.payload.articles)
+    }
+  }
+})
+
+const reducer = slice.reducer
+export default reducer
+
+// features/users/usersSlice.js
+
+import { createSlice, createEntityAdapter } from '@reduxjs/toolkit'
+import { fetchArticle } from '../articles/articlesSlice'
+
+const usersAdapter = createEntityAdapter()
+
+export const slice = createSlice({
+  name: 'users',
+  initialState: usersAdapter.getInitialState(),
+  reducers: {},
+  extraReducers: builder => {
+    builder.addCase(fetchArticle.fulfilled, (state, action) => {
+      // And handle the same fetch result by inserting the users here
+      usersAdapter.upsertMany(state, action.payload.users)
+    })
+  }
+})
+
+const reducer = slice.reducer
+export default reducer
+
+// features/comments/commentsSlice.js
+
+import { createSlice, createEntityAdapter } from '@reduxjs/toolkit'
+import { fetchArticle } from '../articles/articlesSlice'
+
+const commentsAdapter = createEntityAdapter()
+
+export const slice = createSlice({
+  name: 'comments',
+  initialState: commentsAdapter.getInitialState(),
+  reducers: {},
+  extraReducers: {
+    [fetchArticle.fulfilled]: (state, action) => {
+      // Same for the comments
+      commentsAdapter.upsertMany(state, action.payload.comments)
+    }
+  }
+})
+
+const reducer = slice.reducer
+export default reducer
+```
+
+You can [view the full code of this example `normalizr` usage on CodeSandbox](https://codesandbox.io/s/rtk-entities-basic-example-with-normalizr-bm3ie)
+
+### Using selectors with `createEntityAdapter`
+
+The entity adapter providers a selector factory that generates the most common selectors for you. Taking the examples above, we can add selectors to our `usersSlice` like this:
+
+```js
+// Rename the exports for readability in component usage
+export const {
+  selectById: selectUserById,
+  selectIds: selectUserIds,
+  selectEntities: selectUserEntities,
+  selectAll: selectAllUsers,
+  selectTotal: selectTotalUsers
+} = usersAdapter.getSelectors(state => state.users)
+```
+
+You could then use these selectors in a component like this:
+
+```js
+import React from 'react'
+import { useSelector } from 'react-redux'
+import { selectTotalUsers, selectAllUsers } from './usersSlice'
+
+import styles from './UsersList.module.css'
+
+export function UsersList() {
+  const count = useSelector(selectTotalUsers)
+  const users = useSelector(selectAllUsers)
+
+  return (
+    <div>
+      <div className={styles.row}>
+        There are <span className={styles.value}>{count}</span> users.{' '}
+        {count === 0 && `Why don't you fetch some more?`}
+      </div>
+      {users.map(user => (
+        <div key={user.id}>
+          <div>{`${user.first_name} ${user.last_name}`}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+### Specifying Alternate ID Fields
+
+By default, `createEntityAdapter` assumes that your data has unique IDs in an `entity.id` field. If your data set stores its ID in a different field, you can pass in a `selectId` argument that returns the appropriate field.
+
+```js
+// In this instance, our user data always has a primary key of `idx`
+const userData = {
+  users: [
+    { idx: 1, first_name: 'Test' },
+    { idx: 2, first_name: 'Two' }
+  ]
+}
+
+// Since our primary key is `idx` and not `id`,
+// pass in an ID selector to return that field instead
+export const usersAdapter = createEntityAdapter({
+  selectId: user => user.idx
+})
+```
+
+### Sorting Entities
+
+`createEntityAdapter` provides a `sortComparer` argument that you can leverage to sort the collection of `ids` in state. This can be very useful for when you want to guarantee a sort order and your data doesn't come presorted.
+
+```js
+// In this instance, our user data always has a primary key of `idx`
+const userData = {
+  users: [
+    { id: 1, first_name: 'Test' },
+    { id: 2, first_name: 'Banana' }
+  ]
+}
+
+// Sort by `first_name`. `state.ids` would be ordered as
+// `ids: [ 2, 1 ]`, since 'B' comes before 'T'.
+// When using the provided `selectAll` selector, the result would be sorted:
+// [{ id: 2, first_name: 'Banana' }, { id: 1, first_name: 'Test' }]
+export const usersAdapter = createEntityAdapter({
+  sortComparer: (a, b) => a.first_name.localeCompare(b.first_name)
+})
+```

@@ -196,14 +196,14 @@ export interface EntityAdapter<T> extends EntityStateAdapter<T> {
 The primary content of an entity adapter is a set of generated reducer functions for adding, updating, and removing entity instances from an entity state object:
 
 - `addOne`: accepts a single entity, and adds it
-- `addMany`: accepts an array of entities, and adds them
-- `setAll`: accepts an array of entities, and replaces the existing entity contents with the values in the array
+- `addMany`: accepts an array of entities or an object in the shape of `Record<EntityId, T>`, and adds them.
+- `setAll`: accepts an array of entities or an object in the shape of `Record<EntityId, T>`, and replaces the existing entity contents with the values in the array
 - `removeOne`: accepts a single entity ID value, and removes the entity with that ID if it exists
 - `removeMany`: accepts an array of entity ID values, and removes each entity with those IDs if they exist
 - `updateOne`: accepts an "update object" containing an entity ID and an object containing one or more new field values to update inside a `changes` field, and updates the corresponding entity
 - `updateMany`: accepts an array of update objects, and updates all corresponding entities
 - `upsertOne`: accepts a single entity. If an entity with that ID exists, the fields in the update will be merged into the existing entity, with any matching fields overwriting the existing values. If the entity does not exist, it will be added.
-- `upsertMany`: accepts an array of entities that will be upserted.
+- `upsertMany`: accepts an array of entities or an object in the shape of `Record<EntityId, T>` that will be upserted.
 
 Each method has a signature that looks like:
 
