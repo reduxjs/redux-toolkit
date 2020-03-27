@@ -703,9 +703,9 @@ You can use any of these as needed inside the payload callback to determine what
 
 ## Managing Normalized Data
 
-Most applications typically deal with data that is deeply nested or relational. The goal of normalizing data is to efficiently organize the data in your state. This is typically done by storing collections as dictionaries with the key of an `id`, while storing a sorted array of those `ids`. For a more in-depth explanation and further examples, there is a great reference in the [Redux docs page on "Normalizing State Shape"](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape).
+Most applications typically deal with data that is deeply nested or relational. The goal of normalizing data is to efficiently organize the data in your state. This is typically done by storing collections as objects with the key of an `id`, while storing a sorted array of those `ids`. For a more in-depth explanation and further examples, there is a great reference in the [Redux docs page on "Normalizing State Shape"](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape).
 
-#### Normalizing by hand
+### Normalizing by hand
 
 Normalizing data doesn't require any special libraries. Here's a basic example of how you might normalize the response from a `fetchAll` API request that returns data in the shape of `{ users: [{id: 1, first_name: 'normalized', last_name: 'person'}] }`, using some hand-written logic:
 
@@ -741,7 +741,7 @@ export const slice = createSlice({
 
 Although we're capable of writing this code, it does become repetitive, especially if you're handling multiple types of data. In addition, this example only handles loading entries into the state, not updating them.
 
-#### Normalizing with `normalizr`
+### Normalizing with `normalizr`
 
 [`normalizr`](https://github.com/paularmstrong/normalizr) is a popular existing library for normalizing data. You can use it on its own without Redux, but it is very commonly used with Redux. The typical usage is to format collections from an API response and then process them in your reducers.
 
@@ -778,7 +778,7 @@ export const slice = createSlice({
 
 As with the hand-written version, this doesn't handle adding additional entries into the state, or updating them later - it's just loading in everything that was received.
 
-#### Normalizing with `createEntityAdapter`
+### Normalizing with `createEntityAdapter`
 
 Redux Toolkit's `createEntityAdapter` API provides a standardized way to store your data in a slice by taking a collection and putting it into the shape of `{ ids: [], entities: {} }`. Along with this predefined state shape, it generates a set of reducer functions and selectors that know how to work with the data.
 
@@ -822,7 +822,7 @@ export const { removeUser } = slice.actions
 
 You can [view the full code of this example usage on CodeSandbox](https://codesandbox.io/s/rtk-entities-basic-example-1xubt)
 
-#### Using `createEntityAdapter` with Normalization Libraries
+### Using `createEntityAdapter` with Normalization Libraries
 
 If you're already using `normalizr` or another normalization library, you could consider using it along with `createEntityAdapter`. To expand on the examples above, here is a demonstration of how we could use `normalizr` to format a payload, then leverage the utilities `createEntityAdapter` provides.
 
@@ -924,7 +924,7 @@ export default reducer
 
 You can [view the full code of this example `normalizr` usage on CodeSandbox](https://codesandbox.io/s/rtk-entities-basic-example-with-normalizr-bm3ie)
 
-#### Using selectors with `createEntityAdapter`
+### Using selectors with `createEntityAdapter`
 
 The entity adapter providers a selector factory that generates the most common selectors for you. Taking the examples above, we can add selectors to our `usersSlice` like this:
 
@@ -968,7 +968,7 @@ export function UsersList() {
 }
 ```
 
-#### Working with entities without an id property
+### Working with entities without an id property
 
 By default, `createEntityAdapter` assumes that your data has unique IDs in an `entity.id` field. If your data set stores its ID in a different field, you can pass in a `selectId` argument that returns the appropriate field.
 
@@ -987,7 +987,7 @@ export const usersAdapter = createEntityAdapter({
 })
 ```
 
-#### Sorting your entities by a default key
+### Sorting your entities by a default key
 
 `createEntityAdapter` provides a `sortComparer` argument that you can leverage to sort the collection of `ids` in state. This can be very useful for when you want to guarantee a sort order and your data doesn't come presorted.
 

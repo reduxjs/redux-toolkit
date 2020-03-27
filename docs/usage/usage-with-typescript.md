@@ -570,9 +570,9 @@ const booksSlice = createSlice({
 })
 ```
 
-### Using `createEntityAdapter` along with `normalizr`
+### Using `createEntityAdapter` with `normalizr`
 
-When using a library like [normalizr](), your normalized data will resemble this shape:
+When using a library like [`normalizr`](https://github.com/paularmstrong/normalizr/), your normalized data will resemble this shape:
 
 ```js
 {
@@ -584,7 +584,9 @@ When using a library like [normalizr](), your normalized data will resemble this
 }
 ```
 
-The methods `addMany`, `upsertMany`, and `setAll` all allow you to pass in the `entities` portion of this directly with no extra conversion steps. Here is an example of how that would look:
+The methods `addMany`, `upsertMany`, and `setAll` all allow you to pass in the `entities` portion of this directly with no extra conversion steps. However, the `normalizr` TS typings currently do not correctly reflect that multiple data types may be included in the results, so you will need to specify that type structure yourself.
+
+Here is an example of how that would look:
 
 ```ts
 type Author = { id: number; name: string }
@@ -595,8 +597,9 @@ export const fetchArticle = createAsyncThunk(
   'articles/fetchArticle',
   async (id: number) => {
     const data = await fakeAPI.articles.show(id)
-    // Normalize the data so reducers can responded to a predictable payload, in this case: `action.payload = { users: { 1: { id: 1 }}, articles: {1: { id: 1 }}, comments: {1: { id: 1 }} }`
-    // Note: at the time of writing, normalizr does not automatically infer the result, so we provide that to the Generic
+    // Normalize the data so reducers can responded to a predictable payload.
+    // Note: at the time of writing, normalizr does not automatically infer the result,
+    // so we explicitly declare the shape of the returned normalized data as a generic arg.
     const normalized = normalize<
       any,
       {
@@ -615,7 +618,7 @@ export const slice = createSlice({
   reducers: {},
   extraReducers: builder => {
     builder.addCase(fetchArticle.fulfilled, (state, action) => {
-      // The type signature on action.payload matches what we passed into the Generic for `normalize`, allowing us to access specific properties on `payload.articles` if desired
+      // The type signature on action.payload matches what we passed into the generic for `normalize`, allowing us to access specific properties on `payload.articles` if desired
       articlesAdapter.upsertMany(state, action.payload.articles)
     })
   }
