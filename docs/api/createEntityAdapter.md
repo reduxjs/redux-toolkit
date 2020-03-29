@@ -312,7 +312,7 @@ const booksSlice = createSlice({
   initialState: booksAdapter.getInitialState({
     loading: 'idle'
   }),
-  reducer: {
+  reducers: {
     // Can pass adapter functions directly as case reducers.  Because we're passing this
     // as a value, `createSlice` will auto-generate the `bookAdded` action type / creator
     bookAdded: booksAdapter.addOne,
