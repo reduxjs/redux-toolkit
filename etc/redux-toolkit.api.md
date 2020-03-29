@@ -271,6 +271,7 @@ export { Selector }
 // @public
 export interface SerializableStateInvariantMiddlewareOptions {
     getEntries?: (value: any) => [string, any][];
+    ignoredActionPaths?: string[];
     ignoredActions?: string[];
     ignoredPaths?: string[];
     isSerializable?: (value: any) => boolean;

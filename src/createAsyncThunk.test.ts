@@ -463,3 +463,16 @@ describe('createAsyncThunk with abortController', () => {
     })
   })
 })
+
+test('non-serializable arguments are ignored by serializableStateInvariantMiddleware', async () => {
+  const restore = mockConsole(createConsole())
+  const nonSerializableValue = new Map()
+  const asyncThunk = createAsyncThunk('test', (arg: Map<any, any>) => {})
+
+  configureStore({
+    reducer: () => 0
+  }).dispatch(asyncThunk(nonSerializableValue))
+
+  expect(getLog().log).toMatchInlineSnapshot(`""`)
+  restore()
+})
