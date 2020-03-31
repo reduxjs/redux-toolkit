@@ -70,14 +70,47 @@ If two fields from `reducers` and `extraReducers` happen to end up with the same
 the function from `reducers` will be used to handle that action type.
 
 Action creators that were generated using [`createAction`](./createAction.md) may be used directly as the keys here, using
-computed property syntax. (If you are using TypeScript, you may have to use `actionCreator.type` or `actionCreator.toString()`
-to force the TS compiler to accept the computed property.)
+computed property syntax.
+
+```js
+const incrementBy = createAction('incrementBy')
+
+createSlice({
+  name: 'counter',
+  initialState: 0,
+  reducers: {},
+  extraReducers: {
+    [incrementBy]: (state, action) => {
+      return state + action.payload
+    }
+  }
+})
+```
+
+> **Note**: If you are using TypeScript, we recommend using the `builder callback` API that is shown below. If you do not use the `builder callback` and are using TypeScript, you will need to use `actionCreator.type` or `actionCreator.toString()`
+> to force the TS compiler to accept the computed property. Please see [Usage With TypeScript](./../usage/usage-with-typescript.md#type-safety-with-extraReducers) for further details.
 
 ### The "builder callback" API for `extraReducers`
 
 Instead of using a simple object as `extraReducers`, you can also use a callback that receives a `ActionReducerMapBuilder` instance.
 
-We recommend using this API if stricter type safety is necessary when defining reducer argument objects.
+```typescript
+const incrementBy = createAction<number>('incrementBy')
+
+createSlice({
+  name: 'counter',
+  initialState: 0,
+  reducers: {},
+  extraReducers: builder => {
+    builder.addCase(incrementBy, (state, action) => {
+      // action is inferred correctly here with `action.payload` as a `number`
+      return state + action.payload
+    })
+  }
+})
+```
+
+We recommend using this API if stricter type safety is necessary when defining reducer argument objects. It's particularly useful for working with actions produced by `createAction` and `createAsyncThunk`.
 
 ## Return Value
 
@@ -116,6 +149,7 @@ import { createSlice, createAction, PayloadAction } from '@reduxjs/toolkit'
 import { createStore, combineReducers } from 'redux'
 
 const incrementBy = createAction<number>('incrementBy')
+const decrementBy = createAction<number>('decrementBy')
 
 const counter = createSlice({
   name: 'counter',
@@ -128,11 +162,15 @@ const counter = createSlice({
       prepare: (value: number) => ({ payload: value || 2 }) // fallback if the payload is a falsy value
     }
   },
-  // "builder callback API"
-  extraReducers: builder =>
+  // "builder callback API", recommended for TypeScript users
+  extraReducers: builder => {
     builder.addCase(incrementBy, (state, action) => {
       return state + action.payload
     })
+    builder.addCase(decrementBy, (state, action) => {
+      return state - action.payload
+    })
+  }
 })
 
 const user = createSlice({

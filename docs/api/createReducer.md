@@ -36,8 +36,10 @@ const counterReducer = createReducer(0, {
 ```
 
 Action creators that were generated using [`createAction`](./createAction.md) may be used directly as the keys here, using
-computed property syntax. (If you are using TypeScript, you may have to use `actionCreator.type` or `actionCreator.toString()`
-to force the TS compiler to accept the computed property.)
+computed property syntax.
+
+> **Note**: If you are using TypeScript, we recommend using the `builder callback` API that is shown below. If you do not use the `builder callback` and are using TypeScript, you will need to use `actionCreator.type` or `actionCreator.toString()`
+> to force the TS compiler to accept the computed property. Please see [Usage With TypeScript](./../usage/usage-with-typescript.md#type-safety-with-extraReducers) for further details.
 
 ```js
 const increment = createAction('increment')
