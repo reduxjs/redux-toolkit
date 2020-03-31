@@ -733,7 +733,7 @@ export const IssuesListPage = ({
 
 In `<IssuesListPage>`, we import the new `fetchIssuesCount` thunk, and rewrite the component to read the open issues count value from the Redux store.
 
-Inside our `useEffect`, we drop the `fetchIssueCount` function, and dispatch `fetchIssueCount` instead.
+Inside our `useEffect`, we drop the `fetchIssueCount` function, and dispatch `fetchIssuesCount` instead.
 
 ### Logic for Fetching Issues for a Repo
 
