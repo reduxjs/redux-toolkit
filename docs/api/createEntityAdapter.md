@@ -355,7 +355,7 @@ store.dispatch(bookAdded({ id: 'a', title: 'First' }))
 console.log(store.getState().books)
 // {ids: ["a"], entities: {a: {id: "a", title: "First"}}, loading: 'idle' }
 
-store.dispatch(bookUpdated({ id: 'a', title: 'First (altered)' }))
+store.dispatch(bookUpdated({ id: 'a', changes: { title: 'First (altered)' } }))
 store.dispatch(booksLoading())
 console.log(store.getState().books)
 // {ids: ["a"], entities: {a: {id: "a", title: "First (altered)"}}, loading: 'pending' }
