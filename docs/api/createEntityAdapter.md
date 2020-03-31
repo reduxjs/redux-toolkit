@@ -324,7 +324,7 @@ const booksSlice = createSlice({
     booksReceived(state, action) {
       if (state.loading === 'pending') {
         // Or, call them as "mutating" helpers in a case reducer
-        booksAdapter.setAll(state, action.payload.books)
+        booksAdapter.setAll(state, action.payload)
         state.loading = 'idle'
       }
     },
