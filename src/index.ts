@@ -8,7 +8,7 @@ export {
   OutputSelector,
   ParametricSelector
 } from 'reselect'
-export { ThunkAction } from 'redux-thunk'
+export { ThunkAction, ThunkDispatch } from 'redux-thunk'
 
 // We deliberately enable Immer's ES5 support, on the grounds that
 // we assume RTK will be used with React Native and other Proxy-less
