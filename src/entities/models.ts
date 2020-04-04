@@ -43,6 +43,9 @@ export interface EntityState<T> {
   entities: Dictionary<T>
 }
 
+/**
+ * @public
+ */
 export interface EntityDefinition<T> {
   selectId: IdSelector<T>
   sortComparer: false | Comparer<T>
@@ -50,6 +53,9 @@ export interface EntityDefinition<T> {
 
 export type PreventAny<S, T> = IsAny<S, EntityState<T>, S>
 
+/**
+ * @public
+ */
 export interface EntityStateAdapter<T> {
   addOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
   addOne<S extends EntityState<T>>(
