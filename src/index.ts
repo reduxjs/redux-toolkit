@@ -87,6 +87,9 @@ export {
   Dictionary,
   EntityState,
   EntityAdapter,
+  EntitySelectors,
+  EntityStateAdapter,
+  EntityId,
   Update,
   IdSelector,
   Comparer
