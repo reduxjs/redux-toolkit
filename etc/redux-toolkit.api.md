@@ -307,6 +307,8 @@ export type SliceCaseReducers<State> = {
 
 export { ThunkAction }
 
+export { ThunkDispatch }
+
 // @alpha (undocumented)
 export function unwrapResult<R extends ActionTypesWithOptionalErrorAction>(returned: R): PayloadForActionTypesExcludingErrorActions<R>;
 
