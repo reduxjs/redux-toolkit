@@ -2,41 +2,41 @@ import { PayloadAction } from '../createAction'
 import { IsAny } from '../tsHelpers'
 
 /**
- * @alpha
+ * @public
  */
 export type EntityId = number | string
 
 /**
- * @alpha
+ * @public
  */
 export type Comparer<T> = (a: T, b: T) => number
 
 /**
- * @alpha
+ * @public
  */
 export type IdSelector<T> = (model: T) => EntityId
 
 /**
- * @alpha
+ * @public
  */
 export interface DictionaryNum<T> {
   [id: number]: T | undefined
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface Dictionary<T> extends DictionaryNum<T> {
   [id: string]: T | undefined
 }
 
 /**
- * @alpha
+ * @public
  */
 export type Update<T> = { id: EntityId; changes: Partial<T> }
 
 /**
- * @alpha
+ * @public
  */
 export interface EntityState<T> {
   ids: EntityId[]
@@ -126,6 +126,9 @@ export interface EntityStateAdapter<T> {
   ): S
 }
 
+/**
+ * @public
+ */
 export interface EntitySelectors<T, V> {
   selectIds: (state: V) => EntityId[]
   selectEntities: (state: V) => Dictionary<T>
@@ -135,7 +138,7 @@ export interface EntitySelectors<T, V> {
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface EntityAdapter<T> extends EntityStateAdapter<T> {
   selectId: IdSelector<T>

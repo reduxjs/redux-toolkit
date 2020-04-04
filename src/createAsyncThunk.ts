@@ -26,7 +26,7 @@ export type BaseThunkAPI<
 }
 
 /**
- * @alpha
+ * @public
  */
 export interface SerializedError {
   name?: string
@@ -108,7 +108,7 @@ type GetRejectValue<ThunkApiConfig> = ThunkApiConfig extends {
  * @param type
  * @param payloadCreator
  *
- * @alpha
+ * @public
  */
 export function createAsyncThunk<
   Returned,
@@ -273,7 +273,7 @@ type PayloadForActionTypesExcludingErrorActions<T> = T extends { error: any }
   : never
 
 /**
- * @alpha
+ * @public
  */
 export function unwrapResult<R extends ActionTypesWithOptionalErrorAction>(
   returned: R

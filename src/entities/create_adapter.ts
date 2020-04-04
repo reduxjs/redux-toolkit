@@ -8,7 +8,7 @@ import { createUnsortedStateAdapter } from './unsorted_state_adapter'
  *
  * @param options
  *
- * @alpha
+ * @public
  */
 export function createEntityAdapter<T>(
   options: {
