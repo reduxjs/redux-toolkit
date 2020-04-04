@@ -36,7 +36,7 @@ export function findNonSerializableValue(
   path: ReadonlyArray<string> = [],
   isSerializable: (value: unknown) => boolean = isPlain,
   getEntries?: (value: unknown) => [string, any][],
-  ignoredPaths: string[] = ['meta.args']
+  ignoredPaths: string[] = []
 ): NonSerializableValue | false {
   let foundNestedSerializable: NonSerializableValue | false
 
@@ -112,6 +112,11 @@ export interface SerializableStateInvariantMiddlewareOptions {
   ignoredActions?: string[]
 
   /**
+   * An array of dot-separated path strings to ignore when checking for serializability, Defaults to ['meta.arg']
+   */
+  ignoredActionPaths?: string[]
+
+  /**
    * An array of dot-separated path strings to ignore when checking for serializability, Defaults to []
    */
   ignoredPaths?: string[]
@@ -140,6 +145,7 @@ export function createSerializableStateInvariantMiddleware(
     isSerializable = isPlain,
     getEntries,
     ignoredActions = [],
+    ignoredActionPaths = ['meta.arg'],
     ignoredPaths = [],
     warnAfter = 32
   } = options
@@ -158,7 +164,8 @@ export function createSerializableStateInvariantMiddleware(
         action,
         [],
         isSerializable,
-        getEntries
+        getEntries,
+        ignoredActionPaths
       )
 
       if (foundActionNonSerializableValue) {

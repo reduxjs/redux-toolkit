@@ -330,6 +330,61 @@ describe('serializableStateInvariantMiddleware', () => {
     expect(numTimesCalled).toBeGreaterThan(0)
   })
 
+  describe('ignored action paths', () => {
+    function reducer() {
+      return 0
+    }
+    const nonSerializableValue = new Map()
+
+    it('default value: meta.arg', () => {
+      configureStore({
+        reducer,
+        middleware: [createSerializableStateInvariantMiddleware()]
+      }).dispatch({ type: 'test', meta: { arg: nonSerializableValue } })
+
+      expect(getLog().log).toMatchInlineSnapshot(`""`)
+    })
+
+    it('default value can be overridden', () => {
+      configureStore({
+        reducer,
+        middleware: [
+          createSerializableStateInvariantMiddleware({
+            ignoredActionPaths: []
+          })
+        ]
+      }).dispatch({ type: 'test', meta: { arg: nonSerializableValue } })
+
+      expect(getLog().log).toMatchInlineSnapshot(`
+        "A non-serializable value was detected in an action, in the path: \`meta.arg\`. Value: Map {} 
+        Take a look at the logic that dispatched this action:  Object {
+          \\"meta\\": Object {
+            \\"arg\\": Map {},
+          },
+          \\"type\\": \\"test\\",
+        } 
+        (See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)"
+      `)
+    })
+
+    it('can specify (multiple) different values', () => {
+      configureStore({
+        reducer,
+        middleware: [
+          createSerializableStateInvariantMiddleware({
+            ignoredActionPaths: ['payload', 'meta.arg']
+          })
+        ]
+      }).dispatch({
+        type: 'test',
+        payload: { arg: nonSerializableValue },
+        meta: { arg: nonSerializableValue }
+      })
+
+      expect(getLog().log).toMatchInlineSnapshot(`""`)
+    })
+  })
+
   it('should not check serializability for ignored slice names', () => {
     const ACTION_TYPE = 'TEST_ACTION'
 
@@ -384,29 +439,6 @@ describe('serializableStateInvariantMiddleware', () => {
       Take a look at the reducer(s) handling this action type: TEST_ACTION.
       (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)"
     `)
-  })
-
-  it('should not check serializability for meta.args by default', () => {
-    const badValue = new Map()
-
-    const reducer: Reducer = (state = 42, action) => {
-      return state
-    }
-
-    const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware()
-
-    const store = configureStore({
-      reducer: {
-        testSlice: reducer
-      },
-      middleware: [serializableStateInvariantMiddleware]
-    })
-
-    store.dispatch({ type: 'testAction', meta: { args: { badValue } } })
-
-    const { log } = getLog()
-    expect(log).toBe('')
-    const q = 42
   })
 
   it('Should print a warning if execution takes too long', () => {
