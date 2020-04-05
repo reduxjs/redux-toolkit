@@ -793,7 +793,14 @@ import userAPI from './userAPI'
 export const fetchUsers = createAsyncThunk('users/fetchAll', async () => {
   const response = await userAPI.fetchAll()
   // In this case, `response.data` would be:
-  //  [{id: 1, first_name: 'Example', last_name: 'User'}]
+  // [{id: 1, first_name: 'Example', last_name: 'User'}]
+  return response.data
+})
+
+export const updateUser = createAsyncThunk('users/updateOne', async arg => {
+  const response = await userAPI.updateUser(arg)
+  // In this case, `response.data` would be:
+  // { id: 1, first_name: 'Example', last_name: 'UpdatedLastName'}
   return response.data
 })
 
@@ -812,6 +819,10 @@ export const slice = createSlice({
   },
   extraReducers: builder => {
     builder.addCase(fetchUsers.fulfilled, usersAdapter.upsertMany)
+    builder.addCase(updateUser.fulfilled, (state, { payload }) => {
+      const { id, ...changes } = payload
+      usersAdapter.updateOne(state, { id, changes })
+    })
   }
 })
 
