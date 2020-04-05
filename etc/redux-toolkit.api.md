@@ -291,6 +291,9 @@ export function isImmutableDefault(value: unknown): boolean;
 // @public
 export function isPlain(val: any): boolean;
 
+// @public (undocumented)
+export let nanoid: (size?: number) => string;
+
 export { OutputParametricSelector }
 
 export { OutputSelector }

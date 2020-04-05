@@ -4,6 +4,10 @@
 let urlAlphabet =
   'ModuleSymbhasOwnPr-0123456789ABCDEFGHNRVfgctiUvz_KqYTJkLxpZXIjQW'
 
+/**
+ *
+ * @public
+ */
 export let nanoid = (size = 21) => {
   let id = ''
   // A compact alternative for `for (var i = 0; i < step; i++)`.
