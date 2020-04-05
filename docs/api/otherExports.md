@@ -133,6 +133,17 @@ function isPlain(val) {
 }
 ```
 
+### `nanoid`
+
+An inlined copy of [`nanoid/nonsecure`](https://github.com/ai/nanoid). Generates a non-cryptographically-secure random ID string. Automatically used by `createAsyncThunk` for request IDs, but may also be useful for other cases as well.
+
+```js
+import { nanoid } from '@reduxjs/toolkit'
+
+console.log(nanoid())
+// 'dgPXxUz_6fWIQBD8XmiSy'
+```
+
 ## Exports from Other Libraries
 
 ### `createNextState`
