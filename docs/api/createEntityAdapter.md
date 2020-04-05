@@ -201,7 +201,7 @@ The primary content of an entity adapter is a set of generated reducer functions
 - `removeOne`: accepts a single entity ID value, and removes the entity with that ID if it exists
 - `removeMany`: accepts an array of entity ID values, and removes each entity with those IDs if they exist
 - `updateOne`: accepts an "update object" containing an entity ID and an object containing one or more new field values to update inside a `changes` field, and performs a shallow update on the corresponding entity.
-- `updateMany`: accepts an array of update objects, and performs shallow updates all corresponding entities
+- `updateMany`: accepts an array of update objects, and performs shallow updates on all corresponding entities
 - `upsertOne`: accepts a single entity. If an entity with that ID exists, it will perform a shallow update and the specified fields will be merged into the existing entity, with any matching fields overwriting the existing values. If the entity does not exist, it will be added.
 - `upsertMany`: accepts an array of entities or an object in the shape of `Record<EntityId, T>` that will be shallowly upserted.
 
