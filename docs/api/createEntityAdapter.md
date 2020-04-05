@@ -195,13 +195,13 @@ export interface EntityAdapter<T> extends EntityStateAdapter<T> {
 
 The primary content of an entity adapter is a set of generated reducer functions for adding, updating, and removing entity instances from an entity state object:
 
-- `addOne`: accepts a single entity, and adds it
+- `addOne`: accepts a single entity, and adds it.
 - `addMany`: accepts an array of entities or an object in the shape of `Record<EntityId, T>`, and adds them.
-- `setAll`: accepts an array of entities or an object in the shape of `Record<EntityId, T>`, and replaces the existing entity contents with the values in the array
-- `removeOne`: accepts a single entity ID value, and removes the entity with that ID if it exists
-- `removeMany`: accepts an array of entity ID values, and removes each entity with those IDs if they exist
+- `setAll`: accepts an array of entities or an object in the shape of `Record<EntityId, T>`, and replaces the existing entity contents with the values in the array.
+- `removeOne`: accepts a single entity ID value, and removes the entity with that ID if it exists.
+- `removeMany`: accepts an array of entity ID values, and removes each entity with those IDs if they exist.
 - `updateOne`: accepts an "update object" containing an entity ID and an object containing one or more new field values to update inside a `changes` field, and performs a shallow update on the corresponding entity.
-- `updateMany`: accepts an array of update objects, and performs shallow updates on all corresponding entities
+- `updateMany`: accepts an array of update objects, and performs shallow updates on all corresponding entities.
 - `upsertOne`: accepts a single entity. If an entity with that ID exists, it will perform a shallow update and the specified fields will be merged into the existing entity, with any matching fields overwriting the existing values. If the entity does not exist, it will be added.
 - `upsertMany`: accepts an array of entities or an object in the shape of `Record<EntityId, T>` that will be shallowly upserted.
 
@@ -216,8 +216,8 @@ In other words, they accept a state that looks like `{ids: [], entities: {}}`, a
 These CRUD methods may be used in multiple ways:
 
 - They may be passed as case reducers directly to `createReducer` and `createSlice`.
-- They may be used as "mutating" helper methods when called manually, such as a separate hand-written call to `addOne()` inside of an existing case reducer, if the `state` argument is actually an Immer `Draft` value
-- They may be used as immutable update methods when called manually, if the `state` argument is actually a plain JS object or array
+- They may be used as "mutating" helper methods when called manually, such as a separate hand-written call to `addOne()` inside of an existing case reducer, if the `state` argument is actually an Immer `Draft` value.
+- They may be used as immutable update methods when called manually, if the `state` argument is actually a plain JS object or array.
 
 > **Note**: These methods do _not_ have corresponding Redux actions created - they are just standalone reducers / update logic. **It is entirely up to you to decide where and how to use these methods!** Most of the time, you will want to pass them to `createSlice` or use them inside another reducer.
 
@@ -252,17 +252,17 @@ const booksSlice = createSlice({
 
 The entity adapter will contain a `getSelectors()` function that returns a set of selectors that know how to read the contents of an entity state object:
 
-- `selectIds`: returns the `state.ids` array
-- `selectEntities`: returns the `state.entities` lookup table
-- `selectAll`: maps over the `state.ids` array, and returns an array of entities in the same order
-- `selectTotal`: returns the total number of entities being stored in this state
-- `selectById`: given the state and an entity ID, returns the entity with that ID or `undefined`
+- `selectIds`: returns the `state.ids` array.
+- `selectEntities`: returns the `state.entities` lookup table.
+- `selectAll`: maps over the `state.ids` array, and returns an array of entities in the same order.
+- `selectTotal`: returns the total number of entities being stored in this state.
+- `selectById`: given the state and an entity ID, returns the entity with that ID or `undefined`.
 
 Each selector function will be created using the `createSelector` function from Reselect, to enable memoizing calculation of the results.
 
 Because selector functions are dependent on knowing where in the state tree this specific entity state object is kept, `getSelectors()` can be called in two ways:
 
-- If called without any arguments, it returns an "unglobalized" set of selector functions that assume their `state` argument is the actual entity state object to read from
+- If called without any arguments, it returns an "unglobalized" set of selector functions that assume their `state` argument is the actual entity state object to read from.
 - It may also be called with a selector function that accepts the entire Redux state tree and returns the correct entity state object.
 
 For example, the entity state for a `Book` type might be kept in the Redux state tree as `state.books`. You can use `getSelectors()` to read from that state in two ways:
