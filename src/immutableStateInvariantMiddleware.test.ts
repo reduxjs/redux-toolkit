@@ -110,13 +110,26 @@ describe('createImmutableStateInvariantMiddleware', () => {
     }).not.toThrow()
   })
 
-  it('respects "ignore" option', () => {
+  it('respects "ignoredPaths" option', () => {
     const next: Dispatch = action => {
       state.foo.bar.push(5)
       return action
     }
 
     const dispatch = middleware({ ignoredPaths: ['foo.bar'] })(next)
+
+    expect(() => {
+      dispatch({ type: 'SOME_ACTION' })
+    }).not.toThrow()
+  })
+
+  it('alias "ignore" to "ignoredPath" and respects option', () => {
+    const next: Dispatch = action => {
+      state.foo.bar.push(5)
+      return action
+    }
+
+    const dispatch = middleware({ ignore: ['foo.bar'] })(next)
 
     expect(() => {
       dispatch({ type: 'SOME_ACTION' })
