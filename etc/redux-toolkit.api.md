@@ -111,7 +111,7 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
 
 // @public (undocumented)
-export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}>(type: string, payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>): ((arg: ThunkArg) => (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
+export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}>(type: string, payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>): IsAny<ThunkArg, (arg: ThunkArg) => (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
     arg: ThunkArg;
     requestId: string;
 }, never> | PayloadAction<GetRejectValue<ThunkApiConfig> | undefined, string, {
@@ -119,8 +119,44 @@ export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig exten
     requestId: string;
     aborted: boolean;
 }, SerializedError>> & {
-    abort: (reason?: string | undefined) => void;
-}) & {
+    abort(reason?: string | undefined): void;
+}, unknown extends ThunkArg ? (arg: ThunkArg) => (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
+    arg: ThunkArg;
+    requestId: string;
+}, never> | PayloadAction<GetRejectValue<ThunkApiConfig> | undefined, string, {
+    arg: ThunkArg;
+    requestId: string;
+    aborted: boolean;
+}, SerializedError>> & {
+    abort(reason?: string | undefined): void;
+} : [ThunkArg] extends [void] | [undefined] ? () => (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
+    arg: ThunkArg;
+    requestId: string;
+}, never> | PayloadAction<GetRejectValue<ThunkApiConfig> | undefined, string, {
+    arg: ThunkArg;
+    requestId: string;
+    aborted: boolean;
+}, SerializedError>> & {
+    abort(reason?: string | undefined): void;
+} : [undefined] extends [] | [ThunkArg] ? (arg?: ThunkArg | undefined) => (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
+    arg: ThunkArg;
+    requestId: string;
+}, never> | PayloadAction<GetRejectValue<ThunkApiConfig> | undefined, string, {
+    arg: ThunkArg;
+    requestId: string;
+    aborted: boolean;
+}, SerializedError>> & {
+    abort(reason?: string | undefined): void;
+} : (arg: ThunkArg) => (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
+    arg: ThunkArg;
+    requestId: string;
+}, never> | PayloadAction<GetRejectValue<ThunkApiConfig> | undefined, string, {
+    arg: ThunkArg;
+    requestId: string;
+    aborted: boolean;
+}, SerializedError>> & {
+    abort(reason?: string | undefined): void;
+}> & {
     pending: ActionCreatorWithPreparedPayload<[string, ThunkArg], undefined, string, never, {
         arg: ThunkArg;
         requestId: string;

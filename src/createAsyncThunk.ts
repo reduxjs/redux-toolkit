@@ -5,7 +5,7 @@ import {
   ActionCreatorWithPreparedPayload
 } from './createAction'
 import { ThunkDispatch } from 'redux-thunk'
-import { FallbackIfUnknown } from './tsHelpers'
+import { FallbackIfUnknown, IsAny } from './tsHelpers'
 import { nanoid } from './nanoid'
 
 // @ts-ignore we need the import of these types due to a bundling issue.
@@ -216,12 +216,28 @@ If you want to use the AbortController to react to \`abort\` events, please cons
           }
         }
 
-  function actionCreator(arg: ThunkArg) {
-    return (
-      dispatch: GetDispatch<ThunkApiConfig>,
-      getState: () => GetState<ThunkApiConfig>,
-      extra: GetExtra<ThunkApiConfig>
-    ) => {
+  type AsyncActionThunkAction = (
+    dispatch: GetDispatch<ThunkApiConfig>,
+    getState: () => GetState<ThunkApiConfig>,
+    extra: GetExtra<ThunkApiConfig>
+  ) => Promise<ReturnType<typeof fulfilled | typeof rejected>> & {
+    abort(reason?: string): void
+  }
+
+  type ActionCreator = IsAny<
+    ThunkArg,
+    (arg: ThunkArg) => AsyncActionThunkAction,
+    unknown extends ThunkArg
+      ? (arg: ThunkArg) => AsyncActionThunkAction
+      : [ThunkArg] extends [void] | [undefined]
+      ? () => AsyncActionThunkAction
+      : [undefined] extends [ThunkArg] | []
+      ? (arg?: ThunkArg) => AsyncActionThunkAction
+      : (arg: ThunkArg) => AsyncActionThunkAction
+  >
+
+  function actionCreator(arg: ThunkArg): AsyncActionThunkAction {
+    return (dispatch, getState, extra) => {
       const requestId = nanoid()
 
       const abortController = new AC()
@@ -277,7 +293,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
     }
   }
 
-  return Object.assign(actionCreator, {
+  return Object.assign(actionCreator as ActionCreator, {
     pending,
     rejected,
     fulfilled

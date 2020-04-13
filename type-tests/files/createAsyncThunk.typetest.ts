@@ -3,7 +3,7 @@ import { ThunkDispatch } from 'redux-thunk'
 import { unwrapResult, SerializedError } from 'src/createAsyncThunk'
 
 import apiRequest, { AxiosError } from 'axios'
-import { IsAny } from 'src/tsHelpers'
+import { IsAny, IsUnknown } from 'src/tsHelpers'
 
 function expectType<T>(t: T) {
   return t
@@ -180,4 +180,51 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
       }
     }
   })
+}
+
+/**
+ * payloadCreator first argument type has impact on asyncThunk argument
+ */
+{
+  const voidAsyncThunk = createAsyncThunk('test', () => 0)
+  expectType<() => any>(voidAsyncThunk)
+  // typings:expect-error cannot be called with an argument
+  voidAsyncThunk(0 as any)
+
+  const undefinedAsyncThunk = createAsyncThunk('test', (arg: undefined) => 0)
+  expectType<() => any>(undefinedAsyncThunk)
+  // typings:expect-error cannot be called with an argument
+  undefinedAsyncThunk(0 as any)
+
+  const unspecifiedAsyncThunk = createAsyncThunk('test', () => 0)
+  expectType<() => any>(unspecifiedAsyncThunk)
+  // typings:expect-error cannot be called with an argument
+  unspecifiedAsyncThunk(0 as any)
+
+  const optionalNumberAsyncThunk = createAsyncThunk('test', (arg?: number) => 0)
+  expectType<(arg?: number) => any>(optionalNumberAsyncThunk)
+  optionalNumberAsyncThunk()
+  optionalNumberAsyncThunk(5)
+  // typings:expect-error
+  optionalNumberAsyncThunk('string')
+
+  const anyAsyncThunk = createAsyncThunk('test', (arg: any) => 0)
+  expectType<IsAny<Parameters<typeof anyAsyncThunk>[0], true, false>>(true)
+  anyAsyncThunk(5)
+  // typings:expect-error
+  anyAsyncThunk()
+
+  const unknownAsyncThunk = createAsyncThunk('test', (arg: unknown) => 0)
+  expectType<IsUnknown<Parameters<typeof unknownAsyncThunk>[0], true, false>>(
+    true
+  )
+  unknownAsyncThunk(5)
+  // typings:expect-error
+  unknownAsyncThunk()
+
+  const numberAsyncThunk = createAsyncThunk('test', (arg: number) => 0)
+  expectType<(arg: number) => any>(numberAsyncThunk)
+  numberAsyncThunk(5)
+  // typings:expect-error
+  numberAsyncThunk()
 }
