@@ -383,7 +383,7 @@ Unlike typical `connect` + `mapDispatch` usage, here we call `dispatch()` direct
 
 Let's see if this works!
 
-<iframe  src="https://codesandbox.io/s/rtk-github-issues-example-02-issues-display-w-useappdispatch-wg591?fontsize=14&hidenavigation=1&module=%2Fsrc%2Fapp%2FApp.tsx&theme=dark&view=preview"
+<iframe  src="https://codesandbox.io/embed/rtk-github-issues-example-02-issues-display-w-useappdispatch-wg591?fontsize=14&hidenavigation=1&module=%2Fsrc%2Fapp%2FApp.tsx&theme=dark&view=preview"
      style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
      title="rtk-github-issues-example-02-issues-display"
      allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
@@ -1225,7 +1225,7 @@ Hopefully you now have a solid understanding of how Redux Toolkit looks in a rea
 
 Let's wrap this up with one more look at the complete source code and the running app:
 
-<iframe src="https://codesandbox.io/s/rtk-github-issues-example-03-final-w-useappdispatch-vh15y?fontsize=14&hidenavigation=1&module=%2Fsrc%2Ffeatures%2FissueDetails%2FcommentsSlice.ts&theme=dark&view=editor"
+<iframe src="https://codesandbox.io/embed/rtk-github-issues-example-03-final-w-useappdispatch-vh15y?fontsize=14&hidenavigation=1&module=%2Fsrc%2Ffeatures%2FissueDetails%2FcommentsSlice.ts&theme=dark&view=editor"
      style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
      title="rtk-github-issues-example03-final"
      allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
