@@ -226,13 +226,22 @@ If you want to use the AbortController to react to \`abort\` events, please cons
 
   type ActionCreator = IsAny<
     ThunkArg,
+    // any handling
     (arg: ThunkArg) => AsyncActionThunkAction,
+    // unknown handling
     unknown extends ThunkArg
-      ? (arg: ThunkArg) => AsyncActionThunkAction
+      ? (arg: ThunkArg) => AsyncActionThunkAction // argument not specified or specified as void or undefined
       : [ThunkArg] extends [void] | [undefined]
-      ? () => AsyncActionThunkAction
-      : [undefined] extends [ThunkArg] | []
-      ? (arg?: ThunkArg) => AsyncActionThunkAction
+      ? () => AsyncActionThunkAction // argument contains void
+      : [void] extends [ThunkArg] // make optional
+      ? (arg?: ThunkArg) => AsyncActionThunkAction // argument contains undefined
+      : [undefined] extends [ThunkArg]
+      ? WithStrictNullChecks<
+          // with strict nullChecks: make optional
+          (arg?: ThunkArg) => AsyncActionThunkAction,
+          // without strict null checks this will match everything, so don't make it optional
+          (arg: ThunkArg) => AsyncActionThunkAction
+        > // default case: normal argument
       : (arg: ThunkArg) => AsyncActionThunkAction
   >
 
@@ -320,3 +329,7 @@ export function unwrapResult<R extends ActionTypesWithOptionalErrorAction>(
   }
   return (returned as any).payload
 }
+
+type WithStrictNullChecks<True, False> = undefined extends boolean
+  ? False
+  : True

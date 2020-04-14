@@ -186,45 +186,159 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
  * payloadCreator first argument type has impact on asyncThunk argument
  */
 {
-  const voidAsyncThunk = createAsyncThunk('test', () => 0)
-  expectType<() => any>(voidAsyncThunk)
-  // typings:expect-error cannot be called with an argument
-  voidAsyncThunk(0 as any)
+  // no argument: asyncThunk has no argument
+  {
+    const asyncThunk = createAsyncThunk('test', () => 0)
+    expectType<() => any>(asyncThunk)
+    // typings:expect-error cannot be called with an argument
+    asyncThunk(0 as any)
+  }
 
-  const undefinedAsyncThunk = createAsyncThunk('test', (arg: undefined) => 0)
-  expectType<() => any>(undefinedAsyncThunk)
-  // typings:expect-error cannot be called with an argument
-  undefinedAsyncThunk(0 as any)
+  // one argument, specified as undefined: asyncThunk has no argument
+  {
+    const asyncThunk = createAsyncThunk('test', (arg: undefined) => 0)
+    expectType<() => any>(asyncThunk)
+    // typings:expect-error cannot be called with an argument
+    asyncThunk(0 as any)
+  }
 
-  const unspecifiedAsyncThunk = createAsyncThunk('test', () => 0)
-  expectType<() => any>(unspecifiedAsyncThunk)
-  // typings:expect-error cannot be called with an argument
-  unspecifiedAsyncThunk(0 as any)
+  // one argument, specified as void: asyncThunk has no argument
+  {
+    const asyncThunk = createAsyncThunk('test', (arg: void) => 0)
+    expectType<() => any>(asyncThunk)
+    // typings:expect-error cannot be called with an argument
+    asyncThunk(0 as any)
+  }
 
-  const optionalNumberAsyncThunk = createAsyncThunk('test', (arg?: number) => 0)
-  expectType<(arg?: number) => any>(optionalNumberAsyncThunk)
-  optionalNumberAsyncThunk()
-  optionalNumberAsyncThunk(5)
-  // typings:expect-error
-  optionalNumberAsyncThunk('string')
+  // one argument, specified as optional number: asyncThunk has optional number argument
+  // this test will fail with strictNullChecks: false, that is to be expected
+  // in that case, we have to forbid this behaviour or it will make arguments optional everywhere
+  {
+    const asyncThunk = createAsyncThunk('test', (arg?: number) => 0)
+    expectType<(arg?: number) => any>(asyncThunk)
+    asyncThunk()
+    asyncThunk(5)
+    // typings:expect-error
+    asyncThunk('string')
+  }
 
-  const anyAsyncThunk = createAsyncThunk('test', (arg: any) => 0)
-  expectType<IsAny<Parameters<typeof anyAsyncThunk>[0], true, false>>(true)
-  anyAsyncThunk(5)
-  // typings:expect-error
-  anyAsyncThunk()
+  // one argument, specified as number|undefined: asyncThunk has optional number argument
+  // this test will fail with strictNullChecks: false, that is to be expected
+  // in that case, we have to forbid this behaviour or it will make arguments optional everywhere
+  {
+    const asyncThunk = createAsyncThunk('test', (arg: number | undefined) => 0)
+    expectType<(arg?: number) => any>(asyncThunk)
+    asyncThunk()
+    asyncThunk(5)
+    // typings:expect-error
+    asyncThunk('string')
+  }
 
-  const unknownAsyncThunk = createAsyncThunk('test', (arg: unknown) => 0)
-  expectType<IsUnknown<Parameters<typeof unknownAsyncThunk>[0], true, false>>(
-    true
-  )
-  unknownAsyncThunk(5)
-  // typings:expect-error
-  unknownAsyncThunk()
+  // one argument, specified as number|void: asyncThunk has optional number argument
+  {
+    const asyncThunk = createAsyncThunk('test', (arg: number | void) => 0)
+    expectType<(arg?: number) => any>(asyncThunk)
+    asyncThunk()
+    asyncThunk(5)
+    // typings:expect-error
+    asyncThunk('string')
+  }
 
-  const numberAsyncThunk = createAsyncThunk('test', (arg: number) => 0)
-  expectType<(arg: number) => any>(numberAsyncThunk)
-  numberAsyncThunk(5)
-  // typings:expect-error
-  numberAsyncThunk()
+  // one argument, specified as any: asyncThunk has required any argument
+  {
+    const asyncThunk = createAsyncThunk('test', (arg: any) => 0)
+    expectType<IsAny<Parameters<typeof asyncThunk>[0], true, false>>(true)
+    asyncThunk(5)
+    // typings:expect-error
+    asyncThunk()
+  }
+
+  // one argument, specified as unknown: asyncThunk has required unknown argument
+  {
+    const asyncThunk = createAsyncThunk('test', (arg: unknown) => 0)
+    expectType<IsUnknown<Parameters<typeof asyncThunk>[0], true, false>>(true)
+    asyncThunk(5)
+    // typings:expect-error
+    asyncThunk()
+  }
+
+  // one argument, specified as number: asyncThunk has required number argument
+  {
+    const asyncThunk = createAsyncThunk('test', (arg: number) => 0)
+    expectType<(arg: number) => any>(asyncThunk)
+    asyncThunk(5)
+    // typings:expect-error
+    asyncThunk()
+  }
+
+  // two arguments, first specified as undefined: asyncThunk has no argument
+  {
+    const asyncThunk = createAsyncThunk('test', (arg: undefined, thunkApi) => 0)
+    expectType<() => any>(asyncThunk)
+    // typings:expect-error cannot be called with an argument
+    asyncThunk(0 as any)
+  }
+
+  // two arguments, first specified as void: asyncThunk has no argument
+  {
+    const asyncThunk = createAsyncThunk('test', (arg: void, thunkApi) => 0)
+    expectType<() => any>(asyncThunk)
+    // typings:expect-error cannot be called with an argument
+    asyncThunk(0 as any)
+  }
+
+  // two arguments, first specified as number|undefined: asyncThunk has optional number argument
+  // this test will fail with strictNullChecks: false, that is to be expected
+  // in that case, we have to forbid this behaviour or it will make arguments optional everywhere
+  {
+    const asyncThunk = createAsyncThunk(
+      'test',
+      (arg: number | undefined, thunkApi) => 0
+    )
+    expectType<(arg?: number) => any>(asyncThunk)
+    asyncThunk()
+    asyncThunk(5)
+    // typings:expect-error
+    asyncThunk('string')
+  }
+
+  // two arguments, first specified as number|void: asyncThunk has optional number argument
+  {
+    const asyncThunk = createAsyncThunk(
+      'test',
+      (arg: number | void, thunkApi) => 0
+    )
+    expectType<(arg?: number) => any>(asyncThunk)
+    asyncThunk()
+    asyncThunk(5)
+    // typings:expect-error
+    asyncThunk('string')
+  }
+
+  // two arguments, first specified as any: asyncThunk has required any argument
+  {
+    const asyncThunk = createAsyncThunk('test', (arg: any) => 0)
+    expectType<IsAny<Parameters<typeof asyncThunk>[0], true, false>>(true)
+    asyncThunk(5)
+    // typings:expect-error
+    asyncThunk()
+  }
+
+  // two arguments, first specified as unknown: asyncThunk has required unknown argument
+  {
+    const asyncThunk = createAsyncThunk('test', (arg: unknown) => 0)
+    expectType<IsUnknown<Parameters<typeof asyncThunk>[0], true, false>>(true)
+    asyncThunk(5)
+    // typings:expect-error
+    asyncThunk()
+  }
+
+  // two arguments, first specified as number: asyncThunk has required number argument
+  {
+    const asyncThunk = createAsyncThunk('test', (arg: number) => 0)
+    expectType<(arg: number) => any>(asyncThunk)
+    asyncThunk(5)
+    // typings:expect-error
+    asyncThunk()
+  }
 }
