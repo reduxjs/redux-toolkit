@@ -93,6 +93,7 @@ Next, we'll create the store instance, including hot-reloading the root reducer.
 
 ```ts
 import { configureStore } from '@reduxjs/toolkit'
+import { useDispatch } from 'react-redux'
 
 import rootReducer from './rootReducer'
 
@@ -382,7 +383,7 @@ Unlike typical `connect` + `mapDispatch` usage, here we call `dispatch()` direct
 
 Let's see if this works!
 
-<iframe  src="https://codesandbox.io/embed/rtk-github-issues-example-02-issues-display-tdx2w?fontsize=14&hidenavigation=1&module=%2Fsrc%2Fapp%2FApp.tsx&theme=dark&view=preview"
+<iframe  src="https://codesandbox.io/s/rtk-github-issues-example-02-issues-display-w-useappdispatch-wg591?fontsize=14&hidenavigation=1&module=%2Fsrc%2Fapp%2FApp.tsx&theme=dark&view=preview"
      style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
      title="rtk-github-issues-example-02-issues-display"
      allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
