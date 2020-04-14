@@ -107,7 +107,8 @@ if (process.env.NODE_ENV === 'development' && module.hot) {
   })
 }
 
-export type AppDispatch = typeof store.dispatch
+export type AppDispatch = typeof store.dispatch // This is necessary to resolve the result type
+export const useAppDispatch = () => useDispatch<AppDispatch>() // Export a hook we can reuse to resolve types for convenience
 
 export default store
 ```
@@ -303,7 +304,7 @@ We need to make three groups of changes to the `App` component:
 
 Traditionally, the last two aspects would be handled via the [React-Redux `connect` API](https://react-redux.js.org/api/connect). We'd write a `mapState` function to retrieve the data and a `mapDispatch` function to hold the action creators, pass those to `connect`, get everything as props, and then call `this.props.setCurrentPage()` to dispatch that action type.
 
-However, [React-Redux now has a hooks API](https://react-redux.js.org/api/hooks), which allows us to interact with the store more directly. `useSelector` lets us read data from the store and subscribe to updates, and `useDispatch` gives us a reference to the store's `dispatch` method. We'll use those throughout the rest of this tutorial.
+However, [React-Redux now has a hooks API](https://react-redux.js.org/api/hooks), which allows us to interact with the store more directly. `useSelector` lets us read data from the store and subscribe to updates, and `useDispatch` gives us a reference to the store's `dispatch` method. We'll use those throughout the rest of this tutorial, with one small change - being that we're using TypeScript, we'll use the `useAppDispatch` hook we made earlier so that we have resolved types.
 
 First, we'll import the necessary functions, plus the `RootState` type we declared earlier, and remove the hardcoded default org and repo strings.
 
@@ -311,7 +312,8 @@ First, we'll import the necessary functions, plus the `RootState` type we declar
 
 ```diff
 import React, { useState } from 'react'
-+import { useSelector, useDispatch } from 'react-redux'
++import { useSelector } from 'react-redux'
++import { useAppDispatch } from './store'
 
 +import { RootState } from './rootReducer'
 
@@ -330,7 +332,7 @@ import { IssueDetailsPage } from 'features/issueDetails/IssueDetailsPage'
 import './App.css'
 ```
 
-Next, at the top of `App`, we'll remove the old `useState` hooks, and replace them with a call to `useDispatch` and `useSelector`:
+Next, at the top of `App`, we'll remove the old `useState` hooks, and replace them with a call to `useAppDispatch` and `useSelector`:
 
 ```diff
 const App: React.FC = () => {
@@ -340,7 +342,7 @@ const App: React.FC = () => {
 - const [currentDisplay, setCurrentDisplay] = useState<CurrentDisplay>({
 -   type: 'issues'
 - })
-+ const dispatch = useDispatch()
++ const dispatch = useAppDispatch()
 
 + const { org, repo, displayType, page, issueId } = useSelector(
 +   (state: RootState) => state.issuesDisplay
@@ -666,7 +668,8 @@ Now that the repo details slice exists, we can use it in the `<IssuesListPage>` 
 
 ```diff
 import React, { useState, useEffect } from 'react'
-+import { useSelector, useDispatch } from 'react-redux'
++import { useSelector } from 'react-redux'
++import { useAppDispatch } from 'app/store'
 
 -import { getIssues, getRepoDetails, IssuesResult } from 'api/githubAPI'
 +import { getIssues, IssuesResult } from 'api/githubAPI'
@@ -683,7 +686,7 @@ export const IssuesListPage = ({
   setJumpToPage,
   showIssueComments
 }: ILProps) => {
-+ const dispatch = useDispatch()
++ const dispatch = useAppDispatch()
 
   const [issuesResult, setIssues] = useState<IssuesResult>({
     pageLinks: null,
@@ -865,7 +868,8 @@ Let's look at the changes.
 ```diff
 -import React, { useState, useEffect } from 'react'
 +import React, { useEffect } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
+import { useAppDispatch } from 'app/store'
 
 -import { getIssues, IssuesResult } from 'api/githubAPI'
 
@@ -879,7 +883,7 @@ import { IssuePagination, OnPageChangeCallback } from './IssuePagination'
 
 // omit code
 
-  const dispatch = useDispatch()
+  const dispatch = useAppDispatch()
 
 - const [issuesResult, setIssues] = useState<IssuesResult>({
 -   pageLinks: null,
@@ -1001,7 +1005,8 @@ We conveniently already have the Redux logic for fetching a single issue - we wr
 
 ```diff
 import React, { useState, useEffect } from 'react'
-+import { useSelector, useDispatch } from 'react-redux'
++import { useSelector } from 'react-redux'
++import { useAppDispatch } from 'app/store';
 import ReactMarkdown from 'react-markdown'
 import classnames from 'classnames'
 
@@ -1024,7 +1029,7 @@ export const IssueDetailsPage = ({
 - const [commentsError, setCommentsError] = useState<Error | null>(null)
 + const [commentsError] = useState<Error | null>(null)
 
-+ const dispatch = useDispatch()
++ const dispatch = useAppDispatch()
 
 + const issue = useSelector(
 +   (state: RootState) => state.issues.issuesByNumber[issueId]
@@ -1050,7 +1055,7 @@ export const IssueDetailsPage = ({
 + }, [org, repo, issueId, issue, dispatch])
 ```
 
-We continue the usual pattern. We drop the existing `useState` hooks, pull in `useDispatch` and the necessary state via `useSelector`, and dispatch the `fetchIssue` thunk to fetch data.
+We continue the usual pattern. We drop the existing `useState` hooks, pull in `useAppDispatch` and the necessary state via `useSelector`, and dispatch the `fetchIssue` thunk to fetch data.
 
 Interestingly, there's actually a bit of a change in behavior here. The original React code was storing the fetched issues in `<IssuesListPage>`, and `<IssueDetailsPage>` was always having to do a separate fetch for its own issue. Because we're now storing issues in the Redux store, most of the time the listed issue _should_ be already cached, and we don't even need to fetch it. Now, it's totally possible to do something similar with just React - all we'd have to do is pass the issue down from the parent component. Still, having that data in Redux makes it easier to do the caching.
 
@@ -1139,8 +1144,9 @@ The final step is to swap the comments fetching logic in `<IssueDetailsPage>`.
 ```diff
 -import React, { useState, useEffect } from 'react'
 +import React, { useEffect } from 'react'
--import { useSelector, useDispatch } from 'react-redux'
-+import { useSelector, useDispatch, shallowEqual } from 'react-redux'
+-import { useSelector } from 'react-redux'
++import { useSelector, shallowEqual } from 'react-redux'
+import { useAppDispatch } from 'app/store'
 import ReactMarkdown from 'react-markdown'
 import classnames from 'classnames'
 
@@ -1163,7 +1169,7 @@ export const IssueDetailsPage = ({
 - const [comments, setComments] = useState<Comment[]>([])
 - const [commentsError] = useState<Error | null>(null)
 -
-  const dispatch = useDispatch()
+  const dispatch = useAppDispatch()
 
   const issue = useSelector(
     (state: RootState) => state.issues.issuesByNumber[issueId]
@@ -1218,7 +1224,7 @@ Hopefully you now have a solid understanding of how Redux Toolkit looks in a rea
 
 Let's wrap this up with one more look at the complete source code and the running app:
 
-<iframe src="https://codesandbox.io/embed/rtk-github-issues-example-03-final-ihttc?fontsize=14&hidenavigation=1&module=%2Fsrc%2Ffeatures%2FissueDetails%2FcommentsSlice.ts&theme=dark&view=editor"
+<iframe src="https://codesandbox.io/s/rtk-github-issues-example-03-final-w-useappdispatch-vh15y?fontsize=14&hidenavigation=1&module=%2Fsrc%2Ffeatures%2FissueDetails%2FcommentsSlice.ts&theme=dark&view=editor"
      style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
      title="rtk-github-issues-example03-final"
      allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"

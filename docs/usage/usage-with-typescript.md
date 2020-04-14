@@ -31,15 +31,17 @@ export type RootState = ReturnType<typeof rootReducer>
 ### Getting the `Dispatch` type
 
 If you want to get the `Dispatch` type from your store, you can extract it after creating the store.  
-It is recommend to give the type a different name like `AppDispatch` to prevent confusion, as the type name `Dispatch` is usually overused.
+It is recommended to give the type a different name like `AppDispatch` to prevent confusion, as the type name `Dispatch` is usually overused. You may also find it to be more convenient to export a hook like `useAppDispatch` shown below, then using it wherever you'd call `useDispatch`.
 
 ```typescript {6}
 import { configureStore } from '@reduxjs/toolkit'
+import { useDispatch } from 'react-redux'
 import rootReducer from './rootReducer'
 const store = configureStore({
   reducer: rootReducer
 })
 export type AppDispatch = typeof store.dispatch
+export const useAppDispatch = () => useDispatch<AppDispatch>()
 ```
 
 ### Correct typings for the `Dispatch` type
@@ -76,7 +78,7 @@ const store = configureStore({
 type AppDispatch = typeof store.dispatch
 ```
 
-If you need any additional reference or examples, [the type tests for `configureStore`](https://github.com/reduxjs/redux-toolkit/blob/master/type-tests/files/configureStore.typetest.ts) contain many different scenarios on how to type this.
+If you need any additional reference or examples, [the type tests for `configureStore`](https://github.com/reduxjs/redux-toolkit/blob/master/type-tests/files/configureStore.typetest.ts) contains many different scenarios on how to type this.
 
 ### Using the extracted `Dispatch` type with React-Redux
 
