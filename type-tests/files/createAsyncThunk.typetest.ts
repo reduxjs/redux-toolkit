@@ -317,7 +317,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
 
   // two arguments, first specified as any: asyncThunk has required any argument
   {
-    const asyncThunk = createAsyncThunk('test', (arg: any) => 0)
+    const asyncThunk = createAsyncThunk('test', (arg: any, thunkApi) => 0)
     expectType<IsAny<Parameters<typeof asyncThunk>[0], true, false>>(true)
     asyncThunk(5)
     // typings:expect-error
@@ -326,7 +326,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
 
   // two arguments, first specified as unknown: asyncThunk has required unknown argument
   {
-    const asyncThunk = createAsyncThunk('test', (arg: unknown) => 0)
+    const asyncThunk = createAsyncThunk('test', (arg: unknown, thunkApi) => 0)
     expectType<IsUnknown<Parameters<typeof asyncThunk>[0], true, false>>(true)
     asyncThunk(5)
     // typings:expect-error
@@ -335,7 +335,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
 
   // two arguments, first specified as number: asyncThunk has required number argument
   {
-    const asyncThunk = createAsyncThunk('test', (arg: number) => 0)
+    const asyncThunk = createAsyncThunk('test', (arg: number, thunkApi) => 0)
     expectType<(arg: number) => any>(asyncThunk)
     asyncThunk(5)
     // typings:expect-error
