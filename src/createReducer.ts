@@ -111,7 +111,8 @@ export function createReducer<S>(
         // we must already be inside a `createNextState` call, likely because
         // this is being wrapped in `createReducer` or `createSlice`.
         // It's safe to just pass the draft to the mutator.
-        return caseReducer(state, action)
+        const draft = state as Draft<S> // We can aassume this is already a draft
+        return caseReducer(draft, action) || state
       } else {
         // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
         // than an Immutable<S>, and TypeScript cannot find out how to reconcile
