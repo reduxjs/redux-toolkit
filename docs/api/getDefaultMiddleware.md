@@ -133,9 +133,21 @@ interface SerializableStateInvariantMiddlewareOptions {
   ignoredActions?: string[]
 
   /**
+   * An array of dot-separated path strings to ignore when checking for serializability, Defaults to ['meta.arg']
+   * If you use this parameter, the default value 'meta.arg' will be removed, so we recommend re-adding it unless you
+   * specifically do not want to ignore it. Example: ['meta.arg', 'your.path', 'other.path', ...etc]
+   */
+  ignoredActionPaths?: string[]
+
+  /**
    * An array of dot-separated path strings to ignore when checking for serializability, Defaults to []
    */
   ignoredPaths?: string[]
+
+  /**
+   * Execution time warning threshold. If the middleware takes longer than `warnAfter` ms, a warning will be displayed in the console. Defaults to 32
+   */
+  warnAfter?: number
 }
 
 interface GetDefaultMiddlewareOptions {
