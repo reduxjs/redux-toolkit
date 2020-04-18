@@ -102,6 +102,33 @@ type GetRejectValue<ThunkApiConfig> = ThunkApiConfig extends {
 }
   ? RejectValue
   : unknown
+/**
+ * A type describing the return value of the `payloadCreator` argument to `createAsyncThunk`.
+ * Might be useful for wrapping `createAsyncThunk` in custom abstractions.
+ *
+ * @public
+ */
+export type AsnycThunkPayloadCreatorReturnValue<
+  Returned,
+  ThunkApiConfig extends AsyncThunkConfig
+> =
+  | Promise<Returned | RejectWithValue<GetRejectValue<ThunkApiConfig>>>
+  | Returned
+  | RejectWithValue<GetRejectValue<ThunkApiConfig>>
+/**
+ * A type describing the `payloadCreator` argument to `createAsyncThunk`.
+ * Might be useful for wrapping `createAsyncThunk` in custom abstractions.
+ *
+ * @public
+ */
+export type AsyncThunkPayloadCreator<
+  Returned,
+  ThunkArg = void,
+  ThunkApiConfig extends AsyncThunkConfig = {}
+> = (
+  arg: ThunkArg,
+  thunkAPI: GetThunkAPI<ThunkApiConfig>
+) => AsnycThunkPayloadCreatorReturnValue<Returned, ThunkApiConfig>
 
 /**
  *
@@ -116,13 +143,7 @@ export function createAsyncThunk<
   ThunkApiConfig extends AsyncThunkConfig = {}
 >(
   type: string,
-  payloadCreator: (
-    arg: ThunkArg,
-    thunkAPI: GetThunkAPI<ThunkApiConfig>
-  ) =>
-    | Promise<Returned | RejectWithValue<GetRejectValue<ThunkApiConfig>>>
-    | Returned
-    | RejectWithValue<GetRejectValue<ThunkApiConfig>>
+  payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>
 ) {
   type RejectedValue = GetRejectValue<ThunkApiConfig>
 

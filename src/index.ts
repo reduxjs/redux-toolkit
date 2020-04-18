@@ -96,6 +96,8 @@ export {
 } from './entities/models'
 
 export {
+  AsnycThunkPayloadCreatorReturnValue,
+  AsyncThunkPayloadCreator,
   createAsyncThunk,
   unwrapResult,
   SerializedError
