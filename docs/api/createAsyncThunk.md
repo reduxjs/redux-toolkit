@@ -52,7 +52,7 @@ dispatch(fetchUserById(123))
 
 ## Parameters
 
-`createAsyncThunk` accepts two parameters: a string action `type` value, and a `payloadCreator` callback.
+`createAsyncThunk` accepts three parameters: a string action `type` value, a `payloadCreator` callback, and an `options` object.
 
 ### `type`
 
@@ -82,6 +82,13 @@ The `payloadCreator` function will be called with two arguments:
   - `rejectWithValue`: rejectWithValue is a utility function that you can `return` in your action creator to return a rejected response with a defined payload. It will pass whatever value you give it and return it in the payload of the rejected action.
 
 The logic in the `payloadCreator` function may use any of these values as needed to calculate the result.
+
+### Options
+
+An object with the following optional fields:
+
+- `condition`: a callback that can be used to skip execution of the payload creator and all action dispatches, if desired. See [Canceling Before Execution](#canceling-before-execution) for a complete description.
+- `dispatchConditionRejection`: if `condition()` returns `false`, the default behavior is that no actions will be dispatched at all. If you still want a "rejected" action to be dispatched when the thunk was canceled, set this flag to `true`.
 
 ## Return Value
 
@@ -264,6 +271,8 @@ const fetchUserById = createAsyncThunk(
   }
 )
 ```
+
+If `condition()` returns `false`, the default behavior is that no actions will be dispatched at all. If you still want a "rejected" action to be dispatched when the thunk was canceled, pass in `{condition, dispatchConditionRejection: true}`.
 
 ### Canceling While Running
 
