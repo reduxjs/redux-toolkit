@@ -278,6 +278,8 @@ export type IdSelector<T> = (model: T) => EntityId;
 // @public
 export interface ImmutableStateInvariantMiddlewareOptions {
     // (undocumented)
+    ignore?: string[];
+    // (undocumented)
     ignoredPaths?: string[];
     // (undocumented)
     isImmutable?: IsImmutableFunc;

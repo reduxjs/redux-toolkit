@@ -110,7 +110,8 @@ interface ThunkOptions<E = any> {
 
 interface ImmutableStateInvariantMiddlewareOptions {
   isImmutable?: (value: any) => boolean
-  ignore?: string[]
+  ignoredPaths?: string[]
+  warnAfter?: number
 }
 
 interface SerializableStateInvariantMiddlewareOptions {

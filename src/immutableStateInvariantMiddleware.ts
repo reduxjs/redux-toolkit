@@ -187,6 +187,7 @@ export interface ImmutableStateInvariantMiddlewareOptions {
   isImmutable?: IsImmutableFunc
   ignoredPaths?: string[]
   warnAfter?: number
+  ignore?: string[] // @deprecated. Use ignoredPaths
 }
 
 /**
@@ -205,11 +206,16 @@ export function createImmutableStateInvariantMiddleware(
     return () => next => action => next(action)
   }
 
-  const {
+  let {
     isImmutable = isImmutableDefault,
     ignoredPaths,
-    warnAfter = 32
+    warnAfter = 32,
+    ignore
   } = options
+
+  // Alias ignore->ignoredPaths, but prefer ignoredPaths if present
+  ignoredPaths = ignoredPaths || ignore
+
   const track = trackForMutations.bind(null, isImmutable, ignoredPaths)
 
   return ({ getState }) => {
