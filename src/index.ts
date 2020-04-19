@@ -96,7 +96,7 @@ export {
 } from './entities/models'
 
 export {
-  AsnycThunkPayloadCreatorReturnValue,
+  AsyncThunkPayloadCreatorReturnValue,
   AsyncThunkPayloadCreator,
   createAsyncThunk,
   unwrapResult,

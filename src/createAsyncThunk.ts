@@ -108,7 +108,7 @@ type GetRejectValue<ThunkApiConfig> = ThunkApiConfig extends {
  *
  * @public
  */
-export type AsnycThunkPayloadCreatorReturnValue<
+export type AsyncThunkPayloadCreatorReturnValue<
   Returned,
   ThunkApiConfig extends AsyncThunkConfig
 > =
@@ -128,7 +128,7 @@ export type AsyncThunkPayloadCreator<
 > = (
   arg: ThunkArg,
   thunkAPI: GetThunkAPI<ThunkApiConfig>
-) => AsnycThunkPayloadCreatorReturnValue<Returned, ThunkApiConfig>
+) => AsyncThunkPayloadCreatorReturnValue<Returned, ThunkApiConfig>
 
 /**
  *
