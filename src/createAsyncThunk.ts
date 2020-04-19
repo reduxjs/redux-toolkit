@@ -135,7 +135,12 @@ type AsyncThunkReturnValue<ThunkArg, FulfilledValue, RejectedValue> =
   | PayloadAction<
       undefined | RejectedValue,
       string,
-      { arg: ThunkArg; requestId: string; aborted: boolean },
+      {
+        arg: ThunkArg
+        requestId: string
+        aborted: boolean
+        condition: boolean
+      },
       SerializedError
     >
 /**
