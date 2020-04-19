@@ -4,7 +4,7 @@ import {
   unwrapResult
 } from './createAsyncThunk'
 import { configureStore } from './configureStore'
-import { AnyAction } from 'redux'
+import { AnyAction, Dispatch } from 'redux'
 
 import {
   mockConsole,
@@ -475,4 +475,85 @@ test('non-serializable arguments are ignored by serializableStateInvariantMiddle
 
   expect(getLog().log).toMatchInlineSnapshot(`""`)
   restore()
+})
+
+describe('conditional skipping of asyncThunks', () => {
+  const arg = {}
+  const getState = jest.fn(() => ({}))
+  const dispatch = jest.fn((x: any) => x)
+  const payloadCreator = jest.fn((x: typeof arg) => 10)
+  const condition = jest.fn(() => false)
+  const extra = {}
+
+  beforeEach(() => {
+    getState.mockClear()
+    dispatch.mockClear()
+    payloadCreator.mockClear()
+    condition.mockClear()
+  })
+
+  test('returning false from condition skips payloadCreator and returns a rejected action', async () => {
+    const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
+    const result = await asyncThunk(arg)(dispatch, getState, extra)
+
+    expect(condition).toHaveBeenCalled()
+    expect(payloadCreator).not.toHaveBeenCalled()
+    expect(asyncThunk.rejected.match(result)).toBe(true)
+    expect((result as any).meta.condition).toBe(true)
+  })
+
+  test('returning true from condition executes payloadCreator', async () => {
+    condition.mockReturnValueOnce(true)
+    const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
+    const result = await asyncThunk(arg)(dispatch, getState, extra)
+
+    expect(condition).toHaveBeenCalled()
+    expect(payloadCreator).toHaveBeenCalled()
+    expect(asyncThunk.fulfilled.match(result)).toBe(true)
+    expect(result.payload).toBe(10)
+  })
+
+  test('condition is called with arg, getState and extra', async () => {
+    const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
+    await asyncThunk(arg)(dispatch, getState, extra)
+
+    expect(condition).toHaveBeenCalledTimes(1)
+    expect(condition).toHaveBeenLastCalledWith(
+      arg,
+      expect.objectContaining({ getState, extra })
+    )
+  })
+
+  test('rejected action is dispatched by default', async () => {
+    const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
+    await asyncThunk(arg)(dispatch, getState, extra)
+
+    expect(dispatch).toHaveBeenCalledTimes(1)
+    expect(dispatch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        error: {
+          message: 'Aborted due to condition callback returning false.',
+          name: 'ConditionError'
+        },
+        meta: {
+          aborted: false,
+          arg: arg,
+          condition: true,
+          requestId: expect.stringContaining('')
+        },
+        payload: undefined,
+        type: 'test/rejected'
+      })
+    )
+  })
+
+  test('rejected action can be prevented from being dispatched', async () => {
+    const asyncThunk = createAsyncThunk('test', payloadCreator, {
+      condition,
+      dispatchConditionRejection: false
+    })
+    await asyncThunk(arg)(dispatch, getState, extra)
+
+    expect(dispatch).toHaveBeenCalledTimes(0)
+  })
 })
