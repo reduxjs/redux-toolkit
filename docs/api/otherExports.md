@@ -80,9 +80,15 @@ function createSerializableStateInvariantMiddleware({
   // An array of action types to ignore when checking for serializability.
   // Defaults to []
   ignoredActions?: string[]
-  // An array of dot-separated path strings to ignore when checking for serializability.
-  // Defaults to []
+  // An array of dot-separated path strings to ignore when
+  // checking for serializability, Defaults to ['meta.arg']
+  ignoredActionPaths?: string[]
+  // An array of dot-separated path strings to ignore when
+  // checking for serializability, Defaults to []
   ignoredPaths?: string[]
+  // Execution time warning threshold. If the middleware takes longer
+  // than `warnAfter` ms, a warning will be displayed in the console. Defaults to 32
+  warnAfter?: number
 })
 ```
 
