@@ -210,7 +210,7 @@ interface AsyncThunkOptions<
    * This option allows you to control whether a `rejected` action with `meta.condition == false`
    * will be dispatched or not.
    *
-   * @default `true`
+   * @default `false`
    */
   dispatchConditionRejection?: boolean
 }
@@ -375,7 +375,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
 
         const skipDispatch =
           options &&
-          options.dispatchConditionRejection === false &&
+          !options.dispatchConditionRejection &&
           rejected.match(finalAction) &&
           finalAction.meta.condition
 

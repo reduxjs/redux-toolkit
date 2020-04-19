@@ -4,7 +4,7 @@ import {
   unwrapResult
 } from './createAsyncThunk'
 import { configureStore } from './configureStore'
-import { AnyAction, Dispatch } from 'redux'
+import { AnyAction } from 'redux'
 
 import {
   mockConsole,
@@ -536,8 +536,18 @@ describe('conditional skipping of asyncThunks', () => {
     )
   })
 
-  test('rejected action is dispatched by default', async () => {
+  test('rejected action is not dispatched by default', async () => {
     const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
+    await asyncThunk(arg)(dispatch, getState, extra)
+
+    expect(dispatch).toHaveBeenCalledTimes(0)
+  })
+
+  test('rejected action can be dispatched via option', async () => {
+    const asyncThunk = createAsyncThunk('test', payloadCreator, {
+      condition,
+      dispatchConditionRejection: true
+    })
     await asyncThunk(arg)(dispatch, getState, extra)
 
     expect(dispatch).toHaveBeenCalledTimes(1)
@@ -557,15 +567,5 @@ describe('conditional skipping of asyncThunks', () => {
         type: 'test/rejected'
       })
     )
-  })
-
-  test('rejected action can be prevented from being dispatched', async () => {
-    const asyncThunk = createAsyncThunk('test', payloadCreator, {
-      condition,
-      dispatchConditionRejection: false
-    })
-    await asyncThunk(arg)(dispatch, getState, extra)
-
-    expect(dispatch).toHaveBeenCalledTimes(0)
   })
 })
