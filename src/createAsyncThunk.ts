@@ -5,7 +5,7 @@ import {
   ActionCreatorWithPreparedPayload
 } from './createAction'
 import { ThunkDispatch } from 'redux-thunk'
-import { FallbackIfUnknown } from './tsHelpers'
+import { FallbackIfUnknown, IsAny } from './tsHelpers'
 import { nanoid } from './nanoid'
 
 // @ts-ignore we need the import of these types due to a bundling issue.
@@ -130,6 +130,64 @@ export type AsyncThunkPayloadCreator<
   thunkAPI: GetThunkAPI<ThunkApiConfig>
 ) => AsyncThunkPayloadCreatorReturnValue<Returned, ThunkApiConfig>
 
+type AsyncThunkReturnValue<ThunkArg, FulfilledValue, RejectedValue> =
+  | PayloadAction<FulfilledValue, string, { arg: ThunkArg; requestId: string }>
+  | PayloadAction<
+      undefined | RejectedValue,
+      string,
+      { arg: ThunkArg; requestId: string; aborted: boolean },
+      SerializedError
+    >
+/**
+ * A ThunkAction created by `createAsyncThunk`.
+ * Dispatching it returns a Promise for either a
+ * fulfilled or rejected action.
+ * Also, the returned value contains a `abort()` method
+ * that allows the asyncAction to be cancelled from the outside.
+ *
+ * @public
+ */
+export type AsyncThunkAction<
+  Returned,
+  ThunkArg,
+  ThunkApiConfig extends AsyncThunkConfig
+> = (
+  dispatch: GetDispatch<ThunkApiConfig>,
+  getState: () => GetState<ThunkApiConfig>,
+  extra: GetExtra<ThunkApiConfig>
+) => Promise<
+  AsyncThunkReturnValue<ThunkArg, Returned, GetRejectValue<ThunkApiConfig>>
+> & {
+  abort(reason?: string): void
+}
+
+type AsyncThunkActionCreator<
+  Returned,
+  ThunkArg,
+  ThunkApiConfig extends AsyncThunkConfig
+> = IsAny<
+  ThunkArg,
+  // any handling
+  (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>,
+  // unknown handling
+  unknown extends ThunkArg
+    ? (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument not specified or specified as void or undefined
+    : [ThunkArg] extends [void] | [undefined]
+    ? () => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument contains void
+    : [void] extends [ThunkArg] // make optional
+    ? (arg?: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument contains undefined
+    : [undefined] extends [ThunkArg]
+    ? WithStrictNullChecks<
+        // with strict nullChecks: make optional
+        (
+          arg?: ThunkArg
+        ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>,
+        // without strict null checks this will match everything, so don't make it optional
+        (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
+      > // default case: normal argument
+    : (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
+>
+
 /**
  *
  * @param type
@@ -216,12 +274,10 @@ If you want to use the AbortController to react to \`abort\` events, please cons
           }
         }
 
-  function actionCreator(arg: ThunkArg) {
-    return (
-      dispatch: GetDispatch<ThunkApiConfig>,
-      getState: () => GetState<ThunkApiConfig>,
-      extra: GetExtra<ThunkApiConfig>
-    ) => {
+  function actionCreator(
+    arg: ThunkArg
+  ): AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> {
+    return (dispatch, getState, extra) => {
       const requestId = nanoid()
 
       const abortController = new AC()
@@ -277,11 +333,18 @@ If you want to use the AbortController to react to \`abort\` events, please cons
     }
   }
 
-  return Object.assign(actionCreator, {
-    pending,
-    rejected,
-    fulfilled
-  })
+  return Object.assign(
+    actionCreator as AsyncThunkActionCreator<
+      Returned,
+      ThunkArg,
+      ThunkApiConfig
+    >,
+    {
+      pending,
+      rejected,
+      fulfilled
+    }
+  )
 }
 
 type ActionTypesWithOptionalErrorAction =
@@ -304,3 +367,7 @@ export function unwrapResult<R extends ActionTypesWithOptionalErrorAction>(
   }
   return (returned as any).payload
 }
+
+type WithStrictNullChecks<True, False> = undefined extends boolean
+  ? False
+  : True
