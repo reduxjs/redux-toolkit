@@ -130,14 +130,6 @@ export type AsyncThunkPayloadCreator<
   thunkAPI: GetThunkAPI<ThunkApiConfig>
 ) => AsyncThunkPayloadCreatorReturnValue<Returned, ThunkApiConfig>
 
-type AsyncThunkReturnValue<ThunkArg, FulfilledValue, RejectedValue> =
-  | PayloadAction<FulfilledValue, string, { arg: ThunkArg; requestId: string }>
-  | PayloadAction<
-      undefined | RejectedValue,
-      string,
-      { arg: ThunkArg; requestId: string; aborted: boolean },
-      SerializedError
-    >
 /**
  * A ThunkAction created by `createAsyncThunk`.
  * Dispatching it returns a Promise for either a
@@ -156,7 +148,18 @@ export type AsyncThunkAction<
   getState: () => GetState<ThunkApiConfig>,
   extra: GetExtra<ThunkApiConfig>
 ) => Promise<
-  AsyncThunkReturnValue<ThunkArg, Returned, GetRejectValue<ThunkApiConfig>>
+  | PayloadAction<Returned, string, { arg: ThunkArg; requestId: string }>
+  | PayloadAction<
+      undefined | GetRejectValue<ThunkApiConfig>,
+      string,
+      {
+        arg: ThunkArg
+        requestId: string
+        aborted: boolean
+        condition: boolean
+      },
+      SerializedError
+    >
 > & {
   abort(reason?: string): void
 }
@@ -188,10 +191,35 @@ type AsyncThunkActionCreator<
     : (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
 >
 
+interface AsyncThunkOptions<
+  ThunkArg = void,
+  ThunkApiConfig extends AsyncThunkConfig = {}
+> {
+  /**
+   * A method to control whether the asyncThunk should be executed. Has access to the
+   * `arg`, `api.getState()` and `api.extra` arguments.
+   *
+   * @returns `true` if the asyncThunk should be executed, `false` if it should be skipped
+   */
+  condition?(
+    arg: ThunkArg,
+    api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>
+  ): boolean
+  /**
+   * If `condition` returns `false`, the asyncThunk will be skipped.
+   * This option allows you to control whether a `rejected` action with `meta.condition == false`
+   * will be dispatched or not.
+   *
+   * @default `false`
+   */
+  dispatchConditionRejection?: boolean
+}
+
 /**
  *
  * @param type
  * @param payloadCreator
+ * @param options
  *
  * @public
  */
@@ -201,7 +229,14 @@ export function createAsyncThunk<
   ThunkApiConfig extends AsyncThunkConfig = {}
 >(
   type: string,
-  payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>
+  payloadCreator: (
+    arg: ThunkArg,
+    thunkAPI: GetThunkAPI<ThunkApiConfig>
+  ) =>
+    | Promise<Returned | RejectWithValue<GetRejectValue<ThunkApiConfig>>>
+    | Returned
+    | RejectWithValue<GetRejectValue<ThunkApiConfig>>,
+  options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
 ) {
   type RejectedValue = GetRejectValue<ThunkApiConfig>
 
@@ -234,13 +269,15 @@ export function createAsyncThunk<
       payload?: RejectedValue
     ) => {
       const aborted = !!error && error.name === 'AbortError'
+      const condition = !!error && error.name === 'ConditionError'
       return {
         payload,
         error: miniSerializeError(error || 'Rejected'),
         meta: {
           arg,
           requestId,
-          aborted
+          aborted,
+          condition
         }
       }
     }
@@ -297,6 +334,16 @@ If you want to use the AbortController to react to \`abort\` events, please cons
       const promise = (async function() {
         let finalAction: ReturnType<typeof fulfilled | typeof rejected>
         try {
+          if (
+            options &&
+            options.condition &&
+            options.condition(arg, { getState, extra }) === false
+          ) {
+            throw {
+              name: 'ConditionError',
+              message: 'Aborted due to condition callback returning false.'
+            }
+          }
           dispatch(pending(requestId, arg))
           finalAction = await Promise.race([
             abortedPromise,
@@ -326,7 +373,15 @@ If you want to use the AbortController to react to \`abort\` events, please cons
         // per https://twitter.com/dan_abramov/status/770914221638942720
         // and https://redux-toolkit.js.org/tutorials/advanced-tutorial#async-error-handling-logic-in-thunks
 
-        dispatch(finalAction)
+        const skipDispatch =
+          options &&
+          !options.dispatchConditionRejection &&
+          rejected.match(finalAction) &&
+          finalAction.meta.condition
+
+        if (!skipDispatch) {
+          dispatch(finalAction)
+        }
         return finalAction
       })()
       return Object.assign(promise, { abort })
