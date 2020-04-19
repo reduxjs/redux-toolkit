@@ -9,9 +9,11 @@ hide_title: true
 
 ## Overview
 
-A function that accepts a Redux action type string and a callback function that should return a promise. It generates promise lifecycle action types based on the provided action type, and returns a thunk action creator that will run the promise callback and dispatch the lifecycle actions based on the returned promise.
+A function that accepts a Redux action type string and a callback function that should return a promise. It generates promise lifecycle action types based on the action type prefix that you pass in, and returns a thunk action creator that will run the promise callback and dispatch the lifecycle actions based on the returned promise.
 
 This abstracts the standard recommended approach for handling async request lifecycles.
+
+It does not generate any reducer functions, since it does not know what data you're fetching, how you want to track loading state, or how the data you return needs to be processed. You should write your own reducer logic that handles these actions, with whatever loading state and processing logic is appropriate for your own app.
 
 Sample usage:
 
@@ -85,6 +87,13 @@ The logic in the `payloadCreator` function may use any of these values as needed
 
 `createAsyncThunk` returns a standard Redux thunk action creator. The thunk action creator function will have plain action creators for the `pending`, `fulfilled`, and `rejected` cases attached as nested fields.
 
+Using the `fetchUserById` example above, `createAsyncThunk` will generate four functions:
+
+- `fetchUserById`, the thunk action creator that kicks off the async payload callback you wrote
+  - `fetchUserById.pending`, an action creator that dispatches an `'users/fetchByIdStatus/pending'` action
+  - `fetchUserById.fulfilled`, an action creator that dispatches an `'users/fetchByIdStatus/fulfilled'` action
+  - `fetchUserById.rejected`, an action creator that dispatches an `'users/fetchByIdStatus/rejected'` action
+
 When dispatched, the thunk will:
 
 - dispatch the `pending` action
@@ -135,6 +144,7 @@ interface RejectedAction<ThunkArg> {
     requestId: string
     arg: ThunkArg
     aborted: boolean
+    condition: bolean
   }
 }
 
@@ -230,6 +240,32 @@ const onClick = () => {
 ```
 
 ## Cancellation
+
+### Canceling Before Execution
+
+If you need to cancel a thunk before the payload creator is called, you may provide a `condition` callback as an option after the payload creator. The callback will receive the thunk argument and an object with `{getState, extra}` as parameters, and use those to decide whether to continue or not. If the execution should be canceled, the `condition` callback should return a literal `false` value:
+
+```js
+const fetchUserById = createAsyncThunk(
+  'users/fetchByIdStatus',
+  async (userId, thunkAPI) => {
+    const response = await userAPI.fetchById(userId)
+    return response.data
+  },
+  {
+    condition: (userId, { getState, extra }) => {
+      const { users } = getState()
+      const fetchStatus = users.requests[userId]
+      if (fetchStatus === 'fulfilled' || fetchStatus === 'loading') {
+        // Already fetched or in progress, don't need to re-fetch
+        return false
+      }
+    }
+  }
+)
+```
+
+### Canceling While Running
 
 If you want to cancel your running thunk before it has finished, you can use the `abort` method of the promise returned by `dispatch(fetchUserById(userId))`.
 
