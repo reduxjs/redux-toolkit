@@ -60,6 +60,12 @@ export interface ActionReducerMapBuilder<State> {
 export type Actions<T extends keyof any = string> = Record<T, Action>;
 
 // @public
+export type AsyncThunkPayloadCreator<Returned, ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}> = (arg: ThunkArg, thunkAPI: GetThunkAPI<ThunkApiConfig>) => AsyncThunkPayloadCreatorReturnValue<Returned, ThunkApiConfig>;
+
+// @public
+export type AsyncThunkPayloadCreatorReturnValue<Returned, ThunkApiConfig extends AsyncThunkConfig> = Promise<Returned | RejectWithValue<GetRejectValue<ThunkApiConfig>>> | Returned | RejectWithValue<GetRejectValue<ThunkApiConfig>>;
+
+// @public
 export type CaseReducer<S = any, A extends Action = AnyAction> = (state: Draft<S>, action: A) => S | void;
 
 // @public
@@ -105,7 +111,7 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
 
 // @public (undocumented)
-export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}>(type: string, payloadCreator: (arg: ThunkArg, thunkAPI: GetThunkAPI<ThunkApiConfig>) => Promise<Returned | RejectWithValue<GetRejectValue<ThunkApiConfig>>> | Returned | RejectWithValue<GetRejectValue<ThunkApiConfig>>): ((arg: ThunkArg) => (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
+export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}>(type: string, payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>): ((arg: ThunkArg) => (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
     arg: ThunkArg;
     requestId: string;
 }, never> | PayloadAction<GetRejectValue<ThunkApiConfig> | undefined, string, {
