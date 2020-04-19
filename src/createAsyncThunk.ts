@@ -334,7 +334,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
           if (
             options &&
             options.condition &&
-            !options.condition(arg, { getState, extra })
+            options.condition(arg, { getState, extra }) === false
           ) {
             throw {
               name: 'ConditionError',

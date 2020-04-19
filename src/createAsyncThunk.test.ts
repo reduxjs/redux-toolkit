@@ -502,6 +502,18 @@ describe('conditional skipping of asyncThunks', () => {
     expect((result as any).meta.condition).toBe(true)
   })
 
+  test('return falsy from condition does not skip payload creator', async () => {
+    // Override TS's expectation that this is a boolean
+    condition.mockReturnValueOnce((undefined as unknown) as boolean)
+    const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
+    const result = await asyncThunk(arg)(dispatch, getState, extra)
+
+    expect(condition).toHaveBeenCalled()
+    expect(payloadCreator).toHaveBeenCalled()
+    expect(asyncThunk.fulfilled.match(result)).toBe(true)
+    expect(result.payload).toBe(10)
+  })
+
   test('returning true from condition executes payloadCreator', async () => {
     condition.mockReturnValueOnce(true)
     const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
