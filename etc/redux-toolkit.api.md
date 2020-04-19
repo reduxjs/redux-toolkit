@@ -60,7 +60,15 @@ export interface ActionReducerMapBuilder<State> {
 export type Actions<T extends keyof any = string> = Record<T, Action>;
 
 // @public
-export type AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> = (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<AsyncThunkReturnValue<ThunkArg, Returned, GetRejectValue<ThunkApiConfig>>> & {
+export type AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> = (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
+    arg: ThunkArg;
+    requestId: string;
+}> | PayloadAction<undefined | GetRejectValue<ThunkApiConfig>, string, {
+    arg: ThunkArg;
+    requestId: string;
+    aborted: boolean;
+    condition: boolean;
+}, SerializedError>> & {
     abort(reason?: string): void;
 };
 

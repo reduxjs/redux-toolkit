@@ -130,19 +130,6 @@ export type AsyncThunkPayloadCreator<
   thunkAPI: GetThunkAPI<ThunkApiConfig>
 ) => AsyncThunkPayloadCreatorReturnValue<Returned, ThunkApiConfig>
 
-type AsyncThunkReturnValue<ThunkArg, FulfilledValue, RejectedValue> =
-  | PayloadAction<FulfilledValue, string, { arg: ThunkArg; requestId: string }>
-  | PayloadAction<
-      undefined | RejectedValue,
-      string,
-      {
-        arg: ThunkArg
-        requestId: string
-        aborted: boolean
-        condition: boolean
-      },
-      SerializedError
-    >
 /**
  * A ThunkAction created by `createAsyncThunk`.
  * Dispatching it returns a Promise for either a
@@ -161,7 +148,18 @@ export type AsyncThunkAction<
   getState: () => GetState<ThunkApiConfig>,
   extra: GetExtra<ThunkApiConfig>
 ) => Promise<
-  AsyncThunkReturnValue<ThunkArg, Returned, GetRejectValue<ThunkApiConfig>>
+  | PayloadAction<Returned, string, { arg: ThunkArg; requestId: string }>
+  | PayloadAction<
+      undefined | GetRejectValue<ThunkApiConfig>,
+      string,
+      {
+        arg: ThunkArg
+        requestId: string
+        aborted: boolean
+        condition: boolean
+      },
+      SerializedError
+    >
 > & {
   abort(reason?: string): void
 }
