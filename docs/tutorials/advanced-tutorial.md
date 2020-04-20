@@ -85,6 +85,8 @@ export type RootState = ReturnType<typeof rootReducer>
 export default rootReducer
 ```
 
+> **Note:** For other ways to infer the `RootState`, view the [Usage with TypeScript](../usage/usage-with-typescript#getting-the-state-type) guide
+
 #### Store Setup and HMR
 
 Next, we'll create the store instance, including hot-reloading the root reducer. By using the [`module.hot` API for reloading](https://webpack.js.org/concepts/hot-module-replacement/), we can re-import the new version of the root reducer function whenever it's been recompiled, and tell the store to use the new version instead.
