@@ -48,7 +48,7 @@ const booksAdapter = createEntityAdapter<Book>({
   // Assume IDs are stored in a field other than `book.id`
   selectId: book => book.bookId,
   // Keep the "all IDs" array sorted based on book titles
-  sortComparer: (a, b) => a.title.localeCompare(b.title),
+  sortComparer: (a, b) => a.title.localeCompare(b.title)
 })
 
 const booksSlice = createSlice({
@@ -61,14 +61,14 @@ const booksSlice = createSlice({
     booksReceived(state, action) {
       // Or, call them as "mutating" helpers in a case reducer
       booksAdapter.setAll(state, action.payload.books)
-    },
-  },
+    }
+  }
 })
 
 const store = configureStore({
   reducer: {
     books: booksSlice.reducer,
-  },
+  }
 })
 
 type State = ReturnType<typeof store.getState>
