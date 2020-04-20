@@ -67,7 +67,7 @@ const booksSlice = createSlice({
 
 const store = configureStore({
   reducer: {
-    books: booksSlice.reducer,
+    books: booksSlice.reducer
   }
 })
 
