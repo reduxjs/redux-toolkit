@@ -151,7 +151,7 @@ interface RejectedAction<ThunkArg> {
     requestId: string
     arg: ThunkArg
     aborted: boolean
-    condition: bolean
+    condition: boolean
   }
 }
 
