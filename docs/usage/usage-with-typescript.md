@@ -28,18 +28,34 @@ const rootReducer = combineReducers({})
 export type RootState = ReturnType<typeof rootReducer>
 ```
 
+Alternatively, if you choose to not create a `rootReducer` yourself and instead pass the slice reducers directly to `configureStore()`, you need to slightly modify the typing to correctly infer the root reducer:
+
+```ts
+import { configureStore } from '@reduxjs/toolkit'
+// ...
+const store = configureStore({
+  reducer: {
+    one: oneSlice.reducer,
+    two: twoSlice.reducer
+  }
+})
+export type RootState = ReturnType<typeof store.getState>
+```
+
 ### Getting the `Dispatch` type
 
-If you want to get the `Dispatch` type from your store, you can extract it after creating the store.  
-It is recommend to give the type a different name like `AppDispatch` to prevent confusion, as the type name `Dispatch` is usually overused.
+If you want to get the `Dispatch` type from your store, you can extract it after creating the store. It is recommended to give the type a different name like `AppDispatch` to prevent confusion, as the type name `Dispatch` is usually overused. You may also find it to be more convenient to export a hook like `useAppDispatch` shown below, then using it wherever you'd call `useDispatch`.
 
 ```typescript {6}
 import { configureStore } from '@reduxjs/toolkit'
 import rootReducer from './rootReducer'
+
 const store = configureStore({
   reducer: rootReducer
 })
+
 export type AppDispatch = typeof store.dispatch
+export const useAppDispatch = () => useDispatch<AppDispatch>() // Export a hook that can be resused to resolve types
 ```
 
 ### Correct typings for the `Dispatch` type
