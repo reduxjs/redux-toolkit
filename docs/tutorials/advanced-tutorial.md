@@ -1024,7 +1024,6 @@ export const IssueDetailsPage = ({
 - const [issue, setIssue] = useState<Issue | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
 - const [commentsError, setCommentsError] = useState<Error | null>(null)
-+ const [commentsError] = useState<Error | null>(null)
 
 + const dispatch = useDispatch()
 
