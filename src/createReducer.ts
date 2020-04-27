@@ -109,8 +109,8 @@ export function createReducer<S>(
     if (caseReducer) {
       if (isDraft(state)) {
         // we must already be inside a `createNextState` call, likely because
-        // this is being wrapped in `createReducer` or `createSlice`.
-        // It's safe to just pass the draft to the mutator.
+        // this is being wrapped in `createReducer`, `createSlice`, or nested
+        // inside an existing draft. It's safe to just pass the draft to the mutator.
         const draft = state as Draft<S> // We can aassume this is already a draft
         return caseReducer(draft, action) || state
       } else {
