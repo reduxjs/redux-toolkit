@@ -233,7 +233,7 @@ createSlice({
 
 You might have noticed that it is not a good idea to pass your `SliceState` type as a generic to `createSlice`. This is due to the fact that in almost all cases, follow-up generic parameters to `createSlice` need to be inferred, and TypeScript cannot mix explicit declaration and inference of generic types within the same "generic block".
 
-The standard approach is to declare an interface or type for your state, create an initial state value that uses that type, and pass the initial state value to `createSlice. You can also use the construct`initialState: myInitialState as SliceState`.
+The standard approach is to declare an interface or type for your state, create an initial state value that uses that type, and pass the initial state value to `createSlice`. You can also use the construct `initialState: myInitialState as SliceState`.
 
 ```ts {1,4,8,15}
 type SliceState = { state: 'loading' } | { state: 'finished'; data: string }
