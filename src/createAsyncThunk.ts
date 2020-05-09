@@ -217,7 +217,7 @@ interface AsyncThunkOptions<
 
 /**
  *
- * @param type
+ * @param typePrefix
  * @param payloadCreator
  * @param options
  *
@@ -228,7 +228,7 @@ export function createAsyncThunk<
   ThunkArg = void,
   ThunkApiConfig extends AsyncThunkConfig = {}
 >(
-  type: string,
+  typePrefix: string,
   payloadCreator: (
     arg: ThunkArg,
     thunkAPI: GetThunkAPI<ThunkApiConfig>
@@ -241,7 +241,7 @@ export function createAsyncThunk<
   type RejectedValue = GetRejectValue<ThunkApiConfig>
 
   const fulfilled = createAction(
-    type + '/fulfilled',
+    typePrefix + '/fulfilled',
     (result: Returned, requestId: string, arg: ThunkArg) => {
       return {
         payload: result,
@@ -251,7 +251,7 @@ export function createAsyncThunk<
   )
 
   const pending = createAction(
-    type + '/pending',
+    typePrefix + '/pending',
     (requestId: string, arg: ThunkArg) => {
       return {
         payload: undefined,
@@ -261,7 +261,7 @@ export function createAsyncThunk<
   )
 
   const rejected = createAction(
-    type + '/rejected',
+    typePrefix + '/rejected',
     (
       error: Error | null,
       requestId: string,
@@ -397,7 +397,8 @@ If you want to use the AbortController to react to \`abort\` events, please cons
     {
       pending,
       rejected,
-      fulfilled
+      fulfilled,
+      typePrefix
     }
   )
 }
