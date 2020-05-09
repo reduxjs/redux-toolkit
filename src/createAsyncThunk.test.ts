@@ -27,6 +27,12 @@ describe('createAsyncThunk', () => {
     expect(thunkActionCreator.rejected.type).toBe('testType/rejected')
   })
 
+  it('exposes the typePrefix it was created with', () => {
+    const thunkActionCreator = createAsyncThunk('testType', async () => 42)
+
+    expect(thunkActionCreator.typePrefix).toBe('testType')
+  })
+
   it('works without passing arguments to the payload creator', async () => {
     const thunkActionCreator = createAsyncThunk('testType', async () => 42)
 
