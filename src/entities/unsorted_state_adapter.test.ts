@@ -6,6 +6,7 @@ import {
   AClockworkOrange,
   AnimalFarm
 } from './fixtures/book'
+import { createNextState } from '..'
 
 describe('Unsorted State Adapter', () => {
   let adapter: EntityStateAdapter<BookModel>
@@ -350,6 +351,265 @@ describe('Unsorted State Adapter', () => {
         },
         [AClockworkOrange.id]: AClockworkOrange
       }
+    })
+  })
+
+  describe('can be used mutably when wrapped in createNextState', () => {
+    test('removeAll', () => {
+      const withTwo = adapter.addMany(state, [TheGreatGatsby, AnimalFarm])
+      const result = createNextState(withTwo, draft => {
+        adapter.removeAll(draft)
+      })
+      expect(result).toMatchInlineSnapshot(`
+        Object {
+          "entities": Object {},
+          "ids": Array [],
+        }
+      `)
+    })
+
+    test('addOne', () => {
+      const result = createNextState(state, draft => {
+        adapter.addOne(draft, TheGreatGatsby)
+      })
+
+      expect(result).toMatchInlineSnapshot(`
+        Object {
+          "entities": Object {
+            "tgg": Object {
+              "id": "tgg",
+              "title": "The Great Gatsby",
+            },
+          },
+          "ids": Array [
+            "tgg",
+          ],
+        }
+      `)
+    })
+
+    test('addMany', () => {
+      const result = createNextState(state, draft => {
+        adapter.addMany(draft, [TheGreatGatsby, AnimalFarm])
+      })
+
+      expect(result).toMatchInlineSnapshot(`
+        Object {
+          "entities": Object {
+            "af": Object {
+              "id": "af",
+              "title": "Animal Farm",
+            },
+            "tgg": Object {
+              "id": "tgg",
+              "title": "The Great Gatsby",
+            },
+          },
+          "ids": Array [
+            "tgg",
+            "af",
+          ],
+        }
+      `)
+    })
+
+    test('setAll', () => {
+      const result = createNextState(state, draft => {
+        adapter.setAll(draft, [TheGreatGatsby, AnimalFarm])
+      })
+
+      expect(result).toMatchInlineSnapshot(`
+        Object {
+          "entities": Object {
+            "af": Object {
+              "id": "af",
+              "title": "Animal Farm",
+            },
+            "tgg": Object {
+              "id": "tgg",
+              "title": "The Great Gatsby",
+            },
+          },
+          "ids": Array [
+            "tgg",
+            "af",
+          ],
+        }
+      `)
+    })
+
+    test('updateOne', () => {
+      const withOne = adapter.addOne(state, TheGreatGatsby)
+      const changes = { title: 'A New Hope' }
+      const result = createNextState(withOne, draft => {
+        adapter.updateOne(draft, {
+          id: TheGreatGatsby.id,
+          changes
+        })
+      })
+
+      expect(result).toMatchInlineSnapshot(`
+        Object {
+          "entities": Object {
+            "tgg": Object {
+              "id": "tgg",
+              "title": "A New Hope",
+            },
+          },
+          "ids": Array [
+            "tgg",
+          ],
+        }
+      `)
+    })
+
+    test('updateMany', () => {
+      const firstChange = { title: 'First Change' }
+      const secondChange = { title: 'Second Change' }
+      const withMany = adapter.setAll(state, [TheGreatGatsby, AClockworkOrange])
+
+      const result = createNextState(withMany, draft => {
+        adapter.updateMany(draft, [
+          { id: TheGreatGatsby.id, changes: firstChange },
+          { id: AClockworkOrange.id, changes: secondChange }
+        ])
+      })
+
+      expect(result).toMatchInlineSnapshot(`
+        Object {
+          "entities": Object {
+            "aco": Object {
+              "id": "aco",
+              "title": "Second Change",
+            },
+            "tgg": Object {
+              "id": "tgg",
+              "title": "First Change",
+            },
+          },
+          "ids": Array [
+            "tgg",
+            "aco",
+          ],
+        }
+      `)
+    })
+
+    test('upsertOne (insert)', () => {
+      const result = createNextState(state, draft => {
+        adapter.upsertOne(draft, TheGreatGatsby)
+      })
+      expect(result).toMatchInlineSnapshot(`
+        Object {
+          "entities": Object {
+            "tgg": Object {
+              "id": "tgg",
+              "title": "The Great Gatsby",
+            },
+          },
+          "ids": Array [
+            "tgg",
+          ],
+        }
+      `)
+    })
+
+    test('upsertOne (update)', () => {
+      const withOne = adapter.upsertOne(state, TheGreatGatsby)
+      const result = createNextState(withOne, draft => {
+        adapter.upsertOne(draft, {
+          id: TheGreatGatsby.id,
+          title: 'A New Hope'
+        })
+      })
+      expect(result).toMatchInlineSnapshot(`
+        Object {
+          "entities": Object {
+            "tgg": Object {
+              "id": "tgg",
+              "title": "A New Hope",
+            },
+          },
+          "ids": Array [
+            "tgg",
+          ],
+        }
+      `)
+    })
+
+    test('upsertMany', () => {
+      const withOne = adapter.upsertOne(state, TheGreatGatsby)
+      const result = createNextState(withOne, draft => {
+        adapter.upsertMany(draft, [
+          {
+            id: TheGreatGatsby.id,
+            title: 'A New Hope'
+          },
+          AnimalFarm
+        ])
+      })
+      expect(result).toMatchInlineSnapshot(`
+        Object {
+          "entities": Object {
+            "af": Object {
+              "id": "af",
+              "title": "Animal Farm",
+            },
+            "tgg": Object {
+              "id": "tgg",
+              "title": "A New Hope",
+            },
+          },
+          "ids": Array [
+            "tgg",
+            "af",
+          ],
+        }
+      `)
+    })
+
+    test('removeOne', () => {
+      const withTwo = adapter.addMany(state, [TheGreatGatsby, AnimalFarm])
+      const result = createNextState(withTwo, draft => {
+        adapter.removeOne(draft, TheGreatGatsby.id)
+      })
+      expect(result).toMatchInlineSnapshot(`
+        Object {
+          "entities": Object {
+            "af": Object {
+              "id": "af",
+              "title": "Animal Farm",
+            },
+          },
+          "ids": Array [
+            "af",
+          ],
+        }
+      `)
+    })
+
+    test('removeMany', () => {
+      const withThree = adapter.addMany(state, [
+        TheGreatGatsby,
+        AnimalFarm,
+        AClockworkOrange
+      ])
+      const result = createNextState(withThree, draft => {
+        adapter.removeMany(draft, [TheGreatGatsby.id, AnimalFarm.id])
+      })
+      expect(result).toMatchInlineSnapshot(`
+        Object {
+          "entities": Object {
+            "aco": Object {
+              "id": "aco",
+              "title": "A Clockwork Orange",
+            },
+          },
+          "ids": Array [
+            "aco",
+          ],
+        }
+      `)
     })
   })
 })

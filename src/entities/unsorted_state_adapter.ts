@@ -5,7 +5,10 @@ import {
   Update,
   EntityId
 } from './models'
-import { createStateOperator } from './state_adapter'
+import {
+  createStateOperator,
+  createSingleArgumentStateOperator
+} from './state_adapter'
 import { selectIdValue } from './utils'
 
 export function createUnsortedStateAdapter<T>(
@@ -64,8 +67,8 @@ export function createUnsortedStateAdapter<T>(
     }
   }
 
-  function removeAll(state: R): any {
-    return Object.assign({}, state, {
+  function removeAllMutably(state: R): void {
+    Object.assign(state, {
       ids: [],
       entities: {}
     })
@@ -156,7 +159,7 @@ export function createUnsortedStateAdapter<T>(
   }
 
   return {
-    removeAll,
+    removeAll: createSingleArgumentStateOperator(removeAllMutably),
     addOne: createStateOperator(addOneMutably),
     addMany: createStateOperator(addManyMutably),
     setAll: createStateOperator(setAllMutably),

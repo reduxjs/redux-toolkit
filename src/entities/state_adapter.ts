@@ -1,6 +1,20 @@
 import createNextState, { isDraft } from 'immer'
-import { EntityState } from './models'
+import { EntityState, PreventAny } from './models'
 import { PayloadAction, isFSA } from '../createAction'
+
+export function createSingleArgumentStateOperator<V>(
+  mutator: (state: EntityState<V>) => void
+) {
+  const operator = createStateOperator((_: undefined, state: EntityState<V>) =>
+    mutator(state)
+  )
+
+  return function operation<S extends EntityState<V>>(
+    state: PreventAny<S, V>
+  ): S {
+    return operator(state as S, undefined)
+  }
+}
 
 export function createStateOperator<V, R>(
   mutator: (arg: R, state: EntityState<V>) => void
