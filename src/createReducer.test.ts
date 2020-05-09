@@ -1,5 +1,6 @@
 import { createReducer, CaseReducer } from './createReducer'
 import { PayloadAction, createAction } from './createAction'
+import { createNextState, Draft } from './'
 import { Reducer } from 'redux'
 
 interface Todo {
@@ -73,6 +74,36 @@ describe('createReducer', () => {
     })
 
     behavesLikeReducer(todosReducer)
+  })
+
+  describe('given draft state from immer', () => {
+    const addTodo: AddTodoReducer = (state, action) => {
+      const { newTodo } = action.payload
+
+      // Can safely call state.push() here
+      state.push({ ...newTodo, completed: false })
+    }
+
+    const toggleTodo: ToggleTodoReducer = (state, action) => {
+      const { index } = action.payload
+
+      const todo = state[index]
+      // Can directly modify the todo object
+      todo.completed = !todo.completed
+    }
+
+    const todosReducer = createReducer([] as TodoState, {
+      ADD_TODO: addTodo,
+      TOGGLE_TODO: toggleTodo
+    })
+
+    const wrappedReducer: TodosReducer = (state = [], action) => {
+      return createNextState(state, (draft: Draft<TodoState>) => {
+        todosReducer(draft, action)
+      })
+    }
+
+    behavesLikeReducer(wrappedReducer)
   })
 
   describe('alternative builder callback for actionMap', () => {
