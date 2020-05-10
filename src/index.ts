@@ -104,4 +104,10 @@ export {
   SerializedError
 } from './createAsyncThunk'
 
+export {
+  createActionListenerMiddleware,
+  addListenerAction,
+  removeListenerAction
+} from './createActionListenerMiddleware'
+
 export { nanoid } from './nanoid'

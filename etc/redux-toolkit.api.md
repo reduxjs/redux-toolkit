@@ -13,6 +13,7 @@ import { DeepPartial } from 'redux';
 import { Dispatch } from 'redux';
 import { Draft } from 'immer';
 import { Middleware } from 'redux';
+import { MiddlewareAPI } from 'redux';
 import { OutputParametricSelector } from 'reselect';
 import { OutputSelector } from 'reselect';
 import { ParametricSelector } from 'reselect';
@@ -58,6 +59,17 @@ export interface ActionReducerMapBuilder<State> {
 
 // @public @deprecated
 export type Actions<T extends keyof any = string> = Record<T, Action>;
+
+// @public (undocumented)
+export const addListenerAction: BaseActionCreator<{
+    type: string;
+}, "actionListenerMiddleware/add", {
+    listener: ActionListener<any, any, any>;
+    options: ActionListenerOptions<any, any, any>;
+}, never> & {
+    <C extends TypedActionCreator<any>, S, D extends Dispatch<AnyAction>>(actionCreator: C, listener: ActionListener<ReturnType<C>, S, D>, options?: ActionListenerOptions<ReturnType<C>, S, D> | undefined): AddListenerAction<ReturnType<C>, S, D>;
+    <S_1, D_1 extends Dispatch<AnyAction>>(type: string, listener: ActionListener<AnyAction, S_1, D_1>, options?: ActionListenerOptions<AnyAction, S_1, D_1> | undefined): AddListenerAction<AnyAction, S_1, D_1>;
+};
 
 // @public
 export type AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> = (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
@@ -122,6 +134,18 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 
 // @public
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
+
+// @public (undocumented)
+export function createActionListenerMiddleware<S, D extends Dispatch<AnyAction> = Dispatch>(): Middleware<(action: Action<"actionListenerMiddleware/add">) => () => void, S, D> & {
+    addListener: {
+        <C extends TypedActionCreator<any>>(actionCreator: C, listener: ActionListener<ReturnType<C>, S, D>, options?: ActionListenerOptions<ReturnType<C>, S, D> | undefined): () => void;
+        (type: string, listener: ActionListener<AnyAction, S, D>, options?: ActionListenerOptions<AnyAction, S, D> | undefined): () => void;
+    };
+    removeListener: {
+        <C_1 extends TypedActionCreator<any>>(actionCreator: C_1, listener: ActionListener<ReturnType<C_1>, S, D>): boolean;
+        (type: string, listener: ActionListener<AnyAction, S, D>): boolean;
+    };
+};
 
 // @public (undocumented)
 export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}>(typePrefix: string, payloadCreator: (arg: ThunkArg, thunkAPI: GetThunkAPI<ThunkApiConfig>) => Promise<Returned | RejectWithValue<GetRejectValue<ThunkApiConfig>>> | Returned | RejectWithValue<GetRejectValue<ThunkApiConfig>>, options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>): IsAny<ThunkArg, (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>, unknown extends ThunkArg ? (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> : [ThunkArg] extends [void] | [undefined] ? () => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> : [void] extends [ThunkArg] ? (arg?: ThunkArg | undefined) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> : [undefined] extends [ThunkArg] ? (arg?: ThunkArg | undefined) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> : (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>> & {
@@ -341,6 +365,16 @@ export type PrepareAction<P> = ((...args: any[]) => {
     meta: any;
     error: any;
 });
+
+// @public (undocumented)
+export const removeListenerAction: BaseActionCreator<{
+    type: string;
+}, "actionListenerMiddleware/remove", {
+    listener: ActionListener<any, any, any>;
+}, never> & {
+    <C extends TypedActionCreator<any>, S, D extends Dispatch<AnyAction>>(actionCreator: C, listener: ActionListener<ReturnType<C>, S, D>): RemoveListenerAction<ReturnType<C>, S, D>;
+    <S_1, D_1 extends Dispatch<AnyAction>>(type: string, listener: ActionListener<AnyAction, S_1, D_1>): RemoveListenerAction<AnyAction, S_1, D_1>;
+};
 
 export { Selector }
 
