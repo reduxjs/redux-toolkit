@@ -63,10 +63,9 @@ export type Actions<T extends keyof any = string> = Record<T, Action>;
 // @alpha (undocumented)
 export const addListenerAction: BaseActionCreator<{
     type: string;
-}, "actionListenerMiddleware/add", {
     listener: ActionListener<any, any, any>;
     options: ActionListenerOptions<any, any, any>;
-}, never> & {
+}, "actionListenerMiddleware/add", never, never> & {
     <C extends TypedActionCreator<any>, S, D extends Dispatch<AnyAction>>(actionCreator: C, listener: ActionListener<ReturnType<C>, S, D>, options?: ActionListenerOptions<ReturnType<C>, S, D> | undefined): AddListenerAction<ReturnType<C>, S, D>;
     <S_1, D_1 extends Dispatch<AnyAction>>(type: string, listener: ActionListener<AnyAction, S_1, D_1>, options?: ActionListenerOptions<AnyAction, S_1, D_1> | undefined): AddListenerAction<AnyAction, S_1, D_1>;
 };
@@ -369,9 +368,8 @@ export type PrepareAction<P> = ((...args: any[]) => {
 // @alpha (undocumented)
 export const removeListenerAction: BaseActionCreator<{
     type: string;
-}, "actionListenerMiddleware/remove", {
     listener: ActionListener<any, any, any>;
-}, never> & {
+}, "actionListenerMiddleware/remove", never, never> & {
     <C extends TypedActionCreator<any>, S, D extends Dispatch<AnyAction>>(actionCreator: C, listener: ActionListener<ReturnType<C>, S, D>): RemoveListenerAction<ReturnType<C>, S, D>;
     <S_1, D_1 extends Dispatch<AnyAction>>(type: string, listener: ActionListener<AnyAction, S_1, D_1>): RemoveListenerAction<AnyAction, S_1, D_1>;
 };

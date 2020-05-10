@@ -5,11 +5,14 @@ import {
   removeListenerAction
 } from './createActionListenerMiddleware'
 import { createAction } from './createAction'
+import { AnyAction } from 'redux'
 
 const middlewareApi = {
   getState: expect.any(Function),
   dispatch: expect.any(Function)
 }
+
+const noop = () => {}
 
 describe('createActionListenerMiddleware', () => {
   let store = configureStore({
@@ -95,6 +98,10 @@ describe('createActionListenerMiddleware', () => {
     expect(listener.mock.calls).toEqual([[testAction1('a'), middlewareApi]])
   })
 
+  test('unsubscribing without any subscriptions does not trigger an error', () => {
+    middleware.removeListener(testAction1, noop)
+  })
+
   test('subscribing via action', () => {
     const listener = jest.fn((_: TestAction1) => {})
 
@@ -137,6 +144,26 @@ describe('createActionListenerMiddleware', () => {
 
     expect(listener.mock.calls).toEqual([[testAction1('a'), middlewareApi]])
   })
+
+  const unforwaredActions: [string, AnyAction][] = [
+    ['addListenerAction', addListenerAction(testAction1, noop)],
+    ['removeListenerAction', removeListenerAction(testAction1, noop)]
+  ]
+  test.each(unforwaredActions)(
+    '"%s" is not forwarded to the reducer',
+    (_, action) => {
+      reducer.mockClear()
+
+      store.dispatch(testAction1('a'))
+      store.dispatch(action)
+      store.dispatch(testAction2('b'))
+
+      expect(reducer.mock.calls).toEqual([
+        [{}, testAction1('a')],
+        [{}, testAction2('b')]
+      ])
+    }
+  )
 
   test('"condition" allows to skip the listener', () => {
     const listener = jest.fn((_: TestAction1) => {})

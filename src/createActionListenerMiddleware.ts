@@ -37,8 +37,6 @@ interface AddListenerAction<
   type: 'actionListenerMiddleware/add'
   payload: {
     type: string
-  }
-  meta: {
     listener: ActionListener<A, S, D>
     options?: ActionListenerOptions<A, S, D>
   }
@@ -61,21 +59,19 @@ export const addListenerAction = createAction(
 
     return {
       payload: {
-        type
-      },
-      meta: {
+        type,
         listener,
         options
       }
     }
   }
 ) as BaseActionCreator<
-  { type: string },
-  'actionListenerMiddleware/add',
   {
+    type: string
     listener: ActionListener<any, any, any>
     options: ActionListenerOptions<any, any, any>
-  }
+  },
+  'actionListenerMiddleware/add'
 > & {
   <C extends TypedActionCreator<any>, S, D extends Dispatch>(
     actionCreator: C,
@@ -98,8 +94,6 @@ interface RemoveListenerAction<
   type: 'actionListenerMiddleware/remove'
   payload: {
     type: string
-  }
-  meta: {
     listener: ActionListener<A, S, D>
   }
 }
@@ -120,19 +114,14 @@ export const removeListenerAction = createAction(
 
     return {
       payload: {
-        type
-      },
-      meta: {
+        type,
         listener
       }
     }
   }
 ) as BaseActionCreator<
-  { type: string },
-  'actionListenerMiddleware/remove',
-  {
-    listener: ActionListener<any, any, any>
-  }
+  { type: string; listener: ActionListener<any, any, any> },
+  'actionListenerMiddleware/remove'
 > & {
   <C extends TypedActionCreator<any>, S, D extends Dispatch>(
     actionCreator: C,
@@ -156,7 +145,7 @@ export function createActionListenerMiddleware<
     listener: ActionListener<any, S, D>
   }
 
-  const listenerMap: Record<string, Set<ListenerEntry>> = {}
+  const listenerMap: Record<string, Set<ListenerEntry> | undefined> = {}
   const middleware: Middleware<
     {
       (action: Action<'actionListenerMiddleware/add'>): Unsubscribe
@@ -167,19 +156,20 @@ export function createActionListenerMiddleware<
     if (addListenerAction.match(action)) {
       const unsubscribe = addListener(
         action.payload.type,
-        action.meta.listener,
-        action.meta.options
+        action.payload.listener,
+        action.payload.options
       )
-      delete action.meta
-      next(action)
+
       return unsubscribe
     }
     if (removeListenerAction.match(action)) {
-      removeListener(action.payload.type, action.meta.listener)
+      removeListener(action.payload.type, action.payload.listener)
+
+      return
     }
 
-    if (listenerMap[action.type]) {
-      const listeners = listenerMap[action.type]
+    const listeners = listenerMap[action.type]
+    if (listeners) {
       for (const entry of listeners) {
         if (!entry.condition || entry.condition(action, api.getState)) {
           entry.listener(action, api)
@@ -217,11 +207,9 @@ export function createActionListenerMiddleware<
         ? typeOrActionCreator
         : typeOrActionCreator.type
 
-    if (!listenerMap[type]) {
-      listenerMap[type] = new Set()
-    }
+    const listeners = getListenerMap(type)
 
-    let entry = findListenerEntry(listenerMap[type], listener)
+    let entry = findListenerEntry(listeners, listener)
 
     if (!entry) {
       entry = {
@@ -229,10 +217,17 @@ export function createActionListenerMiddleware<
         listener
       }
 
-      listenerMap[type].add(entry)
+      listeners.add(entry)
     }
 
-    return () => listenerMap[type].delete(entry!)
+    return () => listeners.delete(entry!)
+  }
+
+  function getListenerMap(type: string) {
+    if (!listenerMap[type]) {
+      listenerMap[type] = new Set()
+    }
+    return listenerMap[type]!
   }
 
   function removeListener<C extends TypedActionCreator<any>>(
@@ -252,13 +247,19 @@ export function createActionListenerMiddleware<
         ? typeOrActionCreator
         : typeOrActionCreator.type
 
-    let entry = findListenerEntry(listenerMap[type], listener)
+    const listeners = listenerMap[type]
+
+    if (!listeners) {
+      return false
+    }
+
+    let entry = findListenerEntry(listeners, listener)
 
     if (!entry) {
       return false
     }
 
-    listenerMap[type].delete(entry!)
+    listeners.delete(entry)
     return true
   }
 
