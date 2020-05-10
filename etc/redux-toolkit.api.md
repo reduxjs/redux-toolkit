@@ -60,7 +60,7 @@ export interface ActionReducerMapBuilder<State> {
 // @public @deprecated
 export type Actions<T extends keyof any = string> = Record<T, Action>;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export const addListenerAction: BaseActionCreator<{
     type: string;
 }, "actionListenerMiddleware/add", {
@@ -135,7 +135,7 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 // @public
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
 
-// @public (undocumented)
+// @alpha (undocumented)
 export function createActionListenerMiddleware<S, D extends Dispatch<AnyAction> = Dispatch>(): Middleware<(action: Action<"actionListenerMiddleware/add">) => () => void, S, D> & {
     addListener: {
         <C extends TypedActionCreator<any>>(actionCreator: C, listener: ActionListener<ReturnType<C>, S, D>, options?: ActionListenerOptions<ReturnType<C>, S, D> | undefined): () => void;
@@ -366,7 +366,7 @@ export type PrepareAction<P> = ((...args: any[]) => {
     error: any;
 });
 
-// @public (undocumented)
+// @alpha (undocumented)
 export const removeListenerAction: BaseActionCreator<{
     type: string;
 }, "actionListenerMiddleware/remove", {

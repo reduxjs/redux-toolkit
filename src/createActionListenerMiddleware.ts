@@ -44,6 +44,9 @@ interface AddListenerAction<
   }
 }
 
+/**
+ * @alpha
+ */
 export const addListenerAction = createAction(
   'actionListenerMiddleware/add',
   function prepare(
@@ -101,6 +104,9 @@ interface RemoveListenerAction<
   }
 }
 
+/**
+ * @alpha
+ */
 export const removeListenerAction = createAction(
   'actionListenerMiddleware/remove',
   function prepare(
@@ -139,6 +145,9 @@ export const removeListenerAction = createAction(
   ): RemoveListenerAction<AnyAction, S, D>
 }
 
+/**
+ * @alpha
+ */
 export function createActionListenerMiddleware<
   S,
   D extends Dispatch<AnyAction> = Dispatch
