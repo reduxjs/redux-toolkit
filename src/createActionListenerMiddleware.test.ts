@@ -1,10 +1,10 @@
-import { configureStore } from '../configureStore'
+import { configureStore } from './configureStore'
 import {
   createActionListenerMiddleware,
   addListenerAction,
   removeListenerAction
 } from './createActionListenerMiddleware'
-import { createAction } from '../createAction'
+import { createAction } from './createAction'
 
 const middlewareApi = {
   getState: expect.any(Function),

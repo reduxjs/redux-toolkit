@@ -1,6 +1,6 @@
 import { Middleware, Dispatch, AnyAction, MiddlewareAPI, Action } from 'redux'
-import { TypedActionCreator } from '../mapBuilders'
-import { createAction, BaseActionCreator } from '../createAction'
+import { TypedActionCreator } from './mapBuilders'
+import { createAction, BaseActionCreator } from './createAction'
 
 type ActionListener<A extends AnyAction, S, D extends Dispatch<AnyAction>> = (
   action: A,
