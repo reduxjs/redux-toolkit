@@ -84,6 +84,27 @@ describe('configureStore', () => {
     })
   })
 
+  describe('middleware builder notation', () => {
+    it('calls builder, passes middlewareBuilderApi and uses returned middlewares', () => {
+      const thank = jest.fn((_store => next => action =>
+        'foobar') as redux.Middleware)
+
+      const builder = jest.fn(api => {
+        expect(api.defaultMiddleware).toEqual(expect.any(Array))
+        expect(api.getDefaultMiddleware).toEqual(expect.any(Function))
+        expect(api.getDefaultMiddleware()).toEqual(expect.any(Array))
+
+        return [thank]
+      })
+
+      const store = configureStore({ middleware: builder, reducer })
+
+      expect(builder).toHaveBeenCalled()
+
+      expect(store.dispatch({ type: 'test' })).toBe('foobar')
+    })
+  })
+
   describe('with devTools disabled', () => {
     it('calls createStore without devTools enhancer', () => {
       expect(configureStore({ devTools: false, reducer })).toBeInstanceOf(

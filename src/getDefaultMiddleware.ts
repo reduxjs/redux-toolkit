@@ -39,6 +39,24 @@ export type ThunkMiddlewareFor<
       | ThunkMiddleware<S, AnyAction, null> //The ThunkMiddleware with a `null` ExtraArgument is here to provide backwards-compatibility.
       | ThunkMiddleware<S, AnyAction>
 
+export type CurriedGetDefaultMiddleware<S = any> = <
+  O extends Partial<GetDefaultMiddlewareOptions> = {
+    thunk: true
+    immutableCheck: true
+    serializableCheck: true
+  }
+>(
+  options?: O
+) => Array<Middleware<{}, S> | ThunkMiddlewareFor<S, O>>
+
+export function curryGetDefaultMiddleware<
+  S = any
+>(): CurriedGetDefaultMiddleware<S> {
+  return function curriedGetDefaultMiddleware(options) {
+    return getDefaultMiddleware(options)
+  }
+}
+
 /**
  * Returns any array containing the default middleware installed by
  * `configureStore()`. Useful if you want to configure your store with a custom

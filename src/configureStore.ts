@@ -20,8 +20,9 @@ import {
 
 import isPlainObject from './isPlainObject'
 import {
-  getDefaultMiddleware,
-  ThunkMiddlewareFor
+  ThunkMiddlewareFor,
+  curryGetDefaultMiddleware,
+  CurriedGetDefaultMiddleware
 } from './getDefaultMiddleware'
 import { DispatchForMiddlewares } from './tsHelpers'
 
@@ -35,6 +36,11 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 export type ConfigureEnhancersCallback = (
   defaultEnhancers: StoreEnhancer[]
 ) => StoreEnhancer[]
+
+type MiddlewareBuilderApi<S> = {
+  defaultMiddleware: ThunkMiddlewareFor<S>[]
+  getDefaultMiddleware: CurriedGetDefaultMiddleware<S>
+}
 
 /**
  * Options for `configureStore()`.
@@ -56,7 +62,7 @@ export interface ConfigureStoreOptions<
    * An array of Redux middleware to install. If not supplied, defaults to
    * the set of middleware returned by `getDefaultMiddleware()`.
    */
-  middleware?: M
+  middleware?: ((api: MiddlewareBuilderApi<S>) => M) | M
 
   /**
    * Whether to enable Redux DevTools integration. Defaults to `true`.
@@ -124,9 +130,16 @@ export function configureStore<
   A extends Action = AnyAction,
   M extends Middlewares<S> = [ThunkMiddlewareFor<S>]
 >(options: ConfigureStoreOptions<S, A, M>): EnhancedStore<S, A, M> {
+  const getDefaultMiddleware = curryGetDefaultMiddleware<S>()
+  const defaultMiddleware = getDefaultMiddleware()
+  const middlewareBuilderApi: MiddlewareBuilderApi<S> = {
+    getDefaultMiddleware,
+    defaultMiddleware
+  }
+
   const {
     reducer = undefined,
-    middleware = getDefaultMiddleware(),
+    middleware = defaultMiddleware,
     devTools = true,
     preloadedState = undefined,
     enhancers = undefined
@@ -144,7 +157,11 @@ export function configureStore<
     )
   }
 
-  const middlewareEnhancer = applyMiddleware(...middleware)
+  const middlewareEnhancer = applyMiddleware(
+    ...(typeof middleware === 'function'
+      ? middleware(middlewareBuilderApi)
+      : middleware)
+  )
 
   let finalCompose = compose
 
