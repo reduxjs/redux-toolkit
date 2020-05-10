@@ -9,7 +9,8 @@ import { AnyAction } from 'redux'
 
 const middlewareApi = {
   getState: expect.any(Function),
-  dispatch: expect.any(Function)
+  dispatch: expect.any(Function),
+  stopPropagation: expect.any(Function)
 }
 
 const noop = () => {}
@@ -222,27 +223,12 @@ describe('createActionListenerMiddleware', () => {
     expect(reducer.mock.calls).toEqual([[{}, testAction1('a')]])
   })
 
-  test('"preventPropagation" prevents actions from being forwarded to the store', () => {
+  test('calling `api.stopPropagation` in the listeners prevents actions from being forwarded to the store', () => {
     reducer.mockClear()
 
-    const listener = jest.fn((_: TestAction1) => {})
-
-    middleware.addListener(testAction1, listener, { preventPropagation: true })
-
-    store.dispatch(testAction1('a'))
-
-    expect(reducer.mock.calls).toEqual([])
-  })
-
-  test('combining "preventPropagation" and "condition', () => {
-    reducer.mockClear()
-
-    const listener = jest.fn((_: TestAction1) => {})
-
-    middleware.addListener(testAction1, listener, {
-      preventPropagation: true,
-      condition(action) {
-        return action.payload === 'b'
+    middleware.addListener(testAction1, (action: TestAction1, api) => {
+      if (action.payload === 'b') {
+        api.stopPropagation()
       }
     })
 

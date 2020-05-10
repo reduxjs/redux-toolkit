@@ -2,11 +2,24 @@ import { Middleware, Dispatch, AnyAction, MiddlewareAPI, Action } from 'redux'
 import { TypedActionCreator } from './mapBuilders'
 import { createAction, BaseActionCreator } from './createAction'
 
-type ActionListener<A extends AnyAction, S, D extends Dispatch<AnyAction>> = (
-  action: A,
-  api: MiddlewareAPI<D, S>
-) => void
-interface ActionListenerOptions<
+/**
+ * @alpha
+ */
+export interface ActionListenerMiddlewareAPI<S, D extends Dispatch<AnyAction>>
+  extends MiddlewareAPI<D, S> {
+  stopPropagation(): void
+}
+
+/**
+ * @alpha
+ */
+export type ActionListener<
+  A extends AnyAction,
+  S,
+  D extends Dispatch<AnyAction>
+> = (action: A, api: ActionListenerMiddlewareAPI<S, D>) => void
+
+export interface ActionListenerOptions<
   A extends AnyAction,
   S,
   _ extends Dispatch<AnyAction>
@@ -16,20 +29,12 @@ interface ActionListenerOptions<
    */
   once?: boolean
   /**
-   * If set to true, the action will not be forwarded to
-   * * listeners that were registered after this listener
-   * * middlewares later in the middleware chain
-   * * reducers
-   * If this listener is skipped due to `options.condition`, this has no effect.
-   */
-  preventPropagation?: boolean
-  /**
    * A function that determines if the listener should run, depending on the action and probably the state.
    */
   condition?(action: A, getState: () => S): boolean
 }
 
-interface AddListenerAction<
+export interface AddListenerAction<
   A extends AnyAction,
   S,
   D extends Dispatch<AnyAction>
@@ -172,11 +177,17 @@ export function createActionListenerMiddleware<
     if (listeners) {
       for (const entry of listeners) {
         if (!entry.condition || entry.condition(action, api.getState)) {
-          entry.listener(action, api)
+          let preventPropagation = false
+          entry.listener(action, {
+            ...api,
+            stopPropagation() {
+              preventPropagation = true
+            }
+          })
           if (entry.once) {
             listeners.delete(entry)
           }
-          if (entry.preventPropagation) {
+          if (preventPropagation) {
             return action
           }
         }

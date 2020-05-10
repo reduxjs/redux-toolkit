@@ -51,6 +51,15 @@ export interface ActionCreatorWithPreparedPayload<Args extends unknown[], P, T e
     (...args: Args): PayloadAction<P, T, M, E>;
 }
 
+// @alpha (undocumented)
+export type ActionListener<A extends AnyAction, S, D extends Dispatch<AnyAction>> = (action: A, api: ActionListenerMiddlewareAPI<S, D>) => void;
+
+// @alpha (undocumented)
+export interface ActionListenerMiddlewareAPI<S, D extends Dispatch<AnyAction>> extends MiddlewareAPI<D, S> {
+    // (undocumented)
+    stopPropagation(): void;
+}
+
 // @public
 export interface ActionReducerMapBuilder<State> {
     addCase<ActionCreator extends TypedActionCreator<string>>(actionCreator: ActionCreator, reducer: CaseReducer<State, ReturnType<ActionCreator>>): ActionReducerMapBuilder<State>;

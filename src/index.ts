@@ -107,7 +107,9 @@ export {
 export {
   createActionListenerMiddleware,
   addListenerAction,
-  removeListenerAction
+  removeListenerAction,
+  ActionListener,
+  ActionListenerMiddlewareAPI
 } from './createActionListenerMiddleware'
 
 export { nanoid } from './nanoid'
