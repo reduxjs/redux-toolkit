@@ -2,7 +2,8 @@ import { configureStore } from './configureStore'
 import {
   createActionListenerMiddleware,
   addListenerAction,
-  removeListenerAction
+  removeListenerAction,
+  When
 } from './createActionListenerMiddleware'
 import { createAction } from './createAction'
 import { AnyAction } from 'redux'
@@ -211,6 +212,33 @@ describe('createActionListenerMiddleware', () => {
     expect(listener.mock.calls).toEqual([[testAction1('b'), middlewareApi]])
   })
 
+  const whenMap: [When, string, string][] = [
+    [undefined, 'listener', 'reducer'],
+    ['before', 'listener', 'reducer'],
+    ['after', 'reducer', 'listener']
+  ]
+  test.each(whenMap)(
+    'with "when" set to %s, %s runs before %s',
+    (when, _, shouldRunLast) => {
+      let whoRanLast = ''
+
+      reducer.mockClear()
+      reducer.mockImplementationOnce(() => {
+        whoRanLast = 'reducer'
+      })
+      const listener = jest.fn(() => {
+        whoRanLast = 'listener'
+      })
+
+      middleware.addListener(testAction1, listener, when ? { when } : {})
+
+      store.dispatch(testAction1('a'))
+      expect(reducer).toHaveBeenCalledTimes(1)
+      expect(listener).toHaveBeenCalledTimes(1)
+      expect(whoRanLast).toBe(shouldRunLast)
+    }
+  )
+
   test('by default, actions are forwarded to the store', () => {
     reducer.mockClear()
 
@@ -240,5 +268,27 @@ describe('createActionListenerMiddleware', () => {
       [{}, testAction1('a')],
       [{}, testAction1('c')]
     ])
+  })
+
+  test('calling `api.stopPropagation` with `when` set to "after" causes an error to be thrown', () => {
+    reducer.mockClear()
+
+    middleware.addListener(
+      testAction1,
+      (action: TestAction1, api) => {
+        if (action.payload === 'b') {
+          // @ts-ignore TypeScript would already prevent this from being called with "after"
+          api.stopPropagation()
+        }
+      },
+      { when: 'after' }
+    )
+
+    store.dispatch(testAction1('a'))
+    expect(() => {
+      store.dispatch(testAction1('b'))
+    }).toThrowErrorMatchingInlineSnapshot(
+      `"stopPropagation can only be called by action listeners with the \`when\` option set to \\"before\\""`
+    )
   })
 })

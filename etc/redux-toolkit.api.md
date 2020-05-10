@@ -52,12 +52,12 @@ export interface ActionCreatorWithPreparedPayload<Args extends unknown[], P, T e
 }
 
 // @alpha (undocumented)
-export type ActionListener<A extends AnyAction, S, D extends Dispatch<AnyAction>> = (action: A, api: ActionListenerMiddlewareAPI<S, D>) => void;
+export type ActionListener<A extends AnyAction, S, D extends Dispatch<AnyAction>, O extends ActionListenerOptions<any, any, any, any>> = (action: A, api: ActionListenerMiddlewareAPI<S, D, O>) => void;
 
 // @alpha (undocumented)
-export interface ActionListenerMiddlewareAPI<S, D extends Dispatch<AnyAction>> extends MiddlewareAPI<D, S> {
+export interface ActionListenerMiddlewareAPI<S, D extends Dispatch<AnyAction>, O extends ActionListenerOptions<any, any, any, any>> extends MiddlewareAPI<D, S> {
     // (undocumented)
-    stopPropagation(): void;
+    stopPropagation: WhenFromOptions<O> extends 'after' ? undefined : () => void;
 }
 
 // @public
@@ -72,11 +72,11 @@ export type Actions<T extends keyof any = string> = Record<T, Action>;
 // @alpha (undocumented)
 export const addListenerAction: BaseActionCreator<{
     type: string;
-    listener: ActionListener<any, any, any>;
-    options: ActionListenerOptions<any, any, any>;
+    listener: ActionListener<any, any, any, any>;
+    options: ActionListenerOptions<any, any, any, "before">;
 }, "actionListenerMiddleware/add", never, never> & {
-    <C extends TypedActionCreator<any>, S, D extends Dispatch<AnyAction>>(actionCreator: C, listener: ActionListener<ReturnType<C>, S, D>, options?: ActionListenerOptions<ReturnType<C>, S, D> | undefined): AddListenerAction<ReturnType<C>, S, D>;
-    <S_1, D_1 extends Dispatch<AnyAction>>(type: string, listener: ActionListener<AnyAction, S_1, D_1>, options?: ActionListenerOptions<AnyAction, S_1, D_1> | undefined): AddListenerAction<AnyAction, S_1, D_1>;
+    <C extends TypedActionCreator<any>, S, D extends Dispatch<AnyAction>, O extends ActionListenerOptions<ReturnType<C>, S, D, When>>(actionCreator: C, listener: ActionListener<ReturnType<C>, S, D, O>, options?: O | undefined): AddListenerAction<ReturnType<C>, S, D, O>;
+    <S_1, D_1 extends Dispatch<AnyAction>, O_1 extends ActionListenerOptions<AnyAction, S_1, D_1, When>>(type: string, listener: ActionListener<AnyAction, S_1, D_1, O_1>, options?: O_1 | undefined): AddListenerAction<AnyAction, S_1, D_1, O_1>;
 };
 
 // @public
@@ -146,12 +146,12 @@ export function createAction<PA extends PrepareAction<any>, T extends string = s
 // @alpha (undocumented)
 export function createActionListenerMiddleware<S, D extends Dispatch<AnyAction> = Dispatch>(): Middleware<(action: Action<"actionListenerMiddleware/add">) => () => void, S, D> & {
     addListener: {
-        <C extends TypedActionCreator<any>>(actionCreator: C, listener: ActionListener<ReturnType<C>, S, D>, options?: ActionListenerOptions<ReturnType<C>, S, D> | undefined): () => void;
-        (type: string, listener: ActionListener<AnyAction, S, D>, options?: ActionListenerOptions<AnyAction, S, D> | undefined): () => void;
+        <C extends TypedActionCreator<any>, O extends ActionListenerOptions<ReturnType<C>, S, D, When>>(actionCreator: C, listener: ActionListener<ReturnType<C>, S, D, O>, options?: O | undefined): () => void;
+        <T extends string, O_1 extends ActionListenerOptions<Action<T>, S, D, When>>(type: T, listener: ActionListener<Action<T>, S, D, O_1>, options?: O_1 | undefined): () => void;
     };
     removeListener: {
-        <C_1 extends TypedActionCreator<any>>(actionCreator: C_1, listener: ActionListener<ReturnType<C_1>, S, D>): boolean;
-        (type: string, listener: ActionListener<AnyAction, S, D>): boolean;
+        <C_1 extends TypedActionCreator<any>>(actionCreator: C_1, listener: ActionListener<ReturnType<C_1>, S, D, any>): boolean;
+        (type: string, listener: ActionListener<AnyAction, S, D, any>): boolean;
     };
 };
 
@@ -377,10 +377,10 @@ export type PrepareAction<P> = ((...args: any[]) => {
 // @alpha (undocumented)
 export const removeListenerAction: BaseActionCreator<{
     type: string;
-    listener: ActionListener<any, any, any>;
+    listener: ActionListener<any, any, any, any>;
 }, "actionListenerMiddleware/remove", never, never> & {
-    <C extends TypedActionCreator<any>, S, D extends Dispatch<AnyAction>>(actionCreator: C, listener: ActionListener<ReturnType<C>, S, D>): RemoveListenerAction<ReturnType<C>, S, D>;
-    <S_1, D_1 extends Dispatch<AnyAction>>(type: string, listener: ActionListener<AnyAction, S_1, D_1>): RemoveListenerAction<AnyAction, S_1, D_1>;
+    <C extends TypedActionCreator<any>, S, D extends Dispatch<AnyAction>>(actionCreator: C, listener: ActionListener<ReturnType<C>, S, D, any>): RemoveListenerAction<ReturnType<C>, S, D>;
+    <S_1, D_1 extends Dispatch<AnyAction>>(type: string, listener: ActionListener<AnyAction, S_1, D_1, any>): RemoveListenerAction<AnyAction, S_1, D_1>;
 };
 
 export { Selector }

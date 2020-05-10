@@ -2,12 +2,20 @@ import { Middleware, Dispatch, AnyAction, MiddlewareAPI, Action } from 'redux'
 import { TypedActionCreator } from './mapBuilders'
 import { createAction, BaseActionCreator } from './createAction'
 
+export type When = 'before' | 'after' | undefined
+type WhenFromOptions<
+  O extends ActionListenerOptions<any, any, any, any>
+> = O extends ActionListenerOptions<any, any, any, infer W> ? W : never
+
 /**
  * @alpha
  */
-export interface ActionListenerMiddlewareAPI<S, D extends Dispatch<AnyAction>>
-  extends MiddlewareAPI<D, S> {
-  stopPropagation(): void
+export interface ActionListenerMiddlewareAPI<
+  S,
+  D extends Dispatch<AnyAction>,
+  O extends ActionListenerOptions<any, any, any, any>
+> extends MiddlewareAPI<D, S> {
+  stopPropagation: WhenFromOptions<O> extends 'after' ? undefined : () => void
 }
 
 /**
@@ -16,13 +24,15 @@ export interface ActionListenerMiddlewareAPI<S, D extends Dispatch<AnyAction>>
 export type ActionListener<
   A extends AnyAction,
   S,
-  D extends Dispatch<AnyAction>
-> = (action: A, api: ActionListenerMiddlewareAPI<S, D>) => void
+  D extends Dispatch<AnyAction>,
+  O extends ActionListenerOptions<any, any, any, any>
+> = (action: A, api: ActionListenerMiddlewareAPI<S, D, O>) => void
 
 export interface ActionListenerOptions<
   A extends AnyAction,
   S,
-  _ extends Dispatch<AnyAction>
+  _ extends Dispatch<AnyAction>,
+  W extends When = 'before'
 > {
   /**
    * Indicates that the listener should be removed after if has run once.
@@ -32,18 +42,25 @@ export interface ActionListenerOptions<
    * A function that determines if the listener should run, depending on the action and probably the state.
    */
   condition?(action: A, getState: () => S): boolean
+  /**
+   * Determines if the listener runs 'before' or 'after' the reducers have been called.
+   * If set to 'before', calling `api.stopPropagation()` from the listener becomes possible.
+   * Defaults to 'before'.
+   */
+  when?: W
 }
 
 export interface AddListenerAction<
   A extends AnyAction,
   S,
-  D extends Dispatch<AnyAction>
+  D extends Dispatch<AnyAction>,
+  O extends ActionListenerOptions<A, S, D, When>
 > {
   type: 'actionListenerMiddleware/add'
   payload: {
     type: string
-    listener: ActionListener<A, S, D>
-    options?: ActionListenerOptions<A, S, D>
+    listener: ActionListener<A, S, D, O>
+    options?: O
   }
 }
 
@@ -54,7 +71,7 @@ export const addListenerAction = createAction(
   'actionListenerMiddleware/add',
   function prepare(
     typeOrActionCreator: string | TypedActionCreator<string>,
-    listener: ActionListener<any, any, any>,
+    listener: ActionListener<any, any, any, any>,
     options?: ActionListenerOptions<AnyAction, any, any>
   ) {
     const type =
@@ -73,22 +90,31 @@ export const addListenerAction = createAction(
 ) as BaseActionCreator<
   {
     type: string
-    listener: ActionListener<any, any, any>
+    listener: ActionListener<any, any, any, any>
     options: ActionListenerOptions<any, any, any>
   },
   'actionListenerMiddleware/add'
 > & {
-  <C extends TypedActionCreator<any>, S, D extends Dispatch>(
+  <
+    C extends TypedActionCreator<any>,
+    S,
+    D extends Dispatch,
+    O extends ActionListenerOptions<ReturnType<C>, S, D, When>
+  >(
     actionCreator: C,
-    listener: ActionListener<ReturnType<C>, S, D>,
-    options?: ActionListenerOptions<ReturnType<C>, S, D>
-  ): AddListenerAction<ReturnType<C>, S, D>
+    listener: ActionListener<ReturnType<C>, S, D, O>,
+    options?: O
+  ): AddListenerAction<ReturnType<C>, S, D, O>
 
-  <S, D extends Dispatch>(
+  <
+    S,
+    D extends Dispatch,
+    O extends ActionListenerOptions<AnyAction, S, D, When>
+  >(
     type: string,
-    listener: ActionListener<AnyAction, S, D>,
-    options?: ActionListenerOptions<AnyAction, S, D>
-  ): AddListenerAction<AnyAction, S, D>
+    listener: ActionListener<AnyAction, S, D, O>,
+    options?: O
+  ): AddListenerAction<AnyAction, S, D, O>
 }
 
 interface RemoveListenerAction<
@@ -99,7 +125,7 @@ interface RemoveListenerAction<
   type: 'actionListenerMiddleware/remove'
   payload: {
     type: string
-    listener: ActionListener<A, S, D>
+    listener: ActionListener<A, S, D, any>
   }
 }
 
@@ -110,7 +136,7 @@ export const removeListenerAction = createAction(
   'actionListenerMiddleware/remove',
   function prepare(
     typeOrActionCreator: string | TypedActionCreator<string>,
-    listener: ActionListener<any, any, any>
+    listener: ActionListener<any, any, any, any>
   ) {
     const type =
       typeof typeOrActionCreator === 'string'
@@ -125,17 +151,17 @@ export const removeListenerAction = createAction(
     }
   }
 ) as BaseActionCreator<
-  { type: string; listener: ActionListener<any, any, any> },
+  { type: string; listener: ActionListener<any, any, any, any> },
   'actionListenerMiddleware/remove'
 > & {
   <C extends TypedActionCreator<any>, S, D extends Dispatch>(
     actionCreator: C,
-    listener: ActionListener<ReturnType<C>, S, D>
+    listener: ActionListener<ReturnType<C>, S, D, any>
   ): RemoveListenerAction<ReturnType<C>, S, D>
 
   <S, D extends Dispatch>(
     type: string,
-    listener: ActionListener<AnyAction, S, D>
+    listener: ActionListener<AnyAction, S, D, any>
   ): RemoveListenerAction<AnyAction, S, D>
 }
 
@@ -146,8 +172,8 @@ export function createActionListenerMiddleware<
   S,
   D extends Dispatch<AnyAction> = Dispatch
 >() {
-  type ListenerEntry = ActionListenerOptions<any, S, D> & {
-    listener: ActionListener<any, S, D>
+  type ListenerEntry = ActionListenerOptions<any, S, D, When> & {
+    listener: ActionListener<any, S, D, any>
   }
 
   const listenerMap: Record<string, Set<ListenerEntry> | undefined> = {}
@@ -177,18 +203,35 @@ export function createActionListenerMiddleware<
     if (listeners) {
       for (const entry of listeners) {
         if (!entry.condition || entry.condition(action, api.getState)) {
-          let preventPropagation = false
-          entry.listener(action, {
-            ...api,
-            stopPropagation() {
-              preventPropagation = true
-            }
-          })
           if (entry.once) {
             listeners.delete(entry)
           }
-          if (preventPropagation) {
-            return action
+
+          if (entry.when != 'after') {
+            /* before */
+            let stoppedPropagation = false
+            entry.listener(action, {
+              ...api,
+              stopPropagation() {
+                stoppedPropagation = true
+              }
+            })
+            if (stoppedPropagation) {
+              return action
+            }
+            return next(action)
+          } else {
+            /* after */
+            const result = next(action)
+            entry.listener(action, {
+              ...api,
+              stopPropagation: () => {
+                throw new Error(
+                  'stopPropagation can only be called by action listeners with the `when` option set to "before"'
+                )
+              }
+            })
+            return result
           }
         }
       }
@@ -198,20 +241,26 @@ export function createActionListenerMiddleware<
 
   type Unsubscribe = () => void
 
-  function addListener<C extends TypedActionCreator<any>>(
+  function addListener<
+    C extends TypedActionCreator<any>,
+    O extends ActionListenerOptions<ReturnType<C>, S, D, When>
+  >(
     actionCreator: C,
-    listener: ActionListener<ReturnType<C>, S, D>,
-    options?: ActionListenerOptions<ReturnType<C>, S, D>
+    listener: ActionListener<ReturnType<C>, S, D, O>,
+    options?: O
   ): Unsubscribe
-  function addListener(
-    type: string,
-    listener: ActionListener<AnyAction, S, D>,
-    options?: ActionListenerOptions<AnyAction, S, D>
+  function addListener<
+    T extends string,
+    O extends ActionListenerOptions<Action<T>, S, D, When>
+  >(
+    type: T,
+    listener: ActionListener<Action<T>, S, D, O>,
+    options?: O
   ): Unsubscribe
   function addListener(
     typeOrActionCreator: string | TypedActionCreator<any>,
-    listener: ActionListener<AnyAction, S, D>,
-    options?: ActionListenerOptions<AnyAction, S, D>
+    listener: ActionListener<AnyAction, S, D, any>,
+    options?: ActionListenerOptions<AnyAction, S, D, When>
   ): Unsubscribe {
     const type =
       typeof typeOrActionCreator === 'string'
@@ -243,15 +292,15 @@ export function createActionListenerMiddleware<
 
   function removeListener<C extends TypedActionCreator<any>>(
     actionCreator: C,
-    listener: ActionListener<ReturnType<C>, S, D>
+    listener: ActionListener<ReturnType<C>, S, D, any>
   ): boolean
   function removeListener(
     type: string,
-    listener: ActionListener<AnyAction, S, D>
+    listener: ActionListener<AnyAction, S, D, any>
   ): boolean
   function removeListener(
     typeOrActionCreator: string | TypedActionCreator<any>,
-    listener: ActionListener<AnyAction, S, D>
+    listener: ActionListener<AnyAction, S, D, any>
   ): boolean {
     const type =
       typeof typeOrActionCreator === 'string'
