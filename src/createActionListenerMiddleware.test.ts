@@ -51,11 +51,6 @@ describe('createActionListenerMiddleware', () => {
   })
 
   test('subscribing with the same listener will not make it trigger twice (like EventTarget.addEventListener())', () => {
-    /**
-     * thoughts: allow to use this to override the options for a listener?
-     * right now it's just exiting if the listener is already registered
-     */
-
     const listener = jest.fn((_: TestAction1) => {})
 
     middleware.addListener(testAction1, listener)
