@@ -239,6 +239,63 @@ describe('createActionListenerMiddleware', () => {
     }
   )
 
+  test('mixing "before" and "after"', () => {
+    const calls: Function[] = []
+    function before1() {
+      calls.push(before1)
+    }
+    function before2() {
+      calls.push(before2)
+    }
+    function after1() {
+      calls.push(after1)
+    }
+    function after2() {
+      calls.push(after2)
+    }
+
+    middleware.addListener(testAction1, before1)
+    middleware.addListener(testAction1, before2, { when: 'before' })
+    middleware.addListener(testAction1, after1, { when: 'after' })
+    middleware.addListener(testAction1, after2, { when: 'after' })
+
+    store.dispatch(testAction1('a'))
+    store.dispatch(testAction2('a'))
+
+    expect(calls).toEqual([before1, before2, after1, after2])
+  })
+
+  test('mixing "before" and "after" with stopPropagation', () => {
+    const calls: Function[] = []
+    function before1() {
+      calls.push(before1)
+    }
+    function before2(_: any, api: any) {
+      calls.push(before2)
+      api.stopPropagation()
+    }
+    function before3() {
+      calls.push(before3)
+    }
+    function after1() {
+      calls.push(after1)
+    }
+    function after2() {
+      calls.push(after2)
+    }
+
+    middleware.addListener(testAction1, before1)
+    middleware.addListener(testAction1, before2, { when: 'before' })
+    middleware.addListener(testAction1, before3, { when: 'before' })
+    middleware.addListener(testAction1, after1, { when: 'after' })
+    middleware.addListener(testAction1, after2, { when: 'after' })
+
+    store.dispatch(testAction1('a'))
+    store.dispatch(testAction2('a'))
+
+    expect(calls).toEqual([before1, before2])
+  })
+
   test('by default, actions are forwarded to the store', () => {
     reducer.mockClear()
 

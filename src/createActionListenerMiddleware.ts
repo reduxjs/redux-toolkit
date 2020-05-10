@@ -201,40 +201,55 @@ export function createActionListenerMiddleware<
 
     const listeners = listenerMap[action.type]
     if (listeners) {
+      /* before */
       for (const entry of listeners) {
+        if (entry.when == 'after') {
+          continue
+        }
+
         if (!entry.condition || entry.condition(action, api.getState)) {
           if (entry.once) {
             listeners.delete(entry)
           }
 
-          if (entry.when != 'after') {
-            /* before */
-            let stoppedPropagation = false
-            entry.listener(action, {
-              ...api,
-              stopPropagation() {
-                stoppedPropagation = true
-              }
-            })
-            if (stoppedPropagation) {
-              return action
+          let stoppedPropagation = false
+          entry.listener(action, {
+            ...api,
+            stopPropagation() {
+              stoppedPropagation = true
             }
-            return next(action)
-          } else {
-            /* after */
-            const result = next(action)
-            entry.listener(action, {
-              ...api,
-              stopPropagation: () => {
-                throw new Error(
-                  'stopPropagation can only be called by action listeners with the `when` option set to "before"'
-                )
-              }
-            })
-            return result
+          })
+          if (stoppedPropagation) {
+            return action
           }
         }
       }
+
+      const result = next(action)
+
+      /* after */
+      for (const entry of listeners) {
+        if (entry.when != 'after') {
+          continue
+        }
+        if (!entry.condition || entry.condition(action, api.getState)) {
+          if (entry.once) {
+            listeners.delete(entry)
+          }
+
+          /* after */
+          entry.listener(action, {
+            ...api,
+            stopPropagation: () => {
+              throw new Error(
+                'stopPropagation can only be called by action listeners with the `when` option set to "before"'
+              )
+            }
+          })
+        }
+      }
+
+      return result
     }
     return next(action)
   }
