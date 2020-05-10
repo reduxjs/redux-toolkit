@@ -270,4 +270,21 @@ import thunk, { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
     // typings:expect-error
     store.dispatch(function() {} as ThunkAction<void, {}, boolean, AnyAction>)
   }
+
+  /**
+   * Test: custom middleware and getDefaultMiddleware
+   */
+  {
+    const store = configureStore({
+      reducer: reducerA,
+      middleware: [
+        ((() => {}) as any) as Middleware<(a: 'a') => 'A', StateA>,
+        ...getDefaultMiddleware<StateA>()
+      ] as const
+    })
+    const result1: 'A' = store.dispatch('a')
+    const result2: Promise<'A'> = store.dispatch(thunkA())
+    // typings:expect-error
+    store.dispatch(thunkB())
+  }
 }
