@@ -1,6 +1,7 @@
 import { Middleware, Dispatch, AnyAction, MiddlewareAPI, Action } from 'redux'
 import { TypedActionCreator } from './mapBuilders'
 import { createAction, BaseActionCreator } from './createAction'
+import { WithMiddlewareType } from './tsHelpers'
 
 export type When = 'before' | 'after' | undefined
 type WhenFromOptions<
@@ -349,5 +350,9 @@ export function createActionListenerMiddleware<
     }
   }
 
-  return Object.assign(middleware, { addListener, removeListener })
+  return Object.assign(
+    middleware,
+    { addListener, removeListener },
+    {} as WithMiddlewareType<typeof middleware>
+  )
 }

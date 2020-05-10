@@ -153,7 +153,7 @@ export function createActionListenerMiddleware<S, D extends Dispatch<AnyAction> 
         <C_1 extends TypedActionCreator<any>>(actionCreator: C_1, listener: ActionListener<ReturnType<C_1>, S, D, any>): boolean;
         (type: string, listener: ActionListener<AnyAction, S, D, any>): boolean;
     };
-};
+} & WithMiddlewareType<Middleware<(action: Action<"actionListenerMiddleware/add">) => () => void, S, D>>;
 
 // @public (undocumented)
 export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}>(typePrefix: string, payloadCreator: (arg: ThunkArg, thunkAPI: GetThunkAPI<ThunkApiConfig>) => Promise<Returned | RejectWithValue<GetRejectValue<ThunkApiConfig>>> | Returned | RejectWithValue<GetRejectValue<ThunkApiConfig>>, options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>): IsAny<ThunkArg, (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>, unknown extends ThunkArg ? (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> : [ThunkArg] extends [void] | [undefined] ? () => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> : [void] extends [ThunkArg] ? (arg?: ThunkArg | undefined) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> : [undefined] extends [ThunkArg] ? (arg?: ThunkArg | undefined) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> : (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>> & {

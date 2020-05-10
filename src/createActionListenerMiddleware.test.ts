@@ -120,7 +120,6 @@ describe('createActionListenerMiddleware', () => {
     const unsubscribe = store.dispatch(addListenerAction(testAction1, listener))
 
     store.dispatch(testAction1('a'))
-    // @ts-ignore TODO types
     unsubscribe()
     store.dispatch(testAction2('b'))
     store.dispatch(testAction1('c'))
