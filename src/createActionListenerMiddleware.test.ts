@@ -3,7 +3,8 @@ import {
   createActionListenerMiddleware,
   addListenerAction,
   removeListenerAction,
-  When
+  When,
+  ActionListenerMiddlewareAPI
 } from './createActionListenerMiddleware'
 import { createAction } from './createAction'
 import { AnyAction } from 'redux'
@@ -11,7 +12,8 @@ import { AnyAction } from 'redux'
 const middlewareApi = {
   getState: expect.any(Function),
   dispatch: expect.any(Function),
-  stopPropagation: expect.any(Function)
+  stopPropagation: expect.any(Function),
+  unsubscribe: expect.any(Function)
 }
 
 const noop = () => {}
@@ -161,14 +163,19 @@ describe('createActionListenerMiddleware', () => {
     }
   )
 
-  test('"condition" allows to skip the listener', () => {
-    const listener = jest.fn((_: TestAction1) => {})
-
-    middleware.addListener(testAction1, listener, {
-      condition(action) {
-        return action.payload !== 'b'
+  test('"can unsubscribe via middleware api', () => {
+    const listener = jest.fn(
+      (
+        action: TestAction1,
+        api: ActionListenerMiddlewareAPI<any, any, any>
+      ) => {
+        if (action.payload === 'b') {
+          api.unsubscribe()
+        }
       }
-    })
+    )
+
+    middleware.addListener(testAction1, listener)
 
     store.dispatch(testAction1('a'))
     store.dispatch(testAction1('b'))
@@ -176,43 +183,12 @@ describe('createActionListenerMiddleware', () => {
 
     expect(listener.mock.calls).toEqual([
       [testAction1('a'), middlewareApi],
-      [testAction1('c'), middlewareApi]
+      [testAction1('b'), middlewareApi]
     ])
   })
 
-  test('"once" unsubscribes the listener automatically after one use', () => {
-    const listener = jest.fn((_: TestAction1) => {})
-
-    middleware.addListener(testAction1, listener, {
-      once: true
-    })
-
-    store.dispatch(testAction1('a'))
-    store.dispatch(testAction1('b'))
-    store.dispatch(testAction1('c'))
-
-    expect(listener.mock.calls).toEqual([[testAction1('a'), middlewareApi]])
-  })
-
-  test('combining "once" with "condition', () => {
-    const listener = jest.fn((_: TestAction1) => {})
-
-    middleware.addListener(testAction1, listener, {
-      once: true,
-      condition(action) {
-        return action.payload === 'b'
-      }
-    })
-
-    store.dispatch(testAction1('a'))
-    store.dispatch(testAction1('b'))
-    store.dispatch(testAction1('c'))
-
-    expect(listener.mock.calls).toEqual([[testAction1('b'), middlewareApi]])
-  })
-
   const whenMap: [When, string, string][] = [
-    [undefined, 'listener', 'reducer'],
+    [undefined, 'reducer', 'listener'],
     ['before', 'listener', 'reducer'],
     ['after', 'reducer', 'listener']
   ]
@@ -253,7 +229,7 @@ describe('createActionListenerMiddleware', () => {
       calls.push(after2)
     }
 
-    middleware.addListener(testAction1, before1)
+    middleware.addListener(testAction1, before1, { when: 'before' })
     middleware.addListener(testAction1, before2, { when: 'before' })
     middleware.addListener(testAction1, after1, { when: 'after' })
     middleware.addListener(testAction1, after2, { when: 'after' })
@@ -283,7 +259,7 @@ describe('createActionListenerMiddleware', () => {
       calls.push(after2)
     }
 
-    middleware.addListener(testAction1, before1)
+    middleware.addListener(testAction1, before1, { when: 'before' })
     middleware.addListener(testAction1, before2, { when: 'before' })
     middleware.addListener(testAction1, before3, { when: 'before' })
     middleware.addListener(testAction1, after1, { when: 'after' })
@@ -310,11 +286,15 @@ describe('createActionListenerMiddleware', () => {
   test('calling `api.stopPropagation` in the listeners prevents actions from being forwarded to the store', () => {
     reducer.mockClear()
 
-    middleware.addListener(testAction1, (action: TestAction1, api) => {
-      if (action.payload === 'b') {
-        api.stopPropagation()
-      }
-    })
+    middleware.addListener(
+      testAction1,
+      (action: TestAction1, api) => {
+        if (action.payload === 'b') {
+          api.stopPropagation()
+        }
+      },
+      { when: 'before' }
+    )
 
     store.dispatch(testAction1('a'))
     store.dispatch(testAction1('b'))
@@ -346,5 +326,29 @@ describe('createActionListenerMiddleware', () => {
     }).toThrowErrorMatchingInlineSnapshot(
       `"stopPropagation can only be called by action listeners with the \`when\` option set to \\"before\\""`
     )
+  })
+
+  test('calling `api.stopPropagation` asynchronously causes an error to be thrown', finish => {
+    reducer.mockClear()
+
+    middleware.addListener(
+      testAction1,
+      (action: TestAction1, api) => {
+        if (action.payload === 'b') {
+          setTimeout(() => {
+            expect(() => {
+              api.stopPropagation()
+            }).toThrowErrorMatchingInlineSnapshot(
+              `"stopPropagation can only be called synchronously"`
+            )
+            finish()
+          })
+        }
+      },
+      { when: 'before' }
+    )
+
+    store.dispatch(testAction1('a'))
+    store.dispatch(testAction1('b'))
   })
 })
