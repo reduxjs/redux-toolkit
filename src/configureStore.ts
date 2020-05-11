@@ -37,11 +37,6 @@ export type ConfigureEnhancersCallback = (
   defaultEnhancers: StoreEnhancer[]
 ) => StoreEnhancer[]
 
-type MiddlewareBuilderApi<S> = {
-  defaultMiddleware: ThunkMiddlewareFor<S>[]
-  getDefaultMiddleware: CurriedGetDefaultMiddleware<S>
-}
-
 /**
  * Options for `configureStore()`.
  *
@@ -62,7 +57,7 @@ export interface ConfigureStoreOptions<
    * An array of Redux middleware to install. If not supplied, defaults to
    * the set of middleware returned by `getDefaultMiddleware()`.
    */
-  middleware?: ((api: MiddlewareBuilderApi<S>) => M) | M
+  middleware?: ((getDefaultMiddleware: CurriedGetDefaultMiddleware<S>) => M) | M
 
   /**
    * Whether to enable Redux DevTools integration. Defaults to `true`.
@@ -130,16 +125,11 @@ export function configureStore<
   A extends Action = AnyAction,
   M extends Middlewares<S> = [ThunkMiddlewareFor<S>]
 >(options: ConfigureStoreOptions<S, A, M>): EnhancedStore<S, A, M> {
-  const getDefaultMiddleware = curryGetDefaultMiddleware<S>()
-  const defaultMiddleware = getDefaultMiddleware()
-  const middlewareBuilderApi: MiddlewareBuilderApi<S> = {
-    getDefaultMiddleware,
-    defaultMiddleware
-  }
+  const curriedGetDefaultMiddleware = curryGetDefaultMiddleware<S>()
 
   const {
     reducer = undefined,
-    middleware = defaultMiddleware,
+    middleware = curriedGetDefaultMiddleware(),
     devTools = true,
     preloadedState = undefined,
     enhancers = undefined
@@ -159,7 +149,7 @@ export function configureStore<
 
   const middlewareEnhancer = applyMiddleware(
     ...(typeof middleware === 'function'
-      ? middleware(middlewareBuilderApi)
+      ? middleware(curriedGetDefaultMiddleware)
       : middleware)
   )
 

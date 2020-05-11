@@ -85,14 +85,13 @@ describe('configureStore', () => {
   })
 
   describe('middleware builder notation', () => {
-    it('calls builder, passes middlewareBuilderApi and uses returned middlewares', () => {
+    it('calls builder, passes getDefaultMiddleware and uses returned middlewares', () => {
       const thank = jest.fn((_store => next => action =>
         'foobar') as redux.Middleware)
 
-      const builder = jest.fn(api => {
-        expect(api.defaultMiddleware).toEqual(expect.any(Array))
-        expect(api.getDefaultMiddleware).toEqual(expect.any(Function))
-        expect(api.getDefaultMiddleware()).toEqual(expect.any(Array))
+      const builder = jest.fn(getDefaultMiddleware => {
+        expect(getDefaultMiddleware).toEqual(expect.any(Function))
+        expect(getDefaultMiddleware()).toEqual(expect.any(Array))
 
         return [thank]
       })
