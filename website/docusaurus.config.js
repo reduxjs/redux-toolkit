@@ -84,7 +84,7 @@ module.exports = {
           ]
         }
       ],
-      copyright: `Copyright (c) 2015-present Dan Abramov and the Redux documentation authors.`
+      copyright: `Copyright © 2015–${new Date().getFullYear()} Dan Abramov and the Redux documentation authors.`
     },
     image: 'img/redux-logo-landscape.png',
     navbar: {
