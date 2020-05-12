@@ -31,7 +31,7 @@ Redux Toolkit includes these APIs:
 - [`createReducer()`](../api/createReducer.md): that lets you supply a lookup table of action types to case reducer functions, rather than writing switch statements. In addition, it automatically uses the [`immer` library](https://github.com/mweststrate/immer) to let you write simpler immutable updates with normal mutative code, like `state.todos[3].completed = true`.
 - [`createAction()`](../api/createAction.md): generates an action creator function for the given action type string. The function itself has `toString()` defined, so that it can be used in place of the type constant.
 - [`createSlice()`](../api/createSlice.md): accepts an object of reducer functions, a slice name, and an initial state value, and automatically generates a slice reducer with corresponding action creators and action types.
-- [`createAsyncThunk`](../api/createAsyncThunk.md): accepts an action type string and a function that returns a promise, and generates a thunk that dispatches `pending/resolved/rejected` action types based on that promise
+- [`createAsyncThunk`](../api/createAsyncThunk.md): accepts an action type string and a function that returns a promise, and generates a thunk that dispatches `pending/fulfilled/rejected` action types based on that promise
 - [`createEntityAdapter`](../api/createEntityAdapter.md): generates a set of reusable reducers and selectors to manage normalized data in the store
 - The [`createSelector` utility](../api/createSelector.md) from the [Reselect](https://github.com/reduxjs/reselect) library, re-exported for ease of use.
 
