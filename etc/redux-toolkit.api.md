@@ -279,7 +279,7 @@ export function getDefaultMiddleware<S = any, O extends Partial<GetDefaultMiddle
     thunk: true;
     immutableCheck: true;
     serializableCheck: true;
-}>(options?: O): Array<Middleware<{}, S> | ThunkMiddlewareFor<S, O>>;
+}>(options?: O): MiddlewareArray<Middleware<{}, S> | ThunkMiddlewareFor<S, O>>;
 
 // @public
 export function getType<T extends string>(actionCreator: PayloadActionCreator<any, T>): T;

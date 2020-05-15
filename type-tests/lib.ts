@@ -15,3 +15,13 @@ export function checkDirectory(path: string, bail: boolean = false, depth = 1) {
 
   check(files, tsConfigPath, bail)
 }
+
+export function checkFile(path: string, bail: boolean = false, depth = 1) {
+  const tsConfigPath = findConfigFile(path, sys.fileExists)
+
+  if (!tsConfigPath) {
+    throw new Error(`Cannot find TypeScript config file in ${path}.`)
+  }
+
+  check([path], tsConfigPath, bail)
+}

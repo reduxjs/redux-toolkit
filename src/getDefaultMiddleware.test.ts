@@ -1,5 +1,5 @@
-import { AnyAction } from 'redux'
-import { getDefaultMiddleware } from './getDefaultMiddleware'
+import { AnyAction, Middleware } from 'redux'
+import { getDefaultMiddleware, MiddlewareArray } from './getDefaultMiddleware'
 import { configureStore } from './configureStore'
 import thunk, { ThunkAction } from 'redux-thunk'
 
@@ -114,5 +114,122 @@ describe('getDefaultMiddleware', () => {
     store.dispatch({ type: 'TEST_ACTION' })
 
     expect(serializableCheckWasCalled).toBe(true)
+  })
+})
+
+describe('MiddlewareArray functionality', () => {
+  const middleware1: Middleware = () => next => action => next(action)
+  const middleware2: Middleware = () => next => action => next(action)
+  const defaultMiddleware = getDefaultMiddleware()
+  const originalDefaultMiddleware = [...defaultMiddleware]
+
+  test('allows to prepend a single value', () => {
+    const prepended = defaultMiddleware.prepend(middleware1)
+
+    // value is prepended
+    expect(prepended).toEqual([middleware1, ...defaultMiddleware])
+    // returned value is of correct type
+    expect(prepended).toBeInstanceOf(MiddlewareArray)
+    // prepended is a new array
+    expect(prepended).not.toEqual(defaultMiddleware)
+    // defaultMiddleware is not modified
+    expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
+  })
+
+  test('allows to prepend multiple values (array as first argument)', () => {
+    const prepended = defaultMiddleware.prepend([middleware1, middleware2])
+
+    // value is prepended
+    expect(prepended).toEqual([middleware1, middleware2, ...defaultMiddleware])
+    // returned value is of correct type
+    expect(prepended).toBeInstanceOf(MiddlewareArray)
+    // prepended is a new array
+    expect(prepended).not.toEqual(defaultMiddleware)
+    // defaultMiddleware is not modified
+    expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
+  })
+
+  test('allows to prepend multiple values (rest)', () => {
+    const prepended = defaultMiddleware.prepend(middleware1, middleware2)
+
+    // value is prepended
+    expect(prepended).toEqual([middleware1, middleware2, ...defaultMiddleware])
+    // returned value is of correct type
+    expect(prepended).toBeInstanceOf(MiddlewareArray)
+    // prepended is a new array
+    expect(prepended).not.toEqual(defaultMiddleware)
+    // defaultMiddleware is not modified
+    expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
+  })
+
+  test('allows to concat a single value', () => {
+    const concatenated = defaultMiddleware.concat(middleware1)
+
+    // value is concatenated
+    expect(concatenated).toEqual([...defaultMiddleware, middleware1])
+    // returned value is of correct type
+    expect(concatenated).toBeInstanceOf(MiddlewareArray)
+    // concatenated is a new array
+    expect(concatenated).not.toEqual(defaultMiddleware)
+    // defaultMiddleware is not modified
+    expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
+  })
+
+  test('allows to concat multiple values (array as first argument)', () => {
+    const concatenated = defaultMiddleware.concat([middleware1, middleware2])
+
+    // value is concatenated
+    expect(concatenated).toEqual([
+      ...defaultMiddleware,
+      middleware1,
+      middleware2
+    ])
+    // returned value is of correct type
+    expect(concatenated).toBeInstanceOf(MiddlewareArray)
+    // concatenated is a new array
+    expect(concatenated).not.toEqual(defaultMiddleware)
+    // defaultMiddleware is not modified
+    expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
+  })
+
+  test('allows to concat multiple values (rest)', () => {
+    const concatenated = defaultMiddleware.concat(middleware1, middleware2)
+
+    // value is concatenated
+    expect(concatenated).toEqual([
+      ...defaultMiddleware,
+      middleware1,
+      middleware2
+    ])
+    // returned value is of correct type
+    expect(concatenated).toBeInstanceOf(MiddlewareArray)
+    // concatenated is a new array
+    expect(concatenated).not.toEqual(defaultMiddleware)
+    // defaultMiddleware is not modified
+    expect(defaultMiddleware).toEqual(originalDefaultMiddleware)
+  })
+
+  test('allows to concat and then prepend', () => {
+    const concatenated = defaultMiddleware
+      .concat(middleware1)
+      .prepend(middleware2)
+
+    expect(concatenated).toEqual([
+      middleware2,
+      ...defaultMiddleware,
+      middleware1
+    ])
+  })
+
+  test('allows to prepend and then concat', () => {
+    const concatenated = defaultMiddleware
+      .prepend(middleware2)
+      .concat(middleware1)
+
+    expect(concatenated).toEqual([
+      middleware2,
+      ...defaultMiddleware,
+      middleware1
+    ])
   })
 })

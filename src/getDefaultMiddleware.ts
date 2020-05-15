@@ -47,13 +47,44 @@ export type CurriedGetDefaultMiddleware<S = any> = <
   }
 >(
   options?: O
-) => Array<Middleware<{}, S> | ThunkMiddlewareFor<S, O>>
+) => MiddlewareArray<Middleware<{}, S> | ThunkMiddlewareFor<S, O>>
 
 export function curryGetDefaultMiddleware<
   S = any
 >(): CurriedGetDefaultMiddleware<S> {
   return function curriedGetDefaultMiddleware(options) {
     return getDefaultMiddleware(options)
+  }
+}
+
+export class MiddlewareArray<
+  Middlewares extends Middleware<any, any>
+> extends Array<Middlewares> {
+  concat<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
+    items: AdditionalMiddlewares
+  ): MiddlewareArray<Middlewares | AdditionalMiddlewares[number]>
+
+  concat<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
+    ...items: AdditionalMiddlewares
+  ): MiddlewareArray<Middlewares | AdditionalMiddlewares[number]>
+
+  concat(...arr: any[]) {
+    return new MiddlewareArray(...super.concat(...arr))
+  }
+
+  prepend<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
+    items: AdditionalMiddlewares
+  ): MiddlewareArray<AdditionalMiddlewares[number] | Middlewares>
+
+  prepend<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
+    ...items: AdditionalMiddlewares
+  ): MiddlewareArray<AdditionalMiddlewares[number] | Middlewares>
+
+  prepend(...arr: any[]) {
+    if (arr.length === 1 && Array.isArray(arr[0])) {
+      return new MiddlewareArray(...arr[0].concat(this))
+    }
+    return new MiddlewareArray(...arr.concat(this))
   }
 }
 
@@ -73,14 +104,16 @@ export function getDefaultMiddleware<
     immutableCheck: true
     serializableCheck: true
   }
->(options: O = {} as O): Array<Middleware<{}, S> | ThunkMiddlewareFor<S, O>> {
+>(
+  options: O = {} as O
+): MiddlewareArray<Middleware<{}, S> | ThunkMiddlewareFor<S, O>> {
   const {
     thunk = true,
     immutableCheck = true,
     serializableCheck = true
   } = options
 
-  let middlewareArray: Middleware<{}, S>[] = []
+  let middlewareArray: Middleware<{}, S>[] = new MiddlewareArray()
 
   if (thunk) {
     if (isBoolean(thunk)) {
