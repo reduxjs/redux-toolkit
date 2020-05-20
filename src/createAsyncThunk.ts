@@ -339,6 +339,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
             options.condition &&
             options.condition(arg, { getState, extra }) === false
           ) {
+            abortedPromise.catch(() => {})
             throw {
               name: 'ConditionError',
               message: 'Aborted due to condition callback returning false.'

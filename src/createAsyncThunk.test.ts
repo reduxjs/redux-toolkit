@@ -549,6 +549,21 @@ describe('conditional skipping of asyncThunks', () => {
     expect(dispatch).toHaveBeenCalledTimes(0)
   })
 
+  test('does not throw when attempting to abort a canceled promise', async () => {
+    const asyncPayloadCreator = jest.fn(async (x: typeof arg) => {
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      return 10
+    })
+
+    const asyncThunk = createAsyncThunk('test', asyncPayloadCreator, {
+      condition
+    })
+    const promise = asyncThunk(arg)(dispatch, getState, extra)
+    promise.abort(
+      `If we didn't abortedPromise.catch(), this would crash the tests`
+    )
+  })
+
   test('rejected action can be dispatched via option', async () => {
     const asyncThunk = createAsyncThunk('test', payloadCreator, {
       condition,
