@@ -549,7 +549,7 @@ describe('conditional skipping of asyncThunks', () => {
     expect(dispatch).toHaveBeenCalledTimes(0)
   })
 
-  test('does not throw when attempting to abort a canceled promise', async () => {
+  test('does not fail when attempting to abort a canceled promise', async () => {
     const asyncPayloadCreator = jest.fn(async (x: typeof arg) => {
       await new Promise(resolve => setTimeout(resolve, 2000))
       return 10
@@ -560,7 +560,7 @@ describe('conditional skipping of asyncThunks', () => {
     })
     const promise = asyncThunk(arg)(dispatch, getState, extra)
     promise.abort(
-      `If we didn't abortedPromise.catch(), this would crash the tests`
+      `If the promise was 1. somehow canceled, 2. in a 'started' state and 3. we attempted to abort, this would crash the tests`
     )
   })
 
