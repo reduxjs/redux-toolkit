@@ -481,7 +481,7 @@ const usersSlice = createSlice({
 })
 
 const UsersComponent = () => {
-  const { users, loading, error } = useSelector(state => state.users)
+  const { entities, error } = useSelector(state => state.users)
   const dispatch = useDispatch()
 
   // This is an example of an onSubmit handler using Formik meant to demonstrate accessing the payload of the rejected action
@@ -582,9 +582,7 @@ const usersSlice = createSlice({
 })
 
 const UsersComponent = () => {
-  const { users, loading, error } = useSelector(
-    (state: RootState) => state.users
-  )
+  const { entities, error } = useSelector((state: RootState) => state.users)
   const dispatch: AppDispatch = useDispatch()
 
   // This is an example of an onSubmit handler using Formik meant to demonstrate accessing the payload of the rejected action
