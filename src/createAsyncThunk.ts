@@ -215,6 +215,71 @@ interface AsyncThunkOptions<
   dispatchConditionRejection?: boolean
 }
 
+type AsyncThunkPendingActionCreator<
+  ThunkArg
+> = ActionCreatorWithPreparedPayload<
+  [string, ThunkArg],
+  undefined,
+  string,
+  never,
+  {
+    arg: ThunkArg
+    requestId: string
+  }
+>
+
+type AsyncThunkRejectedActionCreator<
+  ThunkArg,
+  ThunkApiConfig
+> = ActionCreatorWithPreparedPayload<
+  [
+    Error | null,
+    string,
+    ThunkArg,
+    (GetRejectValue<ThunkApiConfig> | undefined)?
+  ],
+  GetRejectValue<ThunkApiConfig> | undefined,
+  string,
+  SerializedError,
+  {
+    arg: ThunkArg
+    requestId: string
+    aborted: boolean
+    condition: boolean
+  }
+>
+
+type AsyncThunkFulfilledActionCreator<
+  Returned,
+  ThunkArg
+> = ActionCreatorWithPreparedPayload<
+  [Returned, string, ThunkArg],
+  Returned,
+  string,
+  never,
+  {
+    arg: ThunkArg
+    requestId: string
+  }
+>
+
+/**
+ * A type describing the return value of `createAsyncThunk`.
+ * Might be useful for wrapping `createAsyncThunk` in custom abstractions.
+ *
+ * @public
+ */
+export type AsyncThunk<
+  Returned,
+  ThunkArg,
+  ThunkApiConfig extends AsyncThunkConfig
+> = AsyncThunkActionCreator<Returned, ThunkArg, ThunkApiConfig> & {
+  pending: AsyncThunkPendingActionCreator<ThunkArg>
+  rejected: AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>
+  fulfilled: AsyncThunkFulfilledActionCreator<Returned, ThunkArg>
+  typePrefix: string
+}
+
 /**
  *
  * @param typePrefix
@@ -229,15 +294,9 @@ export function createAsyncThunk<
   ThunkApiConfig extends AsyncThunkConfig = {}
 >(
   typePrefix: string,
-  payloadCreator: (
-    arg: ThunkArg,
-    thunkAPI: GetThunkAPI<ThunkApiConfig>
-  ) =>
-    | Promise<Returned | RejectWithValue<GetRejectValue<ThunkApiConfig>>>
-    | Returned
-    | RejectWithValue<GetRejectValue<ThunkApiConfig>>,
+  payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>,
   options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
-) {
+): AsyncThunk<Returned, ThunkArg, ThunkApiConfig> {
   type RejectedValue = GetRejectValue<ThunkApiConfig>
 
   const fulfilled = createAction(

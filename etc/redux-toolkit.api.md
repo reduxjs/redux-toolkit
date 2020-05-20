@@ -60,6 +60,14 @@ export interface ActionReducerMapBuilder<State> {
 export type Actions<T extends keyof any = string> = Record<T, Action>;
 
 // @public
+export type AsyncThunk<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> = AsyncThunkActionCreator<Returned, ThunkArg, ThunkApiConfig> & {
+    pending: AsyncThunkPendingActionCreator<ThunkArg>;
+    rejected: AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>;
+    fulfilled: AsyncThunkFulfilledActionCreator<Returned, ThunkArg>;
+    typePrefix: string;
+};
+
+// @public
 export type AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> = (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
     arg: ThunkArg;
     requestId: string;
@@ -124,23 +132,7 @@ export function createAction<P = void, T extends string = string>(type: T): Payl
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(type: T, prepareAction: PA): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>;
 
 // @public (undocumented)
-export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}>(typePrefix: string, payloadCreator: (arg: ThunkArg, thunkAPI: GetThunkAPI<ThunkApiConfig>) => Promise<Returned | RejectWithValue<GetRejectValue<ThunkApiConfig>>> | Returned | RejectWithValue<GetRejectValue<ThunkApiConfig>>, options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>): IsAny<ThunkArg, (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>, unknown extends ThunkArg ? (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> : [ThunkArg] extends [void] | [undefined] ? () => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> : [void] extends [ThunkArg] ? (arg?: ThunkArg | undefined) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> : [undefined] extends [ThunkArg] ? (arg?: ThunkArg | undefined) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> : (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>> & {
-    pending: ActionCreatorWithPreparedPayload<[string, ThunkArg], undefined, string, never, {
-        arg: ThunkArg;
-        requestId: string;
-    }>;
-    rejected: ActionCreatorWithPreparedPayload<[Error | null, string, ThunkArg, (GetRejectValue<ThunkApiConfig> | undefined)?], GetRejectValue<ThunkApiConfig> | undefined, string, SerializedError, {
-        arg: ThunkArg;
-        requestId: string;
-        aborted: boolean;
-        condition: boolean;
-    }>;
-    fulfilled: ActionCreatorWithPreparedPayload<[Returned, string, ThunkArg], Returned, string, never, {
-        arg: ThunkArg;
-        requestId: string;
-    }>;
-    typePrefix: string;
-};
+export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}>(typePrefix: string, payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>, options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>): AsyncThunk<Returned, ThunkArg, ThunkApiConfig>;
 
 // @public (undocumented)
 export function createEntityAdapter<T>(options?: {
