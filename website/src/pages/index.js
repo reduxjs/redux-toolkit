@@ -110,7 +110,7 @@ const otherLibraries = [
     image: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        ariaHidden="true"
+        aria-hidden="true"
         data-icon="external-link-square-alt"
         data-prefix="fas"
         viewBox="0 0 448 512"
