@@ -20,7 +20,7 @@
 
   --ifm-blockquote-color: #ecf4f9;
   --ifm-blockquote-color-dark: #cbddea;
-  
+
   --ifm-code-padding-vertical: 0.1rem;
   --ifm-code-padding-horizontal: 0.2rem;
 
@@ -74,9 +74,21 @@ code {
   border-radius: 0.2rem;
 }
 
+html[data-theme='dark'] code {
+  background-color: var(--ifm-color-emphasis-200);
+  border-radius: 0.2rem;
+}
+
 a code,
 code a {
+  background-color: var(--ifm-color-emphasis-200);
   color: inherit;
+}
+
+html[data-theme='dark'] a code,
+html[data-theme='dark'] code a {
+  background-color: var(--ifm-color-emphasis-100);
+  color: var(--ifm-color-primary-lighter);
 }
 
 a.contents__link > code {
