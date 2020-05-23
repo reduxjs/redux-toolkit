@@ -62,13 +62,14 @@ export const useAppDispatch = () => useDispatch<AppDispatch>() // Export a hook 
 
 The type of the `dispatch` function type will be directly inferred from the `middleware` option. So if you add _correctly typed_ middlewares, `dispatch` should already be correctly typed.
 
-There might however be cases, where TypeScript decides to simplify your provided middleware array down to just `Array<Middleware>`. In that case, you have to either specify the array type manually as a tuple, or in TS versions >= 3.4, just add `as const` to your definition.
+As TypeScript often widens array types when combining arrays using the spread operator, we suggest using the `.concat(...)` and `.prepend(...)` methods of the `MiddlewareArray` returned by `getDefaultMiddleware()`.
 
-Please note that when calling `getDefaultMiddleware` in TypeScript, you have to provide the state type as a generic argument.
+Also, we suggest using the callback notation for the `middleware` option go get a correctly pre-typed version of `getDefaultMiddleware` that does not require you to specify any generics by hand.
 
 ```ts {10-20}
 import { configureStore } from '@reduxjs/toolkit'
 import additionalMiddleware from 'additional-middleware'
+import logger from 'redux-logger'
 // @ts-ignore
 import untypedMiddleware from 'untyped-middleware'
 import rootReducer from './rootReducer'
@@ -76,23 +77,45 @@ import rootReducer from './rootReducer'
 type RootState = ReturnType<typeof rootReducer>
 const store = configureStore({
   reducer: rootReducer,
-  middleware: [
-    // getDefaultMiddleware needs to be called with the state type
-    ...getDefaultMiddleware<RootState>(),
-    // correctly typed middlewares can just be used
-    additionalMiddleware,
-    // you can also manually type middlewares manually
-    untypedMiddleware as Middleware<
-      (action: Action<'specialAction'>) => number,
-      RootState
-    >
-  ] as const // prevent this from becoming just `Array<Middleware>`
+  middleware: getDefaultMiddleware =>
+    getDefaultMiddleware()
+      .prepend(
+        // correctly typed middlewares can just be used
+        additionalMiddleware,
+        // you can also manually type middlewares manually
+        untypedMiddleware as Middleware<
+          (action: Action<'specialAction'>) => number,
+          RootState
+        >
+      )
+      // prepend and concat calls can be chained
+      .concat(logger)
 })
 
 type AppDispatch = typeof store.dispatch
 ```
 
-If you need any additional reference or examples, [the type tests for `configureStore`](https://github.com/reduxjs/redux-toolkit/blob/master/type-tests/files/configureStore.typetest.ts) contain many different scenarios on how to type this.
+#### Using `MiddlewareArray` without `getDefaultMiddleware`
+
+If you want to skip the usage of `getDefaultMiddleware` altogether, you can still use `MiddlewareArray` for type-safe concatenation of your `middleware` array. This class extends the default JavaScript `Array` type, only with modified typings for `.concat(...)` and the additional `.prepend(...)` method.
+
+This is generally not required though, as you will probably not run into any array-type-widening issues as long as you are using `as const` and do not use the spread operator.
+
+So the following two calls would be equivalent:
+
+```ts
+import { configureStore, MiddlewareArray } from '@reduxjs/toolkit'
+
+configureStore({
+  reducer: rootReducer,
+  middleware: new MiddlewareArray().concat(additionalMiddleware, logger)
+})
+
+configureStore({
+  reducer: rootReducer,
+  middleware: [additionalMiddleware, logger] as const
+})
+```
 
 ### Using the extracted `Dispatch` type with React-Redux
 

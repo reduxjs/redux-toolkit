@@ -22,6 +22,9 @@ It is disabled in production builds, so you don't need to worry about that.`)
   }
 }
 
+/**
+ * @public
+ */
 export class MiddlewareArray<
   Middlewares extends Middleware<any, any>
 > extends Array<Middlewares> {

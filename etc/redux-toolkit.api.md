@@ -306,6 +306,18 @@ export function isImmutableDefault(value: unknown): boolean;
 export function isPlain(val: any): boolean;
 
 // @public (undocumented)
+export class MiddlewareArray<Middlewares extends Middleware<any, any>> extends Array<Middlewares> {
+    // (undocumented)
+    concat<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(items: AdditionalMiddlewares): MiddlewareArray<Middlewares | AdditionalMiddlewares[number]>;
+    // (undocumented)
+    concat<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(...items: AdditionalMiddlewares): MiddlewareArray<Middlewares | AdditionalMiddlewares[number]>;
+    // (undocumented)
+    prepend<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(items: AdditionalMiddlewares): MiddlewareArray<AdditionalMiddlewares[number] | Middlewares>;
+    // (undocumented)
+    prepend<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(...items: AdditionalMiddlewares): MiddlewareArray<AdditionalMiddlewares[number] | Middlewares>;
+}
+
+// @public (undocumented)
 export let nanoid: (size?: number) => string;
 
 export { OutputParametricSelector }

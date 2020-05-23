@@ -81,6 +81,7 @@ export {
   // types
   ActionReducerMapBuilder
 } from './mapBuilders'
+export { MiddlewareArray } from './utils'
 
 export { createEntityAdapter } from './entities/create_adapter'
 export {
