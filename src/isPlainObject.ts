@@ -7,12 +7,9 @@
  * @returns {boolean} True if the argument appears to be a plain object.
  */
 export default function isPlainObject(value: unknown): value is object {
-  if (typeof value !== 'object' || value === null) return false
-
-  let proto = value
-  while (Object.getPrototypeOf(proto) !== null) {
-    proto = Object.getPrototypeOf(proto)
-  }
-
-  return Object.getPrototypeOf(value) === proto
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    Object.getPrototypeOf(Object.getPrototypeOf(value) || 0) === null
+  )
 }
