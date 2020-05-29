@@ -157,7 +157,9 @@ function counter(state = 0, action) {
   }
 }
 
-const store = Redux.createStore(counter)
+const store = configureStore({
+  reducer: counter
+})
 
 document.getElementById('increment').addEventListener('click', () => {
   store.dispatch(increment())
