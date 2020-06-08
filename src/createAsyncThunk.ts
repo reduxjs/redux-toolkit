@@ -199,12 +199,12 @@ interface AsyncThunkOptions<
    * A method to control whether the asyncThunk should be executed. Has access to the
    * `arg`, `api.getState()` and `api.extra` arguments.
    *
-   * @returns `true` if the asyncThunk should be executed, `false` if it should be skipped
+   * @returns `false` if it should be skipped
    */
   condition?(
     arg: ThunkArg,
     api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>
-  ): boolean
+  ): boolean | undefined
   /**
    * If `condition` returns `false`, the asyncThunk will be skipped.
    * This option allows you to control whether a `rejected` action with `meta.condition == false`
