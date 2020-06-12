@@ -135,3 +135,23 @@ const todosReducer = createReducer([], {
   }
 })
 ```
+
+## Debugging your state
+
+It's very common for a developer to call `console.log(state)` during the development process. When using either `createSlice` or `createReducer`, you will need to use the [`current`](./otherExports#current.md) utility that we re-export from the [`immer` library](https://immerjs.github.io/immer). This awesome utility allows us to peek into the Proxy while it's being modified.
+
+```ts
+const slice = createSlice({
+  name: 'todos',
+  initialState: [{ id: 1, title: 'Example todo' }],
+  reducers: {
+    updateTodo: (state, action) => {
+      console.log('before', current(state))
+      state.push(action)
+      console.log('after push', current(state))
+      state = state.filter(todos => todo.id !== 1)
+      console.log('final, after filtering one', current(state))
+    }
+  }
+})
+```
