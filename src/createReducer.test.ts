@@ -149,6 +149,38 @@ describe('createReducer', () => {
       expect(reducer(0, increment(5))).toBe(5)
       expect(reducer(5, decrement(5))).toBe(0)
     })
+    test('will throw an error when returning undefined from a non-draftable state', () => {
+      const reducer = createReducer(0, builder =>
+        builder.addCase(
+          'decrement',
+          (state, action: { type: 'decrement'; payload: number }) => {}
+        )
+      )
+      expect(() => reducer(5, decrement(5))).toThrowErrorMatchingInlineSnapshot(
+        `"A case reducer on a non-draftable value must not return undefined"`
+      )
+    })
+    test('allows you to return null', () => {
+      const reducer = createReducer(0 as number | null, builder =>
+        builder.addCase(
+          'decrement',
+          (state, action: { type: 'decrement'; payload: number }) => {
+            return null
+          }
+        )
+      )
+      expect(reducer(5, decrement(5))).toBe(null)
+    })
+    test('allows you to return 0', () => {
+      const reducer = createReducer(0, builder =>
+        builder.addCase(
+          'decrement',
+          (state, action: { type: 'decrement'; payload: number }) =>
+            state - action.payload
+        )
+      )
+      expect(reducer(5, decrement(5))).toBe(0)
+    })
     test('will throw if the same type is used twice', () => {
       expect(() =>
         createReducer(0, builder =>

@@ -107,14 +107,30 @@ export function createReducer<S>(
   return function(state = initialState, action): S {
     const caseReducer = actionsMap[action.type]
     if (caseReducer) {
-      if (isDraft(state) || !isDraftable(state)) {
-        // 1. If it's already a draft, we must already be inside a `createNextState` call,
-        //    likely because this is being wrapped in `createReducer`, `createSlice`, or nested
-        //    inside an existing draft. It's safe to just pass the draft to the mutator.
-        // 2. If state is not draftable (ex: a primitive, such as 0), we want to directly
-        //    return the caseReducer func and not wrap it with produce.
+      if (isDraft(state)) {
+        // If it's already a draft, we must already be inside a `createNextState` call,
+        // likely because this is being wrapped in `createReducer`, `createSlice`, or nested
+        // inside an existing draft. It's safe to just pass the draft to the mutator.
         const draft = state as Draft<S> // We can assume this is already a draft
-        return caseReducer(draft, action) as S
+        const result = caseReducer(draft, action)
+
+        if (typeof result === 'undefined') {
+          return state
+        }
+
+        return result
+      } else if (!isDraftable(state)) {
+        // If state is not draftable (ex: a primitive, such as 0), we want to directly
+        // return the caseReducer func and not wrap it with produce.
+        const result = caseReducer(state as any, action)
+
+        if (typeof result === 'undefined') {
+          throw Error(
+            'A case reducer on a non-draftable value must not return undefined'
+          )
+        }
+
+        return result
       } else {
         // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
         // than an Immutable<S>, and TypeScript cannot find out how to reconcile
