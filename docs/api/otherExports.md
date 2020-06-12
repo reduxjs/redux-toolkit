@@ -160,7 +160,18 @@ The default immutable update function from the [`immer` library](https://immerjs
 
 The `current` function from the [`immer` library](https://immerjs.github.io/immer/), which takes a snapshot of the current state of a draft and finalizes it (but without freezing). Current is a great utility to print the current state during debugging, and the output of current can also be safely leaked outside the producer.
 
-The default immutable update function from the [`immer` library](https://immerjs.github.io/immer/), re-exported here as `createNextState` (also commonly referred to as [`produce`](https://immerjs.github.io/immer/docs/produce))
+```js
+import { createReducer, createAction, current } from '@reduxjs/toolkit'
+
+const addTodo = createAction('addTodo')
+
+const todosReducer = createReducer([], {
+  [addTodo]: (state, action) => {
+    state.push(action.payload)
+    console.log(current(state))
+  }
+})
+```
 
 ### `combineReducers`
 

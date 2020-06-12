@@ -1,4 +1,4 @@
-import createNextState, { Draft, isDraft } from 'immer'
+import createNextState, { Draft, isDraft, isDraftable } from 'immer'
 import { AnyAction, Action, Reducer } from 'redux'
 import {
   executeReducerBuilderCallback,
@@ -107,11 +107,11 @@ export function createReducer<S>(
   return function(state = initialState, action): S {
     const caseReducer = actionsMap[action.type]
     if (caseReducer) {
-      if (isDraft(state)) {
+      if (isDraft(state) || !isDraftable(state)) {
         // we must already be inside a `createNextState` call, likely because
         // this is being wrapped in `createReducer`, `createSlice`, or nested
         // inside an existing draft. It's safe to just pass the draft to the mutator.
-        const draft = state as Draft<S> // We can aassume this is already a draft
+        const draft = state as Draft<S> // We can assume this is already a draft
         return caseReducer(draft, action) || state
       } else {
         // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
