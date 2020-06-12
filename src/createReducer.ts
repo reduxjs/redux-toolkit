@@ -108,11 +108,13 @@ export function createReducer<S>(
     const caseReducer = actionsMap[action.type]
     if (caseReducer) {
       if (isDraft(state) || !isDraftable(state)) {
-        // we must already be inside a `createNextState` call, likely because
-        // this is being wrapped in `createReducer`, `createSlice`, or nested
-        // inside an existing draft. It's safe to just pass the draft to the mutator.
+        // 1. If it's already a draft, we must already be inside a `createNextState` call,
+        //    likely because this is being wrapped in `createReducer`, `createSlice`, or nested
+        //    inside an existing draft. It's safe to just pass the draft to the mutator.
+        // 2. If state is not draftable (ex: a primitive, such as 0), we want to directly
+        //    return the caseReducer func and not wrap it with produce.
         const draft = state as Draft<S> // We can assume this is already a draft
-        return caseReducer(draft, action) || state
+        return caseReducer(draft, action) as S
       } else {
         // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
         // than an Immutable<S>, and TypeScript cannot find out how to reconcile
