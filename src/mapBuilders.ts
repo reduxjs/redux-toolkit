@@ -1,5 +1,10 @@
-import { Action } from 'redux'
-import { CaseReducer, CaseReducers } from './createReducer'
+import { Action, AnyAction } from 'redux'
+import {
+  CaseReducer,
+  CaseReducers,
+  ActionMatcher,
+  ActionMatcherDescriptionCollection
+} from './createReducer'
 
 export interface TypedActionCreator<Type extends string> {
   (...args: any[]): Action<Type>
@@ -30,17 +35,40 @@ export interface ActionReducerMapBuilder<State> {
     type: Type,
     reducer: CaseReducer<State, A>
   ): ActionReducerMapBuilder<State>
+
+  /**
+   * TODO documentation
+   * @param matcher
+   * @param reducer
+   */
+  addMatcher<A extends AnyAction>(
+    matcher: ActionMatcher<A>,
+    reducer: CaseReducer<State, A>
+  ): Omit<ActionReducerMapBuilder<State>, 'addCase'>
 }
 
 export function executeReducerBuilderCallback<S>(
   builderCallback: (builder: ActionReducerMapBuilder<S>) => void
-): CaseReducers<S, any> {
+): [CaseReducers<S, any>, ActionMatcherDescriptionCollection<S>] {
   const actionsMap: CaseReducers<S, any> = {}
+  const actionMatchers: ActionMatcherDescriptionCollection<S> = []
   const builder = {
     addCase(
       typeOrActionCreator: string | TypedActionCreator<any>,
       reducer: CaseReducer<S>
     ) {
+      if (process.env.NODE_ENV !== 'production') {
+        /*
+         to keep the definition by the user in line with actual behavior, 
+         we enforce `addCase` to always be called before calling `addMatcher`
+         as matching cases take precedence over matchers
+         */
+        if (actionMatchers.length > 0) {
+          throw new Error(
+            '`builder.addCase` should only be called before calling `builder.addMatcher`'
+          )
+        }
+      }
       const type =
         typeof typeOrActionCreator === 'string'
           ? typeOrActionCreator
@@ -52,8 +80,15 @@ export function executeReducerBuilderCallback<S>(
       }
       actionsMap[type] = reducer
       return builder
+    },
+    addMatcher<A extends AnyAction>(
+      matcher: ActionMatcher<A>,
+      reducer: CaseReducer<S, A>
+    ) {
+      actionMatchers.push({ matcher, reducer })
+      return builder
     }
   }
   builderCallback(builder)
-  return actionsMap
+  return [actionsMap, actionMatchers]
 }

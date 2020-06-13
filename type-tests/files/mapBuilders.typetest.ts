@@ -50,5 +50,27 @@ function expectType<T>(t: T) {
       'decrement',
       (state, action: ReturnType<typeof increment>) => state
     )
+
+    // action type is inferred
+    builder.addMatcher(increment.match, (state, action) => {
+      expectType<ReturnType<typeof increment>>(action)
+    })
+
+    // addCase().addMatcher() is possible
+    builder
+      .addCase(
+        'increment',
+        (state, action: ReturnType<typeof increment>) => state
+      )
+      .addMatcher(decrement.match, (state, action) => {
+        expectType<ReturnType<typeof decrement>>(action)
+      })
+
+    // addMatcher().addCase() is not possible as `addCase` should be removed after calling `addMatcher`
+    expectType<{ addCase?: never; addMatcher: Function }>(
+      builder.addMatcher(increment.match, (state, action) => {
+        expectType<ReturnType<typeof increment>>(action)
+      })
+    )
   })
 }

@@ -4,6 +4,7 @@ import {
   executeReducerBuilderCallback,
   ActionReducerMapBuilder
 } from './mapBuilders'
+import { NoInfer } from './tsHelpers'
 
 /**
  * Defines a mapping from action types to corresponding action object shapes.
@@ -14,6 +15,19 @@ import {
  * @public
  */
 export type Actions<T extends keyof any = string> = Record<T, Action>
+
+export interface ActionMatcher<A extends AnyAction> {
+  (action: AnyAction): action is A
+}
+
+export type ActionMatcherDescription<S, A extends AnyAction> = {
+  matcher: ActionMatcher<A>
+  reducer: CaseReducer<S, NoInfer<A>>
+}
+
+export type ActionMatcherDescriptionCollection<S> = Array<
+  ActionMatcherDescription<S, any>
+>
 
 /**
  * An *case reducer* is a reducer function for a specific action type. Case
@@ -64,13 +78,18 @@ export type CaseReducers<S, AS extends Actions> = {
  * @param initialState The initial state to be returned by the reducer.
  * @param actionsMap A mapping from action types to action-type-specific
  *   case reducers.
+ * @param actionMatchers TODO documentation
  *
  * @public
  */
 export function createReducer<
   S,
   CR extends CaseReducers<S, any> = CaseReducers<S, any>
->(initialState: S, actionsMap: CR): Reducer<S>
+>(
+  initialState: S,
+  actionsMap: CR,
+  actionMatchers?: ActionMatcherDescriptionCollection<S>
+): Reducer<S>
 /**
  * A utility function that allows defining a reducer as a mapping from action
  * type to *case reducer* functions that handle these action types. The
@@ -97,15 +116,20 @@ export function createReducer<S>(
   initialState: S,
   mapOrBuilderCallback:
     | CaseReducers<S, any>
-    | ((builder: ActionReducerMapBuilder<S>) => void)
+    | ((builder: ActionReducerMapBuilder<S>) => void),
+  actionMatchers: ActionMatcherDescriptionCollection<S> = []
 ): Reducer<S> {
-  let actionsMap =
+  let [actionsMap, builderActionMatchers = []] =
     typeof mapOrBuilderCallback === 'function'
       ? executeReducerBuilderCallback(mapOrBuilderCallback)
-      : mapOrBuilderCallback
+      : [mapOrBuilderCallback]
+
+  const allMatchers = actionMatchers.concat(builderActionMatchers)
 
   return function(state = initialState, action): S {
-    const caseReducer = actionsMap[action.type]
+    const caseReducer =
+      actionsMap[action.type] || findActionMatcherReducer(allMatchers, action)
+
     if (caseReducer) {
       if (isDraft(state)) {
         // If it's already a draft, we must already be inside a `createNextState` call,
@@ -142,5 +166,15 @@ export function createReducer<S>(
     }
 
     return state
+  }
+}
+
+function findActionMatcherReducer<S>(
+  actionMatchers: ActionMatcherDescriptionCollection<S>,
+  action: AnyAction
+): CaseReducer<S, any> | undefined {
+  const found = actionMatchers.find(({ matcher }) => matcher(action))
+  if (found) {
+    return found.reducer
   }
 }
