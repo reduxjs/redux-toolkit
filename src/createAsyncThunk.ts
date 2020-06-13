@@ -326,9 +326,12 @@ If you want to use the AbortController to react to \`abort\` events, please cons
         )
       )
 
+      let started = false
       function abort(reason?: string) {
-        abortReason = reason
-        abortController.abort()
+        if (started) {
+          abortReason = reason
+          abortController.abort()
+        }
       }
 
       const promise = (async function() {
@@ -345,6 +348,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
               message: 'Aborted due to condition callback returning false.'
             }
           }
+          started = true
           dispatch(pending(requestId, arg))
           finalAction = await Promise.race([
             abortedPromise,
