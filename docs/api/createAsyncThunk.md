@@ -66,7 +66,7 @@ For example, a `type` argument of `'users/requestStatus'` will generate these ac
 
 ### `payloadCreator`
 
-A callback function that should return a promise containing the result of some asynchronous logic. It may also return a value synchronously. If there is an error, it should either return a rejected promise containing an `Error` instance or a plain value such as a descriptive error message or otherwise a resolved promise with a `RejectWithValue` argument as returned by the `thunkApi.rejectWithValue` function.
+A callback function that should return a promise containing the result of some asynchronous logic. It may also return a value synchronously. If there is an error, it should either return a rejected promise containing an `Error` instance or a plain value such as a descriptive error message or otherwise a resolved promise with a `RejectWithValue` argument as returned by the `thunkAPI.rejectWithValue` function.
 
 The `payloadCreator` function can contain whatever logic you need to calculate an appropriate result. This could include a standard AJAX data fetch request, multiple AJAX calls with the results combined into a final value, interactions with React Native `AsyncStorage`, and so on.
 
@@ -295,7 +295,7 @@ function MyComponent(props: { userId: string }) {
 
 After a thunk has been cancelled this way, it will dispatch (and return) a `"thunkName/rejected"` action with an `AbortError` on the `error` property. The thunk will not dispatch any further actions.
 
-Additionally, your `payloadCreator` can use the `AbortSignal` it is passed via `thunkApi.signal` to actually cancel a costly asynchronous action.
+Additionally, your `payloadCreator` can use the `AbortSignal` it is passed via `thunkAPI.signal` to actually cancel a costly asynchronous action.
 
 The `fetch` api of modern browsers already comes with support for an `AbortSignal`:
 
