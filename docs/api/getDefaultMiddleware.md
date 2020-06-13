@@ -41,11 +41,28 @@ middleware added as well:
 ```js
 const store = configureStore({
   reducer: rootReducer,
-  middleware: [...getDefaultMiddleware(), logger]
+  middleware: getDefaultMiddleware().concat(logger)
 })
 
 // Store has all of the default middleware added, _plus_ the logger middleware
 ```
+
+## Usage without import (middleware callback notation)
+
+For convenience, the `middleware` property of `configureStore` can be used with a callback notation like this.
+
+```js
+const store = configureStore({
+  reducer: rootReducer,
+  middleware: getDefaultMiddleware => getDefaultMiddleware().concat(logger)
+})
+
+// Store has all of the default middleware added, _plus_ the logger middleware
+```
+
+While this does not make much of a difference for JavaScript users, using this notation is preferrable to TypeScript users, as that version of `getDefaultMiddleware` is already correctly pre-typed for the `Store`'s type, so no use of generics is necessary.
+
+Also, when using TypeScript, it is preferrable to use the chainable `.concat(...)` and `.prepend(...)` methods of the returned `MiddlewareArray` instead of the array spread operator, as the latter can lose valuable type information under some circumstances.
 
 ## Included Default Middleware
 

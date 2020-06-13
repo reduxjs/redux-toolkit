@@ -11,6 +11,7 @@ import {
   createSerializableStateInvariantMiddleware,
   SerializableStateInvariantMiddlewareOptions
 } from './serializableStateInvariantMiddleware'
+import { MiddlewareArray } from './utils'
 
 function isBoolean(x: any): x is boolean {
   return typeof x === 'boolean'
@@ -39,6 +40,24 @@ export type ThunkMiddlewareFor<
       | ThunkMiddleware<S, AnyAction, null> //The ThunkMiddleware with a `null` ExtraArgument is here to provide backwards-compatibility.
       | ThunkMiddleware<S, AnyAction>
 
+export type CurriedGetDefaultMiddleware<S = any> = <
+  O extends Partial<GetDefaultMiddlewareOptions> = {
+    thunk: true
+    immutableCheck: true
+    serializableCheck: true
+  }
+>(
+  options?: O
+) => MiddlewareArray<Middleware<{}, S> | ThunkMiddlewareFor<S, O>>
+
+export function curryGetDefaultMiddleware<
+  S = any
+>(): CurriedGetDefaultMiddleware<S> {
+  return function curriedGetDefaultMiddleware(options) {
+    return getDefaultMiddleware(options)
+  }
+}
+
 /**
  * Returns any array containing the default middleware installed by
  * `configureStore()`. Useful if you want to configure your store with a custom
@@ -55,14 +74,16 @@ export function getDefaultMiddleware<
     immutableCheck: true
     serializableCheck: true
   }
->(options: O = {} as O): Array<Middleware<{}, S> | ThunkMiddlewareFor<S, O>> {
+>(
+  options: O = {} as O
+): MiddlewareArray<Middleware<{}, S> | ThunkMiddlewareFor<S, O>> {
   const {
     thunk = true,
     immutableCheck = true,
     serializableCheck = true
   } = options
 
-  let middlewareArray: Middleware<{}, S>[] = []
+  let middlewareArray: Middleware<{}, S>[] = new MiddlewareArray()
 
   if (thunk) {
     if (isBoolean(thunk)) {
