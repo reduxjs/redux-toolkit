@@ -27,7 +27,6 @@ module.exports = {
     repoUrl: 'https://github.com/reduxjs/redux-toolkit'
   },
   themeConfig: {
-    disableDarkMode: true,
     prism: {
       theme: require('./src/js/monokaiTheme.js')
     },
