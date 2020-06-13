@@ -181,7 +181,7 @@ describe('createSlice', () => {
     })
 
     it('should call the reducer function', () => {
-      const reducer = jest.fn()
+      const reducer = jest.fn(() => 5)
 
       const testSlice = createSlice({
         name: 'test',

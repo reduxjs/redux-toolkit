@@ -135,3 +135,26 @@ const todosReducer = createReducer([], {
   }
 })
 ```
+
+## Debugging your state
+
+It's very common for a developer to call `console.log(state)` during the development process. However, browsers display Proxies in a format that is hard to read, which can make console logging of Immer-based state difficult.
+
+When using either `createSlice` or `createReducer`, you may use the [`current`](./otherExports#current.md) utility that we re-export from the [`immer` library](https://immerjs.github.io/immer). This utility creates a separate plain copy of the current Immer `Draft` state value, which can then be logged for viewing as normal.
+
+```ts
+// todosSlice.js
+import { createSlice, current } from '@reduxjs/toolkit'
+
+const slice = createSlice({
+  name: 'todos',
+  initialState: [{ id: 1, title: 'Example todo' }],
+  reducers: {
+    addTodo: (state, action) => {
+      console.log('before', current(state))
+      state.push(action.payload)
+      console.log('after', current(state))
+    }
+  }
+})
+```
