@@ -112,7 +112,7 @@ export function configureStore<S = any, A extends Action = AnyAction, M extends 
 export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction, M extends Middlewares<S> = Middlewares<S>> {
     devTools?: boolean | EnhancerOptions;
     enhancers?: StoreEnhancer[] | ConfigureEnhancersCallback;
-    middleware?: ((getDefaultMiddleware: CurriedGetDefaultMiddleware<S>) => M) | M;
+    middleware?: M;
     preloadedState?: DeepPartial<S extends any ? S : S>;
     reducer: Reducer<S, A> | ReducersMapObject<S, A>;
 }
