@@ -20,9 +20,8 @@ import {
 
 import isPlainObject from './isPlainObject'
 import {
-  ThunkMiddlewareFor,
-  curryGetDefaultMiddleware,
-  CurriedGetDefaultMiddleware
+  getDefaultMiddleware,
+  ThunkMiddlewareFor
 } from './getDefaultMiddleware'
 import { DispatchForMiddlewares } from './tsHelpers'
 
@@ -57,7 +56,7 @@ export interface ConfigureStoreOptions<
    * An array of Redux middleware to install. If not supplied, defaults to
    * the set of middleware returned by `getDefaultMiddleware()`.
    */
-  middleware?: ((getDefaultMiddleware: CurriedGetDefaultMiddleware<S>) => M) | M
+  middleware?: M
 
   /**
    * Whether to enable Redux DevTools integration. Defaults to `true`.
@@ -125,11 +124,9 @@ export function configureStore<
   A extends Action = AnyAction,
   M extends Middlewares<S> = [ThunkMiddlewareFor<S>]
 >(options: ConfigureStoreOptions<S, A, M>): EnhancedStore<S, A, M> {
-  const curriedGetDefaultMiddleware = curryGetDefaultMiddleware<S>()
-
   const {
     reducer = undefined,
-    middleware = curriedGetDefaultMiddleware(),
+    middleware = getDefaultMiddleware(),
     devTools = true,
     preloadedState = undefined,
     enhancers = undefined
@@ -147,11 +144,7 @@ export function configureStore<
     )
   }
 
-  const middlewareEnhancer = applyMiddleware(
-    ...(typeof middleware === 'function'
-      ? middleware(curriedGetDefaultMiddleware)
-      : middleware)
-  )
+  const middlewareEnhancer = applyMiddleware(...middleware)
 
   let finalCompose = compose
 
