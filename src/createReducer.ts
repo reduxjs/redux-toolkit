@@ -127,54 +127,50 @@ export function createReducer<S>(
   const allMatchers = actionMatchers.concat(builderActionMatchers)
 
   return function(state = initialState, action): S {
-    const caseReducer =
-      actionsMap[action.type] || findActionMatcherReducer(allMatchers, action)
+    const caseReducers = [
+      actionsMap[action.type],
+      ...allMatchers
+        .filter(({ matcher }) => matcher(action))
+        .map(({ reducer }) => reducer)
+    ]
 
-    if (caseReducer) {
-      if (isDraft(state)) {
-        // If it's already a draft, we must already be inside a `createNextState` call,
-        // likely because this is being wrapped in `createReducer`, `createSlice`, or nested
-        // inside an existing draft. It's safe to just pass the draft to the mutator.
-        const draft = state as Draft<S> // We can assume this is already a draft
-        const result = caseReducer(draft, action)
+    return caseReducers.reduce((previousState, caseReducer): S => {
+      if (caseReducer) {
+        if (isDraft(previousState)) {
+          // If it's already a draft, we must already be inside a `createNextState` call,
+          // likely because this is being wrapped in `createReducer`, `createSlice`, or nested
+          // inside an existing draft. It's safe to just pass the draft to the mutator.
+          const draft = previousState as Draft<S> // We can assume this is already a draft
+          const result = caseReducer(draft, action)
 
-        if (typeof result === 'undefined') {
-          return state
+          if (typeof result === 'undefined') {
+            return previousState
+          }
+
+          return result
+        } else if (!isDraftable(previousState)) {
+          // If state is not draftable (ex: a primitive, such as 0), we want to directly
+          // return the caseReducer func and not wrap it with produce.
+          const result = caseReducer(previousState as any, action)
+
+          if (typeof result === 'undefined') {
+            throw Error(
+              'A case reducer on a non-draftable value must not return undefined'
+            )
+          }
+
+          return result
+        } else {
+          // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
+          // than an Immutable<S>, and TypeScript cannot find out how to reconcile
+          // these two types.
+          return createNextState(previousState, (draft: Draft<S>) => {
+            return caseReducer(draft, action)
+          })
         }
-
-        return result
-      } else if (!isDraftable(state)) {
-        // If state is not draftable (ex: a primitive, such as 0), we want to directly
-        // return the caseReducer func and not wrap it with produce.
-        const result = caseReducer(state as any, action)
-
-        if (typeof result === 'undefined') {
-          throw Error(
-            'A case reducer on a non-draftable value must not return undefined'
-          )
-        }
-
-        return result
-      } else {
-        // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
-        // than an Immutable<S>, and TypeScript cannot find out how to reconcile
-        // these two types.
-        return createNextState(state, (draft: Draft<S>) => {
-          return caseReducer(draft, action)
-        })
       }
-    }
 
-    return state
-  }
-}
-
-function findActionMatcherReducer<S>(
-  actionMatchers: ActionMatcherDescriptionCollection<S>,
-  action: AnyAction
-): CaseReducer<S, any> | undefined {
-  const found = actionMatchers.find(({ matcher }) => matcher(action))
-  if (found) {
-    return found.reducer
+      return previousState
+    }, state)
   }
 }

@@ -129,13 +129,13 @@ describe('createReducer', () => {
     const numberActionsCounter = {
       matcher: numberActionMatcher,
       reducer(state: typeof initialState) {
-        state.numberActions++
+        state.numberActions = state.numberActions * 10 + 1
       }
     }
     const stringActionsCounter = {
       matcher: stringActionMatcher,
       reducer(state: typeof initialState) {
-        state.stringActions++
+        state.stringActions = state.stringActions * 10 + 1
       }
     }
 
@@ -157,22 +157,31 @@ describe('createReducer', () => {
         stringActions: 1
       })
     })
-    test('prefers explicit reducer cases over actionMatchers', () => {
+    test('runs reducer cases followed by all matching actionMatchers', () => {
       const reducer = createReducer(
         initialState,
         {
           [incrementBy.type](state) {
-            state.numberActions += 100
+            state.numberActions = state.numberActions * 10 + 2
           }
         },
-        [numberActionsCounter, stringActionsCounter]
+        [
+          {
+            matcher: numberActionMatcher,
+            reducer(state) {
+              state.numberActions = state.numberActions * 10 + 3
+            }
+          },
+          numberActionsCounter,
+          stringActionsCounter
+        ]
       )
       expect(reducer(undefined, incrementBy(1))).toEqual({
-        numberActions: 100,
+        numberActions: 231,
         stringActions: 0
       })
       expect(reducer(undefined, decrementBy(1))).toEqual({
-        numberActions: 1,
+        numberActions: 31,
         stringActions: 0
       })
       expect(reducer(undefined, concatWith('foo'))).toEqual({
@@ -191,18 +200,6 @@ describe('createReducer', () => {
       ])
       expect(reducer(undefined, incrementBy(1))).toEqual({
         numberActions: 100,
-        stringActions: 0
-      })
-    })
-    test('matches only the first actionMatcher', () => {
-      const reducer = createReducer(initialState, {}, [
-        numberActionsCounter,
-        numberActionsCounter,
-        numberActionsCounter,
-        numberActionsCounter
-      ])
-      expect(reducer(undefined, incrementBy(1))).toEqual({
-        numberActions: 1,
         stringActions: 0
       })
     })
@@ -351,25 +348,28 @@ describe('createReducer', () => {
         stringActions: 1
       })
     })
-    test('prefers explicit reducer cases over actionMatchers', () => {
+    test('runs reducer cases followed by all matching actionMatchers', () => {
       const reducer = createReducer(initialState, builder =>
         builder
           .addCase(incrementBy, state => {
-            state.numberActions += 100
+            state.numberActions = state.numberActions * 10 + 1
           })
           .addMatcher(numberActionMatcher, state => {
-            state.numberActions += 1
+            state.numberActions = state.numberActions * 10 + 2
           })
           .addMatcher(stringActionMatcher, state => {
-            state.stringActions += 1
+            state.stringActions = state.stringActions * 10 + 1
+          })
+          .addMatcher(numberActionMatcher, state => {
+            state.numberActions = state.numberActions * 10 + 3
           })
       )
       expect(reducer(undefined, incrementBy(1))).toEqual({
-        numberActions: 100,
+        numberActions: 123,
         stringActions: 0
       })
       expect(reducer(undefined, decrementBy(1))).toEqual({
-        numberActions: 1,
+        numberActions: 23,
         stringActions: 0
       })
       expect(reducer(undefined, concatWith('foo'))).toEqual({
@@ -385,27 +385,6 @@ describe('createReducer', () => {
       )
       expect(reducer(undefined, incrementBy(1))).toEqual({
         numberActions: 100,
-        stringActions: 0
-      })
-    })
-    test('matches only the first actionMatcher', () => {
-      const reducer = createReducer(initialState, builder =>
-        builder
-          .addMatcher(numberActionMatcher, state => {
-            state.numberActions += 1
-          })
-          .addMatcher(numberActionMatcher, state => {
-            state.numberActions += 1
-          })
-          .addMatcher(numberActionMatcher, state => {
-            state.numberActions += 1
-          })
-          .addMatcher(numberActionMatcher, state => {
-            state.numberActions += 1
-          })
-      )
-      expect(reducer(undefined, incrementBy(1))).toEqual({
-        numberActions: 1,
         stringActions: 0
       })
     })
