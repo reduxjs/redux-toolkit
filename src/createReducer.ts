@@ -88,7 +88,8 @@ export function createReducer<
 >(
   initialState: S,
   actionsMap: CR,
-  actionMatchers?: ActionMatcherDescriptionCollection<S>
+  actionMatchers?: ActionMatcherDescriptionCollection<S>,
+  defaultCaseReducer?: CaseReducer<S>
 ): Reducer<S>
 /**
  * A utility function that allows defining a reducer as a mapping from action
@@ -117,22 +118,24 @@ export function createReducer<S>(
   mapOrBuilderCallback:
     | CaseReducers<S, any>
     | ((builder: ActionReducerMapBuilder<S>) => void),
-  actionMatchers: ActionMatcherDescriptionCollection<S> = []
+  actionMatchers: ActionMatcherDescriptionCollection<S> = [],
+  defaultCaseReducer?: CaseReducer<S>
 ): Reducer<S> {
-  let [actionsMap, builderActionMatchers = []] =
+  let [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
     typeof mapOrBuilderCallback === 'function'
       ? executeReducerBuilderCallback(mapOrBuilderCallback)
-      : [mapOrBuilderCallback]
-
-  const allMatchers = actionMatchers.concat(builderActionMatchers)
+      : [mapOrBuilderCallback, actionMatchers, defaultCaseReducer]
 
   return function(state = initialState, action): S {
-    const caseReducers = [
+    let caseReducers = [
       actionsMap[action.type],
-      ...allMatchers
+      ...finalActionMatchers
         .filter(({ matcher }) => matcher(action))
         .map(({ reducer }) => reducer)
     ]
+    if (caseReducers.filter(cr => !!cr).length === 0) {
+      caseReducers = [finalDefaultCaseReducer]
+    }
 
     return caseReducers.reduce((previousState, caseReducer): S => {
       if (caseReducer) {

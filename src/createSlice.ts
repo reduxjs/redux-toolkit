@@ -216,7 +216,11 @@ export function createSlice<
     throw new Error('`name` is a required option for createSlice')
   }
   const reducers = options.reducers || {}
-  const [extraReducers = {}, actionMatchers = []] =
+  const [
+    extraReducers = {},
+    actionMatchers = [],
+    defaultCaseReducer = undefined
+  ] =
     typeof options.extraReducers === 'undefined'
       ? []
       : typeof options.extraReducers === 'function'
@@ -254,7 +258,8 @@ export function createSlice<
   const reducer = createReducer(
     initialState,
     finalCaseReducers as any,
-    actionMatchers
+    actionMatchers,
+    defaultCaseReducer
   )
 
   return {

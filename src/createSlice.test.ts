@@ -169,6 +169,17 @@ describe('createSlice', () => {
         expect(slice.reducer(0, increment(5))).toBe(5)
       })
 
+      test('can be used with addDefaultCase', () => {
+        const slice = createSlice({
+          name: 'counter',
+          initialState: 0,
+          reducers: {},
+          extraReducers: builder =>
+            builder.addDefaultCase((state, action) => state + action.payload)
+        })
+        expect(slice.reducer(0, increment(5))).toBe(5)
+      })
+
       // for further tests, see the test of createReducer that goes way more into depth on this
     })
   })

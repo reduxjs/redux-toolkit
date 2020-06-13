@@ -45,13 +45,20 @@ export interface ActionReducerMapBuilder<State> {
     matcher: ActionMatcher<A>,
     reducer: CaseReducer<State, A>
   ): Omit<ActionReducerMapBuilder<State>, 'addCase'>
+
+  addDefaultCase(reducer: CaseReducer<State, AnyAction>): {}
 }
 
 export function executeReducerBuilderCallback<S>(
   builderCallback: (builder: ActionReducerMapBuilder<S>) => void
-): [CaseReducers<S, any>, ActionMatcherDescriptionCollection<S>] {
+): [
+  CaseReducers<S, any>,
+  ActionMatcherDescriptionCollection<S>,
+  CaseReducer<S, AnyAction> | undefined
+] {
   const actionsMap: CaseReducers<S, any> = {}
   const actionMatchers: ActionMatcherDescriptionCollection<S> = []
+  let defaultCaseReducer: CaseReducer<S, AnyAction> | undefined
   const builder = {
     addCase(
       typeOrActionCreator: string | TypedActionCreator<any>,
@@ -66,6 +73,11 @@ export function executeReducerBuilderCallback<S>(
         if (actionMatchers.length > 0) {
           throw new Error(
             '`builder.addCase` should only be called before calling `builder.addMatcher`'
+          )
+        }
+        if (defaultCaseReducer) {
+          throw new Error(
+            '`builder.addCase` should only be called before calling `builder.addDefaultCase`'
           )
         }
       }
@@ -85,10 +97,26 @@ export function executeReducerBuilderCallback<S>(
       matcher: ActionMatcher<A>,
       reducer: CaseReducer<S, A>
     ) {
+      if (process.env.NODE_ENV !== 'production') {
+        if (defaultCaseReducer) {
+          throw new Error(
+            '`builder.addMatcher` should only be called before calling `builder.addDefaultCase`'
+          )
+        }
+      }
       actionMatchers.push({ matcher, reducer })
+      return builder
+    },
+    addDefaultCase(reducer: CaseReducer<S, AnyAction>) {
+      if (process.env.NODE_ENV !== 'production') {
+        if (defaultCaseReducer) {
+          throw new Error('`builder.addDefaultCase` can only be called once')
+        }
+      }
+      defaultCaseReducer = reducer
       return builder
     }
   }
   builderCallback(builder)
-  return [actionsMap, actionMatchers]
+  return [actionsMap, actionMatchers, defaultCaseReducer]
 }

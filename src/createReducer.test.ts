@@ -117,9 +117,9 @@ describe('createReducer', () => {
     })
 
     const numberActionMatcher = (a: AnyAction): a is PayloadAction<number> =>
-      a.meta.type === 'number_action'
+      a.meta && a.meta.type === 'number_action'
     const stringActionMatcher = (a: AnyAction): a is PayloadAction<string> =>
-      a.meta.type === 'string_action'
+      a.meta && a.meta.type === 'string_action'
 
     const incrementBy = createAction('increment', prepareNumberAction)
     const decrementBy = createAction('decrement', prepareNumberAction)
@@ -155,6 +155,21 @@ describe('createReducer', () => {
       expect(reducer(undefined, concatWith('foo'))).toEqual({
         numberActions: 0,
         stringActions: 1
+      })
+    })
+    test('fallback to default case', () => {
+      const reducer = createReducer(
+        initialState,
+        {},
+        [numberActionsCounter, stringActionsCounter],
+        state => {
+          state.numberActions = -1
+          state.stringActions = -1
+        }
+      )
+      expect(reducer(undefined, { type: 'somethingElse' })).toEqual({
+        numberActions: -1,
+        stringActions: -1
       })
     })
     test('runs reducer cases followed by all matching actionMatchers', () => {
@@ -315,9 +330,9 @@ describe('createReducer', () => {
     })
 
     const numberActionMatcher = (a: AnyAction): a is PayloadAction<number> =>
-      a.meta.type === 'number_action'
+      a.meta && a.meta.type === 'number_action'
     const stringActionMatcher = (a: AnyAction): a is PayloadAction<string> =>
-      a.meta.type === 'string_action'
+      a.meta && a.meta.type === 'string_action'
 
     const incrementBy = createAction('increment', prepareNumberAction)
     const decrementBy = createAction('decrement', prepareNumberAction)
@@ -346,6 +361,25 @@ describe('createReducer', () => {
       expect(reducer(undefined, concatWith('foo'))).toEqual({
         numberActions: 0,
         stringActions: 1
+      })
+    })
+    test('falls back to defaultCase', () => {
+      const reducer = createReducer(initialState, builder =>
+        builder
+          .addCase(concatWith, state => {
+            state.stringActions += 1
+          })
+          .addMatcher(numberActionMatcher, state => {
+            state.numberActions += 1
+          })
+          .addDefaultCase(state => {
+            state.numberActions = -1
+            state.stringActions = -1
+          })
+      )
+      expect(reducer(undefined, { type: 'somethingElse' })).toEqual({
+        numberActions: -1,
+        stringActions: -1
       })
     })
     test('runs reducer cases followed by all matching actionMatchers', () => {
@@ -388,7 +422,7 @@ describe('createReducer', () => {
         stringActions: 0
       })
     })
-    test('calling addMatcher followed by addCase should result in an error in development mode', () => {
+    test('calling addCase, addMatcher and addDefaultCase in a nonsensical order should result in an error in development mode', () => {
       expect(() =>
         createReducer(initialState, (builder: any) =>
           builder
@@ -397,6 +431,29 @@ describe('createReducer', () => {
         )
       ).toThrowErrorMatchingInlineSnapshot(
         `"\`builder.addCase\` should only be called before calling \`builder.addMatcher\`"`
+      )
+      expect(() =>
+        createReducer(initialState, (builder: any) =>
+          builder.addDefaultCase(() => {}).addCase(incrementBy, () => {})
+        )
+      ).toThrowErrorMatchingInlineSnapshot(
+        `"\`builder.addCase\` should only be called before calling \`builder.addDefaultCase\`"`
+      )
+      expect(() =>
+        createReducer(initialState, (builder: any) =>
+          builder
+            .addDefaultCase(() => {})
+            .addMatcher(numberActionMatcher, () => {})
+        )
+      ).toThrowErrorMatchingInlineSnapshot(
+        `"\`builder.addMatcher\` should only be called before calling \`builder.addDefaultCase\`"`
+      )
+      expect(() =>
+        createReducer(initialState, (builder: any) =>
+          builder.addDefaultCase(() => {}).addDefaultCase(() => {})
+        )
+      ).toThrowErrorMatchingInlineSnapshot(
+        `"\`builder.addDefaultCase\` can only be called once"`
       )
     })
   })
