@@ -94,6 +94,8 @@ createSlice({
 
 Instead of using a simple object as `extraReducers`, you can also use a callback that receives a `ActionReducerMapBuilder` instance.
 
+This builder notation is also the only way to add matcher reducers and default case reducers to your slice.
+
 ```typescript
 const incrementBy = createAction<number>('incrementBy')
 

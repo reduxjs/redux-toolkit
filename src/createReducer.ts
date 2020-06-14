@@ -78,7 +78,10 @@ export type CaseReducers<S, AS extends Actions> = {
  * @param initialState The initial state to be returned by the reducer.
  * @param actionsMap A mapping from action types to action-type-specific
  *   case reducers.
- * @param actionMatchers TODO documentation
+ * @param actionMatchers An array of matcher definitions in the form `{matcher, reducer}`.
+ *   All matching reducers will be executed in order, independently if a case reducer matched or not.
+ * @param defaultCaseReducer A "default case" reducer that is executed if no case reducer and no matcher
+ *   reducer was executed for this action.
  *
  * @public
  */

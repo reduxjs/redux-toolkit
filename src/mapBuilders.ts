@@ -37,8 +37,11 @@ export interface ActionReducerMapBuilder<State> {
   ): ActionReducerMapBuilder<State>
 
   /**
-   * TODO documentation
-   * @param matcher
+   * Adds a reducer for all actions, using `matcher` as a filter function.
+   * If multiple matcher reducers match, all of them will be executed in the order
+   * they were defined if - even if a case reducer already matched.
+   * @param matcher A matcher function. In TypeScript, this should be a [type predicate](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates)
+   *   function
    * @param reducer
    */
   addMatcher<A extends AnyAction>(
@@ -46,6 +49,11 @@ export interface ActionReducerMapBuilder<State> {
     reducer: CaseReducer<State, A>
   ): Omit<ActionReducerMapBuilder<State>, 'addCase'>
 
+  /**
+   * Adds a "default case" reducer that is executed if no case reducer and no matcher
+   * reducer was executed for this action.
+   * @param reducer
+   */
   addDefaultCase(reducer: CaseReducer<State, AnyAction>): {}
 }
 

@@ -214,6 +214,24 @@ createReducer(0, builder =>
 
 We recommend using this API if stricter type safety is necessary when defining reducer argument objects.
 
+#### Typing `builder.addMatcher`
+
+As the first `matcher` argument to `builder.addMatcher`, a [type predicate](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates) function should be used.
+As a result, the `action` argument for the second `reducer` argument can be inferred by TypeScript:
+
+```ts
+function isStringAction(action: AnyAction): action is PayloadAction<string> {
+  return typeof action.payload === 'string'
+}
+
+createReducer(0, builder =>
+  builder.addMatcher(isStringAction, (state, action) => {
+    // action is automatically inferred as `PayloadAction<string>` here due to the
+    // signature of `isStringAction`
+  })
+})
+```
+
 ## `createSlice`
 
 As `createSlice` creates your actions as well as your reducer for you, you don't have to worry about type safety here.
@@ -371,6 +389,8 @@ const usersSlice = createSlice({
   }
 })
 ```
+
+Like the `builder` in `createReducer`, this `builder` also accepts `addMatcher` (see [typing `builder.matcher`](#typing-builderaddmatcher)) and `addDefaultCase`.
 
 ### Wrapping `createSlice`
 

@@ -67,6 +67,88 @@ This is intended for use with TypeScript, as passing a plain object full of redu
 
 We recommend using this API if stricter type safety is necessary when defining reducer argument objects.
 
+#### `builder.addMatcher`
+
+`builder.addMatcher` allows you to match your reducer against your own filter function instead of only the `action.type` property.
+This allows for a lot of generic behaviour, so you could for example write a "generic loading tracker" state based on an approach like this:
+
+```js
+const initialState = {}
+const resetAction = createAction('reset-tracked-loading-state')
+const reducer = createReducer(initialState, builder => {
+  builder
+    .addCase(resetAction, () => initialState)
+    .addMatcher(
+      action => action.type.endsWith('/pending') && 'requestId' in action.meta,
+      (state, action) => {
+        state[action.meta.requestId] = 'pending'
+      }
+    )
+    .addMatcher(
+      action => action.type.endsWith('/rejected') && 'requestId' in action.meta,
+      (state, action) => {
+        state[action.meta.requestId] = 'rejected'
+      }
+    )
+    .addMatcher(
+      action =>
+        action.type.endsWith('/fulfilled') && 'requestId' in action.meta,
+      (state, action) => {
+        state[action.meta.requestId] = 'fulfilled'
+      }
+    )
+})
+```
+
+Note that _all_ matching matcher reducers will execute in order, even if a case reducer has already executed.
+
+#### `builder.addDefaultCase`
+
+`builder.addDefaultCase` allows you to add a "default" reducer that will execute if no case reducer or matcher reducer was executed.
+
+```js
+const reducer = createReducer(initialState, builder => {
+  builder
+    // .addCase
+    // ...
+    // .addMatcher
+    // ...
+    .addDefaultCase((state, action) => {
+      state.otherActions++
+    })
+})
+```
+
+## Matchers and "default" Cases
+
+The most readable approach to define matcher cases and default cases is by using the `builder.addMatcher` and `builder.addDefaultCase` methods described above, but it is also possible to use these with the object notation:
+
+```js
+const isStringPayloadAction = action => typeof action.payload === 'string'
+
+const lengthOfAllStringsReducer = createReducer(
+  // initial state
+  { strLen: 0, nonStringActions: 0 },
+  // normal reducers
+  {
+    /*...*/
+  },
+  //  array of matcher reducers
+  [
+    {
+      matcher: isStringPayloadAction,
+      reducer(state, action) {
+        state.strLen += action.payload.length
+      }
+    }
+  ],
+  // default reducer
+  () => {
+    state.nonStringActions++
+  }
+)
+```
+
 ## Direct State Mutation
 
 Redux requires reducer functions to be pure and treat state values as immutable. While this is essential for making state updates predictable and observable, it can sometimes make the implementation of such updates awkward. Consider the following example:
