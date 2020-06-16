@@ -242,7 +242,7 @@ export function createImmutableStateInvariantMiddleware(
             result.path || []
           ).join(
             '.'
-          )}'.  This may cause incorrect behavior. (http://redux.js.org/docs/Troubleshooting.html#never-mutate-reducer-arguments)`
+          )}'.  This may cause incorrect behavior. (https://redux.js.org/troubleshooting#never-mutate-reducer-arguments)`
         )
       })
 
@@ -264,7 +264,7 @@ export function createImmutableStateInvariantMiddleware(
               '.'
             )}. Take a look at the reducer(s) handling the action ${stringify(
               action
-            )}. (http://redux.js.org/docs/Troubleshooting.html#never-mutate-reducer-arguments)`
+            )}. (https://redux.js.org/troubleshooting#never-mutate-reducer-arguments)`
           )
       })
 
