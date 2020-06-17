@@ -195,7 +195,7 @@ const reducer1 = createReducer(initialState, {
   [fetchUserById.fulfilled]: (state, action) => {}
 })
 
-const reducer2 = createReducer(initialState, build => {
+const reducer2 = createReducer(initialState, builder => {
   builder.addCase(fetchUserById.fulfilled, (state, action) => {})
 })
 
