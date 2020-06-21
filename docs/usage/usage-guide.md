@@ -1035,7 +1035,7 @@ configureStore({
   //...
   middleware: getDefaultMiddleware({
     serializableCheck: {
-      // Ignore these actiontype
+      // Ignore these action types
       ignoredActions: ['your/action/type'],
       // Ignore these field paths in all actions
       ignoredActionPaths: ['meta.arg', 'payload.timestamp'],
@@ -1112,7 +1112,6 @@ import {
 } from 'react-redux-firebase'
 import { constants as rfConstants } from 'redux-firestore'
 import rootReducer from './rootReducer'
-import { useDispatch } from 'react-redux'
 
 const extraArgument = {
   getFirebase

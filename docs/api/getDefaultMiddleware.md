@@ -103,7 +103,7 @@ const middleware = [thunk]
 
 `getDefaultMiddleware` accepts an options object that allows customizing each middleware in two ways:
 
-- Each middleware can be excluded from inclusion in the array by passing `false` for its corresponding field
+- Each middleware can be excluded the result array by passing `false` for its corresponding field
 - Each middleware can have its options customized by passing the matching options object for its corresponding field
 
 This example shows excluding the serializable state check middleware, and passing a specific value for the thunk
@@ -126,7 +126,7 @@ interface ThunkOptions<E = any> {
 }
 
 interface ImmutableStateInvariantMiddlewareOptions {
-  // See "Immutable Middleware" page for definition
+  // See "Immutability Middleware" page for definition
 }
 
 interface SerializableStateInvariantMiddlewareOptions {

@@ -154,7 +154,7 @@ createSlice({
 
 We recommend using this API if stricter type safety is necessary when defining reducer argument objects, as it will correctly infer the action type in the reducer based on the provided action creator. It's particularly useful for working with actions produced by `createAction` and `createAsyncThunk`.
 
-See [the "builder callback API" section of the `createReducer` reference](./createReducer.md#the-builder-callback-api) for details on how to use `builder.addCase`, `builder.addMatcher`, and `builder.addDefault`
+See [the "Builder Callback Notation" section of the `createReducer` reference](./createReducer.md#builder-callback-notation) for details on how to use `builder.addCase`, `builder.addMatcher`, and `builder.addDefault`
 
 ## Return Value
 

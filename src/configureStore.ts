@@ -86,7 +86,7 @@ export interface ConfigureStoreOptions<
    * If you need to customize the order of enhancers, supply a callback
    * function that will receive the original array (ie, `[applyMiddleware]`),
    * and should return a new array (such as `[applyMiddleware, offline]`).
-   * If you only need to add middleware, you can use the `middleware` parameter instaead.
+   * If you only need to add middleware, you can use the `middleware` parameter instead.
    */
   enhancers?: StoreEnhancer[] | ConfigureEnhancersCallback
 }
