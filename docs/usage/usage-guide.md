@@ -1022,17 +1022,126 @@ export const usersAdapter = createEntityAdapter({
 })
 ```
 
-## Working with Non-serializable Data
+## Working with Non-Serializable Data
 
-Occasionally, you may have actions that need to accept non-serializable data. This should be done very rarely and only if necessary. These non-serializable payloads shouldn't ever make it into your application state through a reducer. However, if you're using libraries such as redux saga or you're using middleware that could reasonably use non-serializable data you'll want to do the following:
+One of the core usage principles for Redux is that [you should not put non-serializable values in state or actions](https://redux.js.org/style-guide/style-guide#do-not-put-non-serializable-values-in-state-or-actions).
+
+However, like most rules, there are exceptions. There may be occasions when you have to deal with actions that need to accept non-serializable data. This should be done very rarely and only if necessary, and these non-serializable payloads shouldn't ever make it into your application state through a reducer.
+
+The [serializability dev check middleware](../api/getDefaultMiddleware.md) will automatically warn anytime it detects non-serializable values in your actions or state. We encourage you to leave this middleware active to help avoid accidentally making mistakes. However, if you _do_ need to turnoff those warnings, you can customize the middleware by configuring it to ignore specific action types, or fields in actions and state:
 
 ```js
 configureStore({
   //...
   middleware: getDefaultMiddleware({
     serializableCheck: {
-      ignoredActions: ['your/action']
+      // Ignore these actiontype
+      ignoredActions: ['your/action/type'],
+      // Ignore these field paths in all actions
+      ignoredActionPaths: ['meta.arg', 'payload.timestamp'],
+      // Ignore these paths in the state
+      ignoredPaths: ['items.dates']
     }
   })
 })
+```
+
+### Use with Redux-Persist
+
+If using Redux-Persist, you should specifically ignore all the action types it dispatches:
+
+```jsx
+import {
+  persistStore,
+  persistReducer,
+  FLUSH,
+  REHYDRATE,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER
+} from 'redux-persist'
+import storage from 'redux-persist/lib/storage'
+import { PersistGate } from 'redux-persist/integration/react'
+
+import App from './App'
+import rootReducer from './reducers'
+
+const persistConfig = {
+  key: 'root',
+  version: 1,
+  storage
+}
+
+const persistedReducer = persistReducer(persistConfig, rootReducer)
+
+const store = configureStore({
+  reducer: persistedReducer,
+  middleware: getDefaultMiddleware({
+    serializableCheck: {
+      ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER]
+    }
+  })
+})
+
+let persistor = persistStore(store)
+
+ReactDOM.render(
+  <Provider store={store}>
+    <PersistGate loading={null} persistor={persistor}>
+      <App />
+    </PersistGate>
+  </Provider>,
+  document.getElementById('root')
+)
+```
+
+See [Redux Toolkit #121: How to use this with Redux-Persist?](https://github.com/reduxjs/redux-toolkit/issues/121) and [Redux-Persist #988: non-serializable value error](https://github.com/rt2zz/redux-persist/issues/988#issuecomment-552242978) for further discussion.
+
+### Use with React-Redux-Firebase
+
+RRF includes timestamp values in most actions and state as of 3.x, but there are PRs that may improve that behavior as of 4.x.
+
+A possible configuration to work with that behavior could look like:
+
+```ts
+import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit'
+import {
+  getFirebase,
+  actionTypes as rrfActionTypes
+} from 'react-redux-firebase'
+import { constants as rfConstants } from 'redux-firestore'
+import rootReducer from './rootReducer'
+import { useDispatch } from 'react-redux'
+
+const extraArgument = {
+  getFirebase
+}
+
+const middleware = [
+  ...getDefaultMiddleware({
+    serializableCheck: {
+      ignoredActions: [
+        // just ignore every redux-firebase and react-redux-firebase action type
+        ...Object.keys(rfConstants.actionTypes).map(
+          type => `${rfConstants.actionsPrefix}/${type}`
+        ),
+        ...Object.keys(rrfActionTypes).map(
+          type => `@@reactReduxFirebase/${type}`
+        )
+      ],
+      ignoredPaths: ['firebase', 'firestore']
+    },
+    thunk: {
+      extraArgument
+    }
+  })
+]
+
+const store = configureStore({
+  reducer: rootReducer,
+  middleware
+})
+
+export default store
 ```
