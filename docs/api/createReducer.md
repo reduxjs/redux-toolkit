@@ -86,7 +86,7 @@ const exampleReducer = createReducer(initialState, builder => {
 })
 ```
 
-See [the `builder callback` API](#the-builder-callback-api) below for details on defining reducers using this syntax.
+See the ["Builder Callback Notation"](#builder-callback-notation) section below for details on defining reducers using this syntax.
 
 > **Note**: If you are using TypeScript, we specifically recommend using the builder callback API to get proper inference of TS types for action objects. If you do not use the builder callback and are using TypeScript, you will need to use `actionCreator.type` or `actionCreator.toString()` as the key to force the TS compiler to accept the computed property. Please see [Usage With TypeScript](./../usage/usage-with-typescript.md#type-safety-with-extraReducers) for further details.
 
@@ -167,7 +167,7 @@ const todosReducer = createReducer([], {
 })
 ```
 
-## The "builder callback" API
+## Builder Callback Notation
 
 Instead of using a plain object as an argument to `createReducer`, you can also provide a "builder callback" function that receives an `ActionReducerMapBuilder` instance:
 
@@ -319,7 +319,7 @@ console.log(reducer(0, { type: 'increment' }))
 // - matcher ends with 't': 5 => 7
 ```
 
-## Debugging your state
+## Logging Draft State Values
 
 It's very common for a developer to call `console.log(state)` during the development process. However, browsers display Proxies in a format that is hard to read, which can make console logging of Immer-based state difficult.
 

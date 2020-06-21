@@ -688,4 +688,4 @@ In this tutorial, you saw:
 
 Hopefully that has helped illustrate how to actually use these methods in practice.
 
-Coming soon: an Advanced Tutorial, where we'll look at how to use RTK in an app that does async data fetching and uses TypeScript.
+Next up, the [Advanced Tutorial](./advanced-tutorial.md) looks at how to use RTK in an app that does async data fetching and uses TypeScript.
