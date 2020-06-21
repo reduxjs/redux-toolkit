@@ -18,7 +18,7 @@ const store = configureStore({
   reducer: rootReducer
 })
 
-// Store has one or more middleware added, because the middleware list was not customized
+// Store has middleware added, because the middleware list was not customized
 ```
 
 If you want to customize the list of middleware, you can supply an array of middleware functions to `configureStore`:
@@ -47,7 +47,7 @@ const store = configureStore({
 // Store has all of the default middleware added, _plus_ the logger middleware
 ```
 
-## Usage without import (middleware callback notation)
+## Middleware Callback Notation for `configureStore`
 
 For convenience, the `middleware` property of `configureStore` can be used with a callback notation like this.
 
@@ -72,12 +72,12 @@ One of the goals of Redux Toolkit is to provide opinionated defaults and prevent
 `getDefaultMiddleware` includes some middleware that are added **in development builds of your app only** to
 provide runtime checks for two common issues:
 
-- [`immutable-state-invariant`](./otherExports.md#createimmutablestateinvariantmiddleware): deeply compares
+- [Immutability check middleware](./immutabilityMiddleware.md): deeply compares
   state values for mutations. It can detect mutations in reducers during a dispatch, and also mutations that occur between
   dispatches (such as in a component or a selector). When a mutation is detected, it will throw an error and indicate the key
   path for where the mutated value was detected in the state tree. (Forked from [`redux-immutable-state-invariant`](https://github.com/leoasis/redux-immutable-state-invariant).)
 
-- [`serializable-state-invariant-middleware`](./otherExports.md#createserializablestateinvariantmiddleware): a custom middleware created specifically for use in Redux Toolkit. Similar in
+- [Serializability check middleware](./serializabilityMiddleware.md): a custom middleware created specifically for use in Redux Toolkit. Similar in
   concept to `immutable-state-invariant`, but deeply checks your state tree and your actions for non-serializable values
   such as functions, Promises, Symbols, and other non-plain-JS-data values. When a non-serializable value is detected, a
   console error will be printed with the key path for where the non-serializable value was detected.
@@ -126,46 +126,11 @@ interface ThunkOptions<E = any> {
 }
 
 interface ImmutableStateInvariantMiddlewareOptions {
-  isImmutable?: (value: any) => boolean
-  ignoredPaths?: string[]
-  warnAfter?: number
+  // See "Immutable Middleware" page for definition
 }
 
 interface SerializableStateInvariantMiddlewareOptions {
-  /**
-   * The function to check if a value is considered serializable. This
-   * function is applied recursively to every value contained in the
-   * state. Defaults to `isPlain()`.
-   */
-  isSerializable?: (value: any) => boolean
-  /**
-   * The function that will be used to retrieve entries from each
-   * value.  If unspecified, `Object.entries` will be used. Defaults
-   * to `undefined`.
-   */
-  getEntries?: (value: any) => [string, any][]
-
-  /**
-   * An array of action types to ignore when checking for serializability, Defaults to []
-   */
-  ignoredActions?: string[]
-
-  /**
-   * An array of dot-separated path strings to ignore when checking for serializability, Defaults to ['meta.arg']
-   * If you use this parameter, the default value 'meta.arg' will be removed, so we recommend re-adding it unless you
-   * specifically do not want to ignore it. Example: ['meta.arg', 'your.path', 'other.path', ...etc]
-   */
-  ignoredActionPaths?: string[]
-
-  /**
-   * An array of dot-separated path strings to ignore when checking for serializability, Defaults to []
-   */
-  ignoredPaths?: string[]
-
-  /**
-   * Execution time warning threshold. If the middleware takes longer than `warnAfter` ms, a warning will be displayed in the console. Defaults to 32
-   */
-  warnAfter?: number
+  // See "Serializability Middleware" page for definition
 }
 
 interface GetDefaultMiddlewareOptions {

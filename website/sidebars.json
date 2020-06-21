@@ -12,7 +12,12 @@
         "type": "category",
         "label": "Store Setup",
         "collapsed": false,
-        "items": ["api/configureStore", "api/getDefaultMiddleware"]
+        "items": [
+          "api/configureStore",
+          "api/getDefaultMiddleware",
+          "api/immutabilityMiddleware",
+          "api/serializabilityMiddleware"
+        ]
       },
       {
         "type": "category",

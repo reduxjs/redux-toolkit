@@ -184,10 +184,23 @@ type IsImmutableFunc = (value: any) => boolean
  * @public
  */
 export interface ImmutableStateInvariantMiddlewareOptions {
+  /**
+    Callback function to check if a value is considered to be immutable.
+    This function is applied recursively to every value contained in the state.
+    The default implementation will return true for primitive types 
+    (like numbers, strings, booleans, null and undefined).
+   */
   isImmutable?: IsImmutableFunc
+  /** 
+    An array of dot-separated path strings that match named nodes from 
+    the root state to ignore when checking for immutability.
+    Defaults to undefined
+   */
   ignoredPaths?: string[]
+  /** Print a warning if checks take longer than N ms. Default: 32ms */
   warnAfter?: number
-  ignore?: string[] // @deprecated. Use ignoredPaths
+  // @deprecated. Use ignoredPaths
+  ignore?: string[]
 }
 
 /**

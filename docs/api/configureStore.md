@@ -19,7 +19,11 @@ type ConfigureEnhancersCallback = (
   defaultEnhancers: StoreEnhancer[]
 ) => StoreEnhancer[]
 
-interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
+interface ConfigureStoreOptions<
+  S = any,
+  A extends Action = AnyAction,
+  M extends Middlewares<S> = Middlewares<S>
+> {
   /**
    * A single reducer function that will be used as the root reducer, or an
    * object of slice reducers that will be passed to `combineReducers()`.
@@ -30,7 +34,7 @@ interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
    * An array of Redux middleware to install. If not supplied, defaults to
    * the set of middleware returned by `getDefaultMiddleware()`.
    */
-  middleware?: Middleware<{}, S>[]
+  middleware?: ((getDefaultMiddleware: CurriedGetDefaultMiddleware<S>) => M) | M
 
   /**
    * Whether to enable Redux DevTools integration. Defaults to `true`.
@@ -55,7 +59,7 @@ interface ConfigureStoreOptions<S = any, A extends Action = AnyAction> {
    * If you need to customize the order of enhancers, supply a callback
    * function that will receive the original array (ie, `[applyMiddleware]`),
    * and should return a new array (such as `[applyMiddleware, offline]`).
-   * If you only need to add middleware, use the `middleware` parameter instead.
+   * If you only need to add middleware, you can use the `middleware` parameter instaead.
    */
   enhancers?: StoreEnhancer[] | ConfigureEnhancersCallback
 }
@@ -75,13 +79,17 @@ If it is an object of slice reducers, like `{users : usersReducer, posts : posts
 
 ### `middleware`
 
-An optional array of Redux middleware functions.
+An optional array of Redux middleware functions
 
 If this option is provided, it should contain all the middleware functions you
 want added to the store. `configureStore` will automatically pass those to `applyMiddleware`.
 
 If not provided, `configureStore` will call `getDefaultMiddleware` and use the
 array of middleware functions it returns.
+
+Alternately, you may pass a callback function that will receive `getDefaultMiddleware` as its argument,
+and should return a middleware array. This lets you skip importing `getDefaultMiddleware` separately. If using TypeScript, prefer using this syntax, as we provide a more strongly-typed version of `getDefaultMiddleware` that will correctly
+retain the types of the provided middleware when constructing the store.
 
 For more details on how the `middleware` parameter works and the list of middleware that are added by default, see the
 [`getDefaultMiddleware` docs page](./getDefaultMiddleware.md).
