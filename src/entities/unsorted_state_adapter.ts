@@ -16,7 +16,7 @@ export function createUnsortedStateAdapter<T>(
 ): EntityStateAdapter<T> {
   type R = EntityState<T>
 
-  function addOneMutably(entity: T, state: EntityState<T>): void {
+  function addOneMutably(entity: T, state: R): void {
     const key = selectIdValue(entity, selectId)
 
     if (key in state.entities) {
@@ -108,10 +108,15 @@ export function createUnsortedStateAdapter<T>(
       if (update.id in state.entities) {
         // If there are multiple updates to one entity, merge them together
         updatesPerEntity[update.id] = {
+          id: update.id,
           // Spreads ignore falsy values, so this works even if there isn't
           // an existing update already at this key
-          ...updatesPerEntity[update.id],
-          ...update
+          changes: {
+            ...(updatesPerEntity[update.id]
+              ? updatesPerEntity[update.id].changes
+              : null),
+            ...update.changes
+          }
         }
       }
     })
