@@ -12,7 +12,7 @@ import {
   ActionReducerMapBuilder,
   executeReducerBuilderCallback
 } from './mapBuilders'
-import { Omit } from './tsHelpers'
+import { Omit, NoInfer } from './tsHelpers'
 
 /**
  * An action creator attached to a slice.
@@ -165,15 +165,6 @@ type SliceDefinedCaseReducers<CaseReducers extends SliceCaseReducers<any>> = {
 }
 
 /**
- * Helper type. Passes T out again, but boxes it in a way that it cannot
- * "widen" the type by accident if it is a generic that should be inferred
- * from elsewhere.
- *
- * @internal
- */
-type NoInfer<T> = [T][T extends any ? 0 : never]
-
-/**
  * Used on a SliceCaseReducers object.
  * Ensures that if a CaseReducer is a `CaseReducerWithPrepare`, that
  * the `reducer` and the `prepare` function use the same type of `payload`.
@@ -225,12 +216,16 @@ export function createSlice<
     throw new Error('`name` is a required option for createSlice')
   }
   const reducers = options.reducers || {}
-  const extraReducers =
+  const [
+    extraReducers = {},
+    actionMatchers = [],
+    defaultCaseReducer = undefined
+  ] =
     typeof options.extraReducers === 'undefined'
-      ? {}
+      ? []
       : typeof options.extraReducers === 'function'
       ? executeReducerBuilderCallback(options.extraReducers)
-      : options.extraReducers
+      : [options.extraReducers]
 
   const reducerNames = Object.keys(reducers)
 
@@ -260,7 +255,12 @@ export function createSlice<
   })
 
   const finalCaseReducers = { ...extraReducers, ...sliceCaseReducersByType }
-  const reducer = createReducer(initialState, finalCaseReducers as any)
+  const reducer = createReducer(
+    initialState,
+    finalCaseReducers as any,
+    actionMatchers,
+    defaultCaseReducer
+  )
 
   return {
     name,

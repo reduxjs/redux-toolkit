@@ -55,6 +55,8 @@ export interface ActionCreatorWithPreparedPayload<Args extends unknown[], P, T e
 export interface ActionReducerMapBuilder<State> {
     addCase<ActionCreator extends TypedActionCreator<string>>(actionCreator: ActionCreator, reducer: CaseReducer<State, ReturnType<ActionCreator>>): ActionReducerMapBuilder<State>;
     addCase<Type extends string, A extends Action<Type>>(type: Type, reducer: CaseReducer<State, A>): ActionReducerMapBuilder<State>;
+    addDefaultCase(reducer: CaseReducer<State, AnyAction>): {};
+    addMatcher<A extends AnyAction>(matcher: ActionMatcher<A>, reducer: CaseReducer<State, A>): Omit<ActionReducerMapBuilder<State>, 'addCase'>;
 }
 
 // @public @deprecated
@@ -147,7 +149,7 @@ export function createImmutableStateInvariantMiddleware(options?: ImmutableState
 export { createNextState }
 
 // @public
-export function createReducer<S, CR extends CaseReducers<S, any> = CaseReducers<S, any>>(initialState: S, actionsMap: CR): Reducer<S>;
+export function createReducer<S, CR extends CaseReducers<S, any> = CaseReducers<S, any>>(initialState: S, actionsMap: CR, actionMatchers?: ActionMatcherDescriptionCollection<S>, defaultCaseReducer?: CaseReducer<S>): Reducer<S>;
 
 // @public
 export function createReducer<S>(initialState: S, builderCallback: (builder: ActionReducerMapBuilder<S>) => void): Reducer<S>;

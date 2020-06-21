@@ -1,7 +1,7 @@
 import { createReducer, CaseReducer } from './createReducer'
 import { PayloadAction, createAction } from './createAction'
 import { createNextState, Draft } from './'
-import { Reducer } from 'redux'
+import { Reducer, AnyAction } from 'redux'
 
 interface Todo {
   text: string
@@ -106,6 +106,120 @@ describe('createReducer', () => {
     behavesLikeReducer(wrappedReducer)
   })
 
+  describe('actionMatchers argument', () => {
+    const prepareNumberAction = (payload: number) => ({
+      payload,
+      meta: { type: 'number_action' }
+    })
+    const prepareStringAction = (payload: string) => ({
+      payload,
+      meta: { type: 'string_action' }
+    })
+
+    const numberActionMatcher = (a: AnyAction): a is PayloadAction<number> =>
+      a.meta && a.meta.type === 'number_action'
+    const stringActionMatcher = (a: AnyAction): a is PayloadAction<string> =>
+      a.meta && a.meta.type === 'string_action'
+
+    const incrementBy = createAction('increment', prepareNumberAction)
+    const decrementBy = createAction('decrement', prepareNumberAction)
+    const concatWith = createAction('concat', prepareStringAction)
+
+    const initialState = { numberActions: 0, stringActions: 0 }
+    const numberActionsCounter = {
+      matcher: numberActionMatcher,
+      reducer(state: typeof initialState) {
+        state.numberActions = state.numberActions * 10 + 1
+      }
+    }
+    const stringActionsCounter = {
+      matcher: stringActionMatcher,
+      reducer(state: typeof initialState) {
+        state.stringActions = state.stringActions * 10 + 1
+      }
+    }
+
+    test('uses the reducer of matching actionMatchers', () => {
+      const reducer = createReducer(initialState, {}, [
+        numberActionsCounter,
+        stringActionsCounter
+      ])
+      expect(reducer(undefined, incrementBy(1))).toEqual({
+        numberActions: 1,
+        stringActions: 0
+      })
+      expect(reducer(undefined, decrementBy(1))).toEqual({
+        numberActions: 1,
+        stringActions: 0
+      })
+      expect(reducer(undefined, concatWith('foo'))).toEqual({
+        numberActions: 0,
+        stringActions: 1
+      })
+    })
+    test('fallback to default case', () => {
+      const reducer = createReducer(
+        initialState,
+        {},
+        [numberActionsCounter, stringActionsCounter],
+        state => {
+          state.numberActions = -1
+          state.stringActions = -1
+        }
+      )
+      expect(reducer(undefined, { type: 'somethingElse' })).toEqual({
+        numberActions: -1,
+        stringActions: -1
+      })
+    })
+    test('runs reducer cases followed by all matching actionMatchers', () => {
+      const reducer = createReducer(
+        initialState,
+        {
+          [incrementBy.type](state) {
+            state.numberActions = state.numberActions * 10 + 2
+          }
+        },
+        [
+          {
+            matcher: numberActionMatcher,
+            reducer(state) {
+              state.numberActions = state.numberActions * 10 + 3
+            }
+          },
+          numberActionsCounter,
+          stringActionsCounter
+        ]
+      )
+      expect(reducer(undefined, incrementBy(1))).toEqual({
+        numberActions: 231,
+        stringActions: 0
+      })
+      expect(reducer(undefined, decrementBy(1))).toEqual({
+        numberActions: 31,
+        stringActions: 0
+      })
+      expect(reducer(undefined, concatWith('foo'))).toEqual({
+        numberActions: 0,
+        stringActions: 1
+      })
+    })
+    test('works with `actionCreator.match`', () => {
+      const reducer = createReducer(initialState, {}, [
+        {
+          matcher: incrementBy.match,
+          reducer(state) {
+            state.numberActions += 100
+          }
+        }
+      ])
+      expect(reducer(undefined, incrementBy(1))).toEqual({
+        numberActions: 100,
+        stringActions: 0
+      })
+    })
+  })
+
   describe('alternative builder callback for actionMap', () => {
     const increment = createAction<number, 'increment'>('increment')
     const decrement = createAction<number, 'decrement'>('decrement')
@@ -201,6 +315,145 @@ describe('createReducer', () => {
         )
       ).toThrowErrorMatchingInlineSnapshot(
         `"addCase cannot be called with two reducers for the same action type"`
+      )
+    })
+  })
+
+  describe('builder "addMatcher" method', () => {
+    const prepareNumberAction = (payload: number) => ({
+      payload,
+      meta: { type: 'number_action' }
+    })
+    const prepareStringAction = (payload: string) => ({
+      payload,
+      meta: { type: 'string_action' }
+    })
+
+    const numberActionMatcher = (a: AnyAction): a is PayloadAction<number> =>
+      a.meta && a.meta.type === 'number_action'
+    const stringActionMatcher = (a: AnyAction): a is PayloadAction<string> =>
+      a.meta && a.meta.type === 'string_action'
+
+    const incrementBy = createAction('increment', prepareNumberAction)
+    const decrementBy = createAction('decrement', prepareNumberAction)
+    const concatWith = createAction('concat', prepareStringAction)
+
+    const initialState = { numberActions: 0, stringActions: 0 }
+
+    test('uses the reducer of matching actionMatchers', () => {
+      const reducer = createReducer(initialState, builder =>
+        builder
+          .addMatcher(numberActionMatcher, state => {
+            state.numberActions += 1
+          })
+          .addMatcher(stringActionMatcher, state => {
+            state.stringActions += 1
+          })
+      )
+      expect(reducer(undefined, incrementBy(1))).toEqual({
+        numberActions: 1,
+        stringActions: 0
+      })
+      expect(reducer(undefined, decrementBy(1))).toEqual({
+        numberActions: 1,
+        stringActions: 0
+      })
+      expect(reducer(undefined, concatWith('foo'))).toEqual({
+        numberActions: 0,
+        stringActions: 1
+      })
+    })
+    test('falls back to defaultCase', () => {
+      const reducer = createReducer(initialState, builder =>
+        builder
+          .addCase(concatWith, state => {
+            state.stringActions += 1
+          })
+          .addMatcher(numberActionMatcher, state => {
+            state.numberActions += 1
+          })
+          .addDefaultCase(state => {
+            state.numberActions = -1
+            state.stringActions = -1
+          })
+      )
+      expect(reducer(undefined, { type: 'somethingElse' })).toEqual({
+        numberActions: -1,
+        stringActions: -1
+      })
+    })
+    test('runs reducer cases followed by all matching actionMatchers', () => {
+      const reducer = createReducer(initialState, builder =>
+        builder
+          .addCase(incrementBy, state => {
+            state.numberActions = state.numberActions * 10 + 1
+          })
+          .addMatcher(numberActionMatcher, state => {
+            state.numberActions = state.numberActions * 10 + 2
+          })
+          .addMatcher(stringActionMatcher, state => {
+            state.stringActions = state.stringActions * 10 + 1
+          })
+          .addMatcher(numberActionMatcher, state => {
+            state.numberActions = state.numberActions * 10 + 3
+          })
+      )
+      expect(reducer(undefined, incrementBy(1))).toEqual({
+        numberActions: 123,
+        stringActions: 0
+      })
+      expect(reducer(undefined, decrementBy(1))).toEqual({
+        numberActions: 23,
+        stringActions: 0
+      })
+      expect(reducer(undefined, concatWith('foo'))).toEqual({
+        numberActions: 0,
+        stringActions: 1
+      })
+    })
+    test('works with `actionCreator.match`', () => {
+      const reducer = createReducer(initialState, builder =>
+        builder.addMatcher(incrementBy.match, state => {
+          state.numberActions += 100
+        })
+      )
+      expect(reducer(undefined, incrementBy(1))).toEqual({
+        numberActions: 100,
+        stringActions: 0
+      })
+    })
+    test('calling addCase, addMatcher and addDefaultCase in a nonsensical order should result in an error in development mode', () => {
+      expect(() =>
+        createReducer(initialState, (builder: any) =>
+          builder
+            .addMatcher(numberActionMatcher, () => {})
+            .addCase(incrementBy, () => {})
+        )
+      ).toThrowErrorMatchingInlineSnapshot(
+        `"\`builder.addCase\` should only be called before calling \`builder.addMatcher\`"`
+      )
+      expect(() =>
+        createReducer(initialState, (builder: any) =>
+          builder.addDefaultCase(() => {}).addCase(incrementBy, () => {})
+        )
+      ).toThrowErrorMatchingInlineSnapshot(
+        `"\`builder.addCase\` should only be called before calling \`builder.addDefaultCase\`"`
+      )
+      expect(() =>
+        createReducer(initialState, (builder: any) =>
+          builder
+            .addDefaultCase(() => {})
+            .addMatcher(numberActionMatcher, () => {})
+        )
+      ).toThrowErrorMatchingInlineSnapshot(
+        `"\`builder.addMatcher\` should only be called before calling \`builder.addDefaultCase\`"`
+      )
+      expect(() =>
+        createReducer(initialState, (builder: any) =>
+          builder.addDefaultCase(() => {}).addDefaultCase(() => {})
+        )
+      ).toThrowErrorMatchingInlineSnapshot(
+        `"\`builder.addDefaultCase\` can only be called once"`
       )
     })
   })

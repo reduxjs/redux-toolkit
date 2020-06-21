@@ -90,4 +90,13 @@ type UnionToIntersection<U> = (U extends any
   ? I
   : never
 
+/**
+ * Helper type. Passes T out again, but boxes it in a way that it cannot
+ * "widen" the type by accident if it is a generic that should be inferred
+ * from elsewhere.
+ *
+ * @internal
+ */
+export type NoInfer<T> = [T][T extends any ? 0 : never]
+
 export type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>

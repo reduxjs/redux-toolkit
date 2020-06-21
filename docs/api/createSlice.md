@@ -16,18 +16,27 @@ and automatically generates action creators and action types that correspond to 
 
 ```ts
 function createSlice({
+      // A name, used in action types
+    name: string,
+        // The initial state for the reducer
+    initialState: any,
     // An object of "case reducers". Key names will be used to generate actions.
     reducers: Object<string, ReducerFunction | ReducerAndPrepareObject>
-    // The initial state for the reducer
-    initialState: any,
-    // A name, used in action types
-    name: string,
-    // An additional object of "case reducers". Keys should be other action types.
+    // An additional object of "case reducers", where the keys should be other
+    // action types, or a "builder callback" function used to add more reducers
     extraReducers?:
     | Object<string, ReducerFunction>
     | ((builder: ActionReducerMapBuilder<State>) => void)
 })
 ```
+
+### `initialState`
+
+The initial state value for this slice of state.
+
+### `name`
+
+A string name for this slice of state. Generated action type constants will use this as a prefix.
 
 ### `reducers`
 
@@ -42,17 +51,38 @@ descriptive names.
 This object will be passed to [`createReducer`](./createReducer.md), so the reducers may safely "mutate" the
 state they are given.
 
+```js
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: 0,
+  reducers: {
+    increment: state => state + 1
+  }
+})
+// Will handle the action type `'counter/increment'`
+```
+
 #### Customizing Generated Action Creators
 
-If you need to customize the creation of the payload value of an action creator by means of a [`prepare callback`](./createAction.md#using-prepare-callbacks-to-customize-action-contents), the value of the appropriate field of the `reducers` argument object should be an object instead of a function. This object must contain two properties: `reducer` and `prepare`. The value of the `reducer` field should be the case reducer function while the value of the `prepare` field should be the prepare callback function.
+If you need to customize the creation of the payload value of an action creator by means of a [`prepare callback`](./createAction.md#using-prepare-callbacks-to-customize-action-contents), the value of the appropriate field of the `reducers` argument object should be an object instead of a function. This object must contain two properties: `reducer` and `prepare`. The value of the `reducer` field should be the case reducer function while the value of the `prepare` field should be the prepare callback function:
 
-### `initialState`
-
-The initial state value for this slice of state.
-
-### `name`
-
-A string name for this slice of state. Generated action type constants will use this as a prefix.
+```js
+const todosSlice = createSlice({
+  name: 'todos',
+  initialState: [],
+  reducers: {
+    addTodo: {
+      reducer: (state, action) => {
+        state.push(action.payload)
+      },
+      prepare: text => {
+        const id = nanoid()
+        return { payload: { id, text } }
+      }
+    }
+  }
+})
+```
 
 ### `extraReducers`
 
@@ -60,11 +90,11 @@ One of the key concepts of Redux is that each slice reducer "owns" its slice of 
 can independently respond to the same action type. `extraReducers` allows `createSlice` to respond to other action types
 besides the types it has generated.
 
-Like `reducers`, `extraReducers` should be an object containing Redux case reducer functions. However, the keys should
+Like `reducers`, `extraReducers` can be an object containing Redux case reducer functions. However, the keys should
 be other Redux string action type constants, and `createSlice` will _not_ auto-generate action types or action creators
 for reducers included in this parameter.
 
-As with `reducers`, these reducers will also be passed to `createReducer` and may "mutate" their state safely.
+As with `reducers`, these case reducers will also be passed to `createReducer` and may "mutate" their state safely.
 
 If two fields from `reducers` and `extraReducers` happen to end up with the same action type string,
 the function from `reducers` will be used to handle that action type.
@@ -82,7 +112,8 @@ createSlice({
   extraReducers: {
     [incrementBy]: (state, action) => {
       return state + action.payload
-    }
+    },
+    'some/other/action': (state, action) => {}
   }
 })
 ```
@@ -92,25 +123,38 @@ createSlice({
 
 ### The "builder callback" API for `extraReducers`
 
-Instead of using a simple object as `extraReducers`, you can also use a callback that receives a `ActionReducerMapBuilder` instance.
+Instead of using an object as `extraReducers`, you can also use a callback that receives a `ActionReducerMapBuilder` instance.
+
+This builder notation is also the only way to add matcher reducers and default case reducers to your slice.
 
 ```typescript
 const incrementBy = createAction<number>('incrementBy')
+const decrement = createAction('decrement')
 
 createSlice({
   name: 'counter',
   initialState: 0,
   reducers: {},
-  extraReducers: builder => {
-    builder.addCase(incrementBy, (state, action) => {
-      // action is inferred correctly here with `action.payload` as a `number`
-      return state + action.payload
-    })
-  }
+  extraReducers: builder =>
+    builder
+      .addCase(incrementBy, (state, action) => {
+        // action is inferred correctly here if using TS
+      })
+      // You can chain calls, or have separate `builder.addCase()` lines each time
+      .addCase(decrement, (state, action) => {})
+      // You can match a range of action types
+      .addMatcher(
+        action => action.endsWith('rejected'),
+        (state, action) => {}
+      )
+      // and provide a default case if no other handlers matched
+      .addDefaultCase((state, action) => {})
 })
 ```
 
-We recommend using this API if stricter type safety is necessary when defining reducer argument objects. It's particularly useful for working with actions produced by `createAction` and `createAsyncThunk`.
+We recommend using this API if stricter type safety is necessary when defining reducer argument objects, as it will correctly infer the action type in the reducer based on the provided action creator. It's particularly useful for working with actions produced by `createAction` and `createAsyncThunk`.
+
+See [the "builder callback API" section of the `createReducer` reference](./createReducer.md#the-builder-callback-api) for details on how to use `builder.addCase`, `builder.addMatcher`, and `builder.addDefault`
 
 ## Return Value
 
@@ -120,7 +164,8 @@ We recommend using this API if stricter type safety is necessary when defining r
 {
     name : string,
     reducer : ReducerFunction,
-    actions : Object<string, ActionCreator>,
+    actions : Record<string, ActionCreator>,
+    caseReducers: Record<string, CaseReducer>
 }
 ```
 
