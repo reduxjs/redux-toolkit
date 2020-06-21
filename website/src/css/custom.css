@@ -62,6 +62,11 @@ blockquote {
   border-radius: var(--ifm-global-radius);
 }
 
+html[data-theme='dark'] blockquote {
+   border-left-color: var(--ifm-color-primary);
+   color: #000;
+}
+
 .docusaurus-highlight-code-line {
   background-color: rgb(72, 77, 91);
   display: block;
