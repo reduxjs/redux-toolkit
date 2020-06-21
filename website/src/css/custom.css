@@ -63,8 +63,8 @@ blockquote {
 }
 
 html[data-theme='dark'] blockquote {
-   border-left-color: var(--ifm-color-primary);
-   color: #000;
+  border-left-color: var(--ifm-color-primary);
+  color: #000;
 }
 
 .docusaurus-highlight-code-line {
@@ -106,22 +106,6 @@ a.contents__link.contents__link--active {
 
 a:visited {
   color: var(--ifm-color-primary);
-}
-
-.pagination-nav .pagination-nav__link {
-  transition: all 0.2s ease;
-  border-color: var(--ifm-color-primary);
-}
-.pagination-nav__link .pagination-nav__link--label {
-  color: var(--ifm-color-primary);
-}
-.pagination-nav__link:hover {
-  background: var(--ifm-color-primary);
-  color: white;
-}
-
-.pagination-nav__link:hover * {
-  color: white;
 }
 
 .menu__link {
