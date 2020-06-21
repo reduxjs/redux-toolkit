@@ -1021,3 +1021,18 @@ export const usersAdapter = createEntityAdapter({
   sortComparer: (a, b) => a.first_name.localeCompare(b.first_name)
 })
 ```
+
+## Working with Non-serializable Data
+
+Occasionally, you may have actions that need to accept non-serializable data. This should be done very rarely and only if necessary. These non-serializable payloads shouldn't ever make it into your application state through a reducer. However, if you're using libraries such as redux saga or you're using middleware that could reasonably use non-serializable data you'll want to do the following:
+
+```js
+configureStore({
+  //...
+  middleware: getDefaultMiddleware({
+    serializableCheck: {
+      ignoredActions: ['your/action']
+    }
+  })
+})
+```

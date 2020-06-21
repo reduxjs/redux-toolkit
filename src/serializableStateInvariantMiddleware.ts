@@ -176,7 +176,8 @@ export function createSerializableStateInvariantMiddleware(
           value,
           '\nTake a look at the logic that dispatched this action: ',
           action,
-          '\n(See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)'
+          '\n(See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)',
+          '\n(To allow non-serializable values see: https://redux-toolkit.js.org/usage/usage-guide#working-with-non-serializable-data)'
         )
       }
     })
