@@ -220,15 +220,14 @@ As the first `matcher` argument to `builder.addMatcher`, a [type predicate](http
 As a result, the `action` argument for the second `reducer` argument can be inferred by TypeScript:
 
 ```ts
-function isStringAction(action: AnyAction): action is PayloadAction<string> {
-  return typeof action.payload === 'string'
+function isNumberValueAction(action: AnyAction): Action is PayloadAction<{ value: number }> {
+  return typeof action.payload.value === 'number'
 }
 
-createReducer(0, builder =>
-  builder.addMatcher(isStringAction, (state, action) => {
-    // action is automatically inferred as `PayloadAction<string>` here due to the
-    // signature of `isStringAction`
-  })
+createReducer({ value: 0 }, builder =>
+   builder.addMatcher(isNumberValueAction, (state, action) => {
+      state.value += action.payload.value
+   })
 })
 ```
 

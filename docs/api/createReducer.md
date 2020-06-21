@@ -172,6 +172,8 @@ const todosReducer = createReducer([], {
 Instead of using a plain object as an argument to `createReducer`, you can also provide a "builder callback" function that receives an `ActionReducerMapBuilder` instance:
 
 ```typescript
+const increment = createAction('increment')
+const decrement = createAction('decrement')
 createReducer(0, builder =>
   builder
     .addCase(increment, (state, action) => {
