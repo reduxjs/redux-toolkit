@@ -160,6 +160,9 @@ export function createReducer<S>(
           const result = caseReducer(previousState as any, action)
 
           if (typeof result === 'undefined') {
+            if (previousState === null) {
+              return previousState
+            }
             throw Error(
               'A case reducer on a non-draftable value must not return undefined'
             )
