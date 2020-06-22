@@ -25,10 +25,10 @@ jobs:
           restore-keys: |
             ${{ runner.OS }}-node-v${{ env.NODE }}-${{ hashFiles('package.json') }}-${{ hashFiles('package-lock.json') }}
             ${{ runner.OS }}-node-v${{ env.NODE }}-
-      - name: Install npm dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: Run dist
+      - name: Run build
         run: npm run build-ci
 
       - name: Run bundlewatch
