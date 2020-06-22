@@ -2,15 +2,15 @@
   "files": [
     {
       "path": "./dist/redux-toolkit.cjs.production.min.js",
-      "maxSize": "5 kB"
+      "maxSize": "6 kB"
     },
     {
       "path": "./dist/redux-toolkit.umd.min.js",
-      "maxSize": "10 kB"
+      "maxSize": "12 kB"
     },
     {
       "path": "./dist/redux-toolkit.esm.js",
-      "maxSize": "12 kB"
+      "maxSize": "14 kB"
     }
   ],
   "ci": {
