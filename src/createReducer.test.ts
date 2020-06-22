@@ -274,6 +274,20 @@ describe('createReducer', () => {
         `"A case reducer on a non-draftable value must not return undefined"`
       )
     })
+    test('allows you to return undefined if the state was null, thus skipping an update', () => {
+      const reducer = createReducer(null as number | null, builder =>
+        builder.addCase(
+          'decrement',
+          (state, action: { type: 'decrement'; payload: number }) => {
+            if (typeof state === 'number') {
+              return state - action.payload
+            }
+          }
+        )
+      )
+      expect(reducer(0, decrement(5))).toBe(-5)
+      expect(reducer(null, decrement(5))).toBe(null)
+    })
     test('allows you to return null', () => {
       const reducer = createReducer(0 as number | null, builder =>
         builder.addCase(
