@@ -1,0 +1,19 @@
+{
+  "files": [
+    {
+      "path": "./dist/redux-toolkit.cjs.production.min.js",
+      "maxSize": "5 kB"
+    },
+    {
+      "path": "./dist/redux-toolkit.umd.min.js",
+      "maxSize": "10 kB"
+    },
+    {
+      "path": "./dist/redux-toolkit.esm.js",
+      "maxSize": "12 kB"
+    }
+  ],
+  "ci": {
+    "trackBranches": ["master"]
+  }
+}

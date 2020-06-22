@@ -29,6 +29,7 @@
     "@types/nanoid": "^2.1.0",
     "@types/node": "^10.14.4",
     "axios": "^0.19.2",
+    "bundlewatch": "^0.2.7",
     "console-testing-library": "^0.3.1",
     "eslint-config-react-app": "^5.0.1",
     "invariant": "^2.2.4",
@@ -49,7 +50,8 @@
     "format:check": "prettier --list-different \"src/**/*.ts\" \"docs/*/**.md\"",
     "lint": "tsdx lint src",
     "prepare": "npm run lint && npm run format:check && npm test && npm run build-ci",
-    "test": "tsdx test"
+    "test": "tsdx test",
+    "bundlewatch": "bundlewatch --config .bundlewatch.config.json"
   },
   "files": [
     "dist/*.js",
