@@ -14,6 +14,12 @@ import {
 } from './mapBuilders'
 import { Omit, NoInfer } from './tsHelpers'
 
+import {
+  AsyncThunkConfig,
+  AsyncThunkPayloadCreator,
+  AsyncThunk
+} from './createAsyncThunk'
+
 /**
  * An action creator attached to a slice.
  *
@@ -105,6 +111,80 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
   prepare: PrepareAction<Action['payload']>
 }
 
+const reducerType: unique symbol = Symbol('reducerType')
+enum ReducerType {
+  asyncThunk = 0
+}
+
+export interface AsyncThunkSliceReducerConfig<
+  State,
+  ThunkArg extends any,
+  Returned = unknown,
+  ThunkApiConfig extends AsyncThunkConfig = {}
+> {
+  pendingReducer?: CaseReducer<
+    State,
+    ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['pending']>
+  >
+  rejectedReducer?: CaseReducer<
+    State,
+    ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['rejected']>
+  >
+  fulfilledReducer?: CaseReducer<
+    State,
+    ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['fulfilled']>
+  >
+
+  //foo?(x: AsyncThunk<Returned, ThunkArg, {}>['fulfilled']): any
+}
+
+export interface AsyncThunkSliceReducerDefinition<
+  State,
+  ThunkArg extends any,
+  Returned = unknown,
+  ThunkApiConfig extends AsyncThunkConfig = {}
+>
+  extends AsyncThunkSliceReducerConfig<
+    State,
+    ThunkArg,
+    Returned,
+    ThunkApiConfig
+  > {
+  [reducerType]: ReducerType.asyncThunk
+  payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>
+}
+
+export function curryWithState<State>() {
+  return function createSliceAsyncThunk<
+    ThunkArg extends any,
+    Returned = unknown,
+    ThunkApiConfig extends AsyncThunkConfig = {}
+  >(
+    payloadCreator: AsyncThunkPayloadCreator<
+      Returned,
+      ThunkArg,
+      ThunkApiConfig
+    >,
+    config?: AsyncThunkSliceReducerConfig<
+      State,
+      ThunkArg,
+      Returned,
+      ThunkApiConfig
+    >
+  ): AsyncThunkSliceReducerDefinition<
+    State,
+    ThunkArg,
+    Returned,
+    ThunkApiConfig
+  > {
+    return {
+      [reducerType]: ReducerType.asyncThunk,
+      payloadCreator,
+      ...config
+    }
+  }
+}
+
 /**
  * The type describing a slice's `reducers` option.
  *
@@ -114,6 +194,7 @@ export type SliceCaseReducers<State> = {
   [K: string]:
     | CaseReducer<State, PayloadAction<any>>
     | CaseReducerWithPrepare<State, PayloadAction<any, string, any, any>>
+    | AsyncThunkSliceReducerDefinition<State, any, any, any>
 }
 
 /**

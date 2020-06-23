@@ -1,5 +1,5 @@
 import { Action, AnyAction, Reducer } from 'redux'
-import { ValidateSliceCaseReducers } from 'src/createSlice'
+import { ValidateSliceCaseReducers, curryWithState } from 'src/createSlice'
 import {
   ActionCreatorWithNonInferrablePayload,
   ActionCreatorWithOptionalPayload,
@@ -10,7 +10,8 @@ import {
   createAction,
   createSlice,
   PayloadAction,
-  SliceCaseReducers
+  SliceCaseReducers,
+  SerializedError
 } from '../../src'
 
 function expectType<T>(t: T) {
@@ -459,4 +460,82 @@ const value = actionCreators.anyKey
 
   expectType<ActionCreatorWithPayload<string>>(wrappedSlice.actions.success)
   expectType<ActionCreatorWithoutPayload<string>>(wrappedSlice.actions.magic)
+}
+
+{
+  interface TestState {
+    foo: string
+  }
+
+  interface TestArg {
+    test: string
+  }
+
+  interface TestReturned {
+    payload: string
+  }
+
+  interface TestReject {
+    cause: string
+  }
+
+  const createSliceAsyncThunk = curryWithState<TestState>()
+
+  createSlice({
+    name: 'test',
+    initialState: {} as TestState,
+    reducers: {
+      testInfer: createSliceAsyncThunk(
+        function payloadCreator(arg: TestArg, api): Promise<> {
+          return Promise.resolve({ payload: 'foo' } as TestReturned)
+        },
+        {
+          pendingReducer(state, action) {
+            expectType<TestState>(state)
+            expectType<TestArg>(action.meta.arg)
+          },
+          fulfilledReducer(state, action) {
+            expectType<TestState>(state)
+            expectType<TestArg>(action.meta.arg)
+            expectType<TestReturned>(action.payload)
+          },
+          rejectedReducer(state, action) {
+            expectType<TestState>(state)
+            expectType<TestArg>(action.meta.arg)
+            expectType<SerializedError>(action.error)
+          }
+        }
+      ),
+      testExplictType: createSliceAsyncThunk<
+        TestArg,
+        TestReturned,
+        {
+          rejectValue: TestReject
+        }
+      >(
+        function payloadCreator(arg, api) {
+          expectType<TestArg>(arg)
+          expectType<(value: TestReject) => any>(api.rejectWithValue)
+          return Promise.resolve({ payload: 'foo' })
+        },
+        {
+          pendingReducer(state, action) {
+            expectType<TestState>(state)
+            expectType<TestArg>(action.meta.arg)
+          },
+          fulfilledReducer(state, action) {
+            expectType<TestState>(state)
+            expectType<TestArg>(action.meta.arg)
+            expectType<TestReturned>(action.payload)
+          },
+          rejectedReducer(state, action) {
+            expectType<TestState>(state)
+            expectType<TestArg>(action.meta.arg)
+            expectType<SerializedError>(action.error)
+            expectType<TestReject | undefined>(action.payload)
+          }
+        }
+      )
+    }
+  })
 }
