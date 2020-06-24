@@ -11,7 +11,9 @@ import {
   createSlice,
   PayloadAction,
   SliceCaseReducers,
-  SerializedError
+  SerializedError,
+  PayloadActionCreator,
+  AsyncThunk
 } from '../../src'
 
 function expectType<T>(t: T) {
@@ -481,13 +483,17 @@ const value = actionCreators.anyKey
 
   const createSliceAsyncThunk = curryWithState<TestState>()
 
-  createSlice({
+  const slice = createSlice({
     name: 'test',
     initialState: {} as TestState,
-    reducers: {
-      testInfer: createSliceAsyncThunk(
-        function payloadCreator(arg: TestArg, api): Promise<> {
-          return Promise.resolve({ payload: 'foo' } as TestReturned)
+    reducers: withSpecial => ({
+      normalReducer(state, action: PayloadAction<string>) {
+        expectType<TestState>(state)
+        expectType<string>(action.payload)
+      },
+      testInfer: withSpecial.asyncThunk(
+        function payloadCreator(arg: TestArg, api) {
+          return Promise.resolve<TestReturned>({ payload: 'foo' })
         },
         {
           pendingReducer(state, action) {
@@ -506,7 +512,7 @@ const value = actionCreators.anyKey
           }
         }
       ),
-      testExplictType: createSliceAsyncThunk<
+      testExplictType: withSpecial.asyncThunk<
         TestArg,
         TestReturned,
         {
@@ -536,6 +542,12 @@ const value = actionCreators.anyKey
           }
         }
       )
-    }
+    })
   })
+
+  expectType<PayloadActionCreator<string>>(slice.actions.normalReducer)
+  expectType<AsyncThunk<TestReturned, TestArg, {}>>(slice.actions.testInfer)
+  expectType<AsyncThunk<TestReturned, TestArg, { rejectValue: TestReject }>>(
+    slice.actions.testExplictType
+  )
 }

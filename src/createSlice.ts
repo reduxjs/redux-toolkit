@@ -87,7 +87,11 @@ export interface CreateSliceOptions<
    * functions. For every action type, a matching action creator will be
    * generated using `createAction()`.
    */
-  reducers: ValidateSliceCaseReducers<State, CR>
+  reducers:
+    | ValidateSliceCaseReducers<State, CR>
+    | ((
+        creators: ReducerCreators<State>
+      ) => CR) /* & ValidateSliceCaseReducers<State, CR> */ // TODO: possible?
 
   /**
    * A mapping from action types to action-type-specific *case reducer*
@@ -154,8 +158,8 @@ export interface AsyncThunkSliceReducerDefinition<
   payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>
 }
 
-export function curryWithState<State>() {
-  return function createSliceAsyncThunk<
+interface ReducerCreators<State> {
+  asyncThunk<
     ThunkArg extends any,
     Returned = unknown,
     ThunkApiConfig extends AsyncThunkConfig = {}
@@ -171,18 +175,7 @@ export function curryWithState<State>() {
       Returned,
       ThunkApiConfig
     >
-  ): AsyncThunkSliceReducerDefinition<
-    State,
-    ThunkArg,
-    Returned,
-    ThunkApiConfig
-  > {
-    return {
-      [reducerType]: ReducerType.asyncThunk,
-      payloadCreator,
-      ...config
-    }
-  }
+  ): AsyncThunkSliceReducerDefinition<State, ThunkArg, Returned, ThunkApiConfig>
 }
 
 /**
@@ -205,6 +198,13 @@ export type SliceCaseReducers<State> = {
 export type CaseReducerActions<CaseReducers extends SliceCaseReducers<any>> = {
   [Type in keyof CaseReducers]: CaseReducers[Type] extends { prepare: any }
     ? ActionCreatorForCaseReducerWithPrepare<CaseReducers[Type]>
+    : CaseReducers[Type] extends AsyncThunkSliceReducerDefinition<
+        any,
+        infer ThunkArg,
+        infer Returned,
+        infer ThunkApiConfig
+      >
+    ? AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
     : ActionCreatorForCaseReducer<CaseReducers[Type]>
 }
 
