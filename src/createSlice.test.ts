@@ -231,19 +231,15 @@ describe('createSlice', () => {
   })
 
   describe('reducers definition with asyncThunks', () => {
-    let pendingReducer: any, fulfilledReducer: any, rejectedReducer: any
-
-    beforeEach(() => {
-      pendingReducer = jest.fn((state, action) => {
-        state.push(['pendingReducer', action])
-      })
-      fulfilledReducer = jest.fn((state, action) => {
-        state.push(['fulfilledReducer', action])
-      })
-      rejectedReducer = jest.fn((state, action) => {
-        state.push(['rejectedReducer', action])
-      })
-    })
+    function pendingReducer(state: any[], action: any) {
+      state.push(['pendingReducer', action])
+    }
+    function fulfilledReducer(state: any[], action: any) {
+      state.push(['fulfilledReducer', action])
+    }
+    function rejectedReducer(state: any[], action: any) {
+      state.push(['rejectedReducer', action])
+    }
 
     test('successful thunk', async () => {
       const slice = createSlice({

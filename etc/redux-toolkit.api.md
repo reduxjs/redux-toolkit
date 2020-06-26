@@ -96,7 +96,7 @@ export type CaseReducer<S = any, A extends Action = AnyAction> = (state: Draft<S
 export type CaseReducerActions<CaseReducers extends SliceCaseReducers<any>> = {
     [Type in keyof CaseReducers]: CaseReducers[Type] extends {
         prepare: any;
-    } ? ActionCreatorForCaseReducerWithPrepare<CaseReducers[Type]> : ActionCreatorForCaseReducer<CaseReducers[Type]>;
+    } ? ActionCreatorForCaseReducerWithPrepare<CaseReducers[Type]> : CaseReducers[Type] extends AsyncThunkSliceReducerDefinition<any, infer ThunkArg, infer Returned, infer ThunkApiConfig> ? AsyncThunk<Returned, ThunkArg, ThunkApiConfig> : ActionCreatorForCaseReducer<CaseReducers[Type]>;
 };
 
 // @public @deprecated
@@ -167,7 +167,7 @@ export interface CreateSliceOptions<State = any, CR extends SliceCaseReducers<St
     extraReducers?: CaseReducers<NoInfer<State>, any> | ((builder: ActionReducerMapBuilder<NoInfer<State>>) => void);
     initialState: State;
     name: Name;
-    reducers: ValidateSliceCaseReducers<State, CR>;
+    reducers: ValidateSliceCaseReducers<State, CR> | ((creators: ReducerCreators<State>) => CR);
 }
 
 export { current }
@@ -385,7 +385,7 @@ export type SliceActionCreator<P> = PayloadActionCreator<P>;
 
 // @public
 export type SliceCaseReducers<State> = {
-    [K: string]: CaseReducer<State, PayloadAction<any>> | CaseReducerWithPrepare<State, PayloadAction<any, string, any, any>>;
+    [K: string]: CaseReducer<State, PayloadAction<any>> | CaseReducerWithPrepare<State, PayloadAction<any, string, any, any>> | AsyncThunkSliceReducerDefinition<State, any, any, any>;
 };
 
 export { ThunkAction }
