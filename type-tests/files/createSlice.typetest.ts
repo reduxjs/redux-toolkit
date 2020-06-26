@@ -1,5 +1,5 @@
 import { Action, AnyAction, Reducer } from 'redux'
-import { ValidateSliceCaseReducers, curryWithState } from 'src/createSlice'
+import { ValidateSliceCaseReducers } from 'src/createSlice'
 import {
   ActionCreatorWithNonInferrablePayload,
   ActionCreatorWithOptionalPayload,
@@ -480,8 +480,6 @@ const value = actionCreators.anyKey
   interface TestReject {
     cause: string
   }
-
-  const createSliceAsyncThunk = curryWithState<TestState>()
 
   const slice = createSlice({
     name: 'test',

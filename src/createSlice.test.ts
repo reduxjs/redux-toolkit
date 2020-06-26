@@ -1,5 +1,7 @@
 import { createSlice } from './createSlice'
 import { createAction, PayloadAction } from './createAction'
+import { createStore, applyMiddleware } from 'redux'
+import thunk from 'redux-thunk'
 
 describe('createSlice', () => {
   describe('when slice is undefined', () => {
@@ -225,6 +227,131 @@ describe('createSlice', () => {
         0,
         expect.objectContaining({ payload: 'testPayload' })
       )
+    })
+  })
+
+  describe('reducers definition with asyncThunks', () => {
+    let pendingReducer: any, fulfilledReducer: any, rejectedReducer: any
+
+    beforeEach(() => {
+      pendingReducer = jest.fn((state, action) => {
+        state.push(['pendingReducer', action])
+      })
+      fulfilledReducer = jest.fn((state, action) => {
+        state.push(['fulfilledReducer', action])
+      })
+      rejectedReducer = jest.fn((state, action) => {
+        state.push(['rejectedReducer', action])
+      })
+    })
+
+    test('successful thunk', async () => {
+      const slice = createSlice({
+        name: 'test',
+        initialState: [],
+        reducers: withSpecial => ({
+          thunkReducers: withSpecial.asyncThunk(
+            function payloadCreator(arg, api) {
+              return Promise.resolve('resolved payload')
+            },
+            { pendingReducer, fulfilledReducer, rejectedReducer }
+          )
+        })
+      })
+
+      const store = createStore(slice.reducer, applyMiddleware(thunk))
+      // @ts-ignore
+      await store.dispatch(slice.actions.thunkReducers('test'))
+      expect(store.getState()).toMatchObject([
+        [
+          'pendingReducer',
+          {
+            type: 'test/thunkReducers/pending',
+            payload: undefined
+          }
+        ],
+        [
+          'fulfilledReducer',
+          {
+            type: 'test/thunkReducers/fulfilled',
+            payload: 'resolved payload'
+          }
+        ]
+      ])
+    })
+
+    test('rejected thunk', async () => {
+      const slice = createSlice({
+        name: 'test',
+        initialState: [],
+        reducers: withSpecial => ({
+          thunkReducers: withSpecial.asyncThunk(
+            function payloadCreator(arg, api) {
+              throw new Error('')
+            },
+            { pendingReducer, fulfilledReducer, rejectedReducer }
+          )
+        })
+      })
+
+      const store = createStore(slice.reducer, applyMiddleware(thunk))
+      // @ts-ignore
+      await store.dispatch(slice.actions.thunkReducers('test'))
+      expect(store.getState()).toMatchObject([
+        [
+          'pendingReducer',
+          {
+            type: 'test/thunkReducers/pending',
+            payload: undefined
+          }
+        ],
+        [
+          'rejectedReducer',
+          {
+            type: 'test/thunkReducers/rejected',
+            payload: undefined
+          }
+        ]
+      ])
+    })
+
+    test('with options', async () => {
+      const slice = createSlice({
+        name: 'test',
+        initialState: [],
+        reducers: withSpecial => ({
+          thunkReducers: withSpecial.asyncThunk(
+            function payloadCreator(arg, api) {
+              return 'should not call this'
+            },
+            {
+              options: {
+                condition() {
+                  return false
+                },
+                dispatchConditionRejection: true
+              },
+              pendingReducer,
+              fulfilledReducer,
+              rejectedReducer
+            }
+          )
+        })
+      })
+
+      const store = createStore(slice.reducer, applyMiddleware(thunk))
+      // @ts-ignore
+      await store.dispatch(slice.actions.thunkReducers('test'))
+      expect(store.getState()).toMatchObject([
+        [
+          'rejectedReducer',
+          {
+            type: 'test/thunkReducers/rejected',
+            payload: undefined,
+            meta: { condition: true }
+          }
+        ]
+      ])
     })
   })
 })
