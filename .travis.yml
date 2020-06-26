@@ -2,11 +2,23 @@ language: node_js
 node_js: node
 env:
   - TYPESCRIPT_VERSION=rc
+  - TYPESCRIPT_VERSION=latest
   - TYPESCRIPT_VERSION=3.8
   - TYPESCRIPT_VERSION=3.7
   - TYPESCRIPT_VERSION=3.6
   - TYPESCRIPT_VERSION=3.5
 install:
   - npm ci --ignore-scripts
-  - npm install typescript@$TYPESCRIPT_VERSION
-script: npm run prepare
+  - npm install --ignore-scripts typescript@$TYPESCRIPT_VERSION
+script: npm run test
+jobs:
+  include:
+    - name: validate
+      env: TYPESCRIPT_VERSION=latest
+      script:
+        - npm run validate
+    - name: bundlewatch
+      env: TYPESCRIPT_VERSION=latest
+      script:
+        - npm run build-ci
+        - npm run bundlewatch

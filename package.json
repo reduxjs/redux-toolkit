@@ -50,7 +50,8 @@
     "format:check": "prettier --list-different \"src/**/*.ts\" \"docs/*/**.md\"",
     "lint": "tsdx lint src",
     "bundlewatch": "bundlewatch || true",
-    "prepare": "npm run lint && npm run format:check && npm test && npm run build-ci && npm run bundlewatch",
+    "validate": "npm run lint && npm run format:check",
+    "prepare": "npm run validate && npm test && npm run build-ci",
     "test": "tsdx test"
   },
   "files": [
@@ -81,15 +82,15 @@
     "files": [
       {
         "path": "dist/redux-toolkit.cjs.production.min.js",
-        "maxSize": "15kB"
+        "maxSize": "6kB"
       },
       {
         "path": "dist/redux-toolkit.umd.min.js",
-        "maxSize": "32kB"
+        "maxSize": "12kB"
       },
       {
         "path": "dist/redux-toolkit.esm.js",
-        "maxSize": "90kB"
+        "maxSize": "14kB"
       }
     ]
   }
