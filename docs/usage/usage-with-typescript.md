@@ -82,7 +82,7 @@ const store = configureStore({
       .prepend(
         // correctly typed middlewares can just be used
         additionalMiddleware,
-        // you can also manually type middlewares manually
+        // you can also type middlewares manually
         untypedMiddleware as Middleware<
           (action: Action<'specialAction'>) => number,
           RootState
