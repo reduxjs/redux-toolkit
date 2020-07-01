@@ -231,6 +231,25 @@ createReducer({ value: 0 }, builder =>
 })
 ```
 
+Additionally, you may want to pass arguments to a matcher function to create reusable helpers. A pattern for that would look like:
+
+```ts
+const isScopedNumberValueAction = (scope: string) => (action: AnyAction): action is PayloadAction<{ value: number }> {
+  return action.type.startsWith(scope) && typeof action.payload.value === 'number'
+}
+
+const slice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 },
+  reducers: {},
+  extraReducers: builder => {
+    builder.addMatcher(isScopedNumberValueAction('counter/'), (state, action) => {
+       state.value += action.payload.value
+    })
+  }
+})
+```
+
 ## `createSlice`
 
 As `createSlice` creates your actions as well as your reducer for you, you don't have to worry about type safety here.
