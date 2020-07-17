@@ -117,7 +117,7 @@ export type Comparer<T> = (a: T, b: T) => number;
 export type ConfigureEnhancersCallback = (defaultEnhancers: StoreEnhancer[]) => StoreEnhancer[];
 
 // @public
-export function configureStore<S = any, A extends Action = AnyAction, M extends Middlewares<S> = [ThunkMiddlewareFor<S>]>(options: ConfigureStoreOptions<S, A, M>): EnhancedStore<S, A, M>;
+export function configureStore<S = any, A extends Action = AnyAction, M extends Middlewares<S> = Array<ThunkMiddlewareFor<S>>>(options: ConfigureStoreOptions<S, A, M>): EnhancedStore<S, A, M>;
 
 // @public
 export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction, M extends Middlewares<S> = Middlewares<S>> {

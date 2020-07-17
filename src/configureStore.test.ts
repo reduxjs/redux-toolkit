@@ -70,11 +70,11 @@ describe('configureStore', () => {
 
   describe('given custom middleware', () => {
     it('calls createStore with custom middleware and without default middleware', () => {
-      const thank: redux.Middleware = _store => next => action => next(action)
-      expect(configureStore({ middleware: [thank], reducer })).toBeInstanceOf(
+      const thunk: redux.Middleware = _store => next => action => next(action)
+      expect(configureStore({ middleware: [thunk], reducer })).toBeInstanceOf(
         Object
       )
-      expect(redux.applyMiddleware).toHaveBeenCalledWith(thank)
+      expect(redux.applyMiddleware).toHaveBeenCalledWith(thunk)
       expect(devtools.composeWithDevTools).toHaveBeenCalled()
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
@@ -86,14 +86,14 @@ describe('configureStore', () => {
 
   describe('middleware builder notation', () => {
     it('calls builder, passes getDefaultMiddleware and uses returned middlewares', () => {
-      const thank = jest.fn((_store => next => action =>
+      const thunk = jest.fn((_store => next => action =>
         'foobar') as redux.Middleware)
 
       const builder = jest.fn(getDefaultMiddleware => {
         expect(getDefaultMiddleware).toEqual(expect.any(Function))
         expect(getDefaultMiddleware()).toEqual(expect.any(Array))
 
-        return [thank]
+        return [thunk]
       })
 
       const store = configureStore({ middleware: builder, reducer })
