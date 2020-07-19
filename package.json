@@ -24,6 +24,8 @@
   "license": "MIT",
   "devDependencies": {
     "@microsoft/api-extractor": "^7.7.0",
+    "@rollup/plugin-node-resolve": "^8.4.0",
+    "@rollup/plugin-replace": "^2.3.3",
     "@types/jest": "^24.0.11",
     "@types/json-stringify-safe": "^5.0.0",
     "@types/nanoid": "^2.1.0",
@@ -42,9 +44,9 @@
     "typings-tester": "^0.3.2"
   },
   "scripts": {
-    "build-ci": "tsdx build --format cjs,esm,umd --name redux-toolkit && api-extractor run",
-    "build": "tsdx build --format cjs,esm,umd --name redux-toolkit && api-extractor run --local",
-    "dev": "tsdx watch  --format cjs,esm,umd",
+    "build-ci": "tsdx build --format cjs,esm,system,umd --name redux-toolkit && api-extractor run",
+    "build": "tsdx build --format cjs,esm,system,umd --name redux-toolkit && api-extractor run --local",
+    "dev": "tsdx watch  --format cjs,esm,system,umd",
     "format": "prettier --write \"src/**/*.ts\" \"**/*.md\"",
     "format:check": "prettier --list-different \"src/**/*.ts\" \"docs/*/**.md\"",
     "lint": "tsdx lint src",
