@@ -75,7 +75,7 @@ const exampleReducer = createReducer(initialState, builder => {
       state.counter++
     })
     .addMatcher(
-      action => action.endsWith('/rejected'),
+      action => action.type.endsWith('/rejected'),
       (state, action) => {
         state.rejectedActions++
       }
@@ -183,7 +183,7 @@ createReducer(0, builder =>
     .addCase(decrement, (state, action) => {})
     // You can match a range of action types
     .addMatcher(
-      action => action.endsWith('rejected'),
+      action => action.type.endsWith('rejected'),
       (state, action) => {}
     )
     // and provide a default case if no other handlers matched
