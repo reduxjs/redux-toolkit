@@ -144,7 +144,7 @@ createSlice({
       .addCase(decrement, (state, action) => {})
       // You can match a range of action types
       .addMatcher(
-        action => action.endsWith('rejected'),
+        action => action.type.endsWith('rejected'),
         (state, action) => {}
       )
       // and provide a default case if no other handlers matched
