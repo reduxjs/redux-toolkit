@@ -1051,6 +1051,7 @@ configureStore({
 If using Redux-Persist, you should specifically ignore all the action types it dispatches:
 
 ```jsx
+import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit'
 import {
   persistStore,
   persistReducer,
