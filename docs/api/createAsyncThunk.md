@@ -188,7 +188,7 @@ type RejectedWithValue = <ThunkArg, RejectedValue>(
 ) => RejectedWithValueAction<ThunkArg, RejectedValue>
 ```
 
-To handle these actions in your reducers, reference the action creators in `createReducer` or `createSlice` using either the object key notation or the "builder callback" notation. (Note that if you use TypeScript, you [should use the "builder callback" notation to ensure the types are inferred correctly](../usage/usage-with-typescript#type-safety-with-extrareducers)):
+To handle these actions in your reducers, reference the action creators in `createReducer` or `createSlice` using either the object key notation or the "builder callback" notation. (Note that if you use TypeScript, you [should use the "builder callback" notation to ensure the types are inferred correctly](../usage/usage-with-typescript.md#type-safety-with-extrareducers)):
 
 ```js {2,6,14,23}
 const reducer1 = createReducer(initialState, {
