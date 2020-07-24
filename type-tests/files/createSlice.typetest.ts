@@ -484,33 +484,33 @@ const value = actionCreators.anyKey
   const slice = createSlice({
     name: 'test',
     initialState: {} as TestState,
-    reducers: withSpecial => ({
+    reducers: create => ({
       normalReducer(state, action: PayloadAction<string>) {
         expectType<TestState>(state)
         expectType<string>(action.payload)
       },
-      testInfer: withSpecial.asyncThunk(
+      testInfer: create.asyncThunk(
         function payloadCreator(arg: TestArg, api) {
           return Promise.resolve<TestReturned>({ payload: 'foo' })
         },
         {
-          pendingReducer(state, action) {
+          pending(state, action) {
             expectType<TestState>(state)
             expectType<TestArg>(action.meta.arg)
           },
-          fulfilledReducer(state, action) {
+          fulfilled(state, action) {
             expectType<TestState>(state)
             expectType<TestArg>(action.meta.arg)
             expectType<TestReturned>(action.payload)
           },
-          rejectedReducer(state, action) {
+          rejected(state, action) {
             expectType<TestState>(state)
             expectType<TestArg>(action.meta.arg)
             expectType<SerializedError>(action.error)
           }
         }
       ),
-      testExplictType: withSpecial.asyncThunk<
+      testExplictType: create.asyncThunk<
         TestArg,
         TestReturned,
         {
@@ -523,16 +523,16 @@ const value = actionCreators.anyKey
           return Promise.resolve({ payload: 'foo' })
         },
         {
-          pendingReducer(state, action) {
+          pending(state, action) {
             expectType<TestState>(state)
             expectType<TestArg>(action.meta.arg)
           },
-          fulfilledReducer(state, action) {
+          fulfilled(state, action) {
             expectType<TestState>(state)
             expectType<TestArg>(action.meta.arg)
             expectType<TestReturned>(action.payload)
           },
-          rejectedReducer(state, action) {
+          rejected(state, action) {
             expectType<TestState>(state)
             expectType<TestArg>(action.meta.arg)
             expectType<SerializedError>(action.error)

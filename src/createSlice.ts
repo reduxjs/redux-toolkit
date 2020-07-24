@@ -108,7 +108,7 @@ export interface CreateSliceOptions<
 }
 
 const reducerDefinitionType: unique symbol = Symbol('reducerType')
-enum ReducerType {
+const enum ReducerType {
   asyncThunk = 0
 }
 
@@ -128,15 +128,15 @@ export interface AsyncThunkSliceReducerConfig<
   Returned = unknown,
   ThunkApiConfig extends AsyncThunkConfig = {}
 > {
-  pendingReducer?: CaseReducer<
+  pending?: CaseReducer<
     State,
     ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['pending']>
   >
-  rejectedReducer?: CaseReducer<
+  rejected?: CaseReducer<
     State,
     ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['rejected']>
   >
-  fulfilledReducer?: CaseReducer<
+  fulfilled?: CaseReducer<
     State,
     ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['fulfilled']>
   >
@@ -415,9 +415,9 @@ function handleThunkCaseReducerDefinition<State>(
 ) {
   const {
     payloadCreator,
-    fulfilledReducer,
-    pendingReducer,
-    rejectedReducer,
+    fulfilled: fulfilledReducer,
+    pending: pendingReducer,
+    rejected: rejectedReducer,
     options
   } = reducerDefinition
   const thunk = createAsyncThunk(type, payloadCreator, options)

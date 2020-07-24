@@ -231,13 +231,13 @@ describe('createSlice', () => {
   })
 
   describe('reducers definition with asyncThunks', () => {
-    function pendingReducer(state: any[], action: any) {
+    function pending(state: any[], action: any) {
       state.push(['pendingReducer', action])
     }
-    function fulfilledReducer(state: any[], action: any) {
+    function fulfilled(state: any[], action: any) {
       state.push(['fulfilledReducer', action])
     }
-    function rejectedReducer(state: any[], action: any) {
+    function rejected(state: any[], action: any) {
       state.push(['rejectedReducer', action])
     }
 
@@ -245,12 +245,12 @@ describe('createSlice', () => {
       const slice = createSlice({
         name: 'test',
         initialState: [],
-        reducers: withSpecial => ({
-          thunkReducers: withSpecial.asyncThunk(
+        reducers: create => ({
+          thunkReducers: create.asyncThunk(
             function payloadCreator(arg, api) {
               return Promise.resolve('resolved payload')
             },
-            { pendingReducer, fulfilledReducer, rejectedReducer }
+            { pending, fulfilled, rejected }
           )
         })
       })
@@ -280,12 +280,12 @@ describe('createSlice', () => {
       const slice = createSlice({
         name: 'test',
         initialState: [],
-        reducers: withSpecial => ({
-          thunkReducers: withSpecial.asyncThunk(
+        reducers: create => ({
+          thunkReducers: create.asyncThunk(
             function payloadCreator(arg, api) {
               throw new Error('')
             },
-            { pendingReducer, fulfilledReducer, rejectedReducer }
+            { pending, fulfilled, rejected }
           )
         })
       })
@@ -315,8 +315,8 @@ describe('createSlice', () => {
       const slice = createSlice({
         name: 'test',
         initialState: [],
-        reducers: withSpecial => ({
-          thunkReducers: withSpecial.asyncThunk(
+        reducers: create => ({
+          thunkReducers: create.asyncThunk(
             function payloadCreator(arg, api) {
               return 'should not call this'
             },
@@ -327,9 +327,9 @@ describe('createSlice', () => {
                 },
                 dispatchConditionRejection: true
               },
-              pendingReducer,
-              fulfilledReducer,
-              rejectedReducer
+              pending,
+              fulfilled,
+              rejected
             }
           )
         })
