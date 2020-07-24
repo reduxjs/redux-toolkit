@@ -1,3 +1,4 @@
+/* eslint-disable no-lone-blocks */
 import { Action, AnyAction, Reducer } from 'redux'
 import { ValidateSliceCaseReducers } from 'src/createSlice'
 import {
@@ -13,7 +14,8 @@ import {
   SliceCaseReducers,
   SerializedError,
   PayloadActionCreator,
-  AsyncThunk
+  AsyncThunk,
+  CaseReducer
 } from '../../src'
 
 function expectType<T>(t: T) {
@@ -548,4 +550,16 @@ const value = actionCreators.anyKey
   expectType<AsyncThunk<TestReturned, TestArg, { rejectValue: TestReject }>>(
     slice.actions.testExplictType
   )
+  {
+    type TestInferThunk = AsyncThunk<TestReturned, TestArg, {}>
+    expectType<CaseReducer<TestState, ReturnType<TestInferThunk['pending']>>>(
+      slice.caseReducers.testInfer.pending
+    )
+    expectType<CaseReducer<TestState, ReturnType<TestInferThunk['fulfilled']>>>(
+      slice.caseReducers.testInfer.fulfilled
+    )
+    expectType<CaseReducer<TestState, ReturnType<TestInferThunk['rejected']>>>(
+      slice.caseReducers.testInfer.rejected
+    )
+  }
 }

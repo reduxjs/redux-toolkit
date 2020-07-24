@@ -12,7 +12,7 @@ import {
   ActionReducerMapBuilder,
   executeReducerBuilderCallback
 } from './mapBuilders'
-import { Omit, NoInfer } from './tsHelpers'
+import { Omit, NoInfer, Resolve } from './tsHelpers'
 
 import {
   AsyncThunkConfig,
@@ -234,16 +234,22 @@ type ActionCreatorForCaseReducer<CR> = CR extends (
 
 /**
  * Extracts the CaseReducers out of a `reducers` object, even if they are
- * tested into a `CaseReducerWithPrepare`.
+ * wrapped into a `CaseReducerWithPrepare`.
  *
  * @internal
  */
 type SliceDefinedCaseReducers<CaseReducers extends SliceCaseReducers<any>> = {
-  [Type in keyof CaseReducers]: CaseReducers[Type] extends {
-    reducer: infer Reducer
-  }
-    ? Reducer
-    : CaseReducers[Type]
+  [Type in keyof CaseReducers]: CaseReducers[Type] extends infer Definition
+    ? Definition extends AsyncThunkSliceReducerDefinition<any, any, any, any>
+      ? Resolve<
+          Pick<Required<Definition>, 'fulfilled' | 'rejected' | 'pending'>
+        >
+      : Definition extends {
+          reducer: infer Reducer
+        }
+      ? Reducer
+      : Definition
+    : never
 }
 
 /**
@@ -358,7 +364,14 @@ export function createSlice<
 // --- internal functions & types ---
 
 interface ReducerHandlingContext<State> {
-  sliceCaseReducersByName: Record<string, CaseReducer<State, any>>
+  sliceCaseReducersByName: Record<
+    string,
+    | CaseReducer<State, any>
+    | Pick<
+        AsyncThunkSliceReducerDefinition<State, any, any, any>,
+        'fulfilled' | 'rejected' | 'pending'
+      >
+  >
   sliceCaseReducersByType: Record<string, CaseReducer<State, any>>
   actionCreators: Record<string, Function>
 }
@@ -415,21 +428,29 @@ function handleThunkCaseReducerDefinition<State>(
 ) {
   const {
     payloadCreator,
-    fulfilled: fulfilledReducer,
-    pending: pendingReducer,
-    rejected: rejectedReducer,
+    fulfilled,
+    pending,
+    rejected,
     options
   } = reducerDefinition
   const thunk = createAsyncThunk(type, payloadCreator, options)
   context.actionCreators[reducerName] = thunk
-  // TODO: do we want to support `sliceCaseReducersByName` here? How would it look?
-  if (fulfilledReducer) {
-    context.sliceCaseReducersByType[thunk.fulfilled.type] = fulfilledReducer
+
+  if (fulfilled) {
+    context.sliceCaseReducersByType[thunk.fulfilled.type] = fulfilled
   }
-  if (pendingReducer) {
-    context.sliceCaseReducersByType[thunk.pending.type] = pendingReducer
+  if (pending) {
+    context.sliceCaseReducersByType[thunk.pending.type] = pending
   }
-  if (rejectedReducer) {
-    context.sliceCaseReducersByType[thunk.rejected.type] = rejectedReducer
+  if (rejected) {
+    context.sliceCaseReducersByType[thunk.rejected.type] = rejected
+  }
+
+  context.sliceCaseReducersByName[reducerName] = {
+    fulfilled: fulfilled || noop,
+    pending: pending || noop,
+    rejected: rejected || noop
   }
 }
+
+function noop() {}

@@ -349,5 +349,35 @@ describe('createSlice', () => {
         ]
       ])
     })
+
+    test('has caseReducers for the asyncThunk', async () => {
+      const slice = createSlice({
+        name: 'test',
+        initialState: [],
+        reducers: create => ({
+          thunkReducers: create.asyncThunk(
+            function payloadCreator(arg, api) {
+              return Promise.resolve('resolved payload')
+            },
+            { pending, fulfilled }
+          )
+        })
+      })
+
+      expect(slice.caseReducers.thunkReducers.pending).toBe(pending)
+      expect(slice.caseReducers.thunkReducers.fulfilled).toBe(fulfilled)
+      // even though it is not defined above, this should at least be a no-op function to match the TypeScript typings
+      // and should be callable as a reducer even if it does nothing
+      expect(() =>
+        slice.caseReducers.thunkReducers.rejected(
+          [],
+          slice.actions.thunkReducers.rejected(
+            new Error('test'),
+            'fakeRequestId',
+            {}
+          )
+        )
+      ).not.toThrow()
+    })
   })
 })
