@@ -379,5 +379,62 @@ describe('createSlice', () => {
         )
       ).not.toThrow()
     })
+
+    test('can define reducer with prepare statement using create.preparedReducer', async () => {
+      const slice = createSlice({
+        name: 'test',
+        initialState: [] as any[],
+        reducers: create => ({
+          prepared: create.preparedReducer(
+            (p: string, m: number, e: { message: string }) => ({
+              payload: p,
+              meta: m,
+              error: e
+            }),
+            (state, action) => {
+              state.push(action)
+            }
+          )
+        })
+      })
+
+      expect(
+        slice.reducer([], slice.actions.prepared('test', 1, { message: 'err' }))
+      ).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "error": Object {
+              "message": "err",
+            },
+            "meta": 1,
+            "payload": "test",
+            "type": "test/prepared",
+          },
+        ]
+      `)
+    })
+
+    test('throws an error when invoked with a normal `prepare` object that has not gone through a `create.preparedReducer` call', async () => {
+      expect(() =>
+        createSlice({
+          name: 'test',
+          initialState: [] as any[],
+          reducers: create => ({
+            prepared: {
+              prepare: (p: string, m: number, e: { message: string }) => ({
+                payload: p,
+                meta: m,
+                error: e
+              }),
+              reducer: (state, action) => {
+                state.push(action)
+              }
+            }
+          })
+        })
+      ).toThrowErrorMatchingInlineSnapshot(
+        `"Please use the \`create.preparedReducer\` notation for prepared action creators with the \`create\` notation."`
+      )
+    })
   })
 })
