@@ -487,10 +487,10 @@ const value = actionCreators.anyKey
     name: 'test',
     initialState: {} as TestState,
     reducers: create => ({
-      normalReducer(state, action: PayloadAction<string>) {
+      normalReducer: create.reducer<string>((state, action) => {
         expectType<TestState>(state)
         expectType<string>(action.payload)
-      },
+      }),
       testInfer: create.asyncThunk(
         function payloadCreator(arg: TestArg, api) {
           return Promise.resolve<TestReturned>({ payload: 'foo' })

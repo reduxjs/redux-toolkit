@@ -1,4 +1,4 @@
-import { Reducer } from 'redux'
+import { Reducer, Action, AnyAction } from 'redux'
 import {
   ActionCreatorWithoutPayload,
   createAction,
@@ -92,9 +92,7 @@ export interface CreateSliceOptions<
    */
   reducers:
     | ValidateSliceCaseReducers<State, CR>
-    | ((
-        creators: ReducerCreators<State>
-      ) => CR) /* & ValidateSliceCaseReducers<State, CR> */ // TODO: possible?
+    | ((creators: ReducerCreators<State>) => CR)
 
   /**
    * A mapping from action types to action-type-specific *case reducer*
@@ -110,8 +108,9 @@ export interface CreateSliceOptions<
 
 const reducerDefinitionType: unique symbol = Symbol('reducerType')
 const enum ReducerType {
-  asyncThunk = 1,
-  reducerWithPrepare = 2
+  reducer = 1,
+  reducerWithPrepare = 2,
+  asyncThunk = 3
 }
 
 /**
@@ -145,6 +144,14 @@ export interface AsyncThunkSliceReducerConfig<
   options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
 }
 
+export interface ReducerDefinition<T extends ReducerType = ReducerType> {
+  [reducerDefinitionType]: T
+}
+
+export interface CaseReducerDefinition<S = any, A extends Action = AnyAction>
+  extends CaseReducer<S, A>,
+    ReducerDefinition<ReducerType.reducer> {}
+
 export interface AsyncThunkSliceReducerDefinition<
   State,
   ThunkArg extends any,
@@ -152,23 +159,27 @@ export interface AsyncThunkSliceReducerDefinition<
   ThunkApiConfig extends AsyncThunkConfig = {}
 >
   extends AsyncThunkSliceReducerConfig<
-    State,
-    ThunkArg,
-    Returned,
-    ThunkApiConfig
-  > {
-  [reducerDefinitionType]: ReducerType.asyncThunk
+      State,
+      ThunkArg,
+      Returned,
+      ThunkApiConfig
+    >,
+    ReducerDefinition<ReducerType.asyncThunk> {
   payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>
 }
 
 export interface CaseReducerWithPrepareDefinition<
   State,
   Action extends PayloadAction
-> extends CaseReducerWithPrepare<State, Action> {
-  [reducerDefinitionType]: ReducerType.reducerWithPrepare
-}
+>
+  extends CaseReducerWithPrepare<State, Action>,
+    ReducerDefinition<ReducerType.reducerWithPrepare> {}
 
 interface ReducerCreators<State> {
+  reducer<Payload>(
+    caseReducer: CaseReducer<State, PayloadAction<Payload>>
+  ): CaseReducerDefinition<State, PayloadAction<Payload>>
+
   asyncThunk<
     ThunkArg extends any,
     Returned = unknown,
@@ -206,6 +217,11 @@ export type SliceCaseReducers<State> = {
   [K: string]:
     | CaseReducer<State, PayloadAction<any>>
     | CaseReducerWithPrepare<State, PayloadAction<any, string, any, any>>
+    | CaseReducerDefinition<State, PayloadAction<any>>
+    | CaseReducerWithPrepareDefinition<
+        State,
+        PayloadAction<any, string, any, any>
+      >
     | AsyncThunkSliceReducerDefinition<State, any, any, any>
 }
 
@@ -406,6 +422,18 @@ interface ReducerDetails {
 
 function getReducerCreators<State>(): ReducerCreators<State> {
   return {
+    reducer(caseReducer) {
+      const wrappedReducer = {
+        // hack so the wrapping function has the same name as the original
+        // we need to create a wrapper so the `reducerDefinitionType` is not assigned to the original
+        [caseReducer.name](...args: Parameters<typeof caseReducer>) {
+          return caseReducer(...args)
+        }
+      }
+      return Object.assign(wrappedReducer[caseReducer.name], {
+        [reducerDefinitionType]: ReducerType.reducer
+      } as const)
+    },
     asyncThunk(payloadCreator, config) {
       return {
         [reducerDefinitionType]: ReducerType.asyncThunk,
