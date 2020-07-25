@@ -385,7 +385,9 @@ export type SliceActionCreator<P> = PayloadActionCreator<P>;
 
 // @public
 export type SliceCaseReducers<State> = {
-    [K: string]: CaseReducer<State, PayloadAction<any>> | CaseReducerWithPrepare<State, PayloadAction<any, string, any, any>> | AsyncThunkSliceReducerDefinition<State, any, any, any>;
+    [K: string]: CaseReducerDefinition<State, PayloadAction<any>> | CaseReducerWithPrepareDefinition<State, PayloadAction<any, string, any, any>> | AsyncThunkSliceReducerDefinition<State, any, any, any>;
+} | {
+    [K: string]: CaseReducer<State, PayloadAction<any>> | CaseReducerWithPrepare<State, PayloadAction<any, string, any, any>>;
 };
 
 export { ThunkAction }

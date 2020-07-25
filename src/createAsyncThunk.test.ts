@@ -435,6 +435,7 @@ describe('createAsyncThunk with abortController', () => {
 
     beforeEach(() => {
       keepAbortController = window.AbortController
+      // @ts-ignore
       delete window.AbortController
       jest.resetModules()
       freshlyLoadedModule = require('./createAsyncThunk')
