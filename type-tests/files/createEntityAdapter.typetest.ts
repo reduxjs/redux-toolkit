@@ -75,9 +75,9 @@ function extractReducers<T>(
   createSlice({
     name: 'test',
     initialState: adapter.getInitialState(),
+    // typings:expect-error
     reducers: {
       addOne: adapter.addOne,
-      // typings:expect-error
       addOne2: adapter2.addOne
     }
   })
@@ -111,8 +111,8 @@ function extractReducers<T>(
   createSlice({
     name: 'test',
     initialState: { somethingElse: '' },
+    // typings:expect-error
     reducers: {
-      // typings:expect-error
       addOne: adapter.addOne
     }
   })

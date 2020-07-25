@@ -220,6 +220,7 @@ const value = actionCreators.anyKey
   const counter = createSlice({
     name: 'test',
     initialState: { counter: 0, concat: '' },
+    // typings:expect-error
     reducers: {
       // case: meta and error not used in reducer
       testDefaultMetaAndError: {
@@ -251,7 +252,6 @@ const value = actionCreators.anyKey
       // case: meta is typed differently in the reducer than returned from prepare
       testErroneousMeta: {
         reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
-        // typings:expect-error
         prepare: (payload: number) => ({
           payload,
           meta: 1,
@@ -261,7 +261,6 @@ const value = actionCreators.anyKey
       // case: error is typed differently in the reducer than returned from prepare
       testErroneousError: {
         reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
-        // typings:expect-error
         prepare: (payload: number) => ({
           payload,
           meta: 'meta' as 'meta',
@@ -327,10 +326,10 @@ const value = actionCreators.anyKey
  * Test: prepared payload does not match action payload - should cause an error.
  */
 {
-  // typings:expect-error
   const counter = createSlice({
     name: 'counter',
     initialState: { counter: 0 },
+    // typings:expect-error
     reducers: {
       increment: {
         reducer(state, action: PayloadAction<string>) {

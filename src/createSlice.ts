@@ -213,17 +213,21 @@ interface ReducerCreators<State> {
  *
  * @public
  */
-export type SliceCaseReducers<State> = {
-  [K: string]:
-    | CaseReducer<State, PayloadAction<any>>
-    | CaseReducerWithPrepare<State, PayloadAction<any, string, any, any>>
-    | CaseReducerDefinition<State, PayloadAction<any>>
-    | CaseReducerWithPrepareDefinition<
-        State,
-        PayloadAction<any, string, any, any>
-      >
-    | AsyncThunkSliceReducerDefinition<State, any, any, any>
-}
+export type SliceCaseReducers<State> =
+  | {
+      [K: string]:
+        | CaseReducerDefinition<State, PayloadAction<any>>
+        | CaseReducerWithPrepareDefinition<
+            State,
+            PayloadAction<any, string, any, any>
+          >
+        | AsyncThunkSliceReducerDefinition<State, any, any, any>
+    }
+  | {
+      [K: string]:
+        | CaseReducer<State, PayloadAction<any>>
+        | CaseReducerWithPrepare<State, PayloadAction<any, string, any, any>>
+    }
 
 /**
  * Derives the slice's `actions` property from the `reducers` options
