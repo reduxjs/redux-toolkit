@@ -16,9 +16,9 @@ and automatically generates action creators and action types that correspond to 
 
 ```ts
 function createSlice({
-      // A name, used in action types
+    // A name, used in action types
     name: string,
-        // The initial state for the reducer
+    // The initial state for the reducer
     initialState: any,
     // An object of "case reducers". Key names will be used to generate actions.
     reducers: Object<string, ReducerFunction | ReducerAndPrepareObject>
