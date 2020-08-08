@@ -14,6 +14,7 @@ declare module './' {
   }
 }
 
+/* eslint-disable import/first */
 import {
   InferableComponentEnhancer,
   MapStateToPropsParam,
