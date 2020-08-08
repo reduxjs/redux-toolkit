@@ -17,7 +17,7 @@ import {
   composeWithDevTools,
   EnhancerOptions as DevToolsOptions
 } from './devtoolsExtension'
-
+import { CurryType } from './curriedTypes'
 import isPlainObject from './isPlainObject'
 import {
   ThunkMiddlewareFor,
@@ -110,6 +110,8 @@ export interface EnhancedStore<
    * @inheritdoc
    */
   dispatch: DispatchForMiddlewares<M> & Dispatch<A>
+
+  withCurriedTypes: CurryType<S, DispatchForMiddlewares<M> & Dispatch<A>>
 }
 
 /**
@@ -173,9 +175,14 @@ export function configureStore<
 
   const composedEnhancer = finalCompose(...storeEnhancers) as any
 
-  return createStore(
-    rootReducer,
-    preloadedState as DeepPartial<S>,
-    composedEnhancer
-  )
+  return {
+    ...createStore(
+      rootReducer,
+      preloadedState as DeepPartial<S>,
+      composedEnhancer
+    ),
+    withCurriedTypes(curry: any) {
+      return curry
+    }
+  }
 }
