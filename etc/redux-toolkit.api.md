@@ -198,7 +198,11 @@ export { Draft }
 export interface EnhancedStore<S = any, A extends Action = AnyAction, M extends Middlewares<S> = Middlewares<S>> extends Store<S, A> {
     dispatch: DispatchForMiddlewares<M> & Dispatch<A>;
     // (undocumented)
-    withCurriedTypes: CurryType<S, DispatchForMiddlewares<M> & Dispatch<A>>;
+    withCurriedTypes: CurryType<{
+        RootState: S;
+        Dispatch: DispatchForMiddlewares<M> & Dispatch<A>;
+        ThunkExtraArgument: ExtraFromMiddlewares<M>;
+    }>;
 }
 
 // @public (undocumented)

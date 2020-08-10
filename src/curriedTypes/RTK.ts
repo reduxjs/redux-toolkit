@@ -3,12 +3,21 @@ export interface CurryableTypes {
   createThunk: typeof createThunk
 }
 
-export interface CurriedType<RootState, Dispatch> {
-  createAsyncThunk: CurriedCreateAsyncThunk<RootState, Dispatch>
-  createThunk: CurriedCreateThunk<RootState, Dispatch>
+export interface CurriedType<Args extends CurryArgs> {
+  createAsyncThunk: CurriedCreateAsyncThunk<
+    Args['RootState'],
+    Args['Dispatch'],
+    Args['ThunkExtraArgument']
+  >
+  createThunk: CurriedCreateThunk<
+    CurryArgs['RootState'],
+    CurryArgs['Dispatch'],
+    Args['ThunkExtraArgument']
+  >
 }
 
 /* eslint-disable import/first */
+import { CurryArgs } from './'
 import {
   createAsyncThunk,
   AsyncThunk,
@@ -16,18 +25,9 @@ import {
   AsyncThunkConfig,
   AsyncThunkOptions
 } from '../createAsyncThunk'
-import { ThunkDispatch } from 'redux-thunk'
 import { createThunk, ThunkActionCreator } from '../createThunk'
 
-export type ExtraFromDispatch<Dispatch> = Dispatch extends ThunkDispatch<
-  any,
-  infer Extra,
-  any
->
-  ? Extra
-  : unknown
-
-type CurriedCreateAsyncThunk<RootState, Dispatch> = <
+type CurriedCreateAsyncThunk<RootState, Dispatch, Extra> = <
   Returned,
   ThunkArg = void,
   ThunkApiConfig extends Omit<
@@ -42,24 +42,12 @@ type CurriedCreateAsyncThunk<RootState, Dispatch> = <
     ThunkApiConfig & {
       dispatch: Dispatch
       state: RootState
-      extra: ExtraFromDispatch<Dispatch>
+      extra: Extra
     }
   >,
   options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
 ) => AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
 
-type CurriedCreateThunk<RootState, Dispatch> = <Args extends any[], R>(
-  thunkActionCreator: ThunkActionCreator<
-    Args,
-    R,
-    RootState,
-    ExtraFromDispatch<Dispatch>,
-    Dispatch
-  >
-) => ThunkActionCreator<
-  Args,
-  R,
-  RootState,
-  ExtraFromDispatch<Dispatch>,
-  Dispatch
->
+type CurriedCreateThunk<RootState, Dispatch, Extra> = <Args extends any[], R>(
+  thunkActionCreator: ThunkActionCreator<Args, R, RootState, Extra, Dispatch>
+) => ThunkActionCreator<Args, R, RootState, Extra, Dispatch>

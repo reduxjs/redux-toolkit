@@ -24,7 +24,7 @@ import {
   curryGetDefaultMiddleware,
   CurriedGetDefaultMiddleware
 } from './getDefaultMiddleware'
-import { DispatchForMiddlewares } from './tsHelpers'
+import { DispatchForMiddlewares, ExtraFromMiddlewares } from './tsHelpers'
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
@@ -111,7 +111,11 @@ export interface EnhancedStore<
    */
   dispatch: DispatchForMiddlewares<M> & Dispatch<A>
 
-  withCurriedTypes: CurryType<S, DispatchForMiddlewares<M> & Dispatch<A>>
+  withCurriedTypes: CurryType<{
+    RootState: S
+    Dispatch: DispatchForMiddlewares<M> & Dispatch<A>
+    ThunkExtraArgument: ExtraFromMiddlewares<M>
+  }>
 }
 
 /**

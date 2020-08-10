@@ -3,35 +3,38 @@ import {
   CurryableTypes as RRCurryableType
 } from './react-redux'
 import {
-  CurriedType as CatCurriedType,
-  CurryableTypes as CatCurryableType
+  CurriedType as RTKCurriedType,
+  CurryableTypes as RTKCurryableType
 } from './RTK'
 
 import { UnionToIntersection } from '../tsHelpers'
 
-type CurrySingleType<RootState, Dispatch> = UnionToIntersection<
+export interface CurryArgs {
+  Dispatch: any
+  RootState: any
+  ThunkExtraArgument: any
+}
+
+type CurrySingleType<Args extends CurryArgs> = UnionToIntersection<
   {
     [K in keyof CurryableTypes]: (
       curry: CurryableTypes[K]
-    ) => CurriedType<RootState, Dispatch>[K]
+    ) => CurriedType<Args>[K]
   }[keyof CurryableTypes]
 >
 
-type CurryMultipleTypes<RootState, Dispatch> = {
+type CurryMultipleTypes<Args extends CurryArgs> = {
   <Obj extends Partial<CurryableTypes>>(obj: Obj): Pick<
-    CurriedType<RootState, Dispatch>,
-    keyof Obj & keyof CurriedType<any, any>
+    CurriedType<Args>,
+    keyof Obj & keyof CurriedType<any>
   >
 }
 
-export type CurryType<RootState, Dispatch> = CurrySingleType<
-  RootState,
-  Dispatch
-> &
-  CurryMultipleTypes<RootState, Dispatch>
+export type CurryType<Args extends CurryArgs> = CurrySingleType<Args> &
+  CurryMultipleTypes<Args>
 
-export interface CurryableTypes extends RRCurryableType, CatCurryableType {}
+export interface CurryableTypes extends RRCurryableType, RTKCurryableType {}
 
-export interface CurriedType<RootState, Dispatch>
-  extends RRCurriedType<RootState, Dispatch>,
-    CatCurriedType<RootState, Dispatch> {}
+export interface CurriedType<Args extends CurryArgs>
+  extends RRCurriedType<Args['RootState'], Args['Dispatch']>,
+    RTKCurriedType<Args> {}

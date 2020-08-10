@@ -1,8 +1,14 @@
 import { useDispatch, useSelector } from 'react-redux'
-import { configureStore, createAsyncThunk, createThunk } from 'src'
+import { configureStore, createAsyncThunk, createThunk, Middleware } from 'src'
 
 type DispatchType = typeof store.dispatch
 type StateType = ReturnType<typeof store.getState>
+
+const otherMiddleware: Middleware<
+  { (arg: number): number },
+  any,
+  any
+> = _ => next => action => next(action)
 
 const store = configureStore({
   reducer(state?: { foo: 'bar' }) {
@@ -11,7 +17,7 @@ const store = configureStore({
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
       thunk: { extraArgument: 'thunkExtra' as const }
-    })
+    }).concat(otherMiddleware)
 })
 
 function expectType<T>(t: T) {
