@@ -2,6 +2,11 @@ import {
   CurriedType as RRCurriedType,
   CurryableTypes as RRCurryableType
 } from './react-redux'
+import {
+  CurriedType as CatCurriedType,
+  CurryableTypes as CatCurryableType
+} from './createAsyncThunk'
+
 import { UnionToIntersection } from '../tsHelpers'
 
 type CurrySingleType<RootState, Dispatch> = UnionToIntersection<
@@ -25,7 +30,8 @@ export type CurryType<RootState, Dispatch> = CurrySingleType<
 > &
   CurryMultipleTypes<RootState, Dispatch>
 
-export interface CurryableTypes extends RRCurryableType {}
+export interface CurryableTypes extends RRCurryableType, CatCurryableType {}
 
 export interface CurriedType<RootState, Dispatch>
-  extends RRCurriedType<RootState, Dispatch> {}
+  extends RRCurriedType<RootState, Dispatch>,
+    CatCurriedType<RootState, Dispatch> {}

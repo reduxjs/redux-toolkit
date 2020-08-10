@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux'
-import { configureStore } from 'src'
+import { configureStore, createAsyncThunk } from 'src'
 
 type DispatchType = typeof store.dispatch
 type StateType = ReturnType<typeof store.getState>
@@ -59,4 +59,12 @@ function expectType<T>(t: T) {
     connect,
     connectAdvanced
   } = store.withCurriedTypes(require('react-redux'))
+}
+
+{
+  const curriedCAT = store.withCurriedTypes(createAsyncThunk)
+  curriedCAT('foo', (arg: any, { getState, dispatch }) => {
+    expectType<DispatchType>(dispatch)
+    expectType<StateType>(getState())
+  })
 }
