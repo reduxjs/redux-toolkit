@@ -181,6 +181,9 @@ export interface CreateSliceOptions<State = any, CR extends SliceCaseReducers<St
     reducers: ValidateSliceCaseReducers<State, CR>;
 }
 
+// @beta (undocumented)
+export const createThunk: <Args extends any[], R, State = unknown, Extra = unknown, Dispatch = ThunkDispatch<State, Extra, AnyAction>>(thunkActionCreator: ThunkActionCreator<Args, R, State, Extra, Dispatch>) => ThunkActionCreator<Args, R, State, Extra, Dispatch>;
+
 export { current }
 
 // @public (undocumented)

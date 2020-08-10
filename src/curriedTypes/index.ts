@@ -5,7 +5,7 @@ import {
 import {
   CurriedType as CatCurriedType,
   CurryableTypes as CatCurryableType
-} from './createAsyncThunk'
+} from './RTK'
 
 import { UnionToIntersection } from '../tsHelpers'
 

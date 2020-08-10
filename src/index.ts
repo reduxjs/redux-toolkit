@@ -105,5 +105,6 @@ export {
   unwrapResult,
   SerializedError
 } from './createAsyncThunk'
+export { createThunk } from './createThunk'
 
 export { nanoid } from './nanoid'

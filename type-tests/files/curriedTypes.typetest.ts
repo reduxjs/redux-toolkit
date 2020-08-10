@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux'
-import { configureStore, createAsyncThunk } from 'src'
+import { configureStore, createAsyncThunk, createThunk } from 'src'
 
 type DispatchType = typeof store.dispatch
 type StateType = ReturnType<typeof store.getState>
@@ -7,7 +7,11 @@ type StateType = ReturnType<typeof store.getState>
 const store = configureStore({
   reducer(state?: { foo: 'bar' }) {
     return state!
-  }
+  },
+  middleware: getDefaultMiddleware =>
+    getDefaultMiddleware({
+      thunk: { extraArgument: 'thunkExtra' as const }
+    })
 })
 
 function expectType<T>(t: T) {
@@ -60,11 +64,29 @@ function expectType<T>(t: T) {
     connectAdvanced
   } = store.withCurriedTypes(require('react-redux'))
 }
-
+/**
+ * currying `createAsyncThunk`
+ */
 {
   const curriedCAT = store.withCurriedTypes(createAsyncThunk)
-  curriedCAT('foo', (arg: any, { getState, dispatch }) => {
+  curriedCAT('foo', (arg: any, { getState, dispatch, extra }) => {
     expectType<DispatchType>(dispatch)
     expectType<StateType>(getState())
+    expectType<'thunkExtra'>(extra)
   })
+}
+/**
+ * currying `createThunk`
+ */
+{
+  const curriedCT = store.withCurriedTypes(createThunk)
+
+  const thunk = curriedCT(
+    (arg1: string, arg2: number) => (dispatch, getState, extra) => {
+      expectType<DispatchType>(dispatch)
+      expectType<StateType>(getState())
+      expectType<'thunkExtra'>(extra)
+      return null
+    }
+  )
 }
