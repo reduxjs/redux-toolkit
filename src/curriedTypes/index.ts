@@ -1,4 +1,7 @@
-import './react-redux'
+import {
+  CurriedType as RRCurriedType,
+  CurryableTypes as RRCurryableType
+} from './react-redux'
 import { UnionToIntersection } from '../tsHelpers'
 
 type CurrySingleType<RootState, Dispatch> = UnionToIntersection<
@@ -22,8 +25,7 @@ export type CurryType<RootState, Dispatch> = CurrySingleType<
 > &
   CurryMultipleTypes<RootState, Dispatch>
 
-// to be extended in other files
-export interface CurryableTypes {}
+export interface CurryableTypes extends RRCurryableType {}
 
-// to be extended in other files
-export interface CurriedType<RootState, Dispatch> {}
+export interface CurriedType<RootState, Dispatch>
+  extends RRCurriedType<RootState, Dispatch> {}

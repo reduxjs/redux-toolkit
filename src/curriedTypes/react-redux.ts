@@ -1,17 +1,15 @@
-declare module './' {
-  interface CurryableTypes {
-    useDispatch: typeof import('react-redux').useDispatch
-    useSelector: typeof import('react-redux').useSelector
-    connect: typeof import('react-redux').connect
-    connectAdvanced: typeof import('react-redux').connectAdvanced
-  }
+export interface CurryableTypes {
+  useDispatch: typeof import('react-redux').useDispatch
+  useSelector: typeof import('react-redux').useSelector
+  connect: typeof import('react-redux').connect
+  connectAdvanced: typeof import('react-redux').connectAdvanced
+}
 
-  interface CurriedType<RootState, Dispatch> {
-    useDispatch: UseDispatch<Dispatch>
-    useSelector: UseSelector<RootState>
-    connect: Connect<RootState, Dispatch>
-    connectAdvanced: ConnectAdvanced<RootState>
-  }
+export interface CurriedType<RootState, Dispatch> {
+  useDispatch: UseDispatch<Dispatch>
+  useSelector: UseSelector<RootState>
+  connect: Connect<RootState, Dispatch>
+  connectAdvanced: ConnectAdvanced<RootState>
 }
 
 /* eslint-disable import/first */
