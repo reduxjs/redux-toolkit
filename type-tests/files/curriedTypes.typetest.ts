@@ -1,5 +1,11 @@
 import { useDispatch, useSelector } from 'react-redux'
-import { configureStore, createAsyncThunk, createThunk, Middleware } from 'src'
+import {
+  configureStore,
+  createAsyncThunk,
+  createThunk,
+  Middleware,
+  curryForStoreType
+} from 'src'
 
 type DispatchType = typeof store.dispatch
 type StateType = ReturnType<typeof store.getState>
@@ -20,12 +26,14 @@ const store = configureStore({
     }).concat(otherMiddleware)
 })
 
+const curryTypes = curryForStoreType<typeof store>()
+
 function expectType<T>(t: T) {
   return t
 }
 // currying `useDispatch`
 {
-  expectType<() => DispatchType>(store.withCurriedTypes(useDispatch))
+  expectType<() => DispatchType>(curryTypes(useDispatch))
 }
 
 // currying `useSelector`
@@ -35,7 +43,7 @@ function expectType<T>(t: T) {
       selector: (state: StateType) => X,
       equalityFn?: (x1: X, x2: X) => boolean
     ) => any
-  >(store.withCurriedTypes(useSelector))
+  >(curryTypes(useSelector))
 }
 
 /**
@@ -45,7 +53,7 @@ function expectType<T>(t: T) {
   const {
     useDispatch: useAppDispatch,
     useSelector: useAppSelector
-  } = store.withCurriedTypes({
+  } = curryTypes({
     useDispatch,
     useSelector
   })
@@ -53,28 +61,25 @@ function expectType<T>(t: T) {
   expectType<() => DispatchType>(useAppDispatch)
 
   // typings:expect-error does not accept wrong types for a key
-  store.withCurriedTypes({ useDispatch: () => {} })
+  curryTypes({ useDispatch: () => {} })
 
   // typings:expect-error will not have stuff in the output that is not in the input
-  const { useDispatch: notThere } = store.withCurriedTypes({})
+  const { useDispatch: notThere } = curryTypes({})
 }
 
 /**
  * currying all supported exports of react-redux at once
  */
 {
-  const {
-    useDispatch,
-    useSelector,
-    connect,
-    connectAdvanced
-  } = store.withCurriedTypes(require('react-redux'))
+  const { useDispatch, useSelector, connect, connectAdvanced } = curryTypes(
+    require('react-redux')
+  )
 }
 /**
  * currying `createAsyncThunk`
  */
 {
-  const curriedCAT = store.withCurriedTypes(createAsyncThunk)
+  const curriedCAT = curryTypes(createAsyncThunk)
   curriedCAT('foo', (arg: any, { getState, dispatch, extra }) => {
     expectType<DispatchType>(dispatch)
     expectType<StateType>(getState())
@@ -85,7 +90,7 @@ function expectType<T>(t: T) {
  * currying `createThunk`
  */
 {
-  const curriedCT = store.withCurriedTypes(createThunk)
+  const curriedCT = curryTypes(createThunk)
 
   const thunk = curriedCT(
     (arg1: string, arg2: number) => (dispatch, getState, extra) => {

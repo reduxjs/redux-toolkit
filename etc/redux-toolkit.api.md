@@ -186,6 +186,11 @@ export const createThunk: <Args extends any[], R, State = unknown, Extra = unkno
 
 export { current }
 
+// @beta (undocumented)
+export function curryForStoreType<Store extends {
+    [storeDescriptionKey]: StoreDescription;
+}>(): CurryType<Store[typeof storeDescriptionKey]>;
+
 // @public (undocumented)
 export interface Dictionary<T> extends DictionaryNum<T> {
     // (undocumented)
@@ -196,13 +201,13 @@ export { Draft }
 
 // @public
 export interface EnhancedStore<S = any, A extends Action = AnyAction, M extends Middlewares<S> = Middlewares<S>> extends Store<S, A> {
-    dispatch: DispatchForMiddlewares<M> & Dispatch<A>;
     // (undocumented)
-    withCurriedTypes: CurryType<{
+    [storeDescriptionKey]: {
         RootState: S;
         Dispatch: DispatchForMiddlewares<M> & Dispatch<A>;
         ThunkExtraArgument: ExtraFromMiddlewares<M>;
-    }>;
+    };
+    dispatch: DispatchForMiddlewares<M> & Dispatch<A>;
 }
 
 // @public (undocumented)

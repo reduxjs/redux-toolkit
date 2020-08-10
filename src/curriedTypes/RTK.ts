@@ -3,21 +3,21 @@ export interface CurryableTypes {
   createThunk: typeof createThunk
 }
 
-export interface CurriedType<Args extends CurryArgs> {
+export interface CurriedType<Args extends StoreDescription> {
   createAsyncThunk: CurriedCreateAsyncThunk<
     Args['RootState'],
     Args['Dispatch'],
     Args['ThunkExtraArgument']
   >
   createThunk: CurriedCreateThunk<
-    CurryArgs['RootState'],
-    CurryArgs['Dispatch'],
+    StoreDescription['RootState'],
+    StoreDescription['Dispatch'],
     Args['ThunkExtraArgument']
   >
 }
 
 /* eslint-disable import/first */
-import { CurryArgs } from './'
+import { StoreDescription } from './'
 import {
   createAsyncThunk,
   AsyncThunk,
