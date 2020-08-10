@@ -38,9 +38,13 @@ type UseSelector<RootState> = {
   ): TSelected
 }
 
+interface TypedDispatchProp<Dispatch> {
+  dispatch: Dispatch
+}
+
 // copied straight from the RR types, uncommented `State` generic
-interface Connect<State, DispatchProp> {
-  (): InferableComponentEnhancer<DispatchProp>
+interface Connect<State, Dispatch> {
+  (): InferableComponentEnhancer<TypedDispatchProp<Dispatch>>
 
   <
     TStateProps = {},
@@ -49,7 +53,10 @@ interface Connect<State, DispatchProp> {
     // State = DefaultRootState
   >(
     mapStateToProps: MapStateToPropsParam<TStateProps, TOwnProps, State>
-  ): InferableComponentEnhancerWithProps<TStateProps & DispatchProp, TOwnProps>
+  ): InferableComponentEnhancerWithProps<
+    TStateProps & TypedDispatchProp<Dispatch>,
+    TOwnProps
+  >
 
   <no_state = {}, TDispatchProps = {}, TOwnProps = {}>(
     mapStateToProps: null | undefined,
@@ -124,7 +131,10 @@ interface Connect<State, DispatchProp> {
     mapDispatchToProps: null | undefined,
     mergeProps: null | undefined,
     options: Options<State, TStateProps, TOwnProps>
-  ): InferableComponentEnhancerWithProps<DispatchProp & TStateProps, TOwnProps>
+  ): InferableComponentEnhancerWithProps<
+    TypedDispatchProp<Dispatch> & TStateProps,
+    TOwnProps
+  >
 
   <TStateProps = {}, TDispatchProps = {}, TOwnProps = {}>(
     mapStateToProps: null | undefined,
