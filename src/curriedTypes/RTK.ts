@@ -10,8 +10,8 @@ export interface CurriedType<Args extends StoreDescription> {
     Args['ThunkExtraArgument']
   >
   createThunk: CurriedCreateThunk<
-    StoreDescription['RootState'],
-    StoreDescription['Dispatch'],
+    Args['RootState'],
+    Args['Dispatch'],
     Args['ThunkExtraArgument']
   >
 }
