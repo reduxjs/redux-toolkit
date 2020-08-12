@@ -3,6 +3,7 @@ export * from 'redux'
 export { default as createNextState, Draft, current } from 'immer'
 export {
   createSelector,
+  createStructuredSelector,
   Selector,
   OutputParametricSelector,
   OutputSelector,
