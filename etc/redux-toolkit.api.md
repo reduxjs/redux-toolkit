@@ -9,6 +9,7 @@ import { ActionCreator } from 'redux';
 import { AnyAction } from 'redux';
 import { default as createNextState } from 'immer';
 import { createSelector } from 'reselect';
+import { createStructuredSelector } from 'reselect';
 import { current } from 'immer';
 import { DeepPartial } from 'redux';
 import { Dispatch } from 'redux';
@@ -169,6 +170,8 @@ export interface CreateSliceOptions<State = any, CR extends SliceCaseReducers<St
     name: Name;
     reducers: ValidateSliceCaseReducers<State, CR>;
 }
+
+export { createStructuredSelector }
 
 export { current }
 
