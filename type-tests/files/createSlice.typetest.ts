@@ -15,7 +15,8 @@ import {
   SerializedError,
   PayloadActionCreator,
   AsyncThunk,
-  CaseReducer
+  CaseReducer,
+  configureStore
 } from '../../src'
 
 function expectType<T>(t: T) {
@@ -515,10 +516,16 @@ const value = actionCreators.anyKey
         TestArg,
         TestReturned,
         {
-          rejectValue: TestReject
+          rejectValue: TestReject // this introduces a circular reference
+          dispatch: StoreDispatch // this introduces a circular reference
+          state: StoreState
         }
       >(
         function payloadCreator(arg, api) {
+          // here would be a circular reference
+          expectType<StoreState>(api.getState())
+          // here would be a circular reference
+          expectType<StoreDispatch>(api.dispatch)
           expectType<TestArg>(arg)
           expectType<(value: TestReject) => any>(api.rejectWithValue)
           return Promise.resolve({ payload: 'foo' })
@@ -543,6 +550,15 @@ const value = actionCreators.anyKey
       )
     })
   })
+
+  // this would cause a circular reference:
+  // const store = configureStore({ reducer: { test: slice.reducer } })
+  // this is the only way to break it (could be a cast at the export from the slice file)
+  const testReducer = slice.reducer as Reducer<TestState>
+  const store = configureStore({ reducer: { test: testReducer } })
+
+  type StoreState = ReturnType<typeof store.getState>
+  type StoreDispatch = typeof store.dispatch
 
   expectType<PayloadActionCreator<string>>(slice.actions.normalReducer)
   expectType<AsyncThunk<TestReturned, TestArg, {}>>(slice.actions.testInfer)
