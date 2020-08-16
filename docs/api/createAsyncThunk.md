@@ -246,6 +246,43 @@ const onClick = () => {
 }
 ```
 
+## Handling Thunk Errors
+
+Generally, whenever something is `throw`n during the execution of your `payloadCreator`, that will lead to a `rejected` action to be dispatched and returned from the thunk's promise, so if you are doing `await dispatch(myThunk())`, you will also get that rejected action - not, as you might expect on first thought, a Promise rejection. This is due to the fact that we want to prevent uncaught promise rejections for those who do not use the result of `dispatch`.
+
+Either way, that rejected action will have the object that was `throw`n as `action.meta.error`. However, to ensure serializability, everything that does not match the interface
+
+```ts
+export interface SerializedError {
+  name?: string
+  message?: string
+  stack?: string
+  code?: string
+}
+```
+
+will have been removed from it.
+
+If you want to pass out additional information or information in another shape, instead of `throw`ing it, you can use the `api.rejectWithValue` method instead.
+
+```js
+const updateUser = createAsyncThunk(
+  'users/update',
+  async (userData, { rejectWithValue }) => {
+    const { id, ...fields } = userData
+    try {
+      const response = await userAPI.updateById(id, fields)
+      return response.data.user
+    } catch (err) {
+      return rejectWithValue(err.response.data)
+    }
+  }
+)
+```
+
+This will result in a `rejected` action with the rejected value as `action.payload`.
+If you are using this in combination with `unwrapResult`, please keep in mind that this will not lead to a promise rejection, but rather to a resolved promise with the rejected value, as we are assuming that this is more of a handled error than an unhandled exception at this point.
+
 ## Cancellation
 
 ### Canceling Before Execution
