@@ -1,4 +1,3 @@
-import { enableES5 } from 'immer'
 export * from 'redux'
 export { default as createNextState, Draft, current } from 'immer'
 export {
@@ -14,7 +13,7 @@ export { ThunkAction, ThunkDispatch } from 'redux-thunk'
 // we assume RTK will be used with React Native and other Proxy-less
 // environments.  In addition, that's how Immer 4 behaved, and since
 // we want to ship this in an RTK minor, we should keep the same behavior.
-enableES5()
+// enableES5()
 
 export {
   // js
