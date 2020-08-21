@@ -587,6 +587,7 @@ describe('conditional skipping of asyncThunks', () => {
         meta: {
           aborted: false,
           arg: arg,
+          rejectedWithValue: false,
           condition: true,
           requestId: expect.stringContaining('')
         },
@@ -594,5 +595,44 @@ describe('conditional skipping of asyncThunks', () => {
         type: 'test/rejected'
       })
     )
+  })
+})
+describe('unwrapResult', () => {
+  const getState = jest.fn(() => ({}))
+  const dispatch = jest.fn((x: any) => x)
+  const extra = {}
+  test('fulfilled case', async () => {
+    const asyncThunk = createAsyncThunk('test', () => {
+      return 'fulfilled!'
+    })
+
+    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
+      unwrapResult
+    )
+
+    await expect(unwrapPromise).resolves.toBe('fulfilled!')
+  })
+  test('error case', async () => {
+    const error = new Error('Panic!')
+    const asyncThunk = createAsyncThunk('test', () => {
+      throw error
+    })
+
+    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
+      unwrapResult
+    )
+
+    await expect(unwrapPromise).rejects.toEqual(miniSerializeError(error))
+  })
+  test('rejectWithValue case', async () => {
+    const asyncThunk = createAsyncThunk('test', (_, { rejectWithValue }) => {
+      return rejectWithValue('rejectWithValue!')
+    })
+
+    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
+      unwrapResult
+    )
+
+    await expect(unwrapPromise).rejects.toBe('rejectWithValue!')
   })
 })
