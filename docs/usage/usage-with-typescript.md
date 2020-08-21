@@ -582,7 +582,7 @@ const usersSlice = createSlice({
 const handleUpdateUser = async userData => {
   const resultAction = await dispatch(updateUser(userData))
   if (updateUser.fulfilled.match(resultAction)) {
-    const user = unwrapResult(resultAction)
+    const user = resultAction.payload
     showToast('success', `Updated ${user.name}`)
   } else {
     if (resultAction.payload) {
