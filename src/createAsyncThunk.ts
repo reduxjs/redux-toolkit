@@ -226,12 +226,7 @@ type AsyncThunkRejectedActionCreator<
   ThunkArg,
   ThunkApiConfig
 > = ActionCreatorWithPreparedPayload<
-  [
-    Error | null,
-    string,
-    ThunkArg,
-    (GetRejectValue<ThunkApiConfig> | undefined)?
-  ],
+  [Error | null, string, ThunkArg],
   GetRejectValue<ThunkApiConfig> | undefined,
   string,
   SerializedError,
