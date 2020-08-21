@@ -31,8 +31,10 @@ const action = increment(3)
 
 The `createAction` helper combines these two declarations into one. It takes an action type and returns an action creator for that type. The action creator can be called either without arguments or with a `payload` to be attached to the action. Also, the action creator overrides [toString()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString) so that the action type becomes its string representation.
 
-```js
-const increment = createAction('counter/increment')
+```ts
+import { createAction } from '@reduxjs/toolkit'
+
+const increment = createAction<number | undefined>('counter/increment')
 
 let action = increment()
 // { type: 'counter/increment' }
