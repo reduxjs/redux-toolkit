@@ -9,7 +9,7 @@ module.exports = {
           path: '../docs',
           sidebarPath: require.resolve('./sidebars.json'),
           routeBasePath: '/',
-          remarkPlugins: [require('./src/transpileCodeblocksPlugin')]
+          remarkPlugins: [require('./src/transpileCodeblocks/plugin')]
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css')

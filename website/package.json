@@ -13,9 +13,7 @@
     "classnames": "^2.2.6",
     "react": "^16.10.2",
     "react-dom": "^16.10.2",
-    "typescript": "^2.8.4",
-    "unist-util-flatmap": "^1.0.0",
-    "virtual-tsc": "^0.6.1"
+    "unist-util-flatmap": "^1.0.0"
   },
   "browserslist": {
     "production": [
