@@ -59,10 +59,24 @@ function attacher() {
           if (tags.includes('no-transpile')) {
             return [node]
           }
-          const transpiled = compile(
+          const { transpiledCode, diagnostics } = compile(
             `${file.path}_${node.position.start.line}.ts`,
             node.value
           )
+
+          for (const diagnostic of diagnostics) {
+            file.fail(
+              `
+TypeScript error in line (counting from after the front matter) ${diagnostic.line +
+                node.position.start.line}
+${diagnostic.message}
+            `,
+              {
+                line: diagnostic.line + node.position.start.line,
+                column: diagnostic.character
+              }
+            )
+          }
 
           return [
             {
@@ -85,7 +99,7 @@ function attacher() {
         </TabItem>
         <TabItem value="js">`
             },
-            { ...node, lang: 'js', value: transpiled },
+            { ...node, lang: 'js', value: transpiledCode },
             {
               type: 'jsx',
               value: `

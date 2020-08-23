@@ -29,31 +29,25 @@ function compile(fileName, code) {
   let transpiledCode = ''
 
   let emitResult = program.emit(undefined, (_, code) => {
-    transpiledCode = code
+    transpiledCode = code.replace(/\/\/__NEWLINE__/g, '').trim()
   })
 
   let allDiagnostics = ts
     .getPreEmitDiagnostics(program)
     .concat(emitResult.diagnostics)
 
-  allDiagnostics.forEach(diagnostic => {
+  const diagnostics = allDiagnostics.map(diagnostic => {
+    let message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')
     if (diagnostic.file) {
       let { line, character } = diagnostic.file.getLineAndCharacterOfPosition(
         diagnostic.start
       )
-      let message = ts.flattenDiagnosticMessageText(
-        diagnostic.messageText,
-        '\n'
-      )
-      console.log(
-        `${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`
-      )
-    } else {
-      console.log(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))
+      return { line, character, message }
     }
+    return { message }
   })
 
-  return transpiledCode.replace(/\/\/__NEWLINE__/g, '')
+  return { transpiledCode, diagnostics }
 }
 
 function createCompilerHost() {
