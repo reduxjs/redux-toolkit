@@ -1,6 +1,13 @@
 const ts = require('typescript')
 const path = require('path')
 
+/** @typedef {Record<string,{ code: string, skip?: boolean }>} VirtualFiles */
+/** @typedef {{ line: number; character: number; message: string; } | { line?: undefined; character?: undefined; message: string; }} Diagnostic */
+
+/** @typedef {Record<string, VirtualFiles[string] & {
+ *    diagnostics: Array<Diagnostic>
+ * }>} TranspiledFiles */
+
 const configFileName = ts.findConfigFile(
   __dirname,
   ts.sys.fileExists,
@@ -24,47 +31,67 @@ const service = ts.createLanguageService(
 )
 
 /**
- * @param {string} fileName
- * @param {string} code
+ * @param {VirtualFiles} files
  */
-function compile(fileName, code) {
+function compile(files) {
   // console.log(compilerOptions)
 
-  code = code.replace(/^$/gm, '//__NEWLINE__')
+  compilerHost.setScriptFileNames([])
+  for (let [fileName, { code }] of Object.entries(files)) {
+    code = code.replace(/^$/gm, '//__NEWLINE__')
+    compilerHost.writeFile(fileName, code)
+  }
+  compilerHost.setScriptFileNames(Object.keys(files))
 
-  compilerHost.writeFile(fileName, code)
+  /** @type {TranspiledFiles} */
+  let returnFiles = {}
 
-  let emitResult = service.getEmitOutput(fileName)
-  let transpiledCode = emitResult.outputFiles[0].text
-    .replace(/\/\/__NEWLINE__/g, '')
-    .trim()
+  for (const [fileName, code] of Object.entries(files)) {
+    let emitResult = service.getEmitOutput(fileName)
+    let transpiledCode = emitResult.outputFiles[0]
+      ? emitResult.outputFiles[0].text.replace(/\/\/__NEWLINE__/g, '').trim()
+      : ''
 
-  let allDiagnostics = service
-    .getCompilerOptionsDiagnostics()
-    .concat(service.getSyntacticDiagnostics(fileName))
-    .concat(service.getSemanticDiagnostics(fileName))
+    let allDiagnostics = service
+      .getCompilerOptionsDiagnostics()
+      .concat(service.getSyntacticDiagnostics(fileName))
+      .concat(service.getSemanticDiagnostics(fileName))
 
-  const diagnostics = allDiagnostics.map(diagnostic => {
-    let message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')
-    if (diagnostic.file && diagnostic.start) {
-      let { line, character } = diagnostic.file.getLineAndCharacterOfPosition(
-        diagnostic.start
+    const diagnostics = allDiagnostics.map(diagnostic => {
+      let message = ts.flattenDiagnosticMessageText(
+        diagnostic.messageText,
+        '\n'
       )
-      return { line, character, message }
+      if (diagnostic.file && diagnostic.start) {
+        let { line, character } = diagnostic.file.getLineAndCharacterOfPosition(
+          diagnostic.start
+        )
+        return { line, character, message }
+      }
+      return { message }
+    })
+    returnFiles[fileName] = {
+      ...files[fileName],
+      code: transpiledCode,
+      diagnostics
     }
-    return { message }
-  })
+  }
 
-  return { transpiledCode, diagnostics }
+  return returnFiles
 }
 
 /**
- * @returns {ts.LanguageServiceHost & ts.ModuleResolutionHost & Required<Pick<ts.LanguageServiceHost, 'writeFile'>>}
+ * @returns {ts.LanguageServiceHost
+ *          & ts.ModuleResolutionHost
+ *          & Required<Pick<ts.LanguageServiceHost, 'writeFile'>
+ *          & { setScriptFileNames(files: string[]): void }
+ * >}
  */
 function createCompilerHost() {
   /** @type {Record<string, { contents: string; version: number }>} */
   const virtualFiles = {}
-  let lastWrittenTo = ''
+  /** @type {string[]} */
+  let scriptFileNames = []
 
   return {
     ...ts.createCompilerHost(compilerOptions),
@@ -88,17 +115,24 @@ function createCompilerHost() {
       let version = virtualFiles[fileName] ? virtualFiles[fileName].version : 1
       if (
         virtualFiles[fileName] &&
-        virtualFiles[fileName].contents === contents
+        virtualFiles[fileName].contents !== contents
       ) {
         version++
       }
       virtualFiles[fileName] = { contents, version }
-      if (fileName.endsWith('.ts') && !fileName.endsWith('.d.ts')) {
-        lastWrittenTo = fileName
-      }
+    },
+    directoryExists(dirName) {
+      return (
+        scriptFileNames.some(fileName => fileName.startsWith(dirName + '/')) ||
+        ts.sys.directoryExists(dirName)
+      )
+    },
+    setScriptFileNames(files) {
+      // console.log({ virtualFiles, files })
+      scriptFileNames = files
     },
     getScriptFileNames() {
-      return lastWrittenTo ? [lastWrittenTo] : []
+      return scriptFileNames
     },
     getScriptSnapshot(fileName) {
       const contents = this.readFile(fileName)

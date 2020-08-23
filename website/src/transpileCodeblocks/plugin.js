@@ -5,6 +5,8 @@ const compile = require('./compiler')
 
 module.exports = attacher
 
+/** @typedef {Record<string,{ code: string, skip?: boolean }>} VirtualFiles */
+
 function attacher() {
   return transformer
 
@@ -55,7 +57,7 @@ function attacher() {
       }
     )
 
-    let currentBlockNumber = 0
+    let codeBlock = 0
 
     return flatMap(
       tree,
@@ -64,36 +66,40 @@ function attacher() {
        * @return {import('unist').Node[]}
        */
       function mapper(node) {
+        if (node.type === 'code') {
+          codeBlock++
+        }
         if (node.type === 'code' && node.lang === 'ts') {
           const tags = node.meta ? node.meta.split(' ') : []
           if (tags.includes('no-transpile')) {
             return [node]
           }
 
-          const virtualFileName = `${file.path}_${currentBlockNumber++}.ts`
+          const virtualFolder = `${file.path}/codeBlock_${codeBlock}`
+          const virtualFiles = splitFiles(node.value, virtualFolder)
 
-          //console.time(virtualFileName)
-          const { transpiledCode, diagnostics } = compile(
-            virtualFileName,
-            node.value
-          )
-          //console.timeEnd(virtualFileName)
+          //console.time(virtualFolder)
+          const transpilationResult = compile(virtualFiles)
+          //console.timeEnd(virtualFolder)
 
-          for (const diagnostic of diagnostics) {
-            if (diagnostic.line && node.position) {
-              file.fail(
-                `
-TypeScript error in line (counting from after the front matter) ${diagnostic.line +
-                  node.position.start.line}
+          for (const [fileName, result] of Object.entries(
+            transpilationResult
+          )) {
+            for (const diagnostic of result.diagnostics) {
+              if (diagnostic.line && node.position) {
+                file.fail(
+                  `
+TypeScript error in code block in line ${diagnostic.line} of ${fileName}
 ${diagnostic.message}
             `,
-                {
-                  line: diagnostic.line + node.position.start.line,
-                  column: diagnostic.character
-                }
-              )
-            } else {
-              file.fail(diagnostic.message, node)
+                  {
+                    line: diagnostic.line + node.position.start.line,
+                    column: diagnostic.character
+                  }
+                )
+              } else {
+                file.fail(diagnostic.message, node)
+              }
             }
           }
 
@@ -111,14 +117,18 @@ ${diagnostic.message}
     >        
         <TabItem value="ts">`
             },
-            node,
+            { ...node, value: rearrangeFiles(virtualFiles, virtualFolder) },
             {
               type: 'jsx',
               value: `
         </TabItem>
         <TabItem value="js">`
             },
-            { ...node, lang: 'js', value: transpiledCode },
+            {
+              ...node,
+              lang: 'js',
+              value: rearrangeFiles(transpilationResult, virtualFolder)
+            },
             {
               type: 'jsx',
               value: `
@@ -132,4 +142,53 @@ ${diagnostic.message}
       }
     )
   }
+}
+
+/**
+ * @param {string} fullCode
+ * @param {string}  folder
+ * @returns {VirtualFiles}
+ */
+function splitFiles(fullCode, folder) {
+  const regex = /^\/\/ file: ([\w.]+)(?: (.*))?\s*$/gm
+  let match = regex.exec(fullCode)
+
+  /**
+   * @type {VirtualFiles}
+   */
+  let files = {}
+
+  do {
+    const start = match ? match.index + match[0].length + 1 : 0
+    const fileName = match ? match[1] : 'index.ts'
+    const flags = (match ? match[2] || '' : '').split(' ')
+    const skip = flags.includes('noEmit')
+    match = regex.exec(fullCode)
+    const end = match ? match.index : fullCode.length
+    const code = fullCode.substring(start, end)
+    files[`${folder}/${fileName}`] = { code, skip }
+  } while (match)
+
+  return files
+}
+
+/**
+ * @param {VirtualFiles} files
+ * @param {string} folder
+ * @returns {string}
+ */
+function rearrangeFiles(files, folder) {
+  const filteredFiles = Object.entries(files).filter(([, { skip }]) => !skip)
+
+  if (filteredFiles.length === 1) {
+    const [[, { code }]] = filteredFiles
+    return code
+  }
+
+  return filteredFiles
+    .map(
+      ([fileName, { code }]) => `// file: ${fileName.replace(folder + '/', '')}
+${code.trim()}`
+    )
+    .join('\n\n\n')
 }

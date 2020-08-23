@@ -133,7 +133,13 @@ of `[offline, applyMiddleware, devToolsExtension]`.
 
 ### Basic Example
 
-```js
+```ts
+// file: reducers.ts noEmit
+import { Reducer } from '@reduxjs/toolkit'
+declare const rootReducer: Reducer<{}>
+export default rootReducer
+
+// file: store.ts
 import { configureStore } from '@reduxjs/toolkit'
 
 import rootReducer from './reducers'
