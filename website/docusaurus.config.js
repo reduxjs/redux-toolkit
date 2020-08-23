@@ -9,6 +9,7 @@ module.exports = {
           path: '../docs',
           sidebarPath: require.resolve('./sidebars.json'),
           routeBasePath: '/',
+          include: ['{api,assets,introduction,tutorials,usage}/*.{md,mdx}'], // no other way to exclude node_modules
           remarkPlugins: [require('./src/transpileCodeblocks/plugin')]
         },
         theme: {

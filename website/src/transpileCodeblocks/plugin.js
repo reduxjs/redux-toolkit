@@ -150,7 +150,7 @@ ${diagnostic.message}
  * @returns {VirtualFiles}
  */
 function splitFiles(fullCode, folder) {
-  const regex = /^\/\/ file: ([\w.]+)(?: (.*))?\s*$/gm
+  const regex = /^\/\/ file: ([\w./]+)(?: (.*))?\s*$/gm
   let match = regex.exec(fullCode)
 
   /**

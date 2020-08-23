@@ -150,8 +150,19 @@ const store = configureStore({ reducer: rootReducer })
 
 ### Full Example
 
-```js
-import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit'
+```ts
+// file: todos/todosReducer.ts noEmit
+import { Reducer } from '@reduxjs/toolkit'
+declare const reducer: Reducer<{}>
+export default reducer
+
+// file: visibility/visibilityReducer.ts noEmit
+import { Reducer } from '@reduxjs/toolkit'
+declare const reducer: Reducer<{}>
+export default reducer
+
+// file: store.ts
+import { configureStore } from '@reduxjs/toolkit'
 
 // We'll use redux-logger just as an example of adding another middleware
 import logger from 'redux-logger'
@@ -166,8 +177,6 @@ const reducer = {
   todos: todosReducer,
   visibility: visibilityReducer
 }
-
-const middleware = [...getDefaultMiddleware(), logger]
 
 const preloadedState = {
   todos: [
@@ -185,7 +194,7 @@ const preloadedState = {
 
 const store = configureStore({
   reducer,
-  middleware,
+  middleware: getDefaultMiddleware => getDefaultMiddleware().concat(logger),
   devTools: process.env.NODE_ENV !== 'production',
   preloadedState,
   enhancers: [reduxBatch]
