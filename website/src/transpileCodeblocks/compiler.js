@@ -107,12 +107,15 @@ function createCompilerHost() {
     getScriptVersion(fileName) {
       return virtualFiles[fileName]
         ? virtualFiles[fileName].version.toString()
-        : '0'
+        : String(
+            (ts.sys.getModifiedTime && ts.sys.getModifiedTime(fileName)) ||
+              'unknown, will not update without restart'
+          )
     },
     resolveModuleNames(moduleNames, containingFile) {
       return moduleNames.map(moduleName => {
         if (moduleName === '@reduxjs/toolkit') {
-          moduleName = path.resolve(__dirname, '../../../dist/typings')
+          moduleName = path.resolve(__dirname, '../../../src')
 
           const resolvedModule = ts.resolveModuleName(
             moduleName,
@@ -121,11 +124,10 @@ function createCompilerHost() {
             this
           ).resolvedModule
           if (!resolvedModule) {
-            throw new Error('RTK typings not found, please compile RTK first!')
+            throw new Error('RTK source code not found!')
           }
           return {
             ...resolvedModule,
-            isExternalLibraryImport: true,
             packageId: {
               name: '@reduxjs/toolkit',
               subModuleName: 'dist/typings.d.ts',
