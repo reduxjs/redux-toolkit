@@ -1,4 +1,5 @@
 const visit = require('unist-util-visit')
+// @ts-ignore
 const flatMap = require('unist-util-flatmap')
 const compile = require('./compiler')
 
@@ -20,10 +21,17 @@ function attacher() {
     let hasTabsImport = false
     let hasTabItemImport = false
 
-    visit(tree, 'import', node => {
-      if (/\bTabs\b/.test(node.value)) hasTabsImport = true
-      if (/\bTabItem\b/.test(node.value)) hasTabItemImport = true
-    })
+    visit(
+      tree,
+      'import',
+      /**
+       * @param {import('unist').Node & {value: string}} node
+       */
+      node => {
+        if (/\bTabs\b/.test(node.value)) hasTabsImport = true
+        if (/\bTabItem\b/.test(node.value)) hasTabItemImport = true
+      }
+    )
 
     visit(
       tree,
@@ -47,10 +55,12 @@ function attacher() {
       }
     )
 
+    let currentBlockNumber = 0
+
     return flatMap(
       tree,
       /**
-       * @param {import('unist').Node & { lang: string, meta: unknown, value: string, indent: number[]}} node
+       * @param {import('unist').Node & { lang: string, meta: string, value: string, indent: number[]}} node
        * @return {import('unist').Node[]}
        */
       function mapper(node) {
@@ -59,23 +69,32 @@ function attacher() {
           if (tags.includes('no-transpile')) {
             return [node]
           }
+
+          const virtualFileName = `${file.path}_${currentBlockNumber++}.ts`
+
+          //console.time(virtualFileName)
           const { transpiledCode, diagnostics } = compile(
-            `${file.path}_${node.position.start.line}.ts`,
+            virtualFileName,
             node.value
           )
+          //console.timeEnd(virtualFileName)
 
           for (const diagnostic of diagnostics) {
-            file.fail(
-              `
+            if (diagnostic.line && node.position) {
+              file.fail(
+                `
 TypeScript error in line (counting from after the front matter) ${diagnostic.line +
-                node.position.start.line}
+                  node.position.start.line}
 ${diagnostic.message}
             `,
-              {
-                line: diagnostic.line + node.position.start.line,
-                column: diagnostic.character
-              }
-            )
+                {
+                  line: diagnostic.line + node.position.start.line,
+                  column: diagnostic.character
+                }
+              )
+            } else {
+              file.fail(diagnostic.message, node)
+            }
           }
 
           return [

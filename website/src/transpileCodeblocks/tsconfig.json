@@ -11,6 +11,8 @@
     "strict": true,
     "removeComments": false,
     "module": "ESNext",
-    "target": "ESNext"
+    "target": "ESNext",
+    "allowJs": true,
+    "checkJs": true
   }
 }

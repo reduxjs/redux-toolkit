@@ -55,10 +55,10 @@ By default, the generated action creators accept a single argument, which become
 
 In many cases, you may want to write additional logic to customize the creation of the `payload` value, such as accepting multiple parameters for the action creator, generating a random ID, or getting the current timestamp. To do this, `createAction` accepts an optional second argument: a "prepare callback" that will be used to construct the payload value.
 
-```js
-import { nanoid } from '@reduxjs/toolkit'
+```ts
+import { createAction, nanoid } from '@reduxjs/toolkit'
 
-const addTodo = createAction('todos/add', function prepare(text) {
+const addTodo = createAction('todos/add', function prepare(text: string) {
   return {
     payload: {
       text,
