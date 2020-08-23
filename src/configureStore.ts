@@ -173,9 +173,5 @@ export function configureStore<
 
   const composedEnhancer = finalCompose(...storeEnhancers) as any
 
-  return createStore(
-    rootReducer,
-    preloadedState as DeepPartial<S>,
-    composedEnhancer
-  )
+  return createStore(rootReducer, preloadedState as any, composedEnhancer)
 }
