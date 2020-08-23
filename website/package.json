@@ -2,6 +2,7 @@
   "scripts": {
     "start": "docusaurus start",
     "build": "docusaurus build",
+    "netlify-build": "(cd ..; npm install --ignore-scripts --production); npm run build",
     "swizzle": "docusaurus swizzle",
     "publish-gh-pages": "docusaurus deploy",
     "deploy": "docusaurus deploy"

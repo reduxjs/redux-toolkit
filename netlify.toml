@@ -1,7 +1,7 @@
 [build]
   base    = "website"
   publish = "build"
-  command = "npm run build"
+  command = "npm run netlify-build"
   ignore = "git diff --quiet HEAD^ HEAD docs website"
 
 [build.environment]
