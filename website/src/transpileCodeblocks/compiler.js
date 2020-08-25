@@ -49,7 +49,7 @@ function compile(files) {
   for (const [fileName, code] of Object.entries(files)) {
     let emitResult = service.getEmitOutput(fileName)
     let transpiledCode = emitResult.outputFiles[0]
-      ? emitResult.outputFiles[0].text.replace(/\/\/__NEWLINE__/g, '').trim()
+      ? emitResult.outputFiles[0].text.replace(/\/\/__NEWLINE__/g, '').replace(/(\n\s*|)\/\/ (@ts-ignore|@ts-expect-error).*$/gm, '').trim()
       : ''
 
     let allDiagnostics = service

@@ -14,7 +14,7 @@ and automatically generates action creators and action types that correspond to 
 
 `createSlice` accepts a single configuration object parameter, with the following options:
 
-```ts
+```ts no-transpile
 function createSlice({
     // A name, used in action types
     name: string,
@@ -51,7 +51,9 @@ descriptive names.
 This object will be passed to [`createReducer`](./createReducer.md), so the reducers may safely "mutate" the
 state they are given.
 
-```js
+```ts
+import { createSlice } from '@reduxjs/toolkit'
+
 const counterSlice = createSlice({
   name: 'counter',
   initialState: 0,
@@ -66,16 +68,24 @@ const counterSlice = createSlice({
 
 If you need to customize the creation of the payload value of an action creator by means of a [`prepare callback`](./createAction.md#using-prepare-callbacks-to-customize-action-contents), the value of the appropriate field of the `reducers` argument object should be an object instead of a function. This object must contain two properties: `reducer` and `prepare`. The value of the `reducer` field should be the case reducer function while the value of the `prepare` field should be the prepare callback function:
 
-```js
+```ts
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import nanoid from 'nanoid'
+
+interface Item {
+  id: string,
+  text: string
+}
+
 const todosSlice = createSlice({
   name: 'todos',
-  initialState: [],
+  initialState: [] as Item[],
   reducers: {
     addTodo: {
-      reducer: (state, action) => {
+      reducer: (state, action: PayloadAction<Item>) => {
         state.push(action.payload)
       },
-      prepare: text => {
+      prepare: (text: string) => {
         const id = nanoid()
         return { payload: { id, text } }
       }
@@ -127,9 +137,18 @@ Instead of using an object as `extraReducers`, you can also use a callback that 
 
 This builder notation is also the only way to add matcher reducers and default case reducers to your slice.
 
-```typescript
+```ts
+import { createAction, createSlice, Action, AnyAction } from '@reduxjs/toolkit'
 const incrementBy = createAction<number>('incrementBy')
 const decrement = createAction('decrement')
+
+interface RejectedAction extends Action {
+  error: Error
+}
+
+function isRejectedAction(action: AnyAction): action is RejectedAction {
+  return action.type.endsWith('rejected')
+}
 
 createSlice({
   name: 'counter',
@@ -144,7 +163,8 @@ createSlice({
       .addCase(decrement, (state, action) => {})
       // You can match a range of action types
       .addMatcher(
-        action => action.type.endsWith('rejected'),
+        isRejectedAction,
+        // `action` will be inferred as a RejectedAction due to isRejectedAction being defined as a type guard
         (state, action) => {}
       )
       // and provide a default case if no other handlers matched
@@ -160,7 +180,7 @@ See [the "Builder Callback Notation" section of the `createReducer` reference](.
 
 `createSlice` will return an object that looks like:
 
-```ts
+```ts no-transpile
 {
     name : string,
     reducer : ReducerFunction,
@@ -189,6 +209,14 @@ for references in a larger codebase.
 
 ## Examples
 
+
+
+
+
+
+
+
+
 ```ts
 import { createSlice, createAction, PayloadAction } from '@reduxjs/toolkit'
 import { createStore, combineReducers } from 'redux'
@@ -204,7 +232,7 @@ const counter = createSlice({
     decrement: state => state - 1,
     multiply: {
       reducer: (state, action: PayloadAction<number>) => state * action.payload,
-      prepare: (value: number) => ({ payload: value || 2 }) // fallback if the payload is a falsy value
+      prepare: (value?: number) => ({ payload: value || 2 }) // fallback if the payload is a falsy value
     }
   },
   // "builder callback API", recommended for TypeScript users
@@ -228,7 +256,8 @@ const user = createSlice({
   },
   // "map object API"
   extraReducers: {
-    [counter.actions.increment]: (state, action) => {
+    // @ts-expect-error in TypeScript, this would need to be [counter.actions.increment.type]
+    [counter.actions.increment]: (state, action /* action will be inferred as "any", as the map notation does not contain type information */) => {
       state.age += 1
     }
   }
