@@ -2,6 +2,7 @@ const visit = require('unist-util-visit')
 // @ts-ignore
 const flatMap = require('unist-util-flatmap')
 const compile = require('./compiler')
+const { postProcessTranspiledJs, postProcessTs } = require('./postProcessing')
 
 module.exports = attacher
 
@@ -117,7 +118,13 @@ ${diagnostic.message}
     >        
         <TabItem value="ts">`
             },
-            { ...node, value: rearrangeFiles(virtualFiles, virtualFolder) },
+            {
+              ...node,
+              value: rearrangeFiles(
+                postProcessTs(virtualFiles, file.path),
+                virtualFolder
+              )
+            },
             {
               type: 'jsx',
               value: `
@@ -127,7 +134,10 @@ ${diagnostic.message}
             {
               ...node,
               lang: 'js',
-              value: rearrangeFiles(transpilationResult, virtualFolder)
+              value: rearrangeFiles(
+                postProcessTs(transpilationResult, file.path),
+                virtualFolder
+              )
             },
             {
               type: 'jsx',

@@ -1,7 +1,7 @@
 const ts = require('typescript')
 const path = require('path')
 
-/** @typedef {Record<string,{ code: string, skip?: boolean }>} VirtualFiles */
+/** @typedef {import('./plugin').VirtualFiles} VirtualFiles */
 /** @typedef {{ line: number; character: number; message: string; } | { line?: undefined; character?: undefined; message: string; }} Diagnostic */
 
 /** @typedef {Record<string, VirtualFiles[string] & {
@@ -49,7 +49,7 @@ function compile(files) {
   for (const [fileName, code] of Object.entries(files)) {
     let emitResult = service.getEmitOutput(fileName)
     let transpiledCode = emitResult.outputFiles[0]
-      ? emitResult.outputFiles[0].text.replace(/\/\/__NEWLINE__/g, '').replace(/(\n\s*|)\/\/ (@ts-ignore|@ts-expect-error).*$/gm, '').trim()
+      ? emitResult.outputFiles[0].text.replace(/\/\/__NEWLINE__/g, '')
       : ''
 
     let allDiagnostics = service
