@@ -15,7 +15,7 @@ You can customize the behavior of this middleware by passing any of the supporte
 
 ## Options
 
-```ts
+```ts no-transpile
 interface SerializableStateInvariantMiddlewareOptions {
   /**
    * The function to check if a value is considered serializable. This
@@ -66,18 +66,28 @@ You will most likely not need to call this yourself, as `getDefaultMiddleware` a
 
 Example:
 
-```js
+```ts
+// file: reducer.ts noEmit
+
+export default function(state = {}, action: any) {
+  return state
+}
+
+// file: store.ts
+
 import { Iterable } from 'immutable'
 import {
   configureStore,
   createSerializableStateInvariantMiddleware,
   isPlain
 } from '@reduxjs/toolkit'
+import reducer from './reducer'
 
 // Augment middleware to consider Immutable.JS iterables serializable
-const isSerializable = value => Iterable.isIterable(value) || isPlain(value)
+const isSerializable = (value: any) =>
+  Iterable.isIterable(value) || isPlain(value)
 
-const getEntries = value =>
+const getEntries = (value: any) =>
   Iterable.isIterable(value) ? value.entries() : Object.entries(value)
 
 const serializableMiddleware = createSerializableStateInvariantMiddleware({
@@ -98,6 +108,14 @@ Checks whether the given value is considered a "plain value" or not.
 Currently implemented as:
 
 ```ts
+// file: src/isPlainObject.ts noEmit
+
+declare function isPlainObject(value: unknown): value is object
+export default isPlainObject
+
+// file: src/serializableStateInvariantMiddleware.ts
+import isPlainObject from './isPlainObject'
+
 export function isPlain(val: any) {
   return (
     typeof val === 'undefined' ||
