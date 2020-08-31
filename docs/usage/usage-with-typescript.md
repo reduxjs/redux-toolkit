@@ -48,6 +48,7 @@ If you want to get the `Dispatch` type from your store, you can extract it after
 
 ```typescript {6}
 import { configureStore } from '@reduxjs/toolkit'
+import { useDispatch } from 'react-redux'
 import rootReducer from './rootReducer'
 
 const store = configureStore({
