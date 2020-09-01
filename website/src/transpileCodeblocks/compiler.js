@@ -57,7 +57,7 @@ function compile(files) {
       .concat(service.getSyntacticDiagnostics(fileName))
       .concat(service.getSemanticDiagnostics(fileName))
 
-    const diagnostics = allDiagnostics.map(diagnostic => {
+    const diagnostics = allDiagnostics.map((diagnostic) => {
       let message = ts.flattenDiagnosticMessageText(
         diagnostic.messageText,
         '\n'
@@ -73,7 +73,7 @@ function compile(files) {
     returnFiles[fileName] = {
       ...files[fileName],
       code: transpiledCode,
-      diagnostics
+      diagnostics,
     }
   }
 
@@ -123,8 +123,9 @@ function createCompilerHost() {
     },
     directoryExists(dirName) {
       return (
-        scriptFileNames.some(fileName => fileName.startsWith(dirName + '/')) ||
-        ts.sys.directoryExists(dirName)
+        scriptFileNames.some((fileName) =>
+          fileName.startsWith(dirName + '/')
+        ) || ts.sys.directoryExists(dirName)
       )
     },
     setScriptFileNames(files) {
@@ -147,7 +148,7 @@ function createCompilerHost() {
           )
     },
     resolveModuleNames(moduleNames, containingFile) {
-      return moduleNames.map(moduleName => {
+      return moduleNames.map((moduleName) => {
         if (moduleName === '@reduxjs/toolkit') {
           moduleName = path.resolve(__dirname, '../../../src')
 
@@ -165,8 +166,8 @@ function createCompilerHost() {
             packageId: {
               name: '@reduxjs/toolkit',
               subModuleName: 'dist/typings.d.ts',
-              version: '99.0.0'
-            }
+              version: '99.0.0',
+            },
           }
         }
 
@@ -177,7 +178,7 @@ function createCompilerHost() {
           this
         ).resolvedModule
       })
-    }
+    },
   }
 }
 
