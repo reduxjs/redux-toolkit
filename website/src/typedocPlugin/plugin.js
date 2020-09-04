@@ -1,39 +1,62 @@
 const flatMap = require('unist-util-flatmap')
 const { getComment, renderDocNode } = require('./extract')
 const { URL } = require('url')
+const { paragraph, text } = require('mdast-builder')
+const { DocBlock } = require('@microsoft/tsdoc')
+
 module.exports = attacher
 
 /** @typedef {ReturnType<typeof getComment>} Comment */
 /** @typedef {(c: Comment) => import('unist').Node[]} RenderFunction */
 
 function attacher() {
-  console.log(this)
-
   /**
    *
    * @param {string} markdown
    * @returns {import('unist').Node[]}
    */
-  const parseNodes = (markdown) => {
-    console.log(markdown)
-
+  const parseNodes = markdown => {
     // @ts-ignore
     return this.parse(markdown).children
   }
 
+  /**
+   * @param {keyof Comment} key
+   * @param {(before: string) => string} prepare
+   */
+  function renderAsMarkdown(key, prepare = x => x) {
+    /**
+     * @param {Comment} comment
+     * @returns {import('unist').Parent[]}
+     */
+    function render(comment) {
+      /** @type {import('@microsoft/tsdoc').DocBlock | import('@microsoft/tsdoc').DocBlock[]} */
+      // @ts-ignore
+      const docBlock = comment[key]
+      const rendered = renderDocNode(docBlock)
+      // @ts-ignore
+      return parseNodes(prepare(rendered))
+    }
+    return render
+  }
+
   /** @type {{[key: string]: RenderFunction}} */
   const sectionMapping = {
-    summary: renderAsText('summarySection'),
-    remarks: renderAsText('remarksBlock'),
-    overloadSummary: renderAsText('overloadSummary'),
-    overloadRemarks: renderAsText('overloadRemarks'),
-    examples(comment) {
-      const plain = renderDocNode(comment.examples).replace(/^@example/, '')
-      const examples = parseNodes(plain)
-      console.dir({ examples, plain }, { depth: 6 })
-      return parseNodes(renderDocNode(comment.examples))
-    },
-    params: renderAsText('params'),
+    summary: renderAsMarkdown('summarySection', s =>
+      s.replace(/@summary/g, '')
+    ),
+    remarks: renderAsMarkdown('remarksBlock', s => s.replace(/@remarks/g, '')),
+    overloadSummary: renderAsMarkdown('overloadSummary', s =>
+      s.replace(/@overloadSummary/g, '')
+    ),
+    overloadRemarks: renderAsMarkdown('overloadRemarks', s =>
+      s.replace(/@overloadRemarks/g, '')
+    ),
+    examples: renderAsMarkdown('examples', s => s.replace(/@example/g, '')),
+    params: renderAsMarkdown(
+      'params',
+      s => '#### Parameters:\n' + s.replace(/@param (.*) -/g, '* **$1**')
+    )
   }
 
   return transformer
@@ -63,14 +86,12 @@ function attacher() {
           return [parent]
         }
 
-        console.log({ replacing: parent })
-
         if (node.children.length !== 1 || node.children[0].type !== 'text') {
           throw new Error('invalid meta content for docblock link')
         }
         /** @type {string} */
         const meta = node.children[0].value
-        const sections = meta.split(',').map((s) => s.trim())
+        const sections = meta.split(',').map(s => s.trim())
 
         const url = new URL(node.url)
         const fileName = url.host + url.pathname
@@ -97,29 +118,9 @@ function attacher() {
           []
         )
 
-        console.dir({ retVal }, { depth: 5 })
+        //console.dir({ retVal }, { depth: 5 })
         return retVal
       }
     )
   }
-}
-
-const { paragraph, text } = require('mdast-builder')
-
-/**
- * @param {keyof Comment} key
- */
-function renderAsText(key) {
-  /**
-   * @param {Comment} comment
-   * @returns {import('unist').Parent[]}
-   */
-  function render(comment) {
-    // @ts-ignore
-    const value = renderDocNode(comment[key])
-
-    return [paragraph(text(value))]
-  }
-
-  return render
 }

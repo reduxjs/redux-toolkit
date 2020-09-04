@@ -11,8 +11,8 @@ module.exports = {
           routeBasePath: '/',
           include: ['{api,assets,introduction,tutorials,usage}/*.{md,mdx}'], // no other way to exclude node_modules
           remarkPlugins: [
-            require('./src/transpileCodeblocks/plugin'),
             require('./src/typedocPlugin/plugin'),
+            require('./src/transpileCodeblocks/plugin'),
           ],
         },
         theme: {

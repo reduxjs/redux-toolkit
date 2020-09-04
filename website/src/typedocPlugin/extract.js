@@ -34,7 +34,29 @@ const program = ts.createProgram(
 module.exports = {
   getComment,
   renderDocNode,
-  renderDocNodes,
+}
+
+/**
+ * @param {string} token
+ * @param {ts.Node} node
+ */
+function findTokens(token, node) {
+  const [lookFor, ...tail] = token.split('.')
+  /** @type {ts.Node[]} */
+  const found = []
+  node.forEachChild(
+    /** @param {ts.Node & { name?: ts.Node}} child */ (child) => {
+      const name = child.name
+      if (name && ts.isIdentifier(name) && name.escapedText === lookFor) {
+        if (lookFor === token) {
+          found.push(child)
+        } else {
+          found.push(...findTokens(tail.join('.'), child))
+        }
+      }
+    }
+  )
+  return found
 }
 
 /**
@@ -54,15 +76,7 @@ function getComment(token, fileName = 'index.ts', overload = 0) {
 
   const buffer = sourceFile.getFullText()
 
-  for (const node of sourceFile.statements) {
-    if (!isDeclarationKind(node.kind)) {
-      continue
-    }
-    // @ts-ignore
-    if (!(ts.isIdentifier(node.name) && node.name.escapedText === token)) {
-      continue
-    }
-
+  for (const node of findTokens(token, sourceFile)) {
     const comments = getJSDocCommentRanges(node, buffer)
 
     if (comments.length > 0) {
@@ -102,6 +116,8 @@ function getComment(token, fileName = 'index.ts', overload = 0) {
   const parserContext = tsdocParser.parseRange(selectedOverload.textRange)
   const docComment = parserContext.docComment
   return Object.assign(docComment, {
+    parserContext,
+    buffer: selectedOverload.textRange.buffer,
     overloadSummary: docComment.customBlocks.find(
       byTagName('@overloadSummary')
     ),
@@ -110,33 +126,12 @@ function getComment(token, fileName = 'index.ts', overload = 0) {
     ),
     examples: docComment.customBlocks.filter(byTagName('@example')),
   })
-  /*
-  for (const foundComment of foundComments) {
-    const parserContext = tsdocParser.parseRange(foundComment.textRange)
-    const docComment = parserContext.docComment
-    console.log(`------ summary ------`)
-    console.log(renderDocNode(docComment.summarySection).trim())
-    console.log(`------ remarks ------`)
-    console.log(renderDocNode(docComment.remarksBlock).trim())
-    console.log(`------ overloadSummary ------`)
-    console.log(
-      renderDocNodes(
-        docComment.customBlocks.filter(byTagName('@overloadSummary'))
-      ).trim()
-    )
-    console.log(`------ examples ------`)
-    console.log(
-      renderDocNodes(
-        docComment.customBlocks.filter(byTagName('@example'))
-      ).trim()
-    )
-    console.log(`------ params ------`)
-    console.log(`------ params ------`)
-    console.log(renderDocNode(docComment.params).trim())
-    console.log(`------ end ------`)
-  }*/
 }
 
+/**
+ * @param {string} name
+ * @returns {(block: tsdoc.DocBlock) => boolean}
+ */
 function byTagName(name) {
   return (block) => block.blockTag.tagName === name
 }
@@ -146,25 +141,21 @@ function byTagName(name) {
  */
 function renderDocNode(docNode) {
   if (Array.isArray(docNode)) {
-    return renderDocNodes(docNode)
+    return docNode.map((node) => renderDocNode(node)).join('')
   }
 
   let result = ''
   if (docNode) {
+    if (docNode instanceof tsdoc.DocFencedCode) {
+      return '```' + docNode.language + '\n' + docNode.code.toString() + '\n```'
+    }
     if (docNode instanceof tsdoc.DocExcerpt) {
       result += docNode.content.toString()
     }
+
     for (const childNode of docNode.getChildNodes()) {
       result += renderDocNode(childNode)
     }
-  }
-  return result
-}
-
-function renderDocNodes(docNodes) {
-  let result = ''
-  for (const docNode of docNodes) {
-    result += renderDocNode(docNode)
   }
   return result
 }
