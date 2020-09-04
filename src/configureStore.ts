@@ -105,7 +105,7 @@ export interface EnhancedStore<
   M extends Middlewares<S> = Middlewares<S>
 > extends Store<S, A> {
   /**
-   * The `dispatch` method of your store, enhanced by all it's middlewares.
+   * The `dispatch` method of your store, enhanced by all its middlewares.
    *
    * @inheritdoc
    */
