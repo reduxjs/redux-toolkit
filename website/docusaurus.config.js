@@ -1,4 +1,9 @@
 // site configuration options.
+const { resolve } = require('path')
+const {
+  linkDocblocks,
+  transpileCodeblocks,
+} = require('remark-typescript-tools')
 
 module.exports = {
   presets: [
@@ -11,8 +16,34 @@ module.exports = {
           routeBasePath: '/',
           include: ['{api,assets,introduction,tutorials,usage}/*.{md,mdx}'], // no other way to exclude node_modules
           remarkPlugins: [
-            require('./src/typedocPlugin/plugin'),
-            require('./src/transpileCodeblocks/plugin'),
+            [
+              linkDocblocks,
+              {
+                extractorSettings: {
+                  tsconfig: resolve(__dirname, '../docs/tsconfig.json'),
+                  basedir: resolve(__dirname, '../src'),
+                  rootFiles: ['index.ts'],
+                },
+              },
+            ],
+            [
+              transpileCodeblocks,
+              {
+                compilerSettings: {
+                  tsconfig: resolve(__dirname, '../docs/tsconfig.json'),
+                  externalResolutions: {
+                    '@reduxjs/toolkit': {
+                      resolvedPath: resolve(__dirname, '../src'),
+                      packageId: {
+                        name: '@reduxjs/toolkit',
+                        subModuleName: 'index.ts',
+                        version: '1.0',
+                      },
+                    },
+                  },
+                },
+              },
+            ],
           ],
         },
         theme: {

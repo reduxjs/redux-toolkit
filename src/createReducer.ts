@@ -94,17 +94,24 @@ export function createReducer<
   actionMatchers?: ActionMatcherDescriptionCollection<S>,
   defaultCaseReducer?: CaseReducer<S>
 ): Reducer<S>
+
 /**
  * A utility function that allows defining a reducer as a mapping from action
  * type to *case reducer* functions that handle these action types. The
  * reducer's initial state is passed as the first argument.
  *
+ * @remarks
  * The body of every case reducer is implicitly wrapped with a call to
  * `produce()` from the [immer](https://github.com/mweststrate/immer) library.
  * This means that rather than returning a new state object, you can also
  * mutate the passed-in state object directly; these mutations will then be
  * automatically and efficiently translated into copies, giving you both
  * convenience and immutability.
+ *
+ * @overloadSummary
+ * This overload accepts a callback function which is passed a builder object.
+ * That builder can be invoked with the functions `addCase`, `addMatcher` and `addDefaultCase`.
+ *
  * @param initialState The initial state to be returned by the reducer.
  * @param builderCallback A callback that receives a *builder* object to define
  *   case reducers via calls to `builder.addCase(actionCreatorOrType, reducer)`.

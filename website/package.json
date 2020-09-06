@@ -10,15 +10,11 @@
   "dependencies": {
     "@docusaurus/core": "^2.0.0-alpha.58",
     "@docusaurus/preset-classic": "^2.0.0-alpha.58",
-    "@microsoft/tsdoc": "^0.12.20",
-    "@types/prettier": "^2.1.0",
     "classnames": "^2.2.6",
-    "mdast-builder": "^1.1.1",
-    "prettier": "^2.1.1",
     "react": "^16.10.2",
     "react-dom": "^16.10.2",
-    "typescript": "^4.0.2",
-    "unist-util-flatmap": "^1.0.0"
+    "remark-typescript-tools": "^1.0.0",
+    "typescript": "^4.0.2"
   },
   "browserslist": {
     "production": [
