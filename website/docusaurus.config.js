@@ -27,8 +27,30 @@ module.exports = {
     repoUrl: 'https://github.com/reduxjs/redux-toolkit'
   },
   themeConfig: {
+    metadatas: [{ name: 'twitter:card', content: 'summary' }],
     prism: {
       theme: require('./src/js/monokaiTheme.js')
+    },
+    image: 'img/redux-logo-landscape.png',
+    navbar: {
+      title: 'Redux Toolkit',
+      logo: {
+        alt: 'Redux Logo',
+        src: 'img/redux.svg'
+      },
+      items: [
+        {
+          to: 'introduction/quick-start',
+          label: 'Quick Start',
+          position: 'right'
+        },
+        { to: 'api/configureStore', label: 'API', position: 'right' },
+        {
+          href: 'https://github.com/reduxjs/redux-toolkit',
+          label: 'GitHub',
+          position: 'right'
+        }
+      ]
     },
     footer: {
       style: 'dark',
@@ -84,27 +106,6 @@ module.exports = {
         }
       ],
       copyright: `Copyright © 2015–${new Date().getFullYear()} Dan Abramov and the Redux documentation authors.`
-    },
-    image: 'img/redux-logo-landscape.png',
-    navbar: {
-      title: 'Redux Toolkit',
-      logo: {
-        alt: 'Redux Logo',
-        src: 'img/redux.svg'
-      },
-      links: [
-        {
-          to: 'introduction/quick-start',
-          label: 'Quick Start',
-          position: 'right'
-        },
-        { to: 'api/configureStore', label: 'API', position: 'right' },
-        {
-          href: 'https://github.com/reduxjs/redux-toolkit',
-          label: 'GitHub',
-          position: 'right'
-        }
-      ]
     },
     algolia: {
       apiKey: '82d838443b672336bf63cab4772d9eb4',
