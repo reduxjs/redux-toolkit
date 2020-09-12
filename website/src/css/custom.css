@@ -7,12 +7,12 @@
 /* You can override the default Infima variables here. */
 :root {
   --ifm-color-primary: #764abc;
-  --ifm-color-primary-dark: #613d9a;
-  --ifm-color-primary-darker: #4c3078;
-  --ifm-color-primary-darkest: #362256;
-  --ifm-color-primary-light: #825ac2;
-  --ifm-color-primary-lighter: #9b7bce;
-  --ifm-color-primary-lightest: #b49cda;
+  --ifm-color-primary-dark: #6a43a9;
+  --ifm-color-primary-darker: #5e3b96;
+  --ifm-color-primary-darkest: #533484;
+  --ifm-color-primary-light: #845cc3;
+  --ifm-color-primary-lighter: #916ec9;
+  --ifm-color-primary-lightest: #9f80d0;
 
   --ifm-code-font-size: 95%;
   --ifm-code-border-radius: 3px;
@@ -25,6 +25,7 @@
   --ifm-code-padding-horizontal: 0.2rem;
 
   --ifm-pre-background: rgb(39, 40, 34);
+  --ifm-alert-color: black;
 
   --ra-admonition-color: #ecf4f9;
   --ra-admonition-color-dark: #2a98b9;
@@ -55,6 +56,21 @@
   }
 }
 
+:root[data-theme='dark'] {
+  --ifm-color-primary: #ba8fff;
+  --ifm-color-primary-dark: #7431ca;
+  --ifm-color-primary-darker: #6d1cac;
+  --ifm-color-primary-darkest: #730c9a;
+  --ifm-color-primary-light: #b97cfd;
+  --ifm-color-primary-lighter: #cc8ffc;
+  --ifm-color-primary-lightest: #fcf2ff;
+  --ifm-blockquote-color: #1a1d1e;
+  --ifm-blockquote-color-dark: #6d1cac;
+}
+:root[data-theme='dark'] .hero.hero--primary {
+  --ifm-hero-background-color: #593d88;
+  --ifm-hero-text-color: #ffffff;
+}
 blockquote {
   color: var(--ifm-font-base-color);
   background-color: var(--ifm-blockquote-color);
@@ -71,7 +87,14 @@ html[data-theme='dark'] blockquote {
   background-color: rgb(72, 77, 91);
   display: block;
   margin: 0 calc(-1 * var(--ifm-pre-padding));
-  padding: 0 var(--ifm-pre-padding);
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: calc(-0.25em + var(--ifm-pre-padding));
+  padding-right: var(--ifm-pre-padding);
+  border-left: 0.25em solid #1976d2;
+}
+div[class*='codeBlockTitle'] {
+  padding: 0.15rem var(--ifm-pre-padding);
 }
 
 code {
@@ -79,10 +102,6 @@ code {
   border-radius: 0.2rem;
 }
 
-html[data-theme='dark'] code {
-  background-color: var(--ifm-color-emphasis-200);
-  border-radius: 0.2rem;
-}
 
 a code,
 code a {
@@ -90,11 +109,6 @@ code a {
   color: inherit;
 }
 
-html[data-theme='dark'] a code,
-html[data-theme='dark'] code a {
-  background-color: var(--ifm-color-emphasis-100);
-  color: var(--ifm-color-primary-lighter);
-}
 
 a.contents__link > code {
   color: inherit;
@@ -134,7 +148,7 @@ a:visited {
 }
 
 .admonition {
-  color: var(--ifm-font-base-color);
+  color: black;
   border-radius: var(--ifm-global-radius);
   border-left: 6px solid var(--ra-admonition-color-dark);
 }
