@@ -56,6 +56,14 @@ function expectType<T>(t: T) {
       expectType<ReturnType<typeof increment>>(action)
     })
 
+    // action type defaults to AnyAction if no type predicate matcher is passed
+    builder.addMatcher(
+      () => true,
+      (state, action) => {
+        expectType<AnyAction>(action)
+      }
+    )
+
     // addCase().addMatcher() is possible, action type inferred correctly
     builder
       .addCase(

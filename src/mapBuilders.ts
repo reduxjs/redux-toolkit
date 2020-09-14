@@ -80,7 +80,7 @@ export interface ActionReducerMapBuilder<State> {
    * ```
    */
   addMatcher<A extends AnyAction>(
-    matcher: ActionMatcher<A>,
+    matcher: ActionMatcher<A> | ((action: AnyAction) => boolean),
     reducer: CaseReducer<State, A>
   ): Omit<ActionReducerMapBuilder<State>, 'addCase'>
 
