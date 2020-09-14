@@ -51,33 +51,50 @@ export interface ActionReducerMapBuilder<State> {
    * @param reducer - The actual case reducer function.
    *
    * @example
-   * ```js
-   * const initialState = {}
-   * const resetAction = createAction('reset-tracked-loading-state')
-   * const reducer = createReducer(initialState, builder => {
-   *   builder
-   *     .addCase(resetAction, () => initialState)
-   *     .addMatcher(
-   *       action => action.type.endsWith('/pending') && 'requestId' in action.meta,
-   *       (state, action) => {
-   *         state[action.meta.requestId] = 'pending'
-   *       }
-   *     )
-   *     .addMatcher(
-   *       action => action.type.endsWith('/rejected') && 'requestId' in action.meta,
-   *       (state, action) => {
-   *         state[action.meta.requestId] = 'rejected'
-   *       }
-   *     )
-   *     .addMatcher(
-   *       action =>
-   *         action.type.endsWith('/fulfilled') && 'requestId' in action.meta,
-   *       (state, action) => {
-   *         state[action.meta.requestId] = 'fulfilled'
-   *       }
-   *     )
-   * })
-   * ```
+```ts
+import {
+  createAction,
+  createReducer,
+  AsyncThunk,
+  AnyAction,
+} from "@reduxjs/toolkit";
+
+type GenericAsyncThunk = AsyncThunk<unknown, unknown, any>;
+
+type PendingAction = ReturnType<GenericAsyncThunk["pending"]>;
+type RejectedAction = ReturnType<GenericAsyncThunk["rejected"]>;
+type FulfilledAction = ReturnType<GenericAsyncThunk["fulfilled"]>;
+
+const initialState: Record<string, string> = {};
+const resetAction = createAction("reset-tracked-loading-state");
+
+function isPendingAction(action: AnyAction): action is PendingAction {
+  return action.type.endsWith("/pending");
+}
+
+const reducer = createReducer(initialState, (builder) => {
+  builder
+    .addCase(resetAction, () => initialState)
+    // matcher can be defined outside as a type predicate function
+    .addMatcher(isPendingAction, (state, action) => {
+      state[action.meta.requestId] = "pending";
+    })
+    .addMatcher(
+      // matcher can be defined inline as a type predicate function
+      (action): action is RejectedAction => action.type.endsWith("/rejected"),
+      (state, action) => {
+        state[action.meta.requestId] = "rejected";
+      }
+    )
+    // matcher can just return boolean and the matcher can receive a generic argument
+    .addMatcher<FulfilledAction>(
+      (action) => action.type.endsWith("/fulfilled"),
+      (state, action) => {
+        state[action.meta.requestId] = "fulfilled";
+      }
+    );
+});
+```
    */
   addMatcher<A extends AnyAction>(
     matcher: ActionMatcher<A> | ((action: AnyAction) => boolean),
@@ -90,18 +107,18 @@ export interface ActionReducerMapBuilder<State> {
    * @param reducer - The fallback "default case" reducer function.
    *
    * @example
-   * ```ts
-   * import { createReducer } from '@reduxjs/toolkit'
-   * const initialState = { otherActions: 0 }
-   * const reducer = createReducer(initialState, builder => {
-   *   builder
-   *     // .addCase(...)
-   *     // .addMatcher(...)
-   *     .addDefaultCase((state, action) => {
-   *       state.otherActions++
-   *     })
-   * })
-   * ```
+```ts
+import { createReducer } from '@reduxjs/toolkit'
+const initialState = { otherActions: 0 }
+const reducer = createReducer(initialState, builder => {
+  builder
+    // .addCase(...)
+    // .addMatcher(...)
+    .addDefaultCase((state, action) => {
+      state.otherActions++
+    })
+})
+```
    */
   addDefaultCase(reducer: CaseReducer<State, AnyAction>): {}
 }
