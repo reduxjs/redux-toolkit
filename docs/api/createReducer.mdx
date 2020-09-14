@@ -246,7 +246,7 @@ console.log(reducer(0, { type: 'increment' }))
 
 It's very common for a developer to call `console.log(state)` during the development process. However, browsers display Proxies in a format that is hard to read, which can make console logging of Immer-based state difficult.
 
-When using either `createSlice` or `createReducer`, you may use the [`current`](./otherExports#current.md) utility that we re-export from the [`immer` library](https://immerjs.github.io/immer/docs/current). This utility creates a separate plain copy of the current Immer `Draft` state value, which can then be logged for viewing as normal.
+When using either `createSlice` or `createReducer`, you may use the [`current`](./otherExports.md#current) utility that we re-export from the [`immer` library](https://immerjs.github.io/immer/docs/current). This utility creates a separate plain copy of the current Immer `Draft` state value, which can then be logged for viewing as normal.
 
 ```ts
 import { createSlice, current } from '@reduxjs/toolkit'
