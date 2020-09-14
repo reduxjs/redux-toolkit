@@ -150,7 +150,7 @@ module.exports = {
         alt: 'Redux Logo',
         src: 'img/redux.svg'
       },
-      links: [
+      items: [
         {
           to: 'introduction/quick-start',
           label: 'Quick Start',

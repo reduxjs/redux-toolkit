@@ -11,7 +11,7 @@ Returns an array containing the default list of middleware.
 
 ## Intended Usage
 
-By default, [`configureStore`](./configureStore.md) adds some middleware to the Redux store setup automatically.
+By default, [`configureStore`](./configureStore.mdx) adds some middleware to the Redux store setup automatically.
 
 ```js
 const store = configureStore({
@@ -93,12 +93,12 @@ One of the goals of Redux Toolkit is to provide opinionated defaults and prevent
 `getDefaultMiddleware` includes some middleware that are added **in development builds of your app only** to
 provide runtime checks for two common issues:
 
-- [Immutability check middleware](./immutabilityMiddleware.md): deeply compares
+- [Immutability check middleware](./immutabilityMiddleware.mdx): deeply compares
   state values for mutations. It can detect mutations in reducers during a dispatch, and also mutations that occur between
   dispatches (such as in a component or a selector). When a mutation is detected, it will throw an error and indicate the key
   path for where the mutated value was detected in the state tree. (Forked from [`redux-immutable-state-invariant`](https://github.com/leoasis/redux-immutable-state-invariant).)
 
-- [Serializability check middleware](./serializabilityMiddleware.md): a custom middleware created specifically for use in Redux Toolkit. Similar in
+- [Serializability check middleware](./serializabilityMiddleware.mdx): a custom middleware created specifically for use in Redux Toolkit. Similar in
   concept to `immutable-state-invariant`, but deeply checks your state tree and your actions for non-serializable values
   such as functions, Promises, Symbols, and other non-plain-JS-data values. When a non-serializable value is detected, a
   console error will be printed with the key path for where the non-serializable value was detected.

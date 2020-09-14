@@ -87,7 +87,7 @@ If provided, all arguments from the action creator will be passed to the prepare
 
 ## Usage with createReducer()
 
-Because of their `toString()` override, action creators returned by `createAction()` can be used directly as keys for the case reducers passed to [createReducer()](createReducer.md).
+Because of their `toString()` override, action creators returned by `createAction()` can be used directly as keys for the case reducers passed to [createReducer()](createReducer.mdx).
 
 ```ts
 import { createAction, createReducer } from '@reduxjs/toolkit'
@@ -119,7 +119,7 @@ increment.toString() === INCREMENT
 // false
 ```
 
-This means that, for instance, you cannot use a non-string-type action creator as a case reducer key for [createReducer()](createReducer.md).
+This means that, for instance, you cannot use a non-string-type action creator as a case reducer key for [createReducer()](createReducer.mdx).
 
 ```js
 const INCREMENT = Symbol('increment')

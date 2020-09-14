@@ -158,7 +158,7 @@ const counterReducer = createReducer(0, {
 })
 ```
  
- * Action creators that were generated using [`createAction`](./createAction.md) may be used directly as the keys here, using computed property syntax:
+ * Action creators that were generated using [`createAction`](./createAction) may be used directly as the keys here, using computed property syntax:
 
 ```js
 const increment = createAction('increment')

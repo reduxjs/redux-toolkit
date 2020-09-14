@@ -113,7 +113,7 @@ When dispatched, the thunk will:
 
 ## Promise Lifecycle Actions
 
-`createAsyncThunk` will generate three Redux action creators using [`createAction`](./createAction.md): `pending`, `fulfilled`, and `rejected`. Each lifecycle action creator will be attached to the returned thunk action creator so that your reducer logic can reference the action types and respond to the actions when dispatched. Each action object will contain the current unique `requestId` and `args` values under `action.meta`.
+`createAsyncThunk` will generate three Redux action creators using [`createAction`](./createAction.mdx): `pending`, `fulfilled`, and `rejected`. Each lifecycle action creator will be attached to the returned thunk action creator so that your reducer logic can reference the action types and respond to the actions when dispatched. Each action object will contain the current unique `requestId` and `args` values under `action.meta`.
 
 The action creators will have these signatures:
 
