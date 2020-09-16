@@ -80,7 +80,6 @@ blockquote {
 
 html[data-theme='dark'] blockquote {
   border-left-color: var(--ifm-color-primary);
-  color: #000;
 }
 
 .docusaurus-highlight-code-line {
