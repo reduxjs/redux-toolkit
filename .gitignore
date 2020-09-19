@@ -10,5 +10,6 @@ yarn.lock
 .idea/
 .vscode/
 temp/
+.tmp-projections
 
 .rts2*

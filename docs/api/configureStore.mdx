@@ -14,7 +14,7 @@ to the store setup for a better development experience.
 
 `configureStore` accepts a single configuration object parameter, with the following options:
 
-```ts
+```ts no-transpile
 type ConfigureEnhancersCallback = (
   defaultEnhancers: StoreEnhancer[]
 ) => StoreEnhancer[]
@@ -92,7 +92,7 @@ and should return a middleware array. This lets you skip importing `getDefaultMi
 retain the types of the provided middleware when constructing the store.
 
 For more details on how the `middleware` parameter works and the list of middleware that are added by default, see the
-[`getDefaultMiddleware` docs page](./getDefaultMiddleware.md).
+[`getDefaultMiddleware` docs page](./getDefaultMiddleware.mdx).
 
 ### `devTools`
 
@@ -133,7 +133,13 @@ of `[offline, applyMiddleware, devToolsExtension]`.
 
 ### Basic Example
 
-```js
+```ts
+// file: reducers.ts noEmit
+import { Reducer } from '@reduxjs/toolkit'
+declare const rootReducer: Reducer<{}>
+export default rootReducer
+
+// file: store.ts
 import { configureStore } from '@reduxjs/toolkit'
 
 import rootReducer from './reducers'
@@ -144,8 +150,19 @@ const store = configureStore({ reducer: rootReducer })
 
 ### Full Example
 
-```js
-import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit'
+```ts
+// file: todos/todosReducer.ts noEmit
+import { Reducer } from '@reduxjs/toolkit'
+declare const reducer: Reducer<{}>
+export default reducer
+
+// file: visibility/visibilityReducer.ts noEmit
+import { Reducer } from '@reduxjs/toolkit'
+declare const reducer: Reducer<{}>
+export default reducer
+
+// file: store.ts
+import { configureStore } from '@reduxjs/toolkit'
 
 // We'll use redux-logger just as an example of adding another middleware
 import logger from 'redux-logger'
@@ -160,8 +177,6 @@ const reducer = {
   todos: todosReducer,
   visibility: visibilityReducer
 }
-
-const middleware = [...getDefaultMiddleware(), logger]
 
 const preloadedState = {
   todos: [
@@ -179,7 +194,7 @@ const preloadedState = {
 
 const store = configureStore({
   reducer,
-  middleware,
+  middleware: getDefaultMiddleware => getDefaultMiddleware().concat(logger),
   devTools: process.env.NODE_ENV !== 'production',
   preloadedState,
   enhancers: [reduxBatch]

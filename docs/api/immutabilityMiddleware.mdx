@@ -9,13 +9,13 @@ hide_title: true
 
 A port of the [`redux-immutable-state-invariant`](https://github.com/leoasis/redux-immutable-state-invariant) middleware, customized for use with Redux Toolkit. Any detected mutations will be thrown as errors.
 
-This middleware is added to the store by default by [`configureStore`](./configureStore.md) and [`getDefaultMiddleware`](./getDefaultMiddleware.md).
+This middleware is added to the store by default by [`configureStore`](./configureStore.mdx) and [`getDefaultMiddleware`](./getDefaultMiddleware.mdx).
 
 You can customize the behavior of this middleware by passing any of the supported options as the `immutableCheck` value for `getDefaultMiddleware`.
 
 ## Options
 
-```ts
+```ts no-transpile
 type IsImmutableFunc = (value: any) => boolean
 
 interface ImmutableStateInvariantMiddlewareOptions {
@@ -49,14 +49,12 @@ You will most likely not need to call this yourself, as `getDefaultMiddleware` a
 
 Example:
 
-```js
-import {
-  createSlice,
-  configureStore,
-  createImmutableStateInvariantMiddleware
-} from '@reduxjs/toolkit'
+```ts
+// file: exampleSlice.ts
 
-const exampleSlice = createSlice({
+import { createSlice } from '@reduxjs/toolkit'
+
+export const exampleSlice = createSlice({
   name: 'example',
   initialState: {
     user: 'will track changes',
@@ -69,14 +67,64 @@ const exampleSlice = createSlice({
   reducers: {}
 })
 
+export default exampleSlice.reducer
+
+// file: store.ts
+
+import {
+  configureStore,
+  createImmutableStateInvariantMiddleware
+} from '@reduxjs/toolkit'
+
+import exampleSliceReducer from './exampleSlice'
+
 const immutableInvariantMiddleware = createImmutableStateInvariantMiddleware({
   ignoredPaths: ['ignoredPath', 'ignoredNested.one', 'ignoredNested.two']
 })
 
 const store = configureStore({
-  reducer: exampleSlice.reducer,
+  reducer: exampleSliceReducer,
   // Note that this will replace all default middleware
   middleware: [immutableInvariantMiddleware]
+})
+```
+
+doing the same without removing all other middlewares, using [getDetfaultMiddleware](./getDefaultMiddleware):
+
+```ts
+// file: exampleSlice.ts noEmit
+
+import { createSlice } from '@reduxjs/toolkit'
+
+export const exampleSlice = createSlice({
+  name: 'example',
+  initialState: {
+    user: 'will track changes',
+    ignoredPath: 'single level',
+    ignoredNested: {
+      one: 'one',
+      two: 'two'
+    }
+  },
+  reducers: {}
+})
+
+export default exampleSlice.reducer
+
+// file: store.ts
+import { configureStore } from '@reduxjs/toolkit'
+
+import exampleSliceReducer from './exampleSlice'
+
+const store = configureStore({
+  reducer: exampleSliceReducer,
+  // Note that this will replace all default middleware
+  middleware: getDefaultMiddleware =>
+    getDefaultMiddleware({
+      immutableCheck: {
+        ignoredPaths: ['ignoredPath', 'ignoredNested.one', 'ignoredNested.two']
+      }
+    })
 })
 ```
 

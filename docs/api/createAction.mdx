@@ -15,10 +15,10 @@ function createAction(type, prepareAction?)
 
 The usual way to define an action in Redux is to separately declare an _action type_ constant and an _action creator_ function for constructing actions of that type.
 
-```js
+```ts
 const INCREMENT = 'counter/increment'
 
-function increment(amount) {
+function increment(amount: number) {
   return {
     type: INCREMENT,
     payload: amount
@@ -31,8 +31,10 @@ const action = increment(3)
 
 The `createAction` helper combines these two declarations into one. It takes an action type and returns an action creator for that type. The action creator can be called either without arguments or with a `payload` to be attached to the action. Also, the action creator overrides [toString()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString) so that the action type becomes its string representation.
 
-```js
-const increment = createAction('counter/increment')
+```ts
+import { createAction } from '@reduxjs/toolkit'
+
+const increment = createAction<number | undefined>('counter/increment')
 
 let action = increment()
 // { type: 'counter/increment' }
@@ -53,10 +55,10 @@ By default, the generated action creators accept a single argument, which become
 
 In many cases, you may want to write additional logic to customize the creation of the `payload` value, such as accepting multiple parameters for the action creator, generating a random ID, or getting the current timestamp. To do this, `createAction` accepts an optional second argument: a "prepare callback" that will be used to construct the payload value.
 
-```js
-import { nanoid } from '@reduxjs/toolkit'
+```ts
+import { createAction, nanoid } from '@reduxjs/toolkit'
 
-const addTodo = createAction('todos/add', function prepare(text) {
+const addTodo = createAction('todos/add', function prepare(text: string) {
   return {
     payload: {
       text,
@@ -85,19 +87,19 @@ If provided, all arguments from the action creator will be passed to the prepare
 
 ## Usage with createReducer()
 
-Because of their `toString()` override, action creators returned by `createAction()` can be used directly as keys for the case reducers passed to [createReducer()](createReducer.md).
+Because of their `toString()` override, action creators returned by `createAction()` can be used directly as keys for the case reducers passed to [createReducer()](createReducer.mdx).
 
-```js
-const increment = createAction('counter/increment')
-const decrement = createAction('counter/decrement')
+```ts
+import { createAction, createReducer } from '@reduxjs/toolkit'
 
-const counterReducer = createReducer(0, {
-  [increment]: (state, action) => state + action.payload,
-  [decrement]: (state, action) => state - action.payload
+const increment = createAction<number>('counter/increment')
+const decrement = createAction<number>('counter/decrement')
+
+const counterReducer = createReducer(0, builder => {
+  builder.addCase(increment, (state, action) => state + action.payload)
+  builder.addCase(decrement, (state, action) => state - action.payload)
 })
 ```
-
-This works because object keys that are not natively supported by JavaScript (like, in this case, functions) are implicitly converted to strings, and the action creators’ string representations happen to be the action types they produce.
 
 ## Non-String Action Types
 
@@ -117,7 +119,7 @@ increment.toString() === INCREMENT
 // false
 ```
 
-This means that, for instance, you cannot use a non-string-type action creator as a case reducer key for [createReducer()](createReducer.md).
+This means that, for instance, you cannot use a non-string-type action creator as a case reducer key for [createReducer()](createReducer.mdx).
 
 ```js
 const INCREMENT = Symbol('increment')
@@ -149,7 +151,9 @@ This `match` method is a [TypeScript type guard](https://www.typescriptlang.org/
 
 This behavior can be particularly useful when used in custom middlewares, where manual casts might be neccessary otherwise.
 
-```typescript
+```ts
+import { createAction, Action } from '@reduxjs/toolkit'
+
 const increment = createAction<number>('INCREMENT')
 
 function someFunction(action: Action) {
@@ -164,7 +168,11 @@ function someFunction(action: Action) {
 
 The `match` method can also be used as a filter method, which makes it powerful when used with redux-observable:
 
-```typescript
+```ts
+import { createAction, Action } from '@reduxjs/toolkit'
+import { Observable } from 'rxjs'
+import { map, filter } from 'rxjs/operators'
+
 const increment = createAction<number>('INCREMENT')
 
 export const epic = (actions$: Observable<Action>) =>

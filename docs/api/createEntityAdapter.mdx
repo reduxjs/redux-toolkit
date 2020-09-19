@@ -107,7 +107,7 @@ A "entity adapter" instance. An entity adapter is a plain JS object (not a class
 
 The adapter instance will include the following methods (additional referenced TypeScript types included):
 
-```ts
+```ts no-transpile
 export type EntityId = number | string
 
 export type Comparer<T> = (a: T, b: T) => number
@@ -213,7 +213,7 @@ The primary content of an entity adapter is a set of generated reducer functions
 
 Each method has a signature that looks like:
 
-```ts
+```ts no-transpile
 (state: EntityState<T>, argument: TypeOrPayloadAction<Argument<T>>) => EntityState<T>
 ```
 

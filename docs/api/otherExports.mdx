@@ -13,7 +13,7 @@ Redux Toolkit exports some of its internal utilities, and re-exports additional 
 
 An inlined copy of [`nanoid/nonsecure`](https://github.com/ai/nanoid). Generates a non-cryptographically-secure random ID string. Automatically used by `createAsyncThunk` for request IDs, but may also be useful for other cases as well.
 
-```js
+```ts
 import { nanoid } from '@reduxjs/toolkit'
 
 console.log(nanoid())
@@ -30,16 +30,21 @@ The default immutable update function from the [`immer` library](https://immerjs
 
 [The `current` function](https://immerjs.github.io/immer/docs/current) from the [`immer` library](https://immerjs.github.io/immer/), which takes a snapshot of the current state of a draft and finalizes it (but without freezing). Current is a great utility to print the current state during debugging, and the output of `current` can also be safely leaked outside the producer.
 
-```js
+```ts
 import { createReducer, createAction, current } from '@reduxjs/toolkit'
 
-const addTodo = createAction('addTodo')
+interface Todo {
+  //...
+}
+const addTodo = createAction<Todo>('addTodo')
 
-const todosReducer = createReducer([], {
-  [addTodo]: (state, action) => {
+const initialState: Todo[] = []
+
+const todosReducer = createReducer(initialState, builder => {
+  builder.addCase(addTodo, (state, action) => {
     state.push(action.payload)
     console.log(current(state))
-  }
+  })
 })
 ```
 

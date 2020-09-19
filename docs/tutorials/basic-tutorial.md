@@ -86,7 +86,7 @@ In addition, switch statements bother many people. It would be nice if we could 
 
 ### Introducing: `configureStore`
 
-Redux Toolkit includes several functions to help simplify your Redux code. The first function we'll look at is [`configureStore`](../api/configureStore.md).
+Redux Toolkit includes several functions to help simplify your Redux code. The first function we'll look at is [`configureStore`](../api/configureStore.mdx).
 
 Normally, you create a Redux store by calling `createStore()` and passing in your root reducer function. Redux Toolkit has a `configureStore()` function that wraps `createStore()` to do the same thing, but also sets up some useful development tools for you as part of the store creation process.
 
@@ -102,11 +102,11 @@ const store = configureStore({
 })
 ```
 
-This probably doesn't look like much is different. But, under the hood, the store has been configured to enable using the [Redux DevTools Extension](https://github.com/zalmoxisus/redux-devtools-extension) to view the history of dispatched actions and how the store state changed, and has had [some Redux middleware included by default](../api/getDefaultMiddleware.md). We'll look at these in more detail in the next tutorial.
+This probably doesn't look like much is different. But, under the hood, the store has been configured to enable using the [Redux DevTools Extension](https://github.com/zalmoxisus/redux-devtools-extension) to view the history of dispatched actions and how the store state changed, and has had [some Redux middleware included by default](../api/getDefaultMiddleware.mdx). We'll look at these in more detail in the next tutorial.
 
 ### Introducing: `createAction`
 
-Next up, let's look at [`createAction`](../api/createAction.md).
+Next up, let's look at [`createAction`](../api/createAction.mdx).
 
 `createAction` accepts an action type string as an argument, and returns an action creator function that uses that type string. (Yes, this means the name is a bit incorrect - we're creating an "action creator function", not an "action object", but it's shorter and easier to remember than `createActionCreator`.) So, these two examples are equivalent:
 
@@ -172,7 +172,7 @@ That saved us a few lines again, and at least we're not repeating the word `INCR
 
 Now, let's look at the reducer function. While you can use any conditional logic you want in a Redux reducer, including `if` statements and loops, the most common approach is to check the `action.type` field and do some specific logic for each action type. A reducer will also provide an initial state value, and return the existing state if the action isn't something it cares about.
 
-Redux Toolkit includes a [`createReducer` function](../api/createReducer.md) that lets you write reducers using a "lookup table" object, where each key in the object is a Redux action type string, and the values are reducer functions. We can use it to directly replace the existing `counter` function definition. Since we need to use the action type strings as the keys, we can use the [ES6 object "computed property" syntax](http://javascript.info/object#computed-properties) to create keys from the type string variables.
+Redux Toolkit includes a [`createReducer` function](../api/createReducer.mdx) that lets you write reducers using a "lookup table" object, where each key in the object is a Redux action type string, and the values are reducer functions. We can use it to directly replace the existing `counter` function definition. Since we need to use the action type strings as the keys, we can use the [ES6 object "computed property" syntax](http://javascript.info/object#computed-properties) to create keys from the type string variables.
 
 ```js
 const increment = createAction('INCREMENT')
@@ -219,7 +219,7 @@ document.getElementById('increment').addEventListener('click', () => {
 
 That's not bad, but we can make one more major change to this. Why do we even need to generate the action creators separately, or write out those action type strings? The really important part here is the reducer functions.
 
-That's where the [`createSlice` function](../api/createSlice.md) comes in. It allows us to provide an object with the reducer functions, and it will automatically generate the action type strings and action creator functions based on the names of the reducers we listed.
+That's where the [`createSlice` function](../api/createSlice.mdx) comes in. It allows us to provide an object with the reducer functions, and it will automatically generate the action type strings and action creator functions based on the names of the reducers we listed.
 
 `createSlice` returns a "slice" object that contains the generated reducer function as a field named `reducer`, and the generated action creators inside an object called `actions`.
 
