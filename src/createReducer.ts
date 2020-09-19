@@ -77,8 +77,9 @@ export type CaseReducers<S, AS extends Actions> = {
  * convenience and immutability.
  *
  * @overloadSummary
- * This overload accepts a callback function which is passed a builder object.
- * That builder can be invoked with the functions `addCase`, `addMatcher` and `addDefaultCase`.
+ * This overload accepts a callback function that receives a `builder` object as its argument.
+ * That builder provides `addCase`, `addMatcher` and `addDefaultCase` functions that may be
+ * called to define what actions this reducer will handle.
  *
  * @param initialState - The initial state that should be used when the reducer is called the first time.
  * @param builderCallback - A callback that receives a *builder* object to define
@@ -142,6 +143,10 @@ export function createReducer<S>(
  * mutate the passed-in state object directly; these mutations will then be
  * automatically and efficiently translated into copies, giving you both
  * convenience and immutability.
+ * 
+ * @overloadSummary
+ * This overload accepts an object where the keys are string action types, and the values
+ * are case reducer functions to handle those action types.
  *
  * @param initialState - The initial state that should be used when the reducer is called the first time.
  * @param actionsMap - An object mapping from action types to _case reducers_, each of which handles one specific action type.

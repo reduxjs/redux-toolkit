@@ -9,7 +9,9 @@ hide_title: true
 
 ## Overview
 
-A utility that simplifies creating Redux reducer functions, by defining them as lookup tables of functions to handle each action type. It also allows you to drastically simplify immutable update logic, by writing "mutative" code inside your reducers.
+A utility that simplifies creating Redux reducer functions. It uses Immer internally to drastically simplify immutable update logic
+by writing "mutative" code in your reducers, and supports directly mapping specific action types to case reducer functions
+that will update the state when that action is dispatched.
 
 Redux [reducers](https://redux.js.org/basics/reducers) are often implemented using a `switch` statement, with one `case` for every handled action type.
 
@@ -26,23 +28,28 @@ function counterReducer(state = 0, action) {
 }
 ```
 
-This approach works well, but is a bit boilerplate-y and error-prone. For instance, it is easy to forget the `default` case or setting the initial state.The `createReducer` helper streamlines the implementation of such reducers.
+This approach works well, but is a bit boilerplate-y and error-prone. For instance, it is easy to forget the `default` case or
+setting the initial state.
+
+The `createReducer` helper streamlines the implementation of such reducers. It supports two different forms of defining case
+reducers to handle actions: a "builder callback" notation and a "map object" notation. Both are equivalent, but the "builder callback"
+notation is preferred.
 
 ## Usage with the "Builder Callback" Notation
 
-The recommended way of using `createReducer` is the builder callback notation, as it works best with TypeScript and most IDEs.
-
 [overloadSummary](docblock://createReducer.ts?token=createReducer&overload=0)
+
+The recommended way of using `createReducer` is the builder callback notation, as it works best with TypeScript and most IDEs.
 
 ### Parameters
 
 [params](docblock://createReducer.ts?token=createReducer&overload=0)
 
-### Example usage
+### Example Usage
 
 [examples](docblock://createReducer.ts?token=createReducer&overload=0)
 
-### Details on the builder methods
+### Builder Methods
 
 ### `builder.addCase`
 
@@ -70,13 +77,16 @@ The recommended way of using `createReducer` is the builder callback notation, a
 
 ## Usage with the "Map Object" Notation
 
-While this notation is a bit shorter, it works only in JavaScript, not TypeScript and has less integration with IDEs, so we recommend the "builder callback" notation in most cases.
+[overloadSummary](docblock://createReducer.ts?token=createReducer&overload=1)
+
+While this notation is a bit shorter, it works only in JavaScript, not TypeScript and has less integration with IDEs,
+so we recommend the "builder callback" notation in most cases.
 
 ### Parameters
 
 [params](docblock://createReducer.ts?token=createReducer&overload=1)
 
-### Example usage
+### Example Usage
 
 [examples](docblock://createReducer.ts?token=createReducer&overload=1)
 
