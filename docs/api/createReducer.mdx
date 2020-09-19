@@ -16,12 +16,16 @@ that will update the state when that action is dispatched.
 Redux [reducers](https://redux.js.org/basics/reducers) are often implemented using a `switch` statement, with one `case` for every handled action type.
 
 ```js
-function counterReducer(state = 0, action) {
+const initialState = { value: 0 }
+
+function counterReducer(state = initialState, action) {
   switch (action.type) {
     case 'increment':
-      return state + action.payload
+      return { ...state, value: state.value + 1 }
     case 'decrement':
-      return state - action.payload
+      return { ...state, value: state.value - 1 }
+    case 'incrementByAmount':
+      return { ...state, value: state.value + action.payload }
     default:
       return state
   }
@@ -34,6 +38,35 @@ setting the initial state.
 The `createReducer` helper streamlines the implementation of such reducers. It supports two different forms of defining case
 reducers to handle actions: a "builder callback" notation and a "map object" notation. Both are equivalent, but the "builder callback"
 notation is preferred.
+
+With `createReducer`, your reducers instead look like:
+
+```ts
+import { createAction, createReducer } from '@reduxjs/toolkit'
+
+interface CounterState {
+  value: number
+}
+
+const increment = createAction('counter/increment')
+const decrement = createAction('counter/decrement')
+const incrementByAmount = createAction<number>('counter/incrementByAmount')
+
+const initialState: CounterState = { value: 0 }
+
+const todosReducer = createReducer(initialState, builder => {
+  builder
+    .addCase(increment, (state, action) => {
+      state.value++
+    })
+    .addCase(decrement, (state, action) => {
+      state.value--
+    })
+    .addCase(incrementByAmount, (state, action) => {
+      state.value += action.payload
+    })
+})
+```
 
 ## Usage with the "Builder Callback" Notation
 
