@@ -213,6 +213,10 @@ interface AsyncThunkOptions<
    * @default `false`
    */
   dispatchConditionRejection?: boolean
+  /**
+   * If `true` the promise returned by the action creator will be rejected in case of a failure.
+   */
+  throwError?: boolean
 }
 
 type AsyncThunkPendingActionCreator<
@@ -394,6 +398,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
       }
 
       const promise = (async function() {
+        let caughtError: any
         let finalAction: ReturnType<typeof fulfilled | typeof rejected>
         try {
           if (
@@ -431,6 +436,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
           ])
         } catch (err) {
           finalAction = rejected(err, requestId, arg)
+          caughtError = err
         }
         // We dispatch the result action _after_ the catch, to avoid having any errors
         // here get swallowed by the try/catch block,
@@ -446,6 +452,11 @@ If you want to use the AbortController to react to \`abort\` events, please cons
         if (!skipDispatch) {
           dispatch(finalAction)
         }
+
+        if (options && options.throwError === true) {
+          throw caughtError
+        }
+
         return finalAction
       })()
       return Object.assign(promise, { abort })

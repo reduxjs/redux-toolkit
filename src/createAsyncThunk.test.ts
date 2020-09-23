@@ -11,6 +11,7 @@ import {
   createConsole,
   getLog
 } from 'console-testing-library/pure'
+import { notDeepEqual } from 'assert'
 
 declare global {
   interface Window {
@@ -297,6 +298,51 @@ describe('createAsyncThunk', () => {
     expect(errorAction.error).toEqual(miniSerializeError(error))
     expect(errorAction.payload).toEqual(undefined)
     expect(errorAction.meta.requestId).toBe(generatedRequestId)
+    expect(errorAction.meta.arg).toBe(args)
+  })
+
+  test('rejected action does not throw by default', async () => {
+    let thrownError: any
+    const error = new Error('Foo bar.')
+    const dispatch = jest.fn()
+    const args = 123
+    const payloadCreator = jest.fn().mockRejectedValue(error)
+    const asyncThunk = createAsyncThunk('test', payloadCreator)
+    const thunkFunction = asyncThunk(args)
+
+    try {
+      await thunkFunction(dispatch, () => {}, undefined)
+    } catch (e) {
+      thrownError = e
+    }
+
+    expect(thrownError).not.toBeDefined()
+  })
+
+  test('rejected action re-throws the error if it is explicitly set by the options', async () => {
+    let thrownError: any
+    const error = new Error('Foo bar.')
+    const dispatch = jest.fn()
+    const args = 123
+    const payloadCreator = jest.fn().mockRejectedValue(error)
+    const asyncThunk = createAsyncThunk('test', payloadCreator, {
+      throwError: true
+    })
+    const thunkFunction = asyncThunk(args)
+
+    try {
+      await thunkFunction(dispatch, () => {}, undefined)
+    } catch (e) {
+      thrownError = e
+    }
+
+    expect(thrownError).toEqual(error)
+
+    // Test if it still dispatches the "pending" and "rejected" actions as well
+    const errorAction = dispatch.mock.calls[1][0]
+    expect(dispatch).toHaveBeenCalledTimes(2)
+    expect(errorAction.error).toEqual(miniSerializeError(error))
+    expect(errorAction.payload).toEqual(undefined)
     expect(errorAction.meta.arg).toBe(args)
   })
 })
