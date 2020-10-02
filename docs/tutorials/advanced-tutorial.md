@@ -17,7 +17,7 @@ In this tutorial, you'll see how to use Redux Toolkit as part of a larger "real 
 
 In the process, we'll look at a few examples of TypeScript techniques you can use to improve your code, and we'll see how to use the new [React-Redux hooks APIs](https://react-redux.js.org/api/hooks) as an alternative to [the traditional `connect` API](https://react-redux.js.org/api/connect).
 
-> **Note**: This is not a complete tutorial on how to use TypeScript in general or with Redux specifically, and the examples shown here do not try to achieve 100% complete type safety. For further information, please refer to community resources such as the [React TypeScript Cheatsheet](https://github.com/typescript-cheatsheets/react-typescript-cheatsheet) and the [React/Redux TypeScript Guide](https://github.com/piotrwitek/react-redux-typescript-guide).
+> **Note**: This is not a complete tutorial on how to use TypeScript in general or with Redux specifically, and the examples shown here do not try to achieve 100% complete type safety. For further information, please refer to community resources such as the [React TypeScript Cheatsheet](https://github.com/typescript-cheatsheets/react) and the [React/Redux TypeScript Guide](https://github.com/piotrwitek/react-redux-typescript-guide).
 >
 > In addition, this tutorial does not mean you _must_ convert your React app logic completely to Redux. [It's up to you to decide what state should live in React components, and what should be in Redux](https://redux.js.org/faq/organizing-state#do-i-have-to-put-all-my-state-into-redux-should-i-ever-use-reacts-setstate). This is just an example of how you _could_ convert logic to use Redux if you choose to.
 
