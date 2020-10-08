@@ -48,7 +48,7 @@ export type ActionMatcherDescriptionCollection<S> = Array<
 export type CaseReducer<S = any, A extends Action = AnyAction> = (
   state: Draft<S>,
   action: A
-) => S | void
+) => S | void | Draft<S>
 
 /**
  * A mapping from action types to case reducers for `createReducer()`.
@@ -153,7 +153,7 @@ export function createReducer<S>(
             return previousState
           }
 
-          return result
+          return result as S
         } else if (!isDraftable(previousState)) {
           // If state is not draftable (ex: a primitive, such as 0), we want to directly
           // return the caseReducer func and not wrap it with produce.
@@ -168,7 +168,7 @@ export function createReducer<S>(
             )
           }
 
-          return result
+          return result as S
         } else {
           // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
           // than an Immutable<S>, and TypeScript cannot find out how to reconcile
