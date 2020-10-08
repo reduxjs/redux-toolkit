@@ -460,3 +460,39 @@ const value = actionCreators.anyKey
   expectType<ActionCreatorWithPayload<string>>(wrappedSlice.actions.success)
   expectType<ActionCreatorWithoutPayload<string>>(wrappedSlice.actions.magic)
 }
+
+{
+  interface GenericState<T> {
+    data: T | null
+  }
+
+  function createDataSlice<
+    T,
+    Reducers extends SliceCaseReducers<GenericState<T>>
+  >(
+    name: string,
+    reducers: ValidateSliceCaseReducers<GenericState<T>, Reducers>,
+    initialState: GenericState<T>
+  ) {
+    const doNothing = createAction<undefined>('doNothing')
+    const setData = createAction<T>('setData')
+
+    const slice = createSlice({
+      name,
+      initialState,
+      reducers,
+      extraReducers: builder => {
+        builder.addCase(doNothing, state => {
+          return { ...state }
+        })
+        builder.addCase(setData, (state, { payload }) => {
+          return {
+            ...state,
+            data: payload
+          }
+        })
+      }
+    })
+    return { doNothing, setData, slice }
+  }
+}
