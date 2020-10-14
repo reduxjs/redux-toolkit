@@ -569,7 +569,7 @@ const usersSlice = createSlice({
     })
     builder.addCase(updateUser.rejected, (state, action) => {
       if (action.payload) {
-        // Since we passed in `MyKnownError` to `rejectType` in `updateUser`, the type information will be available here.
+        // Since we passed in `MyKnownError` to `rejectValue` in `updateUser`, the type information will be available here.
         state.error = action.payload.errorMessage
       } else {
         state.error = action.error
@@ -589,7 +589,7 @@ const handleUpdateUser = async userData => {
     showToast('success', `Updated ${user.name}`)
   } else {
     if (resultAction.payload) {
-      // Since we passed in `MyKnownError` to `rejectType` in `updateUser`, the type information will be available here.
+      // Since we passed in `MyKnownError` to `rejectValue` in `updateUser`, the type information will be available here.
       // Note: this would also be a good place to do any handling that relies on the `rejectedWithValue` payload, such as setting field errors
       showToast('error', `Update failed: ${resultAction.payload.errorMessage}`)
     } else {
