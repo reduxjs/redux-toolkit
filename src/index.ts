@@ -129,6 +129,31 @@ function createApi<
 
   type QueryState = {};
 
+  type Hooks = {
+    [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
+      infer QueryArg,
+      any,
+      any,
+      infer ResultType
+    >
+      ? {
+          useQuery(arg: QueryArg): { status: QueryStatus; data: ResultType };
+        }
+      : Definitions[K] extends MutationDefinition<
+          infer QueryArg,
+          any,
+          any,
+          infer ResultType
+        >
+      ? {
+          useMutation(): [
+            (arg: QueryArg) => Promise<ResultType>,
+            { status: QueryStatus; data: ResultType }
+          ];
+        }
+      : never;
+  };
+
   return {} as {
     queryActions: Id<QueryActions>;
     mutationActions: Id<MutationActions>;
@@ -136,6 +161,7 @@ function createApi<
       getSlice: (state: RootState) => QueryState
     ) => Id<ResultSelectors<RootState>>;
     reducer: Reducer<QueryState, AnyAction>;
+    hooks: Hooks;
   };
 }
 
@@ -146,6 +172,7 @@ interface QueryArg {
 }
 
 interface User {
+  id: string;
   firstName: string;
 }
 
@@ -162,7 +189,17 @@ const api = createApi({
       query(id) {
         return { queryString: `user/${id}` };
       },
-      provides: [{ type: 'User' }],
+      provides: [result => ({ type: 'User', id: result.id })],
+    }),
+    updateUser: build.mutation<User, { id: string; patch: Partial<User> }>({
+      query({ id, patch }) {
+        return {
+          queryString: `user/${id}`,
+          method: 'PATCH',
+          body: JSON.stringify(patch),
+        };
+      },
+      invalidates: [result => ({ type: 'User', id: result.id })],
     }),
   }),
 });
@@ -178,3 +215,7 @@ const apiSelectors = api.getSelectors<RootState>(root => root.api);
 store.dispatch(api.queryActions.getUser('5'));
 
 const user5 = apiSelectors.getUser('5')(store.getState());
+
+// hooks:
+const queryResults = api.hooks.getUser.useQuery('5');
+const [runMutation, mutationResults] = api.hooks.updateUser.useMutation();
