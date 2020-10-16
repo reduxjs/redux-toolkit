@@ -535,7 +535,7 @@ The article [How to fix circular dependency issues in JS](https://medium.com/vis
 
 By itself, a Redux store doesn't know anything about async logic. It only knows how to synchronously dispatch actions, update the state by calling the root reducer function, and notify the UI that something has changed. Any asynchronicity has to happen outside the store.
 
-But, what if you want to have async logic interact with the store by dispatching or checking the current store state? That's where [Redux middleware](https://redux.js.org/advanced/middleware) come in. They extend the store, and allow you to:
+But, what if you want to have async logic interact with the store by dispatching or checking the current store state? That's where [Redux middlewares](https://redux.js.org/advanced/middleware) come in. They extend the store, and allow you to:
 
 - Execute extra logic when any action is dispatched (such as logging the action and state)
 - Pause, modify, delay, replace, or halt dispatched actions
