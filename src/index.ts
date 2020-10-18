@@ -79,6 +79,58 @@ type EndpointBuilder<InternalQueryArgs, EntityTypes extends string> = {
 
 type Id<T> = { [K in keyof T]: T[K] } & {};
 
+type QueryActions<Definitions extends EndpointDefinitions> = {
+  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
+    infer QueryArg,
+    infer InternalQueryArg,
+    any,
+    any
+  >
+    ? (arg: QueryArg) => PayloadAction<InternalQueryArg>
+    : Definitions[K];
+};
+
+type QueryStatus = 'uninitialized' | 'pending' | 'fulfilled' | 'rejected';
+
+type ResultSelectors<Definitions extends EndpointDefinitions, RootState> = {
+  [K in keyof Definitions]: Definitions[K] extends BaseEndpointDefinition<
+    infer QueryArg,
+    any,
+    infer ResultType
+  >
+    ? (
+        queryArg: QueryArg
+      ) => (state: RootState) => { status: QueryStatus; data: ResultType }
+    : never;
+};
+
+type QueryState = {};
+
+type Hooks<Definitions extends EndpointDefinitions> = {
+  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
+    infer QueryArg,
+    any,
+    any,
+    infer ResultType
+  >
+    ? {
+        useQuery(arg: QueryArg): { status: QueryStatus; data: ResultType };
+      }
+    : Definitions[K] extends MutationDefinition<
+        infer QueryArg,
+        any,
+        any,
+        infer ResultType
+      >
+    ? {
+        useMutation(): [
+          (arg: QueryArg) => Promise<ResultType>,
+          { status: QueryStatus; data: ResultType }
+        ];
+      }
+    : never;
+};
+
 function createApi<
   InternalQueryArgs,
   Definitions extends EndpointDefinitions,
@@ -91,18 +143,7 @@ function createApi<
     build: EndpointBuilder<InternalQueryArgs, EntityTypes>
   ): Definitions;
 }) {
-  type QueryActions = {
-    [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
-      infer QueryArg,
-      infer InternalQueryArg,
-      any,
-      any
-    >
-      ? (arg: QueryArg) => PayloadAction<InternalQueryArg>
-      : Definitions[K];
-  };
-
-  type MutationActions = {
+  type MutationActions<Definitions extends EndpointDefinitions> = {
     [K in keyof Definitions]: Definitions[K] extends MutationDefinition<
       infer QueryArg,
       infer InternalQueryArg,
@@ -113,55 +154,14 @@ function createApi<
       : never;
   };
 
-  type QueryStatus = 'uninitialized' | 'pending' | 'fulfilled' | 'rejected';
-
-  type ResultSelectors<RootState> = {
-    [K in keyof Definitions]: Definitions[K] extends BaseEndpointDefinition<
-      infer QueryArg,
-      any,
-      infer ResultType
-    >
-      ? (
-          queryArg: QueryArg
-        ) => (state: RootState) => { status: QueryStatus; data: ResultType }
-      : never;
-  };
-
-  type QueryState = {};
-
-  type Hooks = {
-    [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
-      infer QueryArg,
-      any,
-      any,
-      infer ResultType
-    >
-      ? {
-          useQuery(arg: QueryArg): { status: QueryStatus; data: ResultType };
-        }
-      : Definitions[K] extends MutationDefinition<
-          infer QueryArg,
-          any,
-          any,
-          infer ResultType
-        >
-      ? {
-          useMutation(): [
-            (arg: QueryArg) => Promise<ResultType>,
-            { status: QueryStatus; data: ResultType }
-          ];
-        }
-      : never;
-  };
-
   return {} as {
-    queryActions: Id<QueryActions>;
-    mutationActions: Id<MutationActions>;
+    queryActions: Id<QueryActions<Definitions>>;
+    mutationActions: Id<MutationActions<Definitions>>;
     getSelectors: <RootState>(
       getSlice: (state: RootState) => QueryState
-    ) => Id<ResultSelectors<RootState>>;
+    ) => Id<ResultSelectors<Definitions, RootState>>;
     reducer: Reducer<QueryState, AnyAction>;
-    hooks: Hooks;
+    hooks: Hooks<Definitions>;
   };
 }
 
