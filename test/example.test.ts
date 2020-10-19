@@ -22,9 +22,7 @@ test('example', async () => {
             body,
           }).then((result) => result.json());
           */
-      return new Promise((resolve) =>
-        setTimeout(resolve, 500, { result: 'Hi folks!' })
-      );
+      return new Promise((resolve) => setTimeout(resolve, 500, { result: 'Hi folks!' }));
     },
     entityTypes: ['User', 'Comment'],
     endpoints: (build) => ({
@@ -61,10 +59,7 @@ test('example', async () => {
     console.dir(store.getState(), { depth: 5 });
   });
   type RootState = ReturnType<typeof store.getState>;
-  await Promise.all([
-    store.dispatch(api.queryActions.getUser('5')),
-    store.dispatch(api.queryActions.getUser('6')),
-  ]);
+  await Promise.all([store.dispatch(api.queryActions.getUser('5')), store.dispatch(api.queryActions.getUser('6'))]);
 
   console.log(api.selectors.query.getUser('5')(store.getState()));
   console.log(api.selectors.query.getUser('6')(store.getState()));

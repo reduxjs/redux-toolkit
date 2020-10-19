@@ -20,98 +20,54 @@ interface BaseEndpointDefinition<QueryArg, InternalQueryArgs, ResultType> {
 type EntityDescription<EntityType> = { type: EntityType; id?: number | string };
 type ResultDescription<EntityTypes extends string, ResultType> = ReadonlyArray<
   | EntityDescription<EntityTypes>
-  | ((
-      result: ResultType
-    ) =>
-      | EntityDescription<EntityTypes>
-      | ReadonlyArray<EntityDescription<EntityTypes>>)
+  | ((result: ResultType) => EntityDescription<EntityTypes> | ReadonlyArray<EntityDescription<EntityTypes>>)
 >;
 
-interface QueryDefinition<
-  QueryArg,
-  InternalQueryArgs,
-  EntityTypes extends string,
-  ResultType
-> extends BaseEndpointDefinition<QueryArg, InternalQueryArgs, ResultType> {
+interface QueryDefinition<QueryArg, InternalQueryArgs, EntityTypes extends string, ResultType>
+  extends BaseEndpointDefinition<QueryArg, InternalQueryArgs, ResultType> {
   provides: ResultDescription<EntityTypes, ResultType>;
   invalidates?: never;
 }
 
-interface MutationDefinition<
-  QueryArg,
-  InternalQueryArgs,
-  EntityTypes extends string,
-  ResultType
-> extends BaseEndpointDefinition<QueryArg, InternalQueryArgs, ResultType> {
+interface MutationDefinition<QueryArg, InternalQueryArgs, EntityTypes extends string, ResultType>
+  extends BaseEndpointDefinition<QueryArg, InternalQueryArgs, ResultType> {
   invalidates: ResultDescription<EntityTypes, ResultType>;
   provides?: never;
 }
 
-type EndpointDefinition<
-  QueryArg,
-  InternalQueryArgs,
-  EntityTypes extends string,
-  ResultType
-> =
+type EndpointDefinition<QueryArg, InternalQueryArgs, EntityTypes extends string, ResultType> =
   | QueryDefinition<QueryArg, InternalQueryArgs, EntityTypes, ResultType>
   | MutationDefinition<QueryArg, InternalQueryArgs, EntityTypes, ResultType>;
 
-type EndpointDefinitions = Record<
-  string,
-  EndpointDefinition<any, any, any, any>
->;
+type EndpointDefinitions = Record<string, EndpointDefinition<any, any, any, any>>;
 
-function isQueryDefinition(
-  e: EndpointDefinition<any, any, any, any>
-): e is QueryDefinition<any, any, any, any> {
+function isQueryDefinition(e: EndpointDefinition<any, any, any, any>): e is QueryDefinition<any, any, any, any> {
   return 'provides' in e;
 }
 
-function isMutationDefinition(
-  e: EndpointDefinition<any, any, any, any>
-): e is MutationDefinition<any, any, any, any> {
+function isMutationDefinition(e: EndpointDefinition<any, any, any, any>): e is MutationDefinition<any, any, any, any> {
   return 'invalidates' in e;
 }
 
 type EndpointBuilder<InternalQueryArgs, EntityTypes extends string> = {
   query<ResultType, QueryArg>(
-    definition: QueryDefinition<
-      QueryArg,
-      InternalQueryArgs,
-      EntityTypes,
-      ResultType
-    >
+    definition: QueryDefinition<QueryArg, InternalQueryArgs, EntityTypes, ResultType>
   ): QueryDefinition<QueryArg, InternalQueryArgs, EntityTypes, ResultType>;
   mutation<ResultType, QueryArg>(
-    definition: MutationDefinition<
-      QueryArg,
-      InternalQueryArgs,
-      EntityTypes,
-      ResultType
-    >
+    definition: MutationDefinition<QueryArg, InternalQueryArgs, EntityTypes, ResultType>
   ): MutationDefinition<QueryArg, InternalQueryArgs, EntityTypes, ResultType>;
 };
 
 type Id<T> = { [K in keyof T]: T[K] } & {};
 
 type QueryActions<Definitions extends EndpointDefinitions> = {
-  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
-    infer QueryArg,
-    any,
-    any,
-    infer ResultType
-  >
+  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<infer QueryArg, any, any, infer ResultType>
     ? (arg: QueryArg) => ThunkAction<ResultType, any, any, any>
     : never;
 };
 
 type MutationActions<Definitions extends EndpointDefinitions> = {
-  [K in keyof Definitions]: Definitions[K] extends MutationDefinition<
-    infer QueryArg,
-    infer InternalQueryArg,
-    any,
-    any
-  >
+  [K in keyof Definitions]: Definitions[K] extends MutationDefinition<infer QueryArg, infer InternalQueryArg, any, any>
     ? (arg: QueryArg) => PayloadAction<InternalQueryArg>
     : never;
 };
@@ -123,59 +79,26 @@ enum QueryStatus {
   rejected = 'rejected',
 }
 
-type QueryResultSelectors<
-  Definitions extends EndpointDefinitions,
-  RootState
-> = {
-  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
-    infer QueryArg,
-    any,
-    any,
-    infer ResultType
-  >
-    ? (
-        queryArg: QueryArg
-      ) => (state: RootState) => QuerySubState<Definitions[K]>
+type QueryResultSelectors<Definitions extends EndpointDefinitions, RootState> = {
+  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<infer QueryArg, any, any, infer ResultType>
+    ? (queryArg: QueryArg) => (state: RootState) => QuerySubState<Definitions[K]>
     : never;
 };
 
-type MutationResultSelectors<
-  Definitions extends EndpointDefinitions,
-  RootState
-> = {
-  [K in keyof Definitions]: Definitions[K] extends MutationDefinition<
-    any,
-    any,
-    any,
-    infer ResultType
-  >
-    ? (
-        requestId: string
-      ) => (state: RootState) => MutationSubState<Definitions[K]>
+type MutationResultSelectors<Definitions extends EndpointDefinitions, RootState> = {
+  [K in keyof Definitions]: Definitions[K] extends MutationDefinition<any, any, any, infer ResultType>
+    ? (requestId: string) => (state: RootState) => MutationSubState<Definitions[K]>
     : never;
 };
 
 type Hooks<Definitions extends EndpointDefinitions> = {
-  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
-    infer QueryArg,
-    any,
-    any,
-    infer ResultType
-  >
+  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<infer QueryArg, any, any, infer ResultType>
     ? {
         useQuery(arg: QueryArg): { status: QueryStatus; data: ResultType };
       }
-    : Definitions[K] extends MutationDefinition<
-        infer QueryArg,
-        any,
-        any,
-        infer ResultType
-      >
+    : Definitions[K] extends MutationDefinition<infer QueryArg, any, any, infer ResultType>
     ? {
-        useMutation(): [
-          (arg: QueryArg) => Promise<ResultType>,
-          { status: QueryStatus; data: ResultType }
-        ];
+        useMutation(): [(arg: QueryArg) => Promise<ResultType>, { status: QueryStatus; data: ResultType }];
       }
     : never;
 };
@@ -183,35 +106,21 @@ type Hooks<Definitions extends EndpointDefinitions> = {
 type Subscribers = string[];
 
 type QueryKeys<Definitions extends EndpointDefinitions> = {
-  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
-    any,
-    any,
-    any,
-    any
-  >
-    ? K
-    : never;
+  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<any, any, any, any> ? K : never;
 }[keyof Definitions];
 type MutationKeys<Definitions extends EndpointDefinitions> = {
-  [K in keyof Definitions]: Definitions[K] extends MutationDefinition<
-    any,
-    any,
-    any,
-    any
-  >
-    ? K
-    : never;
+  [K in keyof Definitions]: Definitions[K] extends MutationDefinition<any, any, any, any> ? K : never;
 }[keyof Definitions];
 
-type QueryArgs<
-  D extends BaseEndpointDefinition<any, any, any>
-> = D extends BaseEndpointDefinition<infer QA, any, any> ? QA : unknown;
-type ResultType<
-  D extends BaseEndpointDefinition<any, any, any>
-> = D extends BaseEndpointDefinition<any, any, infer RT> ? RT : unknown;
-type EntityType<
-  D extends BaseEndpointDefinition<any, any, any>
-> = D extends QueryDefinition<any, any, infer T, any> ? T : string;
+type QueryArgs<D extends BaseEndpointDefinition<any, any, any>> = D extends BaseEndpointDefinition<infer QA, any, any>
+  ? QA
+  : unknown;
+type ResultType<D extends BaseEndpointDefinition<any, any, any>> = D extends BaseEndpointDefinition<any, any, infer RT>
+  ? RT
+  : unknown;
+type EntityType<D extends BaseEndpointDefinition<any, any, any>> = D extends QueryDefinition<any, any, infer T, any>
+  ? T
+  : string;
 
 type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> =
   | {
@@ -322,9 +231,7 @@ export function createApi<
   entityTypes: readonly EntityTypes[];
   reducerPath: ReducerPath;
   serializeQueryArgs?(args: InternalQueryArgs): string;
-  endpoints(
-    build: EndpointBuilder<InternalQueryArgs, EntityTypes>
-  ): Definitions;
+  endpoints(build: EndpointBuilder<InternalQueryArgs, EntityTypes>): Definitions;
 }) {
   serializeQueryArgs({} as any);
 
@@ -343,20 +250,14 @@ export function createApi<
     internalQueryArgs: InternalQueryArgs;
   };
 
-  const queryThunk = createAsyncThunk<
-    unknown,
-    QueryThunkArgs,
-    { state: InternalRootState }
-  >(
+  const queryThunk = createAsyncThunk<unknown, QueryThunkArgs, { state: InternalRootState }>(
     `${reducerPath}/executeQuery`,
     (arg) => {
       return baseQuery(arg.internalQueryArgs);
     },
     {
       condition(arg, { getState }) {
-        let requestState = getState()[reducerPath]?.queries?.[arg.endpoint]?.[
-          arg.serializedQueryArgs
-        ];
+        let requestState = getState()[reducerPath]?.queries?.[arg.endpoint]?.[arg.serializedQueryArgs];
         return requestState?.status !== 'pending';
       },
     }
@@ -368,13 +269,12 @@ export function createApi<
     internalQueryArgs: InternalQueryArgs;
   };
 
-  const mutationThunk = createAsyncThunk<
-    unknown,
-    MutationThunkArgs,
-    { state: InternalRootState }
-  >(`${reducerPath}/executeMutation`, (arg) => {
-    return baseQuery(arg.internalQueryArgs);
-  });
+  const mutationThunk = createAsyncThunk<unknown, MutationThunkArgs, { state: InternalRootState }>(
+    `${reducerPath}/executeMutation`,
+    (arg) => {
+      return baseQuery(arg.internalQueryArgs);
+    }
+  );
 
   const initialState: State = {
     queries: {},
@@ -383,13 +283,9 @@ export function createApi<
 
   function getQuerySubState(
     state: Draft<State>,
-    {
-      meta: { arg },
-    }: { meta: { arg: { endpoint: string; serializedQueryArgs: string } } }
+    { meta: { arg } }: { meta: { arg: { endpoint: string; serializedQueryArgs: string } } }
   ) {
-    return (((state as InternalState).queries[arg.endpoint] ??= {})[
-      arg.serializedQueryArgs
-    ] ??= {
+    return (((state as InternalState).queries[arg.endpoint] ??= {})[arg.serializedQueryArgs] ??= {
       status: QueryStatus.uninitialized,
       resultingEntities: [],
       subscribers: [],
@@ -398,22 +294,16 @@ export function createApi<
 
   function getMutationSubState(
     state: Draft<State>,
-    {
-      meta: { arg, requestId },
-    }: { meta: { arg: { endpoint: string }; requestId: string } }
+    { meta: { arg, requestId } }: { meta: { arg: { endpoint: string }; requestId: string } }
   ) {
-    return (((state as InternalState).mutations[arg.endpoint] ??= {})[
-      requestId
-    ] ??= {
+    return (((state as InternalState).mutations[arg.endpoint] ??= {})[requestId] ??= {
       status: QueryStatus.uninitialized,
     });
   }
 
   const slice = createSlice({
     name: `${reducerPath}/states`,
-    initialState: initialState as Id<
-      State & QueryStatePhantomType<ReducerPath>
-    >,
+    initialState: initialState as Id<State & QueryStatePhantomType<ReducerPath>>,
     reducers: {},
     extraReducers: (builder) => {
       builder
@@ -466,10 +356,7 @@ export function createApi<
   });
 
   const queryActions = Object.entries(endpointDefinitions).reduce(
-    (
-      acc,
-      [name, endpoint]: [string, EndpointDefinition<any, any, any, any>]
-    ) => {
+    (acc, [name, endpoint]: [string, EndpointDefinition<any, any, any, any>]) => {
       if (isQueryDefinition(endpoint)) {
         acc[name] = (arg) => {
           const internalQueryArgs = endpoint.query(arg);
@@ -486,10 +373,7 @@ export function createApi<
   );
 
   const mutationActions = Object.entries(endpointDefinitions).reduce(
-    (
-      acc,
-      [name, endpoint]: [string, EndpointDefinition<any, any, any, any>]
-    ) => {
+    (acc, [name, endpoint]: [string, EndpointDefinition<any, any, any, any>]) => {
       if (isMutationDefinition(endpoint)) {
         acc[name] = (arg) => {
           const internalQueryArgs = endpoint.query(arg);
@@ -505,31 +389,22 @@ export function createApi<
     {} as Record<string, ThunkAction<any, any, any, any>>
   );
 
-  const querySelectors = Object.entries(endpointDefinitions).reduce(
-    (acc, [name, endpoint]) => {
-      if (isQueryDefinition(endpoint)) {
-        acc[name] = (arg) => (rootState) =>
-          (rootState[reducerPath] as InternalState).queries[name]?.[
-            serializeQueryArgs(endpoint.query(arg))
-          ] ?? defaultQuerySubState;
-      }
-      return acc;
-    },
-    {} as Record<string, (arg: unknown) => (state: RootState) => unknown>
-  );
+  const querySelectors = Object.entries(endpointDefinitions).reduce((acc, [name, endpoint]) => {
+    if (isQueryDefinition(endpoint)) {
+      acc[name] = (arg) => (rootState) =>
+        (rootState[reducerPath] as InternalState).queries[name]?.[serializeQueryArgs(endpoint.query(arg))] ??
+        defaultQuerySubState;
+    }
+    return acc;
+  }, {} as Record<string, (arg: unknown) => (state: RootState) => unknown>);
 
-  const mutationSelectors = Object.entries(endpointDefinitions).reduce(
-    (acc, [name, endpoint]) => {
-      if (isMutationDefinition(endpoint)) {
-        acc[name] = (mutationId: string) => (rootState) =>
-          (rootState[reducerPath] as InternalState).mutations[name]?.[
-            mutationId
-          ] ?? defaultMutationSubState;
-      }
-      return acc;
-    },
-    {} as Record<string, (arg: string) => (state: RootState) => unknown>
-  );
+  const mutationSelectors = Object.entries(endpointDefinitions).reduce((acc, [name, endpoint]) => {
+    if (isMutationDefinition(endpoint)) {
+      acc[name] = (mutationId: string) => (rootState) =>
+        (rootState[reducerPath] as InternalState).mutations[name]?.[mutationId] ?? defaultMutationSubState;
+    }
+    return acc;
+  }, {} as Record<string, (arg: string) => (state: RootState) => unknown>);
 
   return {
     queryActions,
