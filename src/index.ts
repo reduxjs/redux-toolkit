@@ -6,6 +6,11 @@ import {
   ThunkAction,
   Draft,
   createNextState,
+  nanoid,
+  Middleware,
+  ThunkDispatch,
+  AnyAction,
+  Reducer,
 } from '@reduxjs/toolkit';
 
 const resultType = Symbol();
@@ -60,15 +65,49 @@ type EndpointBuilder<InternalQueryArgs, EntityTypes extends string> = {
 
 type Id<T> = { [K in keyof T]: T[K] } & {};
 
+type QuerySubstateIdentifier = { endpoint: string; serializedQueryArgs: string };
+
+type StartQueryAction<QueryArg, InternalQueryArgs> = PayloadAction<
+  QueryArg,
+  string,
+  QuerySubstateIdentifier & { internalQueryArgs: InternalQueryArgs; subscriptionId: string }
+>;
+
+type StartQueryActionCreator<D extends QueryDefinition<any, any, any, any>> = D extends QueryDefinition<
+  infer QueryArg,
+  infer InternalQueryArgs,
+  any,
+  any
+>
+  ? (arg: QueryArg) => StartQueryAction<QueryArg, InternalQueryArgs>
+  : never;
+
 type QueryActions<Definitions extends EndpointDefinitions> = {
-  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<infer QueryArg, any, any, infer ResultType>
-    ? (arg: QueryArg) => ThunkAction<ResultType, any, any, any>
+  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<infer QueryArg, any, any, any>
+    ? StartQueryActionCreator<Definitions[K]>
     : never;
 };
 
+type MutationSubstateIdentifier = { endpoint: string; subscriptionId: string };
+
+type StartMutationAction<QueryArg, InternalQueryArgs> = PayloadAction<
+  QueryArg,
+  string,
+  MutationSubstateIdentifier & { internalQueryArgs: InternalQueryArgs }
+>;
+
+type StartMutationActionCreator<D extends MutationDefinition<any, any, any, any>> = D extends MutationDefinition<
+  infer QueryArg,
+  infer InternalQueryArgs,
+  any,
+  any
+>
+  ? (arg: QueryArg) => StartMutationAction<QueryArg, InternalQueryArgs>
+  : never;
+
 type MutationActions<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends MutationDefinition<infer QueryArg, infer InternalQueryArg, any, any>
-    ? (arg: QueryArg) => PayloadAction<InternalQueryArg>
+    ? StartMutationActionCreator<Definitions[K]>
     : never;
 };
 
@@ -220,7 +259,7 @@ export function createApi<
   InternalQueryArgs,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
-  EntityTypes extends string = never
+  EntityTypes extends string
 >({
   baseQuery,
   reducerPath,
@@ -233,8 +272,6 @@ export function createApi<
   serializeQueryArgs?(args: InternalQueryArgs): string;
   endpoints(build: EndpointBuilder<InternalQueryArgs, EntityTypes>): Definitions;
 }) {
-  serializeQueryArgs({} as any);
-
   type State = QueryState<Definitions>;
   type InternalState = QueryState<any>;
   type RootState = {
@@ -244,9 +281,7 @@ export function createApi<
     [K in ReducerPath]: InternalState;
   };
 
-  type QueryThunkArgs = {
-    endpoint: string;
-    serializedQueryArgs: string;
+  type QueryThunkArgs = QuerySubstateIdentifier & {
     internalQueryArgs: InternalQueryArgs;
   };
 
@@ -265,8 +300,8 @@ export function createApi<
 
   type MutationThunkArgs = {
     endpoint: string;
-    serializedQueryArgs: string;
     internalQueryArgs: InternalQueryArgs;
+    subscriptionId: string;
   };
 
   const mutationThunk = createAsyncThunk<unknown, MutationThunkArgs, { state: InternalRootState }>(
@@ -281,40 +316,63 @@ export function createApi<
     mutations: {},
   };
 
-  function getQuerySubState(
-    state: Draft<State>,
-    { meta: { arg } }: { meta: { arg: { endpoint: string; serializedQueryArgs: string } } }
-  ) {
-    return (((state as InternalState).queries[arg.endpoint] ??= {})[arg.serializedQueryArgs] ??= {
+  function getQuerySubState(state: InternalState, { endpoint, serializedQueryArgs }: QuerySubstateIdentifier) {
+    return ((state.queries[endpoint] ??= {})[serializedQueryArgs] ??= {
       status: QueryStatus.uninitialized,
       resultingEntities: [],
       subscribers: [],
     });
   }
 
-  function getMutationSubState(
-    state: Draft<State>,
-    { meta: { arg, requestId } }: { meta: { arg: { endpoint: string }; requestId: string } }
-  ) {
-    return (((state as InternalState).mutations[arg.endpoint] ??= {})[requestId] ??= {
+  function getMutationSubState(state: InternalState, { endpoint, subscriptionId }: MutationSubstateIdentifier) {
+    return ((state.mutations[endpoint] ??= {})[subscriptionId] ??= {
       status: QueryStatus.uninitialized,
     });
   }
 
   const slice = createSlice({
-    name: `${reducerPath}/states`,
-    initialState: initialState as Id<State & QueryStatePhantomType<ReducerPath>>,
-    reducers: {},
+    name: `${reducerPath}/state`,
+    initialState: initialState as InternalState,
+    reducers: {
+      startQuery: {
+        reducer(draft, action: StartQueryAction<any, any>) {
+          const substate = getQuerySubState(draft, action.meta);
+          substate.subscribers.push(action.meta.subscriptionId);
+        },
+        prepare(payload: unknown, meta: StartQueryAction<any, any>['meta']) {
+          return { payload, meta };
+        },
+      },
+      unsubscribeQueryResult(draft, action: PayloadAction<{ subscriptionId: string } & QuerySubstateIdentifier>) {
+        const substate = getQuerySubState(draft, action.payload);
+        const index = substate.subscribers.indexOf(action.payload.subscriptionId);
+        if (index >= 0) {
+          substate.subscribers.splice(index, 1);
+        }
+      },
+      startMutation: {
+        reducer(draft, action: StartMutationAction<any, any>) {},
+        prepare(payload: unknown, meta: StartMutationAction<any, any>['meta']) {
+          return { payload, meta };
+        },
+      },
+      unsubscribeMutationResult(draft, action: PayloadAction<MutationSubstateIdentifier>) {
+        const endpointState = draft.mutations[action.payload.endpoint];
+        if (endpointState && action.payload.subscriptionId in endpointState) {
+          delete endpointState[action.payload.subscriptionId];
+        }
+      },
+    },
     extraReducers: (builder) => {
       builder
         .addCase(queryThunk.pending, (draft, action) => {
-          Object.assign(getQuerySubState(draft, action), {
+          Object.assign(getQuerySubState(draft, action.meta.arg), {
             status: QueryStatus.pending,
             arg: action.meta.arg.internalQueryArgs,
           });
         })
         .addCase(queryThunk.fulfilled, (draft, action) => {
-          Object.assign(getQuerySubState(draft, action), {
+          Object.assign(getQuerySubState(draft, action.meta.arg), {
             status: QueryStatus.fulfilled,
             data: action.payload,
             resultingEntities: [
@@ -323,18 +381,18 @@ export function createApi<
           });
         })
         .addCase(queryThunk.rejected, (draft, action) => {
-          Object.assign(getQuerySubState(draft, action), {
+          Object.assign(getQuerySubState(draft, action.meta.arg), {
             status: QueryStatus.rejected,
           });
         })
         .addCase(mutationThunk.pending, (draft, action) => {
-          Object.assign(getMutationSubState(draft, action), {
+          Object.assign(getMutationSubState(draft, action.meta.arg), {
             status: QueryStatus.pending,
             arg: action.meta.arg.internalQueryArgs,
           });
         })
         .addCase(mutationThunk.fulfilled, (draft, action) => {
-          Object.assign(getMutationSubState(draft, action), {
+          Object.assign(getMutationSubState(draft, action.meta.arg), {
             status: QueryStatus.fulfilled,
             data: action.payload,
             resultingEntities: [
@@ -343,7 +401,7 @@ export function createApi<
           });
         })
         .addCase(mutationThunk.rejected, (draft, action) => {
-          Object.assign(getMutationSubState(draft, action), {
+          Object.assign(getMutationSubState(draft, action.meta.arg), {
             status: QueryStatus.rejected,
           });
         });
@@ -360,34 +418,33 @@ export function createApi<
       if (isQueryDefinition(endpoint)) {
         acc[name] = (arg) => {
           const internalQueryArgs = endpoint.query(arg);
-          return queryThunk({
+          const subscriptionId = nanoid();
+          return slice.actions.startQuery(arg, {
             endpoint: name,
             internalQueryArgs,
             serializedQueryArgs: serializeQueryArgs(internalQueryArgs),
+            subscriptionId,
           });
         };
       }
       return acc;
     },
-    {} as Record<string, ThunkAction<any, any, any, any>>
-  );
+    {} as Record<string, StartQueryActionCreator<any>>
+  ) as QueryActions<Definitions>;
 
   const mutationActions = Object.entries(endpointDefinitions).reduce(
     (acc, [name, endpoint]: [string, EndpointDefinition<any, any, any, any>]) => {
       if (isMutationDefinition(endpoint)) {
         acc[name] = (arg) => {
           const internalQueryArgs = endpoint.query(arg);
-          return mutationThunk({
-            endpoint: name,
-            internalQueryArgs,
-            serializedQueryArgs: serializeQueryArgs(internalQueryArgs),
-          });
+          const subscriptionId = nanoid();
+          return slice.actions.startMutation(arg, { endpoint: name, internalQueryArgs, subscriptionId });
         };
       }
       return acc;
     },
-    {} as Record<string, ThunkAction<any, any, any, any>>
-  );
+    {} as Record<string, StartMutationActionCreator<any>>
+  ) as MutationActions<Definitions>;
 
   const querySelectors = Object.entries(endpointDefinitions).reduce((acc, [name, endpoint]) => {
     if (isQueryDefinition(endpoint)) {
@@ -396,7 +453,9 @@ export function createApi<
         defaultQuerySubState;
     }
     return acc;
-  }, {} as Record<string, (arg: unknown) => (state: RootState) => unknown>);
+  }, {} as Record<string, (arg: unknown) => (state: RootState) => unknown>) as Id<
+    QueryResultSelectors<Definitions, RootState>
+  >;
 
   const mutationSelectors = Object.entries(endpointDefinitions).reduce((acc, [name, endpoint]) => {
     if (isMutationDefinition(endpoint)) {
@@ -404,24 +463,35 @@ export function createApi<
         (rootState[reducerPath] as InternalState).mutations[name]?.[mutationId] ?? defaultMutationSubState;
     }
     return acc;
-  }, {} as Record<string, (arg: string) => (state: RootState) => unknown>);
+  }, {} as Record<string, (arg: string) => (state: RootState) => unknown>) as Id<
+    MutationResultSelectors<Definitions, RootState>
+  >;
+
+  const middleware: Middleware<{}, RootState, ThunkDispatch<any, any, any>> = (api) => (next) => (action) => {
+    const result = next(action);
+
+    if (slice.actions.startQuery.match(action)) {
+      api.dispatch(queryThunk(action.meta));
+      const unsubscribeAction = slice.actions.unsubscribeQueryResult(action.meta);
+      return unsubscribeAction;
+    }
+    if (slice.actions.startMutation.match(action)) {
+      api.dispatch(mutationThunk(action.meta));
+      const unsubscribeAction = slice.actions.unsubscribeMutationResult(action.meta);
+      return unsubscribeAction;
+    }
+
+    return result;
+  };
 
   return {
     queryActions,
     mutationActions,
-    reducer: slice.reducer,
+    reducer: (slice.reducer as any) as Reducer<State & QueryStatePhantomType<ReducerPath>, AnyAction>,
     selectors: {
       query: querySelectors,
       mutation: mutationSelectors,
     },
-  } as {
-    queryActions: Id<QueryActions<Definitions>>;
-    mutationActions: Id<MutationActions<Definitions>>;
-    selectors: {
-      query: Id<QueryResultSelectors<Definitions, RootState>>;
-      mutation: Id<MutationResultSelectors<Definitions, RootState>>;
-    };
-    reducer: typeof slice.reducer;
-    hooks: Hooks<Definitions>;
+    middleware,
   };
 }

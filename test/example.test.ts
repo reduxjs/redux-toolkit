@@ -50,23 +50,32 @@ test('example', async () => {
       api: api.reducer,
     },
     middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware().concat(() => (next) => (action) => {
-        console.log(action);
-        return next(action);
-      }),
+      getDefaultMiddleware().concat(
+        () => (next) => (action) => {
+          console.log(action);
+          return next(action);
+        },
+        api.middleware
+      ),
   });
   store.subscribe(() => {
-    console.dir(store.getState(), { depth: 5 });
+    console.log(JSON.stringify(store.getState().api, undefined, 2));
   });
-  type RootState = ReturnType<typeof store.getState>;
-  await Promise.all([store.dispatch(api.queryActions.getUser('5')), store.dispatch(api.queryActions.getUser('6'))]);
 
-  console.log(api.selectors.query.getUser('5')(store.getState()));
-  console.log(api.selectors.query.getUser('6')(store.getState()));
-  console.log(api.selectors.query.getUser('7')(store.getState()));
-  console.log(api.selectors.mutation.updateUser('7')(store.getState()));
+  const s1 = store.dispatch(api.queryActions.getUser('5'));
+  const s2 = store.dispatch(api.mutationActions.updateUser({ id: '7', patch: { firstName: 'Timmy' } }));
+
+  new Promise((resolve) => setTimeout(resolve, 1200)).then(() => {
+    console.log(api.selectors.query.getUser('5')(store.getState()));
+    console.log(api.selectors.query.getUser('6')(store.getState()));
+    console.log(api.selectors.mutation.updateUser('7')(store.getState()));
+  });
+
+  store.dispatch(s1);
+  store.dispatch(s2);
 
   /*
+
 
 // hooks:
 const queryResults = api.hooks.getUser.useQuery('5');
