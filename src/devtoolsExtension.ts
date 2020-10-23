@@ -28,25 +28,27 @@ export interface EnhancerOptions {
    */
   maxAge?: number
   /**
-   * - `undefined` - will use regular `JSON.stringify` to send data (it's the fast mode).
-   * - `false` - will handle also circular references.
-   * - `true` - will handle also date, regex, undefined, error objects, symbols, maps, sets and functions.
-   * - object, which contains `date`, `regex`, `undefined`, `error`, `symbol`, `map`, `set` and `function` keys.
-   *   For each of them you can indicate if to include (by setting as `true`).
-   *   For `function` key you can also specify a custom function which handles serialization.
-   *   See [`jsan`](https://github.com/kolodny/jsan) for more details.
+   * See detailed documentation at http://extension.remotedev.io/docs/API/Arguments.html#serialize
    */
   serialize?:
     | boolean
     | {
-        date?: boolean
-        regex?: boolean
-        undefined?: boolean
-        error?: boolean
-        symbol?: boolean
-        map?: boolean
-        set?: boolean
-        function?: boolean | Function
+        options?:
+          | boolean
+          | {
+              date?: boolean
+              regex?: boolean
+              undefined?: boolean
+              error?: boolean
+              symbol?: boolean
+              map?: boolean
+              set?: boolean
+              function?: boolean | Function
+            }
+        replacer?: (key: string, value: unknown) => unknown
+        reviver?: (key: string, value: unknown) => unknown
+        immutable?: unknown
+        refs?: unknown[]
       }
   /**
    * function which takes `action` object and id number as arguments, and should return `action` object back.
