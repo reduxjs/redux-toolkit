@@ -316,18 +316,26 @@ export function createApi<
     mutations: {},
   };
 
-  function getQuerySubState(state: InternalState, { endpoint, serializedQueryArgs }: QuerySubstateIdentifier) {
-    return ((state.queries[endpoint] ??= {})[serializedQueryArgs] ??= {
-      status: QueryStatus.uninitialized,
-      resultingEntities: [],
-      subscribers: [],
-    });
+  function updateQuerySubstateIfExists(
+    state: InternalState,
+    { endpoint, serializedQueryArgs }: QuerySubstateIdentifier,
+    update: (substate: QuerySubState<any>) => void
+  ) {
+    const substate = (state.queries[endpoint] ??= {})[serializedQueryArgs];
+    if (substate) {
+      update(substate);
+    }
   }
 
-  function getMutationSubState(state: InternalState, { endpoint, subscriptionId }: MutationSubstateIdentifier) {
-    return ((state.mutations[endpoint] ??= {})[subscriptionId] ??= {
-      status: QueryStatus.uninitialized,
-    });
+  function updateMutationSubstateIfExists(
+    state: InternalState,
+    { endpoint, subscriptionId }: MutationSubstateIdentifier,
+    update: (substate: MutationSubState<any>) => void
+  ) {
+    const substate = (state.queries[endpoint] ??= {})[subscriptionId];
+    if (substate) {
+      update(substate);
+    }
   }
 
   const slice = createSlice({
@@ -335,23 +343,37 @@ export function createApi<
     initialState: initialState as InternalState,
     reducers: {
       startQuery: {
-        reducer(draft, action: StartQueryAction<any, any>) {
-          const substate = getQuerySubState(draft, action.meta);
-          substate.subscribers.push(action.meta.subscriptionId);
+        reducer(draft, { meta: { endpoint, serializedQueryArgs, subscriptionId } }: StartQueryAction<any, any>) {
+          const substate = ((draft.queries[endpoint] ??= {})[serializedQueryArgs] ??= {
+            status: QueryStatus.uninitialized,
+            resultingEntities: [],
+            subscribers: [],
+          });
+          substate.subscribers.push(subscriptionId);
         },
         prepare(payload: unknown, meta: StartQueryAction<any, any>['meta']) {
           return { payload, meta };
         },
       },
-      unsubscribeQueryResult(draft, action: PayloadAction<{ subscriptionId: string } & QuerySubstateIdentifier>) {
-        const substate = getQuerySubState(draft, action.payload);
-        const index = substate.subscribers.indexOf(action.payload.subscriptionId);
+      unsubscribeQueryResult(
+        draft,
+        {
+          payload: { endpoint, serializedQueryArgs, subscriptionId },
+        }: PayloadAction<{ subscriptionId: string } & QuerySubstateIdentifier>
+      ) {
+        const substate = draft.queries[endpoint]?.[serializedQueryArgs];
+        if (!substate) return;
+        const index = substate.subscribers.indexOf(subscriptionId);
         if (index >= 0) {
           substate.subscribers.splice(index, 1);
         }
       },
       startMutation: {
-        reducer(draft, action: StartMutationAction<any, any>) {},
+        reducer(draft, { meta: { endpoint, subscriptionId } }: StartMutationAction<any, any>) {
+          (draft.mutations[endpoint] ??= {})[subscriptionId] ??= {
+            status: QueryStatus.uninitialized,
+          };
+        },
         prepare(payload: unknown, meta: StartMutationAction<any, any>['meta']) {
           return { payload, meta };
         },
@@ -366,43 +388,55 @@ export function createApi<
     extraReducers: (builder) => {
       builder
         .addCase(queryThunk.pending, (draft, action) => {
-          Object.assign(getQuerySubState(draft, action.meta.arg), {
-            status: QueryStatus.pending,
-            arg: action.meta.arg.internalQueryArgs,
+          updateQuerySubstateIfExists(draft, action.meta.arg, (substate) => {
+            Object.assign(substate, {
+              status: QueryStatus.pending,
+              arg: action.meta.arg.internalQueryArgs,
+            });
           });
         })
         .addCase(queryThunk.fulfilled, (draft, action) => {
-          Object.assign(getQuerySubState(draft, action.meta.arg), {
-            status: QueryStatus.fulfilled,
-            data: action.payload,
-            resultingEntities: [
-              /* TODO */
-            ],
+          updateQuerySubstateIfExists(draft, action.meta.arg, (substate) => {
+            Object.assign(substate, {
+              status: QueryStatus.fulfilled,
+              data: action.payload,
+              resultingEntities: [
+                /* TODO */
+              ],
+            });
           });
         })
         .addCase(queryThunk.rejected, (draft, action) => {
-          Object.assign(getQuerySubState(draft, action.meta.arg), {
-            status: QueryStatus.rejected,
+          updateQuerySubstateIfExists(draft, action.meta.arg, (substate) => {
+            Object.assign(substate, {
+              status: QueryStatus.rejected,
+            });
           });
         })
         .addCase(mutationThunk.pending, (draft, action) => {
-          Object.assign(getMutationSubState(draft, action.meta.arg), {
-            status: QueryStatus.pending,
-            arg: action.meta.arg.internalQueryArgs,
+          updateMutationSubstateIfExists(draft, action.meta.arg, (substate) => {
+            Object.assign(substate, {
+              status: QueryStatus.pending,
+              arg: action.meta.arg.internalQueryArgs,
+            });
           });
         })
         .addCase(mutationThunk.fulfilled, (draft, action) => {
-          Object.assign(getMutationSubState(draft, action.meta.arg), {
-            status: QueryStatus.fulfilled,
-            data: action.payload,
-            resultingEntities: [
-              /* TODO */
-            ],
+          updateMutationSubstateIfExists(draft, action.meta.arg, (substate) => {
+            Object.assign(substate, {
+              status: QueryStatus.fulfilled,
+              data: action.payload,
+              resultingEntities: [
+                /* TODO */
+              ],
+            });
           });
         })
         .addCase(mutationThunk.rejected, (draft, action) => {
-          Object.assign(getMutationSubState(draft, action.meta.arg), {
-            status: QueryStatus.rejected,
+          updateMutationSubstateIfExists(draft, action.meta.arg, (substate) => {
+            Object.assign(substate, {
+              status: QueryStatus.rejected,
+            });
           });
         });
     },
