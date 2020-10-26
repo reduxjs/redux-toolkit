@@ -11,7 +11,11 @@ import {
   ThunkDispatch,
   AnyAction,
   Reducer,
+  Slice,
 } from '@reduxjs/toolkit';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector, batch } from 'react-redux';
+import { useRef } from 'react';
 
 const resultType = Symbol();
 
@@ -130,14 +134,27 @@ type MutationResultSelectors<Definitions extends EndpointDefinitions, RootState>
     : never;
 };
 
+type QueryHook<D extends QueryDefinition<any, any, any, any>> = D extends QueryDefinition<infer QueryArg, any, any, any>
+  ? (arg: QueryArg) => QuerySubState<D>
+  : never;
+
+type MutationHook<D extends MutationDefinition<any, any, any, any>> = D extends MutationDefinition<
+  infer QueryArg,
+  any,
+  any,
+  infer ResultType
+>
+  ? () => [(arg: QueryArg) => Promise<ResultType>, MutationSubState<D>]
+  : never;
+
 type Hooks<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends QueryDefinition<infer QueryArg, any, any, infer ResultType>
     ? {
-        useQuery(arg: QueryArg): { status: QueryStatus; data: ResultType };
+        useQuery: QueryHook<Definitions[K]>;
       }
     : Definitions[K] extends MutationDefinition<infer QueryArg, any, any, infer ResultType>
     ? {
-        useMutation(): [(arg: QueryArg) => Promise<ResultType>, { status: QueryStatus; data: ResultType }];
+        useMutation: MutationHook<Definitions[K]>;
       }
     : never;
 };
@@ -332,7 +349,7 @@ export function createApi<
     { endpoint, subscriptionId }: MutationSubstateIdentifier,
     update: (substate: MutationSubState<any>) => void
   ) {
-    const substate = (state.queries[endpoint] ??= {})[subscriptionId];
+    const substate = (state.mutations[endpoint] ??= {})[subscriptionId];
     if (substate) {
       update(substate);
     }
@@ -518,6 +535,54 @@ export function createApi<
     return result;
   };
 
+  const hooks = Object.entries(endpointDefinitions).reduce((acc, [name, endpoint]) => {
+    if (isQueryDefinition(endpoint)) {
+      acc[name] = {
+        useQuery: (args) => {
+          const dispatch = useDispatch();
+          useEffect(() => {
+            const unsubscribeAction = dispatch(queryActions[name](args));
+            return () => void dispatch(unsubscribeAction);
+          }, [args]);
+          return useSelector(querySelectors[name](args));
+        },
+      };
+    } else if (isMutationDefinition(endpoint)) {
+      acc[name] = {
+        // @ts-ignore TODO: does not return a promise as of now
+        // probably dispatch an asyncthunk, but patch asyncThunk so that the `requestId` is available as a property of `asyncThunk`?
+        // or handle that unsubscribing via `.cancel`?
+        useMutation: () => {
+          const dispatch = useDispatch();
+          const [unsubscribeAction, setUnsubscribeAction] = useState<
+            ReturnType<typeof slice.actions.unsubscribeMutationResult>
+          >();
+
+          useEffect(() => {
+            return () => {
+              if (unsubscribeAction) {
+                dispatch(unsubscribeAction);
+              }
+            };
+          }, []);
+
+          return [
+            function triggerMutation(args) {
+              batch(() => {
+                if (unsubscribeAction) {
+                  dispatch(unsubscribeAction);
+                }
+                setUnsubscribeAction(dispatch(mutationActions[name](args)));
+              });
+            },
+            useSelector(mutationSelectors[name](unsubscribeAction?.payload.subscriptionId ?? '')),
+          ];
+        },
+      };
+    }
+    return acc;
+  }, {} as Record<string, { useQuery: QueryHook<any> } | { useMutation: MutationHook<any> }>) as Hooks<Definitions>;
+
   return {
     queryActions,
     mutationActions,
@@ -527,5 +592,6 @@ export function createApi<
       mutation: mutationSelectors,
     },
     middleware,
+    hooks,
   };
 }
