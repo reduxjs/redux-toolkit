@@ -54,7 +54,7 @@ const incrementByAmount = createAction<number>('counter/incrementByAmount')
 
 const initialState: CounterState = { value: 0 }
 
-const todosReducer = createReducer(initialState, builder => {
+const counterReducer = createReducer(initialState, builder => {
   builder
     .addCase(increment, (state, action) => {
       state.value++
