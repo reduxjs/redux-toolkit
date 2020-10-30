@@ -417,6 +417,32 @@ describe('Sorted State Adapter', () => {
     })
   })
 
+  it('should do nothing when upsertMany is given an empty array', () => {
+    const withMany = adapter.setAll(state, [TheGreatGatsby])
+
+    const withUpserts = adapter.upsertMany(withMany, [])
+
+    expect(withUpserts).toEqual({
+      ids: [TheGreatGatsby.id],
+      entities: {
+        [TheGreatGatsby.id]: TheGreatGatsby
+      }
+    })
+  })
+
+  it('should throw when upsertMany is passed undefined or null', async () => {
+    const withMany = adapter.setAll(state, [TheGreatGatsby])
+
+    const fakeRequest = (response: null | undefined) =>
+      new Promise(resolve => setTimeout(() => resolve(response), 50))
+
+    const undefinedBooks = (await fakeRequest(undefined)) as BookModel[]
+    expect(() => adapter.upsertMany(withMany, undefinedBooks)).toThrow()
+
+    const nullBooks = (await fakeRequest(null)) as BookModel[]
+    expect(() => adapter.upsertMany(withMany, nullBooks)).toThrow()
+  })
+
   it('should let you upsert many entities in the state when passing in a dictionary', () => {
     const firstChange = { title: 'Zack' }
     const withMany = adapter.setAll(state, [TheGreatGatsby])
