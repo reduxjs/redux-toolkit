@@ -1,0 +1,6 @@
+{
+  "sandboxes": [
+    "new",
+    "react-ts"
+  ]
+}
