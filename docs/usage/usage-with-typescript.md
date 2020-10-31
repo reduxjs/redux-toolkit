@@ -238,20 +238,18 @@ As `createSlice` creates your actions as well as your reducer for you, you don't
 Action types can just be provided inline:
 
 ```typescript
-{
-  const slice = createSlice({
-    name: 'test',
-    initialState: 0,
-    reducers: {
-      increment: (state, action: PayloadAction<number>) =>
-        state + action.payload
-    }
-  })
-  // now available:
-  slice.actions.increment(2)
-  // also available:
-  slice.caseReducers.increment(0, { type: 'increment', payload: 5 })
-}
+const slice = createSlice({
+  name: 'test',
+  initialState: 0,
+  reducers: {
+    increment: (state, action: PayloadAction<number>) =>
+      state + action.payload
+  }
+})
+// now available:
+slice.actions.increment(2)
+// also available:
+slice.caseReducers.increment(0, { type: 'increment', payload: 5 })
 ```
 
 If you have too many reducers and defining them inline would be messy, you can also define them outside the `createSlice` call and type them as `CaseReducer`:
