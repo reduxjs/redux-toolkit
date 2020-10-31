@@ -99,7 +99,6 @@ describe('examples', () => {
         arg: {
           queryString: 'user/5',
         },
-        resultingEntities: [],
         status: 'pending',
         subscribers: [expect.any(String)],
       });
@@ -112,7 +111,6 @@ describe('examples', () => {
         data: {
           result: 'Hi folks!',
         },
-        resultingEntities: [],
         status: 'fulfilled',
         subscribers: [expect.any(String)],
       });
@@ -147,7 +145,6 @@ describe('examples', () => {
           method: 'PATCH',
           queryString: 'user/5',
         },
-        resultingEntities: [],
         data: { result: 'Hi folks!' },
       });
     }
