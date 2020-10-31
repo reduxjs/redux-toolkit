@@ -1102,10 +1102,18 @@
     "@nodelib/fs.scandir" "2.1.3"
     fastq "^1.6.0"
 
-"@reduxjs/toolkit@^1.4.0":
+"@reduxjs/toolkit@https://pkg.csb.dev/reduxjs/redux-toolkit/commit/56994225/@reduxjs/toolkit":
   version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@reduxjs/toolkit/-/toolkit-1.4.0.tgz#ee2e2384cc3d1d76780d844b9c2da3580d32710d"
-  integrity sha512-hkxQwVx4BNVRsYdxjNF6cAseRmtrkpSlcgJRr3kLUcHPIAMZAmMJkXmHh/eUEGTMqPzsYpJLM7NN2w9fxQDuGw==
+  resolved "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/56994225/@reduxjs/toolkit#4e2beed60d6e564d2911d475d3d0055b07b914a1"
+  dependencies:
+    immer "^7.0.3"
+    redux "^4.0.0"
+    redux-thunk "^2.3.0"
+    reselect "^4.0.0"
+
+"@reduxjs/toolkit@https://pkg.csb.dev/reduxjs/redux-toolkit/commit/9f617b6c/@reduxjs/toolkit":
+  version "1.4.0"
+  resolved "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/9f617b6c/@reduxjs/toolkit#9ee587af79f20df6f8d6b28bb7052e3887960bea"
   dependencies:
     immer "^7.0.3"
     redux "^4.0.0"

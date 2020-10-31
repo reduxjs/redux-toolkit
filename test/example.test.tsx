@@ -76,8 +76,8 @@ describe('examples', () => {
     console.log(api.selectors.query.getUser('6')(store.getState()));
     console.log(api.selectors.mutation.updateUser('7')(store.getState()));
 
-    store.dispatch(s1);
-    store.dispatch(s2);
+    // store.dispatch(s1); // TODO
+    // store.dispatch(s2);
   });
 
   test.only('hooks', async () => {
