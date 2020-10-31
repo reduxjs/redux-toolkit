@@ -6,7 +6,7 @@ import { buildSelectors } from './buildSelectors';
 import { buildHooks } from './buildHooks';
 import { buildMiddleware } from './buildMiddleware';
 import type { EndpointDefinitions, EndpointBuilder } from './endpointDefinitions';
-import type { QueryState, QueryStatePhantomType } from './apiState';
+import type { CombinedState, QueryStatePhantomType } from './apiState';
 
 function defaultSerializeQueryArgs(args: any) {
   return JSON.stringify(args);
@@ -29,7 +29,7 @@ export function createApi<
   serializeQueryArgs?(args: InternalQueryArgs): string;
   endpoints(build: EndpointBuilder<InternalQueryArgs, EntityTypes>): Definitions;
 }) {
-  type State = QueryState<Definitions>;
+  type State = CombinedState<Definitions, EntityTypes>;
 
   const endpointDefinitions = endpoints({
     query: (x) => x,
@@ -38,9 +38,12 @@ export function createApi<
 
   const { queryThunk, mutationThunk } = buildThunks({ baseQuery, reducerPath });
 
-  const { slice } = buildSlice({ queryThunk, mutationThunk, reducerPath });
+  const {
+    reducer: _reducer,
+    actions: { unsubscribeQueryResult, unsubscribeMutationResult },
+  } = buildSlice({ endpointDefinitions, queryThunk, mutationThunk, reducerPath });
 
-  const reducer = (slice.reducer as any) as Reducer<State & QueryStatePhantomType<ReducerPath>, AnyAction>;
+  const reducer = (_reducer as any) as Reducer<State & QueryStatePhantomType<ReducerPath>, AnyAction>;
 
   const { mutationActions, queryActions } = buildActionMaps({
     queryThunk,
@@ -55,16 +58,16 @@ export function createApi<
     reducerPath,
   });
 
-  const { middleware } = buildMiddleware();
+  const { middleware } = buildMiddleware({ reducerPath, endpointDefinitions, queryThunk, mutationThunk });
 
   const { hooks } = buildHooks({
     endpointDefinitions,
     querySelectors,
     queryActions,
-    unsubscribeQueryResult: slice.actions.unsubscribeQueryResult,
+    unsubscribeQueryResult,
     mutationSelectors,
     mutationActions,
-    unsubscribeMutationResult: slice.actions.unsubscribeMutationResult,
+    unsubscribeMutationResult,
   });
 
   return {
@@ -75,6 +78,8 @@ export function createApi<
       query: querySelectors,
       mutation: mutationSelectors,
     },
+    unsubscribeQueryResult,
+    unsubscribeMutationResult,
     middleware,
     hooks,
   };

@@ -3,7 +3,6 @@ import {
   MutationDefinition,
   EndpointDefinitions,
   BaseEndpointDefinition,
-  EntityDescription,
 } from './endpointDefinitions';
 
 export type QuerySubstateIdentifier = { endpoint: string; serializedQueryArgs: string };
@@ -38,28 +37,24 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> =
       arg?: undefined;
       data?: undefined;
       subscribers: Subscribers;
-      resultingEntities: Array<EntityDescription<EntityType<D>>>;
     }
   | {
       status: QueryStatus.pending;
       arg: QueryArgs<D>;
       data?: ResultType<D>;
       subscribers: Subscribers;
-      resultingEntities: Array<EntityDescription<EntityType<D>>>;
     }
   | {
       status: QueryStatus.rejected;
       arg: QueryArgs<D>;
       data?: ResultType<D>;
       subscribers: Subscribers;
-      resultingEntities: Array<EntityDescription<EntityType<D>>>;
     }
   | {
       status: QueryStatus.fulfilled;
       arg: QueryArgs<D>;
       data: ResultType<D>;
       subscribers: Subscribers;
-      resultingEntities: Array<EntityDescription<EntityType<D>>>;
     };
 
 export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
@@ -84,27 +79,46 @@ export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
       data: ResultType<D>;
     };
 
-export type QueryState<D extends EndpointDefinitions> = {
-  queries: {
-    [K in QueryKeys<D>]?: {
-      [stringifiedArgs in string]?: QuerySubState<D[K]>;
-    };
-  };
-  mutations: {
-    [K in MutationKeys<D>]?: {
-      [requestId in string]?: MutationSubState<D[K]>;
-    };
+export type CombinedState<D extends EndpointDefinitions, E extends string> = {
+  queries: QueryState<D>;
+  mutations: MutationState<D>;
+  provided: InvalidationState<E>;
+};
+
+export type InvalidationState<EntityTypes extends string> = {
+  [E in EntityTypes]: {
+    [id in string | number]: Array<{
+      endpoint: string;
+      serializedQueryArgs: string;
+    }>;
   };
 };
+
+export type QueryState<D extends EndpointDefinitions> = {
+  [K in QueryKeys<D>]?: {
+    [stringifiedArgs in string]?: QuerySubState<D[K]>;
+  };
+};
+
+export type MutationState<D extends EndpointDefinitions> = {
+  [K in MutationKeys<D>]?: {
+    [requestId in string]?: MutationSubState<D[K]>;
+  };
+};
+
 const __phantomType_ReducerPath = Symbol();
 export interface QueryStatePhantomType<Identifier extends string> {
   [__phantomType_ReducerPath]: Identifier;
 }
 
-export type RootState<Definitions extends EndpointDefinitions, ReducerPath extends string> = {
-  [P in ReducerPath]: QueryState<Definitions> & QueryStatePhantomType<P>;
+export type RootState<
+  Definitions extends EndpointDefinitions,
+  EntityTypes extends string,
+  ReducerPath extends string
+> = {
+  [P in ReducerPath]: CombinedState<Definitions, EntityTypes> & QueryStatePhantomType<P>;
 };
 
 export type InternalRootState<ReducerPath extends string> = {
-  [P in ReducerPath]: QueryState<any>;
+  [P in ReducerPath]: CombinedState<any, string>;
 };

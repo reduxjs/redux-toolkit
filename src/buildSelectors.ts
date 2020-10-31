@@ -52,7 +52,7 @@ export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDe
   endpointDefinitions: Definitions;
   reducerPath: ReducerPath;
 }) {
-  type RootState = _RootState<Definitions, ReducerPath>;
+  type RootState = _RootState<Definitions, string, ReducerPath>;
   const querySelectors = Object.entries(endpointDefinitions).reduce((acc, [name, endpoint]) => {
     if (isQueryDefinition(endpoint)) {
       acc[name] = (arg) => (rootState) =>

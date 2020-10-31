@@ -5,7 +5,7 @@ export interface BaseEndpointDefinition<QueryArg, InternalQueryArgs, ResultType>
   [resultType]?: ResultType;
 }
 export type EntityDescription<EntityType> = { type: EntityType; id?: number | string };
-type ResultDescription<EntityTypes extends string, ResultType> = ReadonlyArray<
+export type ResultDescription<EntityTypes extends string, ResultType> = ReadonlyArray<
   | EntityDescription<EntityTypes>
   | ((result: ResultType) => EntityDescription<EntityTypes> | ReadonlyArray<EntityDescription<EntityTypes>>)
 >;
@@ -46,3 +46,15 @@ export type EndpointBuilder<InternalQueryArgs, EntityTypes extends string> = {
     definition: MutationDefinition<QueryArg, InternalQueryArgs, EntityTypes, ResultType>
   ): MutationDefinition<QueryArg, InternalQueryArgs, EntityTypes, ResultType>;
 };
+
+export function calculateProvidedBy<ResultType, D extends ResultDescription<string, ResultType>>(
+  description: D,
+  result: ResultType
+): EntityDescription<string>[] {
+  return description.flatMap((d) => {
+    if (typeof d === 'function') {
+      return d(result);
+    }
+    return d;
+  });
+}
