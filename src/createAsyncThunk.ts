@@ -163,6 +163,7 @@ export type AsyncThunkAction<
 > & {
   abort(reason?: string): void
   requestId: string
+  arg: ThunkArg
 }
 
 type AsyncThunkActionCreator<
@@ -449,7 +450,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
         }
         return finalAction
       })()
-      return Object.assign(promise, { abort, requestId })
+      return Object.assign(promise, { abort, requestId, arg })
     }
   }
 

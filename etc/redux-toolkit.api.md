@@ -82,6 +82,7 @@ export type AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig extends AsyncThu
 }, SerializedError>> & {
     abort(reason?: string): void;
     requestId: string;
+    arg: ThunkArg;
 };
 
 // @public

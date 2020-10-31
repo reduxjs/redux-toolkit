@@ -77,6 +77,7 @@ describe('createAsyncThunk', () => {
     const thunkPromise = thunkFunction(dispatch, () => {}, undefined)
 
     expect(thunkPromise.requestId).toBe(generatedRequestId)
+    expect(thunkPromise.arg).toBe(args)
 
     await thunkPromise
 
