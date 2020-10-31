@@ -32,6 +32,11 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
   )
 
   const promise = defaultDispatch(async(3))
+
+  expectType<string>(promise.requestId)
+  expectType<number>(promise.arg)
+  expectType<(reason?: string) => void>(promise.abort)
+
   const result = await promise
 
   if (async.fulfilled.match(result)) {
