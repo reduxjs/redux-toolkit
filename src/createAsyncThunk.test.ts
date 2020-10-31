@@ -74,7 +74,11 @@ describe('createAsyncThunk', () => {
 
     const thunkFunction = thunkActionCreator(args)
 
-    await thunkFunction(dispatch, () => {}, undefined)
+    const thunkPromise = thunkFunction(dispatch, () => {}, undefined)
+
+    expect(thunkPromise.requestId).toBe(generatedRequestId)
+
+    await thunkPromise
 
     expect(passedArg).toBe(args)
 
@@ -355,8 +359,9 @@ describe('createAsyncThunk with abortController', () => {
         message: 'AbortReason',
         name: 'AbortError'
       },
-      meta: { aborted: true }
+      meta: { aborted: true, requestId: promise.requestId }
     }
+
     // abortedAction with reason is dispatched after test/pending is dispatched
     expect(store.getState()).toMatchObject([
       {},
