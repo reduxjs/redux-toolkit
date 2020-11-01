@@ -69,12 +69,18 @@ export function buildSlice({
     extraReducers(builder) {
       builder
         .addCase(queryThunk.pending, (draft, { meta: { arg, requestId } }) => {
-          const substate = ((draft[arg.endpoint] ??= {})[arg.serializedQueryArgs] ??= {
-            status: QueryStatus.pending,
-            arg: arg.internalQueryArgs,
-            subscribers: [],
-          });
-          substate.subscribers.push(requestId);
+          if (arg.subscribe) {
+            const substate = ((draft[arg.endpoint] ??= {})[arg.serializedQueryArgs] ??= {
+              status: QueryStatus.pending,
+              arg: arg.internalQueryArgs,
+              subscribers: [],
+            });
+            substate.subscribers.push(requestId);
+          } else {
+            updateQuerySubstateIfExists(draft, arg, (substate) => {
+              substate.status = QueryStatus.pending;
+            });
+          }
         })
         .addCase(queryThunk.fulfilled, (draft, action) => {
           updateQuerySubstateIfExists(draft, action.meta.arg, (substate) => {
@@ -86,7 +92,9 @@ export function buildSlice({
           updateQuerySubstateIfExists(draft, action.meta.arg, (substate) => {
             if (action.meta.condition) {
               // request was aborted due to condition - we still want to subscribe to the current value!
-              substate.subscribers.push(action.meta.requestId);
+              if (action.meta.arg.subscribe) {
+                substate.subscribers.push(action.meta.requestId);
+              }
             } else {
               substate.status = QueryStatus.rejected;
             }

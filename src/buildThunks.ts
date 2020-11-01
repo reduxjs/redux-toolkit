@@ -3,6 +3,7 @@ import { InternalRootState, QuerySubstateIdentifier } from './apiState';
 
 export interface QueryThunkArg<InternalQueryArgs> extends QuerySubstateIdentifier {
   internalQueryArgs: InternalQueryArgs;
+  subscribe?: boolean;
 }
 
 export interface MutationThunkArg<InternalQueryArgs> {

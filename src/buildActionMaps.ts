@@ -54,6 +54,7 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
         acc[name] = (arg) => {
           const internalQueryArgs = endpoint.query(arg);
           return queryThunk({
+            subscribe: true,
             endpoint: name,
             internalQueryArgs,
             serializedQueryArgs: serializeQueryArgs(internalQueryArgs),
