@@ -1,6 +1,8 @@
 {
-  "version": "0.1.0",
+  "name": "@rtk-incubator/simple-query",
+  "version": "0.0.1",
   "license": "MIT",
+  "author": "Lenz Weber",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "files": [
@@ -32,8 +34,6 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "rtk_simple-query",
-  "author": "Lenz Weber",
   "module": "dist/rtk_simple-query.esm.js",
   "size-limit": [
     {
