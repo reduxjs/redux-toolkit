@@ -65,6 +65,12 @@ export function buildSlice({
           substate.subscribers.splice(index, 1);
         }
       },
+      removeQueryResult(draft, { payload: { endpoint, serializedQueryArgs } }: PayloadAction<QuerySubstateIdentifier>) {
+        const endpointSubstate = draft[endpoint];
+        if (endpointSubstate && serializedQueryArgs in endpointSubstate) {
+          delete endpointSubstate[serializedQueryArgs];
+        }
+      },
     },
     extraReducers(builder) {
       builder
@@ -140,19 +146,32 @@ export function buildSlice({
     initialState: {} as InvalidationState<string>,
     reducers: {},
     extraReducers(builder) {
-      builder.addCase(queryThunk.fulfilled, (state, { payload, meta: { arg } }) => {
-        const { endpoint, serializedQueryArgs } = arg;
-        const providedEntities = calculateProvidedBy(definitions[endpoint].provides || [], payload);
-        for (const { type, id } of providedEntities) {
-          const subscribedQueries = ((state[type] ??= {})[id || '*'] ??= []);
-          const alreadySubscribed = subscribedQueries.some(
-            (q) => q.endpoint === endpoint && q.serializedQueryArgs === serializedQueryArgs
-          );
-          if (!alreadySubscribed) {
-            subscribedQueries.push({ endpoint, serializedQueryArgs });
+      builder
+        .addCase(queryThunk.fulfilled, (draft, { payload, meta: { arg } }) => {
+          const { endpoint, serializedQueryArgs } = arg;
+          const providedEntities = calculateProvidedBy(definitions[endpoint].provides || [], payload);
+          for (const { type, id } of providedEntities) {
+            const subscribedQueries = ((draft[type] ??= {})[id || '*'] ??= []);
+            const alreadySubscribed = subscribedQueries.some(
+              (q) => q.endpoint === endpoint && q.serializedQueryArgs === serializedQueryArgs
+            );
+            if (!alreadySubscribed) {
+              subscribedQueries.push({ endpoint, serializedQueryArgs });
+            }
           }
-        }
-      });
+        })
+        .addCase(querySlice.actions.removeQueryResult, (draft, { payload: { endpoint, serializedQueryArgs } }) => {
+          for (const entityTypeSubscriptions of Object.values(draft)) {
+            for (const idSubscriptions of Object.values(entityTypeSubscriptions)) {
+              const foundAt = idSubscriptions.findIndex(
+                (q) => q.endpoint === endpoint && q.serializedQueryArgs === serializedQueryArgs
+              );
+              if (foundAt !== -1) {
+                idSubscriptions.splice(foundAt, 1);
+              }
+            }
+          }
+        });
     },
   });
 
@@ -163,6 +182,7 @@ export function buildSlice({
   });
 
   const actions = {
+    removeQueryResult: querySlice.actions.removeQueryResult,
     unsubscribeQueryResult: querySlice.actions.unsubscribeResult,
     unsubscribeMutationResult: mutationSlice.actions.unsubscribeResult,
   };
@@ -170,5 +190,6 @@ export function buildSlice({
   return { reducer, actions };
 }
 
+export type InvalidateQueryResult = ReturnType<typeof buildSlice>['actions']['removeQueryResult'];
 export type UnsubscribeQueryResult = ReturnType<typeof buildSlice>['actions']['unsubscribeQueryResult'];
 export type UnsubscribeMutationResult = ReturnType<typeof buildSlice>['actions']['unsubscribeMutationResult'];

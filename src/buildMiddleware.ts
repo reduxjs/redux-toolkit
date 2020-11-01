@@ -1,6 +1,7 @@
 import { AnyAction, AsyncThunk, Middleware, ThunkDispatch } from '@reduxjs/toolkit';
 import { batch } from 'react-redux';
 import { QueryState, RootState } from './apiState';
+import { InvalidateQueryResult } from './buildSlice';
 import { MutationThunkArg, QueryThunkArg } from './buildThunks';
 import { calculateProvidedBy, EndpointDefinitions } from './endpointDefinitions';
 
@@ -9,11 +10,13 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
   endpointDefinitions,
   queryThunk,
   mutationThunk,
+  removeQueryResult,
 }: {
   reducerPath: ReducerPath;
   endpointDefinitions: EndpointDefinitions;
   queryThunk: AsyncThunk<unknown, QueryThunkArg<any>, {}>;
   mutationThunk: AsyncThunk<unknown, MutationThunkArg<any>, {}>;
+  removeQueryResult: InvalidateQueryResult;
 }) {
   const middleware: Middleware<{}, RootState<Definitions, string, ReducerPath>, ThunkDispatch<any, any, AnyAction>> = (
     api
@@ -36,15 +39,19 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
       batch(() => {
         for (const [endpoint, collectedArgs] of Object.entries(toInvalidate)) {
           for (const serializedQueryArgs of collectedArgs) {
-            const internalQueryArgs = (state.queries as QueryState<any>)[endpoint]?.[serializedQueryArgs]?.arg;
-            if (internalQueryArgs) {
-              api.dispatch(
-                queryThunk({
-                  endpoint,
-                  serializedQueryArgs,
-                  internalQueryArgs,
-                })
-              );
+            const querySubState = (state.queries as QueryState<any>)[endpoint]?.[serializedQueryArgs];
+            if (querySubState) {
+              if (querySubState.subscribers.length > 0) {
+                api.dispatch(
+                  queryThunk({
+                    endpoint,
+                    serializedQueryArgs,
+                    internalQueryArgs: querySubState.arg,
+                  })
+                );
+              } else {
+                api.dispatch(removeQueryResult({ endpoint, serializedQueryArgs }));
+              }
             }
           }
         }
