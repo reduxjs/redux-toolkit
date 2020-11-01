@@ -58,6 +58,7 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
             endpoint: name,
             internalQueryArgs,
             serializedQueryArgs: serializeQueryArgs(internalQueryArgs),
+            arg,
           });
         };
       }
@@ -71,7 +72,7 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
       if (isMutationDefinition(endpoint)) {
         acc[name] = (arg) => {
           const internalQueryArgs = endpoint.query(arg);
-          return mutationThunk({ endpoint: name, internalQueryArgs });
+          return mutationThunk({ endpoint: name, internalQueryArgs, arg });
         };
       }
       return acc;

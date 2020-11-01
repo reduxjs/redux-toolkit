@@ -10,25 +10,28 @@ export enum DefinitionType {
   mutation = 'mutation',
 }
 
-export type GetResultDescriptionFn<EntityTypes extends string, ResultType> = (
-  result: ResultType
+export type GetResultDescriptionFn<EntityTypes extends string, ResultType, QueryArg> = (
+  result: ResultType,
+  arg: QueryArg
 ) => ReadonlyArray<EntityDescription<EntityTypes>>;
 
 export type EntityDescription<EntityType> = { type: EntityType; id?: number | string };
-export type ResultDescription<EntityTypes extends string, ResultType> =
+export type ResultDescription<EntityTypes extends string, ResultType, QueryArg> =
   | ReadonlyArray<EntityDescription<EntityTypes>>
-  | GetResultDescriptionFn<EntityTypes, ResultType>;
+  | GetResultDescriptionFn<EntityTypes, ResultType, QueryArg>;
 
 export interface QueryDefinition<QueryArg, InternalQueryArgs, EntityTypes extends string, ResultType>
   extends BaseEndpointDefinition<QueryArg, InternalQueryArgs, ResultType> {
   type: DefinitionType.query;
-  provides?: ResultDescription<EntityTypes, ResultType>;
+  provides?: ResultDescription<EntityTypes, ResultType, QueryArg>;
+  invalidates?: never;
 }
 
 export interface MutationDefinition<QueryArg, InternalQueryArgs, EntityTypes extends string, ResultType>
   extends BaseEndpointDefinition<QueryArg, InternalQueryArgs, ResultType> {
   type: DefinitionType.mutation;
-  invalidates?: ResultDescription<EntityTypes, ResultType>;
+  invalidates?: ResultDescription<EntityTypes, ResultType, QueryArg>;
+  provides?: never;
 }
 
 export type EndpointDefinition<QueryArg, InternalQueryArgs, EntityTypes extends string, ResultType> =
@@ -56,28 +59,21 @@ export type EndpointBuilder<InternalQueryArgs, EntityTypes extends string> = {
   ): MutationDefinition<QueryArg, InternalQueryArgs, EntityTypes, ResultType>;
 };
 
-export function calculateProvidedBy<ResultType, D extends ResultDescription<string, ResultType>>(
+export function calculateProvidedBy<ResultType, QueryArg, D extends ResultDescription<string, ResultType, QueryArg>>(
   description: D | undefined,
-  result: ResultType
+  result: ResultType,
+  queryArg: QueryArg
 ): readonly EntityDescription<string>[] {
+  console.log(calculateProvidedBy, description, result, queryArg);
   if (isFunction(description)) {
-    return description(result);
+    return description(result, queryArg);
   }
   if (Array.isArray(description)) {
-    description.flatMap((d) => {
-      if (typeof d === 'function') {
-        return d(result);
-      }
-      return d;
-    });
+    return description;
   }
   return [];
 }
 
 function isFunction<T>(t: T): t is Extract<T, Function> {
   return typeof t === 'function';
-}
-
-function isGetResultDescriptionFn(e?: ResultDescription<any, any>): e is GetResultDescriptionFn<any, any> {
-  return !!e && typeof e === 'function';
 }

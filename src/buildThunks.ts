@@ -2,11 +2,13 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { InternalRootState, QuerySubstateIdentifier } from './apiState';
 
 export interface QueryThunkArg<InternalQueryArgs> extends QuerySubstateIdentifier {
+  arg: unknown;
   internalQueryArgs: InternalQueryArgs;
   subscribe?: boolean;
 }
 
 export interface MutationThunkArg<InternalQueryArgs> {
+  arg: unknown;
   endpoint: string;
   internalQueryArgs: InternalQueryArgs;
 }

@@ -96,18 +96,14 @@ describe('examples', () => {
       const { result, waitForNextUpdate } = renderHook(() => api.hooks.getUser.useQuery('5'), { wrapper: Wrapper });
 
       expect(result.current).toEqual({
-        arg: {
-          queryString: 'user/5',
-        },
+        arg: '5',
         status: 'pending',
         subscribers: [expect.any(String)],
       });
 
       await waitForNextUpdate();
       expect(result.current).toEqual({
-        arg: {
-          queryString: 'user/5',
-        },
+        arg: '5',
         data: {
           result: 'Hi folks!',
         },
@@ -129,22 +125,14 @@ describe('examples', () => {
 
       expect(result.current[1]).toEqual({
         status: 'pending',
-        arg: {
-          body: '{"firstName":"Tom"}',
-          method: 'PATCH',
-          queryString: 'user/5',
-        },
+        arg: { id: '5', patch: { firstName: 'Tom' } },
       });
 
       await waitForNextUpdate();
 
       expect(result.current[1]).toEqual({
         status: 'fulfilled',
-        arg: {
-          body: '{"firstName":"Tom"}',
-          method: 'PATCH',
-          queryString: 'user/5',
-        },
+        arg: { id: '5', patch: { firstName: 'Tom' } },
         data: { result: 'Hi folks!' },
       });
     }

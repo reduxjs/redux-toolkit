@@ -78,7 +78,7 @@ export function buildSlice({
           if (arg.subscribe) {
             const substate = ((draft[arg.endpoint] ??= {})[arg.serializedQueryArgs] ??= {
               status: QueryStatus.pending,
-              arg: arg.internalQueryArgs,
+              arg: arg.arg,
               subscribers: [],
             });
             substate.subscribers.push(requestId);
@@ -124,7 +124,7 @@ export function buildSlice({
         .addCase(mutationThunk.pending, (draft, { meta: { arg, requestId } }) => {
           (draft[arg.endpoint] ??= {})[requestId] = {
             status: QueryStatus.pending,
-            arg: arg.internalQueryArgs,
+            arg: arg.arg,
           };
         })
         .addCase(mutationThunk.fulfilled, (draft, { payload, meta: { requestId, arg } }) => {
@@ -149,7 +149,7 @@ export function buildSlice({
       builder
         .addCase(queryThunk.fulfilled, (draft, { payload, meta: { arg } }) => {
           const { endpoint, serializedQueryArgs } = arg;
-          const providedEntities = calculateProvidedBy(definitions[endpoint].provides, payload);
+          const providedEntities = calculateProvidedBy(definitions[endpoint].provides, payload, arg.arg);
           for (const { type, id } of providedEntities) {
             const subscribedQueries = ((draft[type] ??= {})[id || '__internal_without_id'] ??= []);
             const alreadySubscribed = subscribedQueries.some(

@@ -1111,15 +1111,6 @@
     redux-thunk "^2.3.0"
     reselect "^4.0.0"
 
-"@reduxjs/toolkit@https://pkg.csb.dev/reduxjs/redux-toolkit/commit/9f617b6c/@reduxjs/toolkit":
-  version "1.4.0"
-  resolved "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/9f617b6c/@reduxjs/toolkit#9ee587af79f20df6f8d6b28bb7052e3887960bea"
-  dependencies:
-    immer "^7.0.3"
-    redux "^4.0.0"
-    redux-thunk "^2.3.0"
-    reselect "^4.0.0"
-
 "@rollup/plugin-babel@^5.1.0":
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/@rollup/plugin-babel/-/plugin-babel-5.2.1.tgz#20fc8f8864dc0eaa1c5578408459606808f72924"
