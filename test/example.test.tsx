@@ -34,7 +34,7 @@ describe('examples', () => {
         query(id) {
           return { queryString: `user/${id}` };
         },
-        provides: [(result) => ({ type: 'User', id: result.id })],
+        provides: (result) => [{ type: 'User', id: result.id }],
       }),
       updateUser: build.mutation<User, { id: string; patch: Partial<User> }>({
         query({ id, patch }) {
@@ -44,7 +44,7 @@ describe('examples', () => {
             body: JSON.stringify(patch),
           };
         },
-        invalidates: [(result) => ({ type: 'User', id: result.id })],
+        invalidates: (result) => [{ type: 'User', id: result.id }],
       }),
     }),
   });

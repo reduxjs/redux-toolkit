@@ -5,7 +5,7 @@ import { buildActionMaps } from './buildActionMaps';
 import { buildSelectors } from './buildSelectors';
 import { buildHooks } from './buildHooks';
 import { buildMiddleware } from './buildMiddleware';
-import type { EndpointDefinitions, EndpointBuilder } from './endpointDefinitions';
+import { EndpointDefinitions, EndpointBuilder, DefinitionType } from './endpointDefinitions';
 import type { CombinedState, QueryStatePhantomType } from './apiState';
 
 function defaultSerializeQueryArgs(args: any) {
@@ -32,8 +32,8 @@ export function createApi<
   type State = CombinedState<Definitions, EntityTypes>;
 
   const endpointDefinitions = endpoints({
-    query: (x) => x,
-    mutation: (x) => x,
+    query: (x) => ({ ...x, type: DefinitionType.query }),
+    mutation: (x) => ({ ...x, type: DefinitionType.mutation }),
   });
 
   const { queryThunk, mutationThunk } = buildThunks({ baseQuery, reducerPath });

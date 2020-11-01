@@ -27,7 +27,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
       const state = api.getState()[reducerPath];
 
       const invalidateEntities = calculateProvidedBy(
-        endpointDefinitions[action.meta.arg.endpoint].invalidates || [],
+        endpointDefinitions[action.meta.arg.endpoint].invalidates,
         action.payload
       );
       const toInvalidate: { [endpoint: string]: Set<string> } = {};

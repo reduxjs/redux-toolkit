@@ -149,7 +149,7 @@ export function buildSlice({
       builder
         .addCase(queryThunk.fulfilled, (draft, { payload, meta: { arg } }) => {
           const { endpoint, serializedQueryArgs } = arg;
-          const providedEntities = calculateProvidedBy(definitions[endpoint].provides || [], payload);
+          const providedEntities = calculateProvidedBy(definitions[endpoint].provides, payload);
           for (const { type, id } of providedEntities) {
             const subscribedQueries = ((draft[type] ??= {})[id || '__internal_without_id'] ??= []);
             const alreadySubscribed = subscribedQueries.some(
