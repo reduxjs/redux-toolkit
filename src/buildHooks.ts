@@ -28,15 +28,15 @@ export type MutationHook<D extends MutationDefinition<any, any, any, any>> = D e
   any,
   infer ResultType
 >
-  ? () => [(arg: QueryArg) => Promise<ResultType>, MutationSubState<D>]
+  ? () => [(arg: QueryArg) => ReturnType<AsyncThunkAction<ResultType, any, any>>, MutationSubState<D>]
   : never;
 
 export type Hooks<Definitions extends EndpointDefinitions> = {
-  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<infer QueryArg, any, any, infer ResultType>
+  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<any, any, any, any>
     ? {
         useQuery: QueryHook<Definitions[K]>;
       }
-    : Definitions[K] extends MutationDefinition<infer QueryArg, any, any, infer ResultType>
+    : Definitions[K] extends MutationDefinition<any, any, any, any>
     ? {
         useMutation: MutationHook<Definitions[K]>;
       }
