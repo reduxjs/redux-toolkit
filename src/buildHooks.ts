@@ -9,7 +9,7 @@ import {
   isQueryDefinition,
   isMutationDefinition,
 } from './endpointDefinitions';
-import { QueryResultSelectors, MutationResultSelectors } from './buildSelectors';
+import { QueryResultSelectors, MutationResultSelectors, skipSelector } from './buildSelectors';
 import { QueryActions, MutationActions } from './buildActionMaps';
 import { UnsubscribeMutationResult, UnsubscribeQueryResult } from './buildSlice';
 
@@ -85,7 +85,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
                 })
               );
           }, [args, dispatch, skip]);
-          return useSelector(querySelectors[name](skip ? undefined : args));
+          return useSelector(querySelectors[name](skip ? skipSelector : args));
         },
       };
     } else if (isMutationDefinition(endpoint)) {
@@ -121,7 +121,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
             [dispatch]
           );
 
-          return [triggerMutation, useSelector(mutationSelectors[name](requestId))];
+          return [triggerMutation, useSelector(mutationSelectors[name](requestId || skipSelector))];
         },
       };
     }

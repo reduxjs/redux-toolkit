@@ -13,13 +13,13 @@ export type Id<T> = { [K in keyof T]: T[K] } & {};
 
 export type QueryResultSelectors<Definitions extends EndpointDefinitions, RootState> = {
   [K in keyof Definitions]: Definitions[K] extends QueryDefinition<infer QueryArg, any, any, infer ResultType>
-    ? (queryArg?: QueryArg) => (state: RootState) => QuerySubState<Definitions[K]>
+    ? (queryArg: QueryArg | typeof skipSelector) => (state: RootState) => QuerySubState<Definitions[K]>
     : never;
 };
 
 export type MutationResultSelectors<Definitions extends EndpointDefinitions, RootState> = {
   [K in keyof Definitions]: Definitions[K] extends MutationDefinition<any, any, any, infer ResultType>
-    ? (requestId?: string) => (state: RootState) => MutationSubState<Definitions[K]>
+    ? (requestId: string | typeof skipSelector) => (state: RootState) => MutationSubState<Definitions[K]>
     : never;
 };
 
@@ -42,6 +42,8 @@ const defaultMutationSubState = createNextState(
   }
 );
 
+export const skipSelector = Symbol('skip selector');
+
 export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDefinitions, ReducerPath extends string>({
   serializeQueryArgs,
   endpointDefinitions,
@@ -55,7 +57,7 @@ export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDe
   const querySelectors = Object.entries(endpointDefinitions).reduce((acc, [name, endpoint]) => {
     if (isQueryDefinition(endpoint)) {
       acc[name] = (arg?) => (rootState) =>
-        (arg === undefined
+        (arg === skipSelector
           ? undefined
           : (rootState[reducerPath] as InternalState).queries[name]?.[serializeQueryArgs(endpoint.query(arg))]) ??
         defaultQuerySubState;
@@ -67,8 +69,8 @@ export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDe
 
   const mutationSelectors = Object.entries(endpointDefinitions).reduce((acc, [name, endpoint]) => {
     if (isMutationDefinition(endpoint)) {
-      acc[name] = (mutationId?: string) => (rootState) =>
-        (mutationId === undefined
+      acc[name] = (mutationId: string | typeof skipSelector) => (rootState) =>
+        (mutationId === skipSelector
           ? undefined
           : (rootState[reducerPath] as InternalState).mutations[name]?.[mutationId]) ?? defaultMutationSubState;
     }
