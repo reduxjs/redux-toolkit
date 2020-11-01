@@ -6,7 +6,7 @@ This is an experiment to create a generic api client based on (and potentially t
 
 ```tsx
 import { configureStore } from '@reduxjs/toolkit';
-import { createApi, fetchBaseQuery, QueryStatus } from '../src';
+import { createApi, fetchBaseQuery, QueryStatus } from '@rtk-incubator/simple-query';
 
 interface User {
   id: number;
