@@ -87,10 +87,8 @@ export type CombinedState<D extends EndpointDefinitions, E extends string> = {
 
 export type InvalidationState<EntityTypes extends string> = {
   [E in EntityTypes]: {
-    [id in string | number]: Array<{
-      endpoint: string;
-      serializedQueryArgs: string;
-    }>;
+    [id: string]: Array<QuerySubstateIdentifier>;
+    [id: number]: Array<QuerySubstateIdentifier>;
   };
 };
 

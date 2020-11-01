@@ -151,7 +151,7 @@ export function buildSlice({
           const { endpoint, serializedQueryArgs } = arg;
           const providedEntities = calculateProvidedBy(definitions[endpoint].provides || [], payload);
           for (const { type, id } of providedEntities) {
-            const subscribedQueries = ((draft[type] ??= {})[id || '*'] ??= []);
+            const subscribedQueries = ((draft[type] ??= {})[id || '__internal_without_id'] ??= []);
             const alreadySubscribed = subscribedQueries.some(
               (q) => q.endpoint === endpoint && q.serializedQueryArgs === serializedQueryArgs
             );

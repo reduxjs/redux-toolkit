@@ -9,7 +9,7 @@ TODOS:
 - [ ] more useful tests
 - [ ] think about invalidation after all subscribers for a query have unsubscibed (+60 seconds or so)
 - [x] basic invalidation: when a mutation invalidates an entity type, refetch all queries that provided that type
-- [ ] advanced invalidation: differentiate between mutations invalidating all entities of a type or single entities vs queries providing a single entity/a number of unspecified entities
+- [x] advanced invalidation: differentiate between mutations invalidating all entities of a type or single entities vs queries providing a single entity/a number of unspecified entities
 - [x] hooks should return a promise (requires RTK patch from above)
 - [ ] add a condition that prevents a query from re-running when a second component subscribes to the same query with the same arguments
 - [ ] return a refetch function from useQuery that does said refetch

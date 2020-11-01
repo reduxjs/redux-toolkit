@@ -32,7 +32,19 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
       );
       const toInvalidate: { [endpoint: string]: Set<string> } = {};
       for (const entity of invalidateEntities) {
-        for (const invalidate of state.provided[entity.type]?.[entity.id || '*']) {
+        const provided = state.provided[entity.type];
+        if (!provided) {
+          continue;
+        }
+
+        let invalidateSubscriptions =
+          entity.id !== undefined
+            ? // id given: invalidate all queries that provide this type & id
+              provided[entity.id]
+            : // no id: invalidate all queries that provide this type
+              Object.values(provided).flat(1);
+
+        for (const invalidate of invalidateSubscriptions) {
           (toInvalidate[invalidate.endpoint] ??= new Set()).add(invalidate.serializedQueryArgs);
         }
       }
