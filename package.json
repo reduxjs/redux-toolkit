@@ -17,6 +17,7 @@
     "lint": "tsdx lint",
     "prepare": "tsdx build",
     "size": "size-limit",
+    "format": "prettier --write \"src/**/*.ts\"",
     "analyze": "size-limit --why"
   },
   "peerDependencies": {},
