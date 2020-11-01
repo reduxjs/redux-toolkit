@@ -1,5 +1,5 @@
 import type { AnyAction, Reducer } from '@reduxjs/toolkit';
-import { buildThunks } from './buildThunks';
+import { buildThunks, QueryApi } from './buildThunks';
 import { buildSlice } from './buildSlice';
 import { buildActionMaps } from './buildActionMaps';
 import { buildSelectors } from './buildSelectors';
@@ -7,6 +7,9 @@ import { buildHooks } from './buildHooks';
 import { buildMiddleware } from './buildMiddleware';
 import { EndpointDefinitions, EndpointBuilder, DefinitionType } from './endpointDefinitions';
 import type { CombinedState, QueryStatePhantomType } from './apiState';
+
+export { fetchBaseQuery } from './fetchBaseQuery';
+export { QueryStatus } from './apiState';
 
 function defaultSerializeQueryArgs(args: any) {
   return JSON.stringify(args);
@@ -23,7 +26,7 @@ export function createApi<
   serializeQueryArgs = defaultSerializeQueryArgs,
   endpoints,
 }: {
-  baseQuery(args: InternalQueryArgs): any;
+  baseQuery(args: InternalQueryArgs, api: QueryApi): any;
   entityTypes: readonly EntityTypes[];
   reducerPath: ReducerPath;
   serializeQueryArgs?(args: InternalQueryArgs): string;

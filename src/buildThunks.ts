@@ -13,11 +13,16 @@ export interface MutationThunkArg<InternalQueryArgs> {
   internalQueryArgs: InternalQueryArgs;
 }
 
+export interface QueryApi {
+  signal: AbortSignal;
+  rejectWithValue(value: any): unknown;
+}
+
 export function buildThunks<InternalQueryArgs, ReducerPath extends string>({
   reducerPath,
   baseQuery,
 }: {
-  baseQuery(args: InternalQueryArgs): any;
+  baseQuery(args: InternalQueryArgs, api: QueryApi): any;
   reducerPath: ReducerPath;
 }) {
   const queryThunk = createAsyncThunk<
@@ -26,8 +31,8 @@ export function buildThunks<InternalQueryArgs, ReducerPath extends string>({
     { state: InternalRootState<ReducerPath> }
   >(
     `${reducerPath}/executeQuery`,
-    (arg) => {
-      return baseQuery(arg.internalQueryArgs);
+    (arg, { signal, rejectWithValue }) => {
+      return baseQuery(arg.internalQueryArgs, { signal, rejectWithValue });
     },
     {
       condition(arg, { getState }) {
@@ -42,8 +47,8 @@ export function buildThunks<InternalQueryArgs, ReducerPath extends string>({
     unknown,
     MutationThunkArg<InternalQueryArgs>,
     { state: InternalRootState<ReducerPath> }
-  >(`${reducerPath}/executeMutation`, (arg) => {
-    return baseQuery(arg.internalQueryArgs);
+  >(`${reducerPath}/executeMutation`, (arg, { signal, rejectWithValue }) => {
+    return baseQuery(arg.internalQueryArgs, { signal, rejectWithValue });
   });
 
   return { queryThunk, mutationThunk };
