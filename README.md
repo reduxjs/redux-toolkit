@@ -13,4 +13,4 @@ TODOS:
 - [x] hooks should return a promise (requires RTK patch from above)
 - [ ] add a condition that prevents a query from re-running when a second component subscribes to the same query with the same arguments
 - [ ] return a refetch function from useQuery that does said refetch
-- [ ] implement a skip option for useQuery to prevent fetching on initial render
+- [x] implement a skip option for useQuery to prevent fetching on initial render

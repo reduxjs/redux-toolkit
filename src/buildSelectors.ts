@@ -13,13 +13,13 @@ export type Id<T> = { [K in keyof T]: T[K] } & {};
 
 export type QueryResultSelectors<Definitions extends EndpointDefinitions, RootState> = {
   [K in keyof Definitions]: Definitions[K] extends QueryDefinition<infer QueryArg, any, any, infer ResultType>
-    ? (queryArg: QueryArg) => (state: RootState) => QuerySubState<Definitions[K]>
+    ? (queryArg?: QueryArg) => (state: RootState) => QuerySubState<Definitions[K]>
     : never;
 };
 
 export type MutationResultSelectors<Definitions extends EndpointDefinitions, RootState> = {
   [K in keyof Definitions]: Definitions[K] extends MutationDefinition<any, any, any, infer ResultType>
-    ? (requestId: string) => (state: RootState) => MutationSubState<Definitions[K]>
+    ? (requestId?: string) => (state: RootState) => MutationSubState<Definitions[K]>
     : never;
 };
 
@@ -54,8 +54,10 @@ export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDe
   type RootState = _RootState<Definitions, string, ReducerPath>;
   const querySelectors = Object.entries(endpointDefinitions).reduce((acc, [name, endpoint]) => {
     if (isQueryDefinition(endpoint)) {
-      acc[name] = (arg) => (rootState) =>
-        (rootState[reducerPath] as InternalState).queries[name]?.[serializeQueryArgs(endpoint.query(arg))] ??
+      acc[name] = (arg?) => (rootState) =>
+        (arg === undefined
+          ? undefined
+          : (rootState[reducerPath] as InternalState).queries[name]?.[serializeQueryArgs(endpoint.query(arg))]) ??
         defaultQuerySubState;
     }
     return acc;
@@ -65,8 +67,10 @@ export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDe
 
   const mutationSelectors = Object.entries(endpointDefinitions).reduce((acc, [name, endpoint]) => {
     if (isMutationDefinition(endpoint)) {
-      acc[name] = (mutationId: string) => (rootState) =>
-        (rootState[reducerPath] as InternalState).mutations[name]?.[mutationId] ?? defaultMutationSubState;
+      acc[name] = (mutationId?: string) => (rootState) =>
+        (mutationId === undefined
+          ? undefined
+          : (rootState[reducerPath] as InternalState).mutations[name]?.[mutationId]) ?? defaultMutationSubState;
     }
     return acc;
   }, {} as Record<string, (arg: string) => (state: RootState) => unknown>) as Id<

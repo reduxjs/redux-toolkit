@@ -13,13 +13,17 @@ import { QueryResultSelectors, MutationResultSelectors } from './buildSelectors'
 import { QueryActions, MutationActions } from './buildActionMaps';
 import { UnsubscribeMutationResult, UnsubscribeQueryResult } from './buildSlice';
 
+export interface QueryHookOptions {
+  skip?: boolean;
+}
+
 export type QueryHook<D extends QueryDefinition<any, any, any, any>> = D extends QueryDefinition<
   infer QueryArg,
   any,
   any,
   any
 >
-  ? (arg: QueryArg) => QuerySubState<D>
+  ? (arg: QueryArg, options?: QueryHookOptions) => QuerySubState<D>
   : never;
 
 export type MutationHook<D extends MutationDefinition<any, any, any, any>> = D extends MutationDefinition<
@@ -63,9 +67,13 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   const hooks = Object.entries(endpointDefinitions).reduce((acc, [name, endpoint]) => {
     if (isQueryDefinition(endpoint)) {
       acc[name] = {
-        useQuery: (args) => {
+        useQuery: (args, options) => {
           const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
+          const skip = options?.skip === true;
           useEffect(() => {
+            if (skip) {
+              return;
+            }
             const promise = dispatch(queryActions[name](args));
             assertIsNewRTKPromise(promise);
             return () =>
@@ -76,8 +84,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
                   requestId: promise.requestId,
                 })
               );
-          }, [args, dispatch]);
-          return useSelector(querySelectors[name](args));
+          }, [args, dispatch, skip]);
+          return useSelector(querySelectors[name](skip ? undefined : args));
         },
       };
     } else if (isMutationDefinition(endpoint)) {
@@ -113,7 +121,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
             [dispatch]
           );
 
-          return [triggerMutation, useSelector(mutationSelectors[name](requestId ?? ''))];
+          return [triggerMutation, useSelector(mutationSelectors[name](requestId))];
         },
       };
     }
