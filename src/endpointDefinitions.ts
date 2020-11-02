@@ -64,7 +64,6 @@ export function calculateProvidedBy<ResultType, QueryArg, D extends ResultDescri
   result: ResultType,
   queryArg: QueryArg
 ): readonly EntityDescription<string>[] {
-  console.log(calculateProvidedBy, description, result, queryArg);
   if (isFunction(description)) {
     return description(result, queryArg);
   }
