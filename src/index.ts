@@ -109,14 +109,10 @@ export {
 export {
   // js
   isAllOf,
-  // types
-  ActionMatchingAllOf
-} from './isAllOf'
-export {
-  // js
   isAnyOf,
   // types
+  ActionMatchingAllOf,
   ActionMatchingAnyOf
-} from './isAnyOf'
+} from './matchers'
 
 export { nanoid } from './nanoid'

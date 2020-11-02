@@ -302,7 +302,7 @@ export interface ImmutableStateInvariantMiddlewareOptions {
 }
 
 // @public
-export function isAllOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]>(...matchers: Matchers): (action: any) => action is UnionToIntersection<import("./tsHelpers").ActionFromMatcher<Matchers[number]>>;
+export function isAllOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]>(...matchers: Matchers): (action: any) => action is UnionToIntersection<ActionFromMatcher<Matchers[number]>>;
 
 // @public
 export function isAnyOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]>(...matchers: Matchers): (action: any) => action is ActionFromMatcher<Matchers[number]>;
