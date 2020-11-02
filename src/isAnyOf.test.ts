@@ -1,6 +1,7 @@
 import { isAnyOf } from './isAnyOf'
 import { createAction } from './createAction'
 import { createAsyncThunk } from './createAsyncThunk'
+import { createReducer } from './createReducer'
 
 describe('isAnyOf', () => {
   it('returns true only if any matchers match (match function)', () => {
@@ -59,5 +60,32 @@ describe('isAnyOf', () => {
     expect(
       isAnyOf(thunkA.pending, thunkA.rejected, thunkB.fulfilled)(action)
     ).toEqual(false)
+  })
+
+  it('works with reducers', () => {
+    const actionA = createAction<string>('a')
+    const actionB = createAction<number>('b')
+
+    const trueAction = {
+      type: 'a',
+      payload: 'payload'
+    }
+
+    const initialState = { value: false }
+
+    const reducer = createReducer(initialState, builder => {
+      builder.addMatcher(isAnyOf(actionA, actionB), state => {
+        return { ...state, value: true }
+      })
+    })
+
+    expect(reducer(initialState, trueAction)).toEqual({ value: true })
+
+    const falseAction = {
+      type: 'c',
+      payload: 'payload'
+    }
+
+    expect(reducer(initialState, falseAction)).toEqual(initialState)
   })
 })
