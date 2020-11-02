@@ -16,7 +16,9 @@ export function fetchBaseQuery({ baseUrl }: { baseUrl: string }) {
     });
 
     let resultData =
-      result.headers.get('Content-Type') === 'application/json' ? await result.json() : await result.text();
+      result.headers.has('Content-Type') && result.headers.get('Content-Type') !== 'application/json'
+        ? await result.text()
+        : await result.json();
 
     return result.status >= 200 && result.status <= 299
       ? resultData
