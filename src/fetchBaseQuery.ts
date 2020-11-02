@@ -16,7 +16,7 @@ export function fetchBaseQuery({ baseUrl }: { baseUrl: string }) {
     });
 
     let resultData =
-      result.headers.has('Content-Type') && result.headers.get('Content-Type') !== 'application/json'
+      result.headers.has('Content-Type') && !result.headers.get('Content-Type')?.trim()?.startsWith('application/json')
         ? await result.text()
         : await result.json();
 
