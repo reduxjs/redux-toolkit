@@ -108,11 +108,7 @@ export interface HasMatchFunction<T> {
 export const hasMatchFunction = <T>(
   v: Matcher<T>
 ): v is HasMatchFunction<T> => {
-  try {
-    return typeof (v as HasMatchFunction<T>).match === 'function'
-  } catch {
-    return false
-  }
+  return v && typeof (v as HasMatchFunction<T>).match === 'function'
 }
 
 /** @public */
