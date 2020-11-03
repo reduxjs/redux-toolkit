@@ -67,8 +67,8 @@ describe('examples', () => {
       console.log(JSON.stringify(store.getState().api, undefined, 2));
     });
 
-    const s1 = store.dispatch(api.queryActions.getUser('5'));
-    const s2 = store.dispatch(api.mutationActions.updateUser({ id: '7', patch: { firstName: 'Timmy' } }));
+    const _s1 = store.dispatch(api.queryActions.getUser('5'));
+    const _s2 = store.dispatch(api.mutationActions.updateUser({ id: '7', patch: { firstName: 'Timmy' } }));
 
     await new Promise((resolve) => setTimeout(resolve, 150));
 
@@ -146,6 +146,6 @@ describe('examples', () => {
 */
 });
 
-function wait(time = 150) {
+function _wait(time = 150) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
