@@ -1,7 +1,7 @@
 import { AnyAction, AsyncThunkAction, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useDispatch, useSelector, batch } from 'react-redux';
-import { MutationSubState, QuerySubState } from './apiState';
+import { useDispatch, useSelector, useStore, batch } from 'react-redux';
+import { MutationSubState, QueryStatus, QuerySubState } from './apiState';
 import {
   EndpointDefinitions,
   MutationDefinition,
@@ -30,9 +30,14 @@ export type MutationHook<D extends MutationDefinition<any, any, any, any>> = D e
   infer QueryArg,
   any,
   any,
-  infer ResultType
+  any
 >
-  ? () => [(arg: QueryArg) => ReturnType<AsyncThunkAction<ResultType, any, any>>, MutationSubState<D>]
+  ? () => [
+      (
+        arg: QueryArg
+      ) => Promise<Extract<MutationSubState<D>, { status: QueryStatus.fulfilled | QueryStatus.rejected }>>,
+      MutationSubState<D>
+    ]
   : never;
 
 export type Hooks<Definitions extends EndpointDefinitions> = {
@@ -93,6 +98,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         useMutation: () => {
           const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
           const [requestId, setRequestId] = useState<string>();
+          const store = useStore();
 
           const promiseRef = useRef<ReturnType<AsyncThunkAction<any, any, any>>>();
 
@@ -116,7 +122,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
                 promiseRef.current = promise;
                 setRequestId(promise.requestId);
               });
-              return promise!;
+              return promise!.then(() => {
+                const state = store.getState();
+                const mutationSubState = mutationSelectors[name](promise.requestId)(state);
+                return mutationSubState as Extract<
+                  typeof mutationSubState,
+                  { status: QueryStatus.fulfilled | QueryStatus.rejected }
+                >;
+              });
             },
             [dispatch]
           );
