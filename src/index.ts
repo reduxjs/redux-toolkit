@@ -66,7 +66,7 @@ export function createApi<
   const { middleware } = buildMiddleware({
     reducerPath,
     endpointDefinitions,
-    queryThunk,
+    queryActions,
     mutationThunk,
     removeQueryResult,
     keepUnusedDataFor,

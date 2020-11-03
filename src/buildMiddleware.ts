@@ -1,14 +1,15 @@
 import { AnyAction, AsyncThunk, Middleware, ThunkDispatch } from '@reduxjs/toolkit';
 import { batch } from 'react-redux';
 import { QueryState, QueryStatus, RootState } from './apiState';
+import { QueryActions } from './buildActionMaps';
 import { InternalState, InvalidateQueryResult, UnsubscribeQueryResult } from './buildSlice';
-import { MutationThunkArg, QueryThunkArg } from './buildThunks';
+import { MutationThunkArg } from './buildThunks';
 import { calculateProvidedBy, EndpointDefinitions } from './endpointDefinitions';
 
 export function buildMiddleware<Definitions extends EndpointDefinitions, ReducerPath extends string>({
   reducerPath,
   endpointDefinitions,
-  queryThunk,
+  queryActions,
   mutationThunk,
   removeQueryResult,
   unsubscribeQueryResult,
@@ -16,7 +17,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
 }: {
   reducerPath: ReducerPath;
   endpointDefinitions: EndpointDefinitions;
-  queryThunk: AsyncThunk<unknown, QueryThunkArg<any>, {}>;
+  queryActions: QueryActions<Definitions, any>;
   mutationThunk: AsyncThunk<unknown, MutationThunkArg<any>, {}>;
   removeQueryResult: InvalidateQueryResult;
   unsubscribeQueryResult: UnsubscribeQueryResult;
@@ -62,16 +63,9 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
               if (querySubState.subscribers.length === 0) {
                 api.dispatch(removeQueryResult({ endpoint, serializedQueryArgs }));
               } else if (querySubState.status !== QueryStatus.uninitialized) {
+                const startQuery = queryActions[endpoint];
                 const arg = querySubState.arg;
-                const internalQueryArgs = endpointDefinitions[endpoint].query(arg);
-                api.dispatch(
-                  queryThunk({
-                    endpoint,
-                    serializedQueryArgs,
-                    arg,
-                    internalQueryArgs,
-                  })
-                );
+                api.dispatch(startQuery(arg, { subscribe: false, forceRefetch: true }));
               } else {
               }
             }
