@@ -5,6 +5,7 @@ export interface QueryThunkArg<InternalQueryArgs> extends QuerySubstateIdentifie
   arg: unknown;
   internalQueryArgs: InternalQueryArgs;
   subscribe?: boolean;
+  forceRefetch?: boolean;
 }
 
 export interface MutationThunkArg<InternalQueryArgs> {
@@ -37,7 +38,7 @@ export function buildThunks<InternalQueryArgs, ReducerPath extends string>({
     {
       condition(arg, { getState }) {
         let requestState = getState()[reducerPath]?.queries?.[arg.endpoint]?.[arg.serializedQueryArgs];
-        return requestState?.status !== 'pending';
+        return !(requestState?.status === 'pending' || (requestState?.status === 'fulfilled' && !arg.forceRefetch));
       },
       dispatchConditionRejection: true,
     }

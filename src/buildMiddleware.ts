@@ -1,7 +1,7 @@
 import { AnyAction, AsyncThunk, Middleware, ThunkDispatch } from '@reduxjs/toolkit';
 import { batch } from 'react-redux';
 import { QueryState, QueryStatus, RootState } from './apiState';
-import { InternalState, InvalidateQueryResult } from './buildSlice';
+import { InternalState, InvalidateQueryResult, UnsubscribeQueryResult } from './buildSlice';
 import { MutationThunkArg, QueryThunkArg } from './buildThunks';
 import { calculateProvidedBy, EndpointDefinitions } from './endpointDefinitions';
 
@@ -11,13 +11,18 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
   queryThunk,
   mutationThunk,
   removeQueryResult,
+  unsubscribeQueryResult,
+  keepUnusedDataFor,
 }: {
   reducerPath: ReducerPath;
   endpointDefinitions: EndpointDefinitions;
   queryThunk: AsyncThunk<unknown, QueryThunkArg<any>, {}>;
   mutationThunk: AsyncThunk<unknown, MutationThunkArg<any>, {}>;
   removeQueryResult: InvalidateQueryResult;
+  unsubscribeQueryResult: UnsubscribeQueryResult;
+  keepUnusedDataFor: number;
 }) {
+  const currentTimeouts: Record<string, undefined | Record<string, undefined | ReturnType<typeof setTimeout>>> = {};
   const middleware: Middleware<{}, RootState<Definitions, string, ReducerPath>, ThunkDispatch<any, any, AnyAction>> = (
     api
   ) => (next) => (action) => {
@@ -73,6 +78,20 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
           }
         }
       });
+    }
+
+    if (unsubscribeQueryResult.match(action)) {
+      const {
+        payload: { endpoint, serializedQueryArgs },
+      } = action;
+      const currentTimeout = currentTimeouts[endpoint]?.[serializedQueryArgs];
+      if (currentTimeout) {
+        clearTimeout(currentTimeout);
+      }
+      (currentTimeouts[endpoint] ??= {})[serializedQueryArgs] = setTimeout(() => {
+        api.dispatch(removeQueryResult({ endpoint, serializedQueryArgs }));
+        delete currentTimeouts[endpoint]![serializedQueryArgs];
+      }, keepUnusedDataFor * 1000);
     }
 
     return result;

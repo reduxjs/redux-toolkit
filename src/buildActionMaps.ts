@@ -15,7 +15,10 @@ type StartQueryActionCreator<D extends QueryDefinition<any, any, any, any>, Thun
   any,
   infer ResultType
 >
-  ? (arg: QueryArg, options?: { subscribe?: boolean }) => AsyncThunkAction<ResultType, ThunkArg, {}>
+  ? (
+      arg: QueryArg,
+      options?: { subscribe?: boolean; forceRefetch?: boolean }
+    ) => AsyncThunkAction<ResultType, ThunkArg, {}>
   : never;
 
 export type QueryActions<Definitions extends EndpointDefinitions, InternalQueryArgs> = {
@@ -51,10 +54,11 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
   const queryActions = Object.entries(endpointDefinitions).reduce(
     (acc, [name, endpoint]: [string, EndpointDefinition<any, any, any, any>]) => {
       if (isQueryDefinition(endpoint)) {
-        acc[name] = (arg, { subscribe = true } = {}) => {
+        acc[name] = (arg, { subscribe = true, forceRefetch = false } = {}) => {
           const internalQueryArgs = endpoint.query(arg);
           return queryThunk({
             subscribe,
+            forceRefetch,
             endpoint: name,
             internalQueryArgs,
             serializedQueryArgs: serializeQueryArgs(internalQueryArgs),

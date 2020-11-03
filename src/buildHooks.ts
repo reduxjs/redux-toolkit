@@ -1,4 +1,4 @@
-import { AnyAction, AsyncThunk, AsyncThunkAction, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
+import { AnyAction, AsyncThunkAction, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector, useStore, batch } from 'react-redux';
 import { MutationSubState, QueryStatus, QuerySubState } from './apiState';
@@ -12,7 +12,6 @@ import {
 import { QueryResultSelectors, MutationResultSelectors, skipSelector } from './buildSelectors';
 import { QueryActions, MutationActions } from './buildActionMaps';
 import { UnsubscribeMutationResult, UnsubscribeQueryResult } from './buildSlice';
-import { QueryThunkArg } from './buildThunks';
 
 export interface QueryHookOptions {
   skip?: boolean;
@@ -57,7 +56,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   endpointDefinitions,
   querySelectors,
   queryActions,
-  queryThunk,
   unsubscribeQueryResult,
   mutationSelectors,
   mutationActions,
@@ -66,7 +64,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   endpointDefinitions: Definitions;
   querySelectors: QueryResultSelectors<Definitions, any>;
   queryActions: QueryActions<Definitions, any>;
-  queryThunk: AsyncThunk<unknown, QueryThunkArg<any>, {}>;
   unsubscribeQueryResult: UnsubscribeQueryResult;
   mutationSelectors: MutationResultSelectors<Definitions, any>;
   mutationActions: MutationActions<Definitions, any>;
@@ -102,7 +99,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           const currentState = useSelector(querySelector(skip ? skipSelector : args));
           const refetch = useCallback(async () => {
             if (currentState.status === QueryStatus.uninitialized) {
-              await dispatch(startQuery(currentState.arg, { subscribe: false }));
+              await dispatch(startQuery(currentState.arg, { subscribe: false, forceRefetch: true }));
             }
             return querySelector(currentState.arg)(store.getState);
           }, [currentState.arg, currentState.status, dispatch, store.getState]);

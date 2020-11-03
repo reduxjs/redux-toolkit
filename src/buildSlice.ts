@@ -67,7 +67,7 @@ export function buildSlice({
       },
       removeQueryResult(draft, { payload: { endpoint, serializedQueryArgs } }: PayloadAction<QuerySubstateIdentifier>) {
         const endpointSubstate = draft[endpoint];
-        if (endpointSubstate && serializedQueryArgs in endpointSubstate) {
+        if (endpointSubstate && (endpointSubstate?.[serializedQueryArgs]?.subscribers.length ?? 0) === 0) {
           delete endpointSubstate[serializedQueryArgs];
         }
       },

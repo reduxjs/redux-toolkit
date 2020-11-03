@@ -25,12 +25,14 @@ export function createApi<
   reducerPath,
   serializeQueryArgs = defaultSerializeQueryArgs,
   endpoints,
+  keepUnusedDataFor = 60,
 }: {
   baseQuery(args: InternalQueryArgs, api: QueryApi): any;
   entityTypes: readonly EntityTypes[];
   reducerPath: ReducerPath;
   serializeQueryArgs?(args: InternalQueryArgs): string;
   endpoints(build: EndpointBuilder<InternalQueryArgs, EntityTypes>): Definitions;
+  keepUnusedDataFor?: number;
 }) {
   type State = CombinedState<Definitions, EntityTypes>;
 
@@ -67,6 +69,8 @@ export function createApi<
     queryThunk,
     mutationThunk,
     removeQueryResult,
+    keepUnusedDataFor,
+    unsubscribeQueryResult,
   });
 
   const { hooks } = buildHooks({
