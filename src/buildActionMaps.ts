@@ -15,7 +15,7 @@ type StartQueryActionCreator<D extends QueryDefinition<any, any, any, any>, Thun
   any,
   infer ResultType
 >
-  ? (arg: QueryArg) => AsyncThunkAction<ResultType, ThunkArg, {}>
+  ? (arg: QueryArg, options?: { subscribe?: boolean }) => AsyncThunkAction<ResultType, ThunkArg, {}>
   : never;
 
 export type QueryActions<Definitions extends EndpointDefinitions, InternalQueryArgs> = {
@@ -51,10 +51,10 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
   const queryActions = Object.entries(endpointDefinitions).reduce(
     (acc, [name, endpoint]: [string, EndpointDefinition<any, any, any, any>]) => {
       if (isQueryDefinition(endpoint)) {
-        acc[name] = (arg) => {
+        acc[name] = (arg, { subscribe = true } = {}) => {
           const internalQueryArgs = endpoint.query(arg);
           return queryThunk({
-            subscribe: true,
+            subscribe,
             endpoint: name,
             internalQueryArgs,
             serializedQueryArgs: serializeQueryArgs(internalQueryArgs),

@@ -1,5 +1,5 @@
-import { AnyAction, AsyncThunkAction, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { AnyAction, AsyncThunk, AsyncThunkAction, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector, useStore, batch } from 'react-redux';
 import { MutationSubState, QueryStatus, QuerySubState } from './apiState';
 import {
@@ -12,6 +12,7 @@ import {
 import { QueryResultSelectors, MutationResultSelectors, skipSelector } from './buildSelectors';
 import { QueryActions, MutationActions } from './buildActionMaps';
 import { UnsubscribeMutationResult, UnsubscribeQueryResult } from './buildSlice';
+import { QueryThunkArg } from './buildThunks';
 
 export interface QueryHookOptions {
   skip?: boolean;
@@ -23,7 +24,7 @@ export type QueryHook<D extends QueryDefinition<any, any, any, any>> = D extends
   any,
   any
 >
-  ? (arg: QueryArg, options?: QueryHookOptions) => QuerySubState<D>
+  ? (arg: QueryArg, options?: QueryHookOptions) => QuerySubState<D> & { refetch(): Promise<QuerySubState<D>> }
   : never;
 
 export type MutationHook<D extends MutationDefinition<any, any, any, any>> = D extends MutationDefinition<
@@ -56,6 +57,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   endpointDefinitions,
   querySelectors,
   queryActions,
+  queryThunk,
   unsubscribeQueryResult,
   mutationSelectors,
   mutationActions,
@@ -64,6 +66,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   endpointDefinitions: Definitions;
   querySelectors: QueryResultSelectors<Definitions, any>;
   queryActions: QueryActions<Definitions, any>;
+  queryThunk: AsyncThunk<unknown, QueryThunkArg<any>, {}>;
   unsubscribeQueryResult: UnsubscribeQueryResult;
   mutationSelectors: MutationResultSelectors<Definitions, any>;
   mutationActions: MutationActions<Definitions, any>;
@@ -71,15 +74,20 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 }) {
   const hooks = Object.entries(endpointDefinitions).reduce((acc, [name, endpoint]) => {
     if (isQueryDefinition(endpoint)) {
+      const startQuery = queryActions[name];
+      const querySelector = querySelectors[name];
       acc[name] = {
         useQuery: (args, options) => {
           const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
           const skip = options?.skip === true;
+
+          const store = useStore();
+
           useEffect(() => {
             if (skip) {
               return;
             }
-            const promise = dispatch(queryActions[name](args));
+            const promise = dispatch(startQuery(args));
             assertIsNewRTKPromise(promise);
             return () =>
               void dispatch(
@@ -90,7 +98,16 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
                 })
               );
           }, [args, dispatch, skip]);
-          return useSelector(querySelectors[name](skip ? skipSelector : args));
+
+          const currentState = useSelector(querySelector(skip ? skipSelector : args));
+          const refetch = useCallback(async () => {
+            if (currentState.status === QueryStatus.uninitialized) {
+              await dispatch(startQuery(currentState.arg, { subscribe: false }));
+            }
+            return querySelector(currentState.arg)(store.getState);
+          }, [currentState.arg, currentState.status, dispatch, store.getState]);
+
+          return useMemo(() => ({ ...currentState, refetch }), [currentState, refetch]);
         },
       };
     } else if (isMutationDefinition(endpoint)) {
@@ -131,7 +148,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
                 >;
               });
             },
-            [dispatch]
+            [dispatch, store]
           );
 
           return [triggerMutation, useSelector(mutationSelectors[name](requestId || skipSelector))];

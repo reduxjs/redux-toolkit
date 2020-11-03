@@ -11,6 +11,8 @@ import type { InternalState } from './buildSlice';
 
 export type Id<T> = { [K in keyof T]: T[K] } & {};
 
+export const skipSelector = Symbol('skip selector');
+
 export type QueryResultSelectors<Definitions extends EndpointDefinitions, RootState> = {
   [K in keyof Definitions]: Definitions[K] extends QueryDefinition<infer QueryArg, any, any, infer ResultType>
     ? (queryArg: QueryArg | typeof skipSelector) => (state: RootState) => QuerySubState<Definitions[K]>
@@ -41,8 +43,6 @@ const defaultMutationSubState = createNextState(
     };
   }
 );
-
-export const skipSelector = Symbol('skip selector');
 
 export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDefinitions, ReducerPath extends string>({
   serializeQueryArgs,

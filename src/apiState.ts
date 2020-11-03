@@ -27,9 +27,6 @@ type QueryArgs<D extends BaseEndpointDefinition<any, any, any>> = D extends Base
 type ResultType<D extends BaseEndpointDefinition<any, any, any>> = D extends BaseEndpointDefinition<any, any, infer RT>
   ? RT
   : unknown;
-type EntityType<D extends BaseEndpointDefinition<any, any, any>> = D extends QueryDefinition<any, any, infer T, any>
-  ? T
-  : string;
 
 export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> =
   | {
@@ -94,7 +91,7 @@ export type CombinedState<D extends EndpointDefinitions, E extends string> = {
 };
 
 export type InvalidationState<EntityTypes extends string> = {
-  [E in EntityTypes]: {
+  [_ in EntityTypes]: {
     [id: string]: Array<QuerySubstateIdentifier>;
     [id: number]: Array<QuerySubstateIdentifier>;
   };
@@ -102,13 +99,13 @@ export type InvalidationState<EntityTypes extends string> = {
 
 export type QueryState<D extends EndpointDefinitions> = {
   [K in QueryKeys<D>]?: {
-    [stringifiedArgs in string]?: QuerySubState<D[K]>;
+    [_stringifiedArgs in string]?: QuerySubState<D[K]>;
   };
 };
 
 export type MutationState<D extends EndpointDefinitions> = {
   [K in MutationKeys<D>]?: {
-    [requestId in string]?: MutationSubState<D[K]>;
+    [_requestId in string]?: MutationSubState<D[K]>;
   };
 };
 
@@ -126,5 +123,5 @@ export type RootState<
 };
 
 export type InternalRootState<ReducerPath extends string> = {
-  [P in ReducerPath]: CombinedState<any, string>;
+  [_ in ReducerPath]: CombinedState<any, string>;
 };
