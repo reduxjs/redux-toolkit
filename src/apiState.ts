@@ -36,24 +36,28 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> =
       status: QueryStatus.uninitialized;
       arg?: undefined;
       data?: undefined;
+      error?: undefined;
       subscribers: Subscribers;
     }
   | {
       status: QueryStatus.pending;
       arg: QueryArgs<D>;
       data?: ResultType<D>;
+      error?: unknown;
       subscribers: Subscribers;
     }
   | {
       status: QueryStatus.rejected;
       arg: QueryArgs<D>;
       data?: ResultType<D>;
+      error: unknown;
       subscribers: Subscribers;
     }
   | {
       status: QueryStatus.fulfilled;
       arg: QueryArgs<D>;
       data: ResultType<D>;
+      error?: unknown;
       subscribers: Subscribers;
     };
 
@@ -62,21 +66,25 @@ export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
       status: QueryStatus.uninitialized;
       arg?: undefined;
       data?: undefined;
+      error?: undefined;
     }
   | {
       status: QueryStatus.pending;
       arg: QueryArgs<D>;
-      data?: ResultType<D>;
+      data?: undefined;
+      error?: undefined;
     }
   | {
       status: QueryStatus.rejected;
       arg: QueryArgs<D>;
-      data?: ResultType<D>;
+      data?: undefined;
+      error?: unknown;
     }
   | {
       status: QueryStatus.fulfilled;
       arg: QueryArgs<D>;
       data: ResultType<D>;
+      error?: undefined;
     };
 
 export type CombinedState<D extends EndpointDefinitions, E extends string> = {

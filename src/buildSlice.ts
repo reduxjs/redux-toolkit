@@ -103,6 +103,7 @@ export function buildSlice({
               }
             } else {
               substate.status = QueryStatus.rejected;
+              substate.error = action.payload ?? action.error;
             }
           });
         });
@@ -133,9 +134,10 @@ export function buildSlice({
             substate.data = payload;
           });
         })
-        .addCase(mutationThunk.rejected, (draft, { meta: { requestId, arg } }) => {
+        .addCase(mutationThunk.rejected, (draft, { payload, error, meta: { requestId, arg } }) => {
           updateMutationSubstateIfExists(draft, { requestId, endpoint: arg.endpoint }, (substate) => {
             substate.status = QueryStatus.rejected;
+            substate.error = payload ?? error;
           });
         });
     },
