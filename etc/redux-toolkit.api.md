@@ -51,6 +51,12 @@ export interface ActionCreatorWithPreparedPayload<Args extends unknown[], P, T e
     (...args: Args): PayloadAction<P, T, M, E>;
 }
 
+// @public (undocumented)
+export type ActionMatchingAllOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]> = UnionToIntersection<ActionMatchingAnyOf<Matchers>>;
+
+// @public (undocumented)
+export type ActionMatchingAnyOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]> = ActionFromMatcher<Matchers[number]>;
+
 // @public
 export interface ActionReducerMapBuilder<State> {
     addCase<ActionCreator extends TypedActionCreator<string>>(actionCreator: ActionCreator, reducer: CaseReducer<State, ReturnType<ActionCreator>>): ActionReducerMapBuilder<State>;
@@ -294,6 +300,12 @@ export interface ImmutableStateInvariantMiddlewareOptions {
     isImmutable?: IsImmutableFunc;
     warnAfter?: number;
 }
+
+// @public
+export function isAllOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]>(...matchers: Matchers): (action: any) => action is UnionToIntersection<ActionFromMatcher<Matchers[number]>>;
+
+// @public
+export function isAnyOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]>(...matchers: Matchers): (action: any) => action is ActionFromMatcher<Matchers[number]>;
 
 // @public
 export function isImmutableDefault(value: unknown): boolean;
