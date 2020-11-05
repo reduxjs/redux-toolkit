@@ -10,7 +10,7 @@ import {
   isMutationDefinition,
 } from './endpointDefinitions';
 import { QueryResultSelectors, MutationResultSelectors, skipSelector } from './buildSelectors';
-import { QueryActions, MutationActions } from './buildActionMaps';
+import { QueryActions, MutationActions, QueryActionCreatorResult } from './buildActionMaps';
 import { UnsubscribeMutationResult, UnsubscribeQueryResult } from './buildSlice';
 
 export interface QueryHookOptions {
@@ -23,8 +23,11 @@ export type QueryHook<D extends QueryDefinition<any, any, any, any>> = D extends
   any,
   any
 >
-  ? (arg: QueryArg, options?: QueryHookOptions) => QuerySubState<D> & { refetch(): Promise<QuerySubState<D>> }
+  ? (arg: QueryArg, options?: QueryHookOptions) => QueryHookResult<D>
   : never;
+
+export type QueryHookResult<D extends QueryDefinition<any, any, any, any>> = QuerySubState<D> &
+  Pick<QueryActionCreatorResult<D>, 'refetch'>;
 
 export type MutationHook<D extends MutationDefinition<any, any, any, any>> = D extends MutationDefinition<
   infer QueryArg,
@@ -56,106 +59,102 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   endpointDefinitions,
   querySelectors,
   queryActions,
-  unsubscribeQueryResult,
   mutationSelectors,
   mutationActions,
   unsubscribeMutationResult,
 }: {
   endpointDefinitions: Definitions;
   querySelectors: QueryResultSelectors<Definitions, any>;
-  queryActions: QueryActions<Definitions, any>;
+  queryActions: QueryActions<Definitions>;
   unsubscribeQueryResult: UnsubscribeQueryResult;
   mutationSelectors: MutationResultSelectors<Definitions, any>;
   mutationActions: MutationActions<Definitions, any>;
   unsubscribeMutationResult: UnsubscribeMutationResult;
 }) {
-  const hooks = Object.entries(endpointDefinitions).reduce((acc, [name, endpoint]) => {
+  const hooks: Hooks<Definitions> = Object.entries(endpointDefinitions).reduce<Hooks<any>>((acc, [name, endpoint]) => {
     if (isQueryDefinition(endpoint)) {
-      const startQuery = queryActions[name];
-      const querySelector = querySelectors[name];
-      acc[name] = {
-        useQuery: (args, options) => {
-          const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
-          const skip = options?.skip === true;
-
-          const store = useStore();
-
-          useEffect(() => {
-            if (skip) {
-              return;
-            }
-            const promise = dispatch(startQuery(args));
-            assertIsNewRTKPromise(promise);
-            return () =>
-              void dispatch(
-                unsubscribeQueryResult({
-                  endpoint: name,
-                  serializedQueryArgs: promise.arg.serializedQueryArgs,
-                  requestId: promise.requestId,
-                })
-              );
-          }, [args, dispatch, skip]);
-
-          const currentState = useSelector(querySelector(skip ? skipSelector : args));
-          const refetch = useCallback(async () => {
-            if (currentState.status === QueryStatus.uninitialized) {
-              await dispatch(startQuery(currentState.arg, { subscribe: false, forceRefetch: true }));
-            }
-            return querySelector(currentState.arg)(store.getState);
-          }, [currentState.arg, currentState.status, dispatch, store.getState]);
-
-          return useMemo(() => ({ ...currentState, refetch }), [currentState, refetch]);
-        },
-      };
+      acc[name] = { useQuery: buildQueryHook(name) };
     } else if (isMutationDefinition(endpoint)) {
-      acc[name] = {
-        useMutation: () => {
-          const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
-          const [requestId, setRequestId] = useState<string>();
-          const store = useStore();
-
-          const promiseRef = useRef<ReturnType<AsyncThunkAction<any, any, any>>>();
-
-          useEffect(() => {
-            return () => {
-              if (promiseRef.current) {
-                dispatch(unsubscribeMutationResult({ endpoint: name, requestId: promiseRef.current.requestId }));
-              }
-            };
-          }, [dispatch]);
-
-          const triggerMutation = useCallback(
-            function (args) {
-              let promise: ReturnType<AsyncThunkAction<any, any, any>>;
-              batch(() => {
-                if (promiseRef.current) {
-                  dispatch(unsubscribeMutationResult({ endpoint: name, requestId: promiseRef.current.requestId }));
-                }
-                promise = dispatch(mutationActions[name](args));
-                assertIsNewRTKPromise(promise);
-                promiseRef.current = promise;
-                setRequestId(promise.requestId);
-              });
-              return promise!.then(() => {
-                const state = store.getState();
-                const mutationSubState = mutationSelectors[name](promise.requestId)(state);
-                return mutationSubState as Extract<
-                  typeof mutationSubState,
-                  { status: QueryStatus.fulfilled | QueryStatus.rejected }
-                >;
-              });
-            },
-            [dispatch, store]
-          );
-
-          return [triggerMutation, useSelector(mutationSelectors[name](requestId || skipSelector))];
-        },
-      };
+      acc[name] = { useMutation: buildMutationHook(name) };
     }
     return acc;
-  }, {} as Record<string, { useQuery: QueryHook<any> } | { useMutation: MutationHook<any> }>) as Hooks<Definitions>;
+  }, {});
 
   return { hooks };
+
+  function buildQueryHook(name: string): QueryHook<any> {
+    const startQuery = queryActions[name];
+    const querySelector = querySelectors[name];
+    return (arg, options) => {
+      const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
+      const skip = options?.skip === true;
+
+      const currentPromiseRef = useRef<QueryActionCreatorResult<any>>();
+
+      useEffect(() => {
+        if (skip) {
+          return;
+        }
+        const promise = dispatch(startQuery(arg));
+        assertIsNewRTKPromise(promise);
+        currentPromiseRef.current = promise;
+        return () => void promise.unsubscribe();
+      }, [arg, dispatch, skip]);
+
+      const currentState = useSelector(querySelector(skip ? skipSelector : arg));
+      const refetch = useCallback(() => {
+        if (currentPromiseRef.current) {
+          currentPromiseRef.current.refetch();
+        }
+      }, []);
+
+      return useMemo(() => ({ ...currentState, refetch }), [currentState, refetch]);
+    };
+  }
+
+  function buildMutationHook(name: string): MutationHook<any> {
+    return () => {
+      const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
+      const [requestId, setRequestId] = useState<string>();
+      const store = useStore();
+
+      const promiseRef = useRef<ReturnType<AsyncThunkAction<any, any, any>>>();
+
+      useEffect(() => {
+        return () => {
+          if (promiseRef.current) {
+            dispatch(unsubscribeMutationResult({ endpoint: name, requestId: promiseRef.current.requestId }));
+          }
+        };
+      }, [dispatch]);
+
+      const triggerMutation = useCallback(
+        function (args) {
+          let promise: ReturnType<AsyncThunkAction<any, any, any>>;
+          batch(() => {
+            if (promiseRef.current) {
+              dispatch(unsubscribeMutationResult({ endpoint: name, requestId: promiseRef.current.requestId }));
+            }
+            promise = dispatch(mutationActions[name](args));
+            assertIsNewRTKPromise(promise);
+            promiseRef.current = promise;
+            setRequestId(promise.requestId);
+          });
+          return promise!.then(() => {
+            const state = store.getState();
+            const mutationSubState = mutationSelectors[name](promise.requestId)(state);
+            return mutationSubState as Extract<
+              typeof mutationSubState,
+              { status: QueryStatus.fulfilled | QueryStatus.rejected }
+            >;
+          });
+        },
+        [dispatch, store]
+      );
+
+      return [triggerMutation, useSelector(mutationSelectors[name](requestId || skipSelector))];
+    };
+  }
 }
 
 function assertIsNewRTKPromise(action: ReturnType<ThunkAction<any, any, any, any>>) {

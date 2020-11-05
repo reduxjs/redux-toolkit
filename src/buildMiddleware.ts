@@ -17,7 +17,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
 }: {
   reducerPath: ReducerPath;
   endpointDefinitions: EndpointDefinitions;
-  queryActions: QueryActions<Definitions, any>;
+  queryActions: QueryActions<Definitions>;
   mutationThunk: AsyncThunk<unknown, MutationThunkArg<any>, {}>;
   removeQueryResult: InvalidateQueryResult;
   unsubscribeQueryResult: UnsubscribeQueryResult;

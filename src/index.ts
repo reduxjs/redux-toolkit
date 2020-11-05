@@ -50,17 +50,19 @@ export function createApi<
 
   const reducer = (_reducer as any) as Reducer<State & QueryStatePhantomType<ReducerPath>, AnyAction>;
 
+  const { querySelectors, mutationSelectors } = buildSelectors({
+    serializeQueryArgs,
+    endpointDefinitions,
+    reducerPath,
+  });
+
   const { mutationActions, queryActions } = buildActionMaps({
     queryThunk,
     mutationThunk,
     serializeQueryArgs,
     endpointDefinitions,
-  });
-
-  const { querySelectors, mutationSelectors } = buildSelectors({
-    serializeQueryArgs,
-    endpointDefinitions,
-    reducerPath,
+    querySelectors,
+    unsubscribeQueryResult,
   });
 
   const { middleware } = buildMiddleware({

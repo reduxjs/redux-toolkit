@@ -9,8 +9,6 @@ import {
 } from './endpointDefinitions';
 import type { InternalState } from './buildSlice';
 
-export type Id<T> = { [K in keyof T]: T[K] } & {};
-
 export const skipSelector = Symbol('skip selector');
 
 export type QueryResultSelectors<Definitions extends EndpointDefinitions, RootState> = {
@@ -63,8 +61,9 @@ export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDe
         defaultQuerySubState;
     }
     return acc;
-  }, {} as Record<string, (arg: unknown) => (state: RootState) => unknown>) as Id<
-    QueryResultSelectors<Definitions, RootState>
+  }, {} as Record<string, (arg: unknown) => (state: RootState) => unknown>) as QueryResultSelectors<
+    Definitions,
+    RootState
   >;
 
   const mutationSelectors = Object.entries(endpointDefinitions).reduce((acc, [name, endpoint]) => {
@@ -75,9 +74,9 @@ export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDe
           : (rootState[reducerPath] as InternalState).mutations[name]?.[mutationId]) ?? defaultMutationSubState;
     }
     return acc;
-  }, {} as Record<string, (arg: string) => (state: RootState) => unknown>) as Id<
-    MutationResultSelectors<Definitions, RootState>
+  }, {} as Record<string, (arg: string) => (state: RootState) => unknown>) as MutationResultSelectors<
+    Definitions,
+    RootState
   >;
-
   return { querySelectors, mutationSelectors };
 }
