@@ -1,7 +1,8 @@
 import {
   createAsyncThunk,
   miniSerializeError,
-  unwrapResult
+  unwrapResult,
+  withConfig
 } from './createAsyncThunk'
 import { configureStore } from './configureStore'
 import { AnyAction } from 'redux'
@@ -130,6 +131,39 @@ describe('createAsyncThunk', () => {
     expect(errorAction.meta.arg).toBe(args)
   })
 
+  it('accepts arguments and throws the error on reject when configured to do so', async () => {
+    const dispatch = jest.fn()
+
+    const args = 123
+    let generatedRequestId = ''
+
+    const error = new Error('Panic!')
+
+    const thunkActionCreator = createAsyncThunk(
+      'testType',
+      async (args: number, { requestId }) => {
+        generatedRequestId = requestId
+        throw error
+      }
+    )
+
+    const thunkFunction = thunkActionCreator(args)
+    const promise = withConfig(thunkFunction, { shouldThrow: true })(
+      dispatch,
+      () => {},
+      undefined
+    )
+
+    await expect(promise).rejects.toEqual(error)
+
+    expect(dispatch).toHaveBeenNthCalledWith(
+      1,
+      thunkActionCreator.pending(generatedRequestId, args)
+    )
+
+    expect(dispatch).toHaveBeenCalledTimes(1)
+  })
+
   it('dispatches an empty error when throwing a random object without serializedError properties', async () => {
     const dispatch = jest.fn()
 
@@ -249,6 +283,47 @@ describe('createAsyncThunk', () => {
     expect(errorAction.error.message).toEqual('Rejected')
     expect(errorAction.payload).toBe(errorPayload)
     expect(errorAction.meta.arg).toBe(args)
+  })
+
+  it('throws with a customized payload when a user returns rejectWithValue() when configured to do so', async () => {
+    const dispatch = jest.fn()
+
+    const args = 123
+    let generatedRequestId = ''
+
+    const errorPayload = {
+      errorMessage:
+        'I am a fake server-provided 400 payload with validation details',
+      errors: [
+        { field_one: 'Must be a string' },
+        { field_two: 'Must be a number' }
+      ]
+    }
+
+    const thunkActionCreator = createAsyncThunk(
+      'testType',
+      async (args: number, { requestId, rejectWithValue }) => {
+        generatedRequestId = requestId
+
+        return rejectWithValue(errorPayload)
+      }
+    )
+
+    const thunkFunction = thunkActionCreator(args)
+    const promise = withConfig(thunkFunction, { shouldThrow: true })(
+      dispatch,
+      () => {},
+      undefined
+    )
+
+    await expect(promise).rejects.toEqual(errorPayload);
+
+    expect(dispatch).toHaveBeenNthCalledWith(
+      1,
+      thunkActionCreator.pending(generatedRequestId, args)
+    )
+
+    expect(dispatch).toHaveBeenCalledTimes(1)
   })
 
   it('dispatches a rejected action with a miniSerializeError when rejectWithValue conditions are not satisfied', async () => {

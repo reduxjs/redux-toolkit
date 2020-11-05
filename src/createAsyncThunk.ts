@@ -130,6 +130,8 @@ export type AsyncThunkPayloadCreator<
   thunkAPI: GetThunkAPI<ThunkApiConfig>
 ) => AsyncThunkPayloadCreatorReturnValue<Returned, ThunkApiConfig>
 
+type AsyncThunkDispatchConfig = { shouldThrow?: boolean }
+
 /**
  * A ThunkAction created by `createAsyncThunk`.
  * Dispatching it returns a Promise for either a
@@ -146,7 +148,8 @@ export type AsyncThunkAction<
 > = (
   dispatch: GetDispatch<ThunkApiConfig>,
   getState: () => GetState<ThunkApiConfig>,
-  extra: GetExtra<ThunkApiConfig>
+  extra: GetExtra<ThunkApiConfig>,
+  config?: AsyncThunkDispatchConfig
 ) => Promise<
   | PayloadAction<Returned, string, { arg: ThunkArg; requestId: string }>
   | PayloadAction<
@@ -375,7 +378,8 @@ If you want to use the AbortController to react to \`abort\` events, please cons
   function actionCreator(
     arg: ThunkArg
   ): AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> {
-    return (dispatch, getState, extra) => {
+    return (dispatch, getState, extra, config) => {
+      const shouldThrow = config ? !!config.shouldThrow : false
       const requestId = nanoid()
 
       const abortController = new AC()
@@ -426,12 +430,19 @@ If you want to use the AbortController to react to \`abort\` events, please cons
               })
             ).then(result => {
               if (result instanceof RejectWithValue) {
+                if (shouldThrow) {
+                  throw result.value
+                }
                 return rejected(null, requestId, arg, result.value)
               }
               return fulfilled(result, requestId, arg)
             })
           ])
         } catch (err) {
+          if (shouldThrow) {
+            throw err
+          }
+
           finalAction = rejected(err, requestId, arg)
         }
         // We dispatch the result action _after_ the catch, to avoid having any errors
@@ -477,6 +488,17 @@ type PayloadForActionTypesExcludingErrorActions<T> = T extends { error: any }
   : T extends { payload: infer P }
   ? P
   : never
+
+export function withConfig<Returned, ThunkArg, ThunkApiConfig>(
+  action: AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>,
+  config: AsyncThunkDispatchConfig
+): AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> {
+  return (dispatch, getState, extra, additionalConfig) =>
+    action(dispatch, getState, extra, {
+      ...(additionalConfig ?? {}),
+      ...config
+    })
+}
 
 /**
  * @public
