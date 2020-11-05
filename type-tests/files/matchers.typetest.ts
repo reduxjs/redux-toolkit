@@ -1,15 +1,5 @@
-import { Action, AnyAction, ActionCreator } from 'redux'
-import {
-  createAction,
-  createAsyncThunk,
-  isAllOf,
-  isAnyOf
-} from '../../src'
-import { IsAny } from 'src/tsHelpers'
-
-function expectType<T>(p: T): T {
-  return p
-}
+import { AnyAction } from 'redux'
+import { createAction, createAsyncThunk, isAllOf, isAnyOf } from '../../src'
 
 /* isAnyOf */
 
@@ -49,7 +39,6 @@ function isAnyOfActionTest(action: AnyAction) {
 /*
  * Test: isAnyOf correctly narrows types when used with async thunks
  */
-
 function isAnyOfThunkTest(action: AnyAction) {
   const asyncThunk1 = createAsyncThunk<{prop1: number, prop3: number}>(
     'asyncThunk1',
@@ -126,8 +115,19 @@ function isAnyOfTypeGuardTest(action: AnyAction) {
 
 /* isAllOf */
 
+interface SpecialAction {
+  payload: {
+    special: boolean;
+  }
+}
+
+const isSpecialAction = (v: any): v is SpecialAction => {
+  return v.meta.isSpecial;
+}
+
 /*
- * Test: isAnyOf correctly narrows types when used with action creators
+ * Test: isAllOf correctly narrows types when used with action creators
+ *       and type guards
  */
 function isAllOfActionTest(action: AnyAction) {
   const actionA = createAction('a', () => {
@@ -139,29 +139,21 @@ function isAllOfActionTest(action: AnyAction) {
     };
   })
 
-  const actionB = createAction('b', () => {
-    return {
-      payload: {
-        prop1: 1,
-        prop2: 2
-      }
-    };
-  })
-
-  // note: this condition can never be true, but it lets us test the types
-  if (isAllOf(actionA, actionB)(action)) {
+  if (isAllOf(actionA, isSpecialAction)(action)) {
     return {
       prop1: action.payload.prop1,
+      // typings:expect-error
       prop2: action.payload.prop2,
-      prop3: action.payload.prop3
+      prop3: action.payload.prop3,
+      special: action.payload.special
     };
   }
 }
 
 /*
  * Test: isAllOf correctly narrows types when used with async thunks
+ *       and type guards
  */
-
 function isAllOfThunkTest(action: AnyAction) {
   const asyncThunk1 = createAsyncThunk<{prop1: number, prop3: number}>(
     'asyncThunk1',
@@ -174,23 +166,13 @@ function isAllOfThunkTest(action: AnyAction) {
     }
   );
 
-  const asyncThunk2 = createAsyncThunk<{prop1: number, prop2: number}>(
-    'asyncThunk2',
-
-    async () => {
-      return {
-        prop1: 1,
-        prop2: 2
-      };
-    }
-  );
-
-  // note: this condition can never be true, but it lets us test the types
-  if (isAllOf(asyncThunk1.fulfilled, asyncThunk2.fulfilled)(action)) {
+  if (isAllOf(asyncThunk1.fulfilled, isSpecialAction)(action)) {
     return {
       prop1: action.payload.prop1,
+      // typings:expect-error
       prop2: action.payload.prop2,
-      prop3: action.payload.prop3
+      prop3: action.payload.prop3,
+      special: action.payload.special
     };
   }
 }
@@ -207,28 +189,17 @@ function isAllOfTypeGuardTest(action: AnyAction) {
     };
   }
 
-  interface ActionB {
-    type: 'b';
-    payload: {
-      prop1: 1,
-      prop2: 2
-    }
-  }
-
   const guardA = (v: any): v is ActionA => {
     return v.type === 'a';
   }
 
-  const guardB = (v: any): v is ActionB => {
-    return v.type === 'b';
-  }
-
-  // note: this condition can never be true, but it lets us test the types
-  if (isAllOf(guardA, guardB)(action)) {
+  if (isAllOf(guardA, isSpecialAction)(action)) {
     return {
       prop1: action.payload.prop1,
+      // typings:expect-error
       prop2: action.payload.prop2,
-      prop3: action.payload.prop3
+      prop3: action.payload.prop3,
+      special: action.payload.special
     };
   }
 }
