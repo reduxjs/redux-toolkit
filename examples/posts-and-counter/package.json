@@ -1,0 +1,54 @@
+{
+  "name": "rtk-simple-query-demo",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "main": "./index.html",
+  "dependencies": {
+    "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/56994225/@reduxjs/toolkit",
+    "@rtk-incubator/simple-query": "https://pkg.csb.dev/rtk-incubator/simple-query/commit/fcea624c/@rtk-incubator/simple-query",
+    "msw": "0.21.3",
+    "react": "17.0.0",
+    "react-dom": "17.0.0",
+    "react-redux": "7.2.2",
+    "react-router-dom": "5.2.0",
+    "react-scripts": "3.4.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.11.5",
+    "@testing-library/react": "^11.1.1",
+    "@types/jest": "^26.0.15",
+    "@types/node": "^14.14.6",
+    "@types/react": "16.9.19",
+    "@types/react-dom": "16.9.5",
+    "@types/react-redux": "7.1.9",
+    "@types/react-router-dom": "5.1.6",
+    "jest-environment-jsdom-fourteen": "^1.0.1",
+    "typescript": "^4.0.5",
+    "whatwg-fetch": "^3.4.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env jest-environment-jsdom-fourteen",
+    "prebuild": "rm -rf dist/"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

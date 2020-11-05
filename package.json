@@ -17,12 +17,11 @@
     "build": "tsdx build",
     "test": "tsdx test",
     "lint": "tsdx lint",
-    "prepare": "tsdx build",
+    "prepare": "tsdx build; ./prepare-examples.sh",
     "size": "size-limit",
     "format": "prettier --write \"src/**/*.ts\"",
     "analyze": "size-limit --why"
   },
-  "peerDependencies": {},
   "husky": {
     "hooks": {
       "pre-commit": "tsdx lint"
@@ -45,6 +44,11 @@
       "limit": "10 KB"
     }
   ],
+  "peerDependencies": {
+    "react": "^16.14.0 || 17.0.0",
+    "react-dom": "^16.14.0 || 17.0.0",
+    "react-redux": "^7.2.1"
+  },
   "devDependencies": {
     "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/56994225/@reduxjs/toolkit",
     "@size-limit/preset-small-lib": "^4.6.0",
@@ -52,9 +56,6 @@
     "@testing-library/react-hooks": "^3.4.2",
     "@types/react-redux": "^7.1.9",
     "husky": "^4.3.0",
-    "react": "^16.14.0",
-    "react-dom": "^16.14.0",
-    "react-redux": "^7.2.1",
     "react-test-renderer": "^17.0.1",
     "size-limit": "^4.6.0",
     "ts-node": "^9.0.0",

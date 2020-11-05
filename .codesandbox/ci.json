@@ -1,6 +1,3 @@
 {
-  "sandboxes": [
-    "new",
-    "react-ts"
-  ]
+  "sandboxes": ["new", "react-ts", "/examples/posts-and-counter"]
 }
