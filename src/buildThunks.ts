@@ -1,5 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { InternalRootState, QuerySubstateIdentifier } from './apiState';
+import { EndpointDefinitions } from './endpointDefinitions';
 
 export interface QueryThunkArg<InternalQueryArgs> extends QuerySubstateIdentifier {
   arg: unknown;
@@ -19,12 +20,18 @@ export interface QueryApi {
   rejectWithValue(value: any): unknown;
 }
 
+function defaultPostProcess(baseQueryReturnValue: unknown) {
+  return baseQueryReturnValue;
+}
+
 export function buildThunks<InternalQueryArgs, ReducerPath extends string>({
   reducerPath,
   baseQuery,
+  endpointDefinitions,
 }: {
   baseQuery(args: InternalQueryArgs, api: QueryApi): any;
   reducerPath: ReducerPath;
+  endpointDefinitions: EndpointDefinitions;
 }) {
   const queryThunk = createAsyncThunk<
     unknown,
@@ -33,7 +40,9 @@ export function buildThunks<InternalQueryArgs, ReducerPath extends string>({
   >(
     `${reducerPath}/executeQuery`,
     (arg, { signal, rejectWithValue }) => {
-      return baseQuery(arg.internalQueryArgs, { signal, rejectWithValue });
+      return baseQuery(arg.internalQueryArgs, { signal, rejectWithValue }).then(
+        endpointDefinitions[arg.endpoint].postProcess ?? defaultPostProcess
+      );
     },
     {
       condition(arg, { getState }) {
@@ -49,7 +58,9 @@ export function buildThunks<InternalQueryArgs, ReducerPath extends string>({
     MutationThunkArg<InternalQueryArgs>,
     { state: InternalRootState<ReducerPath> }
   >(`${reducerPath}/executeMutation`, (arg, { signal, rejectWithValue }) => {
-    return baseQuery(arg.internalQueryArgs, { signal, rejectWithValue });
+    return baseQuery(arg.internalQueryArgs, { signal, rejectWithValue }).then(
+      endpointDefinitions[arg.endpoint].postProcess ?? defaultPostProcess
+    );
   });
 
   return { queryThunk, mutationThunk };

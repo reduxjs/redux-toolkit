@@ -41,7 +41,7 @@ export function createApi<
     mutation: (x) => ({ ...x, type: DefinitionType.mutation }),
   });
 
-  const { queryThunk, mutationThunk } = buildThunks({ baseQuery, reducerPath });
+  const { queryThunk, mutationThunk } = buildThunks({ baseQuery, reducerPath, endpointDefinitions });
 
   const {
     reducer: _reducer,
