@@ -1,12 +1,13 @@
 import { QueryApi } from './buildThunks';
 
 interface FetchArgs extends RequestInit {
-  queryString: string;
+  url: string;
 }
 
 export function fetchBaseQuery({ baseUrl }: { baseUrl: string } = { baseUrl: '' }) {
-  return async ({ queryString, method = 'GET', ...rest }: FetchArgs, { signal, rejectWithValue }: QueryApi) => {
-    const result = await fetch(`${baseUrl}/${queryString}`, {
+  return async (arg: string | FetchArgs, { signal, rejectWithValue }: QueryApi) => {
+    const { url, method = 'GET', ...rest } = typeof arg == 'string' ? { url: arg } : arg;
+    const result = await fetch(`${baseUrl}/${url}`, {
       method,
       headers: {
         'Content-Type': 'application/json',

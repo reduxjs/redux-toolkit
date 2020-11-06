@@ -37,21 +37,21 @@ const api = createApi({
     listUsers: builder.query<ListResponse<User>, number | void>({
       query(page = 1) {
         return {
-          queryString: `users?page=${page}`,
+          url: `users?page=${page}`,
         };
       },
     }),
     getUser: builder.query<SingleResponse<User>, number>({
       query(id) {
         return {
-          queryString: `users/${id}`,
+          url: `users/${id}`,
         };
       },
     }),
     createUser: builder.mutation<User, Partial<User>>({
       query(data) {
         return {
-          queryString: `users`,
+          url: `users`,
           method: 'POST',
           body: JSON.stringify(data),
         };
@@ -60,7 +60,7 @@ const api = createApi({
     updateUser: builder.mutation<User, { id: number; patch: Partial<User> }>({
       query({ id, patch }) {
         return {
-          queryString: `users/${id}`,
+          url: `users/${id}`,
           method: 'PATCH',
           body: JSON.stringify(patch),
         };
@@ -69,7 +69,7 @@ const api = createApi({
     deleteUser: builder.mutation<void, number>({
       query(id) {
         return {
-          queryString: `users/${id}`,
+          url: `users/${id}`,
           method: 'DELETE',
         };
       },
@@ -119,7 +119,7 @@ const api = createApi({
     listUsers: builder.query<ListResponse<User>, number | void>({
       query(page = 1) {
         return {
-          queryString: `users?page=${page}`,
+          url: `users?page=${page}`,
         };
       },
 +      provides: [{type: 'User'}]
@@ -128,7 +128,7 @@ const api = createApi({
     createUser: builder.mutation<User, Partial<User>>({
       query(data) {
         return {
-          queryString: `users`,
+          url: `users`,
           method: 'POST',
           body: JSON.stringify(data),
         };
@@ -149,7 +149,7 @@ const api = createApi({
     listUsers: builder.query<ListResponse<User>, number | void>({
       query(page = 1) {
         return {
-          queryString: `users?page=${page}`,
+          url: `users?page=${page}`,
         };
       },
 -      provides: [{type: 'User'}]
@@ -158,7 +158,7 @@ const api = createApi({
     getUser: builder.query<SingleResponse<User>, number>({
       query(id) {
         return {
-          queryString: `users/${id}`,
+          url: `users/${id}`,
         };
       },
 -      provides: [{type: 'User'}]
@@ -167,7 +167,7 @@ const api = createApi({
     createUser: builder.mutation<User, Partial<User>>({
       query(data) {
         return {
-          queryString: `users`,
+          url: `users`,
           method: 'POST',
           body: JSON.stringify(data),
         };
@@ -178,7 +178,7 @@ const api = createApi({
     updateUser: builder.mutation<User, { id: number; patch: Partial<User> }>({
       query({ id, patch }) {
         return {
-          queryString: `users/${id}`,
+          url: `users/${id}`,
           method: 'PATCH',
           body: JSON.stringify(patch),
         };
@@ -189,7 +189,7 @@ const api = createApi({
     deleteUser: builder.mutation<void, number>({
       query(id) {
         return {
-          queryString: `users/${id}`,
+          url: `users/${id}`,
           method: 'DELETE',
         };
       },

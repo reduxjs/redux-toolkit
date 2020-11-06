@@ -10,14 +10,12 @@ export const counterApi = createApi({
     entityTypes: ['Counter'],
     endpoints: (build) => ({
         getCount: build.query<CountResponse, void>({
-            query: () => ({
-                queryString: `count`,
-            }),
+            query: () => `count`,
             provides: [{ type: 'Counter' }],
         }),
         incrementCount: build.mutation<CountResponse, number>({
             query: (amount) => ({
-                queryString: `increment`,
+                url: `increment`,
                 method: 'PUT',
                 body: JSON.stringify({ amount }),
             }),
@@ -25,7 +23,7 @@ export const counterApi = createApi({
         }),
         decrementCount: build.mutation<CountResponse, number>({
             query: (amount) => ({
-                queryString: `decrement`,
+                url: `decrement`,
                 method: 'PUT',
                 body: JSON.stringify({ amount }),
             }),

@@ -7,7 +7,7 @@ import { renderHook, act } from '@testing-library/react-hooks';
 
 describe('examples', () => {
   interface QueryArg {
-    queryString: string;
+    url: string;
     method?: string;
     body?: string;
   }
@@ -19,9 +19,9 @@ describe('examples', () => {
 
   const api = createApi({
     reducerPath: 'api',
-    baseQuery({ queryString, method = 'GET', body }: QueryArg) {
+    baseQuery({ url, method = 'GET', body }: QueryArg) {
       /*
-          return fetch(`https://example.com/${queryString}`, {
+          return fetch(`https://example.com/${url}`, {
             method,
             body,
           }).then((result) => result.json());
@@ -32,14 +32,14 @@ describe('examples', () => {
     endpoints: (build) => ({
       getUser: build.query<User, string>({
         query(id) {
-          return { queryString: `user/${id}` };
+          return { url: `user/${id}` };
         },
         provides: (result) => [{ type: 'User', id: result.id }],
       }),
       updateUser: build.mutation<User, { id: string; patch: Partial<User> }>({
         query({ id, patch }) {
           return {
-            queryString: `user/${id}`,
+            url: `user/${id}`,
             method: 'PATCH',
             body: JSON.stringify(patch),
           };
