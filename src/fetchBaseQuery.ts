@@ -4,7 +4,7 @@ interface FetchArgs extends RequestInit {
   queryString: string;
 }
 
-export function fetchBaseQuery({ baseUrl }: { baseUrl: string }) {
+export function fetchBaseQuery({ baseUrl }: { baseUrl: string } = { baseUrl: '' }) {
   return async ({ queryString, method = 'GET', ...rest }: FetchArgs, { signal, rejectWithValue }: QueryApi) => {
     const result = await fetch(`${baseUrl}/${queryString}`, {
       method,
