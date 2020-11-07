@@ -13,6 +13,7 @@ export interface MutationThunkArg<InternalQueryArgs> {
   arg: unknown;
   endpoint: string;
   internalQueryArgs: InternalQueryArgs;
+  track?: boolean;
 }
 
 export interface QueryApi {

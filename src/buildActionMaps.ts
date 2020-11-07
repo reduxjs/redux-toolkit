@@ -51,7 +51,18 @@ export type StartMutationActionCreator<D extends MutationDefinition<any, any, an
   any,
   any
 >
-  ? (arg: QueryArg) => ThunkAction<MutationActionCreatorResult<D>, any, any, AnyAction>
+  ? (
+      arg: QueryArg,
+      options?: {
+        /**
+         * If this mutation should be tracked in the store.
+         * If you just want to manually trigger this mutation using `dispatch` and don't care about the
+         * result, state & potential errors being held in store, you can set this to false.
+         * (defaults to `true`)
+         */
+        track?: boolean;
+      }
+    ) => ThunkAction<MutationActionCreatorResult<D>, any, any, AnyAction>
   : never;
 
 export type MutationActionCreatorResult<
@@ -116,13 +127,14 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
           dispatch(queryAction(arg, { subscribe: false, forceRefetch: true }));
         },
         unsubscribe() {
-          dispatch(
-            unsubscribeQueryResult({
-              endpoint,
-              serializedQueryArgs,
-              requestId: thunkResult.requestId,
-            })
-          );
+          if (subscribe)
+            dispatch(
+              unsubscribeQueryResult({
+                endpoint,
+                serializedQueryArgs,
+                requestId: thunkResult.requestId,
+              })
+            );
         },
       });
     };
@@ -133,9 +145,9 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
     endpoint: string,
     definition: MutationDefinition<any, any, any, any>
   ): StartMutationActionCreator<any> {
-    return (arg) => (dispatch, getState) => {
+    return (arg, { track = true } = {}) => (dispatch, getState) => {
       const internalQueryArgs = definition.query(arg);
-      const thunk = mutationThunk({ endpoint, internalQueryArgs, arg });
+      const thunk = mutationThunk({ endpoint, internalQueryArgs, arg, track });
       const thunkResult = dispatch(thunk);
       assertIsNewRTKPromise(thunkResult);
       const statePromise = thunkResult.then(() => {
@@ -147,7 +159,7 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
         requestId: thunkResult.requestId,
         abort: thunkResult.abort,
         unsubscribe() {
-          dispatch(unsubscribeMutationResult({ endpoint, requestId: thunkResult.requestId }));
+          if (track) dispatch(unsubscribeMutationResult({ endpoint, requestId: thunkResult.requestId }));
         },
       });
     };

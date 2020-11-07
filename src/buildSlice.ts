@@ -123,18 +123,27 @@ export function buildSlice({
     extraReducers(builder) {
       builder
         .addCase(mutationThunk.pending, (draft, { meta: { arg, requestId } }) => {
+          if (!arg.track) {
+            return;
+          }
           (draft[arg.endpoint] ??= {})[requestId] = {
             status: QueryStatus.pending,
             arg: arg.arg,
           };
         })
         .addCase(mutationThunk.fulfilled, (draft, { payload, meta: { requestId, arg } }) => {
+          if (!arg.track) {
+            return;
+          }
           updateMutationSubstateIfExists(draft, { requestId, endpoint: arg.endpoint }, (substate) => {
             substate.status = QueryStatus.fulfilled;
             substate.data = payload;
           });
         })
         .addCase(mutationThunk.rejected, (draft, { payload, error, meta: { requestId, arg } }) => {
+          if (!arg.track) {
+            return;
+          }
           updateMutationSubstateIfExists(draft, { requestId, endpoint: arg.endpoint }, (substate) => {
             substate.status = QueryStatus.rejected;
             substate.error = payload ?? error;
