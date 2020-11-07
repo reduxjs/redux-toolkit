@@ -7,10 +7,10 @@ import {
   EndpointDefinition,
 } from './endpointDefinitions';
 import type { QueryThunkArg, MutationThunkArg } from './buildThunks';
-import { AnyAction, AsyncThunk, AsyncThunkAction, ThunkAction } from '@reduxjs/toolkit';
-import { QuerySubState } from './apiState';
-import { QueryResultSelectors } from './buildSelectors';
-import { UnsubscribeQueryResult } from './buildSlice';
+import { AnyAction, AsyncThunk, ThunkAction } from '@reduxjs/toolkit';
+import { MutationSubState, QueryStatus, QuerySubState } from './apiState';
+import { MutationResultSelectors, QueryResultSelectors } from './buildSelectors';
+import { UnsubscribeMutationResult, UnsubscribeQueryResult } from './buildSlice';
 
 export type StartQueryActionCreator<D extends QueryDefinition<any, any, any, any>> = D extends QueryDefinition<
   infer QueryArg,
@@ -45,16 +45,29 @@ export type QueryActions<Definitions extends EndpointDefinitions> = {
     : never;
 };
 
-type StartMutationActionCreator<
-  D extends MutationDefinition<any, any, any, any>,
-  ThunkArg
-> = D extends MutationDefinition<infer QueryArg, any, any, infer ResultType>
-  ? (arg: QueryArg) => AsyncThunkAction<ResultType, ThunkArg, {}>
+export type StartMutationActionCreator<D extends MutationDefinition<any, any, any, any>> = D extends MutationDefinition<
+  infer QueryArg,
+  any,
+  any,
+  any
+>
+  ? (arg: QueryArg) => ThunkAction<MutationActionCreatorResult<D>, any, any, AnyAction>
   : never;
 
-export type MutationActions<Definitions extends EndpointDefinitions, InternalQueryArgs> = {
-  [K in keyof Definitions]: Definitions[K] extends MutationDefinition<infer QueryArg, infer InternalQueryArg, any, any>
-    ? StartMutationActionCreator<Definitions[K], MutationThunkArg<InternalQueryArgs>>
+export type MutationActionCreatorResult<
+  D extends MutationDefinition<any, any, any, any>
+> = D extends MutationDefinition<infer QueryArg, any, any, any>
+  ? Promise<Extract<MutationSubState<D>, { status: QueryStatus.fulfilled | QueryStatus.rejected }>> & {
+      arg: QueryArg;
+      requestId: string;
+      abort(): void;
+      unsubscribe(): void;
+    }
+  : never;
+
+export type MutationActions<Definitions extends EndpointDefinitions> = {
+  [K in keyof Definitions]: Definitions[K] extends MutationDefinition<any, any, any, any>
+    ? StartMutationActionCreator<Definitions[K]>
     : never;
 };
 
@@ -65,6 +78,8 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
   querySelectors,
   unsubscribeQueryResult,
   mutationThunk,
+  mutationSelectors,
+  unsubscribeMutationResult,
 }: {
   endpointDefinitions: Definitions;
   serializeQueryArgs(args: InternalQueryArgs): string;
@@ -72,6 +87,8 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
   querySelectors: QueryResultSelectors<Definitions, any>;
   unsubscribeQueryResult: UnsubscribeQueryResult;
   mutationThunk: AsyncThunk<unknown, MutationThunkArg<any>, {}>;
+  mutationSelectors: MutationResultSelectors<Definitions, any>;
+  unsubscribeMutationResult: UnsubscribeMutationResult;
 }) {
   function buildQueryAction(endpoint: string, definition: QueryDefinition<any, any, any, any>) {
     const queryAction: StartQueryActionCreator<any> = (arg, { subscribe = true, forceRefetch = false } = {}) => (
@@ -89,6 +106,7 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
         arg,
       });
       const thunkResult = dispatch(thunk);
+      assertIsNewRTKPromise(thunkResult);
       const statePromise = thunkResult.then(() => querySelectors[endpoint](arg)(getState()));
       return Object.assign(statePromise, {
         arg: thunkResult.arg,
@@ -111,28 +129,60 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
     return queryAction;
   }
 
-  const queryActions = Object.entries(endpointDefinitions).reduce(
+  function buildMutationAction(
+    endpoint: string,
+    definition: MutationDefinition<any, any, any, any>
+  ): StartMutationActionCreator<any> {
+    return (arg) => (dispatch, getState) => {
+      const internalQueryArgs = definition.query(arg);
+      const thunk = mutationThunk({ endpoint, internalQueryArgs, arg });
+      const thunkResult = dispatch(thunk);
+      assertIsNewRTKPromise(thunkResult);
+      const statePromise = thunkResult.then(() => {
+        const currentState = mutationSelectors[endpoint](thunkResult.requestId)(getState());
+        return currentState as Extract<typeof currentState, { status: QueryStatus.fulfilled | QueryStatus.rejected }>;
+      });
+      return Object.assign(statePromise, {
+        arg: thunkResult.arg,
+        requestId: thunkResult.requestId,
+        abort: thunkResult.abort,
+        unsubscribe() {
+          dispatch(unsubscribeMutationResult({ endpoint, requestId: thunkResult.requestId }));
+        },
+      });
+    };
+  }
+
+  const queryActions = Object.entries(endpointDefinitions).reduce<Record<string, StartQueryActionCreator<any>>>(
     (acc, [name, endpoint]: [string, EndpointDefinition<any, any, any, any>]) => {
       if (isQueryDefinition(endpoint)) {
         acc[name] = buildQueryAction(name, endpoint);
       }
       return acc;
     },
-    {} as Record<string, StartQueryActionCreator<any>>
+    {}
   ) as QueryActions<Definitions>;
 
-  const mutationActions = Object.entries(endpointDefinitions).reduce(
+  const mutationActions = Object.entries(endpointDefinitions).reduce<Record<string, StartMutationActionCreator<any>>>(
     (acc, [name, endpoint]: [string, EndpointDefinition<any, any, any, any>]) => {
       if (isMutationDefinition(endpoint)) {
-        acc[name] = (arg) => {
-          const internalQueryArgs = endpoint.query(arg);
-          return mutationThunk({ endpoint: name, internalQueryArgs, arg });
-        };
+        acc[name] = buildMutationAction(name, endpoint);
       }
       return acc;
     },
-    {} as Record<string, StartMutationActionCreator<any, any>>
-  ) as MutationActions<Definitions, InternalQueryArgs>;
+    {}
+  ) as MutationActions<Definitions>;
 
   return { queryActions, mutationActions };
+}
+
+function assertIsNewRTKPromise(action: ReturnType<ThunkAction<any, any, any, any>>) {
+  if (!('requestId' in action) || !('arg' in action)) {
+    throw new Error(`
+    You are running a version of RTK that is too old.
+    Currently you need an experimental build of RTK.
+    Please install it via
+    yarn add "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/56994225/@reduxjs/toolkit"
+    `);
+  }
 }

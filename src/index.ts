@@ -63,6 +63,8 @@ export function createApi<
     endpointDefinitions,
     querySelectors,
     unsubscribeQueryResult,
+    mutationSelectors,
+    unsubscribeMutationResult,
   });
 
   const { middleware } = buildMiddleware({

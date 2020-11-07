@@ -1,6 +1,6 @@
-import { AnyAction, AsyncThunkAction, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
+import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useDispatch, useSelector, useStore, batch } from 'react-redux';
+import { useDispatch, useSelector, batch } from 'react-redux';
 import { MutationSubState, QueryStatus, QuerySubState } from './apiState';
 import {
   EndpointDefinitions,
@@ -10,7 +10,12 @@ import {
   isMutationDefinition,
 } from './endpointDefinitions';
 import { QueryResultSelectors, MutationResultSelectors, skipSelector } from './buildSelectors';
-import { QueryActions, MutationActions, QueryActionCreatorResult } from './buildActionMaps';
+import {
+  QueryActions,
+  MutationActions,
+  QueryActionCreatorResult,
+  MutationActionCreatorResult,
+} from './buildActionMaps';
 import { UnsubscribeMutationResult, UnsubscribeQueryResult } from './buildSlice';
 
 export interface QueryHookOptions {
@@ -68,7 +73,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   queryActions: QueryActions<Definitions>;
   unsubscribeQueryResult: UnsubscribeQueryResult;
   mutationSelectors: MutationResultSelectors<Definitions, any>;
-  mutationActions: MutationActions<Definitions, any>;
+  mutationActions: MutationActions<Definitions>;
   unsubscribeMutationResult: UnsubscribeMutationResult;
 }) {
   const hooks: Hooks<Definitions> = Object.entries(endpointDefinitions).reduce<Hooks<any>>((acc, [name, endpoint]) => {
@@ -96,17 +101,12 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           return;
         }
         const promise = dispatch(startQuery(arg));
-        assertIsNewRTKPromise(promise);
         currentPromiseRef.current = promise;
         return () => void promise.unsubscribe();
       }, [arg, dispatch, skip]);
 
       const currentState = useSelector(querySelector(skip ? skipSelector : arg));
-      const refetch = useCallback(() => {
-        if (currentPromiseRef.current) {
-          currentPromiseRef.current.refetch();
-        }
-      }, []);
+      const refetch = useCallback(() => void currentPromiseRef.current?.refetch(), []);
 
       return useMemo(() => ({ ...currentState, refetch }), [currentState, refetch]);
     };
@@ -116,54 +116,28 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     return () => {
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
       const [requestId, setRequestId] = useState<string>();
-      const store = useStore();
 
-      const promiseRef = useRef<ReturnType<AsyncThunkAction<any, any, any>>>();
+      const promiseRef = useRef<MutationActionCreatorResult<any>>();
 
-      useEffect(() => {
-        return () => {
-          if (promiseRef.current) {
-            dispatch(unsubscribeMutationResult({ endpoint: name, requestId: promiseRef.current.requestId }));
-          }
-        };
-      }, [dispatch]);
+      useEffect(() => () => void promiseRef.current?.unsubscribe(), []);
 
       const triggerMutation = useCallback(
         function (args) {
-          let promise: ReturnType<AsyncThunkAction<any, any, any>>;
+          let promise: MutationActionCreatorResult<any>;
           batch(() => {
-            if (promiseRef.current) {
-              dispatch(unsubscribeMutationResult({ endpoint: name, requestId: promiseRef.current.requestId }));
-            }
+            // false positive:
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+            promiseRef.current?.unsubscribe();
             promise = dispatch(mutationActions[name](args));
-            assertIsNewRTKPromise(promise);
             promiseRef.current = promise;
             setRequestId(promise.requestId);
           });
-          return promise!.then(() => {
-            const state = store.getState();
-            const mutationSubState = mutationSelectors[name](promise.requestId)(state);
-            return mutationSubState as Extract<
-              typeof mutationSubState,
-              { status: QueryStatus.fulfilled | QueryStatus.rejected }
-            >;
-          });
+          return promise!;
         },
-        [dispatch, store]
+        [dispatch]
       );
 
       return [triggerMutation, useSelector(mutationSelectors[name](requestId || skipSelector))];
     };
-  }
-}
-
-function assertIsNewRTKPromise(action: ReturnType<ThunkAction<any, any, any, any>>) {
-  if (!('requestId' in action) || !('arg' in action)) {
-    throw new Error(`
-    You are running a version of RTK that is too old.
-    Currently you need an experimental build of RTK.
-    Please install it via
-    yarn add "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/56994225/@reduxjs/toolkit"
-    `);
   }
 }
