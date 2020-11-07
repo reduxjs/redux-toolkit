@@ -81,10 +81,8 @@ export function createApi<
     endpointDefinitions,
     querySelectors,
     queryActions,
-    unsubscribeQueryResult,
     mutationSelectors,
     mutationActions,
-    unsubscribeMutationResult,
   });
 
   return {

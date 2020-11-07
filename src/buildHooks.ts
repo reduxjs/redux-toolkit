@@ -16,7 +16,6 @@ import {
   QueryActionCreatorResult,
   MutationActionCreatorResult,
 } from './buildActionMaps';
-import { UnsubscribeMutationResult, UnsubscribeQueryResult } from './buildSlice';
 
 export interface QueryHookOptions {
   skip?: boolean;
@@ -66,15 +65,12 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   queryActions,
   mutationSelectors,
   mutationActions,
-  unsubscribeMutationResult,
 }: {
   endpointDefinitions: Definitions;
   querySelectors: QueryResultSelectors<Definitions, any>;
   queryActions: QueryActions<Definitions>;
-  unsubscribeQueryResult: UnsubscribeQueryResult;
   mutationSelectors: MutationResultSelectors<Definitions, any>;
   mutationActions: MutationActions<Definitions>;
-  unsubscribeMutationResult: UnsubscribeMutationResult;
 }) {
   const hooks: Hooks<Definitions> = Object.entries(endpointDefinitions).reduce<Hooks<any>>((acc, [name, endpoint]) => {
     if (isQueryDefinition(endpoint)) {
