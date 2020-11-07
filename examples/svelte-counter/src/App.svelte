@@ -1,33 +1,19 @@
 <script lang="ts">
-    import { onDestroy, onMount } from 'svelte';
+    import { onMount } from 'svelte';
     import { QueryStatus } from '../../../dist';
     import { counterApi } from './services/counter';
     import { store } from './store';
 
     const { incrementCount, decrementCount } = counterApi.mutationActions;
-
-    let data;
-    let status;
-    let error;
-
-    const selector = counterApi.selectors.query.getCount();
-    const unsubscribeSelector = store.subscribe(() => ({ data, status, error } = selector(store.getState())));
-
-    const increment = () => store.dispatch(incrementCount(1));
-
-    const decrement = () => store.dispatch(decrementCount(1));
-
+    
+    $: ({ data, status, error } = counterApi.selectors.query.getCount()($store));
+    
     $: loading = status === QueryStatus.pending;
-
-    let getCount, unsubscribe;
+    
+    let getCount = () => {};
 
     onMount(async () => {
-        ({ refetch: getCount, unsubscribe } = store.dispatch(counterApi.queryActions.getCount()));
-    });
-
-    onDestroy(() => {
-        unsubscribe?.();
-        unsubscribeSelector();
+        ({ refetch: getCount } = store.dispatch(counterApi.queryActions.getCount()));
     });
 </script>
 
@@ -55,7 +41,7 @@
 
 <main>
     <h1>{data?.count || 0}</h1>
-    <button on:click={increment}>Increase</button>
-    <button on:click={decrement}>Decrease</button>
+    <button on:click={() => store.dispatch(incrementCount(1))}>Increase</button>
+    <button on:click={() => store.dispatch(decrementCount(1))}>Decrease</button>
     <button on:click={getCount} disabled={loading}>Refetch count</button>
 </main>
