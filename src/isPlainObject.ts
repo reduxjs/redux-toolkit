@@ -5,6 +5,8 @@
  *
  * @param {any} value The value to inspect.
  * @returns {boolean} True if the argument appears to be a plain object.
+ *
+ * @public
  */
 export default function isPlainObject(value: unknown): value is object {
   if (typeof value !== 'object' || value === null) return false

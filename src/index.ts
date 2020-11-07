@@ -107,3 +107,5 @@ export {
 } from './createAsyncThunk'
 
 export { nanoid } from './nanoid'
+
+export { default as isPlainObject } from './isPlainObject'

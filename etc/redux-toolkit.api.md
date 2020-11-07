@@ -301,6 +301,9 @@ export function isImmutableDefault(value: unknown): boolean;
 // @public
 export function isPlain(val: any): boolean;
 
+// @public
+export function isPlainObject(value: unknown): value is object;
+
 // @public (undocumented)
 export class MiddlewareArray<Middlewares extends Middleware<any, any>> extends Array<Middlewares> {
     // (undocumented)
