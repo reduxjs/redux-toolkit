@@ -2,7 +2,7 @@ import { AnyAction, AsyncThunk, Middleware, ThunkDispatch } from '@reduxjs/toolk
 import { batch as reactBatch } from 'react-redux';
 import { QueryState, QueryStatus, RootState } from './apiState';
 import { QueryActions } from './buildActionMaps';
-import { InternalState, InvalidateQueryResult, UnsubscribeQueryResult } from './buildSlice';
+import { InternalState, SliceActions } from './buildSlice';
 import { MutationThunkArg } from './buildThunks';
 import { calculateProvidedBy, EndpointDefinitions } from './endpointDefinitions';
 
@@ -13,16 +13,14 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
   endpointDefinitions,
   queryActions,
   mutationThunk,
-  removeQueryResult,
-  unsubscribeQueryResult,
   keepUnusedDataFor,
+  sliceActions: { removeQueryResult, unsubscribeQueryResult },
 }: {
   reducerPath: ReducerPath;
   endpointDefinitions: EndpointDefinitions;
   queryActions: QueryActions<Definitions>;
   mutationThunk: AsyncThunk<unknown, MutationThunkArg<any>, {}>;
-  removeQueryResult: InvalidateQueryResult;
-  unsubscribeQueryResult: UnsubscribeQueryResult;
+  sliceActions: SliceActions;
   keepUnusedDataFor: number;
 }) {
   const currentTimeouts: Record<string, undefined | Record<string, undefined | ReturnType<typeof setTimeout>>> = {};
@@ -68,7 +66,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
               } else if (querySubState.status !== QueryStatus.uninitialized) {
                 const startQuery = queryActions[endpoint];
                 const arg = querySubState.arg;
-                api.dispatch(startQuery(arg, { subscribe: false, forceRefetch: true }));
+                api.dispatch(startQuery(arg as any, { subscribe: false, forceRefetch: true }));
               } else {
               }
             }

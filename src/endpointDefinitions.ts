@@ -82,3 +82,18 @@ function isFunction<T>(t: T): t is Extract<T, Function> {
 function expandEntityDescription(description: EntityDescription<string>): FullEntityDescription<string> {
   return typeof description === 'string' ? { type: description } : description;
 }
+
+export type QueryArgFrom<D extends BaseEndpointDefinition<any, any, any>> = D extends BaseEndpointDefinition<
+  infer QA,
+  any,
+  any
+>
+  ? QA
+  : unknown;
+export type ResultTypeFrom<D extends BaseEndpointDefinition<any, any, any>> = D extends BaseEndpointDefinition<
+  any,
+  any,
+  infer RT
+>
+  ? RT
+  : unknown;

@@ -1,13 +1,14 @@
 import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector, batch } from 'react-redux';
-import { MutationSubState, QueryStatus, QuerySubState } from './apiState';
+import { MutationSubState, QueryStatus, QuerySubState, SubscriptionOptions } from './apiState';
 import {
   EndpointDefinitions,
   MutationDefinition,
   QueryDefinition,
   isQueryDefinition,
   isMutationDefinition,
+  QueryArgFrom,
 } from './endpointDefinitions';
 import { QueryResultSelectors, MutationResultSelectors, skipSelector } from './buildSelectors';
 import {
@@ -17,35 +18,24 @@ import {
   MutationActionCreatorResult,
 } from './buildActionMaps';
 
-export interface QueryHookOptions {
+export interface QueryHookOptions extends SubscriptionOptions {
   skip?: boolean;
 }
 
-export type QueryHook<D extends QueryDefinition<any, any, any, any>> = D extends QueryDefinition<
-  infer QueryArg,
-  any,
-  any,
-  any
->
-  ? (arg: QueryArg, options?: QueryHookOptions) => QueryHookResult<D>
-  : never;
+export type QueryHook<D extends QueryDefinition<any, any, any, any>> = (
+  arg: QueryArgFrom<D>,
+  options?: QueryHookOptions
+) => QueryHookResult<D>;
 
 export type QueryHookResult<D extends QueryDefinition<any, any, any, any>> = QuerySubState<D> &
   Pick<QueryActionCreatorResult<D>, 'refetch'>;
 
-export type MutationHook<D extends MutationDefinition<any, any, any, any>> = D extends MutationDefinition<
-  infer QueryArg,
-  any,
-  any,
-  any
->
-  ? () => [
-      (
-        arg: QueryArg
-      ) => Promise<Extract<MutationSubState<D>, { status: QueryStatus.fulfilled | QueryStatus.rejected }>>,
-      MutationSubState<D>
-    ]
-  : never;
+export type MutationHook<D extends MutationDefinition<any, any, any, any>> = () => [
+  (
+    arg: QueryArgFrom<D>
+  ) => Promise<Extract<MutationSubState<D>, { status: QueryStatus.fulfilled | QueryStatus.rejected }>>,
+  MutationSubState<D>
+];
 
 export type Hooks<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends QueryDefinition<any, any, any, any>
@@ -86,23 +76,30 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   function buildQueryHook(name: string): QueryHook<any> {
     const startQuery = queryActions[name];
     const querySelector = querySelectors[name];
-    return (arg, options) => {
+    return (arg: any, { skip = false, pollingInterval = 0 } = {}) => {
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
-      const skip = options?.skip === true;
 
-      const currentPromiseRef = useRef<QueryActionCreatorResult<any>>();
+      const promiseRef = useRef<QueryActionCreatorResult<any>>();
 
       useEffect(() => {
         if (skip) {
           return;
         }
-        const promise = dispatch(startQuery(arg));
-        currentPromiseRef.current = promise;
-        return () => void promise.unsubscribe();
-      }, [arg, dispatch, skip]);
+        const lastPromise = promiseRef.current;
+        if (lastPromise && lastPromise.arg === arg) {
+          // arg did not change, but options did probably, update them
+          lastPromise.updateSubscriptionOptions({ pollingInterval });
+        } else {
+          if (lastPromise) lastPromise.unsubscribe();
+          const promise = dispatch(startQuery(arg));
+          promiseRef.current = promise;
+        }
+      }, [arg, dispatch, skip, pollingInterval]);
+
+      useEffect(() => () => void promiseRef.current?.unsubscribe());
 
       const currentState = useSelector(querySelector(skip ? skipSelector : arg));
-      const refetch = useCallback(() => void currentPromiseRef.current?.refetch(), []);
+      const refetch = useCallback(() => void promiseRef.current?.refetch(), []);
 
       return useMemo(() => ({ ...currentState, refetch }), [currentState, refetch]);
     };
@@ -121,9 +118,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         function (args) {
           let promise: MutationActionCreatorResult<any>;
           batch(() => {
-            // false positive:
-            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-            promiseRef.current?.unsubscribe();
+            if (promiseRef.current) promiseRef.current.unsubscribe();
             promise = dispatch(mutationActions[name](args));
             promiseRef.current = promise;
             setRequestId(promise.requestId);

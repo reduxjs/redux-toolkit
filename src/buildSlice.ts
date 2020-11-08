@@ -9,6 +9,7 @@ import {
   MutationState,
   QueryState,
   InvalidationState,
+  Subscribers,
 } from './apiState';
 import type { MutationThunkArg, QueryThunkArg } from './buildThunks';
 import { calculateProvidedBy, EndpointDefinitions } from './endpointDefinitions';
@@ -52,18 +53,28 @@ export function buildSlice({
     name: `${reducerPath}/queries`,
     initialState: {} as QueryState<any>,
     reducers: {
+      updateSubscriptionOptions(
+        draft,
+        {
+          payload: { endpoint, serializedQueryArgs, requestId, options },
+        }: PayloadAction<{ requestId: string; options: Subscribers[number] } & QuerySubstateIdentifier>
+      ) {
+        updateQuerySubstateIfExists(draft, { endpoint, serializedQueryArgs }, (substate) => {
+          // don't accidentally add a subscription, just update
+          if (substate.subscribers[requestId]) {
+            substate.subscribers[requestId] = options;
+          }
+        });
+      },
       unsubscribeResult(
         draft,
         {
           payload: { endpoint, serializedQueryArgs, requestId },
         }: PayloadAction<{ requestId: string } & QuerySubstateIdentifier>
       ) {
-        const substate = draft[endpoint]?.[serializedQueryArgs];
-        if (!substate) return;
-        const index = substate.subscribers.indexOf(requestId);
-        if (index >= 0) {
-          substate.subscribers.splice(index, 1);
-        }
+        updateQuerySubstateIfExists(draft, { endpoint, serializedQueryArgs }, (substate) => {
+          delete substate.subscribers[requestId];
+        });
       },
       removeQueryResult(draft, { payload: { endpoint, serializedQueryArgs } }: PayloadAction<QuerySubstateIdentifier>) {
         const endpointSubstate = draft[endpoint];
@@ -76,34 +87,41 @@ export function buildSlice({
       builder
         .addCase(queryThunk.pending, (draft, { meta: { arg, requestId } }) => {
           if (arg.subscribe) {
-            const substate = ((draft[arg.endpoint] ??= {})[arg.serializedQueryArgs] ??= {
-              status: QueryStatus.pending,
-              arg: arg.arg,
-              subscribers: [],
-            });
-            substate.subscribers.push(requestId);
-          } else {
-            updateQuerySubstateIfExists(draft, arg, (substate) => {
-              substate.status = QueryStatus.pending;
-            });
+            // only initialize substate if we want to subscribe to it
+            (draft[arg.endpoint] ??= {})[arg.serializedQueryArgs] ??= {
+              status: QueryStatus.uninitialized,
+              subscribers: {},
+            };
           }
-        })
-        .addCase(queryThunk.fulfilled, (draft, action) => {
-          updateQuerySubstateIfExists(draft, action.meta.arg, (substate) => {
-            substate.status = QueryStatus.fulfilled;
-            substate.data = action.payload;
+
+          updateQuerySubstateIfExists(draft, arg, (substate) => {
+            substate.status = QueryStatus.pending;
+            substate.requestId = requestId;
+            substate.arg = arg.arg;
+            if (arg.subscribe) {
+              substate.subscribers[requestId] = arg.subscriptionOptions ?? substate.subscribers[requestId] ?? {};
+            }
           });
         })
-        .addCase(queryThunk.rejected, (draft, action) => {
-          updateQuerySubstateIfExists(draft, action.meta.arg, (substate) => {
-            if (action.meta.condition) {
-              // request was aborted due to condition - we still want to subscribe to the current value!
-              if (action.meta.arg.subscribe) {
-                substate.subscribers.push(action.meta.requestId);
+        .addCase(queryThunk.fulfilled, (draft, { meta, payload }) => {
+          updateQuerySubstateIfExists(draft, meta.arg, (substate) => {
+            if (substate.requestId !== meta.requestId) return;
+            substate.status = QueryStatus.fulfilled;
+            substate.data = payload;
+          });
+        })
+        .addCase(queryThunk.rejected, (draft, { meta: { condition, arg, requestId }, error, payload }) => {
+          updateQuerySubstateIfExists(draft, arg, (substate) => {
+            if (condition) {
+              // request was aborted due to condition (another query already running) - we still want to subscribe to the current value!
+              if (arg.subscribe) {
+                substate.subscribers[requestId] = arg.subscriptionOptions ?? substate.subscribers[requestId] ?? {};
               }
             } else {
+              // request failed
+              if (substate.requestId !== requestId) return;
               substate.status = QueryStatus.rejected;
-              substate.error = action.payload ?? action.error;
+              substate.error = payload ?? error;
             }
           });
         });
@@ -123,27 +141,24 @@ export function buildSlice({
     extraReducers(builder) {
       builder
         .addCase(mutationThunk.pending, (draft, { meta: { arg, requestId } }) => {
-          if (!arg.track) {
-            return;
-          }
+          if (!arg.track) return;
+
           (draft[arg.endpoint] ??= {})[requestId] = {
             status: QueryStatus.pending,
             arg: arg.arg,
           };
         })
         .addCase(mutationThunk.fulfilled, (draft, { payload, meta: { requestId, arg } }) => {
-          if (!arg.track) {
-            return;
-          }
+          if (!arg.track) return;
+
           updateMutationSubstateIfExists(draft, { requestId, endpoint: arg.endpoint }, (substate) => {
             substate.status = QueryStatus.fulfilled;
             substate.data = payload;
           });
         })
         .addCase(mutationThunk.rejected, (draft, { payload, error, meta: { requestId, arg } }) => {
-          if (!arg.track) {
-            return;
-          }
+          if (!arg.track) return;
+
           updateMutationSubstateIfExists(draft, { requestId, endpoint: arg.endpoint }, (substate) => {
             substate.status = QueryStatus.rejected;
             substate.error = payload ?? error;
@@ -193,6 +208,7 @@ export function buildSlice({
   });
 
   const actions = {
+    updateSubscriptionOptions: querySlice.actions.updateSubscriptionOptions,
     removeQueryResult: querySlice.actions.removeQueryResult,
     unsubscribeQueryResult: querySlice.actions.unsubscribeResult,
     unsubscribeMutationResult: mutationSlice.actions.unsubscribeResult,
@@ -200,7 +216,4 @@ export function buildSlice({
 
   return { reducer, actions };
 }
-
-export type InvalidateQueryResult = ReturnType<typeof buildSlice>['actions']['removeQueryResult'];
-export type UnsubscribeQueryResult = ReturnType<typeof buildSlice>['actions']['unsubscribeQueryResult'];
-export type UnsubscribeMutationResult = ReturnType<typeof buildSlice>['actions']['unsubscribeMutationResult'];
+export type SliceActions = ReturnType<typeof buildSlice>['actions'];

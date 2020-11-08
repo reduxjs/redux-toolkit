@@ -1,12 +1,11 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { InternalRootState, QuerySubstateIdentifier } from './apiState';
+import { StartQueryActionCreatorOptions } from './buildActionMaps';
 import { EndpointDefinitions } from './endpointDefinitions';
 
-export interface QueryThunkArg<InternalQueryArgs> extends QuerySubstateIdentifier {
+export interface QueryThunkArg<InternalQueryArgs> extends QuerySubstateIdentifier, StartQueryActionCreatorOptions {
   arg: unknown;
   internalQueryArgs: InternalQueryArgs;
-  subscribe?: boolean;
-  forceRefetch?: boolean;
 }
 
 export interface MutationThunkArg<InternalQueryArgs> {

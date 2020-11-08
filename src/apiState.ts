@@ -3,7 +3,10 @@ import {
   MutationDefinition,
   EndpointDefinitions,
   BaseEndpointDefinition,
+  QueryArgFrom,
+  ResultTypeFrom,
 } from './endpointDefinitions';
+import { Id, WithRequiredProp } from './tsHelpers';
 
 export type QuerySubstateIdentifier = { endpoint: string; serializedQueryArgs: string };
 export type MutationSubstateIdentifier = { endpoint: string; requestId: string };
@@ -14,49 +17,43 @@ export enum QueryStatus {
   fulfilled = 'fulfilled',
   rejected = 'rejected',
 }
-type Subscribers = string[];
+
+export type SubscriptionOptions = { pollingInterval?: number };
+export type Subscribers = { [requestId: string]: SubscriptionOptions };
 type QueryKeys<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends QueryDefinition<any, any, any, any> ? K : never;
 }[keyof Definitions];
 type MutationKeys<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends MutationDefinition<any, any, any, any> ? K : never;
 }[keyof Definitions];
-type QueryArgs<D extends BaseEndpointDefinition<any, any, any>> = D extends BaseEndpointDefinition<infer QA, any, any>
-  ? QA
-  : unknown;
-type ResultType<D extends BaseEndpointDefinition<any, any, any>> = D extends BaseEndpointDefinition<any, any, infer RT>
-  ? RT
-  : unknown;
 
-export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> =
+type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
+  arg: QueryArgFrom<D>;
+  requestId: string;
+  data?: ResultTypeFrom<D>;
+  error?: unknown;
+  subscribers: Subscribers;
+};
+
+export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
+  | ({
+      status: QueryStatus.fulfilled;
+    } & WithRequiredProp<BaseQuerySubState<D>, 'data'>)
+  | ({
+      status: QueryStatus.pending;
+    } & BaseQuerySubState<D>)
+  | ({
+      status: QueryStatus.rejected;
+    } & WithRequiredProp<BaseQuerySubState<D>, 'error'>)
   | {
       status: QueryStatus.uninitialized;
       arg?: undefined;
       data?: undefined;
       error?: undefined;
+      requestId?: undefined;
       subscribers: Subscribers;
     }
-  | {
-      status: QueryStatus.pending;
-      arg: QueryArgs<D>;
-      data?: ResultType<D>;
-      error?: unknown;
-      subscribers: Subscribers;
-    }
-  | {
-      status: QueryStatus.rejected;
-      arg: QueryArgs<D>;
-      data?: ResultType<D>;
-      error: unknown;
-      subscribers: Subscribers;
-    }
-  | {
-      status: QueryStatus.fulfilled;
-      arg: QueryArgs<D>;
-      data: ResultType<D>;
-      error?: unknown;
-      subscribers: Subscribers;
-    };
+>;
 
 export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
   | {
@@ -67,20 +64,20 @@ export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
     }
   | {
       status: QueryStatus.pending;
-      arg: QueryArgs<D>;
+      arg: QueryArgFrom<D>;
       data?: undefined;
       error?: undefined;
     }
   | {
       status: QueryStatus.rejected;
-      arg: QueryArgs<D>;
+      arg: QueryArgFrom<D>;
       data?: undefined;
       error?: unknown;
     }
   | {
       status: QueryStatus.fulfilled;
-      arg: QueryArgs<D>;
-      data: ResultType<D>;
+      arg: QueryArgFrom<D>;
+      data: ResultTypeFrom<D>;
       error?: undefined;
     };
 

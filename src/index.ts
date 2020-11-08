@@ -43,10 +43,12 @@ export function createApi<
 
   const { queryThunk, mutationThunk } = buildThunks({ baseQuery, reducerPath, endpointDefinitions });
 
-  const {
-    reducer: _reducer,
-    actions: { unsubscribeQueryResult, unsubscribeMutationResult, removeQueryResult },
-  } = buildSlice({ endpointDefinitions, queryThunk, mutationThunk, reducerPath });
+  const { reducer: _reducer, actions: sliceActions } = buildSlice({
+    endpointDefinitions,
+    queryThunk,
+    mutationThunk,
+    reducerPath,
+  });
 
   const reducer = (_reducer as any) as Reducer<State & QueryStatePhantomType<ReducerPath>, AnyAction>;
 
@@ -62,9 +64,8 @@ export function createApi<
     serializeQueryArgs,
     endpointDefinitions,
     querySelectors,
-    unsubscribeQueryResult,
     mutationSelectors,
-    unsubscribeMutationResult,
+    sliceActions,
   });
 
   const { middleware } = buildMiddleware({
@@ -72,9 +73,8 @@ export function createApi<
     endpointDefinitions,
     queryActions,
     mutationThunk,
-    removeQueryResult,
     keepUnusedDataFor,
-    unsubscribeQueryResult,
+    sliceActions,
   });
 
   const { hooks } = buildHooks({
@@ -93,8 +93,7 @@ export function createApi<
       query: querySelectors,
       mutation: mutationSelectors,
     },
-    unsubscribeQueryResult,
-    unsubscribeMutationResult,
+    ...sliceActions,
     middleware,
     hooks,
   };
