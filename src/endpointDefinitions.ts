@@ -16,7 +16,8 @@ export type GetResultDescriptionFn<EntityTypes extends string, ResultType, Query
   arg: QueryArg
 ) => ReadonlyArray<EntityDescription<EntityTypes>>;
 
-export type EntityDescription<EntityType> = { type: EntityType; id?: number | string };
+export type FullEntityDescription<EntityType> = { type: EntityType; id?: number | string };
+export type EntityDescription<EntityType> = EntityType | FullEntityDescription<EntityType>;
 export type ResultDescription<EntityTypes extends string, ResultType, QueryArg> =
   | ReadonlyArray<EntityDescription<EntityTypes>>
   | GetResultDescriptionFn<EntityTypes, ResultType, QueryArg>;
@@ -64,16 +65,20 @@ export function calculateProvidedBy<ResultType, QueryArg, D extends ResultDescri
   description: D | undefined,
   result: ResultType,
   queryArg: QueryArg
-): readonly EntityDescription<string>[] {
+): readonly FullEntityDescription<string>[] {
   if (isFunction(description)) {
-    return description(result, queryArg);
+    return description(result, queryArg).map(expandEntityDescription);
   }
   if (Array.isArray(description)) {
-    return description;
+    return description.map(expandEntityDescription);
   }
   return [];
 }
 
 function isFunction<T>(t: T): t is Extract<T, Function> {
   return typeof t === 'function';
+}
+
+function expandEntityDescription(description: EntityDescription<string>): FullEntityDescription<string> {
+  return typeof description === 'string' ? { type: description } : description;
 }
