@@ -194,7 +194,7 @@ function assertIsNewRTKPromise(action: ReturnType<ThunkAction<any, any, any, any
     You are running a version of RTK that is too old.
     Currently you need an experimental build of RTK.
     Please install it via
-    yarn add "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/56994225/@reduxjs/toolkit"
+    yarn add "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/2c869f4d/@reduxjs/toolkit"
     `);
   }
 }

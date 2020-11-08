@@ -50,7 +50,7 @@
     "react-redux": "^7.2.1"
   },
   "devDependencies": {
-    "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/56994225/@reduxjs/toolkit",
+    "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/2c869f4d/@reduxjs/toolkit",
     "@size-limit/preset-small-lib": "^4.6.0",
     "@testing-library/react": "^11.1.0",
     "@testing-library/react-hooks": "^3.4.2",

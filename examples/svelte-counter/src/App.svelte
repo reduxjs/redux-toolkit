@@ -17,6 +17,10 @@
 
     onMount(async () => {
         ({ refetch: getCount } = store.dispatch(counterApi.queryActions.getCount()));
+        store.dispatch(counterApi.queryActions.getAbsoluteTest())
+        store.dispatch(counterApi.queryActions.getError());
+        store.dispatch(counterApi.queryActions.getNetworkError());
+        store.dispatch(counterApi.queryActions.getHeaderError());
     });
 </script>
 

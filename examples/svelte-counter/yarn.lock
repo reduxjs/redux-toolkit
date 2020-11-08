@@ -33,10 +33,9 @@
   resolved "https://registry.yarnpkg.com/@polka/url/-/url-1.0.0-next.11.tgz#aeb16f50649a91af79dbe36574b66d0f9e4d9f71"
   integrity sha512-3NsZsJIA/22P3QUyrEDNA2D133H4j224twJrdipXN38dpnIOzAbUDtOwkcJ5pXmn75w7LSQDjA4tO9dm1XlqlA==
 
-"@reduxjs/toolkit@^1.4.0":
+"@reduxjs/toolkit@https://pkg.csb.dev/reduxjs/redux-toolkit/commit/2c869f4d/@reduxjs/toolkit":
   version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@reduxjs/toolkit/-/toolkit-1.4.0.tgz#ee2e2384cc3d1d76780d844b9c2da3580d32710d"
-  integrity sha512-hkxQwVx4BNVRsYdxjNF6cAseRmtrkpSlcgJRr3kLUcHPIAMZAmMJkXmHh/eUEGTMqPzsYpJLM7NN2w9fxQDuGw==
+  resolved "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/2c869f4d/@reduxjs/toolkit#4ef0bb45ceca425759da283a7de3377ef369f17c"
   dependencies:
     immer "^7.0.3"
     redux "^4.0.0"
