@@ -57,7 +57,7 @@ export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDe
       acc[name] = (arg?) => (rootState) =>
         (arg === skipSelector
           ? undefined
-          : (rootState[reducerPath] as InternalState).queries[name]?.[serializeQueryArgs(endpoint.query(arg))]) ??
+          : (rootState[reducerPath] as InternalState).queries[serializeQueryArgs(endpoint.query(arg))]) ??
         defaultQuerySubState;
     }
     return acc;

@@ -8,7 +8,8 @@ import {
 } from './endpointDefinitions';
 import { Id, WithRequiredProp } from './tsHelpers';
 
-export type QuerySubstateIdentifier = { endpoint: string; serializedQueryArgs: string };
+export type QueryCacheKey = string & { _type: 'queryCacheKey' };
+export type QuerySubstateIdentifier = { queryCacheKey: QueryCacheKey };
 export type MutationSubstateIdentifier = { endpoint: string; requestId: string };
 
 export enum QueryStatus {
@@ -28,7 +29,7 @@ type MutationKeys<Definitions extends EndpointDefinitions> = {
 }[keyof Definitions];
 
 type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
-  arg: QueryArgFrom<D>;
+  internalQueryArgs: unknown;
   requestId: string;
   data?: ResultTypeFrom<D>;
   error?: unknown;
@@ -47,7 +48,7 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
     } & WithRequiredProp<BaseQuerySubState<D>, 'error'>)
   | {
       status: QueryStatus.uninitialized;
-      arg?: undefined;
+      internalQueryArgs?: undefined;
       data?: undefined;
       error?: undefined;
       requestId?: undefined;
@@ -89,15 +90,13 @@ export type CombinedState<D extends EndpointDefinitions, E extends string> = {
 
 export type InvalidationState<EntityTypes extends string> = {
   [_ in EntityTypes]: {
-    [id: string]: Array<QuerySubstateIdentifier>;
-    [id: number]: Array<QuerySubstateIdentifier>;
+    [id: string]: Array<QueryCacheKey>;
+    [id: number]: Array<QueryCacheKey>;
   };
 };
 
 export type QueryState<D extends EndpointDefinitions> = {
-  [K in QueryKeys<D>]?: {
-    [_stringifiedArgs in string]?: QuerySubState<D[K]>;
-  };
+  [queryCacheKey: string]: QuerySubState<D[string]> | undefined;
 };
 
 export type MutationState<D extends EndpointDefinitions> = {

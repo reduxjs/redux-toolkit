@@ -4,7 +4,8 @@ import { StartQueryActionCreatorOptions } from './buildActionMaps';
 import { EndpointDefinitions } from './endpointDefinitions';
 
 export interface QueryThunkArg<InternalQueryArgs> extends QuerySubstateIdentifier, StartQueryActionCreatorOptions {
-  arg: unknown;
+  endpoint: string;
+  // arg: unknown;
   internalQueryArgs: InternalQueryArgs;
 }
 
@@ -46,7 +47,7 @@ export function buildThunks<InternalQueryArgs, ReducerPath extends string>({
     },
     {
       condition(arg, { getState }) {
-        let requestState = getState()[reducerPath]?.queries?.[arg.endpoint]?.[arg.serializedQueryArgs];
+        let requestState = getState()[reducerPath]?.queries?.[arg.queryCacheKey];
         return !(requestState?.status === 'pending' || (requestState?.status === 'fulfilled' && !arg.forceRefetch));
       },
       dispatchConditionRejection: true,

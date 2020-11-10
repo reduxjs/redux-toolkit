@@ -10,6 +10,7 @@ import {
   QueryState,
   InvalidationState,
   Subscribers,
+  QueryCacheKey,
 } from './apiState';
 import type { MutationThunkArg, QueryThunkArg } from './buildThunks';
 import { calculateProvidedBy, EndpointDefinitions } from './endpointDefinitions';
@@ -18,10 +19,10 @@ export type InternalState = CombinedState<any, string>;
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
-  { endpoint, serializedQueryArgs }: QuerySubstateIdentifier,
+  queryCacheKey: QueryCacheKey,
   update: (substate: QuerySubState<any>) => void
 ) {
-  const substate = (state[endpoint] ??= {})[serializedQueryArgs];
+  const substate = state[queryCacheKey];
   if (substate) {
     update(substate);
   }
@@ -56,10 +57,12 @@ export function buildSlice({
       updateSubscriptionOptions(
         draft,
         {
-          payload: { endpoint, serializedQueryArgs, requestId, options },
-        }: PayloadAction<{ requestId: string; options: Subscribers[number] } & QuerySubstateIdentifier>
+          payload: { queryCacheKey, requestId, options },
+        }: PayloadAction<
+          { endpoint: string; requestId: string; options: Subscribers[number] } & QuerySubstateIdentifier
+        >
       ) {
-        updateQuerySubstateIfExists(draft, { endpoint, serializedQueryArgs }, (substate) => {
+        updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
           // don't accidentally add a subscription, just update
           if (substate.subscribers[requestId]) {
             substate.subscribers[requestId] = options;
@@ -68,18 +71,15 @@ export function buildSlice({
       },
       unsubscribeResult(
         draft,
-        {
-          payload: { endpoint, serializedQueryArgs, requestId },
-        }: PayloadAction<{ requestId: string } & QuerySubstateIdentifier>
+        { payload: { queryCacheKey, requestId } }: PayloadAction<{ requestId: string } & QuerySubstateIdentifier>
       ) {
-        updateQuerySubstateIfExists(draft, { endpoint, serializedQueryArgs }, (substate) => {
+        updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
           delete substate.subscribers[requestId];
         });
       },
-      removeQueryResult(draft, { payload: { endpoint, serializedQueryArgs } }: PayloadAction<QuerySubstateIdentifier>) {
-        const endpointSubstate = draft[endpoint];
-        if (endpointSubstate && (endpointSubstate?.[serializedQueryArgs]?.subscribers.length ?? 0) === 0) {
-          delete endpointSubstate[serializedQueryArgs];
+      removeQueryResult(draft, { payload: { queryCacheKey } }: PayloadAction<QuerySubstateIdentifier>) {
+        if ((draft[queryCacheKey]?.subscribers.length ?? 0) === 0) {
+          delete draft[queryCacheKey];
         }
       },
     },
@@ -88,30 +88,30 @@ export function buildSlice({
         .addCase(queryThunk.pending, (draft, { meta: { arg, requestId } }) => {
           if (arg.subscribe) {
             // only initialize substate if we want to subscribe to it
-            (draft[arg.endpoint] ??= {})[arg.serializedQueryArgs] ??= {
+            draft[arg.queryCacheKey] ??= {
               status: QueryStatus.uninitialized,
               subscribers: {},
             };
           }
 
-          updateQuerySubstateIfExists(draft, arg, (substate) => {
+          updateQuerySubstateIfExists(draft, arg.queryCacheKey, (substate) => {
             substate.status = QueryStatus.pending;
             substate.requestId = requestId;
-            substate.arg = arg.arg;
+            substate.internalQueryArgs = arg.internalQueryArgs;
             if (arg.subscribe) {
               substate.subscribers[requestId] = arg.subscriptionOptions ?? substate.subscribers[requestId] ?? {};
             }
           });
         })
         .addCase(queryThunk.fulfilled, (draft, { meta, payload }) => {
-          updateQuerySubstateIfExists(draft, meta.arg, (substate) => {
+          updateQuerySubstateIfExists(draft, meta.arg.queryCacheKey, (substate) => {
             if (substate.requestId !== meta.requestId) return;
             substate.status = QueryStatus.fulfilled;
             substate.data = payload;
           });
         })
         .addCase(queryThunk.rejected, (draft, { meta: { condition, arg, requestId }, error, payload }) => {
-          updateQuerySubstateIfExists(draft, arg, (substate) => {
+          updateQuerySubstateIfExists(draft, arg.queryCacheKey, (substate) => {
             if (condition) {
               // request was aborted due to condition (another query already running) - we still want to subscribe to the current value!
               if (arg.subscribe) {
@@ -174,24 +174,20 @@ export function buildSlice({
     extraReducers(builder) {
       builder
         .addCase(queryThunk.fulfilled, (draft, { payload, meta: { arg } }) => {
-          const { endpoint, serializedQueryArgs } = arg;
-          const providedEntities = calculateProvidedBy(definitions[endpoint].provides, payload, arg.arg);
+          const { endpoint, queryCacheKey } = arg;
+          const providedEntities = calculateProvidedBy(definitions[endpoint].provides, payload, arg.internalQueryArgs);
           for (const { type, id } of providedEntities) {
             const subscribedQueries = ((draft[type] ??= {})[id || '__internal_without_id'] ??= []);
-            const alreadySubscribed = subscribedQueries.some(
-              (q) => q.endpoint === endpoint && q.serializedQueryArgs === serializedQueryArgs
-            );
+            const alreadySubscribed = subscribedQueries.includes(queryCacheKey);
             if (!alreadySubscribed) {
-              subscribedQueries.push({ endpoint, serializedQueryArgs });
+              subscribedQueries.push(queryCacheKey);
             }
           }
         })
-        .addCase(querySlice.actions.removeQueryResult, (draft, { payload: { endpoint, serializedQueryArgs } }) => {
+        .addCase(querySlice.actions.removeQueryResult, (draft, { payload: { queryCacheKey } }) => {
           for (const entityTypeSubscriptions of Object.values(draft)) {
             for (const idSubscriptions of Object.values(entityTypeSubscriptions)) {
-              const foundAt = idSubscriptions.findIndex(
-                (q) => q.endpoint === endpoint && q.serializedQueryArgs === serializedQueryArgs
-              );
+              const foundAt = idSubscriptions.indexOf(queryCacheKey);
               if (foundAt !== -1) {
                 idSubscriptions.splice(foundAt, 1);
               }

@@ -9,7 +9,7 @@ import {
 } from './endpointDefinitions';
 import type { QueryThunkArg, MutationThunkArg } from './buildThunks';
 import { AnyAction, AsyncThunk, ThunkAction } from '@reduxjs/toolkit';
-import { MutationSubState, QueryStatus, QuerySubState, SubscriptionOptions } from './apiState';
+import { MutationSubState, QueryCacheKey, QueryStatus, QuerySubState, SubscriptionOptions } from './apiState';
 import { MutationResultSelectors, QueryResultSelectors } from './buildSelectors';
 import { SliceActions } from './buildSlice';
 
@@ -90,15 +90,14 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
       { subscribe = true, forceRefetch = false, subscriptionOptions } = {}
     ) => (dispatch, getState) => {
       const internalQueryArgs = definition.query(arg);
-      const serializedQueryArgs = serializeQueryArgs(internalQueryArgs);
+      const queryCacheKey = serializeQueryArgs(internalQueryArgs) as QueryCacheKey;
       const thunk = queryThunk({
         subscribe,
         forceRefetch,
         subscriptionOptions,
         endpoint,
         internalQueryArgs,
-        serializedQueryArgs,
-        arg,
+        queryCacheKey,
       });
       const thunkResult = dispatch(thunk);
       const { requestId, abort } = thunkResult;
@@ -115,14 +114,13 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
           if (subscribe)
             dispatch(
               unsubscribeQueryResult({
-                endpoint,
-                serializedQueryArgs,
+                queryCacheKey,
                 requestId,
               })
             );
         },
         updateSubscriptionOptions(options: SubscriptionOptions) {
-          dispatch(updateSubscriptionOptions({ requestId, endpoint, serializedQueryArgs, options }));
+          dispatch(updateSubscriptionOptions({ endpoint, requestId, queryCacheKey, options }));
         },
       });
     };

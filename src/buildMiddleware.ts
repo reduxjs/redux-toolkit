@@ -1,6 +1,6 @@
 import { AnyAction, AsyncThunk, Middleware, MiddlewareAPI, ThunkDispatch } from '@reduxjs/toolkit';
 import { batch as reactBatch } from 'react-redux';
-import { QueryState, QueryStatus, QuerySubState, QuerySubstateIdentifier, RootState } from './apiState';
+import { QueryCacheKey, QueryState, QueryStatus, QuerySubState, QuerySubstateIdentifier, RootState } from './apiState';
 import { QueryActions } from './buildActionMaps';
 import { QueryResultSelectors } from './buildSelectors';
 import { InternalState, SliceActions } from './buildSlice';
@@ -9,7 +9,7 @@ import { calculateProvidedBy, EndpointDefinitions, FullEntityDescription } from 
 
 const batch = typeof reactBatch !== 'undefined' ? reactBatch : (fn: Function) => fn();
 
-type QueryStateMeta<T> = Record<string, undefined | Record<string, undefined | T>>;
+type QueryStateMeta<T> = Record<string, undefined | T>;
 type TimeoutId = ReturnType<typeof setTimeout>;
 
 export function buildMiddleware<Definitions extends EndpointDefinitions, ReducerPath extends string>({
@@ -69,10 +69,9 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
   return { middleware };
 
   function invalidateEntities(entities: readonly FullEntityDescription<string>[], api: Api) {
-    const rootState = api.getState();
-    const state = rootState[reducerPath] as InternalState;
+    const state = api.getState()[reducerPath];
 
-    const toInvalidate: { [endpoint: string]: Set<string> } = {};
+    const toInvalidate = new Set<QueryCacheKey>();
     for (const entity of entities) {
       const provided = state.provided[entity.type];
       if (!provided) {
@@ -87,22 +86,27 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
             Object.values(provided).flat(1)) ?? [];
 
       for (const invalidate of invalidateSubscriptions) {
-        (toInvalidate[invalidate.endpoint] ??= new Set()).add(invalidate.serializedQueryArgs);
+        toInvalidate.add(invalidate);
       }
     }
 
     batch(() => {
       for (const [endpoint, collectedArgs] of Object.entries(toInvalidate)) {
-        for (const serializedQueryArgs of collectedArgs) {
-          const querySubState = (state.queries as QueryState<any>)[endpoint]?.[serializedQueryArgs];
-          // const querySubState = querySelectors[endpoint](serializedQueryArgs)(rootState);
+        for (const queryCacheKey of collectedArgs) {
+          const querySubState = state.queries[queryCacheKey];
           if (querySubState) {
             if (Object.keys(querySubState.subscribers).length === 0) {
-              api.dispatch(removeQueryResult({ endpoint, serializedQueryArgs }));
+              api.dispatch(removeQueryResult({ queryCacheKey }));
             } else if (querySubState.status !== QueryStatus.uninitialized) {
-              const startQuery = queryActions[endpoint];
-              const arg = querySubState.arg;
-              api.dispatch(startQuery(arg as any, { subscribe: false, forceRefetch: true }));
+              api.dispatch(
+                queryThunk({
+                  endpoint,
+                  internalQueryArgs: querySubState.internalQueryArgs,
+                  queryCacheKey,
+                  subscribe: false,
+                  forceRefetch: true,
+                })
+              );
             } else {
             }
           }
@@ -111,28 +115,27 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
     });
   }
 
-  function handleUnsubscribe({ endpoint, serializedQueryArgs }: QuerySubstateIdentifier, api: Api) {
-    const currentTimeout = currentRemovalTimeouts[endpoint]?.[serializedQueryArgs];
+  function handleUnsubscribe({ queryCacheKey }: QuerySubstateIdentifier, api: Api) {
+    const currentTimeout = currentRemovalTimeouts[queryCacheKey];
     if (currentTimeout) {
       clearTimeout(currentTimeout);
     }
-    (currentRemovalTimeouts[endpoint] ??= {})[serializedQueryArgs] = setTimeout(() => {
-      api.dispatch(removeQueryResult({ endpoint, serializedQueryArgs }));
-      delete currentRemovalTimeouts[endpoint]![serializedQueryArgs];
+    currentRemovalTimeouts[queryCacheKey] = setTimeout(() => {
+      api.dispatch(removeQueryResult({ queryCacheKey: queryCacheKey }));
+      delete currentRemovalTimeouts![queryCacheKey];
     }, keepUnusedDataFor * 1000);
   }
 
-  function handlePolling({ endpoint, serializedQueryArgs }: QuerySubstateIdentifier, api: Api) {
-    const querySubState = querySelectors[endpoint](serializedQueryArgs)(api.getState());
-    // TODO: this selector is most likely returning the wrong thing due to double serialization
-    const currentPoll = currentPolls[endpoint]?.[serializedQueryArgs];
-    const lowestPollingInterval = findLowestPollingInterval(querySubState);
+  function handlePolling({ queryCacheKey, endpoint }: QuerySubstateIdentifier & { endpoint: string }, api: Api) {
+    const querySubState = api.getState()[reducerPath].queries[queryCacheKey]!;
+    const currentPoll = currentPolls[queryCacheKey];
+    const lowestPollingInterval = findLowestPollingInterval(querySubState as QuerySubState<any>);
 
     // should not poll at all
     if (!Number.isFinite(lowestPollingInterval)) {
       if (currentPoll) {
         clearTimeout(currentPoll.interval);
-        delete currentPolls[endpoint]![serializedQueryArgs];
+        delete currentPolls[queryCacheKey];
       }
       return;
     }
@@ -144,12 +147,19 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
       if (currentPoll) {
         clearTimeout(currentPoll.interval);
       }
-      const futurePoll = ((currentPolls[endpoint] ??= {})[serializedQueryArgs] = {
+      const futurePoll = (currentPolls[queryCacheKey] = {
         nextPollTimestamp,
         interval: setInterval(() => {
           futurePoll.nextPollTimestamp = Date.now() + lowestPollingInterval;
-          const startQuery = queryActions[endpoint];
-          api.dispatch(startQuery(querySubState.arg as any, { subscribe: false, forceRefetch: true }));
+          api.dispatch(
+            queryThunk({
+              endpoint,
+              internalQueryArgs: querySubState.internalQueryArgs,
+              queryCacheKey,
+              subscribe: false,
+              forceRefetch: true,
+            })
+          );
         }, lowestPollingInterval),
       });
     }
