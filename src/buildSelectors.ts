@@ -69,9 +69,8 @@ export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDe
   const mutationSelectors = Object.entries(endpointDefinitions).reduce((acc, [name, endpoint]) => {
     if (isMutationDefinition(endpoint)) {
       acc[name] = (mutationId: string | typeof skipSelector) => (rootState) =>
-        (mutationId === skipSelector
-          ? undefined
-          : (rootState[reducerPath] as InternalState).mutations[name]?.[mutationId]) ?? defaultMutationSubState;
+        (mutationId === skipSelector ? undefined : rootState[reducerPath].mutations[mutationId]) ??
+        defaultMutationSubState;
     }
     return acc;
   }, {} as Record<string, (arg: string) => (state: RootState) => unknown>) as MutationResultSelectors<

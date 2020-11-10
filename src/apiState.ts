@@ -3,14 +3,13 @@ import {
   MutationDefinition,
   EndpointDefinitions,
   BaseEndpointDefinition,
-  QueryArgFrom,
   ResultTypeFrom,
 } from './endpointDefinitions';
 import { Id, WithRequiredProp } from './tsHelpers';
 
 export type QueryCacheKey = string & { _type: 'queryCacheKey' };
 export type QuerySubstateIdentifier = { queryCacheKey: QueryCacheKey };
-export type MutationSubstateIdentifier = { endpoint: string; requestId: string };
+export type MutationSubstateIdentifier = { requestId: string };
 
 export enum QueryStatus {
   uninitialized = 'uninitialized',
@@ -56,30 +55,29 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
     }
 >;
 
+type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
+  internalQueryArgs: unknown;
+  data?: ResultTypeFrom<D>;
+  error?: unknown;
+  endpoint: string;
+};
+
 export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
+  | ({
+      status: QueryStatus.fulfilled;
+    } & WithRequiredProp<BaseMutationSubState<D>, 'data'>)
+  | ({
+      status: QueryStatus.pending;
+    } & BaseMutationSubState<D>)
+  | ({
+      status: QueryStatus.rejected;
+    } & WithRequiredProp<BaseMutationSubState<D>, 'error'>)
   | {
       status: QueryStatus.uninitialized;
-      arg?: undefined;
+      internalQueryArgs?: undefined;
       data?: undefined;
       error?: undefined;
-    }
-  | {
-      status: QueryStatus.pending;
-      arg: QueryArgFrom<D>;
-      data?: undefined;
-      error?: undefined;
-    }
-  | {
-      status: QueryStatus.rejected;
-      arg: QueryArgFrom<D>;
-      data?: undefined;
-      error?: unknown;
-    }
-  | {
-      status: QueryStatus.fulfilled;
-      arg: QueryArgFrom<D>;
-      data: ResultTypeFrom<D>;
-      error?: undefined;
+      endpoint?: string;
     };
 
 export type CombinedState<D extends EndpointDefinitions, E extends string> = {
@@ -105,9 +103,7 @@ export type SubscriptionState = {
 };
 
 export type MutationState<D extends EndpointDefinitions> = {
-  [K in MutationKeys<D>]?: {
-    [_requestId in string]?: MutationSubState<D[K]>;
-  };
+  [requestId: string]: MutationSubState<D[string]> | undefined;
 };
 
 const __phantomType_ReducerPath = Symbol();

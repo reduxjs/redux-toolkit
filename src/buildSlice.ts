@@ -31,10 +31,10 @@ function updateQuerySubstateIfExists(
 
 function updateMutationSubstateIfExists(
   state: MutationState<any>,
-  { endpoint, requestId }: MutationSubstateIdentifier,
+  { requestId }: MutationSubstateIdentifier,
   update: (substate: MutationSubState<any>) => void
 ) {
-  const substate = (state[endpoint] ??= {})[requestId];
+  const substate = state[requestId];
   if (substate) {
     update(substate);
   }
@@ -102,9 +102,8 @@ export function buildSlice({
     initialState: {} as MutationState<any>,
     reducers: {
       unsubscribeResult(draft, action: PayloadAction<MutationSubstateIdentifier>) {
-        const endpointState = draft[action.payload.endpoint];
-        if (endpointState && action.payload.requestId in endpointState) {
-          delete endpointState[action.payload.requestId];
+        if (action.payload.requestId in draft) {
+          delete draft[action.payload.requestId];
         }
       },
     },
@@ -113,15 +112,16 @@ export function buildSlice({
         .addCase(mutationThunk.pending, (draft, { meta: { arg, requestId } }) => {
           if (!arg.track) return;
 
-          (draft[arg.endpoint] ??= {})[requestId] = {
+          draft[requestId] = {
             status: QueryStatus.pending,
-            arg: arg.arg,
+            internalQueryArgs: arg.arg,
+            endpoint: arg.endpoint,
           };
         })
         .addCase(mutationThunk.fulfilled, (draft, { payload, meta: { requestId, arg } }) => {
           if (!arg.track) return;
 
-          updateMutationSubstateIfExists(draft, { requestId, endpoint: arg.endpoint }, (substate) => {
+          updateMutationSubstateIfExists(draft, { requestId }, (substate) => {
             substate.status = QueryStatus.fulfilled;
             substate.data = payload;
           });
@@ -129,7 +129,7 @@ export function buildSlice({
         .addCase(mutationThunk.rejected, (draft, { payload, error, meta: { requestId, arg } }) => {
           if (!arg.track) return;
 
-          updateMutationSubstateIfExists(draft, { requestId, endpoint: arg.endpoint }, (substate) => {
+          updateMutationSubstateIfExists(draft, { requestId }, (substate) => {
             substate.status = QueryStatus.rejected;
             substate.error = payload ?? error;
           });

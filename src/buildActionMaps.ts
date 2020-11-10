@@ -147,7 +147,7 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
         requestId,
         abort,
         unsubscribe() {
-          if (track) dispatch(unsubscribeMutationResult({ endpoint, requestId }));
+          if (track) dispatch(unsubscribeMutationResult({ requestId }));
         },
       });
     };
