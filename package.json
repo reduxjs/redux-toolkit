@@ -45,9 +45,21 @@
     }
   ],
   "peerDependencies": {
-    "react": "^16.14.0 || 17.0.0",
-    "react-dom": "^16.14.0 || 17.0.0",
+    "react": "^16.14.0 || ^17.0.0",
+    "react-dom": "^16.14.0 || ^17.0.0",
     "react-redux": "^7.2.1"
+  },
+
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "react-redux": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/2c869f4d/@reduxjs/toolkit",
