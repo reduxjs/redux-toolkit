@@ -33,7 +33,6 @@ type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
   requestId: string;
   data?: ResultTypeFrom<D>;
   error?: unknown;
-  subscribers: Subscribers;
   endpoint: string;
 };
 
@@ -53,7 +52,6 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
       data?: undefined;
       error?: undefined;
       requestId?: undefined;
-      subscribers: Subscribers;
       endpoint?: string;
     }
 >;
@@ -88,6 +86,7 @@ export type CombinedState<D extends EndpointDefinitions, E extends string> = {
   queries: QueryState<D>;
   mutations: MutationState<D>;
   provided: InvalidationState<E>;
+  subscriptions: SubscriptionState;
 };
 
 export type InvalidationState<EntityTypes extends string> = {
@@ -99,6 +98,10 @@ export type InvalidationState<EntityTypes extends string> = {
 
 export type QueryState<D extends EndpointDefinitions> = {
   [queryCacheKey: string]: QuerySubState<D[string]> | undefined;
+};
+
+export type SubscriptionState = {
+  [queryCacheKey: string]: Subscribers | undefined;
 };
 
 export type MutationState<D extends EndpointDefinitions> = {

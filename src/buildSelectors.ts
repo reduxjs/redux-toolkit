@@ -30,7 +30,6 @@ const defaultQuerySubState = createNextState(
   (): QuerySubState<any> => {
     return {
       status: QueryStatus.uninitialized,
-      subscribers: {},
     };
   }
 );

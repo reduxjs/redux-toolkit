@@ -11,6 +11,7 @@ import {
   InvalidationState,
   Subscribers,
   QueryCacheKey,
+  SubscriptionState,
 } from './apiState';
 import type { MutationThunkArg, QueryThunkArg } from './buildThunks';
 import { calculateProvidedBy, EndpointDefinitions } from './endpointDefinitions';
@@ -54,33 +55,8 @@ export function buildSlice({
     name: `${reducerPath}/queries`,
     initialState: {} as QueryState<any>,
     reducers: {
-      updateSubscriptionOptions(
-        draft,
-        {
-          payload: { queryCacheKey, requestId, options },
-        }: PayloadAction<
-          { endpoint: string; requestId: string; options: Subscribers[number] } & QuerySubstateIdentifier
-        >
-      ) {
-        updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
-          // don't accidentally add a subscription, just update
-          if (substate.subscribers[requestId]) {
-            substate.subscribers[requestId] = options;
-          }
-        });
-      },
-      unsubscribeResult(
-        draft,
-        { payload: { queryCacheKey, requestId } }: PayloadAction<{ requestId: string } & QuerySubstateIdentifier>
-      ) {
-        updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
-          delete substate.subscribers[requestId];
-        });
-      },
       removeQueryResult(draft, { payload: { queryCacheKey } }: PayloadAction<QuerySubstateIdentifier>) {
-        if ((draft[queryCacheKey]?.subscribers.length ?? 0) === 0) {
-          delete draft[queryCacheKey];
-        }
+        delete draft[queryCacheKey];
       },
     },
     extraReducers(builder) {
@@ -90,7 +66,6 @@ export function buildSlice({
             // only initialize substate if we want to subscribe to it
             draft[arg.queryCacheKey] ??= {
               status: QueryStatus.uninitialized,
-              subscribers: {},
               endpoint: arg.endpoint,
             };
           }
@@ -99,9 +74,6 @@ export function buildSlice({
             substate.status = QueryStatus.pending;
             substate.requestId = requestId;
             substate.internalQueryArgs = arg.internalQueryArgs;
-            if (arg.subscribe) {
-              substate.subscribers[requestId] = arg.subscriptionOptions ?? substate.subscribers[requestId] ?? {};
-            }
           });
         })
         .addCase(queryThunk.fulfilled, (draft, { meta, payload }) => {
@@ -114,10 +86,7 @@ export function buildSlice({
         .addCase(queryThunk.rejected, (draft, { meta: { condition, arg, requestId }, error, payload }) => {
           updateQuerySubstateIfExists(draft, arg.queryCacheKey, (substate) => {
             if (condition) {
-              // request was aborted due to condition (another query already running) - we still want to subscribe to the current value!
-              if (arg.subscribe) {
-                substate.subscribers[requestId] = arg.subscriptionOptions ?? substate.subscribers[requestId] ?? {};
-              }
+              // request was aborted due to condition (another query already running)
             } else {
               // request failed
               if (substate.requestId !== requestId) return;
@@ -198,16 +167,63 @@ export function buildSlice({
     },
   });
 
+  const subscriptionSlice = createSlice({
+    name: `${reducerPath}/subscriptions`,
+    initialState: {} as SubscriptionState,
+    reducers: {
+      updateSubscriptionOptions(
+        draft,
+        {
+          payload: { queryCacheKey, requestId, options },
+        }: PayloadAction<
+          { endpoint: string; requestId: string; options: Subscribers[number] } & QuerySubstateIdentifier
+        >
+      ) {
+        if (draft?.[queryCacheKey]?.[requestId]) {
+          draft[queryCacheKey]![requestId] = options;
+        }
+      },
+      unsubscribeResult(
+        draft,
+        { payload: { queryCacheKey, requestId } }: PayloadAction<{ requestId: string } & QuerySubstateIdentifier>
+      ) {
+        if (draft[queryCacheKey]) {
+          delete draft[queryCacheKey]![requestId];
+        }
+      },
+    },
+    extraReducers: (builder) => {
+      builder
+        .addCase(querySlice.actions.removeQueryResult, (draft, { payload: { queryCacheKey } }) => {
+          delete draft[queryCacheKey];
+        })
+        .addCase(queryThunk.pending, (draft, { meta: { arg, requestId } }) => {
+          if (arg.subscribe) {
+            const substate = (draft[arg.queryCacheKey] ??= {});
+            substate[requestId] = arg.subscriptionOptions ?? substate[requestId] ?? {};
+          }
+        })
+        .addCase(queryThunk.rejected, (draft, { meta: { condition, arg, requestId }, error, payload }) => {
+          const substate = draft[arg.queryCacheKey];
+          // request was aborted due to condition (another query already running)
+          if (condition && arg.subscribe && substate) {
+            substate[requestId] = arg.subscriptionOptions ?? substate[requestId] ?? {};
+          }
+        });
+    },
+  });
+
   const reducer = combineReducers<InternalState>({
     queries: querySlice.reducer,
     mutations: mutationSlice.reducer,
     provided: invalidationSlice.reducer,
+    subscriptions: subscriptionSlice.reducer,
   });
 
   const actions = {
-    updateSubscriptionOptions: querySlice.actions.updateSubscriptionOptions,
+    updateSubscriptionOptions: subscriptionSlice.actions.updateSubscriptionOptions,
     removeQueryResult: querySlice.actions.removeQueryResult,
-    unsubscribeQueryResult: querySlice.actions.unsubscribeResult,
+    unsubscribeQueryResult: subscriptionSlice.actions.unsubscribeResult,
     unsubscribeMutationResult: mutationSlice.actions.unsubscribeResult,
   };
 

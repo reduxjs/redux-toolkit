@@ -1,6 +1,6 @@
 import { AnyAction, AsyncThunk, Middleware, MiddlewareAPI, ThunkDispatch } from '@reduxjs/toolkit';
 import { batch as reactBatch } from 'react-redux';
-import { QueryCacheKey, QueryStatus, QuerySubState, QuerySubstateIdentifier, RootState } from './apiState';
+import { QueryCacheKey, QueryStatus, QuerySubstateIdentifier, RootState, Subscribers } from './apiState';
 import { QueryActions } from './buildActionMaps';
 import { QueryResultSelectors } from './buildSelectors';
 import { SliceActions } from './buildSlice';
@@ -93,8 +93,9 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
     batch(() => {
       for (const queryCacheKey of toInvalidate.values()) {
         const querySubState = state.queries[queryCacheKey];
-        if (querySubState) {
-          if (Object.keys(querySubState.subscribers).length === 0) {
+        const subscriptionSubState = state.queries[queryCacheKey];
+        if (querySubState && subscriptionSubState) {
+          if (Object.keys(subscriptionSubState).length === 0) {
             api.dispatch(removeQueryResult({ queryCacheKey }));
           } else if (querySubState.status !== QueryStatus.uninitialized) {
             api.dispatch(
@@ -125,14 +126,15 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
   }
 
   function handlePolling({ queryCacheKey }: QuerySubstateIdentifier, api: Api) {
-    const querySubState = api.getState()[reducerPath].queries[queryCacheKey]!;
+    const querySubState = api.getState()[reducerPath].queries[queryCacheKey];
+    const subscriptions = api.getState()[reducerPath].subscriptions[queryCacheKey];
 
-    if (querySubState.status === QueryStatus.uninitialized) {
+    if (!querySubState || querySubState.status === QueryStatus.uninitialized) {
       return;
     }
 
     const currentPoll = currentPolls[queryCacheKey];
-    const lowestPollingInterval = findLowestPollingInterval(querySubState as QuerySubState<any>);
+    const lowestPollingInterval = findLowestPollingInterval(subscriptions);
 
     // should not poll at all
     if (!Number.isFinite(lowestPollingInterval)) {
@@ -169,9 +171,9 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
   }
 }
 
-function findLowestPollingInterval(querySubState: QuerySubState<any>) {
+function findLowestPollingInterval(subscribers: Subscribers = {}) {
   let lowestPollingInterval = Number.POSITIVE_INFINITY;
-  for (const subscription of Object.values(querySubState.subscribers)) {
+  for (const subscription of Object.values(subscribers)) {
     if (!!subscription.pollingInterval)
       lowestPollingInterval = Math.min(subscription.pollingInterval, lowestPollingInterval);
   }
