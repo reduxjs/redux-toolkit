@@ -96,7 +96,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         }
       }, [arg, dispatch, skip, pollingInterval]);
 
-      useEffect(() => () => void promiseRef.current?.unsubscribe());
+      useEffect(() => () => void promiseRef.current?.unsubscribe(), []);
 
       const currentState = useSelector(querySelector(skip ? skipSelector : arg));
       const refetch = useCallback(() => void promiseRef.current?.refetch(), []);
