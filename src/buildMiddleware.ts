@@ -1,9 +1,9 @@
 import { AnyAction, AsyncThunk, Middleware, MiddlewareAPI, ThunkDispatch } from '@reduxjs/toolkit';
 import { batch as reactBatch } from 'react-redux';
-import { QueryCacheKey, QueryState, QueryStatus, QuerySubState, QuerySubstateIdentifier, RootState } from './apiState';
+import { QueryCacheKey, QueryStatus, QuerySubState, QuerySubstateIdentifier, RootState } from './apiState';
 import { QueryActions } from './buildActionMaps';
 import { QueryResultSelectors } from './buildSelectors';
-import { InternalState, SliceActions } from './buildSlice';
+import { SliceActions } from './buildSlice';
 import { MutationThunkArg, QueryThunkArg } from './buildThunks';
 import { calculateProvidedBy, EndpointDefinitions, FullEntityDescription } from './endpointDefinitions';
 
@@ -91,24 +91,22 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
     }
 
     batch(() => {
-      for (const [endpoint, collectedArgs] of Object.entries(toInvalidate)) {
-        for (const queryCacheKey of collectedArgs) {
-          const querySubState = state.queries[queryCacheKey];
-          if (querySubState) {
-            if (Object.keys(querySubState.subscribers).length === 0) {
-              api.dispatch(removeQueryResult({ queryCacheKey }));
-            } else if (querySubState.status !== QueryStatus.uninitialized) {
-              api.dispatch(
-                queryThunk({
-                  endpoint,
-                  internalQueryArgs: querySubState.internalQueryArgs,
-                  queryCacheKey,
-                  subscribe: false,
-                  forceRefetch: true,
-                })
-              );
-            } else {
-            }
+      for (const queryCacheKey of toInvalidate.values()) {
+        const querySubState = state.queries[queryCacheKey];
+        if (querySubState) {
+          if (Object.keys(querySubState.subscribers).length === 0) {
+            api.dispatch(removeQueryResult({ queryCacheKey }));
+          } else if (querySubState.status !== QueryStatus.uninitialized) {
+            api.dispatch(
+              queryThunk({
+                endpoint: querySubState.endpoint,
+                internalQueryArgs: querySubState.internalQueryArgs,
+                queryCacheKey,
+                subscribe: false,
+                forceRefetch: true,
+              })
+            );
+          } else {
           }
         }
       }
@@ -126,8 +124,13 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
     }, keepUnusedDataFor * 1000);
   }
 
-  function handlePolling({ queryCacheKey, endpoint }: QuerySubstateIdentifier & { endpoint: string }, api: Api) {
+  function handlePolling({ queryCacheKey }: QuerySubstateIdentifier, api: Api) {
     const querySubState = api.getState()[reducerPath].queries[queryCacheKey]!;
+
+    if (querySubState.status === QueryStatus.uninitialized) {
+      return;
+    }
+
     const currentPoll = currentPolls[queryCacheKey];
     const lowestPollingInterval = findLowestPollingInterval(querySubState as QuerySubState<any>);
 
@@ -153,7 +156,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
           futurePoll.nextPollTimestamp = Date.now() + lowestPollingInterval;
           api.dispatch(
             queryThunk({
-              endpoint,
+              endpoint: querySubState.endpoint,
               internalQueryArgs: querySubState.internalQueryArgs,
               queryCacheKey,
               subscribe: false,

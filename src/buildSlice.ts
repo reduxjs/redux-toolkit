@@ -91,6 +91,7 @@ export function buildSlice({
             draft[arg.queryCacheKey] ??= {
               status: QueryStatus.uninitialized,
               subscribers: {},
+              endpoint: arg.endpoint,
             };
           }
 

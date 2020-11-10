@@ -6,13 +6,19 @@ import { buildSelectors } from './buildSelectors';
 import { buildHooks } from './buildHooks';
 import { buildMiddleware } from './buildMiddleware';
 import { EndpointDefinitions, EndpointBuilder, DefinitionType } from './endpointDefinitions';
-import type { CombinedState, QueryStatePhantomType } from './apiState';
+import type { CombinedState, QueryCacheKey, QueryStatePhantomType } from './apiState';
 
 export { fetchBaseQuery } from './fetchBaseQuery';
 export { QueryStatus } from './apiState';
 
-function defaultSerializeQueryArgs(args: any) {
-  return JSON.stringify(args);
+export type SerializeQueryArgs<InternalQueryArgs> = (args: InternalQueryArgs, endpoint: string) => string;
+export type InternalSerializeQueryArgs<InternalQueryArgs> = (
+  args: InternalQueryArgs,
+  endpoint: string
+) => QueryCacheKey;
+
+function defaultSerializeQueryArgs(args: any, endpoint: string) {
+  return `${endpoint}/${JSON.stringify(args)}`;
 }
 
 export function createApi<
@@ -23,18 +29,20 @@ export function createApi<
 >({
   baseQuery,
   reducerPath,
-  serializeQueryArgs = defaultSerializeQueryArgs,
+  serializeQueryArgs: _serializeQueryArgs = defaultSerializeQueryArgs,
   endpoints,
   keepUnusedDataFor = 60,
 }: {
   baseQuery(args: InternalQueryArgs, api: QueryApi): any;
   entityTypes: readonly EntityTypes[];
   reducerPath: ReducerPath;
-  serializeQueryArgs?(args: InternalQueryArgs): string;
+  serializeQueryArgs?: SerializeQueryArgs<InternalQueryArgs>;
   endpoints(build: EndpointBuilder<InternalQueryArgs, EntityTypes>): Definitions;
   keepUnusedDataFor?: number;
 }) {
   type State = CombinedState<Definitions, EntityTypes>;
+
+  const serializeQueryArgs = _serializeQueryArgs as InternalSerializeQueryArgs<InternalQueryArgs>;
 
   const endpointDefinitions = endpoints({
     query: (x) => ({ ...x, type: DefinitionType.query }),

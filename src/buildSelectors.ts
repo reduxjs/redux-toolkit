@@ -8,6 +8,7 @@ import {
   isMutationDefinition,
 } from './endpointDefinitions';
 import type { InternalState } from './buildSlice';
+import { InternalSerializeQueryArgs } from '.';
 
 export const skipSelector = Symbol('skip selector');
 
@@ -47,7 +48,7 @@ export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDe
   endpointDefinitions,
   reducerPath,
 }: {
-  serializeQueryArgs(args: InternalQueryArgs): string;
+  serializeQueryArgs: InternalSerializeQueryArgs<InternalQueryArgs>;
   endpointDefinitions: Definitions;
   reducerPath: ReducerPath;
 }) {
@@ -57,7 +58,7 @@ export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDe
       acc[name] = (arg?) => (rootState) =>
         (arg === skipSelector
           ? undefined
-          : (rootState[reducerPath] as InternalState).queries[serializeQueryArgs(endpoint.query(arg))]) ??
+          : (rootState[reducerPath] as InternalState).queries[serializeQueryArgs(endpoint.query(arg), name)]) ??
         defaultQuerySubState;
     }
     return acc;

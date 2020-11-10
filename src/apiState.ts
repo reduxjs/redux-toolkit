@@ -21,10 +21,10 @@ export enum QueryStatus {
 
 export type SubscriptionOptions = { pollingInterval?: number };
 export type Subscribers = { [requestId: string]: SubscriptionOptions };
-type QueryKeys<Definitions extends EndpointDefinitions> = {
+export type QueryKeys<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends QueryDefinition<any, any, any, any> ? K : never;
 }[keyof Definitions];
-type MutationKeys<Definitions extends EndpointDefinitions> = {
+export type MutationKeys<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends MutationDefinition<any, any, any, any> ? K : never;
 }[keyof Definitions];
 
@@ -34,6 +34,7 @@ type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
   data?: ResultTypeFrom<D>;
   error?: unknown;
   subscribers: Subscribers;
+  endpoint: string;
 };
 
 export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
@@ -53,6 +54,7 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
       error?: undefined;
       requestId?: undefined;
       subscribers: Subscribers;
+      endpoint?: string;
     }
 >;
 
