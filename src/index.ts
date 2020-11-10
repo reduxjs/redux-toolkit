@@ -72,6 +72,8 @@ export function createApi<
     reducerPath,
     endpointDefinitions,
     queryActions,
+    querySelectors,
+    queryThunk,
     mutationThunk,
     keepUnusedDataFor,
     sliceActions,

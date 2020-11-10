@@ -1,6 +1,6 @@
 import { AnyAction, AsyncThunk, Middleware, MiddlewareAPI, ThunkDispatch } from '@reduxjs/toolkit';
 import { batch as reactBatch } from 'react-redux';
-import { QueryStatus, QuerySubState, QuerySubstateIdentifier, RootState } from './apiState';
+import { QueryState, QueryStatus, QuerySubState, QuerySubstateIdentifier, RootState } from './apiState';
 import { QueryActions } from './buildActionMaps';
 import { QueryResultSelectors } from './buildSelectors';
 import { InternalState, SliceActions } from './buildSlice';
@@ -94,9 +94,10 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
     batch(() => {
       for (const [endpoint, collectedArgs] of Object.entries(toInvalidate)) {
         for (const serializedQueryArgs of collectedArgs) {
-          const querySubState = querySelectors[endpoint](serializedQueryArgs)(rootState);
+          const querySubState = (state.queries as QueryState<any>)[endpoint]?.[serializedQueryArgs];
+          // const querySubState = querySelectors[endpoint](serializedQueryArgs)(rootState);
           if (querySubState) {
-            if (querySubState.subscribers.length === 0) {
+            if (Object.keys(querySubState.subscribers).length === 0) {
               api.dispatch(removeQueryResult({ endpoint, serializedQueryArgs }));
             } else if (querySubState.status !== QueryStatus.uninitialized) {
               const startQuery = queryActions[endpoint];
@@ -123,8 +124,8 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
 
   function handlePolling({ endpoint, serializedQueryArgs }: QuerySubstateIdentifier, api: Api) {
     const querySubState = querySelectors[endpoint](serializedQueryArgs)(api.getState());
+    // TODO: this selector is most likely returning the wrong thing due to double serialization
     const currentPoll = currentPolls[endpoint]?.[serializedQueryArgs];
-
     const lowestPollingInterval = findLowestPollingInterval(querySubState);
 
     // should not poll at all

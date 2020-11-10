@@ -5,6 +5,7 @@
     import { store } from './store';
     import Counter from './Counter.svelte'
 
+    let pollingInterval = 3000;
     let counters = [] as number[];
 
     const { incrementCount, decrementCount } = counterApi.mutationActions;
@@ -47,7 +48,8 @@
     <button on:click={() => store.dispatch(incrementCount(1, { track: false }))}>Increase</button>
     <button on:click={() => store.dispatch(decrementCount(1, { track: false }))}>Decrease</button>
     <button on:click={getCount} disabled={loading}>Refetch count</button>
-
+    <button on:click={() => store.dispatch(counterApi.queryActions.getCount(null, { subscriptionOptions: { pollingInterval } }))}>Update Polling</button>
+    <input type="number" bind:value={pollingInterval} />
     <hr />
     <h3>Custom counters!</h3><button on:click={() => { counters = [...counters, counters.length + 1] }}>Add counter</button>
 

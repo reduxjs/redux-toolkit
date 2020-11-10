@@ -122,9 +122,7 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
             );
         },
         updateSubscriptionOptions(options: SubscriptionOptions) {
-          dispatch(
-            updateSubscriptionOptions({ requestId: thunkResult.requestId, endpoint, serializedQueryArgs, options })
-          );
+          dispatch(updateSubscriptionOptions({ requestId, endpoint, serializedQueryArgs, options }));
         },
       });
     };
@@ -139,17 +137,18 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
       const internalQueryArgs = definition.query(arg);
       const thunk = mutationThunk({ endpoint, internalQueryArgs, arg, track });
       const thunkResult = dispatch(thunk);
+      const { requestId, abort } = thunkResult;
       assertIsNewRTKPromise(thunkResult);
       const statePromise = thunkResult.then(() => {
-        const currentState = mutationSelectors[endpoint](thunkResult.requestId)(getState());
+        const currentState = mutationSelectors[endpoint](requestId)(getState());
         return currentState as Extract<typeof currentState, { status: QueryStatus.fulfilled | QueryStatus.rejected }>;
       });
       return Object.assign(statePromise, {
         arg: thunkResult.arg,
-        requestId: thunkResult.requestId,
-        abort: thunkResult.abort,
+        requestId,
+        abort,
         unsubscribe() {
-          if (track) dispatch(unsubscribeMutationResult({ endpoint, requestId: thunkResult.requestId }));
+          if (track) dispatch(unsubscribeMutationResult({ endpoint, requestId }));
         },
       });
     };
