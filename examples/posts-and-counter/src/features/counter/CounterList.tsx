@@ -1,10 +1,8 @@
 import { nanoid } from '@reduxjs/toolkit';
 import React, { useState } from 'react';
+import { Container } from '../common/Container';
 import { Counter } from './Counter';
 
-const Container: React.FC = ({ children }) => (
-  <div style={{ textAlign: 'center', padding: 50, margin: '0 auto' }}>{children}</div>
-);
 export const CounterList = () => {
   const [counters, setCounters] = useState<string[]>([]);
 
