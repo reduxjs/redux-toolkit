@@ -1,8 +1,6 @@
 import { AnyAction, AsyncThunk, Middleware, MiddlewareAPI, ThunkDispatch } from '@reduxjs/toolkit';
 import { batch as reactBatch } from 'react-redux';
 import { QueryCacheKey, QueryStatus, QuerySubstateIdentifier, RootState, Subscribers } from './apiState';
-import { QueryActions } from './buildActionMaps';
-import { QueryResultSelectors } from './buildSelectors';
 import { SliceActions } from './buildSlice';
 import { MutationThunkArg, QueryThunkArg } from './buildThunks';
 import { calculateProvidedBy, EndpointDefinitions, FullEntityDescription } from './endpointDefinitions';
@@ -15,8 +13,6 @@ type TimeoutId = ReturnType<typeof setTimeout>;
 export function buildMiddleware<Definitions extends EndpointDefinitions, ReducerPath extends string>({
   reducerPath,
   endpointDefinitions,
-  queryActions,
-  querySelectors,
   queryThunk,
   mutationThunk,
   keepUnusedDataFor,
@@ -24,8 +20,6 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
 }: {
   reducerPath: ReducerPath;
   endpointDefinitions: EndpointDefinitions;
-  queryActions: QueryActions<Definitions>;
-  querySelectors: QueryResultSelectors<Definitions, any>;
   queryThunk: AsyncThunk<unknown, QueryThunkArg<any>, {}>;
   mutationThunk: AsyncThunk<unknown, MutationThunkArg<any>, {}>;
   sliceActions: SliceActions;
@@ -35,7 +29,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
 
   const currentRemovalTimeouts: QueryStateMeta<TimeoutId> = {};
 
-  const currentPolls: QueryStateMeta<{ nextPollTimestamp: number; interval: TimeoutId; pollingInterval: number }> = {};
+  const currentPolls: QueryStateMeta<{ nextPollTimestamp: number; timeout?: TimeoutId; pollingInterval: number }> = {};
   const middleware: Middleware<{}, RootState<Definitions, string, ReducerPath>, ThunkDispatch<any, any, AnyAction>> = (
     api
   ) => (next) => (action) => {
@@ -57,10 +51,13 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
     }
 
     if (updateSubscriptionOptions.match(action)) {
-      handlePolling(action.payload, api);
+      updatePollingInterval(action.payload, api);
     }
     if (queryThunk.pending.match(action) || (queryThunk.rejected.match(action) && action.meta.condition)) {
-      handlePolling(action.meta.arg, api);
+      updatePollingInterval(action.meta.arg, api);
+    }
+    if (queryThunk.fulfilled.match(action) || (queryThunk.rejected.match(action) && !action.meta.condition)) {
+      startNextPoll(action.meta.arg, api);
     }
 
     return result;
@@ -125,7 +122,43 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
     }, keepUnusedDataFor * 1000);
   }
 
-  function handlePolling({ queryCacheKey }: QuerySubstateIdentifier, api: Api) {
+  function startNextPoll({ queryCacheKey }: QuerySubstateIdentifier, api: Api) {
+    const querySubState = api.getState()[reducerPath].queries[queryCacheKey];
+    const subscriptions = api.getState()[reducerPath].subscriptions[queryCacheKey];
+
+    if (!querySubState || querySubState.status === QueryStatus.uninitialized) return;
+
+    const lowestPollingInterval = findLowestPollingInterval(subscriptions);
+    if (!Number.isFinite(lowestPollingInterval)) return;
+
+    const currentPoll = currentPolls[queryCacheKey];
+
+    if (currentPoll?.timeout) {
+      clearTimeout(currentPoll.timeout);
+      currentPoll.timeout = undefined;
+    }
+
+    const nextPollTimestamp = Date.now() + lowestPollingInterval;
+
+    const currentInterval: typeof currentPolls[number] = (currentPolls[queryCacheKey] = {
+      nextPollTimestamp,
+      pollingInterval: lowestPollingInterval,
+      timeout: setTimeout(() => {
+        currentInterval!.timeout = undefined;
+        api.dispatch(
+          queryThunk({
+            endpoint: querySubState.endpoint,
+            internalQueryArgs: querySubState.internalQueryArgs,
+            queryCacheKey,
+            subscribe: false,
+            forceRefetch: true,
+          })
+        );
+      }, lowestPollingInterval),
+    });
+  }
+
+  function updatePollingInterval({ queryCacheKey }: QuerySubstateIdentifier, api: Api) {
     const querySubState = api.getState()[reducerPath].queries[queryCacheKey];
     const subscriptions = api.getState()[reducerPath].subscriptions[queryCacheKey];
 
@@ -133,48 +166,21 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
       return;
     }
 
-    const currentPoll = currentPolls[queryCacheKey];
     const lowestPollingInterval = findLowestPollingInterval(subscriptions);
+    const currentPoll = currentPolls[queryCacheKey];
 
-    // Should not poll at all
     if (!Number.isFinite(lowestPollingInterval)) {
-      if (currentPoll) {
-        clearTimeout(currentPoll.interval);
-        delete currentPolls[queryCacheKey];
+      if (currentPoll?.timeout) {
+        clearTimeout(currentPoll.timeout);
       }
+      delete currentPolls[queryCacheKey];
       return;
     }
 
     const nextPollTimestamp = Date.now() + lowestPollingInterval;
 
-    /**
-     * If don't have a current poll, set up a futurePoll on an interval
-     * If we have a current poll and the known pollingInterval changes, then clear and create a new futurePoll based on the lowest
-     * If we have multiple subscribers, we'll use the latest lowest polling number
-     */
-
-    if (!currentPoll || currentPoll.pollingInterval !== lowestPollingInterval) {
-      if (currentPoll) {
-        clearTimeout(currentPoll.interval);
-      }
-
-      const futurePoll = (currentPolls[queryCacheKey] = {
-        nextPollTimestamp,
-        pollingInterval: lowestPollingInterval,
-        interval: setInterval(() => {
-          futurePoll.nextPollTimestamp = Date.now() + lowestPollingInterval;
-          futurePoll.pollingInterval = lowestPollingInterval;
-          api.dispatch(
-            queryThunk({
-              endpoint: querySubState.endpoint,
-              internalQueryArgs: querySubState.internalQueryArgs,
-              queryCacheKey,
-              subscribe: false,
-              forceRefetch: true,
-            })
-          );
-        }, lowestPollingInterval),
-      });
+    if (!currentPoll || nextPollTimestamp < currentPoll.nextPollTimestamp) {
+      startNextPoll({ queryCacheKey }, api);
     }
   }
 }
