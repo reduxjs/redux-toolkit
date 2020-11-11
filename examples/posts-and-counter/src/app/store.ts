@@ -7,9 +7,9 @@ import { timeApi } from './services/times';
 export const createStore = (options?: ConfigureStoreOptions['preloadedState'] | undefined) =>
   configureStore({
     reducer: {
-      counterApi: counterApi.reducer,
-      postsApi: postApi.reducer,
-      timeApi: timeApi.reducer,
+      [counterApi.reducerPath]: counterApi.reducer,
+      [postApi.reducerPath]: postApi.reducer,
+      [timeApi.reducerPath]: timeApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(counterApi.middleware, postApi.middleware, timeApi.middleware),

@@ -14,7 +14,7 @@ function App() {
         <Switch>
           <Route exact path="/" component={TimeList} />
           <Route exact path="/counters" component={CounterList} />
-          <Route path="/posts" component={PostsManager} />
+          <Route exact path="/posts" component={PostsManager} />
         </Switch>
       </div>
     </div>

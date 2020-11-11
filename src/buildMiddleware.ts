@@ -93,7 +93,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
     batch(() => {
       for (const queryCacheKey of toInvalidate.values()) {
         const querySubState = state.queries[queryCacheKey];
-        const subscriptionSubState = state.queries[queryCacheKey];
+        const subscriptionSubState = state.subscriptions[queryCacheKey];
         if (querySubState && subscriptionSubState) {
           if (Object.keys(subscriptionSubState).length === 0) {
             api.dispatch(removeQueryResult({ queryCacheKey }));

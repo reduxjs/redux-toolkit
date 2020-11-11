@@ -64,13 +64,27 @@ const TimeZoneSelector = ({
   );
 };
 
+const intervalOptions = [
+  { label: '0 - Off', value: 0 },
+  { label: '1s', value: 1000 },
+  { label: '5s', value: 5000 },
+  { label: '10s', value: 10000 },
+  { label: '1m', value: 60000 },
+];
+
 const TimeDisplay = ({ offset, label }: { offset: string; label: string }) => {
   const [pollingInterval, setPollingInterval] = useState(5000);
   const { data } = timeApi.hooks.getTime.useQuery(offset, { pollingInterval });
 
   return (
     <div>
-      {label} - Time: {data?.time && new Date(data.time).toLocaleTimeString()}
+      {data?.time && new Date(data.time).toLocaleTimeString()} - Polling Interval:{' '}
+      <select value={pollingInterval} onChange={({ target: { value } }) => setPollingInterval(Number(value))}>
+        {intervalOptions.map(({ label, value }) => (
+          <option value={value}>{label}</option>
+        ))}
+      </select>{' '}
+      - {label}
     </div>
   );
 };
@@ -90,6 +104,11 @@ export const TimeList = () => {
   return (
     <Container>
       <h3>Add some times, even duplicates, and watch them automatically refetch in sync!</h3>
+      <p>
+        Notes: shared queries (aka multiple entries of the same time zone) will share the lowest polling interval
+        between them that is greater than 0. If all entries are set to 0, it will stop polling. If you have two entries
+        with a polling time of 5s and one with 0 - off, it will continue at 5s until they are removed or 0'd out.
+      </p>
       <TimeZoneSelector value={value} onChange={({ target: { value } }) => setValue(value)} />
       <button onClick={() => setTimes((prev) => ({ ...prev, [nanoid()]: value }))} disabled={!value}>
         Track time

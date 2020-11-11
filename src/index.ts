@@ -96,6 +96,7 @@ export function createApi<
   });
 
   return {
+    reducerPath,
     queryActions,
     mutationActions,
     reducer,
