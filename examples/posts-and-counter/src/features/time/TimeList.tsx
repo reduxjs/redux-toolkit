@@ -1,7 +1,7 @@
 import { nanoid } from '@reduxjs/toolkit';
 import React, { useState } from 'react';
 import { useEffect } from 'react';
-import { timeApi } from 'src/app/services/times';
+import { timeApi } from '../../app/services/times';
 import { Container } from '../common/Container';
 
 const timezones: Record<string, string> = {
