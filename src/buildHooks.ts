@@ -80,7 +80,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
 
       const promiseRef = useRef<QueryActionCreatorResult<any>>();
-
       useEffect(() => {
         if (skip) {
           return;
@@ -91,12 +90,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           lastPromise.updateSubscriptionOptions({ pollingInterval });
         } else {
           if (lastPromise) lastPromise.unsubscribe();
-          const promise = dispatch(startQuery(arg));
+          const promise = dispatch(startQuery(arg, { subscriptionOptions: { pollingInterval } }));
           promiseRef.current = promise;
         }
       }, [arg, dispatch, skip, pollingInterval]);
 
-      useEffect(() => () => void promiseRef.current?.unsubscribe(), []);
+      useEffect(() => {
+        return () => void promiseRef.current?.unsubscribe();
+      }, []);
 
       const currentState = useSelector(querySelector(skip ? skipSelector : arg));
       const refetch = useCallback(() => void promiseRef.current?.refetch(), []);

@@ -35,7 +35,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
 
   const currentRemovalTimeouts: QueryStateMeta<TimeoutId> = {};
 
-  const currentPolls: QueryStateMeta<{ nextPollTimestamp: number; interval: TimeoutId }> = {};
+  const currentPolls: QueryStateMeta<{ nextPollTimestamp: number; interval: TimeoutId; pollingInterval: number }> = {};
   const middleware: Middleware<{}, RootState<Definitions, string, ReducerPath>, ThunkDispatch<any, any, AnyAction>> = (
     api
   ) => (next) => (action) => {
@@ -136,7 +136,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
     const currentPoll = currentPolls[queryCacheKey];
     const lowestPollingInterval = findLowestPollingInterval(subscriptions);
 
-    // should not poll at all
+    // Should not poll at all
     if (!Number.isFinite(lowestPollingInterval)) {
       if (currentPoll) {
         clearTimeout(currentPoll.interval);
@@ -147,15 +147,23 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
 
     const nextPollTimestamp = Date.now() + lowestPollingInterval;
 
-    // should start polling or pool sooner than scheduled
-    if (!currentPoll || nextPollTimestamp < currentPoll.nextPollTimestamp) {
+    /**
+     * If don't have a current poll, set up a futurePoll on an interval
+     * If we have a current poll and the known pollingInterval changes, then clear and create a new futurePoll based on the lowest
+     * If we have multiple subscribers, we'll use the latest lowest polling number
+     */
+
+    if (!currentPoll || currentPoll.pollingInterval !== lowestPollingInterval) {
       if (currentPoll) {
         clearTimeout(currentPoll.interval);
       }
+
       const futurePoll = (currentPolls[queryCacheKey] = {
         nextPollTimestamp,
+        pollingInterval: lowestPollingInterval,
         interval: setInterval(() => {
           futurePoll.nextPollTimestamp = Date.now() + lowestPollingInterval;
+          futurePoll.pollingInterval = lowestPollingInterval;
           api.dispatch(
             queryThunk({
               endpoint: querySubState.endpoint,
