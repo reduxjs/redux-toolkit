@@ -96,19 +96,27 @@ describe('examples', () => {
       const { result, waitForNextUpdate } = renderHook(() => api.hooks.getUser.useQuery('5'), { wrapper: Wrapper });
 
       expect(result.current).toEqual({
-        arg: '5',
+        endpoint: 'getUser',
+        internalQueryArgs: {
+          url: 'user/5',
+        },
+        refetch: expect.any(Function),
+        requestId: expect.any(String),
         status: 'pending',
-        subscribers: [expect.any(String)],
       });
 
       await waitForNextUpdate();
       expect(result.current).toEqual({
-        arg: '5',
         data: {
           result: 'Hi folks!',
         },
+        endpoint: 'getUser',
+        internalQueryArgs: {
+          url: 'user/5',
+        },
+        refetch: expect.any(Function),
+        requestId: expect.any(String),
         status: 'fulfilled',
-        subscribers: [expect.any(String)],
       });
     }
 
@@ -125,15 +133,17 @@ describe('examples', () => {
 
       expect(result.current[1]).toEqual({
         status: 'pending',
-        arg: { id: '5', patch: { firstName: 'Tom' } },
+        endpoint: 'updateUser',
+        internalQueryArgs: { id: '5', patch: { firstName: 'Tom' } },
       });
 
       await waitForNextUpdate();
 
       expect(result.current[1]).toEqual({
-        status: 'fulfilled',
-        arg: { id: '5', patch: { firstName: 'Tom' } },
         data: { result: 'Hi folks!' },
+        endpoint: 'updateUser',
+        internalQueryArgs: { id: '5', patch: { firstName: 'Tom' } },
+        status: 'fulfilled',
       });
     }
   });

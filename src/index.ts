@@ -6,13 +6,19 @@ import { buildSelectors } from './buildSelectors';
 import { buildHooks } from './buildHooks';
 import { buildMiddleware } from './buildMiddleware';
 import { EndpointDefinitions, EndpointBuilder, DefinitionType } from './endpointDefinitions';
-import type { CombinedState, QueryStatePhantomType } from './apiState';
+import type { CombinedState, QueryCacheKey, QueryStatePhantomType } from './apiState';
 
 export { fetchBaseQuery } from './fetchBaseQuery';
 export { QueryStatus } from './apiState';
 
-function defaultSerializeQueryArgs(args: any) {
-  return JSON.stringify(args);
+export type SerializeQueryArgs<InternalQueryArgs> = (args: InternalQueryArgs, endpoint: string) => string;
+export type InternalSerializeQueryArgs<InternalQueryArgs> = (
+  args: InternalQueryArgs,
+  endpoint: string
+) => QueryCacheKey;
+
+function defaultSerializeQueryArgs(args: any, endpoint: string) {
+  return `${endpoint}/${JSON.stringify(args)}`;
 }
 
 export function createApi<
@@ -23,18 +29,20 @@ export function createApi<
 >({
   baseQuery,
   reducerPath,
-  serializeQueryArgs = defaultSerializeQueryArgs,
+  serializeQueryArgs: _serializeQueryArgs = defaultSerializeQueryArgs,
   endpoints,
   keepUnusedDataFor = 60,
 }: {
   baseQuery(args: InternalQueryArgs, api: QueryApi): any;
   entityTypes: readonly EntityTypes[];
   reducerPath: ReducerPath;
-  serializeQueryArgs?(args: InternalQueryArgs): string;
+  serializeQueryArgs?: SerializeQueryArgs<InternalQueryArgs>;
   endpoints(build: EndpointBuilder<InternalQueryArgs, EntityTypes>): Definitions;
   keepUnusedDataFor?: number;
 }) {
   type State = CombinedState<Definitions, EntityTypes>;
+
+  const serializeQueryArgs = _serializeQueryArgs as InternalSerializeQueryArgs<InternalQueryArgs>;
 
   const endpointDefinitions = endpoints({
     query: (x) => ({ ...x, type: DefinitionType.query }),
@@ -43,10 +51,12 @@ export function createApi<
 
   const { queryThunk, mutationThunk } = buildThunks({ baseQuery, reducerPath, endpointDefinitions });
 
-  const {
-    reducer: _reducer,
-    actions: { unsubscribeQueryResult, unsubscribeMutationResult, removeQueryResult },
-  } = buildSlice({ endpointDefinitions, queryThunk, mutationThunk, reducerPath });
+  const { reducer: _reducer, actions: sliceActions } = buildSlice({
+    endpointDefinitions,
+    queryThunk,
+    mutationThunk,
+    reducerPath,
+  });
 
   const reducer = (_reducer as any) as Reducer<State & QueryStatePhantomType<ReducerPath>, AnyAction>;
 
@@ -62,19 +72,17 @@ export function createApi<
     serializeQueryArgs,
     endpointDefinitions,
     querySelectors,
-    unsubscribeQueryResult,
     mutationSelectors,
-    unsubscribeMutationResult,
+    sliceActions,
   });
 
   const { middleware } = buildMiddleware({
     reducerPath,
     endpointDefinitions,
-    queryActions,
+    queryThunk,
     mutationThunk,
-    removeQueryResult,
     keepUnusedDataFor,
-    unsubscribeQueryResult,
+    sliceActions,
   });
 
   const { hooks } = buildHooks({
@@ -86,6 +94,7 @@ export function createApi<
   });
 
   return {
+    reducerPath,
     queryActions,
     mutationActions,
     reducer,
@@ -93,8 +102,7 @@ export function createApi<
       query: querySelectors,
       mutation: mutationSelectors,
     },
-    unsubscribeQueryResult,
-    unsubscribeMutationResult,
+    ...sliceActions,
     middleware,
     hooks,
   };

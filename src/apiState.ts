@@ -3,10 +3,13 @@ import {
   MutationDefinition,
   EndpointDefinitions,
   BaseEndpointDefinition,
+  ResultTypeFrom,
 } from './endpointDefinitions';
+import { Id, WithRequiredProp } from './tsHelpers';
 
-export type QuerySubstateIdentifier = { endpoint: string; serializedQueryArgs: string };
-export type MutationSubstateIdentifier = { endpoint: string; requestId: string };
+export type QueryCacheKey = string & { _type: 'queryCacheKey' };
+export type QuerySubstateIdentifier = { queryCacheKey: QueryCacheKey };
+export type MutationSubstateIdentifier = { requestId: string };
 
 export enum QueryStatus {
   uninitialized = 'uninitialized',
@@ -14,99 +17,93 @@ export enum QueryStatus {
   fulfilled = 'fulfilled',
   rejected = 'rejected',
 }
-type Subscribers = string[];
-type QueryKeys<Definitions extends EndpointDefinitions> = {
+
+export type SubscriptionOptions = { pollingInterval?: number };
+export type Subscribers = { [requestId: string]: SubscriptionOptions };
+export type QueryKeys<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends QueryDefinition<any, any, any, any> ? K : never;
 }[keyof Definitions];
-type MutationKeys<Definitions extends EndpointDefinitions> = {
+export type MutationKeys<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends MutationDefinition<any, any, any, any> ? K : never;
 }[keyof Definitions];
-type QueryArgs<D extends BaseEndpointDefinition<any, any, any>> = D extends BaseEndpointDefinition<infer QA, any, any>
-  ? QA
-  : unknown;
-type ResultType<D extends BaseEndpointDefinition<any, any, any>> = D extends BaseEndpointDefinition<any, any, infer RT>
-  ? RT
-  : unknown;
 
-export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> =
+type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
+  internalQueryArgs: unknown;
+  requestId: string;
+  data?: ResultTypeFrom<D>;
+  error?: unknown;
+  endpoint: string;
+};
+
+export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
+  | ({
+      status: QueryStatus.fulfilled;
+    } & WithRequiredProp<BaseQuerySubState<D>, 'data'>)
+  | ({
+      status: QueryStatus.pending;
+    } & BaseQuerySubState<D>)
+  | ({
+      status: QueryStatus.rejected;
+    } & WithRequiredProp<BaseQuerySubState<D>, 'error'>)
   | {
       status: QueryStatus.uninitialized;
-      arg?: undefined;
+      internalQueryArgs?: undefined;
       data?: undefined;
       error?: undefined;
-      subscribers: Subscribers;
+      requestId?: undefined;
+      endpoint?: string;
     }
-  | {
-      status: QueryStatus.pending;
-      arg: QueryArgs<D>;
-      data?: ResultType<D>;
-      error?: unknown;
-      subscribers: Subscribers;
-    }
-  | {
-      status: QueryStatus.rejected;
-      arg: QueryArgs<D>;
-      data?: ResultType<D>;
-      error: unknown;
-      subscribers: Subscribers;
-    }
-  | {
-      status: QueryStatus.fulfilled;
-      arg: QueryArgs<D>;
-      data: ResultType<D>;
-      error?: unknown;
-      subscribers: Subscribers;
-    };
+>;
+
+type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
+  internalQueryArgs: unknown;
+  data?: ResultTypeFrom<D>;
+  error?: unknown;
+  endpoint: string;
+};
 
 export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
+  | ({
+      status: QueryStatus.fulfilled;
+    } & WithRequiredProp<BaseMutationSubState<D>, 'data'>)
+  | ({
+      status: QueryStatus.pending;
+    } & BaseMutationSubState<D>)
+  | ({
+      status: QueryStatus.rejected;
+    } & WithRequiredProp<BaseMutationSubState<D>, 'error'>)
   | {
       status: QueryStatus.uninitialized;
-      arg?: undefined;
+      internalQueryArgs?: undefined;
       data?: undefined;
       error?: undefined;
-    }
-  | {
-      status: QueryStatus.pending;
-      arg: QueryArgs<D>;
-      data?: undefined;
-      error?: undefined;
-    }
-  | {
-      status: QueryStatus.rejected;
-      arg: QueryArgs<D>;
-      data?: undefined;
-      error?: unknown;
-    }
-  | {
-      status: QueryStatus.fulfilled;
-      arg: QueryArgs<D>;
-      data: ResultType<D>;
-      error?: undefined;
+      endpoint?: string;
     };
 
 export type CombinedState<D extends EndpointDefinitions, E extends string> = {
   queries: QueryState<D>;
   mutations: MutationState<D>;
   provided: InvalidationState<E>;
+  subscriptions: SubscriptionState;
 };
 
 export type InvalidationState<EntityTypes extends string> = {
   [_ in EntityTypes]: {
-    [id: string]: Array<QuerySubstateIdentifier>;
-    [id: number]: Array<QuerySubstateIdentifier>;
+    [id: string]: Array<QueryCacheKey>;
+    [id: number]: Array<QueryCacheKey>;
   };
 };
 
 export type QueryState<D extends EndpointDefinitions> = {
-  [K in QueryKeys<D>]?: {
-    [_stringifiedArgs in string]?: QuerySubState<D[K]>;
-  };
+  [queryCacheKey: string]: QuerySubState<D[string]> | undefined;
+};
+
+export type SubscriptionState = {
+  [queryCacheKey: string]: Subscribers | undefined;
 };
 
 export type MutationState<D extends EndpointDefinitions> = {
-  [K in MutationKeys<D>]?: {
-    [_requestId in string]?: MutationSubState<D[K]>;
-  };
+  [requestId: string]: MutationSubState<D[string]> | undefined;
 };
 
 const __phantomType_ReducerPath = Symbol();
