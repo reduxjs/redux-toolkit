@@ -19,7 +19,7 @@
     "lint": "tsdx lint",
     "prepare": "tsdx build; ./prepare-examples.sh",
     "size": "size-limit",
-    "format": "prettier --write \"src/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\" \"**/*.md\"",
     "analyze": "size-limit --why"
   },
   "husky": {
