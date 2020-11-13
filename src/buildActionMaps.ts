@@ -34,9 +34,23 @@ export type QueryActionCreatorResult<D extends QueryDefinition<any, any, any, an
   updateSubscriptionOptions(options: SubscriptionOptions): void;
 };
 
+export type EndpointActions<Definitions extends EndpointDefinitions> = {
+  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<any, any, any, any>
+    ? StartQueryActionCreator<Definitions[K]>
+    : Definitions[K] extends MutationDefinition<any, any, any, any>
+    ? StartMutationActionCreator<Definitions[K]>
+    : never;
+};
+
 export type QueryActions<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends QueryDefinition<any, any, any, any>
     ? StartQueryActionCreator<Definitions[K]>
+    : never;
+};
+
+export type MutationActions<Definitions extends EndpointDefinitions> = {
+  [K in keyof Definitions]: Definitions[K] extends MutationDefinition<any, any, any, any>
+    ? StartMutationActionCreator<Definitions[K]>
     : never;
 };
 
@@ -62,14 +76,7 @@ export type MutationActionCreatorResult<D extends MutationDefinition<any, any, a
   unsubscribe(): void;
 };
 
-export type MutationActions<Definitions extends EndpointDefinitions> = {
-  [K in keyof Definitions]: Definitions[K] extends MutationDefinition<any, any, any, any>
-    ? StartMutationActionCreator<Definitions[K]>
-    : never;
-};
-
 export function buildActionMaps<Definitions extends EndpointDefinitions, InternalQueryArgs>({
-  endpointDefinitions,
   serializeQueryArgs,
   queryThunk,
   querySelectors,
@@ -77,7 +84,6 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
   mutationSelectors,
   sliceActions: { unsubscribeQueryResult, unsubscribeMutationResult, updateSubscriptionOptions },
 }: {
-  endpointDefinitions: Definitions;
   serializeQueryArgs: InternalSerializeQueryArgs<InternalQueryArgs>;
   queryThunk: AsyncThunk<unknown, QueryThunkArg<any>, {}>;
   querySelectors: QueryResultSelectors<Definitions, any>;
@@ -85,6 +91,26 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
   mutationSelectors: MutationResultSelectors<Definitions, any>;
   sliceActions: SliceActions;
 }) {
+  return buildAction;
+
+  function buildAction<D extends QueryDefinition<any, any, any, any>>(
+    endpoint: string,
+    definition: D
+  ): StartQueryActionCreator<D>;
+  function buildAction<D extends MutationDefinition<any, any, any, any>>(
+    endpoint: string,
+    definition: D
+  ): StartMutationActionCreator<D>;
+
+  function buildAction(endpoint: string, definition: EndpointDefinition<any, any, any, any>) {
+    if (isQueryDefinition(definition)) {
+      return buildQueryAction(endpoint, definition);
+    } else if (isMutationDefinition(definition)) {
+      return buildMutationAction(endpoint, definition);
+    }
+    throw new Error('invalid definition');
+  }
+
   function buildQueryAction(endpoint: string, definition: QueryDefinition<any, any, any, any>) {
     const queryAction: StartQueryActionCreator<any> = (
       arg,
@@ -153,28 +179,6 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
       });
     };
   }
-
-  const queryActions = Object.entries(endpointDefinitions).reduce<Record<string, StartQueryActionCreator<any>>>(
-    (acc, [name, endpoint]: [string, EndpointDefinition<any, any, any, any>]) => {
-      if (isQueryDefinition(endpoint)) {
-        acc[name] = buildQueryAction(name, endpoint);
-      }
-      return acc;
-    },
-    {}
-  ) as QueryActions<Definitions>;
-
-  const mutationActions = Object.entries(endpointDefinitions).reduce<Record<string, StartMutationActionCreator<any>>>(
-    (acc, [name, endpoint]: [string, EndpointDefinition<any, any, any, any>]) => {
-      if (isMutationDefinition(endpoint)) {
-        acc[name] = buildMutationAction(name, endpoint);
-      }
-      return acc;
-    },
-    {}
-  ) as MutationActions<Definitions>;
-
-  return { queryActions, mutationActions };
 }
 
 function assertIsNewRTKPromise(action: ReturnType<ThunkAction<any, any, any, any>>) {

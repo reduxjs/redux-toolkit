@@ -2,23 +2,22 @@
     import { onMount } from 'svelte';
     import { counterApi } from './services/counter';
     import { globalPollingEnabled, store } from './store';
-    import Counter from './Counter.svelte'
+    import Counter from './Counter.svelte';
     import { nanoid } from '@reduxjs/toolkit';
-    
-    const { incrementCount, decrementCount } = counterApi.mutationActions;
-    
+
+    const { actions, selectors } = counterApi;
+
     let counters: string[] = [];
     let spookyMode = true;
-    
+
     let getCount = () => {};
     let queryRef;
-    
-    onMount(async () => {
-        queryRef = ({ refetch: getCount } = store.dispatch(counterApi.queryActions.getCount()));
-    });
-    
-    $: ({ data } = counterApi.selectors.query.getCount()($store));
 
+    onMount(async () => {
+        queryRef = { refetch: getCount } = store.dispatch(actions.getCount());
+    });
+
+    $: ({ data } = counterApi.selectors.getCount()($store));
 </script>
 
 <style>
@@ -45,7 +44,9 @@
         cursor: pointer;
     }
 
-    .stop { margin-top: 150px}
+    .stop {
+        margin-top: 150px;
+    }
 
     @media (min-width: 640px) {
         main {
@@ -56,38 +57,42 @@
 
 <main>
     <h1>{data?.count || 0}</h1>
-    <button on:click={() => store.dispatch(incrementCount(1, { track: false }))}>Increase</button>
-    <button on:click={() => store.dispatch(decrementCount(1, { track: false }))}>Decrease</button>
-   
+    <button on:click={() => store.dispatch(actions.incrementCount(1, { track: false }))}>Increase</button>
+    <button on:click={() => store.dispatch(actions.decrementCount(1, { track: false }))}>Decrease</button>
+
     <hr />
     <h3>Haunted counters?</h3>
-    <p>
-        <small>We heard that any counters you might add below are haunted! 
-        </small>
-    </p>
-    <button on:click={() => { counters = [...counters, nanoid()] }}>Add counter</button>
+    <p><small>We heard that any counters you might add below are haunted! </small></p>
+    <button
+        on:click={() => {
+            counters = [...counters, nanoid()];
+        }}>Add counter</button>
     {#if counters.length >= 2}
-    <div>
-        <button class="button-link" on:click={() => globalPollingEnabled.set(!$globalPollingEnabled)}>Turn {$globalPollingEnabled ? 'off':'on'} polling</button>
-    </div>
+        <div>
+            <button class="button-link" on:click={() => globalPollingEnabled.set(!$globalPollingEnabled)}>Turn
+                {$globalPollingEnabled ? 'off' : 'on'}
+                polling</button>
+        </div>
     {/if}
-    
+
     {#each counters as id}
-		<Counter {id} />
+        <Counter {id} />
     {/each}
-    
+
     {#if counters.length >= 1}
         <div class="stop">
             <small>
-            <button class="button-link" on:click|once={() => {
-                spookyMode = false;
-                store.dispatch(counterApi.mutationActions.stop()).then(() => {
-                    spookyMode = false
-                    globalPollingEnabled.set(false)
-                });
-            }}>{ spookyMode ? `I'm scared, stop it!` : `No fun`}
-            </button>
-        </small>
+                <button
+                    class="button-link"
+                    on:click|once={() => {
+                        spookyMode = false;
+                        store.dispatch(actions.stop()).then(() => {
+                            spookyMode = false;
+                            globalPollingEnabled.set(false);
+                        });
+                    }}>{spookyMode ? `I'm scared, stop it!` : `No fun`}
+                </button>
+            </small>
         </div>
-{/if}
+    {/if}
 </main>

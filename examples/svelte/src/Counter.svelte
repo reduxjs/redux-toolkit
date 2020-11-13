@@ -1,4 +1,3 @@
-
 <script lang="ts">
     export let id: string = null;
     import { onMount } from 'svelte';
@@ -7,23 +6,23 @@
     import { globalPollingEnabled, store } from './store';
     import { pollingOptions } from './utils/pollingOptions';
 
-    const { incrementCountById, decrementCountById } = counterApi.mutationActions;
-    
+    const { actions, selectors } = counterApi;
+
     // Set the initial to random option
-    let pollingInterval = pollingOptions[Math.floor(Math.random() * pollingOptions.length)].value
+    let pollingInterval = pollingOptions[Math.floor(Math.random() * pollingOptions.length)].value;
     let queryRef, lastIncrementRequestId, lastDecrementRequestId, incrementStatus, decrementStatus;
 
-    $: ({ data, status: getStatus } = counterApi.selectors.query.getCountById(id)($store));
-    $: ({ status: decrementStatus } = counterApi.selectors.mutation.decrementCountById(lastDecrementRequestId)($store));
-    $: ({ status: incrementStatus} = counterApi.selectors.mutation.incrementCountById(lastIncrementRequestId)($store));
- 
-    $: loading = [incrementStatus, decrementStatus, getStatus].some(status => status === QueryStatus.pending);
+    $: ({ data, status: getStatus } = selectors.getCountById(id)($store));
+    $: ({ status: decrementStatus } = selectors.decrementCountById(lastDecrementRequestId)($store));
+    $: ({ status: incrementStatus } = selectors.incrementCountById(lastIncrementRequestId)($store));
 
-    $: queryRef?.updateSubscriptionOptions({ pollingInterval: $globalPollingEnabled ? pollingInterval : 0 })
+    $: loading = [incrementStatus, decrementStatus, getStatus].some((status) => status === QueryStatus.pending);
+
+    $: queryRef?.updateSubscriptionOptions({ pollingInterval: $globalPollingEnabled ? pollingInterval : 0 });
 
     onMount(() => {
-        queryRef = store.dispatch(counterApi.queryActions.getCountById(id));
-    }); 
+        queryRef = store.dispatch(actions.getCountById(id));
+    });
 </script>
 
 <style>
@@ -42,16 +41,19 @@
     .highlight {
         background: #e9ffeb;
     }
-
 </style>
 
-<main class="{loading ? 'highlight' : ''}">
+<main class={loading ? 'highlight' : ''}>
     <span class="count">{data?.count || 0}</span>
-    <button on:click={() => ({ requestId: lastIncrementRequestId } = store.dispatch(incrementCountById({ id, amount: 1 }, { track: true })))} disabled={loading}>+</button>
-    <button on:click={() => ({ requestId: lastDecrementRequestId } = store.dispatch(decrementCountById({ id, amount: 1 }, { track: true })))} disabled={loading}>-</button>
+    <button
+        on:click={() => ({ requestId: lastIncrementRequestId } = store.dispatch(actions.incrementCountById({ id, amount: 1 }, { track: true })))}
+        disabled={loading}>+</button>
+    <button
+        on:click={() => ({ requestId: lastDecrementRequestId } = store.dispatch(actions.decrementCountById({ id, amount: 1 }, { track: true })))}
+        disabled={loading}>-</button>
     <select bind:value={pollingInterval}>
         {#each pollingOptions as { value, label }}
-        <option {value}>{label}</option>
+            <option {value}>{label}</option>
         {/each}
     </select>
 </main>

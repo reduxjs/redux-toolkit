@@ -6,11 +6,21 @@ import {
   MutationDefinition,
   isQueryDefinition,
   isMutationDefinition,
+  QueryArgFrom,
+  EndpointDefinition,
 } from './endpointDefinitions';
 import type { InternalState } from './buildSlice';
 import { InternalSerializeQueryArgs } from '.';
 
 export const skipSelector = Symbol('skip selector');
+
+export type Selectors<Definitions extends EndpointDefinitions, RootState> = {
+  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<any, any, any, any>
+    ? QueryResultSelector<Definitions[K], RootState>
+    : Definitions[K] extends MutationDefinition<any, any, any, any>
+    ? MutationResultSelector<Definitions[K], RootState>
+    : never;
+};
 
 export type QueryResultSelectors<Definitions extends EndpointDefinitions, RootState> = {
   [K in keyof Definitions]: Definitions[K] extends QueryDefinition<infer QueryArg, any, any, infer ResultType>
@@ -23,6 +33,13 @@ export type MutationResultSelectors<Definitions extends EndpointDefinitions, Roo
     ? (requestId: string | typeof skipSelector) => (state: RootState) => MutationSubState<Definitions[K]>
     : never;
 };
+
+export type QueryResultSelector<Definition extends QueryDefinition<any, any, any, any>, RootState> = (
+  queryArg: QueryArgFrom<Definition> | typeof skipSelector
+) => (state: RootState) => QuerySubState<Definition>;
+export type MutationResultSelector<Definition extends MutationDefinition<any, any, any, any>, RootState> = (
+  requestId: string | typeof skipSelector
+) => (state: RootState) => MutationSubState<Definition>;
 
 // abuse immer to freeze default states
 const defaultQuerySubState = createNextState(
@@ -44,38 +61,38 @@ const defaultMutationSubState = createNextState(
 
 export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDefinitions, ReducerPath extends string>({
   serializeQueryArgs,
-  endpointDefinitions,
   reducerPath,
 }: {
   serializeQueryArgs: InternalSerializeQueryArgs<InternalQueryArgs>;
-  endpointDefinitions: Definitions;
   reducerPath: ReducerPath;
 }) {
   type RootState = _RootState<Definitions, string, ReducerPath>;
-  const querySelectors = Object.entries(endpointDefinitions).reduce((acc, [name, endpoint]) => {
-    if (isQueryDefinition(endpoint)) {
-      acc[name] = (arg?) => (rootState) =>
+
+  return buildSelector;
+
+  function buildSelector<D extends QueryDefinition<any, any, any, any>>(
+    endpoint: string,
+    definition: D
+  ): QueryResultSelector<D, RootState>;
+  function buildSelector<D extends MutationDefinition<any, any, any, any>>(
+    endpoint: string,
+    definition: D
+  ): MutationResultSelector<D, RootState>;
+  function buildSelector(endpoint: string, definition: EndpointDefinition<any, any, any, any>) {
+    if (isQueryDefinition(definition)) {
+      const selector: QueryResultSelector<any, RootState> = (arg?) => (rootState: RootState) =>
         (arg === skipSelector
           ? undefined
-          : (rootState[reducerPath] as InternalState).queries[serializeQueryArgs(endpoint.query(arg), name)]) ??
+          : (rootState[reducerPath] as InternalState).queries[serializeQueryArgs(definition.query(arg), endpoint)]) ??
         defaultQuerySubState;
-    }
-    return acc;
-  }, {} as Record<string, (arg: unknown) => (state: RootState) => unknown>) as QueryResultSelectors<
-    Definitions,
-    RootState
-  >;
 
-  const mutationSelectors = Object.entries(endpointDefinitions).reduce((acc, [name, endpoint]) => {
-    if (isMutationDefinition(endpoint)) {
-      acc[name] = (mutationId: string | typeof skipSelector) => (rootState) =>
+      return selector;
+    } else if (isMutationDefinition(definition)) {
+      const selector: MutationResultSelector<any, RootState> = (mutationId) => (rootState) =>
         (mutationId === skipSelector ? undefined : rootState[reducerPath].mutations[mutationId]) ??
         defaultMutationSubState;
+      return selector;
     }
-    return acc;
-  }, {} as Record<string, (arg: string) => (state: RootState) => unknown>) as MutationResultSelectors<
-    Definitions,
-    RootState
-  >;
-  return { querySelectors, mutationSelectors };
+    throw new Error('invalid definition');
+  }
 }

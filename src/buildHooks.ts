@@ -9,6 +9,7 @@ import {
   isQueryDefinition,
   isMutationDefinition,
   QueryArgFrom,
+  EndpointDefinition,
 } from './endpointDefinitions';
 import { QueryResultSelectors, MutationResultSelectors, skipSelector } from './buildSelectors';
 import {
@@ -50,28 +51,31 @@ export type Hooks<Definitions extends EndpointDefinitions> = {
 };
 
 export function buildHooks<Definitions extends EndpointDefinitions>({
-  endpointDefinitions,
   querySelectors,
   queryActions,
   mutationSelectors,
   mutationActions,
 }: {
-  endpointDefinitions: Definitions;
   querySelectors: QueryResultSelectors<Definitions, any>;
   queryActions: QueryActions<Definitions>;
   mutationSelectors: MutationResultSelectors<Definitions, any>;
   mutationActions: MutationActions<Definitions>;
 }) {
-  const hooks: Hooks<Definitions> = Object.entries(endpointDefinitions).reduce<Hooks<any>>((acc, [name, endpoint]) => {
-    if (isQueryDefinition(endpoint)) {
-      acc[name] = { useQuery: buildQueryHook(name) };
-    } else if (isMutationDefinition(endpoint)) {
-      acc[name] = { useMutation: buildMutationHook(name) };
-    }
-    return acc;
-  }, {});
+  return buildHook;
 
-  return { hooks };
+  function buildHook<D extends QueryDefinition<any, any, any, any>>(endpoint: string, definition: D): QueryHook<D>;
+  function buildHook<D extends MutationDefinition<any, any, any, any>>(
+    endpoint: string,
+    definition: D
+  ): MutationHook<D>;
+  function buildHook(endpoint: string, definition: EndpointDefinition<any, any, any, any>) {
+    if (isQueryDefinition(definition)) {
+      return buildQueryHook(endpoint);
+    } else if (isMutationDefinition(definition)) {
+      return buildMutationHook(endpoint);
+    }
+    throw new Error('invalid definition');
+  }
 
   function buildQueryHook(name: string): QueryHook<any> {
     const startQuery = queryActions[name];
