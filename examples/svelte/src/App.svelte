@@ -17,7 +17,7 @@
         queryRef = { refetch: getCount } = store.dispatch(actions.getCount());
     });
 
-    $: ({ data } = counterApi.selectors.getCount()($store));
+    $: ({ data } = selectors.getCount()($store));
 </script>
 
 <style>
