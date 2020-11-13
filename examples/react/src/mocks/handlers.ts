@@ -26,7 +26,7 @@ export const handlers = [
     const localOffset = date.getTimezoneOffset() * 60000;
     const formattedOffset = Number(offset.replace(':', '.'));
     const target = localDate + localOffset + 3600000 * formattedOffset;
-    return res(ctx.json({ time: new Date(target).toUTCString() }));
+    return res(ctx.json({ time: new Date(target).toUTCString() }), ctx.delay(400));
   }),
 
   rest.put<{ amount: number }>('/increment', (req, res, ctx) => {

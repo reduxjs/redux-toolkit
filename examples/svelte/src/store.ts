@@ -1,6 +1,6 @@
 import { configureStore, EnhancedStore } from '@reduxjs/toolkit';
 import { counterApi } from './services/counter';
-import { Readable, readable } from 'svelte/store';
+import { Readable, readable, writable } from 'svelte/store';
 
 const reduxStore = configureStore({
     reducer: {
@@ -30,3 +30,5 @@ const bindReduxStore = <T extends EnhancedStore<any, any, any>>(
 };
 
 export const store = bindReduxStore(reduxStore);
+
+export const globalPollingEnabled = writable(true);

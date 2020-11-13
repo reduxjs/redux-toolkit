@@ -55,9 +55,9 @@ export const PostDetail = () => {
   const [updatePost, { status: updateStatus }] = postApi.hooks.updatePost.useMutation();
 
   const [deletePost, { status: deleteStatus }] = postApi.hooks.deletePost.useMutation();
+  const isUpdating = QueryStatus.pending === updateStatus;
   const isDeleting = QueryStatus.pending === deleteStatus;
 
-  // If any mutation is pending, just show loading...
   if (status === QueryStatus.pending) {
     return <div>Loading...</div>;
   }
@@ -89,8 +89,8 @@ export const PostDetail = () => {
             <div className="column">
               <h3>{post.name}</h3>
             </div>
-            <button onClick={() => setIsEditing(true)} disabled={isDeleting}>
-              Edit
+            <button onClick={() => setIsEditing(true)} disabled={isDeleting || isUpdating}>
+              {isUpdating ? 'Updating...' : 'Edit'}
             </button>
             <button onClick={() => deletePost(id).then(() => push('/posts'))} disabled={isDeleting}>
               {isDeleting ? 'Deleting...' : 'Delete'}

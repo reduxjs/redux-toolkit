@@ -1,8 +1,11 @@
 import { nanoid } from '@reduxjs/toolkit';
 import React, { useState } from 'react';
 import { useEffect } from 'react';
+import { QueryStatus } from '@rtk-incubator/simple-query/dist';
 import { timeApi } from '../../app/services/times';
 import { Container } from '../common/Container';
+import { useTypedSelector } from '../../app/store';
+import { selectGlobalPollingEnabled, selectPollingConfigByApp } from '../polling/pollingSlice';
 
 const timezones: Record<string, string> = {
   '-12:00': '(GMT -12:00) Eniwetok, Kwajalein',
@@ -47,13 +50,7 @@ const timezones: Record<string, string> = {
   '+14:00': '(GMT +14:00) Line Islands, Tokelau',
 };
 
-const TimeZoneSelector = ({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-}) => {
+const TimeZoneSelector = ({ onChange }: { onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void }) => {
   return (
     <select name="timezone_offset" id="timezone-offset" onChange={onChange}>
       <option value="">Select one...</option>
@@ -76,28 +73,32 @@ const intervalOptions = [
 ];
 
 const TimeDisplay = ({ offset, label }: { offset: string; label: string }) => {
+  const globalPolling = useTypedSelector(selectGlobalPollingEnabled);
+  const { enabled: timesPolling } = useTypedSelector((state) => selectPollingConfigByApp(state, 'times'));
+
+  const canPoll = globalPolling && timesPolling;
+
   const [pollingInterval, setPollingInterval] = useState(0);
-  const { data, refetch } = timeApi.hooks.getTime.useQuery(offset, { pollingInterval });
+  const { data, status, refetch } = timeApi.hooks.getTime.useQuery(offset, {
+    pollingInterval: canPoll ? pollingInterval : 0,
+  });
 
   return (
-    <>
-      <div>
-        <p>
-          {data?.time && new Date(data.time).toLocaleTimeString()} - {label}
-        </p>
-        <p>
-          <button onClick={() => refetch()}>refetch manually</button> Polling Interval:{' '}
-          <select value={pollingInterval} onChange={({ target: { value } }) => setPollingInterval(Number(value))}>
-            {intervalOptions.map(({ label, value }) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </p>
-      </div>
-      <hr />
-    </>
+    <div style={{ ...(QueryStatus.pending === status ? { background: '#e6ffe8' } : {}) }}>
+      <p>
+        {data?.time && new Date(data.time).toLocaleTimeString()} - {label}
+      </p>
+      <p>
+        <button onClick={refetch}>refetch manually</button> Polling Interval:{' '}
+        <select value={pollingInterval} onChange={({ target: { value } }) => setPollingInterval(Number(value))}>
+          {intervalOptions.map(({ label, value }) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </p>
+    </div>
   );
 };
 
@@ -105,7 +106,7 @@ export const TimeList = () => {
   const [times, setTimes] = useState<{ [key: string]: string }>({
     [nanoid()]: '-08:00',
   });
-  const [value, setValue] = useState<string>('');
+  const [selectedValue, setSelectedValue] = useState<string>('');
 
   useEffect(() => {
     setTimeout(() => {
@@ -123,9 +124,11 @@ export const TimeList = () => {
         <br />
         Any new poll starts after the last request has either finished or failed to prevent slow-running requests to
         immediately double-trigger.
+        <br />
+        <strong>* Background flashes green when query is running</strong>
       </p>
-      <TimeZoneSelector value={value} onChange={({ target: { value } }) => setValue(value)} />
-      <button onClick={() => setTimes((prev) => ({ ...prev, [nanoid()]: value }))} disabled={!value}>
+      <TimeZoneSelector onChange={({ target: { value } }) => setSelectedValue(value)} />
+      <button onClick={() => setTimes((prev) => ({ ...prev, [nanoid()]: selectedValue }))} disabled={!selectedValue}>
         Track time
       </button>
       <hr />

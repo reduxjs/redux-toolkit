@@ -53,7 +53,7 @@ const api = createApi({
         return {
           url: `users`,
           method: 'POST',
-          body: JSON.stringify(data),
+          body: data,
         };
       },
     }),
@@ -62,7 +62,7 @@ const api = createApi({
         return {
           url: `users/${id}`,
           method: 'PATCH',
-          body: JSON.stringify(patch),
+          body: patch,
         };
       },
     }),
@@ -130,7 +130,7 @@ const api = createApi({
         return {
           url: `users`,
           method: 'POST',
-          body: JSON.stringify(data),
+          body: data,
         };
       },
 +      invalidates: [{type: 'User'}]
@@ -169,7 +169,7 @@ const api = createApi({
         return {
           url: `users`,
           method: 'POST',
-          body: JSON.stringify(data),
+          body: data,
         };
       },
 -      invalidates: [{type: 'User'}]
@@ -180,7 +180,7 @@ const api = createApi({
         return {
           url: `users/${id}`,
           method: 'PATCH',
-          body: JSON.stringify(patch),
+          body: patch,
         };
       },
 -      invalidates: [{type: 'User'}]

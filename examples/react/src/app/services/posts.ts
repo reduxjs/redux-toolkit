@@ -9,7 +9,7 @@ type PostsResponse = Post[];
 
 export const postApi = createApi({
   reducerPath: 'postsApi',
-  baseQuery: fetchBaseQuery(),
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   entityTypes: ['Posts'],
   endpoints: (build) => ({
     getPosts: build.query<PostsResponse, void>({
@@ -17,29 +17,29 @@ export const postApi = createApi({
       provides: (result) => result.map(({ id }) => ({ type: 'Posts', id })),
     }),
     addPost: build.mutation<Post, Partial<Post>>({
-      query(data) {
+      query(body) {
         return {
           url: `posts`,
           method: 'POST',
-          body: JSON.stringify(data),
+          body,
         };
       },
-      invalidates: [{ type: 'Posts' }],
+      invalidates: ['Posts'],
     }),
     getPost: build.query<Post, number>({
       query: (id) => `posts/${id}`,
-      provides: (result, id) => [{ type: 'Posts', id }],
+      provides: (_, id) => [{ type: 'Posts', id }],
     }),
     updatePost: build.mutation<Post, Partial<Post>>({
       query(data) {
-        const { id, ...post } = data;
+        const { id, ...body } = data;
         return {
           url: `posts/${id}`,
           method: 'PUT',
-          body: JSON.stringify(post),
+          body,
         };
       },
-      invalidates: (result, { id }) => [{ type: 'Posts', id }],
+      invalidates: (_, { id }) => [{ type: 'Posts', id }],
     }),
     deletePost: build.mutation<{ success: boolean; id: number }, number>({
       query(id) {

@@ -1,4 +1,4 @@
-import { isAbsoluteUrl } from '.';
+import { isAbsoluteUrl } from './isAbsoluteUrl';
 
 const withoutTrailingSlash = (url: string) => url.replace(/\/$/, '');
 const withoutLeadingSlash = (url: string) => url.replace(/^\//, '');

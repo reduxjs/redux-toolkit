@@ -11,7 +11,7 @@ export const timeApi = createApi({
   endpoints: (build) => ({
     getTime: build.query<TimeResponse, string>({
       query: (id) => `time/${id}`,
-      provides: (result, id) => [{ type: 'Time', id }],
+      provides: (_, id) => [{ type: 'Time', id }],
     }),
   }),
 });

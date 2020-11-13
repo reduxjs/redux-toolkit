@@ -1,56 +1,40 @@
-import { QueryStatus } from "@rtk-incubator/simple-query/dist";
-import React, { useState } from "react";
-import { Route, Switch, useHistory } from "react-router-dom";
-import { Post, postApi } from "../../app/services/posts";
-import { PostDetail } from "./PostDetail";
-import "./PostsManager.css";
+import { QueryStatus } from '@rtk-incubator/simple-query/dist';
+import React, { useState } from 'react';
+import { Route, Switch, useHistory } from 'react-router-dom';
+import { Post, postApi } from '../../app/services/posts';
+import { PostDetail } from './PostDetail';
+import './PostsManager.css';
 
 const AddPost = () => {
-  const [post, setPost] = useState<Partial<Post>>({ name: "" });
+  const initialValue = { name: '' };
+  const [post, setPost] = useState<Partial<Post>>(initialValue);
   const [addPost, { status }] = postApi.hooks.addPost.useMutation();
   const loading = status === QueryStatus.pending;
 
   const handleChange = ({ target }: React.ChangeEvent<HTMLInputElement>) => {
     setPost((prev) => ({
       ...prev,
-      [target.name]: target.value
+      [target.name]: target.value,
     }));
   };
 
-  const handleAddPost = () =>
-    addPost(post).then(() =>
-      setPost({
-        name: ""
-      })
-    );
+  const handleAddPost = () => addPost(post).then(() => setPost(initialValue));
 
   return (
     <div className="row">
       <div className="column column-3">
-        <input
-          name="name"
-          placeholder="New post name"
-          type="text"
-          onChange={handleChange}
-          value={post.name}
-        />
+        <input name="name" placeholder="New post name" type="text" onChange={handleChange} value={post.name} />
       </div>
       <div className="column column-1">
         <button onClick={handleAddPost} disabled={loading}>
-          {loading ? "Adding..." : "Add Post"}
+          {loading ? 'Adding...' : 'Add Post'}
         </button>
       </div>
     </div>
   );
 };
 
-const PostListItem = ({
-  data: { name, id },
-  onSelect
-}: {
-  data: Post;
-  onSelect: (id: number) => void;
-}) => {
+const PostListItem = ({ data: { name, id }, onSelect }: { data: Post; onSelect: (id: number) => void }) => {
   return (
     <li>
       <a href="#" onClick={() => onSelect(id)}>
@@ -75,11 +59,7 @@ const PostList = () => {
   return (
     <div>
       {posts.map((post) => (
-        <PostListItem
-          key={post.id}
-          data={post}
-          onSelect={(id) => push(`/posts/${id}`)}
-        />
+        <PostListItem key={post.id} data={post} onSelect={(id) => push(`/posts/${id}`)} />
       ))}
     </div>
   );

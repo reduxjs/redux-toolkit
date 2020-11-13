@@ -4,6 +4,8 @@ import { rest } from 'msw';
 let count = 0;
 
 let counters = {};
+let intervals = [];
+let spookyMode = true;
 
 export const handlers = [
     rest.get('/error', (req, res, ctx) => {
@@ -46,9 +48,29 @@ export const handlers = [
     rest.get('/:id', (req, res, ctx) => {
         const { id } = req.params;
 
-        const count = counters[id] || (counters[id] = 0);
+        let count = counters[id];
+        if (!count) {
+            count = counters[id] = 0;
+        }
 
-        return res(ctx.json({ count }));
+        if (spookyMode) {
+            intervals.push(
+                setInterval(() => {
+                    counters[id] = counters[id] + Math.floor(Math.random() * 10) + 1;
+                }, 2000),
+            );
+        }
+
+        return res(ctx.json({ count }), ctx.delay(300));
+    }),
+    rest.put('/stop', (req, res, ctx) => {
+        intervals.forEach((int) => {
+            clearInterval(int);
+        });
+        intervals = [];
+        spookyMode = false;
+
+        return res(ctx.json({ success: true, message: 'Intervals stopped. No more shennanigans' }));
     }),
     rest.put<{ amount: number }>('/:id/increment', (req, res, ctx) => {
         const { amount } = req.body;

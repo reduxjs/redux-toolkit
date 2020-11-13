@@ -1,8 +1,9 @@
-import { configureStore, ThunkAction, Action, ConfigureStoreOptions } from '@reduxjs/toolkit';
-import { useDispatch } from 'react-redux';
+import { configureStore, ConfigureStoreOptions } from '@reduxjs/toolkit';
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { counterApi } from './services/counter';
 import { postApi } from './services/posts';
 import { timeApi } from './services/times';
+import polling from '../features/polling/pollingSlice';
 
 export const createStore = (options?: ConfigureStoreOptions['preloadedState'] | undefined) =>
   configureStore({
@@ -10,6 +11,7 @@ export const createStore = (options?: ConfigureStoreOptions['preloadedState'] | 
       [counterApi.reducerPath]: counterApi.reducer,
       [postApi.reducerPath]: postApi.reducer,
       [timeApi.reducerPath]: timeApi.reducer,
+      polling,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(counterApi.middleware, postApi.middleware, timeApi.middleware),
@@ -21,4 +23,4 @@ export const store = createStore();
 export type AppDispatch = typeof store.dispatch;
 export const useAppDispatch = () => useDispatch<AppDispatch>();
 export type RootState = ReturnType<typeof store.getState>;
-export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action<string>>;
+export const useTypedSelector: TypedUseSelectorHook<RootState> = useSelector;
