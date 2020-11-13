@@ -4,13 +4,13 @@ import { StartQueryActionCreatorOptions } from './buildActionMaps';
 import { EndpointDefinitions } from './endpointDefinitions';
 
 export interface QueryThunkArg<InternalQueryArgs> extends QuerySubstateIdentifier, StartQueryActionCreatorOptions {
+  originalArgs: unknown;
   endpoint: string;
-  // arg: unknown;
   internalQueryArgs: InternalQueryArgs;
 }
 
 export interface MutationThunkArg<InternalQueryArgs> {
-  arg: unknown;
+  originalArgs: unknown;
   endpoint: string;
   internalQueryArgs: InternalQueryArgs;
   track?: boolean;

@@ -97,6 +97,7 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
         forceRefetch,
         subscriptionOptions,
         endpoint,
+        originalArgs: arg,
         internalQueryArgs,
         queryCacheKey,
       });
@@ -134,7 +135,7 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
   ): StartMutationActionCreator<any> {
     return (arg, { track = true } = {}) => (dispatch, getState) => {
       const internalQueryArgs = definition.query(arg);
-      const thunk = mutationThunk({ endpoint, internalQueryArgs, arg, track });
+      const thunk = mutationThunk({ endpoint, internalQueryArgs, originalArgs: arg, track });
       const thunkResult = dispatch(thunk);
       const { requestId, abort } = thunkResult;
       assertIsNewRTKPromise(thunkResult);

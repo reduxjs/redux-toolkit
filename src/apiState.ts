@@ -4,6 +4,7 @@ import {
   EndpointDefinitions,
   BaseEndpointDefinition,
   ResultTypeFrom,
+  QueryArgFrom,
 } from './endpointDefinitions';
 import { Id, WithRequiredProp } from './tsHelpers';
 
@@ -28,6 +29,7 @@ export type MutationKeys<Definitions extends EndpointDefinitions> = {
 }[keyof Definitions];
 
 type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
+  originalArgs: QueryArgFrom<D>;
   internalQueryArgs: unknown;
   requestId: string;
   data?: ResultTypeFrom<D>;
@@ -47,6 +49,7 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
     } & WithRequiredProp<BaseQuerySubState<D>, 'error'>)
   | {
       status: QueryStatus.uninitialized;
+      originalArgs?: undefined;
       internalQueryArgs?: undefined;
       data?: undefined;
       error?: undefined;
@@ -56,6 +59,7 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
 >;
 
 type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
+  originalArgs?: QueryArgFrom<D>;
   internalQueryArgs: unknown;
   data?: ResultTypeFrom<D>;
   error?: unknown;
@@ -74,6 +78,7 @@ export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
     } & WithRequiredProp<BaseMutationSubState<D>, 'error'>)
   | {
       status: QueryStatus.uninitialized;
+      originalArgs?: undefined;
       internalQueryArgs?: undefined;
       data?: undefined;
       error?: undefined;

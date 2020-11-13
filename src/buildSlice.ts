@@ -74,6 +74,7 @@ export function buildSlice({
             substate.status = QueryStatus.pending;
             substate.requestId = requestId;
             substate.internalQueryArgs = arg.internalQueryArgs;
+            substate.originalArgs = arg.originalArgs;
           });
         })
         .addCase(queryThunk.fulfilled, (draft, { meta, payload }) => {
@@ -114,7 +115,8 @@ export function buildSlice({
 
           draft[requestId] = {
             status: QueryStatus.pending,
-            internalQueryArgs: arg.arg,
+            internalQueryArgs: arg.internalQueryArgs,
+            originalArgs: arg.originalArgs,
             endpoint: arg.endpoint,
           };
         })
@@ -145,7 +147,7 @@ export function buildSlice({
       builder
         .addCase(queryThunk.fulfilled, (draft, { payload, meta: { arg } }) => {
           const { endpoint, queryCacheKey } = arg;
-          const providedEntities = calculateProvidedBy(definitions[endpoint].provides, payload, arg.internalQueryArgs);
+          const providedEntities = calculateProvidedBy(definitions[endpoint].provides, payload, arg.originalArgs);
           for (const { type, id } of providedEntities) {
             const subscribedQueries = ((draft[type] ??= {})[id || '__internal_without_id'] ??= []);
             const alreadySubscribed = subscribedQueries.includes(queryCacheKey);

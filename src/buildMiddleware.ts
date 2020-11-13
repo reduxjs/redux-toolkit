@@ -40,7 +40,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
         calculateProvidedBy(
           endpointDefinitions[action.meta.arg.endpoint].invalidates,
           action.payload,
-          action.meta.arg.arg
+          action.meta.arg.originalArgs
         ),
         api
       );
@@ -98,6 +98,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
             api.dispatch(
               queryThunk({
                 endpoint: querySubState.endpoint,
+                originalArgs: querySubState.originalArgs,
                 internalQueryArgs: querySubState.internalQueryArgs,
                 queryCacheKey,
                 subscribe: false,
@@ -148,6 +149,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
         api.dispatch(
           queryThunk({
             endpoint: querySubState.endpoint,
+            originalArgs: querySubState.originalArgs,
             internalQueryArgs: querySubState.internalQueryArgs,
             queryCacheKey,
             subscribe: false,
