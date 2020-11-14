@@ -2,15 +2,7 @@ import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector, batch } from 'react-redux';
 import { MutationSubState, QueryStatus, QuerySubState, SubscriptionOptions } from './apiState';
-import {
-  EndpointDefinitions,
-  MutationDefinition,
-  QueryDefinition,
-  isQueryDefinition,
-  isMutationDefinition,
-  QueryArgFrom,
-  EndpointDefinition,
-} from './endpointDefinitions';
+import { EndpointDefinitions, MutationDefinition, QueryDefinition, QueryArgFrom } from './endpointDefinitions';
 import { QueryResultSelectors, MutationResultSelectors, skipSelector } from './buildSelectors';
 import {
   QueryActions,
@@ -61,21 +53,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   mutationSelectors: MutationResultSelectors<Definitions, any>;
   mutationActions: MutationActions<Definitions>;
 }) {
-  return buildHook;
-
-  function buildHook<D extends QueryDefinition<any, any, any, any>>(endpoint: string, definition: D): QueryHook<D>;
-  function buildHook<D extends MutationDefinition<any, any, any, any>>(
-    endpoint: string,
-    definition: D
-  ): MutationHook<D>;
-  function buildHook(endpoint: string, definition: EndpointDefinition<any, any, any, any>) {
-    if (isQueryDefinition(definition)) {
-      return buildQueryHook(endpoint);
-    } else if (isMutationDefinition(definition)) {
-      return buildMutationHook(endpoint);
-    }
-    throw new Error('invalid definition');
-  }
+  return { buildQueryHook, buildMutationHook };
 
   function buildQueryHook(name: string): QueryHook<any> {
     const startQuery = queryActions[name];

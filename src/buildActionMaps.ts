@@ -1,12 +1,4 @@
-import {
-  EndpointDefinitions,
-  QueryDefinition,
-  MutationDefinition,
-  isQueryDefinition,
-  isMutationDefinition,
-  EndpointDefinition,
-  QueryArgFrom,
-} from './endpointDefinitions';
+import { EndpointDefinitions, QueryDefinition, MutationDefinition, QueryArgFrom } from './endpointDefinitions';
 import type { QueryThunkArg, MutationThunkArg } from './buildThunks';
 import { AnyAction, AsyncThunk, ThunkAction } from '@reduxjs/toolkit';
 import { MutationSubState, QueryStatus, QuerySubState, SubscriptionOptions } from './apiState';
@@ -91,25 +83,7 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
   mutationSelectors: MutationResultSelectors<Definitions, any>;
   sliceActions: SliceActions;
 }) {
-  return buildAction;
-
-  function buildAction<D extends QueryDefinition<any, any, any, any>>(
-    endpoint: string,
-    definition: D
-  ): StartQueryActionCreator<D>;
-  function buildAction<D extends MutationDefinition<any, any, any, any>>(
-    endpoint: string,
-    definition: D
-  ): StartMutationActionCreator<D>;
-
-  function buildAction(endpoint: string, definition: EndpointDefinition<any, any, any, any>) {
-    if (isQueryDefinition(definition)) {
-      return buildQueryAction(endpoint, definition);
-    } else if (isMutationDefinition(definition)) {
-      return buildMutationAction(endpoint, definition);
-    }
-    throw new Error('invalid definition');
-  }
+  return { buildQueryAction, buildMutationAction };
 
   function buildQueryAction(endpoint: string, definition: QueryDefinition<any, any, any, any>) {
     const queryAction: StartQueryActionCreator<any> = (

@@ -1,6 +1,6 @@
-import type { AnyAction, Reducer } from '@reduxjs/toolkit';
+import type { AnyAction, Middleware, Reducer, ThunkDispatch } from '@reduxjs/toolkit';
 import { buildThunks, QueryApi } from './buildThunks';
-import { buildSlice } from './buildSlice';
+import { buildSlice, SliceActions } from './buildSlice';
 import { buildActionMaps, EndpointActions } from './buildActionMaps';
 import { buildSelectors, Selectors } from './buildSelectors';
 import { buildHooks, Hooks } from './buildHooks';
@@ -9,11 +9,11 @@ import {
   EndpointDefinitions,
   EndpointBuilder,
   DefinitionType,
-  EndpointDefinition,
   isQueryDefinition,
   isMutationDefinition,
 } from './endpointDefinitions';
 import type { CombinedState, QueryCacheKey, QueryStatePhantomType, RootState } from './apiState';
+import { assertCast } from './tsHelpers';
 
 export { fetchBaseQuery } from './fetchBaseQuery';
 export { QueryStatus } from './apiState';
@@ -36,7 +36,7 @@ export function createApi<
 >({
   baseQuery,
   reducerPath,
-  serializeQueryArgs: _serializeQueryArgs = defaultSerializeQueryArgs,
+  serializeQueryArgs = defaultSerializeQueryArgs,
   endpoints,
   keepUnusedDataFor = 60,
 }: {
@@ -46,51 +46,22 @@ export function createApi<
   serializeQueryArgs?: SerializeQueryArgs<InternalQueryArgs>;
   endpoints(build: EndpointBuilder<InternalQueryArgs, EntityTypes>): Definitions;
   keepUnusedDataFor?: number;
-}) {
+}): Api<InternalQueryArgs, Definitions, ReducerPath, EntityTypes> {
   type State = CombinedState<Definitions, EntityTypes>;
 
-  const serializeQueryArgs = _serializeQueryArgs as InternalSerializeQueryArgs<InternalQueryArgs>;
+  assertCast<InternalSerializeQueryArgs<InternalQueryArgs>>(serializeQueryArgs);
 
-  const endpointDefinitions = endpoints({
-    query: (x) => ({ ...x, type: DefinitionType.query }),
-    mutation: (x) => ({ ...x, type: DefinitionType.mutation }),
-  });
+  const endpointDefinitions: EndpointDefinitions = {};
 
   const { queryThunk, mutationThunk } = buildThunks({ baseQuery, reducerPath, endpointDefinitions });
 
-  const { reducer: _reducer, actions: sliceActions } = buildSlice({
+  const { reducer, actions: sliceActions } = buildSlice({
     endpointDefinitions,
     queryThunk,
     mutationThunk,
     reducerPath,
   });
-
-  const reducer = (_reducer as any) as Reducer<State & QueryStatePhantomType<ReducerPath>, AnyAction>;
-
-  const selectors = {} as Selectors<Definitions, RootState<Definitions, EntityTypes, ReducerPath>>;
-  const actions = {} as EndpointActions<Definitions>;
-  const hooks = {} as Hooks<Definitions>;
-
-  const buildSelector = buildSelectors({
-    serializeQueryArgs,
-    reducerPath,
-  });
-
-  const buildAction = buildActionMaps({
-    queryThunk,
-    mutationThunk,
-    serializeQueryArgs,
-    querySelectors: selectors as any,
-    mutationSelectors: selectors as any,
-    sliceActions,
-  });
-
-  const buildHook = buildHooks({
-    querySelectors: selectors as any,
-    queryActions: actions as any,
-    mutationSelectors: selectors as any,
-    mutationActions: actions as any,
-  });
+  assertCast<Reducer<State & QueryStatePhantomType<ReducerPath>, AnyAction>>(reducer);
 
   const { middleware } = buildMiddleware({
     reducerPath,
@@ -101,35 +72,84 @@ export function createApi<
     sliceActions,
   });
 
-  function addDefinition(endpoint: string, definition: EndpointDefinition<any, any, any, any>): void;
-  function addDefinition(endpoint: keyof Definitions & string, definition: EndpointDefinition<any, any, any, any>) {
-    if (isQueryDefinition(definition)) {
-      hooks[endpoint] = { useQuery: buildHook(endpoint, definition) } as any;
-      selectors[endpoint] = buildSelector(endpoint, definition) as any;
-      actions[endpoint] = buildAction(endpoint, definition) as any;
-    } else if (isMutationDefinition(definition)) {
-      hooks[endpoint] = { useMutation: buildHook(endpoint, definition) } as any;
-      selectors[endpoint] = buildSelector(endpoint, definition) as any;
-      actions[endpoint] = buildAction(endpoint, definition) as any;
-    }
-  }
-
-  function addDefinitions(definitions: Definitions) {
-    for (const [endpoint, defintion] of Object.entries(definitions)) {
-      addDefinition(endpoint, defintion);
-    }
-  }
-
-  addDefinitions(endpointDefinitions);
-
-  return {
+  const api: Api<InternalQueryArgs, {}, ReducerPath, EntityTypes> = {
     reducerPath,
-    actions,
+    selectors: {},
+    actions: {},
+    internalActions: sliceActions,
+    hooks: {},
     reducer,
-    selectors,
-    ...sliceActions,
     middleware,
-    hooks,
-    addDefinitions,
+    injectEndpoints,
   };
+
+  const { buildQuerySelector, buildMutationSelector } = buildSelectors({
+    serializeQueryArgs,
+    reducerPath,
+  });
+
+  const { buildQueryAction, buildMutationAction } = buildActionMaps({
+    queryThunk,
+    mutationThunk,
+    serializeQueryArgs,
+    querySelectors: api.selectors as any,
+    mutationSelectors: api.selectors as any,
+    sliceActions,
+  });
+
+  const { buildQueryHook, buildMutationHook } = buildHooks({
+    querySelectors: api.selectors as any,
+    queryActions: api.actions as any,
+    mutationSelectors: api.selectors as any,
+    mutationActions: api.actions as any,
+  });
+
+  function injectEndpoints(inject: Parameters<typeof api.injectEndpoints>[0]) {
+    const evaluatedEndpoints = inject.endpoints({
+      query: (x) => ({ ...x, type: DefinitionType.query }),
+      mutation: (x) => ({ ...x, type: DefinitionType.mutation }),
+    });
+    for (const [endpoint, definition] of Object.entries(evaluatedEndpoints)) {
+      if (!inject.overrideExisting && endpoint in endpointDefinitions) {
+        throw new Error(
+          `called \`injectEndpoints\` to override already-existing endpoint ${endpoint} without specifying \`overrideExisting: true\``
+        );
+      }
+      endpointDefinitions[endpoint] = definition;
+
+      assertCast<Api<InternalQueryArgs, Record<string, any>, ReducerPath, EntityTypes>>(api);
+      if (isQueryDefinition(definition)) {
+        api.selectors[endpoint] = buildQuerySelector(endpoint, definition);
+        api.actions[endpoint] = buildQueryAction(endpoint, definition);
+        api.hooks[endpoint] = { useQuery: buildQueryHook(endpoint) };
+      } else if (isMutationDefinition(definition)) {
+        api.selectors[endpoint] = buildMutationSelector(endpoint, definition);
+        api.actions[endpoint] = buildMutationAction(endpoint, definition);
+        api.hooks[endpoint] = { useMutation: buildMutationHook(endpoint) };
+      }
+    }
+
+    return api as any;
+  }
+
+  return api.injectEndpoints({ endpoints });
+}
+
+interface Api<
+  InternalQueryArgs,
+  Definitions extends EndpointDefinitions,
+  ReducerPath extends string,
+  EntityTypes extends string
+> {
+  reducerPath: ReducerPath;
+  actions: EndpointActions<Definitions>;
+  internalActions: SliceActions;
+  reducer: Reducer<CombinedState<Definitions, EntityTypes> & QueryStatePhantomType<ReducerPath>, AnyAction>;
+  selectors: Selectors<Definitions, RootState<Definitions, EntityTypes, ReducerPath>>;
+  middleware: Middleware<{}, RootState<Definitions, string, ReducerPath>, ThunkDispatch<any, any, AnyAction>>;
+  hooks: Hooks<Definitions>;
+  injectEndpoints<NewDefinitions extends EndpointDefinitions>(_: {
+    endpoints: (build: EndpointBuilder<InternalQueryArgs, EntityTypes>) => NewDefinitions;
+    overrideExisting?: boolean;
+  }): Api<InternalQueryArgs, Definitions & NewDefinitions, ReducerPath, EntityTypes>;
 }

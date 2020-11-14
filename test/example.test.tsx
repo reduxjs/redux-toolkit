@@ -67,14 +67,14 @@ describe('examples', () => {
       console.log(JSON.stringify(store.getState().api, undefined, 2));
     });
 
-    const _s1 = store.dispatch(api.queryActions.getUser('5'));
-    const _s2 = store.dispatch(api.mutationActions.updateUser({ id: '7', patch: { firstName: 'Timmy' } }));
+    const _s1 = store.dispatch(api.actions.getUser('5'));
+    const _s2 = store.dispatch(api.actions.updateUser({ id: '7', patch: { firstName: 'Timmy' } }));
 
     await new Promise((resolve) => setTimeout(resolve, 150));
 
-    console.log(api.selectors.query.getUser('5')(store.getState()));
-    console.log(api.selectors.query.getUser('6')(store.getState()));
-    console.log(api.selectors.mutation.updateUser('7')(store.getState()));
+    console.log(api.selectors.getUser('5')(store.getState()));
+    console.log(api.selectors.getUser('6')(store.getState()));
+    console.log(api.selectors.updateUser('7')(store.getState()));
 
     // store.dispatch(s1); // TODO
     // store.dispatch(s2);

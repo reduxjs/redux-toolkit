@@ -1,14 +1,6 @@
 import { createNextState } from '@reduxjs/toolkit';
 import { MutationSubState, QueryStatus, QuerySubState, RootState as _RootState } from './apiState';
-import {
-  EndpointDefinitions,
-  QueryDefinition,
-  MutationDefinition,
-  isQueryDefinition,
-  isMutationDefinition,
-  QueryArgFrom,
-  EndpointDefinition,
-} from './endpointDefinitions';
+import { EndpointDefinitions, QueryDefinition, MutationDefinition, QueryArgFrom } from './endpointDefinitions';
 import type { InternalState } from './buildSlice';
 import { InternalSerializeQueryArgs } from '.';
 
@@ -68,31 +60,25 @@ export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDe
 }) {
   type RootState = _RootState<Definitions, string, ReducerPath>;
 
-  return buildSelector;
+  return { buildQuerySelector, buildMutationSelector };
 
-  function buildSelector<D extends QueryDefinition<any, any, any, any>>(
+  function buildQuerySelector(
     endpoint: string,
-    definition: D
-  ): QueryResultSelector<D, RootState>;
-  function buildSelector<D extends MutationDefinition<any, any, any, any>>(
-    endpoint: string,
-    definition: D
-  ): MutationResultSelector<D, RootState>;
-  function buildSelector(endpoint: string, definition: EndpointDefinition<any, any, any, any>) {
-    if (isQueryDefinition(definition)) {
-      const selector: QueryResultSelector<any, RootState> = (arg?) => (rootState: RootState) =>
-        (arg === skipSelector
-          ? undefined
-          : (rootState[reducerPath] as InternalState).queries[serializeQueryArgs(definition.query(arg), endpoint)]) ??
-        defaultQuerySubState;
+    definition: QueryDefinition<any, any, any, any>
+  ): QueryResultSelector<any, RootState> {
+    return (arg?) => (rootState: RootState) =>
+      (arg === skipSelector
+        ? undefined
+        : (rootState[reducerPath] as InternalState).queries[serializeQueryArgs(definition.query(arg), endpoint)]) ??
+      defaultQuerySubState;
+  }
 
-      return selector;
-    } else if (isMutationDefinition(definition)) {
-      const selector: MutationResultSelector<any, RootState> = (mutationId) => (rootState) =>
-        (mutationId === skipSelector ? undefined : rootState[reducerPath].mutations[mutationId]) ??
-        defaultMutationSubState;
-      return selector;
-    }
-    throw new Error('invalid definition');
+  function buildMutationSelector(
+    endpoint: string,
+    definition: MutationDefinition<any, any, any, any>
+  ): MutationResultSelector<any, RootState> {
+    return (mutationId) => (rootState) =>
+      (mutationId === skipSelector ? undefined : rootState[reducerPath].mutations[mutationId]) ??
+      defaultMutationSubState;
   }
 }

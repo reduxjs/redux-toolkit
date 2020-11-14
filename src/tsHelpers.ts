@@ -12,3 +12,5 @@ export type SwitchEndpoint<
   : D extends MutationDefinition<any, any, any, any>
   ? MutationCase
   : never;
+
+export function assertCast<T>(v: any): asserts v is T {}
