@@ -4,6 +4,7 @@ import { counterApi } from './services/counter';
 import { postApi } from './services/posts';
 import { timeApi } from './services/times';
 import polling from '../features/polling/pollingSlice';
+import { splitApi } from './services/split';
 
 export const createStore = (options?: ConfigureStoreOptions['preloadedState'] | undefined) =>
   configureStore({
@@ -11,10 +12,11 @@ export const createStore = (options?: ConfigureStoreOptions['preloadedState'] | 
       [counterApi.reducerPath]: counterApi.reducer,
       [postApi.reducerPath]: postApi.reducer,
       [timeApi.reducerPath]: timeApi.reducer,
+      [splitApi.reducerPath]: splitApi.reducer,
       polling,
     },
     middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware().concat(counterApi.middleware, postApi.middleware, timeApi.middleware),
+      getDefaultMiddleware().concat(counterApi.middleware, postApi.middleware, timeApi.middleware, splitApi.middleware),
     ...options,
   });
 

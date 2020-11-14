@@ -4,6 +4,7 @@ import { PostsManager } from './features/posts/PostsManager';
 import { CounterList } from './features/counter/CounterList';
 import { TimeList } from './features/time/TimeList';
 import { PollingToggles } from './features/polling/PollingToggles';
+import { Lazy } from './features/bundleSplitting';
 import './App.css';
 
 function App() {
@@ -12,7 +13,8 @@ function App() {
       <div className="row">
         <div className="column column1">
           <span>
-            <Link to="/">Times</Link> | <Link to="/posts">Posts</Link> | <Link to="/counters">Counter</Link>
+            <Link to="/">Times</Link> | <Link to="/posts">Posts</Link> | <Link to="/counters">Counter</Link> |{' '}
+            <Link to="/bundleSplitting">Bundle Splitting</Link>
           </span>
         </div>
         <div className="column column1">
@@ -25,6 +27,7 @@ function App() {
           <Route exact path="/" component={TimeList} />
           <Route exact path="/counters" component={CounterList} />
           <Route path="/posts" component={PostsManager} />
+          <Route path="/bundleSplitting" component={Lazy} />
         </Switch>
       </div>
     </div>

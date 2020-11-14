@@ -14,3 +14,8 @@ export type SwitchEndpoint<
   : never;
 
 export function assertCast<T>(v: any): asserts v is T {}
+
+/**
+ * Convert a Union type `(A|B)` to and intersecion type `(A&B)`
+ */
+export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;

@@ -1,0 +1,31 @@
+import React, { useState } from 'react';
+
+// import the file that injects "post" to make sure it has been loaded
+import '../../app/services/split/post';
+
+/**
+ * You can also just import the "combined export" of the splitApi.
+ * That will contain all definted injections, but everything will
+ * be potentially undefined, to remind you that you cannot know what
+ * has already been injected.
+ */
+import { splitApi } from '../../app/services/split';
+
+function assert(condition: any, msg = 'Generic Assertion'): asserts condition {
+  if (!condition) {
+    throw new Error(`Assertion failed: ${msg}`);
+  }
+}
+
+const Post = ({ id }: { id: number }) => {
+  /*
+   * As accessing these conditionally will cause hooks to error out,
+   * you best assert their existence & throw otherwise.
+   * This missing would be a programming error that you should
+   * catch early anyways.
+   */
+  assert(splitApi.hooks.getPost, 'Endpoint `getPost` not loaded!');
+  const { data } = splitApi.hooks.getPost.useQuery(id);
+  return !data ? <>loading</> : <h1>{data.name}</h1>;
+};
+export default Post;

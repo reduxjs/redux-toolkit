@@ -27,6 +27,9 @@
     "typescript": "^4.0.5",
     "whatwg-fetch": "^3.4.1"
   },
+  "resolutions": {
+    "@typescript-eslint/parser": "4.4.1"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",

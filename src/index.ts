@@ -13,7 +13,7 @@ import {
   isMutationDefinition,
 } from './endpointDefinitions';
 import type { CombinedState, QueryCacheKey, QueryStatePhantomType, RootState } from './apiState';
-import { assertCast } from './tsHelpers';
+import { assertCast, UnionToIntersection } from './tsHelpers';
 
 export { fetchBaseQuery } from './fetchBaseQuery';
 export { QueryStatus } from './apiState';
@@ -135,7 +135,7 @@ export function createApi<
   return api.injectEndpoints({ endpoints });
 }
 
-interface Api<
+export interface Api<
   InternalQueryArgs,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
@@ -153,3 +153,14 @@ interface Api<
     overrideExisting?: boolean;
   }): Api<InternalQueryArgs, Definitions & NewDefinitions, ReducerPath, EntityTypes>;
 }
+
+export type ApiWithInjectedEndpoints<
+  ApiDefinition extends Api<any, any, any, any>,
+  Injections extends ApiDefinition extends Api<infer I, any, infer R, infer E>
+    ? [Api<I, any, R, E>, ...Api<I, any, R, E>[]]
+    : never
+> = ApiDefinition & {
+  actions: Partial<UnionToIntersection<Injections[number]['actions']>>;
+  selectors: Partial<UnionToIntersection<Injections[number]['selectors']>>;
+  hooks: Partial<UnionToIntersection<Injections[number]['hooks']>>;
+};
