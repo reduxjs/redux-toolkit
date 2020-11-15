@@ -31,18 +31,19 @@ function defaultSerializeQueryArgs(args: any, endpoint: string) {
 export function createApi<
   InternalQueryArgs,
   Definitions extends EndpointDefinitions,
-  ReducerPath extends string,
-  EntityTypes extends string
+  ReducerPath extends string = 'api',
+  EntityTypes extends string = never
 >({
   baseQuery,
-  reducerPath,
+  entityTypes = [],
+  reducerPath = 'api' as ReducerPath,
   serializeQueryArgs = defaultSerializeQueryArgs,
   endpoints,
   keepUnusedDataFor = 60,
 }: {
   baseQuery(args: InternalQueryArgs, api: QueryApi): any;
-  entityTypes: readonly EntityTypes[];
-  reducerPath: ReducerPath;
+  entityTypes?: readonly EntityTypes[];
+  reducerPath?: ReducerPath;
   serializeQueryArgs?: SerializeQueryArgs<InternalQueryArgs>;
   endpoints(build: EndpointBuilder<InternalQueryArgs, EntityTypes>): Definitions;
   keepUnusedDataFor?: number;
