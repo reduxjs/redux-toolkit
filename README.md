@@ -1,6 +1,10 @@
-What this is:
+## What this is:
 
 This is an experiment to create a generic api client based on (and potentially to be shipped with) redux toolkit that allows for effective querying of non-normalized api endpoints with some global caching & cache invalidation mechanisms.
+
+## Getting it / trying it out
+
+For now, look at [The CodeSandbox CI](https://ci.codesandbox.io/status/rtk-incubator/simple-query/pr/1) for the latest experimental package builds and up-to-date example sandboxes.
 
 # Basic usage:
 
