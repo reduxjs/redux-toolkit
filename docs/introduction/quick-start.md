@@ -7,6 +7,10 @@ hide_title: true
 
 # Quick Start
 
+`rtk-query` is an advanced data fetching and caching tool, designed to simplify common cases for loading data in a web application.  `rtk-query` itself is built on top of [Redux-Toolkit](https://redux-toolkit.js.org/) and uses [Redux](https://redux.js.org/) internally for its architecture. Although knowledge of Redux and RTK are not required to use this library, we recommend checking out all of the additional global store management capabilities they provide, as well as installing the [devtools](https://github.com/reduxjs/redux-devtools).
+
+`rtk-query` is currently in an alpha state of development, with the goal of eventually including it directly in the Redux Toolkit library.
+
 ## Installation
 
 ```sh
@@ -19,9 +23,9 @@ Or with npm:
 npm i @reduxjs/toolkit @rtk-incubator/rtk-query
 ```
 
-> If you're a React user, make sure that you've installed `react-redux`. If you're a TypeScript user, you should also install `@types/react-redux`.
+If you're a React user, make sure that you've installed `react-redux`. If you're a TypeScript user, you should also install `@types/react-redux`.
 
-> `rtk-query` itself is built on top of [Redux-Toolkit](https://redux-toolkit.js.org/) and uses [Redux](https://redux.js.org/) internally for it's architecture. Although knowledge of Redux and RTK are not required to use this library, we recommend checking out all of the additional global store management capabilities they provide, as well as installing the [devtools](https://github.com/reduxjs/redux-devtools).
+
 
 ## Setting up your store and API service
 
@@ -49,7 +53,7 @@ export const pokemonApi = createApi({
 export const { hooks } = pokemonApi;
 ```
 
-> With `rtk-query`, you define your entire API definition in one place _in most cases_. This is most likely different from what you see with other libraries such as `swr` or `react-query`, and there are several reasons for that. Our perspective is that it's _much_ easier to keep track of how requests, cache invalidation, and general app configuration behave in one central location in comparison to having X number of custom hooks in different files throughout your application.
+With `rtk-query`, you define your entire API definition in one place _in most cases_. This is most likely different from what you see with other libraries such as `swr` or `react-query`, and there are several reasons for that. Our perspective is that it's _much_ easier to keep track of how requests, cache invalidation, and general app configuration behave in one central location in comparison to having X number of custom hooks in different files throughout your application.
 
 ### Add the service to your store
 
@@ -113,7 +117,7 @@ export default function App() {
 }
 ```
 
-> When making a request, you're able to track the state in several ways. You can always check `data`, `status`, and `error` to determine the right UI to render. In addition, we also provide utility booleans like `isLoading`, `isSuccess`, and `isError` for the latest request.
+When making a request, you're able to track the state in several ways. You can always check `data`, `status`, and `error` to determine the right UI to render. In addition, we also provide utility booleans like `isLoading`, `isSuccess`, and `isError` for the latest request.
 
 #### Basic Example
 
