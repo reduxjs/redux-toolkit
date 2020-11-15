@@ -121,11 +121,15 @@ export function createApi<
       if (isQueryDefinition(definition)) {
         api.selectors[endpoint] = buildQuerySelector(endpoint, definition);
         api.actions[endpoint] = buildQueryAction(endpoint, definition);
-        api.hooks[endpoint] = { useQuery: buildQueryHook(endpoint) };
+        const useQuery = buildQueryHook(endpoint);
+        api.hooks[endpoint] = { useQuery };
+        (api.hooks as any)[`use${capitalize(endpoint)}Query`] = useQuery;
       } else if (isMutationDefinition(definition)) {
         api.selectors[endpoint] = buildMutationSelector(endpoint, definition);
         api.actions[endpoint] = buildMutationAction(endpoint, definition);
-        api.hooks[endpoint] = { useMutation: buildMutationHook(endpoint) };
+        const useMutation = buildMutationHook(endpoint);
+        api.hooks[endpoint] = { useMutation };
+        (api.hooks as any)[`use${capitalize(endpoint)}Mutation`] = useMutation;
       }
     }
 
@@ -164,3 +168,7 @@ export type ApiWithInjectedEndpoints<
   selectors: Partial<UnionToIntersection<Injections[number]['selectors']>>;
   hooks: Partial<UnionToIntersection<Injections[number]['hooks']>>;
 };
+
+function capitalize(str: string) {
+  return str.replace(str[0], str[0].toUpperCase());
+}

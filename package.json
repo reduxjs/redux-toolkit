@@ -3,22 +3,29 @@
   "version": "0.0.1",
   "license": "MIT",
   "author": "Lenz Weber",
-  "typings": "dist/index.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/rtk-query.esm.js",
+  "types": "dist/index.d.ts",
+  "typesVersions": {
+    ">=4.1": {
+      "dist/*": [
+        "dist/min-4.1/*"
+      ]
+    }
+  },
   "files": [
     "dist",
     "src"
   ],
-  "main": "dist/index.js",
-  "module": "dist/rtk-query.esm.js",
   "engines": {
     "node": ">=10"
   },
   "scripts": {
     "start": "tsdx watch",
-    "build": "tsdx build",
+    "build": "tsdx build && ./typesversions.sh",
     "test": "tsdx test",
     "lint": "tsdx lint",
-    "prepare": "tsdx build; ./prepare-examples.sh",
+    "prepare": "yarn build; ./prepare-examples.sh",
     "size": "size-limit",
     "format": "prettier --write \"src/**/*.ts\"",
     "analyze": "size-limit --why"
@@ -32,7 +39,15 @@
     "printWidth": 120,
     "semi": true,
     "singleQuote": true,
-    "trailingComma": "es5"
+    "trailingComma": "es5",
+    "overrides": [
+      {
+        "files": "*.ts",
+        "options": {
+          "parser": "babel-ts"
+        }
+      }
+    ]
   },
   "size-limit": [
     {
@@ -79,11 +94,14 @@
     "size-limit": "^4.6.0",
     "ts-node": "^9.0.0",
     "tsdx": "^0.14.1",
-    "tslib": "^2.0.3"
+    "tslib": "^2.0.3",
+    "prettier": "prettier/prettier",
+    "eslint-plugin-prettier": "^3.1.4"
   },
   "resolutions": {
-    "typescript": "^4.0.3",
-    "prettier": "2.1.2",
-    "@typescript-eslint/parser": "4.4.1"
+    "@babel/core": "7.12.3",
+    "typescript": "4.1.1-rc",
+    "@typescript-eslint/parser": "4.7.0",
+    "prettier": "prettier/prettier"
   }
 }

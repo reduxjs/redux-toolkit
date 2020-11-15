@@ -10,6 +10,7 @@ import {
   QueryActionCreatorResult,
   MutationActionCreatorResult,
 } from './buildActionMaps';
+import { TS41Hooks } from './ts41Types';
 
 export interface QueryHookOptions extends SubscriptionOptions {
   skip?: boolean;
@@ -40,7 +41,8 @@ export type Hooks<Definitions extends EndpointDefinitions> = {
         useMutation: MutationHook<Definitions[K]>;
       }
     : never;
-};
+} &
+  TS41Hooks<Definitions>;
 
 export function buildHooks<Definitions extends EndpointDefinitions>({
   querySelectors,

@@ -61,8 +61,8 @@ export type EndpointBuilder<InternalQueryArgs, EntityTypes extends string> = {
   ): MutationDefinition<QueryArg, InternalQueryArgs, EntityTypes, ResultType>;
 };
 
-export function calculateProvidedBy<ResultType, QueryArg, D extends ResultDescription<string, ResultType, QueryArg>>(
-  description: D | undefined,
+export function calculateProvidedBy<ResultType, QueryArg>(
+  description: ResultDescription<string, ResultType, QueryArg> | undefined,
   result: ResultType,
   queryArg: QueryArg
 ): readonly FullEntityDescription<string>[] {
