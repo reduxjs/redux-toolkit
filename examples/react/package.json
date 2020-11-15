@@ -1,12 +1,12 @@
 {
-  "name": "rtk-simple-query-demo",
+  "name": "rtk-query-demo",
   "version": "1.0.0",
   "description": "",
   "keywords": [],
   "main": "./index.html",
   "dependencies": {
     "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/2c869f4d/@reduxjs/toolkit",
-    "@rtk-incubator/simple-query": "https://pkg.csb.dev/rtk-incubator/simple-query/commit/fcea624c/@rtk-incubator/simple-query",
+    "@rtk-incubator/rtk-query": "https://pkg.csb.dev/rtk-incubator/simple-query/commit/fcea624c/@rtk-incubator/simple-query",
     "msw": "0.21.3",
     "react": "17.0.0",
     "react-dom": "17.0.0",

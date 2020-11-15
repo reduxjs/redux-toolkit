@@ -1378,7 +1378,7 @@
     redux-thunk "^2.3.0"
     reselect "^4.0.0"
 
-"@rtk-incubator/simple-query@https://pkg.csb.dev/rtk-incubator/simple-query/commit/fcea624c/@rtk-incubator/simple-query":
+"@rtk-incubator/rtk-query@https://pkg.csb.dev/rtk-incubator/simple-query/commit/fcea624c/@rtk-incubator/simple-query":
   version "0.0.1"
   resolved "https://pkg.csb.dev/rtk-incubator/simple-query/commit/fcea624c/@rtk-incubator/simple-query#6151951f64185a716c34576497d50cf83dcf3130"
 

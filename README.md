@@ -4,13 +4,13 @@ This is an experiment to create a generic api client based on (and potentially t
 
 ## Getting it / trying it out
 
-For now, look at [The CodeSandbox CI](https://ci.codesandbox.io/status/rtk-incubator/simple-query/pr/1) for the latest experimental package builds and up-to-date example sandboxes.
+For now, look at [The CodeSandbox CI](https://ci.codesandbox.io/status/rtk-incubator/rtk-query/pr/1) for the latest experimental package builds and up-to-date example sandboxes.
 
 # Basic usage:
 
 ```tsx
 import { configureStore } from '@reduxjs/toolkit';
-import { createApi, fetchBaseQuery, QueryStatus } from '@rtk-incubator/simple-query';
+import { createApi, fetchBaseQuery, QueryStatus } from '@rtk-incubator/rtk-query';
 
 interface User {
   id: number;

@@ -85,9 +85,9 @@
     estree-walker "^1.0.1"
     picomatch "^2.2.2"
 
-"@rtk-incubator/simple-query@https://pkg.csb.dev/rtk-incubator/simple-query/commit/fcea624c/@rtk-incubator/simple-query":
+"@rtk-incubator/rtk-query@https://pkg.csb.dev/rtk-incubator/rtk-query/commit/fcea624c/@rtk-incubator/rtk-query":
   version "0.0.1"
-  resolved "https://pkg.csb.dev/rtk-incubator/simple-query/commit/fcea624c/@rtk-incubator/simple-query#6151951f64185a716c34576497d50cf83dcf3130"
+  resolved "https://pkg.csb.dev/rtk-incubator/rtk-query/commit/fcea624c/@rtk-incubator/rtk-query#6151951f64185a716c34576497d50cf83dcf3130"
 
 "@tsconfig/svelte@^1.0.0":
   version "1.0.10"

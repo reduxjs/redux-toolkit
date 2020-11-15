@@ -1,14 +1,15 @@
 {
-  "name": "@rtk-incubator/simple-query",
+  "name": "@rtk-incubator/rtk-query",
   "version": "0.0.1",
   "license": "MIT",
   "author": "Lenz Weber",
-  "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "files": [
     "dist",
     "src"
   ],
+  "main": "dist/index.js",
+  "module": "dist/rtk-query.esm.js",
   "engines": {
     "node": ">=10"
   },
@@ -33,15 +34,14 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "module": "dist/rtk_simple-query.esm.js",
   "size-limit": [
     {
-      "path": "dist/rtk_simple-query.cjs.production.min.js",
-      "limit": "10 KB"
+      "path": "dist/rtk-query.cjs.production.min.js",
+      "limit": "20 KB"
     },
     {
-      "path": "dist/rtk_simple-query.esm.js",
-      "limit": "10 KB"
+      "path": "dist/rtk-query.esm.js",
+      "limit": "20 KB"
     }
   ],
   "peerDependencies": {

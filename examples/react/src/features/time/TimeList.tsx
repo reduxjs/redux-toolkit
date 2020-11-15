@@ -1,7 +1,7 @@
 import { nanoid } from '@reduxjs/toolkit';
 import React, { useState } from 'react';
 import { useEffect } from 'react';
-import { QueryStatus } from '@rtk-incubator/simple-query/dist';
+import { QueryStatus } from '@rtk-incubator/rtk-query/dist';
 import { timeApi } from '../../app/services/times';
 import { Container } from '../common/Container';
 import { useTypedSelector } from '../../app/store';

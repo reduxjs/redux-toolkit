@@ -11,7 +11,7 @@
         "@rollup/plugin-commonjs": "^14.0.0",
         "@rollup/plugin-node-resolve": "^8.0.0",
         "@rollup/plugin-typescript": "^6.0.0",
-        "@rtk-incubator/simple-query": "https://pkg.csb.dev/rtk-incubator/simple-query/commit/fcea624c/@rtk-incubator/simple-query",
+        "@rtk-incubator/rtk-query": "https://pkg.csb.dev/rtk-incubator/rtk-query/commit/fcea624c/@rtk-incubator/rtk-query",
         "@tsconfig/svelte": "^1.0.0",
         "msw": "^0.21.3",
         "rollup": "^2.3.4",

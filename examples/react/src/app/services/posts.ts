@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery } from '@rtk-incubator/simple-query/dist';
+import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query/dist';
 
 export interface Post {
   id: number;

@@ -2,7 +2,7 @@
 <script lang="ts">
     export let id: string = null;
     import { onMount } from 'svelte';
-    import { QueryStatus } from '@rtk-incubator/simple-query/dist';
+    import { QueryStatus } from '@rtk-incubator/rtk-query/dist';
     import { counterApi } from './services/counter';
     import { globalPollingEnabled, store } from './store';
     import { pollingOptions } from './utils/pollingOptions';

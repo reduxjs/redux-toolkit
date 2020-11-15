@@ -1,4 +1,4 @@
-import { QueryStatus } from '@rtk-incubator/simple-query/dist';
+import { QueryStatus } from '@rtk-incubator/rtk-query/dist';
 import React, { useState } from 'react';
 import { Route, Switch, useHistory } from 'react-router-dom';
 import { Post, postApi } from '../../app/services/posts';
