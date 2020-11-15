@@ -1,4 +1,9 @@
-import createNextState, { Draft, isDraft, isDraftable } from 'immer'
+import createNextState, {
+  Draft,
+  isDraft,
+  isDraftable,
+  PatchListener
+} from 'immer'
 import { AnyAction, Action, Reducer } from 'redux'
 import {
   executeReducerBuilderCallback,
@@ -183,7 +188,8 @@ export function createReducer<
   initialState: S,
   actionsMap: CR,
   actionMatchers?: ActionMatcherDescriptionCollection<S>,
-  defaultCaseReducer?: CaseReducer<S>
+  defaultCaseReducer?: CaseReducer<S>,
+  patchListener?: PatchListener
 ): Reducer<S>
 
 export function createReducer<S>(
@@ -192,7 +198,8 @@ export function createReducer<S>(
     | CaseReducers<S, any>
     | ((builder: ActionReducerMapBuilder<S>) => void),
   actionMatchers: ActionMatcherDescriptionCollection<S> = [],
-  defaultCaseReducer?: CaseReducer<S>
+  defaultCaseReducer?: CaseReducer<S>,
+  patchListener?: PatchListener
 ): Reducer<S> {
   let [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
     typeof mapOrBuilderCallback === 'function'
@@ -243,9 +250,13 @@ export function createReducer<S>(
           // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
           // than an Immutable<S>, and TypeScript cannot find out how to reconcile
           // these two types.
-          return createNextState(previousState, (draft: Draft<S>) => {
-            return caseReducer(draft, action)
-          })
+          return createNextState(
+            previousState,
+            (draft: Draft<S>) => {
+              return caseReducer(draft, action)
+            },
+            patchListener
+          )
         }
       }
 

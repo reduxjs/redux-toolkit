@@ -13,6 +13,7 @@ import {
   executeReducerBuilderCallback
 } from './mapBuilders'
 import { Omit, NoInfer } from './tsHelpers'
+import { PatchListener } from 'immer'
 
 /**
  * An action creator attached to a slice.
@@ -131,6 +132,8 @@ createSlice({
   extraReducers?:
     | CaseReducers<NoInfer<State>, any>
     | ((builder: ActionReducerMapBuilder<NoInfer<State>>) => void)
+
+  patchListener?: PatchListener
 }
 
 /**
@@ -249,7 +252,7 @@ export function createSlice<
 >(
   options: CreateSliceOptions<State, CaseReducers, Name>
 ): Slice<State, CaseReducers, Name> {
-  const { name, initialState } = options
+  const { name, initialState, patchListener } = options
   if (!name) {
     throw new Error('`name` is a required option for createSlice')
   }
@@ -297,7 +300,8 @@ export function createSlice<
     initialState,
     finalCaseReducers as any,
     actionMatchers,
-    defaultCaseReducer
+    defaultCaseReducer,
+    patchListener
   )
 
   return {
