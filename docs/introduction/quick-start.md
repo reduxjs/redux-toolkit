@@ -137,7 +137,7 @@ Okay, that's interesting... but what if you wanted to show multiple pokemon at t
      sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
 
-Those are the basics of getting up and running with `rtk-query`. For more realistic usage, make sure to read through the sections regarding [mutations](), [invalidation](), [polling]() and other features.
+Those are the basics of getting up and running with `rtk-query`. For more realistic usage, make sure to read through the sections regarding [mutations](.), [invalidation](.), [polling](.) and other features.
 
 ## Help and Discussion
 
