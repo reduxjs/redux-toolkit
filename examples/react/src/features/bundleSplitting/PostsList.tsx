@@ -13,9 +13,9 @@ const PostsList = () => {
    * injected though.
    */
 
-  const { data } = apiWithPosts.hooks.getPosts.useQuery();
+  const { data, error } = apiWithPosts.hooks.getPosts.useQuery();
   const [selected, select] = useState<number | undefined>();
-  return !data ? (
+  return error ? <>there was an error</> : !data ? (
     <>loading</>
   ) : (
     <>
