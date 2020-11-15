@@ -8,6 +8,9 @@
   "types": "dist/index.d.ts",
   "typesVersions": {
     ">=4.1": {
+      "dist": [
+        "dist/min-4.1/index.d.ts"
+      ],
       "dist/*": [
         "dist/min-4.1/*"
       ]
