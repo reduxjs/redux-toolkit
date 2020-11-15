@@ -11,6 +11,7 @@ import {
   DefinitionType,
   isQueryDefinition,
   isMutationDefinition,
+  AssertEntityTypes,
 } from './endpointDefinitions';
 import type { CombinedState, QueryCacheKey, QueryStatePhantomType, RootState } from './apiState';
 import { assertCast, UnionToIntersection } from './tsHelpers';
@@ -27,6 +28,8 @@ export type InternalSerializeQueryArgs<InternalQueryArgs> = (
 function defaultSerializeQueryArgs(args: any, endpoint: string) {
   return `${endpoint}/${JSON.stringify(args)}`;
 }
+
+const IS_DEV = () => process?.env?.NODE_ENV === 'development';
 
 export function createApi<
   InternalQueryArgs,
@@ -54,6 +57,15 @@ export function createApi<
 
   const endpointDefinitions: EndpointDefinitions = {};
 
+  const assertEntityType: AssertEntityTypes = (entity) => {
+    if (IS_DEV()) {
+      if (!entityTypes.includes(entity.type as any)) {
+        console.error(`Entity type '${entity.type}' was used, but not specified in \`entityTypes\`!`);
+      }
+    }
+    return entity;
+  };
+
   const { queryThunk, mutationThunk } = buildThunks({ baseQuery, reducerPath, endpointDefinitions });
 
   const { reducer, actions: sliceActions } = buildSlice({
@@ -61,6 +73,7 @@ export function createApi<
     queryThunk,
     mutationThunk,
     reducerPath,
+    assertEntityType,
   });
   assertCast<Reducer<State & QueryStatePhantomType<ReducerPath>, AnyAction>>(reducer);
 
@@ -71,6 +84,7 @@ export function createApi<
     mutationThunk,
     keepUnusedDataFor,
     sliceActions,
+    assertEntityType,
   });
 
   const api: Api<InternalQueryArgs, {}, ReducerPath, EntityTypes> = {
@@ -111,10 +125,13 @@ export function createApi<
       mutation: (x) => ({ ...x, type: DefinitionType.mutation }),
     });
     for (const [endpoint, definition] of Object.entries(evaluatedEndpoints)) {
-      if (!inject.overrideExisting && endpoint in endpointDefinitions) {
-        throw new Error(
-          `called \`injectEndpoints\` to override already-existing endpoint ${endpoint} without specifying \`overrideExisting: true\``
-        );
+      if (IS_DEV()) {
+        if (!inject.overrideExisting && endpoint in endpointDefinitions) {
+          console.error(
+            `called \`injectEndpoints\` to override already-existing endpoint ${endpoint} without specifying \`overrideExisting: true\``
+          );
+          return;
+        }
       }
       endpointDefinitions[endpoint] = definition;
 

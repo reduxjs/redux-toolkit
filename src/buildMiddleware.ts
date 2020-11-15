@@ -3,7 +3,12 @@ import { batch as reactBatch } from 'react-redux';
 import { QueryCacheKey, QueryStatus, QuerySubstateIdentifier, RootState, Subscribers } from './apiState';
 import { SliceActions } from './buildSlice';
 import { MutationThunkArg, QueryThunkArg } from './buildThunks';
-import { calculateProvidedBy, EndpointDefinitions, FullEntityDescription } from './endpointDefinitions';
+import {
+  AssertEntityTypes,
+  calculateProvidedBy,
+  EndpointDefinitions,
+  FullEntityDescription,
+} from './endpointDefinitions';
 
 const batch = typeof reactBatch !== 'undefined' ? reactBatch : (fn: Function) => fn();
 
@@ -17,6 +22,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
   mutationThunk,
   keepUnusedDataFor,
   sliceActions: { removeQueryResult, unsubscribeQueryResult, updateSubscriptionOptions },
+  assertEntityType,
 }: {
   reducerPath: ReducerPath;
   endpointDefinitions: EndpointDefinitions;
@@ -24,6 +30,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
   mutationThunk: AsyncThunk<unknown, MutationThunkArg<any>, {}>;
   sliceActions: SliceActions;
   keepUnusedDataFor: number;
+  assertEntityType: AssertEntityTypes;
 }) {
   type Api = MiddlewareAPI<ThunkDispatch<any, any, AnyAction>, RootState<Definitions, string, ReducerPath>>;
 
@@ -40,7 +47,8 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
         calculateProvidedBy(
           endpointDefinitions[action.meta.arg.endpoint].invalidates,
           action.payload,
-          action.meta.arg.originalArgs
+          action.meta.arg.originalArgs,
+          assertEntityType
         ),
         api
       );

@@ -14,7 +14,7 @@ import {
   SubscriptionState,
 } from './apiState';
 import type { MutationThunkArg, QueryThunkArg } from './buildThunks';
-import { calculateProvidedBy, EndpointDefinitions } from './endpointDefinitions';
+import { AssertEntityTypes, calculateProvidedBy, EndpointDefinitions } from './endpointDefinitions';
 
 export type InternalState = CombinedState<any, string>;
 
@@ -45,11 +45,13 @@ export function buildSlice({
   queryThunk,
   mutationThunk,
   endpointDefinitions: definitions,
+  assertEntityType,
 }: {
   reducerPath: string;
   queryThunk: AsyncThunk<unknown, QueryThunkArg<any>, {}>;
   mutationThunk: AsyncThunk<unknown, MutationThunkArg<any>, {}>;
   endpointDefinitions: EndpointDefinitions;
+  assertEntityType: AssertEntityTypes;
 }) {
   const querySlice = createSlice({
     name: `${reducerPath}/queries`,
@@ -147,7 +149,12 @@ export function buildSlice({
       builder
         .addCase(queryThunk.fulfilled, (draft, { payload, meta: { arg } }) => {
           const { endpoint, queryCacheKey } = arg;
-          const providedEntities = calculateProvidedBy(definitions[endpoint].provides, payload, arg.originalArgs);
+          const providedEntities = calculateProvidedBy(
+            definitions[endpoint].provides,
+            payload,
+            arg.originalArgs,
+            assertEntityType
+          );
           for (const { type, id } of providedEntities) {
             const subscribedQueries = ((draft[type] ??= {})[id || '__internal_without_id'] ??= []);
             const alreadySubscribed = subscribedQueries.includes(queryCacheKey);

@@ -61,16 +61,19 @@ export type EndpointBuilder<InternalQueryArgs, EntityTypes extends string> = {
   ): MutationDefinition<QueryArg, InternalQueryArgs, EntityTypes, ResultType>;
 };
 
+export type AssertEntityTypes = <T extends FullEntityDescription<string>>(t: T) => T;
+
 export function calculateProvidedBy<ResultType, QueryArg>(
   description: ResultDescription<string, ResultType, QueryArg> | undefined,
   result: ResultType,
-  queryArg: QueryArg
+  queryArg: QueryArg,
+  assertEntityTypes: AssertEntityTypes
 ): readonly FullEntityDescription<string>[] {
   if (isFunction(description)) {
-    return description(result, queryArg).map(expandEntityDescription);
+    return description(result, queryArg).map(expandEntityDescription).map(assertEntityTypes);
   }
   if (Array.isArray(description)) {
-    return description.map(expandEntityDescription);
+    return description.map(expandEntityDescription).map(assertEntityTypes);
   }
   return [];
 }
