@@ -40,10 +40,9 @@ export function buildThunks<InternalQueryArgs, ReducerPath extends string>({
     { state: InternalRootState<ReducerPath> }
   >(
     `${reducerPath}/executeQuery`,
-    (arg, { signal, rejectWithValue }) => {
-      return baseQuery(arg.internalQueryArgs, { signal, rejectWithValue }).then(
-        endpointDefinitions[arg.endpoint].transformResponse ?? defaultTransformResponse
-      );
+    async (arg, { signal, rejectWithValue }) => {
+      const result = await baseQuery(arg.internalQueryArgs, { signal, rejectWithValue });
+      return (endpointDefinitions[arg.endpoint].transformResponse ?? defaultTransformResponse)(result);
     },
     {
       condition(arg, { getState }) {
@@ -58,10 +57,9 @@ export function buildThunks<InternalQueryArgs, ReducerPath extends string>({
     unknown,
     MutationThunkArg<InternalQueryArgs>,
     { state: InternalRootState<ReducerPath> }
-  >(`${reducerPath}/executeMutation`, (arg, { signal, rejectWithValue }) => {
-    return baseQuery(arg.internalQueryArgs, { signal, rejectWithValue }).then(
-      endpointDefinitions[arg.endpoint].transformResponse ?? defaultTransformResponse
-    );
+  >(`${reducerPath}/executeMutation`, async (arg, { signal, rejectWithValue }) => {
+    const result = await baseQuery(arg.internalQueryArgs, { signal, rejectWithValue });
+    return (endpointDefinitions[arg.endpoint].transformResponse ?? defaultTransformResponse)(result);
   });
 
   return { queryThunk, mutationThunk };
