@@ -11,6 +11,7 @@ import {
   MutationActionCreatorResult,
 } from './buildActionMaps';
 import { TS41Hooks } from './ts41Types';
+import { useShallowStableValue } from './utils';
 
 export interface QueryHookOptions extends SubscriptionOptions {
   skip?: boolean;
@@ -58,32 +59,34 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   return { buildQueryHook, buildMutationHook };
 
   function buildQueryHook(name: string): QueryHook<any> {
-    const startQuery = queryActions[name];
-    const querySelector = querySelectors[name];
     return (arg: any, { skip = false, pollingInterval = 0 } = {}) => {
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
+
+      const stableArg = useShallowStableValue(arg);
 
       const promiseRef = useRef<QueryActionCreatorResult<any>>();
       useEffect(() => {
         if (skip) {
           return;
         }
+        const startQuery = queryActions[name];
         const lastPromise = promiseRef.current;
-        if (lastPromise && lastPromise.arg === arg) {
+        if (lastPromise && lastPromise.arg === stableArg) {
           // arg did not change, but options did probably, update them
           lastPromise.updateSubscriptionOptions({ pollingInterval });
         } else {
           if (lastPromise) lastPromise.unsubscribe();
-          const promise = dispatch(startQuery(arg, { subscriptionOptions: { pollingInterval } }));
+          const promise = dispatch(startQuery(stableArg, { subscriptionOptions: { pollingInterval } }));
           promiseRef.current = promise;
         }
-      }, [arg, dispatch, skip, pollingInterval]);
+      }, [stableArg, dispatch, skip, pollingInterval]);
 
       useEffect(() => {
         return () => void promiseRef.current?.unsubscribe();
       }, []);
 
-      const currentState = useSelector(querySelector(skip ? skipSelector : arg));
+      const querySelector = querySelectors[name];
+      const currentState = useSelector(querySelector(skip ? skipSelector : stableArg));
       const refetch = useCallback(() => void promiseRef.current?.refetch(), []);
 
       return useMemo(() => ({ ...currentState, refetch }), [currentState, refetch]);
