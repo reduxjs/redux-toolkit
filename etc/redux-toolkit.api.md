@@ -80,9 +80,11 @@ export type AsyncThunk<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConf
 export type AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> = (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
     arg: ThunkArg;
     requestId: string;
+    requestStatus: 'fulfilled';
 }> | PayloadAction<undefined | GetRejectValue<ThunkApiConfig>, string, {
     arg: ThunkArg;
     requestId: string;
+    requestStatus: 'rejected';
     aborted: boolean;
     condition: boolean;
 }, SerializedError>> & {
@@ -420,7 +422,7 @@ export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = ACR
     [T in keyof ACR]: ACR[T] extends {
         reducer(s: S, action?: infer A): any;
     } ? {
-        prepare(...a: never[]): Omit<A, 'type'>;
+        prepare(...a: never[]): Omit_2<A, 'type'>;
     } : {};
 };
 
