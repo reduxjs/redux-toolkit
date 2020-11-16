@@ -26,7 +26,7 @@ export type InternalSerializeQueryArgs<InternalQueryArgs> = (
 ) => QueryCacheKey;
 
 function defaultSerializeQueryArgs(args: any, endpoint: string) {
-  return `${endpoint}/${JSON.stringify(args)}`;
+  return `${endpoint}/${JSON.stringify(args, Object.keys(args).sort())}`;
 }
 
 const IS_DEV = () => process?.env?.NODE_ENV === 'development';
