@@ -222,7 +222,7 @@ interface AsyncThunkOptions<
   dispatchConditionRejection?: boolean
 }
 
-type AsyncThunkPendingActionCreator<
+export type AsyncThunkPendingActionCreator<
   ThunkArg
 > = ActionCreatorWithPreparedPayload<
   [string, ThunkArg],
@@ -236,7 +236,7 @@ type AsyncThunkPendingActionCreator<
   }
 >
 
-type AsyncThunkRejectedActionCreator<
+export type AsyncThunkRejectedActionCreator<
   ThunkArg,
   ThunkApiConfig
 > = ActionCreatorWithPreparedPayload<
@@ -258,7 +258,7 @@ type AsyncThunkRejectedActionCreator<
   }
 >
 
-type AsyncThunkFulfilledActionCreator<
+export type AsyncThunkFulfilledActionCreator<
   Returned,
   ThunkArg
 > = ActionCreatorWithPreparedPayload<
