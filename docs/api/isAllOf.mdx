@@ -140,3 +140,41 @@ const loadingReducer = createReducer(initialState, builder => {
     });
 })
 ```
+
+## As a TypeScript TypeGuard
+
+The function `isAllOf` also accepts regular TypeScript type guards, and the function returned
+by `isAllOf` can also be used as a TypeScript type guard in other contexts.
+
+```ts
+import { isAllOf, PayloadAction } from '@reduxjs/toolkit'
+
+interface Data {
+  isInteresting: boolean;
+  isSpecial: boolean;
+}
+
+interface Special extends Data {
+  isSpecial: true;
+}
+
+interface Interesting extends Data {
+  isInteresting: true;
+}
+
+function isSpecial(action: PayloadAction<Data>): action is PayloadAction<Special> {
+  return action.payload.isSpecial;
+}
+
+function isInteresting(action: PayloadAction<Data>): action is PayloadAction<Interesting> {
+  return action.payload.isInteresting;
+}
+
+const isSpecialOrInteresting = isAllOf(isSpecial, isInteresting);
+
+function someFunction(action: PayloadAction<Data>) {
+  if (isSpecialOrInteresting(action)) {
+    // "action" will be correctly typed as:
+    // `PayloadAction<Special> & PayloadAction<Interesting>`
+  }
+}
