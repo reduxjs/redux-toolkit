@@ -2,7 +2,7 @@ const resultType = Symbol();
 
 export interface BaseEndpointDefinition<QueryArg, InternalQueryArgs, ResultType> {
   query(arg: QueryArg): InternalQueryArgs;
-  postProcess?(baseQueryReturnValue: unknown): ResultType | Promise<ResultType>;
+  transformResponse?(baseQueryReturnValue: unknown): ResultType | Promise<ResultType>;
   [resultType]?: ResultType;
 }
 

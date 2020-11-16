@@ -21,7 +21,7 @@ export interface QueryApi {
   rejectWithValue(value: any): unknown;
 }
 
-function defaultPostProcess(baseQueryReturnValue: unknown) {
+function defaultTransformResponse(baseQueryReturnValue: unknown) {
   return baseQueryReturnValue;
 }
 
@@ -42,7 +42,7 @@ export function buildThunks<InternalQueryArgs, ReducerPath extends string>({
     `${reducerPath}/executeQuery`,
     (arg, { signal, rejectWithValue }) => {
       return baseQuery(arg.internalQueryArgs, { signal, rejectWithValue }).then(
-        endpointDefinitions[arg.endpoint].postProcess ?? defaultPostProcess
+        endpointDefinitions[arg.endpoint].transformResponse ?? defaultTransformResponse
       );
     },
     {
@@ -60,7 +60,7 @@ export function buildThunks<InternalQueryArgs, ReducerPath extends string>({
     { state: InternalRootState<ReducerPath> }
   >(`${reducerPath}/executeMutation`, (arg, { signal, rejectWithValue }) => {
     return baseQuery(arg.internalQueryArgs, { signal, rejectWithValue }).then(
-      endpointDefinitions[arg.endpoint].postProcess ?? defaultPostProcess
+      endpointDefinitions[arg.endpoint].transformResponse ?? defaultTransformResponse
     );
   });
 
