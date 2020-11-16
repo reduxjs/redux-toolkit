@@ -170,10 +170,10 @@ function isInteresting(action: PayloadAction<Data>): action is PayloadAction<Int
   return action.payload.isInteresting;
 }
 
-const isSpecialOrInteresting = isAllOf(isSpecial, isInteresting);
+const isSpecialAndInteresting = isAllOf(isSpecial, isInteresting);
 
 function someFunction(action: PayloadAction<Data>) {
-  if (isSpecialOrInteresting(action)) {
+  if (isSpecialAndInteresting(action)) {
     // "action" will be correctly typed as:
     // `PayloadAction<Special> & PayloadAction<Interesting>`
   }
