@@ -148,13 +148,18 @@ export type AsyncThunkAction<
   getState: () => GetState<ThunkApiConfig>,
   extra: GetExtra<ThunkApiConfig>
 ) => Promise<
-  | PayloadAction<Returned, string, { arg: ThunkArg; requestId: string }>
+  | PayloadAction<
+      Returned,
+      string,
+      { arg: ThunkArg; requestId: string; requestStatus: 'fulfilled' }
+    >
   | PayloadAction<
       undefined | GetRejectValue<ThunkApiConfig>,
       string,
       {
         arg: ThunkArg
         requestId: string
+        requestStatus: 'rejected'
         aborted: boolean
         condition: boolean
       },
@@ -227,6 +232,7 @@ type AsyncThunkPendingActionCreator<
   {
     arg: ThunkArg
     requestId: string
+    requestStatus: 'pending'
   }
 >
 
@@ -246,6 +252,7 @@ type AsyncThunkRejectedActionCreator<
   {
     arg: ThunkArg
     requestId: string
+    requestStatus: 'rejected'
     aborted: boolean
     condition: boolean
   }
@@ -262,6 +269,7 @@ type AsyncThunkFulfilledActionCreator<
   {
     arg: ThunkArg
     requestId: string
+    requestStatus: 'fulfilled'
   }
 >
 
@@ -306,7 +314,11 @@ export function createAsyncThunk<
     (result: Returned, requestId: string, arg: ThunkArg) => {
       return {
         payload: result,
-        meta: { arg, requestId }
+        meta: {
+          arg,
+          requestId,
+          requestStatus: 'fulfilled' as const
+        }
       }
     }
   )
@@ -316,7 +328,11 @@ export function createAsyncThunk<
     (requestId: string, arg: ThunkArg) => {
       return {
         payload: undefined,
-        meta: { arg, requestId }
+        meta: {
+          arg,
+          requestId,
+          requestStatus: 'pending' as const
+        }
       }
     }
   )
@@ -337,6 +353,7 @@ export function createAsyncThunk<
         meta: {
           arg,
           requestId,
+          requestStatus: 'rejected' as const,
           aborted,
           condition
         }
