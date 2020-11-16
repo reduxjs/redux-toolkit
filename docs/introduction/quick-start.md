@@ -7,9 +7,9 @@ hide_title: true
 
 # Quick Start
 
-`rtk-query` is an advanced data fetching and caching tool, designed to simplify common cases for loading data in a web application.  `rtk-query` itself is built on top of [Redux-Toolkit](https://redux-toolkit.js.org/) and uses [Redux](https://redux.js.org/) internally for its architecture. Although knowledge of Redux and RTK are not required to use this library, we recommend checking out all of the additional global store management capabilities they provide, as well as installing the [devtools](https://github.com/reduxjs/redux-devtools).
+`RTK Query` is an advanced data fetching and caching tool, designed to simplify common cases for loading data in a web application. `RTK Query` itself is built on top of [Redux-Toolkit](https://redux-toolkit.js.org/) and uses [Redux](https://redux.js.org/) internally for its architecture. Although knowledge of Redux and RTK are not required to use this library, you should explore all of the additional global store management capabilities they provide, as well as installing the [devtools](https://github.com/reduxjs/redux-devtools).
 
-`rtk-query` is currently in an alpha state of development, with the goal of eventually including it directly in the Redux Toolkit library.
+`RTK Query` is currently in an alpha state of development, with the goal of eventually including it directly in the Redux Toolkit library.
 
 ## Installation
 
@@ -25,23 +25,18 @@ npm i @reduxjs/toolkit @rtk-incubator/rtk-query
 
 If you're a React user, make sure that you've installed `react-redux`. If you're a TypeScript user, you should also install `@types/react-redux`.
 
-
-
 ## Setting up your store and API service
 
 ### Create an API service
 
 To get started as a very basic example, let's create a very simple service that queries the publicly available [PokeAPI](https://pokeapi.co/).
 
-```ts
-// services/pokemon.ts
-
-import { createApi, fetchBaseQuery } from '@rtk-incubator/simple-query/dist';
+```ts title="src/services/pokemon.ts"
+import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
 
 export const pokemonApi = createApi({
   reducerPath: 'pokemonApi',
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
-  entityTypes: [],
   endpoints: (builder) => ({
     getPokemonByName: builder.query({
       query: (name: string) => `pokemon/${name}`,
@@ -57,7 +52,7 @@ With `rtk-query`, you define your entire API definition in one place _in most ca
 
 ### Add the service to your store
 
-```ts
+```ts title="src/store.ts"
 import { configureStore } from '@reduxjs/toolkit';
 import { pokemonApi } from './services/pokemon';
 
@@ -72,7 +67,7 @@ export const store = configureStore({
 
 ### Wrap your application with the `Provider`
 
-```ts
+```ts title="src/index.tsx"
 import * as React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
@@ -93,7 +88,7 @@ render(
 
 Once a service has been defined, you can import the hooks to make a request.
 
-```ts
+```ts title="src/App.tsx"
 import * as React from 'react';
 import { hooks } from './services/pokemon';
 
@@ -117,31 +112,33 @@ export default function App() {
 }
 ```
 
-When making a request, you're able to track the state in several ways. You can always check `data`, `status`, and `error` to determine the right UI to render. In addition, we also provide utility booleans like `isLoading`, `isSuccess`, and `isError` for the latest request.
+When making a request, you're able to track the state in several ways. You can always check `data`, `status`, and `error` to determine the right UI to render. In addition, `useQuery` also provides utility booleans like `isLoading`, `isSuccess`, and `isError` for the latest request.
 
 #### Basic Example
 
-<iframe src="https://codesandbox.io/embed/getting-started-basic-17n8h?fontsize=14&hidenavigation=1&theme=dark"
-     style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
-     title="rtk-query-getting-started-basic"
-     allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
-     sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
+<iframe
+  src="https://codesandbox.io/embed/getting-started-basic-17n8h?fontsize=14&hidenavigation=1&theme=dark"
+  style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
+  title="rtk-query-getting-started-basic"
+  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
 
 Okay, that's interesting... but what if you wanted to show multiple pokemon at the same time? What happens if multiple components load the same pokemon?
 
 #### Advanced example
 
-`rtk-query` ensures that any component that subscribes to the same query will always use the same data. We automatically de-dupe requests so you don't have to worry about checking in-flight requests and performance optimizations on your end. Let's evaluate the sandbox below - make sure to check the Network panel in your browser's dev tools. You will see 3 requests, even though there are 4 subscribed components - `bulbasaur` only makes one request, and the loading state is synchronized between the two components. For fun, try changing the value of the dropdown from `Off` to `1s` to see this behavior continue when a query is re-ran.
+`RTK Query` ensures that any component that subscribes to the same query will always use the same data. RTK Query automatically de-dupes requests so you don't have to worry about checking in-flight requests and performance optimizations on your end. Let's evaluate the sandbox below - make sure to check the Network panel in your browser's dev tools. You will see 3 requests, even though there are 4 subscribed components - `bulbasaur` only makes one request, and the loading state is synchronized between the two components. For fun, try changing the value of the dropdown from `Off` to `1s` to see this behavior continue when a query is re-ran.
 
-<iframe src="https://codesandbox.io/embed/getting-started-advanced-8tx2b?file=/src/App.tsx?fontsize=14&hidenavigation=1&theme=dark"
-     style={{ width: '100%', height: '600px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
-     title="rtk-query-getting-started-advanced"
-     allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
-     sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
+<iframe
+  src="https://codesandbox.io/embed/getting-started-advanced-8tx2b?file=/src/App.tsx?fontsize=14&hidenavigation=1&theme=dark"
+  style={{ width: '100%', height: '600px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
+  title="rtk-query-getting-started-advanced"
+  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
 
-Those are the basics of getting up and running with `rtk-query`. For more realistic usage, make sure to read through the sections regarding [mutations](.), [invalidation](.), [polling](.) and other features.
+Those are the basics of getting up and running with `RTK Query`. For more realistic usage, make sure to read through the sections regarding [mutations](../concepts/mutations), [invalidation](../concepts/mutations#advanced-mutations-with-revalidation), [polling](../concepts/polling) and other features.
 
 ## Help and Discussion
 

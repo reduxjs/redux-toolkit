@@ -3,20 +3,21 @@ const { resolve } = require('path');
 const { linkDocblocks, transpileCodeblocks } = require('remark-typescript-tools');
 
 module.exports = {
-  title: 'Simple Query',
-  tagline: 'A simple data fetching & caching library built on redux-toolkit',
-  url: 'https://simple-query.js.org',
+  title: 'Powerful data fetching and caching for everyone',
+  tagline:
+    'Caching and network request management can be very hard. We make it easy so you can spend more time focusing on your product.',
+  url: 'https://rtk-query-docs.netlify.app/',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   favicon: 'img/favicon.ico',
   organizationName: 'rtk-incubator', // Usually your GitHub org/user name.
-  projectName: 'simple-query', // Usually your repo name.
+  projectName: 'rtk-query', // Usually your repo name.
   themeConfig: {
     navbar: {
-      title: 'Simple Query',
+      title: 'RTK Query',
       logo: {
-        alt: 'Simple Query Logo',
-        src: 'img/logo.svg',
+        alt: 'RTK Query Logo',
+        src: 'img/redux.svg',
       },
       items: [
         {
@@ -31,7 +32,7 @@ module.exports = {
         },
         // { to: 'blog', label: 'Blog', position: 'left' },
         {
-          href: 'https://github.com/rtk-incubator/simple-query',
+          href: 'https://github.com/rtk-incubator/rtk-query',
           label: 'GitHub',
           position: 'right',
         },
@@ -41,16 +42,14 @@ module.exports = {
       style: 'dark',
       links: [
         {
-          title: 'Docs',
+          title: 'Resources',
           items: [
-            // {
-            //   label: 'Style Guide',
-            //   to: 'docs/',
-            // },
-            // {
-            //   label: 'Second Doc',
-            //   to: 'docs/doc2/',
-            // },
+            {
+              label: 'Quick Start',
+              to: '/introduction/quick-start',
+            },
+            { label: 'API Reference', to: '/api/createApi' },
+            { label: 'Examples', to: '/examples/react-hooks' },
           ],
         },
         {
@@ -64,10 +63,6 @@ module.exports = {
               label: 'Discord',
               href: 'https://discordapp.com/invite/reactiflux',
             },
-            // {
-            //   label: 'Twitter',
-            //   href: 'https://twitter.com/docusaurus',
-            // },
           ],
         },
         {
@@ -79,7 +74,7 @@ module.exports = {
             // },
             {
               label: 'GitHub',
-              href: 'https://github.com/rtk-incubator/simple-query',
+              href: 'https://github.com/rtk-incubator/rtk-query',
             },
           ],
         },
@@ -93,11 +88,11 @@ module.exports = {
       {
         docs: {
           path: '../docs',
-          include: ['{api,assets,introduction,tutorials,usage}/*.{md,mdx}'],
+          include: ['{api,assets,concepts,introduction,examples}/*.{md,mdx}'],
           routeBasePath: '/',
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
-          // editUrl: 'https://github.com/rtk-incubator/simple-query',
+          editUrl: 'https://github.com/rtk-incubator/simple-query/edit/main/docs',
           remarkPlugins: [
             [
               linkDocblocks,

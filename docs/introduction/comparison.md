@@ -1,0 +1,31 @@
+---
+id: comparison
+title: Comparison
+sidebar_label: Comparison
+hide_title: true
+hide_table_of_contents: true
+---
+
+# Comparison
+
+> This comparison table strives to be as accurate and as unbiased as possible. If you use any of these libraries and feel the information could be improved, feel free to suggest changes (with notes or evidence of claims) by [opening an issue](https://github.com/rtk-incubator/rtk-query/issues/new).
+
+| x                                  | rtk-query                               | react-query              | apollo                                                                              | urql                                                                                                        |
+| ---------------------------------- | --------------------------------------- | ------------------------ | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| supported protocols                | any, REST included                      | any, none included       | GraphQL                                                                             | GraphQL                                                                                                     |
+| api definition                     | declarative                             | on use                   | GraphQL schema                                                                      | GraphQL schema                                                                                              |
+| cache by                           | endpoint + serialized arguments         | user-defined query-key   | type/id                                                                             | type/id?                                                                                                    |
+| invalidation strategy + refetching | declarative, by type and/or type/id     | manual by cache key      | automatic cache updates on per-entity level, manual query invalidation by cache key | declarative, by type OR automatic cache updates on per-entity level, manual query invalidation by cache key |
+| polling                            | TODO                                    | yes                      | yes                                                                                 | yes                                                                                                         |
+| parallel queries                   | yes                                     | yes                      | yes                                                                                 | yes                                                                                                         |
+| dependent queries                  | yes                                     | yes                      | yes                                                                                 | yes                                                                                                         |
+| skip queries                       | yes                                     | yes                      | yes                                                                                 | yes                                                                                                         |
+| lagged queries                     | yes                                     | yes                      | no                                                                                  | ?                                                                                                           |
+| auto garbage colleaction           | yes                                     | yes                      | no                                                                                  | ?                                                                                                           |
+| normalized caching                 | no                                      | no                       | yes                                                                                 | yes                                                                                                         |
+| infinite scrolling                 | TODO                                    | yes                      | requires manual code                                                                | ?                                                                                                           |
+| prefetching                        | yes                                     | yes                      | yes                                                                                 | yes?                                                                                                        |
+| retrying                           | TODO                                    | yes                      | requires manual code                                                                | ?                                                                                                           |
+| optimistic updates                 | no                                      | can update cache by hand | `optimisticResponse`                                                                | ?                                                                                                           |
+| manual cache manipulation          | please don't?                           | yes                      | yes                                                                                 | yes                                                                                                         |
+| platforms                          | hooks for react, everywhere redux works | hooks for react          | various                                                                             | various                                                                                                     |
