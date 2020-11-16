@@ -64,10 +64,10 @@ export function isAllOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]>(
 }
 
 /**
- * @internal
+ * @param action A redux action
+ * @param validStatus An array of valid meta.requestStatus values
  *
- * @param action
- * @param validStatus
+ * @internal
  */
 export function hasExpectedRequestMetadata(action: any, validStatus: string[]) {
   if (!action || !action.meta) return false
@@ -84,9 +84,11 @@ export type UnknownAsyncThunkPendingAction = ReturnType<
 >
 
 /**
- * @public
+ * A type guard function that matches any pending async thunk action.
  *
- * @param action
+ * @param action A redux action
+ *
+ * @public
  */
 export function isPending(
   action: any
@@ -99,9 +101,11 @@ export type UnknownAsyncThunkRejectedAction = ReturnType<
 >
 
 /**
- * @public
+ * A type guard function that matches any rejected async thunk action.
  *
- * @param action
+ * @param action A redux action
+ *
+ * @public
  */
 export function isRejected(
   action: any
@@ -114,9 +118,11 @@ export type UnknownAsyncThunkFulfilledAction = ReturnType<
 >
 
 /**
- * @public
+ * A type guard function that matches any fulfilled async thunk action.
  *
- * @param action
+ * @param action A redux action
+ *
+ * @public
  */
 export function isFulfilled(
   action: any
@@ -130,9 +136,11 @@ export type UnknownAsyncThunkAction =
   | UnknownAsyncThunkFulfilledAction
 
 /**
- * @internal
+ * A type guard function that matches any async thunk action.
  *
  * @param action
+ *
+ * @internal
  */
 export function isAnyAsyncThunkAction(
   action: any
@@ -155,7 +163,7 @@ export type ActionsFromAsyncThunk<T extends AnyAsyncThunk> =
  * A higher-order function that returns a function that may be used to check
  * whether an action belongs to one of the provided async thunk action creators.
  *
- * @param asyncThunks The async thunk action creators to match against.
+ * @param asyncThunks (optional) The async thunk action creators to match against.
  *
  * @public
  */
