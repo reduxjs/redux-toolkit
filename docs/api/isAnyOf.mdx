@@ -1,0 +1,111 @@
+---
+id: isAnyOf
+title: isAnyOf
+sidebar_label: isAnyOf
+hide_title: true
+---
+
+# `isAnyOf`
+
+A higher-order function that accepts several type guard functions or `redux-toolkit` action creator functions and
+returns a type guard function that matches (returns true) if *any* of the provided functions match.  Action creator
+functions include the ones produced by `createAction` or the child actions of an async thunk produced by
+`createAsyncThunk`, such as `asyncThunk.pending`, `asyncThunk.fulfilled`, and `asyncThunk.rejected`.
+
+```js
+function isAnyOf(...matchers)
+```
+
+## Reducing code duplication and boilerplate
+
+When using the `builder` pattern to construct a reducer, we add cases or matchers one at a time.  However,
+sometimes we can use the same reducer for several cases.  The following is a trivial example.
+
+```ts
+import { createAsyncThunk, createReducer } from '@reduxjs/toolkit'
+
+interface LoadingState {
+  isLoading: boolean;
+}
+
+const initialState: LoadingState = { isLoading: false }
+
+const request = createAsyncThunk('request', () => {});
+
+const loadingReducer = createReducer(initialState, builder => {
+  builder
+    .addCase(request.pending, (state, action) => ({
+      isLoading: true
+    }))
+    .addCase(request.fulfilled, (state, action) => ({
+      isLoading: false
+    }))
+    .addCase(request.rejected, (state, action) => ({
+      isLoading: false
+    }))
+})
+```
+
+The `isAnyOf` helper enables us to easily use the same reducer for several cases.
+
+```ts
+import { createAsyncThunk, createReducer, isAnyOf } from '@reduxjs/toolkit'
+
+interface LoadingState {
+  isLoading: boolean
+}
+
+const initialState: LoadingState = { isLoading: false }
+
+const request = createAsyncThunk('request', () => {});
+
+const requestFinished = isAnyOf(request.fulfilled, request.rejected);
+
+const loadingReducer = createReducer(initialState, builder => {
+  builder
+    .addCase(request.pending, (state, action) => ({
+      isLoading: true
+    }))
+    .addMatcher(requestFinished, (state, action) => ({
+      isLoading: false
+    }))
+})
+```
+
+## As a TypeScript TypeGuard
+
+The function `isAnyOf` also accepts regular TypeScript type guards, and the function returned
+by `isAnyOf` can also be used as a TypeScript type guard in other contexts.
+
+```ts
+import { isAnyOf, PayloadAction } from '@reduxjs/toolkit'
+
+interface Data {
+  isInteresting: boolean;
+  isSpecial: boolean;
+}
+
+interface Special extends Data {
+  isSpecial: true;
+}
+
+interface Interesting extends Data {
+  isInteresting: true;
+}
+
+function isSpecial(action: PayloadAction<Data>): action is PayloadAction<Special> {
+  return action.payload.isSpecial;
+}
+
+function isInteresting(action: PayloadAction<Data>): action is PayloadAction<Interesting> {
+  return action.payload.isInteresting;
+}
+
+const isSpecialOrInteresting = isAnyOf(isSpecial, isInteresting);
+
+function someFunction(action: PayloadAction<Data>) {
+  if (isSpecialOrInteresting(action)) {
+    // "action" will be correctly typed as:
+    // `PayloadAction<Special> | PayloadAction<Interesting>`
+  }
+}
