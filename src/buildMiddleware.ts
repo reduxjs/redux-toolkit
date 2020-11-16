@@ -9,6 +9,7 @@ import {
   EndpointDefinitions,
   FullEntityDescription,
 } from './endpointDefinitions';
+import { flatten } from './utils';
 
 const batch = typeof reactBatch !== 'undefined' ? reactBatch : (fn: Function) => fn();
 
@@ -88,7 +89,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
           ? // id given: invalidate all queries that provide this type & id
             provided[entity.id]
           : // no id: invalidate all queries that provide this type
-            Object.values(provided).flat(1)) ?? [];
+            flatten(Object.values(provided))) ?? [];
 
       for (const invalidate of invalidateSubscriptions) {
         toInvalidate.add(invalidate);
