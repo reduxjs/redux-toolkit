@@ -142,4 +142,25 @@ describe('re-triggering behavior on arg change', () => {
       expect(spy).toHaveBeenCalledTimes(x + 1);
     }
   });
+
+  test('do not re-trigger if the order of keys change while maintaining the same values', async () => {
+    const { result, rerender, waitForNextUpdate } = renderHook((props) => api.hooks.getUser.useQuery(props), {
+      wrapper: withProvider(store),
+      initialProps: { name: 'Tim', likes: 'Bananas' },
+    });
+
+    while (result.current.status === 'pending') {
+      await waitForNextUpdate();
+    }
+    expect(spy).toHaveBeenCalledTimes(1);
+
+    for (let x = 1; x < 3; x++) {
+      rerender({ likes: 'Bananas', name: 'Tim' });
+      // @ts-ignore
+      while (result.current.status === 'pending') {
+        await waitForNextUpdate();
+      }
+      expect(spy).toHaveBeenCalledTimes(1);
+    }
+  });
 });
