@@ -2,7 +2,7 @@ import { AnyAction, AsyncThunk, Middleware, MiddlewareAPI, ThunkDispatch } from 
 import { batch as reactBatch } from 'react-redux';
 import { QueryCacheKey, QueryStatus, QuerySubstateIdentifier, RootState, Subscribers } from './apiState';
 import { SliceActions } from './buildSlice';
-import { MutationThunkArg, QueryThunkArg } from './buildThunks';
+import { MutationThunkArg, QueryThunkArg, ThunkResult } from './buildThunks';
 import {
   AssertEntityTypes,
   calculateProvidedBy,
@@ -27,8 +27,8 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
 }: {
   reducerPath: ReducerPath;
   endpointDefinitions: EndpointDefinitions;
-  queryThunk: AsyncThunk<unknown, QueryThunkArg<any>, {}>;
-  mutationThunk: AsyncThunk<unknown, MutationThunkArg<any>, {}>;
+  queryThunk: AsyncThunk<ThunkResult, QueryThunkArg<any>, {}>;
+  mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg<any>, {}>;
   sliceActions: SliceActions;
   keepUnusedDataFor: number;
   assertEntityType: AssertEntityTypes;
@@ -47,7 +47,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
       invalidateEntities(
         calculateProvidedBy(
           endpointDefinitions[action.meta.arg.endpoint].invalidates,
-          action.payload,
+          action.payload.result,
           action.meta.arg.originalArgs,
           assertEntityType
         ),
@@ -112,6 +112,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
                 queryCacheKey,
                 subscribe: false,
                 forceRefetch: true,
+                startedTimeStamp: Date.now(),
               })
             );
           } else {
@@ -163,6 +164,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
             queryCacheKey,
             subscribe: false,
             forceRefetch: true,
+            startedTimeStamp: Date.now(),
           })
         );
       }, lowestPollingInterval),

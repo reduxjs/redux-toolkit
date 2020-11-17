@@ -7,6 +7,7 @@ export interface QueryThunkArg<InternalQueryArgs> extends QuerySubstateIdentifie
   originalArgs: unknown;
   endpoint: string;
   internalQueryArgs: InternalQueryArgs;
+  startedTimeStamp: number;
 }
 
 export interface MutationThunkArg<InternalQueryArgs> {
@@ -14,6 +15,12 @@ export interface MutationThunkArg<InternalQueryArgs> {
   endpoint: string;
   internalQueryArgs: InternalQueryArgs;
   track?: boolean;
+  startedTimeStamp: number;
+}
+
+export interface ThunkResult {
+  fulfilledTimeStamp: number;
+  result: unknown;
 }
 
 export interface QueryApi {
@@ -35,14 +42,17 @@ export function buildThunks<InternalQueryArgs, ReducerPath extends string>({
   endpointDefinitions: EndpointDefinitions;
 }) {
   const queryThunk = createAsyncThunk<
-    unknown,
+    ThunkResult,
     QueryThunkArg<InternalQueryArgs>,
     { state: InternalRootState<ReducerPath> }
   >(
     `${reducerPath}/executeQuery`,
     async (arg, { signal, rejectWithValue }) => {
       const result = await baseQuery(arg.internalQueryArgs, { signal, rejectWithValue });
-      return (endpointDefinitions[arg.endpoint].transformResponse ?? defaultTransformResponse)(result);
+      return {
+        fulfilledTimeStamp: Date.now(),
+        result: (endpointDefinitions[arg.endpoint].transformResponse ?? defaultTransformResponse)(result),
+      };
     },
     {
       condition(arg, { getState }) {
@@ -54,12 +64,15 @@ export function buildThunks<InternalQueryArgs, ReducerPath extends string>({
   );
 
   const mutationThunk = createAsyncThunk<
-    unknown,
+    ThunkResult,
     MutationThunkArg<InternalQueryArgs>,
     { state: InternalRootState<ReducerPath> }
   >(`${reducerPath}/executeMutation`, async (arg, { signal, rejectWithValue }) => {
     const result = await baseQuery(arg.internalQueryArgs, { signal, rejectWithValue });
-    return (endpointDefinitions[arg.endpoint].transformResponse ?? defaultTransformResponse)(result);
+    return {
+      fulfilledTimeStamp: Date.now(),
+      result: (endpointDefinitions[arg.endpoint].transformResponse ?? defaultTransformResponse)(result),
+    };
   });
 
   return { queryThunk, mutationThunk };

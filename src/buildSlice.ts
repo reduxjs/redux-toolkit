@@ -13,7 +13,7 @@ import {
   QueryCacheKey,
   SubscriptionState,
 } from './apiState';
-import type { MutationThunkArg, QueryThunkArg } from './buildThunks';
+import type { MutationThunkArg, QueryThunkArg, ThunkResult } from './buildThunks';
 import { AssertEntityTypes, calculateProvidedBy, EndpointDefinitions } from './endpointDefinitions';
 
 export type InternalState = CombinedState<any, string>;
@@ -48,8 +48,8 @@ export function buildSlice({
   assertEntityType,
 }: {
   reducerPath: string;
-  queryThunk: AsyncThunk<unknown, QueryThunkArg<any>, {}>;
-  mutationThunk: AsyncThunk<unknown, MutationThunkArg<any>, {}>;
+  queryThunk: AsyncThunk<ThunkResult, QueryThunkArg<any>, {}>;
+  mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg<any>, {}>;
   endpointDefinitions: EndpointDefinitions;
   assertEntityType: AssertEntityTypes;
 }) {
@@ -77,13 +77,15 @@ export function buildSlice({
             substate.requestId = requestId;
             substate.internalQueryArgs = arg.internalQueryArgs;
             substate.originalArgs = arg.originalArgs;
+            substate.startedTimeStamp = arg.startedTimeStamp;
           });
         })
         .addCase(queryThunk.fulfilled, (draft, { meta, payload }) => {
           updateQuerySubstateIfExists(draft, meta.arg.queryCacheKey, (substate) => {
             if (substate.requestId !== meta.requestId) return;
             substate.status = QueryStatus.fulfilled;
-            substate.data = payload;
+            substate.data = payload.result;
+            substate.fulfilledTimeStamp = payload.fulfilledTimeStamp;
           });
         })
         .addCase(queryThunk.rejected, (draft, { meta: { condition, arg, requestId }, error, payload }) => {
@@ -120,6 +122,7 @@ export function buildSlice({
             internalQueryArgs: arg.internalQueryArgs,
             originalArgs: arg.originalArgs,
             endpoint: arg.endpoint,
+            startedTimeStamp: arg.startedTimeStamp,
           };
         })
         .addCase(mutationThunk.fulfilled, (draft, { payload, meta: { requestId, arg } }) => {
@@ -127,7 +130,8 @@ export function buildSlice({
 
           updateMutationSubstateIfExists(draft, { requestId }, (substate) => {
             substate.status = QueryStatus.fulfilled;
-            substate.data = payload;
+            substate.data = payload.result;
+            substate.fulfilledTimeStamp = payload.fulfilledTimeStamp;
           });
         })
         .addCase(mutationThunk.rejected, (draft, { payload, error, meta: { requestId, arg } }) => {
@@ -151,7 +155,7 @@ export function buildSlice({
           const { endpoint, queryCacheKey } = arg;
           const providedEntities = calculateProvidedBy(
             definitions[endpoint].provides,
-            payload,
+            payload.result,
             arg.originalArgs,
             assertEntityType
           );

@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { Api, createApi, fetchBaseQuery } from '../src';
+import { QueryDefinition, MutationDefinition } from '../src/endpointDefinitions';
 import { ANY, expectType, waitMs } from './helpers';
 
 test('sensible defaults', () => {
@@ -153,5 +154,133 @@ describe('wrong entityTypes log errors', () => {
     } else {
       expect(spy).not.toHaveBeenCalled();
     }
+  });
+});
+
+describe('endpoint definition typings', () => {
+  const api = createApi({
+    baseQuery: (from: 'From'): 'To' | Promise<'To'> => 'To',
+    endpoints: () => ({}),
+    entityTypes: ['typeA', 'typeB'],
+  });
+  test('query: query & transformResponse types', () => {
+    api.injectEndpoints({
+      endpoints: (build) => ({
+        query: build.query<'RetVal', 'Arg'>({
+          query: (x: 'Arg') => 'From' as const,
+          transformResponse(r: 'To') {
+            return 'RetVal' as const;
+          },
+        }),
+        query1: build.query<'RetVal', 'Arg'>({
+          // @ts-expect-error
+          query: (x: 'Error') => 'From' as const,
+          transformResponse(r: 'To') {
+            return 'RetVal' as const;
+          },
+        }),
+        query2: build.query<'RetVal', 'Arg'>({
+          // @ts-expect-error
+          query: (x: 'Arg') => 'Error' as const,
+          transformResponse(r: 'To') {
+            return 'RetVal' as const;
+          },
+        }),
+        query3: build.query<'RetVal', 'Arg'>({
+          query: (x: 'Arg') => 'From' as const,
+          // @ts-expect-error
+          transformResponse(r: 'Error') {
+            return 'RetVal' as const;
+          },
+        }),
+        query4: build.query<'RetVal', 'Arg'>({
+          query: (x: 'Arg') => 'From' as const,
+          // @ts-expect-error
+          transformResponse(r: 'To') {
+            return 'Error' as const;
+          },
+        }),
+        queryInference1: build.query<'RetVal', 'Arg'>({
+          query: (x) => {
+            expectType<'Arg'>(x);
+            return 'From';
+          },
+          transformResponse(r) {
+            expectType<'To'>(r);
+            return 'RetVal';
+          },
+        }),
+        queryInference2: (() => {
+          const query = build.query({
+            query: (x: 'Arg') => 'From' as const,
+            transformResponse(r: 'To') {
+              return 'RetVal' as const;
+            },
+          });
+          expectType<QueryDefinition<'Arg', any, any, 'RetVal'>>(query);
+          return query;
+        })(),
+      }),
+    });
+  });
+  test('mutation: query & transformResponse types', () => {
+    api.injectEndpoints({
+      endpoints: (build) => ({
+        query: build.mutation<'RetVal', 'Arg'>({
+          query: (x: 'Arg') => 'From' as const,
+          transformResponse(r: 'To') {
+            return 'RetVal' as const;
+          },
+        }),
+        query1: build.mutation<'RetVal', 'Arg'>({
+          // @ts-expect-error
+          query: (x: 'Error') => 'From' as const,
+          transformResponse(r: 'To') {
+            return 'RetVal' as const;
+          },
+        }),
+        query2: build.mutation<'RetVal', 'Arg'>({
+          // @ts-expect-error
+          query: (x: 'Arg') => 'Error' as const,
+          transformResponse(r: 'To') {
+            return 'RetVal' as const;
+          },
+        }),
+        query3: build.mutation<'RetVal', 'Arg'>({
+          query: (x: 'Arg') => 'From' as const,
+          // @ts-expect-error
+          transformResponse(r: 'Error') {
+            return 'RetVal' as const;
+          },
+        }),
+        query4: build.mutation<'RetVal', 'Arg'>({
+          query: (x: 'Arg') => 'From' as const,
+          // @ts-expect-error
+          transformResponse(r: 'To') {
+            return 'Error' as const;
+          },
+        }),
+        mutationInference1: build.mutation<'RetVal', 'Arg'>({
+          query: (x) => {
+            expectType<'Arg'>(x);
+            return 'From';
+          },
+          transformResponse(r) {
+            expectType<'To'>(r);
+            return 'RetVal';
+          },
+        }),
+        mutationInference2: (() => {
+          const query = build.mutation({
+            query: (x: 'Arg') => 'From' as const,
+            transformResponse(r: 'To') {
+              return 'RetVal' as const;
+            },
+          });
+          expectType<MutationDefinition<'Arg', any, any, 'RetVal'>>(query);
+          return query;
+        })(),
+      }),
+    });
   });
 });

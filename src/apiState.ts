@@ -35,12 +35,14 @@ type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
   data?: ResultTypeFrom<D>;
   error?: unknown;
   endpoint: string;
+  startedTimeStamp: number;
+  fulfilledTimeStamp?: number;
 };
 
 export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
   | ({
       status: QueryStatus.fulfilled;
-    } & WithRequiredProp<BaseQuerySubState<D>, 'data'>)
+    } & WithRequiredProp<BaseQuerySubState<D>, 'data' | 'fulfilledTimeStamp'>)
   | ({
       status: QueryStatus.pending;
     } & BaseQuerySubState<D>)
@@ -55,6 +57,8 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
       error?: undefined;
       requestId?: undefined;
       endpoint?: string;
+      startedTimeStamp?: undefined;
+      fulfilledTimeStamp?: undefined;
     }
 >;
 
@@ -64,12 +68,14 @@ type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
   data?: ResultTypeFrom<D>;
   error?: unknown;
   endpoint: string;
+  startedTimeStamp: number;
+  fulfilledTimeStamp?: number;
 };
 
 export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
   | ({
       status: QueryStatus.fulfilled;
-    } & WithRequiredProp<BaseMutationSubState<D>, 'data'>)
+    } & WithRequiredProp<BaseMutationSubState<D>, 'data' | 'fulfilledTimeStamp'>)
   | ({
       status: QueryStatus.pending;
     } & BaseMutationSubState<D>)
@@ -83,6 +89,8 @@ export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
       data?: undefined;
       error?: undefined;
       endpoint?: string;
+      startedTimeStamp?: undefined;
+      fulfilledTimeStamp?: undefined;
     };
 
 export type CombinedState<D extends EndpointDefinitions, E extends string> = {

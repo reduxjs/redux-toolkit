@@ -1,8 +1,12 @@
+import { BaseQueryArg } from './tsHelpers';
+
 const resultType = Symbol();
 
-export interface BaseEndpointDefinition<QueryArg, InternalQueryArgs, ResultType> {
-  query(arg: QueryArg): InternalQueryArgs;
-  transformResponse?(baseQueryReturnValue: unknown): ResultType | Promise<ResultType>;
+type UnwrapPromise<T> = T extends PromiseLike<infer V> ? V : T;
+
+export interface BaseEndpointDefinition<QueryArg, BaseQuery extends (arg: any, ...args: any[]) => any, ResultType> {
+  query(arg: QueryArg): BaseQueryArg<BaseQuery>;
+  transformResponse?(baseQueryReturnValue: UnwrapPromise<ReturnType<BaseQuery>>): ResultType | Promise<ResultType>;
   [resultType]?: ResultType;
 }
 
@@ -22,23 +26,36 @@ export type ResultDescription<EntityTypes extends string, ResultType, QueryArg> 
   | ReadonlyArray<EntityDescription<EntityTypes>>
   | GetResultDescriptionFn<EntityTypes, ResultType, QueryArg>;
 
-export interface QueryDefinition<QueryArg, InternalQueryArgs, EntityTypes extends string, ResultType>
-  extends BaseEndpointDefinition<QueryArg, InternalQueryArgs, ResultType> {
+export interface QueryDefinition<
+  QueryArg,
+  BaseQuery extends (arg: any, ...args: any[]) => any,
+  EntityTypes extends string,
+  ResultType
+> extends BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> {
   type: DefinitionType.query;
   provides?: ResultDescription<EntityTypes, ResultType, QueryArg>;
   invalidates?: never;
 }
 
-export interface MutationDefinition<QueryArg, InternalQueryArgs, EntityTypes extends string, ResultType>
-  extends BaseEndpointDefinition<QueryArg, InternalQueryArgs, ResultType> {
+export interface MutationDefinition<
+  QueryArg,
+  BaseQuery extends (arg: any, ...args: any[]) => any,
+  EntityTypes extends string,
+  ResultType
+> extends BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> {
   type: DefinitionType.mutation;
   invalidates?: ResultDescription<EntityTypes, ResultType, QueryArg>;
   provides?: never;
 }
 
-export type EndpointDefinition<QueryArg, InternalQueryArgs, EntityTypes extends string, ResultType> =
-  | QueryDefinition<QueryArg, InternalQueryArgs, EntityTypes, ResultType>
-  | MutationDefinition<QueryArg, InternalQueryArgs, EntityTypes, ResultType>;
+export type EndpointDefinition<
+  QueryArg,
+  BaseQuery extends (arg: any, ...args: any[]) => any,
+  EntityTypes extends string,
+  ResultType
+> =
+  | QueryDefinition<QueryArg, BaseQuery, EntityTypes, ResultType>
+  | MutationDefinition<QueryArg, BaseQuery, EntityTypes, ResultType>;
 
 export type EndpointDefinitions = Record<string, EndpointDefinition<any, any, any, any>>;
 
@@ -52,13 +69,13 @@ export function isMutationDefinition(
   return e.type === DefinitionType.mutation;
 }
 
-export type EndpointBuilder<InternalQueryArgs, EntityTypes extends string> = {
+export type EndpointBuilder<BaseQuery extends (arg: any, ...args: any[]) => any, EntityTypes extends string> = {
   query<ResultType, QueryArg>(
-    definition: Omit<QueryDefinition<QueryArg, InternalQueryArgs, EntityTypes, ResultType>, 'type'>
-  ): QueryDefinition<QueryArg, InternalQueryArgs, EntityTypes, ResultType>;
+    definition: Omit<QueryDefinition<QueryArg, BaseQuery, EntityTypes, ResultType>, 'type'>
+  ): QueryDefinition<QueryArg, BaseQuery, EntityTypes, ResultType>;
   mutation<ResultType, QueryArg>(
-    definition: Omit<MutationDefinition<QueryArg, InternalQueryArgs, EntityTypes, ResultType>, 'type'>
-  ): MutationDefinition<QueryArg, InternalQueryArgs, EntityTypes, ResultType>;
+    definition: Omit<MutationDefinition<QueryArg, BaseQuery, EntityTypes, ResultType>, 'type'>
+  ): MutationDefinition<QueryArg, BaseQuery, EntityTypes, ResultType>;
 };
 
 export type AssertEntityTypes = <T extends FullEntityDescription<string>>(t: T) => T;

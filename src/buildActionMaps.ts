@@ -77,9 +77,9 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
   sliceActions: { unsubscribeQueryResult, unsubscribeMutationResult, updateSubscriptionOptions },
 }: {
   serializeQueryArgs: InternalSerializeQueryArgs<InternalQueryArgs>;
-  queryThunk: AsyncThunk<unknown, QueryThunkArg<any>, {}>;
+  queryThunk: AsyncThunk<any, QueryThunkArg<any>, {}>;
   querySelectors: QueryResultSelectors<Definitions, any>;
-  mutationThunk: AsyncThunk<unknown, MutationThunkArg<any>, {}>;
+  mutationThunk: AsyncThunk<any, MutationThunkArg<any>, {}>;
   mutationSelectors: MutationResultSelectors<Definitions, any>;
   sliceActions: SliceActions;
 }) {
@@ -100,6 +100,7 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
         originalArgs: arg,
         internalQueryArgs,
         queryCacheKey,
+        startedTimeStamp: Date.now(),
       });
       const thunkResult = dispatch(thunk);
       const { requestId, abort } = thunkResult;
@@ -135,7 +136,13 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
   ): StartMutationActionCreator<any> {
     return (arg, { track = true } = {}) => (dispatch, getState) => {
       const internalQueryArgs = definition.query(arg);
-      const thunk = mutationThunk({ endpoint, internalQueryArgs, originalArgs: arg, track });
+      const thunk = mutationThunk({
+        endpoint,
+        internalQueryArgs,
+        originalArgs: arg,
+        track,
+        startedTimeStamp: Date.now(),
+      });
       const thunkResult = dispatch(thunk);
       const { requestId, abort } = thunkResult;
       assertIsNewRTKPromise(thunkResult);
