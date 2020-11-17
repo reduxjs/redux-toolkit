@@ -142,7 +142,7 @@ describe('isAllOf', () => {
 
 describe('isPending', () => {
   test('should return false for a regular action', () => {
-    const action = createAction<string>('a')
+    const action = createAction<string>('action/type')('testPayload');
 
     expect(isPending(action)).toBe(false)
   })
@@ -166,7 +166,7 @@ describe('isPending', () => {
 
 describe('isRejected', () => {
   test('should return false for a regular action', () => {
-    const action = createAction<string>('a')
+    const action = createAction<string>('action/type')('testPayload');
 
     expect(isRejected(action)).toBe(false)
   })
@@ -190,7 +190,7 @@ describe('isRejected', () => {
 
 describe('isFulfilled', () => {
   test('should return false for a regular action', () => {
-    const action = createAction<string>('a')
+    const action = createAction<string>('action/type')('testPayload');
 
     expect(isFulfilled(action)).toBe(false)
   })
@@ -214,7 +214,7 @@ describe('isFulfilled', () => {
 
 describe('isAnyAsyncThunkAction', () => {
   test('should return false for a regular action', () => {
-    const action = createAction<string>('a')
+    const action = createAction<string>('action/type')('testPayload');
 
     expect(isAnyAsyncThunkAction(action)).toBe(false)
   })
