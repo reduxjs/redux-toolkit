@@ -71,15 +71,7 @@ export type AsyncThunk<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConf
 };
 
 // @public
-export type AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> = (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
-    arg: ThunkArg;
-    requestId: string;
-}> | PayloadAction<undefined | GetRejectValue<ThunkApiConfig>, string, {
-    arg: ThunkArg;
-    requestId: string;
-    aborted: boolean;
-    condition: boolean;
-}, SerializedError>> & {
+export type AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> = (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<ReturnType<AsyncThunkFulfilledActionCreator<Returned, ThunkArg>> | ReturnType<AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>>> & {
     abort(reason?: string): void;
     requestId: string;
     arg: ThunkArg;
@@ -398,7 +390,7 @@ export { ThunkAction }
 export { ThunkDispatch }
 
 // @public (undocumented)
-export function unwrapResult<R extends ActionTypesWithOptionalErrorAction>(returned: R): PayloadForActionTypesExcludingErrorActions<R>;
+export function unwrapResult<R extends UnwrappableAction>(action: R): UnwrappedActionPayload<R>;
 
 // @public (undocumented)
 export type Update<T> = {

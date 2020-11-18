@@ -1,3 +1,4 @@
+/* eslint-disable no-lone-blocks */
 import { createAsyncThunk, Dispatch, createReducer, AnyAction } from 'src'
 import { ThunkDispatch } from 'redux-thunk'
 import { unwrapResult, SerializedError } from 'src/createAsyncThunk'
@@ -129,6 +130,10 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
   } else {
     expectType<ReturnValue>(returned.payload)
   }
+
+  expectType<ReturnValue>(unwrapResult(returned))
+  // typings:expect-error
+  expectType<RejectValue>(unwrapResult(returned))
 })()
 
 {
@@ -184,6 +189,19 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
         expectType<IsAny<typeof result['error'], true, false>>(true)
       }
     }
+    defaultDispatch(fetchLiveCallsError('asd'))
+      .then(result => {
+        expectType<Item[] | ErrorFromServer | undefined>(result.payload)
+        // typings:expect-error
+        expectType<Item[]>(unwrapped)
+        return result
+      })
+      .then(unwrapResult)
+      .then(unwrapped => {
+        expectType<Item[]>(unwrapped)
+        // typings:expect-error
+        expectType<ErrorFromServer>(unwrapResult(unwrapped))
+      })
   })
 }
 
