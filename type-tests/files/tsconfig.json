@@ -5,10 +5,11 @@
     "module": "es2015",
     "moduleResolution": "node",
     "strict": true,
+    "noEmit": true,
     "target": "es2018",
     "baseUrl": "../..",
     "paths": {
       "redux-toolkit": ["src/typings.d.ts"]
-    }
+    }    
   }
 }

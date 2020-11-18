@@ -98,5 +98,3 @@ type UnionToIntersection<U> = (U extends any
  * @internal
  */
 export type NoInfer<T> = [T][T extends any ? 0 : never]
-
-export type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>

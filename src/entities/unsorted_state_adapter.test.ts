@@ -124,7 +124,7 @@ describe('Unsorted State Adapter', () => {
   })
 
   it('should let you add remove an entity from the state', () => {
-    const withOneEntity = adapter.addOne(state, TheGreatGatsby)
+    /* const withOneEntity = */ adapter.addOne(state, TheGreatGatsby)
 
     const withoutOne = adapter.removeOne(state, TheGreatGatsby.id)
 

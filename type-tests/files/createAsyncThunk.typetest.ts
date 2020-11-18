@@ -42,11 +42,11 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
 
   if (async.fulfilled.match(result)) {
     expectType<ReturnType<typeof async['fulfilled']>>(result)
-    // typings:expect-error
+    // @ts-expect-error
     expectType<ReturnType<typeof async['rejected']>>(result)
   } else {
     expectType<ReturnType<typeof async['rejected']>>(result)
-    // typings:expect-error
+    // @ts-expect-error
     expectType<ReturnType<typeof async['fulfilled']>>(result)
   }
 
@@ -54,7 +54,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
     .then(unwrapResult)
     .then(result => {
       expectType<number>(result)
-      // typings:expect-error
+      // @ts-expect-error
       expectType<Error>(result)
     })
     .catch(error => {
@@ -103,7 +103,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
   )
 
   correctDispatch(fetchBooksTAC(1))
-  // typings:expect-error
+  // @ts-expect-error
   defaultDispatch(fetchBooksTAC(1))
 })()
 /**
@@ -132,7 +132,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
   }
 
   expectType<ReturnValue>(unwrapResult(returned))
-  // typings:expect-error
+  // @ts-expect-error
   expectType<RejectValue>(unwrapResult(returned))
 })()
 
@@ -185,21 +185,21 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
         // rejected by throw
         expectType<undefined>(result.payload)
         expectType<SerializedError>(result.error)
-        // typings:expect-error
+        // @ts-expect-error
         expectType<IsAny<typeof result['error'], true, false>>(true)
       }
     }
     defaultDispatch(fetchLiveCallsError('asd'))
       .then(result => {
         expectType<Item[] | ErrorFromServer | undefined>(result.payload)
-        // typings:expect-error
+        // @ts-expect-error
         expectType<Item[]>(unwrapped)
         return result
       })
       .then(unwrapResult)
       .then(unwrapped => {
         expectType<Item[]>(unwrapped)
-        // typings:expect-error
+        // @ts-expect-error
         expectType<ErrorFromServer>(unwrapResult(unwrapped))
       })
   })
@@ -213,7 +213,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
   {
     const asyncThunk = createAsyncThunk('test', () => 0)
     expectType<() => any>(asyncThunk)
-    // typings:expect-error cannot be called with an argument
+    // @ts-expect-error cannot be called with an argument
     asyncThunk(0 as any)
   }
 
@@ -221,7 +221,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
   {
     const asyncThunk = createAsyncThunk('test', (arg: undefined) => 0)
     expectType<() => any>(asyncThunk)
-    // typings:expect-error cannot be called with an argument
+    // @ts-expect-error cannot be called with an argument
     asyncThunk(0 as any)
   }
 
@@ -229,7 +229,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
   {
     const asyncThunk = createAsyncThunk('test', (arg: void) => 0)
     expectType<() => any>(asyncThunk)
-    // typings:expect-error cannot be called with an argument
+    // @ts-expect-error cannot be called with an argument
     asyncThunk(0 as any)
   }
 
@@ -241,7 +241,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
     expectType<(arg?: number) => any>(asyncThunk)
     asyncThunk()
     asyncThunk(5)
-    // typings:expect-error
+    // @ts-expect-error
     asyncThunk('string')
   }
 
@@ -253,7 +253,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
     expectType<(arg?: number) => any>(asyncThunk)
     asyncThunk()
     asyncThunk(5)
-    // typings:expect-error
+    // @ts-expect-error
     asyncThunk('string')
   }
 
@@ -263,7 +263,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
     expectType<(arg?: number) => any>(asyncThunk)
     asyncThunk()
     asyncThunk(5)
-    // typings:expect-error
+    // @ts-expect-error
     asyncThunk('string')
   }
 
@@ -272,7 +272,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
     const asyncThunk = createAsyncThunk('test', (arg: any) => 0)
     expectType<IsAny<Parameters<typeof asyncThunk>[0], true, false>>(true)
     asyncThunk(5)
-    // typings:expect-error
+    // @ts-expect-error
     asyncThunk()
   }
 
@@ -281,7 +281,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
     const asyncThunk = createAsyncThunk('test', (arg: unknown) => 0)
     expectType<IsUnknown<Parameters<typeof asyncThunk>[0], true, false>>(true)
     asyncThunk(5)
-    // typings:expect-error
+    // @ts-expect-error
     asyncThunk()
   }
 
@@ -290,7 +290,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
     const asyncThunk = createAsyncThunk('test', (arg: number) => 0)
     expectType<(arg: number) => any>(asyncThunk)
     asyncThunk(5)
-    // typings:expect-error
+    // @ts-expect-error
     asyncThunk()
   }
 
@@ -298,7 +298,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
   {
     const asyncThunk = createAsyncThunk('test', (arg: undefined, thunkApi) => 0)
     expectType<() => any>(asyncThunk)
-    // typings:expect-error cannot be called with an argument
+    // @ts-expect-error cannot be called with an argument
     asyncThunk(0 as any)
   }
 
@@ -306,7 +306,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
   {
     const asyncThunk = createAsyncThunk('test', (arg: void, thunkApi) => 0)
     expectType<() => any>(asyncThunk)
-    // typings:expect-error cannot be called with an argument
+    // @ts-expect-error cannot be called with an argument
     asyncThunk(0 as any)
   }
 
@@ -321,7 +321,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
     expectType<(arg?: number) => any>(asyncThunk)
     asyncThunk()
     asyncThunk(5)
-    // typings:expect-error
+    // @ts-expect-error
     asyncThunk('string')
   }
 
@@ -334,7 +334,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
     expectType<(arg?: number) => any>(asyncThunk)
     asyncThunk()
     asyncThunk(5)
-    // typings:expect-error
+    // @ts-expect-error
     asyncThunk('string')
   }
 
@@ -343,7 +343,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
     const asyncThunk = createAsyncThunk('test', (arg: any, thunkApi) => 0)
     expectType<IsAny<Parameters<typeof asyncThunk>[0], true, false>>(true)
     asyncThunk(5)
-    // typings:expect-error
+    // @ts-expect-error
     asyncThunk()
   }
 
@@ -352,7 +352,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
     const asyncThunk = createAsyncThunk('test', (arg: unknown, thunkApi) => 0)
     expectType<IsUnknown<Parameters<typeof asyncThunk>[0], true, false>>(true)
     asyncThunk(5)
-    // typings:expect-error
+    // @ts-expect-error
     asyncThunk()
   }
 
@@ -361,7 +361,7 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
     const asyncThunk = createAsyncThunk('test', (arg: number, thunkApi) => 0)
     expectType<(arg: number) => any>(asyncThunk)
     asyncThunk(5)
-    // typings:expect-error
+    // @ts-expect-error
     asyncThunk()
   }
 }
