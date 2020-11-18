@@ -13,6 +13,7 @@ import { IsAny, IsUnknown } from '@internal/tsHelpers'
 import { expectType } from './helpers'
 
 const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
+const anyAction = { type: 'foo' } as AnyAction
 
   // basic usage
 ;(async function() {
@@ -366,5 +367,29 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
     asyncThunk(5)
     // @ts-expect-error
     asyncThunk()
+  }
+}
+
+{
+  type Funky = { somethingElse: 'Funky!' }
+  function funkySerializeError(err: any): Funky {
+    return { somethingElse: 'Funky!' }
+  }
+
+  const shouldFail = createAsyncThunk('without generics', () => {}, {
+    // @ts-expect-error
+    serializeError: funkySerializeError
+  })
+
+  const shouldWork = createAsyncThunk<
+    any,
+    void,
+    { serializedErrorType: Funky }
+  >('with generics', () => {}, {
+    serializeError: funkySerializeError
+  })
+
+  if (shouldWork.rejected.match(anyAction)) {
+    expectType<Funky>(anyAction.error)
   }
 }

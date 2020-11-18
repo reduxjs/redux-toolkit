@@ -69,6 +69,7 @@ type AsyncThunkConfig = {
   dispatch?: Dispatch
   extra?: unknown
   rejectValue?: unknown
+  serializedErrorType?: unknown
 }
 
 type GetState<ThunkApiConfig> = ThunkApiConfig extends {
@@ -104,6 +105,13 @@ type GetRejectValue<ThunkApiConfig> = ThunkApiConfig extends {
 }
   ? RejectValue
   : unknown
+
+type GetSerializedErrorType<ThunkApiConfig> = ThunkApiConfig extends {
+  serializedErrorType: infer GetSerializedErrorType
+}
+  ? GetSerializedErrorType
+  : SerializedError
+
 /**
  * A type describing the return value of the `payloadCreator` argument to `createAsyncThunk`.
  * Might be useful for wrapping `createAsyncThunk` in custom abstractions.
@@ -207,6 +215,8 @@ interface AsyncThunkOptions<
    * @default `false`
    */
   dispatchConditionRejection?: boolean
+
+  serializeError?: (x: unknown) => GetSerializedErrorType<ThunkApiConfig>
 }
 
 export type AsyncThunkPendingActionCreator<
@@ -230,7 +240,7 @@ export type AsyncThunkRejectedActionCreator<
   [Error | null, string, ThunkArg],
   GetRejectValue<ThunkApiConfig> | undefined,
   string,
-  SerializedError,
+  GetSerializedErrorType<ThunkApiConfig>,
   {
     arg: ThunkArg
     requestId: string
@@ -329,7 +339,9 @@ export function createAsyncThunk<
 
       return {
         payload: error instanceof RejectWithValue ? error.payload : undefined,
-        error: miniSerializeError(error),
+        error: ((options && options.serializeError) || miniSerializeError)(
+          error || 'Rejected'
+        ) as GetSerializedErrorType<ThunkApiConfig>,
         meta: {
           arg,
           requestId,
