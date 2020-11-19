@@ -77,7 +77,7 @@ function extractReducers<T>(
     initialState: adapter.getInitialState(),
     reducers: {
       addOne: adapter.addOne,
-      // typings:expect-error
+      // @ts-expect-error
       addOne2: adapter2.addOne
     }
   })
@@ -112,7 +112,7 @@ function extractReducers<T>(
     name: 'test',
     initialState: { somethingElse: '' },
     reducers: {
-      // typings:expect-error
+      // @ts-expect-error
       addOne: adapter.addOne
     }
   })

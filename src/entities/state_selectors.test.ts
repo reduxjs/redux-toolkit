@@ -100,10 +100,9 @@ describe('Entity State Selectors', () => {
     })
 
     it('should type single entity from Dictionary as entity type or undefined', () => {
-      const singleEntity: Selector<
-        EntityState<BookModel>,
-        BookModel | undefined
-      > = createSelector(selectors.selectEntities, entities => entities[0])
+      expectType<Selector<EntityState<BookModel>, BookModel | undefined>>(
+        createSelector(selectors.selectEntities, entities => entities[0])
+      )
     })
 
     it('should create a selector for selecting the list of models', () => {
@@ -126,3 +125,7 @@ describe('Entity State Selectors', () => {
     })
   })
 })
+
+function expectType<T>(t: T) {
+  return t
+}

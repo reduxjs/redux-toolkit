@@ -47,7 +47,7 @@ const actionCreators = {
 expectType<typeof counterSlice.actions>(actionCreators.counter)
 expectType<typeof uiSlice.actions>(actionCreators.ui)
 
-// typings:expect-error
+// @ts-expect-error
 const value = actionCreators.anyKey
 
 /*
@@ -73,9 +73,9 @@ const value = actionCreators.anyKey
 
   const reducer: Reducer<number, PayloadAction> = slice.reducer
 
-  // typings:expect-error
+  // @ts-expect-error
   const stringReducer: Reducer<string, PayloadAction> = slice.reducer
-  // typings:expect-error
+  // @ts-expect-error
   const anyActionReducer: Reducer<string, AnyAction> = slice.reducer
 
   /* Actions */
@@ -83,7 +83,7 @@ const value = actionCreators.anyKey
   slice.actions.increment(1)
   slice.actions.decrement(1)
 
-  // typings:expect-error
+  // @ts-expect-error
   slice.actions.other(1)
 }
 
@@ -131,13 +131,13 @@ const value = actionCreators.anyKey
   )
   counter.actions.addTwo(1, 2)
 
-  // typings:expect-error
+  // @ts-expect-error
   counter.actions.multiply()
 
-  // typings:expect-error
+  // @ts-expect-error
   counter.actions.multiply('2')
 
-  // typings:expect-error
+  // @ts-expect-error
   counter.actions.addTwo(1)
 }
 
@@ -162,9 +162,9 @@ const value = actionCreators.anyKey
   const t: string = counter.actions.decrement.type
   const u: string = counter.actions.multiply.type
 
-  // typings:expect-error
+  // @ts-expect-error
   const x: 'counter/increment' = counter.actions.increment.type
-  // typings:expect-error
+  // @ts-expect-error
   const y: 'increment' = counter.actions.increment.type
 }
 
@@ -201,10 +201,10 @@ const value = actionCreators.anyKey
   expectType<string>(counter.actions.concatMetaStrLen('test').payload)
   expectType<number>(counter.actions.concatMetaStrLen('test').meta)
 
-  // typings:expect-error
+  // @ts-expect-error
   expectType<string>(counter.actions.incrementByStrLen('test').payload)
 
-  // typings:expect-error
+  // @ts-expect-error
   expectType<string>(counter.actions.concatMetaStrLen('test').meta)
 }
 
@@ -246,7 +246,7 @@ const value = actionCreators.anyKey
       // case: meta is typed differently in the reducer than returned from prepare
       testErroneousMeta: {
         reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
-        // typings:expect-error
+        // @ts-expect-error
         prepare: (payload: number) => ({
           payload,
           meta: 1,
@@ -256,7 +256,7 @@ const value = actionCreators.anyKey
       // case: error is typed differently in the reducer than returned from prepare
       testErroneousError: {
         reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
-        // typings:expect-error
+        // @ts-expect-error
         prepare: (payload: number) => ({
           payload,
           meta: 'meta' as 'meta',
@@ -300,20 +300,23 @@ const value = actionCreators.anyKey
   )
 
   // Should not mismatch the payload if it's a simple reducer
-  // typings:expect-error
+
   expectType<(state: number, action: PayloadAction<string>) => number | void>(
+    // @ts-expect-error
     counter.caseReducers.increment
   )
 
   // Should not mismatch the payload if it's a reducer with a prepare callback
-  // typings:expect-error
+
   expectType<(state: number, action: PayloadAction<string>) => number | void>(
+    // @ts-expect-error
     counter.caseReducers.decrement
   )
 
   // Should not include entries that don't exist
-  // typings:expect-error
+
   expectType<(state: number, action: PayloadAction<string>) => number | void>(
+    // @ts-expect-error
     counter.caseReducers.someThingNonExistant
   )
 }
@@ -322,7 +325,6 @@ const value = actionCreators.anyKey
  * Test: prepared payload does not match action payload - should cause an error.
  */
 {
-  // typings:expect-error
   const counter = createSlice({
     name: 'counter',
     initialState: { counter: 0 },
@@ -331,6 +333,7 @@ const value = actionCreators.anyKey
         reducer(state, action: PayloadAction<string>) {
           state.counter += action.payload.length
         },
+        // @ts-expect-error
         prepare(x: string) {
           return {
             payload: 6
@@ -388,9 +391,9 @@ const value = actionCreators.anyKey
     expectType<string>(x.type)
     expectType<string>(x.payload)
   } else {
-    // typings:expect-error
+    // @ts-expect-error
     expectType<string>(x.type)
-    // typings:expect-error
+    // @ts-expect-error
     expectType<string>(x.payload)
   }
 }
@@ -448,7 +451,7 @@ const value = actionCreators.anyKey
     reducers: {
       magic(state) {
         expectType<GenericState<string>>(state)
-        // typings:expect-error
+        // @ts-expect-error
         expectType<GenericState<number>>(state)
 
         state.status = 'finished'

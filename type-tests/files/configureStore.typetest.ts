@@ -30,13 +30,13 @@ function expectType<T>(t: T) {
     }
   })
 
-  // typings:expect-error
+  // @ts-expect-error
   configureStore({ reducer: 'not a reducer' })
 
-  // typings:expect-error
+  // @ts-expect-error
   configureStore({ reducer: { a: 'not a reducer' } })
 
-  // typings:expect-error
+  // @ts-expect-error
   configureStore({})
 }
 
@@ -48,7 +48,7 @@ function expectType<T>(t: T) {
   const store = configureStore({ reducer })
   const numberStore: Store<number, AnyAction> = store
 
-  // typings:expect-error
+  // @ts-expect-error
   const stringStore: Store<string, AnyAction> = store
 }
 
@@ -60,7 +60,7 @@ function expectType<T>(t: T) {
   const store = configureStore({ reducer })
   const numberStore: Store<number, PayloadAction<number>> = store
 
-  // typings:expect-error
+  // @ts-expect-error
   const stringStore: Store<number, PayloadAction<string>> = store
 }
 
@@ -75,9 +75,9 @@ function expectType<T>(t: T) {
     middleware: [middleware]
   })
 
-  // typings:expect-error
   configureStore({
     reducer: () => 0,
+    // @ts-expect-error
     middleware: ['not middleware']
   })
 }
@@ -91,9 +91,9 @@ function expectType<T>(t: T) {
     devTools: true
   })
 
-  // typings:expect-error
   configureStore({
     reducer: () => 0,
+    // @ts-expect-error
     devTools: 'true'
   })
 }
@@ -107,9 +107,9 @@ function expectType<T>(t: T) {
     devTools: { name: 'myApp' }
   })
 
-  // typings:expect-error
   configureStore({
     reducer: () => 0,
+    // @ts-expect-error
     devTools: { appname: 'myApp' }
   })
 }
@@ -123,9 +123,9 @@ function expectType<T>(t: T) {
     preloadedState: 0
   })
 
-  // typings:expect-error
   configureStore({
     reducer: () => 0,
+    // @ts-expect-error
     preloadedState: 'non-matching state type'
   })
 }
@@ -139,9 +139,9 @@ function expectType<T>(t: T) {
     enhancers: [applyMiddleware(store => next => next)]
   })
 
-  // typings:expect-error
   configureStore({
     reducer: () => 0,
+    // @ts-expect-error
     enhancers: ['not a store enhancer']
   })
 }
@@ -191,7 +191,7 @@ function expectType<T>(t: T) {
     })
 
     store.dispatch(thunkA())
-    // typings:expect-error
+    // @ts-expect-error
     store.dispatch(thunkB())
   }
   /**
@@ -202,9 +202,9 @@ function expectType<T>(t: T) {
       reducer: reducerA,
       middleware: []
     })
-    // typings:expect-error
+    // @ts-expect-error
     store.dispatch(thunkA())
-    // typings:expect-error
+    // @ts-expect-error
     store.dispatch(thunkB())
   }
   /**
@@ -216,7 +216,7 @@ function expectType<T>(t: T) {
       middleware: [thunk] as [ThunkMiddleware<StateA>]
     })
     store.dispatch(thunkA())
-    // typings:expect-error
+    // @ts-expect-error
     store.dispatch(thunkB())
   }
   /**
@@ -229,7 +229,7 @@ function expectType<T>(t: T) {
     })
 
     store.dispatch(thunkA())
-    // typings:expect-error
+    // @ts-expect-error
     store.dispatch(thunkB())
   }
   /**
@@ -241,7 +241,7 @@ function expectType<T>(t: T) {
       middleware: ([] as any) as [Middleware<(a: StateA) => boolean, StateA>]
     })
     const result: boolean = store.dispatch(5)
-    // typings:expect-error
+    // @ts-expect-error
     const result2: string = store.dispatch(5)
   }
   /**
@@ -273,7 +273,7 @@ function expectType<T>(t: T) {
     // about the value of the extraArgument, as it will always work with every
     // ThunkMiddleware, no matter the actual extraArgument type
     store.dispatch(function() {} as ThunkAction<void, {}, unknown, AnyAction>)
-    // typings:expect-error
+    // @ts-expect-error
     store.dispatch(function() {} as ThunkAction<void, {}, boolean, AnyAction>)
   }
 
@@ -290,7 +290,7 @@ function expectType<T>(t: T) {
     })
     const result1: 'A' = store.dispatch('a')
     const result2: Promise<'A'> = store.dispatch(thunkA())
-    // typings:expect-error
+    // @ts-expect-error
     store.dispatch(thunkB())
   }
 
@@ -311,7 +311,7 @@ function expectType<T>(t: T) {
     })
     const result1: 'A' = store.dispatch('a')
     const result2: Promise<'A'> = store.dispatch(thunkA())
-    // typings:expect-error
+    // @ts-expect-error
     store.dispatch(thunkB())
   }
 
@@ -332,7 +332,7 @@ function expectType<T>(t: T) {
     })
     const result1: 'A' = store.dispatch('a')
     const result2: Promise<'A'> = store.dispatch(thunkA())
-    // typings:expect-error
+    // @ts-expect-error
     store.dispatch(thunkB())
   }
 
@@ -350,7 +350,7 @@ function expectType<T>(t: T) {
     })
     const result1: 'A' = store.dispatch('a')
     const result2: Promise<'A'> = store.dispatch(thunkA())
-    // typings:expect-error
+    // @ts-expect-error
     store.dispatch(thunkB())
   }
 
@@ -370,7 +370,7 @@ function expectType<T>(t: T) {
     const result1: 'A' = store.dispatch('a')
     const result2: Promise<'A'> = store.dispatch(thunkA())
     const result3: 'B' = store.dispatch('b')
-    // typings:expect-error
+    // @ts-expect-error
     store.dispatch(thunkB())
   }
 
@@ -387,7 +387,7 @@ function expectType<T>(t: T) {
         ] as const
     })
     const result1: 'A' = store.dispatch('a')
-    // typings:expect-error
+    // @ts-expect-error
     store.dispatch(thunkA())
   }
 }
