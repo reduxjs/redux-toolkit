@@ -365,6 +365,3 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
     asyncThunk()
   }
 }
-
-// @ts-expect-error
-expectType<5>(5)
