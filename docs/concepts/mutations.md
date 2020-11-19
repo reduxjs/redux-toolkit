@@ -49,7 +49,7 @@ export const PostDetail = () => {
 
 ### Advanced mutations with revalidation
 
-In the real world, it's very common that a developer would want to resync their local data cache with the server after performing a mutation. RTK Query takes a more centralized approach to this and requires you to configure the invalidation behavior in your API service definition. Before getting started, let's cover some new terms:
+In the real world, it's very common that a developer would want to resync their local data cache with the server after performing a mutation (aka `revalidation`). RTK Query takes a more centralized approach to this and requires you to configure the invalidation behavior in your API service definition. Before getting started, let's cover some new terms:
 
 1. **Entities**
 
@@ -58,12 +58,127 @@ In the real world, it's very common that a developer would want to resync their 
 2. **Provides**
 
 - A `query` can _provide_ entities to the cache.
-  - Accepts either an array of `{type: string, id?: string|number}` or a callback that returns such an array. That function will be passed the result as the first argument and the argument originally passed into the `query` method as the second argument
+  - Accepts either an array of `{type: string, id?: string|number}` or a callback that returns such an array. That function will be passed the result as the first argument and the argument originally passed into the `query` method as the second argument.
 
 3. **Invalidates**
 
 - A `mutation` can _invalidate_ specific entities in the cache.
-  - Can both be an array of `{type: string, id?: string|number}` or a callback that returns such an array. That function will be passed the result as the first argument and the argument originally passed into the `query` method as the second argument
+  - Can both be an array of `{type: string, id?: string|number}` or a callback that returns such an array. That function will be passed the result as the first argument and the argument originally passed into the `query` method as the second argument.
+
+### Scenarios and Behaviors
+
+RTK Query provides _a lot_ of flexibility for how you can manage the invalidation behavior of your service. Let's look at a few different scenarios:
+
+#### Invalidating everything
+
+```ts title="API Definition"
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  entityTypes: ['Posts'],
+  endpoints: (build) => ({
+    getPosts: build.query<PostsResponse, void>({
+      query: () => 'posts',
+      provides: (result) => [...result.map(({ id }) => ({ type: 'Posts', id }))],
+    }),
+    addPost: build.mutation<Post, Partial<Post>>({
+      query: (body) => ({
+        url: `posts`,
+        method: 'POST',
+        body,
+      }),
+      invalidates: ['Posts'],
+    }),
+    getPost: build.query<Post, number>({
+      query: (id) => `posts/${id}`,
+      provides: (result, id) => [{ type: 'Posts', id }],
+    }),
+  }),
+});
+```
+
+```ts title="App.tsx"
+function App() {
+  const { data: posts } = hooks.getPosts();
+  const [addPost] = hooks.addPost();
+
+  return (
+    <div>
+      <AddPost onAdd={addPost} />
+      <PostsList />
+      <PostDetail id={1} /> // Assume each PostDetail is subscribed via `const {data} = hooks.getPost(id)`
+      <PostDetail id={2} />
+      <PostDetail id={3} />
+    </div>
+  );
+}
+```
+
+**What to expect**
+
+When `addPost` is triggered, it would cause each `PostDetail` component to go back into a `isFetching` state because `addPost` invalidates the root entity, which causes _every query_ that provides 'Posts' to be re-run. In most cases, this may not be what you want to do. Imagine if you had 100 posts on the screen that all subscribed to a `getPost` query – in this case, you'd create 100 requests and send a ton of unnecessary traffic to your server, which we're trying to avoid in the first place! Even though the user would still see the last good cached result and potentially not notice anything other than their browser hiccuping, you still want to avoid this.
+
+#### Selectively invalidating lists
+
+Keep an eye on the `provides` property of `getPosts` - we'll explain why after.
+
+```ts title="API Definition"
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  entityTypes: ['Posts'],
+  endpoints: (build) => ({
+    getPosts: build.query<PostsResponse, void>({
+      query: () => 'posts',
+      provides: (result) => [...result.map(({ id }) => ({ type: 'Posts', id })), { type: 'Posts', id: 'LIST' }],
+    }),
+    addPost: build.mutation<Post, Partial<Post>>({
+      query(body) {
+        return {
+          url: `posts`,
+          method: 'POST',
+          body,
+        };
+      },
+      invalidates: [{ type: 'Posts', id: 'LIST'],
+    }),
+    getPost: build.query<Post, number>({
+      query: (id) => `posts/${id}`,
+      provides: (_, id) => [{ type: 'Posts', id }],
+    }),
+  }),
+});
+```
+
+> **Note about 'LIST' and `id`s**
+>
+> 1. `LIST` is an arbitrary string - technically speaking, you could use anything you want here, such as `ALL` or `*`. The important thing when choosing a custom id is to make sure there is no possibility of it colliding with an id that is returned by a query result. If you have unknown ids in your query results and don't want to risk it, you can go with point 3 below.
+> 2. You can add _many_ entity types for even more control
+>    - `[{ type: 'Posts', id: 'LIST' }, { type: 'Posts', id: 'SVELTE_POSTS' }, { type: 'Posts', id: 'REACT_POSTS' }]`
+> 3. If the concept of using an `id` like 'LIST' seems strange to you, you can always add another `entityType` and invalidate it's root, but we recommend using the `id` approach as shown.
+
+```ts title="App.tsx"
+function App() {
+  const { data: posts } = hooks.getPosts();
+  const [addPost] = hooks.addPost();
+
+  return (
+    <div>
+      <AddPost onAdd={addPost} />
+      <PostsList />
+      <PostDetail id={1} /> // Assume each PostDetail is subscribed via `const {data} = hooks.getPost(id)`
+      <PostDetail id={2} />
+      <PostDetail id={3} />
+    </div>
+  );
+}
+```
+
+**What to expect**
+
+When `addPost` is fired, it will only cause the `PostsList` to go into an `isFetching` state because `addPost` only invalidates the 'LIST' id, which causes `getPosts` to rerun (because it provides that specific id). So in your network tab, you would only see 1 new request fire for `GET /posts`. Once that resolves and assuming it returned updated data for ids 1, 2, and 3, the `PostDetail` components would then rerender with the latest data.
+
+### Commented Posts Service
+
+This is an example of a [CRUD service](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) for Posts. This implements the [Selectively invalidating lists](#selectively-invalidating-lists) strategy and will most likely serve as a good foundation for real applications.
 
 ```ts title="src/app/services/posts.ts"
 import { createApi, fetchBaseQuery } from '@rtk-incubator/simple-query/dist';
@@ -82,7 +197,10 @@ export const postApi = createApi({
   endpoints: (build) => ({
     getPosts: build.query<PostsResponse, void>({
       query: () => 'posts',
-      provides: (result) => [...result.map(({ id }) => ({ type: 'Posts', id })), { type: 'Posts', id: 'LIST' }], // Provides a list of `Posts` by `id`. If another component calls `getPost(id)` with an `id` that was provided here, it will use the cache instead of making another request. Additionally, it provides a second entity `id` of LIST, which we way may want to use in certain scenarios.
+      // Provides a list of `Posts` by `id`. If another component calls `getPost(id)`
+      // with an `id` that was provided here, it will use the cache instead of making another request.
+      // Additionally, it provides a second entity `id` of LIST, which we may want to use in certain scenarios.
+      provides: (result) => [...result.map(({ id }) => ({ type: 'Posts', id })), { type: 'Posts', id: 'LIST' }],
     }),
     addPost: build.mutation<Post, Partial<Post>>({
       query(body) {
@@ -92,7 +210,9 @@ export const postApi = createApi({
           body,
         };
       },
-      invalidates: [{ type: 'Posts', id: 'LIST'], // Invalidates all list-type queries - after all, depending of the sort order, that newly created post could show up in any lists.
+      // Invalidates all list-type queries - after all, depending of the sort order,
+      // that newly created post could show up in any lists.
+      invalidates: [{ type: 'Posts', id: 'LIST'],
     }),
     getPost: build.query<Post, number>({
       query: (id) => `posts/${id}`,
@@ -107,7 +227,9 @@ export const postApi = createApi({
           body,
         };
       },
-      invalidates: (_, { id }) => [{ type: 'Posts', id }], // Invalidates all queries that subscribe to this Post `id` only. In this case, `getPost` will be re-run.
+      // Invalidates all queries that subscribe to this Post `id` only.
+      // In this case, `getPost` will be re-run.
+      invalidates: (_, { id }) => [{ type: 'Posts', id }],
     }),
     deletePost: build.mutation<{ success: boolean; id: number }, number>({
       query(id) {
@@ -116,20 +238,12 @@ export const postApi = createApi({
           method: 'DELETE',
         };
       },
-      invalidates: (_, id) => [{ type: 'Posts', id }], // Invalidates all queries that subscribe to this Post `id` only.
+      // Invalidates all queries that subscribe to this Post `id` only.
+      invalidates: (_, id) => [{ type: 'Posts', id }],
     }),
   }),
 });
 ```
-
-:::note Usage without React Hooks
-Usage without hooks is very simple. Simply dispatch the desired action creator, and any components that are subscribed to an impacted entity will automatically refetch.
-
-```ts
-const { data, error, status } = store.dispatch(api.actions.updateUser(payload, { track: true }));
-```
-
-:::
 
 ### Example
 

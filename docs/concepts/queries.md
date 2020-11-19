@@ -13,6 +13,36 @@ By default, `RTK Query` ships with [fetchBaseQuery](../api/fetchBaseQuery), whic
 
 > Depending on your environment, you may need to polyfill `fetch` with `whatwg-fetch` if you choose to use `fetchBaseQuery` or `fetch` on it's own.
 
+### Performing queries with React Hooks
+
+If you're using React Hooks, RTK Query does a few additional things for you. The primary benefit is that you get a render-optimized hook that allows you to have 'background fetching'.
+
+Here is an example of a `PostDetail` component:
+
+```ts title="Example"
+export const PostDetail = ({ id }: { id: string }) => {
+  const { data: post, isFetching, isLoading } = useGetPostQuery(id, { pollingInterval: 3000 });
+
+  if (isLoading) return <div>Loading...</div>;
+  if (!post) return <div>Missing post!</div>;
+
+  return (
+    <div>
+      {post.name} {isFetching ? '...refetching' : ''}
+    </div>
+  );
+};
+```
+
+The way that this component is setup would have some nice traits:
+
+1. It only shows 'Loading...' on the **initial load**
+
+   - **Initial load** is defined as a query that is pending and does not have data in the cache
+
+2. When the request is re-triggered by the polling interval, it will add '...refetching' to the post name
+3. If a user closed this `PostDetail`, but then re-opened it within [the allowed time](../api/createApi#keepunuseddatafor), they would immediately be served a cached result and polling would resume with the previous behavior.
+
 ### Query Cache Keys
 
 When you perform a query, RTK Query automatically serializes the request parameters and creates an internal `queryCacheKey` for the request. Any future request that produces the same `queryCacheKey` will be de-duped against the original, and will share updates if a `refetch` is trigged on the query from any subscribed component.

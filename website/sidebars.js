@@ -18,6 +18,7 @@ module.exports = {
       'examples/examples-overview',
       'examples/react-hooks',
       'examples/react-class-components',
+      'examples/react-with-graphql',
       'examples/svelte',
     ],
   },
