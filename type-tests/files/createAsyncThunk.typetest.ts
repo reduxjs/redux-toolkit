@@ -361,7 +361,6 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
     const asyncThunk = createAsyncThunk('test', (arg: number, thunkApi) => 0)
     expectType<(arg: number) => any>(asyncThunk)
     asyncThunk(5)
-    // @ts-expect-error
     asyncThunk()
   }
 }
