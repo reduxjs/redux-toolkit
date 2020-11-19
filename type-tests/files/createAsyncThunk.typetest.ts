@@ -213,7 +213,8 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
   {
     const asyncThunk = createAsyncThunk('test', () => 0)
     expectType<() => any>(asyncThunk)
-    // @ts-expect-error cannot be called with an argument
+    // we have to allow anything to be passed in in this case, to allow
+    // for compatibility with allowJs & checkJS
     asyncThunk(0 as any)
   }
 

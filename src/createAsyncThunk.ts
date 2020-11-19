@@ -173,6 +173,8 @@ type AsyncThunkActionCreator<
     ? () => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument contains void
     : [void] extends [ThunkArg] // make optional
     ? (arg?: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument contains undefined
+    : [ThunkArg] extends [OptionalUnknown]
+    ? (arg?: unknown) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
     : [undefined] extends [ThunkArg]
     ? WithStrictNullChecks<
         // with strict nullChecks: make optional
@@ -270,8 +272,28 @@ export type AsyncThunk<
   typePrefix: string
 }
 
+const optionalUnknown = Symbol()
+/*
+ * Since TypeScript 4.0, the following example will cause an error when checking
+ * JavaScript files (with allowJs & checkJs):
+```js
+const thunk = createAsyncThunk('', arg => {})
+thunk()
+// @ts-expect-error Expected 0 arguments, but got 1.ts(2554)
+thunk('something')
+```
+ * The only way around that without breaking too much explicit existing behaviour
+ * is this type "OptionalUnknown".
+ * On the flip side, using a payloadcreator without a defined argument, like 
+```ts
+const thunk = createAsyncThunk('', () => {})
+```
+ * will now generate a thunk that can optionally be called with any first argument
+ * opposed to a thunk that would not accept any argument before.
+ */
+type OptionalUnknown = { [optionalUnknown]: never }
+
 /**
- *
  * @param typePrefix
  * @param payloadCreator
  * @param options
@@ -280,7 +302,7 @@ export type AsyncThunk<
  */
 export function createAsyncThunk<
   Returned,
-  ThunkArg = void,
+  ThunkArg = OptionalUnknown,
   ThunkApiConfig extends AsyncThunkConfig = {}
 >(
   typePrefix: string,
