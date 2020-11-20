@@ -19,3 +19,41 @@ For more details on using `createSelector`, see:
 > **Note**: Prior to v0.7, RTK re-exported `createSelector` from [`selectorator`](https://github.com/planttheidea/selectorator), which
 > allowed using string keypaths as input selectors. This was removed, as it ultimately did not provide enough benefits, and
 > the string keypaths made static typing for selectors difficult.
+
+# `createDraftSafeSelector`
+
+Besides re-exporting `createSelector`, RTK also exports a wrapped version of `createSelector` named `createDraftSafeSelector` that allows you to create selectors that
+can be used in the context of `createReducer` and `createSlice` reducers with mutable logic.
+
+So assume the following code:
+
+```js
+const selectSelf = (state: State) => state
+const unsafeSelector = createSelector(selectSelf, state => state.value)
+const draftSafeSelector = createDraftSafeSelector(
+  selectSelf,
+  state => state.value
+)
+
+// in your reducer:
+
+state.value = 1
+
+const unsafe1 = unsafeSelector(state)
+const safe1 = draftSafeSelector(state)
+
+state.value = 2
+
+const unsafe2 = unsafeSelector(state)
+const safe2 = draftSafeSelector(state)
+```
+
+After executing that, `unsafe1` and `unsafe2` will be of the same value, because the memoized selector was
+executed on the same object - but `safe2` will actually be different from `safe1` (with the updated value of `2`),
+because the safe selector detected that it was executed on a `immer` draft object and recalculated using the current
+value instead of returning a cached value.
+
+Using it with non-draft states, this selector will still be caching, but using it with draft values it will
+err on the side of recalculating, just to be safe.
+
+All selectors created by `entityAdapter.getSelectors` will be such "draft safe" selectors by default.

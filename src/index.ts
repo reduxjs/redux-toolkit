@@ -8,6 +8,7 @@ export {
   OutputSelector,
   ParametricSelector
 } from 'reselect'
+export { createDraftSafeSelector } from './createDraftSafeSelector'
 export { ThunkAction, ThunkDispatch } from 'redux-thunk'
 
 // We deliberately enable Immer's ES5 support, on the grounds that
