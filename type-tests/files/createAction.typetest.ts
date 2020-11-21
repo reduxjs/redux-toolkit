@@ -8,8 +8,8 @@ import {
   ActionCreatorWithPayload,
   ActionCreatorWithNonInferrablePayload,
   ActionCreatorWithPreparedPayload
-} from '../../src'
-import { IsAny } from 'src/tsHelpers'
+} from '@reduxjs/toolkit'
+import { IsAny } from '@internal/tsHelpers'
 
 function expectType<T>(p: T): T {
   return p

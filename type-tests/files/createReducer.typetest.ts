@@ -1,5 +1,9 @@
 import { Reducer } from 'redux'
-import { createReducer, createAction, ActionReducerMapBuilder } from '../../src'
+import {
+  createReducer,
+  createAction,
+  ActionReducerMapBuilder
+} from '@reduxjs/toolkit'
 
 function expectType<T>(p: T) {}
 

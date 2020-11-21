@@ -3,9 +3,11 @@ import {
   createEntityAdapter,
   EntityAdapter,
   ActionCreatorWithPayload,
-  ActionCreatorWithoutPayload
-} from 'src'
-import { EntityStateAdapter, EntityId, Update } from 'src/entities/models'
+  ActionCreatorWithoutPayload,
+  EntityStateAdapter,
+  EntityId,
+  Update
+} from '@reduxjs/toolkit'
 
 function expectType<T>(t: T) {
   return t

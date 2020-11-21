@@ -9,7 +9,8 @@
     "target": "es2018",
     "baseUrl": "../..",
     "paths": {
-      "redux-toolkit": ["src/typings.d.ts"]
-    }    
+      "@reduxjs/toolkit": ["./src"],
+      "@internal/*": ["./src/*"]
+    }
   }
 }

@@ -1,10 +1,15 @@
 /* eslint-disable no-lone-blocks */
-import { createAsyncThunk, Dispatch, createReducer, AnyAction } from 'src'
+import {
+  createAsyncThunk,
+  createReducer,
+  AnyAction,
+  unwrapResult,
+  SerializedError
+} from '@reduxjs/toolkit'
 import { ThunkDispatch } from 'redux-thunk'
-import { unwrapResult, SerializedError } from 'src/createAsyncThunk'
 
 import apiRequest, { AxiosError } from 'axios'
-import { IsAny, IsUnknown } from 'src/tsHelpers'
+import { IsAny, IsUnknown } from '@internal/tsHelpers'
 
 function expectType<T>(t: T) {
   return t
