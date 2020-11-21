@@ -1,5 +1,4 @@
 import { Action, AnyAction, Reducer } from 'redux'
-import { ValidateSliceCaseReducers } from 'src/createSlice'
 import {
   ActionCreatorWithNonInferrablePayload,
   ActionCreatorWithOptionalPayload,
@@ -10,8 +9,9 @@ import {
   createAction,
   createSlice,
   PayloadAction,
-  SliceCaseReducers
-} from '../../src'
+  SliceCaseReducers,
+  ValidateSliceCaseReducers
+} from '@reduxjs/toolkit'
 
 function expectType<T>(t: T) {
   return t

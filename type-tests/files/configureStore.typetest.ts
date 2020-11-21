@@ -7,7 +7,11 @@ import {
   Reducer,
   Store
 } from 'redux'
-import { configureStore, PayloadAction, getDefaultMiddleware } from 'src'
+import {
+  configureStore,
+  PayloadAction,
+  getDefaultMiddleware
+} from '@reduxjs/toolkit'
 import thunk, { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
 
 const _anyMiddleware: any = () => () => () => {}
