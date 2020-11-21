@@ -17,6 +17,7 @@ const config = {
       tsconfig: tsConfigPath,
     },
   },
+  timers: 'fake',
 };
 
 module.exports = config;

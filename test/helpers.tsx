@@ -7,8 +7,11 @@ export function expectType<T>(t: T) {
 }
 export const ANY = 0 as any;
 
-export function waitMs(time = 150) {
-  return new Promise((resolve) => setTimeout(resolve, time));
+export async function waitMs(time = 150) {
+  const now = Date.now();
+  while (Date.now() < now + time) {
+    await new Promise((res) => process.nextTick(res));
+  }
 }
 
 export function withProvider(store: Store<any>) {
