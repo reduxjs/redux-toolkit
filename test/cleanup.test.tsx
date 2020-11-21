@@ -2,10 +2,9 @@
 
 import React from 'react';
 
-import { configureStore } from '@reduxjs/toolkit';
 import { createApi, QueryStatus } from '@rtk-incubator/rtk-query';
 import { render, waitFor } from '@testing-library/react';
-import { withProvider } from './helpers';
+import { setupApiStore } from './helpers';
 
 const api = createApi({
   baseQuery: () => {},
@@ -14,19 +13,10 @@ const api = createApi({
     b: build.query<unknown, void>({ query: () => '' }),
   }),
 });
-const getStore = () =>
-  configureStore({
-    reducer: { [api.reducerPath]: api.reducer },
-    middleware: (gdm) => gdm().concat(api.middleware),
-  });
-let store = getStore();
+const storeRef = setupApiStore(api);
 
-beforeEach(() => {
-  store = getStore();
-});
-
-let getSubStateA = () => store.getState().api.queries['a/""'];
-let getSubStateB = () => store.getState().api.queries['b/""'];
+let getSubStateA = () => storeRef.store.getState().api.queries['a/""'];
+let getSubStateB = () => storeRef.store.getState().api.queries['b/""'];
 
 function UsingA() {
   api.hooks.useAQuery();
@@ -47,7 +37,7 @@ function UsingAB() {
 test('data stays in store when component stays rendered', async () => {
   expect(getSubStateA()).toBeUndefined();
 
-  render(<UsingA />, { wrapper: withProvider(store) });
+  render(<UsingA />, { wrapper: storeRef.wrapper });
   await waitFor(() => expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled));
 
   jest.advanceTimersByTime(120000);
@@ -58,7 +48,7 @@ test('data stays in store when component stays rendered', async () => {
 test('data is removed from store after 60 seconds', async () => {
   expect(getSubStateA()).toBeUndefined();
 
-  const { unmount } = render(<UsingA />, { wrapper: withProvider(store) });
+  const { unmount } = render(<UsingA />, { wrapper: storeRef.wrapper });
   await waitFor(() => expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled));
 
   unmount();
@@ -81,7 +71,7 @@ test('data stays in store when component stays rendered while data for another c
       <UsingA />
       <UsingB />
     </>,
-    { wrapper: withProvider(store) }
+    { wrapper: storeRef.wrapper }
   );
   await waitFor(() => {
     expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled);
@@ -111,7 +101,7 @@ test('data stays in store when one component requiring the data stays in the sto
       <UsingA />
       <UsingAB />
     </>,
-    { wrapper: withProvider(store) }
+    { wrapper: storeRef.wrapper }
   );
   await waitFor(() => {
     expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled);
