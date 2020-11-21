@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { createApi } from '../src';
+import { createApi } from '@rtk-incubator/rtk-query';
 
 import { renderHook } from '@testing-library/react-hooks';
 import { withProvider } from './helpers';
@@ -42,6 +42,8 @@ test('handles a non-async baseQuery without error', async () => {
     originalArgs: 1,
     requestId: expect.any(String),
     status: 'fulfilled',
+    startedTimeStamp: expect.any(Number),
+    fulfilledTimeStamp: expect.any(Number),
   });
 });
 

@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { Api, createApi, fetchBaseQuery } from '../src';
-import { QueryDefinition, MutationDefinition } from '../src/endpointDefinitions';
+import { Api, createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
+import { QueryDefinition, MutationDefinition } from '@internal/endpointDefinitions';
 import { ANY, expectType, waitMs } from './helpers';
 
 test('sensible defaults', () => {

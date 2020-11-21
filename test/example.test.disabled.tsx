@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { createApi } from '../src';
+import { createApi } from '@rtk-incubator/rtk-query';
 import React from 'react';
 import { Provider } from 'react-redux';
 
