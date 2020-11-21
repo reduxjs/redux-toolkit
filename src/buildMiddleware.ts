@@ -128,7 +128,10 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
       clearTimeout(currentTimeout);
     }
     currentRemovalTimeouts[queryCacheKey] = setTimeout(() => {
-      api.dispatch(removeQueryResult({ queryCacheKey: queryCacheKey }));
+      const subscriptions = api.getState()[reducerPath].subscriptions[queryCacheKey];
+      if (!subscriptions || Object.keys(subscriptions).length === 0) {
+        api.dispatch(removeQueryResult({ queryCacheKey: queryCacheKey }));
+      }
       delete currentRemovalTimeouts![queryCacheKey];
     }, keepUnusedDataFor * 1000);
   }
