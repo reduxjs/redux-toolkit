@@ -12,8 +12,8 @@ const adapter = createEntityAdapter<Post>();
 
 let state = adapter.getInitialState();
 state = adapter.setAll(state, [
-  { id: 1, name: 'A sample post' },
-  { id: 2, name: 'A post about simple query' },
+  { id: 1, name: 'A sample post', fetched_at: new Date().toUTCString() },
+  { id: 2, name: 'A post about simple query', fetched_at: new Date().toUTCString() },
 ]);
 
 export { state };
@@ -60,8 +60,8 @@ export const handlers = [
 
   rest.get('/posts/:id', (req, res, ctx) => {
     const { id } = req.params as { id: string };
-
-    return res(ctx.json(state.entities[id]));
+    state = adapter.updateOne(state, { id, changes: { fetched_at: new Date().toUTCString() } });
+    return res(ctx.json(state.entities[id]), ctx.delay(400));
   }),
 
   rest.put('/posts/:id', (req, res, ctx) => {

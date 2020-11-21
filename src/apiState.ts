@@ -19,6 +19,24 @@ export enum QueryStatus {
   rejected = 'rejected',
 }
 
+export const defaultBaseFlagsState = {
+  isUninitialized: true,
+  isLoading: false,
+  isSuccess: false,
+  isError: false,
+};
+
+export type RequestStatusFlags = typeof defaultBaseFlagsState;
+
+export function getRequestStatusFlags(status: QueryStatus): RequestStatusFlags {
+  return {
+    isUninitialized: status === QueryStatus.uninitialized,
+    isLoading: status === QueryStatus.pending,
+    isSuccess: status === QueryStatus.fulfilled,
+    isError: status === QueryStatus.rejected,
+  };
+}
+
 export type SubscriptionOptions = { pollingInterval?: number };
 export type Subscribers = { [requestId: string]: SubscriptionOptions };
 export type QueryKeys<Definitions extends EndpointDefinitions> = {

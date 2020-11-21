@@ -79,7 +79,7 @@ const TimeDisplay = ({ offset, label }: { offset: string; label: string }) => {
   const canPoll = globalPolling && timesPolling;
 
   const [pollingInterval, setPollingInterval] = useState(0);
-  const { data, status, refetch } = timeApi.hooks.getTime.useQuery(offset, {
+  const { data, status, refetch, isLoading } = timeApi.hooks.getTime.useQuery(offset, {
     pollingInterval: canPoll ? pollingInterval : 0,
   });
 

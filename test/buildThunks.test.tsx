@@ -39,6 +39,10 @@ test('handles a non-async baseQuery without error', async () => {
     internalQueryArgs: {
       url: 'user/1',
     },
+    isError: false,
+    isLoading: false,
+    isSuccess: true,
+    isUninitialized: false,
     originalArgs: 1,
     requestId: expect.any(String),
     status: 'fulfilled',

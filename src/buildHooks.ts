@@ -1,8 +1,14 @@
 import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector, batch } from 'react-redux';
-import { MutationSubState, QueryStatus, QuerySubState, SubscriptionOptions } from './apiState';
-import { EndpointDefinitions, MutationDefinition, QueryDefinition, QueryArgFrom } from './endpointDefinitions';
+import { MutationSubState, QueryStatus, QuerySubState, RequestStatusFlags, SubscriptionOptions } from './apiState';
+import {
+  EndpointDefinitions,
+  MutationDefinition,
+  QueryDefinition,
+  QueryArgFrom,
+  ResultTypeFrom,
+} from './endpointDefinitions';
 import { QueryResultSelectors, MutationResultSelectors, skipSelector } from './buildSelectors';
 import {
   QueryActions,
@@ -22,14 +28,19 @@ export type QueryHook<D extends QueryDefinition<any, any, any, any>> = (
   options?: QueryHookOptions
 ) => QueryHookResult<D>;
 
+type AdditionalQueryStatusFlags = {
+  isFetching: boolean;
+};
 export type QueryHookResult<D extends QueryDefinition<any, any, any, any>> = QuerySubState<D> &
+  RequestStatusFlags &
+  AdditionalQueryStatusFlags &
   Pick<QueryActionCreatorResult<D>, 'refetch'>;
 
 export type MutationHook<D extends MutationDefinition<any, any, any, any>> = () => [
   (
     arg: QueryArgFrom<D>
   ) => Promise<Extract<MutationSubState<D>, { status: QueryStatus.fulfilled | QueryStatus.rejected }>>,
-  MutationSubState<D>
+  MutationSubState<D> & RequestStatusFlags
 ];
 
 export type Hooks<Definitions extends EndpointDefinitions> = {
@@ -64,7 +75,17 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       const stableArg = useShallowStableValue(arg);
 
+      const lastData = useRef<ResultTypeFrom<Definitions[string]> | undefined>();
       const promiseRef = useRef<QueryActionCreatorResult<any>>();
+
+      const buildQuerySelector = querySelectors[name];
+      const querySelector = useMemo(() => buildQuerySelector(skip ? skipSelector : stableArg), [
+        skip,
+        stableArg,
+        buildQuerySelector,
+      ]);
+      const currentState = useSelector(querySelector);
+
       useEffect(() => {
         if (skip) {
           return;
@@ -85,11 +106,30 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         return () => void promiseRef.current?.unsubscribe();
       }, []);
 
-      const querySelector = querySelectors[name];
-      const currentState = useSelector(querySelector(skip ? skipSelector : stableArg));
+      useEffect(() => {
+        if (currentState.status === QueryStatus.fulfilled) {
+          lastData.current = currentState.data;
+        }
+      }, [currentState]);
+
       const refetch = useCallback(() => void promiseRef.current?.refetch(), []);
 
-      return useMemo(() => ({ ...currentState, refetch }), [currentState, refetch]);
+      // isLoading = true only on the initial request or during any subsequent retry/poll attempt until data is returned
+      // isFetching = true any time a request is in flight
+      const isPending = currentState.status === QueryStatus.pending;
+      const isLoading = !lastData.current && isPending;
+      const isFetching = isPending;
+
+      // data is the last known good request result
+      const data = currentState.status === 'fulfilled' ? currentState.data : lastData.current;
+
+      return useMemo(() => ({ ...currentState, data, isFetching, isLoading, refetch }), [
+        currentState,
+        data,
+        isFetching,
+        isLoading,
+        refetch,
+      ]);
     };
   }
 
@@ -116,7 +156,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         [dispatch]
       );
 
-      return [triggerMutation, useSelector(mutationSelectors[name](requestId || skipSelector))];
+      const buildMutationSelector = querySelectors[name];
+      const mutationSelector = useMemo(
+        () => buildMutationSelector(mutationSelectors[name](requestId || skipSelector)),
+        [requestId, buildMutationSelector]
+      );
+      const currentState = useSelector(mutationSelector);
+
+      return useMemo(() => [triggerMutation, currentState], [triggerMutation, currentState]);
     };
   }
 }

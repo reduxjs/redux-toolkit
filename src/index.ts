@@ -30,7 +30,7 @@ function defaultSerializeQueryArgs(args: any, endpoint: string) {
   return `${endpoint}/${JSON.stringify(args, Object.keys(args).sort())}`;
 }
 
-const IS_DEV = () => process?.env?.NODE_ENV === 'development';
+const IS_DEV = () => typeof process !== 'undefined' && process.env.NODE_ENV === 'development';
 
 export function createApi<
   BaseQuery extends (args: any, api: QueryApi) => any,
@@ -146,7 +146,7 @@ export function createApi<
         api.hooks[endpoint] = { useQuery };
         (api.hooks as any)[`use${capitalize(endpoint)}Query`] = useQuery;
       } else if (isMutationDefinition(definition)) {
-        api.selectors[endpoint] = buildMutationSelector(endpoint, definition);
+        api.selectors[endpoint] = buildMutationSelector();
         api.actions[endpoint] = buildMutationAction(endpoint, definition);
         const useMutation = buildMutationHook(endpoint);
         api.hooks[endpoint] = { useMutation };

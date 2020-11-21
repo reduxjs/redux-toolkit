@@ -50,15 +50,15 @@ export const PostDetail = () => {
 
   const [isEditing, setIsEditing] = useState(false);
 
-  const { data: post, status } = postApi.hooks.getPost.useQuery(id);
+  const { data: post, isFetching, isLoading } = postApi.hooks.getPost.useQuery(id, { pollingInterval: 3000 });
 
   const [updatePost, { status: updateStatus }] = postApi.hooks.updatePost.useMutation();
-
   const [deletePost, { status: deleteStatus }] = postApi.hooks.deletePost.useMutation();
+
   const isUpdating = QueryStatus.pending === updateStatus;
   const isDeleting = QueryStatus.pending === deleteStatus;
 
-  if (status === QueryStatus.pending) {
+  if (isLoading) {
     return <div>Loading...</div>;
   }
 
@@ -87,7 +87,9 @@ export const PostDetail = () => {
         <React.Fragment>
           <div className="row">
             <div className="column">
-              <h3>{post.name}</h3>
+              <h3>
+                {post.name} {isFetching ? '...refetching' : ''}
+              </h3>
             </div>
             <button onClick={() => setIsEditing(true)} disabled={isDeleting || isUpdating}>
               {isUpdating ? 'Updating...' : 'Edit'}
@@ -98,7 +100,7 @@ export const PostDetail = () => {
           </div>
         </React.Fragment>
       )}
-      <PostJsonDetail id={post.id} />
+      <PostJsonDetail id={id} />
     </div>
   );
 };
