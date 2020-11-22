@@ -186,11 +186,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         [dispatch]
       );
 
-      const buildMutationSelector = querySelectors[name];
-      const mutationSelector = useMemo(
-        () => buildMutationSelector(mutationSelectors[name](requestId || skipSelector)),
-        [requestId, buildMutationSelector]
-      );
+      const buildMutationSelector = mutationSelectors[name];
+      const mutationSelector = useMemo(() => buildMutationSelector(requestId || skipSelector), [
+        requestId,
+        buildMutationSelector,
+      ]);
       const currentState = useSelector(mutationSelector);
 
       return useMemo(() => [triggerMutation, currentState], [triggerMutation, currentState]);

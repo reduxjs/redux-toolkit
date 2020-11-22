@@ -5,10 +5,16 @@ import userEvent from '@testing-library/user-event';
 import { DEFAULT_DELAY_MS, setupApiStore, waitMs } from './helpers';
 
 const api = createApi({
-  baseQuery: () => waitMs(),
+  baseQuery: async (arg: any) => {
+    await waitMs();
+    return arg?.body ? arg.body : undefined;
+  },
   endpoints: (build) => ({
     getUser: build.query<any, number>({
-      query: (obj) => obj,
+      query: (arg) => arg,
+    }),
+    updateUser: build.mutation<any, { name: string }>({
+      query: (update) => ({ body: update }),
     }),
   }),
 });
@@ -128,6 +134,46 @@ describe('hooks tests', () => {
     });
   });
 
+  test('useMutation hook sets and unsets the `isLoading` flag when running', async () => {
+    function User() {
+      const [updateUser, { isLoading }] = api.hooks.updateUser.useMutation();
+
+      return (
+        <div>
+          <div data-testid="isLoading">{String(isLoading)}</div>
+          <button onClick={() => updateUser({ name: 'Banana' })}>Update User</button>
+        </div>
+      );
+    }
+
+    const { getByText, getByTestId } = render(<User />, { wrapper: storeRef.wrapper });
+
+    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('false'));
+    fireEvent.click(getByText('Update User'));
+    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('true'));
+    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('false'));
+  });
+
+  test('useMutation hook sets data to the resolved response on success', async () => {
+    const result = { name: 'Banana' };
+
+    function User() {
+      const [updateUser, { data }] = api.hooks.updateUser.useMutation();
+
+      return (
+        <div>
+          <div data-testid="result">{JSON.stringify(data)}</div>
+          <button onClick={() => updateUser({ name: 'Banana' })}>Update User</button>
+        </div>
+      );
+    }
+
+    const { getByText, getByTestId } = render(<User />, { wrapper: storeRef.wrapper });
+
+    fireEvent.click(getByText('Update User'));
+    await waitFor(() => expect(getByTestId('result').textContent).toBe(JSON.stringify(result)));
+  });
+
   test('usePrefetch respects `force` arg', async () => {
     const { usePrefetch } = api;
     const USER_ID = 4;
@@ -167,7 +213,7 @@ describe('hooks tests', () => {
       status: QueryStatus.pending,
     });
 
-    await waitMs(DEFAULT_DELAY_MS + 10);
+    await waitMs(DEFAULT_DELAY_MS + 100);
 
     expect(api.selectors.getUser(USER_ID)(storeRef.store.getState())).toEqual({
       data: undefined,

@@ -52,11 +52,8 @@ export const PostDetail = () => {
 
   const { data: post, isFetching, isLoading } = postApi.hooks.getPost.useQuery(id, { pollingInterval: 3000 });
 
-  const [updatePost, { status: updateStatus }] = postApi.hooks.updatePost.useMutation();
-  const [deletePost, { status: deleteStatus }] = postApi.hooks.deletePost.useMutation();
-
-  const isUpdating = QueryStatus.pending === updateStatus;
-  const isDeleting = QueryStatus.pending === deleteStatus;
+  const [updatePost, { isLoading: isUpdating }] = postApi.hooks.updatePost.useMutation();
+  const [deletePost, { isLoading: isDeleting }] = postApi.hooks.deletePost.useMutation();
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -81,7 +78,7 @@ export const PostDetail = () => {
               .catch((error) => console.error('Update Error', error))
           }
           onCancel={() => setIsEditing(false)}
-          loading={updateStatus === QueryStatus.pending}
+          loading={isUpdating}
         />
       ) : (
         <React.Fragment>
