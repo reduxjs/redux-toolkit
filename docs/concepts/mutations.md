@@ -247,7 +247,7 @@ export const postApi = createApi({
 
 ### Example
 
-<iframe src="https://codesandbox.io/embed/concepts-mutations-4d98s?fontsize=14&hidenavigation=1&theme=dark&view=preview"
+<iframe src="https://codesandbox.io/embed/concepts-mutations-4d98s?fontsize=12&hidenavigation=1&theme=dark&view=preview"
      style={{ width: '100%', height: '600px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
      title="rtk-query-react-hooks-example"
      allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 

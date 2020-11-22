@@ -117,7 +117,7 @@ When making a request, you're able to track the state in several ways. You can a
 #### Basic Example
 
 <iframe
-  src="https://codesandbox.io/embed/getting-started-basic-17n8h?fontsize=14&hidenavigation=1&theme=dark"
+  src="https://codesandbox.io/embed/getting-started-basic-17n8h?fontsize=12&hidenavigation=1&theme=dark"
   style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
   title="rtk-query-getting-started-basic"
   allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
@@ -131,7 +131,7 @@ Okay, that's interesting... but what if you wanted to show multiple pokemon at t
 `RTK Query` ensures that any component that subscribes to the same query will always use the same data. RTK Query automatically de-dupes requests so you don't have to worry about checking in-flight requests and performance optimizations on your end. Let's evaluate the sandbox below - make sure to check the Network panel in your browser's dev tools. You will see 3 requests, even though there are 4 subscribed components - `bulbasaur` only makes one request, and the loading state is synchronized between the two components. For fun, try changing the value of the dropdown from `Off` to `1s` to see this behavior continue when a query is re-ran.
 
 <iframe
-  src="https://codesandbox.io/embed/getting-started-advanced-8tx2b?file=/src/App.tsx?fontsize=14&hidenavigation=1&theme=dark"
+  src="https://codesandbox.io/embed/getting-started-advanced-8tx2b?file=/src/App.tsx?fontsize=12&hidenavigation=1&theme=dark"
   style={{ width: '100%', height: '600px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
   title="rtk-query-getting-started-advanced"
   allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"

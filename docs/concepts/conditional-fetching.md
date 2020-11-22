@@ -38,7 +38,7 @@ When `skip` is `true`:
 ### Example
 
 <iframe
-  src="https://codesandbox.io/embed/concepts-conditional-fetching-tdrz9?fontsize=14&hidenavigation=1&theme=dark"
+  src="https://codesandbox.io/embed/concepts-conditional-fetching-tdrz9?fontsize=12&hidenavigation=1&theme=dark"
   style={{ width: '100%', height: '600px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
   title="rtk-query-react-hooks-example"
   allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"

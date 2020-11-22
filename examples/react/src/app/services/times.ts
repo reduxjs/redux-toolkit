@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query/dist';
+import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
 
 interface TimeResponse {
   time: string;
@@ -15,3 +15,5 @@ export const timeApi = createApi({
     }),
   }),
 });
+
+export const { usePrefetch: usePrefetchTime } = timeApi;

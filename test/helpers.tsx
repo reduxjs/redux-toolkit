@@ -7,14 +7,16 @@ export function expectType<T>(t: T) {
 }
 export const ANY = 0 as any;
 
-export async function waitMs(time = 150) {
+export const DEFAULT_DELAY_MS = 150;
+
+export async function waitMs(time = DEFAULT_DELAY_MS) {
   const now = Date.now();
   while (Date.now() < now + time) {
     await new Promise((res) => process.nextTick(res));
   }
 }
 
-export function waitForFakeTimer(time = 150) {
+export function waitForFakeTimer(time = DEFAULT_DELAY_MS) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 

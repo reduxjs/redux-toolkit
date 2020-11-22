@@ -2,7 +2,7 @@ import { nanoid } from '@reduxjs/toolkit';
 import React, { useState } from 'react';
 import { useEffect } from 'react';
 import { QueryStatus } from '@rtk-incubator/rtk-query/dist';
-import { timeApi } from '../../app/services/times';
+import { timeApi, usePrefetchTime } from '../../app/services/times';
 import { Container } from '../common/Container';
 import { useTypedSelector } from '../../app/store';
 import { selectGlobalPollingEnabled, selectPollingConfigByApp } from '../polling/pollingSlice';
@@ -82,7 +82,6 @@ const TimeDisplay = ({ offset, label }: { offset: string; label: string }) => {
   const { data, status, refetch, isLoading } = timeApi.hooks.getTime.useQuery(offset, {
     pollingInterval: canPoll ? pollingInterval : 0,
   });
-
   return (
     <div style={{ ...(QueryStatus.pending === status ? { background: '#e6ffe8' } : {}) }}>
       <p>
@@ -108,6 +107,8 @@ export const TimeList = () => {
   });
   const [selectedValue, setSelectedValue] = useState<string>('');
 
+  const prefetch = usePrefetchTime('getTime');
+
   useEffect(() => {
     setTimeout(() => {
       setTimes((prev) => ({ ...prev, [nanoid()]: '+00:00' }));
@@ -126,6 +127,7 @@ export const TimeList = () => {
         immediately double-trigger.
         <br />
         <strong>* Background flashes green when query is running</strong>
+        <button onMouseEnter={() => prefetch('+02:00', { force: true })}>Prefetch</button>
       </p>
       <TimeZoneSelector onChange={({ target: { value } }) => setSelectedValue(value)} />
       <button onClick={() => setTimes((prev) => ({ ...prev, [nanoid()]: selectedValue }))} disabled={!selectedValue}>

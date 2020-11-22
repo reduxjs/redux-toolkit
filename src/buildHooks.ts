@@ -1,7 +1,14 @@
 import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector, batch } from 'react-redux';
-import { MutationSubState, QueryStatus, QuerySubState, RequestStatusFlags, SubscriptionOptions } from './apiState';
+import {
+  MutationSubState,
+  QueryStatus,
+  QuerySubState,
+  RequestStatusFlags,
+  SubscriptionOptions,
+  QueryKeys,
+} from './apiState';
 import {
   EndpointDefinitions,
   MutationDefinition,
@@ -18,6 +25,7 @@ import {
 } from './buildActionMaps';
 import { TS41Hooks } from './ts41Types';
 import { useShallowStableValue } from './utils';
+import { InternalActions } from '.';
 
 export interface QueryHookOptions extends SubscriptionOptions {
   skip?: boolean;
@@ -56,18 +64,40 @@ export type Hooks<Definitions extends EndpointDefinitions> = {
 } &
   TS41Hooks<Definitions>;
 
+export type PrefetchOptions =
+  | { force?: boolean }
+  | {
+      ifOlderThan?: false | number;
+    };
+
 export function buildHooks<Definitions extends EndpointDefinitions>({
   querySelectors,
   queryActions,
   mutationSelectors,
   mutationActions,
+  internalActions,
 }: {
   querySelectors: QueryResultSelectors<Definitions, any>;
   queryActions: QueryActions<Definitions>;
   mutationSelectors: MutationResultSelectors<Definitions, any>;
   mutationActions: MutationActions<Definitions>;
+  internalActions: InternalActions;
 }) {
-  return { buildQueryHook, buildMutationHook };
+  return { buildQueryHook, buildMutationHook, usePrefetch };
+
+  function usePrefetch<EndpointName extends QueryKeys<Definitions>>(
+    endpointName: EndpointName,
+    defaultOptions?: PrefetchOptions
+  ) {
+    const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
+    const stableDefaultOptions = useShallowStableValue(defaultOptions);
+
+    return useCallback(
+      (arg: any, options?: PrefetchOptions) =>
+        dispatch(internalActions.prefetchThunk(endpointName, arg, { ...stableDefaultOptions, ...options })),
+      [endpointName, dispatch, stableDefaultOptions]
+    );
+  }
 
   function buildQueryHook(name: string): QueryHook<any> {
     return (arg: any, { skip = false, pollingInterval = 0 } = {}) => {

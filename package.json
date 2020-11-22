@@ -88,8 +88,11 @@
     "@size-limit/preset-small-lib": "^4.6.0",
     "@testing-library/react": "^11.1.0",
     "@testing-library/react-hooks": "^3.4.2",
+    "@testing-library/user-event": "^12.2.2",
     "@types/react-redux": "^7.1.9",
+    "eslint-plugin-prettier": "^3.1.4",
     "husky": "^4.3.0",
+    "prettier": "prettier/prettier",
     "react": "^16.14.0 || 17.0.0",
     "react-dom": "^16.14.0 || 17.0.0",
     "react-redux": "^7.2.1",
@@ -97,9 +100,7 @@
     "size-limit": "^4.6.0",
     "ts-node": "^9.0.0",
     "tsdx": "^0.14.1",
-    "tslib": "^2.0.3",
-    "prettier": "prettier/prettier",
-    "eslint-plugin-prettier": "^3.1.4"
+    "tslib": "^2.0.3"
   },
   "resolutions": {
     "@babel/core": "7.12.3",
