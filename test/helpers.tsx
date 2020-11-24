@@ -1,4 +1,6 @@
-import { AnyAction, configureStore, EnhancedStore, Store } from '@reduxjs/toolkit';
+import { AnyAction, configureStore, EnhancedStore, Middleware, Store } from '@reduxjs/toolkit';
+
+import { act } from '@testing-library/react-hooks';
 import React, { Reducer } from 'react';
 import { Provider } from 'react-redux';
 
@@ -26,8 +28,24 @@ export function withProvider(store: Store<any>) {
   };
 }
 
+export const hookWaitFor = async (cb: () => void, time = 2000) => {
+  const startedAt = Date.now();
+
+  while (true) {
+    try {
+      cb();
+      return true;
+    } catch (e) {
+      if (Date.now() > startedAt + time) {
+        throw e;
+      }
+      await act(() => waitMs(2));
+    }
+  }
+};
+
 export function setupApiStore<
-  A extends { reducerPath: any; reducer: Reducer<any, any>; middleware: any },
+  A extends { reducerPath: any; reducer: Reducer<any, any>; middleware: Middleware<any> },
   R extends Record<string, Reducer<any, any>>
 >(api: A, extraReducers?: R) {
   const getStore = () =>

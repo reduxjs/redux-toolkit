@@ -15,6 +15,7 @@ import {
 } from './apiState';
 import type { MutationThunkArg, QueryThunkArg, ThunkResult } from './buildThunks';
 import { AssertEntityTypes, calculateProvidedBy, EndpointDefinitions } from './endpointDefinitions';
+import { applyPatches, Patch } from 'immer';
 
 export type InternalState = CombinedState<any, string>;
 
@@ -59,6 +60,14 @@ export function buildSlice({
     reducers: {
       removeQueryResult(draft, { payload: { queryCacheKey } }: PayloadAction<QuerySubstateIdentifier>) {
         delete draft[queryCacheKey];
+      },
+      queryResultPatched(
+        draft,
+        { payload: { queryCacheKey, patches } }: PayloadAction<QuerySubstateIdentifier & { patches: Patch[] }>
+      ) {
+        updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
+          substate.data = applyPatches(substate.data as any, patches);
+        });
       },
     },
     extraReducers(builder) {
@@ -235,6 +244,7 @@ export function buildSlice({
 
   const actions = {
     updateSubscriptionOptions: subscriptionSlice.actions.updateSubscriptionOptions,
+    queryResultPatched: querySlice.actions.queryResultPatched,
     removeQueryResult: querySlice.actions.removeQueryResult,
     unsubscribeQueryResult: subscriptionSlice.actions.unsubscribeResult,
     unsubscribeMutationResult: mutationSlice.actions.unsubscribeResult,

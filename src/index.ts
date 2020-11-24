@@ -1,5 +1,5 @@
+import { buildThunks, PatchQueryResultThunk, QueryApi, UpdateQueryResultThunk } from './buildThunks';
 import type { AnyAction, Middleware, Reducer, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
-import { buildThunks, QueryApi } from './buildThunks';
 import { buildSlice, SliceActions } from './buildSlice';
 import { buildActionMaps, EndpointActions } from './buildActionMaps';
 import { buildSelectors, Selectors } from './buildSelectors';
@@ -50,7 +50,7 @@ export function createApi<
   entityTypes?: readonly EntityTypes[];
   reducerPath?: ReducerPath;
   serializeQueryArgs?: SerializeQueryArgs<BaseQueryArg<BaseQuery>>;
-  endpoints(build: EndpointBuilder<BaseQuery, EntityTypes>): Definitions;
+  endpoints(build: EndpointBuilder<BaseQuery, EntityTypes, ReducerPath>): Definitions;
   keepUnusedDataFor?: number;
 }): Api<BaseQuery, Definitions, ReducerPath, EntityTypes> {
   type State = CombinedState<Definitions, EntityTypes>;
@@ -84,7 +84,12 @@ export function createApi<
       unsubscribeMutationResult: uninitialized,
       unsubscribeQueryResult: uninitialized,
       updateSubscriptionOptions: uninitialized,
+      queryResultPatched: uninitialized,
       prefetchThunk: uninitialized,
+    },
+    util: {
+      patchQueryResult: uninitialized,
+      updateQueryResult: uninitialized,
     },
     usePrefetch: () => () => {},
     reducer: uninitialized,
@@ -92,12 +97,14 @@ export function createApi<
     injectEndpoints,
   };
 
-  const { queryThunk, mutationThunk, prefetchThunk } = buildThunks({
+  const { queryThunk, mutationThunk, patchQueryResult, updateQueryResult, prefetchThunk } = buildThunks({
     baseQuery,
     reducerPath,
     endpointDefinitions,
     api,
+    serializeQueryArgs,
   });
+  Object.assign(api.util, { patchQueryResult, updateQueryResult });
 
   const { reducer, actions: sliceActions } = buildSlice({
     endpointDefinitions,
@@ -107,6 +114,8 @@ export function createApi<
     assertEntityType,
   });
   assertCast<Reducer<State & QueryStatePhantomType<ReducerPath>, AnyAction>>(reducer);
+  Object.assign(api.internalActions, sliceActions);
+  api.reducer = reducer;
 
   Object.assign(api.internalActions, sliceActions, { prefetchThunk });
   api.reducer = reducer;
@@ -201,13 +210,17 @@ export interface Api<
   selectors: Selectors<Definitions, RootState<Definitions, EntityTypes, ReducerPath>>;
   middleware: Middleware<{}, RootState<Definitions, string, ReducerPath>, ThunkDispatch<any, any, AnyAction>>;
   hooks: Hooks<Definitions>;
+  util: {
+    updateQueryResult: UpdateQueryResultThunk<Definitions, RootState<Definitions, string, ReducerPath>>;
+    patchQueryResult: PatchQueryResultThunk<Definitions, RootState<Definitions, string, ReducerPath>>;
+  };
   // If you actually care about the return value, use useQuery
   usePrefetch<EndpointName extends QueryKeys<Definitions>>(
     endpointName: EndpointName,
     options?: PrefetchOptions
   ): (arg: QueryArgFrom<Definitions[EndpointName]>, options?: PrefetchOptions) => void;
   injectEndpoints<NewDefinitions extends EndpointDefinitions>(_: {
-    endpoints: (build: EndpointBuilder<BaseQuery, EntityTypes>) => NewDefinitions;
+    endpoints: (build: EndpointBuilder<BaseQuery, EntityTypes, ReducerPath>) => NewDefinitions;
     overrideExisting?: boolean;
   }): Api<BaseQuery, Definitions & NewDefinitions, ReducerPath, EntityTypes>;
 }
