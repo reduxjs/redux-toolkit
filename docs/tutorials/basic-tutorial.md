@@ -9,7 +9,7 @@ hide_title: true
 
 Welcome to Redux Toolkit ! This tutorial will show you the basic functions that are included with Redux Toolkit (also known as "RTK" for short).
 
-This tutorial assumes that you are already familiar with the concepts of the core Redux library, as well as how to use it with React. If you aren't, please take some time to read through the [Redux docs](https://redux.js.org) and [React-Redux docs](https://react-redux.js.org) first, as the explanations here focus on how RTK usage differs from "typical" Redux code.
+This tutorial assumes that you are already familiar with the concepts of the core [Redux](https://redux.js.org) library, as well as how to use it with [React](https://reactjs.org). If you aren't, please take some time to read through the [Redux docs](https://redux.js.org) and [React-Redux docs](https://react-redux.js.org) first, as the explanations here focus on how RTK usage differs from "typical" Redux code.
 
 ## Introduction: Writing a Counter Application
 
