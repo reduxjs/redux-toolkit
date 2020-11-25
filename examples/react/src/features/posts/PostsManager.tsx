@@ -69,7 +69,7 @@ export const PostsManager = () => {
   return (
     <div>
       <h3>Posts</h3>
-      <button onClick={() => login('This will just set the headers')}>Login</button>
+      <button onClick={() => login({ ignore: 'This will just set the headers' })}>Login</button>
       <hr />
       <div className="row">
         <div className="posts-list">

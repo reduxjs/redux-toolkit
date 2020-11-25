@@ -1,6 +1,6 @@
 import { InternalSerializeQueryArgs } from '.';
 import { Api, ApiEndpointQuery, BaseQueryFn } from './apiTypes';
-import { InternalRootState, QueryKeys, QueryStatus, QuerySubstateIdentifier } from './apiState';
+import { InternalRootState, QueryKeys, QueryStatus, QuerySubstateIdentifier, RootState } from './apiState';
 import { StartQueryActionCreatorOptions } from './buildActionMaps';
 import {
   EndpointDefinitions,
@@ -39,6 +39,7 @@ export interface ThunkResult {
 export interface QueryApi {
   signal: AbortSignal;
   dispatch: ThunkDispatch<any, any, any>;
+  getState: () => RootState<any, any, any>;
 }
 
 function defaultTransformResponse(baseQueryReturnValue: unknown) {
@@ -136,8 +137,8 @@ export function buildThunks<
     { state: InternalRootState<ReducerPath> }
   >(
     `${reducerPath}/executeQuery`,
-    async (arg, { signal, rejectWithValue, dispatch }) => {
-      const result = await baseQuery(arg.internalQueryArgs, { signal, dispatch });
+    async (arg, { signal, rejectWithValue, dispatch, getState }) => {
+      const result = await baseQuery(arg.internalQueryArgs, { signal, dispatch, getState });
       if (result.error) throw rejectWithValue(result.error);
 
       return {
@@ -158,7 +159,7 @@ export function buildThunks<
     ThunkResult,
     MutationThunkArg<InternalQueryArgs>,
     { state: InternalRootState<ReducerPath> }
-  >(`${reducerPath}/executeMutation`, async (arg, { signal, dispatch, rejectWithValue, ...api }) => {
+  >(`${reducerPath}/executeMutation`, async (arg, { signal, dispatch, getState, rejectWithValue, ...api }) => {
     const endpoint = endpointDefinitions[arg.endpoint] as MutationDefinition<any, any, any, any>;
 
     const context: Record<string, any> = {};
@@ -169,7 +170,7 @@ export function buildThunks<
 
     if (endpoint.onStart) endpoint.onStart(arg.originalArgs, mutationApi);
     try {
-      const result = await baseQuery(arg.internalQueryArgs, { signal, dispatch });
+      const result = await baseQuery(arg.internalQueryArgs, { signal, dispatch, getState });
       if (result.error) throw new HandledError(result.error);
       if (endpoint.onSuccess) endpoint.onSuccess(arg.originalArgs, mutationApi, result.data);
       return {

@@ -14,13 +14,19 @@ const defaultValidateStatus = (response: Response) => response.status >= 200 && 
 
 const isJsonContentType = (headers: Headers) => headers.get('content-type')?.trim()?.startsWith('application/json');
 
-export function fetchBaseQuery({ baseUrl }: { baseUrl?: string } = {}) {
-  let preparedHeaders = {} as RequestInit['headers'];
-  const queryFn = async (arg: string | FetchArgs, { signal }: QueryApi) => {
+export function fetchBaseQuery({
+  baseUrl,
+  prepareHeaders = (x) => x,
+  ...baseFetchOptions
+}: {
+  baseUrl?: string;
+  prepareHeaders?: (headers: Headers, api: { getState: () => unknown }) => Headers;
+} & RequestInit = {}) {
+  return async (arg: string | FetchArgs, { signal, getState }: QueryApi) => {
     let {
       url,
       method = 'GET' as const,
-      headers = preparedHeaders,
+      headers = new Headers({}),
       body = undefined,
       params = undefined,
       responseHandler = 'json' as const,
@@ -28,13 +34,14 @@ export function fetchBaseQuery({ baseUrl }: { baseUrl?: string } = {}) {
       ...rest
     } = typeof arg == 'string' ? { url: arg } : arg;
     let config: RequestInit = {
+      ...baseFetchOptions,
       method,
       signal,
       body,
       ...rest,
     };
 
-    config.headers = new Headers(headers);
+    config.headers = prepareHeaders(new Headers(headers), { getState });
 
     if (!config.headers.has('content-type')) {
       config.headers.set('content-type', 'application/json');
@@ -63,10 +70,4 @@ export function fetchBaseQuery({ baseUrl }: { baseUrl?: string } = {}) {
       ? { data: resultData }
       : { error: { status: response.status, data: resultData } };
   };
-
-  queryFn.prepareHeaders = (headers: FetchArgs['headers']) => {
-    Object.assign(preparedHeaders, headers);
-  };
-
-  return queryFn;
 }

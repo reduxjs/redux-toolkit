@@ -9,19 +9,27 @@ export interface Post {
 type PostsResponse = Post[];
 
 // Create our baseQuery instance
-const baseQuery = fetchBaseQuery({ baseUrl: '/' });
+const baseQuery = fetchBaseQuery({
+  baseUrl: '/',
+  prepareHeaders: (headers, { getState }) => {
+    const token = getState().auth.token;
+    if (token) {
+      headers.set('authentication', `Bearer ${token}`);
+    }
+    return headers;
+  },
+});
 
 export const postApi = createApi({
   reducerPath: 'postsApi',
   baseQuery,
   entityTypes: ['Posts'],
   endpoints: (build) => ({
-    login: build.mutation({
-      query: () => '/login',
-
-      onSuccess: (result, api) => {
-        // set the default headers for any subsequent request
-        baseQuery.prepareHeaders({ authorization: `Bearer ${result.token}` });
+    login: build.mutation<{ token: string }, any>({
+      query: (credentials: any) => ({ url: 'login', method: 'POST', body: credentials }),
+      onSuccess: (arg, mutationApi, result) => {
+        // set the token to localstorage for any subsequent request
+        localStorage.setItem('token', result.token);
       },
     }),
     getPosts: build.query<PostsResponse, void>({
