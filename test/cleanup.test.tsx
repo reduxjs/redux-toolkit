@@ -19,18 +19,18 @@ let getSubStateA = () => storeRef.store.getState().api.queries['a/""'];
 let getSubStateB = () => storeRef.store.getState().api.queries['b/""'];
 
 function UsingA() {
-  api.hooks.useAQuery();
+  api.useAQuery();
   return <></>;
 }
 
 function UsingB() {
-  api.hooks.useBQuery();
+  api.useBQuery();
   return <></>;
 }
 
 function UsingAB() {
-  api.hooks.useAQuery();
-  api.hooks.useBQuery();
+  api.useAQuery();
+  api.useBQuery();
   return <></>;
 }
 

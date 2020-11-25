@@ -93,7 +93,7 @@ describe('examples', () => {
     }
 
     {
-      const { result, waitForNextUpdate } = renderHook(() => api.hooks.useGetUserQuery('5'), { wrapper: Wrapper });
+      const { result, waitForNextUpdate } = renderHook(() => api.endpoints.useGetUserQuery('5'), { wrapper: Wrapper });
 
       expect(result.current).toEqual({
         endpoint: 'getUser',
@@ -121,7 +121,7 @@ describe('examples', () => {
     }
 
     {
-      const { result, waitForNextUpdate } = renderHook(() => api.hooks.updateUser.useMutation(), {
+      const { result, waitForNextUpdate } = renderHook(() => api.endpoints.updateUser.useMutation(), {
         wrapper: Wrapper,
       });
 

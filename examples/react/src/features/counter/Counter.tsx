@@ -4,10 +4,10 @@ import { counterApi } from '../../app/services/counter';
 
 export function Counter({ id, onRemove }: { id?: string; onRemove?: () => void }) {
   const [pollingInterval, setPollingInterval] = useState(10000);
-  const { data } = counterApi.hooks.getCount.useQuery(undefined, { pollingInterval });
-  const [increment, incrementResult] = counterApi.hooks.incrementCount.useMutation();
+  const { data } = counterApi.endpoints.getCount.useQuery(undefined, { pollingInterval });
+  const [increment, incrementResult] = counterApi.endpoints.incrementCount.useMutation();
 
-  const [decrement, decrementResult] = counterApi.hooks.decrementCount.useMutation();
+  const [decrement, decrementResult] = counterApi.endpoints.decrementCount.useMutation();
 
   return (
     <div>

@@ -124,7 +124,7 @@ describe('wrong entityTypes log errors', () => {
     spy.mockRestore();
   });
 
-  test.each<[keyof typeof api.actions, boolean?]>([
+  test.each<[keyof typeof api.endpoints, boolean?]>([
     ['provideNothing', false],
     ['provideTypeString', false],
     ['provideTypeWithId', false],
@@ -141,12 +141,12 @@ describe('wrong entityTypes log errors', () => {
     ['invalidateWrongTypeWithIdAndCallback', true],
   ])(`endpoint %s should log an error? %s`, async (endpoint, shouldError) => {
     // @ts-ignore
-    store.dispatch(api.actions[endpoint]());
+    store.dispatch(api.endpoints[endpoint].initiate());
     let result: { status: string };
     do {
       await waitMs(5);
       // @ts-ignore
-      result = api.selectors[endpoint]()(store.getState());
+      result = api.endpoints[endpoint].select()(store.getState());
     } while (result.status === 'pending');
 
     if (shouldError) {

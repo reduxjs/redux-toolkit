@@ -31,7 +31,8 @@
     "prepare": "yarn build; ./prepare-examples.sh",
     "size": "size-limit",
     "format": "prettier --write \"src/**/*.ts\" \"**/*.md\"",
-    "analyze": "size-limit --why"
+    "analyze": "size-limit --why",
+    "list-unused-exports": "ts-unused-exports tsconfig.json"
   },
   "husky": {
     "hooks": {
@@ -85,7 +86,6 @@
   },
   "devDependencies": {
     "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/2c869f4d/@reduxjs/toolkit",
-    "immer": "^8.0.0",
     "@size-limit/preset-small-lib": "^4.6.0",
     "@testing-library/react": "^11.1.0",
     "@testing-library/react-hooks": "^3.4.2",
@@ -93,6 +93,7 @@
     "@types/react-redux": "^7.1.9",
     "eslint-plugin-prettier": "^3.1.4",
     "husky": "^4.3.0",
+    "immer": "^8.0.0",
     "prettier": "^2.2.0",
     "react": "^16.14.0 || 17.0.0",
     "react-dom": "^16.14.0 || 17.0.0",
@@ -100,6 +101,7 @@
     "react-test-renderer": "^17.0.1",
     "size-limit": "^4.6.0",
     "ts-node": "^9.0.0",
+    "ts-unused-exports": "^7.0.0",
     "tsdx": "^0.14.1",
     "tslib": "^2.0.3"
   },

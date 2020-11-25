@@ -16,19 +16,29 @@ import {
   QueryArgFrom,
   ResultTypeFrom,
 } from './endpointDefinitions';
-import { QueryResultSelectors, MutationResultSelectors, skipSelector } from './buildSelectors';
-import {
-  QueryActions,
-  MutationActions,
-  QueryActionCreatorResult,
-  MutationActionCreatorResult,
-} from './buildActionMaps';
-import { TS41Hooks } from './ts41Types';
+import { skipSelector } from './buildSelectors';
+import { QueryActionCreatorResult, MutationActionCreatorResult } from './buildActionMaps';
 import { useShallowStableValue } from './utils';
-import { InternalActions } from '.';
+import { Api, ApiEndpointMutation, ApiEndpointQuery } from './apiTypes';
 
-export interface QueryHookOptions extends SubscriptionOptions {
+interface QueryHookOptions extends SubscriptionOptions {
   skip?: boolean;
+}
+
+declare module './apiTypes' {
+  export interface ApiEndpointQuery<
+    Definition extends QueryDefinition<any, any, any, any, any>,
+    Definitions extends EndpointDefinitions
+  > {
+    useQuery: QueryHook<Definition>;
+  }
+
+  export interface ApiEndpointMutation<
+    Definition extends MutationDefinition<any, any, any, any, any>,
+    Definitions extends EndpointDefinitions
+  > {
+    useMutation: MutationHook<Definition>;
+  }
 }
 
 export type QueryHook<D extends QueryDefinition<any, any, any, any>> = (
@@ -39,7 +49,7 @@ export type QueryHook<D extends QueryDefinition<any, any, any, any>> = (
 type AdditionalQueryStatusFlags = {
   isFetching: boolean;
 };
-export type QueryHookResult<D extends QueryDefinition<any, any, any, any>> = QuerySubState<D> &
+type QueryHookResult<D extends QueryDefinition<any, any, any, any>> = QuerySubState<D> &
   RequestStatusFlags &
   AdditionalQueryStatusFlags &
   Pick<QueryActionCreatorResult<D>, 'refetch'>;
@@ -51,19 +61,6 @@ export type MutationHook<D extends MutationDefinition<any, any, any, any>> = () 
   MutationSubState<D> & RequestStatusFlags
 ];
 
-export type Hooks<Definitions extends EndpointDefinitions> = {
-  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<any, any, any, any>
-    ? {
-        useQuery: QueryHook<Definitions[K]>;
-      }
-    : Definitions[K] extends MutationDefinition<any, any, any, any>
-    ? {
-        useMutation: MutationHook<Definitions[K]>;
-      }
-    : never;
-} &
-  TS41Hooks<Definitions>;
-
 export type PrefetchOptions =
   | { force?: boolean }
   | {
@@ -71,17 +68,9 @@ export type PrefetchOptions =
     };
 
 export function buildHooks<Definitions extends EndpointDefinitions>({
-  querySelectors,
-  queryActions,
-  mutationSelectors,
-  mutationActions,
-  internalActions,
+  api,
 }: {
-  querySelectors: QueryResultSelectors<Definitions, any>;
-  queryActions: QueryActions<Definitions>;
-  mutationSelectors: MutationResultSelectors<Definitions, any>;
-  mutationActions: MutationActions<Definitions>;
-  internalActions: InternalActions;
+  api: Api<any, Definitions, any, string>;
 }) {
   return { buildQueryHook, buildMutationHook, usePrefetch };
 
@@ -94,13 +83,17 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
     return useCallback(
       (arg: any, options?: PrefetchOptions) =>
-        dispatch(internalActions.prefetchThunk(endpointName, arg, { ...stableDefaultOptions, ...options })),
+        dispatch(api.internalActions.prefetchThunk(endpointName, arg, { ...stableDefaultOptions, ...options })),
       [endpointName, dispatch, stableDefaultOptions]
     );
   }
 
   function buildQueryHook(name: string): QueryHook<any> {
     return (arg: any, { skip = false, pollingInterval = 0 } = {}) => {
+      const { select, initiate } = api.endpoints[name] as ApiEndpointQuery<
+        QueryDefinition<any, any, any, any, any>,
+        Definitions
+      >;
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
 
       const stableArg = useShallowStableValue(arg);
@@ -108,29 +101,24 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const lastData = useRef<ResultTypeFrom<Definitions[string]> | undefined>();
       const promiseRef = useRef<QueryActionCreatorResult<any>>();
 
-      const buildQuerySelector = querySelectors[name];
-      const querySelector = useMemo(() => buildQuerySelector(skip ? skipSelector : stableArg), [
-        skip,
-        stableArg,
-        buildQuerySelector,
-      ]);
+      const querySelector = useMemo(() => select(skip ? skipSelector : stableArg), [select, skip, stableArg]);
       const currentState = useSelector(querySelector);
 
       useEffect(() => {
         if (skip) {
           return;
         }
-        const startQuery = queryActions[name];
+
         const lastPromise = promiseRef.current;
         if (lastPromise && lastPromise.arg === stableArg) {
           // arg did not change, but options did probably, update them
           lastPromise.updateSubscriptionOptions({ pollingInterval });
         } else {
           if (lastPromise) lastPromise.unsubscribe();
-          const promise = dispatch(startQuery(stableArg, { subscriptionOptions: { pollingInterval } }));
+          const promise = dispatch(initiate(stableArg, { subscriptionOptions: { pollingInterval } }));
           promiseRef.current = promise;
         }
-      }, [stableArg, dispatch, skip, pollingInterval]);
+      }, [stableArg, dispatch, skip, pollingInterval, initiate]);
 
       useEffect(() => {
         return () => void promiseRef.current?.unsubscribe();
@@ -165,6 +153,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
   function buildMutationHook(name: string): MutationHook<any> {
     return () => {
+      const { select, initiate } = api.endpoints[name] as ApiEndpointMutation<
+        MutationDefinition<any, any, any, any, any>,
+        Definitions
+      >;
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
       const [requestId, setRequestId] = useState<string>();
 
@@ -177,20 +169,16 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           let promise: MutationActionCreatorResult<any>;
           batch(() => {
             if (promiseRef.current) promiseRef.current.unsubscribe();
-            promise = dispatch(mutationActions[name](args));
+            promise = dispatch(initiate(args));
             promiseRef.current = promise;
             setRequestId(promise.requestId);
           });
           return promise!;
         },
-        [dispatch]
+        [dispatch, initiate]
       );
 
-      const buildMutationSelector = mutationSelectors[name];
-      const mutationSelector = useMemo(() => buildMutationSelector(requestId || skipSelector), [
-        requestId,
-        buildMutationSelector,
-      ]);
+      const mutationSelector = useMemo(() => select(requestId || skipSelector), [requestId, select]);
       const currentState = useSelector(mutationSelector);
 
       return useMemo(() => [triggerMutation, currentState], [triggerMutation, currentState]);

@@ -1,7 +1,6 @@
 import { nanoid } from '@reduxjs/toolkit';
 import React, { useState } from 'react';
 import { useEffect } from 'react';
-import { QueryStatus } from '@rtk-incubator/rtk-query/dist';
 import { timeApi, usePrefetchTime } from '../../app/services/times';
 import { Container } from '../common/Container';
 import { useTypedSelector } from '../../app/store';
@@ -79,11 +78,11 @@ const TimeDisplay = ({ offset, label }: { offset: string; label: string }) => {
   const canPoll = globalPolling && timesPolling;
 
   const [pollingInterval, setPollingInterval] = useState(0);
-  const { data, status, refetch, isLoading } = timeApi.hooks.getTime.useQuery(offset, {
+  const { data, refetch, isFetching } = timeApi.endpoints.getTime.useQuery(offset, {
     pollingInterval: canPoll ? pollingInterval : 0,
   });
   return (
-    <div style={{ ...(QueryStatus.pending === status ? { background: '#e6ffe8' } : {}) }}>
+    <div style={{ ...(isFetching ? { background: '#e6ffe8' } : {}) }}>
       <p>
         {data?.time && new Date(data.time).toLocaleTimeString()} - {label}
       </p>

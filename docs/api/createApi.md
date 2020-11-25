@@ -27,9 +27,16 @@ The main point where you will define a service to use in your application.
 - [`reducerPath`](#reducerpath)
 - [`reducer`](#reducer)
 - [`middleware`](#middleware)
-- [`actions`](#actions)
-- [`selectors`](#selectors)
-- [`hooks`](#hooks)
+- [`endpoints`](#endpoints-returned-by-createapi)
+  - **[endpointName]**
+    - [`initiate`](#actions)
+    - [`select`](#select)
+    - [`useQuery or useMutation`](#hooks)
+- [`internalActions`](#internalactions)
+- [`util`](#util)
+- [`injectEndpoints`](#injectendpoints)
+- [`usePrefetch`](../concepts/prefetching#prefetching-with-react-hooks)
+- [`Auto-generated hooks`](#auto-generated-hooks)
 
 ```ts title="All returned properties"
 const api = createApi({
@@ -39,7 +46,17 @@ const api = createApi({
   }),
 });
 
-export const { reducerPath, reducer, middleware, hooks, actions, selectors } = api;
+export const {
+  reducerPath,
+  reducer,
+  middleware,
+  endpoints,
+  internalActions,
+  util,
+  injectEndpoints,
+  usePrefetch,
+  ...generatedHooks
+} = api;
 ```
 
 #### middleware
@@ -50,6 +67,8 @@ This is a standard redux middleware and is responsible for things like [polling]
 
 A standard redux reducer that enables core functionality. Make sure it's [included in your store](../introduction/quick-start#add-the-service-to-your-store).
 
+### `endpoints` returned by `createApi`
+
 #### actions
 
 React Hooks users will most likely never need to use these in most cases. These are redux action creators that you can `dispatch` with `useDispatch` or `store.dispatch()`.
@@ -58,28 +77,36 @@ React Hooks users will most likely never need to use these in most cases. These 
 When dispatching an action creator, you're responsible for storing a reference to the promise it returns in the event that you want to update that specific subscription. To get an idea of what that entails, see the [Svelte Example](../examples/svelte) or the [React Class Components Example](../examples/react-class-components)
 :::
 
-#### selectors
+#### select
 
-Selectors are how you access your `query` or `mutation` data from the cache. If you're using Hooks, you don't have to worry about these in most cases. There are several ways to use them:
+`select` is how you access your `query` or `mutation` data from the cache. If you're using Hooks, you don't have to worry about this in most cases. There are several ways to use them:
 
-```js title="React
-// hooks
-const { data, status } = useSelector(selectors.getPosts());
+```js title="React Hooks"
+const { data, status } = useSelector(api.getPosts.select());
+```
 
-// class component with connect
+```js title="Using connect from react-redux"
 const mapStateToProps = (state) => ({
-  data: selectors.getPosts(state),
+  data: api.getPosts.select()(state),
 });
 connect(null, mapStateToProps);
 ```
 
 ```js title="Svelte"
-$: ({ data, status } = selectors.getPosts()($store));
+$: ({ data, status } = api.getPosts.select()($store));
 ```
 
 #### hooks
 
-Hooks are specifically for React Hooks users. If you are not using React Hooks, you shouldn't `export` them – this way they don't pull in the React dependency.
+Hooks are specifically for React Hooks users. Under each `api.endpoint.[endpointName]`, you will have `useQuery` or `useMutation` depending on the type. For example, if you had `getPosts` and `updatePost`, these options would be available:
+
+```ts title="Hooks usage"
+const { data } = api.endpoints.getPosts.useQuery();
+const { data } = api.endpoints.updatePost.useMutation();
+
+const { data } = api.useGetPostsQuery();
+const [updatePost] = api.useUpdatePostMutation();
+```
 
 ### `baseQuery`
 
@@ -155,7 +182,7 @@ Endpoints are just a set of operations that you want to perform against your ser
 
 #### How endpoints get used
 
-When defining a key like `getPosts` as shown below, it's important to know that this name will become exportable from `api` and be able to referenced under `api.hooks.getPosts`, `api.selectors.getPosts`, and `api.actions.getPosts`. The same thing applies to `mutation`s.
+When defining a key like `getPosts` as shown below, it's important to know that this name will become exportable from `api` and be able to referenced under `api.endpoints.getPosts.useQuery()`, `api.endpoints.getPosts.initiate()` and `api.endpoints.getPosts.select()`. The same thing applies to `mutation`s but they reference `useMutation` instead of `useQuery`.
 
 ```ts
 const api = createApi({
@@ -176,16 +203,16 @@ const api = createApi({
   }),
 });
 
-// React users that use hooks are able to take advantage of this special feature
-// The syntax is `use(MethodName)(Query|Mutation)`
-// TS 4.1+ users will get type safety doing this as well
-export { useGetPostsQuery, useAddPostMutation } = api.hooks;
+// Auto-generated hooks
+export { useGetPostsQuery, useAddPostMutation } = api;
 
 // Possible exports
-
-export const { selectors, actions, reducerPath, reducer, middleware } = api;
+export const { endpoints, reducerPath, reducer, middleware } = api;
 // reducerPath, reducer, middleware are only used in store configuration
-// selectors/actions will have: selectors.getPosts, selectors.addPost, actions.getPosts, actions.getPost
+// endpoints will have:
+// endpoints.getPosts.initiate(), endpoints.getPosts.select(), endpoints.getPosts.useQuery()
+// endpoints.addPost.initiate(), endpoints.addPost.select(), endpoints.addPost.useMutation()
+// see `createApi` overview for _all exports_
 ```
 
 #### Transforming the data returned by an endpoint before caching
@@ -230,6 +257,37 @@ export const api = createApi({
   }),
 });
 ```
+
+### Auto-generated Hooks
+
+React users are able to take advantage of auto-generated hooks. By default, `createApi` will automatically generate type-safe hooks (TS 4.1+ only) for you based on the name of your endpoints. The general format is `use(Endpointname)(Query|Mutation)` - `use` is prefixed, the first letter of your endpoint name is capitalized, then `Query` or `Mutation` is appended depending on the type.
+
+```js title="Auto-generated hooks example"
+const api = createApi({
+  baseQuery,
+  endpoints: (build) => ({
+    getPosts: build.query({
+      query: () => 'posts',
+    }),
+    addPost: build.mutation({
+      query: (body) => ({
+        url: `posts`,
+        method: 'POST',
+        body,
+      }),
+    }),
+  }),
+});
+
+// Automatically generated from the endpoint names
+export { useGetPostsQuery, useAddPostMutation } = api;
+```
+
+### `internalActions`
+
+### `util`
+
+### `injectEndpoints`
 
 ### `keepUnusedDataFor`
 

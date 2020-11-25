@@ -16,6 +16,7 @@ test('handles a non-async baseQuery without error', async () => {
       }),
     }),
   });
+  const { getUser } = api.endpoints;
   const store = configureStore({
     reducer: {
       [api.reducerPath]: api.reducer,
@@ -23,14 +24,14 @@ test('handles a non-async baseQuery without error', async () => {
     middleware: (gDM) => gDM().concat(api.middleware),
   });
 
-  const promise = store.dispatch(api.actions.getUser(1));
+  const promise = store.dispatch(getUser.initiate(1));
   const { data } = await promise;
 
   expect(data).toEqual({
     url: 'user/1',
   });
 
-  const storeResult = api.selectors.getUser(1)(store.getState());
+  const storeResult = getUser.select(1)(store.getState());
   expect(storeResult).toEqual({
     data: {
       url: 'user/1',
@@ -60,16 +61,17 @@ describe('re-triggering behavior on arg change', () => {
       }),
     }),
   });
+  const { getUser } = api.endpoints;
   const store = configureStore({
     reducer: { [api.reducerPath]: api.reducer },
     middleware: (gDM) => gDM().concat(api.middleware),
   });
 
-  const spy = jest.spyOn(api.actions, 'getUser');
+  const spy = jest.spyOn(getUser, 'initiate');
   beforeEach(() => void spy.mockClear());
 
   test('re-trigger on literal value change', async () => {
-    const { result, rerender, waitForNextUpdate } = renderHook((props) => api.hooks.getUser.useQuery(props), {
+    const { result, rerender, waitForNextUpdate } = renderHook((props) => getUser.useQuery(props), {
       wrapper: withProvider(store),
       initialProps: 5,
     });
@@ -99,7 +101,7 @@ describe('re-triggering behavior on arg change', () => {
   });
 
   test('only re-trigger on shallow-equal arg change', async () => {
-    const { result, rerender, waitForNextUpdate } = renderHook((props) => api.hooks.getUser.useQuery(props), {
+    const { result, rerender, waitForNextUpdate } = renderHook((props) => getUser.useQuery(props), {
       wrapper: withProvider(store),
       initialProps: { name: 'Bob', likes: 'iceCream' },
     });
@@ -129,7 +131,7 @@ describe('re-triggering behavior on arg change', () => {
   });
 
   test('re-trigger every time on deeper value changes', async () => {
-    const { result, rerender, waitForNextUpdate } = renderHook((props) => api.hooks.getUser.useQuery(props), {
+    const { result, rerender, waitForNextUpdate } = renderHook((props) => getUser.useQuery(props), {
       wrapper: withProvider(store),
       initialProps: { person: { name: 'Tim' } },
     });
@@ -150,7 +152,7 @@ describe('re-triggering behavior on arg change', () => {
   });
 
   test('do not re-trigger if the order of keys change while maintaining the same values', async () => {
-    const { result, rerender, waitForNextUpdate } = renderHook((props) => api.hooks.getUser.useQuery(props), {
+    const { result, rerender, waitForNextUpdate } = renderHook((props) => getUser.useQuery(props), {
       wrapper: withProvider(store),
       initialProps: { name: 'Tim', likes: 'Bananas' },
     });

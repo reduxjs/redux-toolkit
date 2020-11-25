@@ -17,14 +17,14 @@ export enum DefinitionType {
   mutation = 'mutation',
 }
 
-export type GetResultDescriptionFn<EntityTypes extends string, ResultType, QueryArg> = (
+type GetResultDescriptionFn<EntityTypes extends string, ResultType, QueryArg> = (
   result: ResultType,
   arg: QueryArg
 ) => ReadonlyArray<EntityDescription<EntityTypes>>;
 
 export type FullEntityDescription<EntityType> = { type: EntityType; id?: number | string };
-export type EntityDescription<EntityType> = EntityType | FullEntityDescription<EntityType>;
-export type ResultDescription<EntityTypes extends string, ResultType, QueryArg> =
+type EntityDescription<EntityType> = EntityType | FullEntityDescription<EntityType>;
+type ResultDescription<EntityTypes extends string, ResultType, QueryArg> =
   | ReadonlyArray<EntityDescription<EntityTypes>>
   | GetResultDescriptionFn<EntityTypes, ResultType, QueryArg>;
 
@@ -32,7 +32,8 @@ export interface QueryDefinition<
   QueryArg,
   BaseQuery extends (arg: any, ...args: any[]) => any,
   EntityTypes extends string,
-  ResultType
+  ResultType,
+  _ReducerPath extends string = string
 > extends BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> {
   type: DefinitionType.query;
   provides?: ResultDescription<EntityTypes, ResultType, QueryArg>;
@@ -67,10 +68,11 @@ export type EndpointDefinition<
   QueryArg,
   BaseQuery extends (arg: any, ...args: any[]) => any,
   EntityTypes extends string,
-  ResultType
+  ResultType,
+  ReducerPath extends string = string
 > =
-  | QueryDefinition<QueryArg, BaseQuery, EntityTypes, ResultType>
-  | MutationDefinition<QueryArg, BaseQuery, EntityTypes, ResultType>;
+  | QueryDefinition<QueryArg, BaseQuery, EntityTypes, ResultType, ReducerPath>
+  | MutationDefinition<QueryArg, BaseQuery, EntityTypes, ResultType, ReducerPath>;
 
 export type EndpointDefinitions = Record<string, EndpointDefinition<any, any, any, any>>;
 
@@ -135,4 +137,22 @@ export type ResultTypeFrom<D extends BaseEndpointDefinition<any, any, any>> = D 
   infer RT
 >
   ? RT
+  : unknown;
+
+export type ReducerPathFrom<D extends EndpointDefinition<any, any, any, any>> = D extends EndpointDefinition<
+  any,
+  any,
+  any,
+  infer RP
+>
+  ? RP
+  : unknown;
+
+export type EntityTypesFrom<D extends EndpointDefinition<any, any, any, any>> = D extends EndpointDefinition<
+  any,
+  any,
+  infer RP,
+  any
+>
+  ? RP
   : unknown;

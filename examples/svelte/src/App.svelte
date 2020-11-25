@@ -5,7 +5,7 @@
     import Counter from './Counter.svelte';
     import { nanoid } from '@reduxjs/toolkit';
 
-    const { actions, selectors } = counterApi;
+    const { endpoints } = counterApi;
 
     let counters: string[] = [];
     let spookyMode = true;
@@ -14,10 +14,10 @@
     let queryRef;
 
     onMount(async () => {
-        queryRef = { refetch: getCount } = store.dispatch(actions.getCount());
+        queryRef = { refetch: getCount } = store.dispatch(endpoints.getCount.initiate());
     });
 
-    $: ({ data } = selectors.getCount()($store));
+    $: ({ data } = endpoints.getCount.select()($store));
 </script>
 
 <style>
@@ -57,8 +57,8 @@
 
 <main>
     <h1>{data?.count || 0}</h1>
-    <button on:click={() => store.dispatch(actions.incrementCount(1, { track: false }))}>Increase</button>
-    <button on:click={() => store.dispatch(actions.decrementCount(1, { track: false }))}>Decrease</button>
+    <button on:click={() => store.dispatch(endpoints.incrementCount.initiate(1, { track: false }))}>Increase</button>
+    <button on:click={() => store.dispatch(endpoints.decrementCount.initiate(1, { track: false }))}>Decrease</button>
 
     <hr />
     <h3>Haunted counters?</h3>
@@ -86,7 +86,7 @@
                     class="button-link"
                     on:click|once={() => {
                         spookyMode = false;
-                        store.dispatch(actions.stop()).then(() => {
+                        store.dispatch(endpoints.stop.initiate()).then(() => {
                             spookyMode = false;
                             globalPollingEnabled.set(false);
                         });

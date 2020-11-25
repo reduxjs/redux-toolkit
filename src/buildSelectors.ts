@@ -7,40 +7,46 @@ import {
   getRequestStatusFlags,
   RequestStatusFlags,
 } from './apiState';
-import { EndpointDefinitions, QueryDefinition, MutationDefinition, QueryArgFrom } from './endpointDefinitions';
+import {
+  EndpointDefinitions,
+  QueryDefinition,
+  MutationDefinition,
+  QueryArgFrom,
+  EntityTypesFrom,
+  ReducerPathFrom,
+} from './endpointDefinitions';
 import type { InternalState } from './buildSlice';
 import { InternalSerializeQueryArgs } from '.';
 
 export const skipSelector = Symbol('skip selector');
 
-export type Selectors<Definitions extends EndpointDefinitions, RootState> = {
-  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<any, any, any, any>
-    ? QueryResultSelector<Definitions[K], RootState>
-    : Definitions[K] extends MutationDefinition<any, any, any, any>
-    ? MutationResultSelector<Definitions[K], RootState>
-    : never;
-};
+declare module './apiTypes' {
+  export interface ApiEndpointQuery<
+    Definition extends QueryDefinition<any, any, any, any, any>,
+    Definitions extends EndpointDefinitions
+  > {
+    select: QueryResultSelector<
+      Definition,
+      _RootState<Definitions, EntityTypesFrom<Definition>, ReducerPathFrom<Definition>>
+    >;
+  }
 
-export type QueryResultSelectors<Definitions extends EndpointDefinitions, RootState> = {
-  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<infer QueryArg, any, any, infer ResultType>
-    ? (
-        queryArg: QueryArg | typeof skipSelector
-      ) => (state: RootState) => QuerySubState<Definitions[K]> & RequestStatusFlags
-    : never;
-};
+  export interface ApiEndpointMutation<
+    Definition extends MutationDefinition<any, any, any, any, any>,
+    Definitions extends EndpointDefinitions
+  > {
+    select: MutationResultSelector<
+      Definition,
+      _RootState<Definitions, EntityTypesFrom<Definition>, ReducerPathFrom<Definition>>
+    >;
+  }
+}
 
-export type MutationResultSelectors<Definitions extends EndpointDefinitions, RootState> = {
-  [K in keyof Definitions]: Definitions[K] extends MutationDefinition<any, any, any, infer ResultType>
-    ? (
-        requestId: string | typeof skipSelector
-      ) => (state: RootState) => MutationSubState<Definitions[K]> & RequestStatusFlags
-    : never;
-};
-
-export type QueryResultSelector<Definition extends QueryDefinition<any, any, any, any>, RootState> = (
+type QueryResultSelector<Definition extends QueryDefinition<any, any, any, any>, RootState> = (
   queryArg: QueryArgFrom<Definition> | typeof skipSelector
 ) => (state: RootState) => QuerySubState<Definition> & RequestStatusFlags;
-export type MutationResultSelector<Definition extends MutationDefinition<any, any, any, any>, RootState> = (
+
+type MutationResultSelector<Definition extends MutationDefinition<any, any, any, any>, RootState> = (
   requestId: string | typeof skipSelector
 ) => (state: RootState) => MutationSubState<Definition> & RequestStatusFlags;
 

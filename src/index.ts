@@ -1,9 +1,9 @@
-import { buildThunks, PatchQueryResultThunk, QueryApi, UpdateQueryResultThunk } from './buildThunks';
-import type { AnyAction, Middleware, Reducer, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
+import { buildThunks, QueryApi } from './buildThunks';
+import type { AnyAction, Reducer, ThunkAction } from '@reduxjs/toolkit';
 import { buildSlice, SliceActions } from './buildSlice';
-import { buildActionMaps, EndpointActions } from './buildActionMaps';
-import { buildSelectors, Selectors } from './buildSelectors';
-import { buildHooks, Hooks, PrefetchOptions } from './buildHooks';
+import { buildActionMaps } from './buildActionMaps';
+import { buildSelectors } from './buildSelectors';
+import { buildHooks, PrefetchOptions } from './buildHooks';
 import { buildMiddleware } from './buildMiddleware';
 import {
   EndpointDefinitions,
@@ -12,11 +12,11 @@ import {
   isQueryDefinition,
   isMutationDefinition,
   AssertEntityTypes,
-  QueryArgFrom,
 } from './endpointDefinitions';
-import type { CombinedState, QueryCacheKey, QueryKeys, QueryStatePhantomType, RootState } from './apiState';
-import { assertCast, BaseQueryArg, UnionToIntersection } from './tsHelpers';
-
+import type { CombinedState, QueryCacheKey, QueryStatePhantomType } from './apiState';
+import { assertCast, BaseQueryArg } from './tsHelpers';
+import { Api } from './apiTypes';
+export { Api, ApiWithInjectedEndpoints } from './apiTypes';
 export { fetchBaseQuery } from './fetchBaseQuery';
 export { QueryStatus } from './apiState';
 
@@ -76,9 +76,7 @@ export function createApi<
 
   const api: Api<BaseQuery, {}, ReducerPath, EntityTypes> = {
     reducerPath,
-    selectors: {},
-    actions: {},
-    hooks: {},
+    endpoints: {},
     internalActions: {
       removeQueryResult: uninitialized,
       unsubscribeMutationResult: uninitialized,
@@ -126,7 +124,7 @@ export function createApi<
     queryThunk,
     mutationThunk,
     keepUnusedDataFor,
-    sliceActions,
+    api,
     assertEntityType,
   });
 
@@ -140,19 +138,11 @@ export function createApi<
   const { buildQueryAction, buildMutationAction } = buildActionMaps({
     queryThunk,
     mutationThunk,
+    api,
     serializeQueryArgs,
-    querySelectors: api.selectors as any,
-    mutationSelectors: api.selectors as any,
-    sliceActions,
   });
 
-  const { buildQueryHook, buildMutationHook, usePrefetch } = buildHooks({
-    querySelectors: api.selectors as any,
-    queryActions: api.actions as any,
-    mutationSelectors: api.selectors as any,
-    mutationActions: api.actions as any,
-    internalActions: api.internalActions as any,
-  });
+  const { buildQueryHook, buildMutationHook, usePrefetch } = buildHooks({ api });
 
   api.usePrefetch = usePrefetch;
 
@@ -174,17 +164,21 @@ export function createApi<
 
       assertCast<Api<InternalQueryArgs, Record<string, any>, ReducerPath, EntityTypes>>(api);
       if (isQueryDefinition(definition)) {
-        api.selectors[endpoint] = buildQuerySelector(endpoint, definition);
-        api.actions[endpoint] = buildQueryAction(endpoint, definition);
         const useQuery = buildQueryHook(endpoint);
-        api.hooks[endpoint] = { useQuery };
-        (api.hooks as any)[`use${capitalize(endpoint)}Query`] = useQuery;
+        api.endpoints[endpoint] = {
+          select: buildQuerySelector(endpoint, definition),
+          initiate: buildQueryAction(endpoint, definition),
+          useQuery,
+        };
+        (api as any)[`use${capitalize(endpoint)}Query`] = useQuery;
       } else if (isMutationDefinition(definition)) {
-        api.selectors[endpoint] = buildMutationSelector();
-        api.actions[endpoint] = buildMutationAction(endpoint, definition);
         const useMutation = buildMutationHook(endpoint);
-        api.hooks[endpoint] = { useMutation };
-        (api.hooks as any)[`use${capitalize(endpoint)}Mutation`] = useMutation;
+        api.endpoints[endpoint] = {
+          select: buildMutationSelector(),
+          initiate: buildMutationAction(endpoint, definition),
+          useMutation,
+        };
+        (api as any)[`use${capitalize(endpoint)}Mutation`] = useMutation;
       }
     }
 
@@ -196,44 +190,6 @@ export function createApi<
 
 export type InternalActions = SliceActions & {
   prefetchThunk: (endpointName: any, arg: any, options: PrefetchOptions) => ThunkAction<void, any, any, AnyAction>;
-};
-export interface Api<
-  BaseQuery extends (arg: any, ...args: any[]) => any,
-  Definitions extends EndpointDefinitions,
-  ReducerPath extends string,
-  EntityTypes extends string
-> {
-  reducerPath: ReducerPath;
-  actions: EndpointActions<Definitions>;
-  internalActions: InternalActions;
-  reducer: Reducer<CombinedState<Definitions, EntityTypes> & QueryStatePhantomType<ReducerPath>, AnyAction>;
-  selectors: Selectors<Definitions, RootState<Definitions, EntityTypes, ReducerPath>>;
-  middleware: Middleware<{}, RootState<Definitions, string, ReducerPath>, ThunkDispatch<any, any, AnyAction>>;
-  hooks: Hooks<Definitions>;
-  util: {
-    updateQueryResult: UpdateQueryResultThunk<Definitions, RootState<Definitions, string, ReducerPath>>;
-    patchQueryResult: PatchQueryResultThunk<Definitions, RootState<Definitions, string, ReducerPath>>;
-  };
-  // If you actually care about the return value, use useQuery
-  usePrefetch<EndpointName extends QueryKeys<Definitions>>(
-    endpointName: EndpointName,
-    options?: PrefetchOptions
-  ): (arg: QueryArgFrom<Definitions[EndpointName]>, options?: PrefetchOptions) => void;
-  injectEndpoints<NewDefinitions extends EndpointDefinitions>(_: {
-    endpoints: (build: EndpointBuilder<BaseQuery, EntityTypes, ReducerPath>) => NewDefinitions;
-    overrideExisting?: boolean;
-  }): Api<BaseQuery, Definitions & NewDefinitions, ReducerPath, EntityTypes>;
-}
-
-export type ApiWithInjectedEndpoints<
-  ApiDefinition extends Api<any, any, any, any>,
-  Injections extends ApiDefinition extends Api<infer B, any, infer R, infer E>
-    ? [Api<B, any, R, E>, ...Api<B, any, R, E>[]]
-    : never
-> = ApiDefinition & {
-  actions: Partial<UnionToIntersection<Injections[number]['actions']>>;
-  selectors: Partial<UnionToIntersection<Injections[number]['selectors']>>;
-  hooks: Partial<UnionToIntersection<Injections[number]['hooks']>>;
 };
 
 function capitalize(str: string) {

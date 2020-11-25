@@ -24,8 +24,8 @@ const Post = ({ id }: { id: number }) => {
    * This missing would be a programming error that you should
    * catch early anyways.
    */
-  assert(splitApi.hooks.getPost, 'Endpoint `getPost` not loaded!');
-  const { data, error } = splitApi.hooks.getPost.useQuery(id);
+  assert(splitApi.endpoints.getPost?.useQuery, 'Endpoint `getPost` not loaded!');
+  const { data, error } = splitApi.endpoints.getPost.useQuery(id);
   return error ? <>there was an error</> : !data ? <>loading</> : <h1>{data.name}</h1>;
 };
 export default Post;

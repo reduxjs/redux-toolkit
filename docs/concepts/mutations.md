@@ -20,12 +20,12 @@ This is a modified version of the complete example you can see at the bottom of 
 export const PostDetail = () => {
   const { id } = useParams<{ id: any }>();
 
-  const { data: post, status } = postApi.hooks.getPost.useQuery(id);
+  const { data: post, status } = postApi.endpoints.getPost.useQuery(id);
 
   const [
     updatePost, // This is the mutation trigger
     { status: updateStatus }, // You can inspect the status of the mutation
-  ] = postApi.hooks.updatePost.useMutation();
+  ] = postApi.endpoints.updatePost.useMutation();
 
   return (
     <Box p={4}>

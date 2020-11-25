@@ -1,4 +1,5 @@
-import { Api, InternalSerializeQueryArgs } from '.';
+import { InternalSerializeQueryArgs } from '.';
+import { Api, ApiEndpointQuery } from './apiTypes';
 import { InternalRootState, QueryKeys, QueryStatus, QuerySubstateIdentifier } from './apiState';
 import { StartQueryActionCreatorOptions } from './buildActionMaps';
 import {
@@ -10,7 +11,6 @@ import {
 } from './endpointDefinitions';
 import { Draft } from '@reduxjs/toolkit';
 import { Patch, isDraftable, produceWithPatches, enablePatches } from 'immer';
-import { QueryResultSelector } from './buildSelectors';
 import { AnyAction, createAsyncThunk, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
 
 import { PrefetchOptions } from './buildHooks';
@@ -102,7 +102,7 @@ export function buildThunks<
     dispatch,
     getState
   ) => {
-    const currentState = (api.selectors[endpointName] as QueryResultSelector<any, any>)(args)(getState());
+    const currentState = (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).select(args)(getState());
     let ret: PatchCollection = { patches: [], inversePatches: [] };
     if (currentState.status === QueryStatus.uninitialized) {
       return ret;
@@ -186,8 +186,9 @@ export function buildThunks<
     const force = hasTheForce(options) && options.force;
     const maxAge = hasMaxAge(options) && options.ifOlderThan;
 
-    const queryAction = (force: boolean = true) => api.actions[endpointName](arg, { forceRefetch: force });
-    const latestStateValue = api.selectors[endpointName](arg)(getState());
+    const queryAction = (force: boolean = true) =>
+      (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).initiate(arg, { forceRefetch: force });
+    const latestStateValue = (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).select(arg)(getState());
 
     if (force) {
       dispatch(queryAction());

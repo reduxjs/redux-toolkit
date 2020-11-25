@@ -19,7 +19,7 @@ export enum QueryStatus {
   rejected = 'rejected',
 }
 
-export const defaultBaseFlagsState = {
+const defaultBaseFlagsState = {
   isUninitialized: true,
   isLoading: false,
   isSuccess: false,

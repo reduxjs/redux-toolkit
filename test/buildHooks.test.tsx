@@ -25,7 +25,7 @@ describe('hooks tests', () => {
     function User() {
       const [value, setValue] = React.useState(0);
 
-      const { isFetching } = api.hooks.getUser.useQuery(1, { skip: value < 1 });
+      const { isFetching } = api.endpoints.getUser.useQuery(1, { skip: value < 1 });
 
       return (
         <div>
@@ -51,7 +51,7 @@ describe('hooks tests', () => {
     function User() {
       const [value, setValue] = React.useState(0);
 
-      const { isLoading, refetch } = api.hooks.getUser.useQuery(2, { skip: value < 1 });
+      const { isLoading, refetch } = api.endpoints.getUser.useQuery(2, { skip: value < 1 });
       refetchMe = refetch;
       return (
         <div>
@@ -83,7 +83,7 @@ describe('hooks tests', () => {
     function User() {
       const [value, setValue] = React.useState(0);
 
-      const { isLoading, isFetching, refetch } = api.hooks.getUser.useQuery(22, { skip: value < 1 });
+      const { isLoading, isFetching, refetch } = api.endpoints.getUser.useQuery(22, { skip: value < 1 });
       refetchMe = refetch;
       return (
         <div>
@@ -136,7 +136,7 @@ describe('hooks tests', () => {
 
   test('useMutation hook sets and unsets the `isLoading` flag when running', async () => {
     function User() {
-      const [updateUser, { isLoading }] = api.hooks.updateUser.useMutation();
+      const [updateUser, { isLoading }] = api.endpoints.updateUser.useMutation();
 
       return (
         <div>
@@ -158,7 +158,7 @@ describe('hooks tests', () => {
     const result = { name: 'Banana' };
 
     function User() {
-      const [updateUser, { data }] = api.hooks.updateUser.useMutation();
+      const [updateUser, { data }] = api.endpoints.updateUser.useMutation();
 
       return (
         <div>
@@ -178,7 +178,7 @@ describe('hooks tests', () => {
     const { usePrefetch } = api;
     const USER_ID = 4;
     function User() {
-      const { isFetching } = api.hooks.getUser.useQuery(USER_ID);
+      const { isFetching } = api.endpoints.getUser.useQuery(USER_ID);
       const prefetchUser = usePrefetch('getUser', { force: true });
 
       return (
@@ -198,7 +198,7 @@ describe('hooks tests', () => {
 
     userEvent.hover(getByTestId('highPriority'));
 
-    expect(api.selectors.getUser(USER_ID)(storeRef.store.getState())).toEqual({
+    expect(api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())).toEqual({
       data: undefined,
       endpoint: 'getUser',
       fulfilledTimeStamp: expect.any(Number),
@@ -215,7 +215,7 @@ describe('hooks tests', () => {
 
     await waitMs(DEFAULT_DELAY_MS + 100);
 
-    expect(api.selectors.getUser(USER_ID)(storeRef.store.getState())).toEqual({
+    expect(api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())).toEqual({
       data: undefined,
       endpoint: 'getUser',
       fulfilledTimeStamp: expect.any(Number),
@@ -237,7 +237,7 @@ describe('hooks tests', () => {
 
     function User() {
       // Load the initial query
-      const { isFetching } = api.hooks.getUser.useQuery(USER_ID);
+      const { isFetching } = api.endpoints.getUser.useQuery(USER_ID);
       const prefetchUser = usePrefetch('getUser', { force: false });
 
       return (
@@ -257,7 +257,7 @@ describe('hooks tests', () => {
     // Try to prefetch what we just loaded
     userEvent.hover(getByTestId('lowPriority'));
 
-    expect(api.selectors.getUser(USER_ID)(storeRef.store.getState())).toEqual({
+    expect(api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())).toEqual({
       data: undefined,
       endpoint: 'getUser',
       fulfilledTimeStamp: expect.any(Number),
@@ -274,7 +274,7 @@ describe('hooks tests', () => {
 
     await waitMs();
 
-    expect(api.selectors.getUser(USER_ID)(storeRef.store.getState())).toEqual({
+    expect(api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())).toEqual({
       data: undefined,
       endpoint: 'getUser',
       fulfilledTimeStamp: expect.any(Number),
@@ -296,7 +296,7 @@ describe('hooks tests', () => {
 
     function User() {
       // Load the initial query
-      const { isFetching } = api.hooks.getUser.useQuery(USER_ID);
+      const { isFetching } = api.endpoints.getUser.useQuery(USER_ID);
       const prefetchUser = usePrefetch('getUser', { ifOlderThan: 0.2 });
 
       return (
@@ -318,7 +318,7 @@ describe('hooks tests', () => {
 
     // This should run the query being that we're past the threshold
     userEvent.hover(getByTestId('lowPriority'));
-    expect(api.selectors.getUser(USER_ID)(storeRef.store.getState())).toEqual({
+    expect(api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())).toEqual({
       data: undefined,
       endpoint: 'getUser',
       fulfilledTimeStamp: expect.any(Number),
@@ -335,7 +335,7 @@ describe('hooks tests', () => {
 
     await waitFor(() => expect(getByTestId('isFetching').textContent).toBe('false'));
 
-    expect(api.selectors.getUser(USER_ID)(storeRef.store.getState())).toEqual({
+    expect(api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())).toEqual({
       data: undefined,
       endpoint: 'getUser',
       fulfilledTimeStamp: expect.any(Number),
@@ -357,7 +357,7 @@ describe('hooks tests', () => {
 
     function User() {
       // Load the initial query
-      const { isFetching } = api.hooks.getUser.useQuery(USER_ID);
+      const { isFetching } = api.endpoints.getUser.useQuery(USER_ID);
       const prefetchUser = usePrefetch('getUser', { ifOlderThan: 10 });
 
       return (
@@ -376,11 +376,11 @@ describe('hooks tests', () => {
     await waitMs();
 
     // Get a snapshot of the last result
-    const latestQueryData = api.selectors.getUser(USER_ID)(storeRef.store.getState());
+    const latestQueryData = api.endpoints.getUser.select(USER_ID)(storeRef.store.getState());
 
     userEvent.hover(getByTestId('lowPriority'));
     //  Serve up the result from the cache being that the condition wasn't met
-    expect(api.selectors.getUser(USER_ID)(storeRef.store.getState())).toEqual(latestQueryData);
+    expect(api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())).toEqual(latestQueryData);
   });
 
   test('usePrefetch executes a query even if conditions fail when the cache is empty', async () => {
@@ -403,7 +403,7 @@ describe('hooks tests', () => {
 
     userEvent.hover(getByTestId('lowPriority'));
 
-    expect(api.selectors.getUser(USER_ID)(storeRef.store.getState())).toEqual({
+    expect(api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())).toEqual({
       endpoint: 'getUser',
       internalQueryArgs: USER_ID,
       isError: false,

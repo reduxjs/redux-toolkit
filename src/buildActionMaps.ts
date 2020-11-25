@@ -2,9 +2,24 @@ import { EndpointDefinitions, QueryDefinition, MutationDefinition, QueryArgFrom 
 import type { QueryThunkArg, MutationThunkArg } from './buildThunks';
 import { AnyAction, AsyncThunk, ThunkAction } from '@reduxjs/toolkit';
 import { MutationSubState, QueryStatus, QuerySubState, SubscriptionOptions } from './apiState';
-import { MutationResultSelectors, QueryResultSelectors } from './buildSelectors';
-import { SliceActions } from './buildSlice';
 import { InternalSerializeQueryArgs } from '.';
+import { Api, ApiEndpointMutation, ApiEndpointQuery } from './apiTypes';
+
+declare module './apiTypes' {
+  export interface ApiEndpointQuery<
+    Definition extends QueryDefinition<any, any, any, any, any>,
+    Definitions extends EndpointDefinitions
+  > {
+    initiate: StartQueryActionCreator<Definition>;
+  }
+
+  export interface ApiEndpointMutation<
+    Definition extends MutationDefinition<any, any, any, any, any>,
+    Definitions extends EndpointDefinitions
+  > {
+    initiate: StartMutationActionCreator<Definition>;
+  }
+}
 
 export interface StartQueryActionCreatorOptions {
   subscribe?: boolean;
@@ -12,7 +27,7 @@ export interface StartQueryActionCreatorOptions {
   subscriptionOptions?: SubscriptionOptions;
 }
 
-export type StartQueryActionCreator<D extends QueryDefinition<any, any, any, any>> = (
+type StartQueryActionCreator<D extends QueryDefinition<any, any, any, any, any>> = (
   arg: QueryArgFrom<D>,
   options?: StartQueryActionCreatorOptions
 ) => ThunkAction<QueryActionCreatorResult<D>, any, any, AnyAction>;
@@ -26,27 +41,7 @@ export type QueryActionCreatorResult<D extends QueryDefinition<any, any, any, an
   updateSubscriptionOptions(options: SubscriptionOptions): void;
 };
 
-export type EndpointActions<Definitions extends EndpointDefinitions> = {
-  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<any, any, any, any>
-    ? StartQueryActionCreator<Definitions[K]>
-    : Definitions[K] extends MutationDefinition<any, any, any, any>
-    ? StartMutationActionCreator<Definitions[K]>
-    : never;
-};
-
-export type QueryActions<Definitions extends EndpointDefinitions> = {
-  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<any, any, any, any>
-    ? StartQueryActionCreator<Definitions[K]>
-    : never;
-};
-
-export type MutationActions<Definitions extends EndpointDefinitions> = {
-  [K in keyof Definitions]: Definitions[K] extends MutationDefinition<any, any, any, any>
-    ? StartMutationActionCreator<Definitions[K]>
-    : never;
-};
-
-export type StartMutationActionCreator<D extends MutationDefinition<any, any, any, any>> = (
+type StartMutationActionCreator<D extends MutationDefinition<any, any, any, any>> = (
   arg: QueryArgFrom<D>,
   options?: {
     /**
@@ -71,18 +66,15 @@ export type MutationActionCreatorResult<D extends MutationDefinition<any, any, a
 export function buildActionMaps<Definitions extends EndpointDefinitions, InternalQueryArgs>({
   serializeQueryArgs,
   queryThunk,
-  querySelectors,
   mutationThunk,
-  mutationSelectors,
-  sliceActions: { unsubscribeQueryResult, unsubscribeMutationResult, updateSubscriptionOptions },
+  api,
 }: {
   serializeQueryArgs: InternalSerializeQueryArgs<InternalQueryArgs>;
   queryThunk: AsyncThunk<any, QueryThunkArg<any>, {}>;
-  querySelectors: QueryResultSelectors<Definitions, any>;
   mutationThunk: AsyncThunk<any, MutationThunkArg<any>, {}>;
-  mutationSelectors: MutationResultSelectors<Definitions, any>;
-  sliceActions: SliceActions;
+  api: Api<any, Definitions, any, string>;
 }) {
+  const { unsubscribeQueryResult, unsubscribeMutationResult, updateSubscriptionOptions } = api.internalActions;
   return { buildQueryAction, buildMutationAction };
 
   function buildQueryAction(endpoint: string, definition: QueryDefinition<any, any, any, any>) {
@@ -105,7 +97,9 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
       const thunkResult = dispatch(thunk);
       const { requestId, abort } = thunkResult;
       assertIsNewRTKPromise(thunkResult);
-      const statePromise = thunkResult.then(() => querySelectors[endpoint](arg)(getState()));
+      const statePromise = thunkResult.then(() =>
+        (api.endpoints[endpoint] as ApiEndpointQuery<any, any>).select(arg)(getState())
+      );
       return Object.assign(statePromise, {
         arg,
         requestId,
@@ -147,7 +141,7 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
       const { requestId, abort } = thunkResult;
       assertIsNewRTKPromise(thunkResult);
       const statePromise = thunkResult.then(() => {
-        const currentState = mutationSelectors[endpoint](requestId)(getState());
+        const currentState = (api.endpoints[endpoint] as ApiEndpointMutation<any, any>).select(requestId)(getState());
         return currentState as Extract<typeof currentState, { status: QueryStatus.fulfilled | QueryStatus.rejected }>;
       });
       return Object.assign(statePromise, {

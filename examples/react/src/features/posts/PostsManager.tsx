@@ -1,4 +1,4 @@
-import { QueryStatus } from '@rtk-incubator/rtk-query/dist';
+import { QueryStatus } from '@rtk-incubator/rtk-query';
 import React, { useState } from 'react';
 import { Route, Switch, useHistory } from 'react-router-dom';
 import { Post, postApi } from '../../app/services/posts';
@@ -8,8 +8,7 @@ import './PostsManager.css';
 const AddPost = () => {
   const initialValue = { name: '' };
   const [post, setPost] = useState<Partial<Post>>(initialValue);
-  const [addPost, { status }] = postApi.hooks.addPost.useMutation();
-  const loading = status === QueryStatus.pending;
+  const [addPost, { isLoading }] = postApi.endpoints.addPost.useMutation();
 
   const handleChange = ({ target }: React.ChangeEvent<HTMLInputElement>) => {
     setPost((prev) => ({
@@ -26,8 +25,8 @@ const AddPost = () => {
         <input name="name" placeholder="New post name" type="text" onChange={handleChange} value={post.name} />
       </div>
       <div className="column column-1">
-        <button onClick={handleAddPost} disabled={loading}>
-          {loading ? 'Adding...' : 'Add Post'}
+        <button onClick={handleAddPost} disabled={isLoading}>
+          {isLoading ? 'Adding...' : 'Add Post'}
         </button>
       </div>
     </div>
@@ -45,10 +44,10 @@ const PostListItem = ({ data: { name, id }, onSelect }: { data: Post; onSelect: 
 };
 
 const PostList = () => {
-  const { data: posts, status } = postApi.hooks.getPosts.useQuery();
+  const { data: posts, isLoading } = postApi.endpoints.getPosts.useQuery();
   const { push } = useHistory();
 
-  if (status === QueryStatus.pending) {
+  if (isLoading) {
     return <div>Loading</div>;
   }
 
