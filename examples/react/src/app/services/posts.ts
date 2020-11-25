@@ -17,7 +17,8 @@ export const postApi = createApi({
   entityTypes: ['Posts'],
   endpoints: (build) => ({
     login: build.mutation({
-      query: () => '',
+      query: () => '/login',
+
       onSuccess: (result, api) => {
         // set the default headers for any subsequent request
         baseQuery.prepareHeaders({ authorization: `Bearer ${result.token}` });
