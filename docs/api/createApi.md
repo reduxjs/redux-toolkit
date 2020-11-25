@@ -111,13 +111,18 @@ const [updatePost] = api.useUpdatePostMutation();
 ### `baseQuery`
 
 ```ts title="Simulating axios-like interceptors with a custom base query"
+const baseQuery = fetchBaseQuery({ baseUrl: '/' });
+
 function baseQueryWithReauth(arg, api) {
-  let result = fetchBaseQuery(arg, api);
+  let result = baseQuery(arg, api);
   if (result.error && result.error.status === '401') {
-    const refreshResult = fetchBaseQuery('/refreshToken');
+    // try to get a new token
+    const refreshResult = baseQuery('/refreshToken');
     if (refreshResult.data) {
+      // store the new token
       dispatch(setToken(refreshResult.data));
-      result = fetchBaseQuery(arg, api);
+      // retry the initial query
+      result = baseQuery(arg, api);
     } else {
       dispatch(loggedOut());
     }
