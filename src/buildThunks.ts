@@ -38,6 +38,7 @@ export interface ThunkResult {
 
 export interface QueryApi {
   signal: AbortSignal;
+  dispatch: ThunkDispatch<any, any, any>;
 }
 
 function defaultTransformResponse(baseQueryReturnValue: unknown) {
@@ -135,8 +136,8 @@ export function buildThunks<
     { state: InternalRootState<ReducerPath> }
   >(
     `${reducerPath}/executeQuery`,
-    async (arg, { signal, rejectWithValue }) => {
-      const result = await baseQuery(arg.internalQueryArgs, { signal });
+    async (arg, { signal, rejectWithValue, dispatch }) => {
+      const result = await baseQuery(arg.internalQueryArgs, { signal, dispatch });
       if (result.error) throw rejectWithValue(result.error);
 
       return {
@@ -157,7 +158,7 @@ export function buildThunks<
     ThunkResult,
     MutationThunkArg<InternalQueryArgs>,
     { state: InternalRootState<ReducerPath> }
-  >(`${reducerPath}/executeMutation`, async (arg, { signal, rejectWithValue, ...api }) => {
+  >(`${reducerPath}/executeMutation`, async (arg, { signal, dispatch, rejectWithValue, ...api }) => {
     const endpoint = endpointDefinitions[arg.endpoint] as MutationDefinition<any, any, any, any>;
 
     const context: Record<string, any> = {};
@@ -168,7 +169,7 @@ export function buildThunks<
 
     if (endpoint.onStart) endpoint.onStart(arg.originalArgs, mutationApi);
     try {
-      const result = await baseQuery(arg.internalQueryArgs, { signal });
+      const result = await baseQuery(arg.internalQueryArgs, { signal, dispatch });
       if (result.error) throw new HandledError(result.error);
       if (endpoint.onSuccess) endpoint.onSuccess(arg.originalArgs, mutationApi, result.data);
       return {

@@ -110,6 +110,22 @@ const [updatePost] = api.useUpdatePostMutation();
 
 ### `baseQuery`
 
+```ts title="Simulating axios-like interceptors with a custom base query"
+function baseQueryWithReauth(arg, api) {
+  let result = fetchBaseQuery(arg, api);
+  if (result.error && result.error.status === '401') {
+    const refreshResult = fetchBaseQuery('/refreshToken');
+    if (refreshResult.data) {
+      dispatch(setToken(refreshResult.data));
+      result = fetchBaseQuery(arg, api);
+    } else {
+      dispatch(loggedOut());
+    }
+  }
+  return result;
+}
+```
+
 ### `entityTypes`
 
 Specifying entity types is optional, but you should define them so that they can be used for caching and invalidation. When defining an entity type, you will be able to add them with `provides` and [invalidate](../concepts/mutations#advanced-mutations-with-revalidation) them with `invalidates` when configuring [endpoints](#endpoints).

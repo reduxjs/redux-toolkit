@@ -8,13 +8,24 @@ export interface Post {
 
 type PostsResponse = Post[];
 
+// Create our baseQuery instance
+const baseQuery = fetchBaseQuery({ baseUrl: '/' });
+
 export const postApi = createApi({
   reducerPath: 'postsApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  baseQuery,
   entityTypes: ['Posts'],
   endpoints: (build) => ({
+    login: build.mutation({
+      query: () => '',
+      onSuccess: (result, api) => {
+        // set the default headers for any subsequent request
+        baseQuery.prepareHeaders({ authorization: `Bearer ${result.token}` });
+      },
+    }),
     getPosts: build.query<PostsResponse, void>({
-      query: () => 'posts',
+      // Don't use the default headers we set - a real example would be an endpoint that doesn't expect credentials
+      query: () => ({ url: 'posts', headers: {} }),
       provides: (result) => [
         ...result.map(({ id }) => ({ type: 'Posts', id } as const)),
         { type: 'Posts', id: 'LIST' },

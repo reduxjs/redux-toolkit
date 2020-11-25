@@ -65,9 +65,11 @@ const PostList = () => {
 };
 
 export const PostsManager = () => {
+  const [login] = postApi.endpoints.login.useMutation();
   return (
     <div>
       <h3>Posts</h3>
+      <button onClick={() => login('This will just set the headers')}>Login</button>
       <hr />
       <div className="row">
         <div className="posts-list">
