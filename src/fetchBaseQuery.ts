@@ -15,7 +15,7 @@ const defaultValidateStatus = (response: Response) => response.status >= 200 && 
 const isJsonContentType = (headers: Headers) => headers.get('content-type')?.trim()?.startsWith('application/json');
 
 export function fetchBaseQuery({ baseUrl }: { baseUrl?: string } = {}) {
-  return async (arg: string | FetchArgs, { signal, rejectWithValue }: QueryApi) => {
+  return async (arg: string | FetchArgs, { signal }: QueryApi) => {
     let {
       url,
       method = 'GET' as const,
@@ -59,7 +59,7 @@ export function fetchBaseQuery({ baseUrl }: { baseUrl?: string } = {}) {
         : await response[responseHandler || 'text']();
 
     return validateStatus(response, resultData)
-      ? resultData
-      : rejectWithValue({ status: response.status, data: resultData });
+      ? { data: resultData }
+      : { error: { status: response.status, data: resultData } };
   };
 }

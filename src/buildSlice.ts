@@ -105,7 +105,7 @@ export function buildSlice({
               // request failed
               if (substate.requestId !== requestId) return;
               substate.status = QueryStatus.rejected;
-              substate.error = payload ?? error;
+              substate.error = (payload ?? error) as any;
             }
           });
         });
@@ -148,7 +148,7 @@ export function buildSlice({
 
           updateMutationSubstateIfExists(draft, { requestId }, (substate) => {
             substate.status = QueryStatus.rejected;
-            substate.error = payload ?? error;
+            substate.error = (payload ?? error) as any;
           });
         });
     },

@@ -1,3 +1,5 @@
+import { SerializedError } from '@reduxjs/toolkit';
+import { BaseQueryError } from './apiTypes';
 import {
   QueryDefinition,
   MutationDefinition,
@@ -51,7 +53,9 @@ type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
   internalQueryArgs: unknown;
   requestId: string;
   data?: ResultTypeFrom<D>;
-  error?: unknown;
+  error?:
+    | SerializedError
+    | (D extends QueryDefinition<any, infer BaseQuery, any, any> ? BaseQueryError<BaseQuery> : never);
   endpoint: string;
   startedTimeStamp: number;
   fulfilledTimeStamp?: number;
@@ -84,7 +88,9 @@ type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
   originalArgs?: QueryArgFrom<D>;
   internalQueryArgs: unknown;
   data?: ResultTypeFrom<D>;
-  error?: unknown;
+  error?:
+    | SerializedError
+    | (D extends MutationDefinition<any, infer BaseQuery, any, any> ? BaseQueryError<BaseQuery> : never);
   endpoint: string;
   startedTimeStamp: number;
   fulfilledTimeStamp?: number;

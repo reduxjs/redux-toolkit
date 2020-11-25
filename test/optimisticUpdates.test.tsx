@@ -14,7 +14,11 @@ const baseQuery = jest.fn();
 beforeEach(() => baseQuery.mockReset());
 
 const api = createApi({
-  baseQuery,
+  baseQuery: (...args: any[]) => {
+    const result = baseQuery(...args);
+    if ('then' in result) return result.then((data: any) => ({ data }));
+    return { data: result };
+  },
   entityTypes: ['Post'],
   endpoints: (build) => ({
     post: build.query<Post, string>({ query: (id) => `post/${id}`, provides: ['Post'] }),

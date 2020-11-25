@@ -1,14 +1,13 @@
 import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit';
 import { RootState } from './apiState';
+import { BaseQueryFn, BaseQueryResult } from './apiTypes';
 import { BaseQueryArg } from './tsHelpers';
 
 const resultType = Symbol();
 
-type UnwrapPromise<T> = T extends PromiseLike<infer V> ? V : T;
-
-export interface BaseEndpointDefinition<QueryArg, BaseQuery extends (arg: any, ...args: any[]) => any, ResultType> {
+export interface BaseEndpointDefinition<QueryArg, BaseQuery extends BaseQueryFn, ResultType> {
   query(arg: QueryArg): BaseQueryArg<BaseQuery>;
-  transformResponse?(baseQueryReturnValue: UnwrapPromise<ReturnType<BaseQuery>>): ResultType | Promise<ResultType>;
+  transformResponse?(baseQueryReturnValue: BaseQueryResult<BaseQuery>): ResultType | Promise<ResultType>;
   [resultType]?: ResultType;
 }
 
@@ -30,7 +29,7 @@ type ResultDescription<EntityTypes extends string, ResultType, QueryArg> =
 
 export interface QueryDefinition<
   QueryArg,
-  BaseQuery extends (arg: any, ...args: any[]) => any,
+  BaseQuery extends BaseQueryFn,
   EntityTypes extends string,
   ResultType,
   _ReducerPath extends string = string
@@ -50,7 +49,7 @@ export interface MutationApi<ReducerPath extends string, Context extends {}> {
 
 export interface MutationDefinition<
   QueryArg,
-  BaseQuery extends (arg: any, ...args: any[]) => any,
+  BaseQuery extends BaseQueryFn,
   EntityTypes extends string,
   ResultType,
   ReducerPath extends string = string,
@@ -66,7 +65,7 @@ export interface MutationDefinition<
 
 export type EndpointDefinition<
   QueryArg,
-  BaseQuery extends (arg: any, ...args: any[]) => any,
+  BaseQuery extends BaseQueryFn,
   EntityTypes extends string,
   ResultType,
   ReducerPath extends string = string
@@ -86,11 +85,7 @@ export function isMutationDefinition(
   return e.type === DefinitionType.mutation;
 }
 
-export type EndpointBuilder<
-  BaseQuery extends (arg: any, ...args: any[]) => any,
-  EntityTypes extends string,
-  ReducerPath extends string
-> = {
+export type EndpointBuilder<BaseQuery extends BaseQueryFn, EntityTypes extends string, ReducerPath extends string> = {
   query<ResultType, QueryArg>(
     definition: Omit<QueryDefinition<QueryArg, BaseQuery, EntityTypes, ResultType>, 'type'>
   ): QueryDefinition<QueryArg, BaseQuery, EntityTypes, ResultType>;

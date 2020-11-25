@@ -5,7 +5,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { withProvider } from './helpers';
 
 test('handles a non-async baseQuery without error', async () => {
-  const baseQuery = (args?: any) => args;
+  const baseQuery = (args?: any) => ({ data: args });
   const api = createApi({
     baseQuery,
     endpoints: (build) => ({
@@ -54,7 +54,7 @@ test('handles a non-async baseQuery without error', async () => {
 
 describe('re-triggering behavior on arg change', () => {
   const api = createApi({
-    baseQuery: () => {},
+    baseQuery: () => ({ data: undefined }),
     endpoints: (build) => ({
       getUser: build.query<any, any>({
         query: (obj) => obj,

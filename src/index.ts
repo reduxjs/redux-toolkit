@@ -1,4 +1,4 @@
-import { buildThunks, QueryApi } from './buildThunks';
+import { buildThunks } from './buildThunks';
 import type { AnyAction, Reducer, ThunkAction } from '@reduxjs/toolkit';
 import { buildSlice, SliceActions } from './buildSlice';
 import { buildActionMaps } from './buildActionMaps';
@@ -15,7 +15,7 @@ import {
 } from './endpointDefinitions';
 import type { CombinedState, QueryCacheKey, QueryStatePhantomType } from './apiState';
 import { assertCast, BaseQueryArg } from './tsHelpers';
-import { Api } from './apiTypes';
+import { Api, BaseQueryFn } from './apiTypes';
 export { Api, ApiWithInjectedEndpoints } from './apiTypes';
 export { fetchBaseQuery } from './fetchBaseQuery';
 export { QueryStatus } from './apiState';
@@ -34,7 +34,7 @@ function defaultSerializeQueryArgs(args: any, endpoint: string) {
 const IS_DEV = () => typeof process !== 'undefined' && process.env.NODE_ENV === 'development';
 
 export function createApi<
-  BaseQuery extends (args: any, api: QueryApi) => any,
+  BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string = 'api',
   EntityTypes extends string = never
