@@ -159,7 +159,7 @@ describe('wrong entityTypes log errors', () => {
 
 describe('endpoint definition typings', () => {
   const api = createApi({
-    baseQuery: (from: 'From'): 'To' | Promise<'To'> => 'To',
+    baseQuery: (from: 'From'): { data: 'To' } | Promise<{ data: 'To' }> => ({ data: 'To' }),
     endpoints: () => ({}),
     entityTypes: ['typeA', 'typeB'],
   });

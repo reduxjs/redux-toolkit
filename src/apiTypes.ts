@@ -1,7 +1,7 @@
 /**
  * Note: this file should import all other files for type discovery and declaration merging
  */
-import { PatchQueryResultThunk, UpdateQueryResultThunk } from './buildThunks';
+import { PatchQueryResultThunk, QueryApi, UpdateQueryResultThunk } from './buildThunks';
 import { AnyAction, Middleware, Reducer, ThunkDispatch } from '@reduxjs/toolkit';
 import { PrefetchOptions } from './buildHooks';
 import {
@@ -17,8 +17,26 @@ import { UnionToIntersection } from './tsHelpers';
 import { TS41Hooks } from './ts41Types';
 import './buildSelectors';
 
+type UnwrapPromise<T> = T extends PromiseLike<infer V> ? V : T;
+type MaybePromise<T> = T | PromiseLike<T>;
+
+export type BaseQueryFn = (
+  args: any,
+  api: QueryApi
+) => MaybePromise<{ error: any; data?: undefined } | { error?: undefined; data?: any }>;
+
+export type BaseQueryResult<BaseQuery extends BaseQueryFn> = Exclude<
+  UnwrapPromise<ReturnType<BaseQuery>>,
+  { data: undefined }
+>['data'];
+
+export type BaseQueryError<BaseQuery extends BaseQueryFn> = Exclude<
+  UnwrapPromise<ReturnType<BaseQuery>>,
+  { error: undefined }
+>['error'];
+
 export type Api<
-  BaseQuery extends (arg: any, ...args: any[]) => any,
+  BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
   EntityTypes extends string
