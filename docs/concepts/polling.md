@@ -1,7 +1,7 @@
 ---
 id: polling
 title: Polling
-sidebar_label: Polling / Automatic Refetching
+sidebar_label: Polling
 hide_title: true
 ---
 
