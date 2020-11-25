@@ -37,7 +37,7 @@ export interface ThunkResult {
 }
 
 export interface QueryApi {
-  signal: AbortSignal;
+  signal?: AbortSignal;
 }
 
 function defaultTransformResponse(baseQueryReturnValue: unknown) {
@@ -137,7 +137,7 @@ export function buildThunks<
     `${reducerPath}/executeQuery`,
     async (arg, { signal, rejectWithValue }) => {
       const result = await baseQuery(arg.internalQueryArgs, { signal });
-      if (result.error) throw rejectWithValue(result.error);
+      if (result.error) return rejectWithValue(result.error);
 
       return {
         fulfilledTimeStamp: Date.now(),
@@ -178,7 +178,10 @@ export function buildThunks<
     } catch (error) {
       if (endpoint.onError)
         endpoint.onError(arg.originalArgs, mutationApi, error instanceof HandledError ? error.value : error);
-      throw error instanceof HandledError ? rejectWithValue(error.value) : error;
+      if (error instanceof HandledError) {
+        return rejectWithValue(error.value);
+      }
+      throw error;
     }
   });
 
