@@ -9,6 +9,7 @@ const baseUrl = resolve(dirname(tsConfigPath), compilerOptions.baseUrl);
 /** @type {import('@jest/types').Config.InitialOptions} */
 const config = {
   rootDir: './test',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {
     prefix: `${baseUrl}/`,
   }),

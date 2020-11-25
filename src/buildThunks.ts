@@ -40,6 +40,7 @@ export interface QueryApi {
   signal: AbortSignal;
   dispatch: ThunkDispatch<any, any, any>;
   getState: () => RootState<any, any, any>;
+
 }
 
 function defaultTransformResponse(baseQueryReturnValue: unknown) {
@@ -180,7 +181,10 @@ export function buildThunks<
     } catch (error) {
       if (endpoint.onError)
         endpoint.onError(arg.originalArgs, mutationApi, error instanceof HandledError ? error.value : error);
-      throw error instanceof HandledError ? rejectWithValue(error.value) : error;
+      if (error instanceof HandledError) {
+        return rejectWithValue(error.value);
+      }
+      throw error;
     }
   });
 
