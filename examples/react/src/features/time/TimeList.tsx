@@ -1,5 +1,5 @@
+import * as React from 'react';
 import { nanoid } from '@reduxjs/toolkit';
-import React, { useState } from 'react';
 import { useEffect } from 'react';
 import { timeApi, usePrefetchTime } from '../../app/services/times';
 import { Container } from '../common/Container';
@@ -77,7 +77,7 @@ const TimeDisplay = ({ offset, label }: { offset: string; label: string }) => {
 
   const canPoll = globalPolling && timesPolling;
 
-  const [pollingInterval, setPollingInterval] = useState(0);
+  const [pollingInterval, setPollingInterval] = React.useState(0);
   const { data, refetch, isFetching } = timeApi.endpoints.getTime.useQuery(offset, {
     pollingInterval: canPoll ? pollingInterval : 0,
   });
@@ -101,10 +101,10 @@ const TimeDisplay = ({ offset, label }: { offset: string; label: string }) => {
 };
 
 export const TimeList = () => {
-  const [times, setTimes] = useState<{ [key: string]: string }>({
+  const [times, setTimes] = React.useState<{ [key: string]: string }>({
     [nanoid()]: '-08:00',
   });
-  const [selectedValue, setSelectedValue] = useState<string>('');
+  const [selectedValue, setSelectedValue] = React.useState<string>('');
 
   const prefetch = usePrefetchTime('getTime');
 

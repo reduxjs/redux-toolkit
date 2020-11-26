@@ -1,4 +1,6 @@
 import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
+import { setCredentials } from 'src/features/auth/authSlice';
+import { RootState } from '../store';
 
 export interface Post {
   id: number;
@@ -8,11 +10,19 @@ export interface Post {
 
 type PostsResponse = Post[];
 
+export interface User {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+}
+
 // Create our baseQuery instance
 const baseQuery = fetchBaseQuery({
   baseUrl: '/',
   prepareHeaders: (headers, { getState }) => {
-    const token = getState().auth.token;
+    // By default, if we have a token in the store, let's use that for authenticated requests
+    const token = (getState() as RootState).auth.token;
     if (token) {
       headers.set('authentication', `Bearer ${token}`);
     }
@@ -25,11 +35,12 @@ export const postApi = createApi({
   baseQuery,
   entityTypes: ['Posts'],
   endpoints: (build) => ({
-    login: build.mutation<{ token: string }, any>({
+    login: build.mutation<{ token: string; user: User }, any>({
       query: (credentials: any) => ({ url: 'login', method: 'POST', body: credentials }),
       onSuccess: (arg, mutationApi, result) => {
-        // set the token to localstorage for any subsequent request
-        localStorage.setItem('token', result.token);
+        const { token, user } = result;
+        // Set our user and token in the store for future requests
+        mutationApi.dispatch(setCredentials({ token, user }));
       },
     }),
     getPosts: build.query<PostsResponse, void>({
@@ -41,13 +52,11 @@ export const postApi = createApi({
       ],
     }),
     addPost: build.mutation<Post, Partial<Post>>({
-      query(body) {
-        return {
-          url: `posts`,
-          method: 'POST',
-          body,
-        };
-      },
+      query: (body) => ({
+        url: `posts`,
+        method: 'POST',
+        body,
+      }),
       invalidates: [{ type: 'Posts', id: 'LIST' }],
     }),
     getPost: build.query<Post, number>({

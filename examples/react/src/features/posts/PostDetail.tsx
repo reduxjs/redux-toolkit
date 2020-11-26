@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import * as React from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { postApi } from '../../app/services/posts';
 
@@ -13,7 +13,7 @@ const EditablePostName = ({
   onCancel: () => void;
   loading?: boolean;
 }) => {
-  const [name, setName] = useState(initialName);
+  const [name, setName] = React.useState(initialName);
 
   const handleChange = ({ target: { value } }: React.ChangeEvent<HTMLInputElement>) => setName(value);
 
@@ -47,7 +47,7 @@ export const PostDetail = () => {
   const { id } = useParams<{ id: any }>();
   const { push } = useHistory();
 
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = React.useState(false);
 
   const { data: post, isFetching, isLoading } = postApi.endpoints.getPost.useQuery(id, { pollingInterval: 3000 });
 

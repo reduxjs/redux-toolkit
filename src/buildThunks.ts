@@ -138,8 +138,7 @@ export function buildThunks<
   >(
     `${reducerPath}/executeQuery`,
     async (arg, { signal, rejectWithValue, dispatch, getState }) => {
-      // @ts-ignore
-      const result = await baseQuery(arg.internalQueryArgs, { signal });
+      const result = await baseQuery(arg.internalQueryArgs, { signal, dispatch, getState });
       if (result.error) return rejectWithValue(result.error);
 
       return {

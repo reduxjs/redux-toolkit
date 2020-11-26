@@ -1,7 +1,8 @@
-import { QueryStatus } from '@rtk-incubator/rtk-query';
 import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Route, Switch, useHistory } from 'react-router-dom';
 import { Post, postApi } from '../../app/services/posts';
+import { selectIsAuthenticated, logout } from '../auth/authSlice';
 import { PostDetail } from './PostDetail';
 import './PostsManager.css';
 
@@ -66,10 +67,17 @@ const PostList = () => {
 
 export const PostsManager = () => {
   const [login] = postApi.endpoints.login.useMutation();
+  const dispatch = useDispatch();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+
   return (
     <div>
       <h3>Posts</h3>
-      <button onClick={() => login({ ignore: 'This will just set the headers' })}>Login</button>
+      {!isAuthenticated ? (
+        <button onClick={() => login({ ignore: 'This will just set the headers' })}>Login</button>
+      ) : (
+        <button onClick={() => dispatch(logout())}>Logout</button>
+      )}
       <hr />
       <div className="row">
         <div className="posts-list">

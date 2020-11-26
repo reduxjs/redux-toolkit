@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import * as React from 'react';
 
 import { apiWithPosts } from '../../app/services/split/posts';
 import { Post } from '.';
@@ -14,7 +14,7 @@ const PostsList = () => {
    */
 
   const { data, error } = apiWithPosts.endpoints.getPosts.useQuery();
-  const [selected, select] = useState<number | undefined>();
+  const [selected, select] = React.useState<number | undefined>();
   return error ? (
     <>there was an error</>
   ) : !data ? (
