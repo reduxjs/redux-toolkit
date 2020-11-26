@@ -33,21 +33,21 @@ declare module './apiTypes' {
 export type PendingAction<
   Thunk extends AsyncThunk<any, any, any>,
   Definition extends EndpointDefinition<any, any, any, any>
-> = Definition extends EndpointDefinition<infer QueryArg, any, infer ResultType, any>
+> = Definition extends EndpointDefinition<infer QueryArg, any, any, infer ResultType>
   ? OverrideActionProps<ReturnType<Thunk['pending']>, QueryArg>
   : never;
 
 export type FulfilledAction<
   Thunk extends AsyncThunk<any, any, any>,
   Definition extends EndpointDefinition<any, any, any, any>
-> = Definition extends EndpointDefinition<infer QueryArg, any, infer ResultType, any>
+> = Definition extends EndpointDefinition<infer QueryArg, any, any, infer ResultType>
   ? OverrideActionProps<ReturnType<Thunk['fulfilled']>, QueryArg, ResultType>
   : never;
 
 export type RejectedAction<
   Thunk extends AsyncThunk<any, any, any>,
   Definition extends EndpointDefinition<any, any, any, any>
-> = Definition extends EndpointDefinition<infer QueryArg, any, infer ResultType, any>
+> = Definition extends EndpointDefinition<infer QueryArg, any, any, infer ResultType>
   ? OverrideActionProps<ReturnType<Thunk['rejected']>, QueryArg>
   : never;
 
