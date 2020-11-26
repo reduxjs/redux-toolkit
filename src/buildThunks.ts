@@ -3,18 +3,75 @@ import { Api, ApiEndpointQuery, BaseQueryFn } from './apiTypes';
 import { InternalRootState, QueryKeys, QueryStatus, QuerySubstateIdentifier } from './apiState';
 import { StartQueryActionCreatorOptions } from './buildActionMaps';
 import {
+  EndpointDefinition,
   EndpointDefinitions,
   MutationApi,
   MutationDefinition,
   QueryArgFrom,
+  QueryDefinition,
   ResultTypeFrom,
 } from './endpointDefinitions';
 import { Draft } from '@reduxjs/toolkit';
 import { Patch, isDraftable, produceWithPatches, enablePatches } from 'immer';
-import { AnyAction, createAsyncThunk, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
+import { AnyAction, createAsyncThunk, ThunkAction, ThunkDispatch, AsyncThunk } from '@reduxjs/toolkit';
 
 import { PrefetchOptions } from './buildHooks';
-import { BaseQueryArg } from './tsHelpers';
+import { BaseQueryArg, Id } from './tsHelpers';
+
+declare module './apiTypes' {
+  export interface ApiEndpointQuery<
+    Definition extends QueryDefinition<any, any, any, any, any>,
+    Definitions extends EndpointDefinitions
+  > extends Matchers<QueryThunk, Definition> {}
+
+  export interface ApiEndpointMutation<
+    Definition extends MutationDefinition<any, any, any, any, any>,
+    Definitions extends EndpointDefinitions
+  > extends Matchers<MutationThunk, Definition> {}
+}
+
+export type PendingAction<
+  Thunk extends AsyncThunk<any, any, any>,
+  Definition extends EndpointDefinition<any, any, any, any>
+> = Definition extends EndpointDefinition<infer QueryArg, any, infer ResultType, any>
+  ? OverrideActionProps<ReturnType<Thunk['pending']>, QueryArg>
+  : never;
+
+export type FulfilledAction<
+  Thunk extends AsyncThunk<any, any, any>,
+  Definition extends EndpointDefinition<any, any, any, any>
+> = Definition extends EndpointDefinition<infer QueryArg, any, infer ResultType, any>
+  ? OverrideActionProps<ReturnType<Thunk['fulfilled']>, QueryArg, ResultType>
+  : never;
+
+export type RejectedAction<
+  Thunk extends AsyncThunk<any, any, any>,
+  Definition extends EndpointDefinition<any, any, any, any>
+> = Definition extends EndpointDefinition<infer QueryArg, any, infer ResultType, any>
+  ? OverrideActionProps<ReturnType<Thunk['rejected']>, QueryArg>
+  : never;
+
+type OverrideActionProps<
+  A extends { payload?: any; meta: { arg: { originalArgs: any } } },
+  QueryArg,
+  Payload = void
+> = Id<
+  Omit<A, 'payload' | 'meta'> & {
+    payload: [void] extends [Payload] ? A['payload'] : Payload;
+    meta: Id<Omit<A['meta'], 'arg'> & { arg: Id<Omit<A['meta']['arg'], 'originalArgs'> & { originalArgs: QueryArg }> }>;
+  }
+>;
+
+export type Matcher<M> = (value: any) => value is M;
+
+export interface Matchers<
+  Thunk extends AsyncThunk<any, any, any>,
+  Definition extends EndpointDefinition<any, any, any, any>
+> {
+  matchPending: Matcher<PendingAction<Thunk, Definition>>;
+  matchFulfilled: Matcher<FulfilledAction<Thunk, Definition>>;
+  matchRejected: Matcher<RejectedAction<Thunk, Definition>>;
+}
 
 export interface QueryThunkArg<InternalQueryArgs> extends QuerySubstateIdentifier, StartQueryActionCreatorOptions {
   originalArgs: unknown;
@@ -35,6 +92,9 @@ export interface ThunkResult {
   fulfilledTimeStamp: number;
   result: unknown;
 }
+
+export type QueryThunk = AsyncThunk<ThunkResult, QueryThunkArg<any>, {}>;
+export type MutationThunk = AsyncThunk<ThunkResult, MutationThunkArg<any>, {}>;
 
 export interface QueryApi {
   signal?: AbortSignal;
@@ -218,5 +278,18 @@ export function buildThunks<
     }
   };
 
-  return { queryThunk, mutationThunk, prefetchThunk, updateQueryResult, patchQueryResult };
+  function buildMatchThunkActions<
+    Thunk extends AsyncThunk<any, QueryThunkArg<any>, any> | AsyncThunk<any, MutationThunkArg<any>, any>
+  >(thunk: Thunk, endpoint: string): Matchers<Thunk, any> {
+    return {
+      matchPending: (action): action is PendingAction<Thunk, any> =>
+        thunk.pending.match(action) && action.meta.arg.endpoint === endpoint,
+      matchFulfilled: (action): action is FulfilledAction<Thunk, any> =>
+        thunk.fulfilled.match(action) && action.meta.arg.endpoint === endpoint,
+      matchRejected: (action): action is RejectedAction<Thunk, any> =>
+        thunk.rejected.match(action) && action.meta.arg.endpoint === endpoint,
+    };
+  }
+
+  return { queryThunk, mutationThunk, prefetchThunk, updateQueryResult, patchQueryResult, buildMatchThunkActions };
 }

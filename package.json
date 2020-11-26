@@ -85,7 +85,7 @@
     }
   },
   "devDependencies": {
-    "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/2c869f4d/@reduxjs/toolkit",
+    "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/65341076/@reduxjs/toolkit",
     "@size-limit/preset-small-lib": "^4.6.0",
     "@testing-library/react": "^11.1.0",
     "@testing-library/react-hooks": "^3.4.2",
@@ -105,13 +105,15 @@
     "ts-node": "^9.0.0",
     "ts-unused-exports": "^7.0.0",
     "tsdx": "^0.14.1",
-    "tslib": "^2.0.3",
-    "whatwg-fetch": "^3.5.0"
+    "tslib": "^2.0.3"
   },
   "resolutions": {
     "typescript": "4.1.2",
     "@typescript-eslint/parser": "4.7.0",
     "prettier": "^2.2.0",
-    "immer": "^8.0.0"
+    "immer": "^8.0.0",
+    "ts-jest": "^26.4.4",
+    "jest": "^26.6.3",
+    "@types/jest": "^26.0.15"
   }
 }
