@@ -22,11 +22,17 @@ const failQueryOnce = rest.get('/query', (_, req, ctx) => req.once(ctx.status(50
 
 describe('fetchBaseQuery', () => {
   test('success', async () => {
-    await expect(baseQuery('/success', { signal: undefined })).resolves.toEqual({ data: { value: 'success' } });
+    await expect(
+      baseQuery('/success', { signal: undefined, dispatch: storeRef.store.dispatch, getState: storeRef.store.getState })
+    ).resolves.toEqual({
+      data: { value: 'success' },
+    });
   });
   test('error', async () => {
     server.use(failQueryOnce);
-    await expect(baseQuery('/error', { signal: undefined })).resolves.toEqual({
+    await expect(
+      baseQuery('/error', { signal: undefined, dispatch: storeRef.store.dispatch, getState: storeRef.store.getState })
+    ).resolves.toEqual({
       error: { data: { value: 'error' }, status: 500 },
     });
   });

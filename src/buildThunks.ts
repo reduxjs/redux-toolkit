@@ -38,8 +38,8 @@ export interface ThunkResult {
 
 export interface QueryApi {
   signal?: AbortSignal;
-  dispatch?: ThunkDispatch<any, any, any>;
-  getState?: () => unknown;
+  dispatch: ThunkDispatch<any, any, any>;
+  getState: () => unknown;
 }
 
 function defaultTransformResponse(baseQueryReturnValue: unknown) {
