@@ -15,8 +15,8 @@ const api = createApi({
 });
 const storeRef = setupApiStore(api);
 
-let getSubStateA = () => storeRef.store.getState().api.queries['a/""'];
-let getSubStateB = () => storeRef.store.getState().api.queries['b/""'];
+let getSubStateA = () => storeRef.store.getState().api.queries['a(undefined)'];
+let getSubStateB = () => storeRef.store.getState().api.queries['b(undefined)'];
 
 function UsingA() {
   api.useAQuery();

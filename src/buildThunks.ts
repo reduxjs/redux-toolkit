@@ -155,7 +155,11 @@ export function buildThunks<
     const endpoint = endpointDefinitions[endpointName];
     dispatch(
       api.internalActions.queryResultPatched({
-        queryCacheKey: serializeQueryArgs(endpoint.query(args), endpointName),
+        queryCacheKey: serializeQueryArgs({
+          queryArgs: args,
+          internalQueryArgs: endpoint.query(args),
+          endpoint: endpointName,
+        }),
         patches,
       })
     );
