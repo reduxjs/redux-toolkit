@@ -90,7 +90,9 @@ export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDe
         (internalState) =>
           (arg === skipSelector
             ? undefined
-            : internalState.queries[serializeQueryArgs(definition.query(arg), endpoint)]) ?? defaultQuerySubState
+            : internalState.queries[
+                serializeQueryArgs({ queryArgs: arg, internalQueryArgs: definition.query(arg), endpoint })
+              ]) ?? defaultQuerySubState
       );
       return createSelector(selectQuerySubState, withRequestFlags);
     };
