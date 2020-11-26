@@ -139,7 +139,7 @@ export function buildThunks<
     `${reducerPath}/executeQuery`,
     async (arg, { signal, rejectWithValue, dispatch, getState }) => {
       const result = await baseQuery(arg.internalQueryArgs, { signal, dispatch, getState });
-      if (result.error) throw rejectWithValue(result.error);
+      if (result.error) return rejectWithValue(result.error);
 
       return {
         fulfilledTimeStamp: Date.now(),

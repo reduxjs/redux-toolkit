@@ -119,7 +119,7 @@ In the real world, it's very common that a developer would want to resync their 
 
 RTK Query provides _a lot_ of flexibility for how you can manage the invalidation behavior of your service. Let's look at a few different scenarios:
 
-#### Invalidating everything
+#### Invalidating everything of a type
 
 ```ts title="API Definition"
 export const api = createApi({
@@ -247,9 +247,9 @@ export const postApi = createApi({
   endpoints: (build) => ({
     getPosts: build.query<PostsResponse, void>({
       query: () => 'posts',
-      // Provides a list of `Posts` by `id`. If another component calls `getPost(id)`
-      // with an `id` that was provided here, it will use the cache instead of making another request.
-      // Additionally, it provides a second entity `id` of LIST, which we may want to use in certain scenarios.
+      // Provides a list of `Posts` by `id`.
+      // If any mutation is executed that `invalidate`s any of these entities, this query will re-run to be always up-to-date.
+      // The `LIST` id is a "virtual id" we just made up to be able to invalidate this query specifically if a new `Posts` element was added.
       provides: (result) => [...result.map(({ id }) => ({ type: 'Posts', id })), { type: 'Posts', id: 'LIST' }],
     }),
     addPost: build.mutation<Post, Partial<Post>>({
@@ -260,7 +260,7 @@ export const postApi = createApi({
           body,
         };
       },
-      // Invalidates all list-type queries - after all, depending of the sort order,
+      // Invalidates all Post-type queries providing the `LIST` id - after all, depending of the sort order,
       // that newly created post could show up in any lists.
       invalidates: [{ type: 'Posts', id: 'LIST'],
     }),
@@ -278,7 +278,7 @@ export const postApi = createApi({
         };
       },
       // Invalidates all queries that subscribe to this Post `id` only.
-      // In this case, `getPost` will be re-run.
+      // In this case, `getPost` will be re-run. `getPosts` *might*  rerun, if this id was under it's results.
       invalidates: (_, { id }) => [{ type: 'Posts', id }],
     }),
     deletePost: build.mutation<{ success: boolean; id: number }, number>({

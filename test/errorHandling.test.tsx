@@ -128,9 +128,7 @@ describe('query error handling', () => {
         isError: false,
         isSuccess: true,
         data: { value: 'success' },
-        // do we want to keep this behaviour?
-        // atm., error is not cleared out
-        error: { status: 500, data: { value: 'error' } },
+        error: undefined,
       })
     );
   });
