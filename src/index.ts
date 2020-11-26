@@ -95,7 +95,14 @@ export function createApi<
     injectEndpoints,
   };
 
-  const { queryThunk, mutationThunk, patchQueryResult, updateQueryResult, prefetchThunk } = buildThunks({
+  const {
+    queryThunk,
+    mutationThunk,
+    patchQueryResult,
+    updateQueryResult,
+    prefetchThunk,
+    buildMatchThunkActions,
+  } = buildThunks({
     baseQuery,
     reducerPath,
     endpointDefinitions,
@@ -169,6 +176,7 @@ export function createApi<
           select: buildQuerySelector(endpoint, definition),
           initiate: buildQueryAction(endpoint, definition),
           useQuery,
+          ...buildMatchThunkActions(queryThunk, endpoint),
         };
         (api as any)[`use${capitalize(endpoint)}Query`] = useQuery;
       } else if (isMutationDefinition(definition)) {
@@ -177,6 +185,7 @@ export function createApi<
           select: buildMutationSelector(),
           initiate: buildMutationAction(endpoint, definition),
           useMutation,
+          ...buildMatchThunkActions(mutationThunk, endpoint),
         };
         (api as any)[`use${capitalize(endpoint)}Mutation`] = useMutation;
       }
