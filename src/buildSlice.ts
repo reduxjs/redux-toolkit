@@ -94,6 +94,7 @@ export function buildSlice({
             if (substate.requestId !== meta.requestId) return;
             substate.status = QueryStatus.fulfilled;
             substate.data = payload.result;
+            substate.error = undefined;
             substate.fulfilledTimeStamp = payload.fulfilledTimeStamp;
           });
         })
