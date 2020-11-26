@@ -1,10 +1,10 @@
+import * as React from 'react';
 import { nanoid } from '@reduxjs/toolkit';
-import React, { useState } from 'react';
 import { Container } from '../common/Container';
 import { Counter } from './Counter';
 
 export const CounterList = () => {
-  const [counters, setCounters] = useState<string[]>([]);
+  const [counters, setCounters] = React.useState<string[]>([]);
 
   if (!counters.length) {
     return (

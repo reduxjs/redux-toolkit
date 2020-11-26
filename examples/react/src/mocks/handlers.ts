@@ -1,5 +1,5 @@
 import { rest } from 'msw';
-import { createEntityAdapter } from '@reduxjs/toolkit';
+import { createEntityAdapter, nanoid } from '@reduxjs/toolkit';
 import { Post } from '../app/services/posts';
 
 // We're just going to use a simple in-memory store for both the counter and posts
@@ -17,6 +17,9 @@ state = adapter.setAll(state, [
 ]);
 
 export { state };
+
+// Just use a random id for an auth token
+const token = nanoid();
 
 export const handlers = [
   rest.get('/time/:offset', (req, res, ctx) => {
@@ -45,6 +48,10 @@ export const handlers = [
 
   rest.get('/count', (req, res, ctx) => {
     return res(ctx.json({ count }));
+  }),
+
+  rest.post('/login', (req, res, ctx) => {
+    return res(ctx.json({ token }));
   }),
 
   rest.get('/posts', (req, res, ctx) => {

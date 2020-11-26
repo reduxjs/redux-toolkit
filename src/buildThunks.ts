@@ -33,21 +33,21 @@ declare module './apiTypes' {
 export type PendingAction<
   Thunk extends AsyncThunk<any, any, any>,
   Definition extends EndpointDefinition<any, any, any, any>
-> = Definition extends EndpointDefinition<infer QueryArg, any, infer ResultType, any>
+> = Definition extends EndpointDefinition<infer QueryArg, any, any, infer ResultType>
   ? OverrideActionProps<ReturnType<Thunk['pending']>, QueryArg>
   : never;
 
 export type FulfilledAction<
   Thunk extends AsyncThunk<any, any, any>,
   Definition extends EndpointDefinition<any, any, any, any>
-> = Definition extends EndpointDefinition<infer QueryArg, any, infer ResultType, any>
+> = Definition extends EndpointDefinition<infer QueryArg, any, any, infer ResultType>
   ? OverrideActionProps<ReturnType<Thunk['fulfilled']>, QueryArg, ResultType>
   : never;
 
 export type RejectedAction<
   Thunk extends AsyncThunk<any, any, any>,
   Definition extends EndpointDefinition<any, any, any, any>
-> = Definition extends EndpointDefinition<infer QueryArg, any, infer ResultType, any>
+> = Definition extends EndpointDefinition<infer QueryArg, any, any, infer ResultType>
   ? OverrideActionProps<ReturnType<Thunk['rejected']>, QueryArg>
   : never;
 
@@ -98,6 +98,8 @@ export type MutationThunk = AsyncThunk<ThunkResult, MutationThunkArg<any>, {}>;
 
 export interface QueryApi {
   signal?: AbortSignal;
+  dispatch: ThunkDispatch<any, any, any>;
+  getState: () => unknown;
 }
 
 function defaultTransformResponse(baseQueryReturnValue: unknown) {
@@ -199,8 +201,8 @@ export function buildThunks<
     { state: InternalRootState<ReducerPath> }
   >(
     `${reducerPath}/executeQuery`,
-    async (arg, { signal, rejectWithValue }) => {
-      const result = await baseQuery(arg.internalQueryArgs, { signal });
+    async (arg, { signal, rejectWithValue, dispatch, getState }) => {
+      const result = await baseQuery(arg.internalQueryArgs, { signal, dispatch, getState });
       if (result.error) return rejectWithValue(result.error);
 
       return {
@@ -232,7 +234,7 @@ export function buildThunks<
 
     if (endpoint.onStart) endpoint.onStart(arg.originalArgs, mutationApi);
     try {
-      const result = await baseQuery(arg.internalQueryArgs, { signal });
+      const result = await baseQuery(arg.internalQueryArgs, { signal, dispatch: api.dispatch, getState: api.getState });
       if (result.error) throw new HandledError(result.error);
       if (endpoint.onSuccess) endpoint.onSuccess(arg.originalArgs, mutationApi, result.data);
       return {
