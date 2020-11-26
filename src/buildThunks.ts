@@ -1,6 +1,6 @@
 import { InternalSerializeQueryArgs } from '.';
 import { Api, ApiEndpointQuery, BaseQueryFn } from './apiTypes';
-import { InternalRootState, QueryKeys, QueryStatus, QuerySubstateIdentifier, RootState } from './apiState';
+import { InternalRootState, QueryKeys, QueryStatus, QuerySubstateIdentifier } from './apiState';
 import { StartQueryActionCreatorOptions } from './buildActionMaps';
 import {
   EndpointDefinitions,
@@ -37,10 +37,9 @@ export interface ThunkResult {
 }
 
 export interface QueryApi {
-  signal: AbortSignal;
-  dispatch: ThunkDispatch<any, any, any>;
-  getState: () => RootState<any, any, any>;
-
+  signal?: AbortSignal;
+  dispatch?: ThunkDispatch<any, any, any>;
+  getState?: () => unknown;
 }
 
 function defaultTransformResponse(baseQueryReturnValue: unknown) {
