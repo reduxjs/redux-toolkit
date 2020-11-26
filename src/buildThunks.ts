@@ -138,7 +138,8 @@ export function buildThunks<
   >(
     `${reducerPath}/executeQuery`,
     async (arg, { signal, rejectWithValue, dispatch, getState }) => {
-      const result = await baseQuery(arg.internalQueryArgs, { signal, dispatch, getState });
+      // @ts-ignore
+      const result = await baseQuery(arg.internalQueryArgs, { signal });
       if (result.error) return rejectWithValue(result.error);
 
       return {
@@ -159,7 +160,7 @@ export function buildThunks<
     ThunkResult,
     MutationThunkArg<InternalQueryArgs>,
     { state: InternalRootState<ReducerPath> }
-  >(`${reducerPath}/executeMutation`, async (arg, { signal, dispatch, getState, rejectWithValue, ...api }) => {
+  >(`${reducerPath}/executeMutation`, async (arg, { signal, rejectWithValue, ...api }) => {
     const endpoint = endpointDefinitions[arg.endpoint] as MutationDefinition<any, any, any, any>;
 
     const context: Record<string, any> = {};
@@ -170,7 +171,7 @@ export function buildThunks<
 
     if (endpoint.onStart) endpoint.onStart(arg.originalArgs, mutationApi);
     try {
-      const result = await baseQuery(arg.internalQueryArgs, { signal, dispatch, getState });
+      const result = await baseQuery(arg.internalQueryArgs, { signal, dispatch: api.dispatch, getState: api.getState });
       if (result.error) throw new HandledError(result.error);
       if (endpoint.onSuccess) endpoint.onSuccess(arg.originalArgs, mutationApi, result.data);
       return {
