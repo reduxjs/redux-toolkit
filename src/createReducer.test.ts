@@ -50,6 +50,48 @@ describe('createReducer', () => {
     behavesLikeReducer(todosReducer)
   })
 
+  describe('Immer in a production environment', () => {
+    let originalNodeEnv = process.env.NODE_ENV
+
+    beforeEach(() => {
+      jest.resetModules()
+      process.env.NODE_ENV = 'production'
+    })
+
+    afterEach(() => {
+      process.env.NODE_ENV = originalNodeEnv
+    })
+
+    test('Freezes data in production', () => {
+      const { createReducer } = require('./createReducer')
+      const addTodo: AddTodoReducer = (state, action) => {
+        const { newTodo } = action.payload
+        state.push({ ...newTodo, completed: false })
+      }
+
+      const toggleTodo: ToggleTodoReducer = (state, action) => {
+        const { index } = action.payload
+        const todo = state[index]
+        todo.completed = !todo.completed
+      }
+
+      const todosReducer = createReducer([] as TodoState, {
+        ADD_TODO: addTodo,
+        TOGGLE_TODO: toggleTodo
+      })
+
+      const result = todosReducer([], {
+        type: 'ADD_TODO',
+        payload: { text: 'Buy milk' }
+      })
+
+      const mutateStateOutsideReducer = () => (result[0].text = 'edited')
+      expect(mutateStateOutsideReducer).toThrowError(
+        'Cannot add property text, object is not extensible'
+      )
+    })
+  })
+
   describe('given pure reducers with immutable updates', () => {
     const addTodo: AddTodoReducer = (state, action) => {
       const { newTodo } = action.payload
