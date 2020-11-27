@@ -212,32 +212,14 @@ describe('isFulfilled', () => {
   })
 })
 
-describe('isAnyAsyncThunkAction', () => {
+describe('isAsyncThunkAction', () => {
   test('should return false for a regular action', () => {
     const action = createAction<string>('action/type')('testPayload');
 
-    expect(isAnyAsyncThunkAction(action)).toBe(false)
+    expect(isAsyncThunkAction()(action)).toBe(false)
   })
 
-  test('should return true for any async thunk action', () => {
-    const thunk = createAsyncThunk<string>('a', () => 'result')
-
-    const pendingAction = thunk.pending('fakeRequestId')
-    expect(isAnyAsyncThunkAction(pendingAction)).toBe(true)
-
-    const rejectedAction = thunk.rejected(
-      new Error('rejected'),
-      'fakeRequestId'
-    )
-    expect(isAnyAsyncThunkAction(rejectedAction)).toBe(true)
-
-    const fulfilledAction = thunk.fulfilled('result', 'fakeRequestId')
-    expect(isAnyAsyncThunkAction(fulfilledAction)).toBe(true)
-  })
-})
-
-describe('isAsyncThunkAction', () => {
-  test('should return true for any async thunk if no arguments were provided', () => {
+  test('should return true for any async thunk action if no arguments were provided', () => {
     const thunk = createAsyncThunk<string>('a', () => 'result')
     const matcher = isAsyncThunkAction()
 
