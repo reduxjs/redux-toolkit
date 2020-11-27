@@ -53,7 +53,7 @@ executed on the same object - but `safe2` will actually be different from `safe1
 because the safe selector detected that it was executed on a `immer` draft object and recalculated using the current
 value instead of returning a cached value.
 
-Using it with non-draft states, this selector will still be caching, but using it with draft values it will
+When used with plain state values, the selector will still memoize normally based on the inputs.  But, when used with Immer draft values, the selector will err on the side of recalculating the results, just to be safe.
 err on the side of recalculating, just to be safe.
 
 All selectors created by `entityAdapter.getSelectors` will be such "draft safe" selectors by default.
