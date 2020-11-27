@@ -4,7 +4,8 @@ import {
   isAsyncThunkAction,
   isFulfilled,
   isPending,
-  isRejected
+  isRejected,
+  isRejectedWithValue
 } from './matchers'
 import { createAction } from './createAction'
 import { createAsyncThunk } from './createAsyncThunk'
@@ -242,6 +243,84 @@ describe('isRejected', () => {
     testRejectedAction(thunkA, true)
     testRejectedAction(thunkC, true)
     testRejectedAction(thunkB, false)
+  })
+})
+
+describe('isRejectedWithValue', () => {
+  test('should return false for a regular action', () => {
+    const action = createAction<string>('action/type')('testPayload')
+
+    expect(isRejectedWithValue()(action)).toBe(false)
+  })
+
+  test('should return true only for rejected-with-value async thunk actions', async () => {
+    const thunk = createAsyncThunk<string>('a', (_, { rejectWithValue }) => {
+      return rejectWithValue('rejectWithValue!');
+    })
+
+    const pendingAction = thunk.pending('fakeRequestId')
+    expect(isRejectedWithValue()(pendingAction)).toBe(false)
+
+    const rejectedAction = thunk.rejected(
+      new Error('rejected'),
+      'fakeRequestId'
+    )
+    expect(isRejectedWithValue()(rejectedAction)).toBe(false)
+
+    const getState = jest.fn(() => ({}))
+    const dispatch = jest.fn((x: any) => x)
+    const extra = {}
+
+    // note: doesn't throw because we don't unwrap it
+    const rejectedWithValueAction = await thunk()(dispatch, getState, extra);
+
+    expect(isRejectedWithValue()(rejectedWithValueAction)).toBe(true);
+
+    const fulfilledAction = thunk.fulfilled('result', 'fakeRequestId')
+    expect(isRejectedWithValue()(fulfilledAction)).toBe(false)
+  })
+
+  test('should return true only for thunks provided as arguments', async () => {
+    const payloadCreator = (_: any, { rejectWithValue }: any) => {
+      return rejectWithValue('rejectWithValue!');
+    };
+
+    const thunkA = createAsyncThunk<string>('a', payloadCreator)
+    const thunkB = createAsyncThunk<string>('b', payloadCreator)
+    const thunkC = createAsyncThunk<string>('c', payloadCreator)
+
+    const matchAC = isRejectedWithValue(thunkA, thunkC)
+
+    async function testRejectedAction(
+      thunk: typeof thunkA | typeof thunkB | typeof thunkC,
+      expected: boolean
+    ) {
+      const pendingAction = thunk.pending('fakeRequestId')
+      expect(matchAC(pendingAction)).toBe(false)
+
+      const rejectedAction = thunk.rejected(
+        new Error('rejected'),
+        'fakeRequestId'
+      )
+      // rejected-with-value is a narrower requirement than rejected
+      expect(matchAC(rejectedAction)).toBe(false)
+
+      const getState = jest.fn(() => ({}))
+      const dispatch = jest.fn((x: any) => x)
+      const extra = {}
+
+      // note: doesn't throw because we don't unwrap it
+      const rejectedWithValueAction = await thunk()(dispatch, getState, extra);
+
+      expect(matchAC(rejectedWithValueAction)).toBe(expected);
+
+      const fulfilledAction = thunk.fulfilled('result', 'fakeRequestId')
+      expect(matchAC(fulfilledAction)).toBe(false)
+    }
+
+    await testRejectedAction(thunkA, true)
+    await testRejectedAction(thunkC, true)
+    await testRejectedAction(thunkB, false)
   })
 })
 

@@ -1,6 +1,15 @@
 import { AnyAction } from 'redux'
-import { createAction, createAsyncThunk, isAllOf, isAnyOf } from '../../src'
-import { isAsyncThunkAction, isFulfilled, isPending, isRejected } from '../../src/matchers'
+import {
+  createAction,
+  createAsyncThunk,
+  isAllOf,
+  isAnyOf,
+  isAsyncThunkAction,
+  isFulfilled,
+  isPending,
+  isRejected,
+  isRejectedWithValue
+} from '../../src'
 
 /* isAnyOf */
 
@@ -274,6 +283,25 @@ function isAsyncThunkActionTest(action: AnyAction) {
       prop1b: action.payload.charAt(0),
       // do not expect an error property because pending/fulfilled lack it
       // typings:expect-error
+      prop2: action.error,
+    };
+  }
+}
+
+/*
+ * Test: isRejectedWithValue correctly narrows types
+ */
+function isRejectedWithValueTest(action: AnyAction) {
+  const thunk = createAsyncThunk<string>('a', () => 'result')
+
+  if (isRejectedWithValue(thunk)(action)) {
+    return {
+      // we should expect the payload to be defined ...
+      prop1a: action.payload,
+      // ... but of unknown type
+      // typings:expect-error
+      prop1b: action.payload.charAt(0),
+      // we should expect the error property to be defined
       prop2: action.error,
     };
   }
