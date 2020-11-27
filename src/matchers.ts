@@ -83,51 +83,138 @@ export type UnknownAsyncThunkPendingAction = ReturnType<
   AsyncThunkPendingActionCreator<unknown>
 >
 
+export type PendingActionFromAsyncThunk<T extends AnyAsyncThunk> = (
+  ActionFromMatcher<T['pending']>
+)
+
 /**
  * A type guard function that matches any pending async thunk action.
  *
- * @param action A redux action
+ * @param asyncThunks (optional) The async thunk action creators to match against.
  *
  * @public
  */
-export function isPending(
+export function isPending(): (
   action: any
-): action is UnknownAsyncThunkPendingAction {
-  return hasExpectedRequestMetadata(action, ['pending'])
+) => action is UnknownAsyncThunkPendingAction
+export function isPending<
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+>(
+  ...asyncThunks: AsyncThunks
+): (action: any) => action is PendingActionFromAsyncThunk<AsyncThunks[number]>
+export function isPending<
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+>(...asyncThunks: AsyncThunks) {
+  if (asyncThunks.length === 0) {
+    return (action: any) => hasExpectedRequestMetadata(action, ['pending']);
+  }
+
+  return (
+    action: any
+  ): action is PendingActionFromAsyncThunk<AsyncThunks[number]> => {
+    // note: this type will be correct because we have at least 1 asyncThunk
+    const matchers: [Matcher<any>, ...Matcher<any>[]] = [] as any;
+
+    for (const asyncThunk of asyncThunks) {
+      matchers.push(asyncThunk.pending)
+    }
+
+    const combinedMatcher = isAnyOf(...matchers)
+
+    return combinedMatcher(action)
+  }
 }
 
 export type UnknownAsyncThunkRejectedAction = ReturnType<
   AsyncThunkRejectedActionCreator<unknown, unknown>
 >
 
+export type RejectedActionFromAsyncThunk<T extends AnyAsyncThunk> = (
+  ActionFromMatcher<T['rejected']>
+)
+
 /**
  * A type guard function that matches any rejected async thunk action.
  *
- * @param action A redux action
+ * @param asyncThunks (optional) The async thunk action creators to match against.
  *
  * @public
  */
-export function isRejected(
+export function isRejected(): (
   action: any
-): action is UnknownAsyncThunkRejectedAction {
-  return hasExpectedRequestMetadata(action, ['rejected'])
+) => action is UnknownAsyncThunkRejectedAction
+export function isRejected<
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+>(
+  ...asyncThunks: AsyncThunks
+): (action: any) => action is RejectedActionFromAsyncThunk<AsyncThunks[number]>
+export function isRejected<
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+>(...asyncThunks: AsyncThunks) {
+  if (asyncThunks.length === 0) {
+    return (action: any) => hasExpectedRequestMetadata(action, ['rejected']);
+  }
+
+  return (
+    action: any
+  ): action is RejectedActionFromAsyncThunk<AsyncThunks[number]> => {
+    // note: this type will be correct because we have at least 1 asyncThunk
+    const matchers: [Matcher<any>, ...Matcher<any>[]] = [] as any;
+
+    for (const asyncThunk of asyncThunks) {
+      matchers.push(asyncThunk.rejected)
+    }
+
+    const combinedMatcher = isAnyOf(...matchers)
+
+    return combinedMatcher(action)
+  }
 }
 
 export type UnknownAsyncThunkFulfilledAction = ReturnType<
   AsyncThunkFulfilledActionCreator<unknown, unknown>
 >
 
+export type FulfilledActionFromAsyncThunk<T extends AnyAsyncThunk> = (
+  ActionFromMatcher<T['fulfilled']>
+)
+
 /**
  * A type guard function that matches any fulfilled async thunk action.
  *
- * @param action A redux action
+ * @param asyncThunks (optional) The async thunk action creators to match against.
  *
  * @public
  */
-export function isFulfilled(
+export function isFulfilled(): (
   action: any
-): action is UnknownAsyncThunkFulfilledAction {
-  return hasExpectedRequestMetadata(action, ['fulfilled'])
+) => action is UnknownAsyncThunkFulfilledAction
+export function isFulfilled<
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+>(
+  ...asyncThunks: AsyncThunks
+): (action: any) => action is FulfilledActionFromAsyncThunk<AsyncThunks[number]>
+export function isFulfilled<
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+>(...asyncThunks: AsyncThunks) {
+  if (asyncThunks.length === 0) {
+    return (action: any) => hasExpectedRequestMetadata(action, ['fulfilled']);
+  }
+
+  return (
+    action: any
+  ): action is FulfilledActionFromAsyncThunk<AsyncThunks[number]> => {
+    // note: this type will be correct because we have at least 1 asyncThunk
+    const matchers: [Matcher<any>, ...Matcher<any>[]] = [] as any;
+
+    for (const asyncThunk of asyncThunks) {
+      matchers.push(asyncThunk.fulfilled)
+    }
+
+    const combinedMatcher = isAnyOf(...matchers)
+
+    return combinedMatcher(action)
+  }
 }
 
 export type UnknownAsyncThunkAction =
