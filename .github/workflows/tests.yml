@@ -73,7 +73,8 @@ jobs:
         if: ${{ matrix.ts < 3.9 }}
         run: |
           sed -i -e 's/"cd type-tests.*"/"npm run test type-tests"/' package.json
-          sed -i -e 's/@ts-expect-error/typings:expect-error/' type-tests/files/*
+          sed -i -e 's/@ts-expect-error/typings:expect-error/' type-tests/files/*.typetest.ts
+          sed -i -e 's/@ts-expect-error/@ts-ignore/' type-tests/files/*.ts
           mv type-tests/types.test.disabled.ts type-tests/types.test.ts
 
       - name: Test types
