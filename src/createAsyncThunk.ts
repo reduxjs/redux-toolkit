@@ -356,7 +356,7 @@ export function createAsyncThunk<
           arg,
           requestId,
           requestStatus: 'rejected' as const,
-          isRejectedWithValue: rejectedWithValue,
+          rejectedWithValue: rejectedWithValue,
           aborted,
           condition
         }
