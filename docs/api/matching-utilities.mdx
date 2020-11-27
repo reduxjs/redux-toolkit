@@ -7,12 +7,12 @@ hide_title: true
 
 # Matching Utilities
 
-Redux Toolkit exports several type-safe utility matchers that you can leverage to simplify your code.
+Redux Toolkit exports several type-safe action matching utilities that you can leverage when checking for specific kinds of actions.  These are primarily useful for the `builder.addMatcher()` cases in `createSlice` and `createReducer`, as well as when writing custom middleware.
 
 ### General Purpose
 
 - [`isAllOf`](#isallof) - returns true when **all** conditions are met
-- [`isAnyOf`](#isanyof) - returns true when at least one of the conditions are met
+- [`isAnyOf`](#isanyof) - returns true when **at least one of** the conditions are met
 
 ### `createAsyncThunk`-specific matchers
 
