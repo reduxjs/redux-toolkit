@@ -185,6 +185,54 @@ export function isRejected<
   }
 }
 
+/**
+ * A higher-order function that returns a function that may be used to check
+ * whether an action was created by an async thunk action creator, and that
+ * the action is rejected with value.
+ *
+ * @public
+ */
+export function isRejectedWithValue(): (
+  action: any
+) => action is UnknownAsyncThunkRejectedAction
+/**
+ * A higher-order function that returns a function that may be used to check
+ * whether an action belongs to one of the provided async thunk action creators,
+ * and that the action is rejected with value.
+ *
+ * @param asyncThunks (optional) The async thunk action creators to match against.
+ *
+ * @public
+ */
+export function isRejectedWithValue<
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+  >(
+  ...asyncThunks: AsyncThunks
+): (action: any) => action is RejectedActionFromAsyncThunk<AsyncThunks[number]>
+export function isRejectedWithValue<
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+  >(...asyncThunks: AsyncThunks) {
+  const hasPayload = (action: any): action is any => !!action.payload;
+
+  if (asyncThunks.length === 0) {
+    return (
+      action: any
+    ) => {
+      const combinedMatcher = isAllOf(isRejected(...asyncThunks), hasPayload);
+
+      return combinedMatcher(action);
+    }
+  }
+
+  return (
+    action: any
+  ): action is RejectedActionFromAsyncThunk<AsyncThunks[number]> => {
+    const combinedMatcher = isAllOf(isRejected(...asyncThunks), hasPayload)
+
+    return combinedMatcher(action)
+  }
+}
+
 export type UnknownAsyncThunkFulfilledAction = ReturnType<
   AsyncThunkFulfilledActionCreator<unknown, unknown>
 >
