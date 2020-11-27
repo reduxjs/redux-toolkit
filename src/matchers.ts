@@ -83,9 +83,9 @@ export type UnknownAsyncThunkPendingAction = ReturnType<
   AsyncThunkPendingActionCreator<unknown>
 >
 
-export type PendingActionFromAsyncThunk<T extends AnyAsyncThunk> = (
-  ActionFromMatcher<T['pending']>
-)
+export type PendingActionFromAsyncThunk<
+  T extends AnyAsyncThunk
+> = ActionFromMatcher<T['pending']>
 
 /**
  * A higher-order function that returns a function that may be used to check
@@ -108,16 +108,16 @@ export function isPending<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
 >(...asyncThunks: AsyncThunks) {
   if (asyncThunks.length === 0) {
-    return (action: any) => hasExpectedRequestMetadata(action, ['pending']);
+    return (action: any) => hasExpectedRequestMetadata(action, ['pending'])
   }
 
   return (
     action: any
   ): action is PendingActionFromAsyncThunk<AsyncThunks[number]> => {
     // note: this type will be correct because we have at least 1 asyncThunk
-    const matchers: [Matcher<any>, ...Matcher<any>[]] = (
-      asyncThunks.map((asyncThunk => asyncThunk.pending))
-    ) as any;
+    const matchers: [Matcher<any>, ...Matcher<any>[]] = asyncThunks.map(
+      asyncThunk => asyncThunk.pending
+    ) as any
 
     const combinedMatcher = isAnyOf(...matchers)
 
@@ -129,9 +129,9 @@ export type UnknownAsyncThunkRejectedAction = ReturnType<
   AsyncThunkRejectedActionCreator<unknown, unknown>
 >
 
-export type RejectedActionFromAsyncThunk<T extends AnyAsyncThunk> = (
-  ActionFromMatcher<T['rejected']>
-)
+export type RejectedActionFromAsyncThunk<
+  T extends AnyAsyncThunk
+> = ActionFromMatcher<T['rejected']>
 
 /**
  * A higher-order function that returns a function that may be used to check
@@ -154,16 +154,16 @@ export function isRejected<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
 >(...asyncThunks: AsyncThunks) {
   if (asyncThunks.length === 0) {
-    return (action: any) => hasExpectedRequestMetadata(action, ['rejected']);
+    return (action: any) => hasExpectedRequestMetadata(action, ['rejected'])
   }
 
   return (
     action: any
   ): action is RejectedActionFromAsyncThunk<AsyncThunks[number]> => {
     // note: this type will be correct because we have at least 1 asyncThunk
-    const matchers: [Matcher<any>, ...Matcher<any>[]] = (
-      asyncThunks.map((asyncThunk => asyncThunk.rejected))
-    ) as any;
+    const matchers: [Matcher<any>, ...Matcher<any>[]] = asyncThunks.map(
+      asyncThunk => asyncThunk.rejected
+    ) as any
 
     const combinedMatcher = isAnyOf(...matchers)
 
@@ -175,9 +175,9 @@ export type UnknownAsyncThunkFulfilledAction = ReturnType<
   AsyncThunkFulfilledActionCreator<unknown, unknown>
 >
 
-export type FulfilledActionFromAsyncThunk<T extends AnyAsyncThunk> = (
-  ActionFromMatcher<T['fulfilled']>
-)
+export type FulfilledActionFromAsyncThunk<
+  T extends AnyAsyncThunk
+> = ActionFromMatcher<T['fulfilled']>
 
 /**
  * A higher-order function that returns a function that may be used to check
@@ -200,16 +200,16 @@ export function isFulfilled<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
 >(...asyncThunks: AsyncThunks) {
   if (asyncThunks.length === 0) {
-    return (action: any) => hasExpectedRequestMetadata(action, ['fulfilled']);
+    return (action: any) => hasExpectedRequestMetadata(action, ['fulfilled'])
   }
 
   return (
     action: any
   ): action is FulfilledActionFromAsyncThunk<AsyncThunks[number]> => {
     // note: this type will be correct because we have at least 1 asyncThunk
-    const matchers: [Matcher<any>, ...Matcher<any>[]] = (
-      asyncThunks.map((asyncThunk => asyncThunk.fulfilled))
-    ) as any;
+    const matchers: [Matcher<any>, ...Matcher<any>[]] = asyncThunks.map(
+      asyncThunk => asyncThunk.fulfilled
+    ) as any
 
     const combinedMatcher = isAnyOf(...matchers)
 
@@ -249,18 +249,15 @@ export function isAsyncThunkAction<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
 >(...asyncThunks: AsyncThunks) {
   if (asyncThunks.length === 0) {
-    return (action: any) => hasExpectedRequestMetadata(action, [
-      'pending',
-      'fulfilled',
-      'rejected'
-    ])
+    return (action: any) =>
+      hasExpectedRequestMetadata(action, ['pending', 'fulfilled', 'rejected'])
   }
 
   return (
     action: any
   ): action is ActionsFromAsyncThunk<AsyncThunks[number]> => {
     // note: this type will be correct because we have at least 1 asyncThunk
-    const matchers: [Matcher<any>, ...Matcher<any>[]] = [] as any;
+    const matchers: [Matcher<any>, ...Matcher<any>[]] = [] as any
 
     for (const asyncThunk of asyncThunks) {
       matchers.push(
