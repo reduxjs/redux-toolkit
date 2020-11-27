@@ -597,6 +597,37 @@ describe('conditional skipping of asyncThunks', () => {
       })
     )
   })
+
+  test('serializeError implementation', async () => {
+    function serializeError() {
+      return 'serialized!'
+    }
+    const errorObject = 'something else!'
+
+    const store = configureStore({
+      reducer: (state = [], action) => [...state, action]
+    })
+
+    const asyncThunk = createAsyncThunk<
+      unknown,
+      void,
+      { serializedErrorType: string }
+    >('test', () => Promise.reject(errorObject), { serializeError })
+    const rejected = await store.dispatch(asyncThunk())
+    if (!asyncThunk.rejected.match(rejected)) {
+      throw new Error()
+    }
+
+    const expectation = {
+      type: 'test/rejected',
+      payload: undefined,
+      error: 'serialized!',
+      meta: expect.any(Object)
+    }
+    expect(rejected).toEqual(expectation)
+    expect(store.getState()[2]).toEqual(expectation)
+    expect(rejected.error).not.toEqual(miniSerializeError(errorObject))
+  })
 })
 describe('unwrapResult', () => {
   const getState = jest.fn(() => ({}))
