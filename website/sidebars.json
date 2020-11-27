@@ -33,18 +33,13 @@
       },
       {
         "type": "category",
-        "label": "Matchers",
-        "collapsed": false,
-        "items": [
-          "api/isAnyOf",
-          "api/isAllOf"
-        ]
-      },
-      {
-        "type": "category",
         "label": "Other",
         "collapsed": false,
-        "items": ["api/createSelector", "api/other-exports"]
+        "items": [
+          "api/matching-utilities",
+          "api/createSelector",
+          "api/other-exports"
+        ]
       }
     ]
   }

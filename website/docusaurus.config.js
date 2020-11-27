@@ -39,6 +39,17 @@ module.exports = {
                         subModuleName: 'index.ts',
                         version: '1.0'
                       }
+                    },
+                    '@matchers-virtual-repo': {
+                      resolvedPath: resolve(
+                        __dirname,
+                        '../docs/virtual/matchers'
+                      ),
+                      packageId: {
+                        name: '@matchers-virtual-repo',
+                        subModuleName: 'index.js',
+                        version: '1.0'
+                      }
                     }
                   }
                 }

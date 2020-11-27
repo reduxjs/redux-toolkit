@@ -420,7 +420,7 @@ export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = ACR
     [T in keyof ACR]: ACR[T] extends {
         reducer(s: S, action?: infer A): any;
     } ? {
-        prepare(...a: never[]): Omit<A, 'type'>;
+        prepare(...a: never[]): Omit_2<A, 'type'>;
     } : {};
 };
 
