@@ -1,5 +1,6 @@
 import { AnyAction } from 'redux'
 import { createAction, createAsyncThunk, isAllOf, isAnyOf } from '../../src'
+import { isAsyncThunkAction, isFulfilled, isPending, isRejected } from '../../src/matchers'
 
 /* isAnyOf */
 
@@ -200,6 +201,80 @@ function isAllOfTypeGuardTest(action: AnyAction) {
       prop2: action.payload.prop2,
       prop3: action.payload.prop3,
       special: action.payload.special
+    };
+  }
+}
+
+/*
+ * Test: isPending correctly narrows types
+ */
+function isPendingTest(action: AnyAction) {
+  const thunk = createAsyncThunk<string>('a', () => 'result')
+
+  if (isPending(thunk)(action)) {
+    return {
+      // we should expect the payload to be undefined
+      // typings:expect-error
+      prop1: action.payload.charAt(0),
+      // we should not expect an error property
+      // typings:expect-error
+      prop2: action.error,
+    };
+  }
+}
+
+/*
+ * Test: isRejected correctly narrows types
+ */
+function isRejectedTest(action: AnyAction) {
+  const thunk = createAsyncThunk<string>('a', () => 'result')
+
+  if (isRejected(thunk)(action)) {
+    return {
+      // we should expect the payload to be defined ...
+      prop1a: action.payload,
+      // ... but of unknown type
+      // typings:expect-error
+      prop1b: action.payload.charAt(0),
+      // we should expect the error property to be defined
+      prop2: action.error,
+    };
+  }
+}
+
+/*
+ * Test: isFulfilled correctly narrows types
+ */
+function isFulfilledTest(action: AnyAction) {
+  const thunk = createAsyncThunk<string>('a', () => 'result')
+
+  if (isFulfilled(thunk)(action)) {
+    return {
+      // we should expect the payload to be defined (in this case a string)
+      prop1: action.payload.charAt(0),
+      // we should not expect an error property
+      // typings:expect-error
+      prop2: action.error,
+    };
+  }
+}
+
+/*
+ * Test: isAsyncThunkAction correctly narrows types
+ */
+function isAsyncThunkActionTest(action: AnyAction) {
+  const thunk = createAsyncThunk<string>('a', () => 'result')
+
+  if (isAsyncThunkAction(thunk)(action)) {
+    return {
+      // we should expect the payload to be defined ...
+      prop1a: action.payload,
+      // ... but of unknown type because the action may be pending/rejected
+      // typings:expect-error
+      prop1b: action.payload.charAt(0),
+      // do not expect an error property because pending/fulfilled lack it
+      // typings:expect-error
+      prop2: action.error,
     };
   }
 }
