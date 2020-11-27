@@ -12,10 +12,7 @@ import {
   SliceCaseReducers,
   ValidateSliceCaseReducers
 } from '@reduxjs/toolkit'
-
-function expectType<T>(t: T) {
-  return t
-}
+import { expectType } from './helpers'
 
 /*
  * Test: Slice name is strongly typed.

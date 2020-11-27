@@ -1,3 +1,4 @@
+import { IsUnknown } from '@internal/tsHelpers'
 import { AnyAction } from 'redux'
 import {
   createAction,
@@ -8,7 +9,8 @@ import {
   isFulfilled,
   isPending,
   isRejected,
-  isRejectedWithValue
+  isRejectedWithValue,
+  SerializedError
 } from '../../src'
 
 /* isAnyOf */
@@ -23,7 +25,7 @@ function isAnyOfActionTest(action: AnyAction) {
         prop1: 1,
         prop3: 2
       }
-    };
+    }
   })
 
   const actionB = createAction('b', () => {
@@ -32,17 +34,17 @@ function isAnyOfActionTest(action: AnyAction) {
         prop1: 1,
         prop2: 2
       }
-    };
+    }
   })
 
   if (isAnyOf(actionA, actionB)(action)) {
     return {
       prop1: action.payload.prop1,
-      // typings:expect-error
+      // @ts-expect-error
       prop2: action.payload.prop2,
-      // typings:expect-error
+      // @ts-expect-error
       prop3: action.payload.prop3
-    };
+    }
   }
 }
 
@@ -50,36 +52,36 @@ function isAnyOfActionTest(action: AnyAction) {
  * Test: isAnyOf correctly narrows types when used with async thunks
  */
 function isAnyOfThunkTest(action: AnyAction) {
-  const asyncThunk1 = createAsyncThunk<{prop1: number, prop3: number}>(
+  const asyncThunk1 = createAsyncThunk<{ prop1: number; prop3: number }>(
     'asyncThunk1',
 
     async () => {
       return {
         prop1: 1,
         prop3: 3
-      };
+      }
     }
-  );
+  )
 
-  const asyncThunk2 = createAsyncThunk<{prop1: number, prop2: number}>(
+  const asyncThunk2 = createAsyncThunk<{ prop1: number; prop2: number }>(
     'asyncThunk2',
 
     async () => {
       return {
         prop1: 1,
         prop2: 2
-      };
+      }
     }
-  );
+  )
 
   if (isAnyOf(asyncThunk1.fulfilled, asyncThunk2.fulfilled)(action)) {
     return {
       prop1: action.payload.prop1,
-      // typings:expect-error
+      // @ts-expect-error
       prop2: action.payload.prop2,
-      // typings:expect-error
+      // @ts-expect-error
       prop3: action.payload.prop3
-    };
+    }
   }
 }
 
@@ -88,38 +90,37 @@ function isAnyOfThunkTest(action: AnyAction) {
  */
 function isAnyOfTypeGuardTest(action: AnyAction) {
   interface ActionA {
-    type: 'a';
+    type: 'a'
     payload: {
-      prop1: 1,
+      prop1: 1
       prop3: 2
-    };
+    }
   }
 
   interface ActionB {
-    type: 'b';
+    type: 'b'
     payload: {
-      prop1: 1,
+      prop1: 1
       prop2: 2
     }
   }
 
   const guardA = (v: any): v is ActionA => {
-    return v.type === 'a';
+    return v.type === 'a'
   }
 
   const guardB = (v: any): v is ActionB => {
-    return v.type === 'b';
+    return v.type === 'b'
   }
-
 
   if (isAnyOf(guardA, guardB)(action)) {
     return {
       prop1: action.payload.prop1,
-      // typings:expect-error
+      // @ts-expect-error
       prop2: action.payload.prop2,
-      // typings:expect-error
+      // @ts-expect-error
       prop3: action.payload.prop3
-    };
+    }
   }
 }
 
@@ -127,12 +128,12 @@ function isAnyOfTypeGuardTest(action: AnyAction) {
 
 interface SpecialAction {
   payload: {
-    special: boolean;
+    special: boolean
   }
 }
 
 const isSpecialAction = (v: any): v is SpecialAction => {
-  return v.meta.isSpecial;
+  return v.meta.isSpecial
 }
 
 /*
@@ -146,17 +147,17 @@ function isAllOfActionTest(action: AnyAction) {
         prop1: 1,
         prop3: 2
       }
-    };
+    }
   })
 
   if (isAllOf(actionA, isSpecialAction)(action)) {
     return {
       prop1: action.payload.prop1,
-      // typings:expect-error
+      // @ts-expect-error
       prop2: action.payload.prop2,
       prop3: action.payload.prop3,
       special: action.payload.special
-    };
+    }
   }
 }
 
@@ -165,25 +166,25 @@ function isAllOfActionTest(action: AnyAction) {
  *       and type guards
  */
 function isAllOfThunkTest(action: AnyAction) {
-  const asyncThunk1 = createAsyncThunk<{prop1: number, prop3: number}>(
+  const asyncThunk1 = createAsyncThunk<{ prop1: number; prop3: number }>(
     'asyncThunk1',
 
     async () => {
       return {
         prop1: 1,
         prop3: 3
-      };
+      }
     }
-  );
+  )
 
   if (isAllOf(asyncThunk1.fulfilled, isSpecialAction)(action)) {
     return {
       prop1: action.payload.prop1,
-      // typings:expect-error
+      // @ts-expect-error
       prop2: action.payload.prop2,
       prop3: action.payload.prop3,
       special: action.payload.special
-    };
+    }
   }
 }
 
@@ -192,25 +193,25 @@ function isAllOfThunkTest(action: AnyAction) {
  */
 function isAllOfTypeGuardTest(action: AnyAction) {
   interface ActionA {
-    type: 'a';
+    type: 'a'
     payload: {
-      prop1: 1,
+      prop1: 1
       prop3: 2
-    };
+    }
   }
 
   const guardA = (v: any): v is ActionA => {
-    return v.type === 'a';
+    return v.type === 'a'
   }
 
   if (isAllOf(guardA, isSpecialAction)(action)) {
     return {
       prop1: action.payload.prop1,
-      // typings:expect-error
+      // @ts-expect-error
       prop2: action.payload.prop2,
       prop3: action.payload.prop3,
       special: action.payload.special
-    };
+    }
   }
 }
 
@@ -218,17 +219,18 @@ function isAllOfTypeGuardTest(action: AnyAction) {
  * Test: isPending correctly narrows types
  */
 function isPendingTest(action: AnyAction) {
+  if (isPending(action)) {
+    expectExactType<undefined>(action.payload)
+    // @ts-expect-error
+    action.error
+  }
+
   const thunk = createAsyncThunk<string>('a', () => 'result')
 
   if (isPending(thunk)(action)) {
-    return {
-      // we should expect the payload to be undefined
-      // typings:expect-error
-      prop1: action.payload.charAt(0),
-      // we should not expect an error property
-      // typings:expect-error
-      prop2: action.error,
-    };
+    expectExactType<undefined>(action.payload)
+    // @ts-expect-error
+    action.error
   }
 }
 
@@ -236,18 +238,18 @@ function isPendingTest(action: AnyAction) {
  * Test: isRejected correctly narrows types
  */
 function isRejectedTest(action: AnyAction) {
+  if (isRejected(action)) {
+    // might be there if rejected with payload
+    expectUnknown(action.payload)
+    expectExactType<SerializedError>(action.error)
+  }
+
   const thunk = createAsyncThunk<string>('a', () => 'result')
 
   if (isRejected(thunk)(action)) {
-    return {
-      // we should expect the payload to be defined ...
-      prop1a: action.payload,
-      // ... but of unknown type
-      // typings:expect-error
-      prop1b: action.payload.charAt(0),
-      // we should expect the error property to be defined
-      prop2: action.error,
-    };
+    // might be there if rejected with payload
+    expectUnknown(action.payload)
+    expectExactType<SerializedError>(action.error)
   }
 }
 
@@ -255,16 +257,17 @@ function isRejectedTest(action: AnyAction) {
  * Test: isFulfilled correctly narrows types
  */
 function isFulfilledTest(action: AnyAction) {
-  const thunk = createAsyncThunk<string>('a', () => 'result')
+  if (isFulfilled(action)) {
+    expectUnknown(action.payload)
+    // @ts-expect-error
+    action.error
+  }
 
+  const thunk = createAsyncThunk<string>('a', () => 'result')
   if (isFulfilled(thunk)(action)) {
-    return {
-      // we should expect the payload to be defined (in this case a string)
-      prop1: action.payload.charAt(0),
-      // we should not expect an error property
-      // typings:expect-error
-      prop2: action.error,
-    };
+    expectExactType('' as string)(action.payload)
+    // @ts-expect-error
+    action.error
   }
 }
 
@@ -272,19 +275,20 @@ function isFulfilledTest(action: AnyAction) {
  * Test: isAsyncThunkAction correctly narrows types
  */
 function isAsyncThunkActionTest(action: AnyAction) {
-  const thunk = createAsyncThunk<string>('a', () => 'result')
+  if (isAsyncThunkAction(action)) {
+    expectUnknown(action.payload)
+    // do not expect an error property because pending/fulfilled lack it
+    // @ts-expect-error
+    action.error
+  }
 
+  const thunk = createAsyncThunk<string>('a', () => 'result')
   if (isAsyncThunkAction(thunk)(action)) {
-    return {
-      // we should expect the payload to be defined ...
-      prop1a: action.payload,
-      // ... but of unknown type because the action may be pending/rejected
-      // typings:expect-error
-      prop1b: action.payload.charAt(0),
-      // do not expect an error property because pending/fulfilled lack it
-      // typings:expect-error
-      prop2: action.error,
-    };
+    // we should expect the payload to be available, but of unknown type because the action may be pending/rejected
+    expectUnknown(action.payload)
+    // do not expect an error property because pending/fulfilled lack it
+    // @ts-expect-error
+    action.error
   }
 }
 
@@ -292,17 +296,20 @@ function isAsyncThunkActionTest(action: AnyAction) {
  * Test: isRejectedWithValue correctly narrows types
  */
 function isRejectedWithValueTest(action: AnyAction) {
-  const thunk = createAsyncThunk<string>('a', () => 'result')
+  if (isRejectedWithValue(action)) {
+    expectUnknown(action.payload)
+    expectExactType<SerializedError>(action.error)
+  }
 
+  const thunk = createAsyncThunk<
+    string,
+    void,
+    { rejectValue: { message: string } }
+  >('a', () => 'result')
   if (isRejectedWithValue(thunk)(action)) {
-    return {
-      // we should expect the payload to be defined ...
-      prop1a: action.payload,
-      // ... but of unknown type
-      // typings:expect-error
-      prop1b: action.payload.charAt(0),
-      // we should expect the error property to be defined
-      prop2: action.error,
-    };
+    expectExactType({ message: '' as string })(action.payload)
+    expectExactType<SerializedError>(action.error)
   }
 }
+
+import { expectExactType, expectUnknown } from './helpers'

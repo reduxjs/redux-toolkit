@@ -1,9 +1,6 @@
 import { executeReducerBuilderCallback } from '@internal/mapBuilders'
 import { createAction, AnyAction } from '@reduxjs/toolkit'
-
-function expectType<T>(t: T) {
-  return t
-}
+import { expectType } from './helpers'
 
 /** Test:  alternative builder callback for actionMap */
 {

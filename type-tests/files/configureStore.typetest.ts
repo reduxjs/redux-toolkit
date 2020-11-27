@@ -13,11 +13,9 @@ import {
   getDefaultMiddleware
 } from '@reduxjs/toolkit'
 import thunk, { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
+import { expectType } from './helpers'
 
 const _anyMiddleware: any = () => () => () => {}
-function expectType<T>(t: T) {
-  return t
-}
 
 /*
  * Test: configureStore() requires a valid reducer or reducer map.

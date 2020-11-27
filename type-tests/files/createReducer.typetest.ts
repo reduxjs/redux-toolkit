@@ -4,8 +4,7 @@ import {
   createAction,
   ActionReducerMapBuilder
 } from '@reduxjs/toolkit'
-
-function expectType<T>(p: T) {}
+import { expectType } from './helpers'
 
 /*
  * Test: createReducer() infers type of returned reducer.
