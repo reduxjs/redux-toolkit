@@ -88,7 +88,9 @@ export type PendingActionFromAsyncThunk<T extends AnyAsyncThunk> = (
 )
 
 /**
- * A type guard function that matches any pending async thunk action.
+ * A higher-order function that returns a function that may be used to check
+ * whether an action belongs to one of the provided async thunk action creators,
+ * and that the action is pending.
  *
  * @param asyncThunks (optional) The async thunk action creators to match against.
  *
@@ -132,7 +134,9 @@ export type RejectedActionFromAsyncThunk<T extends AnyAsyncThunk> = (
 )
 
 /**
- * A type guard function that matches any rejected async thunk action.
+ * A higher-order function that returns a function that may be used to check
+ * whether an action belongs to one of the provided async thunk action creators,
+ * and that the action is rejected.
  *
  * @param asyncThunks (optional) The async thunk action creators to match against.
  *
@@ -176,7 +180,9 @@ export type FulfilledActionFromAsyncThunk<T extends AnyAsyncThunk> = (
 )
 
 /**
- * A type guard function that matches any fulfilled async thunk action.
+ * A higher-order function that returns a function that may be used to check
+ * whether an action belongs to one of the provided async thunk action creators,
+ * and that the action is fulfilled.
  *
  * @param asyncThunks (optional) The async thunk action creators to match against.
  *
