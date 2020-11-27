@@ -27,16 +27,7 @@ It will return a type guard function that returns `true` if _all_ of the provide
 
 ## `isAnyOf`
 
-A higher-order function that accepts one or more of:
-
-- `redux-toolkit` action creator functions such as the ones produced by:
-  - [`createAction`](./createAction)
-  - [`createSlice`](./createSlice#return-value)
-  - [`createAsyncThunk`](./createAsyncThunk#promise-lifecycle-actions)
-- type guard functions
-- custom action creator functions that have a `.match` property that is a type guard
-
-It will return a type guard function that returns `true` if at least one of the provided functions match.
+Accepts the same inputs as `isAllOf` and will return a type guard function that returns `true` if at least one of the provided functions match.
 
 ## Using matchers to reduce code complexity, duplication and boilerplate
 
@@ -116,7 +107,7 @@ import {
   isSpecial,
   isInteresting,
   Data
-} from '@matchers-virtual-repo' // This is a fake pkg that provides the types shown above
+} from '@virtual/matchers' // This is a fake pkg that provides the types shown above
 
 const loadingReducer = createReducer(initialState, builder => {
   builder
@@ -135,7 +126,7 @@ The function returned by `isAllOf` and `isAnyOf` can also be used as a TypeScrip
 
 ```ts title="Using isAllOf as a type guard"
 import { isAllOf, PayloadAction } from '@reduxjs/toolkit'
-import { request, Data, isSpecial, isInteresting } from '@matchers-virtual-repo' // This is a fake pkg that provides the types shown above
+import { request, Data, isSpecial, isInteresting } from '@virtual/matchers' // This is a fake pkg that provides the types shown above
 
 const isSpecialAndInteresting = isAllOf(isSpecial, isInteresting)
 
@@ -149,7 +140,7 @@ function someFunction(action: PayloadAction<Data>) {
 
 ```ts title="Using isAnyOf as a type guard"
 import { isAnyOf, PayloadAction } from '@reduxjs/toolkit'
-import { request, Data, isSpecial, isInteresting } from '@matchers-virtual-repo' // this is a fake pkg that provides the types shown above
+import { request, Data, isSpecial, isInteresting } from '@virtual/matchers' // this is a fake pkg that provides the types shown above
 
 const isSpecialOrInteresting = isAnyOf(isSpecial, isInteresting)
 
