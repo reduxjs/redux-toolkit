@@ -89,6 +89,16 @@ export type PendingActionFromAsyncThunk<
 
 /**
  * A higher-order function that returns a function that may be used to check
+ * whether an action was created by an async thunk action creator, and that
+ * the action is pending.
+ *
+ * @public
+ */
+export function isPending(): (
+  action: any
+) => action is UnknownAsyncThunkPendingAction
+/**
+ * A higher-order function that returns a function that may be used to check
  * whether an action belongs to one of the provided async thunk action creators,
  * and that the action is pending.
  *
@@ -96,9 +106,6 @@ export type PendingActionFromAsyncThunk<
  *
  * @public
  */
-export function isPending(): (
-  action: any
-) => action is UnknownAsyncThunkPendingAction
 export function isPending<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
 >(
@@ -135,6 +142,16 @@ export type RejectedActionFromAsyncThunk<
 
 /**
  * A higher-order function that returns a function that may be used to check
+ * whether an action was created by an async thunk action creator, and that
+ * the action is rejected.
+ *
+ * @public
+ */
+export function isRejected(): (
+  action: any
+) => action is UnknownAsyncThunkRejectedAction
+/**
+ * A higher-order function that returns a function that may be used to check
  * whether an action belongs to one of the provided async thunk action creators,
  * and that the action is rejected.
  *
@@ -142,9 +159,6 @@ export type RejectedActionFromAsyncThunk<
  *
  * @public
  */
-export function isRejected(): (
-  action: any
-) => action is UnknownAsyncThunkRejectedAction
 export function isRejected<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
 >(
@@ -181,6 +195,16 @@ export type FulfilledActionFromAsyncThunk<
 
 /**
  * A higher-order function that returns a function that may be used to check
+ * whether an action was created by an async thunk action creator, and that
+ * the action is fulfilled.
+ *
+ * @public
+ */
+export function isFulfilled(): (
+  action: any
+) => action is UnknownAsyncThunkFulfilledAction
+/**
+ * A higher-order function that returns a function that may be used to check
  * whether an action belongs to one of the provided async thunk action creators,
  * and that the action is fulfilled.
  *
@@ -188,9 +212,6 @@ export type FulfilledActionFromAsyncThunk<
  *
  * @public
  */
-export function isFulfilled(): (
-  action: any
-) => action is UnknownAsyncThunkFulfilledAction
 export function isFulfilled<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
 >(
@@ -231,15 +252,21 @@ export type ActionsFromAsyncThunk<T extends AnyAsyncThunk> =
 
 /**
  * A higher-order function that returns a function that may be used to check
- * whether an action belongs to one of the provided async thunk action creators.
- *
- * @param asyncThunks (optional) The async thunk action creators to match against.
+ * whether an action was created by an async thunk action creator.
  *
  * @public
  */
 export function isAsyncThunkAction(): (
   action: any
 ) => action is UnknownAsyncThunkAction
+/**
+ * A higher-order function that returns a function that may be used to check
+ * whether an action belongs to one of the provided async thunk action creators.
+ *
+ * @param asyncThunks (optional) The async thunk action creators to match against.
+ *
+ * @public
+ */
 export function isAsyncThunkAction<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
 >(
