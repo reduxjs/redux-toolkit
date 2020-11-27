@@ -255,7 +255,7 @@ describe('isRejectedWithValue', () => {
 
   test('should return true only for rejected-with-value async thunk actions', async () => {
     const thunk = createAsyncThunk<string>('a', (_, { rejectWithValue }) => {
-      return rejectWithValue('rejectWithValue!');
+      return rejectWithValue('rejectWithValue!')
     })
 
     const pendingAction = thunk.pending('fakeRequestId')
@@ -272,9 +272,9 @@ describe('isRejectedWithValue', () => {
     const extra = {}
 
     // note: doesn't throw because we don't unwrap it
-    const rejectedWithValueAction = await thunk()(dispatch, getState, extra);
+    const rejectedWithValueAction = await thunk()(dispatch, getState, extra)
 
-    expect(isRejectedWithValue()(rejectedWithValueAction)).toBe(true);
+    expect(isRejectedWithValue()(rejectedWithValueAction)).toBe(true)
 
     const fulfilledAction = thunk.fulfilled('result', 'fakeRequestId')
     expect(isRejectedWithValue()(fulfilledAction)).toBe(false)
@@ -282,8 +282,8 @@ describe('isRejectedWithValue', () => {
 
   test('should return true only for thunks provided as arguments', async () => {
     const payloadCreator = (_: any, { rejectWithValue }: any) => {
-      return rejectWithValue('rejectWithValue!');
-    };
+      return rejectWithValue('rejectWithValue!')
+    }
 
     const thunkA = createAsyncThunk<string>('a', payloadCreator)
     const thunkB = createAsyncThunk<string>('b', payloadCreator)
@@ -310,9 +310,9 @@ describe('isRejectedWithValue', () => {
       const extra = {}
 
       // note: doesn't throw because we don't unwrap it
-      const rejectedWithValueAction = await thunk()(dispatch, getState, extra);
+      const rejectedWithValueAction = await thunk()(dispatch, getState, extra)
 
-      expect(matchAC(rejectedWithValueAction)).toBe(expected);
+      expect(matchAC(rejectedWithValueAction)).toBe(expected)
 
       const fulfilledAction = thunk.fulfilled('result', 'fakeRequestId')
       expect(matchAC(fulfilledAction)).toBe(false)

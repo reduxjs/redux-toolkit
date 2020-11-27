@@ -206,23 +206,21 @@ export function isRejectedWithValue(): (
  */
 export function isRejectedWithValue<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
-  >(
+>(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is RejectedActionFromAsyncThunk<AsyncThunks[number]>
 export function isRejectedWithValue<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
-  >(...asyncThunks: AsyncThunks) {
+>(...asyncThunks: AsyncThunks) {
   const hasFlag = (action: any): action is any => {
-    return action && action.meta && action.meta.isRejectedWithValue;
+    return action && action.meta && action.meta.isRejectedWithValue
   }
 
   if (asyncThunks.length === 0) {
-    return (
-      action: any
-    ) => {
-      const combinedMatcher = isAllOf(isRejected(...asyncThunks), hasFlag);
+    return (action: any) => {
+      const combinedMatcher = isAllOf(isRejected(...asyncThunks), hasFlag)
 
-      return combinedMatcher(action);
+      return combinedMatcher(action)
     }
   }
 

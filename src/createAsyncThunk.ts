@@ -254,7 +254,7 @@ export type AsyncThunkRejectedActionCreator<
     arg: ThunkArg
     requestId: string
     requestStatus: 'rejected'
-    isRejectedWithValue?: boolean;
+    isRejectedWithValue?: boolean
     aborted: boolean
     condition: boolean
   }
@@ -346,7 +346,7 @@ export function createAsyncThunk<
       requestId: string,
       arg: ThunkArg,
       payload?: RejectedValue,
-      isRejectedWithValue?: boolean,
+      isRejectedWithValue?: boolean
     ) => {
       const aborted = !!error && error.name === 'AbortError'
       const condition = !!error && error.name === 'ConditionError'
