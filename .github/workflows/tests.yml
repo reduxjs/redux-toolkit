@@ -69,6 +69,12 @@ jobs:
         run: |
           sed -i -e 's|@reduxjs/toolkit": \["./src"\]|@reduxjs/toolkit": ["."]|' ./type-tests/files/tsconfig.json
 
+      - name: Prefix `freeze` re-export for pre-3.7 TS versions with @ts-ignore
+        if: ${{ matrix.ts < 3.7 }}
+        run: |
+          sed -i -e "/import .* freeze .* from 'immer'/s/^/\/\/ @ts-ignore\n/" dist/typings.d.ts
+          sed -i -e "/export .* freeze .* from 'immer'/s/^/\/\/ @ts-ignore\n/" src/index.ts
+
       - name: Use typings-tester for old TS versions
         if: ${{ matrix.ts < 3.9 }}
         run: |
