@@ -113,11 +113,9 @@ export function isPending<
     action: any
   ): action is PendingActionFromAsyncThunk<AsyncThunks[number]> => {
     // note: this type will be correct because we have at least 1 asyncThunk
-    const matchers: [Matcher<any>, ...Matcher<any>[]] = [] as any;
-
-    for (const asyncThunk of asyncThunks) {
-      matchers.push(asyncThunk.pending)
-    }
+    const matchers: [Matcher<any>, ...Matcher<any>[]] = (
+      asyncThunks.map((asyncThunk => asyncThunk.pending))
+    ) as any;
 
     const combinedMatcher = isAnyOf(...matchers)
 
@@ -159,11 +157,9 @@ export function isRejected<
     action: any
   ): action is RejectedActionFromAsyncThunk<AsyncThunks[number]> => {
     // note: this type will be correct because we have at least 1 asyncThunk
-    const matchers: [Matcher<any>, ...Matcher<any>[]] = [] as any;
-
-    for (const asyncThunk of asyncThunks) {
-      matchers.push(asyncThunk.rejected)
-    }
+    const matchers: [Matcher<any>, ...Matcher<any>[]] = (
+      asyncThunks.map((asyncThunk => asyncThunk.rejected))
+    ) as any;
 
     const combinedMatcher = isAnyOf(...matchers)
 
@@ -205,11 +201,9 @@ export function isFulfilled<
     action: any
   ): action is FulfilledActionFromAsyncThunk<AsyncThunks[number]> => {
     // note: this type will be correct because we have at least 1 asyncThunk
-    const matchers: [Matcher<any>, ...Matcher<any>[]] = [] as any;
-
-    for (const asyncThunk of asyncThunks) {
-      matchers.push(asyncThunk.fulfilled)
-    }
+    const matchers: [Matcher<any>, ...Matcher<any>[]] = (
+      asyncThunks.map((asyncThunk => asyncThunk.fulfilled))
+    ) as any;
 
     const combinedMatcher = isAnyOf(...matchers)
 
