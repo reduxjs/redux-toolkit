@@ -10,10 +10,8 @@ import { ThunkDispatch } from 'redux-thunk'
 
 import apiRequest, { AxiosError } from 'axios'
 import { IsAny, IsUnknown } from '@internal/tsHelpers'
+import { expectType } from './helpers'
 
-function expectType<T>(t: T) {
-  return t
-}
 const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
 
   // basic usage

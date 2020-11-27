@@ -309,10 +309,16 @@ export function isAsyncThunkAction(): (action: any) => action is UnknownAsyncThu
 export function isAsyncThunkAction<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(...asyncThunks: AsyncThunks): (action: any) => action is ActionsFromAsyncThunk<AsyncThunks[number]>;
 
 // @public
+export function isAsyncThunkAction(action: any): action is UnknownAsyncThunkAction;
+
+// @public
 export function isFulfilled(): (action: any) => action is UnknownAsyncThunkFulfilledAction;
 
 // @public
 export function isFulfilled<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(...asyncThunks: AsyncThunks): (action: any) => action is FulfilledActionFromAsyncThunk<AsyncThunks[number]>;
+
+// @public
+export function isFulfilled(action: any): action is UnknownAsyncThunkFulfilledAction;
 
 // @public
 export function isImmutableDefault(value: unknown): boolean;
@@ -322,6 +328,9 @@ export function isPending(): (action: any) => action is UnknownAsyncThunkPending
 
 // @public
 export function isPending<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(...asyncThunks: AsyncThunks): (action: any) => action is PendingActionFromAsyncThunk<AsyncThunks[number]>;
+
+// @public
+export function isPending(action: any): action is UnknownAsyncThunkPendingAction;
 
 // @public
 export function isPlain(val: any): boolean;
@@ -336,10 +345,16 @@ export function isRejected(): (action: any) => action is UnknownAsyncThunkReject
 export function isRejected<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(...asyncThunks: AsyncThunks): (action: any) => action is RejectedActionFromAsyncThunk<AsyncThunks[number]>;
 
 // @public
+export function isRejected(action: any): action is UnknownAsyncThunkRejectedAction;
+
+// @public
 export function isRejectedWithValue(): (action: any) => action is UnknownAsyncThunkRejectedAction;
 
 // @public
-export function isRejectedWithValue<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(...asyncThunks: AsyncThunks): (action: any) => action is RejectedActionFromAsyncThunk<AsyncThunks[number]>;
+export function isRejectedWithValue<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(...asyncThunks: AsyncThunks): (action: any) => action is RejectedWithValueActionFromAsyncThunk<AsyncThunks[number]>;
+
+// @public
+export function isRejectedWithValue(action: any): action is UnknownAsyncThunkRejectedAction;
 
 // @public (undocumented)
 export class MiddlewareArray<Middlewares extends Middleware<any, any>> extends Array<Middlewares> {

@@ -79,6 +79,15 @@ export function hasExpectedRequestMetadata(action: any, validStatus: string[]) {
   return hasValidRequestId && hasValidRequestStatus
 }
 
+function isAsyncThunkArray(a: [any] | AnyAsyncThunk[]): a is AnyAsyncThunk[] {
+  return (
+    typeof a[0] === 'function' &&
+    'pending' in a[0] &&
+    'fulfilled' in a[0] &&
+    'rejected' in a[0]
+  )
+}
+
 export type UnknownAsyncThunkPendingAction = ReturnType<
   AsyncThunkPendingActionCreator<unknown>
 >
@@ -111,11 +120,20 @@ export function isPending<
 >(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is PendingActionFromAsyncThunk<AsyncThunks[number]>
+/**
+ * Tests if `action` is a pending thunk action
+ * @public
+ */
+export function isPending(action: any): action is UnknownAsyncThunkPendingAction
 export function isPending<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
->(...asyncThunks: AsyncThunks) {
+>(...asyncThunks: AsyncThunks | [any]) {
   if (asyncThunks.length === 0) {
     return (action: any) => hasExpectedRequestMetadata(action, ['pending'])
+  }
+
+  if (!isAsyncThunkArray(asyncThunks)) {
+    return isPending()(asyncThunks[0])
   }
 
   return (
@@ -164,11 +182,22 @@ export function isRejected<
 >(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is RejectedActionFromAsyncThunk<AsyncThunks[number]>
+/**
+ * Tests if `action` is a rejected thunk action
+ * @public
+ */
+export function isRejected(
+  action: any
+): action is UnknownAsyncThunkRejectedAction
 export function isRejected<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
->(...asyncThunks: AsyncThunks) {
+>(...asyncThunks: AsyncThunks | [any]) {
   if (asyncThunks.length === 0) {
     return (action: any) => hasExpectedRequestMetadata(action, ['rejected'])
+  }
+
+  if (!isAsyncThunkArray(asyncThunks)) {
+    return isRejected()(asyncThunks[0])
   }
 
   return (
@@ -184,6 +213,17 @@ export function isRejected<
     return combinedMatcher(action)
   }
 }
+
+export type UnknownAsyncThunkRejectedWithValueAction = ReturnType<
+  AsyncThunkRejectedActionCreator<unknown, unknown>
+>
+
+export type RejectedWithValueActionFromAsyncThunk<
+  T extends AnyAsyncThunk
+> = ActionFromMatcher<T['rejected']> &
+  (T extends AsyncThunk<any, any, { rejectValue: infer RejectedValue }>
+    ? { payload: RejectedValue }
+    : unknown)
 
 /**
  * A higher-order function that returns a function that may be used to check
@@ -208,10 +248,19 @@ export function isRejectedWithValue<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
 >(
   ...asyncThunks: AsyncThunks
-): (action: any) => action is RejectedActionFromAsyncThunk<AsyncThunks[number]>
+): (
+  action: any
+) => action is RejectedWithValueActionFromAsyncThunk<AsyncThunks[number]>
+/**
+ * Tests if `action` is a rejected thunk action with value
+ * @public
+ */
+export function isRejectedWithValue(
+  action: any
+): action is UnknownAsyncThunkRejectedAction
 export function isRejectedWithValue<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
->(...asyncThunks: AsyncThunks) {
+>(...asyncThunks: AsyncThunks | [any]) {
   const hasFlag = (action: any): action is any => {
     return action && action.meta && action.meta.rejectedWithValue
   }
@@ -222,6 +271,10 @@ export function isRejectedWithValue<
 
       return combinedMatcher(action)
     }
+  }
+
+  if (!isAsyncThunkArray(asyncThunks)) {
+    return isRejectedWithValue()(asyncThunks[0])
   }
 
   return (
@@ -265,11 +318,22 @@ export function isFulfilled<
 >(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is FulfilledActionFromAsyncThunk<AsyncThunks[number]>
+/**
+ * Tests if `action` is a fulfilled thunk action
+ * @public
+ */
+export function isFulfilled(
+  action: any
+): action is UnknownAsyncThunkFulfilledAction
 export function isFulfilled<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
->(...asyncThunks: AsyncThunks) {
+>(...asyncThunks: AsyncThunks | [any]) {
   if (asyncThunks.length === 0) {
     return (action: any) => hasExpectedRequestMetadata(action, ['fulfilled'])
+  }
+
+  if (!isAsyncThunkArray(asyncThunks)) {
+    return isFulfilled()(asyncThunks[0])
   }
 
   return (
@@ -320,12 +384,23 @@ export function isAsyncThunkAction<
 >(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is ActionsFromAsyncThunk<AsyncThunks[number]>
+/**
+ * Tests if `action` is a thunk action
+ * @public
+ */
+export function isAsyncThunkAction(
+  action: any
+): action is UnknownAsyncThunkAction
 export function isAsyncThunkAction<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
->(...asyncThunks: AsyncThunks) {
+>(...asyncThunks: AsyncThunks | [any]) {
   if (asyncThunks.length === 0) {
     return (action: any) =>
       hasExpectedRequestMetadata(action, ['pending', 'fulfilled', 'rejected'])
+  }
+
+  if (!isAsyncThunkArray(asyncThunks)) {
+    return isAsyncThunkAction()(asyncThunks[0])
   }
 
   return (

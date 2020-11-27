@@ -10,10 +10,7 @@ import {
   ActionCreatorWithPreparedPayload
 } from '@reduxjs/toolkit'
 import { IsAny } from '@internal/tsHelpers'
-
-function expectType<T>(p: T): T {
-  return p
-}
+import { expectType } from './helpers'
 
 /* PayloadAction */
 

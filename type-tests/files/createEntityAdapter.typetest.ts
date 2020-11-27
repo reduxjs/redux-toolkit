@@ -8,10 +8,7 @@ import {
   EntityId,
   Update
 } from '@reduxjs/toolkit'
-
-function expectType<T>(t: T) {
-  return t
-}
+import { expectType } from './helpers'
 
 function extractReducers<T>(
   adapter: EntityAdapter<T>
