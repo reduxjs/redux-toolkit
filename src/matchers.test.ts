@@ -167,7 +167,7 @@ describe('isPending', () => {
     const thunkB = createAsyncThunk<string>('b', () => 'result')
     const thunkC = createAsyncThunk<string>('c', () => 'result')
 
-    const matchAC = isAsyncThunkAction(thunkA, thunkC)
+    const matchAC = isPending(thunkA, thunkC)
 
     function testPendingAction(
       thunk: typeof thunkA | typeof thunkB | typeof thunkC,
@@ -175,6 +175,15 @@ describe('isPending', () => {
     ) {
       const pendingAction = thunk.pending('fakeRequestId')
       expect(matchAC(pendingAction)).toBe(expected)
+
+      const rejectedAction = thunk.rejected(
+        new Error('rejected'),
+        'fakeRequestId'
+      )
+      expect(matchAC(rejectedAction)).toBe(false)
+
+      const fulfilledAction = thunk.fulfilled('result', 'fakeRequestId')
+      expect(matchAC(fulfilledAction)).toBe(false)
     }
 
     testPendingAction(thunkA, true)
@@ -190,7 +199,7 @@ describe('isRejected', () => {
     expect(isRejected()(action)).toBe(false)
   })
 
-  test('should return true only for pending async thunk actions', () => {
+  test('should return true only for rejected async thunk actions', () => {
     const thunk = createAsyncThunk<string>('a', () => 'result')
 
     const pendingAction = thunk.pending('fakeRequestId')
@@ -211,17 +220,23 @@ describe('isRejected', () => {
     const thunkB = createAsyncThunk<string>('b', () => 'result')
     const thunkC = createAsyncThunk<string>('c', () => 'result')
 
-    const matchAC = isAsyncThunkAction(thunkA, thunkC)
+    const matchAC = isRejected(thunkA, thunkC)
 
     function testRejectedAction(
       thunk: typeof thunkA | typeof thunkB | typeof thunkC,
       expected: boolean
     ) {
+      const pendingAction = thunk.pending('fakeRequestId')
+      expect(matchAC(pendingAction)).toBe(false)
+
       const rejectedAction = thunk.rejected(
         new Error('rejected'),
         'fakeRequestId'
       )
       expect(matchAC(rejectedAction)).toBe(expected)
+
+      const fulfilledAction = thunk.fulfilled('result', 'fakeRequestId')
+      expect(matchAC(fulfilledAction)).toBe(false)
     }
 
     testRejectedAction(thunkA, true)
@@ -237,7 +252,7 @@ describe('isFulfilled', () => {
     expect(isFulfilled()(action)).toBe(false)
   })
 
-  test('should return true only for pending async thunk actions', () => {
+  test('should return true only for fulfilled async thunk actions', () => {
     const thunk = createAsyncThunk<string>('a', () => 'result')
 
     const pendingAction = thunk.pending('fakeRequestId')
@@ -258,12 +273,21 @@ describe('isFulfilled', () => {
     const thunkB = createAsyncThunk<string>('b', () => 'result')
     const thunkC = createAsyncThunk<string>('c', () => 'result')
 
-    const matchAC = isAsyncThunkAction(thunkA, thunkC)
+    const matchAC = isFulfilled(thunkA, thunkC)
 
     function testFulfilledAction(
       thunk: typeof thunkA | typeof thunkB | typeof thunkC,
       expected: boolean
     ) {
+      const pendingAction = thunk.pending('fakeRequestId')
+      expect(matchAC(pendingAction)).toBe(false)
+
+      const rejectedAction = thunk.rejected(
+        new Error('rejected'),
+        'fakeRequestId'
+      )
+      expect(matchAC(rejectedAction)).toBe(false)
+
       const fulfilledAction = thunk.fulfilled('result', 'fakeRequestId')
       expect(matchAC(fulfilledAction)).toBe(expected)
     }
