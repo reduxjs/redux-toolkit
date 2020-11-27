@@ -213,7 +213,7 @@ export function isRejectedWithValue<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
   >(...asyncThunks: AsyncThunks) {
   const hasFlag = (action: any): action is any => {
-    return action && action.meta && action.meta.isRejectedWithValue;
+    return action && action.meta && action.meta.rejectedWithValue;
   }
 
   if (asyncThunks.length === 0) {

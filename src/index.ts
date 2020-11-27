@@ -114,6 +114,7 @@ export {
   isRejected,
   isFulfilled,
   isAsyncThunkAction,
+  isRejectedWithValue,
   // types
   ActionMatchingAllOf,
   ActionMatchingAnyOf
