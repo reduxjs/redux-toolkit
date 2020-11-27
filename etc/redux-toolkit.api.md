@@ -13,6 +13,7 @@ import { current } from 'immer';
 import { DeepPartial } from 'redux';
 import { Dispatch } from 'redux';
 import { Draft } from 'immer';
+import { freeze } from 'immer';
 import { Middleware } from 'redux';
 import { OutputParametricSelector } from 'reselect';
 import { OutputSelector } from 'reselect';
@@ -270,6 +271,8 @@ export interface EntityStateAdapter<T> {
 
 // @public (undocumented)
 export function findNonSerializableValue(value: unknown, path?: ReadonlyArray<string>, isSerializable?: (value: unknown) => boolean, getEntries?: (value: unknown) => [string, any][], ignoredPaths?: string[]): NonSerializableValue | false;
+
+export { freeze }
 
 // @public
 export function getDefaultMiddleware<S = any, O extends Partial<GetDefaultMiddlewareOptions> = {

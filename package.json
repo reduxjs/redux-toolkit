@@ -61,7 +61,7 @@
     "src"
   ],
   "dependencies": {
-    "immer": "^7.0.3",
+    "immer": "^8.0.0",
     "redux": "^4.0.0",
     "redux-thunk": "^2.3.0",
     "reselect": "^4.0.0"
