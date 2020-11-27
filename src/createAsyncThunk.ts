@@ -253,6 +253,7 @@ export type AsyncThunkRejectedActionCreator<
     arg: ThunkArg
     requestId: string
     requestStatus: 'rejected'
+    isRejectedWithValue?: boolean;
     aborted: boolean
     condition: boolean
   }
@@ -343,7 +344,8 @@ export function createAsyncThunk<
       error: Error | null,
       requestId: string,
       arg: ThunkArg,
-      payload?: RejectedValue
+      payload?: RejectedValue,
+      isRejectedWithValue?: boolean,
     ) => {
       const aborted = !!error && error.name === 'AbortError'
       const condition = !!error && error.name === 'ConditionError'
@@ -354,6 +356,7 @@ export function createAsyncThunk<
           arg,
           requestId,
           requestStatus: 'rejected' as const,
+          isRejectedWithValue,
           aborted,
           condition
         }
@@ -443,7 +446,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
               })
             ).then(result => {
               if (result instanceof RejectWithValue) {
-                return rejected(null, requestId, arg, result.value)
+                return rejected(null, requestId, arg, result.value, true)
               }
               return fulfilled(result, requestId, arg)
             })

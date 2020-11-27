@@ -212,13 +212,15 @@ export function isRejectedWithValue<
 export function isRejectedWithValue<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
   >(...asyncThunks: AsyncThunks) {
-  const hasPayload = (action: any): action is any => !!action.payload;
+  const hasFlag = (action: any): action is any => {
+    return action && action.meta && action.meta.isRejectedWithValue;
+  }
 
   if (asyncThunks.length === 0) {
     return (
       action: any
     ) => {
-      const combinedMatcher = isAllOf(isRejected(...asyncThunks), hasPayload);
+      const combinedMatcher = isAllOf(isRejected(...asyncThunks), hasFlag);
 
       return combinedMatcher(action);
     }
@@ -227,7 +229,7 @@ export function isRejectedWithValue<
   return (
     action: any
   ): action is RejectedActionFromAsyncThunk<AsyncThunks[number]> => {
-    const combinedMatcher = isAllOf(isRejected(...asyncThunks), hasPayload)
+    const combinedMatcher = isAllOf(isRejected(...asyncThunks), hasFlag)
 
     return combinedMatcher(action)
   }
