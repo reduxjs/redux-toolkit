@@ -148,13 +148,19 @@ export type AsyncThunkAction<
   getState: () => GetState<ThunkApiConfig>,
   extra: GetExtra<ThunkApiConfig>
 ) => Promise<
-  | PayloadAction<Returned, string, { arg: ThunkArg; requestId: string }>
+  | PayloadAction<
+      Returned,
+      string,
+      { arg: ThunkArg; requestId: string; requestStatus: 'fulfilled' }
+    >
   | PayloadAction<
       undefined | GetRejectValue<ThunkApiConfig>,
       string,
       {
         arg: ThunkArg
         requestId: string
+        requestStatus: 'rejected'
+        isRejectedWithValue?: boolean
         aborted: boolean
         condition: boolean
       },
@@ -217,7 +223,7 @@ interface AsyncThunkOptions<
   dispatchConditionRejection?: boolean
 }
 
-type AsyncThunkPendingActionCreator<
+export type AsyncThunkPendingActionCreator<
   ThunkArg
 > = ActionCreatorWithPreparedPayload<
   [string, ThunkArg],
@@ -227,10 +233,11 @@ type AsyncThunkPendingActionCreator<
   {
     arg: ThunkArg
     requestId: string
+    requestStatus: 'pending'
   }
 >
 
-type AsyncThunkRejectedActionCreator<
+export type AsyncThunkRejectedActionCreator<
   ThunkArg,
   ThunkApiConfig
 > = ActionCreatorWithPreparedPayload<
@@ -246,12 +253,14 @@ type AsyncThunkRejectedActionCreator<
   {
     arg: ThunkArg
     requestId: string
+    requestStatus: 'rejected'
+    isRejectedWithValue?: boolean
     aborted: boolean
     condition: boolean
   }
 >
 
-type AsyncThunkFulfilledActionCreator<
+export type AsyncThunkFulfilledActionCreator<
   Returned,
   ThunkArg
 > = ActionCreatorWithPreparedPayload<
@@ -262,6 +271,7 @@ type AsyncThunkFulfilledActionCreator<
   {
     arg: ThunkArg
     requestId: string
+    requestStatus: 'fulfilled'
   }
 >
 
@@ -306,7 +316,11 @@ export function createAsyncThunk<
     (result: Returned, requestId: string, arg: ThunkArg) => {
       return {
         payload: result,
-        meta: { arg, requestId }
+        meta: {
+          arg,
+          requestId,
+          requestStatus: 'fulfilled' as const
+        }
       }
     }
   )
@@ -316,7 +330,11 @@ export function createAsyncThunk<
     (requestId: string, arg: ThunkArg) => {
       return {
         payload: undefined,
-        meta: { arg, requestId }
+        meta: {
+          arg,
+          requestId,
+          requestStatus: 'pending' as const
+        }
       }
     }
   )
@@ -327,7 +345,8 @@ export function createAsyncThunk<
       error: Error | null,
       requestId: string,
       arg: ThunkArg,
-      payload?: RejectedValue
+      payload?: RejectedValue,
+      isRejectedWithValue?: boolean
     ) => {
       const aborted = !!error && error.name === 'AbortError'
       const condition = !!error && error.name === 'ConditionError'
@@ -337,6 +356,8 @@ export function createAsyncThunk<
         meta: {
           arg,
           requestId,
+          requestStatus: 'rejected' as const,
+          isRejectedWithValue: isRejectedWithValue,
           aborted,
           condition
         }
@@ -426,7 +447,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
               })
             ).then(result => {
               if (result instanceof RejectWithValue) {
-                return rejected(null, requestId, arg, result.value)
+                return rejected(null, requestId, arg, result.value, true)
               }
               return fulfilled(result, requestId, arg)
             })

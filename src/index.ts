@@ -110,6 +110,11 @@ export {
   // js
   isAllOf,
   isAnyOf,
+  isPending,
+  isRejected,
+  isFulfilled,
+  isAsyncThunkAction,
+  isRejectedWithValue,
   // types
   ActionMatchingAllOf,
   ActionMatchingAnyOf
