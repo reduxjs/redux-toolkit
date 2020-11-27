@@ -135,23 +135,6 @@ export type UnknownAsyncThunkAction =
   | UnknownAsyncThunkRejectedAction
   | UnknownAsyncThunkFulfilledAction
 
-/**
- * A type guard function that matches any async thunk action.
- *
- * @param action
- *
- * @internal
- */
-export function isAnyAsyncThunkAction(
-  action: any
-): action is UnknownAsyncThunkAction {
-  return hasExpectedRequestMetadata(action, [
-    'pending',
-    'fulfilled',
-    'rejected'
-  ])
-}
-
 export type AnyAsyncThunk = AsyncThunk<any, any, any>
 
 export type ActionsFromAsyncThunk<T extends AnyAsyncThunk> =
@@ -179,7 +162,11 @@ export function isAsyncThunkAction<
   AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
 >(...asyncThunks: AsyncThunks) {
   if (asyncThunks.length === 0) {
-    return isAnyAsyncThunkAction
+    return (action: any) => hasExpectedRequestMetadata(action, [
+      'pending',
+      'fulfilled',
+      'rejected'
+    ])
   }
 
   return (
