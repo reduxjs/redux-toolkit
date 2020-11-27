@@ -376,10 +376,10 @@ const anyAction = { type: 'foo' } as AnyAction
     return { somethingElse: 'Funky!' }
   }
 
-  const shouldFail = createAsyncThunk('without generics', () => {}, {
-    // @ts-expect-error
-    serializeError: funkySerializeError
-  })
+  // has to stay on one line or type tests fail in older TS versions
+  // prettier-ignore
+  // @ts-expect-error
+  const shouldFail = createAsyncThunk('without generics', () => {}, { serializeError: funkySerializeError })
 
   const shouldWork = createAsyncThunk<
     any,
