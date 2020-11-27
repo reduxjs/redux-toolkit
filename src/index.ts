@@ -106,6 +106,20 @@ export {
   SerializedError
 } from './createAsyncThunk'
 
+export {
+  // js
+  isAllOf,
+  isAnyOf,
+  isPending,
+  isRejected,
+  isFulfilled,
+  isAsyncThunkAction,
+  isRejectedWithValue,
+  // types
+  ActionMatchingAllOf,
+  ActionMatchingAnyOf
+} from './matchers'
+
 export { nanoid } from './nanoid'
 
 export { default as isPlainObject } from './isPlainObject'

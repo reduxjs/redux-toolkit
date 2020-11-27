@@ -209,7 +209,7 @@ interface AsyncThunkOptions<
   dispatchConditionRejection?: boolean
 }
 
-type AsyncThunkPendingActionCreator<
+export type AsyncThunkPendingActionCreator<
   ThunkArg
 > = ActionCreatorWithPreparedPayload<
   [string, ThunkArg],
@@ -219,10 +219,11 @@ type AsyncThunkPendingActionCreator<
   {
     arg: ThunkArg
     requestId: string
+    requestStatus: 'pending'
   }
 >
 
-type AsyncThunkRejectedActionCreator<
+export type AsyncThunkRejectedActionCreator<
   ThunkArg,
   ThunkApiConfig
 > = ActionCreatorWithPreparedPayload<
@@ -234,12 +235,13 @@ type AsyncThunkRejectedActionCreator<
     arg: ThunkArg
     requestId: string
     rejectedWithValue: boolean
+    requestStatus: 'rejected'
     aborted: boolean
     condition: boolean
   }
 >
 
-type AsyncThunkFulfilledActionCreator<
+export type AsyncThunkFulfilledActionCreator<
   Returned,
   ThunkArg
 > = ActionCreatorWithPreparedPayload<
@@ -250,6 +252,7 @@ type AsyncThunkFulfilledActionCreator<
   {
     arg: ThunkArg
     requestId: string
+    requestStatus: 'fulfilled'
   }
 >
 
@@ -294,7 +297,11 @@ export function createAsyncThunk<
     (result: Returned, requestId: string, arg: ThunkArg) => {
       return {
         payload: result,
-        meta: { arg, requestId }
+        meta: {
+          arg,
+          requestId,
+          requestStatus: 'fulfilled' as const
+        }
       }
     }
   )
@@ -304,7 +311,11 @@ export function createAsyncThunk<
     (requestId: string, arg: ThunkArg) => {
       return {
         payload: undefined,
-        meta: { arg, requestId }
+        meta: {
+          arg,
+          requestId,
+          requestStatus: 'pending' as const
+        }
       }
     }
   )
@@ -323,6 +334,7 @@ export function createAsyncThunk<
           arg,
           requestId,
           rejectedWithValue,
+          requestStatus: 'rejected' as const,
           aborted,
           condition
         }

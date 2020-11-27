@@ -589,7 +589,8 @@ describe('conditional skipping of asyncThunks', () => {
           arg: arg,
           rejectedWithValue: false,
           condition: true,
-          requestId: expect.stringContaining('')
+          requestId: expect.stringContaining(''),
+          requestStatus: 'rejected'
         },
         payload: undefined,
         type: 'test/rejected'
