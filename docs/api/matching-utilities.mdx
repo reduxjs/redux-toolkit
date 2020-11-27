@@ -7,10 +7,20 @@ hide_title: true
 
 # Matching Utilities
 
-Redux Toolkit exports a couple of type-safe utility matchers that you can leverage to simplify your code.
+Redux Toolkit several type-safe utility matchers that you can leverage to simplify your code.
+
+### General Purpose
 
 - [`isAllOf`](#isallof) - returns true when **all** conditions are met
 - [`isAnyOf`](#isanyof) - returns true when at least one of the conditions are met
+
+### `createAsyncThunk`-specific matchers
+
+- [`isAsyncThunkAction`](#isasyncthunkaction) - accepts one or more action creators and returns true when all match
+- [`isPending`](#ispending) - accepts one or more action creators and returns true when all match
+- [`isFulfilled`](#isfulfilled) - accepts one or more action creators and returns true when all match
+- [`isRejected`](#isrejected) - accepts one or more action creators and returns true when all match
+- [`isRejectedWithValue`](#isrejectedwithvalue) - accepts one or more action creators and returns true when all match
 
 ## `isAllOf`
 
@@ -28,6 +38,67 @@ It will return a type guard function that returns `true` if _all_ of the provide
 ## `isAnyOf`
 
 Accepts the same inputs as `isAllOf` and will return a type guard function that returns `true` if at least one of the provided functions match.
+
+## `isAsyncThunkAction`
+
+A higher-order function that returns a type guard function that may be used to check whether an action was created by [`createAsyncThunk`](./createAsyncThunk).
+
+```ts title="isAsyncThunkAction usage"
+import { isAsyncThunkAction } from '@reduxjs/toolkit'
+import { request, request2 } from '@virtual/matchers'
+
+if (isAsyncThunkAction(request, request2)) {
+  // These are all async thunk actions, handle the case.
+}
+```
+
+## `isPending`
+
+A higher-order function that returns a type guard function that may be used to check whether an action is a 'pending' action creator from the `createAsyncThunk` promise lifecycle.
+
+```ts title="isPending usage"
+import { isPending } from '@reduxjs/toolkit'
+
+if (isPending(result1, result2)) {
+  // These are all pending, handle the case.
+}
+```
+
+## `isFulfilled`
+
+A higher-order function that returns a type guard function that may be used to check whether an action is a 'fulfilled'' action creator from the `createAsyncThunk` promise lifecycle.
+
+```ts title="isFulfilled usage"
+import { isFulfilled } from '@reduxjs/toolkit'
+
+if (isFulfilled(result, result2)) {
+  // These are all fulfilled, handle the case.
+}
+```
+
+## `isRejected`
+
+A higher-order function that returns a type guard function that may be used to check whether an action is a 'rejected' action creator from the `createAsyncThunk` promise lifecycle.
+
+```ts title="isRejected usage"
+import { isRejected } from '@reduxjs/toolkit'
+
+if (isRejected(result1, result2)) {
+  // These are all rejected, handle the case.
+}
+```
+
+## `isRejectedWithValue`
+
+A higher-order function that returns a type guard function that may be used to check whether an action is a 'rejected' action creator from the `createAsyncThunk` promise lifecycle that was created by [`rejectWithValue`](./createAsyncThunk#handling-thunk-errors).
+
+```ts title="isRejectedWithValue usage"
+import { isRejectedWithValue } from '@reduxjs/toolkit'
+
+if (isRejectedWithValue(result1, result2)) {
+  // These are all rejected with value, handle the case.
+}
+```
 
 ## Using matchers to reduce code complexity, duplication and boilerplate
 

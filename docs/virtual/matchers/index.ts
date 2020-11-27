@@ -46,6 +46,8 @@ export const request = createAsyncThunk('request', () => {
   }
 })
 
+export const request2 = createAsyncThunk('request2', () => {})
+
 export const loadingReducer = createReducer(initialState, builder => {
   builder.addCase(request.fulfilled, (state, action) => {
     if (isSpecial(action)) {
