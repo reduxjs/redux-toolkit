@@ -10,7 +10,6 @@ import {
   AsyncThunkPendingActionCreator,
   AsyncThunkRejectedActionCreator
 } from './createAsyncThunk'
-import { Action } from 'redux'
 
 /** @public */
 export type ActionMatchingAnyOf<
@@ -122,7 +121,8 @@ export function isPending<
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is PendingActionFromAsyncThunk<AsyncThunks[number]>
 /**
- * TODO
+ * Tests if `action` is a pending thunk action
+ * @public
  */
 export function isPending(action: any): action is UnknownAsyncThunkPendingAction
 export function isPending<
@@ -183,7 +183,8 @@ export function isRejected<
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is RejectedActionFromAsyncThunk<AsyncThunks[number]>
 /**
- * TODO
+ * Tests if `action` is a rejected thunk action
+ * @public
  */
 export function isRejected(
   action: any
@@ -251,7 +252,8 @@ export function isRejectedWithValue<
   action: any
 ) => action is RejectedWithValueActionFromAsyncThunk<AsyncThunks[number]>
 /**
- * TODO
+ * Tests if `action` is a rejected thunk action with value
+ * @public
  */
 export function isRejectedWithValue(
   action: any
@@ -317,7 +319,8 @@ export function isFulfilled<
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is FulfilledActionFromAsyncThunk<AsyncThunks[number]>
 /**
- * TODO
+ * Tests if `action` is a fulfilled thunk action
+ * @public
  */
 export function isFulfilled(
   action: any
@@ -381,6 +384,10 @@ export function isAsyncThunkAction<
 >(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is ActionsFromAsyncThunk<AsyncThunks[number]>
+/**
+ * Tests if `action` is a thunk action
+ * @public
+ */
 export function isAsyncThunkAction(
   action: any
 ): action is UnknownAsyncThunkAction
