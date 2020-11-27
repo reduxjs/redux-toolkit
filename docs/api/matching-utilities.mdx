@@ -7,7 +7,7 @@ hide_title: true
 
 # Matching Utilities
 
-Redux Toolkit several type-safe utility matchers that you can leverage to simplify your code.
+Redux Toolkit exports several type-safe utility matchers that you can leverage to simplify your code.
 
 ### General Purpose
 
@@ -15,6 +15,8 @@ Redux Toolkit several type-safe utility matchers that you can leverage to simpli
 - [`isAnyOf`](#isanyof) - returns true when at least one of the conditions are met
 
 ### `createAsyncThunk`-specific matchers
+
+All these matchers can either be called with one or more thunks as arguments, in which case they will return a matcher function for that condition and thunks, or with one actions, in which case they will match for any thunk action with said condition.
 
 - [`isAsyncThunkAction`](#isasyncthunkaction) - accepts one or more action creators and returns true when all match
 - [`isPending`](#ispending) - accepts one or more action creators and returns true when all match
@@ -45,10 +47,14 @@ A higher-order function that returns a type guard function that may be used to c
 
 ```ts title="isAsyncThunkAction usage"
 import { isAsyncThunkAction } from '@reduxjs/toolkit'
-import { request, request2 } from '@virtual/matchers'
+import { requestThunk1, requestThunk2 } from '@virtual/matchers'
 
-if (isAsyncThunkAction(request, request2)) {
-  // These are all async thunk actions, handle the case.
+const isARequestAction = isAsyncThunkAction(requestThunk1, requestThunk2)
+
+function handleRequestAction(action: AnyAction) {
+  if (isARequestAction(action)) {
+    // action is an action dispatched by either `requestThunk1` or `requestThunk2`
+  }
 }
 ```
 
@@ -58,9 +64,14 @@ A higher-order function that returns a type guard function that may be used to c
 
 ```ts title="isPending usage"
 import { isPending } from '@reduxjs/toolkit'
+import { requestThunk1, requestThunk2 } from '@virtual/matchers'
 
-if (isPending(result1, result2)) {
-  // These are all pending, handle the case.
+const isAPendingAction = isPending(requestThunk1, requestThunk2)
+
+function handlePendingAction(action: AnyAction) {
+  if (isAPendingAction(action)) {
+    // action is a pending action dispatched by either `requestThunk1` or `requestThunk2`
+  }
 }
 ```
 
@@ -70,9 +81,14 @@ A higher-order function that returns a type guard function that may be used to c
 
 ```ts title="isFulfilled usage"
 import { isFulfilled } from '@reduxjs/toolkit'
+import { requestThunk1, requestThunk2 } from '@virtual/matchers'
 
-if (isFulfilled(result, result2)) {
-  // These are all fulfilled, handle the case.
+const isAFulfilledAction = isFulfilled(requestThunk1, requestThunk2)
+
+function handleFulfilledAction(action: AnyAction) {
+  if (isAFulfilledAction(action)) {
+    // action is a fulfilled action dispatched by either `requestThunk1` or `requestThunk2`
+  }
 }
 ```
 
@@ -82,9 +98,14 @@ A higher-order function that returns a type guard function that may be used to c
 
 ```ts title="isRejected usage"
 import { isRejected } from '@reduxjs/toolkit'
+import { requestThunk1, requestThunk2 } from '@virtual/matchers'
 
-if (isRejected(result1, result2)) {
-  // These are all rejected, handle the case.
+const isARejectedAction = isRejected(requestThunk1, requestThunk2)
+
+function handleRejectedAction(action: AnyAction) {
+  if (isARejectedAction(action)) {
+    // action is a rejected action dispatched by either `requestThunk1` or `requestThunk2`
+  }
 }
 ```
 
@@ -94,9 +115,18 @@ A higher-order function that returns a type guard function that may be used to c
 
 ```ts title="isRejectedWithValue usage"
 import { isRejectedWithValue } from '@reduxjs/toolkit'
+import { requestThunk1, requestThunk2 } from '@virtual/matchers'
 
-if (isRejectedWithValue(result1, result2)) {
-  // These are all rejected with value, handle the case.
+const isARejectedWithValueAction = isRejectedWithValue(
+  requestThunk1,
+  requestThunk2
+)
+
+function handleRejectedWithValueAction(action: AnyAction) {
+  if (isARejectedWithValueAction(action)) {
+    // action is a rejected action dispatched by either `requestThunk1` or `requestThunk2`
+    // where rejectWithValue was used
+  }
 }
 ```
 
@@ -149,16 +179,19 @@ const initialState: ExampleState = {
   isInteresting: false
 }
 
-const request = createAsyncThunk('request', () => {
-  return {
-    isSpecial: true,
-    isInteresting: true
+export const isSpecialAndInterestingThunk = createAsyncThunk(
+  'isSpecialAndInterestingThunk',
+  () => {
+    return {
+      isSpecial: true,
+      isInteresting: true
+    }
   }
-})
+)
 
 // This has unnecessary complexity
 const loadingReducer = createReducer(initialState, builder => {
-  builder.addCase(request.fulfilled, (state, action) => {
+  builder.addCase(isSpecialAndInterestingThunk.fulfilled, (state, action) => {
     if (isSpecial(action)) {
       state.isSpecial = true
     } else if (isInteresting(action)) {
@@ -197,7 +230,7 @@ The function returned by `isAllOf` and `isAnyOf` can also be used as a TypeScrip
 
 ```ts title="Using isAllOf as a type guard"
 import { isAllOf, PayloadAction } from '@reduxjs/toolkit'
-import { request, Data, isSpecial, isInteresting } from '@virtual/matchers' // This is a fake pkg that provides the types shown above
+import { Data, isSpecial, isInteresting } from '@virtual/matchers' // This is a fake pkg that provides the types shown above
 
 const isSpecialAndInteresting = isAllOf(isSpecial, isInteresting)
 
@@ -211,7 +244,7 @@ function someFunction(action: PayloadAction<Data>) {
 
 ```ts title="Using isAnyOf as a type guard"
 import { isAnyOf, PayloadAction } from '@reduxjs/toolkit'
-import { request, Data, isSpecial, isInteresting } from '@virtual/matchers' // this is a fake pkg that provides the types shown above
+import { Data, isSpecial, isInteresting } from '@virtual/matchers' // this is a fake pkg that provides the types shown above
 
 const isSpecialOrInteresting = isAnyOf(isSpecial, isInteresting)
 

@@ -39,17 +39,22 @@ export const initialState: ExampleState = {
   isInteresting: false
 }
 
-export const request = createAsyncThunk('request', () => {
-  return {
-    isSpecial: true,
-    isInteresting: true
+export const isSpecialAndInterestingThunk = createAsyncThunk(
+  'isSpecialAndInterestingThunk',
+  () => {
+    return {
+      isSpecial: true,
+      isInteresting: true
+    }
   }
-})
+)
 
-export const request2 = createAsyncThunk('request2', () => {})
+export const requestThunk1 = createAsyncThunk('requestThunk1', () => ({}))
+
+export const requestThunk2 = createAsyncThunk('requestThunk2', () => ({}))
 
 export const loadingReducer = createReducer(initialState, builder => {
-  builder.addCase(request.fulfilled, (state, action) => {
+  builder.addCase(isSpecialAndInterestingThunk.fulfilled, (state, action) => {
     if (isSpecial(action)) {
       state.isSpecial = true
     } else if (isInteresting(action)) {
