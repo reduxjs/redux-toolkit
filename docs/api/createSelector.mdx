@@ -22,10 +22,18 @@ For more details on using `createSelector`, see:
 
 # `createDraftSafeSelector`
 
-Besides re-exporting `createSelector`, RTK also exports a wrapped version of `createSelector` named `createDraftSafeSelector` that allows you to create selectors that
-can be used in the context of `createReducer` and `createSlice` reducers with mutable logic.
+In general, we recommend against using selectors inside of reducers:
 
-So assume the following code:
+- Selectors typically expect the entire Redux state object as an argument, while slice reducers only have access to a specific subset of the entire Redux state
+- Reselect's `createSelector` relies on reference comparisons to determine if inputs have changed, and if an Immer Proxy-wrapped draft value is passed in to a selector, the selector may see the same reference and think nothing has changed.
+
+However, some users have requested the ability to create selectors that will work correctly inside of Immer-powered reducers. One use case for this might be collecting an ordered set of items when using `createEntityAdapter, such as`const orderedTodos = todosSelectors.selectAll(todosState)`, and then using`orderedTodos` in the rest of the reducer logic.
+
+Besides re-exporting `createSelector`, RTK also exports a wrapped version of `createSelector` named `createDraftSafeSelector` that allows you to create selectors that can safely be used inside of `createReducer` and `createSlice` reducers with Immer-powered mutable logic. When used with plain state values, the selector will still memoize normally based on the inputs. But, when used with Immer draft values, the selector will err on the side of recalculating the results, just to be safe.
+
+All selectors created by `entityAdapter.getSelectors` are "draft safe" selectors by default.
+
+Example:
 
 ```js
 const selectSelf = (state: State) => state
@@ -50,10 +58,5 @@ const safe2 = draftSafeSelector(state)
 
 After executing that, `unsafe1` and `unsafe2` will be of the same value, because the memoized selector was
 executed on the same object - but `safe2` will actually be different from `safe1` (with the updated value of `2`),
-because the safe selector detected that it was executed on a `immer` draft object and recalculated using the current
+because the safe selector detected that it was executed on a Immer draft object and recalculated using the current
 value instead of returning a cached value.
-
-When used with plain state values, the selector will still memoize normally based on the inputs.  But, when used with Immer draft values, the selector will err on the side of recalculating the results, just to be safe.
-err on the side of recalculating, just to be safe.
-
-All selectors created by `entityAdapter.getSelectors` will be such "draft safe" selectors by default.
