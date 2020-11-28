@@ -1,4 +1,4 @@
-import { createSelector } from 'reselect'
+import { createDraftSafeSelector } from '../createDraftSafeSelector'
 import { EntityState, EntitySelectors, Dictionary, EntityId } from './models'
 
 export function createSelectorsFactory<T>() {
@@ -13,7 +13,7 @@ export function createSelectorsFactory<T>() {
 
     const selectEntities = (state: EntityState<T>) => state.entities
 
-    const selectAll = createSelector(
+    const selectAll = createDraftSafeSelector(
       selectIds,
       selectEntities,
       (ids: T[], entities: Dictionary<T>): any =>
@@ -24,7 +24,7 @@ export function createSelectorsFactory<T>() {
 
     const selectById = (entities: Dictionary<T>, id: EntityId) => entities[id]
 
-    const selectTotal = createSelector(selectIds, ids => ids.length)
+    const selectTotal = createDraftSafeSelector(selectIds, ids => ids.length)
 
     if (!selectState) {
       return {
@@ -32,18 +32,29 @@ export function createSelectorsFactory<T>() {
         selectEntities,
         selectAll,
         selectTotal,
-        selectById: createSelector(selectEntities, selectId, selectById)
+        selectById: createDraftSafeSelector(
+          selectEntities,
+          selectId,
+          selectById
+        )
       }
     }
 
-    const selectGlobalizedEntities = createSelector(selectState, selectEntities)
+    const selectGlobalizedEntities = createDraftSafeSelector(
+      selectState,
+      selectEntities
+    )
 
     return {
-      selectIds: createSelector(selectState, selectIds),
+      selectIds: createDraftSafeSelector(selectState, selectIds),
       selectEntities: selectGlobalizedEntities,
-      selectAll: createSelector(selectState, selectAll),
-      selectTotal: createSelector(selectState, selectTotal),
-      selectById: createSelector(selectGlobalizedEntities, selectId, selectById)
+      selectAll: createDraftSafeSelector(selectState, selectAll),
+      selectTotal: createDraftSafeSelector(selectState, selectTotal),
+      selectById: createDraftSafeSelector(
+        selectGlobalizedEntities,
+        selectId,
+        selectById
+      )
     }
   }
 

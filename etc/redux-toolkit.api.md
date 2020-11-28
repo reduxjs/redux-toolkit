@@ -138,6 +138,9 @@ export function createAction<PA extends PrepareAction<any>, T extends string = s
 // @public (undocumented)
 export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}>(typePrefix: string, payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>, options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>): AsyncThunk<Returned, ThunkArg, ThunkApiConfig>;
 
+// @public
+export const createDraftSafeSelector: typeof createSelector;
+
 // @public (undocumented)
 export function createEntityAdapter<T>(options?: {
     selectId?: IdSelector<T>;
