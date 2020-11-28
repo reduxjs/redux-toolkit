@@ -851,7 +851,7 @@ export const fetchIssue = (
 
 This slice is a bit longer, but it's the same basic approach as before: write the slice with reducers that handle API call results, then write thunks that do the fetching and dispatch actions with those results. The only new and interesting bits in this slice are:
 
-- Our "start fetching" and "fetch failed" reducer logic is the same for both the single issue and multiple issue fetch cases. So, we write those functions outside the slice once, then reuse them multiple times with different names inside the `reducers` object.
+- Our "start loading" and "loading failed" reducer logic is the same for both the single issue and multiple issue fetch cases. So, we write those functions outside the slice once, then reuse them multiple times inside the `reducers` object.
 - The Github API returns an array of issue entries, but we [want to store the data in a "normalized" structure to make it easy to look up an issue by its number](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape). In this case, we use a plain object as a lookup table, by declaring that it is a `Record<number, Issue>`.
 
 ### Fetching Issues in the Issues List
