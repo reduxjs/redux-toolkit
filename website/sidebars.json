@@ -36,8 +36,8 @@
         "label": "Other",
         "collapsed": false,
         "items": [
-          "api/matching-utilities",
           "api/createSelector",
+          "api/matching-utilities",
           "api/other-exports"
         ]
       }
