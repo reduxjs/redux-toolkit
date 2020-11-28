@@ -63,7 +63,7 @@ jobs:
           name: package
 
       - name: Unpack build artifact to dist
-        run: tar -xzvf reduxjs-toolkit-1.4.0.tgz --strip-components=1 package/dist
+        run: tar -xzvf reduxjs-toolkit-*.tgz --strip-components=1 package/dist
 
       - name: Remap @redux/toolkit from src to dist
         run: |
