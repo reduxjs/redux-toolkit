@@ -1,6 +1,6 @@
-import { getDefaultMiddleware } from 'src/getDefaultMiddleware'
+import { getDefaultMiddleware } from '@reduxjs/toolkit'
 import { Middleware } from 'redux'
-import { DispatchForMiddlewares } from 'src/tsHelpers'
+import { DispatchForMiddlewares } from '@internal/tsHelpers'
 
 declare const expectType: <T>(t: T) => T
 
@@ -29,7 +29,7 @@ declare const thunkCreator: () => () => ThunkReturn
     expectType<number>(dispatch('foo'))
     expectType<ThunkReturn>(dispatch(thunkCreator()))
 
-    // typings:expect-error
+    // @ts-expect-error
     expectType<string>(dispatch('foo'))
   }
 
@@ -41,7 +41,7 @@ declare const thunkCreator: () => () => ThunkReturn
     expectType<string>(dispatch(5))
     expectType<ThunkReturn>(dispatch(thunkCreator()))
 
-    // typings:expect-error
+    // @ts-expect-error
     expectType<string>(dispatch('foo'))
   }
 
@@ -56,7 +56,7 @@ declare const thunkCreator: () => () => ThunkReturn
     expectType<string>(dispatch(5))
     expectType<ThunkReturn>(dispatch(thunkCreator()))
 
-    // typings:expect-error
+    // @ts-expect-error
     expectType<string>(dispatch('foo'))
   }
 
@@ -67,7 +67,7 @@ declare const thunkCreator: () => () => ThunkReturn
     expectType<number>(dispatch('foo'))
     expectType<ThunkReturn>(dispatch(thunkCreator()))
 
-    // typings:expect-error
+    // @ts-expect-error
     expectType<string>(dispatch('foo'))
   }
 
@@ -79,7 +79,7 @@ declare const thunkCreator: () => () => ThunkReturn
     expectType<string>(dispatch(5))
     expectType<ThunkReturn>(dispatch(thunkCreator()))
 
-    // typings:expect-error
+    // @ts-expect-error
     expectType<string>(dispatch('foo'))
   }
 
@@ -94,7 +94,7 @@ declare const thunkCreator: () => () => ThunkReturn
     expectType<string>(dispatch(5))
     expectType<ThunkReturn>(dispatch(thunkCreator()))
 
-    // typings:expect-error
+    // @ts-expect-error
     expectType<string>(dispatch('foo'))
   }
 
@@ -108,7 +108,7 @@ declare const thunkCreator: () => () => ThunkReturn
     expectType<string>(dispatch(5))
     expectType<ThunkReturn>(dispatch(thunkCreator()))
 
-    // typings:expect-error
+    // @ts-expect-error
     expectType<string>(dispatch('foo'))
   }
 }

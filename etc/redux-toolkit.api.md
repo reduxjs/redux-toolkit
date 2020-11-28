@@ -13,6 +13,7 @@ import { current } from 'immer';
 import { DeepPartial } from 'redux';
 import { Dispatch } from 'redux';
 import { Draft } from 'immer';
+import { freeze } from 'immer';
 import { Middleware } from 'redux';
 import { OutputParametricSelector } from 'reselect';
 import { OutputSelector } from 'reselect';
@@ -51,6 +52,12 @@ export interface ActionCreatorWithPreparedPayload<Args extends unknown[], P, T e
     (...args: Args): PayloadAction<P, T, M, E>;
 }
 
+// @public (undocumented)
+export type ActionMatchingAllOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]> = UnionToIntersection<ActionMatchingAnyOf<Matchers>>;
+
+// @public (undocumented)
+export type ActionMatchingAnyOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]> = ActionFromMatcher<Matchers[number]>;
+
 // @public
 export interface ActionReducerMapBuilder<State> {
     addCase<ActionCreator extends TypedActionCreator<string>>(actionCreator: ActionCreator, reducer: CaseReducer<State, ReturnType<ActionCreator>>): ActionReducerMapBuilder<State>;
@@ -71,15 +78,7 @@ export type AsyncThunk<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConf
 };
 
 // @public
-export type AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> = (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<PayloadAction<Returned, string, {
-    arg: ThunkArg;
-    requestId: string;
-}> | PayloadAction<undefined | GetRejectValue<ThunkApiConfig>, string, {
-    arg: ThunkArg;
-    requestId: string;
-    aborted: boolean;
-    condition: boolean;
-}, SerializedError>> & {
+export type AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> = (dispatch: GetDispatch<ThunkApiConfig>, getState: () => GetState<ThunkApiConfig>, extra: GetExtra<ThunkApiConfig>) => Promise<ReturnType<AsyncThunkFulfilledActionCreator<Returned, ThunkArg>> | ReturnType<AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>>> & {
     abort(reason?: string): void;
     requestId: string;
     arg: ThunkArg;
@@ -138,6 +137,9 @@ export function createAction<PA extends PrepareAction<any>, T extends string = s
 
 // @public (undocumented)
 export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}>(typePrefix: string, payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>, options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>): AsyncThunk<Returned, ThunkArg, ThunkApiConfig>;
+
+// @public
+export const createDraftSafeSelector: typeof createSelector;
 
 // @public (undocumented)
 export function createEntityAdapter<T>(options?: {
@@ -273,6 +275,8 @@ export interface EntityStateAdapter<T> {
 // @public (undocumented)
 export function findNonSerializableValue(value: unknown, path?: ReadonlyArray<string>, isSerializable?: (value: unknown) => boolean, getEntries?: (value: unknown) => [string, any][], ignoredPaths?: string[]): NonSerializableValue | false;
 
+export { freeze }
+
 // @public
 export function getDefaultMiddleware<S = any, O extends Partial<GetDefaultMiddlewareOptions> = {
     thunk: true;
@@ -296,13 +300,64 @@ export interface ImmutableStateInvariantMiddlewareOptions {
 }
 
 // @public
+export function isAllOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]>(...matchers: Matchers): (action: any) => action is UnionToIntersection<ActionFromMatcher<Matchers[number]>>;
+
+// @public
+export function isAnyOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]>(...matchers: Matchers): (action: any) => action is ActionFromMatcher<Matchers[number]>;
+
+// @public
+export function isAsyncThunkAction(): (action: any) => action is UnknownAsyncThunkAction;
+
+// @public
+export function isAsyncThunkAction<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(...asyncThunks: AsyncThunks): (action: any) => action is ActionsFromAsyncThunk<AsyncThunks[number]>;
+
+// @public
+export function isAsyncThunkAction(action: any): action is UnknownAsyncThunkAction;
+
+// @public
+export function isFulfilled(): (action: any) => action is UnknownAsyncThunkFulfilledAction;
+
+// @public
+export function isFulfilled<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(...asyncThunks: AsyncThunks): (action: any) => action is FulfilledActionFromAsyncThunk<AsyncThunks[number]>;
+
+// @public
+export function isFulfilled(action: any): action is UnknownAsyncThunkFulfilledAction;
+
+// @public
 export function isImmutableDefault(value: unknown): boolean;
+
+// @public
+export function isPending(): (action: any) => action is UnknownAsyncThunkPendingAction;
+
+// @public
+export function isPending<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(...asyncThunks: AsyncThunks): (action: any) => action is PendingActionFromAsyncThunk<AsyncThunks[number]>;
+
+// @public
+export function isPending(action: any): action is UnknownAsyncThunkPendingAction;
 
 // @public
 export function isPlain(val: any): boolean;
 
 // @public
 export function isPlainObject(value: unknown): value is object;
+
+// @public
+export function isRejected(): (action: any) => action is UnknownAsyncThunkRejectedAction;
+
+// @public
+export function isRejected<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(...asyncThunks: AsyncThunks): (action: any) => action is RejectedActionFromAsyncThunk<AsyncThunks[number]>;
+
+// @public
+export function isRejected(action: any): action is UnknownAsyncThunkRejectedAction;
+
+// @public
+export function isRejectedWithValue(): (action: any) => action is UnknownAsyncThunkRejectedAction;
+
+// @public
+export function isRejectedWithValue<AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]>(...asyncThunks: AsyncThunks): (action: any) => action is RejectedWithValueActionFromAsyncThunk<AsyncThunks[number]>;
+
+// @public
+export function isRejectedWithValue(action: any): action is UnknownAsyncThunkRejectedAction;
 
 // @public (undocumented)
 export class MiddlewareArray<Middlewares extends Middleware<any, any>> extends Array<Middlewares> {
@@ -398,7 +453,7 @@ export { ThunkAction }
 export { ThunkDispatch }
 
 // @public (undocumented)
-export function unwrapResult<R extends ActionTypesWithOptionalErrorAction>(returned: R): PayloadForActionTypesExcludingErrorActions<R>;
+export function unwrapResult<R extends UnwrappableAction>(action: R): UnwrappedActionPayload<R>;
 
 // @public (undocumented)
 export type Update<T> = {

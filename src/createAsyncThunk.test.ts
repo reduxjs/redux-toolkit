@@ -587,12 +587,84 @@ describe('conditional skipping of asyncThunks', () => {
         meta: {
           aborted: false,
           arg: arg,
+          rejectedWithValue: false,
           condition: true,
-          requestId: expect.stringContaining('')
+          requestId: expect.stringContaining(''),
+          requestStatus: 'rejected'
         },
         payload: undefined,
         type: 'test/rejected'
       })
     )
+  })
+
+  test('serializeError implementation', async () => {
+    function serializeError() {
+      return 'serialized!'
+    }
+    const errorObject = 'something else!'
+
+    const store = configureStore({
+      reducer: (state = [], action) => [...state, action]
+    })
+
+    const asyncThunk = createAsyncThunk<
+      unknown,
+      void,
+      { serializedErrorType: string }
+    >('test', () => Promise.reject(errorObject), { serializeError })
+    const rejected = await store.dispatch(asyncThunk())
+    if (!asyncThunk.rejected.match(rejected)) {
+      throw new Error()
+    }
+
+    const expectation = {
+      type: 'test/rejected',
+      payload: undefined,
+      error: 'serialized!',
+      meta: expect.any(Object)
+    }
+    expect(rejected).toEqual(expectation)
+    expect(store.getState()[2]).toEqual(expectation)
+    expect(rejected.error).not.toEqual(miniSerializeError(errorObject))
+  })
+})
+describe('unwrapResult', () => {
+  const getState = jest.fn(() => ({}))
+  const dispatch = jest.fn((x: any) => x)
+  const extra = {}
+  test('fulfilled case', async () => {
+    const asyncThunk = createAsyncThunk('test', () => {
+      return 'fulfilled!'
+    })
+
+    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
+      unwrapResult
+    )
+
+    await expect(unwrapPromise).resolves.toBe('fulfilled!')
+  })
+  test('error case', async () => {
+    const error = new Error('Panic!')
+    const asyncThunk = createAsyncThunk('test', () => {
+      throw error
+    })
+
+    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
+      unwrapResult
+    )
+
+    await expect(unwrapPromise).rejects.toEqual(miniSerializeError(error))
+  })
+  test('rejectWithValue case', async () => {
+    const asyncThunk = createAsyncThunk('test', (_, { rejectWithValue }) => {
+      return rejectWithValue('rejectWithValue!')
+    })
+
+    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
+      unwrapResult
+    )
+
+    await expect(unwrapPromise).rejects.toBe('rejectWithValue!')
   })
 })

@@ -8,12 +8,9 @@ import {
   ActionCreatorWithPayload,
   ActionCreatorWithNonInferrablePayload,
   ActionCreatorWithPreparedPayload
-} from '../../src'
-import { IsAny } from 'src/tsHelpers'
-
-function expectType<T>(p: T): T {
-  return p
-}
+} from '@reduxjs/toolkit'
+import { IsAny } from '@internal/tsHelpers'
+import { expectType } from './helpers'
 
 /* PayloadAction */
 
@@ -24,7 +21,7 @@ function expectType<T>(p: T): T {
   const action: PayloadAction<number> = { type: '', payload: 5 }
   const numberPayload: number = action.payload
 
-  // typings:expect-error
+  // @ts-expect-error
   const stringPayload: string = action.payload
 }
 
@@ -32,11 +29,11 @@ function expectType<T>(p: T): T {
  * Test: PayloadAction type parameter is required.
  */
 {
-  // typings:expect-error
+  // @ts-expect-error
   const action: PayloadAction = { type: '', payload: 5 }
-  // typings:expect-error
+  // @ts-expect-error
   const numberPayload: number = action.payload
-  // typings:expect-error
+  // @ts-expect-error
   const stringPayload: string = action.payload
 }
 
@@ -46,7 +43,7 @@ function expectType<T>(p: T): T {
 {
   const action: PayloadAction<number> = { type: '', payload: 5 }
 
-  // typings:expect-error
+  // @ts-expect-error
   const action2: PayloadAction = { type: 1, payload: 5 }
 }
 
@@ -77,9 +74,9 @@ function expectType<T>(p: T): T {
   expectType<PayloadAction<number | undefined>>(actionCreator())
   expectType<PayloadAction<number | undefined>>(actionCreator(undefined))
 
-  // typings:expect-error
+  // @ts-expect-error
   expectType<PayloadAction<number>>(actionCreator())
-  // typings:expect-error
+  // @ts-expect-error
   expectType<PayloadAction<undefined>>(actionCreator(1))
 }
 
@@ -118,7 +115,7 @@ function expectType<T>(p: T): T {
   const increment = createAction<number, 'increment'>('increment')
   const n: number = increment(1).payload
 
-  // typings:expect-error
+  // @ts-expect-error
   increment('').payload
 }
 
@@ -127,7 +124,7 @@ function expectType<T>(p: T): T {
  */
 {
   const increment = createAction('increment')
-  // typings:expect-error
+  // @ts-expect-error
   const n: number = increment(1).payload
 }
 /*
@@ -138,9 +135,9 @@ function expectType<T>(p: T): T {
   const n: string = increment(1).type
   const s: 'increment' = increment(1).type
 
-  // typings:expect-error
+  // @ts-expect-error
   const r: 'other' = increment(1).type
-  // typings:expect-error
+  // @ts-expect-error
   const q: number = increment(1).type
 }
 
@@ -164,9 +161,9 @@ function expectType<T>(p: T): T {
   }))
   expectType<number>(strLenAction('test').payload)
 
-  // typings:expect-error
+  // @ts-expect-error
   expectType<string>(strLenAction('test').payload)
-  // typings:expect-error
+  // @ts-expect-error
   const error: any = strLenAction('test').error
 }
 
@@ -181,9 +178,9 @@ function expectType<T>(p: T): T {
 
   expectType<number>(strLenMetaAction('test').meta)
 
-  // typings:expect-error
+  // @ts-expect-error
   expectType<string>(strLenMetaAction('test').meta)
-  // typings:expect-error
+  // @ts-expect-error
   const error: any = strLenMetaAction('test').error
 }
 
@@ -198,7 +195,7 @@ function expectType<T>(p: T): T {
 
   expectType<boolean>(boolErrorAction('test').error)
 
-  // typings:expect-error
+  // @ts-expect-error
   expectType<string>(boolErrorAction('test').error)
 }
 
@@ -213,7 +210,7 @@ function expectType<T>(p: T): T {
 
   expectType<string>(strErrorAction('test').error)
 
-  // typings:expect-error
+  // @ts-expect-error
   expectType<boolean>(strErrorAction('test').error)
 }
 
@@ -224,9 +221,9 @@ function expectType<T>(p: T): T {
   const action = createAction<{ input?: string }>('ACTION')
   const t: string | undefined = action({ input: '' }).payload.input
 
-  // typings:expect-error
+  // @ts-expect-error
   const u: number = action({ input: '' }).payload.input
-  // typings:expect-error
+  // @ts-expect-error
   const v: number = action({ input: 3 }).payload.input
 }
 
@@ -246,11 +243,11 @@ function expectType<T>(p: T): T {
   const error: IsAny<Ret['error'], true, false> = true
   const meta: IsAny<Ret['meta'], true, false> = true
 
-  // typings:expect-error
+  // @ts-expect-error
   const payloadNotAny: IsAny<Ret['payload'], true, false> = false
-  // typings:expect-error
+  // @ts-expect-error
   const errorNotAny: IsAny<Ret['error'], true, false> = false
-  // typings:expect-error
+  // @ts-expect-error
   const metaNotAny: IsAny<Ret['meta'], true, false> = false
 }
 
@@ -266,9 +263,9 @@ function expectType<T>(p: T): T {
       expectType<'test'>(x.type)
       expectType<string>(x.payload)
     } else {
-      // typings:expect-error
+      // @ts-expect-error
       expectType<'test'>(x.type)
-      // typings:expect-error
+      // @ts-expect-error
       expectType<any>(x.payload)
     }
   }
@@ -289,7 +286,7 @@ function expectType<T>(p: T): T {
     const x: Action<unknown> = {} as any
     if (actionCreator.match(x)) {
       expectType<'test'>(x.type)
-      // typings:expect-error
+      // @ts-expect-error
       expectType<{}>(x.payload)
     }
   }
@@ -307,11 +304,11 @@ function expectType<T>(p: T): T {
       expectType<string>(x.payload)
       expectType<string>(x.meta)
       expectType<boolean>(x.error)
-      // typings:expect-error
+      // @ts-expect-error
       expectType<number>(x.payload)
-      // typings:expect-error
+      // @ts-expect-error
       expectType<number>(x.meta)
-      // typings:expect-error
+      // @ts-expect-error
       expectType<number>(x.error)
     }
   }
@@ -322,8 +319,9 @@ function expectType<T>(p: T): T {
     expectType<Array<PayloadAction<string, 'test'>>>(
       x.filter(actionCreator.match)
     )
-    // typings:expect-error
+
     expectType<Array<PayloadAction<number, 'test'>>>(
+      // @ts-expect-error
       x.filter(actionCreator.match)
     )
   }

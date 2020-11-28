@@ -43,7 +43,9 @@ const commonProperties: Array<keyof SerializedError> = [
 ]
 
 class RejectWithValue<RejectValue> {
-  constructor(public readonly value: RejectValue) {}
+  public name = 'RejectWithValue'
+  public message = 'Rejected'
+  constructor(public readonly payload: RejectValue) {}
 }
 
 // Reworked from https://github.com/sindresorhus/serialize-error
@@ -67,6 +69,7 @@ type AsyncThunkConfig = {
   dispatch?: Dispatch
   extra?: unknown
   rejectValue?: unknown
+  serializedErrorType?: unknown
 }
 
 type GetState<ThunkApiConfig> = ThunkApiConfig extends {
@@ -102,6 +105,13 @@ type GetRejectValue<ThunkApiConfig> = ThunkApiConfig extends {
 }
   ? RejectValue
   : unknown
+
+type GetSerializedErrorType<ThunkApiConfig> = ThunkApiConfig extends {
+  serializedErrorType: infer GetSerializedErrorType
+}
+  ? GetSerializedErrorType
+  : SerializedError
+
 /**
  * A type describing the return value of the `payloadCreator` argument to `createAsyncThunk`.
  * Might be useful for wrapping `createAsyncThunk` in custom abstractions.
@@ -148,18 +158,8 @@ export type AsyncThunkAction<
   getState: () => GetState<ThunkApiConfig>,
   extra: GetExtra<ThunkApiConfig>
 ) => Promise<
-  | PayloadAction<Returned, string, { arg: ThunkArg; requestId: string }>
-  | PayloadAction<
-      undefined | GetRejectValue<ThunkApiConfig>,
-      string,
-      {
-        arg: ThunkArg
-        requestId: string
-        aborted: boolean
-        condition: boolean
-      },
-      SerializedError
-    >
+  | ReturnType<AsyncThunkFulfilledActionCreator<Returned, ThunkArg>>
+  | ReturnType<AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>>
 > & {
   abort(reason?: string): void
   requestId: string
@@ -215,9 +215,11 @@ interface AsyncThunkOptions<
    * @default `false`
    */
   dispatchConditionRejection?: boolean
+
+  serializeError?: (x: unknown) => GetSerializedErrorType<ThunkApiConfig>
 }
 
-type AsyncThunkPendingActionCreator<
+export type AsyncThunkPendingActionCreator<
   ThunkArg
 > = ActionCreatorWithPreparedPayload<
   [string, ThunkArg],
@@ -227,31 +229,29 @@ type AsyncThunkPendingActionCreator<
   {
     arg: ThunkArg
     requestId: string
+    requestStatus: 'pending'
   }
 >
 
-type AsyncThunkRejectedActionCreator<
+export type AsyncThunkRejectedActionCreator<
   ThunkArg,
   ThunkApiConfig
 > = ActionCreatorWithPreparedPayload<
-  [
-    Error | null,
-    string,
-    ThunkArg,
-    (GetRejectValue<ThunkApiConfig> | undefined)?
-  ],
+  [Error | null, string, ThunkArg],
   GetRejectValue<ThunkApiConfig> | undefined,
   string,
-  SerializedError,
+  GetSerializedErrorType<ThunkApiConfig>,
   {
     arg: ThunkArg
     requestId: string
+    rejectedWithValue: boolean
+    requestStatus: 'rejected'
     aborted: boolean
     condition: boolean
   }
 >
 
-type AsyncThunkFulfilledActionCreator<
+export type AsyncThunkFulfilledActionCreator<
   Returned,
   ThunkArg
 > = ActionCreatorWithPreparedPayload<
@@ -262,6 +262,7 @@ type AsyncThunkFulfilledActionCreator<
   {
     arg: ThunkArg
     requestId: string
+    requestStatus: 'fulfilled'
   }
 >
 
@@ -306,7 +307,11 @@ export function createAsyncThunk<
     (result: Returned, requestId: string, arg: ThunkArg) => {
       return {
         payload: result,
-        meta: { arg, requestId }
+        meta: {
+          arg,
+          requestId,
+          requestStatus: 'fulfilled' as const
+        }
       }
     }
   )
@@ -316,27 +321,32 @@ export function createAsyncThunk<
     (requestId: string, arg: ThunkArg) => {
       return {
         payload: undefined,
-        meta: { arg, requestId }
+        meta: {
+          arg,
+          requestId,
+          requestStatus: 'pending' as const
+        }
       }
     }
   )
 
   const rejected = createAction(
     typePrefix + '/rejected',
-    (
-      error: Error | null,
-      requestId: string,
-      arg: ThunkArg,
-      payload?: RejectedValue
-    ) => {
+    (error: Error | null, requestId: string, arg: ThunkArg) => {
+      const rejectedWithValue = error instanceof RejectWithValue
       const aborted = !!error && error.name === 'AbortError'
       const condition = !!error && error.name === 'ConditionError'
+
       return {
-        payload,
-        error: miniSerializeError(error || 'Rejected'),
+        payload: error instanceof RejectWithValue ? error.payload : undefined,
+        error: ((options && options.serializeError) || miniSerializeError)(
+          error || 'Rejected'
+        ) as GetSerializedErrorType<ThunkApiConfig>,
         meta: {
           arg,
           requestId,
+          rejectedWithValue,
+          requestStatus: 'rejected' as const,
           aborted,
           condition
         }
@@ -426,7 +436,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
               })
             ).then(result => {
               if (result instanceof RejectWithValue) {
-                return rejected(null, requestId, arg, result.value)
+                return rejected(result, requestId, arg)
               }
               return fulfilled(result, requestId, arg)
             })
@@ -469,25 +479,30 @@ If you want to use the AbortController to react to \`abort\` events, please cons
   )
 }
 
-type ActionTypesWithOptionalErrorAction =
-  | { error: any }
-  | { error?: never; payload: any }
-type PayloadForActionTypesExcludingErrorActions<T> = T extends { error: any }
-  ? never
-  : T extends { payload: infer P }
-  ? P
-  : never
+interface UnwrappableAction {
+  payload: any
+  meta?: any
+  error?: any
+}
+
+type UnwrappedActionPayload<T extends UnwrappableAction> = Exclude<
+  T,
+  { error: any }
+>['payload']
 
 /**
  * @public
  */
-export function unwrapResult<R extends ActionTypesWithOptionalErrorAction>(
-  returned: R
-): PayloadForActionTypesExcludingErrorActions<R> {
-  if ('error' in returned) {
-    throw returned.error
+export function unwrapResult<R extends UnwrappableAction>(
+  action: R
+): UnwrappedActionPayload<R> {
+  if (action.meta && action.meta.rejectedWithValue) {
+    throw action.payload
   }
-  return (returned as any).payload
+  if (action.error) {
+    throw action.error
+  }
+  return action.payload
 }
 
 type WithStrictNullChecks<True, False> = undefined extends boolean

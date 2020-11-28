@@ -1,6 +1,7 @@
 import { enableES5 } from 'immer'
 export * from 'redux'
-export { default as createNextState, Draft, current } from 'immer'
+// @ts-ignore
+export { default as createNextState, Draft, current, freeze } from 'immer'
 export {
   createSelector,
   Selector,
@@ -8,6 +9,7 @@ export {
   OutputSelector,
   ParametricSelector
 } from 'reselect'
+export { createDraftSafeSelector } from './createDraftSafeSelector'
 export { ThunkAction, ThunkDispatch } from 'redux-thunk'
 
 // We deliberately enable Immer's ES5 support, on the grounds that
@@ -105,6 +107,20 @@ export {
   unwrapResult,
   SerializedError
 } from './createAsyncThunk'
+
+export {
+  // js
+  isAllOf,
+  isAnyOf,
+  isPending,
+  isRejected,
+  isFulfilled,
+  isAsyncThunkAction,
+  isRejectedWithValue,
+  // types
+  ActionMatchingAllOf,
+  ActionMatchingAnyOf
+} from './matchers'
 
 export { nanoid } from './nanoid'
 

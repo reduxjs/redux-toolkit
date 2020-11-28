@@ -1,7 +1,10 @@
 import { Reducer } from 'redux'
-import { createReducer, createAction, ActionReducerMapBuilder } from '../../src'
-
-function expectType<T>(p: T) {}
+import {
+  createReducer,
+  createAction,
+  ActionReducerMapBuilder
+} from '@reduxjs/toolkit'
+import { expectType } from './helpers'
 
 /*
  * Test: createReducer() infers type of returned reducer.
@@ -21,7 +24,7 @@ function expectType<T>(p: T) {}
 
   const numberReducer: Reducer<number> = reducer
 
-  // typings:expect-error
+  // @ts-expect-error
   const stringReducer: Reducer<string> = reducer
 }
 
@@ -44,7 +47,7 @@ function expectType<T>(p: T) {}
     decrement: decrementHandler
   })
 
-  // typings:expect-error
+  // @ts-expect-error
   createReducer<string>(0, {
     increment: incrementHandler,
     decrement: decrementHandler
@@ -73,6 +76,6 @@ function expectType<T>(p: T) {}
   )
 
   expectType<number>(reducer(0, increment(5)))
-  // typings:expect-error
+  // @ts-expect-error
   expectType<string>(reducer(0, increment(5)))
 }

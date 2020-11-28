@@ -1,9 +1,6 @@
-import { executeReducerBuilderCallback } from 'src/mapBuilders'
-import { createAction, AnyAction } from 'src'
-
-function expectType<T>(t: T) {
-  return t
-}
+import { executeReducerBuilderCallback } from '@internal/mapBuilders'
+import { createAction, AnyAction } from '@reduxjs/toolkit'
+import { expectType } from './helpers'
 
 /** Test:  alternative builder callback for actionMap */
 {
@@ -14,20 +11,20 @@ function expectType<T>(t: T) {
     builder.addCase(increment, (state, action) => {
       expectType<number>(state)
       expectType<{ type: 'increment'; payload: number }>(action)
-      // typings:expect-error
+      // @ts-expect-error
       expectType<string>(state)
-      // typings:expect-error
+      // @ts-expect-error
       expectType<{ type: 'increment'; payload: string }>(action)
-      // typings:expect-error
+      // @ts-expect-error
       expectType<{ type: 'decrement'; payload: number }>(action)
     })
 
     builder.addCase('increment', (state, action) => {
       expectType<number>(state)
       expectType<{ type: 'increment' }>(action)
-      // typings:expect-error
+      // @ts-expect-error
       expectType<{ type: 'decrement' }>(action)
-      // typings:expect-error - this cannot be inferred and has to be manually specified
+      // @ts-expect-error - this cannot be inferred and has to be manually specified
       expectType<{ type: 'increment'; payload: number }>(action)
     })
 
@@ -35,7 +32,7 @@ function expectType<T>(t: T) {
       increment,
       (state, action: ReturnType<typeof increment>) => state
     )
-    // typings:expect-error
+    // @ts-expect-error
     builder.addCase(
       increment,
       (state, action: ReturnType<typeof decrement>) => state
@@ -45,7 +42,7 @@ function expectType<T>(t: T) {
       'increment',
       (state, action: ReturnType<typeof increment>) => state
     )
-    // typings:expect-error
+    // @ts-expect-error
     builder.addCase(
       'decrement',
       (state, action: ReturnType<typeof increment>) => state
@@ -87,7 +84,7 @@ function expectType<T>(t: T) {
     {
       // addMatcher() should prevent further calls to addCase()
       const b = builder.addMatcher(increment.match, () => {})
-      // typings:expect-error
+      // @ts-expect-error
       b.addCase(increment, () => {})
       b.addMatcher(increment.match, () => {})
       b.addDefaultCase(() => {})
@@ -96,11 +93,11 @@ function expectType<T>(t: T) {
     {
       // addDefaultCase() should prevent further calls to addCase(), addMatcher() and addDefaultCase
       const b = builder.addDefaultCase(() => {})
-      // typings:expect-error
+      // @ts-expect-error
       b.addCase(increment, () => {})
-      // typings:expect-error
+      // @ts-expect-error
       b.addMatcher(increment.match, () => {})
-      // typings:expect-error
+      // @ts-expect-error
       b.addDefaultCase(() => {})
     }
   })

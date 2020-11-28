@@ -12,7 +12,7 @@ import {
   ActionReducerMapBuilder,
   executeReducerBuilderCallback
 } from './mapBuilders'
-import { Omit, NoInfer } from './tsHelpers'
+import { NoInfer } from './tsHelpers'
 
 /**
  * An action creator attached to a slice.

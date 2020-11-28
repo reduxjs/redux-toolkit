@@ -17,7 +17,7 @@ describe('Entity utils', () => {
     it('should not warn when key does exist', () => {
       const spy = spyOn(console, 'warn')
 
-      const key = selectIdValue(AClockworkOrange, book => book.id)
+      selectIdValue(AClockworkOrange, book => book.id)
 
       expect(spy).not.toHaveBeenCalled()
     })
@@ -25,7 +25,7 @@ describe('Entity utils', () => {
     it('should warn when key does not exist in dev mode', () => {
       const spy = spyOn(console, 'warn')
 
-      const key = selectIdValue(AClockworkOrange, (book: any) => book.foo)
+      selectIdValue(AClockworkOrange, (book: any) => book.foo)
 
       expect(spy).toHaveBeenCalled()
     })
@@ -34,10 +34,7 @@ describe('Entity utils', () => {
       const spy = spyOn(console, 'warn')
 
       const undefinedAClockworkOrange = { ...AClockworkOrange, id: undefined }
-      const key = selectIdValue(
-        undefinedAClockworkOrange,
-        (book: any) => book.id
-      )
+      selectIdValue(undefinedAClockworkOrange, (book: any) => book.id)
 
       expect(spy).toHaveBeenCalled()
     })
@@ -46,7 +43,7 @@ describe('Entity utils', () => {
       process.env.NODE_ENV = 'production'
       const spy = spyOn(console, 'warn')
 
-      const key = selectIdValue(AClockworkOrange, (book: any) => book.foo)
+      selectIdValue(AClockworkOrange, (book: any) => book.foo)
 
       expect(spy).not.toHaveBeenCalled()
     })
@@ -56,10 +53,7 @@ describe('Entity utils', () => {
       const spy = spyOn(console, 'warn')
 
       const undefinedAClockworkOrange = { ...AClockworkOrange, id: undefined }
-      const key = selectIdValue(
-        undefinedAClockworkOrange,
-        (book: any) => book.id
-      )
+      selectIdValue(undefinedAClockworkOrange, (book: any) => book.id)
 
       expect(spy).not.toHaveBeenCalled()
     })

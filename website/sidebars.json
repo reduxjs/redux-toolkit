@@ -35,7 +35,11 @@
         "type": "category",
         "label": "Other",
         "collapsed": false,
-        "items": ["api/createSelector", "api/other-exports"]
+        "items": [
+          "api/createSelector",
+          "api/matching-utilities",
+          "api/other-exports"
+        ]
       }
     ]
   }

@@ -3,13 +3,12 @@ import {
   createEntityAdapter,
   EntityAdapter,
   ActionCreatorWithPayload,
-  ActionCreatorWithoutPayload
-} from 'src'
-import { EntityStateAdapter, EntityId, Update } from 'src/entities/models'
-
-function expectType<T>(t: T) {
-  return t
-}
+  ActionCreatorWithoutPayload,
+  EntityStateAdapter,
+  EntityId,
+  Update
+} from '@reduxjs/toolkit'
+import { expectType } from './helpers'
 
 function extractReducers<T>(
   adapter: EntityAdapter<T>
@@ -77,7 +76,7 @@ function extractReducers<T>(
     initialState: adapter.getInitialState(),
     reducers: {
       addOne: adapter.addOne,
-      // typings:expect-error
+      // @ts-expect-error
       addOne2: adapter2.addOne
     }
   })
@@ -112,7 +111,7 @@ function extractReducers<T>(
     name: 'test',
     initialState: { somethingElse: '' },
     reducers: {
-      // typings:expect-error
+      // @ts-expect-error
       addOne: adapter.addOne
     }
   })
