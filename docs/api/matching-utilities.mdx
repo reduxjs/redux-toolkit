@@ -46,7 +46,7 @@ Accepts the same inputs as `isAllOf` and will return a type guard function that 
 A higher-order function that returns a type guard function that may be used to check whether an action was created by [`createAsyncThunk`](./createAsyncThunk).
 
 ```ts title="isAsyncThunkAction usage"
-import { isAsyncThunkAction } from '@reduxjs/toolkit'
+import { isAsyncThunkAction, AnyAction } from '@reduxjs/toolkit'
 import { requestThunk1, requestThunk2 } from '@virtual/matchers'
 
 const isARequestAction = isAsyncThunkAction(requestThunk1, requestThunk2)
@@ -63,7 +63,7 @@ function handleRequestAction(action: AnyAction) {
 A higher-order function that returns a type guard function that may be used to check whether an action is a 'pending' action creator from the `createAsyncThunk` promise lifecycle.
 
 ```ts title="isPending usage"
-import { isPending } from '@reduxjs/toolkit'
+import { isPending, AnyAction } from '@reduxjs/toolkit'
 import { requestThunk1, requestThunk2 } from '@virtual/matchers'
 
 const isAPendingAction = isPending(requestThunk1, requestThunk2)
@@ -80,7 +80,7 @@ function handlePendingAction(action: AnyAction) {
 A higher-order function that returns a type guard function that may be used to check whether an action is a 'fulfilled'' action creator from the `createAsyncThunk` promise lifecycle.
 
 ```ts title="isFulfilled usage"
-import { isFulfilled } from '@reduxjs/toolkit'
+import { isFulfilled, AnyAction } from '@reduxjs/toolkit'
 import { requestThunk1, requestThunk2 } from '@virtual/matchers'
 
 const isAFulfilledAction = isFulfilled(requestThunk1, requestThunk2)
@@ -97,7 +97,7 @@ function handleFulfilledAction(action: AnyAction) {
 A higher-order function that returns a type guard function that may be used to check whether an action is a 'rejected' action creator from the `createAsyncThunk` promise lifecycle.
 
 ```ts title="isRejected usage"
-import { isRejected } from '@reduxjs/toolkit'
+import { isRejected, AnyAction } from '@reduxjs/toolkit'
 import { requestThunk1, requestThunk2 } from '@virtual/matchers'
 
 const isARejectedAction = isRejected(requestThunk1, requestThunk2)
@@ -114,7 +114,7 @@ function handleRejectedAction(action: AnyAction) {
 A higher-order function that returns a type guard function that may be used to check whether an action is a 'rejected' action creator from the `createAsyncThunk` promise lifecycle that was created by [`rejectWithValue`](./createAsyncThunk#handling-thunk-errors).
 
 ```ts title="isRejectedWithValue usage"
-import { isRejectedWithValue } from '@reduxjs/toolkit'
+import { isRejectedWithValue, AnyAction } from '@reduxjs/toolkit'
 import { requestThunk1, requestThunk2 } from '@virtual/matchers'
 
 const isARejectedWithValueAction = isRejectedWithValue(
@@ -207,7 +207,7 @@ In this scenario, we can use `isAllOf` to simplify our code and reduce some of t
 ```ts title="Refactoring with isAllOf"
 import { createReducer, isAllOf } from '@reduxjs/toolkit'
 import {
-  request,
+  isSpecialAndInterestingThunk,
   initialState,
   isSpecial,
   isInteresting,
@@ -216,12 +216,18 @@ import {
 
 const loadingReducer = createReducer(initialState, builder => {
   builder
-    .addMatcher(isAllOf(request.fulfilled, isSpecial), (state, action) => {
-      state.isSpecial = true
-    })
-    .addMatcher(isAllOf(request.fulfilled, isInteresting), (state, action) => {
-      state.isInteresting = true
-    })
+    .addMatcher(
+      isAllOf(isSpecialAndInterestingThunk.fulfilled, isSpecial),
+      (state, action) => {
+        state.isSpecial = true
+      }
+    )
+    .addMatcher(
+      isAllOf(isSpecialAndInterestingThunk.fulfilled, isInteresting),
+      (state, action) => {
+        state.isInteresting = true
+      }
+    )
 })
 ```
 
