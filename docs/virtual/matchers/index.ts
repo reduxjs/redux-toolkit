@@ -34,10 +34,10 @@ export interface ExampleState {
   isInteresting: boolean
 }
 
-export const initialState: ExampleState = {
+export const initialState = {
   isSpecial: false,
   isInteresting: false
-}
+} as ExampleState
 
 export const isSpecialAndInterestingThunk = createAsyncThunk(
   'isSpecialAndInterestingThunk',

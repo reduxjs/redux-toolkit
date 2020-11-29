@@ -38,7 +38,7 @@ interface Todo {
 }
 const addTodo = createAction<Todo>('addTodo')
 
-const initialState: Todo[] = []
+const initialState = [] as Todo[]
 
 const todosReducer = createReducer(initialState, builder => {
   builder.addCase(addTodo, (state, action) => {
