@@ -65,10 +65,10 @@
     }
   ],
   "dependencies": {
-    "@reduxjs/toolkit": "^1.5.0",
     "immer": ">=8.0.0"
   },
   "peerDependencies": {
+    "@reduxjs/toolkit": "^1.5.0",
     "react": "^16.14.0 || ^17.0.0",
     "react-dom": "^16.14.0 || ^17.0.0",
     "react-redux": "^7.2.1"
