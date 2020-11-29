@@ -31,7 +31,7 @@ const baseQuery = fetchBaseQuery({
 });
 
 export const postApi = createApi({
-  reducerPath: 'postsApi',
+  reducerPath: 'postsApi', // We only specify this because there are many services. This would not be common in most applications
   baseQuery,
   entityTypes: ['Posts'],
   endpoints: (build) => ({
@@ -44,8 +44,7 @@ export const postApi = createApi({
       },
     }),
     getPosts: build.query<PostsResponse, void>({
-      // Don't use the default headers we set - a real example would be an endpoint that doesn't expect credentials
-      query: () => ({ url: 'posts', headers: {} }),
+      query: () => ({ url: 'posts' }),
       provides: (result) => [
         ...result.map(({ id }) => ({ type: 'Posts', id } as const)),
         { type: 'Posts', id: 'LIST' },
@@ -85,3 +84,16 @@ export const postApi = createApi({
     }),
   }),
 });
+
+export const {
+  useAddPostMutation,
+  useDeletePostMutation,
+  useGetPostQuery,
+  useGetPostsQuery,
+  useLoginMutation,
+  useUpdatePostMutation,
+} = postApi;
+
+export const {
+  endpoints: { login },
+} = postApi;

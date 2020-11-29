@@ -88,7 +88,7 @@ store.dispatch(api.internalActions.prefetchThunk(endpointName, arg, { force: fal
 You can also dispatch the query action, but you would be responsible for implementing any additional logic.
 
 ```js title="Alternate method of manual prefetching"
-dispatch(api.queryActions[endpointName](arg, { forceRefetch: true }));
+dispatch(api.endpoints[endpointName].initiate(arg, { forceRefetch: true }));
 ```
 
 ### Example

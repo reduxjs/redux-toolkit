@@ -56,7 +56,7 @@ In some cases, you may want to skip this behavior and force a refetch - in that 
 > If you're not using React Hooks, you can access `refetch` like this:
 >
 > ```ts
-> const { status, data, error, refetch } = dispatch(pokemonApi.actions.getPokemon('bulbasaur'));
+> const { status, data, error, refetch } = dispatch(pokemonApi.endpoints.getPokemon.initiate('bulbasaur'));
 > ```
 
 ### Observing caching behavior

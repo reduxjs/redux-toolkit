@@ -11,6 +11,12 @@ hide_title: true
 
 `RTK Query` is currently in an alpha state of development, with the goal of eventually including it directly in the Redux Toolkit library.
 
+:::note
+To use the [auto-generated React Hooks](../api/createApi#auto-generated-hooks) as shown below as a TypeScript user, you'll need to use TS4.1+.
+
+For older versions of TS, you can use `api.endpoints.[endpointName].useQuery/useMutation`
+:::
+
 ## Installation
 
 ```sh
@@ -45,7 +51,7 @@ export const pokemonApi = createApi({
 });
 
 // Export hooks for usage in functional components
-export const { hooks } = pokemonApi;
+export const { useGetPokemonByNameQuery } = pokemonApi;
 ```
 
 With `rtk-query`, you define your entire API definition in one place _in most cases_. This is most likely different from what you see with other libraries such as `swr` or `react-query`, and there are several reasons for that. Our perspective is that it's _much_ easier to keep track of how requests, cache invalidation, and general app configuration behave when they're all in one central location in comparison to having X number of custom hooks in different files throughout your application.
@@ -90,23 +96,23 @@ Once a service has been defined, you can import the hooks to make a request.
 
 ```ts title="src/App.tsx"
 import * as React from 'react';
-import { hooks } from './services/pokemon';
+import { useGetPokemonByNameQuery } from './services/pokemon';
 
 export default function App() {
-  const { data, error } = hooks.getPokemonByName.useQuery('bulbasaur');
+  const { data, error, isLoading } = useGetPokemonByNameQuery('bulbasaur');
 
   return (
     <div className="App">
       {error ? (
         <>Oh no, there was an error</>
-      ) : !data ? (
+      ) : isLoading ? (
         <>Loading...</>
-      ) : (
+      ) : data ? (
         <>
           <h3>{data.species.name}</h3>
           <img src={data.sprites.front_shiny} alt={data.species.name} />
         </>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -51,23 +51,24 @@ function Feature({ imageUrl, title, description }) {
   );
 }
 
-const libFeatures = [
-  'Supports any protocol',
-  'Declarative API definitions',
-  'Caching',
-  'Automatic re-fetching',
-  'Polling',
-  'Parallel queries',
-  'Dependent queries',
-  'Paginated queries',
-  'Skip queries',
-  'Lagged queries',
-  'Automatic garbage collection',
-  'Prefetching',
-  'Runs on every framework',
-  'Transport and protocol agnostic',
-  'Built with TypeScript',
-];
+const featuresToPaths = {
+  'Supports any protocol': null,
+  'Declarative API definitions': '/api/createApi#createapi',
+  Caching: '/concepts/queries#avoiding-unnecessary-requests',
+  'Automatic re-fetching': '/concepts/mutations#advanced-mutations-with-revalidation',
+  Polling: '/concepts/polling',
+  'Parallel queries': '',
+  'Dependent queries': '/concepts/conditional-fetching',
+  'Paginated queries': '/concepts/pagination',
+  'Skip queries': '/concepts/conditional-fetching',
+  'Lagged queries': '/concepts/conditional-fetching',
+  'Automatic garbage collection': '/api/createApi#keepunuseddatafor',
+  Prefetching: '/concepts/prefetching',
+  'Optimistic Updates': '/concepts/optimistic-updates',
+  'Auto-generated React Hooks': '/api/createApi#auto-generated-hooks',
+  'Runs on every framework': null,
+  'Built with TypeScript': null,
+};
 
 const Checkmark = () => {
   return (
@@ -77,11 +78,12 @@ const Checkmark = () => {
     </svg>
   );
 };
-function LibFeature({ title }) {
+
+function LibFeature({ title, link }) {
   return (
     <div className={clsx('col col--3 text--left', styles.feature)}>
       <p>
-        <Checkmark /> {title}
+        <Checkmark /> {link ? <Link to={link}>{title}</Link> : title}
       </p>
     </div>
   );
@@ -127,8 +129,8 @@ function Home() {
               <h2 className="text--center">Features</h2>
             </div>
             <div className={`row text--center`}>
-              {libFeatures.map((title, idx) => (
-                <LibFeature key={idx} title={title} />
+              {Object.entries(featuresToPaths).map(([title, link], idx) => (
+                <LibFeature key={idx} title={title} link={link} />
               ))}
             </div>
           </div>

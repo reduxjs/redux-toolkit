@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Route, Switch, useHistory } from 'react-router-dom';
-import { Post, postApi } from '../../app/services/posts';
+import { Post, useAddPostMutation, useGetPostsQuery, useLoginMutation } from '../../app/services/posts';
 import { selectIsAuthenticated, logout } from '../auth/authSlice';
 import { PostDetail } from './PostDetail';
 import './PostsManager.css';
@@ -9,7 +9,7 @@ import './PostsManager.css';
 const AddPost = () => {
   const initialValue = { name: '' };
   const [post, setPost] = useState<Partial<Post>>(initialValue);
-  const [addPost, { isLoading }] = postApi.endpoints.addPost.useMutation();
+  const [addPost, { isLoading }] = useAddPostMutation();
 
   const handleChange = ({ target }: React.ChangeEvent<HTMLInputElement>) => {
     setPost((prev) => ({
@@ -45,7 +45,7 @@ const PostListItem = ({ data: { name, id }, onSelect }: { data: Post; onSelect: 
 };
 
 const PostList = () => {
-  const { data: posts, isLoading } = postApi.endpoints.getPosts.useQuery();
+  const { data: posts, isLoading } = useGetPostsQuery();
   const { push } = useHistory();
 
   if (isLoading) {
@@ -66,7 +66,7 @@ const PostList = () => {
 };
 
 export const PostsManager = () => {
-  const [login] = postApi.endpoints.login.useMutation();
+  const [login] = useLoginMutation();
   const dispatch = useDispatch();
   const isAuthenticated = useSelector(selectIsAuthenticated);
 

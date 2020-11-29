@@ -49,7 +49,7 @@ module.exports = {
               to: '/introduction/quick-start',
             },
             { label: 'API Reference', to: '/api/createApi' },
-            { label: 'Examples', to: '/examples/react-hooks' },
+            { label: 'Examples', to: '/examples/examples-overview' },
           ],
         },
         {

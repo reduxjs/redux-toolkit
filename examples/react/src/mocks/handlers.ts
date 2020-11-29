@@ -13,7 +13,7 @@ const adapter = createEntityAdapter<Post>();
 let state = adapter.getInitialState();
 state = adapter.setAll(state, [
   { id: 1, name: 'A sample post', fetched_at: new Date().toUTCString() },
-  { id: 2, name: 'A post about simple query', fetched_at: new Date().toUTCString() },
+  { id: 2, name: 'A post about rtk-query', fetched_at: new Date().toUTCString() },
 ]);
 
 export { state };

@@ -35,3 +35,5 @@ export const counterApi = createApi({
     }),
   }),
 });
+
+export const { useDecrementCountMutation, useGetCountQuery, useIncrementCountMutation } = counterApi;

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { nanoid } from '@reduxjs/toolkit';
 import { useEffect } from 'react';
-import { timeApi, usePrefetchTime } from '../../app/services/times';
+import { useGetTimeQuery, usePrefetchTime } from '../../app/services/times';
 import { Container } from '../common/Container';
 import { useTypedSelector } from '../../app/store';
 import { selectGlobalPollingEnabled, selectPollingConfigByApp } from '../polling/pollingSlice';
@@ -78,9 +78,10 @@ const TimeDisplay = ({ offset, label }: { offset: string; label: string }) => {
   const canPoll = globalPolling && timesPolling;
 
   const [pollingInterval, setPollingInterval] = React.useState(0);
-  const { data, refetch, isFetching } = timeApi.endpoints.getTime.useQuery(offset, {
+  const { data, refetch, isFetching } = useGetTimeQuery(offset, {
     pollingInterval: canPoll ? pollingInterval : 0,
   });
+
   return (
     <div style={{ ...(isFetching ? { background: '#e6ffe8' } : {}) }}>
       <p>

@@ -16,4 +16,4 @@ export const timeApi = createApi({
   }),
 });
 
-export const { usePrefetch: usePrefetchTime } = timeApi;
+export const { usePrefetch: usePrefetchTime, useGetTimeQuery } = timeApi;

@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { useHistory, useParams } from 'react-router-dom';
-import { postApi } from '../../app/services/posts';
+import { useTypedSelector } from 'src/app/store';
+import { useDeletePostMutation, useGetPostQuery, useUpdatePostMutation } from '../../app/services/posts';
+import { selectGlobalPollingEnabled } from '../polling/pollingSlice';
 
 const EditablePostName = ({
   name: initialName,
@@ -34,7 +36,7 @@ const EditablePostName = ({
 };
 
 const PostJsonDetail = ({ id }: { id: number }) => {
-  const { data: post } = postApi.endpoints.getPost.useQuery(id);
+  const { data: post } = useGetPostQuery(id);
 
   return (
     <div className="row" style={{ background: '#eee' }}>
@@ -46,13 +48,14 @@ const PostJsonDetail = ({ id }: { id: number }) => {
 export const PostDetail = () => {
   const { id } = useParams<{ id: any }>();
   const { push } = useHistory();
+  const globalPolling = useTypedSelector(selectGlobalPollingEnabled);
 
   const [isEditing, setIsEditing] = React.useState(false);
 
-  const { data: post, isFetching, isLoading } = postApi.endpoints.getPost.useQuery(id, { pollingInterval: 3000 });
+  const { data: post, isFetching, isLoading } = useGetPostQuery(id, { pollingInterval: globalPolling ? 3000 : 0 });
 
-  const [updatePost, { isLoading: isUpdating }] = postApi.endpoints.updatePost.useMutation();
-  const [deletePost, { isLoading: isDeleting }] = postApi.endpoints.deletePost.useMutation();
+  const [updatePost, { isLoading: isUpdating }] = useUpdatePostMutation();
+  const [deletePost, { isLoading: isDeleting }] = useDeletePostMutation();
 
   if (isLoading) {
     return <div>Loading...</div>;
