@@ -1,6 +1,6 @@
 export type Id<T> = { [K in keyof T]: T[K] } & {};
 export type WithRequiredProp<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
-
+export type Override<T1, T2> = T2 extends any ? Omit<T1, keyof T2> & T2 : never;
 export function assertCast<T>(v: any): asserts v is T {}
 
 /**

@@ -14,6 +14,11 @@ const defaultValidateStatus = (response: Response) => response.status >= 200 && 
 
 const isJsonContentType = (headers: Headers) => headers.get('content-type')?.trim()?.startsWith('application/json');
 
+export interface FetchBaseQueryError {
+  status: number;
+  data: unknown;
+}
+
 export function fetchBaseQuery({
   baseUrl,
   prepareHeaders = (x) => x,
@@ -68,6 +73,6 @@ export function fetchBaseQuery({
 
     return validateStatus(response, resultData)
       ? { data: resultData }
-      : { error: { status: response.status, data: resultData } };
+      : { error: { status: response.status, data: resultData } as FetchBaseQueryError };
   };
 }

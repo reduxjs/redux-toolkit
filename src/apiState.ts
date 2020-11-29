@@ -21,22 +21,44 @@ export enum QueryStatus {
   rejected = 'rejected',
 }
 
-const defaultBaseFlagsState = {
-  isUninitialized: true,
-  isLoading: false,
-  isSuccess: false,
-  isError: false,
-};
-
-export type RequestStatusFlags = typeof defaultBaseFlagsState;
+export type RequestStatusFlags =
+  | {
+      status: QueryStatus.uninitialized;
+      isUninitialized: true;
+      isLoading: false;
+      isSuccess: false;
+      isError: false;
+    }
+  | {
+      status: QueryStatus.pending;
+      isUninitialized: false;
+      isLoading: true;
+      isSuccess: false;
+      isError: false;
+    }
+  | {
+      status: QueryStatus.fulfilled;
+      isUninitialized: false;
+      isLoading: false;
+      isSuccess: true;
+      isError: false;
+    }
+  | {
+      status: QueryStatus.rejected;
+      isUninitialized: false;
+      isLoading: false;
+      isSuccess: false;
+      isError: true;
+    };
 
 export function getRequestStatusFlags(status: QueryStatus): RequestStatusFlags {
   return {
+    status,
     isUninitialized: status === QueryStatus.uninitialized,
     isLoading: status === QueryStatus.pending,
     isSuccess: status === QueryStatus.fulfilled,
     isError: status === QueryStatus.rejected,
-  };
+  } as any;
 }
 
 export type SubscriptionOptions = { pollingInterval?: number };
@@ -64,7 +86,7 @@ type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
 export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
   | ({
       status: QueryStatus.fulfilled;
-    } & WithRequiredProp<BaseQuerySubState<D>, 'data' | 'fulfilledTimeStamp'>)
+    } & WithRequiredProp<BaseQuerySubState<D>, 'data' | 'fulfilledTimeStamp'> & { error: undefined })
   | ({
       status: QueryStatus.pending;
     } & BaseQuerySubState<D>)

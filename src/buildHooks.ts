@@ -20,6 +20,7 @@ import { skipSelector } from './buildSelectors';
 import { QueryActionCreatorResult, MutationActionCreatorResult } from './buildActionMaps';
 import { useShallowStableValue } from './utils';
 import { Api, ApiEndpointMutation, ApiEndpointQuery } from './apiTypes';
+import { Id, Override } from './tsHelpers';
 
 interface QueryHookOptions extends SubscriptionOptions {
   skip?: boolean;
@@ -46,13 +47,40 @@ export type QueryHook<D extends QueryDefinition<any, any, any, any>> = (
   options?: QueryHookOptions
 ) => QueryHookResult<D>;
 
-type AdditionalQueryStatusFlags = {
-  isFetching: boolean;
-};
-type QueryHookResult<D extends QueryDefinition<any, any, any, any>> = QuerySubState<D> &
-  RequestStatusFlags &
-  AdditionalQueryStatusFlags &
-  Pick<QueryActionCreatorResult<D>, 'refetch'>;
+type BaseQueryHookResult<D extends QueryDefinition<any, any, any, any>> = QuerySubState<D> & {
+  /**
+   * Query has not started yet.
+   */
+  isUninitialized: false;
+  /**
+   * Query is currently loading for the first time. No data yet.
+   */
+  isLoading: false;
+  /**
+   * Query is currently fetching, but might have data from an earlier request.
+   */
+  isFetching: false;
+  /**
+   * Query has data from a successful load.
+   */
+  isSuccess: false;
+  /**
+   * Query is currently in "error" state.
+   */
+  isError: false;
+} & Pick<QueryActionCreatorResult<D>, 'refetch'>;
+
+type QueryHookResult<D extends QueryDefinition<any, any, any, any>> = Id<
+  | Override<Extract<BaseQueryHookResult<D>, { status: QueryStatus.uninitialized }>, { isUninitialized: true }>
+  | Override<
+      BaseQueryHookResult<D>,
+      | { isLoading: true; isFetching: boolean; data: undefined }
+      | ({ isSuccess: true; isFetching: boolean; error: undefined } & Required<
+          Pick<BaseQueryHookResult<D>, 'data' | 'fulfilledTimeStamp'>
+        >)
+      | ({ isError: true } & Required<Pick<BaseQueryHookResult<D>, 'error'>>)
+    >
+>;
 
 export type MutationHook<D extends MutationDefinition<any, any, any, any>> = () => [
   (
@@ -132,20 +160,23 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       const refetch = useCallback(() => void promiseRef.current?.refetch(), []);
 
-      // isLoading = true only on the initial request or during any subsequent retry/poll attempt until data is returned
-      // isFetching = true any time a request is in flight
-      const isPending = currentState.status === QueryStatus.pending;
-      const isLoading = !lastData.current && isPending;
-      const isFetching = isPending;
-
       // data is the last known good request result
       const data = currentState.status === 'fulfilled' ? currentState.data : lastData.current;
 
-      return useMemo(() => ({ ...currentState, data, isFetching, isLoading, refetch }), [
+      const isPending = currentState.status === QueryStatus.pending;
+      // isLoading = true only when loading while no data is present yet (initial load)
+      const isLoading: any = !lastData.current && isPending;
+      // isFetching = true any time a request is in flight
+      const isFetching: any = isPending;
+      // isSuccess = true when data is present
+      const isSuccess: any = currentState.status === 'fulfilled' || (isPending && !!data);
+
+      return useMemo(() => ({ ...currentState, data, isFetching, isLoading, isSuccess, refetch }), [
         currentState,
         data,
         isFetching,
         isLoading,
+        isSuccess,
         refetch,
       ]);
     };

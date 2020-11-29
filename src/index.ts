@@ -17,7 +17,7 @@ import type { CombinedState, QueryCacheKey, QueryStatePhantomType } from './apiS
 import { assertCast, BaseQueryArg } from './tsHelpers';
 import { Api, BaseQueryFn } from './apiTypes';
 export { Api, ApiWithInjectedEndpoints } from './apiTypes';
-export { fetchBaseQuery } from './fetchBaseQuery';
+export { fetchBaseQuery, FetchBaseQueryError } from './fetchBaseQuery';
 export { QueryStatus } from './apiState';
 
 export type SerializeQueryArgs<InternalQueryArgs> = (_: {
