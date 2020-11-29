@@ -63,6 +63,10 @@
       "limit": "25 KB"
     }
   ],
+  "dependencies": {
+    "@reduxjs/toolkit": "^1.5.0",
+    "immer": ">=8.0.0"
+  },
   "peerDependencies": {
     "react": "^16.14.0 || ^17.0.0",
     "react-dom": "^16.14.0 || ^17.0.0",
@@ -85,7 +89,6 @@
     }
   },
   "devDependencies": {
-    "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/65341076/@reduxjs/toolkit",
     "@size-limit/preset-small-lib": "^4.6.0",
     "@testing-library/react": "^11.1.0",
     "@testing-library/react-hooks": "^3.4.2",
@@ -93,7 +96,6 @@
     "@types/react-redux": "^7.1.9",
     "eslint-plugin-prettier": "^3.1.4",
     "husky": "^4.3.0",
-    "immer": "^8.0.0",
     "msw": "^0.22.3",
     "node-fetch": "^2.6.1",
     "prettier": "^2.2.0",

@@ -26,7 +26,7 @@
         "typescript": "^3.9.3"
     },
     "dependencies": {
-        "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/2c869f4d/@reduxjs/toolkit",
+        "@reduxjs/toolkit": "^1.5.0",
         "sirv-cli": "^1.0.0"
     }
 }

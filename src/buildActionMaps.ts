@@ -96,7 +96,6 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
       });
       const thunkResult = dispatch(thunk);
       const { requestId, abort } = thunkResult;
-      assertIsNewRTKPromise(thunkResult);
       const statePromise = thunkResult.then(() =>
         (api.endpoints[endpoint] as ApiEndpointQuery<any, any>).select(arg)(getState())
       );
@@ -139,7 +138,6 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
       });
       const thunkResult = dispatch(thunk);
       const { requestId, abort } = thunkResult;
-      assertIsNewRTKPromise(thunkResult);
       const statePromise = thunkResult.then(() => {
         const currentState = (api.endpoints[endpoint] as ApiEndpointMutation<any, any>).select(requestId)(getState());
         return currentState as Extract<typeof currentState, { status: QueryStatus.fulfilled | QueryStatus.rejected }>;
@@ -153,16 +151,5 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
         },
       });
     };
-  }
-}
-
-function assertIsNewRTKPromise(action: ReturnType<ThunkAction<any, any, any, any>>) {
-  if (!('requestId' in action) || !('arg' in action)) {
-    throw new Error(`
-    You are running a version of RTK that is too old.
-    Currently you need an experimental build of RTK.
-    Please install it via
-    yarn add "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/65341076/@reduxjs/toolkit"
-    `);
   }
 }
