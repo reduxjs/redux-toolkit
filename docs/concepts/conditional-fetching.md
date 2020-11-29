@@ -5,7 +5,7 @@ sidebar_label: Conditional Fetching
 hide_title: true
 ---
 
-# `Conditional Fetching`
+# Conditional Fetching
 
 If you want to prevent a query from automatically running, you can use the `skip` parameter in a hook.
 

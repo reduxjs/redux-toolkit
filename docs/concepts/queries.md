@@ -5,17 +5,19 @@ sidebar_label: Queries
 hide_title: true
 ---
 
-# `Queries`
+# Queries
 
-This is the most basic feature of `RTK Query`. A `query` can be performed with any data fetching library of your choice, but the general recommendation is that you only use queries for requests that retrieve data. For anything that alters data on the server or will possibly invalidate the cache, you should use a [Mutation](./mutations).
+This is the most basic feature of RTK Query. A query operation can be performed with any data fetching library of your choice, but the general recommendation is that you only use queries for requests that retrieve data. For anything that alters data on the server or will possibly invalidate the cache, you should use a [Mutation](./mutations).
 
-By default, `RTK Query` ships with [fetchBaseQuery](../api/fetchBaseQuery), which is just a lightweight [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) wrapper that automatically handles request headers and response parsing in a manner similar to common libraries like `axios`.
+By default, RTK Query ships with [`fetchBaseQuery`](../api/fetchBaseQuery), which is a lightweight [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) wrapper that automatically handles request headers and response parsing in a manner similar to common libraries like `axios`.
 
 > Depending on your environment, you may need to polyfill `fetch` with `whatwg-fetch` if you choose to use `fetchBaseQuery` or `fetch` on it's own.
 
 ### Performing queries with React Hooks
 
 If you're using React Hooks, RTK Query does a few additional things for you. The primary benefit is that you get a render-optimized hook that allows you to have 'background fetching'.
+
+Hooks are automatically generated based on the name of the `endpoint` in the service definition. An endpoint field with `getPost: builder.query()` will generate a hook named `useGetPostQuery`.
 
 Here is an example of a `PostDetail` component:
 

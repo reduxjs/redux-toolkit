@@ -61,11 +61,11 @@ export const {
 
 #### middleware
 
-This is a standard redux middleware and is responsible for things like [polling](../concepts/polling), [garbage collection](#keepunuseddatafor) and a handful of other things. Make sure it's [included in your store](../introduction/quick-start#add-the-service-to-your-store).
+This is a standard redux middleware and is responsible for things like [polling](../concepts/polling), [garbage collection](#keepunuseddatafor) and a handful of other things. Make sure it's [included in your store](../introduction/getting-started#add-the-service-to-your-store).
 
 #### reducer
 
-A standard redux reducer that enables core functionality. Make sure it's [included in your store](../introduction/quick-start#add-the-service-to-your-store).
+A standard redux reducer that enables core functionality. Make sure it's [included in your store](../introduction/getting-started#add-the-service-to-your-store).
 
 ### `endpoints` returned by `createApi`
 
@@ -248,7 +248,7 @@ function defaultTransformResponse(baseQueryReturnValue: unknown) {
 }
 ```
 
-To change it, simply provide a function that looks like:
+To change it, provide a function that looks like:
 
 ```ts
 transformResponse: (response) => response.some.deeply.nested.property;

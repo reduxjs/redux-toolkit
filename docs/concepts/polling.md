@@ -5,7 +5,7 @@ sidebar_label: Polling
 hide_title: true
 ---
 
-# `Polling`
+# Polling
 
 Polling gives you the ability to have a 'real-time' effect by causing a query to run at a specified interval. To enable polling for a query, pass a `pollingInterval` to the `useQuery` hook or action creator with an interval in milliseconds:
 

@@ -1,15 +1,15 @@
 ---
-id: quick-start
-title: Quick Start
-sidebar_label: Quick Start
+id: getting-started
+title: Getting Started
+sidebar_label: Getting Started
 hide_title: true
 ---
 
-# Quick Start
+# Getting Started
 
-`RTK Query` is an advanced data fetching and caching tool, designed to simplify common cases for loading data in a web application. `RTK Query` itself is built on top of [Redux-Toolkit](https://redux-toolkit.js.org/) and uses [Redux](https://redux.js.org/) internally for its architecture. Although knowledge of Redux and RTK are not required to use this library, you should explore all of the additional global store management capabilities they provide, as well as installing the [devtools](https://github.com/reduxjs/redux-devtools).
+RTK Query is an advanced data fetching and caching tool, designed to simplify common cases for loading data in a web application. RTK Query`itself is built on top of [Redux Toolkit](https://redux-toolkit.js.org/) and uses [Redux](https://redux.js.org/) internally for its architecture. Although knowledge of Redux and RTK are not required to use this library, you should explore all of the additional global store management capabilities they provide, as well as installing the [Redux DevTools browser extension](https://github.com/reduxjs/redux-devtools).
 
-`RTK Query` is currently in an alpha state of development, with the goal of eventually including it directly in the Redux Toolkit library.
+RTK Query is **currently in an alpha state of development**, with the goal of eventually including it directly in the Redux Toolkit library. We encourage you to use it in personal projects, and suggest creating local development branches to try out in actual apps. While we believe the current alpha is stable enough to actually use this library in real code, it's likely that there will be breaking API changes as we iterate on the API design and feature set. We welcome feedback on how it works and ways we can improve the API to help finalize the design!
 
 :::note
 To use the [auto-generated React Hooks](../api/createApi#auto-generated-hooks) as shown below as a TypeScript user, you'll need to use TS4.1+.
@@ -33,13 +33,17 @@ If you're a React user, make sure that you've installed `react-redux`. If you're
 
 ## Setting up your store and API service
 
+To see how RTK Query works, let's walk through a basic usage example.
+
 ### Create an API service
 
-To get started as a very basic example, let's create a very simple service that queries the publicly available [PokeAPI](https://pokeapi.co/).
+First, we'll create a service definition that queries the publicly available [PokeAPI](https://pokeapi.co/).
 
 ```ts title="src/services/pokemon.ts"
 import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
 
+// highlight-start
+// Define a service using a base URL and expected endpoints
 export const pokemonApi = createApi({
   reducerPath: 'pokemonApi',
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
@@ -49,14 +53,20 @@ export const pokemonApi = createApi({
     }),
   }),
 });
+//highlight-end
 
-// Export hooks for usage in functional components
+// highlight-start
+// Export hooks for usage in functional components, which are
+// auto-generated based on the defined endpoints
 export const { useGetPokemonByNameQuery } = pokemonApi;
+// highlight-end
 ```
 
-With `rtk-query`, you define your entire API definition in one place _in most cases_. This is most likely different from what you see with other libraries such as `swr` or `react-query`, and there are several reasons for that. Our perspective is that it's _much_ easier to keep track of how requests, cache invalidation, and general app configuration behave when they're all in one central location in comparison to having X number of custom hooks in different files throughout your application.
+With RTK Query, you usually define your entire API definition in one place. This is most likely different from what you see with other libraries such as `swr` or `react-query`, and there are several reasons for that. Our perspective is that it's _much_ easier to keep track of how requests, cache invalidation, and general app configuration behave when they're all in one central location in comparison to having X number of custom hooks in different files throughout your application.
 
 ### Add the service to your store
+
+An RTK service generates a "slice reducer" that should be included in the Redux root reducer, and a custom middleware that handles the data fetching. Both need to be added to the Redux store.
 
 ```ts title="src/store.ts"
 import { configureStore } from '@reduxjs/toolkit';
@@ -64,14 +74,22 @@ import { pokemonApi } from './services/pokemon';
 
 export const store = configureStore({
   reducer: {
+    // highlight-start
+    // Add the generated reducer as a specific top-level slice
     [pokemonApi.reducerPath]: pokemonApi.reducer,
+    // highlight-end
   },
-  // Adding the api middleware enables caching, invalidation, polling and other features of `rtk-query`.
+  // highlight-start
+  // Adding the api middleware enables caching, invalidation, polling,
+  // and other useful features of `rtk-query`.
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(pokemonApi.middleware),
+  // highlight-end
 });
 ```
 
 ### Wrap your application with the `Provider`
+
+If you haven't already done so, follow the standard pattern for providing the Redux store to the rest of your React application component tree:
 
 ```ts title="src/index.tsx"
 import * as React from 'react';
@@ -96,10 +114,14 @@ Once a service has been defined, you can import the hooks to make a request.
 
 ```ts title="src/App.tsx"
 import * as React from 'react';
+// highlight-next-line
 import { useGetPokemonByNameQuery } from './services/pokemon';
 
 export default function App() {
+  // highlight-start
+  // Using a query hook automatically fetches data and returns query values
   const { data, error, isLoading } = useGetPokemonByNameQuery('bulbasaur');
+  // highlight-end
 
   return (
     <div className="App">
@@ -134,7 +156,7 @@ Okay, that's interesting... but what if you wanted to show multiple pokemon at t
 
 #### Advanced example
 
-`RTK Query` ensures that any component that subscribes to the same query will always use the same data. RTK Query automatically de-dupes requests so you don't have to worry about checking in-flight requests and performance optimizations on your end. Let's evaluate the sandbox below - make sure to check the Network panel in your browser's dev tools. You will see 3 requests, even though there are 4 subscribed components - `bulbasaur` only makes one request, and the loading state is synchronized between the two components. For fun, try changing the value of the dropdown from `Off` to `1s` to see this behavior continue when a query is re-ran.
+RTK Query ensures that any component that subscribes to the same query will always use the same data. RTK Query automatically de-dupes requests so you don't have to worry about checking in-flight requests and performance optimizations on your end. Let's evaluate the sandbox below - make sure to check the Network panel in your browser's dev tools. You will see 3 requests, even though there are 4 subscribed components - `bulbasaur` only makes one request, and the loading state is synchronized between the two components. For fun, try changing the value of the dropdown from `Off` to `1s` to see this behavior continue when a query is re-ran.
 
 <iframe
   src="https://codesandbox.io/embed/getting-started-advanced-8tx2b?file=/src/App.tsx?fontsize=12&hidenavigation=1&theme=dark"
@@ -144,7 +166,7 @@ Okay, that's interesting... but what if you wanted to show multiple pokemon at t
   sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
 
-Those are the basics of getting up and running with `RTK Query`. For more realistic usage, make sure to read through the sections regarding [mutations](../concepts/mutations), [invalidation](../concepts/mutations#advanced-mutations-with-revalidation), [polling](../concepts/polling) and other features.
+Those are the basics of getting up and running with RTK Query. For more realistic usage, make sure to read through the sections regarding [mutations](../concepts/mutations), [invalidation](../concepts/mutations#advanced-mutations-with-revalidation), [polling](../concepts/polling) and other features.
 
 ## Help and Discussion
 

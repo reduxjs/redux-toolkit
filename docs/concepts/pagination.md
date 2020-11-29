@@ -5,11 +5,11 @@ sidebar_label: Pagination
 hide_title: true
 ---
 
-# `Pagination`
+# Pagination
 
-RTK Query makes it simple to integrate with a standard index-based pagination API. This is the most common form of pagination that you'll need to implement. This is how simple it can be:
+RTK Query makes it straightforward to integrate with a standard index-based pagination API. This is the most common form of pagination that you'll need to implement.
 
-#### Setup an endpoint to accept a page `arg`
+## Setup an endpoint to accept a page `arg`
 
 ```ts title="src/app/services/posts.ts"
 import { createApi, fetchBaseQuery } from "@rtk-incubator/rtk-query";
@@ -35,7 +35,7 @@ export const api = createApi({
 export const { useListPostsQuery } = api.hooks;
 ```
 
-#### Trigger the next page by incrementing the `page` state variable
+## Trigger the next page by incrementing the `page` state variable
 
 ```ts title="src/features/posts/PostsManager.tsx"
 const PostList = () => {
@@ -68,7 +68,7 @@ const PostList = () => {
 };
 ```
 
-### Example
+## Example
 
 In the following example, you'll see `Loading` on the initial query, but then as you move forward we'll use the next/previous buttons as a _fetching_ indicator while any non-cached query is performed. When you go back, the cached data will be served instantaneously.
 

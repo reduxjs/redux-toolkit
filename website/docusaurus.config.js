@@ -3,9 +3,8 @@ const { resolve } = require('path');
 const { linkDocblocks, transpileCodeblocks } = require('remark-typescript-tools');
 
 module.exports = {
-  title: 'Powerful data fetching and caching for everyone',
-  tagline:
-    'Caching and network request management can be very hard. We make it easy so you can spend more time focusing on your product.',
+  title: 'RTK Query',
+  tagline: 'Powerful data fetching and caching for everyone',
   url: 'https://rtk-query-docs.netlify.app/',
   baseUrl: '/',
   onBrokenLinks: 'throw',
@@ -21,8 +20,8 @@ module.exports = {
       },
       items: [
         {
-          to: 'introduction/quick-start',
-          label: 'Quick Start',
+          to: 'introduction/getting-started',
+          label: 'Getting Started',
           position: 'right',
         },
         {
@@ -38,6 +37,9 @@ module.exports = {
         },
       ],
     },
+    prism: {
+      theme: require('./src/js/monokaiTheme.js')
+    },
     footer: {
       style: 'dark',
       links: [
@@ -45,8 +47,8 @@ module.exports = {
           title: 'Resources',
           items: [
             {
-              label: 'Quick Start',
-              to: '/introduction/quick-start',
+              label: 'Getting Started',
+              to: '/introduction/getting-started',
             },
             { label: 'API Reference', to: '/api/createApi' },
             { label: 'Examples', to: '/examples/examples-overview' },
@@ -79,7 +81,7 @@ module.exports = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} RTK Incubator.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Redux development team`,
     },
   },
   presets: [

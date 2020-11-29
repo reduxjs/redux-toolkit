@@ -5,7 +5,7 @@ sidebar_label: Prefetching
 hide_title: true
 ---
 
-# `Prefetching`
+# Prefetching
 
 The goal of prefetching is to make data fetch _before_ the user navigates to a page or attempts to load some known content.
 

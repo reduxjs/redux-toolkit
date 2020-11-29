@@ -22,7 +22,6 @@ It takes all standard options from fetch's [`RequestInit`](https://developer.moz
     (headers: Headers, api: { getState: () => unknown }) => Headers;
     ```
 
-
 ```ts title="Return types of fetchBaseQuery"
 Promise<{
     data: any;
@@ -38,7 +37,7 @@ Promise<{
 
 ### Using `fetchBaseQuery`
 
-To use it, simply import it when you are [creating an API service definition](../introduction/quick-start#create-an-api-service).
+To use it, import it when you are [creating an API service definition](../introduction/getting-started#create-an-api-service).
 
 ```ts title="src/services/pokemon.ts"
 import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
@@ -85,10 +84,10 @@ const baseQuery = fetchBaseQuery({
 
 There is more behavior that you can define on a per-request basis that extends the default options available to the `RequestInit` interface.
 
-  - [`params`](#setting-the-query-string)
-  - [`body`](#setting-the-body)
-  - [`responseHandler`](#parsing-a-Response)
-  - [`validateStatus`](#handling-non-standard-response-status-codes)
+- [`params`](#setting-the-query-string)
+- [`body`](#setting-the-body)
+- [`responseHandler`](#parsing-a-Response)
+- [`validateStatus`](#handling-non-standard-response-status-codes)
 
 ```ts title="endpoint request options"
 interface FetchArgs extends RequestInit {

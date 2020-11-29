@@ -5,11 +5,14 @@ sidebar_label: Optimistic Updates
 hide_title: true
 ---
 
-# `Optimistic Updates`
+# Optimistic Updates
 
 When you're performing an update on some data that _already exists_ in the cache via [`useMutation`](./mutations), RTK Query gives you a few tools to implement an optimistic update. This can be a useful pattern for when you want to give the user the impression that their changes are immediate.
 
-The core concepts are pretty straightforward - in the `onStart` phase of a mutation, you manually set the cached data via `updateQueryResult`, and then `onError` you roll it back via `patchQueryResult`. You don't have to worry about the `onSuccess` lifecycle here.
+The core concepts are:
+
+- in the `onStart` phase of a mutation, you manually set the cached data via `updateQueryResult`
+- then, in `onError`, you roll it back via `patchQueryResult`. You don't have to worry about the `onSuccess` lifecycle here.
 
 ```ts title="Example optimistic update mutation"
 const api = createApi({

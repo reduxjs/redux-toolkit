@@ -5,12 +5,12 @@ sidebar_label: Mutations
 hide_title: true
 ---
 
-# `Mutations`
+# Mutations
 
 Unlike `useQuery`, `useMutation` returns a tuple. The first item in the tuple is the `trigger` function and the second element contains an object with `status`, `error`, and `data`. Additionally, `useMutation` also makes `internalQueryArgs`, `originalArgs`,
 and `endpoint` available for inspection.
 
-Also unlike the `useQuery` hook, the `useMutation` hook doesn't execute automatically. To run a mutation you have to call the `trigger` function.
+Unlike the `useQuery` hook, the `useMutation` hook doesn't execute automatically. To run a mutation you have to call the trigger function returned as the first tuple value from the hook.
 
 ```js title="Example of all mutation endpoint options"
 const api = createApi({
@@ -29,7 +29,7 @@ const api = createApi({
 ```
 
 :::info
-Notice the `onStart`, `onSuccess`, `onError` methods? Make sure to check out how they can be used for [optimistic updates](./optimistic-updates)
+Notice the `onStart`, `onSuccess`, `onError` methods? Be sure to check out how they can be used for [optimistic updates](./optimistic-updates)
 :::
 
 ### Type interfaces
@@ -62,7 +62,7 @@ export interface MutationApi<ReducerPath extends string, Context extends {}> {
 }
 ```
 
-### Basic mutation
+### Basic Mutation
 
 This is a modified version of the complete example you can see at the bottom of the page to highlight the `updatePost` mutation. In this scenario, a post is fetched with `useQuery`, and then a `EditablePostName` component is rendered that allows us to edit the name of the post.
 
@@ -73,6 +73,7 @@ export const PostDetail = () => {
   const { data: post } = postApi.hooks.getPost.useQuery(id);
 
   const [
+    // highlight-next-line
     updatePost, // This is the mutation trigger
     { isLoading: isUpdating }, // You can use the `isLoading` flag, or do custom logic with `status`
   ] = postApi.hooks.updatePost.useMutation();
@@ -82,13 +83,17 @@ export const PostDetail = () => {
       <EditablePostName
         name={post.name}
         onUpdate={(name) => {
-          // Execute the trigger with the `id` and updated `name`
-          return updatePost({ id, name })
-            .then((result) => {
-              // Do something with the result
-              console.log('Update Result', result);
-            })
-            .catch((error) => console.error('Update Error', error));
+          return (
+            // highlight-start
+            // Execute the trigger with the `id` and updated `name`
+            updatePost({ id, name })
+              // highlight-end
+              .then((result) => {
+                // Do something with the result
+                console.log('Update Result', result);
+              })
+              .catch((error) => console.error('Update Error', error))
+          );
         }}
         isLoading={isUpdating}
       />
@@ -99,21 +104,19 @@ export const PostDetail = () => {
 
 ### Advanced mutations with revalidation
 
-In the real world, it's very common that a developer would want to resync their local data cache with the server after performing a mutation (aka `revalidation`). RTK Query takes a more centralized approach to this and requires you to configure the invalidation behavior in your API service definition. Before getting started, let's cover some new terms:
+In the real world, it's very common that a developer would want to resync their local data cache with the server after performing a mutation (aka "revalidation"). RTK Query takes a more centralized approach to this and requires you to configure the invalidation behavior in your API service definition. Before getting started, let's cover some new terms used when defining an endpoint in a service:
 
-1. **Entities**
+#### Entities
 
-- In short, entities are just a name that you can give to a specific collection of data to control caching and invalidation behavior. For example, in an application that has both `Posts` and `Users`, you would define `entityTypes: ['Posts', 'Users']` when calling `createApi`.
+For RTK Query, _entities_ are just a name that you can give to a specific collection of data to control caching and invalidation behavior, and are defined in an `entityTypes` argument. For example, in an application that has both `Posts` and `Users`, you would define `entityTypes: ['Posts', 'Users']` when calling `createApi`.
 
-2. **Provides**
+#### Provides
 
-- A `query` can _provide_ entities to the cache.
-  - Accepts either an array of `{type: string, id?: string|number}` or a callback that returns such an array. That function will be passed the result as the first argument and the argument originally passed into the `query` method as the second argument.
+A _query_ can _provide_ entities to the cache. The `provides` argument can both be an array of `string` (such as `['Posts']`), `{type: string, id?: string|number}` or a callback that returns such an array. That function will be passed the result as the first argument and the argument originally passed into the `query` method as the second argument.
 
-3. **Invalidates**
+#### Invalidates
 
-- A `mutation` can _invalidate_ specific entities in the cache.
-  - Can both be an array of `string` (such as `['Posts']`), `{type: string, id?: string|number}` or a callback that returns such an array. That function will be passed the result as the first argument and the argument originally passed into the `query` method as the second argument.
+A _mutation_ can _invalidate_ specific entities in the cache. The `invalidates` argument can both be an array of `string` (such as `['Posts']`), `{type: string, id?: string|number}` or a callback that returns such an array. That function will be passed the result as the first argument and the argument originally passed into the `query` method as the second argument.
 
 ### Scenarios and Behaviors
 
