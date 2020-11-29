@@ -26,4 +26,4 @@ yarn add https://pkg.csb.dev/rtk-incubator/rtk-query/commit/0271589e/@rtk-incuba
 
 **_Note: this is being updated frequently as we're in alpha_**
 
-The working documentation can be [viewed here](https://rtk-query-docs.netlify.app/). In addition, you can check out the generated deploy previews on any PR before things land in `main`.
+The RTK Query docs are currently available at https://rtk-query-docs.netlify.app/. In addition, you can check out the generated deploy previews on any PR before things land in `main`.
