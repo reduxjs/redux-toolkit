@@ -10,14 +10,30 @@ hide_table_of_contents: false
 
 This is a very small wrapper around `fetch` that aims to simplify requests. It is not a full-blown replacement for `axios`, `superagent`, or any other more heavy-weight library, but it will cover the large majority of your needs.
 
-It takes one argument with an option of `baseUrl`, which is typically a string like `https://api.your-really-great-app.com/v1/`. If you don't provide a `baseUrl`, it defaults to a relative path from where the request is being made. You should most likely _always_ specify this.
+It takes all standard options from fetch's [`RequestInit`](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) interface, as well as `baseUrl` and a `prepareHeaders` function.
 
-```ts
-function fetchBaseQuery({
-  baseUrl,
-}?: {
-  baseUrl?: string;
-}): (arg: string | FetchArgs, { signal, rejectWithValue }: QueryApi) => Promise<any>;
+- `baseUrl`
+  - Typically a string like `https://api.your-really-great-app.com/v1/`. If you don't provide a `baseUrl`, it defaults to a relative path from where the request is being made. You should most likely _always_ specify this.
+- `prepareHeaders`
+
+  - Allows you to inject headers on every request. You can specify headers at the endpoint level, but you'll typically want to set common headers like `authorization` here. As a convience mechanism, the second argument allows you to use `getState` to access your redux store in the event you store information you'll need there such as an auth token.
+
+  - ```ts title="prepareHeaders signature"
+    (headers: Headers, api: { getState: () => unknown }) => Headers;
+    ```
+
+
+```ts title="Return types of fetchBaseQuery"
+Promise<{
+    data: any;
+    error?: undefined;
+} | {
+    error: {
+        status: number;
+        data: any;
+    };
+    data?: undefined;
+}>
 ```
 
 ### Using `fetchBaseQuery`
@@ -28,7 +44,6 @@ To use it, simply import it when you are [creating an API service definition](..
 import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
 
 export const pokemonApi = createApi({
-  reducerPath: 'pokemonApi',
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }), // Set the baseUrl for every endpoint below
   endpoints: (builder) => ({
     getPokemonByName: builder.query({
@@ -46,11 +61,36 @@ export const pokemonApi = createApi({
 });
 ```
 
+### Setting default headers on requests
+
+The most common use case for `prepareHeaders` would be to automatically include `authorization` headers for your API requests.
+
+```ts title="Setting a token from a redux store value
+const baseQuery = fetchBaseQuery({
+  baseUrl,
+  prepareHeaders: (headers, { getState }) => {
+    const token = (getState() as RootState).auth.token;
+
+    // If we have a token set in state, let's assume that we should be passing it.
+    if (token) {
+      headers.set('authorization', `Bearer ${token}`);
+    }
+
+    return headers;
+  },
+});
+```
+
 ### Individual query options
 
-Even though `fetchBaseQuery` only takes an object with `baseUrl`, there is more behavior that you can define on a per-request basis.
+There is more behavior that you can define on a per-request basis that extends the default options available to the `RequestInit` interface.
 
-```ts
+  - [`params`](#setting-the-query-string)
+  - [`body`](#setting-the-body)
+  - [`responseHandler`](#parsing-a-Response)
+  - [`validateStatus`](#handling-non-standard-response-status-codes)
+
+```ts title="endpoint request options"
 interface FetchArgs extends RequestInit {
   url: string;
   params?: Record<string, any>;
@@ -106,7 +146,7 @@ By default, `fetchBaseQuery` assumes that every request you make will be `json`,
     updateUser: builder.query({
       query: (user: Record<string, string>) => ({
         url: `users`,
-        params: user // The user object is automatically converted and produces a request like /api/users/?first_name=test&last_name=example
+        params: user // The user object is automatically converted and produces a request like /api/users?first_name=test&last_name=example
       }),
     }),
 ```
