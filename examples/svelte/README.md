@@ -1,13 +1,14 @@
-# Svelte app with msw
+# Svelte example app with rtk-query
 
-Just a basic test hooking up MSW for svelte trial purposes.
+This is a very basic demonstration on how someone could use `rtk-query` with Svelte.
+
+It uses [msw](https://mswjs.io/) to serve as a local API.
 
 ## Get started
 
 Install the dependencies...
 
 ```bash
-cd svelte-app
 npm install
 ```
 

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useHistory, useParams } from 'react-router-dom';
-import { useTypedSelector } from 'src/app/store';
+import { useTypedSelector } from '../../app/store';
 import { useDeletePostMutation, useGetPostQuery, useUpdatePostMutation } from '../../app/services/posts';
 import { selectGlobalPollingEnabled } from '../polling/pollingSlice';
 

@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
-import { setCredentials } from 'src/features/auth/authSlice';
+import { setCredentials } from '../../features/auth/authSlice';
 import { RootState } from '../store';
 
 export interface Post {
