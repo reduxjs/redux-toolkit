@@ -1,9 +1,7 @@
 module.exports = {
   docs: {
-    Introduction: ['introduction/getting-started', 'introduction/comparison'],
+    Introduction: ['introduction/getting-started', 'introduction/comparison', 'introduction/video-overview'],
     Concepts: [
-      // defaults,
-      // fetchBaseQuery
       'concepts/queries',
       'concepts/mutations',
       'concepts/error-handling',

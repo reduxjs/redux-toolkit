@@ -74,11 +74,15 @@ type RootState = ReturnType<typeof storeRef.store.getState>;
 describe('fetchBaseQuery', () => {
   describe('basic functionality', () => {
     it('should return an object for a simple GET request when it is json data', async () => {
-      const req = baseQuery('/success', {
-        signal: undefined,
-        dispatch: storeRef.store.dispatch,
-        getState: storeRef.store.getState,
-      });
+      const req = baseQuery(
+        '/success',
+        {
+          signal: undefined,
+          dispatch: storeRef.store.dispatch,
+          getState: storeRef.store.getState,
+        },
+        {}
+      );
       expect(req).toBeInstanceOf(Promise);
       const res = await req;
       expect(res).toBeInstanceOf(Object);
@@ -86,11 +90,15 @@ describe('fetchBaseQuery', () => {
     });
 
     it('should return an error and status for error responses', async () => {
-      const req = baseQuery('/error', {
-        signal: undefined,
-        dispatch: storeRef.store.dispatch,
-        getState: storeRef.store.getState,
-      });
+      const req = baseQuery(
+        '/error',
+        {
+          signal: undefined,
+          dispatch: storeRef.store.dispatch,
+          getState: storeRef.store.getState,
+        },
+        {}
+      );
       expect(req).toBeInstanceOf(Promise);
       const res = await req;
       expect(res).toBeInstanceOf(Object);
@@ -110,7 +118,8 @@ describe('fetchBaseQuery', () => {
           signal: undefined,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
-        }
+        },
+        {}
       );
 
       const [, options] = fetchSpy.mock.calls[0];
@@ -130,7 +139,8 @@ describe('fetchBaseQuery', () => {
           signal: undefined,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
-        }
+        },
+        {}
       );
 
       const [, options] = fetchSpy.mock.calls[0];
@@ -148,7 +158,8 @@ describe('fetchBaseQuery', () => {
           signal: undefined,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
-        }
+        },
+        {}
       );
 
       expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}/success`, expect.any(Object));
@@ -163,7 +174,8 @@ describe('fetchBaseQuery', () => {
           signal: undefined,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
-        }
+        },
+        {}
       );
 
       expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}/success?a=1&b=true`, expect.any(Object));
@@ -177,7 +189,8 @@ describe('fetchBaseQuery', () => {
           signal: undefined,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
-        }
+        },
+        {}
       );
       expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}/success?banana=pudding&a=1&b=true`, expect.any(Object));
     });
@@ -190,7 +203,8 @@ describe('fetchBaseQuery', () => {
           signal: undefined,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
-        }
+        },
+        {}
       );
       expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}/success?apple=fruit`, expect.any(Object));
     });
@@ -208,7 +222,8 @@ describe('fetchBaseQuery', () => {
           signal: undefined,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
-        }
+        },
+        {}
       );
 
       expect(res.error).toEqual({
@@ -220,11 +235,15 @@ describe('fetchBaseQuery', () => {
 
   describe('arg.headers and prepareHeaders', () => {
     test('uses the default headers set in prepareHeaders', async () => {
-      await baseQuery('/success', {
-        signal: undefined,
-        dispatch: storeRef.store.dispatch,
-        getState: storeRef.store.getState,
-      });
+      await baseQuery(
+        '/success',
+        {
+          signal: undefined,
+          dispatch: storeRef.store.dispatch,
+          getState: storeRef.store.getState,
+        },
+        {}
+      );
 
       const [, options] = fetchSpy.mock.calls[0];
 
@@ -241,7 +260,8 @@ describe('fetchBaseQuery', () => {
           signal: undefined,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
-        }
+        },
+        {}
       );
       const [, options] = fetchSpy.mock.calls[0];
 
@@ -259,7 +279,8 @@ describe('fetchBaseQuery', () => {
           signal: undefined,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
-        }
+        },
+        {}
       );
       const [, options] = fetchSpy.mock.calls[0];
 
@@ -279,7 +300,8 @@ describe('fetchBaseQuery', () => {
           signal: undefined,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
-        }
+        },
+        {}
       );
       const [, options] = fetchSpy.mock.calls[0];
 
@@ -296,7 +318,8 @@ describe('fetchBaseQuery', () => {
             signal: undefined,
             dispatch: storeRef.store.dispatch,
             getState: storeRef.store.getState,
-          }
+          },
+          {}
         );
 
       doRequest();

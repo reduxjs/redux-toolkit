@@ -38,7 +38,7 @@ module.exports = {
       ],
     },
     prism: {
-      theme: require('./src/js/monokaiTheme.js')
+      theme: require('./src/js/monokaiTheme.js'),
     },
     footer: {
       style: 'dark',
@@ -50,6 +50,7 @@ module.exports = {
               label: 'Getting Started',
               to: '/introduction/getting-started',
             },
+            { label: 'Video Overview', to: '/introduction/video-overview' },
             { label: 'API Reference', to: '/api/createApi' },
             { label: 'Examples', to: '/examples/examples-overview' },
           ],
@@ -94,7 +95,7 @@ module.exports = {
           routeBasePath: '/',
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
-          editUrl: 'https://github.com/rtk-incubator/simple-query/edit/main/docs',
+          editUrl: 'https://github.com/rtk-incubator/rtk-query/edit/main/docs',
           remarkPlugins: [
             [
               linkDocblocks,
@@ -112,10 +113,10 @@ module.exports = {
                 compilerSettings: {
                   tsconfig: resolve(__dirname, '../docs/tsconfig.json'),
                   externalResolutions: {
-                    '@rtk-incubator/simple-query': {
+                    '@rtk-incubator/rtk-query': {
                       resolvedPath: resolve(__dirname, '../src'),
                       packageId: {
-                        name: '@rtk-incubator/simple-query',
+                        name: '@rtk-incubator/rtk-query',
                         subModuleName: 'index.ts',
                         version: '1.0',
                       },

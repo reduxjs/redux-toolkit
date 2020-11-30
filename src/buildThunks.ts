@@ -1,5 +1,5 @@
 import { InternalSerializeQueryArgs } from '.';
-import { Api, ApiEndpointQuery, BaseQueryFn } from './apiTypes';
+import { Api, ApiEndpointQuery, BaseQueryFn, BaseQueryArg } from './apiTypes';
 import { InternalRootState, QueryKeys, QueryStatus, QuerySubstateIdentifier } from './apiState';
 import { StartQueryActionCreatorOptions } from './buildActionMaps';
 import {
@@ -16,7 +16,7 @@ import { Patch, isDraftable, produceWithPatches, enablePatches } from 'immer';
 import { AnyAction, createAsyncThunk, ThunkAction, ThunkDispatch, AsyncThunk } from '@reduxjs/toolkit';
 
 import { PrefetchOptions } from './buildHooks';
-import { BaseQueryArg, Id } from './tsHelpers';
+import { Id } from './tsHelpers';
 
 declare module './apiTypes' {
   export interface ApiEndpointQuery<
@@ -127,7 +127,7 @@ export type UpdateQueryResultThunk<Definitions extends EndpointDefinitions, Part
 
 type PatchCollection = { patches: Patch[]; inversePatches: Patch[] };
 
-class HandledError {
+export class HandledError {
   constructor(public readonly value: any) {}
 }
 
@@ -202,7 +202,11 @@ export function buildThunks<
   >(
     `${reducerPath}/executeQuery`,
     async (arg, { signal, rejectWithValue, dispatch, getState }) => {
-      const result = await baseQuery(arg.internalQueryArgs, { signal, dispatch, getState });
+      const result = await baseQuery(
+        arg.internalQueryArgs,
+        { signal, dispatch, getState },
+        endpointDefinitions[arg.endpoint].extraOptions as any
+      );
       if (result.error) return rejectWithValue(result.error);
 
       return {
@@ -234,7 +238,11 @@ export function buildThunks<
 
     if (endpoint.onStart) endpoint.onStart(arg.originalArgs, mutationApi);
     try {
-      const result = await baseQuery(arg.internalQueryArgs, { signal, dispatch: api.dispatch, getState: api.getState });
+      const result = await baseQuery(
+        arg.internalQueryArgs,
+        { signal, dispatch: api.dispatch, getState: api.getState },
+        endpointDefinitions[arg.endpoint].extraOptions as any
+      );
       if (result.error) throw new HandledError(result.error);
       if (endpoint.onSuccess) endpoint.onSuccess(arg.originalArgs, mutationApi, result.data);
       return {

@@ -79,7 +79,7 @@ describe('basic lifecycle', () => {
     expect(baseQuery).not.toHaveBeenCalled();
     act(() => void result.current[0]('arg'));
     expect(onStart).toHaveBeenCalledWith('arg', expect.any(Object));
-    expect(baseQuery).toHaveBeenCalledWith('arg', expect.any(Object));
+    expect(baseQuery).toHaveBeenCalledWith('arg', expect.any(Object), undefined);
 
     expect(onError).not.toHaveBeenCalled();
     expect(onSuccess).not.toHaveBeenCalled();
@@ -99,7 +99,7 @@ describe('basic lifecycle', () => {
     expect(baseQuery).not.toHaveBeenCalled();
     act(() => void result.current[0]('arg'));
     expect(onStart).toHaveBeenCalledWith('arg', expect.any(Object));
-    expect(baseQuery).toHaveBeenCalledWith('arg', expect.any(Object));
+    expect(baseQuery).toHaveBeenCalledWith('arg', expect.any(Object), undefined);
 
     expect(onError).not.toHaveBeenCalled();
     expect(onSuccess).not.toHaveBeenCalled();

@@ -8,6 +8,8 @@ export function assertCast<T>(v: any): asserts v is T {}
  */
 export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 
-export type BaseQueryArg<T extends (arg: any, ...args: any[]) => any> = T extends (arg: infer A, ...args: any[]) => any
-  ? A
-  : any;
+export type NonOptionalKeys<T> = { [K in keyof T]-?: undefined extends T[K] ? never : K }[keyof T];
+
+export type HasRequiredProps<T, True, False> = NonOptionalKeys<T> extends never ? False : True;
+
+export type OptionalIfAllPropsOptional<T> = HasRequiredProps<T, T, T | never>;

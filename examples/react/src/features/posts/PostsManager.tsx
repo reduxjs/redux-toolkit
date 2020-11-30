@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Route, Switch, useHistory } from 'react-router-dom';
-import { Post, useAddPostMutation, useGetPostsQuery, useLoginMutation } from '../../app/services/posts';
+import {
+  Post,
+  useAddPostMutation,
+  useGetPostsQuery,
+  useLoginMutation,
+  useGetErrorProneQuery,
+} from '../../app/services/posts';
 import { selectIsAuthenticated, logout } from '../auth/authSlice';
 import { PostDetail } from './PostDetail';
 import './PostsManager.css';
@@ -67,6 +73,8 @@ const PostList = () => {
 
 export const PostsManager = () => {
   const [login] = useLoginMutation();
+  const [initRetries, setInitRetries] = useState(false);
+  const { data, error, isFetching } = useGetErrorProneQuery(undefined, { skip: !initRetries });
   const dispatch = useDispatch();
   const isAuthenticated = useSelector(selectIsAuthenticated);
 
@@ -78,6 +86,7 @@ export const PostsManager = () => {
       ) : (
         <button onClick={() => dispatch(logout())}>Logout</button>
       )}
+      <button onClick={() => setInitRetries(true)}>{isFetching ? 'retrying...' : 'Start error prone retries'}</button>
       <hr />
       <div className="row">
         <div className="posts-list">

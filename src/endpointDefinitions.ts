@@ -1,15 +1,23 @@
 import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit';
 import { RootState } from './apiState';
-import { BaseQueryFn, BaseQueryResult } from './apiTypes';
-import { BaseQueryArg } from './tsHelpers';
+import { BaseQueryExtraOptions, BaseQueryFn, BaseQueryResult, BaseQueryArg } from './apiTypes';
+import { fetchBaseQuery } from './fetchBaseQuery';
+import { HasRequiredProps } from './tsHelpers';
 
 const resultType = Symbol();
 
-export interface BaseEndpointDefinition<QueryArg, BaseQuery extends BaseQueryFn, ResultType> {
+export type BaseEndpointDefinition<QueryArg, BaseQuery extends BaseQueryFn, ResultType> = {
   query(arg: QueryArg): BaseQueryArg<BaseQuery>;
   transformResponse?(baseQueryReturnValue: BaseQueryResult<BaseQuery>): ResultType | Promise<ResultType>;
   [resultType]?: ResultType;
-}
+} & HasRequiredProps<
+  BaseQueryExtraOptions<BaseQuery>,
+  { extraOptions: BaseQueryExtraOptions<BaseQuery> },
+  { extraOptions?: BaseQueryExtraOptions<BaseQuery> }
+>;
+
+const t: BaseEndpointDefinition<any, ReturnType<typeof fetchBaseQuery>, ''> = { query: 0 as any };
+t.extraOptions = {};
 
 export enum DefinitionType {
   query = 'query',
@@ -27,17 +35,17 @@ type ResultDescription<EntityTypes extends string, ResultType, QueryArg> =
   | ReadonlyArray<EntityDescription<EntityTypes>>
   | GetResultDescriptionFn<EntityTypes, ResultType, QueryArg>;
 
-export interface QueryDefinition<
+export type QueryDefinition<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   EntityTypes extends string,
   ResultType,
   _ReducerPath extends string = string
-> extends BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> {
+> = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> & {
   type: DefinitionType.query;
   provides?: ResultDescription<EntityTypes, ResultType, QueryArg>;
   invalidates?: never;
-}
+};
 
 export interface MutationApi<ReducerPath extends string, Context extends {}> {
   dispatch: ThunkDispatch<RootState<any, any, ReducerPath>, unknown, AnyAction>;
@@ -47,21 +55,21 @@ export interface MutationApi<ReducerPath extends string, Context extends {}> {
   context: Context;
 }
 
-export interface MutationDefinition<
+export type MutationDefinition<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   EntityTypes extends string,
   ResultType,
   ReducerPath extends string = string,
   Context = Record<string, any>
-> extends BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> {
+> = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> & {
   type: DefinitionType.mutation;
   invalidates?: ResultDescription<EntityTypes, ResultType, QueryArg>;
   provides?: never;
   onStart?(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>): void;
   onError?(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>, error: unknown): void;
   onSuccess?(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>, result: ResultType): void;
-}
+};
 
 export type EndpointDefinition<
   QueryArg,

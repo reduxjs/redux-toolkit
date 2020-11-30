@@ -1,5 +1,5 @@
-import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
-import { setCredentials } from '../../features/auth/authSlice';
+import { createApi, fetchBaseQuery, retry } from '@rtk-incubator/rtk-query';
+import { setCredentials } from 'src/features/auth/authSlice';
 import { RootState } from '../store';
 
 export interface Post {
@@ -30,9 +30,11 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
+const staggeredBaseQuery = retry(baseQuery, { maxRetries: 6 });
+
 export const postApi = createApi({
   reducerPath: 'postsApi', // We only specify this because there are many services. This would not be common in most applications
-  baseQuery,
+  baseQuery: staggeredBaseQuery,
   entityTypes: ['Posts'],
   endpoints: (build) => ({
     login: build.mutation<{ token: string; user: User }, any>({
@@ -82,6 +84,9 @@ export const postApi = createApi({
       },
       invalidates: (_, id) => [{ type: 'Posts', id }],
     }),
+    getErrorProne: build.query<{ success: boolean }, void>({
+      query: () => 'error-prone',
+    }),
   }),
 });
 
@@ -92,6 +97,7 @@ export const {
   useGetPostsQuery,
   useLoginMutation,
   useUpdatePostMutation,
+  useGetErrorProneQuery,
 } = postApi;
 
 export const {

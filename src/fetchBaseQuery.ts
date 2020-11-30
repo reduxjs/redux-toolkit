@@ -1,6 +1,6 @@
-import { QueryApi } from './buildThunks';
 import { joinUrls } from './utils';
 import { isPlainObject } from '@reduxjs/toolkit';
+import { BaseQueryFn } from './apiTypes';
 
 interface FetchArgs extends RequestInit {
   url: string;
@@ -26,8 +26,8 @@ export function fetchBaseQuery({
 }: {
   baseUrl?: string;
   prepareHeaders?: (headers: Headers, api: { getState: () => unknown }) => Headers;
-} & RequestInit = {}) {
-  return async (arg: string | FetchArgs, { signal, getState }: QueryApi) => {
+} & RequestInit = {}): BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError, {}> {
+  return async (arg, { signal, getState }) => {
     let {
       url,
       method = 'GET' as const,
@@ -73,6 +73,6 @@ export function fetchBaseQuery({
 
     return validateStatus(response, resultData)
       ? { data: resultData }
-      : { error: { status: response.status, data: resultData } as FetchBaseQueryError };
+      : { error: { status: response.status, data: resultData } };
   };
 }

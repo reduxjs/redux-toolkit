@@ -1400,9 +1400,9 @@
     redux-thunk "^2.3.0"
     reselect "^4.0.0"
 
-"@rtk-incubator/rtk-query@https://pkg.csb.dev/rtk-incubator/simple-query/commit/fcea624c/@rtk-incubator/simple-query":
+"@rtk-incubator/rtk-query@https://pkg.csb.dev/rtk-incubator/rtk-query/commit/d144f8ab/@rtk-incubator/rtk-query":
   version "0.0.1"
-  resolved "https://pkg.csb.dev/rtk-incubator/simple-query/commit/fcea624c/@rtk-incubator/simple-query#6151951f64185a716c34576497d50cf83dcf3130"
+  resolved "https://pkg.csb.dev/rtk-incubator/rtk-query/commit/d144f8ab/@rtk-incubator/rtk-query#da1d7cda1be544f0589ff0e360e095846c21f049"
 
 "@svgr/babel-plugin-add-jsx-attribute@^4.2.0":
   version "4.2.0"

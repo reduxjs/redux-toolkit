@@ -93,4 +93,15 @@ export const handlers = [
       ctx.delay(600)
     );
   }),
+
+  rest.get('/error-prone', (req, res, ctx) => {
+    if (Math.random() > 0.1) {
+      return res(ctx.json({ error: 'failed!' }), ctx.status(500));
+    }
+    return res(
+      ctx.json({
+        success: true,
+      })
+    );
+  }),
 ];

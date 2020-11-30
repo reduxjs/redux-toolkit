@@ -14,11 +14,12 @@ import {
   AssertEntityTypes,
 } from './endpointDefinitions';
 import type { CombinedState, QueryCacheKey, QueryStatePhantomType } from './apiState';
-import { assertCast, BaseQueryArg } from './tsHelpers';
-import { Api, BaseQueryFn } from './apiTypes';
-export { Api, ApiWithInjectedEndpoints } from './apiTypes';
+import { assertCast } from './tsHelpers';
+import { Api, BaseQueryArg, BaseQueryFn } from './apiTypes';
+export { Api, ApiWithInjectedEndpoints, BaseQueryFn, BaseQueryEnhancer } from './apiTypes';
 export { fetchBaseQuery, FetchBaseQueryError } from './fetchBaseQuery';
 export { QueryStatus } from './apiState';
+export { retry } from './retry';
 
 export type SerializeQueryArgs<InternalQueryArgs> = (_: {
   queryArgs: any;
@@ -161,8 +162,8 @@ export function createApi<
 
   function injectEndpoints(inject: Parameters<typeof api.injectEndpoints>[0]) {
     const evaluatedEndpoints = inject.endpoints({
-      query: (x) => ({ ...x, type: DefinitionType.query }),
-      mutation: (x) => ({ ...x, type: DefinitionType.mutation }),
+      query: (x) => ({ ...x, type: DefinitionType.query } as any),
+      mutation: (x) => ({ ...x, type: DefinitionType.mutation } as any),
     });
     for (const [endpoint, definition] of Object.entries(evaluatedEndpoints)) {
       if (IS_DEV()) {
