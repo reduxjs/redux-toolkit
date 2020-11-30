@@ -21,6 +21,8 @@ export { fetchBaseQuery, FetchBaseQueryError } from './fetchBaseQuery';
 export { QueryStatus } from './apiState';
 export { retry } from './retry';
 
+export { ApiProvider } from './ApiProvider';
+
 export type SerializeQueryArgs<InternalQueryArgs> = (_: {
   queryArgs: any;
   internalQueryArgs: InternalQueryArgs;
