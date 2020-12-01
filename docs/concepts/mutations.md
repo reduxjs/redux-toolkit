@@ -70,13 +70,13 @@ This is a modified version of the complete example you can see at the bottom of 
 export const PostDetail = () => {
   const { id } = useParams<{ id: any }>();
 
-  const { data: post } = postApi.hooks.getPost.useQuery(id);
+  const { data: post } = useGetPostQuery(id);
 
   const [
     // highlight-next-line
     updatePost, // This is the mutation trigger
     { isLoading: isUpdating }, // You can use the `isLoading` flag, or do custom logic with `status`
-  ] = postApi.hooks.updatePost.useMutation();
+  ] = useUpdatePostMutation();
 
   return (
     <Box p={4}>
@@ -147,18 +147,20 @@ export const api = createApi({
     }),
   }),
 });
+
+export const { useGetPostsQuery, useGetPostQuery, useAddPostMutation } = api;
 ```
 
 ```ts title="App.tsx"
 function App() {
-  const { data: posts } = hooks.getPosts();
-  const [addPost] = hooks.addPost();
+  const { data: posts } = useGetPostsQuery();
+  const [addPost] = useAddPostMutation();
 
   return (
     <div>
       <AddPost onAdd={addPost} />
       <PostsList />
-      <PostDetail id={1} /> // Assume each PostDetail is subscribed via `const {data} = hooks.getPost(id)`
+      <PostDetail id={1} /> // Assume each PostDetail is subscribed via `const {data} = useGetPostQuery(id)`
       <PostDetail id={2} />
       <PostDetail id={3} />
     </div>
@@ -199,6 +201,8 @@ export const api = createApi({
     }),
   }),
 });
+
+export const { useGetPostsQuery, useAddPostMutation, useGetPostQuery } = api;
 ```
 
 > **Note about 'LIST' and `id`s**
@@ -210,14 +214,14 @@ export const api = createApi({
 
 ```ts title="App.tsx"
 function App() {
-  const { data: posts } = hooks.getPosts();
-  const [addPost] = hooks.addPost();
+  const { data: posts } = useGetPostsQuery();
+  const [addPost] = useAddPostMutation();
 
   return (
     <div>
       <AddPost onAdd={addPost} />
       <PostsList />
-      <PostDetail id={1} /> // Assume each PostDetail is subscribed via `const {data} = hooks.getPost(id)`
+      <PostDetail id={1} /> // Assume each PostDetail is subscribed via `const {data} = useGetPostQuery(id)`
       <PostDetail id={2} />
       <PostDetail id={3} />
     </div>
@@ -296,11 +300,13 @@ export const postApi = createApi({
     }),
   }),
 });
+
+export const { useGetPostsQuery, useAddPostMutation, useGetPostQuery, useUpdatePostMutation, useDeletePostMutation } = api;
 ```
 
 ### Example
 
-<iframe src="https://codesandbox.io/embed/concepts-mutations-4d98s?fontsize=12&hidenavigation=1&theme=dark&view=preview"
+<iframe src="https://codesandbox.io/embed/concepts-mutations-4d98s?fontsize=14&hidenavigation=1&module=%2Fsrc%2Fapp%2Fservices%2Fposts.ts&theme=dark"
      style={{ width: '100%', height: '600px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
      title="RTK Query - Mutations Concept"
      allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 

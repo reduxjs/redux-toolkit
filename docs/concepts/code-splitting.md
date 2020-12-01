@@ -37,7 +37,7 @@ const extendedApi = emptySplitApi.injectEndpoints({
   overrideExisting: false,
 });
 
-export { useExampleQuery } from extendedApi;
+export { useExampleQuery } = extendedApi;
 ```
 
 :::tip

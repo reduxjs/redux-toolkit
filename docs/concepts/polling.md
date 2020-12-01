@@ -11,11 +11,11 @@ Polling gives you the ability to have a 'real-time' effect by causing a query to
 
 ```ts title="src/Pokemon.tsx"
 import * as React from 'react';
-import { hooks } from './services/pokemon';
+import { useGetPokemonByNameQuery } from './services/pokemon';
 
 export const Pokemon = ({ name }: { name: string }) => {
   // Automatically refetch every 3s
-  const { data, status, error, refetch } = hooks.getPokemonByName.useQuery(name, { pollingInterval: 3000 });
+  const { data, status, error, refetch } = useGetPokemonByNameQuery(name, { pollingInterval: 3000 });
 
   return <div>{data}</div>;
 };
@@ -25,7 +25,7 @@ In an action creator without React Hooks:
 
 ```js
 const { data, status, error, refetch } = store.dispatch(
-  actions.getCountById(id, { subscriptionOptions: { pollingInterval: 3000 } })
+  endpoints.getCountById.initiate(id, { subscriptionOptions: { pollingInterval: 3000 } })
 );
 ```
 
