@@ -1,5 +1,4 @@
 import { createApi, fetchBaseQuery, retry } from '@rtk-incubator/rtk-query';
-import { setCredentials } from 'src/features/auth/authSlice';
 import { RootState } from '../store';
 
 export interface Post {
@@ -30,19 +29,20 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
-const staggeredBaseQuery = retry(baseQuery, { maxRetries: 6 });
+const baseQueryWithRetry = retry(baseQuery, { maxRetries: 6 });
 
 export const postApi = createApi({
   reducerPath: 'postsApi', // We only specify this because there are many services. This would not be common in most applications
-  baseQuery: staggeredBaseQuery,
+  baseQuery: baseQueryWithRetry,
   entityTypes: ['Posts'],
   endpoints: (build) => ({
     login: build.mutation<{ token: string; user: User }, any>({
       query: (credentials: any) => ({ url: 'login', method: 'POST', body: credentials }),
-      onSuccess: (arg, mutationApi, result) => {
-        const { token, user } = result;
-        // Set our user and token in the store for future requests
-        mutationApi.dispatch(setCredentials({ token, user }));
+      extraOptions: {
+        backoff: () => {
+          // We intentionally error once on login, and this breaks out of retrying. The next login attempt will succeed.
+          retry.fail({ fake: 'error' });
+        },
       },
     }),
     getPosts: build.query<PostsResponse, void>({

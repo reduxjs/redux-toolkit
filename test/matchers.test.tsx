@@ -1,14 +1,23 @@
-import { AnyAction } from '@reduxjs/toolkit';
+import { AnyAction, createSlice, SerializedError } from '@reduxjs/toolkit';
 import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
 import { renderHook, act } from '@testing-library/react-hooks';
-import { hookWaitFor, setupApiStore } from './helpers';
+import { expectExactType, hookWaitFor, setupApiStore } from './helpers';
+
+interface ResultType {
+  result: 'complex';
+}
+
+interface ArgType {
+  foo: 'bar';
+  count: 3;
+}
 
 const baseQuery = fetchBaseQuery({ baseUrl: 'http://example.com' });
 const api = createApi({
   baseQuery,
   endpoints(build) {
     return {
-      querySuccess: build.query({ query: () => '/success' }),
+      querySuccess: build.query<ResultType, ArgType>({ query: () => '/success' }),
       querySuccess2: build.query({ query: () => '/success' }),
       queryFail: build.query({ query: () => '/fail' }),
       mutationSuccess: build.mutation({ query: () => ({ url: '/success', method: 'POST' }) }),
@@ -57,7 +66,7 @@ const otherEndpointMatchers = [
 
 test('matches query pending & fulfilled actions for the own endpoint', async () => {
   const endpoint = querySuccess;
-  const { result } = renderHook(() => endpoint.useQuery({}), { wrapper: storeRef.wrapper });
+  const { result } = renderHook(() => endpoint.useQuery({} as any), { wrapper: storeRef.wrapper });
   await hookWaitFor(() => expect(result.current.isLoading).toBeFalsy());
 
   matchSequence(storeRef.store.getState().actions, endpoint.matchPending, endpoint.matchFulfilled);
@@ -104,4 +113,31 @@ test('matches mutation pending & rejected actions for the own endpoint', async (
     [endpoint.matchFulfilled, endpoint.matchRejected, ...otherEndpointMatchers],
     [endpoint.matchPending, endpoint.matchFulfilled, ...otherEndpointMatchers]
   );
+});
+
+test('inferred types', () => {
+  createSlice({
+    name: 'auth',
+    initialState: {},
+    reducers: {},
+    extraReducers: (builder) => {
+      builder
+        .addMatcher(api.endpoints.querySuccess.matchPending, (state, action) => {
+          expectExactType(undefined)(action.payload);
+          // @ts-expect-error
+          console.log(action.error);
+          expectExactType({} as ArgType)(action.meta.arg.originalArgs);
+        })
+        .addMatcher(api.endpoints.querySuccess.matchFulfilled, (state, action) => {
+          expectExactType({} as ResultType)(action.payload.result);
+          // @ts-expect-error
+          console.log(action.error);
+          expectExactType({} as ArgType)(action.meta.arg.originalArgs);
+        })
+        .addMatcher(api.endpoints.querySuccess.matchRejected, (state, action) => {
+          expectExactType({} as SerializedError)(action.error);
+          expectExactType({} as ArgType)(action.meta.arg.originalArgs);
+        });
+    },
+  });
 });

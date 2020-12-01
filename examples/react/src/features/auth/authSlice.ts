@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { User } from '../../app/services/posts';
+import { createSlice } from '@reduxjs/toolkit';
+import { postApi, User } from '../../app/services/posts';
 import { RootState } from '../../app/store';
 
 const initialState = {
@@ -12,16 +12,25 @@ const slice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setCredentials: (state, { payload }: PayloadAction<{ token: string; user: User }>) => {
-      state.user = payload.user;
-      state.token = payload.token;
-      state.isAuthenticated = true;
-    },
     logout: () => initialState,
+  },
+  extraReducers: (builder) => {
+    builder
+      .addMatcher(postApi.endpoints.login.matchPending, (state, action) => {
+        console.log('pending', action);
+      })
+      .addMatcher(postApi.endpoints.login.matchFulfilled, (state, action) => {
+        console.log('fulfilled', action);
+        state.user = action.payload.result.user;
+        state.token = action.payload.result.token;
+      })
+      .addMatcher(postApi.endpoints.login.matchRejected, (state, action) => {
+        console.log('rejected', action);
+      });
   },
 });
 
-export const { setCredentials, logout } = slice.actions;
+export const { logout } = slice.actions;
 export default slice.reducer;
 
 export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenticated;

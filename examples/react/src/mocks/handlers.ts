@@ -51,7 +51,10 @@ export const handlers = [
   }),
 
   rest.post('/login', (req, res, ctx) => {
-    return res(ctx.json({ token }));
+    return res.once(ctx.json({ message: 'i fail once' }), ctx.status(500));
+  }),
+  rest.post('/login', (req, res, ctx) => {
+    return res(ctx.json({ token, user: { first_name: 'Test', last_name: 'User' } }));
   }),
 
   rest.get('/posts', (req, res, ctx) => {
