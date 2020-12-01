@@ -1,6 +1,6 @@
 {
   "name": "@rtk-incubator/rtk-query",
-  "repository": "https://github.com/@rtk-incubator/rtk-query",
+  "repository": "https://github.com/rtk-incubator/rtk-query",
   "version": "0.1.0-alpha.1",
   "license": "MIT",
   "public": true,
