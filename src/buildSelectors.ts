@@ -16,7 +16,7 @@ import {
   ReducerPathFrom,
 } from './endpointDefinitions';
 import type { InternalState } from './buildSlice';
-import { InternalSerializeQueryArgs } from '.';
+import { InternalSerializeQueryArgs } from './defaultSerializeQueryArgs';
 
 export const skipSelector = Symbol('skip selector');
 

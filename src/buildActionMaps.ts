@@ -2,7 +2,7 @@ import { EndpointDefinitions, QueryDefinition, MutationDefinition, QueryArgFrom 
 import type { QueryThunkArg, MutationThunkArg } from './buildThunks';
 import { AnyAction, AsyncThunk, ThunkAction } from '@reduxjs/toolkit';
 import { MutationSubState, QueryStatus, QuerySubState, SubscriptionOptions } from './apiState';
-import { InternalSerializeQueryArgs } from '.';
+import { InternalSerializeQueryArgs } from './defaultSerializeQueryArgs';
 import { Api, ApiEndpointMutation, ApiEndpointQuery } from './apiTypes';
 
 declare module './apiTypes' {

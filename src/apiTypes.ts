@@ -2,7 +2,7 @@
  * Note: this file should import all other files for type discovery and declaration merging
  */
 import { PatchQueryResultThunk, QueryApi, UpdateQueryResultThunk } from './buildThunks';
-import { AnyAction, Middleware, Reducer, ThunkDispatch } from '@reduxjs/toolkit';
+import { AnyAction, Middleware, Reducer, ThunkDispatch, ThunkAction } from '@reduxjs/toolkit';
 import { PrefetchOptions } from './buildHooks';
 import {
   EndpointDefinitions,
@@ -12,10 +12,10 @@ import {
   MutationDefinition,
 } from './endpointDefinitions';
 import { CombinedState, QueryKeys, QueryStatePhantomType, RootState } from './apiState';
-import { InternalActions } from './index';
 import { UnionToIntersection } from './tsHelpers';
 import { TS41Hooks } from './ts41Types';
 import './buildSelectors';
+import { SliceActions } from './buildSlice';
 
 type UnwrapPromise<T> = T extends PromiseLike<infer V> ? V : T;
 type MaybePromise<T> = T | PromiseLike<T>;
@@ -110,3 +110,7 @@ export type ApiWithInjectedEndpoints<
   Omit<Injections, 'endpoints'> & {
     endpoints: ApiDefinition['endpoints'] & Partial<UnionToIntersection<Injections[number]['endpoints']>>;
   };
+
+export type InternalActions = SliceActions & {
+  prefetchThunk: (endpointName: any, arg: any, options: PrefetchOptions) => ThunkAction<void, any, any, AnyAction>;
+};

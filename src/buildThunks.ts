@@ -1,4 +1,4 @@
-import { InternalSerializeQueryArgs } from '.';
+import { InternalSerializeQueryArgs } from './defaultSerializeQueryArgs';
 import { Api, ApiEndpointQuery, BaseQueryFn, BaseQueryArg, BaseQueryError } from './apiTypes';
 import { InternalRootState, QueryKeys, QueryStatus, QuerySubstateIdentifier } from './apiState';
 import { StartQueryActionCreatorOptions } from './buildActionMaps';

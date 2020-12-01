@@ -130,6 +130,7 @@ test('inferred types', () => {
         })
         .addMatcher(api.endpoints.querySuccess.matchFulfilled, (state, action) => {
           expectExactType({} as ResultType)(action.payload.result);
+          expectExactType(0 as number)(action.payload.fulfilledTimeStamp);
           // @ts-expect-error
           console.log(action.error);
           expectExactType({} as ArgType)(action.meta.arg.originalArgs);

@@ -1,46 +1,29 @@
-import { buildThunks } from './buildThunks';
-import type { AnyAction, Reducer, ThunkAction } from '@reduxjs/toolkit';
-import { buildSlice, SliceActions } from './buildSlice';
-import { buildActionMaps } from './buildActionMaps';
-import { buildSelectors } from './buildSelectors';
-import { buildHooks, PrefetchOptions } from './buildHooks';
-import { buildMiddleware } from './buildMiddleware';
-import {
-  EndpointDefinitions,
-  EndpointBuilder,
-  DefinitionType,
-  isQueryDefinition,
-  isMutationDefinition,
-  AssertEntityTypes,
-} from './endpointDefinitions';
-import type { CombinedState, QueryCacheKey, QueryStatePhantomType } from './apiState';
-import { assertCast } from './tsHelpers';
+import type { AnyAction, Reducer } from '@reduxjs/toolkit';
+import type { CombinedState, QueryStatePhantomType } from './apiState';
 import { Api, BaseQueryArg, BaseQueryFn } from './apiTypes';
-export { Api, ApiWithInjectedEndpoints, BaseQueryFn, BaseQueryEnhancer } from './apiTypes';
-export { fetchBaseQuery, FetchBaseQueryError } from './fetchBaseQuery';
-export { QueryStatus } from './apiState';
-export { retry } from './retry';
-
+import { buildActionMaps } from './buildActionMaps';
+import { buildHooks } from './buildHooks';
+import { buildMiddleware } from './buildMiddleware';
+import { buildSelectors } from './buildSelectors';
+import { buildSlice } from './buildSlice';
+import { buildThunks } from './buildThunks';
+import { defaultSerializeQueryArgs, InternalSerializeQueryArgs, SerializeQueryArgs } from './defaultSerializeQueryArgs';
+import {
+  AssertEntityTypes,
+  DefinitionType,
+  EndpointBuilder,
+  EndpointDefinitions,
+  isMutationDefinition,
+  isQueryDefinition,
+} from './endpointDefinitions';
+import { assertCast } from './tsHelpers';
+import { capitalize, IS_DEV } from './utils';
 export { ApiProvider } from './ApiProvider';
-
-export type SerializeQueryArgs<InternalQueryArgs> = (_: {
-  queryArgs: any;
-  internalQueryArgs: InternalQueryArgs;
-  endpoint: string;
-}) => string;
-
-export type InternalSerializeQueryArgs<InternalQueryArgs> = (_: {
-  queryArgs: any;
-  internalQueryArgs: InternalQueryArgs;
-  endpoint: string;
-}) => QueryCacheKey;
-
-const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({ endpoint, queryArgs }) => {
-  // Sort the object keys before stringifying, to prevent useQuery({ a: 1, b: 2 }) having a different cache key than  useQuery({ b: 2, a: 1 })
-  return `${endpoint}(${JSON.stringify(queryArgs, Object.keys(queryArgs || {}).sort())})`;
-};
-
-const IS_DEV = () => typeof process !== 'undefined' && process.env.NODE_ENV === 'development';
+export { QueryStatus } from './apiState';
+export type { Api, ApiWithInjectedEndpoints, BaseQueryEnhancer, BaseQueryFn } from './apiTypes';
+export { fetchBaseQuery } from './fetchBaseQuery';
+export type { FetchBaseQueryError } from './fetchBaseQuery';
+export { retry } from './retry';
 
 export function createApi<
   BaseQuery extends BaseQueryFn,
@@ -204,12 +187,4 @@ export function createApi<
   }
 
   return api.injectEndpoints({ endpoints });
-}
-
-export type InternalActions = SliceActions & {
-  prefetchThunk: (endpointName: any, arg: any, options: PrefetchOptions) => ThunkAction<void, any, any, AnyAction>;
-};
-
-function capitalize(str: string) {
-  return str.replace(str[0], str[0].toUpperCase());
 }
