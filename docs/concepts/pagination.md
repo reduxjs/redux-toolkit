@@ -32,7 +32,7 @@ export const api = createApi({
   })
 });
 
-export const { useListPostsQuery } = api.hooks;
+export const { useListPostsQuery } = api;
 ```
 
 ## Trigger the next page by incrementing the `page` state variable
@@ -55,11 +55,12 @@ const PostList = () => {
         {posts.data.map(({ id, title, status }) => (
           <div key={id}>{title} - {status}</div>
         ))}
-        <button onClick={() => setPage(page - 1)}>
+        <button onClick={() => setPage(page - 1)} isLoading={isFetching}>
           Previous
         </button>
         <button
           onClick={() => setPage(page + 1)}
+          isLoading={isFetching}
         >
          Next
         </button>
