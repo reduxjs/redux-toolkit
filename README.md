@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" width="400" />
+  <img src="https://raw.githubusercontent.com/rtk-incubator/rtk-query/main/logo.png" width="400" />
 </p>
 
 <p align="center">
