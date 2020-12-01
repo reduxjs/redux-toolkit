@@ -19,9 +19,10 @@ Clone the repo, and in the root directory run:
 
 ```sh
 yarn
+yarn prepareExamples
 ```
 
-This will build the library, build the examples, and properly link the dependencies. If you want to run tests, you can run `yarn test` in the root to see the core tests, and by going into the examples folders and running `yarn test` for each example.
+This will build the library, build the examples, and properly link the dependencies. If you want to run tests, you can run `yarn test` in the root to see the core tests.
 
 :::info Windows Users
 If you do choose to run the examples locally and you're a Windows user, make sure to use `wsl2` when you clone the repo, or run them in docker.

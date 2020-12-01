@@ -1,29 +1,57 @@
-# RTK Query
+<p align="center">
+  <img src="logo.png" width="400" />
+</p>
 
-<p>
+<p align="center">
   <img src="https://img.shields.io/badge/ALPHA-pre%20release-orange">
    <a href="https://discord.gg/reactiflux" target="_blank">
     <img src="https://img.shields.io/badge/chat-online-green" alt="Discord server" />
   </a>
 </p>
 
-## What this is:
+## Introduction
 
-This is an experiment to create a generic api client based on (and potentially to be shipped with) [Redux Toolkit](https://redux-toolkit.js.org/) that allows for effective querying of non-normalized api endpoints with some global caching & cache invalidation mechanisms.
+RTK Query is an advanced data fetching and caching tool, designed to simplify common cases for loading data in a web application. It is built on top of [Redux Toolkit](https://redux-toolkit.js.org/) and uses Redux internally for its architecture.
 
-## Getting it / trying it out
+It features:
 
-For now, look at [The CodeSandbox CI](https://ci.codesandbox.io/status/rtk-incubator/rtk-query/pr/1) for the latest experimental package builds and up-to-date example sandboxes.
+- Declarative API definitions
+- Runs on every framework
+- Supports any protocol
+- Caching
+- Automatic re-fetching
+- Polling
+- Parallel queries
+- Dependent queries
+- Paginated queries
+- Skip queries
+- Lagged queries
+- Automatic garbage collection
+- Prefetching
+- Optimistic Updates
+- Auto-generated React Hooks
+- Built with TypeScript
 
-Then follow along with the [Getting Started instructions](https://rtk-query-docs.netlify.app/introduction/getting-started) - make sure to use the latest CodeSandbox build when installing :)
+... and plenty of other goodies.
+
+## Getting started
 
 ```sh title="Example installation"
-yarn add https://pkg.csb.dev/rtk-incubator/rtk-query/commit/0271589e/@rtk-incubator/rtk-query
-
+yarn add @rtk-incubator/rtk-query @reduxjs/toolkit
 ```
+
+Or with npm:
+
+```sh
+npm install @rtk-incubator/rtk-query @reduxjs/toolkit
+```
+
+Then follow along with the [Getting Started instructions](https://rtk-query-docs.netlify.app/introduction/getting-started).
 
 ## Documentation
 
-**_Note: this is being updated frequently as we're in alpha_**
+[View the RTK Query docs](https://rtk-query-docs.netlify.app/)
 
-The RTK Query docs are currently available at https://rtk-query-docs.netlify.app/. In addition, you can check out the generated deploy previews on any PR before things land in `main`.
+## Examples
+
+[View the examples](https://rtk-query-docs.netlify.app/examples/examples-overview)
