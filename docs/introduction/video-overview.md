@@ -21,3 +21,7 @@ hide_table_of_contents: true
 ## 3. Basic invalidation
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/OCcGvg2I5E8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+## 4. Advanced invalidation
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Iul-hHJtCQ8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>

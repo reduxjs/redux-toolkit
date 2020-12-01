@@ -7,7 +7,7 @@ hide_title: true
 
 # Getting Started
 
-RTK Query is an advanced data fetching and caching tool, designed to simplify common cases for loading data in a web application. RTK Query`itself is built on top of [Redux Toolkit](https://redux-toolkit.js.org/) and uses [Redux](https://redux.js.org/) internally for its architecture. Although knowledge of Redux and RTK are not required to use this library, you should explore all of the additional global store management capabilities they provide, as well as installing the [Redux DevTools browser extension](https://github.com/reduxjs/redux-devtools).
+RTK Query is an advanced data fetching and caching tool, designed to simplify common cases for loading data in a web application. RTK Query itself is built on top of [Redux Toolkit](https://redux-toolkit.js.org/) and uses [Redux](https://redux.js.org/) internally for its architecture. Although knowledge of Redux and RTK are not required to use this library, you should explore all of the additional global store management capabilities they provide, as well as installing the [Redux DevTools browser extension](https://github.com/reduxjs/redux-devtools).
 
 RTK Query is **currently in an alpha state of development**, with the goal of eventually including it directly in the Redux Toolkit library. We encourage you to use it in personal projects, and suggest creating local development branches to try out in actual apps. While we believe the current alpha is stable enough to actually use this library in real code, it's likely that there will be breaking API changes as we iterate on the API design and feature set. We welcome feedback on how it works and ways we can improve the API to help finalize the design!
 

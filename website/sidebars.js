@@ -12,9 +12,10 @@ module.exports = {
       'concepts/optimistic-updates',
       // infinite
     ],
-    'API Reference': ['api/createApi', 'api/fetchBaseQuery'],
+    'API Reference': ['api/createApi', 'api/fetchBaseQuery', 'api/ApiProvider'],
     Examples: [
       'examples/examples-overview',
+      'examples/authentication',
       'examples/react-hooks',
       'examples/react-class-components',
       'examples/react-with-graphql',
