@@ -22,92 +22,6 @@ The main point where you will define a service to use in your application.
   keepUnusedDataFor?: number;
 ```
 
-**It returns:**
-
-- [`reducerPath`](#reducerpath)
-- [`reducer`](#reducer)
-- [`middleware`](#middleware)
-- [`endpoints`](#endpoints-returned-by-createapi)
-  - **[endpointName]**
-    - [`initiate`](#actions)
-    - [`select`](#select)
-    - [`useQuery or useMutation`](#hooks)
-- [`internalActions`](#internalactions)
-- [`util`](#util)
-- [`injectEndpoints`](#injectendpoints)
-- [`usePrefetch`](../concepts/prefetching#prefetching-with-react-hooks)
-- [`Auto-generated hooks`](#auto-generated-hooks)
-
-```ts title="All returned properties"
-const api = createApi({
-  baseQuery: fetchBaseQuery('/'),
-  endpoints: (builder) => ({
-    // ...
-  }),
-});
-
-export const {
-  reducerPath,
-  reducer,
-  middleware,
-  endpoints,
-  internalActions,
-  util,
-  injectEndpoints,
-  usePrefetch,
-  ...generatedHooks
-} = api;
-```
-
-#### middleware
-
-This is a standard redux middleware and is responsible for things like [polling](../concepts/polling), [garbage collection](#keepunuseddatafor) and a handful of other things. Make sure it's [included in your store](../introduction/getting-started#add-the-service-to-your-store).
-
-#### reducer
-
-A standard redux reducer that enables core functionality. Make sure it's [included in your store](../introduction/getting-started#add-the-service-to-your-store).
-
-### `endpoints` returned by `createApi`
-
-#### actions
-
-React Hooks users will most likely never need to use these in most cases. These are redux action creators that you can `dispatch` with `useDispatch` or `store.dispatch()`.
-
-:::note Usage of actions outside of React Hooks
-When dispatching an action creator, you're responsible for storing a reference to the promise it returns in the event that you want to update that specific subscription. To get an idea of what that entails, see the [Svelte Example](../examples/svelte) or the [React Class Components Example](../examples/react-class-components)
-:::
-
-#### select
-
-`select` is how you access your `query` or `mutation` data from the cache. If you're using Hooks, you don't have to worry about this in most cases. There are several ways to use them:
-
-```js title="React Hooks"
-const { data, status } = useSelector(api.getPosts.select());
-```
-
-```js title="Using connect from react-redux"
-const mapStateToProps = (state) => ({
-  data: api.getPosts.select()(state),
-});
-connect(null, mapStateToProps);
-```
-
-```js title="Svelte"
-$: ({ data, status } = api.getPosts.select()($store));
-```
-
-#### hooks
-
-Hooks are specifically for React Hooks users. Under each `api.endpoint.[endpointName]`, you will have `useQuery` or `useMutation` depending on the type. For example, if you had `getPosts` and `updatePost`, these options would be available:
-
-```ts title="Hooks usage"
-const { data } = api.endpoints.getPosts.useQuery();
-const { data } = api.endpoints.updatePost.useMutation();
-
-const { data } = api.useGetPostsQuery();
-const [updatePost] = api.useUpdatePostMutation();
-```
-
 ### `baseQuery`
 
 ```ts title="Simulating axios-like interceptors with a custom base query"
@@ -161,12 +75,13 @@ const apiTwo = createApi({
 
 ### `serializeQueryArgs`
 
-Accepts a custom function if you have a need to change the serialization behavior for any reason. Defaults to:
+Accepts a custom function if you have a need to change the creation of cache keys for any reason. Defaults to:
 
 ```ts no-compile
-function defaultSerializeQueryArgs(args: any, endpoint: string) {
-  return `${endpoint}/${JSON.stringify(args)}`;
-}
+export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({ endpoint, queryArgs }) => {
+  // Sort the object keys before stringifying, to prevent useQuery({ a: 1, b: 2 }) having a different cache key than  useQuery({ b: 2, a: 1 })
+  return `${endpoint}(${JSON.stringify(queryArgs, Object.keys(queryArgs || {}).sort())})`;
+};
 ```
 
 ### `endpoints`
@@ -198,8 +113,17 @@ Endpoints are just a set of operations that you want to perform against your ser
     2.  `[{ type: 'Post' }]` - equivalent to 1
     3.  `[{ type: 'Post', id: 1 }]`
 - `invalidates` _(optional)_
+
   - Used by `mutations` for [cache invalidation](../concepts/mutations#advanced-mutations-with-revalidation) purposes.
   - Expects the same shapes as `provides`
+
+- `onStart`, `onError` and `onSuccess` _(optional)_
+  - Can be used in `mutations` for [optimistic updates](../concepts/optimistic-updates).
+  - ```ts title="signatures"
+    function onStart(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>): void;
+    function onError(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>, error: unknown): void;
+    function onSuccess(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>, result: ResultType): void;
+    ```
 
 #### How endpoints get used
 
@@ -279,6 +203,102 @@ export const api = createApi({
 });
 ```
 
+## Return value
+
+- [`reducerPath`](#reducerpath)
+- [`reducer`](#reducer)
+- [`middleware`](#middleware)
+- [`endpoints`](#endpoints-returned-by-createapi)
+  - **[endpointName]**
+    - [`initiate`](#initiate)
+    - [`select`](#select)
+    - [`useQuery or useMutation`](#hooks)
+- [`internalActions`](#internalactions)
+- [`util`](#util)
+- [`injectEndpoints`](#injectendpoints)
+- [`usePrefetch`](../concepts/prefetching#prefetching-with-react-hooks)
+- [`Auto-generated hooks`](#auto-generated-hooks)
+
+```ts title="All returned properties"
+const api = createApi({
+  baseQuery: fetchBaseQuery('/'),
+  endpoints: (builder) => ({
+    // ...
+  }),
+});
+
+export const {
+  reducerPath,
+  reducer,
+  middleware,
+  endpoints,
+  internalActions,
+  util,
+  injectEndpoints,
+  usePrefetch,
+  ...generatedHooks
+} = api;
+```
+
+#### middleware
+
+This is a standard redux middleware and is responsible for things like [polling](../concepts/polling), [garbage collection](#keepunuseddatafor) and a handful of other things. Make sure it's [included in your store](../introduction/getting-started#add-the-service-to-your-store).
+
+#### reducer
+
+A standard redux reducer that enables core functionality. Make sure it's [included in your store](../introduction/getting-started#add-the-service-to-your-store).
+
+### `endpoints` returned by `createApi`
+
+#### initiate
+
+React Hooks users will most likely never need to use these in most cases. These are redux action creators that you can `dispatch` with `useDispatch` or `store.dispatch()`.
+
+:::note Usage of actions outside of React Hooks
+When dispatching an action creator, you're responsible for storing a reference to the promise it returns in the event that you want to update that specific subscription. Also, you have to manually unsubscribe once your component unmounts. To get an idea of what that entails, see the [Svelte Example](../examples/svelte) or the [React Class Components Example](../examples/react-class-components)
+:::
+
+#### select
+
+`select` is how you access your `query` or `mutation` data from the cache. If you're using Hooks, you don't have to worry about this in most cases. There are several ways to use them:
+
+```js title="React Hooks"
+const { data, status } = useSelector(api.getPosts.select());
+```
+
+```js title="Using connect from react-redux"
+const mapStateToProps = (state) => ({
+  data: api.getPosts.select()(state),
+});
+connect(null, mapStateToProps);
+```
+
+```js title="Svelte"
+$: ({ data, status } = api.getPosts.select()($store));
+```
+
+#### hooks
+
+Hooks are specifically for React Hooks users. Under each `api.endpoint.[endpointName]`, you will have `useQuery` or `useMutation` depending on the type. For example, if you had `getPosts` and `updatePost`, these options would be available:
+
+```ts title="Hooks usage"
+const { data } = api.endpoints.getPosts.useQuery();
+const { data } = api.endpoints.updatePost.useMutation();
+
+const { data } = api.useGetPostsQuery();
+const [updatePost] = api.useUpdatePostMutation();
+```
+
+#### action matchers
+
+These are action matchers for each endpoint to allow you matching on redux actions for that endpoint - for example in slice `extraReducers` or a custom middleware. Those are implemented as follows:
+
+```ts
+ matchPending: isAllOf(isPending(thunk), matchesEndpoint(endpoint)),
+ matchFulfilled: isAllOf(isFulfilled(thunk), matchesEndpoint(endpoint)),
+ matchRejected: isAllOf(isRejected(thunk), matchesEndpoint(endpoint)),
+```
+
 ### Auto-generated Hooks
 
 React users are able to take advantage of auto-generated hooks. By default, `createApi` will automatically generate type-safe hooks (TS 4.1+ only) for you based on the name of your endpoints. The general format is `use(Endpointname)(Query|Mutation)` - `use` is prefixed, the first letter of your endpoint name is capitalized, then `Query` or `Mutation` is appended depending on the type.
@@ -306,9 +326,44 @@ export { useGetPostsQuery, useAddPostMutation } = api;
 
 ### `internalActions`
 
+:::danger
+These may change at any given time and are not part of the public API for now
+:::
+
+- `updateSubscriptionOptions: ActionCreatorWithPayload<{ endpoint: string; requestId: string; options: SubscriptionOptions; queryCacheKey: QueryCacheKey }, string>;`
+- `queryResultPatched: ActionCreatorWithPayload<{ queryCacheKey: QueryCacheKey, patches: Patch[]; }, string>`
+- `removeQueryResult: ActionCreatorWithPayload<{ queryCacheKey: QueryCacheKey }, string>`
+- `unsubscribeQueryResult: ActionCreatorWithPayload<{ queryCacheKey: QueryCacheKey, requestId: string }, string>`,
+- `unsubscribeMutationResult: ActionCreatorWithPayload<MutationSubstateIdentifier, string>`,
+- `prefetchThunk(endpointName, args, options: PrefetchOptions) => ThunkAction<void, any, any, AnyAction>`
+
 ### `util`
 
+Both of these utils are currently used for [optimistic updates](../concepts/optimistic-updates).
+
+- **patchQueryResult**
+
+  ```ts
+  <EndpointName extends QueryKeys<Definitions>>(
+    endpointName: EndpointName,
+    args: QueryArgFrom<Definitions[EndpointName]>,
+    patches: Patch[]
+  ) => ThunkAction<void, PartialState, any, AnyAction>
+  ```
+
+- **updateQueryResult**
+
+  ```ts
+  <EndpointName extends QueryKeys<Definitions>>(
+    endpointName: EndpointName,
+    args: QueryArgFrom<Definitions[EndpointName]>,
+    updateRecicpe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>
+  ) => ThunkAction<PatchCollection, PartialState, any, AnyAction>
+  ```
+
 ### `injectEndpoints`
+
+See [Code Splitting](../concepts/code-splitting)
 
 ### `keepUnusedDataFor`
 
