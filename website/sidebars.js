@@ -10,6 +10,7 @@ module.exports = {
       'concepts/polling',
       'concepts/prefetching',
       'concepts/optimistic-updates',
+      'concepts/code-splitting',
       // infinite
     ],
     'API Reference': ['api/createApi', 'api/fetchBaseQuery', 'api/ApiProvider'],

@@ -5,7 +5,7 @@ import '../../app/services/split/post';
 
 /**
  * You can also just import the "combined export" of the splitApi.
- * That will contain all definted injections, but everything will
+ * That will contain all defined injections, but everything will
  * be potentially undefined, to remind you that you cannot know what
  * has already been injected.
  */
@@ -20,7 +20,7 @@ function assert(condition: any, msg = 'Generic Assertion'): asserts condition {
 const Post = ({ id }: { id: number }) => {
   /*
    * As accessing these conditionally will cause hooks to error out,
-   * you best assert their existence & throw otherwise.
+   * it's best to assert their existence & throw otherwise.
    * This missing would be a programming error that you should
    * catch early anyways.
    */
