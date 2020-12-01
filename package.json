@@ -7,6 +7,7 @@
   "author": "Lenz Weber",
   "main": "dist/index.js",
   "module": "dist/rtk-query.esm.js",
+  "sideEffects": false,
   "types": "dist/index.d.ts",
   "typesVersions": {
     ">=4.1": {
