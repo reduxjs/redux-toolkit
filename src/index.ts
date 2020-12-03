@@ -1,7 +1,13 @@
 import { enableES5 } from 'immer'
 export * from 'redux'
 // @ts-ignore
-export { default as createNextState, Draft, current, freeze } from 'immer'
+export {
+  default as createNextState,
+  Draft,
+  current,
+  freeze,
+  original
+} from 'immer'
 export {
   createSelector,
   Selector,
