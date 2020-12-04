@@ -2,7 +2,7 @@ import { joinUrls } from './utils';
 import { isPlainObject } from '@reduxjs/toolkit';
 import { BaseQueryFn } from './apiTypes';
 
-interface FetchArgs extends RequestInit {
+export interface FetchArgs extends RequestInit {
   url: string;
   params?: Record<string, any>;
   body?: any;

@@ -22,7 +22,7 @@ export { ApiProvider } from './ApiProvider';
 export { QueryStatus } from './apiState';
 export type { Api, ApiWithInjectedEndpoints, BaseQueryEnhancer, BaseQueryFn } from './apiTypes';
 export { fetchBaseQuery } from './fetchBaseQuery';
-export type { FetchBaseQueryError } from './fetchBaseQuery';
+export type { FetchBaseQueryError, FetchArgs } from './fetchBaseQuery';
 export { retry } from './retry';
 
 export function createApi<
