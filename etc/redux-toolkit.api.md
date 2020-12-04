@@ -15,6 +15,7 @@ import { Dispatch } from 'redux';
 import { Draft } from 'immer';
 import { freeze } from 'immer';
 import { Middleware } from 'redux';
+import { original } from 'immer';
 import { OutputParametricSelector } from 'reselect';
 import { OutputSelector } from 'reselect';
 import { ParametricSelector } from 'reselect';
@@ -373,6 +374,8 @@ export class MiddlewareArray<Middlewares extends Middleware<any, any>> extends A
 
 // @public (undocumented)
 export let nanoid: (size?: number) => string;
+
+export { original }
 
 export { OutputParametricSelector }
 
