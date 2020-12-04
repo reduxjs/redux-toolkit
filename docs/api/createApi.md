@@ -19,7 +19,8 @@ The main point where you will define a service to use in your application.
   entityTypes?: readonly EntityTypes[];
   reducerPath?: ReducerPath;
   serializeQueryArgs?: SerializeQueryArgs<InternalQueryArgs>;
-  keepUnusedDataFor?: number;
+  keepUnusedDataFor?: number; // value is in seconds
+  refetchOnMountOrArgChange?: boolean | number; // value is in seconds
 ```
 
 ### `baseQuery`
@@ -203,6 +204,24 @@ export const api = createApi({
 });
 ```
 
+### `keepUnusedDataFor`
+
+Defaults to `60` _(this value is in seconds)_. This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.
+
+### `refetchOnMountOrArgChange`
+
+Defaults to `false`. This setting allows you to control whether RTK Query will only serve a cached result, or if it should `refetch` when set to `true` or if an adequate amount of time has passed since the last successful query result.
+
+- `false` - Will not cause a query to be performed _unless_ it does not exist yet.
+- `true` - Will always refetch when a new subscriber to a query is added. Behaves the same as calling the `refetch` callback or passing `forceRefetch: true` in the action creator.
+- `number` - **Value is in seconds**. If a number is provided and there is an existing query in the cache, it will compare the current time vs the last fulfilled timestamp, and only refetch if enough time has elapsed.
+
+If you specify this option as well as with `skip: true`, this **will not be evaluated** until `skip` is false.
+
+:::note
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnMountOrArgChange` to each individual hook call or when dispatching the [`initiate`](#initiate) action.
+:::
+
 ## Return value
 
 - [`reducerPath`](#reducerpath)
@@ -364,7 +383,3 @@ Both of these utils are currently used for [optimistic updates](../concepts/opti
 ### `injectEndpoints`
 
 See [Code Splitting](../concepts/code-splitting)
-
-### `keepUnusedDataFor`
-
-Defaults to `60` _(this value is in seconds)_. This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.

@@ -19,11 +19,21 @@ If you're using React Hooks, RTK Query does a few additional things for you. The
 
 Hooks are automatically generated based on the name of the `endpoint` in the service definition. An endpoint field with `getPost: builder.query()` will generate a hook named `useGetPostQuery`.
 
+#### Query Hook Options
+
+- [pollingInterval?](./polling) - Defaults to `0`
+- [refetchOnMountOrArgChange?](../api/createApi#refetchOnMountOrArgChange) - Defaults to `false`. Will override any value that was specified in `createApi`.
+- [skip?](./conditional-fetching) - Defaults to `false`
+
 Here is an example of a `PostDetail` component:
 
 ```ts title="Example"
 export const PostDetail = ({ id }: { id: string }) => {
-  const { data: post, isFetching, isLoading } = useGetPostQuery(id, { pollingInterval: 3000 });
+  const { data: post, isFetching, isLoading } = useGetPostQuery(id, {
+    pollingInterval: 3000,
+    refetchOnMountOrArgChange: true,
+    skip: false,
+  });
 
   if (isLoading) return <div>Loading...</div>;
   if (!post) return <div>Missing post!</div>;

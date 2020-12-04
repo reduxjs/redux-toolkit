@@ -37,6 +37,7 @@ export function createApi<
   serializeQueryArgs = defaultSerializeQueryArgs,
   endpoints,
   keepUnusedDataFor = 60,
+  refetchOnMountOrArgChange = false,
 }: {
   baseQuery: BaseQuery;
   entityTypes?: readonly EntityTypes[];
@@ -44,6 +45,7 @@ export function createApi<
   serializeQueryArgs?: SerializeQueryArgs<BaseQueryArg<BaseQuery>>;
   endpoints(build: EndpointBuilder<BaseQuery, EntityTypes, ReducerPath>): Definitions;
   keepUnusedDataFor?: number;
+  refetchOnMountOrArgChange?: boolean | number;
 }): Api<BaseQuery, Definitions, ReducerPath, EntityTypes> {
   type State = CombinedState<Definitions, EntityTypes>;
 
@@ -100,6 +102,7 @@ export function createApi<
     endpointDefinitions,
     api,
     serializeQueryArgs,
+    refetchOnMountOrArgChange,
   });
   Object.assign(api.util, { patchQueryResult, updateQueryResult });
 

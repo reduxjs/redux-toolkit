@@ -136,12 +136,14 @@ export function buildThunks<
   endpointDefinitions,
   serializeQueryArgs,
   api,
+  refetchOnMountOrArgChange: baserefetchOnMountOrArgChange = false,
 }: {
   baseQuery: BaseQuery;
   reducerPath: ReducerPath;
   endpointDefinitions: Definitions;
   serializeQueryArgs: InternalSerializeQueryArgs<BaseQueryArg<BaseQuery>>;
   api: Api<BaseQuery, Definitions, ReducerPath, string>;
+  refetchOnMountOrArgChange: boolean | number;
 }) {
   type InternalQueryArgs = BaseQueryArg<BaseQuery>;
   type State = InternalRootState<ReducerPath>;
@@ -211,8 +213,29 @@ export function buildThunks<
     },
     {
       condition(arg, { getState }) {
-        let requestState = getState()[reducerPath]?.queries?.[arg.queryCacheKey];
-        return !(requestState?.status === 'pending' || (requestState?.status === 'fulfilled' && !arg.forceRefetch));
+        const requestState = getState()[reducerPath]?.queries?.[arg.queryCacheKey];
+
+        const fulfilledVal = requestState?.fulfilledTimeStamp;
+        const refetchVal = arg.forceRefetch
+          ? arg.forceRefetch
+          : typeof arg.refetchOnMountOrArgChange !== 'undefined'
+          ? arg.refetchOnMountOrArgChange
+          : baserefetchOnMountOrArgChange;
+
+        // Don't retry a request that's currently in-flight
+        if (requestState?.status === 'pending') return false;
+
+        // Pull from the cache unless we explicitly force refetch or qualify based on time
+        if (fulfilledVal) {
+          if (refetchVal) {
+            // Return if its true or compare the dates because it must be a number
+            return refetchVal === true || (Number(new Date()) - Number(fulfilledVal)) / 1000 >= refetchVal;
+          }
+          // Value is cached and we didn't specify to refresh, skip it.
+          return false;
+        }
+
+        return true;
       },
       dispatchConditionRejection: true,
     }
