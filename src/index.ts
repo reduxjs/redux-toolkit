@@ -1,6 +1,5 @@
 import { enableES5 } from 'immer'
 export * from 'redux'
-// @ts-ignore
 export {
   default as createNextState,
   Draft,
