@@ -7,6 +7,7 @@ import { rest } from 'msw';
 export const server = setupServer(
   rest.get('http://example.com/success', (_, res, ctx) => res(ctx.json({ value: 'success' }))),
   rest.post('http://example.com/success', (_, res, ctx) => res(ctx.json({ value: 'success' }))),
+  rest.get('http://example.com/empty', (_, res, ctx) => res(ctx.body(''))),
   rest.get('http://example.com/error', (_, res, ctx) => res.once(ctx.status(500), ctx.json({ value: 'error' }))),
   rest.post('http://example.com/error', (_, res, ctx) => res.once(ctx.status(500), ctx.json({ value: 'error' }))),
   rest.get('http://example.com/nonstandard-error', (_, res, ctx) =>

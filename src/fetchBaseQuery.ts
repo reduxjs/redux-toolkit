@@ -2,17 +2,34 @@ import { joinUrls } from './utils';
 import { isPlainObject } from '@reduxjs/toolkit';
 import { BaseQueryFn } from './apiTypes';
 
+export type ResponseHandler = 'json' | 'text' | ((response: Response) => Promise<any>);
+
 export interface FetchArgs extends RequestInit {
   url: string;
   params?: Record<string, any>;
   body?: any;
-  responseHandler?: 'json' | 'text' | ((response: Response) => Promise<any>);
+  responseHandler?: ResponseHandler;
   validateStatus?: (response: Response, body: any) => boolean;
 }
 
 const defaultValidateStatus = (response: Response) => response.status >= 200 && response.status <= 299;
 
 const isJsonContentType = (headers: Headers) => headers.get('content-type')?.trim()?.startsWith('application/json');
+
+const handleResponse = async (response: Response, responseHandler: ResponseHandler) => {
+  if (typeof responseHandler === 'function') {
+    return responseHandler(response);
+  }
+
+  if (responseHandler === 'text') {
+    return response.text();
+  }
+
+  if (responseHandler === 'json') {
+    const text = await response.text();
+    return text.length ? JSON.parse(text) : undefined;
+  }
+};
 
 export interface FetchBaseQueryError {
   status: number;
@@ -65,11 +82,7 @@ export function fetchBaseQuery({
     url = joinUrls(baseUrl, url);
 
     const response = await fetch(url, config);
-
-    const resultData =
-      typeof responseHandler === 'function'
-        ? await responseHandler(response)
-        : await response[responseHandler || 'text']();
+    const resultData = await handleResponse(response, responseHandler);
 
     return validateStatus(response, resultData)
       ? { data: resultData }

@@ -89,6 +89,22 @@ describe('fetchBaseQuery', () => {
       expect(res.data).toEqual({ value: 'success' });
     });
 
+    it('should return undefined for a simple GET request when the response is empty', async () => {
+      const req = baseQuery(
+        '/empty',
+        {
+          signal: undefined,
+          dispatch: storeRef.store.dispatch,
+          getState: storeRef.store.getState,
+        },
+        {}
+      );
+      expect(req).toBeInstanceOf(Promise);
+      const res = await req;
+      expect(res).toBeInstanceOf(Object);
+      expect(res.data).toBeUndefined();
+    });
+
     it('should return an error and status for error responses', async () => {
       const req = baseQuery(
         '/error',
