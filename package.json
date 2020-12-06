@@ -1,0 +1,20 @@
+{
+  "name": "rtk-query-codegen-openapi",
+  "version": "0.1.0",
+  "main": "index.js",
+  "author": "Lenz Weber",
+  "license": "MIT",
+  "devDependencies": {
+    "@rtk-incubator/rtk-query": "^0.1.0",
+    "oazapfts": "file:.yalc/oazapfts",
+    "ts-node": "^9.1.0",
+    "yalc": "^1.0.0-pre.47"
+  },
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^10.0.2",
+    "@types/lodash": "^4.14.165",
+    "swagger2openapi": "^7.0.4",
+    "ts-morph": "^9.1.0",
+    "typescript": "^4.1.2"
+  }
+}
