@@ -18,6 +18,7 @@ import {
   createQuestionToken,
   keywordType,
 } from "oazapfts/lib/codegen/tscodegen";
+import { ConstructorDeclaration } from "ts-morph";
 
 type OperationDefinition = {
   path: string;
@@ -103,7 +104,17 @@ async function generateApi(
   );
   const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
 
-  const result = printer.printNode(
+  const interfaces: Record<string, ts.InterfaceDeclaration> = {};
+  function registerInterface(declaration: ts.InterfaceDeclaration) {
+    const name = declaration.name.escapedText.toString();
+    if (name in interfaces) {
+      throw new Error("interface already registered");
+    }
+    interfaces[name] = declaration;
+    return declaration;
+  }
+
+  return printer.printNode(
     ts.EmitHint.Unspecified,
     factory.createSourceFile(
       [
@@ -112,13 +123,13 @@ async function generateApi(
           baseFetchQuery: "baseFetchQuery",
         }),
         generateCreateApiCall(),
+        ...Object.values(interfaces),
       ],
       factory.createToken(ts.SyntaxKind.EndOfFileToken),
       ts.NodeFlags.None
     ),
     resultFile
   );
-  console.log(result);
 
   function generateImportNode(
     pkg: string,
@@ -268,16 +279,8 @@ async function generateApi(
       ...apiGen.resolveArray(pathItem.parameters),
       ...apiGen.resolveArray(operation.parameters),
     ]);
-    const queryArg: Record<
-      string,
-      {
-        name: string;
-        originalName: string;
-        origin: "param" | "body";
-        type: ts.TypeNode;
-        required?: boolean;
-      }
-    > = {};
+
+    const queryArg: QueryArgDefinitions = {};
     for (const param of parameters) {
       let name = _.camelCase(param.name);
       queryArg[name] = {
@@ -288,6 +291,7 @@ async function generateApi(
           isReference(param) ? param : param.schema
         ),
         required: param.required,
+        param,
       };
     }
 
@@ -310,22 +314,42 @@ async function generateApi(
         originalName: schemaName,
         type: apiGen.getTypeFromSchema(schema),
         required: true,
+        body,
       };
     }
 
     // TODO strip param names where applicable
     //const stripped = _.camelCase(param.name.replace(/.+\./, ""));
 
-    const QueryArg = factory.createTypeLiteralNode(
-      Object.entries(queryArg).map(([name, def]) =>
-        factory.createPropertySignature(
-          undefined,
-          name,
-          createQuestionToken(!def.required),
-          def.type
+    const QueryArgInterface = registerInterface(
+      factory.createInterfaceDeclaration(
+        undefined,
+        [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+        _.upperFirst(
+          getOperationName(verb, path, operation.operationId) + "Params"
+        ),
+        undefined,
+        undefined,
+        Object.entries(queryArg).map(([name, def]) =>
+          ts.addSyntheticLeadingComment(
+            factory.createPropertySignature(
+              undefined,
+              name,
+              createQuestionToken(!def.required),
+              def.type
+            ),
+            ts.SyntaxKind.MultiLineCommentTrivia,
+            `* ${
+              def.origin === "param"
+                ? def.param.description
+                : def.body.description
+            } `,
+            true
+          )
         )
       )
     );
+    const QueryArg = factory.createTypeReferenceNode(QueryArgInterface.name);
 
     return factory.createPropertyAssignment(
       factory.createIdentifier(
@@ -343,26 +367,8 @@ async function generateApi(
             [
               factory.createPropertyAssignment(
                 factory.createIdentifier("query"),
-                factory.createArrowFunction(
-                  undefined,
-                  undefined,
-                  [
-                    factory.createParameterDeclaration(
-                      undefined,
-                      undefined,
-                      undefined,
-                      factory.createIdentifier("queryArg"),
-                      undefined,
-                      undefined,
-                      undefined
-                    ),
-                  ],
-                  undefined,
-                  factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-                  factory.createStringLiteral(path)
-                )
+                generateQueryFn({ operationDefinition, queryArg })
               ),
-
               /*
               TODO
               ...(isQuery
@@ -377,7 +383,93 @@ async function generateApi(
     );
   }
 
-  function generateQueryFn(_: { operationDefinition: OperationDefinition }) {}
+  function generateQueryFn({
+    operationDefinition,
+    queryArg,
+  }: {
+    operationDefinition: OperationDefinition;
+    queryArg: QueryArgDefinitions;
+  }) {
+    const {
+      verb,
+      path,
+      pathItem,
+      operation,
+      operation: { responses, requestBody },
+    } = operationDefinition;
+
+    const pathParameters = Object.values(queryArg).filter(
+      (def) => def.origin === "param" && def.param.in === "path"
+    );
+    const queryParameters = Object.values(queryArg).filter(
+      (def) => def.origin === "param" && def.param.in === "query"
+    );
+    const headerParameters = Object.values(queryArg).filter(
+      (def) => def.origin === "param" && def.param.in === "header"
+    );
+    const cookieParameters = Object.values(queryArg).filter(
+      (def) => def.origin === "param" && def.param.in === "cookie"
+    );
+    const bodyParameter = Object.values(queryArg).find(
+      (def) => def.origin === "body"
+    );
+
+    return factory.createArrowFunction(
+      undefined,
+      undefined,
+      [
+        factory.createParameterDeclaration(
+          undefined,
+          undefined,
+          undefined,
+          factory.createIdentifier("queryArg"),
+          undefined,
+          undefined,
+          undefined
+        ),
+      ],
+      undefined,
+      factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+      factory.createParenthesizedExpression(
+        factory.createObjectLiteralExpression(
+          [
+            factory.createPropertyAssignment(
+              factory.createIdentifier("url"),
+              generatePathExpression(path, pathParameters)
+            ),
+            bodyParameter == undefined
+              ? undefined
+              : factory.createPropertyAssignment(
+                  factory.createIdentifier("body"),
+                  factory.createPropertyAccessExpression(
+                    factory.createIdentifier("queryArg"),
+                    factory.createIdentifier(bodyParameter.name)
+                  )
+                ),
+            cookieParameters.length == 0
+              ? undefined
+              : factory.createPropertyAssignment(
+                  factory.createIdentifier("cookies"),
+                  generateQuerArgObjectLiteralExpression(cookieParameters)
+                ),
+            headerParameters.length == 0
+              ? undefined
+              : factory.createPropertyAssignment(
+                  factory.createIdentifier("headers"),
+                  generateQuerArgObjectLiteralExpression(headerParameters)
+                ),
+            queryParameters.length == 0
+              ? undefined
+              : factory.createPropertyAssignment(
+                  factory.createIdentifier("params"),
+                  generateQuerArgObjectLiteralExpression(queryParameters)
+                ),
+          ].filter(removeUndefined),
+          false
+        )
+      )
+    );
+  }
 
   function generateQueryEndpointProps({
     operationDefinition,
@@ -483,4 +575,80 @@ async function generateApi(
   }
 }
 
-generateApi("/home/weber/tmp/rtk-query-codegen-openapi/test/petstore.json", {});
+function generatePathExpression(
+  path: string,
+  pathParameters: QueryArgDefinition[]
+) {
+  const expressions: Array<[string, string]> = [];
+
+  const head = path.replace(
+    /\{(.*?)\}(.*?)(?=\{|$)/g,
+    (_, expression, literal) => {
+      const param = pathParameters.find((p) => p.originalName === expression);
+      if (!param) {
+        throw new Error(
+          `path parameter ${expression} does not seem to be defined?`
+        );
+      }
+      expressions.push([param.name, literal]);
+      return "";
+    }
+  );
+
+  return expressions.length
+    ? factory.createTemplateExpression(
+        factory.createTemplateHead(head),
+        expressions.map(([prop, literal], index) =>
+          factory.createTemplateSpan(
+            factory.createPropertyAccessExpression(
+              factory.createIdentifier("queryArg"),
+              factory.createIdentifier(prop)
+            ),
+            index === expressions.length - 1
+              ? factory.createTemplateTail(literal)
+              : factory.createTemplateMiddle(literal)
+          )
+        )
+      )
+    : factory.createNoSubstitutionTemplateLiteral(head);
+}
+
+function generateQuerArgObjectLiteralExpression(
+  queryArgs: QueryArgDefinition[]
+) {
+  return factory.createObjectLiteralExpression(
+    queryArgs.map(
+      (param) =>
+        factory.createPropertyAssignment(
+          factory.createIdentifier(param.originalName),
+          factory.createPropertyAccessExpression(
+            factory.createIdentifier("queryArgs"),
+            factory.createIdentifier(param.name)
+          )
+        ),
+      true
+    )
+  );
+}
+
+type QueryArgDefinition = {
+  name: string;
+  originalName: string;
+  type: ts.TypeNode;
+  required?: boolean;
+} & (
+  | {
+      origin: "param";
+      param: OpenAPIV3.ParameterObject;
+    }
+  | {
+      origin: "body";
+      body: OpenAPIV3.RequestBodyObject;
+    }
+);
+type QueryArgDefinitions = Record<string, QueryArgDefinition>;
+
+generateApi(
+  "/home/weber/tmp/rtk-query-codegen-openapi/test/petstore.json",
+  {}
+).then((result) => console.log(result));
