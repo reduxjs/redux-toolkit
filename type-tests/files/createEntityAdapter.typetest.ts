@@ -10,9 +10,11 @@ import {
 } from '@reduxjs/toolkit'
 import { expectType } from './helpers'
 
-function extractReducers<T>(
-  adapter: EntityAdapter<T>
-): Omit<EntityStateAdapter<T>, 'map'> {
+type SpecificEntityId = 1 | 3 | 'five'
+
+function extractReducers<T, Id extends EntityId>(
+  adapter: EntityAdapter<T, Id>
+): Omit<EntityStateAdapter<T, Id>, 'map'> {
   const {
     selectId,
     sortComparer,
@@ -28,6 +30,7 @@ function extractReducers<T>(
  */
 {
   type Entity = {
+    id: SpecificEntityId
     value: string
   }
   const adapter = createEntityAdapter<Entity>()
@@ -40,17 +43,23 @@ function extractReducers<T>(
   })
 
   expectType<ActionCreatorWithPayload<Entity>>(slice.actions.addOne)
-  expectType<ActionCreatorWithPayload<Entity[] | Record<string, Entity>>>(
-    slice.actions.addMany
+  expectType<
+    ActionCreatorWithPayload<Entity[] | Record<SpecificEntityId, Entity>>
+  >(slice.actions.addMany)
+  expectType<
+    ActionCreatorWithPayload<Entity[] | Record<SpecificEntityId, Entity>>
+  >(slice.actions.setAll)
+  expectType<ActionCreatorWithPayload<SpecificEntityId>>(
+    slice.actions.removeOne
   )
-  expectType<ActionCreatorWithPayload<Entity[] | Record<string, Entity>>>(
-    slice.actions.setAll
+  expectType<ActionCreatorWithPayload<SpecificEntityId[]>>(
+    slice.actions.removeMany
   )
-  expectType<ActionCreatorWithPayload<EntityId>>(slice.actions.removeOne)
-  expectType<ActionCreatorWithPayload<EntityId[]>>(slice.actions.removeMany)
   expectType<ActionCreatorWithoutPayload>(slice.actions.removeAll)
-  expectType<ActionCreatorWithPayload<Update<Entity>>>(slice.actions.updateOne)
-  expectType<ActionCreatorWithPayload<Update<Entity>[]>>(
+  expectType<ActionCreatorWithPayload<Update<Entity, SpecificEntityId>>>(
+    slice.actions.updateOne
+  )
+  expectType<ActionCreatorWithPayload<Update<Entity, SpecificEntityId>[]>>(
     slice.actions.updateMany
   )
   expectType<ActionCreatorWithPayload<Entity>>(slice.actions.upsertOne)
@@ -64,9 +73,11 @@ function extractReducers<T>(
  */
 {
   type Entity = {
+    id: string
     value: string
   }
   type Entity2 = {
+    id: string
     value2: string
   }
   const adapter = createEntityAdapter<Entity>()
@@ -87,6 +98,7 @@ function extractReducers<T>(
  */
 {
   type Entity = {
+    id: SpecificEntityId
     value: string
   }
   const adapter = createEntityAdapter<Entity>()
@@ -104,6 +116,7 @@ function extractReducers<T>(
  */
 {
   type Entity = {
+    id: SpecificEntityId
     value: string
   }
   const adapter = createEntityAdapter<Entity>()
