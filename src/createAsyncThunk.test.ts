@@ -304,6 +304,81 @@ describe('createAsyncThunk', () => {
     expect(errorAction.meta.requestId).toBe(generatedRequestId)
     expect(errorAction.meta.arg).toBe(args)
   })
+
+  it('Passes `additionalMeta` to fulfilled action', async () => {
+    const dispatch = jest.fn()
+
+    const additionalMeta = { foo: 'bar' }
+
+    const thunkActionCreator = createAsyncThunk('testType', async () => 5, {
+      additionalMeta
+    })
+
+    const thunkFunction = thunkActionCreator()
+
+    try {
+      await thunkFunction(dispatch, () => {}, undefined)
+    } catch (e) {}
+
+    expect(dispatch).toHaveBeenCalledTimes(2)
+
+    const pendingAction = dispatch.mock.calls[0][0]
+    expect(pendingAction.meta.additionalMeta).toEqual(additionalMeta)
+
+    const fulfilledAction = dispatch.mock.calls[1][0]
+    expect(fulfilledAction.meta.additionalMeta).toEqual(additionalMeta)
+  })
+
+  it('Passes `additionalMeta` to rejected action', async () => {
+    const dispatch = jest.fn()
+
+    const additionalMeta = { foo: 'bar' }
+
+    const error = new Error('Rejected')
+
+    const thunkActionCreator = createAsyncThunk(
+      'testType',
+      async () => {
+        throw error
+      },
+      { additionalMeta }
+    )
+
+    const thunkFunction = thunkActionCreator()
+
+    try {
+      await thunkFunction(dispatch, () => {}, undefined)
+    } catch (e) {}
+
+    expect(dispatch).toHaveBeenCalledTimes(2)
+
+    const pendingAction = dispatch.mock.calls[0][0]
+    expect(pendingAction.meta.additionalMeta).toEqual(additionalMeta)
+
+    const errorAction = dispatch.mock.calls[1][0]
+    expect(errorAction.meta.additionalMeta).toEqual(additionalMeta)
+    expect(errorAction.error.message).toEqual('Rejected')
+  })
+
+  it('Passes an empty object if no `additionalMeta` was provided', async () => {
+    const dispatch = jest.fn()
+
+    const thunkActionCreator = createAsyncThunk('testType', async () => 5)
+
+    const thunkFunction = thunkActionCreator()
+
+    try {
+      await thunkFunction(dispatch, () => {}, undefined)
+    } catch (e) {}
+
+    expect(dispatch).toHaveBeenCalledTimes(2)
+
+    const pendingAction = dispatch.mock.calls[0][0]
+    expect(pendingAction.meta.additionalMeta).toEqual({})
+
+    const fulfilledAction = dispatch.mock.calls[1][0]
+    expect(fulfilledAction.meta.additionalMeta).toEqual({})
+  })
 })
 
 describe('createAsyncThunk with abortController', () => {
@@ -590,7 +665,8 @@ describe('conditional skipping of asyncThunks', () => {
           rejectedWithValue: false,
           condition: true,
           requestId: expect.stringContaining(''),
-          requestStatus: 'rejected'
+          requestStatus: 'rejected',
+          additionalMeta: {}
         },
         payload: undefined,
         type: 'test/rejected'

@@ -217,6 +217,8 @@ interface AsyncThunkOptions<
   dispatchConditionRejection?: boolean
 
   serializeError?: (x: unknown) => GetSerializedErrorType<ThunkApiConfig>
+
+  additionalMeta?: { [key: string]: unknown }
 }
 
 export type AsyncThunkPendingActionCreator<
@@ -230,6 +232,7 @@ export type AsyncThunkPendingActionCreator<
     arg: ThunkArg
     requestId: string
     requestStatus: 'pending'
+    additionalMeta: { [key: string]: unknown }
   }
 >
 
@@ -248,6 +251,7 @@ export type AsyncThunkRejectedActionCreator<
     requestStatus: 'rejected'
     aborted: boolean
     condition: boolean
+    additionalMeta: { [key: string]: unknown }
   }
 >
 
@@ -263,6 +267,7 @@ export type AsyncThunkFulfilledActionCreator<
     arg: ThunkArg
     requestId: string
     requestStatus: 'fulfilled'
+    additionalMeta: { [key: string]: unknown }
   }
 >
 
@@ -302,6 +307,8 @@ export function createAsyncThunk<
 ): AsyncThunk<Returned, ThunkArg, ThunkApiConfig> {
   type RejectedValue = GetRejectValue<ThunkApiConfig>
 
+  const additionalMeta = (options && options.additionalMeta) || {}
+
   const fulfilled = createAction(
     typePrefix + '/fulfilled',
     (result: Returned, requestId: string, arg: ThunkArg) => {
@@ -310,7 +317,8 @@ export function createAsyncThunk<
         meta: {
           arg,
           requestId,
-          requestStatus: 'fulfilled' as const
+          requestStatus: 'fulfilled' as const,
+          additionalMeta
         }
       }
     }
@@ -324,7 +332,8 @@ export function createAsyncThunk<
         meta: {
           arg,
           requestId,
-          requestStatus: 'pending' as const
+          requestStatus: 'pending' as const,
+          additionalMeta
         }
       }
     }
@@ -348,7 +357,8 @@ export function createAsyncThunk<
           rejectedWithValue,
           requestStatus: 'rejected' as const,
           aborted,
-          condition
+          condition,
+          additionalMeta
         }
       }
     }
