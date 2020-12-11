@@ -1,4 +1,3 @@
-import { EndpointDefinition } from "./apiModel";
 import _ from "lodash";
 import ApiGenerator, {
   verbs,
@@ -38,10 +37,13 @@ const operationKeys = [
   "trace",
 ] as const;
 
-type GenerationOptions = {
+export type GenerationOptions = {
   exportName?: string;
   reducerPath?: string;
   baseQuery?: string;
+  argSuffix?: string;
+  responseSuffix?: string;
+  baseUrl?: string
   isDataResponse?(
     code: string,
     response: OpenAPIV3.ResponseObject,
@@ -58,12 +60,15 @@ function defaultIsDataResponse(
   return !Number.isNaN(parsedCode) && parsedCode >= 200 && parsedCode < 300;
 }
 
-async function generateApi(
+export async function generateApi(
   spec: string,
   {
     exportName = "api",
     reducerPath,
     baseQuery = "fetchBaseQuery",
+    argSuffix = "ApiArg",
+    responseSuffix = "ApiResponse",
+    baseUrl,
     isDataResponse = defaultIsDataResponse,
   }: GenerationOptions
 ) {
@@ -75,6 +80,9 @@ async function generateApi(
   } else {
     const result = await converter.convertObj(doc, {});
     v3Doc = result.openapi as OpenAPIV3.Document;
+  }
+  if (typeof baseUrl !== 'string') {
+    baseUrl = v3Doc.servers?.[0].url ?? "https://example.com"
   }
 
   const apiGen = new ApiGenerator(v3Doc, {});
@@ -196,10 +204,7 @@ async function generateApi(
                             [
                               factory.createPropertyAssignment(
                                 factory.createIdentifier("baseUrl"),
-                                factory.createStringLiteral(
-                                  v3Doc.servers?.[0].url ??
-                                    "https://example.com"
-                                )
+                                factory.createStringLiteral(baseUrl as string)
                               ),
                             ],
                             false
@@ -320,7 +325,7 @@ async function generateApi(
           undefined,
           [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
           _.upperFirst(
-            getOperationName(verb, path, operation.operationId) + "Response"
+            getOperationName(verb, path, operation.operationId) + responseSuffix
           ),
           undefined,
           ResponseType
@@ -380,7 +385,7 @@ async function generateApi(
           undefined,
           [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
           _.upperFirst(
-            getOperationName(verb, path, operation.operationId) + "QueryArg"
+            getOperationName(verb, path, operation.operationId) + argSuffix
           ),
           undefined,
           factory.createTypeLiteralNode(
@@ -695,8 +700,3 @@ type QueryArgDefinition = {
     }
 );
 type QueryArgDefinitions = Record<string, QueryArgDefinition>;
-
-generateApi(
-  "/home/weber/tmp/rtk-query-codegen-openapi/test/petstore.json",
-  {}
-).then((result) => console.log(result));
