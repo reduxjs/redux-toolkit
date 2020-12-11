@@ -37,10 +37,12 @@ const operationKeys = [
   "trace",
 ] as const;
 
-type GenerationOptions = {
+export type GenerationOptions = {
   exportName?: string;
   reducerPath?: string;
   baseQuery?: string;
+  argSuffix?: string;
+  responseSuffix?: string;
   isDataResponse?(
     code: string,
     response: OpenAPIV3.ResponseObject,
@@ -63,6 +65,8 @@ export async function generateApi(
     exportName = "api",
     reducerPath,
     baseQuery = "fetchBaseQuery",
+    argSuffix = "ApiArg",
+    responseSuffix = "ApiResponse",
     isDataResponse = defaultIsDataResponse,
   }: GenerationOptions
 ) {
@@ -319,7 +323,7 @@ export async function generateApi(
           undefined,
           [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
           _.upperFirst(
-            getOperationName(verb, path, operation.operationId) + "Response"
+            getOperationName(verb, path, operation.operationId) + responseSuffix
           ),
           undefined,
           ResponseType
@@ -379,7 +383,7 @@ export async function generateApi(
           undefined,
           [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
           _.upperFirst(
-            getOperationName(verb, path, operation.operationId) + "QueryArg"
+            getOperationName(verb, path, operation.operationId) + argSuffix
           ),
           undefined,
           factory.createTypeLiteralNode(
