@@ -1,4 +1,3 @@
-import { EndpointDefinition } from "./apiModel";
 import _ from "lodash";
 import ApiGenerator, {
   verbs,
@@ -58,7 +57,7 @@ function defaultIsDataResponse(
   return !Number.isNaN(parsedCode) && parsedCode >= 200 && parsedCode < 300;
 }
 
-async function generateApi(
+export async function generateApi(
   spec: string,
   {
     exportName = "api",
@@ -695,8 +694,3 @@ type QueryArgDefinition = {
     }
 );
 type QueryArgDefinitions = Record<string, QueryArgDefinition>;
-
-generateApi(
-  "/home/weber/tmp/rtk-query-codegen-openapi/test/petstore.json",
-  {}
-).then((result) => console.log(result));
