@@ -43,6 +43,7 @@ export type GenerationOptions = {
   baseQuery?: string;
   argSuffix?: string;
   responseSuffix?: string;
+  baseUrl?: string
   isDataResponse?(
     code: string,
     response: OpenAPIV3.ResponseObject,
@@ -67,6 +68,7 @@ export async function generateApi(
     baseQuery = "fetchBaseQuery",
     argSuffix = "ApiArg",
     responseSuffix = "ApiResponse",
+    baseUrl,
     isDataResponse = defaultIsDataResponse,
   }: GenerationOptions
 ) {
@@ -78,6 +80,9 @@ export async function generateApi(
   } else {
     const result = await converter.convertObj(doc, {});
     v3Doc = result.openapi as OpenAPIV3.Document;
+  }
+  if (typeof baseUrl !== 'string') {
+    baseUrl = v3Doc.servers?.[0].url ?? "https://example.com"
   }
 
   const apiGen = new ApiGenerator(v3Doc, {});
@@ -199,10 +204,7 @@ export async function generateApi(
                             [
                               factory.createPropertyAssignment(
                                 factory.createIdentifier("baseUrl"),
-                                factory.createStringLiteral(
-                                  v3Doc.servers?.[0].url ??
-                                    "https://example.com"
-                                )
+                                factory.createStringLiteral(baseUrl as string)
                               ),
                             ],
                             false
