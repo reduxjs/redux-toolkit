@@ -1,5 +1,5 @@
 import type { AnyAction, Reducer } from '@reduxjs/toolkit';
-import type { CombinedState, QueryStatePhantomType } from './apiState';
+import type { CombinedState, ModifiableConfigState, QueryStatePhantomType } from './apiState';
 import { Api, BaseQueryArg, BaseQueryFn } from './apiTypes';
 import { buildActionMaps } from './buildActionMaps';
 import { buildHooks } from './buildHooks';
@@ -18,12 +18,14 @@ import {
 } from './endpointDefinitions';
 import { assertCast } from './tsHelpers';
 import { capitalize, IS_DEV } from './utils';
+import { onFocus, onFocusLost, onOnline, onOffline } from './setupListeners';
 export { ApiProvider } from './ApiProvider';
 export { QueryStatus } from './apiState';
 export type { Api, ApiWithInjectedEndpoints, BaseQueryEnhancer, BaseQueryFn } from './apiTypes';
 export { fetchBaseQuery } from './fetchBaseQuery';
 export type { FetchBaseQueryError, FetchArgs } from './fetchBaseQuery';
 export { retry } from './retry';
+export { setupListeners } from './setupListeners';
 
 export function createApi<
   BaseQuery extends BaseQueryFn,
@@ -38,6 +40,8 @@ export function createApi<
   endpoints,
   keepUnusedDataFor = 60,
   refetchOnMountOrArgChange = false,
+  refetchOnFocus = false,
+  refetchOnReconnect = false,
 }: {
   baseQuery: BaseQuery;
   entityTypes?: readonly EntityTypes[];
@@ -46,6 +50,8 @@ export function createApi<
   endpoints(build: EndpointBuilder<BaseQuery, EntityTypes, ReducerPath>): Definitions;
   keepUnusedDataFor?: number;
   refetchOnMountOrArgChange?: boolean | number;
+  refetchOnFocus?: boolean;
+  refetchOnReconnect?: boolean;
 }): Api<BaseQuery, Definitions, ReducerPath, EntityTypes> {
   type State = CombinedState<Definitions, EntityTypes>;
 
@@ -78,6 +84,10 @@ export function createApi<
       updateSubscriptionOptions: uninitialized,
       queryResultPatched: uninitialized,
       prefetchThunk: uninitialized,
+      onOnline,
+      onOffline,
+      onFocus,
+      onFocusLost,
     },
     util: {
       patchQueryResult: uninitialized,
@@ -102,9 +112,15 @@ export function createApi<
     endpointDefinitions,
     api,
     serializeQueryArgs,
-    refetchOnMountOrArgChange,
   });
   Object.assign(api.util, { patchQueryResult, updateQueryResult });
+
+  const config: ModifiableConfigState = {
+    refetchOnFocus,
+    refetchOnReconnect,
+    refetchOnMountOrArgChange,
+    keepUnusedDataFor,
+  };
 
   const { reducer, actions: sliceActions } = buildSlice({
     endpointDefinitions,
@@ -112,6 +128,7 @@ export function createApi<
     mutationThunk,
     reducerPath,
     assertEntityType,
+    config,
   });
   assertCast<Reducer<State & QueryStatePhantomType<ReducerPath>, AnyAction>>(reducer);
   Object.assign(api.internalActions, sliceActions);
@@ -125,7 +142,6 @@ export function createApi<
     endpointDefinitions,
     queryThunk,
     mutationThunk,
-    keepUnusedDataFor,
     api,
     assertEntityType,
   });

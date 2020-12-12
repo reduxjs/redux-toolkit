@@ -21,9 +21,13 @@ Hooks are automatically generated based on the name of the `endpoint` in the ser
 
 #### Query Hook Options
 
-- [pollingInterval?](./polling) - Defaults to `0`
-- [refetchOnMountOrArgChange?](../api/createApi#refetchOnMountOrArgChange) - Defaults to `false`. Will override any value that was specified in `createApi`.
-- [skip?](./conditional-fetching) - Defaults to `false`
+- [skip](./conditional-fetching) - Defaults to `false`
+- [pollingInterval](./polling) - Defaults to `0` _(off)_
+- [refetchOnMountOrArgChange](../api/createApi#refetchonmountorargchange) - Defaults to `false`
+- [refetchOnFocus](../api/createApi#refetchonfocus) - Defaults to `false`
+- [refetchOnReconnect](../api/createApi#refetchonreconnect) - Defaults to `false`
+
+> All `refetch`-related options will override the defaults you may have set in [createApi](../api/createApi)
 
 Here is an example of a `PostDetail` component:
 

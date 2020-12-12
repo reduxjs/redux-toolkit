@@ -12,10 +12,13 @@ import {
   Subscribers,
   QueryCacheKey,
   SubscriptionState,
+  ConfigState,
 } from './apiState';
 import type { MutationThunkArg, QueryThunkArg, ThunkResult } from './buildThunks';
 import { AssertEntityTypes, calculateProvidedBy, EndpointDefinitions } from './endpointDefinitions';
 import { applyPatches, Patch } from 'immer';
+import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners';
+import { isDocumentVisible, isOnline } from './utils';
 
 export type InternalState = CombinedState<any, string>;
 
@@ -47,12 +50,14 @@ export function buildSlice({
   mutationThunk,
   endpointDefinitions: definitions,
   assertEntityType,
+  config,
 }: {
   reducerPath: string;
   queryThunk: AsyncThunk<ThunkResult, QueryThunkArg<any>, {}>;
   mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg<any>, {}>;
   endpointDefinitions: EndpointDefinitions;
   assertEntityType: AssertEntityTypes;
+  config: Omit<ConfigState, 'online' | 'focused'>;
 }) {
   const querySlice = createSlice({
     name: `${reducerPath}/queries`,
@@ -236,11 +241,37 @@ export function buildSlice({
     },
   });
 
+  const configSlice = createSlice({
+    name: `${reducerPath}/config`,
+    initialState: {
+      online: isOnline(),
+      focused: isDocumentVisible(),
+      ...config,
+    } as ConfigState,
+    reducers: {},
+    extraReducers: (builder) => {
+      builder
+        .addCase(onOnline, (state) => {
+          state.online = true;
+        })
+        .addCase(onOffline, (state) => {
+          state.online = false;
+        })
+        .addCase(onFocus, (state) => {
+          state.focused = true;
+        })
+        .addCase(onFocusLost, (state) => {
+          state.focused = false;
+        });
+    },
+  });
+
   const reducer = combineReducers<InternalState>({
     queries: querySlice.reducer,
     mutations: mutationSlice.reducer,
     provided: invalidationSlice.reducer,
     subscriptions: subscriptionSlice.reducer,
+    config: configSlice.reducer,
   });
 
   const actions = {

@@ -136,14 +136,12 @@ export function buildThunks<
   endpointDefinitions,
   serializeQueryArgs,
   api,
-  refetchOnMountOrArgChange: baserefetchOnMountOrArgChange = false,
 }: {
   baseQuery: BaseQuery;
   reducerPath: ReducerPath;
   endpointDefinitions: Definitions;
   serializeQueryArgs: InternalSerializeQueryArgs<BaseQueryArg<BaseQuery>>;
   api: Api<BaseQuery, Definitions, ReducerPath, string>;
-  refetchOnMountOrArgChange: boolean | number;
 }) {
   type InternalQueryArgs = BaseQueryArg<BaseQuery>;
   type State = InternalRootState<ReducerPath>;
@@ -213,14 +211,12 @@ export function buildThunks<
     },
     {
       condition(arg, { getState }) {
-        const requestState = getState()[reducerPath]?.queries?.[arg.queryCacheKey];
+        const state = getState()[reducerPath];
+        const requestState = state?.queries?.[arg.queryCacheKey];
+        const baseFetchOnMountOrArgChange = state.config.refetchOnMountOrArgChange;
 
         const fulfilledVal = requestState?.fulfilledTimeStamp;
-        const refetchVal = arg.forceRefetch
-          ? arg.forceRefetch
-          : typeof arg.refetchOnMountOrArgChange !== 'undefined'
-          ? arg.refetchOnMountOrArgChange
-          : baserefetchOnMountOrArgChange;
+        const refetchVal = arg.forceRefetch ?? (arg.subscribe && baseFetchOnMountOrArgChange);
 
         // Don't retry a request that's currently in-flight
         if (requestState?.status === 'pending') return false;

@@ -16,6 +16,7 @@ import { UnionToIntersection } from './tsHelpers';
 import { TS41Hooks } from './ts41Types';
 import './buildSelectors';
 import { SliceActions } from './buildSlice';
+import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners';
 
 type UnwrapPromise<T> = T extends PromiseLike<infer V> ? V : T;
 type MaybePromise<T> = T | PromiseLike<T>;
@@ -113,4 +114,17 @@ export type ApiWithInjectedEndpoints<
 
 export type InternalActions = SliceActions & {
   prefetchThunk: (endpointName: any, arg: any, options: PrefetchOptions) => ThunkAction<void, any, any, AnyAction>;
+} & {
+  /**
+   * Will cause the RTK Query middleware to trigger any refetchOnReconnect-related behavior
+   * @link https://rtk-query-docs.netlify.app/api/setupListeners
+   */
+  onOnline: typeof onOnline;
+  onOffline: typeof onOffline;
+  /**
+   * Will cause the RTK Query middleware to trigger any refetchOnFocus-related behavior
+   * @link https://rtk-query-docs.netlify.app/api/setupListeners
+   */
+  onFocus: typeof onFocus;
+  onFocusLost: typeof onFocusLost;
 };

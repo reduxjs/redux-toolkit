@@ -1,3 +1,4 @@
+import { setupListeners } from '@internal/setupListeners';
 import { AnyAction, configureStore, EnhancedStore, Middleware, Store } from '@reduxjs/toolkit';
 
 import { act } from '@testing-library/react-hooks';
@@ -44,7 +45,7 @@ export const hookWaitFor = async (cb: () => void, time = 2000) => {
 export function setupApiStore<
   A extends { reducerPath: any; reducer: Reducer<any, any>; middleware: Middleware<any> },
   R extends Record<string, Reducer<any, any>>
->(api: A, extraReducers?: R) {
+>(api: A, extraReducers?: R, withoutListeners?: boolean) {
   const getStore = () =>
     configureStore({
       reducer: { [api.reducerPath]: api.reducer, ...extraReducers },
@@ -69,11 +70,20 @@ export function setupApiStore<
     store: initialStore,
     wrapper: withProvider(initialStore),
   };
+  let cleanupListeners: () => void;
 
   beforeEach(() => {
     const store = getStore() as StoreType;
     refObj.store = store;
     refObj.wrapper = withProvider(store);
+    if (!withoutListeners) {
+      cleanupListeners = setupListeners(store.dispatch);
+    }
+  });
+  afterEach(() => {
+    if (!withoutListeners) {
+      cleanupListeners();
+    }
   });
 
   return refObj;

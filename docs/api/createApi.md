@@ -21,6 +21,8 @@ The main point where you will define a service to use in your application.
   serializeQueryArgs?: SerializeQueryArgs<InternalQueryArgs>;
   keepUnusedDataFor?: number; // value is in seconds
   refetchOnMountOrArgChange?: boolean | number; // value is in seconds
+  refetchOnFocus?: boolean;
+  refetchOnReconnect?: boolean;
 ```
 
 ### `baseQuery`
@@ -216,10 +218,34 @@ Defaults to `false`. This setting allows you to control whether RTK Query will o
 - `true` - Will always refetch when a new subscriber to a query is added. Behaves the same as calling the `refetch` callback or passing `forceRefetch: true` in the action creator.
 - `number` - **Value is in seconds**. If a number is provided and there is an existing query in the cache, it will compare the current time vs the last fulfilled timestamp, and only refetch if enough time has elapsed.
 
-If you specify this option as well as with `skip: true`, this **will not be evaluated** until `skip` is false.
+If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
 
 :::note
 You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnMountOrArgChange` to each individual hook call or when dispatching the [`initiate`](#initiate) action.
+:::
+
+### `refetchOnFocus`
+
+Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after the application window regains focus.
+
+If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
+
+:::note
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnFocus` to each individual hook call or when dispatching the [`initiate`](#initiate) action.
+
+If you specify `track: false` when manually dispatching queries, RTK Query will not be able to automatically refetch for you.
+:::
+
+### `refetchOnReconnect`
+
+Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after regaining a network connection.
+
+If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
+
+:::note
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnReconnect` to each individual hook call or when dispatching the [`initiate`](#initiate) action.
+
+If you specify `track: false` when manually dispatching queries, RTK Query will not be able to automatically refetch for you.
 :::
 
 ## Return value

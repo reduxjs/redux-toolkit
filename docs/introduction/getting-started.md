@@ -69,7 +69,7 @@ With RTK Query, you usually define your entire API definition in one place. This
 An RTK service generates a "slice reducer" that should be included in the Redux root reducer, and a custom middleware that handles the data fetching. Both need to be added to the Redux store.
 
 ```ts title="src/store.ts"
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, setupListeners } from '@reduxjs/toolkit';
 import { pokemonApi } from './services/pokemon';
 
 export const store = configureStore({
@@ -85,6 +85,10 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(pokemonApi.middleware),
   // highlight-end
 });
+
+// optional, but required for refetchOnFocus/refetchOnReconnect behaviors
+// see `setupListeners` docs - takes an optional callback as the 2nd arg for customization
+setupListeners(store.dispatch);
 ```
 
 ### Wrap your application with the `Provider`

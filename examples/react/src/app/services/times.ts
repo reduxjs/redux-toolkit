@@ -14,6 +14,8 @@ export const timeApi = createApi({
       provides: (_, id) => [{ type: 'Time', id }],
     }),
   }),
+  refetchOnReconnect: true,
+  refetchOnMountOrArgChange: 10,
 });
 
 export const { usePrefetch: usePrefetchTime, useGetTimeQuery } = timeApi;

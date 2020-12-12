@@ -23,9 +23,8 @@ declare module './apiTypes' {
 
 export interface StartQueryActionCreatorOptions {
   subscribe?: boolean;
-  forceRefetch?: boolean;
+  forceRefetch?: boolean | number;
   subscriptionOptions?: SubscriptionOptions;
-  refetchOnMountOrArgChange?: boolean | number;
 }
 
 type StartQueryActionCreator<D extends QueryDefinition<any, any, any, any, any>> = (
@@ -81,14 +80,13 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
   function buildQueryAction(endpoint: string, definition: QueryDefinition<any, any, any, any>) {
     const queryAction: StartQueryActionCreator<any> = (
       arg,
-      { subscribe = true, forceRefetch = false, refetchOnMountOrArgChange = false, subscriptionOptions } = {}
+      { subscribe = true, forceRefetch, subscriptionOptions } = {}
     ) => (dispatch, getState) => {
       const internalQueryArgs = definition.query(arg);
       const queryCacheKey = serializeQueryArgs({ queryArgs: arg, internalQueryArgs, endpoint });
       const thunk = queryThunk({
         subscribe,
         forceRefetch,
-        refetchOnMountOrArgChange,
         subscriptionOptions,
         endpoint,
         originalArgs: arg,

@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { Provider } from 'react-redux';
+import { setupListeners } from './setupListeners';
 import { Api } from './apiTypes';
 
 /**
@@ -9,7 +10,11 @@ import { Api } from './apiTypes';
  * conflict with each other - please use the traditional redux setup
  * in that case.
  */
-export function ApiProvider<A extends Api<any, {}, any, string>>(props: { children: any; api: A }) {
+export function ApiProvider<A extends Api<any, {}, any, string>>(props: {
+  children: any;
+  api: A;
+  setupListeners?: Parameters<typeof setupListeners>[1];
+}) {
   const [store] = React.useState(() =>
     configureStore({
       reducer: {
@@ -18,6 +23,8 @@ export function ApiProvider<A extends Api<any, {}, any, string>>(props: { childr
       middleware: (gDM) => gDM().concat(props.api.middleware),
     })
   );
+  // Adds the event listeners for online/offline/focus/etc
+  setupListeners(store.dispatch, props.setupListeners);
 
   return <Provider store={store}>{props.children}</Provider>;
 }

@@ -13,7 +13,7 @@ module.exports = {
       'concepts/code-splitting',
       // infinite
     ],
-    'API Reference': ['api/createApi', 'api/fetchBaseQuery', 'api/ApiProvider'],
+    'API Reference': ['api/createApi', 'api/fetchBaseQuery', 'api/ApiProvider', 'api/setupListeners'],
     Examples: [
       'examples/examples-overview',
       'examples/authentication',
