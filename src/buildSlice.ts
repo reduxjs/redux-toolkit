@@ -20,8 +20,6 @@ import { applyPatches, Patch } from 'immer';
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners';
 import { isDocumentVisible, isOnline } from './utils';
 
-export type InternalState = CombinedState<any, string>;
-
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
   queryCacheKey: QueryCacheKey,
@@ -57,7 +55,7 @@ export function buildSlice({
   mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg<any>, {}>;
   endpointDefinitions: EndpointDefinitions;
   assertEntityType: AssertEntityTypes;
-  config: Omit<ConfigState, 'online' | 'focused'>;
+  config: Omit<ConfigState<string>, 'online' | 'focused'>;
 }) {
   const querySlice = createSlice({
     name: `${reducerPath}/queries`,
@@ -247,7 +245,7 @@ export function buildSlice({
       online: isOnline(),
       focused: isDocumentVisible(),
       ...config,
-    } as ConfigState,
+    } as ConfigState<string>,
     reducers: {},
     extraReducers: (builder) => {
       builder
@@ -266,7 +264,7 @@ export function buildSlice({
     },
   });
 
-  const reducer = combineReducers<InternalState>({
+  const reducer = combineReducers<CombinedState<any, string, string>>({
     queries: querySlice.reducer,
     mutations: mutationSlice.reducer,
     provided: invalidationSlice.reducer,

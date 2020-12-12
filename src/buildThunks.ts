@@ -1,6 +1,6 @@
 import { InternalSerializeQueryArgs } from './defaultSerializeQueryArgs';
 import { Api, ApiEndpointQuery, BaseQueryFn, BaseQueryArg, BaseQueryError } from './apiTypes';
-import { InternalRootState, QueryKeys, QueryStatus, QuerySubstateIdentifier } from './apiState';
+import { RootState, QueryKeys, QueryStatus, QuerySubstateIdentifier } from './apiState';
 import { StartQueryActionCreatorOptions } from './buildActionMaps';
 import {
   EndpointDefinition,
@@ -144,7 +144,7 @@ export function buildThunks<
   api: Api<BaseQuery, Definitions, ReducerPath, string>;
 }) {
   type InternalQueryArgs = BaseQueryArg<BaseQuery>;
-  type State = InternalRootState<ReducerPath>;
+  type State = RootState<any, string, ReducerPath>;
 
   const patchQueryResult: PatchQueryResultThunk<EndpointDefinitions, State> = (endpointName, args, patches) => (
     dispatch
@@ -193,7 +193,7 @@ export function buildThunks<
   const queryThunk = createAsyncThunk<
     ThunkResult,
     QueryThunkArg<InternalQueryArgs>,
-    { state: InternalRootState<ReducerPath> }
+    { state: RootState<any, string, ReducerPath> }
   >(
     `${reducerPath}/executeQuery`,
     async (arg, { signal, rejectWithValue, dispatch, getState }) => {
@@ -240,7 +240,7 @@ export function buildThunks<
   const mutationThunk = createAsyncThunk<
     ThunkResult,
     MutationThunkArg<InternalQueryArgs>,
-    { state: InternalRootState<ReducerPath> }
+    { state: RootState<any, string, ReducerPath> }
   >(`${reducerPath}/executeMutation`, async (arg, { signal, rejectWithValue, ...api }) => {
     const endpoint = endpointDefinitions[arg.endpoint] as MutationDefinition<any, any, any, any>;
 

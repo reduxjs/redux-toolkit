@@ -11,7 +11,7 @@ import {
   QueryDefinition,
   MutationDefinition,
 } from './endpointDefinitions';
-import { CombinedState, QueryKeys, QueryStatePhantomType, RootState } from './apiState';
+import { CombinedState, QueryKeys, RootState } from './apiState';
 import { UnionToIntersection } from './tsHelpers';
 import { TS41Hooks } from './ts41Types';
 import './buildSelectors';
@@ -63,7 +63,7 @@ export type Api<
 > = {
   reducerPath: ReducerPath;
   internalActions: InternalActions;
-  reducer: Reducer<CombinedState<Definitions, EntityTypes> & QueryStatePhantomType<ReducerPath>, AnyAction>;
+  reducer: Reducer<CombinedState<Definitions, EntityTypes, ReducerPath>, AnyAction>;
   middleware: Middleware<{}, RootState<Definitions, string, ReducerPath>, ThunkDispatch<any, any, AnyAction>>;
   util: {
     updateQueryResult: UpdateQueryResultThunk<Definitions, RootState<Definitions, string, ReducerPath>>;

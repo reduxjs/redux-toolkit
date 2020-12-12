@@ -1,5 +1,5 @@
 import type { AnyAction, Reducer } from '@reduxjs/toolkit';
-import type { CombinedState, ModifiableConfigState, QueryStatePhantomType } from './apiState';
+import type { CombinedState } from './apiState';
 import { Api, BaseQueryArg, BaseQueryFn } from './apiTypes';
 import { buildActionMaps } from './buildActionMaps';
 import { buildHooks } from './buildHooks';
@@ -53,7 +53,7 @@ export function createApi<
   refetchOnFocus?: boolean;
   refetchOnReconnect?: boolean;
 }): Api<BaseQuery, Definitions, ReducerPath, EntityTypes> {
-  type State = CombinedState<Definitions, EntityTypes>;
+  type State = CombinedState<Definitions, EntityTypes, ReducerPath>;
 
   type InternalQueryArgs = BaseQueryArg<BaseQuery>;
 
@@ -115,22 +115,15 @@ export function createApi<
   });
   Object.assign(api.util, { patchQueryResult, updateQueryResult });
 
-  const config: ModifiableConfigState = {
-    refetchOnFocus,
-    refetchOnReconnect,
-    refetchOnMountOrArgChange,
-    keepUnusedDataFor,
-  };
-
   const { reducer, actions: sliceActions } = buildSlice({
     endpointDefinitions,
     queryThunk,
     mutationThunk,
     reducerPath,
     assertEntityType,
-    config,
+    config: { refetchOnFocus, refetchOnReconnect, refetchOnMountOrArgChange, keepUnusedDataFor, reducerPath },
   });
-  assertCast<Reducer<State & QueryStatePhantomType<ReducerPath>, AnyAction>>(reducer);
+  assertCast<Reducer<State, AnyAction>>(reducer);
   Object.assign(api.internalActions, sliceActions);
   api.reducer = reducer;
 

@@ -149,12 +149,12 @@ export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
       fulfilledTimeStamp?: undefined;
     };
 
-export type CombinedState<D extends EndpointDefinitions, E extends string> = {
+export type CombinedState<D extends EndpointDefinitions, E extends string, ReducerPath extends string> = {
   queries: QueryState<D>;
   mutations: MutationState<D>;
   provided: InvalidationState<E>;
   subscriptions: SubscriptionState;
-  config: ConfigState;
+  config: ConfigState<ReducerPath>;
 };
 
 export type InvalidationState<EntityTypes extends string> = {
@@ -172,7 +172,8 @@ export type SubscriptionState = {
   [queryCacheKey: string]: Subscribers | undefined;
 };
 
-export type ConfigState = {
+export type ConfigState<ReducerPath> = RefetchConfigOptions & {
+  reducerPath: ReducerPath;
   online: boolean;
   focused: boolean;
 } & ModifiableConfigState;
@@ -185,19 +186,10 @@ export type MutationState<D extends EndpointDefinitions> = {
   [requestId: string]: MutationSubState<D[string]> | undefined;
 };
 
-const __phantomType_ReducerPath = Symbol();
-export interface QueryStatePhantomType<Identifier extends string> {
-  [__phantomType_ReducerPath]: Identifier;
-}
-
 export type RootState<
   Definitions extends EndpointDefinitions,
   EntityTypes extends string,
   ReducerPath extends string
 > = {
-  [P in ReducerPath]: CombinedState<Definitions, EntityTypes> & QueryStatePhantomType<P>;
-};
-
-export type InternalRootState<ReducerPath extends string> = {
-  [_ in ReducerPath]: CombinedState<any, string>;
+  [P in ReducerPath]: CombinedState<Definitions, EntityTypes, P>;
 };

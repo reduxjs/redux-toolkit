@@ -15,7 +15,6 @@ import {
   EntityTypesFrom,
   ReducerPathFrom,
 } from './endpointDefinitions';
-import type { InternalState } from './buildSlice';
 import { InternalSerializeQueryArgs } from './defaultSerializeQueryArgs';
 
 export const skipSelector = Symbol('skip selector');
@@ -77,7 +76,7 @@ export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDe
   }
 
   function selectInternalState(rootState: RootState) {
-    return rootState[reducerPath] as InternalState;
+    return rootState[reducerPath];
   }
 
   function buildQuerySelector(
