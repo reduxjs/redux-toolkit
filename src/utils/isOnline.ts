@@ -4,5 +4,5 @@
  */
 export function isOnline() {
   // We set the default config value in the store, so we'd need to check for this in a SSR env
-  return navigator?.onLine === undefined || navigator.onLine;
+  return typeof navigator === 'undefined' ? true : navigator.onLine === undefined ? true : navigator.onLine;
 }
