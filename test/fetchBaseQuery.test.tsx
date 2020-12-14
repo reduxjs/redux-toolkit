@@ -348,6 +348,64 @@ describe('fetchBaseQuery', () => {
       expect(request.headers['authorization']).toBe(`Bearer ${token}`);
     });
   });
+
+  test('lets a header be undefined', async () => {
+    let request: any;
+    ({ data: request } = await baseQuery(
+      { url: '/echo', headers: undefined },
+      {
+        signal: undefined,
+        dispatch: storeRef.store.dispatch,
+        getState: storeRef.store.getState,
+      },
+      {}
+    ));
+
+    expect(request.headers['content-type']).toBe('application/json');
+    expect(request.headers['fake']).toBe(defaultHeaders['fake']);
+    expect(request.headers['delete']).toBe(defaultHeaders['delete']);
+    expect(request.headers['delete2']).toBe(defaultHeaders['delete2']);
+  });
+
+  test('allows for possibly undefined header key/values', async () => {
+    const banana = '1' as '1' | undefined;
+    let request: any;
+    ({ data: request } = await baseQuery(
+      { url: '/echo', headers: { banana } },
+      {
+        signal: undefined,
+        dispatch: storeRef.store.dispatch,
+        getState: storeRef.store.getState,
+      },
+      {}
+    ));
+
+    expect(request.headers['content-type']).toBe('application/json');
+    expect(request.headers['banana']).toBe('1');
+    expect(request.headers['fake']).toBe(defaultHeaders['fake']);
+    expect(request.headers['delete']).toBe(defaultHeaders['delete']);
+    expect(request.headers['delete2']).toBe(defaultHeaders['delete2']);
+  });
+
+  test('strips undefined values from the headers', async () => {
+    const banana = undefined as '1' | undefined;
+    let request: any;
+    ({ data: request } = await baseQuery(
+      { url: '/echo', headers: { banana } },
+      {
+        signal: undefined,
+        dispatch: storeRef.store.dispatch,
+        getState: storeRef.store.getState,
+      },
+      {}
+    ));
+
+    expect(request.headers['content-type']).toBe('application/json');
+    expect(request.headers['banana']).toBeUndefined();
+    expect(request.headers['fake']).toBe(defaultHeaders['fake']);
+    expect(request.headers['delete']).toBe(defaultHeaders['delete']);
+    expect(request.headers['delete2']).toBe(defaultHeaders['delete2']);
+  });
 });
 
 describe('fetchFn', () => {
