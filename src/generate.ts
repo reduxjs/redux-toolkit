@@ -285,7 +285,7 @@ export async function generateApi(
       operation: { responses, requestBody },
     } = operationDefinition;
 
-    const isQuery = operationDefinition.verb === "get";
+    const isQuery = verb === "get";
 
     const returnsJson = apiGen.hasJsonContent(responses);
     let ResponseType: ts.TypeNode = factory.createKeywordTypeNode(
@@ -447,7 +447,7 @@ export async function generateApi(
     operationDefinition: OperationDefinition;
     queryArg: QueryArgDefinitions;
   }) {
-    const { path } = operationDefinition;
+    const { path, verb } = operationDefinition;
 
     const pathParameters = Object.values(queryArg).filter(
       (def) => def.origin === "param" && def.param.in === "path"
@@ -489,6 +489,12 @@ export async function generateApi(
             factory.createPropertyAssignment(
               factory.createIdentifier("url"),
               generatePathExpression(path, pathParameters, rootObject)
+            ),
+            verb === 'get'
+            ? undefined
+            : factory.createPropertyAssignment(
+              factory.createIdentifier("method"),
+              factory.createStringLiteral(verb.toUpperCase())
             ),
             bodyParameter == undefined
               ? undefined
