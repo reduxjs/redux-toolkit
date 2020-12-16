@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Route, Switch, useHistory } from 'react-router-dom';
 import {
@@ -7,6 +8,7 @@ import {
   useGetPostsQuery,
   useLoginMutation,
   useGetErrorProneQuery,
+  postApi,
 } from '../../app/services/posts';
 import { selectIsAuthenticated, logout } from '../auth/authSlice';
 import { PostDetail } from './PostDetail';
@@ -71,6 +73,51 @@ const PostList = () => {
   );
 };
 
+const PostFromUseQueryStateSubSelector = () => {
+  const [count, setCount] = useState(0);
+  const id = 5;
+  const idAsString = String(id);
+
+  const post = postApi.endpoints.getPosts.useQueryState(undefined, {
+    subSelector: ({ data }) => data?.find((entry) => entry.id === id),
+  });
+
+  useEffect(() => {
+    setCount((prev) => prev + 1);
+  }, [post]);
+
+  return (
+    <div>
+      <h3>
+        This won't render a post until `id: {idAsString}` exists! <small>(render count: {count})</small>
+      </h3>
+      {post ? <div>{JSON.stringify(post)}</div> : <div>waiting to see id: {idAsString}</div>}
+    </div>
+  );
+};
+
+const PostFromUseQuerySelectorSubSelector = () => {
+  const [count, setCount] = useState(0);
+  const id = 6;
+  const idAsString = String(id);
+  const { refetch, post } = postApi.useGetPostsQuery(undefined, {
+    subSelector: ({ data }) => ({ post: data?.find((entry) => entry.id === id) }),
+  });
+
+  useEffect(() => {
+    setCount((prev) => prev + 1);
+  }, [post]);
+
+  return (
+    <div>
+      <h3>
+        This won't render a post until `id: {idAsString}` exists! <small>(render count: {count})</small>
+      </h3>
+      {post ? <div>{JSON.stringify(post)}</div> : <div>waiting to see id: {idAsString}</div>}
+    </div>
+  );
+};
+
 export const PostsManager = () => {
   const [login] = useLoginMutation();
   const [initRetries, setInitRetries] = useState(false);
@@ -102,6 +149,14 @@ export const PostsManager = () => {
           <Switch>
             <Route path="/posts/:id" component={PostDetail} />
           </Switch>
+
+          <div style={{ marginTop: 0, paddingTop: 20, borderTop: '1px solid #eee' }}>
+            If you look, these components will only rerender when the the selector criteria is met, or when the actual
+            underlying data changes. Try adding a few new posts to see this behavior.
+            <PostFromUseQueryStateSubSelector />
+            <hr />
+            <PostFromUseQuerySelectorSubSelector />
+          </div>
         </div>
       </div>
     </div>

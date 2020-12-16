@@ -18,7 +18,7 @@ import type { MutationThunkArg, QueryThunkArg, ThunkResult } from './buildThunks
 import { AssertEntityTypes, calculateProvidedBy, EndpointDefinitions } from './endpointDefinitions';
 import { applyPatches, Patch } from 'immer';
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners';
-import { isDocumentVisible, isOnline } from './utils';
+import { isDocumentVisible, isOnline, copyWithStructuralSharing } from './utils';
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
@@ -96,7 +96,7 @@ export function buildSlice({
           updateQuerySubstateIfExists(draft, meta.arg.queryCacheKey, (substate) => {
             if (substate.requestId !== meta.requestId) return;
             substate.status = QueryStatus.fulfilled;
-            substate.data = payload.result;
+            substate.data = copyWithStructuralSharing(substate.data, payload.result);
             substate.error = undefined;
             substate.fulfilledTimeStamp = payload.fulfilledTimeStamp;
           });

@@ -106,7 +106,7 @@
     "cross-fetch": "^3.0.6",
     "eslint-plugin-prettier": "^3.1.4",
     "husky": "^4.3.0",
-    "msw": "^0.22.3",
+    "msw": "^0.24.2",
     "node-fetch": "^2.6.1",
     "prettier": "^2.2.0",
     "react": "^16.14.0 || 17.0.0",

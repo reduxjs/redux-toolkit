@@ -43,7 +43,11 @@ declare module './apiTypes' {
 
 type QueryResultSelector<Definition extends QueryDefinition<any, any, any, any>, RootState> = (
   queryArg: QueryArgFrom<Definition> | typeof skipSelector
-) => (state: RootState) => QuerySubState<Definition> & RequestStatusFlags;
+) => (state: RootState) => QueryResultSelectorResult<Definition>;
+
+export type QueryResultSelectorResult<
+  Definition extends QueryDefinition<any, any, any, any>
+> = QuerySubState<Definition> & RequestStatusFlags;
 
 type MutationResultSelector<Definition extends MutationDefinition<any, any, any, any>, RootState> = (
   requestId: string | typeof skipSelector

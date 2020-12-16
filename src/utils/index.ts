@@ -8,3 +8,4 @@ export * from './capitalize';
 export * from './isDev';
 export * from './isOnline';
 export * from './isDocumentVisible';
+export * from './copyWithStructuralSharing';

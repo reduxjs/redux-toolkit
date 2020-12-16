@@ -1,4 +1,4 @@
-import { MutationHook, QueryHook } from './buildHooks';
+import { MutationHook, UseQuery } from './buildHooks';
 import { EndpointDefinition, EndpointDefinitions, MutationDefinition, QueryDefinition } from './endpointDefinitions';
 
 export type TS41Hooks<Definitions extends EndpointDefinitions> = {
@@ -8,7 +8,7 @@ export type TS41Hooks<Definitions extends EndpointDefinitions> = {
     any,
     any
   >
-    ? QueryHook<Definitions[K]>
+    ? UseQuery<Definitions[K]>
     : Definitions[K] extends MutationDefinition<any, any, any, any>
     ? MutationHook<Definitions[K]>
     : never;

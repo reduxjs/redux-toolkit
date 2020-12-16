@@ -13,3 +13,5 @@ export type NonOptionalKeys<T> = { [K in keyof T]-?: undefined extends T[K] ? ne
 export type HasRequiredProps<T, True, False> = NonOptionalKeys<T> extends never ? False : True;
 
 export type OptionalIfAllPropsOptional<T> = HasRequiredProps<T, T, T | never>;
+
+export type NoInfer<T> = [T][T extends any ? 0 : never];

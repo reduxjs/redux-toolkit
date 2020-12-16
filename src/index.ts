@@ -153,7 +153,7 @@ export function createApi<
     serializeQueryArgs,
   });
 
-  const { buildQueryHook, buildMutationHook, usePrefetch } = buildHooks({ api });
+  const { buildQueryHooks, buildMutationHook, usePrefetch } = buildHooks({ api });
 
   api.usePrefetch = usePrefetch;
 
@@ -175,11 +175,13 @@ export function createApi<
 
       assertCast<Api<InternalQueryArgs, Record<string, any>, ReducerPath, EntityTypes>>(api);
       if (isQueryDefinition(definition)) {
-        const useQuery = buildQueryHook(endpoint);
+        const { useQuery, useQueryState, useQuerySubscription } = buildQueryHooks(endpoint);
         api.endpoints[endpoint] = {
           select: buildQuerySelector(endpoint, definition),
           initiate: buildQueryAction(endpoint, definition),
           useQuery,
+          useQueryState,
+          useQuerySubscription,
           ...buildMatchThunkActions(queryThunk, endpoint),
         };
         (api as any)[`use${capitalize(endpoint)}Query`] = useQuery;
