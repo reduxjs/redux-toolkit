@@ -1,7 +1,8 @@
-import { InternalSerializeQueryArgs } from './defaultSerializeQueryArgs';
-import { Api, ApiEndpointQuery, BaseQueryFn, BaseQueryArg, BaseQueryError } from './apiTypes';
+import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs';
+import { Api } from '../apiTypes';
+import { BaseQueryFn, BaseQueryArg, BaseQueryError } from '../baseQueryTypes';
 import { RootState, QueryKeys, QueryStatus, QuerySubstateIdentifier } from './apiState';
-import { StartQueryActionCreatorOptions } from './buildActionMaps';
+import { StartQueryActionCreatorOptions } from './buildInitiate';
 import {
   EndpointDefinition,
   EndpointDefinitions,
@@ -10,14 +11,16 @@ import {
   QueryArgFrom,
   QueryDefinition,
   ResultTypeFrom,
-} from './endpointDefinitions';
+} from '../endpointDefinitions';
 import { Draft, isAllOf, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
 import { Patch, isDraftable, produceWithPatches, enablePatches } from 'immer';
 import { AnyAction, createAsyncThunk, ThunkAction, ThunkDispatch, AsyncThunk } from '@reduxjs/toolkit';
 
-import { PrefetchOptions } from './buildHooks';
+import { PrefetchOptions } from '../react-hooks/buildHooks';
 
-declare module './apiTypes' {
+import { ApiEndpointQuery } from './module';
+
+declare module './module' {
   export interface ApiEndpointQuery<
     Definition extends QueryDefinition<any, any, any, any, any>,
     Definitions extends EndpointDefinitions
@@ -117,7 +120,7 @@ export type UpdateQueryResultThunk<Definitions extends EndpointDefinitions, Part
 >(
   endpointName: EndpointName,
   args: QueryArgFrom<Definitions[EndpointName]>,
-  updateRecicpe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>
+  updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>
 ) => ThunkAction<PatchCollection, PartialState, any, AnyAction>;
 
 type PatchCollection = { patches: Patch[]; inversePatches: Patch[] };
@@ -141,7 +144,7 @@ export function buildThunks<
   reducerPath: ReducerPath;
   endpointDefinitions: Definitions;
   serializeQueryArgs: InternalSerializeQueryArgs<BaseQueryArg<BaseQuery>>;
-  api: Api<BaseQuery, Definitions, ReducerPath, string>;
+  api: Api<BaseQuery, EndpointDefinitions, ReducerPath, string>;
 }) {
   type InternalQueryArgs = BaseQueryArg<BaseQuery>;
   type State = RootState<any, string, ReducerPath>;

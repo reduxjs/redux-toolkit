@@ -1,5 +1,5 @@
 import { SerializedError } from '@reduxjs/toolkit';
-import { BaseQueryError } from './apiTypes';
+import { BaseQueryError } from '../baseQueryTypes';
 import {
   QueryDefinition,
   MutationDefinition,
@@ -7,8 +7,8 @@ import {
   BaseEndpointDefinition,
   ResultTypeFrom,
   QueryArgFrom,
-} from './endpointDefinitions';
-import { Id, WithRequiredProp } from './tsHelpers';
+} from '../endpointDefinitions';
+import { Id, WithRequiredProp } from '../tsHelpers';
 
 export type QueryCacheKey = string & { _type: 'queryCacheKey' };
 export type QuerySubstateIdentifier = { queryCacheKey: QueryCacheKey };

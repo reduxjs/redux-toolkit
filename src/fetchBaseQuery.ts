@@ -1,6 +1,6 @@
 import { joinUrls } from './utils';
 import { isPlainObject } from '@reduxjs/toolkit';
-import { BaseQueryFn } from './apiTypes';
+import { BaseQueryFn } from './baseQueryTypes';
 import { Override } from './tsHelpers';
 
 export type ResponseHandler = 'json' | 'text' | ((response: Response) => Promise<any>);

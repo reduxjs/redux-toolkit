@@ -1,14 +1,17 @@
-import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
+import { createApi, fetchBaseQuery, retry } from '@rtk-incubator/rtk-query';
 
 interface CountResponse {
     count: number;
 }
 
-export const counterApi = createApi({
-    reducerPath: 'counterApi',
-    baseQuery: fetchBaseQuery({
+const baseQuery = retry(
+    fetchBaseQuery({
         baseUrl: '/',
     }),
+);
+export const counterApi = createApi({
+    reducerPath: 'counterApi',
+    baseQuery,
     entityTypes: ['Counter'],
     endpoints: (build) => ({
         getCount: build.query<CountResponse, void>({

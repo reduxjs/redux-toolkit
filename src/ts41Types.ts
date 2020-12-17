@@ -1,4 +1,4 @@
-import { MutationHook, UseQuery } from './buildHooks';
+import { MutationHook, UseQuery } from './react-hooks/buildHooks';
 import { EndpointDefinition, EndpointDefinitions, MutationDefinition, QueryDefinition } from './endpointDefinitions';
 
 export type TS41Hooks<Definitions extends EndpointDefinitions> = {

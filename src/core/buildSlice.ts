@@ -15,10 +15,10 @@ import {
   ConfigState,
 } from './apiState';
 import type { MutationThunkArg, QueryThunkArg, ThunkResult } from './buildThunks';
-import { AssertEntityTypes, calculateProvidedBy, EndpointDefinitions } from './endpointDefinitions';
+import { AssertEntityTypes, calculateProvidedBy, EndpointDefinitions } from '../endpointDefinitions';
 import { applyPatches, Patch } from 'immer';
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners';
-import { isDocumentVisible, isOnline, copyWithStructuralSharing } from './utils';
+import { isDocumentVisible, isOnline, copyWithStructuralSharing } from '../utils';
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,

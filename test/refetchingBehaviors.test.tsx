@@ -2,7 +2,6 @@ import * as React from 'react';
 import { createApi, setupListeners } from '@rtk-incubator/rtk-query';
 import { act, fireEvent, render, waitFor } from '@testing-library/react';
 import { setupApiStore, waitMs } from './helpers';
-import { onOnline } from '@internal/setupListeners';
 import { AnyAction } from '@reduxjs/toolkit';
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
@@ -260,7 +259,7 @@ describe('customListenersHandler', () => {
 
     let unsubscribe = () => {};
     unsubscribe = setupListeners(storeRef.store.dispatch, (dispatch, actions) => {
-      const handleOnline = () => dispatch(actions.onOnline());
+      const handleOnline = () => dispatch(defaultApi.internalActions.onOnline());
       window.addEventListener('online', handleOnline, false);
       console.log('setup!');
       return () => {
@@ -299,7 +298,7 @@ describe('customListenersHandler', () => {
       window.dispatchEvent(new Event('online'));
     });
     expect(dispatchSpy).toHaveBeenCalled();
-    expect(onOnline.match(dispatchSpy.mock.calls[1][0] as AnyAction)).toBe(true);
+    expect(defaultApi.internalActions.onOnline.match(dispatchSpy.mock.calls[1][0] as AnyAction)).toBe(true);
 
     await waitFor(() => expect(getByTestId('isFetching').textContent).toBe('true'));
     await waitFor(() => expect(getByTestId('isFetching').textContent).toBe('false'));

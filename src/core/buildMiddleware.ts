@@ -1,16 +1,16 @@
 import { AnyAction, AsyncThunk, Middleware, MiddlewareAPI, ThunkDispatch } from '@reduxjs/toolkit';
 import { batch as reactBatch } from 'react-redux';
 import { QueryCacheKey, QueryStatus, QuerySubState, QuerySubstateIdentifier, RootState, Subscribers } from './apiState';
-import { Api } from './apiTypes';
+import { Api } from '../apiTypes';
 import { MutationThunkArg, QueryThunkArg, ThunkResult } from './buildThunks';
 import {
   AssertEntityTypes,
   calculateProvidedBy,
   EndpointDefinitions,
   FullEntityDescription,
-} from './endpointDefinitions';
+} from '../endpointDefinitions';
 import { onFocus, onOnline } from './setupListeners';
-import { flatten } from './utils';
+import { flatten } from '../utils';
 
 const batch = typeof reactBatch !== 'undefined' ? reactBatch : (fn: Function) => fn();
 
@@ -29,7 +29,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
   endpointDefinitions: EndpointDefinitions;
   queryThunk: AsyncThunk<ThunkResult, QueryThunkArg<any>, {}>;
   mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg<any>, {}>;
-  api: Api<any, Definitions, ReducerPath, string>;
+  api: Api<any, EndpointDefinitions, ReducerPath, string>;
   assertEntityType: AssertEntityTypes;
 }) {
   type MWApi = MiddlewareAPI<ThunkDispatch<any, any, AnyAction>, RootState<Definitions, string, ReducerPath>>;

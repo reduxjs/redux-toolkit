@@ -9,32 +9,23 @@ import {
   SubscriptionOptions,
   QueryKeys,
   RootState,
-} from './apiState';
-import { EndpointDefinitions, MutationDefinition, QueryDefinition, QueryArgFrom } from './endpointDefinitions';
-import { QueryResultSelectorResult, skipSelector } from './buildSelectors';
-import { QueryActionCreatorResult, MutationActionCreatorResult } from './buildActionMaps';
-import { useShallowStableValue } from './utils';
-import { Api, ApiEndpointMutation, ApiEndpointQuery } from './apiTypes';
-import { Id, NoInfer, Override } from './tsHelpers';
+} from '../core/apiState';
+import { EndpointDefinitions, MutationDefinition, QueryDefinition, QueryArgFrom } from '../endpointDefinitions';
+import { QueryResultSelectorResult, skipSelector } from '../core/buildSelectors';
+import { QueryActionCreatorResult, MutationActionCreatorResult } from '../core/buildInitiate';
+import { useShallowStableValue } from '../utils';
+import { Api } from '../apiTypes';
+import { Id, NoInfer, Override } from '../tsHelpers';
+import { ApiEndpointMutation, ApiEndpointQuery, CoreModule } from '../core/module';
 
-interface QueryHooks<Definition extends QueryDefinition<any, any, any, any, any>> {
+export interface QueryHooks<Definition extends QueryDefinition<any, any, any, any, any>> {
   useQuery: UseQuery<Definition>;
   useQuerySubscription: UseQuerySubscription<Definition>;
   useQueryState: UseQueryState<Definition>;
 }
 
-declare module './apiTypes' {
-  export interface ApiEndpointQuery<
-    Definition extends QueryDefinition<any, any, any, any, any>,
-    Definitions extends EndpointDefinitions
-  > extends QueryHooks<Definition> {}
-
-  export interface ApiEndpointMutation<
-    Definition extends MutationDefinition<any, any, any, any, any>,
-    Definitions extends EndpointDefinitions
-  > {
-    useMutation: MutationHook<Definition>;
-  }
+export interface MutationHooks<Definition extends MutationDefinition<any, any, any, any, any>> {
+  useMutation: MutationHook<Definition>;
 }
 
 export type UseQuery<D extends QueryDefinition<any, any, any, any>> = <R = UseQueryStateDefaultResult<D>>(
@@ -140,7 +131,7 @@ const defaultQueryStateSelector: DefaultQueryStateSelector<any> = (currentState,
 export function buildHooks<Definitions extends EndpointDefinitions>({
   api,
 }: {
-  api: Api<any, Definitions, any, string>;
+  api: Api<any, Definitions, any, string, CoreModule>;
 }) {
   return { buildQueryHooks, buildMutationHook, usePrefetch };
 

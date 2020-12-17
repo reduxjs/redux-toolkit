@@ -1,11 +1,12 @@
-import { EndpointDefinitions, QueryDefinition, MutationDefinition, QueryArgFrom } from './endpointDefinitions';
+import { EndpointDefinitions, QueryDefinition, MutationDefinition, QueryArgFrom } from '../endpointDefinitions';
 import type { QueryThunkArg, MutationThunkArg } from './buildThunks';
 import { AnyAction, AsyncThunk, ThunkAction } from '@reduxjs/toolkit';
 import { MutationSubState, QueryStatus, QuerySubState, SubscriptionOptions } from './apiState';
-import { InternalSerializeQueryArgs } from './defaultSerializeQueryArgs';
-import { Api, ApiEndpointMutation, ApiEndpointQuery } from './apiTypes';
+import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs';
+import { Api } from '../apiTypes';
+import { ApiEndpointMutation, ApiEndpointQuery } from './module';
 
-declare module './apiTypes' {
+declare module './module' {
   export interface ApiEndpointQuery<
     Definition extends QueryDefinition<any, any, any, any, any>,
     Definitions extends EndpointDefinitions
@@ -63,7 +64,7 @@ export type MutationActionCreatorResult<D extends MutationDefinition<any, any, a
   unsubscribe(): void;
 };
 
-export function buildActionMaps<Definitions extends EndpointDefinitions, InternalQueryArgs>({
+export function buildInitiate<InternalQueryArgs>({
   serializeQueryArgs,
   queryThunk,
   mutationThunk,
@@ -72,12 +73,12 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
   serializeQueryArgs: InternalSerializeQueryArgs<InternalQueryArgs>;
   queryThunk: AsyncThunk<any, QueryThunkArg<any>, {}>;
   mutationThunk: AsyncThunk<any, MutationThunkArg<any>, {}>;
-  api: Api<any, Definitions, any, string>;
+  api: Api<any, EndpointDefinitions, any, string>;
 }) {
   const { unsubscribeQueryResult, unsubscribeMutationResult, updateSubscriptionOptions } = api.internalActions;
-  return { buildQueryAction, buildMutationAction };
+  return { buildInitiateQuery, buildInitiateMutation };
 
-  function buildQueryAction(endpoint: string, definition: QueryDefinition<any, any, any, any>) {
+  function buildInitiateQuery(endpoint: string, definition: QueryDefinition<any, any, any, any>) {
     const queryAction: StartQueryActionCreator<any> = (
       arg,
       { subscribe = true, forceRefetch, subscriptionOptions } = {}
@@ -123,7 +124,7 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
     return queryAction;
   }
 
-  function buildMutationAction(
+  function buildInitiateMutation(
     endpoint: string,
     definition: MutationDefinition<any, any, any, any>
   ): StartMutationActionCreator<any> {

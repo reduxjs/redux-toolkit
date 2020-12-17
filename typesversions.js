@@ -7,6 +7,8 @@ mkdir('-p', 'dist/min-4.1');
 
 const fourOneFiles = glob.sync('dist/*.d.ts');
 fourOneFiles.push('dist/utils');
+fourOneFiles.push('dist/core');
+fourOneFiles.push('dist/react-hooks');
 
 for (let file of fourOneFiles) {
   cp('-r', file, 'dist/min-4.1/');

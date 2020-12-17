@@ -14,12 +14,12 @@ import {
   QueryArgFrom,
   EntityTypesFrom,
   ReducerPathFrom,
-} from './endpointDefinitions';
-import { InternalSerializeQueryArgs } from './defaultSerializeQueryArgs';
+} from '../endpointDefinitions';
+import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs';
 
 export const skipSelector = Symbol('skip selector');
 
-declare module './apiTypes' {
+declare module './module' {
   export interface ApiEndpointQuery<
     Definition extends QueryDefinition<any, any, any, any, any>,
     Definitions extends EndpointDefinitions

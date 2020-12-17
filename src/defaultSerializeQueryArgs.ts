@@ -1,4 +1,4 @@
-import { QueryCacheKey } from './apiState';
+import { QueryCacheKey } from './core/apiState';
 
 export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({ endpoint, queryArgs }) => {
   // Sort the object keys before stringifying, to prevent useQuery({ a: 1, b: 2 }) having a different cache key than  useQuery({ b: 2, a: 1 })

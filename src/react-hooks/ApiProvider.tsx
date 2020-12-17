@@ -1,8 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { Provider } from 'react-redux';
-import { setupListeners } from './setupListeners';
-import { Api } from './apiTypes';
+import { setupListeners } from '../core/setupListeners';
+import { Api } from '../apiTypes';
 
 /**
  * Can be used as a Provider if you **do not have a Redux store**.

@@ -1,5 +1,5 @@
-import { setupListeners } from '@internal/setupListeners';
 import { AnyAction, configureStore, EnhancedStore, Middleware, Store } from '@reduxjs/toolkit';
+import { setupListeners } from '@rtk-incubator/rtk-query';
 
 import { act } from '@testing-library/react-hooks';
 import React, { Reducer } from 'react';
