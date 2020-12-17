@@ -83,16 +83,15 @@ export const PostDetail = () => {
       <EditablePostName
         name={post.name}
         onUpdate={(name) => {
+          // If you want to immediately access the result of a mutation, you need to chain `.unwrap()`
+          // if you actually want the payload or to catch the error.
+          // Example: `updatePost().unwrap().then(fulfilled => console.log(fulfilled)).catch(rejected => console.error(rejected))
+
           return (
             // highlight-start
             // Execute the trigger with the `id` and updated `name`
             updatePost({ id, name })
-              // highlight-end
-              .then((result) => {
-                // Do something with the result
-                console.log('Update Result', result);
-              })
-              .catch((error) => console.error('Update Error', error))
+            // highlight-end
           );
         }}
         isLoading={isUpdating}

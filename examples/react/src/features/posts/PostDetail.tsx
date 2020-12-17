@@ -70,15 +70,16 @@ export const PostDetail = () => {
       {isEditing ? (
         <EditablePostName
           name={post.name}
-          onUpdate={(name) =>
-            updatePost({ id, name })
-              .then((result) => {
-                // handle the success!
-                console.log('Update Result', result);
+          onUpdate={(name) => {
+            // If you want to immediately access the result of a mutation, you need to chain `.unwrap()`
+            // if you actually want the payload or to catch the error.
+            // Example: `updatePost().unwrap().then(fulfilled => console.log(fulfilled)).catch(rejected => console.error(rejected))
+            return updatePost({ id, name })
+              .unwrap()
+              .finally(() => {
                 setIsEditing(false);
-              })
-              .catch((error) => console.error('Update Error', error))
-          }
+              });
+          }}
           onCancel={() => setIsEditing(false)}
           loading={isUpdating}
         />
@@ -93,7 +94,14 @@ export const PostDetail = () => {
             <button onClick={() => setIsEditing(true)} disabled={isDeleting || isUpdating}>
               {isUpdating ? 'Updating...' : 'Edit'}
             </button>
-            <button onClick={() => deletePost(id).then(() => push('/posts'))} disabled={isDeleting}>
+            <button
+              onClick={() =>
+                deletePost(id)
+                  .unwrap()
+                  .then(() => push('/posts'))
+              }
+              disabled={isDeleting}
+            >
               {isDeleting ? 'Deleting...' : 'Delete'}
             </button>
           </div>

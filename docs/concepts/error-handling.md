@@ -33,6 +33,18 @@ function AddPost() {
 }
 ```
 
+:::tip
+If you need to access the error or success payload immediately after a mutation, you can chain `.unwrap()`.
+
+```ts title="Using .unwrap"
+addPost({ id: 1, name: 'Example' })
+  .unwrap()
+  .then((payload) => console.log('fulfilled', payload))
+  .catch((error) => console.error('rejected', error));
+```
+
+:::
+
 ```ts title="Manually selecting an error"
 function PostsList() {
   const { error } = useSelector(api.endpoints.getPosts.select());
