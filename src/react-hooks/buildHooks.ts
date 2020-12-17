@@ -10,7 +10,13 @@ import {
   QueryKeys,
   RootState,
 } from '../core/apiState';
-import { EndpointDefinitions, MutationDefinition, QueryDefinition, QueryArgFrom } from '../endpointDefinitions';
+import {
+  EndpointDefinitions,
+  MutationDefinition,
+  QueryDefinition,
+  QueryArgFrom,
+  ResultTypeFrom,
+} from '../endpointDefinitions';
 import { QueryResultSelectorResult, skipSelector } from '../core/buildSelectors';
 import { QueryActionCreatorResult, MutationActionCreatorResult } from '../core/buildInitiate';
 import { useShallowStableValue } from '../utils';
@@ -104,7 +110,9 @@ type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
 export type MutationHook<D extends MutationDefinition<any, any, any, any>> = () => [
   (
     arg: QueryArgFrom<D>
-  ) => Promise<Extract<MutationSubState<D>, { status: QueryStatus.fulfilled | QueryStatus.rejected }>>,
+  ) => {
+    unwrap: () => Promise<ResultTypeFrom<D>>;
+  },
   MutationSubState<D> & RequestStatusFlags
 ];
 

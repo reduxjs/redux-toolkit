@@ -1,4 +1,10 @@
-import { EndpointDefinitions, QueryDefinition, MutationDefinition, QueryArgFrom } from '../endpointDefinitions';
+import {
+  EndpointDefinitions,
+  QueryDefinition,
+  MutationDefinition,
+  QueryArgFrom,
+  ResultTypeFrom,
+} from '../endpointDefinitions';
 import type { QueryThunkArg, MutationThunkArg } from './buildThunks';
 import { AnyAction, AsyncThunk, ThunkAction } from '@reduxjs/toolkit';
 import { MutationSubState, QueryStatus, QuerySubState, SubscriptionOptions } from './apiState';
@@ -61,6 +67,7 @@ export type MutationActionCreatorResult<D extends MutationDefinition<any, any, a
   arg: QueryArgFrom<D>;
   requestId: string;
   abort(): void;
+  unwrap(): Promise<ResultTypeFrom<D>>;
   unsubscribe(): void;
 };
 
@@ -147,6 +154,14 @@ export function buildInitiate<InternalQueryArgs>({
         arg: thunkResult.arg,
         requestId,
         abort,
+        unwrap() {
+          return statePromise.then((state) => {
+            if (state.status === QueryStatus.fulfilled) {
+              return state.data;
+            }
+            throw state.error;
+          });
+        },
         unsubscribe() {
           if (track) dispatch(unsubscribeMutationResult({ requestId }));
         },

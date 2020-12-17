@@ -1,9 +1,11 @@
+import * as React from 'react';
 import { BaseQueryFn, createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { rest } from 'msw';
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
-import { hookWaitFor, setupApiStore } from './helpers';
+import { expectExactType, hookWaitFor, setupApiStore } from './helpers';
 import { server } from './mocks/server';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 
 const baseQuery = fetchBaseQuery({ baseUrl: 'http://example.com' });
 
@@ -327,5 +329,70 @@ describe('custom axios baseQuery', () => {
         error: { status: 500, data: { value: 'error' } },
       })
     );
+  });
+});
+
+describe('error handling in a component', () => {
+  const mockErrorResponse = { value: 'error', very: 'mean' };
+  const mockSuccessResponse = { value: 'success' };
+
+  const api = createApi({
+    baseQuery: fetchBaseQuery({ baseUrl: 'http://example.com' }),
+    endpoints: (build) => ({
+      update: build.mutation<typeof mockSuccessResponse, any>({
+        query: () => ({ url: 'success' }),
+      }),
+    }),
+  });
+  const storeRef = setupApiStore(api);
+
+  test('a mutation is unwrappable and has the correct types', async () => {
+    server.use(
+      rest.get('http://example.com/success', (_, res, ctx) => res.once(ctx.status(500), ctx.json(mockErrorResponse)))
+    );
+
+    function User() {
+      const [manualError, setManualError] = React.useState<any>();
+      const [update, { isLoading, data, error }] = api.useUpdateMutation();
+
+      return (
+        <div>
+          <div data-testid="isLoading">{String(isLoading)}</div>
+          <div data-testid="data">{JSON.stringify(data)}</div>
+          <div data-testid="error">{JSON.stringify(error)}</div>
+          <div data-testid="manuallySetError">{JSON.stringify(manualError)}</div>
+          <button
+            onClick={() => {
+              update({ name: 'hello' })
+                .unwrap()
+                .then((result) => {
+                  expectExactType(mockSuccessResponse)(result);
+                  setManualError(undefined);
+                })
+                .catch((error) => setManualError(error));
+            }}
+          >
+            Update User
+          </button>
+        </div>
+      );
+    }
+
+    const { getByText, getByTestId } = render(<User />, { wrapper: storeRef.wrapper });
+
+    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('false'));
+    fireEvent.click(getByText('Update User'));
+    expect(getByTestId('isLoading').textContent).toBe('true');
+    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('false'));
+
+    // Make sure the hook and the unwrapped action return the same things in an error state
+    expect(getByTestId('error').textContent).toEqual(getByTestId('manuallySetError').textContent);
+
+    fireEvent.click(getByText('Update User'));
+    expect(getByTestId('isLoading').textContent).toBe('true');
+    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('false'));
+    await waitFor(() => expect(getByTestId('error').textContent).toBeFalsy());
+    await waitFor(() => expect(getByTestId('manuallySetError').textContent).toBeFalsy());
+    await waitFor(() => expect(getByTestId('data').textContent).toEqual(JSON.stringify(mockSuccessResponse)));
   });
 });
