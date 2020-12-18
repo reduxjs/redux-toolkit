@@ -1,7 +1,7 @@
 import { joinUrls } from './utils';
 import { isPlainObject } from '@reduxjs/toolkit';
 import { BaseQueryFn } from './baseQueryTypes';
-import { Override } from './tsHelpers';
+import { MaybePromise, Override } from './tsHelpers';
 
 export type ResponseHandler = 'json' | 'text' | ((response: Response) => Promise<any>);
 
@@ -79,7 +79,7 @@ export function fetchBaseQuery({
   ...baseFetchOptions
 }: {
   baseUrl?: string;
-  prepareHeaders?: (headers: Headers, api: { getState: () => unknown }) => Headers;
+  prepareHeaders?: (headers: Headers, api: { getState: () => unknown }) => MaybePromise<Headers>;
   fetchFn?: (input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>;
 } & RequestInit = {}): BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError, {}> {
   return async (arg, { signal, getState }) => {
@@ -101,7 +101,7 @@ export function fetchBaseQuery({
       ...rest,
     };
 
-    config.headers = prepareHeaders(new Headers(cleanUndefinedHeaders(headers)), { getState });
+    config.headers = await prepareHeaders(new Headers(cleanUndefinedHeaders(headers)), { getState });
 
     if (!config.headers.has('content-type')) {
       config.headers.set('content-type', 'application/json');

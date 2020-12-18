@@ -322,6 +322,36 @@ describe('fetchBaseQuery', () => {
       expect(request.headers['delete2']).toBeUndefined();
     });
 
+    test('prepareHeaders is able to be an async function', async () => {
+      let request: any;
+
+      const token = 'accessToken';
+      const getAccessTokenAsync = async () => token;
+
+      const _baseQuery = fetchBaseQuery({
+        baseUrl,
+        prepareHeaders: async (headers) => {
+          headers.set('authorization', `Bearer ${await getAccessTokenAsync()}`);
+          return headers;
+        },
+      });
+
+      const doRequest = async () =>
+        _baseQuery(
+          { url: '/echo' },
+          {
+            signal: undefined,
+            dispatch: storeRef.store.dispatch,
+            getState: storeRef.store.getState,
+          },
+          {}
+        );
+
+      ({ data: request } = await doRequest());
+
+      expect(request.headers['authorization']).toBe(`Bearer ${token}`);
+    });
+
     test('prepareHeaders is able to select from a state', async () => {
       let request: any;
 
