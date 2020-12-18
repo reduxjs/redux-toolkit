@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { Api, createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
 import { QueryDefinition, MutationDefinition } from '@internal/endpointDefinitions';
-import { ANY, expectType, waitMs } from './helpers';
+import { ANY, expectType, setupApiStore, waitMs } from './helpers';
 
 test('sensible defaults', () => {
   const api = createApi({
@@ -282,5 +282,37 @@ describe('endpoint definition typings', () => {
         })(),
       }),
     });
+  });
+});
+
+describe('additional transformResponse behaviors', () => {
+  type SuccessResponse = { value: 'success' };
+  type EchoResponseData = { banana: 'bread' };
+  const api = createApi({
+    baseQuery: fetchBaseQuery({ baseUrl: 'http://example.com' }),
+    endpoints: (build) => ({
+      echo: build.mutation({
+        query: () => ({ method: 'PUT', url: '/echo' }),
+      }),
+      query: build.query<SuccessResponse & EchoResponseData, void>({
+        query: () => '/success',
+        transformResponse: async (response: SuccessResponse) => {
+          const res = await fetch('http://example.com/echo', {
+            method: 'POST',
+            body: JSON.stringify({ banana: 'bread' }),
+          }).then((res) => res.json());
+          const additionalData = JSON.parse(res.body) as EchoResponseData;
+          return { ...response, ...additionalData };
+        },
+      }),
+    }),
+  });
+
+  const storeRef = setupApiStore(api);
+
+  test('transformResponse handles an async transformation and returns the merged data', async () => {
+    const result = await storeRef.store.dispatch(api.endpoints.query.initiate());
+
+    expect(result.data).toEqual({ value: 'success', banana: 'bread' });
   });
 });

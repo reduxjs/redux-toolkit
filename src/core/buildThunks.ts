@@ -209,7 +209,7 @@ export function buildThunks<
 
       return {
         fulfilledTimeStamp: Date.now(),
-        result: (endpointDefinitions[arg.endpoint].transformResponse ?? defaultTransformResponse)(result.data),
+        result: await (endpointDefinitions[arg.endpoint].transformResponse ?? defaultTransformResponse)(result.data),
       };
     },
     {
