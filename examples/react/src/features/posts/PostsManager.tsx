@@ -26,7 +26,10 @@ const AddPost = () => {
     }));
   };
 
-  const handleAddPost = () => addPost(post).then(() => setPost(initialValue));
+  const handleAddPost = () =>
+    addPost(post)
+      .unwrap()
+      .then(() => setPost(initialValue));
 
   return (
     <div className="row">
@@ -73,13 +76,13 @@ const PostList = () => {
   );
 };
 
-const PostFromUseQueryStateSubSelector = () => {
+const PostFromUseQueryStateSelectFromResult = () => {
   const [count, setCount] = useState(0);
   const id = 5;
   const idAsString = String(id);
 
   const post = postApi.endpoints.getPosts.useQueryState(undefined, {
-    subSelector: ({ data }) => data?.find((entry) => entry.id === id),
+    selectFromResult: ({ data }) => data?.find((entry) => entry.id === id),
   });
 
   useEffect(() => {
@@ -96,12 +99,12 @@ const PostFromUseQueryStateSubSelector = () => {
   );
 };
 
-const PostFromUseQuerySelectorSubSelector = () => {
+const PostFromUseQuerySelectFromResult = () => {
   const [count, setCount] = useState(0);
   const id = 6;
   const idAsString = String(id);
   const { refetch, post } = postApi.useGetPostsQuery(undefined, {
-    subSelector: ({ data }) => ({ post: data?.find((entry) => entry.id === id) }),
+    selectFromResult: ({ data }) => ({ post: data?.find((entry) => entry.id === id) }),
   });
 
   useEffect(() => {
@@ -153,9 +156,9 @@ export const PostsManager = () => {
           <div style={{ marginTop: 0, paddingTop: 20, borderTop: '1px solid #eee' }}>
             If you look, these components will only rerender when the the selector criteria is met, or when the actual
             underlying data changes. Try adding a few new posts to see this behavior.
-            <PostFromUseQueryStateSubSelector />
+            <PostFromUseQueryStateSelectFromResult />
             <hr />
-            <PostFromUseQuerySelectorSubSelector />
+            <PostFromUseQuerySelectFromResult />
           </div>
         </div>
       </div>

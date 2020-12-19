@@ -2,7 +2,7 @@ import * as React from 'react';
 import { createApi, fetchBaseQuery, QueryStatus } from '@rtk-incubator/rtk-query';
 import { act, fireEvent, render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { DEFAULT_DELAY_MS, setupApiStore, waitMs } from './helpers';
+import { setupApiStore, waitMs } from './helpers';
 import { server } from './mocks/server';
 import { rest } from 'msw';
 
@@ -438,8 +438,6 @@ describe('hooks tests', () => {
 
     await waitFor(() => expect(getByTestId('isFetching').textContent).toBe('false'));
 
-    await waitMs(DEFAULT_DELAY_MS + 100);
-
     expect(api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())).toEqual({
       data: undefined,
       endpoint: 'getUser',
@@ -748,7 +746,7 @@ describe('hooks with createApi defaults set', () => {
     await waitFor(() => expect(getByTestId('amount').textContent).toBe('1'));
   });
 
-  describe('subSelector behaviors', () => {
+  describe('selectFromResult behaviors', () => {
     let startingId = 3;
     const initialPosts = [
       { id: 1, name: 'A sample post', fetched_at: new Date().toUTCString() },
@@ -846,7 +844,7 @@ describe('hooks with createApi defaults set', () => {
       function SelectedPost() {
         const [renderCount, setRenderCount] = React.useState(0);
         const { post } = api.endpoints.getPosts.useQueryState(undefined, {
-          subSelector: ({ data }) => ({ post: data?.find((post) => post.id === 1) }),
+          selectFromResult: ({ data }) => ({ post: data?.find((post) => post.id === 1) }),
         });
 
         /**
@@ -887,7 +885,7 @@ describe('hooks with createApi defaults set', () => {
       // Being that it didn't rerender, we can be assured that the behavior is correct
     });
 
-    test('useQuery with subSelector option serves a deeply memoized value and does not rerender unnecessarily', async () => {
+    test('useQuery with selectFromResult option serves a deeply memoized value and does not rerender unnecessarily', async () => {
       function Posts() {
         const { data: posts } = api.useGetPostsQuery();
         const [addPost] = api.useAddPostMutation();
@@ -906,7 +904,7 @@ describe('hooks with createApi defaults set', () => {
       function SelectedPost() {
         const [renderCount, setRenderCount] = React.useState(0);
         const { post } = api.useGetPostsQuery(undefined, {
-          subSelector: ({ data }) => ({ post: data?.find((post) => post.id === 1) }),
+          selectFromResult: ({ data }) => ({ post: data?.find((post) => post.id === 1) }),
         });
 
         React.useEffect(() => {
@@ -936,7 +934,7 @@ describe('hooks with createApi defaults set', () => {
       await waitFor(() => expect(getByTestId('renderCount').textContent).toBe('2'));
     });
 
-    test('useQuery with subSelector option serves a deeply memoized value, then ONLY updates when the underlying data changes', async () => {
+    test('useQuery with selectFromResult option serves a deeply memoized value, then ONLY updates when the underlying data changes', async () => {
       let expectablePost: Post | undefined;
       function Posts() {
         const { data: posts } = api.useGetPostsQuery();
@@ -961,7 +959,7 @@ describe('hooks with createApi defaults set', () => {
       function SelectedPost() {
         const [renderCount, setRenderCount] = React.useState(0);
         const { post } = api.useGetPostsQuery(undefined, {
-          subSelector: ({ data }) => ({ post: data?.find((post) => post.id === 1) }),
+          selectFromResult: ({ data }) => ({ post: data?.find((post) => post.id === 1) }),
         });
 
         React.useEffect(() => {

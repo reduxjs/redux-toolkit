@@ -113,28 +113,28 @@ describe.skip('TS only tests', () => {
   test('queryHookResult (without selector) union', () => {
     const useQueryStateResult = api.endpoints.test.useQueryState();
     const useQueryResult = api.endpoints.test.useQuery();
-    const useQueryStateWithSubSelector = api.endpoints.test.useQueryState(undefined, {
-      subSelector: () => true,
+    const useQueryStateWithSelectFromResult = api.endpoints.test.useQueryState(undefined, {
+      selectFromResult: () => true,
     });
 
     const { refetch: _omit, ...useQueryResultWithoutMethods } = useQueryResult;
     expectExactType(useQueryStateResult)(useQueryResultWithoutMethods);
     // @ts-expect-error
-    expectExactType(useQueryStateWithSubSelector)(useQueryResultWithoutMethods);
+    expectExactType(useQueryStateWithSelectFromResult)(useQueryResultWithoutMethods);
   });
 
-  test('useQueryState (with subSelector)', () => {
+  test('useQueryState (with selectFromResult)', () => {
     const result = api.endpoints.test.useQueryState(undefined, {
-      subSelector({ data, isLoading }) {
+      selectFromResult({ data, isLoading }) {
         return { data: data ?? 1, isLoading };
       },
     });
     expectExactType({ data: '' as string | number, isLoading: true as boolean })(result);
   });
 
-  test('useQuery (with subSelector)', () => {
+  test('useQuery (with selectFromResult)', () => {
     const result = api.endpoints.test.useQuery(undefined, {
-      subSelector({ data, isLoading }) {
+      selectFromResult({ data, isLoading }) {
         return { data: data ?? 1, isLoading };
       },
     });

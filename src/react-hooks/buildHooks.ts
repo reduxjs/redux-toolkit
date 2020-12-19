@@ -67,7 +67,7 @@ export type UseQueryState<D extends QueryDefinition<any, any, any, any>> = <R = 
 
 export type UseQueryStateOptions<D extends QueryDefinition<any, any, any, any>, R> = {
   skip?: boolean;
-  subSelector?: QueryStateSelector<R, D>;
+  selectFromResult?: QueryStateSelector<R, D>;
 };
 
 export type UseQueryStateResult<_ extends QueryDefinition<any, any, any, any>, R> = NoInfer<R>;
@@ -222,7 +222,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
     const useQueryState: UseQueryState<any> = (
       arg: any,
-      { skip = false, subSelector = defaultQueryStateSelector as QueryStateSelector<any, any> } = {}
+      { skip = false, selectFromResult = defaultQueryStateSelector as QueryStateSelector<any, any> } = {}
     ) => {
       const { select } = api.endpoints[name] as ApiEndpointQuery<QueryDefinition<any, any, any, any, any>, Definitions>;
       const stableArg = useShallowStableValue(arg);
@@ -233,9 +233,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         () =>
           createSelector(
             [select(skip ? skipSelector : stableArg), (_: any, lastResult: any) => lastResult],
-            (subState, lastResult) => subSelector(subState, lastResult, defaultQueryStateSelector)
+            (subState, lastResult) => selectFromResult(subState, lastResult, defaultQueryStateSelector)
           ),
-        [select, skip, stableArg, subSelector]
+        [select, skip, stableArg, selectFromResult]
       );
 
       const currentState = useSelector(
