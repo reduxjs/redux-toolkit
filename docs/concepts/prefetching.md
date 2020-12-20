@@ -75,6 +75,28 @@ function User() {
 }
 ```
 
+#### Recipe: Prefetch Immediately
+
+In some cases, you may want to prefetch a resource immediately. You can implement this in just a few lines of code:
+
+```ts title="hooks/usePrefetchImmediately.ts"
+type EndpointNames = keyof typeof api.endpoints;
+
+export function usePrefetchImmediately<T extends EndpointNames>(
+  endpoint: T,
+  arg: Parameters<typeof api.endpoints[T]['initiate']>[0],
+  options: PrefetchOptions = {}
+) {
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(api.internalActions.prefetchThunk(endpoint, arg, options));
+  }, []);
+}
+
+// In a component
+usePrefetchImmediately('getUser', 5);
+```
+
 ### Prefetching without hooks
 
 If you're not using the `usePrefetch` hook, you can recreate the same behavior easily on your own in any framework.
