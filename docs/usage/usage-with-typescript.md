@@ -277,7 +277,7 @@ The standard approach is to declare an interface or type for your state, create 
 type SliceState = { state: 'loading' } | { state: 'finished'; data: string }
 
 // First approach: define the initial state using that type
-const initialState: SliceState = { state: 'loading' }
+const initialState = { state: 'loading' }: SliceState
 
 createSlice({
   name: 'test1',
@@ -367,10 +367,10 @@ interface UsersState {
   loading: 'idle' | 'pending' | 'succeeded' | 'failed'
 }
 
-const initialState: UsersState = {
+const initialState = {
   entities: [],
   loading: 'idle'
-}
+} as UsersState
 
 const usersSlice = createSlice({
   name: 'users',

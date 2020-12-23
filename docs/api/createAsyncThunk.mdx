@@ -574,10 +574,10 @@ interface UsersState {
   entities: Record<string, User>
 }
 
-const initialState: UsersState = {
+const initialState = {
   entities: {},
   error: null
-}
+} as UsersState
 
 const usersSlice = createSlice({
   name: 'users',

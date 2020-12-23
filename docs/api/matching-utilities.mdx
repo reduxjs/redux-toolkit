@@ -174,10 +174,10 @@ interface ExampleState {
   isInteresting: boolean
 }
 
-const initialState: ExampleState = {
+const initialState = {
   isSpecial: false,
   isInteresting: false
-}
+} as ExampleState
 
 export const isSpecialAndInterestingThunk = createAsyncThunk(
   'isSpecialAndInterestingThunk',

@@ -204,13 +204,13 @@ type CurrentDisplayState = {
 } & CurrentDisplay &
   CurrentRepo
 
-let initialState: CurrentDisplayState = {
+let initialState = {
   org: 'rails',
   repo: 'rails',
   page: 1,
   displayType: 'issues',
   issueId: null
-}
+} as CurrentDisplayState
 
 const issuesDisplaySlice = createSlice({
   name: 'issuesDisplay',
@@ -575,10 +575,10 @@ interface RepoDetailsState {
   error: string | null
 }
 
-const initialState: RepoDetailsState = {
+const initialState = {
   openIssuesCount: -1,
   error: null
-}
+} as RepoDetailsState
 
 const repoDetails = createSlice({
   name: 'repoDetails',
@@ -761,14 +761,14 @@ interface IssuesState {
   error: string | null
 }
 
-const issuesInitialState: IssuesState = {
+const issuesInitialState = {
   issuesByNumber: {},
   currentPageIssues: [],
   pageCount: 0,
   pageLinks: {},
   isLoading: false,
   error: null
-}
+} as IssuesState
 
 function startLoading(state: IssuesState) {
   state.isLoading = true
@@ -1082,11 +1082,11 @@ interface CommentLoaded {
   comments: Comment[]
 }
 
-const initialState: CommentsState = {
+const initialState = {
   commentsByIssue: {},
   loading: false,
   error: null
-}
+} as CommentsState
 
 const comments = createSlice({
   name: 'comments',
