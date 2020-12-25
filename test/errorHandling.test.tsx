@@ -7,6 +7,8 @@ import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { expectExactType, hookWaitFor, setupApiStore } from './helpers';
 import { server } from './mocks/server';
 import { fireEvent, render, waitFor } from '@testing-library/react';
+import { useDispatch } from 'react-redux';
+import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit';
 
 const baseQuery = fetchBaseQuery({ baseUrl: 'http://example.com' });
 
@@ -343,6 +345,9 @@ describe('error handling in a component', () => {
       update: build.mutation<typeof mockSuccessResponse, any>({
         query: () => ({ url: 'success' }),
       }),
+      failedUpdate: build.mutation<typeof mockSuccessResponse, any>({
+        query: () => ({ url: 'error' }),
+      }),
     }),
   });
   const storeRef = setupApiStore(api);
@@ -396,4 +401,59 @@ describe('error handling in a component', () => {
     await waitFor(() => expect(getByTestId('manuallySetError').textContent).toBeFalsy());
     await waitFor(() => expect(getByTestId('data').textContent).toEqual(JSON.stringify(mockSuccessResponse)));
   });
+
+  for (const track of [true, false]) {
+    test(`an un-subscribed mutation will still return something useful (success case, track: ${track})`, async () => {
+      const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper });
+
+      const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>;
+      let mutationResultPromise: ReturnType<ReturnType<typeof api.endpoints.update.initiate>>;
+      act(() => {
+        mutationResultPromise = dispatch(api.endpoints.update.initiate({}, { track }));
+      });
+      const result = await mutationResultPromise!;
+      expect(result).toMatchObject({
+        data: { value: 'success' },
+      });
+    });
+
+    test(`an un-subscribed mutation will still return something useful (error case, track: ${track})`, async () => {
+      const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper });
+
+      const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>;
+      let mutationResultPromise: ReturnType<ReturnType<typeof api.endpoints.failedUpdate.initiate>>;
+      act(() => {
+        mutationResultPromise = dispatch(api.endpoints.failedUpdate.initiate({}, { track }));
+      });
+      const result = await mutationResultPromise!;
+      expect(result).toMatchObject({
+        error: { status: 500, data: { value: 'error' } },
+      });
+    });
+    test(`an un-subscribed mutation will still be unwrappable (success case), track: ${track}`, async () => {
+      const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper });
+
+      const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>;
+      let mutationResultPromise: ReturnType<ReturnType<typeof api.endpoints.update.initiate>>;
+      act(() => {
+        mutationResultPromise = dispatch(api.endpoints.update.initiate({}, { track }));
+      });
+      const result = await mutationResultPromise!.unwrap();
+      expect(result).toMatchObject({
+        value: 'success',
+      });
+    });
+
+    test(`an un-subscribed mutation will still be unwrappable (error case, track: ${track})`, async () => {
+      const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper });
+
+      const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>;
+      let mutationResultPromise: ReturnType<ReturnType<typeof api.endpoints.failedUpdate.initiate>>;
+      act(() => {
+        mutationResultPromise = dispatch(api.endpoints.failedUpdate.initiate({}, { track }));
+      });
+      const unwrappedPromise = mutationResultPromise!.unwrap();
+      expect(unwrappedPromise).rejects.toMatchObject({ status: 500, data: { value: 'error' } });
+    });
+  }
 });

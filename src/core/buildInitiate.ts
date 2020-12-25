@@ -6,11 +6,12 @@ import {
   ResultTypeFrom,
 } from '../endpointDefinitions';
 import type { QueryThunkArg, MutationThunkArg } from './buildThunks';
-import { AnyAction, AsyncThunk, ThunkAction } from '@reduxjs/toolkit';
-import { MutationSubState, QueryStatus, QuerySubState, SubscriptionOptions } from './apiState';
+import { AnyAction, AsyncThunk, ThunkAction, unwrapResult } from '@reduxjs/toolkit';
+import { QuerySubState, SubscriptionOptions } from './apiState';
 import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs';
 import { Api } from '../apiTypes';
-import { ApiEndpointMutation, ApiEndpointQuery } from './module';
+import { ApiEndpointQuery } from './module';
+import { BaseQueryResult } from '../baseQueryTypes';
 
 declare module './module' {
   export interface ApiEndpointQuery<
@@ -62,7 +63,7 @@ type StartMutationActionCreator<D extends MutationDefinition<any, any, any, any>
 ) => ThunkAction<MutationActionCreatorResult<D>, any, any, AnyAction>;
 
 export type MutationActionCreatorResult<D extends MutationDefinition<any, any, any, any>> = Promise<
-  Extract<MutationSubState<D>, { status: QueryStatus.fulfilled | QueryStatus.rejected }>
+  ReturnType<BaseQueryResult<D extends MutationDefinition<any, infer BaseQuery, any, any> ? BaseQuery : never>>
 > & {
   arg: QueryArgFrom<D>;
   requestId: string;
@@ -146,21 +147,18 @@ export function buildInitiate<InternalQueryArgs>({
       });
       const thunkResult = dispatch(thunk);
       const { requestId, abort } = thunkResult;
-      const statePromise = thunkResult.then(() => {
-        const currentState = (api.endpoints[endpoint] as ApiEndpointMutation<any, any>).select(requestId)(getState());
-        return currentState as Extract<typeof currentState, { status: QueryStatus.fulfilled | QueryStatus.rejected }>;
-      });
-      return Object.assign(statePromise, {
+      const returnValuePromise = thunkResult
+        .then(unwrapResult)
+        .then((unwrapped) => ({
+          data: unwrapped.result,
+        }))
+        .catch((error) => ({ error }));
+      return Object.assign(returnValuePromise, {
         arg: thunkResult.arg,
         requestId,
         abort,
         unwrap() {
-          return statePromise.then((state) => {
-            if (state.status === QueryStatus.fulfilled) {
-              return state.data;
-            }
-            throw state.error;
-          });
+          return thunkResult.then(unwrapResult).then((unwrapped) => unwrapped.result);
         },
         unsubscribe() {
           if (track) dispatch(unsubscribeMutationResult({ requestId }));
