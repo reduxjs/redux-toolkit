@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/ALPHA-pre%20release-orange">
-   <a href="https://discord.gg/reactiflux" target="_blank">
+   <a href="https://discord.gg/0ZcbPKXt5bZ6au5t" target="_blank">
     <img src="https://img.shields.io/badge/chat-online-green" alt="Discord server" />
   </a>
 </p>

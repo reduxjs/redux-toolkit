@@ -70,7 +70,7 @@ module.exports = {
             },
             {
               label: 'Discord',
-              href: 'https://discordapp.com/invite/reactiflux',
+              href: 'https://discord.gg/0ZcbPKXt5bZ6au5t',
             },
           ],
         },
