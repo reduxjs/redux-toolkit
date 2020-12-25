@@ -3,92 +3,92 @@ export const api = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: "/api/v3" }),
     entityTypes: [],
     endpoints: build => ({
-        updatePet: build.mutation<UpdatePetResponse, UpdatePetQueryArg>({
-            query: queryArg => ({ url: `/pet`, body: queryArg.pet })
+        updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
+            query: queryArg => ({ url: `/pet`, method: "PUT", body: queryArg.pet })
         }),
-        addPet: build.mutation<AddPetResponse, AddPetQueryArg>({
-            query: queryArg => ({ url: `/pet`, body: queryArg.pet })
+        addPet: build.mutation<AddPetApiResponse, AddPetApiArg>({
+            query: queryArg => ({ url: `/pet`, method: "POST", body: queryArg.pet })
         }),
-        findPetsByStatus: build.query<FindPetsByStatusResponse, FindPetsByStatusQueryArg>({
+        findPetsByStatus: build.query<FindPetsByStatusApiResponse, FindPetsByStatusApiArg>({
             query: queryArg => ({ url: `/pet/findByStatus`, params: { status: queryArg.status } })
         }),
-        findPetsByTags: build.query<FindPetsByTagsResponse, FindPetsByTagsQueryArg>({
+        findPetsByTags: build.query<FindPetsByTagsApiResponse, FindPetsByTagsApiArg>({
             query: queryArg => ({ url: `/pet/findByTags`, params: { tags: queryArg.tags } })
         }),
-        getPetById: build.query<GetPetByIdResponse, GetPetByIdQueryArg>({
+        getPetById: build.query<GetPetByIdApiResponse, GetPetByIdApiArg>({
             query: queryArg => ({ url: `/pet/${queryArg.petId}` })
         }),
-        updatePetWithForm: build.mutation<UpdatePetWithFormResponse, UpdatePetWithFormQueryArg>({
-            query: queryArg => ({ url: `/pet/${queryArg.petId}`, params: { name: queryArg.name, status: queryArg.status } })
+        updatePetWithForm: build.mutation<UpdatePetWithFormApiResponse, UpdatePetWithFormApiArg>({
+            query: queryArg => ({ url: `/pet/${queryArg.petId}`, method: "POST", params: { name: queryArg.name, status: queryArg.status } })
         }),
-        deletePet: build.mutation<DeletePetResponse, DeletePetQueryArg>({
-            query: queryArg => ({ url: `/pet/${queryArg.petId}`, headers: { api_key: queryArg.apiKey } })
+        deletePet: build.mutation<DeletePetApiResponse, DeletePetApiArg>({
+            query: queryArg => ({ url: `/pet/${queryArg.petId}`, method: "DELETE", headers: { api_key: queryArg.apiKey } })
         }),
-        uploadFile: build.mutation<UploadFileResponse, UploadFileQueryArg>({
-            query: queryArg => ({ url: `/pet/${queryArg.petId}/uploadImage`, body: queryArg.body, params: { additionalMetadata: queryArg.additionalMetadata } })
+        uploadFile: build.mutation<UploadFileApiResponse, UploadFileApiArg>({
+            query: queryArg => ({ url: `/pet/${queryArg.petId}/uploadImage`, method: "POST", body: queryArg.body, params: { additionalMetadata: queryArg.additionalMetadata } })
         }),
-        getInventory: build.query<GetInventoryResponse, GetInventoryQueryArg>({
+        getInventory: build.query<GetInventoryApiResponse, GetInventoryApiArg>({
             query: queryArg => ({ url: `/store/inventory` })
         }),
-        placeOrder: build.mutation<PlaceOrderResponse, PlaceOrderQueryArg>({
-            query: queryArg => ({ url: `/store/order`, body: queryArg.order })
+        placeOrder: build.mutation<PlaceOrderApiResponse, PlaceOrderApiArg>({
+            query: queryArg => ({ url: `/store/order`, method: "POST", body: queryArg.order })
         }),
-        getOrderById: build.query<GetOrderByIdResponse, GetOrderByIdQueryArg>({
+        getOrderById: build.query<GetOrderByIdApiResponse, GetOrderByIdApiArg>({
             query: queryArg => ({ url: `/store/order/${queryArg.orderId}` })
         }),
-        deleteOrder: build.mutation<DeleteOrderResponse, DeleteOrderQueryArg>({
-            query: queryArg => ({ url: `/store/order/${queryArg.orderId}` })
+        deleteOrder: build.mutation<DeleteOrderApiResponse, DeleteOrderApiArg>({
+            query: queryArg => ({ url: `/store/order/${queryArg.orderId}`, method: "DELETE" })
         }),
-        createUser: build.mutation<CreateUserResponse, CreateUserQueryArg>({
-            query: queryArg => ({ url: `/user`, body: queryArg.user })
+        createUser: build.mutation<CreateUserApiResponse, CreateUserApiArg>({
+            query: queryArg => ({ url: `/user`, method: "POST", body: queryArg.user })
         }),
-        createUsersWithListInput: build.mutation<CreateUsersWithListInputResponse, CreateUsersWithListInputQueryArg>({
-            query: queryArg => ({ url: `/user/createWithList`, body: queryArg.body })
+        createUsersWithListInput: build.mutation<CreateUsersWithListInputApiResponse, CreateUsersWithListInputApiArg>({
+            query: queryArg => ({ url: `/user/createWithList`, method: "POST", body: queryArg.body })
         }),
-        loginUser: build.query<LoginUserResponse, LoginUserQueryArg>({
+        loginUser: build.query<LoginUserApiResponse, LoginUserApiArg>({
             query: queryArg => ({ url: `/user/login`, params: { username: queryArg.username, password: queryArg.password } })
         }),
-        logoutUser: build.query<LogoutUserResponse, LogoutUserQueryArg>({
+        logoutUser: build.query<LogoutUserApiResponse, LogoutUserApiArg>({
             query: queryArg => ({ url: `/user/logout` })
         }),
-        getUserByName: build.query<GetUserByNameResponse, GetUserByNameQueryArg>({
+        getUserByName: build.query<GetUserByNameApiResponse, GetUserByNameApiArg>({
             query: queryArg => ({ url: `/user/${queryArg.username}` })
         }),
-        updateUser: build.mutation<UpdateUserResponse, UpdateUserQueryArg>({
-            query: queryArg => ({ url: `/user/${queryArg.username}`, body: queryArg.user })
+        updateUser: build.mutation<UpdateUserApiResponse, UpdateUserApiArg>({
+            query: queryArg => ({ url: `/user/${queryArg.username}`, method: "PUT", body: queryArg.user })
         }),
-        deleteUser: build.mutation<DeleteUserResponse, DeleteUserQueryArg>({
-            query: queryArg => ({ url: `/user/${queryArg.username}` })
+        deleteUser: build.mutation<DeleteUserApiResponse, DeleteUserApiArg>({
+            query: queryArg => ({ url: `/user/${queryArg.username}`, method: "DELETE" })
         })
     })
 });
-export type UpdatePetResponse = /** status 200 Successful operation */ Pet;
-export type UpdatePetQueryArg = {
+export type UpdatePetApiResponse = /** status 200 Successful operation */ Pet;
+export type UpdatePetApiArg = {
     /** Update an existent pet in the store */
     pet: Pet;
 };
-export type AddPetResponse = /** status 200 Successful operation */ Pet;
-export type AddPetQueryArg = {
+export type AddPetApiResponse = /** status 200 Successful operation */ Pet;
+export type AddPetApiArg = {
     /** Create a new pet in the store */
     pet: Pet;
 };
-export type FindPetsByStatusResponse = /** status 200 successful operation */ Pet[];
-export type FindPetsByStatusQueryArg = {
+export type FindPetsByStatusApiResponse = /** status 200 successful operation */ Pet[];
+export type FindPetsByStatusApiArg = {
     /** Status values that need to be considered for filter */
     status?: "available" | "pending" | "sold";
 };
-export type FindPetsByTagsResponse = /** status 200 successful operation */ Pet[];
-export type FindPetsByTagsQueryArg = {
+export type FindPetsByTagsApiResponse = /** status 200 successful operation */ Pet[];
+export type FindPetsByTagsApiArg = {
     /** Tags to filter by */
     tags?: string[];
 };
-export type GetPetByIdResponse = /** status 200 successful operation */ Pet;
-export type GetPetByIdQueryArg = {
+export type GetPetByIdApiResponse = /** status 200 successful operation */ Pet;
+export type GetPetByIdApiArg = {
     /** ID of pet to return */
     petId: number;
 };
-export type UpdatePetWithFormResponse = unknown;
-export type UpdatePetWithFormQueryArg = {
+export type UpdatePetWithFormApiResponse = unknown;
+export type UpdatePetWithFormApiArg = {
     /** ID of pet that needs to be updated */
     petId: number;
     /** Name of pet that needs to be updated */
@@ -96,74 +96,70 @@ export type UpdatePetWithFormQueryArg = {
     /** Status of pet that needs to be updated */
     status?: string;
 };
-export type DeletePetResponse = unknown;
-export type DeletePetQueryArg = {
-    /**  */
+export type DeletePetApiResponse = unknown;
+export type DeletePetApiArg = {
     apiKey?: string;
     /** Pet id to delete */
     petId: number;
 };
-export type UploadFileResponse = /** status 200 successful operation */ ApiResponse;
-export type UploadFileQueryArg = {
+export type UploadFileApiResponse = /** status 200 successful operation */ ApiResponse;
+export type UploadFileApiArg = {
     /** ID of pet to update */
     petId: number;
     /** Additional Metadata */
     additionalMetadata?: string;
-    /** undefined */
     body: string;
 };
-export type GetInventoryResponse = /** status 200 successful operation */ {
+export type GetInventoryApiResponse = /** status 200 successful operation */ {
     [key: string]: number;
 };
-export type GetInventoryQueryArg = {};
-export type PlaceOrderResponse = /** status 200 successful operation */ Order;
-export type PlaceOrderQueryArg = {
-    /** undefined */
+export type GetInventoryApiArg = {};
+export type PlaceOrderApiResponse = /** status 200 successful operation */ Order;
+export type PlaceOrderApiArg = {
     order: Order;
 };
-export type GetOrderByIdResponse = /** status 200 successful operation */ Order;
-export type GetOrderByIdQueryArg = {
+export type GetOrderByIdApiResponse = /** status 200 successful operation */ Order;
+export type GetOrderByIdApiArg = {
     /** ID of order that needs to be fetched */
     orderId: number;
 };
-export type DeleteOrderResponse = unknown;
-export type DeleteOrderQueryArg = {
+export type DeleteOrderApiResponse = unknown;
+export type DeleteOrderApiArg = {
     /** ID of the order that needs to be deleted */
     orderId: number;
 };
-export type CreateUserResponse = unknown;
-export type CreateUserQueryArg = {
+export type CreateUserApiResponse = unknown;
+export type CreateUserApiArg = {
     /** Created user object */
     user: User;
 };
-export type CreateUsersWithListInputResponse = /** status 200 Successful operation */ User;
-export type CreateUsersWithListInputQueryArg = {
-    /** undefined */
+export type CreateUsersWithListInputApiResponse = /** status 200 Successful operation */ User;
+export type CreateUsersWithListInputApiArg = {
     body: User[];
 };
-export type LoginUserResponse = /** status 200 successful operation */ string;
-export type LoginUserQueryArg = {
+export type LoginUserApiResponse = /** status 200 successful operation */ string;
+export type LoginUserApiArg = {
     /** The user name for login */
     username?: string;
     /** The password for login in clear text */
     password?: string;
 };
-export type LogoutUserResponse = unknown;
-export type LogoutUserQueryArg = {};
-export type GetUserByNameResponse = /** status 200 successful operation */ User;
-export type GetUserByNameQueryArg = {
+export type LogoutUserApiResponse = unknown;
+export type LogoutUserApiArg = {};
+export type GetUserByNameApiResponse = /** status 200 successful operation */ User;
+export type GetUserByNameApiArg = {
     /** The name that needs to be fetched. Use user1 for testing.  */
     username: string;
 };
-export type UpdateUserResponse = unknown;
-export type UpdateUserQueryArg = {
+export type UpdateUserApiResponse = unknown;
+export type UpdateUserApiArg = {
     /** name that need to be deleted */
     username: string;
     /** Update an existent user in the store */
     user: User;
 };
-export type DeleteUserResponse = unknown;
-export type DeleteUserQueryArg = {
+export type DeleteUserApiResponse = unknown;
+export type DeleteUserApiArg = {
     /** The name that needs to be deleted */
     username: string;
 };
