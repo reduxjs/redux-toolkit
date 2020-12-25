@@ -120,12 +120,17 @@ Endpoints are just a set of operations that you want to perform against your ser
   - Used by `mutations` for [cache invalidation](../concepts/mutations#advanced-mutations-with-revalidation) purposes.
   - Expects the same shapes as `provides`
 
-- `onStart`, `onError` and `onSuccess` _(optional)_
+- `onStart`, `onError` and `onSuccess` _(optional)_ - Available to both [queries](../concepts/queries) and [mutations](../concepts/mutations)
   - Can be used in `mutations` for [optimistic updates](../concepts/optimistic-updates).
-  - ```ts title="signatures"
+  - ```ts title="Mutation lifecycle signatures"
     function onStart(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>): void;
     function onError(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>, error: unknown): void;
     function onSuccess(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>, result: ResultType): void;
+    ```
+  - ```ts title="Query lifecycle signatures"
+    function onStart(arg: QueryArg, queryApi: QueryApi<ReducerPath, Context>): void;
+    function onError(arg: QueryArg, queryApi: QueryApi<ReducerPath, Context>, error: unknown): void;
+    function onSuccess(arg: QueryArg, queryApi: QueryApi<ReducerPath, Context>, result: ResultType): void;
     ```
 
 #### How endpoints get used

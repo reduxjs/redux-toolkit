@@ -13,6 +13,25 @@ By default, RTK Query ships with [`fetchBaseQuery`](../api/fetchBaseQuery), whic
 
 > Depending on your environment, you may need to polyfill `fetch` with `node-fetch` or `cross-fetch` if you choose to use `fetchBaseQuery` or `fetch` on its own.
 
+```js title="Example of all query endpoint options"
+const api = createApi({
+  baseQuery,
+  endpoints: (build) => ({
+    getPost: build.query({
+      query: (id) => ({ url: `post/${id}` }),
+      // Pick out data and prevent nested properties in a hook or selector
+      transformResponse: (response) => response.data,
+      // The 2nd parameter is the destructured `queryApi`
+      onStart(id, { dispatch, getState, extra, requestId, context }) {},
+      // `result` is the server response
+      onSuccess(id, queryApi, result) {},
+      onError(id, queryApi) {},
+      provides: (_, id) => [{ type: 'Post', id }],
+    }),
+  }),
+});
+```
+
 ### Performing queries with React Hooks
 
 If you're using React Hooks, RTK Query does a few additional things for you. The primary benefit is that you get a render-optimized hook that allows you to have 'background fetching' as well as [derived booleans](#query-hook-return-types) for convenience.

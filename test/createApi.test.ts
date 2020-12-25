@@ -1,7 +1,9 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, createAction, createReducer } from '@reduxjs/toolkit';
 import { Api, createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
 import { QueryDefinition, MutationDefinition } from '@internal/endpointDefinitions';
 import { ANY, expectType, setupApiStore, waitMs } from './helpers';
+import { server } from './mocks/server';
+import { rest } from 'msw';
 
 test('sensible defaults', () => {
   const api = createApi({
@@ -314,5 +316,89 @@ describe('additional transformResponse behaviors', () => {
     const result = await storeRef.store.dispatch(api.endpoints.query.initiate());
 
     expect(result.data).toEqual({ value: 'success', banana: 'bread' });
+  });
+});
+
+describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
+  const initialState = {
+    count: null as null | number,
+  };
+  const setCount = createAction<number>('setCount');
+  const testReducer = createReducer(initialState, (builder) => {
+    builder.addCase(setCount, (state, action) => {
+      state.count = action.payload;
+    });
+  });
+
+  type SuccessResponse = { value: 'success' };
+  const api = createApi({
+    baseQuery: fetchBaseQuery({ baseUrl: 'http://example.com' }),
+    endpoints: (build) => ({
+      echo: build.mutation({
+        query: () => ({ method: 'PUT', url: '/echo' }),
+      }),
+      query: build.query<SuccessResponse, void>({
+        query: () => '/success',
+        onStart: (_, api) => {
+          api.dispatch(setCount(0));
+        },
+        onSuccess: (_, api) => {
+          api.dispatch(setCount(1));
+        },
+        onError: (_, api) => {
+          api.dispatch(setCount(-1));
+        },
+      }),
+      mutation: build.mutation<SuccessResponse, void>({
+        query: () => ({ url: '/success', method: 'POST' }),
+        onStart: (_, api) => {
+          api.dispatch(setCount(0));
+        },
+        onSuccess: (_, api) => {
+          api.dispatch(setCount(1));
+        },
+        onError: (_, api) => {
+          api.dispatch(setCount(-1));
+        },
+      }),
+    }),
+  });
+
+  const storeRef = setupApiStore(api, { testReducer });
+
+  test('query lifecycle events fire properly', async () => {
+    // We intentionally fail the first request so we can test all lifecycles
+    server.use(
+      rest.get('http://example.com/success', (_, res, ctx) => res.once(ctx.status(500), ctx.json({ value: 'failed' })))
+    );
+
+    expect(storeRef.store.getState().testReducer.count).toBe(null);
+    const failAttempt = storeRef.store.dispatch(api.endpoints.query.initiate());
+    expect(storeRef.store.getState().testReducer.count).toBe(0);
+    await failAttempt;
+    expect(storeRef.store.getState().testReducer.count).toBe(-1);
+
+    const successAttempt = storeRef.store.dispatch(api.endpoints.query.initiate());
+    expect(storeRef.store.getState().testReducer.count).toBe(0);
+    await successAttempt;
+    expect(storeRef.store.getState().testReducer.count).toBe(1);
+  });
+
+  test('mutation lifecycle events fire properly', async () => {
+    // We intentionally fail the first request so we can test all lifecycles
+    server.use(
+      rest.post('http://example.com/success', (_, res, ctx) => res.once(ctx.status(500), ctx.json({ value: 'failed' })))
+    );
+
+    expect(storeRef.store.getState().testReducer.count).toBe(null);
+    const failAttempt = storeRef.store.dispatch(api.endpoints.mutation.initiate());
+    expect(storeRef.store.getState().testReducer.count).toBe(0);
+    await failAttempt;
+    expect(storeRef.store.getState().testReducer.count).toBe(-1);
+
+    const successAttempt = storeRef.store.dispatch(api.endpoints.mutation.initiate());
+    expect(storeRef.store.getState().testReducer.count).toBe(0);
+    await successAttempt;
+    expect(storeRef.store.getState().testReducer.count).toBe(1);
   });
 });
