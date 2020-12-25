@@ -389,23 +389,27 @@ export async function generateApi(
           ),
           undefined,
           factory.createTypeLiteralNode(
-            Object.entries(queryArg).map(([name, def]) =>
-              ts.addSyntheticLeadingComment(
-                factory.createPropertySignature(
-                  undefined,
-                  name,
-                  createQuestionToken(!def.required),
-                  def.type
-                ),
-                ts.SyntaxKind.MultiLineCommentTrivia,
-                `* ${
-                  def.origin === "param"
-                    ? def.param.description
-                    : def.body.description
-                } `,
-                true
+            Object.entries(queryArg).map(([name, def]) => {
+              const comment = def.origin === "param"
+              ? def.param.description
+              : def.body.description;
+              const node = factory.createPropertySignature(
+                undefined,
+                name,
+                createQuestionToken(!def.required),
+                def.type
               )
-            )
+
+              if (comment) {
+                return ts.addSyntheticLeadingComment(
+                  node,
+                  ts.SyntaxKind.MultiLineCommentTrivia,
+                  `* ${comment} `,
+                  true
+                )
+              }
+              return node
+            })
           )
         )
       ).name
