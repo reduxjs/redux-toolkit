@@ -22,7 +22,6 @@ import { buildMiddleware } from './buildMiddleware';
 import { buildSelectors } from './buildSelectors';
 import { buildInitiate } from './buildInitiate';
 import { assertCast, Id, safeAssign } from '../tsHelpers';
-import { IS_DEV } from '../utils';
 import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs';
 import { SliceActions } from './buildSlice';
 import { BaseQueryFn } from '../baseQueryTypes';
@@ -114,7 +113,7 @@ export const coreModule: Module<CoreModule> = {
     assertCast<InternalSerializeQueryArgs<any>>(serializeQueryArgs);
 
     const assertEntityType: AssertEntityTypes = (entity) => {
-      if (IS_DEV()) {
+      if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
         if (!entityTypes.includes(entity.type as any)) {
           console.error(`Entity type '${entity.type}' was used, but not specified in \`entityTypes\`!`);
         }

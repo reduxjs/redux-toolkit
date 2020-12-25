@@ -1,7 +1,8 @@
 {
   // see https://www.typescriptlang.org/tsconfig to better understand tsconfigs
-  "include": ["src", "test/flatten.test.ts"],
+  "include": ["src"],
   "compilerOptions": {
+    "target": "ESnext",
     "module": "esnext",
     "lib": ["dom", "esnext"],
     "importHelpers": true,
@@ -31,6 +32,6 @@
     "forceConsistentCasingInFileNames": true,
     // `tsdx build` ignores this option, but it is commonly used when type-checking separately with `tsc`
     "noEmit": true,
-    "downlevelIteration": true
+    "downlevelIteration": false
   }
 }

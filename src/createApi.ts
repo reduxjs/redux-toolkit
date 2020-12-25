@@ -2,7 +2,6 @@ import type { Api, Module, ModuleName } from './apiTypes';
 import type { BaseQueryArg, BaseQueryFn } from './baseQueryTypes';
 import { defaultSerializeQueryArgs, SerializeQueryArgs } from './defaultSerializeQueryArgs';
 import { DefinitionType, EndpointBuilder, EndpointDefinitions } from './endpointDefinitions';
-import { IS_DEV } from './utils';
 
 export interface CreateApiOptions<
   BaseQuery extends BaseQueryFn,
@@ -62,7 +61,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       });
 
       for (const [endpoint, definition] of Object.entries(evaluatedEndpoints)) {
-        if (IS_DEV()) {
+        if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
           if (!inject.overrideExisting && endpoint in context.endpointDefinitions) {
             console.error(
               `called \`injectEndpoints\` to override already-existing endpoint ${endpoint} without specifying \`overrideExisting: true\``

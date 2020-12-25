@@ -17,6 +17,7 @@ import { Patch, isDraftable, produceWithPatches, enablePatches } from 'immer';
 import { AnyAction, createAsyncThunk, ThunkAction, ThunkDispatch, AsyncThunk } from '@reduxjs/toolkit';
 
 import { PrefetchOptions } from '../react-hooks/buildHooks';
+import { HandledError } from '../HandledError';
 
 import { ApiEndpointQuery } from './module';
 
@@ -124,10 +125,6 @@ export type UpdateQueryResultThunk<Definitions extends EndpointDefinitions, Part
 ) => ThunkAction<PatchCollection, PartialState, any, AnyAction>;
 
 type PatchCollection = { patches: Patch[]; inversePatches: Patch[] };
-
-export class HandledError {
-  constructor(public readonly value: any) {}
-}
 
 export function buildThunks<
   BaseQuery extends BaseQueryFn,
