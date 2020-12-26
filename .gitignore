@@ -133,3 +133,4 @@ dist
 .yalc/
 yalc.lock
 lib
+yarn.lock
