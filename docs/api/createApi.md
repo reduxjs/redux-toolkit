@@ -399,4 +399,4 @@ See [Code Splitting](../concepts/code-splitting)
 
 ### `enhanceEndpoints`
 
-See [Code Generation](../concepts/codegen)
+See [Code Generation](../concepts/code-generation)
