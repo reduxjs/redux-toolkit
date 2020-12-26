@@ -1,11 +1,13 @@
 {
-  "name": "rtk-query-codegen-openapi",
-  "version": "0.1.0",
+  "name": "@rtk-incubator/rtk-query-codegen-openapi",
+  "version": "0.1.0-alpha.0",
   "main": "index.js",
   "author": "Lenz Weber",
   "license": "MIT",
+  "homepage": "https://github.com/rtk-incubator/rtk-query-codegen",
+  "repository": "https://github.com/rtk-incubator/rtk-query-codegen.git",
   "bin": {
-    "generate-rtk": "./lib/bin/cli.js"
+    "rtk-query-codegen-openapi": "./lib/bin0.1.1-0/cli.js"
   },
   "scripts": {
     "build": "tsc",
@@ -16,13 +18,13 @@
     "@types/commander": "^2.12.2",
     "@types/lodash": "^4.14.165",
     "@types/node": "^14.14.12",
-    "oazapfts": "file:.yalc/oazapfts",
     "ts-node": "^9.1.0",
     "yalc": "^1.0.0-pre.47"
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.0.2",
     "commander": "^6.2.0",
+    "oazapfts": "npm:@phryneas/experimental-oazapfts@^0.1.1-0",
     "swagger2openapi": "^7.0.4",
     "ts-morph": "^9.1.0",
     "typescript": "^4.1.2"
