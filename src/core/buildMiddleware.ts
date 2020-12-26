@@ -1,7 +1,6 @@
 import { AnyAction, AsyncThunk, Middleware, MiddlewareAPI, ThunkDispatch } from '@reduxjs/toolkit';
-import { batch as reactBatch } from 'react-redux';
 import { QueryCacheKey, QueryStatus, QuerySubState, QuerySubstateIdentifier, RootState, Subscribers } from './apiState';
-import { Api } from '../apiTypes';
+import { Api, ApiContext } from '../apiTypes';
 import { MutationThunkArg, QueryThunkArg, ThunkResult } from './buildThunks';
 import {
   AssertEntityTypes,
@@ -12,21 +11,20 @@ import {
 import { onFocus, onOnline } from './setupListeners';
 import { flatten } from '../utils';
 
-const batch = typeof reactBatch !== 'undefined' ? reactBatch : (fn: Function) => fn();
-
 type QueryStateMeta<T> = Record<string, undefined | T>;
 type TimeoutId = ReturnType<typeof setTimeout>;
 
 export function buildMiddleware<Definitions extends EndpointDefinitions, ReducerPath extends string>({
   reducerPath,
-  endpointDefinitions,
+  context,
+  context: { endpointDefinitions },
   queryThunk,
   mutationThunk,
   api,
   assertEntityType,
 }: {
   reducerPath: ReducerPath;
-  endpointDefinitions: EndpointDefinitions;
+  context: ApiContext<Definitions>;
   queryThunk: AsyncThunk<ThunkResult, QueryThunkArg<any>, {}>;
   mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg<any>, {}>;
   api: Api<any, EndpointDefinitions, ReducerPath, string>;
@@ -103,7 +101,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
     const queries = state.queries;
     const subscriptions = state.subscriptions;
 
-    batch(() => {
+    context.batch(() => {
       for (const queryCacheKey of Object.keys(subscriptions)) {
         const querySubState = queries[queryCacheKey];
         const subscriptionSubState = subscriptions[queryCacheKey];
@@ -143,7 +141,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
       }
     }
 
-    batch(() => {
+    context.batch(() => {
       for (const queryCacheKey of toInvalidate.values()) {
         const querySubState = state.queries[queryCacheKey];
         const subscriptionSubState = state.subscriptions[queryCacheKey];

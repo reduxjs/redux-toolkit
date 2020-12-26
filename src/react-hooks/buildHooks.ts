@@ -1,6 +1,5 @@
 import { AnyAction, createSelector, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useDispatch, useSelector, batch, shallowEqual } from 'react-redux';
 import {
   MutationSubState,
   QueryStatus,
@@ -19,10 +18,11 @@ import {
 } from '../endpointDefinitions';
 import { QueryResultSelectorResult, skipSelector } from '../core/buildSelectors';
 import { QueryActionCreatorResult, MutationActionCreatorResult } from '../core/buildInitiate';
-import { useShallowStableValue } from '../utils';
+import { shallowEqual, useShallowStableValue } from '../utils';
 import { Api } from '../apiTypes';
 import { Id, NoInfer, Override } from '../tsHelpers';
 import { ApiEndpointMutation, ApiEndpointQuery, CoreModule } from '../core/module';
+import { ReactHooksModuleOptions } from './module';
 
 export interface QueryHooks<Definition extends QueryDefinition<any, any, any, any, any>> {
   useQuery: UseQuery<Definition>;
@@ -151,8 +151,10 @@ type GenericPrefetchThunk = (
 
 export function buildHooks<Definitions extends EndpointDefinitions>({
   api,
+  moduleOptions: { batch, useDispatch, useSelector },
 }: {
   api: Api<any, Definitions, any, string, CoreModule>;
+  moduleOptions: Required<ReactHooksModuleOptions>;
 }) {
   return { buildQueryHooks, buildMutationHook, usePrefetch };
 

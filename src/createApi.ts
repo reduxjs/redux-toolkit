@@ -1,4 +1,4 @@
-import type { Api, Module, ModuleName } from './apiTypes';
+import type { Api, ApiContext, Module, ModuleName } from './apiTypes';
 import type { BaseQueryArg, BaseQueryFn } from './baseQueryTypes';
 import { defaultSerializeQueryArgs, SerializeQueryArgs } from './defaultSerializeQueryArgs';
 import { DefinitionType, EndpointBuilder, EndpointDefinitions } from './endpointDefinitions';
@@ -44,8 +44,12 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       entityTypes: [...(options.entityTypes || [])],
     };
 
-    const context = {
-      endpointDefinitions: {} as EndpointDefinitions,
+    const context: ApiContext<EndpointDefinitions> = {
+      endpointDefinitions: {},
+      batch(fn) {
+        // dummy "batch" method to be overridden by plugins, for example with React.unstable_batchedUpdate
+        fn();
+      },
     };
 
     const api = {

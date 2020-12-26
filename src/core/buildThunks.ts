@@ -1,5 +1,5 @@
 import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs';
-import { Api } from '../apiTypes';
+import { Api, ApiContext } from '../apiTypes';
 import { BaseQueryFn, BaseQueryArg, BaseQueryError } from '../baseQueryTypes';
 import { RootState, QueryKeys, QueryStatus, QuerySubstateIdentifier } from './apiState';
 import { StartQueryActionCreatorOptions } from './buildInitiate';
@@ -128,13 +128,13 @@ export function buildThunks<
 >({
   reducerPath,
   baseQuery,
-  endpointDefinitions,
+  context: { endpointDefinitions },
   serializeQueryArgs,
   api,
 }: {
   baseQuery: BaseQuery;
   reducerPath: ReducerPath;
-  endpointDefinitions: Definitions;
+  context: ApiContext<Definitions>;
   serializeQueryArgs: InternalSerializeQueryArgs<BaseQueryArg<BaseQuery>>;
   api: Api<BaseQuery, EndpointDefinitions, ReducerPath, string>;
 }) {

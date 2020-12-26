@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
-import React from 'react';
-import { Provider } from 'react-redux';
+import React, { Context } from 'react';
+import { Provider, ReactReduxContextValue } from 'react-redux';
 import { setupListeners } from '../core/setupListeners';
 import { Api } from '../apiTypes';
 
@@ -14,6 +14,7 @@ export function ApiProvider<A extends Api<any, {}, any, string>>(props: {
   children: any;
   api: A;
   setupListeners?: Parameters<typeof setupListeners>[1];
+  context?: Context<ReactReduxContextValue>;
 }) {
   const [store] = React.useState(() =>
     configureStore({
@@ -26,5 +27,9 @@ export function ApiProvider<A extends Api<any, {}, any, string>>(props: {
   // Adds the event listeners for online/offline/focus/etc
   setupListeners(store.dispatch, props.setupListeners);
 
-  return <Provider store={store}>{props.children}</Provider>;
+  return (
+    <Provider store={store} context={props.context}>
+      {props.children}
+    </Provider>
+  );
 }

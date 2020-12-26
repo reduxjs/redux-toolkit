@@ -19,6 +19,7 @@ import { AssertEntityTypes, calculateProvidedBy, EndpointDefinitions } from '../
 import { applyPatches, Patch } from 'immer';
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners';
 import { isDocumentVisible, isOnline, copyWithStructuralSharing } from '../utils';
+import { ApiContext } from '../apiTypes';
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
@@ -46,14 +47,14 @@ export function buildSlice({
   reducerPath,
   queryThunk,
   mutationThunk,
-  endpointDefinitions: definitions,
+  context: { endpointDefinitions: definitions },
   assertEntityType,
   config,
 }: {
   reducerPath: string;
   queryThunk: AsyncThunk<ThunkResult, QueryThunkArg<any>, {}>;
   mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg<any>, {}>;
-  endpointDefinitions: EndpointDefinitions;
+  context: ApiContext<EndpointDefinitions>;
   assertEntityType: AssertEntityTypes;
   config: Omit<ConfigState<string>, 'online' | 'focused'>;
 }) {

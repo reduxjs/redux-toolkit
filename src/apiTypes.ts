@@ -27,13 +27,16 @@ export type Module<Name extends ModuleName> = {
   >(
     api: Api<BaseQuery, EndpointDefinitions, ReducerPath, EntityTypes, ModuleName>,
     options: Required<CreateApiOptions<BaseQuery, Definitions, ReducerPath, EntityTypes>>,
-    context: {
-      endpointDefinitions: Definitions;
-    }
+    context: ApiContext<Definitions>
   ): {
     injectEndpoint(endpoint: string, definition: EndpointDefinition<any, any, any, any>): void;
   };
 };
+
+export interface ApiContext<Definitions extends EndpointDefinitions> {
+  endpointDefinitions: Definitions;
+  batch(cb: () => void): void;
+}
 
 export type Api<
   BaseQuery extends BaseQueryFn,
