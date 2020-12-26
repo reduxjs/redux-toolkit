@@ -12,12 +12,14 @@ import {
   Subscribers,
   QueryCacheKey,
   SubscriptionState,
+  ConfigState,
 } from './apiState';
 import type { MutationThunkArg, QueryThunkArg, ThunkResult } from './buildThunks';
-import { AssertEntityTypes, calculateProvidedBy, EndpointDefinitions } from './endpointDefinitions';
+import { AssertEntityTypes, calculateProvidedBy, EndpointDefinitions } from '../endpointDefinitions';
 import { applyPatches, Patch } from 'immer';
-
-export type InternalState = CombinedState<any, string>;
+import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners';
+import { isDocumentVisible, isOnline, copyWithStructuralSharing } from '../utils';
+import { ApiContext } from '../apiTypes';
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
@@ -45,14 +47,16 @@ export function buildSlice({
   reducerPath,
   queryThunk,
   mutationThunk,
-  endpointDefinitions: definitions,
+  context: { endpointDefinitions: definitions },
   assertEntityType,
+  config,
 }: {
   reducerPath: string;
   queryThunk: AsyncThunk<ThunkResult, QueryThunkArg<any>, {}>;
   mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg<any>, {}>;
-  endpointDefinitions: EndpointDefinitions;
+  context: ApiContext<EndpointDefinitions>;
   assertEntityType: AssertEntityTypes;
+  config: Omit<ConfigState<string>, 'online' | 'focused'>;
 }) {
   const querySlice = createSlice({
     name: `${reducerPath}/queries`,
@@ -93,7 +97,7 @@ export function buildSlice({
           updateQuerySubstateIfExists(draft, meta.arg.queryCacheKey, (substate) => {
             if (substate.requestId !== meta.requestId) return;
             substate.status = QueryStatus.fulfilled;
-            substate.data = payload.result;
+            substate.data = copyWithStructuralSharing(substate.data, payload.result);
             substate.error = undefined;
             substate.fulfilledTimeStamp = payload.fulfilledTimeStamp;
           });
@@ -236,11 +240,37 @@ export function buildSlice({
     },
   });
 
-  const reducer = combineReducers<InternalState>({
+  const configSlice = createSlice({
+    name: `${reducerPath}/config`,
+    initialState: {
+      online: isOnline(),
+      focused: isDocumentVisible(),
+      ...config,
+    } as ConfigState<string>,
+    reducers: {},
+    extraReducers: (builder) => {
+      builder
+        .addCase(onOnline, (state) => {
+          state.online = true;
+        })
+        .addCase(onOffline, (state) => {
+          state.online = false;
+        })
+        .addCase(onFocus, (state) => {
+          state.focused = true;
+        })
+        .addCase(onFocusLost, (state) => {
+          state.focused = false;
+        });
+    },
+  });
+
+  const reducer = combineReducers<CombinedState<any, string, string>>({
     queries: querySlice.reducer,
     mutations: mutationSlice.reducer,
     provided: invalidationSlice.reducer,
     subscriptions: subscriptionSlice.reducer,
+    config: configSlice.reducer,
   });
 
   const actions = {

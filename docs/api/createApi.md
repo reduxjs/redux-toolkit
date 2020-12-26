@@ -19,7 +19,10 @@ The main point where you will define a service to use in your application.
   entityTypes?: readonly EntityTypes[];
   reducerPath?: ReducerPath;
   serializeQueryArgs?: SerializeQueryArgs<InternalQueryArgs>;
-  keepUnusedDataFor?: number;
+  keepUnusedDataFor?: number; // value is in seconds
+  refetchOnMountOrArgChange?: boolean | number; // value is in seconds
+  refetchOnFocus?: boolean;
+  refetchOnReconnect?: boolean;
 ```
 
 ### `baseQuery`
@@ -117,12 +120,17 @@ Endpoints are just a set of operations that you want to perform against your ser
   - Used by `mutations` for [cache invalidation](../concepts/mutations#advanced-mutations-with-revalidation) purposes.
   - Expects the same shapes as `provides`
 
-- `onStart`, `onError` and `onSuccess` _(optional)_
+- `onStart`, `onError` and `onSuccess` _(optional)_ - Available to both [queries](../concepts/queries) and [mutations](../concepts/mutations)
   - Can be used in `mutations` for [optimistic updates](../concepts/optimistic-updates).
-  - ```ts title="signatures"
+  - ```ts title="Mutation lifecycle signatures"
     function onStart(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>): void;
     function onError(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>, error: unknown): void;
     function onSuccess(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>, result: ResultType): void;
+    ```
+  - ```ts title="Query lifecycle signatures"
+    function onStart(arg: QueryArg, queryApi: QueryApi<ReducerPath, Context>): void;
+    function onError(arg: QueryArg, queryApi: QueryApi<ReducerPath, Context>, error: unknown): void;
+    function onSuccess(arg: QueryArg, queryApi: QueryApi<ReducerPath, Context>, result: ResultType): void;
     ```
 
 #### How endpoints get used
@@ -203,6 +211,48 @@ export const api = createApi({
 });
 ```
 
+### `keepUnusedDataFor`
+
+Defaults to `60` _(this value is in seconds)_. This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.
+
+### `refetchOnMountOrArgChange`
+
+Defaults to `false`. This setting allows you to control whether RTK Query will only serve a cached result, or if it should `refetch` when set to `true` or if an adequate amount of time has passed since the last successful query result.
+
+- `false` - Will not cause a query to be performed _unless_ it does not exist yet.
+- `true` - Will always refetch when a new subscriber to a query is added. Behaves the same as calling the `refetch` callback or passing `forceRefetch: true` in the action creator.
+- `number` - **Value is in seconds**. If a number is provided and there is an existing query in the cache, it will compare the current time vs the last fulfilled timestamp, and only refetch if enough time has elapsed.
+
+If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
+
+:::note
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnMountOrArgChange` to each individual hook call or when dispatching the [`initiate`](#initiate) action.
+:::
+
+### `refetchOnFocus`
+
+Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after the application window regains focus.
+
+If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
+
+:::note
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnFocus` to each individual hook call or when dispatching the [`initiate`](#initiate) action.
+
+If you specify `track: false` when manually dispatching queries, RTK Query will not be able to automatically refetch for you.
+:::
+
+### `refetchOnReconnect`
+
+Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after regaining a network connection.
+
+If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
+
+:::note
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnReconnect` to each individual hook call or when dispatching the [`initiate`](#initiate) action.
+
+If you specify `track: false` when manually dispatching queries, RTK Query will not be able to automatically refetch for you.
+:::
+
 ## Return value
 
 - [`reducerPath`](#reducerpath)
@@ -216,6 +266,7 @@ export const api = createApi({
 - [`internalActions`](#internalactions)
 - [`util`](#util)
 - [`injectEndpoints`](#injectendpoints)
+- [`enhanceEndpoints`](#enhanceendpoints)
 - [`usePrefetch`](../concepts/prefetching#prefetching-with-react-hooks)
 - [`Auto-generated hooks`](#auto-generated-hooks)
 
@@ -335,36 +386,17 @@ These may change at any given time and are not part of the public API for now
 - `removeQueryResult: ActionCreatorWithPayload<{ queryCacheKey: QueryCacheKey }, string>`
 - `unsubscribeQueryResult: ActionCreatorWithPayload<{ queryCacheKey: QueryCacheKey, requestId: string }, string>`,
 - `unsubscribeMutationResult: ActionCreatorWithPayload<MutationSubstateIdentifier, string>`,
-- `prefetchThunk(endpointName, args, options: PrefetchOptions) => ThunkAction<void, any, any, AnyAction>`
 
 ### `util`
 
-Both of these utils are currently used for [optimistic updates](../concepts/optimistic-updates).
-
-- **patchQueryResult**
-
-  ```ts
-  <EndpointName extends QueryKeys<Definitions>>(
-    endpointName: EndpointName,
-    args: QueryArgFrom<Definitions[EndpointName]>,
-    patches: Patch[]
-  ) => ThunkAction<void, PartialState, any, AnyAction>
-  ```
-
-- **updateQueryResult**
-
-  ```ts
-  <EndpointName extends QueryKeys<Definitions>>(
-    endpointName: EndpointName,
-    args: QueryArgFrom<Definitions[EndpointName]>,
-    updateRecicpe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>
-  ) => ThunkAction<PatchCollection, PartialState, any, AnyAction>
-  ```
+- **prefetchThunk** - used for [prefetching](../concepts/prefetching).
+- **patchQueryResult** - used for [optimistic updates](../concepts/optimistic-updates).
+- **updateQueryResult** - used for [optimistic updates](../concepts/optimistic-updates).
 
 ### `injectEndpoints`
 
 See [Code Splitting](../concepts/code-splitting)
 
-### `keepUnusedDataFor`
+### `enhanceEndpoints`
 
-Defaults to `60` _(this value is in seconds)_. This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.
+See [Code Generation](../concepts/code-generation)

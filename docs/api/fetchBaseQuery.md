@@ -10,17 +10,20 @@ hide_table_of_contents: false
 
 This is a very small wrapper around `fetch` that aims to simplify requests. It is not a full-blown replacement for `axios`, `superagent`, or any other more heavy-weight library, but it will cover the large majority of your needs.
 
-It takes all standard options from fetch's [`RequestInit`](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) interface, as well as `baseUrl` and a `prepareHeaders` function.
+It takes all standard options from fetch's [`RequestInit`](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) interface, as well as `baseUrl`, a `prepareHeaders` function, and an optional `fetch` function.
 
-- `baseUrl`
+- `baseUrl` _(required)_
   - Typically a string like `https://api.your-really-great-app.com/v1/`. If you don't provide a `baseUrl`, it defaults to a relative path from where the request is being made. You should most likely _always_ specify this.
-- `prepareHeaders`
+- `prepareHeaders` _(optional)_
 
   - Allows you to inject headers on every request. You can specify headers at the endpoint level, but you'll typically want to set common headers like `authorization` here. As a convience mechanism, the second argument allows you to use `getState` to access your redux store in the event you store information you'll need there such as an auth token.
 
   - ```ts title="prepareHeaders signature"
     (headers: Headers, api: { getState: () => unknown }) => Headers;
     ```
+
+- `fetchFn` _(optional)_
+  - A fetch function that overrides the default on the window. Can be useful in SSR environments where you may need to leverage `isomorphic-fetch` or `cross-fetch`.
 
 ```ts title="Return types of fetchBaseQuery"
 Promise<{
@@ -167,6 +170,10 @@ export const customApi = createApi({
   }),
 });
 ```
+
+:::note Note about responses that return an undefined body
+If you make a `json` request to an API that only returns a `200` with an undefined body, `fetchBaseQuery` will pass that through as `undefined` and will not try to parse it as `json`. This can be common with some APIs, especially on `delete` requests.
+:::
 
 ### Handling non-standard Response status codes
 

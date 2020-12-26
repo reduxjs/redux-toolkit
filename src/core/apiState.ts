@@ -1,5 +1,5 @@
 import { SerializedError } from '@reduxjs/toolkit';
-import { BaseQueryError } from './apiTypes';
+import { BaseQueryError } from '../baseQueryTypes';
 import {
   QueryDefinition,
   MutationDefinition,
@@ -7,12 +7,18 @@ import {
   BaseEndpointDefinition,
   ResultTypeFrom,
   QueryArgFrom,
-} from './endpointDefinitions';
-import { Id, WithRequiredProp } from './tsHelpers';
+} from '../endpointDefinitions';
+import { Id, WithRequiredProp } from '../tsHelpers';
 
 export type QueryCacheKey = string & { _type: 'queryCacheKey' };
 export type QuerySubstateIdentifier = { queryCacheKey: QueryCacheKey };
 export type MutationSubstateIdentifier = { requestId: string };
+
+export type RefetchConfigOptions = {
+  refetchOnMountOrArgChange: boolean | number;
+  refetchOnReconnect: boolean;
+  refetchOnFocus: boolean;
+};
 
 export enum QueryStatus {
   uninitialized = 'uninitialized',
@@ -61,7 +67,11 @@ export function getRequestStatusFlags(status: QueryStatus): RequestStatusFlags {
   } as any;
 }
 
-export type SubscriptionOptions = { pollingInterval?: number };
+export type SubscriptionOptions = {
+  pollingInterval?: number;
+  refetchOnReconnect?: boolean;
+  refetchOnFocus?: boolean;
+};
 export type Subscribers = { [requestId: string]: SubscriptionOptions };
 export type QueryKeys<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends QueryDefinition<any, any, any, any> ? K : never;
@@ -139,11 +149,12 @@ export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
       fulfilledTimeStamp?: undefined;
     };
 
-export type CombinedState<D extends EndpointDefinitions, E extends string> = {
+export type CombinedState<D extends EndpointDefinitions, E extends string, ReducerPath extends string> = {
   queries: QueryState<D>;
   mutations: MutationState<D>;
   provided: InvalidationState<E>;
   subscriptions: SubscriptionState;
+  config: ConfigState<ReducerPath>;
 };
 
 export type InvalidationState<EntityTypes extends string> = {
@@ -161,23 +172,24 @@ export type SubscriptionState = {
   [queryCacheKey: string]: Subscribers | undefined;
 };
 
+export type ConfigState<ReducerPath> = RefetchConfigOptions & {
+  reducerPath: ReducerPath;
+  online: boolean;
+  focused: boolean;
+} & ModifiableConfigState;
+
+export type ModifiableConfigState = {
+  keepUnusedDataFor: number;
+} & RefetchConfigOptions;
+
 export type MutationState<D extends EndpointDefinitions> = {
   [requestId: string]: MutationSubState<D[string]> | undefined;
 };
-
-const __phantomType_ReducerPath = Symbol();
-export interface QueryStatePhantomType<Identifier extends string> {
-  [__phantomType_ReducerPath]: Identifier;
-}
 
 export type RootState<
   Definitions extends EndpointDefinitions,
   EntityTypes extends string,
   ReducerPath extends string
 > = {
-  [P in ReducerPath]: CombinedState<Definitions, EntityTypes> & QueryStatePhantomType<P>;
-};
-
-export type InternalRootState<ReducerPath extends string> = {
-  [_ in ReducerPath]: CombinedState<any, string>;
+  [P in ReducerPath]: CombinedState<Definitions, EntityTypes, P>;
 };

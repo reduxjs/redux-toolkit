@@ -53,7 +53,7 @@ describe.skip('TS only tests', () => {
       expectType<never>(result);
     }
   });
-  test('queryHookResult union', () => {
+  test('useQuery union', () => {
     const result = api.useTestQuery();
 
     if (result.isUninitialized) {
@@ -108,5 +108,36 @@ describe.skip('TS only tests', () => {
     if (!result.isUninitialized && !result.isLoading && !result.isError && !result.isSuccess) {
       expectType<never>(result);
     }
+  });
+
+  test('queryHookResult (without selector) union', () => {
+    const useQueryStateResult = api.endpoints.test.useQueryState();
+    const useQueryResult = api.endpoints.test.useQuery();
+    const useQueryStateWithSelectFromResult = api.endpoints.test.useQueryState(undefined, {
+      selectFromResult: () => true,
+    });
+
+    const { refetch: _omit, ...useQueryResultWithoutMethods } = useQueryResult;
+    expectExactType(useQueryStateResult)(useQueryResultWithoutMethods);
+    // @ts-expect-error
+    expectExactType(useQueryStateWithSelectFromResult)(useQueryResultWithoutMethods);
+  });
+
+  test('useQueryState (with selectFromResult)', () => {
+    const result = api.endpoints.test.useQueryState(undefined, {
+      selectFromResult({ data, isLoading }) {
+        return { data: data ?? 1, isLoading };
+      },
+    });
+    expectExactType({ data: '' as string | number, isLoading: true as boolean })(result);
+  });
+
+  test('useQuery (with selectFromResult)', () => {
+    const result = api.endpoints.test.useQuery(undefined, {
+      selectFromResult({ data, isLoading }) {
+        return { data: data ?? 1, isLoading };
+      },
+    });
+    expectExactType({ data: '' as string | number, isLoading: true as boolean, refetch: () => {} })(result);
   });
 });

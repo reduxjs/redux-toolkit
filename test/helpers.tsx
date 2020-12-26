@@ -1,4 +1,5 @@
 import { AnyAction, configureStore, EnhancedStore, Middleware, Store } from '@reduxjs/toolkit';
+import { setupListeners } from '@rtk-incubator/rtk-query';
 
 import { act } from '@testing-library/react-hooks';
 import React, { Reducer } from 'react';
@@ -44,11 +45,11 @@ export const hookWaitFor = async (cb: () => void, time = 2000) => {
 export function setupApiStore<
   A extends { reducerPath: any; reducer: Reducer<any, any>; middleware: Middleware<any> },
   R extends Record<string, Reducer<any, any>>
->(api: A, extraReducers?: R) {
+>(api: A, extraReducers?: R, withoutListeners?: boolean) {
   const getStore = () =>
     configureStore({
       reducer: { [api.reducerPath]: api.reducer, ...extraReducers },
-      middleware: (gdm) => gdm().concat(api.middleware),
+      middleware: (gdm) => gdm({ serializableCheck: false, immutableCheck: false }).concat(api.middleware),
     });
   type StoreType = ReturnType<typeof getStore> extends EnhancedStore<{}, any, infer M>
     ? EnhancedStore<
@@ -69,11 +70,20 @@ export function setupApiStore<
     store: initialStore,
     wrapper: withProvider(initialStore),
   };
+  let cleanupListeners: () => void;
 
   beforeEach(() => {
     const store = getStore() as StoreType;
     refObj.store = store;
     refObj.wrapper = withProvider(store);
+    if (!withoutListeners) {
+      cleanupListeners = setupListeners(store.dispatch);
+    }
+  });
+  afterEach(() => {
+    if (!withoutListeners) {
+      cleanupListeners();
+    }
   });
 
   return refObj;

@@ -1,23 +1,28 @@
-import { InternalSerializeQueryArgs } from './defaultSerializeQueryArgs';
-import { Api, ApiEndpointQuery, BaseQueryFn, BaseQueryArg, BaseQueryError } from './apiTypes';
-import { InternalRootState, QueryKeys, QueryStatus, QuerySubstateIdentifier } from './apiState';
-import { StartQueryActionCreatorOptions } from './buildActionMaps';
+import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs';
+import { Api, ApiContext } from '../apiTypes';
+import { BaseQueryFn, BaseQueryArg, BaseQueryError } from '../baseQueryTypes';
+import { RootState, QueryKeys, QueryStatus, QuerySubstateIdentifier } from './apiState';
+import { StartQueryActionCreatorOptions } from './buildInitiate';
 import {
   EndpointDefinition,
   EndpointDefinitions,
   MutationApi,
   MutationDefinition,
+  QueryApi,
   QueryArgFrom,
   QueryDefinition,
   ResultTypeFrom,
-} from './endpointDefinitions';
+} from '../endpointDefinitions';
 import { Draft, isAllOf, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
 import { Patch, isDraftable, produceWithPatches, enablePatches } from 'immer';
 import { AnyAction, createAsyncThunk, ThunkAction, ThunkDispatch, AsyncThunk } from '@reduxjs/toolkit';
 
-import { PrefetchOptions } from './buildHooks';
+import { PrefetchOptions } from '../react-hooks/buildHooks';
+import { HandledError } from '../HandledError';
 
-declare module './apiTypes' {
+import { ApiEndpointQuery } from './module';
+
+declare module './module' {
   export interface ApiEndpointQuery<
     Definition extends QueryDefinition<any, any, any, any, any>,
     Definitions extends EndpointDefinitions
@@ -91,12 +96,6 @@ export interface ThunkResult {
 export type QueryThunk = AsyncThunk<ThunkResult, QueryThunkArg<any>, {}>;
 export type MutationThunk = AsyncThunk<ThunkResult, MutationThunkArg<any>, {}>;
 
-export interface QueryApi {
-  signal?: AbortSignal;
-  dispatch: ThunkDispatch<any, any, any>;
-  getState: () => unknown;
-}
-
 function defaultTransformResponse(baseQueryReturnValue: unknown) {
   return baseQueryReturnValue;
 }
@@ -117,14 +116,10 @@ export type UpdateQueryResultThunk<Definitions extends EndpointDefinitions, Part
 >(
   endpointName: EndpointName,
   args: QueryArgFrom<Definitions[EndpointName]>,
-  updateRecicpe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>
+  updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>
 ) => ThunkAction<PatchCollection, PartialState, any, AnyAction>;
 
 type PatchCollection = { patches: Patch[]; inversePatches: Patch[] };
-
-export class HandledError {
-  constructor(public readonly value: any) {}
-}
 
 export function buildThunks<
   BaseQuery extends BaseQueryFn,
@@ -133,18 +128,18 @@ export function buildThunks<
 >({
   reducerPath,
   baseQuery,
-  endpointDefinitions,
+  context: { endpointDefinitions },
   serializeQueryArgs,
   api,
 }: {
   baseQuery: BaseQuery;
   reducerPath: ReducerPath;
-  endpointDefinitions: Definitions;
+  context: ApiContext<Definitions>;
   serializeQueryArgs: InternalSerializeQueryArgs<BaseQueryArg<BaseQuery>>;
-  api: Api<BaseQuery, Definitions, ReducerPath, string>;
+  api: Api<BaseQuery, EndpointDefinitions, ReducerPath, string>;
 }) {
   type InternalQueryArgs = BaseQueryArg<BaseQuery>;
-  type State = InternalRootState<ReducerPath>;
+  type State = RootState<any, string, ReducerPath>;
 
   const patchQueryResult: PatchQueryResultThunk<EndpointDefinitions, State> = (endpointName, args, patches) => (
     dispatch
@@ -193,26 +188,64 @@ export function buildThunks<
   const queryThunk = createAsyncThunk<
     ThunkResult,
     QueryThunkArg<InternalQueryArgs>,
-    { state: InternalRootState<ReducerPath> }
+    { state: RootState<any, string, ReducerPath> }
   >(
     `${reducerPath}/executeQuery`,
-    async (arg, { signal, rejectWithValue, dispatch, getState }) => {
-      const result = await baseQuery(
-        arg.internalQueryArgs,
-        { signal, dispatch, getState },
-        endpointDefinitions[arg.endpoint].extraOptions as any
-      );
-      if (result.error) return rejectWithValue(result.error);
+    async (arg, { signal, rejectWithValue, ...api }) => {
+      const endpoint = endpointDefinitions[arg.endpoint] as QueryDefinition<any, any, any, any>;
 
-      return {
-        fulfilledTimeStamp: Date.now(),
-        result: (endpointDefinitions[arg.endpoint].transformResponse ?? defaultTransformResponse)(result.data),
+      const context: Record<string, any> = {};
+      const queryApi: QueryApi<ReducerPath, any> = {
+        ...api,
+        context,
       };
+
+      if (endpoint.onStart) endpoint.onStart(arg.originalArgs, queryApi);
+
+      try {
+        const result = await baseQuery(
+          arg.internalQueryArgs,
+          { signal, dispatch: api.dispatch, getState: api.getState },
+          endpoint.extraOptions as any
+        );
+        if (result.error) throw new HandledError(result.error);
+        if (endpoint.onSuccess) endpoint.onSuccess(arg.originalArgs, queryApi, result.data);
+        return {
+          fulfilledTimeStamp: Date.now(),
+          result: await (endpoint.transformResponse ?? defaultTransformResponse)(result.data),
+        };
+      } catch (error) {
+        if (endpoint.onError)
+          endpoint.onError(arg.originalArgs, queryApi, error instanceof HandledError ? error.value : error);
+        if (error instanceof HandledError) {
+          return rejectWithValue(error.value);
+        }
+        throw error;
+      }
     },
     {
       condition(arg, { getState }) {
-        let requestState = getState()[reducerPath]?.queries?.[arg.queryCacheKey];
-        return !(requestState?.status === 'pending' || (requestState?.status === 'fulfilled' && !arg.forceRefetch));
+        const state = getState()[reducerPath];
+        const requestState = state?.queries?.[arg.queryCacheKey];
+        const baseFetchOnMountOrArgChange = state.config.refetchOnMountOrArgChange;
+
+        const fulfilledVal = requestState?.fulfilledTimeStamp;
+        const refetchVal = arg.forceRefetch ?? (arg.subscribe && baseFetchOnMountOrArgChange);
+
+        // Don't retry a request that's currently in-flight
+        if (requestState?.status === 'pending') return false;
+
+        // Pull from the cache unless we explicitly force refetch or qualify based on time
+        if (fulfilledVal) {
+          if (refetchVal) {
+            // Return if its true or compare the dates because it must be a number
+            return refetchVal === true || (Number(new Date()) - Number(fulfilledVal)) / 1000 >= refetchVal;
+          }
+          // Value is cached and we didn't specify to refresh, skip it.
+          return false;
+        }
+
+        return true;
       },
       dispatchConditionRejection: true,
     }
@@ -221,28 +254,28 @@ export function buildThunks<
   const mutationThunk = createAsyncThunk<
     ThunkResult,
     MutationThunkArg<InternalQueryArgs>,
-    { state: InternalRootState<ReducerPath> }
+    { state: RootState<any, string, ReducerPath> }
   >(`${reducerPath}/executeMutation`, async (arg, { signal, rejectWithValue, ...api }) => {
     const endpoint = endpointDefinitions[arg.endpoint] as MutationDefinition<any, any, any, any>;
 
     const context: Record<string, any> = {};
-    const mutationApi = {
+    const mutationApi: MutationApi<ReducerPath, any> = {
       ...api,
       context,
-    } as MutationApi<ReducerPath, any>;
+    };
 
     if (endpoint.onStart) endpoint.onStart(arg.originalArgs, mutationApi);
     try {
       const result = await baseQuery(
         arg.internalQueryArgs,
         { signal, dispatch: api.dispatch, getState: api.getState },
-        endpointDefinitions[arg.endpoint].extraOptions as any
+        endpoint.extraOptions as any
       );
       if (result.error) throw new HandledError(result.error);
       if (endpoint.onSuccess) endpoint.onSuccess(arg.originalArgs, mutationApi, result.data);
       return {
         fulfilledTimeStamp: Date.now(),
-        result: (endpointDefinitions[arg.endpoint].transformResponse ?? defaultTransformResponse)(result.data),
+        result: await (endpoint.transformResponse ?? defaultTransformResponse)(result.data),
       };
     } catch (error) {
       if (endpoint.onError)

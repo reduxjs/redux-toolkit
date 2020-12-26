@@ -1,11 +1,19 @@
-import { EndpointDefinitions, QueryDefinition, MutationDefinition, QueryArgFrom } from './endpointDefinitions';
+import {
+  EndpointDefinitions,
+  QueryDefinition,
+  MutationDefinition,
+  QueryArgFrom,
+  ResultTypeFrom,
+} from '../endpointDefinitions';
 import type { QueryThunkArg, MutationThunkArg } from './buildThunks';
-import { AnyAction, AsyncThunk, ThunkAction } from '@reduxjs/toolkit';
-import { MutationSubState, QueryStatus, QuerySubState, SubscriptionOptions } from './apiState';
-import { InternalSerializeQueryArgs } from './defaultSerializeQueryArgs';
-import { Api, ApiEndpointMutation, ApiEndpointQuery } from './apiTypes';
+import { AnyAction, AsyncThunk, ThunkAction, unwrapResult } from '@reduxjs/toolkit';
+import { QuerySubState, SubscriptionOptions } from './apiState';
+import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs';
+import { Api } from '../apiTypes';
+import { ApiEndpointQuery } from './module';
+import { BaseQueryResult } from '../baseQueryTypes';
 
-declare module './apiTypes' {
+declare module './module' {
   export interface ApiEndpointQuery<
     Definition extends QueryDefinition<any, any, any, any, any>,
     Definitions extends EndpointDefinitions
@@ -23,7 +31,7 @@ declare module './apiTypes' {
 
 export interface StartQueryActionCreatorOptions {
   subscribe?: boolean;
-  forceRefetch?: boolean;
+  forceRefetch?: boolean | number;
   subscriptionOptions?: SubscriptionOptions;
 }
 
@@ -55,15 +63,16 @@ type StartMutationActionCreator<D extends MutationDefinition<any, any, any, any>
 ) => ThunkAction<MutationActionCreatorResult<D>, any, any, AnyAction>;
 
 export type MutationActionCreatorResult<D extends MutationDefinition<any, any, any, any>> = Promise<
-  Extract<MutationSubState<D>, { status: QueryStatus.fulfilled | QueryStatus.rejected }>
+  ReturnType<BaseQueryResult<D extends MutationDefinition<any, infer BaseQuery, any, any> ? BaseQuery : never>>
 > & {
   arg: QueryArgFrom<D>;
   requestId: string;
   abort(): void;
+  unwrap(): Promise<ResultTypeFrom<D>>;
   unsubscribe(): void;
 };
 
-export function buildActionMaps<Definitions extends EndpointDefinitions, InternalQueryArgs>({
+export function buildInitiate<InternalQueryArgs>({
   serializeQueryArgs,
   queryThunk,
   mutationThunk,
@@ -72,15 +81,15 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
   serializeQueryArgs: InternalSerializeQueryArgs<InternalQueryArgs>;
   queryThunk: AsyncThunk<any, QueryThunkArg<any>, {}>;
   mutationThunk: AsyncThunk<any, MutationThunkArg<any>, {}>;
-  api: Api<any, Definitions, any, string>;
+  api: Api<any, EndpointDefinitions, any, string>;
 }) {
   const { unsubscribeQueryResult, unsubscribeMutationResult, updateSubscriptionOptions } = api.internalActions;
-  return { buildQueryAction, buildMutationAction };
+  return { buildInitiateQuery, buildInitiateMutation };
 
-  function buildQueryAction(endpoint: string, definition: QueryDefinition<any, any, any, any>) {
+  function buildInitiateQuery(endpoint: string, definition: QueryDefinition<any, any, any, any>) {
     const queryAction: StartQueryActionCreator<any> = (
       arg,
-      { subscribe = true, forceRefetch = false, subscriptionOptions } = {}
+      { subscribe = true, forceRefetch, subscriptionOptions } = {}
     ) => (dispatch, getState) => {
       const internalQueryArgs = definition.query(arg);
       const queryCacheKey = serializeQueryArgs({ queryArgs: arg, internalQueryArgs, endpoint });
@@ -123,7 +132,7 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
     return queryAction;
   }
 
-  function buildMutationAction(
+  function buildInitiateMutation(
     endpoint: string,
     definition: MutationDefinition<any, any, any, any>
   ): StartMutationActionCreator<any> {
@@ -138,14 +147,19 @@ export function buildActionMaps<Definitions extends EndpointDefinitions, Interna
       });
       const thunkResult = dispatch(thunk);
       const { requestId, abort } = thunkResult;
-      const statePromise = thunkResult.then(() => {
-        const currentState = (api.endpoints[endpoint] as ApiEndpointMutation<any, any>).select(requestId)(getState());
-        return currentState as Extract<typeof currentState, { status: QueryStatus.fulfilled | QueryStatus.rejected }>;
-      });
-      return Object.assign(statePromise, {
+      const returnValuePromise = thunkResult
+        .then(unwrapResult)
+        .then((unwrapped) => ({
+          data: unwrapped.result,
+        }))
+        .catch((error) => ({ error }));
+      return Object.assign(returnValuePromise, {
         arg: thunkResult.arg,
         requestId,
         abort,
+        unwrap() {
+          return thunkResult.then(unwrapResult).then((unwrapped) => unwrapped.result);
+        },
         unsubscribe() {
           if (track) dispatch(unsubscribeMutationResult({ requestId }));
         },

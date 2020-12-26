@@ -6,6 +6,7 @@ import { timeApi } from './services/times';
 import polling from '../features/polling/pollingSlice';
 import { splitApi } from './services/split';
 import auth from '../features/auth/authSlice';
+import { setupListeners } from '@rtk-incubator/rtk-query';
 
 export const createStore = (options?: ConfigureStoreOptions['preloadedState'] | undefined) =>
   configureStore({
@@ -23,6 +24,7 @@ export const createStore = (options?: ConfigureStoreOptions['preloadedState'] | 
   });
 
 export const store = createStore();
+setupListeners(store.dispatch);
 
 export type AppDispatch = typeof store.dispatch;
 export const useAppDispatch = () => useDispatch<AppDispatch>();

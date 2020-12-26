@@ -1,36 +1,33 @@
 import { AnyAction, AsyncThunk, Middleware, MiddlewareAPI, ThunkDispatch } from '@reduxjs/toolkit';
-import { batch as reactBatch } from 'react-redux';
-import { QueryCacheKey, QueryStatus, QuerySubstateIdentifier, RootState, Subscribers } from './apiState';
-import { Api } from './apiTypes';
+import { QueryCacheKey, QueryStatus, QuerySubState, QuerySubstateIdentifier, RootState, Subscribers } from './apiState';
+import { Api, ApiContext } from '../apiTypes';
 import { MutationThunkArg, QueryThunkArg, ThunkResult } from './buildThunks';
 import {
   AssertEntityTypes,
   calculateProvidedBy,
   EndpointDefinitions,
   FullEntityDescription,
-} from './endpointDefinitions';
-import { flatten } from './utils';
-
-const batch = typeof reactBatch !== 'undefined' ? reactBatch : (fn: Function) => fn();
+} from '../endpointDefinitions';
+import { onFocus, onOnline } from './setupListeners';
+import { flatten } from '../utils';
 
 type QueryStateMeta<T> = Record<string, undefined | T>;
 type TimeoutId = ReturnType<typeof setTimeout>;
 
 export function buildMiddleware<Definitions extends EndpointDefinitions, ReducerPath extends string>({
   reducerPath,
-  endpointDefinitions,
+  context,
+  context: { endpointDefinitions },
   queryThunk,
   mutationThunk,
-  keepUnusedDataFor,
   api,
   assertEntityType,
 }: {
   reducerPath: ReducerPath;
-  endpointDefinitions: EndpointDefinitions;
+  context: ApiContext<Definitions>;
   queryThunk: AsyncThunk<ThunkResult, QueryThunkArg<any>, {}>;
   mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg<any>, {}>;
-  api: Api<any, Definitions, ReducerPath, string>;
-  keepUnusedDataFor: number;
+  api: Api<any, EndpointDefinitions, ReducerPath, string>;
   assertEntityType: AssertEntityTypes;
 }) {
   type MWApi = MiddlewareAPI<ThunkDispatch<any, any, AnyAction>, RootState<Definitions, string, ReducerPath>>;
@@ -70,10 +67,57 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
       startNextPoll(action.meta.arg, mwApi);
     }
 
+    if (onFocus.match(action)) {
+      refetchValidQueries(mwApi, 'refetchOnFocus');
+    }
+    if (onOnline.match(action)) {
+      refetchValidQueries(mwApi, 'refetchOnReconnect');
+    }
+
     return result;
   };
 
   return { middleware };
+
+  function refetchQuery(
+    querySubState: Exclude<QuerySubState<any>, { status: QueryStatus.uninitialized }>,
+    queryCacheKey: string,
+    override: Partial<QueryThunkArg<any>> = {}
+  ) {
+    return queryThunk({
+      endpoint: querySubState.endpoint,
+      originalArgs: querySubState.originalArgs,
+      internalQueryArgs: querySubState.internalQueryArgs,
+      subscribe: false,
+      forceRefetch: true,
+      startedTimeStamp: Date.now(),
+      queryCacheKey: queryCacheKey as any,
+      ...override,
+    });
+  }
+
+  function refetchValidQueries(api: MWApi, type: 'refetchOnFocus' | 'refetchOnReconnect') {
+    const state = api.getState()[reducerPath];
+    const queries = state.queries;
+    const subscriptions = state.subscriptions;
+
+    context.batch(() => {
+      for (const queryCacheKey of Object.keys(subscriptions)) {
+        const querySubState = queries[queryCacheKey];
+        const subscriptionSubState = subscriptions[queryCacheKey];
+
+        if (!subscriptionSubState || !querySubState || querySubState.status === QueryStatus.uninitialized) return;
+
+        const shouldRefetch =
+          Object.values(subscriptionSubState).some((sub) => sub[type] === true) ||
+          (Object.values(subscriptionSubState).every((sub) => sub[type] === undefined) && state.config[type]);
+
+        if (shouldRefetch) {
+          api.dispatch(refetchQuery(querySubState, queryCacheKey));
+        }
+      }
+    });
+  }
 
   function invalidateEntities(entities: readonly FullEntityDescription<string>[], api: MWApi) {
     const state = api.getState()[reducerPath];
@@ -97,7 +141,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
       }
     }
 
-    batch(() => {
+    context.batch(() => {
       for (const queryCacheKey of toInvalidate.values()) {
         const querySubState = state.queries[queryCacheKey];
         const subscriptionSubState = state.subscriptions[queryCacheKey];
@@ -105,17 +149,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
           if (Object.keys(subscriptionSubState).length === 0) {
             api.dispatch(removeQueryResult({ queryCacheKey }));
           } else if (querySubState.status !== QueryStatus.uninitialized) {
-            api.dispatch(
-              queryThunk({
-                endpoint: querySubState.endpoint,
-                originalArgs: querySubState.originalArgs,
-                internalQueryArgs: querySubState.internalQueryArgs,
-                queryCacheKey,
-                subscribe: false,
-                forceRefetch: true,
-                startedTimeStamp: Date.now(),
-              })
-            );
+            api.dispatch(refetchQuery(querySubState, queryCacheKey));
           } else {
           }
         }
@@ -124,6 +158,7 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
   }
 
   function handleUnsubscribe({ queryCacheKey }: QuerySubstateIdentifier, api: MWApi) {
+    const keepUnusedDataFor = api.getState()[reducerPath].config.keepUnusedDataFor;
     const currentTimeout = currentRemovalTimeouts[queryCacheKey];
     if (currentTimeout) {
       clearTimeout(currentTimeout);
@@ -131,15 +166,16 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
     currentRemovalTimeouts[queryCacheKey] = setTimeout(() => {
       const subscriptions = api.getState()[reducerPath].subscriptions[queryCacheKey];
       if (!subscriptions || Object.keys(subscriptions).length === 0) {
-        api.dispatch(removeQueryResult({ queryCacheKey: queryCacheKey }));
+        api.dispatch(removeQueryResult({ queryCacheKey }));
       }
       delete currentRemovalTimeouts![queryCacheKey];
     }, keepUnusedDataFor * 1000);
   }
 
   function startNextPoll({ queryCacheKey }: QuerySubstateIdentifier, api: MWApi) {
-    const querySubState = api.getState()[reducerPath].queries[queryCacheKey];
-    const subscriptions = api.getState()[reducerPath].subscriptions[queryCacheKey];
+    const state = api.getState()[reducerPath];
+    const querySubState = state.queries[queryCacheKey];
+    const subscriptions = state.subscriptions[queryCacheKey];
 
     if (!querySubState || querySubState.status === QueryStatus.uninitialized) return;
 
@@ -160,24 +196,15 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
       pollingInterval: lowestPollingInterval,
       timeout: setTimeout(() => {
         currentInterval!.timeout = undefined;
-        api.dispatch(
-          queryThunk({
-            endpoint: querySubState.endpoint,
-            originalArgs: querySubState.originalArgs,
-            internalQueryArgs: querySubState.internalQueryArgs,
-            queryCacheKey,
-            subscribe: false,
-            forceRefetch: true,
-            startedTimeStamp: Date.now(),
-          })
-        );
+        api.dispatch(refetchQuery(querySubState, queryCacheKey));
       }, lowestPollingInterval),
     });
   }
 
   function updatePollingInterval({ queryCacheKey }: QuerySubstateIdentifier, api: MWApi) {
-    const querySubState = api.getState()[reducerPath].queries[queryCacheKey];
-    const subscriptions = api.getState()[reducerPath].subscriptions[queryCacheKey];
+    const state = api.getState()[reducerPath];
+    const querySubState = state.queries[queryCacheKey];
+    const subscriptions = state.subscriptions[queryCacheKey];
 
     if (!querySubState || querySubState.status === QueryStatus.uninitialized) {
       return;
