@@ -12,6 +12,12 @@ module.exports = {
   organizationName: 'rtk-incubator', // Usually your GitHub org/user name.
   projectName: 'rtk-query', // Usually your repo name.
   themeConfig: {
+    algolia: {
+      apiKey: '59c7887d3d06cf3e4d774d2caf0dcb4b',
+      indexName: 'rtk-query-docs',
+
+      searchParameters: {},
+    },
     navbar: {
       title: 'RTK Query',
       logo: {
@@ -64,7 +70,7 @@ module.exports = {
             },
             {
               label: 'Discord',
-              href: 'https://discordapp.com/invite/reactiflux',
+              href: 'https://discord.gg/0ZcbPKXt5bZ6au5t',
             },
           ],
         },
