@@ -266,6 +266,7 @@ If you specify `track: false` when manually dispatching queries, RTK Query will 
 - [`internalActions`](#internalactions)
 - [`util`](#util)
 - [`injectEndpoints`](#injectendpoints)
+- [`enhanceEndpoints`](#enhanceendpoints)
 - [`usePrefetch`](../concepts/prefetching#prefetching-with-react-hooks)
 - [`Auto-generated hooks`](#auto-generated-hooks)
 
@@ -395,3 +396,7 @@ These may change at any given time and are not part of the public API for now
 ### `injectEndpoints`
 
 See [Code Splitting](../concepts/code-splitting)
+
+### `enhanceEndpoints`
+
+See [Code Generation](../concepts/codegen)

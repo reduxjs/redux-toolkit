@@ -171,3 +171,23 @@ export type EntityTypesFrom<D extends EndpointDefinition<any, any, any, any>> = 
 >
   ? RP
   : unknown;
+
+export type ReplaceEntityTypes<Definitions extends EndpointDefinitions, NewEntityTypes extends string> = {
+  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
+    infer QueryArg,
+    infer BaseQuery,
+    any,
+    infer ResultType,
+    infer ReducerPath
+  >
+    ? QueryDefinition<QueryArg, BaseQuery, NewEntityTypes, ResultType, ReducerPath>
+    : Definitions[K] extends MutationDefinition<
+        infer QueryArg,
+        infer BaseQuery,
+        any,
+        infer ResultType,
+        infer ReducerPath
+      >
+    ? MutationDefinition<QueryArg, BaseQuery, NewEntityTypes, ResultType, ReducerPath>
+    : never;
+};

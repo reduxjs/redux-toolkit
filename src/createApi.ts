@@ -34,7 +34,6 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
 ): CreateApi<Modules[number]['name']> {
   return function baseCreateApi(options) {
     const optionsWithDefaults = {
-      entityTypes: [],
       reducerPath: 'api',
       serializeQueryArgs: defaultSerializeQueryArgs,
       keepUnusedDataFor: 60,
@@ -42,6 +41,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       refetchOnFocus: false,
       refetchOnReconnect: false,
       ...options,
+      entityTypes: [...(options.entityTypes || [])],
     };
 
     const context = {
@@ -50,6 +50,24 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
 
     const api = {
       injectEndpoints,
+      enhanceEndpoints({ addEntityTypes, endpoints }) {
+        if (addEntityTypes) {
+          for (const eT of addEntityTypes) {
+            if (!optionsWithDefaults.entityTypes.includes(eT as any)) {
+              optionsWithDefaults.entityTypes.push(eT as any);
+            }
+          }
+        }
+        if (endpoints) {
+          for (const [endpoint, partialDefinition] of Object.entries(endpoints)) {
+            if (typeof partialDefinition === 'function') {
+              partialDefinition(context.endpointDefinitions[endpoint]);
+            }
+            Object.assign(context.endpointDefinitions[endpoint] || {}, partialDefinition);
+          }
+        }
+        return api;
+      },
     } as Api<BaseQueryFn, {}, string, string, Modules[number]['name']>;
 
     const initializedModules = modules.map((m) => m.init(api as any, optionsWithDefaults, context));

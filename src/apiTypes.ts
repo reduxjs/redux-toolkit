@@ -1,5 +1,5 @@
-import { EndpointDefinitions, EndpointBuilder, EndpointDefinition } from './endpointDefinitions';
-import { UnionToIntersection, Id } from './tsHelpers';
+import { EndpointDefinitions, EndpointBuilder, EndpointDefinition, ReplaceEntityTypes } from './endpointDefinitions';
+import { UnionToIntersection, Id, NoInfer } from './tsHelpers';
 import { CoreModule } from './core/module';
 import { CreateApiOptions } from './createApi';
 import { BaseQueryFn } from './baseQueryTypes';
@@ -47,6 +47,20 @@ export type Api<
       endpoints: (build: EndpointBuilder<BaseQuery, EntityTypes, ReducerPath>) => NewDefinitions;
       overrideExisting?: boolean;
     }): Api<BaseQuery, Definitions & NewDefinitions, ReducerPath, EntityTypes, Enhancers>;
+    enhanceEndpoints<NewEntityTypes extends string = never>(_: {
+      addEntityTypes?: readonly NewEntityTypes[];
+      endpoints?: ReplaceEntityTypes<Definitions, EntityTypes | NoInfer<NewEntityTypes>> extends infer NewDefinitions
+        ? {
+            [K in keyof NewDefinitions]?: Partial<NewDefinitions[K]> | ((definition: NewDefinitions[K]) => void);
+          }
+        : never;
+    }): Api<
+      BaseQuery,
+      ReplaceEntityTypes<Definitions, EntityTypes | NewEntityTypes>,
+      ReducerPath,
+      EntityTypes | NewEntityTypes,
+      Enhancers
+    >;
   }
 >;
 

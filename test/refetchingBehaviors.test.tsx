@@ -255,6 +255,7 @@ describe('customListenersHandler', () => {
 
   test('setupListeners accepts a custom callback and executes it', async () => {
     const consoleSpy = jest.spyOn(console, 'log');
+    consoleSpy.mockImplementation(() => {});
     const dispatchSpy = jest.spyOn(storeRef.store, 'dispatch');
 
     let unsubscribe = () => {};

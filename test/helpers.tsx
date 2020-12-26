@@ -49,7 +49,7 @@ export function setupApiStore<
   const getStore = () =>
     configureStore({
       reducer: { [api.reducerPath]: api.reducer, ...extraReducers },
-      middleware: (gdm) => gdm().concat(api.middleware),
+      middleware: (gdm) => gdm({ serializableCheck: false, immutableCheck: false }).concat(api.middleware),
     });
   type StoreType = ReturnType<typeof getStore> extends EnhancedStore<{}, any, infer M>
     ? EnhancedStore<

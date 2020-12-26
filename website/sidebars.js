@@ -11,7 +11,7 @@ module.exports = {
       'concepts/prefetching',
       'concepts/optimistic-updates',
       'concepts/code-splitting',
-      // infinite
+      'concepts/code-generation',
     ],
     'API Reference': ['api/createApi', 'api/fetchBaseQuery', 'api/ApiProvider', 'api/setupListeners'],
     Examples: [
