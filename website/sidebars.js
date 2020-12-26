@@ -12,6 +12,7 @@ module.exports = {
       'concepts/optimistic-updates',
       'concepts/code-splitting',
       'concepts/code-generation',
+      'concepts/customizing-create-api',
     ],
     'API Reference': ['api/createApi', 'api/fetchBaseQuery', 'api/ApiProvider', 'api/setupListeners'],
     Examples: [

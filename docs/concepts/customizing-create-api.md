@@ -9,7 +9,7 @@ hide_title: true
 
 Currently, RTK Query includes two variants of `createApi`:
 
-- `createPureApi` which contains only the basic redux logic (the core module)
+- `createBaseApi` which contains only the basic redux logic (the core module)
 - `createApi` which contains both the core and react-hooks modules
 
 You can create your own versions of `createApi` by either specifying non-default options for the modules or by adding your own modules.

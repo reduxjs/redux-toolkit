@@ -1,6 +1,7 @@
 import { configureStore, EnhancedStore } from '@reduxjs/toolkit';
 import { counterApi } from './services/counter';
 import { Readable, readable, writable } from 'svelte/store';
+import { setupListeners } from '@rtk-incubator/rtk-query';
 
 const reduxStore = configureStore({
     reducer: {
@@ -28,6 +29,8 @@ const bindReduxStore = <T extends EnhancedStore<any, any, any>>(
         dispatch: store.dispatch,
     };
 };
+
+setupListeners(reduxStore.dispatch);
 
 export const store = bindReduxStore(reduxStore);
 

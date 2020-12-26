@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery, retry } from '@rtk-incubator/rtk-query';
+import { createBaseApi, fetchBaseQuery, retry } from '@rtk-incubator/rtk-query';
 
 interface CountResponse {
     count: number;
@@ -9,7 +9,9 @@ const baseQuery = retry(
         baseUrl: '/',
     }),
 );
-export const counterApi = createApi({
+
+// We use createBaseApi here as it is only the core and does not include any React-related code (such as hooks)
+export const counterApi = createBaseApi({
     reducerPath: 'counterApi',
     baseQuery,
     entityTypes: ['Counter'],

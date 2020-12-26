@@ -15,5 +15,5 @@ export { setupListeners } from './core/setupListeners';
 export type { CreateApi, CreateApiOptions } from './createApi';
 export { buildCreateApi } from './createApi';
 
-export { createApi as createPureApi, coreModule } from './core';
+export { createApi as createBaseApi, coreModule } from './core';
 export { createApi, reactHooksModule } from './react-hooks';
