@@ -1,4 +1,4 @@
-import { AnyAction, createSelector, ThunkDispatch } from '@reduxjs/toolkit';
+import { AnyAction, createSelector, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector, batch, shallowEqual } from 'react-redux';
 import {
@@ -143,6 +143,12 @@ const defaultQueryStateSelector: DefaultQueryStateSelector<any> = (currentState,
   return { ...currentState, data, isFetching, isLoading, isSuccess } as UseQueryStateDefaultResult<any>;
 };
 
+type GenericPrefetchThunk = (
+  endpointName: any,
+  arg: any,
+  options: PrefetchOptions
+) => ThunkAction<void, any, any, AnyAction>;
+
 export function buildHooks<Definitions extends EndpointDefinitions>({
   api,
 }: {
@@ -159,7 +165,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
     return useCallback(
       (arg: any, options?: PrefetchOptions) =>
-        dispatch(api.internalActions.prefetchThunk(endpointName, arg, { ...stableDefaultOptions, ...options })),
+        dispatch(
+          (api.util.prefetchThunk as GenericPrefetchThunk)(endpointName, arg, { ...stableDefaultOptions, ...options })
+        ),
       [endpointName, dispatch, stableDefaultOptions]
     );
   }

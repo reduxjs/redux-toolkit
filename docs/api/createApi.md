@@ -385,31 +385,12 @@ These may change at any given time and are not part of the public API for now
 - `removeQueryResult: ActionCreatorWithPayload<{ queryCacheKey: QueryCacheKey }, string>`
 - `unsubscribeQueryResult: ActionCreatorWithPayload<{ queryCacheKey: QueryCacheKey, requestId: string }, string>`,
 - `unsubscribeMutationResult: ActionCreatorWithPayload<MutationSubstateIdentifier, string>`,
-- `prefetchThunk(endpointName, args, options: PrefetchOptions) => ThunkAction<void, any, any, AnyAction>`
 
 ### `util`
 
-Both of these utils are currently used for [optimistic updates](../concepts/optimistic-updates).
-
-- **patchQueryResult**
-
-  ```ts
-  <EndpointName extends QueryKeys<Definitions>>(
-    endpointName: EndpointName,
-    args: QueryArgFrom<Definitions[EndpointName]>,
-    patches: Patch[]
-  ) => ThunkAction<void, PartialState, any, AnyAction>
-  ```
-
-- **updateQueryResult**
-
-  ```ts
-  <EndpointName extends QueryKeys<Definitions>>(
-    endpointName: EndpointName,
-    args: QueryArgFrom<Definitions[EndpointName]>,
-    updateRecicpe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>
-  ) => ThunkAction<PatchCollection, PartialState, any, AnyAction>
-  ```
+- **prefetchThunk** - used for [prefetching](../concepts/prefetching).
+- **patchQueryResult** - used for [optimistic updates](../concepts/optimistic-updates).
+- **updateQueryResult** - used for [optimistic updates](../concepts/optimistic-updates).
 
 ### `injectEndpoints`
 

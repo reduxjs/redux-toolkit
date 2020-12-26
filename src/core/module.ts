@@ -43,6 +43,11 @@ declare module '../apiTypes' {
       reducer: Reducer<CombinedState<Definitions, EntityTypes, ReducerPath>, AnyAction>;
       middleware: Middleware<{}, RootState<Definitions, string, ReducerPath>, ThunkDispatch<any, any, AnyAction>>;
       util: {
+        prefetchThunk<EndpointName extends QueryKeys<EndpointDefinitions>>(
+          endpointName: EndpointName,
+          arg: QueryArgFrom<Definitions[EndpointName]>,
+          options: PrefetchOptions
+        ): ThunkAction<void, any, any, AnyAction>;
         updateQueryResult: UpdateQueryResultThunk<Definitions, RootState<Definitions, string, ReducerPath>>;
         patchQueryResult: PatchQueryResultThunk<Definitions, RootState<Definitions, string, ReducerPath>>;
       };
@@ -78,8 +83,6 @@ export interface ApiEndpointMutation<
 > {}
 
 export type InternalActions = SliceActions & {
-  prefetchThunk: (endpointName: any, arg: any, options: PrefetchOptions) => ThunkAction<void, any, any, AnyAction>;
-} & {
   /**
    * Will cause the RTK Query middleware to trigger any refetchOnReconnect-related behavior
    * @link https://rtk-query-docs.netlify.app/api/setupListeners
@@ -157,8 +160,8 @@ export const coreModule: Module<CoreModule> = {
       config: { refetchOnFocus, refetchOnReconnect, refetchOnMountOrArgChange, keepUnusedDataFor, reducerPath },
     });
 
-    safeAssign(api.util, { patchQueryResult, updateQueryResult });
-    safeAssign(api.internalActions, sliceActions, { prefetchThunk: prefetchThunk as any });
+    safeAssign(api.util, { patchQueryResult, updateQueryResult, prefetchThunk });
+    safeAssign(api.internalActions, sliceActions);
 
     const { middleware } = buildMiddleware({
       reducerPath,
