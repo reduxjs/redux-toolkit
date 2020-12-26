@@ -7,7 +7,7 @@
   "homepage": "https://github.com/rtk-incubator/rtk-query-codegen",
   "repository": "https://github.com/rtk-incubator/rtk-query-codegen.git",
   "bin": {
-    "rtk-query-codegen-openapi": "./lib/bin0.1.1-0/cli.js"
+    "rtk-query-codegen-openapi": "./lib/bin/cli.js"
   },
   "scripts": {
     "build": "tsc",
