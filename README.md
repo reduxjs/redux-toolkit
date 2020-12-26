@@ -33,4 +33,4 @@ npx @rtk-incubator/rtk-query-codegen-openapi petstore.json > petstore-api.genera
 
 ### Documentation
 
-[View the RTK Query Code Generation docs](https://rtk-query-docs.netlify.app/concepts/codegen)
+[View the RTK Query Code Generation docs](https://rtk-query-docs.netlify.app/concepts/code-generation)
