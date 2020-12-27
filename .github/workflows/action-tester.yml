@@ -1,0 +1,25 @@
+name: Action Tester
+
+on:
+  pull_request:
+    branches: [next]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: make files
+        run: |
+          mkdir -p tester
+          echo -e "hello\nworld" >> tester/helloworld.txt
+      - name: GitHub Pages
+        uses: crazy-max/ghaction-github-pages@v2.0.1
+        with:
+          build_dir: tester
+          target_branch: next
+          keep_history: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
