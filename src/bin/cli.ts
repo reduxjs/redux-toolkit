@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 
-import path = require('path')
-import program = require('commander')
+import path = require('path');
+import program = require('commander');
+import * as fs from 'fs';
 
 // tslint:disable-next-line
-const meta = require('../../package.json')
-import { generateApi, GenerationOptions } from '../generate'
+const meta = require('../../package.json');
+import { generateApi } from '../generate';
+import { GenerationOptions } from '../types';
+import { isValidUrl, prettify } from '../utils';
 
 program
   .version(meta.version)
@@ -16,12 +19,16 @@ program
   .option('--argSuffix <name>', 'pass arg suffix')
   .option('--responseSuffix <name>', 'pass response suffix')
   .option('--baseUrl <url>', 'pass baseUrl')
-  .parse(process.argv)
+  .option('-h, --hooks', 'generate React Hooks')
+  .option('--file <filename>', 'output file name (ex: generated.api.ts)')
+  .parse(process.argv);
 
 if (program.args.length === 0) {
-  program.help()
+  program.help();
 } else {
-  const schemaAbsPath = path.resolve(process.cwd(), program.args[0])
+  const schemaLocation = program.args[0];
+
+  const schemaAbsPath = isValidUrl(schemaLocation) ? schemaLocation : path.resolve(process.cwd(), schemaLocation);
 
   const options = [
     'exportName',
@@ -29,12 +36,27 @@ if (program.args.length === 0) {
     'baseQuery',
     'argSuffix',
     'responseSuffix',
-    'baseUrl'
-  ] as const
+    'baseUrl',
+    'hooks',
+    'file',
+  ] as const;
 
-  const generateApiOptions = options.reduce((s, key) => program[key] ? ({
-    ...s,
-    [key]: program[key]
-  }) : s, {} as GenerationOptions);
-  generateApi(schemaAbsPath, generateApiOptions).then(sourceCode => console.log(sourceCode))
+  const generateApiOptions = options.reduce(
+    (s, key) =>
+      program[key]
+        ? {
+            ...s,
+            [key]: program[key],
+          }
+        : s,
+    {} as GenerationOptions
+  );
+  generateApi(schemaAbsPath, generateApiOptions).then(async (sourceCode) => {
+    const outputFile = program['file'];
+    if (outputFile) {
+      fs.writeFileSync(`${process.cwd()}/${outputFile}`, await prettify(outputFile, sourceCode));
+    } else {
+      console.log(await prettify(null, sourceCode));
+    }
+  });
 }

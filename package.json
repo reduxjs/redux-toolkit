@@ -11,13 +11,18 @@
   },
   "scripts": {
     "build": "tsc",
-    "prepare": "npm run build && chmod +x ./lib/bin/cli.js"
+    "prepare": "npm run build && chmod +x ./lib/bin/cli.js",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "devDependencies": {
-    "@rtk-incubator/rtk-query": "^0.1.0",
+    "@rtk-incubator/rtk-query": "^0.2.0",
     "@types/commander": "^2.12.2",
     "@types/lodash": "^4.14.165",
     "@types/node": "^14.14.12",
+    "@types/prettier": "^2.1.6",
+    "husky": "^4.3.6",
+    "prettier": "^2.2.1",
+    "pretty-quick": "^3.1.0",
     "ts-node": "^9.1.0",
     "yalc": "^1.0.0-pre.47"
   },
@@ -28,5 +33,10 @@
     "swagger2openapi": "^7.0.4",
     "ts-morph": "^9.1.0",
     "typescript": "^4.1.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
   }
 }
