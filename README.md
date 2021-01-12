@@ -17,9 +17,18 @@ This is a utility library meant to be used with [RTK Query](https://rtk-query-do
 
 ### Usage
 
+By default, running the CLI will only log the output to the terminal. You can either pipe this output to a new file, or you can specify an output file via CLI args.
+
+#### Piping to a file (including react hooks generation)
+
 ```bash
-curl -o petstore.json https://petstore3.swagger.io/api/v3/openapi.json
-npx @rtk-incubator/rtk-query-codegen-openapi petstore.json > petstore-api.generated.ts
+npx @rtk-incubator/rtk-query-codegen-openapi --hooks https://petstore3.swagger.io/api/v3/openapi.json > petstore-api.generated.ts
+```
+
+#### Specifying an output file (including react hooks generation)
+
+```bash
+npx @rtk-incubator/rtk-query-codegen-openapi --file generated.api.ts --hooks https://petstore3.swagger.io/api/v3/openapi.json
 ```
 
 ### CLI Options
@@ -30,6 +39,8 @@ npx @rtk-incubator/rtk-query-codegen-openapi petstore.json > petstore-api.genera
 - `--argSuffix <name>` - change the suffix of the args (default: `ApiArg`)
 - `--responseSuffix <name>` - change the suffix of the args (default: `ApiResponse`)
 - `--baseUrl <url>` - set the `baseUrl`
+- `--hooks` - include React Hooks in the output (ex: `export const { useGetModelQuery, useUpdateModelMutation } = api`)
+- `--file <filename>` - specify a filename to output to (ex: `./generated.api.ts`)
 
 ### Documentation
 

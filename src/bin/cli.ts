@@ -1,8 +1,7 @@
-#!/usr/bin/env node
-
-import path = require('path');
-import program = require('commander');
+import * as path from 'path';
 import * as fs from 'fs';
+import program from 'commander';
+import chalk from 'chalk';
 
 // tslint:disable-next-line
 const meta = require('../../package.json');
@@ -51,12 +50,14 @@ if (program.args.length === 0) {
         : s,
     {} as GenerationOptions
   );
-  generateApi(schemaAbsPath, generateApiOptions).then(async (sourceCode) => {
-    const outputFile = program['file'];
-    if (outputFile) {
-      fs.writeFileSync(`${process.cwd()}/${outputFile}`, await prettify(outputFile, sourceCode));
-    } else {
-      console.log(await prettify(null, sourceCode));
-    }
-  });
+  generateApi(schemaAbsPath, generateApiOptions)
+    .then(async (sourceCode) => {
+      const outputFile = program['file'];
+      if (outputFile) {
+        fs.writeFileSync(`${process.cwd()}/${outputFile}`, await prettify(outputFile, sourceCode));
+      } else {
+        console.log(await prettify(null, sourceCode));
+      }
+    })
+    .catch((err) => console.error(err));
 }

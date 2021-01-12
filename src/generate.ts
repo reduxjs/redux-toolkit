@@ -1,16 +1,18 @@
 import * as ts from 'typescript';
+import * as fs from 'fs';
+import chalk from 'chalk';
 import { camelCase } from 'lodash';
 import ApiGenerator, {
   getOperationName,
-  supportDeepObjects,
   getReferenceName,
   isReference,
+  supportDeepObjects,
 } from 'oazapfts/lib/codegen/generate';
-import { OpenAPIV3 } from 'openapi-types';
 import { createQuestionToken, keywordType } from 'oazapfts/lib/codegen/tscodegen';
+import { OpenAPIV3 } from 'openapi-types';
 import { generateReactHooks } from './generators/react-hooks';
-import { capitalize, getOperationDefinitions, getV3Doc, isQuery } from './utils';
 import { GenerationOptions, OperationDefinition } from './types';
+import { capitalize, getOperationDefinitions, getV3Doc, isQuery, MESSAGES } from './utils';
 
 const { factory } = ts;
 
@@ -18,6 +20,9 @@ function defaultIsDataResponse(code: string) {
   const parsedCode = Number(code);
   return !Number.isNaN(parsedCode) && parsedCode >= 200 && parsedCode < 300;
 }
+
+let customBaseQueryNode: ts.ImportDeclaration | undefined;
+let baseQueryFn: string, filePath: string;
 
 export async function generateApi(
   spec: string,
@@ -60,14 +65,91 @@ export async function generateApi(
     return declaration;
   }
 
-  return printer.printNode(
+  /**
+   * --baseQuery handling
+   * 1. If baseQuery is specified, we confirm that the file exists
+   * 2. If there is a seperator in the path, file presence + named function existence is verified.
+   * 3. If there is a not a seperator, file presence + default export existence is verified.
+   */
+
+  function fnExportExists(path: string, fnName: string) {
+    const fileName = `${process.cwd()}/${path}`;
+
+    const sourceFile = ts.createSourceFile(
+      fileName,
+      fs.readFileSync(fileName).toString(),
+      ts.ScriptTarget.ES2015,
+      /*setParentNodes */ true
+    );
+
+    let found = false;
+
+    ts.forEachChild(sourceFile, (node) => {
+      const text = node.getText();
+      if (ts.isExportAssignment(node)) {
+        if (text.includes(fnName)) {
+          found = true;
+        }
+      } else if (ts.isVariableStatement(node) || ts.isFunctionDeclaration(node) || ts.isExportDeclaration(node)) {
+        if (text.includes(fnName) && text.includes('export')) {
+          found = true;
+        }
+      } else if (ts.isExportAssignment(node)) {
+        if (text.includes(`export ${fnName}`)) {
+          found = true;
+        }
+      }
+    });
+
+    return found;
+  }
+
+  // If a baseQuery was specified as an arg, we try to parse and resolve it. If not, fallback to `fetchBaseQuery` or throw when appropriate.
+  if (baseQuery !== 'fetchBaseQuery') {
+    if (baseQuery.includes(':')) {
+      // User specified a named function
+      [filePath, baseQueryFn] = baseQuery.split(':');
+
+      if (!baseQueryFn || !fnExportExists(filePath, baseQueryFn)) {
+        throw new Error(MESSAGES.NAMED_EXPORT_MISSING);
+      } else if (!fs.existsSync(filePath)) {
+        throw new Error(MESSAGES.FILE_NOT_FOUND);
+      }
+
+      customBaseQueryNode = generateImportNode(filePath, {
+        [baseQueryFn]: baseQueryFn,
+      });
+    } else {
+      filePath = baseQuery;
+      baseQueryFn = 'fetchBaseQuery';
+
+      if (!fs.existsSync(filePath)) {
+        throw new Error(MESSAGES.FILE_NOT_FOUND);
+      } else if (!fnExportExists(filePath, 'default')) {
+        throw new Error(MESSAGES.DEFAULT_EXPORT_MISSING);
+      }
+
+      console.warn(chalk`
+        {yellow.bold A custom baseQuery was specified without a named function. We're going to import the default as {underline customBaseQuery}}
+        `);
+
+      baseQueryFn = 'customBaseQuery';
+
+      customBaseQueryNode = generateImportNode(filePath, {
+        default: baseQueryFn,
+      });
+    }
+  }
+
+  const sourceCode = printer.printNode(
     ts.EmitHint.Unspecified,
     factory.createSourceFile(
       [
         generateImportNode('@rtk-incubator/rtk-query', {
           createApi: 'createApi',
-          fetchBaseQuery: 'fetchBaseQuery',
+          ...(baseQuery === 'fetchBaseQuery' ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
         }),
+        ...(customBaseQueryNode ? [customBaseQueryNode] : []),
         generateCreateApiCall(),
         ...Object.values(interfaces),
         ...apiGen['aliases'],
@@ -79,6 +161,8 @@ export async function generateApi(
     resultFile
   );
 
+  return sourceCode;
+
   function generateImportNode(pkg: string, namedImports: Record<string, string>, defaultImportName?: string) {
     return factory.createImportDeclaration(
       undefined,
@@ -87,12 +171,14 @@ export async function generateApi(
         false,
         defaultImportName !== undefined ? factory.createIdentifier(defaultImportName) : undefined,
         factory.createNamedImports(
-          Object.entries(namedImports).map(([propertyName, name]) =>
-            factory.createImportSpecifier(
-              name === propertyName ? undefined : factory.createIdentifier(propertyName),
-              factory.createIdentifier(name)
+          Object.entries(namedImports)
+            .filter((args) => args[1])
+            .map(([propertyName, name]) =>
+              factory.createImportSpecifier(
+                name === propertyName ? undefined : factory.createIdentifier(propertyName),
+                factory.createIdentifier(name as string)
+              )
             )
-          )
         )
       ),
       factory.createStringLiteral(pkg)
@@ -119,7 +205,7 @@ export async function generateApi(
                       ),
                   factory.createPropertyAssignment(
                     factory.createIdentifier('baseQuery'),
-                    factory.createCallExpression(factory.createIdentifier(baseQuery), undefined, [
+                    factory.createCallExpression(factory.createIdentifier(baseQueryFn || baseQuery), undefined, [
                       factory.createObjectLiteralExpression(
                         [
                           factory.createPropertyAssignment(
@@ -355,17 +441,19 @@ export async function generateApi(
     return factory.createArrowFunction(
       undefined,
       undefined,
-      [
-        factory.createParameterDeclaration(
-          undefined,
-          undefined,
-          undefined,
-          rootObject,
-          undefined,
-          undefined,
-          undefined
-        ),
-      ],
+      Object.keys(queryArg).length
+        ? [
+            factory.createParameterDeclaration(
+              undefined,
+              undefined,
+              undefined,
+              rootObject,
+              undefined,
+              undefined,
+              undefined
+            ),
+          ]
+        : [],
       undefined,
       factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
       factory.createParenthesizedExpression(

@@ -3,27 +3,20 @@ export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/api/v3' }),
   entityTypes: [],
   endpoints: (build) => ({
+    getHealthcheck: build.query<GetHealthcheckApiResponse, GetHealthcheckApiArg>({
+      query: () => ({ url: `/healthcheck` }),
+    }),
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
       query: (queryArg) => ({ url: `/pet`, method: 'PUT', body: queryArg.pet }),
     }),
     addPet: build.mutation<AddPetApiResponse, AddPetApiArg>({
-      query: (queryArg) => ({
-        url: `/pet`,
-        method: 'POST',
-        body: queryArg.pet,
-      }),
+      query: (queryArg) => ({ url: `/pet`, method: 'POST', body: queryArg.pet }),
     }),
     findPetsByStatus: build.query<FindPetsByStatusApiResponse, FindPetsByStatusApiArg>({
-      query: (queryArg) => ({
-        url: `/pet/findByStatus`,
-        params: { status: queryArg.status },
-      }),
+      query: (queryArg) => ({ url: `/pet/findByStatus`, params: { status: queryArg.status } }),
     }),
     findPetsByTags: build.query<FindPetsByTagsApiResponse, FindPetsByTagsApiArg>({
-      query: (queryArg) => ({
-        url: `/pet/findByTags`,
-        params: { tags: queryArg.tags },
-      }),
+      query: (queryArg) => ({ url: `/pet/findByTags`, params: { tags: queryArg.tags } }),
     }),
     getPetById: build.query<GetPetByIdApiResponse, GetPetByIdApiArg>({
       query: (queryArg) => ({ url: `/pet/${queryArg.petId}` }),
@@ -36,11 +29,7 @@ export const api = createApi({
       }),
     }),
     deletePet: build.mutation<DeletePetApiResponse, DeletePetApiArg>({
-      query: (queryArg) => ({
-        url: `/pet/${queryArg.petId}`,
-        method: 'DELETE',
-        headers: { api_key: queryArg.apiKey },
-      }),
+      query: (queryArg) => ({ url: `/pet/${queryArg.petId}`, method: 'DELETE', headers: { api_key: queryArg.apiKey } }),
     }),
     uploadFile: build.mutation<UploadFileApiResponse, UploadFileApiArg>({
       query: (queryArg) => ({
@@ -51,37 +40,22 @@ export const api = createApi({
       }),
     }),
     getInventory: build.query<GetInventoryApiResponse, GetInventoryApiArg>({
-      query: (queryArg) => ({ url: `/store/inventory` }),
+      query: () => ({ url: `/store/inventory` }),
     }),
     placeOrder: build.mutation<PlaceOrderApiResponse, PlaceOrderApiArg>({
-      query: (queryArg) => ({
-        url: `/store/order`,
-        method: 'POST',
-        body: queryArg.order,
-      }),
+      query: (queryArg) => ({ url: `/store/order`, method: 'POST', body: queryArg.order }),
     }),
     getOrderById: build.query<GetOrderByIdApiResponse, GetOrderByIdApiArg>({
       query: (queryArg) => ({ url: `/store/order/${queryArg.orderId}` }),
     }),
     deleteOrder: build.mutation<DeleteOrderApiResponse, DeleteOrderApiArg>({
-      query: (queryArg) => ({
-        url: `/store/order/${queryArg.orderId}`,
-        method: 'DELETE',
-      }),
+      query: (queryArg) => ({ url: `/store/order/${queryArg.orderId}`, method: 'DELETE' }),
     }),
     createUser: build.mutation<CreateUserApiResponse, CreateUserApiArg>({
-      query: (queryArg) => ({
-        url: `/user`,
-        method: 'POST',
-        body: queryArg.user,
-      }),
+      query: (queryArg) => ({ url: `/user`, method: 'POST', body: queryArg.user }),
     }),
     createUsersWithListInput: build.mutation<CreateUsersWithListInputApiResponse, CreateUsersWithListInputApiArg>({
-      query: (queryArg) => ({
-        url: `/user/createWithList`,
-        method: 'POST',
-        body: queryArg.body,
-      }),
+      query: (queryArg) => ({ url: `/user/createWithList`, method: 'POST', body: queryArg.body }),
     }),
     loginUser: build.query<LoginUserApiResponse, LoginUserApiArg>({
       query: (queryArg) => ({
@@ -90,26 +64,23 @@ export const api = createApi({
       }),
     }),
     logoutUser: build.query<LogoutUserApiResponse, LogoutUserApiArg>({
-      query: (queryArg) => ({ url: `/user/logout` }),
+      query: () => ({ url: `/user/logout` }),
     }),
     getUserByName: build.query<GetUserByNameApiResponse, GetUserByNameApiArg>({
       query: (queryArg) => ({ url: `/user/${queryArg.username}` }),
     }),
     updateUser: build.mutation<UpdateUserApiResponse, UpdateUserApiArg>({
-      query: (queryArg) => ({
-        url: `/user/${queryArg.username}`,
-        method: 'PUT',
-        body: queryArg.user,
-      }),
+      query: (queryArg) => ({ url: `/user/${queryArg.username}`, method: 'PUT', body: queryArg.user }),
     }),
     deleteUser: build.mutation<DeleteUserApiResponse, DeleteUserApiArg>({
-      query: (queryArg) => ({
-        url: `/user/${queryArg.username}`,
-        method: 'DELETE',
-      }),
+      query: (queryArg) => ({ url: `/user/${queryArg.username}`, method: 'DELETE' }),
     }),
   }),
 });
+export type GetHealthcheckApiResponse = /** status 200 OK */ {
+  message: string;
+};
+export type GetHealthcheckApiArg = {};
 export type UpdatePetApiResponse = /** status 200 Successful operation */ Pet;
 export type UpdatePetApiArg = {
   /** Update an existent pet in the store */
@@ -251,6 +222,7 @@ export type User = {
   userStatus?: number;
 };
 export const {
+  useGetHealthcheckQuery,
   useUpdatePetMutation,
   useAddPetMutation,
   useFindPetsByStatusQuery,
