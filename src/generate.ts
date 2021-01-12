@@ -59,7 +59,7 @@ export async function generateApi(
   function registerInterface(declaration: ts.InterfaceDeclaration | ts.TypeAliasDeclaration) {
     const name = declaration.name.escapedText.toString();
     if (name in interfaces) {
-      throw new Error('interface/type alias already registered');
+      throw new Error(`interface/type alias ${name} already registered`);
     }
     interfaces[name] = declaration;
     return declaration;
