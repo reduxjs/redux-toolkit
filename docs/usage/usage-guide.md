@@ -619,14 +619,14 @@ A typical implementation might look like:
 const getRepoDetailsStarted = () => ({
   type: "repoDetails/fetchStarted"
 })
-const getRepoDetailsSuccess = (repoDetails) => {
+const getRepoDetailsSuccess = (repoDetails) => ({
   type: "repoDetails/fetchSucceeded",
   payload: repoDetails
-}
-const getRepoDetailsFailed = (error) => {
+})
+const getRepoDetailsFailed = (error) => ({
   type: "repoDetails/fetchFailed",
   error
-}
+})
 const fetchIssuesCount = (org, repo) => async dispatch => {
   dispatch(getRepoDetailsStarted())
   try {
