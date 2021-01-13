@@ -110,7 +110,7 @@ describe('CLI options testing', () => {
     );
 
     expect(result.stdout).not.toContain('fetchBaseQuery');
-    expect(result.stdout).toContain(`import { anotherNamedBaseQuery } from \"test/fixtures/customBaseQuery.ts\"`);
+    expect(result.stdout).toContain(`import { anotherNamedBaseQuery } from \"test/fixtures/customBaseQuery\"`);
 
     const expectedErrors = [MESSAGES.NAMED_EXPORT_MISSING];
 
@@ -125,7 +125,7 @@ describe('CLI options testing', () => {
     );
 
     expect(result.stdout).not.toContain('fetchBaseQuery');
-    expect(result.stdout).toContain(`import { default as customBaseQuery } from \"test/fixtures/customBaseQuery.ts\"`);
+    expect(result.stdout).toContain(`import { default as customBaseQuery } from \"test/fixtures/customBaseQuery\"`);
 
     const expectedErrors = [MESSAGES.NAMED_EXPORT_MISSING];
 

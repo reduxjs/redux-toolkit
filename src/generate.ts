@@ -12,7 +12,7 @@ import { createQuestionToken, keywordType } from 'oazapfts/lib/codegen/tscodegen
 import { OpenAPIV3 } from 'openapi-types';
 import { generateReactHooks } from './generators/react-hooks';
 import { GenerationOptions, OperationDefinition } from './types';
-import { capitalize, getOperationDefinitions, getV3Doc, isQuery, MESSAGES } from './utils';
+import { capitalize, getOperationDefinitions, getV3Doc, isQuery, MESSAGES, stripFileExtension } from './utils';
 
 const { factory } = ts;
 
@@ -116,7 +116,7 @@ export async function generateApi(
         throw new Error(MESSAGES.FILE_NOT_FOUND);
       }
 
-      customBaseQueryNode = generateImportNode(filePath, {
+      customBaseQueryNode = generateImportNode(stripFileExtension(filePath), {
         [baseQueryFn]: baseQueryFn,
       });
     } else {
@@ -135,7 +135,7 @@ export async function generateApi(
 
       baseQueryFn = 'customBaseQuery';
 
-      customBaseQueryNode = generateImportNode(filePath, {
+      customBaseQueryNode = generateImportNode(stripFileExtension(filePath), {
         default: baseQueryFn,
       });
     }
