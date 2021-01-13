@@ -13,6 +13,14 @@ import { OpenAPIV3 } from 'openapi-types';
 import { generateReactHooks } from './generators/react-hooks';
 import { GenerationOptions, OperationDefinition } from './types';
 import { capitalize, getOperationDefinitions, getV3Doc, isQuery, MESSAGES, stripFileExtension } from './utils';
+import { removeUndefined } from './utils/removeUndefined';
+import {
+  generateCreateApiCall,
+  generateImportNode,
+  generateEndpointDefinition,
+  generateStringLiteralArray,
+  ObjectPropertyDefinitions,
+} from './codegen';
 
 const { factory } = ts;
 
@@ -141,6 +149,18 @@ export async function generateApi(
     }
   }
 
+  const baseQueryCall = factory.createCallExpression(factory.createIdentifier(baseQueryFn || baseQuery), undefined, [
+    factory.createObjectLiteralExpression(
+      [
+        factory.createPropertyAssignment(
+          factory.createIdentifier('baseUrl'),
+          factory.createStringLiteral(baseUrl as string)
+        ),
+      ],
+      false
+    ),
+  ]);
+
   const sourceCode = printer.printNode(
     ts.EmitHint.Unspecified,
     factory.createSourceFile(
@@ -150,7 +170,21 @@ export async function generateApi(
           ...(baseQuery === 'fetchBaseQuery' ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
         }),
         ...(customBaseQueryNode ? [customBaseQueryNode] : []),
-        generateCreateApiCall(),
+        generateCreateApiCall({
+          exportName,
+          reducerPath,
+          createApiFn: factory.createIdentifier('createApi'),
+          baseQuery: baseQueryCall,
+          entityTypes: generateEntityTypes({ v3Doc, operationDefinitions }),
+          endpointDefinitions: factory.createObjectLiteralExpression(
+            operationDefinitions.map((operationDefinition) =>
+              generateEndpoint({
+                operationDefinition,
+              })
+            ),
+            true
+          ),
+        }),
         ...Object.values(interfaces),
         ...apiGen['aliases'],
         ...(hooks ? [generateReactHooks({ exportName, operationDefinitions })] : []),
@@ -185,90 +219,8 @@ export async function generateApi(
     );
   }
 
-  function generateCreateApiCall() {
-    return factory.createVariableStatement(
-      [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-      factory.createVariableDeclarationList(
-        [
-          factory.createVariableDeclaration(
-            factory.createIdentifier(exportName),
-            undefined,
-            undefined,
-            factory.createCallExpression(factory.createIdentifier('createApi'), undefined, [
-              factory.createObjectLiteralExpression(
-                [
-                  !reducerPath
-                    ? undefined
-                    : factory.createPropertyAssignment(
-                        factory.createIdentifier('reducerPath'),
-                        factory.createStringLiteral(reducerPath)
-                      ),
-                  factory.createPropertyAssignment(
-                    factory.createIdentifier('baseQuery'),
-                    factory.createCallExpression(factory.createIdentifier(baseQueryFn || baseQuery), undefined, [
-                      factory.createObjectLiteralExpression(
-                        [
-                          factory.createPropertyAssignment(
-                            factory.createIdentifier('baseUrl'),
-                            factory.createStringLiteral(baseUrl as string)
-                          ),
-                        ],
-                        false
-                      ),
-                    ])
-                  ),
-                  factory.createPropertyAssignment(
-                    factory.createIdentifier('entityTypes'),
-                    generateEntityTypes({ v3Doc, operationDefinitions })
-                  ),
-                  factory.createPropertyAssignment(
-                    factory.createIdentifier('endpoints'),
-                    factory.createArrowFunction(
-                      undefined,
-                      undefined,
-                      [
-                        factory.createParameterDeclaration(
-                          undefined,
-                          undefined,
-                          undefined,
-                          factory.createIdentifier('build'),
-                          undefined,
-                          undefined,
-                          undefined
-                        ),
-                      ],
-                      undefined,
-                      factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-                      factory.createParenthesizedExpression(
-                        factory.createObjectLiteralExpression(
-                          operationDefinitions.map((operationDefinition) =>
-                            generateEndpoint({
-                              operationDefinition,
-                            })
-                          ),
-                          true
-                        )
-                      )
-                    )
-                  ),
-                ].filter(removeUndefined),
-                true
-              ),
-            ])
-          ),
-        ],
-        ts.NodeFlags.Const
-      )
-    );
-  }
-
   function generateEntityTypes(_: { operationDefinitions: OperationDefinition[]; v3Doc: OpenAPIV3.Document }) {
-    return factory.createArrayLiteralExpression(
-      [
-        /*factory.createStringLiteral("Posts")*/
-      ],
-      false
-    );
+    return generateStringLiteralArray([]); // TODO
   }
 
   function generateEndpoint({ operationDefinition }: { operationDefinition: OperationDefinition }) {
@@ -390,31 +342,16 @@ export async function generateApi(
       ).name
     );
 
-    return factory.createPropertyAssignment(
-      factory.createIdentifier(getOperationName(verb, path, operation.operationId)),
-
-      factory.createCallExpression(
-        factory.createPropertyAccessExpression(
-          factory.createIdentifier('build'),
-          factory.createIdentifier(_isQuery ? 'query' : 'mutation')
-        ),
-        [ResponseTypeName, QueryArg],
-        [
-          factory.createObjectLiteralExpression(
-            [
-              factory.createPropertyAssignment(
-                factory.createIdentifier('query'),
-                generateQueryFn({ operationDefinition, queryArg })
-              ),
-              ...(_isQuery
-                ? generateQueryEndpointProps({ operationDefinition })
-                : generateMutationEndpointProps({ operationDefinition })),
-            ],
-            true
-          ),
-        ]
-      )
-    );
+    return generateEndpointDefinition({
+      operationName: getOperationName(verb, path, operation.operationId),
+      type: _isQuery ? 'query' : 'mutation',
+      Response: ResponseTypeName,
+      QueryArg,
+      queryFn: generateQueryFn({ operationDefinition, queryArg }),
+      extraEndpointsProps: _isQuery
+        ? generateQueryEndpointProps({ operationDefinition })
+        : generateMutationEndpointProps({ operationDefinition }),
+    });
   }
 
   function generateQueryFn({
@@ -500,84 +437,12 @@ export async function generateApi(
     );
   }
 
-  function generateQueryEndpointProps({ operationDefinition }: { operationDefinition: OperationDefinition }) {
-    return (
-      [] || /* TODO needs implementation - skip for now */ [
-        factory.createPropertyAssignment(
-          factory.createIdentifier('provides'),
-          factory.createArrowFunction(
-            undefined,
-            undefined,
-            [
-              factory.createParameterDeclaration(
-                undefined,
-                undefined,
-                undefined,
-                factory.createIdentifier('_'),
-                undefined,
-                undefined,
-                undefined
-              ),
-              factory.createParameterDeclaration(
-                undefined,
-                undefined,
-                undefined,
-                factory.createIdentifier('id'),
-                undefined,
-                undefined,
-                undefined
-              ),
-            ],
-            undefined,
-            factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-            factory.createArrayLiteralExpression(
-              [
-                factory.createObjectLiteralExpression(
-                  [
-                    factory.createPropertyAssignment(
-                      factory.createIdentifier('type'),
-                      factory.createStringLiteral('Posts')
-                    ),
-                    factory.createShorthandPropertyAssignment(factory.createIdentifier('id'), undefined),
-                  ],
-                  false
-                ),
-              ],
-              false
-            )
-          )
-        ),
-      ]
-    );
+  function generateQueryEndpointProps({}: { operationDefinition: OperationDefinition }): ObjectPropertyDefinitions {
+    return {}; /* TODO needs implementation - skip for now */
   }
 
-  function generateMutationEndpointProps(_: { operationDefinition: OperationDefinition }) {
-    return (
-      [] || /* TODO needs implementation - skip for now */ [
-        factory.createPropertyAssignment(
-          factory.createIdentifier('invalidates'),
-          factory.createArrayLiteralExpression(
-            [
-              factory.createObjectLiteralExpression(
-                [
-                  factory.createPropertyAssignment(
-                    factory.createIdentifier('type'),
-                    factory.createStringLiteral('Posts')
-                  ),
-                  factory.createPropertyAssignment(factory.createIdentifier('id'), factory.createStringLiteral('LIST')),
-                ],
-                false
-              ),
-            ],
-            false
-          )
-        ),
-      ]
-    );
-  }
-
-  function removeUndefined<T>(t: T | undefined): t is T {
-    return typeof t !== 'undefined';
+  function generateMutationEndpointProps({}: { operationDefinition: OperationDefinition }): ObjectPropertyDefinitions {
+    return {}; /* TODO needs implementation - skip for now */
   }
 }
 
