@@ -1,0 +1,7 @@
+{
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "jest.pathToJest": "npm test --",
+  "jest.enableInlineErrorMessages": true,
+  "jest.autoEnable": false,
+  "editor.formatOnSave": true
+}

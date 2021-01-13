@@ -45,6 +45,28 @@
     }
   ],
   "paths": {
+    "/healthcheck": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "I'm health"
+                    }
+                  },
+                  "required": ["message"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/pet": {
       "put": {
         "tags": ["pet"],
