@@ -24,6 +24,10 @@ function cli(args: string[], cwd: string): Promise<{ error: ExecException | null
   });
 }
 
+afterAll(() => {
+  del.sync(`${tmpDir}/*.ts`);
+});
+
 describe('CLI options testing', () => {
   it('should log output to the console when a filename is not specified', async () => {
     const result = await cli([`./test/fixtures/petstore.json`], '.');
@@ -134,14 +138,21 @@ describe('CLI options testing', () => {
   });
 
   it('should create a file when --file is specified', async () => {
-    if (!fs.existsSync(tmpDir)) {
-      fs.mkdirSync(tmpDir);
-    }
-
     await cli([`--file ${GENERATED_FILE_NAME}`, `../fixtures/petstore.json`], tmpDir);
 
     expect(fs.readFileSync(`${tmpDir}/${GENERATED_FILE_NAME}`, { encoding: 'utf-8' })).toMatchSnapshot();
+  });
+});
 
-    del.sync(tmpDir);
+describe('yaml parsing', () => {
+  it('should parse a yaml schema from a URL', async () => {
+    const result = await cli([`https://petstore3.swagger.io/api/v3/openapi.yaml`], '.');
+    expect(result.stdout).toMatchSnapshot();
+  });
+
+  it('should be able to use read a yaml file and create a file with the output when --file is specified', async () => {
+    await cli([`--file ${GENERATED_FILE_NAME}`, `../fixtures/petstore.yaml`], tmpDir);
+
+    expect(fs.readFileSync(`${tmpDir}/${GENERATED_FILE_NAME}`, { encoding: 'utf-8' })).toMatchSnapshot();
   });
 });
