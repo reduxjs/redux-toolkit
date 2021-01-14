@@ -1,7 +1,8 @@
+#!/usr/bin/env node
+
 import * as path from 'path';
 import * as fs from 'fs';
 import program from 'commander';
-import chalk from 'chalk';
 
 // tslint:disable-next-line
 const meta = require('../../package.json');

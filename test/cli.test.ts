@@ -24,6 +24,12 @@ function cli(args: string[], cwd: string): Promise<{ error: ExecException | null
   });
 }
 
+beforeAll(() => {
+  if (!fs.existsSync(tmpDir)) {
+    fs.mkdirSync(tmpDir);
+  }
+});
+
 afterAll(() => {
   del.sync(`${tmpDir}/*.ts`);
 });
