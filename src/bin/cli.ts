@@ -8,7 +8,8 @@ import program from 'commander';
 const meta = require('../../package.json');
 import { generateApi } from '../generate';
 import { GenerationOptions } from '../types';
-import { isValidUrl, prettify } from '../utils';
+import { isValidUrl, MESSAGES, prettify } from '../utils';
+import { getCompilerOptions } from '../utils/getTsConfig';
 
 program
   .version(meta.version)
@@ -20,7 +21,8 @@ program
   .option('--responseSuffix <name>', 'pass response suffix')
   .option('--baseUrl <url>', 'pass baseUrl')
   .option('-h, --hooks', 'generate React Hooks')
-  .option('--file <filename>', 'output file name (ex: generated.api.ts)')
+  .option('-c, --config <path>', 'pass tsconfig path for resolve path alias')
+  .option('-f, --file <filename>', 'output file name (ex: generated.api.ts)')
   .parse(process.argv);
 
 if (program.args.length === 0) {
@@ -39,26 +41,46 @@ if (program.args.length === 0) {
     'baseUrl',
     'hooks',
     'file',
+    'config',
   ] as const;
 
-  const generateApiOptions = options.reduce(
-    (s, key) =>
-      program[key]
-        ? {
-            ...s,
-            [key]: program[key],
-          }
-        : s,
-    {} as GenerationOptions
-  );
+  const outputFile = program['file'];
+  let tsConfigFilePath = program['config'];
+
+  if (tsConfigFilePath) {
+    tsConfigFilePath = path.resolve(tsConfigFilePath);
+    if (!fs.existsSync(tsConfigFilePath)) {
+      throw Error(MESSAGES.TSCONFIG_FILE_NOT_FOUND);
+    }
+  }
+
+  const compilerOptions = getCompilerOptions(tsConfigFilePath);
+
+  const generateApiOptions = {
+    ...options.reduce(
+      (s, key) =>
+        program[key]
+          ? {
+              ...s,
+              [key]: program[key],
+            }
+          : s,
+      {} as GenerationOptions
+    ),
+    outputFile,
+    compilerOptions,
+  };
   generateApi(schemaAbsPath, generateApiOptions)
     .then(async (sourceCode) => {
       const outputFile = program['file'];
       if (outputFile) {
-        fs.writeFileSync(`${process.cwd()}/${outputFile}`, await prettify(outputFile, sourceCode));
+        fs.writeFileSync(path.resolve(process.cwd(), outputFile), await prettify(outputFile, sourceCode));
       } else {
         console.log(await prettify(null, sourceCode));
       }
     })
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      console.error(err);
+      process.exit(1);
+    });
 }
