@@ -1,6 +1,6 @@
 {
   "name": "@rtk-incubator/rtk-query-codegen-openapi",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "main": "index.js",
   "author": "Lenz Weber",
   "license": "MIT",
