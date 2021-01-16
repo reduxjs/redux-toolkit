@@ -26,6 +26,7 @@
     "@babel/preset-typescript": "^7.12.7",
     "@rtk-incubator/rtk-query": "^0.2.0",
     "@types/commander": "^2.12.2",
+    "@types/glob-to-regexp": "^0.4.0",
     "@types/jest": "^26.0.20",
     "@types/lodash": "^4.14.165",
     "@types/node": "^14.14.12",
@@ -44,6 +45,7 @@
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.0.2",
     "commander": "^6.2.0",
+    "glob-to-regexp": "^0.4.1",
     "oazapfts": "npm:@phryneas/experimental-oazapfts@^0.1.1-0",
     "prettier": "^2.2.1",
     "swagger2openapi": "^7.0.4",

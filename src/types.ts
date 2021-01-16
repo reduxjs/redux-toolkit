@@ -1,3 +1,4 @@
+import * as ts from 'typescript';
 import { OpenAPIV3 } from 'openapi-types';
 
 export type OperationDefinition = {
@@ -17,5 +18,7 @@ export type GenerationOptions = {
   responseSuffix?: string;
   baseUrl?: string;
   hooks?: boolean;
+  outputFile?: string;
+  compilerOptions?: ts.CompilerOptions;
   isDataResponse?(code: string, response: OpenAPIV3.ResponseObject, allResponses: OpenAPIV3.ResponsesObject): boolean;
 };

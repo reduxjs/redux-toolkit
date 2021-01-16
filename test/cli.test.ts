@@ -5,8 +5,12 @@ import del from 'del';
 
 import { MESSAGES } from '../src/utils';
 
-const GENERATED_FILE_NAME = `test.generated.ts`;
+let id = 0;
 const tmpDir = 'test/tmp';
+
+function getTmpFileName() {
+  return path.resolve(tmpDir, `${++id}.test.generated.ts`);
+}
 
 function cli(args: string[], cwd: string): Promise<{ error: ExecException | null; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
@@ -79,10 +83,9 @@ describe('CLI options testing', () => {
 
   it('should error out when the specified filename provided to --baseQuery is not found', async () => {
     const result = await cli(
-      ['-h', `--baseQuery test/fixtures/nonExistantFile.ts`, `./test/fixtures/petstore.json`],
+      ['-h', `--baseQuery`, `test/fixtures/nonExistantFile.ts`, `./test/fixtures/petstore.json`],
       '.'
     );
-
     const expectedErrors = [MESSAGES.FILE_NOT_FOUND];
 
     const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;
@@ -91,7 +94,7 @@ describe('CLI options testing', () => {
 
   it('should error out when the specified filename provided to --baseQuery has no default export', async () => {
     const result = await cli(
-      ['-h', `--baseQuery test/fixtures/customBaseQueryWithoutDefault.ts`, `./test/fixtures/petstore.json`],
+      ['-h', `--baseQuery`, `test/fixtures/customBaseQueryWithoutDefault.ts`, `./test/fixtures/petstore.json`],
       '.'
     );
 
@@ -103,7 +106,7 @@ describe('CLI options testing', () => {
 
   it('should error out when the named function provided to --baseQuery is not found', async () => {
     const result = await cli(
-      ['-h', `--baseQuery test/fixtures/customBaseQuery.ts:missingFunctionName`, `./test/fixtures/petstore.json`],
+      ['-h', `--baseQuery`, `test/fixtures/customBaseQuery.ts:missingFunctionName`, `./test/fixtures/petstore.json`],
       '.'
     );
 
@@ -115,7 +118,7 @@ describe('CLI options testing', () => {
 
   it('should not error when a valid named export is provided to --baseQuery', async () => {
     const result = await cli(
-      ['-h', `--baseQuery test/fixtures/customBaseQuery.ts:anotherNamedBaseQuery`, `./test/fixtures/petstore.json`],
+      ['-h', `--baseQuery`, `test/fixtures/customBaseQuery.ts:anotherNamedBaseQuery`, `./test/fixtures/petstore.json`],
       '.'
     );
 
@@ -128,9 +131,34 @@ describe('CLI options testing', () => {
     expect(numberOfErrors).toEqual(0);
   });
 
+  it('should not error when a valid named export is provided to --baseQuery with --file option', async () => {
+    const fileName = getTmpFileName();
+    const result = await cli(
+      [
+        '-h',
+        `--baseQuery`,
+        `test/fixtures/customBaseQuery.ts:anotherNamedBaseQuery`,
+        '--file',
+        fileName,
+        `./test/fixtures/petstore.json`,
+      ],
+      '.'
+    );
+
+    const output = fs.readFileSync(fileName, { encoding: 'utf-8' });
+
+    expect(output).not.toContain('fetchBaseQuery');
+    expect(output).toContain(`import { anotherNamedBaseQuery } from '../fixtures/customBaseQuery'`);
+
+    const expectedErrors = [MESSAGES.NAMED_EXPORT_MISSING];
+
+    const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfErrors).toEqual(0);
+  });
+
   it('should import { default as customBaseQuery } when a file with a default export is provided to --baseQuery', async () => {
     const result = await cli(
-      ['-h', `--baseQuery test/fixtures/customBaseQuery.ts`, `./test/fixtures/petstore.json`],
+      ['-h', `--baseQuery`, `test/fixtures/customBaseQuery.ts`, `./test/fixtures/petstore.json`],
       '.'
     );
 
@@ -143,10 +171,88 @@ describe('CLI options testing', () => {
     expect(numberOfErrors).toEqual(0);
   });
 
-  it('should create a file when --file is specified', async () => {
-    await cli([`--file ${GENERATED_FILE_NAME}`, `../fixtures/petstore.json`], tmpDir);
+  it('should error out when the specified with path alias is not found', async () => {
+    const result = await cli(
+      ['-h', `--baseQuery`, `@/hoge/fuga/nonExistantFile`, `./test/fixtures/petstore.json`],
+      '.'
+    );
+    const expectedErrors = [MESSAGES.FILE_NOT_FOUND];
 
-    expect(fs.readFileSync(`${tmpDir}/${GENERATED_FILE_NAME}`, { encoding: 'utf-8' })).toMatchSnapshot();
+    const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfErrors).toEqual(expectedErrors.length);
+  });
+
+  it('should throw the correct error when a specified tsconfig is not found', async () => {
+    const pathAlias = '@/customBaseQuery';
+    const result = await cli(
+      [
+        '-h',
+        `--baseQuery`,
+        `${pathAlias}:anotherNamedBaseQuery`,
+        '-c',
+        'test/missing/tsconfig.json',
+        `./test/fixtures/petstore.json`,
+      ],
+      '.'
+    );
+
+    const expectedErrors = [MESSAGES.TSCONFIG_FILE_NOT_FOUND];
+
+    const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfErrors).toEqual(expectedErrors.length);
+  });
+
+  it('should work with path alias', async () => {
+    const pathAlias = '@/customBaseQuery';
+    const result = await cli(
+      [
+        '-h',
+        `--baseQuery`,
+        `${pathAlias}:anotherNamedBaseQuery`,
+        '-c',
+        'test/tsconfig.json',
+        `./test/fixtures/petstore.json`,
+      ],
+      '.'
+    );
+
+    expect(result.stdout).not.toContain('fetchBaseQuery');
+    expect(result.stdout).toContain(`import { anotherNamedBaseQuery } from \"${pathAlias}\"`);
+
+    const expectedErrors = [MESSAGES.NAMED_EXPORT_MISSING];
+
+    const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfErrors).toEqual(0);
+  });
+
+  it('should work with path alias with file extension', async () => {
+    const pathAlias = '@/customBaseQuery';
+    const result = await cli(
+      [
+        '-h',
+        `--baseQuery`,
+        `${pathAlias}.ts:anotherNamedBaseQuery`,
+        '-c',
+        'test/tsconfig.json',
+        `./test/fixtures/petstore.json`,
+      ],
+      '.'
+    );
+
+    expect(result.stdout).not.toContain('fetchBaseQuery');
+    expect(result.stdout).toContain(`import { anotherNamedBaseQuery } from \"${pathAlias}\"`);
+
+    const expectedErrors = [MESSAGES.NAMED_EXPORT_MISSING];
+
+    const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfErrors).toEqual(0);
+  });
+
+  it('should create a file when --file is specified', async () => {
+    const fileName = getTmpFileName();
+    await cli([`--file ${fileName}`, `../fixtures/petstore.json`], tmpDir);
+
+    expect(fs.readFileSync(fileName, { encoding: 'utf-8' })).toMatchSnapshot();
   });
 });
 
@@ -157,8 +263,9 @@ describe('yaml parsing', () => {
   });
 
   it('should be able to use read a yaml file and create a file with the output when --file is specified', async () => {
-    await cli([`--file ${GENERATED_FILE_NAME}`, `../fixtures/petstore.yaml`], tmpDir);
+    const fileName = getTmpFileName();
+    await cli([`--file ${fileName}`, `../fixtures/petstore.yaml`], tmpDir);
 
-    expect(fs.readFileSync(`${tmpDir}/${GENERATED_FILE_NAME}`, { encoding: 'utf-8' })).toMatchSnapshot();
+    expect(fs.readFileSync(fileName, { encoding: 'utf-8' })).toMatchSnapshot();
   });
 });

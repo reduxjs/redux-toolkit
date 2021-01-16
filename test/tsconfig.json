@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "paths": {
+      "@/*": ["./test/fixtures/*"]
+    },
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "module": "esnext",

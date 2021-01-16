@@ -1,6 +1,5 @@
 import * as ts from 'typescript';
-import * as fs from 'fs';
-import chalk from 'chalk';
+import * as path from 'path';
 import { camelCase } from 'lodash';
 import ApiGenerator, {
   getOperationName,
@@ -12,15 +11,16 @@ import { createQuestionToken, keywordType } from 'oazapfts/lib/codegen/tscodegen
 import { OpenAPIV3 } from 'openapi-types';
 import { generateReactHooks } from './generators/react-hooks';
 import { GenerationOptions, OperationDefinition } from './types';
-import { capitalize, getOperationDefinitions, getV3Doc, isQuery, MESSAGES, stripFileExtension } from './utils';
+import { capitalize, getOperationDefinitions, getV3Doc, isQuery, MESSAGES } from './utils';
 import { removeUndefined } from './utils/removeUndefined';
 import {
   generateCreateApiCall,
-  generateImportNode,
   generateEndpointDefinition,
   generateStringLiteralArray,
   ObjectPropertyDefinitions,
 } from './codegen';
+import { generateSmartImportNode } from './generators/smart-import-node';
+import { generateImportNode } from './generators/import-node';
 
 const { factory } = ts;
 
@@ -30,7 +30,7 @@ function defaultIsDataResponse(code: string) {
 }
 
 let customBaseQueryNode: ts.ImportDeclaration | undefined;
-let baseQueryFn: string, filePath: string;
+let moduleName: string;
 
 export async function generateApi(
   spec: string,
@@ -42,7 +42,9 @@ export async function generateApi(
     responseSuffix = 'ApiResponse',
     baseUrl,
     hooks,
+    outputFile,
     isDataResponse = defaultIsDataResponse,
+    compilerOptions,
   }: GenerationOptions
 ) {
   const v3Doc = await getV3Doc(spec);
@@ -80,76 +82,37 @@ export async function generateApi(
    * 3. If there is a not a seperator, file presence + default export existence is verified.
    */
 
-  function fnExportExists(path: string, fnName: string) {
-    const fileName = `${process.cwd()}/${path}`;
-
-    const sourceFile = ts.createSourceFile(
-      fileName,
-      fs.readFileSync(fileName).toString(),
-      ts.ScriptTarget.ES2015,
-      /*setParentNodes */ true
-    );
-
-    let found = false;
-
-    ts.forEachChild(sourceFile, (node) => {
-      const text = node.getText();
-      if (ts.isExportAssignment(node)) {
-        if (text.includes(fnName)) {
-          found = true;
-        }
-      } else if (ts.isVariableStatement(node) || ts.isFunctionDeclaration(node) || ts.isExportDeclaration(node)) {
-        if (text.includes(fnName) && text.includes('export')) {
-          found = true;
-        }
-      } else if (ts.isExportAssignment(node)) {
-        if (text.includes(`export ${fnName}`)) {
-          found = true;
-        }
-      }
-    });
-
-    return found;
+  if (outputFile) {
+    outputFile = path.resolve(process.cwd(), outputFile);
   }
 
   // If a baseQuery was specified as an arg, we try to parse and resolve it. If not, fallback to `fetchBaseQuery` or throw when appropriate.
+
+  let targetName = 'default';
   if (baseQuery !== 'fetchBaseQuery') {
     if (baseQuery.includes(':')) {
       // User specified a named function
-      [filePath, baseQueryFn] = baseQuery.split(':');
+      [moduleName, baseQuery] = baseQuery.split(':');
 
-      if (!baseQueryFn || !fnExportExists(filePath, baseQueryFn)) {
+      if (!baseQuery) {
         throw new Error(MESSAGES.NAMED_EXPORT_MISSING);
-      } else if (!fs.existsSync(filePath)) {
-        throw new Error(MESSAGES.FILE_NOT_FOUND);
       }
-
-      customBaseQueryNode = generateImportNode(stripFileExtension(filePath), {
-        [baseQueryFn]: baseQueryFn,
-      });
+      targetName = baseQuery;
     } else {
-      filePath = baseQuery;
-      baseQueryFn = 'fetchBaseQuery';
-
-      if (!fs.existsSync(filePath)) {
-        throw new Error(MESSAGES.FILE_NOT_FOUND);
-      } else if (!fnExportExists(filePath, 'default')) {
-        throw new Error(MESSAGES.DEFAULT_EXPORT_MISSING);
-      }
-
-      console.warn(chalk`
-        {yellow.bold A custom baseQuery was specified without a named function. We're going to import the default as {underline customBaseQuery}}
-        `);
-
-      baseQueryFn = 'customBaseQuery';
-
-      customBaseQueryNode = generateImportNode(stripFileExtension(filePath), {
-        default: baseQueryFn,
-      });
+      moduleName = baseQuery;
+      baseQuery = 'customBaseQuery';
     }
+
+    customBaseQueryNode = generateSmartImportNode({
+      moduleName,
+      containingFile: outputFile,
+      targetName,
+      targetAlias: baseQuery,
+      compilerOptions,
+    });
   }
 
-  const baseQueryCall = factory.createCallExpression(factory.createIdentifier(baseQueryFn || baseQuery), undefined, [
+  const baseQueryCall = factory.createCallExpression(factory.createIdentifier(baseQuery), undefined, [
     factory.createObjectLiteralExpression(
       [
         factory.createPropertyAssignment(
@@ -196,28 +159,6 @@ export async function generateApi(
   );
 
   return sourceCode;
-
-  function generateImportNode(pkg: string, namedImports: Record<string, string>, defaultImportName?: string) {
-    return factory.createImportDeclaration(
-      undefined,
-      undefined,
-      factory.createImportClause(
-        false,
-        defaultImportName !== undefined ? factory.createIdentifier(defaultImportName) : undefined,
-        factory.createNamedImports(
-          Object.entries(namedImports)
-            .filter((args) => args[1])
-            .map(([propertyName, name]) =>
-              factory.createImportSpecifier(
-                name === propertyName ? undefined : factory.createIdentifier(propertyName),
-                factory.createIdentifier(name as string)
-              )
-            )
-        )
-      ),
-      factory.createStringLiteral(pkg)
-    );
-  }
 
   function generateEntityTypes(_: { operationDefinitions: OperationDefinition[]; v3Doc: OpenAPIV3.Document }) {
     return generateStringLiteralArray([]); // TODO
