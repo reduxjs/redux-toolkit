@@ -1,6 +1,6 @@
 /**
  * Returns true if the passed value is "plain" object, i.e. an object whose
- * protoype is the root `Object.prototype`. This includes objects created
+ * prototype is the root `Object.prototype`. This includes objects created
  * using object literals, but not for instance for class instances.
  *
  * @param {any} value The value to inspect.
