@@ -109,7 +109,7 @@ Note that this only works for one level of reducers. If you want to nest reducer
 If you need to customize the store setup, you can pass additional options. Here's what the hot reloading example might look like using Redux Toolkit:
 
 ```js
-import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
 
 import monitorReducersEnhancer from './enhancers/monitorReducers'
 import loggerMiddleware from './middleware/logger'
@@ -118,7 +118,8 @@ import rootReducer from './reducers'
 export default function configureAppStore(preloadedState) {
   const store = configureStore({
     reducer: rootReducer,
-    middleware: [loggerMiddleware, ...getDefaultMiddleware()],
+    middleware: getDefaultMiddleware =>
+      getDefaultMiddleware().concat(loggerMiddleware),
     preloadedState,
     enhancers: [monitorReducersEnhancer]
   })
@@ -1106,7 +1107,7 @@ RRF includes timestamp values in most actions and state as of 3.x, but there are
 A possible configuration to work with that behavior could look like:
 
 ```ts
-import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
 import {
   getFirebase,
   actionTypes as rrfActionTypes
@@ -1114,33 +1115,28 @@ import {
 import { constants as rfConstants } from 'redux-firestore'
 import rootReducer from './rootReducer'
 
-const extraArgument = {
-  getFirebase
-}
-
-const middleware = [
-  ...getDefaultMiddleware({
-    serializableCheck: {
-      ignoredActions: [
-        // just ignore every redux-firebase and react-redux-firebase action type
-        ...Object.keys(rfConstants.actionTypes).map(
-          type => `${rfConstants.actionsPrefix}/${type}`
-        ),
-        ...Object.keys(rrfActionTypes).map(
-          type => `@@reactReduxFirebase/${type}`
-        )
-      ],
-      ignoredPaths: ['firebase', 'firestore']
-    },
-    thunk: {
-      extraArgument
-    }
-  })
-]
-
 const store = configureStore({
   reducer: rootReducer,
-  middleware
+  middleware: getDefaultMiddleware =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: [
+          // just ignore every redux-firebase and react-redux-firebase action type
+          ...Object.keys(rfConstants.actionTypes).map(
+            type => `${rfConstants.actionsPrefix}/${type}`
+          ),
+          ...Object.keys(rrfActionTypes).map(
+            type => `@@reactReduxFirebase/${type}`
+          )
+        ],
+        ignoredPaths: ['firebase', 'firestore']
+      },
+      thunk: {
+        extraArgument: {
+          getFirebase
+        }
+      }
+    })
 })
 
 export default store
