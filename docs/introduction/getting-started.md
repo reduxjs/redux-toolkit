@@ -1,11 +1,11 @@
 ---
-id: quick-start
-title: Quick Start
-sidebar_label: Quick Start
+id: getting-started
+title: Getting Started
+sidebar_label: Getting Started
 hide_title: true
 ---
 
-# Quick Start
+# Getting Started with Redux
 
 ## Purpose
 

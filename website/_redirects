@@ -1,7 +1,10 @@
 
 /docs/*          /:splat
 
-
+# Deleted old tutorials
 /tutorials/basic-tutorial           /tutorials/overview
 /tutorials/intermediate-tutorial    /tutorials/overview
 /tutorials/advanced-tutorial        /tutorials/overview
+
+# Renamed start page
+/introduction/quick-start           /introduction/getting-started

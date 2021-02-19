@@ -4,7 +4,7 @@
       "type": "category",
       "label": "Introduction",
       "collapsed": false,
-      "items": ["introduction/quick-start"]
+      "items": ["introduction/getting-started"]
     },
     {
       "type": "category",

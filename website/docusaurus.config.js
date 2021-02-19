@@ -87,8 +87,8 @@ module.exports = {
       },
       items: [
         {
-          to: 'introduction/quick-start',
-          label: 'Quick Start',
+          to: 'introduction/getting-started',
+          label: 'Getting Started',
           position: 'right'
         },
         { to: 'tutorials/overview', label: 'Tutorials', position: 'right' },
@@ -112,8 +112,8 @@ module.exports = {
           title: 'Docs',
           items: [
             {
-              label: 'Quick Start',
-              to: 'introduction/quick-start'
+              label: 'Getting Started',
+              to: 'introduction/getting-started'
             },
             {
               label: 'Tutorials',
