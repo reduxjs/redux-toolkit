@@ -12,11 +12,17 @@ hide_title: true
 
 :::tip
 
-To avoid duplicating explanations between the Redux core and Redux Toolkit documentation, we've focused on making the Redux core docs tutorials comprehensive, and point to them instead of having additional tutorials here in the Redux Toolkit docs.
+To avoid duplicating explanations between the Redux core and Redux Toolkit documentation, we've focused on making the Redux core docs tutorials comprehensive, and point to them instead of having extended tutorials here in the Redux Toolkit docs.
 
 :::
 
 See these linked tutorials to learn how to use Redux Toolkit effectively.
+
+## Redux Toolkit Quick Start
+
+The [**Redux Toolkit Quick Start tutorial**](./quick-start.md) briefly shows how to add and use Redux Toolkit in a React application.
+
+**If you just want the fastest way to get a basic example running, read the Quick Start tutorial.**
 
 ## Redux Essentials: A Real-World Example
 
