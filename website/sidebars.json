@@ -3,15 +3,15 @@
     {
       "type": "category",
       "label": "Introduction",
+      "collapsed": false,
       "items": ["introduction/quick-start"]
     },
     {
       "type": "category",
       "label": "Tutorials",
+      "collapsed": false,
       "items": [
-        "tutorials/basic-tutorial",
-        "tutorials/intermediate-tutorial",
-        "tutorials/advanced-tutorial"
+        "tutorials/tutorials-overview"
       ]
     },
     {

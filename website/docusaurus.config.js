@@ -91,6 +91,8 @@ module.exports = {
           label: 'Quick Start',
           position: 'right'
         },
+        { to: 'tutorials/overview', label: 'Tutorials', position: 'right' },
+        { to: 'usage/usage-guide', label: 'Usage Guide', position: 'right' },
         { to: 'api/configureStore', label: 'API', position: 'right' },
         {
           href: 'https://github.com/reduxjs/redux-toolkit',
@@ -112,6 +114,14 @@ module.exports = {
             {
               label: 'Quick Start',
               to: 'introduction/quick-start'
+            },
+            {
+              label: 'Tutorials',
+              to: 'tutorials/overview'
+            },
+            {
+              label: 'Usage Guide',
+              to: 'usage/usage-guide'
             },
             {
               label: 'API Reference',
@@ -155,26 +165,6 @@ module.exports = {
       copyright: `Copyright © 2015–${new Date().getFullYear()} Dan Abramov and the Redux documentation authors.`
     },
     image: 'img/redux-logo-landscape.png',
-    navbar: {
-      title: 'Redux Toolkit',
-      logo: {
-        alt: 'Redux Logo',
-        src: 'img/redux.svg'
-      },
-      items: [
-        {
-          to: 'introduction/quick-start',
-          label: 'Quick Start',
-          position: 'right'
-        },
-        { to: 'api/configureStore', label: 'API', position: 'right' },
-        {
-          href: 'https://github.com/reduxjs/redux-toolkit',
-          label: 'GitHub',
-          position: 'right'
-        }
-      ]
-    },
     algolia: {
       apiKey: '82d838443b672336bf63cab4772d9eb4',
       indexName: 'redux-starter-kit',

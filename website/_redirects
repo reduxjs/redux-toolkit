@@ -1,2 +1,7 @@
 
 /docs/*          /:splat
+
+
+/tutorials/basic-tutorial           /tutorials/overview
+/tutorials/intermediate-tutorial    /tutorials/overview
+/tutorials/advanced-tutorial        /tutorials/overview
