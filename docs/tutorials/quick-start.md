@@ -9,7 +9,7 @@ hide_title: true
 
 :::tip What You'll Learn
 
-- How to set up and use Redux Toolkit
+- How to set up and use Redux Toolkit with React-Redux
 
 :::
 
@@ -30,6 +30,8 @@ Welcome to the Redux Toolkit Quick Start tutorial! **This tutorial will briefly 
 This page will focus on just how to set up a Redux application with Redux Toolkit and the main APIs you'll use. For explanations of what Redux is, how it works, and full examples of how to use Redux Toolkit, [see the tutorials linked in the "Tutorials Overview" page](./overview.md).
 
 For this tutorial, we assume that you're using Redux Toolkit with React, but you can also use it with other UI layers as well. The examples are based on [a typical Create-React-App folder structure](https://create-react-app.dev/docs/folder-structure) where all the application code is in a `src`, but the patterns can be adapted to whatever project or folder setup you're using.
+
+The [Redux+JS template for Create-React-App](https://github.com/reduxjs/cra-template-redux) comes with this same project setup already configured.
 
 ## Usage Summary
 
@@ -145,7 +147,7 @@ import { decrement, increment } from './counterSlice'
 import styles from './Counter.module.css'
 
 export function Counter() {
-  const count = useSelector(state => state.counter)
+  const count = useSelector(state => state.counter.value)
   const dispatch = useDispatch()
 
   return (
@@ -199,6 +201,8 @@ That was a brief overview of how to set up and use Redux Toolkit with React. Rec
 :::
 
 ### Full Counter App Example
+
+The counter example app shown here is also the
 
 Here's the complete counter application as a running CodeSandbox:
 

@@ -7,73 +7,29 @@ hide_title: true
 
 # Usage With TypeScript
 
+:::tip What You'll Learn
+
+- Details on how to use each Redux Toolkit API with TypeScript
+
+:::
+
+## Introduction
+
 Redux Toolkit is written in TypeScript, and its API is designed to enable great integration with TypeScript applications.
 
-The first part of this page is intended to give you an overview over how to do a basic setup that every application requires. The second part goes into the specifics of the different APIs included in Redux Toolkit and how to type them correctly.
+This page provides specific details for each of the different APIs included in Redux Toolkit and how to type them correctly with TypeScript.
 
-**If you encounter any problems with the types that are not described on this page, please open an issue for discussion.**
+**See the [TypeScript Quick Start tutorial page](../tutorials/typescript.md) for a brief overview of how to set up and use Redux Toolkit and React-Redux to work with TypeScript**.
 
-## Basic Project Setup
+:::info
 
-Using [configureStore](../api/configureStore.mdx) should not need any additional typings. You will, however, want to extract the `RootState` type and the `Dispatch` type so that they can be referenced as needed. Inferring these types from the store itself means that they correctly update as you add more state slices or modify middleware settings.
+If you encounter any problems with the types that are not described on this page, please [open an issue](https://github.com/reduxjs/redux-toolkit/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc) for discussion.
 
-Since those are types, it's safe to export them directly from your store setup file such as `app/store.ts` and import them directly into other files.
+:::
 
-Also, you will want to create typed versions of the `useDispatch` and `useSelector` hooks for usage in your application. Since these are actual variables, not types, it's important to define them in a separate file such as `app/hooks.ts`, not the store setup file. This allows you to import them into any component file that needs to use the hooks, and avoids potential circular import dependency issues.
+## `configureStore`
 
-The basic setup looks like this:
-
-```ts title="app/store.ts"
-import { configureStore } from '@reduxjs/toolkit'
-// ...
-
-const store = configureStore({
-  reducer: {
-    one: oneSlice.reducer,
-    two: twoSlice.reducer
-  }
-})
-
-// highlight-start
-// Infer the `RootState` and `AppDispatch` types from the store itself
-export type RootState = ReturnType<typeof store.getState>
-export type AppDispatch = typeof store.dispatch
-// highlight-end
-```
-
-```ts title="app/hooks.ts"
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
-import { RootState, AppDispatch } from './store'
-
-// highlight-start
-// Use throughout your app instead of plain `useDispatch` and `useSelector`
-export const useAppDispatch = () => useDispatch<AppDispatch>()
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
-// highlight-end
-```
-
-Then, in component files, import the pre-typed hooks instead of the default hooks from React-Redux:
-
-```ts title="features/todos/TodoListItem"
-// highlight-next-line
-import {useAppSelector, useAppDispatch} from 'app/hooks';
-
-import {selectTodoById} from './todosSlice'
-
-export const TodoListItem = ({id}) => {
-  // highlight-start
-  // Don't have to declare `(state: RootState)` - already typed correctly
-  const todo = = useAppSelector(state => selectTodoById(state, id))
-  const dispatch = useAppDispatch()
-  // highlight-end
-
-  // rendering logic here
-}
-```
-
-## Using `configureStore` with TypeScript
-
-The basics of using `configureStore` are already shown in the last section. Here are some additional details that you might find useful.
+The basics of using `configureStore` are shown in [TypeScript Quick Start tutorial page](../tutorials/typescript.md). Here are some additional details that you might find useful.
 
 ### Getting the `State` type
 
