@@ -114,6 +114,14 @@ module.exports = {
               to: 'introduction/quick-start'
             },
             {
+              label: 'Tutorials',
+              to: 'tutorials/tutorials-overview'
+            },
+            {
+              label: 'Usage Guide',
+              to: 'usage/usage-guide'
+            },
+            {
               label: 'API Reference',
               to: 'api/configureStore'
             }

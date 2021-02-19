@@ -3,11 +3,13 @@
     {
       "type": "category",
       "label": "Introduction",
+      "collapsed": false,
       "items": ["introduction/quick-start"]
     },
     {
       "type": "category",
       "label": "Tutorials",
+      "collapsed": false,
       "items": [
         "tutorials/tutorials-overview"
       ]
