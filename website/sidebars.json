@@ -11,7 +11,8 @@
       "label": "Tutorials",
       "collapsed": false,
       "items": [
-        "tutorials/tutorials-overview"
+        "tutorials/tutorials-overview",
+        "tutorials/quick-start"
       ]
     },
     {
