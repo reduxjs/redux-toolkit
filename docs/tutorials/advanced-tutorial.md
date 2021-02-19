@@ -515,9 +515,9 @@ the default recommended approach for writing async logic with Redux**.
 
 Writing thunk functions requires that the `redux-thunk` middleware be added to the store as part of the setup process. Redux Toolkit's `configureStore` function does automatically - [`thunk` is one of the default middleware](../api/getDefaultMiddleware.mdx).
 
-However, Redux Toolkit does not currently provide any special functions or syntax for writing thunk functions. In particular, they cannot be defined as part of a `createSlice()` call. You have to write them separate from the reducer logic.
+Redux Toolkit does have a special utility [`createAsyncThunk`](../api/createAsyncThunk.mdx) to handle async actions.
 
-In a typical Redux app, thunk action creators are usually defined in an "actions" file, alongside the plain action creators. Thunks typically dispatch plain actions, such as `dispatch(dataLoaded(response.data))`.
+However it can be written separately. In a typical Redux app, thunk action creators are usually defined in an "actions" file, alongside the plain action creators. Thunks typically dispatch plain actions, such as `dispatch(dataLoaded(response.data))`.
 
 Because we don't have separate "actions" files, it makes sense to write these thunks directly in our "slice" files. That way, they have access to the plain action creators from the slice, and it's easy to find where the thunk function lives.
 
