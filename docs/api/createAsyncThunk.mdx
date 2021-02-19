@@ -437,7 +437,7 @@ const fetchUserById = createAsyncThunk(
 - Requesting a user by ID, with loading state, and only one request at a time:
 
 ```js
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit'
 import { userAPI } from './userAPI'
 
 const fetchUserById = createAsyncThunk(
@@ -494,7 +494,7 @@ const UsersComponent = () => {
   const fetchOneUser = async userId => {
     try {
       const resultAction = await dispatch(fetchUserById(userId))
-      const user = resultAction.payload
+      const user = unwrapResult(resultAction)
       showToast('success', `Fetched ${user.name}`)
     } catch (err) {
       showToast('error', `Fetch failed: ${err.message}`)

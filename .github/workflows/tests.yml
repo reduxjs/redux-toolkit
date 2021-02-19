@@ -73,7 +73,7 @@ jobs:
         if: ${{ matrix.ts < 3.7 }}
         run: |
           sed -i -e "/import .* freeze .* from 'immer'/s/^/\/\/ @ts-ignore\n/" dist/typings.d.ts
-          sed -i -e "/export .* freeze .* from 'immer'/s/^/\/\/ @ts-ignore\n/" src/index.ts
+          sed -i -e "/  freeze,/s/^/  \/\/ @ts-ignore\n/" src/index.ts
 
       - name: Use typings-tester for old TS versions
         if: ${{ matrix.ts < 3.9 }}

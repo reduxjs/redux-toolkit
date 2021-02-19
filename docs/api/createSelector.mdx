@@ -27,7 +27,7 @@ In general, we recommend against using selectors inside of reducers:
 - Selectors typically expect the entire Redux state object as an argument, while slice reducers only have access to a specific subset of the entire Redux state
 - Reselect's `createSelector` relies on reference comparisons to determine if inputs have changed, and if an Immer Proxy-wrapped draft value is passed in to a selector, the selector may see the same reference and think nothing has changed.
 
-However, some users have requested the ability to create selectors that will work correctly inside of Immer-powered reducers. One use case for this might be collecting an ordered set of items when using `createEntityAdapter, such as`const orderedTodos = todosSelectors.selectAll(todosState)`, and then using`orderedTodos` in the rest of the reducer logic.
+However, some users have requested the ability to create selectors that will work correctly inside of Immer-powered reducers. One use case for this might be collecting an ordered set of items when using `createEntityAdapter`, such as `const orderedTodos = todosSelectors.selectAll(todosState)`, and then using `orderedTodos` in the rest of the reducer logic.
 
 Besides re-exporting `createSelector`, RTK also exports a wrapped version of `createSelector` named `createDraftSafeSelector` that allows you to create selectors that can safely be used inside of `createReducer` and `createSlice` reducers with Immer-powered mutable logic. When used with plain state values, the selector will still memoize normally based on the inputs. But, when used with Immer draft values, the selector will err on the side of recalculating the results, just to be safe.
 
