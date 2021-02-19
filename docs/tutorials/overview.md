@@ -1,5 +1,6 @@
 ---
 id: tutorials-overview
+slug: overview
 title: Tutorials Overview
 sidebar_label: Tutorials Overview
 hide_title: true
