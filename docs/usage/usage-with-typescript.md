@@ -20,9 +20,8 @@ Also, you will want to create typed versions of the `useDispatch` and `useSelect
 
 That said, a basic setup would look like this:
 
-```ts
+```ts title="store.ts"
 import { configureStore } from '@reduxjs/toolkit'
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
 // ...
 
 const store = configureStore({
@@ -34,6 +33,11 @@ const store = configureStore({
 
 export type RootState = ReturnType<typeof store.getState>
 export type AppDispatch = typeof store.dispatch
+```
+
+```ts title="hooks.ts"
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
+import { RootState, AppDispatch } from './store'
 
 // for use throughout your application instead of plain `useDispatch` and `useSelector`
 export const useAppDispatch = () => useDispatch<AppDispatch>()

@@ -1,6 +1,10 @@
 {
   "docs": [
-    "introduction/quick-start",
+    {
+      "type": "category",
+      "label": "Introduction",
+      "items": ["introduction/quick-start"]
+    },
     {
       "type": "category",
       "label": "Tutorials",
@@ -10,12 +14,15 @@
         "tutorials/advanced-tutorial"
       ]
     },
-    "usage/usage-guide",
-    "usage/usage-with-typescript",
+    {
+      "type": "category",
+      "label": "Using Redux Toolkit",
+      "collapsed": false,
+      "items": ["usage/usage-guide", "usage/usage-with-typescript"]
+    },
     {
       "type": "category",
       "label": "API Reference",
-      "collapsed": false,
       "items": [
         {
           "type": "category",
