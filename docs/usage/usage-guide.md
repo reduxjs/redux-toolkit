@@ -183,20 +183,21 @@ Notice that we specifically call `state.concat()` to return a copied array with 
 With `createReducer`, we can shorten that example considerably:
 
 ```js
-const todosReducer = createReducer([], {
-  ADD_TODO: (state, action) => {
-    // "mutate" the array by calling push()
-    state.push(action.payload)
-  },
-  TOGGLE_TODO: (state, action) => {
-    const todo = state[action.payload.index]
-    // "mutate" the object by overwriting a field
-    todo.completed = !todo.completed
-  },
-  REMOVE_TODO: (state, action) => {
-    // Can still return an immutably-updated value if we want to
-    return state.filter((todo, i) => i !== action.payload.index)
-  }
+const todosReducer = createReducer([], builder => {
+  builder
+    .addCase('ADD_TODO', (state, action) => {
+      // "mutate" the array by calling push()
+      state.push(action.payload)
+    })
+    .addCase('TOGGLE_TODO', (state, action) => {
+      const todo = state[action.payload.index]
+      // "mutate" the object by overwriting a field
+      todo.completed = !todo.completed
+    })
+    .addCase('REMOVE_TODO', (state, action) => {
+      // Can still return an immutably-updated value if we want to
+      return state.filter((todo, i) => i !== action.payload.index)
+    })
 })
 ```
 
@@ -229,30 +230,6 @@ updateValue(state, action) {
 ```
 
 Much better!
-
-### Defining Functions in Objects
-
-In modern JavaScript, there are several legal ways to define both keys and functions in an object (and this isn't specific to Redux), and you can mix and match different key definitions and function definitions. For example, these are all legal ways to define a function inside an object:
-
-```js
-const keyName = "ADD_TODO4";
-
-const reducerObject = {
-	// Explicit quotes for the key name, arrow function for the reducer
-	"ADD_TODO1" : (state, action) => { }
-
-	// Bare key with no quotes, function keyword
-	ADD_TODO2 : function(state, action){  }
-
-	// Object literal function shorthand
-	ADD_TODO3(state, action) { }
-
-	// Computed property
-	[keyName] : (state, action) => { }
-}
-```
-
-Using the ["object literal function shorthand"](https://www.sitepoint.com/es6-enhanced-object-literals/) is probably the shortest code, but feel free to use whichever of those approaches you want.
 
 ### Considerations for Using `createReducer`
 
@@ -294,26 +271,28 @@ addTodo({ text: 'Buy milk' })
 
 Redux reducers need to look for specific action types to determine how they should update their state. Normally, this is done by defining action type strings and action creator functions separately. Redux Toolkit `createAction` function uses a couple tricks to make this easier.
 
-First, `createAction` overrides the `toString()` method on the action creators it generates. **This means that the action creator itself can be used as the "action type" reference in some places**, such as the keys provided to `createReducer`.
+First, `createAction` overrides the `toString()` method on the action creators it generates. **This means that the action creator itself can be used as the "action type" reference in some places**, such as the keys provided to `builder.addCase` or the `createReducer` object notation.
 
 Second, the action type is also defined as a `type` field on the action creator.
 
 ```js
-const actionCreator = createAction("SOME_ACTION_TYPE");
+const actionCreator = createAction('SOME_ACTION_TYPE')
 
 console.log(actionCreator.toString())
 // "SOME_ACTION_TYPE"
 
-console.log(actionCreator.type);
+console.log(actionCreator.type)
 // "SOME_ACTION_TYPE"
 
-const reducer = createReducer({}, {
-    // actionCreator.toString() will automatically be called here
-    [actionCreator] : (state, action) => {}
+const reducer = createReducer({}, builder => {
+  // actionCreator.toString() will automatically be called here
+  // also, if you use TypeScript, the action type will be correctly inferred
+  builder.addCase(actionCreator, (state, action) => {})
 
-    // Or, you can reference the .type field:
-    [actionCreator.type] : (state, action) => { }
-});
+  // Or, you can reference the .type field:
+  // if using TypeScript, the action type cannot be inferred that way
+  builder.addCase(actionCreator.type, (state, action) => {})
+})
 ```
 
 This means you don't have to write or use a separate action type variable, or repeat the name and value of an action type like `const SOME_ACTION_TYPE = "SOME_ACTION_TYPE"`.
@@ -434,6 +413,30 @@ export default function postsReducer(state = initialState, action) {
 ```
 
 That simplifies things because we don't need to have multiple files, and we can remove the redundant imports of the action type constants. But, we still have to write the action types and the action creators by hand.
+
+### Defining Functions in Objects
+
+In modern JavaScript, there are several legal ways to define both keys and functions in an object (and this isn't specific to Redux), and you can mix and match different key definitions and function definitions. For example, these are all legal ways to define a function inside an object:
+
+```js
+const keyName = "ADD_TODO4";
+
+const reducerObject = {
+	// Explicit quotes for the key name, arrow function for the reducer
+	"ADD_TODO1" : (state, action) => { }
+
+	// Bare key with no quotes, function keyword
+	ADD_TODO2 : function(state, action){  }
+
+	// Object literal function shorthand
+	ADD_TODO3(state, action) { }
+
+	// Computed property
+	[keyName] : (state, action) => { }
+}
+```
+
+Using the ["object literal function shorthand"](https://www.sitepoint.com/es6-enhanced-object-literals/) is probably the shortest code, but feel free to use whichever of those approaches you want.
 
 ### Simplifying Slices with `createSlice`
 
