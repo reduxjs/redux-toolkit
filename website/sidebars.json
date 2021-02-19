@@ -1,46 +1,63 @@
 {
-  "docs": {
-    "Introduction": ["introduction/quick-start"],
-    "Tutorials": [
-      "tutorials/basic-tutorial",
-      "tutorials/intermediate-tutorial",
-      "tutorials/advanced-tutorial"
-    ],
-    "Using Redux Toolkit": ["usage/usage-guide", "usage/usage-with-typescript"],
-    "API Reference": [
-      {
-        "type": "category",
-        "label": "Store Setup",
-        "collapsed": false,
-        "items": [
-          "api/configureStore",
-          "api/getDefaultMiddleware",
-          "api/immutabilityMiddleware",
-          "api/serializabilityMiddleware"
-        ]
-      },
-      {
-        "type": "category",
-        "label": "Reducers and Actions",
-        "collapsed": false,
-        "items": [
-          "api/createReducer",
-          "api/createAction",
-          "api/createSlice",
-          "api/createAsyncThunk",
-          "api/createEntityAdapter"
-        ]
-      },
-      {
-        "type": "category",
-        "label": "Other",
-        "collapsed": false,
-        "items": [
-          "api/createSelector",
-          "api/matching-utilities",
-          "api/other-exports"
-        ]
-      }
-    ]
-  }
+  "docs": [
+    {
+      "type": "category",
+      "label": "Introduction",
+      "items": ["introduction/quick-start"]
+    },
+    {
+      "type": "category",
+      "label": "Tutorials",
+      "items": [
+        "tutorials/basic-tutorial",
+        "tutorials/intermediate-tutorial",
+        "tutorials/advanced-tutorial"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Using Redux Toolkit",
+      "collapsed": false,
+      "items": ["usage/usage-guide", "usage/usage-with-typescript"]
+    },
+    {
+      "type": "category",
+      "label": "API Reference",
+      "items": [
+        {
+          "type": "category",
+          "label": "Store Setup",
+          "collapsed": false,
+          "items": [
+            "api/configureStore",
+            "api/getDefaultMiddleware",
+            "api/immutabilityMiddleware",
+            "api/serializabilityMiddleware"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Reducers and Actions",
+          "collapsed": false,
+          "items": [
+            "api/createReducer",
+            "api/createAction",
+            "api/createSlice",
+            "api/createAsyncThunk",
+            "api/createEntityAdapter"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Other",
+          "collapsed": false,
+          "items": [
+            "api/createSelector",
+            "api/matching-utilities",
+            "api/other-exports"
+          ]
+        }
+      ]
+    }
+  ]
 }
