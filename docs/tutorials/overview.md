@@ -12,11 +12,19 @@ hide_title: true
 
 :::tip
 
-To avoid duplicating explanations between the Redux core and Redux Toolkit documentation, we've focused on making the Redux core docs tutorials comprehensive, and point to them instead of having additional tutorials here in the Redux Toolkit docs.
+To avoid duplicating explanations between the Redux core and Redux Toolkit documentation, we've focused on making the Redux core docs tutorials comprehensive, and point to them instead of having extended tutorials here in the Redux Toolkit docs.
 
 :::
 
 See these linked tutorials to learn how to use Redux Toolkit effectively.
+
+## Redux Toolkit Quick Starts
+
+The [**Redux Toolkit Quick Start tutorial**](./quick-start.md) briefly shows how to add and use Redux Toolkit in a React application.
+
+**If you just want the fastest way to get a basic example running, read the Quick Start tutorial.**
+
+We also have a [**TypeScript Quick Start tutorial**](./typescript.md) that briefly shows how to set up and use TypeScript with Redux Toolkit and React-Redux.
 
 ## Redux Essentials: A Real-World Example
 
@@ -47,3 +55,11 @@ If you already know Redux and just want to know how to migrate an existing appli
 The RTK docs page on [**Usage with TypeScript**](../usage/usage-with-typescript.md) shows the basic pattern for setting up Redux Toolkit with TypeScript and React, and documents specific TS patterns for each of the RTK APIs.
 
 In addition, the [Redux + TS template for Create-React-App](https://github.com/reduxjs/cra-template-redux-typescript) comes with RTK already configured to use those TS patterns, and serves as a good example of how this should work.
+
+## Legacy Redux Toolkit Tutorials
+
+We previously had a set of "Basic/Intermediate/Advanced" tutorials directly in the Redux Toolkit docs. They were helpful, but we've removed them in favor of pointing to the "Essentials" and "Fundamentals" tutorials in the Redux core docs.
+
+If you'd like to browse the the old tutorials, you can see the content files in our repo's history:
+
+[Redux Toolkit repo: legacy "Basic/Intermediate/Advanced" tutorial files](https://github.com/reduxjs/redux-toolkit/tree/e85eb17b39/docs/tutorials)

@@ -4,14 +4,16 @@
       "type": "category",
       "label": "Introduction",
       "collapsed": false,
-      "items": ["introduction/quick-start"]
+      "items": ["introduction/getting-started"]
     },
     {
       "type": "category",
       "label": "Tutorials",
       "collapsed": false,
       "items": [
-        "tutorials/tutorials-overview"
+        "tutorials/tutorials-overview",
+        "tutorials/quick-start",
+        "tutorials/typescript"
       ]
     },
     {
