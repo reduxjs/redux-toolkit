@@ -9,9 +9,7 @@
       "type": "category",
       "label": "Tutorials",
       "items": [
-        "tutorials/basic-tutorial",
-        "tutorials/intermediate-tutorial",
-        "tutorials/advanced-tutorial"
+        "tutorials/tutorials-overview"
       ]
     },
     {
