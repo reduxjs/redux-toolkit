@@ -9,7 +9,7 @@ hide_title: true
 
 Redux Toolkit is written in TypeScript, and its API is designed to enable great integration with TypeScript applications.
 
-The first part of this page is intended to give you an overview over how to do a basic setup that every application requires. The second part goes into the specifics of the different APIs.
+The first part of this page is intended to give you an overview over how to do a basic setup that every application requires. The second part goes into the specifics of the different APIs
 
 **If you encounter any problems with the types that are not described on this page, please open an issue for discussion.**
 
