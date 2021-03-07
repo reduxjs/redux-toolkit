@@ -20,7 +20,11 @@
       "type": "category",
       "label": "Using Redux Toolkit",
       "collapsed": false,
-      "items": ["usage/usage-guide", "usage/usage-with-typescript"]
+      "items": [
+        "usage/usage-guide", 
+        "usage/usage-with-typescript",
+        "usage/immer-reducers"
+      ]
     },
     {
       "type": "category",
