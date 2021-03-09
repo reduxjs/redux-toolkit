@@ -291,7 +291,7 @@ The standard approach is to declare an interface or type for your state, create 
 type SliceState = { state: 'loading' } | { state: 'finished'; data: string }
 
 // First approach: define the initial state using that type
-const initialState = { state: 'loading' }: SliceState
+const initialState: SliceState = { state: 'loading' }
 
 createSlice({
   name: 'test1',
