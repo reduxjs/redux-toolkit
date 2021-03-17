@@ -145,7 +145,7 @@ Writing immutable update logic by hand _is_ hard, and **accidentally mutating st
 
 [Immer](https://immerjs.github.io/immer/docs/introduction) is a library that simplifies the process of writing immutable update logic.
 
-Immer provides a function called `produce`, which accepts two arguments: your original `state`, and a callback function. The callback function is given a "draft" version of that state, and inside the callback, it is safe to write code that mutates the draft value. Immer tracks all attempts to mutate the draft value, and then replays those mutations with using their immutable equivalents to create a safe immutably updated result:
+Immer provides a function called `produce`, which accepts two arguments: your original `state`, and a callback function. The callback function is given a "draft" version of that state, and inside the callback, it is safe to write code that mutates the draft value. Immer tracks all attempts to mutate the draft value and then replays those mutations using their immutable equivalents to create a safe, immutably updated result:
 
 ```js
 import produce from 'immer'
