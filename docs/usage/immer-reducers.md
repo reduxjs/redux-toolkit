@@ -7,7 +7,7 @@ hide_title: true
 
 # Writing Reducers with Immer
 
-Redux Toolkit's [`createReducer`](../api/createReducer.mdx) and [`createSlice`](../api/createSlice.mdx) automatically use [Immer](https://immerjs.github.io/immer/docs/introduction) internally to let you write simpler immutable update logic using "mutating" syntax. This helps simplify most reducer implementations.
+Redux Toolkit's [`createReducer`](../api/createReducer.mdx) and [`createSlice`](../api/createSlice.mdx) automatically use [Immer](https://immerjs.github.io/immer/introduction) internally to let you write simpler immutable update logic using "mutating" syntax. This helps simplify most reducer implementations.
 
 Because Immer is itself an abstraction layer, it's important to understand why Redux Toolkit uses Immer, and how to use it correctly.
 
@@ -143,7 +143,7 @@ Writing immutable update logic by hand _is_ hard, and **accidentally mutating st
 
 ## Immutable Updates with Immer
 
-[Immer](https://immerjs.github.io/immer/docs/introduction) is a library that simplifies the process of writing immutable update logic.
+[Immer](https://immerjs.github.io/immer/introduction) is a library that simplifies the process of writing immutable update logic.
 
 Immer provides a function called `produce`, which accepts two arguments: your original `state`, and a callback function. The callback function is given a "draft" version of that state, and inside the callback, it is safe to write code that mutates the draft value. Immer tracks all attempts to mutate the draft value and then replays those mutations using their immutable equivalents to create a safe, immutably updated result:
 
@@ -363,7 +363,7 @@ It's common to want to log in-progress state from a reducer to see what it looks
 
 ![Logged proxy draft](/img/usage/immer-reducers/logged-proxy.png)
 
-To work around this, [Immer includes a `current` function that extracts a copy of the wrapped data](https://immerjs.github.io/immer/docs/current), and RTK re-exports `current`. You can use this in your reducers if you need to log or inspect the work-in-progress state:
+To work around this, [Immer includes a `current` function that extracts a copy of the wrapped data](https://immerjs.github.io/immer/current), and RTK re-exports `current`. You can use this in your reducers if you need to log or inspect the work-in-progress state:
 
 ```js
 import { current } from '@reduxjs/toolkit'
@@ -386,7 +386,7 @@ The correct output would look like this instead:
 
 ![Logged current value](/img/usage/immer-reducers/logged-current-state.png)
 
-Immer also provides [`original` and `isDraft` functions](https://immerjs.github.io/immer/docs/original), which retrieves the original data without any updates applied and check to see if a given value is a Proxy-wrapped draft. As of RTK 1.5.0, neither of those is re-exported - you'll need to specifically import them from `immer` yourself. We may re-export them from RTK in an upcoming release.
+Immer also provides [`original` and `isDraft` functions](https://immerjs.github.io/immer/original), which retrieves the original data without any updates applied and check to see if a given value is a Proxy-wrapped draft. As of RTK 1.5.0, neither of those is re-exported - you'll need to specifically import them from `immer` yourself. We may re-export them from RTK in an upcoming release.
 
 ### Updating Nested Data
 
@@ -418,7 +418,7 @@ const todosSlice = createSlice({
 })
 ```
 
-There _is_ a gotcha here. [Immer will not wrap objects that are newly inserted into the state](https://immerjs.github.io/immer/docs/pitfalls#data-not-originating-from-the-state-will-never-be-drafted). Most of the time this shouldn't matter, but there may be occasions when you want to insert a value and then make further updates to it.
+There _is_ a gotcha here. [Immer will not wrap objects that are newly inserted into the state](https://immerjs.github.io/immer/pitfalls#data-not-originating-from-the-state-will-never-be-drafted). Most of the time this shouldn't matter, but there may be occasions when you want to insert a value and then make further updates to it.
 
 Related to this, RTK's [`createEntityAdapter` update functions](../api/createEntityAdapter.mdx#crud-functions) can either be used as standalone reducers, or "mutating" update functions. These functions determine whether to "mutate" or return a new value by checking to see if the state they're given is wrapped in a draft or not. If you are calling these functions yourself inside of a case reducer, be sure you know whether you're passing them a draft value or a plain value.
 
@@ -445,6 +445,19 @@ const itemsSlice = createSlice({
     }
   }
 })
+```
+
+### Linting State Mutations
+
+Many ESLint configs include the https://eslint.org/docs/rules/no-param-reassign rule, which may also warn about mutations to nested fields. That can cause the rule to warn about mutations to `state` in Immer-powered reducers, which is not helpful.
+
+To resolve this, you can tell the ESLint rule to ignore mutations to a parameter named `state`:
+
+```js
+{
+  'no-param-reassign': ['error', { props: true, ignorePropertyModificationsFor: ['state'] }]
+}
+
 ```
 
 ## Further Information

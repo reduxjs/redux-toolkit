@@ -219,7 +219,7 @@ const todosReducer = createReducer([] as Todo[], builder => {
 })
 ```
 
-Writing "mutating" reducers simplifies the code. It's shorter, there's less indirection, and it eliminates common mistakes made while spreading nested state. However, the use of Immer does add some "magic", and Immer has its own nuances in behavior. You should read through [pitfalls mentioned in the immer docs](https://immerjs.github.io/immer/docs/pitfalls) . Most importantly, **you need to ensure that you either mutate the `state` argument or return a new state, _but not both_**. For example, the following reducer would throw an exception if a `toggleTodo` action is passed:
+Writing "mutating" reducers simplifies the code. It's shorter, there's less indirection, and it eliminates common mistakes made while spreading nested state. However, the use of Immer does add some "magic", and Immer has its own nuances in behavior. You should read through [pitfalls mentioned in the immer docs](https://immerjs.github.io/immer/pitfalls) . Most importantly, **you need to ensure that you either mutate the `state` argument or return a new state, _but not both_**. For example, the following reducer would throw an exception if a `toggleTodo` action is passed:
 
 ```ts
 import { createAction, createReducer } from '@reduxjs/toolkit'
@@ -289,7 +289,7 @@ console.log(reducer(0, { type: 'increment' }))
 
 It's very common for a developer to call `console.log(state)` during the development process. However, browsers display Proxies in a format that is hard to read, which can make console logging of Immer-based state difficult.
 
-When using either `createSlice` or `createReducer`, you may use the [`current`](./otherExports.mdx#current) utility that we re-export from the [`immer` library](https://immerjs.github.io/immer/docs/current). This utility creates a separate plain copy of the current Immer `Draft` state value, which can then be logged for viewing as normal.
+When using either `createSlice` or `createReducer`, you may use the [`current`](./otherExports.mdx#current) utility that we re-export from the [`immer` library](https://immerjs.github.io/immer/current). This utility creates a separate plain copy of the current Immer `Draft` state value, which can then be logged for viewing as normal.
 
 ```ts
 import { createSlice, current } from '@reduxjs/toolkit'
