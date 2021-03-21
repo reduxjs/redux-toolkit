@@ -19,7 +19,7 @@ Redux Toolkit is written in TypeScript, and its API is designed to enable great 
 
 This page provides specific details for each of the different APIs included in Redux Toolkit and how to type them correctly with TypeScript.
 
-**See the [TypeScript Quick Start tutorial page](../tutorials/typescript.md) for a brief overview of how to set up and use Redux Toolkit and React-Redux to work with TypeScript**.
+**See the [TypeScript Quick Start tutorial page](../tutorials/typescript.md) for a brief overview of how to set up and use Redux Toolkit and React Redux to work with TypeScript**.
 
 :::info
 
@@ -132,9 +132,9 @@ configureStore({
 })
 ```
 
-### Using the extracted `Dispatch` type with React-Redux
+### Using the extracted `Dispatch` type with React Redux
 
-By default, the React-Redux `useDispatch` hook does not contain any types that take middlewares into account. If you need a more specific type for the `dispatch` function when dispatching, you may specify the type of the returned `dispatch` function, or create a custom-typed version of `useSelector`. See [the React-Redux documentation](https://react-redux.js.org/using-react-redux/static-typing#typing-the-usedispatch-hook) for details.
+By default, the React Redux `useDispatch` hook does not contain any types that take middlewares into account. If you need a more specific type for the `dispatch` function when dispatching, you may specify the type of the returned `dispatch` function, or create a custom-typed version of `useSelector`. See [the React Redux documentation](https://react-redux.js.org/using-react-redux/static-typing#typing-the-usedispatch-hook) for details.
 
 ## `createAction`
 
@@ -166,7 +166,7 @@ createAction('test', withPayloadType<string>())
 
 If you are using `action.type` as a discriminator on a discriminated union, for example to correctly type your payload in `case` statements, you might be interested in this alternative:
 
-Created action creators have a `match` method that acts as a [type predicate](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates):
+Created action creators have a `match` method that acts as a [type predicate](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates):
 
 ```typescript
 const increment = createAction<number>('increment')
@@ -265,7 +265,7 @@ slice.actions.increment(2)
 slice.caseReducers.increment(0, { type: 'increment', payload: 5 })
 ```
 
-If you have too many reducers and defining them inline would be messy, you can also define them outside the `createSlice` call and type them as `CaseReducer`:
+If you have too many case reducers and defining them inline would be messy, or you want to reuse case reducers across slices, you can also define them outside the `createSlice` call and type them as `CaseReducer`:
 
 ```typescript
 type State = number
@@ -469,17 +469,20 @@ In the most common use cases, you should not need to explicitly declare any type
 Just provide a type for the first argument to the `payloadCreator` argument as you would for any function argument, and the resulting thunk will accept the same type as its input parameter.
 The return type of the `payloadCreator` will also be reflected in all generated action types.
 
-```ts {8,11,18}
+```ts
 interface MyData {
   // ...
 }
 
 const fetchUserById = createAsyncThunk(
   'users/fetchById',
+  // highlight-start
   // Declare the type your function argument here:
   async (userId: number) => {
+    // highlight-end
     const response = await fetch(`https://reqres.in/api/users/${userId}`)
     // Inferred return type: Promise<MyData>
+    // highlight-next-line
     return (await response.json()) as MyData
   }
 )
@@ -496,17 +499,20 @@ To define the types for these arguments, pass an object as the third generic arg
 
 ```ts
 const fetchUserById = createAsyncThunk<
+  // highlight-start
   // Return type of the payload creator
   MyData,
   // First argument to the payload creator
   number,
   {
+    // Optional fields for defining thunkApi field types
     dispatch: AppDispatch
     state: State
     extra: {
       jwt: string
     }
   }
+  // highlight-end
 >('users/fetchById', async (userId, thunkApi) => {
   const response = await fetch(`https://reqres.in/api/users/${userId}`, {
     headers: {
@@ -616,13 +622,14 @@ Typing `createEntityAdapter` only requires you to specify the entity type as the
 
 The example from the `createEntityAdapter` documentation would look like this in TypeScript:
 
-```ts {7}
+```ts
 interface Book {
   bookId: number
   title: string
   // ...
 }
 
+// highlight-next-line
 const booksAdapter = createEntityAdapter<Book>({
   selectId: book => book.bookId,
   sortComparer: (a, b) => a.title.localeCompare(b.title)
