@@ -69,7 +69,8 @@ With RTK Query, you usually define your entire API definition in one place. This
 An RTK service generates a "slice reducer" that should be included in the Redux root reducer, and a custom middleware that handles the data fetching. Both need to be added to the Redux store.
 
 ```ts title="src/store.ts"
-import { configureStore, setupListeners } from '@reduxjs/toolkit';
+import { configureStore } from '@reduxjs/toolkit';
+import { setupListeners } from '@rtk-incubator/rtk-query';
 import { pokemonApi } from './services/pokemon';
 
 export const store = configureStore({
