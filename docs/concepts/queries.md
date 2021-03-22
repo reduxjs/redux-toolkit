@@ -115,7 +115,7 @@ The way that this component is setup would have some nice traits:
 
 ### Selecting data from a query result
 
-Sometimes you may have a parent component that is subscribed to a query, and then in a child component you want to pick an item from that query. In most cases you don't want to perform an additional request for a `getItemById`-type query when you know that you already have the result. `selectFromResult` allows you to get a specific segment from a query result in a performant manner. When using this feature, the component will not rerender unless the underlying data of the selected item has changed. If the selected item is one elemnt in a larger collection, it will disregard changes to elements in the same collection.
+Sometimes you may have a parent component that is subscribed to a query, and then in a child component you want to pick an item from that query. In most cases you don't want to perform an additional request for a `getItemById`-type query when you know that you already have the result. `selectFromResult` allows you to get a specific segment from a query result in a performant manner. When using this feature, the component will not rerender unless the underlying data of the selected item has changed. If the selected item is one element in a larger collection, it will disregard changes to elements in the same collection.
 
 ```ts title="Using selectFromResult to extract a single result"
 function PostsList() {
