@@ -199,7 +199,9 @@ export function createReducer<S>(
       ? executeReducerBuilderCallback(mapOrBuilderCallback)
       : [mapOrBuilderCallback, actionMatchers, defaultCaseReducer]
 
-  return function(state = initialState, action): S {
+  const frozenInitialState = createNextState(initialState, () => {})
+
+  return function(state = frozenInitialState, action): S {
     let caseReducers = [
       actionsMap[action.type],
       ...finalActionMatchers

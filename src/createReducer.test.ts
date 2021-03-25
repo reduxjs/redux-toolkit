@@ -90,6 +90,16 @@ describe('createReducer', () => {
         'Cannot add property text, object is not extensible'
       )
     })
+
+    test('Freezes initial state', () => {
+      const initialState = [{ text: 'Buy milk' }]
+      const todosReducer = createReducer(initialState, {})
+
+      const mutateStateOutsideReducer = () => (initialState[0].text = 'edited')
+      expect(mutateStateOutsideReducer).toThrowError(
+        /Cannot assign to read only property/
+      )
+    })
   })
 
   describe('given pure reducers with immutable updates', () => {
