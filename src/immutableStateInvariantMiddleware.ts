@@ -127,53 +127,6 @@ interface TrackedItem {
   parent: any
 }
 
-class Queue<T> {
-  private readonly queue: T[]
-  private start: number
-  private end: number
-
-  constructor(array: T[] = []) {
-    this.queue = array
-
-    // pointers
-    this.start = 0
-    this.end = array.length
-  }
-
-  isEmpty() {
-    return this.end === this.start
-  }
-
-  dequeue(): T {
-    if (this.isEmpty()) {
-      throw new Error('Queue is empty.')
-    } else {
-      return this.queue[this.start++]
-    }
-  }
-
-  enqueue(value: T) {
-    this.queue.push(value)
-    this.end += 1
-  }
-
-  toString() {
-    return `Queue (${this.end - this.start})`
-  }
-
-  [Symbol.iterator]() {
-    let index = this.start
-    return {
-      next: () =>
-        index < this.end
-          ? {
-              value: this.queue[index++]
-            }
-          : { done: true }
-    }
-  }
-}
-
 function tp2(
   isImmutable: IsImmutableFunc,
   ignorePaths: IgnorePaths = [],
@@ -189,18 +142,20 @@ function tp2(
     }
   ]
   */
-  const queue = new Queue([
-    {
-      path: '',
-      trackedChildren: [],
-      value: obj,
-      parent: null
-    } as TrackedItem
+  const queue = new Map<object, TrackedItem>([
+    [
+      obj,
+      {
+        path: '',
+        trackedChildren: [],
+        value: obj,
+        parent: null
+      }
+    ]
   ])
   const trackedValues: Record<string, TrackedItem> = {}
 
-  while (!queue.isEmpty()) {
-    const current = queue.dequeue() as TrackedItem
+  for (const current of queue.values()) {
     const { path, value, trackedChildren } = current
 
     const pathString = path
@@ -215,7 +170,7 @@ function tp2(
 
         trackedChildren.push(key)
 
-        queue.enqueue({
+        queue.set(value, {
           path: childPath,
           value: value[key],
           parent: value,
@@ -324,17 +279,19 @@ function dm2(
   // sameParentRef: boolean = false,
   // path: string[] = []
 ): { wasMutated: boolean; path?: string } {
-  const queue = new Queue([
-    {
-      path: '',
-      trackedChildren: [],
-      value: obj,
-      parent: null
-    } as TrackedItem
+  const queue = new Map<object, TrackedItem>([
+    [
+      obj,
+      {
+        path: '',
+        trackedChildren: [],
+        value: obj,
+        parent: null
+      } as TrackedItem
+    ]
   ])
 
-  while (!queue.isEmpty()) {
-    const current = queue.dequeue()!
+  for (const current of queue.values()) {
     const { path, value, parent } = current
 
     const pathString = path
@@ -380,7 +337,7 @@ function dm2(
         continue
       }
 
-      queue.enqueue({
+      queue.set(value, {
         path: childPath,
         value: value[key],
         parent: value,
