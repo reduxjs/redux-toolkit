@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "declaration": true,
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "outDir": "dist",
+    "strict": true,
+    "target": "es2018",
+    "sourceMap": true
+  },
+  "include": ["src"],
+  "exclude": ["src/*.test.ts"]
+}
