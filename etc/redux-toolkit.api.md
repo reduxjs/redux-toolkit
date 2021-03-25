@@ -297,6 +297,8 @@ export interface ImmutableStateInvariantMiddlewareOptions {
     ignore?: string[];
     ignoredPaths?: string[];
     isImmutable?: IsImmutableFunc;
+    // (undocumented)
+    trackFunction?: typeof trackForMutations;
     warnAfter?: number;
 }
 
@@ -454,6 +456,22 @@ export type SliceCaseReducers<State> = {
 export { ThunkAction }
 
 export { ThunkDispatch }
+
+// @public (undocumented)
+export function tm2(isImmutable: IsImmutableFunc, ignorePaths: string[] | undefined, obj: any): {
+    detectMutations(): {
+        wasMutated: boolean;
+        path?: string | undefined;
+    };
+};
+
+// @public (undocumented)
+export function trackForMutations(isImmutable: IsImmutableFunc, ignorePaths: string[] | undefined, obj: any): {
+    detectMutations(): {
+        wasMutated: boolean;
+        path?: string | undefined;
+    };
+};
 
 // @public (undocumented)
 export function unwrapResult<R extends UnwrappableAction>(action: R): UnwrappedActionPayload<R>;

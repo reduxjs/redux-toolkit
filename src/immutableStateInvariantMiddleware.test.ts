@@ -3,6 +3,7 @@ import {
   createImmutableStateInvariantMiddleware,
   isImmutableDefault,
   trackForMutations,
+  tm2,
   ImmutableStateInvariantMiddlewareOptions
 } from './immutableStateInvariantMiddleware'
 import { mockConsole, createConsole, getLog } from 'console-testing-library'
@@ -179,12 +180,12 @@ describe('trackForMutations', () => {
       const state = spec.getState()
       const options = spec.middlewareOptions || {}
       const { isImmutable = isImmutableDefault, ignoredPaths } = options
-      const tracker = trackForMutations(isImmutable, ignoredPaths, state)
+      const tracker = tm2(isImmutable, ignoredPaths, state)
       const newState = spec.fn(state)
 
       expect(tracker.detectMutations()).toEqual({
         wasMutated: true,
-        path: spec.path
+        path: spec.path.join('.')
       })
     })
   }
@@ -194,7 +195,7 @@ describe('trackForMutations', () => {
       const state = spec.getState()
       const options = spec.middlewareOptions || {}
       const { isImmutable = isImmutableDefault, ignoredPaths } = options
-      const tracker = trackForMutations(isImmutable, ignoredPaths, state)
+      const tracker = tm2(isImmutable, ignoredPaths, state)
       const newState = spec.fn(state)
 
       expect(tracker.detectMutations()).toEqual({ wasMutated: false })
@@ -207,6 +208,34 @@ describe('trackForMutations', () => {
     middlewareOptions?: ImmutableStateInvariantMiddlewareOptions
     path?: string[]
   }
+
+  it('adding to nested array manual', () => {
+    const spec: TestConfig = {
+      getState: () => ({
+        foo: {
+          bar: [2, 3, 4],
+          baz: 'baz'
+        },
+        stuff: []
+      }),
+      fn: s => {
+        s.foo.bar.push(5)
+        return s
+      },
+      path: ['foo', 'bar', '3']
+    }
+
+    const state = spec.getState()
+    const options = spec.middlewareOptions || {}
+    const { isImmutable = isImmutableDefault, ignoredPaths } = options
+    const tracker = tm2(isImmutable, ignoredPaths, state)
+    const newState = spec.fn(state)
+
+    expect(tracker.detectMutations()).toEqual({
+      wasMutated: true,
+      path: spec.path!.join('.')
+    })
+  })
 
   const mutations: Record<string, TestConfig> = {
     'adding to nested array': {

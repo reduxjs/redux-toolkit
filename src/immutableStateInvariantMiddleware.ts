@@ -68,10 +68,11 @@ function getSerialize(
  */
 export function isImmutableDefault(value: unknown): boolean {
   return (
-    typeof value !== 'object' || value === null || typeof value === 'undefined'
+    typeof value !== 'object' || value === null || typeof value === 'undefined' // ||  Object.isFrozen(value)
   )
 }
 
+/** @public */
 export function trackForMutations(
   isImmutable: IsImmutableFunc,
   ignorePaths: string[] | undefined,
@@ -94,10 +95,135 @@ function trackProperties(
   isImmutable: IsImmutableFunc,
   ignorePaths: IgnorePaths = [],
   obj: Record<string, any>,
-  path: string[] = []
+  path: string = ''
 ) {
   const tracked: Partial<TrackedProperty> = { value: obj }
 
+  if (!isImmutable(obj)) {
+    tracked.children = {}
+
+    for (const key in obj) {
+      const childPath = path ? path + '.' + key : key // path.concat(key)
+      if (ignorePaths.length && ignorePaths.indexOf(childPath) !== -1) {
+        continue
+      }
+
+      tracked.children[key] = trackProperties(
+        isImmutable,
+        ignorePaths,
+        obj[key],
+        childPath
+      )
+    }
+  }
+  return tracked as TrackedProperty
+}
+
+interface TrackedItem {
+  path: string
+  trackedChildren: string[]
+  value: any
+  parent: any
+}
+
+class Queue<T> {
+  private readonly queue: T[]
+  private start: number
+  private end: number
+
+  constructor(array: T[] = []) {
+    this.queue = array
+
+    // pointers
+    this.start = 0
+    this.end = array.length
+  }
+
+  isEmpty() {
+    return this.end === this.start
+  }
+
+  dequeue(): T {
+    if (this.isEmpty()) {
+      throw new Error('Queue is empty.')
+    } else {
+      return this.queue[this.start++]
+    }
+  }
+
+  enqueue(value: T) {
+    this.queue.push(value)
+    this.end += 1
+  }
+
+  toString() {
+    return `Queue (${this.end - this.start})`
+  }
+
+  [Symbol.iterator]() {
+    let index = this.start
+    return {
+      next: () =>
+        index < this.end
+          ? {
+              value: this.queue[index++]
+            }
+          : { done: true }
+    }
+  }
+}
+
+function tp2(
+  isImmutable: IsImmutableFunc,
+  ignorePaths: IgnorePaths = [],
+  obj: Record<string, any>
+) {
+  /*
+  const queue: TrackedItem[] = [
+    {
+      path: [],
+      trackedChildren: [],
+      value: obj,
+      parent: null
+    }
+  ]
+  */
+  const queue = new Queue([
+    {
+      path: '',
+      trackedChildren: [],
+      value: obj,
+      parent: null
+    } as TrackedItem
+  ])
+  const trackedValues: Record<string, TrackedItem> = {}
+
+  while (!queue.isEmpty()) {
+    const current = queue.dequeue() as TrackedItem
+    const { path, value, trackedChildren } = current
+
+    const pathString = path
+    trackedValues[pathString] = current
+
+    if (!isImmutable(value)) {
+      for (const key in value) {
+        const childPath = path ? path + '.' + key : key // path.concat(key)
+        if (ignorePaths.length && ignorePaths.indexOf(childPath) !== -1) {
+          continue
+        }
+
+        trackedChildren.push(key)
+
+        queue.enqueue({
+          path: childPath,
+          value: value[key],
+          parent: value,
+          trackedChildren: []
+        })
+      }
+    }
+
+    /*
   if (!isImmutable(obj)) {
     tracked.children = {}
 
@@ -117,8 +243,10 @@ function trackProperties(
         childPath
       )
     }
+    */
   }
-  return tracked as TrackedProperty
+  //return tracked as TrackedProperty
+  return trackedValues
 }
 
 type IgnorePaths = string[]
@@ -129,8 +257,8 @@ function detectMutations(
   trackedProperty: TrackedProperty,
   obj: any,
   sameParentRef: boolean = false,
-  path: string[] = []
-): { wasMutated: boolean; path?: string[] } {
+  path: string = ''
+): { wasMutated: boolean; path?: string } {
   const prevObj = trackedProperty ? trackedProperty.value : undefined
 
   const sameRef = prevObj === obj
@@ -143,6 +271,15 @@ function detectMutations(
     return { wasMutated: false }
   }
 
+  const keysToDetect = new Set<string>()
+  for (let key in trackedProperty.children) {
+    keysToDetect.add(key)
+  }
+  for (let key in obj) {
+    keysToDetect.add(key)
+  }
+
+  /*
   // Gather all keys from prev (tracked) and after objs
   const keysToDetect: Record<string, boolean> = {}
   Object.keys(trackedProperty.children).forEach(key => {
@@ -151,12 +288,14 @@ function detectMutations(
   Object.keys(obj).forEach(key => {
     keysToDetect[key] = true
   })
+  */
 
-  const keys = Object.keys(keysToDetect)
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i]
-    const childPath = path.concat(key)
-    if (ignorePaths.length && ignorePaths.indexOf(childPath.join('.')) !== -1) {
+  // const keys = keysToDetect.entries()
+  // for (let i = 0; i < keys.length; i++) {
+  for (let key of keysToDetect) {
+    // const key = keys[i]
+    const childPath = path ? path + '.' + key : key // path.concat(key)
+    if (ignorePaths.length && ignorePaths.indexOf(childPath) !== -1) {
       continue
     }
 
@@ -174,6 +313,96 @@ function detectMutations(
     }
   }
   return { wasMutated: false }
+}
+
+function dm2(
+  isImmutable: IsImmutableFunc,
+  ignorePaths: IgnorePaths = [],
+  trackedValues: Record<string, TrackedItem>,
+  obj: any
+  // sameParentRef: boolean = false,
+  // path: string[] = []
+): { wasMutated: boolean; path?: string } {
+  const queue = new Queue([
+    {
+      path: '',
+      trackedChildren: [],
+      value: obj,
+      parent: null
+    } as TrackedItem
+  ])
+
+  while (!queue.isEmpty()) {
+    const current = queue.dequeue()!
+    const { path, value, parent } = current
+
+    const pathString = path
+
+    let prevValue = undefined
+    let prevParent = undefined
+    let prevTrackedChildren: string[] = []
+    const previousEntry = trackedValues[pathString]
+
+    if (previousEntry) {
+      prevValue = previousEntry.value
+      prevParent = previousEntry.parent
+      prevTrackedChildren = previousEntry.trackedChildren
+    }
+
+    /*
+    const {
+      value: prevValue,
+      parent: prevParent,
+      trackedChildren: prevTrackedChildren = []
+    } = previousEntry
+    */
+
+    const sameRef = prevValue === value
+    const sameParentRef = prevParent === parent
+
+    if ((sameParentRef || !previousEntry) && !sameRef && !Number.isNaN(value)) {
+      return { wasMutated: true, path }
+    }
+
+    if (isImmutable(prevValue) || isImmutable(value)) {
+      continue
+    }
+
+    const keys = new Set<string>(prevTrackedChildren)
+    Object.keys(value).forEach(key => {
+      keys.add(key)
+    })
+
+    for (let key of keys) {
+      const childPath = path ? path + '.' + key : key // path.concat(key)
+      if (ignorePaths.length && ignorePaths.indexOf(childPath) !== -1) {
+        continue
+      }
+
+      queue.enqueue({
+        path: childPath,
+        value: value[key],
+        parent: value,
+        trackedChildren: []
+      })
+    }
+  }
+
+  return { wasMutated: false }
+}
+
+/** @public */
+export function tm2(
+  isImmutable: IsImmutableFunc,
+  ignorePaths: string[] | undefined,
+  obj: any
+) {
+  const trackedProperties = tp2(isImmutable, ignorePaths, obj)
+  return {
+    detectMutations() {
+      return dm2(isImmutable, ignorePaths, trackedProperties, obj)
+    }
+  }
 }
 
 type IsImmutableFunc = (value: any) => boolean
@@ -201,6 +430,7 @@ export interface ImmutableStateInvariantMiddlewareOptions {
   warnAfter?: number
   // @deprecated. Use ignoredPaths
   ignore?: string[]
+  trackFunction?: typeof trackForMutations
 }
 
 /**
@@ -223,13 +453,14 @@ export function createImmutableStateInvariantMiddleware(
     isImmutable = isImmutableDefault,
     ignoredPaths,
     warnAfter = 32,
-    ignore
+    ignore,
+    trackFunction = trackForMutations
   } = options
 
   // Alias ignore->ignoredPaths, but prefer ignoredPaths if present
   ignoredPaths = ignoredPaths || ignore
 
-  const track = trackForMutations.bind(null, isImmutable, ignoredPaths)
+  const track = trackFunction.bind(null, isImmutable, ignoredPaths)
 
   return ({ getState }) => {
     let state = getState()
@@ -251,11 +482,8 @@ export function createImmutableStateInvariantMiddleware(
 
         invariant(
           !result.wasMutated,
-          `A state mutation was detected between dispatches, in the path '${(
-            result.path || []
-          ).join(
-            '.'
-          )}'.  This may cause incorrect behavior. (https://redux.js.org/troubleshooting#never-mutate-reducer-arguments)`
+          `A state mutation was detected between dispatches, in the path '${result.path ||
+            ''}'.  This may cause incorrect behavior. (https://redux.js.org/troubleshooting#never-mutate-reducer-arguments)`
         )
       })
 
@@ -271,11 +499,8 @@ export function createImmutableStateInvariantMiddleware(
         result.wasMutated &&
           invariant(
             !result.wasMutated,
-            `A state mutation was detected inside a dispatch, in the path: ${(
-              result.path || []
-            ).join(
-              '.'
-            )}. Take a look at the reducer(s) handling the action ${stringify(
+            `A state mutation was detected inside a dispatch, in the path: ${result.path ||
+              ''}. Take a look at the reducer(s) handling the action ${stringify(
               action
             )}. (https://redux.js.org/troubleshooting#never-mutate-reducer-arguments)`
           )

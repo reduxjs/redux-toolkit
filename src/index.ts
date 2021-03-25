@@ -70,7 +70,9 @@ export {
   createImmutableStateInvariantMiddleware,
   isImmutableDefault,
   // types
-  ImmutableStateInvariantMiddlewareOptions
+  ImmutableStateInvariantMiddlewareOptions,
+  trackForMutations,
+  tm2
 } from './immutableStateInvariantMiddleware'
 export {
   // js
