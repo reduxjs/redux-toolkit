@@ -12,12 +12,13 @@ import { getTimeMeasureUtils } from './utils'
  * @public
  */
 export function isPlain(val: any) {
+  const type = typeof val
   return (
-    typeof val === 'undefined' ||
+    type === 'undefined' ||
     val === null ||
-    typeof val === 'string' ||
-    typeof val === 'boolean' ||
-    typeof val === 'number' ||
+    type === 'string' ||
+    type === 'boolean' ||
+    type === 'number' ||
     Array.isArray(val) ||
     isPlainObject(val)
   )
@@ -33,7 +34,7 @@ interface NonSerializableValue {
  */
 export function findNonSerializableValue(
   value: unknown,
-  path: ReadonlyArray<string> = [],
+  path: string = '',
   isSerializable: (value: unknown) => boolean = isPlain,
   getEntries?: (value: unknown) => [string, any][],
   ignoredPaths: string[] = []
@@ -42,7 +43,7 @@ export function findNonSerializableValue(
 
   if (!isSerializable(value)) {
     return {
-      keyPath: path.join('.') || '<root>',
+      keyPath: path || '<root>',
       value: value
     }
   }
@@ -55,16 +56,16 @@ export function findNonSerializableValue(
 
   const hasIgnoredPaths = ignoredPaths.length > 0
 
-  for (const [property, nestedValue] of entries) {
-    const nestedPath = path.concat(property)
+  for (const [key, nestedValue] of entries) {
+    const nestedPath = path ? path + '.' + key : key // path.concat(property)
 
-    if (hasIgnoredPaths && ignoredPaths.indexOf(nestedPath.join('.')) >= 0) {
+    if (hasIgnoredPaths && ignoredPaths.indexOf(nestedPath) >= 0) {
       continue
     }
 
     if (!isSerializable(nestedValue)) {
       return {
-        keyPath: nestedPath.join('.'),
+        keyPath: nestedPath,
         value: nestedValue
       }
     }
@@ -167,7 +168,7 @@ export function createSerializableStateInvariantMiddleware(
     measureUtils.measureTime(() => {
       const foundActionNonSerializableValue = findNonSerializableValue(
         action,
-        [],
+        '',
         isSerializable,
         getEntries,
         ignoredActionPaths
@@ -194,7 +195,7 @@ export function createSerializableStateInvariantMiddleware(
 
       const foundStateNonSerializableValue = findNonSerializableValue(
         state,
-        [],
+        '',
         isSerializable,
         getEntries,
         ignoredPaths

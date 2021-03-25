@@ -67,6 +67,7 @@ function getSerialize(
  * @public
  */
 export function isImmutableDefault(value: unknown): boolean {
+  // TODO Uncomment the isFrozen check to actually speed this up dramatically
   return (
     typeof value !== 'object' || value === null || typeof value === 'undefined' // ||  Object.isFrozen(value)
   )
