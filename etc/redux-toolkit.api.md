@@ -274,7 +274,7 @@ export interface EntityStateAdapter<T> {
 }
 
 // @public (undocumented)
-export function findNonSerializableValue(value: unknown, path?: ReadonlyArray<string>, isSerializable?: (value: unknown) => boolean, getEntries?: (value: unknown) => [string, any][], ignoredPaths?: string[]): NonSerializableValue | false;
+export function findNonSerializableValue(value: unknown, path?: string, isSerializable?: (value: unknown) => boolean, getEntries?: (value: unknown) => [string, any][], ignoredPaths?: string[]): NonSerializableValue | false;
 
 export { freeze }
 
@@ -419,6 +419,7 @@ export interface SerializableStateInvariantMiddlewareOptions {
     ignoredActionPaths?: string[];
     ignoredActions?: string[];
     ignoredPaths?: string[];
+    ignoreState?: boolean;
     isSerializable?: (value: any) => boolean;
     warnAfter?: number;
 }
