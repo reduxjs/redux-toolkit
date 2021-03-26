@@ -130,6 +130,11 @@ export interface SerializableStateInvariantMiddlewareOptions {
    * Defaults to 32ms.
    */
   warnAfter?: number
+
+  /**
+   * Opt out of checking state, but continue checking actions
+   */
+  ignoreState?: boolean
 }
 
 /**
@@ -153,7 +158,8 @@ export function createSerializableStateInvariantMiddleware(
     ignoredActions = [],
     ignoredActionPaths = ['meta.arg'],
     ignoredPaths = [],
-    warnAfter = 32
+    warnAfter = 32,
+    ignoreState = false
   } = options
 
   return storeAPI => next => action => {
@@ -190,31 +196,34 @@ export function createSerializableStateInvariantMiddleware(
 
     const result = next(action)
 
-    measureUtils.measureTime(() => {
-      const state = storeAPI.getState()
+    if (!ignoreState) {
+      measureUtils.measureTime(() => {
+        const state = storeAPI.getState()
 
-      const foundStateNonSerializableValue = findNonSerializableValue(
-        state,
-        '',
-        isSerializable,
-        getEntries,
-        ignoredPaths
-      )
+        const foundStateNonSerializableValue = findNonSerializableValue(
+          state,
+          '',
+          isSerializable,
+          getEntries,
+          ignoredPaths
+        )
 
-      if (foundStateNonSerializableValue) {
-        const { keyPath, value } = foundStateNonSerializableValue
+        if (foundStateNonSerializableValue) {
+          const { keyPath, value } = foundStateNonSerializableValue
 
-        console.error(
-          `A non-serializable value was detected in the state, in the path: \`${keyPath}\`. Value:`,
-          value,
+          console.error(
+            `A non-serializable value was detected in the state, in the path: \`${keyPath}\`. Value:`,
+            value,
           `
 Take a look at the reducer(s) handling this action type: ${action.type}.
 (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)`
-        )
-      }
-    })
+        
+)
+        }
+      })
 
-    measureUtils.warnIfExceeded()
+      measureUtils.warnIfExceeded()
+    }
 
     return result
   }
