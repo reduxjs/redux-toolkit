@@ -68,7 +68,10 @@ function getSerialize(
  */
 export function isImmutableDefault(value: unknown): boolean {
   return (
-    typeof value !== 'object' || value === null || typeof value === 'undefined'
+    typeof value !== 'object' ||
+    value === null ||
+    typeof value === 'undefined' ||
+    Object.isFrozen(value)
   )
 }
 
@@ -94,7 +97,7 @@ function trackProperties(
   isImmutable: IsImmutableFunc,
   ignorePaths: IgnorePaths = [],
   obj: Record<string, any>,
-  path: string[] = []
+  path: string = ''
 ) {
   const tracked: Partial<TrackedProperty> = { value: obj }
 
@@ -102,11 +105,8 @@ function trackProperties(
     tracked.children = {}
 
     for (const key in obj) {
-      const childPath = path.concat(key)
-      if (
-        ignorePaths.length &&
-        ignorePaths.indexOf(childPath.join('.')) !== -1
-      ) {
+      const childPath = path ? path + '.' + key : key
+      if (ignorePaths.length && ignorePaths.indexOf(childPath) !== -1) {
         continue
       }
 
@@ -129,8 +129,8 @@ function detectMutations(
   trackedProperty: TrackedProperty,
   obj: any,
   sameParentRef: boolean = false,
-  path: string[] = []
-): { wasMutated: boolean; path?: string[] } {
+  path: string = ''
+): { wasMutated: boolean; path?: string } {
   const prevObj = trackedProperty ? trackedProperty.value : undefined
 
   const sameRef = prevObj === obj
@@ -145,18 +145,16 @@ function detectMutations(
 
   // Gather all keys from prev (tracked) and after objs
   const keysToDetect: Record<string, boolean> = {}
-  Object.keys(trackedProperty.children).forEach(key => {
+  for (let key in trackedProperty.children) {
     keysToDetect[key] = true
-  })
-  Object.keys(obj).forEach(key => {
+  }
+  for (let key in obj) {
     keysToDetect[key] = true
-  })
+  }
 
-  const keys = Object.keys(keysToDetect)
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i]
-    const childPath = path.concat(key)
-    if (ignorePaths.length && ignorePaths.indexOf(childPath.join('.')) !== -1) {
+  for (let key in keysToDetect) {
+    const childPath = path ? path + '.' + key : key
+    if (ignorePaths.length && ignorePaths.indexOf(childPath) !== -1) {
       continue
     }
 
@@ -251,11 +249,8 @@ export function createImmutableStateInvariantMiddleware(
 
         invariant(
           !result.wasMutated,
-          `A state mutation was detected between dispatches, in the path '${(
-            result.path || []
-          ).join(
-            '.'
-          )}'.  This may cause incorrect behavior. (https://redux.js.org/troubleshooting#never-mutate-reducer-arguments)`
+          `A state mutation was detected between dispatches, in the path '${result.path ||
+            ''}'.  This may cause incorrect behavior. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`
         )
       })
 
@@ -271,13 +266,10 @@ export function createImmutableStateInvariantMiddleware(
         result.wasMutated &&
           invariant(
             !result.wasMutated,
-            `A state mutation was detected inside a dispatch, in the path: ${(
-              result.path || []
-            ).join(
-              '.'
-            )}. Take a look at the reducer(s) handling the action ${stringify(
+            `A state mutation was detected inside a dispatch, in the path: ${result.path ||
+              ''}. Take a look at the reducer(s) handling the action ${stringify(
               action
-            )}. (https://redux.js.org/troubleshooting#never-mutate-reducer-arguments)`
+            )}. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`
           )
       })
 

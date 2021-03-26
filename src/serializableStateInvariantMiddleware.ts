@@ -12,12 +12,13 @@ import { getTimeMeasureUtils } from './utils'
  * @public
  */
 export function isPlain(val: any) {
+  const type = typeof val
   return (
-    typeof val === 'undefined' ||
+    type === 'undefined' ||
     val === null ||
-    typeof val === 'string' ||
-    typeof val === 'boolean' ||
-    typeof val === 'number' ||
+    type === 'string' ||
+    type === 'boolean' ||
+    type === 'number' ||
     Array.isArray(val) ||
     isPlainObject(val)
   )
@@ -33,7 +34,7 @@ interface NonSerializableValue {
  */
 export function findNonSerializableValue(
   value: unknown,
-  path: ReadonlyArray<string> = [],
+  path: string = '',
   isSerializable: (value: unknown) => boolean = isPlain,
   getEntries?: (value: unknown) => [string, any][],
   ignoredPaths: string[] = []
@@ -42,7 +43,7 @@ export function findNonSerializableValue(
 
   if (!isSerializable(value)) {
     return {
-      keyPath: path.join('.') || '<root>',
+      keyPath: path || '<root>',
       value: value
     }
   }
@@ -55,16 +56,16 @@ export function findNonSerializableValue(
 
   const hasIgnoredPaths = ignoredPaths.length > 0
 
-  for (const [property, nestedValue] of entries) {
-    const nestedPath = path.concat(property)
+  for (const [key, nestedValue] of entries) {
+    const nestedPath = path ? path + '.' + key : key // path.concat(property)
 
-    if (hasIgnoredPaths && ignoredPaths.indexOf(nestedPath.join('.')) >= 0) {
+    if (hasIgnoredPaths && ignoredPaths.indexOf(nestedPath) >= 0) {
       continue
     }
 
     if (!isSerializable(nestedValue)) {
       return {
-        keyPath: nestedPath.join('.'),
+        keyPath: nestedPath,
         value: nestedValue
       }
     }
@@ -129,6 +130,11 @@ export interface SerializableStateInvariantMiddlewareOptions {
    * Defaults to 32ms.
    */
   warnAfter?: number
+
+  /**
+   * Opt out of checking state, but continue checking actions
+   */
+  ignoreState?: boolean
 }
 
 /**
@@ -152,7 +158,8 @@ export function createSerializableStateInvariantMiddleware(
     ignoredActions = [],
     ignoredActionPaths = ['meta.arg'],
     ignoredPaths = [],
-    warnAfter = 32
+    warnAfter = 32,
+    ignoreState = false
   } = options
 
   return storeAPI => next => action => {
@@ -167,7 +174,7 @@ export function createSerializableStateInvariantMiddleware(
     measureUtils.measureTime(() => {
       const foundActionNonSerializableValue = findNonSerializableValue(
         action,
-        [],
+        '',
         isSerializable,
         getEntries,
         ignoredActionPaths
@@ -189,31 +196,33 @@ export function createSerializableStateInvariantMiddleware(
 
     const result = next(action)
 
-    measureUtils.measureTime(() => {
-      const state = storeAPI.getState()
+    if (!ignoreState) {
+      measureUtils.measureTime(() => {
+        const state = storeAPI.getState()
 
-      const foundStateNonSerializableValue = findNonSerializableValue(
-        state,
-        [],
-        isSerializable,
-        getEntries,
-        ignoredPaths
-      )
+        const foundStateNonSerializableValue = findNonSerializableValue(
+          state,
+          '',
+          isSerializable,
+          getEntries,
+          ignoredPaths
+        )
 
-      if (foundStateNonSerializableValue) {
-        const { keyPath, value } = foundStateNonSerializableValue
+        if (foundStateNonSerializableValue) {
+          const { keyPath, value } = foundStateNonSerializableValue
 
-        console.error(
-          `A non-serializable value was detected in the state, in the path: \`${keyPath}\`. Value:`,
-          value,
-          `
+          console.error(
+            `A non-serializable value was detected in the state, in the path: \`${keyPath}\`. Value:`,
+            value,
+            `
 Take a look at the reducer(s) handling this action type: ${action.type}.
 (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)`
-        )
-      }
-    })
+          )
+        }
+      })
 
-    measureUtils.warnIfExceeded()
+      measureUtils.warnIfExceeded()
+    }
 
     return result
   }

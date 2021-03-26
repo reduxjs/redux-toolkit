@@ -443,6 +443,21 @@ describe('serializableStateInvariantMiddleware', () => {
     `)
   })
 
+  it('allows ignoring state entirely', () => {
+    const badValue = new Map()
+    const reducer = () => badValue
+    configureStore({
+      reducer,
+      middleware: [
+        createSerializableStateInvariantMiddleware({
+          ignoreState: true
+        })
+      ]
+    }).dispatch({ type: 'test' })
+
+    expect(getLog().log).toMatchInlineSnapshot(`""`)
+  })
+
   it('Should print a warning if execution takes too long', () => {
     const reducer: Reducer = (state = 42, action) => {
       return state
