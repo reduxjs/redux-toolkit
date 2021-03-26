@@ -386,7 +386,7 @@ The correct output would look like this instead:
 
 ![Logged current value](/img/usage/immer-reducers/logged-current-state.png)
 
-Immer also provides [`original` and `isDraft` functions](https://immerjs.github.io/immer/original), which retrieves the original data without any updates applied and check to see if a given value is a Proxy-wrapped draft. As of RTK 1.5.0, neither of those is re-exported - you'll need to specifically import them from `immer` yourself. We may re-export them from RTK in an upcoming release.
+Immer also provides [`original` and `isDraft` functions](https://immerjs.github.io/immer/original), which retrieves the original data without any updates applied and check to see if a given value is a Proxy-wrapped draft. As of RTK 1.5.1, both of those are re-exported from RTK as well.
 
 ### Updating Nested Data
 

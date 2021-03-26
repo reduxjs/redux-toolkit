@@ -5,7 +5,8 @@ export {
   Draft,
   current,
   freeze,
-  original
+  original,
+  isDraft
 } from 'immer'
 export {
   createSelector,
