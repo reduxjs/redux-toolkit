@@ -184,7 +184,7 @@ describe('trackForMutations', () => {
 
       expect(tracker.detectMutations()).toEqual({
         wasMutated: true,
-        path: spec.path
+        path: spec.path.join('.')
       })
     })
   }
