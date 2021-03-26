@@ -14,6 +14,7 @@ import { DeepPartial } from 'redux';
 import { Dispatch } from 'redux';
 import { Draft } from 'immer';
 import { freeze } from 'immer';
+import { isDraft } from 'immer';
 import { Middleware } from 'redux';
 import { original } from 'immer';
 import { OutputParametricSelector } from 'reselect';
@@ -314,6 +315,8 @@ export function isAsyncThunkAction<AsyncThunks extends [AnyAsyncThunk, ...AnyAsy
 
 // @public
 export function isAsyncThunkAction(action: any): action is UnknownAsyncThunkAction;
+
+export { isDraft }
 
 // @public
 export function isFulfilled(): (action: any) => action is UnknownAsyncThunkFulfilledAction;
