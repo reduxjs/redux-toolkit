@@ -10,8 +10,8 @@ import {
   AnyAction,
   StoreEnhancer,
   Store,
-  DeepPartial,
-  Dispatch
+  Dispatch,
+  PreloadedState
 } from 'redux'
 import {
   composeWithDevTools,
@@ -24,7 +24,7 @@ import {
   curryGetDefaultMiddleware,
   CurriedGetDefaultMiddleware
 } from './getDefaultMiddleware'
-import { DispatchForMiddlewares } from './tsHelpers'
+import { DispatchForMiddlewares, NoInfer } from './tsHelpers'
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
@@ -74,11 +74,7 @@ export interface ConfigureStoreOptions<
    * function (either directly or indirectly by passing an object as `reducer`),
    * this must be an object with the same shape as the reducer map keys.
    */
-  // NOTE: The needlessly complicated `S extends any ? S : S` instead of just
-  // `S` ensures that the TypeScript compiler doesn't attempt to infer `S`
-  // based on the value passed as `preloadedState`, which might be a partial
-  // state rather than the full thing.
-  preloadedState?: DeepPartial<S extends any ? S : S>
+  preloadedState?: PreloadedState<NoInfer<S>>
 
   /**
    * The store enhancers to apply. See Redux's `createStore()`.
@@ -173,5 +169,5 @@ export function configureStore<
 
   const composedEnhancer = finalCompose(...storeEnhancers) as any
 
-  return createStore(rootReducer, preloadedState as any, composedEnhancer)
+  return createStore(rootReducer, preloadedState, composedEnhancer)
 }
