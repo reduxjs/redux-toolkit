@@ -31,7 +31,7 @@ describe('Unsorted State Adapter', () => {
       selectId: (book: BookModel) => book.id
     })
 
-    state = { ids: [], entities: {} }
+    state = { ids: [], entities: {}, indices: {} }
   })
 
   it('should let you add one entity to the state', () => {
@@ -41,7 +41,8 @@ describe('Unsorted State Adapter', () => {
       ids: [TheGreatGatsby.id],
       entities: {
         [TheGreatGatsby.id]: TheGreatGatsby
-      }
+      },
+      indices: {}
     })
   })
 
@@ -67,7 +68,8 @@ describe('Unsorted State Adapter', () => {
         [TheGreatGatsby.id]: TheGreatGatsby,
         [AClockworkOrange.id]: AClockworkOrange,
         [AnimalFarm.id]: AnimalFarm
-      }
+      },
+      indices: {}
     })
   })
 
@@ -85,7 +87,8 @@ describe('Unsorted State Adapter', () => {
         [TheGreatGatsby.id]: TheGreatGatsby,
         [AClockworkOrange.id]: AClockworkOrange,
         [AnimalFarm.id]: AnimalFarm
-      }
+      },
+      indices: {}
     })
   })
 
@@ -102,7 +105,8 @@ describe('Unsorted State Adapter', () => {
       entities: {
         [AClockworkOrange.id]: AClockworkOrange,
         [AnimalFarm.id]: AnimalFarm
-      }
+      },
+      indices: {}
     })
   })
 
@@ -119,7 +123,8 @@ describe('Unsorted State Adapter', () => {
       entities: {
         [AClockworkOrange.id]: AClockworkOrange,
         [AnimalFarm.id]: AnimalFarm
-      }
+      },
+      indices: {}
     })
   })
 
@@ -130,7 +135,8 @@ describe('Unsorted State Adapter', () => {
 
     expect(withoutOne).toEqual({
       ids: [],
-      entities: {}
+      entities: {},
+      indices: {}
     })
   })
 
@@ -150,7 +156,8 @@ describe('Unsorted State Adapter', () => {
       ids: [AnimalFarm.id],
       entities: {
         [AnimalFarm.id]: AnimalFarm
-      }
+      },
+      indices: {}
     })
   })
 
@@ -165,7 +172,8 @@ describe('Unsorted State Adapter', () => {
 
     expect(withoutAll).toEqual({
       ids: [],
-      entities: {}
+      entities: {},
+      indices: {}
     })
   })
 
@@ -185,7 +193,8 @@ describe('Unsorted State Adapter', () => {
           ...TheGreatGatsby,
           ...changes
         }
-      }
+      },
+      indices: {}
     })
   })
 
@@ -226,7 +235,8 @@ describe('Unsorted State Adapter', () => {
           ...TheGreatGatsby,
           ...changes
         }
-      }
+      },
+      indices: {}
     })
   })
 
@@ -251,7 +261,8 @@ describe('Unsorted State Adapter', () => {
           ...AClockworkOrange,
           ...secondChange
         }
-      }
+      },
+      indices: {}
     })
   })
 
@@ -290,7 +301,8 @@ describe('Unsorted State Adapter', () => {
       ids: [TheGreatGatsby.id],
       entities: {
         [TheGreatGatsby.id]: TheGreatGatsby
-      }
+      },
+      indices: {}
     })
   })
 
@@ -309,7 +321,8 @@ describe('Unsorted State Adapter', () => {
           ...TheGreatGatsby,
           ...changes
         }
-      }
+      },
+      indices: {}
     })
   })
 
@@ -330,7 +343,8 @@ describe('Unsorted State Adapter', () => {
           ...firstChange
         },
         [AClockworkOrange.id]: AClockworkOrange
-      }
+      },
+      indices: {}
     })
   })
 
@@ -351,7 +365,8 @@ describe('Unsorted State Adapter', () => {
           ...firstChange
         },
         [AClockworkOrange.id]: AClockworkOrange
-      }
+      },
+      indices: {}
     })
   })
 
@@ -365,6 +380,7 @@ describe('Unsorted State Adapter', () => {
         Object {
           "entities": Object {},
           "ids": Array [],
+          "indices": Object {},
         }
       `)
     })
@@ -385,6 +401,7 @@ describe('Unsorted State Adapter', () => {
           "ids": Array [
             "tgg",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -410,6 +427,7 @@ describe('Unsorted State Adapter', () => {
             "tgg",
             "af",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -435,6 +453,7 @@ describe('Unsorted State Adapter', () => {
             "tgg",
             "af",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -460,6 +479,7 @@ describe('Unsorted State Adapter', () => {
           "ids": Array [
             "tgg",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -506,6 +526,7 @@ describe('Unsorted State Adapter', () => {
             "aco",
             "th",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -525,6 +546,7 @@ describe('Unsorted State Adapter', () => {
           "ids": Array [
             "tgg",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -548,6 +570,7 @@ describe('Unsorted State Adapter', () => {
           "ids": Array [
             "tgg",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -579,6 +602,7 @@ describe('Unsorted State Adapter', () => {
             "tgg",
             "af",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -599,6 +623,7 @@ describe('Unsorted State Adapter', () => {
           "ids": Array [
             "af",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -623,6 +648,7 @@ describe('Unsorted State Adapter', () => {
           "ids": Array [
             "aco",
           ],
+          "indices": Object {},
         }
       `)
     })

@@ -34,7 +34,7 @@ describe('Sorted State Adapter', () => {
       }
     })
 
-    state = { ids: [], entities: {} }
+    state = { ids: [], entities: {}, indices: {} }
   })
 
   it('should let you add one entity to the state', () => {
@@ -44,7 +44,8 @@ describe('Sorted State Adapter', () => {
       ids: [TheGreatGatsby.id],
       entities: {
         [TheGreatGatsby.id]: TheGreatGatsby
-      }
+      },
+      indices: {}
     })
   })
 
@@ -56,7 +57,8 @@ describe('Sorted State Adapter', () => {
       ids: [TheGreatGatsby.id],
       entities: {
         [TheGreatGatsby.id]: TheGreatGatsby
-      }
+      },
+      indices: {}
     })
   })
 
@@ -82,7 +84,8 @@ describe('Sorted State Adapter', () => {
         [TheGreatGatsby.id]: TheGreatGatsby,
         [AClockworkOrange.id]: AClockworkOrange,
         [AnimalFarm.id]: AnimalFarm
-      }
+      },
+      indices: {}
     })
   })
 
@@ -100,7 +103,8 @@ describe('Sorted State Adapter', () => {
         [TheGreatGatsby.id]: TheGreatGatsby,
         [AClockworkOrange.id]: AClockworkOrange,
         [AnimalFarm.id]: AnimalFarm
-      }
+      },
+      indices: {}
     })
   })
 
@@ -117,7 +121,8 @@ describe('Sorted State Adapter', () => {
       entities: {
         [AClockworkOrange.id]: AClockworkOrange,
         [AnimalFarm.id]: AnimalFarm
-      }
+      },
+      indices: {}
     })
   })
 
@@ -134,7 +139,8 @@ describe('Sorted State Adapter', () => {
       entities: {
         [AClockworkOrange.id]: AClockworkOrange,
         [AnimalFarm.id]: AnimalFarm
-      }
+      },
+      indices: {}
     })
   })
 
@@ -151,7 +157,8 @@ describe('Sorted State Adapter', () => {
       entities: {
         [AClockworkOrange.id]: AClockworkOrange,
         [AnimalFarm.id]: AnimalFarm
-      }
+      },
+      indices: {}
     })
   })
 
@@ -162,7 +169,8 @@ describe('Sorted State Adapter', () => {
 
     expect(withoutOne).toEqual({
       ids: [],
-      entities: {}
+      entities: {},
+      indices: {}
     })
   })
 
@@ -182,7 +190,8 @@ describe('Sorted State Adapter', () => {
       ids: [AnimalFarm.id],
       entities: {
         [AnimalFarm.id]: AnimalFarm
-      }
+      },
+      indices: {}
     })
   })
 
@@ -197,7 +206,8 @@ describe('Sorted State Adapter', () => {
 
     expect(withoutAll).toEqual({
       ids: [],
-      entities: {}
+      entities: {},
+      indices: {}
     })
   })
 
@@ -217,7 +227,8 @@ describe('Sorted State Adapter', () => {
           ...TheGreatGatsby,
           ...changes
         }
-      }
+      },
+      indices: {}
     })
   })
 
@@ -286,7 +297,8 @@ describe('Sorted State Adapter', () => {
           ...TheGreatGatsby,
           ...changes
         }
-      }
+      },
+      indices: {}
     })
   })
 
@@ -312,7 +324,8 @@ describe('Sorted State Adapter', () => {
           ...changes
         },
         [AnimalFarm.id]: AnimalFarm
-      }
+      },
+      indices: {}
     })
   })
 
@@ -338,7 +351,8 @@ describe('Sorted State Adapter', () => {
           ...changes
         },
         [AnimalFarm.id]: AnimalFarm
-      }
+      },
+      indices: {}
     })
   })
 
@@ -363,7 +377,8 @@ describe('Sorted State Adapter', () => {
           ...AClockworkOrange,
           ...secondChange
         }
-      }
+      },
+      indices: {}
     })
   })
 
@@ -373,7 +388,8 @@ describe('Sorted State Adapter', () => {
       ids: [TheGreatGatsby.id],
       entities: {
         [TheGreatGatsby.id]: TheGreatGatsby
-      }
+      },
+      indices: {}
     })
   })
 
@@ -392,7 +408,8 @@ describe('Sorted State Adapter', () => {
           ...TheGreatGatsby,
           ...changes
         }
-      }
+      },
+      indices: {}
     })
   })
 
@@ -413,7 +430,8 @@ describe('Sorted State Adapter', () => {
           ...firstChange
         },
         [AClockworkOrange.id]: AClockworkOrange
-      }
+      },
+      indices: {}
     })
   })
 
@@ -426,7 +444,8 @@ describe('Sorted State Adapter', () => {
       ids: [TheGreatGatsby.id],
       entities: {
         [TheGreatGatsby.id]: TheGreatGatsby
-      }
+      },
+      indices: {}
     })
   })
 
@@ -460,7 +479,8 @@ describe('Sorted State Adapter', () => {
           ...firstChange
         },
         [AClockworkOrange.id]: AClockworkOrange
-      }
+      },
+      indices: {}
     })
   })
 
@@ -474,6 +494,7 @@ describe('Sorted State Adapter', () => {
         Object {
           "entities": Object {},
           "ids": Array [],
+          "indices": Object {},
         }
       `)
     })
@@ -494,6 +515,7 @@ describe('Sorted State Adapter', () => {
           "ids": Array [
             "tgg",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -519,6 +541,7 @@ describe('Sorted State Adapter', () => {
             "af",
             "tgg",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -544,6 +567,7 @@ describe('Sorted State Adapter', () => {
             "af",
             "tgg",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -569,6 +593,7 @@ describe('Sorted State Adapter', () => {
           "ids": Array [
             "tgg",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -601,6 +626,7 @@ describe('Sorted State Adapter', () => {
             "tgg",
             "aco",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -620,6 +646,7 @@ describe('Sorted State Adapter', () => {
           "ids": Array [
             "tgg",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -643,6 +670,7 @@ describe('Sorted State Adapter', () => {
           "ids": Array [
             "tgg",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -674,6 +702,7 @@ describe('Sorted State Adapter', () => {
             "tgg",
             "af",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -694,6 +723,7 @@ describe('Sorted State Adapter', () => {
           "ids": Array [
             "af",
           ],
+          "indices": Object {},
         }
       `)
     })
@@ -718,6 +748,7 @@ describe('Sorted State Adapter', () => {
           "ids": Array [
             "aco",
           ],
+          "indices": Object {},
         }
       `)
     })
