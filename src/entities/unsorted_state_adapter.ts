@@ -9,7 +9,11 @@ import {
   createStateOperator,
   createSingleArgumentStateOperator
 } from './state_adapter'
-import { selectIdValue } from './utils'
+import {
+  selectIdValue,
+  ensureEntitiesArray,
+  splitAddedUpdatedEntities
+} from './utils'
 
 export function createUnsortedStateAdapter<T>(
   selectId: IdSelector<T>
@@ -27,25 +31,27 @@ export function createUnsortedStateAdapter<T>(
     state.entities[key] = entity
   }
 
-  function addManyMutably(entities: T[] | Record<EntityId, T>, state: R): void {
-    if (!Array.isArray(entities)) {
-      entities = Object.values(entities)
-    }
+  function addManyMutably(
+    newEntities: T[] | Record<EntityId, T>,
+    state: R
+  ): void {
+    newEntities = ensureEntitiesArray(newEntities)
 
-    for (const entity of entities) {
+    for (const entity of newEntities) {
       addOneMutably(entity, state)
     }
   }
 
-  function setAllMutably(entities: T[] | Record<EntityId, T>, state: R): void {
-    if (!Array.isArray(entities)) {
-      entities = Object.values(entities)
-    }
+  function setAllMutably(
+    newEntities: T[] | Record<EntityId, T>,
+    state: R
+  ): void {
+    newEntities = ensureEntitiesArray(newEntities)
 
     state.ids = []
     state.entities = {}
 
-    addManyMutably(entities, state)
+    addManyMutably(newEntities, state)
   }
 
   function removeOneMutably(key: EntityId, state: R): void {
@@ -140,24 +146,14 @@ export function createUnsortedStateAdapter<T>(
   }
 
   function upsertManyMutably(
-    entities: T[] | Record<EntityId, T>,
+    newEntities: T[] | Record<EntityId, T>,
     state: R
   ): void {
-    if (!Array.isArray(entities)) {
-      entities = Object.values(entities)
-    }
-
-    const added: T[] = []
-    const updated: Update<T>[] = []
-
-    for (const entity of entities) {
-      const id = selectIdValue(entity, selectId)
-      if (id in state.entities) {
-        updated.push({ id, changes: entity })
-      } else {
-        added.push(entity)
-      }
-    }
+    const [added, updated] = splitAddedUpdatedEntities<T>(
+      newEntities,
+      selectId,
+      state
+    )
 
     updateManyMutably(updated, state)
     addManyMutably(added, state)
