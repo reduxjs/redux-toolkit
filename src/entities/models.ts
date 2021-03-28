@@ -35,20 +35,36 @@ export interface Dictionary<T> extends DictionaryNum<T> {
  */
 export type Update<T> = { id: EntityId; changes: Partial<T> }
 
+export interface BasicObject {
+  [key: string]: any
+}
+
+export type Indices<T, IC extends IndexComparers<T>> = {
+  [key in keyof IC]: EntityId[]
+}
 /**
  * @public
  */
-export interface EntityState<T> {
+export interface EntityState<
+  T,
+  IC extends IndexComparers<T> = IndexComparers<unknown>
+> {
   ids: EntityId[]
   entities: Dictionary<T>
+  indices: Indices<T, IC>
+}
+
+export type IndexComparers<T> = {
+  [key: string]: Comparer<T>
 }
 
 /**
  * @public
  */
-export interface EntityDefinition<T> {
-  selectId: IdSelector<T>
-  sortComparer: false | Comparer<T>
+export interface EntityDefinition<T, IC extends IndexComparers<T>> {
+  selectId?: IdSelector<T>
+  sortComparer?: false | Comparer<T>
+  indices?: IC
 }
 
 export type PreventAny<S, T> = IsAny<S, EntityState<T>, S>
