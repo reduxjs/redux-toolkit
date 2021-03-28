@@ -6,14 +6,14 @@ export {
   current,
   freeze,
   original,
-  isDraft
+  isDraft,
 } from 'immer'
 export {
   createSelector,
   Selector,
   OutputParametricSelector,
   OutputSelector,
-  ParametricSelector
+  ParametricSelector,
 } from 'reselect'
 export { createDraftSafeSelector } from './createDraftSafeSelector'
 export { ThunkAction, ThunkDispatch } from 'redux-thunk'
@@ -30,7 +30,7 @@ export {
   // types
   ConfigureEnhancersCallback,
   ConfigureStoreOptions,
-  EnhancedStore
+  EnhancedStore,
 } from './configureStore'
 export {
   // js
@@ -44,7 +44,7 @@ export {
   ActionCreatorWithPayload,
   ActionCreatorWithoutPayload,
   ActionCreatorWithPreparedPayload,
-  PrepareAction
+  PrepareAction,
 } from './createAction'
 export {
   // js
@@ -52,7 +52,7 @@ export {
   // types
   Actions,
   CaseReducer,
-  CaseReducers
+  CaseReducers,
 } from './createReducer'
 export {
   // js
@@ -64,14 +64,14 @@ export {
   SliceCaseReducers,
   ValidateSliceCaseReducers,
   CaseReducerWithPrepare,
-  SliceActionCreator
+  SliceActionCreator,
 } from './createSlice'
 export {
   // js
   createImmutableStateInvariantMiddleware,
   isImmutableDefault,
   // types
-  ImmutableStateInvariantMiddlewareOptions
+  ImmutableStateInvariantMiddlewareOptions,
 } from './immutableStateInvariantMiddleware'
 export {
   // js
@@ -79,15 +79,15 @@ export {
   findNonSerializableValue,
   isPlain,
   // types
-  SerializableStateInvariantMiddlewareOptions
+  SerializableStateInvariantMiddlewareOptions,
 } from './serializableStateInvariantMiddleware'
 export {
   // js
-  getDefaultMiddleware
+  getDefaultMiddleware,
 } from './getDefaultMiddleware'
 export {
   // types
-  ActionReducerMapBuilder
+  ActionReducerMapBuilder,
 } from './mapBuilders'
 export { MiddlewareArray } from './utils'
 
@@ -101,7 +101,7 @@ export {
   EntityId,
   Update,
   IdSelector,
-  Comparer
+  Comparer,
 } from './entities/models'
 
 export {
@@ -112,7 +112,7 @@ export {
   AsyncThunkPayloadCreator,
   createAsyncThunk,
   unwrapResult,
-  SerializedError
+  SerializedError,
 } from './createAsyncThunk'
 
 export {
@@ -126,7 +126,7 @@ export {
   isRejectedWithValue,
   // types
   ActionMatchingAllOf,
-  ActionMatchingAnyOf
+  ActionMatchingAnyOf,
 } from './matchers'
 
 export { nanoid } from './nanoid'

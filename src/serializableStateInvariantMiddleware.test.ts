@@ -2,14 +2,14 @@ import { Reducer } from 'redux'
 import {
   mockConsole,
   createConsole,
-  getLog
+  getLog,
 } from 'console-testing-library/pure'
 import { configureStore } from './configureStore'
 
 import {
   createSerializableStateInvariantMiddleware,
   findNonSerializableValue,
-  isPlain
+  isPlain,
 } from './serializableStateInvariantMiddleware'
 
 // Mocking console
@@ -24,9 +24,9 @@ describe('findNonSerializableValue', () => {
     const obj = {
       a: 42,
       b: {
-        b1: 'test'
+        b1: 'test',
       },
-      c: [99, { d: 123 }]
+      c: [99, { d: 123 }],
     }
 
     const result = findNonSerializableValue(obj)
@@ -40,9 +40,9 @@ describe('findNonSerializableValue', () => {
     const obj = {
       a: 42,
       b: {
-        b1: testFunction
+        b1: testFunction,
       },
-      c: [99, { d: 123 }]
+      c: [99, { d: 123 }],
     }
 
     const result = findNonSerializableValue(obj)
@@ -57,10 +57,10 @@ describe('findNonSerializableValue', () => {
     const obj = {
       a: 42,
       b: {
-        b1: 1
+        b1: 1,
       },
       c: [99, { d: 123 }, map, symbol, 'test'],
-      d: symbol
+      d: symbol,
     }
 
     const result = findNonSerializableValue(obj)
@@ -79,9 +79,9 @@ describe('findNonSerializableValue', () => {
     const obj = {
       a: 42,
       b: {
-        b1: 1
+        b1: 1,
       },
-      c: null
+      c: null,
     }
 
     const result = findNonSerializableValue(obj)
@@ -98,7 +98,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const store = configureStore({
       reducer,
-      middleware: [serializableStateInvariantMiddleware]
+      middleware: [serializableStateInvariantMiddleware],
     })
 
     const type = Symbol.for('SOME_CONSTANT')
@@ -120,7 +120,7 @@ describe('serializableStateInvariantMiddleware', () => {
     const ACTION_TYPE = 'TEST_ACTION'
 
     const initialState = {
-      a: 0
+      a: 0,
     }
 
     const badValue = new Map()
@@ -129,7 +129,7 @@ describe('serializableStateInvariantMiddleware', () => {
       switch (action.type) {
         case ACTION_TYPE: {
           return {
-            a: badValue
+            a: badValue,
           }
         }
         default:
@@ -141,9 +141,9 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const store = configureStore({
       reducer: {
-        testSlice: reducer
+        testSlice: reducer,
       },
-      middleware: [serializableStateInvariantMiddleware]
+      middleware: [serializableStateInvariantMiddleware],
     })
 
     store.dispatch({ type: ACTION_TYPE })
@@ -163,8 +163,8 @@ describe('serializableStateInvariantMiddleware', () => {
       entries: (): [string, any][] => [
         ['good-string', 'Good!'],
         ['good-number', 1337],
-        ['bad-map-instance', nonSerializableValue]
-      ]
+        ['bad-map-instance', nonSerializableValue],
+      ],
     }
 
     const serializableObject = {
@@ -172,22 +172,22 @@ describe('serializableStateInvariantMiddleware', () => {
       entries: (): [string, any][] => [
         ['first', 1],
         ['second', 'B!'],
-        ['third', nestedSerializableObjectWithBadValue]
-      ]
+        ['third', nestedSerializableObjectWithBadValue],
+      ],
     }
 
     it('Should log an error when a non-serializable value is nested in state', () => {
       const ACTION_TYPE = 'TEST_ACTION'
 
       const initialState = {
-        a: 0
+        a: 0,
       }
 
       const reducer: Reducer = (state = initialState, action) => {
         switch (action.type) {
           case ACTION_TYPE: {
             return {
-              a: serializableObject
+              a: serializableObject,
             }
           }
           default:
@@ -200,9 +200,9 @@ describe('serializableStateInvariantMiddleware', () => {
 
       const store = configureStore({
         reducer: {
-          testSlice: reducer
+          testSlice: reducer,
         },
-        middleware: [serializableStateInvariantMiddleware]
+        middleware: [serializableStateInvariantMiddleware],
       })
 
       store.dispatch({ type: ACTION_TYPE })
@@ -219,7 +219,7 @@ describe('serializableStateInvariantMiddleware', () => {
       const ACTION_TYPE = 'TEST_ACTION'
 
       const initialState = {
-        a: 0
+        a: 0,
       }
 
       const isSerializable = (val: any): boolean =>
@@ -231,7 +231,7 @@ describe('serializableStateInvariantMiddleware', () => {
         switch (action.type) {
           case ACTION_TYPE: {
             return {
-              a: serializableObject
+              a: serializableObject,
             }
           }
           default:
@@ -245,9 +245,9 @@ describe('serializableStateInvariantMiddleware', () => {
 
       const store = configureStore({
         reducer: {
-          testSlice: reducer
+          testSlice: reducer,
         },
-        middleware: [serializableStateInvariantMiddleware]
+        middleware: [serializableStateInvariantMiddleware],
       })
 
       store.dispatch({ type: ACTION_TYPE })
@@ -265,7 +265,7 @@ describe('serializableStateInvariantMiddleware', () => {
     const ACTION_TYPE = 'TEST_ACTION'
 
     const initialState = {
-      a: 0
+      a: 0,
     }
 
     const badValue = new Map()
@@ -274,7 +274,7 @@ describe('serializableStateInvariantMiddleware', () => {
       switch (action.type) {
         case ACTION_TYPE: {
           return {
-            a: badValue
+            a: badValue,
           }
         }
         default:
@@ -284,15 +284,15 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const serializableStateInvariantMiddleware = createSerializableStateInvariantMiddleware(
       {
-        isSerializable: () => true
+        isSerializable: () => true,
       }
     )
 
     const store = configureStore({
       reducer: {
-        testSlice: reducer
+        testSlice: reducer,
       },
-      middleware: [serializableStateInvariantMiddleware]
+      middleware: [serializableStateInvariantMiddleware],
     })
 
     store.dispatch({ type: ACTION_TYPE })
@@ -311,13 +311,13 @@ describe('serializableStateInvariantMiddleware', () => {
           numTimesCalled++
           return true
         },
-        ignoredActions: ['IGNORE_ME']
+        ignoredActions: ['IGNORE_ME'],
       }
     )
 
     const store = configureStore({
       reducer: () => ({}),
-      middleware: [serializableStateMiddleware]
+      middleware: [serializableStateMiddleware],
     })
 
     expect(numTimesCalled).toBe(0)
@@ -340,7 +340,7 @@ describe('serializableStateInvariantMiddleware', () => {
     it('default value: meta.arg', () => {
       configureStore({
         reducer,
-        middleware: [createSerializableStateInvariantMiddleware()]
+        middleware: [createSerializableStateInvariantMiddleware()],
       }).dispatch({ type: 'test', meta: { arg: nonSerializableValue } })
 
       expect(getLog().log).toMatchInlineSnapshot(`""`)
@@ -351,9 +351,9 @@ describe('serializableStateInvariantMiddleware', () => {
         reducer,
         middleware: [
           createSerializableStateInvariantMiddleware({
-            ignoredActionPaths: []
-          })
-        ]
+            ignoredActionPaths: [],
+          }),
+        ],
       }).dispatch({ type: 'test', meta: { arg: nonSerializableValue } })
 
       expect(getLog().log).toMatchInlineSnapshot(`
@@ -374,13 +374,13 @@ describe('serializableStateInvariantMiddleware', () => {
         reducer,
         middleware: [
           createSerializableStateInvariantMiddleware({
-            ignoredActionPaths: ['payload', 'meta.arg']
-          })
-        ]
+            ignoredActionPaths: ['payload', 'meta.arg'],
+          }),
+        ],
       }).dispatch({
         type: 'test',
         payload: { arg: nonSerializableValue },
-        meta: { arg: nonSerializableValue }
+        meta: { arg: nonSerializableValue },
       })
 
       expect(getLog().log).toMatchInlineSnapshot(`""`)
@@ -391,7 +391,7 @@ describe('serializableStateInvariantMiddleware', () => {
     const ACTION_TYPE = 'TEST_ACTION'
 
     const initialState = {
-      a: 0
+      a: 0,
     }
 
     const badValue = new Map()
@@ -403,9 +403,9 @@ describe('serializableStateInvariantMiddleware', () => {
             a: badValue,
             b: {
               c: badValue,
-              d: badValue
+              d: badValue,
             },
-            e: { f: badValue }
+            e: { f: badValue },
           }
         }
         default:
@@ -421,16 +421,16 @@ describe('serializableStateInvariantMiddleware', () => {
           // Test for ignoring a single nested value
           'testSlice.b.c',
           // Test for ignoring an object and its children
-          'testSlice.e'
-        ]
+          'testSlice.e',
+        ],
       }
     )
 
     const store = configureStore({
       reducer: {
-        testSlice: reducer
+        testSlice: reducer,
       },
-      middleware: [serializableStateInvariantMiddleware]
+      middleware: [serializableStateInvariantMiddleware],
     })
 
     store.dispatch({ type: ACTION_TYPE })
@@ -450,9 +450,9 @@ describe('serializableStateInvariantMiddleware', () => {
       reducer,
       middleware: [
         createSerializableStateInvariantMiddleware({
-          ignoreState: true
-        })
-      ]
+          ignoreState: true,
+        }),
+      ],
     }).dispatch({ type: 'test' })
 
     expect(getLog().log).toMatchInlineSnapshot(`""`)
@@ -469,14 +469,14 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const store = configureStore({
       reducer: {
-        testSlice: reducer
+        testSlice: reducer,
       },
-      middleware: [serializableStateInvariantMiddleware]
+      middleware: [serializableStateInvariantMiddleware],
     })
 
     store.dispatch({
       type: 'SOME_ACTION',
-      payload: new Array(10000).fill({ value: 'more' })
+      payload: new Array(10000).fill({ value: 'more' }),
     })
     expect(getLog().log).toMatch(
       /^SerializableStateInvariantMiddleware took \d*ms, which is more than the warning threshold of 4ms./
@@ -496,9 +496,9 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const store = configureStore({
       reducer: {
-        testSlice: reducer
+        testSlice: reducer,
       },
-      middleware: [serializableStateInvariantMiddleware]
+      middleware: [serializableStateInvariantMiddleware],
     })
 
     store.dispatch({ type: 'SOME_ACTION' })

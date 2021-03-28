@@ -2,7 +2,7 @@ import { Dispatch, AnyAction } from 'redux'
 import {
   createAction,
   PayloadAction,
-  ActionCreatorWithPreparedPayload
+  ActionCreatorWithPreparedPayload,
 } from './createAction'
 import { ThunkDispatch } from 'redux-thunk'
 import { FallbackIfUnknown, IsAny } from './tsHelpers'
@@ -39,7 +39,7 @@ const commonProperties: Array<keyof SerializedError> = [
   'name',
   'message',
   'stack',
-  'code'
+  'code',
 ]
 
 class RejectWithValue<RejectValue> {
@@ -315,8 +315,8 @@ export function createAsyncThunk<
         meta: {
           arg,
           requestId,
-          requestStatus: 'fulfilled' as const
-        }
+          requestStatus: 'fulfilled' as const,
+        },
       }
     }
   )
@@ -329,8 +329,8 @@ export function createAsyncThunk<
         meta: {
           arg,
           requestId,
-          requestStatus: 'pending' as const
-        }
+          requestStatus: 'pending' as const,
+        },
       }
     }
   )
@@ -353,8 +353,8 @@ export function createAsyncThunk<
           rejectedWithValue,
           requestStatus: 'rejected' as const,
           aborted,
-          condition
-        }
+          condition,
+        },
       }
     }
   )
@@ -372,7 +372,7 @@ export function createAsyncThunk<
               return false
             },
             onabort() {},
-            removeEventListener() {}
+            removeEventListener() {},
           }
           abort() {
             if (process.env.NODE_ENV !== 'production') {
@@ -410,7 +410,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
         }
       }
 
-      const promise = (async function() {
+      const promise = (async function () {
         let finalAction: ReturnType<typeof fulfilled | typeof rejected>
         try {
           if (
@@ -421,7 +421,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
             // eslint-disable-next-line no-throw-literal
             throw {
               name: 'ConditionError',
-              message: 'Aborted due to condition callback returning false.'
+              message: 'Aborted due to condition callback returning false.',
             }
           }
           started = true
@@ -437,14 +437,14 @@ If you want to use the AbortController to react to \`abort\` events, please cons
                 signal: abortController.signal,
                 rejectWithValue(value: RejectedValue) {
                   return new RejectWithValue(value)
-                }
+                },
               })
-            ).then(result => {
+            ).then((result) => {
               if (result instanceof RejectWithValue) {
                 return rejected(result, requestId, arg)
               }
               return fulfilled(result, requestId, arg)
-            })
+            }),
           ])
         } catch (err) {
           finalAction = rejected(err, requestId, arg)
@@ -479,7 +479,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
       pending,
       rejected,
       fulfilled,
-      typePrefix
+      typePrefix,
     }
   )
 }

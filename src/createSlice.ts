@@ -5,12 +5,12 @@ import {
   PayloadAction,
   PayloadActionCreator,
   PrepareAction,
-  _ActionCreatorWithPreparedPayload
+  _ActionCreatorWithPreparedPayload,
 } from './createAction'
 import { CaseReducer, CaseReducers, createReducer } from './createReducer'
 import {
   ActionReducerMapBuilder,
-  executeReducerBuilderCallback
+  executeReducerBuilderCallback,
 } from './mapBuilders'
 import { NoInfer } from './tsHelpers'
 
@@ -257,7 +257,7 @@ export function createSlice<
   const [
     extraReducers = {},
     actionMatchers = [],
-    defaultCaseReducer = undefined
+    defaultCaseReducer = undefined,
   ] =
     typeof options.extraReducers === 'undefined'
       ? []
@@ -271,7 +271,7 @@ export function createSlice<
   const sliceCaseReducersByType: Record<string, CaseReducer> = {}
   const actionCreators: Record<string, Function> = {}
 
-  reducerNames.forEach(reducerName => {
+  reducerNames.forEach((reducerName) => {
     const maybeReducerWithPrepare = reducers[reducerName]
     const type = getType(name, reducerName)
 
@@ -304,6 +304,6 @@ export function createSlice<
     name,
     reducer,
     actions: actionCreators as any,
-    caseReducers: sliceCaseReducersByName as any
+    caseReducers: sliceCaseReducersByName as any,
   }
 }

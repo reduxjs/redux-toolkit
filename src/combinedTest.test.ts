@@ -12,7 +12,7 @@ describe('Combined entity slice', () => {
   beforeEach(() => {
     adapter = createEntityAdapter({
       selectId: (book: BookModel) => book.id,
-      sortComparer: (a, b) => a.title.localeCompare(b.title)
+      sortComparer: (a, b) => a.title.localeCompare(b.title),
     })
   })
 
@@ -26,12 +26,12 @@ describe('Combined entity slice', () => {
 
     const initialState: BooksState = adapter.getInitialState({
       loading: 'initial',
-      lastRequestId: null
+      lastRequestId: null,
     })
 
     const fakeBooks: BookModel[] = [
       { id: 'b', title: 'Second' },
-      { id: 'a', title: 'First' }
+      { id: 'a', title: 'First' },
     ]
 
     const fetchBooksTAC = createAsyncThunk<
@@ -70,9 +70,9 @@ describe('Combined entity slice', () => {
           }
 
           //Deliberately _don't_ return result
-        }
+        },
       },
-      extraReducers: builder => {
+      extraReducers: (builder) => {
         builder.addCase(upsertBook, (state, action) => {
           return adapter.upsertOne(state, action)
         })
@@ -90,7 +90,7 @@ describe('Combined entity slice', () => {
             state.lastRequestId = null
           }
         })
-      }
+      },
     })
 
     const { addOne, removeOne } = booksSlice.actions
@@ -98,8 +98,8 @@ describe('Combined entity slice', () => {
 
     const store = configureStore({
       reducer: {
-        books: reducer
-      }
+        books: reducer,
+      },
     })
 
     await store.dispatch(fetchBooksTAC())

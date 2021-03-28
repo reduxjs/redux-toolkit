@@ -4,12 +4,12 @@ import {
   /* PROD_START_REMOVE_UMD */
   createImmutableStateInvariantMiddleware,
   /* PROD_STOP_REMOVE_UMD */
-  ImmutableStateInvariantMiddlewareOptions
+  ImmutableStateInvariantMiddlewareOptions,
 } from './immutableStateInvariantMiddleware'
 
 import {
   createSerializableStateInvariantMiddleware,
-  SerializableStateInvariantMiddlewareOptions
+  SerializableStateInvariantMiddlewareOptions,
 } from './serializableStateInvariantMiddleware'
 import { MiddlewareArray } from './utils'
 
@@ -80,7 +80,7 @@ export function getDefaultMiddleware<
   const {
     thunk = true,
     immutableCheck = true,
-    serializableCheck = true
+    serializableCheck = true,
   } = options
 
   let middlewareArray: Middleware<{}, S>[] = new MiddlewareArray()

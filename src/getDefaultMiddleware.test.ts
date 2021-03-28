@@ -44,7 +44,7 @@ describe('getDefaultMiddleware', () => {
     const middleware = getDefaultMiddleware({
       thunk: { extraArgument },
       immutableCheck: false,
-      serializableCheck: false
+      serializableCheck: false,
     })
 
     const testThunk: ThunkAction<void, {}, number, AnyAction> = (
@@ -59,7 +59,7 @@ describe('getDefaultMiddleware', () => {
 
     const store = configureStore({
       reducer,
-      middleware
+      middleware,
     })
 
     store.dispatch(testThunk)
@@ -74,16 +74,16 @@ describe('getDefaultMiddleware', () => {
         isImmutable: () => {
           immutableCheckWasCalled = true
           return true
-        }
+        },
       },
-      serializableCheck: false
+      serializableCheck: false,
     })
 
     const reducer = () => ({})
 
     const store = configureStore({
       reducer,
-      middleware
+      middleware,
     })
 
     expect(immutableCheckWasCalled).toBe(true)
@@ -99,15 +99,15 @@ describe('getDefaultMiddleware', () => {
         isSerializable: () => {
           serializableCheckWasCalled = true
           return true
-        }
-      }
+        },
+      },
     })
 
     const reducer = () => ({})
 
     const store = configureStore({
       reducer,
-      middleware
+      middleware,
     })
 
     store.dispatch({ type: 'TEST_ACTION' })
@@ -117,8 +117,8 @@ describe('getDefaultMiddleware', () => {
 })
 
 describe('MiddlewareArray functionality', () => {
-  const middleware1: Middleware = () => next => action => next(action)
-  const middleware2: Middleware = () => next => action => next(action)
+  const middleware1: Middleware = () => (next) => (action) => next(action)
+  const middleware2: Middleware = () => (next) => (action) => next(action)
   const defaultMiddleware = getDefaultMiddleware()
   const originalDefaultMiddleware = [...defaultMiddleware]
 
@@ -181,7 +181,7 @@ describe('MiddlewareArray functionality', () => {
     expect(concatenated).toEqual([
       ...defaultMiddleware,
       middleware1,
-      middleware2
+      middleware2,
     ])
     // returned value is of correct type
     expect(concatenated).toBeInstanceOf(MiddlewareArray)
@@ -198,7 +198,7 @@ describe('MiddlewareArray functionality', () => {
     expect(concatenated).toEqual([
       ...defaultMiddleware,
       middleware1,
-      middleware2
+      middleware2,
     ])
     // returned value is of correct type
     expect(concatenated).toBeInstanceOf(MiddlewareArray)
@@ -216,7 +216,7 @@ describe('MiddlewareArray functionality', () => {
     expect(concatenated).toEqual([
       middleware2,
       ...defaultMiddleware,
-      middleware1
+      middleware1,
     ])
   })
 
@@ -228,7 +228,7 @@ describe('MiddlewareArray functionality', () => {
     expect(concatenated).toEqual([
       middleware2,
       ...defaultMiddleware,
-      middleware1
+      middleware1,
     ])
   })
 })

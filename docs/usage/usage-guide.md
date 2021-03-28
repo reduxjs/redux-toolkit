@@ -84,7 +84,7 @@ import { configureStore } from '@reduxjs/toolkit'
 import rootReducer from './reducers'
 
 const store = configureStore({
-  reducer: rootReducer
+  reducer: rootReducer,
 })
 
 export default store
@@ -99,8 +99,8 @@ import postsReducer from './postsReducer'
 const store = configureStore({
   reducer: {
     users: usersReducer,
-    posts: postsReducer
-  }
+    posts: postsReducer,
+  },
 })
 ```
 
@@ -118,10 +118,10 @@ import rootReducer from './reducers'
 export default function configureAppStore(preloadedState) {
   const store = configureStore({
     reducer: rootReducer,
-    middleware: getDefaultMiddleware =>
+    middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(loggerMiddleware),
     preloadedState,
-    enhancers: [monitorReducersEnhancer]
+    enhancers: [monitorReducersEnhancer],
   })
 
   if (process.env.NODE_ENV !== 'production' && module.hot) {
@@ -166,7 +166,7 @@ function todosReducer(state = [], action) {
 
         return {
           ...todo,
-          completed: !todo.completed
+          completed: !todo.completed,
         }
       })
     }
@@ -184,7 +184,7 @@ Notice that we specifically call `state.concat()` to return a copied array with 
 With `createReducer`, we can shorten that example considerably:
 
 ```js
-const todosReducer = createReducer([], builder => {
+const todosReducer = createReducer([], (builder) => {
   builder
     .addCase('ADD_TODO', (state, action) => {
       // "mutate" the array by calling push()
@@ -251,7 +251,7 @@ Most action creators are very simple. They take some parameters, and return an a
 function addTodo(text) {
   return {
     type: 'ADD_TODO',
-    payload: { text }
+    payload: { text },
   }
 }
 ```
@@ -285,7 +285,7 @@ console.log(actionCreator.toString())
 console.log(actionCreator.type)
 // "SOME_ACTION_TYPE"
 
-const reducer = createReducer({}, builder => {
+const reducer = createReducer({}, (builder) => {
   // actionCreator.toString() will automatically be called here
   // also, if you use TypeScript, the action type will be correctly inferred
   builder.addCase(actionCreator, (state, action) => {})
@@ -334,7 +334,7 @@ import postsReducer from './postsReducer'
 
 const rootReducer = combineReducers({
   users: usersReducer,
-  posts: postsReducer
+  posts: postsReducer,
 })
 ```
 
@@ -358,7 +358,7 @@ import { CREATE_POST, UPDATE_POST, DELETE_POST } from './postConstants'
 export function addPost(id, title) {
   return {
     type: CREATE_POST,
-    payload: { id, title }
+    payload: { id, title },
   }
 }
 
@@ -395,7 +395,7 @@ const DELETE_POST = 'DELETE_POST'
 export function addPost(id, title) {
   return {
     type: CREATE_POST,
-    payload: { id, title }
+    payload: { id, title },
   }
 }
 
@@ -452,8 +452,8 @@ const postsSlice = createSlice({
   reducers: {
     createPost(state, action) {},
     updatePost(state, action) {},
-    deletePost(state, action) {}
-  }
+    deletePost(state, action) {},
+  },
 })
 
 console.log(postsSlice)
@@ -484,8 +484,8 @@ const postsSlice = createSlice({
   reducers: {
     createPost(state, action) {},
     updatePost(state, action) {},
-    deletePost(state, action) {}
-  }
+    deletePost(state, action) {},
+  },
 })
 
 const { createPost } = postsSlice.actions
@@ -505,8 +505,8 @@ const postsSlice = createSlice({
   reducers: {
     createPost(state, action) {},
     updatePost(state, action) {},
-    deletePost(state, action) {}
-  }
+    deletePost(state, action) {},
+  },
 })
 
 // Extract the action creators object and the reducer
@@ -578,7 +578,7 @@ const usersSlice = createSlice({
   name: 'users',
   initialState: {
     loading: 'idle',
-    users: []
+    users: [],
   },
   reducers: {
     usersLoading(state, action) {
@@ -592,15 +592,15 @@ const usersSlice = createSlice({
         state.loading = 'idle'
         state.users = action.payload
       }
-    }
-  }
+    },
+  },
 })
 
 // Destructure and export the plain action creators
 export const { usersLoading, usersReceived } = usersSlice.actions
 
 // Define a thunk that dispatches those action creators
-const fetchUsers = () => async dispatch => {
+const fetchUsers = () => async (dispatch) => {
   dispatch(usersLoading())
   const response = await usersAPI.fetchAll()
   dispatch(usersReceived(response.data))
@@ -681,8 +681,8 @@ const usersSlice = createSlice({
     [fetchUserById.fulfilled]: (state, action) => {
       // Add user to the state array
       state.entities.push(action.payload)
-    }
-  }
+    },
+  },
 })
 
 // Later, dispatch the thunk as needed in the app
@@ -726,10 +726,10 @@ export const slice = createSlice({
   name: 'users',
   initialState: {
     ids: [],
-    entities: {}
+    entities: {},
   },
   reducers: {},
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder.addCase(fetchUsers.fulfilled, (state, action) => {
       // reduce the collection by the id property into a shape of { 1: { ...user }}
       const byId = action.payload.users.reduce((byId, user) => {
@@ -739,7 +739,7 @@ export const slice = createSlice({
       state.entities = byId
       state.ids = Object.keys(byId)
     })
-  }
+  },
 })
 ```
 
@@ -768,15 +768,15 @@ export const slice = createSlice({
   name: 'users',
   initialState: {
     ids: [],
-    entities: {}
+    entities: {},
   },
   reducers: {},
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder.addCase(fetchUsers.fulfilled, (state, action) => {
       state.entities = action.payload.users
       state.ids = Object.keys(action.payload.users)
     })
-  }
+  },
 })
 ```
 
@@ -790,7 +790,7 @@ Redux Toolkit's `createEntityAdapter` API provides a standardized way to store y
 import {
   createSlice,
   createAsyncThunk,
-  createEntityAdapter
+  createEntityAdapter,
 } from '@reduxjs/toolkit'
 import userAPI from './userAPI'
 
@@ -801,7 +801,7 @@ export const fetchUsers = createAsyncThunk('users/fetchAll', async () => {
   return response.data
 })
 
-export const updateUser = createAsyncThunk('users/updateOne', async arg => {
+export const updateUser = createAsyncThunk('users/updateOne', async (arg) => {
   const response = await userAPI.updateUser(arg)
   // In this case, `response.data` would be:
   // { id: 1, first_name: 'Example', last_name: 'UpdatedLastName'}
@@ -819,15 +819,15 @@ export const slice = createSlice({
   name: 'users',
   initialState,
   reducers: {
-    removeUser: usersAdapter.removeOne
+    removeUser: usersAdapter.removeOne,
   },
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder.addCase(fetchUsers.fulfilled, usersAdapter.upsertMany)
     builder.addCase(updateUser.fulfilled, (state, { payload }) => {
       const { id, ...changes } = payload
       usersAdapter.updateOne(state, { id, changes })
     })
-  }
+  },
 })
 
 const reducer = slice.reducer
@@ -850,7 +850,7 @@ import {
   createSlice,
   createEntityAdapter,
   createAsyncThunk,
-  createSelector
+  createSelector,
 } from '@reduxjs/toolkit'
 import fakeAPI from '../../services/fakeAPI'
 import { normalize, schema } from 'normalizr'
@@ -858,18 +858,18 @@ import { normalize, schema } from 'normalizr'
 // Define normalizr entity schemas
 export const userEntity = new schema.Entity('users')
 export const commentEntity = new schema.Entity('comments', {
-  commenter: userEntity
+  commenter: userEntity,
 })
 export const articleEntity = new schema.Entity('articles', {
   author: userEntity,
-  comments: [commentEntity]
+  comments: [commentEntity],
 })
 
 const articlesAdapter = createEntityAdapter()
 
 export const fetchArticle = createAsyncThunk(
   'articles/fetchArticle',
-  async id => {
+  async (id) => {
     const data = await fakeAPI.articles.show(id)
     // Normalize the data so reducers can load a predictable payload, like:
     // `action.payload = { users: {}, articles: {}, comments: {} }`
@@ -886,8 +886,8 @@ export const slice = createSlice({
     [fetchArticle.fulfilled]: (state, action) => {
       // Handle the fetch result by inserting the articles here
       articlesAdapter.upsertMany(state, action.payload.articles)
-    }
-  }
+    },
+  },
 })
 
 const reducer = slice.reducer
@@ -904,12 +904,12 @@ export const slice = createSlice({
   name: 'users',
   initialState: usersAdapter.getInitialState(),
   reducers: {},
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder.addCase(fetchArticle.fulfilled, (state, action) => {
       // And handle the same fetch result by inserting the users here
       usersAdapter.upsertMany(state, action.payload.users)
     })
-  }
+  },
 })
 
 const reducer = slice.reducer
@@ -930,8 +930,8 @@ export const slice = createSlice({
     [fetchArticle.fulfilled]: (state, action) => {
       // Same for the comments
       commentsAdapter.upsertMany(state, action.payload.comments)
-    }
-  }
+    },
+  },
 })
 
 const reducer = slice.reducer
@@ -951,8 +951,8 @@ export const {
   selectIds: selectUserIds,
   selectEntities: selectUserEntities,
   selectAll: selectAllUsers,
-  selectTotal: selectTotalUsers
-} = usersAdapter.getSelectors(state => state.users)
+  selectTotal: selectTotalUsers,
+} = usersAdapter.getSelectors((state) => state.users)
 ```
 
 You could then use these selectors in a component like this:
@@ -974,7 +974,7 @@ export function UsersList() {
         There are <span className={styles.value}>{count}</span> users.{' '}
         {count === 0 && `Why don't you fetch some more?`}
       </div>
-      {users.map(user => (
+      {users.map((user) => (
         <div key={user.id}>
           <div>{`${user.first_name} ${user.last_name}`}</div>
         </div>
@@ -993,14 +993,14 @@ By default, `createEntityAdapter` assumes that your data has unique IDs in an `e
 const userData = {
   users: [
     { idx: 1, first_name: 'Test' },
-    { idx: 2, first_name: 'Two' }
-  ]
+    { idx: 2, first_name: 'Two' },
+  ],
 }
 
 // Since our primary key is `idx` and not `id`,
 // pass in an ID selector to return that field instead
 export const usersAdapter = createEntityAdapter({
-  selectId: user => user.idx
+  selectId: (user) => user.idx,
 })
 ```
 
@@ -1013,8 +1013,8 @@ export const usersAdapter = createEntityAdapter({
 const userData = {
   users: [
     { id: 1, first_name: 'Test' },
-    { id: 2, first_name: 'Banana' }
-  ]
+    { id: 2, first_name: 'Banana' },
+  ],
 }
 
 // Sort by `first_name`. `state.ids` would be ordered as
@@ -1022,7 +1022,7 @@ const userData = {
 // When using the provided `selectAll` selector, the result would be sorted:
 // [{ id: 2, first_name: 'Banana' }, { id: 1, first_name: 'Test' }]
 export const usersAdapter = createEntityAdapter({
-  sortComparer: (a, b) => a.first_name.localeCompare(b.first_name)
+  sortComparer: (a, b) => a.first_name.localeCompare(b.first_name),
 })
 ```
 
@@ -1044,9 +1044,9 @@ configureStore({
       // Ignore these field paths in all actions
       ignoredActionPaths: ['meta.arg', 'payload.timestamp'],
       // Ignore these paths in the state
-      ignoredPaths: ['items.dates']
-    }
-  })
+      ignoredPaths: ['items.dates'],
+    },
+  }),
 })
 ```
 
@@ -1064,7 +1064,7 @@ import {
   PAUSE,
   PERSIST,
   PURGE,
-  REGISTER
+  REGISTER,
 } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
 import { PersistGate } from 'redux-persist/integration/react'
@@ -1075,7 +1075,7 @@ import rootReducer from './reducers'
 const persistConfig = {
   key: 'root',
   version: 1,
-  storage
+  storage,
 }
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)
@@ -1084,9 +1084,9 @@ const store = configureStore({
   reducer: persistedReducer,
   middleware: getDefaultMiddleware({
     serializableCheck: {
-      ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER]
-    }
-  })
+      ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+    },
+  }),
 })
 
 let persistor = persistStore(store)
@@ -1113,33 +1113,33 @@ A possible configuration to work with that behavior could look like:
 import { configureStore } from '@reduxjs/toolkit'
 import {
   getFirebase,
-  actionTypes as rrfActionTypes
+  actionTypes as rrfActionTypes,
 } from 'react-redux-firebase'
 import { constants as rfConstants } from 'redux-firestore'
 import rootReducer from './rootReducer'
 
 const store = configureStore({
   reducer: rootReducer,
-  middleware: getDefaultMiddleware =>
+  middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [
           // just ignore every redux-firebase and react-redux-firebase action type
           ...Object.keys(rfConstants.actionTypes).map(
-            type => `${rfConstants.actionsPrefix}/${type}`
+            (type) => `${rfConstants.actionsPrefix}/${type}`
           ),
           ...Object.keys(rrfActionTypes).map(
-            type => `@@reactReduxFirebase/${type}`
-          )
+            (type) => `@@reactReduxFirebase/${type}`
+          ),
         ],
-        ignoredPaths: ['firebase', 'firestore']
+        ignoredPaths: ['firebase', 'firestore'],
       },
       thunk: {
         extraArgument: {
-          getFirebase
-        }
-      }
-    })
+          getFirebase,
+        },
+      },
+    }),
 })
 
 export default store

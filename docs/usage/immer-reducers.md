@@ -40,9 +40,9 @@ We can do this by hand using JavaScript's array / object spread operators, as we
 const obj = {
   a: {
     // To safely update obj.a.c, we have to copy each piece
-    c: 3
+    c: 3,
   },
-  b: 2
+  b: 2,
 }
 
 const obj2 = {
@@ -53,8 +53,8 @@ const obj2 = {
     // copy obj.a
     ...obj.a,
     // overwrite c
-    c: 42
-  }
+    c: 42,
+  },
 }
 
 const arr = ['a', 'b']
@@ -107,7 +107,7 @@ So if we can't change the originals, how do we return an updated state?
 // ✅ This is safe, because we made a copy
 return {
   ...state,
-  value: 123
+  value: 123,
 }
 ```
 
@@ -129,10 +129,10 @@ function handwrittenReducer(state, action) {
         ...state.first.second,
         [action.someId]: {
           ...state.first.second[action.someId],
-          fourth: action.someValue
-        }
-      }
-    }
+          fourth: action.someValue,
+        },
+      },
+    },
   }
 }
 ```
@@ -153,15 +153,15 @@ import produce from 'immer'
 const baseState = [
   {
     todo: 'Learn typescript',
-    done: true
+    done: true,
   },
   {
     todo: 'Try immer',
-    done: false
-  }
+    done: false,
+  },
 ]
 
-const nextState = produce(baseState, draftState => {
+const nextState = produce(baseState, (draftState) => {
   // "mutate" the draft array
   draftState.push({ todo: 'Tweet about it' })
   // "mutate" the nested state
@@ -181,7 +181,7 @@ console.log(baseState[1] === nextState[1])
 Redux Toolkit's [`createReducer` API](../api/createReducer.mdx) uses Immer internally automatically. So, it's already safe to "mutate" state inside of any case reducer function that is passed to `createReducer`:
 
 ```js
-const todosReducer = createReducer([], builder => {
+const todosReducer = createReducer([], (builder) => {
   builder.addCase('todos/todoAdded', (state, action) => {
     // "mutate" the array by calling push()
     state.push(action.payload)
@@ -198,8 +198,8 @@ const todosSlice = createSlice({
   reducers: {
     todoAdded(state, action) {
       state.push(action.payload)
-    }
-  }
+    },
+  },
 })
 ```
 
@@ -214,8 +214,8 @@ const todosSlice = createSlice({
   name: 'todos',
   initialState: [],
   reducers: {
-    todoAdded: addItemToArray
-  }
+    todoAdded: addItemToArray,
+  },
 })
 ```
 
@@ -285,8 +285,8 @@ const todosSlice = createSlice({
     // ✅ SAFE: curly braces make this a function body and no return
     fixedReducer2: (state, action) => {
       state.push(action.payload)
-    }
-  }
+    },
+  },
 })
 ```
 
@@ -300,7 +300,7 @@ function objectCaseReducer1(state, action) {
     a,
     b,
     c,
-    d
+    d,
   }
 }
 
@@ -352,8 +352,8 @@ const todosSlice = createSlice({
     correctResetTodosReducer(state, action) {
       // ✅ CORRECT: returns a new value to replace the old one
       return initialState
-    }
-  }
+    },
+  },
 })
 ```
 
@@ -377,8 +377,8 @@ const todosSlice = createSlice({
       console.log(state)
       // ✅ CORRECT: logs a plain JS copy of the current data
       console.log(current(state))
-    }
-  }
+    },
+  },
 })
 ```
 
@@ -400,7 +400,7 @@ const todosSlice = createSlice({
   initialState: [],
   reducers: {
     brokenTodoToggled(state, action) {
-      const todo = state.find(todo => todo.id === action.payload)
+      const todo = state.find((todo) => todo.id === action.payload)
       if (todo) {
         // ❌ ERROR: Immer can't track updates to a primitive value!
         let { completed } = todo
@@ -408,13 +408,13 @@ const todosSlice = createSlice({
       }
     },
     fixedTodoToggled(state, action) {
-      const todo = state.find(todo => todo.id === action.payload)
+      const todo = state.find((todo) => todo.id === action.payload)
       if (todo) {
         // ✅ CORRECT: This object is still wrapped in a Proxy, so we can "mutate" it
         todo.completed = !todo.completed
       }
-    }
-  }
+    },
+  },
 })
 ```
 
@@ -442,8 +442,8 @@ const itemsSlice = createSlice({
       }
 
       state[id].push(item)
-    }
-  }
+    },
+  },
 })
 ```
 

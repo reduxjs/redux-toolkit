@@ -44,7 +44,7 @@ export function findNonSerializableValue(
   if (!isSerializable(value)) {
     return {
       keyPath: path || '<root>',
-      value: value
+      value: value,
     }
   }
 
@@ -66,7 +66,7 @@ export function findNonSerializableValue(
     if (!isSerializable(nestedValue)) {
       return {
         keyPath: nestedPath,
-        value: nestedValue
+        value: nestedValue,
       }
     }
 
@@ -150,7 +150,7 @@ export function createSerializableStateInvariantMiddleware(
   options: SerializableStateInvariantMiddlewareOptions = {}
 ): Middleware {
   if (process.env.NODE_ENV === 'production') {
-    return () => next => action => next(action)
+    return () => (next) => (action) => next(action)
   }
   const {
     isSerializable = isPlain,
@@ -159,10 +159,10 @@ export function createSerializableStateInvariantMiddleware(
     ignoredActionPaths = ['meta.arg'],
     ignoredPaths = [],
     warnAfter = 32,
-    ignoreState = false
+    ignoreState = false,
   } = options
 
-  return storeAPI => next => action => {
+  return (storeAPI) => (next) => (action) => {
     if (ignoredActions.length && ignoredActions.indexOf(action.type) !== -1) {
       return next(action)
     }
