@@ -7,10 +7,10 @@
 import { Action } from 'redux';
 import { ActionCreator } from 'redux';
 import { AnyAction } from 'redux';
+import { CombinedState } from 'redux';
 import { default as createNextState } from 'immer';
 import { createSelector } from 'reselect';
 import { current } from 'immer';
-import { DeepPartial } from 'redux';
 import { Dispatch } from 'redux';
 import { Draft } from 'immer';
 import { freeze } from 'immer';
@@ -20,6 +20,7 @@ import { original } from 'immer';
 import { OutputParametricSelector } from 'reselect';
 import { OutputSelector } from 'reselect';
 import { ParametricSelector } from 'reselect';
+import { PreloadedState } from 'redux';
 import { Reducer } from 'redux';
 import { ReducersMapObject } from 'redux';
 import { Selector } from 'reselect';
@@ -127,7 +128,7 @@ export interface ConfigureStoreOptions<S = any, A extends Action = AnyAction, M 
     devTools?: boolean | EnhancerOptions;
     enhancers?: StoreEnhancer[] | ConfigureEnhancersCallback;
     middleware?: ((getDefaultMiddleware: CurriedGetDefaultMiddleware<S>) => M) | M;
-    preloadedState?: DeepPartial<S extends any ? S : S>;
+    preloadedState?: PreloadedState<CombinedState<NoInfer<S>>>;
     reducer: Reducer<S, A> | ReducersMapObject<S, A>;
 }
 
