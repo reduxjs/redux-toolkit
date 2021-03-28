@@ -81,6 +81,7 @@ describe('getDefaultMiddleware', () => {
 
     const reducer = () => ({})
 
+    // eslint-disable-next-line
     const store = configureStore({
       reducer,
       middleware,

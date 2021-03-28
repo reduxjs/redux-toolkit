@@ -180,6 +180,7 @@ describe('configureStore', () => {
 
       const reducer = () => ({})
 
+      // eslint-disable-next-line
       const store = configureStore({
         reducer,
         enhancers: (defaultEnhancers) => {

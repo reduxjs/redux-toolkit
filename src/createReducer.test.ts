@@ -93,6 +93,7 @@ describe('createReducer', () => {
 
     test('Freezes initial state', () => {
       const initialState = [{ text: 'Buy milk' }]
+      // eslint-disable-next-line
       const todosReducer = createReducer(initialState, {})
 
       const mutateStateOutsideReducer = () => (initialState[0].text = 'edited')

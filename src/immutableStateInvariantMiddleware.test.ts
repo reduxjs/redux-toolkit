@@ -180,6 +180,7 @@ describe('trackForMutations', () => {
       const options = spec.middlewareOptions || {}
       const { isImmutable = isImmutableDefault, ignoredPaths } = options
       const tracker = trackForMutations(isImmutable, ignoredPaths, state)
+      // eslint-disable-next-line
       const newState = spec.fn(state)
 
       expect(tracker.detectMutations()).toEqual({
@@ -195,6 +196,7 @@ describe('trackForMutations', () => {
       const options = spec.middlewareOptions || {}
       const { isImmutable = isImmutableDefault, ignoredPaths } = options
       const tracker = trackForMutations(isImmutable, ignoredPaths, state)
+      // eslint-disable-next-line
       const newState = spec.fn(state)
 
       expect(tracker.detectMutations()).toEqual({ wasMutated: false })

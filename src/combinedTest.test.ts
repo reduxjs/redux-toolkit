@@ -43,6 +43,7 @@ describe('Combined entity slice', () => {
     >(
       'books/fetch',
       async (arg, { getState, dispatch, extra, requestId, signal }) => {
+        // eslint-disable-next-line
         const state = getState()
         return fakeBooks
       }
@@ -62,7 +63,7 @@ describe('Combined entity slice', () => {
           // However, after tweaking `createStateOperator` to check if the argument is a draft,
           // we can just treat the operator as strictly mutating, without returning a result,
           // and the result should be correct.
-          const result = adapter.removeOne(state, action)
+          adapter.removeOne(state, action)
 
           const sizeAfter = state.ids.length
           if (sizeBefore > 0) {
