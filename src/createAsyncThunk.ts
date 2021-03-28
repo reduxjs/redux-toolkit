@@ -193,7 +193,12 @@ type AsyncThunkActionCreator<
     : (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
 >
 
-interface AsyncThunkOptions<
+/**
+ * Options object for `createAsyncThunk`.
+ *
+ * @public
+ */
+export interface AsyncThunkOptions<
   ThunkArg = void,
   ThunkApiConfig extends AsyncThunkConfig = {}
 > {

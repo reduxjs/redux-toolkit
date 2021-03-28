@@ -106,6 +106,7 @@ export {
 
 export {
   AsyncThunk,
+  AsyncThunkOptions,
   AsyncThunkAction,
   AsyncThunkPayloadCreatorReturnValue,
   AsyncThunkPayloadCreator,
