@@ -1,5 +1,5 @@
 import { PayloadAction } from '../createAction'
-import { IsAny } from '../tsHelpers'
+import { Id, IsAny } from '../tsHelpers'
 
 /**
  * @public
@@ -38,32 +38,34 @@ export type Update<T> = { id: EntityId; changes: Partial<T> }
 /**
  * @public
  */
-export type Indices<T, IC extends IndexComparers<T>> = {
-  [key in keyof IC]: EntityId[]
-}
+export type Indices<T, IC extends IndexComparers<T>> = Id<
+  {
+    [key in keyof IC]: EntityId[]
+  }
+>
 /**
  * @public
  */
-export interface EntityState<T> {
+export interface EntityState<T, I extends string = never> {
   ids: EntityId[]
   entities: Dictionary<T>
-  indices: Indices<T, IndexComparers<T>>
+  indices: Indices<T, IndexComparers<T, I>>
 }
 
 /**
  * @public
  */
-export type IndexComparers<T> = {
-  [key: string]: Comparer<T>
+export type IndexComparers<T, I extends string = never> = {
+  [key in I]: Comparer<T>
 }
 
 /**
  * @public
  */
-export interface EntityDefinition<T> {
+export interface EntityDefinition<T, I extends string = never> {
   selectId?: IdSelector<T>
   sortComparer?: false | Comparer<T>
-  indices?: IndexComparers<T>
+  indices?: IndexComparers<T, I>
 }
 
 export type PreventAny<S, T> = IsAny<S, EntityState<T>, S>
@@ -150,24 +152,28 @@ export interface EntityStateAdapter<T> {
 /**
  * @public
  */
-export interface EntitySelectors<T, V> {
+export interface EntitySelectors<T, V, I extends string = never> {
   selectIds: (state: V) => EntityId[]
   selectEntities: (state: V) => Dictionary<T>
   selectAll: (state: V) => T[]
   selectTotal: (state: V) => number
   selectById: (state: V, id: EntityId) => T | undefined
+  indices: {
+    [K in I]: Pick<EntitySelectors<T, V>, 'selectAll' | 'selectIds'>
+  }
 }
 
 /**
  * @public
  */
-export interface EntityAdapter<T> extends EntityStateAdapter<T> {
+export interface EntityAdapter<T, I extends string = never>
+  extends EntityStateAdapter<T> {
   selectId: IdSelector<T>
   sortComparer: false | Comparer<T>
-  getInitialState(): EntityState<T>
+  getInitialState(): EntityState<T, I>
   getInitialState<S extends object>(state: S): EntityState<T> & S
-  getSelectors(): EntitySelectors<T, EntityState<T>>
+  getSelectors(): EntitySelectors<T, EntityState<T>, I>
   getSelectors<V>(
     selectState: (state: V) => EntityState<T>
-  ): EntitySelectors<T, V>
+  ): EntitySelectors<T, V, I>
 }

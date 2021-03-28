@@ -16,9 +16,9 @@ import { createUnsortedStateAdapter } from './unsorted_state_adapter'
  * @public
  */
 
-export function createEntityAdapter<T>(
-  options?: EntityDefinition<T>
-): EntityAdapter<T> {
+export function createEntityAdapter<T, I extends string = never>(
+  options?: EntityDefinition<T, I>
+): EntityAdapter<T, I> {
   const { selectId, sortComparer, indices = {} as IndexComparers<T> } = {
     sortComparer: false as const,
     selectId: (instance: any) => instance.id,
@@ -37,5 +37,5 @@ export function createEntityAdapter<T>(
     ...stateFactory,
     ...selectorsFactory,
     ...stateAdapter
-  }
+  } as any // TODO continue implementation, this is just testing the outside interface
 }

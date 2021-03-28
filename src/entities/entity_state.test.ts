@@ -6,7 +6,7 @@ import { BookModel } from './fixtures/book'
 describe('Entity State', () => {
   let adapter: EntityAdapter<BookModel>
 
-  const adapter2 = createEntityAdapter<BookModel>({
+  const adapter2 = createEntityAdapter<BookModel, 'id'>({
     selectId: (book: BookModel) => book.id,
     indices: {
       // TODO These should be BookModel, not unknown
@@ -17,6 +17,16 @@ describe('Entity State', () => {
   const tempState = adapter2.getInitialState()
   // TODO should be an empty array
   console.log(tempState.indices.id)
+
+  {
+    // selectors nested:
+    const selectors = adapter2.getSelectors()
+    selectors.indices.id.selectAll(tempState)
+    selectors.indices.id.selectIds(tempState)
+
+    // @ts-expect-error
+    selectors.indices.somethingElse
+  }
 
   beforeEach(() => {
     adapter = createEntityAdapter({
@@ -92,4 +102,37 @@ describe('Entity State', () => {
     expect(afterUpsertSecond.entities[book1.id]).toEqual(book1a)
     expect(selectors.selectTotal(afterUpsertSecond)).toBe(1)
   })
+})
+
+describe('inferred usage of entityState', () => {
+  function expectType<T>(_: T) {}
+
+  const adapter1 = createEntityAdapter({
+    selectId: (book: BookModel) => book.id,
+    indices: {
+      id: (a, b) => a.id.localeCompare(b.id)
+    }
+  })
+  expectType<EntityAdapter<BookModel, 'id'>>(adapter1)
+
+  const adapter2 = createEntityAdapter({
+    indices: {
+      id: (a: BookModel, b) => a.id.localeCompare(b.id)
+    }
+  })
+  expectType<EntityAdapter<BookModel, 'id'>>(adapter2)
+
+  const tempState = adapter1.getInitialState()
+  // TODO should be an empty array
+  console.log(tempState.indices.id)
+
+  {
+    // selectors nested:
+    const selectors = adapter1.getSelectors()
+    selectors.indices.id.selectAll(tempState)
+    selectors.indices.id.selectIds(tempState)
+
+    // @ts-expect-error
+    selectors.indices.somethingElse
+  }
 })
