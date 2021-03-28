@@ -11,7 +11,8 @@ import {
   StoreEnhancer,
   Store,
   Dispatch,
-  PreloadedState
+  PreloadedState,
+  CombinedState
 } from 'redux'
 import {
   composeWithDevTools,
@@ -74,7 +75,16 @@ export interface ConfigureStoreOptions<
    * function (either directly or indirectly by passing an object as `reducer`),
    * this must be an object with the same shape as the reducer map keys.
    */
-  preloadedState?: PreloadedState<NoInfer<S>>
+  /* 
+  Not 100% correct but the best approximation we can get:
+  - if S is a `CombinedState` applying a second `CombinedState` on it does not change anything.
+  - if it is not, there could be two cases:
+    - `ReducersMapObject<S, A>` is being passed in. In this case, we will call `combineReducers` on it and `CombinedState<S>` is correct
+    - `Reducer<S, A>` is being passed in. In this case, actually `CombinedState<S>` is wrong and `S` would be correct.
+    As we cannot distinguish between those two cases without adding another generic paramter, 
+    we just make the pragmatic assumption that the latter almost never happens.
+  */
+  preloadedState?: PreloadedState<CombinedState<NoInfer<S>>>
 
   /**
    * The store enhancers to apply. See Redux's `createStore()`.
