@@ -8,7 +8,11 @@ import {
 } from './models'
 import { createStateOperator } from './state_adapter'
 import { createUnsortedStateAdapter } from './unsorted_state_adapter'
-import { selectIdValue } from './utils'
+import {
+  selectIdValue,
+  ensureEntitiesArray,
+  splitAddedUpdatedEntities
+} from './utils'
 
 export function createSortedStateAdapter<T>(
   selectId: IdSelector<T>,
@@ -25,14 +29,12 @@ export function createSortedStateAdapter<T>(
   }
 
   function addManyMutably(
-    newModels: T[] | Record<EntityId, T>,
+    newEntities: T[] | Record<EntityId, T>,
     state: R
   ): void {
-    if (!Array.isArray(newModels)) {
-      newModels = Object.values(newModels)
-    }
+    newEntities = ensureEntitiesArray(newEntities)
 
-    const models = newModels.filter(
+    const models = newEntities.filter(
       model => !(selectIdValue(model, selectId) in state.entities)
     )
 
@@ -41,14 +43,15 @@ export function createSortedStateAdapter<T>(
     }
   }
 
-  function setAllMutably(models: T[] | Record<EntityId, T>, state: R): void {
-    if (!Array.isArray(models)) {
-      models = Object.values(models)
-    }
+  function setAllMutably(
+    newEntities: T[] | Record<EntityId, T>,
+    state: R
+  ): void {
+    newEntities = ensureEntitiesArray(newEntities)
     state.entities = {}
     state.ids = []
 
-    addManyMutably(models, state)
+    addManyMutably(newEntities, state)
   }
 
   function updateOneMutably(update: Update<T>, state: R): void {
@@ -86,24 +89,14 @@ export function createSortedStateAdapter<T>(
   }
 
   function upsertManyMutably(
-    entities: T[] | Record<EntityId, T>,
+    newEntities: T[] | Record<EntityId, T>,
     state: R
   ): void {
-    if (!Array.isArray(entities)) {
-      entities = Object.values(entities)
-    }
-
-    const added: T[] = []
-    const updated: Update<T>[] = []
-
-    for (const entity of entities) {
-      const id = selectIdValue(entity, selectId)
-      if (id in state.entities) {
-        updated.push({ id, changes: entity })
-      } else {
-        added.push(entity)
-      }
-    }
+    const { added, updated } = splitAddedUpdatedEntities<T>(
+      newEntities,
+      selectId,
+      state
+    )
 
     updateManyMutably(updated, state)
     addManyMutably(added, state)

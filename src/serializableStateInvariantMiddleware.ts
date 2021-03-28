@@ -57,7 +57,7 @@ export function findNonSerializableValue(
   const hasIgnoredPaths = ignoredPaths.length > 0
 
   for (const [key, nestedValue] of entries) {
-    const nestedPath = path ? path + '.' + key : key // path.concat(property)
+    const nestedPath = path ? path + '.' + key : key
 
     if (hasIgnoredPaths && ignoredPaths.indexOf(nestedPath) >= 0) {
       continue
