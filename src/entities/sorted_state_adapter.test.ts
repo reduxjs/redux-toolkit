@@ -1,4 +1,4 @@
-import { EntityStateAdapter, EntityState } from './models'
+import { EntityStateAdapter, EntityState, EntityAdapter } from './models'
 import { createEntityAdapter } from './create_adapter'
 import { createAction } from '../createAction'
 import {
@@ -751,6 +751,77 @@ describe('Sorted State Adapter', () => {
           "indices": Object {},
         }
       `)
+    })
+  })
+
+  describe('Sorted adapter indices', () => {
+    const booksAdapter = createEntityAdapter<BookModel>({
+      selectId: (book: BookModel) => book.id,
+      sortComparer: (a, b) => {
+        return a.title.localeCompare(b.title)
+      },
+      indices: {
+        byId: (a, b) => a.id.localeCompare(b.id),
+        byTitleLength: (a, b) => a.title.length - b.title.length
+      }
+    })
+
+    const initialState = booksAdapter.getInitialState()
+    beforeEach(() => {})
+
+    it('Does some initial sorting', () => {
+      const loadedState = booksAdapter.setAll(initialState, [
+        TheGreatGatsby,
+        AClockworkOrange,
+        AnimalFarm
+      ])
+      expect(loadedState.indices.byId.length).toBe(3)
+    })
+
+    it('Resorts only updated indices', () => {
+      const loadedState = booksAdapter.setAll(initialState, [
+        TheGreatGatsby,
+        AClockworkOrange,
+        AnimalFarm
+      ])
+
+      const updatedState = booksAdapter.updateOne(loadedState, {
+        id: AnimalFarm.id,
+        changes: {
+          title: 'This is a really long title, very long indeed'
+        }
+      })
+
+      expect(updatedState.indices.byTitleLength[2]).toBe(AnimalFarm.id)
+      expect(updatedState.indices.byId).toBe(loadedState.indices.byId)
+    })
+
+    it('Updates indices when items are removed', () => {
+      const loadedState = booksAdapter.setAll(initialState, [
+        TheGreatGatsby,
+        AClockworkOrange,
+        AnimalFarm
+      ])
+
+      const updatedState1 = booksAdapter.removeOne(
+        loadedState,
+        AClockworkOrange.id
+      )
+
+      expect(updatedState1.indices.byId.length).toBe(2)
+      expect(updatedState1.indices.byTitleLength.length).toBe(2)
+
+      const updatedState2 = booksAdapter.removeMany(loadedState, [
+        AClockworkOrange.id
+      ])
+
+      expect(updatedState2.indices.byId.length).toBe(2)
+      expect(updatedState2.indices.byTitleLength.length).toBe(2)
+
+      const updatedState3 = booksAdapter.removeAll(loadedState)
+
+      expect(updatedState3.indices.byId.length).toBe(0)
+      expect(updatedState3.indices.byTitleLength.length).toBe(0)
     })
   })
 })

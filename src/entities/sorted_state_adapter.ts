@@ -7,7 +7,10 @@ import {
   EntityId,
   IndexComparers
 } from './models'
-import { createStateOperator } from './state_adapter'
+import {
+  createStateOperator,
+  createSingleArgumentStateOperator
+} from './state_adapter'
 import { createUnsortedStateAdapter } from './unsorted_state_adapter'
 import {
   selectIdValue,
@@ -141,6 +144,34 @@ export function createSortedStateAdapter<T>(
       state.entities[selectId(model)] = model
     })
 
+    updateSortedIndices(state)
+  }
+
+  function removeOneSortedIndices(key: EntityId, state: R): void {
+    removeOne(state, key)
+    updateSortedIndices(state)
+  }
+
+  function removeManySortedIndices(keys: EntityId[], state: R): void {
+    removeMany(state, keys)
+    updateSortedIndices(state)
+  }
+
+  function removeAllSortedIndices(state: R): void {
+    const newIndices = {} as any
+
+    for (let key in indices) {
+      newIndices[key] = []
+    }
+
+    Object.assign(state, {
+      ids: [],
+      entities: {},
+      indices: newIndices
+    })
+  }
+
+  function updateSortedIndices(state: EntityState<T>) {
     const allEntities = Object.values(state.entities) as T[]
     updateSortedIds(
       (state as unknown) as Record<string, EntityId[]>,
@@ -155,9 +186,9 @@ export function createSortedStateAdapter<T>(
   }
 
   return {
-    removeOne,
-    removeMany,
-    removeAll,
+    removeOne: createStateOperator(removeOneSortedIndices),
+    removeMany: createStateOperator(removeManySortedIndices),
+    removeAll: createSingleArgumentStateOperator(removeAllSortedIndices),
     addOne: createStateOperator(addOneMutably),
     updateOne: createStateOperator(updateOneMutably),
     upsertOne: createStateOperator(upsertOneMutably),
