@@ -31,7 +31,7 @@ export function splitAddedUpdatedEntities<T>(
   newEntities: T[] | Record<EntityId, T>,
   selectId: IdSelector<T>,
   state: EntityState<T>
-) {
+): [T[], Update<T>[]] {
   newEntities = ensureEntitiesArray(newEntities)
 
   const added: T[] = []
@@ -45,5 +45,5 @@ export function splitAddedUpdatedEntities<T>(
       added.push(entity)
     }
   }
-  return { added, updated }
+  return [added, updated]
 }

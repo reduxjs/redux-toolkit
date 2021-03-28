@@ -92,7 +92,7 @@ export function createSortedStateAdapter<T>(
     newEntities: T[] | Record<EntityId, T>,
     state: R
   ): void {
-    const { added, updated } = splitAddedUpdatedEntities<T>(
+    const [added, updated] = splitAddedUpdatedEntities<T>(
       newEntities,
       selectId,
       state
