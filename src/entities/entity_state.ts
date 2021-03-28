@@ -1,8 +1,8 @@
-import { EntityState, IndexComparers, BasicObject, Indices } from './models'
+import { EntityState, IndexComparers, Indices } from './models'
 
 export function getInitialEntityState<V, IC extends IndexComparers<V>>(
   indexComparers: IC
-): EntityState<V, IC> {
+): EntityState<V> {
   const indices = {} as Indices<V, IC>
 
   for (let key in indexComparers) {
