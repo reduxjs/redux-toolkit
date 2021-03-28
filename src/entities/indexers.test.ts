@@ -31,7 +31,7 @@ indexer.addGroupedIndex(
   attributeKeyer<Cup>('size'),
   'byColorAndSize',
   attributeKeyer<Cup>('color'),
-  (iter, reverseIter) => {
+  (_iter, reverseIter) => {
     return reverseIter()
   }
 )

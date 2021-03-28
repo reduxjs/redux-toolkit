@@ -45,13 +45,10 @@ export type Indices<T, IC extends IndexComparers<T>> = {
 /**
  * @public
  */
-export interface EntityState<
-  T,
-  IC extends IndexComparers<T> = IndexComparers<unknown>
-> {
+export interface EntityState<T> {
   ids: EntityId[]
   entities: Dictionary<T>
-  indices: Indices<T, IC>
+  indices: Indices<T, IndexComparers<T>>
 }
 
 export type IndexComparers<T> = {
@@ -61,10 +58,10 @@ export type IndexComparers<T> = {
 /**
  * @public
  */
-export interface EntityDefinition<T, IC extends IndexComparers<T>> {
+export interface EntityDefinition<T> {
   selectId?: IdSelector<T>
   sortComparer?: false | Comparer<T>
-  indices?: IC
+  indices?: IndexComparers<T>
 }
 
 export type PreventAny<S, T> = IsAny<S, EntityState<T>, S>

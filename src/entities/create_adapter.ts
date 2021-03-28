@@ -1,7 +1,6 @@
 import {
   EntityDefinition,
   Comparer,
-  IdSelector,
   EntityAdapter,
   IndexComparers
 } from './models'
@@ -16,11 +15,11 @@ import { createUnsortedStateAdapter } from './unsorted_state_adapter'
  *
  * @public
  */
-export function createEntityAdapter<
-  T,
-  IC extends IndexComparers<T> = IndexComparers<unknown>
->(options?: EntityDefinition<T, IC>): EntityAdapter<T> {
-  const { selectId, sortComparer, indices = {} as IC } = {
+
+export function createEntityAdapter<T>(
+  options?: EntityDefinition<T>
+): EntityAdapter<T> {
+  const { selectId, sortComparer, indices = {} as IndexComparers<T> } = {
     sortComparer: false as const,
     selectId: (instance: any) => instance.id,
     ...options
