@@ -4,7 +4,8 @@ import {
   Comparer,
   EntityStateAdapter,
   Update,
-  EntityId
+  EntityId,
+  IndexComparers
 } from './models'
 import { createStateOperator } from './state_adapter'
 import { createUnsortedStateAdapter } from './unsorted_state_adapter'
@@ -16,7 +17,8 @@ import {
 
 export function createSortedStateAdapter<T>(
   selectId: IdSelector<T>,
-  sort: Comparer<T>
+  sort: Comparer<T>,
+  indices: IndexComparers<T> = {}
 ): EntityStateAdapter<T> {
   type R = EntityState<T>
 
@@ -131,8 +133,6 @@ export function createSortedStateAdapter<T>(
     }
   }
 
-  const indexComparers: Record<string, Comparer<T>> = {}
-
   function merge(models: T[], state: R): void {
     models.sort(sort)
 
@@ -149,8 +149,8 @@ export function createSortedStateAdapter<T>(
       sort
     )
 
-    for (let key in indexComparers) {
-      updateSortedIds(state.indices, key, allEntities, indexComparers[key])
+    for (let key in indices) {
+      updateSortedIds(state.indices, key, allEntities, indices[key])
     }
   }
 

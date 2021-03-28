@@ -28,7 +28,7 @@ export function createEntityAdapter<T>(
   const stateFactory = createInitialStateFactory<T, IndexComparers<T>>(indices)
   const selectorsFactory = createSelectorsFactory<T>()
   const stateAdapter = sortComparer
-    ? createSortedStateAdapter(selectId, sortComparer as Comparer<T>)
+    ? createSortedStateAdapter(selectId, sortComparer as Comparer<T>, indices)
     : createUnsortedStateAdapter(selectId)
 
   return {
