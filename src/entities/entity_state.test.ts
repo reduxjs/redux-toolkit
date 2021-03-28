@@ -6,6 +6,18 @@ import { BookModel } from './fixtures/book'
 describe('Entity State', () => {
   let adapter: EntityAdapter<BookModel>
 
+  const adapter2 = createEntityAdapter<BookModel>({
+    selectId: (book: BookModel) => book.id,
+    indices: {
+      // TODO These should be BookModel, not unknown
+      id: (a, b) => a.id.localeCompare(b.id)
+    }
+  })
+
+  const tempState = adapter2.getInitialState()
+  // TODO should be an empty array
+  console.log(tempState.indices.id)
+
   beforeEach(() => {
     adapter = createEntityAdapter({
       selectId: (book: BookModel) => book.id
@@ -17,7 +29,8 @@ describe('Entity State', () => {
 
     expect(initialState).toEqual({
       ids: [],
-      entities: {}
+      entities: {},
+      indices: {}
     })
   })
 
@@ -29,7 +42,8 @@ describe('Entity State', () => {
     expect(initialState).toEqual({
       ...additionalProperties,
       ids: [],
-      entities: {}
+      entities: {},
+      indices: {}
     })
   })
 

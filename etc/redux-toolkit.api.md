@@ -144,10 +144,7 @@ export function createAsyncThunk<Returned, ThunkArg = void, ThunkApiConfig exten
 export const createDraftSafeSelector: typeof createSelector;
 
 // @public (undocumented)
-export function createEntityAdapter<T>(options?: {
-    selectId?: IdSelector<T>;
-    sortComparer?: false | Comparer<T>;
-}): EntityAdapter<T>;
+export function createEntityAdapter<T>(options?: EntityDefinition<T>): EntityAdapter<T>;
 
 // @public
 export function createImmutableStateInvariantMiddleware(options?: ImmutableStateInvariantMiddlewareOptions): Middleware;
@@ -230,6 +227,8 @@ export interface EntityState<T> {
     entities: Dictionary<T>;
     // (undocumented)
     ids: EntityId[];
+    // (undocumented)
+    indices: Indices<T, IndexComparers<T>>;
 }
 
 // @public (undocumented)

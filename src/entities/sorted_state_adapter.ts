@@ -4,15 +4,24 @@ import {
   Comparer,
   EntityStateAdapter,
   Update,
-  EntityId
+  EntityId,
+  IndexComparers
 } from './models'
-import { createStateOperator } from './state_adapter'
+import {
+  createStateOperator,
+  createSingleArgumentStateOperator
+} from './state_adapter'
 import { createUnsortedStateAdapter } from './unsorted_state_adapter'
-import { selectIdValue } from './utils'
+import {
+  selectIdValue,
+  ensureEntitiesArray,
+  splitAddedUpdatedEntities
+} from './utils'
 
 export function createSortedStateAdapter<T>(
   selectId: IdSelector<T>,
-  sort: Comparer<T>
+  sort: Comparer<T>,
+  indices: IndexComparers<T> = {}
 ): EntityStateAdapter<T> {
   type R = EntityState<T>
 
@@ -25,14 +34,12 @@ export function createSortedStateAdapter<T>(
   }
 
   function addManyMutably(
-    newModels: T[] | Record<EntityId, T>,
+    newEntities: T[] | Record<EntityId, T>,
     state: R
   ): void {
-    if (!Array.isArray(newModels)) {
-      newModels = Object.values(newModels)
-    }
+    newEntities = ensureEntitiesArray(newEntities)
 
-    const models = newModels.filter(
+    const models = newEntities.filter(
       model => !(selectIdValue(model, selectId) in state.entities)
     )
 
@@ -41,14 +48,15 @@ export function createSortedStateAdapter<T>(
     }
   }
 
-  function setAllMutably(models: T[] | Record<EntityId, T>, state: R): void {
-    if (!Array.isArray(models)) {
-      models = Object.values(models)
-    }
+  function setAllMutably(
+    newEntities: T[] | Record<EntityId, T>,
+    state: R
+  ): void {
+    newEntities = ensureEntitiesArray(newEntities)
     state.entities = {}
     state.ids = []
 
-    addManyMutably(models, state)
+    addManyMutably(newEntities, state)
   }
 
   function updateOneMutably(update: Update<T>, state: R): void {
@@ -86,24 +94,14 @@ export function createSortedStateAdapter<T>(
   }
 
   function upsertManyMutably(
-    entities: T[] | Record<EntityId, T>,
+    newEntities: T[] | Record<EntityId, T>,
     state: R
   ): void {
-    if (!Array.isArray(entities)) {
-      entities = Object.values(entities)
-    }
-
-    const added: T[] = []
-    const updated: Update<T>[] = []
-
-    for (const entity of entities) {
-      const id = selectIdValue(entity, selectId)
-      if (id in state.entities) {
-        updated.push({ id, changes: entity })
-      } else {
-        added.push(entity)
-      }
-    }
+    const { added, updated } = splitAddedUpdatedEntities<T>(
+      newEntities,
+      selectId,
+      state
+    )
 
     updateManyMutably(updated, state)
     addManyMutably(added, state)
@@ -123,6 +121,21 @@ export function createSortedStateAdapter<T>(
     return true
   }
 
+  function updateSortedIds(
+    obj: Record<string, EntityId[]>,
+    key: string,
+    allEntities: T[],
+    sortComparer: Comparer<T>
+  ) {
+    const sortedEntities = allEntities.slice().sort(sortComparer)
+    const sortedIds = sortedEntities.map(selectId)
+    const ids = obj[key]
+
+    if (!areArraysEqual(ids, sortedIds)) {
+      obj[key] = sortedIds
+    }
+  }
+
   function merge(models: T[], state: R): void {
     models.sort(sort)
 
@@ -131,21 +144,51 @@ export function createSortedStateAdapter<T>(
       state.entities[selectId(model)] = model
     })
 
+    updateSortedIndices(state)
+  }
+
+  function removeOneSortedIndices(key: EntityId, state: R): void {
+    removeOne(state, key)
+    updateSortedIndices(state)
+  }
+
+  function removeManySortedIndices(keys: EntityId[], state: R): void {
+    removeMany(state, keys)
+    updateSortedIndices(state)
+  }
+
+  function removeAllSortedIndices(state: R): void {
+    const newIndices = {} as any
+
+    for (let key in indices) {
+      newIndices[key] = []
+    }
+
+    Object.assign(state, {
+      ids: [],
+      entities: {},
+      indices: newIndices
+    })
+  }
+
+  function updateSortedIndices(state: EntityState<T>) {
     const allEntities = Object.values(state.entities) as T[]
-    allEntities.sort(sort)
+    updateSortedIds(
+      (state as unknown) as Record<string, EntityId[]>,
+      'ids',
+      allEntities,
+      sort
+    )
 
-    const newSortedIds = allEntities.map(selectId)
-    const { ids } = state
-
-    if (!areArraysEqual(ids, newSortedIds)) {
-      state.ids = newSortedIds
+    for (let key in indices) {
+      updateSortedIds(state.indices, key, allEntities, indices[key])
     }
   }
 
   return {
-    removeOne,
-    removeMany,
-    removeAll,
+    removeOne: createStateOperator(removeOneSortedIndices),
+    removeMany: createStateOperator(removeManySortedIndices),
+    removeAll: createSingleArgumentStateOperator(removeAllSortedIndices),
     addOne: createStateOperator(addOneMutably),
     updateOne: createStateOperator(updateOneMutably),
     upsertOne: createStateOperator(upsertOneMutably),

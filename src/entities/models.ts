@@ -38,17 +38,32 @@ export type Update<T> = { id: EntityId; changes: Partial<T> }
 /**
  * @public
  */
+export type Indices<T, IC extends IndexComparers<T>> = {
+  [key in keyof IC]: EntityId[]
+}
+/**
+ * @public
+ */
 export interface EntityState<T> {
   ids: EntityId[]
   entities: Dictionary<T>
+  indices: Indices<T, IndexComparers<T>>
+}
+
+/**
+ * @public
+ */
+export type IndexComparers<T> = {
+  [key: string]: Comparer<T>
 }
 
 /**
  * @public
  */
 export interface EntityDefinition<T> {
-  selectId: IdSelector<T>
-  sortComparer: false | Comparer<T>
+  selectId?: IdSelector<T>
+  sortComparer?: false | Comparer<T>
+  indices?: IndexComparers<T>
 }
 
 export type PreventAny<S, T> = IsAny<S, EntityState<T>, S>
