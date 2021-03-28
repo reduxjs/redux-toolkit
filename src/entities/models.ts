@@ -35,10 +35,9 @@ export interface Dictionary<T> extends DictionaryNum<T> {
  */
 export type Update<T> = { id: EntityId; changes: Partial<T> }
 
-export interface BasicObject {
-  [key: string]: any
-}
-
+/**
+ * @public
+ */
 export type Indices<T, IC extends IndexComparers<T>> = {
   [key in keyof IC]: EntityId[]
 }
@@ -51,6 +50,9 @@ export interface EntityState<T> {
   indices: Indices<T, IndexComparers<T>>
 }
 
+/**
+ * @public
+ */
 export type IndexComparers<T> = {
   [key: string]: Comparer<T>
 }
