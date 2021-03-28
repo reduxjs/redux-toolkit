@@ -1,3 +1,4 @@
+/** Given an array of sorted items and a new item, calculate the correct index to insert at */
 export function bisect<T, E>(
   array: T[],
   e: E,
@@ -45,16 +46,23 @@ export function numberCmp(a: number, b: number) {
   return a - b
 }
 
+/** Array of [extractedFieldsToSortBy, originalItem] */
 export type Entry<V> = [any[], V]
+/** Array of item entries */
 export type Index<V> = Entry<V>[]
+/** Lookup table of index names to entry arrays */
 export type IndexStore<V> = { [k: string]: Index<V> }
+/** Function that takes an item and returns the extracted fields to sort by */
 export type Keyer<V> = (v: V) => any[]
+/** Function that returns the next item or undefined */
 export type IndexIterator<V> = () => V | void
+/** Function that receives the generated forward/reverse iterators, and returns an item */
 export type GroupReducer<V> = (
   iter: IndexIterator<V>,
   reverseIter: IndexIterator<V>
 ) => V | void
 
+/** Accepts a comparison fields array and another entry, and compares them */
 function cmpKeyToEntry(a: any[], b: Entry<any>) {
   return arrayCmp(a, b[0])
 }
@@ -69,10 +77,13 @@ export class Indexer<V, I extends IndexStore<V>> {
   constructor(private mainIndexName: keyof I) {}
 
   addIndex(attr: keyof I, keyer: Keyer<V>) {
+    // Can only have one index definition per name
     if (attr in this.indexKeyers) {
       throw new Error('duplicate definition for index ' + attr)
     }
+    // Store lookup of index name -> field extractor
     this.indexKeyers[attr] = keyer
+    // Update array of index names
     this.indexes.push(attr)
   }
 
@@ -104,8 +115,10 @@ export class Indexer<V, I extends IndexStore<V>> {
   }
 
   empty(): I {
+    // Return existing "empty data" object if it exists
     if (this._empty) return this._empty
 
+    // Otherwise, fill it out with an empty array per index name
     let result = (this._empty = {} as I)
     for (let k in this.indexKeyers) {
       // @ts-ignore TODO Fix this
@@ -115,10 +128,12 @@ export class Indexer<V, I extends IndexStore<V>> {
     return result
   }
 
+  /** Removes a set of values from all indices */
   removeAll(indexes: I, values: V[]) {
     return this.splice(indexes, values, [])
   }
 
+  /** Removes a set of items from all indices by IDs */
   removeByPk(indexes: I, primaryKey: any[]): I {
     return this.removeAll(
       indexes,
@@ -126,6 +141,7 @@ export class Indexer<V, I extends IndexStore<V>> {
     )
   }
 
+  /** Upserts (?) items */
   update(indexes: I, values: V[]): I {
     let oldValues = [] as V[]
     let newValues = [] as V[]
@@ -202,6 +218,7 @@ export class Indexer<V, I extends IndexStore<V>> {
     return result
   }
 
+  /**  */
   static getRangeFrom(index: Index<any>, startKey?: any[], endKey?: any[]) {
     let startIdx: number
     let endIdx: number
@@ -338,8 +355,11 @@ function uniqueIndex<V>(
   values: V[],
   index = [] as Index<V>
 ): Index<V> {
+  // Loop through all items in the array
   for (let value of values) {
+    // Get comparison fields array
     let key = keyer(value)
+
     let { startIdx, endIdx } = Indexer.getRangeFrom(
       index,
       key,
