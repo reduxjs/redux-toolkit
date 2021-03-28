@@ -514,7 +514,7 @@ describe('Indexers', () => {
     ])
   })
 
-  test('performance', () => {
+  test.skip('performance', () => {
     let cups = [] as Cup[]
 
     function randomColor() {
