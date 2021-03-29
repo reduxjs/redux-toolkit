@@ -68,6 +68,36 @@ describe('configureStore', () => {
     })
   })
 
+  describe('given undefined middleware', () => {
+    it('calls createStore with default middleware', () => {
+      expect(configureStore({ middleware: undefined, reducer })).toBeInstanceOf(
+        Object
+      )
+      expect(redux.applyMiddleware).toHaveBeenCalledWith(
+        expect.any(Function), // thunk
+        expect.any(Function), // immutableCheck
+        expect.any(Function) // serializableCheck
+      )
+      expect(devtools.composeWithDevTools).toHaveBeenCalled()
+      expect(redux.createStore).toHaveBeenCalledWith(
+        reducer,
+        undefined,
+        expect.any(Function)
+      )
+    })
+  })
+
+  describe('given a middleware creation function that returns undefined', () => {
+    it('throws an error', () => {
+      const invalidBuilder = jest.fn(getDefaultMiddleware => undefined as any)
+      expect(() =>
+        configureStore({ middleware: invalidBuilder, reducer })
+      ).toThrow(
+        'when using a middleware builder function, an array of middleware must be returned'
+      )
+    })
+  })
+
   describe('given custom middleware', () => {
     it('calls createStore with custom middleware and without default middleware', () => {
       const thank: redux.Middleware = _store => next => action => next(action)
