@@ -54,7 +54,7 @@
   "scripts": {
     "build-ci": "tsdx build --format cjs,esm,system,umd --name redux-toolkit && api-extractor run",
     "build": "tsdx build --format cjs,esm,system,umd --name redux-toolkit && api-extractor run --local",
-    "bundle": "node scripts/build.js && tsc  && api-extractor run --local",
+    "bundle": "node scripts/build.js && tsc && tsc -p src/query/tsconfig.json   && api-extractor run --local",
     "dev": "tsdx watch  --format cjs,esm,system,umd",
     "format": "prettier --write \"src/**/*.ts\" \"**/*.md\"",
     "format:check": "prettier --list-different \"src/**/*.ts\" \"docs/*/**.md\"",
