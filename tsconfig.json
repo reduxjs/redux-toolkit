@@ -3,6 +3,7 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "declaration": true,
+    "emitDeclarationOnly": true,
     "module": "es2015",
     "moduleResolution": "node",
     "noUnusedLocals": true,
@@ -11,6 +12,10 @@
     "strict": true,
     "target": "es2018"
   },
-  "include": ["src"],
-  "exclude": ["src/*.test.ts"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "src/*.test.ts"
+  ]
 }
