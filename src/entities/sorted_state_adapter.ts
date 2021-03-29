@@ -117,8 +117,6 @@ export function createSortedStateAdapter<T>(
   }
 
   function merge(models: T[], state: R): void {
-    models.sort(sort)
-
     // Insert/overwrite all new/updated
     models.forEach(model => {
       state.entities[selectId(model)] = model
