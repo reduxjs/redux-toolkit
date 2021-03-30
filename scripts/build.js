@@ -21,9 +21,12 @@ async function bundle(options) {
     sourcemap: 'inline',
     bundle: true,
     format: format === 'umd' ? 'esm' : format,
-    define: {
-      'process.env.NODE_ENV': JSON.stringify(env),
-    },
+    define:
+      format === 'esm'
+        ? {}
+        : {
+            'process.env.NODE_ENV': JSON.stringify(env),
+          },
     plugins: [
       {
         name: 'node_module_external',
