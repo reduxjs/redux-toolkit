@@ -8,6 +8,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "outDir": "dist",
+    "emitDeclarationOnly": true,
     "strict": true,
     "target": "es2018"
   },
