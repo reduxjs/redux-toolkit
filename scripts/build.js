@@ -1,3 +1,4 @@
+// @ts-check
 const { build } = require('esbuild')
 const rollup = require('rollup')
 const path = require('path')
@@ -7,21 +8,16 @@ const { fromJSON } = require('convert-source-map')
 const merge = require('merge-source-map')
 const { extractInlineSourcemap, removeInlineSourceMap } = require('./sourcemap')
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-async function bundle(env, format) {
-  let envName = env
-  if (env === 'production') {
-    envName = 'production.'
-  } else if (format === 'cjs') {
-    envName = 'development.'
-  } else {
-    envName = ''
-  }
+const outputDir = path.join(__dirname, '../dist')
+async function bundle(options) {
+  const { format, minify, env, name } = options
+  console.log('minify:', options)
   const result = await build({
     entryPoints: ['src/index.ts'],
-    outfile: `dist/redux-toolkit.${format}.${envName}js`,
+    outfile: `dist/redux-toolkit${name}.js`,
     write: false,
     target: 'es2015',
-    minify: env === 'production',
+    minify,
     sourcemap: 'inline',
     bundle: true,
     format: format === 'umd' ? 'esm' : format,
@@ -63,19 +59,21 @@ async function bundle(env, format) {
   })
 
   for (const chunk of result.outputFiles) {
-    const origin = chunk.text
+    origin = chunk.text
     const sourcemap = extractInlineSourcemap(origin)
     const code = ts.transpileModule(removeInlineSourceMap(origin), {
       compilerOptions: {
         sourceMap: true,
         module:
-          format === 'umd' ? ts.ModuleKind.ES2015 : ts.ModuleKind.CommonJS,
-        target: ts.ScriptTarget.ES5,
+          format !== 'cjs' ? ts.ModuleKind.ES2015 : ts.ModuleKind.CommonJS,
+        target:
+          name === '.modern' ? ts.ScriptTarget.ES2017 : ts.ScriptTarget.ES5,
       },
     })
     const mergedSourcemap = merge(sourcemap, code.sourceMapText)
 
     await fs.writeFile(chunk.path, code.outputText)
+    console.log('path:', chunk.path)
     await fs.writeJSON(chunk.path + '.map', mergedSourcemap)
   }
 }
@@ -99,7 +97,7 @@ async function buildUMD() {
     sourcemap: true,
   })
   // minify
-  const input2 = path.join(__dirname, '../dist/redux-toolkit.umd.production.js')
+  const input2 = path.join(__dirname, '../dist/redux-toolkit.umd.min.js')
 
   const instance2 = await rollup.rollup({
     input: [input2],
@@ -114,12 +112,6 @@ async function buildUMD() {
     file: 'dist/redux-toolkit.umd.min.js',
     sourcemap: true,
   })
-  try {
-    await fs.unlinkSync(input2)
-    await fs.unlinkSync(input2 + '.map')
-  } catch (err) {
-    // just ignore
-  }
 }
 async function writeEntry() {
   await fs.writeFile(
@@ -132,17 +124,61 @@ if (process.env.NODE_ENV === 'production') {
 }`
   )
 }
-async function addSubpath() {}
 async function main() {
-  for (const format of ['cjs', 'esm', 'umd']) {
-    for (const env of ['development', 'production']) {
-      bundle(env, format)
-    }
+  console.log('dir:', outputDir)
+  await fs.remove(outputDir)
+  await fs.ensureDir(outputDir)
+  const buildTargets = [
+    {
+      format: 'cjs',
+      name: '.cjs.development',
+      target: 'es2017',
+      minify: false,
+      env: 'development',
+    },
+    {
+      format: 'cjs',
+      name: '.cjs.production.min',
+      target: 'es2017',
+      minify: true,
+      env: 'production',
+    },
+    {
+      format: 'esm',
+      name: '.esm',
+      target: 'es2017',
+      minify: false,
+      env: '',
+    },
+    {
+      format: 'esm',
+      name: '.modern',
+      target: 'es2017',
+      minify: false,
+      env: '',
+    },
+    {
+      format: 'umd',
+      name: '.umd',
+      target: 'es2017',
+      minify: false,
+      env: 'development',
+    },
+    {
+      format: 'umd',
+      name: '.umd.min',
+      target: 'es2017',
+      minify: true,
+      env: 'production',
+    },
+  ]
+  for (const options of buildTargets) {
+    bundle(options)
   }
-  await sleep(2000) // hack, waiting file to save
+  await sleep(3000) // hack, waiting file to save
   await buildUMD()
-  writeEntry()
-  addSubpath()
+  // writeEntry()
+  // addSubpath()
 }
 
 main()

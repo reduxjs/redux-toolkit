@@ -45,6 +45,7 @@
     "merge-source-map": "^1.1.0",
     "prettier": "^1.19.1",
     "react": "^16.8.6",
+    "rollup": "1.27.8",
     "rollup-plugin-strip-code": "^0.2.6",
     "tsdx": "^0.11.0",
     "tslib": "^1.10.0",
