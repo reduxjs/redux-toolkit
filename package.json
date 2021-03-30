@@ -75,7 +75,8 @@
     "immer": "^8.0.1",
     "redux": "^4.0.0",
     "redux-thunk": "^2.3.0",
-    "reselect": "^4.0.0"
+    "reselect": "^4.0.0",
+    "terser": "^5.6.1"
   },
   "sideEffects": false,
   "jest": {

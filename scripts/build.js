@@ -1,5 +1,5 @@
 // @ts-check
-const { build } = require('esbuild')
+const { build, transform } = require('esbuild')
 const rollup = require('rollup')
 const path = require('path')
 const fs = require('fs-extra')
@@ -11,13 +11,11 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const outputDir = path.join(__dirname, '../dist')
 async function bundle(options) {
   const { format, minify, env, name } = options
-  console.log('minify:', options)
   const result = await build({
     entryPoints: ['src/index.ts'],
     outfile: `dist/redux-toolkit${name}.js`,
     write: false,
     target: 'es2015',
-    minify,
     sourcemap: 'inline',
     bundle: true,
     format: format === 'umd' ? 'esm' : format,
@@ -64,7 +62,7 @@ async function bundle(options) {
   for (const chunk of result.outputFiles) {
     origin = chunk.text
     const sourcemap = extractInlineSourcemap(origin)
-    const code = ts.transpileModule(removeInlineSourceMap(origin), {
+    const result = ts.transpileModule(removeInlineSourceMap(origin), {
       compilerOptions: {
         sourceMap: true,
         module:
@@ -73,9 +71,18 @@ async function bundle(options) {
           name === '.modern' ? ts.ScriptTarget.ES2017 : ts.ScriptTarget.ES5,
       },
     })
-    const mergedSourcemap = merge(sourcemap, code.sourceMapText)
-
-    await fs.writeFile(chunk.path, code.outputText)
+    const mergedSourcemap = merge(sourcemap, result.sourceMapText)
+    let code = result.outputText
+    let mapping = mergedSourcemap
+    if (minify) {
+      const transformResult = await transform(code, {
+        target: 'es5',
+        minify: true,
+      })
+      code = transformResult.code
+      mapping = transformResult.map
+    }
+    await fs.writeFile(chunk.path, code)
     console.log('path:', chunk.path)
     await fs.writeJSON(chunk.path + '.map', mergedSourcemap)
   }
