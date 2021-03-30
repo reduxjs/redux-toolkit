@@ -98,6 +98,23 @@ describe('configureStore', () => {
     })
   })
 
+  describe('given a middleware creation function that returns an array with non-functions', () => {
+    it('throws an error', () => {
+      const invalidBuilder = jest.fn(getDefaultMiddleware => [true] as any)
+      expect(() =>
+        configureStore({ middleware: invalidBuilder, reducer })
+      ).toThrow('each middleware provided to configureStore must be a function')
+    })
+  })
+
+  describe('given custom middleware that contains non-functions', () => {
+    it('throws an error', () => {
+      expect(() =>
+        configureStore({ middleware: [true] as any, reducer })
+      ).toThrow('each middleware provided to configureStore must be a function')
+    })
+  })
+
   describe('given custom middleware', () => {
     it('calls createStore with custom middleware and without default middleware', () => {
       const thank: redux.Middleware = _store => next => action => next(action)
