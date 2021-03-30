@@ -1,5 +1,6 @@
 // @ts-check
 const { build, transform } = require('esbuild')
+const terser = require('terser')
 const rollup = require('rollup')
 const path = require('path')
 const fs = require('fs-extra')
@@ -75,9 +76,18 @@ async function bundle(options) {
     let code = result.outputText
     let mapping = mergedSourcemap
     if (minify) {
-      const transformResult = await transform(code, {
-        target: 'es5',
-        minify: true,
+      const transformResult = await terser.minify(code, {
+        sourceMap: true,
+        output: {
+          comments: false,
+        },
+        compress: {
+          keep_infinity: true,
+          pure_getters: true,
+          passes: 10,
+        },
+        ecma: 5,
+        toplevel: true,
       })
       code = transformResult.code
       mapping = transformResult.map
