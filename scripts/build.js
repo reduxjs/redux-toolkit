@@ -177,7 +177,7 @@ async function main() {
   }
   await sleep(3000) // hack, waiting file to save
   await buildUMD()
-  // writeEntry()
+  writeEntry()
   // addSubpath()
 }
 
