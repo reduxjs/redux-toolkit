@@ -5,5 +5,5 @@ export {
   EntityAdapter,
   Update,
   IdSelector,
-  Comparer
+  Comparer,
 } from './models'

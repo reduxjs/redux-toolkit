@@ -5,7 +5,7 @@ describe('createAction', () => {
     const actionCreator = createAction<string>('A_TYPE')
     expect(actionCreator('something')).toEqual({
       type: 'A_TYPE',
-      payload: 'something'
+      payload: 'something',
     })
   })
 
@@ -19,13 +19,13 @@ describe('createAction', () => {
   describe('when passing a prepareAction method only returning a payload', () => {
     it('should use the payload returned from the prepareAction method', () => {
       const actionCreator = createAction('A_TYPE', (a: number) => ({
-        payload: a * 2
+        payload: a * 2,
       }))
       expect(actionCreator(5).payload).toBe(10)
     })
     it('should not have a meta attribute on the resulting Action', () => {
       const actionCreator = createAction('A_TYPE', (a: number) => ({
-        payload: a * 2
+        payload: a * 2,
       }))
       expect('meta' in actionCreator(5)).toBeFalsy()
     })
@@ -35,14 +35,14 @@ describe('createAction', () => {
     it('should use the payload returned from the prepareAction method', () => {
       const actionCreator = createAction('A_TYPE', (a: number) => ({
         payload: a * 2,
-        meta: a / 2
+        meta: a / 2,
       }))
       expect(actionCreator(5).payload).toBe(10)
     })
     it('should use the meta returned from the prepareAction method', () => {
       const actionCreator = createAction('A_TYPE', (a: number) => ({
         payload: a * 2,
-        meta: a / 2
+        meta: a / 2,
       }))
       expect(actionCreator(10).meta).toBe(5)
     })
@@ -52,14 +52,14 @@ describe('createAction', () => {
     it('should use the payload returned from the prepareAction method', () => {
       const actionCreator = createAction('A_TYPE', (a: number) => ({
         payload: a * 2,
-        error: true
+        error: true,
       }))
       expect(actionCreator(5).payload).toBe(10)
     })
     it('should use the error returned from the prepareAction method', () => {
       const actionCreator = createAction('A_TYPE', (a: number) => ({
         payload: a * 2,
-        error: true
+        error: true,
       }))
       expect(actionCreator(10).error).toBe(true)
     })
@@ -70,7 +70,7 @@ describe('createAction', () => {
       const actionCreator = createAction('A_TYPE', (a: number) => ({
         payload: a * 2,
         meta: a / 2,
-        error: true
+        error: true,
       }))
       expect(actionCreator(5).payload).toBe(10)
     })
@@ -78,7 +78,7 @@ describe('createAction', () => {
       const actionCreator = createAction('A_TYPE', (a: number) => ({
         payload: a * 2,
         meta: a / 2,
-        error: true
+        error: true,
       }))
       expect(actionCreator(10).error).toBe(true)
     })
@@ -86,7 +86,7 @@ describe('createAction', () => {
       const actionCreator = createAction('A_TYPE', (a: number) => ({
         payload: a * 2,
         meta: a / 2,
-        error: true
+        error: true,
       }))
       expect(actionCreator(10).meta).toBe(5)
     })
@@ -97,7 +97,7 @@ describe('createAction', () => {
       const actionCreator = createAction(
         'A_TYPE',
         (a: string, b: string, c: string) => ({
-          payload: a + b + c
+          payload: a + b + c,
         })
       )
       expect(actionCreator('1', '2', '3').payload).toBe('123')

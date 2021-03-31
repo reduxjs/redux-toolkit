@@ -51,8 +51,8 @@ const store = configureStore({
   reducer: {
     posts: postsReducer,
     comments: commentsReducer,
-    users: usersReducer
-  }
+    users: usersReducer,
+  },
 })
 
 // highlight-start
@@ -105,7 +105,7 @@ interface CounterState {
 
 // Define the initial state using that type
 const initialState: CounterState = {
-  value: 0
+  value: 0,
 }
 // highlight-end
 
@@ -114,10 +114,10 @@ export const counterSlice = createSlice({
   // `createSlice` will infer the state type from the `initialState` argument
   initialState,
   reducers: {
-    increment: state => {
+    increment: (state) => {
       state.value += 1
     },
-    decrement: state => {
+    decrement: (state) => {
       state.value -= 1
     },
     // highlight-start
@@ -125,8 +125,8 @@ export const counterSlice = createSlice({
     incrementByAmount: (state, action: PayloadAction<number>) => {
       // highlight-end
       state.value += action.payload
-    }
-  }
+    },
+  },
 })
 
 export const { increment, decrement, incrementByAmount } = counterSlice.actions
@@ -144,7 +144,7 @@ In some cases, [TypeScript may unnecessarily tighten the type of the initial sta
 ```ts
 // Workaround: cast state instead of declaring variable type
 const initialState = {
-  value: 0
+  value: 0,
 } as CounterState
 ```
 
@@ -163,7 +163,7 @@ import { decrement, increment } from './counterSlice'
 export function Counter() {
   // highlight-start
   // The `state` arg is correctly typed as `RootState` already
-  const count = useAppSelector(state => state.counter.value)
+  const count = useAppSelector((state) => state.counter.value)
   const dispatch = useAppDispatch()
   // highlight-end
 

@@ -42,14 +42,14 @@ function getSerialize(
     keys: any[] = []
 
   if (!decycler)
-    decycler = function(_: string, value: any) {
+    decycler = function (_: string, value: any) {
       if (stack[0] === value) return '[Circular ~]'
       return (
         '[Circular ~.' + keys.slice(0, stack.indexOf(value)).join('.') + ']'
       )
     }
 
-  return function(this: any, key: string, value: any) {
+  return function (this: any, key: string, value: any) {
     if (stack.length > 0) {
       var thisPos = stack.indexOf(this)
       ~thisPos ? stack.splice(thisPos + 1) : stack.push(this)
@@ -84,7 +84,7 @@ export function trackForMutations(
   return {
     detectMutations() {
       return detectMutations(isImmutable, ignorePaths, trackedProperties, obj)
-    }
+    },
   }
 }
 
@@ -214,14 +214,14 @@ export function createImmutableStateInvariantMiddleware(
   options: ImmutableStateInvariantMiddlewareOptions = {}
 ): Middleware {
   if (process.env.NODE_ENV === 'production') {
-    return () => next => action => next(action)
+    return () => (next) => (action) => next(action)
   }
 
   let {
     isImmutable = isImmutableDefault,
     ignoredPaths,
     warnAfter = 32,
-    ignore
+    ignore,
   } = options
 
   // Alias ignore->ignoredPaths, but prefer ignoredPaths if present
@@ -234,7 +234,7 @@ export function createImmutableStateInvariantMiddleware(
     let tracker = track(state)
 
     let result
-    return next => action => {
+    return (next) => (action) => {
       const measureUtils = getTimeMeasureUtils(
         warnAfter,
         'ImmutableStateInvariantMiddleware'
@@ -249,8 +249,9 @@ export function createImmutableStateInvariantMiddleware(
 
         invariant(
           !result.wasMutated,
-          `A state mutation was detected between dispatches, in the path '${result.path ||
-            ''}'.  This may cause incorrect behavior. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`
+          `A state mutation was detected between dispatches, in the path '${
+            result.path || ''
+          }'.  This may cause incorrect behavior. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`
         )
       })
 
@@ -266,8 +267,9 @@ export function createImmutableStateInvariantMiddleware(
         result.wasMutated &&
           invariant(
             !result.wasMutated,
-            `A state mutation was detected inside a dispatch, in the path: ${result.path ||
-              ''}. Take a look at the reducer(s) handling the action ${stringify(
+            `A state mutation was detected inside a dispatch, in the path: ${
+              result.path || ''
+            }. Take a look at the reducer(s) handling the action ${stringify(
               action
             )}. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`
           )

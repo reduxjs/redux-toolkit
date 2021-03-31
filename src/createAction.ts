@@ -3,7 +3,7 @@ import {
   IsUnknownOrNonInferrable,
   IfMaybeUndefined,
   IfVoid,
-  IsAny
+  IsAny,
 } from './tsHelpers'
 import isPlainObject from './isPlainObject'
 
@@ -270,7 +270,7 @@ export function createAction(type: string, prepareAction?: Function): any {
         type,
         payload: prepared.payload,
         ...('meta' in prepared && { meta: prepared.meta }),
-        ...('error' in prepared && { error: prepared.error })
+        ...('error' in prepared && { error: prepared.error }),
       }
     }
     return { type, payload: args[0] }

@@ -3,7 +3,7 @@ import {
   createImmutableStateInvariantMiddleware,
   isImmutableDefault,
   trackForMutations,
-  ImmutableStateInvariantMiddlewareOptions
+  ImmutableStateInvariantMiddlewareOptions,
 } from './immutableStateInvariantMiddleware'
 import { mockConsole, createConsole, getLog } from 'console-testing-library'
 
@@ -13,7 +13,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
 
   function middleware(options: ImmutableStateInvariantMiddlewareOptions = {}) {
     return createImmutableStateInvariantMiddleware(options)({
-      getState
+      getState,
     } as MiddlewareAPI)
   }
 
@@ -22,17 +22,17 @@ describe('createImmutableStateInvariantMiddleware', () => {
   })
 
   it('sends the action through the middleware chain', () => {
-    const next: Dispatch = action => ({ ...action, returned: true })
+    const next: Dispatch = (action) => ({ ...action, returned: true })
     const dispatch = middleware()(next)
 
     expect(dispatch({ type: 'SOME_ACTION' })).toEqual({
       type: 'SOME_ACTION',
-      returned: true
+      returned: true,
     })
   })
 
   it('throws if mutating inside the dispatch', () => {
-    const next: Dispatch = action => {
+    const next: Dispatch = (action) => {
       state.foo.bar.push(5)
       return action
     }
@@ -45,7 +45,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
   })
 
   it('throws if mutating between dispatches', () => {
-    const next: Dispatch = action => action
+    const next: Dispatch = (action) => action
 
     const dispatch = middleware()(next)
 
@@ -57,7 +57,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
   })
 
   it('does not throw if not mutating inside the dispatch', () => {
-    const next: Dispatch = action => {
+    const next: Dispatch = (action) => {
       state = { ...state, foo: { ...state.foo, baz: 'changed!' } }
       return action
     }
@@ -70,7 +70,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
   })
 
   it('does not throw if not mutating between dispatches', () => {
-    const next: Dispatch = action => action
+    const next: Dispatch = (action) => action
 
     const dispatch = middleware()(next)
 
@@ -82,7 +82,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
   })
 
   it('works correctly with circular references', () => {
-    const next: Dispatch = action => action
+    const next: Dispatch = (action) => action
 
     const dispatch = middleware()(next)
 
@@ -96,9 +96,9 @@ describe('createImmutableStateInvariantMiddleware', () => {
     }).not.toThrow()
   })
 
-  it('respects "isImmutable" option', function() {
+  it('respects "isImmutable" option', function () {
     const isImmutable = (value: any) => true
-    const next: Dispatch = action => {
+    const next: Dispatch = (action) => {
       state.foo.bar.push(5)
       return action
     }
@@ -111,7 +111,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
   })
 
   it('respects "ignoredPaths" option', () => {
-    const next: Dispatch = action => {
+    const next: Dispatch = (action) => {
       state.foo.bar.push(5)
       return action
     }
@@ -124,7 +124,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
   })
 
   it('alias "ignore" to "ignoredPath" and respects option', () => {
-    const next: Dispatch = action => {
+    const next: Dispatch = (action) => {
       state.foo.bar.push(5)
       return action
     }
@@ -139,7 +139,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
   it('Should print a warning if execution takes too long', () => {
     state.foo.bar = new Array(10000).fill({ value: 'more' })
 
-    const next: Dispatch = action => action
+    const next: Dispatch = (action) => action
 
     const dispatch = middleware({ warnAfter: 4 })(next)
 
@@ -155,7 +155,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
   })
 
   it('Should not print a warning if "next" takes too long', () => {
-    const next: Dispatch = action => {
+    const next: Dispatch = (action) => {
       const started = Date.now()
       while (Date.now() - started < 8) {}
       return action
@@ -184,7 +184,7 @@ describe('trackForMutations', () => {
 
       expect(tracker.detectMutations()).toEqual({
         wasMutated: true,
-        path: spec.path.join('.')
+        path: spec.path.join('.'),
       })
     })
   }
@@ -213,171 +213,171 @@ describe('trackForMutations', () => {
       getState: () => ({
         foo: {
           bar: [2, 3, 4],
-          baz: 'baz'
+          baz: 'baz',
         },
-        stuff: []
+        stuff: [],
       }),
-      fn: s => {
+      fn: (s) => {
         s.foo.bar.push(5)
         return s
       },
-      path: ['foo', 'bar', '3']
+      path: ['foo', 'bar', '3'],
     },
     'adding to nested array and setting new root object': {
       getState: () => ({
         foo: {
           bar: [2, 3, 4],
-          baz: 'baz'
+          baz: 'baz',
         },
-        stuff: []
+        stuff: [],
       }),
-      fn: s => {
+      fn: (s) => {
         s.foo.bar.push(5)
         return { ...s }
       },
-      path: ['foo', 'bar', '3']
+      path: ['foo', 'bar', '3'],
     },
     'changing nested string': {
       getState: () => ({
         foo: {
           bar: [2, 3, 4],
-          baz: 'baz'
+          baz: 'baz',
         },
-        stuff: []
+        stuff: [],
       }),
-      fn: s => {
+      fn: (s) => {
         s.foo.baz = 'changed!'
         return s
       },
-      path: ['foo', 'baz']
+      path: ['foo', 'baz'],
     },
     'removing nested state': {
       getState: () => ({
         foo: {
           bar: [2, 3, 4],
-          baz: 'baz'
+          baz: 'baz',
         },
-        stuff: []
+        stuff: [],
       }),
-      fn: s => {
+      fn: (s) => {
         delete s.foo
         return s
       },
-      path: ['foo']
+      path: ['foo'],
     },
     'adding to array': {
       getState: () => ({
         foo: {
           bar: [2, 3, 4],
-          baz: 'baz'
+          baz: 'baz',
         },
-        stuff: []
+        stuff: [],
       }),
-      fn: s => {
+      fn: (s) => {
         s.stuff.push(1)
         return s
       },
-      path: ['stuff', '0']
+      path: ['stuff', '0'],
     },
     'adding object to array': {
       getState: () => ({
-        stuff: []
+        stuff: [],
       }),
-      fn: s => {
+      fn: (s) => {
         s.stuff.push({ foo: 1, bar: 2 })
         return s
       },
-      path: ['stuff', '0']
+      path: ['stuff', '0'],
     },
     'mutating previous state and returning new state': {
       getState: () => ({ counter: 0 }),
-      fn: s => {
+      fn: (s) => {
         s.mutation = true
         return { ...s, counter: s.counter + 1 }
       },
-      path: ['mutation']
+      path: ['mutation'],
     },
     'mutating previous state with non immutable type and returning new state': {
       getState: () => ({ counter: 0 }),
-      fn: s => {
+      fn: (s) => {
         s.mutation = [1, 2, 3]
         return { ...s, counter: s.counter + 1 }
       },
-      path: ['mutation']
+      path: ['mutation'],
     },
     'mutating previous state with non immutable type and returning new state without that property': {
       getState: () => ({ counter: 0 }),
-      fn: s => {
+      fn: (s) => {
         s.mutation = [1, 2, 3]
         return { counter: s.counter + 1 }
       },
-      path: ['mutation']
+      path: ['mutation'],
     },
     'mutating previous state with non immutable type and returning new simple state': {
       getState: () => ({ counter: 0 }),
-      fn: s => {
+      fn: (s) => {
         s.mutation = [1, 2, 3]
         return 1
       },
-      path: ['mutation']
+      path: ['mutation'],
     },
     'mutating previous state by deleting property and returning new state without that property': {
       getState: () => ({ counter: 0, toBeDeleted: true }),
-      fn: s => {
+      fn: (s) => {
         delete s.toBeDeleted
         return { counter: s.counter + 1 }
       },
-      path: ['toBeDeleted']
+      path: ['toBeDeleted'],
     },
     'mutating previous state by deleting nested property': {
       getState: () => ({ nested: { counter: 0, toBeDeleted: true }, foo: 1 }),
-      fn: s => {
+      fn: (s) => {
         delete s.nested.toBeDeleted
         return { nested: { counter: s.counter + 1 } }
       },
-      path: ['nested', 'toBeDeleted']
+      path: ['nested', 'toBeDeleted'],
     },
     'update reference': {
       getState: () => ({ foo: {} }),
-      fn: s => {
+      fn: (s) => {
         s.foo = {}
         return s
       },
-      path: ['foo']
+      path: ['foo'],
     },
     'cannot ignore root state': {
       getState: () => ({ foo: {} }),
-      fn: s => {
+      fn: (s) => {
         s.foo = {}
         return s
       },
       middlewareOptions: {
-        ignoredPaths: ['']
+        ignoredPaths: [''],
       },
-      path: ['foo']
+      path: ['foo'],
     },
     'catching state mutation in non-ignored branch': {
       getState: () => ({
         foo: {
-          bar: [1, 2]
+          bar: [1, 2],
         },
         boo: {
-          yah: [1, 2]
-        }
+          yah: [1, 2],
+        },
       }),
-      fn: s => {
+      fn: (s) => {
         s.foo.bar.push(3)
         s.boo.yah.push(3)
         return s
       },
       middlewareOptions: {
-        ignoredPaths: ['foo']
+        ignoredPaths: ['foo'],
       },
-      path: ['boo', 'yah', '2']
-    }
+      path: ['boo', 'yah', '2'],
+    },
   }
 
-  Object.keys(mutations).forEach(mutationDesc => {
+  Object.keys(mutations).forEach((mutationDesc) => {
     describe(mutationDesc, () => {
       testCasesForMutation(mutations[mutationDesc])
     })
@@ -386,109 +386,109 @@ describe('trackForMutations', () => {
   const nonMutations: Record<string, TestConfig> = {
     'not doing anything': {
       getState: () => ({ a: 1, b: 2 }),
-      fn: s => s
+      fn: (s) => s,
     },
     'from undefined to something': {
       getState: () => undefined,
-      fn: s => ({ foo: 'bar' })
+      fn: (s) => ({ foo: 'bar' }),
     },
     'returning same state': {
       getState: () => ({
         foo: {
           bar: [2, 3, 4],
-          baz: 'baz'
+          baz: 'baz',
         },
-        stuff: []
+        stuff: [],
       }),
-      fn: s => s
+      fn: (s) => s,
     },
     'returning a new state object with nested new string': {
       getState: () => ({
         foo: {
           bar: [2, 3, 4],
-          baz: 'baz'
+          baz: 'baz',
         },
-        stuff: []
+        stuff: [],
       }),
-      fn: s => {
+      fn: (s) => {
         return { ...s, foo: { ...s.foo, baz: 'changed!' } }
-      }
+      },
     },
     'returning a new state object with nested new array': {
       getState: () => ({
         foo: {
           bar: [2, 3, 4],
-          baz: 'baz'
+          baz: 'baz',
         },
-        stuff: []
+        stuff: [],
       }),
-      fn: s => {
+      fn: (s) => {
         return { ...s, foo: { ...s.foo, bar: [...s.foo.bar, 5] } }
-      }
+      },
     },
     'removing nested state': {
       getState: () => ({
         foo: {
           bar: [2, 3, 4],
-          baz: 'baz'
+          baz: 'baz',
         },
-        stuff: []
+        stuff: [],
       }),
-      fn: s => {
+      fn: (s) => {
         return { ...s, foo: {} }
-      }
+      },
     },
     'having a NaN in the state': {
       getState: () => ({ a: NaN, b: Number.NaN }),
-      fn: s => s
+      fn: (s) => s,
     },
     'ignoring branches from mutation detection': {
       getState: () => ({
         foo: {
-          bar: 'bar'
-        }
+          bar: 'bar',
+        },
       }),
-      fn: s => {
+      fn: (s) => {
         s.foo.bar = 'baz'
         return s
       },
       middlewareOptions: {
-        ignoredPaths: ['foo']
-      }
+        ignoredPaths: ['foo'],
+      },
     },
     'ignoring nested branches from mutation detection': {
       getState: () => ({
         foo: {
           bar: [1, 2],
           boo: {
-            yah: [1, 2]
-          }
-        }
+            yah: [1, 2],
+          },
+        },
       }),
-      fn: s => {
+      fn: (s) => {
         s.foo.bar.push(3)
         s.foo.boo.yah.push(3)
         return s
       },
       middlewareOptions: {
-        ignoredPaths: ['foo.bar', 'foo.boo.yah']
-      }
+        ignoredPaths: ['foo.bar', 'foo.boo.yah'],
+      },
     },
     'ignoring nested array indices from mutation detection': {
       getState: () => ({
-        stuff: [{ a: 1 }, { a: 2 }]
+        stuff: [{ a: 1 }, { a: 2 }],
       }),
-      fn: s => {
+      fn: (s) => {
         s.stuff[1].a = 3
         return s
       },
       middlewareOptions: {
-        ignoredPaths: ['stuff.1']
-      }
-    }
+        ignoredPaths: ['stuff.1'],
+      },
+    },
   }
 
-  Object.keys(nonMutations).forEach(nonMutationDesc => {
+  Object.keys(nonMutations).forEach((nonMutationDesc) => {
     describe(nonMutationDesc, () => {
       testCasesForNonMutation(nonMutations[nonMutationDesc])
     })

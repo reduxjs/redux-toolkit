@@ -8,11 +8,11 @@ describe('createSlice', () => {
         // @ts-ignore
         createSlice({
           reducers: {
-            increment: state => state + 1,
+            increment: (state) => state + 1,
             multiply: (state, action: PayloadAction<number>) =>
-              state * action.payload
+              state * action.payload,
           },
-          initialState: 0
+          initialState: 0,
         })
       ).toThrowError()
     })
@@ -24,11 +24,11 @@ describe('createSlice', () => {
         createSlice({
           name: '',
           reducers: {
-            increment: state => state + 1,
+            increment: (state) => state + 1,
             multiply: (state, action: PayloadAction<number>) =>
-              state * action.payload
+              state * action.payload,
           },
-          initialState: 0
+          initialState: 0,
         })
       ).toThrowError()
     })
@@ -37,10 +37,10 @@ describe('createSlice', () => {
   describe('when passing slice', () => {
     const { actions, reducer, caseReducers } = createSlice({
       reducers: {
-        increment: state => state + 1
+        increment: (state) => state + 1,
       },
       initialState: 0,
-      name: 'cool'
+      name: 'cool',
     })
 
     it('should create increment action', () => {
@@ -50,7 +50,7 @@ describe('createSlice', () => {
     it('should have the correct action for increment', () => {
       expect(actions.increment()).toEqual({
         type: 'cool/increment',
-        payload: undefined
+        payload: undefined,
       })
     })
 
@@ -72,15 +72,15 @@ describe('createSlice', () => {
       reducers: {
         setUserName: (state, action) => {
           state.user = action.payload
-        }
+        },
       },
       initialState,
-      name: 'user'
+      name: 'user',
     })
 
     it('should set the username', () => {
       expect(reducer(initialState, actions.setUserName('eric'))).toEqual({
-        user: 'eric'
+        user: 'eric',
       })
     })
   })
@@ -91,13 +91,13 @@ describe('createSlice', () => {
     const { reducer } = createSlice({
       name: 'test',
       reducers: {
-        increment: state => state + 1,
-        multiply: (state, action) => state * action.payload
+        increment: (state) => state + 1,
+        multiply: (state, action) => state * action.payload,
       },
       extraReducers: {
-        [addMore.type]: (state, action) => state + action.payload.amount
+        [addMore.type]: (state, action) => state + action.payload.amount,
       },
-      initialState: 0
+      initialState: 0,
     })
 
     it('should call extra reducers when their actions are dispatched', () => {
@@ -114,11 +114,11 @@ describe('createSlice', () => {
           name: 'counter',
           initialState: 0,
           reducers: {},
-          extraReducers: builder =>
+          extraReducers: (builder) =>
             builder.addCase(
               increment,
               (state, action) => state + action.payload
-            )
+            ),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
       })
@@ -128,12 +128,12 @@ describe('createSlice', () => {
           name: 'counter',
           initialState: 0,
           reducers: {},
-          extraReducers: builder =>
+          extraReducers: (builder) =>
             builder.addCase(
               'increment',
               (state, action: { type: 'increment'; payload: number }) =>
                 state + action.payload
-            )
+            ),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
       })
@@ -144,10 +144,10 @@ describe('createSlice', () => {
             name: 'counter',
             initialState: 0,
             reducers: {},
-            extraReducers: builder =>
+            extraReducers: (builder) =>
               builder
-                .addCase('increment', state => state + 1)
-                .addCase('increment', state => state + 1)
+                .addCase('increment', (state) => state + 1)
+                .addCase('increment', (state) => state + 1),
           })
         ).toThrowErrorMatchingInlineSnapshot(
           `"addCase cannot be called with two reducers for the same action type"`
@@ -159,12 +159,12 @@ describe('createSlice', () => {
           name: 'counter',
           initialState: 0,
           reducers: {},
-          extraReducers: builder =>
+          extraReducers: (builder) =>
             builder.addMatcher(
               increment.match,
               (state, action: { type: 'increment'; payload: number }) =>
                 state + action.payload
-            )
+            ),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
       })
@@ -174,8 +174,8 @@ describe('createSlice', () => {
           name: 'counter',
           initialState: 0,
           reducers: {},
-          extraReducers: builder =>
-            builder.addDefaultCase((state, action) => state + action.payload)
+          extraReducers: (builder) =>
+            builder.addDefaultCase((state, action) => state + action.payload),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
       })
@@ -193,15 +193,15 @@ describe('createSlice', () => {
         initialState: 0,
         reducers: {
           testReducer: {
-            reducer: s => s,
-            prepare
-          }
-        }
+            reducer: (s) => s,
+            prepare,
+          },
+        },
       })
 
       expect(testSlice.actions.testReducer('a', 1)).toEqual({
         type: 'test/testReducer',
-        payload: 'a'
+        payload: 'a',
       })
       expect(prepare).toHaveBeenCalledWith('a', 1)
     })
@@ -215,9 +215,9 @@ describe('createSlice', () => {
         reducers: {
           testReducer: {
             reducer,
-            prepare: (payload: any) => ({ payload })
-          }
-        }
+            prepare: (payload: any) => ({ payload }),
+          },
+        },
       })
 
       testSlice.reducer(0, testSlice.actions.testReducer('testPayload'))

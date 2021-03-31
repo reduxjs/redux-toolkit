@@ -12,18 +12,18 @@ import {
   Store,
   Dispatch,
   PreloadedState,
-  CombinedState
+  CombinedState,
 } from 'redux'
 import {
   composeWithDevTools,
-  EnhancerOptions as DevToolsOptions
+  EnhancerOptions as DevToolsOptions,
 } from './devtoolsExtension'
 
 import isPlainObject from './isPlainObject'
 import {
   ThunkMiddlewareFor,
   curryGetDefaultMiddleware,
-  CurriedGetDefaultMiddleware
+  CurriedGetDefaultMiddleware,
 } from './getDefaultMiddleware'
 import { DispatchForMiddlewares, NoInfer } from './tsHelpers'
 
@@ -138,7 +138,7 @@ export function configureStore<
     middleware = curriedGetDefaultMiddleware(),
     devTools = true,
     preloadedState = undefined,
-    enhancers = undefined
+    enhancers = undefined,
   } = options || {}
 
   let rootReducer: Reducer<S, A>
@@ -165,7 +165,7 @@ export function configureStore<
     finalCompose = composeWithDevTools({
       // Enable capture of stack traces for dispatched Redux actions
       trace: !IS_PRODUCTION,
-      ...(typeof devTools === 'object' && devTools)
+      ...(typeof devTools === 'object' && devTools),
     })
   }
 

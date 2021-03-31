@@ -2,13 +2,13 @@ import {
   ActionFromMatcher,
   hasMatchFunction,
   Matcher,
-  UnionToIntersection
+  UnionToIntersection,
 } from './tsHelpers'
 import {
   AsyncThunk,
   AsyncThunkFulfilledActionCreator,
   AsyncThunkPendingActionCreator,
-  AsyncThunkRejectedActionCreator
+  AsyncThunkRejectedActionCreator,
 } from './createAsyncThunk'
 
 /** @public */
@@ -42,7 +42,7 @@ export function isAnyOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]>(
   ...matchers: Matchers
 ) {
   return (action: any): action is ActionMatchingAnyOf<Matchers> => {
-    return matchers.some(matcher => matches(matcher, action))
+    return matchers.some((matcher) => matches(matcher, action))
   }
 }
 
@@ -59,7 +59,7 @@ export function isAllOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]>(
   ...matchers: Matchers
 ) {
   return (action: any): action is ActionMatchingAllOf<Matchers> => {
-    return matchers.every(matcher => matches(matcher, action))
+    return matchers.every((matcher) => matches(matcher, action))
   }
 }
 
@@ -141,7 +141,7 @@ export function isPending<
   ): action is PendingActionFromAsyncThunk<AsyncThunks[number]> => {
     // note: this type will be correct because we have at least 1 asyncThunk
     const matchers: [Matcher<any>, ...Matcher<any>[]] = asyncThunks.map(
-      asyncThunk => asyncThunk.pending
+      (asyncThunk) => asyncThunk.pending
     ) as any
 
     const combinedMatcher = isAnyOf(...matchers)
@@ -205,7 +205,7 @@ export function isRejected<
   ): action is RejectedActionFromAsyncThunk<AsyncThunks[number]> => {
     // note: this type will be correct because we have at least 1 asyncThunk
     const matchers: [Matcher<any>, ...Matcher<any>[]] = asyncThunks.map(
-      asyncThunk => asyncThunk.rejected
+      (asyncThunk) => asyncThunk.rejected
     ) as any
 
     const combinedMatcher = isAnyOf(...matchers)
@@ -341,7 +341,7 @@ export function isFulfilled<
   ): action is FulfilledActionFromAsyncThunk<AsyncThunks[number]> => {
     // note: this type will be correct because we have at least 1 asyncThunk
     const matchers: [Matcher<any>, ...Matcher<any>[]] = asyncThunks.map(
-      asyncThunk => asyncThunk.fulfilled
+      (asyncThunk) => asyncThunk.fulfilled
     ) as any
 
     const combinedMatcher = isAnyOf(...matchers)

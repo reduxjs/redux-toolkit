@@ -9,7 +9,7 @@ describe('createStateOperator', () => {
 
   beforeEach(() => {
     adapter = createEntityAdapter({
-      selectId: (book: BookModel) => book.id
+      selectId: (book: BookModel) => book.id,
     })
   })
   it('Correctly mutates a draft state when inside `createNextState', () => {
@@ -31,16 +31,16 @@ describe('createStateOperator', () => {
           //Deliberately _don't_ return result
         },
         // We should also be able to pass them individually as case reducers
-        addAnother: adapter.addOne
-      }
+        addAnother: adapter.addOne,
+      },
     })
 
     const { addOne, addAnother } = booksSlice.actions
 
     const store = configureStore({
       reducer: {
-        books: booksSlice.reducer
-      }
+        books: booksSlice.reducer,
+      },
     })
 
     const book1: BookModel = { id: 'a', title: 'First' }

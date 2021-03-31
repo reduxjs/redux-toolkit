@@ -3,7 +3,7 @@ import {
   CaseReducer,
   CaseReducers,
   ActionMatcher,
-  ActionMatcherDescriptionCollection
+  ActionMatcherDescriptionCollection,
 } from './createReducer'
 
 export interface TypedActionCreator<Type extends string> {
@@ -189,7 +189,7 @@ export function executeReducerBuilderCallback<S>(
       }
       defaultCaseReducer = reducer
       return builder
-    }
+    },
   }
   builderCallback(builder)
   return [actionsMap, actionMatchers, defaultCaseReducer]

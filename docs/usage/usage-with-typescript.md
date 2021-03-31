@@ -50,8 +50,8 @@ import { configureStore } from '@reduxjs/toolkit'
 const store = configureStore({
   reducer: {
     one: oneSlice.reducer,
-    two: twoSlice.reducer
-  }
+    two: twoSlice.reducer,
+  },
 })
 export type RootState = ReturnType<typeof store.getState>
 ```
@@ -66,7 +66,7 @@ import { useDispatch } from 'react-redux'
 import rootReducer from './rootReducer'
 
 const store = configureStore({
-  reducer: rootReducer
+  reducer: rootReducer,
 })
 
 export type AppDispatch = typeof store.dispatch
@@ -92,7 +92,7 @@ import rootReducer from './rootReducer'
 type RootState = ReturnType<typeof rootReducer>
 const store = configureStore({
   reducer: rootReducer,
-  middleware: getDefaultMiddleware =>
+  middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
       .prepend(
         // correctly typed middlewares can just be used
@@ -104,7 +104,7 @@ const store = configureStore({
         >
       )
       // prepend and concat calls can be chained
-      .concat(logger)
+      .concat(logger),
 })
 
 type AppDispatch = typeof store.dispatch
@@ -123,12 +123,12 @@ import { configureStore, MiddlewareArray } from '@reduxjs/toolkit'
 
 configureStore({
   reducer: rootReducer,
-  middleware: new MiddlewareArray().concat(additionalMiddleware, logger)
+  middleware: new MiddlewareArray().concat(additionalMiddleware, logger),
 })
 
 configureStore({
   reducer: rootReducer,
-  middleware: [additionalMiddleware, logger] as const
+  middleware: [additionalMiddleware, logger] as const,
 })
 ```
 
@@ -186,7 +186,7 @@ The default way of calling `createReducer` would be with a "lookup table" / "map
 
 ```typescript
 createReducer(0, {
-  increment: (state, action: PayloadAction<number>) => state + action.payload
+  increment: (state, action: PayloadAction<number>) => state + action.payload,
 })
 ```
 
@@ -202,7 +202,7 @@ Unfortunately, as the keys are only strings, using that API TypeScript can neith
     },
     [decrement.type]: (state, action: PayloadAction<string>) => {
       // even though action should actually be PayloadAction<number>, TypeScript can't detect that and won't give a warning here.
-    }
+    },
   })
 }
 ```
@@ -216,7 +216,7 @@ Instead of using a simple object as an argument to `createReducer`, you can also
 ```typescript {3-10}
 const increment = createAction<number, 'increment'>('increment')
 const decrement = createAction<number, 'decrement'>('decrement')
-createReducer(0, builder =>
+createReducer(0, (builder) =>
   builder
     .addCase(increment, (state, action) => {
       // action is inferred correctly here
@@ -256,8 +256,8 @@ const slice = createSlice({
   name: 'test',
   initialState: 0,
   reducers: {
-    increment: (state, action: PayloadAction<number>) => state + action.payload
-  }
+    increment: (state, action: PayloadAction<number>) => state + action.payload,
+  },
 })
 // now available:
 slice.actions.increment(2)
@@ -276,8 +276,8 @@ createSlice({
   name: 'test',
   initialState: 0,
   reducers: {
-    increment
-  }
+    increment,
+  },
 })
 ```
 
@@ -296,14 +296,14 @@ const initialState: SliceState = { state: 'loading' }
 createSlice({
   name: 'test1',
   initialState, // type SliceState is inferred for the state of the slice
-  reducers: {}
+  reducers: {},
 })
 
 // Or, cast the initial state as necessary
 createSlice({
   name: 'test2',
   initialState: { state: 'loading' } as SliceState,
-  reducers: {}
+  reducers: {},
 })
 ```
 
@@ -330,9 +330,9 @@ const blogSlice = createSlice({
       },
       prepare(payload: Page[], currentPage: number) {
         return { payload, meta: { currentPage } }
-      }
-    }
-  }
+      },
+    },
+  },
 })
 ```
 
@@ -347,8 +347,8 @@ const slice = createSlice({
   name: 'test',
   initialState: 0,
   reducers: {
-    increment: (state, action: PayloadAction<number>) => state + action.payload
-  }
+    increment: (state, action: PayloadAction<number>) => state + action.payload,
+  },
 })
 
 function myCustomMiddleware(action: Action) {
@@ -383,7 +383,7 @@ interface UsersState {
 
 const initialState = {
   entities: [],
-  loading: 'idle'
+  loading: 'idle',
 } as UsersState
 
 const usersSlice = createSlice({
@@ -392,12 +392,12 @@ const usersSlice = createSlice({
   reducers: {
     // fill in primary logic here
   },
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder.addCase(fetchUserById.pending, (state, action) => {
       // both `state` and `action` are now correctly typed
       // based on the slice state and the `pending` action creator
     })
-  }
+  },
 })
 ```
 
@@ -421,7 +421,7 @@ const createGenericSlice = <
 >({
   name = '',
   initialState,
-  reducers
+  reducers,
 }: {
   name: string
   initialState: GenericState<T>
@@ -445,8 +445,8 @@ const createGenericSlice = <
         state.data = action.payload
         state.status = 'finished'
       },
-      ...reducers
-    }
+      ...reducers,
+    },
   })
 }
 
@@ -457,8 +457,8 @@ const wrappedSlice = createGenericSlice({
     magic(state) {
       state.status = 'finished'
       state.data = 'hocus pocus'
-    }
-  }
+    },
+  },
 })
 ```
 
@@ -516,8 +516,8 @@ const fetchUserById = createAsyncThunk<
 >('users/fetchById', async (userId, thunkApi) => {
   const response = await fetch(`https://reqres.in/api/users/${userId}`, {
     headers: {
-      Authorization: `Bearer ${thunkApi.extra.jwt}`
-    }
+      Authorization: `Bearer ${thunkApi.extra.jwt}`,
+    },
   })
   return (await response.json()) as MyData
 })
@@ -554,9 +554,9 @@ const updateUser = createAsyncThunk<
   const response = await fetch(`https://reqres.in/api/users/${id}`, {
     method: 'PUT',
     headers: {
-      Authorization: `Bearer ${thunkApi.extra.jwt}`
+      Authorization: `Bearer ${thunkApi.extra.jwt}`,
     },
-    body: JSON.stringify(userData)
+    body: JSON.stringify(userData),
   })
   if (response.status === 400) {
     // Return the known error for future handling
@@ -577,10 +577,10 @@ const usersSlice = createSlice({
   name: 'users',
   initialState: {
     entities: {},
-    error: null
+    error: null,
   },
   reducers: {},
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder.addCase(updateUser.fulfilled, (state, { payload }) => {
       state.entities[payload.id] = payload
     })
@@ -592,14 +592,14 @@ const usersSlice = createSlice({
         state.error = action.error
       }
     })
-  }
+  },
 })
 ```
 
 - In a component
 
 ```ts
-const handleUpdateUser = async userData => {
+const handleUpdateUser = async (userData) => {
   const resultAction = await dispatch(updateUser(userData))
   if (updateUser.fulfilled.match(resultAction)) {
     const user = resultAction.payload
@@ -631,8 +631,8 @@ interface Book {
 
 // highlight-next-line
 const booksAdapter = createEntityAdapter<Book>({
-  selectId: book => book.bookId,
-  sortComparer: (a, b) => a.title.localeCompare(b.title)
+  selectId: (book) => book.bookId,
+  sortComparer: (a, b) => a.title.localeCompare(b.title),
 })
 
 const booksSlice = createSlice({
@@ -642,8 +642,8 @@ const booksSlice = createSlice({
     bookAdded: booksAdapter.addOne,
     booksReceived(state, action: PayloadAction<{ books: Book[] }>) {
       booksAdapter.setAll(state, action.payload.books)
-    }
-  }
+    },
+  },
 })
 ```
 
@@ -693,11 +693,11 @@ export const slice = createSlice({
   name: 'articles',
   initialState: articlesAdapter.getInitialState(),
   reducers: {},
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder.addCase(fetchArticle.fulfilled, (state, action) => {
       // The type signature on action.payload matches what we passed into the generic for `normalize`, allowing us to access specific properties on `payload.articles` if desired
       articlesAdapter.upsertMany(state, action.payload.articles)
     })
-  }
+  },
 })
 ```
