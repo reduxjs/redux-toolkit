@@ -46,6 +46,7 @@
     "prettier": "^2.2.1",
     "react": "^16.8.6",
     "rollup-plugin-strip-code": "^0.2.6",
+    "terser": "^5.6.1",
     "tsdx": "^0.14.1",
     "tslib": "^1.10.0",
     "typescript": "^3.9.7",
@@ -73,8 +74,7 @@
     "immer": "^8.0.1",
     "redux": "^4.0.0",
     "redux-thunk": "^2.3.0",
-    "reselect": "^4.0.0",
-    "terser": "^5.6.1"
+    "reselect": "^4.0.0"
   },
   "sideEffects": false,
   "jest": {
