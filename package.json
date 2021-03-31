@@ -46,7 +46,7 @@
     "prettier": "^1.19.1",
     "react": "^16.8.6",
     "rollup-plugin-strip-code": "^0.2.6",
-    "tsdx": "^0.11.0",
+    "tsdx": "^0.14.1",
     "tslib": "^1.10.0",
     "typescript": "^3.9.7",
     "typings-tester": "^0.3.2"
