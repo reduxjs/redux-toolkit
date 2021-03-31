@@ -11,21 +11,20 @@ const { extractInlineSourcemap, removeInlineSourceMap } = require('./sourcemap')
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const outputDir = path.join(__dirname, '../dist')
 async function bundle(options) {
-  const { format, minify, env, name } = options
+  const { format, minify, env, name, target } = options
   const result = await build({
     entryPoints: ['src/index.ts'],
     outfile: `dist/redux-toolkit${name}.js`,
     write: false,
-    target: 'es2015',
+    target: target ? target : 'es2015',
     sourcemap: 'inline',
     bundle: true,
     format: format === 'umd' ? 'esm' : format,
-    define:
-      format === 'esm'
-        ? {}
-        : {
-            'process.env.NODE_ENV': JSON.stringify(env),
-          },
+    define: env
+      ? {
+          'process.env.NODE_ENV': JSON.stringify(env),
+        }
+      : {},
     plugins: [
       {
         name: 'node_module_external',
@@ -68,12 +67,14 @@ async function bundle(options) {
         sourceMap: true,
         module:
           format !== 'cjs' ? ts.ModuleKind.ES2015 : ts.ModuleKind.CommonJS,
-        target:
-          name === '.modern' ? ts.ScriptTarget.ES2017 : ts.ScriptTarget.ES5,
+        target: name.includes('.modern')
+          ? ts.ScriptTarget.ES2017
+          : ts.ScriptTarget.ES5,
       },
     })
     const mergedSourcemap = merge(sourcemap, result.sourceMapText)
     let code = result.outputText
+    // TODO Is this used at all?
     let mapping = mergedSourcemap
     if (minify) {
       const transformResult = await terser.minify(code, {
@@ -152,24 +153,23 @@ async function main() {
     {
       format: 'cjs',
       name: '.cjs.development',
-      target: 'es2017',
       minify: false,
       env: 'development',
     },
     {
       format: 'cjs',
       name: '.cjs.production.min',
-      target: 'es2017',
       minify: true,
       env: 'production',
     },
+    // ESM, embedded `process`, ES5 syntax: typical Webpack dev
     {
       format: 'esm',
       name: '.esm',
-      target: 'es2017',
       minify: false,
       env: '',
     },
+    // ESM, embedded `process`, ES2017 syntax: modern Webpack dev
     {
       format: 'esm',
       name: '.modern',
@@ -177,25 +177,41 @@ async function main() {
       minify: false,
       env: '',
     },
+    // ESM, pre-compiled "dev", ES2017 syntax: browser development
+    {
+      format: 'esm',
+      name: '.modern.development',
+      target: 'es2017',
+      minify: false,
+      env: 'development',
+    },
+    // ESM, pre-compiled "prod", ES2017 syntax: browser prod
+    {
+      format: 'esm',
+      name: '.modern.production.min',
+      target: 'es2017',
+      minify: true,
+      env: 'production',
+    },
     {
       format: 'umd',
       name: '.umd',
-      target: 'es2017',
       minify: false,
       env: 'development',
     },
     {
       format: 'umd',
       name: '.umd.min',
-      target: 'es2017',
       minify: true,
       env: 'production',
     },
   ]
-  for (const options of buildTargets) {
-    bundle(options)
-  }
-  await sleep(3000) // hack, waiting file to save
+
+  // Run builds in parallel
+  const bundlePromises = buildTargets.map((options) => bundle(options))
+  await Promise.all(bundlePromises)
+
+  await sleep(500) // hack, waiting file to save
   await buildUMD()
   writeEntry()
   // addSubpath()
