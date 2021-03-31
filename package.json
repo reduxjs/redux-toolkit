@@ -52,7 +52,7 @@
     "typings-tester": "^0.3.2"
   },
   "scripts": {
-    "build-ci": "tsdx build --format cjs,esm,system,umd --name redux-toolkit && api-extractor run",
+    "build-ci": "node scripts/build.js && tsc && tsc -p src/query/tsconfig.json && api-extractor run",
     "build": "node scripts/build.js && tsc && tsc -p src/query/tsconfig.json   && api-extractor run --local",
     "dev": "tsdx watch  --format cjs,esm,system,umd",
     "format": "prettier --write \"src/**/*.ts\" \"**/*.md\"",
