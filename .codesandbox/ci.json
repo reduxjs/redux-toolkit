@@ -3,5 +3,6 @@
     "vanilla",
     "vanilla-ts",
     "github/reduxjs/rtk-github-issues-example"
-  ]
+  ],
+  "node": "14"
 }
