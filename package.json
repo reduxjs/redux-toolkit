@@ -43,7 +43,7 @@
     "json-stringify-safe": "^5.0.1",
     "magic-string": "^0.25.7",
     "merge-source-map": "^1.1.0",
-    "prettier": "^1.19.1",
+    "prettier": "^2.2.1",
     "react": "^16.8.6",
     "rollup-plugin-strip-code": "^0.2.6",
     "tsdx": "^0.14.1",
