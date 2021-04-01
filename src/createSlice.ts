@@ -259,9 +259,7 @@ export function createSlice<
     actionMatchers = [],
     defaultCaseReducer = undefined,
   ] =
-    typeof options.extraReducers === 'undefined'
-      ? []
-      : typeof options.extraReducers === 'function'
+    typeof options.extraReducers === 'function'
       ? executeReducerBuilderCallback(options.extraReducers)
       : [options.extraReducers]
 
