@@ -89,7 +89,7 @@ describe('configureStore', () => {
 
   describe('given a middleware creation function that returns undefined', () => {
     it('throws an error', () => {
-      const invalidBuilder = jest.fn(getDefaultMiddleware => undefined as any)
+      const invalidBuilder = jest.fn((getDefaultMiddleware) => undefined as any)
       expect(() =>
         configureStore({ middleware: invalidBuilder, reducer })
       ).toThrow(
@@ -100,7 +100,7 @@ describe('configureStore', () => {
 
   describe('given a middleware creation function that returns an array with non-functions', () => {
     it('throws an error', () => {
-      const invalidBuilder = jest.fn(getDefaultMiddleware => [true] as any)
+      const invalidBuilder = jest.fn((getDefaultMiddleware) => [true] as any)
       expect(() =>
         configureStore({ middleware: invalidBuilder, reducer })
       ).toThrow('each middleware provided to configureStore must be a function')

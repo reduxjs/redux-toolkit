@@ -165,7 +165,7 @@ export function configureStore<
   }
   if (
     !IS_PRODUCTION &&
-    finalMiddleware.some(item => typeof item !== 'function')
+    finalMiddleware.some((item) => typeof item !== 'function')
   ) {
     throw new Error(
       'each middleware provided to configureStore must be a function'
