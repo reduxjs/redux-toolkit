@@ -153,11 +153,26 @@ export function configureStore<
     )
   }
 
-  const middlewareEnhancer = applyMiddleware(
-    ...(typeof middleware === 'function'
-      ? middleware(curriedGetDefaultMiddleware)
-      : middleware)
-  )
+  let finalMiddleware = middleware
+  if (typeof finalMiddleware === 'function') {
+    finalMiddleware = finalMiddleware(curriedGetDefaultMiddleware)
+
+    if (!IS_PRODUCTION && !Array.isArray(finalMiddleware)) {
+      throw new Error(
+        'when using a middleware builder function, an array of middleware must be returned'
+      )
+    }
+  }
+  if (
+    !IS_PRODUCTION &&
+    finalMiddleware.some(item => typeof item !== 'function')
+  ) {
+    throw new Error(
+      'each middleware provided to configureStore must be a function'
+    )
+  }
+
+  const middlewareEnhancer = applyMiddleware(...finalMiddleware)
 
   let finalCompose = compose
 
