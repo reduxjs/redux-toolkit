@@ -21,7 +21,7 @@ jobs:
       - uses: c-hive/gha-npm-cache@v1
 
       - name: Install deps
-        run: npm ci --ignore-scripts
+        run: npm ci
 
       - name: Pack (including Prepare)
         run: npm pack
