@@ -5,7 +5,7 @@ import {
   isFulfilled,
   isPending,
   isRejected,
-  isRejectedWithValue
+  isRejectedWithValue,
 } from './matchers'
 import { createAction } from './createAction'
 import { createAsyncThunk } from './createAsyncThunk'
@@ -22,14 +22,14 @@ describe('isAnyOf', () => {
 
     const trueAction = {
       type: 'a',
-      payload: 'payload'
+      payload: 'payload',
     }
 
     expect(isAnyOf(actionA, actionB)(trueAction)).toEqual(true)
 
     const falseAction = {
       type: 'c',
-      payload: 'payload'
+      payload: 'payload',
     }
 
     expect(isAnyOf(actionA, actionB)(falseAction)).toEqual(false)
@@ -44,14 +44,14 @@ describe('isAnyOf', () => {
 
     const trueAction = {
       type: 'a',
-      payload: 'payload'
+      payload: 'payload',
     }
 
     expect(isAnyOf(isActionA, isActionB)(trueAction)).toEqual(true)
 
     const falseAction = {
       type: 'c',
-      payload: 'payload'
+      payload: 'payload',
     }
 
     expect(isAnyOf(isActionA, isActionB)(falseAction)).toEqual(false)
@@ -80,13 +80,13 @@ describe('isAnyOf', () => {
 
     const trueAction = {
       type: 'a',
-      payload: 'payload'
+      payload: 'payload',
     }
 
     const initialState = { value: false }
 
-    const reducer = createReducer(initialState, builder => {
-      builder.addMatcher(isAnyOf(actionA, actionB), state => {
+    const reducer = createReducer(initialState, (builder) => {
+      builder.addMatcher(isAnyOf(actionA, actionB), (state) => {
         return { ...state, value: true }
       })
     })
@@ -95,7 +95,7 @@ describe('isAnyOf', () => {
 
     const falseAction = {
       type: 'c',
-      payload: 'payload'
+      payload: 'payload',
     }
 
     expect(reducer(initialState, falseAction)).toEqual(initialState)
@@ -116,14 +116,14 @@ describe('isAllOf', () => {
 
     const trueAction = {
       type: 'a',
-      payload: 'SPECIAL'
+      payload: 'SPECIAL',
     }
 
     expect(isAllOf(actionA, isActionSpecial)(trueAction)).toEqual(true)
 
     const falseAction = {
       type: 'a',
-      payload: 'ORDINARY'
+      payload: 'ORDINARY',
     }
 
     expect(isAllOf(actionA, isActionSpecial)(falseAction)).toEqual(false)

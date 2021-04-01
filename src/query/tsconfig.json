@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "emitDeclarationOnly": false,
+    "outDir": "../../dist/query"
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

@@ -33,7 +33,7 @@ describe('configureStore', () => {
       const reducer = {
         reducer() {
           return true
-        }
+        },
       }
       expect(configureStore({ reducer })).toBeInstanceOf(Object)
       expect(redux.combineReducers).toHaveBeenCalledWith(reducer)
@@ -70,7 +70,8 @@ describe('configureStore', () => {
 
   describe('given custom middleware', () => {
     it('calls createStore with custom middleware and without default middleware', () => {
-      const thank: redux.Middleware = _store => next => action => next(action)
+      const thank: redux.Middleware = (_store) => (next) => (action) =>
+        next(action)
       expect(configureStore({ middleware: [thank], reducer })).toBeInstanceOf(
         Object
       )
@@ -86,10 +87,10 @@ describe('configureStore', () => {
 
   describe('middleware builder notation', () => {
     it('calls builder, passes getDefaultMiddleware and uses returned middlewares', () => {
-      const thank = jest.fn((_store => next => action =>
+      const thank = jest.fn(((_store) => (next) => (action) =>
         'foobar') as redux.Middleware)
 
-      const builder = jest.fn(getDefaultMiddleware => {
+      const builder = jest.fn((getDefaultMiddleware) => {
         expect(getDefaultMiddleware).toEqual(expect.any(Function))
         expect(getDefaultMiddleware()).toEqual(expect.any(Array))
 
@@ -123,7 +124,7 @@ describe('configureStore', () => {
     it('calls createStore with devTools enhancer and option', () => {
       const options = {
         name: 'myApp',
-        trace: true
+        trace: true,
       }
       expect(configureStore({ devTools: options, reducer })).toBeInstanceOf(
         Object
@@ -153,7 +154,7 @@ describe('configureStore', () => {
 
   describe('given enhancers', () => {
     it('calls createStore with enhancers', () => {
-      const enhancer: redux.StoreEnhancer = next => next
+      const enhancer: redux.StoreEnhancer = (next) => next
       expect(configureStore({ enhancers: [enhancer], reducer })).toBeInstanceOf(
         Object
       )
@@ -181,9 +182,9 @@ describe('configureStore', () => {
 
       const store = configureStore({
         reducer,
-        enhancers: defaultEnhancers => {
+        enhancers: (defaultEnhancers) => {
           return [...defaultEnhancers, dummyEnhancer]
-        }
+        },
       })
 
       expect(dummyEnhancerCalled).toBe(true)

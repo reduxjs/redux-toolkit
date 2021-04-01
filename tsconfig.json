@@ -1,16 +1,13 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "declaration": true,
-    "module": "es2015",
-    "moduleResolution": "node",
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "outDir": "dist",
-    "strict": true,
-    "target": "es2018"
+    "outDir": "dist"
   },
-  "include": ["src"],
-  "exclude": ["src/*.test.ts"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "src/*.test.ts",
+    "src/query"
+  ]
 }

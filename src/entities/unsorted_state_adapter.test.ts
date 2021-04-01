@@ -5,7 +5,7 @@ import {
   TheGreatGatsby,
   AClockworkOrange,
   AnimalFarm,
-  TheHobbit
+  TheHobbit,
 } from './fixtures/book'
 import { createNextState } from '..'
 
@@ -18,7 +18,7 @@ describe('Unsorted State Adapter', () => {
     Object.defineProperty(Array.prototype, 'unwantedField', {
       enumerable: true,
       configurable: true,
-      value: 'This should not appear anywhere'
+      value: 'This should not appear anywhere',
     })
   })
 
@@ -28,7 +28,7 @@ describe('Unsorted State Adapter', () => {
 
   beforeEach(() => {
     adapter = createEntityAdapter({
-      selectId: (book: BookModel) => book.id
+      selectId: (book: BookModel) => book.id,
     })
 
     state = { ids: [], entities: {} }
@@ -40,8 +40,8 @@ describe('Unsorted State Adapter', () => {
     expect(withOneEntity).toEqual({
       ids: [TheGreatGatsby.id],
       entities: {
-        [TheGreatGatsby.id]: TheGreatGatsby
-      }
+        [TheGreatGatsby.id]: TheGreatGatsby,
+      },
     })
   })
 
@@ -58,7 +58,7 @@ describe('Unsorted State Adapter', () => {
 
     const withManyMore = adapter.addMany(withOneEntity, [
       AClockworkOrange,
-      AnimalFarm
+      AnimalFarm,
     ])
 
     expect(withManyMore).toEqual({
@@ -66,8 +66,8 @@ describe('Unsorted State Adapter', () => {
       entities: {
         [TheGreatGatsby.id]: TheGreatGatsby,
         [AClockworkOrange.id]: AClockworkOrange,
-        [AnimalFarm.id]: AnimalFarm
-      }
+        [AnimalFarm.id]: AnimalFarm,
+      },
     })
   })
 
@@ -76,7 +76,7 @@ describe('Unsorted State Adapter', () => {
 
     const withManyMore = adapter.addMany(withOneEntity, {
       [AClockworkOrange.id]: AClockworkOrange,
-      [AnimalFarm.id]: AnimalFarm
+      [AnimalFarm.id]: AnimalFarm,
     })
 
     expect(withManyMore).toEqual({
@@ -84,8 +84,8 @@ describe('Unsorted State Adapter', () => {
       entities: {
         [TheGreatGatsby.id]: TheGreatGatsby,
         [AClockworkOrange.id]: AClockworkOrange,
-        [AnimalFarm.id]: AnimalFarm
-      }
+        [AnimalFarm.id]: AnimalFarm,
+      },
     })
   })
 
@@ -94,15 +94,15 @@ describe('Unsorted State Adapter', () => {
 
     const withAll = adapter.setAll(withOneEntity, [
       AClockworkOrange,
-      AnimalFarm
+      AnimalFarm,
     ])
 
     expect(withAll).toEqual({
       ids: [AClockworkOrange.id, AnimalFarm.id],
       entities: {
         [AClockworkOrange.id]: AClockworkOrange,
-        [AnimalFarm.id]: AnimalFarm
-      }
+        [AnimalFarm.id]: AnimalFarm,
+      },
     })
   })
 
@@ -111,15 +111,15 @@ describe('Unsorted State Adapter', () => {
 
     const withAll = adapter.setAll(withOneEntity, {
       [AClockworkOrange.id]: AClockworkOrange,
-      [AnimalFarm.id]: AnimalFarm
+      [AnimalFarm.id]: AnimalFarm,
     })
 
     expect(withAll).toEqual({
       ids: [AClockworkOrange.id, AnimalFarm.id],
       entities: {
         [AClockworkOrange.id]: AClockworkOrange,
-        [AnimalFarm.id]: AnimalFarm
-      }
+        [AnimalFarm.id]: AnimalFarm,
+      },
     })
   })
 
@@ -130,7 +130,7 @@ describe('Unsorted State Adapter', () => {
 
     expect(withoutOne).toEqual({
       ids: [],
-      entities: {}
+      entities: {},
     })
   })
 
@@ -138,19 +138,19 @@ describe('Unsorted State Adapter', () => {
     const withAll = adapter.setAll(state, [
       TheGreatGatsby,
       AClockworkOrange,
-      AnimalFarm
+      AnimalFarm,
     ])
 
     const withoutMany = adapter.removeMany(withAll, [
       TheGreatGatsby.id,
-      AClockworkOrange.id
+      AClockworkOrange.id,
     ])
 
     expect(withoutMany).toEqual({
       ids: [AnimalFarm.id],
       entities: {
-        [AnimalFarm.id]: AnimalFarm
-      }
+        [AnimalFarm.id]: AnimalFarm,
+      },
     })
   })
 
@@ -158,14 +158,14 @@ describe('Unsorted State Adapter', () => {
     const withAll = adapter.setAll(state, [
       TheGreatGatsby,
       AClockworkOrange,
-      AnimalFarm
+      AnimalFarm,
     ])
 
     const withoutAll = adapter.removeAll(withAll)
 
     expect(withoutAll).toEqual({
       ids: [],
-      entities: {}
+      entities: {},
     })
   })
 
@@ -175,7 +175,7 @@ describe('Unsorted State Adapter', () => {
 
     const withUpdates = adapter.updateOne(withOne, {
       id: TheGreatGatsby.id,
-      changes
+      changes,
     })
 
     expect(withUpdates).toEqual({
@@ -183,16 +183,16 @@ describe('Unsorted State Adapter', () => {
       entities: {
         [TheGreatGatsby.id]: {
           ...TheGreatGatsby,
-          ...changes
-        }
-      }
+          ...changes,
+        },
+      },
     })
   })
 
   it('should not change state if you attempt to update an entity that has not been added', () => {
     const withUpdates = adapter.updateOne(state, {
       id: TheGreatGatsby.id,
-      changes: { title: 'A New Title' }
+      changes: { title: 'A New Title' },
     })
 
     expect(withUpdates).toBe(state)
@@ -204,7 +204,7 @@ describe('Unsorted State Adapter', () => {
 
     const withUpdates = adapter.updateOne(withOne, {
       id: TheGreatGatsby.id,
-      changes
+      changes,
     })
 
     expect(withOne.ids).toBe(withUpdates.ids)
@@ -216,7 +216,7 @@ describe('Unsorted State Adapter', () => {
 
     const withUpdates = adapter.updateOne(withOne, {
       id: TheGreatGatsby.id,
-      changes
+      changes,
     })
 
     expect(withUpdates).toEqual({
@@ -224,9 +224,9 @@ describe('Unsorted State Adapter', () => {
       entities: {
         [changes.id]: {
           ...TheGreatGatsby,
-          ...changes
-        }
-      }
+          ...changes,
+        },
+      },
     })
   })
 
@@ -237,7 +237,7 @@ describe('Unsorted State Adapter', () => {
 
     const withUpdates = adapter.updateMany(withMany, [
       { id: TheGreatGatsby.id, changes: firstChange },
-      { id: AClockworkOrange.id, changes: secondChange }
+      { id: AClockworkOrange.id, changes: secondChange },
     ])
 
     expect(withUpdates).toEqual({
@@ -245,13 +245,13 @@ describe('Unsorted State Adapter', () => {
       entities: {
         [TheGreatGatsby.id]: {
           ...TheGreatGatsby,
-          ...firstChange
+          ...firstChange,
         },
         [AClockworkOrange.id]: {
           ...AClockworkOrange,
-          ...secondChange
-        }
-      }
+          ...secondChange,
+        },
+      },
     })
   })
 
@@ -260,7 +260,7 @@ describe('Unsorted State Adapter', () => {
 
     const withUpdates = adapter.updateMany(withA, [
       { id: 'a', changes: { id: 'b' } },
-      { id: 'a', changes: { id: 'c' } }
+      { id: 'a', changes: { id: 'c' } },
     ])
 
     const { ids, entities } = withUpdates
@@ -289,8 +289,8 @@ describe('Unsorted State Adapter', () => {
     expect(withOneEntity).toEqual({
       ids: [TheGreatGatsby.id],
       entities: {
-        [TheGreatGatsby.id]: TheGreatGatsby
-      }
+        [TheGreatGatsby.id]: TheGreatGatsby,
+      },
     })
   })
 
@@ -300,16 +300,16 @@ describe('Unsorted State Adapter', () => {
 
     const withUpdates = adapter.upsertOne(withOne, {
       ...TheGreatGatsby,
-      ...changes
+      ...changes,
     })
     expect(withUpdates).toEqual({
       ids: [TheGreatGatsby.id],
       entities: {
         [TheGreatGatsby.id]: {
           ...TheGreatGatsby,
-          ...changes
-        }
-      }
+          ...changes,
+        },
+      },
     })
   })
 
@@ -319,7 +319,7 @@ describe('Unsorted State Adapter', () => {
 
     const withUpserts = adapter.upsertMany(withMany, [
       { ...TheGreatGatsby, ...firstChange },
-      AClockworkOrange
+      AClockworkOrange,
     ])
 
     expect(withUpserts).toEqual({
@@ -327,10 +327,10 @@ describe('Unsorted State Adapter', () => {
       entities: {
         [TheGreatGatsby.id]: {
           ...TheGreatGatsby,
-          ...firstChange
+          ...firstChange,
         },
-        [AClockworkOrange.id]: AClockworkOrange
-      }
+        [AClockworkOrange.id]: AClockworkOrange,
+      },
     })
   })
 
@@ -340,7 +340,7 @@ describe('Unsorted State Adapter', () => {
 
     const withUpserts = adapter.upsertMany(withMany, {
       [TheGreatGatsby.id]: { ...TheGreatGatsby, ...firstChange },
-      [AClockworkOrange.id]: AClockworkOrange
+      [AClockworkOrange.id]: AClockworkOrange,
     })
 
     expect(withUpserts).toEqual({
@@ -348,10 +348,10 @@ describe('Unsorted State Adapter', () => {
       entities: {
         [TheGreatGatsby.id]: {
           ...TheGreatGatsby,
-          ...firstChange
+          ...firstChange,
         },
-        [AClockworkOrange.id]: AClockworkOrange
-      }
+        [AClockworkOrange.id]: AClockworkOrange,
+      },
     })
   })
 
@@ -360,8 +360,8 @@ describe('Unsorted State Adapter', () => {
     expect(withOne).toEqual({
       ids: [TheGreatGatsby.id],
       entities: {
-        [TheGreatGatsby.id]: TheGreatGatsby
-      }
+        [TheGreatGatsby.id]: TheGreatGatsby,
+      },
     })
   })
 
@@ -373,8 +373,8 @@ describe('Unsorted State Adapter', () => {
     expect(withOne).toEqual({
       ids: [TheHobbit.id],
       entities: {
-        [TheHobbit.id]: changeWithoutAuthor
-      }
+        [TheHobbit.id]: changeWithoutAuthor,
+      },
     })
   })
 
@@ -384,15 +384,15 @@ describe('Unsorted State Adapter', () => {
 
     const withSetMany = adapter.setMany(withMany, [
       changeWithoutAuthor,
-      AClockworkOrange
+      AClockworkOrange,
     ])
 
     expect(withSetMany).toEqual({
       ids: [TheHobbit.id, AClockworkOrange.id],
       entities: {
         [TheHobbit.id]: changeWithoutAuthor,
-        [AClockworkOrange.id]: AClockworkOrange
-      }
+        [AClockworkOrange.id]: AClockworkOrange,
+      },
     })
   })
 
@@ -402,22 +402,22 @@ describe('Unsorted State Adapter', () => {
 
     const withSetMany = adapter.setMany(withMany, {
       [TheHobbit.id]: changeWithoutAuthor,
-      [AClockworkOrange.id]: AClockworkOrange
+      [AClockworkOrange.id]: AClockworkOrange,
     })
 
     expect(withSetMany).toEqual({
       ids: [TheHobbit.id, AClockworkOrange.id],
       entities: {
         [TheHobbit.id]: changeWithoutAuthor,
-        [AClockworkOrange.id]: AClockworkOrange
-      }
+        [AClockworkOrange.id]: AClockworkOrange,
+      },
     })
   })
 
   describe('can be used mutably when wrapped in createNextState', () => {
     test('removeAll', () => {
       const withTwo = adapter.addMany(state, [TheGreatGatsby, AnimalFarm])
-      const result = createNextState(withTwo, draft => {
+      const result = createNextState(withTwo, (draft) => {
         adapter.removeAll(draft)
       })
       expect(result).toMatchInlineSnapshot(`
@@ -429,7 +429,7 @@ describe('Unsorted State Adapter', () => {
     })
 
     test('addOne', () => {
-      const result = createNextState(state, draft => {
+      const result = createNextState(state, (draft) => {
         adapter.addOne(draft, TheGreatGatsby)
       })
 
@@ -449,7 +449,7 @@ describe('Unsorted State Adapter', () => {
     })
 
     test('addMany', () => {
-      const result = createNextState(state, draft => {
+      const result = createNextState(state, (draft) => {
         adapter.addMany(draft, [TheGreatGatsby, AnimalFarm])
       })
 
@@ -474,7 +474,7 @@ describe('Unsorted State Adapter', () => {
     })
 
     test('setAll', () => {
-      const result = createNextState(state, draft => {
+      const result = createNextState(state, (draft) => {
         adapter.setAll(draft, [TheGreatGatsby, AnimalFarm])
       })
 
@@ -501,10 +501,10 @@ describe('Unsorted State Adapter', () => {
     test('updateOne', () => {
       const withOne = adapter.addOne(state, TheGreatGatsby)
       const changes = { title: 'A New Hope' }
-      const result = createNextState(withOne, draft => {
+      const result = createNextState(withOne, (draft) => {
         adapter.updateOne(draft, {
           id: TheGreatGatsby.id,
-          changes
+          changes,
         })
       })
 
@@ -531,15 +531,15 @@ describe('Unsorted State Adapter', () => {
       const withMany = adapter.setAll(state, [
         TheGreatGatsby,
         AClockworkOrange,
-        TheHobbit
+        TheHobbit,
       ])
 
-      const result = createNextState(withMany, draft => {
+      const result = createNextState(withMany, (draft) => {
         adapter.updateMany(draft, [
           { id: TheHobbit.id, changes: firstChange },
           { id: TheGreatGatsby.id, changes: secondChange },
           { id: AClockworkOrange.id, changes: thirdChange },
-          { id: TheHobbit.id, changes: fourthChange }
+          { id: TheHobbit.id, changes: fourthChange },
         ])
       })
 
@@ -570,7 +570,7 @@ describe('Unsorted State Adapter', () => {
     })
 
     test('upsertOne (insert)', () => {
-      const result = createNextState(state, draft => {
+      const result = createNextState(state, (draft) => {
         adapter.upsertOne(draft, TheGreatGatsby)
       })
       expect(result).toMatchInlineSnapshot(`
@@ -590,10 +590,10 @@ describe('Unsorted State Adapter', () => {
 
     test('upsertOne (update)', () => {
       const withOne = adapter.upsertOne(state, TheGreatGatsby)
-      const result = createNextState(withOne, draft => {
+      const result = createNextState(withOne, (draft) => {
         adapter.upsertOne(draft, {
           id: TheGreatGatsby.id,
-          title: 'A New Hope'
+          title: 'A New Hope',
         })
       })
       expect(result).toMatchInlineSnapshot(`
@@ -613,13 +613,13 @@ describe('Unsorted State Adapter', () => {
 
     test('upsertMany', () => {
       const withOne = adapter.upsertOne(state, TheGreatGatsby)
-      const result = createNextState(withOne, draft => {
+      const result = createNextState(withOne, (draft) => {
         adapter.upsertMany(draft, [
           {
             id: TheGreatGatsby.id,
-            title: 'A New Hope'
+            title: 'A New Hope',
           },
-          AnimalFarm
+          AnimalFarm,
         ])
       })
       expect(result).toMatchInlineSnapshot(`
@@ -643,7 +643,7 @@ describe('Unsorted State Adapter', () => {
     })
 
     test('setOne (insert)', () => {
-      const result = createNextState(state, draft => {
+      const result = createNextState(state, (draft) => {
         adapter.setOne(draft, TheGreatGatsby)
       })
       expect(result).toMatchInlineSnapshot(`
@@ -663,10 +663,10 @@ describe('Unsorted State Adapter', () => {
 
     test('setOne (update)', () => {
       const withOne = adapter.setOne(state, TheHobbit)
-      const result = createNextState(withOne, draft => {
+      const result = createNextState(withOne, (draft) => {
         adapter.setOne(draft, {
           id: TheHobbit.id,
-          title: 'Silmarillion'
+          title: 'Silmarillion',
         })
       })
       expect(result).toMatchInlineSnapshot(`
@@ -686,13 +686,13 @@ describe('Unsorted State Adapter', () => {
 
     test('setMany', () => {
       const withOne = adapter.setOne(state, TheHobbit)
-      const result = createNextState(withOne, draft => {
+      const result = createNextState(withOne, (draft) => {
         adapter.setMany(draft, [
           {
             id: TheHobbit.id,
-            title: 'Silmarillion'
+            title: 'Silmarillion',
           },
-          AnimalFarm
+          AnimalFarm,
         ])
       })
       expect(result).toMatchInlineSnapshot(`
@@ -717,7 +717,7 @@ describe('Unsorted State Adapter', () => {
 
     test('removeOne', () => {
       const withTwo = adapter.addMany(state, [TheGreatGatsby, AnimalFarm])
-      const result = createNextState(withTwo, draft => {
+      const result = createNextState(withTwo, (draft) => {
         adapter.removeOne(draft, TheGreatGatsby.id)
       })
       expect(result).toMatchInlineSnapshot(`
@@ -739,9 +739,9 @@ describe('Unsorted State Adapter', () => {
       const withThree = adapter.addMany(state, [
         TheGreatGatsby,
         AnimalFarm,
-        AClockworkOrange
+        AClockworkOrange,
       ])
-      const result = createNextState(withThree, draft => {
+      const result = createNextState(withThree, (draft) => {
         adapter.removeMany(draft, [TheGreatGatsby.id, AnimalFarm.id])
       })
       expect(result).toMatchInlineSnapshot(`

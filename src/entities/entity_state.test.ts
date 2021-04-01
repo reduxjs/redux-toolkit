@@ -8,7 +8,7 @@ describe('Entity State', () => {
 
   beforeEach(() => {
     adapter = createEntityAdapter({
-      selectId: (book: BookModel) => book.id
+      selectId: (book: BookModel) => book.id,
     })
   })
 
@@ -17,7 +17,7 @@ describe('Entity State', () => {
 
     expect(initialState).toEqual({
       ids: [],
-      entities: {}
+      entities: {},
     })
   })
 
@@ -29,7 +29,7 @@ describe('Entity State', () => {
     expect(initialState).toEqual({
       ...additionalProperties,
       ids: [],
-      entities: {}
+      entities: {},
     })
   })
 
@@ -48,13 +48,13 @@ describe('Entity State', () => {
           // TODO See https://github.com/immerjs/immer/issues/533
           const result = adapter.removeOne(state, action)
           return result
-        }
+        },
       },
-      extraReducers: builder => {
+      extraReducers: (builder) => {
         builder.addCase(upsertBook, (state, action) => {
           return adapter.upsertOne(state, action)
         })
-      }
+      },
     })
 
     const { addOne, removeOne } = booksSlice.actions

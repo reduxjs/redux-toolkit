@@ -1,7 +1,7 @@
 import {
   createAsyncThunk,
   miniSerializeError,
-  unwrapResult
+  unwrapResult,
 } from './createAsyncThunk'
 import { configureStore } from './configureStore'
 import { AnyAction } from 'redux'
@@ -9,7 +9,7 @@ import { AnyAction } from 'redux'
 import {
   mockConsole,
   createConsole,
-  getLog
+  getLog,
 } from 'console-testing-library/pure'
 
 declare global {
@@ -43,7 +43,7 @@ describe('createAsyncThunk', () => {
     }
 
     const store = configureStore({
-      reducer
+      reducer,
     })
 
     // reset from however many times the store called it
@@ -174,7 +174,7 @@ describe('createAsyncThunk', () => {
     const errorObject = {
       name: 'Custom thrown error',
       message: 'This is not necessary',
-      code: '400'
+      code: '400',
     }
 
     const thunkActionCreator = createAsyncThunk(
@@ -217,8 +217,8 @@ describe('createAsyncThunk', () => {
         'I am a fake server-provided 400 payload with validation details',
       errors: [
         { field_one: 'Must be a string' },
-        { field_two: 'Must be a number' }
-      ]
+        { field_two: 'Must be a number' },
+      ],
     }
 
     const thunkActionCreator = createAsyncThunk(
@@ -264,8 +264,8 @@ describe('createAsyncThunk', () => {
         'I am a fake server-provided 400 payload with validation details',
       errors: [
         { field_one: 'Must be a string' },
-        { field_two: 'Must be a number' }
-      ]
+        { field_two: 'Must be a number' },
+      ],
     }
 
     const thunkActionCreator = createAsyncThunk(
@@ -307,37 +307,37 @@ describe('createAsyncThunk', () => {
 })
 
 describe('createAsyncThunk with abortController', () => {
-  const asyncThunk = createAsyncThunk('test', function abortablePayloadCreator(
-    _: any,
-    { signal }
-  ) {
-    return new Promise((resolve, reject) => {
-      if (signal.aborted) {
-        reject(
-          new DOMException(
-            'This should never be reached as it should already be handled.',
-            'AbortError'
+  const asyncThunk = createAsyncThunk(
+    'test',
+    function abortablePayloadCreator(_: any, { signal }) {
+      return new Promise((resolve, reject) => {
+        if (signal.aborted) {
+          reject(
+            new DOMException(
+              'This should never be reached as it should already be handled.',
+              'AbortError'
+            )
           )
-        )
-      }
-      signal.addEventListener('abort', () => {
-        reject(new DOMException('Was aborted while running', 'AbortError'))
+        }
+        signal.addEventListener('abort', () => {
+          reject(new DOMException('Was aborted while running', 'AbortError'))
+        })
+        setTimeout(resolve, 100)
       })
-      setTimeout(resolve, 100)
-    })
-  })
+    }
+  )
 
   let store = configureStore({
     reducer(store: AnyAction[] = []) {
       return store
-    }
+    },
   })
 
   beforeEach(() => {
     store = configureStore({
       reducer(store: AnyAction[] = [], action) {
         return [...store, action]
-      }
+      },
     })
   })
 
@@ -346,7 +346,7 @@ describe('createAsyncThunk with abortController', () => {
     expect(store.getState()).toEqual([
       expect.any(Object),
       expect.objectContaining({ type: 'test/pending' }),
-      expect.objectContaining({ type: 'test/fulfilled' })
+      expect.objectContaining({ type: 'test/fulfilled' }),
     ])
   })
 
@@ -358,16 +358,16 @@ describe('createAsyncThunk with abortController', () => {
       type: 'test/rejected',
       error: {
         message: 'AbortReason',
-        name: 'AbortError'
+        name: 'AbortError',
       },
-      meta: { aborted: true, requestId: promise.requestId }
+      meta: { aborted: true, requestId: promise.requestId },
     }
 
     // abortedAction with reason is dispatched after test/pending is dispatched
     expect(store.getState()).toMatchObject([
       {},
       { type: 'test/pending' },
-      expectedAbortedAction
+      expectedAbortedAction,
     ])
 
     // same abortedAction is returned, but with the AbortError from the abortablePayloadCreator
@@ -381,7 +381,7 @@ describe('createAsyncThunk with abortController', () => {
 
   test('even when the payloadCreator does not directly support the signal, no further actions are dispatched', async () => {
     const unawareAsyncThunk = createAsyncThunk('unaware', async () => {
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise((resolve) => setTimeout(resolve, 100))
       return 'finished'
     })
 
@@ -393,15 +393,15 @@ describe('createAsyncThunk with abortController', () => {
       type: 'unaware/rejected',
       error: {
         message: 'AbortReason',
-        name: 'AbortError'
-      }
+        name: 'AbortError',
+      },
     }
 
     // abortedAction with reason is dispatched after test/pending is dispatched
     expect(store.getState()).toEqual([
       expect.any(Object),
       expect.objectContaining({ type: 'unaware/pending' }),
-      expect.objectContaining(expectedAbortedAction)
+      expect.objectContaining(expectedAbortedAction),
     ])
 
     // same abortedAction is returned, but with the AbortError from the abortablePayloadCreator
@@ -417,7 +417,7 @@ describe('createAsyncThunk with abortController', () => {
     let running = false
     const longRunningAsyncThunk = createAsyncThunk('longRunning', async () => {
       running = true
-      await new Promise(resolve => setTimeout(resolve, 30000))
+      await new Promise((resolve) => setTimeout(resolve, 30000))
       running = false
     })
 
@@ -429,7 +429,7 @@ describe('createAsyncThunk with abortController', () => {
     expect(result).toMatchObject({
       type: 'longRunning/rejected',
       error: { message: 'Aborted', name: 'AbortError' },
-      meta: { aborted: true }
+      meta: { aborted: true },
     })
   })
 
@@ -460,7 +460,7 @@ describe('createAsyncThunk with abortController', () => {
       const longRunningAsyncThunk = freshlyLoadedModule.createAsyncThunk(
         'longRunning',
         async () => {
-          await new Promise(resolve => setTimeout(resolve, 30000))
+          await new Promise((resolve) => setTimeout(resolve, 30000))
         }
       )
 
@@ -482,7 +482,7 @@ test('non-serializable arguments are ignored by serializableStateInvariantMiddle
   const asyncThunk = createAsyncThunk('test', (arg: Map<any, any>) => {})
 
   configureStore({
-    reducer: () => 0
+    reducer: () => 0,
   }).dispatch(asyncThunk(nonSerializableValue))
 
   expect(getLog().log).toMatchInlineSnapshot(`""`)
@@ -557,12 +557,12 @@ describe('conditional skipping of asyncThunks', () => {
 
   test('does not fail when attempting to abort a canceled promise', async () => {
     const asyncPayloadCreator = jest.fn(async (x: typeof arg) => {
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await new Promise((resolve) => setTimeout(resolve, 2000))
       return 10
     })
 
     const asyncThunk = createAsyncThunk('test', asyncPayloadCreator, {
-      condition
+      condition,
     })
     const promise = asyncThunk(arg)(dispatch, getState, extra)
     promise.abort(
@@ -573,7 +573,7 @@ describe('conditional skipping of asyncThunks', () => {
   test('rejected action can be dispatched via option', async () => {
     const asyncThunk = createAsyncThunk('test', payloadCreator, {
       condition,
-      dispatchConditionRejection: true
+      dispatchConditionRejection: true,
     })
     await asyncThunk(arg)(dispatch, getState, extra)
 
@@ -582,7 +582,7 @@ describe('conditional skipping of asyncThunks', () => {
       expect.objectContaining({
         error: {
           message: 'Aborted due to condition callback returning false.',
-          name: 'ConditionError'
+          name: 'ConditionError',
         },
         meta: {
           aborted: false,
@@ -590,10 +590,10 @@ describe('conditional skipping of asyncThunks', () => {
           rejectedWithValue: false,
           condition: true,
           requestId: expect.stringContaining(''),
-          requestStatus: 'rejected'
+          requestStatus: 'rejected',
         },
         payload: undefined,
-        type: 'test/rejected'
+        type: 'test/rejected',
       })
     )
   })
@@ -605,7 +605,7 @@ describe('conditional skipping of asyncThunks', () => {
     const errorObject = 'something else!'
 
     const store = configureStore({
-      reducer: (state = [], action) => [...state, action]
+      reducer: (state = [], action) => [...state, action],
     })
 
     const asyncThunk = createAsyncThunk<
@@ -622,7 +622,7 @@ describe('conditional skipping of asyncThunks', () => {
       type: 'test/rejected',
       payload: undefined,
       error: 'serialized!',
-      meta: expect.any(Object)
+      meta: expect.any(Object),
     }
     expect(rejected).toEqual(expectation)
     expect(store.getState()[2]).toEqual(expectation)

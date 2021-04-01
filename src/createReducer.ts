@@ -2,7 +2,7 @@ import createNextState, { Draft, isDraft, isDraftable } from 'immer'
 import { AnyAction, Action, Reducer } from 'redux'
 import {
   executeReducerBuilderCallback,
-  ActionReducerMapBuilder
+  ActionReducerMapBuilder,
 } from './mapBuilders'
 import { NoInfer } from './tsHelpers'
 
@@ -201,14 +201,14 @@ export function createReducer<S>(
 
   const frozenInitialState = createNextState(initialState, () => {})
 
-  return function(state = frozenInitialState, action): S {
+  return function (state = frozenInitialState, action): S {
     let caseReducers = [
       actionsMap[action.type],
       ...finalActionMatchers
         .filter(({ matcher }) => matcher(action))
-        .map(({ reducer }) => reducer)
+        .map(({ reducer }) => reducer),
     ]
-    if (caseReducers.filter(cr => !!cr).length === 0) {
+    if (caseReducers.filter((cr) => !!cr).length === 0) {
       caseReducers = [finalDefaultCaseReducer]
     }
 

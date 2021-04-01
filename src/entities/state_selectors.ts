@@ -24,7 +24,7 @@ export function createSelectorsFactory<T>() {
 
     const selectById = (entities: Dictionary<T>, id: EntityId) => entities[id]
 
-    const selectTotal = createDraftSafeSelector(selectIds, ids => ids.length)
+    const selectTotal = createDraftSafeSelector(selectIds, (ids) => ids.length)
 
     if (!selectState) {
       return {
@@ -36,7 +36,7 @@ export function createSelectorsFactory<T>() {
           selectEntities,
           selectId,
           selectById
-        )
+        ),
       }
     }
 
@@ -54,7 +54,7 @@ export function createSelectorsFactory<T>() {
         selectGlobalizedEntities,
         selectId,
         selectById
-      )
+      ),
     }
   }
 

@@ -4,14 +4,14 @@ import {
   Comparer,
   EntityStateAdapter,
   Update,
-  EntityId
+  EntityId,
 } from './models'
 import { createStateOperator } from './state_adapter'
 import { createUnsortedStateAdapter } from './unsorted_state_adapter'
 import {
   selectIdValue,
   ensureEntitiesArray,
-  splitAddedUpdatedEntities
+  splitAddedUpdatedEntities,
 } from './utils'
 
 export function createSortedStateAdapter<T>(
@@ -35,7 +35,7 @@ export function createSortedStateAdapter<T>(
     newEntities = ensureEntitiesArray(newEntities)
 
     const models = newEntities.filter(
-      model => !(selectIdValue(model, selectId) in state.entities)
+      (model) => !(selectIdValue(model, selectId) in state.entities)
     )
 
     if (models.length !== 0) {
@@ -91,7 +91,7 @@ export function createSortedStateAdapter<T>(
   function updateManyMutably(updates: Update<T>[], state: R): void {
     const models: T[] = []
 
-    updates.forEach(update => takeUpdatedModel(models, update, state))
+    updates.forEach((update) => takeUpdatedModel(models, update, state))
 
     if (models.length !== 0) {
       merge(models, state)
@@ -132,7 +132,7 @@ export function createSortedStateAdapter<T>(
 
   function merge(models: T[], state: R): void {
     // Insert/overwrite all new/updated
-    models.forEach(model => {
+    models.forEach((model) => {
       state.entities[selectId(model)] = model
     })
 
@@ -159,6 +159,6 @@ export function createSortedStateAdapter<T>(
     setAll: createStateOperator(setAllMutably),
     addMany: createStateOperator(addManyMutably),
     updateMany: createStateOperator(updateManyMutably),
-    upsertMany: createStateOperator(upsertManyMutably)
+    upsertMany: createStateOperator(upsertManyMutably),
   }
 }

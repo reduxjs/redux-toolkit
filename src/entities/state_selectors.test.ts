@@ -4,7 +4,7 @@ import {
   BookModel,
   AClockworkOrange,
   AnimalFarm,
-  TheGreatGatsby
+  TheGreatGatsby,
 } from './fixtures/book'
 import { createSelector, Selector } from 'reselect'
 
@@ -20,15 +20,15 @@ describe('Entity State Selectors', () => {
 
     beforeEach(() => {
       adapter = createEntityAdapter({
-        selectId: (book: BookModel) => book.id
+        selectId: (book: BookModel) => book.id,
       })
 
       state = {
         books: adapter.setAll(adapter.getInitialState(), [
           AClockworkOrange,
           AnimalFarm,
-          TheGreatGatsby
-        ])
+          TheGreatGatsby,
+        ]),
       }
 
       selectors = adapter.getSelectors((state: State) => state.books)
@@ -75,13 +75,13 @@ describe('Entity State Selectors', () => {
 
     beforeEach(() => {
       adapter = createEntityAdapter({
-        selectId: (book: BookModel) => book.id
+        selectId: (book: BookModel) => book.id,
       })
 
       state = adapter.setAll(adapter.getInitialState(), [
         AClockworkOrange,
         AnimalFarm,
-        TheGreatGatsby
+        TheGreatGatsby,
       ])
 
       selectors = adapter.getSelectors()
@@ -101,7 +101,7 @@ describe('Entity State Selectors', () => {
 
     it('should type single entity from Dictionary as entity type or undefined', () => {
       expectType<Selector<EntityState<BookModel>, BookModel | undefined>>(
-        createSelector(selectors.selectEntities, entities => entities[0])
+        createSelector(selectors.selectEntities, (entities) => entities[0])
       )
     })
 

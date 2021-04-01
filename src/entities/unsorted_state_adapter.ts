@@ -3,16 +3,16 @@ import {
   EntityStateAdapter,
   IdSelector,
   Update,
-  EntityId
+  EntityId,
 } from './models'
 import {
   createStateOperator,
-  createSingleArgumentStateOperator
+  createSingleArgumentStateOperator,
 } from './state_adapter'
 import {
   selectIdValue,
   ensureEntitiesArray,
-  splitAddedUpdatedEntities
+  splitAddedUpdatedEntities,
 } from './utils'
 
 export function createUnsortedStateAdapter<T>(
@@ -79,7 +79,7 @@ export function createUnsortedStateAdapter<T>(
   function removeManyMutably(keys: EntityId[], state: R): void {
     let didMutate = false
 
-    keys.forEach(key => {
+    keys.forEach((key) => {
       if (key in state.entities) {
         delete state.entities[key]
         didMutate = true
@@ -87,14 +87,14 @@ export function createUnsortedStateAdapter<T>(
     })
 
     if (didMutate) {
-      state.ids = state.ids.filter(id => id in state.entities)
+      state.ids = state.ids.filter((id) => id in state.entities)
     }
   }
 
   function removeAllMutably(state: R): void {
     Object.assign(state, {
       ids: [],
-      entities: {}
+      entities: {},
     })
   }
 
@@ -127,7 +127,7 @@ export function createUnsortedStateAdapter<T>(
 
     const updatesPerEntity: { [id: string]: Update<T> } = {}
 
-    updates.forEach(update => {
+    updates.forEach((update) => {
       // Only apply updates to entities that currently exist
       if (update.id in state.entities) {
         // If there are multiple updates to one entity, merge them together
@@ -139,8 +139,8 @@ export function createUnsortedStateAdapter<T>(
             ...(updatesPerEntity[update.id]
               ? updatesPerEntity[update.id].changes
               : null),
-            ...update.changes
-          }
+            ...update.changes,
+          },
         }
       }
     })
@@ -151,10 +151,11 @@ export function createUnsortedStateAdapter<T>(
 
     if (didMutateEntities) {
       const didMutateIds =
-        updates.filter(update => takeNewKey(newKeys, update, state)).length > 0
+        updates.filter((update) => takeNewKey(newKeys, update, state)).length >
+        0
 
       if (didMutateIds) {
-        state.ids = state.ids.map(id => newKeys[id] || id)
+        state.ids = state.ids.map((id) => newKeys[id] || id)
       }
     }
   }
@@ -189,6 +190,6 @@ export function createUnsortedStateAdapter<T>(
     upsertOne: createStateOperator(upsertOneMutably),
     upsertMany: createStateOperator(upsertManyMutably),
     removeOne: createStateOperator(removeOneMutably),
-    removeMany: createStateOperator(removeManyMutably)
+    removeMany: createStateOperator(removeManyMutably),
   }
 }
