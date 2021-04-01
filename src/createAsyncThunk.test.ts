@@ -635,7 +635,7 @@ describe('unwrapResult', () => {
   const extra = {}
   test('fulfilled case', async () => {
     const asyncThunk = createAsyncThunk('test', () => {
-      return 'fulfilled!'
+      return 'fulfilled!' as const
     })
 
     const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
@@ -643,6 +643,10 @@ describe('unwrapResult', () => {
     )
 
     await expect(unwrapPromise).resolves.toBe('fulfilled!')
+
+    const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
+    const res = await unwrapPromise2.unwrap()
+    expect(res).toBe('fulfilled!')
   })
   test('error case', async () => {
     const error = new Error('Panic!')
@@ -655,6 +659,11 @@ describe('unwrapResult', () => {
     )
 
     await expect(unwrapPromise).rejects.toEqual(miniSerializeError(error))
+
+    const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
+    await expect(unwrapPromise2.unwrap()).rejects.toEqual(
+      miniSerializeError(error)
+    )
   })
   test('rejectWithValue case', async () => {
     const asyncThunk = createAsyncThunk('test', (_, { rejectWithValue }) => {
@@ -666,5 +675,8 @@ describe('unwrapResult', () => {
     )
 
     await expect(unwrapPromise).rejects.toBe('rejectWithValue!')
+
+    const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
+    await expect(unwrapPromise2.unwrap()).rejects.toBe('rejectWithValue!')
   })
 })

@@ -85,6 +85,7 @@ export type AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig extends AsyncThu
     abort(reason?: string): void;
     requestId: string;
     arg: ThunkArg;
+    unwrap(): Promise<Returned>;
 };
 
 // @public
