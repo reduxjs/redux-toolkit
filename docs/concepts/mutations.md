@@ -196,7 +196,7 @@ export const api = createApi({
           body,
         };
       },
-      invalidates: [{ type: 'Posts', id: 'LIST'],
+      invalidates: [{ type: 'Posts', id: 'LIST'} ],
     }),
     getPost: build.query<Post, number>({
       query: (id) => `posts/${id}`,
