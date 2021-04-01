@@ -42,6 +42,24 @@ export function createUnsortedStateAdapter<T>(
     }
   }
 
+  function setOneMutably(entity: T, state: R): void {
+    const key = selectIdValue(entity, selectId)
+    if (!(key in state.entities)) {
+      state.ids.push(key)
+    }
+    state.entities[key] = entity
+  }
+
+  function setManyMutably(
+    newEntities: T[] | Record<EntityId, T>,
+    state: R
+  ): void {
+    newEntities = ensureEntitiesArray(newEntities)
+    for (const entity of newEntities) {
+      setOneMutably(entity, state)
+    }
+  }
+
   function setAllMutably(
     newEntities: T[] | Record<EntityId, T>,
     state: R
@@ -164,6 +182,8 @@ export function createUnsortedStateAdapter<T>(
     removeAll: createSingleArgumentStateOperator(removeAllMutably),
     addOne: createStateOperator(addOneMutably),
     addMany: createStateOperator(addManyMutably),
+    setOne: createStateOperator(setOneMutably),
+    setMany: createStateOperator(setManyMutably),
     setAll: createStateOperator(setAllMutably),
     updateOne: createStateOperator(updateOneMutably),
     updateMany: createStateOperator(updateManyMutably),

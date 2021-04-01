@@ -266,6 +266,14 @@ export interface EntityStateAdapter<T> {
     // (undocumented)
     setAll<S extends EntityState<T>>(state: PreventAny<S, T>, entities: PayloadAction<T[] | Record<EntityId, T>>): S;
     // (undocumented)
+    setMany<S extends EntityState<T>>(state: PreventAny<S, T>, entities: T[] | Record<EntityId, T>): S;
+    // (undocumented)
+    setMany<S extends EntityState<T>>(state: PreventAny<S, T>, entities: PayloadAction<T[] | Record<EntityId, T>>): S;
+    // (undocumented)
+    setOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S;
+    // (undocumented)
+    setOne<S extends EntityState<T>>(state: PreventAny<S, T>, action: PayloadAction<T>): S;
+    // (undocumented)
     updateMany<S extends EntityState<T>>(state: PreventAny<S, T>, updates: Update<T>[]): S;
     // (undocumented)
     updateMany<S extends EntityState<T>>(state: PreventAny<S, T>, updates: PayloadAction<Update<T>[]>): S;

@@ -43,6 +43,20 @@ export function createSortedStateAdapter<T>(
     }
   }
 
+  function setOneMutably(entity: T, state: R): void {
+    return setManyMutably([entity], state)
+  }
+
+  function setManyMutably(
+    newEntities: T[] | Record<EntityId, T>,
+    state: R
+  ): void {
+    newEntities = ensureEntitiesArray(newEntities)
+    if (newEntities.length !== 0) {
+      merge(newEntities, state)
+    }
+  }
+
   function setAllMutably(
     newEntities: T[] | Record<EntityId, T>,
     state: R
@@ -117,8 +131,6 @@ export function createSortedStateAdapter<T>(
   }
 
   function merge(models: T[], state: R): void {
-    models.sort(sort)
-
     // Insert/overwrite all new/updated
     models.forEach((model) => {
       state.entities[selectId(model)] = model
@@ -142,6 +154,8 @@ export function createSortedStateAdapter<T>(
     addOne: createStateOperator(addOneMutably),
     updateOne: createStateOperator(updateOneMutably),
     upsertOne: createStateOperator(upsertOneMutably),
+    setOne: createStateOperator(setOneMutably),
+    setMany: createStateOperator(setManyMutably),
     setAll: createStateOperator(setAllMutably),
     addMany: createStateOperator(addManyMutably),
     updateMany: createStateOperator(updateManyMutably),

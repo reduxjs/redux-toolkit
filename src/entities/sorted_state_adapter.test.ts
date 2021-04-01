@@ -6,6 +6,7 @@ import {
   TheGreatGatsby,
   AClockworkOrange,
   AnimalFarm,
+  TheHobbit,
 } from './fixtures/book'
 import { createNextState } from '..'
 
@@ -464,6 +465,81 @@ describe('Sorted State Adapter', () => {
     })
   })
 
+  it('should let you add a new entity in the state with setOne() and keep the sorting', () => {
+    const withMany = adapter.setAll(state, [AnimalFarm, TheHobbit])
+    const withOneMore = adapter.setOne(withMany, TheGreatGatsby)
+    expect(withOneMore).toEqual({
+      ids: [AnimalFarm.id, TheGreatGatsby.id, TheHobbit.id],
+      entities: {
+        [AnimalFarm.id]: AnimalFarm,
+        [TheHobbit.id]: TheHobbit,
+        [TheGreatGatsby.id]: TheGreatGatsby,
+      },
+    })
+  })
+
+  it('should let you replace an entity in the state with setOne()', () => {
+    let withOne = adapter.setOne(state, TheHobbit)
+    const changeWithoutAuthor = { id: TheHobbit.id, title: 'Silmarillion' }
+    withOne = adapter.setOne(withOne, changeWithoutAuthor)
+
+    expect(withOne).toEqual({
+      ids: [TheHobbit.id],
+      entities: {
+        [TheHobbit.id]: changeWithoutAuthor,
+      },
+    })
+  })
+
+  it('should do nothing when setMany is given an empty array', () => {
+    const withMany = adapter.setAll(state, [TheGreatGatsby])
+
+    const withUpserts = adapter.setMany(withMany, [])
+
+    expect(withUpserts).toEqual({
+      ids: [TheGreatGatsby.id],
+      entities: {
+        [TheGreatGatsby.id]: TheGreatGatsby,
+      },
+    })
+  })
+
+  it('should let you set many entities in the state', () => {
+    const firstChange = { id: TheHobbit.id, title: 'Silmarillion' }
+    const withMany = adapter.setAll(state, [TheHobbit])
+
+    const withSetMany = adapter.setMany(withMany, [
+      firstChange,
+      AClockworkOrange,
+    ])
+
+    expect(withSetMany).toEqual({
+      ids: [AClockworkOrange.id, TheHobbit.id],
+      entities: {
+        [TheHobbit.id]: firstChange,
+        [AClockworkOrange.id]: AClockworkOrange,
+      },
+    })
+  })
+
+  it('should let you set many entities in the state when passing in a dictionary', () => {
+    const changeWithoutAuthor = { id: TheHobbit.id, title: 'Silmarillion' }
+    const withMany = adapter.setAll(state, [TheHobbit])
+
+    const withSetMany = adapter.setMany(withMany, {
+      [TheHobbit.id]: changeWithoutAuthor,
+      [AClockworkOrange.id]: AClockworkOrange,
+    })
+
+    expect(withSetMany).toEqual({
+      ids: [AClockworkOrange.id, TheHobbit.id],
+      entities: {
+        [TheHobbit.id]: changeWithoutAuthor,
+        [AClockworkOrange.id]: AClockworkOrange,
+      },
+    })
+  })
+
   describe('can be used mutably when wrapped in createNextState', () => {
     test('removeAll', () => {
       const withTwo = adapter.addMany(state, [TheGreatGatsby, AnimalFarm])
@@ -673,6 +749,79 @@ describe('Sorted State Adapter', () => {
           "ids": Array [
             "tgg",
             "af",
+          ],
+        }
+      `)
+    })
+
+    test('setOne (insert)', () => {
+      const result = createNextState(state, (draft) => {
+        adapter.setOne(draft, TheGreatGatsby)
+      })
+      expect(result).toMatchInlineSnapshot(`
+        Object {
+          "entities": Object {
+            "tgg": Object {
+              "id": "tgg",
+              "title": "The Great Gatsby",
+            },
+          },
+          "ids": Array [
+            "tgg",
+          ],
+        }
+      `)
+    })
+
+    test('setOne (update)', () => {
+      const withOne = adapter.setOne(state, TheHobbit)
+      const result = createNextState(withOne, (draft) => {
+        adapter.setOne(draft, {
+          id: TheHobbit.id,
+          title: 'Silmarillion',
+        })
+      })
+      expect(result).toMatchInlineSnapshot(`
+        Object {
+          "entities": Object {
+            "th": Object {
+              "id": "th",
+              "title": "Silmarillion",
+            },
+          },
+          "ids": Array [
+            "th",
+          ],
+        }
+      `)
+    })
+
+    test('setMany', () => {
+      const withOne = adapter.setOne(state, TheHobbit)
+      const result = createNextState(withOne, (draft) => {
+        adapter.setMany(draft, [
+          {
+            id: TheHobbit.id,
+            title: 'Silmarillion',
+          },
+          AnimalFarm,
+        ])
+      })
+      expect(result).toMatchInlineSnapshot(`
+        Object {
+          "entities": Object {
+            "af": Object {
+              "id": "af",
+              "title": "Animal Farm",
+            },
+            "th": Object {
+              "id": "th",
+              "title": "Silmarillion",
+            },
+          },
+          "ids": Array [
+            "af",
+            "th",
           ],
         }
       `)
