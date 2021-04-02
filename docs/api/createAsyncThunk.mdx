@@ -89,7 +89,7 @@ An object with the following optional fields:
 
 - `condition`: a callback that can be used to skip execution of the payload creator and all action dispatches, if desired. See [Canceling Before Execution](#canceling-before-execution) for a complete description.
 - `dispatchConditionRejection`: if `condition()` returns `false`, the default behavior is that no actions will be dispatched at all. If you still want a "rejected" action to be dispatched when the thunk was canceled, set this flag to `true`.
-- `idGenerator`: a function to use when generating the `requestId` for the request sequence. Defaults to use [nanoid](https://www.npmjs.com/package/nanoid).
+- `idGenerator`: a function to use when generating the `requestId` for the request sequence. Defaults to use [nanoid](./otherExports.mdx/#nanoid).
 
 ## Return Value
 
