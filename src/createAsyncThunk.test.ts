@@ -628,6 +628,63 @@ describe('conditional skipping of asyncThunks', () => {
     expect(store.getState()[2]).toEqual(expectation)
     expect(rejected.error).not.toEqual(miniSerializeError(errorObject))
   })
+})
+describe('unwrapResult', () => {
+  const getState = jest.fn(() => ({}))
+  const dispatch = jest.fn((x: any) => x)
+  const extra = {}
+  test('fulfilled case', async () => {
+    const asyncThunk = createAsyncThunk('test', () => {
+      return 'fulfilled!' as const
+    })
+
+    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
+      unwrapResult
+    )
+
+    await expect(unwrapPromise).resolves.toBe('fulfilled!')
+
+    const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
+    const res = await unwrapPromise2.unwrap()
+    expect(res).toBe('fulfilled!')
+  })
+  test('error case', async () => {
+    const error = new Error('Panic!')
+    const asyncThunk = createAsyncThunk('test', () => {
+      throw error
+    })
+
+    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
+      unwrapResult
+    )
+
+    await expect(unwrapPromise).rejects.toEqual(miniSerializeError(error))
+
+    const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
+    await expect(unwrapPromise2.unwrap()).rejects.toEqual(
+      miniSerializeError(error)
+    )
+  })
+  test('rejectWithValue case', async () => {
+    const asyncThunk = createAsyncThunk('test', (_, { rejectWithValue }) => {
+      return rejectWithValue('rejectWithValue!')
+    })
+
+    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
+      unwrapResult
+    )
+
+    await expect(unwrapPromise).rejects.toBe('rejectWithValue!')
+
+    const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
+    await expect(unwrapPromise2.unwrap()).rejects.toBe('rejectWithValue!')
+  })
+})
+
+describe('idGenerator option', () => {
+  const getState = () => ({})
+  const dispatch = (x: any) => x
+  const extra = {}
 
   test('idGenerator implementation - can customizes how request IDs are generated', async () => {
     function makeFakeIdGenerator() {
@@ -683,56 +740,5 @@ describe('conditional skipping of asyncThunks', () => {
     expect((await promise3).meta.requestId).not.toEqual(
       expect.stringContaining('fake-fandom-id')
     )
-  })
-})
-describe('unwrapResult', () => {
-  const getState = jest.fn(() => ({}))
-  const dispatch = jest.fn((x: any) => x)
-  const extra = {}
-  test('fulfilled case', async () => {
-    const asyncThunk = createAsyncThunk('test', () => {
-      return 'fulfilled!' as const
-    })
-
-    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
-      unwrapResult
-    )
-
-    await expect(unwrapPromise).resolves.toBe('fulfilled!')
-
-    const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
-    const res = await unwrapPromise2.unwrap()
-    expect(res).toBe('fulfilled!')
-  })
-  test('error case', async () => {
-    const error = new Error('Panic!')
-    const asyncThunk = createAsyncThunk('test', () => {
-      throw error
-    })
-
-    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
-      unwrapResult
-    )
-
-    await expect(unwrapPromise).rejects.toEqual(miniSerializeError(error))
-
-    const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
-    await expect(unwrapPromise2.unwrap()).rejects.toEqual(
-      miniSerializeError(error)
-    )
-  })
-  test('rejectWithValue case', async () => {
-    const asyncThunk = createAsyncThunk('test', (_, { rejectWithValue }) => {
-      return rejectWithValue('rejectWithValue!')
-    })
-
-    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
-      unwrapResult
-    )
-
-    await expect(unwrapPromise).rejects.toBe('rejectWithValue!')
-
-    const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
-    await expect(unwrapPromise2.unwrap()).rejects.toBe('rejectWithValue!')
   })
 })

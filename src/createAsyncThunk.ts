@@ -225,7 +225,9 @@ export interface AsyncThunkOptions<
   serializeError?: (x: unknown) => GetSerializedErrorType<ThunkApiConfig>
 
   /**
-   * A function to use when generating a 'request ID' per request instance. Defaults to use nanoid.
+   * A function to use when generating the `requestId` for the request sequence.
+   *
+   * @default `nanoid`
    */
   idGenerator?: () => string
 }
