@@ -643,7 +643,7 @@ describe('conditional skipping of asyncThunks', () => {
     const idGenerator = makeFakeIdGenerator()
     const asyncThunk = createAsyncThunk(
       'test',
-      async (args: undefined, { requestId }) => {
+      async (args: void, { requestId }) => {
         generatedRequestId = requestId
       },
       { idGenerator }
@@ -668,7 +668,7 @@ describe('conditional skipping of asyncThunks', () => {
     generatedRequestId = ''
     const defaultAsyncThunk = createAsyncThunk(
       'test',
-      async (args: undefined, { requestId }) => {
+      async (args: void, { requestId }) => {
         generatedRequestId = requestId
       }
     )
