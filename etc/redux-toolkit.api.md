@@ -92,6 +92,7 @@ export type AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig extends AsyncThu
 export interface AsyncThunkOptions<ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}> {
     condition?(arg: ThunkArg, api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>): boolean | undefined;
     dispatchConditionRejection?: boolean;
+    idGenerator?: () => string;
     // (undocumented)
     serializeError?: (x: unknown) => GetSerializedErrorType<ThunkApiConfig>;
 }
