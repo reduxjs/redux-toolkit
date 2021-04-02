@@ -680,3 +680,65 @@ describe('unwrapResult', () => {
     await expect(unwrapPromise2.unwrap()).rejects.toBe('rejectWithValue!')
   })
 })
+
+describe('idGenerator option', () => {
+  const getState = () => ({})
+  const dispatch = (x: any) => x
+  const extra = {}
+
+  test('idGenerator implementation - can customizes how request IDs are generated', async () => {
+    function makeFakeIdGenerator() {
+      let id = 0
+      return jest.fn(() => {
+        id++
+        return `fake-random-id-${id}`
+      })
+    }
+
+    let generatedRequestId = ''
+
+    const idGenerator = makeFakeIdGenerator()
+    const asyncThunk = createAsyncThunk(
+      'test',
+      async (args: void, { requestId }) => {
+        generatedRequestId = requestId
+      },
+      { idGenerator }
+    )
+
+    // dispatching the thunks should be using the custom id generator
+    const promise0 = asyncThunk()(dispatch, getState, extra)
+    expect(generatedRequestId).toEqual('fake-random-id-1')
+    expect(promise0.requestId).toEqual('fake-random-id-1')
+    expect((await promise0).meta.requestId).toEqual('fake-random-id-1')
+
+    const promise1 = asyncThunk()(dispatch, getState, extra)
+    expect(generatedRequestId).toEqual('fake-random-id-2')
+    expect(promise1.requestId).toEqual('fake-random-id-2')
+    expect((await promise1).meta.requestId).toEqual('fake-random-id-2')
+
+    const promise2 = asyncThunk()(dispatch, getState, extra)
+    expect(generatedRequestId).toEqual('fake-random-id-3')
+    expect(promise2.requestId).toEqual('fake-random-id-3')
+    expect((await promise2).meta.requestId).toEqual('fake-random-id-3')
+
+    generatedRequestId = ''
+    const defaultAsyncThunk = createAsyncThunk(
+      'test',
+      async (args: void, { requestId }) => {
+        generatedRequestId = requestId
+      }
+    )
+    // dispatching the default options thunk should still generate an id,
+    // but not using the custom id generator
+    const promise3 = defaultAsyncThunk()(dispatch, getState, extra)
+    expect(generatedRequestId).toEqual(promise3.requestId)
+    expect(promise3.requestId).not.toEqual('')
+    expect(promise3.requestId).not.toEqual(
+      expect.stringContaining('fake-random-id')
+    )
+    expect((await promise3).meta.requestId).not.toEqual(
+      expect.stringContaining('fake-fandom-id')
+    )
+  })
+})

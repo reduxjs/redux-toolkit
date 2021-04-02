@@ -223,6 +223,13 @@ export interface AsyncThunkOptions<
   dispatchConditionRejection?: boolean
 
   serializeError?: (x: unknown) => GetSerializedErrorType<ThunkApiConfig>
+
+  /**
+   * A function to use when generating the `requestId` for the request sequence.
+   *
+   * @default `nanoid`
+   */
+  idGenerator?: () => string
 }
 
 export type AsyncThunkPendingActionCreator<
@@ -392,7 +399,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
     arg: ThunkArg
   ): AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> {
     return (dispatch, getState, extra) => {
-      const requestId = nanoid()
+      const requestId = (options?.idGenerator ?? nanoid)()
 
       const abortController = new AC()
       let abortReason: string | undefined
