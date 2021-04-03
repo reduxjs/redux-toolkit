@@ -21,10 +21,12 @@ jobs:
       - uses: c-hive/gha-npm-cache@v1
 
       - name: Install deps
-        run: npm ci --ignore-scripts
+        run: npm ci
 
       - name: Pack (including Prepare)
         run: npm pack
+        env:
+          NODE_ENV: 'production' # this doesn't actually matter, so just set it to production
 
       - uses: actions/upload-artifact@v2
         with:

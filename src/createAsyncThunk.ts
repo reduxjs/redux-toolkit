@@ -164,6 +164,7 @@ export type AsyncThunkAction<
   abort(reason?: string): void
   requestId: string
   arg: ThunkArg
+  unwrap(): Promise<Returned>
 }
 
 type AsyncThunkActionCreator<
@@ -222,6 +223,13 @@ export interface AsyncThunkOptions<
   dispatchConditionRejection?: boolean
 
   serializeError?: (x: unknown) => GetSerializedErrorType<ThunkApiConfig>
+
+  /**
+   * A function to use when generating the `requestId` for the request sequence.
+   *
+   * @default `nanoid`
+   */
+  idGenerator?: () => string
 }
 
 export type AsyncThunkPendingActionCreator<
@@ -391,7 +399,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
     arg: ThunkArg
   ): AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> {
     return (dispatch, getState, extra) => {
-      const requestId = nanoid()
+      const requestId = (options?.idGenerator ?? nanoid)()
 
       const abortController = new AC()
       let abortReason: string | undefined
@@ -452,7 +460,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
         // We dispatch the result action _after_ the catch, to avoid having any errors
         // here get swallowed by the try/catch block,
         // per https://twitter.com/dan_abramov/status/770914221638942720
-        // and https://redux-toolkit.js.org/tutorials/advanced-tutorial#async-error-handling-logic-in-thunks
+        // and https://github.com/reduxjs/redux-toolkit/blob/e85eb17b39a2118d859f7b7746e0f3fee523e089/docs/tutorials/advanced-tutorial.md#async-error-handling-logic-in-thunks
 
         const skipDispatch =
           options &&
@@ -465,7 +473,14 @@ If you want to use the AbortController to react to \`abort\` events, please cons
         }
         return finalAction
       })()
-      return Object.assign(promise, { abort, requestId, arg })
+      return Object.assign(promise, {
+        abort,
+        requestId,
+        arg,
+        unwrap() {
+          return promise.then(unwrapResult)
+        },
+      })
     }
   }
 

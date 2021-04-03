@@ -85,12 +85,14 @@ export type AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig extends AsyncThu
     abort(reason?: string): void;
     requestId: string;
     arg: ThunkArg;
+    unwrap(): Promise<Returned>;
 };
 
 // @public
 export interface AsyncThunkOptions<ThunkArg = void, ThunkApiConfig extends AsyncThunkConfig = {}> {
     condition?(arg: ThunkArg, api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>): boolean | undefined;
     dispatchConditionRejection?: boolean;
+    idGenerator?: () => string;
     // (undocumented)
     serializeError?: (x: unknown) => GetSerializedErrorType<ThunkApiConfig>;
 }

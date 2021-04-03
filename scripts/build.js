@@ -113,7 +113,7 @@ async function buildUMD() {
   })
   await instance.write({
     format: 'umd',
-    name: 'redux-toolkit',
+    name: 'RTK',
     file: 'dist/redux-toolkit.umd.js',
     sourcemap: true,
   })
@@ -129,7 +129,7 @@ async function buildUMD() {
   })
   await instance2.write({
     format: 'umd',
-    name: 'redux-toolkit',
+    name: 'RTK',
     file: 'dist/redux-toolkit.umd.min.js',
     sourcemap: true,
   })

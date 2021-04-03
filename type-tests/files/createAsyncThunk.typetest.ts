@@ -393,3 +393,27 @@ const anyAction = { type: 'foo' } as AnyAction
     expectType<Funky>(anyAction.error)
   }
 }
+
+/**
+ * `idGenerator` option takes no arguments, and returns a string
+ */
+{
+  const returnsNumWithArgs = (foo: any) => 100
+  // has to stay on one line or type tests fail in older TS versions
+  // prettier-ignore
+  // @ts-expect-error
+  const shouldFailNumWithArgs = createAsyncThunk('foo', () => {}, { idGenerator: returnsNumWithArgs })
+
+  const returnsNumWithoutArgs = () => 100
+  // prettier-ignore
+  // @ts-expect-error
+  const shouldFailNumWithoutArgs = createAsyncThunk('foo', () => {}, { idGenerator: returnsNumWithoutArgs })
+
+  const returnsStrWithArgs = (foo: any) => 'foo'
+  // prettier-ignore
+  // @ts-expect-error
+  const shouldFailStrArgs = createAsyncThunk('foo', () => {}, { idGenerator: returnsStrWithArgs })
+
+  const returnsStrWithoutArgs = () => 'foo'
+  const shouldSucceed = createAsyncThunk('foo', () => {}, { idGenerator: returnsStrWithoutArgs })
+}
