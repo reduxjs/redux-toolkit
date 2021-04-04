@@ -27,6 +27,7 @@
   "license": "MIT",
   "devDependencies": {
     "@microsoft/api-extractor": "^7.13.2",
+    "@types/convert-source-map": "^1.5.1",
     "@types/jest": "^24.0.11",
     "@types/json-stringify-safe": "^5.0.0",
     "@types/nanoid": "^2.1.0",
@@ -46,6 +47,7 @@
     "prettier": "^2.2.1",
     "react": "^16.8.6",
     "rollup-plugin-strip-code": "^0.2.6",
+    "source-map": "^0.7.3",
     "terser": "^5.6.1",
     "tsdx": "^0.14.1",
     "tslib": "^1.10.0",
@@ -53,8 +55,8 @@
     "typings-tester": "^0.3.2"
   },
   "scripts": {
-    "build-ci": "node scripts/build.js && tsc && tsc -p src/query/tsconfig.json && api-extractor run",
-    "build": "node scripts/build.js && tsc && tsc -p src/query/tsconfig.json && api-extractor run --local",
+    "build-ci": "node scripts/cli.js && tsc && tsc -p src/query/tsconfig.json && api-extractor run",
+    "build": "node scripts/cli.js && tsc && tsc -p src/query/tsconfig.json && api-extractor run --local",
     "dev": "tsdx watch  --format cjs,esm,system,umd",
     "format": "prettier --write \"src/**/*.ts\" \"**/*.md\"",
     "format:check": "prettier --list-different \"src/**/*.ts\" \"docs/*/**.md\"",

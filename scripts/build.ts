@@ -1,18 +1,25 @@
+/* eslint-disable import/first */
 // @ts-check
-const { build, transform } = require('esbuild')
-const terser = require('terser')
-const rollup = require('rollup')
-const path = require('path')
-const fs = require('fs-extra')
-const ts = require('typescript')
-const { fromJSON } = require('convert-source-map')
-const merge = require('merge-source-map')
-const { extractInlineSourcemap, removeInlineSourceMap } = require('./sourcemap')
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+import { build } from 'esbuild'
+import terser from 'terser'
+import rollup from 'rollup'
+import path from 'path'
+import fs from 'fs-extra'
+import MagicString from 'magic-string'
+import { appendInlineSourceMap, getLocation } from './sourcemap'
+import ts from 'typescript'
+import { RawSourceMap, SourceMapConsumer } from 'source-map'
+import merge from 'merge-source-map'
+import { extractInlineSourcemap, removeInlineSourceMap } from './sourcemap'
+import type { BuildOptions } from './types'
+import assert from 'assert'
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 const outputDir = path.join(__dirname, '../dist')
-async function bundle(options) {
+
+async function bundle(options: BuildOptions) {
   const { format, minify, env, name, target } = options
   const result = await build({
+    logLevel: 'silent',
     entryPoints: ['src/index.ts'],
     outfile: `dist/redux-toolkit${name}.js`,
     write: false,
@@ -60,7 +67,7 @@ async function bundle(options) {
   })
 
   for (const chunk of result.outputFiles) {
-    origin = chunk.text
+    const origin = chunk.text
     const sourcemap = extractInlineSourcemap(origin)
     const result = ts.transpileModule(removeInlineSourceMap(origin), {
       compilerOptions: {
@@ -72,32 +79,67 @@ async function bundle(options) {
           : ts.ScriptTarget.ES5,
       },
     })
+
     const mergedSourcemap = merge(sourcemap, result.sourceMapText)
     let code = result.outputText
     // TODO Is this used at all?
-    let mapping = mergedSourcemap
+    let mapping: RawSourceMap = mergedSourcemap
+
     if (minify) {
-      const transformResult = await terser.minify(code, {
-        sourceMap: true,
-        output: {
-          comments: false,
-        },
-        compress: {
-          keep_infinity: true,
-          pure_getters: true,
-          passes: 10,
-        },
-        ecma: 5,
-        toplevel: true,
-      })
+      const transformResult = await terser.minify(
+        appendInlineSourceMap(code, mapping),
+        {
+          sourceMap: { content: 'inline', asObject: true } as any,
+          output: {
+            comments: false,
+          },
+          compress: {
+            keep_infinity: true,
+            pure_getters: true,
+            passes: 10,
+          },
+          ecma: 5,
+          toplevel: true,
+        }
+      )
       code = transformResult.code
-      mapping = transformResult.map
+      mapping = transformResult.map as RawSourceMap
     }
     await fs.writeFile(chunk.path, code)
-    console.log('path:', chunk.path)
-    await fs.writeJSON(chunk.path + '.map', mergedSourcemap)
+    await fs.writeJSON(chunk.path + '.map', mapping)
+    const smc = await new SourceMapConsumer(mapping)
+    const stubMap = {
+      '../src/configureStore.ts': [
+        `"reducer" is a required argument, and must be a function or an object of functions that can be passed to combineReducers`,
+      ],
+    }
+    for (const [source, stubList] of Object.entries(stubMap)) {
+      for (const stub of stubList) {
+        const originContent = smc.sourceContentFor(source)
+        const originLocation = getLocation(originContent, stub)
+        const bundledPosition = getLocation(code, stub)
+        const recoverLocation = smc.originalPositionFor({
+          line: bundledPosition.line,
+          column: bundledPosition.column,
+        })
+        assert.deepStrictEqual(
+          source,
+          recoverLocation.source,
+          `sourceFile: expected ${source} but got ${recoverLocation.source}`
+        )
+        assert(
+          Math.abs(originLocation.line - recoverLocation.line) <= 1,
+          `line: expected ${originLocation.line} but got ${recoverLocation.line}`
+        )
+        assert(
+          Math.abs(originLocation.column - recoverLocation.column) <= 1,
+          `column: expected ${originLocation.column} but got ${recoverLocation.column}`
+        )
+      }
+    }
   }
 }
+
 /**
  * since esbuild doesn't support umd, we use rollup to convert esm to umd
  */
@@ -145,11 +187,12 @@ if (process.env.NODE_ENV === 'production') {
 }`
   )
 }
+
 async function main() {
   console.log('dir:', outputDir)
   await fs.remove(outputDir)
   await fs.ensureDir(outputDir)
-  const buildTargets = [
+  const buildTargets: BuildOptions[] = [
     {
       format: 'cjs',
       name: '.cjs.development',
