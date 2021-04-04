@@ -20,6 +20,24 @@ console.log(nanoid())
 // 'dgPXxUz_6fWIQBD8XmiSy'
 ```
 
+### `miniSerializeError`
+
+A re-worked, inlined copy of [`serialize-error`](https://github.com/sindresorhus/serialize-error). Serializes an error into a plain object. `createAsyncThunk` uses this by default for rejected cases. May also be useful other other cases as well.  
+
+Returns a plain object with optional `name`, `message`, `stack` and `code` properties.
+
+```ts
+import { miniSerializeError } from '@reduxjs/toolkit'
+
+const serializedError = miniSerializeError(new Error('Something has gone wrong'))
+console.log(serializedError.name)
+// "Error"
+console.log(serializedError.message)
+// "Something has gone wrong"
+console.log(serializedError.stack)
+// "Error: Something has gone wrong↵    at <anonymous>:24:34"
+```
+
 ## Exports from Other Libraries
 
 ### `createNextState`
