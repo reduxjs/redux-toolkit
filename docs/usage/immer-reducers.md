@@ -7,7 +7,7 @@ hide_title: true
 
 # Writing Reducers with Immer
 
-Redux Toolkit's [`createReducer`](../api/createReducer.mdx) and [`createSlice`](../api/createSlice.mdx) automatically use [Immer](https://immerjs.github.io/immer/introduction) internally to let you write simpler immutable update logic using "mutating" syntax. This helps simplify most reducer implementations.
+Redux Toolkit's [`createReducer`](../api/createReducer.mdx) and [`createSlice`](../api/createSlice.mdx) automatically use [Immer](https://immerjs.github.io/immer/) internally to let you write simpler immutable update logic using "mutating" syntax. This helps simplify most reducer implementations.
 
 Because Immer is itself an abstraction layer, it's important to understand why Redux Toolkit uses Immer, and how to use it correctly.
 
@@ -143,7 +143,7 @@ Writing immutable update logic by hand _is_ hard, and **accidentally mutating st
 
 ## Immutable Updates with Immer
 
-[Immer](https://immerjs.github.io/immer/introduction) is a library that simplifies the process of writing immutable update logic.
+[Immer](https://immerjs.github.io/immer/) is a library that simplifies the process of writing immutable update logic.
 
 Immer provides a function called `produce`, which accepts two arguments: your original `state`, and a callback function. The callback function is given a "draft" version of that state, and inside the callback, it is safe to write code that mutates the draft value. Immer tracks all attempts to mutate the draft value and then replays those mutations using their immutable equivalents to create a safe, immutably updated result:
 
