@@ -374,7 +374,7 @@ const fetchUserById = createAsyncThunk(
     const response = await fetch(`https://reqres.in/api/users/${userId}`, {
       signal: thunkAPI.signal
     })
-    return await response.json()
+    return response.json()
   }
 )
 ```
