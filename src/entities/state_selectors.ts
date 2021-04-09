@@ -3,11 +3,11 @@ import { EntityState, EntitySelectors, Dictionary, EntityId } from './models'
 
 export function createSelectorsFactory<T>() {
   function getSelectors(): EntitySelectors<T, EntityState<T>>
-  function getSelectors<V>(
-    selectState: (state: V) => EntityState<T>
-  ): EntitySelectors<T, V>
+  function getSelectors<V, ExtraArgs extends any[]>(
+    selectState: (state: V, ...args: ExtraArgs) => EntityState<T>
+  ): EntitySelectors<T, V, ExtraArgs>
   function getSelectors(
-    selectState?: (state: any) => EntityState<T>
+    selectState?: (state: any, ...args: any[]) => EntityState<T>
   ): EntitySelectors<T, any> {
     const selectIds = (state: any) => state.ids
 
@@ -40,10 +40,9 @@ export function createSelectorsFactory<T>() {
       }
     }
 
-    const selectGlobalizedEntities = createDraftSafeSelector(
-      selectState,
-      selectEntities
-    )
+    const selectGlobalizedEntities: (
+      ...args: any[]
+    ) => Dictionary<T> = createDraftSafeSelector(selectState, selectEntities)
 
     return {
       selectIds: createDraftSafeSelector(selectState, selectIds),
@@ -51,7 +50,7 @@ export function createSelectorsFactory<T>() {
       selectAll: createDraftSafeSelector(selectState, selectAll),
       selectTotal: createDraftSafeSelector(selectState, selectTotal),
       selectById: createDraftSafeSelector(
-        selectGlobalizedEntities,
+        (state, _, ...args) => selectGlobalizedEntities(state, ...args),
         selectId,
         selectById
       ),
