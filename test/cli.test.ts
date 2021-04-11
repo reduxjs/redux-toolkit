@@ -108,6 +108,29 @@ describe('CLI options testing', () => {
     expect(output).toContain('baseQuery: anotherNamedBaseQuery,');
   });
 
+  it('should show a warning and ignore --baseUrl when specified along with --baseQuery', async () => {
+    const result = await cli(
+      [
+        `--baseQuery`,
+        `test/fixtures/customBaseQuery.ts:anotherNamedBaseQuery`,
+        `--baseUrl`,
+        `http://swagger.io`,
+        `./test/fixtures/petstore.json`,
+      ],
+      '.'
+    );
+
+    const output = result.stdout;
+
+    const expectedWarnings = [MESSAGES.BASE_URL_IGNORED];
+
+    const numberOfWarnings = expectedWarnings.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfWarnings).toEqual(expectedWarnings.length);
+
+    expect(output).not.toContain('fetchBaseQuery');
+    expect(output).toContain('baseQuery: anotherNamedBaseQuery,');
+  });
+
   it('should error out when the specified filename provided to --baseQuery is not found', async () => {
     const result = await cli(
       ['-h', `--baseQuery`, `test/fixtures/nonExistantFile.ts`, `./test/fixtures/petstore.json`],
