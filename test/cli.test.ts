@@ -88,6 +88,26 @@ describe('CLI options testing', () => {
     expect(numberOfHooks).toEqual(expectedHooks.length);
   });
 
+  it('should call fetchBaseQuery with the url provided to --baseUrl', async () => {
+    const result = await cli([`--baseUrl`, `http://swagger.io`, `./test/fixtures/petstore.json`], '.');
+
+    const output = result.stdout;
+
+    expect(output).toContain('baseQuery: fetchBaseQuery({ baseUrl: "http://swagger.io" }),');
+  });
+
+  it('should assign the specified baseQueryFn provided to --baseQuery', async () => {
+    const result = await cli(
+      [`--baseQuery`, `test/fixtures/customBaseQuery.ts:anotherNamedBaseQuery`, `./test/fixtures/petstore.json`],
+      '.'
+    );
+
+    const output = result.stdout;
+
+    expect(output).not.toContain('fetchBaseQuery');
+    expect(output).toContain('baseQuery: anotherNamedBaseQuery,');
+  });
+
   it('should error out when the specified filename provided to --baseQuery is not found', async () => {
     const result = await cli(
       ['-h', `--baseQuery`, `test/fixtures/nonExistantFile.ts`, `./test/fixtures/petstore.json`],
