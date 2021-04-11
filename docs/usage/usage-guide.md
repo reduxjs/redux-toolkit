@@ -93,6 +93,8 @@ export default store
 You can also pass an object full of ["slice reducers"](https://redux.js.org/recipes/structuring-reducers/splitting-reducer-logic), and `configureStore` will call [`combineReducers`](https://redux.js.org/api/combinereducers) for you:
 
 ```js
+import { configureStore } from '@reduxjs/toolkit'
+// highlight-start
 import usersReducer from './usersReducer'
 import postsReducer from './postsReducer'
 
@@ -102,6 +104,9 @@ const store = configureStore({
     posts: postsReducer,
   },
 })
+// highlight-end
+
+export default store
 ```
 
 Note that this only works for one level of reducers. If you want to nest reducers, you'll need to call `combineReducers` yourself to handle the nesting.
