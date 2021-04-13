@@ -12,6 +12,13 @@ function getTmpFileName() {
   return path.resolve(tmpDir, `${++id}.test.generated.ts`);
 }
 
+function copyAndGetTmpFileName(fileToCopyPath: string, newFileName: string): string {
+  newFileName = `${++id}.test.${newFileName}`;
+  const newFilePath = path.resolve(tmpDir, newFileName);
+  fs.copyFileSync(fileToCopyPath, newFilePath, fs.constants.COPYFILE_EXCL);
+  return newFileName;
+}
+
 function cli(args: string[], cwd: string): Promise<{ error: ExecException | null; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
     exec(
@@ -79,6 +86,49 @@ describe('CLI options testing', () => {
 
     const numberOfHooks = expectedHooks.filter((name) => result.stdout.indexOf(name) > -1).length;
     expect(numberOfHooks).toEqual(expectedHooks.length);
+  });
+
+  it('should call fetchBaseQuery with the url provided to --baseUrl', async () => {
+    const result = await cli([`--baseUrl`, `http://swagger.io`, `./test/fixtures/petstore.json`], '.');
+
+    const output = result.stdout;
+
+    expect(output).toContain('baseQuery: fetchBaseQuery({ baseUrl: "http://swagger.io" }),');
+  });
+
+  it('should assign the specified baseQueryFn provided to --baseQuery', async () => {
+    const result = await cli(
+      [`--baseQuery`, `test/fixtures/customBaseQuery.ts:anotherNamedBaseQuery`, `./test/fixtures/petstore.json`],
+      '.'
+    );
+
+    const output = result.stdout;
+
+    expect(output).not.toContain('fetchBaseQuery');
+    expect(output).toContain('baseQuery: anotherNamedBaseQuery,');
+  });
+
+  it('should show a warning and ignore --baseUrl when specified along with --baseQuery', async () => {
+    const result = await cli(
+      [
+        `--baseQuery`,
+        `test/fixtures/customBaseQuery.ts:anotherNamedBaseQuery`,
+        `--baseUrl`,
+        `http://swagger.io`,
+        `./test/fixtures/petstore.json`,
+      ],
+      '.'
+    );
+
+    const output = result.stdout;
+
+    const expectedWarnings = [MESSAGES.BASE_URL_IGNORED];
+
+    const numberOfWarnings = expectedWarnings.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfWarnings).toEqual(expectedWarnings.length);
+
+    expect(output).not.toContain('fetchBaseQuery');
+    expect(output).toContain('baseQuery: anotherNamedBaseQuery,');
   });
 
   it('should error out when the specified filename provided to --baseQuery is not found', async () => {
@@ -164,6 +214,34 @@ describe('CLI options testing', () => {
 
     expect(result.stdout).not.toContain('fetchBaseQuery');
     expect(result.stdout).toContain(`import { default as customBaseQuery } from \"test/fixtures/customBaseQuery\"`);
+
+    const expectedErrors = [MESSAGES.NAMED_EXPORT_MISSING];
+
+    const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfErrors).toEqual(0);
+  });
+
+  it("should import { default as customBaseQuery } from './customBaseQuery' when a local customBaseQuery is provided to --baseQuery", async () => {
+    const localBaseQueryName = copyAndGetTmpFileName('./test/fixtures/customBaseQuery.ts', 'localCustomBaseQuery.ts');
+    const fileName = getTmpFileName();
+    const result = await cli(
+      [
+        '-h',
+        `--baseQuery`,
+        `./test/tmp/${localBaseQueryName}:namedBaseQuery`,
+        '--file',
+        fileName,
+        `./test/fixtures/petstore.json`,
+      ],
+      '.'
+    );
+
+    const output = fs.readFileSync(fileName, { encoding: 'utf-8' });
+
+    const strippedLocalBaseQueryName = path.parse(localBaseQueryName).name;
+
+    expect(output).not.toContain('fetchBaseQuery');
+    expect(output).toContain(`import { namedBaseQuery } from './${strippedLocalBaseQueryName}'`);
 
     const expectedErrors = [MESSAGES.NAMED_EXPORT_MISSING];
 

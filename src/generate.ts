@@ -50,6 +50,8 @@ export async function generateApi(
   const v3Doc = await getV3Doc(spec);
   if (typeof baseUrl !== 'string') {
     baseUrl = v3Doc.servers?.[0].url ?? 'https://example.com';
+  } else if (baseQuery !== 'fetchBaseQuery') {
+    console.warn(MESSAGES.BASE_URL_IGNORED);
   }
 
   const apiGen = new ApiGenerator(v3Doc, {});
@@ -112,14 +114,9 @@ export async function generateApi(
     });
   }
 
-  const baseQueryCall = factory.createCallExpression(factory.createIdentifier(baseQuery), undefined, [
+  const fetchBaseQueryCall = factory.createCallExpression(factory.createIdentifier('fetchBaseQuery'), undefined, [
     factory.createObjectLiteralExpression(
-      [
-        factory.createPropertyAssignment(
-          factory.createIdentifier('baseUrl'),
-          factory.createStringLiteral(baseUrl as string)
-        ),
-      ],
+      [factory.createPropertyAssignment(factory.createIdentifier('baseUrl'), factory.createStringLiteral(baseUrl))],
       false
     ),
   ]);
@@ -137,7 +134,7 @@ export async function generateApi(
           exportName,
           reducerPath,
           createApiFn: factory.createIdentifier('createApi'),
-          baseQuery: baseQueryCall,
+          baseQuery: baseQuery === 'fetchBaseQuery' ? fetchBaseQueryCall : factory.createIdentifier(baseQuery),
           entityTypes: generateEntityTypes({ v3Doc, operationDefinitions }),
           endpointDefinitions: factory.createObjectLiteralExpression(
             operationDefinitions.map((operationDefinition) =>
