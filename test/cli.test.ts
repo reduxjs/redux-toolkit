@@ -88,6 +88,16 @@ describe('CLI options testing', () => {
     expect(numberOfHooks).toEqual(expectedHooks.length);
   });
 
+  it('should contain the right imports when using hooks and a custom base query', async () => {
+    const result = await cli(
+      ['-h', `--baseQuery`, `test/fixtures/customBaseQuery.ts:anotherNamedBaseQuery`, `./test/fixtures/petstore.json`],
+      '.'
+    );
+
+    expect(result.stdout).toContain(`import { createApi } from \"@rtk-incubator/rtk-query/react\";`);
+    expect(result.stdout).toContain(`import { anotherNamedBaseQuery } from \"test/fixtures/customBaseQuery\";`);
+  });
+
   it('should call fetchBaseQuery with the url provided to --baseUrl', async () => {
     const result = await cli([`--baseUrl`, `http://swagger.io`, `./test/fixtures/petstore.json`], '.');
 
