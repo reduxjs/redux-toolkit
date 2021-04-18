@@ -18,6 +18,13 @@ The recommended way to start new apps with React and Redux Toolkit is by using t
 npx create-react-app my-app --template redux
 ```
 
+Or if you are a TypeScript user, use [cra-template-redux-typescript](https://github.com/reduxjs/cra-template-redux-typescript), which is based on that template
+
+```sh
+npx create-react-app my-app --template redux-typescript
+```
+
+
 ### An Existing App
 
 Redux Toolkit is available as a package on NPM for use with a module bundler or in a Node application:
