@@ -216,9 +216,8 @@ describe('configuration', () => {
     expect(baseBaseQuery).toHaveBeenCalledTimes(1);
     expect(result.error).toEqual(error);
     expect(result).toEqual({
-      endpoint: 'q1',
+      endpointName: 'q1',
       error,
-      internalQueryArgs: undefined,
       isError: true,
       isLoading: false,
       isSuccess: false,

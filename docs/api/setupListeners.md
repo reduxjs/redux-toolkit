@@ -63,8 +63,8 @@ export function setupListeners(
 }
 ```
 
-If you notice, `onFocus`, `onFocusLost`, `onOffline`, `onOnline` are all actions that are provided to the callback. Additionally, these action are made available to `api.internalActions` and are able to be used by dispatching them like this:
+If you notice, `onFocus`, `onFocusLost`, `onOffline`, `onOnline` are all actions that are provided to the callback. Additionally, these actions are made available to `api.internalActions` and are able to be used by dispatching them like this:
 
 ```ts title="Manual onFocus event"
-dispatch(api.internalActions.onFocus())
+dispatch(api.internalActions.onFocus());
 ```

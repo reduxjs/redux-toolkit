@@ -17,9 +17,9 @@ The core concepts are:
 ```ts title="Example optimistic update mutation"
 const api = createApi({
   baseQuery,
-  entityTypes: ['Post'],
+  tagTypes: ['Post'],
   endpoints: (build) => ({
-    getPost: build.query<Post, string>({ query: (id) => `post/${id}`, provides: ['Post'] }),
+    getPost: build.query<Post, string>({ query: (id) => `post/${id}`, providesTags: ['Post'] }),
     updatePost: build.mutation<void, Pick<Post, 'id'> & Partial<Post>, { undoPost: Patch[] }>({
       query: ({ id, ...patch }) => ({ url: `post/${id}`, method: 'PATCH', body: patch }),
       onStart({ id, ...patch }, { dispatch, context }) {
@@ -34,7 +34,7 @@ const api = createApi({
         // If there is an error, roll it back
         dispatch(api.util.patchQueryResult('getPost', id, context.undoPost));
       },
-      invalidates: ['Post'],
+      invalidatesTags: ['Post'],
     }),
   }),
 });

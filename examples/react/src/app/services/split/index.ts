@@ -1,5 +1,4 @@
-import { createApi, fetchBaseQuery, ApiWithInjectedEndpoints } from '@rtk-incubator/rtk-query';
-
+import { createApi, fetchBaseQuery, ApiWithInjectedEndpoints } from '@rtk-incubator/rtk-query/react';
 export interface Post {
   id: number;
   name: string;
@@ -14,11 +13,12 @@ export const emptySplitApi = createApi({
   endpoints: () => ({}),
 });
 
-export const splitApi = emptySplitApi as ApiWithInjectedEndpoints<
-  typeof emptySplitApi,
-  [
-    // these are only type imports, no runtime imports -> no bundle dependence
-    typeof import('./posts').apiWithPosts,
-    typeof import('./post').apiWithPost
-  ]
->;
+export const splitApi = emptySplitApi as any;
+// as ApiWithInjectedEndpoints<
+//   typeof emptySplitApi,
+//   [
+//     // these are only type imports, no runtime imports -> no bundle dependence
+//     typeof import('./posts').apiWithPosts,
+//     typeof import('./post').apiWithPost
+//   ]
+// >;

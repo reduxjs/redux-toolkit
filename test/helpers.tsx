@@ -2,12 +2,20 @@ import { AnyAction, configureStore, EnhancedStore, Middleware, Store } from '@re
 import { setupListeners } from '@rtk-incubator/rtk-query';
 
 import { act } from '@testing-library/react-hooks';
-import React, { Reducer } from 'react';
+import React, { Reducer, useCallback } from 'react';
 import { Provider } from 'react-redux';
 
 export const ANY = 0 as any;
 
 export const DEFAULT_DELAY_MS = 150;
+
+export const getSerializedHeaders = (headers: Headers = new Headers()) => {
+  let result: Record<string, string> = {};
+  headers.forEach((val, key) => {
+    result[key] = val;
+  });
+  return result;
+};
 
 export async function waitMs(time = DEFAULT_DELAY_MS) {
   const now = Date.now();
@@ -40,6 +48,48 @@ export const hookWaitFor = async (cb: () => void, time = 2000) => {
       await act(() => waitMs(2));
     }
   }
+};
+
+export const useRenderCounter = () => {
+  const countRef = React.useRef(0);
+
+  React.useEffect(() => {
+    countRef.current += 1;
+  });
+
+  React.useEffect(() => {
+    return () => {
+      countRef.current = 0;
+    };
+  }, []);
+
+  return useCallback(() => countRef.current, []);
+};
+
+export function matchSequence(_actions: AnyAction[], ...matchers: Array<(arg: any) => boolean>) {
+  const actions = _actions.concat();
+  actions.shift(); // remove INIT
+  expect(matchers.length).toBe(actions.length);
+  for (let i = 0; i < matchers.length; i++) {
+    expect(matchers[i](actions[i])).toBe(true);
+  }
+}
+
+export function notMatchSequence(_actions: AnyAction[], ...matchers: Array<Array<(arg: any) => boolean>>) {
+  const actions = _actions.concat();
+  actions.shift(); // remove INIT
+  expect(matchers.length).toBe(actions.length);
+  for (let i = 0; i < matchers.length; i++) {
+    for (const matcher of matchers[i]) {
+      expect(matcher(actions[i])).not.toBe(true);
+    }
+  }
+}
+
+export const actionsReducer = {
+  actions: (state: AnyAction[] = [], action: AnyAction) => {
+    return [...state, action];
+  },
 };
 
 export function setupApiStore<

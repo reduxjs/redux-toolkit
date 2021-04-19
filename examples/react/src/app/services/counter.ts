@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
+import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query/react';
 
 interface CountResponse {
   count: number;

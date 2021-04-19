@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { createApi, setupListeners } from '@rtk-incubator/rtk-query';
-import { act, fireEvent, render, waitFor } from '@testing-library/react';
+import { createApi, setupListeners } from '@rtk-incubator/rtk-query/react';
+import { act, fireEvent, render, waitFor, screen } from '@testing-library/react';
 import { setupApiStore, waitMs } from './helpers';
 import { AnyAction } from '@reduxjs/toolkit';
 
@@ -52,11 +52,11 @@ describe('refetchOnFocus tests', () => {
       );
     }
 
-    let { getByTestId } = render(<User />, { wrapper: storeRef.wrapper });
+    render(<User />, { wrapper: storeRef.wrapper });
 
-    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('true'));
-    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('false'));
-    await waitFor(() => expect(getByTestId('amount').textContent).toBe('1'));
+    await waitFor(() => expect(screen.getByTestId('isLoading').textContent).toBe('true'));
+    await waitFor(() => expect(screen.getByTestId('isLoading').textContent).toBe('false'));
+    await waitFor(() => expect(screen.getByTestId('amount').textContent).toBe('1'));
 
     act(() => {
       fireEvent.focus(window);
@@ -64,7 +64,7 @@ describe('refetchOnFocus tests', () => {
 
     await waitMs();
 
-    await waitFor(() => expect(getByTestId('amount').textContent).toBe('2'));
+    await waitFor(() => expect(screen.getByTestId('amount').textContent).toBe('2'));
   });
 
   test('useQuery hook respects refetchOnFocus: false from a hook and overrides createApi defaults', async () => {
@@ -83,11 +83,11 @@ describe('refetchOnFocus tests', () => {
       );
     }
 
-    let { getByTestId } = render(<User />, { wrapper: storeRef.wrapper });
+    render(<User />, { wrapper: storeRef.wrapper });
 
-    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('true'));
-    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('false'));
-    await waitFor(() => expect(getByTestId('amount').textContent).toBe('1'));
+    await waitFor(() => expect(screen.getByTestId('isLoading').textContent).toBe('true'));
+    await waitFor(() => expect(screen.getByTestId('isLoading').textContent).toBe('false'));
+    await waitFor(() => expect(screen.getByTestId('amount').textContent).toBe('1'));
 
     act(() => {
       fireEvent.focus(window);
@@ -95,7 +95,7 @@ describe('refetchOnFocus tests', () => {
 
     await waitMs();
 
-    await waitFor(() => expect(getByTestId('amount').textContent).toBe('1'));
+    await waitFor(() => expect(screen.getByTestId('amount').textContent).toBe('1'));
   });
 
   test('useQuery hook prefers refetchOnFocus: true when multiple components have different configurations', async () => {
@@ -121,7 +121,7 @@ describe('refetchOnFocus tests', () => {
       return <div />;
     }
 
-    let { getByTestId } = render(
+    render(
       <div>
         <User />
         <UserWithRefetchTrue />
@@ -129,17 +129,17 @@ describe('refetchOnFocus tests', () => {
       { wrapper: storeRef.wrapper }
     );
 
-    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('true'));
-    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('false'));
-    await waitFor(() => expect(getByTestId('amount').textContent).toBe('1'));
+    await waitFor(() => expect(screen.getByTestId('isLoading').textContent).toBe('true'));
+    await waitFor(() => expect(screen.getByTestId('isLoading').textContent).toBe('false'));
+    await waitFor(() => expect(screen.getByTestId('amount').textContent).toBe('1'));
 
     act(() => {
       fireEvent.focus(window);
     });
-    expect(getByTestId('isLoading').textContent).toBe('false');
-    await waitFor(() => expect(getByTestId('isFetching').textContent).toBe('true'));
-    await waitFor(() => expect(getByTestId('isFetching').textContent).toBe('false'));
-    await waitFor(() => expect(getByTestId('amount').textContent).toBe('2'));
+    expect(screen.getByTestId('isLoading').textContent).toBe('false');
+    await waitFor(() => expect(screen.getByTestId('isFetching').textContent).toBe('true'));
+    await waitFor(() => expect(screen.getByTestId('isFetching').textContent).toBe('false'));
+    await waitFor(() => expect(screen.getByTestId('amount').textContent).toBe('2'));
   });
 });
 
@@ -158,20 +158,20 @@ describe('refetchOnReconnect tests', () => {
       );
     }
 
-    let { getByTestId } = render(<User />, { wrapper: storeRef.wrapper });
+    render(<User />, { wrapper: storeRef.wrapper });
 
-    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('true'));
-    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('false'));
-    await waitFor(() => expect(getByTestId('amount').textContent).toBe('1'));
+    await waitFor(() => expect(screen.getByTestId('isLoading').textContent).toBe('true'));
+    await waitFor(() => expect(screen.getByTestId('isLoading').textContent).toBe('false'));
+    await waitFor(() => expect(screen.getByTestId('amount').textContent).toBe('1'));
 
     act(() => {
       window.dispatchEvent(new Event('offline'));
       window.dispatchEvent(new Event('online'));
     });
 
-    await waitFor(() => expect(getByTestId('isFetching').textContent).toBe('true'));
-    await waitFor(() => expect(getByTestId('isFetching').textContent).toBe('false'));
-    await waitFor(() => expect(getByTestId('amount').textContent).toBe('2'));
+    await waitFor(() => expect(screen.getByTestId('isFetching').textContent).toBe('true'));
+    await waitFor(() => expect(screen.getByTestId('isFetching').textContent).toBe('false'));
+    await waitFor(() => expect(screen.getByTestId('amount').textContent).toBe('2'));
   });
 
   test('useQuery hook should not refetch when refetchOnReconnect: false from a hook and overrides createApi defaults', async () => {
@@ -190,18 +190,18 @@ describe('refetchOnReconnect tests', () => {
       );
     }
 
-    let { getByTestId } = render(<User />, { wrapper: storeRef.wrapper });
+    render(<User />, { wrapper: storeRef.wrapper });
 
-    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('true'));
-    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('false'));
-    await waitFor(() => expect(getByTestId('amount').textContent).toBe('1'));
+    await waitFor(() => expect(screen.getByTestId('isLoading').textContent).toBe('true'));
+    await waitFor(() => expect(screen.getByTestId('isLoading').textContent).toBe('false'));
+    await waitFor(() => expect(screen.getByTestId('amount').textContent).toBe('1'));
 
     act(() => {
       window.dispatchEvent(new Event('offline'));
       window.dispatchEvent(new Event('online'));
     });
-    expect(getByTestId('isFetching').textContent).toBe('false');
-    await waitFor(() => expect(getByTestId('amount').textContent).toBe('1'));
+    expect(screen.getByTestId('isFetching').textContent).toBe('false');
+    await waitFor(() => expect(screen.getByTestId('amount').textContent).toBe('1'));
   });
 
   test('useQuery hook prefers refetchOnReconnect: true when multiple components have different configurations', async () => {
@@ -227,7 +227,7 @@ describe('refetchOnReconnect tests', () => {
       return <div />;
     }
 
-    let { getByTestId } = render(
+    render(
       <div>
         <User />
         <UserWithRefetchTrue />
@@ -235,18 +235,18 @@ describe('refetchOnReconnect tests', () => {
       { wrapper: storeRef.wrapper }
     );
 
-    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('true'));
-    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('false'));
-    await waitFor(() => expect(getByTestId('amount').textContent).toBe('1'));
+    await waitFor(() => expect(screen.getByTestId('isLoading').textContent).toBe('true'));
+    await waitFor(() => expect(screen.getByTestId('isLoading').textContent).toBe('false'));
+    await waitFor(() => expect(screen.getByTestId('amount').textContent).toBe('1'));
 
     act(() => {
       window.dispatchEvent(new Event('offline'));
       window.dispatchEvent(new Event('online'));
     });
 
-    await waitFor(() => expect(getByTestId('isFetching').textContent).toBe('true'));
-    await waitFor(() => expect(getByTestId('isFetching').textContent).toBe('false'));
-    await waitFor(() => expect(getByTestId('amount').textContent).toBe('2'));
+    await waitFor(() => expect(screen.getByTestId('isFetching').textContent).toBe('true'));
+    await waitFor(() => expect(screen.getByTestId('isFetching').textContent).toBe('false'));
+    await waitFor(() => expect(screen.getByTestId('amount').textContent).toBe('2'));
   });
 });
 
@@ -286,13 +286,13 @@ describe('customListenersHandler', () => {
       );
     }
 
-    let { getByTestId } = render(<User />, { wrapper: storeRef.wrapper });
+    render(<User />, { wrapper: storeRef.wrapper });
 
     expect(consoleSpy).toHaveBeenCalledWith('setup!');
 
-    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('true'));
-    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('false'));
-    await waitFor(() => expect(getByTestId('amount').textContent).toBe('1'));
+    await waitFor(() => expect(screen.getByTestId('isLoading').textContent).toBe('true'));
+    await waitFor(() => expect(screen.getByTestId('isLoading').textContent).toBe('false'));
+    await waitFor(() => expect(screen.getByTestId('amount').textContent).toBe('1'));
 
     act(() => {
       window.dispatchEvent(new Event('offline'));
@@ -301,9 +301,9 @@ describe('customListenersHandler', () => {
     expect(dispatchSpy).toHaveBeenCalled();
     expect(defaultApi.internalActions.onOnline.match(dispatchSpy.mock.calls[1][0] as AnyAction)).toBe(true);
 
-    await waitFor(() => expect(getByTestId('isFetching').textContent).toBe('true'));
-    await waitFor(() => expect(getByTestId('isFetching').textContent).toBe('false'));
-    await waitFor(() => expect(getByTestId('amount').textContent).toBe('2'));
+    await waitFor(() => expect(screen.getByTestId('isFetching').textContent).toBe('true'));
+    await waitFor(() => expect(screen.getByTestId('isFetching').textContent).toBe('false'));
+    await waitFor(() => expect(screen.getByTestId('amount').textContent).toBe('2'));
 
     unsubscribe();
     expect(consoleSpy).toHaveBeenCalledWith('cleanup!');

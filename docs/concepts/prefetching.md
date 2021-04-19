@@ -39,13 +39,8 @@ usePrefetch<EndpointName extends QueryKeys<Definitions>>(
 
 You can specify these prefetch options when declaring the hook or at the call site. The call site will take priority over the defaults.
 
-1. `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
-
-   - If specified, it will only run the query if the difference between `new Date()` and the last `fulfilledTimeStamp` is greater than the given value
-
-2. `force`
-
-   - If `force: true`, it will ignore the `ifOlderThan` value if it is set and the query will be run even if it exists in the cache.
+1. [summary](docblock://core/module.ts?token=PrefetchOptions)
+2. [overloadSummary](docblock://core/module.ts?token=PrefetchOptions)
 
 #### What to expect when you call the `callback`
 
@@ -89,7 +84,7 @@ export function usePrefetchImmediately<T extends EndpointNames>(
 ) {
   const dispatch = useDispatch();
   useEffect(() => {
-    dispatch(api.util.prefetchThunk(endpoint, arg, options));
+    dispatch(api.util.prefetch(endpoint, arg, options));
   }, []);
 }
 
@@ -101,10 +96,10 @@ usePrefetchImmediately('getUser', 5);
 
 If you're not using the `usePrefetch` hook, you can recreate the same behavior easily on your own in any framework.
 
-When dispatching the `prefetchThunk` as shown below you will see the same exact behavior as [described here](#what-to-expect-when-you-call-the-callback).
+When dispatching the `prefetch` thunk as shown below you will see the same exact behavior as [described here](#what-to-expect-when-you-call-the-callback).
 
 ```js title="Non-hook prefetching example"
-store.dispatch(api.util.prefetchThunk(endpointName, arg, { force: false, ifOlderThan: 10 }));
+store.dispatch(api.util.prefetch(endpointName, arg, { force: false, ifOlderThan: 10 }));
 ```
 
 You can also dispatch the query action, but you would be responsible for implementing any additional logic.

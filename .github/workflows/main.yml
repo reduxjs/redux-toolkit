@@ -7,7 +7,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node: ['12.x', '14.x']
+        node: ['12.x']
         os: [ubuntu-latest] #, windows-latest, macOS-latest
 
     steps:
@@ -21,6 +21,8 @@ jobs:
 
       - name: Install deps and build (with cache)
         uses: bahmutov/npm-install@v1
+        with:
+          install-command: yarn --frozen-lockfile  --ignore-scripts
 
       - name: Lint
         run: yarn lint
@@ -28,5 +30,62 @@ jobs:
       - name: Test
         run: yarn test --ci --coverage --maxWorkers=2
 
-      - name: Build
-        run: yarn build
+      - name: Pack (including Prepare)
+        run: npm pack
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: package
+          path: rtk-incubator-rtk-query*.tgz
+
+  test:
+    name: Test Types with TypeScript ${{ matrix.ts }}
+
+    needs: [build]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['12.x']
+        ts: ['3.9', '4.0', '4.1', '4.2', 'next']
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Use node ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install deps and build (with cache)
+        uses: bahmutov/npm-install@v1
+        with:
+          install-command: yarn --frozen-lockfile  --ignore-scripts
+
+      - name: Install TypeScript ${{ matrix.ts }}
+        run: npm install typescript@${{ matrix.ts }} --ignore-scripts
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: package
+
+      - name: Unpack build artifact to dist
+        run: tar -xzvf rtk-incubator-rtk-query-*.tgz --strip-components=1 package/dist
+
+      - name: Remap @redux/toolkit from src to dist
+        run: |
+          sed -i -re 's|(@rtk-incubator/rtk-query.*)\./src|\1./|' ./test/tsconfig.json
+
+      - name: '@ts-ignore @ts-expect-error  messages in pre-3.9 in the tests'
+        if: ${{ matrix.ts < 3.9 }}
+        run: |
+          sed -i 's/@ts-expect-error/@ts-ignore/' test/*.ts*
+
+      - name: "@ts-ignore stuff that didn't exist pre-4.1 in the tests"
+        if: ${{ matrix.ts < 4.1 }}
+        run: sed -i -e 's/@pre41-ts-ignore/@ts-ignore/' -e  '/pre41-remove-start/,/pre41-remove-end/d' test/*.ts*
+
+      - name: Test types
+        run: |
+          ./node_modules/.bin/tsc --version
+          ./node_modules/.bin/tsc --skipLibCheck -p test

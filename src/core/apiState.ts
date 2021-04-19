@@ -20,6 +20,9 @@ export type RefetchConfigOptions = {
   refetchOnFocus: boolean;
 };
 
+/**
+ * Strings describing the query state at any given time.
+ */
 export enum QueryStatus {
   uninitialized = 'uninitialized',
   pending = 'pending',
@@ -68,8 +71,25 @@ export function getRequestStatusFlags(status: QueryStatus): RequestStatusFlags {
 }
 
 export type SubscriptionOptions = {
+  /**
+   * How frequently to automatically re-fetch data (in milliseconds). Defaults to `0` (off).
+   */
   pollingInterval?: number;
+  /**
+   * Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after regaining a network connection.
+   *
+   * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
+   *
+   * Note: requires `setupListeners` to have been called.
+   */
   refetchOnReconnect?: boolean;
+  /**
+   * Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after the application window regains focus.
+   *
+   * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
+   *
+   * Note: requires `setupListeners` to have been called.
+   */
   refetchOnFocus?: boolean;
 };
 export type Subscribers = { [requestId: string]: SubscriptionOptions };
@@ -81,15 +101,35 @@ export type MutationKeys<Definitions extends EndpointDefinitions> = {
 }[keyof Definitions];
 
 type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
+  /**
+   * The argument originally passed into the hook or `initiate` action call
+   */
   originalArgs: QueryArgFrom<D>;
-  internalQueryArgs: unknown;
+  /**
+   * A unique ID associated with the request
+   */
   requestId: string;
+  /**
+   * The received data from the query
+   */
   data?: ResultTypeFrom<D>;
+  /**
+   * The received error if applicable
+   */
   error?:
     | SerializedError
     | (D extends QueryDefinition<any, infer BaseQuery, any, any> ? BaseQueryError<BaseQuery> : never);
-  endpoint: string;
+  /**
+   * The name of the endpoint associated with the query
+   */
+  endpointName: string;
+  /**
+   * Time that the latest query started
+   */
   startedTimeStamp: number;
+  /**
+   * Time that the latest query was fulfilled
+   */
   fulfilledTimeStamp?: number;
 };
 
@@ -106,11 +146,10 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
   | {
       status: QueryStatus.uninitialized;
       originalArgs?: undefined;
-      internalQueryArgs?: undefined;
       data?: undefined;
       error?: undefined;
       requestId?: undefined;
-      endpoint?: string;
+      endpointName?: string;
       startedTimeStamp?: undefined;
       fulfilledTimeStamp?: undefined;
     }
@@ -118,33 +157,31 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
 
 type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
   originalArgs?: QueryArgFrom<D>;
-  internalQueryArgs: unknown;
   data?: ResultTypeFrom<D>;
   error?:
     | SerializedError
     | (D extends MutationDefinition<any, infer BaseQuery, any, any> ? BaseQueryError<BaseQuery> : never);
-  endpoint: string;
+  endpointName: string;
   startedTimeStamp: number;
   fulfilledTimeStamp?: number;
 };
 
 export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
-  | ({
+  | (({
       status: QueryStatus.fulfilled;
-    } & WithRequiredProp<BaseMutationSubState<D>, 'data' | 'fulfilledTimeStamp'>)
-  | ({
+    } & WithRequiredProp<BaseMutationSubState<D>, 'data' | 'fulfilledTimeStamp'>) & { error: undefined })
+  | (({
       status: QueryStatus.pending;
-    } & BaseMutationSubState<D>)
+    } & BaseMutationSubState<D>) & { data?: undefined })
   | ({
       status: QueryStatus.rejected;
     } & WithRequiredProp<BaseMutationSubState<D>, 'error'>)
   | {
       status: QueryStatus.uninitialized;
       originalArgs?: undefined;
-      internalQueryArgs?: undefined;
       data?: undefined;
       error?: undefined;
-      endpoint?: string;
+      endpointName?: string;
       startedTimeStamp?: undefined;
       fulfilledTimeStamp?: undefined;
     };
@@ -157,8 +194,8 @@ export type CombinedState<D extends EndpointDefinitions, E extends string, Reduc
   config: ConfigState<ReducerPath>;
 };
 
-export type InvalidationState<EntityTypes extends string> = {
-  [_ in EntityTypes]: {
+export type InvalidationState<TagTypes extends string> = {
+  [_ in TagTypes]: {
     [id: string]: Array<QueryCacheKey>;
     [id: number]: Array<QueryCacheKey>;
   };
@@ -186,10 +223,6 @@ export type MutationState<D extends EndpointDefinitions> = {
   [requestId: string]: MutationSubState<D[string]> | undefined;
 };
 
-export type RootState<
-  Definitions extends EndpointDefinitions,
-  EntityTypes extends string,
-  ReducerPath extends string
-> = {
-  [P in ReducerPath]: CombinedState<Definitions, EntityTypes, P>;
+export type RootState<Definitions extends EndpointDefinitions, TagTypes extends string, ReducerPath extends string> = {
+  [P in ReducerPath]: CombinedState<Definitions, TagTypes, P>;
 };

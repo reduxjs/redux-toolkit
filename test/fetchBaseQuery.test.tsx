@@ -134,6 +134,24 @@ describe('fetchBaseQuery', () => {
       expect(request.body).toEqual(data);
     });
 
+    test('an array provided to body will be serialized when content-type is json', async () => {
+      const data = ['test', 'value'];
+
+      let request: any;
+      ({ data: request } = await baseQuery(
+        { url: '/echo', body: data, method: 'POST' },
+        {
+          signal: undefined,
+          dispatch: storeRef.store.dispatch,
+          getState: storeRef.store.getState,
+        },
+        {}
+      ));
+
+      expect(request.headers['content-type']).toBe('application/json');
+      expect(request.body).toEqual(data);
+    });
+
     test('an object provided to body will not be serialized when content-type is not json', async () => {
       const data = {
         test: 'value',
@@ -152,6 +170,24 @@ describe('fetchBaseQuery', () => {
 
       expect(request.headers['content-type']).toBe('text/html');
       expect(request.body).toEqual('[object Object]');
+    });
+
+    test('an array provided to body will not be serialized when content-type is not json', async () => {
+      const data = ['test', 'value'];
+
+      let request: any;
+      ({ data: request } = await baseQuery(
+        { url: '/echo', body: data, method: 'POST', headers: { 'content-type': 'text/html' } },
+        {
+          signal: undefined,
+          dispatch: storeRef.store.dispatch,
+          getState: storeRef.store.getState,
+        },
+        {}
+      ));
+
+      expect(request.headers['content-type']).toBe('text/html');
+      expect(request.body).toEqual(data.join(','));
     });
   });
 
@@ -221,6 +257,23 @@ describe('fetchBaseQuery', () => {
 
       expect(request.url).toEqual(`${baseUrl}/echo?apple=fruit`);
     });
+
+    it('should strip undefined values from the end params', async () => {
+      const params = { apple: 'fruit', banana: undefined, randy: null };
+
+      let request: any;
+      ({ data: request } = await baseQuery(
+        { url: '/echo', params },
+        {
+          signal: undefined,
+          dispatch: storeRef.store.dispatch,
+          getState: storeRef.store.getState,
+        },
+        {}
+      ));
+
+      expect(request.url).toEqual(`${baseUrl}/echo?apple=fruit&randy=null`);
+    });
   });
 
   describe('validateStatus', () => {
@@ -259,7 +312,6 @@ describe('fetchBaseQuery', () => {
         {}
       ));
 
-      expect(request.headers['content-type']).toBe('application/json');
       expect(request.headers['fake']).toBe(defaultHeaders['fake']);
       expect(request.headers['delete']).toBe(defaultHeaders['delete']);
       expect(request.headers['delete2']).toBe(defaultHeaders['delete2']);
@@ -278,7 +330,6 @@ describe('fetchBaseQuery', () => {
       ));
 
       expect(request.headers['authorization']).toBe('Bearer banana');
-      expect(request.headers['content-type']).toBe('application/json');
       expect(request.headers['fake']).toBe(defaultHeaders['fake']);
       expect(request.headers['delete']).toBe(defaultHeaders['delete']);
       expect(request.headers['delete2']).toBe(defaultHeaders['delete2']);
@@ -391,7 +442,6 @@ describe('fetchBaseQuery', () => {
       {}
     ));
 
-    expect(request.headers['content-type']).toBe('application/json');
     expect(request.headers['fake']).toBe(defaultHeaders['fake']);
     expect(request.headers['delete']).toBe(defaultHeaders['delete']);
     expect(request.headers['delete2']).toBe(defaultHeaders['delete2']);
@@ -410,7 +460,6 @@ describe('fetchBaseQuery', () => {
       {}
     ));
 
-    expect(request.headers['content-type']).toBe('application/json');
     expect(request.headers['banana']).toBe('1');
     expect(request.headers['fake']).toBe(defaultHeaders['fake']);
     expect(request.headers['delete']).toBe(defaultHeaders['delete']);
@@ -430,7 +479,6 @@ describe('fetchBaseQuery', () => {
       {}
     ));
 
-    expect(request.headers['content-type']).toBe('application/json');
     expect(request.headers['banana']).toBeUndefined();
     expect(request.headers['fake']).toBe(defaultHeaders['fake']);
     expect(request.headers['delete']).toBe(defaultHeaders['delete']);
@@ -460,5 +508,25 @@ describe('fetchFn', () => {
     ));
 
     expect(request.url).toEqual(`${baseUrl}/echo?apple=fruit`);
+  });
+});
+
+describe('FormData', () => {
+  test('sets the right headers when sending FormData', async () => {
+    let request: any;
+    const body = new FormData();
+    body.append('username', 'test');
+    body.append('file', new Blob([JSON.stringify({ hello: 'there' }, null, 2)], { type: 'application/json' }));
+
+    ({ data: request } = await baseQuery(
+      { url: '/echo', method: 'POST', body },
+      {
+        signal: undefined,
+        dispatch: storeRef.store.dispatch,
+        getState: storeRef.store.getState,
+      },
+      {}
+    ));
+    expect(request.headers['content-type']).not.toContain('application/json');
   });
 });

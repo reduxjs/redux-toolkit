@@ -5,10 +5,11 @@ import replace from '@rollup/plugin-replace';
 
 /** @type {import("rollup").RollupOptions} */
 const defaultConfig = {
-  input: 'src/index.ts',
+  input: ['src/index.ts', 'src/react.ts'],
   external: [/@babel\/runtime/, /@reduxjs\/toolkit/, /react$/, /react-redux/, /immer/, /tslib/],
   treeshake: {
     propertyReadSideEffects: false,
+    moduleSideEffects: false,
   },
 };
 
@@ -39,7 +40,7 @@ const configs = [
       },
     ],
     plugins: [
-      typescript(defaultTsConfig),
+      typescript({ ...defaultTsConfig, declarationDir: 'dist/esm/ts', declaration: true, declarationMap: true }),
       babel({
         exclude: 'node_modules/**',
         extensions: ['.js', '.ts'],
@@ -59,37 +60,38 @@ const configs = [
     ],
   },
   // CJS:
-  ...withMinify((minified) => ({
-    ...defaultConfig,
-    output: [
-      {
-        dir: 'dist',
-        format: 'cjs',
-        sourcemap: true,
-        entryFileNames: minified ? '[name].cjs.production.min.js' : '[name].cjs.development.js',
-      },
-    ],
-    plugins: [
-      typescript(
-        minified
-          ? defaultTsConfig
-          : { ...defaultTsConfig, declarationDir: 'dist/ts', declaration: true, declarationMap: true }
-      ),
-      replace({
-        values: {
-          'process.env.NODE_ENV': JSON.stringify(minified ? 'production' : 'development'),
-        },
-      }),
-      babel({
-        exclude: 'node_modules/**',
-        extensions: ['.js', '.ts'],
-        babelHelpers: 'runtime',
-        presets: [['@babel/preset-env', { targets: { node: true, browsers: ['defaults'] } }]],
-        plugins: [['@babel/plugin-transform-runtime', { useESModules: false }]],
-      }),
-      ...(minified ? [terser({ ...defaultTerserOptions, toplevel: true })] : []),
-    ],
-  })),
+  ...[].concat(
+    ...defaultConfig.input.map((input) =>
+      withMinify((minified) => ({
+        ...defaultConfig,
+        input,
+        output: [
+          {
+            dir: 'dist',
+            format: 'cjs',
+            sourcemap: true,
+            entryFileNames: minified ? '[name].cjs.production.min.js' : '[name].cjs.development.js',
+          },
+        ],
+        plugins: [
+          typescript(defaultTsConfig),
+          replace({
+            values: {
+              'process.env.NODE_ENV': JSON.stringify(minified ? 'production' : 'development'),
+            },
+          }),
+          babel({
+            exclude: 'node_modules/**',
+            extensions: ['.js', '.ts'],
+            babelHelpers: 'runtime',
+            presets: [['@babel/preset-env', { targets: { node: true, browsers: ['defaults'] } }]],
+            plugins: [['@babel/plugin-transform-runtime', { useESModules: false }]],
+          }),
+          ...(minified ? [terser({ ...defaultTerserOptions, toplevel: true })] : []),
+        ],
+      }))
+    )
+  ),
 ];
 
 function withMinify(build) {

@@ -7,11 +7,23 @@ export interface BaseQueryApi {
   getState: () => unknown;
 }
 
-export type BaseQueryFn<Args = any, Result = unknown, Error = unknown, DefinitionExtraOptions = {}> = (
+export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =
+  | {
+      error: E;
+      data?: undefined;
+      meta?: M;
+    }
+  | {
+      error?: undefined;
+      data: T;
+      meta?: M;
+    };
+
+export type BaseQueryFn<Args = any, Result = unknown, Error = unknown, DefinitionExtraOptions = {}, Meta = {}> = (
   args: Args,
   api: BaseQueryApi,
   extraOptions: DefinitionExtraOptions
-) => MaybePromise<{ error: Error; data?: undefined } | { error?: undefined; data?: Result }>;
+) => MaybePromise<QueryReturnValue<Result, Error, Meta>>;
 
 export type BaseQueryEnhancer<AdditionalArgs = unknown, AdditionalDefinitionExtraOptions = unknown, Config = void> = <
   BaseQuery extends BaseQueryFn
@@ -25,10 +37,15 @@ export type BaseQueryEnhancer<AdditionalArgs = unknown, AdditionalDefinitionExtr
   BaseQueryExtraOptions<BaseQuery> & AdditionalDefinitionExtraOptions
 >;
 
-export type BaseQueryResult<BaseQuery extends BaseQueryFn> = Exclude<
-  UnwrapPromise<ReturnType<BaseQuery>>,
-  { data: undefined }
->['data'];
+export type BaseQueryResult<BaseQuery extends BaseQueryFn> = UnwrapPromise<
+  ReturnType<BaseQuery>
+> extends infer Unwrapped
+  ? Unwrapped extends { data: any }
+    ? Unwrapped['data']
+    : never
+  : never;
+
+export type BaseQueryMeta<BaseQuery extends BaseQueryFn> = UnwrapPromise<ReturnType<BaseQuery>>['meta'];
 
 export type BaseQueryError<BaseQuery extends BaseQueryFn> = Exclude<
   UnwrapPromise<ReturnType<BaseQuery>>,

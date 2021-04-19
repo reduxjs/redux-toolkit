@@ -24,27 +24,30 @@ We recommend placing these generated types in one file that you do not modify (s
 import { api as generatedApi } from './petstore-api.generated';
 
 export const api = generatedApi.enhanceEndpoints({
-  addEntityTypes: ['Pet'],
+  addTagTypes: ['Pet'],
   endpoints: {
     // basic notation: just specify properties to be overridden
     getPetById: {
-      provides: (response) => [{ type: 'Pet', id: response.id }],
+      providesTags: (result, error, arg) => [{ type: 'Pet', id: arg.petId }],
     },
     findPetsByStatus: {
-      provides: (response) => [
-        { type: 'Pet', id: 'LIST' },
-        ...response.map((pet) => ({ type: 'Pet' as const, id: pet.id })),
-      ],
+      providesTags: (result) =>
+        // is result available?
+        result
+          ? // successful query
+            [{ type: 'Pet', id: 'LIST' }, ...result.map((pet) => ({ type: 'Pet' as const, id: pet.id }))]
+          : // an error occurred, but we still want to refetch this query when `{ type: 'Pet', id: 'LIST' }` is invalidated
+            [{ type: 'Pet', id: 'LIST' }],
     },
     // alternate notation: callback that gets passed in `endpoint` - you can freely modify the object here
     addPet: (endpoint) => {
-      endpoint.invalidates = (response) => [{ type: 'Pet', id: response.id }];
+      endpoint.invalidatesTags = (result) => [{ type: 'Pet', id: result.id }];
     },
     updatePet: {
-      invalidates: (response) => [{ type: 'Pet', id: response.id }],
+      invalidatesTags: (result, error, arg) => [{ type: 'Pet', id: arg.petId }],
     },
     deletePet: {
-      invalidates: (_, arg) => [{ type: 'Pet', id: arg.petId }],
+      invalidatesTags: (result, error, arg) => [{ type: 'Pet', id: arg.petId }],
     },
   },
 });

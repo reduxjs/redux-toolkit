@@ -7,20 +7,9 @@ hide_title: true
 
 # `ApiProvider`
 
-Can be used as a `Provider` if you **do not already have a Redux store**.
+[summary](docblock://react-hooks/ApiProvider.tsx?token=ApiProvider)
 
-```ts title="Basic usage - wrap your App with ApiProvider"
-import * as React from 'react';
-import { ApiProvider } from '@rtk-incubator/rtk-query';
-
-function App() {
-  return (
-    <ApiProvider api={api}>
-      <Pokemon />
-    </ApiProvider>
-  );
-}
-```
+[examples](docblock://react-hooks/ApiProvider.tsx?token=ApiProvider)
 
 :::danger
 Using this together with an existing redux store will cause them to conflict with each other. If you are already using Redux, please use follow the instructions as shown in the [Getting Started guide](../introduction/getting-started).

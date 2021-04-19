@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
+import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query/react';
 
 interface TimeResponse {
   time: string;
@@ -11,7 +11,7 @@ export const timeApi = createApi({
   endpoints: (build) => ({
     getTime: build.query<TimeResponse, string>({
       query: (id) => `time/${id}`,
-      provides: (_, id) => [{ type: 'Time', id }],
+      provides: (result, error, id) => [{ type: 'Time', id }],
     }),
   }),
   refetchOnReconnect: true,

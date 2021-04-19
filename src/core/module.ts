@@ -2,16 +2,16 @@
  * Note: this file should import all other files for type discovery and declaration merging
  */
 import { buildThunks, PatchQueryResultThunk, UpdateQueryResultThunk } from './buildThunks';
-import { AnyAction, Middleware, Reducer, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
-import { PrefetchOptions } from '../react-hooks/buildHooks';
+import { ActionCreatorWithPayload, AnyAction, Middleware, Reducer, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
 import {
   EndpointDefinitions,
   QueryArgFrom,
   QueryDefinition,
   MutationDefinition,
-  AssertEntityTypes,
+  AssertTagTypes,
   isQueryDefinition,
   isMutationDefinition,
+  FullTagDescription,
 } from '../endpointDefinitions';
 import { CombinedState, QueryKeys, RootState } from './apiState';
 import './buildSelectors';
@@ -26,6 +26,20 @@ import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs';
 import { SliceActions } from './buildSlice';
 import { BaseQueryFn } from '../baseQueryTypes';
 
+/**
+ * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
+ * - If specified, it will only run the query if the difference between `new Date()` and the last `fulfilledTimeStamp` is greater than the given value
+ *
+ * @overloadSummary
+ * `force`
+ * - If `force: true`, it will ignore the `ifOlderThan` value if it is set and the query will be run even if it exists in the cache.
+ */
+export type PrefetchOptions =
+  | {
+      ifOlderThan?: false | number;
+    }
+  | { force?: boolean };
+
 export const coreModuleName = Symbol();
 export type CoreModule = typeof coreModuleName;
 
@@ -35,27 +49,95 @@ declare module '../apiTypes' {
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
     ReducerPath extends string,
-    EntityTypes extends string
+    TagTypes extends string
   > {
     [coreModuleName]: {
+      /**
+       * This api's reducer should be mounted at `store[api.reducerPath]`.
+       *
+       * @example
+       * ```ts
+       * configureStore({
+       *   reducer: {
+       *     [api.reducerPath]: api.reducer,
+       *   },
+       *   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(api.middleware),
+       * })
+       * ```
+       */
       reducerPath: ReducerPath;
+      /**
+       * Internal actions not part of the public API. Note: These are subject to change at any given time.
+       */
       internalActions: InternalActions;
-      reducer: Reducer<CombinedState<Definitions, EntityTypes, ReducerPath>, AnyAction>;
+      /**
+       *  A standard redux reducer that enables core functionality. Make sure it's included in your store.
+       *
+       * @example
+       * ```ts
+       * configureStore({
+       *   reducer: {
+       *     [api.reducerPath]: api.reducer,
+       *   },
+       *   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(api.middleware),
+       * })
+       * ```
+       */
+      reducer: Reducer<CombinedState<Definitions, TagTypes, ReducerPath>, AnyAction>;
+      /**
+       * This is a standard redux middleware and is responsible for things like polling, garbage collection and a handful of other things. Make sure it's included in your store.
+       *
+       * @example
+       * ```ts
+       * configureStore({
+       *   reducer: {
+       *     [api.reducerPath]: api.reducer,
+       *   },
+       *   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(api.middleware),
+       * })
+       * ```
+       */
       middleware: Middleware<{}, RootState<Definitions, string, ReducerPath>, ThunkDispatch<any, any, AnyAction>>;
+      /**
+       * TODO
+       */
       util: {
+        /**
+         * TODO
+         */
+        prefetch<EndpointName extends QueryKeys<EndpointDefinitions>>(
+          endpointName: EndpointName,
+          arg: QueryArgFrom<Definitions[EndpointName]>,
+          options: PrefetchOptions
+        ): ThunkAction<void, any, any, AnyAction>;
+        /* @deprecated */
         prefetchThunk<EndpointName extends QueryKeys<EndpointDefinitions>>(
           endpointName: EndpointName,
           arg: QueryArgFrom<Definitions[EndpointName]>,
           options: PrefetchOptions
         ): ThunkAction<void, any, any, AnyAction>;
+        /**
+         * TODO
+         */
         updateQueryResult: UpdateQueryResultThunk<Definitions, RootState<Definitions, string, ReducerPath>>;
+        /**
+         * TODO
+         */
         patchQueryResult: PatchQueryResultThunk<Definitions, RootState<Definitions, string, ReducerPath>>;
+        /**
+         * TODO
+         */
+        resetApiState: SliceActions['resetApiState'];
+        /**
+         * TODO
+         */
+        invalidateTags: ActionCreatorWithPayload<Array<TagTypes | FullTagDescription<TagTypes>>, string>;
+        /** @deprecated renamed to `invalidateTags` */
+        invalidateEntities: ActionCreatorWithPayload<Array<TagTypes | FullTagDescription<TagTypes>>, string>;
       };
-      // If you actually care about the return value, use useQuery
-      usePrefetch<EndpointName extends QueryKeys<Definitions>>(
-        endpointName: EndpointName,
-        options?: PrefetchOptions
-      ): (arg: QueryArgFrom<Definitions[EndpointName]>, options?: PrefetchOptions) => void;
+      /**
+       * Endpoints based on the input endpoints provided to `createApi`, containing `select` and `action matchers`.
+       */
       endpoints: {
         [K in keyof Definitions]: Definitions[K] extends QueryDefinition<any, any, any, any, any>
           ? Id<ApiEndpointQuery<Definitions[K], Definitions>>
@@ -82,7 +164,7 @@ export interface ApiEndpointMutation<
   Definitions extends EndpointDefinitions
 > {}
 
-export type InternalActions = SliceActions & {
+export type ListenerActions = {
   /**
    * Will cause the RTK Query middleware to trigger any refetchOnReconnect-related behavior
    * @link https://rtk-query-docs.netlify.app/api/setupListeners
@@ -97,13 +179,23 @@ export type InternalActions = SliceActions & {
   onFocusLost: typeof onFocusLost;
 };
 
+export type InternalActions = SliceActions & ListenerActions;
+
+/**
+ * Creates a module containing the basic redux logic for use with `buildCreateApi`.
+ *
+ * @example
+ * ```ts
+ * const createBaseApi = buildCreateApi(coreModule());
+ * ```
+ */
 export const coreModule = (): Module<CoreModule> => ({
   name: coreModuleName,
   init(
     api,
     {
       baseQuery,
-      entityTypes,
+      tagTypes,
       reducerPath,
       serializeQueryArgs,
       keepUnusedDataFor,
@@ -115,13 +207,13 @@ export const coreModule = (): Module<CoreModule> => ({
   ) {
     assertCast<InternalSerializeQueryArgs<any>>(serializeQueryArgs);
 
-    const assertEntityType: AssertEntityTypes = (entity) => {
+    const assertTagType: AssertTagTypes = (tag) => {
       if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
-        if (!entityTypes.includes(entity.type as any)) {
-          console.error(`Entity type '${entity.type}' was used, but not specified in \`entityTypes\`!`);
+        if (!tagTypes.includes(tag.type as any)) {
+          console.error(`Tag type '${tag.type}' was used, but not specified in \`tagTypes\`!`);
         }
       }
-      return entity;
+      return tag;
     };
 
     Object.assign(api, {
@@ -141,7 +233,7 @@ export const coreModule = (): Module<CoreModule> => ({
       mutationThunk,
       patchQueryResult,
       updateQueryResult,
-      prefetchThunk,
+      prefetch,
       buildMatchThunkActions,
     } = buildThunks({
       baseQuery,
@@ -156,21 +248,27 @@ export const coreModule = (): Module<CoreModule> => ({
       queryThunk,
       mutationThunk,
       reducerPath,
-      assertEntityType,
+      assertTagType,
       config: { refetchOnFocus, refetchOnReconnect, refetchOnMountOrArgChange, keepUnusedDataFor, reducerPath },
     });
 
-    safeAssign(api.util, { patchQueryResult, updateQueryResult, prefetchThunk });
+    safeAssign(api.util, {
+      patchQueryResult,
+      updateQueryResult,
+      prefetch,
+      resetApiState: sliceActions.resetApiState,
+    });
     safeAssign(api.internalActions, sliceActions);
 
-    const { middleware } = buildMiddleware({
+    const { middleware, actions: middlewareActions } = buildMiddleware({
       reducerPath,
       context,
       queryThunk,
       mutationThunk,
       api,
-      assertEntityType,
+      assertTagType,
     });
+    safeAssign(api.util, middlewareActions);
 
     safeAssign(api, { reducer: reducer as any, middleware });
 
@@ -186,28 +284,50 @@ export const coreModule = (): Module<CoreModule> => ({
       serializeQueryArgs: serializeQueryArgs as any,
     });
 
+    // remove in final release
+    Object.defineProperty(api.util, 'invalidateEntities', {
+      get() {
+        if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+          console.warn(
+            '`api.util.invalidateEntities` has been renamed to `api.util.invalidateTags`, please change your code accordingly'
+          );
+        }
+        return api.util.invalidateTags;
+      },
+    });
+    Object.defineProperty(api.util, 'prefetchThunk', {
+      get() {
+        if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+          console.warn(
+            '`api.util.prefetchThunk` has been renamed to `api.util.prefetch`, please change your code accordingly'
+          );
+        }
+        return api.util.prefetch;
+      },
+    });
+
     return {
       name: coreModuleName,
-      injectEndpoint(endpoint, definition) {
+      injectEndpoint(endpointName, definition) {
         const anyApi = (api as any) as Api<any, Record<string, any>, string, string, CoreModule>;
-        anyApi.endpoints[endpoint] ??= {} as any;
+        anyApi.endpoints[endpointName] ??= {} as any;
         if (isQueryDefinition(definition)) {
           safeAssign(
-            anyApi.endpoints[endpoint],
+            anyApi.endpoints[endpointName],
             {
-              select: buildQuerySelector(endpoint, definition),
-              initiate: buildInitiateQuery(endpoint, definition),
+              select: buildQuerySelector(endpointName, definition),
+              initiate: buildInitiateQuery(endpointName, definition),
             },
-            buildMatchThunkActions(queryThunk, endpoint)
+            buildMatchThunkActions(queryThunk, endpointName)
           );
         } else if (isMutationDefinition(definition)) {
           safeAssign(
-            anyApi.endpoints[endpoint],
+            anyApi.endpoints[endpointName],
             {
               select: buildMutationSelector(),
-              initiate: buildInitiateMutation(endpoint, definition),
+              initiate: buildInitiateMutation(endpointName, definition),
             },
-            buildMatchThunkActions(mutationThunk, endpoint)
+            buildMatchThunkActions(mutationThunk, endpointName)
           );
         }
       },

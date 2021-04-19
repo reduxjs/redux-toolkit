@@ -4,7 +4,7 @@ const { linkDocblocks, transpileCodeblocks } = require('remark-typescript-tools'
 
 module.exports = {
   title: 'RTK Query',
-  tagline: 'Powerful data fetching and caching for everyone',
+  tagline: 'Powerful data fetching and caching for Redux',
   url: 'https://rtk-query-docs.netlify.app/',
   baseUrl: '/',
   onBrokenLinks: 'throw',
@@ -12,12 +12,14 @@ module.exports = {
   organizationName: 'rtk-incubator', // Usually your GitHub org/user name.
   projectName: 'rtk-query', // Usually your repo name.
   themeConfig: {
+    metadatas: [{ name: 'twitter:card', content: 'summary' }],
     algolia: {
       apiKey: '59c7887d3d06cf3e4d774d2caf0dcb4b',
       indexName: 'rtk-query-docs',
 
       searchParameters: {},
     },
+    image: 'img/redux-logo-landscape.png',
     navbar: {
       title: 'RTK Query',
       logo: {
@@ -97,7 +99,7 @@ module.exports = {
       {
         docs: {
           path: '../docs',
-          include: ['{api,assets,concepts,introduction,examples}/*.{md,mdx}'],
+          include: ['{api,assets,concepts,introduction,examples}/**/*.{md,mdx}'],
           routeBasePath: '/',
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
@@ -109,7 +111,7 @@ module.exports = {
                 extractorSettings: {
                   tsconfig: resolve(__dirname, '../docs/tsconfig.json'),
                   basedir: resolve(__dirname, '../src'),
-                  rootFiles: ['index.ts'],
+                  rootFiles: ['index.ts', 'react.ts', 'react-hooks/ApiProvider.tsx'],
                 },
               },
             ],

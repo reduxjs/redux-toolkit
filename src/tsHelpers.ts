@@ -8,7 +8,7 @@ export function safeAssign<T extends object>(target: T, ...args: Array<Partial<N
 }
 
 /**
- * Convert a Union type `(A|B)` to and intersecion type `(A&B)`
+ * Convert a Union type `(A|B)` to an intersection type `(A&B)`
  */
 export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 
@@ -23,3 +23,9 @@ export type NoInfer<T> = [T][T extends any ? 0 : never];
 export type UnwrapPromise<T> = T extends PromiseLike<infer V> ? V : T;
 
 export type MaybePromise<T> = T | PromiseLike<T>;
+
+export type OmitFromUnion<T, K extends keyof T> = T extends any ? Omit<T, K> : never;
+
+export type IsAny<T, True, False = never> = true | false extends (T extends never ? true : false) ? True : False;
+
+export type CastAny<T, CastTo> = IsAny<T, CastTo, T>;

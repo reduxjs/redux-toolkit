@@ -12,7 +12,7 @@ import {
   QueryDefinition,
   MutationDefinition,
   QueryArgFrom,
-  EntityTypesFrom,
+  TagTypesFrom,
   ReducerPathFrom,
 } from '../endpointDefinitions';
 import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs';
@@ -24,9 +24,9 @@ declare module './module' {
     Definition extends QueryDefinition<any, any, any, any, any>,
     Definitions extends EndpointDefinitions
   > {
-    select: QueryResultSelector<
+    select: QueryResultSelectorFactory<
       Definition,
-      _RootState<Definitions, EntityTypesFrom<Definition>, ReducerPathFrom<Definition>>
+      _RootState<Definitions, TagTypesFrom<Definition>, ReducerPathFrom<Definition>>
     >;
   }
 
@@ -34,14 +34,14 @@ declare module './module' {
     Definition extends MutationDefinition<any, any, any, any, any>,
     Definitions extends EndpointDefinitions
   > {
-    select: MutationResultSelector<
+    select: MutationResultSelectorFactory<
       Definition,
-      _RootState<Definitions, EntityTypesFrom<Definition>, ReducerPathFrom<Definition>>
+      _RootState<Definitions, TagTypesFrom<Definition>, ReducerPathFrom<Definition>>
     >;
   }
 }
 
-type QueryResultSelector<Definition extends QueryDefinition<any, any, any, any>, RootState> = (
+type QueryResultSelectorFactory<Definition extends QueryDefinition<any, any, any, any>, RootState> = (
   queryArg: QueryArgFrom<Definition> | typeof skipSelector
 ) => (state: RootState) => QueryResultSelectorResult<Definition>;
 
@@ -49,9 +49,13 @@ export type QueryResultSelectorResult<
   Definition extends QueryDefinition<any, any, any, any>
 > = QuerySubState<Definition> & RequestStatusFlags;
 
-type MutationResultSelector<Definition extends MutationDefinition<any, any, any, any>, RootState> = (
+type MutationResultSelectorFactory<Definition extends MutationDefinition<any, any, any, any>, RootState> = (
   requestId: string | typeof skipSelector
-) => (state: RootState) => MutationSubState<Definition> & RequestStatusFlags;
+) => (state: RootState) => MutationResultSelectorResult<Definition>;
+
+export type MutationResultSelectorResult<
+  Definition extends MutationDefinition<any, any, any, any>
+> = MutationSubState<Definition> & RequestStatusFlags;
 
 const initialSubState = {
   status: QueryStatus.uninitialized as const,
@@ -68,7 +72,7 @@ export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDe
   serializeQueryArgs: InternalSerializeQueryArgs<InternalQueryArgs>;
   reducerPath: ReducerPath;
 }) {
-  type RootState = _RootState<Definitions, string, ReducerPath>;
+  type RootState = _RootState<Definitions, string, string>;
 
   return { buildQuerySelector, buildMutationSelector };
 
@@ -84,24 +88,23 @@ export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDe
   }
 
   function buildQuerySelector(
-    endpoint: string,
-    definition: QueryDefinition<any, any, any, any>
-  ): QueryResultSelector<any, RootState> {
-    return (arg?) => {
+    endpointName: string,
+    endpointDefinition: QueryDefinition<any, any, any, any>
+  ): QueryResultSelectorFactory<any, RootState> {
+    return (queryArgs) => {
       const selectQuerySubState = createSelector(
         selectInternalState,
         (internalState) =>
-          (arg === skipSelector
+          (queryArgs === skipSelector
             ? undefined
-            : internalState.queries[
-                serializeQueryArgs({ queryArgs: arg, internalQueryArgs: definition.query(arg), endpoint })
-              ]) ?? defaultQuerySubState
+            : internalState.queries[serializeQueryArgs({ queryArgs, endpointDefinition, endpointName })]) ??
+          defaultQuerySubState
       );
       return createSelector(selectQuerySubState, withRequestFlags);
     };
   }
 
-  function buildMutationSelector(): MutationResultSelector<any, RootState> {
+  function buildMutationSelector(): MutationResultSelectorFactory<any, RootState> {
     return (mutationId) => {
       const selectMutationSubstate = createSelector(
         selectInternalState,

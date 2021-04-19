@@ -6,7 +6,7 @@ import { timeApi } from './services/times';
 import polling from '../features/polling/pollingSlice';
 import { splitApi } from './services/split';
 import auth from '../features/auth/authSlice';
-import { setupListeners } from '@rtk-incubator/rtk-query';
+import { setupListeners } from '@rtk-incubator/rtk-query/react';
 
 export const createStore = (options?: ConfigureStoreOptions['preloadedState'] | undefined) =>
   configureStore({

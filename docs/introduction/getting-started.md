@@ -33,14 +33,15 @@ If you're a React user, make sure that you've installed `react-redux`. If you're
 
 ## Setting up your store and API service
 
-To see how RTK Query works, let's walk through a basic usage example.
+To see how RTK Query works, let's walk through a basic usage example. For this example, we'll assume you're using React and want to make use of RTK Query's auto-generated React hooks.
 
 ### Create an API service
 
 First, we'll create a service definition that queries the publicly available [PokeAPI](https://pokeapi.co/).
 
 ```ts title="src/services/pokemon.ts"
-import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
+// Need to use the React-specific entry point to import createApi
+import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query/react';
 
 // highlight-start
 // Define a service using a base URL and expected endpoints
@@ -70,6 +71,7 @@ An RTK service generates a "slice reducer" that should be included in the Redux 
 
 ```ts title="src/store.ts"
 import { configureStore } from '@reduxjs/toolkit';
+// Or from '@rtk-incubator/rtk-query/react'
 import { setupListeners } from '@rtk-incubator/rtk-query';
 import { pokemonApi } from './services/pokemon';
 

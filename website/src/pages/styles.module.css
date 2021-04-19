@@ -39,7 +39,7 @@
   color: #000;
 }
 
-.featureImage {
+.featureImage svg {
   height: 100px;
   width: 100px;
 }

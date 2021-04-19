@@ -116,31 +116,9 @@ RTK Query exports a utility called `retry` that you can wrap the `baseQuery` in 
 
 The default behavior would retry at these intervals:
 
-1. 600ms + random time
-2. 1200ms + random time
-3. 2400ms + random time
-4. 4800ms + random time
-5. 9600ms + random time
+[remarks](docblock://retry.ts?token=defaultBackoff)
 
-```ts title="Retry every request 5 times by default"
-// maxRetries: 5 is the default, and can be omitted. Shown for documentation purposes.
-const staggeredBaseQuery = retry(fetchBaseQuery({ baseUrl: '/' }), { maxRetries: 5 });
-
-export const api = createApi({
-  baseQuery: staggeredBaseQuery,
-  endpoints: (build) => ({
-    getPosts: build.query<PostsResponse, void>({
-      query: () => ({ url: 'posts' }),
-    }),
-    getPost: build.query<PostsResponse, void>({
-      query: (id: string) => ({ url: `posts/${id}` }),
-      extraOptions: { maxRetries: 8 }, // You can override the retry behavior on each endpoint
-    }),
-  }),
-});
-
-export const { useGetPostsQuery, useGetPostQuery } = api;
-```
+[examples](docblock://retry.ts?token=retry)
 
 In the event that you didn't want to retry on a specific endpoint, you can just set `maxRetries: 0`.
 

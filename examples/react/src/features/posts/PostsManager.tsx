@@ -56,7 +56,9 @@ const PostListItem = ({ data: { name, id }, onSelect }: { data: Post; onSelect: 
 };
 
 const PostList = () => {
-  const { data: posts, isLoading } = useGetPostsQuery();
+  // const { data: posts, isLoading } = useGetPostsQuery();
+  const [getPosts, { data: posts, isLoading, isFetching }] = postApi.endpoints['getPosts'].useLazyQuery();
+
   const { push } = useHistory();
 
   if (isLoading) {
@@ -64,11 +66,19 @@ const PostList = () => {
   }
 
   if (!posts) {
-    return <div>No posts :(</div>;
+    return (
+      <div>
+        No posts :({' '}
+        <button onClick={() => getPosts()} disabled={isFetching}>
+          {isFetching ? 'Fetching...' : 'Fetch them'}
+        </button>
+      </div>
+    );
   }
 
   return (
     <div>
+      <button onClick={() => getPosts()}> {isFetching ? 'Fetching...' : 'Refetch posts'}</button>
       {posts.map((post) => (
         <PostListItem key={post.id} data={post} onSelect={(id) => push(`/posts/${id}`)} />
       ))}

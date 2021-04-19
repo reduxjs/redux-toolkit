@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { createApi } from '@rtk-incubator/rtk-query';
+import { createApi } from '@rtk-incubator/rtk-query/react';
 
 import { renderHook } from '@testing-library/react-hooks';
 import { withProvider } from './helpers';
@@ -36,10 +36,7 @@ test('handles a non-async baseQuery without error', async () => {
     data: {
       url: 'user/1',
     },
-    endpoint: 'getUser',
-    internalQueryArgs: {
-      url: 'user/1',
-    },
+    endpointName: 'getUser',
     isError: false,
     isLoading: false,
     isSuccess: true,

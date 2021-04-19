@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-import { createApi, QueryStatus } from '@rtk-incubator/rtk-query';
+import { createApi, QueryStatus } from '@rtk-incubator/rtk-query/react';
 import { render, waitFor } from '@testing-library/react';
 import { setupApiStore } from './helpers';
 
@@ -19,18 +19,18 @@ let getSubStateA = () => storeRef.store.getState().api.queries['a(undefined)'];
 let getSubStateB = () => storeRef.store.getState().api.queries['b(undefined)'];
 
 function UsingA() {
-  api.useAQuery();
+  api.endpoints.a.useQuery();
   return <></>;
 }
 
 function UsingB() {
-  api.useBQuery();
+  api.endpoints.b.useQuery();
   return <></>;
 }
 
 function UsingAB() {
-  api.useAQuery();
-  api.useBQuery();
+  api.endpoints.a.useQuery();
+  api.endpoints.b.useQuery();
   return <></>;
 }
 

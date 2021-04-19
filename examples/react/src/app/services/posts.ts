@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery, retry } from '@rtk-incubator/rtk-query';
+import { createApi, fetchBaseQuery, retry } from '@rtk-incubator/rtk-query/react';
 import { RootState } from '../store';
 
 export interface Post {
@@ -47,10 +47,10 @@ export const postApi = createApi({
     }),
     getPosts: build.query<PostsResponse, void>({
       query: () => ({ url: 'posts' }),
-      provides: (result) => [
-        ...result.map(({ id }) => ({ type: 'Posts', id } as const)),
-        { type: 'Posts', id: 'LIST' },
-      ],
+      provides: (result) =>
+        result
+          ? [...result.map(({ id }) => ({ type: 'Posts', id } as const)), { type: 'Posts', id: 'LIST' }]
+          : [{ type: 'Posts', id: 'LIST' }],
     }),
     addPost: build.mutation<Post, Partial<Post>>({
       query: (body) => ({
@@ -62,7 +62,7 @@ export const postApi = createApi({
     }),
     getPost: build.query<Post, number>({
       query: (id) => `posts/${id}`,
-      provides: (_, id) => [{ type: 'Posts', id }],
+      provides: (result, error, id) => [{ type: 'Posts', id }],
     }),
     updatePost: build.mutation<Post, Partial<Post>>({
       query(data) {
@@ -73,7 +73,7 @@ export const postApi = createApi({
           body,
         };
       },
-      invalidates: (_, { id }) => [{ type: 'Posts', id }],
+      invalidates: (result, error, { id }) => [{ type: 'Posts', id }],
     }),
     deletePost: build.mutation<{ success: boolean; id: number }, number>({
       query(id) {
@@ -82,7 +82,7 @@ export const postApi = createApi({
           method: 'DELETE',
         };
       },
-      invalidates: (_, id) => [{ type: 'Posts', id }],
+      invalidates: (result, error, id) => [{ type: 'Posts', id }],
     }),
     getErrorProne: build.query<{ success: boolean }, void>({
       query: () => 'error-prone',

@@ -45,7 +45,7 @@ declare module '@rtk-incubator/rtk-query' {
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
     ReducerPath extends string,
-    EntityTypes extends string
+    TagTypes extends string
   > {
     [customModuleName]: {
       endpoints: {

@@ -1,0 +1,17 @@
+{
+  "main": "../dist/react.js",
+  "module": "../dist/esm/react.js",
+  "types": "./rtk-query__react.d.ts",
+  "typesVersions": {
+    ">=4.1": {
+      "rtk-query__react.d.ts": [
+        "../dist/esm/ts-4.1/react.d.ts"
+      ]
+    },
+    "<4.1": {
+      "rtk-query__react.d.ts": [
+        "../dist/esm/ts/react.d.ts"
+      ]
+    }
+  }
+}

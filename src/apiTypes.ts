@@ -1,4 +1,4 @@
-import { EndpointDefinitions, EndpointBuilder, EndpointDefinition, ReplaceEntityTypes } from './endpointDefinitions';
+import { EndpointDefinitions, EndpointBuilder, EndpointDefinition, ReplaceTagTypes } from './endpointDefinitions';
 import { UnionToIntersection, Id, NoInfer } from './tsHelpers';
 import { CoreModule } from './core/module';
 import { CreateApiOptions } from './createApi';
@@ -12,7 +12,7 @@ export interface ApiModules<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ReducerPath extends string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  EntityTypes extends string
+  TagTypes extends string
 > {}
 
 export type ModuleName = keyof ApiModules<any, any, any, any>;
@@ -23,13 +23,13 @@ export type Module<Name extends ModuleName> = {
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
     ReducerPath extends string,
-    EntityTypes extends string
+    TagTypes extends string
   >(
-    api: Api<BaseQuery, EndpointDefinitions, ReducerPath, EntityTypes, ModuleName>,
-    options: Required<CreateApiOptions<BaseQuery, Definitions, ReducerPath, EntityTypes>>,
+    api: Api<BaseQuery, EndpointDefinitions, ReducerPath, TagTypes, ModuleName>,
+    options: Required<CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>>,
     context: ApiContext<Definitions>
   ): {
-    injectEndpoint(endpoint: string, definition: EndpointDefinition<any, any, any, any>): void;
+    injectEndpoint(endpointName: string, definition: EndpointDefinition<any, any, any, any>): void;
   };
 };
 
@@ -42,26 +42,34 @@ export type Api<
   BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
-  EntityTypes extends string,
+  TagTypes extends string,
   Enhancers extends ModuleName = CoreModule
 > = Id<
-  Id<UnionToIntersection<ApiModules<BaseQuery, Definitions, ReducerPath, EntityTypes>[Enhancers]>> & {
+  Id<UnionToIntersection<ApiModules<BaseQuery, Definitions, ReducerPath, TagTypes>[Enhancers]>> & {
+    /**
+     * A function to inject the endpoints into the original API, but also give you that same API with correct types for these endpoints back. Useful with code-splitting.
+     */
     injectEndpoints<NewDefinitions extends EndpointDefinitions>(_: {
-      endpoints: (build: EndpointBuilder<BaseQuery, EntityTypes, ReducerPath>) => NewDefinitions;
+      endpoints: (build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>) => NewDefinitions;
       overrideExisting?: boolean;
-    }): Api<BaseQuery, Definitions & NewDefinitions, ReducerPath, EntityTypes, Enhancers>;
-    enhanceEndpoints<NewEntityTypes extends string = never>(_: {
-      addEntityTypes?: readonly NewEntityTypes[];
-      endpoints?: ReplaceEntityTypes<Definitions, EntityTypes | NoInfer<NewEntityTypes>> extends infer NewDefinitions
+    }): Api<BaseQuery, Definitions & NewDefinitions, ReducerPath, TagTypes, Enhancers>;
+    /**
+     *A function to enhance a generated API with additional information. Useful with code-generation.
+     */
+    enhanceEndpoints<NewTagTypes extends string = never>(_: {
+      /** @deprecated */
+      addEntityTypes?: readonly NewTagTypes[];
+      addTagTypes?: readonly NewTagTypes[];
+      endpoints?: ReplaceTagTypes<Definitions, TagTypes | NoInfer<NewTagTypes>> extends infer NewDefinitions
         ? {
             [K in keyof NewDefinitions]?: Partial<NewDefinitions[K]> | ((definition: NewDefinitions[K]) => void);
           }
         : never;
     }): Api<
       BaseQuery,
-      ReplaceEntityTypes<Definitions, EntityTypes | NewEntityTypes>,
+      ReplaceTagTypes<Definitions, TagTypes | NewTagTypes>,
       ReducerPath,
-      EntityTypes | NewEntityTypes,
+      TagTypes | NewTagTypes,
       Enhancers
     >;
   }

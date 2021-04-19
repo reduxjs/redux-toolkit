@@ -14,7 +14,7 @@ export const apiWithPost = emptySplitApi.injectEndpoints({
     }),
     getPost: build.query<Post, number>({
       query: (id) => `posts/${id}`,
-      provides: (_, id) => [{ type: 'Posts', id }],
+      provides: (result, error, id) => [{ type: 'Posts', id }],
     }),
     updatePost: build.mutation<Post, Partial<Post>>({
       query(data) {
@@ -25,7 +25,7 @@ export const apiWithPost = emptySplitApi.injectEndpoints({
           body,
         };
       },
-      invalidates: (_, { id }) => [{ type: 'Posts', id }],
+      invalidates: (result, error, { id }) => [{ type: 'Posts', id }],
     }),
     deletePost: build.mutation<{ success: boolean; id: number }, number>({
       query(id) {
@@ -34,7 +34,7 @@ export const apiWithPost = emptySplitApi.injectEndpoints({
           method: 'DELETE',
         };
       },
-      invalidates: (_, id) => [{ type: 'Posts', id }],
+      invalidates: (result, error, id) => [{ type: 'Posts', id }],
     }),
   }),
 });

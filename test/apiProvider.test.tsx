@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { createApi, ApiProvider } from '@rtk-incubator/rtk-query';
+import { createApi, ApiProvider } from '@rtk-incubator/rtk-query/react';
 import { fireEvent, render, waitFor } from '@testing-library/react';
 import { waitMs } from './helpers';
 

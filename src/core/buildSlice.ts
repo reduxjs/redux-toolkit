@@ -1,4 +1,13 @@
-import { AsyncThunk, combineReducers, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import {
+  AsyncThunk,
+  combineReducers,
+  createAction,
+  createSlice,
+  isAnyOf,
+  isFulfilled,
+  isRejectedWithValue,
+  PayloadAction,
+} from '@reduxjs/toolkit';
 import {
   CombinedState,
   QuerySubstateIdentifier,
@@ -14,8 +23,8 @@ import {
   SubscriptionState,
   ConfigState,
 } from './apiState';
-import type { MutationThunkArg, QueryThunkArg, ThunkResult } from './buildThunks';
-import { AssertEntityTypes, calculateProvidedBy, EndpointDefinitions } from '../endpointDefinitions';
+import { calculateProvidedByThunk, MutationThunkArg, QueryThunkArg, ThunkResult } from './buildThunks';
+import { AssertTagTypes, EndpointDefinitions } from '../endpointDefinitions';
 import { applyPatches, Patch } from 'immer';
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners';
 import { isDocumentVisible, isOnline, copyWithStructuralSharing } from '../utils';
@@ -43,24 +52,27 @@ function updateMutationSubstateIfExists(
   }
 }
 
+const initialState = {} as any;
+
 export function buildSlice({
   reducerPath,
   queryThunk,
   mutationThunk,
   context: { endpointDefinitions: definitions },
-  assertEntityType,
+  assertTagType,
   config,
 }: {
   reducerPath: string;
   queryThunk: AsyncThunk<ThunkResult, QueryThunkArg<any>, {}>;
   mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg<any>, {}>;
   context: ApiContext<EndpointDefinitions>;
-  assertEntityType: AssertEntityTypes;
+  assertTagType: AssertTagTypes;
   config: Omit<ConfigState<string>, 'online' | 'focused'>;
 }) {
+  const resetApiState = createAction(`${reducerPath}/resetApiState`);
   const querySlice = createSlice({
     name: `${reducerPath}/queries`,
-    initialState: {} as QueryState<any>,
+    initialState: initialState as QueryState<any>,
     reducers: {
       removeQueryResult(draft, { payload: { queryCacheKey } }: PayloadAction<QuerySubstateIdentifier>) {
         delete draft[queryCacheKey];
@@ -81,14 +93,13 @@ export function buildSlice({
             // only initialize substate if we want to subscribe to it
             draft[arg.queryCacheKey] ??= {
               status: QueryStatus.uninitialized,
-              endpoint: arg.endpoint,
+              endpointName: arg.endpointName,
             };
           }
 
           updateQuerySubstateIfExists(draft, arg.queryCacheKey, (substate) => {
             substate.status = QueryStatus.pending;
             substate.requestId = requestId;
-            substate.internalQueryArgs = arg.internalQueryArgs;
             substate.originalArgs = arg.originalArgs;
             substate.startedTimeStamp = arg.startedTimeStamp;
           });
@@ -98,7 +109,7 @@ export function buildSlice({
             if (substate.requestId !== meta.requestId) return;
             substate.status = QueryStatus.fulfilled;
             substate.data = copyWithStructuralSharing(substate.data, payload.result);
-            substate.error = undefined;
+            delete substate.error;
             substate.fulfilledTimeStamp = payload.fulfilledTimeStamp;
           });
         })
@@ -118,7 +129,7 @@ export function buildSlice({
   });
   const mutationSlice = createSlice({
     name: `${reducerPath}/mutations`,
-    initialState: {} as MutationState<any>,
+    initialState: initialState as MutationState<any>,
     reducers: {
       unsubscribeResult(draft, action: PayloadAction<MutationSubstateIdentifier>) {
         if (action.payload.requestId in draft) {
@@ -133,9 +144,8 @@ export function buildSlice({
 
           draft[requestId] = {
             status: QueryStatus.pending,
-            internalQueryArgs: arg.internalQueryArgs,
             originalArgs: arg.originalArgs,
-            endpoint: arg.endpoint,
+            endpointName: arg.endpointName,
             startedTimeStamp: arg.startedTimeStamp,
           };
         })
@@ -161,33 +171,29 @@ export function buildSlice({
 
   const invalidationSlice = createSlice({
     name: `${reducerPath}/invalidation`,
-    initialState: {} as InvalidationState<string>,
+    initialState: initialState as InvalidationState<string>,
     reducers: {},
     extraReducers(builder) {
       builder
-        .addCase(queryThunk.fulfilled, (draft, { payload, meta: { arg } }) => {
-          const { endpoint, queryCacheKey } = arg;
-          const providedEntities = calculateProvidedBy(
-            definitions[endpoint].provides,
-            payload.result,
-            arg.originalArgs,
-            assertEntityType
-          );
-          for (const { type, id } of providedEntities) {
-            const subscribedQueries = ((draft[type] ??= {})[id || '__internal_without_id'] ??= []);
-            const alreadySubscribed = subscribedQueries.includes(queryCacheKey);
-            if (!alreadySubscribed) {
-              subscribedQueries.push(queryCacheKey);
-            }
-          }
-        })
         .addCase(querySlice.actions.removeQueryResult, (draft, { payload: { queryCacheKey } }) => {
-          for (const entityTypeSubscriptions of Object.values(draft)) {
-            for (const idSubscriptions of Object.values(entityTypeSubscriptions)) {
+          for (const tagTypeSubscriptions of Object.values(draft)) {
+            for (const idSubscriptions of Object.values(tagTypeSubscriptions)) {
               const foundAt = idSubscriptions.indexOf(queryCacheKey);
               if (foundAt !== -1) {
                 idSubscriptions.splice(foundAt, 1);
               }
+            }
+          }
+        })
+        .addMatcher(isAnyOf(isFulfilled(queryThunk), isRejectedWithValue(queryThunk)), (draft, action) => {
+          const providedTags = calculateProvidedByThunk(action, 'providesTags', definitions, assertTagType);
+          const { queryCacheKey } = action.meta.arg;
+
+          for (const { type, id } of providedTags) {
+            const subscribedQueries = ((draft[type] ??= {})[id || '__internal_without_id'] ??= []);
+            const alreadySubscribed = subscribedQueries.includes(queryCacheKey);
+            if (!alreadySubscribed) {
+              subscribedQueries.push(queryCacheKey);
             }
           }
         });
@@ -196,14 +202,14 @@ export function buildSlice({
 
   const subscriptionSlice = createSlice({
     name: `${reducerPath}/subscriptions`,
-    initialState: {} as SubscriptionState,
+    initialState: initialState as SubscriptionState,
     reducers: {
       updateSubscriptionOptions(
         draft,
         {
           payload: { queryCacheKey, requestId, options },
         }: PayloadAction<
-          { endpoint: string; requestId: string; options: Subscribers[number] } & QuerySubstateIdentifier
+          { endpointName: string; requestId: string; options: Subscribers[number] } & QuerySubstateIdentifier
         >
       ) {
         if (draft?.[queryCacheKey]?.[requestId]) {
@@ -265,7 +271,7 @@ export function buildSlice({
     },
   });
 
-  const reducer = combineReducers<CombinedState<any, string, string>>({
+  const combinedReducer = combineReducers<CombinedState<any, string, string>>({
     queries: querySlice.reducer,
     mutations: mutationSlice.reducer,
     provided: invalidationSlice.reducer,
@@ -273,12 +279,16 @@ export function buildSlice({
     config: configSlice.reducer,
   });
 
+  const reducer: typeof combinedReducer = (state, action) =>
+    combinedReducer(resetApiState.match(action) ? undefined : state, action);
+
   const actions = {
     updateSubscriptionOptions: subscriptionSlice.actions.updateSubscriptionOptions,
     queryResultPatched: querySlice.actions.queryResultPatched,
     removeQueryResult: querySlice.actions.removeQueryResult,
     unsubscribeQueryResult: subscriptionSlice.actions.unsubscribeResult,
     unsubscribeMutationResult: mutationSlice.actions.unsubscribeResult,
+    resetApiState,
   };
 
   return { reducer, actions };

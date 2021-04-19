@@ -8418,10 +8418,10 @@ remark-squeeze-paragraphs@4.0.0:
   dependencies:
     mdast-squeeze-paragraphs "^4.0.0"
 
-remark-typescript-tools@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/remark-typescript-tools/-/remark-typescript-tools-1.0.3.tgz#7d1f3fd7c09a394e45ae89f6a8866ec6506d596a"
-  integrity sha512-qpugQhArrY4LhHhZThVq6krjJL9kuq/VPANUPK6EoyOIxN1oMPivBE1sdpsO0EU+AjSjUH8wFSTrKwYQ14Eufw==
+remark-typescript-tools@1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/remark-typescript-tools/-/remark-typescript-tools-1.0.5.tgz#c8da5064095d48f9e2cfc68f714c9d22e0316fba"
+  integrity sha512-ceLIYRXfwlF3MB6yY6rdYmG9Uq1PgxzYuPDMuQkkmgiuZRiVhhkQsS+sM2hnXDQ6YHHXdBL/9tlhFTH4APfQXw==
   dependencies:
     "@microsoft/tsdoc" "^0.12.21"
     prettier "^2.1.1"
@@ -9651,9 +9651,9 @@ unist-util-generated@^1.0.0:
   integrity sha512-cln2Mm1/CZzN5ttGK7vkoGw+RZ8VcUH6BtGbq98DDtRGquAAOXig1mrBQYelOwMXYS8rK+vZDyyojSjp7JX+Lg==
 
 unist-util-is@^4.0.0:
-  version "4.0.4"
-  resolved "https://registry.yarnpkg.com/unist-util-is/-/unist-util-is-4.0.4.tgz#3e9e8de6af2eb0039a59f50c9b3e99698a924f50"
-  integrity sha512-3dF39j/u423v4BBQrk1AQ2Ve1FxY5W3JKwXxVFzBODQ6WEvccguhgp802qQLKSnxPODE6WuRZtV+ohlUg4meBA==
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/unist-util-is/-/unist-util-is-4.1.0.tgz#976e5f462a7a5de73d94b706bac1b90671b57797"
+  integrity sha512-ZOQSsnce92GrxSqlnEEseX0gi7GH9zTJZ0p9dtu87WRb/37mMPO2Ilx1s/t9vBHrFhbgweUwb+t7cIn5dxPhZg==
 
 unist-util-position@^3.0.0:
   version "3.1.0"

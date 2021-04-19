@@ -1,4 +1,3 @@
-export { ApiProvider } from './react-hooks/ApiProvider';
 export { QueryStatus } from './core/apiState';
 export type { Api, ApiWithInjectedEndpoints, Module, ApiModules } from './apiTypes';
 export type { BaseQueryEnhancer, BaseQueryFn } from './baseQueryTypes';
@@ -12,8 +11,9 @@ export { fetchBaseQuery } from './fetchBaseQuery';
 export type { FetchBaseQueryError, FetchArgs } from './fetchBaseQuery';
 export { retry } from './retry';
 export { setupListeners } from './core/setupListeners';
+export { skipSelector } from './core/buildSelectors';
 export type { CreateApi, CreateApiOptions } from './createApi';
 export { buildCreateApi } from './createApi';
+export { fakeBaseQuery } from './fakeBaseQuery';
 
-export { createApi as createBaseApi, coreModule } from './core';
-export { createApi, reactHooksModule } from './react-hooks';
+export { createApi, coreModule } from './core';

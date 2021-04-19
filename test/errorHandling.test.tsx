@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { BaseQueryFn, createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
+import { BaseQueryFn, createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query/react';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { rest } from 'msw';
-import axios, { AxiosError, AxiosRequestConfig } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 import { expectExactType, hookWaitFor, setupApiStore } from './helpers';
 import { server } from './mocks/server';
-import { fireEvent, render, waitFor } from '@testing-library/react';
+import { fireEvent, render, waitFor, screen } from '@testing-library/react';
 import { useDispatch } from 'react-redux';
 import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit';
 
@@ -36,6 +36,10 @@ describe('fetchBaseQuery', () => {
       )
     ).resolves.toEqual({
       data: { value: 'success' },
+      meta: {
+        request: expect.any(Object),
+        response: expect.any(Object),
+      },
     });
   });
   test('error', async () => {
@@ -48,6 +52,10 @@ describe('fetchBaseQuery', () => {
       )
     ).resolves.toEqual({
       error: { data: { value: 'error' }, status: 500 },
+      meta: {
+        request: expect.any(Object),
+        response: expect.any(Object),
+      },
     });
   });
 });
@@ -55,8 +63,7 @@ describe('fetchBaseQuery', () => {
 describe('query error handling', () => {
   test('success', async () => {
     server.use(rest.get('http://example.com/query', (_, res, ctx) => res(ctx.json({ value: 'success' }))));
-
-    const { result } = renderHook(() => api.useQueryQuery({}), { wrapper: storeRef.wrapper });
+    const { result } = renderHook(() => api.endpoints.query.useQuery({}), { wrapper: storeRef.wrapper });
 
     await hookWaitFor(() => expect(result.current.isFetching).toBeFalsy());
     expect(result.current).toEqual(
@@ -73,8 +80,7 @@ describe('query error handling', () => {
     server.use(
       rest.get('http://example.com/query', (_, res, ctx) => res(ctx.status(500), ctx.json({ value: 'error' })))
     );
-
-    const { result } = renderHook(() => api.useQueryQuery({}), { wrapper: storeRef.wrapper });
+    const { result } = renderHook(() => api.endpoints.query.useQuery({}), { wrapper: storeRef.wrapper });
 
     await hookWaitFor(() => expect(result.current.isFetching).toBeFalsy());
     expect(result.current).toEqual(
@@ -89,8 +95,7 @@ describe('query error handling', () => {
 
   test('success -> error', async () => {
     server.use(rest.get('http://example.com/query', (_, res, ctx) => res(ctx.json({ value: 'success' }))));
-
-    const { result } = renderHook(() => api.useQueryQuery({}), { wrapper: storeRef.wrapper });
+    const { result } = renderHook(() => api.endpoints.query.useQuery({}), { wrapper: storeRef.wrapper });
 
     await hookWaitFor(() => expect(result.current.isFetching).toBeFalsy());
     expect(result.current).toEqual(
@@ -126,8 +131,7 @@ describe('query error handling', () => {
     server.use(
       rest.get('http://example.com/query', (_, res, ctx) => res.once(ctx.status(500), ctx.json({ value: 'error' })))
     );
-
-    const { result } = renderHook(() => api.useQueryQuery({}), { wrapper: storeRef.wrapper });
+    const { result } = renderHook(() => api.endpoints.query.useQuery({}), { wrapper: storeRef.wrapper });
 
     await hookWaitFor(() => expect(result.current.isFetching).toBeFalsy());
     expect(result.current).toEqual(
@@ -148,7 +152,6 @@ describe('query error handling', () => {
         isError: false,
         isSuccess: true,
         data: { value: 'success' },
-        error: undefined,
       })
     );
   });
@@ -157,8 +160,7 @@ describe('query error handling', () => {
 describe('mutation error handling', () => {
   test('success', async () => {
     server.use(rest.post('http://example.com/mutation', (_, res, ctx) => res(ctx.json({ value: 'success' }))));
-
-    const { result } = renderHook(() => api.useMutationMutation(), { wrapper: storeRef.wrapper });
+    const { result } = renderHook(() => api.endpoints.mutation.useMutation(), { wrapper: storeRef.wrapper });
 
     const [trigger] = result.current;
 
@@ -179,8 +181,7 @@ describe('mutation error handling', () => {
     server.use(
       rest.post('http://example.com/mutation', (_, res, ctx) => res(ctx.status(500), ctx.json({ value: 'error' })))
     );
-
-    const { result } = renderHook(() => api.useMutationMutation(), { wrapper: storeRef.wrapper });
+    const { result } = renderHook(() => api.endpoints.mutation.useMutation(), { wrapper: storeRef.wrapper });
 
     const [trigger] = result.current;
 
@@ -199,8 +200,7 @@ describe('mutation error handling', () => {
 
   test('success -> error', async () => {
     server.use(rest.post('http://example.com/mutation', (_, res, ctx) => res(ctx.json({ value: 'success' }))));
-
-    const { result } = renderHook(() => api.useMutationMutation(), { wrapper: storeRef.wrapper });
+    const { result } = renderHook(() => api.endpoints.mutation.useMutation(), { wrapper: storeRef.wrapper });
 
     {
       const [trigger] = result.current;
@@ -246,7 +246,7 @@ describe('mutation error handling', () => {
       rest.post('http://example.com/mutation', (_, res, ctx) => res.once(ctx.status(500), ctx.json({ value: 'error' })))
     );
 
-    const { result } = renderHook(() => api.useMutationMutation(), { wrapper: storeRef.wrapper });
+    const { result } = renderHook(() => api.endpoints.mutation.useMutation(), { wrapper: storeRef.wrapper });
 
     {
       const [trigger] = result.current;
@@ -292,36 +292,57 @@ describe('custom axios baseQuery', () => {
       data?: AxiosRequestConfig['data'];
     },
     unknown,
-    unknown
+    unknown,
+    unknown,
+    { response: AxiosResponse; request: AxiosRequestConfig }
   > => async ({ url, method, data }) => {
+    const config = { url: baseUrl + url, method, data };
     try {
-      const result = await axios({ url: baseUrl + url, method, data });
-      return { data: result.data };
+      const result = await axios(config);
+      return { data: result.data, meta: { request: config, response: result } };
     } catch (axiosError) {
       let err = axiosError as AxiosError;
-      return { error: { status: err.response?.status, data: err.response?.data } };
+      return {
+        error: {
+          status: err.response?.status,
+          data: err.response?.data,
+        },
+        meta: { request: config, response: err.response as AxiosResponse },
+      };
     }
   };
 
+  type SuccessResponse = { value: 'success' };
   const api = createApi({
     baseQuery: axiosBaseQuery({
       baseUrl: 'http://example.com',
     }),
     endpoints(build) {
       return {
-        query: build.query({ query: () => ({ url: '/query', method: 'get' }) }),
-        mutation: build.mutation({ query: () => ({ url: '/mutation', method: 'post' }) }),
+        query: build.query<SuccessResponse, void>({
+          query: () => ({ url: '/success', method: 'get' }),
+          transformResponse: (result: SuccessResponse, meta) => {
+            return { ...result, metaResponseData: meta?.response.data };
+          },
+        }),
+        mutation: build.mutation<SuccessResponse, any>({ query: () => ({ url: '/success', method: 'post' }) }),
       };
     },
   });
 
   const storeRef = setupApiStore(api);
+
+  test('axiosBaseQuery transformResponse uses its custom meta format', async () => {
+    const result = await storeRef.store.dispatch(api.endpoints.query.initiate());
+
+    expect(result.data).toEqual({ value: 'success', metaResponseData: { value: 'success' } });
+  });
+
   test('axios errors behave as expected', async () => {
     server.use(
-      rest.get('http://example.com/query', (_, res, ctx) => res(ctx.status(500), ctx.json({ value: 'error' })))
+      rest.get('http://example.com/success', (_, res, ctx) => res(ctx.status(500), ctx.json({ value: 'error' })))
     );
-
-    const { result } = renderHook(() => api.useQueryQuery({}), { wrapper: storeRef.wrapper });
+    const { result } = renderHook(() => api.endpoints.query.useQuery(), { wrapper: storeRef.wrapper });
 
     await hookWaitFor(() => expect(result.current.isFetching).toBeFalsy());
     expect(result.current).toEqual(
@@ -359,7 +380,7 @@ describe('error handling in a component', () => {
 
     function User() {
       const [manualError, setManualError] = React.useState<any>();
-      const [update, { isLoading, data, error }] = api.useUpdateMutation();
+      const [update, { isLoading, data, error }] = api.endpoints.update.useMutation();
 
       return (
         <div>
@@ -384,22 +405,22 @@ describe('error handling in a component', () => {
       );
     }
 
-    const { getByText, getByTestId } = render(<User />, { wrapper: storeRef.wrapper });
+    render(<User />, { wrapper: storeRef.wrapper });
 
-    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('false'));
-    fireEvent.click(getByText('Update User'));
-    expect(getByTestId('isLoading').textContent).toBe('true');
-    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('false'));
+    await waitFor(() => expect(screen.getByTestId('isLoading').textContent).toBe('false'));
+    fireEvent.click(screen.getByText('Update User'));
+    expect(screen.getByTestId('isLoading').textContent).toBe('true');
+    await waitFor(() => expect(screen.getByTestId('isLoading').textContent).toBe('false'));
 
     // Make sure the hook and the unwrapped action return the same things in an error state
-    expect(getByTestId('error').textContent).toEqual(getByTestId('manuallySetError').textContent);
+    expect(screen.getByTestId('error').textContent).toEqual(screen.getByTestId('manuallySetError').textContent);
 
-    fireEvent.click(getByText('Update User'));
-    expect(getByTestId('isLoading').textContent).toBe('true');
-    await waitFor(() => expect(getByTestId('isLoading').textContent).toBe('false'));
-    await waitFor(() => expect(getByTestId('error').textContent).toBeFalsy());
-    await waitFor(() => expect(getByTestId('manuallySetError').textContent).toBeFalsy());
-    await waitFor(() => expect(getByTestId('data').textContent).toEqual(JSON.stringify(mockSuccessResponse)));
+    fireEvent.click(screen.getByText('Update User'));
+    expect(screen.getByTestId('isLoading').textContent).toBe('true');
+    await waitFor(() => expect(screen.getByTestId('isLoading').textContent).toBe('false'));
+    await waitFor(() => expect(screen.getByTestId('error').textContent).toBeFalsy());
+    await waitFor(() => expect(screen.getByTestId('manuallySetError').textContent).toBeFalsy());
+    await waitFor(() => expect(screen.getByTestId('data').textContent).toEqual(JSON.stringify(mockSuccessResponse)));
   });
 
   for (const track of [true, false]) {

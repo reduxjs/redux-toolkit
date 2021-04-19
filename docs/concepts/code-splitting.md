@@ -16,6 +16,7 @@ Calling `injectEndpoints` will inject the endpoints into the original API, but a
 So the most basic approach would be to have one empty central api definition:
 
 ```ts title="Basic setup"
+// Or from '@rtk-incubator/rtk-query/react'
 import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
 
 // initialize an empty api service that we'll inject endpoints into later as needed

@@ -43,6 +43,7 @@ Promise<{
 To use it, import it when you are [creating an API service definition](../introduction/getting-started#create-an-api-service).
 
 ```ts title="src/services/pokemon.ts"
+// Or from '@rtk-incubator/rtk-query/react'
 import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
 
 export const pokemonApi = createApi({
@@ -52,13 +53,12 @@ export const pokemonApi = createApi({
       query: (name: string) => `pokemon/${name}`, // Will make a request like https://pokeapi.co/api/v2/bulbasaur
     }),
     updatePokemon: builder.mutation({
-        query: ({ name, patch }) => ({
-          url: `pokemon/${name}`,
-          method: 'PATCH', // When performing a mutation, you typically use a method of PATCH/PUT/POST/DELETE for REST endpoints
-          body: patch, // fetchBaseQuery automatically adds `content-type: application/json` to the Headers and calls `JSON.stringify(patch)`
-        })
-      },
-    })
+      query: ({ name, patch }) => ({
+        url: `pokemon/${name}`,
+        method: 'PATCH', // When performing a mutation, you typically use a method of PATCH/PUT/POST/DELETE for REST endpoints
+        body: patch, // fetchBaseQuery automatically adds `content-type: application/json` to the Headers and calls `JSON.stringify(patch)`
+      }),
+    }),
   }),
 });
 ```

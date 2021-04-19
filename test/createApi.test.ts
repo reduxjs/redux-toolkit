@@ -1,7 +1,7 @@
 import { configureStore, createAction, createReducer } from '@reduxjs/toolkit';
 import { Api, createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
 import { QueryDefinition, MutationDefinition } from '@internal/endpointDefinitions';
-import { ANY, expectType, expectExactType, setupApiStore, waitMs } from './helpers';
+import { ANY, expectType, expectExactType, setupApiStore, waitMs, getSerializedHeaders } from './helpers';
 import { server } from './mocks/server';
 import { rest } from 'msw';
 
@@ -40,78 +40,78 @@ test('sensible defaults', () => {
   expect(api.reducerPath).toBe('api');
 
   expectType<'api'>(api.reducerPath);
-  type EntityTypes = typeof api extends Api<any, any, any, infer E> ? E : 'no match';
-  expectType<EntityTypes>(ANY as never);
+  type TagTypes = typeof api extends Api<any, any, any, infer E> ? E : 'no match';
+  expectType<TagTypes>(ANY as never);
   // @ts-expect-error
-  expectType<EntityTypes>(0);
+  expectType<TagTypes>(0);
 });
 
-describe('wrong entityTypes log errors', () => {
+describe('wrong tagTypes log errors', () => {
   const baseQuery = jest.fn();
   const api = createApi({
     baseQuery,
-    entityTypes: ['User'],
+    tagTypes: ['User'],
     endpoints: (build) => ({
       provideNothing: build.query<unknown, void>({
         query: () => '',
       }),
       provideTypeString: build.query<unknown, void>({
         query: () => '',
-        provides: ['User'],
+        providesTags: ['User'],
       }),
       provideTypeWithId: build.query<unknown, void>({
         query: () => '',
-        provides: [{ type: 'User', id: 5 }],
+        providesTags: [{ type: 'User', id: 5 }],
       }),
       provideTypeWithIdAndCallback: build.query<unknown, void>({
         query: () => '',
-        provides: () => [{ type: 'User', id: 5 }],
+        providesTags: () => [{ type: 'User', id: 5 }],
       }),
       provideWrongTypeString: build.query<unknown, void>({
         query: () => '',
         // @ts-expect-error
-        provides: ['Users'],
+        providesTags: ['Users'],
       }),
       provideWrongTypeWithId: build.query<unknown, void>({
         query: () => '',
         // @ts-expect-error
-        provides: [{ type: 'Users', id: 5 }],
+        providesTags: [{ type: 'Users', id: 5 }],
       }),
       provideWrongTypeWithIdAndCallback: build.query<unknown, void>({
         query: () => '',
         // @ts-expect-error
-        provides: () => [{ type: 'Users', id: 5 }],
+        providesTags: () => [{ type: 'Users', id: 5 }],
       }),
       invalidateNothing: build.query<unknown, void>({
         query: () => '',
       }),
       invalidateTypeString: build.mutation<unknown, void>({
         query: () => '',
-        invalidates: ['User'],
+        invalidatesTags: ['User'],
       }),
       invalidateTypeWithId: build.mutation<unknown, void>({
         query: () => '',
-        invalidates: [{ type: 'User', id: 5 }],
+        invalidatesTags: [{ type: 'User', id: 5 }],
       }),
       invalidateTypeWithIdAndCallback: build.mutation<unknown, void>({
         query: () => '',
-        invalidates: () => [{ type: 'User', id: 5 }],
+        invalidatesTags: () => [{ type: 'User', id: 5 }],
       }),
 
       invalidateWrongTypeString: build.mutation<unknown, void>({
         query: () => '',
         // @ts-expect-error
-        invalidates: ['Users'],
+        invalidatesTags: ['Users'],
       }),
       invalidateWrongTypeWithId: build.mutation<unknown, void>({
         query: () => '',
         // @ts-expect-error
-        invalidates: [{ type: 'Users', id: 5 }],
+        invalidatesTags: [{ type: 'Users', id: 5 }],
       }),
       invalidateWrongTypeWithIdAndCallback: build.mutation<unknown, void>({
         query: () => '',
         // @ts-expect-error
-        invalidates: () => [{ type: 'Users', id: 5 }],
+        invalidatesTags: () => [{ type: 'Users', id: 5 }],
       }),
     }),
   });
@@ -152,7 +152,7 @@ describe('wrong entityTypes log errors', () => {
     } while (result.status === 'pending');
 
     if (shouldError) {
-      expect(spy).toHaveBeenCalledWith("Entity type 'Users' was used, but not specified in `entityTypes`!");
+      expect(spy).toHaveBeenCalledWith("Tag type 'Users' was used, but not specified in `tagTypes`!");
     } else {
       expect(spy).not.toHaveBeenCalled();
     }
@@ -163,7 +163,7 @@ describe('endpoint definition typings', () => {
   const api = createApi({
     baseQuery: (from: 'From'): { data: 'To' } | Promise<{ data: 'To' }> => ({ data: 'To' }),
     endpoints: () => ({}),
-    entityTypes: ['typeA', 'typeB'],
+    tagTypes: ['typeA', 'typeB'],
   });
   test('query: query & transformResponse types', () => {
     api.injectEndpoints({
@@ -299,7 +299,7 @@ describe('endpoint definition typings', () => {
     function getNewApi() {
       return createApi({
         baseQuery,
-        entityTypes: ['old'],
+        tagTypes: ['old'],
         endpoints: (build) => ({
           query1: build.query<'out1', 'in1'>({ query: (id) => `${id}` }),
           query2: build.query<'out2', 'in2'>({ query: (id) => `${id}` }),
@@ -328,32 +328,32 @@ describe('endpoint definition typings', () => {
       ]);
     });
 
-    test('warn on wrong entityType', async () => {
+    test('warn on wrong tagType', async () => {
       // only type-test this part
       if (2 > 1) {
         api.enhanceEndpoints({
           endpoints: {
             query1: {
               // @ts-expect-error
-              provides: ['new'],
+              providesTags: ['new'],
             },
             query2: {
               // @ts-expect-error
-              provides: ['missing'],
+              providesTags: ['missing'],
             },
           },
         });
       }
 
       const enhanced = api.enhanceEndpoints({
-        addEntityTypes: ['new'],
+        addTagTypes: ['new'],
         endpoints: {
           query1: {
-            provides: ['new'],
+            providesTags: ['new'],
           },
           query2: {
             // @ts-expect-error
-            provides: ['missing'],
+            providesTags: ['missing'],
           },
         },
       });
@@ -365,7 +365,7 @@ describe('endpoint definition typings', () => {
       storeRef.store.dispatch(api.endpoints.query2.initiate('in2'));
       await waitMs(1);
       debugger;
-      expect(spy).toHaveBeenCalledWith("Entity type 'missing' was used, but not specified in `entityTypes`!");
+      expect(spy).toHaveBeenCalledWith("Tag type 'missing' was used, but not specified in `tagTypes`!");
 
       // only type-test this part
       if (2 > 1) {
@@ -373,11 +373,11 @@ describe('endpoint definition typings', () => {
           endpoints: {
             query1: {
               // returned `enhanced` api contains "new" enitityType
-              provides: ['new'],
+              providesTags: ['new'],
             },
             query2: {
               // @ts-expect-error
-              provides: ['missing'],
+              providesTags: ['missing'],
             },
           },
         });
@@ -439,6 +439,22 @@ describe('additional transformResponse behaviors', () => {
       echo: build.mutation({
         query: () => ({ method: 'PUT', url: '/echo' }),
       }),
+      mutation: build.mutation({
+        query: () => ({ url: '/echo', method: 'POST', body: { nested: { banana: 'bread' } } }),
+        transformResponse: (response: { body: { nested: EchoResponseData } }) => response.body.nested,
+      }),
+      mutationWithMeta: build.mutation({
+        query: () => ({ url: '/echo', method: 'POST', body: { nested: { banana: 'bread' } } }),
+        transformResponse: (response: { body: { nested: EchoResponseData } }, meta) => {
+          return {
+            ...response.body.nested,
+            meta: {
+              request: { headers: getSerializedHeaders(meta?.request.headers) },
+              response: { headers: getSerializedHeaders(meta?.response.headers) },
+            },
+          };
+        },
+      }),
       query: build.query<SuccessResponse & EchoResponseData, void>({
         query: () => '/success',
         transformResponse: async (response: SuccessResponse) => {
@@ -450,15 +466,73 @@ describe('additional transformResponse behaviors', () => {
           return { ...response, ...additionalData };
         },
       }),
+      queryWithMeta: build.query<SuccessResponse, void>({
+        query: () => '/success',
+        transformResponse: async (response: SuccessResponse, meta) => {
+          return {
+            ...response,
+            meta: {
+              request: { headers: getSerializedHeaders(meta?.request.headers) },
+              response: { headers: getSerializedHeaders(meta?.response.headers) },
+            },
+          };
+        },
+      }),
     }),
   });
 
   const storeRef = setupApiStore(api);
 
-  test('transformResponse handles an async transformation and returns the merged data', async () => {
+  test('transformResponse handles an async transformation and returns the merged data (query)', async () => {
     const result = await storeRef.store.dispatch(api.endpoints.query.initiate());
 
     expect(result.data).toEqual({ value: 'success', banana: 'bread' });
+  });
+
+  test('transformResponse transforms a response from a mutation', async () => {
+    const result = await storeRef.store.dispatch(api.endpoints.mutation.initiate({}));
+
+    expect(result.data).toEqual({ banana: 'bread' });
+  });
+
+  test('transformResponse can inject baseQuery meta into the end result from a mutation', async () => {
+    const result = await storeRef.store.dispatch(api.endpoints.mutationWithMeta.initiate({}));
+
+    expect(result.data).toEqual({
+      banana: 'bread',
+      meta: {
+        request: {
+          headers: {
+            'content-type': 'application/json',
+          },
+        },
+        response: {
+          headers: {
+            'content-type': 'application/json',
+            'x-powered-by': 'msw',
+          },
+        },
+      },
+    });
+  });
+
+  test('transformResponse can inject baseQuery meta into the end result from a query', async () => {
+    const result = await storeRef.store.dispatch(api.endpoints.queryWithMeta.initiate());
+
+    expect(result.data).toEqual({
+      value: 'success',
+      meta: {
+        request: {
+          headers: {},
+        },
+        response: {
+          headers: {
+            'content-type': 'application/json',
+            'x-powered-by': 'msw',
+          },
+        },
+      },
+    });
   });
 });
 

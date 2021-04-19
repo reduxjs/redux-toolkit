@@ -6,6 +6,23 @@ export const onOnline = createAction('__rtkq/online');
 export const onOffline = createAction('__rtkq/offline');
 
 let initialized = false;
+
+/**
+ * A utility used to enable `refetchOnMount` and `refetchOnReconnect` behaviors.
+ * It requires the dispatch method from your store.
+ * Calling `setupListeners(store.dispatch)` will configure listeners with the recommended defaults,
+ * but you have the option of providing a callback for more granular control.
+ *
+ * @example
+ * ```ts
+ * setupListeners(store.dispatch)
+ * ```
+ *
+ * @param dispatch - The dispatch method from your store
+ * @param customHandler - An optional callback for more granular control over listener behavior
+ * @returns Return value of the handler.
+ * The default handler returns an `unsubscribe` method that can be called to remove the listeners.
+ */
 export function setupListeners(
   dispatch: ThunkDispatch<any, any, any>,
   customHandler?: (

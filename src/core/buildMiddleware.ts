@@ -1,56 +1,65 @@
-import { AnyAction, AsyncThunk, Middleware, MiddlewareAPI, ThunkDispatch } from '@reduxjs/toolkit';
+import {
+  AnyAction,
+  AsyncThunk,
+  createAction,
+  isAnyOf,
+  isFulfilled,
+  isRejectedWithValue,
+  Middleware,
+  MiddlewareAPI,
+  ThunkDispatch,
+} from '@reduxjs/toolkit';
 import { QueryCacheKey, QueryStatus, QuerySubState, QuerySubstateIdentifier, RootState, Subscribers } from './apiState';
 import { Api, ApiContext } from '../apiTypes';
-import { MutationThunkArg, QueryThunkArg, ThunkResult } from './buildThunks';
-import {
-  AssertEntityTypes,
-  calculateProvidedBy,
-  EndpointDefinitions,
-  FullEntityDescription,
-} from '../endpointDefinitions';
+import { calculateProvidedByThunk, MutationThunkArg, QueryThunkArg, ThunkResult } from './buildThunks';
+import { AssertTagTypes, calculateProvidedBy, EndpointDefinitions, FullTagDescription } from '../endpointDefinitions';
 import { onFocus, onOnline } from './setupListeners';
 import { flatten } from '../utils';
 
 type QueryStateMeta<T> = Record<string, undefined | T>;
 type TimeoutId = ReturnType<typeof setTimeout>;
 
-export function buildMiddleware<Definitions extends EndpointDefinitions, ReducerPath extends string>({
+export function buildMiddleware<
+  Definitions extends EndpointDefinitions,
+  ReducerPath extends string,
+  TagTypes extends string
+>({
   reducerPath,
   context,
   context: { endpointDefinitions },
   queryThunk,
   mutationThunk,
   api,
-  assertEntityType,
+  assertTagType,
 }: {
   reducerPath: ReducerPath;
   context: ApiContext<Definitions>;
   queryThunk: AsyncThunk<ThunkResult, QueryThunkArg<any>, {}>;
   mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg<any>, {}>;
-  api: Api<any, EndpointDefinitions, ReducerPath, string>;
-  assertEntityType: AssertEntityTypes;
+  api: Api<any, EndpointDefinitions, ReducerPath, TagTypes>;
+  assertTagType: AssertTagTypes;
 }) {
   type MWApi = MiddlewareAPI<ThunkDispatch<any, any, AnyAction>, RootState<Definitions, string, ReducerPath>>;
+  const { removeQueryResult, unsubscribeQueryResult, updateSubscriptionOptions, resetApiState } = api.internalActions;
 
   const currentRemovalTimeouts: QueryStateMeta<TimeoutId> = {};
-  const { removeQueryResult, unsubscribeQueryResult, updateSubscriptionOptions } = api.internalActions;
-
   const currentPolls: QueryStateMeta<{ nextPollTimestamp: number; timeout?: TimeoutId; pollingInterval: number }> = {};
+
+  const actions = {
+    invalidateTags: createAction<Array<TagTypes | FullTagDescription<TagTypes>>>(`${reducerPath}/invalidateTags`),
+  };
+
   const middleware: Middleware<{}, RootState<Definitions, string, ReducerPath>, ThunkDispatch<any, any, AnyAction>> = (
     mwApi
   ) => (next) => (action) => {
     const result = next(action);
 
-    if (mutationThunk.fulfilled.match(action)) {
-      invalidateEntities(
-        calculateProvidedBy(
-          endpointDefinitions[action.meta.arg.endpoint].invalidates,
-          action.payload.result,
-          action.meta.arg.originalArgs,
-          assertEntityType
-        ),
-        mwApi
-      );
+    if (isAnyOf(isFulfilled(mutationThunk), isRejectedWithValue(mutationThunk))(action)) {
+      invalidateTags(calculateProvidedByThunk(action, 'invalidatesTags', endpointDefinitions, assertTagType), mwApi);
+    }
+
+    if (actions.invalidateTags.match(action)) {
+      invalidateTags(calculateProvidedBy(action.payload, undefined, undefined, undefined, assertTagType), mwApi);
     }
 
     if (unsubscribeQueryResult.match(action)) {
@@ -74,10 +83,21 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
       refetchValidQueries(mwApi, 'refetchOnReconnect');
     }
 
+    if (resetApiState.match(action)) {
+      for (const [key, poll] of Object.entries(currentPolls)) {
+        if (poll?.timeout) clearTimeout(poll.timeout);
+        delete currentPolls[key];
+      }
+      for (const [key, timeout] of Object.entries(currentRemovalTimeouts)) {
+        if (timeout) clearTimeout(timeout);
+        delete currentRemovalTimeouts[key];
+      }
+    }
+
     return result;
   };
 
-  return { middleware };
+  return { middleware, actions };
 
   function refetchQuery(
     querySubState: Exclude<QuerySubState<any>, { status: QueryStatus.uninitialized }>,
@@ -85,9 +105,8 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
     override: Partial<QueryThunkArg<any>> = {}
   ) {
     return queryThunk({
-      endpoint: querySubState.endpoint,
+      endpointName: querySubState.endpointName,
       originalArgs: querySubState.originalArgs,
-      internalQueryArgs: querySubState.internalQueryArgs,
       subscribe: false,
       forceRefetch: true,
       startedTimeStamp: Date.now(),
@@ -119,20 +138,20 @@ export function buildMiddleware<Definitions extends EndpointDefinitions, Reducer
     });
   }
 
-  function invalidateEntities(entities: readonly FullEntityDescription<string>[], api: MWApi) {
+  function invalidateTags(tags: readonly FullTagDescription<string>[], api: MWApi) {
     const state = api.getState()[reducerPath];
 
     const toInvalidate = new Set<QueryCacheKey>();
-    for (const entity of entities) {
-      const provided = state.provided[entity.type];
+    for (const tag of tags) {
+      const provided = state.provided[tag.type];
       if (!provided) {
         continue;
       }
 
       let invalidateSubscriptions =
-        (entity.id !== undefined
+        (tag.id !== undefined
           ? // id given: invalidate all queries that provide this type & id
-            provided[entity.id]
+            provided[tag.id]
           : // no id: invalidate all queries that provide this type
             flatten(Object.values(provided))) ?? [];
 

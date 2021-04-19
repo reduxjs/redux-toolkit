@@ -11,7 +11,6 @@
         "@rollup/plugin-commonjs": "^14.0.0",
         "@rollup/plugin-node-resolve": "^8.0.0",
         "@rollup/plugin-typescript": "^6.0.0",
-        "@rtk-incubator/rtk-query": "https://pkg.csb.dev/rtk-incubator/rtk-query/commit/fcea624c/@rtk-incubator/rtk-query",
         "@tsconfig/svelte": "^1.0.0",
         "msw": "^0.21.3",
         "rollup": "^2.3.4",
@@ -26,6 +25,7 @@
         "typescript": "^3.9.3"
     },
     "dependencies": {
+        "@rtk-incubator/rtk-query": "https://pkg.csb.dev/rtk-incubator/rtk-query/commit/fcea624c/@rtk-incubator/rtk-query",
         "@reduxjs/toolkit": "^1.5.0",
         "sirv-cli": "^1.0.0"
     }
