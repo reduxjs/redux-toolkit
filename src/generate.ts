@@ -121,20 +121,42 @@ export async function generateApi(
     ),
   ]);
 
+  const isUsingFetchBaseQuery = baseQuery === 'fetchBaseQuery';
+
+  function getBasePackageImportsFromOptions() {
+    return hooks
+      ? {
+          ...(isUsingFetchBaseQuery ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
+        }
+      : {
+          createApi: 'createApi',
+          ...(isUsingFetchBaseQuery ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
+        };
+  }
+
+  const hasBasePackageImports = Object.keys(getBasePackageImportsFromOptions()).length > 0;
+
   const sourceCode = printer.printNode(
     ts.EmitHint.Unspecified,
     factory.createSourceFile(
       [
-        generateImportNode('@rtk-incubator/rtk-query', {
-          createApi: 'createApi',
-          ...(baseQuery === 'fetchBaseQuery' ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
-        }),
+        // If hooks are specified, we need to import them from the react entry point in RTKQ >= 0.3
+        ...(hooks
+          ? [
+              generateImportNode('@rtk-incubator/rtk-query/react', {
+                createApi: 'createApi',
+              }),
+            ]
+          : []),
+        ...(hasBasePackageImports
+          ? [generateImportNode('@rtk-incubator/rtk-query', getBasePackageImportsFromOptions())]
+          : []),
         ...(customBaseQueryNode ? [customBaseQueryNode] : []),
         generateCreateApiCall({
           exportName,
           reducerPath,
           createApiFn: factory.createIdentifier('createApi'),
-          baseQuery: baseQuery === 'fetchBaseQuery' ? fetchBaseQueryCall : factory.createIdentifier(baseQuery),
+          baseQuery: isUsingFetchBaseQuery ? fetchBaseQueryCall : factory.createIdentifier(baseQuery),
           entityTypes: generateEntityTypes({ v3Doc, operationDefinitions }),
           endpointDefinitions: factory.createObjectLiteralExpression(
             operationDefinitions.map((operationDefinition) =>
