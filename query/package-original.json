@@ -1,0 +1,171 @@
+{
+  "name": "@rtk-incubator/rtk-query",
+  "repository": "https://github.com/rtk-incubator/rtk-query",
+  "version": "0.3.0",
+  "license": "MIT",
+  "public": true,
+  "author": "Lenz Weber",
+  "main": "dist/index.js",
+  "module": "dist/esm/index.js",
+  "sideEffects": false,
+  "types": "dist/esm/ts/index.d.ts",
+  "typesVersions": {
+    ">=4.1": {
+      "dist": [
+        "dist/esm/ts-4.1/index.d.ts"
+      ],
+      "dist/esm/ts/*": [
+        "dist/esm/ts-4.1/*"
+      ]
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "react"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "rimraf dist && rollup -c && node post-build.js",
+    "test": "tsdx test",
+    "lint": "tsdx lint",
+    "prepare": "yarn build",
+    "prepareExamples": "./prepare-examples.sh",
+    "size": "size-limit",
+    "format": "prettier --write \"src/**/*.ts*\" \"test/**/*.ts*\"  \"**/*.md\"",
+    "analyze": "size-limit --why",
+    "list-unused-exports": "ts-unused-exports tsconfig.json"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
+  },
+  "size-limit": [
+    {
+      "name": "ESM full",
+      "path": "dist/esm/index.js",
+      "limit": "15 KB"
+    },
+    {
+      "name": "ESM full (React)",
+      "path": "dist/esm/react.js",
+      "limit": "15 KB"
+    },
+    {
+      "name": "createApi + setupListeners",
+      "path": "dist/esm/index.js",
+      "import": "{ createApi, setupListeners }"
+    },
+    {
+      "name": "createApi (React) + setupListeners",
+      "path": "dist/esm/react.js",
+      "import": "{ createApi, setupListeners }"
+    },
+    {
+      "name": "fetchBaseQuery",
+      "path": "dist/esm/index.js",
+      "import": "{ fetchBaseQuery }"
+    },
+    {
+      "name": "retry",
+      "path": "dist/esm/index.js",
+      "import": "{ retry }"
+    },
+    {
+      "name": "ApiProvider",
+      "path": "dist/esm/react.js",
+      "import": "{ ApiProvider }"
+    },
+    {
+      "name": "CJS minfied",
+      "path": "dist/index.cjs.production.min.js",
+      "limit": "25 KB"
+    },
+    {
+      "name": "CJS React minfied",
+      "path": "dist/react.cjs.production.min.js",
+      "limit": "25 KB"
+    }
+  ],
+  "dependencies": {
+    "@babel/runtime": "^7.12.5",
+    "immer": "^8.0.3"
+  },
+  "peerDependencies": {
+    "@reduxjs/toolkit": "^1.5.0",
+    "react": "^16.14.0 || ^17.0.0",
+    "react-dom": "^16.14.0 || ^17.0.0",
+    "react-redux": "^7.2.1"
+  },
+  "jest": {
+    "modulePathIgnorePatterns": [
+      "examples"
+    ]
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "react-redux": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@babel/plugin-transform-runtime": "^7.12.10",
+    "@reduxjs/toolkit": "^1.5.1",
+    "@rollup/plugin-babel": "^5.2.2",
+    "@rollup/plugin-replace": "^2.3.4",
+    "@rollup/plugin-typescript": "^8.0.0",
+    "@size-limit/preset-small-lib": "^4.6.0",
+    "@testing-library/react": "^11.2.6",
+    "@testing-library/react-hooks": "^3.4.2",
+    "@testing-library/user-event": "^12.2.2",
+    "@types/jest": "^26.0.21",
+    "@types/react-dom": "^17.0.2",
+    "@types/react-redux": "^7.1.9",
+    "@typescript-eslint/eslint-plugin": "^4.19.0",
+    "@typescript-eslint/parser": "^4.19.0",
+    "axios": "^0.21.0",
+    "cross-fetch": "^3.1.3-alpha.6",
+    "eslint-config-react-app": "^6.0.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "husky": "^4.3.0",
+    "msw": "^0.28.1",
+    "node-fetch": "^2.6.1",
+    "prettier": "^2.2.0",
+    "react": "^16.14.0 || 17.0.0",
+    "react-dom": "^16.14.0 || 17.0.0",
+    "react-redux": "^7.2.1",
+    "react-test-renderer": "^17.0.1",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.34.2",
+    "rollup-plugin-terser": "^7.0.2",
+    "shelljs": "^0.8.4",
+    "size-limit": "^4.6.0",
+    "ts-jest": "^26.5.4",
+    "ts-node": "^9.0.0",
+    "ts-unused-exports": "^7.0.0",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.0.3",
+    "typescript": "^4.2.3"
+  },
+  "resolutions": {
+    "typescript": "4.2.3",
+    "@typescript-eslint/parser": "4.19.0",
+    "prettier": "^2.2.0",
+    "immer": "^8.0.0",
+    "ts-jest": "^26.4.4",
+    "jest": "^26.6.3",
+    "@types/jest": "26.0.15"
+  }
+}

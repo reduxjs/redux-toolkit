@@ -1,0 +1,3 @@
+{
+  "sandboxes": ["new", "react-ts", "/examples/react", "/examples/svelte"]
+}
