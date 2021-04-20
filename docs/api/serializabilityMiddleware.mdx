@@ -53,6 +53,11 @@ interface SerializableStateInvariantMiddlewareOptions {
    * Defaults to 32ms.
    */
   warnAfter?: number
+
+  /**
+   * Opt out of checking state, but continue checking actions
+   */
+  ignoreState?: boolean
 }
 ```
 
@@ -69,7 +74,7 @@ Example:
 ```ts
 // file: reducer.ts noEmit
 
-export default function(state = {}, action: any) {
+export default function (state = {}, action: any) {
   return state
 }
 
@@ -79,7 +84,7 @@ import { Iterable } from 'immutable'
 import {
   configureStore,
   createSerializableStateInvariantMiddleware,
-  isPlain
+  isPlain,
 } from '@reduxjs/toolkit'
 import reducer from './reducer'
 
@@ -92,12 +97,12 @@ const getEntries = (value: any) =>
 
 const serializableMiddleware = createSerializableStateInvariantMiddleware({
   isSerializable,
-  getEntries
+  getEntries,
 })
 
 const store = configureStore({
   reducer,
-  middleware: [serializableMiddleware]
+  middleware: [serializableMiddleware],
 })
 ```
 

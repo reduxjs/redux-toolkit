@@ -24,7 +24,7 @@ Every Redux app needs to configure and create a Redux store. This usually involv
 - Importing or creating the root reducer function
 - Setting up middleware, likely including at least one middleware to handle asynchronous logic
 - Configuring the [Redux DevTools Extension](https://github.com/zalmoxisus/redux-devtools-extension)
-- Possibly altering some of the logic based on whether the application is being built for development or production.
+- Possibly altering some of the logic based on whether the application is being built for development or production
 
 ### Manual Store Setup
 
@@ -66,7 +66,7 @@ This example is readable, but the process isn't always straightforward:
 
 `configureStore` helps with those issues by:
 
-- Having an options object with "named" parameters, which can be easier to read.
+- Having an options object with "named" parameters, which can be easier to read
 - Letting you provide arrays of middleware and enhancers you want to add to the store, and calling `applyMiddleware` and `compose` for you automatically
 - Enabling the Redux DevTools Extension automatically
 
@@ -144,7 +144,7 @@ If you provide the `middleware` argument, `configureStore` will only use whateve
 [Reducers](https://redux.js.org/basics/reducers) are the most important Redux concept. A typical reducer function needs to:
 
 - Look at the `type` field of the action object to see how it should respond
-- Update its state immutably, by making copies of the parts of the state that need to change and only modifying those copies.
+- Update its state immutably, by making copies of the parts of the state that need to change and only modifying those copies
 
 While you can [use any conditional logic you want](https://blog.isquaredsoftware.com/2017/05/idiomatic-redux-tao-of-redux-part-2/#switch-statements) in a reducer, the most common approach is a `switch` statement, because it's a straightforward way to handle multiple possible values for a single field. However, many people don't like switch statements. The Redux docs show an example of [writing a function that acts as a lookup table based on action types](https://redux.js.org/recipes/reducing-boilerplate#generating-reducers), but leave it up to users to customize that function themselves.
 
@@ -385,8 +385,8 @@ export default function postsReducer(state = initialState, action) {
 
 The only truly necessary part here is the reducer itself. Consider the other parts:
 
-- We could have written the action types as inline strings in both places.
-- The action creators are good, but they're not _required_ to use Redux - a component could skip supplying a `mapDispatch` argument to `connect`, and just call `this.props.dispatch({type : "CREATE_POST", payload : {id : 123, title : "Hello World"}})` itself.
+- We could have written the action types as inline strings in both places
+- The action creators are good, but they're not _required_ to use Redux - a component could skip supplying a `mapDispatch` argument to `connect`, and just call `this.props.dispatch({type : "CREATE_POST", payload : {id : 123, title : "Hello World"}})` itself
 - The only reason we're even writing multiple files is because it's common to separate code by what it does
 
 The ["ducks" file structure](https://github.com/erikras/ducks-modular-redux) proposes putting all of your Redux-related logic for a given slice into a single file, like this:
@@ -481,23 +481,6 @@ console.log(createPost({ id: 123, title: 'Hello World' }))
 ```
 
 `createSlice` looked at all of the functions that were defined in the `reducers` field, and for every "case reducer" function provided, generates an action creator that uses the name of the reducer as the action type itself. So, the `createPost` reducer became an action type of `"posts/createPost"`, and the `createPost()` action creator will return an action with that type.
-
-```js
-const postsSlice = createSlice({
-  name: 'posts',
-  initialState: [],
-  reducers: {
-    createPost(state, action) {},
-    updatePost(state, action) {},
-    deletePost(state, action) {},
-  },
-})
-
-const { createPost } = postsSlice.actions
-
-console.log(createPost({ id: 123, title: 'Hello World' }))
-// {type : "posts/createPost", payload : {id : 123, title : "Hello World"}}
-```
 
 ### Exporting and Using Slices
 
@@ -616,7 +599,7 @@ const fetchUsers = () => async (dispatch) => {
 
 Data fetching logic for Redux typically follows a predictable pattern:
 
-- A "start" action is dispatched before the request, to indicate that the request is in progress. This may be used to track loading state to allow skipping duplicate requests or show loading indicators in the UI.
+- A "start" action is dispatched before the request to indicate that the request is in progress. This may be used to track loading state, to allow skipping duplicate requests, or show loading indicators in the UI.
 - The async request is made
 - Depending on the request result, the async logic dispatches either a "success" action containing the result data, or a "failure" action containing error details. The reducer logic clears the loading state in both cases, and either processes the result data from the success case, or stores the error value for potential display.
 
@@ -1037,7 +1020,7 @@ One of the core usage principles for Redux is that [you should not put non-seria
 
 However, like most rules, there are exceptions. There may be occasions when you have to deal with actions that need to accept non-serializable data. This should be done very rarely and only if necessary, and these non-serializable payloads shouldn't ever make it into your application state through a reducer.
 
-The [serializability dev check middleware](../api/getDefaultMiddleware.mdx) will automatically warn anytime it detects non-serializable values in your actions or state. We encourage you to leave this middleware active to help avoid accidentally making mistakes. However, if you _do_ need to turnoff those warnings, you can customize the middleware by configuring it to ignore specific action types, or fields in actions and state:
+The [serializability dev check middleware](../api/serializabilityMiddleware.mdx) will automatically warn anytime it detects non-serializable values in your actions or state. We encourage you to leave this middleware active to help avoid accidentally making mistakes. However, if you _do_ need to turnoff those warnings, you can customize the middleware by configuring it to ignore specific action types, or fields in actions and state:
 
 ```js
 configureStore({
