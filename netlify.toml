@@ -2,7 +2,8 @@
   base    = "website"
   publish = "build"
   command = "npm run netlify-build  && cp _redirects ./build"
-  ignore = "git diff --quiet HEAD^ HEAD docs website"
+  #ignore = "git diff --quiet HEAD^ HEAD docs website"
+  ignore = "true"
 
 [build.environment]
 NODE_VERSION = "10"
