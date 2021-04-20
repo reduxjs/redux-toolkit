@@ -13,3 +13,8 @@ temp/
 .tmp-projections
 
 .rts2*
+
+typesversions
+.cache
+.yarn
+.yarnrc
