@@ -4,14 +4,19 @@ import {
   MutationDefinition,
   QueryArgFrom,
   ResultTypeFrom,
-} from '../endpointDefinitions';
-import type { QueryThunkArg, MutationThunkArg } from './buildThunks';
-import { AnyAction, AsyncThunk, ThunkAction, unwrapResult } from '@reduxjs/toolkit';
-import { QuerySubState, SubscriptionOptions } from './apiState';
-import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs';
-import { Api } from '../apiTypes';
-import { ApiEndpointQuery } from './module';
-import { BaseQueryResult } from '../baseQueryTypes';
+} from '../endpointDefinitions'
+import type { QueryThunkArg, MutationThunkArg } from './buildThunks'
+import {
+  AnyAction,
+  AsyncThunk,
+  ThunkAction,
+  unwrapResult,
+} from '@reduxjs/toolkit'
+import { QuerySubState, SubscriptionOptions } from './apiState'
+import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import { Api } from '../apiTypes'
+import { ApiEndpointQuery } from './module'
+import { BaseQueryResult } from '../baseQueryTypes'
 
 declare module './module' {
   export interface ApiEndpointQuery<
@@ -19,7 +24,7 @@ declare module './module' {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     Definitions extends EndpointDefinitions
   > {
-    initiate: StartQueryActionCreator<Definition>;
+    initiate: StartQueryActionCreator<Definition>
   }
 
   export interface ApiEndpointMutation<
@@ -27,32 +32,38 @@ declare module './module' {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     Definitions extends EndpointDefinitions
   > {
-    initiate: StartMutationActionCreator<Definition>;
+    initiate: StartMutationActionCreator<Definition>
   }
 }
 
 export interface StartQueryActionCreatorOptions {
-  subscribe?: boolean;
-  forceRefetch?: boolean | number;
-  subscriptionOptions?: SubscriptionOptions;
+  subscribe?: boolean
+  forceRefetch?: boolean | number
+  subscriptionOptions?: SubscriptionOptions
 }
 
-type StartQueryActionCreator<D extends QueryDefinition<any, any, any, any, any>> = (
+type StartQueryActionCreator<
+  D extends QueryDefinition<any, any, any, any, any>
+> = (
   arg: QueryArgFrom<D>,
   options?: StartQueryActionCreatorOptions
-) => ThunkAction<QueryActionCreatorResult<D>, any, any, AnyAction>;
+) => ThunkAction<QueryActionCreatorResult<D>, any, any, AnyAction>
 
-export type QueryActionCreatorResult<D extends QueryDefinition<any, any, any, any>> = Promise<QuerySubState<D>> & {
-  arg: QueryArgFrom<D>;
-  requestId: string;
-  subscriptionOptions: SubscriptionOptions | undefined;
-  abort(): void;
-  unsubscribe(): void;
-  refetch(): void;
-  updateSubscriptionOptions(options: SubscriptionOptions): void;
-};
+export type QueryActionCreatorResult<
+  D extends QueryDefinition<any, any, any, any>
+> = Promise<QuerySubState<D>> & {
+  arg: QueryArgFrom<D>
+  requestId: string
+  subscriptionOptions: SubscriptionOptions | undefined
+  abort(): void
+  unsubscribe(): void
+  refetch(): void
+  updateSubscriptionOptions(options: SubscriptionOptions): void
+}
 
-type StartMutationActionCreator<D extends MutationDefinition<any, any, any, any>> = (
+type StartMutationActionCreator<
+  D extends MutationDefinition<any, any, any, any>
+> = (
   arg: QueryArgFrom<D>,
   options?: {
     /**
@@ -61,19 +72,27 @@ type StartMutationActionCreator<D extends MutationDefinition<any, any, any, any>
      * result, state & potential errors being held in store, you can set this to false.
      * (defaults to `true`)
      */
-    track?: boolean;
+    track?: boolean
   }
-) => ThunkAction<MutationActionCreatorResult<D>, any, any, AnyAction>;
+) => ThunkAction<MutationActionCreatorResult<D>, any, any, AnyAction>
 
-export type MutationActionCreatorResult<D extends MutationDefinition<any, any, any, any>> = Promise<
-  ReturnType<BaseQueryResult<D extends MutationDefinition<any, infer BaseQuery, any, any> ? BaseQuery : never>>
+export type MutationActionCreatorResult<
+  D extends MutationDefinition<any, any, any, any>
+> = Promise<
+  ReturnType<
+    BaseQueryResult<
+      D extends MutationDefinition<any, infer BaseQuery, any, any>
+        ? BaseQuery
+        : never
+    >
+  >
 > & {
-  arg: QueryArgFrom<D>;
-  requestId: string;
-  abort(): void;
-  unwrap(): Promise<ResultTypeFrom<D>>;
-  unsubscribe(): void;
-};
+  arg: QueryArgFrom<D>
+  requestId: string
+  abort(): void
+  unwrap(): Promise<ResultTypeFrom<D>>
+  unsubscribe(): void
+}
 
 export function buildInitiate<InternalQueryArgs>({
   serializeQueryArgs,
@@ -81,20 +100,31 @@ export function buildInitiate<InternalQueryArgs>({
   mutationThunk,
   api,
 }: {
-  serializeQueryArgs: InternalSerializeQueryArgs<InternalQueryArgs>;
-  queryThunk: AsyncThunk<any, QueryThunkArg<any>, {}>;
-  mutationThunk: AsyncThunk<any, MutationThunkArg<any>, {}>;
-  api: Api<any, EndpointDefinitions, any, any>;
+  serializeQueryArgs: InternalSerializeQueryArgs<InternalQueryArgs>
+  queryThunk: AsyncThunk<any, QueryThunkArg<any>, {}>
+  mutationThunk: AsyncThunk<any, MutationThunkArg<any>, {}>
+  api: Api<any, EndpointDefinitions, any, any>
 }) {
-  const { unsubscribeQueryResult, unsubscribeMutationResult, updateSubscriptionOptions } = api.internalActions;
-  return { buildInitiateQuery, buildInitiateMutation };
+  const {
+    unsubscribeQueryResult,
+    unsubscribeMutationResult,
+    updateSubscriptionOptions,
+  } = api.internalActions
+  return { buildInitiateQuery, buildInitiateMutation }
 
-  function buildInitiateQuery(endpointName: string, endpointDefinition: QueryDefinition<any, any, any, any>) {
+  function buildInitiateQuery(
+    endpointName: string,
+    endpointDefinition: QueryDefinition<any, any, any, any>
+  ) {
     const queryAction: StartQueryActionCreator<any> = (
       arg,
       { subscribe = true, forceRefetch, subscriptionOptions } = {}
     ) => (dispatch, getState) => {
-      const queryCacheKey = serializeQueryArgs({ queryArgs: arg, endpointDefinition, endpointName });
+      const queryCacheKey = serializeQueryArgs({
+        queryArgs: arg,
+        endpointDefinition,
+        endpointName,
+      })
       const thunk = queryThunk({
         subscribe,
         forceRefetch,
@@ -103,18 +133,22 @@ export function buildInitiate<InternalQueryArgs>({
         originalArgs: arg,
         queryCacheKey,
         startedTimeStamp: Date.now(),
-      });
-      const thunkResult = dispatch(thunk);
-      const { requestId, abort } = thunkResult;
+      })
+      const thunkResult = dispatch(thunk)
+      const { requestId, abort } = thunkResult
       const statePromise = Object.assign(
-        thunkResult.then(() => (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).select(arg)(getState())),
+        thunkResult.then(() =>
+          (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).select(
+            arg
+          )(getState())
+        ),
         {
           arg,
           requestId,
           subscriptionOptions,
           abort,
           refetch() {
-            dispatch(queryAction(arg, { subscribe: false, forceRefetch: true }));
+            dispatch(queryAction(arg, { subscribe: false, forceRefetch: true }))
           },
           unsubscribe() {
             if (subscribe)
@@ -123,17 +157,24 @@ export function buildInitiate<InternalQueryArgs>({
                   queryCacheKey,
                   requestId,
                 })
-              );
+              )
           },
           updateSubscriptionOptions(options: SubscriptionOptions) {
-            statePromise.subscriptionOptions = options;
-            dispatch(updateSubscriptionOptions({ endpointName, requestId, queryCacheKey, options }));
+            statePromise.subscriptionOptions = options
+            dispatch(
+              updateSubscriptionOptions({
+                endpointName,
+                requestId,
+                queryCacheKey,
+                options,
+              })
+            )
           },
         }
-      );
-      return statePromise;
-    };
-    return queryAction;
+      )
+      return statePromise
+    }
+    return queryAction
   }
 
   function buildInitiateMutation(
@@ -146,26 +187,28 @@ export function buildInitiate<InternalQueryArgs>({
         originalArgs: arg,
         track,
         startedTimeStamp: Date.now(),
-      });
-      const thunkResult = dispatch(thunk);
-      const { requestId, abort } = thunkResult;
+      })
+      const thunkResult = dispatch(thunk)
+      const { requestId, abort } = thunkResult
       const returnValuePromise = thunkResult
         .then(unwrapResult)
         .then((unwrapped) => ({
           data: unwrapped.result,
         }))
-        .catch((error) => ({ error }));
+        .catch((error) => ({ error }))
       return Object.assign(returnValuePromise, {
         arg: thunkResult.arg,
         requestId,
         abort,
         unwrap() {
-          return thunkResult.then(unwrapResult).then((unwrapped) => unwrapped.result);
+          return thunkResult
+            .then(unwrapResult)
+            .then((unwrapped) => unwrapped.result)
         },
         unsubscribe() {
-          if (track) dispatch(unsubscribeMutationResult({ requestId }));
+          if (track) dispatch(unsubscribeMutationResult({ requestId }))
         },
-      });
-    };
+      })
+    }
   }
 }

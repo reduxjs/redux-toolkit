@@ -1,33 +1,60 @@
-import { AnyAction, createSelector, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { QueryStatus, QuerySubState, SubscriptionOptions, QueryKeys, RootState } from '../core/apiState';
+import {
+  AnyAction,
+  createSelector,
+  ThunkAction,
+  ThunkDispatch,
+} from '@reduxjs/toolkit'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  QueryStatus,
+  QuerySubState,
+  SubscriptionOptions,
+  QueryKeys,
+  RootState,
+} from '../core/apiState'
 import {
   EndpointDefinitions,
   MutationDefinition,
   QueryDefinition,
   QueryArgFrom,
   ResultTypeFrom,
-} from '../endpointDefinitions';
-import { QueryResultSelectorResult, MutationResultSelectorResult, skipSelector } from '../core/buildSelectors';
-import { QueryActionCreatorResult, MutationActionCreatorResult } from '../core/buildInitiate';
-import { shallowEqual } from '../utils';
-import { Api } from '../apiTypes';
-import { Id, NoInfer, Override } from '../tsHelpers';
-import { ApiEndpointMutation, ApiEndpointQuery, CoreModule, PrefetchOptions } from '../core/module';
-import { ReactHooksModuleOptions } from './module';
-import { useShallowStableValue } from './useShallowStableValue';
-import { UninitializedValue, UNINITIALIZED_VALUE } from '../constants';
+} from '../endpointDefinitions'
+import {
+  QueryResultSelectorResult,
+  MutationResultSelectorResult,
+  skipSelector,
+} from '../core/buildSelectors'
+import {
+  QueryActionCreatorResult,
+  MutationActionCreatorResult,
+} from '../core/buildInitiate'
+import { shallowEqual } from '../utils'
+import { Api } from '../apiTypes'
+import { Id, NoInfer, Override } from '../tsHelpers'
+import {
+  ApiEndpointMutation,
+  ApiEndpointQuery,
+  CoreModule,
+  PrefetchOptions,
+} from '../core/module'
+import { ReactHooksModuleOptions } from './module'
+import { useShallowStableValue } from './useShallowStableValue'
+import { UninitializedValue, UNINITIALIZED_VALUE } from '../constants'
 
-export interface QueryHooks<Definition extends QueryDefinition<any, any, any, any, any>> {
-  useQuery: UseQuery<Definition>;
-  useLazyQuery: UseLazyQuery<Definition>;
-  useQuerySubscription: UseQuerySubscription<Definition>;
-  useLazyQuerySubscription: UseLazyQuerySubscription<Definition>;
-  useQueryState: UseQueryState<Definition>;
+export interface QueryHooks<
+  Definition extends QueryDefinition<any, any, any, any, any>
+> {
+  useQuery: UseQuery<Definition>
+  useLazyQuery: UseLazyQuery<Definition>
+  useQuerySubscription: UseQuerySubscription<Definition>
+  useLazyQuerySubscription: UseLazyQuerySubscription<Definition>
+  useQueryState: UseQueryState<Definition>
 }
 
-export interface MutationHooks<Definition extends MutationDefinition<any, any, any, any, any>> {
-  useMutation: UseMutation<Definition>;
+export interface MutationHooks<
+  Definition extends MutationDefinition<any, any, any, any, any>
+> {
+  useMutation: UseMutation<Definition>
 }
 
 /**
@@ -38,7 +65,7 @@ export type UseQuery<D extends QueryDefinition<any, any, any, any>> = <
 >(
   arg: QueryArgFrom<D>,
   options?: UseQuerySubscriptionOptions & UseQueryStateOptions<D, R>
-) => UseQueryStateResult<D, R> & ReturnType<UseQuerySubscription<D>>;
+) => UseQueryStateResult<D, R> & ReturnType<UseQuerySubscription<D>>
 
 interface UseQuerySubscriptionOptions extends SubscriptionOptions {
   /**
@@ -73,7 +100,7 @@ interface UseQuerySubscriptionOptions extends SubscriptionOptions {
    * };
    * ```
    */
-  skip?: boolean;
+  skip?: boolean
   /**
    * Defaults to `false`. This setting allows you to control whether if a cached result is already available, RTK Query will only serve a cached result, or if it should `refetch` when set to `true` or if an adequate amount of time has passed since the last successful query result.
    * - `false` - Will not cause a query to be performed _unless_ it does not exist yet.
@@ -82,42 +109,64 @@ interface UseQuerySubscriptionOptions extends SubscriptionOptions {
    *
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
    */
-  refetchOnMountOrArgChange?: boolean | number;
+  refetchOnMountOrArgChange?: boolean | number
 }
 
-export type UseQuerySubscription<D extends QueryDefinition<any, any, any, any>> = (
+export type UseQuerySubscription<
+  D extends QueryDefinition<any, any, any, any>
+> = (
   arg: QueryArgFrom<D>,
   options?: UseQuerySubscriptionOptions
-) => Pick<QueryActionCreatorResult<D>, 'refetch'>;
+) => Pick<QueryActionCreatorResult<D>, 'refetch'>
 
-export type UseLazyQueryLastPromiseInfo<D extends QueryDefinition<any, any, any, any>> = {
-  lastArg: QueryArgFrom<D>;
-};
-export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <R = UseQueryStateDefaultResult<D>>(
+export type UseLazyQueryLastPromiseInfo<
+  D extends QueryDefinition<any, any, any, any>
+> = {
+  lastArg: QueryArgFrom<D>
+}
+export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
+  R = UseQueryStateDefaultResult<D>
+>(
   options?: SubscriptionOptions & Omit<UseQueryStateOptions<D, R>, 'skip'>
-) => [(arg: QueryArgFrom<D>) => void, UseQueryStateResult<D, R>, UseLazyQueryLastPromiseInfo<D>];
+) => [
+  (arg: QueryArgFrom<D>) => void,
+  UseQueryStateResult<D, R>,
+  UseLazyQueryLastPromiseInfo<D>
+]
 
-export type UseLazyQuerySubscription<D extends QueryDefinition<any, any, any, any>> = (
+export type UseLazyQuerySubscription<
+  D extends QueryDefinition<any, any, any, any>
+> = (
   options?: SubscriptionOptions
-) => [(arg: QueryArgFrom<D>) => void, QueryArgFrom<D> | UninitializedValue];
+) => [(arg: QueryArgFrom<D>) => void, QueryArgFrom<D> | UninitializedValue]
 
-export type QueryStateSelector<R extends Record<string, any>, D extends QueryDefinition<any, any, any, any>> = (
+export type QueryStateSelector<
+  R extends Record<string, any>,
+  D extends QueryDefinition<any, any, any, any>
+> = (
   state: QueryResultSelectorResult<D>,
   lastResult: R | undefined,
   defaultQueryStateSelector: DefaultQueryStateSelector<D>
-) => R;
+) => R
 
-export type DefaultQueryStateSelector<D extends QueryDefinition<any, any, any, any>> = (
+export type DefaultQueryStateSelector<
+  D extends QueryDefinition<any, any, any, any>
+> = (
   state: QueryResultSelectorResult<D>,
   lastResult: Pick<UseQueryStateDefaultResult<D>, 'data'>
-) => UseQueryStateDefaultResult<D>;
+) => UseQueryStateDefaultResult<D>
 
-export type UseQueryState<D extends QueryDefinition<any, any, any, any>> = <R = UseQueryStateDefaultResult<D>>(
+export type UseQueryState<D extends QueryDefinition<any, any, any, any>> = <
+  R = UseQueryStateDefaultResult<D>
+>(
   arg: QueryArgFrom<D>,
   options?: UseQueryStateOptions<D, R>
-) => UseQueryStateResult<D, R>;
+) => UseQueryStateResult<D, R>
 
-export type UseQueryStateOptions<D extends QueryDefinition<any, any, any, any>, R extends Record<string, any>> = {
+export type UseQueryStateOptions<
+  D extends QueryDefinition<any, any, any, any>,
+  R extends Record<string, any>
+> = {
   /**
    * Prevents a query from automatically running.
    *
@@ -150,7 +199,7 @@ export type UseQueryStateOptions<D extends QueryDefinition<any, any, any, any>, 
    * };
    * ```
    */
-  skip?: boolean;
+  skip?: boolean
   /**
    * `selectFromResult` allows you to get a specific segment from a query result in a performant manner.
    * When using this feature, the component will not rerender unless the underlying data of the selected item has changed.
@@ -181,43 +230,58 @@ export type UseQueryStateOptions<D extends QueryDefinition<any, any, any, any>, 
    * }
    * ```
    */
-  selectFromResult?: QueryStateSelector<R, D>;
-};
+  selectFromResult?: QueryStateSelector<R, D>
+}
 
-export type UseQueryStateResult<_ extends QueryDefinition<any, any, any, any>, R> = NoInfer<R>;
+export type UseQueryStateResult<
+  _ extends QueryDefinition<any, any, any, any>,
+  R
+> = NoInfer<R>
 
-type UseQueryStateBaseResult<D extends QueryDefinition<any, any, any, any>> = QuerySubState<D> & {
+type UseQueryStateBaseResult<
+  D extends QueryDefinition<any, any, any, any>
+> = QuerySubState<D> & {
   /**
    * Query has not started yet.
    */
-  isUninitialized: false;
+  isUninitialized: false
   /**
    * Query is currently loading for the first time. No data yet.
    */
-  isLoading: false;
+  isLoading: false
   /**
    * Query is currently fetching, but might have data from an earlier request.
    */
-  isFetching: false;
+  isFetching: false
   /**
    * Query has data from a successful load.
    */
-  isSuccess: false;
+  isSuccess: false
   /**
    * Query is currently in "error" state.
    */
-  isError: false;
-};
+  isError: false
+}
 
-type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> = Id<
-  | Override<Extract<UseQueryStateBaseResult<D>, { status: QueryStatus.uninitialized }>, { isUninitialized: true }>
+type UseQueryStateDefaultResult<
+  D extends QueryDefinition<any, any, any, any>
+> = Id<
+  | Override<
+      Extract<
+        UseQueryStateBaseResult<D>,
+        { status: QueryStatus.uninitialized }
+      >,
+      { isUninitialized: true }
+    >
   | Override<
       UseQueryStateBaseResult<D>,
       | { isLoading: true; isFetching: boolean; data: undefined }
       | ({ isSuccess: true; isFetching: boolean; error: undefined } & Required<
           Pick<UseQueryStateBaseResult<D>, 'data' | 'fulfilledTimeStamp'>
         >)
-      | ({ isError: true } & Required<Pick<UseQueryStateBaseResult<D>, 'error'>>)
+      | ({ isError: true } & Required<
+          Pick<UseQueryStateBaseResult<D>, 'error'>
+        >)
     >
 > & {
   /**
@@ -225,23 +289,32 @@ type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
    * please use the `isLoading`, `isFetching`, `isSuccess`, `isError`
    * and `isUninitialized` flags instead
    */
-  status: QueryStatus;
-};
+  status: QueryStatus
+}
 
-export type MutationStateSelector<R extends Record<string, any>, D extends MutationDefinition<any, any, any, any>> = (
+export type MutationStateSelector<
+  R extends Record<string, any>,
+  D extends MutationDefinition<any, any, any, any>
+> = (
   state: MutationResultSelectorResult<D>,
   defaultMutationStateSelector: DefaultMutationStateSelector<D>
-) => R;
+) => R
 
-export type DefaultMutationStateSelector<D extends MutationDefinition<any, any, any, any>> = (
-  state: MutationResultSelectorResult<D>
-) => MutationResultSelectorResult<D>;
+export type DefaultMutationStateSelector<
+  D extends MutationDefinition<any, any, any, any>
+> = (state: MutationResultSelectorResult<D>) => MutationResultSelectorResult<D>
 
-export type UseMutationStateOptions<D extends MutationDefinition<any, any, any, any>, R extends Record<string, any>> = {
-  selectFromResult?: MutationStateSelector<R, D>;
-};
+export type UseMutationStateOptions<
+  D extends MutationDefinition<any, any, any, any>,
+  R extends Record<string, any>
+> = {
+  selectFromResult?: MutationStateSelector<R, D>
+}
 
-export type UseMutationStateResult<_ extends MutationDefinition<any, any, any, any>, R> = NoInfer<R>;
+export type UseMutationStateResult<
+  _ extends MutationDefinition<any, any, any, any>,
+  R
+> = NoInfer<R>
 
 export type UseMutation<D extends MutationDefinition<any, any, any, any>> = <
   R extends Record<string, any> = MutationResultSelectorResult<D>
@@ -277,26 +350,39 @@ export type UseMutation<D extends MutationDefinition<any, any, any, any>> = <
      * }
      * ```
      */
-    unwrap: () => Promise<ResultTypeFrom<D>>;
+    unwrap: () => Promise<ResultTypeFrom<D>>
   },
   UseMutationStateResult<D, R>
-];
+]
 
-const defaultMutationStateSelector: DefaultMutationStateSelector<any> = (currentState) => currentState;
+const defaultMutationStateSelector: DefaultMutationStateSelector<any> = (
+  currentState
+) => currentState
 
-const defaultQueryStateSelector: DefaultQueryStateSelector<any> = (currentState, lastResult) => {
+const defaultQueryStateSelector: DefaultQueryStateSelector<any> = (
+  currentState,
+  lastResult
+) => {
   // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
-  const data = (currentState.isSuccess ? currentState.data : lastResult?.data) ?? currentState.data;
+  const data =
+    (currentState.isSuccess ? currentState.data : lastResult?.data) ??
+    currentState.data
 
   // isFetching = true any time a request is in flight
-  const isFetching = currentState.isLoading;
+  const isFetching = currentState.isLoading
   // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
-  const isLoading = !data && isFetching;
+  const isLoading = !data && isFetching
   // isSuccess = true when data is present
-  const isSuccess = currentState.isSuccess || (isFetching && !!data);
+  const isSuccess = currentState.isSuccess || (isFetching && !!data)
 
-  return { ...currentState, data, isFetching, isLoading, isSuccess } as UseQueryStateDefaultResult<any>;
-};
+  return {
+    ...currentState,
+    data,
+    isFetching,
+    isLoading,
+    isSuccess,
+  } as UseQueryStateDefaultResult<any>
+}
 
 /**
  * Wrapper around `defaultQueryStateSelector` to be used in `useQuery`.
@@ -304,8 +390,11 @@ const defaultQueryStateSelector: DefaultQueryStateSelector<any> = (currentState,
  * `{ isUninitialized: false, isFetching: true, isLoading: true }`
  * to prevent that the library user has to do an additional check for `isUninitialized`/
  */
-const noPendingQueryStateSelector: DefaultQueryStateSelector<any> = (currentState, lastResult) => {
-  const selected = defaultQueryStateSelector(currentState, lastResult);
+const noPendingQueryStateSelector: DefaultQueryStateSelector<any> = (
+  currentState,
+  lastResult
+) => {
+  const selected = defaultQueryStateSelector(currentState, lastResult)
   if (selected.isUninitialized) {
     return {
       ...selected,
@@ -313,16 +402,16 @@ const noPendingQueryStateSelector: DefaultQueryStateSelector<any> = (currentStat
       isFetching: true,
       isLoading: true,
       status: QueryStatus.pending,
-    };
+    }
   }
-  return selected;
-};
+  return selected
+}
 
 type GenericPrefetchThunk = (
   endpointName: any,
   arg: any,
   options: PrefetchOptions
-) => ThunkAction<void, any, any, AnyAction>;
+) => ThunkAction<void, any, any, AnyAction>
 
 /**
  *
@@ -336,74 +425,90 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   api,
   moduleOptions: { batch, useDispatch, useSelector },
 }: {
-  api: Api<any, Definitions, any, any, CoreModule>;
-  moduleOptions: Required<ReactHooksModuleOptions>;
+  api: Api<any, Definitions, any, any, CoreModule>
+  moduleOptions: Required<ReactHooksModuleOptions>
 }) {
-  return { buildQueryHooks, buildMutationHook, usePrefetch };
+  return { buildQueryHooks, buildMutationHook, usePrefetch }
 
   function usePrefetch<EndpointName extends QueryKeys<Definitions>>(
     endpointName: EndpointName,
     defaultOptions?: PrefetchOptions
   ) {
-    const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
-    const stableDefaultOptions = useShallowStableValue(defaultOptions);
+    const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
+    const stableDefaultOptions = useShallowStableValue(defaultOptions)
 
     return useCallback(
       (arg: any, options?: PrefetchOptions) =>
         dispatch(
-          (api.util.prefetch as GenericPrefetchThunk)(endpointName, arg, { ...stableDefaultOptions, ...options })
+          (api.util.prefetch as GenericPrefetchThunk)(endpointName, arg, {
+            ...stableDefaultOptions,
+            ...options,
+          })
         ),
       [endpointName, dispatch, stableDefaultOptions]
-    );
+    )
   }
 
   function buildQueryHooks(name: string): QueryHooks<any> {
     const useQuerySubscription: UseQuerySubscription<any> = (
       arg: any,
-      { refetchOnReconnect, refetchOnFocus, refetchOnMountOrArgChange, skip = false, pollingInterval = 0 } = {}
+      {
+        refetchOnReconnect,
+        refetchOnFocus,
+        refetchOnMountOrArgChange,
+        skip = false,
+        pollingInterval = 0,
+      } = {}
     ) => {
       const { initiate } = api.endpoints[name] as ApiEndpointQuery<
         QueryDefinition<any, any, any, any, any>,
         Definitions
-      >;
-      const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
-      const stableArg = useShallowStableValue(arg);
+      >
+      const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
+      const stableArg = useShallowStableValue(arg)
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,
         refetchOnFocus,
         pollingInterval,
-      });
+      })
 
-      const promiseRef = useRef<QueryActionCreatorResult<any>>();
+      const promiseRef = useRef<QueryActionCreatorResult<any>>()
 
       useEffect(() => {
         if (skip) {
-          return;
+          return
         }
 
-        const lastPromise = promiseRef.current;
-        const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions;
+        const lastPromise = promiseRef.current
+        const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions
 
         if (!lastPromise || lastPromise.arg !== stableArg) {
-          lastPromise?.unsubscribe();
+          lastPromise?.unsubscribe()
           const promise = dispatch(
             initiate(stableArg, {
               subscriptionOptions: stableSubscriptionOptions,
               forceRefetch: refetchOnMountOrArgChange,
             })
-          );
-          promiseRef.current = promise;
+          )
+          promiseRef.current = promise
         } else if (stableSubscriptionOptions !== lastSubscriptionOptions) {
-          lastPromise.updateSubscriptionOptions(stableSubscriptionOptions);
+          lastPromise.updateSubscriptionOptions(stableSubscriptionOptions)
         }
-      }, [dispatch, initiate, refetchOnMountOrArgChange, skip, stableArg, stableSubscriptionOptions]);
+      }, [
+        dispatch,
+        initiate,
+        refetchOnMountOrArgChange,
+        skip,
+        stableArg,
+        stableSubscriptionOptions,
+      ])
 
       useEffect(() => {
         return () => {
-          promiseRef.current?.unsubscribe();
-          promiseRef.current = undefined;
-        };
-      }, []);
+          promiseRef.current?.unsubscribe()
+          promiseRef.current = undefined
+        }
+      }, [])
 
       return useMemo(
         () => ({
@@ -413,8 +518,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           refetch: () => void promiseRef.current?.refetch(),
         }),
         []
-      );
-    };
+      )
+    }
 
     const useLazyQuerySubscription: UseLazyQuerySubscription<any> = ({
       refetchOnReconnect,
@@ -424,154 +529,181 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const { initiate } = api.endpoints[name] as ApiEndpointQuery<
         QueryDefinition<any, any, any, any, any>,
         Definitions
-      >;
-      const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
+      >
+      const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
 
-      const [arg, setArg] = useState<any>(UNINITIALIZED_VALUE);
-      const promiseRef = useRef<QueryActionCreatorResult<any> | undefined>();
+      const [arg, setArg] = useState<any>(UNINITIALIZED_VALUE)
+      const promiseRef = useRef<QueryActionCreatorResult<any> | undefined>()
 
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,
         refetchOnFocus,
         pollingInterval,
-      });
+      })
 
       useEffect(() => {
-        const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions;
+        const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions
 
         if (stableSubscriptionOptions !== lastSubscriptionOptions) {
-          promiseRef.current?.updateSubscriptionOptions(stableSubscriptionOptions);
+          promiseRef.current?.updateSubscriptionOptions(
+            stableSubscriptionOptions
+          )
         }
-      }, [stableSubscriptionOptions]);
+      }, [stableSubscriptionOptions])
 
-      const subscriptionOptionsRef = useRef(stableSubscriptionOptions);
+      const subscriptionOptionsRef = useRef(stableSubscriptionOptions)
       useEffect(() => {
-        subscriptionOptionsRef.current = stableSubscriptionOptions;
-      }, [stableSubscriptionOptions]);
+        subscriptionOptionsRef.current = stableSubscriptionOptions
+      }, [stableSubscriptionOptions])
 
       const trigger = useCallback(
         function (arg: any, preferCacheValue = false) {
           batch(() => {
-            promiseRef.current?.unsubscribe();
+            promiseRef.current?.unsubscribe()
 
             promiseRef.current = dispatch(
               initiate(arg, {
                 subscriptionOptions: subscriptionOptionsRef.current,
                 forceRefetch: !preferCacheValue,
               })
-            );
-            setArg(arg);
-          });
+            )
+            setArg(arg)
+          })
         },
         [dispatch, initiate]
-      );
+      )
 
       /* cleanup on unmount */
       useEffect(() => {
         return () => {
-          promiseRef?.current?.unsubscribe();
-        };
-      }, []);
+          promiseRef?.current?.unsubscribe()
+        }
+      }, [])
 
       /* if "cleanup on unmount" was triggered from a fast refresh, we want to reinstate the query */
       useEffect(() => {
         if (arg !== UNINITIALIZED_VALUE && !promiseRef.current) {
-          trigger(arg, true);
+          trigger(arg, true)
         }
-      }, [arg, trigger]);
+      }, [arg, trigger])
 
-      return useMemo(() => [trigger, arg], [trigger, arg]);
-    };
+      return useMemo(() => [trigger, arg], [trigger, arg])
+    }
 
     const useQueryState: UseQueryState<any> = (
       arg: any,
-      { skip = false, selectFromResult = defaultQueryStateSelector as QueryStateSelector<any, any> } = {}
+      {
+        skip = false,
+        selectFromResult = defaultQueryStateSelector as QueryStateSelector<
+          any,
+          any
+        >,
+      } = {}
     ) => {
-      const { select } = api.endpoints[name] as ApiEndpointQuery<QueryDefinition<any, any, any, any, any>, Definitions>;
-      const stableArg = useShallowStableValue(arg);
+      const { select } = api.endpoints[name] as ApiEndpointQuery<
+        QueryDefinition<any, any, any, any, any>,
+        Definitions
+      >
+      const stableArg = useShallowStableValue(arg)
 
-      const lastValue = useRef<any>();
+      const lastValue = useRef<any>()
 
       const querySelector = useMemo(
         () =>
           createSelector(
-            [select(skip ? skipSelector : stableArg), (_: any, lastResult: any) => lastResult],
-            (subState, lastResult) => selectFromResult(subState, lastResult, defaultQueryStateSelector)
+            [
+              select(skip ? skipSelector : stableArg),
+              (_: any, lastResult: any) => lastResult,
+            ],
+            (subState, lastResult) =>
+              selectFromResult(subState, lastResult, defaultQueryStateSelector)
           ),
         [select, skip, stableArg, selectFromResult]
-      );
+      )
 
       const currentState = useSelector(
-        (state: RootState<Definitions, any, any>) => querySelector(state, lastValue.current),
+        (state: RootState<Definitions, any, any>) =>
+          querySelector(state, lastValue.current),
         shallowEqual
-      );
+      )
 
       useEffect(() => {
-        lastValue.current = currentState;
-      }, [currentState]);
+        lastValue.current = currentState
+      }, [currentState])
 
-      return currentState;
-    };
+      return currentState
+    }
 
     return {
       useQueryState,
       useQuerySubscription,
       useLazyQuerySubscription,
       useLazyQuery(options) {
-        const [trigger, arg] = useLazyQuerySubscription(options);
+        const [trigger, arg] = useLazyQuerySubscription(options)
         const queryStateResults = useQueryState(arg, {
           ...options,
           skip: arg === UNINITIALIZED_VALUE,
-        });
+        })
 
-        const info = useMemo(() => ({ lastArg: arg }), [arg]);
-        return useMemo(() => [trigger, queryStateResults, info], [trigger, queryStateResults, info]);
+        const info = useMemo(() => ({ lastArg: arg }), [arg])
+        return useMemo(() => [trigger, queryStateResults, info], [
+          trigger,
+          queryStateResults,
+          info,
+        ])
       },
       useQuery(arg, options) {
-        const querySubscriptionResults = useQuerySubscription(arg, options);
+        const querySubscriptionResults = useQuerySubscription(arg, options)
         const queryStateResults = useQueryState(arg, {
-          selectFromResult: options?.skip ? undefined : (noPendingQueryStateSelector as QueryStateSelector<any, any>),
+          selectFromResult: options?.skip
+            ? undefined
+            : (noPendingQueryStateSelector as QueryStateSelector<any, any>),
           ...options,
-        });
-        return useMemo(() => ({ ...queryStateResults, ...querySubscriptionResults }), [
-          queryStateResults,
-          querySubscriptionResults,
-        ]);
+        })
+        return useMemo(
+          () => ({ ...queryStateResults, ...querySubscriptionResults }),
+          [queryStateResults, querySubscriptionResults]
+        )
       },
-    };
+    }
   }
 
   function buildMutationHook(name: string): UseMutation<any> {
-    return ({ selectFromResult = defaultMutationStateSelector as MutationStateSelector<any, any> } = {}) => {
+    return ({
+      selectFromResult = defaultMutationStateSelector as MutationStateSelector<
+        any,
+        any
+      >,
+    } = {}) => {
       const { select, initiate } = api.endpoints[name] as ApiEndpointMutation<
         MutationDefinition<any, any, any, any, any>,
         Definitions
-      >;
-      const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>();
-      const [requestId, setRequestId] = useState<string>();
+      >
+      const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
+      const [requestId, setRequestId] = useState<string>()
 
-      const promiseRef = useRef<MutationActionCreatorResult<any>>();
+      const promiseRef = useRef<MutationActionCreatorResult<any>>()
 
       useEffect(() => {
         return () => {
-          promiseRef.current?.unsubscribe();
-          promiseRef.current = undefined;
-        };
-      }, []);
+          promiseRef.current?.unsubscribe()
+          promiseRef.current = undefined
+        }
+      }, [])
 
       const triggerMutation = useCallback(
         function (arg) {
-          let promise: MutationActionCreatorResult<any>;
+          let promise: MutationActionCreatorResult<any>
           batch(() => {
-            promiseRef?.current?.unsubscribe();
-            promise = dispatch(initiate(arg));
-            promiseRef.current = promise;
-            setRequestId(promise.requestId);
-          });
-          return promise!;
+            promiseRef?.current?.unsubscribe()
+            promise = dispatch(initiate(arg))
+            promiseRef.current = promise
+            setRequestId(promise.requestId)
+          })
+          return promise!
         },
         [dispatch, initiate]
-      );
+      )
 
       const mutationSelector = useMemo(
         () =>
@@ -579,11 +711,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
             selectFromResult(subState, defaultMutationStateSelector)
           ),
         [select, requestId, selectFromResult]
-      );
+      )
 
-      const currentState = useSelector(mutationSelector, shallowEqual);
+      const currentState = useSelector(mutationSelector, shallowEqual)
 
-      return useMemo(() => [triggerMutation, currentState], [triggerMutation, currentState]);
-    };
+      return useMemo(() => [triggerMutation, currentState], [
+        triggerMutation,
+        currentState,
+      ])
+    }
   }
 }

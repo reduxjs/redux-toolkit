@@ -1,65 +1,85 @@
-import { joinUrls } from './utils';
-import { isPlainObject } from '@reduxjs/toolkit';
-import type { BaseQueryFn } from './baseQueryTypes';
-import type { MaybePromise, Override } from './tsHelpers';
+import { joinUrls } from './utils'
+import { isPlainObject } from '@reduxjs/toolkit'
+import type { BaseQueryFn } from './baseQueryTypes'
+import type { MaybePromise, Override } from './tsHelpers'
 
-export type ResponseHandler = 'json' | 'text' | ((response: Response) => Promise<any>);
+export type ResponseHandler =
+  | 'json'
+  | 'text'
+  | ((response: Response) => Promise<any>)
 
 type CustomRequestInit = Override<
   RequestInit,
-  { headers?: Headers | string[][] | Record<string, string | undefined> | undefined }
->;
+  {
+    headers?:
+      | Headers
+      | string[][]
+      | Record<string, string | undefined>
+      | undefined
+  }
+>
 
 export interface FetchArgs extends CustomRequestInit {
-  url: string;
-  params?: Record<string, any>;
-  body?: any;
-  responseHandler?: ResponseHandler;
-  validateStatus?: (response: Response, body: any) => boolean;
+  url: string
+  params?: Record<string, any>
+  body?: any
+  responseHandler?: ResponseHandler
+  validateStatus?: (response: Response, body: any) => boolean
 }
 
-const defaultValidateStatus = (response: Response) => response.status >= 200 && response.status <= 299;
+const defaultValidateStatus = (response: Response) =>
+  response.status >= 200 && response.status <= 299
 
-const isJsonContentType = (headers: Headers) => headers.get('content-type')?.trim()?.startsWith('application/json');
+const isJsonContentType = (headers: Headers) =>
+  headers.get('content-type')?.trim()?.startsWith('application/json')
 
-const handleResponse = async (response: Response, responseHandler: ResponseHandler) => {
+const handleResponse = async (
+  response: Response,
+  responseHandler: ResponseHandler
+) => {
   if (typeof responseHandler === 'function') {
-    return responseHandler(response);
+    return responseHandler(response)
   }
 
   if (responseHandler === 'text') {
-    return response.text();
+    return response.text()
   }
 
   if (responseHandler === 'json') {
-    const text = await response.text();
-    return text.length ? JSON.parse(text) : undefined;
+    const text = await response.text()
+    return text.length ? JSON.parse(text) : undefined
   }
-};
+}
 
 export interface FetchBaseQueryError {
-  status: number;
-  data: unknown;
+  status: number
+  data: unknown
 }
 
 function stripUndefined(obj: any) {
   if (!isPlainObject(obj)) {
-    return obj;
+    return obj
   }
-  const copy: Record<string, any> = { ...obj };
+  const copy: Record<string, any> = { ...obj }
   for (const [k, v] of Object.entries(copy)) {
-    if (typeof v === 'undefined') delete copy[k];
+    if (typeof v === 'undefined') delete copy[k]
   }
-  return copy;
+  return copy
 }
 
 export type FetchBaseQueryArgs = {
-  baseUrl?: string;
-  prepareHeaders?: (headers: Headers, api: { getState: () => unknown }) => MaybePromise<Headers>;
-  fetchFn?: (input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>;
-} & RequestInit;
+  baseUrl?: string
+  prepareHeaders?: (
+    headers: Headers,
+    api: { getState: () => unknown }
+  ) => MaybePromise<Headers>
+  fetchFn?: (
+    input: RequestInfo,
+    init?: RequestInit | undefined
+  ) => Promise<Response>
+} & RequestInit
 
-export type FetchBaseQueryMeta = { request: Request; response: Response };
+export type FetchBaseQueryMeta = { request: Request; response: Response }
 
 /**
  * This is a very small wrapper around fetch that aims to simplify requests.
@@ -100,7 +120,13 @@ export function fetchBaseQuery({
   prepareHeaders = (x) => x,
   fetchFn = fetch,
   ...baseFetchOptions
-}: FetchBaseQueryArgs = {}): BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError, {}, FetchBaseQueryMeta> {
+}: FetchBaseQueryArgs = {}): BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError,
+  {},
+  FetchBaseQueryMeta
+> {
   return async (arg, { signal, getState }) => {
     let {
       url,
@@ -111,46 +137,52 @@ export function fetchBaseQuery({
       responseHandler = 'json' as const,
       validateStatus = defaultValidateStatus,
       ...rest
-    } = typeof arg == 'string' ? { url: arg } : arg;
+    } = typeof arg == 'string' ? { url: arg } : arg
     let config: RequestInit = {
       ...baseFetchOptions,
       method,
       signal,
       body,
       ...rest,
-    };
+    }
 
-    config.headers = await prepareHeaders(new Headers(stripUndefined(headers)), { getState });
+    config.headers = await prepareHeaders(
+      new Headers(stripUndefined(headers)),
+      { getState }
+    )
 
     // Only set the content-type to json if appropriate. Will not be true for FormData, ArrayBuffer, Blob, etc.
     const isJsonifiable = (body: any) =>
-      typeof body === 'object' && (isPlainObject(body) || Array.isArray(body) || typeof body.toJSON === 'function');
+      typeof body === 'object' &&
+      (isPlainObject(body) ||
+        Array.isArray(body) ||
+        typeof body.toJSON === 'function')
 
     if (!config.headers.has('content-type') && isJsonifiable(body)) {
-      config.headers.set('content-type', 'application/json');
+      config.headers.set('content-type', 'application/json')
     }
 
     if (body && isJsonContentType(config.headers)) {
-      config.body = JSON.stringify(body);
+      config.body = JSON.stringify(body)
     }
 
     if (params) {
-      const divider = ~url.indexOf('?') ? '&' : '?';
-      const query = new URLSearchParams(stripUndefined(params));
-      url += divider + query;
+      const divider = ~url.indexOf('?') ? '&' : '?'
+      const query = new URLSearchParams(stripUndefined(params))
+      url += divider + query
     }
 
-    url = joinUrls(baseUrl, url);
+    url = joinUrls(baseUrl, url)
 
-    const request = new Request(url, config);
-    const requestClone = request.clone();
+    const request = new Request(url, config)
+    const requestClone = request.clone()
 
-    const response = await fetchFn(request);
-    const responseClone = response.clone();
+    const response = await fetchFn(request)
+    const responseClone = response.clone()
 
-    const meta = { request: requestClone, response: responseClone };
+    const meta = { request: requestClone, response: responseClone }
 
-    const resultData = await handleResponse(response, responseHandler);
+    const resultData = await handleResponse(response, responseHandler)
 
     return validateStatus(response, resultData)
       ? {
@@ -163,6 +195,6 @@ export function fetchBaseQuery({
             data: resultData,
           },
           meta,
-        };
-  };
+        }
+  }
 }

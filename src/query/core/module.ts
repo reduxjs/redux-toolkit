@@ -1,8 +1,19 @@
 /**
  * Note: this file should import all other files for type discovery and declaration merging
  */
-import { buildThunks, PatchQueryResultThunk, UpdateQueryResultThunk } from './buildThunks';
-import { ActionCreatorWithPayload, AnyAction, Middleware, Reducer, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit';
+import {
+  buildThunks,
+  PatchQueryResultThunk,
+  UpdateQueryResultThunk,
+} from './buildThunks'
+import {
+  ActionCreatorWithPayload,
+  AnyAction,
+  Middleware,
+  Reducer,
+  ThunkAction,
+  ThunkDispatch,
+} from '@reduxjs/toolkit'
 import {
   EndpointDefinitions,
   QueryArgFrom,
@@ -12,19 +23,19 @@ import {
   isQueryDefinition,
   isMutationDefinition,
   FullTagDescription,
-} from '../endpointDefinitions';
-import { CombinedState, QueryKeys, RootState } from './apiState';
-import './buildSelectors';
-import { Api, Module } from '../apiTypes';
-import { onFocus, onFocusLost, onOnline, onOffline } from './setupListeners';
-import { buildSlice } from './buildSlice';
-import { buildMiddleware } from './buildMiddleware';
-import { buildSelectors } from './buildSelectors';
-import { buildInitiate } from './buildInitiate';
-import { assertCast, Id, safeAssign } from '../tsHelpers';
-import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs';
-import { SliceActions } from './buildSlice';
-import { BaseQueryFn } from '../baseQueryTypes';
+} from '../endpointDefinitions'
+import { CombinedState, QueryKeys, RootState } from './apiState'
+import './buildSelectors'
+import { Api, Module } from '../apiTypes'
+import { onFocus, onFocusLost, onOnline, onOffline } from './setupListeners'
+import { buildSlice } from './buildSlice'
+import { buildMiddleware } from './buildMiddleware'
+import { buildSelectors } from './buildSelectors'
+import { buildInitiate } from './buildInitiate'
+import { assertCast, Id, safeAssign } from '../tsHelpers'
+import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import { SliceActions } from './buildSlice'
+import { BaseQueryFn } from '../baseQueryTypes'
 
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
@@ -36,12 +47,12 @@ import { BaseQueryFn } from '../baseQueryTypes';
  */
 export type PrefetchOptions =
   | {
-      ifOlderThan?: false | number;
+      ifOlderThan?: false | number
     }
-  | { force?: boolean };
+  | { force?: boolean }
 
-export const coreModuleName = Symbol();
-export type CoreModule = typeof coreModuleName;
+export const coreModuleName = Symbol()
+export type CoreModule = typeof coreModuleName
 
 declare module '../apiTypes' {
   export interface ApiModules<
@@ -65,11 +76,11 @@ declare module '../apiTypes' {
        * })
        * ```
        */
-      reducerPath: ReducerPath;
+      reducerPath: ReducerPath
       /**
        * Internal actions not part of the public API. Note: These are subject to change at any given time.
        */
-      internalActions: InternalActions;
+      internalActions: InternalActions
       /**
        *  A standard redux reducer that enables core functionality. Make sure it's included in your store.
        *
@@ -83,7 +94,10 @@ declare module '../apiTypes' {
        * })
        * ```
        */
-      reducer: Reducer<CombinedState<Definitions, TagTypes, ReducerPath>, AnyAction>;
+      reducer: Reducer<
+        CombinedState<Definitions, TagTypes, ReducerPath>,
+        AnyAction
+      >
       /**
        * This is a standard redux middleware and is responsible for things like polling, garbage collection and a handful of other things. Make sure it's included in your store.
        *
@@ -97,7 +111,11 @@ declare module '../apiTypes' {
        * })
        * ```
        */
-      middleware: Middleware<{}, RootState<Definitions, string, ReducerPath>, ThunkDispatch<any, any, AnyAction>>;
+      middleware: Middleware<
+        {},
+        RootState<Definitions, string, ReducerPath>,
+        ThunkDispatch<any, any, AnyAction>
+      >
       /**
        * TODO
        */
@@ -109,43 +127,61 @@ declare module '../apiTypes' {
           endpointName: EndpointName,
           arg: QueryArgFrom<Definitions[EndpointName]>,
           options: PrefetchOptions
-        ): ThunkAction<void, any, any, AnyAction>;
+        ): ThunkAction<void, any, any, AnyAction>
         /* @deprecated */
         prefetchThunk<EndpointName extends QueryKeys<EndpointDefinitions>>(
           endpointName: EndpointName,
           arg: QueryArgFrom<Definitions[EndpointName]>,
           options: PrefetchOptions
-        ): ThunkAction<void, any, any, AnyAction>;
+        ): ThunkAction<void, any, any, AnyAction>
         /**
          * TODO
          */
-        updateQueryResult: UpdateQueryResultThunk<Definitions, RootState<Definitions, string, ReducerPath>>;
+        updateQueryResult: UpdateQueryResultThunk<
+          Definitions,
+          RootState<Definitions, string, ReducerPath>
+        >
         /**
          * TODO
          */
-        patchQueryResult: PatchQueryResultThunk<Definitions, RootState<Definitions, string, ReducerPath>>;
+        patchQueryResult: PatchQueryResultThunk<
+          Definitions,
+          RootState<Definitions, string, ReducerPath>
+        >
         /**
          * TODO
          */
-        resetApiState: SliceActions['resetApiState'];
+        resetApiState: SliceActions['resetApiState']
         /**
          * TODO
          */
-        invalidateTags: ActionCreatorWithPayload<Array<TagTypes | FullTagDescription<TagTypes>>, string>;
+        invalidateTags: ActionCreatorWithPayload<
+          Array<TagTypes | FullTagDescription<TagTypes>>,
+          string
+        >
         /** @deprecated renamed to `invalidateTags` */
-        invalidateEntities: ActionCreatorWithPayload<Array<TagTypes | FullTagDescription<TagTypes>>, string>;
-      };
+        invalidateEntities: ActionCreatorWithPayload<
+          Array<TagTypes | FullTagDescription<TagTypes>>,
+          string
+        >
+      }
       /**
        * Endpoints based on the input endpoints provided to `createApi`, containing `select` and `action matchers`.
        */
       endpoints: {
-        [K in keyof Definitions]: Definitions[K] extends QueryDefinition<any, any, any, any, any>
+        [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
+          any,
+          any,
+          any,
+          any,
+          any
+        >
           ? Id<ApiEndpointQuery<Definitions[K], Definitions>>
           : Definitions[K] extends MutationDefinition<any, any, any, any, any>
           ? Id<ApiEndpointMutation<Definitions[K], Definitions>>
-          : never;
-      };
-    };
+          : never
+      }
+    }
   }
 }
 
@@ -169,17 +205,17 @@ export type ListenerActions = {
    * Will cause the RTK Query middleware to trigger any refetchOnReconnect-related behavior
    * @link https://rtk-query-docs.netlify.app/api/setupListeners
    */
-  onOnline: typeof onOnline;
-  onOffline: typeof onOffline;
+  onOnline: typeof onOnline
+  onOffline: typeof onOffline
   /**
    * Will cause the RTK Query middleware to trigger any refetchOnFocus-related behavior
    * @link https://rtk-query-docs.netlify.app/api/setupListeners
    */
-  onFocus: typeof onFocus;
-  onFocusLost: typeof onFocusLost;
-};
+  onFocus: typeof onFocus
+  onFocusLost: typeof onFocusLost
+}
 
-export type InternalActions = SliceActions & ListenerActions;
+export type InternalActions = SliceActions & ListenerActions
 
 /**
  * Creates a module containing the basic redux logic for use with `buildCreateApi`.
@@ -205,16 +241,21 @@ export const coreModule = (): Module<CoreModule> => ({
     },
     context
   ) {
-    assertCast<InternalSerializeQueryArgs<any>>(serializeQueryArgs);
+    assertCast<InternalSerializeQueryArgs<any>>(serializeQueryArgs)
 
     const assertTagType: AssertTagTypes = (tag) => {
-      if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+      if (
+        typeof process !== 'undefined' &&
+        process.env.NODE_ENV === 'development'
+      ) {
         if (!tagTypes.includes(tag.type as any)) {
-          console.error(`Tag type '${tag.type}' was used, but not specified in \`tagTypes\`!`);
+          console.error(
+            `Tag type '${tag.type}' was used, but not specified in \`tagTypes\`!`
+          )
         }
       }
-      return tag;
-    };
+      return tag
+    }
 
     Object.assign(api, {
       reducerPath,
@@ -226,7 +267,7 @@ export const coreModule = (): Module<CoreModule> => ({
         onFocusLost,
       },
       util: {},
-    });
+    })
 
     const {
       queryThunk,
@@ -241,7 +282,7 @@ export const coreModule = (): Module<CoreModule> => ({
       context,
       api,
       serializeQueryArgs,
-    });
+    })
 
     const { reducer, actions: sliceActions } = buildSlice({
       context,
@@ -249,16 +290,22 @@ export const coreModule = (): Module<CoreModule> => ({
       mutationThunk,
       reducerPath,
       assertTagType,
-      config: { refetchOnFocus, refetchOnReconnect, refetchOnMountOrArgChange, keepUnusedDataFor, reducerPath },
-    });
+      config: {
+        refetchOnFocus,
+        refetchOnReconnect,
+        refetchOnMountOrArgChange,
+        keepUnusedDataFor,
+        reducerPath,
+      },
+    })
 
     safeAssign(api.util, {
       patchQueryResult,
       updateQueryResult,
       prefetch,
       resetApiState: sliceActions.resetApiState,
-    });
-    safeAssign(api.internalActions, sliceActions);
+    })
+    safeAssign(api.internalActions, sliceActions)
 
     const { middleware, actions: middlewareActions } = buildMiddleware({
       reducerPath,
@@ -267,50 +314,62 @@ export const coreModule = (): Module<CoreModule> => ({
       mutationThunk,
       api,
       assertTagType,
-    });
-    safeAssign(api.util, middlewareActions);
+    })
+    safeAssign(api.util, middlewareActions)
 
-    safeAssign(api, { reducer: reducer as any, middleware });
+    safeAssign(api, { reducer: reducer as any, middleware })
 
     const { buildQuerySelector, buildMutationSelector } = buildSelectors({
       serializeQueryArgs: serializeQueryArgs as any,
       reducerPath,
-    });
+    })
 
     const { buildInitiateQuery, buildInitiateMutation } = buildInitiate({
       queryThunk,
       mutationThunk,
       api,
       serializeQueryArgs: serializeQueryArgs as any,
-    });
+    })
 
     // remove in final release
     Object.defineProperty(api.util, 'invalidateEntities', {
       get() {
-        if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+        if (
+          typeof process !== 'undefined' &&
+          process.env.NODE_ENV === 'development'
+        ) {
           console.warn(
             '`api.util.invalidateEntities` has been renamed to `api.util.invalidateTags`, please change your code accordingly'
-          );
+          )
         }
-        return api.util.invalidateTags;
+        return api.util.invalidateTags
       },
-    });
+    })
     Object.defineProperty(api.util, 'prefetchThunk', {
       get() {
-        if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+        if (
+          typeof process !== 'undefined' &&
+          process.env.NODE_ENV === 'development'
+        ) {
           console.warn(
             '`api.util.prefetchThunk` has been renamed to `api.util.prefetch`, please change your code accordingly'
-          );
+          )
         }
-        return api.util.prefetch;
+        return api.util.prefetch
       },
-    });
+    })
 
     return {
       name: coreModuleName,
       injectEndpoint(endpointName, definition) {
-        const anyApi = (api as any) as Api<any, Record<string, any>, string, string, CoreModule>;
-        anyApi.endpoints[endpointName] ??= {} as any;
+        const anyApi = (api as any) as Api<
+          any,
+          Record<string, any>,
+          string,
+          string,
+          CoreModule
+        >
+        anyApi.endpoints[endpointName] ??= {} as any
         if (isQueryDefinition(definition)) {
           safeAssign(
             anyApi.endpoints[endpointName],
@@ -319,7 +378,7 @@ export const coreModule = (): Module<CoreModule> => ({
               initiate: buildInitiateQuery(endpointName, definition),
             },
             buildMatchThunkActions(queryThunk, endpointName)
-          );
+          )
         } else if (isMutationDefinition(definition)) {
           safeAssign(
             anyApi.endpoints[endpointName],
@@ -328,9 +387,9 @@ export const coreModule = (): Module<CoreModule> => ({
               initiate: buildInitiateMutation(endpointName, definition),
             },
             buildMatchThunkActions(mutationThunk, endpointName)
-          );
+          )
         }
       },
-    };
+    }
   },
-});
+})

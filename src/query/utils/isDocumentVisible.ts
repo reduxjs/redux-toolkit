@@ -5,8 +5,8 @@
 export function isDocumentVisible(): boolean {
   // `document` may not exist in non-browser envs (like RN)
   if (typeof document === 'undefined') {
-    return true;
+    return true
   }
   // Match true for visible, prerender, undefined
-  return document.visibilityState !== 'hidden';
+  return document.visibilityState !== 'hidden'
 }

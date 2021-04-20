@@ -1,33 +1,41 @@
-import { ThunkDispatch } from '@reduxjs/toolkit';
-import { MaybePromise, UnwrapPromise } from './tsHelpers';
+import { ThunkDispatch } from '@reduxjs/toolkit'
+import { MaybePromise, UnwrapPromise } from './tsHelpers'
 
 export interface BaseQueryApi {
-  signal?: AbortSignal;
-  dispatch: ThunkDispatch<any, any, any>;
-  getState: () => unknown;
+  signal?: AbortSignal
+  dispatch: ThunkDispatch<any, any, any>
+  getState: () => unknown
 }
 
 export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =
   | {
-      error: E;
-      data?: undefined;
-      meta?: M;
+      error: E
+      data?: undefined
+      meta?: M
     }
   | {
-      error?: undefined;
-      data: T;
-      meta?: M;
-    };
+      error?: undefined
+      data: T
+      meta?: M
+    }
 
-export type BaseQueryFn<Args = any, Result = unknown, Error = unknown, DefinitionExtraOptions = {}, Meta = {}> = (
+export type BaseQueryFn<
+  Args = any,
+  Result = unknown,
+  Error = unknown,
+  DefinitionExtraOptions = {},
+  Meta = {}
+> = (
   args: Args,
   api: BaseQueryApi,
   extraOptions: DefinitionExtraOptions
-) => MaybePromise<QueryReturnValue<Result, Error, Meta>>;
+) => MaybePromise<QueryReturnValue<Result, Error, Meta>>
 
-export type BaseQueryEnhancer<AdditionalArgs = unknown, AdditionalDefinitionExtraOptions = unknown, Config = void> = <
-  BaseQuery extends BaseQueryFn
->(
+export type BaseQueryEnhancer<
+  AdditionalArgs = unknown,
+  AdditionalDefinitionExtraOptions = unknown,
+  Config = void
+> = <BaseQuery extends BaseQueryFn>(
   baseQuery: BaseQuery,
   config: Config
 ) => BaseQueryFn<
@@ -35,7 +43,7 @@ export type BaseQueryEnhancer<AdditionalArgs = unknown, AdditionalDefinitionExtr
   BaseQueryResult<BaseQuery>,
   BaseQueryError<BaseQuery>,
   BaseQueryExtraOptions<BaseQuery> & AdditionalDefinitionExtraOptions
->;
+>
 
 export type BaseQueryResult<BaseQuery extends BaseQueryFn> = UnwrapPromise<
   ReturnType<BaseQuery>
@@ -43,17 +51,21 @@ export type BaseQueryResult<BaseQuery extends BaseQueryFn> = UnwrapPromise<
   ? Unwrapped extends { data: any }
     ? Unwrapped['data']
     : never
-  : never;
+  : never
 
-export type BaseQueryMeta<BaseQuery extends BaseQueryFn> = UnwrapPromise<ReturnType<BaseQuery>>['meta'];
+export type BaseQueryMeta<BaseQuery extends BaseQueryFn> = UnwrapPromise<
+  ReturnType<BaseQuery>
+>['meta']
 
 export type BaseQueryError<BaseQuery extends BaseQueryFn> = Exclude<
   UnwrapPromise<ReturnType<BaseQuery>>,
   { error: undefined }
->['error'];
+>['error']
 
-export type BaseQueryArg<T extends (arg: any, ...args: any[]) => any> = T extends (arg: infer A, ...args: any[]) => any
-  ? A
-  : any;
+export type BaseQueryArg<
+  T extends (arg: any, ...args: any[]) => any
+> = T extends (arg: infer A, ...args: any[]) => any ? A : any
 
-export type BaseQueryExtraOptions<BaseQuery extends BaseQueryFn> = Parameters<BaseQuery>[2];
+export type BaseQueryExtraOptions<
+  BaseQuery extends BaseQueryFn
+> = Parameters<BaseQuery>[2]

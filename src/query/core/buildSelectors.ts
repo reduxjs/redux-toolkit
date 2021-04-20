@@ -1,4 +1,4 @@
-import { createNextState, createSelector } from '@reduxjs/toolkit';
+import { createNextState, createSelector } from '@reduxjs/toolkit'
 import {
   MutationSubState,
   QueryStatus,
@@ -6,7 +6,7 @@ import {
   RootState as _RootState,
   getRequestStatusFlags,
   RequestStatusFlags,
-} from './apiState';
+} from './apiState'
 import {
   EndpointDefinitions,
   QueryDefinition,
@@ -14,10 +14,10 @@ import {
   QueryArgFrom,
   TagTypesFrom,
   ReducerPathFrom,
-} from '../endpointDefinitions';
-import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs';
+} from '../endpointDefinitions'
+import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 
-export const skipSelector = Symbol('skip selector');
+export const skipSelector = Symbol('skip selector')
 
 declare module './module' {
   export interface ApiEndpointQuery<
@@ -26,8 +26,12 @@ declare module './module' {
   > {
     select: QueryResultSelectorFactory<
       Definition,
-      _RootState<Definitions, TagTypesFrom<Definition>, ReducerPathFrom<Definition>>
-    >;
+      _RootState<
+        Definitions,
+        TagTypesFrom<Definition>,
+        ReducerPathFrom<Definition>
+      >
+    >
   }
 
   export interface ApiEndpointMutation<
@@ -36,55 +40,77 @@ declare module './module' {
   > {
     select: MutationResultSelectorFactory<
       Definition,
-      _RootState<Definitions, TagTypesFrom<Definition>, ReducerPathFrom<Definition>>
-    >;
+      _RootState<
+        Definitions,
+        TagTypesFrom<Definition>,
+        ReducerPathFrom<Definition>
+      >
+    >
   }
 }
 
-type QueryResultSelectorFactory<Definition extends QueryDefinition<any, any, any, any>, RootState> = (
+type QueryResultSelectorFactory<
+  Definition extends QueryDefinition<any, any, any, any>,
+  RootState
+> = (
   queryArg: QueryArgFrom<Definition> | typeof skipSelector
-) => (state: RootState) => QueryResultSelectorResult<Definition>;
+) => (state: RootState) => QueryResultSelectorResult<Definition>
 
 export type QueryResultSelectorResult<
   Definition extends QueryDefinition<any, any, any, any>
-> = QuerySubState<Definition> & RequestStatusFlags;
+> = QuerySubState<Definition> & RequestStatusFlags
 
-type MutationResultSelectorFactory<Definition extends MutationDefinition<any, any, any, any>, RootState> = (
+type MutationResultSelectorFactory<
+  Definition extends MutationDefinition<any, any, any, any>,
+  RootState
+> = (
   requestId: string | typeof skipSelector
-) => (state: RootState) => MutationResultSelectorResult<Definition>;
+) => (state: RootState) => MutationResultSelectorResult<Definition>
 
 export type MutationResultSelectorResult<
   Definition extends MutationDefinition<any, any, any, any>
-> = MutationSubState<Definition> & RequestStatusFlags;
+> = MutationSubState<Definition> & RequestStatusFlags
 
 const initialSubState = {
   status: QueryStatus.uninitialized as const,
-};
+}
 
 // abuse immer to freeze default states
-const defaultQuerySubState = createNextState({}, (): QuerySubState<any> => initialSubState);
-const defaultMutationSubState = createNextState({}, (): MutationSubState<any> => initialSubState);
+const defaultQuerySubState = createNextState(
+  {},
+  (): QuerySubState<any> => initialSubState
+)
+const defaultMutationSubState = createNextState(
+  {},
+  (): MutationSubState<any> => initialSubState
+)
 
-export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDefinitions, ReducerPath extends string>({
+export function buildSelectors<
+  InternalQueryArgs,
+  Definitions extends EndpointDefinitions,
+  ReducerPath extends string
+>({
   serializeQueryArgs,
   reducerPath,
 }: {
-  serializeQueryArgs: InternalSerializeQueryArgs<InternalQueryArgs>;
-  reducerPath: ReducerPath;
+  serializeQueryArgs: InternalSerializeQueryArgs<InternalQueryArgs>
+  reducerPath: ReducerPath
 }) {
-  type RootState = _RootState<Definitions, string, string>;
+  type RootState = _RootState<Definitions, string, string>
 
-  return { buildQuerySelector, buildMutationSelector };
+  return { buildQuerySelector, buildMutationSelector }
 
-  function withRequestFlags<T extends { status: QueryStatus }>(substate: T): T & RequestStatusFlags {
+  function withRequestFlags<T extends { status: QueryStatus }>(
+    substate: T
+  ): T & RequestStatusFlags {
     return {
       ...substate,
       ...getRequestStatusFlags(substate.status),
-    };
+    }
   }
 
   function selectInternalState(rootState: RootState) {
-    return rootState[reducerPath];
+    return rootState[reducerPath]
   }
 
   function buildQuerySelector(
@@ -97,21 +123,31 @@ export function buildSelectors<InternalQueryArgs, Definitions extends EndpointDe
         (internalState) =>
           (queryArgs === skipSelector
             ? undefined
-            : internalState.queries[serializeQueryArgs({ queryArgs, endpointDefinition, endpointName })]) ??
-          defaultQuerySubState
-      );
-      return createSelector(selectQuerySubState, withRequestFlags);
-    };
+            : internalState.queries[
+                serializeQueryArgs({
+                  queryArgs,
+                  endpointDefinition,
+                  endpointName,
+                })
+              ]) ?? defaultQuerySubState
+      )
+      return createSelector(selectQuerySubState, withRequestFlags)
+    }
   }
 
-  function buildMutationSelector(): MutationResultSelectorFactory<any, RootState> {
+  function buildMutationSelector(): MutationResultSelectorFactory<
+    any,
+    RootState
+  > {
     return (mutationId) => {
       const selectMutationSubstate = createSelector(
         selectInternalState,
         (internalState) =>
-          (mutationId === skipSelector ? undefined : internalState.mutations[mutationId]) ?? defaultMutationSubState
-      );
-      return createSelector(selectMutationSubstate, withRequestFlags);
-    };
+          (mutationId === skipSelector
+            ? undefined
+            : internalState.mutations[mutationId]) ?? defaultMutationSubState
+      )
+      return createSelector(selectMutationSubstate, withRequestFlags)
+    }
   }
 }

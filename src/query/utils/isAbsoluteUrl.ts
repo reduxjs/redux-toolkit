@@ -5,5 +5,5 @@
  */
 
 export function isAbsoluteUrl(url: string) {
-  return new RegExp(`(^|:)//`).test(url);
+  return new RegExp(`(^|:)//`).test(url)
 }

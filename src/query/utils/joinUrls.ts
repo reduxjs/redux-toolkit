@@ -1,22 +1,25 @@
-import { isAbsoluteUrl } from './isAbsoluteUrl';
+import { isAbsoluteUrl } from './isAbsoluteUrl'
 
-const withoutTrailingSlash = (url: string) => url.replace(/\/$/, '');
-const withoutLeadingSlash = (url: string) => url.replace(/^\//, '');
+const withoutTrailingSlash = (url: string) => url.replace(/\/$/, '')
+const withoutLeadingSlash = (url: string) => url.replace(/^\//, '')
 
-export function joinUrls(base: string | undefined, url: string | undefined): string {
+export function joinUrls(
+  base: string | undefined,
+  url: string | undefined
+): string {
   if (!base) {
-    return url!;
+    return url!
   }
   if (!url) {
-    return base;
+    return base
   }
 
   if (isAbsoluteUrl(url)) {
-    return url;
+    return url
   }
 
-  base = withoutTrailingSlash(base);
-  url = withoutLeadingSlash(url);
+  base = withoutTrailingSlash(base)
+  url = withoutLeadingSlash(url)
 
-  return `${base}/${url}`;
+  return `${base}/${url}`
 }
