@@ -1,0 +1,10 @@
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 100%;
+  flex: 1;
+  min-height: 200px;
+  border-right: 1px solid #eee;
+  padding: 20px;
+  text-align: left;
+}
