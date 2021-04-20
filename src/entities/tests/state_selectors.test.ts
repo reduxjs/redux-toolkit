@@ -1,5 +1,5 @@
-import { createEntityAdapter, EntityAdapter, EntityState } from './index'
-import { EntitySelectors } from './models'
+import { createEntityAdapter, EntityAdapter, EntityState } from '../index'
+import { EntitySelectors } from '../models'
 import {
   BookModel,
   AClockworkOrange,

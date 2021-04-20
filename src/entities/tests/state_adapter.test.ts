@@ -1,7 +1,7 @@
-import { createEntityAdapter, EntityAdapter } from './index'
-import { PayloadAction } from '../createAction'
-import { configureStore } from '../configureStore'
-import { createSlice } from '../createSlice'
+import { createEntityAdapter, EntityAdapter } from '../index'
+import { PayloadAction } from '../../createAction'
+import { configureStore } from '../../configureStore'
+import { createSlice } from '../../createSlice'
 import { BookModel } from './fixtures/book'
 
 describe('createStateOperator', () => {

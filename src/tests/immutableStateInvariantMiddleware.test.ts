@@ -4,7 +4,7 @@ import {
   isImmutableDefault,
   trackForMutations,
   ImmutableStateInvariantMiddlewareOptions,
-} from './immutableStateInvariantMiddleware'
+} from '../immutableStateInvariantMiddleware'
 import { mockConsole, createConsole, getLog } from 'console-testing-library'
 
 describe('createImmutableStateInvariantMiddleware', () => {

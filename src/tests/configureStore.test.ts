@@ -1,6 +1,6 @@
-import { configureStore } from './configureStore'
+import { configureStore } from '../configureStore'
 import * as redux from 'redux'
-import * as devtools from './devtoolsExtension'
+import * as devtools from '../devtoolsExtension'
 import { StoreEnhancer, StoreEnhancerStoreCreator } from 'redux'
 
 describe('configureStore', () => {

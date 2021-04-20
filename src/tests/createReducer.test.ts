@@ -1,6 +1,6 @@
-import { createReducer, CaseReducer } from './createReducer'
-import { PayloadAction, createAction } from './createAction'
-import { createNextState, Draft } from './'
+import { createReducer, CaseReducer } from '../createReducer'
+import { PayloadAction, createAction } from '../createAction'
+import { createNextState, Draft } from '..'
 import { Reducer, AnyAction } from 'redux'
 
 interface Todo {
@@ -63,7 +63,7 @@ describe('createReducer', () => {
     })
 
     test('Freezes data in production', () => {
-      const { createReducer } = require('./createReducer')
+      const { createReducer } = require('../createReducer')
       const addTodo: AddTodoReducer = (state, action) => {
         const { newTodo } = action.payload
         state.push({ ...newTodo, completed: false })

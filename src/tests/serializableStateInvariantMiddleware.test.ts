@@ -4,13 +4,13 @@ import {
   createConsole,
   getLog,
 } from 'console-testing-library/pure'
-import { configureStore } from './configureStore'
+import { configureStore } from '../configureStore'
 
 import {
   createSerializableStateInvariantMiddleware,
   findNonSerializableValue,
   isPlain,
-} from './serializableStateInvariantMiddleware'
+} from '../serializableStateInvariantMiddleware'
 
 // Mocking console
 let restore = () => {}

@@ -1,4 +1,4 @@
-import { selectIdValue } from './utils'
+import { selectIdValue } from '../utils'
 import { AClockworkOrange } from './fixtures/book'
 
 describe('Entity utils', () => {

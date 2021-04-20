@@ -6,10 +6,10 @@ import {
   isPending,
   isRejected,
   isRejectedWithValue,
-} from './matchers'
-import { createAction } from './createAction'
-import { createAsyncThunk } from './createAsyncThunk'
-import { createReducer } from './createReducer'
+} from '../matchers'
+import { createAction } from '../createAction'
+import { createAsyncThunk } from '../createAsyncThunk'
+import { createReducer } from '../createReducer'
 import { ThunkAction } from 'redux-thunk'
 import { AnyAction } from 'redux'
 

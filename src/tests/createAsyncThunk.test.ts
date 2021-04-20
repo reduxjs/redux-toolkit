@@ -2,8 +2,8 @@ import {
   createAsyncThunk,
   miniSerializeError,
   unwrapResult,
-} from './createAsyncThunk'
-import { configureStore } from './configureStore'
+} from '../createAsyncThunk'
+import { configureStore } from '../configureStore'
 import { AnyAction } from 'redux'
 
 import {
@@ -435,7 +435,7 @@ describe('createAsyncThunk with abortController', () => {
 
   describe('behaviour with missing AbortController', () => {
     let keepAbortController: typeof window['AbortController']
-    let freshlyLoadedModule: typeof import('./createAsyncThunk')
+    let freshlyLoadedModule: typeof import('../createAsyncThunk')
     let restore: () => void
     let nodeEnv: string
 
@@ -443,7 +443,7 @@ describe('createAsyncThunk with abortController', () => {
       keepAbortController = window.AbortController
       delete (window as any).AbortController
       jest.resetModules()
-      freshlyLoadedModule = require('./createAsyncThunk')
+      freshlyLoadedModule = require('../createAsyncThunk')
       restore = mockConsole(createConsole())
       nodeEnv = process.env.NODE_ENV!
       process.env.NODE_ENV = 'development'

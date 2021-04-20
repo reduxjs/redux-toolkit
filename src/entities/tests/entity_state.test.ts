@@ -1,6 +1,6 @@
-import { createEntityAdapter, EntityAdapter } from './index'
-import { PayloadAction, createAction } from '../createAction'
-import { createSlice } from '../createSlice'
+import { createEntityAdapter, EntityAdapter } from '../index'
+import { PayloadAction, createAction } from '../../createAction'
+import { createSlice } from '../../createSlice'
 import { BookModel } from './fixtures/book'
 
 describe('Entity State', () => {

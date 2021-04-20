@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect'
-import { createDraftSafeSelector } from './createDraftSafeSelector'
+import { createDraftSafeSelector } from '../createDraftSafeSelector'
 import { produce } from 'immer'
 
 type State = { value: number }

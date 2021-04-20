@@ -1,5 +1,5 @@
 import { AnyAction, Middleware } from 'redux'
-import { getDefaultMiddleware, MiddlewareArray, configureStore } from '.'
+import { getDefaultMiddleware, MiddlewareArray, configureStore } from '..'
 import thunk, { ThunkAction } from 'redux-thunk'
 
 describe('getDefaultMiddleware', () => {

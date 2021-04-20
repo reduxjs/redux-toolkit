@@ -1,5 +1,5 @@
-import { createSlice } from './createSlice'
-import { createAction, PayloadAction } from './createAction'
+import { createSlice } from '../createSlice'
+import { createAction, PayloadAction } from '../createAction'
 
 describe('createSlice', () => {
   describe('when slice is undefined', () => {
