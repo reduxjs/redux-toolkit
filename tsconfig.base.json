@@ -9,6 +9,10 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "strict": true,
-    "target": "es2018"
+    "target": "es2018",
+    "baseUrl": ".",
+    "paths": {
+      "@reduxjs/toolkit": ["./src/index.ts"]
+    }
   }
 }

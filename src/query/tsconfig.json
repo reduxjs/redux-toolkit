@@ -1,10 +1,15 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "emitDeclarationOnly": false,
-    "outDir": "../../dist/query"
+    "emitDeclarationOnly": true,
+    "jsx": "react",
+    "outDir": "../../dist/query",
+    
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
   },
   "include": [
-    "src/**/*.ts"
+
+    "./**/*.ts"
   ]
 }
