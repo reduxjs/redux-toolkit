@@ -334,6 +334,7 @@ describe('createReducer', () => {
             if (typeof state === 'number') {
               return state - action.payload
             }
+            return undefined
           }
         )
       )
