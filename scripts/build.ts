@@ -11,21 +11,114 @@ import ts from 'typescript'
 import { RawSourceMap, SourceMapConsumer } from 'source-map'
 import merge from 'merge-source-map'
 import { extractInlineSourcemap, removeInlineSourceMap } from './sourcemap'
-import type { BuildOptions } from './types'
+import type { BuildOptions, EntryPointOptions } from './types'
 import assert from 'assert'
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 const outputDir = path.join(__dirname, '../dist')
 
-async function bundle(options: BuildOptions) {
-  const { format, minify, env, name, target } = options
+const buildTargets: BuildOptions[] = [
+  {
+    format: 'cjs',
+    name: 'cjs.development',
+    minify: false,
+    env: 'development',
+  },
+
+  {
+    format: 'cjs',
+    name: 'cjs.production.min',
+    minify: true,
+    env: 'production',
+  },
+
+  // ESM, embedded `process`, ES5 syntax: typical Webpack dev
+  {
+    format: 'esm',
+    name: 'esm',
+    minify: false,
+    env: '',
+  },
+  // ESM, embedded `process`, ES2017 syntax: modern Webpack dev
+  {
+    format: 'esm',
+    name: 'modern',
+    target: 'es2017',
+    minify: false,
+    env: '',
+  },
+
+  // ESM, pre-compiled "dev", ES2017 syntax: browser development
+  {
+    format: 'esm',
+    name: 'modern.development',
+    target: 'es2017',
+    minify: false,
+    env: 'development',
+  },
+  // ESM, pre-compiled "prod", ES2017 syntax: browser prod
+  {
+    format: 'esm',
+    name: 'modern.production.min',
+    target: 'es2017',
+    minify: true,
+    env: 'production',
+  },
+  {
+    format: 'umd',
+    name: 'umd',
+    minify: false,
+    env: 'development',
+  },
+  {
+    format: 'umd',
+    name: 'umd.min',
+    minify: true,
+    env: 'production',
+  },
+]
+
+const entryPoints: EntryPointOptions[] = [
+  { prefix: 'redux-toolkit', folder: '', entryPoint: 'src/index.ts' },
+  // TODO The alternate entry point outputs are likely not importable this way. Need to sort that out.
+  { prefix: 'rtk-query', folder: 'query', entryPoint: 'src/query/index.ts' },
+  {
+    prefix: 'rtk-query',
+    folder: 'query/react',
+    entryPoint: 'src/query/react.ts',
+  },
+]
+
+const esVersionMappings = {
+  es2017: ts.ScriptTarget.ES2017,
+  es2018: ts.ScriptTarget.ES2018,
+  es2019: ts.ScriptTarget.ES2019,
+  es2020: ts.ScriptTarget.ES2020,
+}
+
+async function bundle(options: BuildOptions & EntryPointOptions) {
+  const {
+    format,
+    minify,
+    env,
+    folder = '',
+    prefix = 'redux-toolkit',
+    name,
+    target,
+    entryPoint,
+  } = options
+
+  const outputFolder = path.join('dist', folder)
+  const outputFilename = `${prefix}.${name}.js`
+  const outputFilePath = path.join(outputFolder, outputFilename)
+
   const result = await build({
-    logLevel: 'silent',
-    entryPoints: ['src/index.ts'],
-    outfile: `dist/redux-toolkit${name}.js`,
+    entryPoints: [entryPoint],
+    outfile: outputFilePath,
     write: false,
-    target: target ? target : 'es2015',
+    target: 'esnext',
     sourcemap: 'inline',
     bundle: true,
+    external: ['react', 'react-redux'],
     format: format === 'umd' ? 'esm' : format,
     define: env
       ? {
@@ -67,6 +160,11 @@ async function bundle(options: BuildOptions) {
   })
 
   for (const chunk of result.outputFiles) {
+    const esVersion =
+      target in esVersionMappings
+        ? esVersionMappings[target]
+        : ts.ScriptTarget.ES5
+
     const origin = chunk.text
     const sourcemap = extractInlineSourcemap(origin)
     const result = ts.transpileModule(removeInlineSourceMap(origin), {
@@ -74,9 +172,7 @@ async function bundle(options: BuildOptions) {
         sourceMap: true,
         module:
           format !== 'cjs' ? ts.ModuleKind.ES2015 : ts.ModuleKind.CommonJS,
-        target: name.includes('.modern')
-          ? ts.ScriptTarget.ES2017
-          : ts.ScriptTarget.ES5,
+        target: esVersion,
       },
     })
 
@@ -105,9 +201,12 @@ async function bundle(options: BuildOptions) {
       code = transformResult.code
       mapping = transformResult.map as RawSourceMap
     }
+
+    console.log('Build artifact:', chunk.path)
     await fs.writeFile(chunk.path, code)
     await fs.writeJSON(chunk.path + '.map', mapping)
     const smc = await new SourceMapConsumer(mapping)
+    /*
     const stubMap = {
       '../src/configureStore.ts': [
         `"reducer" is a required argument, and must be a function or an object of functions that can be passed to combineReducers`,
@@ -136,7 +235,9 @@ async function bundle(options: BuildOptions) {
           `column: expected ${originLocation.column} but got ${recoverLocation.column}`
         )
       }
+      
     }
+    */
   }
 }
 
@@ -189,70 +290,22 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 async function main() {
-  console.log('dir:', outputDir)
   await fs.remove(outputDir)
   await fs.ensureDir(outputDir)
-  const buildTargets: BuildOptions[] = [
-    {
-      format: 'cjs',
-      name: '.cjs.development',
-      minify: false,
-      env: 'development',
-    },
-    {
-      format: 'cjs',
-      name: '.cjs.production.min',
-      minify: true,
-      env: 'production',
-    },
-    // ESM, embedded `process`, ES5 syntax: typical Webpack dev
-    {
-      format: 'esm',
-      name: '.esm',
-      minify: false,
-      env: '',
-    },
-    // ESM, embedded `process`, ES2017 syntax: modern Webpack dev
-    {
-      format: 'esm',
-      name: '.modern',
-      target: 'es2017',
-      minify: false,
-      env: '',
-    },
-    // ESM, pre-compiled "dev", ES2017 syntax: browser development
-    {
-      format: 'esm',
-      name: '.modern.development',
-      target: 'es2017',
-      minify: false,
-      env: 'development',
-    },
-    // ESM, pre-compiled "prod", ES2017 syntax: browser prod
-    {
-      format: 'esm',
-      name: '.modern.production.min',
-      target: 'es2017',
-      minify: true,
-      env: 'production',
-    },
-    {
-      format: 'umd',
-      name: '.umd',
-      minify: false,
-      env: 'development',
-    },
-    {
-      format: 'umd',
-      name: '.umd.min',
-      minify: true,
-      env: 'production',
-    },
-  ]
 
-  // Run builds in parallel
-  const bundlePromises = buildTargets.map((options) => bundle(options))
-  await Promise.all(bundlePromises)
+  for (let entryPoint of entryPoints) {
+    const outputPath = path.join('dist', entryPoint.folder)
+    fs.ensureDirSync(outputPath)
+
+    // Run builds in parallel
+    const bundlePromises = buildTargets.map((options) =>
+      bundle({
+        ...options,
+        ...entryPoint,
+      })
+    )
+    await Promise.all(bundlePromises)
+  }
 
   await sleep(500) // hack, waiting file to save
   await buildUMD()
