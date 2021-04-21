@@ -1,5 +1,5 @@
-import { buildCreateApi } from '../createApi'
-import { coreModule } from './module'
+import { buildCreateApi, CreateApi } from '../createApi'
+import { coreModule, coreModuleName } from './module'
 
 const createApi = buildCreateApi(coreModule())
 
