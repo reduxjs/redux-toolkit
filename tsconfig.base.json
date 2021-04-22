@@ -31,7 +31,9 @@
     "emitDeclarationOnly": true,
     "baseUrl": ".",
     "paths": {
-      "@reduxjs/toolkit": ["./src/index.ts"]
+      "@reduxjs/toolkit": ["src/index.ts"],
+      "@reduxjs/toolkit/query": ["src/query/index.ts"],
+      "@reduxjs/toolkit/query/react": ["src/query/react.ts"],
     }
   }
 }
