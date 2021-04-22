@@ -60,8 +60,7 @@
     "yargs": "^15.3.1"
   },
   "scripts": {
-    "build-ci": "node scripts/cli.js && tsc && tsc -p src/query/tsconfig.json && api-extractor run",
-    "build:original": "node scripts/cli.js && tsc && tsc -p src/query/tsconfig.json && api-extractor run --local",
+    "build-ci": "rimraf dist && tsc && node scripts/cli.js",
     "build": "rimraf dist && tsc && node scripts/cli.js --local",
     "dev": "tsdx watch  --format cjs,esm,system,umd",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"**/*.md\"",
@@ -72,11 +71,11 @@
     "type-tests": "cd type-tests/files && tsc"
   },
   "files": [
-    "dist/*.js",
-    "dist/*.js.map",
-    "dist/typings.d.ts",
-    "src",
-    "query"
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/package.json",
+    "src/"
   ],
   "dependencies": {
     "immer": "^9.0.1",

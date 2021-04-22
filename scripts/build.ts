@@ -324,7 +324,8 @@ async function main({ skipExtraction = false, local = false }: BuildArgs) {
   await fs.ensureDir(outputDir)
 
   for (let entryPoint of entryPoints) {
-    const outputPath = path.join('dist', entryPoint.folder)
+    const { folder, prefix } = entryPoint
+    const outputPath = path.join('dist', folder)
     fs.ensureDirSync(outputPath)
 
     // Run builds in parallel
@@ -335,7 +336,13 @@ async function main({ skipExtraction = false, local = false }: BuildArgs) {
       })
     )
     await Promise.all(bundlePromises)
-    await writeEntry(entryPoint.folder, entryPoint.prefix)
+    await writeEntry(folder, prefix)
+
+    if (folder) {
+      const packageSource = path.join('src', folder, 'package.json')
+      const packageDest = path.join(outputPath, 'package.json')
+      fs.copySync(packageSource, packageDest)
+    }
 
     await sleep(500) // hack, waiting file to save
     await buildUMD(outputPath, entryPoint.prefix)

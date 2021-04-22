@@ -1,12 +1,11 @@
 {
-  "name": "react",
+  "name": "@reduxjs/toolkit-query",
   "version": "1.0.0",
   "description": "",
-  "main": "../src/react-hooks",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "main": "./index.js",
+  "module": "./rtk-query-react.esm.js",
+  "unpkg": "./rtk-query-react.umd.min.js",
+  "types": "../react.d.ts",
+  "author": "Mark Erikson <mark@isquaredsoftware.com>",
+  "license": "MIT"
 }
