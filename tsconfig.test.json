@@ -1,4 +1,5 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -9,11 +10,6 @@
     "target": "es2018",
     "jsx": "react",
     "baseUrl": ".",
-    "skipLibCheck": true,
-    "paths": {
-      "@rtk-incubator/rtk-query": ["../src"],
-      "@rtk-incubator/rtk-query/*": ["../src/*"],
-      "@internal/*": ["../src/*"]
-    }
+    "skipLibCheck": true
   }
 }

@@ -1,24 +1,31 @@
-import { configureStore, createAction, createReducer } from '@reduxjs/toolkit';
-import { Api, createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
-import { QueryDefinition, MutationDefinition } from '@internal/endpointDefinitions';
-import { ANY, expectType, expectExactType, setupApiStore, waitMs, getSerializedHeaders } from './helpers';
-import { server } from './mocks/server';
-import { rest } from 'msw';
+import { configureStore, createAction, createReducer } from '../..'
+import { Api, createApi, fetchBaseQuery } from '..'
+import { QueryDefinition, MutationDefinition } from '../endpointDefinitions'
+import {
+  ANY,
+  expectType,
+  expectExactType,
+  setupApiStore,
+  waitMs,
+  getSerializedHeaders,
+} from './helpers'
+import { server } from './mocks/server'
+import { rest } from 'msw'
 
-const originalEnv = process.env.NODE_ENV;
-beforeAll(() => void (process.env.NODE_ENV = 'development'));
-afterAll(() => void (process.env.NODE_ENV = originalEnv));
+const originalEnv = process.env.NODE_ENV
+beforeAll(() => void (process.env.NODE_ENV = 'development'))
+afterAll(() => void (process.env.NODE_ENV = originalEnv))
 
-let spy: jest.SpyInstance;
+let spy: jest.SpyInstance
 beforeAll(() => {
-  spy = jest.spyOn(console, 'error').mockImplementation(() => {});
-});
+  spy = jest.spyOn(console, 'error').mockImplementation(() => {})
+})
 afterEach(() => {
-  spy.mockReset();
-});
+  spy.mockReset()
+})
 afterAll(() => {
-  spy.mockRestore();
-});
+  spy.mockRestore()
+})
 
 test('sensible defaults', () => {
   const api = createApi({
@@ -26,28 +33,30 @@ test('sensible defaults', () => {
     endpoints: (build) => ({
       getUser: build.query<unknown, void>({
         query(id) {
-          return { url: `user/${id}` };
+          return { url: `user/${id}` }
         },
       }),
     }),
-  });
+  })
   configureStore({
     reducer: {
       [api.reducerPath]: api.reducer,
     },
     middleware: (gDM) => gDM().concat(api.middleware),
-  });
-  expect(api.reducerPath).toBe('api');
+  })
+  expect(api.reducerPath).toBe('api')
 
-  expectType<'api'>(api.reducerPath);
-  type TagTypes = typeof api extends Api<any, any, any, infer E> ? E : 'no match';
-  expectType<TagTypes>(ANY as never);
+  expectType<'api'>(api.reducerPath)
+  type TagTypes = typeof api extends Api<any, any, any, infer E>
+    ? E
+    : 'no match'
+  expectType<TagTypes>(ANY as never)
   // @ts-expect-error
-  expectType<TagTypes>(0);
-});
+  expectType<TagTypes>(0)
+})
 
 describe('wrong tagTypes log errors', () => {
-  const baseQuery = jest.fn();
+  const baseQuery = jest.fn()
   const api = createApi({
     baseQuery,
     tagTypes: ['User'],
@@ -114,17 +123,17 @@ describe('wrong tagTypes log errors', () => {
         invalidatesTags: () => [{ type: 'Users', id: 5 }],
       }),
     }),
-  });
+  })
   const store = configureStore({
     reducer: {
       [api.reducerPath]: api.reducer,
     },
     middleware: (gDM) => gDM().concat(api.middleware),
-  });
+  })
 
   beforeEach(() => {
-    baseQuery.mockResolvedValue({});
-  });
+    baseQuery.mockResolvedValue({})
+  })
 
   test.each<[keyof typeof api.endpoints, boolean?]>([
     ['provideNothing', false],
@@ -143,159 +152,163 @@ describe('wrong tagTypes log errors', () => {
     ['invalidateWrongTypeWithIdAndCallback', true],
   ])(`endpoint %s should log an error? %s`, async (endpoint, shouldError) => {
     // @ts-ignore
-    store.dispatch(api.endpoints[endpoint].initiate());
-    let result: { status: string };
+    store.dispatch(api.endpoints[endpoint].initiate())
+    let result: { status: string }
     do {
-      await waitMs(5);
+      await waitMs(5)
       // @ts-ignore
-      result = api.endpoints[endpoint].select()(store.getState());
-    } while (result.status === 'pending');
+      result = api.endpoints[endpoint].select()(store.getState())
+    } while (result.status === 'pending')
 
     if (shouldError) {
-      expect(spy).toHaveBeenCalledWith("Tag type 'Users' was used, but not specified in `tagTypes`!");
+      expect(spy).toHaveBeenCalledWith(
+        "Tag type 'Users' was used, but not specified in `tagTypes`!"
+      )
     } else {
-      expect(spy).not.toHaveBeenCalled();
+      expect(spy).not.toHaveBeenCalled()
     }
-  });
-});
+  })
+})
 
 describe('endpoint definition typings', () => {
   const api = createApi({
-    baseQuery: (from: 'From'): { data: 'To' } | Promise<{ data: 'To' }> => ({ data: 'To' }),
+    baseQuery: (from: 'From'): { data: 'To' } | Promise<{ data: 'To' }> => ({
+      data: 'To',
+    }),
     endpoints: () => ({}),
     tagTypes: ['typeA', 'typeB'],
-  });
+  })
   test('query: query & transformResponse types', () => {
     api.injectEndpoints({
       endpoints: (build) => ({
         query: build.query<'RetVal', 'Arg'>({
           query: (x: 'Arg') => 'From' as const,
           transformResponse(r: 'To') {
-            return 'RetVal' as const;
+            return 'RetVal' as const
           },
         }),
         query1: build.query<'RetVal', 'Arg'>({
           // @ts-expect-error
           query: (x: 'Error') => 'From' as const,
           transformResponse(r: 'To') {
-            return 'RetVal' as const;
+            return 'RetVal' as const
           },
         }),
         query2: build.query<'RetVal', 'Arg'>({
           // @ts-expect-error
           query: (x: 'Arg') => 'Error' as const,
           transformResponse(r: 'To') {
-            return 'RetVal' as const;
+            return 'RetVal' as const
           },
         }),
         query3: build.query<'RetVal', 'Arg'>({
           query: (x: 'Arg') => 'From' as const,
           // @ts-expect-error
           transformResponse(r: 'Error') {
-            return 'RetVal' as const;
+            return 'RetVal' as const
           },
         }),
         query4: build.query<'RetVal', 'Arg'>({
           query: (x: 'Arg') => 'From' as const,
           // @ts-expect-error
           transformResponse(r: 'To') {
-            return 'Error' as const;
+            return 'Error' as const
           },
         }),
         queryInference1: build.query<'RetVal', 'Arg'>({
           query: (x) => {
-            expectType<'Arg'>(x);
-            return 'From';
+            expectType<'Arg'>(x)
+            return 'From'
           },
           transformResponse(r) {
-            expectType<'To'>(r);
-            return 'RetVal';
+            expectType<'To'>(r)
+            return 'RetVal'
           },
         }),
         queryInference2: (() => {
           const query = build.query({
             query: (x: 'Arg') => 'From' as const,
             transformResponse(r: 'To') {
-              return 'RetVal' as const;
+              return 'RetVal' as const
             },
-          });
-          expectType<QueryDefinition<'Arg', any, any, 'RetVal'>>(query);
-          return query;
+          })
+          expectType<QueryDefinition<'Arg', any, any, 'RetVal'>>(query)
+          return query
         })(),
       }),
-    });
-  });
+    })
+  })
   test('mutation: query & transformResponse types', () => {
     api.injectEndpoints({
       endpoints: (build) => ({
         query: build.mutation<'RetVal', 'Arg'>({
           query: (x: 'Arg') => 'From' as const,
           transformResponse(r: 'To') {
-            return 'RetVal' as const;
+            return 'RetVal' as const
           },
         }),
         query1: build.mutation<'RetVal', 'Arg'>({
           // @ts-expect-error
           query: (x: 'Error') => 'From' as const,
           transformResponse(r: 'To') {
-            return 'RetVal' as const;
+            return 'RetVal' as const
           },
         }),
         query2: build.mutation<'RetVal', 'Arg'>({
           // @ts-expect-error
           query: (x: 'Arg') => 'Error' as const,
           transformResponse(r: 'To') {
-            return 'RetVal' as const;
+            return 'RetVal' as const
           },
         }),
         query3: build.mutation<'RetVal', 'Arg'>({
           query: (x: 'Arg') => 'From' as const,
           // @ts-expect-error
           transformResponse(r: 'Error') {
-            return 'RetVal' as const;
+            return 'RetVal' as const
           },
         }),
         query4: build.mutation<'RetVal', 'Arg'>({
           query: (x: 'Arg') => 'From' as const,
           // @ts-expect-error
           transformResponse(r: 'To') {
-            return 'Error' as const;
+            return 'Error' as const
           },
         }),
         mutationInference1: build.mutation<'RetVal', 'Arg'>({
           query: (x) => {
-            expectType<'Arg'>(x);
-            return 'From';
+            expectType<'Arg'>(x)
+            return 'From'
           },
           transformResponse(r) {
-            expectType<'To'>(r);
-            return 'RetVal';
+            expectType<'To'>(r)
+            return 'RetVal'
           },
         }),
         mutationInference2: (() => {
           const query = build.mutation({
             query: (x: 'Arg') => 'From' as const,
             transformResponse(r: 'To') {
-              return 'RetVal' as const;
+              return 'RetVal' as const
             },
-          });
-          expectType<MutationDefinition<'Arg', any, any, 'RetVal'>>(query);
-          return query;
+          })
+          expectType<MutationDefinition<'Arg', any, any, 'RetVal'>>(query)
+          return query
         })(),
       }),
-    });
-  });
+    })
+  })
 
   describe('enhancing endpoint definitions', () => {
-    const baseQuery = jest.fn((x: string) => ({ data: 'success' }));
+    const baseQuery = jest.fn((x: string) => ({ data: 'success' }))
     const baseQueryApiMatcher = {
       dispatch: expect.any(Function),
       getState: expect.any(Function),
       signal: expect.any(Object),
-    };
+    }
     beforeEach(() => {
-      baseQuery.mockClear();
-    });
+      baseQuery.mockClear()
+    })
     function getNewApi() {
       return createApi({
         baseQuery,
@@ -306,27 +319,27 @@ describe('endpoint definition typings', () => {
           mutation1: build.mutation<'out1', 'in1'>({ query: (id) => `${id}` }),
           mutation2: build.mutation<'out2', 'in2'>({ query: (id) => `${id}` }),
         }),
-      });
+      })
     }
-    let api = getNewApi();
-    let storeRef = setupApiStore(api);
+    let api = getNewApi()
+    let storeRef = setupApiStore(api)
     beforeEach(() => {
-      api = getNewApi();
-      storeRef = setupApiStore(api);
-    });
+      api = getNewApi()
+      storeRef = setupApiStore(api)
+    })
 
     test('pre-modification behaviour', async () => {
-      storeRef.store.dispatch(api.endpoints.query1.initiate('in1'));
-      storeRef.store.dispatch(api.endpoints.query2.initiate('in2'));
-      storeRef.store.dispatch(api.endpoints.mutation1.initiate('in1'));
-      storeRef.store.dispatch(api.endpoints.mutation2.initiate('in2'));
+      storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
+      storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
+      storeRef.store.dispatch(api.endpoints.mutation1.initiate('in1'))
+      storeRef.store.dispatch(api.endpoints.mutation2.initiate('in2'))
       expect(baseQuery.mock.calls).toEqual([
         ['in1', baseQueryApiMatcher, undefined],
         ['in2', baseQueryApiMatcher, undefined],
         ['in1', baseQueryApiMatcher, undefined],
         ['in2', baseQueryApiMatcher, undefined],
-      ]);
-    });
+      ])
+    })
 
     test('warn on wrong tagType', async () => {
       // only type-test this part
@@ -342,7 +355,7 @@ describe('endpoint definition typings', () => {
               providesTags: ['missing'],
             },
           },
-        });
+        })
       }
 
       const enhanced = api.enhanceEndpoints({
@@ -356,16 +369,18 @@ describe('endpoint definition typings', () => {
             providesTags: ['missing'],
           },
         },
-      });
+      })
 
-      storeRef.store.dispatch(api.endpoints.query1.initiate('in1'));
-      await waitMs(1);
-      expect(spy).not.toHaveBeenCalled();
+      storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
+      await waitMs(1)
+      expect(spy).not.toHaveBeenCalled()
 
-      storeRef.store.dispatch(api.endpoints.query2.initiate('in2'));
-      await waitMs(1);
-      debugger;
-      expect(spy).toHaveBeenCalledWith("Tag type 'missing' was used, but not specified in `tagTypes`!");
+      storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
+      await waitMs(1)
+      debugger
+      expect(spy).toHaveBeenCalledWith(
+        "Tag type 'missing' was used, but not specified in `tagTypes`!"
+      )
 
       // only type-test this part
       if (2 > 1) {
@@ -380,59 +395,59 @@ describe('endpoint definition typings', () => {
               providesTags: ['missing'],
             },
           },
-        });
+        })
       }
-    });
+    })
 
     test('modify', () => {
       api.enhanceEndpoints({
         endpoints: {
           query1: {
             query: (x) => {
-              expectExactType('in1' as const)(x);
-              return 'modified1';
+              expectExactType('in1' as const)(x)
+              return 'modified1'
             },
           },
           query2(definition) {
             definition.query = (x) => {
-              expectExactType('in2' as const)(x);
-              return 'modified2';
-            };
+              expectExactType('in2' as const)(x)
+              return 'modified2'
+            }
           },
           mutation1: {
             query: (x) => {
-              expectExactType('in1' as const)(x);
-              return 'modified1';
+              expectExactType('in1' as const)(x)
+              return 'modified1'
             },
           },
           mutation2(definition) {
             definition.query = (x) => {
-              expectExactType('in2' as const)(x);
-              return 'modified2';
-            };
+              expectExactType('in2' as const)(x)
+              return 'modified2'
+            }
           },
           // @ts-expect-error
           nonExisting: {},
         },
-      });
+      })
 
-      storeRef.store.dispatch(api.endpoints.query1.initiate('in1'));
-      storeRef.store.dispatch(api.endpoints.query2.initiate('in2'));
-      storeRef.store.dispatch(api.endpoints.mutation1.initiate('in1'));
-      storeRef.store.dispatch(api.endpoints.mutation2.initiate('in2'));
+      storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
+      storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
+      storeRef.store.dispatch(api.endpoints.mutation1.initiate('in1'))
+      storeRef.store.dispatch(api.endpoints.mutation2.initiate('in2'))
       expect(baseQuery.mock.calls).toEqual([
         ['modified1', baseQueryApiMatcher, undefined],
         ['modified2', baseQueryApiMatcher, undefined],
         ['modified1', baseQueryApiMatcher, undefined],
         ['modified2', baseQueryApiMatcher, undefined],
-      ]);
-    });
-  });
-});
+      ])
+    })
+  })
+})
 
 describe('additional transformResponse behaviors', () => {
-  type SuccessResponse = { value: 'success' };
-  type EchoResponseData = { banana: 'bread' };
+  type SuccessResponse = { value: 'success' }
+  type EchoResponseData = { banana: 'bread' }
   const api = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: 'http://example.com' }),
     endpoints: (build) => ({
@@ -440,19 +455,33 @@ describe('additional transformResponse behaviors', () => {
         query: () => ({ method: 'PUT', url: '/echo' }),
       }),
       mutation: build.mutation({
-        query: () => ({ url: '/echo', method: 'POST', body: { nested: { banana: 'bread' } } }),
-        transformResponse: (response: { body: { nested: EchoResponseData } }) => response.body.nested,
+        query: () => ({
+          url: '/echo',
+          method: 'POST',
+          body: { nested: { banana: 'bread' } },
+        }),
+        transformResponse: (response: { body: { nested: EchoResponseData } }) =>
+          response.body.nested,
       }),
       mutationWithMeta: build.mutation({
-        query: () => ({ url: '/echo', method: 'POST', body: { nested: { banana: 'bread' } } }),
-        transformResponse: (response: { body: { nested: EchoResponseData } }, meta) => {
+        query: () => ({
+          url: '/echo',
+          method: 'POST',
+          body: { nested: { banana: 'bread' } },
+        }),
+        transformResponse: (
+          response: { body: { nested: EchoResponseData } },
+          meta
+        ) => {
           return {
             ...response.body.nested,
             meta: {
               request: { headers: getSerializedHeaders(meta?.request.headers) },
-              response: { headers: getSerializedHeaders(meta?.response.headers) },
+              response: {
+                headers: getSerializedHeaders(meta?.response.headers),
+              },
             },
-          };
+          }
         },
       }),
       query: build.query<SuccessResponse & EchoResponseData, void>({
@@ -461,9 +490,9 @@ describe('additional transformResponse behaviors', () => {
           const res = await fetch('http://example.com/echo', {
             method: 'POST',
             body: JSON.stringify({ banana: 'bread' }),
-          }).then((res) => res.json());
-          const additionalData = JSON.parse(res.body) as EchoResponseData;
-          return { ...response, ...additionalData };
+          }).then((res) => res.json())
+          const additionalData = JSON.parse(res.body) as EchoResponseData
+          return { ...response, ...additionalData }
         },
       }),
       queryWithMeta: build.query<SuccessResponse, void>({
@@ -473,30 +502,36 @@ describe('additional transformResponse behaviors', () => {
             ...response,
             meta: {
               request: { headers: getSerializedHeaders(meta?.request.headers) },
-              response: { headers: getSerializedHeaders(meta?.response.headers) },
+              response: {
+                headers: getSerializedHeaders(meta?.response.headers),
+              },
             },
-          };
+          }
         },
       }),
     }),
-  });
+  })
 
-  const storeRef = setupApiStore(api);
+  const storeRef = setupApiStore(api)
 
   test('transformResponse handles an async transformation and returns the merged data (query)', async () => {
-    const result = await storeRef.store.dispatch(api.endpoints.query.initiate());
+    const result = await storeRef.store.dispatch(api.endpoints.query.initiate())
 
-    expect(result.data).toEqual({ value: 'success', banana: 'bread' });
-  });
+    expect(result.data).toEqual({ value: 'success', banana: 'bread' })
+  })
 
   test('transformResponse transforms a response from a mutation', async () => {
-    const result = await storeRef.store.dispatch(api.endpoints.mutation.initiate({}));
+    const result = await storeRef.store.dispatch(
+      api.endpoints.mutation.initiate({})
+    )
 
-    expect(result.data).toEqual({ banana: 'bread' });
-  });
+    expect(result.data).toEqual({ banana: 'bread' })
+  })
 
   test('transformResponse can inject baseQuery meta into the end result from a mutation', async () => {
-    const result = await storeRef.store.dispatch(api.endpoints.mutationWithMeta.initiate({}));
+    const result = await storeRef.store.dispatch(
+      api.endpoints.mutationWithMeta.initiate({})
+    )
 
     expect(result.data).toEqual({
       banana: 'bread',
@@ -513,11 +548,13 @@ describe('additional transformResponse behaviors', () => {
           },
         },
       },
-    });
-  });
+    })
+  })
 
   test('transformResponse can inject baseQuery meta into the end result from a query', async () => {
-    const result = await storeRef.store.dispatch(api.endpoints.queryWithMeta.initiate());
+    const result = await storeRef.store.dispatch(
+      api.endpoints.queryWithMeta.initiate()
+    )
 
     expect(result.data).toEqual({
       value: 'success',
@@ -532,22 +569,22 @@ describe('additional transformResponse behaviors', () => {
           },
         },
       },
-    });
-  });
-});
+    })
+  })
+})
 
 describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
   const initialState = {
     count: null as null | number,
-  };
-  const setCount = createAction<number>('setCount');
+  }
+  const setCount = createAction<number>('setCount')
   const testReducer = createReducer(initialState, (builder) => {
     builder.addCase(setCount, (state, action) => {
-      state.count = action.payload;
-    });
-  });
+      state.count = action.payload
+    })
+  })
 
-  type SuccessResponse = { value: 'success' };
+  type SuccessResponse = { value: 'success' }
   const api = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: 'http://example.com' }),
     endpoints: (build) => ({
@@ -557,65 +594,75 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
       query: build.query<SuccessResponse, void>({
         query: () => '/success',
         onStart: (_, api) => {
-          api.dispatch(setCount(0));
+          api.dispatch(setCount(0))
         },
         onSuccess: (_, api) => {
-          api.dispatch(setCount(1));
+          api.dispatch(setCount(1))
         },
         onError: (_, api) => {
-          api.dispatch(setCount(-1));
+          api.dispatch(setCount(-1))
         },
       }),
       mutation: build.mutation<SuccessResponse, void>({
         query: () => ({ url: '/success', method: 'POST' }),
         onStart: (_, api) => {
-          api.dispatch(setCount(0));
+          api.dispatch(setCount(0))
         },
         onSuccess: (_, api) => {
-          api.dispatch(setCount(1));
+          api.dispatch(setCount(1))
         },
         onError: (_, api) => {
-          api.dispatch(setCount(-1));
+          api.dispatch(setCount(-1))
         },
       }),
     }),
-  });
+  })
 
-  const storeRef = setupApiStore(api, { testReducer });
+  const storeRef = setupApiStore(api, { testReducer })
 
   test('query lifecycle events fire properly', async () => {
     // We intentionally fail the first request so we can test all lifecycles
     server.use(
-      rest.get('http://example.com/success', (_, res, ctx) => res.once(ctx.status(500), ctx.json({ value: 'failed' })))
-    );
+      rest.get('http://example.com/success', (_, res, ctx) =>
+        res.once(ctx.status(500), ctx.json({ value: 'failed' }))
+      )
+    )
 
-    expect(storeRef.store.getState().testReducer.count).toBe(null);
-    const failAttempt = storeRef.store.dispatch(api.endpoints.query.initiate());
-    expect(storeRef.store.getState().testReducer.count).toBe(0);
-    await failAttempt;
-    expect(storeRef.store.getState().testReducer.count).toBe(-1);
+    expect(storeRef.store.getState().testReducer.count).toBe(null)
+    const failAttempt = storeRef.store.dispatch(api.endpoints.query.initiate())
+    expect(storeRef.store.getState().testReducer.count).toBe(0)
+    await failAttempt
+    expect(storeRef.store.getState().testReducer.count).toBe(-1)
 
-    const successAttempt = storeRef.store.dispatch(api.endpoints.query.initiate());
-    expect(storeRef.store.getState().testReducer.count).toBe(0);
-    await successAttempt;
-    expect(storeRef.store.getState().testReducer.count).toBe(1);
-  });
+    const successAttempt = storeRef.store.dispatch(
+      api.endpoints.query.initiate()
+    )
+    expect(storeRef.store.getState().testReducer.count).toBe(0)
+    await successAttempt
+    expect(storeRef.store.getState().testReducer.count).toBe(1)
+  })
 
   test('mutation lifecycle events fire properly', async () => {
     // We intentionally fail the first request so we can test all lifecycles
     server.use(
-      rest.post('http://example.com/success', (_, res, ctx) => res.once(ctx.status(500), ctx.json({ value: 'failed' })))
-    );
+      rest.post('http://example.com/success', (_, res, ctx) =>
+        res.once(ctx.status(500), ctx.json({ value: 'failed' }))
+      )
+    )
 
-    expect(storeRef.store.getState().testReducer.count).toBe(null);
-    const failAttempt = storeRef.store.dispatch(api.endpoints.mutation.initiate());
-    expect(storeRef.store.getState().testReducer.count).toBe(0);
-    await failAttempt;
-    expect(storeRef.store.getState().testReducer.count).toBe(-1);
+    expect(storeRef.store.getState().testReducer.count).toBe(null)
+    const failAttempt = storeRef.store.dispatch(
+      api.endpoints.mutation.initiate()
+    )
+    expect(storeRef.store.getState().testReducer.count).toBe(0)
+    await failAttempt
+    expect(storeRef.store.getState().testReducer.count).toBe(-1)
 
-    const successAttempt = storeRef.store.dispatch(api.endpoints.mutation.initiate());
-    expect(storeRef.store.getState().testReducer.count).toBe(0);
-    await successAttempt;
-    expect(storeRef.store.getState().testReducer.count).toBe(1);
-  });
-});
+    const successAttempt = storeRef.store.dispatch(
+      api.endpoints.mutation.initiate()
+    )
+    expect(storeRef.store.getState().testReducer.count).toBe(0)
+    await successAttempt
+    expect(storeRef.store.getState().testReducer.count).toBe(1)
+  })
+})

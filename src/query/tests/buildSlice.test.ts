@@ -1,19 +1,19 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { createApi } from '@rtk-incubator/rtk-query/react';
-import { setupApiStore } from './helpers';
+import { createSlice } from '../..'
+import { createApi } from '../react'
+import { setupApiStore } from './helpers'
 
-const baseQuery = (args?: any) => ({ data: args });
+const baseQuery = (args?: any) => ({ data: args })
 const api = createApi({
   baseQuery,
   endpoints: (build) => ({
     getUser: build.query<unknown, number>({
       query(id) {
-        return { url: `user/${id}` };
+        return { url: `user/${id}` }
       },
     }),
   }),
-});
-const { getUser } = api.endpoints;
+})
+const { getUser } = api.endpoints
 
 const authSlice = createSlice({
   name: 'auth',
@@ -22,17 +22,19 @@ const authSlice = createSlice({
   },
   reducers: {
     setToken(state, action) {
-      state.token = action.payload;
+      state.token = action.payload
     },
   },
-});
+})
 
-const storeRef = setupApiStore(api, { auth: authSlice.reducer });
+const storeRef = setupApiStore(api, { auth: authSlice.reducer })
 
 it('only resets the api state when resetApiState is dispatched', async () => {
-  const initialState = storeRef.store.getState();
+  const initialState = storeRef.store.getState()
 
-  await storeRef.store.dispatch(getUser.initiate(1, { subscriptionOptions: { pollingInterval: 10 } }));
+  await storeRef.store.dispatch(
+    getUser.initiate(1, { subscriptionOptions: { pollingInterval: 10 } })
+  )
 
   expect(storeRef.store.getState()).toEqual({
     api: {
@@ -67,9 +69,9 @@ it('only resets the api state when resetApiState is dispatched', async () => {
     auth: {
       token: '1234',
     },
-  });
+  })
 
-  storeRef.store.dispatch(api.util.resetApiState());
+  storeRef.store.dispatch(api.util.resetApiState())
 
-  expect(storeRef.store.getState()).toEqual(initialState);
-});
+  expect(storeRef.store.getState()).toEqual(initialState)
+})

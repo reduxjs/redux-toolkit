@@ -18,7 +18,9 @@ async function defaultBackoff(attempt: number = 0, maxRetries: number = 5) {
   const attempts = Math.min(attempt, maxRetries)
 
   const timeout = ~~((Math.random() + 0.4) * (300 << attempts)) // Force a positive int in the case we make this an option
-  await new Promise((resolve) => setTimeout((res) => resolve(res), timeout))
+  await new Promise((resolve) =>
+    setTimeout((res: any) => resolve(res), timeout)
+  )
 }
 
 interface StaggerOptions {
