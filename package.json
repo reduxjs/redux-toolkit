@@ -22,7 +22,7 @@
   "main": "dist/index.js",
   "module": "dist/redux-toolkit.esm.js",
   "unpkg": "dist/redux-toolkit.umd.min.js",
-  "types": "dist/typings.d.ts",  
+  "types": "dist/index.d.ts",  
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
