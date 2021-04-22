@@ -379,6 +379,8 @@ async function main({ skipExtraction = false, local = false }: BuildArgs) {
     }
   }
 
+  fs.moveSync('dist/query', 'query')
+
   // addSubpath()
 }
 const { skipExtraction, local } = argv
