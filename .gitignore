@@ -1,7 +1,9 @@
 .DS_Store
 *.log
 node_modules
+# Dist and query are both build output folders
 dist
+query
 lib
 es
 yarn.lock

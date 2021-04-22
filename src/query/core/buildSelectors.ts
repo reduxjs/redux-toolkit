@@ -6,6 +6,7 @@ import {
   RootState as _RootState,
   getRequestStatusFlags,
   RequestStatusFlags,
+  CombinedState,
 } from './apiState'
 import {
   EndpointDefinitions,
@@ -71,18 +72,15 @@ export type MutationResultSelectorResult<
   Definition extends MutationDefinition<any, any, any, any>
 > = MutationSubState<Definition> & RequestStatusFlags
 
-const initialSubState = {
+const initialSubState: QuerySubState<any> = {
   status: QueryStatus.uninitialized as const,
 }
 
 // abuse immer to freeze default states
-const defaultQuerySubState = createNextState(
-  {},
-  (): QuerySubState<any> => initialSubState
-)
+const defaultQuerySubState = createNextState(initialSubState, () => {})
 const defaultMutationSubState = createNextState(
-  {},
-  (): MutationSubState<any> => initialSubState
+  initialSubState as MutationSubState<any>,
+  () => {}
 )
 
 export function buildSelectors<

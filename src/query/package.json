@@ -1,15 +1,11 @@
 {
-  "name": "@rtk-incubator/rtk-query",
+  "name": "@reduxjs/toolkit-query",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "files": [
-    "query"
-  ],
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "main": "./index.js",
+  "module": "./rtk-query.esm.js",
+  "unpkg": "./rtk-query.umd.min.js",
+  "types": "./index.d.ts",
+  "author": "Mark Erikson <mark@isquaredsoftware.com>",
+  "license": "MTI"
 }

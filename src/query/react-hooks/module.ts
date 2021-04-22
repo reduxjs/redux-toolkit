@@ -66,25 +66,25 @@ declare module '../apiTypes' {
   }
 }
 
-type RR = typeof import('react-redux')
+// type RR = typeof import('react-redux')
 
 export interface ReactHooksModuleOptions {
   /**
    * The version of the `batchedUpdates` function to be used
    */
-  batch?: RR['batch']
+  batch?: typeof rrBatch // RR['batch']
   /**
    * The version of the `useDispatch` hook to be used
    */
-  useDispatch?: RR['useDispatch']
+  useDispatch?: typeof rrUseDispatch // RR['useDispatch']
   /**
    * The version of the `useSelector` hook to be used
    */
-  useSelector?: RR['useSelector']
+  useSelector?: typeof rrUseSelector //RR['useSelector']
   /**
    * Currently unused - for potential future use
    */
-  useStore?: RR['useStore']
+  useStore?: typeof rrUseStore //RR['useStore']
 }
 
 /**

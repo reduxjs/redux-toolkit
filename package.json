@@ -22,7 +22,30 @@
   "main": "dist/index.js",
   "module": "dist/redux-toolkit.esm.js",
   "unpkg": "dist/redux-toolkit.umd.min.js",
-  "types": "dist/typings.d.ts",
+  "types": "dist/index.d.ts",  
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "module": "./dist/redux-toolkit.esm.js",
+      "default": "./dist/index.js"
+    },
+    "./query": {
+      "types": "./query/index.d.ts",
+      "module": "./query/rtk-query.esm.js",
+      "default": "./query/index.js"
+    },
+    "./query/react": {
+      "types": "./query/react.d.ts",
+      "module": "./query/react/rtk-query-react.esm.js",
+      "default": "./query/react/index.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "query": ["./query/index.d.ts"],
+      "query/react": ["./query/react.d.ts"]
+    }
+  },
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
   "devDependencies": {
@@ -32,6 +55,10 @@
     "@types/json-stringify-safe": "^5.0.0",
     "@types/nanoid": "^2.1.0",
     "@types/node": "^10.14.4",
+    "@types/react": "^17.0.3",
+    "@types/react-dom": "^17.0.3",
+    "@types/react-redux": "^7.1.16",
+    "@types/yargs": "^16.0.1",
     "@typescript-eslint/eslint-plugin": "^3.9.1",
     "@typescript-eslint/parser": "^3.9.1",
     "axios": "^0.19.2",
@@ -52,11 +79,12 @@
     "tsdx": "^0.14.1",
     "tslib": "^1.10.0",
     "typescript": "^4.2.3",
-    "typings-tester": "^0.3.2"
+    "typings-tester": "^0.3.2",
+    "yargs": "^15.3.1"
   },
   "scripts": {
-    "build-ci": "node scripts/cli.js && tsc && tsc -p src/query/tsconfig.json && api-extractor run",
-    "build": "node scripts/cli.js && tsc && tsc -p src/query/tsconfig.json && api-extractor run --local",
+    "build-ci": "rimraf dist query && tsc && node scripts/cli.js",
+    "build": "rimraf dist query && tsc && node scripts/cli.js --skipExtraction",
     "dev": "tsdx watch  --format cjs,esm,system,umd",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"src/**/*.{ts,tsx}\" \"docs/*/**.md\"",
@@ -66,10 +94,11 @@
     "type-tests": "cd type-tests/files && tsc"
   },
   "files": [
-    "dist/*.js",
-    "dist/*.js.map",
-    "dist/typings.d.ts",
-    "src",
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/package.json",
+    "src/",
     "query"
   ],
   "dependencies": {

@@ -11,6 +11,7 @@ import {
   QueryKeys,
   QueryStatus,
   QuerySubstateIdentifier,
+  CombinedState,
 } from './apiState'
 import { StartQueryActionCreatorOptions } from './buildInitiate'
 import {
@@ -24,6 +25,7 @@ import {
   QueryArgFrom,
   QueryDefinition,
   ResultTypeFrom,
+  FullTagDescription,
 } from '../endpointDefinitions'
 import {
   AsyncThunkPayloadCreator,

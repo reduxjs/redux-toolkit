@@ -1,4 +1,9 @@
-import { createAction, ThunkDispatch } from '@reduxjs/toolkit'
+import {
+  createAction,
+  ThunkDispatch,
+  // Workaround for API-Extractor
+  ActionCreatorWithoutPayload,
+} from '@reduxjs/toolkit'
 
 export const onFocus = createAction('__rtkq/focused')
 export const onFocusLost = createAction('__rtkq/unfocused')

@@ -7,9 +7,15 @@ import {
   isFulfilled,
   isRejectedWithValue,
   PayloadAction,
+  // Workaround for API-Extractor
+  AnyAction,
+  CombinedState,
+  Reducer,
+  ActionCreatorWithPayload,
+  ActionCreatorWithoutPayload,
 } from '@reduxjs/toolkit'
 import {
-  CombinedState,
+  CombinedState as CombinedQueryState,
   QuerySubstateIdentifier,
   QuerySubState,
   MutationSubstateIdentifier,
@@ -342,7 +348,9 @@ export function buildSlice({
     },
   })
 
-  const combinedReducer = combineReducers<CombinedState<any, string, string>>({
+  const combinedReducer = combineReducers<
+    CombinedQueryState<any, string, string>
+  >({
     queries: querySlice.reducer,
     mutations: mutationSlice.reducer,
     provided: invalidationSlice.reducer,

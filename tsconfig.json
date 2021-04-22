@@ -7,7 +7,7 @@
     "src"
   ],
   "exclude": [
-    "src/**/*.test.ts",
-    "src/query"
+    "src/**/*.test.ts*",
+    "src/**/tests/*"
   ]
 }
