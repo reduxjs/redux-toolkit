@@ -22,7 +22,24 @@
   "main": "dist/index.js",
   "module": "dist/redux-toolkit.esm.js",
   "unpkg": "dist/redux-toolkit.umd.min.js",
-  "types": "dist/typings.d.ts",
+  "types": "dist/typings.d.ts",  
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "module": "./dist/redux-toolkit.esm.js",
+      "default": "./dist/index.js"
+    },
+    "./query": {
+      "types": "./dist/query/index.d.ts",
+      "module": "./dist/query/rtk-query.esm.js",
+      "default": "./dist/query/index.js"
+    },
+    "./query/react": {
+      "types": "./dist/query/react.d.ts",
+      "module": "./dist/query/react/rtk-query-react.esm.js",
+      "default": "./dist/query/react/index.js"
+    }
+  },
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
   "devDependencies": {
