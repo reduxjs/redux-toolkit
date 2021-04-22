@@ -61,7 +61,8 @@
   },
   "scripts": {
     "build-ci": "node scripts/cli.js && tsc && tsc -p src/query/tsconfig.json && api-extractor run",
-    "build": "node scripts/cli.js && tsc && tsc -p src/query/tsconfig.json && api-extractor run --local",
+    "build:original": "node scripts/cli.js && tsc && tsc -p src/query/tsconfig.json && api-extractor run --local",
+    "build": "rimraf dist && tsc && node scripts/cli.js --local",
     "dev": "tsdx watch  --format cjs,esm,system,umd",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"src/**/*.{ts,tsx}\" \"docs/*/**.md\"",

@@ -13,7 +13,27 @@ import merge from 'merge-source-map'
 import { extractInlineSourcemap, removeInlineSourceMap } from './sourcemap'
 import type { BuildOptions, EntryPointOptions } from './types'
 import assert from 'assert'
+import {
+  Extractor,
+  ExtractorConfig,
+  ExtractorResult,
+} from '@microsoft/api-extractor'
+import yargs from 'yargs/yargs'
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+const { argv } = yargs(process.argv)
+  .option('local', {
+    alias: 'l',
+    type: 'boolean',
+    description: 'Run API Extractor in local mode',
+  })
+  .option('skipExtraction', {
+    alias: 's',
+    type: 'boolean',
+    description: 'Skip running API extractor',
+  })
+
 const outputDir = path.join(__dirname, '../dist')
 
 const buildTargets: BuildOptions[] = [
@@ -78,13 +98,24 @@ const buildTargets: BuildOptions[] = [
 ]
 
 const entryPoints: EntryPointOptions[] = [
-  { prefix: 'redux-toolkit', folder: '', entryPoint: 'src/index.ts' },
+  {
+    prefix: 'redux-toolkit',
+    folder: '',
+    entryPoint: 'src/index.ts',
+    extractionConfig: 'api-extractor.json',
+  },
   // TODO The alternate entry point outputs are likely not importable this way. Need to sort that out.
-  { prefix: 'rtk-query', folder: 'query', entryPoint: 'src/query/index.ts' },
   {
     prefix: 'rtk-query',
+    folder: 'query',
+    entryPoint: 'src/query/index.ts',
+    extractionConfig: 'api-extractor.query.json',
+  },
+  {
+    prefix: 'rtk-query-react',
     folder: 'query/react',
     entryPoint: 'src/query/react.ts',
+    extractionConfig: 'api-extractor.query-react.json',
   },
 ]
 
@@ -277,20 +308,25 @@ async function buildUMD() {
     sourcemap: true,
   })
 }
-async function writeEntry() {
+async function writeEntry(folder: string, prefix: string) {
   await fs.writeFile(
-    'dist/index.js',
+    path.join('dist', folder, 'index.js'),
     `'use strict'
 if (process.env.NODE_ENV === 'production') {
-  module.exports = require('./redux-toolkit.cjs.production.min.js')
+  module.exports = require('./${prefix}.cjs.production.min.js')
 } else {
-  module.exports = require('./redux-toolkit.cjs.development.js')
+  module.exports = require('./${prefix}.cjs.development.js')
 }`
   )
 }
 
-async function main() {
-  await fs.remove(outputDir)
+interface BuildArgs {
+  skipExtraction?: boolean
+  local: boolean
+}
+
+async function main({ skipExtraction = false, local = false }: BuildArgs) {
+  //await fs.remove(outputDir)
   await fs.ensureDir(outputDir)
 
   for (let entryPoint of entryPoints) {
@@ -305,12 +341,44 @@ async function main() {
       })
     )
     await Promise.all(bundlePromises)
+    await writeEntry(entryPoint.folder, entryPoint.prefix)
   }
 
   await sleep(500) // hack, waiting file to save
   await buildUMD()
-  writeEntry()
+
+  if (!skipExtraction) {
+    for (let entryPoint of entryPoints) {
+      // Load and parse the api-extractor.json file
+      const extractorConfig: ExtractorConfig = ExtractorConfig.loadFileAndPrepare(
+        entryPoint.extractionConfig
+      )
+
+      console.log('Extracting API types for entry point: ', entryPoint.prefix)
+      // Invoke API Extractor
+      const extractorResult: ExtractorResult = Extractor.invoke(
+        extractorConfig,
+        {
+          // Equivalent to the "--local" command-line parameter
+          localBuild: local,
+
+          // Equivalent to the "--verbose" command-line parameter
+          showVerboseMessages: false,
+        }
+      )
+
+      if (extractorResult.succeeded) {
+        console.log(`API Extractor completed successfully`)
+      } else {
+        console.error(
+          `API Extractor completed with ${extractorResult.errorCount} errors` +
+            ` and ${extractorResult.warningCount} warnings`
+        )
+      }
+    }
+  }
+
   // addSubpath()
 }
-
-main()
+const { skipExtraction, local } = argv
+main({ skipExtraction, local })

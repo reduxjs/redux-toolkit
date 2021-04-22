@@ -18,4 +18,5 @@ export interface EntryPointOptions {
   prefix: string
   folder: string
   entryPoint: string
+  extractionConfig: string
 }
