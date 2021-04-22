@@ -275,39 +275,33 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
 /**
  * since esbuild doesn't support umd, we use rollup to convert esm to umd
  */
-async function buildUMD() {
-  // origin
-  const input = path.join(__dirname, '../dist/redux-toolkit.umd.js')
-  const instance = await rollup.rollup({
-    input: [input],
-    onwarn(warning, warn) {
-      if (warning.code === 'THIS_IS_UNDEFINED') return
-      warn(warning) // this requires Rollup 0.46
-    },
-  })
-  await instance.write({
-    format: 'umd',
-    name: 'RTK',
-    file: 'dist/redux-toolkit.umd.js',
-    sourcemap: true,
-  })
-  // minify
-  const input2 = path.join(__dirname, '../dist/redux-toolkit.umd.min.js')
+async function buildUMD(outputPath: string, prefix: string) {
+  // All RTK UMD files share the same global variable name, regardless
+  const globalName = 'RTK'
 
-  const instance2 = await rollup.rollup({
-    input: [input2],
-    onwarn(warning, warn) {
-      if (warning.code === 'THIS_IS_UNDEFINED') return
-      warn(warning) // this requires Rollup 0.46
-    },
-  })
-  await instance2.write({
-    format: 'umd',
-    name: 'RTK',
-    file: 'dist/redux-toolkit.umd.min.js',
-    sourcemap: true,
-  })
+  for (let umdExtension of ['umd', 'umd.min']) {
+    const input = path.join(outputPath, `${prefix}.${umdExtension}.js`)
+    const instance = await rollup.rollup({
+      input: [input],
+      onwarn(warning, warn) {
+        if (warning.code === 'THIS_IS_UNDEFINED') return
+        warn(warning) // this requires Rollup 0.46
+      },
+    })
+    await instance.write({
+      format: 'umd',
+      name: globalName,
+      file: input,
+      sourcemap: true,
+      globals: {
+        // These packages have specific global names from their UMD bundles
+        react: 'React',
+        'react-redux': 'ReactRedux',
+      },
+    })
+  }
 }
+
 async function writeEntry(folder: string, prefix: string) {
   await fs.writeFile(
     path.join('dist', folder, 'index.js'),
@@ -342,10 +336,10 @@ async function main({ skipExtraction = false, local = false }: BuildArgs) {
     )
     await Promise.all(bundlePromises)
     await writeEntry(entryPoint.folder, entryPoint.prefix)
-  }
 
-  await sleep(500) // hack, waiting file to save
-  await buildUMD()
+    await sleep(500) // hack, waiting file to save
+    await buildUMD(outputPath, entryPoint.prefix)
+  }
 
   if (!skipExtraction) {
     for (let entryPoint of entryPoints) {
