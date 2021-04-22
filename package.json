@@ -40,6 +40,12 @@
       "default": "./dist/query/react/index.js"
     }
   },
+  "typesVersions": {
+    "*": {
+      "query": ["./dist/query/index.d.ts"],
+      "query/react": ["./dist/query/react.d.ts"]
+    }
+  },
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
   "devDependencies": {
