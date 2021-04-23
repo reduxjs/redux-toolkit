@@ -40,7 +40,7 @@ export function generateCreateApiCall({
   reducerPath,
   createApiFn,
   baseQuery,
-  entityTypes,
+  tagTypes,
   endpointBuilder = defaultEndpointBuilder,
   endpointDefinitions,
 }: {
@@ -48,7 +48,7 @@ export function generateCreateApiCall({
   reducerPath?: string;
   createApiFn: ts.Expression;
   baseQuery: ts.Expression;
-  entityTypes: ts.Expression;
+  tagTypes: ts.Expression;
   endpointBuilder?: ts.Identifier;
   endpointDefinitions: ts.ObjectLiteralExpression;
 }) {
@@ -65,7 +65,7 @@ export function generateCreateApiCall({
               generateObjectProperties({
                 ...(!reducerPath ? {} : { reducerPath: factory.createStringLiteral(reducerPath) }),
                 baseQuery,
-                entityTypes,
+                tagTypes,
                 endpoints: factory.createArrowFunction(
                   undefined,
                   undefined,
