@@ -1,7 +1,26 @@
-import { coreModule, coreModuleName } from '../core/module'
-import { buildCreateApi, CreateApi } from '../createApi'
-import { reactHooksModule, reactHooksModuleName } from './module'
+import { reactHooksModuleName, ReactHooksBaseEndpoints } from './module'
 
-const createApi = buildCreateApi(coreModule(), reactHooksModule())
+import { EndpointDefinitions } from '../endpointDefinitions'
+import { BaseQueryFn } from '../baseQueryTypes'
+import { TS41Hooks } from './ts41Types'
 
-export { createApi, reactHooksModule }
+export * from '..'
+export { ApiProvider } from './ApiProvider'
+
+export { createApi } from './reactHooksCommonExports'
+export * from './reactHooksCommonExports'
+
+declare module '../apiTypes' {
+  export interface ApiModules<
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    BaseQuery extends BaseQueryFn,
+    Definitions extends EndpointDefinitions,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ReducerPath extends string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    TagTypes extends string
+  > {
+    [reactHooksModuleName]: ReactHooksBaseEndpoints<Definitions> &
+      TS41Hooks<Definitions>
+  }
+}
