@@ -4,7 +4,7 @@ exports[`CLI options testing should accept a valid url as the target swagger fil
 import { createApi, fetchBaseQuery } from "@rtk-incubator/rtk-query";
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: "/api/v3" }),
-  entityTypes: [],
+  tagTypes: [],
   endpoints: (build) => ({
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
       query: (queryArg) => ({ url: \`/pet\`, method: "PUT", body: queryArg.pet }),
@@ -273,7 +273,7 @@ exports[`CLI options testing should create a file when --file is specified 1`] =
 import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/api/v3' }),
-  entityTypes: [],
+  tagTypes: [],
   endpoints: (build) => ({
     getHealthcheck: build.query<GetHealthcheckApiResponse, GetHealthcheckApiArg>({
       query: () => ({ url: \`/healthcheck\` }),
@@ -501,7 +501,7 @@ import { createApi } from "@rtk-incubator/rtk-query/react";
 import { fetchBaseQuery } from "@rtk-incubator/rtk-query";
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: "/api/v3" }),
-  entityTypes: [],
+  tagTypes: [],
   endpoints: (build) => ({
     getHealthcheck: build.query<
       GetHealthcheckApiResponse,
@@ -802,7 +802,7 @@ exports[`CLI options testing should log output to the console when a filename is
 import { createApi, fetchBaseQuery } from "@rtk-incubator/rtk-query";
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: "/api/v3" }),
-  entityTypes: [],
+  tagTypes: [],
   endpoints: (build) => ({
     getHealthcheck: build.query<
       GetHealthcheckApiResponse,
@@ -1081,7 +1081,7 @@ exports[`yaml parsing should be able to use read a yaml file and create a file w
 import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/api/v3' }),
-  entityTypes: [],
+  tagTypes: [],
   endpoints: (build) => ({
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
       query: (queryArg) => ({ url: \`/pet\`, method: 'PUT', body: queryArg.pet }),
@@ -1301,7 +1301,7 @@ exports[`yaml parsing should parse a yaml schema from a URL 1`] = `
 import { createApi, fetchBaseQuery } from "@rtk-incubator/rtk-query";
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: "/api/v3" }),
-  entityTypes: [],
+  tagTypes: [],
   endpoints: (build) => ({
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
       query: (queryArg) => ({ url: \`/pet\`, method: "PUT", body: queryArg.pet }),

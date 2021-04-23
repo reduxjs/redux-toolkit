@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/api/v3' }),
-  entityTypes: [],
+  tagTypes: [],
   endpoints: (build) => ({
     getHealthcheck: build.query<GetHealthcheckApiResponse, GetHealthcheckApiArg>({
       query: () => ({ url: `/healthcheck` }),
