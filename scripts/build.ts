@@ -58,6 +58,7 @@ const buildTargets: BuildOptions[] = [
     minify: false,
     env: '',
   },
+
   // ESM, embedded `process`, ES2017 syntax: modern Webpack dev
   {
     format: 'esm',
@@ -114,7 +115,7 @@ const entryPoints: EntryPointOptions[] = [
   {
     prefix: 'rtk-query-react',
     folder: 'query/react',
-    entryPoint: 'src/query/react.ts',
+    entryPoint: 'src/query/react/index.ts',
     extractionConfig: 'api-extractor.query-react.json',
   },
 ]
@@ -343,9 +344,16 @@ async function main({ skipExtraction = false, local = false }: BuildArgs) {
       const packageDest = path.join(outputPath, 'package.json')
     }
 
-    await sleep(500) // hack, waiting file to save
-    await buildUMD(outputPath, entryPoint.prefix)
+    // await sleep(500) // hack, waiting file to save
+    // await buildUMD(outputPath, entryPoint.prefix)
   }
+
+  const hooksIndexDtsText = fs.readFileSync('dist/query/react/index.d.ts', {
+    encoding: 'utf8',
+  })
+  console.log(typeof hooksIndexDtsText, hooksIndexDtsText)
+  const ts40Text = hooksIndexDtsText.replace('ts41Types', 'ts40Types')
+  fs.writeFileSync('dist/query/react/indexTs40.d.ts', ts40Text)
 
   if (!skipExtraction) {
     for (let entryPoint of entryPoints) {
@@ -377,7 +385,6 @@ async function main({ skipExtraction = false, local = false }: BuildArgs) {
       }
     }
   }
-
 
   // addSubpath()
 }
