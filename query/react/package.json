@@ -1,0 +1,18 @@
+{
+  "name": "@reduxjs/toolkit-query-react",
+  "version": "1.0.0",
+  "description": "",
+  "main": "../../dist/query/react/index.js",
+  "module": "../../dist/query/react/rtk-query-react.esm.js",
+  "unpkg": "../../dist/query/react/rtk-query-react.umd.min.js",
+  "types": "../../dist/query/react/index.d.ts",
+  "author": "Mark Erikson <mark@isquaredsoftware.com>",
+  "license": "MIT",
+  "typesVersions": {
+    "<4.1": {
+      "index.d.ts": [ 
+        "../../dist/query/react/indexTs40.d.ts"
+      ]
+    }
+  }
+}
