@@ -4,7 +4,7 @@ module.exports = {
   moduleNameMapper: {
     '^@reduxjs/toolkit$': '<rootDir>/src/index.ts',
     '^@reduxjs/toolkit/query$': '<rootDir>/src/query/index.ts',
-    '^@reduxjs/toolkit/query/react$': '<rootDir>/src/query/react.ts',
+    '^@reduxjs/toolkit/query/react$': '<rootDir>/src/query/react/index.ts',
     '^@internal/(.*)$': '<rootDir>/src/query/*',
   },
   globals: {

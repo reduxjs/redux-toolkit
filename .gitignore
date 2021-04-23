@@ -3,7 +3,7 @@
 node_modules
 # Dist and query are both build output folders
 dist
-query/
+!query/
 # But don't ignore the RTK Query source
 !src/query/
 lib
