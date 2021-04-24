@@ -19,27 +19,38 @@ const api = createApi({
   baseQuery,
   tagTypes: ['Post'],
   endpoints: (build) => ({
-    getPost: build.query<Post, string>({ query: (id) => `post/${id}`, providesTags: ['Post'] }),
-    updatePost: build.mutation<void, Pick<Post, 'id'> & Partial<Post>, { undoPost: Patch[] }>({
-      query: ({ id, ...patch }) => ({ url: `post/${id}`, method: 'PATCH', body: patch }),
+    getPost: build.query<Post, string>({
+      query: (id) => `post/${id}`,
+      providesTags: ['Post'],
+    }),
+    updatePost: build.mutation<
+      void,
+      Pick<Post, 'id'> & Partial<Post>,
+      { undoPost: Patch[] }
+    >({
+      query: ({ id, ...patch }) => ({
+        url: `post/${id}`,
+        method: 'PATCH',
+        body: patch,
+      }),
       onStart({ id, ...patch }, { dispatch, context }) {
         // When we start the request, just immediately update the cache
         context.undoPost = dispatch(
           api.util.updateQueryResult('getPost', id, (draft) => {
-            Object.assign(draft, patch);
+            Object.assign(draft, patch)
           })
-        ).inversePatches;
+        ).inversePatches
       },
       onError({ id }, { dispatch, context }) {
         // If there is an error, roll it back
-        dispatch(api.util.patchQueryResult('getPost', id, context.undoPost));
+        dispatch(api.util.patchQueryResult('getPost', id, context.undoPost))
       },
       invalidatesTags: ['Post'],
     }),
   }),
-});
+})
 ```
 
 ### Example
 
-[View Example](../examples/react-optimistic-updates)
+[View Example](./examples#react-optimistic-updates)

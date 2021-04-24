@@ -40,7 +40,7 @@ Promise<{
 
 ### Using `fetchBaseQuery`
 
-To use it, import it when you are [creating an API service definition](../introduction/getting-started#create-an-api-service).
+To use it, import it when you are [creating an API service definition](../../tutorials/rtk-query#create-an-api-service).
 
 ```ts title="src/services/pokemon.ts"
 // Or from '@reduxjs/toolkit/query/react'
