@@ -2,6 +2,8 @@
   "name": "@reduxjs/toolkit",
   "version": "1.6.0-alpha.0",
   "description": "The official, opinionated, batteries-included toolset for efficient Redux development",
+  "author": "Mark Erikson <mark@isquaredsoftware.com>",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/reduxjs/redux-toolkit.git"
@@ -23,35 +25,6 @@
   "module": "dist/redux-toolkit.esm.js",
   "unpkg": "dist/redux-toolkit.umd.min.js",
   "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "module": "./dist/redux-toolkit.esm.js",
-      "default": "./dist/index.js"
-    },
-    "./query": {
-      "types": "./query/index.d.ts",
-      "module": "./query/rtk-query.esm.js",
-      "default": "./query/index.js"
-    },
-    "./query/react": {
-      "types": "./query/react.d.ts",
-      "module": "./query/react/rtk-query-react.esm.js",
-      "default": "./query/react/index.js"
-    }
-  },
-  "typesVersions": {
-    "*": {
-      "query": [
-        "./query/index.d.ts"
-      ],
-      "query/react": [
-        "./query/react.d.ts"
-      ]
-    }
-  },
-  "author": "Mark Erikson <mark@isquaredsoftware.com>",
-  "license": "MIT",
   "devDependencies": {
     "@microsoft/api-extractor": "^7.13.2",
     "@testing-library/react": "^11.2.6",
@@ -72,7 +45,7 @@
     "console-testing-library": "^0.3.1",
     "convert-source-map": "^1.7.0",
     "cross-fetch": "^3.1.4",
-    "esbuild": "0.8.57",
+    "esbuild": "^0.11.13",
     "eslint-config-react-app": "^5.0.1",
     "fs-extra": "^9.1.0",
     "invariant": "^2.2.4",
@@ -95,8 +68,8 @@
     "yargs": "^15.3.1"
   },
   "scripts": {
-    "build-ci": "rimraf dist query && tsc && node scripts/cli.js",
-    "build": "rimraf dist query && tsc && node scripts/cli.js --skipExtraction",
+    "build-ci": "rimraf dist && tsc && node scripts/cli.js",
+    "build": "rimraf dist && tsc && node scripts/cli.js --local",
     "dev": "tsdx watch  --format cjs,esm,system,umd",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"src/**/*.{ts,tsx}\" \"docs/*/**.md\"",
@@ -119,18 +92,19 @@
     "redux-thunk": "^2.3.0",
     "reselect": "^4.0.0"
   },
-  "sideEffects": false,
-  "jest": {
-    "globals": {
-      "ts-jest": {
-        "diagnostics": {
-          "ignoreCodes": [
-            6133
-          ]
-        }
-      }
+  "peerDependencies": {
+    "react": "^16.14.0 || ^17.0.0",
+    "react-redux": "^7.2.1"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-redux": {
+      "optional": true
     }
   },
+  "sideEffects": false,
   "bugs": {
     "url": "https://github.com/reduxjs/redux-toolkit/issues"
   },

@@ -5,20 +5,19 @@ import terser from 'terser'
 import rollup from 'rollup'
 import path from 'path'
 import fs from 'fs-extra'
-import MagicString from 'magic-string'
-import { appendInlineSourceMap, getLocation } from './sourcemap'
 import ts from 'typescript'
 import { RawSourceMap, SourceMapConsumer } from 'source-map'
 import merge from 'merge-source-map'
-import { extractInlineSourcemap, removeInlineSourceMap } from './sourcemap'
-import type { BuildOptions, EntryPointOptions } from './types'
-import assert from 'assert'
 import {
   Extractor,
   ExtractorConfig,
   ExtractorResult,
 } from '@microsoft/api-extractor'
 import yargs from 'yargs/yargs'
+
+import { extractInlineSourcemap, removeInlineSourceMap } from './sourcemap'
+import type { BuildOptions, EntryPointOptions } from './types'
+import { appendInlineSourceMap, getLocation } from './sourcemap'
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -50,7 +49,6 @@ const buildTargets: BuildOptions[] = [
     minify: true,
     env: 'production',
   },
-
   // ESM, embedded `process`, ES5 syntax: typical Webpack dev
   {
     format: 'esm',
@@ -66,7 +64,6 @@ const buildTargets: BuildOptions[] = [
     minify: false,
     env: '',
   },
-
   // ESM, pre-compiled "dev", ES2017 syntax: browser development
   {
     format: 'esm',
@@ -104,7 +101,6 @@ const entryPoints: EntryPointOptions[] = [
     entryPoint: 'src/index.ts',
     extractionConfig: 'api-extractor.json',
   },
-  // TODO The alternate entry point outputs are likely not importable this way. Need to sort that out.
   {
     prefix: 'rtk-query',
     folder: 'query',
@@ -114,7 +110,7 @@ const entryPoints: EntryPointOptions[] = [
   {
     prefix: 'rtk-query-react',
     folder: 'query/react',
-    entryPoint: 'src/query/react.ts',
+    entryPoint: 'src/query/react/index.ts',
     extractionConfig: 'api-extractor.query-react.json',
   },
 ]
@@ -149,8 +145,12 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     target: 'esnext',
     sourcemap: 'inline',
     bundle: true,
-    external: ['react', 'react-redux'],
     format: format === 'umd' ? 'esm' : format,
+    // Needed to prevent auto-replacing of process.env.NODE_ENV in all builds
+    platform: 'neutral',
+    // Needed to return to normal lookup behavior when platform: 'neutral'
+    mainFields: ['browser', 'module', 'main'],
+    conditions: ['browser'],
     define: env
       ? {
           'process.env.NODE_ENV': JSON.stringify(env),
@@ -209,7 +209,6 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
 
     const mergedSourcemap = merge(sourcemap, result.sourceMapText)
     let code = result.outputText
-    // TODO Is this used at all?
     let mapping: RawSourceMap = mergedSourcemap
 
     if (minify) {
@@ -236,39 +235,6 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     console.log('Build artifact:', chunk.path)
     await fs.writeFile(chunk.path, code)
     await fs.writeJSON(chunk.path + '.map', mapping)
-    const smc = await new SourceMapConsumer(mapping)
-    /*
-    const stubMap = {
-      '../src/configureStore.ts': [
-        `"reducer" is a required argument, and must be a function or an object of functions that can be passed to combineReducers`,
-      ],
-    }
-    for (const [source, stubList] of Object.entries(stubMap)) {
-      for (const stub of stubList) {
-        const originContent = smc.sourceContentFor(source)
-        const originLocation = getLocation(originContent, stub)
-        const bundledPosition = getLocation(code, stub)
-        const recoverLocation = smc.originalPositionFor({
-          line: bundledPosition.line,
-          column: bundledPosition.column,
-        })
-        assert.deepStrictEqual(
-          source,
-          recoverLocation.source,
-          `sourceFile: expected ${source} but got ${recoverLocation.source}`
-        )
-        assert(
-          Math.abs(originLocation.line - recoverLocation.line) <= 1,
-          `line: expected ${originLocation.line} but got ${recoverLocation.line}`
-        )
-        assert(
-          Math.abs(originLocation.column - recoverLocation.column) <= 1,
-          `column: expected ${originLocation.column} but got ${recoverLocation.column}`
-        )
-      }
-      
-    }
-    */
   }
 }
 
@@ -302,6 +268,7 @@ async function buildUMD(outputPath: string, prefix: string) {
   }
 }
 
+// Generates an index file to handle importing CJS dev/prod
 async function writeEntry(folder: string, prefix: string) {
   await fs.writeFile(
     path.join('dist', folder, 'index.js'),
@@ -320,7 +287,7 @@ interface BuildArgs {
 }
 
 async function main({ skipExtraction = false, local = false }: BuildArgs) {
-  //await fs.remove(outputDir)
+  // Dist folder will be removed by rimraf beforehand so TSC can generate typedefs
   await fs.ensureDir(outputDir)
 
   for (let entryPoint of entryPoints) {
@@ -337,15 +304,21 @@ async function main({ skipExtraction = false, local = false }: BuildArgs) {
     )
     await Promise.all(bundlePromises)
     await writeEntry(folder, prefix)
+  }
 
-    if (folder) {
-      const packageSource = path.join('src', folder, 'package.json')
-      const packageDest = path.join(outputPath, 'package.json')
-    }
-
-    await sleep(500) // hack, waiting file to save
+  // Run UMD builds after everything else so we don't have to sleep after each set
+  for (let entryPoint of entryPoints) {
+    const { folder } = entryPoint
+    const outputPath = path.join('dist', folder)
     await buildUMD(outputPath, entryPoint.prefix)
   }
+
+  // We need one additional package.json file in dist to support
+  // versioned types for TS <4.1
+  fs.copyFileSync(
+    'src/query/react/versionedTypes/package.json',
+    'dist/query/react/versionedTypes/package.json'
+  )
 
   if (!skipExtraction) {
     for (let entryPoint of entryPoints) {
@@ -377,9 +350,7 @@ async function main({ skipExtraction = false, local = false }: BuildArgs) {
       }
     }
   }
-
-
-  // addSubpath()
 }
+
 const { skipExtraction, local } = argv
 main({ skipExtraction, local })

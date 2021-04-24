@@ -1,12 +1,14 @@
-import { UseMutation, UseLazyQuery, UseQuery } from './buildHooks'
+import { UseMutation, UseLazyQuery, UseQuery } from './../buildHooks'
 import {
   DefinitionType,
   EndpointDefinitions,
   MutationDefinition,
   QueryDefinition,
-} from '../endpointDefinitions'
+} from '../../endpointDefinitions'
 
-export type TS41Hooks<
+// For TS 4.1 and later, we can use string literal types to define
+// the exact names of each endpoint's exported hooks
+export type HooksWithUniqueNames<
   Definitions extends EndpointDefinitions
 > = keyof Definitions extends infer Keys
   ? Keys extends string
