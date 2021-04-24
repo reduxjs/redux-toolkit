@@ -839,6 +839,7 @@ describe('hooks tests', () => {
                     name: string
                   }
                 }
+              // @ts-expect-error TEMPORARY ONLY - suppressed for codesandbox build
             >(result)
           })
 
