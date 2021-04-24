@@ -92,6 +92,18 @@
     "redux-thunk": "^2.3.0",
     "reselect": "^4.0.0"
   },
+  "peerDependencies": {
+    "react": "^16.14.0 || ^17.0.0",
+    "react-redux": "^7.2.1"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-redux": {
+      "optional": true
+    }
+  },
   "sideEffects": false,
   "bugs": {
     "url": "https://github.com/reduxjs/redux-toolkit/issues"
