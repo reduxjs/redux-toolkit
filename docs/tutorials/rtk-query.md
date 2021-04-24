@@ -71,7 +71,7 @@ An RTK service generates a "slice reducer" that should be included in the Redux 
 
 ```ts title="src/store.ts"
 import { configureStore } from '@reduxjs/toolkit'
-// Or from '@rtk-incubator/rtk-query/react'
+// Or from '@reduxjs/toolkit/query/react'
 import { setupListeners } from '@reduxjs/toolkit/query'
 import { pokemonApi } from './services/pokemon'
 

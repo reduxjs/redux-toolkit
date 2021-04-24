@@ -43,8 +43,8 @@ Promise<{
 To use it, import it when you are [creating an API service definition](../introduction/getting-started#create-an-api-service).
 
 ```ts title="src/services/pokemon.ts"
-// Or from '@rtk-incubator/rtk-query/react'
-import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
+// Or from '@reduxjs/toolkit/query/react'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
 export const pokemonApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }), // Set the baseUrl for every endpoint below

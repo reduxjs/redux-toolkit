@@ -14,7 +14,7 @@ The core RTK Query `createApi` method is UI-agnostic, in the same way that the R
 However, RTK Query also provides the ability to auto-generate React hooks for each of your endpoints. Since this specifically depends on React itself, RTK Query provides an alternate entry point that exposes a customized version of `createApi` that includes that functionality:
 
 ```js
-import { createApi } from '@rtk-incubator/rtk-query/react';
+import { createApi } from 'reduxjs/toolkit/query/react'
 ```
 
 If you have used the React-specific version of `createApi`, the generated `Api` slice structure will also contain a set of React hooks. These endpoint hooks are available as `api.endpoints[endpointName].useQuery` or `api.endpoints[endpointName].useMutation`, matching how you defined that endpoint.

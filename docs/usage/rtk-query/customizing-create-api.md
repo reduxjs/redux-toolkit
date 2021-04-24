@@ -19,28 +19,42 @@ You can create your own versions of `createApi` by either specifying non-default
 If you want the hooks to use different versions of `useSelector` or `useDispatch`, for example if you are using a custom context, you can pass these in at module creation:
 
 ```ts
-import * as React from 'react';
-import { createDispatchHook, ReactReduxContextValue } from 'react-redux';
-import { buildCreateApi, coreModule, reactHooksModule } from '@rtk-incubator/rtk-query';
+import * as React from 'react'
+import { createDispatchHook, ReactReduxContextValue } from 'react-redux'
+import {
+  buildCreateApi,
+  coreModule,
+  reactHooksModule,
+} from '@reduxjs/toolkit/query'
 
-const MyContext = React.createContext<ReactReduxContextValue>(null as any);
-const customCreateApi = buildCreateApi(coreModule(), reactHooksModule({ useDispatch: createDispatchHook(MyContext) }));
+const MyContext = React.createContext<ReactReduxContextValue>(null as any)
+const customCreateApi = buildCreateApi(
+  coreModule(),
+  reactHooksModule({ useDispatch: createDispatchHook(MyContext) })
+)
 ```
 
 ## Creating your own module
 
-If you want to create your own module, you should review [the react-hooks module](https://github.com/rtk-incubator/rtk-query/blob/main/src/react-hooks/module.ts) to see what an implementation would look like.
+If you want to create your own module, you should review [the react-hooks module](https://github.com/reduxjs/redux-toolkit/blob/b74a52935a5840bebca5acdc8e2265e3b6497afa/src/query/react/module.ts) to see what an implementation would look like.
 
 Here is a very stripped down version:
 
 ```ts
-import { CoreModule } from '@internal/core/module';
-import { BaseQueryFn, EndpointDefinitions, Api, Module, buildCreateApi, coreModule } from '@rtk-incubator/rtk-query';
+import { CoreModule } from '@internal/core/module'
+import {
+  BaseQueryFn,
+  EndpointDefinitions,
+  Api,
+  Module,
+  buildCreateApi,
+  coreModule,
+} from '@reduxjs/toolkit/query'
 
-export const customModuleName = Symbol();
-export type CustomModule = typeof customModuleName;
+export const customModuleName = Symbol()
+export type CustomModule = typeof customModuleName
 
-declare module '@rtk-incubator/rtk-query' {
+declare module '../apiTypes' {
   export interface ApiModules<
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,

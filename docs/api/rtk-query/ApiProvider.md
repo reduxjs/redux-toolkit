@@ -12,7 +12,7 @@ hide_title: true
 [examples](docblock://query/react/ApiProvider.tsx?token=ApiProvider)
 
 :::danger
-Using this together with an existing redux store will cause them to conflict with each other. If you are already using Redux, please use follow the instructions as shown in the [Getting Started guide](../introduction/getting-started).
+Using this together with an existing Redux store will cause them to conflict with each other. If you are already using Redux, please use follow the instructions as shown in the [Getting Started guide](../../introduction/getting-started).
 :::
 
 ### Example

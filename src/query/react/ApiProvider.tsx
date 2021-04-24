@@ -11,7 +11,7 @@ import { Api } from '../apiTypes'
  * ```ts
  * // codeblock-meta title="Basic usage - wrap your App with ApiProvider"
  * import * as React from 'react';
- * import { ApiProvider } from '@rtk-incubator/rtk-query';
+ * import { ApiProvider } from '@reduxjs/toolkit/query/react';
  *
  * function App() {
  *   return (

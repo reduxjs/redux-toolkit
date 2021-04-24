@@ -112,12 +112,6 @@ A function that accepts a cache key argument, and generates a new memoized selec
 
 RTKQ defines a `Symbol` named `skipSelector` internally. If `skipSelector` is passed as the query argument to these selectors, the selector will return `undefined`. This can be used to avoid returning a value if a given query is supposed to be disabled.
 
-:::caution
-
-RTKQ does not currently export `skipSelector`, although the React hooks use it internally. We plan to export it before final release so that end users can use that as well - see https://github.com/rtk-incubator/rtk-query/issues/211 .
-
-:::
-
 React Hooks users will most likely never need to use these directly, as the hooks automatically use these selectors as needed.
 
 :::caution
