@@ -25,34 +25,34 @@ const api = createApi({
   endpoints: (builder) => ({
     // ...
   }),
-});
+})
 
 type Api = {
   // Redux integration
-  reducerPath: string;
-  reducer: Reducer;
-  middleware: Middleware;
+  reducerPath: string
+  reducer: Reducer
+  middleware: Middleware
 
   // Endpoint interactions
-  endpoints: Record<string, EndpointDefinition>;
+  endpoints: Record<string, EndpointDefinition>
 
   // Code splitting and generation
-  injectEndpoints: (options: InjectEndpointsOptions) => UpdatedApi;
-  enhanceEndpoints: (options: EnhanceEndpointsOptions) => UpdatedApi;
+  injectEndpoints: (options: InjectEndpointsOptions) => UpdatedApi
+  enhanceEndpoints: (options: EnhanceEndpointsOptions) => UpdatedApi
 
   // Cache management utilities
   utils: {
-    updateQueryResult: UpdateQueryResultThunk;
-    patchQueryResult: PatchQueryResultThunk;
-    prefetch: PrefetchThunk;
-  };
+    updateQueryResult: UpdateQueryResultThunk
+    patchQueryResult: PatchQueryResultThunk
+    prefetch: PrefetchThunk
+  }
 
   // Internal actions
-  internalActions: InternalActions;
+  internalActions: InternalActions
 
   // React hooks (if applicable)
-  [key in GeneratedReactHooks]: GeneratedReactHooks[key];
-};
+  [key in GeneratedReactHooks]: GeneratedReactHooks[key]
+}
 ```
 
 ## Redux Integration
@@ -102,7 +102,7 @@ The core RTK Query `createApi` method is UI-agnostic, in the same way that the R
 However, RTK Query also provides the ability to auto-generate React hooks for each of your endpoints. Since this specifically depends on React itself, RTK Query provides an alternate entry point that exposes a customized version of `createApi` that includes that functionality:
 
 ```js
-import { createApi } from '@rtk-incubator/rtk-query/react';
+import { createApi } from '@reduxjs/toolkit/query/react'
 ```
 
 If you have used the React-specific version of `createApi`, the generated `Api` slice structure will also contain a set of React hooks. These endpoint hooks are available as `api.endpoints[endpointName].useQuery` or `api.endpoints[endpointName].useMutation`, matching how you defined that endpoint.
@@ -113,12 +113,12 @@ For example, if you had endpoints for `getPosts` and `updatePost`, these options
 
 ```ts title="Generated React Hook names"
 // Hooks attached to the endpoint definition
-const { data } = api.endpoints.getPosts.useQuery();
-const { data } = api.endpoints.updatePost.useMutation();
+const { data } = api.endpoints.getPosts.useQuery()
+const { data } = api.endpoints.updatePost.useMutation()
 
 // Same hooks, but given unique names and attached to the API slice object
-const { data } = api.useGetPostsQuery();
-const [updatePost] = api.useUpdatePostMutation();
+const { data } = api.useGetPostsQuery()
+const [updatePost] = api.useUpdatePostMutation()
 ```
 
 The React-specific version of `createApi` also generates a `usePrefetch` hook, attached to the `Api` object, which can be used to initiate fetching data ahead of time.

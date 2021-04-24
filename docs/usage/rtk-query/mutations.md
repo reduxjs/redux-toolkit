@@ -16,19 +16,26 @@ const api = createApi({
   baseQuery,
   endpoints: (build) => ({
     updatePost: build.mutation({
-      query: ({ id, ...patch }) => ({ url: `post/${id}`, method: 'PATCH', body: patch }),
+      query: ({ id, ...patch }) => ({
+        url: `post/${id}`,
+        method: 'PATCH',
+        body: patch,
+      }),
       // Pick out data and prevent nested properties in a hook or selector
       transformResponse: (response) => response.data,
       // onStart, onSuccess, onError are useful for optimistic updates
       // The 2nd parameter is the destructured `mutationApi`
-      onStart({ id, ...patch }, { dispatch, getState, extra, requestId, context }) {},
+      onStart(
+        { id, ...patch },
+        { dispatch, getState, extra, requestId, context }
+      ) {},
       // `result` is the server response
       onSuccess({ id }, mutationApi, result) {},
       onError({ id }, { dispatch, getState, extra, requestId, context }) {},
       invalidatesTags: ['Post'],
     }),
   }),
-});
+})
 ```
 
 :::info
@@ -46,32 +53,32 @@ export type MutationDefinition<
   ReducerPath extends string = string,
   Context = Record<string, any>
 > = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> & {
-  type: DefinitionType.mutation;
-  invalidatesTags?: ResultDescription<TagTypes, ResultType, QueryArg>;
-  providesTags?: never;
-  onStart?(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>): void;
+  type: DefinitionType.mutation
+  invalidatesTags?: ResultDescription<TagTypes, ResultType, QueryArg>
+  providesTags?: never
+  onStart?(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>): void
   onError?(
     arg: QueryArg,
     mutationApi: MutationApi<ReducerPath, Context>,
     error: unknown,
     meta: BaseQueryMeta<BaseQuery>
-  ): void;
+  ): void
   onSuccess?(
     arg: QueryArg,
     mutationApi: MutationApi<ReducerPath, Context>,
     result: ResultType,
     meta: BaseQueryMeta<BaseQuery> | undefined
-  ): void;
-};
+  ): void
+}
 ```
 
 ```ts title="MutationApi"
 export interface MutationApi<ReducerPath extends string, Context extends {}> {
-  dispatch: ThunkDispatch<any, any, AnyAction>;
-  getState(): RootState<any, any, ReducerPath>;
-  extra: unknown;
-  requestId: string;
-  context: Context;
+  dispatch: ThunkDispatch<any, any, AnyAction>
+  getState(): RootState<any, any, ReducerPath>
+  extra: unknown
+  requestId: string
+  context: Context
 }
 ```
 
@@ -81,15 +88,15 @@ This is a modified version of the complete example you can see at the bottom of 
 
 ```ts title="src/features/posts/PostDetail.tsx"
 export const PostDetail = () => {
-  const { id } = useParams<{ id: any }>();
+  const { id } = useParams<{ id: any }>()
 
-  const { data: post } = useGetPostQuery(id);
+  const { data: post } = useGetPostQuery(id)
 
   const [
     // highlight-next-line
     updatePost, // This is the mutation trigger
     { isLoading: isUpdating }, // You can use the `isLoading` flag, or do custom logic with `status`
-  ] = useUpdatePostMutation();
+  ] = useUpdatePostMutation()
 
   return (
     <Box p={4}>
@@ -105,13 +112,13 @@ export const PostDetail = () => {
             // Execute the trigger with the `id` and updated `name`
             updatePost({ id, name })
             // highlight-end
-          );
+          )
         }}
         isLoading={isUpdating}
       />
     </Box>
-  );
-};
+  )
+}
 ```
 
 ### Advanced mutations with revalidation
@@ -143,7 +150,8 @@ export const api = createApi({
   endpoints: (build) => ({
     getPosts: build.query<PostsResponse, void>({
       query: () => 'posts',
-      providesTags: (result) => (result ? result.map(({ id }) => ({ type: 'Posts', id })) : ['Posts']),
+      providesTags: (result) =>
+        result ? result.map(({ id }) => ({ type: 'Posts', id })) : ['Posts'],
     }),
     addPost: build.mutation<Post, Partial<Post>>({
       query: (body) => ({
@@ -158,25 +166,26 @@ export const api = createApi({
       providesTags: (result, error, id) => [{ type: 'Posts', id }],
     }),
   }),
-});
+})
 
-export const { useGetPostsQuery, useGetPostQuery, useAddPostMutation } = api;
+export const { useGetPostsQuery, useGetPostQuery, useAddPostMutation } = api
 ```
 
 ```ts title="App.tsx"
 function App() {
-  const { data: posts } = useGetPostsQuery();
-  const [addPost] = useAddPostMutation();
+  const { data: posts } = useGetPostsQuery()
+  const [addPost] = useAddPostMutation()
 
   return (
     <div>
       <AddPost onAdd={addPost} />
       <PostsList />
-      <PostDetail id={1} /> // Assume each PostDetail is subscribed via `const {data} = useGetPostQuery(id)`
+      <PostDetail id={1} /> // Assume each PostDetail is subscribed via `const{' '}
+      {data} = useGetPostQuery(id)`
       <PostDetail id={2} />
       <PostDetail id={3} />
     </div>
-  );
+  )
 }
 ```
 
@@ -197,7 +206,10 @@ export const api = createApi({
       query: () => 'posts',
       providesTags: (result) =>
         result
-          ? [...result.map(({ id }) => ({ type: 'Posts', id })), { type: 'Posts', id: 'LIST' }]
+          ? [
+              ...result.map(({ id }) => ({ type: 'Posts', id })),
+              { type: 'Posts', id: 'LIST' },
+            ]
           : [{ type: 'Posts', id: 'LIST' }],
     }),
     addPost: build.mutation<Post, Partial<Post>>({
@@ -206,7 +218,7 @@ export const api = createApi({
           url: `posts`,
           method: 'POST',
           body,
-        };
+        }
       },
       invalidatesTags: [{ type: 'Posts', id: 'LIST' }],
     }),
@@ -215,9 +227,9 @@ export const api = createApi({
       providesTags: (result, error, id) => [{ type: 'Posts', id }],
     }),
   }),
-});
+})
 
-export const { useGetPostsQuery, useAddPostMutation, useGetPostQuery } = api;
+export const { useGetPostsQuery, useAddPostMutation, useGetPostQuery } = api
 ```
 
 > **Note about 'LIST' and `id`s**
@@ -229,18 +241,19 @@ export const { useGetPostsQuery, useAddPostMutation, useGetPostQuery } = api;
 
 ```ts title="App.tsx"
 function App() {
-  const { data: posts } = useGetPostsQuery();
-  const [addPost] = useAddPostMutation();
+  const { data: posts } = useGetPostsQuery()
+  const [addPost] = useAddPostMutation()
 
   return (
     <div>
       <AddPost onAdd={addPost} />
       <PostsList />
-      <PostDetail id={1} /> // Assume each PostDetail is subscribed via `const {data} = useGetPostQuery(id)`
+      <PostDetail id={1} /> // Assume each PostDetail is subscribed via `const{' '}
+      {data} = useGetPostQuery(id)`
       <PostDetail id={2} />
       <PostDetail id={3} />
     </div>
-  );
+  )
 }
 ```
 
@@ -253,15 +266,15 @@ When `addPost` is fired, it will only cause the `PostsList` to go into an `isFet
 This is an example of a [CRUD service](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) for Posts. This implements the [Selectively invalidating lists](#selectively-invalidating-lists) strategy and will most likely serve as a good foundation for real applications.
 
 ```ts title="src/app/services/posts.ts"
-// Or from '@rtk-incubator/rtk-query/react'
-import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
+// Or from '@reduxjs/toolkit/query/react'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
 export interface Post {
-  id: number;
-  name: string;
+  id: number
+  name: string
 }
 
-type PostsResponse = Post[];
+type PostsResponse = Post[]
 
 export const postApi = createApi({
   reducerPath: 'postsApi',
@@ -277,7 +290,10 @@ export const postApi = createApi({
         // is result available?
         result
           ? // successful query
-            [...result.map(({ id }) => ({ type: 'Posts', id })), { type: 'Posts', id: 'LIST' }]
+            [
+              ...result.map(({ id }) => ({ type: 'Posts', id })),
+              { type: 'Posts', id: 'LIST' },
+            ]
           : // an error occurred, but we still want to refetch this query when `{ type: 'Posts', id: 'LIST' }` is invalidated
             [{ type: 'Posts', id: 'LIST' }],
     }),
@@ -287,7 +303,7 @@ export const postApi = createApi({
           url: `posts`,
           method: 'POST',
           body,
-        };
+        }
       },
       // Invalidates all Post-type queries providing the `LIST` id - after all, depending of the sort order,
       // that newly created post could show up in any lists.
@@ -299,12 +315,12 @@ export const postApi = createApi({
     }),
     updatePost: build.mutation<Post, Partial<Post>>({
       query(data) {
-        const { id, ...body } = data;
+        const { id, ...body } = data
         return {
           url: `posts/${id}`,
           method: 'PUT',
           body,
-        };
+        }
       },
       // Invalidates all queries that subscribe to this Post `id` only.
       // In this case, `getPost` will be re-run. `getPosts` *might*  rerun, if this id was under it's results.
@@ -315,13 +331,13 @@ export const postApi = createApi({
         return {
           url: `posts/${id}`,
           method: 'DELETE',
-        };
+        }
       },
       // Invalidates all queries that subscribe to this Post `id` only.
       invalidatesTags: (result, error, id) => [{ type: 'Posts', id }],
     }),
   }),
-});
+})
 
 export const {
   useGetPostsQuery,
@@ -329,7 +345,7 @@ export const {
   useGetPostQuery,
   useUpdatePostMutation,
   useDeletePostMutation,
-} = api;
+} = api
 ```
 
 ### Example

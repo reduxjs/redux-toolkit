@@ -64,10 +64,10 @@ declare module '../apiTypes' {
     [customModuleName]: {
       endpoints: {
         [K in keyof Definitions]: {
-          myEndpointProperty: string;
-        };
-      };
-    };
+          myEndpointProperty: string
+        }
+      }
+    }
   }
 }
 
@@ -78,12 +78,18 @@ export const myModule = (): Module<CustomModule> => ({
 
     return {
       injectEndpoint(endpoint, definition) {
-        const anyApi = (api as any) as Api<any, Record<string, any>, string, string, CustomModule | CoreModule>;
-        anyApi.endpoints[endpoint].myEndpointProperty = 'test';
+        const anyApi = (api as any) as Api<
+          any,
+          Record<string, any>,
+          string,
+          string,
+          CustomModule | CoreModule
+        >
+        anyApi.endpoints[endpoint].myEndpointProperty = 'test'
       },
-    };
+    }
   },
-});
+})
 
-export const myCreateApi = buildCreateApi(coreModule(), myModule());
+export const myCreateApi = buildCreateApi(coreModule(), myModule())
 ```

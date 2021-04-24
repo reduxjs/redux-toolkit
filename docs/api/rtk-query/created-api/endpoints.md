@@ -13,12 +13,12 @@ Each endpoint structure contains the following fields:
 
 ```ts
 type EndpointLogic = {
-  initiate: InitiateRequestThunk;
-  select: CreateCacheSelectorFactory;
-  matchPending: Matcher<PendingAction>;
-  matchFulfilled: Matcher<FulfilledAction>;
-  matchRejected: Matcher<RejectedAction>;
-};
+  initiate: InitiateRequestThunk
+  select: CreateCacheSelectorFactory
+  matchPending: Matcher<PendingAction>
+  matchFulfilled: Matcher<FulfilledAction>
+  matchRejected: Matcher<RejectedAction>
+}
 ```
 
 ## `initiate`
@@ -93,17 +93,22 @@ When dispatching an action creator, you're responsible for storing a reference t
 #### Signature
 
 ```ts
-type CreateCacheSelectorFactory = QueryResultSelectorFactory | MutationResultSelectorFactory;
+type CreateCacheSelectorFactory =
+  | QueryResultSelectorFactory
+  | MutationResultSelectorFactory
 
 type QueryResultSelectorFactory = (
   queryArg: QueryArg | SkipSelector
-) => (state: RootState) => QueryResultSelectorResult<Definition>;
+) => (state: RootState) => QueryResultSelectorResult<Definition>
 
-type MutationResultSelectorFactory<Definition extends MutationDefinition<any, any, any, any>, RootState> = (
+type MutationResultSelectorFactory<
+  Definition extends MutationDefinition<any, any, any, any>,
+  RootState
+> = (
   requestId: string | SkipSelector
-) => (state: RootState) => MutationSubState<Definition> & RequestStatusFlags;
+) => (state: RootState) => MutationSubState<Definition> & RequestStatusFlags
 
-type SkipSelector = typeof Symbol;
+type SkipSelector = typeof Symbol
 ```
 
 #### Description

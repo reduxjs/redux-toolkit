@@ -19,7 +19,7 @@ It takes all standard options from fetch's [`RequestInit`](https://developer.moz
   - Allows you to inject headers on every request. You can specify headers at the endpoint level, but you'll typically want to set common headers like `authorization` here. As a convience mechanism, the second argument allows you to use `getState` to access your redux store in the event you store information you'll need there such as an auth token.
 
   - ```ts title="prepareHeaders signature"
-    (headers: Headers, api: { getState: () => unknown }) => Headers;
+    ;(headers: Headers, api: { getState: () => unknown }) => Headers
     ```
 
 - `fetchFn` _(optional)_
@@ -60,7 +60,7 @@ export const pokemonApi = createApi({
       }),
     }),
   }),
-});
+})
 ```
 
 ### Setting default headers on requests
@@ -71,16 +71,16 @@ The most common use case for `prepareHeaders` would be to automatically include 
 const baseQuery = fetchBaseQuery({
   baseUrl,
   prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as RootState).auth.token;
+    const token = (getState() as RootState).auth.token
 
     // If we have a token set in state, let's assume that we should be passing it.
     if (token) {
-      headers.set('authorization', `Bearer ${token}`);
+      headers.set('authorization', `Bearer ${token}`)
     }
 
-    return headers;
+    return headers
   },
-});
+})
 ```
 
 ### Individual query options
@@ -94,14 +94,15 @@ There is more behavior that you can define on a per-request basis that extends t
 
 ```ts title="endpoint request options"
 interface FetchArgs extends RequestInit {
-  url: string;
-  params?: Record<string, any>;
-  body?: any;
-  responseHandler?: 'json' | 'text' | ((response: Response) => Promise<any>);
-  validateStatus?: (response: Response, body: any) => boolean;
+  url: string
+  params?: Record<string, any>
+  body?: any
+  responseHandler?: 'json' | 'text' | ((response: Response) => Promise<any>)
+  validateStatus?: (response: Response, body: any) => boolean
 }
 
-const defaultValidateStatus = (response: Response) => response.status >= 200 && response.status <= 299;
+const defaultValidateStatus = (response: Response) =>
+  response.status >= 200 && response.status <= 299
 ```
 
 ### Setting the body
@@ -168,7 +169,7 @@ export const customApi = createApi({
       }),
     }),
   }),
-});
+})
 ```
 
 :::note Note about responses that return an undefined body
@@ -186,9 +187,10 @@ export const customApi = createApi({
     getUsers: builder.query({
       query: () => ({
         url: `users`,
-        validateStatus: (response, result) => response.status === 200 && !result.isError, // Our tricky API always returns a 200, but sets an `isError` property when there is an error.
+        validateStatus: (response, result) =>
+          response.status === 200 && !result.isError, // Our tricky API always returns a 200, but sets an `isError` property when there is an error.
       }),
     }),
   }),
-});
+})
 ```
