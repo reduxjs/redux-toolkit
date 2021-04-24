@@ -7,29 +7,29 @@ hide_title: true
 
 # `Error Handling`
 
-If your query or mutation happens to throw an error when using [fetchBaseQuery](../api/fetchBaseQuery), it will be returned in the `error` property of the respective hook.
+If your query or mutation happens to throw an error when using [fetchBaseQuery](../../api/rtk-query/fetchBaseQuery), it will be returned in the `error` property of the respective hook.
 
 ```ts title="Query Error"
 function PostsList() {
-  const { data, error } = useGetPostsQuery();
+  const { data, error } = useGetPostsQuery()
 
   return (
     <div>
       {error.status} {JSON.stringify(error.data)}
     </div>
-  );
+  )
 }
 ```
 
 ```ts title="Mutation Error"
 function AddPost() {
-  const [addPost, { error }] = useAddPostMutation();
+  const [addPost, { error }] = useAddPostMutation()
 
   return (
     <div>
       {error.status} {JSON.stringify(error.data)}
     </div>
-  );
+  )
 }
 ```
 
@@ -40,20 +40,20 @@ If you need to access the error or success payload immediately after a mutation,
 addPost({ id: 1, name: 'Example' })
   .unwrap()
   .then((payload) => console.log('fulfilled', payload))
-  .catch((error) => console.error('rejected', error));
+  .catch((error) => console.error('rejected', error))
 ```
 
 :::
 
 ```ts title="Manually selecting an error"
 function PostsList() {
-  const { error } = useSelector(api.endpoints.getPosts.select());
+  const { error } = useSelector(api.endpoints.getPosts.select())
 
   return (
     <div>
       {error.status} {JSON.stringify(error.data)}
     </div>
-  );
+  )
 }
 ```
 
@@ -79,21 +79,21 @@ const axiosBaseQuery = (
   { baseUrl }: { baseUrl: string } = { baseUrl: '' }
 ): BaseQueryFn<
   {
-    url: string;
-    method: AxiosRequestConfig['method'];
-    data?: AxiosRequestConfig['data'];
+    url: string
+    method: AxiosRequestConfig['method']
+    data?: AxiosRequestConfig['data']
   },
   unknown,
   unknown
 > => async ({ url, method, data }) => {
   try {
-    const result = await axios({ url: baseUrl + url, method, data });
-    return { data: result.data };
+    const result = await axios({ url: baseUrl + url, method, data })
+    return { data: result.data }
   } catch (axiosError) {
-    let err = axiosError as AxiosError;
-    return { error: { status: err.response?.status, data: err.response?.data } };
+    let err = axiosError as AxiosError
+    return { error: { status: err.response?.status, data: err.response?.data } }
   }
-};
+}
 
 const api = createApi({
   baseQuery: axiosBaseQuery({
@@ -102,13 +102,15 @@ const api = createApi({
   endpoints(build) {
     return {
       query: build.query({ query: () => ({ url: '/query' }) }),
-      mutation: build.mutation({ query: () => ({ url: '/mutation', method: 'post' }) }),
-    };
+      mutation: build.mutation({
+        query: () => ({ url: '/mutation', method: 'post' }),
+      }),
+    }
   },
-});
+})
 ```
 
-Ultimately, you can choose whatever library you prefer to use with your `baseQuery`, but it's important that you return the correct response format. If you haven't tried [`fetchBaseQuery`](../api/fetchBaseQuery) yet, give it a chance!
+Ultimately, you can choose whatever library you prefer to use with your `baseQuery`, but it's important that you return the correct response format. If you haven't tried [`fetchBaseQuery`](../../api/rtk-query/fetchBaseQuery) yet, give it a chance!
 
 ## Retrying on Error
 
@@ -116,9 +118,9 @@ RTK Query exports a utility called `retry` that you can wrap the `baseQuery` in 
 
 The default behavior would retry at these intervals:
 
-[remarks](docblock://retry.ts?token=defaultBackoff)
+[remarks](docblock://query/retry.ts?token=defaultBackoff)
 
-[examples](docblock://retry.ts?token=retry)
+[examples](docblock://query/retry.ts?token=retry)
 
 In the event that you didn't want to retry on a specific endpoint, you can just set `maxRetries: 0`.
 
@@ -132,11 +134,11 @@ It is possible for a hook to return `data` and `error` at the same time. By defa
 
 ```ts title="TODO"
 baseBaseQuery.mockImplementation((input) => {
-  retry.fail(error);
-  return { data: `this won't happen` };
-});
+  retry.fail(error)
+  return { data: `this won't happen` }
+})
 
-const baseQuery = retry(baseBaseQuery);
+const baseQuery = retry(baseBaseQuery)
 const api = createApi({
   baseQuery,
   endpoints: (build) => ({
@@ -144,7 +146,7 @@ const api = createApi({
       query: () => {},
     }),
   }),
-});
+})
 ```
 
 ## Handling errors at a macro level
@@ -156,18 +158,20 @@ Redux-Toolkit released [matching utilities](https://redux-toolkit.js.org/api/mat
 :::
 
 ```ts title="Error catching middleware"
-import { MiddlewareAPI, isRejectedWithValue } from '@reduxjs/toolkit';
-import { toast } from 'your-cool-library';
+import { MiddlewareAPI, isRejectedWithValue } from '@reduxjs/toolkit'
+import { toast } from 'your-cool-library'
 /**
  * Log a warning and show a toast!
  */
-export const rtkQueryErrorLogger = (api: MiddlewareAPI) => (next) => (action) => {
+export const rtkQueryErrorLogger = (api: MiddlewareAPI) => (next) => (
+  action
+) => {
   // RTK Query uses `createAsyncThunk` from redux-toolkit under the hood, so we're able to utilize these use matchers!
   if (isRejectedWithValue(action)) {
-    console.warn('We got a rejected action!');
-    toast.warn({ title: 'Async error!', message: action.error.data.message });
+    console.warn('We got a rejected action!')
+    toast.warn({ title: 'Async error!', message: action.error.data.message })
   }
 
-  return next(action);
-};
+  return next(action)
+}
 ```

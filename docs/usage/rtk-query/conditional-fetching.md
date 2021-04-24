@@ -9,9 +9,9 @@ hide_title: true
 
 If you want to prevent a query from automatically running, you can use the `skip` parameter in a hook.
 
-[examples](docblock://react-hooks/buildHooks.ts?token=UseQuerySubscriptionOptions.skip)
+[examples](docblock://query/react/buildHooks.ts?token=UseQuerySubscriptionOptions.skip)
 
-[remarks](docblock://react-hooks/buildHooks.ts?token=UseQuerySubscriptionOptions.skip)
+[remarks](docblock://query/react/buildHooks.ts?token=UseQuerySubscriptionOptions.skip)
 
 ### Example
 

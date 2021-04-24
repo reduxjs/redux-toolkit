@@ -24,7 +24,25 @@
       "items": [
         "usage/usage-guide",
         "usage/usage-with-typescript",
-        "usage/immer-reducers"
+        "usage/immer-reducers",
+        {
+          "type": "category",
+          "label": "RTK Query",
+          "collapsed": true,
+          "items": [
+            "usage/rtk-query/queries",
+            "usage/rtk-query/mutations",
+            "usage/rtk-query/error-handling",
+            "usage/rtk-query/conditional-fetching",
+            "usage/rtk-query/pagination",
+            "usage/rtk-query/polling",
+            "usage/rtk-query/prefetching",
+            "usage/rtk-query/optimistic-updates",
+            "usage/rtk-query/code-splitting",
+            "usage/rtk-query/code-generation",
+            "usage/rtk-query/customizing-create-api"
+          ]
+        }
       ]
     },
     {
