@@ -1,26 +1,22 @@
-import { reactHooksModuleName, ReactHooksBaseEndpoints } from './module'
+import { coreModule, coreModuleName } from '../core/module'
+import { buildCreateApi, CreateApi } from '../createApi'
+import { reactHooksModule, reactHooksModuleName } from './module'
 
-import { EndpointDefinitions } from '../endpointDefinitions'
+import { MutationHooks, QueryHooks } from './buildHooks'
+import {
+  EndpointDefinitions,
+  QueryDefinition,
+  MutationDefinition,
+  QueryArgFrom,
+} from '../endpointDefinitions'
 import { BaseQueryFn } from '../baseQueryTypes'
-import { HooksWithUniqueNames } from './versionedTypes'
+
+import { QueryKeys } from '../core/apiState'
+import { PrefetchOptions } from '../core/module'
 
 export * from '..'
 export { ApiProvider } from './ApiProvider'
 
-export { createApi } from './reactHooksCommonExports'
-export * from './reactHooksCommonExports'
+const createApi = buildCreateApi(coreModule(), reactHooksModule())
 
-declare module '../apiTypes' {
-  export interface ApiModules<
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    BaseQuery extends BaseQueryFn,
-    Definitions extends EndpointDefinitions,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ReducerPath extends string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    TagTypes extends string
-  > {
-    [reactHooksModuleName]: ReactHooksBaseEndpoints<Definitions> &
-      HooksWithUniqueNames<Definitions>
-  }
-}
+export { createApi, reactHooksModule }
