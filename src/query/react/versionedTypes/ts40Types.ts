@@ -1,3 +1,9 @@
 import { EndpointDefinitions } from '../../endpointDefinitions'
-export declare type TS41Hooks<Definitions extends EndpointDefinitions> = unknown
+
+// For TS 4.0 and earlier, disallow use of the per-endpoint
+// hooks defined at the root of each API object, because we
+// can't use the string literal types here.
+export declare type HooksWithUniqueNames<
+  Definitions extends EndpointDefinitions
+> = unknown
 export {}

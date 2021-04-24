@@ -2,7 +2,7 @@ import { reactHooksModuleName, ReactHooksBaseEndpoints } from './module'
 
 import { EndpointDefinitions } from '../endpointDefinitions'
 import { BaseQueryFn } from '../baseQueryTypes'
-import { TS41Hooks } from './ts41Types'
+import { HooksWithUniqueNames } from './versionedTypes'
 
 export * from '..'
 export { ApiProvider } from './ApiProvider'
@@ -21,6 +21,6 @@ declare module '../apiTypes' {
     TagTypes extends string
   > {
     [reactHooksModuleName]: ReactHooksBaseEndpoints<Definitions> &
-      TS41Hooks<Definitions>
+      HooksWithUniqueNames<Definitions>
   }
 }
