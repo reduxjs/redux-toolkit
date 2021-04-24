@@ -111,7 +111,7 @@ module.exports = {
                 extractorSettings: {
                   tsconfig: resolve(__dirname, '../docs/tsconfig.json'),
                   basedir: resolve(__dirname, '../src'),
-                  rootFiles: ['index.ts', 'react.ts', 'react-hooks/ApiProvider.tsx'],
+                  rootFiles: ['index.ts', 'react/index.ts', 'react-hooks/ApiProvider.tsx'],
                 },
               },
             ],

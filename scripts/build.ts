@@ -341,7 +341,6 @@ async function main({ skipExtraction = false, local = false }: BuildArgs) {
     if (folder) {
       const packageSource = path.join('src', folder, 'package.json')
       const packageDest = path.join(outputPath, 'package.json')
-      fs.copySync(packageSource, packageDest)
     }
 
     await sleep(500) // hack, waiting file to save
@@ -379,7 +378,6 @@ async function main({ skipExtraction = false, local = false }: BuildArgs) {
     }
   }
 
-  fs.moveSync('dist/query', 'query')
 
   // addSubpath()
 }
