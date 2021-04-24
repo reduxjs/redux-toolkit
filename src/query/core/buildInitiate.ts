@@ -121,7 +121,8 @@ export type MutationActionCreatorResult<
    * A method to cancel the mutation promise. Note that this is not intended to prevent the mutation
    * that was fired off from reaching the server, but only to assist in handling the response.
    *
-   * Calling `abort()` prior to the promise resolving will make it throw with an error like:
+   * Calling `abort()` prior to the promise resolving will force it to reach the error state with
+   * the serialized error:
    * `{ name: 'AbortError', message: 'Aborted' }`
    *
    * @example

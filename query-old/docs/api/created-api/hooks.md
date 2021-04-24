@@ -95,7 +95,7 @@ type UseMutation<Definition> = () => [UseMutationTrigger<Definition>, UseMutatio
 
 type UseMutationTrigger<Definition> = (
   arg: ArgTypeFrom<Definition>
-) => Promise<{ data: ResultTypeFrom<Definition> }> & {
+) => Promise<{ data: ResultTypeFrom<Definition> } | { error: BaseQueryError | SerializedError }> & {
   arg: {
     endpointName: string; // The name of the given endpoint for the mutation
     originalArgs: ArgTypeFrom<Definition>; // Arguments passed to the mutation
