@@ -6,6 +6,7 @@ import { rest } from 'msw'
 import {
   actionsReducer,
   expectExactType,
+  expectType,
   matchSequence,
   setupApiStore,
   useRenderCounter,
@@ -44,7 +45,7 @@ const api = createApi({
         },
       }),
     }),
-    updateUser: build.mutation<any, { name: string }>({
+    updateUser: build.mutation<{ name: string }, { name: string }>({
       query: (update) => ({ body: update }),
     }),
     getError: build.query({
@@ -803,6 +804,67 @@ describe('hooks tests', () => {
           JSON.stringify(result)
         )
       )
+    })
+
+    test('useMutation hook callback returns various properties to handle the result', async () => {
+      function User() {
+        const [updateUser] = api.endpoints.updateUser.useMutation()
+        const [successMsg, setSuccessMsg] = React.useState('')
+        const [errMsg, setErrMsg] = React.useState('')
+        const [isAborted, setIsAborted] = React.useState(false)
+
+        const handleClick = () => {
+          const res = updateUser({ name: 'Banana' })
+          expectType<{
+            endpointName: string
+            originalArgs: { name: string }
+            track?: boolean
+            startedTimeStamp: number
+          }>(res.arg)
+          expectType<string>(res.requestId)
+          expectType<() => void>(res.abort)
+          expectType<() => Promise<{ name: string }>>(res.unwrap)
+          expectType<() => void>(res.unsubscribe)
+
+          // abort the mutation immediately to force an error
+          res.abort()
+          res
+            .unwrap()
+            .then((result) => {
+              expectType<{ name: string }>(result)
+              setSuccessMsg(`Successfully updated user ${result.name}`)
+            })
+            .catch((err) => {
+              setErrMsg(
+                `An error has occurred updating user ${res.arg.originalArgs.name}`
+              )
+              if (err.name === 'AbortError') {
+                setIsAborted(true)
+              }
+            })
+        }
+
+        return (
+          <div>
+            <button onClick={handleClick}>Update User and abort</button>
+            <div>{successMsg}</div>
+            <div>{errMsg}</div>
+            <div>{isAborted ? 'Request was aborted' : ''}</div>
+          </div>
+        )
+      }
+
+      render(<User />, { wrapper: storeRef.wrapper })
+      expect(screen.queryByText(/An error has occurred/i)).toBeNull()
+      expect(screen.queryByText(/Successfully updated user/i)).toBeNull()
+      expect(screen.queryByText('Request was aborted')).toBeNull()
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Update User and abort' })
+      )
+      await screen.findByText('An error has occurred updating user Banana')
+      expect(screen.queryByText(/Successfully updated user/i)).toBeNull()
+      screen.getByText('Request was aborted')
     })
   })
 
