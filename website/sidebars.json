@@ -21,7 +21,7 @@
       "label": "Using Redux Toolkit",
       "collapsed": false,
       "items": [
-        "usage/usage-guide", 
+        "usage/usage-guide",
         "usage/usage-with-typescript",
         "usage/immer-reducers"
       ]
@@ -61,6 +61,29 @@
             "api/createSelector",
             "api/matching-utilities",
             "api/other-exports"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "RTK Query",
+          "collapsed": true,
+          "items": [
+            "api/rtk-query/createApi",
+            "api/rtk-query/fetchBaseQuery",
+            "api/rtk-query/ApiProvider",
+            "api/rtk-query/setupListeners",
+            {
+              "type": "category",
+              "label": "Generated API Slices",
+              "items": [
+                "api/rtk-query/created-api/overview",
+                "api/rtk-query/created-api/redux-integration",
+                "api/rtk-query/created-api/endpoints",
+                "api/rtk-query/created-api/code-splitting",
+                "api/rtk-query/created-api/cache-management",
+                "api/rtk-query/created-api/hooks"
+              ]
+            }
           ]
         }
       ]

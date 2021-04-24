@@ -27,74 +27,102 @@ The main point where you will define a service to use in your application.
 
 ### `baseQuery`
 
-[summary](docblock://createApi.ts?token=CreateApiOptions.baseQuery)
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.baseQuery)
 
-[examples](docblock://createApi.ts?token=CreateApiOptions.baseQuery)
+[examples](docblock://query/createApi.ts?token=CreateApiOptions.baseQuery)
 
 ### `tagTypes`
 
-[summary](docblock://createApi.ts?token=CreateApiOptions.tagTypes)
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.tagTypes)
 
 ### `reducerPath`
 
-[summary](docblock://createApi.ts?token=CreateApiOptions.reducerPath)
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.reducerPath)
 
-[examples](docblock://createApi.ts?token=CreateApiOptions.reducerPath)
+[examples](docblock://query/createApi.ts?token=CreateApiOptions.reducerPath)
 
 ### `serializeQueryArgs`
 
-[summary](docblock://createApi.ts?token=CreateApiOptions.serializeQueryArgs)
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.serializeQueryArgs)
 
 Defaults to:
 
 ```ts no-compile
-export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({ endpoint, queryArgs }) => {
+export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
+  endpoint,
+  queryArgs,
+}) => {
   // Sort the object keys before stringifying, to prevent useQuery({ a: 1, b: 2 }) having a different cache key than useQuery({ b: 2, a: 1 })
-  return `${endpoint}(${JSON.stringify(queryArgs, Object.keys(queryArgs || {}).sort())})`;
-};
+  return `${endpoint}(${JSON.stringify(
+    queryArgs,
+    Object.keys(queryArgs || {}).sort()
+  )})`
+}
 ```
 
 ### `endpoints`
 
-[summary](docblock://createApi.ts?token=CreateApiOptions.endpoints)
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.endpoints)
 
 #### Anatomy of an endpoint
 
 - `query` _(required)_
-  - [summary](docblock://endpointDefinitions.ts?token=EndpointDefinitionWithQuery.query)
+  - [summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.query)
 - `transformResponse` _(optional)_
 
-  - [summary](docblock://endpointDefinitions.ts?token=EndpointDefinitionWithQuery.transformResponse)
+  - [summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.transformResponse)
   - ```js title="Unpack a deeply nested collection"
-    transformResponse: (response) => response.some.nested.collection;
+    transformResponse: (response) => response.some.nested.collection
     ```
   - ```js title="Normalize the response data"
     transformResponse: (response) =>
       response.reduce((acc, curr) => {
-        acc[curr.id] = curr;
-        return acc;
-      }, {});
+        acc[curr.id] = curr
+        return acc
+      }, {})
     ```
 
 - `provides` _(optional)_
 
-  [summary](docblock://endpointDefinitions.ts?token=QueryExtraOptions.provides)
+  [summary](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.provides)
 
 - `invalidates` _(optional)_
 
-  [summary](docblock://endpointDefinitions.ts?token=MutationExtraOptions.invalidates)
+  [summary](docblock://query/endpointDefinitions.ts?token=MutationExtraOptions.invalidates)
 
 - `onStart`, `onError` and `onSuccess` _(optional)_ - Available to both [queries](../concepts/queries) and [mutations](../concepts/mutations)
   - Can be used in `mutations` for [optimistic updates](../concepts/optimistic-updates).
   - ```ts title="Mutation lifecycle signatures"
-    function onStart(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>): void;
-    function onError(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>, error: unknown): void;
-    function onSuccess(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>, result: ResultType): void;
+    function onStart(
+      arg: QueryArg,
+      mutationApi: MutationApi<ReducerPath, Context>
+    ): void
+    function onError(
+      arg: QueryArg,
+      mutationApi: MutationApi<ReducerPath, Context>,
+      error: unknown
+    ): void
+    function onSuccess(
+      arg: QueryArg,
+      mutationApi: MutationApi<ReducerPath, Context>,
+      result: ResultType
+    ): void
     ```
   - ```ts title="Query lifecycle signatures"
-    function onStart(arg: QueryArg, queryApi: QueryApi<ReducerPath, Context>): void;
-    function onError(arg: QueryArg, queryApi: QueryApi<ReducerPath, Context>, error: unknown): void;
-    function onSuccess(arg: QueryArg, queryApi: QueryApi<ReducerPath, Context>, result: ResultType): void;
+    function onStart(
+      arg: QueryArg,
+      queryApi: QueryApi<ReducerPath, Context>
+    ): void
+    function onError(
+      arg: QueryArg,
+      queryApi: QueryApi<ReducerPath, Context>,
+      error: unknown
+    ): void
+    function onSuccess(
+      arg: QueryArg,
+      queryApi: QueryApi<ReducerPath, Context>,
+      result: ResultType
+    ): void
     ```
 
 #### How endpoints get used
@@ -140,14 +168,14 @@ By default, the payload from the server is returned directly.
 
 ```ts
 function defaultTransformResponse(baseQueryReturnValue: unknown) {
-  return baseQueryReturnValue;
+  return baseQueryReturnValue
 }
 ```
 
 To change it, provide a function that looks like:
 
 ```ts
-transformResponse: (response) => response.some.deeply.nested.property;
+transformResponse: (response) => response.some.deeply.nested.property
 ```
 
 ```ts title="GraphQL transformation example"
@@ -172,16 +200,16 @@ export const api = createApi({
       transformResponse: (response) => response.posts.data,
     }),
   }),
-});
+})
 ```
 
 ### `keepUnusedDataFor`
 
-[summary](docblock://createApi.ts?token=CreateApiOptions.keepUnusedDataFor)
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.keepUnusedDataFor)
 
 ### `refetchOnMountOrArgChange`
 
-[summary](docblock://createApi.ts?token=CreateApiOptions.refetchOnMountOrArgChange)
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.refetchOnMountOrArgChange)
 
 :::note
 You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnMountOrArgChange` to each individual hook call or when dispatching the [`initiate`](#initiate) action.
@@ -189,7 +217,7 @@ You can set this globally in `createApi`, but you can also override the default 
 
 ### `refetchOnFocus`
 
-[summary](docblock://createApi.ts?token=CreateApiOptions.refetchOnFocus)
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.refetchOnFocus)
 
 :::note
 You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnFocus` to each individual hook call or when dispatching the [`initiate`](#initiate) action.
@@ -199,7 +227,7 @@ If you specify `track: false` when manually dispatching queries, RTK Query will 
 
 ### `refetchOnReconnect`
 
-[summary](docblock://createApi.ts?token=CreateApiOptions.refetchOnReconnect)
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.refetchOnReconnect)
 
 :::note
 You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnReconnect` to each individual hook call or when dispatching the [`initiate`](#initiate) action.

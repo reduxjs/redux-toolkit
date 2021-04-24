@@ -7,9 +7,9 @@ hide_title: true
 
 # `ApiProvider`
 
-[summary](docblock://react-hooks/ApiProvider.tsx?token=ApiProvider)
+[summary](docblock://query/react/ApiProvider.tsx?token=ApiProvider)
 
-[examples](docblock://react-hooks/ApiProvider.tsx?token=ApiProvider)
+[examples](docblock://query/react/ApiProvider.tsx?token=ApiProvider)
 
 :::danger
 Using this together with an existing redux store will cause them to conflict with each other. If you are already using Redux, please use follow the instructions as shown in the [Getting Started guide](../introduction/getting-started).
