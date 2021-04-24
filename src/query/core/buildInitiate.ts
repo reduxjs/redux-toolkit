@@ -87,6 +87,7 @@ export type MutationActionCreatorResult<
     >
   >
 > & {
+  /** @internal */
   arg: {
     /**
      * The name of the given endpoint for the mutation
@@ -164,7 +165,8 @@ export type MutationActionCreatorResult<
    */
   unwrap(): Promise<ResultTypeFrom<D>>
   /**
-   * A method to manually unsubscribe from the mutation call
+   * A method to manually unsubscribe from the mutation call, meaning it will be removed from cache after the usual caching grace period.
+   The value returned by the hook will reset to `isUninitialized` afterwards.
    */
   unsubscribe(): void
 }

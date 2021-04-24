@@ -119,7 +119,6 @@ type UseMutationResult<Definition> = {
   isUninitialized: boolean; // Mutation has not been fired yet
   originalArgs?: ArgTypeFrom<Definition>; // Arguments passed to the latest mutation call
   startedTimeStamp?: number; // Timestamp for when the latest mutation was initiated
-  status: 'uninitialized' | 'pending' | 'fulfilled' | 'rejected'; // @deprecated - A string describing the mutation state
 };
 ```
 
