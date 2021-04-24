@@ -1,10 +1,10 @@
-import { UseMutation, UseLazyQuery, UseQuery } from './buildHooks'
+import { UseMutation, UseLazyQuery, UseQuery } from './../buildHooks'
 import {
   DefinitionType,
   EndpointDefinitions,
   MutationDefinition,
   QueryDefinition,
-} from '../endpointDefinitions'
+} from '../../endpointDefinitions'
 
 export type TS41Hooks<
   Definitions extends EndpointDefinitions

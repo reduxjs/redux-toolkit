@@ -1,3 +1,3 @@
-import { EndpointDefinitions } from '../endpointDefinitions'
+import { EndpointDefinitions } from '../../endpointDefinitions'
 export declare type TS41Hooks<Definitions extends EndpointDefinitions> = unknown
 export {}
