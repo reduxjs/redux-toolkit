@@ -25,7 +25,6 @@ import {
   FullTagDescription,
 } from '../endpointDefinitions'
 import { CombinedState, QueryKeys, RootState } from './apiState'
-import './buildSelectors'
 import { Api, Module } from '../apiTypes'
 import { onFocus, onFocusLost, onOnline, onOffline } from './setupListeners'
 import { buildSlice } from './buildSlice'

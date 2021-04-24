@@ -145,8 +145,12 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     target: 'esnext',
     sourcemap: 'inline',
     bundle: true,
-    external: ['react', 'react-redux'],
     format: format === 'umd' ? 'esm' : format,
+    // Needed to prevent auto-replacing of process.env.NODE_ENV in all builds
+    platform: 'neutral',
+    // Needed to return to normal lookup behavior when platform: 'neutral'
+    mainFields: ['browser', 'module', 'main'],
+    conditions: ['browser'],
     define: env
       ? {
           'process.env.NODE_ENV': JSON.stringify(env),
