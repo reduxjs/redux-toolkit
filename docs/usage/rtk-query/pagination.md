@@ -12,8 +12,8 @@ RTK Query makes it straightforward to integrate with a standard index-based pagi
 ## Setup an endpoint to accept a page `arg`
 
 ```ts title="src/app/services/posts.ts"
-// Or from '@rtk-incubator/rtk-query/react'
-import { createApi, fetchBaseQuery } from "@rtk-incubator/rtk-query";
+// Or from '@reduxjs/toolkit/query/react'
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query";
 
 interface ListResponse<T> {
   page: number;

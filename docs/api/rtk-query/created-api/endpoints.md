@@ -13,12 +13,12 @@ Each endpoint structure contains the following fields:
 
 ```ts
 type EndpointLogic = {
-  initiate: InitiateRequestThunk;
-  select: CreateCacheSelectorFactory;
-  matchPending: Matcher<PendingAction>;
-  matchFulfilled: Matcher<FulfilledAction>;
-  matchRejected: Matcher<RejectedAction>;
-};
+  initiate: InitiateRequestThunk
+  select: CreateCacheSelectorFactory
+  matchPending: Matcher<PendingAction>
+  matchFulfilled: Matcher<FulfilledAction>
+  matchRejected: Matcher<RejectedAction>
+}
 ```
 
 ## `initiate`
@@ -85,7 +85,7 @@ A Redux thunk action creator that you can dispatch to trigger data fetch queries
 React Hooks users will most likely never need to use these directly, as the hooks automatically dispatch these actions as needed.
 
 :::note Usage of actions outside of React Hooks
-When dispatching an action creator, you're responsible for storing a reference to the promise it returns in the event that you want to update that specific subscription. Also, you have to manually unsubscribe once your component unmounts. To get an idea of what that entails, see the [Svelte Example](../../../examples/svelte) or the [React Class Components Example](../../../examples/react-class-components)
+When dispatching an action creator, you're responsible for storing a reference to the promise it returns in the event that you want to update that specific subscription. Also, you have to manually unsubscribe once your component unmounts. To get an idea of what that entails, see the [Svelte Example](../../../usage/rtk-query/examples.md#svelte) or the [React Class Components Example](../../../usage/rtk-query/examples.md#react-class-components)
 :::
 
 ## `select`
@@ -93,17 +93,22 @@ When dispatching an action creator, you're responsible for storing a reference t
 #### Signature
 
 ```ts
-type CreateCacheSelectorFactory = QueryResultSelectorFactory | MutationResultSelectorFactory;
+type CreateCacheSelectorFactory =
+  | QueryResultSelectorFactory
+  | MutationResultSelectorFactory
 
 type QueryResultSelectorFactory = (
   queryArg: QueryArg | SkipSelector
-) => (state: RootState) => QueryResultSelectorResult<Definition>;
+) => (state: RootState) => QueryResultSelectorResult<Definition>
 
-type MutationResultSelectorFactory<Definition extends MutationDefinition<any, any, any, any>, RootState> = (
+type MutationResultSelectorFactory<
+  Definition extends MutationDefinition<any, any, any, any>,
+  RootState
+> = (
   requestId: string | SkipSelector
-) => (state: RootState) => MutationSubState<Definition> & RequestStatusFlags;
+) => (state: RootState) => MutationSubState<Definition> & RequestStatusFlags
 
-type SkipSelector = typeof Symbol;
+type SkipSelector = typeof Symbol
 ```
 
 #### Description
@@ -111,12 +116,6 @@ type SkipSelector = typeof Symbol;
 A function that accepts a cache key argument, and generates a new memoized selector for reading cached data for this endpoint using the given cache key. The generated selector is memoized using [Reselect's `createSelector`](https://redux-toolkit.js.org/api/createSelector).
 
 RTKQ defines a `Symbol` named `skipSelector` internally. If `skipSelector` is passed as the query argument to these selectors, the selector will return `undefined`. This can be used to avoid returning a value if a given query is supposed to be disabled.
-
-:::caution
-
-RTKQ does not currently export `skipSelector`, although the React hooks use it internally. We plan to export it before final release so that end users can use that as well - see https://github.com/rtk-incubator/rtk-query/issues/211 .
-
-:::
 
 React Hooks users will most likely never need to use these directly, as the hooks automatically use these selectors as needed.
 

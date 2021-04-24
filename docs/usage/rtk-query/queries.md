@@ -9,7 +9,7 @@ hide_title: true
 
 This is the most basic feature of RTK Query. A query operation can be performed with any data fetching library of your choice, but the general recommendation is that you only use queries for requests that retrieve data. For anything that alters data on the server or will possibly invalidate the cache, you should use a [Mutation](./mutations).
 
-By default, RTK Query ships with [`fetchBaseQuery`](../api/fetchBaseQuery), which is a lightweight [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) wrapper that automatically handles request headers and response parsing in a manner similar to common libraries like `axios`.
+By default, RTK Query ships with [`fetchBaseQuery`](../../api/rtk-query/fetchBaseQuery), which is a lightweight [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) wrapper that automatically handles request headers and response parsing in a manner similar to common libraries like `axios`.
 
 > Depending on your environment, you may need to polyfill `fetch` with `node-fetch` or `cross-fetch` if you choose to use `fetchBaseQuery` or `fetch` on its own.
 
@@ -29,7 +29,7 @@ const api = createApi({
       providesTags: (result, error, id) => [{ type: 'Post', id }],
     }),
   }),
-});
+})
 ```
 
 ### Performing queries with React Hooks
@@ -54,11 +54,11 @@ There are 3 query-related hooks:
 - [skip](./conditional-fetching) - Defaults to `false`
 - [pollingInterval](./polling) - Defaults to `0` _(off)_
 - [selectFromResult](#selecting-data-from-a-query-result) - Optional, allows you to return a subset of a query
-- [refetchOnMountOrArgChange](../api/createApi#refetchonmountorargchange) - Defaults to `false`
-- [refetchOnFocus](../api/createApi#refetchonfocus) - Defaults to `false`
-- [refetchOnReconnect](../api/createApi#refetchonreconnect) - Defaults to `false`
+- [refetchOnMountOrArgChange](../../api/rtk-query/createApi#refetchonmountorargchange) - Defaults to `false`
+- [refetchOnFocus](../../api/rtk-query/createApi#refetchonfocus) - Defaults to `false`
+- [refetchOnReconnect](../../api/rtk-query/createApi#refetchonreconnect) - Defaults to `false`
 
-> All `refetch`-related options will override the defaults you may have set in [createApi](../api/createApi)
+> All `refetch`-related options will override the defaults you may have set in [createApi](../../api/rtk-query/createApi)
 
 #### Query Hook Return Types
 
@@ -90,17 +90,17 @@ export const PostDetail = ({ id }: { id: string }) => {
     pollingInterval: 3000,
     refetchOnMountOrArgChange: true,
     skip: false,
-  });
+  })
 
-  if (isLoading) return <div>Loading...</div>;
-  if (!post) return <div>Missing post!</div>;
+  if (isLoading) return <div>Loading...</div>
+  if (!post) return <div>Missing post!</div>
 
   return (
     <div>
       {post.name} {isFetching ? '...refetching' : ''}
     </div>
-  );
-};
+  )
+}
 ```
 
 The way that this component is setup would have some nice traits:
@@ -110,7 +110,7 @@ The way that this component is setup would have some nice traits:
    - **Initial load** is defined as a query that is pending and does not have data in the cache
 
 2. When the request is re-triggered by the polling interval, it will add '...refetching' to the post name
-3. If a user closed this `PostDetail`, but then re-opened it within [the allowed time](../api/createApi#keepunuseddatafor), they would immediately be served a cached result and polling would resume with the previous behavior.
+3. If a user closed this `PostDetail`, but then re-opened it within [the allowed time](../../api/rtk-query/createApi#keepunuseddatafor), they would immediately be served a cached result and polling would resume with the previous behavior.
 
 ### Selecting data from a query result
 
@@ -120,7 +120,7 @@ Sometimes you may have a parent component that is subscribed to a query, and the
 
 ```ts title="Using selectFromResult to extract a single result"
 function PostsList() {
-  const { data: posts } = api.useGetPostsQuery();
+  const { data: posts } = api.useGetPostsQuery()
 
   return (
     <ul>
@@ -128,16 +128,18 @@ function PostsList() {
         <PostById key={post.id} id={post.id} />
       ))}
     </ul>
-  );
+  )
 }
 
 function PostById({ id }: { id: number }) {
   // Will select the post with the given id, and will only rerender if the given posts data changes
   const { post } = api.useGetPostsQuery(undefined, {
-    selectFromResult: ({ data }) => ({ post: data?.find((post) => post.id === id) }),
-  });
+    selectFromResult: ({ data }) => ({
+      post: data?.find((post) => post.id === id),
+    }),
+  })
 
-  return <li>{post?.name}</li>;
+  return <li>{post?.name}</li>
 }
 ```
 
@@ -154,7 +156,9 @@ In some cases, you may want to skip this behavior and force a refetch - in that 
 > If you're not using React Hooks, you can access `refetch` like this:
 >
 > ```ts
-> const { status, data, error, refetch } = dispatch(pokemonApi.endpoints.getPokemon.initiate('bulbasaur'));
+> const { status, data, error, refetch } = dispatch(
+>   pokemonApi.endpoints.getPokemon.initiate('bulbasaur')
+> )
 > ```
 
 ### Observing caching behavior

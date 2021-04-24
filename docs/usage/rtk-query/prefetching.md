@@ -20,7 +20,7 @@ There are a handful of situations that you may want to do this, but some very co
 
 Similar to the [`useMutation`](./mutations) hook, the `usePrefetch` hook will not run automatically — it returns a `callback function`.
 
-It accepts two arguments: the first is the key of a query action that you [defined in your API service](../api/createApi#endpoints), and the second is an object of two optional parameters:
+It accepts two arguments: the first is the key of a query action that you [defined in your API service](../../api/rtk-query/createApi#endpoints), and the second is an object of two optional parameters:
 
 ```ts title="usePrefetch Signature"
 export type PrefetchOptions =
@@ -39,8 +39,8 @@ usePrefetch<EndpointName extends QueryKeys<Definitions>>(
 
 You can specify these prefetch options when declaring the hook or at the call site. The call site will take priority over the defaults.
 
-1. [summary](docblock://core/module.ts?token=PrefetchOptions)
-2. [overloadSummary](docblock://core/module.ts?token=PrefetchOptions)
+1. [summary](docblock://query/core/module.ts?token=PrefetchOptions)
+2. [overloadSummary](docblock://query/core/module.ts?token=PrefetchOptions)
 
 #### What to expect when you call the `callback`
 
@@ -57,16 +57,20 @@ You can specify these prefetch options when declaring the hook or at the call si
 
 ```ts title="usePrefetch Example"
 function User() {
-  const prefetchUser = usePrefetch('getUser');
+  const prefetchUser = usePrefetch('getUser')
 
   // Low priority hover will not fire unless the last request happened more than 35s ago
   // High priority hover will _always_ fire
   return (
     <div>
-      <button onMouseEnter={() => prefetchUser(4, { ifOlderThan: 35 })}>Low priority</button>
-      <button onMouseEnter={() => prefetchUser(4, { force: true })}>High priority</button>
+      <button onMouseEnter={() => prefetchUser(4, { ifOlderThan: 35 })}>
+        Low priority
+      </button>
+      <button onMouseEnter={() => prefetchUser(4, { force: true })}>
+        High priority
+      </button>
     </div>
-  );
+  )
 }
 ```
 
@@ -75,21 +79,21 @@ function User() {
 In some cases, you may want to prefetch a resource immediately. You can implement this in just a few lines of code:
 
 ```ts title="hooks/usePrefetchImmediately.ts"
-type EndpointNames = keyof typeof api.endpoints;
+type EndpointNames = keyof typeof api.endpoints
 
 export function usePrefetchImmediately<T extends EndpointNames>(
   endpoint: T,
   arg: Parameters<typeof api.endpoints[T]['initiate']>[0],
   options: PrefetchOptions = {}
 ) {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch()
   useEffect(() => {
-    dispatch(api.util.prefetch(endpoint, arg, options));
-  }, []);
+    dispatch(api.util.prefetch(endpoint, arg, options))
+  }, [])
 }
 
 // In a component
-usePrefetchImmediately('getUser', 5);
+usePrefetchImmediately('getUser', 5)
 ```
 
 ### Prefetching without hooks
@@ -99,13 +103,15 @@ If you're not using the `usePrefetch` hook, you can recreate the same behavior e
 When dispatching the `prefetch` thunk as shown below you will see the same exact behavior as [described here](#what-to-expect-when-you-call-the-callback).
 
 ```js title="Non-hook prefetching example"
-store.dispatch(api.util.prefetch(endpointName, arg, { force: false, ifOlderThan: 10 }));
+store.dispatch(
+  api.util.prefetch(endpointName, arg, { force: false, ifOlderThan: 10 })
+)
 ```
 
 You can also dispatch the query action, but you would be responsible for implementing any additional logic.
 
 ```js title="Alternate method of manual prefetching"
-dispatch(api.endpoints[endpointName].initiate(arg, { forceRefetch: true }));
+dispatch(api.endpoints[endpointName].initiate(arg, { forceRefetch: true }))
 ```
 
 ### Example

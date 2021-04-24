@@ -49,7 +49,7 @@ export interface CreateApiOptions<
    */
   baseQuery: BaseQuery
   /**
-   * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining an tag type, you will be able to [provide](../concepts/mutations#provides) them with `provides` and [invalidate](../concepts/mutations#advanced-mutations-with-revalidation) them with `invalidates` when configuring [endpoints](#endpoints).
+   * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining an tag type, you will be able to [provide](../../usage/rtk-query/mutations#provides) them with `provides` and [invalidate](../../usage/rtk-query/mutations#advanced-mutations-with-revalidation) them with `invalidates` when configuring [endpoints](#endpoints).
    */
   tagTypes?: readonly TagTypes[]
   /** @deprecated renamed to `tagTypes` */
@@ -61,7 +61,7 @@ export interface CreateApiOptions<
    *
    * ```js
    * // codeblock-meta title="apis.js"
-   * import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query';
    *
    * const apiOne = createApi({
    *   reducerPath: 'apiOne',
@@ -86,7 +86,7 @@ export interface CreateApiOptions<
    */
   serializeQueryArgs?: SerializeQueryArgs<BaseQueryArg<BaseQuery>>
   /**
-   * Endpoints are just a set of operations that you want to perform against your server. You define them as an object using the builder syntax. There are two basic endpoint types: [`query`](../concepts/queries) and [`mutation`](../concepts/mutations).
+   * Endpoints are just a set of operations that you want to perform against your server. You define them as an object using the builder syntax. There are two basic endpoint types: [`query`](../../usage/rtk-query/queries) and [`mutation`](../../usage/rtk-query/mutations).
    */
   endpoints(
     build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>

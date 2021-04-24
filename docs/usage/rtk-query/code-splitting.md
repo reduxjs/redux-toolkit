@@ -16,14 +16,14 @@ Calling `injectEndpoints` will inject the endpoints into the original API, but a
 So the most basic approach would be to have one empty central api definition:
 
 ```ts title="Basic setup"
-// Or from '@rtk-incubator/rtk-query/react'
-import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
+// Or from '@reduxjs/toolkit/query/react'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
 // initialize an empty api service that we'll inject endpoints into later as needed
 export const emptySplitApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   endpoints: () => ({}),
-});
+})
 ```
 
 and then inject the api endpoints in other files and export them from there - that way you will be sure to always import the endpoints in a way that they are definitely injected.
@@ -50,13 +50,17 @@ You will get a warning if you inject an endpoint that already exists in developm
 However, doing this, you will never end up with one "big api definition" that has correct types for all endpoints. Under certain circumstances, that might be useful though. So you can use the `ApiWithInjectedEndpoints` to construct this "full api definition" yourself:
 
 ```ts title="Declaring an API using ApiWithInjectedEndpoints"
-import { createApi, fetchBaseQuery, ApiWithInjectedEndpoints } from '@rtk-incubator/rtk-query';
+import {
+  createApi,
+  fetchBaseQuery,
+  ApiWithInjectedEndpoints,
+} from '@reduxjs/toolkit/query'
 
 // initialize an empty api service that we'll inject endpoints into later as needed
 export const emptySplitApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   endpoints: () => ({}),
-});
+})
 
 // highlight-start
 export const splitApi = emptySplitApi as ApiWithInjectedEndpoints<
@@ -66,7 +70,7 @@ export const splitApi = emptySplitApi as ApiWithInjectedEndpoints<
     typeof import('./posts').apiWithPosts,
     typeof import('./post').apiWithPost
   ]
->;
+>
 // highlight-end
 ```
 
@@ -77,7 +81,7 @@ A good strategy using this would be to do a check for `undefined` with an _asser
 ```tsx title="Using a type assertion"
 function assert(condition: any, msg = 'Generic Assertion'): asserts condition {
   if (!condition) {
-    throw new Error(`Assertion failed: ${msg}`);
+    throw new Error(`Assertion failed: ${msg}`)
   }
 }
 
@@ -86,11 +90,17 @@ const Post = ({ id }: { id: number }) => {
   assert(
     splitApi.endpoints.getPost?.useQuery,
     'Endpoint `getPost` not loaded! Did you forget to import it in your current bundle?'
-  );
-  const { data, error } = splitApi.endpoints.getPost.useQuery(id);
+  )
+  const { data, error } = splitApi.endpoints.getPost.useQuery(id)
   // highlight-end
-  return error ? <>there was an error</> : !data ? <>loading</> : <h1>{data.name}</h1>;
-};
+  return error ? (
+    <>there was an error</>
+  ) : !data ? (
+    <>loading</>
+  ) : (
+    <h1>{data.name}</h1>
+  )
+}
 ```
 
 ## Example

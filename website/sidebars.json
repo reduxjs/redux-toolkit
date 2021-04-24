@@ -13,7 +13,8 @@
       "items": [
         "tutorials/tutorials-overview",
         "tutorials/quick-start",
-        "tutorials/typescript"
+        "tutorials/typescript",
+        "tutorials/rtk-query"
       ]
     },
     {
@@ -21,9 +22,28 @@
       "label": "Using Redux Toolkit",
       "collapsed": false,
       "items": [
-        "usage/usage-guide", 
+        "usage/usage-guide",
         "usage/usage-with-typescript",
-        "usage/immer-reducers"
+        "usage/immer-reducers",
+        {
+          "type": "category",
+          "label": "RTK Query",
+          "collapsed": true,
+          "items": [
+            "usage/rtk-query/queries",
+            "usage/rtk-query/mutations",
+            "usage/rtk-query/error-handling",
+            "usage/rtk-query/conditional-fetching",
+            "usage/rtk-query/pagination",
+            "usage/rtk-query/polling",
+            "usage/rtk-query/prefetching",
+            "usage/rtk-query/optimistic-updates",
+            "usage/rtk-query/code-splitting",
+            "usage/rtk-query/code-generation",
+            "usage/rtk-query/customizing-create-api",
+            "usage/rtk-query/examples"
+          ]
+        }
       ]
     },
     {
@@ -61,6 +81,29 @@
             "api/createSelector",
             "api/matching-utilities",
             "api/other-exports"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "RTK Query",
+          "collapsed": true,
+          "items": [
+            "api/rtk-query/createApi",
+            "api/rtk-query/fetchBaseQuery",
+            "api/rtk-query/ApiProvider",
+            "api/rtk-query/setupListeners",
+            {
+              "type": "category",
+              "label": "Generated API Slices",
+              "items": [
+                "api/rtk-query/created-api/overview",
+                "api/rtk-query/created-api/redux-integration",
+                "api/rtk-query/created-api/endpoints",
+                "api/rtk-query/created-api/code-splitting",
+                "api/rtk-query/created-api/cache-management",
+                "api/rtk-query/created-api/hooks"
+              ]
+            }
           ]
         }
       ]
