@@ -11,12 +11,13 @@ import {
   AsyncThunk,
   ThunkAction,
   unwrapResult,
+  SerializedError,
 } from '@reduxjs/toolkit'
 import { QuerySubState, SubscriptionOptions } from './apiState'
 import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import { Api } from '../apiTypes'
 import { ApiEndpointQuery } from './module'
-import { BaseQueryResult } from '../baseQueryTypes'
+import { BaseQueryError } from '../baseQueryTypes'
 
 declare module './module' {
   export interface ApiEndpointQuery<
@@ -79,13 +80,16 @@ type StartMutationActionCreator<
 export type MutationActionCreatorResult<
   D extends MutationDefinition<any, any, any, any>
 > = Promise<
-  ReturnType<
-    BaseQueryResult<
-      D extends MutationDefinition<any, infer BaseQuery, any, any>
-        ? BaseQuery
-        : never
-    >
-  >
+  | { data: ResultTypeFrom<D> }
+  | {
+      error:
+        | BaseQueryError<
+            D extends MutationDefinition<any, infer BaseQuery, any, any>
+              ? BaseQuery
+              : never
+          >
+        | SerializedError
+    }
 > & {
   /** @internal */
   arg: {

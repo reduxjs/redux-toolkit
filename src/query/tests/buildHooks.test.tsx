@@ -15,6 +15,7 @@ import {
 import { server } from './mocks/server'
 import { AnyAction } from 'redux'
 import { SubscriptionOptions } from '../core/apiState'
+import { SerializedError } from '../../createAsyncThunk'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -27,6 +28,16 @@ const api = createApi({
     if (arg?.body && 'amount' in arg.body) {
       amount += 1
     }
+
+    if (arg?.body && 'forceError' in arg.body) {
+      return {
+        error: {
+          status: 500,
+          data: null,
+        },
+      }
+    }
+
     return {
       data: arg?.body
         ? { ...arg.body, ...(amount ? { amount } : {}) }
@@ -813,8 +824,24 @@ describe('hooks tests', () => {
         const [errMsg, setErrMsg] = React.useState('')
         const [isAborted, setIsAborted] = React.useState(false)
 
-        const handleClick = () => {
+        const handleClick = async () => {
           const res = updateUser({ name: 'Banana' })
+
+          // no-op simply for clearer type assertions
+          res.then((result) => {
+            // currently passing with a false positive, because error is getting typed as `any`
+            expectExactType<
+              | {
+                  error: { status: number; data: unknown } | SerializedError
+                }
+              | {
+                  data: {
+                    name: string
+                  }
+                }
+            >(result)
+          })
+
           expectType<{
             endpointName: string
             originalArgs: { name: string }
