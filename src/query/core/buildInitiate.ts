@@ -11,12 +11,13 @@ import {
   AsyncThunk,
   ThunkAction,
   unwrapResult,
+  SerializedError,
 } from '@reduxjs/toolkit'
 import { QuerySubState, SubscriptionOptions } from './apiState'
 import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import { Api } from '../apiTypes'
 import { ApiEndpointQuery } from './module'
-import { BaseQueryResult } from '../baseQueryTypes'
+import { BaseQueryError } from '../baseQueryTypes'
 
 declare module './module' {
   export interface ApiEndpointQuery<
@@ -79,18 +80,102 @@ type StartMutationActionCreator<
 export type MutationActionCreatorResult<
   D extends MutationDefinition<any, any, any, any>
 > = Promise<
-  ReturnType<
-    BaseQueryResult<
-      D extends MutationDefinition<any, infer BaseQuery, any, any>
-        ? BaseQuery
-        : never
-    >
-  >
+  | { data: ResultTypeFrom<D> }
+  | {
+      error:
+        | Exclude<
+            BaseQueryError<
+              D extends MutationDefinition<any, infer BaseQuery, any, any>
+                ? BaseQuery
+                : never
+            >,
+            undefined
+          >
+        | SerializedError
+    }
 > & {
-  arg: QueryArgFrom<D>
+  /** @internal */
+  arg: {
+    /**
+     * The name of the given endpoint for the mutation
+     */
+    endpointName: string
+    /**
+     * The original arguments supplied to the mutation call
+     */
+    originalArgs: QueryArgFrom<D>
+    /**
+     * Whether the mutation is being tracked in the store.
+     */
+    track?: boolean
+    /**
+     * Timestamp for when the mutation was initiated
+     */
+    startedTimeStamp: number
+  }
+  /**
+   * A unique string generated for the request sequence
+   */
   requestId: string
+  /**
+   * A method to cancel the mutation promise. Note that this is not intended to prevent the mutation
+   * that was fired off from reaching the server, but only to assist in handling the response.
+   *
+   * Calling `abort()` prior to the promise resolving will force it to reach the error state with
+   * the serialized error:
+   * `{ name: 'AbortError', message: 'Aborted' }`
+   *
+   * @example
+   * ```ts
+   * const [updateUser] = useUpdateUserMutation();
+   *
+   * useEffect(() => {
+   *   const promise = updateUser(id);
+   *   promise
+   *     .unwrap()
+   *     .catch((err) => {
+   *       if (err.name === 'AbortError') return;
+   *       // else handle the unexpected error
+   *     })
+   *
+   *   return () => {
+   *     promise.abort();
+   *   }
+   * }, [id, updateUser])
+   * ```
+   */
   abort(): void
+  /**
+   * Unwraps a mutation call to provide the raw response/error.
+   *
+   * @remarks
+   * If you need to access the error or success payload immediately after a mutation, you can chain .unwrap().
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta title="Using .unwrap"
+   * addPost({ id: 1, name: 'Example' })
+   *   .unwrap()
+   *   .then((payload) => console.log('fulfilled', payload))
+   *   .catch((error) => console.error('rejected', error));
+   * ```
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta title="Using .unwrap with async await"
+   * try {
+   *   const payload = await addPost({ id: 1, name: 'Example' }).unwrap();
+   *   console.log('fulfilled', payload)
+   * } catch (error) {
+   *   console.error('rejected', error);
+   * }
+   * ```
+   */
   unwrap(): Promise<ResultTypeFrom<D>>
+  /**
+   * A method to manually unsubscribe from the mutation call, meaning it will be removed from cache after the usual caching grace period.
+   The value returned by the hook will reset to `isUninitialized` afterwards.
+   */
   unsubscribe(): void
 }
 

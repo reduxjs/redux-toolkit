@@ -144,7 +144,7 @@ export type AsyncThunkPayloadCreator<
  * A ThunkAction created by `createAsyncThunk`.
  * Dispatching it returns a Promise for either a
  * fulfilled or rejected action.
- * Also, the returned value contains a `abort()` method
+ * Also, the returned value contains an `abort()` method
  * that allows the asyncAction to be cancelled from the outside.
  *
  * @public

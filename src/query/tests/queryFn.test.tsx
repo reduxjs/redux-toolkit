@@ -247,7 +247,7 @@ describe('queryFn base implementation tests', () => {
     {
       const thunk = mutationWithNeither.initiate('mutationWithNeither')
       const result = await store.dispatch(thunk)
-      expect(result.error).toEqual(
+      expect('error' in result && result.error).toEqual(
         expect.objectContaining({
           message: 'endpointDefinition.queryFn is not a function',
         })
