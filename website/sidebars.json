@@ -13,7 +13,8 @@
       "items": [
         "tutorials/tutorials-overview",
         "tutorials/quick-start",
-        "tutorials/typescript"
+        "tutorials/typescript",
+        "tutorials/rtk-query"
       ]
     },
     {
