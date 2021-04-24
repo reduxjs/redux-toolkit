@@ -74,7 +74,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"src/**/*.{ts,tsx}\" \"docs/*/**.md\"",
     "lint": "tsdx lint src",
-    "prepare": "npm run lint && npm run format:check && npm test && npm run type-tests && npm run build-ci",
+    "prepare": "npm run build-ci",
     "test": "tsdx test --runInBand",
     "type-tests": "cd type-tests/files && tsc"
   },
