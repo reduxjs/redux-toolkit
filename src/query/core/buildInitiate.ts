@@ -83,10 +83,13 @@ export type MutationActionCreatorResult<
   | { data: ResultTypeFrom<D> }
   | {
       error:
-        | BaseQueryError<
-            D extends MutationDefinition<any, infer BaseQuery, any, any>
-              ? BaseQuery
-              : never
+        | Exclude<
+            BaseQueryError<
+              D extends MutationDefinition<any, infer BaseQuery, any, any>
+                ? BaseQuery
+                : never
+            >,
+            undefined
           >
         | SerializedError
     }
