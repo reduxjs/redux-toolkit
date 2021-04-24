@@ -1,6 +1,5 @@
 {
-  "types": "./index.d.ts",
-  "typesVersion": {
+  "typesVersions": {
     ">=4.1": {
       "index.d.ts": [
         "./ts41Types.d.ts"
