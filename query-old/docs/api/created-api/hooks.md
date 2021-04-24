@@ -91,7 +91,14 @@ The query arg is used as a cache key. Changing the query arg will tell the hook 
 #### Signature
 
 ```ts
-type UseMutation<Definition> = () => [UseMutationTrigger<Definition>, UseMutationResult<Definition>];
+type UseMutation<Definition> = (
+  UseMutationStateOptions<Definition>
+) => [UseMutationTrigger<Definition>, UseMutationResult<Definition> | SelectedUseMutationResult];
+
+type UseMutationStateOptions<Definition> = {
+  // A method to determine the contents of `UseMutationResult`
+  selectFromResult?: (state, defaultMutationStateSelector) => SelectedUseMutationResult extends Record<string, any>
+}
 
 type UseMutationTrigger<Definition> = (
   arg: ArgTypeFrom<Definition>
@@ -121,6 +128,16 @@ type UseMutationResult<Definition> = {
   startedTimeStamp?: number; // Timestamp for when the latest mutation was initiated
 };
 ```
+
+:::tip
+
+The generated `UseMutation` hook will cause a component to re-render by default after the trigger callback is fired as it affects the properties of the result. If you want to call the trigger but don't care about subscribing to the result with the hook, you can use the `selectFromResult` option to limit the properties that the hook cares about.
+
+Passing a completely empty object will prevent the hook from causing a re-render at all, e.g.
+```ts
+selectFromResult: () => ({})
+```
+:::
 
 - **Returns**: a tuple containing:
   - `trigger`: a function that triggers an update to the data based on the provided argument. The trigger function returns a promise with the properties shown above that may be used to handle the behaviour of the promise.
