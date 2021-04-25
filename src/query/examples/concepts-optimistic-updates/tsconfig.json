@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
     "allowJs": false,
     "skipLibCheck": false,
     "esModuleInterop": false,
@@ -15,12 +19,9 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
-    "noFallthroughCasesInSwitch": true,
-    "paths": {
-      "@reduxjs/toolkit": ["../../../index.ts"],
-      "@reduxjs/toolkit/query": ["../../index.ts"],
-      "@reduxjs/toolkit/query/react": ["../../react/index.ts"]
-    }
+    "noFallthroughCasesInSwitch": true
   },
-  "include": ["./src"]
+  "include": [
+    "./src"
+  ]
 }

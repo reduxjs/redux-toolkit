@@ -15,12 +15,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
-    "noFallthroughCasesInSwitch": true,
-    "paths": {
-      "@reduxjs/toolkit": ["../../../index.ts"],
-      "@reduxjs/toolkit/query": ["../../index.ts"],
-      "@reduxjs/toolkit/query/react": ["../../react/index.ts"]
-    }
+    "noFallthroughCasesInSwitch": true
   },
   "include": ["./src"]
 }

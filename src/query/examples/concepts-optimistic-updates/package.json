@@ -1,0 +1,60 @@
+{
+  "name": "concepts-optimistic-updates",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "main": "./index.html",
+  "dependencies": {
+    "@chakra-ui/react": "1.0.0",
+    "@craco/craco": "^6.1.1",
+    "@emotion/react": "11.0.0",
+    "@emotion/styled": "11.0.0",
+    "@reduxjs/toolkit": "1.6.0-alpha.1",
+    "@types/react-redux": "^7.1.16",
+    "framer-motion": "2.9.4",
+    "msw": "^0.28.2",
+    "react": "17.0.0",
+    "react-dom": "17.0.0",
+    "react-icons": "3.11.0",
+    "react-redux": "^7.2.4",
+    "react-router-dom": "5.2.0",
+    "react-scripts": "^4.0.3"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.11.5",
+    "@testing-library/react": "^11.1.1",
+    "@types/jest": "^26.0.15",
+    "@types/node": "^14.14.41",
+    "@types/react": "^17.0.3",
+    "@types/react-dom": "^17.0.3",
+    "@types/react-redux": "7.1.9",
+    "@types/react-router-dom": "^5.1.7",
+    "typescript": "^4.2.4"
+  },
+  "scripts": {
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test --env jsdom",
+    "prebuild": "rm -rf dist/"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "msw": {
+    "workerDirectory": "public"
+  }
+}

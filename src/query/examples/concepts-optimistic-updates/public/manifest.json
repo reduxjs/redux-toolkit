@@ -1,0 +1,8 @@
+{
+  "short_name": "Optimistic Updates",
+  "name": "RTK Query - Optimistic Updates demo",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}

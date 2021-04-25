@@ -15,8 +15,8 @@ module.exports = {
           path.resolve(__dirname, '../../../node_modules'),
           'react-dom'
         ),
-        'eslint-plugin-prettier': resolveFrom(path.resolve(
-          'node_modules'),
+        'eslint-plugin-prettier': resolveFrom(
+          'node_modules',
           'eslint-plugin-prettier'
         ),
         'babel-jest': resolveFrom(path.resolve('node_modules'), 'babel-jest'),

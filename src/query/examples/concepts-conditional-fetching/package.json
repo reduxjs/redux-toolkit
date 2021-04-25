@@ -1,5 +1,5 @@
 {
-  "name": "concepts-queries-deduping-caching",
+  "name": "concepts-conditional-fetching",
   "version": "1.0.0",
   "description": "",
   "keywords": [],
@@ -18,7 +18,6 @@
     "@types/react-dom": "^17.0.3",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
-    "resolve-from": "^5.0.0",
     "typescript": "^4.2.4"
   },
   "resolutions": {
