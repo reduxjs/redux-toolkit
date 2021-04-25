@@ -40,7 +40,7 @@ Hooks are automatically generated based on the name of the `endpoint` in the ser
 
 #### Hook types
 
-There are 4 query-related hooks:
+There are 5 query-related hooks:
 
 1. [`useQuery`](../../api/rtk-query/created-api/hooks/#usequery)
    - Composes `useQuerySubscription` and `useQueryState` and is the primary hook
@@ -50,6 +50,8 @@ There are 4 query-related hooks:
    - Returns the query state and accepts `skip` and `selectFromResult`
 4. [`useLazyQuery`](../../api/rtk-query/created-api/hooks/#uselazyquery)
    - Returns a tuple with a `fetch` function, the query result, and last promise info
+5. [`useLazyQuerySubscription`](../../api/rtk-query/created-api/hooks/#uselazyquerysubscription)
+   - Returns a tuple with a `fetch` function, and last promise info
 
 #### Query Hook Options
 
