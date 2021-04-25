@@ -5,8 +5,7 @@
   "keywords": [],
   "main": "src/index.tsx",
   "dependencies": {
-    "@reduxjs/toolkit": "1.5.0",
-    "@rtk-incubator/rtk-query": "0.1.0",
+    "@reduxjs/toolkit": "1.6.0-alpha.1",
     "@types/react-redux": "7.1.11",
     "react": "17.0.0",
     "react-dom": "17.0.0"
