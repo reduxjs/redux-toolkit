@@ -17,7 +17,7 @@ However, RTK Query also provides the ability to auto-generate React hooks for ea
 import { createApi } from '@reduxjs/toolkit/query/react'
 ```
 
-If you have used the React-specific version of `createApi`, the generated `Api` slice structure will also contain a set of React hooks. The core endpoint hooks are available as `api.endpoints[endpointName].useQuery` or `api.endpoints[endpointName].useMutation`, matching how you defined that endpoint.
+If you have used the React-specific version of `createApi`, the generated `Api` slice structure will also contain a set of React hooks. The primary endpoint hooks are available as `api.endpoints[endpointName].useQuery` or `api.endpoints[endpointName].useMutation`, matching how you defined that endpoint.
 
 The same hooks are also added to the `Api` object itself, and given auto-generated names based on the endpoint name and query/mutation type.
 
@@ -119,6 +119,8 @@ A React hook that triggers fetches of data from an endpoint, and subscribes the 
 
 The query arg is used as a cache key. Changing the query arg will tell the hook to re-fetch the data if it does not exist in the cache already, and the hook will return the data for that query arg once it's available.
 
+This hook combines the functionality of both `useQueryState` and `useQuerySubscription` together, and is intended to be used in the majority of situations.
+
 ## `useMutation`
 
 #### Signature
@@ -202,8 +204,8 @@ type UseQueryStateOptions = {
 
 - **Parameters**
 
-  - `arg`: TBD
-  - `options`: TBD
+  - `arg`: The argument passed to the query defined in the endpoint
+  - `options`: A set of options that control the return value for the hook
 
 - **Returns**
   - The result as determined by the provided `selectFromResult` function
@@ -237,8 +239,8 @@ type UseQuerySubscriptionResult = {
 
 - **Parameters**
 
-  - `arg`: TBD
-  - `options`: TBD
+  - `arg`: The argument passed to the query defined in the endpoint
+  - `options`: A set of options that control the fetching behaviour of the hook
 
 - **Returns**
   - An object containing a function to `refetch` the data
@@ -276,16 +278,16 @@ type UseLazyQueryLastPromiseInfo = {
 
 - **Parameters**
 
-  - `options`: TBD
+  - `options`: A set of options that control the fetching behavior and returned result value of the hook
 
 - **Returns**: A tuple containing:
-  - `trigger`: TBD
-  - `result`: TBD
-  - `lastPromiseInfo`: TBD
+  - `trigger`: A function that fetches the corresponding data for the endpoint when called
+  - `result`: A query result object containing the current loading state, the actual data or error returned from the API call, metadata about the request
+  - `lastPromiseInfo`: An object containing the last argument used to call the trigger function
 
 #### Description
 
-TBD
+A React hook similar to `useQuery`, but with manual control over when the data fetching occurs.
 
 ## `useLazyQuerySubscription`
 
@@ -310,8 +312,8 @@ type UseLazyQuerySubscriptionTrigger = (arg: any) => void
   - `options`: TBD
 
 - **Returns**: A tuple containing:
-  - `trigger`: TBD
-  - `lastArg`: TBD
+  - `trigger`: A function that fetches the corresponding data for the endpoint when called
+  - `lastArg`: The last argument used to call the trigger function
 
 #### Description
 
