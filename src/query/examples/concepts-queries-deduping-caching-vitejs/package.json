@@ -1,0 +1,34 @@
+{
+  "name": "concepts-queries-deduping-caching",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "main": "src/index.tsx",
+  "dependencies": {
+    "@reduxjs/toolkit": "1.5.0",
+    "@rtk-incubator/rtk-query": "0.1.0",
+    "@types/react-redux": "7.1.11",
+    "react": "17.0.0",
+    "react-dom": "17.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.41",
+    "@types/react": "^17.0.0",
+    "@types/react-dom": "^17.0.0",
+    "@vitejs/plugin-react-refresh": "^1.3.1",
+    "resolve-from": "^5.0.0",
+    "typescript": "^4.1.2",
+    "vite": "^2.2.2"
+  },
+  "scripts": {
+    "start": "vite",
+    "build": "tsc && vite build",
+    "serve": "vite preview"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}
