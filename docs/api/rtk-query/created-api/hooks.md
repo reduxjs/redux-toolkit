@@ -14,10 +14,10 @@ The core RTK Query `createApi` method is UI-agnostic, in the same way that the R
 However, RTK Query also provides the ability to auto-generate React hooks for each of your endpoints. Since this specifically depends on React itself, RTK Query provides an alternate entry point that exposes a customized version of `createApi` that includes that functionality:
 
 ```js
-import { createApi } from 'reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
 ```
 
-If you have used the React-specific version of `createApi`, the generated `Api` slice structure will also contain a set of React hooks. These endpoint hooks are available as `api.endpoints[endpointName].useQuery` or `api.endpoints[endpointName].useMutation`, matching how you defined that endpoint.
+If you have used the React-specific version of `createApi`, the generated `Api` slice structure will also contain a set of React hooks. The core endpoint hooks are available as `api.endpoints[endpointName].useQuery` or `api.endpoints[endpointName].useMutation`, matching how you defined that endpoint.
 
 The same hooks are also added to the `Api` object itself, and given auto-generated names based on the endpoint name and query/mutation type.
 
@@ -26,16 +26,50 @@ For example, if you had endpoints for `getPosts` and `updatePost`, these options
 ```ts title="Generated React Hook names"
 // Hooks attached to the endpoint definition
 const { data } = api.endpoints.getPosts.useQuery()
-const { data } = api.endpoints.updatePost.useMutation()
+const [updatePost, { data }] = api.endpoints.updatePost.useMutation()
 
 // Same hooks, but given unique names and attached to the API slice object
 const { data } = api.useGetPostsQuery()
-const [updatePost] = api.useUpdatePostMutation()
+const [updatePost, { data }] = api.useUpdatePostMutation()
 ```
 
 The general format is `use(Endpointname)(Query|Mutation)` - `use` is prefixed, the first letter of your endpoint name is capitalized, then `Query` or `Mutation` is appended depending on the type.
 
-The React-specific version of `createApi` also generates a `usePrefetch` hook, attached to the `Api` object, which can be used to initiate fetching data ahead of time.
+The full list of hooks generated in the React-specific version of `createApi` is as follows:
+
+- `useQuery` (endpoint-specific)
+- `useMutation` (endpoint-specific)
+- `useQueryState` (endpoint-specific)
+- `useQuerySubscription` (endpoint-specific)
+- `useLazyQuery` (endpoint-specific)
+- `usePrefetch` (endpoint-agnostic)
+
+For the example above, the full set of generated hooks for the api would be like so:
+
+```ts title="Generated React Hooks"
+/* Hooks attached to the `getPosts` query endpoint definition */
+const { data } = api.endpoints.getPosts.useQuery(arg, options)
+const post = api.endpoints.getPosts.useQueryState(arg, options)
+const { refetch } = api.endpoints.getPosts.useQuerySubscription(arg, options)
+const [getPosts, { data }, { lastArg }] = api.endpoints.getPosts.useLazyQuery(
+  options
+)
+const [getPosts, lastArg] = api.endpoints.getPosts.useLazyQuerySubscription(
+  options
+)
+
+/* Hooks attached to the `updatePost` mutation endpoint definition */
+const [updatePost, { data }] = api.endpoints.updatePost.useMutation(options)
+
+/* Hooks attached to the `Api` object */
+// same as api.endpoints.getPosts.useQuery
+const { data } = api.useGetPostsQuery(arg, options)
+// same as api.endpoints.getPosts.useLazyQuery
+const [getPosts, { data }, { lastArg }] = api.useLazyGetPostsQuery(options)
+// same as api.endpoints.updatePost.useMutation
+const [updatePost, { data }] = api.useUpdatePostMutation(options)
+const fetchData = api.usePrefetch(endpointName, options)
+```
 
 ## `useQuery`
 
@@ -55,7 +89,6 @@ type UseQueryOptions = {
 
 type UseQueryResult<T> = {
   // Base query state
-  status: 'uninitialized' | 'pending' | 'fulfilled' | 'rejected' // @deprecated - A string describing the query state
   originalArgs?: unknown // Arguments passed to the query
   data?: T // Returned result if present
   error?: unknown // Error result if present
@@ -91,43 +124,43 @@ The query arg is used as a cache key. Changing the query arg will tell the hook 
 #### Signature
 
 ```ts
-type UseMutation<Definition> = (
-  UseMutationStateOptions<Definition>
-) => [UseMutationTrigger<Definition>, UseMutationResult<Definition> | SelectedUseMutationResult];
+type UseMutation = (
+  options?: UseMutationStateOptions
+) => [UseMutationTrigger, UseMutationResult | SelectedUseMutationResult]
 
-type UseMutationStateOptions<Definition> = {
+type UseMutationStateOptions = {
   // A method to determine the contents of `UseMutationResult`
   selectFromResult?: (state, defaultMutationStateSelector) => SelectedUseMutationResult extends Record<string, any>
 }
 
-type UseMutationTrigger<Definition> = (
-  arg: ArgTypeFrom<Definition>
-) => Promise<{ data: ResultTypeFrom<Definition> } | { error: BaseQueryError | SerializedError }> & {
-  requestId: string; // A string generated by RTK Query
-  abort: () => void; // A method to cancel the mutation promise
-  unwrap: () => Promise<ResultTypeFrom<Definition>>; // A method to unwrap the mutation call and provide the raw response/error
-  unsubscribe: () => void; // A method to manually unsubscribe from the mutation call
-};
+type UseMutationTrigger<T> = (
+  arg: any
+) => Promise<{ data: T } | { error: BaseQueryError | SerializedError }> & {
+  requestId: string // A string generated by RTK Query
+  abort: () => void // A method to cancel the mutation promise
+  unwrap: () => Promise<T> // A method to unwrap the mutation call and provide the raw response/error
+  unsubscribe: () => void // A method to manually unsubscribe from the mutation call
+}
 
-type UseMutationResult<Definition> = {
-  data?: ResultTypeFrom<Definition>; // Returned result if present
-  endpointName?: string; // The name of the given endpoint for the mutation
-  error?: any; // Error result if present
-  fulfilledTimestamp?: number; // Timestamp for when the mutation was completed
-  isError: boolean; // Mutation is currently in an "error" state
-  isLoading: boolean; // Mutation has been fired and is awaiting a response
-  isSuccess: boolean; // Mutation has data from a successful call
-  isUninitialized: boolean; // Mutation has not been fired yet
-  originalArgs?: ArgTypeFrom<Definition>; // Arguments passed to the latest mutation call
-  startedTimeStamp?: number; // Timestamp for when the latest mutation was initiated
-};
+type UseMutationResult<T> = {
+  data?: T // Returned result if present
+  endpointName?: string // The name of the given endpoint for the mutation
+  error?: unknown // Error result if present
+  fulfilledTimestamp?: number // Timestamp for when the mutation was completed
+  isError: boolean // Mutation is currently in an "error" state
+  isLoading: boolean // Mutation has been fired and is awaiting a response
+  isSuccess: boolean // Mutation has data from a successful call
+  isUninitialized: boolean // Mutation has not been fired yet
+  originalArgs?: unknown // Arguments passed to the latest mutation call
+  startedTimeStamp?: number // Timestamp for when the latest mutation was initiated
+}
 ```
 
 :::tip
 
-The generated `UseMutation` hook will cause a component to re-render by default after the trigger callback is fired as it affects the properties of the result. If you want to call the trigger but don't care about subscribing to the result with the hook, you can use the `selectFromResult` option to limit the properties that the hook cares about.
+The generated `UseMutation` hook will cause a component to re-render by default after the trigger callback is fired, as it affects the properties of the result. If you want to call the trigger but don't care about subscribing to the result with the hook, you can use the `selectFromResult` option to limit the properties that the hook cares about.
 
-Passing a completely empty object will prevent the hook from causing a re-render at all, e.g.
+Returning a completely empty object will mean that any individual mutation call will cause only one re-render at most, e.g.
 
 ```ts
 selectFromResult: () => ({})
@@ -135,9 +168,13 @@ selectFromResult: () => ({})
 
 :::
 
-- **Returns**: a tuple containing:
-  - `trigger`: a function that triggers an update to the data based on the provided argument. The trigger function returns a promise with the properties shown above that may be used to handle the behaviour of the promise.
-  - `mutationState`: a query status object containing the current loading state and metadata about the request
+- **Parameters**
+
+  - `options`: A set of options that control the subscription behavior of the hook
+
+- **Returns**: A tuple containing:
+  - `trigger`: A function that triggers an update to the data based on the provided argument. The trigger function returns a promise with the properties shown above that may be used to handle the behavior of the promise
+  - `mutationState`: A query status object containing the current loading state and metadata about the request, or the values returned by the `selectFromResult` option where applicable
 
 #### Description
 
@@ -145,20 +182,174 @@ A React hook that lets you trigger an update request for a given endpoint, and s
 
 ## `useQueryState`
 
+#### Signature
+
+```ts
+type UseQueryState = (
+  arg: any,
+  options?: UseQueryStateOptions
+) => UseQueryStateResult
+
+type UseQueryStateOptions = {
+  skip?: boolean
+  selectFromResult?: (
+    state,
+    lastResult,
+    defaultQueryStateSelector
+  ) => UseQueryStateResult
+}
+```
+
+- **Parameters**
+
+  - `arg`: TBD
+  - `options`: TBD
+
+- **Returns**
+  - The result as determined by the provided `selectFromResult` function
+
+#### Description
+
 TBD
 
 ## `useQuerySubscription`
+
+#### Signature
+
+```ts
+type UseQuerySubscription = (
+  arg: any,
+  options?: UseQuerySubscriptionOptions
+) => UseQuerySubscriptionResult
+
+type UseQuerySubscriptionOptions = {
+  skip?: boolean
+  refetchOnMountOrArgChange?: boolean | number
+  pollingInterval?: number
+  refetchOnReconnect?: boolean
+  refetchOnFocus?: boolean
+}
+
+type UseQuerySubscriptionResult = {
+  refetch: () => void // A function to force refetch the query
+}
+```
+
+- **Parameters**
+
+  - `arg`: TBD
+  - `options`: TBD
+
+- **Returns**
+  - An object containing a function to `refetch` the data
+
+#### Description
 
 TBD
 
 ## `useLazyQuery`
 
+#### Signature
+
+```ts
+type UseLazyQuery = (
+  options?: UseLazyQueryOptions
+) => [UseLazyQueryTrigger, UseQueryStateResult, UseLazyQueryLastPromiseInfo]
+
+type UseLazyQueryOptions = {
+  pollingInterval?: number
+  refetchOnReconnect?: boolean
+  refetchOnFocus?: boolean
+  selectFromResult?: (
+    state,
+    lastResult,
+    defaultQueryStateSelector
+  ) => UseQueryStateResult
+}
+
+type UseLazyQueryTrigger = (arg: any) => void
+
+type UseLazyQueryLastPromiseInfo = {
+  lastArg: any
+}
+```
+
+- **Parameters**
+
+  - `options`: TBD
+
+- **Returns**: A tuple containing:
+  - `trigger`: TBD
+  - `result`: TBD
+  - `lastPromiseInfo`: TBD
+
+#### Description
+
 TBD
 
 ## `useLazyQuerySubscription`
+
+#### Signature
+
+```ts
+type UseLazyQuerySubscription = (
+  options?: UseLazyQuerySubscriptionOptions
+) => [UseLazyQuerySubscriptionTrigger, LastArg]
+
+type UseLazyQuerySubscriptionOptions = {
+  pollingInterval?: number
+  refetchOnReconnect?: boolean
+  refetchOnFocus?: boolean
+}
+
+type UseLazyQuerySubscriptionTrigger = (arg: any) => void
+```
+
+- **Parameters**
+
+  - `options`: TBD
+
+- **Returns**: A tuple containing:
+  - `trigger`: TBD
+  - `lastArg`: TBD
+
+#### Description
 
 TBD
 
 ## `usePrefetch`
 
-TBD
+#### Signature
+
+```ts
+type UsePrefetch = (
+  endpointName: string,
+  options?: UsePrefetchOptions
+) => PrefetchCallback
+
+type UsePrefetchOptions =
+  | {
+      // If specified, only runs the query if the difference between `new Date()` and the last
+      // `fulfilledTimeStamp` is greater than the given value
+      ifOlderThan?: false | number
+    }
+  | {
+      // If `force: true`, it will ignore the `ifOlderThan` value if it is set and the query 
+      // will be run even if it exists in the cache.
+      force?: boolean
+    }
+
+type PrefetchCallback = (arg: any, options?: UsePrefetchOptions) => void
+```
+
+- **Parameters**
+
+  - `endpointName`: The name of the endpoint to prefetch data for
+  - `options`: A set of options that control whether the prefetch request should occur
+
+- **Returns**
+  - A `prefetch` callback that when called, will initiate fetching the data for the provided endpoint
+
+#### Description
+
+A React hook which can be used to initiate fetching data ahead of time.

@@ -40,14 +40,16 @@ Hooks are automatically generated based on the name of the `endpoint` in the ser
 
 #### Hook types
 
-There are 3 query-related hooks:
+There are 4 query-related hooks:
 
-1. `useQuery`
-   - Composes `useQuerySubscription` and `useQueryState` and is the primary hook.
-2. `useQuerySubscription`
+1. [`useQuery`](../../api/rtk-query/created-api/hooks/#usequery)
+   - Composes `useQuerySubscription` and `useQueryState` and is the primary hook
+2. [`useQuerySubscription`](../../api/rtk-query/created-api/hooks/#usequerysubscription)
    - Returns a `refetch` function and accepts all hook options
-3. `useQueryState`
+3. [`useQueryState`](../../api/rtk-query/created-api/hooks/#usequerystate)
    - Returns the query state and accepts `skip` and `selectFromResult`
+4. [`useLazyQuery`](../../api/rtk-query/created-api/hooks/#uselazyquery)
+   - Returns a tuple with a `fetch` function, the query result, and last promise info
 
 #### Query Hook Options
 
@@ -64,7 +66,6 @@ There are 3 query-related hooks:
 
 ```ts title="All returned elements"
 // Base query state
-status: 'uninitialized'|'pending'|'fulfilled'|'rejected'; // @deprecated - A string describing the query state
 originalArgs?: unknown; // Arguments passed to the query
 data?: unknown; // Returned result if present
 error?: unknown; // Error result if present
