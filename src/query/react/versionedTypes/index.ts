@@ -5,4 +5,4 @@
 // Overall, this setup allows us to selectively override the one
 // file that has any difference between 4.1 and earlier, without
 // having to ship two completely duplicate copies of our typedefs.
-export type { HooksWithUniqueNames } from './ts41Types'
+export { HooksWithUniqueNames } from './ts41Types'
