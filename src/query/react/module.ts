@@ -130,12 +130,14 @@ export const reactHooksModule = ({
           const {
             useQuery,
             useLazyQuery,
+            useLazyQuerySubscription,
             useQueryState,
             useQuerySubscription,
           } = buildQueryHooks(endpointName)
           safeAssign(anyApi.endpoints[endpointName], {
             useQuery,
             useLazyQuery,
+            useLazyQuerySubscription,
             useQueryState,
             useQuerySubscription,
           })
