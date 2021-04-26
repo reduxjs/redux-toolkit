@@ -2,7 +2,7 @@
 *.log
 node_modules
 # Dist and query are both build output folders
-dist
+dist*/
 !query/
 # But don't ignore the RTK Query source
 !src/query/

@@ -116,6 +116,8 @@ const entryPoints: EntryPointOptions[] = [
 ]
 
 const esVersionMappings = {
+  // Don't output ES2015 - have TS convert to ES5 instead
+  es2015: ts.ScriptTarget.ES5,
   es2017: ts.ScriptTarget.ES2017,
   es2018: ts.ScriptTarget.ES2018,
   es2019: ts.ScriptTarget.ES2019,
@@ -130,7 +132,7 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     folder = '',
     prefix = 'redux-toolkit',
     name,
-    target,
+    target = 'es2015',
     entryPoint,
   } = options
 
@@ -142,7 +144,7 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     entryPoints: [entryPoint],
     outfile: outputFilePath,
     write: false,
-    target: 'esnext',
+    target: target,
     sourcemap: 'inline',
     bundle: true,
     format: format === 'umd' ? 'esm' : format,
@@ -232,7 +234,11 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
       mapping = transformResult.map as RawSourceMap
     }
 
-    console.log('Build artifact:', chunk.path)
+    const relativePath = path.relative(process.cwd(), chunk.path)
+    console.log(`Build artifact: ${relativePath}, settings: `, {
+      target,
+      output: ts.ScriptTarget[esVersion],
+    })
     await fs.writeFile(chunk.path, code)
     await fs.writeJSON(chunk.path + '.map', mapping)
   }
