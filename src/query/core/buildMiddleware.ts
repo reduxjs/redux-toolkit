@@ -242,7 +242,8 @@ export function buildMiddleware<
     }
 
     context.batch(() => {
-      for (const queryCacheKey of toInvalidate.values()) {
+      const valuesArray = Array.from(toInvalidate.values())
+      for (const queryCacheKey of valuesArray) {
         const querySubState = state.queries[queryCacheKey]
         const subscriptionSubState = state.subscriptions[queryCacheKey]
         if (querySubState && subscriptionSubState) {
