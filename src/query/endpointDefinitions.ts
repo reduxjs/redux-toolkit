@@ -80,7 +80,7 @@ export enum DefinitionType {
   mutation = 'mutation',
 }
 
-type GetResultDescriptionFn<
+export type GetResultDescriptionFn<
   TagTypes extends string,
   ResultType,
   QueryArg,
@@ -95,8 +95,8 @@ export type FullTagDescription<TagType> = {
   type: TagType
   id?: number | string
 }
-type TagDescription<TagType> = TagType | FullTagDescription<TagType>
-type ResultDescription<
+export type TagDescription<TagType> = TagType | FullTagDescription<TagType>
+export type ResultDescription<
   TagTypes extends string,
   ResultType,
   QueryArg,
