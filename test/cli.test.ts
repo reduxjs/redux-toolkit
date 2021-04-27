@@ -94,7 +94,7 @@ describe('CLI options testing', () => {
       '.'
     );
 
-    expect(result.stdout).toContain(`import { createApi } from \"@rtk-incubator/rtk-query/react\";`);
+    expect(result.stdout).toContain(`import { createApi } from \"@reduxjs/toolkit/query/react\";`);
     expect(result.stdout).toContain(`import { anotherNamedBaseQuery } from \"test/fixtures/customBaseQuery\";`);
   });
 

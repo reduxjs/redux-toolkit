@@ -11,8 +11,7 @@ import { createQuestionToken, keywordType } from 'oazapfts/lib/codegen/tscodegen
 import { OpenAPIV3 } from 'openapi-types';
 import { generateReactHooks } from './generators/react-hooks';
 import { GenerationOptions, OperationDefinition } from './types';
-import { capitalize, getOperationDefinitions, getV3Doc, isQuery, MESSAGES } from './utils';
-import { removeUndefined } from './utils/removeUndefined';
+import { capitalize, getOperationDefinitions, getV3Doc, isQuery, MESSAGES, removeUndefined } from './utils';
 import {
   generateCreateApiCall,
   generateEndpointDefinition,
@@ -140,16 +139,16 @@ export async function generateApi(
     ts.EmitHint.Unspecified,
     factory.createSourceFile(
       [
-        // If hooks are specified, we need to import them from the react entry point in RTKQ >= 0.3
+        // If hooks are specified, we need to import them from the react entry point
         ...(hooks
           ? [
-              generateImportNode('@rtk-incubator/rtk-query/react', {
+              generateImportNode('@reduxjs/toolkit/query/react', {
                 createApi: 'createApi',
               }),
             ]
           : []),
         ...(hasBasePackageImports
-          ? [generateImportNode('@rtk-incubator/rtk-query', getBasePackageImportsFromOptions())]
+          ? [generateImportNode('@reduxjs/toolkit/query', getBasePackageImportsFromOptions())]
           : []),
         ...(customBaseQueryNode ? [customBaseQueryNode] : []),
         generateCreateApiCall({

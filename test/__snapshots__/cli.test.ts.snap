@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CLI options testing should accept a valid url as the target swagger file and generate a client 1`] = `
-import { createApi, fetchBaseQuery } from "@rtk-incubator/rtk-query";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query";
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: "/api/v3" }),
   tagTypes: [],
@@ -270,7 +270,7 @@ export type User = {
 `;
 
 exports[`CLI options testing should create a file when --file is specified 1`] = `
-import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query';
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/api/v3' }),
   tagTypes: [],
@@ -497,8 +497,8 @@ export type User = {
 `;
 
 exports[`CLI options testing should generate react hooks as a part of the output 1`] = `
-import { createApi } from "@rtk-incubator/rtk-query/react";
-import { fetchBaseQuery } from "@rtk-incubator/rtk-query";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { fetchBaseQuery } from "@reduxjs/toolkit/query";
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: "/api/v3" }),
   tagTypes: [],
@@ -799,7 +799,7 @@ export const {
 `;
 
 exports[`CLI options testing should log output to the console when a filename is not specified 1`] = `
-import { createApi, fetchBaseQuery } from "@rtk-incubator/rtk-query";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query";
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: "/api/v3" }),
   tagTypes: [],
@@ -1078,7 +1078,7 @@ export type User = {
 `;
 
 exports[`yaml parsing should be able to use read a yaml file and create a file with the output when --file is specified 1`] = `
-import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query';
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/api/v3' }),
   tagTypes: [],
@@ -1298,7 +1298,7 @@ export type User = {
 `;
 
 exports[`yaml parsing should parse a yaml schema from a URL 1`] = `
-import { createApi, fetchBaseQuery } from "@rtk-incubator/rtk-query";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query";
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: "/api/v3" }),
   tagTypes: [],
