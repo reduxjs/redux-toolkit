@@ -115,11 +115,7 @@ type UseQueryResult<T> = {
 
 #### Description
 
-A React hook that triggers fetches of data from an endpoint, and subscribes the component to read the request status and cached data from the Redux store. The component will re-render as the loading status changes and the data becomes available.
-
-The query arg is used as a cache key. Changing the query arg will tell the hook to re-fetch the data if it does not exist in the cache already, and the hook will return the data for that query arg once it's available.
-
-This hook combines the functionality of both [`useQueryState`](#useQueryState) and [`useQuerySubscription`](#useQuerySubscription) together, and is intended to be used in the majority of situations.
+[summary](docblock://query/react/buildHooks.ts?token=UseQuery)
 
 ## `useMutation`
 
@@ -180,7 +176,7 @@ selectFromResult: () => ({})
 
 #### Description
 
-A React hook that lets you trigger an update request for a given endpoint, and subscribes the component to read the request status from the Redux store. The component will re-render as the loading status changes.
+[summary](docblock://query/react/buildHooks.ts?token=UseMutation)
 
 ## `useQueryState`
 
@@ -229,9 +225,7 @@ type UseQueryStateResult<T> = {
 
 #### Description
 
-A React hook that reads the request status and cached data from the Redux store. The component will re-render as the loading status changes and the data becomes available.
-
-Note that this hook does not trigger fetching new data. For that use-case, see [`useQuery`](#useQuery) or [`useQuerySubscription`](#useQuerySubscription).
+[summary](docblock://query/react/buildHooks.ts?token=UseQueryState)
 
 ## `useQuerySubscription`
 
@@ -266,11 +260,7 @@ type UseQuerySubscriptionResult = {
 
 #### Description
 
-A React hook that triggers fetches of data from an endpoint.
-
-The query arg is used as a cache key. Changing the query arg will tell the hook to re-fetch the data if it does not exist in the cache already.
-
-Note that this hook does not return a request status or cached data. For that use-case, see [`useQuery`](#useQuery) or [`useQueryState`](#useQueryState)
+[summary](docblock://query/react/buildHooks.ts?token=UseQuerySubscription)
 
 ## `useLazyQuery`
 
@@ -318,7 +308,7 @@ type UseLazyQueryLastPromiseInfo = {
 
 - **Parameters**
 
-  - `options`: A set of options that control the fetching behavior and returned result value of the hook
+  - `options`: A set of options that control the fetching behavior and returned result value of the hook. Options affecting fetching behavior will only have an effect after the lazy query has been triggered at least once.
 
 - **Returns**: A tuple containing:
   - `trigger`: A function that fetches the corresponding data for the endpoint when called
@@ -327,7 +317,7 @@ type UseLazyQueryLastPromiseInfo = {
 
 #### Description
 
-A React hook similar to [`useQuery`](#useQuery), but with manual control over when the data fetching occurs.
+[summary](docblock://query/react/buildHooks.ts?token=UseLazyQuery)
 
 ## `useLazyQuerySubscription`
 
@@ -349,7 +339,7 @@ type UseLazyQuerySubscriptionTrigger = (arg: any) => void
 
 - **Parameters**
 
-  - `options`: TBD
+  - `options`: A set of options that control the fetching behavior of the hook. The options will only have an effect after the lazy query has been triggered at least once.
 
 - **Returns**: A tuple containing:
   - `trigger`: A function that fetches the corresponding data for the endpoint when called
@@ -357,7 +347,7 @@ type UseLazyQuerySubscriptionTrigger = (arg: any) => void
 
 #### Description
 
-TBD
+[summary](docblock://query/react/buildHooks.ts?token=UseLazyQuerySubscription)
 
 ## `usePrefetch`
 
