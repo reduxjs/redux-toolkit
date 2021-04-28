@@ -119,7 +119,7 @@ A React hook that triggers fetches of data from an endpoint, and subscribes the 
 
 The query arg is used as a cache key. Changing the query arg will tell the hook to re-fetch the data if it does not exist in the cache already, and the hook will return the data for that query arg once it's available.
 
-This hook combines the functionality of both `useQueryState` and `useQuerySubscription` together, and is intended to be used in the majority of situations.
+This hook combines the functionality of both [`useQueryState`](#useQueryState) and [`useQuerySubscription`](#useQuerySubscription) together, and is intended to be used in the majority of situations.
 
 ## `useMutation`
 
@@ -327,7 +327,7 @@ type UseLazyQueryLastPromiseInfo = {
 
 #### Description
 
-A React hook similar to `useQuery`, but with manual control over when the data fetching occurs.
+A React hook similar to [`useQuery`](#useQuery), but with manual control over when the data fetching occurs.
 
 ## `useLazyQuerySubscription`
 
