@@ -229,7 +229,9 @@ type UseQueryStateResult<T> = {
 
 #### Description
 
-TBD
+A React hook that reads the request status and cached data from the Redux store. The component will re-render as the loading status changes and the data becomes available.
+
+Note that this hook does not trigger fetching new data. For that use-case, see [`useQuery`](#useQuery) or [`useQuerySubscription`](#useQuerySubscription).
 
 ## `useQuerySubscription`
 
@@ -264,7 +266,11 @@ type UseQuerySubscriptionResult = {
 
 #### Description
 
-TBD
+A React hook that triggers fetches of data from an endpoint.
+
+The query arg is used as a cache key. Changing the query arg will tell the hook to re-fetch the data if it does not exist in the cache already.
+
+Note that this hook does not return a request status or cached data. For that use-case, see [`useQuery`](#useQuery) or [`useQueryState`](#useQueryState)
 
 ## `useLazyQuery`
 
