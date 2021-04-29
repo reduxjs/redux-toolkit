@@ -66,8 +66,8 @@ export interface MutationHooks<
  *
  * #### Features
  *
- * - Automatically triggers requests based on the hook argument and whether cached data exists by default
- * - Keeps data in the store, and 'unsubscribes' when the component unmounts
+ * - Automatically triggers requests to retrieve data based on the hook argument and whether cached data exists by default
+ * - 'Subscribes' the component to keep cached data in the store, and 'unsubscribes' when the component unmounts
  * - Accepts polling/re-fetching options to trigger automatic re-fetches when the corresponding criteria is met
  * - Returns the latest request status and cached data from the Redux store
  * - Re-renders as the request status changes and data becomes available
@@ -133,8 +133,8 @@ interface UseQuerySubscriptionOptions extends SubscriptionOptions {
  *
  * #### Features
  *
- * - Automatically triggers requests based on the hook argument and whether cached data exists by default
- * - Keeps data in the store, and 'unsubscribes' when the component unmounts
+ * - Automatically triggers requests to retrieve data based on the hook argument and whether cached data exists by default
+ * - 'Subscribes' the component to keep cached data in the store, and 'unsubscribes' when the component unmounts
  * - Accepts polling/re-fetching options to trigger automatic re-fetches when the corresponding criteria is met
  */
 export type UseQuerySubscription<
@@ -157,8 +157,8 @@ export type UseLazyQueryLastPromiseInfo<
  *
  * #### Features
  *
- * - Manual control over firing a request
- * - Keeps data in the store, and 'unsubscribes' when the component unmounts
+ * - Manual control over firing a request to retrieve data
+ * - 'Subscribes' the component to keep cached data in the store, and 'unsubscribes' when the component unmounts
  * - Returns the latest request status and cached data from the Redux store
  * - Re-renders as the request status changes and data becomes available
  * - Accepts polling/re-fetching options to trigger automatic re-fetches when the corresponding criteria is met and the fetch has been manually called at least once
@@ -181,8 +181,8 @@ export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
  *
  * #### Features
  *
- * - Manual control over firing a request
- * - Keeps data in the store, and 'unsubscribes' when the component unmounts
+ * - Manual control over firing a request to retrieve data
+ * - 'Subscribes' the component to keep cached data in the store, and 'unsubscribes' when the component unmounts
  * - Accepts polling/re-fetching options to trigger automatic re-fetches when the corresponding criteria is met and the fetch has been manually called at least once
  */
 export type UseLazyQuerySubscription<
@@ -382,8 +382,8 @@ export type UseMutationStateResult<
  *
  * #### Features
  *
- * - Manual control over firing a request
- * - Keeps data in the store, and 'unsubscribes' when the component unmounts
+ * - Manual control over firing a request to alter data on the server or possibly invalidate the cache
+ * - 'Subscribes' the component to keep cached data in the store, and 'unsubscribes' when the component unmounts
  * - Returns the latest request status and cached data from the Redux store
  * - Re-renders as the request status changes and data becomes available
  */

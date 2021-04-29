@@ -385,3 +385,7 @@ type PrefetchCallback = (arg: any, options?: UsePrefetchOptions) => void
 #### Description
 
 A React hook which can be used to initiate fetching data ahead of time.
+
+#### Features
+
+- Manual control over firing a request to retrieve data
