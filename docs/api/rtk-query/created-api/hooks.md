@@ -37,12 +37,13 @@ The general format is `use(Endpointname)(Query|Mutation)` - `use` is prefixed, t
 
 The full list of hooks generated in the React-specific version of `createApi` is as follows:
 
-- `useQuery` (endpoint-specific)
-- `useMutation` (endpoint-specific)
-- `useQueryState` (endpoint-specific)
-- `useQuerySubscription` (endpoint-specific)
-- `useLazyQuery` (endpoint-specific)
-- `usePrefetch` (endpoint-agnostic)
+- [`useQuery`](#usequery) (endpoint-specific)
+- [`useMutation`](#usemutation) (endpoint-specific)
+- [`useQueryState`](#usequerystate) (endpoint-specific)
+- [`useQuerySubscription`](#usequerysubscription) (endpoint-specific)
+- [`useLazyQuery`](#uselazyquery) (endpoint-specific)
+- [`useLazyQuerySubscription`](#uselazyquerysubscription) (endpoint-specific)
+- [`usePrefetch`](#useprefetch) (endpoint-agnostic)
 
 For the example above, the full set of generated hooks for the api would be like so:
 
