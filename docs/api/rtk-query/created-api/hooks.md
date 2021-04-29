@@ -71,6 +71,125 @@ const [updatePost, { data }] = api.useUpdatePostMutation(options)
 const fetchData = api.usePrefetch(endpointName, options)
 ```
 
+### Feature Comparison
+
+The provided hooks have a degree of feature overlap in order to provide options optimized for a given situation. The table below provides a comparison of the core features for each hook.
+
+<table style={{'overflow-y': 'hidden'}}>
+  <thead>
+    <tr style={{height: '250px', border: 'none'}}>
+      <th style={{width: '300px'}}>Feature</th>
+      <th style={{'white-space': 'nowrap', border: 'none'}}>
+        <div style={{transform: 'translate(0px, 51px) rotate(315deg)', width: '20px'}}>
+          <a href="#usequery">useQuery</a>
+        </div>
+      </th>
+      <th style={{'white-space': 'nowrap', border: 'none'}}>
+        <div style={{transform: 'translate(0px, 51px) rotate(315deg)', width: '20px'}}>
+          <a href="#usemutation">useMutation</a>
+        </div>
+      </th>
+      <th style={{'white-space': 'nowrap', border: 'none'}}>
+        <div style={{transform: 'translate(0px, 51px) rotate(315deg)', width: '20px'}}>
+          <a href="#usequerystate">useQueryState</a>
+        </div>
+      </th>
+      <th style={{'white-space': 'nowrap', border: 'none'}}>
+        <div style={{transform: 'translate(0px, 51px) rotate(315deg)', width: '20px'}}>
+          <a href="#usequerysubscription">useQuerySubscription</a>
+        </div>
+      </th>
+      <th style={{'white-space': 'nowrap', border: 'none'}}>
+        <div style={{transform: 'translate(0px, 51px) rotate(315deg)', width: '20px'}}>
+          <a href="#uselazyquery">useLazyQuery</a>
+        </div>
+      </th>
+      <th style={{'white-space': 'nowrap', border: 'none'}}>
+        <div style={{transform: 'translate(0px, 51px) rotate(315deg)', width: '20px'}}>
+          <a href="#uselazyquerysubscription">useLazyQuerySubscription</a>
+        </div>
+      </th>
+      <th style={{'white-space': 'nowrap', border: 'none'}}>
+        <div style={{transform: 'translate(0px, 51px) rotate(315deg)', width: '20px'}}>
+          <a href="#useprefetch">usePrefetch</a>
+        </div>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style={{width: '330px'}}>Automatically triggers query requests</td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td style={{width: '330px'}}>Allows manually triggering query requests</td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td>✔️</td>
+    </tr>
+    <tr>
+      <td style={{width: '330px'}}>Allows manually triggering mutation requests</td>
+      <td></td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td style={{width: '330px'}}>Subscribes a component to keep cached data in the store</td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td></td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td style={{width: '330px'}}>Returns request status and cached data from the store</td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td></td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td style={{width: '330px'}}>Re-renders as request status and data become available</td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td></td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td style={{width: '330px'}}>Accepts polling/re-fetching options to trigger automatic re-fetches</td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+
 ## `useQuery`
 
 #### Signature
