@@ -31,9 +31,13 @@
     "emitDeclarationOnly": true,
     "baseUrl": ".",
     "paths": {
-      "@reduxjs/toolkit": ["src/index.ts"],
-      "@reduxjs/toolkit/query": ["src/query/index.ts"],
-      "@reduxjs/toolkit/query/react": ["src/query/react/index.ts"],
+      "@reduxjs/toolkit": ["src/index.ts"], // @remap-prod-remove-line
+      "@reduxjs/toolkit/query": ["src/query/index.ts"], // @remap-prod-remove-line
+      "@reduxjs/toolkit/query/react": ["src/query/react/index.ts"], // @remap-prod-remove-line
+      // for type imports in tests only
+      "@reduxjs/toolkit/dist/query/*": ["src/query/*"], // @remap-prod-remove-line
+      // internal imports in tests only
+      "@internal/*": ["src/*"]
     }
   }
 }

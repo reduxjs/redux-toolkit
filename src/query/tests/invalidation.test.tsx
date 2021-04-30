@@ -1,6 +1,6 @@
-import { createApi, fakeBaseQuery } from '../react'
+import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
 import { setupApiStore, waitMs } from './helpers'
-import type { ResultDescription } from '../endpointDefinitions'
+import type { ResultDescription } from '@reduxjs/toolkit/dist/query/endpointDefinitions'
 
 const tagTypes = ['apple', 'pear', 'banana', 'tomato'] as const
 type TagTypes = typeof tagTypes[number]

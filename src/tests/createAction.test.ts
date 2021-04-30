@@ -1,4 +1,4 @@
-import { createAction, getType } from '../createAction'
+import { createAction, getType } from '@reduxjs/toolkit'
 
 describe('createAction', () => {
   it('should create an action', () => {

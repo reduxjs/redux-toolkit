@@ -1,5 +1,4 @@
-import { createSelector } from 'reselect'
-import { createDraftSafeSelector } from '../createDraftSafeSelector'
+import { createDraftSafeSelector, createSelector } from '@reduxjs/toolkit'
 import { produce } from 'immer'
 
 type State = { value: number }

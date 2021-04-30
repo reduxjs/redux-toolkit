@@ -1,5 +1,4 @@
-import { createSlice } from '../createSlice'
-import { createAction, PayloadAction } from '../createAction'
+import { createSlice, createAction, PayloadAction } from '@reduxjs/toolkit'
 
 describe('createSlice', () => {
   describe('when slice is undefined', () => {

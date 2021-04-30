@@ -1,4 +1,9 @@
-import { isOnline, isDocumentVisible, flatten, joinUrls } from '../utils'
+import {
+  isOnline,
+  isDocumentVisible,
+  flatten,
+  joinUrls,
+} from '@internal/query/utils'
 
 afterAll(() => {
   jest.restoreAllMocks()

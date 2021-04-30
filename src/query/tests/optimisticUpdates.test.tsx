@@ -1,4 +1,4 @@
-import { createApi } from '../react'
+import { createApi } from '@reduxjs/toolkit/query/react'
 import { actionsReducer, hookWaitFor, setupApiStore, waitMs } from './helpers'
 import { renderHook, act } from '@testing-library/react-hooks'
 

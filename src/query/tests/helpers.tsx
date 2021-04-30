@@ -4,8 +4,8 @@ import {
   EnhancedStore,
   Middleware,
   Store,
-} from '../../'
-import { setupListeners } from '..'
+} from '@reduxjs/toolkit'
+import { setupListeners } from '@reduxjs/toolkit/query'
 
 import { act } from '@testing-library/react-hooks'
 import React, { Reducer, useCallback } from 'react'

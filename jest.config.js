@@ -2,10 +2,12 @@ module.exports = {
   setupFilesAfterEnv: ['./jest.setup.js'],
   testPathIgnorePatterns: ['<rootDir>/query-old/*'],
   moduleNameMapper: {
-    '^@reduxjs/toolkit$': '<rootDir>/src/index.ts',
-    '^@reduxjs/toolkit/query$': '<rootDir>/src/query/index.ts',
-    '^@reduxjs/toolkit/query/react$': '<rootDir>/src/query/react/index.ts',
-    '^@internal/(.*)$': '<rootDir>/src/query/*',
+    '^@reduxjs/toolkit$': '<rootDir>/src/index.ts', // @remap-prod-remove-line
+    '^@reduxjs/toolkit/query$': '<rootDir>/src/query/index.ts', // @remap-prod-remove-line
+    '^@reduxjs/toolkit/query/react$': '<rootDir>/src/query/react/index.ts', // @remap-prod-remove-line
+    // this mapping is disabled as we want `dist` imports in the tests only to be used for "type-only" imports which don't play a role for jest
+    //'^@reduxjs/toolkit/dist/(.*)$': '<rootDir>/src/*',
+    '^@internal/(.*)$': '<rootDir>/src/$1',
   },
   globals: {
     'ts-jest': {

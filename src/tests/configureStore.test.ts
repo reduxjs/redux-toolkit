@@ -1,14 +1,18 @@
-import { configureStore } from '../configureStore'
+import {
+  configureStore,
+  StoreEnhancer,
+  StoreEnhancerStoreCreator,
+} from '@reduxjs/toolkit'
+import * as RTK from '@reduxjs/toolkit'
 import * as redux from 'redux'
-import * as devtools from '../devtoolsExtension'
-import { StoreEnhancer, StoreEnhancerStoreCreator } from 'redux'
+import * as devtools from '@internal/devtoolsExtension'
 
 describe('configureStore', () => {
   jest.spyOn(redux, 'applyMiddleware')
   jest.spyOn(redux, 'combineReducers')
   jest.spyOn(redux, 'compose')
   jest.spyOn(redux, 'createStore')
-  jest.spyOn(devtools, 'composeWithDevTools')
+  jest.spyOn(devtools, 'composeWithDevTools') // @remap-prod-remove-line
 
   const reducer: redux.Reducer = (state = {}, _action) => state
 
@@ -19,7 +23,7 @@ describe('configureStore', () => {
       configureStore({ reducer })
       expect(configureStore({ reducer })).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalled()
-      expect(devtools.composeWithDevTools).toHaveBeenCalled()
+      expect(devtools.composeWithDevTools).toHaveBeenCalled() // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
@@ -38,7 +42,7 @@ describe('configureStore', () => {
       expect(configureStore({ reducer })).toBeInstanceOf(Object)
       expect(redux.combineReducers).toHaveBeenCalledWith(reducer)
       expect(redux.applyMiddleware).toHaveBeenCalled()
-      expect(devtools.composeWithDevTools).toHaveBeenCalled()
+      expect(devtools.composeWithDevTools).toHaveBeenCalled() // @remap-prod-remove-line-line
       expect(redux.createStore).toHaveBeenCalledWith(
         expect.any(Function),
         undefined,
@@ -59,7 +63,7 @@ describe('configureStore', () => {
     it('calls createStore without any middleware', () => {
       expect(configureStore({ middleware: [], reducer })).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalledWith()
-      expect(devtools.composeWithDevTools).toHaveBeenCalled()
+      expect(devtools.composeWithDevTools).toHaveBeenCalled() // @remap-prod-remove-line-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
@@ -78,7 +82,7 @@ describe('configureStore', () => {
         expect.any(Function), // immutableCheck
         expect.any(Function) // serializableCheck
       )
-      expect(devtools.composeWithDevTools).toHaveBeenCalled()
+      expect(devtools.composeWithDevTools).toHaveBeenCalled() // @remap-prod-remove-line-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
@@ -123,7 +127,7 @@ describe('configureStore', () => {
         Object
       )
       expect(redux.applyMiddleware).toHaveBeenCalledWith(thank)
-      expect(devtools.composeWithDevTools).toHaveBeenCalled()
+      expect(devtools.composeWithDevTools).toHaveBeenCalled() // @remap-prod-remove-line-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
@@ -177,7 +181,7 @@ describe('configureStore', () => {
         Object
       )
       expect(redux.applyMiddleware).toHaveBeenCalled()
-      expect(devtools.composeWithDevTools).toHaveBeenCalledWith(options)
+      expect(devtools.composeWithDevTools).toHaveBeenCalledWith(options) // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
@@ -190,7 +194,7 @@ describe('configureStore', () => {
     it('calls createStore with preloadedState', () => {
       expect(configureStore({ reducer })).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalled()
-      expect(devtools.composeWithDevTools).toHaveBeenCalled()
+      expect(devtools.composeWithDevTools).toHaveBeenCalled() // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
@@ -206,7 +210,7 @@ describe('configureStore', () => {
         Object
       )
       expect(redux.applyMiddleware).toHaveBeenCalled()
-      expect(devtools.composeWithDevTools).toHaveBeenCalled()
+      expect(devtools.composeWithDevTools).toHaveBeenCalled() // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,

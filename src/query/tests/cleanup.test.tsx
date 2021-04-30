@@ -2,7 +2,7 @@
 
 import React from 'react'
 
-import { createApi, QueryStatus } from '../react'
+import { createApi, QueryStatus } from '@reduxjs/toolkit/query/react'
 import { render, waitFor } from '@testing-library/react'
 import { setupApiStore } from './helpers'
 

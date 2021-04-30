@@ -1,4 +1,4 @@
-import { copyWithStructuralSharing } from '../utils/copyWithStructuralSharing'
+import { copyWithStructuralSharing } from '@reduxjs/toolkit/query'
 
 test('equal object from JSON Object', () => {
   const json = JSON.stringify({
