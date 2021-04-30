@@ -109,6 +109,7 @@ export function setupApiStore<
     reducerPath: any
     reducer: Reducer<any, any>
     middleware: Middleware<any>
+    util: { resetApiState(): any }
   },
   R extends Record<string, Reducer<any, any>>
 >(api: A, extraReducers?: R, withoutListeners?: boolean) {
@@ -157,6 +158,7 @@ export function setupApiStore<
     if (!withoutListeners) {
       cleanupListeners()
     }
+    refObj.store.dispatch(api.util.resetApiState())
   })
 
   return refObj
