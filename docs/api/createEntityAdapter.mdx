@@ -212,7 +212,7 @@ The primary content of an entity adapter is a set of generated reducer functions
 - `upsertOne`: accepts a single entity. If an entity with that ID exists, it will perform a shallow update and the specified fields will be merged into the existing entity, with any matching fields overwriting the existing values. If the entity does not exist, it will be added.
 - `upsertMany`: accepts an array of entities or an object in the shape of `Record<EntityId, T>` that will be shallowly upserted.
 
-Each method (except `removeAll`) has a signature that looks like:
+Each method has a signature that looks like:
 
 ```ts no-transpile
 (state: EntityState<T>, argument: TypeOrPayloadAction<Argument<T>>) => EntityState<T>
