@@ -267,11 +267,11 @@ describe('usage scenario tests', () => {
     exists: () => true,
     data: () => mockData,
   }
-  const collection = jest.fn((name) => ({ get, doc }))
   const get = jest.fn(() => Promise.resolve(mockDocResult))
   const doc = jest.fn((name) => ({
     get,
   }))
+  const collection = jest.fn((name) => ({ get, doc }))
   const firestore = () => {
     return { collection, doc }
   }

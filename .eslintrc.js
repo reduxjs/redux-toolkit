@@ -2,7 +2,7 @@ module.exports = {
   extends: [
     'react-app',
     'prettier/@typescript-eslint',
-    'plugin:prettier/recommended'
+    'plugin:prettier/recommended',
   ],
   parser: '@typescript-eslint/parser',
   rules: {
@@ -11,6 +11,19 @@ module.exports = {
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': 'off',
     // Silence some bizarre "rule not found" TSLint error
-    '@typescript-eslint/no-angle-bracket-type-assertion': 'off'
-  }
+    '@typescript-eslint/no-angle-bracket-type-assertion': 'off',
+    'no-redeclare': 'off',
+    '@typescript-eslint/no-redeclare': ['error'],
+    'no-use-before-define': 'off',
+    '@typescript-eslint/no-use-before-define': ['error', { functions: false }],
+  },
+  overrides: [
+    {
+      files: ['src/tests/*.ts', 'src/**/tests/*.ts', 'src/**/tests/*.tsx'],
+      rules: {
+        '@typescript-eslint/no-unused-expressions': 'off',
+        'no-lone-blocks': 'off',
+      },
+    },
+  ],
 }

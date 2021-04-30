@@ -5,12 +5,12 @@ import {
   AnyAction,
   Middleware,
   Reducer,
-  Store
+  Store,
 } from 'redux'
 import {
   configureStore,
   PayloadAction,
-  getDefaultMiddleware
+  getDefaultMiddleware,
 } from '@reduxjs/toolkit'
 import thunk, { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
 import { expectType } from './helpers'
@@ -22,14 +22,14 @@ const _anyMiddleware: any = () => () => () => {}
  */
 {
   configureStore({
-    reducer: (state, action) => 0
+    reducer: (state, action) => 0,
   })
 
   configureStore({
     reducer: {
       counter1: () => 0,
-      counter2: () => 1
-    }
+      counter2: () => 1,
+    },
   })
 
   // @ts-expect-error
@@ -70,17 +70,17 @@ const _anyMiddleware: any = () => () => () => {}
  * Test: configureStore() accepts middleware array.
  */
 {
-  const middleware: Middleware = store => next => next
+  const middleware: Middleware = (store) => (next) => next
 
   configureStore({
     reducer: () => 0,
-    middleware: [middleware]
+    middleware: [middleware],
   })
 
   configureStore({
     reducer: () => 0,
     // @ts-expect-error
-    middleware: ['not middleware']
+    middleware: ['not middleware'],
   })
 }
 
@@ -90,13 +90,13 @@ const _anyMiddleware: any = () => () => () => {}
 {
   configureStore({
     reducer: () => 0,
-    devTools: true
+    devTools: true,
   })
 
   configureStore({
     reducer: () => 0,
     // @ts-expect-error
-    devTools: 'true'
+    devTools: 'true',
   })
 }
 
@@ -106,13 +106,13 @@ const _anyMiddleware: any = () => () => () => {}
 {
   configureStore({
     reducer: () => 0,
-    devTools: { name: 'myApp' }
+    devTools: { name: 'myApp' },
   })
 
   configureStore({
     reducer: () => 0,
     // @ts-expect-error
-    devTools: { appname: 'myApp' }
+    devTools: { appname: 'myApp' },
   })
 }
 
@@ -122,13 +122,13 @@ const _anyMiddleware: any = () => () => () => {}
 {
   configureStore({
     reducer: () => 0,
-    preloadedState: 0
+    preloadedState: 0,
   })
 
   configureStore({
     reducer: () => 0,
     // @ts-expect-error
-    preloadedState: 'non-matching state type'
+    preloadedState: 'non-matching state type',
   })
 }
 
@@ -138,13 +138,13 @@ const _anyMiddleware: any = () => () => () => {}
 {
   configureStore({
     reducer: () => 0,
-    enhancers: [applyMiddleware(store => next => next)]
+    enhancers: [applyMiddleware((store) => (next) => next)],
   })
 
   configureStore({
     reducer: () => 0,
     // @ts-expect-error
-    enhancers: ['not a store enhancer']
+    enhancers: ['not a store enhancer'],
   })
 }
 
@@ -159,11 +159,11 @@ const _anyMiddleware: any = () => () => () => {}
   const store = configureStore({
     reducer: {
       counter1: counterReducer1,
-      counter2: counterReducer2
+      counter2: counterReducer2,
     },
     preloadedState: {
-      counter1: 0
-    }
+      counter1: 0,
+    },
   })
 
   const counter1: number = store.getState().counter1
@@ -189,7 +189,7 @@ const _anyMiddleware: any = () => () => () => {}
    */
   {
     const store = configureStore({
-      reducer: reducerA
+      reducer: reducerA,
     })
 
     store.dispatch(thunkA())
@@ -202,7 +202,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: []
+      middleware: [],
     })
     // @ts-expect-error
     store.dispatch(thunkA())
@@ -215,7 +215,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: [thunk] as [ThunkMiddleware<StateA>]
+      middleware: [thunk] as [ThunkMiddleware<StateA>],
     })
     store.dispatch(thunkA())
     // @ts-expect-error
@@ -227,7 +227,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: getDefaultMiddleware<StateA>()
+      middleware: getDefaultMiddleware<StateA>(),
     })
 
     store.dispatch(thunkA())
@@ -240,7 +240,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: ([] as any) as [Middleware<(a: StateA) => boolean, StateA>]
+      middleware: ([] as any) as [Middleware<(a: StateA) => boolean, StateA>],
     })
     const result: boolean = store.dispatch(5)
     // @ts-expect-error
@@ -256,7 +256,7 @@ const _anyMiddleware: any = () => () => () => {}
         Middleware<(a: 'a') => 'A', StateA>,
         Middleware<(b: 'b') => 'B', StateA>,
         ThunkMiddleware<StateA>
-      ]
+      ],
     })
     const result: 'A' = store.dispatch('a')
     const result2: 'B' = store.dispatch('b')
@@ -268,15 +268,20 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({ reducer: {} })
     // undefined is the default value for the ThunkMiddleware extraArgument
-    store.dispatch(function() {} as ThunkAction<void, {}, undefined, AnyAction>)
+    store.dispatch(function () {} as ThunkAction<
+      void,
+      {},
+      undefined,
+      AnyAction
+    >)
     // null was previously documented in the redux docs
-    store.dispatch(function() {} as ThunkAction<void, {}, null, AnyAction>)
+    store.dispatch(function () {} as ThunkAction<void, {}, null, AnyAction>)
     // unknown is the best way to type a ThunkAction if you do not care
     // about the value of the extraArgument, as it will always work with every
     // ThunkMiddleware, no matter the actual extraArgument type
-    store.dispatch(function() {} as ThunkAction<void, {}, unknown, AnyAction>)
+    store.dispatch(function () {} as ThunkAction<void, {}, unknown, AnyAction>)
     // @ts-expect-error
-    store.dispatch(function() {} as ThunkAction<void, {}, boolean, AnyAction>)
+    store.dispatch(function () {} as ThunkAction<void, {}, boolean, AnyAction>)
   }
 
   /**
@@ -287,8 +292,8 @@ const _anyMiddleware: any = () => () => () => {}
       reducer: reducerA,
       middleware: [
         ((() => {}) as any) as Middleware<(a: 'a') => 'A', StateA>,
-        ...getDefaultMiddleware<StateA>()
-      ] as const
+        ...getDefaultMiddleware<StateA>(),
+      ] as const,
     })
     const result1: 'A' = store.dispatch('a')
     const result2: Promise<'A'> = store.dispatch(thunkA())
@@ -309,7 +314,7 @@ const _anyMiddleware: any = () => () => () => {}
 
     const store = configureStore({
       reducer: reducerA,
-      middleware: concatenated
+      middleware: concatenated,
     })
     const result1: 'A' = store.dispatch('a')
     const result2: Promise<'A'> = store.dispatch(thunkA())
@@ -330,7 +335,7 @@ const _anyMiddleware: any = () => () => () => {}
 
     const store = configureStore({
       reducer: reducerA,
-      middleware: concatenated
+      middleware: concatenated,
     })
     const result1: 'A' = store.dispatch('a')
     const result2: Promise<'A'> = store.dispatch(thunkA())
@@ -344,11 +349,11 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: getDefaultMiddleware =>
+      middleware: (getDefaultMiddleware) =>
         [
           ((() => {}) as any) as Middleware<(a: 'a') => 'A', StateA>,
-          ...getDefaultMiddleware()
-        ] as const
+          ...getDefaultMiddleware(),
+        ] as const,
     })
     const result1: 'A' = store.dispatch('a')
     const result2: Promise<'A'> = store.dispatch(thunkA())
@@ -364,10 +369,10 @@ const _anyMiddleware: any = () => () => () => {}
     const otherMiddleware2: Middleware<(a: 'b') => 'B', StateA> = _anyMiddleware
     const store = configureStore({
       reducer: reducerA,
-      middleware: getDefaultMiddleware =>
+      middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware()
           .concat(otherMiddleware)
-          .prepend(otherMiddleware2)
+          .prepend(otherMiddleware2),
     })
     const result1: 'A' = store.dispatch('a')
     const result2: Promise<'A'> = store.dispatch(thunkA())
@@ -382,11 +387,11 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: getDefaultMiddleware =>
+      middleware: (getDefaultMiddleware) =>
         [
           ((() => {}) as any) as Middleware<(a: 'a') => 'A', StateA>,
-          ...getDefaultMiddleware({ thunk: false })
-        ] as const
+          ...getDefaultMiddleware({ thunk: false }),
+        ] as const,
     })
     const result1: 'A' = store.dispatch('a')
     // @ts-expect-error

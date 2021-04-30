@@ -2,7 +2,7 @@ import { Reducer } from 'redux'
 import {
   createReducer,
   createAction,
-  ActionReducerMapBuilder
+  ActionReducerMapBuilder,
 } from '@reduxjs/toolkit'
 import { expectType } from './helpers'
 
@@ -19,7 +19,7 @@ import { expectType } from './helpers'
 
   const reducer = createReducer(0 as number, {
     increment: incrementHandler,
-    decrement: decrementHandler
+    decrement: decrementHandler,
   })
 
   const numberReducer: Reducer<number> = reducer
@@ -44,13 +44,13 @@ import { expectType } from './helpers'
 
   createReducer<number>(0, {
     increment: incrementHandler,
-    decrement: decrementHandler
+    decrement: decrementHandler,
   })
 
   // @ts-expect-error
   createReducer<string>(0, {
     increment: incrementHandler,
-    decrement: decrementHandler
+    decrement: decrementHandler,
   })
 }
 
@@ -61,9 +61,9 @@ import { expectType } from './helpers'
   const initialState: { readonly counter: number } = { counter: 0 }
 
   createReducer(initialState, {
-    increment: state => {
+    increment: (state) => {
       state.counter += 1
-    }
+    },
   })
 }
 
@@ -71,7 +71,7 @@ import { expectType } from './helpers'
 {
   const increment = createAction<number, 'increment'>('increment')
 
-  const reducer = createReducer(0, builder =>
+  const reducer = createReducer(0, (builder) =>
     expectType<ActionReducerMapBuilder<number>>(builder)
   )
 

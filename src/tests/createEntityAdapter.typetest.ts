@@ -6,7 +6,7 @@ import {
   ActionCreatorWithoutPayload,
   EntityStateAdapter,
   EntityId,
-  Update
+  Update,
 } from '@reduxjs/toolkit'
 import { expectType } from './helpers'
 
@@ -35,8 +35,8 @@ function extractReducers<T>(
     name: 'test',
     initialState: adapter.getInitialState(),
     reducers: {
-      ...extractReducers(adapter)
-    }
+      ...extractReducers(adapter),
+    },
   })
 
   expectType<ActionCreatorWithPayload<Entity>>(slice.actions.addOne)
@@ -77,8 +77,8 @@ function extractReducers<T>(
     reducers: {
       addOne: adapter.addOne,
       // @ts-expect-error
-      addOne2: adapter2.addOne
-    }
+      addOne2: adapter2.addOne,
+    },
   })
 }
 
@@ -94,8 +94,8 @@ function extractReducers<T>(
     name: 'test',
     initialState: adapter.getInitialState({ extraData: 'test' }),
     reducers: {
-      addOne: adapter.addOne
-    }
+      addOne: adapter.addOne,
+    },
   })
 }
 
@@ -112,7 +112,7 @@ function extractReducers<T>(
     initialState: { somethingElse: '' },
     reducers: {
       // @ts-expect-error
-      addOne: adapter.addOne
-    }
+      addOne: adapter.addOne,
+    },
   })
 }

@@ -1,3 +1,4 @@
+import { expectExactType, expectUnknown } from './helpers'
 import { IsUnknown } from '@internal/tsHelpers'
 import { AnyAction } from 'redux'
 import {
@@ -10,7 +11,7 @@ import {
   isPending,
   isRejected,
   isRejectedWithValue,
-  SerializedError
+  SerializedError,
 } from '../../src'
 
 /* isAnyOf */
@@ -23,8 +24,8 @@ function isAnyOfActionTest(action: AnyAction) {
     return {
       payload: {
         prop1: 1,
-        prop3: 2
-      }
+        prop3: 2,
+      },
     }
   })
 
@@ -32,8 +33,8 @@ function isAnyOfActionTest(action: AnyAction) {
     return {
       payload: {
         prop1: 1,
-        prop2: 2
-      }
+        prop2: 2,
+      },
     }
   })
 
@@ -43,7 +44,7 @@ function isAnyOfActionTest(action: AnyAction) {
       // @ts-expect-error
       prop2: action.payload.prop2,
       // @ts-expect-error
-      prop3: action.payload.prop3
+      prop3: action.payload.prop3,
     }
   }
 }
@@ -58,7 +59,7 @@ function isAnyOfThunkTest(action: AnyAction) {
     async () => {
       return {
         prop1: 1,
-        prop3: 3
+        prop3: 3,
       }
     }
   )
@@ -69,7 +70,7 @@ function isAnyOfThunkTest(action: AnyAction) {
     async () => {
       return {
         prop1: 1,
-        prop2: 2
+        prop2: 2,
       }
     }
   )
@@ -80,7 +81,7 @@ function isAnyOfThunkTest(action: AnyAction) {
       // @ts-expect-error
       prop2: action.payload.prop2,
       // @ts-expect-error
-      prop3: action.payload.prop3
+      prop3: action.payload.prop3,
     }
   }
 }
@@ -119,7 +120,7 @@ function isAnyOfTypeGuardTest(action: AnyAction) {
       // @ts-expect-error
       prop2: action.payload.prop2,
       // @ts-expect-error
-      prop3: action.payload.prop3
+      prop3: action.payload.prop3,
     }
   }
 }
@@ -145,8 +146,8 @@ function isAllOfActionTest(action: AnyAction) {
     return {
       payload: {
         prop1: 1,
-        prop3: 2
-      }
+        prop3: 2,
+      },
     }
   })
 
@@ -156,7 +157,7 @@ function isAllOfActionTest(action: AnyAction) {
       // @ts-expect-error
       prop2: action.payload.prop2,
       prop3: action.payload.prop3,
-      special: action.payload.special
+      special: action.payload.special,
     }
   }
 }
@@ -172,7 +173,7 @@ function isAllOfThunkTest(action: AnyAction) {
     async () => {
       return {
         prop1: 1,
-        prop3: 3
+        prop3: 3,
       }
     }
   )
@@ -183,7 +184,7 @@ function isAllOfThunkTest(action: AnyAction) {
       // @ts-expect-error
       prop2: action.payload.prop2,
       prop3: action.payload.prop3,
-      special: action.payload.special
+      special: action.payload.special,
     }
   }
 }
@@ -210,7 +211,7 @@ function isAllOfTypeGuardTest(action: AnyAction) {
       // @ts-expect-error
       prop2: action.payload.prop2,
       prop3: action.payload.prop3,
-      special: action.payload.special
+      special: action.payload.special,
     }
   }
 }
@@ -311,5 +312,3 @@ function isRejectedWithValueTest(action: AnyAction) {
     expectExactType<SerializedError>(action.error)
   }
 }
-
-import { expectExactType, expectUnknown } from './helpers'

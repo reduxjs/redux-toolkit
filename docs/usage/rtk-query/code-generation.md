@@ -21,7 +21,7 @@ npx @rtk-incubator/rtk-query-codegen-openapi petstore.json > petstore-api.genera
 We recommend placing these generated types in one file that you do not modify (so you can constantly re-generate it when your API definition changes) and creating a second file to enhance it with additional info:
 
 ```ts title="petstore-api.ts"
-import { api as generatedApi } from './petstore-api.generated';
+import { api as generatedApi } from './petstore-api.generated'
 
 export const api = generatedApi.enhanceEndpoints({
   addTagTypes: ['Pet'],
@@ -35,13 +35,16 @@ export const api = generatedApi.enhanceEndpoints({
         // is result available?
         result
           ? // successful query
-            [{ type: 'Pet', id: 'LIST' }, ...result.map((pet) => ({ type: 'Pet' as const, id: pet.id }))]
+            [
+              { type: 'Pet', id: 'LIST' },
+              ...result.map((pet) => ({ type: 'Pet' as const, id: pet.id })),
+            ]
           : // an error occurred, but we still want to refetch this query when `{ type: 'Pet', id: 'LIST' }` is invalidated
             [{ type: 'Pet', id: 'LIST' }],
     },
     // alternate notation: callback that gets passed in `endpoint` - you can freely modify the object here
     addPet: (endpoint) => {
-      endpoint.invalidatesTags = (result) => [{ type: 'Pet', id: result.id }];
+      endpoint.invalidatesTags = (result) => [{ type: 'Pet', id: result.id }]
     },
     updatePet: {
       invalidatesTags: (result, error, arg) => [{ type: 'Pet', id: arg.petId }],
@@ -50,7 +53,7 @@ export const api = generatedApi.enhanceEndpoints({
       invalidatesTags: (result, error, arg) => [{ type: 'Pet', id: arg.petId }],
     },
   },
-});
+})
 
 export const {
   useGetPetByIdQuery,
@@ -58,5 +61,5 @@ export const {
   useAddPetMutation,
   useUpdatePetMutation,
   useDeletePetMutation,
-} = api;
+} = api
 ```

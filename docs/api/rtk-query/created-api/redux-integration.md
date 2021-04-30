@@ -12,8 +12,8 @@ Internally, `createApi` will call [the Redux Toolkit `createSlice` API](https://
 The generated slice reducer and the middleware both need to be added to your Redux store setup in `configureStore` in order to work correctly:
 
 ```ts title="src/store.ts"
-import { configureStore, setupListeners } from '@reduxjs/toolkit';
-import { pokemonApi } from './services/pokemon';
+import { configureStore, setupListeners } from '@reduxjs/toolkit'
+import { pokemonApi } from './services/pokemon'
 
 export const store = configureStore({
   reducer: {
@@ -22,14 +22,15 @@ export const store = configureStore({
   },
   // Adding the api middleware enables caching, invalidation, polling,
   // and other useful features of `rtk-query`.
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(pokemonApi.middleware),
-});
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(pokemonApi.middleware),
+})
 ```
 
 ## `reducerPath`
 
 ```ts
-reducerPath: string;
+reducerPath: string
 ```
 
 Contains the `reducerPath` option provided to `createApi`. Use this as the root state key when adding the `reducer` function to the store so that the rest of the generated API logic can find the state correctly.
@@ -37,7 +38,7 @@ Contains the `reducerPath` option provided to `createApi`. Use this as the root 
 ## `reducer`
 
 ```ts
-reducer: Reducer;
+reducer: Reducer
 ```
 
 A standard Redux slice reducer function containing the logic for updating the cached data. Add this to the Redux store using the `reducerPath` you provided as the root state key.
@@ -45,7 +46,7 @@ A standard Redux slice reducer function containing the logic for updating the ca
 ## `middleware`
 
 ```ts
-middleware: Middleware;
+middleware: Middleware
 ```
 
 A custom Redux middleware that contains logic for managing caching, invalidation, subscriptions, polling, and more. Add this to the store setup after other middleware.

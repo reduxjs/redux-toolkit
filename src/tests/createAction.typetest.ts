@@ -7,7 +7,7 @@ import {
   ActionCreatorWithOptionalPayload,
   ActionCreatorWithPayload,
   ActionCreatorWithNonInferrablePayload,
-  ActionCreatorWithPreparedPayload
+  ActionCreatorWithPreparedPayload,
 } from '@reduxjs/toolkit'
 import { IsAny } from '@internal/tsHelpers'
 import { expectType } from './helpers'
@@ -65,7 +65,7 @@ import { expectType } from './helpers'
   const actionCreator = Object.assign(
     (payload?: number) => ({
       type: 'action',
-      payload
+      payload,
     }),
     { type: 'action' }
   ) as PayloadActionCreator<number | undefined>
@@ -87,7 +87,7 @@ import { expectType } from './helpers'
   const payloadActionCreator = Object.assign(
     (payload?: number) => ({
       type: 'action',
-      payload
+      payload,
     }),
     { type: 'action' }
   ) as PayloadActionCreator
@@ -96,14 +96,14 @@ import { expectType } from './helpers'
   const payloadActionCreator2 = Object.assign(
     (payload?: number) => ({
       type: 'action',
-      payload: payload || 1
+      payload: payload || 1,
     }),
     { type: 'action' }
   ) as PayloadActionCreator<number>
 
-  const actionCreator2: ActionCreator<PayloadAction<
-    number
-  >> = payloadActionCreator2
+  const actionCreator2: ActionCreator<
+    PayloadAction<number>
+  > = payloadActionCreator2
 }
 
 /* createAction() */
@@ -146,7 +146,7 @@ import { expectType } from './helpers'
  */
 {
   const strLenAction = createAction('strLen', (payload: string) => ({
-    payload: payload.length
+    payload: payload.length,
   }))
 
   expectType<string>(strLenAction('test').type)
@@ -157,7 +157,7 @@ import { expectType } from './helpers'
  */
 {
   const strLenAction = createAction('strLen', (payload: string) => ({
-    payload: payload.length
+    payload: payload.length,
   }))
   expectType<number>(strLenAction('test').payload)
 
@@ -173,7 +173,7 @@ import { expectType } from './helpers'
 {
   const strLenMetaAction = createAction('strLenMeta', (payload: string) => ({
     payload,
-    meta: payload.length
+    meta: payload.length,
   }))
 
   expectType<number>(strLenMetaAction('test').meta)
@@ -190,7 +190,7 @@ import { expectType } from './helpers'
 {
   const boolErrorAction = createAction('boolError', (payload: string) => ({
     payload,
-    error: true
+    error: true,
   }))
 
   expectType<boolean>(boolErrorAction('test').error)
@@ -205,7 +205,7 @@ import { expectType } from './helpers'
 {
   const strErrorAction = createAction('strError', (payload: string) => ({
     payload,
-    error: 'this is an error'
+    error: 'this is an error',
   }))
 
   expectType<string>(strErrorAction('test').error)
@@ -234,7 +234,7 @@ import { expectType } from './helpers'
   const oops = createAction('oops', (x: any) => ({
     payload: x,
     error: x,
-    meta: x
+    meta: x,
   }))
 
   type Ret = ReturnType<typeof oops>
@@ -296,7 +296,7 @@ import { expectType } from './helpers'
     const actionCreator = createAction('test', () => ({
       payload: '',
       meta: '',
-      error: false
+      error: false,
     }))
     const x: Action<unknown> = {} as any
     if (actionCreator.match(x)) {
@@ -337,7 +337,7 @@ import { expectType } from './helpers'
     createAction('', (_: 0) => ({
       payload: 1 as 1,
       error: 2 as 2,
-      meta: 3 as 3
+      meta: 3 as 3,
     }))
   )
   const anyCreator = createAction<any>('')

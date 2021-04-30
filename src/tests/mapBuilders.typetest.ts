@@ -7,7 +7,7 @@ import { expectType } from './helpers'
   const increment = createAction<number, 'increment'>('increment')
   const decrement = createAction<number, 'decrement'>('decrement')
 
-  executeReducerBuilderCallback<number>(builder => {
+  executeReducerBuilderCallback<number>((builder) => {
     builder.addCase(increment, (state, action) => {
       expectType<number>(state)
       expectType<{ type: 'increment'; payload: number }>(action)

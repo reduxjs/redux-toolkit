@@ -10,7 +10,7 @@ import {
   createSlice,
   PayloadAction,
   SliceCaseReducers,
-  ValidateSliceCaseReducers
+  ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit'
 import { expectType } from './helpers'
 
@@ -23,8 +23,8 @@ const counterSlice = createSlice({
   initialState: 0,
   reducers: {
     increment: (state: number, action) => state + action.payload,
-    decrement: (state: number, action) => state - action.payload
-  }
+    decrement: (state: number, action) => state - action.payload,
+  },
 })
 
 const uiSlice = createSlice({
@@ -32,13 +32,13 @@ const uiSlice = createSlice({
   initialState: 0,
   reducers: {
     goToNext: (state: number, action) => state + action.payload,
-    goToPrevious: (state: number, action) => state - action.payload
-  }
+    goToPrevious: (state: number, action) => state - action.payload,
+  },
 })
 
 const actionCreators = {
   [counterSlice.name]: { ...counterSlice.actions },
-  [uiSlice.name]: { ...uiSlice.actions }
+  [uiSlice.name]: { ...uiSlice.actions },
 }
 
 expectType<typeof counterSlice.actions>(actionCreators.counter)
@@ -58,12 +58,12 @@ const value = actionCreators.anyKey
     initialState: 0,
     reducers: {
       increment: (state: number, action) => state + action.payload,
-      decrement: (state: number, action) => state - action.payload
+      decrement: (state: number, action) => state - action.payload,
     },
     extraReducers: {
       [firstAction.type]: (state: number, action) =>
-        state + action.payload.count
-    }
+        state + action.payload.count,
+    },
   })
 
   /* Reducer */
@@ -92,7 +92,7 @@ const value = actionCreators.anyKey
     name: 'counter',
     initialState: 0,
     reducers: {
-      increment: state => state + 1,
+      increment: (state) => state + 1,
       decrement: (state, { payload = 1 }: PayloadAction<number | undefined>) =>
         state - payload,
       multiply: (state, { payload }: PayloadAction<number | number[]>) =>
@@ -102,10 +102,10 @@ const value = actionCreators.anyKey
       addTwo: {
         reducer: (s, { payload }: PayloadAction<number>) => s + payload,
         prepare: (a: number, b: number) => ({
-          payload: a + b
-        })
-      }
-    }
+          payload: a + b,
+        }),
+      },
+    },
   })
 
   expectType<ActionCreatorWithoutPayload>(counter.actions.increment)
@@ -146,13 +146,13 @@ const value = actionCreators.anyKey
     name: 'counter',
     initialState: 0,
     reducers: {
-      increment: state => state + 1,
-      decrement: state => state - 1,
+      increment: (state) => state + 1,
+      decrement: (state) => state - 1,
       multiply: (state, { payload }: PayloadAction<number | number[]>) =>
         Array.isArray(payload)
           ? payload.reduce((acc, val) => acc * val, state)
-          : state * payload
-    }
+          : state * payload,
+    },
   })
 
   const s: string = counter.actions.increment.type
@@ -178,8 +178,8 @@ const value = actionCreators.anyKey
           state.counter += action.payload
         },
         prepare: (payload: string) => ({
-          payload: payload.length
-        })
+          payload: payload.length,
+        }),
       },
       concatMetaStrLen: {
         reducer: (state, action: PayloadAction<string>) => {
@@ -187,10 +187,10 @@ const value = actionCreators.anyKey
         },
         prepare: (payload: string) => ({
           payload,
-          meta: payload.length
-        })
-      }
-    }
+          meta: payload.length,
+        }),
+      },
+    },
   })
 
   expectType<string>(counter.actions.incrementByStrLen('test').type)
@@ -219,8 +219,8 @@ const value = actionCreators.anyKey
         prepare: (payload: number) => ({
           payload,
           meta: 'meta' as 'meta',
-          error: 'error' as 'error'
-        })
+          error: 'error' as 'error',
+        }),
       },
       // case: meta and error marked as "unknown" in reducer
       testUnknownMetaAndError: {
@@ -228,8 +228,8 @@ const value = actionCreators.anyKey
         prepare: (payload: number) => ({
           payload,
           meta: 'meta' as 'meta',
-          error: 'error' as 'error'
-        })
+          error: 'error' as 'error',
+        }),
       },
       // case: meta and error are typed in the reducer as returned by prepare
       testMetaAndError: {
@@ -237,8 +237,8 @@ const value = actionCreators.anyKey
         prepare: (payload: number) => ({
           payload,
           meta: 'meta' as 'meta',
-          error: 'error' as 'error'
-        })
+          error: 'error' as 'error',
+        }),
       },
       // case: meta is typed differently in the reducer than returned from prepare
       testErroneousMeta: {
@@ -247,8 +247,8 @@ const value = actionCreators.anyKey
         prepare: (payload: number) => ({
           payload,
           meta: 1,
-          error: 'error' as 'error'
-        })
+          error: 'error' as 'error',
+        }),
       },
       // case: error is typed differently in the reducer than returned from prepare
       testErroneousError: {
@@ -257,10 +257,10 @@ const value = actionCreators.anyKey
         prepare: (payload: number) => ({
           payload,
           meta: 'meta' as 'meta',
-          error: 1
-        })
-      }
-    }
+          error: 1,
+        }),
+      },
+    },
   })
 }
 
@@ -281,9 +281,9 @@ const value = actionCreators.anyKey
         },
         prepare(amount: number) {
           return { payload: amount }
-        }
-      }
-    }
+        },
+      },
+    },
   })
 
   // Should match positively
@@ -333,11 +333,11 @@ const value = actionCreators.anyKey
         // @ts-expect-error
         prepare(x: string) {
           return {
-            payload: 6
+            payload: 6,
           }
-        }
-      }
-    }
+        },
+      },
+    },
   })
 }
 
@@ -347,7 +347,7 @@ const value = actionCreators.anyKey
  */
 {
   const initialState = {
-    name: null
+    name: null,
   }
 
   const mySlice = createSlice({
@@ -356,8 +356,8 @@ const value = actionCreators.anyKey
     reducers: {
       setName: (state, action) => {
         state.name = action.payload
-      }
-    }
+      },
+    },
   })
 
   expectType<ActionCreatorWithNonInferrablePayload>(mySlice.actions.setName)
@@ -379,8 +379,8 @@ const value = actionCreators.anyKey
     reducers: {
       setName: (state, action: PayloadAction<string>) => {
         state.name = action.payload
-      }
-    }
+      },
+    },
   })
 
   const x: Action<unknown> = {} as any
@@ -401,9 +401,9 @@ const value = actionCreators.anyKey
     name: 'test',
     initialState: 0,
     reducers: {},
-    extraReducers: builder => {
+    extraReducers: (builder) => {
       expectType<ActionReducerMapBuilder<number>>(builder)
-    }
+    },
   })
 }
 
@@ -420,7 +420,7 @@ const value = actionCreators.anyKey
   >({
     name = '',
     initialState,
-    reducers
+    reducers,
   }: {
     name: string
     initialState: GenericState<T>
@@ -437,8 +437,8 @@ const value = actionCreators.anyKey
           state.data = action.payload
           state.status = 'finished'
         },
-        ...reducers
-      }
+        ...reducers,
+      },
     })
   }
 
@@ -453,8 +453,8 @@ const value = actionCreators.anyKey
 
         state.status = 'finished'
         state.data = 'hocus pocus'
-      }
-    }
+      },
+    },
   })
 
   expectType<ActionCreatorWithPayload<string>>(wrappedSlice.actions.success)
@@ -481,17 +481,17 @@ const value = actionCreators.anyKey
       name,
       initialState,
       reducers,
-      extraReducers: builder => {
-        builder.addCase(doNothing, state => {
+      extraReducers: (builder) => {
+        builder.addCase(doNothing, (state) => {
           return { ...state }
         })
         builder.addCase(setData, (state, { payload }) => {
           return {
             ...state,
-            data: payload
+            data: payload,
           }
         })
-      }
+      },
     })
     return { doNothing, setData, slice }
   }

@@ -49,7 +49,7 @@ declare const thunkCreator: () => () => ThunkReturn
   {
     const concatenated = defaultMiddleware.prepend([
       middleware1,
-      middleware2
+      middleware2,
     ] as const)
     const dispatch = getDispatch(concatenated)
     expectType<number>(dispatch('foo'))
@@ -87,7 +87,7 @@ declare const thunkCreator: () => () => ThunkReturn
   {
     const concatenated = defaultMiddleware.concat([
       middleware1,
-      middleware2
+      middleware2,
     ] as const)
     const dispatch = getDispatch(concatenated)
     expectType<number>(dispatch('foo'))

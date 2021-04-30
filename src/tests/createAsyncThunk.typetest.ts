@@ -4,7 +4,7 @@ import {
   createReducer,
   AnyAction,
   unwrapResult,
-  SerializedError
+  SerializedError,
 } from '@reduxjs/toolkit'
 import { ThunkDispatch } from 'redux-thunk'
 
@@ -15,13 +15,13 @@ import { expectType } from './helpers'
 const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
 const anyAction = { type: 'foo' } as AnyAction
 
-  // basic usage
-;(async function() {
+// basic usage
+;(async function () {
   const async = createAsyncThunk('test', (id: number) =>
     Promise.resolve(id * 2)
   )
 
-  const reducer = createReducer({}, builder =>
+  const reducer = createReducer({}, (builder) =>
     builder
       .addCase(async.pending, (_, action) => {
         expectType<ReturnType<typeof async['pending']>>(action)
@@ -56,18 +56,18 @@ const anyAction = { type: 'foo' } as AnyAction
 
   promise
     .then(unwrapResult)
-    .then(result => {
+    .then((result) => {
       expectType<number>(result)
       // @ts-expect-error
       expectType<Error>(result)
     })
-    .catch(error => {
+    .catch((error) => {
       // catch is always any-typed, nothing we can do here
     })
 })()
 
 // More complex usage of thunk args
-;(async function() {
+;(async function () {
   interface BookModel {
     id: string
     title: string
@@ -77,7 +77,7 @@ const anyAction = { type: 'foo' } as AnyAction
 
   const fakeBooks: BookModel[] = [
     { id: 'b', title: 'Second' },
-    { id: 'a', title: 'First' }
+    { id: 'a', title: 'First' },
   ]
 
   const correctDispatch = (() => {}) as ThunkDispatch<
@@ -175,7 +175,7 @@ const anyAction = { type: 'foo' } as AnyAction
     }
   })
 
-  defaultDispatch(fetchLiveCallsError('asd')).then(result => {
+  defaultDispatch(fetchLiveCallsError('asd')).then((result) => {
     if (fetchLiveCallsError.fulfilled.match(result)) {
       //success
       expectType<ReturnType<typeof fetchLiveCallsError['fulfilled']>>(result)
@@ -194,14 +194,14 @@ const anyAction = { type: 'foo' } as AnyAction
       }
     }
     defaultDispatch(fetchLiveCallsError('asd'))
-      .then(result => {
+      .then((result) => {
         expectType<Item[] | ErrorFromServer | undefined>(result.payload)
         // @ts-expect-error
         expectType<Item[]>(unwrapped)
         return result
       })
       .then(unwrapResult)
-      .then(unwrapped => {
+      .then((unwrapped) => {
         expectType<Item[]>(unwrapped)
         // @ts-expect-error
         expectType<ErrorFromServer>(unwrapResult(unwrapped))
@@ -386,7 +386,7 @@ const anyAction = { type: 'foo' } as AnyAction
     void,
     { serializedErrorType: Funky }
   >('with generics', () => {}, {
-    serializeError: funkySerializeError
+    serializeError: funkySerializeError,
   })
 
   if (shouldWork.rejected.match(anyAction)) {
@@ -415,5 +415,7 @@ const anyAction = { type: 'foo' } as AnyAction
   const shouldFailStrArgs = createAsyncThunk('foo', () => {}, { idGenerator: returnsStrWithArgs })
 
   const returnsStrWithoutArgs = () => 'foo'
-  const shouldSucceed = createAsyncThunk('foo', () => {}, { idGenerator: returnsStrWithoutArgs })
+  const shouldSucceed = createAsyncThunk('foo', () => {}, {
+    idGenerator: returnsStrWithoutArgs,
+  })
 }
