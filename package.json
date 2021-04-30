@@ -75,7 +75,7 @@
     "lint": "tsdx lint src",
     "prepare": "npm run build-ci",
     "test": "tsdx test --runInBand",
-    "type-tests": "yarn tsc -p type-tests/files && yarn tsc -p src/query/tests"
+    "type-tests": "yarn tsc -p src/tests && yarn tsc -p src/query/tests"
   },
   "files": [
     "dist/**/*.js",
