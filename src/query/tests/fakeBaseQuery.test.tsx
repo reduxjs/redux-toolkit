@@ -1,5 +1,5 @@
-import { configureStore } from '../../configureStore'
-import { createApi, fakeBaseQuery } from '..'
+import { configureStore } from '@reduxjs/toolkit'
+import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
 
 type CustomErrorType = { type: 'Custom' }
 

@@ -1,5 +1,9 @@
 import * as React from 'react'
-import { createApi, fetchBaseQuery, QueryStatus } from '../react'
+import {
+  createApi,
+  fetchBaseQuery,
+  QueryStatus,
+} from '@reduxjs/toolkit/query/react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { rest } from 'msw'
@@ -14,8 +18,8 @@ import {
 } from './helpers'
 import { server } from './mocks/server'
 import { AnyAction } from 'redux'
-import { SubscriptionOptions } from '../core/apiState'
-import { SerializedError } from '../../createAsyncThunk'
+import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
+import { SerializedError } from '@reduxjs/toolkit'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -1518,6 +1522,7 @@ describe('hooks with createApi defaults set', () => {
     expectExactType(api.useGetPostsQuery)(api.endpoints.getPosts.useQuery)
     // @pre41-ts-ignore
     expectExactType(api.useUpdatePostMutation)(
+      // @pre41-ts-ignore
       api.endpoints.updatePost.useMutation
     )
     // @pre41-ts-ignore

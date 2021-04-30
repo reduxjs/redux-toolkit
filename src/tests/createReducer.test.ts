@@ -1,7 +1,13 @@
-import { createReducer, CaseReducer } from '../createReducer'
-import { PayloadAction, createAction } from '../createAction'
-import { createNextState, Draft } from '..'
-import { Reducer, AnyAction } from 'redux'
+import {
+  createReducer,
+  CaseReducer,
+  PayloadAction,
+  createAction,
+  createNextState,
+  Draft,
+  Reducer,
+  AnyAction,
+} from '@reduxjs/toolkit'
 
 interface Todo {
   text: string

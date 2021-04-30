@@ -1,16 +1,15 @@
-import { Reducer } from 'redux'
 import {
   mockConsole,
   createConsole,
   getLog,
 } from 'console-testing-library/pure'
-import { configureStore } from '../configureStore'
-
 import {
+  Reducer,
+  configureStore,
   createSerializableStateInvariantMiddleware,
   findNonSerializableValue,
   isPlain,
-} from '../serializableStateInvariantMiddleware'
+} from '@reduxjs/toolkit'
 
 // Mocking console
 let restore = () => {}

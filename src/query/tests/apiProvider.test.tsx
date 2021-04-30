@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { createApi, ApiProvider } from '../react'
+import { createApi, ApiProvider } from '@reduxjs/toolkit/query/react'
 import { fireEvent, render, waitFor } from '@testing-library/react'
 import { waitMs } from './helpers'
 

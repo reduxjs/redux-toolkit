@@ -1,6 +1,12 @@
-import { AnyAction, Middleware } from 'redux'
-import { getDefaultMiddleware, MiddlewareArray, configureStore } from '..'
-import thunk, { ThunkAction } from 'redux-thunk'
+import {
+  AnyAction,
+  Middleware,
+  getDefaultMiddleware,
+  MiddlewareArray,
+  configureStore,
+  ThunkAction,
+} from '@reduxjs/toolkit'
+import thunk from 'redux-thunk'
 
 describe('getDefaultMiddleware', () => {
   const ORIGINAL_NODE_ENV = process.env.NODE_ENV
@@ -12,7 +18,7 @@ describe('getDefaultMiddleware', () => {
   it('returns an array with only redux-thunk in production', () => {
     process.env.NODE_ENV = 'production'
 
-    expect(getDefaultMiddleware()).toEqual([thunk])
+    expect(getDefaultMiddleware()).toEqual([thunk]) // @remap-prod-remove-line
   })
 
   it('returns an array with additional middleware in development', () => {

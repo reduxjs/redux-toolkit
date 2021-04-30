@@ -1,5 +1,5 @@
-import { configureStore } from '../../' // '@reduxjs/toolkit'
-import { createApi } from '../react'
+import { configureStore } from '@reduxjs/toolkit'
+import { createApi } from '@reduxjs/toolkit/query/react'
 
 import { renderHook } from '@testing-library/react-hooks'
 import { withProvider } from './helpers'

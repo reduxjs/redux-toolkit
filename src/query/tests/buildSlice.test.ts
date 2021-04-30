@@ -1,5 +1,5 @@
-import { createSlice } from '../..'
-import { createApi } from '../react'
+import { createSlice } from '@reduxjs/toolkit'
+import { createApi } from '@reduxjs/toolkit/query'
 import { setupApiStore } from './helpers'
 
 const baseQuery = (args?: any) => ({ data: args })

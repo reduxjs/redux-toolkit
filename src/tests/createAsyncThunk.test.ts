@@ -1,10 +1,10 @@
 import {
   createAsyncThunk,
-  miniSerializeError,
   unwrapResult,
-} from '../createAsyncThunk'
-import { configureStore } from '../configureStore'
-import { AnyAction } from 'redux'
+  configureStore,
+  AnyAction,
+} from '@reduxjs/toolkit'
+import { miniSerializeError } from '@internal/createAsyncThunk'
 
 import {
   mockConsole,

@@ -1,5 +1,10 @@
-import { configureStore } from '../../'
-import { BaseQueryFn, createApi, fetchBaseQuery, FetchBaseQueryError } from '..'
+import { configureStore } from '@reduxjs/toolkit'
+import {
+  BaseQueryFn,
+  createApi,
+  fetchBaseQuery,
+  FetchBaseQueryError,
+} from '@reduxjs/toolkit/query'
 import { Post, posts } from './mocks/server'
 import { actionsReducer, setupApiStore } from './helpers'
 

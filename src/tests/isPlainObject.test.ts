@@ -1,4 +1,4 @@
-import isPlainObject from '../isPlainObject'
+import { isPlainObject } from '@reduxjs/toolkit'
 import vm from 'vm'
 
 describe('isPlainObject', () => {

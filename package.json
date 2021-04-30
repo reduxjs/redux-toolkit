@@ -64,7 +64,6 @@
     "tsdx": "^0.14.1",
     "tslib": "^1.10.0",
     "typescript": "^4.2.3",
-    "typings-tester": "^0.3.2",
     "yargs": "^15.3.1"
   },
   "scripts": {
@@ -76,7 +75,7 @@
     "lint": "tsdx lint src",
     "prepare": "npm run build-ci",
     "test": "tsdx test --runInBand",
-    "type-tests": "cd type-tests/files && tsc"
+    "type-tests": "yarn tsc -p src/tests && yarn tsc -p src/query/tests"
   },
   "files": [
     "dist/**/*.js",

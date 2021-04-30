@@ -1,10 +1,13 @@
-import { Store, MiddlewareAPI, Dispatch } from 'redux'
 import {
+  Store,
+  MiddlewareAPI,
+  Dispatch,
   createImmutableStateInvariantMiddleware,
   isImmutableDefault,
-  trackForMutations,
   ImmutableStateInvariantMiddlewareOptions,
-} from '../immutableStateInvariantMiddleware'
+} from '@reduxjs/toolkit'
+
+import { trackForMutations } from '@internal/immutableStateInvariantMiddleware'
 import { mockConsole, createConsole, getLog } from 'console-testing-library'
 
 describe('createImmutableStateInvariantMiddleware', () => {

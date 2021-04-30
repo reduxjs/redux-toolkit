@@ -322,7 +322,7 @@ async function main({ skipExtraction = false, local = false }: BuildArgs) {
   // We need one additional package.json file in dist to support
   // versioned types for TS <4.1
   fs.copyFileSync(
-    'src/query/react/versionedTypes/package.json',
+    'src/query/react/versionedTypes/package.dist.json',
     'dist/query/react/versionedTypes/package.json'
   )
 

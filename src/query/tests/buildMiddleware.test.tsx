@@ -1,4 +1,4 @@
-import { createApi } from '../react'
+import { createApi } from '@reduxjs/toolkit/query'
 import { actionsReducer, matchSequence, setupApiStore, waitMs } from './helpers'
 
 const baseQuery = (args?: any) => ({ data: args })

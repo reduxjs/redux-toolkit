@@ -1,5 +1,5 @@
-import { createSlice } from '../../'
-import { createApi, fetchBaseQuery } from '..'
+import { createSlice } from '@reduxjs/toolkit'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { setupApiStore } from './helpers'
 import { default as crossFetch } from 'cross-fetch'
 

@@ -12,7 +12,7 @@ import { capitalize } from '../utils'
 import { safeAssign } from '../tsHelpers'
 import { BaseQueryFn } from '../baseQueryTypes'
 
-import { HooksWithUniqueNames } from './versionedTypes/index'
+import { HooksWithUniqueNames } from './versionedTypes'
 
 import {
   useDispatch as rrUseDispatch,

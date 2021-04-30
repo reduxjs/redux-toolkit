@@ -56,6 +56,9 @@ export type BaseQueryFn<Args = any, Result = unknown, Error = unknown, Definitio
 // @public
 export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(...modules: Modules): CreateApi<Modules[number]['name']>;
 
+// @public (undocumented)
+export function copyWithStructuralSharing<T>(oldObj: any, newObj: T): T;
+
 // @public
 export const coreModule: () => Module<CoreModule>;
 

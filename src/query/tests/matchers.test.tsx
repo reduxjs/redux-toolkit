@@ -1,5 +1,5 @@
-import { createSlice, SerializedError } from '../../'
-import { createApi, fetchBaseQuery } from '../react'
+import { createSlice, SerializedError } from '@reduxjs/toolkit'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { renderHook, act } from '@testing-library/react-hooks'
 import {
   actionsReducer,
