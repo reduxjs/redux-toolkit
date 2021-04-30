@@ -240,7 +240,7 @@ export const coreModule = (): Module<CoreModule> => ({
     },
     context
   ) {
-    assertCast<InternalSerializeQueryArgs<any>>(serializeQueryArgs)
+    assertCast<InternalSerializeQueryArgs>(serializeQueryArgs)
 
     const assertTagType: AssertTagTypes = (tag) => {
       if (

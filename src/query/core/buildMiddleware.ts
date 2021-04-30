@@ -52,8 +52,8 @@ export function buildMiddleware<
 }: {
   reducerPath: ReducerPath
   context: ApiContext<Definitions>
-  queryThunk: AsyncThunk<ThunkResult, QueryThunkArg<any>, {}>
-  mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg<any>, {}>
+  queryThunk: AsyncThunk<ThunkResult, QueryThunkArg, {}>
+  mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg, {}>
   api: Api<any, EndpointDefinitions, ReducerPath, TagTypes>
   assertTagType: AssertTagTypes
 }) {
@@ -167,7 +167,7 @@ export function buildMiddleware<
       { status: QueryStatus.uninitialized }
     >,
     queryCacheKey: string,
-    override: Partial<QueryThunkArg<any>> = {}
+    override: Partial<QueryThunkArg> = {}
   ) {
     return queryThunk({
       endpointName: querySubState.endpointName,

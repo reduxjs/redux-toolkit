@@ -84,14 +84,13 @@ const defaultMutationSubState = createNextState(
 )
 
 export function buildSelectors<
-  InternalQueryArgs,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string
 >({
   serializeQueryArgs,
   reducerPath,
 }: {
-  serializeQueryArgs: InternalSerializeQueryArgs<InternalQueryArgs>
+  serializeQueryArgs: InternalSerializeQueryArgs
   reducerPath: ReducerPath
 }) {
   type RootState = _RootState<Definitions, string, string>

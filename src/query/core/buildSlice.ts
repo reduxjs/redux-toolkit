@@ -78,8 +78,8 @@ export function buildSlice({
   config,
 }: {
   reducerPath: string
-  queryThunk: AsyncThunk<ThunkResult, QueryThunkArg<any>, {}>
-  mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg<any>, {}>
+  queryThunk: AsyncThunk<ThunkResult, QueryThunkArg, {}>
+  mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg, {}>
   context: ApiContext<EndpointDefinitions>
   assertTagType: AssertTagTypes
   config: Omit<ConfigState<string>, 'online' | 'focused'>

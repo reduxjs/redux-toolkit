@@ -108,7 +108,7 @@ export interface Matchers<
   matchRejected: Matcher<RejectedAction<Thunk, Definition>>
 }
 
-export interface QueryThunkArg<_InternalQueryArgs>
+export interface QueryThunkArg
   extends QuerySubstateIdentifier,
     StartQueryActionCreatorOptions {
   originalArgs: unknown
@@ -116,7 +116,7 @@ export interface QueryThunkArg<_InternalQueryArgs>
   startedTimeStamp: number
 }
 
-export interface MutationThunkArg<_InternalQueryArgs> {
+export interface MutationThunkArg {
   originalArgs: unknown
   endpointName: string
   track?: boolean
@@ -128,8 +128,8 @@ export interface ThunkResult {
   result: unknown
 }
 
-export type QueryThunk = AsyncThunk<ThunkResult, QueryThunkArg<any>, {}>
-export type MutationThunk = AsyncThunk<ThunkResult, MutationThunkArg<any>, {}>
+export type QueryThunk = AsyncThunk<ThunkResult, QueryThunkArg, {}>
+export type MutationThunk = AsyncThunk<ThunkResult, MutationThunkArg, {}>
 
 function defaultTransformResponse(baseQueryReturnValue: unknown) {
   return baseQueryReturnValue
@@ -172,10 +172,9 @@ export function buildThunks<
   baseQuery: BaseQuery
   reducerPath: ReducerPath
   context: ApiContext<Definitions>
-  serializeQueryArgs: InternalSerializeQueryArgs<BaseQueryArg<BaseQuery>>
+  serializeQueryArgs: InternalSerializeQueryArgs
   api: Api<BaseQuery, EndpointDefinitions, ReducerPath, any>
 }) {
-  type InternalQueryArgs = BaseQueryArg<BaseQuery>
   type State = RootState<any, string, ReducerPath>
 
   const patchQueryResult: PatchQueryResultThunk<EndpointDefinitions, State> = (
@@ -236,7 +235,7 @@ export function buildThunks<
 
   const executeEndpoint: AsyncThunkPayloadCreator<
     ThunkResult,
-    QueryThunkArg<InternalQueryArgs> | MutationThunkArg<InternalQueryArgs>,
+    QueryThunkArg | MutationThunkArg,
     { state: RootState<any, string, ReducerPath> }
   > = async (arg, { signal, rejectWithValue, ...api }) => {
     const endpointDefinition = endpointDefinitions[arg.endpointName]
@@ -311,7 +310,7 @@ export function buildThunks<
 
   const queryThunk = createAsyncThunk<
     ThunkResult,
-    QueryThunkArg<InternalQueryArgs>,
+    QueryThunkArg,
     { state: RootState<any, string, ReducerPath> }
   >(`${reducerPath}/executeQuery`, executeEndpoint, {
     condition(arg, { getState }) {
@@ -346,7 +345,7 @@ export function buildThunks<
 
   const mutationThunk = createAsyncThunk<
     ThunkResult,
-    MutationThunkArg<InternalQueryArgs>,
+    MutationThunkArg,
     { state: RootState<any, string, ReducerPath> }
   >(`${reducerPath}/executeMutation`, executeEndpoint)
 
@@ -404,8 +403,8 @@ export function buildThunks<
 
   function buildMatchThunkActions<
     Thunk extends
-      | AsyncThunk<any, QueryThunkArg<any>, any>
-      | AsyncThunk<any, MutationThunkArg<any>, any>
+      | AsyncThunk<any, QueryThunkArg, any>
+      | AsyncThunk<any, MutationThunkArg, any>
   >(thunk: Thunk, endpointName: string) {
     return {
       matchPending: isAllOf(isPending(thunk), matchesEndpoint(endpointName)),

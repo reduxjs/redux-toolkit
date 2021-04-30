@@ -179,15 +179,15 @@ export type MutationActionCreatorResult<
   unsubscribe(): void
 }
 
-export function buildInitiate<InternalQueryArgs>({
+export function buildInitiate({
   serializeQueryArgs,
   queryThunk,
   mutationThunk,
   api,
 }: {
-  serializeQueryArgs: InternalSerializeQueryArgs<InternalQueryArgs>
-  queryThunk: AsyncThunk<any, QueryThunkArg<any>, {}>
-  mutationThunk: AsyncThunk<any, MutationThunkArg<any>, {}>
+  serializeQueryArgs: InternalSerializeQueryArgs
+  queryThunk: AsyncThunk<any, QueryThunkArg, {}>
+  mutationThunk: AsyncThunk<any, MutationThunkArg, {}>
   api: Api<any, EndpointDefinitions, any, any>
 }) {
   const {
