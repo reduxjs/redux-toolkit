@@ -385,6 +385,8 @@ export function isRejectedWithValue(action: any): action is UnknownAsyncThunkRej
 // @public (undocumented)
 export class MiddlewareArray<Middlewares extends Middleware<any, any>> extends Array<Middlewares> {
     // (undocumented)
+    static get [Symbol.species](): any;
+    // (undocumented)
     concat<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(items: AdditionalMiddlewares): MiddlewareArray<Middlewares | AdditionalMiddlewares[number]>;
     // (undocumented)
     concat<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(...items: AdditionalMiddlewares): MiddlewareArray<Middlewares | AdditionalMiddlewares[number]>;
