@@ -125,7 +125,7 @@ interface UseQuerySubscriptionOptions extends SubscriptionOptions {
 }
 
 /**
- * A React hook that automatically triggers a request for a given endpoint, and 'subscribes' the component to the cached data.
+ * A React hook that automatically triggers fetches of data from an endpoint, and 'subscribes' the component to the cached data.
  *
  * The query arg is used as a cache key. Changing the query arg will tell the hook to re-fetch the data if it does not exist in the cache already.
  *

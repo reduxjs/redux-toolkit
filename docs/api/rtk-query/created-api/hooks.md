@@ -482,7 +482,7 @@ type UsePrefetch = (
 type UsePrefetchOptions =
   | {
       // If specified, only runs the query if the difference between `new Date()` and the last
-      // `fulfilledTimeStamp` is greater than the given value
+      // `fulfilledTimeStamp` is greater than the given value (in seconds)
       ifOlderThan?: false | number
     }
   | {
