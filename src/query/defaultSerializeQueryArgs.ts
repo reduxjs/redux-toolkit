@@ -1,14 +1,21 @@
 import { QueryCacheKey } from './core/apiState'
 import { EndpointDefinition } from './endpointDefinitions'
+import { isPlainObject } from '@reduxjs/toolkit'
 
 export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
   endpointName,
   queryArgs,
 }) => {
   // Sort the object keys before stringifying, to prevent useQuery({ a: 1, b: 2 }) having a different cache key than useQuery({ b: 2, a: 1 })
-  return `${endpointName}(${JSON.stringify(
-    queryArgs,
-    Object.keys(queryArgs || {}).sort()
+  return `${endpointName}(${JSON.stringify(queryArgs, (key, value) =>
+    isPlainObject(value)
+      ? Object.keys(value)
+          .sort()
+          .reduce<any>((acc, key) => {
+            acc[key] = (value as any)[key]
+            return acc
+          }, {})
+      : value
   )})`
 }
 
