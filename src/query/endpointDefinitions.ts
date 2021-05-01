@@ -17,6 +17,7 @@ import {
   CastAny,
 } from './tsHelpers'
 import { NEVER } from './fakeBaseQuery'
+import { OptionalPromise } from './utils/toOptionalPromise'
 
 const resultType = Symbol()
 const baseQuery = Symbol()
@@ -55,6 +56,11 @@ interface EndpointDefinitionWithQueryFn<
   transformResponse?: never
 }
 
+export type LifecycleApi = {
+  dispatch: ThunkDispatch<any, any, any>
+  getState: () => unknown
+}
+
 export type BaseEndpointDefinition<
   QueryArg,
   BaseQuery extends BaseQueryFn,
@@ -69,6 +75,30 @@ export type BaseEndpointDefinition<
   [resultType]?: ResultType
   /* phantom type */
   [baseQuery]?: BaseQuery
+  onCacheEntryAdded?(
+    arg: QueryArg,
+    api: LifecycleApi,
+    promises: {
+      /**
+       * Promise that will resolve with the first value for this cache key.
+       * This allows you to `await` until an actual value is in cache.
+       *
+       * If the cache entry is removed from the cache before any value has ever
+       * been resolved, this Promise will reject with
+       * `new Error('Promise never resolved before cleanup.')`
+       * to prevent memory leaks.
+       * You can just re-throw that error (or not handle it at all) -
+       * it will be caught outside of `cacheEntryAdded`.
+       */
+      firstValueResolved: OptionalPromise<ResultType>
+      /**
+       * Promise that allows you to wait for the point in time when the cache entry
+       * has been removed from the cache, by not being used/subscribed to any more
+       * in the application for too long or by dispatching `api.util.resetApiState`.
+       */
+      cleanup: Promise<void>
+    }
+  ): Promise<void> | void
 } & HasRequiredProps<
     BaseQueryExtraOptions<BaseQuery>,
     { extraOptions: BaseQueryExtraOptions<BaseQuery> },

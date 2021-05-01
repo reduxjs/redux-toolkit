@@ -18,6 +18,7 @@ import { build as buildInvalidationByTags } from './invalidationByTags'
 import { build as buildPolling } from './polling'
 import { BuildMiddlewareInput } from './types'
 import { build as buildWindowEventHandling } from './windowEventHandling'
+import { build as buildCacheLifecycle } from './cacheLifecycle'
 
 export function buildMiddleware<
   Definitions extends EndpointDefinitions,
@@ -36,6 +37,7 @@ export function buildMiddleware<
     buildInvalidationByTags,
     buildPolling,
     buildWindowEventHandling,
+    buildCacheLifecycle,
   ].map((build) =>
     build({
       ...((input as any) as BuildMiddlewareInput<
