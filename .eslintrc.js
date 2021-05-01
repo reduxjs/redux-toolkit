@@ -13,7 +13,8 @@ module.exports = {
     // Silence some bizarre "rule not found" TSLint error
     '@typescript-eslint/no-angle-bracket-type-assertion': 'off',
     'no-redeclare': 'off',
-    '@typescript-eslint/no-redeclare': ['error'],
+    // Silence some bizarre "rule not found" TSLint error
+    '@typescript-eslint/no-redeclare': 'off',
     'no-use-before-define': 'off',
     '@typescript-eslint/no-use-before-define': ['error', { functions: false }],
   },
