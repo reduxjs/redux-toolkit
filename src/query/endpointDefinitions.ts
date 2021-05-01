@@ -99,6 +99,20 @@ export type BaseEndpointDefinition<
       cleanup: Promise<void>
     }
   ): Promise<void> | void
+  onQuery?(
+    arg: QueryArg,
+    api: LifecycleApi,
+    promises: {
+      /**
+       * Promise that will resolve with the (transformed) query result.
+       
+       * If the query fails, this promise will reject with the error.
+       *
+       * This allows you to `await` for the query to finish.
+       */
+      resultPromise: OptionalPromise<ResultType>
+    }
+  ): Promise<void> | void
 } & HasRequiredProps<
     BaseQueryExtraOptions<BaseQuery>,
     { extraOptions: BaseQueryExtraOptions<BaseQuery> },

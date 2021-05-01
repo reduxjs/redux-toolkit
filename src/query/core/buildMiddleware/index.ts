@@ -19,6 +19,7 @@ import { build as buildPolling } from './polling'
 import { BuildMiddlewareInput } from './types'
 import { build as buildWindowEventHandling } from './windowEventHandling'
 import { build as buildCacheLifecycle } from './cacheLifecycle'
+import { build as buildQueryLifecycle } from './queryLifecycle'
 
 export function buildMiddleware<
   Definitions extends EndpointDefinitions,
@@ -38,6 +39,7 @@ export function buildMiddleware<
     buildPolling,
     buildWindowEventHandling,
     buildCacheLifecycle,
+    buildQueryLifecycle,
   ].map((build) =>
     build({
       ...((input as any) as BuildMiddlewareInput<
