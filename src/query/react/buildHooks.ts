@@ -143,18 +143,7 @@ export type UseLazyQuerySubscription<
 export type QueryStateSelector<
   R extends Record<string, any>,
   D extends QueryDefinition<any, any, any, any>
-> = (
-  state: QueryResultSelectorResult<D>,
-  lastResult: R | undefined,
-  defaultQueryStateSelector: DefaultQueryStateSelector<D>
-) => R
-
-export type DefaultQueryStateSelector<
-  D extends QueryDefinition<any, any, any, any>
-> = (
-  state: QueryResultSelectorResult<D>,
-  lastResult: Pick<UseQueryStateDefaultResult<D>, 'data'>
-) => UseQueryStateDefaultResult<D>
+> = (state: UseQueryStateDefaultResult<D>) => R
 
 export type UseQueryState<D extends QueryDefinition<any, any, any, any>> = <
   R = UseQueryStateDefaultResult<D>
@@ -295,14 +284,7 @@ type UseQueryStateDefaultResult<
 export type MutationStateSelector<
   R extends Record<string, any>,
   D extends MutationDefinition<any, any, any, any>
-> = (
-  state: MutationResultSelectorResult<D>,
-  defaultMutationStateSelector: DefaultMutationStateSelector<D>
-) => R
-
-export type DefaultMutationStateSelector<
-  D extends MutationDefinition<any, any, any, any>
-> = (state: MutationResultSelectorResult<D>) => MutationResultSelectorResult<D>
+> = (state: MutationResultSelectorResult<D>) => R
 
 export type UseMutationStateOptions<
   D extends MutationDefinition<any, any, any, any>,
@@ -325,14 +307,13 @@ export type UseMutation<D extends MutationDefinition<any, any, any, any>> = <
   UseMutationStateResult<D, R>
 ]
 
-const defaultMutationStateSelector: DefaultMutationStateSelector<any> = (
-  currentState
-) => currentState
+const defaultQueryStateSelector: QueryStateSelector<any, any> = (x) => x
+const defaultMutationStateSelector: MutationStateSelector<any, any> = (x) => x
 
-const defaultQueryStateSelector: DefaultQueryStateSelector<any> = (
-  currentState,
-  lastResult
-) => {
+const queryStatePreSelector = (
+  currentState: QueryResultSelectorResult<any>,
+  lastResult: UseQueryStateDefaultResult<any>
+): UseQueryStateDefaultResult<any> => {
   // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
   const data =
     (currentState.isSuccess ? currentState.data : lastResult?.data) ??
@@ -360,11 +341,9 @@ const defaultQueryStateSelector: DefaultQueryStateSelector<any> = (
  * `{ isUninitialized: false, isFetching: true, isLoading: true }`
  * to prevent that the library user has to do an additional check for `isUninitialized`/
  */
-const noPendingQueryStateSelector: DefaultQueryStateSelector<any> = (
-  currentState,
-  lastResult
+const noPendingQueryStateSelector: QueryStateSelector<any, any> = (
+  selected
 ) => {
-  const selected = defaultQueryStateSelector(currentState, lastResult)
   if (selected.isUninitialized) {
     return {
       ...selected,
@@ -372,7 +351,7 @@ const noPendingQueryStateSelector: DefaultQueryStateSelector<any> = (
       isFetching: true,
       isLoading: true,
       status: QueryStatus.pending,
-    }
+    } as any
   }
   return selected
 }
@@ -382,6 +361,12 @@ type GenericPrefetchThunk = (
   arg: any,
   options: PrefetchOptions
 ) => ThunkAction<void, any, any, AnyAction>
+
+const FULL_RESULT = '___FULL_RESULT___'
+const withoutFullResult = <T extends { [FULL_RESULT]: any }>({
+  [FULL_RESULT]: _,
+  ...result
+}: T) => result
 
 /**
  *
@@ -562,13 +547,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
     const useQueryState: UseQueryState<any> = (
       arg: any,
-      {
-        skip = false,
-        selectFromResult = defaultQueryStateSelector as QueryStateSelector<
-          any,
-          any
-        >,
-      } = {}
+      { skip = false, selectFromResult = defaultQueryStateSelector } = {}
     ) => {
       const { select } = api.endpoints[name] as ApiEndpointQuery<
         QueryDefinition<any, any, any, any, any>,
@@ -585,8 +564,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
               select(skip ? skipSelector : stableArg),
               (_: any, lastResult: any) => lastResult,
             ],
-            (subState, lastResult) =>
-              selectFromResult(subState, lastResult, defaultQueryStateSelector)
+            (subState, lastResult) => {
+              const defaultResult = queryStatePreSelector(subState, lastResult)
+              const selectedResult = selectFromResult(defaultResult)
+              return { ...selectedResult, [FULL_RESULT]: defaultResult }
+            }
           ),
         [select, skip, stableArg, selectFromResult]
       )
@@ -594,14 +576,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const currentState = useSelector(
         (state: RootState<Definitions, any, any>) =>
           querySelector(state, lastValue.current),
-        shallowEqual
+        (a, b) => shallowEqual(withoutFullResult(a), withoutFullResult(b))
       )
 
       useEffect(() => {
-        lastValue.current = currentState
+        lastValue.current = currentState[FULL_RESULT]
       }, [currentState])
 
-      return currentState
+      return useMemo<any>(() => withoutFullResult(currentState), [currentState])
     }
 
     return {
@@ -627,7 +609,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         const queryStateResults = useQueryState(arg, {
           selectFromResult: options?.skip
             ? undefined
-            : (noPendingQueryStateSelector as QueryStateSelector<any, any>),
+            : noPendingQueryStateSelector,
           ...options,
         })
         return useMemo(
@@ -639,12 +621,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   }
 
   function buildMutationHook(name: string): UseMutation<any> {
-    return ({
-      selectFromResult = defaultMutationStateSelector as MutationStateSelector<
-        any,
-        any
-      >,
-    } = {}) => {
+    return ({ selectFromResult = defaultMutationStateSelector } = {}) => {
       const { select, initiate } = api.endpoints[name] as ApiEndpointMutation<
         MutationDefinition<any, any, any, any, any>,
         Definitions
@@ -678,7 +655,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const mutationSelector = useMemo(
         () =>
           createSelector([select(requestId || skipSelector)], (subState) =>
-            selectFromResult(subState, defaultMutationStateSelector)
+            selectFromResult(subState)
           ),
         [select, requestId, selectFromResult]
       )
