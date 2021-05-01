@@ -40,6 +40,7 @@ import {
 import { ReactHooksModuleOptions } from './module'
 import { useShallowStableValue } from './useShallowStableValue'
 import { UninitializedValue, UNINITIALIZED_VALUE } from '../constants'
+import { useStore } from 'react-redux'
 
 export interface QueryHooks<
   Definition extends QueryDefinition<any, any, any, any, any>
@@ -362,12 +363,6 @@ type GenericPrefetchThunk = (
   options: PrefetchOptions
 ) => ThunkAction<void, any, any, AnyAction>
 
-const FULL_RESULT = '___FULL_RESULT___'
-const withoutFullResult = <T extends { [FULL_RESULT]: any }>({
-  [FULL_RESULT]: _,
-  ...result
-}: T) => result
-
 /**
  *
  * @param opts.api - An API with defined endpoints to create hooks for
@@ -557,33 +552,38 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       const lastValue = useRef<any>()
 
-      const querySelector = useMemo(
+      const selectDefaultResult = useMemo(
         () =>
           createSelector(
             [
               select(skip ? skipSelector : stableArg),
               (_: any, lastResult: any) => lastResult,
             ],
-            (subState, lastResult) => {
-              const defaultResult = queryStatePreSelector(subState, lastResult)
-              const selectedResult = selectFromResult(defaultResult)
-              return { ...selectedResult, [FULL_RESULT]: defaultResult }
-            }
+            queryStatePreSelector
           ),
-        [select, skip, stableArg, selectFromResult]
+        [select, skip, stableArg]
+      )
+
+      const querySelector = useMemo(
+        () => createSelector([selectDefaultResult], selectFromResult),
+        [selectDefaultResult, selectFromResult]
       )
 
       const currentState = useSelector(
         (state: RootState<Definitions, any, any>) =>
           querySelector(state, lastValue.current),
-        (a, b) => shallowEqual(withoutFullResult(a), withoutFullResult(b))
+        shallowEqual
       )
 
+      const store = useStore()
       useEffect(() => {
-        lastValue.current = currentState[FULL_RESULT]
-      }, [currentState])
+        lastValue.current = selectDefaultResult(
+          store.getState(),
+          lastValue.current
+        )
+      })
 
-      return useMemo<any>(() => withoutFullResult(currentState), [currentState])
+      return currentState
     }
 
     return {
