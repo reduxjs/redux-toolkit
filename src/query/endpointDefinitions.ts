@@ -139,10 +139,13 @@ interface QueryExtraOptions<
   type: DefinitionType.query
   /**
    * - Used by `queries` to provide tags to the cache.
-   * - Expects an array of tag type strings, or an array of objects of tag types with ids.
+   * - Expects an array of tag type strings, an array of objects of tag types with ids, or a function that returns such an array.
    *   1.  `['Post']` - equivalent to `b`
    *   2.  `[{ type: 'Post' }]` - equivalent to `a`
    *   3.  `[{ type: 'Post', id: 1 }]`
+   *   4.  `(result, error, arg) => ['Post']` - equivalent to `e`
+   *   5.  `(result, error, arg) => [{ type: 'Post' }]` - equivalent to `d`
+   *   6.  `(result, error, arg) => [{ type: 'Post', id: 1 }]`
    */
   providesTags?: ResultDescription<
     TagTypes,
@@ -248,7 +251,7 @@ interface MutationExtraOptions<
   type: DefinitionType.mutation
   /**
    * - Used by `mutations` for [cache invalidation](../../usage/rtk-query/mutations.mdx#advanced-mutations-with-revalidation) purposes.
-   * - Expects the same shapes as `provides`.
+   * - Expects the same shapes as `providesTags`.
    */
   invalidatesTags?: ResultDescription<
     TagTypes,
