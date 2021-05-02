@@ -997,7 +997,7 @@ export const usersAdapter = createEntityAdapter({
 `createEntityAdapter` provides a `sortComparer` argument that you can leverage to sort the collection of `ids` in state. This can be very useful for when you want to guarantee a sort order and your data doesn't come presorted.
 
 ```js
-// In this instance, our user data always has a primary key of `id`
+// In this instance, our user data always has a primary key of `id`, so we do not need to provide `selectId`.
 const userData = {
   users: [
     { id: 1, first_name: 'Test' },
