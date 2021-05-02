@@ -256,11 +256,209 @@ const api = createApi({
 })
 ```
 
-For the example above, rather than invalidating any tag with the type `'Post'`, calling the `editPost` mutation function will now only invalidate a tag for the provided `id`. I.e. if an endpoint does not provide a `'Post'` for that same `id`, it will not be considered as no longer 'valid', and will not automatically re-fetch.
+For the example above, rather than invalidating any tag with the type `'Post'`, calling the `editPost` mutation function will now only invalidate a tag for the provided `id`. I.e. if an endpoint does not provide a `'Post'` for that same `id`, it will remain considered as 'valid', and will not be triggered to automatically re-fetch.
 
 :::tip Using abstract tag IDs
 In order to provide stronger control over invalidating the appropriate data, you can use an arbitrary ID such a `'LIST'` for a given tag. See [Using abstract tag IDs](#using-abstract-tag-ids) for additional details.
 :::
+
+#### Invalidation behaviour
+
+The matrix below shows examples of which invalidated tags will affect and invalidate which provided tags:
+
+<table>
+  <thead>
+    <tr>
+      <th class="diagonal-cell">
+        <div class="diagonal-cell--content">
+          <div class="diagonal-cell--topRight">Provided</div>
+          <div class="diagonal-cell--bottomLeft">Invalidated</div>
+        </div>
+      </th>
+      <th>
+        <div>General tag A</div>
+        <div style={{ fontWeight: 'normal' }} >
+          {"['Post']"}<br />{"/"}<br />{"[{ type: 'Post' }]"}
+        </div>
+      </th>
+      <th>
+        <div>General tag B</div>
+        <div style={{ fontWeight: 'normal' }}>
+          {"['User']"}<br />{"/"}<br />{"[{ type: 'User' }]"}
+        </div>
+      </th>
+      <th>
+        <div>Specific tag A1</div>
+        <div style={{ fontWeight: 'normal' }}>
+          {"[{ type: 'Post', id: 1 }]"}
+        </div>
+      </th>
+      <th>
+        <div>Specific tag A2</div>
+        <div style={{ fontWeight: 'normal' }}>
+          {"[{ type: 'Post', id: 2 }]"}
+        </div>
+      </th>
+      <th>
+        <div>Specific tag B1</div>
+        <div style={{ fontWeight: 'normal' }}>
+          {"[{ type: 'User', id: 1 }]"}
+        </div>
+      </th>
+      <th>
+        <div>Specific tag B2</div>
+        <div style={{ fontWeight: 'normal' }}>
+          {"[{ type: 'User', id: 2 }]"}
+        </div>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <div style={{ fontWeight: 'bold' }}>General tag A</div>
+        <div>{"['Post'] / [{ type: 'Post' }]"}</div>
+      </td>
+      <td>✔️</td>
+      <td></td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>
+        <div style={{ fontWeight: 'bold' }}>General tag B</div>
+        <div>{"['User'] /"}<br />{"[{ type: 'User' }]"}</div>
+      </td>
+      <td></td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+      <td>✔️</td>
+      <td>✔️</td>
+    </tr>
+    <tr>
+      <td>
+        <div style={{ fontWeight: 'bold' }}>Specific tag A1</div>
+        <div>{"[{ type: 'Post', id: 1 }]"}</div>
+      </td>
+      <td>✔️</td>
+      <td></td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>
+        <div style={{ fontWeight: 'bold' }}>Specific tag A2</div>
+        <div>{"[{ type: 'Post', id: 2 }]"}</div>
+      </td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>
+        <div style={{ fontWeight: 'bold' }}>Specific tag B1</div>
+        <div>{"[{ type: 'User', id: 1 }]"}</div>
+      </td>
+      <td></td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+      <td>✔️</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>
+        <div style={{ fontWeight: 'bold' }}>Specific tag B2</div>
+        <div>{"[{ type: 'User', id: 2 }]"}</div>
+      </td>
+      <td></td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>✔️</td>
+    </tr>
+  </tbody>
+</table>
+
+The invalidation behaviour can be summarized like so:
+
+**General tag**
+
+e.g. `['Post'] / [{ type: 'Post' }]`
+
+Will `invalidate` any `provided` tag with the matching type, including general and specific tags.
+
+Example:  
+If a general tag of `Post` was invalidated, the following `provided` tags would all be invalidated:
+
+- `['Post']`
+- `[{ type: 'Post' }]`
+- `[{ type: 'Post' }, { type: 'Post', id: 1 }]`
+- `[{ type: 'Post', id: 1 }]`
+- `[{ type: 'Post', id: 1 }, { type: 'User' }]`
+- `[{ type: 'Post', id: 'LIST' }]`
+- `[{ type: 'Post', id: 1 }, { type: 'Post', id: 'LIST' }]`
+
+The following `provided` tags would _not_ be invalidated:
+
+- `['User']`
+- `[{ type: 'User' }]`
+- `[{ type: 'User', id: 1 }]`
+- `[{ type: 'User', id: 'LIST' }]`
+- `[{ type: 'User', id: 1 }, { type: 'User', id: 'LIST' }]`
+
+**Specific tag**
+
+e.g. `[{ type: 'Post', id: 1 }]`
+
+Will `invalidate` any `provided` tag with both the matching type, _and_ matching id. Will not invalidate a `general` tag, but _might_ invalidate data for an endpoint that provides a `general` tag _if_ it also provides a matching `specific` tag.
+
+Example 1:
+If a specific tag of `{ type: 'Post', id: 1 }` was invalidated, the following `provided` tags would all be invalidated:
+
+- `[{ type: 'Post' }, { type: 'Post', id: 1 }]`
+- `[{ type: 'Post', id: 1 }]`
+- `[{ type: 'Post', id: 1 }, { type: 'User' }]`
+- `[{ type: 'Post', id: 1 }, { type: 'Post', id: 'LIST' }]`
+
+The following `provided` tags would _not_ be invalidated:
+
+- `['Post']`
+- `[{ type: 'Post' }]`
+- `[{ type: 'Post', id: 'LIST' }]`
+- `['User']`
+- `[{ type: 'User' }]`
+- `[{ type: 'User', id: 1 }]`
+- `[{ type: 'User', id: 'LIST' }]`
+- `[{ type: 'User', id: 1 }, { type: 'User', id: 'LIST' }]`
+
+Example 2:
+If a specific tag of `{ type: 'Post', id: 'LIST' }` was invalidated, the following `provided` tags would all be invalidated:
+
+- `[{ type: 'Post', id: 'LIST' }]`
+- `[{ type: 'Post', id: 1 }, { type: 'Post', id: 'LIST' }]`
+
+The following `provided` tags would _not_ be invalidated:
+
+- `['Post']`
+- `[{ type: 'Post' }]`
+- `[{ type: 'Post' }, { type: 'Post', id: 1 }]`
+- `[{ type: 'Post', id: 1 }]`
+- `[{ type: 'Post', id: 1 }, { type: 'User' }]`
+- `['User']`
+- `[{ type: 'User' }]`
+- `[{ type: 'User', id: 1 }]`
+- `[{ type: 'User', id: 'LIST' }]`
+- `[{ type: 'User', id: 1 }, { type: 'User', id: 'LIST' }]`
 
 ## Recipes
 
