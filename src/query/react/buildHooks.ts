@@ -4,7 +4,14 @@ import {
   ThunkAction,
   ThunkDispatch,
 } from '@reduxjs/toolkit'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import {
   QueryStatus,
   QuerySubState,
@@ -576,12 +583,13 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       )
 
       const store = useStore()
-      useEffect(() => {
-        lastValue.current = selectDefaultResult(
-          store.getState(),
-          lastValue.current
-        )
-      })
+      const newLastValue = selectDefaultResult(
+        store.getState(),
+        lastValue.current
+      )
+      useLayoutEffect(() => {
+        lastValue.current = newLastValue
+      }, [newLastValue])
 
       return currentState
     }
