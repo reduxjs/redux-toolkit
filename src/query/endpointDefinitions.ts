@@ -250,7 +250,7 @@ interface MutationExtraOptions<
 > {
   type: DefinitionType.mutation
   /**
-   * - Used by `mutations` for [cache invalidation](../../usage/rtk-query/cached-data.md#advanced-invalidation-with-abstract-tag-ids) purposes.
+   * - Used by `mutations` for [cache invalidation](../../usage/rtk-query/cached-data#advanced-invalidation-with-abstract-tag-ids) purposes.
    * - Expects the same shapes as `providesTags`.
    */
   invalidatesTags?: ResultDescription<
