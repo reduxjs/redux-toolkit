@@ -25,7 +25,10 @@ TODO:
 
 ## Cache tags
 
-RTK Query uses the concept of 'tags' to determine whether a mutation for one endpoint intends to 'invalidate' some data that was 'provided' by a query from another endpoint. When defining an `api`, `createApi` accepts an array of tag type names for the `tagTypes` property, which is a list of possible tag name options that the queries for the `api` could provide.
+RTK Query uses the concept of 'tags' to determine whether a mutation for one endpoint intends to 'invalidate' some data that was 'provided' by a query from another endpoint.
+If cache data is being invalidated, it will either refetch the providing query (if components are still using that data) or remove the data from the cache.
+
+When defining an `api`, `createApi` accepts an array of tag type names for the `tagTypes` property, which is a list of possible tag name options that the queries for the `api` could provide.
 
 The example below declares that endpoints can possibly provide 'Posts' and/or 'Users' to the cache:
 
