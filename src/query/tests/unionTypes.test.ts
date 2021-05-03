@@ -352,25 +352,61 @@ describe.skip('TS only tests', () => {
 
   test('useQueryState (with selectFromResult)', () => {
     const result = api.endpoints.test.useQueryState(undefined, {
-      selectFromResult({ data, isLoading }) {
-        return { data: data ?? 1, isLoading }
+      selectFromResult({
+        data,
+        isLoading,
+        isFetching,
+        isError,
+        isSuccess,
+        isUninitialized,
+      }) {
+        return {
+          data: data ?? 1,
+          isLoading,
+          isFetching,
+          isError,
+          isSuccess,
+          isUninitialized,
+        }
       },
     })
     expectExactType({
       data: '' as string | number,
-      isLoading: true as boolean,
+      isUninitialized: false,
+      isLoading: true,
+      isFetching: true,
+      isSuccess: false,
+      isError: false,
     })(result)
   })
 
   test('useQuery (with selectFromResult)', () => {
     const result = api.endpoints.test.useQuery(undefined, {
-      selectFromResult({ data, isLoading }) {
-        return { data: data ?? 1, isLoading }
+      selectFromResult({
+        data,
+        isLoading,
+        isFetching,
+        isError,
+        isSuccess,
+        isUninitialized,
+      }) {
+        return {
+          data: data ?? 1,
+          isLoading,
+          isFetching,
+          isError,
+          isSuccess,
+          isUninitialized,
+        }
       },
     })
     expectExactType({
       data: '' as string | number,
-      isLoading: true as boolean,
+      isUninitialized: false,
+      isLoading: true,
+      isFetching: true,
+      isSuccess: false,
+      isError: false,
       refetch: () => {},
     })(result)
   })
@@ -424,6 +460,33 @@ describe.skip('TS only tests', () => {
     ) {
       expectType<never>(result)
     }
+  })
+
+  test('useMutation (with selectFromResult)', () => {
+    const [_trigger, result] = api.endpoints.mutation.useMutation({
+      selectFromResult({
+        data,
+        isLoading,
+        isError,
+        isSuccess,
+        isUninitialized,
+      }) {
+        return {
+          data: data ?? 'hi',
+          isLoading,
+          isError,
+          isSuccess,
+          isUninitialized,
+        }
+      },
+    })
+    expectExactType({
+      data: '' as string,
+      isUninitialized: false,
+      isLoading: true,
+      isSuccess: false,
+      isError: false,
+    })(result)
   })
 
   // pre41-remove-start

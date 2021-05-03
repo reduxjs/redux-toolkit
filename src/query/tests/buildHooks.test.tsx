@@ -79,15 +79,14 @@ afterEach(() => {
   amount = 0
 })
 
+let getRenderCount: () => number = () => 0
+
 describe('hooks tests', () => {
   describe('useQuery', () => {
-    let getRenderCount: () => number = () => 0
-
     test('useQuery hook basic render count assumptions', async () => {
       function User() {
-        getRenderCount = useRenderCounter()
-
         const { isFetching } = api.endpoints.getUser.useQuery(1)
+        getRenderCount = useRenderCounter()
 
         return (
           <div>
@@ -107,12 +106,12 @@ describe('hooks tests', () => {
 
     test('useQuery hook sets isFetching=true whenever a request is in flight', async () => {
       function User() {
-        getRenderCount = useRenderCounter()
         const [value, setValue] = React.useState(0)
 
         const { isFetching } = api.endpoints.getUser.useQuery(1, {
           skip: value < 1,
         })
+        getRenderCount = useRenderCounter()
 
         return (
           <div>
@@ -545,13 +544,13 @@ describe('hooks tests', () => {
           { data: hookData, isFetching, isUninitialized },
         ] = api.endpoints.getUser.useLazyQuery()
         getRenderCount = useRenderCounter()
+
         data = hookData
 
         return (
           <div>
             <div data-testid="isUninitialized">{String(isUninitialized)}</div>
             <div data-testid="isFetching">{String(isFetching)}</div>
-
             <button data-testid="fetchButton" onClick={() => fetchUser(1)}>
               fetchUser
             </button>
@@ -1545,12 +1544,12 @@ describe('hooks with createApi defaults set', () => {
       }
 
       function SelectedPost() {
-        const [renderCount, setRenderCount] = React.useState(0)
         const { post } = api.endpoints.getPosts.useQueryState(undefined, {
           selectFromResult: ({ data }) => ({
             post: data?.find((post) => post.id === 1),
           }),
         })
+        getRenderCount = useRenderCounter()
 
         /**
          * Notes on the renderCount behavior
@@ -1561,11 +1560,7 @@ describe('hooks with createApi defaults set', () => {
          * on rendering.
          */
 
-        React.useEffect(() => {
-          setRenderCount((prev) => prev + 1)
-        }, [post])
-
-        return <div data-testid="renderCount">{String(renderCount)}</div>
+        return <div />
       }
 
       render(
@@ -1576,25 +1571,90 @@ describe('hooks with createApi defaults set', () => {
         { wrapper: storeRef.wrapper }
       )
 
-      expect(screen.getByTestId('renderCount').textContent).toBe('1')
+      expect(getRenderCount()).toBe(1)
 
       const addBtn = screen.getByTestId('addPost')
 
-      await waitFor(() =>
-        expect(screen.getByTestId('renderCount').textContent).toBe('2')
-      )
+      await waitFor(() => expect(getRenderCount()).toBe(2))
 
       fireEvent.click(addBtn)
-      await waitFor(() =>
-        expect(screen.getByTestId('renderCount').textContent).toBe('2')
-      )
+      await waitFor(() => expect(getRenderCount()).toBe(2))
       // We fire off a few requests that would typically cause a rerender as JSON.parse() on a request would always be a new object.
       fireEvent.click(addBtn)
       fireEvent.click(addBtn)
-      await waitFor(() =>
-        expect(screen.getByTestId('renderCount').textContent).toBe('2')
-      )
+      await waitFor(() => expect(getRenderCount()).toBe(2))
       // Being that it didn't rerender, we can be assured that the behavior is correct
+    })
+
+    /**
+     * This test shows that even though a user can select a specific post, the fetching/loading flags
+     * will still cause rerenders for the query. This should show that if you're using selectFromResult,
+     * the 'performance' value comes with selecting _only_ the data.
+     */
+    test('useQuery with selectFromResult with all flags destructured rerenders like the default useQuery behavior', async () => {
+      function Posts() {
+        const { data: posts } = api.endpoints.getPosts.useQuery()
+        const [addPost] = api.endpoints.addPost.useMutation()
+        getRenderCount = useRenderCounter()
+        return (
+          <div>
+            <button
+              data-testid="addPost"
+              onClick={() =>
+                addPost({
+                  name: `some text ${posts?.length}`,
+                  fetched_at: new Date().toISOString(),
+                })
+              }
+            >
+              Add random post
+            </button>
+          </div>
+        )
+      }
+
+      function SelectedPost() {
+        getRenderCount = useRenderCounter()
+
+        const { post } = api.endpoints.getPosts.useQuery(undefined, {
+          selectFromResult: ({
+            data,
+            isUninitialized,
+            isLoading,
+            isFetching,
+            isSuccess,
+            isError,
+          }) => ({
+            post: data?.find((post) => post.id === 1),
+            isUninitialized,
+            isLoading,
+            isFetching,
+            isSuccess,
+            isError,
+          }),
+        })
+
+        return <div />
+      }
+
+      render(
+        <div>
+          <Posts />
+          <SelectedPost />
+        </div>,
+        { wrapper: storeRef.wrapper }
+      )
+      expect(getRenderCount()).toBe(2)
+
+      const addBtn = screen.getByTestId('addPost')
+
+      await waitFor(() => expect(getRenderCount()).toBe(3))
+
+      fireEvent.click(addBtn)
+      await waitFor(() => expect(getRenderCount()).toBe(5))
+      fireEvent.click(addBtn)
+      fireEvent.click(addBtn)
+      await waitFor(() => expect(getRenderCount()).toBe(9))
     })
 
     test('useQuery with selectFromResult option serves a deeply memoized value and does not rerender unnecessarily', async () => {
@@ -1619,18 +1679,14 @@ describe('hooks with createApi defaults set', () => {
       }
 
       function SelectedPost() {
-        const [renderCount, setRenderCount] = React.useState(0)
+        getRenderCount = useRenderCounter()
         const { post } = api.endpoints.getPosts.useQuery(undefined, {
           selectFromResult: ({ data }) => ({
             post: data?.find((post) => post.id === 1),
           }),
         })
 
-        React.useEffect(() => {
-          setRenderCount((prev) => prev + 1)
-        }, [post])
-
-        return <div data-testid="renderCount">{String(renderCount)}</div>
+        return <div />
       }
 
       render(
@@ -1640,23 +1696,17 @@ describe('hooks with createApi defaults set', () => {
         </div>,
         { wrapper: storeRef.wrapper }
       )
-      expect(screen.getByTestId('renderCount').textContent).toBe('1')
+      expect(getRenderCount()).toBe(1)
 
       const addBtn = screen.getByTestId('addPost')
 
-      await waitFor(() =>
-        expect(screen.getByTestId('renderCount').textContent).toBe('2')
-      )
+      await waitFor(() => expect(getRenderCount()).toBe(2))
 
       fireEvent.click(addBtn)
-      await waitFor(() =>
-        expect(screen.getByTestId('renderCount').textContent).toBe('2')
-      )
+      await waitFor(() => expect(getRenderCount()).toBe(2))
       fireEvent.click(addBtn)
       fireEvent.click(addBtn)
-      await waitFor(() =>
-        expect(screen.getByTestId('renderCount').textContent).toBe('2')
-      )
+      await waitFor(() => expect(getRenderCount()).toBe(2))
     })
 
     test('useQuery with selectFromResult option serves a deeply memoized value, then ONLY updates when the underlying data changes', async () => {
@@ -1690,22 +1740,20 @@ describe('hooks with createApi defaults set', () => {
       }
 
       function SelectedPost() {
-        const [renderCount, setRenderCount] = React.useState(0)
         const { post } = api.endpoints.getPosts.useQuery(undefined, {
           selectFromResult: ({ data }) => ({
             post: data?.find((post) => post.id === 1),
           }),
         })
+        getRenderCount = useRenderCounter()
 
         React.useEffect(() => {
-          setRenderCount((prev) => prev + 1)
           expectablePost = post
         }, [post])
 
         return (
           <div>
             <div data-testid="postName">{post?.name}</div>
-            <div data-testid="renderCount">{String(renderCount)}</div>
           </div>
         )
       }
@@ -1717,31 +1765,23 @@ describe('hooks with createApi defaults set', () => {
         </div>,
         { wrapper: storeRef.wrapper }
       )
-      expect(screen.getByTestId('renderCount').textContent).toBe('1')
+      expect(getRenderCount()).toBe(1)
 
       const addBtn = screen.getByTestId('addPost')
       const updateBtn = screen.getByTestId('updatePost')
 
       fireEvent.click(addBtn)
-      await waitFor(() =>
-        expect(screen.getByTestId('renderCount').textContent).toBe('2')
-      )
+      await waitFor(() => expect(getRenderCount()).toBe(2))
       fireEvent.click(addBtn)
       fireEvent.click(addBtn)
-      await waitFor(() =>
-        expect(screen.getByTestId('renderCount').textContent).toBe('2')
-      )
+      await waitFor(() => expect(getRenderCount()).toBe(2))
 
       fireEvent.click(updateBtn)
-      await waitFor(() =>
-        expect(screen.getByTestId('renderCount').textContent).toBe('3')
-      )
+      await waitFor(() => expect(getRenderCount()).toBe(3))
       expect(expectablePost?.name).toBe('supercoooll!')
 
       fireEvent.click(addBtn)
-      await waitFor(() =>
-        expect(screen.getByTestId('renderCount').textContent).toBe('3')
-      )
+      await waitFor(() => expect(getRenderCount()).toBe(3))
     })
 
     test('useQuery with selectFromResult option has a type error if the result is not an object', async () => {
@@ -1804,8 +1844,6 @@ describe('hooks with createApi defaults set', () => {
     const storeRef = setupApiStore(defaultApi, {
       ...actionsReducer,
     })
-
-    let getRenderCount: () => number = () => 0
 
     it('causes no more than one rerender when using selectFromResult with an empty object', async () => {
       function Counter() {
