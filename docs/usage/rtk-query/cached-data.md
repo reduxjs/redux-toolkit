@@ -7,7 +7,7 @@ hide_title: true
 
 # Cached Data
 
-A key feature of RTK Query is it's management of cached data. When data is fetched from the server, RTK Query will store the data in the redux store as a 'cache'. When an additional request is performed for the same data, RTK Query will provide the cached data rather than sending an additional request to the server.
+A key feature of RTK Query is it's management of cached data. When data is fetched from the server, RTK Query will store the data in the Redux store as a 'cache'. When an additional request is performed for the same data, RTK Query will provide the existing cached data rather than sending an additional request to the server.
 
 RTK Query provides a number of concepts and tools to manipulate the cache behaviour and adjust it to your needs.
 
@@ -17,35 +17,40 @@ RTK Query provides a number of concepts and tools to manipulate the cache behavi
 
 _see also: [tagTypes](../../api/rtk-query/createApi#tagtypes)_
 
-For RTK Query, _tags_ are just a name that you can give to a specific collection of data to control caching and invalidation behavior for refetching purposes.
+For RTK Query, _tags_ are just a name that you can give to a specific collection of data to control caching and invalidation behavior for refetching purposes. It can be considered as a 'label' attached to cached data that is read after a `mutation`, to decide whether the data should be affected by the mutation.
 
-Tags are defined in the `tagTypes` argument when defining an api. For example, in an application that has both `Posts` and `Users`, you would define `tagTypes: ['Posts', 'Users']` when calling `createApi`.
+Tags are defined in the `tagTypes` argument when defining an api. For example, in an application that has both `Posts` and `Users`, you might define `tagTypes: ['Post', 'User']` when calling `createApi`.
 
-An individual `tag` has a `type`, represented as a `string` name, and an optional `id`, represented as a `string` or `number`. It can be represented as a plain string (such as `'Posts'`), or an object in the shape `{type: string, id?: string|number}` (such as `[{type: 'Posts', id: 1}]`).
+An individual `tag` has a `type`, represented as a `string` name, and an optional `id`, represented as a `string` or `number`. It can be represented as a plain string (such as `'Post'`), or an object in the shape `{type: string, id?: string|number}` (such as `[{type: 'Post', id: 1}]`).
 
 ### Providing tags
 
 _see also: [Anatomy of an endpoint](../../api/rtk-query/createApi#anatomy-of-an-endpoint)_
 
-A _query_ can _provide_ tags to the cache. The `providesTags` argument can either be an array of `string` (such as `['Posts']`), `{type: string, id?: string|number}` (such as `[{type: 'Posts', id: 1}]`), or a callback that returns such an array. That function will be passed the result as the first argument, the response error as the second argument, and the argument originally passed into the `query` method as the third argument. Note that either the result or error arguments may be undefined based on whether the query was successful or not.
+A _query_ can have it's cached data _provide_ tags. Doing so determines which 'tag' is attached to the cached data returned by the query.
+
+The `providesTags` argument can either be an array of `string` (such as `['Post']`), `{type: string, id?: string|number}` (such as `[{type: 'Post', id: 1}]`), or a callback that returns such an array. That function will be passed the result as the first argument, the response error as the second argument, and the argument originally passed into the `query` method as the third argument. Note that either the result or error arguments may be undefined based on whether the query was successful or not.
 
 ### Invalidating tags
 
 _see also: [Anatomy of an endpoint](../../api/rtk-query/createApi#anatomy-of-an-endpoint)_
 
-A _mutation_ can _invalidate_ specific tags in the cache. The `invalidatesTags` argument can either be an array of `string` (such as `['Posts']`), `{type: string, id?: string|number}` (such as `[{type: 'Posts', id: 1}]`), or a callback that returns such an array. That function will be passed the result as the first argument, the response error as the second argument, and the argument originally passed into the `query` method as the third argument. Note that either the result or error arguments may be undefined based on whether the mutation was successful or not.
+A _mutation_ can _invalidate_ specific cached data based on the tags. Doing so determines which cached data will be either refetched or removed from the cache.
+
+The `invalidatesTags` argument can either be an array of `string` (such as `['Post']`), `{type: string, id?: string|number}` (such as `[{type: 'Post', id: 1}]`), or a callback that returns such an array. That function will be passed the result as the first argument, the response error as the second argument, and the argument originally passed into the `query` method as the third argument. Note that either the result or error arguments may be undefined based on whether the mutation was successful or not.
 
 ## Default cache handling behaviour
 
 By default, RTK Query will manage the cache for a given query endpoint based on the supplied query parameters. The parameters are serialized and stored internally as a a `queryCacheKey` for the request. Any future request that produces the same `queryCacheKey` (i.e. called with the same parameters, factoring serialization) will be de-duped against the original, and will share the same data and updates. i.e. two separate components performing the same request will use the same cached data.
 
-When a request is attempted, if the data already exists in the cache, then that data is served and no request is sent to the server. Otherwise, if the data does not exist in the cache, then a new request is sent, and the returned response is stored in the cache.
+When a request is attempted, if the data already exists in the cache, then that data is served and no new request is sent to the server. Otherwise, if the data does not exist in the cache, then a new request is sent, and the returned response is stored in the cache.
 
-As long as there is an active 'subscription' to the data (e.g. if a component is mounted that calls a query hook for the endpoint), then the data will remain in the cache. Once the subscription is removed (e.g. when last component subscribed to the data unmounts), after an amount of time (default 60 seconds), the data will be removed from the cache.
+As long as there is an active 'subscription' to the data (e.g. if a component is mounted that calls a `useQuery` hook for the endpoint), then the data will remain in the cache. Once the subscription is removed (e.g. when last component subscribed to the data unmounts), after an amount of time (default 60 seconds), the data will be removed from the cache.
 
 ## Cache tags
 
 RTK Query uses the concept of 'tags' to determine whether a mutation for one endpoint intends to 'invalidate' some data that was 'provided' by a query from another endpoint.
+
 If cache data is being invalidated, it will either refetch the providing query (if components are still using that data) or remove the data from the cache.
 
 When defining an `api`, `createApi` accepts an array of tag type names for the `tagTypes` property, which is a list of possible tag name options that the queries for the `api` could provide.
@@ -56,7 +61,7 @@ The example below declares that endpoints can possibly provide 'Posts' and/or 'U
 const api = createApi({
   baseQuery,
   // highlight-start
-  tagTypes: ['Posts', 'Users'],
+  tagTypes: ['Post', 'User'],
   // highlight-end
   endpoints: (build) => ({
     getPosts: build.query({
@@ -83,11 +88,11 @@ const api = createApi({
 })
 ```
 
-By declaring these tags as what can possibly be provided to the cache, it enables control for individual endpoints to claim whether they affect specific portions of the cache or not, in conjunction with `providesTags` and `invalidatesTags` on individual endpoints.
+By declaring these tags as what can possibly be provided to the cache, it enables control for individual mutation endpoints to claim whether they affect specific portions of the cache or not, in conjunction with `providesTags` and `invalidatesTags` on individual endpoints.
 
 ### Providing cache data
 
-Each individual `query` endpoint can `provide` particular tags to the cache. Doing so enables a relationship between cached data from one or more `query` endpoints and the behaviour of one or more `mutation` endpoints.
+Each individual `query` endpoint can have it's cached data `provide` particular tags. Doing so enables a relationship between cached data from one or more `query` endpoints and the behaviour of one or more `mutation` endpoints.
 
 The `providesTags` property on a `query` endpoint is used for this purpose.
 
@@ -180,11 +185,11 @@ In order to provide stronger control over invalidating the appropriate data, you
 
 ### Invalidating cache data
 
-Each individual `mutation` endpoint can `invalidate` particular tags in the cache. Doing so enables a relationship between cached data from one or more `query` endpoints and the behaviour of one or more `mutation` endpoints.
+Each individual `mutation` endpoint can `invalidate` particular tags for existing cached data. Doing so enables a relationship between cached data from one or more `query` endpoints and the behaviour of one or more `mutation` endpoints.
 
 The `invalidatesTags` property on a `mutation` endpoint is used for this purpose.
 
-The example below declares that the `addPost` and `editPost` `mutation` endpoints `invalidate` the `'Post'` tag in the cache, using the `invalidatesTags` property for a `mutation` endpoint:
+The example below declares that the `addPost` and `editPost` `mutation` endpoints `invalidate` any cached data with the `'Post'` tag, using the `invalidatesTags` property for a `mutation` endpoint:
 
 ```js title="Example of invalidating tags in the cache"
 const api = createApi({
@@ -226,12 +231,12 @@ const api = createApi({
 })
 ```
 
-For the example above, this tells RTK Query that after the `addPost` and/or `editPost` mutations are called and completed, any cache data supplied with the `'Post'` tag is no longer valid. If a component is currently subscribed to the cached data for a `'Post'` tag when the above mutations are called, it will automatically re-fetch in order to retrieve up to date data from the server.
+For the example above, this tells RTK Query that after the `addPost` and/or `editPost` mutations are called and completed, any cache data supplied with the `'Post'` tag is no longer valid. If a component is currently subscribed to the cached data for a `'Post'` tag after the above mutations are called and complete, it will automatically re-fetch in order to retrieve up to date data from the server.
 
 An example scenario would be like so:
 
 1. A component is rendered which is using the `useGetPostsQuery()` hook to subscribe to that endpoint's cached data
-2. The `/posts` request is fired off, and server responds with posts with IDs 1, 2 & 3.
+2. The `/posts` request is fired off, and server responds with posts with IDs 1, 2 & 3
 3. The `getPosts` endpoint stores the received data in the cache, and internally registers that the following tags have been provided:
    <!-- prettier-ignore -->
    ```js
@@ -243,11 +248,11 @@ An example scenario would be like so:
    ```
 4. The `editPost` mutation is fired off to alter a particular post
 5. Upon completion, RTK Query internally registers that the `'Post'` tag is now invalidated, and removes the previously provided `'Post'` tags from the cache
-6. Since the `getPosts` endpoint has provided tags of type `'Post'` which now has invalid cache data, and the component is still subscribed to the data, the `/posts` request is automatically fired off again, fetching new data and adding the new tags to the cache
+6. Since the `getPosts` endpoint has provided tags of type `'Post'` which now has invalid cache data, and the component is still subscribed to the data, the `/posts` request is automatically fired off again, fetching new data and registering new tags for the updated cached data
 
 For more granular control over the invalidated data, invalidated `tags` can have an associated `id` in the same manner as `providesTags`. This enables a distinction between 'any of a particular tag type' and 'a specific instance of a particular tag type'.
 
-The example below declares that the `editPost` mutation provides a specific instance of a `Post` tag, using the id provided when calling the mutation function:
+The example below declares that the `editPost` mutation provides a specific instance of a `Post` tag, using the ID provided when calling the mutation function:
 
 ```js title="Example of invalidating tags with IDs to the cache"
 const api = createApi({
@@ -287,13 +292,13 @@ const api = createApi({
 })
 ```
 
-For the example above, rather than invalidating any tag with the type `'Post'`, calling the `editPost` mutation function will now only invalidate a tag for the provided `id`. I.e. if an endpoint does not provide a `'Post'` for that same `id`, it will remain considered as 'valid', and will not be triggered to automatically re-fetch.
+For the example above, rather than invalidating any tag with the type `'Post'`, calling the `editPost` mutation function will now only invalidate a tag for the provided `id`. I.e. if cached data from an endpoint does not provide a `'Post'` for that same `id`, it will remain considered as 'valid', and will not be triggered to automatically re-fetch.
 
 :::tip Using abstract tag IDs
 In order to provide stronger control over invalidating the appropriate data, you can use an arbitrary ID such a `'LIST'` for a given tag. See [Advanced Invalidation with abstract tag IDs](#advanced-invalidation-with-abstract-tag-ids) for additional details.
 :::
 
-#### Invalidation behaviour
+#### Invalidation Behavior
 
 The matrix below shows examples of which invalidated tags will affect and invalidate which provided tags:
 
@@ -308,38 +313,38 @@ The matrix below shows examples of which invalidated tags will affect and invali
       </th>
       <th>
         <div>General tag A</div>
-        <div style={{ fontWeight: 'normal' }} >
+        <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }} >
           {"['Post']"}<br />{"/"}<br />{"[{ type: 'Post' }]"}
         </div>
       </th>
       <th>
         <div>General tag B</div>
-        <div style={{ fontWeight: 'normal' }}>
+        <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }}>
           {"['User']"}<br />{"/"}<br />{"[{ type: 'User' }]"}
         </div>
       </th>
       <th>
         <div>Specific tag A1</div>
-        <div style={{ fontWeight: 'normal' }}>
-          {"[{ type: 'Post', id: 1 }]"}
+        <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }}>
+          {"[{ type: 'Post',"}<br />{" id: 1 }]"}
         </div>
       </th>
       <th>
         <div>Specific tag A2</div>
-        <div style={{ fontWeight: 'normal' }}>
-          {"[{ type: 'Post', id: 2 }]"}
+        <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }}>
+          {"[{ type: 'Post', id: 'LIST' }]"}
         </div>
       </th>
       <th>
         <div>Specific tag B1</div>
-        <div style={{ fontWeight: 'normal' }}>
-          {"[{ type: 'User', id: 1 }]"}
+        <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }}>
+          {"[{ type: 'User',"}<br />{" id: 1 }]"}
         </div>
       </th>
       <th>
         <div>Specific tag B2</div>
-        <div style={{ fontWeight: 'normal' }}>
-          {"[{ type: 'User', id: 2 }]"}
+        <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }}>
+          {"[{ type: 'User',"}<br />{" id: 2 }]"}
         </div>
       </th>
     </tr>
@@ -348,7 +353,7 @@ The matrix below shows examples of which invalidated tags will affect and invali
     <tr>
       <td>
         <div style={{ fontWeight: 'bold' }}>General tag A</div>
-        <div>{"['Post'] / [{ type: 'Post' }]"}</div>
+        <div style={{ fontSize: '0.9rem'}}>{"['Post'] / [{ type: 'Post' }]"}</div>
       </td>
       <td>✔️</td>
       <td></td>
@@ -360,7 +365,7 @@ The matrix below shows examples of which invalidated tags will affect and invali
     <tr>
       <td>
         <div style={{ fontWeight: 'bold' }}>General tag B</div>
-        <div>{"['User'] /"}<br />{"[{ type: 'User' }]"}</div>
+        <div style={{ fontSize: '0.9rem'}}>{"['User'] /"}<br />{"[{ type: 'User' }]"}</div>
       </td>
       <td></td>
       <td>✔️</td>
@@ -372,9 +377,9 @@ The matrix below shows examples of which invalidated tags will affect and invali
     <tr>
       <td>
         <div style={{ fontWeight: 'bold' }}>Specific tag A1</div>
-        <div>{"[{ type: 'Post', id: 1 }]"}</div>
+        <div style={{ fontSize: '0.9rem'}}>{"[{ type: 'Post', id: 1 }]"}</div>
       </td>
-      <td>✔️</td>
+      <td></td>
       <td></td>
       <td>✔️</td>
       <td></td>
@@ -384,9 +389,9 @@ The matrix below shows examples of which invalidated tags will affect and invali
     <tr>
       <td>
         <div style={{ fontWeight: 'bold' }}>Specific tag A2</div>
-        <div>{"[{ type: 'Post', id: 2 }]"}</div>
+        <div style={{ fontSize: '0.9rem'}}>{"[{ type: 'Post', id: 'LIST' }]"}</div>
       </td>
-      <td>✔️</td>
+      <td></td>
       <td></td>
       <td></td>
       <td>✔️</td>
@@ -396,10 +401,10 @@ The matrix below shows examples of which invalidated tags will affect and invali
     <tr>
       <td>
         <div style={{ fontWeight: 'bold' }}>Specific tag B1</div>
-        <div>{"[{ type: 'User', id: 1 }]"}</div>
+        <div style={{ fontSize: '0.9rem'}}>{"[{ type: 'User', id: 1 }]"}</div>
       </td>
       <td></td>
-      <td>✔️</td>
+      <td></td>
       <td></td>
       <td></td>
       <td>✔️</td>
@@ -408,10 +413,10 @@ The matrix below shows examples of which invalidated tags will affect and invali
     <tr>
       <td>
         <div style={{ fontWeight: 'bold' }}>Specific tag B2</div>
-        <div>{"[{ type: 'User', id: 2 }]"}</div>
+        <div style={{ fontSize: '0.9rem'}}>{"[{ type: 'User', id: 2 }]"}</div>
       </td>
       <td></td>
-      <td>✔️</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -420,7 +425,7 @@ The matrix below shows examples of which invalidated tags will affect and invali
   </tbody>
 </table>
 
-The invalidation behaviour can be summarized like so:
+The invalidation behavior can be summarized like so:
 
 **General tag**
 
@@ -429,7 +434,7 @@ e.g. `['Post'] / [{ type: 'Post' }]`
 Will `invalidate` any `provided` tag with the matching type, including general and specific tags.
 
 Example:  
-If a general tag of `Post` was invalidated, the following `provided` tags would all be invalidated:
+If a general tag of `Post` was invalidated, endpoints whose data `provided` the following tags would all have their data invalidated:
 
 - `['Post']`
 - `[{ type: 'Post' }]`
@@ -439,7 +444,7 @@ If a general tag of `Post` was invalidated, the following `provided` tags would 
 - `[{ type: 'Post', id: 'LIST' }]`
 - `[{ type: 'Post', id: 1 }, { type: 'Post', id: 'LIST' }]`
 
-The following `provided` tags would _not_ be invalidated:
+Endpoints whose data `provided` the following tags would _not_ have their data invalidated:
 
 - `['User']`
 - `[{ type: 'User' }]`
@@ -451,17 +456,17 @@ The following `provided` tags would _not_ be invalidated:
 
 e.g. `[{ type: 'Post', id: 1 }]`
 
-Will `invalidate` any `provided` tag with both the matching type, _and_ matching id. Will not invalidate a `general` tag, but _might_ invalidate data for an endpoint that provides a `general` tag _if_ it also provides a matching `specific` tag.
+Will `invalidate` any `provided` tag with both the matching type, _and_ matching id. Will not cause a `general` tag to be invalidated directly, but _might_ invalidate data for an endpoint that provides a `general` tag _if_ it also provides a matching `specific` tag.
 
 Example 1:
-If a specific tag of `{ type: 'Post', id: 1 }` was invalidated, the following `provided` tags would all be invalidated:
+If a specific tag of `{ type: 'Post', id: 1 }` was invalidated, endpoints whose data `provided` the following tags would all have their data invalidated:
 
 - `[{ type: 'Post' }, { type: 'Post', id: 1 }]`
 - `[{ type: 'Post', id: 1 }]`
 - `[{ type: 'Post', id: 1 }, { type: 'User' }]`
 - `[{ type: 'Post', id: 1 }, { type: 'Post', id: 'LIST' }]`
 
-The following `provided` tags would _not_ be invalidated:
+Endpoints whose data `provided` the following tags would _not_ have their data invalidated:
 
 - `['Post']`
 - `[{ type: 'Post' }]`
@@ -473,12 +478,12 @@ The following `provided` tags would _not_ be invalidated:
 - `[{ type: 'User', id: 1 }, { type: 'User', id: 'LIST' }]`
 
 Example 2:
-If a specific tag of `{ type: 'Post', id: 'LIST' }` was invalidated, the following `provided` tags would all be invalidated:
+If a specific tag of `{ type: 'Post', id: 'LIST' }` was invalidated, endpoints whose data `provided` the following tags would all have their data invalidated:
 
 - `[{ type: 'Post', id: 'LIST' }]`
 - `[{ type: 'Post', id: 1 }, { type: 'Post', id: 'LIST' }]`
 
-The following `provided` tags would _not_ be invalidated:
+Endpoints whose data `provided` the following tags would _not_ have their data invalidated:
 
 - `['Post']`
 - `[{ type: 'Post' }]`
@@ -495,7 +500,7 @@ The following `provided` tags would _not_ be invalidated:
 
 ### Advanced Invalidation with abstract tag IDs
 
-While using an 'entity ID' for a `tag id` is a common use case, the `id` property is not intended to be limited to database IDs. The `id` is simply a way to label a subset of a particular collection of data for a particular `tag type`.
+While using an 'entity ID' for a `tag id` is a common use case, the `id` property is not intended to be limited to database IDs alone. The `id` is simply a way to label a subset of a particular collection of data for a particular `tag type`.
 
 A powerful use-case is to use an ID like `'LIST'` as a label for data provided by a bulk query, _as well as_ using entity IDs for the individual items. Doing so allows future `mutations` to declare whether they invalidate the data only if it contains a particular item (e.g. `{ type: 'Post', id: 5 }`), or invalidate the data if it is a `'LIST'` (e.g. `{ type: 'Post', id: 'LIST' }`).
 
@@ -621,7 +626,7 @@ When `addPost` is fired, it will only cause the `PostsList` to go into an `isFet
 
 > **Note**
 >
-> If you intend for the `addPost` mutation to refresh all posts including individual `PostDetail` components while still only making 1 new `GET /posts` request, this can be done by selecting a part of the data using [`selectFromResult`](../rtk-query/queries/#selecting-data-from-a-query-result)
+> If you intend for the `addPost` mutation to refresh all posts including individual `PostDetail` components while still only making 1 new `GET /posts` request, this can be done by selecting a part of the data using [`selectFromResult`](../rtk-query/queries/#selecting-data-from-a-query-result).
 
 ### Providing errors to the cache
 
@@ -670,7 +675,7 @@ const api = createApi({
 
 ### Abstracting common provides/invalidates usage
 
-The code written to provide & invalidate tags for a given `api` will be dependent on multiple factors, including:
+The code written to `provide` & `invalidate` tags for a given `api` will be dependent on multiple factors, including:
 
 - The shape of the data returned by your backend
 - Which tags you expect a given query endpoint to provide
