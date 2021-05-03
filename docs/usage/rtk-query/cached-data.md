@@ -13,15 +13,35 @@ RTK Query provides a number of concepts and tools to manipulate the cache behavi
 
 ## Definitions
 
-- _tags_ - Items used to identify the data present in the cache. An individual `tag` has a `type`, represented as a `string` name, and an optional `id`, represented as a `string` or `number`.
-- _providing tags_ - Used to advise which tags are provided by an individual query endpoint, and can be considered 'valid' in the cache
-- _invalidating tags_ - Identifies which tags are invalidated by an individual mutation endpoint, and should no longer be considered 'valid' in the cache
+### Tags
 
-  TODO: description of any other key concepts
+_see also: [tagTypes](../../api/rtk-query/createApi#tagtypes)_
+
+For RTK Query, _tags_ are just a name that you can give to a specific collection of data to control caching and invalidation behavior for refetching purposes.
+
+Tags are defined in the `tagTypes` argument when defining an api. For example, in an application that has both `Posts` and `Users`, you would define `tagTypes: ['Posts', 'Users']` when calling `createApi`.
+
+An individual `tag` has a `type`, represented as a `string` name, and an optional `id`, represented as a `string` or `number`. It can be represented as a plain string (such as `'Posts'`), or an object in the shape `{type: string, id?: string|number}` (such as `[{type: 'Posts', id: 1}]`).
+
+### Providing tags
+
+_see also: [Anatomy of an endpoint](../../api/rtk-query/createApi#anatomy-of-an-endpoint)_
+
+A _query_ can _provide_ tags to the cache. The `providesTags` argument can either be an array of `string` (such as `['Posts']`), `{type: string, id?: string|number}` (such as `[{type: 'Posts', id: 1}]`), or a callback that returns such an array. That function will be passed the result as the first argument, the response error as the second argument, and the argument originally passed into the `query` method as the third argument. Note that either the result or error arguments may be undefined based on whether the query was successful or not.
+
+### Invalidating tags
+
+_see also: [Anatomy of an endpoint](../../api/rtk-query/createApi#anatomy-of-an-endpoint)_
+
+A _mutation_ can _invalidate_ specific tags in the cache. The `invalidatesTags` argument can either be an array of `string` (such as `['Posts']`), `{type: string, id?: string|number}` (such as `[{type: 'Posts', id: 1}]`), or a callback that returns such an array. That function will be passed the result as the first argument, the response error as the second argument, and the argument originally passed into the `query` method as the third argument. Note that either the result or error arguments may be undefined based on whether the mutation was successful or not.
 
 ## Default cache handling behaviour
 
-TODO:
+By default, RTK Query will manage the cache for a given query endpoint based on the supplied query parameters. The parameters are serialized and stored internally as a a `queryCacheKey` for the request. Any future request that produces the same `queryCacheKey` (i.e. called with the same parameters, factoring serialization) will be de-duped against the original, and will share the same data and updates. i.e. two separate components performing the same request will use the same cached data.
+
+When a request is attempted, if the data already exists in the cache, then that data is served and no request is sent to the server. Otherwise, if the data does not exist in the cache, then a new request is sent, and the returned response is stored in the cache.
+
+As long as there is an active 'subscription' to the data (e.g. if a component is mounted that calls a query hook for the endpoint), then the data will remain in the cache. Once the subscription is removed (e.g. when last component subscribed to the data unmounts), after an amount of time (default 60 seconds), the data will be removed from the cache.
 
 ## Cache tags
 
@@ -70,6 +90,10 @@ By declaring these tags as what can possibly be provided to the cache, it enable
 Each individual `query` endpoint can `provide` particular tags to the cache. Doing so enables a relationship between cached data from one or more `query` endpoints and the behaviour of one or more `mutation` endpoints.
 
 The `providesTags` property on a `query` endpoint is used for this purpose.
+
+> **Note**
+>
+> Provided tags have no inherent relationship across separate `query` endpoints. Provided tags are used to determine whether cached data returned by an endpoint should be `invalidated` and either be refetched or removed from the cache. If two separate endpoints provide the same tags, they will still contribute their own distinct cached data, which could later both be invalidated by a single tag declared from a mutation.
 
 The example below declares that the `getPosts` `query` endpoint `provides` the `'Post'` tag to the cache, using the `providesTags` property for a `query` endpoint.
 
@@ -149,6 +173,10 @@ const api = createApi({
 ```
 
 Note that for the example above, the `id` is used where possible on a successful result. In the case of an error, no result is supplied, and we still consider that it has provided the general `'Post'` tag type rather than any specific instance of that tag.
+
+:::tip Advanced List Invalidation
+In order to provide stronger control over invalidating the appropriate data, you can use an arbitrary ID such a `'LIST'` for a given tag. See [Advanced Invalidation with abstract tag IDs](#advanced-invalidation-with-abstract-tag-ids) for additional details.
+:::
 
 ### Invalidating cache data
 
@@ -262,7 +290,7 @@ const api = createApi({
 For the example above, rather than invalidating any tag with the type `'Post'`, calling the `editPost` mutation function will now only invalidate a tag for the provided `id`. I.e. if an endpoint does not provide a `'Post'` for that same `id`, it will remain considered as 'valid', and will not be triggered to automatically re-fetch.
 
 :::tip Using abstract tag IDs
-In order to provide stronger control over invalidating the appropriate data, you can use an arbitrary ID such a `'LIST'` for a given tag. See [Using abstract tag IDs](#using-abstract-tag-ids) for additional details.
+In order to provide stronger control over invalidating the appropriate data, you can use an arbitrary ID such a `'LIST'` for a given tag. See [Advanced Invalidation with abstract tag IDs](#advanced-invalidation-with-abstract-tag-ids) for additional details.
 :::
 
 #### Invalidation behaviour
@@ -465,26 +493,152 @@ The following `provided` tags would _not_ be invalidated:
 
 ## Recipes
 
-### Using abstract tag IDs
+### Advanced Invalidation with abstract tag IDs
 
-TODO: discuss the usage of a 'LIST' id
+While using an 'entity ID' for a `tag id` is a common use case, the `id` property is not intended to be limited to database IDs. The `id` is simply a way to label a subset of a particular collection of data for a particular `tag type`.
+
+A powerful use-case is to use an ID like `'LIST'` as a label for data provided by a bulk query, _as well as_ using entity IDs for the individual items. Doing so allows future `mutations` to declare whether they invalidate the data only if it contains a particular item (e.g. `{ type: 'Post', id: 5 }`), or invalidate the data if it is a `'LIST'` (e.g. `{ type: 'Post', id: 'LIST' }`).
+
+> **Note about 'LIST' and `id`s**
+>
+> 1. `LIST` is an arbitrary string - technically speaking, you could use anything you want here, such as `ALL` or `*`. The important thing when choosing a custom id is to make sure there is no possibility of it colliding with an id that is returned by a query result. If you have unknown ids in your query results and don't want to risk it, you can go with point 3 below.
+> 2. You can add _many_ tag types for even more control
+>    - `[{ type: 'Posts', id: 'LIST' }, { type: 'Posts', id: 'SVELTE_POSTS' }, { type: 'Posts', id: 'REACT_POSTS' }]`
+> 3. If the concept of using an `id` like 'LIST' seems strange to you, you can always add another `tagType` and invalidate it's root, but we recommend using the `id` approach as shown.
+
+We can compare the scenarios below to see how using a `'LIST'` id can be leveraged to optimize behaviour.
+
+#### Invalidating everything of a type
+
+```ts title="API Definition"
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  tagTypes: ['Posts'],
+  endpoints: (build) => ({
+    getPosts: build.query<PostsResponse, void>({
+      query: () => 'posts',
+      providesTags: (result) =>
+        result ? result.map(({ id }) => ({ type: 'Posts', id })) : ['Posts'],
+    }),
+    addPost: build.mutation<Post, Partial<Post>>({
+      query: (body) => ({
+        url: `posts`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Posts'],
+    }),
+    getPost: build.query<Post, number>({
+      query: (id) => `posts/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Posts', id }],
+    }),
+  }),
+})
+
+export const { useGetPostsQuery, useGetPostQuery, useAddPostMutation } = api
+```
+
+```tsx title="App.tsx"
+function App() {
+  const { data: posts } = useGetPostsQuery()
+  const [addPost] = useAddPostMutation()
+
+  return (
+    <div>
+      <AddPost onAdd={addPost} />
+      <PostsList />
+      {/* Assume each PostDetail is subscribed via `const {data} = useGetPostQuery(id)` */}
+      <PostDetail id={1} />
+      <PostDetail id={2} />
+      <PostDetail id={3} />
+    </div>
+  )
+}
+```
+
+**What to expect**
+
+When `addPost` is triggered, it would cause each `PostDetail` component to go back into a `isFetching` state because `addPost` invalidates the root tag, which causes _every query_ that provides 'Posts' to be re-run. In most cases, this may not be what you want to do. Imagine if you had 100 posts on the screen that all subscribed to a `getPost` query – in this case, you'd create 100 requests and send a ton of unnecessary traffic to your server, which we're trying to avoid in the first place! Even though the user would still see the last good cached result and potentially not notice anything other than their browser hiccuping, you still want to avoid this.
+
+#### Selectively invalidating lists
+
+```ts title="API Definition"
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  tagTypes: ['Posts'],
+  endpoints: (build) => ({
+    getPosts: build.query<PostsResponse, void>({
+      query: () => 'posts',
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: 'Posts', id })),
+              { type: 'Posts', id: 'LIST' },
+            ]
+          : [{ type: 'Posts', id: 'LIST' }],
+    }),
+    addPost: build.mutation<Post, Partial<Post>>({
+      query(body) {
+        return {
+          url: `posts`,
+          method: 'POST',
+          body,
+        }
+      },
+      invalidatesTags: [{ type: 'Posts', id: 'LIST' }],
+    }),
+    getPost: build.query<Post, number>({
+      query: (id) => `posts/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Posts', id }],
+    }),
+  }),
+})
+
+export const { useGetPostsQuery, useAddPostMutation, useGetPostQuery } = api
+```
+
+```tsx title="App.tsx"
+function App() {
+  const { data: posts } = useGetPostsQuery()
+  const [addPost] = useAddPostMutation()
+
+  return (
+    <div>
+      <AddPost onAdd={addPost} />
+      <PostsList />
+      {/* Assume each PostDetail is subscribed via `const {data} = useGetPostQuery(id)` */}
+      <PostDetail id={1} />
+      <PostDetail id={2} />
+      <PostDetail id={3} />
+    </div>
+  )
+}
+```
+
+**What to expect**
+
+When `addPost` is fired, it will only cause the `PostsList` to go into an `isFetching` state because `addPost` only invalidates the 'LIST' id, which causes `getPosts` to rerun (because it provides that specific id). So in your network tab, you would only see 1 new request fire for `GET /posts`. As the singular `getPost` queries have not been invalidated, they will not re-run as a result of `addPost`.
+
+> **Note**
+>
+> If you intend for the `addPost` mutation to refresh all posts including individual `PostDetail` components while still only making 1 new `GET /posts` request, this can be done by selecting a part of the data using [`selectFromResult`](../rtk-query/queries/#selecting-data-from-a-query-result)
 
 ### Providing errors to the cache
 
-The information provided to the cache is not limited to successful data fetches. The concept can be used to inform RTK Query that a particular failure has been encountered, and provide that `tag` to the cache. A separate endpoint can then `invalidate` that tag, telling RTK Query to re-attempt the previously failed endpoints if a component is still subscribed to the failed data.
+The information provided to the cache is not limited to successful data fetches. The concept can be used to inform RTK Query that when a particular failure has been encountered, to `provide` a specific `tag` for that failed cache data. A separate endpoint can then `invalidate` the data for that `tag`, telling RTK Query to re-attempt the previously failed endpoints if a component is still subscribed to the failed data.
 
 The example below demonstrates an example with the following behaviour:
 
-- Provides an `UNAUTHORIZED` cache tag when a query fails with an error code of `401 UNAUTHORIZED`
-- Provides an `UNKNOWN_ERROR` cache tag when a query fails with a different error
-- Enables a 'login' mutation, which when _successful_, will `invalidate` the `UNAUTHORIZED` tag.  
+- Provides an `UNAUTHORIZED` cache tag if a query fails with an error code of `401 UNAUTHORIZED`
+- Provides an `UNKNOWN_ERROR` cache tag if a query fails with a different error
+- Enables a 'login' mutation, which when _successful_, will `invalidate` the data with the `UNAUTHORIZED` tag.  
   This will trigger the `postById` endpoint to re-fire if:
   1. The last call for `postById` had encountered an unauthorized error, and
   2. A component is still subscribed to the cached data
-- Enables a 'refetchErroredQueries' mutation which when _called_, will `invalidate` the `UNKNOWN_ERROR` tag.  
+- Enables a 'refetchErroredQueries' mutation which when _called_, will `invalidate` the data with the `UNKNOWN_ERROR` tag.  
   This will trigger the `postById` endpoint to re-fire if:
   1. The last call for `postById` had encountered an unknown error, and
-  2. A component is currently subscribed to the cached data
+  2. A component is still subscribed to the cached data
 
 ```js
 const api = createApi({
@@ -516,4 +670,73 @@ const api = createApi({
 
 ### Abstracting common provides/invalidates usage
 
-TODO: description/example of `providesTags`/`invalidatesTags` abstractions to reduce boilerplate
+The code written to provide & invalidate tags for a given `api` will be dependent on multiple factors, including:
+
+- The shape of the data returned by your backend
+- Which tags you expect a given query endpoint to provide
+- Which tags you expect a given mutation endpoint to invalidate
+- The extent that you wish to use the invalidation feature for
+
+When declaring your `api`, you may feel as though you're duplicating your code. For instance, for two separate endpoints that both provide a list of a particular entity, the `providesTags` declaration may only differ in the `tagType` provided.
+
+e.g.
+
+```ts
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: 'http://example.com' }),
+  tagTypes: ['Post', 'User'],
+  endpoints: (build) => ({
+    getPosts: build.query({
+      query: () => `posts`,
+      // highlight-start
+      providesTags: (result) =>
+        result
+          ? [{ type: 'Post', id: 'LIST' }, ...result.map({ id }) => ({ type: 'Post', id })]
+          : [{ type: 'Post', id: 'LIST' }],
+      // highlight-end
+    }),
+    getUsers: build.query({
+      query: () => `users`,
+      // highlight-start
+      providesTags: (result) =>
+        result
+          ? [{ type: 'User', id: 'LIST' }, ...result.map({ id }) => ({ type: 'User', id })]
+          : [{ type: 'User', id: 'LIST' }],
+      // highlight-end
+    }),
+  }),
+})
+```
+
+You may find it beneficial to define helper functions designed for your particular api to reduce this boilerplate across endpoint definitions, e.g.
+
+```ts
+// highlight-start
+function providesList(resultsWithIds, tagType) {
+  return resultsWithIds
+          ? [{ type: tagType, id: 'LIST' }, ...resultsWithIds.map({ id }) => ({ type: tagType, id })]
+          : [{ type: tagType, id: 'LIST' }]
+}
+// highlight-end
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: 'http://example.com' }),
+  tagTypes: ['Post', 'User'],
+  endpoints: (build) => ({
+    getPosts: build.query({
+      query: () => `posts`,
+      // highlight-start
+      providesTags: (result) => providesList(result, 'Post'),
+      // highlight-end
+    }),
+    getUsers: build.query({
+      query: () => `users`,
+      // highlight-start
+      providesTags: (result) => providesList(result, 'User'),
+      // highlight-end
+    }),
+  }),
+})
+```
+
+An example of various abstractions for tag providing/invalidating designed for common rest data formats can be seen in the following gist, including typescript support, and factoring both ['LIST' style advanced tag invalidation](#advanced-invalidation-with-abstract-tag-ids) and ['error' style tag invalidation](#providing-errors-to-the-cache): **[RTK Query cache utils](https://gist.github.com/Shrugsy/6b6af02aef1f783df9d636526c1e05fa)**.
