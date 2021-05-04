@@ -28,6 +28,17 @@ It is disabled in production builds, so you don't need to worry about that.`)
 export class MiddlewareArray<
   Middlewares extends Middleware<any, any>
 > extends Array<Middlewares> {
+  constructor(arrayLength?: number)
+  constructor(...items: Middlewares[])
+  constructor(...args: any[]) {
+    super(...args)
+    Object.setPrototypeOf(this, MiddlewareArray.prototype)
+  }
+
+  static get [Symbol.species]() {
+    return MiddlewareArray as any
+  }
+
   concat<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
     items: AdditionalMiddlewares
   ): MiddlewareArray<Middlewares | AdditionalMiddlewares[number]>
@@ -35,9 +46,8 @@ export class MiddlewareArray<
   concat<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
     ...items: AdditionalMiddlewares
   ): MiddlewareArray<Middlewares | AdditionalMiddlewares[number]>
-
   concat(...arr: any[]) {
-    return new MiddlewareArray(...super.concat(...arr))
+    return super.concat.apply(this, arr)
   }
 
   prepend<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(

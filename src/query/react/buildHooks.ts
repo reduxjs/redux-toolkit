@@ -4,7 +4,14 @@ import {
   ThunkAction,
   ThunkDispatch,
 } from '@reduxjs/toolkit'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import {
   QueryStatus,
   QuerySubState,
@@ -40,6 +47,7 @@ import {
 import { ReactHooksModuleOptions } from './module'
 import { useShallowStableValue } from './useShallowStableValue'
 import { UninitializedValue, UNINITIALIZED_VALUE } from '../constants'
+import { useStore } from 'react-redux'
 
 export interface QueryHooks<
   Definition extends QueryDefinition<any, any, any, any, any>
@@ -58,7 +66,19 @@ export interface MutationHooks<
 }
 
 /**
- * test description here
+ * A React hook that automatically triggers fetches of data from an endpoint, 'subscribes' the component to the cached data, and reads the request status and cached data from the Redux store. The component will re-render as the loading status changes and the data becomes available.
+ *
+ * The query arg is used as a cache key. Changing the query arg will tell the hook to re-fetch the data if it does not exist in the cache already, and the hook will return the data for that query arg once it's available.
+ *
+ * This hook combines the functionality of both [`useQueryState`](#usequerystate) and [`useQuerySubscription`](#usequerysubscription) together, and is intended to be used in the majority of situations.
+ *
+ * #### Features
+ *
+ * - Automatically triggers requests to retrieve data based on the hook argument and whether cached data exists by default
+ * - 'Subscribes' the component to keep cached data in the store, and 'unsubscribes' when the component unmounts
+ * - Accepts polling/re-fetching options to trigger automatic re-fetches when the corresponding criteria is met
+ * - Returns the latest request status and cached data from the Redux store
+ * - Re-renders as the request status changes and data becomes available
  */
 export type UseQuery<D extends QueryDefinition<any, any, any, any>> = <
   R extends Record<string, any> = UseQueryStateDefaultResult<D>
@@ -112,6 +132,19 @@ interface UseQuerySubscriptionOptions extends SubscriptionOptions {
   refetchOnMountOrArgChange?: boolean | number
 }
 
+/**
+ * A React hook that automatically triggers fetches of data from an endpoint, and 'subscribes' the component to the cached data.
+ *
+ * The query arg is used as a cache key. Changing the query arg will tell the hook to re-fetch the data if it does not exist in the cache already.
+ *
+ * Note that this hook does not return a request status or cached data. For that use-case, see [`useQuery`](#usequery) or [`useQueryState`](#usequerystate).
+ *
+ * #### Features
+ *
+ * - Automatically triggers requests to retrieve data based on the hook argument and whether cached data exists by default
+ * - 'Subscribes' the component to keep cached data in the store, and 'unsubscribes' when the component unmounts
+ * - Accepts polling/re-fetching options to trigger automatic re-fetches when the corresponding criteria is met
+ */
 export type UseQuerySubscription<
   D extends QueryDefinition<any, any, any, any>
 > = (
@@ -124,6 +157,21 @@ export type UseLazyQueryLastPromiseInfo<
 > = {
   lastArg: QueryArgFrom<D>
 }
+
+/**
+ * A React hook similar to [`useQuery`](#usequery), but with manual control over when the data fetching occurs.
+ *
+ * This hook includes the functionality of [`useLazyQuerySubscription`](#uselazyquerysubscription).
+ *
+ * #### Features
+ *
+ * - Manual control over firing a request to retrieve data
+ * - 'Subscribes' the component to keep cached data in the store, and 'unsubscribes' when the component unmounts
+ * - Returns the latest request status and cached data from the Redux store
+ * - Re-renders as the request status changes and data becomes available
+ * - Accepts polling/re-fetching options to trigger automatic re-fetches when the corresponding criteria is met and the fetch has been manually called at least once
+ *
+ */
 export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
   R = UseQueryStateDefaultResult<D>
 >(
@@ -134,6 +182,17 @@ export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
   UseLazyQueryLastPromiseInfo<D>
 ]
 
+/**
+ * A React hook similar to [`useQuerySubscription`](#usequerysubscription), but with manual control over when the data fetching occurs.
+ *
+ * Note that this hook does not return a request status or cached data. For that use-case, see [`useLazyQuery`](#uselazyquery).
+ *
+ * #### Features
+ *
+ * - Manual control over firing a request to retrieve data
+ * - 'Subscribes' the component to keep cached data in the store, and 'unsubscribes' when the component unmounts
+ * - Accepts polling/re-fetching options to trigger automatic re-fetches when the corresponding criteria is met and the fetch has been manually called at least once
+ */
 export type UseLazyQuerySubscription<
   D extends QueryDefinition<any, any, any, any>
 > = (
@@ -143,19 +202,18 @@ export type UseLazyQuerySubscription<
 export type QueryStateSelector<
   R extends Record<string, any>,
   D extends QueryDefinition<any, any, any, any>
-> = (
-  state: QueryResultSelectorResult<D>,
-  lastResult: R | undefined,
-  defaultQueryStateSelector: DefaultQueryStateSelector<D>
-) => R
+> = (state: UseQueryStateDefaultResult<D>) => R
 
-export type DefaultQueryStateSelector<
-  D extends QueryDefinition<any, any, any, any>
-> = (
-  state: QueryResultSelectorResult<D>,
-  lastResult: Pick<UseQueryStateDefaultResult<D>, 'data'>
-) => UseQueryStateDefaultResult<D>
-
+/**
+ * A React hook that reads the request status and cached data from the Redux store. The component will re-render as the loading status changes and the data becomes available.
+ *
+ * Note that this hook does not trigger fetching new data. For that use-case, see [`useQuery`](#usequery) or [`useQuerySubscription`](#usequerysubscription).
+ *
+ * #### Features
+ *
+ * - Returns the latest request status and cached data from the Redux store
+ * - Re-renders as the request status changes and data becomes available
+ */
 export type UseQueryState<D extends QueryDefinition<any, any, any, any>> = <
   R = UseQueryStateDefaultResult<D>
 >(
@@ -295,14 +353,7 @@ type UseQueryStateDefaultResult<
 export type MutationStateSelector<
   R extends Record<string, any>,
   D extends MutationDefinition<any, any, any, any>
-> = (
-  state: MutationResultSelectorResult<D>,
-  defaultMutationStateSelector: DefaultMutationStateSelector<D>
-) => R
-
-export type DefaultMutationStateSelector<
-  D extends MutationDefinition<any, any, any, any>
-> = (state: MutationResultSelectorResult<D>) => MutationResultSelectorResult<D>
+> = (state: MutationResultSelectorResult<D>) => R
 
 export type UseMutationStateOptions<
   D extends MutationDefinition<any, any, any, any>,
@@ -316,6 +367,16 @@ export type UseMutationStateResult<
   R
 > = NoInfer<R>
 
+/**
+ * A React hook that lets you trigger an update request for a given endpoint, and subscribes the component to read the request status from the Redux store. The component will re-render as the loading status changes.
+ *
+ * #### Features
+ *
+ * - Manual control over firing a request to alter data on the server or possibly invalidate the cache
+ * - 'Subscribes' the component to keep cached data in the store, and 'unsubscribes' when the component unmounts
+ * - Returns the latest request status and cached data from the Redux store
+ * - Re-renders as the request status changes and data becomes available
+ */
 export type UseMutation<D extends MutationDefinition<any, any, any, any>> = <
   R extends Record<string, any> = MutationResultSelectorResult<D>
 >(
@@ -325,14 +386,13 @@ export type UseMutation<D extends MutationDefinition<any, any, any, any>> = <
   UseMutationStateResult<D, R>
 ]
 
-const defaultMutationStateSelector: DefaultMutationStateSelector<any> = (
-  currentState
-) => currentState
+const defaultQueryStateSelector: QueryStateSelector<any, any> = (x) => x
+const defaultMutationStateSelector: MutationStateSelector<any, any> = (x) => x
 
-const defaultQueryStateSelector: DefaultQueryStateSelector<any> = (
-  currentState,
-  lastResult
-) => {
+const queryStatePreSelector = (
+  currentState: QueryResultSelectorResult<any>,
+  lastResult: UseQueryStateDefaultResult<any>
+): UseQueryStateDefaultResult<any> => {
   // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
   const data =
     (currentState.isSuccess ? currentState.data : lastResult?.data) ??
@@ -360,11 +420,9 @@ const defaultQueryStateSelector: DefaultQueryStateSelector<any> = (
  * `{ isUninitialized: false, isFetching: true, isLoading: true }`
  * to prevent that the library user has to do an additional check for `isUninitialized`/
  */
-const noPendingQueryStateSelector: DefaultQueryStateSelector<any> = (
-  currentState,
-  lastResult
+const noPendingQueryStateSelector: QueryStateSelector<any, any> = (
+  selected
 ) => {
-  const selected = defaultQueryStateSelector(currentState, lastResult)
   if (selected.isUninitialized) {
     return {
       ...selected,
@@ -372,7 +430,7 @@ const noPendingQueryStateSelector: DefaultQueryStateSelector<any> = (
       isFetching: true,
       isLoading: true,
       status: QueryStatus.pending,
-    }
+    } as any
   }
   return selected
 }
@@ -562,13 +620,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
     const useQueryState: UseQueryState<any> = (
       arg: any,
-      {
-        skip = false,
-        selectFromResult = defaultQueryStateSelector as QueryStateSelector<
-          any,
-          any
-        >,
-      } = {}
+      { skip = false, selectFromResult = defaultQueryStateSelector } = {}
     ) => {
       const { select } = api.endpoints[name] as ApiEndpointQuery<
         QueryDefinition<any, any, any, any, any>,
@@ -578,17 +630,21 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       const lastValue = useRef<any>()
 
-      const querySelector = useMemo(
+      const selectDefaultResult = useMemo(
         () =>
           createSelector(
             [
               select(skip ? skipSelector : stableArg),
               (_: any, lastResult: any) => lastResult,
             ],
-            (subState, lastResult) =>
-              selectFromResult(subState, lastResult, defaultQueryStateSelector)
+            queryStatePreSelector
           ),
-        [select, skip, stableArg, selectFromResult]
+        [select, skip, stableArg]
+      )
+
+      const querySelector = useMemo(
+        () => createSelector([selectDefaultResult], selectFromResult),
+        [selectDefaultResult, selectFromResult]
       )
 
       const currentState = useSelector(
@@ -597,9 +653,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         shallowEqual
       )
 
-      useEffect(() => {
-        lastValue.current = currentState
-      }, [currentState])
+      const store = useStore()
+      const newLastValue = selectDefaultResult(
+        store.getState(),
+        lastValue.current
+      )
+      useLayoutEffect(() => {
+        lastValue.current = newLastValue
+      }, [newLastValue])
 
       return currentState
     }
@@ -627,7 +688,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         const queryStateResults = useQueryState(arg, {
           selectFromResult: options?.skip
             ? undefined
-            : (noPendingQueryStateSelector as QueryStateSelector<any, any>),
+            : noPendingQueryStateSelector,
           ...options,
         })
         return useMemo(
@@ -639,12 +700,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   }
 
   function buildMutationHook(name: string): UseMutation<any> {
-    return ({
-      selectFromResult = defaultMutationStateSelector as MutationStateSelector<
-        any,
-        any
-      >,
-    } = {}) => {
+    return ({ selectFromResult = defaultMutationStateSelector } = {}) => {
       const { select, initiate } = api.endpoints[name] as ApiEndpointMutation<
         MutationDefinition<any, any, any, any, any>,
         Definitions
@@ -678,7 +734,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const mutationSelector = useMemo(
         () =>
           createSelector([select(requestId || skipSelector)], (subState) =>
-            selectFromResult(subState, defaultMutationStateSelector)
+            selectFromResult(subState)
           ),
         [select, requestId, selectFromResult]
       )
