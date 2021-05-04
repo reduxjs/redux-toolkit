@@ -300,18 +300,19 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
         evaluatedEndpoints
       )) {
         if (
-          typeof process !== 'undefined' &&
-          process.env.NODE_ENV === 'development'
+          !inject.overrideExisting &&
+          endpointName in context.endpointDefinitions
         ) {
           if (
-            !inject.overrideExisting &&
-            endpointName in context.endpointDefinitions
+            typeof process !== 'undefined' &&
+            process.env.NODE_ENV === 'development'
           ) {
             console.error(
               `called \`injectEndpoints\` to override already-existing endpointName ${endpointName} without specifying \`overrideExisting: true\``
             )
-            continue
           }
+
+          continue
         }
         context.endpointDefinitions[endpointName] = definition
         for (const m of initializedModules) {
