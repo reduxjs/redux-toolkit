@@ -47,7 +47,7 @@ export const build: SubMiddlewareBuilder = ({
     } else if (isFullfilledThunk(action)) {
       const lifecycle = lifecycleMap[cacheKey]
       if (lifecycle?.valueResolved) {
-        lifecycle.valueResolved(action.payload)
+        lifecycle.valueResolved(action.payload.result)
         delete lifecycle.valueResolved
       }
     } else if (
