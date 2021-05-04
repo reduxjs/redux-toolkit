@@ -1,6 +1,6 @@
 module.exports = {
   setupFilesAfterEnv: ['./jest.setup.js'],
-  testPathIgnorePatterns: ['<rootDir>/query-old/*'],
+  testMatch: ['<rootDir>/src/**/?(*.)+(spec|test).[jt]s?(x)'],
   moduleNameMapper: {
     '^@reduxjs/toolkit$': '<rootDir>/src/index.ts', // @remap-prod-remove-line
     '^@reduxjs/toolkit/query$': '<rootDir>/src/query/index.ts', // @remap-prod-remove-line
@@ -9,6 +9,7 @@ module.exports = {
     //'^@reduxjs/toolkit/dist/(.*)$': '<rootDir>/src/*',
     '^@internal/(.*)$': '<rootDir>/src/$1',
   },
+  preset: 'ts-jest',
   globals: {
     'ts-jest': {
       tsconfig: 'tsconfig.test.json',
