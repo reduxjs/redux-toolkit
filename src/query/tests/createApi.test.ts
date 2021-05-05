@@ -530,7 +530,7 @@ describe('additional transformResponse behaviors', () => {
       api.endpoints.mutation.initiate({})
     )
 
-    expect(result.data).toEqual({ banana: 'bread' })
+    expect('data' in result && result.data).toEqual({ banana: 'bread' })
   })
 
   test('transformResponse can inject baseQuery meta into the end result from a mutation', async () => {
@@ -538,7 +538,7 @@ describe('additional transformResponse behaviors', () => {
       api.endpoints.mutationWithMeta.initiate({})
     )
 
-    expect(result.data).toEqual({
+    expect('data' in result && result.data).toEqual({
       banana: 'bread',
       meta: {
         request: {

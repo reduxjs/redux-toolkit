@@ -1,5 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query'
-import { waitFor, waitForDomChange } from '@testing-library/react'
+import { waitFor } from '@testing-library/react'
 import { fetchBaseQuery } from '../fetchBaseQuery'
 import { setupApiStore, waitMs } from './helpers'
 

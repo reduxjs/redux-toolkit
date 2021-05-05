@@ -180,7 +180,7 @@ describe('updateQueryResult', () => {
     })
 
     act(() => {
-      returnValue = storeRef.store.dispatch(
+      storeRef.store.dispatch(
         api.util.patchQueryResult('post', '3', returnValue.inversePatches)
       )
     })

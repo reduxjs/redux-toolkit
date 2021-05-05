@@ -26,7 +26,7 @@ export const build: SubMiddlewareBuilder = ({
         requestId,
         arg: { endpointName, originalArgs },
       } = action.meta
-      const { onQuery } = context.endpointDefinitions[endpointName]
+      const onQuery = context.endpointDefinitions[endpointName]?.onQuery
       if (onQuery) {
         const lifecycle = {} as CacheLifecycle
         const resultPromise = toOptionalPromise(

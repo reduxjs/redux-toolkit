@@ -411,7 +411,7 @@ describe('customListenersHandler', () => {
     expect(dispatchSpy).toHaveBeenCalled()
     expect(
       defaultApi.internalActions.onOnline.match(
-        dispatchSpy.mock.calls[1][0] as AnyAction
+        dispatchSpy.mock.calls[1][0] as any
       )
     ).toBe(true)
 

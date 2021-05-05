@@ -83,7 +83,8 @@ export const build: SubMiddlewareBuilder = ({
     queryCacheKey: string,
     mwApi: SubMiddlewareApi
   ) {
-    const { onCacheEntryAdded } = context.endpointDefinitions[endpointName]
+    const onCacheEntryAdded =
+      context.endpointDefinitions[endpointName]?.onCacheEntryAdded
     if (!onCacheEntryAdded) return
 
     const neverResolvedError = new Error(
