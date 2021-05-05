@@ -7,7 +7,7 @@
  * No interaction with the Promise => no error
  */
 export interface OptionalPromise<T>
-  extends Pick<Promise<T>, 'then' | 'catch'> {}
+  extends Pick<Promise<T>, 'then' | 'catch' | 'finally'> {}
 
 /**
  * Wraps a Promise in a new Promise that will only throw, if either `.then` or `.catch` have been accessed on it prior to throwing.
@@ -25,6 +25,10 @@ export function toOptionalPromise<T>(promise: Promise<T>): OptionalPromise<T> {
     catch(onreject) {
       interacted = true
       return wrapped.catch(onreject) as any
+    },
+    finally(cb) {
+      interacted = true
+      return wrapped.finally(cb) as any
     },
   }
 }

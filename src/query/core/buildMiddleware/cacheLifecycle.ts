@@ -105,10 +105,18 @@ export const build: SubMiddlewareBuilder = ({
       ])
     )
     lifecycleMap[queryCacheKey] = lifecycle
-    const runningHandler = onCacheEntryAdded(originalArgs, mwApi, {
-      firstValueResolved,
-      cleanup,
-    })
+    const selector = (api.endpoints[endpointName] as any).select(originalArgs)
+    const runningHandler = onCacheEntryAdded(
+      originalArgs,
+      {
+        ...mwApi,
+        getCacheEntry: () => selector(mwApi.getState()),
+      },
+      {
+        firstValueResolved,
+        cleanup,
+      }
+    )
     // if a `neverResolvedError` was thrown, but not handled in the running handler, do not let it leak out further
     Promise.resolve(runningHandler).catch((e) => {
       if (e === neverResolvedError) return

@@ -87,6 +87,129 @@ test('query: onStart, onSuccess and onError', async () => {
   expect(onSuccess).not.toHaveBeenCalled()
 })
 
+test('getCacheEntry (success)', async () => {
+  const snapshot = jest.fn()
+  const extended = api.injectEndpoints({
+    overrideExisting: true,
+    endpoints: (build) => ({
+      injected: build.query<unknown, string>({
+        query: () => '/success',
+        async onQuery(
+          arg,
+          { dispatch, getState, getCacheEntry },
+          { resultPromise }
+        ) {
+          try {
+            snapshot(getCacheEntry())
+            const result = await resultPromise
+            onSuccess(result)
+            snapshot(getCacheEntry())
+          } catch (e) {
+            onError(e)
+            snapshot(getCacheEntry())
+          }
+        },
+      }),
+    }),
+  })
+  const promise = storeRef.store.dispatch(
+    extended.endpoints.injected.initiate('arg')
+  )
+
+  await waitFor(() => {
+    expect(onSuccess).toHaveBeenCalled()
+  })
+
+  expect(snapshot).toHaveBeenCalledTimes(2)
+  expect(snapshot.mock.calls[0][0]).toMatchObject({
+    endpointName: 'injected',
+    isError: false,
+    isLoading: true,
+    isSuccess: false,
+    isUninitialized: false,
+    originalArgs: 'arg',
+    requestId: promise.requestId,
+    startedTimeStamp: expect.any(Number),
+    status: 'pending',
+  })
+  expect(snapshot.mock.calls[1][0]).toMatchObject({
+    data: {
+      value: 'success',
+    },
+    endpointName: 'injected',
+    fulfilledTimeStamp: expect.any(Number),
+    isError: false,
+    isLoading: false,
+    isSuccess: true,
+    isUninitialized: false,
+    originalArgs: 'arg',
+    requestId: promise.requestId,
+    startedTimeStamp: expect.any(Number),
+    status: 'fulfilled',
+  })
+})
+
+test('getCacheEntry (success)', async () => {
+  const snapshot = jest.fn()
+  const extended = api.injectEndpoints({
+    overrideExisting: true,
+    endpoints: (build) => ({
+      injected: build.query<unknown, string>({
+        query: () => '/error',
+        async onQuery(
+          arg,
+          { dispatch, getState, getCacheEntry },
+          { resultPromise }
+        ) {
+          try {
+            snapshot(getCacheEntry())
+            const result = await resultPromise
+            onSuccess(result)
+            snapshot(getCacheEntry())
+          } catch (e) {
+            onError(e)
+            snapshot(getCacheEntry())
+          }
+        },
+      }),
+    }),
+  })
+  const promise = storeRef.store.dispatch(
+    extended.endpoints.injected.initiate('arg')
+  )
+
+  await waitFor(() => {
+    expect(onError).toHaveBeenCalled()
+  })
+
+  expect(snapshot.mock.calls[0][0]).toMatchObject({
+    endpointName: 'injected',
+    isError: false,
+    isLoading: true,
+    isSuccess: false,
+    isUninitialized: false,
+    originalArgs: 'arg',
+    requestId: promise.requestId,
+    startedTimeStamp: expect.any(Number),
+    status: 'pending',
+  })
+  expect(snapshot.mock.calls[1][0]).toMatchObject({
+    error: {
+      data: { value: 'error' },
+      status: 500,
+    },
+    endpointName: 'injected',
+    isError: true,
+    isLoading: false,
+    isSuccess: false,
+    isUninitialized: false,
+    originalArgs: 'arg',
+    requestId: promise.requestId,
+    startedTimeStamp: expect.any(Number),
+    status: 'rejected',
+  })
+})
+
 /*
  other test scenarios:
 

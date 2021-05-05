@@ -3,6 +3,7 @@ import { toOptionalPromise } from '../../utils/toOptionalPromise'
 import { SubMiddlewareBuilder } from './types'
 
 export const build: SubMiddlewareBuilder = ({
+  api,
   context,
   queryThunk,
   mutationThunk,
@@ -35,7 +36,18 @@ export const build: SubMiddlewareBuilder = ({
           })
         )
         lifecycleMap[requestId] = lifecycle
-        onQuery(originalArgs, mwApi, { resultPromise })
+        const selector = (api.endpoints[endpointName] as any).select(
+          originalArgs
+        )
+
+        onQuery(
+          originalArgs,
+          {
+            ...mwApi,
+            getCacheEntry: () => selector(mwApi.getState()),
+          },
+          { resultPromise }
+        )
       }
     } else if (isFullfilledThunk(action)) {
       const { requestId } = action.meta

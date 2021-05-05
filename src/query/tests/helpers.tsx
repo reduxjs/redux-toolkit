@@ -108,7 +108,7 @@ export function setupApiStore<
   A extends {
     reducerPath: any
     reducer: Reducer<any, any>
-    middleware: Middleware<any>
+    middleware: Middleware
     util: { resetApiState(): any }
   },
   R extends Record<string, Reducer<any, any>>
@@ -121,6 +121,7 @@ export function setupApiStore<
           api.middleware
         ),
     })
+
   type StoreType = ReturnType<typeof getStore> extends EnhancedStore<
     {},
     any,

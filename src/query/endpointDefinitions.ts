@@ -1,6 +1,10 @@
 import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit'
 import { RootState } from './core/apiState'
 import {
+  QueryResultSelectorResult,
+  MutationResultSelectorResult,
+} from './core/buildSelectors'
+import {
   BaseQueryExtraOptions,
   BaseQueryFn,
   BaseQueryResult,
@@ -56,9 +60,42 @@ interface EndpointDefinitionWithQueryFn<
   transformResponse?: never
 }
 
-export type LifecycleApi = {
+export type LifecycleApi<CacheEntry = unknown> = {
   dispatch: ThunkDispatch<any, any, any>
   getState: () => unknown
+  getCacheEntry: () => CacheEntry
+}
+
+export interface CacheLifecyclePromises<ResultType = unknown> {
+  /**
+   * Promise that will resolve with the first value for this cache key.
+   * This allows you to `await` until an actual value is in cache.
+   *
+   * If the cache entry is removed from the cache before any value has ever
+   * been resolved, this Promise will reject with
+   * `new Error('Promise never resolved before cleanup.')`
+   * to prevent memory leaks.
+   * You can just re-throw that error (or not handle it at all) -
+   * it will be caught outside of `cacheEntryAdded`.
+   */
+  firstValueResolved: OptionalPromise<ResultType>
+  /**
+   * Promise that allows you to wait for the point in time when the cache entry
+   * has been removed from the cache, by not being used/subscribed to any more
+   * in the application for too long or by dispatching `api.util.resetApiState`.
+   */
+  cleanup: Promise<void>
+}
+
+interface QueryLifecyclePromises<ResultType> {
+  /**
+   * Promise that will resolve with the (transformed) query result.
+   
+   * If the query fails, this promise will reject with the error.
+   *
+   * This allows you to `await` for the query to finish.
+   */
+  resultPromise: OptionalPromise<ResultType>
 }
 
 export type BaseEndpointDefinition<
@@ -75,44 +112,6 @@ export type BaseEndpointDefinition<
   [resultType]?: ResultType
   /* phantom type */
   [baseQuery]?: BaseQuery
-  onCacheEntryAdded?(
-    arg: QueryArg,
-    api: LifecycleApi,
-    promises: {
-      /**
-       * Promise that will resolve with the first value for this cache key.
-       * This allows you to `await` until an actual value is in cache.
-       *
-       * If the cache entry is removed from the cache before any value has ever
-       * been resolved, this Promise will reject with
-       * `new Error('Promise never resolved before cleanup.')`
-       * to prevent memory leaks.
-       * You can just re-throw that error (or not handle it at all) -
-       * it will be caught outside of `cacheEntryAdded`.
-       */
-      firstValueResolved: OptionalPromise<ResultType>
-      /**
-       * Promise that allows you to wait for the point in time when the cache entry
-       * has been removed from the cache, by not being used/subscribed to any more
-       * in the application for too long or by dispatching `api.util.resetApiState`.
-       */
-      cleanup: Promise<void>
-    }
-  ): Promise<void> | void
-  onQuery?(
-    arg: QueryArg,
-    api: LifecycleApi,
-    promises: {
-      /**
-       * Promise that will resolve with the (transformed) query result.
-       
-       * If the query fails, this promise will reject with the error.
-       *
-       * This allows you to `await` for the query to finish.
-       */
-      resultPromise: OptionalPromise<ResultType>
-    }
-  ): Promise<void> | void
 } & HasRequiredProps<
     BaseQueryExtraOptions<BaseQuery>,
     { extraOptions: BaseQueryExtraOptions<BaseQuery> },
@@ -239,6 +238,32 @@ interface QueryExtraOptions<
     result: ResultType,
     meta: BaseQueryMeta<BaseQuery> | undefined
   ): void
+  onCacheEntryAdded?(
+    arg: QueryArg,
+    api: LifecycleApi<
+      QueryResultSelectorResult<
+        { type: DefinitionType.query } & BaseEndpointDefinition<
+          QueryArg,
+          BaseQuery,
+          ResultType
+        >
+      >
+    >,
+    promises: CacheLifecyclePromises<ResultType>
+  ): Promise<void> | void
+  onQuery?(
+    arg: QueryArg,
+    api: LifecycleApi<
+      QueryResultSelectorResult<
+        { type: DefinitionType.query } & BaseEndpointDefinition<
+          QueryArg,
+          BaseQuery,
+          ResultType
+        >
+      >
+    >,
+    promises: QueryLifecyclePromises<ResultType>
+  ): Promise<void> | void
 }
 
 export type QueryDefinition<
@@ -345,6 +370,32 @@ interface MutationExtraOptions<
     result: ResultType,
     meta: BaseQueryMeta<BaseQuery> | undefined
   ): void
+  onCacheEntryAdded?(
+    arg: QueryArg,
+    api: LifecycleApi<
+      MutationResultSelectorResult<
+        { type: DefinitionType.mutation } & BaseEndpointDefinition<
+          QueryArg,
+          BaseQuery,
+          ResultType
+        >
+      >
+    >,
+    promises: CacheLifecyclePromises<ResultType>
+  ): Promise<void> | void
+  onQuery?(
+    arg: QueryArg,
+    api: LifecycleApi<
+      MutationResultSelectorResult<
+        { type: DefinitionType.mutation } & BaseEndpointDefinition<
+          QueryArg,
+          BaseQuery,
+          ResultType
+        >
+      >
+    >,
+    promises: QueryLifecyclePromises<ResultType>
+  ): Promise<void> | void
 }
 
 export type MutationDefinition<
