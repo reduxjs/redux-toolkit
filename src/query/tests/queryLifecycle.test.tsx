@@ -7,6 +7,7 @@ const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'http://example.com' }),
   endpoints: () => ({}),
 })
+const storeRef = setupApiStore(api)
 
 const onStart = jest.fn()
 const onSuccess = jest.fn()
@@ -17,8 +18,6 @@ beforeEach(() => {
   onSuccess.mockClear()
   onError.mockClear()
 })
-
-const storeRef = setupApiStore(api)
 
 test('query: onStart only', async () => {
   const extended = api.injectEndpoints({

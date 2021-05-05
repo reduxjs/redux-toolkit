@@ -39,11 +39,11 @@ export const build: SubMiddlewareBuilder = ({
       }
     } else if (isFullfilledThunk(action)) {
       const { requestId } = action.meta
-      lifecycleMap[requestId].resolve(action.payload.result)
+      lifecycleMap[requestId]?.resolve(action.payload.result)
       delete lifecycleMap[requestId]
     } else if (isRejectedThunk(action)) {
       const { requestId } = action.meta
-      lifecycleMap[requestId].reject(action.payload ?? action.error)
+      lifecycleMap[requestId]?.reject(action.payload ?? action.error)
       delete lifecycleMap[requestId]
     }
 
