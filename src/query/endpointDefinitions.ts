@@ -17,7 +17,6 @@ import {
   CastAny,
 } from './tsHelpers'
 import { NEVER } from './fakeBaseQuery'
-import { OptionalPromise } from './utils/toOptionalPromise'
 
 const resultType = Symbol()
 const baseQuery = Symbol()

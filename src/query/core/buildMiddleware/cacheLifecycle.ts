@@ -13,6 +13,8 @@ import {
 } from '../buildSelectors'
 import { SubMiddlewareApi, SubMiddlewareBuilder } from './types'
 
+export type ReferenceCacheLifecycle = never
+
 declare module '../../endpointDefinitions' {
   export type LifecycleApi<
     ReducerPath extends string = string,

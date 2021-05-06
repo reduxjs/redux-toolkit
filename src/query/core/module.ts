@@ -36,6 +36,9 @@ import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import { SliceActions } from './buildSlice'
 import { BaseQueryFn } from '../baseQueryTypes'
 
+import type { ReferenceCacheLifecycle } from './buildMiddleware/cacheLifecycle'
+import type { ReferenceQueryLifecycle } from './buildMiddleware/queryLifecycle'
+
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
  * - If specified, it will only run the query if the difference between `new Date()` and the last `fulfilledTimeStamp` is greater than the given value
@@ -51,7 +54,10 @@ export type PrefetchOptions =
   | { force?: boolean }
 
 export const coreModuleName = Symbol()
-export type CoreModule = typeof coreModuleName
+export type CoreModule =
+  | typeof coreModuleName
+  | ReferenceCacheLifecycle
+  | ReferenceQueryLifecycle
 
 declare module '../apiTypes' {
   export interface ApiModules<

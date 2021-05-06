@@ -10,6 +10,8 @@ import {
 } from '../buildSelectors'
 import { SubMiddlewareBuilder } from './types'
 
+export type ReferenceQueryLifecycle = never
+
 declare module '../../endpointDefinitions' {
   export interface QueryLifecyclePromises<ResultType> {
     /**
