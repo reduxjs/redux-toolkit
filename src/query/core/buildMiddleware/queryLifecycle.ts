@@ -40,11 +40,14 @@ export const build: SubMiddlewareBuilder = ({
           originalArgs
         )
 
+        const extra = mwApi.dispatch((_, __, extra) => extra)
         onQuery(
           originalArgs,
           {
             ...mwApi,
             getCacheEntry: () => selector(mwApi.getState()),
+            requestId,
+            extra,
           },
           { resultPromise }
         )

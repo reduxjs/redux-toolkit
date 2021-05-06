@@ -30,11 +30,7 @@ const api = createApi({
       query: (id) => `post/${id}`,
       providesTags: ['Post'],
     }),
-    updatePost: build.mutation<
-      void,
-      Pick<Post, 'id'> & Partial<Post>,
-      { undoPost: Patch[] }
-    >({
+    updatePost: build.mutation<void, Pick<Post, 'id'> & Partial<Post>>({
       query: ({ id, ...patch }) => ({
         url: `post/${id}`,
         method: 'PATCH',
@@ -106,7 +102,7 @@ describe('basic lifecycle', () => {
       'arg',
       expect.any(Object),
       'success',
-      'meta'
+      undefined
     )
   })
 
@@ -132,7 +128,7 @@ describe('basic lifecycle', () => {
     expect(onError).toHaveBeenCalledWith(
       'arg',
       expect.any(Object),
-      'error',
+      { message: 'error' },
       undefined
     )
     expect(onSuccess).not.toHaveBeenCalled()

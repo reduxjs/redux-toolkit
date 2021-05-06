@@ -637,6 +637,7 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
     const failAttempt = storeRef.store.dispatch(api.endpoints.query.initiate())
     expect(storeRef.store.getState().testReducer.count).toBe(0)
     await failAttempt
+    await waitMs(10)
     expect(storeRef.store.getState().testReducer.count).toBe(-1)
 
     const successAttempt = storeRef.store.dispatch(
@@ -644,6 +645,7 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
     )
     expect(storeRef.store.getState().testReducer.count).toBe(0)
     await successAttempt
+    await waitMs(10)
     expect(storeRef.store.getState().testReducer.count).toBe(1)
   })
 

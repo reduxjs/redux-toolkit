@@ -277,6 +277,26 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
             }
             x.providesTags ??= x.provides
           }
+          if (x.onStart || x.onSuccess || x.onError) {
+            if (
+              typeof process !== 'undefined' &&
+              process.env.NODE_ENV === 'development'
+            ) {
+              console.warn(
+                '`onStart`, `onSuccess` and `onError` have been replaced by `onQuery`, please change your code accordingly'
+              )
+            }
+            x.onQuery ??= async (arg, api, { resultPromise }) => {
+              const queryApi = { ...api, context: {} }
+              x.onStart?.(arg, queryApi)
+              try {
+                const result = await resultPromise
+                x.onSuccess?.(arg, queryApi, result, undefined)
+              } catch (error) {
+                x.onError?.(arg, queryApi, error, undefined)
+              }
+            }
+          }
           return { ...x, type: DefinitionType.query } as any
         },
         mutation: (x) => {
@@ -291,6 +311,26 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
               )
             }
             x.invalidatesTags ??= x.invalidates
+          }
+          if (x.onStart || x.onSuccess || x.onError) {
+            if (
+              typeof process !== 'undefined' &&
+              process.env.NODE_ENV === 'development'
+            ) {
+              console.warn(
+                '`onStart`, `onSuccess` and `onError` have been replaced by `onQuery`, please change your code accordingly'
+              )
+            }
+            x.onQuery ??= async (arg, api, { resultPromise }) => {
+              const queryApi = { ...api, context: {} }
+              x.onStart?.(arg, queryApi)
+              try {
+                const result = await resultPromise
+                x.onSuccess?.(arg, queryApi, result, undefined)
+              } catch (error) {
+                x.onError?.(arg, queryApi, error, undefined)
+              }
+            }
           }
           return { ...x, type: DefinitionType.mutation } as any
         },

@@ -240,17 +240,6 @@ export function buildThunks<
   > = async (arg, { signal, rejectWithValue, ...api }) => {
     const endpointDefinition = endpointDefinitions[arg.endpointName]
 
-    const context: Record<string, any> = {}
-    const queryApi:
-      | QueryApi<ReducerPath, any>
-      | MutationApi<ReducerPath, any> = {
-      ...api,
-      context,
-    }
-
-    if (endpointDefinition.onStart)
-      endpointDefinition.onStart(arg.originalArgs, queryApi)
-
     try {
       let transformResponse: (
         baseQueryReturnValue: any,
@@ -282,25 +271,12 @@ export function buildThunks<
         )
       }
       if (result.error) throw new HandledError(result.error, result.meta)
-      if (endpointDefinition.onSuccess)
-        endpointDefinition.onSuccess(
-          arg.originalArgs,
-          queryApi,
-          result.data,
-          result.meta
-        )
+
       return {
         fulfilledTimeStamp: Date.now(),
         result: await transformResponse(result.data, result.meta),
       }
     } catch (error) {
-      if (endpointDefinition.onError)
-        endpointDefinition.onError(
-          arg.originalArgs,
-          queryApi,
-          error instanceof HandledError ? error.value : error,
-          error instanceof HandledError ? error.meta : undefined
-        )
       if (error instanceof HandledError) {
         return rejectWithValue(error.value)
       }

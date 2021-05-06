@@ -31,7 +31,8 @@ export const build: SubMiddlewareBuilder = ({
           action.meta.arg.endpointName,
           action.meta.arg.originalArgs,
           cacheKey,
-          mwApi
+          mwApi,
+          action.meta.requestId
         )
       }
     } else if (mutationThunk.pending.match(action)) {
@@ -41,7 +42,8 @@ export const build: SubMiddlewareBuilder = ({
           action.meta.arg.endpointName,
           action.meta.arg.originalArgs,
           cacheKey,
-          mwApi
+          mwApi,
+          action.meta.requestId
         )
       }
     } else if (isFullfilledThunk(action)) {
@@ -81,7 +83,8 @@ export const build: SubMiddlewareBuilder = ({
     endpointName: string,
     originalArgs: any,
     queryCacheKey: string,
-    mwApi: SubMiddlewareApi
+    mwApi: SubMiddlewareApi,
+    requestId: string
   ) {
     const onCacheEntryAdded =
       context.endpointDefinitions[endpointName]?.onCacheEntryAdded
@@ -107,11 +110,14 @@ export const build: SubMiddlewareBuilder = ({
     )
     lifecycleMap[queryCacheKey] = lifecycle
     const selector = (api.endpoints[endpointName] as any).select(originalArgs)
+    const extra = mwApi.dispatch((_, __, extra) => extra)
     const runningHandler = onCacheEntryAdded(
       originalArgs,
       {
         ...mwApi,
         getCacheEntry: () => selector(mwApi.getState()),
+        requestId,
+        extra,
       },
       {
         firstValueResolved,
