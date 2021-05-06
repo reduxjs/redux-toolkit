@@ -12,33 +12,34 @@ RTK Query makes it straightforward to integrate with a standard index-based pagi
 ## Setup an endpoint to accept a page `arg`
 
 ```ts title="src/app/services/posts.ts"
-// Or from '@reduxjs/toolkit/query/react'
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query";
-
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+interface Post {
+  id: number
+  name: string
+}
 interface ListResponse<T> {
-  page: number;
-  per_page: number;
-  total: number;
-  total_pages: number;
-  data: T[];
+  page: number
+  per_page: number
+  total: number
+  total_pages: number
+  data: T[]
 }
 
 export const api = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: "/" }),
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   endpoints: (builder) => ({
     listPosts: builder.query<ListResponse<Post>, number | void>({
-      query: (page = 1) => `posts?page=${page}`
-      }
-    })
-  })
-});
+      query: (page = 1) => `posts?page=${page}`,
+    }),
+  }),
+})
 
-export const { useListPostsQuery } = api;
+export const { useListPostsQuery } = api
 ```
 
 ## Trigger the next page by incrementing the `page` state variable
 
-```ts title="src/features/posts/PostsManager.tsx"
+```tsx title="src/features/posts/PostsManager.tsx"
 const PostList = () => {
   const [page, setPage] = useState(1);
   const { data: posts, isLoading, isFetching } = useListPostsQuery(page);
@@ -76,7 +77,13 @@ In the following example, you'll see `Loading` on the initial query, but then as
 
 <iframe
   src="https://codesandbox.io/embed/concepts-pagination-6tjz1?fontsize=12&hidenavigation=1&theme=dark"
-  style={{ width: '100%', height: '600px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
+  style={{
+    width: '100%',
+    height: '600px',
+    border: 0,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  }}
   title="rtk-query-react-hooks-example"
   allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
   sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
