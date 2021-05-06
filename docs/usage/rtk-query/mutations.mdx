@@ -11,18 +11,30 @@ Unlike `useQuery`, `useMutation` returns a tuple. The first item in the tuple is
 
 Unlike the `useQuery` hook, the `useMutation` hook doesn't execute automatically. To run a mutation you have to call the trigger function returned as the first tuple value from the hook.
 
-```js title="Example of all mutation endpoint options"
+```ts title="Example of all mutation endpoint options"
+// file: types.ts noEmit
+export type Post = { id: number }
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { Post } from './types'
+
 const api = createApi({
-  baseQuery,
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/',
+  }),
+  tagTypes: ['Post'],
   endpoints: (build) => ({
-    updatePost: build.mutation({
+    updatePost: build.mutation<Post, Partial<Post> & Pick<Post, 'id'>>({
+      // highlight-start
+      // note: an optional `queryFn` may be used in place of `query`
       query: ({ id, ...patch }) => ({
         url: `post/${id}`,
         method: 'PATCH',
         body: patch,
       }),
       // Pick out data and prevent nested properties in a hook or selector
-      transformResponse: (response) => response.data,
+      transformResponse: (response: { data: Post }) => response.data,
       // onStart, onSuccess, onError are useful for optimistic updates
       // The 2nd parameter is the destructured `mutationApi`
       onStart(
@@ -33,6 +45,7 @@ const api = createApi({
       onSuccess({ id }, mutationApi, result) {},
       onError({ id }, { dispatch, getState, extra, requestId, context }) {},
       invalidatesTags: ['Post'],
+      // highlight-end
     }),
   }),
 })
@@ -44,7 +57,7 @@ Notice the `onStart`, `onSuccess`, `onError` methods? Be sure to check out how t
 
 ### Type interfaces
 
-```ts title="Mutation endpoint definition"
+```ts title="Mutation endpoint definition" no-transpile
 export type MutationDefinition<
   QueryArg,
   BaseQuery extends BaseQueryFn,
@@ -72,7 +85,7 @@ export type MutationDefinition<
 }
 ```
 
-```ts title="MutationApi"
+```ts title="MutationApi" no-transpile
 export interface MutationApi<ReducerPath extends string, Context extends {}> {
   dispatch: ThunkDispatch<any, any, AnyAction>
   getState(): RootState<any, any, ReducerPath>
@@ -86,7 +99,7 @@ export interface MutationApi<ReducerPath extends string, Context extends {}> {
 
 This is a modified version of the complete example you can see at the bottom of the page to highlight the `updatePost` mutation. In this scenario, a post is fetched with `useQuery`, and then a `EditablePostName` component is rendered that allows us to edit the name of the post.
 
-```ts title="src/features/posts/PostDetail.tsx"
+```tsx title="src/features/posts/PostDetail.tsx"
 export const PostDetail = () => {
   const { id } = useParams<{ id: any }>()
 
@@ -144,6 +157,14 @@ RTK Query provides _a lot_ of flexibility for how you can manage the invalidatio
 #### Invalidating everything of a type
 
 ```ts title="API Definition"
+// file: types.ts noEmit
+export type Post = { id: number }
+export type PostsResponse = Post[]
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { Post, PostsResponse } from './types'
+
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   tagTypes: ['Posts'],
@@ -171,7 +192,7 @@ export const api = createApi({
 export const { useGetPostsQuery, useGetPostQuery, useAddPostMutation } = api
 ```
 
-```ts title="App.tsx"
+```tsx title="App.tsx"
 function App() {
   const { data: posts } = useGetPostsQuery()
   const [addPost] = useAddPostMutation()
@@ -198,6 +219,14 @@ When `addPost` is triggered, it would cause each `PostDetail` component to go ba
 Keep an eye on the `provides` property of `getPosts` - we'll explain why after.
 
 ```ts title="API Definition"
+// file: types.ts noEmit
+export type Post = { id: number }
+export type PostsResponse = Post[]
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { Post, PostsResponse } from './types'
+
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   tagTypes: ['Posts'],
@@ -207,7 +236,7 @@ export const api = createApi({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'Posts', id })),
+              ...result.map(({ id }) => ({ type: 'Posts', id }) as const),
               { type: 'Posts', id: 'LIST' },
             ]
           : [{ type: 'Posts', id: 'LIST' }],
@@ -239,7 +268,7 @@ export const { useGetPostsQuery, useAddPostMutation, useGetPostQuery } = api
 >    - `[{ type: 'Posts', id: 'LIST' }, { type: 'Posts', id: 'SVELTE_POSTS' }, { type: 'Posts', id: 'REACT_POSTS' }]`
 > 3. If the concept of using an `id` like 'LIST' seems strange to you, you can always add another `tagType` and invalidate it's root, but we recommend using the `id` approach as shown.
 
-```ts title="App.tsx"
+```tsx title="App.tsx"
 function App() {
   const { data: posts } = useGetPostsQuery()
   const [addPost] = useAddPostMutation()
@@ -267,7 +296,7 @@ This is an example of a [CRUD service](https://en.wikipedia.org/wiki/Create,_rea
 
 ```ts title="src/app/services/posts.ts"
 // Or from '@reduxjs/toolkit/query/react'
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
 export interface Post {
   id: number
@@ -291,7 +320,7 @@ export const postApi = createApi({
         result
           ? // successful query
             [
-              ...result.map(({ id }) => ({ type: 'Posts', id })),
+              ...result.map(({ id }) => ({ type: 'Posts', id }) as const),
               { type: 'Posts', id: 'LIST' },
             ]
           : // an error occurred, but we still want to refetch this query when `{ type: 'Posts', id: 'LIST' }` is invalidated
@@ -345,7 +374,7 @@ export const {
   useGetPostQuery,
   useUpdatePostMutation,
   useDeletePostMutation,
-} = api
+} = postApi
 ```
 
 ### Example
