@@ -1,10 +1,6 @@
 import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit'
 import { RootState } from './core/apiState'
 import {
-  QueryResultSelectorResult,
-  MutationResultSelectorResult,
-} from './core/buildSelectors'
-import {
   BaseQueryExtraOptions,
   BaseQueryFn,
   BaseQueryResult,
@@ -58,64 +54,6 @@ interface EndpointDefinitionWithQueryFn<
   ): MaybePromise<QueryReturnValue<ResultType, BaseQueryError<BaseQuery>>>
   query?: never
   transformResponse?: never
-}
-
-export type LifecycleApi<
-  ReducerPath extends string = string,
-  CacheEntry = unknown
-> = {
-  /**
-   * The dispatch method for the store
-   */
-  dispatch: ThunkDispatch<any, any, AnyAction>
-  /**
-   * A method to get the current state
-   */
-  getState(): RootState<any, any, ReducerPath>
-  /**
-   * `extra` as provided as `thunk.extraArgument` to the `configureStore` `getDefaultMiddleware` option.
-   */
-  extra: unknown
-  /**
-   * A unique ID generated for the mutation
-   */
-  requestId: string
-  /**
-   * Gets the current value of this cache entry.
-   */
-  getCacheEntry: () => CacheEntry
-}
-
-export interface CacheLifecyclePromises<ResultType = unknown> {
-  /**
-   * Promise that will resolve with the first value for this cache key.
-   * This allows you to `await` until an actual value is in cache.
-   *
-   * If the cache entry is removed from the cache before any value has ever
-   * been resolved, this Promise will reject with
-   * `new Error('Promise never resolved before cleanup.')`
-   * to prevent memory leaks.
-   * You can just re-throw that error (or not handle it at all) -
-   * it will be caught outside of `cacheEntryAdded`.
-   */
-  firstValueResolved: OptionalPromise<ResultType>
-  /**
-   * Promise that allows you to wait for the point in time when the cache entry
-   * has been removed from the cache, by not being used/subscribed to any more
-   * in the application for too long or by dispatching `api.util.resetApiState`.
-   */
-  cleanup: Promise<void>
-}
-
-interface QueryLifecyclePromises<ResultType> {
-  /**
-   * Promise that will resolve with the (transformed) query result.
-   
-   * If the query fails, this promise will reject with the error.
-   *
-   * This allows you to `await` for the query to finish.
-   */
-  resultPromise: OptionalPromise<ResultType>
 }
 
 export type BaseEndpointDefinition<
@@ -182,7 +120,7 @@ export interface QueryApi<ReducerPath extends string, Context extends {}> {
   context: Context
 }
 
-interface QueryExtraOptions<
+export interface QueryExtraOptions<
   TagTypes extends string,
   ResultType,
   QueryArg,
@@ -232,34 +170,6 @@ interface QueryExtraOptions<
     result: ResultType,
     meta: undefined
   ): void
-  onCacheEntryAdded?(
-    arg: QueryArg,
-    api: LifecycleApi<
-      ReducerPath,
-      QueryResultSelectorResult<
-        { type: DefinitionType.query } & BaseEndpointDefinition<
-          QueryArg,
-          BaseQuery,
-          ResultType
-        >
-      >
-    >,
-    promises: CacheLifecyclePromises<ResultType>
-  ): Promise<void> | void
-  onQuery?(
-    arg: QueryArg,
-    api: LifecycleApi<
-      ReducerPath,
-      QueryResultSelectorResult<
-        { type: DefinitionType.query } & BaseEndpointDefinition<
-          QueryArg,
-          BaseQuery,
-          ResultType
-        >
-      >
-    >,
-    promises: QueryLifecyclePromises<ResultType>
-  ): Promise<void> | void
 }
 
 export type QueryDefinition<
@@ -295,7 +205,7 @@ export interface MutationApi<ReducerPath extends string, Context extends {}> {
   context: Context
 }
 
-interface MutationExtraOptions<
+export interface MutationExtraOptions<
   TagTypes extends string,
   ResultType,
   QueryArg,
@@ -342,34 +252,6 @@ interface MutationExtraOptions<
     result: ResultType,
     meta: undefined
   ): void
-  onCacheEntryAdded?(
-    arg: QueryArg,
-    api: LifecycleApi<
-      ReducerPath,
-      MutationResultSelectorResult<
-        { type: DefinitionType.mutation } & BaseEndpointDefinition<
-          QueryArg,
-          BaseQuery,
-          ResultType
-        >
-      >
-    >,
-    promises: CacheLifecyclePromises<ResultType>
-  ): Promise<void> | void
-  onQuery?(
-    arg: QueryArg,
-    api: LifecycleApi<
-      ReducerPath,
-      MutationResultSelectorResult<
-        { type: DefinitionType.mutation } & BaseEndpointDefinition<
-          QueryArg,
-          BaseQuery,
-          ResultType
-        >
-      >
-    >,
-    promises: QueryLifecyclePromises<ResultType>
-  ): Promise<void> | void
 }
 
 export type MutationDefinition<

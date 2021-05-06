@@ -1,6 +1,73 @@
 import { isPending, isRejected, isFulfilled } from '@reduxjs/toolkit'
-import { toOptionalPromise } from '../../utils/toOptionalPromise'
+import { BaseQueryFn } from '../../baseQueryTypes'
+import {
+  OptionalPromise,
+  toOptionalPromise,
+} from '../../utils/toOptionalPromise'
+import {
+  MutationResultSelectorResult,
+  QueryResultSelectorResult,
+} from '../buildSelectors'
 import { SubMiddlewareBuilder } from './types'
+
+declare module '../../endpointDefinitions' {
+  export interface QueryLifecyclePromises<ResultType> {
+    /**
+     * Promise that will resolve with the (transformed) query result.
+     
+     * If the query fails, this promise will reject with the error.
+     *
+     * This allows you to `await` for the query to finish.
+     */
+    resultPromise: OptionalPromise<ResultType>
+  }
+
+  interface QueryExtraOptions<
+    TagTypes extends string,
+    ResultType,
+    QueryArg,
+    BaseQuery extends BaseQueryFn,
+    ReducerPath extends string = string
+  > {
+    onQuery?(
+      arg: QueryArg,
+      api: LifecycleApi<
+        ReducerPath,
+        QueryResultSelectorResult<
+          { type: DefinitionType.query } & BaseEndpointDefinition<
+            QueryArg,
+            BaseQuery,
+            ResultType
+          >
+        >
+      >,
+      promises: QueryLifecyclePromises<ResultType>
+    ): Promise<void> | void
+  }
+
+  interface MutationExtraOptions<
+    TagTypes extends string,
+    ResultType,
+    QueryArg,
+    BaseQuery extends BaseQueryFn,
+    ReducerPath extends string = string
+  > {
+    onQuery?(
+      arg: QueryArg,
+      api: LifecycleApi<
+        ReducerPath,
+        MutationResultSelectorResult<
+          { type: DefinitionType.mutation } & BaseEndpointDefinition<
+            QueryArg,
+            BaseQuery,
+            ResultType
+          >
+        >
+      >,
+      promises: QueryLifecyclePromises<ResultType>
+    ): Promise<void> | void
+  }
+}
 
 export const build: SubMiddlewareBuilder = ({
   api,
