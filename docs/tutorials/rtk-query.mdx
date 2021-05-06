@@ -41,7 +41,7 @@ First, we'll create a service definition that queries the publicly available [Po
 
 ```ts title="src/services/pokemon.ts"
 // Need to use the React-specific entry point to import createApi
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/react'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
 // highlight-start
 // Define a service using a base URL and expected endpoints
