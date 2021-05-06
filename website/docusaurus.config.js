@@ -74,6 +74,17 @@ module.exports = {
                         version: '1.0',
                       },
                     },
+                    'your-cool-library': {
+                      resolvedPath: resolve(
+                        __dirname,
+                        '../docs/virtual/your-cool-library'
+                      ),
+                      packageId: {
+                        name: '@virtual/your-cool-library',
+                        subModuleName: 'index.ts',
+                        version: '1.0',
+                      },
+                    },
                   },
                 },
               },

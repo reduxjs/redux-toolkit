@@ -9,7 +9,7 @@ hide_title: true
 
 If your query or mutation happens to throw an error when using [fetchBaseQuery](../../api/rtk-query/fetchBaseQuery), it will be returned in the `error` property of the respective hook.
 
-```ts title="Query Error"
+```tsx title="Query Error"
 function PostsList() {
   const { data, error } = useGetPostsQuery()
 
@@ -21,7 +21,7 @@ function PostsList() {
 }
 ```
 
-```ts title="Mutation Error"
+```tsx title="Mutation Error"
 function AddPost() {
   const [addPost, { error }] = useAddPostMutation()
 
@@ -36,7 +36,7 @@ function AddPost() {
 :::tip
 If you need to access the error or success payload immediately after a mutation, you can chain `.unwrap()`.
 
-```ts title="Using .unwrap"
+```ts title="Using .unwrap" no-transpile
 addPost({ id: 1, name: 'Example' })
   .unwrap()
   .then((payload) => console.log('fulfilled', payload))
@@ -45,7 +45,7 @@ addPost({ id: 1, name: 'Example' })
 
 :::
 
-```ts title="Manually selecting an error"
+```tsx title="Manually selecting an error"
 function PostsList() {
   const { error } = useSelector(api.endpoints.getPosts.select())
 
@@ -61,10 +61,10 @@ function PostsList() {
 
 By default, RTK Query expects you to `return` two possible objects:
 
-1.  ```ts title="Expected success result format"
+1.  ```ts title="Expected success result format" no-transpile
     return { data: { first_name: 'Randy', last_name: 'Banana' };
     ```
-2.  ```ts title="Expected error result format"
+2.  ```ts title="Expected error result format" no-transpile
     return { error: { status: 500, data: { message: 'Failed because of reasons' } };
     ```
 
@@ -75,6 +75,9 @@ This format is required so that RTK Query can infer the return types for your re
 As an example, this what a very basic axios-based `baseQuery` utility could look like:
 
 ```ts title="Basic axios baseQuery"
+import { createApi, BaseQueryFn } from '@reduxjs/toolkit/query'
+import axios, { AxiosRequestConfig, AxiosError } from 'axios'
+
 const axiosBaseQuery = (
   { baseUrl }: { baseUrl: string } = { baseUrl: '' }
 ): BaseQueryFn<
@@ -101,7 +104,7 @@ const api = createApi({
   }),
   endpoints(build) {
     return {
-      query: build.query({ query: () => ({ url: '/query' }) }),
+      query: build.query({ query: () => ({ url: '/query', method: 'get' }) }),
       mutation: build.mutation({
         query: () => ({ url: '/mutation', method: 'post' }),
       }),
@@ -132,7 +135,7 @@ It is possible for a hook to return `data` and `error` at the same time. By defa
 
 `retry.fail`
 
-```ts title="TODO"
+```ts title="TODO" no-transpile
 baseBaseQuery.mockImplementation((input) => {
   retry.fail(error)
   return { data: `this won't happen` }
@@ -158,12 +161,13 @@ Redux-Toolkit released [matching utilities](https://redux-toolkit.js.org/api/mat
 :::
 
 ```ts title="Error catching middleware"
-import { MiddlewareAPI, isRejectedWithValue } from '@reduxjs/toolkit'
+import { MiddlewareAPI, isRejectedWithValue, Middleware } from '@reduxjs/toolkit'
 import { toast } from 'your-cool-library'
+
 /**
  * Log a warning and show a toast!
  */
-export const rtkQueryErrorLogger = (api: MiddlewareAPI) => (next) => (
+export const rtkQueryErrorLogger: Middleware = (api: MiddlewareAPI) => (next) => (
   action
 ) => {
   // RTK Query uses `createAsyncThunk` from redux-toolkit under the hood, so we're able to utilize these use matchers!

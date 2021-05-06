@@ -14,9 +14,15 @@ By default, RTK Query ships with [`fetchBaseQuery`](../../api/rtk-query/fetchBas
 > Depending on your environment, you may need to polyfill `fetch` with `node-fetch` or `cross-fetch` if you choose to use `fetchBaseQuery` or `fetch` on its own.
 
 ```ts title="Example of all query endpoint options"
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
 
-type Post = { id: number }
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { Post } from './types'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({

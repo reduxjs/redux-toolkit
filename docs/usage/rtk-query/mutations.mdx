@@ -13,7 +13,10 @@ Unlike the `useQuery` hook, the `useMutation` hook doesn't execute automatically
 
 ```ts title="Example of all mutation endpoint options"
 // file: types.ts noEmit
-export type Post = { id: number }
+export interface Post {
+  id: number
+  name: string
+}
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
@@ -158,7 +161,10 @@ RTK Query provides _a lot_ of flexibility for how you can manage the invalidatio
 
 ```ts title="API Definition"
 // file: types.ts noEmit
-export type Post = { id: number }
+export interface Post {
+  id: number
+  name: string
+}
 export type PostsResponse = Post[]
 
 // file: api.ts
@@ -220,7 +226,10 @@ Keep an eye on the `provides` property of `getPosts` - we'll explain why after.
 
 ```ts title="API Definition"
 // file: types.ts noEmit
-export type Post = { id: number }
+export interface Post {
+  id: number
+  name: string
+}
 export type PostsResponse = Post[]
 
 // file: api.ts
