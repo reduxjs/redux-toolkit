@@ -36,7 +36,7 @@ import {
   isRejected,
   isRejectedWithValue,
 } from '@reduxjs/toolkit'
-import { Patch, isDraftable, produceWithPatches, enablePatches } from 'immer'
+import { Patch, isDraftable, produceWithPatches } from 'immer'
 import {
   AnyAction,
   createAsyncThunk,
@@ -135,8 +135,8 @@ function defaultTransformResponse(baseQueryReturnValue: unknown) {
   return baseQueryReturnValue
 }
 
-type MaybeDrafted<T> = T | Draft<T>
-type Recipe<T> = (data: MaybeDrafted<T>) => void | MaybeDrafted<T>
+export type MaybeDrafted<T> = T | Draft<T>
+export type Recipe<T> = (data: MaybeDrafted<T>) => void | MaybeDrafted<T>
 
 export type PatchQueryResultThunk<
   Definitions extends EndpointDefinitions,
@@ -156,7 +156,23 @@ export type UpdateQueryResultThunk<
   updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>
 ) => ThunkAction<PatchCollection, PartialState, any, AnyAction>
 
-type PatchCollection = { patches: Patch[]; inversePatches: Patch[] }
+/**
+ * An object returned from dispatching a `api.util.updateQueryResult` call.
+ */
+export type PatchCollection = {
+  /**
+   * An `immer` Patch describing the cache update.
+   */
+  patches: Patch[]
+  /**
+   * An `immer` Patch to revert the cache update.
+   */
+  inversePatches: Patch[]
+  /**
+   * A function that will undo the cache update.
+   */
+  undo: () => void
+}
 
 export function buildThunks<
   BaseQuery extends BaseQueryFn,
@@ -203,14 +219,19 @@ export function buildThunks<
       any,
       any
     >).select(args)(getState())
-    let ret: PatchCollection = { patches: [], inversePatches: [] }
+    let ret: PatchCollection = {
+      patches: [],
+      inversePatches: [],
+      undo: () =>
+        dispatch(
+          api.util.patchQueryResult(endpointName, args, ret.inversePatches)
+        ),
+    }
     if (currentState.status === QueryStatus.uninitialized) {
       return ret
     }
     if ('data' in currentState) {
       if (isDraftable(currentState.data)) {
-        // call "enablePatches" as late as possible
-        enablePatches()
         const [, patches, inversePatches] = produceWithPatches(
           currentState.data,
           updateRecipe
@@ -228,7 +249,7 @@ export function buildThunks<
       }
     }
 
-    dispatch(patchQueryResult(endpointName, args, ret.patches))
+    dispatch(api.util.patchQueryResult(endpointName, args, ret.patches))
 
     return ret
   }

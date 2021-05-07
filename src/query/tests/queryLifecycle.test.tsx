@@ -2,6 +2,8 @@ import { createApi } from '@reduxjs/toolkit/query'
 import { waitFor } from '@testing-library/react'
 import { fetchBaseQuery } from '../fetchBaseQuery'
 import { setupApiStore } from './helpers'
+import { server } from './mocks/server'
+import { rest } from 'msw'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'http://example.com' }),
@@ -208,6 +210,79 @@ test('getCacheEntry (success)', async () => {
     startedTimeStamp: expect.any(Number),
     status: 'rejected',
   })
+})
+
+test('updateCacheEntry', async () => {
+  const trackCalls = jest.fn()
+
+  const extended = api.injectEndpoints({
+    overrideExisting: true,
+    endpoints: (build) => ({
+      injected: build.query<{ value: string }, string>({
+        query: () => '/success',
+        async onQuery(
+          arg,
+          { dispatch, getState, getCacheEntry, updateCacheEntry },
+          { resultPromise }
+        ) {
+          // calling `updateCacheEntry` when there is no data yet should not do anything
+          // but if there is a cache value it will be updated & overwritten by the next succesful result
+          updateCacheEntry((draft) => {
+            draft.value += '.'
+          })
+
+          try {
+            const val = await resultPromise
+            onSuccess(getCacheEntry().data)
+          } catch (error) {
+            updateCacheEntry((draft) => {
+              draft.value += 'x'
+            })
+            onError(getCacheEntry().data)
+          }
+        },
+      }),
+    }),
+  })
+
+  // request 1: success
+  expect(onSuccess).not.toHaveBeenCalled()
+  storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
+
+  await waitFor(() => {
+    expect(onSuccess).toHaveBeenCalled()
+  })
+  expect(onSuccess).toHaveBeenCalledWith({ value: 'success' })
+  onSuccess.mockClear()
+
+  // request 2: error
+  expect(onError).not.toHaveBeenCalled()
+  server.use(
+    rest.get('http://example.com/success', (_, req, ctx) =>
+      req.once(ctx.status(500), ctx.json({ value: 'failed' }))
+    )
+  )
+  storeRef.store.dispatch(
+    extended.endpoints.injected.initiate('arg', { forceRefetch: true })
+  )
+
+  await waitFor(() => {
+    expect(onError).toHaveBeenCalled()
+  })
+  expect(onError).toHaveBeenCalledWith({ value: 'success.x' })
+
+  // request 3: success
+  expect(onSuccess).not.toHaveBeenCalled()
+
+  storeRef.store.dispatch(
+    extended.endpoints.injected.initiate('arg', { forceRefetch: true })
+  )
+
+  await waitFor(() => {
+    expect(onSuccess).toHaveBeenCalled()
+  })
+  expect(onSuccess).toHaveBeenCalledWith({ value: 'success' })
+  onSuccess.mockClear()
 })
 
 /*

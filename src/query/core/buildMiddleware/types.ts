@@ -24,7 +24,7 @@ export interface BuildMiddlewareInput<
   context: ApiContext<Definitions>
   queryThunk: AsyncThunk<ThunkResult, QueryThunkArg, {}>
   mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg, {}>
-  api: Api<any, EndpointDefinitions, ReducerPath, TagTypes>
+  api: Api<any, Definitions, ReducerPath, TagTypes>
   assertTagType: AssertTagTypes
 }
 

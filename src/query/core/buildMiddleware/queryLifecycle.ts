@@ -1,13 +1,11 @@
 import { isPending, isRejected, isFulfilled } from '@reduxjs/toolkit'
 import { BaseQueryFn } from '../../baseQueryTypes'
+import { DefinitionType } from '../../endpointDefinitions'
 import {
   OptionalPromise,
   toOptionalPromise,
 } from '../../utils/toOptionalPromise'
-import {
-  MutationResultSelectorResult,
-  QueryResultSelectorResult,
-} from '../buildSelectors'
+import { Recipe } from '../buildThunks'
 import { SubMiddlewareBuilder } from './types'
 
 export type ReferenceQueryLifecycle = never
@@ -33,16 +31,7 @@ declare module '../../endpointDefinitions' {
   > {
     onQuery?(
       arg: QueryArg,
-      api: LifecycleApi<
-        ReducerPath,
-        QueryResultSelectorResult<
-          { type: DefinitionType.query } & BaseEndpointDefinition<
-            QueryArg,
-            BaseQuery,
-            ResultType
-          >
-        >
-      >,
+      api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
       promises: QueryLifecyclePromises<ResultType>
     ): Promise<void> | void
   }
@@ -56,16 +45,7 @@ declare module '../../endpointDefinitions' {
   > {
     onQuery?(
       arg: QueryArg,
-      api: LifecycleApi<
-        ReducerPath,
-        MutationResultSelectorResult<
-          { type: DefinitionType.mutation } & BaseEndpointDefinition<
-            QueryArg,
-            BaseQuery,
-            ResultType
-          >
-        >
-      >,
+      api: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
       promises: QueryLifecyclePromises<ResultType>
     ): Promise<void> | void
   }
@@ -77,60 +57,70 @@ export const build: SubMiddlewareBuilder = ({
   queryThunk,
   mutationThunk,
 }) => {
-  type CacheLifecycle = {
-    resolve(value: unknown): unknown
-    reject(value: unknown): unknown
-  }
-  const lifecycleMap: Record<string, CacheLifecycle> = {}
-
   const isPendingThunk = isPending(queryThunk, mutationThunk)
   const isRejectedThunk = isRejected(queryThunk, mutationThunk)
   const isFullfilledThunk = isFulfilled(queryThunk, mutationThunk)
 
-  return (mwApi) => (next) => (action): any => {
-    const result = next(action)
+  return (mwApi) => {
+    type CacheLifecycle = {
+      resolve(value: unknown): unknown
+      reject(value: unknown): unknown
+    }
+    const lifecycleMap: Record<string, CacheLifecycle> = {}
 
-    if (isPendingThunk(action)) {
-      const {
-        requestId,
-        arg: { endpointName, originalArgs },
-      } = action.meta
-      const onQuery = context.endpointDefinitions[endpointName]?.onQuery
-      if (onQuery) {
-        const lifecycle = {} as CacheLifecycle
-        const resultPromise = toOptionalPromise(
-          new Promise((resolve, reject) => {
-            lifecycle.resolve = resolve
-            lifecycle.reject = reject
-          })
-        )
-        lifecycleMap[requestId] = lifecycle
-        const selector = (api.endpoints[endpointName] as any).select(
-          originalArgs
-        )
+    return (next) => (action): any => {
+      const result = next(action)
 
-        const extra = mwApi.dispatch((_, __, extra) => extra)
-        onQuery(
-          originalArgs,
-          {
+      if (isPendingThunk(action)) {
+        const {
+          requestId,
+          arg: { endpointName, originalArgs },
+        } = action.meta
+        const endpointDefinition = context.endpointDefinitions[endpointName]
+        const onQuery = endpointDefinition?.onQuery
+        if (onQuery) {
+          const lifecycle = {} as CacheLifecycle
+          const resultPromise = toOptionalPromise(
+            new Promise((resolve, reject) => {
+              lifecycle.resolve = resolve
+              lifecycle.reject = reject
+            })
+          )
+          lifecycleMap[requestId] = lifecycle
+          const selector = (api.endpoints[endpointName] as any).select(
+            originalArgs
+          )
+
+          const extra = mwApi.dispatch((_, __, extra) => extra)
+          const lifecycleApi = {
             ...mwApi,
             getCacheEntry: () => selector(mwApi.getState()),
             requestId,
             extra,
-          },
-          { resultPromise }
-        )
+            updateCacheEntry: (endpointDefinition.type === DefinitionType.query
+              ? (updateRecipe: Recipe<any>) =>
+                  mwApi.dispatch(
+                    api.util.updateQueryResult(
+                      endpointName as never,
+                      originalArgs,
+                      updateRecipe
+                    )
+                  )
+              : undefined) as any,
+          }
+          onQuery(originalArgs, lifecycleApi, { resultPromise })
+        }
+      } else if (isFullfilledThunk(action)) {
+        const { requestId } = action.meta
+        lifecycleMap[requestId]?.resolve(action.payload.result)
+        delete lifecycleMap[requestId]
+      } else if (isRejectedThunk(action)) {
+        const { requestId } = action.meta
+        lifecycleMap[requestId]?.reject(action.payload ?? action.error)
+        delete lifecycleMap[requestId]
       }
-    } else if (isFullfilledThunk(action)) {
-      const { requestId } = action.meta
-      lifecycleMap[requestId]?.resolve(action.payload.result)
-      delete lifecycleMap[requestId]
-    } else if (isRejectedThunk(action)) {
-      const { requestId } = action.meta
-      lifecycleMap[requestId]?.reject(action.payload ?? action.error)
-      delete lifecycleMap[requestId]
-    }
 
-    return result
+      return result
+    }
   }
 }

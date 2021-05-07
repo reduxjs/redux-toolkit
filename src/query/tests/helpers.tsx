@@ -55,6 +55,7 @@ export const hookWaitFor = async (cb: () => void, time = 2000) => {
     }
   }
 }
+export const fakeTimerWaitFor = hookWaitFor
 
 export const useRenderCounter = () => {
   const countRef = React.useRef(0)

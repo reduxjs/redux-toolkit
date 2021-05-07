@@ -36,15 +36,13 @@ const api = createApi({
         method: 'PATCH',
         body: patch,
       }),
-      onStart({ id, ...patch }, { dispatch, context }) {
-        context.undoPost = dispatch(
+      async onQuery({ id, ...patch }, { dispatch }, { resultPromise }) {
+        const { undo } = dispatch(
           api.util.updateQueryResult('post', id, (draft) => {
             Object.assign(draft, patch)
           })
-        ).inversePatches
-      },
-      onError({ id }, { dispatch, context }) {
-        dispatch(api.util.patchQueryResult('post', id, context.undoPost))
+        )
+        resultPromise.catch(undo)
       },
       invalidatesTags: ['Post'],
     }),
@@ -173,6 +171,7 @@ describe('updateQueryResult', () => {
     expect(returnValue).toEqual({
       inversePatches: [{ op: 'replace', path: ['contents'], value: 'TODO' }],
       patches: [{ op: 'replace', path: ['contents'], value: 'I love cheese!' }],
+      undo: expect.any(Function),
     })
 
     act(() => {
@@ -216,6 +215,7 @@ describe('updateQueryResult', () => {
     expect(returnValue).toEqual({
       inversePatches: [],
       patches: [],
+      undo: expect.any(Function),
     })
   })
 })

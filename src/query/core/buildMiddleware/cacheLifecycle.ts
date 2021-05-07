@@ -1,25 +1,65 @@
 import { isAsyncThunkAction, isFulfilled } from '@reduxjs/toolkit'
-import { AnyAction } from 'redux'
-import { ThunkDispatch } from 'redux-thunk'
-import { BaseQueryFn } from '../../baseQueryTypes'
+import type { AnyAction } from 'redux'
+import type { ThunkDispatch } from 'redux-thunk'
+import type { BaseQueryFn } from '../../baseQueryTypes'
+import { DefinitionType } from '../../endpointDefinitions'
 import {
   OptionalPromise,
   toOptionalPromise,
 } from '../../utils/toOptionalPromise'
-import { RootState } from '../apiState'
-import {
+import type { RootState } from '../apiState'
+import type {
   MutationResultSelectorResult,
   QueryResultSelectorResult,
 } from '../buildSelectors'
-import { SubMiddlewareApi, SubMiddlewareBuilder } from './types'
+import type { PatchCollection, Recipe } from '../buildThunks'
+import type { SubMiddlewareApi, SubMiddlewareBuilder } from './types'
 
 export type ReferenceCacheLifecycle = never
 
 declare module '../../endpointDefinitions' {
-  export type LifecycleApi<
-    ReducerPath extends string = string,
-    CacheEntry = unknown
-  > = {
+  export interface QueryLifecycleApi<
+    QueryArg,
+    BaseQuery extends BaseQueryFn,
+    ResultType,
+    ReducerPath extends string = string
+  > extends LifecycleApi<ReducerPath> {
+    /**
+     * Gets the current value of this cache entry.
+     */
+    getCacheEntry(): QueryResultSelectorResult<
+      { type: DefinitionType.query } & BaseEndpointDefinition<
+        QueryArg,
+        BaseQuery,
+        ResultType
+      >
+    >
+    /**
+     * Updates the current cache entry value.
+     * For documentation see `api.util.updateQueryResult.
+     */
+    updateCacheEntry(updateRecipe: Recipe<ResultType>): PatchCollection
+  }
+
+  export interface MutationLifecycleApi<
+    QueryArg,
+    BaseQuery extends BaseQueryFn,
+    ResultType,
+    ReducerPath extends string = string
+  > extends LifecycleApi<ReducerPath> {
+    /**
+     * Gets the current value of this cache entry.
+     */
+    getCacheEntry(): MutationResultSelectorResult<
+      { type: DefinitionType.mutation } & BaseEndpointDefinition<
+        QueryArg,
+        BaseQuery,
+        ResultType
+      >
+    >
+  }
+
+  export interface LifecycleApi<ReducerPath extends string = string> {
     /**
      * The dispatch method for the store
      */
@@ -36,10 +76,6 @@ declare module '../../endpointDefinitions' {
      * A unique ID generated for the mutation
      */
     requestId: string
-    /**
-     * Gets the current value of this cache entry.
-     */
-    getCacheEntry: () => CacheEntry
   }
 
   export interface CacheLifecyclePromises<ResultType = unknown> {
@@ -72,16 +108,7 @@ declare module '../../endpointDefinitions' {
   > {
     onCacheEntryAdded?(
       arg: QueryArg,
-      api: LifecycleApi<
-        ReducerPath,
-        QueryResultSelectorResult<
-          { type: DefinitionType.query } & BaseEndpointDefinition<
-            QueryArg,
-            BaseQuery,
-            ResultType
-          >
-        >
-      >,
+      api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
       promises: CacheLifecyclePromises<ResultType>
     ): Promise<void> | void
   }
@@ -95,16 +122,7 @@ declare module '../../endpointDefinitions' {
   > {
     onCacheEntryAdded?(
       arg: QueryArg,
-      api: LifecycleApi<
-        ReducerPath,
-        MutationResultSelectorResult<
-          { type: DefinitionType.mutation } & BaseEndpointDefinition<
-            QueryArg,
-            BaseQuery,
-            ResultType
-          >
-        >
-      >,
+      api: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
       promises: CacheLifecyclePromises<ResultType>
     ): Promise<void> | void
   }
@@ -117,125 +135,135 @@ export const build: SubMiddlewareBuilder = ({
   queryThunk,
   mutationThunk,
 }) => {
-  type CacheLifecycle = {
-    valueResolved?(value: unknown): unknown
-    cleanup(): void
-  }
-  const lifecycleMap: Record<string, CacheLifecycle> = {}
-
   const isQueryThunk = isAsyncThunkAction(queryThunk)
   const isMutationThunk = isAsyncThunkAction(mutationThunk)
   const isFullfilledThunk = isFulfilled(queryThunk, mutationThunk)
 
-  return (mwApi) => (next) => (action): any => {
-    const result = next(action)
+  return (mwApi) => {
+    type CacheLifecycle = {
+      valueResolved?(value: unknown): unknown
+      cleanup(): void
+    }
+    const lifecycleMap: Record<string, CacheLifecycle> = {}
 
-    const cacheKey = getCacheKey(action)
+    return (next) => (action): any => {
+      const result = next(action)
 
-    if (queryThunk.pending.match(action)) {
-      const state = mwApi.getState()[reducerPath].queries[cacheKey]
-      if (state?.requestId === action.meta.requestId) {
-        handleNewKey(
-          action.meta.arg.endpointName,
-          action.meta.arg.originalArgs,
-          cacheKey,
-          mwApi,
-          action.meta.requestId
-        )
+      const cacheKey = getCacheKey(action)
+
+      if (queryThunk.pending.match(action)) {
+        const state = mwApi.getState()[reducerPath].queries[cacheKey]
+        if (state?.requestId === action.meta.requestId) {
+          handleNewKey(
+            action.meta.arg.endpointName,
+            action.meta.arg.originalArgs,
+            cacheKey,
+            mwApi,
+            action.meta.requestId
+          )
+        }
+      } else if (mutationThunk.pending.match(action)) {
+        const state = mwApi.getState()[reducerPath].mutations[cacheKey]
+        if (state) {
+          handleNewKey(
+            action.meta.arg.endpointName,
+            action.meta.arg.originalArgs,
+            cacheKey,
+            mwApi,
+            action.meta.requestId
+          )
+        }
+      } else if (isFullfilledThunk(action)) {
+        const lifecycle = lifecycleMap[cacheKey]
+        if (lifecycle?.valueResolved) {
+          lifecycle.valueResolved(action.payload.result)
+          delete lifecycle.valueResolved
+        }
+      } else if (
+        api.internalActions.removeQueryResult.match(action) ||
+        api.internalActions.unsubscribeMutationResult.match(action)
+      ) {
+        const lifecycle = lifecycleMap[cacheKey]
+        if (lifecycle) {
+          delete lifecycleMap[cacheKey]
+          lifecycle.cleanup()
+        }
+      } else if (api.util.resetApiState.match(action)) {
+        for (const [cacheKey, lifecycle] of Object.entries(lifecycleMap)) {
+          delete lifecycleMap[cacheKey]
+          lifecycle.cleanup()
+        }
       }
-    } else if (mutationThunk.pending.match(action)) {
-      const state = mwApi.getState()[reducerPath].mutations[cacheKey]
-      if (state) {
-        handleNewKey(
-          action.meta.arg.endpointName,
-          action.meta.arg.originalArgs,
-          cacheKey,
-          mwApi,
-          action.meta.requestId
-        )
-      }
-    } else if (isFullfilledThunk(action)) {
-      const lifecycle = lifecycleMap[cacheKey]
-      if (lifecycle?.valueResolved) {
-        lifecycle.valueResolved(action.payload.result)
-        delete lifecycle.valueResolved
-      }
-    } else if (
-      api.internalActions.removeQueryResult.match(action) ||
-      api.internalActions.unsubscribeMutationResult.match(action)
-    ) {
-      const lifecycle = lifecycleMap[cacheKey]
-      if (lifecycle) {
-        delete lifecycleMap[cacheKey]
-        lifecycle.cleanup()
-      }
-    } else if (api.util.resetApiState.match(action)) {
-      for (const [cacheKey, lifecycle] of Object.entries(lifecycleMap)) {
-        delete lifecycleMap[cacheKey]
-        lifecycle.cleanup()
-      }
+
+      return result
     }
 
-    return result
-  }
+    function getCacheKey(action: any) {
+      if (isQueryThunk(action)) return action.meta.arg.queryCacheKey
+      if (isMutationThunk(action)) return action.meta.requestId
+      if (api.internalActions.removeQueryResult.match(action))
+        return action.payload.queryCacheKey
+      return ''
+    }
 
-  function getCacheKey(action: any) {
-    if (isQueryThunk(action)) return action.meta.arg.queryCacheKey
-    if (isMutationThunk(action)) return action.meta.requestId
-    if (api.internalActions.removeQueryResult.match(action))
-      return action.payload.queryCacheKey
-    return ''
-  }
+    function handleNewKey(
+      endpointName: string,
+      originalArgs: any,
+      queryCacheKey: string,
+      mwApi: SubMiddlewareApi,
+      requestId: string
+    ) {
+      const endpointDefinition = context.endpointDefinitions[endpointName]
+      const onCacheEntryAdded = endpointDefinition?.onCacheEntryAdded
+      if (!onCacheEntryAdded) return
 
-  function handleNewKey(
-    endpointName: string,
-    originalArgs: any,
-    queryCacheKey: string,
-    mwApi: SubMiddlewareApi,
-    requestId: string
-  ) {
-    const onCacheEntryAdded =
-      context.endpointDefinitions[endpointName]?.onCacheEntryAdded
-    if (!onCacheEntryAdded) return
+      const neverResolvedError = new Error(
+        'Promise never resolved before cleanup.'
+      )
+      let lifecycle = {} as CacheLifecycle
 
-    const neverResolvedError = new Error(
-      'Promise never resolved before cleanup.'
-    )
-    let lifecycle = {} as CacheLifecycle
-
-    const cleanup = new Promise<void>((resolve) => {
-      lifecycle.cleanup = resolve
-    })
-    const firstValueResolved = toOptionalPromise(
-      Promise.race([
-        new Promise<void>((resolve) => {
-          lifecycle.valueResolved = resolve
-        }),
-        cleanup.then(() => {
-          throw neverResolvedError
-        }),
-      ])
-    )
-    lifecycleMap[queryCacheKey] = lifecycle
-    const selector = (api.endpoints[endpointName] as any).select(originalArgs)
-    const extra = mwApi.dispatch((_, __, extra) => extra)
-    const runningHandler = onCacheEntryAdded(
-      originalArgs,
-      {
+      const cleanup = new Promise<void>((resolve) => {
+        lifecycle.cleanup = resolve
+      })
+      const firstValueResolved = toOptionalPromise(
+        Promise.race([
+          new Promise<void>((resolve) => {
+            lifecycle.valueResolved = resolve
+          }),
+          cleanup.then(() => {
+            throw neverResolvedError
+          }),
+        ])
+      )
+      lifecycleMap[queryCacheKey] = lifecycle
+      const selector = (api.endpoints[endpointName] as any).select(originalArgs)
+      const extra = mwApi.dispatch((_, __, extra) => extra)
+      const lifecycleApi = {
         ...mwApi,
         getCacheEntry: () => selector(mwApi.getState()),
         requestId,
         extra,
-      },
-      {
+        updateCacheEntry: (endpointDefinition.type === DefinitionType.query
+          ? (updateRecipe: Recipe<any>) =>
+              mwApi.dispatch(
+                api.util.updateQueryResult(
+                  endpointName as never,
+                  originalArgs,
+                  updateRecipe
+                )
+              )
+          : undefined) as any,
+      }
+
+      const runningHandler = onCacheEntryAdded(originalArgs, lifecycleApi, {
         firstValueResolved,
         cleanup,
-      }
-    )
-    // if a `neverResolvedError` was thrown, but not handled in the running handler, do not let it leak out further
-    Promise.resolve(runningHandler).catch((e) => {
-      if (e === neverResolvedError) return
-      throw e
-    })
+      })
+      // if a `neverResolvedError` was thrown, but not handled in the running handler, do not let it leak out further
+      Promise.resolve(runningHandler).catch((e) => {
+        if (e === neverResolvedError) return
+        throw e
+      })
+    }
   }
 }

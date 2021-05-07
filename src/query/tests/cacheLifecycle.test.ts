@@ -1,7 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query'
-import { waitFor } from '@testing-library/react'
 import { fetchBaseQuery } from '../fetchBaseQuery'
-import { setupApiStore, waitMs } from './helpers'
+import { fakeTimerWaitFor, setupApiStore, waitMs } from './helpers'
 
 beforeAll(() => {
   jest.useFakeTimers()
@@ -95,7 +94,7 @@ test('query: await firstValueResolved, await cleanup (success)', async () => {
   expect(gotFirstValue).not.toHaveBeenCalled()
   expect(onCleanup).not.toHaveBeenCalled()
 
-  await waitFor(() => {
+  await fakeTimerWaitFor(() => {
     expect(gotFirstValue).toHaveBeenCalled()
   })
   expect(gotFirstValue).toHaveBeenCalledWith({ value: 'success' })
@@ -291,7 +290,7 @@ test('getCacheEntry', async () => {
   )
   promise.unsubscribe()
 
-  await waitFor(() => {
+  await fakeTimerWaitFor(() => {
     expect(gotFirstValue).toHaveBeenCalled()
   })
 
@@ -330,5 +329,69 @@ test('getCacheEntry', async () => {
     isSuccess: false,
     isUninitialized: true,
     status: 'uninitialized',
+  })
+})
+
+test('updateCacheEntry', async () => {
+  const trackCalls = jest.fn()
+
+  const extended = api.injectEndpoints({
+    overrideExisting: true,
+    endpoints: (build) => ({
+      injected: build.query<{ value: string }, string>({
+        query: () => '/success',
+        async onCacheEntryAdded(
+          arg,
+          { dispatch, getState, getCacheEntry, updateCacheEntry },
+          { cleanup, firstValueResolved }
+        ) {
+          expect(getCacheEntry().data).toEqual(undefined)
+          // calling `updateCacheEntry` when there is no data yet should not do anything
+          updateCacheEntry((draft) => {
+            draft.value = 'TEST'
+            trackCalls()
+          })
+          expect(trackCalls).toHaveBeenCalledTimes(0)
+          expect(getCacheEntry().data).toEqual(undefined)
+
+          gotFirstValue(await firstValueResolved)
+
+          expect(getCacheEntry().data).toEqual({ value: 'success' })
+          updateCacheEntry((draft) => {
+            draft.value = 'TEST'
+            trackCalls()
+          })
+          expect(trackCalls).toHaveBeenCalledTimes(1)
+          expect(getCacheEntry().data).toEqual({ value: 'TEST' })
+
+          await cleanup
+
+          expect(getCacheEntry().data).toEqual(undefined)
+          // calling `updateCacheEntry` when there is no data any more should not do anything
+          updateCacheEntry((draft) => {
+            draft.value = 'TEST2'
+            trackCalls()
+          })
+          expect(trackCalls).toHaveBeenCalledTimes(1)
+          expect(getCacheEntry().data).toEqual(undefined)
+
+          onCleanup()
+        },
+      }),
+    }),
+  })
+  const promise = storeRef.store.dispatch(
+    extended.endpoints.injected.initiate('arg')
+  )
+  promise.unsubscribe()
+
+  await fakeTimerWaitFor(() => {
+    expect(gotFirstValue).toHaveBeenCalled()
+  })
+
+  jest.advanceTimersByTime(61000)
+
+  await fakeTimerWaitFor(() => {
+    expect(onCleanup).toHaveBeenCalled()
   })
 })
