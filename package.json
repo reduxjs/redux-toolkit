@@ -7,7 +7,7 @@
   "homepage": "https://github.com/rtk-incubator/rtk-query-codegen",
   "repository": "https://github.com/rtk-incubator/rtk-query-codegen.git",
   "bin": {
-    "rtk-query-codegen-openapi": "./lib/bin/cli.js"
+    "rtk-query-codegen-openapi": "lib/bin/cli.js"
   },
   "scripts": {
     "build": "tsc",
@@ -46,7 +46,7 @@
     "@apidevtools/swagger-parser": "^10.0.2",
     "commander": "^6.2.0",
     "glob-to-regexp": "^0.4.1",
-    "oazapfts": "npm:@phryneas/experimental-oazapfts@^0.1.2-1",
+    "oazapfts": "3.3.1",
     "prettier": "^2.2.1",
     "swagger2openapi": "^7.0.4",
     "ts-morph": "^9.1.0",

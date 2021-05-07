@@ -193,7 +193,7 @@ export async function generateApi(
 
     const _isQuery = isQuery(verb);
 
-    const returnsJson = apiGen.hasJsonContent(responses);
+    const returnsJson = apiGen.getResponseType(responses) === 'json';
     let ResponseType: ts.TypeNode = factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
     if (returnsJson) {
       const returnTypes = Object.entries(responses || {})

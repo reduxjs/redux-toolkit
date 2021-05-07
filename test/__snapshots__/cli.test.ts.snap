@@ -171,7 +171,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body: string;
+  body: Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -399,7 +399,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body: string;
+  body: Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -678,7 +678,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body: string;
+  body: Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -979,7 +979,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body: string;
+  body: Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -1200,7 +1200,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body: string;
+  body: Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -1468,7 +1468,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body: string;
+  body: Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
