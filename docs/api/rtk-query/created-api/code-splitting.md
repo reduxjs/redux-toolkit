@@ -9,7 +9,7 @@ hide_title: true
 
 Each API slice allows [additional endpoint definitions to be injected at runtime](../../../usage/rtk-query/code-splitting.mdx) after the initial API slice has been defined. This can be beneficial for apps that may have _many_ endpoints.
 
-The individual API slice endpoint definitions can also be split across multiple files. This is primarily useful for working with API slices that were [code-generated from an API schema file](../../../usage/rtk-query/code-generation.md), allowing you to add additional custom behavior and configuration to a set of automatically-generated endpoint definitions.
+The individual API slice endpoint definitions can also be split across multiple files. This is primarily useful for working with API slices that were [code-generated from an API schema file](../../../usage/rtk-query/code-generation.mdx), allowing you to add additional custom behavior and configuration to a set of automatically-generated endpoint definitions.
 
 Each API slice object has `injectEndpoints` and `enhanceEndpoints` functions to support these use cases.
 
