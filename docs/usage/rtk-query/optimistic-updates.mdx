@@ -14,20 +14,28 @@ The core concepts are:
 - in the `onStart` phase of a mutation, you manually set the cached data via `updateQueryResult`
 - then, in `onError`, you roll it back via `patchQueryResult`. You don't have to worry about the `onSuccess` lifecycle here.
 
-```ts title="Example optimistic update mutation"
+```ts title="Optimistic update mutation example"
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { Post } from './types'
+
 const api = createApi({
-  baseQuery,
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/',
+  }),
   tagTypes: ['Post'],
   endpoints: (build) => ({
-    getPost: build.query<Post, string>({
+    getPost: build.query<Post, number>({
       query: (id) => `post/${id}`,
       providesTags: ['Post'],
     }),
-    updatePost: build.mutation<
-      void,
-      Pick<Post, 'id'> & Partial<Post>,
-      { undoPost: Patch[] }
-    >({
+    updatePost: build.mutation<void, Pick<Post, 'id'> & Partial<Post>>({
       query: ({ id, ...patch }) => ({
         url: `post/${id}`,
         method: 'PATCH',
