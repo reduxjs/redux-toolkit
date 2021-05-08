@@ -8,10 +8,11 @@ import { Api } from '../apiTypes'
  * Can be used as a `Provider` if you **do not already have a Redux store**.
  *
  * @example
- * ```ts
+ * ```tsx
  * // codeblock-meta title="Basic usage - wrap your App with ApiProvider"
  * import * as React from 'react';
  * import { ApiProvider } from '@reduxjs/toolkit/query/react';
+ * import { Pokemon } from './features/Pokemon';
  *
  * function App() {
  *   return (
