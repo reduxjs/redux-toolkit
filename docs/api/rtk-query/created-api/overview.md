@@ -9,7 +9,7 @@ hide_title: true
 
 ## API Slice Overview
 
-When you call [`createApi`](../createApi.md), it automatically generates and returns an API service "slice" object structure containing Redux logic you can use to interact with the endpoints you defined. This slice object includes a reducer to manage cached data, a middleware to manage cache lifetimes and subscriptions, and selectors and thunks for each endpoint. If you imported `createApi` from the React-specific entry point, it also includes auto-generated React hooks for use in your components.
+When you call [`createApi`](../createApi.mdx), it automatically generates and returns an API service "slice" object structure containing Redux logic you can use to interact with the endpoints you defined. This slice object includes a reducer to manage cached data, a middleware to manage cache lifetimes and subscriptions, and selectors and thunks for each endpoint. If you imported `createApi` from the React-specific entry point, it also includes auto-generated React hooks for use in your components.
 
 This section documents the contents of that API structure, with the different fields grouped by category. The API types and descriptions are listed on separate pages for each category.
 

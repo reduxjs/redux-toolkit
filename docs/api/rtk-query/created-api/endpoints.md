@@ -85,7 +85,7 @@ A Redux thunk action creator that you can dispatch to trigger data fetch queries
 React Hooks users will most likely never need to use these directly, as the hooks automatically dispatch these actions as needed.
 
 :::note Usage of actions outside of React Hooks
-When dispatching an action creator, you're responsible for storing a reference to the promise it returns in the event that you want to update that specific subscription. Also, you have to manually unsubscribe once your component unmounts. To get an idea of what that entails, see the [Svelte Example](../../../usage/rtk-query/examples.md#svelte) or the [React Class Components Example](../../../usage/rtk-query/examples.md#react-class-components)
+When dispatching an action creator, you're responsible for storing a reference to the promise it returns in the event that you want to update that specific subscription. Also, you have to manually unsubscribe once your component unmounts. To get an idea of what that entails, see the [Svelte Example](../../../usage/rtk-query/examples.mdx#svelte) or the [React Class Components Example](../../../usage/rtk-query/examples.mdx#react-class-components)
 :::
 
 ## `select`

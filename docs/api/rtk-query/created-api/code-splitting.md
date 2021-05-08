@@ -29,7 +29,7 @@ interface InjectedEndpointOptions {
 
 #### Description
 
-Accepts an options object containing the same `endpoints` builder callback you would pass to [`createApi.endpoints`](../createApi.md#endpoints). Any endpoint definitions defined using that builder will be merged into the existing endpoint definitions for this API slice using a shallow merge, so any new endpoint definitions will override existing endpoints with the same name.
+Accepts an options object containing the same `endpoints` builder callback you would pass to [`createApi.endpoints`](../createApi.mdx#endpoints). Any endpoint definitions defined using that builder will be merged into the existing endpoint definitions for this API slice using a shallow merge, so any new endpoint definitions will override existing endpoints with the same name.
 
 Returns an updated and enhanced version of the API slice object, containing the combined endpoint definitions.
 
