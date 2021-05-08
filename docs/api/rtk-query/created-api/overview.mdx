@@ -19,7 +19,7 @@ Typically, you should only have one API slice per base URL that your application
 
 :::
 
-```ts title="API Slice Contents"
+```ts title="API Slice Contents" no-transpile
 const api = createApi({
   baseQuery: fetchBaseQuery('/'),
   endpoints: (builder) => ({
@@ -111,7 +111,8 @@ The same hooks are also added to the `Api` object itself, and given auto-generat
 
 For example, if you had endpoints for `getPosts` and `updatePost`, these options would be available:
 
-```ts title="Generated React Hook names"
+```ts title="Generated React Hook names" no-transpile
+
 // Hooks attached to the endpoint definition
 const { data } = api.endpoints.getPosts.useQuery()
 const { data } = api.endpoints.updatePost.useMutation()
