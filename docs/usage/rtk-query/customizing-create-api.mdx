@@ -25,7 +25,7 @@ import {
   buildCreateApi,
   coreModule,
   reactHooksModule,
-} from '@reduxjs/toolkit/query'
+} from '@reduxjs/toolkit/query/react'
 
 const MyContext = React.createContext<ReactReduxContextValue>(null as any)
 const customCreateApi = buildCreateApi(
@@ -40,7 +40,7 @@ If you want to create your own module, you should review [the react-hooks module
 
 Here is a very stripped down version:
 
-```ts
+```ts no-transpile
 import { CoreModule } from '@internal/core/module'
 import {
   BaseQueryFn,
