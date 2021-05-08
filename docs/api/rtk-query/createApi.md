@@ -115,7 +115,7 @@ export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
   [summary](docblock://query/endpointDefinitions.ts?token=MutationExtraOptions.invalidates)
 
 - `onStart`, `onError` and `onSuccess` _(optional)_ - Available to both [queries](../../usage/rtk-query/queries.mdx) and [mutations](../../usage/rtk-query/mutations.mdx)
-  - Can be used in `mutations` for [optimistic updates](../../usage/rtk-query/optimistic-updates.md).
+  - Can be used in `mutations` for [optimistic updates](../../usage/rtk-query/optimistic-updates.mdx).
   - ```ts title="Mutation lifecycle signatures"
     function onStart(
       arg: QueryArg,

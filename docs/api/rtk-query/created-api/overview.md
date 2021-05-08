@@ -79,7 +79,7 @@ The API slice object will have an `endpoints` field inside. This section maps th
 
 ## Code Splitting and Generation
 
-Each API slice allows [additional endpoint definitions to be injected at runtime](../../../usage/rtk-query/code-splitting.md) after the initial API slice has been defined. This can be beneficial for apps that may have _many_ endpoints.
+Each API slice allows [additional endpoint definitions to be injected at runtime](../../../usage/rtk-query/code-splitting.mdx) after the initial API slice has been defined. This can be beneficial for apps that may have _many_ endpoints.
 
 The individual API slice endpoint definitions can also be split across multiple files. This is primarily useful for working with API slices that were [code-generated from an API schema file](../../../usage/rtk-query/code-generation.md), allowing you to add additional custom behavior and configuration to a set of automatically-generated endpoint definitions.
 
@@ -87,7 +87,7 @@ Each API slice object has `injectEndpoints` and `enhanceEndpoints` functions to 
 
 :::info API Reference
 
-- [API Slices: Code Splitting and Generation](./code-splitting.md)
+- [API Slices: Code Splitting and Generation](./code-splitting.mdx)
 
 :::
 

@@ -7,7 +7,7 @@ hide_title: true
 
 # API Slices: Cache Management Utilities
 
-The API slice object includes cache management utilities that are used for implementing [optimistic updates](../../../usage/rtk-query/optimistic-updates.md). These are included in a `util` field inside the slice object.
+The API slice object includes cache management utilities that are used for implementing [optimistic updates](../../../usage/rtk-query/optimistic-updates.mdx). These are included in a `util` field inside the slice object.
 
 ### `updateQueryResult`
 
