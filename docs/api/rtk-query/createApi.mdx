@@ -10,8 +10,13 @@ hide_title: true
 `createApi` is the core of RTK Query's functionality. It allows you to define a set of endpoints describe how to retrieve data from a series of endpoints, including configuration of how to fetch and transform that data. It generates [an "API slice" structure](./created-api/overview.mdx) that contains Redux logic (and optionally React hooks) that encapsulate the data fetching and caching process for you.
 
 ```ts title="Example: src/services/pokemon.ts"
+// file: src/services/types.ts noEmit
+export type Pokemon = {}
+
+// file: src/services/pokemon.ts
 // Need to use the React-specific entry point to allow generating React hooks
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import type { Pokemon } from './types'
 
 // highlight-start
 // Define a service using a base URL and expected endpoints
@@ -19,8 +24,8 @@ export const pokemonApi = createApi({
   reducerPath: 'pokemonApi',
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
   endpoints: (builder) => ({
-    getPokemonByName: builder.query({
-      query: (name: string) => `pokemon/${name}`,
+    getPokemonByName: builder.query<Pokemon, string>({
+      query: (name) => `pokemon/${name}`,
     }),
   }),
 })
