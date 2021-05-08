@@ -21,7 +21,7 @@ Typically, you should only have one API slice per base URL that your application
 
 ```ts title="API Slice Contents" no-transpile
 const api = createApi({
-  baseQuery: fetchBaseQuery('/'),
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   endpoints: (builder) => ({
     // ...
   }),
