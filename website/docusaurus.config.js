@@ -85,6 +85,17 @@ module.exports = {
                         version: '1.0',
                       },
                     },
+                    'petstore-api.generated': {
+                      resolvedPath: resolve(
+                        __dirname,
+                        '../docs/virtual/petstore-api.generated'
+                      ),
+                      packageId: {
+                        name: '@virtual/petstore-api.generated',
+                        subModuleName: 'index.ts',
+                        version: '1.0',
+                      },
+                    },
                   },
                 },
               },
