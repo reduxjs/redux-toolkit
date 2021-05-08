@@ -13,7 +13,7 @@ The core RTK Query `createApi` method is UI-agnostic, in the same way that the R
 
 However, RTK Query also provides the ability to auto-generate React hooks for each of your endpoints. Since this specifically depends on React itself, RTK Query provides an alternate entry point that exposes a customized version of `createApi` that includes that functionality:
 
-```ts
+```ts no-transpile
 import { createApi } from '@reduxjs/toolkit/query/react'
 ```
 

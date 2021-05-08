@@ -35,6 +35,9 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(pokemonApi.middleware),
 })
+
+// configure listeners using the provided defaults
+setupListeners(store.dispatch)
 ```
 
 ## `reducerPath`

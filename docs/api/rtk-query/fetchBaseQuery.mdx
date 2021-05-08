@@ -68,7 +68,7 @@ export const pokemonApi = createApi({
 The most common use case for `prepareHeaders` would be to automatically include `authorization` headers for your API requests.
 
 ```ts title="Setting a token from a redux store value
-// file: store.ts
+// file: store.ts noEmit
 export type RootState = { auth: { token : string } };
 
 // file: baseQuery.ts
