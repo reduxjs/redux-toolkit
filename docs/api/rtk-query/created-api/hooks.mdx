@@ -13,7 +13,7 @@ The core RTK Query `createApi` method is UI-agnostic, in the same way that the R
 
 However, RTK Query also provides the ability to auto-generate React hooks for each of your endpoints. Since this specifically depends on React itself, RTK Query provides an alternate entry point that exposes a customized version of `createApi` that includes that functionality:
 
-```js
+```ts
 import { createApi } from '@reduxjs/toolkit/query/react'
 ```
 
@@ -23,7 +23,7 @@ The same hooks are also added to the `Api` object itself, and given auto-generat
 
 For example, if you had endpoints for `getPosts` and `updatePost`, these options would be available:
 
-```ts title="Generated React Hook names"
+```ts title="Generated React Hook names" no-transpile
 // Hooks attached to the endpoint definition
 const { data } = api.endpoints.getPosts.useQuery()
 const [updatePost, { data }] = api.endpoints.updatePost.useMutation()
@@ -47,7 +47,7 @@ The full list of hooks generated in the React-specific version of `createApi` is
 
 For the example above, the full set of generated hooks for the api would be like so:
 
-```ts title="Generated React Hooks"
+```ts title="Generated React Hooks" no-transpile
 /* Hooks attached to the `getPosts` query endpoint definition */
 const { data } = api.endpoints.getPosts.useQuery(arg, options)
 const post = api.endpoints.getPosts.useQueryState(arg, options)
@@ -195,7 +195,7 @@ The provided hooks have a degree of feature overlap in order to provide options 
 
 #### Signature
 
-```ts
+```ts no-transpile
 type UseQuery = (arg: any, options?: UseQueryOptions) => UseQueryResult
 
 type UseQueryOptions = {
@@ -241,7 +241,7 @@ type UseQueryResult<T> = {
 
 #### Signature
 
-```ts
+```ts no-transpile
 type UseMutation = (
   options?: UseMutationStateOptions
 ) => [UseMutationTrigger, UseMutationResult | SelectedUseMutationResult]
@@ -280,7 +280,7 @@ The generated `UseMutation` hook will cause a component to re-render by default 
 
 Returning a completely empty object will mean that any individual mutation call will cause only one re-render at most, e.g.
 
-```ts
+```ts no-transpile
 selectFromResult: () => ({})
 ```
 
@@ -302,7 +302,7 @@ selectFromResult: () => ({})
 
 #### Signature
 
-```ts
+```ts no-transpile
 type UseQueryState = (
   arg: any,
   options?: UseQueryStateOptions
@@ -351,7 +351,7 @@ type UseQueryStateResult<T> = {
 
 #### Signature
 
-```ts
+```ts no-transpile
 type UseQuerySubscription = (
   arg: any,
   options?: UseQuerySubscriptionOptions
@@ -386,7 +386,7 @@ type UseQuerySubscriptionResult = {
 
 #### Signature
 
-```ts
+```ts no-transpile
 type UseLazyQuery = (
   options?: UseLazyQueryOptions
 ) => [UseLazyQueryTrigger, UseQueryStateResult, UseLazyQueryLastPromiseInfo]
@@ -443,7 +443,7 @@ type UseLazyQueryLastPromiseInfo = {
 
 #### Signature
 
-```ts
+```ts no-transpile
 type UseLazyQuerySubscription = (
   options?: UseLazyQuerySubscriptionOptions
 ) => [UseLazyQuerySubscriptionTrigger, LastArg]
@@ -473,7 +473,7 @@ type UseLazyQuerySubscriptionTrigger = (arg: any) => void
 
 #### Signature
 
-```ts
+```ts no-transpile
 type UsePrefetch = (
   endpointName: string,
   options?: UsePrefetchOptions
