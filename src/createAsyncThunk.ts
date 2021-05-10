@@ -15,14 +15,16 @@ export type BaseThunkAPI<
   S,
   E,
   D extends Dispatch = Dispatch,
-  RejectedValue = undefined
+  RejectedValue = undefined,
+  ResolvedValue = undefined,
 > = {
   dispatch: D
   getState: () => S
   extra: E
   requestId: string
   signal: AbortSignal
-  rejectWithValue(value: RejectedValue): RejectWithValue<RejectedValue>
+  rejectWithValue(value: RejectedValue, meta: unknown): RejectWithValue<RejectedValue, unknown>
+  resolveWithValue(value: ResolvedValue, meta: unknown): ResolveWithValue<ResolvedValue, unknown>
 }
 
 /**
@@ -42,10 +44,15 @@ const commonProperties: Array<keyof SerializedError> = [
   'code',
 ]
 
-class RejectWithValue<RejectValue> {
+class RejectWithValue<RejectValue, MetaExtra> {
   public name = 'RejectWithValue'
   public message = 'Rejected'
-  constructor(public readonly payload: RejectValue) {}
+  constructor(public readonly payload: RejectValue, public readonly meta: MetaExtra) {}
+}
+
+class ResolveWithValue<ResolvedPayload, MetaExtra> {
+  public name = 'ResolvedWithValue'
+  constructor(public readonly payload: ResolvedPayload, public readonly meta: MetaExtra){}
 }
 
 /**
@@ -127,9 +134,9 @@ export type AsyncThunkPayloadCreatorReturnValue<
   Returned,
   ThunkApiConfig extends AsyncThunkConfig
 > =
-  | Promise<Returned | RejectWithValue<GetRejectValue<ThunkApiConfig>>>
+  | Promise<Returned | RejectWithValue<GetRejectValue<ThunkApiConfig>, unknown>>
   | Returned
-  | RejectWithValue<GetRejectValue<ThunkApiConfig>>
+  | RejectWithValue<GetRejectValue<ThunkApiConfig>, unknown>
 /**
  * A type describing the `payloadCreator` argument to `createAsyncThunk`.
  * Might be useful for wrapping `createAsyncThunk` in custom abstractions.
@@ -329,6 +336,7 @@ export function createAsyncThunk<
           arg,
           requestId,
           requestStatus: 'fulfilled' as const,
+          extra: result instanceof ResolveWithValue ? result.meta : null
         },
       }
     }
@@ -367,6 +375,7 @@ export function createAsyncThunk<
           requestStatus: 'rejected' as const,
           aborted,
           condition,
+          extra: error instanceof RejectWithValue ? error.meta : null
         },
       }
     }
@@ -448,9 +457,12 @@ If you want to use the AbortController to react to \`abort\` events, please cons
                 extra,
                 requestId,
                 signal: abortController.signal,
-                rejectWithValue(value: RejectedValue) {
-                  return new RejectWithValue(value)
+                rejectWithValue(value: RejectedValue, meta: unknown) {
+                  return new RejectWithValue(value, meta)
                 },
+                resolveWithValue(value: Returned, meta: unknown) {
+                  return new ResolveWithValue(value, meta);
+                }
               })
             ).then((result) => {
               if (result instanceof RejectWithValue) {
