@@ -185,11 +185,11 @@ In order to provide stronger control over invalidating the appropriate data, you
 
 ### Invalidating cache data
 
-Each individual `mutation` endpoint can `invalidate` particular tags for existing cached data. Doing so enables a relationship between cached data from one or more `query` endpoints and the behaviour of one or more `mutation` endpoints.
+Each individual mutation endpoint can `invalidate` particular tags for existing cached data. Doing so enables a relationship between cached data from one or more query endpoints and the behaviour of one or more mutation endpoints.
 
-The `invalidatesTags` property on a `mutation` endpoint is used for this purpose.
+The `invalidatesTags` property on a mutation endpoint is used for this purpose.
 
-The example below declares that the `addPost` and `editPost` `mutation` endpoints `invalidate` any cached data with the `'Post'` tag, using the `invalidatesTags` property for a `mutation` endpoint:
+The example below declares that the `addPost` and `editPost` mutation endpoints `invalidate` any cached data with the `'Post'` tag, using the `invalidatesTags` property for a mutation endpoint:
 
 ```js title="Example of invalidating tags in the cache"
 const api = createApi({
@@ -252,7 +252,7 @@ An example scenario would be like so:
 
 For more granular control over the invalidated data, invalidated `tags` can have an associated `id` in the same manner as `providesTags`. This enables a distinction between 'any of a particular tag type' and 'a specific instance of a particular tag type'.
 
-The example below declares that the `editPost` mutation provides a specific instance of a `Post` tag, using the ID provided when calling the mutation function:
+The example below declares that the `editPost` mutation invalidates a specific instance of a `Post` tag, using the ID passed in when calling the mutation function:
 
 ```js title="Example of invalidating tags with IDs to the cache"
 const api = createApi({
@@ -622,7 +622,7 @@ function App() {
 
 **What to expect**
 
-When `addPost` is fired, it will only cause the `PostsList` to go into an `isFetching` state because `addPost` only invalidates the 'LIST' id, which causes `getPosts` to rerun (because it provides that specific id). So in your network tab, you would only see 1 new request fire for `GET /posts`. As the singular `getPost` queries have not been invalidated, they will not re-run as a result of `addPost`.
+When `addPost` is fired, it will only cause the `PostsList` to go into an `isFetching` state because `addPost` only invalidates the `'LIST'` id, which causes `getPosts` to rerun (because it provides that specific id). So in your network tab, you would only see 1 new request fire for `GET /posts`. As the singular `getPost` queries have not been invalidated, they will not re-run as a result of `addPost`.
 
 > **Note**
 >
