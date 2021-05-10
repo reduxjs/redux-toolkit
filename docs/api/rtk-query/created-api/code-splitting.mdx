@@ -7,9 +7,9 @@ hide_title: true
 
 # API Slices: Code Splitting and Generation
 
-Each API slice allows [additional endpoint definitions to be injected at runtime](../../../usage/rtk-query/code-splitting.md) after the initial API slice has been defined. This can be beneficial for apps that may have _many_ endpoints.
+Each API slice allows [additional endpoint definitions to be injected at runtime](../../../usage/rtk-query/code-splitting.mdx) after the initial API slice has been defined. This can be beneficial for apps that may have _many_ endpoints.
 
-The individual API slice endpoint definitions can also be split across multiple files. This is primarily useful for working with API slices that were [code-generated from an API schema file](../../../usage/rtk-query/code-generation.md), allowing you to add additional custom behavior and configuration to a set of automatically-generated endpoint definitions.
+The individual API slice endpoint definitions can also be split across multiple files. This is primarily useful for working with API slices that were [code-generated from an API schema file](../../../usage/rtk-query/code-generation.mdx), allowing you to add additional custom behavior and configuration to a set of automatically-generated endpoint definitions.
 
 Each API slice object has `injectEndpoints` and `enhanceEndpoints` functions to support these use cases.
 
@@ -17,7 +17,7 @@ Each API slice object has `injectEndpoints` and `enhanceEndpoints` functions to 
 
 #### Signature
 
-```ts
+```ts no-transpile
 const injectEndpoints = (endpointOptions: InjectedEndpointOptions) =>
   EnhancedApiSlice
 
@@ -29,7 +29,7 @@ interface InjectedEndpointOptions {
 
 #### Description
 
-Accepts an options object containing the same `endpoints` builder callback you would pass to [`createApi.endpoints`](../createApi.md#endpoints). Any endpoint definitions defined using that builder will be merged into the existing endpoint definitions for this API slice using a shallow merge, so any new endpoint definitions will override existing endpoints with the same name.
+Accepts an options object containing the same `endpoints` builder callback you would pass to [`createApi.endpoints`](../createApi.mdx#endpoints). Any endpoint definitions defined using that builder will be merged into the existing endpoint definitions for this API slice using a shallow merge, so any new endpoint definitions will override existing endpoints with the same name.
 
 Returns an updated and enhanced version of the API slice object, containing the combined endpoint definitions.
 
@@ -41,7 +41,7 @@ This method is primarily useful for code splitting and hot reloading.
 
 #### Signature
 
-```ts
+```ts no-transpile
 const enhanceEndpoints = (endpointOptions: EnhanceEndpointsOptions) =>
   EnhancedApiSlice
 

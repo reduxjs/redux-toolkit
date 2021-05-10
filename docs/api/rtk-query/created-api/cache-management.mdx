@@ -7,13 +7,13 @@ hide_title: true
 
 # API Slices: Cache Management Utilities
 
-The API slice object includes cache management utilities that are used for implementing [optimistic updates](../../../usage/rtk-query/optimistic-updates.md). These are included in a `util` field inside the slice object.
+The API slice object includes cache management utilities that are used for implementing [optimistic updates](../../../usage/rtk-query/optimistic-updates.mdx). These are included in a `util` field inside the slice object.
 
 ### `updateQueryResult`
 
 #### Signature
 
-```ts
+```ts no-transpile
 const updateQueryResult = (
   endpointName: string,
   args: any,
@@ -45,7 +45,7 @@ This is typically used as the first step in implementing optimistic updates. The
 
 #### Signature
 
-```ts
+```ts no-transpile
 const patchQueryResult = (
   endpointName: string,
   args: any
@@ -65,7 +65,7 @@ This is typically used as the second step in implementing optimistic updates. If
 
 #### Signature
 
-```ts
+```ts no-transpile
 type PrefetchOptions = { ifOlderThan?: false | number } | { force?: boolean };
 
 const prefetch = (

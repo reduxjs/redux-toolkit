@@ -247,7 +247,7 @@ interface MutationExtraOptions<
 > {
   type: DefinitionType.mutation
   /**
-   * - Used by `mutations` for [cache invalidation](../../usage/rtk-query/mutations.md#advanced-mutations-with-revalidation) purposes.
+   * - Used by `mutations` for [cache invalidation](../../usage/rtk-query/mutations.mdx#advanced-mutations-with-revalidation) purposes.
    * - Expects the same shapes as `provides`.
    */
   invalidatesTags?: ResultDescription<

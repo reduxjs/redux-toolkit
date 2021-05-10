@@ -15,12 +15,16 @@ You can create an api by running:
 
 ```bash
 curl -o petstore.json https://petstore3.swagger.io/api/v3/openapi.json
-npx @rtk-incubator/rtk-query-codegen-openapi petstore.json > petstore-api.generated.ts
+npx @rtk-incubator/rtk-query-codegen-openapi --hooks petstore.json > petstore-api.generated.ts
 ```
 
 We recommend placing these generated types in one file that you do not modify (so you can constantly re-generate it when your API definition changes) and creating a second file to enhance it with additional info:
 
 ```ts title="petstore-api.ts"
+// file: petstore-api.generated.ts noEmit
+export * from 'petstore-api.generated'
+
+// file: petstoreApi.ts
 import { api as generatedApi } from './petstore-api.generated'
 
 export const api = generatedApi.enhanceEndpoints({
@@ -44,10 +48,10 @@ export const api = generatedApi.enhanceEndpoints({
     },
     // alternate notation: callback that gets passed in `endpoint` - you can freely modify the object here
     addPet: (endpoint) => {
-      endpoint.invalidatesTags = (result) => [{ type: 'Pet', id: result.id }]
+      endpoint.invalidatesTags = (result) => result ? [{ type: 'Pet', id: result.id }] : []
     },
     updatePet: {
-      invalidatesTags: (result, error, arg) => [{ type: 'Pet', id: arg.petId }],
+      invalidatesTags: (result, error, arg) => [{ type: 'Pet', id: arg.pet.id }],
     },
     deletePet: {
       invalidatesTags: (result, error, arg) => [{ type: 'Pet', id: arg.petId }],
