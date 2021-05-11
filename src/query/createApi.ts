@@ -63,7 +63,7 @@ export interface CreateApiOptions<
    */
   baseQuery: BaseQuery
   /**
-   * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining an tag type, you will be able to [provide](../../usage/rtk-query/mutations#provides) them with `provides` and [invalidate](../../usage/rtk-query/mutations#advanced-mutations-with-revalidation) them with `invalidates` when configuring [endpoints](#endpoints).
+   * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining an tag type, you will be able to [provide](../../usage/rtk-query/cached-data#providing-tags) them with `provides` and [invalidate](../../usage/rtk-query/cached-data#invalidating-tags) them with `invalidates` when configuring [endpoints](#endpoints).
    */
   tagTypes?: readonly TagTypes[]
   /** @deprecated renamed to `tagTypes` */
