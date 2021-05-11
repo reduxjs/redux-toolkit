@@ -57,27 +57,44 @@ When defining an `api`, `createApi` accepts an array of tag type names for the `
 
 The example below declares that endpoints can possibly provide 'Posts' and/or 'Users' to the cache:
 
-```js title="Example of declaring cache tags"
+```ts title="Example of declaring cache tags"
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+export interface User {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { Post, User } from './types'
+
 const api = createApi({
-  baseQuery,
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/',
+  }),
   // highlight-start
   tagTypes: ['Post', 'User'],
   // highlight-end
   endpoints: (build) => ({
-    getPosts: build.query({
+    getPosts: build.query<Post[], void>({
       query: () => '/posts',
     }),
-    getUsers: build.query({
+    getUsers: build.query<User[], void>({
       query: () => '/users',
     }),
-    addPost: build.mutation({
+    addPost: build.mutation<Post, Omit<Post, 'id'>>({
       query: (body) => ({
         url: 'posts',
         method: 'POST',
         body,
       }),
     }),
-    editPost: build.mutation({
+    editPost: build.mutation<Post, Partial<Post> & Pick<Post, 'id'>>({
       query: (body) => ({
         url: `posts/${body.id}`,
         method: 'POST',
@@ -102,31 +119,48 @@ The `providesTags` property on a `query` endpoint is used for this purpose.
 
 The example below declares that the `getPosts` `query` endpoint `provides` the `'Post'` tag to the cache, using the `providesTags` property for a `query` endpoint.
 
-```js title="Example of providing tags to the cache"
+```ts title="Example of providing tags to the cache"
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+export interface User {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { Post, User } from './types'
+
 const api = createApi({
-  baseQuery,
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/',
+  }),
   tagTypes: ['Post', 'User'],
   endpoints: (build) => ({
-    getPosts: build.query({
+    getPosts: build.query<Post[], void>({
       query: () => '/posts',
       // highlight-start
       providesTags: ['Post'],
       // highlight-end
     }),
-    getUsers: build.query({
+    getUsers: build.query<User[], void>({
       query: () => '/users',
       // highlight-start
       providesTags: ['User'],
       // highlight-end
     }),
-    addPost: build.mutation({
+    addPost: build.mutation<Post, Omit<Post, 'id'>>({
       query: (body) => ({
         url: 'posts',
         method: 'POST',
         body,
       }),
     }),
-    editPost: build.mutation({
+    editPost: build.mutation<Post, Partial<Post> & Pick<Post, 'id'>>({
       query: (body) => ({
         url: `posts/${body.id}`,
         method: 'POST',
@@ -141,32 +175,49 @@ For more granular control over the provided data, provided `tags` can have an as
 
 The example below declares that the provided posts are associated with particular IDs as determined by the result returned by the endpoint:
 
-```js title="Example of providing tags with IDs to the cache"
+```ts title="Example of providing tags with IDs to the cache"
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+export interface User {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { Post, User } from './types'
+
 const api = createApi({
-  baseQuery,
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/',
+  }),
   tagTypes: ['Post', 'User'],
   endpoints: (build) => ({
-    getPosts: build.query({
+    getPosts: build.query<Post[], void>({
       query: () => '/posts',
       // highlight-start
       providesTags: (result, error, arg) =>
         result
-          ? [...result.map(({ id }) => ({ type: 'Post', id })), 'Post']
+          ? [...result.map(({ id }) => ({ type: 'Post' as const, id })), 'Post']
           : ['Post'],
       // highlight-end
     }),
-    getUsers: build.query({
+    getUsers: build.query<User[], void>({
       query: () => '/users',
       providesTags: ['User'],
     }),
-    addPost: build.mutation({
+    addPost: build.mutation<Post, Omit<Post, 'id'>>({
       query: (body) => ({
         url: 'posts',
         method: 'POST',
         body,
       }),
     }),
-    editPost: build.mutation({
+    editPost: build.mutation<Post, Partial<Post> & Pick<Post, 'id'>>({
       query: (body) => ({
         url: `posts/${body.id}`,
         method: 'POST',
@@ -191,23 +242,40 @@ The `invalidatesTags` property on a mutation endpoint is used for this purpose.
 
 The example below declares that the `addPost` and `editPost` mutation endpoints `invalidate` any cached data with the `'Post'` tag, using the `invalidatesTags` property for a mutation endpoint:
 
-```js title="Example of invalidating tags in the cache"
+```ts title="Example of invalidating tags in the cache"
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+export interface User {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { Post, User } from './types'
+
 const api = createApi({
-  baseQuery,
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/',
+  }),
   tagTypes: ['Post', 'User'],
   endpoints: (build) => ({
-    getPosts: build.query({
+    getPosts: build.query<Post[], void>({
       query: () => '/posts',
       providesTags: (result, error, arg) =>
         result
-          ? [...result.map(({ id }) => ({ type: 'Post', id })), 'Post']
+          ? [...result.map(({ id }) => ({ type: 'Post' as const, id })), 'Post']
           : ['Post'],
     }),
-    getUsers: build.query({
+    getUsers: build.query<User[], void>({
       query: () => '/users',
       providesTags: ['User'],
     }),
-    addPost: build.mutation({
+    addPost: build.mutation<Post, Omit<Post, 'id'>>({
       query: (body) => ({
         url: 'posts',
         method: 'POST',
@@ -217,7 +285,7 @@ const api = createApi({
       invalidatesTags: ['Post'],
       // highlight-end
     }),
-    editPost: build.mutation({
+    editPost: build.mutation<Post, Partial<Post> & Pick<Post, 'id'>>({
       query: (body) => ({
         url: `posts/${body.id}`,
         method: 'POST',
@@ -254,23 +322,40 @@ For more granular control over the invalidated data, invalidated `tags` can have
 
 The example below declares that the `editPost` mutation invalidates a specific instance of a `Post` tag, using the ID passed in when calling the mutation function:
 
-```js title="Example of invalidating tags with IDs to the cache"
+```ts title="Example of invalidating tags with IDs to the cache"
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+export interface User {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { Post, User } from './types'
+
 const api = createApi({
-  baseQuery,
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/',
+  }),
   tagTypes: ['Post', 'User'],
   endpoints: (build) => ({
-    getPosts: build.query({
+    getPosts: build.query<Post[], void>({
       query: () => '/posts',
       providesTags: (result, error, arg) =>
         result
-          ? [...result.map(({ id }) => ({ type: 'Post', id })), 'Post']
+          ? [...result.map(({ id }) => ({ type: 'Post' as const, id })), 'Post']
           : ['Post'],
     }),
-    getUsers: build.query({
+    getUsers: build.query<User[], void>({
       query: () => '/users',
       providesTags: ['User'],
     }),
-    addPost: build.mutation({
+    addPost: build.mutation<Post, Omit<Post, 'id'>>({
       query: (body) => ({
         url: 'posts',
         method: 'POST',
@@ -278,7 +363,7 @@ const api = createApi({
       }),
       invalidatesTags: ['Post'],
     }),
-    editPost: build.mutation({
+    editPost: build.mutation<Post, Partial<Post> & Pick<Post, 'id'>>({
       query: (body) => ({
         url: `posts/${body.id}`,
         method: 'POST',
@@ -313,20 +398,30 @@ The matrix below shows examples of which invalidated tags will affect and invali
       </th>
       <th>
         <div>General tag A</div>
-        <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }} >
-          {"['Post']"}<br />{"/"}<br />{"[{ type: 'Post' }]"}
+        <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }}>
+          {"['Post']"}
+          <br />
+          {'/'}
+          <br />
+          {"[{ type: 'Post' }]"}
         </div>
       </th>
       <th>
         <div>General tag B</div>
         <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }}>
-          {"['User']"}<br />{"/"}<br />{"[{ type: 'User' }]"}
+          {"['User']"}
+          <br />
+          {'/'}
+          <br />
+          {"[{ type: 'User' }]"}
         </div>
       </th>
       <th>
         <div>Specific tag A1</div>
         <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }}>
-          {"[{ type: 'Post',"}<br />{" id: 1 }]"}
+          {"[{ type: 'Post',"}
+          <br />
+          {' id: 1 }]'}
         </div>
       </th>
       <th>
@@ -338,13 +433,17 @@ The matrix below shows examples of which invalidated tags will affect and invali
       <th>
         <div>Specific tag B1</div>
         <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }}>
-          {"[{ type: 'User',"}<br />{" id: 1 }]"}
+          {"[{ type: 'User',"}
+          <br />
+          {' id: 1 }]'}
         </div>
       </th>
       <th>
         <div>Specific tag B2</div>
         <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }}>
-          {"[{ type: 'User',"}<br />{" id: 2 }]"}
+          {"[{ type: 'User',"}
+          <br />
+          {' id: 2 }]'}
         </div>
       </th>
     </tr>
@@ -353,7 +452,9 @@ The matrix below shows examples of which invalidated tags will affect and invali
     <tr>
       <td>
         <div style={{ fontWeight: 'bold' }}>General tag A</div>
-        <div style={{ fontSize: '0.9rem'}}>{"['Post'] / [{ type: 'Post' }]"}</div>
+        <div style={{ fontSize: '0.9rem' }}>
+          {"['Post'] / [{ type: 'Post' }]"}
+        </div>
       </td>
       <td>✔️</td>
       <td></td>
@@ -365,7 +466,11 @@ The matrix below shows examples of which invalidated tags will affect and invali
     <tr>
       <td>
         <div style={{ fontWeight: 'bold' }}>General tag B</div>
-        <div style={{ fontSize: '0.9rem'}}>{"['User'] /"}<br />{"[{ type: 'User' }]"}</div>
+        <div style={{ fontSize: '0.9rem' }}>
+          {"['User'] /"}
+          <br />
+          {"[{ type: 'User' }]"}
+        </div>
       </td>
       <td></td>
       <td>✔️</td>
@@ -377,7 +482,7 @@ The matrix below shows examples of which invalidated tags will affect and invali
     <tr>
       <td>
         <div style={{ fontWeight: 'bold' }}>Specific tag A1</div>
-        <div style={{ fontSize: '0.9rem'}}>{"[{ type: 'Post', id: 1 }]"}</div>
+        <div style={{ fontSize: '0.9rem' }}>{"[{ type: 'Post', id: 1 }]"}</div>
       </td>
       <td></td>
       <td></td>
@@ -389,7 +494,9 @@ The matrix below shows examples of which invalidated tags will affect and invali
     <tr>
       <td>
         <div style={{ fontWeight: 'bold' }}>Specific tag A2</div>
-        <div style={{ fontSize: '0.9rem'}}>{"[{ type: 'Post', id: 'LIST' }]"}</div>
+        <div style={{ fontSize: '0.9rem' }}>
+          {"[{ type: 'Post', id: 'LIST' }]"}
+        </div>
       </td>
       <td></td>
       <td></td>
@@ -401,7 +508,7 @@ The matrix below shows examples of which invalidated tags will affect and invali
     <tr>
       <td>
         <div style={{ fontWeight: 'bold' }}>Specific tag B1</div>
-        <div style={{ fontSize: '0.9rem'}}>{"[{ type: 'User', id: 1 }]"}</div>
+        <div style={{ fontSize: '0.9rem' }}>{"[{ type: 'User', id: 1 }]"}</div>
       </td>
       <td></td>
       <td></td>
@@ -413,7 +520,7 @@ The matrix below shows examples of which invalidated tags will affect and invali
     <tr>
       <td>
         <div style={{ fontWeight: 'bold' }}>Specific tag B2</div>
-        <div style={{ fontSize: '0.9rem'}}>{"[{ type: 'User', id: 2 }]"}</div>
+        <div style={{ fontSize: '0.9rem' }}>{"[{ type: 'User', id: 2 }]"}</div>
       </td>
       <td></td>
       <td></td>
@@ -516,11 +623,26 @@ We can compare the scenarios below to see how using a `'LIST'` id can be leverag
 #### Invalidating everything of a type
 
 ```ts title="API Definition"
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+export interface User {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { Post, User } from './types'
+
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   tagTypes: ['Posts'],
   endpoints: (build) => ({
-    getPosts: build.query<PostsResponse, void>({
+    getPosts: build.query<Post[], void>({
       query: () => 'posts',
       providesTags: (result) =>
         result ? result.map(({ id }) => ({ type: 'Posts', id })) : ['Posts'],
@@ -568,16 +690,31 @@ When `addPost` is triggered, it would cause each `PostDetail` component to go ba
 #### Selectively invalidating lists
 
 ```ts title="API Definition"
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+export interface User {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { Post, User } from './types'
+
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   tagTypes: ['Posts'],
   endpoints: (build) => ({
-    getPosts: build.query<PostsResponse, void>({
+    getPosts: build.query<Post[], void>({
       query: () => 'posts',
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'Posts', id })),
+              ...result.map(({ id }) => ({ type: 'Posts' as const, id })),
               { type: 'Posts', id: 'LIST' },
             ]
           : [{ type: 'Posts', id: 'LIST' }],
@@ -645,12 +782,23 @@ The example below demonstrates an example with the following behaviour:
   1. The last call for `postById` had encountered an unknown error, and
   2. A component is still subscribed to the cached data
 
-```js
+```ts
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+export interface LoginResponse {}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { Post, LoginResponse } from './types'
+
 const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'http://example.com' }),
   tagTypes: ['Post', 'UNAUTHORIZED', 'UNKNOWN_ERROR'],
   endpoints: (build) => ({
-    postById: build.query({
+    postById: build.query<Post, number>({
       query: (id) => `post/${id}`,
       providesTags: (result, error, id) =>
         result
@@ -659,14 +807,14 @@ const api = createApi({
           ? ['UNAUTHORIZED']
           : ['UNKNOWN_ERROR'],
     }),
-    login: build.mutation({
+    login: build.mutation<LoginResponse, void>({
       query: () => '/login',
       // on successful login, will refetch all currently
       // 'UNAUTHORIZED' queries
       invalidatesTags: (result) => (result ? ['UNAUTHORIZED'] : []),
     }),
-    refetchErroredQueries: build.mutation({
-      queryFn: () => ({ data: {} }),
+    refetchErroredQueries: build.mutation<null, void>({
+      queryFn: () => ({ data: null }),
       invalidates: ['UNKNOWN_ERROR'],
     }),
   }),
@@ -687,25 +835,46 @@ When declaring your `api`, you may feel as though you're duplicating your code. 
 e.g.
 
 ```ts
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+export interface User {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { Post, User } from './types'
+
 const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'http://example.com' }),
   tagTypes: ['Post', 'User'],
   endpoints: (build) => ({
-    getPosts: build.query({
+    getPosts: build.query<Post[], void>({
       query: () => `posts`,
       // highlight-start
       providesTags: (result) =>
         result
-          ? [{ type: 'Post', id: 'LIST' }, ...result.map({ id }) => ({ type: 'Post', id })]
+          ? [
+              { type: 'Post', id: 'LIST' },
+              ...result.map(({ id }) => ({ type: 'Post' as const, id })),
+            ]
           : [{ type: 'Post', id: 'LIST' }],
       // highlight-end
     }),
-    getUsers: build.query({
+    getUsers: build.query<User[], void>({
       query: () => `users`,
       // highlight-start
       providesTags: (result) =>
         result
-          ? [{ type: 'User', id: 'LIST' }, ...result.map({ id }) => ({ type: 'User', id })]
+          ? [
+              { type: 'User', id: 'LIST' },
+              ...result.map(({ id }) => ({ type: 'User' as const, id })),
+            ]
           : [{ type: 'User', id: 'LIST' }],
       // highlight-end
     }),
@@ -716,11 +885,32 @@ const api = createApi({
 You may find it beneficial to define helper functions designed for your particular api to reduce this boilerplate across endpoint definitions, e.g.
 
 ```ts
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+export interface User {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { Post, User } from './types'
+
 // highlight-start
-function providesList(resultsWithIds, tagType) {
+function providesList<R extends { id: string | number }[], T extends string>(
+  resultsWithIds: R | undefined,
+  tagType: T
+) {
   return resultsWithIds
-          ? [{ type: tagType, id: 'LIST' }, ...resultsWithIds.map({ id }) => ({ type: tagType, id })]
-          : [{ type: tagType, id: 'LIST' }]
+    ? [
+        { type: tagType, id: 'LIST' },
+        ...resultsWithIds.map(({ id }) => ({ type: tagType, id })),
+      ]
+    : [{ type: tagType, id: 'LIST' }]
 }
 // highlight-end
 
