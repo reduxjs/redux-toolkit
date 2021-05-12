@@ -395,3 +395,27 @@ test('updateCacheEntry', async () => {
     expect(onCleanup).toHaveBeenCalled()
   })
 })
+
+test('dispatching further actions does not trigger another lifecycle', async () => {
+  const extended = api.injectEndpoints({
+    overrideExisting: true,
+    endpoints: (build) => ({
+      injected: build.query<unknown, void>({
+        query: () => '/success',
+        async onCacheEntryAdded() {
+          onNewCacheEntry()
+        },
+      }),
+    }),
+  })
+  await storeRef.store.dispatch(extended.endpoints.injected.initiate())
+  expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
+
+  await storeRef.store.dispatch(extended.endpoints.injected.initiate())
+  expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
+
+  await storeRef.store.dispatch(
+    extended.endpoints.injected.initiate(undefined, { forceRefetch: true })
+  )
+  expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
+})

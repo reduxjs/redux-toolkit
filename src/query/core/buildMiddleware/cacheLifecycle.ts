@@ -147,13 +147,16 @@ export const build: SubMiddlewareBuilder = ({
     const lifecycleMap: Record<string, CacheLifecycle> = {}
 
     return (next) => (action): any => {
+      const stateBefore = mwApi.getState()
+
       const result = next(action)
 
       const cacheKey = getCacheKey(action)
 
       if (queryThunk.pending.match(action)) {
+        const oldState = stateBefore[reducerPath].queries[cacheKey]
         const state = mwApi.getState()[reducerPath].queries[cacheKey]
-        if (state?.requestId === action.meta.requestId) {
+        if (!oldState && state) {
           handleNewKey(
             action.meta.arg.endpointName,
             action.meta.arg.originalArgs,
