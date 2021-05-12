@@ -206,6 +206,8 @@ export const build: SubMiddlewareBuilder = ({
       if (isMutationThunk(action)) return action.meta.requestId
       if (api.internalActions.removeQueryResult.match(action))
         return action.payload.queryCacheKey
+      if (api.internalActions.unsubscribeMutationResult.match(action))
+        return action.payload.requestId
       return ''
     }
 
@@ -239,7 +241,12 @@ export const build: SubMiddlewareBuilder = ({
         ])
       )
       lifecycleMap[queryCacheKey] = lifecycle
-      const selector = (api.endpoints[endpointName] as any).select(originalArgs)
+      const selector = (api.endpoints[endpointName] as any).select(
+        endpointDefinition.type === DefinitionType.query
+          ? originalArgs
+          : queryCacheKey
+      )
+
       const extra = mwApi.dispatch((_, __, extra) => extra)
       const lifecycleApi = {
         ...mwApi,
