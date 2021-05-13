@@ -150,7 +150,7 @@ export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
     ```
 - `onCacheEntryAdded` _(optional)_ - Available to both [queries](../../usage/rtk-query/queries.mdx) and [mutations](../../usage/rtk-query/mutations.mdx)
 
-  - Can be used for TODO
+  - Can be used for [streaming updates](../../usage/rtk-query/streaming-updates.mdx).
   - ```ts title="Mutation onCacheEntryAdded signature" no-transpile
     async function onCacheEntryAdded(
       arg: QueryArg,
