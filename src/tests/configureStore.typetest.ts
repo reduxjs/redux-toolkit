@@ -13,7 +13,7 @@ import {
   getDefaultMiddleware,
 } from '@reduxjs/toolkit'
 import thunk, { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
-import { expectType } from './helpers'
+import { expectNotAny, expectType } from './helpers'
 
 const _anyMiddleware: any = () => () => () => {}
 
@@ -396,5 +396,18 @@ const _anyMiddleware: any = () => () => () => {}
     const result1: 'A' = store.dispatch('a')
     // @ts-expect-error
     store.dispatch(thunkA())
+  }
+
+  /**
+   * Test: badly typed middleware won't make `dispatch` `any`
+   */
+  {
+    const store = configureStore({
+      reducer: reducerA,
+      middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware().concat(_anyMiddleware as Middleware<any>),
+    })
+
+    expectNotAny(store.dispatch)
   }
 }
