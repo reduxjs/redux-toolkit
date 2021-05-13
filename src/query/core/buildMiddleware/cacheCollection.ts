@@ -8,6 +8,8 @@ import {
   TimeoutId,
 } from './types'
 
+export type ReferenceCacheCollection = never
+
 declare module '../../endpointDefinitions' {
   interface QueryExtraOptions<
     TagTypes extends string,

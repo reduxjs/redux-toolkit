@@ -38,6 +38,7 @@ import { BaseQueryFn } from '../baseQueryTypes'
 
 import type { ReferenceCacheLifecycle } from './buildMiddleware/cacheLifecycle'
 import type { ReferenceQueryLifecycle } from './buildMiddleware/queryLifecycle'
+import { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
 
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
@@ -58,6 +59,7 @@ export type CoreModule =
   | typeof coreModuleName
   | ReferenceCacheLifecycle
   | ReferenceQueryLifecycle
+  | ReferenceCacheCollection
 
 declare module '../apiTypes' {
   export interface ApiModules<
