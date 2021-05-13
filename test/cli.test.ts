@@ -88,6 +88,15 @@ describe('CLI options testing', () => {
     expect(numberOfHooks).toEqual(expectedHooks.length);
   });
 
+  it.only('should contain the right imports when using custom import path', async () => {
+    const result = await cli(
+      ['--createApiImportPath', '@reduxjs/toolkit/query/react', `./test/fixtures/petstore.json`],
+      '.'
+    );
+    expect(result.stdout).toContain(`import { createApi } from \"@reduxjs/toolkit/query/react\";`);
+    expect(result.stdout).not.toContain('useGetHealthcheckQuery'); // hooks not exported
+  });
+
   it('should contain the right imports when using hooks and a custom base query', async () => {
     const result = await cli(
       ['-h', `--baseQuery`, `test/fixtures/customBaseQuery.ts:anotherNamedBaseQuery`, `./test/fixtures/petstore.json`],

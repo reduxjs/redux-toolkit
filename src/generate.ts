@@ -30,6 +30,8 @@ function defaultIsDataResponse(code: string) {
 
 let customBaseQueryNode: ts.ImportDeclaration | undefined;
 let moduleName: string;
+const DEFAULT_IMPORT_PATH = '@reduxjs/toolkit/query';
+const REACT_IMPORT_PATH = '@reduxjs/toolkit/query/react';
 
 export async function generateApi(
   spec: string,
@@ -39,6 +41,7 @@ export async function generateApi(
     baseQuery = 'fetchBaseQuery',
     argSuffix = 'ApiArg',
     responseSuffix = 'ApiResponse',
+    createApiImportPath = DEFAULT_IMPORT_PATH,
     baseUrl,
     hooks,
     outputFile,
@@ -122,8 +125,12 @@ export async function generateApi(
 
   const isUsingFetchBaseQuery = baseQuery === 'fetchBaseQuery';
 
+  if (hooks) {
+    createApiImportPath = REACT_IMPORT_PATH;
+  }
+
   function getBasePackageImportsFromOptions() {
-    return hooks
+    return createApiImportPath !== DEFAULT_IMPORT_PATH
       ? {
           ...(isUsingFetchBaseQuery ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
         }
@@ -140,9 +147,9 @@ export async function generateApi(
     factory.createSourceFile(
       [
         // If hooks are specified, we need to import them from the react entry point
-        ...(hooks
+        ...(createApiImportPath !== DEFAULT_IMPORT_PATH
           ? [
-              generateImportNode('@reduxjs/toolkit/query/react', {
+              generateImportNode(createApiImportPath, {
                 createApi: 'createApi',
               }),
             ]
