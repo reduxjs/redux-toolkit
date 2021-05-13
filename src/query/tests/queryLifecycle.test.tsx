@@ -21,75 +21,80 @@ beforeEach(() => {
   onError.mockClear()
 })
 
-test('query: onStart only', async () => {
-  const extended = api.injectEndpoints({
-    overrideExisting: true,
-    endpoints: (build) => ({
-      injected: build.query<unknown, string>({
-        query: () => '/success',
-        onQuery(arg) {
-          onStart(arg)
-        },
-      }),
-    }),
-  })
-  storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
-  expect(onStart).toHaveBeenCalledWith('arg')
-})
-
-test('query: onStart and onSuccess', async () => {
-  const extended = api.injectEndpoints({
-    overrideExisting: true,
-    endpoints: (build) => ({
-      injected: build.query<unknown, string>({
-        query: () => '/success',
-        async onQuery(arg, {}, { resultPromise }) {
-          onStart(arg)
-          // awaiting without catching like this would result in an `unhandledRejection` exception if there was an error
-          // unfortunately we cannot test for that in jest.
-          const result = await resultPromise
-          onSuccess(result)
-        },
-      }),
-    }),
-  })
-  storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
-  expect(onStart).toHaveBeenCalledWith('arg')
-  await waitFor(() => {
-    expect(onSuccess).toHaveBeenCalledWith({ value: 'success' })
-  })
-})
-
-test('query: onStart, onSuccess and onError', async () => {
-  const extended = api.injectEndpoints({
-    overrideExisting: true,
-    endpoints: (build) => ({
-      injected: build.query<unknown, string>({
-        query: () => '/error',
-        async onQuery(arg, {}, { resultPromise }) {
-          onStart(arg)
-          try {
-            const result = await resultPromise
-            onSuccess(result)
-          } catch (e) {
-            onError(e)
-          }
-        },
-      }),
-    }),
-  })
-  storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
-  expect(onStart).toHaveBeenCalledWith('arg')
-  await waitFor(() => {
-    expect(onError).toHaveBeenCalledWith({
-      status: 500,
-      data: { value: 'error' },
+describe.each([['query'], ['mutation']] as const)(
+  'generic cases: %s',
+  (type) => {
+    test(`${type}: onStart only`, async () => {
+      const extended = api.injectEndpoints({
+        overrideExisting: true,
+        endpoints: (build) => ({
+          injected: build[type as 'mutation']<unknown, string>({
+            query: () => '/success',
+            onQuery(arg) {
+              onStart(arg)
+            },
+          }),
+        }),
+      })
+      storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
+      expect(onStart).toHaveBeenCalledWith('arg')
     })
-  })
-  expect(onSuccess).not.toHaveBeenCalled()
-})
 
-test('getCacheEntry (success)', async () => {
+    test(`${type}: onStart and onSuccess`, async () => {
+      const extended = api.injectEndpoints({
+        overrideExisting: true,
+        endpoints: (build) => ({
+          injected: build[type as 'mutation']<unknown, string>({
+            query: () => '/success',
+            async onQuery(arg, {}, { resultPromise }) {
+              onStart(arg)
+              // awaiting without catching like this would result in an `unhandledRejection` exception if there was an error
+              // unfortunately we cannot test for that in jest.
+              const result = await resultPromise
+              onSuccess(result)
+            },
+          }),
+        }),
+      })
+      storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
+      expect(onStart).toHaveBeenCalledWith('arg')
+      await waitFor(() => {
+        expect(onSuccess).toHaveBeenCalledWith({ value: 'success' })
+      })
+    })
+
+    test(`${type}: onStart and onError`, async () => {
+      const extended = api.injectEndpoints({
+        overrideExisting: true,
+        endpoints: (build) => ({
+          injected: build[type as 'mutation']<unknown, string>({
+            query: () => '/error',
+            async onQuery(arg, {}, { resultPromise }) {
+              onStart(arg)
+              try {
+                const result = await resultPromise
+                onSuccess(result)
+              } catch (e) {
+                onError(e)
+              }
+            },
+          }),
+        }),
+      })
+      storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
+      expect(onStart).toHaveBeenCalledWith('arg')
+      await waitFor(() => {
+        expect(onError).toHaveBeenCalledWith({
+          status: 500,
+          data: { value: 'error' },
+        })
+      })
+      expect(onSuccess).not.toHaveBeenCalled()
+    })
+  }
+)
+
+test('query: getCacheEntry (success)', async () => {
   const snapshot = jest.fn()
   const extended = api.injectEndpoints({
     overrideExisting: true,
@@ -151,7 +156,7 @@ test('getCacheEntry (success)', async () => {
   })
 })
 
-test('getCacheEntry (success)', async () => {
+test('query: getCacheEntry (error)', async () => {
   const snapshot = jest.fn()
   const extended = api.injectEndpoints({
     overrideExisting: true,
@@ -212,7 +217,126 @@ test('getCacheEntry (success)', async () => {
   })
 })
 
-test('updateCacheEntry', async () => {
+test('mutation: getCacheEntry (success)', async () => {
+  const snapshot = jest.fn()
+  const extended = api.injectEndpoints({
+    overrideExisting: true,
+    endpoints: (build) => ({
+      injected: build.mutation<unknown, string>({
+        query: () => '/success',
+        async onQuery(
+          arg,
+          { dispatch, getState, getCacheEntry },
+          { resultPromise }
+        ) {
+          try {
+            snapshot(getCacheEntry())
+            const result = await resultPromise
+            onSuccess(result)
+            snapshot(getCacheEntry())
+          } catch (e) {
+            onError(e)
+            snapshot(getCacheEntry())
+          }
+        },
+      }),
+    }),
+  })
+  const promise = storeRef.store.dispatch(
+    extended.endpoints.injected.initiate('arg')
+  )
+
+  await waitFor(() => {
+    expect(onSuccess).toHaveBeenCalled()
+  })
+
+  expect(snapshot).toHaveBeenCalledTimes(2)
+  expect(snapshot.mock.calls[0][0]).toMatchObject({
+    endpointName: 'injected',
+    isError: false,
+    isLoading: true,
+    isSuccess: false,
+    isUninitialized: false,
+    originalArgs: 'arg',
+    startedTimeStamp: expect.any(Number),
+    status: 'pending',
+  })
+  expect(snapshot.mock.calls[1][0]).toMatchObject({
+    data: {
+      value: 'success',
+    },
+    endpointName: 'injected',
+    fulfilledTimeStamp: expect.any(Number),
+    isError: false,
+    isLoading: false,
+    isSuccess: true,
+    isUninitialized: false,
+    originalArgs: 'arg',
+    startedTimeStamp: expect.any(Number),
+    status: 'fulfilled',
+  })
+})
+
+test('mutation: getCacheEntry (error)', async () => {
+  const snapshot = jest.fn()
+  const extended = api.injectEndpoints({
+    overrideExisting: true,
+    endpoints: (build) => ({
+      injected: build.mutation<unknown, string>({
+        query: () => '/error',
+        async onQuery(
+          arg,
+          { dispatch, getState, getCacheEntry },
+          { resultPromise }
+        ) {
+          try {
+            snapshot(getCacheEntry())
+            const result = await resultPromise
+            onSuccess(result)
+            snapshot(getCacheEntry())
+          } catch (e) {
+            onError(e)
+            snapshot(getCacheEntry())
+          }
+        },
+      }),
+    }),
+  })
+  const promise = storeRef.store.dispatch(
+    extended.endpoints.injected.initiate('arg')
+  )
+
+  await waitFor(() => {
+    expect(onError).toHaveBeenCalled()
+  })
+
+  expect(snapshot.mock.calls[0][0]).toMatchObject({
+    endpointName: 'injected',
+    isError: false,
+    isLoading: true,
+    isSuccess: false,
+    isUninitialized: false,
+    originalArgs: 'arg',
+    startedTimeStamp: expect.any(Number),
+    status: 'pending',
+  })
+  expect(snapshot.mock.calls[1][0]).toMatchObject({
+    error: {
+      data: { value: 'error' },
+      status: 500,
+    },
+    endpointName: 'injected',
+    isError: true,
+    isLoading: false,
+    isSuccess: false,
+    isUninitialized: false,
+    originalArgs: 'arg',
+    startedTimeStamp: expect.any(Number),
+    status: 'rejected',
+  })
+})
+
+test('query: updateCacheEntry', async () => {
   const trackCalls = jest.fn()
 
   const extended = api.injectEndpoints({
@@ -284,12 +408,3 @@ test('updateCacheEntry', async () => {
   expect(onSuccess).toHaveBeenCalledWith({ value: 'success' })
   onSuccess.mockClear()
 })
-
-/*
- other test scenarios:
-
-
- cleanup happens before the query resolves -> should reject the promise
-
- cleanup happens before the query resolves -> should reject the promise, but the promise should not cause an unhandledRejection if not caught
-*/

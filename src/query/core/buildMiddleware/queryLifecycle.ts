@@ -88,7 +88,9 @@ export const build: SubMiddlewareBuilder = ({
           )
           lifecycleMap[requestId] = lifecycle
           const selector = (api.endpoints[endpointName] as any).select(
-            originalArgs
+            endpointDefinition.type === DefinitionType.query
+              ? originalArgs
+              : requestId
           )
 
           const extra = mwApi.dispatch((_, __, extra) => extra)
