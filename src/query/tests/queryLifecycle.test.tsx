@@ -46,7 +46,7 @@ describe.each([['query'], ['mutation']] as const)(
         endpoints: (build) => ({
           injected: build[type as 'mutation']<unknown, string>({
             query: () => '/success',
-            async onQuery(arg, {}, { resultPromise }) {
+            async onQuery(arg, { resultPromise }) {
               onStart(arg)
               // awaiting without catching like this would result in an `unhandledRejection` exception if there was an error
               // unfortunately we cannot test for that in jest.
@@ -69,7 +69,7 @@ describe.each([['query'], ['mutation']] as const)(
         endpoints: (build) => ({
           injected: build[type as 'mutation']<unknown, string>({
             query: () => '/error',
-            async onQuery(arg, {}, { resultPromise }) {
+            async onQuery(arg, { resultPromise }) {
               onStart(arg)
               try {
                 const result = await resultPromise
@@ -103,8 +103,7 @@ test('query: getCacheEntry (success)', async () => {
         query: () => '/success',
         async onQuery(
           arg,
-          { dispatch, getState, getCacheEntry },
-          { resultPromise }
+          { dispatch, getState, getCacheEntry, resultPromise }
         ) {
           try {
             snapshot(getCacheEntry())
@@ -165,8 +164,7 @@ test('query: getCacheEntry (error)', async () => {
         query: () => '/error',
         async onQuery(
           arg,
-          { dispatch, getState, getCacheEntry },
-          { resultPromise }
+          { dispatch, getState, getCacheEntry, resultPromise }
         ) {
           try {
             snapshot(getCacheEntry())
@@ -226,8 +224,7 @@ test('mutation: getCacheEntry (success)', async () => {
         query: () => '/success',
         async onQuery(
           arg,
-          { dispatch, getState, getCacheEntry },
-          { resultPromise }
+          { dispatch, getState, getCacheEntry, resultPromise }
         ) {
           try {
             snapshot(getCacheEntry())
@@ -286,8 +283,7 @@ test('mutation: getCacheEntry (error)', async () => {
         query: () => '/error',
         async onQuery(
           arg,
-          { dispatch, getState, getCacheEntry },
-          { resultPromise }
+          { dispatch, getState, getCacheEntry, resultPromise }
         ) {
           try {
             snapshot(getCacheEntry())
@@ -346,8 +342,7 @@ test('query: updateCacheEntry', async () => {
         query: () => '/success',
         async onQuery(
           arg,
-          { dispatch, getState, getCacheEntry, updateCacheEntry },
-          { resultPromise }
+          { dispatch, getState, getCacheEntry, updateCacheEntry, resultPromise }
         ) {
           // calling `updateCacheEntry` when there is no data yet should not do anything
           // but if there is a cache value it will be updated & overwritten by the next succesful result

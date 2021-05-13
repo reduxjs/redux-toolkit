@@ -36,7 +36,7 @@ const api = createApi({
         method: 'PATCH',
         body: patch,
       }),
-      async onQuery({ id, ...patch }, { dispatch }, { resultPromise }) {
+      async onQuery({ id, ...patch }, { dispatch, resultPromise }) {
         const { undo } = dispatch(
           api.util.updateQueryResult('post', id, (draft) => {
             Object.assign(draft, patch)

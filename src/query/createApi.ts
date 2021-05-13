@@ -286,7 +286,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
                 '`onStart`, `onSuccess` and `onError` have been replaced by `onQuery`, please change your code accordingly'
               )
             }
-            x.onQuery ??= async (arg, api, { resultPromise }) => {
+            x.onQuery ??= async (arg, { resultPromise, ...api }) => {
               const queryApi = { ...api, context: {} }
               x.onStart?.(arg, queryApi)
               try {
@@ -321,7 +321,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
                 '`onStart`, `onSuccess` and `onError` have been replaced by `onQuery`, please change your code accordingly'
               )
             }
-            x.onQuery ??= async (arg, api, { resultPromise }) => {
+            x.onQuery ??= async (arg, { resultPromise, ...api }) => {
               const queryApi = { ...api, context: {} }
               x.onStart?.(arg, queryApi)
               try {

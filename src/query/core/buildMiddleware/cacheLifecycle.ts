@@ -18,7 +18,7 @@ import type { SubMiddlewareApi, SubMiddlewareBuilder } from './types'
 export type ReferenceCacheLifecycle = never
 
 declare module '../../endpointDefinitions' {
-  export interface QueryLifecycleApi<
+  export interface QueryBaseLifecycleApi<
     QueryArg,
     BaseQuery extends BaseQueryFn,
     ResultType,
@@ -41,7 +41,7 @@ declare module '../../endpointDefinitions' {
     updateCacheEntry(updateRecipe: Recipe<ResultType>): PatchCollection
   }
 
-  export interface MutationLifecycleApi<
+  export interface MutationBaseLifecycleApi<
     QueryArg,
     BaseQuery extends BaseQueryFn,
     ResultType,
@@ -99,6 +99,27 @@ declare module '../../endpointDefinitions' {
     cleanup: Promise<void>
   }
 
+  export interface QueryCacheLifecycleApi<
+    QueryArg,
+    BaseQuery extends BaseQueryFn,
+    ResultType,
+    ReducerPath extends string = string
+  > extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+      CacheLifecyclePromises<ResultType> {}
+
+  export interface MutationCacheLifecycleApi<
+    QueryArg,
+    BaseQuery extends BaseQueryFn,
+    ResultType,
+    ReducerPath extends string = string
+  > extends MutationBaseLifecycleApi<
+        QueryArg,
+        BaseQuery,
+        ResultType,
+        ReducerPath
+      >,
+      CacheLifecyclePromises<ResultType> {}
+
   interface QueryExtraOptions<
     TagTypes extends string,
     ResultType,
@@ -108,8 +129,7 @@ declare module '../../endpointDefinitions' {
   > {
     onCacheEntryAdded?(
       arg: QueryArg,
-      api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
-      promises: CacheLifecyclePromises<ResultType>
+      api: QueryCacheLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
     ): Promise<void> | void
   }
 
@@ -122,8 +142,12 @@ declare module '../../endpointDefinitions' {
   > {
     onCacheEntryAdded?(
       arg: QueryArg,
-      api: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
-      promises: CacheLifecyclePromises<ResultType>
+      api: MutationCacheLifecycleApi<
+        QueryArg,
+        BaseQuery,
+        ResultType,
+        ReducerPath
+      >
     ): Promise<void> | void
   }
 }
@@ -263,12 +287,12 @@ export const build: SubMiddlewareBuilder = ({
                 )
               )
           : undefined) as any,
-      }
 
-      const runningHandler = onCacheEntryAdded(originalArgs, lifecycleApi, {
         firstValueResolved,
         cleanup,
-      })
+      }
+
+      const runningHandler = onCacheEntryAdded(originalArgs, lifecycleApi)
       // if a `neverResolvedError` was thrown, but not handled in the running handler, do not let it leak out further
       Promise.resolve(runningHandler).catch((e) => {
         if (e === neverResolvedError) return

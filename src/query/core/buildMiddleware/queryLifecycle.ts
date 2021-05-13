@@ -31,8 +31,7 @@ declare module '../../endpointDefinitions' {
   > {
     onQuery?(
       arg: QueryArg,
-      api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
-      promises: QueryLifecyclePromises<ResultType>
+      api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
     ): Promise<void> | void
   }
 
@@ -45,10 +44,30 @@ declare module '../../endpointDefinitions' {
   > {
     onQuery?(
       arg: QueryArg,
-      api: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
-      promises: QueryLifecyclePromises<ResultType>
+      api: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
     ): Promise<void> | void
   }
+
+  export interface QueryLifecycleApi<
+    QueryArg,
+    BaseQuery extends BaseQueryFn,
+    ResultType,
+    ReducerPath extends string = string
+  > extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+      QueryLifecyclePromises<ResultType> {}
+
+  export interface MutationLifecycleApi<
+    QueryArg,
+    BaseQuery extends BaseQueryFn,
+    ResultType,
+    ReducerPath extends string = string
+  > extends MutationBaseLifecycleApi<
+        QueryArg,
+        BaseQuery,
+        ResultType,
+        ReducerPath
+      >,
+      QueryLifecyclePromises<ResultType> {}
 }
 
 export const build: SubMiddlewareBuilder = ({
@@ -109,8 +128,9 @@ export const build: SubMiddlewareBuilder = ({
                     )
                   )
               : undefined) as any,
+            resultPromise,
           }
-          onQuery(originalArgs, lifecycleApi, { resultPromise })
+          onQuery(originalArgs, lifecycleApi)
         }
       } else if (isFullfilledThunk(action)) {
         const { requestId } = action.meta

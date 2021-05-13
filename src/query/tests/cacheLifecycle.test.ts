@@ -49,7 +49,7 @@ describe.each([['query'], ['mutation']] as const)(
         endpoints: (build) => ({
           injected: build[type as 'mutation']<unknown, string>({
             query: () => '/success',
-            async onCacheEntryAdded(arg, { dispatch, getState }, { cleanup }) {
+            async onCacheEntryAdded(arg, { dispatch, getState, cleanup }) {
               onNewCacheEntry(arg)
               await cleanup
               onCleanup()
@@ -82,8 +82,7 @@ describe.each([['query'], ['mutation']] as const)(
             query: () => '/success',
             async onCacheEntryAdded(
               arg,
-              { dispatch, getState },
-              { cleanup, firstValueResolved }
+              { dispatch, getState, cleanup, firstValueResolved }
             ) {
               onNewCacheEntry(arg)
               const firstValue = await firstValueResolved
@@ -127,8 +126,7 @@ describe.each([['query'], ['mutation']] as const)(
             query: () => '/error', // we will initiate only once and that one time will be an error -> firstValueResolved will never resolve
             async onCacheEntryAdded(
               arg,
-              { dispatch, getState },
-              { cleanup, firstValueResolved }
+              { dispatch, getState, cleanup, firstValueResolved }
             ) {
               onNewCacheEntry(arg)
               // this will wait until cleanup, then reject => nothing past that line will execute
@@ -163,8 +161,7 @@ describe.each([['query'], ['mutation']] as const)(
             query: () => '/error', // we will initiate only once and that one time will be an error -> firstValueResolved will never resolve
             async onCacheEntryAdded(
               arg,
-              { dispatch, getState },
-              { cleanup, firstValueResolved }
+              { dispatch, getState, cleanup, firstValueResolved }
             ) {
               onNewCacheEntry(arg)
 
@@ -208,8 +205,7 @@ describe.each([['query'], ['mutation']] as const)(
             query: () => '/error', // we will initiate only once and that one time will be an error -> firstValueResolved will never resolve
             async onCacheEntryAdded(
               arg,
-              { dispatch, getState },
-              { cleanup, firstValueResolved }
+              { dispatch, getState, cleanup, firstValueResolved }
             ) {
               onNewCacheEntry(arg)
 
@@ -254,8 +250,7 @@ describe.each([['query'], ['mutation']] as const)(
             query: () => '/error', // we will initiate only once and that one time will be an error -> firstValueResolved will never resolve
             async onCacheEntryAdded(
               arg,
-              { dispatch, getState },
-              { cleanup, firstValueResolved }
+              { dispatch, getState, cleanup, firstValueResolved }
             ) {
               onNewCacheEntry(arg)
 
@@ -303,8 +298,7 @@ test(`query: getCacheEntry`, async () => {
         query: () => '/success',
         async onCacheEntryAdded(
           arg,
-          { dispatch, getState, getCacheEntry },
-          { cleanup, firstValueResolved }
+          { dispatch, getState, getCacheEntry, cleanup, firstValueResolved }
         ) {
           snapshot(getCacheEntry())
           gotFirstValue(await firstValueResolved)
@@ -371,8 +365,7 @@ test(`mutation: getCacheEntry`, async () => {
         query: () => '/success',
         async onCacheEntryAdded(
           arg,
-          { dispatch, getState, getCacheEntry },
-          { cleanup, firstValueResolved }
+          { dispatch, getState, getCacheEntry, cleanup, firstValueResolved }
         ) {
           snapshot(getCacheEntry())
           gotFirstValue(await firstValueResolved)
@@ -436,8 +429,14 @@ test('updateCacheEntry', async () => {
         query: () => '/success',
         async onCacheEntryAdded(
           arg,
-          { dispatch, getState, getCacheEntry, updateCacheEntry },
-          { cleanup, firstValueResolved }
+          {
+            dispatch,
+            getState,
+            getCacheEntry,
+            updateCacheEntry,
+            cleanup,
+            firstValueResolved,
+          }
         ) {
           expect(getCacheEntry().data).toEqual(undefined)
           // calling `updateCacheEntry` when there is no data yet should not do anything
