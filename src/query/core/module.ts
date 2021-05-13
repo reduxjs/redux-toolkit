@@ -133,12 +133,6 @@ declare module '../apiTypes' {
           arg: QueryArgFrom<Definitions[EndpointName]>,
           options: PrefetchOptions
         ): ThunkAction<void, any, any, AnyAction>
-        /* @deprecated */
-        prefetchThunk<EndpointName extends QueryKeys<EndpointDefinitions>>(
-          endpointName: EndpointName,
-          arg: QueryArgFrom<Definitions[EndpointName]>,
-          options: PrefetchOptions
-        ): ThunkAction<void, any, any, AnyAction>
         /**
          * TODO
          */
@@ -161,11 +155,6 @@ declare module '../apiTypes' {
          * TODO
          */
         invalidateTags: ActionCreatorWithPayload<
-          Array<TagTypes | FullTagDescription<TagTypes>>,
-          string
-        >
-        /** @deprecated renamed to `invalidateTags` */
-        invalidateEntities: ActionCreatorWithPayload<
           Array<TagTypes | FullTagDescription<TagTypes>>,
           string
         >
@@ -334,34 +323,6 @@ export const coreModule = (): Module<CoreModule> => ({
       mutationThunk,
       api,
       serializeQueryArgs: serializeQueryArgs as any,
-    })
-
-    // remove in final release
-    Object.defineProperty(api.util, 'invalidateEntities', {
-      get() {
-        if (
-          typeof process !== 'undefined' &&
-          process.env.NODE_ENV === 'development'
-        ) {
-          console.warn(
-            '`api.util.invalidateEntities` has been renamed to `api.util.invalidateTags`, please change your code accordingly'
-          )
-        }
-        return api.util.invalidateTags
-      },
-    })
-    Object.defineProperty(api.util, 'prefetchThunk', {
-      get() {
-        if (
-          typeof process !== 'undefined' &&
-          process.env.NODE_ENV === 'development'
-        ) {
-          console.warn(
-            '`api.util.prefetchThunk` has been renamed to `api.util.prefetch`, please change your code accordingly'
-          )
-        }
-        return api.util.prefetch
-      },
     })
 
     return {
