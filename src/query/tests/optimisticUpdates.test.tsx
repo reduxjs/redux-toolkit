@@ -2,12 +2,6 @@ import { createApi } from '@reduxjs/toolkit/query/react'
 import { actionsReducer, hookWaitFor, setupApiStore, waitMs } from './helpers'
 import { renderHook, act } from '@testing-library/react-hooks'
 
-interface Patch {
-  op: 'replace' | 'remove' | 'add'
-  path: (string | number)[]
-  value?: any
-}
-
 interface Post {
   id: string
   title: string
@@ -62,9 +56,15 @@ describe('basic lifecycle', () => {
     endpoints: (build) => ({
       test: build.mutation({
         query: (x) => x,
-        onStart,
-        onError,
-        onSuccess,
+        async onQuery(arg, api) {
+          onStart(arg)
+          try {
+            const result = await api.resultPromise
+            onSuccess(result)
+          } catch (e) {
+            onError(e)
+          }
+        },
       }),
     }),
     overrideExisting: true,
@@ -89,19 +89,14 @@ describe('basic lifecycle', () => {
     expect(onStart).not.toHaveBeenCalled()
     expect(baseQuery).not.toHaveBeenCalled()
     act(() => void result.current[0]('arg'))
-    expect(onStart).toHaveBeenCalledWith('arg', expect.any(Object))
+    expect(onStart).toHaveBeenCalledWith('arg')
     expect(baseQuery).toHaveBeenCalledWith('arg', expect.any(Object), undefined)
 
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).not.toHaveBeenCalled()
     await act(() => waitMs(5))
     expect(onError).not.toHaveBeenCalled()
-    expect(onSuccess).toHaveBeenCalledWith(
-      'arg',
-      expect.any(Object),
-      'success',
-      undefined
-    )
+    expect(onSuccess).toHaveBeenCalledWith('success')
   })
 
   test('error', async () => {
@@ -117,18 +112,13 @@ describe('basic lifecycle', () => {
     expect(onStart).not.toHaveBeenCalled()
     expect(baseQuery).not.toHaveBeenCalled()
     act(() => void result.current[0]('arg'))
-    expect(onStart).toHaveBeenCalledWith('arg', expect.any(Object))
+    expect(onStart).toHaveBeenCalledWith('arg')
     expect(baseQuery).toHaveBeenCalledWith('arg', expect.any(Object), undefined)
 
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).not.toHaveBeenCalled()
     await act(() => waitMs(5))
-    expect(onError).toHaveBeenCalledWith(
-      'arg',
-      expect.any(Object),
-      { message: 'error' },
-      undefined
-    )
+    expect(onError).toHaveBeenCalledWith({ message: 'error' })
     expect(onSuccess).not.toHaveBeenCalled()
   })
 })

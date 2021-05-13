@@ -20,7 +20,6 @@ export type Api<BaseQuery extends BaseQueryFn, Definitions extends EndpointDefin
         overrideExisting?: boolean;
     }): Api<BaseQuery, Definitions & NewDefinitions, ReducerPath, TagTypes, Enhancers>;
     enhanceEndpoints<NewTagTypes extends string = never>(_: {
-        addEntityTypes?: readonly NewTagTypes[];
         addTagTypes?: readonly NewTagTypes[];
         endpoints?: ReplaceTagTypes<Definitions, TagTypes | NoInfer<NewTagTypes>> extends infer NewDefinitions ? {
             [K in keyof NewDefinitions]?: Partial<NewDefinitions[K]> | ((definition: NewDefinitions[K]) => void);

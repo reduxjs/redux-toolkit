@@ -598,26 +598,26 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
       }),
       query: build.query<SuccessResponse, void>({
         query: () => '/success',
-        onStart: (_, api) => {
+        async onQuery(_, api) {
           api.dispatch(setCount(0))
-        },
-        onSuccess: (_, api) => {
-          api.dispatch(setCount(1))
-        },
-        onError: (_, api) => {
-          api.dispatch(setCount(-1))
+          try {
+            await api.resultPromise
+            api.dispatch(setCount(1))
+          } catch {
+            api.dispatch(setCount(-1))
+          }
         },
       }),
       mutation: build.mutation<SuccessResponse, void>({
         query: () => ({ url: '/success', method: 'POST' }),
-        onStart: (_, api) => {
+        async onQuery(_, api) {
           api.dispatch(setCount(0))
-        },
-        onSuccess: (_, api) => {
-          api.dispatch(setCount(1))
-        },
-        onError: (_, api) => {
-          api.dispatch(setCount(-1))
+          try {
+            await api.resultPromise
+            api.dispatch(setCount(1))
+          } catch {
+            api.dispatch(setCount(-1))
+          }
         },
       }),
     }),
