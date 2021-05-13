@@ -3,6 +3,7 @@ import {
   unwrapResult,
   configureStore,
   AnyAction,
+  createReducer,
 } from '@reduxjs/toolkit'
 import { miniSerializeError } from '@internal/createAsyncThunk'
 
@@ -741,4 +742,32 @@ describe('idGenerator option', () => {
       expect.stringContaining('fake-fandom-id')
     )
   })
+})
+
+test('`condition` will see state changes from a synchonously invoked asyncThunk', () => {
+  type State = ReturnType<typeof store.getState>
+  const onStart = jest.fn()
+  const asyncThunk = createAsyncThunk<
+    void,
+    { force?: boolean },
+    { state: State }
+  >('test', onStart, {
+    condition({ force }, { getState }) {
+      return force || !getState().started
+    },
+  })
+  const store = configureStore({
+    reducer: createReducer({ started: false }, (builder) => {
+      builder.addCase(asyncThunk.pending, (state) => {
+        state.started = true
+      })
+    }),
+  })
+
+  store.dispatch(asyncThunk({ force: false }))
+  expect(onStart).toHaveBeenCalledTimes(1)
+  store.dispatch(asyncThunk({ force: false }))
+  expect(onStart).toHaveBeenCalledTimes(1)
+  store.dispatch(asyncThunk({ force: true }))
+  expect(onStart).toHaveBeenCalledTimes(2)
 })

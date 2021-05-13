@@ -403,3 +403,32 @@ test('query: updateCacheEntry', async () => {
   expect(onSuccess).toHaveBeenCalledWith({ value: 'success' })
   onSuccess.mockClear()
 })
+
+test('query: will only start lifecycle if query is not skipped due to `condition`', async () => {
+  const extended = api.injectEndpoints({
+    overrideExisting: true,
+    endpoints: (build) => ({
+      injected: build.query<unknown, string>({
+        query: () => {
+          console.log('started')
+          return '/success'
+        },
+        onQuery(arg) {
+          console.log('onQuery')
+          onStart(arg)
+        },
+      }),
+    }),
+  })
+  const promise = storeRef.store.dispatch(
+    extended.endpoints.injected.initiate('arg')
+  )
+  expect(onStart).toHaveBeenCalledTimes(1)
+  storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
+  expect(onStart).toHaveBeenCalledTimes(1)
+  await promise
+  storeRef.store.dispatch(
+    extended.endpoints.injected.initiate('arg', { forceRefetch: true })
+  )
+  expect(onStart).toHaveBeenCalledTimes(2)
+})
