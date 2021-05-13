@@ -38,7 +38,7 @@ export const { useGetPokemonByNameQuery } = pokemonApi
 `createApi` accepts a single configuration object parameter with the following options:
 
 ```ts no-transpile
-  baseQuery(args: InternalQueryArgs, api: QueryApi): any;
+  baseQuery(args: InternalQueryArgs, api: BaseQueryApi): any;
   endpoints(build: EndpointBuilder<InternalQueryArgs, TagTypes>): Definitions;
   tagTypes?: readonly TagTypes[];
   reducerPath?: ReducerPath;
@@ -106,47 +106,74 @@ export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
       }, {})
     ```
 
-- `provides` _(optional)_
+- `providesTags` _(optional)_
 
   [summary](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.provides)
 
-- `invalidates` _(optional)_
+- `invalidatesTags` _(optional)_
 
   [summary](docblock://query/endpointDefinitions.ts?token=MutationExtraOptions.invalidates)
 
-- `onStart`, `onError` and `onSuccess` _(optional)_ - Available to both [queries](../../usage/rtk-query/queries.md) and [mutations](../../usage/rtk-query/mutations.md)
+- `onQuery` _(optional)_ - Available to both [queries](../../usage/rtk-query/queries.md) and [mutations](../../usage/rtk-query/mutations.md)
   - Can be used in `mutations` for [optimistic updates](../../usage/rtk-query/optimistic-updates.md).
-  - ```ts title="Mutation lifecycle signatures"
-    function onStart(
+  - ```ts title="Mutation onQuery signature"
+    async function onQuery(
       arg: QueryArg,
-      mutationApi: MutationApi<ReducerPath, Context>
-    ): void
-    function onError(
-      arg: QueryArg,
-      mutationApi: MutationApi<ReducerPath, Context>,
-      error: unknown
-    ): void
-    function onSuccess(
-      arg: QueryArg,
-      mutationApi: MutationApi<ReducerPath, Context>,
-      result: ResultType
-    ): void
+      {
+        dispatch,
+        getState,
+        extra,
+        requestId,
+        resultPromise,
+        getCacheEntry,
+      }: MutationLifecycleApi
+    ): Promise<void>
     ```
-  - ```ts title="Query lifecycle signatures"
-    function onStart(
+  - ```ts title="Query onQuery signature"
+    async function onQuery(
       arg: QueryArg,
-      queryApi: QueryApi<ReducerPath, Context>
-    ): void
-    function onError(
+      {
+        dispatch,
+        getState,
+        extra,
+        requestId,
+        resultPromise,
+        getCacheEntry,
+        updateCacheEntry,
+      }: QueryLifecycleApi
+    ): Promise<void>
+    ```
+- `onCacheEntryAdded` _(optional)_ - Available to both [queries](../../usage/rtk-query/queries.md) and [mutations](../../usage/rtk-query/mutations.md)
+
+  - Can be used for TODO
+  - ```ts title="Mutation onCacheEntryAdded signature"
+    async function onCacheEntryAdded(
       arg: QueryArg,
-      queryApi: QueryApi<ReducerPath, Context>,
-      error: unknown
-    ): void
-    function onSuccess(
+      {
+        dispatch,
+        getState,
+        extra,
+        requestId,
+        cleanup,
+        firstValueResolved,
+        getCacheEntry,
+      }: MutationCacheLifecycleApi
+    ): Promise<void>
+    ```
+  - ```ts title="Query onCacheEntryAdded signature"
+    async function onCacheEntryAdded(
       arg: QueryArg,
-      queryApi: QueryApi<ReducerPath, Context>,
-      result: ResultType
-    ): void
+      {
+        dispatch,
+        getState,
+        extra,
+        requestId,
+        cleanup,
+        firstValueResolved,
+        getCacheEntry,
+        updateCacheEntry,
+      }: QueryCacheLifecycleApi
+    ): Promise<void>
     ```
 
 #### How endpoints get used

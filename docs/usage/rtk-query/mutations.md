@@ -23,23 +23,33 @@ const api = createApi({
       }),
       // Pick out data and prevent nested properties in a hook or selector
       transformResponse: (response) => response.data,
-      // onStart, onSuccess, onError are useful for optimistic updates
-      // The 2nd parameter is the destructured `mutationApi`
-      onStart(
-        { id, ...patch },
-        { dispatch, getState, extra, requestId, context }
-      ) {},
-      // `result` is the server response
-      onSuccess({ id }, mutationApi, result) {},
-      onError({ id }, { dispatch, getState, extra, requestId, context }) {},
       invalidatesTags: ['Post'],
+      // onQuery is useful for optimistic updates
+      // The 2nd parameter is the destructured `MutationLifecycleApi`
+      async onQuery(
+        arg,
+        { dispatch, getState, resultPromise, requestId, extra, getCacheEntry }
+      ) {},
+      // The 2nd parameter is the destructured `MutationCacheLifecycleApi`
+      async onCacheEntryAdded(
+        arg,
+        {
+          dispatch,
+          getState,
+          extra,
+          requestId,
+          cleanup,
+          firstValueResolved,
+          getCacheEntry,
+        }
+      ) {},
     }),
   }),
 })
 ```
 
 :::info
-Notice the `onStart`, `onSuccess`, `onError` methods? Be sure to check out how they can be used for [optimistic updates](./optimistic-updates)
+Notice the `onQuery` method? Be sure to check out how it can be used for [optimistic updates](./optimistic-updates)
 :::
 
 ### Type interfaces
@@ -56,29 +66,29 @@ export type MutationDefinition<
   type: DefinitionType.mutation
   invalidatesTags?: ResultDescription<TagTypes, ResultType, QueryArg>
   providesTags?: never
-  onStart?(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>): void
-  onError?(
+  onQuery?(
     arg: QueryArg,
-    mutationApi: MutationApi<ReducerPath, Context>,
-    error: unknown,
-    meta: BaseQueryMeta<BaseQuery>
-  ): void
-  onSuccess?(
+    {
+      dispatch,
+      getState,
+      resultPromise,
+      requestId,
+      extra,
+      getCacheEntry,
+    }: MutationLifecycleApi
+  ): Promise<void>
+  onCacheEntryAdded?(
     arg: QueryArg,
-    mutationApi: MutationApi<ReducerPath, Context>,
-    result: ResultType,
-    meta: BaseQueryMeta<BaseQuery> | undefined
-  ): void
-}
-```
-
-```ts title="MutationApi"
-export interface MutationApi<ReducerPath extends string, Context extends {}> {
-  dispatch: ThunkDispatch<any, any, AnyAction>
-  getState(): RootState<any, any, ReducerPath>
-  extra: unknown
-  requestId: string
-  context: Context
+    {
+      dispatch,
+      getState,
+      extra,
+      requestId,
+      cleanup,
+      firstValueResolved,
+      getCacheEntry,
+    }: MutationCacheLifecycleApi
+  ): Promise<void>
 }
 ```
 

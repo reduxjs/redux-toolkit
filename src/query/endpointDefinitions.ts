@@ -307,14 +307,12 @@ export type EndpointBuilder<
    *      query: (id) => ({ url: `post/${id}` }),
    *      // Pick out data and prevent nested properties in a hook or selector
    *      transformResponse: (response) => response.data,
-   *      // trigger side effects or optimistic updates
-   *      onQuery(id, { dispatch, getState, getCacheEntry }, { resultPromise }) {},
-   *      // handle subscriptions etc
-   *      onCacheEntryAdded(id, { dispatch, getState, getCacheEntry }, { firstValueResolved, cleanup }) {},
    *      // `result` is the server response
-   *      onSuccess(id, queryApi, result) {},
-   *      onError(id, queryApi) {},
    *      providesTags: (result, error, id) => [{ type: 'Post', id }],
+   *      // trigger side effects or optimistic updates
+   *      onQuery(id, { dispatch, getState, extra, requestId, resultPromise, getCacheEntry, updateCacheEntry }) {},
+   *      // handle subscriptions etc
+   *      onCacheEntryAdded(id, { dispatch, getState, extra, requestId, cleanup, firstValueResolved, getCacheEntry, updateCacheEntry }) {},
    *    }),
    *  }),
    *});
@@ -339,11 +337,12 @@ export type EndpointBuilder<
    *       query: ({ id, ...patch }) => ({ url: `post/${id}`, method: 'PATCH', body: patch }),
    *       // Pick out data and prevent nested properties in a hook or selector
    *       transformResponse: (response) => response.data,
-   *      // trigger side effects or optimistic updates
-   *      onQuery(id, { dispatch, getState, getCacheEntry }, { resultPromise }) {},
-   *      // handle subscriptions etc
-   *      onCacheEntryAdded(id, { dispatch, getState, getCacheEntry }, { firstValueResolved, cleanup }) {},
+   *       // `result` is the server response
    *       invalidatesTags: (result, error, id) => [{ type: 'Post', id }],
+   *      // trigger side effects or optimistic updates
+   *      onQuery(id, { dispatch, getState, extra, requestId, resultPromise, getCacheEntry }) {},
+   *      // handle subscriptions etc
+   *      onCacheEntryAdded(id, { dispatch, getState, extra, requestId, cleanup, firstValueResolved, getCacheEntry }) {},
    *     }),
    *   }),
    * });

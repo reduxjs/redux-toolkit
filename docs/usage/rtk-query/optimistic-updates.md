@@ -11,10 +11,11 @@ When you're performing an update on some data that _already exists_ in the cache
 
 The core concepts are:
 
-- in the `onStart` phase of a mutation, you manually set the cached data via `updateQueryResult`
-- then, in `onError`, you roll it back via `patchQueryResult`. You don't have to worry about the `onSuccess` lifecycle here.
+- when you start a query or mutation, `onQuery` will be executed
+- you manually update the cached data by dispatching `api.util.updateQueryResult`
+- then, in the case that `promiseResult` rejects, you roll it back via the `.undo` property of the object you got back from the earlier dispatch.
 
-```ts title="Example optimistic update mutation"
+```ts title="Example optimistic update mutation (async await)"
 const api = createApi({
   baseQuery,
   tagTypes: ['Post'],
@@ -33,22 +34,41 @@ const api = createApi({
         method: 'PATCH',
         body: patch,
       }),
-      onStart({ id, ...patch }, { dispatch, context }) {
-        // When we start the request, just immediately update the cache
-        context.undoPost = dispatch(
+      async onQuery({ id, ...patch }, { dispatch, resultPromise }) {
+        const patchResult = dispatch(
           api.util.updateQueryResult('getPost', id, (draft) => {
             Object.assign(draft, patch)
           })
-        ).inversePatches
-      },
-      onError({ id }, { dispatch, context }) {
-        // If there is an error, roll it back
-        dispatch(api.util.patchQueryResult('getPost', id, context.undoPost))
-      },
+        )
+        try {
+          await resultPromise
+        } catch {
+          patchResult.undo()
+        }
+      }
       invalidatesTags: ['Post'],
     }),
   }),
 })
+```
+
+or, if you prefer the slighty shorter version with `.catch`
+
+```diff
+-      async onQuery({ id, ...patch }, { dispatch, resultPromise }) {
++      onQuery({ id, ...patch }, { dispatch, resultPromise }) {
+        const patchResult = dispatch(
+          api.util.updateQueryResult('getPost', id, (draft) => {
+            Object.assign(draft, patch)
+          })
+        )
+-       try {
+-         await resultPromise
+-       } catch {
+-         patchResult.undo()
+-       }
++       resultPromise.catch(patchResult.undo)
+      }
 ```
 
 ### Example
