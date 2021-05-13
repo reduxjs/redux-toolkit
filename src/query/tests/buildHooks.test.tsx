@@ -1841,7 +1841,7 @@ describe('hooks with createApi defaults set', () => {
       }),
     })
 
-    const storeRef = setupApiStore(defaultApi, {
+    const storeRef = setupApiStore(api, {
       ...actionsReducer,
     })
 

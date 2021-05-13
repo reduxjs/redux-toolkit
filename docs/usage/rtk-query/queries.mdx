@@ -37,12 +37,34 @@ const api = createApi({
       query: (id) => ({ url: `post/${id}` }),
       // Pick out data and prevent nested properties in a hook or selector
       transformResponse: (response: { data: Post }) => response.data,
-      // The 2nd parameter is the destructured `queryApi`
-      onStart(id, { dispatch, getState, extra, requestId, context }) {},
-      // `result` is the server response
-      onSuccess(id, queryApi, result) {},
-      onError(id, queryApi) {},
       providesTags: (result, error, id) => [{ type: 'Post', id }],
+      // The 2nd parameter is the destructured `QueryLifecycleApi`
+      async onQuery(
+        arg,
+        {
+          dispatch,
+          getState,
+          extra,
+          requestId,
+          resultPromise,
+          getCacheEntry,
+          updateCacheEntry,
+        }
+      ) {},
+      // The 2nd parameter is the destructured `QueryCacheLifecycleApi`
+      async onCacheEntryAdded(
+        arg,
+        {
+          dispatch,
+          getState,
+          extra,
+          requestId,
+          cleanup,
+          firstValueResolved,
+          getCacheEntry,
+          updateCacheEntry,
+        }
+      ) {},
       // highlight-end
     }),
   }),

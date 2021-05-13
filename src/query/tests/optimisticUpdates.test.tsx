@@ -30,25 +30,19 @@ const api = createApi({
       query: (id) => `post/${id}`,
       providesTags: ['Post'],
     }),
-    updatePost: build.mutation<
-      void,
-      Pick<Post, 'id'> & Partial<Post>,
-      { undoPost: Patch[] }
-    >({
+    updatePost: build.mutation<void, Pick<Post, 'id'> & Partial<Post>>({
       query: ({ id, ...patch }) => ({
         url: `post/${id}`,
         method: 'PATCH',
         body: patch,
       }),
-      onStart({ id, ...patch }, { dispatch, context }) {
-        context.undoPost = dispatch(
+      async onQuery({ id, ...patch }, { dispatch, resultPromise }) {
+        const { undo } = dispatch(
           api.util.updateQueryResult('post', id, (draft) => {
             Object.assign(draft, patch)
           })
-        ).inversePatches
-      },
-      onError({ id }, { dispatch, context }) {
-        dispatch(api.util.patchQueryResult('post', id, context.undoPost))
+        )
+        resultPromise.catch(undo)
       },
       invalidatesTags: ['Post'],
     }),
@@ -106,7 +100,7 @@ describe('basic lifecycle', () => {
       'arg',
       expect.any(Object),
       'success',
-      'meta'
+      undefined
     )
   })
 
@@ -132,7 +126,7 @@ describe('basic lifecycle', () => {
     expect(onError).toHaveBeenCalledWith(
       'arg',
       expect.any(Object),
-      'error',
+      { message: 'error' },
       undefined
     )
     expect(onSuccess).not.toHaveBeenCalled()
@@ -177,10 +171,11 @@ describe('updateQueryResult', () => {
     expect(returnValue).toEqual({
       inversePatches: [{ op: 'replace', path: ['contents'], value: 'TODO' }],
       patches: [{ op: 'replace', path: ['contents'], value: 'I love cheese!' }],
+      undo: expect.any(Function),
     })
 
     act(() => {
-      returnValue = storeRef.store.dispatch(
+      storeRef.store.dispatch(
         api.util.patchQueryResult('post', '3', returnValue.inversePatches)
       )
     })
@@ -220,6 +215,7 @@ describe('updateQueryResult', () => {
     expect(returnValue).toEqual({
       inversePatches: [],
       patches: [],
+      undo: expect.any(Function),
     })
   })
 })

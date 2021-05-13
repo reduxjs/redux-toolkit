@@ -55,6 +55,7 @@ export const hookWaitFor = async (cb: () => void, time = 2000) => {
     }
   }
 }
+export const fakeTimerWaitFor = hookWaitFor
 
 export const useRenderCounter = () => {
   const countRef = React.useRef(0)
@@ -106,37 +107,33 @@ export const actionsReducer = {
 
 export function setupApiStore<
   A extends {
-    reducerPath: any
+    reducerPath: 'api'
     reducer: Reducer<any, any>
-    middleware: Middleware<any>
+    middleware: Middleware
     util: { resetApiState(): any }
   },
-  R extends Record<string, Reducer<any, any>>
+  R extends Record<string, Reducer<any, any>> = Record<never, never>
 >(api: A, extraReducers?: R, withoutListeners?: boolean) {
   const getStore = () =>
     configureStore({
-      reducer: { [api.reducerPath]: api.reducer, ...extraReducers },
+      reducer: { api: api.reducer, ...extraReducers },
       middleware: (gdm) =>
         gdm({ serializableCheck: false, immutableCheck: false }).concat(
           api.middleware
         ),
     })
-  type StoreType = ReturnType<typeof getStore> extends EnhancedStore<
-    {},
-    any,
-    infer M
+
+  type StoreType = EnhancedStore<
+    {
+      api: ReturnType<A['reducer']>
+    } & {
+      [K in keyof R]: ReturnType<R[K]>
+    },
+    AnyAction,
+    ReturnType<typeof getStore> extends EnhancedStore<any, any, infer M>
+      ? M
+      : never
   >
-    ? EnhancedStore<
-        {
-          [K in A['reducerPath']]: ReturnType<A['reducer']>
-        } &
-          {
-            [K in keyof R]: ReturnType<R[K]>
-          },
-        AnyAction,
-        M
-      >
-    : never
 
   const initialStore = getStore() as StoreType
   const refObj = {

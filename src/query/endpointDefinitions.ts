@@ -105,36 +105,26 @@ export type ResultDescription<
   | ReadonlyArray<TagDescription<TagTypes>>
   | GetResultDescriptionFn<TagTypes, ResultType, QueryArg, ErrorType>
 
+/** @deprecated please use `onQuery` instead */
 export interface QueryApi<ReducerPath extends string, Context extends {}> {
-  /**
-   * The dispatch method for the store
-   */
+  /** @deprecated please use `onQuery` instead */
   dispatch: ThunkDispatch<any, any, AnyAction>
-  /**
-   * A method to get the current state
-   */
+  /** @deprecated please use `onQuery` instead */
   getState(): RootState<any, any, ReducerPath>
-  /**
-   * `extra` as provided as `thunk.extraArgument` to the `configureStore` `getDefaultMiddleware` option.
-   */
+  /** @deprecated please use `onQuery` instead */
   extra: unknown
-  /**
-   * A unique ID generated for the mutation
-   */
+  /** @deprecated please use `onQuery` instead */
   requestId: string
-  /**
-   * A variable shared between `onStart`, `onError` and `onSuccess` of one request to pass data forward between them
-   */
+  /** @deprecated please use `onQuery` instead */
   context: Context
 }
 
-interface QueryExtraOptions<
+export interface QueryExtraOptions<
   TagTypes extends string,
   ResultType,
   QueryArg,
   BaseQuery extends BaseQueryFn,
-  ReducerPath extends string = string,
-  Context = Record<string, any>
+  ReducerPath extends string = string
 > {
   type: DefinitionType.query
   /**
@@ -166,37 +156,21 @@ interface QueryExtraOptions<
   invalidatesTags?: never
   /** @deprecated */
   invalidates?: never
-  /**
-   * Called when the query is triggered.
-   * @param arg - The argument supplied to the query
-   * @param queryApi - An object containing `dispatch`, `getState()`, `extra`, `request`Id`, `context`
-   */
-  onStart?(arg: QueryArg, queryApi: QueryApi<ReducerPath, Context>): void
-  /**
-   * Called when an error response is returned by the query.
-   * @param arg - The argument supplied to the query
-   * @param queryApi - A query API containing `dispatch`, `getState()`, `extra`, `request`Id`, `context`
-   * @param error - The error returned by the query
-   * @param meta - Meta item from the base query
-   */
+  /** @deprecated please use `onQuery` instead */
+  onStart?(arg: QueryArg, queryApi: QueryApi<ReducerPath, any>): void
+  /** @deprecated please use `onQuery` instead */
   onError?(
     arg: QueryArg,
-    queryApi: QueryApi<ReducerPath, Context>,
+    queryApi: QueryApi<ReducerPath, any>,
     error: unknown,
-    meta: BaseQueryMeta<BaseQuery>
+    meta: undefined
   ): void
-  /**
-   * Called when a successful response is returned by the query.
-   * @param arg - The argument supplied to the query
-   * @param queryApi - A query API containing `dispatch`, `getState()`, `extra`, `request`Id`, `context`
-   * @param result - The response returned by the query
-   * @param meta - Meta item from the base query
-   */
+  /** @deprecated please use `onQuery` instead */
   onSuccess?(
     arg: QueryArg,
-    queryApi: QueryApi<ReducerPath, Context>,
+    queryApi: QueryApi<ReducerPath, any>,
     result: ResultType,
-    meta: BaseQueryMeta<BaseQuery> | undefined
+    meta: undefined
   ): void
 }
 
@@ -205,18 +179,11 @@ export type QueryDefinition<
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ResultType,
-  ReducerPath extends string = string,
-  Context = Record<string, any>
+  ReducerPath extends string = string
 > = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
-  QueryExtraOptions<
-    TagTypes,
-    ResultType,
-    QueryArg,
-    BaseQuery,
-    ReducerPath,
-    Context
-  >
+  QueryExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
 
+/** @deprecated please use `onQuery` instead */
 export interface MutationApi<ReducerPath extends string, Context extends {}> {
   /**
    * The dispatch method for the store
@@ -240,13 +207,12 @@ export interface MutationApi<ReducerPath extends string, Context extends {}> {
   context: Context
 }
 
-interface MutationExtraOptions<
+export interface MutationExtraOptions<
   TagTypes extends string,
   ResultType,
   QueryArg,
   BaseQuery extends BaseQueryFn,
-  ReducerPath extends string = string,
-  Context = Record<string, any>
+  ReducerPath extends string = string
 > {
   type: DefinitionType.mutation
   /**
@@ -272,37 +238,21 @@ interface MutationExtraOptions<
   providesTags?: never
   /** @deprecated */
   provides?: never
-  /**
-   * Called when the mutation is triggered.
-   * @param arg - The argument supplied to the query
-   * @param mutationApi - An object containing `dispatch`, `getState()`, `extra`, `request`Id`, `context`
-   */
-  onStart?(arg: QueryArg, mutationApi: MutationApi<ReducerPath, Context>): void
-  /**
-   * Called when an error response is returned by the mutation.
-   * @param arg - The argument supplied to the query
-   * @param mutationApi - A mutation API containing `dispatch`, `getState()`, `extra`, `request`Id`, `context`
-   * @param error - The error returned by the mutation
-   * @param meta - Meta item from the base query
-   */
+  /** @deprecated please use `onQuery` instead */
+  onStart?(arg: QueryArg, mutationApi: MutationApi<ReducerPath, any>): void
+  /** @deprecated please use `onQuery` instead */
   onError?(
     arg: QueryArg,
-    mutationApi: MutationApi<ReducerPath, Context>,
+    mutationApi: MutationApi<ReducerPath, any>,
     error: unknown,
-    meta: BaseQueryMeta<BaseQuery>
+    meta: undefined
   ): void
-  /**
-   * Called when a successful response is returned by the mutation.
-   * @param arg - The argument supplied to the query
-   * @param mutationApi - A mutation API containing `dispatch`, `getState()`, `extra`, `request`Id`, `context`
-   * @param result - The response returned by the mutation
-   * @param meta - Meta item from the base query
-   */
+  /** @deprecated please use `onQuery` instead */
   onSuccess?(
     arg: QueryArg,
-    mutationApi: MutationApi<ReducerPath, Context>,
+    mutationApi: MutationApi<ReducerPath, any>,
     result: ResultType,
-    meta: BaseQueryMeta<BaseQuery> | undefined
+    meta: undefined
   ): void
 }
 
@@ -311,17 +261,9 @@ export type MutationDefinition<
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ResultType,
-  ReducerPath extends string = string,
-  Context = Record<string, any>
+  ReducerPath extends string = string
 > = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
-  MutationExtraOptions<
-    TagTypes,
-    ResultType,
-    QueryArg,
-    BaseQuery,
-    ReducerPath,
-    Context
-  >
+  MutationExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
 
 export type EndpointDefinition<
   QueryArg,
@@ -368,12 +310,12 @@ export type EndpointBuilder<
    *      query: (id) => ({ url: `post/${id}` }),
    *      // Pick out data and prevent nested properties in a hook or selector
    *      transformResponse: (response) => response.data,
-   *      // The 2nd parameter is the destructured `queryApi`
-   *      onStart(id, { dispatch, getState, extra, requestId, context }) {},
    *      // `result` is the server response
-   *      onSuccess(id, queryApi, result) {},
-   *      onError(id, queryApi) {},
    *      providesTags: (result, error, id) => [{ type: 'Post', id }],
+   *      // trigger side effects or optimistic updates
+   *      onQuery(id, { dispatch, getState, extra, requestId, resultPromise, getCacheEntry, updateCacheEntry }) {},
+   *      // handle subscriptions etc
+   *      onCacheEntryAdded(id, { dispatch, getState, extra, requestId, cleanup, firstValueResolved, getCacheEntry, updateCacheEntry }) {},
    *    }),
    *  }),
    *});
@@ -398,38 +340,29 @@ export type EndpointBuilder<
    *       query: ({ id, ...patch }) => ({ url: `post/${id}`, method: 'PATCH', body: patch }),
    *       // Pick out data and prevent nested properties in a hook or selector
    *       transformResponse: (response) => response.data,
-   *       // onStart, onSuccess, onError are useful for optimistic updates
-   *       // The 2nd parameter is the destructured `mutationApi`
-   *       onStart({ id, ...patch }, { dispatch, getState, extra, requestId, context }) {},
    *       // `result` is the server response
-   *       onSuccess({ id }, mutationApi, result) {},
-   *       onError({ id }, { dispatch, getState, extra, requestId, context }) {},
    *       invalidatesTags: (result, error, id) => [{ type: 'Post', id }],
+   *      // trigger side effects or optimistic updates
+   *      onQuery(id, { dispatch, getState, extra, requestId, resultPromise, getCacheEntry }) {},
+   *      // handle subscriptions etc
+   *      onCacheEntryAdded(id, { dispatch, getState, extra, requestId, cleanup, firstValueResolved, getCacheEntry }) {},
    *     }),
    *   }),
    * });
    * ```
    */
-  mutation<ResultType, QueryArg, Context = Record<string, any>>(
+  mutation<ResultType, QueryArg>(
     definition: OmitFromUnion<
       MutationDefinition<
         QueryArg,
         BaseQuery,
         TagTypes,
         ResultType,
-        ReducerPath,
-        Context
+        ReducerPath
       >,
       'type'
     >
-  ): MutationDefinition<
-    QueryArg,
-    BaseQuery,
-    TagTypes,
-    ResultType,
-    ReducerPath,
-    Context
-  >
+  ): MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
 }
 
 export type AssertTagTypes = <T extends FullTagDescription<string>>(t: T) => T

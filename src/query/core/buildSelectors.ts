@@ -6,7 +6,6 @@ import {
   RootState as _RootState,
   getRequestStatusFlags,
   RequestStatusFlags,
-  CombinedState,
 } from './apiState'
 import {
   EndpointDefinitions,

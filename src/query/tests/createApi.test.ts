@@ -530,7 +530,7 @@ describe('additional transformResponse behaviors', () => {
       api.endpoints.mutation.initiate({})
     )
 
-    expect(result.data).toEqual({ banana: 'bread' })
+    expect('data' in result && result.data).toEqual({ banana: 'bread' })
   })
 
   test('transformResponse can inject baseQuery meta into the end result from a mutation', async () => {
@@ -538,7 +538,7 @@ describe('additional transformResponse behaviors', () => {
       api.endpoints.mutationWithMeta.initiate({})
     )
 
-    expect(result.data).toEqual({
+    expect('data' in result && result.data).toEqual({
       banana: 'bread',
       meta: {
         request: {
@@ -637,6 +637,7 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
     const failAttempt = storeRef.store.dispatch(api.endpoints.query.initiate())
     expect(storeRef.store.getState().testReducer.count).toBe(0)
     await failAttempt
+    await waitMs(10)
     expect(storeRef.store.getState().testReducer.count).toBe(-1)
 
     const successAttempt = storeRef.store.dispatch(
@@ -644,6 +645,7 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
     )
     expect(storeRef.store.getState().testReducer.count).toBe(0)
     await successAttempt
+    await waitMs(10)
     expect(storeRef.store.getState().testReducer.count).toBe(1)
   })
 
