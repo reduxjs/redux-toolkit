@@ -74,6 +74,28 @@ module.exports = {
                         version: '1.0',
                       },
                     },
+                    'your-cool-library': {
+                      resolvedPath: resolve(
+                        __dirname,
+                        '../docs/virtual/your-cool-library'
+                      ),
+                      packageId: {
+                        name: '@virtual/your-cool-library',
+                        subModuleName: 'index.ts',
+                        version: '1.0',
+                      },
+                    },
+                    'petstore-api.generated': {
+                      resolvedPath: resolve(
+                        __dirname,
+                        '../docs/virtual/petstore-api.generated'
+                      ),
+                      packageId: {
+                        name: '@virtual/petstore-api.generated',
+                        subModuleName: 'index.ts',
+                        version: '1.0',
+                      },
+                    },
                   },
                 },
               },

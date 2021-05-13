@@ -105,7 +105,7 @@ interface UseQuerySubscriptionOptions extends SubscriptionOptions {
    *   * The query will not automatically run when additional components with the same query are added that do run
    *
    * @example
-   * ```ts
+   * ```tsx
    * // codeblock-meta title="Skip example"
    * const Pokemon = ({ name, skip }: { name: string; skip: boolean }) => {
    *   const { data, error, status } = useGetPokemonByNameQuery(name, {

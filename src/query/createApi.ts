@@ -23,6 +23,20 @@ export interface CreateApiOptions<
    *
    * ```ts
    * // codeblock-meta title="Simulating axios-like interceptors with a custom base query"
+   * // file: authSlice.ts noEmit
+   * declare function setToken(args?: any): void;
+   * declare function loggedOut(): void;
+   * export { setToken, loggedOut }
+   *
+   * // file: baseQueryWithReauth.ts
+   * import {
+   *   BaseQueryFn,
+   *   FetchArgs,
+   *   fetchBaseQuery,
+   *   FetchBaseQueryError
+   * } from '@reduxjs/toolkit/query';
+   * import { setToken, loggedOut } from './authSlice';
+   *
    * const baseQuery = fetchBaseQuery({ baseUrl: '/' });
    *
    * const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
@@ -31,7 +45,7 @@ export interface CreateApiOptions<
    *   extraOptions
    * ) => {
    *   let result = await baseQuery(args, api, extraOptions);
-   *   if (result.error && result.error.status === '401') {
+   *   if (result.error && result.error.status === 401) {
    *     // try to get a new token
    *     const refreshResult = await baseQuery('/refreshToken', api, extraOptions);
    *     if (refreshResult.data) {
@@ -49,7 +63,7 @@ export interface CreateApiOptions<
    */
   baseQuery: BaseQuery
   /**
-   * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining an tag type, you will be able to [provide](../../usage/rtk-query/mutations#provides) them with `provides` and [invalidate](../../usage/rtk-query/mutations#advanced-mutations-with-revalidation) them with `invalidates` when configuring [endpoints](#endpoints).
+   * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining an tag type, you will be able to [provide](../../usage/rtk-query/cached-data#providing-tags) them with `provides` and [invalidate](../../usage/rtk-query/cached-data#invalidating-tags) them with `invalidates` when configuring [endpoints](#endpoints).
    */
   tagTypes?: readonly TagTypes[]
   /** @deprecated renamed to `tagTypes` */
@@ -59,13 +73,13 @@ export interface CreateApiOptions<
    *
    * @example
    *
-   * ```js
+   * ```ts
    * // codeblock-meta title="apis.js"
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query';
    *
    * const apiOne = createApi({
    *   reducerPath: 'apiOne',
-   *   baseQuery: fetchBaseQuery('/'),
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   endpoints: (builder) => ({
    *     // ...endpoints
    *   }),
@@ -73,7 +87,7 @@ export interface CreateApiOptions<
    *
    * const apiTwo = createApi({
    *   reducerPath: 'apiTwo',
-   *   baseQuery: fetchBaseQuery('/'),
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   endpoints: (builder) => ({
    *     // ...endpoints
    *   }),

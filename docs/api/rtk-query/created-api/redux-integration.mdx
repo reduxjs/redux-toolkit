@@ -12,7 +12,17 @@ Internally, `createApi` will call [the Redux Toolkit `createSlice` API](https://
 The generated slice reducer and the middleware both need to be added to your Redux store setup in `configureStore` in order to work correctly:
 
 ```ts title="src/store.ts"
-import { configureStore, setupListeners } from '@reduxjs/toolkit'
+// file: src/services/pokemon.ts noEmit
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+
+export const pokemonApi = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: () => ({})
+})
+
+// file: src/store.ts
+import { configureStore } from '@reduxjs/toolkit'
+import { setupListeners } from '@reduxjs/toolkit/query'
 import { pokemonApi } from './services/pokemon'
 
 export const store = configureStore({
@@ -25,11 +35,14 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(pokemonApi.middleware),
 })
+
+// configure listeners using the provided defaults
+setupListeners(store.dispatch)
 ```
 
 ## `reducerPath`
 
-```ts
+```ts no-transpile
 reducerPath: string
 ```
 
@@ -37,7 +50,7 @@ Contains the `reducerPath` option provided to `createApi`. Use this as the root 
 
 ## `reducer`
 
-```ts
+```ts no-transpile
 reducer: Reducer
 ```
 
@@ -45,7 +58,7 @@ A standard Redux slice reducer function containing the logic for updating the ca
 
 ## `middleware`
 
-```ts
+```ts no-transpile
 middleware: Middleware
 ```
 

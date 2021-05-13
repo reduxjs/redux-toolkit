@@ -9,7 +9,7 @@ hide_title: true
 
 ## API Slice Overview
 
-When you call [`createApi`](../createApi.md), it automatically generates and returns an API service "slice" object structure containing Redux logic you can use to interact with the endpoints you defined. This slice object includes a reducer to manage cached data, a middleware to manage cache lifetimes and subscriptions, and selectors and thunks for each endpoint. If you imported `createApi` from the React-specific entry point, it also includes auto-generated React hooks for use in your components.
+When you call [`createApi`](../createApi.mdx), it automatically generates and returns an API service "slice" object structure containing Redux logic you can use to interact with the endpoints you defined. This slice object includes a reducer to manage cached data, a middleware to manage cache lifetimes and subscriptions, and selectors and thunks for each endpoint. If you imported `createApi` from the React-specific entry point, it also includes auto-generated React hooks for use in your components.
 
 This section documents the contents of that API structure, with the different fields grouped by category. The API types and descriptions are listed on separate pages for each category.
 
@@ -19,9 +19,9 @@ Typically, you should only have one API slice per base URL that your application
 
 :::
 
-```ts title="API Slice Contents"
+```ts title="API Slice Contents" no-transpile
 const api = createApi({
-  baseQuery: fetchBaseQuery('/'),
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   endpoints: (builder) => ({
     // ...
   }),
@@ -63,7 +63,7 @@ The generated slice reducer and the middleware both need to be adding to your Re
 
 :::info API Reference
 
-- [API Slices: Redux Integration](./redux-integration.md)
+- [API Slices: Redux Integration](./redux-integration.mdx)
 
 :::
 
@@ -73,21 +73,21 @@ The API slice object will have an `endpoints` field inside. This section maps th
 
 :::info API Reference
 
-- [API Slices: Endpoints](./endpoints.md)
+- [API Slices: Endpoints](./endpoints.mdx)
 
 :::
 
 ## Code Splitting and Generation
 
-Each API slice allows [additional endpoint definitions to be injected at runtime](../../../usage/rtk-query/code-splitting.md) after the initial API slice has been defined. This can be beneficial for apps that may have _many_ endpoints.
+Each API slice allows [additional endpoint definitions to be injected at runtime](../../../usage/rtk-query/code-splitting.mdx) after the initial API slice has been defined. This can be beneficial for apps that may have _many_ endpoints.
 
-The individual API slice endpoint definitions can also be split across multiple files. This is primarily useful for working with API slices that were [code-generated from an API schema file](../../../usage/rtk-query/code-generation.md), allowing you to add additional custom behavior and configuration to a set of automatically-generated endpoint definitions.
+The individual API slice endpoint definitions can also be split across multiple files. This is primarily useful for working with API slices that were [code-generated from an API schema file](../../../usage/rtk-query/code-generation.mdx), allowing you to add additional custom behavior and configuration to a set of automatically-generated endpoint definitions.
 
 Each API slice object has `injectEndpoints` and `enhanceEndpoints` functions to support these use cases.
 
 :::info API Reference
 
-- [API Slices: Code Splitting and Generation](./code-splitting.md)
+- [API Slices: Code Splitting and Generation](./code-splitting.mdx)
 
 :::
 
@@ -111,7 +111,8 @@ The same hooks are also added to the `Api` object itself, and given auto-generat
 
 For example, if you had endpoints for `getPosts` and `updatePost`, these options would be available:
 
-```ts title="Generated React Hook names"
+```ts title="Generated React Hook names" no-transpile
+
 // Hooks attached to the endpoint definition
 const { data } = api.endpoints.getPosts.useQuery()
 const { data } = api.endpoints.updatePost.useMutation()
@@ -125,6 +126,6 @@ The React-specific version of `createApi` also generates a `usePrefetch` hook, a
 
 :::info API Reference
 
-- [API Slices: React Hooks](./hooks.md)
+- [API Slices: React Hooks](./hooks.mdx)
 
 :::

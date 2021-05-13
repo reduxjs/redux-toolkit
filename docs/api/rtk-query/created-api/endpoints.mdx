@@ -11,7 +11,7 @@ The API slice object will have an `endpoints` field inside. This section maps th
 
 Each endpoint structure contains the following fields:
 
-```ts
+```ts no-transpile
 type EndpointLogic = {
   initiate: InitiateRequestThunk
   select: CreateCacheSelectorFactory
@@ -25,7 +25,7 @@ type EndpointLogic = {
 
 #### Signature
 
-```ts
+```ts no-transpile
 type InitiateRequestThunk = StartQueryActionCreator | StartMutationActionCreator;
 
 type StartQueryActionCreator = (
@@ -85,14 +85,14 @@ A Redux thunk action creator that you can dispatch to trigger data fetch queries
 React Hooks users will most likely never need to use these directly, as the hooks automatically dispatch these actions as needed.
 
 :::note Usage of actions outside of React Hooks
-When dispatching an action creator, you're responsible for storing a reference to the promise it returns in the event that you want to update that specific subscription. Also, you have to manually unsubscribe once your component unmounts. To get an idea of what that entails, see the [Svelte Example](../../../usage/rtk-query/examples.md#svelte) or the [React Class Components Example](../../../usage/rtk-query/examples.md#react-class-components)
+When dispatching an action creator, you're responsible for storing a reference to the promise it returns in the event that you want to update that specific subscription. Also, you have to manually unsubscribe once your component unmounts. To get an idea of what that entails, see the [Svelte Example](../../../usage/rtk-query/examples.mdx#svelte) or the [React Class Components Example](../../../usage/rtk-query/examples.mdx#react-class-components)
 :::
 
 ## `select`
 
 #### Signature
 
-```ts
+```ts no-transpile
 type CreateCacheSelectorFactory =
   | QueryResultSelectorFactory
   | MutationResultSelectorFactory
@@ -129,7 +129,7 @@ Each call to `.select(someCacheKey)` returns a _new_ selector function instance.
 
 A set of [Redux Toolkit action matching utilities](https://redux-toolkit.js.org/api/matching-utilities) that match the `pending`, `fulfilled`, and `rejected` actions that will be dispatched by this thunk. These allow you to match on Redux actions for that endpoint, such as in `createSlice.extraReducers` or a custom middleware. Those are implemented as follows:
 
-```ts
+```ts no-transpile
  matchPending: isAllOf(isPending(thunk), matchesEndpoint(endpoint)),
  matchFulfilled: isAllOf(isFulfilled(thunk), matchesEndpoint(endpoint)),
  matchRejected: isAllOf(isRejected(thunk), matchesEndpoint(endpoint)),

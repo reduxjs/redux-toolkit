@@ -9,7 +9,7 @@ hide_title: true
 
 Polling gives you the ability to have a 'real-time' effect by causing a query to run at a specified interval. To enable polling for a query, pass a `pollingInterval` to the `useQuery` hook or action creator with an interval in milliseconds:
 
-```ts title="src/Pokemon.tsx"
+```tsx title="src/Pokemon.tsx" no-transpile
 import * as React from 'react'
 import { useGetPokemonByNameQuery } from './services/pokemon'
 
@@ -25,7 +25,7 @@ export const Pokemon = ({ name }: { name: string }) => {
 
 In an action creator without React Hooks:
 
-```js
+```ts no-transpile
 const { data, status, error, refetch } = store.dispatch(
   endpoints.getCountById.initiate(id, {
     subscriptionOptions: { pollingInterval: 3000 },
@@ -37,7 +37,7 @@ const { data, status, error, refetch } = store.dispatch(
 If you use polling without the convenience of React Hooks, you will need to manually call `updateSubscriptionOptions` on the promise ref to update the interval. This approach varies by framework but is possible everywhere. See the [Svelte Example](./examples#svelte) for one possibility.
 :::
 
-```js
+```ts no-transpile
 queryRef.updateSubscriptionOptions({ pollingInterval: 0 })
 ```
 
@@ -45,7 +45,13 @@ queryRef.updateSubscriptionOptions({ pollingInterval: 0 })
 
 <iframe
   src="https://codesandbox.io/embed/concepts-polling-gorpg?fontsize=12&hidenavigation=1&theme=dark"
-  style={{ width: '100%', height: '600px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
+  style={{
+    width: '100%',
+    height: '600px',
+    border: 0,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  }}
   title="rtk-query-react-hooks-example"
   allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
   sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
