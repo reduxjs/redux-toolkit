@@ -1,4 +1,6 @@
-import { QuerySubstateIdentifier } from '../apiState'
+import { BaseQueryFn } from '../../baseQueryTypes'
+import { QueryDefinition } from '../../endpointDefinitions'
+import { QueryCacheKey, QuerySubstateIdentifier } from '../apiState'
 import {
   QueryStateMeta,
   SubMiddlewareApi,
@@ -6,7 +8,26 @@ import {
   TimeoutId,
 } from './types'
 
-export const build: SubMiddlewareBuilder = ({ reducerPath, api }) => {
+export type ReferenceCacheCollection = never
+
+declare module '../../endpointDefinitions' {
+  interface QueryExtraOptions<
+    TagTypes extends string,
+    ResultType,
+    QueryArg,
+    BaseQuery extends BaseQueryFn,
+    ReducerPath extends string = string
+  > {
+    /**
+     * Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only. _(This value is in seconds.)_
+     *
+     * This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.
+     */
+    keepUnusedDataFor?: number
+  }
+}
+
+export const build: SubMiddlewareBuilder = ({ reducerPath, api, context }) => {
   const { removeQueryResult, unsubscribeQueryResult } = api.internalActions
 
   return (mwApi) => {
@@ -16,7 +37,19 @@ export const build: SubMiddlewareBuilder = ({ reducerPath, api }) => {
       const result = next(action)
 
       if (unsubscribeQueryResult.match(action)) {
-        handleUnsubscribe(action.payload, mwApi)
+        const state = mwApi.getState()[reducerPath]
+        const { queryCacheKey } = action.payload
+
+        const endpointDefinition = context.endpointDefinitions[
+          state.queries[queryCacheKey]?.endpointName!
+        ] as QueryDefinition<any, any, any, any>
+
+        handleUnsubscribe(
+          queryCacheKey,
+          mwApi,
+          endpointDefinition?.keepUnusedDataFor ??
+            state.config.keepUnusedDataFor
+        )
       }
 
       if (api.util.resetApiState.match(action)) {
@@ -30,11 +63,10 @@ export const build: SubMiddlewareBuilder = ({ reducerPath, api }) => {
     }
 
     function handleUnsubscribe(
-      { queryCacheKey }: QuerySubstateIdentifier,
-      api: SubMiddlewareApi
+      queryCacheKey: QueryCacheKey,
+      api: SubMiddlewareApi,
+      keepUnusedDataFor: number
     ) {
-      const keepUnusedDataFor = api.getState()[reducerPath].config
-        .keepUnusedDataFor
       const currentTimeout = currentRemovalTimeouts[queryCacheKey]
       if (currentTimeout) {
         clearTimeout(currentTimeout)

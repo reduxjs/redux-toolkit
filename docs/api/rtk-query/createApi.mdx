@@ -119,6 +119,11 @@ export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
 
   [summary](docblock://query/endpointDefinitions.ts?token=MutationExtraOptions.invalidatesTags)
 
+- `keepUnusedDataFor` (optional, only for query endpoints)
+
+  - Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only.
+  - [summary](docblock://query/createApi.ts?token=CreateApiOptions.keepUnusedDataFor)
+
 - `onQuery` _(optional)_ - Available to both [queries](../../usage/rtk-query/queries.mdx) and [mutations](../../usage/rtk-query/mutations.mdx)
   - Can be used in `mutations` for [optimistic updates](../../usage/rtk-query/optimistic-updates.mdx).
   - ```ts title="Mutation onQuery signature" no-transpile
