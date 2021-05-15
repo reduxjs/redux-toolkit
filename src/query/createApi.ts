@@ -66,8 +66,6 @@ export interface CreateApiOptions<
    * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining an tag type, you will be able to [provide](../../usage/rtk-query/cached-data#providing-tags) them with `provides` and [invalidate](../../usage/rtk-query/cached-data#invalidating-tags) them with `invalidates` when configuring [endpoints](#endpoints).
    */
   tagTypes?: readonly TagTypes[]
-  /** @deprecated renamed to `tagTypes` */
-  entityTypes?: readonly TagTypes[]
   /**
    * The `reducerPath` is a _unique_ key that your service will be mounted to in your store. If you call `createApi` more than once in your application, you will need to provide a unique value each time. Defaults to `'api'`.
    *
@@ -173,19 +171,6 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
   ...modules: Modules
 ): CreateApi<Modules[number]['name']> {
   return function baseCreateApi(options) {
-    // remove in final release
-    if (options.entityTypes) {
-      if (
-        typeof process !== 'undefined' &&
-        process.env.NODE_ENV === 'development'
-      ) {
-        console.warn(
-          '`entityTypes` has been renamed to `tagTypes`, please change your code accordingly'
-        )
-      }
-      options.tagTypes ??= options.entityTypes
-    }
-
     const optionsWithDefaults = {
       reducerPath: 'api',
       serializeQueryArgs: defaultSerializeQueryArgs,
@@ -194,7 +179,6 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       refetchOnFocus: false,
       refetchOnReconnect: false,
       ...options,
-      entityTypes: [], // remove in final release
       tagTypes: [...(options.tagTypes || [])],
     }
 
@@ -208,20 +192,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
 
     const api = {
       injectEndpoints,
-      enhanceEndpoints({ addTagTypes, endpoints, addEntityTypes }) {
-        // remove in final release
-        if (addEntityTypes) {
-          if (
-            typeof process !== 'undefined' &&
-            process.env.NODE_ENV === 'development'
-          ) {
-            console.warn(
-              '`addEntityTypes` has been renamed to `addTagTypes`, please change your code accordingly'
-            )
-          }
-          addTagTypes ??= addEntityTypes
-        }
-
+      enhanceEndpoints({ addTagTypes, endpoints }) {
         if (addTagTypes) {
           for (const eT of addTagTypes) {
             if (!optionsWithDefaults.tagTypes.includes(eT as any)) {
@@ -240,30 +211,6 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
               context.endpointDefinitions[endpointName] || {},
               partialDefinition
             )
-            // remove in final release
-            const x = context.endpointDefinitions[endpointName]
-            if (x?.provides) {
-              if (
-                typeof process !== 'undefined' &&
-                process.env.NODE_ENV === 'development'
-              ) {
-                console.warn(
-                  '`provides` has been renamed to `providesTags`, please change your code accordingly'
-                )
-              }
-              x.providesTags = x.provides
-            }
-            if (x?.invalidates) {
-              if (
-                typeof process !== 'undefined' &&
-                process.env.NODE_ENV === 'development'
-              ) {
-                console.warn(
-                  '`invalidates` has been renamed to `invalidatesTags`, please change your code accordingly'
-                )
-              }
-              x.invalidatesTags = x.invalidates
-            }
           }
         }
         return api
@@ -280,17 +227,6 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       const evaluatedEndpoints = inject.endpoints({
         query: (x) => {
           // remove in final release
-          if (x.provides) {
-            if (
-              typeof process !== 'undefined' &&
-              process.env.NODE_ENV === 'development'
-            ) {
-              console.warn(
-                '`provides` has been renamed to `providesTags`, please change your code accordingly'
-              )
-            }
-            x.providesTags ??= x.provides
-          }
           if (x.onStart || x.onSuccess || x.onError) {
             if (
               typeof process !== 'undefined' &&
@@ -315,17 +251,6 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
         },
         mutation: (x) => {
           // remove in final release
-          if (x.invalidates) {
-            if (
-              typeof process !== 'undefined' &&
-              process.env.NODE_ENV === 'development'
-            ) {
-              console.warn(
-                '`invalidates` has been renamed to `invalidatesTags`, please change your code accordingly'
-              )
-            }
-            x.invalidatesTags ??= x.invalidates
-          }
           if (x.onStart || x.onSuccess || x.onError) {
             if (
               typeof process !== 'undefined' &&

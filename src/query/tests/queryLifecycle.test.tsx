@@ -409,12 +409,8 @@ test('query: will only start lifecycle if query is not skipped due to `condition
     overrideExisting: true,
     endpoints: (build) => ({
       injected: build.query<unknown, string>({
-        query: () => {
-          console.log('started')
-          return '/success'
-        },
+        query: () => '/success',
         onQuery(arg) {
-          console.log('onQuery')
           onStart(arg)
         },
       }),

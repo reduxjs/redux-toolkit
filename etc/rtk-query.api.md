@@ -5,8 +5,6 @@
 ```ts
 
 import { ActionCreatorWithoutPayload } from '@reduxjs/toolkit';
-import { AnyAction } from '@reduxjs/toolkit';
-import { SerializedError } from '@reduxjs/toolkit';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 
 // @public (undocumented)
@@ -60,8 +58,6 @@ export const createApi: CreateApi<typeof coreModuleName>;
 export interface CreateApiOptions<BaseQuery extends BaseQueryFn, Definitions extends EndpointDefinitions, ReducerPath extends string = 'api', TagTypes extends string = never> {
     baseQuery: BaseQuery;
     endpoints(build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>): Definitions;
-    // @deprecated (undocumented)
-    entityTypes?: readonly TagTypes[];
     keepUnusedDataFor?: number;
     reducerPath?: ReducerPath;
     refetchOnFocus?: boolean;
@@ -114,10 +110,10 @@ export type Module<Name extends ModuleName> = {
 };
 
 // @public (undocumented)
-export type MutationDefinition<QueryArg, BaseQuery extends BaseQueryFn, TagTypes extends string, ResultType, ReducerPath extends string = string, Context = Record<string, any>> = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> & MutationExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath, Context>;
+export type MutationDefinition<QueryArg, BaseQuery extends BaseQueryFn, TagTypes extends string, ResultType, ReducerPath extends string = string> = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> & MutationExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>;
 
 // @public (undocumented)
-export type QueryDefinition<QueryArg, BaseQuery extends BaseQueryFn, TagTypes extends string, ResultType, ReducerPath extends string = string, Context = Record<string, any>> = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> & QueryExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath, Context>;
+export type QueryDefinition<QueryArg, BaseQuery extends BaseQueryFn, TagTypes extends string, ResultType, ReducerPath extends string = string> = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> & QueryExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>;
 
 // @public
 export enum QueryStatus {

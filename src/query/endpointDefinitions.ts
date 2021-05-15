@@ -143,19 +143,10 @@ export interface QueryExtraOptions<
     QueryArg,
     BaseQueryError<BaseQuery>
   >
-  /** @deprecated renamed to `providesTags` */
-  provides?: ResultDescription<
-    TagTypes,
-    ResultType,
-    QueryArg,
-    BaseQueryError<BaseQuery>
-  >
   /**
    * Not to be used. A query should not invalidate tags in the cache.
    */
   invalidatesTags?: never
-  /** @deprecated */
-  invalidates?: never
   /** @deprecated please use `onQuery` instead */
   onStart?(arg: QueryArg, queryApi: QueryApi<ReducerPath, any>): void
   /** @deprecated please use `onQuery` instead */
@@ -225,19 +216,10 @@ export interface MutationExtraOptions<
     QueryArg,
     BaseQueryError<BaseQuery>
   >
-  /** @deprecated renamed to `invalidatesTags` */
-  invalidates?: ResultDescription<
-    TagTypes,
-    ResultType,
-    QueryArg,
-    BaseQueryError<BaseQuery>
-  >
   /**
    * Not to be used. A mutation should not provide tags to the cache.
    */
   providesTags?: never
-  /** @deprecated */
-  provides?: never
   /** @deprecated please use `onQuery` instead */
   onStart?(arg: QueryArg, mutationApi: MutationApi<ReducerPath, any>): void
   /** @deprecated please use `onQuery` instead */

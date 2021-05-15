@@ -79,8 +79,6 @@ export type Api<
      *A function to enhance a generated API with additional information. Useful with code-generation.
      */
     enhanceEndpoints<NewTagTypes extends string = never>(_: {
-      /** @deprecated */
-      addEntityTypes?: readonly NewTagTypes[]
       addTagTypes?: readonly NewTagTypes[]
       endpoints?: ReplaceTagTypes<
         Definitions,

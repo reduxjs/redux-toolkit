@@ -815,7 +815,7 @@ const api = createApi({
     }),
     refetchErroredQueries: build.mutation<null, void>({
       queryFn: () => ({ data: null }),
-      invalidates: ['UNKNOWN_ERROR'],
+      invalidatesTags: ['UNKNOWN_ERROR'],
     }),
   }),
 })
