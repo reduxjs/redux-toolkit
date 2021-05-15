@@ -76,42 +76,77 @@ const fetchData = api.usePrefetch(endpointName, options)
 
 The provided hooks have a degree of feature overlap in order to provide options optimized for a given situation. The table below provides a comparison of the core features for each hook.
 
-<table style={{'overflow-y': 'hidden'}}>
+<table style={{ 'overflow-y': 'hidden' }}>
   <thead>
-    <tr style={{height: '250px', border: 'none'}}>
-      <th style={{width: '300px'}}>Feature</th>
-      <th style={{'white-space': 'nowrap', border: 'none'}}>
-        <div style={{transform: 'translate(0px, 51px) rotate(315deg)', width: '20px'}}>
+    <tr style={{ height: '250px', border: 'none' }}>
+      <th style={{ width: '300px' }}>Feature</th>
+      <th style={{ 'white-space': 'nowrap', border: 'none' }}>
+        <div
+          style={{
+            transform: 'translate(0px, 51px) rotate(315deg)',
+            width: '20px',
+          }}
+        >
           <a href="#usequery">useQuery</a>
         </div>
       </th>
-      <th style={{'white-space': 'nowrap', border: 'none'}}>
-        <div style={{transform: 'translate(0px, 51px) rotate(315deg)', width: '20px'}}>
+      <th style={{ 'white-space': 'nowrap', border: 'none' }}>
+        <div
+          style={{
+            transform: 'translate(0px, 51px) rotate(315deg)',
+            width: '20px',
+          }}
+        >
           <a href="#usemutation">useMutation</a>
         </div>
       </th>
-      <th style={{'white-space': 'nowrap', border: 'none'}}>
-        <div style={{transform: 'translate(0px, 51px) rotate(315deg)', width: '20px'}}>
+      <th style={{ 'white-space': 'nowrap', border: 'none' }}>
+        <div
+          style={{
+            transform: 'translate(0px, 51px) rotate(315deg)',
+            width: '20px',
+          }}
+        >
           <a href="#usequerystate">useQueryState</a>
         </div>
       </th>
-      <th style={{'white-space': 'nowrap', border: 'none'}}>
-        <div style={{transform: 'translate(0px, 51px) rotate(315deg)', width: '20px'}}>
+      <th style={{ 'white-space': 'nowrap', border: 'none' }}>
+        <div
+          style={{
+            transform: 'translate(0px, 51px) rotate(315deg)',
+            width: '20px',
+          }}
+        >
           <a href="#usequerysubscription">useQuerySubscription</a>
         </div>
       </th>
-      <th style={{'white-space': 'nowrap', border: 'none'}}>
-        <div style={{transform: 'translate(0px, 51px) rotate(315deg)', width: '20px'}}>
+      <th style={{ 'white-space': 'nowrap', border: 'none' }}>
+        <div
+          style={{
+            transform: 'translate(0px, 51px) rotate(315deg)',
+            width: '20px',
+          }}
+        >
           <a href="#uselazyquery">useLazyQuery</a>
         </div>
       </th>
-      <th style={{'white-space': 'nowrap', border: 'none'}}>
-        <div style={{transform: 'translate(0px, 51px) rotate(315deg)', width: '20px'}}>
+      <th style={{ 'white-space': 'nowrap', border: 'none' }}>
+        <div
+          style={{
+            transform: 'translate(0px, 51px) rotate(315deg)',
+            width: '20px',
+          }}
+        >
           <a href="#uselazyquerysubscription">useLazyQuerySubscription</a>
         </div>
       </th>
-      <th style={{'white-space': 'nowrap', border: 'none'}}>
-        <div style={{transform: 'translate(0px, 51px) rotate(315deg)', width: '20px'}}>
+      <th style={{ 'white-space': 'nowrap', border: 'none' }}>
+        <div
+          style={{
+            transform: 'translate(0px, 51px) rotate(315deg)',
+            width: '20px',
+          }}
+        >
           <a href="#useprefetch">usePrefetch</a>
         </div>
       </th>
@@ -119,7 +154,7 @@ The provided hooks have a degree of feature overlap in order to provide options 
   </thead>
   <tbody>
     <tr>
-      <td style={{width: '330px'}}>Automatically triggers query requests</td>
+      <td style={{ width: '330px' }}>Automatically triggers query requests</td>
       <td>✔️</td>
       <td></td>
       <td></td>
@@ -129,7 +164,9 @@ The provided hooks have a degree of feature overlap in order to provide options 
       <td></td>
     </tr>
     <tr>
-      <td style={{width: '330px'}}>Allows manually triggering query requests</td>
+      <td style={{ width: '330px' }}>
+        Allows manually triggering query requests
+      </td>
       <td>✔️</td>
       <td></td>
       <td></td>
@@ -139,7 +176,9 @@ The provided hooks have a degree of feature overlap in order to provide options 
       <td>✔️</td>
     </tr>
     <tr>
-      <td style={{width: '330px'}}>Allows manually triggering mutation requests</td>
+      <td style={{ width: '330px' }}>
+        Allows manually triggering mutation requests
+      </td>
       <td></td>
       <td>✔️</td>
       <td></td>
@@ -149,7 +188,9 @@ The provided hooks have a degree of feature overlap in order to provide options 
       <td></td>
     </tr>
     <tr>
-      <td style={{width: '330px'}}>Subscribes a component to keep cached data in the store</td>
+      <td style={{ width: '330px' }}>
+        Subscribes a component to keep cached data in the store
+      </td>
       <td>✔️</td>
       <td>✔️</td>
       <td></td>
@@ -159,7 +200,9 @@ The provided hooks have a degree of feature overlap in order to provide options 
       <td></td>
     </tr>
     <tr>
-      <td style={{width: '330px'}}>Returns request status and cached data from the store</td>
+      <td style={{ width: '330px' }}>
+        Returns request status and cached data from the store
+      </td>
       <td>✔️</td>
       <td>✔️</td>
       <td>✔️</td>
@@ -169,7 +212,9 @@ The provided hooks have a degree of feature overlap in order to provide options 
       <td></td>
     </tr>
     <tr>
-      <td style={{width: '330px'}}>Re-renders as request status and data become available</td>
+      <td style={{ width: '330px' }}>
+        Re-renders as request status and data become available
+      </td>
       <td>✔️</td>
       <td>✔️</td>
       <td>✔️</td>
@@ -179,7 +224,9 @@ The provided hooks have a degree of feature overlap in order to provide options 
       <td></td>
     </tr>
     <tr>
-      <td style={{width: '330px'}}>Accepts polling/re-fetching options to trigger automatic re-fetches</td>
+      <td style={{ width: '330px' }}>
+        Accepts polling/re-fetching options to trigger automatic re-fetches
+      </td>
       <td>✔️</td>
       <td></td>
       <td></td>
@@ -196,7 +243,10 @@ The provided hooks have a degree of feature overlap in order to provide options 
 #### Signature
 
 ```ts no-transpile
-type UseQuery = (arg: any, options?: UseQueryOptions) => UseQueryResult
+type UseQuery = (
+  arg: any | SkipSymbol,
+  options?: UseQueryOptions
+) => UseQueryResult
 
 type UseQueryOptions = {
   pollingInterval?: number
@@ -229,6 +279,7 @@ type UseQueryResult<T> = {
 
 - **Parameters**
   - `arg`: The query argument to be used in constructing the query itself, and as a cache key for the query
+    You can also pass in `skipSymbol` here as an alternative way of skipping the query, see [skipSymbol](#skipsymbol)
   - `options`: A set of options that control the fetching behavior of the hook
 - **Returns**
   - A query result object containing the current loading state, the actual data or error returned from the API call, metadata about the request, and a function to `refetch` the data. Can be customized with `selectFromResult`
@@ -236,6 +287,10 @@ type UseQueryResult<T> = {
 #### Description
 
 [summary](docblock://query/react/buildHooks.ts?token=UseQuery)
+
+#### `skipSymbol`
+
+[summary](docblock://query/core/buildSelectors.ts?token=skipSymbol)
 
 ## `useMutation`
 
@@ -304,7 +359,7 @@ selectFromResult: () => ({})
 
 ```ts no-transpile
 type UseQueryState = (
-  arg: any,
+  arg: any | SkipSymbol,
   options?: UseQueryStateOptions
 ) => UseQueryStateResult | SelectedQueryStateResult
 
@@ -338,6 +393,7 @@ type UseQueryStateResult<T> = {
 - **Parameters**
 
   - `arg`: The argument passed to the query defined in the endpoint
+    You can also pass in `skipSymbol` here as an alternative way of skipping the selection, see [skipSymbol](#skipsymbol)
   - `options`: A set of options that control the return value for the hook
 
 - **Returns**
@@ -353,7 +409,7 @@ type UseQueryStateResult<T> = {
 
 ```ts no-transpile
 type UseQuerySubscription = (
-  arg: any,
+  arg: any | SkipSymbol,
   options?: UseQuerySubscriptionOptions
 ) => UseQuerySubscriptionResult
 
@@ -373,6 +429,7 @@ type UseQuerySubscriptionResult = {
 - **Parameters**
 
   - `arg`: The argument passed to the query defined in the endpoint
+    You can also pass in `skipSymbol` here as an alternative way of skipping the query, see [skipSymbol](#skipsymbol)
   - `options`: A set of options that control the fetching behaviour of the hook
 
 - **Returns**
