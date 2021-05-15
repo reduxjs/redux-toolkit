@@ -503,11 +503,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const promiseRef = useRef<QueryActionCreatorResult<any>>()
 
       useEffect(() => {
+        const lastPromise = promiseRef.current
+
         if (skip) {
+          lastPromise?.unsubscribe()
+          promiseRef.current = undefined
           return
         }
 
-        const lastPromise = promiseRef.current
         const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions
 
         if (!lastPromise || lastPromise.arg !== stableArg) {
