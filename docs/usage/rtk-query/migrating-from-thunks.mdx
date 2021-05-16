@@ -218,7 +218,7 @@ RTK Query provides a lot more than the features created with the thunk example s
 
 ### Using RTK Query
 
-1. Add the appropriate endpoint to your api:
+1. Add the appropriate endpoint to your api and export the automatically created hook:
 
    ```ts title="src/services/api.ts"
    // file: types.ts noEmit
@@ -238,7 +238,9 @@ RTK Query provides a lot more than the features created with the thunk example s
      }),
    })
 
+   // highlight-start
    export const { useGetPokemonByNameQuery } = api
+   // highlight-end
    ```
 
 1. If not done previously, add the reducer & middleware to your store setup, and optionally [set up listeners](../../api/rtk-query/setupListeners) for additional behaviour:
