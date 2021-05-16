@@ -2,7 +2,7 @@ import { ThunkDispatch } from '@reduxjs/toolkit'
 import { MaybePromise, UnwrapPromise } from './tsHelpers'
 
 export interface BaseQueryApi {
-  signal?: AbortSignal
+  signal: AbortSignal
   dispatch: ThunkDispatch<any, any, any>
   getState: () => unknown
 }

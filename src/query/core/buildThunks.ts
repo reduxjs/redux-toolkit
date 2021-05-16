@@ -256,7 +256,7 @@ export function buildThunks<
     ThunkResult,
     QueryThunkArg | MutationThunkArg,
     { state: RootState<any, string, ReducerPath> }
-  > = async (arg, { signal, rejectWithValue, ...api }) => {
+  > = async (arg, { signal, rejectWithValue, dispatch, getState }) => {
     const endpointDefinition = endpointDefinitions[arg.endpointName]
 
     try {
@@ -267,8 +267,8 @@ export function buildThunks<
       let result: QueryReturnValue
       const baseQueryApi = {
         signal,
-        dispatch: api.dispatch,
-        getState: api.getState,
+        dispatch,
+        getState,
       }
       if (endpointDefinition.query) {
         result = await baseQuery(

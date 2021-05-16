@@ -70,7 +70,7 @@ describe('fetchBaseQuery', () => {
       const req = baseQuery(
         '/success',
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -86,7 +86,7 @@ describe('fetchBaseQuery', () => {
       const req = baseQuery(
         '/empty',
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -102,7 +102,7 @@ describe('fetchBaseQuery', () => {
       const req = baseQuery(
         '/error',
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -125,7 +125,7 @@ describe('fetchBaseQuery', () => {
       ;({ data: request } = await baseQuery(
         { url: '/echo', body: data, method: 'POST' },
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -143,7 +143,7 @@ describe('fetchBaseQuery', () => {
       ;({ data: request } = await baseQuery(
         { url: '/echo', body: data, method: 'POST' },
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -168,7 +168,7 @@ describe('fetchBaseQuery', () => {
           headers: { 'content-type': 'text/html' },
         },
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -191,7 +191,7 @@ describe('fetchBaseQuery', () => {
           headers: { 'content-type': 'text/html' },
         },
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -209,7 +209,7 @@ describe('fetchBaseQuery', () => {
       ;({ data: request } = await baseQuery(
         { url: '/echo' },
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -226,7 +226,7 @@ describe('fetchBaseQuery', () => {
       ;({ data: request } = await baseQuery(
         { url: '/echo', params },
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -243,7 +243,7 @@ describe('fetchBaseQuery', () => {
       ;({ data: request } = await baseQuery(
         { url: '/echo?banana=pudding', params },
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -260,7 +260,7 @@ describe('fetchBaseQuery', () => {
       ;({ data: request } = await baseQuery(
         { url: '/echo', params },
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -277,7 +277,7 @@ describe('fetchBaseQuery', () => {
       ;({ data: request } = await baseQuery(
         { url: '/echo', params },
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -298,7 +298,7 @@ describe('fetchBaseQuery', () => {
             response.status === 200 && body.success === false ? false : true,
         },
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -321,7 +321,7 @@ describe('fetchBaseQuery', () => {
       ;({ data: request } = await baseQuery(
         { url: '/echo' },
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -338,7 +338,7 @@ describe('fetchBaseQuery', () => {
       ;({ data: request } = await baseQuery(
         { url: '/echo', headers: { authorization: 'Bearer banana' } },
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -362,7 +362,7 @@ describe('fetchBaseQuery', () => {
           },
         },
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -383,7 +383,7 @@ describe('fetchBaseQuery', () => {
       ;({ data: request } = await baseQuery(
         { url: '/echo', headers: { fake, delete: '', delete2: '' } },
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -413,7 +413,7 @@ describe('fetchBaseQuery', () => {
         _baseQuery(
           { url: '/echo' },
           {
-            signal: undefined,
+            signal: new AbortController().signal,
             dispatch: storeRef.store.dispatch,
             getState: storeRef.store.getState,
           },
@@ -432,7 +432,7 @@ describe('fetchBaseQuery', () => {
         baseQuery(
           { url: '/echo' },
           {
-            signal: undefined,
+            signal: new AbortController().signal,
             dispatch: storeRef.store.dispatch,
             getState: storeRef.store.getState,
           },
@@ -457,7 +457,7 @@ describe('fetchBaseQuery', () => {
     ;({ data: request } = await baseQuery(
       { url: '/echo', headers: undefined },
       {
-        signal: undefined,
+        signal: new AbortController().signal,
         dispatch: storeRef.store.dispatch,
         getState: storeRef.store.getState,
       },
@@ -475,7 +475,7 @@ describe('fetchBaseQuery', () => {
     ;({ data: request } = await baseQuery(
       { url: '/echo', headers: { banana } },
       {
-        signal: undefined,
+        signal: new AbortController().signal,
         dispatch: storeRef.store.dispatch,
         getState: storeRef.store.getState,
       },
@@ -494,7 +494,7 @@ describe('fetchBaseQuery', () => {
     ;({ data: request } = await baseQuery(
       { url: '/echo', headers: { banana } },
       {
-        signal: undefined,
+        signal: new AbortController().signal,
         dispatch: storeRef.store.dispatch,
         getState: storeRef.store.getState,
       },
@@ -522,7 +522,7 @@ describe('fetchFn', () => {
     ;({ data: request } = await baseQuery(
       { url: '/echo', params },
       {
-        signal: undefined,
+        signal: new AbortController().signal,
         dispatch: storeRef.store.dispatch,
         getState: storeRef.store.getState,
       },
@@ -547,7 +547,7 @@ describe('FormData', () => {
     const res = await baseQuery(
       { url: '/echo', method: 'POST', body },
       {
-        signal: undefined,
+        signal: new AbortController().signal,
         dispatch: storeRef.store.dispatch,
         getState: storeRef.store.getState,
       },
