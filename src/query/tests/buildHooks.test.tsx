@@ -3,6 +3,7 @@ import {
   createApi,
   fetchBaseQuery,
   QueryStatus,
+  skipSymbol,
 } from '@reduxjs/toolkit/query/react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -20,6 +21,7 @@ import { server } from './mocks/server'
 import { AnyAction } from 'redux'
 import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
 import { SerializedError } from '@reduxjs/toolkit'
+import { renderHook } from '@testing-library/react-hooks'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -1987,5 +1989,70 @@ describe('hooks with createApi defaults set', () => {
 
       render(<Counter />, { wrapper: storeRef.wrapper })
     })
+  })
+})
+
+describe('skip behaviour', () => {
+  const uninitialized = {
+    status: QueryStatus.uninitialized,
+    refetch: expect.any(Function),
+    data: undefined,
+    isError: false,
+    isFetching: false,
+    isLoading: false,
+    isSuccess: false,
+    isUninitialized: true,
+  }
+
+  function subscriptionCount(key: string) {
+    return Object.keys(storeRef.store.getState().api.subscriptions[key] || {})
+      .length
+  }
+
+  test('normal skip', async () => {
+    const { result, rerender } = renderHook(
+      ([arg, options]: Parameters<typeof api.endpoints.getUser.useQuery>) =>
+        api.endpoints.getUser.useQuery(arg, options),
+      {
+        wrapper: storeRef.wrapper,
+        initialProps: [1, { skip: true }],
+      }
+    )
+
+    expect(result.current).toEqual(uninitialized)
+    expect(subscriptionCount('getUser(1)')).toBe(0)
+
+    rerender([1])
+    expect(result.current).toMatchObject({ status: QueryStatus.pending })
+    expect(subscriptionCount('getUser(1)')).toBe(1)
+
+    rerender([1, { skip: true }])
+    expect(result.current).toEqual(uninitialized)
+    expect(subscriptionCount('getUser(1)')).toBe(0)
+  })
+
+  test('skipSymbol', async () => {
+    const { result, rerender } = renderHook(
+      ([arg, options]: Parameters<typeof api.endpoints.getUser.useQuery>) =>
+        api.endpoints.getUser.useQuery(arg, options),
+      {
+        wrapper: storeRef.wrapper,
+        initialProps: [skipSymbol],
+      }
+    )
+
+    expect(result.current).toEqual(uninitialized)
+    expect(subscriptionCount('getUser(1)')).toBe(0)
+    // also no subscription on `getUser(skipSymbol)` or similar:
+    expect(storeRef.store.getState().api.subscriptions).toEqual({})
+
+    rerender([1])
+    expect(result.current).toMatchObject({ status: QueryStatus.pending })
+    expect(subscriptionCount('getUser(1)')).toBe(1)
+    expect(storeRef.store.getState().api.subscriptions).not.toEqual({})
+
+    rerender([skipSymbol])
+    expect(result.current).toEqual(uninitialized)
+    expect(subscriptionCount('getUser(1)')).toBe(0)
   })
 })

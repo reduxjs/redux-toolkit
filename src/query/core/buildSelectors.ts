@@ -17,7 +17,32 @@ import {
 } from '../endpointDefinitions'
 import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 
-export const skipSelector = Symbol('skip selector')
+export type SkipSymbol = typeof skipSymbol
+/**
+ * Can be passed into `useQuery`, `useQueryState` or `useQuerySubscription`
+ * instead of the query argument to get the same effect as if setting
+ * `skip: true` in the query options.
+ *
+ * Useful for scenarios where a query should be skipped when `arg` is `undefined`
+ * and TypeScript complains about it because `arg` is not allowed to be passed
+ * in as `undefined`, such as
+ *
+ * ```ts
+ * // codeblock-meta title="will error if the query argument is not allowed to be undefined" no-transpile
+ * useSomeQuery(arg, { skip: !!arg })
+ * ```
+ *
+ * ```ts
+ * // codeblock-meta title="using skipSymbol instead" no-transpile
+ * useSomeQuery(arg ?? skipSymbol)
+ * ```
+ *
+ * If passed directly into a query or mutation selector, that selector will always
+ * return an uninitialized state.
+ */
+export const skipSymbol = Symbol('skip selector')
+/** @deprecated renamed to `skipSymbol` */
+export const skipSelector = skipSymbol
 
 declare module './module' {
   export interface ApiEndpointQuery<
@@ -53,7 +78,7 @@ type QueryResultSelectorFactory<
   Definition extends QueryDefinition<any, any, any, any>,
   RootState
 > = (
-  queryArg: QueryArgFrom<Definition> | typeof skipSelector
+  queryArg: QueryArgFrom<Definition> | SkipSymbol
 ) => (state: RootState) => QueryResultSelectorResult<Definition>
 
 export type QueryResultSelectorResult<
@@ -64,7 +89,7 @@ type MutationResultSelectorFactory<
   Definition extends MutationDefinition<any, any, any, any>,
   RootState
 > = (
-  requestId: string | typeof skipSelector
+  requestId: string | SkipSymbol
 ) => (state: RootState) => MutationResultSelectorResult<Definition>
 
 export type MutationResultSelectorResult<
@@ -117,7 +142,7 @@ export function buildSelectors<
       const selectQuerySubState = createSelector(
         selectInternalState,
         (internalState) =>
-          (queryArgs === skipSelector
+          (queryArgs === skipSymbol
             ? undefined
             : internalState.queries[
                 serializeQueryArgs({
@@ -139,7 +164,7 @@ export function buildSelectors<
       const selectMutationSubstate = createSelector(
         selectInternalState,
         (internalState) =>
-          (mutationId === skipSelector
+          (mutationId === skipSymbol
             ? undefined
             : internalState.mutations[mutationId]) ?? defaultMutationSubState
       )
