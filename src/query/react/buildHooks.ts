@@ -686,9 +686,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       useQuery(arg, options) {
         const querySubscriptionResults = useQuerySubscription(arg, options)
         const queryStateResults = useQueryState(arg, {
-          selectFromResult: options?.skip
-            ? undefined
-            : noPendingQueryStateSelector,
+          selectFromResult:
+            arg === skipSymbol || options?.skip
+              ? undefined
+              : noPendingQueryStateSelector,
           ...options,
         })
         return useMemo(
