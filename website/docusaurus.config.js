@@ -63,6 +63,14 @@ module.exports = {
                         version: '1.0',
                       },
                     },
+                    '@reduxjs/toolkit/dist/query/fetchBaseQuery': {
+                      resolvedPath: resolve(__dirname, '../src/query/fetchBaseQuery'),
+                      packageId: {
+                        name: '@reduxjs/toolkit-dist-fetchBaseQuery',
+                        subModuleName: 'index.ts',
+                        version: '1.0',
+                      },
+                    },
                     '@virtual/matchers': {
                       resolvedPath: resolve(
                         __dirname,
