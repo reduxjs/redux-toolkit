@@ -40,7 +40,7 @@ describe('fetchBaseQuery', () => {
       baseQuery(
         '/success',
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -60,7 +60,7 @@ describe('fetchBaseQuery', () => {
       baseQuery(
         '/error',
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
