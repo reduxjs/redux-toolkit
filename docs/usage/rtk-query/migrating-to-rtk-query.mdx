@@ -1,15 +1,19 @@
 ---
-id: migrating-from-thunks
-title: Migrating from thunks
-sidebar_label: Migrating from thunks
+id: migrating-to-rtk-query
+title: Migrating to RTK Query
+sidebar_label: Migrating to RTK Query
 hide_title: true
 ---
 
-# Migrating from thunks
+# Migrating to RTK Query
 
-While RTK Query is not intended to be a replacement for thunks, it _is_ expected to cover a lot of overlapping behaviour that users may have previously used `createAsyncThunk` for, including caching purposes, and request lifecycle managment (e.g. `isUninitialized`, `isLoading`, `isError` states).
+The most common use case for side effects in Redux apps is fetching data. Redux apps typically use a tool like thunks, sagas, or observables to make an AJAX request, and [dispatch actions based on the results of the request](https://redux.js.org/tutorials/fundamentals/part-7-standard-patterns#async-request-status). Reducers then listen for those actions to manage loading state and cache the fetched data.
 
-In order to migrate from standalone thunks + reducers to RTK Query, the appropriate endpoints should be added to an RTK Query api, and the existing thunks & reducers deleted. This generally will not include much common code kept between the two, as they work differently and one will replace the other.
+RTK Query is purpose-built to solve the use case of data fetching. While it can't replace all of the situations where you'd use thunks or other side effects approaches, using RTK Query should eliminate the need for most of that hand-written side effects logic.
+
+RTK Query is expected to cover a lot of overlapping behaviour that users may have previously used `createAsyncThunk` for, including caching purposes, and request lifecycle management (e.g. `isUninitialized`, `isLoading`, `isError` states).
+
+In order to migrate data-fetching features from existing Redux tools to RTK Query, the appropriate endpoints should be added to an RTK Query api, and the previous feature code deleted. This generally will not include much common code kept between the two, as the tools work differently and one will replace the other.
 
 ## Examples
 
