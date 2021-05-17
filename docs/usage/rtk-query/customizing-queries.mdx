@@ -108,12 +108,14 @@ For [`fetchBaseQuery`](../../api/rtk-query/fetchBaseQuery) specifically, the ret
 Promise<{
     data: any;
     error?: undefined;
+    meta?: { request: Request; response: Response };
 } | {
     error: {
         status: number;
         data: any;
     };
     data?: undefined;
+    meta?: { request: Request; response: Response };
 }>
 ```
 
@@ -346,10 +348,7 @@ const api = createApi({
       // A queryFn returning an empty array is used, with contents being populated via
       // streaming updates below as they are received.
       queryFn: () => ({ data: [] }),
-      async onCacheEntryAdded(
-        arg,
-        { updateCacheEntry, cleanup }
-      ) {
+      async onCacheEntryAdded(arg, { updateCacheEntry, cleanup }) {
         const ws = new WebSocket('ws://localhost:8080')
         // populate the array with messages as they are received from the websocket
         ws.addEventListener('message', (event) => {
@@ -402,6 +401,99 @@ const api = createApi({
 
         return { data: 'delicious!' }
       },
+    }),
+  }),
+})
+```
+
+### Adding Meta information to queries
+
+A `baseQuery` can also include a `meta` property in it's return value. This can be beneficial in cases where you may wish to include additional information associated with the request such as a request ID or timestamp.
+
+In such a scenario, the return value would look like so:
+
+1.  ```ts title="Expected success result format with meta" no-transpile
+    return { data: YourData, meta: YourMeta }
+    ```
+2.  ```ts title="Expected error result format with meta" no-transpile
+    return { error: YourError, meta: YourMeta }
+    ```
+
+```ts title="baseQuery example with meta information"
+// file: idGenerator.ts noEmit
+export declare const uuid: () => string
+
+// file: metaBaseQuery.ts
+import {
+  BaseQueryFn,
+  FetchArgs,
+  fetchBaseQuery,
+  FetchBaseQueryError,
+  createApi,
+} from '@reduxjs/toolkit/query'
+import { FetchBaseQueryMeta } from '@reduxjs/toolkit/dist/query/fetchBaseQuery'
+import { uuid } from './idGenerator'
+
+// highlight-start
+type Meta = {
+  requestId: string
+  timestamp: number
+}
+// highlight-end
+
+// highlight-start
+const metaBaseQuery: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError,
+  {},
+  Meta & FetchBaseQueryMeta
+> = async (args, api, extraOptions) => {
+  const requestId = uuid()
+  const timestamp = Date.now()
+
+  const baseResult = await fetchBaseQuery({ baseUrl: '/' })(
+    args,
+    api,
+    extraOptions
+  )
+
+  return {
+    ...baseResult,
+    meta: baseResult.meta && { ...baseResult.meta, requestId, timestamp },
+  }
+}
+// highlight-end
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+interface Post {
+  id: number
+  name: string
+  timestamp: number
+}
+type PostsResponse = Post[]
+
+const api = createApi({
+  // highlight-start
+  baseQuery: metaBaseQuery,
+  // highlight-end
+  endpoints: (build) => ({
+    // a theoretical endpoint where we only want to return data
+    // if request was performed past a certain date
+    getRecentPosts: build.query<PostsResponse, void>({
+      query: () => 'posts',
+      // highlight-start
+      transformResponse: (returnValue: PostsResponse, meta) => {
+        // `meta` here contains our added `requestId` & `timestamp`, as well as
+        // `request` & `response` from fetchBaseQuery's meta object.
+        // These properties can be used to transform the response as desired.
+        if (!meta) return []
+        return returnValue.filter(
+          (post) => post.timestamp >= meta.timestamp - DAY_MS
+        )
+      },
+      // highlight-end
     }),
   }),
 })

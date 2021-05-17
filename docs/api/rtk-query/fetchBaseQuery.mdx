@@ -29,12 +29,14 @@ It takes all standard options from fetch's [`RequestInit`](https://developer.moz
 Promise<{
     data: any;
     error?: undefined;
+    meta?: { request: Request; response: Response };
 } | {
     error: {
         status: number;
         data: any;
     };
     data?: undefined;
+    meta?: { request: Request; response: Response };
 }>
 ```
 
