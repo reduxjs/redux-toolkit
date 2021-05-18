@@ -72,8 +72,6 @@ Redux Toolkit includes these APIs:
 
 RTK Query is built on top of the Redux Toolkit core for it's implementation, using [Redux](https://redux.js.org/) internally for it's architecture. Although knowledge of Redux and RTK are not required to use RTK Query, you should explore all of the additional global store management capabilities they provide, as well as installing the [Redux DevTools browser extension](https://github.com/reduxjs/redux-devtools), which works flawlessly with RTK Query to traverse and replay a timeline of your request & cache behavior.
 
-### Installation
-
 RTK Query is included within the installation of the core Redux Toolkit package. It is available via either of the two entry points below:
 
 ```ts no-transpile
