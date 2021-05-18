@@ -17,7 +17,7 @@ The **Redux Toolkit** package is intended to be the standard way to write [Redux
 
 We can't solve every use case, but in the spirit of [`create-react-app`](https://github.com/facebook/create-react-app) and [`apollo-boost`](https://dev-blog.apollodata.com/zero-config-graphql-state-management-27b1f1b3c2c3), we can try to provide some tools that abstract over the setup process and handle the most common use cases, as well as include some useful utilities that will let the user simplify their application code.
 
-Redux Toolkit also includes a powerful data fetching and caching capability that we've dubbed "RTK Query". It's included in the package as a separate set of entry points. It's optional, but can eliminate the need to hand-write data fetching logic yourself.
+Redux Toolkit also includes a powerful data fetching and caching capability that we've dubbed ["RTK Query"](./getting-started-with-rtk-query). It's included in the package as a separate set of entry points. It's optional, but can eliminate the need to hand-write data fetching logic yourself.
 
 **These tools should be beneficial to all Redux users**. Whether you're a brand new Redux user setting up your
 first project, or an experienced user who wants to simplify an existing application, **Redux Toolkit** can help
@@ -65,6 +65,8 @@ Redux Toolkit includes these APIs:
 - [`createAsyncThunk`](../api/createAsyncThunk.mdx): accepts an action type string and a function that returns a promise, and generates a thunk that dispatches `pending/fulfilled/rejected` action types based on that promise
 - [`createEntityAdapter`](../api/createEntityAdapter.mdx): generates a set of reusable reducers and selectors to manage normalized data in the store
 - The [`createSelector` utility](../api/createSelector.mdx) from the [Reselect](https://github.com/reduxjs/reselect) library, re-exported for ease of use.
+
+Also see [Getting Started With RTK Query](./getting-started-rtk-query.mdx) for additional data fetching tools provided as part of Redux Toolkit Query.
 
 ## Help and Discussion
 
