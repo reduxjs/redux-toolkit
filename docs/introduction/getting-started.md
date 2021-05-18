@@ -66,14 +66,14 @@ Redux Toolkit includes these APIs:
 - [`createEntityAdapter`](../api/createEntityAdapter.mdx): generates a set of reusable reducers and selectors to manage normalized data in the store
 - The [`createSelector` utility](../api/createSelector.mdx) from the [Reselect](https://github.com/reduxjs/reselect) library, re-exported for ease of use.
 
-Also see [Getting Started With RTK Query](./getting-started-with-rtk-query.mdx) for additional data fetching tools provided as part of Redux Toolkit Query.
-
 ## RTK Query
+
 **RTK Query** is provided as an optional addon within the `@reduxjs/toolkit` package. It is purpose-built to solve the use case of data fetching and caching, supplying a compact, but powerful toolset to define an API interface layer for your app. It is intended to simplify common cases for loading data in a web application, eliminating the need to hand-write data fetching & caching logic yourself.
 
 RTK Query is built on top of the Redux Toolkit core for it's implementation, using [Redux](https://redux.js.org/) internally for it's architecture. Although knowledge of Redux and RTK are not required to use RTK Query, you should explore all of the additional global store management capabilities they provide, as well as installing the [Redux DevTools browser extension](https://github.com/reduxjs/redux-devtools), which works flawlessly with RTK Query to traverse and replay a timeline of your request & cache behavior.
 
 ### Installation
+
 RTK Query is included within the installation of the core Redux Toolkit package. It is available via either of the two entry points below:
 
 ```ts no-transpile
@@ -85,6 +85,7 @@ import { createApi } from '@reduxjs/toolkit/query/react'
 ```
 
 ### What's included
+
 RTK Query includes these APIs:
 
 - [`createApi()`](../api/rtk-query/createApi.mdx): The core of RTK Query's functionality. It allows you to define a set of endpoints describe how to retrieve data from a series of endpoints, including configuration of how to fetch and transform that data.
