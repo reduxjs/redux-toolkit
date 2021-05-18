@@ -89,10 +89,7 @@ describe('CLI options testing', () => {
   });
 
   it.only('should contain the right imports when using custom import path', async () => {
-    const result = await cli(
-      ['--createApiImportPath', '@reduxjs/toolkit/query/react', `./test/fixtures/petstore.json`],
-      '.'
-    );
+    const result = await cli(['--createApiImportPath', 'react', `./test/fixtures/petstore.json`], '.');
     expect(result.stdout).toContain(`import { createApi } from \"@reduxjs/toolkit/query/react\";`);
     expect(result.stdout).not.toContain('useGetHealthcheckQuery'); // hooks not exported
   });

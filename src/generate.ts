@@ -16,10 +16,10 @@ import {
   generateCreateApiCall,
   generateEndpointDefinition,
   generateStringLiteralArray,
+  generatePackageImports,
   ObjectPropertyDefinitions,
 } from './codegen';
 import { generateSmartImportNode } from './generators/smart-import-node';
-import { generateImportNode } from './generators/import-node';
 
 const { factory } = ts;
 
@@ -30,8 +30,6 @@ function defaultIsDataResponse(code: string) {
 
 let customBaseQueryNode: ts.ImportDeclaration | undefined;
 let moduleName: string;
-const DEFAULT_IMPORT_PATH = '@reduxjs/toolkit/query';
-const REACT_IMPORT_PATH = '@reduxjs/toolkit/query/react';
 
 export async function generateApi(
   spec: string,
@@ -41,7 +39,7 @@ export async function generateApi(
     baseQuery = 'fetchBaseQuery',
     argSuffix = 'ApiArg',
     responseSuffix = 'ApiResponse',
-    createApiImportPath = DEFAULT_IMPORT_PATH,
+    createApiImportPath,
     baseUrl,
     hooks,
     outputFile,
@@ -125,38 +123,11 @@ export async function generateApi(
 
   const isUsingFetchBaseQuery = baseQuery === 'fetchBaseQuery';
 
-  if (hooks) {
-    createApiImportPath = REACT_IMPORT_PATH;
-  }
-
-  function getBasePackageImportsFromOptions() {
-    return createApiImportPath !== DEFAULT_IMPORT_PATH
-      ? {
-          ...(isUsingFetchBaseQuery ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
-        }
-      : {
-          createApi: 'createApi',
-          ...(isUsingFetchBaseQuery ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
-        };
-  }
-
-  const hasBasePackageImports = Object.keys(getBasePackageImportsFromOptions()).length > 0;
-
   const sourceCode = printer.printNode(
     ts.EmitHint.Unspecified,
     factory.createSourceFile(
       [
-        // If hooks are specified, we need to import them from the react entry point
-        ...(createApiImportPath !== DEFAULT_IMPORT_PATH
-          ? [
-              generateImportNode(createApiImportPath, {
-                createApi: 'createApi',
-              }),
-            ]
-          : []),
-        ...(hasBasePackageImports
-          ? [generateImportNode('@reduxjs/toolkit/query', getBasePackageImportsFromOptions())]
-          : []),
+        ...generatePackageImports({ hooks, isUsingFetchBaseQuery, createApiImportPath }),
         ...(customBaseQueryNode ? [customBaseQueryNode] : []),
         generateCreateApiCall({
           exportName,
