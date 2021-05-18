@@ -121,7 +121,7 @@ export const build: SubMiddlewareBuilder = ({
             updateCachedData: (endpointDefinition.type === DefinitionType.query
               ? (updateRecipe: Recipe<any>) =>
                   mwApi.dispatch(
-                    api.util.updateQueryResult(
+                    api.util.updateQueryData(
                       endpointName as never,
                       originalArgs,
                       updateRecipe

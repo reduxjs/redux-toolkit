@@ -36,7 +36,7 @@ declare module '../../endpointDefinitions' {
     >
     /**
      * Updates the current cache entry value.
-     * For documentation see `api.util.updateQueryResult.
+     * For documentation see `api.util.updateQueryData.
      */
     updateCachedData(updateRecipe: Recipe<ResultType>): PatchCollection
   }
@@ -280,7 +280,7 @@ export const build: SubMiddlewareBuilder = ({
         updateCachedData: (endpointDefinition.type === DefinitionType.query
           ? (updateRecipe: Recipe<any>) =>
               mwApi.dispatch(
-                api.util.updateQueryResult(
+                api.util.updateQueryData(
                   endpointName as never,
                   originalArgs,
                   updateRecipe

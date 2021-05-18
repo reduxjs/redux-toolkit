@@ -3,8 +3,8 @@
  */
 import {
   buildThunks,
-  PatchQueryResultThunk,
-  UpdateQueryResultThunk,
+  PatchQueryDataThunk,
+  UpdateQueryDataThunk,
 } from './buildThunks'
 import {
   ActionCreatorWithPayload,
@@ -138,14 +138,24 @@ declare module '../apiTypes' {
         /**
          * TODO
          */
-        updateQueryResult: UpdateQueryResultThunk<
+        updateQueryData: UpdateQueryDataThunk<
+          Definitions,
+          RootState<Definitions, string, ReducerPath>
+        >
+        /** @deprecated renamed to `updateQueryData` */
+        updateQueryResult: UpdateQueryDataThunk<
           Definitions,
           RootState<Definitions, string, ReducerPath>
         >
         /**
          * TODO
          */
-        patchQueryResult: PatchQueryResultThunk<
+        patchQueryData: PatchQueryDataThunk<
+          Definitions,
+          RootState<Definitions, string, ReducerPath>
+        >
+        /** @deprecated renamed to `patchQueryData` */
+        patchQueryResult: PatchQueryDataThunk<
           Definitions,
           RootState<Definitions, string, ReducerPath>
         >
@@ -268,8 +278,8 @@ export const coreModule = (): Module<CoreModule> => ({
     const {
       queryThunk,
       mutationThunk,
-      patchQueryResult,
-      updateQueryResult,
+      patchQueryData,
+      updateQueryData,
       prefetch,
       buildMatchThunkActions,
     } = buildThunks({
@@ -296,12 +306,41 @@ export const coreModule = (): Module<CoreModule> => ({
     })
 
     safeAssign(api.util, {
-      patchQueryResult,
-      updateQueryResult,
+      patchQueryData,
+      updateQueryData,
       prefetch,
       resetApiState: sliceActions.resetApiState,
     })
     safeAssign(api.internalActions, sliceActions)
+
+    // remove in final release
+    Object.defineProperty(api.util, 'updateQueryResult', {
+      get() {
+        if (
+          typeof process !== 'undefined' &&
+          process.env.NODE_ENV === 'development'
+        ) {
+          console.warn(
+            '`api.util.updateQueryResult` has been renamed to `api.util.updateQueryData`, please change your code accordingly'
+          )
+        }
+        return api.util.updateQueryData
+      },
+    })
+    // remove in final release
+    Object.defineProperty(api.util, 'patchQueryResult', {
+      get() {
+        if (
+          typeof process !== 'undefined' &&
+          process.env.NODE_ENV === 'development'
+        ) {
+          console.warn(
+            '`api.util.patchQueryResult` has been renamed to `api.util.patchQueryData`, please change your code accordingly'
+          )
+        }
+        return api.util.patchQueryData
+      },
+    })
 
     const { middleware, actions: middlewareActions } = buildMiddleware({
       reducerPath,

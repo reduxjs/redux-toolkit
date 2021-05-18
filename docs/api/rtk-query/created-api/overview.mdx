@@ -42,8 +42,8 @@ type Api = {
 
   // Cache management utilities
   utils: {
-    updateQueryResult: UpdateQueryResultThunk
-    patchQueryResult: PatchQueryResultThunk
+    updateQueryData: UpdateQueryDataThunk
+    patchQueryData: PatchQueryDataThunk
     prefetch: PrefetchThunk
   }
 
@@ -112,7 +112,6 @@ The same hooks are also added to the `Api` object itself, and given auto-generat
 For example, if you had endpoints for `getPosts` and `updatePost`, these options would be available:
 
 ```ts title="Generated React Hook names" no-transpile
-
 // Hooks attached to the endpoint definition
 const { data } = api.endpoints.getPosts.useQuery()
 const { data } = api.endpoints.updatePost.useMutation()
