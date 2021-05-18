@@ -39,7 +39,7 @@ export async function generateApi(
     baseQuery = 'fetchBaseQuery',
     argSuffix = 'ApiArg',
     responseSuffix = 'ApiResponse',
-    createApiImportPath,
+    createApiImportPath = 'base',
     baseUrl,
     hooks,
     outputFile,

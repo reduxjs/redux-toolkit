@@ -140,11 +140,11 @@ export function generatePackageImports({
 }) {
   const DEFAULT_IMPORT_PATH = '@reduxjs/toolkit/query';
 
-  let entryPoint = hooks ? 'react' : createApiImportPath;
+  const entryPoint = hooks ? 'react' : createApiImportPath;
 
   function getBasePackageImportsFromOptions() {
     return {
-      ...(entryPoint === undefined ? { createApi: 'createApi' } : {}),
+      ...(entryPoint === 'base' ? { createApi: 'createApi' } : {}),
       ...(isUsingFetchBaseQuery ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
     };
   }
@@ -157,9 +157,10 @@ export function generatePackageImports({
     ? [generateImportNode(DEFAULT_IMPORT_PATH, getBasePackageImportsFromOptions())]
     : [];
 
-  const subPackageImportNode = entryPoint
-    ? [generateImportNode(`${DEFAULT_IMPORT_PATH}/${entryPoint}`, { createApi: 'createApi' })]
-    : [];
+  const subPackageImportNode =
+    entryPoint !== 'base'
+      ? [generateImportNode(`${DEFAULT_IMPORT_PATH}/${entryPoint}`, { createApi: 'createApi' })]
+      : [];
 
   return [...subPackageImportNode, ...basePackageImportNode];
 }

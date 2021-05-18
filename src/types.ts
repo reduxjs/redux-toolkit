@@ -17,7 +17,7 @@ export type GenerationOptions = {
   argSuffix?: string;
   responseSuffix?: string;
   baseUrl?: string;
-  createApiImportPath?: 'react';
+  createApiImportPath?: 'base' | 'react';
   hooks?: boolean;
   outputFile?: string;
   compilerOptions?: ts.CompilerOptions;
