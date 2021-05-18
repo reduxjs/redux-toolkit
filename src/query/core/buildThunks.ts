@@ -136,7 +136,7 @@ function defaultTransformResponse(baseQueryReturnValue: unknown) {
 export type MaybeDrafted<T> = T | Draft<T>
 export type Recipe<T> = (data: MaybeDrafted<T>) => void | MaybeDrafted<T>
 
-export type PatchQueryResultThunk<
+export type PatchQueryDataThunk<
   Definitions extends EndpointDefinitions,
   PartialState
 > = <EndpointName extends QueryKeys<Definitions>>(
@@ -145,7 +145,7 @@ export type PatchQueryResultThunk<
   patches: Patch[]
 ) => ThunkAction<void, PartialState, any, AnyAction>
 
-export type UpdateQueryResultThunk<
+export type UpdateQueryDataThunk<
   Definitions extends EndpointDefinitions,
   PartialState
 > = <EndpointName extends QueryKeys<Definitions>>(
@@ -155,7 +155,7 @@ export type UpdateQueryResultThunk<
 ) => ThunkAction<PatchCollection, PartialState, any, AnyAction>
 
 /**
- * An object returned from dispatching a `api.util.updateQueryResult` call.
+ * An object returned from dispatching a `api.util.updateQueryData` call.
  */
 export type PatchCollection = {
   /**
@@ -191,7 +191,7 @@ export function buildThunks<
 }) {
   type State = RootState<any, string, ReducerPath>
 
-  const patchQueryResult: PatchQueryResultThunk<EndpointDefinitions, State> = (
+  const patchQueryData: PatchQueryDataThunk<EndpointDefinitions, State> = (
     endpointName,
     args,
     patches
@@ -209,10 +209,11 @@ export function buildThunks<
     )
   }
 
-  const updateQueryResult: UpdateQueryResultThunk<
-    EndpointDefinitions,
-    State
-  > = (endpointName, args, updateRecipe) => (dispatch, getState) => {
+  const updateQueryData: UpdateQueryDataThunk<EndpointDefinitions, State> = (
+    endpointName,
+    args,
+    updateRecipe
+  ) => (dispatch, getState) => {
     const currentState = (api.endpoints[endpointName] as ApiEndpointQuery<
       any,
       any
@@ -222,7 +223,7 @@ export function buildThunks<
       inversePatches: [],
       undo: () =>
         dispatch(
-          api.util.patchQueryResult(endpointName, args, ret.inversePatches)
+          api.util.patchQueryData(endpointName, args, ret.inversePatches)
         ),
     }
     if (currentState.status === QueryStatus.uninitialized) {
@@ -247,7 +248,7 @@ export function buildThunks<
       }
     }
 
-    dispatch(api.util.patchQueryResult(endpointName, args, ret.patches))
+    dispatch(api.util.patchQueryData(endpointName, args, ret.patches))
 
     return ret
   }
@@ -415,8 +416,8 @@ export function buildThunks<
     queryThunk,
     mutationThunk,
     prefetch,
-    updateQueryResult,
-    patchQueryResult,
+    updateQueryData,
+    patchQueryData,
     buildMatchThunkActions,
   }
 }

@@ -36,13 +36,13 @@ const api = createApi({
         method: 'PATCH',
         body: patch,
       }),
-      async onQuery({ id, ...patch }, { dispatch, resultPromise }) {
+      async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
         const { undo } = dispatch(
-          api.util.updateQueryResult('post', id, (draft) => {
+          api.util.updateQueryData('post', id, (draft) => {
             Object.assign(draft, patch)
           })
         )
-        resultPromise.catch(undo)
+        queryFulfilled.catch(undo)
       },
       invalidatesTags: ['Post'],
     }),
@@ -133,7 +133,7 @@ describe('basic lifecycle', () => {
   })
 })
 
-describe('updateQueryResult', () => {
+describe('updateQueryData', () => {
   test('updates cache values, can apply inverse patch', async () => {
     baseQuery.mockResolvedValueOnce({
       id: '3',
@@ -152,10 +152,10 @@ describe('updateQueryResult', () => {
       contents: 'TODO',
     })
 
-    let returnValue!: ReturnType<ReturnType<typeof api.util.updateQueryResult>>
+    let returnValue!: ReturnType<ReturnType<typeof api.util.updateQueryData>>
     act(() => {
       returnValue = storeRef.store.dispatch(
-        api.util.updateQueryResult('post', '3', (draft) => {
+        api.util.updateQueryData('post', '3', (draft) => {
           draft.contents = 'I love cheese!'
         })
       )
@@ -176,7 +176,7 @@ describe('updateQueryResult', () => {
 
     act(() => {
       storeRef.store.dispatch(
-        api.util.patchQueryResult('post', '3', returnValue.inversePatches)
+        api.util.patchQueryData('post', '3', returnValue.inversePatches)
       )
     })
 
@@ -201,10 +201,10 @@ describe('updateQueryResult', () => {
       contents: 'TODO',
     })
 
-    let returnValue!: ReturnType<ReturnType<typeof api.util.updateQueryResult>>
+    let returnValue!: ReturnType<ReturnType<typeof api.util.updateQueryData>>
     act(() => {
       returnValue = storeRef.store.dispatch(
-        api.util.updateQueryResult('post', '4', (draft) => {
+        api.util.updateQueryData('post', '4', (draft) => {
           draft.contents = 'I love cheese!'
         })
       )

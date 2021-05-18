@@ -19,7 +19,7 @@ declare module '../../endpointDefinitions' {
      *
      * This allows you to `await` for the query to finish.
      */
-    resultPromise: OptionalPromise<ResultType>
+    queryFulfilled: OptionalPromise<ResultType>
   }
 
   interface QueryExtraOptions<
@@ -29,7 +29,7 @@ declare module '../../endpointDefinitions' {
     BaseQuery extends BaseQueryFn,
     ReducerPath extends string = string
   > {
-    onQuery?(
+    onQueryStarted?(
       arg: QueryArg,
       api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
     ): Promise<void> | void
@@ -42,7 +42,7 @@ declare module '../../endpointDefinitions' {
     BaseQuery extends BaseQueryFn,
     ReducerPath extends string = string
   > {
-    onQuery?(
+    onQueryStarted?(
       arg: QueryArg,
       api: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
     ): Promise<void> | void
@@ -96,10 +96,10 @@ export const build: SubMiddlewareBuilder = ({
           arg: { endpointName, originalArgs },
         } = action.meta
         const endpointDefinition = context.endpointDefinitions[endpointName]
-        const onQuery = endpointDefinition?.onQuery
-        if (onQuery) {
+        const onQueryStarted = endpointDefinition?.onQueryStarted
+        if (onQueryStarted) {
           const lifecycle = {} as CacheLifecycle
-          const resultPromise = toOptionalPromise(
+          const queryFulfilled = toOptionalPromise(
             new Promise((resolve, reject) => {
               lifecycle.resolve = resolve
               lifecycle.reject = reject
@@ -118,19 +118,19 @@ export const build: SubMiddlewareBuilder = ({
             getCacheEntry: () => selector(mwApi.getState()),
             requestId,
             extra,
-            updateCacheEntry: (endpointDefinition.type === DefinitionType.query
+            updateCachedData: (endpointDefinition.type === DefinitionType.query
               ? (updateRecipe: Recipe<any>) =>
                   mwApi.dispatch(
-                    api.util.updateQueryResult(
+                    api.util.updateQueryData(
                       endpointName as never,
                       originalArgs,
                       updateRecipe
                     )
                   )
               : undefined) as any,
-            resultPromise,
+            queryFulfilled,
           }
-          onQuery(originalArgs, lifecycleApi)
+          onQueryStarted(originalArgs, lifecycleApi)
         }
       } else if (isFullfilledThunk(action)) {
         const { requestId } = action.meta

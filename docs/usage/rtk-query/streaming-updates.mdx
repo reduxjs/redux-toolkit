@@ -61,13 +61,13 @@ export const api = createApi({
       // highlight-start
       async onCacheEntryAdded(
         arg,
-        { updateCacheEntry, firstValueResolved, cleanup }
+        { updateCachedData, cacheDataLoaded, cacheEntryRemoved }
       ) {
         // create a websocket connection when the cache subscription starts
         const ws = new WebSocket('ws://localhost:8080')
         try {
           // wait for the initial query to resolve before proceeding
-          await firstValueResolved
+          await cacheDataLoaded
 
           // when data is received from the socket connection to the server,
           // if it is a message and for the appropriate channel,
@@ -76,19 +76,19 @@ export const api = createApi({
             const data = JSON.parse(event.data)
             if (!isMessage(data) || data.channel !== arg) return
 
-            updateCacheEntry((draft) => {
+            updateCachedData((draft) => {
               draft.push(data)
             })
           }
 
           ws.addEventListener('message', listener)
         } catch {
-          // no-op in case `cleanup` resolves before `firstValueResolved`,
-          // in which case `firstValueResolved` will throw
+          // no-op in case `cacheEntryRemoved` resolves before `cacheDataLoaded`,
+          // in which case `cacheDataLoaded` will throw
         }
-        // cleanup will resolve when the cache subscription is no longer active
-        await cleanup
-        // perform cleanup steps once the `cleanup` promise resolves
+        // cacheEntryRemoved will resolve when the cache subscription is no longer active
+        await cacheEntryRemoved
+        // perform cleanup steps once the `cacheEntryRemoved` promise resolves
         ws.close()
       },
       // highlight-end
@@ -101,9 +101,9 @@ export const { useGetMessagesQuery } = api
 
 #### What to expect
 
-When the `getMessages` query is triggered (e.g. via a component mounting with the `useGetMessagesQuery()` hook), a `cache entry` will be added based on the serialized arguments for the endpoint. The associated query will be fired off based on the `query` property to fetch the initial data for the cache. Meanwhile, the asynchronous `onCacheEntryAdded` callback will begin, and create a new WebSocket connection. Once the response for the initial query is received, the cache will be populated with the response data, and the `firstValueResolved` promise will resolve. After awaiting the `firstValueResolved` promise, the `message` event listener will be added to the WebSocket connection, which updates the cache data when an associated message is received.
+When the `getMessages` query is triggered (e.g. via a component mounting with the `useGetMessagesQuery()` hook), a `cache entry` will be added based on the serialized arguments for the endpoint. The associated query will be fired off based on the `query` property to fetch the initial data for the cache. Meanwhile, the asynchronous `onCacheEntryAdded` callback will begin, and create a new WebSocket connection. Once the response for the initial query is received, the cache will be populated with the response data, and the `cacheDataLoaded` promise will resolve. After awaiting the `cacheDataLoaded` promise, the `message` event listener will be added to the WebSocket connection, which updates the cache data when an associated message is received.
 
-When there are no more active subscriptions to the data (e.g. when the subscribed components remain unmounted for a sufficient amount of time), the `cleanup` promise will resolve, allowing the remaining code to run and close the websocket connection. RTK Query will also remove the associated data from the cache.
+When there are no more active subscriptions to the data (e.g. when the subscribed components remain unmounted for a sufficient amount of time), the `cacheEntryRemoved` promise will resolve, allowing the remaining code to run and close the websocket connection. RTK Query will also remove the associated data from the cache.
 
 If a query for the corresponding cache entry runs later, it will overwrite the whole cache entry, and the streaming update listeners will continue to work on the updated data.
 
@@ -153,17 +153,17 @@ export const api = createApi({
       // highlight-end
       async onCacheEntryAdded(
         arg,
-        { updateCacheEntry, firstValueResolved, cleanup }
+        { updateCachedData, cacheDataLoaded, cacheEntryRemoved }
       ) {
         const ws = new WebSocket('ws://localhost:8080')
         try {
-          await firstValueResolved
+          await cacheDataLoaded
 
           const listener = (event: MessageEvent) => {
             const data = JSON.parse(event.data)
             if (!isMessage(data) || data.channel !== arg) return
 
-            updateCacheEntry((draft) => {
+            updateCachedData((draft) => {
               // highlight-start
               messagesAdapter.upsertOne(draft, data)
               // highlight-end
@@ -172,7 +172,7 @@ export const api = createApi({
 
           ws.addEventListener('message', listener)
         } catch {}
-        await cleanup
+        await cacheEntryRemoved
         ws.close()
       },
     }),

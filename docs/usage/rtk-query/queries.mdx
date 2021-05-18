@@ -39,16 +39,16 @@ const api = createApi({
       transformResponse: (response: { data: Post }) => response.data,
       providesTags: (result, error, id) => [{ type: 'Post', id }],
       // The 2nd parameter is the destructured `QueryLifecycleApi`
-      async onQuery(
+      async onQueryStarted(
         arg,
         {
           dispatch,
           getState,
           extra,
           requestId,
-          resultPromise,
+          queryFulfilled,
           getCacheEntry,
-          updateCacheEntry,
+          updateCachedData,
         }
       ) {},
       // The 2nd parameter is the destructured `QueryCacheLifecycleApi`
@@ -59,10 +59,10 @@ const api = createApi({
           getState,
           extra,
           requestId,
-          cleanup,
-          firstValueResolved,
+          cacheEntryRemoved,
+          cacheDataLoaded,
           getCacheEntry,
-          updateCacheEntry,
+          updateCachedData,
         }
       ) {},
       // highlight-end

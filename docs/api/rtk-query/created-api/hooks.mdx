@@ -244,7 +244,7 @@ The provided hooks have a degree of feature overlap in order to provide options 
 
 ```ts no-transpile
 type UseQuery = (
-  arg: any | SkipSymbol,
+  arg: any | SkipToken,
   options?: UseQueryOptions
 ) => UseQueryResult
 
@@ -279,7 +279,7 @@ type UseQueryResult<T> = {
 
 - **Parameters**
   - `arg`: The query argument to be used in constructing the query itself, and as a cache key for the query
-    You can also pass in `skipSymbol` here as an alternative way of skipping the query, see [skipSymbol](#skipsymbol)
+    You can also pass in `skipToken` here as an alternative way of skipping the query, see [skipToken](#skiptoken)
   - `options`: A set of options that control the fetching behavior of the hook
 - **Returns**
   - A query result object containing the current loading state, the actual data or error returned from the API call, metadata about the request, and a function to `refetch` the data. Can be customized with `selectFromResult`
@@ -288,9 +288,9 @@ type UseQueryResult<T> = {
 
 [summary](docblock://query/react/buildHooks.ts?token=UseQuery)
 
-#### `skipSymbol`
+#### `skipToken`
 
-[summary](docblock://query/core/buildSelectors.ts?token=skipSymbol)
+[summary](docblock://query/core/buildSelectors.ts?token=skipToken)
 
 ## `useMutation`
 
@@ -359,7 +359,7 @@ selectFromResult: () => ({})
 
 ```ts no-transpile
 type UseQueryState = (
-  arg: any | SkipSymbol,
+  arg: any | SkipToken,
   options?: UseQueryStateOptions
 ) => UseQueryStateResult | SelectedQueryStateResult
 
@@ -393,7 +393,7 @@ type UseQueryStateResult<T> = {
 - **Parameters**
 
   - `arg`: The argument passed to the query defined in the endpoint
-    You can also pass in `skipSymbol` here as an alternative way of skipping the selection, see [skipSymbol](#skipsymbol)
+    You can also pass in `skipToken` here as an alternative way of skipping the selection, see [skipToken](#skiptoken)
   - `options`: A set of options that control the return value for the hook
 
 - **Returns**
@@ -409,7 +409,7 @@ type UseQueryStateResult<T> = {
 
 ```ts no-transpile
 type UseQuerySubscription = (
-  arg: any | SkipSymbol,
+  arg: any | SkipToken,
   options?: UseQuerySubscriptionOptions
 ) => UseQuerySubscriptionResult
 
@@ -429,7 +429,7 @@ type UseQuerySubscriptionResult = {
 - **Parameters**
 
   - `arg`: The argument passed to the query defined in the endpoint
-    You can also pass in `skipSymbol` here as an alternative way of skipping the query, see [skipSymbol](#skipsymbol)
+    You can also pass in `skipToken` here as an alternative way of skipping the query, see [skipToken](#skiptoken)
   - `options`: A set of options that control the fetching behaviour of the hook
 
 - **Returns**

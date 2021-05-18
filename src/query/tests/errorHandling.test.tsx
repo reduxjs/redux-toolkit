@@ -528,15 +528,15 @@ describe('error handling in a component', () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
 
       const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>
-      let mutationResultPromise: ReturnType<
+      let mutationqueryFulfilled: ReturnType<
         ReturnType<typeof api.endpoints.update.initiate>
       >
       act(() => {
-        mutationResultPromise = dispatch(
+        mutationqueryFulfilled = dispatch(
           api.endpoints.update.initiate({}, { track })
         )
       })
-      const result = await mutationResultPromise!
+      const result = await mutationqueryFulfilled!
       expect(result).toMatchObject({
         data: { value: 'success' },
       })
@@ -546,15 +546,15 @@ describe('error handling in a component', () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
 
       const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>
-      let mutationResultPromise: ReturnType<
+      let mutationqueryFulfilled: ReturnType<
         ReturnType<typeof api.endpoints.failedUpdate.initiate>
       >
       act(() => {
-        mutationResultPromise = dispatch(
+        mutationqueryFulfilled = dispatch(
           api.endpoints.failedUpdate.initiate({}, { track })
         )
       })
-      const result = await mutationResultPromise!
+      const result = await mutationqueryFulfilled!
       expect(result).toMatchObject({
         error: { status: 500, data: { value: 'error' } },
       })
@@ -563,15 +563,15 @@ describe('error handling in a component', () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
 
       const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>
-      let mutationResultPromise: ReturnType<
+      let mutationqueryFulfilled: ReturnType<
         ReturnType<typeof api.endpoints.update.initiate>
       >
       act(() => {
-        mutationResultPromise = dispatch(
+        mutationqueryFulfilled = dispatch(
           api.endpoints.update.initiate({}, { track })
         )
       })
-      const result = await mutationResultPromise!.unwrap()
+      const result = await mutationqueryFulfilled!.unwrap()
       expect(result).toMatchObject({
         value: 'success',
       })
@@ -581,15 +581,15 @@ describe('error handling in a component', () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
 
       const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>
-      let mutationResultPromise: ReturnType<
+      let mutationqueryFulfilled: ReturnType<
         ReturnType<typeof api.endpoints.failedUpdate.initiate>
       >
       act(() => {
-        mutationResultPromise = dispatch(
+        mutationqueryFulfilled = dispatch(
           api.endpoints.failedUpdate.initiate({}, { track })
         )
       })
-      const unwrappedPromise = mutationResultPromise!.unwrap()
+      const unwrappedPromise = mutationqueryFulfilled!.unwrap()
       expect(unwrappedPromise).rejects.toMatchObject({
         status: 500,
         data: { value: 'error' },
