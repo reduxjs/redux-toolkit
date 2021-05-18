@@ -36,13 +36,13 @@ const api = createApi({
         method: 'PATCH',
         body: patch,
       }),
-      async onQuery({ id, ...patch }, { dispatch, resultPromise }) {
+      async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
         const { undo } = dispatch(
           api.util.updateQueryResult('post', id, (draft) => {
             Object.assign(draft, patch)
           })
         )
-        resultPromise.catch(undo)
+        queryFulfilled.catch(undo)
       },
       invalidatesTags: ['Post'],
     }),

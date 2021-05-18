@@ -39,11 +39,11 @@ const api = createApi({
       // Pick out data and prevent nested properties in a hook or selector
       transformResponse: (response: { data: Post }) => response.data,
       invalidatesTags: ['Post'],
-      // onQuery is useful for optimistic updates
+      // onQueryStarted is useful for optimistic updates
       // The 2nd parameter is the destructured `MutationLifecycleApi`
-      async onQuery(
+      async onQueryStarted(
         arg,
-        { dispatch, getState, resultPromise, requestId, extra, getCacheEntry }
+        { dispatch, getState, queryFulfilled, requestId, extra, getCacheEntry }
       ) {},
       // The 2nd parameter is the destructured `MutationCacheLifecycleApi`
       async onCacheEntryAdded(
@@ -53,8 +53,8 @@ const api = createApi({
           getState,
           extra,
           requestId,
-          cleanup,
-          firstValueResolved,
+          cacheEntryRemoved,
+          cacheDataLoaded,
           getCacheEntry,
         }
       ) {},
@@ -65,7 +65,7 @@ const api = createApi({
 ```
 
 :::info
-Notice the `onQuery` method? Be sure to check out how it can be used for [optimistic updates](./optimistic-updates)
+Notice the `onQueryStarted` method? Be sure to check out how it can be used for [optimistic updates](./optimistic-updates)
 :::
 
 ### Type interfaces
@@ -82,12 +82,12 @@ export type MutationDefinition<
   type: DefinitionType.mutation
   invalidatesTags?: ResultDescription<TagTypes, ResultType, QueryArg>
   providesTags?: never
-  onQuery?(
+  onQueryStarted?(
     arg: QueryArg,
     {
       dispatch,
       getState,
-      resultPromise,
+      queryFulfilled,
       requestId,
       extra,
       getCacheEntry,
@@ -100,8 +100,8 @@ export type MutationDefinition<
       getState,
       extra,
       requestId,
-      cleanup,
-      firstValueResolved,
+      cacheEntryRemoved,
+      cacheDataLoaded,
       getCacheEntry,
     }: MutationCacheLifecycleApi
   ): Promise<void>

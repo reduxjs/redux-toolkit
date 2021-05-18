@@ -3,7 +3,7 @@ import {
   createApi,
   fetchBaseQuery,
   QueryStatus,
-  skipSymbol,
+  skipToken,
 } from '@reduxjs/toolkit/query/react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -2031,19 +2031,19 @@ describe('skip behaviour', () => {
     expect(subscriptionCount('getUser(1)')).toBe(0)
   })
 
-  test('skipSymbol', async () => {
+  test('skipToken', async () => {
     const { result, rerender } = renderHook(
       ([arg, options]: Parameters<typeof api.endpoints.getUser.useQuery>) =>
         api.endpoints.getUser.useQuery(arg, options),
       {
         wrapper: storeRef.wrapper,
-        initialProps: [skipSymbol],
+        initialProps: [skipToken],
       }
     )
 
     expect(result.current).toEqual(uninitialized)
     expect(subscriptionCount('getUser(1)')).toBe(0)
-    // also no subscription on `getUser(skipSymbol)` or similar:
+    // also no subscription on `getUser(skipToken)` or similar:
     expect(storeRef.store.getState().api.subscriptions).toEqual({})
 
     rerender([1])
@@ -2051,7 +2051,7 @@ describe('skip behaviour', () => {
     expect(subscriptionCount('getUser(1)')).toBe(1)
     expect(storeRef.store.getState().api.subscriptions).not.toEqual({})
 
-    rerender([skipSymbol])
+    rerender([skipToken])
     expect(result.current).toEqual(uninitialized)
     expect(subscriptionCount('getUser(1)')).toBe(0)
   })

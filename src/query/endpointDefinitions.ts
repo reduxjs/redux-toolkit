@@ -105,17 +105,17 @@ export type ResultDescription<
   | ReadonlyArray<TagDescription<TagTypes>>
   | GetResultDescriptionFn<TagTypes, ResultType, QueryArg, ErrorType>
 
-/** @deprecated please use `onQuery` instead */
+/** @deprecated please use `onQueryStarted` instead */
 export interface QueryApi<ReducerPath extends string, Context extends {}> {
-  /** @deprecated please use `onQuery` instead */
+  /** @deprecated please use `onQueryStarted` instead */
   dispatch: ThunkDispatch<any, any, AnyAction>
-  /** @deprecated please use `onQuery` instead */
+  /** @deprecated please use `onQueryStarted` instead */
   getState(): RootState<any, any, ReducerPath>
-  /** @deprecated please use `onQuery` instead */
+  /** @deprecated please use `onQueryStarted` instead */
   extra: unknown
-  /** @deprecated please use `onQuery` instead */
+  /** @deprecated please use `onQueryStarted` instead */
   requestId: string
-  /** @deprecated please use `onQuery` instead */
+  /** @deprecated please use `onQueryStarted` instead */
   context: Context
 }
 
@@ -147,16 +147,16 @@ export interface QueryExtraOptions<
    * Not to be used. A query should not invalidate tags in the cache.
    */
   invalidatesTags?: never
-  /** @deprecated please use `onQuery` instead */
+  /** @deprecated please use `onQueryStarted` instead */
   onStart?(arg: QueryArg, queryApi: QueryApi<ReducerPath, any>): void
-  /** @deprecated please use `onQuery` instead */
+  /** @deprecated please use `onQueryStarted` instead */
   onError?(
     arg: QueryArg,
     queryApi: QueryApi<ReducerPath, any>,
     error: unknown,
     meta: undefined
   ): void
-  /** @deprecated please use `onQuery` instead */
+  /** @deprecated please use `onQueryStarted` instead */
   onSuccess?(
     arg: QueryArg,
     queryApi: QueryApi<ReducerPath, any>,
@@ -174,7 +174,7 @@ export type QueryDefinition<
 > = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
   QueryExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
 
-/** @deprecated please use `onQuery` instead */
+/** @deprecated please use `onQueryStarted` instead */
 export interface MutationApi<ReducerPath extends string, Context extends {}> {
   /**
    * The dispatch method for the store
@@ -220,16 +220,16 @@ export interface MutationExtraOptions<
    * Not to be used. A mutation should not provide tags to the cache.
    */
   providesTags?: never
-  /** @deprecated please use `onQuery` instead */
+  /** @deprecated please use `onQueryStarted` instead */
   onStart?(arg: QueryArg, mutationApi: MutationApi<ReducerPath, any>): void
-  /** @deprecated please use `onQuery` instead */
+  /** @deprecated please use `onQueryStarted` instead */
   onError?(
     arg: QueryArg,
     mutationApi: MutationApi<ReducerPath, any>,
     error: unknown,
     meta: undefined
   ): void
-  /** @deprecated please use `onQuery` instead */
+  /** @deprecated please use `onQueryStarted` instead */
   onSuccess?(
     arg: QueryArg,
     mutationApi: MutationApi<ReducerPath, any>,
@@ -295,9 +295,9 @@ export type EndpointBuilder<
    *      // `result` is the server response
    *      providesTags: (result, error, id) => [{ type: 'Post', id }],
    *      // trigger side effects or optimistic updates
-   *      onQuery(id, { dispatch, getState, extra, requestId, resultPromise, getCacheEntry, updateCacheEntry }) {},
+   *      onQueryStarted(id, { dispatch, getState, extra, requestId, queryFulfilled, getCacheEntry, updateCachedData }) {},
    *      // handle subscriptions etc
-   *      onCacheEntryAdded(id, { dispatch, getState, extra, requestId, cleanup, firstValueResolved, getCacheEntry, updateCacheEntry }) {},
+   *      onCacheEntryAdded(id, { dispatch, getState, extra, requestId, cacheEntryRemoved, cacheDataLoaded, getCacheEntry, updateCachedData }) {},
    *    }),
    *  }),
    *});
@@ -325,9 +325,9 @@ export type EndpointBuilder<
    *       // `result` is the server response
    *       invalidatesTags: (result, error, id) => [{ type: 'Post', id }],
    *      // trigger side effects or optimistic updates
-   *      onQuery(id, { dispatch, getState, extra, requestId, resultPromise, getCacheEntry }) {},
+   *      onQueryStarted(id, { dispatch, getState, extra, requestId, queryFulfilled, getCacheEntry }) {},
    *      // handle subscriptions etc
-   *      onCacheEntryAdded(id, { dispatch, getState, extra, requestId, cleanup, firstValueResolved, getCacheEntry }) {},
+   *      onCacheEntryAdded(id, { dispatch, getState, extra, requestId, cacheEntryRemoved, cacheDataLoaded, getCacheEntry }) {},
    *     }),
    *   }),
    * });

@@ -124,32 +124,32 @@ export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
   - Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only.
   - [summary](docblock://query/createApi.ts?token=CreateApiOptions.keepUnusedDataFor)
 
-- `onQuery` _(optional)_ - Available to both [queries](../../usage/rtk-query/queries.mdx) and [mutations](../../usage/rtk-query/mutations.mdx)
+- `onQueryStarted` _(optional)_ - Available to both [queries](../../usage/rtk-query/queries.mdx) and [mutations](../../usage/rtk-query/mutations.mdx)
   - Can be used in `mutations` for [optimistic updates](../../usage/rtk-query/optimistic-updates.mdx).
-  - ```ts title="Mutation onQuery signature" no-transpile
-    async function onQuery(
+  - ```ts title="Mutation onQueryStarted signature" no-transpile
+    async function onQueryStarted(
       arg: QueryArg,
       {
         dispatch,
         getState,
         extra,
         requestId,
-        resultPromise,
+        queryFulfilled,
         getCacheEntry,
       }: MutationLifecycleApi
     ): Promise<void>
     ```
-  - ```ts title="Query onQuery signature" no-transpile
-    async function onQuery(
+  - ```ts title="Query onQueryStarted signature" no-transpile
+    async function onQueryStarted(
       arg: QueryArg,
       {
         dispatch,
         getState,
         extra,
         requestId,
-        resultPromise,
+        queryFulfilled,
         getCacheEntry,
-        updateCacheEntry,
+        updateCachedData,
       }: QueryLifecycleApi
     ): Promise<void>
     ```
@@ -164,8 +164,8 @@ export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
         getState,
         extra,
         requestId,
-        cleanup,
-        firstValueResolved,
+        cacheEntryRemoved,
+        cacheDataLoaded,
         getCacheEntry,
       }: MutationCacheLifecycleApi
     ): Promise<void>
@@ -178,10 +178,10 @@ export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
         getState,
         extra,
         requestId,
-        cleanup,
-        firstValueResolved,
+        cacheEntryRemoved,
+        cacheDataLoaded,
         getCacheEntry,
-        updateCacheEntry,
+        updateCachedData,
       }: QueryCacheLifecycleApi
     ): Promise<void>
     ```

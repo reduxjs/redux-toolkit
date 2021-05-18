@@ -11,7 +11,7 @@ When you're performing an update on some data that _already exists_ in the cache
 
 The core concepts are:
 
-- when you start a query or mutation, `onQuery` will be executed
+- when you start a query or mutation, `onQueryStarted` will be executed
 - you manually update the cached data by dispatching `api.util.updateQueryResult`
 - then, in the case that `promiseResult` rejects, you roll it back via the `.undo` property of the object you got back from the earlier dispatch.
 
@@ -44,14 +44,14 @@ const api = createApi({
       }),
       invalidatesTags: ['Post'],
       // highlight-start
-      async onQuery({ id, ...patch }, { dispatch, resultPromise }) {
+      async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
         const patchResult = dispatch(
           api.util.updateQueryResult('getPost', id, (draft) => {
             Object.assign(draft, patch)
           })
         )
         try {
-          await resultPromise
+          await queryFulfilled
         } catch {
           patchResult.undo()
         }
@@ -65,19 +65,19 @@ const api = createApi({
 or, if you prefer the slighty shorter version with `.catch`
 
 ```diff
--      async onQuery({ id, ...patch }, { dispatch, resultPromise }) {
-+      onQuery({ id, ...patch }, { dispatch, resultPromise }) {
+-      async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
++      onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
         const patchResult = dispatch(
           api.util.updateQueryResult('getPost', id, (draft) => {
             Object.assign(draft, patch)
           })
         )
 -       try {
--         await resultPromise
+-         await queryFulfilled
 -       } catch {
 -         patchResult.undo()
 -       }
-+       resultPromise.catch(patchResult.undo)
++       queryFulfilled.catch(patchResult.undo)
       }
 ```
 

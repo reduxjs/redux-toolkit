@@ -233,14 +233,14 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
               process.env.NODE_ENV === 'development'
             ) {
               console.warn(
-                '`onStart`, `onSuccess` and `onError` have been replaced by `onQuery`, please change your code accordingly'
+                '`onStart`, `onSuccess` and `onError` have been replaced by `onQueryStarted`, please change your code accordingly'
               )
             }
-            x.onQuery ??= async (arg, { resultPromise, ...api }) => {
+            x.onQueryStarted ??= async (arg, { queryFulfilled, ...api }) => {
               const queryApi = { ...api, context: {} }
               x.onStart?.(arg, queryApi)
               try {
-                const result = await resultPromise
+                const result = await queryFulfilled
                 x.onSuccess?.(arg, queryApi, result, undefined)
               } catch (error) {
                 x.onError?.(arg, queryApi, error, undefined)
@@ -257,14 +257,14 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
               process.env.NODE_ENV === 'development'
             ) {
               console.warn(
-                '`onStart`, `onSuccess` and `onError` have been replaced by `onQuery`, please change your code accordingly'
+                '`onStart`, `onSuccess` and `onError` have been replaced by `onQueryStarted`, please change your code accordingly'
               )
             }
-            x.onQuery ??= async (arg, { resultPromise, ...api }) => {
+            x.onQueryStarted ??= async (arg, { queryFulfilled, ...api }) => {
               const queryApi = { ...api, context: {} }
               x.onStart?.(arg, queryApi)
               try {
-                const result = await resultPromise
+                const result = await queryFulfilled
                 x.onSuccess?.(arg, queryApi, result, undefined)
               } catch (error) {
                 x.onError?.(arg, queryApi, error, undefined)
