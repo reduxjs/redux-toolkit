@@ -4,10 +4,7 @@
       "type": "category",
       "label": "Introduction",
       "collapsed": false,
-      "items": [
-        "introduction/getting-started",
-        "introduction/getting-started-with-rtk-query"
-      ]
+      "items": ["introduction/getting-started"]
     },
     {
       "type": "category",
