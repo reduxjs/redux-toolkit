@@ -20,7 +20,7 @@ program
   .option('--argSuffix <name>', 'pass arg suffix')
   .option('--responseSuffix <name>', 'pass response suffix')
   .option('--baseUrl <url>', 'pass baseUrl')
-  .option('--createApiImportPath <path>', 'where to import createApi from')
+  .option('--createApiImportPath <path>', 'entry point for createApi import. options: [react]')
   .option('-h, --hooks', 'generate React Hooks')
   .option('-c, --config <path>', 'pass tsconfig path for resolve path alias')
   .option('-f, --file <filename>', 'output file name (ex: generated.api.ts)')
