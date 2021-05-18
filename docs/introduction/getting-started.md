@@ -66,7 +66,7 @@ Redux Toolkit includes these APIs:
 - [`createEntityAdapter`](../api/createEntityAdapter.mdx): generates a set of reusable reducers and selectors to manage normalized data in the store
 - The [`createSelector` utility](../api/createSelector.mdx) from the [Reselect](https://github.com/reduxjs/reselect) library, re-exported for ease of use.
 
-Also see [Getting Started With RTK Query](./getting-started-rtk-query.mdx) for additional data fetching tools provided as part of Redux Toolkit Query.
+Also see [Getting Started With RTK Query](./getting-started-with-rtk-query.mdx) for additional data fetching tools provided as part of Redux Toolkit Query.
 
 ## Help and Discussion
 
