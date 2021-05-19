@@ -41,11 +41,59 @@ The `invalidatesTags` argument can either be an array of `string` (such as `['Po
 
 ## Default cache handling behaviour
 
-By default, RTK Query will manage the cache for a given query endpoint based on the supplied query parameters. The parameters are serialized and stored internally as a a `queryCacheKey` for the request. Any future request that produces the same `queryCacheKey` (i.e. called with the same parameters, factoring serialization) will be de-duped against the original, and will share the same data and updates. i.e. two separate components performing the same request will use the same cached data.
+With RTK Query, caching is based on:
+- API endpoint definitions
+- The serialized query parameters used when components subscribe to data from an endpoint
+- Active subscription reference counts
+
+When a subscription is started, the parameters used with the endpoint are serialized and stored internally as a `queryCacheKey` for the request. Any future request that produces the same `queryCacheKey` (i.e. called with the same parameters, factoring serialization) will be de-duped against the original, and will share the same data and updates. i.e. two separate components performing the same request will use the same cached data.
 
 When a request is attempted, if the data already exists in the cache, then that data is served and no new request is sent to the server. Otherwise, if the data does not exist in the cache, then a new request is sent, and the returned response is stored in the cache.
 
-As long as there is an active 'subscription' to the data (e.g. if a component is mounted that calls a `useQuery` hook for the endpoint), then the data will remain in the cache. Once the subscription is removed (e.g. when last component subscribed to the data unmounts), after an amount of time (default 60 seconds), the data will be removed from the cache.
+As long as there is an active 'subscription' to the data (e.g. if a component is mounted that calls a `useQuery` hook for the endpoint), then the data will remain in the cache. Once the subscription is removed (e.g. when last component subscribed to the data unmounts), after an amount of time (default 60 seconds), the data will be removed from the cache. The expiration time can be configured with the `keepUnusedDataFor` property for the [API definition as a whole](../../api/rtk-query/createApi.mdx#keepunuseddatafor), as well as on a [per-endpoint](../../api/rtk-query/createApi.mdx#anatomy-of-an-endpoint) basis.
+
+### Cache lifetime & subscription example
+
+Imagine an endpoint that expects an `id` as the query param, and 4 components mounted which are requesting data from this same endpoint:
+
+```ts no-transpile
+import { useGetUserQuery } from './api.ts'
+
+function ComponentOne() {
+  // component subscribes to the data
+  const { data } = useGetUserQuery(1)
+
+  return <div>...</div>
+}
+
+function ComponentTwo() {
+  // component subscribes to the data
+  const { data } = useGetUserQuery(2)
+
+  return <div>...</div>
+}
+
+function ComponentThree() {
+  // component subscribes to the data
+  const { data } = useGetUserQuery(3)
+
+  return <div>...</div>
+}
+
+function ComponentFour() {
+  // component subscribes to the *same* data as ComponentThree,
+  // as it has the same query parameters
+  const { data } = useGetUserQuery(3)
+
+  return <div>...</div>
+}
+```
+
+While four components are subscribed to the endpoint, there are only three distinct combinations of endpoint + query parameters. Query parameters `1` and `2` will each have a single subscriber, while query parameter `3` has two subscribers. RTK Query will make three distinct fetches; one for each unique set of query parameters per endpoint.
+
+Data is kept in the cache as long is there is at least one active subscriber interested in that endpoint + parameter combination. When the subscriber reference count reaches zero, a timer is set, and if there are no new subscriptions to that data by the time the timer expires, the cached data will be removed. The default expiration is 60 seconds, which can be configured both for the [API definition as a whole](../../api/rtk-query/createApi.mdx#keepunuseddatafor), as well as on a [per-endpoint](../../api/rtk-query/createApi.mdx#anatomy-of-an-endpoint) basis.
+
+If 'ComponentThree' is unmounted in the example above, regardless of how much time passes, the data will remain in the cache due to 'ComponentFour' still being subscribed to the same data, and the subscribe reference count will be `one`. However, once 'ComponentFour' unmounts, the subscriber reference count will be `zero`. The data will remain in the cache for the remainder of the expiration time, at which point, if no new subscription has been created during that time, the cached data will finally be removed.
 
 ## Cache tags
 
