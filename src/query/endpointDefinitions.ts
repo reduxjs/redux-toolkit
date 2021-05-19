@@ -27,7 +27,7 @@ interface EndpointDefinitionWithQuery<
   ResultType
 > {
   /**
-   * `query` is the only required property, and can be a function that returns either a `string` or an `object` which is passed to your `baseQuery`. If you are using [fetchBaseQuery](./fetchBaseQuery), this can return either a `string` or an `object` of properties in `FetchArgs`. If you use your own custom `baseQuery`, you can customize this behavior to your liking
+   * `query` can be a function that returns either a `string` or an `object` which is passed to your `baseQuery`. If you are using [fetchBaseQuery](./fetchBaseQuery), this can return either a `string` or an `object` of properties in `FetchArgs`. If you use your own custom [`baseQuery`](../../usage/rtk-query/customizing-queries), you can customize this behavior to your liking.
    */
   query(arg: QueryArg): BaseQueryArg<BaseQuery>
   queryFn?: never
@@ -45,6 +45,19 @@ interface EndpointDefinitionWithQueryFn<
   BaseQuery extends BaseQueryFn,
   ResultType
 > {
+  /**
+   * Can be used in place of `query` as an inline function that bypasses `baseQuery` completely for the endpoint.
+   * 
+   * @example
+   * ```ts no-transpile
+   * queryFn(arg: string) {
+   *   if (Math.random() > 0.5) {
+   *     return { error: { status: 500, data: 'My error' } }
+   *   }
+   *   return { data: 'My returned data' }
+   * }
+   * ```
+   */
   queryFn(
     arg: QueryArg,
     api: BaseQueryApi,

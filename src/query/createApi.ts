@@ -17,53 +17,42 @@ export interface CreateApiOptions<
   TagTypes extends string = never
 > {
   /**
-   * The base query used by each endpoint if no `queryFn` option is specified. RTK Query exports a utility called [fetchBaseQuery](./fetchBaseQuery) as a lightweight wrapper around `fetch` for common use-cases.
+   * The base query used by each endpoint if no `queryFn` option is specified. RTK Query exports a utility called [fetchBaseQuery](./fetchBaseQuery) as a lightweight wrapper around `fetch` for common use-cases. See [Customizing Queries](../../usage/rtk-query/customizing-queries) if `fetchBaseQuery` does not handle your requirements.
    *
    * @example
    *
    * ```ts
-   * // codeblock-meta title="Simulating axios-like interceptors with a custom base query"
-   * // file: authSlice.ts noEmit
-   * declare function setToken(args?: any): void;
-   * declare function loggedOut(): void;
-   * export { setToken, loggedOut }
-   *
-   * // file: baseQueryWithReauth.ts
-   * import {
-   *   BaseQueryFn,
-   *   FetchArgs,
-   *   fetchBaseQuery,
-   *   FetchBaseQueryError
-   * } from '@reduxjs/toolkit/query';
-   * import { setToken, loggedOut } from './authSlice';
-   *
-   * const baseQuery = fetchBaseQuery({ baseUrl: '/' });
-   *
-   * const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
-   *   args,
-   *   api,
-   *   extraOptions
-   * ) => {
-   *   let result = await baseQuery(args, api, extraOptions);
-   *   if (result.error && result.error.status === 401) {
-   *     // try to get a new token
-   *     const refreshResult = await baseQuery('/refreshToken', api, extraOptions);
-   *     if (refreshResult.data) {
-   *       // store the new token
-   *       api.dispatch(setToken(refreshResult.data));
-   *       // retry the initial query
-   *       result = await baseQuery(args, api, extraOptions);
-   *     } else {
-   *       api.dispatch(loggedOut());
-   *     }
-   *   }
-   *   return result;
-   * };
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+   * 
+   * const api = createApi({
+   *   // highlight-start
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   // highlight-end
+   *   endpoints: (build) => ({
+   *     // ...endpoints
+   *   }),
+   * })
    * ```
    */
   baseQuery: BaseQuery
   /**
    * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining an tag type, you will be able to [provide](../../usage/rtk-query/cached-data#providing-tags) them with `provides` and [invalidate](../../usage/rtk-query/cached-data#invalidating-tags) them with `invalidates` when configuring [endpoints](#endpoints).
+   * 
+   * @example
+   * 
+   * ```ts
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+   * 
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   // highlight-start
+   *   tagTypes: ['Post', 'User'],
+   *   // highlight-end
+   *   endpoints: (build) => ({
+   *     // ...endpoints
+   *   }),
+   * })
+   * ```
    */
   tagTypes?: readonly TagTypes[]
   /**
@@ -76,7 +65,9 @@ export interface CreateApiOptions<
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query';
    *
    * const apiOne = createApi({
+   *   // highlight-start
    *   reducerPath: 'apiOne',
+   *   // highlight-end
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   endpoints: (builder) => ({
    *     // ...endpoints
@@ -84,7 +75,9 @@ export interface CreateApiOptions<
    * });
    *
    * const apiTwo = createApi({
+   *   // highlight-start
    *   reducerPath: 'apiTwo',
+   *   // highlight-end
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   endpoints: (builder) => ({
    *     // ...endpoints

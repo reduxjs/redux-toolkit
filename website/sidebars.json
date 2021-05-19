@@ -43,6 +43,7 @@
             "usage/rtk-query/code-splitting",
             "usage/rtk-query/code-generation",
             "usage/rtk-query/customizing-create-api",
+            "usage/rtk-query/customizing-queries",
             "usage/rtk-query/examples"
           ]
         }

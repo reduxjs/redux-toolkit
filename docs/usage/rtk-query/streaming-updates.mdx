@@ -29,7 +29,8 @@ Example use cases that benefit from streaming updates are:
 - Real-time multiplayer games
 - Collaborative document editing with multiple concurrent users
 
-### Example - Websocket Chat API
+## Examples
+### Websocket Chat API
 
 ```ts
 // file: schemaValidators.ts noEmit
@@ -107,7 +108,7 @@ When there are no more active subscriptions to the data (e.g. when the subscribe
 
 If a query for the corresponding cache entry runs later, it will overwrite the whole cache entry, and the streaming update listeners will continue to work on the updated data.
 
-### Example - Websocket Chat API with a transformed response shape
+### Websocket Chat API with a transformed response shape
 
 ```ts
 // file: schemaValidators.ts noEmit

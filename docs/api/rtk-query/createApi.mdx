@@ -64,6 +64,8 @@ export const { useGetPokemonByNameQuery } = pokemonApi
 
 [summary](docblock://query/createApi.ts?token=CreateApiOptions.tagTypes)
 
+[examples](docblock://query/createApi.ts?token=CreateApiOptions.tagTypes)
+
 ### `reducerPath`
 
 [summary](docblock://query/createApi.ts?token=CreateApiOptions.reducerPath)
@@ -95,8 +97,11 @@ export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
 
 #### Anatomy of an endpoint
 
-- `query` _(required)_
+- `query` _(required if no `queryFn` provided)_
   - [summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.query)
+- `queryFn` _(required if no `query` provided)_
+  - [summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQueryFn.queryFn)
+  - [examples](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQueryFn.queryFn)
 - `transformResponse` _(optional)_
 
   - [summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.transformResponse)
@@ -185,6 +190,8 @@ export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
       }: QueryCacheLifecycleApi
     ): Promise<void>
     ```
+
+- `extraOptions` _(optional)_ - Passed as the third argument to the supplied `baseQuery` function
 
 #### How endpoints get used
 
