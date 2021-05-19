@@ -348,15 +348,15 @@ const api = createApi({
       // A queryFn returning an empty array is used, with contents being populated via
       // streaming updates below as they are received.
       queryFn: () => ({ data: [] }),
-      async onCacheEntryAdded(arg, { updateCacheEntry, cleanup }) {
+      async onCacheEntryAdded(arg, { updateCachedData, cacheEntryRemoved }) {
         const ws = new WebSocket('ws://localhost:8080')
         // populate the array with messages as they are received from the websocket
         ws.addEventListener('message', (event) => {
-          updateCacheEntry((draft) => {
+          updateCachedData((draft) => {
             draft.push(JSON.parse(event.data))
           })
         })
-        await cleanup
+        await cacheEntryRemoved
         ws.close()
       },
     }),
