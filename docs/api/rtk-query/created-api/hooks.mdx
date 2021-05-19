@@ -267,11 +267,12 @@ type UseQueryResult<T> = {
   startedTimeStamp?: number // Timestamp for when the query was initiated
   fulfilledTimeStamp?: number // Timestamp for when the query was completed
 
-  isUninitialized: false // Query has not started yet.
-  isLoading: false // Query is currently loading for the first time. No data yet.
-  isFetching: false // Query is currently fetching, but might have data from an earlier request.
-  isSuccess: false // Query has data from a successful load.
-  isError: false // Query is currently in an "error" state.
+  // Derived request status booleans
+  isUninitialized: boolean // Query has not started yet.
+  isLoading: boolean // Query is currently loading for the first time. No data yet.
+  isFetching: boolean // Query is currently fetching, but might have data from an earlier request.
+  isSuccess: boolean // Query has data from a successful load.
+  isError: boolean // Query is currently in an "error" state.
 
   refetch: () => void // A function to force refetch the query
 }
@@ -316,15 +317,18 @@ type UseMutationTrigger<T> = (
 }
 
 type UseMutationResult<T> = {
+  // Base query state
+  originalArgs?: unknown // Arguments passed to the latest mutation call
   data?: T // Returned result if present
-  endpointName?: string // The name of the given endpoint for the mutation
   error?: unknown // Error result if present
+  endpointName?: string // The name of the given endpoint for the mutation
   fulfilledTimestamp?: number // Timestamp for when the mutation was completed
+
+  // Derived request status booleans
   isError: boolean // Mutation is currently in an "error" state
   isLoading: boolean // Mutation has been fired and is awaiting a response
   isSuccess: boolean // Mutation has data from a successful call
   isUninitialized: boolean // Mutation has not been fired yet
-  originalArgs?: unknown // Arguments passed to the latest mutation call
   startedTimeStamp?: number // Timestamp for when the latest mutation was initiated
 }
 ```

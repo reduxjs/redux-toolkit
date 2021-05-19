@@ -13,6 +13,8 @@ By default, RTK Query ships with [`fetchBaseQuery`](../../api/rtk-query/fetchBas
 
 > Depending on your environment, you may need to polyfill `fetch` with `node-fetch` or `cross-fetch` if you choose to use `fetchBaseQuery` or `fetch` on its own.
 
+See [`useQuery`](../../api/rtk-query/created-api/hooks.mdx#usequery) for the hook signature and additional details.
+
 ```ts title="Example of all query endpoint options"
 // file: types.ts noEmit
 export interface Post {
@@ -81,25 +83,25 @@ Hooks are automatically generated based on the name of the `endpoint` in the ser
 
 There are 5 query-related hooks:
 
-1. [`useQuery`](../../api/rtk-query/created-api/hooks/#usequery)
-   - Composes `useQuerySubscription` and `useQueryState` and is the primary hook
-2. [`useQuerySubscription`](../../api/rtk-query/created-api/hooks/#usequerysubscription)
-   - Returns a `refetch` function and accepts all hook options
-3. [`useQueryState`](../../api/rtk-query/created-api/hooks/#usequerystate)
-   - Returns the query state and accepts `skip` and `selectFromResult`
-4. [`useLazyQuery`](../../api/rtk-query/created-api/hooks/#uselazyquery)
-   - Returns a tuple with a `fetch` function, the query result, and last promise info
-5. [`useLazyQuerySubscription`](../../api/rtk-query/created-api/hooks/#uselazyquerysubscription)
-   - Returns a tuple with a `fetch` function, and last promise info
+1. [`useQuery`](../../api/rtk-query/created-api/hooks.mdx#usequery)
+   - Composes `useQuerySubscription` and `useQueryState` and is the primary hook. Automatically triggers fetches of data from an endpoint, 'subscribes' the component to the cached data, and reads the request status and cached data from the Redux store.
+2. [`useQuerySubscription`](../../api/rtk-query/created-api/hooks.mdx#usequerysubscription)
+   - Returns a `refetch` function and accepts all hook options. Automatically triggers fetches of data from an endpoint, and 'subscribes' the component to the cached data.
+3. [`useQueryState`](../../api/rtk-query/created-api/hooks.mdx#usequerystate)
+   - Returns the query state and accepts `skip` and `selectFromResult`. Reads the request status and cached data from the Redux store.
+4. [`useLazyQuery`](../../api/rtk-query/created-api/hooks.mdx#uselazyquery)
+   - Returns a tuple with a `fetch` function, the query result, and last promise info. Similar to `useQuery`, but with manual control over when the data fetching occurs.
+5. [`useLazyQuerySubscription`](../../api/rtk-query/created-api/hooks.mdx#uselazyquerysubscription)
+   - Returns a tuple with a `fetch` function, and last promise info. Similar to `useQuerySubscription`, but with manual control over when the data fetching occurs.
 
 #### Query Hook Options
 
-- [skip](./conditional-fetching) - Defaults to `false`
-- [pollingInterval](./polling) - Defaults to `0` _(off)_
-- [selectFromResult](#selecting-data-from-a-query-result) - Optional, allows you to return a subset of a query
-- [refetchOnMountOrArgChange](../../api/rtk-query/createApi#refetchonmountorargchange) - Defaults to `false`
-- [refetchOnFocus](../../api/rtk-query/createApi#refetchonfocus) - Defaults to `false`
-- [refetchOnReconnect](../../api/rtk-query/createApi#refetchonreconnect) - Defaults to `false`
+- [skip](./conditional-fetching) - Allows a query to 'skip' running for that render. Defaults to `false`
+- [pollingInterval](./polling) - Allows a query to automatically refetch on a provided interval, specified in milliseconds. Defaults to `0` _(off)_
+- [selectFromResult](#selecting-data-from-a-query-result) - Allows altering the returned value of the hook to obtain a subset of the result, render-optimized for the returned subset.
+- [refetchOnMountOrArgChange](../../api/rtk-query/createApi#refetchonmountorargchange) - Allows forcing the query to always refetch on mount (when `true` is provided). Allows forcing the query to refetch if enough time (in seconds) has passed since the last query for the same cache (when a `number` is provided). Defaults to `false`
+- [refetchOnFocus](../../api/rtk-query/createApi#refetchonfocus) - Allows forcing the query to refetch when the browser window regains focus. Defaults to `false`
+- [refetchOnReconnect](../../api/rtk-query/createApi#refetchonreconnect) - Allows forcing the query to refetch when regaining a network connection. Defaults to `false`
 
 > All `refetch`-related options will override the defaults you may have set in [createApi](../../api/rtk-query/createApi)
 
