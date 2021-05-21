@@ -250,26 +250,7 @@ export const { endpoints, reducerPath, reducer, middleware } = api
 
 [summary](docblock://query/createApi.ts?token=CreateApiOptions.serializeQueryArgs)
 
-Defaults to:
-
-```ts no-transpile
-export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
-  endpointName,
-  queryArgs,
-}) => {
-  // Sort the object keys before stringifying, to prevent useQuery({ a: 1, b: 2 }) having a different cache key than useQuery({ b: 2, a: 1 })
-  return `${endpointName}(${JSON.stringify(queryArgs, (key, value) =>
-    isPlainObject(value)
-      ? Object.keys(value)
-          .sort()
-          .reduce<any>((acc, key) => {
-            acc[key] = (value as any)[key]
-            return acc
-          }, {})
-      : value
-  )})`
-}
-```
+By default, this function will take the query arguments, sort object keys where applicable, stringify the result, and concatenate it with the endpoint name. This creates a cache key based on the combination of arguments + endpoint name (ignoring object key order), such that calling any given endpoint with the same arguments will result in the same cache key.
 
 ### `keepUnusedDataFor`
 
