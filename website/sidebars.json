@@ -44,6 +44,7 @@
             "usage/rtk-query/code-generation",
             "usage/rtk-query/customizing-create-api",
             "usage/rtk-query/customizing-queries",
+            "usage/rtk-query/migrating-to-rtk-query",
             "usage/rtk-query/examples"
           ]
         }
