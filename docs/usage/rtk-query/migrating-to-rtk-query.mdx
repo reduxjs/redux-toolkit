@@ -63,13 +63,12 @@ import { RootState } from '../store'
 export const fetchPokemonByName = createAsyncThunk<Pokemon, string>(
   'pokemon/fetchByName',
   async (name, { rejectWithValue }) => {
-    const response = await fetch(
-      `https://pokeapi.co/api/v2/pokemon/${name}`
-    ).then((res) => res.json())
+    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`)
+    const data = await response.json()
     if (response.status < 200 || response.status >= 300) {
-      return rejectWithValue(response)
+      return rejectWithValue(data)
     }
-    return response
+    return data
   }
 )
 // highlight-end
@@ -450,7 +449,7 @@ Given that we're no longer using that slice any longer, we can remove the import
 We can also remove the _entire slice and hook files_ completely!
 
 ```diff
-- src/services/pokemonSlice.ts (-52 lines)
+- src/services/pokemonSlice.ts (-51 lines)
 - src/hooks.ts (-34 lines)
 ```
 
