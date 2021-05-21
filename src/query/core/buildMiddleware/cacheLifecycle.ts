@@ -3,10 +3,6 @@ import type { AnyAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import type { BaseQueryFn } from '../../baseQueryTypes'
 import { DefinitionType } from '../../endpointDefinitions'
-import {
-  OptionalPromise,
-  toOptionalPromise,
-} from '../../utils/toOptionalPromise'
 import type { RootState } from '../apiState'
 import type {
   MutationResultSelectorResult,
@@ -89,8 +85,10 @@ declare module '../../endpointDefinitions' {
      * to prevent memory leaks.
      * You can just re-throw that error (or not handle it at all) -
      * it will be caught outside of `cacheEntryAdded`.
+     *
+     * If you don't interact with this promise, it will not throw.
      */
-    cacheDataLoaded: OptionalPromise<ResultType>
+    cacheDataLoaded: Promise<ResultType>
     /**
      * Promise that allows you to wait for the point in time when the cache entry
      * has been removed from the cache, by not being used/subscribed to any more
@@ -254,16 +252,17 @@ export const build: SubMiddlewareBuilder = ({
       const cacheEntryRemoved = new Promise<void>((resolve) => {
         lifecycle.cacheEntryRemoved = resolve
       })
-      const cacheDataLoaded = toOptionalPromise(
-        Promise.race([
-          new Promise<void>((resolve) => {
-            lifecycle.valueResolved = resolve
-          }),
-          cacheEntryRemoved.then(() => {
-            throw neverResolvedError
-          }),
-        ])
-      )
+      const cacheDataLoaded = Promise.race([
+        new Promise<void>((resolve) => {
+          lifecycle.valueResolved = resolve
+        }),
+        cacheEntryRemoved.then(() => {
+          throw neverResolvedError
+        }),
+      ])
+      // prevent uncaught promise rejections from happening.
+      // if the original promise is used in any way, that will create a new promise that will throw again
+      cacheDataLoaded.catch(() => {})
       lifecycleMap[queryCacheKey] = lifecycle
       const selector = (api.endpoints[endpointName] as any).select(
         endpointDefinition.type === DefinitionType.query

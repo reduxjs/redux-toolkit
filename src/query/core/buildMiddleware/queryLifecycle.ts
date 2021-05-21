@@ -1,10 +1,6 @@
 import { isPending, isRejected, isFulfilled } from '@reduxjs/toolkit'
 import { BaseQueryFn } from '../../baseQueryTypes'
 import { DefinitionType } from '../../endpointDefinitions'
-import {
-  OptionalPromise,
-  toOptionalPromise,
-} from '../../utils/toOptionalPromise'
 import { Recipe } from '../buildThunks'
 import { SubMiddlewareBuilder } from './types'
 
@@ -14,12 +10,14 @@ declare module '../../endpointDefinitions' {
   export interface QueryLifecyclePromises<ResultType> {
     /**
      * Promise that will resolve with the (transformed) query result.
-     
+     *
      * If the query fails, this promise will reject with the error.
      *
      * This allows you to `await` for the query to finish.
+     *
+     * If you don't interact with this promise, it will not throw.
      */
-    queryFulfilled: OptionalPromise<ResultType>
+    queryFulfilled: Promise<ResultType>
   }
 
   interface QueryExtraOptions<
@@ -99,12 +97,13 @@ export const build: SubMiddlewareBuilder = ({
         const onQueryStarted = endpointDefinition?.onQueryStarted
         if (onQueryStarted) {
           const lifecycle = {} as CacheLifecycle
-          const queryFulfilled = toOptionalPromise(
-            new Promise((resolve, reject) => {
-              lifecycle.resolve = resolve
-              lifecycle.reject = reject
-            })
-          )
+          const queryFulfilled = new Promise((resolve, reject) => {
+            lifecycle.resolve = resolve
+            lifecycle.reject = reject
+          })
+          // prevent uncaught promise rejections from happening.
+          // if the original promise is used in any way, that will create a new promise that will throw again
+          queryFulfilled.catch(() => {})
           lifecycleMap[requestId] = lifecycle
           const selector = (api.endpoints[endpointName] as any).select(
             endpointDefinition.type === DefinitionType.query
