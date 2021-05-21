@@ -349,7 +349,7 @@ export const { useGetPokemonByNameQuery } = api
 
 #### Connecting our Api to the store
 
-Now that we have our api definition created, we need to hook it up to our store. In order to do that, we will need to use the [`reducerPath`](../../api/rtk-query/redux-integration.mdx#reducerpath) and [`middleware`](../../api/rtk-query/redux-integration.mdx#middleware) properties from our created `api`. This will allow the store to process the internal actions that the generated hook uses, allows the generated API logic to find the state correctly, and adds the logic for managing caching, invalidation, subscriptions, polling, and more.
+Now that we have our api definition created, we need to hook it up to our store. In order to do that, we will need to use the [`reducerPath`](../../api/rtk-query/created-api/redux-integration.mdx#reducerpath) and [`middleware`](../../api/rtk-query/created-api/redux-integration.mdx#middleware) properties from our created `api`. This will allow the store to process the internal actions that the generated hook uses, allows the generated API logic to find the state correctly, and adds the logic for managing caching, invalidation, subscriptions, polling, and more.
 
 ```ts title="src/store.ts"
 // file: src/services/pokemonSlice.ts noEmit
