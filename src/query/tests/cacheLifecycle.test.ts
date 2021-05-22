@@ -108,7 +108,7 @@ describe.each([['query'], ['mutation']] as const)(
       await fakeTimerWaitFor(() => {
         expect(gotFirstValue).toHaveBeenCalled()
       })
-      expect(gotFirstValue).toHaveBeenCalledWith({ value: 'success' })
+      expect(gotFirstValue).toHaveBeenCalledWith({ data: { value: 'success' } })
       expect(onCleanup).not.toHaveBeenCalled()
 
       promise.unsubscribe(), await waitMs()

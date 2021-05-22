@@ -23,7 +23,7 @@ export interface CreateApiOptions<
    *
    * ```ts
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-   * 
+   *
    * const api = createApi({
    *   // highlight-start
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -37,12 +37,12 @@ export interface CreateApiOptions<
   baseQuery: BaseQuery
   /**
    * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining an tag type, you will be able to [provide](../../usage/rtk-query/cached-data#providing-tags) them with `provides` and [invalidate](../../usage/rtk-query/cached-data#invalidating-tags) them with `invalidates` when configuring [endpoints](#endpoints).
-   * 
+   *
    * @example
-   * 
+   *
    * ```ts
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-   * 
+   *
    * const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   // highlight-start
@@ -229,15 +229,14 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
                 '`onStart`, `onSuccess` and `onError` have been replaced by `onQueryStarted`, please change your code accordingly'
               )
             }
-            x.onQueryStarted ??= async (arg, { queryFulfilled, ...api }) => {
+            x.onQueryStarted ??= (arg, { queryFulfilled, ...api }) => {
               const queryApi = { ...api, context: {} }
               x.onStart?.(arg, queryApi)
-              try {
-                const result = await queryFulfilled
-                x.onSuccess?.(arg, queryApi, result, undefined)
-              } catch (error) {
-                x.onError?.(arg, queryApi, error, undefined)
-              }
+              return queryFulfilled.then(
+                (result) =>
+                  x.onSuccess?.(arg, queryApi, result.data, undefined),
+                (reason) => x.onError?.(arg, queryApi, reason.error, undefined)
+              )
             }
           }
           return { ...x, type: DefinitionType.query } as any
@@ -253,15 +252,14 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
                 '`onStart`, `onSuccess` and `onError` have been replaced by `onQueryStarted`, please change your code accordingly'
               )
             }
-            x.onQueryStarted ??= async (arg, { queryFulfilled, ...api }) => {
+            x.onQueryStarted ??= (arg, { queryFulfilled, ...api }) => {
               const queryApi = { ...api, context: {} }
               x.onStart?.(arg, queryApi)
-              try {
-                const result = await queryFulfilled
-                x.onSuccess?.(arg, queryApi, result, undefined)
-              } catch (error) {
-                x.onError?.(arg, queryApi, error, undefined)
-              }
+              return queryFulfilled.then(
+                (result) =>
+                  x.onSuccess?.(arg, queryApi, result.data, undefined),
+                (reason) => x.onError?.(arg, queryApi, reason.error, undefined)
+              )
             }
           }
           return { ...x, type: DefinitionType.mutation } as any
