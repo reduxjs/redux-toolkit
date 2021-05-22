@@ -11,6 +11,8 @@ Unlike `useQuery`, `useMutation` returns a tuple. The first item in the tuple is
 
 Unlike the `useQuery` hook, the `useMutation` hook doesn't execute automatically. To run a mutation you have to call the trigger function returned as the first tuple value from the hook.
 
+See [`useMutation`](../../api/rtk-query/created-api/hooks.mdx#usemutation) for the hook signature and additional details.
+
 ```ts title="Example of all mutation endpoint options"
 // file: types.ts noEmit
 export interface Post {
@@ -68,47 +70,32 @@ const api = createApi({
 Notice the `onQueryStarted` method? Be sure to check out how it can be used for [optimistic updates](./optimistic-updates)
 :::
 
-### Type interfaces
+### Performing Mutations with React Hooks
 
-```ts title="Mutation endpoint definition" no-transpile
-export type MutationDefinition<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  TagTypes extends string,
-  ResultType,
-  ReducerPath extends string = string,
-  Context = Record<string, any>
-> = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> & {
-  type: DefinitionType.mutation
-  invalidatesTags?: ResultDescription<TagTypes, ResultType, QueryArg>
-  providesTags?: never
-  onQueryStarted?(
-    arg: QueryArg,
-    {
-      dispatch,
-      getState,
-      queryFulfilled,
-      requestId,
-      extra,
-      getCacheEntry,
-    }: MutationLifecycleApi
-  ): Promise<void>
-  onCacheEntryAdded?(
-    arg: QueryArg,
-    {
-      dispatch,
-      getState,
-      extra,
-      requestId,
-      cacheEntryRemoved,
-      cacheDataLoaded,
-      getCacheEntry,
-    }: MutationCacheLifecycleApi
-  ): Promise<void>
-}
-```
+#### Frequently Used Mutation Hook Return Values
 
-### Basic Mutation
+The `useMutation` hook returns a tuple containing a `mutation trigger` function, as well as an object containing properties about the `mutation result`.
+
+The `mutation trigger` is a function that when called, will fire off the mutation request for that endpoint. Calling the `mutation trigger` returns a promise with an `unwrap` property, which can be called to unwrap the mutation call and provide the raw response/error. This can be useful if you wish to determine whether the mutation succeeds/fails inline at the call-site.
+
+The `mutation result` is an object containing properties such as the latest `data` for the mutation request, as well as status booleans for the current request lifecycle state.
+
+Below are some of the most frequently used properties on the `mutation result` object. Refer to [`useMutation`](../../api/rtk-query/created-api/hooks.mdx#usemutation) for an extensive list of all returned properties.
+
+- `data` - The returned result if present.
+- `error` - The error result if present.
+- `isUninitialized` - When true, indicates that the mutation has not been fired yet.
+- `isLoading` - When true, indicates that the mutation has been fired and is awaiting a response.
+- `isSuccess` - When true, indicates that the last mutation fired has data from a successful request.
+- `isError` - When true, indicates that the last mutation fired resulted in an error state.
+
+:::note
+
+With RTK Query, a mutation does contain a semantic distinction between 'loading' and 'fetching' in the way that a [query does](./queries.mdx#frequently-used-query-hook-return-values). For a mutation, subsequent calls are not assumed to be necessarily related, so a mutation is either 'loading' or 'not loading', with no concept of 're-fetching'.
+
+:::
+
+#### Example
 
 This is a modified version of the complete example you can see at the bottom of the page to highlight the `updatePost` mutation. In this scenario, a post is fetched with `useQuery`, and then a `EditablePostName` component is rendered that allows us to edit the name of the post.
 
@@ -118,11 +105,12 @@ export const PostDetail = () => {
 
   const { data: post } = useGetPostQuery(id)
 
+  // highlight-start
   const [
-    // highlight-next-line
     updatePost, // This is the mutation trigger
-    { isLoading: isUpdating }, // You can use the `isLoading` flag, or do custom logic with `status`
+    { isLoading: isUpdating }, // This is the destructured mutation result
   ] = useUpdatePostMutation()
+  // highlight-end
 
   return (
     <Box p={4}>
@@ -140,7 +128,9 @@ export const PostDetail = () => {
             // highlight-end
           )
         }}
+        // highlight-start
         isLoading={isUpdating}
+        // highlight-end
       />
     </Box>
   )

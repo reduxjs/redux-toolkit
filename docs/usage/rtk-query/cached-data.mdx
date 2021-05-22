@@ -15,7 +15,7 @@ RTK Query provides a number of concepts and tools to manipulate the cache behavi
 
 ### Tags
 
-_see also: [tagTypes](../../api/rtk-query/createApi#tagtypes)_
+_see also: [tagTypes API reference](../../api/rtk-query/createApi.mdx#tagtypes)_
 
 For RTK Query, _tags_ are just a name that you can give to a specific collection of data to control caching and invalidation behavior for refetching purposes. It can be considered as a 'label' attached to cached data that is read after a `mutation`, to decide whether the data should be affected by the mutation.
 
@@ -25,7 +25,7 @@ An individual `tag` has a `type`, represented as a `string` name, and an optiona
 
 ### Providing tags
 
-_see also: [Anatomy of an endpoint](../../api/rtk-query/createApi#anatomy-of-an-endpoint)_
+_see also: [providesTags API reference](../../api/rtk-query/createApi.mdx#providestags)_
 
 A _query_ can have it's cached data _provide_ tags. Doing so determines which 'tag' is attached to the cached data returned by the query.
 
@@ -33,7 +33,7 @@ The `providesTags` argument can either be an array of `string` (such as `['Post'
 
 ### Invalidating tags
 
-_see also: [Anatomy of an endpoint](../../api/rtk-query/createApi#anatomy-of-an-endpoint)_
+_see also: [invalidatesTags API reference](../../api/rtk-query/createApi.mdx#invalidatesTags)_
 
 A _mutation_ can _invalidate_ specific cached data based on the tags. Doing so determines which cached data will be either refetched or removed from the cache.
 
