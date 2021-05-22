@@ -23,7 +23,7 @@ import {
 import { QueryKeys } from '../core/apiState'
 import { PrefetchOptions } from '../core/module'
 
-export const reactHooksModuleName = Symbol()
+export const reactHooksModuleName = /* #__PURE__ */ Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName
 
 declare module '../apiTypes' {

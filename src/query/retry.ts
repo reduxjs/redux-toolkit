@@ -108,4 +108,4 @@ const retryWithBackoff: BaseQueryEnhancer<
  * export const { useGetPostsQuery, useGetPostQuery } = api;
  * ```
  */
-export const retry = Object.assign(retryWithBackoff, { fail })
+export const retry = /* #__PURE__ */ Object.assign(retryWithBackoff, { fail })

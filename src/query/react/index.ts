@@ -17,6 +17,9 @@ import { PrefetchOptions } from '../core/module'
 export * from '..'
 export { ApiProvider } from './ApiProvider'
 
-const createApi = buildCreateApi(coreModule(), reactHooksModule())
+const createApi = /* #__PURE__ */ buildCreateApi(
+  coreModule(),
+  reactHooksModule()
+)
 
 export { createApi, reactHooksModule }

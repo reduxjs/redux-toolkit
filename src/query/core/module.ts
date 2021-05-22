@@ -39,6 +39,7 @@ import { BaseQueryFn } from '../baseQueryTypes'
 import type { ReferenceCacheLifecycle } from './buildMiddleware/cacheLifecycle'
 import type { ReferenceQueryLifecycle } from './buildMiddleware/queryLifecycle'
 import { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
+import { enablePatches } from 'immer'
 
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
@@ -54,7 +55,7 @@ export type PrefetchOptions =
     }
   | { force?: boolean }
 
-export const coreModuleName = Symbol()
+export const coreModuleName = /* #__PURE__ */ Symbol()
 export type CoreModule =
   | typeof coreModuleName
   | ReferenceCacheLifecycle
@@ -247,6 +248,8 @@ export const coreModule = (): Module<CoreModule> => ({
     },
     context
   ) {
+    enablePatches()
+
     assertCast<InternalSerializeQueryArgs>(serializeQueryArgs)
 
     const assertTagType: AssertTagTypes = (tag) => {
