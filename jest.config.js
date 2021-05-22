@@ -1,6 +1,6 @@
 module.exports = {
   setupFilesAfterEnv: ['./jest.setup.js'],
-  testMatch: ['<rootDir>/src/**/?(*.)+(spec|test).[jt]s?(x)'],
+  testMatch: ['<rootDir>/src/**/*.(spec|test).[jt]s?(x)'],
   moduleNameMapper: {
     '^@reduxjs/toolkit$': '<rootDir>/src/index.ts', // @remap-prod-remove-line
     '^@reduxjs/toolkit/query$': '<rootDir>/src/query/index.ts', // @remap-prod-remove-line
