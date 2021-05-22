@@ -27,6 +27,7 @@
   "types": "dist/index.d.ts",
   "devDependencies": {
     "@microsoft/api-extractor": "^7.13.2",
+    "@size-limit/preset-small-lib": "^4.11.0",
     "@testing-library/react": "^11.2.6",
     "@testing-library/react-hooks": "^5.1.2",
     "@testing-library/user-event": "^13.1.5",
@@ -69,6 +70,7 @@
     "react-redux": "^7.2.3",
     "rollup": "^2.47.0",
     "rollup-plugin-strip-code": "^0.2.6",
+    "size-limit": "^4.11.0",
     "source-map": "^0.7.3",
     "terser": "^5.6.1",
     "ts-jest": "^26.5.5",
