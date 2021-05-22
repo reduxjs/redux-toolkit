@@ -325,10 +325,10 @@ type UseMutationResult<T> = {
   fulfilledTimestamp?: number // Timestamp for when the mutation was completed
 
   // Derived request status booleans
-  isError: boolean // Mutation is currently in an "error" state
+  isUninitialized: boolean // Mutation has not been fired yet
   isLoading: boolean // Mutation has been fired and is awaiting a response
   isSuccess: boolean // Mutation has data from a successful call
-  isUninitialized: boolean // Mutation has not been fired yet
+  isError: boolean // Mutation is currently in an "error" state
   startedTimeStamp?: number // Timestamp for when the latest mutation was initiated
 }
 ```
