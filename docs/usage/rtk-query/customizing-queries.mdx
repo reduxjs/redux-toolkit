@@ -286,7 +286,7 @@ export const { useGetPostsQuery, useGetPostQuery } = api
 
 ### Excluding baseQuery with queryFn
 
-Individual endpoints on [`createApi`](../../api/rtk-query/createApi) accept a [`queryFn`](../../api/rtk-query/createApi#anatomy-of-an-endpoint) property which allows a given endpoint to ignore `baseQuery` for that endpoint by providing an inline function determining how that query resolves.
+Individual endpoints on [`createApi`](../../api/rtk-query/createApi) accept a [`queryFn`](../../api/rtk-query/createApi#queryfn) property which allows a given endpoint to ignore `baseQuery` for that endpoint by providing an inline function determining how that query resolves.
 
 This can be useful for scenarios where you want to have particularly different behaviour for a single endpoint, or where the query itself is not relevant. Such situations may include:
 

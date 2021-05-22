@@ -36,7 +36,7 @@ declare module '../../endpointDefinitions' {
     >
     /**
      * Updates the current cache entry value.
-     * For documentation see `api.util.updateQueryData.
+     * For documentation see `api.util.updateQueryData`.
      */
     updateCachedData(updateRecipe: Recipe<ResultType>): PatchCollection
   }
