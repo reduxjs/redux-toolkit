@@ -1006,9 +1006,13 @@ Each of these query results would include a Todo object that looks like `{id: 1}
 
 In a fully normalized deduplicating cache, only a single copy of this Todo object would be stored. However, RTK Query saves each query result independently in the cache. So, this would result in three separate copies of this Todo being cached in the Redux store. However, if all the endpoints are consistently providing the same tags (such as `{type: 'Todo', id: 1}`), then invalidating that tag will force all the matching endpoints to refetch their data for consistency.
 
-The Redux docs have always recommended [keeping data in a normalized lookup table](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape) to enable easily finding items by ID and updating them in the store, and [RTK's `createEntityAdapter`](../api/createEntityAdapter.mdx) was designed to help manage normalized state. Those concepts are still valuable and don't go away. However, if you're using RTK Query to manage caching data, there's less need to manipulate the data that way yourself.
+The Redux docs have always recommended [keeping data in a normalized lookup table](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape) to enable easily finding items by ID and updating them in the store, and [RTK's `createEntityAdapter`](../../api/createEntityAdapter.mdx) was designed to help manage normalized state. Those concepts are still valuable and don't go away. However, if you're using RTK Query to manage caching data, there's less need to manipulate the data that way yourself.
 
 There are a couple additional points that can help here:
 
-- The generated query hooks have [a `selectFromResult` option](./api/created-api/hooks.mdx) that allow components to read individual pieces of data from a query result. As an example, a `<TodoList>` component might call `useTodosQuery()`, and each individual `<TodoListItem>` could use the same query hook but select from the result to get the right todo object.
-- You can use the [`transformResponse` endpoint option](./api/createApi.mdx) to modify the fetched data so that it's stored in a different shape, such as using `createEntityAdapter` to normalize the data _for this one response_ before it's inserted into the cache.
+- The generated query hooks have [a `selectFromResult` option](../api/created-api/hooks.mdx) that allow components to read individual pieces of data from a query result. As an example, a `<TodoList>` component might call `useTodosQuery()`, and each individual `<TodoListItem>` could use the same query hook but select from the result to get the right todo object.
+- You can use the [`transformResponse` endpoint option](../api/createApi.mdx) to modify the fetched data so that it's stored in a different shape, such as using `createEntityAdapter` to normalize the data _for this one response_ before it's inserted into the cache.
+
+## Further information
+
+- [Reddit: discussion of why RTKQ doesn't have a normalized cache, and tradeoffs](https://www.reddit.com/r/reactjs/comments/my9vrq/redux_toolkit_v16_alpha1_rtk_query_apis/gvxi5t7/)
