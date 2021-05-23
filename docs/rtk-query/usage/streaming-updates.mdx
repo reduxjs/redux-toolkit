@@ -11,11 +11,11 @@ RTK Query gives you the ability to receive **streaming updates** for persistent 
 
 Streaming updates can be used to enable the API to receive real-time updates to the back-end data, such as new entries being created, or important properties being updated.
 
-To enable streaming updates for a query, pass the asynchronous `onCacheEntryAdded` function to the query, including the logic for how to update the query when streamed data is received. See [`onCacheEntryAdded` API reference](../../api/rtk-query/createApi#onCacheEntryAdded) for more details.
+To enable streaming updates for a query, pass the asynchronous `onCacheEntryAdded` function to the query, including the logic for how to update the query when streamed data is received. See [`onCacheEntryAdded` API reference](../api/createApi#oncacheentryadded) for more details.
 
 ## When to use streaming updates
 
-Primarily updates to query data should be done via [`polling`](./polling) intermittently on an interval, using [`cache invalidation`](./cached-data#advanced-invalidation-with-abstract-tag-ids) to invalidate data based on tags associated with queries & mutations, or with [`refetchOnMountOrArgChange`](../../api/rtk-query/createApi#refetchonmountorargchange) to fetch fresh data when a component using the data mounts.
+Primarily updates to query data should be done via [`polling`](./polling) intermittently on an interval, using [`cache invalidation`](./cached-data#advanced-invalidation-with-abstract-tag-ids) to invalidate data based on tags associated with queries & mutations, or with [`refetchOnMountOrArgChange`](../api/createApi#refetchonmountorargchange) to fetch fresh data when a component using the data mounts.
 
 However, streaming updates is particularly useful for scenarios involving:
 
@@ -30,6 +30,7 @@ Example use cases that benefit from streaming updates are:
 - Collaborative document editing with multiple concurrent users
 
 ## Examples
+
 ### Websocket Chat API
 
 ```ts
@@ -183,7 +184,7 @@ export const api = createApi({
 export const { useGetMessagesQuery } = api
 ```
 
-This example demonstrates how the [previous example](#example---websocket-chat-api) can be altered to allow for transforming the response shape when adding data to the cache.
+This example demonstrates how the [previous example](#websocket-chat-api) can be altered to allow for transforming the response shape when adding data to the cache.
 
 For example, the data is transformed from this shape:
 

@@ -15,7 +15,7 @@ RTK Query provides a number of concepts and tools to manipulate the cache behavi
 
 ### Tags
 
-_see also: [tagTypes API reference](../../api/rtk-query/createApi.mdx#tagtypes)_
+_see also: [tagTypes API reference](../api/createApi.mdx#tagtypes)_
 
 For RTK Query, _tags_ are just a name that you can give to a specific collection of data to control caching and invalidation behavior for refetching purposes. It can be considered as a 'label' attached to cached data that is read after a `mutation`, to decide whether the data should be affected by the mutation.
 
@@ -25,7 +25,7 @@ An individual `tag` has a `type`, represented as a `string` name, and an optiona
 
 ### Providing tags
 
-_see also: [providesTags API reference](../../api/rtk-query/createApi.mdx#providestags)_
+_see also: [providesTags API reference](../api/createApi.mdx#providestags)_
 
 A _query_ can have it's cached data _provide_ tags. Doing so determines which 'tag' is attached to the cached data returned by the query.
 
@@ -33,7 +33,7 @@ The `providesTags` argument can either be an array of `string` (such as `['Post'
 
 ### Invalidating tags
 
-_see also: [invalidatesTags API reference](../../api/rtk-query/createApi.mdx#invalidatesTags)_
+_see also: [invalidatesTags API reference](../api/createApi.mdx#invalidatesTags)_
 
 A _mutation_ can _invalidate_ specific cached data based on the tags. Doing so determines which cached data will be either refetched or removed from the cache.
 
@@ -42,6 +42,7 @@ The `invalidatesTags` argument can either be an array of `string` (such as `['Po
 ## Default cache handling behaviour
 
 With RTK Query, caching is based on:
+
 - API endpoint definitions
 - The serialized query parameters used when components subscribe to data from an endpoint
 - Active subscription reference counts
@@ -50,7 +51,7 @@ When a subscription is started, the parameters used with the endpoint are serial
 
 When a request is attempted, if the data already exists in the cache, then that data is served and no new request is sent to the server. Otherwise, if the data does not exist in the cache, then a new request is sent, and the returned response is stored in the cache.
 
-As long as there is an active 'subscription' to the data (e.g. if a component is mounted that calls a `useQuery` hook for the endpoint), then the data will remain in the cache. Once the subscription is removed (e.g. when last component subscribed to the data unmounts), after an amount of time (default 60 seconds), the data will be removed from the cache. The expiration time can be configured with the `keepUnusedDataFor` property for the [API definition as a whole](../../api/rtk-query/createApi.mdx#keepunuseddatafor), as well as on a [per-endpoint](../../api/rtk-query/createApi.mdx#anatomy-of-an-endpoint) basis.
+As long as there is an active 'subscription' to the data (e.g. if a component is mounted that calls a `useQuery` hook for the endpoint), then the data will remain in the cache. Once the subscription is removed (e.g. when last component subscribed to the data unmounts), after an amount of time (default 60 seconds), the data will be removed from the cache. The expiration time can be configured with the `keepUnusedDataFor` property for the [API definition as a whole](../api/createApi.mdx#keepunuseddatafor), as well as on a [per-endpoint](../api/createApi.mdx#keepunuseddatafor-1) basis.
 
 ### Cache lifetime & subscription example
 
@@ -91,7 +92,7 @@ function ComponentFour() {
 
 While four components are subscribed to the endpoint, there are only three distinct combinations of endpoint + query parameters. Query parameters `1` and `2` will each have a single subscriber, while query parameter `3` has two subscribers. RTK Query will make three distinct fetches; one for each unique set of query parameters per endpoint.
 
-Data is kept in the cache as long is there is at least one active subscriber interested in that endpoint + parameter combination. When the subscriber reference count reaches zero, a timer is set, and if there are no new subscriptions to that data by the time the timer expires, the cached data will be removed. The default expiration is 60 seconds, which can be configured both for the [API definition as a whole](../../api/rtk-query/createApi.mdx#keepunuseddatafor), as well as on a [per-endpoint](../../api/rtk-query/createApi.mdx#anatomy-of-an-endpoint) basis.
+Data is kept in the cache as long is there is at least one active subscriber interested in that endpoint + parameter combination. When the subscriber reference count reaches zero, a timer is set, and if there are no new subscriptions to that data by the time the timer expires, the cached data will be removed. The default expiration is 60 seconds, which can be configured both for the [API definition as a whole](../api/createApi.mdx#keepunuseddatafor), as well as on a [per-endpoint](../api/createApi.mdx#keepunuseddatafor-1) basis.
 
 If 'ComponentThree' is unmounted in the example above, regardless of how much time passes, the data will remain in the cache due to 'ComponentFour' still being subscribed to the same data, and the subscribe reference count will be `one`. However, once 'ComponentFour' unmounts, the subscriber reference count will be `zero`. The data will remain in the cache for the remainder of the expiration time, at which point, if no new subscription has been created during that time, the cached data will finally be removed.
 
@@ -811,7 +812,7 @@ When `addPost` is fired, it will only cause the `PostsList` to go into an `isFet
 
 > **Note**
 >
-> If you intend for the `addPost` mutation to refresh all posts including individual `PostDetail` components while still only making 1 new `GET /posts` request, this can be done by selecting a part of the data using [`selectFromResult`](../rtk-query/queries/#selecting-data-from-a-query-result).
+> If you intend for the `addPost` mutation to refresh all posts including individual `PostDetail` components while still only making 1 new `GET /posts` request, this can be done by selecting a part of the data using [`selectFromResult`](./queries.mdx#selecting-data-from-a-query-result).
 
 ### Providing errors to the cache
 

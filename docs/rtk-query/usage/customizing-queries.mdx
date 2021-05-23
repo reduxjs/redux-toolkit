@@ -7,7 +7,7 @@ hide_title: true
 
 # Customizing queries
 
-RTK Query is agnostic as to how your requests resolve. You can use any library you like to handle requests, or no library at all. By default, RTK Query ships with [`fetchBaseQuery`](../../api/rtk-query/fetchBaseQuery), which is a lightweight [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) wrapper that automatically handles request headers and response parsing in a manner similar to common libraries like `axios`. If `fetchBaseQuery` alone does not meet your needs, you can customize it's behaviour with a wrapper function, or create your own [`baseQuery`](../../api/rtk-query/createApi#basequery) function from scratch for [`createApi`](../../api/rtk-query/createApi) to use.
+RTK Query is agnostic as to how your requests resolve. You can use any library you like to handle requests, or no library at all. By default, RTK Query ships with [`fetchBaseQuery`](../api/fetchBaseQuery), which is a lightweight [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) wrapper that automatically handles request headers and response parsing in a manner similar to common libraries like `axios`. If `fetchBaseQuery` alone does not meet your needs, you can customize it's behaviour with a wrapper function, or create your own [`baseQuery`](../api/createApi#basequery) function from scratch for [`createApi`](../api/createApi) to use.
 
 ## Implementing a custom baseQuery
 
@@ -102,7 +102,7 @@ A custom `baseQuery` need only follow the `BaseQueryFn` signature above in order
 
 ### fetchBaseQuery defaults
 
-For [`fetchBaseQuery`](../../api/rtk-query/fetchBaseQuery) specifically, the return type is as follows:
+For [`fetchBaseQuery`](../api/fetchBaseQuery) specifically, the return type is as follows:
 
 ```ts title="Return types of fetchBaseQuery" no-transpile
 Promise<{
@@ -177,7 +177,7 @@ const api = createApi({
 
 ### Automatic re-authorization by extending fetchBaseQuery
 
-This example wraps [`fetchBaseQuery`](../../api/rtk-query/fetchBaseQuery) such that when encountering a [`401 Unauthorized`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401) error, an additional request is sent to attempt to refresh an authorization token, and re-try to initial query after re-authorizing.
+This example wraps [`fetchBaseQuery`](../api/fetchBaseQuery) such that when encountering a [`401 Unauthorized`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401) error, an additional request is sent to attempt to refresh an authorization token, and re-try to initial query after re-authorizing.
 
 ```ts title="Simulating axios-like interceptors with a custom base query"
 // file: authSlice.ts noEmit
@@ -286,7 +286,7 @@ export const { useGetPostsQuery, useGetPostQuery } = api
 
 ### Excluding baseQuery with queryFn
 
-Individual endpoints on [`createApi`](../../api/rtk-query/createApi) accept a [`queryFn`](../../api/rtk-query/createApi#queryfn) property which allows a given endpoint to ignore `baseQuery` for that endpoint by providing an inline function determining how that query resolves.
+Individual endpoints on [`createApi`](../api/createApi) accept a [`queryFn`](../api/createApi#queryfn) property which allows a given endpoint to ignore `baseQuery` for that endpoint by providing an inline function determining how that query resolves.
 
 This can be useful for scenarios where you want to have particularly different behaviour for a single endpoint, or where the query itself is not relevant. Such situations may include:
 
