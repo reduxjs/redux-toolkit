@@ -29,7 +29,9 @@ import type {
 } from './apiState'
 import { QueryStatus } from './apiState'
 import type {
+  MutationThunk,
   MutationThunkArg,
+  QueryThunk,
   QueryThunkArg,
   ThunkResult,
 } from './buildThunks'
@@ -81,22 +83,8 @@ export function buildSlice({
   config,
 }: {
   reducerPath: string
-  queryThunk: AsyncThunk<
-    ThunkResult,
-    QueryThunkArg,
-    {
-      pendingMeta: { startedTimeStamp: number }
-      fulfilledMeta: { fulfilledTimeStamp: number }
-    }
-  >
-  mutationThunk: AsyncThunk<
-    ThunkResult,
-    MutationThunkArg,
-    {
-      pendingMeta: { startedTimeStamp: number }
-      fulfilledMeta: { fulfilledTimeStamp: number }
-    }
-  >
+  queryThunk: QueryThunk
+  mutationThunk: MutationThunk
   context: ApiContext<EndpointDefinitions>
   assertTagType: AssertTagTypes
   config: Omit<

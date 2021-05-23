@@ -168,15 +168,23 @@ export const build: SubMiddlewareBuilder = ({
           onQueryStarted(originalArgs, lifecycleApi)
         }
       } else if (isFullfilledThunk(action)) {
-        const { requestId } = action.meta
-        lifecycleMap[requestId]?.resolve({ data: action.payload })
+        const { requestId, baseQueryMeta } = action.meta
+        lifecycleMap[requestId]?.resolve(
+          {
+            data: action.payload,
+            meta: baseQueryMeta,
+          } as any /* TODO typings for this */
+        )
         delete lifecycleMap[requestId]
       } else if (isRejectedThunk(action)) {
-        const { requestId, rejectedWithValue } = action.meta
-        lifecycleMap[requestId]?.reject({
-          error: action.payload ?? action.error,
-          isUnhandledError: !rejectedWithValue,
-        })
+        const { requestId, rejectedWithValue, baseQueryMeta } = action.meta
+        lifecycleMap[requestId]?.reject(
+          {
+            error: action.payload ?? action.error,
+            isUnhandledError: !rejectedWithValue,
+            meta: baseQueryMeta,
+          } as any /* TODO typings for this */
+        )
         delete lifecycleMap[requestId]
       }
 

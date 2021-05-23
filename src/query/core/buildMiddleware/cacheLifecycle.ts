@@ -219,7 +219,12 @@ export const build: SubMiddlewareBuilder = ({
       } else if (isFullfilledThunk(action)) {
         const lifecycle = lifecycleMap[cacheKey]
         if (lifecycle?.valueResolved) {
-          lifecycle.valueResolved({ data: action.payload })
+          lifecycle.valueResolved(
+            {
+              data: action.payload,
+              meta: action.meta.baseQueryMeta,
+            } as any /* TODO typings */
+          )
           delete lifecycle.valueResolved
         }
       } else if (

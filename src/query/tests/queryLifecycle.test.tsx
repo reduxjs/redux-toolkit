@@ -59,7 +59,13 @@ describe.each([['query'], ['mutation']] as const)(
       storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
       expect(onStart).toHaveBeenCalledWith('arg')
       await waitFor(() => {
-        expect(onSuccess).toHaveBeenCalledWith({ data: { value: 'success' } })
+        expect(onSuccess).toHaveBeenCalledWith({
+          data: { value: 'success' },
+          meta: {
+            request: expect.any(Request),
+            response: expect.any(Object), // Response is not available in jest env
+          },
+        })
       })
     })
 
@@ -90,6 +96,10 @@ describe.each([['query'], ['mutation']] as const)(
             data: { value: 'error' },
           },
           isUnhandledError: false,
+          meta: {
+            request: expect.any(Request),
+            response: expect.any(Object), // Response is not available in jest env
+          },
         })
       })
       expect(onSuccess).not.toHaveBeenCalled()

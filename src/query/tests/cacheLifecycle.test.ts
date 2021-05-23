@@ -108,7 +108,13 @@ describe.each([['query'], ['mutation']] as const)(
       await fakeTimerWaitFor(() => {
         expect(gotFirstValue).toHaveBeenCalled()
       })
-      expect(gotFirstValue).toHaveBeenCalledWith({ data: { value: 'success' } })
+      expect(gotFirstValue).toHaveBeenCalledWith({
+        data: { value: 'success' },
+        meta: {
+          request: expect.any(Request),
+          response: expect.any(Object), // Response is not available in jest env
+        },
+      })
       expect(onCleanup).not.toHaveBeenCalled()
 
       promise.unsubscribe(), await waitMs()

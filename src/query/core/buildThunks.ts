@@ -129,7 +129,13 @@ export type ThunkResult = unknown
 
 export type ThunkApiMetaConfig = {
   pendingMeta: { startedTimeStamp: number }
-  fulfilledMeta: { fulfilledTimeStamp: number }
+  fulfilledMeta: {
+    fulfilledTimeStamp: number
+    baseQueryMeta: unknown
+  }
+  rejectedMeta: {
+    baseQueryMeta: unknown
+  }
 }
 export type QueryThunk = AsyncThunk<
   ThunkResult,
@@ -312,11 +318,12 @@ export function buildThunks<
         await transformResponse(result.data, result.meta),
         {
           fulfilledTimeStamp: Date.now(),
+          baseQueryMeta: result.meta,
         }
       )
     } catch (error) {
       if (error instanceof HandledError) {
-        return rejectWithValue(error.value)
+        return rejectWithValue(error.value, { baseQueryMeta: error.meta })
       }
       throw error
     }
