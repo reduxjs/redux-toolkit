@@ -984,3 +984,31 @@ const api = createApi({
 ```
 
 An example of various abstractions for tag providing/invalidating designed for common rest data formats can be seen in the following gist, including typescript support, and factoring both ['LIST' style advanced tag invalidation](#advanced-invalidation-with-abstract-tag-ids) and ['error' style tag invalidation](#providing-errors-to-the-cache): **[RTK Query cache utils](https://gist.github.com/Shrugsy/6b6af02aef1f783df9d636526c1e05fa)**.
+
+## Tradeoffs
+
+### No Normalized or Deduplicated Cache
+
+RTK Query deliberately **does _not_ implement a cache that would deduplicate identical items across multiple requests**. There are several reasons for this:
+
+- A fully normalized shared-across-queries cache is a _hard_ problem to solve
+- We don't have the time, resources, or interest in trying to solve that right now
+- In many cases, simply refetching data when it's invalidated works well and is easier to understand
+- At a minimum, RTKQ can help solve the general use case of "fetch some data", which is a big pain point for a lot of people
+
+As an example, say that we have an API slice with `getTodos` and `getTodo` endpoints, and our components make the following queries:
+
+- `getTodos()`
+- `getTodos({filter: 'odd'})`
+- `getTodo({id: 1})`
+
+Each of these query results would include a Todo object that looks like `{id: 1}`.
+
+In a fully normalized deduplicating cache, only a single copy of this Todo object would be stored. However, RTK Query saves each query result independently in the cache. So, this would result in three separate copies of this Todo being cached in the Redux store. However, if all the endpoints are consistently providing the same tags (such as `{type: 'Todo', id: 1}`), then invalidating that tag will force all the matching endpoints to refetch their data for consistency.
+
+The Redux docs have always recommended [keeping data in a normalized lookup table](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape) to enable easily finding items by ID and updating them in the store, and [RTK's `createEntityAdapter`](../api/createEntityAdapter.mdx) was designed to help manage normalized state. Those concepts are still valuable and don't go away. However, if you're using RTK Query to manage caching data, there's less need to manipulate the data that way yourself.
+
+There are a couple additional points that can help here:
+
+- The generated query hooks have [a `selectFromResult` option](./api/created-api/hooks.mdx) that allow components to read individual pieces of data from a query result. As an example, a `<TodoList>` component might call `useTodosQuery()`, and each individual `<TodoListItem>` could use the same query hook but select from the result to get the right todo object.
+- You can use the [`transformResponse` endpoint option](./api/createApi.mdx) to modify the fetched data so that it's stored in a different shape, such as using `createEntityAdapter` to normalize the data _for this one response_ before it's inserted into the cache.

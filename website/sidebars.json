@@ -73,6 +73,7 @@
       "collapsed": false,
       "items": [
         "rtk-query/overview",
+        "rtk-query/comparison",
         {
           "type": "category",
           "label": "Using RTK Query",
