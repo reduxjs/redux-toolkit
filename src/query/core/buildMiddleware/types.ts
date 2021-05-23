@@ -8,9 +8,17 @@ import type {
 } from '@reduxjs/toolkit'
 
 import type { Api, ApiContext } from '../../apiTypes'
-import type { AssertTagTypes, EndpointDefinitions } from '../../endpointDefinitions'
+import type {
+  AssertTagTypes,
+  EndpointDefinitions,
+} from '../../endpointDefinitions'
 import type { QueryStatus, QuerySubState, RootState } from '../apiState'
-import type { MutationThunkArg, QueryThunkArg, ThunkResult } from '../buildThunks'
+import type {
+  MutationThunk,
+  QueryThunk,
+  QueryThunkArg,
+  ThunkResult,
+} from '../buildThunks'
 
 export type QueryStateMeta<T> = Record<string, undefined | T>
 export type TimeoutId = ReturnType<typeof setTimeout>
@@ -22,8 +30,8 @@ export interface BuildMiddlewareInput<
 > {
   reducerPath: ReducerPath
   context: ApiContext<Definitions>
-  queryThunk: AsyncThunk<ThunkResult, QueryThunkArg, {}>
-  mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg, {}>
+  queryThunk: QueryThunk
+  mutationThunk: MutationThunk
   api: Api<any, Definitions, ReducerPath, TagTypes>
   assertTagType: AssertTagTypes
 }

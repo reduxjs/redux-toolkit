@@ -231,8 +231,8 @@ test('inferred types', () => {
         .addMatcher(
           api.endpoints.querySuccess.matchFulfilled,
           (state, action) => {
-            expectExactType({} as ResultType)(action.payload.result)
-            expectExactType(0 as number)(action.payload.fulfilledTimeStamp)
+            expectExactType({} as ResultType)(action.payload)
+            expectExactType(0 as number)(action.meta.fulfilledTimeStamp)
             // @ts-expect-error
             console.log(action.error)
             expectExactType({} as ArgType)(action.meta.arg.originalArgs)
