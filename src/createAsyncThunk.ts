@@ -218,12 +218,7 @@ export type AsyncThunkAction<
   extra: GetExtra<ThunkApiConfig>
 ) => Promise<
   | ReturnType<AsyncThunkFulfilledActionCreator<Returned, ThunkArg>>
-  | (ReturnType<AsyncThunkRejectedActionCreator<ThunkArg, unknown>> & {
-      meta: { rejectedWithValue: false }
-    })
-  | (ReturnType<AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>> & {
-      meta: { rejectedWithValue: true; aborted: false; condition: false }
-    })
+  | ReturnType<AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>>
 > & {
   abort(reason?: string): void
   requestId: string
@@ -357,11 +352,13 @@ export type AsyncThunkRejectedActionCreator<
   {
     arg: ThunkArg
     requestId: string
-    rejectedWithValue: boolean
     requestStatus: 'rejected'
     aborted: boolean
     condition: boolean
-  } & GetRejectedMeta<ThunkApiConfig>
+  } & (
+    | { rejectedWithValue: false }
+    | ({ rejectedWithValue: true } & GetRejectedMeta<ThunkApiConfig>)
+  )
 >
 
 export type AsyncThunkFulfilledActionCreator<
