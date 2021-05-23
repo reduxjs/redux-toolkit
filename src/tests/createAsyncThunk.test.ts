@@ -12,6 +12,7 @@ import {
   createConsole,
   getLog,
 } from 'console-testing-library/pure'
+import { expectType } from './helpers'
 
 declare global {
   interface Window {
@@ -770,4 +771,94 @@ test('`condition` will see state changes from a synchonously invoked asyncThunk'
   expect(onStart).toHaveBeenCalledTimes(1)
   store.dispatch(asyncThunk({ force: true }))
   expect(onStart).toHaveBeenCalledTimes(2)
+})
+
+describe.only('meta', () => {
+  const getNewStore = () =>
+    configureStore({
+      reducer(actions = [], action) {
+        return [...actions, action]
+      },
+    })
+  let store = getNewStore()
+
+  beforeEach(() => {
+    const store = getNewStore()
+  })
+
+  test('pendingMeta', () => {
+    const pendingThunk = createAsyncThunk('test', (arg: string) => {}, {
+      getPendingMeta({ arg, requestId }) {
+        expect(arg).toBe('testArg')
+        expect(requestId).toEqual(expect.any(String))
+        return { extraProp: 'foo' }
+      },
+    })
+    const ret = store.dispatch(pendingThunk('testArg'))
+    expect(store.getState()[1]).toEqual({
+      meta: {
+        arg: 'testArg',
+        extraProp: 'foo',
+        requestId: ret.requestId,
+        requestStatus: 'pending',
+      },
+      payload: undefined,
+      type: 'test/pending',
+    })
+  })
+
+  test('fulfilledMeta', async () => {
+    const fulfilledThunk = createAsyncThunk<
+      string,
+      string,
+      { fulfilledMeta: { extraProp: string } }
+    >('test', (arg: string, { fulfillWithValue }) => {
+      return fulfillWithValue('hooray!', { extraProp: 'bar' })
+    })
+    const ret = store.dispatch(fulfilledThunk('testArg'))
+    expect(await ret).toEqual({
+      meta: {
+        arg: 'testArg',
+        extraProp: 'bar',
+        requestId: ret.requestId,
+        requestStatus: 'fulfilled',
+      },
+      payload: 'hooray!',
+      type: 'test/fulfilled',
+    })
+  })
+
+  test('rejectedMeta', async () => {
+    const fulfilledThunk = createAsyncThunk<
+      string,
+      string,
+      { rejectedMeta: { extraProp: string } }
+    >('test', (arg: string, { rejectWithValue }) => {
+      return rejectWithValue('damn!', { extraProp: 'baz' })
+    })
+    const promise = store.dispatch(fulfilledThunk('testArg'))
+    const ret = await promise
+    expect(ret).toEqual({
+      meta: {
+        arg: 'testArg',
+        extraProp: 'baz',
+        requestId: promise.requestId,
+        requestStatus: 'rejected',
+        rejectedWithValue: true,
+        aborted: false,
+        condition: false,
+      },
+      error: { message: 'Rejected' },
+      payload: 'damn!',
+      type: 'test/rejected',
+    })
+
+    if (ret.meta.requestStatus === 'rejected' && ret.meta.rejectedWithValue) {
+      expectType<string>(ret.meta.extraProp)
+    } else {
+      // could be caused by a `throw`, `abort()` or `condition` - no `rejectedMeta` in that case
+      // @ts-expect-error
+      ret.meta.extraProp
+    }
+  })
 })
