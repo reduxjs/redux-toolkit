@@ -30,6 +30,7 @@
     {
       "type": "category",
       "label": "API Reference",
+      "collapsed": true,
       "items": [
         {
           "type": "category",
@@ -69,10 +70,13 @@
     {
       "type": "category",
       "label": "RTK Query",
+      "collapsed": false,
       "items": [
+        "rtk-query/overview",
         {
           "type": "category",
           "label": "Using RTK Query",
+          "collapsed": true,
           "items": [
             "rtk-query/usage/queries",
             "rtk-query/usage/mutations",
@@ -95,7 +99,7 @@
         {
           "type": "category",
           "label": "API Reference",
-          "collapsed": false,
+          "collapsed": true,
           "items": [
             "rtk-query/api/createApi",
             "rtk-query/api/fetchBaseQuery",
