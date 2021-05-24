@@ -426,17 +426,20 @@ export function createAsyncThunk<
     ThunkApiConfig
   > = createAction(
     typePrefix + '/fulfilled',
-    (result: Returned, requestId: string, arg: ThunkArg, meta?: any) => {
-      return {
-        payload: result,
-        meta: {
-          ...((meta as any) || {}),
-          arg,
-          requestId,
-          requestStatus: 'fulfilled' as const,
-        },
-      }
-    }
+    (
+      payload: Returned,
+      requestId: string,
+      arg: ThunkArg,
+      meta?: FulfilledMeta
+    ) => ({
+      payload,
+      meta: {
+        ...((meta as any) || {}),
+        arg,
+        requestId,
+        requestStatus: 'fulfilled' as const,
+      },
+    })
   )
 
   const pending: AsyncThunkPendingActionCreator<
@@ -444,17 +447,15 @@ export function createAsyncThunk<
     ThunkApiConfig
   > = createAction(
     typePrefix + '/pending',
-    (requestId: string, arg: ThunkArg, meta?: PendingMeta) => {
-      return {
-        payload: undefined,
-        meta: {
-          ...((meta as any) || {}),
-          arg,
-          requestId,
-          requestStatus: 'pending' as const,
-        },
-      }
-    }
+    (requestId: string, arg: ThunkArg, meta?: PendingMeta) => ({
+      payload: undefined,
+      meta: {
+        ...((meta as any) || {}),
+        arg,
+        requestId,
+        requestStatus: 'pending' as const,
+      },
+    })
   )
 
   const rejected: AsyncThunkRejectedActionCreator<
@@ -468,27 +469,21 @@ export function createAsyncThunk<
       arg: ThunkArg,
       payload?: RejectedValue,
       meta?: RejectedMeta
-    ) => {
-      const rejectedWithValue = !!payload
-      const aborted = !!error && error.name === 'AbortError'
-      const condition = !!error && error.name === 'ConditionError'
-
-      return {
-        payload,
-        error: ((options && options.serializeError) || miniSerializeError)(
-          error || 'Rejected'
-        ) as GetSerializedErrorType<ThunkApiConfig>,
-        meta: {
-          ...((meta as any) || {}),
-          arg,
-          requestId,
-          rejectedWithValue,
-          requestStatus: 'rejected' as const,
-          aborted,
-          condition,
-        },
-      }
-    }
+    ) => ({
+      payload,
+      error: ((options && options.serializeError) || miniSerializeError)(
+        error || 'Rejected'
+      ) as GetSerializedErrorType<ThunkApiConfig>,
+      meta: {
+        ...((meta as any) || {}),
+        arg,
+        requestId,
+        rejectedWithValue: !!payload,
+        requestStatus: 'rejected' as const,
+        aborted: error?.name === 'AbortError',
+        condition: error?.name === 'ConditionError',
+      },
+    })
   )
 
   let displayedWarning = false
@@ -585,13 +580,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
               })
             ).then((result) => {
               if (result instanceof RejectWithValue) {
-                return rejected(
-                  null,
-                  requestId,
-                  arg,
-                  result.payload,
-                  result.meta
-                )
+                throw result
               }
               if (result instanceof FulfillWithMeta) {
                 return fulfilled(result.payload, requestId, arg, result.meta)
@@ -600,7 +589,10 @@ If you want to use the AbortController to react to \`abort\` events, please cons
             }),
           ])
         } catch (err) {
-          finalAction = rejected(err, requestId, arg)
+          finalAction =
+            err instanceof RejectWithValue
+              ? rejected(null, requestId, arg, err.payload, err.meta)
+              : rejected(err, requestId, arg)
         }
         // We dispatch the result action _after_ the catch, to avoid having any errors
         // here get swallowed by the try/catch block,
