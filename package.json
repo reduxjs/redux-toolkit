@@ -81,10 +81,11 @@
   "scripts": {
     "build-ci": "rimraf dist && tsc && node scripts/cli.js",
     "build": "rimraf dist && tsc && node scripts/cli.js --local",
+    "build-only": "rimraf dist && tsc && node scripts/cli.js --skipExtraction",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"src/**/*.{ts,tsx}\" \"docs/*/**.md\"",
     "lint": "eslint src",
-    "prepare": "npm run build-ci",
+    "prepare": "true",
     "test": "jest --runInBand",
     "type-tests": "yarn tsc -p src/tests && yarn tsc -p src/query/tests"
   },

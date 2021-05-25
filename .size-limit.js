@@ -1,6 +1,5 @@
 const webpack = require('webpack')
 let { join } = require('path')
-const { getConstantValue } = require('typescript')
 
 const rtkEntryPoints = [
   'dist/redux-toolkit.cjs.production.min.js',
@@ -21,6 +20,12 @@ const reactEntryPoints = [
   'dist/query/react/rtk-query-react.esm.js',
   'dist/query/react/rtk-query-react.modern.js',
   'dist/query/react/rtk-query-react.modern.production.min.js',
+]
+
+const umdBuilds = [
+  'dist/redux-toolkit.umd.js',
+  'dist/query/rtk-query.umd.js',
+  'dist/query/react/rtk-query-react.umd.js',
 ]
 
 function withRtkPath(path) {
@@ -64,26 +69,22 @@ function withRtkPath(path) {
   }
 }
 
-const ignoreReact = ['react']
 const ignoreAll = [
   '@reduxjs/toolkit',
-  '@reduxjs/toolkit',
+  '@reduxjs/toolkit/query',
   'immer',
   'redux',
   'reselect',
   'redux-thunk',
-  'react-redux',
-  'react',
 ]
 
 module.exports = [
   ...[...rtkEntryPoints, ...queryEntryPoints, ...reactEntryPoints].flatMap(
     (path) => [
       {
-        name: `1. entry point: ${path} (with all dependencies except react)`,
+        name: `1. entry point: ${path}`,
         path,
         modifyWebpackConfig: withRtkPath(path),
-        ignore: ignoreReact,
       },
       {
         name: `2. entry point: ${path} (without dependencies)`,
@@ -116,28 +117,30 @@ module.exports = [
       path,
       import: '{ createApi }',
       modifyWebpackConfig: withRtkPath(path),
-      ignore: ['react'],
     },
     {
       name: `3. setupListeners (${path})`,
       path,
       import: '{ setupListeners }',
       modifyWebpackConfig: withRtkPath(path),
-      ignore: ['react'],
     },
     {
       name: `3. fetchBaseQuery (${path})`,
       path,
       import: '{ fetchBaseQuery }',
       modifyWebpackConfig: withRtkPath(path),
-      ignore: ['react'],
     },
   ]),
+  ...umdBuilds.map((path) => ({
+    name: `4. UMD build: ${path}`,
+    path,
+  })),
 ].sort(byName)
-
-function score(e) {
-  return (!e.import ? -100 : 0) + (e.ignore === ignoreReact ? -10 : 0)
-}
+/*
+  .filter(
+    (x) => x.name == '3. createApi (dist/query/react/rtk-query-react.modern.js)'
+  )
+  */
 
 function byName(a, b) {
   return (
@@ -145,5 +148,3 @@ function byName(a, b) {
     a.name.substring(0, 12).localeCompare(b.name.substring(0, 12)) * 10
   )
 }
-
-console.log(module.exports.map((m) => m.name))
