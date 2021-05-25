@@ -94,6 +94,7 @@
             "rtk-query/usage/customizing-create-api",
             "rtk-query/usage/customizing-queries",
             "rtk-query/usage/migrating-to-rtk-query",
+            "rtk-query/usage/usage-with-typescript",
             "rtk-query/usage/examples"
           ]
         },
