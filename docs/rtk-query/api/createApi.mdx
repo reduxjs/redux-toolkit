@@ -391,73 +391,10 @@ _(optional, not applicable with `queryFn`)_
 
 In some cases, you may want to manipulate the data returned from a query before you put it in the cache. In this instance, you can take advantage of `transformResponse`.
 
-By default, the payload from the server is returned directly.
-
-```ts
-function defaultTransformResponse(baseQueryReturnValue: unknown) {
-  return baseQueryReturnValue
-}
-```
-
-To change it, provide a function that looks like:
+See also [Customizing query responses with `transformResponse`](../usage/customizing-queries.mdx#customizing-query-responses-with-transformresponse)
 
 ```ts title="Unpack a deeply nested collection" no-transpile
 transformResponse: (response) => response.some.deeply.nested.collection
-```
-
-#### Example - Normalizing response data
-
-```ts title="Normalize the response data" no-transpile
-transformResponse: (response) =>
-  response.reduce((acc, curr) => {
-    acc[curr.id] = curr
-    return acc
-  }, {})
-```
-
-#### Example - Unpacking deeply nested data
-
-```ts title="GraphQL transformation example"
-// file: graphqlBaseQuery.ts noEmit
-import { BaseQueryFn } from '@reduxjs/toolkit/query'
-declare const graphqlBaseQuery: (args: { baseUrl: string }) => BaseQueryFn
-declare const gql: (literals: TemplateStringsArray) => void
-export { graphqlBaseQuery, gql }
-
-// file: graphqlApi.ts
-import { createApi } from '@reduxjs/toolkit/query'
-import { graphqlBaseQuery, gql } from './graphqlBaseQuery'
-
-interface Post {
-  id: number
-  title: string
-}
-
-export const api = createApi({
-  baseQuery: graphqlBaseQuery({
-    baseUrl: '/graphql',
-  }),
-  endpoints: (builder) => ({
-    getPosts: builder.query<Post[], void>({
-      query: () => ({
-        body: gql`
-          query {
-            posts {
-              data {
-                id
-                title
-              }
-            }
-          }
-        `,
-      }),
-      // highlight-start
-      transformResponse: (response: { posts: { data: Post[] } }) =>
-        response.posts.data,
-      // highlight-end
-    }),
-  }),
-})
 ```
 
 ### `extraOptions`

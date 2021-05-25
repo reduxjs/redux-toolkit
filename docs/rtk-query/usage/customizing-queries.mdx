@@ -9,7 +9,7 @@ hide_title: true
 
 RTK Query is agnostic as to how your requests resolve. You can use any library you like to handle requests, or no library at all. RTK Query provides reasonable defaults expected to cover the majority of use cases, while also allowing room for customization to alter query handling to fit specific needs.
 
-## Customizing queries with baseQuery
+## Customizing queries with `baseQuery`
 
 The default method to handle queries is via the [`baseQuery`](../api/createApi#basequery) option on [`createApi`](../api/createApi), in combination with the [`query`](../api/createApi.mdx#query) option on an endpoint definition.
 
@@ -19,7 +19,7 @@ By default, RTK Query ships with [`fetchBaseQuery`](../api/fetchBaseQuery), whic
 
 See also [`baseQuery API Reference`](../api/createApi.mdx#basequery).
 
-### Implementing a custom baseQuery
+### Implementing a custom `baseQuery`
 
 RTK Query expects a `baseQuery` function to be called with three arguments: `args`, `api`, and `extraOptions`. It is expected to return an object with either a `data` or `error` property, or a promise that resolves to return such an object.
 
@@ -95,9 +95,70 @@ Promise<{
     return { error: { status: number, data: YourErrorData } }
     ```
 
-## Customizing queries with queryFn
+## Customizing query responses with `transformResponse`
 
-Individual endpoints on [`createApi`](../api/createApi) accept a [`queryFn`](../api/createApi#queryfn) property which allows a given endpoint to ignore `baseQuery` for that endpoint by providing an inline function determining how that query resolves.
+Individual endpoints on [`createApi`](../api/createApi.mdx) accept a [`transformResponse`](../api/createApi.mdx) property which allows manipulation of the data returned by a query or mutation before it hits the cache.
+
+`transformResponse` is called with the data that a successful `baseQuery` returns for the corresponding endpoint, and the return value of `transformResponse` is used as the cached data associated with that endpoint call.
+
+By default, the payload from the server is returned directly.
+
+```ts
+function defaultTransformResponse(baseQueryReturnValue: unknown) {
+  return baseQueryReturnValue
+}
+```
+
+To change it, provide a function that looks like:
+
+```ts title="Unpack a deeply nested collection" no-transpile
+transformResponse: (response) => response.some.deeply.nested.collection
+```
+
+`transformResponse` is also called with the `meta` property returned from the `baseQuery`, which can be used while determining the transformed response. The value for `meta` is dependent on the `baseQuery` used.
+
+```ts title="transformResponse meta example" no-transpile
+transformResponse: (response: { sideA: Tracks; sideB: Tracks }, meta) => {
+  if (meta?.coinFlip === 'heads') {
+    return response.sideA
+  }
+  return response.sideB
+}
+```
+
+While there is less need to store the response in a [normalized lookup table](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape) with RTK Query managing caching data, `transformResponse` can be leveraged to do so if desired.
+
+```ts title="Normalize the response data" no-transpile
+transformResponse: (response) =>
+  response.reduce((acc, curr) => {
+    acc[curr.id] = curr
+    return acc
+  }, {})
+
+/*
+  will convert:
+  [
+    {id: 1, name: 'Harry'},
+    {id: 2, name: 'Ron'},
+    {id: 3, name: 'Hermione'},
+  ]
+
+  to:
+  {
+    1: { id: 1, name: "Harry" },
+    2: { id: 2, name: "Ron" },
+    3: { id: 3, name: "Hermione" },
+  }
+*/
+```
+
+[`createEntityAdapter`](../../api/createEntityAdapter.mdx) can also be used with `transformResponse` to normalize data, while also taking advantage of other features provided by `createEntityAdapter`, including providing an `ids` array, using [`sortComparer`](../../api/createEntityAdapter.mdx#sortcomparer) to maintain a consistently sorted list, as well as maintaining strong TypeScript support.
+
+See also [Websocket Chat API with a transformed response shape](./streaming-updates.mdx#websocket-chat-api-with-a-transformed-response-shape) for an example of `transformResponse` normalizing response data in combination with `createEntityAdapter`, while also updating further data using [`streaming updates`](./streaming-updates.mdx).
+
+## Customizing queries with `queryFn`
+
+Individual endpoints on [`createApi`](../api/createApi.mdx) accept a [`queryFn`](../api/createApi.mdx#queryfn) property which allows a given endpoint to ignore `baseQuery` for that endpoint by providing an inline function determining how that query resolves.
 
 This can be useful for scenarios where you want to have particularly different behaviour for a single endpoint, or where the query itself is not relevant. Such situations may include:
 
@@ -152,7 +213,7 @@ const queryFn = (
 }
 ```
 
-## Examples - baseQuery
+## Examples - `baseQuery`
 
 ### Axios baseQuery
 
@@ -469,7 +530,114 @@ const api = createApi({
 })
 ```
 
-## Examples - queryFn
+## Examples - `transformResponse`
+
+### Unpacking deeply nested GraphQL data
+
+```ts title="GraphQL transformation example"
+// file: graphqlBaseQuery.ts noEmit
+import { BaseQueryFn } from '@reduxjs/toolkit/query'
+declare const graphqlBaseQuery: (args: { baseUrl: string }) => BaseQueryFn
+declare const gql: (literals: TemplateStringsArray) => void
+export { graphqlBaseQuery, gql }
+
+// file: graphqlApi.ts
+import { createApi } from '@reduxjs/toolkit/query'
+import { graphqlBaseQuery, gql } from './graphqlBaseQuery'
+
+interface Post {
+  id: number
+  title: string
+}
+
+export const api = createApi({
+  baseQuery: graphqlBaseQuery({
+    baseUrl: '/graphql',
+  }),
+  endpoints: (builder) => ({
+    getPosts: builder.query<Post[], void>({
+      query: () => ({
+        body: gql`
+          query {
+            posts {
+              data {
+                id
+                title
+              }
+            }
+          }
+        `,
+      }),
+      // highlight-start
+      transformResponse: (response: { posts: { data: Post[] } }) =>
+        response.posts.data,
+      // highlight-end
+    }),
+  }),
+})
+```
+
+### Normalizing data with `createEntityAdapter`
+
+In the example below, `transformResponse` is used in conjunction with [`createEntityAdapter`](../../api/createEntityAdapter.mdx) to normalize the data before storing it in the cache.
+
+For a response such as:
+
+<!-- prettier-ignore -->
+```ts no-transpile
+[
+  { id: 1, name: 'Harry' },
+  { id: 2, name: 'Ron' },
+  { id: 3, name: 'Hermione' },
+]
+```
+
+The normalized cache data will be stored as:
+
+```ts no-transpile
+{
+  ids: [1, 3, 2],
+  entities: {
+    1: { id: 1, name: "Harry" },
+    2: { id: 2, name: "Ron" },
+    3: { id: 3, name: "Hermione" },
+  }
+}
+```
+
+```ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createEntityAdapter, EntityState } from '@reduxjs/toolkit'
+
+export interface Post {
+  id: number
+  name: string
+}
+
+// highlight-start
+const postsAdapter = createEntityAdapter<Post>({
+  sortComparer: (a, b) => a.name.localeCompare(b.name),
+})
+// highlight-end
+
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    getPosts: build.query<EntityState<Post>, void>({
+      query: () => `posts`,
+      // highlight-start
+      transformResponse(response: Post[]) {
+        return postsAdapter.addMany(postsAdapter.getInitialState(), response)
+      },
+      // highlight-end
+    }),
+  }),
+})
+
+export const { useGetPostsQuery } = api
+```
+
+## Examples - `queryFn`
 
 ### Using a no-op queryFn
 
