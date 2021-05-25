@@ -12,43 +12,45 @@ import {
   useRef,
   useState,
 } from 'react'
-import {
-  QueryStatus,
+import { QueryStatus, skipToken } from '@reduxjs/toolkit/query'
+import type {
   QuerySubState,
   SubscriptionOptions,
   QueryKeys,
   RootState,
-} from '../core/apiState'
-import {
+} from '@reduxjs/toolkit/dist/query/core/apiState'
+import type {
   EndpointDefinitions,
   MutationDefinition,
   QueryDefinition,
   QueryArgFrom,
   ResultTypeFrom,
-} from '../endpointDefinitions'
-import {
+} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
+import type {
   QueryResultSelectorResult,
   MutationResultSelectorResult,
-  skipToken,
   SkipToken,
-} from '../core/buildSelectors'
-import {
+} from '@reduxjs/toolkit/dist/query/core/buildSelectors'
+import type {
   QueryActionCreatorResult,
   MutationActionCreatorResult,
-} from '../core/buildInitiate'
-import { shallowEqual } from '../utils'
-import { Api } from '../apiTypes'
-import { Id, NoInfer, Override } from '../tsHelpers'
-import {
+} from '@reduxjs/toolkit/dist/query/core/buildInitiate'
+import { shallowEqual } from 'react-redux'
+import type { Api } from '@reduxjs/toolkit/dist/query/apiTypes'
+import type {
+  Id,
+  NoInfer,
+  Override,
+} from '@reduxjs/toolkit/dist/query/tsHelpers'
+import type {
   ApiEndpointMutation,
   ApiEndpointQuery,
   CoreModule,
   PrefetchOptions,
-} from '../core/module'
+} from '@reduxjs/toolkit/dist/query/core/module'
 import { ReactHooksModuleOptions } from './module'
 import { useShallowStableValue } from './useShallowStableValue'
-import { UninitializedValue, UNINITIALIZED_VALUE } from '../constants'
-import { useStore } from 'react-redux'
+import { UninitializedValue, UNINITIALIZED_VALUE } from './constants'
 
 export interface QueryHooks<
   Definition extends QueryDefinition<any, any, any, any, any>
@@ -452,7 +454,7 @@ type GenericPrefetchThunk = (
  */
 export function buildHooks<Definitions extends EndpointDefinitions>({
   api,
-  moduleOptions: { batch, useDispatch, useSelector },
+  moduleOptions: { batch, useDispatch, useSelector, useStore },
 }: {
   api: Api<any, Definitions, any, any, CoreModule>
   moduleOptions: Required<ReactHooksModuleOptions>
