@@ -1,10 +1,11 @@
 import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
-import {
+import type {
   Api,
-  createApi,
-  fetchBaseQuery,
   MutationDefinition,
-  QueryDefinition,
+  QueryDefinition} from '@reduxjs/toolkit/query';
+import {
+  createApi,
+  fetchBaseQuery
 } from '@reduxjs/toolkit/query'
 import {
   ANY,

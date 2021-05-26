@@ -16,7 +16,7 @@ import type { PrefetchOptions } from '@reduxjs/toolkit/dist/query/core/module'
 export * from '@reduxjs/toolkit/query'
 export { ApiProvider } from './ApiProvider'
 
-const createApi = /* #__PURE__ */ buildCreateApi(
+const createApi = /* @__PURE__ */ buildCreateApi(
   coreModule(),
   reactHooksModule()
 )

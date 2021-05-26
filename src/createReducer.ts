@@ -1,10 +1,9 @@
-import createNextState, { Draft, isDraft, isDraftable } from 'immer'
-import { AnyAction, Action, Reducer } from 'redux'
-import {
-  executeReducerBuilderCallback,
-  ActionReducerMapBuilder,
-} from './mapBuilders'
-import { NoInfer } from './tsHelpers'
+import type { Draft } from 'immer'
+import createNextState, { isDraft, isDraftable } from 'immer'
+import type { AnyAction, Action, Reducer } from 'redux'
+import type { ActionReducerMapBuilder } from './mapBuilders'
+import { executeReducerBuilderCallback } from './mapBuilders'
+import type { NoInfer } from './tsHelpers'
 
 /**
  * Defines a mapping from action types to corresponding action object shapes.

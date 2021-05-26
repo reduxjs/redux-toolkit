@@ -1,16 +1,13 @@
-import { Middleware, AnyAction } from 'redux'
-import thunkMiddleware, { ThunkMiddleware } from 'redux-thunk'
-import {
-  /* PROD_START_REMOVE_UMD */
-  createImmutableStateInvariantMiddleware,
-  /* PROD_STOP_REMOVE_UMD */
-  ImmutableStateInvariantMiddlewareOptions,
-} from './immutableStateInvariantMiddleware'
+import type { Middleware, AnyAction } from 'redux'
+import type { ThunkMiddleware } from 'redux-thunk'
+import thunkMiddleware from 'redux-thunk'
+import type { ImmutableStateInvariantMiddlewareOptions } from './immutableStateInvariantMiddleware'
+/* PROD_START_REMOVE_UMD */
+import { createImmutableStateInvariantMiddleware } from './immutableStateInvariantMiddleware'
+/* PROD_STOP_REMOVE_UMD */
 
-import {
-  createSerializableStateInvariantMiddleware,
-  SerializableStateInvariantMiddlewareOptions,
-} from './serializableStateInvariantMiddleware'
+import type { SerializableStateInvariantMiddlewareOptions } from './serializableStateInvariantMiddleware'
+import { createSerializableStateInvariantMiddleware } from './serializableStateInvariantMiddleware'
 import { MiddlewareArray } from './utils'
 
 function isBoolean(x: any): x is boolean {

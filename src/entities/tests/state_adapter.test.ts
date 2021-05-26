@@ -1,8 +1,9 @@
-import { createEntityAdapter, EntityAdapter } from '../index'
-import { PayloadAction } from '../../createAction'
+import type { EntityAdapter } from '../index';
+import { createEntityAdapter } from '../index'
+import type { PayloadAction } from '../../createAction'
 import { configureStore } from '../../configureStore'
 import { createSlice } from '../../createSlice'
-import { BookModel } from './fixtures/book'
+import type { BookModel } from './fixtures/book'
 
 describe('createStateOperator', () => {
   let adapter: EntityAdapter<BookModel>

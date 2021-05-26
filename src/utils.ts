@@ -1,4 +1,4 @@
-import { Middleware } from 'redux'
+import type { Middleware } from 'redux'
 
 export function getTimeMeasureUtils(maxDelay: number, fnName: string) {
   let elapsed = 0

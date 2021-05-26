@@ -1,5 +1,5 @@
-import { Action } from 'redux'
-import {
+import type { Action } from 'redux'
+import type {
   IsUnknownOrNonInferrable,
   IfMaybeUndefined,
   IfVoid,

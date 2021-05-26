@@ -1,4 +1,5 @@
-import { buildHooks, MutationHooks, QueryHooks } from './buildHooks'
+import type { MutationHooks, QueryHooks } from './buildHooks'
+import { buildHooks } from './buildHooks'
 import { isQueryDefinition, isMutationDefinition } from '../endpointDefinitions'
 import type {
   EndpointDefinitions,
@@ -11,7 +12,7 @@ import { capitalize } from '../utils'
 import { safeAssign } from '../tsHelpers'
 import type { BaseQueryFn } from '@reduxjs/toolkit/dist/query/baseQueryTypes'
 
-import { HooksWithUniqueNames } from './versionedTypes'
+import type { HooksWithUniqueNames } from './versionedTypes'
 
 import {
   useDispatch as rrUseDispatch,
@@ -19,10 +20,10 @@ import {
   useStore as rrUseStore,
   batch as rrBatch,
 } from 'react-redux'
-import { QueryKeys } from '../core/apiState'
-import { PrefetchOptions } from '../core/module'
+import type { QueryKeys } from '../core/apiState'
+import type { PrefetchOptions } from '../core/module'
 
-export const reactHooksModuleName = /* #__PURE__ */ Symbol()
+export const reactHooksModuleName = /* @__PURE__ */ Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName
 
 declare module '@reduxjs/toolkit/dist/query/apiTypes' {

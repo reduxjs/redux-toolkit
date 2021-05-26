@@ -1,5 +1,5 @@
-import { PayloadAction } from '../createAction'
-import { IsAny } from '../tsHelpers'
+import type { PayloadAction } from '../createAction'
+import type { IsAny } from '../tsHelpers'
 
 /**
  * @public

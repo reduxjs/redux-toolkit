@@ -1,8 +1,9 @@
-import { EntityStateAdapter, EntityState } from '../models'
+import type { EntityStateAdapter, EntityState } from '../models'
 import { createEntityAdapter } from '../create_adapter'
 import { createAction } from '../../createAction'
+import type {
+  BookModel} from './fixtures/book';
 import {
-  BookModel,
   TheGreatGatsby,
   AClockworkOrange,
   AnimalFarm,

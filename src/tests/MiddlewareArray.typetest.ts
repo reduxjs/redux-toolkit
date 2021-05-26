@@ -1,6 +1,6 @@
 import { getDefaultMiddleware } from '@reduxjs/toolkit'
-import { Middleware } from 'redux'
-import { DispatchForMiddlewares } from '@internal/tsHelpers'
+import type { Middleware } from 'redux'
+import type { DispatchForMiddlewares } from '@internal/tsHelpers'
 
 declare const expectType: <T>(t: T) => T
 

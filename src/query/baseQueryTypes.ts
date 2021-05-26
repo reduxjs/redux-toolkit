@@ -1,5 +1,5 @@
-import { ThunkDispatch } from '@reduxjs/toolkit'
-import { MaybePromise, UnwrapPromise } from './tsHelpers'
+import type { ThunkDispatch } from '@reduxjs/toolkit'
+import type { MaybePromise, UnwrapPromise } from './tsHelpers'
 
 export interface BaseQueryApi {
   signal: AbortSignal

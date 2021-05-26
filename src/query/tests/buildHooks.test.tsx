@@ -18,9 +18,9 @@ import {
   waitMs,
 } from './helpers'
 import { server } from './mocks/server'
-import { AnyAction } from 'redux'
+import type { AnyAction } from 'redux'
 import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
-import { SerializedError } from '@reduxjs/toolkit'
+import type { SerializedError } from '@reduxjs/toolkit'
 import { renderHook } from '@testing-library/react-hooks'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.

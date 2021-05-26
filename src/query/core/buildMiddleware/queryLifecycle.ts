@@ -1,8 +1,8 @@
 import { isPending, isRejected, isFulfilled } from '@reduxjs/toolkit'
-import { BaseQueryFn } from '../../baseQueryTypes'
+import type { BaseQueryFn } from '../../baseQueryTypes'
 import { DefinitionType } from '../../endpointDefinitions'
-import { Recipe } from '../buildThunks'
-import { SubMiddlewareBuilder } from './types'
+import type { Recipe } from '../buildThunks'
+import type { SubMiddlewareBuilder } from './types'
 
 export type ReferenceQueryLifecycle = never
 

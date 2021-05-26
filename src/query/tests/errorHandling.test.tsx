@@ -1,18 +1,20 @@
 import * as React from 'react'
+import type {
+  BaseQueryFn} from '@reduxjs/toolkit/query/react';
 import {
-  BaseQueryFn,
   createApi,
   fetchBaseQuery,
 } from '@reduxjs/toolkit/query/react'
 import { renderHook, act } from '@testing-library/react-hooks'
 import { rest } from 'msw'
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
+import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios from 'axios'
 
 import { expectExactType, hookWaitFor, setupApiStore } from './helpers'
 import { server } from './mocks/server'
 import { fireEvent, render, waitFor, screen } from '@testing-library/react'
 import { useDispatch } from 'react-redux'
-import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit'
+import type { AnyAction, ThunkDispatch } from '@reduxjs/toolkit'
 
 const baseQuery = fetchBaseQuery({ baseUrl: 'http://example.com' })
 

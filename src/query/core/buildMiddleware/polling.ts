@@ -1,5 +1,6 @@
-import { QueryStatus, QuerySubstateIdentifier, Subscribers } from '../apiState'
-import {
+import type { QuerySubstateIdentifier, Subscribers } from '../apiState';
+import { QueryStatus } from '../apiState'
+import type {
   QueryStateMeta,
   SubMiddlewareApi,
   SubMiddlewareBuilder,

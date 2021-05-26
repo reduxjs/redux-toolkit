@@ -1,9 +1,5 @@
-import {
-  AnyAction,
-  createSelector,
-  ThunkAction,
-  ThunkDispatch,
-} from '@reduxjs/toolkit'
+import type { AnyAction, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit'
+import { createSelector } from '@reduxjs/toolkit'
 import {
   useCallback,
   useEffect,
@@ -48,9 +44,10 @@ import type {
   CoreModule,
   PrefetchOptions,
 } from '@reduxjs/toolkit/dist/query/core/module'
-import { ReactHooksModuleOptions } from './module'
+import type { ReactHooksModuleOptions } from './module'
 import { useShallowStableValue } from './useShallowStableValue'
-import { UninitializedValue, UNINITIALIZED_VALUE } from './constants'
+import type { UninitializedValue } from './constants'
+import { UNINITIALIZED_VALUE } from './constants'
 
 export interface QueryHooks<
   Definition extends QueryDefinition<any, any, any, any, any>

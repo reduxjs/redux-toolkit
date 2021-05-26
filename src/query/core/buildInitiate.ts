@@ -1,4 +1,4 @@
-import {
+import type {
   EndpointDefinitions,
   QueryDefinition,
   MutationDefinition,
@@ -6,18 +6,19 @@ import {
   ResultTypeFrom,
 } from '../endpointDefinitions'
 import type { QueryThunkArg, MutationThunkArg } from './buildThunks'
-import {
+import type {
   AnyAction,
   AsyncThunk,
   ThunkAction,
-  unwrapResult,
-  SerializedError,
+  SerializedError} from '@reduxjs/toolkit';
+import {
+  unwrapResult
 } from '@reduxjs/toolkit'
-import { QuerySubState, SubscriptionOptions } from './apiState'
-import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import { Api } from '../apiTypes'
-import { ApiEndpointQuery } from './module'
-import { BaseQueryError } from '../baseQueryTypes'
+import type { QuerySubState, SubscriptionOptions } from './apiState'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type { Api } from '../apiTypes'
+import type { ApiEndpointQuery } from './module'
+import type { BaseQueryError } from '../baseQueryTypes'
 
 declare module './module' {
   export interface ApiEndpointQuery<
