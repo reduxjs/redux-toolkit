@@ -1,70 +1,58 @@
 const webpack = require('webpack')
 let { join } = require('path')
 
-const rtkEntryPoints = [
-  'dist/redux-toolkit.cjs.production.min.js',
-  'dist/redux-toolkit.esm.js',
-  'dist/redux-toolkit.modern.js',
-  'dist/redux-toolkit.modern.production.min.js',
-]
+const suffixes = ['cjs.production.min.js', 'esm.js']
 
-const queryEntryPoints = [
-  'dist/query/rtk-query.cjs.production.min.js',
-  'dist/query/rtk-query.esm.js',
-  'dist/query/rtk-query.modern.js',
-  'dist/query/rtk-query.modern.production.min.js',
-]
-
-const reactEntryPoints = [
-  'dist/query/react/rtk-query-react.cjs.production.min.js',
-  'dist/query/react/rtk-query-react.esm.js',
-  'dist/query/react/rtk-query-react.modern.js',
-  'dist/query/react/rtk-query-react.modern.production.min.js',
-]
-
-const umdBuilds = [
-  'dist/redux-toolkit.umd.js',
-  'dist/query/rtk-query.umd.js',
-  'dist/query/react/rtk-query-react.umd.js',
-]
-
-function withRtkPath(path) {
+function withRtkPath(suffix) {
   return (config) => {
-    if (path.startsWith('dist/query/rtk-query')) {
-      config.plugins.push(
-        new webpack.NormalModuleReplacementPlugin(
-          /@reduxjs\/toolkit/,
-          join(
-            __dirname,
-            path.replace('dist/query/rtk-query', 'dist/redux-toolkit')
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(
+        /@reduxjs\/toolkit\/query\/react/,
+        join(__dirname, `query/react`)
+      ),
+      new webpack.NormalModuleReplacementPlugin(
+        /@reduxjs\/toolkit\/query/,
+        join(__dirname, `query`)
+      ),
+      new webpack.NormalModuleReplacementPlugin(
+        /@reduxjs\/toolkit/,
+        join(__dirname)
+      ),
+      new webpack.NormalModuleReplacementPlugin(
+        /rtk-query-react.esm.js/,
+        (r) => {
+          const old = r.request
+          r.request = r.request.replace(
+            /rtk-query-react.esm.js$/,
+            `rtk-query-react.${suffix}`
           )
+          // console.log(old, '=>', r.request)
+        }
+      ),
+      new webpack.NormalModuleReplacementPlugin(/rtk-query.esm.js/, (r) => {
+        const old = r.request
+        r.request = r.request.replace(
+          /rtk-query.esm.js$/,
+          `rtk-query.${suffix}`
         )
-      )
-    }
-    if (path.startsWith('dist/query/react/rtk-query-react')) {
-      config.plugins.push(
-        new webpack.NormalModuleReplacementPlugin(
-          /@reduxjs\/toolkit\/query/,
-          join(
-            __dirname,
-            path.replace(
-              'dist/query/react/rtk-query-react',
-              'dist/query/rtk-query'
-            )
+        // console.log(old, '=>', r.request)
+      }),
+      new webpack.NormalModuleReplacementPlugin(
+        /redux-toolkit.esm.js$/,
+        (r) => {
+          const old = r.request
+          r.request = r.request.replace(
+            /redux-toolkit.esm.js$/,
+            `redux-toolkit.${suffix}`
           )
-        ),
-        new webpack.NormalModuleReplacementPlugin(
-          /@reduxjs\/toolkit/,
-          join(
-            __dirname,
-            path.replace(
-              'dist/query/react/rtk-query-react',
-              'dist/redux-toolkit'
-            )
-          )
-        )
+          // console.log(old, '=>', r.request)
+        }
       )
+    )
+    if (suffix === 'cjs.production.min.js') {
+      config.resolve.mainFields = ['main', 'module']
     }
+    config.optimization.nodeEnv = 'production'
     return config
   }
 }
@@ -79,72 +67,78 @@ const ignoreAll = [
 ]
 
 module.exports = [
-  ...[...rtkEntryPoints, ...queryEntryPoints, ...reactEntryPoints].flatMap(
-    (path) => [
+  {
+    name: `1. entry point: @reduxjs/toolkit`,
+    path: 'dist/redux-toolkit.esm.js',
+  },
+  {
+    name: `1. entry point: @reduxjs/toolkit/query`,
+    path: 'dist/query/rtk-query.esm.js',
+  },
+  {
+    name: `1. entry point: @reduxjs/toolkit/query/react`,
+    path: 'dist/query/react/rtk-query-react.esm.js',
+  },
+  {
+    name: `2. entry point: @reduxjs/toolkit (without dependencies)`,
+    path: 'dist/redux-toolkit.esm.js',
+    ignore: ignoreAll,
+  },
+  {
+    name: `2. entry point: @reduxjs/toolkit/query (without dependencies)`,
+    path: 'dist/query/rtk-query.esm.js',
+    ignore: ignoreAll,
+  },
+  {
+    name: `2. entry point: @reduxjs/toolkit/query/react (without dependencies)`,
+    path: 'dist/query/react/rtk-query-react.esm.js',
+    ignore: ignoreAll,
+  },
+]
+  .flatMap((e) =>
+    suffixes.map((suffix) => ({
+      ...e,
+      name: e.name + ` (${suffix})`,
+      modifyWebpackConfig: withRtkPath(suffix),
+    }))
+  )
+  .concat(
+    ...[
       {
-        name: `1. entry point: ${path}`,
-        path,
-        modifyWebpackConfig: withRtkPath(path),
+        name: `3. createSlice`,
+        import: { '@reduxjs/toolkit': '{ createSlice }' },
       },
       {
-        name: `2. entry point: ${path} (without dependencies)`,
-        path,
-        modifyWebpackConfig: withRtkPath(path),
-        ignore: ignoreAll,
+        name: `3. createEntityAdapter`,
+        import: { '@reduxjs/toolkit': '{ createEntityAdapter }' },
       },
-    ]
-  ),
-  ...rtkEntryPoints.flatMap((path) => [
-    {
-      name: `3. createSlice (${path})`,
-      path,
-      import: '{ createSlice }',
-    },
-    {
-      name: `3. createEntityAdapter (${path})`,
-      path,
-      import: '{ createEntityAdapter }',
-    },
-    {
-      name: `3. configureStore (${path})`,
-      path,
-      import: '{ configureStore }',
-    },
-  ]),
-  ...[...queryEntryPoints, ...reactEntryPoints].flatMap((path) => [
-    {
-      name: `3. createApi (${path})`,
-      path,
-      import: '{ createApi }',
-      modifyWebpackConfig: withRtkPath(path),
-    },
-    {
-      name: `3. setupListeners (${path})`,
-      path,
-      import: '{ setupListeners }',
-      modifyWebpackConfig: withRtkPath(path),
-    },
-    {
-      name: `3. fetchBaseQuery (${path})`,
-      path,
-      import: '{ fetchBaseQuery }',
-      modifyWebpackConfig: withRtkPath(path),
-    },
-  ]),
-  ...umdBuilds.map((path) => ({
-    name: `4. UMD build: ${path}`,
-    path,
-  })),
-].sort(byName)
-/*
-  .filter(
-    (x) => x.name == '3. createApi (dist/query/react/rtk-query-react.modern.js)'
+      {
+        name: `3. configureStore`,
+        import: { '@reduxjs/toolkit': '{ configureStore }' },
+      },
+      {
+        name: `3. createApi`,
+        import: { '@reduxjs/toolkit/query': '{ createApi }' },
+      },
+      {
+        name: `3. createApi (react)`,
+        import: { '@reduxjs/toolkit/query/react': '{ createApi }' },
+      },
+      {
+        name: `3. fetchBaseQuery`,
+        import: { '@reduxjs/toolkit/query': '{ fetchBaseQuery }' },
+      },
+      {
+        name: `3. setupListeners`,
+        import: { '@reduxjs/toolkit/query': '{ setupListeners }' },
+      },
+      {
+        name: `3. ApiProvider`,
+        import: { '@reduxjs/toolkit/query/react': '{ ApiProvider }' },
+      },
+    ].map((e) => ({
+      ...e,
+      name: e.name + ` (esm.js)`,
+      modifyWebpackConfig: withRtkPath('esm.js'),
+    }))
   )
-  */
-
-function byName(a, b) {
-  return (
-    b.path.localeCompare(a.path) +
-    a.name.substring(0, 12).localeCompare(b.name.substring(0, 12)) * 10
-  )
-}
