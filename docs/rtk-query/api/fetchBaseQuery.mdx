@@ -8,7 +8,7 @@ hide_table_of_contents: false
 
 # `fetchBaseQuery`
 
-This is a very small wrapper around `fetch` that aims to simplify requests. It is not a full-blown replacement for `axios`, `superagent`, or any other more heavy-weight library, but it will cover the large majority of your needs.
+This is a very small wrapper around [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) that aims to simplify requests. It is not a full-blown replacement for `axios`, `superagent`, or any other more heavy-weight library, but it will cover the large majority of your needs.
 
 It takes all standard options from fetch's [`RequestInit`](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) interface, as well as `baseUrl`, a `prepareHeaders` function, and an optional `fetch` function.
 
@@ -16,7 +16,7 @@ It takes all standard options from fetch's [`RequestInit`](https://developer.moz
   - Typically a string like `https://api.your-really-great-app.com/v1/`. If you don't provide a `baseUrl`, it defaults to a relative path from where the request is being made. You should most likely _always_ specify this.
 - `prepareHeaders` _(optional)_
 
-  - Allows you to inject headers on every request. You can specify headers at the endpoint level, but you'll typically want to set common headers like `authorization` here. As a convience mechanism, the second argument allows you to use `getState` to access your redux store in the event you store information you'll need there such as an auth token.
+  - Allows you to inject headers on every request. You can specify headers at the endpoint level, but you'll typically want to set common headers like `authorization` here. As a convenience mechanism, the second argument allows you to use `getState` to access your redux store in the event you store information you'll need there such as an auth token.
 
   - ```ts title="prepareHeaders signature" no-transpile
     ;(headers: Headers, api: { getState: () => unknown }) => Headers

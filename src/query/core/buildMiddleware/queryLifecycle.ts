@@ -1,13 +1,21 @@
 import { isPending, isRejected, isFulfilled } from '@reduxjs/toolkit'
-import type { BaseQueryFn } from '../../baseQueryTypes'
+import type { BaseQueryError, BaseQueryFn } from '../../baseQueryTypes'
 import { DefinitionType } from '../../endpointDefinitions'
+import type { QueryFulfilledRejectionReason } from '../../endpointDefinitions'
 import type { Recipe } from '../buildThunks'
-import type { SubMiddlewareBuilder } from './types'
+import type {
+  SubMiddlewareBuilder,
+  PromiseWithKnownReason,
+  PromiseConstructorWithKnownReason,
+} from './types'
 
 export type ReferenceQueryLifecycle = never
 
 declare module '../../endpointDefinitions' {
-  export interface QueryLifecyclePromises<ResultType> {
+  export interface QueryLifecyclePromises<
+    ResultType,
+    BaseQuery extends BaseQueryFn
+  > {
     /**
      * Promise that will resolve with the (transformed) query result.
      *
@@ -17,8 +25,33 @@ declare module '../../endpointDefinitions' {
      *
      * If you don't interact with this promise, it will not throw.
      */
-    queryFulfilled: Promise<ResultType>
+    queryFulfilled: PromiseWithKnownReason<
+      {
+        /**
+         * The (transformed) query result.
+         */
+        data: ResultType
+      },
+      QueryFulfilledRejectionReason<BaseQuery>
+    >
   }
+
+  type QueryFulfilledRejectionReason<BaseQuery extends BaseQueryFn> =
+    | {
+        error: BaseQueryError<BaseQuery>
+        /**
+         * If this is `false`, that means this error was returned from the `baseQuery` or `queryFn` in a controlled manner.
+         */
+        isUnhandledError: false
+      }
+    | {
+        error: unknown
+        /**
+         * If this is `true`, that means that this error is the result of `baseQueryFn`, `queryFn` or `transformResponse` throwing an error instead of handling it properly.
+         * There can not be made any assumption about the shape of `error`.
+         */
+        isUnhandledError: true
+      }
 
   interface QueryExtraOptions<
     TagTypes extends string,
@@ -52,7 +85,7 @@ declare module '../../endpointDefinitions' {
     ResultType,
     ReducerPath extends string = string
   > extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
-      QueryLifecyclePromises<ResultType> {}
+      QueryLifecyclePromises<ResultType, BaseQuery> {}
 
   export interface MutationLifecycleApi<
     QueryArg,
@@ -65,7 +98,7 @@ declare module '../../endpointDefinitions' {
         ResultType,
         ReducerPath
       >,
-      QueryLifecyclePromises<ResultType> {}
+      QueryLifecyclePromises<ResultType, BaseQuery> {}
 }
 
 export const build: SubMiddlewareBuilder = ({
@@ -80,8 +113,8 @@ export const build: SubMiddlewareBuilder = ({
 
   return (mwApi) => {
     type CacheLifecycle = {
-      resolve(value: unknown): unknown
-      reject(value: unknown): unknown
+      resolve(value: { data: unknown }): unknown
+      reject(value: { error: unknown; isUnhandledError: boolean }): unknown
     }
     const lifecycleMap: Record<string, CacheLifecycle> = {}
 
@@ -97,7 +130,10 @@ export const build: SubMiddlewareBuilder = ({
         const onQueryStarted = endpointDefinition?.onQueryStarted
         if (onQueryStarted) {
           const lifecycle = {} as CacheLifecycle
-          const queryFulfilled = new Promise((resolve, reject) => {
+          const queryFulfilled = new (Promise as PromiseConstructorWithKnownReason)<
+            { data: unknown },
+            QueryFulfilledRejectionReason<any>
+          >((resolve, reject) => {
             lifecycle.resolve = resolve
             lifecycle.reject = reject
           })
@@ -133,11 +169,14 @@ export const build: SubMiddlewareBuilder = ({
         }
       } else if (isFullfilledThunk(action)) {
         const { requestId } = action.meta
-        lifecycleMap[requestId]?.resolve(action.payload.result)
+        lifecycleMap[requestId]?.resolve({ data: action.payload.result })
         delete lifecycleMap[requestId]
       } else if (isRejectedThunk(action)) {
-        const { requestId } = action.meta
-        lifecycleMap[requestId]?.reject(action.payload ?? action.error)
+        const { requestId, rejectedWithValue } = action.meta
+        lifecycleMap[requestId]?.reject({
+          error: action.payload ?? action.error,
+          isUnhandledError: !rejectedWithValue,
+        })
         delete lifecycleMap[requestId]
       }
 

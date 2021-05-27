@@ -59,7 +59,7 @@ describe.each([['query'], ['mutation']] as const)(
       storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
       expect(onStart).toHaveBeenCalledWith('arg')
       await waitFor(() => {
-        expect(onSuccess).toHaveBeenCalledWith({ value: 'success' })
+        expect(onSuccess).toHaveBeenCalledWith({ data: { value: 'success' } })
       })
     })
 
@@ -85,8 +85,11 @@ describe.each([['query'], ['mutation']] as const)(
       expect(onStart).toHaveBeenCalledWith('arg')
       await waitFor(() => {
         expect(onError).toHaveBeenCalledWith({
-          status: 500,
-          data: { value: 'error' },
+          error: {
+            status: 500,
+            data: { value: 'error' },
+          },
+          isUnhandledError: false,
         })
       })
       expect(onSuccess).not.toHaveBeenCalled()

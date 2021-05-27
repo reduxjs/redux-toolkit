@@ -92,7 +92,7 @@ interface UseQuerySubscriptionOptions extends SubscriptionOptions {
    * Prevents a query from automatically running.
    *
    * @remarks
-   * When `skip` is true *or `skipToken` is passed in as `arg`):
+   * When `skip` is true (or `skipToken` is passed in as `arg`):
    *
    * - **If the query has cached data:**
    *   * The cached data **will not be used** on the initial load, and will ignore updates from any identical query until the `skip` condition is removed

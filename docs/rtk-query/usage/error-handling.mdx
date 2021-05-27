@@ -7,7 +7,7 @@ hide_title: true
 
 # `Error Handling`
 
-If your query or mutation happens to throw an error when using [fetchBaseQuery](../../api/rtk-query/fetchBaseQuery), it will be returned in the `error` property of the respective hook.
+If your query or mutation happens to throw an error when using [fetchBaseQuery](../api/fetchBaseQuery), it will be returned in the `error` property of the respective hook.
 
 ```tsx title="Query Error"
 function PostsList() {
@@ -61,7 +61,7 @@ function PostsList() {
 
 Whether a response is returned as `data` or `error` is dictated by the `baseQuery` provided.
 
-Ultimately, you can choose whatever library you prefer to use with your `baseQuery`, but it's important that you return the correct response format. If you haven't tried [`fetchBaseQuery`](../../api/rtk-query/fetchBaseQuery) yet, give it a chance! Otherwise, see [Customizing Queries](./customizing-queries) for information on how to alter the returned errors.
+Ultimately, you can choose whatever library you prefer to use with your `baseQuery`, but it's important that you return the correct response format. If you haven't tried [`fetchBaseQuery`](../api/fetchBaseQuery) yet, give it a chance! Otherwise, see [Customizing Queries](./customizing-queries) for information on how to alter the returned errors.
 
 ## Handling errors at a macro level
 

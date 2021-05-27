@@ -27,12 +27,36 @@ interface EndpointDefinitionWithQuery<
   ResultType
 > {
   /**
-   * `query` can be a function that returns either a `string` or an `object` which is passed to your `baseQuery`. If you are using [fetchBaseQuery](./fetchBaseQuery), this can return either a `string` or an `object` of properties in `FetchArgs`. If you use your own custom [`baseQuery`](../../usage/rtk-query/customizing-queries), you can customize this behavior to your liking.
+   * `query` can be a function that returns either a `string` or an `object` which is passed to your `baseQuery`. If you are using [fetchBaseQuery](./fetchBaseQuery), this can return either a `string` or an `object` of properties in `FetchArgs`. If you use your own custom [`baseQuery`](../../rtk-query/usage/customizing-queries), you can customize this behavior to your liking.
+   *
+   * @example
+   *
+   * ```ts
+   * // codeblock-meta title="query example"
+   * 
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * interface Post {
+   *   id: number
+   *   name: string
+   * }
+   * type PostsResponse = Post[]
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPosts: build.query<PostsResponse, void>({
+   *       // highlight-start
+   *       query: () => 'posts',
+   *       // highlight-end
+   *     })
+   *   })
+   * })
+   * ```
    */
   query(arg: QueryArg): BaseQueryArg<BaseQuery>
   queryFn?: never
   /**
-   * A function to manipulate the data returned by a query or mutation
+   * A function to manipulate the data returned by a query or mutation.
    */
   transformResponse?(
     baseQueryReturnValue: BaseQueryResult<BaseQuery>,
@@ -49,13 +73,38 @@ interface EndpointDefinitionWithQueryFn<
    * Can be used in place of `query` as an inline function that bypasses `baseQuery` completely for the endpoint.
    *
    * @example
-   * ```ts no-transpile
-   * queryFn(arg: string) {
-   *   if (Math.random() > 0.5) {
-   *     return { error: { status: 500, data: 'My error' } }
-   *   }
-   *   return { data: 'My returned data' }
+   * ```ts
+   * // codeblock-meta title="Basic queryFn example"
+   * 
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * interface Post {
+   *   id: number
+   *   name: string
    * }
+   * type PostsResponse = Post[]
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPosts: build.query<PostsResponse, void>({
+   *       query: () => 'posts',
+   *     }),
+   *     flipCoin: build.query<'heads' | 'tails', void>({
+   *       // highlight-start
+   *       queryFn(arg, queryApi, extraOptions, baseQuery) {
+   *         const randomVal = Math.random()
+   *         if (randomVal < 0.45) {
+   *           return { data: 'heads' }
+   *         }
+   *         if (randomVal < 0.9) {
+   *           return { data: 'tails' }
+   *         }
+   *         return { error: { status: 500, data: "Coin landed on it's edge!" } }
+   *       }
+   *       // highlight-end
+   *     })
+   *   })
+   * })
    * ```
    */
   queryFn(
@@ -141,14 +190,46 @@ export interface QueryExtraOptions<
 > {
   type: DefinitionType.query
   /**
-   * - Used by `queries` to provide tags to the cache.
-   * - Expects an array of tag type strings, an array of objects of tag types with ids, or a function that returns such an array.
-   *   1.  `['Post']` - equivalent to `b`
-   *   2.  `[{ type: 'Post' }]` - equivalent to `a`
-   *   3.  `[{ type: 'Post', id: 1 }]`
-   *   4.  `(result, error, arg) => ['Post']` - equivalent to `e`
-   *   5.  `(result, error, arg) => [{ type: 'Post' }]` - equivalent to `d`
-   *   6.  `(result, error, arg) => [{ type: 'Post', id: 1 }]`
+   * Used by `query` endpoints. Determines which 'tag' is attached to the cached data returned by the query.
+   * Expects an array of tag type strings, an array of objects of tag types with ids, or a function that returns such an array.
+   * 1.  `['Post']` - equivalent to `2`
+   * 2.  `[{ type: 'Post' }]` - equivalent to `1`
+   * 3.  `[{ type: 'Post', id: 1 }]`
+   * 4.  `(result, error, arg) => ['Post']` - equivalent to `5`
+   * 5.  `(result, error, arg) => [{ type: 'Post' }]` - equivalent to `4`
+   * 6.  `(result, error, arg) => [{ type: 'Post', id: 1 }]`
+   *
+   * @example
+   *
+   * ```ts
+   * // codeblock-meta title="providesTags example"
+   * 
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * interface Post {
+   *   id: number
+   *   name: string
+   * }
+   * type PostsResponse = Post[]
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   tagTypes: ['Posts'],
+   *   endpoints: (build) => ({
+   *     getPosts: build.query<PostsResponse, void>({
+   *       query: () => 'posts',
+   *       // highlight-start
+   *       providesTags: (result) =>
+   *         result
+   *           ? [
+   *               ...result.map(({ id }) => ({ type: 'Posts' as const, id })),
+   *               { type: 'Posts', id: 'LIST' },
+   *             ]
+   *           : [{ type: 'Posts', id: 'LIST' }],
+   *       // highlight-end
+   *     })
+   *   })
+   * })
+   * ```
    */
   providesTags?: ResultDescription<
     TagTypes,
@@ -220,8 +301,49 @@ export interface MutationExtraOptions<
 > {
   type: DefinitionType.mutation
   /**
-   * - Used by `mutations` for [cache invalidation](../../usage/rtk-query/cached-data#advanced-invalidation-with-abstract-tag-ids) purposes.
-   * - Expects the same shapes as `providesTags`.
+   * Used by `mutation` endpoints. Determines which cached data should be either re-fetched or removed from the cache.
+   * Expects the same shapes as `providesTags`.
+   *
+   * @example
+   *
+   * ```ts
+   * // codeblock-meta title="invalidatesTags example"
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * interface Post {
+   *   id: number
+   *   name: string
+   * }
+   * type PostsResponse = Post[]
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   tagTypes: ['Posts'],
+   *   endpoints: (build) => ({
+   *     getPosts: build.query<PostsResponse, void>({
+   *       query: () => 'posts',
+   *       providesTags: (result) =>
+   *         result
+   *           ? [
+   *               ...result.map(({ id }) => ({ type: 'Posts' as const, id })),
+   *               { type: 'Posts', id: 'LIST' },
+   *             ]
+   *           : [{ type: 'Posts', id: 'LIST' }],
+   *     }),
+   *     addPost: build.mutation<Post, Partial<Post>>({
+   *       query(body) {
+   *         return {
+   *           url: `posts`,
+   *           method: 'POST',
+   *           body,
+   *         }
+   *       },
+   *       // highlight-start
+   *       invalidatesTags: [{ type: 'Posts', id: 'LIST' }],
+   *       // highlight-end
+   *     }),
+   *   })
+   * })
+   * ```
    */
   invalidatesTags?: ResultDescription<
     TagTypes,

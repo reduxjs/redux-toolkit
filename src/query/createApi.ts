@@ -19,13 +19,13 @@ export interface CreateApiOptions<
   TagTypes extends string = never
 > {
   /**
-   * The base query used by each endpoint if no `queryFn` option is specified. RTK Query exports a utility called [fetchBaseQuery](./fetchBaseQuery) as a lightweight wrapper around `fetch` for common use-cases. See [Customizing Queries](../../usage/rtk-query/customizing-queries) if `fetchBaseQuery` does not handle your requirements.
+   * The base query used by each endpoint if no `queryFn` option is specified. RTK Query exports a utility called [fetchBaseQuery](./fetchBaseQuery) as a lightweight wrapper around `fetch` for common use-cases. See [Customizing Queries](../../rtk-query/usage/customizing-queries) if `fetchBaseQuery` does not handle your requirements.
    *
    * @example
    *
    * ```ts
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-   * 
+   *
    * const api = createApi({
    *   // highlight-start
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -38,13 +38,13 @@ export interface CreateApiOptions<
    */
   baseQuery: BaseQuery
   /**
-   * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining an tag type, you will be able to [provide](../../usage/rtk-query/cached-data#providing-tags) them with `provides` and [invalidate](../../usage/rtk-query/cached-data#invalidating-tags) them with `invalidates` when configuring [endpoints](#endpoints).
-   * 
+   * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining an tag type, you will be able to [provide](../../rtk-query/usage/cached-data#providing-tags) them with `provides` and [invalidate](../../rtk-query/usage/cached-data#invalidating-tags) them with `invalidates` when configuring [endpoints](#endpoints).
+   *
    * @example
-   * 
+   *
    * ```ts
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-   * 
+   *
    * const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   // highlight-start
@@ -93,13 +93,36 @@ export interface CreateApiOptions<
    */
   serializeQueryArgs?: SerializeQueryArgs<BaseQueryArg<BaseQuery>>
   /**
-   * Endpoints are just a set of operations that you want to perform against your server. You define them as an object using the builder syntax. There are two basic endpoint types: [`query`](../../usage/rtk-query/queries) and [`mutation`](../../usage/rtk-query/mutations).
+   * Endpoints are just a set of operations that you want to perform against your server. You define them as an object using the builder syntax. There are two basic endpoint types: [`query`](../../rtk-query/usage/queries) and [`mutation`](../../rtk-query/usage/mutations).
    */
   endpoints(
     build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
   ): Definitions
   /**
    * Defaults to `60` _(this value is in seconds)_. This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.
+   * 
+   * ```ts
+   * // codeblock-meta title="keepUnusedDataFor example"
+   * 
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * interface Post {
+   *   id: number
+   *   name: string
+   * }
+   * type PostsResponse = Post[]
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPosts: build.query<PostsResponse, void>({
+   *       query: () => 'posts',
+   *       // highlight-start
+   *       keepUnusedDataFor: 5
+   *       // highlight-end
+   *     })
+   *   })
+   * })
+   * ```
    */
   keepUnusedDataFor?: number
   /**
@@ -116,7 +139,7 @@ export interface CreateApiOptions<
    *
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
    *
-   * Note: requires `setupListeners` to have been called.
+   * Note: requires [`setupListeners`](./setupListeners) to have been called.
    */
   refetchOnFocus?: boolean
   /**
@@ -124,7 +147,7 @@ export interface CreateApiOptions<
    *
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
    *
-   * Note: requires `setupListeners` to have been called.
+   * Note: requires [`setupListeners`](./setupListeners) to have been called.
    */
   refetchOnReconnect?: boolean
 }
@@ -231,15 +254,14 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
                 '`onStart`, `onSuccess` and `onError` have been replaced by `onQueryStarted`, please change your code accordingly'
               )
             }
-            x.onQueryStarted ??= async (arg, { queryFulfilled, ...api }) => {
+            x.onQueryStarted ??= (arg, { queryFulfilled, ...api }) => {
               const queryApi = { ...api, context: {} }
               x.onStart?.(arg, queryApi)
-              try {
-                const result = await queryFulfilled
-                x.onSuccess?.(arg, queryApi, result, undefined)
-              } catch (error) {
-                x.onError?.(arg, queryApi, error, undefined)
-              }
+              return queryFulfilled.then(
+                (result) =>
+                  x.onSuccess?.(arg, queryApi, result.data, undefined),
+                (reason) => x.onError?.(arg, queryApi, reason.error, undefined)
+              )
             }
           }
           return { ...x, type: DefinitionType.query } as any
@@ -255,15 +277,14 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
                 '`onStart`, `onSuccess` and `onError` have been replaced by `onQueryStarted`, please change your code accordingly'
               )
             }
-            x.onQueryStarted ??= async (arg, { queryFulfilled, ...api }) => {
+            x.onQueryStarted ??= (arg, { queryFulfilled, ...api }) => {
               const queryApi = { ...api, context: {} }
               x.onStart?.(arg, queryApi)
-              try {
-                const result = await queryFulfilled
-                x.onSuccess?.(arg, queryApi, result, undefined)
-              } catch (error) {
-                x.onError?.(arg, queryApi, error, undefined)
-              }
+              return queryFulfilled.then(
+                (result) =>
+                  x.onSuccess?.(arg, queryApi, result.data, undefined),
+                (reason) => x.onError?.(arg, queryApi, reason.error, undefined)
+              )
             }
           }
           return { ...x, type: DefinitionType.mutation } as any

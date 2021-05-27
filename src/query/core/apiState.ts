@@ -80,7 +80,7 @@ export type SubscriptionOptions = {
    *
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
    *
-   * Note: requires `setupListeners` to have been called.
+   * Note: requires [`setupListeners`](./setupListeners) to have been called.
    */
   refetchOnReconnect?: boolean
   /**
@@ -88,7 +88,7 @@ export type SubscriptionOptions = {
    *
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
    *
-   * Note: requires `setupListeners` to have been called.
+   * Note: requires [`setupListeners`](./setupListeners) to have been called.
    */
   refetchOnFocus?: boolean
 }
