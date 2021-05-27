@@ -74,7 +74,7 @@ interface EndpointDefinitionWithQueryFn<
    *
    * @example
    * ```ts
-   * // codeblock-meta title="queryFn example"
+   * // codeblock-meta title="Basic queryFn example"
    * 
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * interface Post {
@@ -91,7 +91,7 @@ interface EndpointDefinitionWithQueryFn<
    *     }),
    *     flipCoin: build.query<'heads' | 'tails', void>({
    *       // highlight-start
-   *       queryFn() {
+   *       queryFn(arg, queryApi, extraOptions, baseQuery) {
    *         const randomVal = Math.random()
    *         if (randomVal < 0.45) {
    *           return { data: 'heads' }
