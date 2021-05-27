@@ -17,7 +17,6 @@ export type BaseThunkAPI<
   D extends Dispatch = Dispatch,
   RejectedValue = undefined,
   RejectedMeta = unknown,
-  FulfilledValue = unknown,
   FulfilledMeta = unknown
 > = {
   dispatch: D
@@ -35,8 +34,10 @@ export type BaseThunkAPI<
   >
   fulfillWithValue: IsUnknown<
     FulfilledMeta,
-    (value: FulfilledValue) => FulfillWithMeta<FulfilledValue, FulfilledMeta>,
-    (
+    <FulfilledValue>(
+      value: FulfilledValue
+    ) => FulfillWithMeta<FulfilledValue, FulfilledMeta>,
+    <FulfilledValue>(
       value: FulfilledValue,
       meta: FulfilledMeta
     ) => FulfillWithMeta<FulfilledValue, FulfilledMeta>
@@ -61,6 +62,11 @@ const commonProperties: Array<keyof SerializedError> = [
 ]
 
 class RejectWithValue<Payload, RejectedMeta> {
+  /*
+  type-only property to distinguish between RejectWithValue and FulfillWithMeta
+  does not exist at runtime
+  */
+  private readonly _type!: 'RejectWithValue'
   constructor(
     public readonly payload: Payload,
     public readonly meta: RejectedMeta
@@ -68,6 +74,11 @@ class RejectWithValue<Payload, RejectedMeta> {
 }
 
 class FulfillWithMeta<Payload, FulfilledMeta> {
+  /*
+  type-only property to distinguish between RejectWithValue and FulfillWithMeta
+  does not exist at runtime
+  */
+  private readonly _type!: 'FulfillWithMeta'
   constructor(
     public readonly payload: Payload,
     public readonly meta: FulfilledMeta
@@ -122,13 +133,12 @@ type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
     >
   : ThunkDispatch<GetState<ThunkApiConfig>, GetExtra<ThunkApiConfig>, AnyAction>
 
-type GetThunkAPI<ThunkApiConfig, FulfilledValue> = BaseThunkAPI<
+type GetThunkAPI<ThunkApiConfig> = BaseThunkAPI<
   GetState<ThunkApiConfig>,
   GetExtra<ThunkApiConfig>,
   GetDispatch<ThunkApiConfig>,
   GetRejectValue<ThunkApiConfig>,
   GetRejectedMeta<ThunkApiConfig>,
-  FulfilledValue,
   GetFulfilledMeta<ThunkApiConfig>
 >
 
@@ -196,7 +206,7 @@ export type AsyncThunkPayloadCreator<
   ThunkApiConfig extends AsyncThunkConfig = {}
 > = (
   arg: ThunkArg,
-  thunkAPI: GetThunkAPI<ThunkApiConfig, Returned>
+  thunkAPI: GetThunkAPI<ThunkApiConfig>
 ) => AsyncThunkPayloadCreatorReturnValue<Returned, ThunkApiConfig>
 
 /**
@@ -270,7 +280,7 @@ export type AsyncThunkOptions<
    */
   condition?(
     arg: ThunkArg,
-    api: Pick<GetThunkAPI<ThunkApiConfig, unknown>, 'getState' | 'extra'>
+    api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>
   ): boolean | undefined
   /**
    * If `condition` returns `false`, the asyncThunk will be skipped.
@@ -303,7 +313,7 @@ export type AsyncThunkOptions<
         arg: ThunkArg
         requestId: string
       },
-      api: Pick<GetThunkAPI<ThunkApiConfig, unknown>, 'getState' | 'extra'>
+      api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>
     ): GetPendingMeta<ThunkApiConfig>
   },
   {
@@ -315,7 +325,7 @@ export type AsyncThunkOptions<
         arg: ThunkArg
         requestId: string
       },
-      api: Pick<GetThunkAPI<ThunkApiConfig, unknown>, 'getState' | 'extra'>
+      api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>
     ): GetPendingMeta<ThunkApiConfig>
   }
 >

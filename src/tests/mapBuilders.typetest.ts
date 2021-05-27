@@ -163,8 +163,11 @@ import { expectType } from './helpers'
         }
       >(
         'test',
-        () => {
-          throw ''
+        (_, api) => {
+          return api.fulfillWithValue('ret' as const, {
+            fulfilledTimeStamp: 5,
+            baseQueryMeta: 'meta!',
+          })
         },
         {
           getPendingMeta() {
