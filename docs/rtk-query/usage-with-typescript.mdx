@@ -29,7 +29,7 @@ If you encounter any problems with the types that are not described on this page
 
 ### Using auto-generated React Hooks
 
-The react-specific entry point for RTK Query exports a version of [`createApi`](../api/createApi.mdx) which automatically generates react hooks for the defined query & mutation [`endpoints`](../api/createApi.mdx#endpoints).
+The react-specific entry point for RTK Query exports a version of [`createApi`](./api/createApi.mdx) which automatically generates react hooks for the defined query & mutation [`endpoints`](./api/createApi.mdx#endpoints).
 
 ```ts
 // file: src/services/types.ts noEmit
@@ -90,9 +90,7 @@ const useGetPokemonByNameQuery = pokemonApi.endpoints.getPokemonByName.useQuery
 
 ### Typing a `baseQuery`
 
-<!-- TODO: include error type, extraOptions, meta -->
-
-Typing a custom [`baseQuery`](../api/createApi.mdx#basequery) can be performed using the `BaseQueryFn` type exported by RTK Query.
+Typing a custom [`baseQuery`](./api/createApi.mdx#basequery) can be performed using the `BaseQueryFn` type exported by RTK Query.
 
 ```ts title="Base Query signature" no-transpile
 export type BaseQueryFn<
@@ -128,11 +126,11 @@ export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =
 
 The `BaseQueryFn` type accepts the following generics:
 
-- `Args` - The type for the first parameter of the function. The result returned by a [`query`](../api/createApi.mdx#query) property on an endpoint will be passed here.
+- `Args` - The type for the first parameter of the function. The result returned by a [`query`](./api/createApi.mdx#query) property on an endpoint will be passed here.
 - `Result` - The type to be returned in the `data` property for the success case. Unless you expect all queries and mutations to return the same type, it is recommended to keep this typed as `unknown`, and specify the types individually as shown [below](#typing-query-and-mutation-endpoints).
 - `Error` - The type to be returned for the `error` property in the error case. This type also applies to all [`queryFn`](#typing-a-queryfn) functions used in endpoints throughout the API definition.
-- `DefinitionExtraOptions` - The type for the third parameter of the function. The value provided to the [`extraOptions`](../api/createApi.mdx#extraoptions) property on an endpoint will be passed here.
-- `Meta` - the type of the `meta` property that may be returned from calling the `baseQuery`. The `meta` property is accessible as the second argument to [`transformResponse`](../api/createApi.mdx#transformresponse).
+- `DefinitionExtraOptions` - The type for the third parameter of the function. The value provided to the [`extraOptions`](./api/createApi.mdx#extraoptions) property on an endpoint will be passed here.
+- `Meta` - the type of the `meta` property that may be returned from calling the `baseQuery`. The `meta` property is accessible as the second argument to [`transformResponse`](./api/createApi.mdx#transformresponse).
 
 :::note
 
@@ -189,7 +187,7 @@ const api = createApi({
 
 `endpoints` for an api are defined as an object using the builder syntax. Both `query` and `mutation` endpoints can be typed by providing types to the generics in `<ResultType, QueryArg>` format.
 
-- `ResultType` - The type of the final data returned by the query, factoring an optional [`transformResponse`](../api/createApi.mdx#transformresponse).
+- `ResultType` - The type of the final data returned by the query, factoring an optional [`transformResponse`](./api/createApi.mdx#transformresponse).
   - If `transformResponse` is not provided, then it is treated as though a successful query will return this type instead.
   - If `transformResponse` _is_ provided, the input type for `transformResponse` must also be specified, to indicate the type that the initial query returns. The return type for `transformResponse` must match `ResultType`.
   - If `queryFn` is used rather than `query`, then it must return the following shape for the success case:
@@ -283,7 +281,7 @@ const api = createApi({
 
 The error type that a `queryFn` must return is determined by the [`baseQuery`](#typing-a-basequery) provided to `createApi`.
 
-With [`fetchBaseQuery`](../api/fetchBaseQuery.mdx), the error type is like so:
+With [`fetchBaseQuery`](./api/fetchBaseQuery.mdx), the error type is like so:
 
 ```ts title="fetchBaseQuery error shape" no-transpile
 {
@@ -385,7 +383,7 @@ const api = createApi({
 
 ### Typing `providesTags`/`invalidatesTags`
 
-RTK Query utilizes a ['cache tag invalidation system'](./cached-data.mdx) in order to provide automatic re-fetching of stale data.
+RTK Query utilizes a ['cache tag invalidation system'](./usage/cached-data.mdx) in order to provide automatic re-fetching of stale data.
 
 When using the function notation, both the `providesTags` and `invalidatesTags` properties on endpoints are called with the following arguments:
 
@@ -393,9 +391,9 @@ When using the function notation, both the `providesTags` and `invalidatesTags` 
 - error: `ErrorType` | `undefined` - The error returned by an errored query. The type corresponds with `Error` as [supplied to the `baseQuery` for the api](#typing-a-basequery). In the success case for a query, this will be `undefined`.
 - arg: `QueryArg` - The argument supplied to the `query` property when the query itself is called. The type corresponds with `QueryArg` as [supplied to the built endpoint](#typing-query-and-mutation-endpoints).
 
-A recommended use-case with `providesTags` when a query returns a list of items is to provide a tag for each item in the list using the entity ID, as well as a 'LIST' ID tag (see [Advanced Invalidation with abstract tag IDs](./cached-data.mdx#advanced-invalidation-with-abstract-tag-ids)).
+A recommended use-case with `providesTags` when a query returns a list of items is to provide a tag for each item in the list using the entity ID, as well as a 'LIST' ID tag (see [Advanced Invalidation with abstract tag IDs](./usage/cached-data.mdx#advanced-invalidation-with-abstract-tag-ids)).
 
-This is often written by spreading the result of mapping the received data into an array, as well as an additional item in the array for the `'LIST'` ID tag. When spreading the mapped array, by default, TypeScript will broaden the `type` property to `string`. As the `tag type` must correspond to one of the string literals provided to the [`tagTypes`](../api/createApi.mdx#tagtypes) property of the api, the broad `string` type will not satisfy TypeScript. In order to alleviate this, the `tag type` can be cast `as const` to prevent the type being broadened to `string`.
+This is often written by spreading the result of mapping the received data into an array, as well as an additional item in the array for the `'LIST'` ID tag. When spreading the mapped array, by default, TypeScript will broaden the `type` property to `string`. As the `tag type` must correspond to one of the string literals provided to the [`tagTypes`](./api/createApi.mdx#tagtypes) property of the api, the broad `string` type will not satisfy TypeScript. In order to alleviate this, the `tag type` can be cast `as const` to prevent the type being broadened to `string`.
 
 ```ts title="providesTags TypeScript example"
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
@@ -431,7 +429,7 @@ const api = createApi({
 
 <!-- good for scenarios where you never want to send the query for a nullish value (skipping the query), but want the param itself to be typed correctly. Passing `skipToken` as the param will prevents the query from firing, with the same effect as `{ skip: true }`  -->
 
-RTK Query provides the ability to conditionally skip queries from automatically running using the `skip` parameter as part of query hook options (see [Conditional Fetching](./conditional-fetching.mdx)).
+RTK Query provides the ability to conditionally skip queries from automatically running using the `skip` parameter as part of query hook options (see [Conditional Fetching](./usage/conditional-fetching.mdx)).
 
 TypeScript users may find that they encounter invalid type scenarios when a query argument is typed to not be `undefined`, and they attempt to `skip` the query when an argument would not be valid.
 

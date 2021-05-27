@@ -74,6 +74,7 @@
       "items": [
         "rtk-query/overview",
         "rtk-query/comparison",
+        "rtk-query/usage-with-typescript",
         {
           "type": "category",
           "label": "Using RTK Query",
@@ -94,7 +95,6 @@
             "rtk-query/usage/customizing-create-api",
             "rtk-query/usage/customizing-queries",
             "rtk-query/usage/migrating-to-rtk-query",
-            "rtk-query/usage/usage-with-typescript",
             "rtk-query/usage/examples"
           ]
         },
