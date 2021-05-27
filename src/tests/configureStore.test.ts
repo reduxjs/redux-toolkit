@@ -1,7 +1,8 @@
-import {
-  configureStore,
+import type {
   StoreEnhancer,
-  StoreEnhancerStoreCreator,
+  StoreEnhancerStoreCreator} from '@reduxjs/toolkit';
+import {
+  configureStore
 } from '@reduxjs/toolkit'
 import * as RTK from '@reduxjs/toolkit'
 import * as redux from 'redux'

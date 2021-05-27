@@ -58,6 +58,49 @@ export const { useGetPokemonByNameQuery } = pokemonApi
 
 [summary](docblock://query/createApi.ts?token=CreateApiOptions.baseQuery)
 
+#### baseQuery function arguments
+
+- `args` - The return value of the `query` function for a given endpoint
+- `api` - The `BaseQueryApi` object, containing `signal`, `dispatch` and `getState` properties
+  - `signal` - An [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) object that may be used to abort DOM requests and/or read whether the request is aborted.
+  - `dispatch` - The `store.dispatch` method for the corresponding Redux store
+  - `getState` - A function that may be called to access the current store state
+- `extraOptions` - The value of the optional `extraOptions` property provided for a given endpoint
+
+#### baseQuery function signature
+
+```ts title="Base Query signature" no-transpile
+export type BaseQueryFn<
+  Args = any,
+  Result = unknown,
+  Error = unknown,
+  DefinitionExtraOptions = {},
+  Meta = {}
+> = (
+  args: Args,
+  api: BaseQueryApi,
+  extraOptions: DefinitionExtraOptions
+) => MaybePromise<QueryReturnValue<Result, Error, Meta>>
+
+export interface BaseQueryApi {
+  signal: AbortSignal
+  dispatch: ThunkDispatch<any, any, any>
+  getState: () => unknown
+}
+
+export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =
+  | {
+      error: E
+      data?: undefined
+      meta?: M
+    }
+  | {
+      error?: undefined
+      data: T
+      meta?: M
+    }
+```
+
 [examples](docblock://query/createApi.ts?token=CreateApiOptions.baseQuery)
 
 ### `endpoints`
@@ -261,7 +304,7 @@ By default, this function will take the query arguments, sort object keys where 
 [summary](docblock://query/createApi.ts?token=CreateApiOptions.refetchOnMountOrArgChange)
 
 :::note
-You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnMountOrArgChange` to each individual hook call or when dispatching the [`initiate`](#initiate) action.
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnMountOrArgChange` to each individual hook call or when dispatching the [`initiate`](./created-api/endpoints.mdx#initiate) action.
 :::
 
 ### `refetchOnFocus`
@@ -269,7 +312,7 @@ You can set this globally in `createApi`, but you can also override the default 
 [summary](docblock://query/createApi.ts?token=CreateApiOptions.refetchOnFocus)
 
 :::note
-You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnFocus` to each individual hook call or when dispatching the [`initiate`](#initiate) action.
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnFocus` to each individual hook call or when dispatching the [`initiate`](./created-api/endpoints.mdx#initiate) action.
 
 If you specify `track: false` when manually dispatching queries, RTK Query will not be able to automatically refetch for you.
 :::
@@ -279,7 +322,7 @@ If you specify `track: false` when manually dispatching queries, RTK Query will 
 [summary](docblock://query/createApi.ts?token=CreateApiOptions.refetchOnReconnect)
 
 :::note
-You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnReconnect` to each individual hook call or when dispatching the [`initiate`](#initiate) action.
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnReconnect` to each individual hook call or when dispatching the [`initiate`](./created-api/endpoints.mdx#initiate) action.
 
 If you specify `track: false` when manually dispatching queries, RTK Query will not be able to automatically refetch for you.
 :::
@@ -300,83 +343,58 @@ _(required if no `query` provided)_
 
 [summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQueryFn.queryFn)
 
+Called with the same arguments as `baseQuery`, as well as the provided `baseQuery` function itself. It is expected to return an object with either a `data` or `error` property, or a promise that resolves to return such an object.
+
+See also [Customizing queries with queryFn](../usage/customizing-queries.mdx#customizing-queries-with-queryfn).
+
+```ts title="queryFn signature" no-transpile
+queryFn(
+  arg: QueryArg,
+  api: BaseQueryApi,
+  extraOptions: BaseQueryExtraOptions<BaseQuery>,
+  baseQuery: (arg: Parameters<BaseQuery>[0]) => ReturnType<BaseQuery>
+): MaybePromise<
+| {
+    error: BaseQueryError<BaseQuery>
+    data?: undefined
+  }
+| {
+    error?: undefined
+    data: ResultType
+  }
+>
+
+export interface BaseQueryApi {
+  signal: AbortSignal
+  dispatch: ThunkDispatch<any, any, any>
+  getState: () => unknown
+}
+```
+
+#### queryFn function arguments
+
+- `args` - The argument provided when the query itself is called
+- `api` - The `BaseQueryApi` object, containing `signal`, `dispatch` and `getState` properties
+  - `signal` - An [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) object that may be used to abort DOM requests and/or read whether the request is aborted.
+  - `dispatch` - The `store.dispatch` method for the corresponding Redux store
+  - `getState` - A function that may be called to access the current store state
+- `extraOptions` - The value of the optional `extraOptions` property provided for the endpoint
+- `baseQuery` - The `baseQuery` function provided to the api itself
+
 [examples](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQueryFn.queryFn)
 
 ### `transformResponse`
 
-_(optional, can't be used with `queryFn`)_
+_(optional, not applicable with `queryFn`)_
 
 [summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.transformResponse)
 
 In some cases, you may want to manipulate the data returned from a query before you put it in the cache. In this instance, you can take advantage of `transformResponse`.
 
-By default, the payload from the server is returned directly.
-
-```ts
-function defaultTransformResponse(baseQueryReturnValue: unknown) {
-  return baseQueryReturnValue
-}
-```
-
-To change it, provide a function that looks like:
+See also [Customizing query responses with `transformResponse`](../usage/customizing-queries.mdx#customizing-query-responses-with-transformresponse)
 
 ```ts title="Unpack a deeply nested collection" no-transpile
 transformResponse: (response) => response.some.deeply.nested.collection
-```
-
-#### Example - Normalizing response data
-
-```ts title="Normalize the response data" no-transpile
-transformResponse: (response) =>
-  response.reduce((acc, curr) => {
-    acc[curr.id] = curr
-    return acc
-  }, {})
-```
-
-#### Example - Unpacking deeply nested data
-
-```ts title="GraphQL transformation example"
-// file: graphqlBaseQuery.ts noEmit
-import { BaseQueryFn } from '@reduxjs/toolkit/query'
-declare const graphqlBaseQuery: (args: { baseUrl: string }) => BaseQueryFn
-declare const gql: (literals: TemplateStringsArray) => void
-export { graphqlBaseQuery, gql }
-
-// file: graphqlApi.ts
-import { createApi } from '@reduxjs/toolkit/query'
-import { graphqlBaseQuery, gql } from './graphqlBaseQuery'
-
-interface Post {
-  id: number
-  title: string
-}
-
-export const api = createApi({
-  baseQuery: graphqlBaseQuery({
-    baseUrl: '/graphql',
-  }),
-  endpoints: (builder) => ({
-    getPosts: builder.query<Post[], void>({
-      query: () => ({
-        body: gql`
-          query {
-            posts {
-              data {
-                id
-                title
-              }
-            }
-          }
-        `,
-      }),
-      // highlight-start
-      transformResponse: (response: { posts: { data: Post[] } }) =>
-        response.posts.data,
-      // highlight-end
-    }),
-  }),
-})
 ```
 
 ### `extraOptions`
@@ -391,7 +409,7 @@ _(optional, only for query endpoints)_
 
 [summary](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.providesTags)
 
-See also [Providing cache data](../../usage/rtk-query/cached-data.mdx#providing-cache-data).
+See also [Providing cache data](../usage/cached-data.mdx#providing-cache-data).
 
 [examples](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.providesTags)
 
@@ -401,7 +419,7 @@ _(optional, only for mutation endpoints)_
 
 [summary](docblock://query/endpointDefinitions.ts?token=MutationExtraOptions.invalidatesTags)
 
-See also [Invalidating cache data](../../usage/rtk-query/cached-data.mdx#invalidating-cache-data).
+See also [Invalidating cache data](../usage/cached-data.mdx#invalidating-cache-data).
 
 [examples](docblock://query/endpointDefinitions.ts?token=MutationExtraOptions.invalidatesTags)
 
@@ -419,11 +437,11 @@ Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only.
 
 _(optional)_
 
-Available to both [queries](../../usage/rtk-query/queries.mdx) and [mutations](../../usage/rtk-query/mutations.mdx).
+Available to both [queries](../usage/queries.mdx) and [mutations](../usage/mutations.mdx).
 
 A function that is called when you start each individual query or mutation. The function is called with a lifecycle api object containing properties such as `queryFulfilled`, allowing code to be run when a query is started, when it succeeds, and when it fails (i.e. throughout the lifecycle of an individual query/mutation call).
 
-Can be used in `mutations` for [optimistic updates](../../usage/rtk-query/optimistic-updates.mdx).
+Can be used in `mutations` for [optimistic updates](../usage/optimistic-updates.mdx).
 
 #### Lifecycle API properties
 
@@ -468,11 +486,11 @@ async function onQueryStarted(
 
 _(optional)_
 
-Available to both [queries](../../usage/rtk-query/queries.mdx) and [mutations](../../usage/rtk-query/mutations.mdx).
+Available to both [queries](../usage/queries.mdx) and [mutations](../usage/mutations.mdx).
 
 A function that is called when a new cache entry is added, i.e. when a new subscription for the endpoint + query parameters combination is created. The function is called with a lifecycle api object containing properties such as `cacheDataLoaded` & `cacheDataRemoved`, allowing code to be run when a cache entry is added, when cache data is loaded, and when the cache entry is removed (i.e. throughout the lifecycle of a cache entry).
 
-Can be used for [streaming updates](../../usage/rtk-query/streaming-updates.mdx).
+Can be used for [streaming updates](../usage/streaming-updates.mdx).
 
 #### Cache Lifecycle API properties
 

@@ -1,22 +1,24 @@
-import { coreModule, coreModuleName } from '../core/module'
-import { buildCreateApi, CreateApi } from '../createApi'
+import { coreModule, buildCreateApi, CreateApi } from '@reduxjs/toolkit/query'
 import { reactHooksModule, reactHooksModuleName } from './module'
 
-import { MutationHooks, QueryHooks } from './buildHooks'
-import {
+import type { MutationHooks, QueryHooks } from './buildHooks'
+import type {
   EndpointDefinitions,
   QueryDefinition,
   MutationDefinition,
   QueryArgFrom,
-} from '../endpointDefinitions'
-import { BaseQueryFn } from '../baseQueryTypes'
+} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
+import type { BaseQueryFn } from '@reduxjs/toolkit/dist/query/baseQueryTypes'
 
-import { QueryKeys } from '../core/apiState'
-import { PrefetchOptions } from '../core/module'
+import type { QueryKeys } from '@reduxjs/toolkit/dist/query/core/apiState'
+import type { PrefetchOptions } from '@reduxjs/toolkit/dist/query/core/module'
 
-export * from '..'
+export * from '@reduxjs/toolkit/query'
 export { ApiProvider } from './ApiProvider'
 
-const createApi = buildCreateApi(coreModule(), reactHooksModule())
+const createApi = /* @__PURE__ */ buildCreateApi(
+  coreModule(),
+  reactHooksModule()
+)
 
 export { createApi, reactHooksModule }

@@ -1,6 +1,6 @@
-import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit'
-import { RootState } from './core/apiState'
-import {
+import type { AnyAction, ThunkDispatch } from '@reduxjs/toolkit'
+import type { RootState } from './core/apiState'
+import type {
   BaseQueryExtraOptions,
   BaseQueryFn,
   BaseQueryResult,
@@ -10,16 +10,16 @@ import {
   BaseQueryError,
   BaseQueryMeta,
 } from './baseQueryTypes'
-import {
+import type {
   HasRequiredProps,
   MaybePromise,
   OmitFromUnion,
   CastAny,
 } from './tsHelpers'
-import { NEVER } from './fakeBaseQuery'
+import type { NEVER } from './fakeBaseQuery'
 
-const resultType = Symbol()
-const baseQuery = Symbol()
+const resultType = /* @__PURE__ */ Symbol()
+const baseQuery = /* @__PURE__ */ Symbol()
 
 interface EndpointDefinitionWithQuery<
   QueryArg,
@@ -27,7 +27,7 @@ interface EndpointDefinitionWithQuery<
   ResultType
 > {
   /**
-   * `query` can be a function that returns either a `string` or an `object` which is passed to your `baseQuery`. If you are using [fetchBaseQuery](./fetchBaseQuery), this can return either a `string` or an `object` of properties in `FetchArgs`. If you use your own custom [`baseQuery`](../../usage/rtk-query/customizing-queries), you can customize this behavior to your liking.
+   * `query` can be a function that returns either a `string` or an `object` which is passed to your `baseQuery`. If you are using [fetchBaseQuery](./fetchBaseQuery), this can return either a `string` or an `object` of properties in `FetchArgs`. If you use your own custom [`baseQuery`](../../rtk-query/usage/customizing-queries), you can customize this behavior to your liking.
    *
    * @example
    *
@@ -74,7 +74,7 @@ interface EndpointDefinitionWithQueryFn<
    *
    * @example
    * ```ts
-   * // codeblock-meta title="queryFn example"
+   * // codeblock-meta title="Basic queryFn example"
    * 
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * interface Post {
@@ -91,7 +91,7 @@ interface EndpointDefinitionWithQueryFn<
    *     }),
    *     flipCoin: build.query<'heads' | 'tails', void>({
    *       // highlight-start
-   *       queryFn() {
+   *       queryFn(arg, queryApi, extraOptions, baseQuery) {
    *         const randomVal = Math.random()
    *         if (randomVal < 0.45) {
    *           return { data: 'heads' }

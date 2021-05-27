@@ -1,4 +1,4 @@
-import { Middleware } from 'redux'
+import type { Middleware } from 'redux'
 
 /**
  * return True if T is `any`, otherwise return False

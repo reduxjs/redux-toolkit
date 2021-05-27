@@ -1,12 +1,15 @@
-import { createEntityAdapter, EntityAdapter, EntityState } from '../index'
-import { EntitySelectors } from '../models'
+import type { EntityAdapter, EntityState } from '../index';
+import { createEntityAdapter } from '../index'
+import type { EntitySelectors } from '../models'
+import type {
+  BookModel} from './fixtures/book';
 import {
-  BookModel,
   AClockworkOrange,
   AnimalFarm,
   TheGreatGatsby,
 } from './fixtures/book'
-import { createSelector, Selector } from 'reselect'
+import type { Selector } from 'reselect';
+import { createSelector } from 'reselect'
 
 describe('Entity State Selectors', () => {
   describe('Composed Selectors', () => {

@@ -1,17 +1,11 @@
 /* eslint-disable no-lone-blocks */
-import {
-  createAsyncThunk,
-  createReducer,
-  AnyAction,
-  unwrapResult,
-  SerializedError,
-  AsyncThunkConfig,
-  AsyncThunk,
-} from '@reduxjs/toolkit'
-import { ThunkDispatch } from 'redux-thunk'
+import type { AnyAction, SerializedError, AsyncThunk } from '@reduxjs/toolkit'
+import { createAsyncThunk, createReducer, unwrapResult } from '@reduxjs/toolkit'
+import type { ThunkDispatch } from 'redux-thunk'
 
-import apiRequest, { AxiosError } from 'axios'
-import { IsAny, IsUnknown } from '@internal/tsHelpers'
+import type { AxiosError } from 'axios'
+import apiRequest from 'axios'
+import type { IsAny, IsUnknown } from '@internal/tsHelpers'
 import { expectType } from './helpers'
 import { AsyncThunkPayloadCreator } from '@internal/createAsyncThunk'
 
@@ -387,7 +381,7 @@ const anyAction = { type: 'foo' } as AnyAction
     console.log(api)
     return 'ret' as const
   })
-  expectType<AsyncThunk<'ret', void, AsyncThunkConfig>>(thunk)
+  expectType<AsyncThunk<'ret', void, {}>>(thunk)
 }
 
 {

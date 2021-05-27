@@ -1,10 +1,9 @@
-import createNextState, { Draft, isDraft, isDraftable } from 'immer'
-import { AnyAction, Action, Reducer } from 'redux'
-import {
-  executeReducerBuilderCallback,
-  ActionReducerMapBuilder,
-} from './mapBuilders'
-import { NoInfer } from './tsHelpers'
+import type { Draft } from 'immer'
+import createNextState, { isDraft, isDraftable, enableES5 } from 'immer'
+import type { AnyAction, Action, Reducer } from 'redux'
+import type { ActionReducerMapBuilder } from './mapBuilders'
+import { executeReducerBuilderCallback } from './mapBuilders'
+import type { NoInfer } from './tsHelpers'
 
 /**
  * Defines a mapping from action types to corresponding action object shapes.
@@ -194,6 +193,12 @@ export function createReducer<S>(
   actionMatchers: ActionMatcherDescriptionCollection<S> = [],
   defaultCaseReducer?: CaseReducer<S>
 ): Reducer<S> {
+  // We deliberately enable Immer's ES5 support, on the grounds that
+  // we assume RTK will be used with React Native and other Proxy-less
+  // environments.  In addition, that's how Immer 4 behaved, and since
+  // we want to ship this in an RTK minor, we should keep the same behavior.
+  enableES5()
+
   let [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
     typeof mapOrBuilderCallback === 'function'
       ? executeReducerBuilderCallback(mapOrBuilderCallback)

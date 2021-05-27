@@ -1,12 +1,11 @@
+import type { AsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import {
-  AsyncThunk,
   combineReducers,
   createAction,
   createSlice,
   isAnyOf,
   isFulfilled,
   isRejectedWithValue,
-  PayloadAction,
   // Workaround for API-Extractor
   AnyAction,
   CombinedState,
@@ -14,13 +13,12 @@ import {
   ActionCreatorWithPayload,
   ActionCreatorWithoutPayload,
 } from '@reduxjs/toolkit'
-import {
+import type {
   CombinedState as CombinedQueryState,
   QuerySubstateIdentifier,
   QuerySubState,
   MutationSubstateIdentifier,
   MutationSubState,
-  QueryStatus,
   MutationState,
   QueryState,
   InvalidationState,
@@ -29,21 +27,26 @@ import {
   SubscriptionState,
   ConfigState,
 } from './apiState'
-import {
-  calculateProvidedByThunk,
+import { QueryStatus } from './apiState'
+import type {
   MutationThunkArg,
   QueryThunkArg,
   ThunkResult,
 } from './buildThunks'
-import { AssertTagTypes, EndpointDefinitions } from '../endpointDefinitions'
-import { applyPatches, Patch } from 'immer'
+import { calculateProvidedByThunk } from './buildThunks'
+import type {
+  AssertTagTypes,
+  EndpointDefinitions,
+} from '../endpointDefinitions'
+import type { Patch } from 'immer'
+import { applyPatches } from 'immer'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import {
   isDocumentVisible,
   isOnline,
   copyWithStructuralSharing,
 } from '../utils'
-import { ApiContext } from '../apiTypes'
+import type { ApiContext } from '../apiTypes'
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,

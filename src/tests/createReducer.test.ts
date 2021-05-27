@@ -1,12 +1,13 @@
-import {
-  createReducer,
+import type {
   CaseReducer,
   PayloadAction,
-  createAction,
-  createNextState,
   Draft,
   Reducer,
-  AnyAction,
+  AnyAction} from '@reduxjs/toolkit';
+import {
+  createReducer,
+  createAction,
+  createNextState
 } from '@reduxjs/toolkit'
 
 interface Todo {

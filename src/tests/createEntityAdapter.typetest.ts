@@ -1,12 +1,13 @@
-import {
-  createSlice,
-  createEntityAdapter,
+import type {
   EntityAdapter,
   ActionCreatorWithPayload,
   ActionCreatorWithoutPayload,
   EntityStateAdapter,
   EntityId,
-  Update,
+  Update} from '@reduxjs/toolkit';
+import {
+  createSlice,
+  createEntityAdapter
 } from '@reduxjs/toolkit'
 import { expectType } from './helpers'
 

@@ -1,18 +1,10 @@
 /* eslint-disable no-lone-blocks */
-import {
-  applyMiddleware,
-  Dispatch,
-  AnyAction,
-  Middleware,
-  Reducer,
-  Store,
-} from 'redux'
-import {
-  configureStore,
-  PayloadAction,
-  getDefaultMiddleware,
-} from '@reduxjs/toolkit'
-import thunk, { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
+import type { Dispatch, AnyAction, Middleware, Reducer, Store } from 'redux'
+import { applyMiddleware } from 'redux'
+import type { PayloadAction } from '@reduxjs/toolkit'
+import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit'
+import type { ThunkMiddleware, ThunkAction } from 'redux-thunk'
+import thunk, { ThunkDispatch } from 'redux-thunk'
 import { expectNotAny, expectType } from './helpers'
 
 const _anyMiddleware: any = () => () => () => {}

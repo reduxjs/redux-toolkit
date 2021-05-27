@@ -1,13 +1,12 @@
 import { createNextState, createSelector } from '@reduxjs/toolkit'
-import {
+import type {
   MutationSubState,
-  QueryStatus,
   QuerySubState,
   RootState as _RootState,
-  getRequestStatusFlags,
   RequestStatusFlags,
 } from './apiState'
-import {
+import { QueryStatus, getRequestStatusFlags } from './apiState'
+import type {
   EndpointDefinitions,
   QueryDefinition,
   MutationDefinition,
@@ -15,7 +14,7 @@ import {
   TagTypesFrom,
   ReducerPathFrom,
 } from '../endpointDefinitions'
-import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 
 export type SkipToken = typeof skipToken
 /**
@@ -40,7 +39,7 @@ export type SkipToken = typeof skipToken
  * If passed directly into a query or mutation selector, that selector will always
  * return an uninitialized state.
  */
-export const skipToken = Symbol('skip selector')
+export const skipToken = /* @__PURE__ */ Symbol('skip selector')
 /** @deprecated renamed to `skipToken` */
 export const skipSelector = skipToken
 
@@ -101,8 +100,11 @@ const initialSubState: QuerySubState<any> = {
 }
 
 // abuse immer to freeze default states
-const defaultQuerySubState = createNextState(initialSubState, () => {})
-const defaultMutationSubState = createNextState(
+const defaultQuerySubState = /* @__PURE__ */ createNextState(
+  initialSubState,
+  () => {}
+)
+const defaultMutationSubState = /* @__PURE__ */ createNextState(
   initialSubState as MutationSubState<any>,
   () => {}
 )

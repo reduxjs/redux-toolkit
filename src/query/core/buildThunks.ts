@@ -1,52 +1,58 @@
-import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import { Api, ApiContext } from '../apiTypes'
-import {
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type { Api, ApiContext } from '../apiTypes'
+import type {
   BaseQueryFn,
-  BaseQueryArg,
   BaseQueryError,
-  QueryReturnValue,
-} from '../baseQueryTypes'
+  QueryReturnValue} from '../baseQueryTypes';
 import {
+  BaseQueryArg
+} from '../baseQueryTypes'
+import type {
   RootState,
   QueryKeys,
+  QuerySubstateIdentifier} from './apiState';
+import {
   QueryStatus,
-  QuerySubstateIdentifier,
   CombinedState,
 } from './apiState'
-import { StartQueryActionCreatorOptions } from './buildInitiate'
-import {
+import type { StartQueryActionCreatorOptions } from './buildInitiate'
+import type {
   AssertTagTypes,
-  calculateProvidedBy,
   EndpointDefinition,
   EndpointDefinitions,
   MutationDefinition,
   QueryArgFrom,
   QueryDefinition,
-  ResultTypeFrom,
+  ResultTypeFrom} from '../endpointDefinitions';
+import {
+  calculateProvidedBy,
   FullTagDescription,
 } from '../endpointDefinitions'
-import {
+import type {
   AsyncThunkPayloadCreator,
-  Draft,
+  Draft} from '@reduxjs/toolkit';
+import {
   isAllOf,
   isFulfilled,
   isPending,
   isRejected,
   isRejectedWithValue,
 } from '@reduxjs/toolkit'
-import { Patch, isDraftable, produceWithPatches } from 'immer'
-import {
+import type { Patch} from 'immer';
+import { isDraftable, produceWithPatches } from 'immer'
+import type {
   AnyAction,
-  createAsyncThunk,
   ThunkAction,
   ThunkDispatch,
-  AsyncThunk,
+  AsyncThunk} from '@reduxjs/toolkit';
+import {
+  createAsyncThunk
 } from '@reduxjs/toolkit'
 
 import { HandledError } from '../HandledError'
 
-import { ApiEndpointQuery, PrefetchOptions } from './module'
-import { UnwrapPromise } from '../tsHelpers'
+import type { ApiEndpointQuery, PrefetchOptions } from './module'
+import type { UnwrapPromise } from '../tsHelpers'
 
 declare module './module' {
   export interface ApiEndpointQuery<

@@ -11,7 +11,7 @@ Unlike `useQuery`, `useMutation` returns a tuple. The first item in the tuple is
 
 Unlike the `useQuery` hook, the `useMutation` hook doesn't execute automatically. To run a mutation you have to call the trigger function returned as the first tuple value from the hook.
 
-See [`useMutation`](../../api/rtk-query/created-api/hooks.mdx#usemutation) for the hook signature and additional details.
+See [`useMutation`](../api/created-api/hooks.mdx#usemutation) for the hook signature and additional details.
 
 ```ts title="Example of all mutation endpoint options"
 // file: types.ts noEmit
@@ -80,7 +80,7 @@ The `mutation trigger` is a function that when called, will fire off the mutatio
 
 The `mutation result` is an object containing properties such as the latest `data` for the mutation request, as well as status booleans for the current request lifecycle state.
 
-Below are some of the most frequently used properties on the `mutation result` object. Refer to [`useMutation`](../../api/rtk-query/created-api/hooks.mdx#usemutation) for an extensive list of all returned properties.
+Below are some of the most frequently used properties on the `mutation result` object. Refer to [`useMutation`](../api/created-api/hooks.mdx#usemutation) for an extensive list of all returned properties.
 
 - `data` - The returned result if present.
 - `error` - The error result if present.

@@ -3,8 +3,9 @@ import {
   createConsole,
   getLog,
 } from 'console-testing-library/pure'
+import type {
+  Reducer} from '@reduxjs/toolkit';
 import {
-  Reducer,
   configureStore,
   createSerializableStateInvariantMiddleware,
   findNonSerializableValue,

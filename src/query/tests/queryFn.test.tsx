@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit'
-import {
+import type {
   BaseQueryFn,
+  FetchBaseQueryError} from '@reduxjs/toolkit/query';
+import {
   createApi,
-  fetchBaseQuery,
-  FetchBaseQueryError,
+  fetchBaseQuery
 } from '@reduxjs/toolkit/query'
-import { Post, posts } from './mocks/server'
+import type { Post} from './mocks/server';
+import { posts } from './mocks/server'
 import { actionsReducer, setupApiStore } from './helpers'
 
 describe('queryFn base implementation tests', () => {

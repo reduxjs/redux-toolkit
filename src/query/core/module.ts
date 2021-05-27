@@ -1,12 +1,9 @@
 /**
  * Note: this file should import all other files for type discovery and declaration merging
  */
-import {
-  buildThunks,
-  PatchQueryDataThunk,
-  UpdateQueryDataThunk,
-} from './buildThunks'
-import {
+import type { PatchQueryDataThunk, UpdateQueryDataThunk } from './buildThunks'
+import { buildThunks } from './buildThunks'
+import type {
   ActionCreatorWithPayload,
   AnyAction,
   Middleware,
@@ -14,31 +11,32 @@ import {
   ThunkAction,
   ThunkDispatch,
 } from '@reduxjs/toolkit'
-import {
+import type {
   EndpointDefinitions,
   QueryArgFrom,
   QueryDefinition,
   MutationDefinition,
   AssertTagTypes,
-  isQueryDefinition,
-  isMutationDefinition,
   FullTagDescription,
 } from '../endpointDefinitions'
-import { CombinedState, QueryKeys, RootState } from './apiState'
-import { Api, Module } from '../apiTypes'
+import { isQueryDefinition, isMutationDefinition } from '../endpointDefinitions'
+import type { CombinedState, QueryKeys, RootState } from './apiState'
+import type { Api, Module } from '../apiTypes'
 import { onFocus, onFocusLost, onOnline, onOffline } from './setupListeners'
 import { buildSlice } from './buildSlice'
 import { buildMiddleware } from './buildMiddleware'
 import { buildSelectors } from './buildSelectors'
 import { buildInitiate } from './buildInitiate'
-import { assertCast, Id, safeAssign } from '../tsHelpers'
-import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import { SliceActions } from './buildSlice'
-import { BaseQueryFn } from '../baseQueryTypes'
+import type { Id } from '../tsHelpers'
+import { assertCast, safeAssign } from '../tsHelpers'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type { SliceActions } from './buildSlice'
+import type { BaseQueryFn } from '../baseQueryTypes'
 
 import type { ReferenceCacheLifecycle } from './buildMiddleware/cacheLifecycle'
 import type { ReferenceQueryLifecycle } from './buildMiddleware/queryLifecycle'
-import { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
+import type { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
+import { enablePatches } from 'immer'
 
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
@@ -54,7 +52,7 @@ export type PrefetchOptions =
     }
   | { force?: boolean }
 
-export const coreModuleName = Symbol()
+export const coreModuleName = /* @__PURE__ */ Symbol()
 export type CoreModule =
   | typeof coreModuleName
   | ReferenceCacheLifecycle
@@ -247,6 +245,8 @@ export const coreModule = (): Module<CoreModule> => ({
     },
     context
   ) {
+    enablePatches()
+
     assertCast<InternalSerializeQueryArgs>(serializeQueryArgs)
 
     const assertTagType: AssertTagTypes = (tag) => {

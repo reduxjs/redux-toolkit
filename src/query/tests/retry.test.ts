@@ -1,4 +1,5 @@
-import { BaseQueryFn, createApi, retry } from '@reduxjs/toolkit/query'
+import type { BaseQueryFn} from '@reduxjs/toolkit/query';
+import { createApi, retry } from '@reduxjs/toolkit/query'
 import { setupApiStore, waitMs } from './helpers'
 
 beforeEach(() => {

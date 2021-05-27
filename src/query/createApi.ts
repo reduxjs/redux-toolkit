@@ -1,13 +1,15 @@
 import type { Api, ApiContext, Module, ModuleName } from './apiTypes'
 import type { BaseQueryArg, BaseQueryFn } from './baseQueryTypes'
+import type {
+  SerializeQueryArgs} from './defaultSerializeQueryArgs';
 import {
-  defaultSerializeQueryArgs,
-  SerializeQueryArgs,
+  defaultSerializeQueryArgs
 } from './defaultSerializeQueryArgs'
-import {
-  DefinitionType,
+import type {
   EndpointBuilder,
-  EndpointDefinitions,
+  EndpointDefinitions} from './endpointDefinitions';
+import {
+  DefinitionType
 } from './endpointDefinitions'
 
 export interface CreateApiOptions<
@@ -17,7 +19,7 @@ export interface CreateApiOptions<
   TagTypes extends string = never
 > {
   /**
-   * The base query used by each endpoint if no `queryFn` option is specified. RTK Query exports a utility called [fetchBaseQuery](./fetchBaseQuery) as a lightweight wrapper around `fetch` for common use-cases. See [Customizing Queries](../../usage/rtk-query/customizing-queries) if `fetchBaseQuery` does not handle your requirements.
+   * The base query used by each endpoint if no `queryFn` option is specified. RTK Query exports a utility called [fetchBaseQuery](./fetchBaseQuery) as a lightweight wrapper around `fetch` for common use-cases. See [Customizing Queries](../../rtk-query/usage/customizing-queries) if `fetchBaseQuery` does not handle your requirements.
    *
    * @example
    *
@@ -36,7 +38,7 @@ export interface CreateApiOptions<
    */
   baseQuery: BaseQuery
   /**
-   * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining an tag type, you will be able to [provide](../../usage/rtk-query/cached-data#providing-tags) them with `provides` and [invalidate](../../usage/rtk-query/cached-data#invalidating-tags) them with `invalidates` when configuring [endpoints](#endpoints).
+   * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining an tag type, you will be able to [provide](../../rtk-query/usage/cached-data#providing-tags) them with `provides` and [invalidate](../../rtk-query/usage/cached-data#invalidating-tags) them with `invalidates` when configuring [endpoints](#endpoints).
    *
    * @example
    *
@@ -91,7 +93,7 @@ export interface CreateApiOptions<
    */
   serializeQueryArgs?: SerializeQueryArgs<BaseQueryArg<BaseQuery>>
   /**
-   * Endpoints are just a set of operations that you want to perform against your server. You define them as an object using the builder syntax. There are two basic endpoint types: [`query`](../../usage/rtk-query/queries) and [`mutation`](../../usage/rtk-query/mutations).
+   * Endpoints are just a set of operations that you want to perform against your server. You define them as an object using the builder syntax. There are two basic endpoint types: [`query`](../../rtk-query/usage/queries) and [`mutation`](../../rtk-query/usage/mutations).
    */
   endpoints(
     build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
@@ -137,7 +139,7 @@ export interface CreateApiOptions<
    *
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
    *
-   * Note: requires `setupListeners` to have been called.
+   * Note: requires [`setupListeners`](./setupListeners) to have been called.
    */
   refetchOnFocus?: boolean
   /**
@@ -145,7 +147,7 @@ export interface CreateApiOptions<
    *
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
    *
-   * Note: requires `setupListeners` to have been called.
+   * Note: requires [`setupListeners`](./setupListeners) to have been called.
    */
   refetchOnReconnect?: boolean
 }

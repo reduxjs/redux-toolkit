@@ -1,22 +1,23 @@
 import { compose } from 'redux'
 
-import {
+import type {
   AnyAction,
-  createAction,
   Middleware,
-  ThunkDispatch,
+  ThunkDispatch} from '@reduxjs/toolkit';
+import {
+  createAction
 } from '@reduxjs/toolkit'
 
-import {
+import type {
   EndpointDefinitions,
   FullTagDescription,
 } from '../../endpointDefinitions'
-import { QueryStatus, QuerySubState, RootState } from '../apiState'
-import { QueryThunkArg } from '../buildThunks'
+import type { QueryStatus, QuerySubState, RootState } from '../apiState'
+import type { QueryThunkArg } from '../buildThunks'
 import { build as buildCacheCollection } from './cacheCollection'
 import { build as buildInvalidationByTags } from './invalidationByTags'
 import { build as buildPolling } from './polling'
-import { BuildMiddlewareInput } from './types'
+import type { BuildMiddlewareInput } from './types'
 import { build as buildWindowEventHandling } from './windowEventHandling'
 import { build as buildCacheLifecycle } from './cacheLifecycle'
 import { build as buildQueryLifecycle } from './queryLifecycle'

@@ -24,35 +24,13 @@
       "items": [
         "usage/usage-guide",
         "usage/usage-with-typescript",
-        "usage/immer-reducers",
-        {
-          "type": "category",
-          "label": "RTK Query",
-          "collapsed": true,
-          "items": [
-            "usage/rtk-query/queries",
-            "usage/rtk-query/mutations",
-            "usage/rtk-query/cached-data",
-            "usage/rtk-query/error-handling",
-            "usage/rtk-query/conditional-fetching",
-            "usage/rtk-query/pagination",
-            "usage/rtk-query/prefetching",
-            "usage/rtk-query/polling",
-            "usage/rtk-query/streaming-updates",
-            "usage/rtk-query/optimistic-updates",
-            "usage/rtk-query/code-splitting",
-            "usage/rtk-query/code-generation",
-            "usage/rtk-query/customizing-create-api",
-            "usage/rtk-query/customizing-queries",
-            "usage/rtk-query/migrating-to-rtk-query",
-            "usage/rtk-query/examples"
-          ]
-        }
+        "usage/immer-reducers"
       ]
     },
     {
       "type": "category",
       "label": "API Reference",
+      "collapsed": true,
       "items": [
         {
           "type": "category",
@@ -86,26 +64,59 @@
             "api/matching-utilities",
             "api/other-exports"
           ]
+        }
+      ]
+    },
+    {
+      "type": "category",
+      "label": "RTK Query",
+      "collapsed": false,
+      "items": [
+        "rtk-query/overview",
+        "rtk-query/comparison",
+        {
+          "type": "category",
+          "label": "Using RTK Query",
+          "collapsed": true,
+          "items": [
+            "rtk-query/usage/queries",
+            "rtk-query/usage/mutations",
+            "rtk-query/usage/cached-data",
+            "rtk-query/usage/error-handling",
+            "rtk-query/usage/conditional-fetching",
+            "rtk-query/usage/pagination",
+            "rtk-query/usage/prefetching",
+            "rtk-query/usage/polling",
+            "rtk-query/usage/streaming-updates",
+            "rtk-query/usage/optimistic-updates",
+            "rtk-query/usage/code-splitting",
+            "rtk-query/usage/code-generation",
+            "rtk-query/usage/customizing-create-api",
+            "rtk-query/usage/customizing-queries",
+            "rtk-query/usage/migrating-to-rtk-query",
+            "rtk-query/usage/examples"
+          ]
         },
         {
           "type": "category",
-          "label": "RTK Query",
+          "label": "API Reference",
           "collapsed": true,
           "items": [
-            "api/rtk-query/createApi",
-            "api/rtk-query/fetchBaseQuery",
-            "api/rtk-query/ApiProvider",
-            "api/rtk-query/setupListeners",
+            "rtk-query/api/createApi",
+            "rtk-query/api/fetchBaseQuery",
+            "rtk-query/api/ApiProvider",
+            "rtk-query/api/setupListeners",
             {
               "type": "category",
               "label": "Generated API Slices",
+              "collapsed": false,
               "items": [
-                "api/rtk-query/created-api/overview",
-                "api/rtk-query/created-api/redux-integration",
-                "api/rtk-query/created-api/endpoints",
-                "api/rtk-query/created-api/code-splitting",
-                "api/rtk-query/created-api/cache-management",
-                "api/rtk-query/created-api/hooks"
+                "rtk-query/api/created-api/overview",
+                "rtk-query/api/created-api/redux-integration",
+                "rtk-query/api/created-api/endpoints",
+                "rtk-query/api/created-api/code-splitting",
+                "rtk-query/api/created-api/cache-management",
+                "rtk-query/api/created-api/hooks"
               ]
             }
           ]

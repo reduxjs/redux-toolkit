@@ -1,13 +1,13 @@
-import {
+import type {
   EndpointDefinitions,
   EndpointBuilder,
   EndpointDefinition,
   ReplaceTagTypes,
 } from './endpointDefinitions'
-import { UnionToIntersection, Id, NoInfer } from './tsHelpers'
-import { CoreModule } from './core/module'
-import { CreateApiOptions } from './createApi'
-import { BaseQueryFn } from './baseQueryTypes'
+import type { UnionToIntersection, Id, NoInfer } from './tsHelpers'
+import type { CoreModule } from './core/module'
+import type { CreateApiOptions } from './createApi'
+import type { BaseQueryFn } from './baseQueryTypes'
 
 export interface ApiModules<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

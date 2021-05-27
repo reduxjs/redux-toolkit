@@ -1,13 +1,15 @@
 import { isAnyOf, isFulfilled, isRejectedWithValue } from '@reduxjs/toolkit'
 
+import type {
+  FullTagDescription} from '../../endpointDefinitions';
 import {
-  calculateProvidedBy,
-  FullTagDescription,
+  calculateProvidedBy
 } from '../../endpointDefinitions'
 import { flatten } from '../../utils'
-import { QueryCacheKey, QueryStatus } from '../apiState'
+import type { QueryCacheKey} from '../apiState';
+import { QueryStatus } from '../apiState'
 import { calculateProvidedByThunk } from '../buildThunks'
-import { SubMiddlewareApi, SubMiddlewareBuilder } from './types'
+import type { SubMiddlewareApi, SubMiddlewareBuilder } from './types'
 
 export const build: SubMiddlewareBuilder = ({
   reducerPath,

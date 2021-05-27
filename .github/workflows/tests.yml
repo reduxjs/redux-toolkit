@@ -23,10 +23,11 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Pack (including Prepare)
+      - name: Build
+        run: npm run build-ci
+
+      - name: Pack
         run: npm pack
-        env:
-          NODE_ENV: 'production' # this doesn't actually matter, so just set it to production
 
       - uses: actions/upload-artifact@v2
         with:

@@ -1,6 +1,7 @@
 import { createAsyncThunk, SerializedError } from '@internal/createAsyncThunk'
 import { executeReducerBuilderCallback } from '@internal/mapBuilders'
-import { createAction, AnyAction } from '@reduxjs/toolkit'
+import type { AnyAction } from '@reduxjs/toolkit';
+import { createAction } from '@reduxjs/toolkit'
 import { expectType } from './helpers'
 
 /** Test:  alternative builder callback for actionMap */

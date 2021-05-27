@@ -1,10 +1,10 @@
-import {
+import type {
   ActionFromMatcher,
-  hasMatchFunction,
   Matcher,
   UnionToIntersection,
 } from './tsHelpers'
-import {
+import { hasMatchFunction } from './tsHelpers'
+import type {
   AsyncThunk,
   AsyncThunkFulfilledActionCreator,
   AsyncThunkPendingActionCreator,
