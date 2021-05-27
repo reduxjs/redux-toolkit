@@ -1,8 +1,4 @@
-import {
-  createStore,
-  compose,
-  applyMiddleware,
-  combineReducers,
+import type {
   Reducer,
   ReducersMapObject,
   Middleware,
@@ -14,18 +10,17 @@ import {
   PreloadedState,
   CombinedState,
 } from 'redux'
-import {
-  composeWithDevTools,
-  EnhancerOptions as DevToolsOptions,
-} from './devtoolsExtension'
+import { createStore, compose, applyMiddleware, combineReducers } from 'redux'
+import type { EnhancerOptions as DevToolsOptions } from './devtoolsExtension'
+import { composeWithDevTools } from './devtoolsExtension'
 
 import isPlainObject from './isPlainObject'
-import {
+import type {
   ThunkMiddlewareFor,
-  curryGetDefaultMiddleware,
   CurriedGetDefaultMiddleware,
 } from './getDefaultMiddleware'
-import { DispatchForMiddlewares, NoInfer } from './tsHelpers'
+import { curryGetDefaultMiddleware } from './getDefaultMiddleware'
+import type { DispatchForMiddlewares, NoInfer } from './tsHelpers'
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 

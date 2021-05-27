@@ -1,6 +1,6 @@
-import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit'
-import { RootState } from './core/apiState'
-import {
+import type { AnyAction, ThunkDispatch } from '@reduxjs/toolkit'
+import type { RootState } from './core/apiState'
+import type {
   BaseQueryExtraOptions,
   BaseQueryFn,
   BaseQueryResult,
@@ -10,16 +10,16 @@ import {
   BaseQueryError,
   BaseQueryMeta,
 } from './baseQueryTypes'
-import {
+import type {
   HasRequiredProps,
   MaybePromise,
   OmitFromUnion,
   CastAny,
 } from './tsHelpers'
-import { NEVER } from './fakeBaseQuery'
+import type { NEVER } from './fakeBaseQuery'
 
-const resultType = Symbol()
-const baseQuery = Symbol()
+const resultType = /* @__PURE__ */ Symbol()
+const baseQuery = /* @__PURE__ */ Symbol()
 
 interface EndpointDefinitionWithQuery<
   QueryArg,

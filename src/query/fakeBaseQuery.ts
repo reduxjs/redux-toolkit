@@ -1,6 +1,6 @@
-import { BaseQueryFn } from './baseQueryTypes'
+import type { BaseQueryFn } from './baseQueryTypes'
 
-const _NEVER = Symbol()
+const _NEVER = /* @__PURE__ */ Symbol()
 export type NEVER = typeof _NEVER
 
 /**

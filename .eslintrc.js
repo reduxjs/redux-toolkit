@@ -13,6 +13,10 @@ module.exports = {
     '@typescript-eslint/no-redeclare': 'off',
     'no-use-before-define': 'off',
     '@typescript-eslint/no-use-before-define': ['error', { functions: false }],
+    '@typescript-eslint/consistent-type-imports': [
+      'error',
+      { prefer: 'type-imports', disallowTypeAnnotations: false },
+    ],
   },
   overrides: [
     {

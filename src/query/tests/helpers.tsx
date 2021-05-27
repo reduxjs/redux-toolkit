@@ -1,14 +1,16 @@
-import {
+import type {
   AnyAction,
-  configureStore,
   EnhancedStore,
   Middleware,
-  Store,
+  Store} from '@reduxjs/toolkit';
+import {
+  configureStore
 } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
 
 import { act } from '@testing-library/react-hooks'
-import React, { Reducer, useCallback } from 'react'
+import type { Reducer} from 'react';
+import React, { useCallback } from 'react'
 import { Provider } from 'react-redux'
 
 export const ANY = 0 as any

@@ -7,5 +7,6 @@
   "unpkg": "../dist/query/rtk-query.umd.min.js",
   "types": "../dist/query/index.d.ts",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "sideEffects": false
 }

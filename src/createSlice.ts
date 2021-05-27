@@ -1,18 +1,21 @@
-import { Reducer } from 'redux'
-import {
+import type { Reducer } from 'redux'
+import type {
   ActionCreatorWithoutPayload,
-  createAction,
   PayloadAction,
   PayloadActionCreator,
   PrepareAction,
-  _ActionCreatorWithPreparedPayload,
-} from './createAction'
-import { CaseReducer, CaseReducers, createReducer } from './createReducer'
+  _ActionCreatorWithPreparedPayload} from './createAction';
 import {
-  ActionReducerMapBuilder,
+  createAction
+} from './createAction'
+import type { CaseReducer, CaseReducers} from './createReducer';
+import { createReducer } from './createReducer'
+import type {
+  ActionReducerMapBuilder} from './mapBuilders';
+import {
   executeReducerBuilderCallback,
 } from './mapBuilders'
-import { NoInfer } from './tsHelpers'
+import type { NoInfer } from './tsHelpers'
 
 /**
  * An action creator attached to a slice.

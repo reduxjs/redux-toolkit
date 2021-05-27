@@ -7,5 +7,6 @@
   "unpkg": "../../dist/query/react/rtk-query-react.umd.min.js",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
-  "types": "../../dist/query/react/index.d.ts"
+  "types": "../../dist/query/react/index.d.ts",
+  "sideEffects": false
 }

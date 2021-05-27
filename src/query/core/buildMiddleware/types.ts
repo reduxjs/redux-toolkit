@@ -1,4 +1,4 @@
-import {
+import type {
   AnyAction,
   AsyncThunk,
   AsyncThunkAction,
@@ -7,10 +7,10 @@ import {
   ThunkDispatch,
 } from '@reduxjs/toolkit'
 
-import { Api, ApiContext } from '../../apiTypes'
-import { AssertTagTypes, EndpointDefinitions } from '../../endpointDefinitions'
-import { QueryStatus, QuerySubState, RootState } from '../apiState'
-import { MutationThunkArg, QueryThunkArg, ThunkResult } from '../buildThunks'
+import type { Api, ApiContext } from '../../apiTypes'
+import type { AssertTagTypes, EndpointDefinitions } from '../../endpointDefinitions'
+import type { QueryStatus, QuerySubState, RootState } from '../apiState'
+import type { MutationThunkArg, QueryThunkArg, ThunkResult } from '../buildThunks'
 
 export type QueryStateMeta<T> = Record<string, undefined | T>
 export type TimeoutId = ReturnType<typeof setTimeout>

@@ -1,15 +1,16 @@
-import { Action, AnyAction, ActionCreator } from 'redux'
-import {
-  createAction,
+import type { Action, AnyAction, ActionCreator } from 'redux'
+import type {
   PayloadAction,
   PayloadActionCreator,
   ActionCreatorWithoutPayload,
   ActionCreatorWithOptionalPayload,
   ActionCreatorWithPayload,
   ActionCreatorWithNonInferrablePayload,
-  ActionCreatorWithPreparedPayload,
+  ActionCreatorWithPreparedPayload} from '@reduxjs/toolkit';
+import {
+  createAction
 } from '@reduxjs/toolkit'
-import { IsAny } from '@internal/tsHelpers'
+import type { IsAny } from '@internal/tsHelpers'
 import { expectType } from './helpers'
 
 /* PayloadAction */

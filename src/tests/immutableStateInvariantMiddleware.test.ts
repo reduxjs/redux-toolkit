@@ -1,10 +1,11 @@
-import {
+import type {
   Store,
   MiddlewareAPI,
   Dispatch,
+  ImmutableStateInvariantMiddlewareOptions} from '@reduxjs/toolkit';
+import {
   createImmutableStateInvariantMiddleware,
-  isImmutableDefault,
-  ImmutableStateInvariantMiddlewareOptions,
+  isImmutableDefault
 } from '@reduxjs/toolkit'
 
 import { trackForMutations } from '@internal/immutableStateInvariantMiddleware'
