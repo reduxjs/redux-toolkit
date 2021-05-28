@@ -1,4 +1,4 @@
-import { configureStore } from '@internal/configureStore'
+import { configureStore } from '@reduxjs/toolkit'
 import {
   mockConsole,
   createConsole,
