@@ -40,6 +40,7 @@ module.exports = {
               {
                 compilerSettings: {
                   tsconfig: resolve(__dirname, '../docs/tsconfig.json'),
+                  externalResolutions: {},
                 },
               },
             ],
