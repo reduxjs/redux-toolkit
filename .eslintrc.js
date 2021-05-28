@@ -24,6 +24,7 @@ module.exports = {
       rules: {
         '@typescript-eslint/no-unused-expressions': 'off',
         'no-lone-blocks': 'off',
+        'no-sequences': 'off',
       },
     },
   ],

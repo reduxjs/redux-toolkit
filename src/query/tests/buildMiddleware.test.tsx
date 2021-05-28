@@ -1,5 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query'
-import { actionsReducer, matchSequence, setupApiStore, waitMs } from './helpers'
+import { actionsReducer, setupApiStore, waitMs } from './helpers'
 
 const baseQuery = (args?: any) => ({ data: args })
 const api = createApi({
@@ -28,8 +28,8 @@ const storeRef = setupApiStore(api, {
 
 it('invalidates the specified tags', async () => {
   await storeRef.store.dispatch(getBanana.initiate(1))
-  matchSequence(
-    storeRef.store.getState().actions,
+  expect(storeRef.store.getState().actions).toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
     getBanana.matchPending,
     getBanana.matchFulfilled
   )
@@ -40,21 +40,21 @@ it('invalidates the specified tags', async () => {
   await waitMs(20)
 
   const firstSequence = [
+    api.internalActions.middlewareRegistered.match,
     getBanana.matchPending,
     getBanana.matchFulfilled,
     api.util.invalidateTags.match,
     getBanana.matchPending,
     getBanana.matchFulfilled,
   ]
-  matchSequence(storeRef.store.getState().actions, ...firstSequence)
+  expect(storeRef.store.getState().actions).toMatchSequence(...firstSequence)
 
   await storeRef.store.dispatch(getBread.initiate(1))
   await storeRef.store.dispatch(api.util.invalidateTags([{ type: 'Bread' }]))
 
   await waitMs(20)
 
-  matchSequence(
-    storeRef.store.getState().actions,
+  expect(storeRef.store.getState().actions).toMatchSequence(
     ...firstSequence,
     getBread.matchPending,
     getBread.matchFulfilled,

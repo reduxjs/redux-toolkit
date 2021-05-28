@@ -1,12 +1,7 @@
 import { compose } from 'redux'
 
-import type {
-  AnyAction,
-  Middleware,
-  ThunkDispatch} from '@reduxjs/toolkit';
-import {
-  createAction
-} from '@reduxjs/toolkit'
+import type { AnyAction, Middleware, ThunkDispatch } from '@reduxjs/toolkit'
+import { createAction } from '@reduxjs/toolkit'
 
 import type {
   EndpointDefinitions,
@@ -21,6 +16,7 @@ import type { BuildMiddlewareInput } from './types'
 import { build as buildWindowEventHandling } from './windowEventHandling'
 import { build as buildCacheLifecycle } from './cacheLifecycle'
 import { build as buildQueryLifecycle } from './queryLifecycle'
+import { build as buildDevMiddleware } from './devMiddleware'
 
 export function buildMiddleware<
   Definitions extends EndpointDefinitions,
@@ -35,6 +31,7 @@ export function buildMiddleware<
   }
 
   const middlewares = [
+    buildDevMiddleware,
     buildCacheCollection,
     buildInvalidationByTags,
     buildPolling,
@@ -56,8 +53,15 @@ export function buildMiddleware<
     RootState<Definitions, string, ReducerPath>,
     ThunkDispatch<any, any, AnyAction>
   > = (mwApi) => (next) => {
-    const chain = middlewares.map((middleware) => middleware(mwApi))
-    return compose<typeof next>(...chain)(next)
+    const applied = compose<typeof next>(
+      ...middlewares.map((middleware) => middleware(mwApi))
+    )(next)
+    return (action) => {
+      if (mwApi.getState()[reducerPath]) {
+        return applied(action)
+      }
+      return next(action)
+    }
   }
 
   return { middleware, actions }
