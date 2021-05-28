@@ -1268,7 +1268,7 @@ describe('hooks tests', () => {
 
       const { checkSession, login } = api.endpoints
       expect(storeRef.store.getState().actions).toMatchSequence(
-        (api as any).internalActions.middlewareRegistered.match,
+        api.internalActions.middlewareRegistered.match,
         checkSession.matchPending,
         checkSession.matchRejected,
         login.matchPending,
@@ -1877,7 +1877,7 @@ describe('hooks with createApi defaults set', () => {
       const { increment } = api.endpoints
 
       expect(storeRef.store.getState().actions).toMatchSequence(
-        (api as any).internalActions.middlewareRegistered.match,
+        api.internalActions.middlewareRegistered.match,
         increment.matchPending,
         increment.matchFulfilled,
         api.internalActions.unsubscribeMutationResult.match,

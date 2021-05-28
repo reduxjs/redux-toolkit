@@ -29,7 +29,7 @@ const storeRef = setupApiStore(api, {
 it('invalidates the specified tags', async () => {
   await storeRef.store.dispatch(getBanana.initiate(1))
   expect(storeRef.store.getState().actions).toMatchSequence(
-    (api as any).internalActions.middlewareRegistered.match,
+    api.internalActions.middlewareRegistered.match,
     getBanana.matchPending,
     getBanana.matchFulfilled
   )
@@ -40,7 +40,7 @@ it('invalidates the specified tags', async () => {
   await waitMs(20)
 
   const firstSequence = [
-    (api as any).internalActions.middlewareRegistered.match,
+    api.internalActions.middlewareRegistered.match,
     getBanana.matchPending,
     getBanana.matchFulfilled,
     api.util.invalidateTags.match,
