@@ -74,6 +74,7 @@
       "items": [
         "rtk-query/overview",
         "rtk-query/comparison",
+        "rtk-query/usage-with-typescript",
         {
           "type": "category",
           "label": "Using RTK Query",
