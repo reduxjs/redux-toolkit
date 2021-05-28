@@ -373,10 +373,13 @@ export function buildSlice({
     combinedReducer(resetApiState.match(action) ? undefined : state, action)
 
   const actions = {
-    ...configSlice.actions,
-    ...querySlice.actions,
-    ...subscriptionSlice.actions,
-    ...mutationSlice.actions,
+    updateSubscriptionOptions:
+      subscriptionSlice.actions.updateSubscriptionOptions,
+    queryResultPatched: querySlice.actions.queryResultPatched,
+    removeQueryResult: querySlice.actions.removeQueryResult,
+    unsubscribeQueryResult: subscriptionSlice.actions.unsubscribeQueryResult,
+    unsubscribeMutationResult: mutationSlice.actions.unsubscribeMutationResult,
+    middlewareRegistered: configSlice.actions.middlewareRegistered,
     resetApiState,
   }
 
