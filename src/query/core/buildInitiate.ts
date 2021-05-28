@@ -13,7 +13,7 @@ import type {
   SerializedError,
 } from '@reduxjs/toolkit'
 import { unwrapResult } from '@reduxjs/toolkit'
-import type { QuerySubState, SubscriptionOptions } from './apiState'
+import type { QuerySubState, SubscriptionOptions, RootState } from './apiState'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { Api } from '../apiTypes'
 import type { ApiEndpointQuery } from './module'
@@ -197,7 +197,7 @@ export function buildInitiate({
   } = api.internalActions
   return { buildInitiateQuery, buildInitiateMutation }
 
-  function middlewareWarning(getState: () => any) {
+  function middlewareWarning(getState: () => RootState<{}, string, string>) {
     if (process.env.NODE_ENV !== 'production') {
       if ((middlewareWarning as any).triggered) return
       const registered = getState()[api.reducerPath]?.config
