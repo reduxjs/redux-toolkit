@@ -4,8 +4,7 @@ import {
   createConsole,
   getLog,
 } from 'console-testing-library/pure'
-import { createApi } from '../core'
-import { fetchBaseQuery } from '../fetchBaseQuery'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
 let restore: () => void
 let nodeEnv: string
