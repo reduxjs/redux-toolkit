@@ -45,12 +45,19 @@ beforeEach(() => {
 })
 
 describe('missing middleware', () => {
-  test('warns if middleware is missing', () => {
+  test.each([
+    ['development', true],
+    ['production', false],
+  ])('%s warns if middleware is missing: %s', ([env, shouldWarn]) => {
+    process.env.NODE_ENV = env
     const store = configureStore({ reducer: { api1: api1.reducer } })
     store.dispatch(api1.endpoints.q1.initiate(undefined))
-    expect(getLog().log)
-      .toBe(`Warning: Middleware for RTK-Query API at reducerPath "api1" has not been added to the store.
-Features like automatic cache collection, automatic refetching etc. will not be available.`)
+    expect(getLog().log).toBe(
+      shouldWarn
+        ? `Warning: Middleware for RTK-Query API at reducerPath "api1" has not been added to the store.
+Features like automatic cache collection, automatic refetching etc. will not be available.`
+        : ''
+    )
   })
 
   test('does not warn if middleware is not missing', () => {
@@ -86,26 +93,34 @@ Features like automatic cache collection, automatic refetching etc. will not be 
 })
 
 describe('missing reducer', () => {
-  test('middleware not crashing if reducer is missing', async () => {
-    const store = configureStore({
-      reducer: { x: () => 0 },
-      // @ts-expect-error
-      middleware: (gdm) => gdm().concat(api1.middleware),
+  describe.each([
+    ['development', true],
+    ['production', false],
+  ])('%s warns if reducer is missing: %s', ([env, shouldWarn]) => {
+    process.env.NODE_ENV = env
+    test('middleware not crashing if reducer is missing', async () => {
+      const store = configureStore({
+        reducer: { x: () => 0 },
+        // @ts-expect-error
+        middleware: (gdm) => gdm().concat(api1.middleware),
+      })
+      await store.dispatch(api1.endpoints.q1.initiate(undefined))
     })
-    await store.dispatch(api1.endpoints.q1.initiate(undefined))
-  })
 
-  test('warns if reducer is missing', () => {
-    const store = configureStore({
-      reducer: { x: () => 0 },
+    test(`warning behaviour`, () => {
+      const store = configureStore({
+        reducer: { x: () => 0 },
+        // @ts-expect-error
+        middleware: (gdm) => gdm().concat(api1.middleware),
+      })
       // @ts-expect-error
-      middleware: (gdm) => gdm().concat(api1.middleware),
+      api1.endpoints.q1.select(undefined)(store.getState())
+      expect(getLog().log).toBe(
+        shouldWarn
+          ? 'Error: No data found at `state.api1`. Did you forget to add the reducer to the store?'
+          : ''
+      )
     })
-    // @ts-expect-error
-    api1.endpoints.q1.select(undefined)(store.getState())
-    expect(getLog().log).toBe(
-      'Error: No data found at `state.api1`. Did you forget to add the reducer to the store?'
-    )
   })
 
   test('does not warn if reducer is not missing', () => {
