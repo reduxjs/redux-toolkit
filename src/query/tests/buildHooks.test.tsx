@@ -12,7 +12,6 @@ import {
   actionsReducer,
   expectExactType,
   expectType,
-  matchSequence,
   setupApiStore,
   useRenderCounter,
   waitMs,
@@ -1268,16 +1267,15 @@ describe('hooks tests', () => {
       )
 
       const { checkSession, login } = api.endpoints
-      const completeSequence = [
+      expect(storeRef.store.getState().actions).toMatchSequence(
+        api.internalActions.middlewareRegistered.match,
         checkSession.matchPending,
         checkSession.matchRejected,
         login.matchPending,
         login.matchFulfilled,
         checkSession.matchPending,
-        checkSession.matchFulfilled,
-      ]
-
-      matchSequence(storeRef.store.getState().actions, ...completeSequence)
+        checkSession.matchFulfilled
+      )
     })
   })
 })
@@ -1878,15 +1876,14 @@ describe('hooks with createApi defaults set', () => {
 
       const { increment } = api.endpoints
 
-      const completeSequence = [
+      expect(storeRef.store.getState().actions).toMatchSequence(
+        api.internalActions.middlewareRegistered.match,
         increment.matchPending,
         increment.matchFulfilled,
         api.internalActions.unsubscribeMutationResult.match,
         increment.matchPending,
-        increment.matchFulfilled,
-      ]
-
-      matchSequence(storeRef.store.getState().actions, ...completeSequence)
+        increment.matchFulfilled
+      )
     })
 
     it('causes rerenders when only selected data changes', async () => {

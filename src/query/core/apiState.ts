@@ -241,6 +241,7 @@ export type ConfigState<ReducerPath> = RefetchConfigOptions & {
   reducerPath: ReducerPath
   online: boolean
   focused: boolean
+  middlewareRegistered: boolean
 } & ModifiableConfigState
 
 export type ModifiableConfigState = {
