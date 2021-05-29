@@ -41,7 +41,7 @@ export const handlers = [
     const per_page = (req.url.searchParams.get('per_page') || 10) as number
     const data = db.post.findMany({
       take: per_page,
-      skip: per_page * (page - 1),
+      skip: Math.max(per_page * (page - 1), 0),
     })
 
     return res(
