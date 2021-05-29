@@ -154,7 +154,7 @@ When making a request, you're able to track the state in several ways. You can a
 <iframe
   src="https://codesandbox.io/embed/getting-started-basic-17n8h?fontsize=12&hidenavigation=1&theme=dark"
   style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
-  title="rtk-query-getting-started-basic"
+  title="RTK Query - Getting Started (basic)"
   allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
   sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
@@ -168,7 +168,7 @@ RTK Query ensures that any component that subscribes to the same query will alwa
 <iframe
   src="https://codesandbox.io/embed/getting-started-advanced-8tx2b?file=/src/App.tsx?fontsize=12&hidenavigation=1&theme=dark"
   style={{ width: '100%', height: '600px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
-  title="rtk-query-getting-started-advanced"
+  title="RTK Query - Getting Started (advanced)"
   allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
   sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
