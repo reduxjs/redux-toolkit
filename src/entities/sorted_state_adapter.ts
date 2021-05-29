@@ -29,7 +29,7 @@ export function createSortedStateAdapter<T>(
   }
 
   function addManyMutably(
-    newEntities: T[] | Record<EntityId, T>,
+    newEntities: readonly T[] | Record<EntityId, T>,
     state: R
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
@@ -48,7 +48,7 @@ export function createSortedStateAdapter<T>(
   }
 
   function setManyMutably(
-    newEntities: T[] | Record<EntityId, T>,
+    newEntities: readonly T[] | Record<EntityId, T>,
     state: R
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
@@ -58,7 +58,7 @@ export function createSortedStateAdapter<T>(
   }
 
   function setAllMutably(
-    newEntities: T[] | Record<EntityId, T>,
+    newEntities: readonly T[] | Record<EntityId, T>,
     state: R
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
@@ -72,6 +72,7 @@ export function createSortedStateAdapter<T>(
     return updateManyMutably([update], state)
   }
 
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
   function takeUpdatedModel(models: T[], update: Update<T>, state: R): boolean {
     if (!(update.id in state.entities)) {
       return false
@@ -88,7 +89,10 @@ export function createSortedStateAdapter<T>(
     return newKey !== update.id
   }
 
-  function updateManyMutably(updates: Update<T>[], state: R): void {
+  function updateManyMutably(
+    updates: ReadonlyArray<Update<T>>,
+    state: R
+  ): void {
     const models: T[] = []
 
     updates.forEach((update) => takeUpdatedModel(models, update, state))
@@ -103,7 +107,7 @@ export function createSortedStateAdapter<T>(
   }
 
   function upsertManyMutably(
-    newEntities: T[] | Record<EntityId, T>,
+    newEntities: readonly T[] | Record<EntityId, T>,
     state: R
   ): void {
     const [added, updated] = splitAddedUpdatedEntities<T>(
@@ -116,7 +120,7 @@ export function createSortedStateAdapter<T>(
     addManyMutably(added, state)
   }
 
-  function areArraysEqual(a: unknown[], b: unknown[]) {
+  function areArraysEqual(a: readonly unknown[], b: readonly unknown[]) {
     if (a.length !== b.length) {
       return false
     }
@@ -130,7 +134,7 @@ export function createSortedStateAdapter<T>(
     return true
   }
 
-  function merge(models: T[], state: R): void {
+  function merge(models: readonly T[], state: R): void {
     // Insert/overwrite all new/updated
     models.forEach((model) => {
       state.entities[selectId(model)] = model

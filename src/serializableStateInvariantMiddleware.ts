@@ -37,7 +37,7 @@ export function findNonSerializableValue(
   path: string = '',
   isSerializable: (value: unknown) => boolean = isPlain,
   getEntries?: (value: unknown) => [string, any][],
-  ignoredPaths: string[] = []
+  ignoredPaths: readonly string[] = []
 ): NonSerializableValue | false {
   let foundNestedSerializable: NonSerializableValue | false
 

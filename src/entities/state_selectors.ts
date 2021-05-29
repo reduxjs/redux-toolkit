@@ -1,5 +1,10 @@
 import { createDraftSafeSelector } from '../createDraftSafeSelector'
-import type { EntityState, EntitySelectors, Dictionary, EntityId } from './models'
+import type {
+  EntityState,
+  EntitySelectors,
+  Dictionary,
+  EntityId,
+} from './models'
 
 export function createSelectorsFactory<T>() {
   function getSelectors(): EntitySelectors<T, EntityState<T>>
@@ -16,7 +21,7 @@ export function createSelectorsFactory<T>() {
     const selectAll = createDraftSafeSelector(
       selectIds,
       selectEntities,
-      (ids: T[], entities: Dictionary<T>): any =>
+      (ids: readonly T[], entities: Dictionary<T>): any =>
         ids.map((id: any) => (entities as any)[id])
     )
 

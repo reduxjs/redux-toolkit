@@ -105,10 +105,12 @@ export function buildSlice({
         draft,
         {
           payload: { queryCacheKey, patches },
-        }: PayloadAction<QuerySubstateIdentifier & { patches: Patch[] }>
+        }: PayloadAction<
+          QuerySubstateIdentifier & { patches: readonly Patch[] }
+        >
       ) {
         updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
-          substate.data = applyPatches(substate.data as any, patches)
+          substate.data = applyPatches(substate.data as any, patches.concat())
         })
       },
     },

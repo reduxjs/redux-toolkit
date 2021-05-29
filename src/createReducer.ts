@@ -24,6 +24,10 @@ export type ActionMatcherDescription<S, A extends AnyAction> = {
   reducer: CaseReducer<S, NoInfer<A>>
 }
 
+export type ReadonlyActionMatcherDescriptionCollection<S> = ReadonlyArray<
+  ActionMatcherDescription<S, any>
+>
+
 export type ActionMatcherDescriptionCollection<S> = Array<
   ActionMatcherDescription<S, any>
 >
@@ -190,7 +194,7 @@ export function createReducer<S>(
   mapOrBuilderCallback:
     | CaseReducers<S, any>
     | ((builder: ActionReducerMapBuilder<S>) => void),
-  actionMatchers: ActionMatcherDescriptionCollection<S> = [],
+  actionMatchers: ReadonlyActionMatcherDescriptionCollection<S> = [],
   defaultCaseReducer?: CaseReducer<S>
 ): Reducer<S> {
   // We deliberately enable Immer's ES5 support, on the grounds that

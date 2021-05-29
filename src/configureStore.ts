@@ -30,7 +30,7 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production'
  * @public
  */
 export type ConfigureEnhancersCallback = (
-  defaultEnhancers: StoreEnhancer[]
+  defaultEnhancers: readonly StoreEnhancer[]
 ) => StoreEnhancer[]
 
 /**

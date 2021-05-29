@@ -121,7 +121,7 @@ function trackProperties(
   return tracked as TrackedProperty
 }
 
-type IgnorePaths = string[]
+type IgnorePaths = readonly string[]
 
 function detectMutations(
   isImmutable: IsImmutableFunc,
