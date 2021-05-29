@@ -1,22 +1,11 @@
-import { configureStore, ConfigureStoreOptions } from '@reduxjs/toolkit'
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
+import { configureStore } from '@reduxjs/toolkit'
 import { api } from './app/services/posts'
 
-export const createStore = (
-  options?: ConfigureStoreOptions['preloadedState'] | undefined
-) =>
-  configureStore({
-    reducer: {
-      [api.reducerPath]: api.reducer,
-    },
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware().concat(api.middleware),
-    ...options,
-  })
-
-export const store = createStore()
-
-export type AppDispatch = typeof store.dispatch
-export const useAppDispatch = () => useDispatch<AppDispatch>()
-export type RootState = ReturnType<typeof store.getState>
-export const useTypedSelector: TypedUseSelectorHook<RootState> = useSelector
+export const store = configureStore({
+  reducer: {
+    [api.reducerPath]: api.reducer,
+  },
+  // adding the api middleware enables caching, invalidation, polling and other features of `rtk-query`
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(api.middleware),
+})
