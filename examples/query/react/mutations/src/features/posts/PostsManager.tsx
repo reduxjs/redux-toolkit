@@ -85,25 +85,63 @@ const AddPost = () => {
 }
 
 const PostList = () => {
-  const { data: posts, isLoading } = useGetPostsQuery()
-  const { push } = useHistory()
+  const [page, setPage] = useState(1)
+  const { data: posts, isLoading, isFetching } = hooks.listPosts.useQuery(page)
+  const prefetchPage = usePrefetch('listPosts')
+
+  const prefetchNext = useCallback(() => {
+    prefetchPage(page + 1)
+  }, [prefetchPage, page])
+
+  useEffect(() => {
+    if (page !== posts?.total_pages) {
+      prefetchNext()
+    }
+  }, [posts, page, prefetchNext])
 
   if (isLoading) {
     return <div>Loading</div>
   }
 
-  if (!posts) {
+  if (!posts?.data) {
     return <div>No posts :(</div>
   }
 
   return (
-    <List spacing={3}>
-      {posts.map(({ id, name }) => (
-        <ListItem key={id} onClick={() => push(`/posts/${id}`)}>
-          <ListIcon as={MdBook} color="green.500" /> {name}
-        </ListItem>
-      ))}
-    </List>
+    <Box>
+      <HStack spacing="14px">
+        <Button
+          onClick={() => setPage((prev) => prev - 1)}
+          isLoading={isFetching}
+          disabled={page === 1}
+        >
+          <Icon as={MdArrowBack} />
+        </Button>
+        <Button
+          onClick={() => setPage((prev) => prev + 1)}
+          isLoading={isFetching}
+          disabled={page === posts.total_pages}
+          onMouseEnter={prefetchNext}
+        >
+          <Icon as={MdArrowForward} />
+        </Button>
+        <Box>{`${page} / ${posts.total_pages}`}</Box>
+      </HStack>
+      <List spacing={3} mt={6}>
+        {posts?.data.map(({ id, title, status }) => (
+          <ListItem key={id}>
+            <ListIcon as={MdBook} color="green.500" /> {title}{' '}
+            <Badge
+              ml="1"
+              fontSize="0.8em"
+              colorScheme={getColorForStatus(status)}
+            >
+              {status}
+            </Badge>
+          </ListItem>
+        ))}
+      </List>
+    </Box>
   )
 }
 
