@@ -6,6 +6,9 @@ sidebar_label: Tutorials Overview
 hide_title: true
 ---
 
+import LiteYouTubeEmbed from 'react-lite-youtube-embed';
+import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css'
+
 &nbsp;
 
 # Tutorials Overview
@@ -41,6 +44,17 @@ It shows how to build a "real world"-style example application, and teaches Redu
 The [**Redux Fundamentals tutorial**](https://redux.js.org/tutorials/fundamentals/part-1-overview) teaches "how Redux works, from the bottom up", by showing how to write Redux code by hand and why standard usage patterns exist. It then shows how Redux Toolkit simplifies those Redux usage patterns.
 
 Since Redux Toolkit is an abstraction layer that wraps around the Redux core, it's helpful to know what RTK's APIs are actually doing for you under the hood. **If you want to understand how Redux really works and why RTK is the recommended approach, read the Redux Fundamentals tutorial.**
+
+## Learn Modern Redux Livestream
+
+Redux maintainer Mark Erikson appeared on the "Learn with Jason" show to explain how we recommend using Redux today. The show includes a live-coded example app that shows how to use Redux Toolkit and React-Redux hooks with Typescript, as well as the new RTK Query data fetching APIs.
+
+See [the "Learn Modern Redux" show notes page](https://www.learnwithjason.dev/let-s-learn-modern-redux) for a transcript and links to the example app source.
+
+<LiteYouTubeEmbed 
+    id="9zySeP5vH9c"
+    title="Learn Modern Redux - Redux Toolkit, React-Redux Hooks, and RTK Query"
+/>
 
 ## Using Redux Toolkit
 

@@ -5,6 +5,9 @@ sidebar_label: Getting Started
 hide_title: true
 ---
 
+import LiteYouTubeEmbed from 'react-lite-youtube-embed';
+import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css'
+
 &nbsp;
 
 # Getting Started with Redux Toolkit
@@ -29,15 +32,13 @@ you make your Redux code better.
 
 ### Using Create React App
 
-The recommended way to start new apps with React and Redux Toolkit is by using the [official Redux+JS template](https://github.com/reduxjs/cra-template-redux) for [Create React App](https://github.com/facebook/create-react-app), which takes advantage of React Redux's integration with React components.
+The recommended way to start new apps with React and Redux is by using the [official Redux+JS template](https://github.com/reduxjs/cra-template-redux) or [Redux+TS template](https://github.com/reduxjs/cra-template-redux-typescript) for [Create React App](https://github.com/facebook/create-react-app), which takes advantage of **[Redux Toolkit](https://redux-toolkit.js.org/)** and React Redux's integration with React components.
 
-```sh
+```bash
+# Redux + Plain JS template
 npx create-react-app my-app --template redux
-```
 
-We also have [a Redux+TS template for CRA as well](https://github.com/reduxjs/cra-template-redux-typescript):
-
-```sh
+# Redux + TypeScript template
 npx create-react-app my-app --template redux-typescript
 ```
 
@@ -92,6 +93,29 @@ RTK Query includes these APIs:
 - [`fetchBaseQuery()`](../rtk-query/api/fetchBaseQuery.mdx): A small wrapper around [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) that aims to simply requests. Intended as the recommended `baseQuery` to be used in `createApi` for the majority of users.
 - [`<ApiProvider />`](../rtk-query/api/ApiProvider.mdx): Can be used as a `Provider` if you **do not already have a Redux store**.
 - [`setupListeners()`](../rtk-query/api/setupListeners.mdx): A utility used to enable `refetchOnMount` and `refetchOnReconnect` behaviors.
+
+## Learn Redux
+
+We have a variety of resources available to help you learn Redux.
+
+### Redux Essentials Tutorial
+
+The [**Redux Essentials tutorial**](https://redux.js.org/tutorials/essentials/part-1-overview-concepts) is a "top-down" tutorial that teaches "how to use Redux the right way", using our latest recommended APIs and best practices. We recommend starting there.
+
+### Redux Fundamentals Tutorial
+
+The [**Redux Fundamentals tutorial**](https://redux.js.org/tutorials/fundamentals/part-1-overview) is a "bottom-up" tutorial that teaches "how Redux works" from first principles and without any abstractions, and why standard Redux usage patterns exist.
+
+### Learn Modern Redux Livestream
+
+Redux maintainer Mark Erikson appeared on the "Learn with Jason" show to explain how we recommend using Redux today. The show includes a live-coded example app that shows how to use Redux Toolkit and React-Redux hooks with Typescript, as well as the new RTK Query data fetching APIs.
+
+See [the "Learn Modern Redux" show notes page](https://www.learnwithjason.dev/let-s-learn-modern-redux) for a transcript and links to the example app source.
+
+<LiteYouTubeEmbed 
+    id="9zySeP5vH9c"
+    title="Learn Modern Redux - Redux Toolkit, React-Redux Hooks, and RTK Query"
+/>
 
 ## Help and Discussion
 
