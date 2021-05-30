@@ -119,7 +119,7 @@ dispatch(api.endpoints[endpointName].initiate(arg, { forceRefetch: true }))
 This is a very basic example that shows how you can prefetch when a user hovers over the next arrow. This is probably not the optimal solution, because if they hover, click, then change pages without moving their mouse, we wouldn't know to prefetch the next page because we wouldn't see the next `onMouseEnter` event. In this case, you would need to handle this on your own. You could also consider automatically prefetching the next page...
 
 <iframe
-  src="https://codesandbox.io/embed/concepts-prefetching-h594j?fontsize=12&hidenavigation=1&theme=dark"
+  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/feature/v1.6-integration/examples/query/react/prefetching?fontsize=12&hidenavigation=1&theme=dark"
   style={{
     width: '100%',
     height: '600px',
@@ -127,7 +127,7 @@ This is a very basic example that shows how you can prefetch when a user hovers 
     borderRadius: '4px',
     overflow: 'hidden',
   }}
-  title="rtk-query-react-hooks-usePrefetch-example"
+  title="RTK Query - Prefetching Example"
   allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
   sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
@@ -137,7 +137,7 @@ This is a very basic example that shows how you can prefetch when a user hovers 
 Picking up on our last example, we automatically `prefetch` the next page, giving the appearance of no network delay.
 
 <iframe
-  src="https://codesandbox.io/embed/concepts-prefetching-automatic-2id61?fontsize=12&hidenavigation=1&theme=dark"
+  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/feature/v1.6-integration/examples/query/react/prefetching-automatic?fontsize=12&hidenavigation=1&theme=dark"
   style={{
     width: '100%',
     height: '600px',
@@ -145,7 +145,7 @@ Picking up on our last example, we automatically `prefetch` the next page, givin
     borderRadius: '4px',
     overflow: 'hidden',
   }}
-  title="rtk-query-react-hooks-usePrefetch-example"
+  title="RTK Query - Automatic Prefetching Example (on hover)"
   allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
   sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
@@ -155,7 +155,7 @@ Picking up on our last example, we automatically `prefetch` the next page, givin
 After the first query initialized by `useQuery` runs, we automatically fetch all remaining pages.
 
 <iframe
-  src="https://codesandbox.io/embed/concepts-prefetching-automatic-waterfall-ihe5e?fontsize=12&hidenavigation=1&theme=dark&module=%2Fsrc%2Ffeatures%2Fposts%2FPostsManager.tsx"
+  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/feature/v1.6-integration/examples/query/react/prefetching-automatic-waterfall?fontsize=12&hidenavigation=1&theme=dark&module=%2Fsrc%2Ffeatures%2Fposts%2FPostsManager.tsx"
   style={{
     width: '100%',
     height: '600px',
@@ -163,7 +163,7 @@ After the first query initialized by `useQuery` runs, we automatically fetch all
     borderRadius: '4px',
     overflow: 'hidden',
   }}
-  title="Concepts Prefetching Automatic Waterfall"
+  title="RTK Query - Automatic Prefetching Waterfall Example"
   allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
   sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>

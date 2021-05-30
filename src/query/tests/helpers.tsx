@@ -1,14 +1,15 @@
-import {
+import type {
   AnyAction,
-  configureStore,
   EnhancedStore,
   Middleware,
   Store,
 } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
 
 import { act } from '@testing-library/react-hooks'
-import React, { Reducer, useCallback } from 'react'
+import type { Reducer } from 'react'
+import React, { useCallback } from 'react'
 import { Provider } from 'react-redux'
 
 export const ANY = 0 as any
@@ -73,31 +74,37 @@ export const useRenderCounter = () => {
   return useCallback(() => countRef.current, [])
 }
 
-export function matchSequence(
-  _actions: AnyAction[],
-  ...matchers: Array<(arg: any) => boolean>
-) {
-  const actions = _actions.concat()
-  actions.shift() // remove INIT
-  expect(matchers.length).toBe(actions.length)
-  for (let i = 0; i < matchers.length; i++) {
-    expect(matchers[i](actions[i])).toBe(true)
-  }
-}
-
-export function notMatchSequence(
-  _actions: AnyAction[],
-  ...matchers: Array<Array<(arg: any) => boolean>>
-) {
-  const actions = _actions.concat()
-  actions.shift() // remove INIT
-  expect(matchers.length).toBe(actions.length)
-  for (let i = 0; i < matchers.length; i++) {
-    for (const matcher of matchers[i]) {
-      expect(matcher(actions[i])).not.toBe(true)
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toMatchSequence(...matchers: Array<(arg: any) => boolean>): R
     }
   }
 }
+
+expect.extend({
+  toMatchSequence(
+    _actions: AnyAction[],
+    ...matchers: Array<(arg: any) => boolean>
+  ) {
+    const actions = _actions.concat()
+    actions.shift() // remove INIT
+
+    for (let i = 0; i < matchers.length; i++) {
+      if (!matchers[i](actions[i])) {
+        return {
+          message: () =>
+            `Action ${actions[i].type} does not match sequence at position ${i}.`,
+          pass: false,
+        }
+      }
+    }
+    return {
+      message: () => `All actions match the sequence.`,
+      pass: true,
+    }
+  },
+})
 
 export const actionsReducer = {
   actions: (state: AnyAction[] = [], action: AnyAction) => {

@@ -1,6 +1,6 @@
 import { QueryStatus } from '../apiState'
 import { onFocus, onOnline } from '../setupListeners'
-import { SubMiddlewareApi, SubMiddlewareBuilder } from './types'
+import type { SubMiddlewareApi, SubMiddlewareBuilder } from './types'
 
 export const build: SubMiddlewareBuilder = ({
   reducerPath,

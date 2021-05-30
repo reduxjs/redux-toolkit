@@ -1,14 +1,13 @@
-import {
-  createAction,
+import type {
   ThunkDispatch,
-  // Workaround for API-Extractor
-  ActionCreatorWithoutPayload,
+  ActionCreatorWithoutPayload, // Workaround for API-Extractor
 } from '@reduxjs/toolkit'
+import { createAction } from '@reduxjs/toolkit'
 
-export const onFocus = createAction('__rtkq/focused')
-export const onFocusLost = createAction('__rtkq/unfocused')
-export const onOnline = createAction('__rtkq/online')
-export const onOffline = createAction('__rtkq/offline')
+export const onFocus = /* @__PURE__ */ createAction('__rtkq/focused')
+export const onFocusLost = /* @__PURE__ */ createAction('__rtkq/unfocused')
+export const onOnline = /* @__PURE__ */ createAction('__rtkq/online')
+export const onOffline = /* @__PURE__ */ createAction('__rtkq/offline')
 
 let initialized = false
 

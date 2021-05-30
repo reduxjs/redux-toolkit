@@ -27,6 +27,7 @@
   "types": "dist/index.d.ts",
   "devDependencies": {
     "@microsoft/api-extractor": "^7.13.2",
+    "@size-limit/preset-small-lib": "^4.11.0",
     "@testing-library/react": "^11.2.6",
     "@testing-library/react-hooks": "^5.1.2",
     "@testing-library/user-event": "^13.1.5",
@@ -70,6 +71,7 @@
     "react-redux": "^7.2.3",
     "rollup": "^2.47.0",
     "rollup-plugin-strip-code": "^0.2.6",
+    "size-limit": "^4.11.0",
     "source-map": "^0.7.3",
     "terser": "^5.6.1",
     "ts-jest": "^26.5.5",
@@ -80,10 +82,11 @@
   "scripts": {
     "build-ci": "rimraf dist && tsc && node scripts/cli.js",
     "build": "rimraf dist && tsc && node scripts/cli.js --local",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"**/*.md\"",
-    "format:check": "prettier --list-different \"src/**/*.{ts,tsx}\" \"docs/*/**.md\"",
-    "lint": "eslint src",
-    "prepare": "npm run build-ci",
+    "build-only": "rimraf dist && tsc && node scripts/cli.js --skipExtraction",
+    "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
+    "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
+    "lint": "eslint src examples",
+    "prepare": "true",
     "test": "jest --runInBand",
     "type-tests": "yarn tsc -p src/tests && yarn tsc -p src/query/tests"
   },

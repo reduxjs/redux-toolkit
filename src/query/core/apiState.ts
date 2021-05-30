@@ -1,6 +1,6 @@
-import { SerializedError } from '@reduxjs/toolkit'
-import { BaseQueryError } from '../baseQueryTypes'
-import {
+import type { SerializedError } from '@reduxjs/toolkit'
+import type { BaseQueryError } from '../baseQueryTypes'
+import type {
   QueryDefinition,
   MutationDefinition,
   EndpointDefinitions,
@@ -8,7 +8,7 @@ import {
   ResultTypeFrom,
   QueryArgFrom,
 } from '../endpointDefinitions'
-import { Id, WithRequiredProp } from '../tsHelpers'
+import type { Id, WithRequiredProp } from '../tsHelpers'
 
 export type QueryCacheKey = string & { _type: 'queryCacheKey' }
 export type QuerySubstateIdentifier = { queryCacheKey: QueryCacheKey }
@@ -241,6 +241,7 @@ export type ConfigState<ReducerPath> = RefetchConfigOptions & {
   reducerPath: ReducerPath
   online: boolean
   focused: boolean
+  middlewareRegistered: boolean
 } & ModifiableConfigState
 
 export type ModifiableConfigState = {

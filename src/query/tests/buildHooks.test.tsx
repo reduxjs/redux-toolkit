@@ -12,15 +12,14 @@ import {
   actionsReducer,
   expectExactType,
   expectType,
-  matchSequence,
   setupApiStore,
   useRenderCounter,
   waitMs,
 } from './helpers'
 import { server } from './mocks/server'
-import { AnyAction } from 'redux'
+import type { AnyAction } from 'redux'
 import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
-import { SerializedError } from '@reduxjs/toolkit'
+import type { SerializedError } from '@reduxjs/toolkit'
 import { renderHook } from '@testing-library/react-hooks'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
@@ -1268,16 +1267,15 @@ describe('hooks tests', () => {
       )
 
       const { checkSession, login } = api.endpoints
-      const completeSequence = [
+      expect(storeRef.store.getState().actions).toMatchSequence(
+        api.internalActions.middlewareRegistered.match,
         checkSession.matchPending,
         checkSession.matchRejected,
         login.matchPending,
         login.matchFulfilled,
         checkSession.matchPending,
-        checkSession.matchFulfilled,
-      ]
-
-      matchSequence(storeRef.store.getState().actions, ...completeSequence)
+        checkSession.matchFulfilled
+      )
     })
   })
 })
@@ -1878,15 +1876,14 @@ describe('hooks with createApi defaults set', () => {
 
       const { increment } = api.endpoints
 
-      const completeSequence = [
+      expect(storeRef.store.getState().actions).toMatchSequence(
+        api.internalActions.middlewareRegistered.match,
         increment.matchPending,
         increment.matchFulfilled,
         api.internalActions.unsubscribeMutationResult.match,
         increment.matchPending,
-        increment.matchFulfilled,
-      ]
-
-      matchSequence(storeRef.store.getState().actions, ...completeSequence)
+        increment.matchFulfilled
+      )
     })
 
     it('causes rerenders when only selected data changes', async () => {

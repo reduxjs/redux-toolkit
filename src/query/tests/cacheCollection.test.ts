@@ -2,7 +2,7 @@ import { createApi } from '@reduxjs/toolkit/query'
 import { configureStore } from '@reduxjs/toolkit'
 import { fetchBaseQuery } from '../fetchBaseQuery'
 import { waitMs } from './helpers'
-import { Middleware, Reducer } from 'redux'
+import type { Middleware, Reducer } from 'redux'
 
 beforeAll(() => {
   jest.useFakeTimers()
@@ -114,11 +114,13 @@ function storeForApi<
         api.middleware
       ),
   })
+  let hadQueries = false
   store.subscribe(() => {
     const queryState = store.getState().api.queries
-    if (Object.keys(queryState).length === 0) {
+    if (hadQueries && Object.keys(queryState).length === 0) {
       onCleanup()
     }
+    hadQueries = hadQueries || Object.keys(queryState).length > 0
   })
   return { api, store }
 }

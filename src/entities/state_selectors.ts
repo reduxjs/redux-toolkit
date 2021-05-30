@@ -1,5 +1,5 @@
 import { createDraftSafeSelector } from '../createDraftSafeSelector'
-import { EntityState, EntitySelectors, Dictionary, EntityId } from './models'
+import type { EntityState, EntitySelectors, Dictionary, EntityId } from './models'
 
 export function createSelectorsFactory<T>() {
   function getSelectors(): EntitySelectors<T, EntityState<T>>

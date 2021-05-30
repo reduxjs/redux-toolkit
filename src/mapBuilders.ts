@@ -1,5 +1,5 @@
-import { Action, AnyAction } from 'redux'
-import {
+import type { Action, AnyAction } from 'redux'
+import type {
   CaseReducer,
   CaseReducers,
   ActionMatcher,

@@ -1,11 +1,9 @@
 import { isPending, isRejected, isFulfilled } from '@reduxjs/toolkit'
-import { BaseQueryError, BaseQueryFn } from '../../baseQueryTypes'
-import {
-  DefinitionType,
-  QueryFulfilledRejectionReason,
-} from '../../endpointDefinitions'
-import { Recipe } from '../buildThunks'
-import {
+import type { BaseQueryError, BaseQueryFn } from '../../baseQueryTypes'
+import { DefinitionType } from '../../endpointDefinitions'
+import type { QueryFulfilledRejectionReason } from '../../endpointDefinitions'
+import type { Recipe } from '../buildThunks'
+import type {
   SubMiddlewareBuilder,
   PromiseWithKnownReason,
   PromiseConstructorWithKnownReason,

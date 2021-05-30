@@ -1,16 +1,17 @@
-import { Action, AnyAction, Reducer } from 'redux'
-import {
+import type { Action, AnyAction, Reducer } from 'redux'
+import type {
   ActionCreatorWithNonInferrablePayload,
   ActionCreatorWithOptionalPayload,
   ActionCreatorWithoutPayload,
   ActionCreatorWithPayload,
   ActionCreatorWithPreparedPayload,
   ActionReducerMapBuilder,
-  createAction,
-  createSlice,
   PayloadAction,
   SliceCaseReducers,
-  ValidateSliceCaseReducers,
+  ValidateSliceCaseReducers} from '@reduxjs/toolkit';
+import {
+  createAction,
+  createSlice
 } from '@reduxjs/toolkit'
 import { expectType } from './helpers'
 

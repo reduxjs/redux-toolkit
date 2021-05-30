@@ -1,12 +1,11 @@
-import { createSlice, SerializedError } from '@reduxjs/toolkit'
+import type { SerializedError } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { renderHook, act } from '@testing-library/react-hooks'
 import {
   actionsReducer,
   expectExactType,
   hookWaitFor,
-  matchSequence,
-  notMatchSequence,
   setupApiStore,
 } from './helpers'
 
@@ -55,31 +54,33 @@ const {
   querySuccess2,
 } = api.endpoints
 
-const otherEndpointMatchers = [
-  mutationSuccess2.matchPending,
-  mutationSuccess2.matchFulfilled,
-  mutationSuccess2.matchRejected,
-  querySuccess2.matchPending,
-  querySuccess2.matchFulfilled,
-  querySuccess2.matchRejected,
-]
-
 test('matches query pending & fulfilled actions for the given endpoint', async () => {
-  const endpoint = querySuccess
+  const endpoint = querySuccess2
+  const otherEndpoint = queryFail
   const { result } = renderHook(() => endpoint.useQuery({} as any), {
     wrapper: storeRef.wrapper,
   })
   await hookWaitFor(() => expect(result.current.isLoading).toBeFalsy())
 
-  matchSequence(
-    storeRef.store.getState().actions,
+  expect(storeRef.store.getState().actions).toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
     endpoint.matchFulfilled
   )
-  notMatchSequence(
-    storeRef.store.getState().actions,
-    [endpoint.matchFulfilled, endpoint.matchRejected, ...otherEndpointMatchers],
-    [endpoint.matchPending, endpoint.matchRejected, ...otherEndpointMatchers]
+  expect(storeRef.store.getState().actions).not.toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
+    otherEndpoint.matchPending,
+    otherEndpoint.matchFulfilled
+  )
+  expect(storeRef.store.getState().actions).not.toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
+    endpoint.matchFulfilled,
+    endpoint.matchRejected
+  )
+  expect(storeRef.store.getState().actions).not.toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
+    endpoint.matchPending,
+    endpoint.matchRejected
   )
 })
 test('matches query pending & rejected actions for the given endpoint', async () => {
@@ -88,16 +89,20 @@ test('matches query pending & rejected actions for the given endpoint', async ()
     wrapper: storeRef.wrapper,
   })
   await hookWaitFor(() => expect(result.current.isLoading).toBeFalsy())
-
-  matchSequence(
-    storeRef.store.getState().actions,
+  expect(storeRef.store.getState().actions).toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
     endpoint.matchRejected
   )
-  notMatchSequence(
-    storeRef.store.getState().actions,
-    [endpoint.matchFulfilled, endpoint.matchRejected, ...otherEndpointMatchers],
-    [endpoint.matchPending, endpoint.matchFulfilled, ...otherEndpointMatchers]
+  expect(storeRef.store.getState().actions).not.toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
+    endpoint.matchFulfilled,
+    endpoint.matchRejected
+  )
+  expect(storeRef.store.getState().actions).not.toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
+    endpoint.matchPending,
+    endpoint.matchFulfilled
   )
 })
 
@@ -109,15 +114,21 @@ test('matches lazy query pending & fulfilled actions for given endpoint', async 
   act(() => void result.current[0]({} as any))
   await hookWaitFor(() => expect(result.current[1].isLoading).toBeFalsy())
 
-  matchSequence(
-    storeRef.store.getState().actions,
+  expect(storeRef.store.getState().actions).toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
     endpoint.matchFulfilled
   )
-  notMatchSequence(
-    storeRef.store.getState().actions,
-    [endpoint.matchFulfilled, endpoint.matchRejected, ...otherEndpointMatchers],
-    [endpoint.matchPending, endpoint.matchRejected, ...otherEndpointMatchers]
+  expect(storeRef.store.getState().actions).not.toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
+    endpoint.matchFulfilled,
+    endpoint.matchRejected
+  )
+
+  expect(storeRef.store.getState().actions).not.toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
+    endpoint.matchPending,
+    endpoint.matchRejected
   )
 })
 
@@ -129,35 +140,51 @@ test('matches lazy query pending & rejected actions for given endpoint', async (
   act(() => void result.current[0]({}))
   await hookWaitFor(() => expect(result.current[1].isLoading).toBeFalsy())
 
-  matchSequence(
-    storeRef.store.getState().actions,
+  expect(storeRef.store.getState().actions).toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
     endpoint.matchRejected
   )
-  notMatchSequence(
-    storeRef.store.getState().actions,
-    [endpoint.matchFulfilled, endpoint.matchRejected, ...otherEndpointMatchers],
-    [endpoint.matchPending, endpoint.matchFulfilled, ...otherEndpointMatchers]
+  expect(storeRef.store.getState().actions).not.toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
+    endpoint.matchFulfilled,
+    endpoint.matchRejected
+  )
+  expect(storeRef.store.getState().actions).not.toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
+    endpoint.matchPending,
+    endpoint.matchFulfilled
   )
 })
 
 test('matches mutation pending & fulfilled actions for the given endpoint', async () => {
   const endpoint = mutationSuccess
+  const otherEndpoint = mutationSuccess2
   const { result } = renderHook(() => endpoint.useMutation(), {
     wrapper: storeRef.wrapper,
   })
   act(() => void result.current[0]({}))
   await hookWaitFor(() => expect(result.current[1].isLoading).toBeFalsy())
 
-  matchSequence(
-    storeRef.store.getState().actions,
+  expect(storeRef.store.getState().actions).toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
     endpoint.matchFulfilled
   )
-  notMatchSequence(
-    storeRef.store.getState().actions,
-    [endpoint.matchFulfilled, endpoint.matchRejected, ...otherEndpointMatchers],
-    [endpoint.matchPending, endpoint.matchRejected, ...otherEndpointMatchers]
+  expect(storeRef.store.getState().actions).not.toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
+    otherEndpoint.matchPending,
+    otherEndpoint.matchFulfilled
+  )
+  expect(storeRef.store.getState().actions).not.toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
+    endpoint.matchFulfilled,
+    endpoint.matchRejected
+  )
+  expect(storeRef.store.getState().actions).not.toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
+    endpoint.matchPending,
+    endpoint.matchRejected
   )
 })
 test('matches mutation pending & rejected actions for the given endpoint', async () => {
@@ -168,15 +195,20 @@ test('matches mutation pending & rejected actions for the given endpoint', async
   act(() => void result.current[0]({}))
   await hookWaitFor(() => expect(result.current[1].isLoading).toBeFalsy())
 
-  matchSequence(
-    storeRef.store.getState().actions,
+  expect(storeRef.store.getState().actions).toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
     endpoint.matchRejected
   )
-  notMatchSequence(
-    storeRef.store.getState().actions,
-    [endpoint.matchFulfilled, endpoint.matchRejected, ...otherEndpointMatchers],
-    [endpoint.matchPending, endpoint.matchFulfilled, ...otherEndpointMatchers]
+  expect(storeRef.store.getState().actions).not.toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
+    endpoint.matchFulfilled,
+    endpoint.matchRejected
+  )
+  expect(storeRef.store.getState().actions).not.toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
+    endpoint.matchPending,
+    endpoint.matchFulfilled
   )
 })
 

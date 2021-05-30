@@ -1,8 +1,9 @@
-import { SerializedError } from '@reduxjs/toolkit'
+import type { SerializedError } from '@reduxjs/toolkit'
+import type {
+  FetchBaseQueryError} from '@reduxjs/toolkit/query/react';
 import {
   createApi,
-  fetchBaseQuery,
-  FetchBaseQueryError,
+  fetchBaseQuery
 } from '@reduxjs/toolkit/query/react'
 import { expectExactType, expectType } from './helpers'
 

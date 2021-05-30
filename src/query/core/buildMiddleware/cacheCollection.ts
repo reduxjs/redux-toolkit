@@ -1,7 +1,8 @@
-import { BaseQueryFn } from '../../baseQueryTypes'
-import { QueryDefinition } from '../../endpointDefinitions'
-import { QueryCacheKey, QuerySubstateIdentifier } from '../apiState'
-import {
+import type { BaseQueryFn } from '../../baseQueryTypes'
+import type { QueryDefinition } from '../../endpointDefinitions'
+import type { QueryCacheKey} from '../apiState';
+import { QuerySubstateIdentifier } from '../apiState'
+import type {
   QueryStateMeta,
   SubMiddlewareApi,
   SubMiddlewareBuilder,

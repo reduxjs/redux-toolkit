@@ -1,8 +1,9 @@
+import type {
+  AnyAction} from '@reduxjs/toolkit';
 import {
   createAsyncThunk,
   unwrapResult,
   configureStore,
-  AnyAction,
   createReducer,
 } from '@reduxjs/toolkit'
 import { miniSerializeError } from '@internal/createAsyncThunk'
