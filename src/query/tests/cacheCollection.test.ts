@@ -114,11 +114,13 @@ function storeForApi<
         api.middleware
       ),
   })
+  let hadQueries = false
   store.subscribe(() => {
     const queryState = store.getState().api.queries
-    if (Object.keys(queryState).length === 0) {
+    if (hadQueries && Object.keys(queryState).length === 0) {
       onCleanup()
     }
+    hadQueries = hadQueries || Object.keys(queryState).length > 0
   })
   return { api, store }
 }

@@ -85,7 +85,10 @@ export function buildSlice({
   mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg, {}>
   context: ApiContext<EndpointDefinitions>
   assertTagType: AssertTagTypes
-  config: Omit<ConfigState<string>, 'online' | 'focused'>
+  config: Omit<
+    ConfigState<string>,
+    'online' | 'focused' | 'middlewareRegistered'
+  >
 }) {
   const resetApiState = createAction(`${reducerPath}/resetApiState`)
   const querySlice = createSlice({
@@ -168,7 +171,7 @@ export function buildSlice({
     name: `${reducerPath}/mutations`,
     initialState: initialState as MutationState<any>,
     reducers: {
-      unsubscribeResult(
+      unsubscribeMutationResult(
         draft,
         action: PayloadAction<MutationSubstateIdentifier>
       ) {
@@ -286,7 +289,7 @@ export function buildSlice({
           draft[queryCacheKey]![requestId] = options
         }
       },
-      unsubscribeResult(
+      unsubscribeQueryResult(
         draft,
         {
           payload: { queryCacheKey, requestId },
@@ -331,9 +334,14 @@ export function buildSlice({
     initialState: {
       online: isOnline(),
       focused: isDocumentVisible(),
+      middlewareRegistered: false,
       ...config,
     } as ConfigState<string>,
-    reducers: {},
+    reducers: {
+      middlewareRegistered(state) {
+        state.middlewareRegistered = true
+      },
+    },
     extraReducers: (builder) => {
       builder
         .addCase(onOnline, (state) => {
@@ -365,12 +373,10 @@ export function buildSlice({
     combinedReducer(resetApiState.match(action) ? undefined : state, action)
 
   const actions = {
-    updateSubscriptionOptions:
-      subscriptionSlice.actions.updateSubscriptionOptions,
-    queryResultPatched: querySlice.actions.queryResultPatched,
-    removeQueryResult: querySlice.actions.removeQueryResult,
-    unsubscribeQueryResult: subscriptionSlice.actions.unsubscribeResult,
-    unsubscribeMutationResult: mutationSlice.actions.unsubscribeResult,
+    ...configSlice.actions,
+    ...querySlice.actions,
+    ...subscriptionSlice.actions,
+    ...mutationSlice.actions,
     resetApiState,
   }
 
