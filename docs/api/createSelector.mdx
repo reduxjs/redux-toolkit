@@ -5,6 +5,8 @@ sidebar_label: createSelector
 hide_title: true
 ---
 
+&nbsp;
+
 # `createSelector`
 
 The `createSelector` utility from the [Reselect library](https://github.com/reduxjs/reselect), re-exported for ease of use.
@@ -37,10 +39,10 @@ Example:
 
 ```js
 const selectSelf = (state: State) => state
-const unsafeSelector = createSelector(selectSelf, state => state.value)
+const unsafeSelector = createSelector(selectSelf, (state) => state.value)
 const draftSafeSelector = createDraftSafeSelector(
   selectSelf,
-  state => state.value
+  (state) => state.value
 )
 
 // in your reducer:

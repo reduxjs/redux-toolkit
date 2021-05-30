@@ -5,6 +5,8 @@ sidebar_label: Code Splitting
 hide_title: true
 ---
 
+&nbsp;
+
 # Code Splitting
 
 RTK Query makes it possible to trim down your initial bundle size by allowing you to inject additional endpoints after you've setup your initial service definition. This can be very beneficial for larger applications that may have _many_ endpoints.
@@ -47,9 +49,9 @@ const extendedApi = emptySplitApi.injectEndpoints({
     }),
   }),
   overrideExisting: false,
-});
+})
 
-export const { useExampleQuery } = extendedApi;
+export const { useExampleQuery } = extendedApi
 ```
 
 :::tip
