@@ -4,31 +4,31 @@
 
 ```ts
 
-import { Action } from 'redux';
-import { ActionCreator } from 'redux';
-import { AnyAction } from 'redux';
-import { CombinedState } from 'redux';
+import type { Action } from 'redux';
+import type { ActionCreator } from 'redux';
+import type { AnyAction } from 'redux';
+import type { CombinedState } from 'redux';
 import { default as createNextState } from 'immer';
 import { createSelector } from 'reselect';
 import { current } from 'immer';
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 import { Draft } from 'immer';
 import { freeze } from 'immer';
 import { isDraft } from 'immer';
-import { Middleware } from 'redux';
+import type { Middleware } from 'redux';
 import { original } from 'immer';
 import { OutputParametricSelector } from 'reselect';
 import { OutputSelector } from 'reselect';
 import { ParametricSelector } from 'reselect';
-import { PreloadedState } from 'redux';
-import { Reducer } from 'redux';
-import { ReducersMapObject } from 'redux';
+import type { PreloadedState } from 'redux';
+import type { Reducer } from 'redux';
+import type { ReducersMapObject } from 'redux';
 import { Selector } from 'reselect';
-import { Store } from 'redux';
-import { StoreEnhancer } from 'redux';
+import type { Store } from 'redux';
+import type { StoreEnhancer } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { ThunkDispatch } from 'redux-thunk';
-import { ThunkMiddleware } from 'redux-thunk';
+import type { ThunkMiddleware } from 'redux-thunk';
 
 // @public
 export interface ActionCreatorWithNonInferrablePayload<T extends string = string> extends BaseActionCreator<unknown, T> {
