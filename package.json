@@ -86,7 +86,6 @@
     "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
     "lint": "eslint src examples",
-    "prepare": "true",
     "test": "jest --runInBand",
     "type-tests": "yarn tsc -p src/tests && yarn tsc -p src/query/tests"
   },
