@@ -193,7 +193,7 @@ export function buildThunks<
   reducerPath: ReducerPath
   context: ApiContext<Definitions>
   serializeQueryArgs: InternalSerializeQueryArgs
-  api: Api<BaseQuery, EndpointDefinitions, ReducerPath, any>
+  api: Api<BaseQuery, Definitions, ReducerPath, any>
 }) {
   type State = RootState<any, string, ReducerPath>
 
@@ -357,7 +357,7 @@ export function buildThunks<
     options: any
   ): options is { ifOlderThan: false | number } => 'ifOlderThan' in options
 
-  const prefetch = <EndpointName extends QueryKeys<EndpointDefinitions>>(
+  const prefetch = <EndpointName extends QueryKeys<Definitions>>(
     endpointName: EndpointName,
     arg: any,
     options: PrefetchOptions
