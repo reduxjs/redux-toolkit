@@ -17,9 +17,9 @@ import {
   StatNumber,
 } from '@chakra-ui/react'
 import { MdArrowBack, MdArrowForward, MdBook } from 'react-icons/md'
-import { Post, useGetPostsQuery } from '../../app/services/posts'
+import { useGetPostsQuery } from '../../app/services/posts'
 
-const getColorForStatus = (status: Post['status']) => {
+const getColorForStatus = (status: string | undefined) => {
   return status === 'draft'
     ? 'gray'
     : status === 'pending_review'
@@ -29,14 +29,13 @@ const getColorForStatus = (status: Post['status']) => {
 
 const PostList = () => {
   const [page, setPage] = React.useState(1)
-  const { data: posts, isLoading, isFetching } = useGetPostsQuery(page)
+  const { data, isLoading, isFetching } = useGetPostsQuery({
+    skip: page * 10,
+    take: 10,
+  })
 
   if (isLoading) {
     return <div>Loading</div>
-  }
-
-  if (!posts?.data) {
-    return <div>No posts :(</div>
   }
 
   return (
@@ -52,37 +51,40 @@ const PostList = () => {
         <Button
           onClick={() => setPage((prev) => prev + 1)}
           isLoading={isFetching}
-          disabled={page === posts.total_pages}
         >
           <Icon as={MdArrowForward} />
         </Button>
-        <Box>{`${page} / ${posts.total_pages}`}</Box>
+        <Box>{`${page}`}</Box>
       </HStack>
       <List spacing={3} mt={6}>
-        {posts?.data.posts.map(({ id, title, status }) => (
-          <ListItem key={id}>
-            <ListIcon as={MdBook} color="green.500" /> {title}{' '}
-            <Badge
-              ml="1"
-              fontSize="0.8em"
-              colorScheme={getColorForStatus(status)}
-            >
-              {status}
-            </Badge>
-          </ListItem>
-        ))}
+        {data?.posts?.length ? (
+          data?.posts.map(({ id, title, status }) => (
+            <ListItem key={id}>
+              <ListIcon as={MdBook} color="green.500" /> {title}{' '}
+              <Badge
+                ml="1"
+                fontSize="0.8em"
+                colorScheme={getColorForStatus(status)}
+              >
+                {status}
+              </Badge>
+            </ListItem>
+          ))
+        ) : (
+          <ListItem>No posts :(</ListItem>
+        )}
       </List>
     </Box>
   )
 }
 
 export const PostsCountStat = () => {
-  const { data: posts } = useGetPostsQuery()
+  const { data } = useGetPostsQuery({})
 
   return (
     <Stat>
       <StatLabel>Total Posts</StatLabel>
-      <StatNumber>{`${posts?.total || 'NA'}`}</StatNumber>
+      <StatNumber>{`${data?.posts?.length || 'NA'}`}</StatNumber>
     </Stat>
   )
 }
