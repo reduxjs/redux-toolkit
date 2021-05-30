@@ -5,6 +5,8 @@ sidebar_label: createEntityAdapter
 hide_title: true
 ---
 
+&nbsp;
+
 # `createEntityAdapter`
 
 ## Overview
@@ -39,16 +41,16 @@ Sample usage:
 import {
   createEntityAdapter,
   createSlice,
-  configureStore
+  configureStore,
 } from '@reduxjs/toolkit'
 
 type Book = { bookId: string; title: string }
 
 const booksAdapter = createEntityAdapter<Book>({
   // Assume IDs are stored in a field other than `book.id`
-  selectId: book => book.bookId,
+  selectId: (book) => book.bookId,
   // Keep the "all IDs" array sorted based on book titles
-  sortComparer: (a, b) => a.title.localeCompare(b.title)
+  sortComparer: (a, b) => a.title.localeCompare(b.title),
 })
 
 const booksSlice = createSlice({
@@ -61,14 +63,14 @@ const booksSlice = createSlice({
     booksReceived(state, action) {
       // Or, call them as "mutating" helpers in a case reducer
       booksAdapter.setAll(state, action.payload.books)
-    }
-  }
+    },
+  },
 })
 
 const store = configureStore({
   reducer: {
-    books: booksSlice.reducer
-  }
+    books: booksSlice.reducer,
+  },
 })
 
 type RootState = ReturnType<typeof store.getState>
@@ -78,7 +80,7 @@ console.log(store.getState().books)
 
 // Can create a set of memoized selectors based on the location of this entity state
 const booksSelectors = booksAdapter.getSelectors<RootState>(
-  state => state.books
+  (state) => state.books
 )
 
 // And then use the selectors to retrieve values
@@ -243,14 +245,14 @@ It accepts an optional object as an argument. The fields in that object will be 
 const booksSlice = createSlice({
   name: 'books',
   initialState: booksAdapter.getInitialState({
-    loading: 'idle'
+    loading: 'idle',
   }),
   reducers: {
     booksLoadingStarted(state, action) {
       // Can update the additional state field
       state.loading = 'pending'
-    }
-  }
+    },
+  },
 })
 ```
 
@@ -276,12 +278,12 @@ For example, the entity state for a `Book` type might be kept in the Redux state
 ```js
 const store = configureStore({
   reducer: {
-    books: booksReducer
-  }
+    books: booksReducer,
+  },
 })
 
 const simpleSelectors = booksAdapter.getSelectors()
-const globalizedSelectors = booksAdapter.getSelectors(state => state.books)
+const globalizedSelectors = booksAdapter.getSelectors((state) => state.books)
 
 // Need to manually pass the correct entity state object in to this selector
 const bookIds = simpleSelectors.selectIds(store.getState().books)
@@ -306,19 +308,19 @@ Exercising several of the CRUD methods and selectors:
 import {
   createEntityAdapter,
   createSlice,
-  configureStore
+  configureStore,
 } from '@reduxjs/toolkit'
 
 // Since we don't provide `selectId`, it defaults to assuming `entity.id` is the right field
 const booksAdapter = createEntityAdapter({
   // Keep the "all IDs" array sorted based on book titles
-  sortComparer: (a, b) => a.title.localeCompare(b.title)
+  sortComparer: (a, b) => a.title.localeCompare(b.title),
 })
 
 const booksSlice = createSlice({
   name: 'books',
   initialState: booksAdapter.getInitialState({
-    loading: 'idle'
+    loading: 'idle',
   }),
   reducers: {
     // Can pass adapter functions directly as case reducers.  Because we're passing this
@@ -336,28 +338,28 @@ const booksSlice = createSlice({
         state.loading = 'idle'
       }
     },
-    bookUpdated: booksAdapter.updateOne
-  }
+    bookUpdated: booksAdapter.updateOne,
+  },
 })
 
 const {
   bookAdded,
   booksLoading,
   booksReceived,
-  bookUpdated
+  bookUpdated,
 } = booksSlice.actions
 
 const store = configureStore({
   reducer: {
-    books: booksSlice.reducer
-  }
+    books: booksSlice.reducer,
+  },
 })
 
 // Check the initial state:
 console.log(store.getState().books)
 // {ids: [], entities: {}, loading: 'idle' }
 
-const booksSelectors = booksAdapter.getSelectors(state => state.books)
+const booksSelectors = booksAdapter.getSelectors((state) => state.books)
 
 store.dispatch(bookAdded({ id: 'a', title: 'First' }))
 console.log(store.getState().books)
@@ -371,7 +373,7 @@ console.log(store.getState().books)
 store.dispatch(
   booksReceived([
     { id: 'b', title: 'Book 3' },
-    { id: 'c', title: 'Book 2' }
+    { id: 'c', title: 'Book 2' },
   ])
 )
 

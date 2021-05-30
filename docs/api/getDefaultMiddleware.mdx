@@ -5,6 +5,8 @@ sidebar_label: getDefaultMiddleware
 hide_title: true
 ---
 
+&nbsp;
+
 # `getDefaultMiddleware`
 
 Returns an array containing the default list of middleware.
@@ -15,7 +17,7 @@ By default, [`configureStore`](./configureStore.mdx) adds some middleware to the
 
 ```js
 const store = configureStore({
-  reducer: rootReducer
+  reducer: rootReducer,
 })
 
 // Store has middleware added, because the middleware list was not customized
@@ -26,7 +28,7 @@ If you want to customize the list of middleware, you can supply an array of midd
 ```js
 const store = configureStore({
   reducer: rootReducer,
-  middleware: [thunk, logger]
+  middleware: [thunk, logger],
 })
 
 // Store specifically has the thunk and logger middleware applied
@@ -54,7 +56,7 @@ import rootReducer from './reducer'
 
 const store = configureStore({
   reducer: rootReducer,
-  middleware: getDefaultMiddleware => getDefaultMiddleware().concat(logger)
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger),
 })
 
 // Store has all of the default middleware added, _plus_ the logger middleware
@@ -149,13 +151,13 @@ import { myCustomApiService } from './api'
 
 const store = configureStore({
   reducer: rootReducer,
-  middleware: getDefaultMiddleware =>
+  middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       thunk: {
-        extraArgument: myCustomApiService
+        extraArgument: myCustomApiService,
       },
-      serializableCheck: false
-    })
+      serializableCheck: false,
+    }),
 })
 ```
 

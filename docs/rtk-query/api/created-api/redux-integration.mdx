@@ -5,11 +5,13 @@ sidebar_label: Redux Integration
 hide_title: true
 ---
 
+&nbsp;
+
 # API Slices: Redux Integration
 
 Internally, `createApi` will call [the Redux Toolkit `createSlice` API](https://redux-toolkit.js.org/api/createSlice) to generate a slice reducer and corresponding action creators with the appropriate logic for caching fetched data. It also automatically generates a custom Redux middleware that manages subscription counts and cache lifetimes.
 
-The generated slice reducer and the middleware both need to be added to your Redux store setup in `configureStore` in order to work correctly:
+The generated slice reducer and the middleware both need to be added to your Redux store setup in `configureStore` in order to work correctly: test
 
 ```ts title="src/store.ts"
 // file: src/services/pokemon.ts noEmit
@@ -17,7 +19,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
 export const pokemonApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-  endpoints: () => ({})
+  endpoints: () => ({}),
 })
 
 // file: src/store.ts

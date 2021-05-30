@@ -6,6 +6,8 @@ hide_title: true
 hide_table_of_contents: false
 ---
 
+&nbsp;
+
 # `fetchBaseQuery`
 
 This is a very small wrapper around [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) that aims to simplify requests. It is not a full-blown replacement for `axios`, `superagent`, or any other more heavy-weight library, but it will cover the large majority of your needs.
@@ -71,7 +73,7 @@ The most common use case for `prepareHeaders` would be to automatically include 
 
 ```ts title="Setting a token from a redux store value
 // file: store.ts noEmit
-export type RootState = { auth: { token : string } };
+export type RootState = { auth: { token: string } }
 
 // file: baseQuery.ts
 import { fetchBaseQuery } from '@reduxjs/toolkit/query'

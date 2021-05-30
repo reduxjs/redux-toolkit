@@ -5,6 +5,8 @@ sidebar_label: Getting Started
 hide_title: true
 ---
 
+&nbsp;
+
 # Getting Started with Redux Toolkit
 
 ## Purpose

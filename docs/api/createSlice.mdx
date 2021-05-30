@@ -5,6 +5,8 @@ sidebar_label: createSlice
 hide_title: true
 ---
 
+&nbsp;
+
 # `createSlice`
 
 A function that accepts an initial state, an object full of reducer functions, and a "slice name",
@@ -36,8 +38,8 @@ const counterSlice = createSlice({
     },
     incrementByAmount(state, action: PayloadAction<number>) {
       state.value += action.payload
-    }
-  }
+    },
+  },
 })
 
 export const { increment, decrement, incrementByAmount } = counterSlice.actions
@@ -93,8 +95,8 @@ const counterSlice = createSlice({
   name: 'counter',
   initialState: 0,
   reducers: {
-    increment: state => state + 1
-  }
+    increment: (state) => state + 1,
+  },
 })
 // Will handle the action type `'counter/increment'`
 ```
@@ -123,9 +125,9 @@ const todosSlice = createSlice({
       prepare: (text: string) => {
         const id = nanoid()
         return { payload: { id, text } }
-      }
-    }
-  }
+      },
+    },
+  },
 })
 ```
 
@@ -175,8 +177,8 @@ createSlice({
     [incrementBy]: (state, action) => {
       return state + action.payload
     },
-    'some/other/action': (state, action) => {}
-  }
+    'some/other/action': (state, action) => {},
+  },
 })
 ```
 
@@ -227,22 +229,22 @@ const counter = createSlice({
   name: 'counter',
   initialState: 0 as number,
   reducers: {
-    increment: state => state + 1,
-    decrement: state => state - 1,
+    increment: (state) => state + 1,
+    decrement: (state) => state - 1,
     multiply: {
       reducer: (state, action: PayloadAction<number>) => state * action.payload,
-      prepare: (value?: number) => ({ payload: value || 2 }) // fallback if the payload is a falsy value
-    }
+      prepare: (value?: number) => ({ payload: value || 2 }), // fallback if the payload is a falsy value
+    },
   },
   // "builder callback API", recommended for TypeScript users
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder.addCase(incrementBy, (state, action) => {
       return state + action.payload
     })
     builder.addCase(decrementBy, (state, action) => {
       return state - action.payload
     })
-  }
+  },
 })
 
 const user = createSlice({
@@ -251,7 +253,7 @@ const user = createSlice({
   reducers: {
     setUserName: (state, action) => {
       state.name = action.payload // mutate the state all you want with immer
-    }
+    },
   },
   // "map object API"
   extraReducers: {
@@ -261,13 +263,13 @@ const user = createSlice({
       action /* action will be inferred as "any", as the map notation does not contain type information */
     ) => {
       state.age += 1
-    }
-  }
+    },
+  },
 })
 
 const reducer = combineReducers({
   counter: counter.reducer,
-  user: user.reducer
+  user: user.reducer,
 })
 
 const store = createStore(reducer)

@@ -5,6 +5,8 @@ sidebar_label: Serializability Middleware
 hide_title: true
 ---
 
+&nbsp;
+
 # Serializability Middleware
 
 A custom middleware that detects if any non-serializable values have been included in state or dispatched actions, modeled after `redux-immutable-state-invariant`. Any detected non-serializable values will be logged to the console.
@@ -69,7 +71,7 @@ Example:
 ```ts
 // file: reducer.ts noEmit
 
-export default function(state = {}, action: any) {
+export default function (state = {}, action: any) {
   return state
 }
 
@@ -79,7 +81,7 @@ import { Iterable } from 'immutable'
 import {
   configureStore,
   createSerializableStateInvariantMiddleware,
-  isPlain
+  isPlain,
 } from '@reduxjs/toolkit'
 import reducer from './reducer'
 
@@ -92,12 +94,12 @@ const getEntries = (value: any) =>
 
 const serializableMiddleware = createSerializableStateInvariantMiddleware({
   isSerializable,
-  getEntries
+  getEntries,
 })
 
 const store = configureStore({
   reducer,
-  middleware: [serializableMiddleware]
+  middleware: [serializableMiddleware],
 })
 ```
 
