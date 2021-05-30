@@ -99,14 +99,3 @@ export type Api<
     >
   }
 >
-
-export type ApiWithInjectedEndpoints<
-  ApiDefinition extends Api<any, any, any, any>,
-  Injections extends ApiDefinition extends Api<infer B, any, infer R, infer E>
-    ? [Api<B, any, R, E>, ...Api<B, any, R, E>[]]
-    : never
-> = Omit<ApiDefinition, 'endpoints'> &
-  Omit<Injections, 'endpoints'> & {
-    endpoints: ApiDefinition['endpoints'] &
-      Partial<UnionToIntersection<Injections[number]['endpoints']>>
-  }
