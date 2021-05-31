@@ -5,6 +5,8 @@ sidebar_label: Customizing Queries
 hide_title: true
 ---
 
+&nbsp;
+
 # Customizing queries
 
 RTK Query is agnostic as to how your requests resolve. You can use any library you like to handle requests, or no library at all. RTK Query provides reasonable defaults expected to cover the majority of use cases, while also allowing room for customization to alter query handling to fit specific needs.
@@ -58,10 +60,6 @@ const customBaseQuery = (
   // highlight-end
 }
 ```
-
-<!-- TODO: move this to a 'usage with typescript' page instead (and cover in more detail)-->
-
-The type for `data` is dictated based on the types specified per endpoint (both queries & mutations), while the type for `error` is dictated by the `baseQuery` function used.
 
 :::note
 This format is required so that RTK Query can infer the return types for your responses.
@@ -166,7 +164,7 @@ This can be useful for scenarios where you want to have particularly different b
 - One-off queries that use different request handling, such as automatic re-tries
 - One-off queries that use different error handling behaviour
 - Performing multiple requests with a single query ([example](#performing-multiple-requests-with-a-single-query))
-- Leveraging invalidation behaviour with no relevant query ([example](#no-op-queryfn))
+- Leveraging invalidation behaviour with no relevant query ([example](#using-a-no-op-queryfn))
 - Using [Streaming Updates](./streaming-updates) with no relevant initial request ([example](#streaming-data-with-no-initial-request))
 
 See also [`queryFn API Reference`](../api/createApi.mdx#queryfn) for the type signature and available options.
@@ -449,6 +447,8 @@ In such a scenario, the return value would look like so:
 2.  ```ts title="Expected error result format with meta" no-transpile
     return { error: YourError, meta: YourMeta }
     ```
+
+<!-- TODO: re-write below with a more realistic example -->
 
 ```ts title="baseQuery example with meta information"
 // file: idGenerator.ts noEmit
@@ -767,55 +767,6 @@ const api = createApi({
           ? { data: result.data as Post }
           : { error: result.error as FetchBaseQueryError }
       },
-    }),
-  }),
-})
-```
-
-### Excluding baseQuery for all endpoints
-
-<!-- TODO: move this to a 'usage with typescript' page instead-->
-
-For typescript users, the error type that `queryFn` must return is dictated by the provided `baseQuery` function. For users who wish to _only_ use `queryFn` for each endpoint and not include a `baseQuery` at all, RTK Query provides a `fakeBaseQuery` function that can be used to easily specify the error type each `queryFn` should return.
-
-```ts title="Excluding baseQuery for all endpoints"
-import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
-
-type CustomErrorType = { type: 'too cold' | 'too hot' }
-
-const api = createApi({
-  // highlight-start
-  baseQuery: fakeBaseQuery<CustomErrorType>(),
-  // highlight-end
-  endpoints: (build) => ({
-    eatPorridge: build.query<'just right', 1 | 2 | 3>({
-      // highlight-start
-      queryFn(seat) {
-        if (seat === 1) {
-          return { error: { type: 'too cold' } }
-        }
-
-        if (seat === 2) {
-          return { error: { type: 'too hot' } }
-        }
-
-        return { data: 'just right' }
-      },
-      // highlight-end
-    }),
-    microwaveHotPocket: build.query<'delicious!', number>({
-      // highlight-start
-      queryFn(duration) {
-        if (duration < 110) {
-          return { error: { type: 'too cold' } }
-        }
-        if (duration > 140) {
-          return { error: { type: 'too hot' } }
-        }
-
-        return { data: 'delicious!' }
-      },
-      // highlight-end
     }),
   }),
 })

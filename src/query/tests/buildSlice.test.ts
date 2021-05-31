@@ -30,6 +30,7 @@ const authSlice = createSlice({
 const storeRef = setupApiStore(api, { auth: authSlice.reducer })
 
 it('only resets the api state when resetApiState is dispatched', async () => {
+  storeRef.store.dispatch({ type: 'unrelated' }) // trigger "registered middleware" into place
   const initialState = storeRef.store.getState()
 
   await storeRef.store.dispatch(
@@ -41,6 +42,7 @@ it('only resets the api state when resetApiState is dispatched', async () => {
       config: {
         focused: true,
         keepUnusedDataFor: 60,
+        middlewareRegistered: true,
         online: true,
         reducerPath: 'api',
         refetchOnFocus: false,

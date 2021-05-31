@@ -5,6 +5,8 @@ sidebar_label: Examples
 hide_title: true
 ---
 
+&nbsp;
+
 # RTK Query Examples
 
 ## Examples Overview
@@ -17,11 +19,18 @@ Please note that when playing with the examples in CodeSandbox that you can expe
 
 ## React Hooks
 
-<iframe src="https://codesandbox.io/embed/rtk-query-demo-lbp7n?fontsize=12&hidenavigation=1&theme=dark&runonclick=1"
-     style={{ width: '100%', height: '800px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
-     title="rtk-query-react-hooks-example"
-     allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
-     sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
+<iframe
+  src="https://codesandbox.io/embed/rtk-query-demo-lbp7n?fontsize=12&hidenavigation=1&theme=dark&runonclick=1"
+  style={{
+    width: '100%',
+    height: '800px',
+    border: 0,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  }}
+  title="RTK Query React Hooks Example"
+  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
 
 ## React Optimistic Updates
@@ -32,20 +41,34 @@ In the example below you'll notice a few things. There are two `Posts` list on t
 The example has some intentionally wonky behavior... when editing the name of a post, there is a decent chance you'll get a random error.
 :::
 
-<iframe src="https://codesandbox.io/embed/concepts-optimistic-updates-lush8?fontsize=12&hidenavigation=1&module=%2Fsrc%2Fapp%2Fservices%2Fposts.ts&theme=dark&runonclick=1"
-     style={{ width: '100%', height: '800px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
-     title="RTK Query Optimistic Update Example"
-     allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
-     sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
+<iframe
+  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/feature/v1.6-integration/examples/query/react/optimistic-update?fontsize=12&hidenavigation=1&module=%2Fsrc%2Fapp%2Fservices%2Fposts.ts&theme=dark&runonclick=1"
+  style={{
+    width: '100%',
+    height: '800px',
+    border: 0,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  }}
+  title="RTK Query Optimistic Update Example"
+  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
 
 ## React with GraphQL
 
-<iframe src="https://codesandbox.io/embed/rtk-query-graphql-basic-zkqfz?fontsize=12&hidenavigation=1&theme=dark&module=%2Fsrc%2Fapi.js&runonclick=1"
-     style={{ width: '100%', height: '800px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
-     title="RTK Query GraphQL Example"
-     allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
-     sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
+<iframe
+  src="https://codesandbox.io/embed/rtk-query-graphql-basic-zkqfz?fontsize=12&hidenavigation=1&theme=dark&module=%2Fsrc%2Fapi.js&runonclick=1"
+  style={{
+    width: '100%',
+    height: '800px',
+    border: 0,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  }}
+  title="RTK Query GraphQL Example"
+  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
 
 ## Authentication
@@ -56,40 +79,68 @@ There are several ways to handle authentication with RTK Query. This is a very b
 
 This example dispatches a `setCredentials` action to store the user and token information.
 
-<iframe src="https://codesandbox.io/embed/rtk-query-authentication-example-zx8me?fontsize=12&hidenavigation=1&module=%2Fsrc%2Ffeatures%2Fauth%2FauthSlice.tsx&theme=dark&runonclick=1"
-     style={{ width: '100%', height: '800px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
-     title="RTK Query Authentication Example"
-     allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
-     sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
+<iframe
+  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/feature/v1.6-integration/examples/query/react/authentication?fontsize=12&hidenavigation=1&module=%2Fsrc%2Ffeatures%2Fauth%2FauthSlice.tsx&theme=dark&runonclick=1"
+  style={{
+    width: '100%',
+    height: '800px',
+    border: 0,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  }}
+  title="RTK Query Authentication Example"
+  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
 
 ### Using `extraReducers`
 
 This example uses a matcher from the endpoint and `extraReducers` in the `authSlice`.
 
-<iframe src="https://codesandbox.io/embed/rtk-query-authentication-example-extrareducers-5w7q9?fontsize=12&hidenavigation=1&module=%2Fsrc%2Ffeatures%2Fauth%2FauthSlice.tsx&theme=dark&runonclick=1"
-    style={{ width: '100%', height: '800px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
-    title="RTK Query Authentication Example - extraReducers"
-    allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
-    sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+<iframe
+  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/feature/v1.6-integration/examples/query/react/authentication-with-extrareducers?fontsize=12&hidenavigation=1&module=%2Fsrc%2Ffeatures%2Fauth%2FauthSlice.tsx&theme=dark&runonclick=1"
+  style={{
+    width: '100%',
+    height: '800px',
+    border: 0,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  }}
+  title="RTK Query Authentication Example - extraReducers"
+  allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+  sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
 ></iframe>
 
 ## React Class Components
 
 Check out the `PostDetail` component for an example of Class Component usage.
 
-<iframe src="https://codesandbox.io/embed/react-class-component-example-48hyq?fontsize=12&hidenavigation=1&theme=dark&runonclick=1"
-     style={{ width: '100%', height: '800px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
-     title="rtk-query-react-hooks-example"
-     allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
-     sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
+<iframe
+  src="https://codesandbox.io/embed/react-class-component-example-48hyq?fontsize=12&hidenavigation=1&theme=dark&runonclick=1"
+  style={{
+    width: '100%',
+    height: '800px',
+    border: 0,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  }}
+  title="RTK Query React Class Components Example"
+  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
 
 ## Svelte
 
-<iframe src="https://codesandbox.io/embed/svelte-app-rtk-simplequery-demo-f1ueb?fontsize=12&hidenavigation=1&theme=dark&runonclick=1"
-     style={{ width: '100%', height: '800px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
-     title="rtk-query-svelte-example"
-     allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
-     sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
+<iframe
+  src="https://codesandbox.io/embed/svelte-app-rtk-simplequery-demo-f1ueb?fontsize=12&hidenavigation=1&theme=dark&runonclick=1"
+  style={{
+    width: '100%',
+    height: '800px',
+    border: 0,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  }}
+  title="RTK Query Svelte Example"
+  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>

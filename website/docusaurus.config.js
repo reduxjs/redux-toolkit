@@ -14,7 +14,9 @@ module.exports = {
           path: '../docs',
           sidebarPath: require.resolve('./sidebars.json'),
           routeBasePath: '/',
-          include: ['{api,assets,introduction,rtk-query,tutorials,usage}/**/*.{md,mdx}'], // no other way to exclude node_modules
+          include: [
+            '{api,assets,introduction,rtk-query,tutorials,usage}/**/*.{md,mdx}',
+          ], // no other way to exclude node_modules
           remarkPlugins: [
             [
               linkDocblocks,
@@ -38,73 +40,7 @@ module.exports = {
               {
                 compilerSettings: {
                   tsconfig: resolve(__dirname, '../docs/tsconfig.json'),
-                  externalResolutions: {
-                    '@reduxjs/toolkit': {
-                      resolvedPath: resolve(__dirname, '../src'),
-                      packageId: {
-                        name: '@reduxjs/toolkit',
-                        subModuleName: 'index.ts',
-                        version: '1.0',
-                      },
-                    },
-                    '@reduxjs/toolkit/query': {
-                      resolvedPath: resolve(__dirname, '../src/query'),
-                      packageId: {
-                        name: '@reduxjs/toolkit-query',
-                        subModuleName: 'index.ts',
-                        version: '1.0',
-                      },
-                    },
-                    '@reduxjs/toolkit/query/react': {
-                      resolvedPath: resolve(__dirname, '../src/query/react'),
-                      packageId: {
-                        name: '@reduxjs/toolkit-query-react',
-                        subModuleName: 'index.ts',
-                        version: '1.0',
-                      },
-                    },
-                    '@reduxjs/toolkit/dist/query/fetchBaseQuery': {
-                      resolvedPath: resolve(__dirname, '../src/query/fetchBaseQuery'),
-                      packageId: {
-                        name: '@reduxjs/toolkit-dist-fetchBaseQuery',
-                        subModuleName: 'index.ts',
-                        version: '1.0',
-                      },
-                    },
-                    '@virtual/matchers': {
-                      resolvedPath: resolve(
-                        __dirname,
-                        '../docs/virtual/matchers'
-                      ),
-                      packageId: {
-                        name: '@virtual/matchers',
-                        subModuleName: 'index.ts',
-                        version: '1.0',
-                      },
-                    },
-                    'your-cool-library': {
-                      resolvedPath: resolve(
-                        __dirname,
-                        '../docs/virtual/your-cool-library'
-                      ),
-                      packageId: {
-                        name: '@virtual/your-cool-library',
-                        subModuleName: 'index.ts',
-                        version: '1.0',
-                      },
-                    },
-                    'petstore-api.generated': {
-                      resolvedPath: resolve(
-                        __dirname,
-                        '../docs/virtual/petstore-api.generated'
-                      ),
-                      packageId: {
-                        name: '@virtual/petstore-api.generated',
-                        subModuleName: 'index.ts',
-                        version: '1.0',
-                      },
-                    },
-                  },
+                  externalResolutions: {},
                 },
               },
             ],

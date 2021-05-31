@@ -128,7 +128,7 @@ declare module '../apiTypes' {
         /**
          * TODO
          */
-        prefetch<EndpointName extends QueryKeys<EndpointDefinitions>>(
+        prefetch<EndpointName extends QueryKeys<Definitions>>(
           endpointName: EndpointName,
           arg: QueryArgFrom<Definitions[EndpointName]>,
           options: PrefetchOptions

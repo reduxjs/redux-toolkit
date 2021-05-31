@@ -5,6 +5,8 @@ sidebar_label: createAsyncThunk
 hide_title: true
 ---
 
+&nbsp;
+
 # `createAsyncThunk`
 
 ## Overview
@@ -42,8 +44,8 @@ const usersSlice = createSlice({
     [fetchUserById.fulfilled]: (state, action) => {
       // Add user to the state array
       state.entities.push(action.payload)
-    }
-  }
+    },
+  },
 })
 
 // Later, dispatch the thunk as needed in the app
@@ -196,10 +198,10 @@ To handle these actions in your reducers, reference the action creators in `crea
 
 ```js {2,6,14,23}
 const reducer1 = createReducer(initialState, {
-  [fetchUserById.fulfilled]: (state, action) => {}
+  [fetchUserById.fulfilled]: (state, action) => {},
 })
 
-const reducer2 = createReducer(initialState, builder => {
+const reducer2 = createReducer(initialState, (builder) => {
   builder.addCase(fetchUserById.fulfilled, (state, action) => {})
 })
 
@@ -208,17 +210,17 @@ const reducer3 = createSlice({
   initialState,
   reducers: {},
   extraReducers: {
-    [fetchUserById.fulfilled]: (state, action) => {}
-  }
+    [fetchUserById.fulfilled]: (state, action) => {},
+  },
 })
 
 const reducer4 = createSlice({
   name: 'users',
   initialState,
   reducers: {},
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder.addCase(fetchUserById.fulfilled, (state, action) => {})
-  }
+  },
 })
 ```
 
@@ -247,8 +249,8 @@ import { unwrapResult } from '@reduxjs/toolkit'
 const onClick = () => {
   dispatch(fetchUserById(userId))
     .then(unwrapResult)
-    .then(originalPromiseResult => {})
-    .catch(rejectedValueOrSerializedError => {})
+    .then((originalPromiseResult) => {})
+    .catch((rejectedValueOrSerializedError) => {})
 }
 ```
 
@@ -313,7 +315,7 @@ const fetchUserById = createAsyncThunk(
         // Already fetched or in progress, don't need to re-fetch
         return false
       }
-    }
+    },
   }
 )
 ```
@@ -375,7 +377,7 @@ const fetchUserById = createAsyncThunk(
   'users/fetchById',
   async (userId: string, thunkAPI) => {
     const response = await fetch(`https://reqres.in/api/users/${userId}`, {
-      signal: thunkAPI.signal
+      signal: thunkAPI.signal,
     })
     return await response.json()
   }
@@ -429,7 +431,7 @@ const fetchUserById = createAsyncThunk(
       source.cancel()
     })
     const response = await axios.get(`https://reqres.in/api/users/${userId}`, {
-      cancelToken: source.token
+      cancelToken: source.token,
     })
     return response.data
   }
@@ -462,7 +464,7 @@ const usersSlice = createSlice({
     entities: [],
     loading: 'idle',
     currentRequestId: undefined,
-    error: null
+    error: null,
   },
   reducers: {},
   extraReducers: {
@@ -487,15 +489,15 @@ const usersSlice = createSlice({
         state.error = action.error
         state.currentRequestId = undefined
       }
-    }
-  }
+    },
+  },
 })
 
 const UsersComponent = () => {
-  const { users, loading, error } = useSelector(state => state.users)
+  const { users, loading, error } = useSelector((state) => state.users)
   const dispatch = useDispatch()
 
-  const fetchOneUser = async userId => {
+  const fetchOneUser = async (userId) => {
     try {
       const resultAction = await dispatch(fetchUserById(userId))
       const user = unwrapResult(resultAction)
@@ -580,14 +582,14 @@ interface UsersState {
 
 const initialState = {
   entities: {},
-  error: null
+  error: null,
 } as UsersState
 
 const usersSlice = createSlice({
   name: 'users',
   initialState,
   reducers: {},
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     // The `builder` callback form is used here because it provides correctly typed reducers from the action creators
     builder.addCase(updateUser.fulfilled, (state, { payload }) => {
       state.entities[payload.id] = payload
@@ -600,7 +602,7 @@ const usersSlice = createSlice({
         state.error = action.error.message
       }
     })
-  }
+  },
 })
 
 export default usersSlice.reducer

@@ -4,8 +4,8 @@
 
 ```ts
 
-import { ActionCreatorWithoutPayload } from '@reduxjs/toolkit';
-import { ThunkDispatch } from '@reduxjs/toolkit';
+import type { ActionCreatorWithoutPayload } from '@reduxjs/toolkit';
+import type { ThunkDispatch } from '@reduxjs/toolkit';
 
 // @public (undocumented)
 export type Api<BaseQuery extends BaseQueryFn, Definitions extends EndpointDefinitions, ReducerPath extends string, TagTypes extends string, Enhancers extends ModuleName = CoreModule> = Id<Id<UnionToIntersection<ApiModules<BaseQuery, Definitions, ReducerPath, TagTypes>[Enhancers]>> & {
@@ -14,7 +14,6 @@ export type Api<BaseQuery extends BaseQueryFn, Definitions extends EndpointDefin
         overrideExisting?: boolean;
     }): Api<BaseQuery, Definitions & NewDefinitions, ReducerPath, TagTypes, Enhancers>;
     enhanceEndpoints<NewTagTypes extends string = never>(_: {
-        addEntityTypes?: readonly NewTagTypes[];
         addTagTypes?: readonly NewTagTypes[];
         endpoints?: ReplaceTagTypes<Definitions, TagTypes | NoInfer<NewTagTypes>> extends infer NewDefinitions ? {
             [K in keyof NewDefinitions]?: Partial<NewDefinitions[K]> | ((definition: NewDefinitions[K]) => void);
@@ -25,11 +24,6 @@ export type Api<BaseQuery extends BaseQueryFn, Definitions extends EndpointDefin
 // @public (undocumented)
 export interface ApiModules<BaseQuery extends BaseQueryFn, Definitions extends EndpointDefinitions, ReducerPath extends string, TagTypes extends string> {
 }
-
-// @public (undocumented)
-export type ApiWithInjectedEndpoints<ApiDefinition extends Api<any, any, any, any>, Injections extends ApiDefinition extends Api<infer B, any, infer R, infer E> ? [Api<B, any, R, E>, ...Api<B, any, R, E>[]] : never> = Omit<ApiDefinition, 'endpoints'> & Omit<Injections, 'endpoints'> & {
-    endpoints: ApiDefinition['endpoints'] & Partial<UnionToIntersection<Injections[number]['endpoints']>>;
-};
 
 // @public (undocumented)
 export type BaseQueryEnhancer<AdditionalArgs = unknown, AdditionalDefinitionExtraOptions = unknown, Config = void> = <BaseQuery extends BaseQueryFn>(baseQuery: BaseQuery, config: Config) => BaseQueryFn<BaseQueryArg<BaseQuery> & AdditionalArgs, BaseQueryResult<BaseQuery>, BaseQueryError<BaseQuery>, BaseQueryExtraOptions<BaseQuery> & AdditionalDefinitionExtraOptions>;
@@ -140,8 +134,14 @@ export function setupListeners(dispatch: ThunkDispatch<any, any, any>, customHan
     onOffline: typeof onOffline;
 }) => () => void): () => void;
 
+// @public @deprecated (undocumented)
+export const skipSelector: symbol;
+
 // @public (undocumented)
-export const skipSelector: unique symbol;
+export type SkipToken = typeof skipToken;
+
+// @public
+export const skipToken: unique symbol;
 
 
 // (No @packageDocumentation comment for this package)

@@ -133,7 +133,17 @@ export function buildSelectors<
   }
 
   function selectInternalState(rootState: RootState) {
-    return rootState[reducerPath]
+    const state = rootState[reducerPath]
+    if (process.env.NODE_ENV !== 'production') {
+      if (!state) {
+        if ((selectInternalState as any).triggered) return state
+        ;(selectInternalState as any).triggered = true
+        console.error(
+          `Error: No data found at \`state.${reducerPath}\`. Did you forget to add the reducer to the store?`
+        )
+      }
+    }
+    return state
   }
 
   function buildQuerySelector(
@@ -146,7 +156,7 @@ export function buildSelectors<
         (internalState) =>
           (queryArgs === skipToken
             ? undefined
-            : internalState.queries[
+            : internalState?.queries?.[
                 serializeQueryArgs({
                   queryArgs,
                   endpointDefinition,
@@ -168,7 +178,7 @@ export function buildSelectors<
         (internalState) =>
           (mutationId === skipToken
             ? undefined
-            : internalState.mutations[mutationId]) ?? defaultMutationSubState
+            : internalState?.mutations?.[mutationId]) ?? defaultMutationSubState
       )
       return createSelector(selectMutationSubstate, withRequestFlags)
     }

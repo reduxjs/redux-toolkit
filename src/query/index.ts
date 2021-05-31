@@ -1,7 +1,6 @@
 export { QueryStatus } from './core/apiState'
 export type {
   Api,
-  ApiWithInjectedEndpoints,
   Module,
   ApiModules,
 } from './apiTypes'

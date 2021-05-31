@@ -10,11 +10,10 @@ import type {
   AnyAction,
   AsyncThunk,
   ThunkAction,
-  SerializedError} from '@reduxjs/toolkit';
-import {
-  unwrapResult
+  SerializedError,
 } from '@reduxjs/toolkit'
-import type { QuerySubState, SubscriptionOptions } from './apiState'
+import { unwrapResult } from '@reduxjs/toolkit'
+import type { QuerySubState, SubscriptionOptions, RootState } from './apiState'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { Api } from '../apiTypes'
 import type { ApiEndpointQuery } from './module'
@@ -198,6 +197,23 @@ export function buildInitiate({
   } = api.internalActions
   return { buildInitiateQuery, buildInitiateMutation }
 
+  function middlewareWarning(getState: () => RootState<{}, string, string>) {
+    if (process.env.NODE_ENV !== 'production') {
+      if ((middlewareWarning as any).triggered) return
+      const registered = getState()[api.reducerPath]?.config
+        ?.middlewareRegistered
+      if (registered !== undefined) {
+        ;(middlewareWarning as any).triggered = true
+      }
+      if (registered === false) {
+        console.warn(
+          `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
+Features like automatic cache collection, automatic refetching etc. will not be available.`
+        )
+      }
+    }
+  }
+
   function buildInitiateQuery(
     endpointName: string,
     endpointDefinition: QueryDefinition<any, any, any, any>
@@ -221,6 +237,7 @@ export function buildInitiate({
         startedTimeStamp: Date.now(),
       })
       const thunkResult = dispatch(thunk)
+      middlewareWarning(getState)
       const { requestId, abort } = thunkResult
       const statePromise = Object.assign(
         thunkResult.then(() =>
@@ -275,6 +292,7 @@ export function buildInitiate({
         startedTimeStamp: Date.now(),
       })
       const thunkResult = dispatch(thunk)
+      middlewareWarning(getState)
       const { requestId, abort } = thunkResult
       const returnValuePromise = thunkResult
         .then(unwrapResult)
