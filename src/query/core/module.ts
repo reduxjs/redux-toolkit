@@ -27,7 +27,6 @@ import { buildSlice } from './buildSlice'
 import { buildMiddleware } from './buildMiddleware'
 import { buildSelectors } from './buildSelectors'
 import { buildInitiate } from './buildInitiate'
-import type { Id } from '../tsHelpers'
 import { assertCast, safeAssign } from '../tsHelpers'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { SliceActions } from './buildSlice'
@@ -180,9 +179,9 @@ declare module '../apiTypes' {
           any,
           any
         >
-          ? Id<ApiEndpointQuery<Definitions[K], Definitions>>
+          ? ApiEndpointQuery<Definitions[K], Definitions>
           : Definitions[K] extends MutationDefinition<any, any, any, any, any>
-          ? Id<ApiEndpointMutation<Definitions[K], Definitions>>
+          ? ApiEndpointMutation<Definitions[K], Definitions>
           : never
       }
     }
