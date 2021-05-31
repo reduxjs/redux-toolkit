@@ -1,3 +1,4 @@
+import { createAsyncThunk, SerializedError } from '@internal/createAsyncThunk'
 import { executeReducerBuilderCallback } from '@internal/mapBuilders'
 import type { AnyAction } from '@reduxjs/toolkit';
 import { createAction } from '@reduxjs/toolkit'
@@ -100,6 +101,123 @@ import { expectType } from './helpers'
       b.addMatcher(increment.match, () => {})
       // @ts-expect-error
       b.addDefaultCase(() => {})
+    }
+
+    // `createAsyncThunk` actions work with `mapBuilder`
+    {
+      // case 1: normal `createAsyncThunk`
+      {
+        const thunk = createAsyncThunk('test', () => {
+          return 'ret' as const
+        })
+        builder.addCase(thunk.pending, (_, action) => {
+          expectType<{
+            payload: undefined
+            meta: {
+              arg: void
+              requestId: string
+              requestStatus: 'pending'
+            }
+          }>(action)
+        })
+
+        builder.addCase(thunk.rejected, (_, action) => {
+          expectType<{
+            payload: unknown
+            error: SerializedError
+            meta: {
+              arg: void
+              requestId: string
+              requestStatus: 'rejected'
+              aborted: boolean
+              condition: boolean
+              rejectedWithValue: boolean
+            }
+          }>(action)
+        })
+        builder.addCase(thunk.fulfilled, (_, action) => {
+          expectType<{
+            payload: 'ret'
+            meta: {
+              arg: void
+              requestId: string
+              requestStatus: 'fulfilled'
+            }
+          }>(action)
+        })
+      }
+    }
+    // case 2: `createAsyncThunk` with `meta`
+    {
+      const thunk = createAsyncThunk<
+        'ret',
+        void,
+        {
+          pendingMeta: { startedTimeStamp: number }
+          fulfilledMeta: {
+            fulfilledTimeStamp: number
+            baseQueryMeta: 'meta!'
+          }
+          rejectedMeta: {
+            baseQueryMeta: 'meta!'
+          }
+        }
+      >(
+        'test',
+        (_, api) => {
+          return api.fulfillWithValue('ret' as const, {
+            fulfilledTimeStamp: 5,
+            baseQueryMeta: 'meta!',
+          })
+        },
+        {
+          getPendingMeta() {
+            return { startedTimeStamp: 0 }
+          },
+        }
+      )
+
+      builder.addCase(thunk.pending, (_, action) => {
+        expectType<{
+          payload: undefined
+          meta: {
+            arg: void
+            requestId: string
+            requestStatus: 'pending'
+            startedTimeStamp: number
+          }
+        }>(action)
+      })
+
+      builder.addCase(thunk.rejected, (_, action) => {
+        expectType<{
+          payload: unknown
+          error: SerializedError
+          meta: {
+            arg: void
+            requestId: string
+            requestStatus: 'rejected'
+            aborted: boolean
+            condition: boolean
+            rejectedWithValue: boolean
+            baseQueryMeta?: 'meta!'
+          }
+        }>(action)
+        if (action.meta.rejectedWithValue) {
+          expectType<'meta!'>(action.meta.baseQueryMeta)
+        }
+      })
+      builder.addCase(thunk.fulfilled, (_, action) => {
+        expectType<{
+          payload: 'ret'
+          meta: {
+            arg: void
+            requestId: string
+            requestStatus: 'fulfilled'
+            baseQueryMeta: 'meta!'
+          }
+        }>(action)
+      })
     }
   })
 }
