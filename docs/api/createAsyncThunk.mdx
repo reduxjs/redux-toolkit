@@ -79,7 +79,8 @@ The `payloadCreator` function will be called with two arguments:
   - `extra`: the "extra argument" given to the thunk middleware on setup, if available
   - `requestId`: a unique string ID value that was automatically generated to identify this request sequence
   - `signal`: an [`AbortController.signal` object](https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal) that may be used to see if another part of the app logic has marked this request as needing cancelation.
-  - `rejectWithValue`: rejectWithValue is a utility function that you can `return` in your action creator to return a rejected response with a defined payload. It will pass whatever value you give it and return it in the payload of the rejected action.
+  - `rejectWithValue(value, [meta])`: rejectWithValue is a utility function that you can `return` (or `throw`) in your action creator to return a rejected response with a defined payload and meta. It will pass whatever value you give it and return it in the payload of the rejected action. If you also pass in a `meta`, it will be merged with the existing `rejectedAction.meta`.
+  - `fulfillWithValue(value, meta)`: fulfillWithValue is a utility function that you can `return` in your action creator to `fulfill` with a value while having the ability of adding to `fulfilledAction.meta`.
 
 The logic in the `payloadCreator` function may use any of these values as needed to calculate the result.
 
@@ -87,9 +88,11 @@ The logic in the `payloadCreator` function may use any of these values as needed
 
 An object with the following optional fields:
 
-- `condition`: a callback that can be used to skip execution of the payload creator and all action dispatches, if desired. See [Canceling Before Execution](#canceling-before-execution) for a complete description.
+- `condition(arg, { getState, extra } ): boolean`: a callback that can be used to skip execution of the payload creator and all action dispatches, if desired. See [Canceling Before Execution](#canceling-before-execution) for a complete description.
 - `dispatchConditionRejection`: if `condition()` returns `false`, the default behavior is that no actions will be dispatched at all. If you still want a "rejected" action to be dispatched when the thunk was canceled, set this flag to `true`.
-- `idGenerator`: a function to use when generating the `requestId` for the request sequence. Defaults to use [nanoid](./otherExports.mdx/#nanoid).
+- `idGenerator(): string`: a function to use when generating the `requestId` for the request sequence. Defaults to use [nanoid](./otherExports.mdx/#nanoid).
+- `serializeError(error: unknown) => any` to replace the internal `miniSerializeError` method with your own serialization logic.
+- `getPendingMeta({ arg, requestId }, { getState, extra }): any`: a function to create an object that will be merged into the `pendingAction.meta` field.
 
 ## Return Value
 
