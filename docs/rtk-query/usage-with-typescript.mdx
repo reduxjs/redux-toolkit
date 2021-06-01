@@ -385,7 +385,7 @@ const api = createApi({
 
 ### Typing `providesTags`/`invalidatesTags`
 
-RTK Query utilizes a ['cache tag invalidation system'](./usage/cached-data.mdx) in order to provide automatic re-fetching of stale data.
+RTK Query utilizes a cache tag invalidation system in order to provide [automated re-fetching](./usage/automated-refetching.mdx) of stale data.
 
 When using the function notation, both the `providesTags` and `invalidatesTags` properties on endpoints are called with the following arguments:
 
@@ -393,7 +393,7 @@ When using the function notation, both the `providesTags` and `invalidatesTags` 
 - error: `ErrorType` | `undefined` - The error returned by an errored query. The type corresponds with `Error` as [supplied to the `baseQuery` for the api](#typing-a-basequery). In the success case for a query, this will be `undefined`.
 - arg: `QueryArg` - The argument supplied to the `query` property when the query itself is called. The type corresponds with `QueryArg` as [supplied to the built endpoint](#typing-query-and-mutation-endpoints).
 
-A recommended use-case with `providesTags` when a query returns a list of items is to provide a tag for each item in the list using the entity ID, as well as a 'LIST' ID tag (see [Advanced Invalidation with abstract tag IDs](./usage/cached-data.mdx#advanced-invalidation-with-abstract-tag-ids)).
+A recommended use-case with `providesTags` when a query returns a list of items is to provide a tag for each item in the list using the entity ID, as well as a 'LIST' ID tag (see [Advanced Invalidation with abstract tag IDs](./usage/automated-refetching.mdx#advanced-invalidation-with-abstract-tag-ids)).
 
 This is often written by spreading the result of mapping the received data into an array, as well as an additional item in the array for the `'LIST'` ID tag. When spreading the mapped array, by default, TypeScript will broaden the `type` property to `string`. As the `tag type` must correspond to one of the string literals provided to the [`tagTypes`](./api/createApi.mdx#tagtypes) property of the api, the broad `string` type will not satisfy TypeScript. In order to alleviate this, the `tag type` can be cast `as const` to prevent the type being broadened to `string`.
 
