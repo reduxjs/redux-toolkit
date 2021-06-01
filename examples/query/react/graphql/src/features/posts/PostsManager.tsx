@@ -29,7 +29,7 @@ const getColorForStatus = (status: Post['status']) => {
 
 const PostList = () => {
   const [page, setPage] = React.useState(1)
-  const { data: posts, isLoading, isFetching } = useGetPostsQuery(page)
+  const { data: posts, isLoading, isFetching } = useGetPostsQuery({ page })
 
   if (isLoading) {
     return <div>Loading</div>
@@ -77,7 +77,7 @@ const PostList = () => {
 }
 
 export const PostsCountStat = () => {
-  const { data: posts } = useGetPostsQuery()
+  const { data: posts } = useGetPostsQuery({})
 
   return (
     <Stat>

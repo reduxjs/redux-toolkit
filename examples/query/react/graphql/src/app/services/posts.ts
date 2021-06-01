@@ -42,11 +42,11 @@ export const api = createApi({
     baseUrl: "/graphql"
   }),
   endpoints: (builder) => ({
-    getPosts: builder.query<GetPostsResponse, number | void>({
-      query: (page) => ({
+    getPosts: builder.query<GetPostsResponse, { page?: number; per_page?: number; }>({
+      query: ({ page, per_page }) => ({
         body: gql`
-          query GetPosts($page: Int, $per_page: Int) {
-            posts(page: ${page}, per_page: 10) {
+          query GetPosts($page: Int = 1, $per_page: Int = 10) {
+            posts(page: $page, per_page: $per_page) {
               id
               title
             },
@@ -54,7 +54,7 @@ export const api = createApi({
         `,
         variables: {
           page,
-          per_page: 10
+          per_page
         }
       }),
     }),
