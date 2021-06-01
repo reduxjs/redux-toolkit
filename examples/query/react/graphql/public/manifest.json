@@ -1,6 +1,6 @@
 {
-  "short_name": "RTK Query Optimistic Update Example",
-  "name": "Optimistic Update Example",
+  "short_name": "RTK Query Pagination Example",
+  "name": "Pagination Demo",
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#000000",

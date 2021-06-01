@@ -1,5 +1,5 @@
 {
-  "name": "pagination",
+  "name": "graphql-example",
   "version": "1.0.0",
   "description": "",
   "keywords": [],
@@ -12,6 +12,8 @@
     "@reduxjs/toolkit": "^1.6.0-beta.0",
     "faker": "^5.5.3",
     "framer-motion": "^2.9.5",
+    "graphql": "^15.5.0",
+    "graphql-request": "^3.4.0",
     "msw": "0.28.2",
     "react": "17.0.2",
     "react-dom": "17.0.2",
