@@ -1,5 +1,9 @@
 import { isPending, isRejected, isFulfilled } from '@reduxjs/toolkit'
-import type { BaseQueryError, BaseQueryFn } from '../../baseQueryTypes'
+import type {
+  BaseQueryError,
+  BaseQueryFn,
+  BaseQueryMeta,
+} from '../../baseQueryTypes'
 import { DefinitionType } from '../../endpointDefinitions'
 import type { QueryFulfilledRejectionReason } from '../../endpointDefinitions'
 import type { Recipe } from '../buildThunks'
@@ -31,6 +35,10 @@ declare module '../../endpointDefinitions' {
          * The (transformed) query result.
          */
         data: ResultType
+        /**
+         * The `meta` returned by the `baseQuery`
+         */
+        meta: BaseQueryMeta<BaseQuery>
       },
       QueryFulfilledRejectionReason<BaseQuery>
     >
@@ -43,9 +51,14 @@ declare module '../../endpointDefinitions' {
          * If this is `false`, that means this error was returned from the `baseQuery` or `queryFn` in a controlled manner.
          */
         isUnhandledError: false
+        /**
+         * The `meta` returned by the `baseQuery`
+         */
+        meta: BaseQueryMeta<BaseQuery>
       }
     | {
         error: unknown
+        meta?: undefined
         /**
          * If this is `true`, that means that this error is the result of `baseQueryFn`, `queryFn` or `transformResponse` throwing an error instead of handling it properly.
          * There can not be made any assumption about the shape of `error`.
@@ -113,8 +126,8 @@ export const build: SubMiddlewareBuilder = ({
 
   return (mwApi) => {
     type CacheLifecycle = {
-      resolve(value: { data: unknown }): unknown
-      reject(value: { error: unknown; isUnhandledError: boolean }): unknown
+      resolve(value: { data: unknown; meta: unknown }): unknown
+      reject(value: QueryFulfilledRejectionReason<any>): unknown
     }
     const lifecycleMap: Record<string, CacheLifecycle> = {}
 
@@ -131,7 +144,7 @@ export const build: SubMiddlewareBuilder = ({
         if (onQueryStarted) {
           const lifecycle = {} as CacheLifecycle
           const queryFulfilled = new (Promise as PromiseConstructorWithKnownReason)<
-            { data: unknown },
+            { data: unknown; meta: unknown },
             QueryFulfilledRejectionReason<any>
           >((resolve, reject) => {
             lifecycle.resolve = resolve
@@ -169,22 +182,18 @@ export const build: SubMiddlewareBuilder = ({
         }
       } else if (isFullfilledThunk(action)) {
         const { requestId, baseQueryMeta } = action.meta
-        lifecycleMap[requestId]?.resolve(
-          {
-            data: action.payload,
-            meta: baseQueryMeta,
-          } as any /* TODO typings for this */
-        )
+        lifecycleMap[requestId]?.resolve({
+          data: action.payload,
+          meta: baseQueryMeta,
+        })
         delete lifecycleMap[requestId]
       } else if (isRejectedThunk(action)) {
         const { requestId, rejectedWithValue, baseQueryMeta } = action.meta
-        lifecycleMap[requestId]?.reject(
-          {
-            error: action.payload ?? action.error,
-            isUnhandledError: !rejectedWithValue,
-            meta: baseQueryMeta,
-          } as any /* TODO typings for this */
-        )
+        lifecycleMap[requestId]?.reject({
+          error: action.payload ?? action.error,
+          isUnhandledError: !rejectedWithValue,
+          meta: baseQueryMeta as any,
+        })
         delete lifecycleMap[requestId]
       }
 

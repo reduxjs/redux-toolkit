@@ -1,7 +1,7 @@
 import { isAsyncThunkAction, isFulfilled } from '@reduxjs/toolkit'
 import type { AnyAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
-import type { BaseQueryFn } from '../../baseQueryTypes'
+import type { BaseQueryFn, BaseQueryMeta } from '../../baseQueryTypes'
 import { DefinitionType } from '../../endpointDefinitions'
 import type { RootState } from '../apiState'
 import type {
@@ -78,7 +78,10 @@ declare module '../../endpointDefinitions' {
     requestId: string
   }
 
-  export interface CacheLifecyclePromises<ResultType = unknown> {
+  export interface CacheLifecyclePromises<
+    ResultType = unknown,
+    MetaType = unknown
+  > {
     /**
      * Promise that will resolve with the first value for this cache key.
      * This allows you to `await` until an actual value is in cache.
@@ -98,6 +101,10 @@ declare module '../../endpointDefinitions' {
          * The (transformed) query result.
          */
         data: ResultType
+        /**
+         * The `meta` returned by the `baseQuery`
+         */
+        meta: MetaType
       },
       typeof neverResolvedError
     >
@@ -115,7 +122,7 @@ declare module '../../endpointDefinitions' {
     ResultType,
     ReducerPath extends string = string
   > extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
-      CacheLifecyclePromises<ResultType> {}
+      CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>> {}
 
   export interface MutationCacheLifecycleApi<
     QueryArg,
@@ -128,7 +135,7 @@ declare module '../../endpointDefinitions' {
         ResultType,
         ReducerPath
       >,
-      CacheLifecyclePromises<ResultType> {}
+      CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>> {}
 
   interface QueryExtraOptions<
     TagTypes extends string,
@@ -181,7 +188,7 @@ export const build: SubMiddlewareBuilder = ({
 
   return (mwApi) => {
     type CacheLifecycle = {
-      valueResolved?(value: { data: unknown }): unknown
+      valueResolved?(value: { data: unknown; meta: unknown }): unknown
       cacheEntryRemoved(): void
     }
     const lifecycleMap: Record<string, CacheLifecycle> = {}
@@ -219,12 +226,10 @@ export const build: SubMiddlewareBuilder = ({
       } else if (isFullfilledThunk(action)) {
         const lifecycle = lifecycleMap[cacheKey]
         if (lifecycle?.valueResolved) {
-          lifecycle.valueResolved(
-            {
-              data: action.payload,
-              meta: action.meta.baseQueryMeta,
-            } as any /* TODO typings */
-          )
+          lifecycle.valueResolved({
+            data: action.payload,
+            meta: action.meta.baseQueryMeta,
+          })
           delete lifecycle.valueResolved
         }
       } else if (
@@ -273,10 +278,10 @@ export const build: SubMiddlewareBuilder = ({
         lifecycle.cacheEntryRemoved = resolve
       })
       const cacheDataLoaded: PromiseWithKnownReason<
-        { data: unknown },
+        { data: unknown; meta: unknown },
         typeof neverResolvedError
       > = Promise.race([
-        new Promise<{ data: unknown }>((resolve) => {
+        new Promise<{ data: unknown; meta: unknown }>((resolve) => {
           lifecycle.valueResolved = resolve
         }),
         cacheEntryRemoved.then(() => {

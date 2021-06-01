@@ -33,7 +33,7 @@ interface EndpointDefinitionWithQuery<
    *
    * ```ts
    * // codeblock-meta title="query example"
-   * 
+   *
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * interface Post {
    *   id: number
@@ -75,7 +75,7 @@ interface EndpointDefinitionWithQueryFn<
    * @example
    * ```ts
    * // codeblock-meta title="Basic queryFn example"
-   * 
+   *
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * interface Post {
    *   id: number
@@ -203,7 +203,7 @@ export interface QueryExtraOptions<
    *
    * ```ts
    * // codeblock-meta title="providesTags example"
-   * 
+   *
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * interface Post {
    *   id: number
@@ -362,14 +362,14 @@ export interface MutationExtraOptions<
     arg: QueryArg,
     mutationApi: MutationApi<ReducerPath, any>,
     error: unknown,
-    meta: undefined
+    meta: BaseQueryMeta<BaseQuery>
   ): void
   /** @deprecated please use `onQueryStarted` instead */
   onSuccess?(
     arg: QueryArg,
     mutationApi: MutationApi<ReducerPath, any>,
     result: ResultType,
-    meta: undefined
+    meta: BaseQueryMeta<BaseQuery>
   ): void
 }
 

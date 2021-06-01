@@ -1,7 +1,11 @@
 import { createApi } from '@reduxjs/toolkit/query'
 import { waitFor } from '@testing-library/react'
-import { fetchBaseQuery } from '../fetchBaseQuery'
-import { setupApiStore } from './helpers'
+import type {
+  FetchBaseQueryMeta,
+  FetchBaseQueryError,
+} from '@reduxjs/toolkit/query'
+import { fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { expectType, setupApiStore } from './helpers'
 import { server } from './mocks/server'
 import { rest } from 'msw'
 
@@ -44,13 +48,14 @@ describe.each([['query'], ['mutation']] as const)(
       const extended = api.injectEndpoints({
         overrideExisting: true,
         endpoints: (build) => ({
-          injected: build[type as 'mutation']<unknown, string>({
+          injected: build[type as 'mutation']<number, string>({
             query: () => '/success',
             async onQueryStarted(arg, { queryFulfilled }) {
               onStart(arg)
               // awaiting without catching like this would result in an `unhandledRejection` exception if there was an error
               // unfortunately we cannot test for that in jest.
               const result = await queryFulfilled
+              expectType<{ data: number; meta?: FetchBaseQueryMeta }>(result)
               onSuccess(result)
             },
           }),
@@ -446,4 +451,112 @@ test('query: will only start lifecycle if query is not skipped due to `condition
     extended.endpoints.injected.initiate('arg', { forceRefetch: true })
   )
   expect(onStart).toHaveBeenCalledTimes(2)
+})
+
+test('query types', () => {
+  const extended = api.injectEndpoints({
+    overrideExisting: true,
+    endpoints: (build) => ({
+      injected: build['query']<number, string>({
+        query: () => '/success',
+        async onQueryStarted(arg, { queryFulfilled }) {
+          onStart(arg)
+
+          queryFulfilled.then(
+            (result) => {
+              expectType<{ data: number; meta?: FetchBaseQueryMeta }>(result)
+            },
+            (reason) => {
+              if (reason.isUnhandledError) {
+                expectType<{
+                  error: unknown
+                  meta?: undefined
+                  isUnhandledError: true
+                }>(reason)
+              } else {
+                expectType<{
+                  error: FetchBaseQueryError
+                  isUnhandledError: false
+                  meta: FetchBaseQueryMeta | undefined
+                }>(reason)
+              }
+            }
+          )
+
+          queryFulfilled.catch((reason) => {
+            if (reason.isUnhandledError) {
+              expectType<{
+                error: unknown
+                meta?: undefined
+                isUnhandledError: true
+              }>(reason)
+            } else {
+              expectType<{
+                error: FetchBaseQueryError
+                isUnhandledError: false
+                meta: FetchBaseQueryMeta | undefined
+              }>(reason)
+            }
+          })
+
+          const result = await queryFulfilled
+          expectType<{ data: number; meta?: FetchBaseQueryMeta }>(result)
+        },
+      }),
+    }),
+  })
+})
+
+test('mutation types', () => {
+  const extended = api.injectEndpoints({
+    overrideExisting: true,
+    endpoints: (build) => ({
+      injected: build['query']<number, string>({
+        query: () => '/success',
+        async onQueryStarted(arg, { queryFulfilled }) {
+          onStart(arg)
+
+          queryFulfilled.then(
+            (result) => {
+              expectType<{ data: number; meta?: FetchBaseQueryMeta }>(result)
+            },
+            (reason) => {
+              if (reason.isUnhandledError) {
+                expectType<{
+                  error: unknown
+                  meta?: undefined
+                  isUnhandledError: true
+                }>(reason)
+              } else {
+                expectType<{
+                  error: FetchBaseQueryError
+                  isUnhandledError: false
+                  meta: FetchBaseQueryMeta | undefined
+                }>(reason)
+              }
+            }
+          )
+
+          queryFulfilled.catch((reason) => {
+            if (reason.isUnhandledError) {
+              expectType<{
+                error: unknown
+                meta?: undefined
+                isUnhandledError: true
+              }>(reason)
+            } else {
+              expectType<{
+                error: FetchBaseQueryError
+                isUnhandledError: false
+                meta: FetchBaseQueryMeta | undefined
+              }>(reason)
+            }
+          })
+
+          const result = await queryFulfilled
+          expectType<{ data: number; meta?: FetchBaseQueryMeta }>(result)
+        },
+      }),
+    }),
+  })
 })
