@@ -75,7 +75,7 @@ describe('configureStore', () => {
 
   describe('given undefined middleware', () => {
     it('calls createStore with default middleware', () => {
-      expect(configureStore({ middleware: undefined, reducer })).toBeInstanceOf(
+      expect(configureStore({ reducer })).toBeInstanceOf(
         Object
       )
       expect(redux.applyMiddleware).toHaveBeenCalledWith(
