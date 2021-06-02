@@ -16,7 +16,8 @@
     "reducer",
     "slice",
     "immer",
-    "immutable"
+    "immutable",
+    "redux-toolkit"
   ],
   "publishConfig": {
     "access": "public"
