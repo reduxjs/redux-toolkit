@@ -9,7 +9,7 @@ hide_title: true
 
 # Usage Without React Hooks
 
-Like the Redux core and Redux Toolkit, RTK Query's primary functionality is UI-agnostic and can be used with any UI layer.  RTK Query also includes a version of [`createApi`](../api/createApi.mdx) designed specifically for use with React, which [automatically generates React hooks](../api/created-api/hooks.mdx).
+Like the Redux core and Redux Toolkit, RTK Query's primary functionality is UI-agnostic and can be used with any UI layer. RTK Query also includes a version of [`createApi`](../api/createApi.mdx) designed specifically for use with React, which [automatically generates React hooks](../api/created-api/hooks.mdx).
 
 While React hooks are the primary way that the majority of users are expected to be using RTK Query, the library itself uses plain JS logic and can be used both with React Class components, and independent of React itself.
 
@@ -55,7 +55,7 @@ With React hooks, this behaviour is instead handled within [`useQuery`](../api/c
 
 ```ts title="Accessing cached data & request status" no-transpile
 const result = api.endpoints.getPosts.select()(state)
-const { data, status, error }
+const { data, status, error } = result
 ```
 
 Note that unlike the auto-generated query hooks, derived booleans such as `isLoading`, `isFetching`, `isSuccess` are not available here. The raw `status` enum is provided instead.
@@ -67,7 +67,7 @@ Note that unlike the auto-generated query hooks, derived booleans such as `isLoa
 With React hooks, this behavior is instead handled within [`useMutation`](../api/created-api/hooks.mdx#usemutation).
 
 ```ts title="Triggering a mutation endpoint" no-transpile
-dispatch(api.endpoints.addPost.initiate({ name: "foo" }))
+dispatch(api.endpoints.addPost.initiate({ name: 'foo' }))
 ```
 
 ## Examples
@@ -91,4 +91,3 @@ Examples of usage without React hooks can be found under the following:
   allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
   sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
-
