@@ -117,7 +117,7 @@
                 "rtk-query/api/created-api/redux-integration",
                 "rtk-query/api/created-api/endpoints",
                 "rtk-query/api/created-api/code-splitting",
-                "rtk-query/api/created-api/cache-management",
+                "rtk-query/api/created-api/cache-management-utils",
                 "rtk-query/api/created-api/hooks"
               ]
             }
