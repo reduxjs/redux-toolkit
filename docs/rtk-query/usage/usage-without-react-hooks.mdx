@@ -1,6 +1,6 @@
 ---
 id: usage-without-react-hooks
-title: Usage Without react Hooks
+title: Usage Without React Hooks
 sidebar_label: Usage Without React Hooks
 hide_title: true
 ---
@@ -9,7 +9,7 @@ hide_title: true
 
 # Usage Without React Hooks
 
-RTK Query itself is library-agnostic, but includes a version of [`createApi`](../api/createApi.mdx) designed specifically for use with React which [automatically generates React hooks](../api/created-api/hooks.mdx).
+Like the Redux core and Redux Toolkit, RTK Query's primary functionality is UI-agnostic and can be used with any UI layer.  RTK Query also includes a version of [`createApi`](../api/createApi.mdx) designed specifically for use with React, which [automatically generates React hooks](../api/created-api/hooks.mdx).
 
 While React hooks are the primary way that the majority of users are expected to be using RTK Query, the library itself uses plain JS logic and can be used both with React Class components, and independent of React itself.
 
@@ -44,6 +44,12 @@ result.unsubscribe()
 ## Accessing cached data & request status
 
 Accessing cache data and request status information can be performed using the `select` function property of a query endpoint to create a selector and call that with the Redux state. This provides a snapshot of the cache data and request status information at the time it is called.
+
+:::caution
+
+The `endpoint.select()` function creates a _new_ selector instance - it isn't the actual selector function itself!
+
+:::
 
 With React hooks, this behaviour is instead handled within [`useQuery`](../api/created-api/hooks.mdx#usequery), [`useQueryState`](../api/created-api/hooks.mdx#usequerystate), and [`useLazyQuery`](../api/created-api/hooks.mdx#uselazyquery).
 
