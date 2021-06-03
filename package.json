@@ -81,7 +81,7 @@
     "yargs": "^15.3.1"
   },
   "scripts": {
-    "build-ci": "rimraf dist && tsc && node scripts/cli.js",
+    "build-ci": "rimraf dist && tsc && node scripts/cli.js --skipExtraction ",
     "build-prepare": "npm run build-ci",
     "build": "rimraf dist && tsc && node scripts/cli.js --local",
     "build-only": "rimraf dist && tsc && node scripts/cli.js --skipExtraction",
@@ -90,7 +90,7 @@
     "lint": "eslint src examples",
     "test": "jest --runInBand",
     "type-tests": "yarn tsc -p src/tests && yarn tsc -p src/query/tests",
-    "prepare": "node -e 'process.exit(process.env.CI?0:1)' || npm run build-prepare"
+    "prepack": "npm run build-prepare"
   },
   "files": [
     "dist/**/*.js",
