@@ -374,9 +374,9 @@ export type EndpointBuilder<
    *      // `result` is the server response
    *      providesTags: (result, error, id) => [{ type: 'Post', id }],
    *      // trigger side effects or optimistic updates
-   *      onQuery(id, { dispatch, getState, extra, requestId, resultPromise, getCacheEntry, updateCacheEntry }) {},
+   *      onQueryStarted(id, { dispatch, getState, extra, requestId, queryFulfilled, getCacheEntry, updateCachedData }) {},
    *      // handle subscriptions etc
-   *      onCacheEntryAdded(id, { dispatch, getState, extra, requestId, cleanup, firstValueResolved, getCacheEntry, updateCacheEntry }) {},
+   *      onCacheEntryAdded(id, { dispatch, getState, extra, requestId, cacheEntryRemoved, cacheDataLoaded, getCacheEntry, updateCachedData }) {},
    *    }),
    *  }),
    *});
