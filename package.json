@@ -81,14 +81,16 @@
     "yargs": "^15.3.1"
   },
   "scripts": {
-    "build-ci": "rimraf dist && tsc && node scripts/cli.js",
+    "build-ci": "rimraf dist && tsc && node scripts/cli.js --skipExtraction ",
+    "build-prepare": "npm run build-ci",
     "build": "rimraf dist && tsc && node scripts/cli.js --local",
     "build-only": "rimraf dist && tsc && node scripts/cli.js --skipExtraction",
     "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
     "lint": "eslint src examples",
     "test": "jest --runInBand",
-    "type-tests": "yarn tsc -p src/tests && yarn tsc -p src/query/tests"
+    "type-tests": "yarn tsc -p src/tests && yarn tsc -p src/query/tests",
+    "prepack": "npm run build-prepare"
   },
   "files": [
     "dist/**/*.js",
