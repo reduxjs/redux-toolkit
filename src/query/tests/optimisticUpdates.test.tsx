@@ -56,10 +56,10 @@ describe('basic lifecycle', () => {
     endpoints: (build) => ({
       test: build.mutation({
         query: (x) => x,
-        async onQuery(arg, api) {
+        async onQueryStarted(arg, api) {
           onStart(arg)
           try {
-            const result = await api.resultPromise
+            const result = await api.queryFulfilled
             onSuccess(result)
           } catch (e) {
             onError(e)
@@ -96,7 +96,7 @@ describe('basic lifecycle', () => {
     expect(onSuccess).not.toHaveBeenCalled()
     await act(() => waitMs(5))
     expect(onError).not.toHaveBeenCalled()
-    expect(onSuccess).toHaveBeenCalledWith('success')
+    expect(onSuccess).toHaveBeenCalledWith({ data: 'success', meta: 'meta' })
   })
 
   test('error', async () => {
@@ -118,7 +118,10 @@ describe('basic lifecycle', () => {
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).not.toHaveBeenCalled()
     await act(() => waitMs(5))
-    expect(onError).toHaveBeenCalledWith({ message: 'error' })
+    expect(onError).toHaveBeenCalledWith({
+      error: { message: 'error' },
+      isUnhandledError: true,
+    })
     expect(onSuccess).not.toHaveBeenCalled()
   })
 })
@@ -166,7 +169,7 @@ describe('updateQueryData', () => {
 
     act(() => {
       storeRef.store.dispatch(
-        api.util.patchQueryData('post', '3', returnValue.inversePatches)
+        api.util.patchQueryResult('post', '3', returnValue.inversePatches)
       )
     })
 
