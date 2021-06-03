@@ -243,52 +243,8 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       inject: Parameters<typeof api.injectEndpoints>[0]
     ) {
       const evaluatedEndpoints = inject.endpoints({
-        query: (x) => {
-          // remove in final release
-          if (x.onStart || x.onSuccess || x.onError) {
-            if (
-              typeof process !== 'undefined' &&
-              process.env.NODE_ENV === 'development'
-            ) {
-              console.warn(
-                '`onStart`, `onSuccess` and `onError` have been replaced by `onQueryStarted`, please change your code accordingly'
-              )
-            }
-            x.onQueryStarted ??= (arg, { queryFulfilled, ...api }) => {
-              const queryApi = { ...api, context: {} }
-              x.onStart?.(arg, queryApi)
-              return queryFulfilled.then(
-                (result) =>
-                  x.onSuccess?.(arg, queryApi, result.data, undefined),
-                (reason) => x.onError?.(arg, queryApi, reason.error, undefined)
-              )
-            }
-          }
-          return { ...x, type: DefinitionType.query } as any
-        },
-        mutation: (x) => {
-          // remove in final release
-          if (x.onStart || x.onSuccess || x.onError) {
-            if (
-              typeof process !== 'undefined' &&
-              process.env.NODE_ENV === 'development'
-            ) {
-              console.warn(
-                '`onStart`, `onSuccess` and `onError` have been replaced by `onQueryStarted`, please change your code accordingly'
-              )
-            }
-            x.onQueryStarted ??= (arg, { queryFulfilled, ...api }) => {
-              const queryApi = { ...api, context: {} }
-              x.onStart?.(arg, queryApi)
-              return queryFulfilled.then(
-                (result) =>
-                  x.onSuccess?.(arg, queryApi, result.data, undefined),
-                (reason) => x.onError?.(arg, queryApi, reason.error, undefined)
-              )
-            }
-          }
-          return { ...x, type: DefinitionType.mutation } as any
-        },
+        query: (x) => ({ ...x, type: DefinitionType.query } as any),
+        mutation: (x) => ({ ...x, type: DefinitionType.mutation } as any),
       })
 
       for (const [endpointName, definition] of Object.entries(
