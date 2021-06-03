@@ -1,6 +1,6 @@
 {
   "name": "@reduxjs/toolkit",
-  "version": "1.6.0-alpha.2",
+  "version": "1.6.0-beta.0",
   "description": "The official, opinionated, batteries-included toolset for efficient Redux development",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
@@ -16,7 +16,8 @@
     "reducer",
     "slice",
     "immer",
-    "immutable"
+    "immutable",
+    "redux-toolkit"
   ],
   "publishConfig": {
     "access": "public"
@@ -27,6 +28,7 @@
   "types": "dist/index.d.ts",
   "devDependencies": {
     "@microsoft/api-extractor": "^7.13.2",
+    "@size-limit/preset-small-lib": "^4.11.0",
     "@testing-library/react": "^11.2.6",
     "@testing-library/react-hooks": "^5.1.2",
     "@testing-library/user-event": "^13.1.5",
@@ -62,6 +64,7 @@
     "magic-string": "^0.25.7",
     "merge-source-map": "^1.1.0",
     "msw": "^0.28.2",
+    "netlify-plugin-cache": "^1.0.3",
     "node-fetch": "^2.6.1",
     "prettier": "^2.2.1",
     "react": "^17.0.2",
@@ -69,6 +72,7 @@
     "react-redux": "^7.2.3",
     "rollup": "^2.47.0",
     "rollup-plugin-strip-code": "^0.2.6",
+    "size-limit": "^4.11.0",
     "source-map": "^0.7.3",
     "terser": "^5.6.1",
     "ts-jest": "^26.5.5",
@@ -79,10 +83,10 @@
   "scripts": {
     "build-ci": "rimraf dist && tsc && node scripts/cli.js",
     "build": "rimraf dist && tsc && node scripts/cli.js --local",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"**/*.md\"",
-    "format:check": "prettier --list-different \"src/**/*.{ts,tsx}\" \"docs/*/**.md\"",
-    "lint": "eslint src",
-    "prepare": "npm run build-ci",
+    "build-only": "rimraf dist && tsc && node scripts/cli.js --skipExtraction",
+    "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
+    "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
+    "lint": "eslint src examples",
     "test": "jest --runInBand",
     "type-tests": "yarn tsc -p src/tests && yarn tsc -p src/query/tests"
   },

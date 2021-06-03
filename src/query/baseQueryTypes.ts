@@ -1,8 +1,8 @@
-import { ThunkDispatch } from '@reduxjs/toolkit'
-import { MaybePromise, UnwrapPromise } from './tsHelpers'
+import type { ThunkDispatch } from '@reduxjs/toolkit'
+import type { MaybePromise, UnwrapPromise } from './tsHelpers'
 
 export interface BaseQueryApi {
-  signal?: AbortSignal
+  signal: AbortSignal
   dispatch: ThunkDispatch<any, any, any>
   getState: () => unknown
 }
@@ -59,7 +59,7 @@ export type BaseQueryMeta<BaseQuery extends BaseQueryFn> = UnwrapPromise<
 
 export type BaseQueryError<BaseQuery extends BaseQueryFn> = Exclude<
   UnwrapPromise<ReturnType<BaseQuery>>,
-  { error: undefined }
+  { error?: undefined }
 >['error']
 
 export type BaseQueryArg<

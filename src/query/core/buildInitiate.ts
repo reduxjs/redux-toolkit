@@ -1,23 +1,28 @@
-import {
+import type {
   EndpointDefinitions,
   QueryDefinition,
   MutationDefinition,
   QueryArgFrom,
   ResultTypeFrom,
 } from '../endpointDefinitions'
-import type { QueryThunkArg, MutationThunkArg } from './buildThunks'
-import {
+import type {
+  QueryThunkArg,
+  MutationThunkArg,
+  QueryThunk,
+  MutationThunk,
+} from './buildThunks'
+import type {
   AnyAction,
   AsyncThunk,
   ThunkAction,
-  unwrapResult,
   SerializedError,
 } from '@reduxjs/toolkit'
-import { QuerySubState, SubscriptionOptions } from './apiState'
-import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import { Api } from '../apiTypes'
-import { ApiEndpointQuery } from './module'
-import { BaseQueryError } from '../baseQueryTypes'
+import { unwrapResult } from '@reduxjs/toolkit'
+import type { QuerySubState, SubscriptionOptions, RootState } from './apiState'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type { Api } from '../apiTypes'
+import type { ApiEndpointQuery } from './module'
+import type { BaseQueryError } from '../baseQueryTypes'
 
 declare module './module' {
   export interface ApiEndpointQuery<
@@ -108,10 +113,6 @@ export type MutationActionCreatorResult<
      * Whether the mutation is being tracked in the store.
      */
     track?: boolean
-    /**
-     * Timestamp for when the mutation was initiated
-     */
-    startedTimeStamp: number
   }
   /**
    * A unique string generated for the request sequence
@@ -186,8 +187,8 @@ export function buildInitiate({
   api,
 }: {
   serializeQueryArgs: InternalSerializeQueryArgs
-  queryThunk: AsyncThunk<any, QueryThunkArg, {}>
-  mutationThunk: AsyncThunk<any, MutationThunkArg, {}>
+  queryThunk: QueryThunk
+  mutationThunk: MutationThunk
   api: Api<any, EndpointDefinitions, any, any>
 }) {
   const {
@@ -196,6 +197,23 @@ export function buildInitiate({
     updateSubscriptionOptions,
   } = api.internalActions
   return { buildInitiateQuery, buildInitiateMutation }
+
+  function middlewareWarning(getState: () => RootState<{}, string, string>) {
+    if (process.env.NODE_ENV !== 'production') {
+      if ((middlewareWarning as any).triggered) return
+      const registered = getState()[api.reducerPath]?.config
+        ?.middlewareRegistered
+      if (registered !== undefined) {
+        ;(middlewareWarning as any).triggered = true
+      }
+      if (registered === false) {
+        console.warn(
+          `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
+Features like automatic cache collection, automatic refetching etc. will not be available.`
+        )
+      }
+    }
+  }
 
   function buildInitiateQuery(
     endpointName: string,
@@ -217,9 +235,9 @@ export function buildInitiate({
         endpointName,
         originalArgs: arg,
         queryCacheKey,
-        startedTimeStamp: Date.now(),
       })
       const thunkResult = dispatch(thunk)
+      middlewareWarning(getState)
       const { requestId, abort } = thunkResult
       const statePromise = Object.assign(
         thunkResult.then(() =>
@@ -271,25 +289,19 @@ export function buildInitiate({
         endpointName,
         originalArgs: arg,
         track,
-        startedTimeStamp: Date.now(),
       })
       const thunkResult = dispatch(thunk)
+      middlewareWarning(getState)
       const { requestId, abort } = thunkResult
       const returnValuePromise = thunkResult
-        .then(unwrapResult)
-        .then((unwrapped) => ({
-          data: unwrapped.result,
-        }))
+        .unwrap()
+        .then((data) => ({ data }))
         .catch((error) => ({ error }))
       return Object.assign(returnValuePromise, {
         arg: thunkResult.arg,
         requestId,
         abort,
-        unwrap() {
-          return thunkResult
-            .then(unwrapResult)
-            .then((unwrapped) => unwrapped.result)
-        },
+        unwrap: thunkResult.unwrap,
         unsubscribe() {
           if (track) dispatch(unsubscribeMutationResult({ requestId }))
         },

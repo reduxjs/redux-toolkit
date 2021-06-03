@@ -1,6 +1,6 @@
-import { SerializedError } from '@reduxjs/toolkit'
-import { BaseQueryError } from '../baseQueryTypes'
-import {
+import type { SerializedError } from '@reduxjs/toolkit'
+import type { BaseQueryError } from '../baseQueryTypes'
+import type {
   QueryDefinition,
   MutationDefinition,
   EndpointDefinitions,
@@ -8,7 +8,7 @@ import {
   ResultTypeFrom,
   QueryArgFrom,
 } from '../endpointDefinitions'
-import { Id, WithRequiredProp } from '../tsHelpers'
+import type { Id, WithRequiredProp } from '../tsHelpers'
 
 export type QueryCacheKey = string & { _type: 'queryCacheKey' }
 export type QuerySubstateIdentifier = { queryCacheKey: QueryCacheKey }
@@ -80,7 +80,7 @@ export type SubscriptionOptions = {
    *
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
    *
-   * Note: requires `setupListeners` to have been called.
+   * Note: requires [`setupListeners`](./setupListeners) to have been called.
    */
   refetchOnReconnect?: boolean
   /**
@@ -88,7 +88,7 @@ export type SubscriptionOptions = {
    *
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
    *
-   * Note: requires `setupListeners` to have been called.
+   * Note: requires [`setupListeners`](./setupListeners) to have been called.
    */
   refetchOnFocus?: boolean
 }
@@ -241,6 +241,7 @@ export type ConfigState<ReducerPath> = RefetchConfigOptions & {
   reducerPath: ReducerPath
   online: boolean
   focused: boolean
+  middlewareRegistered: boolean
 } & ModifiableConfigState
 
 export type ModifiableConfigState = {

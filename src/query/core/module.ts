@@ -1,12 +1,9 @@
 /**
  * Note: this file should import all other files for type discovery and declaration merging
  */
-import {
-  buildThunks,
-  PatchQueryResultThunk,
-  UpdateQueryResultThunk,
-} from './buildThunks'
-import {
+import type { PatchQueryDataThunk, UpdateQueryDataThunk } from './buildThunks'
+import { buildThunks } from './buildThunks'
+import type {
   ActionCreatorWithPayload,
   AnyAction,
   Middleware,
@@ -14,31 +11,31 @@ import {
   ThunkAction,
   ThunkDispatch,
 } from '@reduxjs/toolkit'
-import {
+import type {
   EndpointDefinitions,
   QueryArgFrom,
   QueryDefinition,
   MutationDefinition,
   AssertTagTypes,
-  isQueryDefinition,
-  isMutationDefinition,
   FullTagDescription,
 } from '../endpointDefinitions'
-import { CombinedState, QueryKeys, RootState } from './apiState'
-import { Api, Module } from '../apiTypes'
+import { isQueryDefinition, isMutationDefinition } from '../endpointDefinitions'
+import type { CombinedState, QueryKeys, RootState } from './apiState'
+import type { Api, Module } from '../apiTypes'
 import { onFocus, onFocusLost, onOnline, onOffline } from './setupListeners'
 import { buildSlice } from './buildSlice'
 import { buildMiddleware } from './buildMiddleware'
 import { buildSelectors } from './buildSelectors'
 import { buildInitiate } from './buildInitiate'
-import { assertCast, Id, safeAssign } from '../tsHelpers'
-import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import { SliceActions } from './buildSlice'
-import { BaseQueryFn } from '../baseQueryTypes'
+import { assertCast, safeAssign } from '../tsHelpers'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type { SliceActions } from './buildSlice'
+import type { BaseQueryFn } from '../baseQueryTypes'
 
 import type { ReferenceCacheLifecycle } from './buildMiddleware/cacheLifecycle'
 import type { ReferenceQueryLifecycle } from './buildMiddleware/queryLifecycle'
-import { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
+import type { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
+import { enablePatches } from 'immer'
 
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
@@ -54,7 +51,7 @@ export type PrefetchOptions =
     }
   | { force?: boolean }
 
-export const coreModuleName = Symbol()
+export const coreModuleName = /* @__PURE__ */ Symbol()
 export type CoreModule =
   | typeof coreModuleName
   | ReferenceCacheLifecycle
@@ -128,33 +125,121 @@ declare module '../apiTypes' {
        */
       util: {
         /**
-         * TODO
+         * A Redux thunk that can be used to manually trigger pre-fetching of data.
+         *
+         * The thunk accepts three arguments: the name of the endpoint we are updating (such as `'getPost'`), any relevant query arguments, and a set of options used to determine if the data actually should be re-fetched based on cache staleness.
+         *
+         * React Hooks users will most likely never need to use this directly, as the `usePrefetch` hook will dispatch this thunk internally as needed when you call the prefetching function supplied by the hook.
+         * 
+         * @example
+         *
+         * ```ts no-transpile
+         * dispatch(api.util.prefetch('getPosts', undefined, { force: true }))
+         * ```
          */
-        prefetch<EndpointName extends QueryKeys<EndpointDefinitions>>(
+        prefetch<EndpointName extends QueryKeys<Definitions>>(
           endpointName: EndpointName,
           arg: QueryArgFrom<Definitions[EndpointName]>,
           options: PrefetchOptions
         ): ThunkAction<void, any, any, AnyAction>
         /**
-         * TODO
+         * A Redux thunk action creator that, when dispatched, creates and applies a set of JSON diff/patch objects to the current state. This immediately updates the Redux state with those changes.
+         *
+         * The thunk action creator accepts three arguments: the name of the endpoint we are updating (such as `'getPost'`), any relevant query arguments, and a callback function. The callback receives an Immer-wrapped `draft` of the current state, and may modify the draft to match the expected results after the mutation completes successfully.
+         *
+         * The thunk returns an object containing `{patches: Patch[], inversePatches: Patch[], undo: () => void}`. The `patches` and `inversePatches` are generated using Immer's [`produceWithPatches` method](https://immerjs.github.io/immer/patches).
+         *
+         * This is typically used as the first step in implementing optimistic updates. The generated `inversePatches` can be used to revert the updates by calling `dispatch(patchQueryData(endpointName, args, inversePatches))`. Alternatively, the `undo` method can be called directly to achieve the same effect.
+         *
+         * @example
+         *
+         * ```ts
+         * const patchCollection = dispatch(
+         *   api.util.updateQueryData('getPosts', undefined, (draftPosts) => {
+         *     draftPosts.push({ id: 1, name: 'Teddy' })
+         *   })
+         * )
+         * ```
          */
-        updateQueryResult: UpdateQueryResultThunk<
+        updateQueryData: UpdateQueryDataThunk<
+          Definitions,
+          RootState<Definitions, string, ReducerPath>
+        >
+        /** @deprecated renamed to `updateQueryData` */
+        updateQueryResult: UpdateQueryDataThunk<
           Definitions,
           RootState<Definitions, string, ReducerPath>
         >
         /**
-         * TODO
+         * A Redux thunk that applies a JSON diff/patch array to the cached data for a given query result. This immediately updates the Redux state with those changes.
+         *
+         * The thunk accepts three arguments: the name of the endpoint we are updating (such as `'getPost'`), any relevant query arguments, and a JSON diff/patch array as produced by Immer's `produceWithPatches`.
+         *
+         * This is typically used as the second step in implementing optimistic updates. If a request fails, the optimistically-applied changes can be reverted by dispatching `patchQueryData` with the `inversePatches` that were generated by `updateQueryData` earlier.
+         *
+         * In cases where it is desired to simply revert the previous changes, it may be preferable to call the `undo` method returned from dispatching `updateQueryData` instead.
+         *
+         * @example
+         * ```ts
+         * const patchCollection = dispatch(
+         *   api.util.updateQueryData('getPosts', undefined, (draftPosts) => {
+         *     draftPosts.push({ id: 1, name: 'Teddy' })
+         *   })
+         * )
+         *
+         * // later
+         * dispatch(
+         *   api.util.patchQueryData('getPosts', undefined, patchCollection.inversePatches)
+         * )
+         *
+         * // or
+         * patchCollection.undo()
+         * ```
          */
-        patchQueryResult: PatchQueryResultThunk<
+        patchQueryData: PatchQueryDataThunk<
+          Definitions,
+          RootState<Definitions, string, ReducerPath>
+        >
+        /** @deprecated renamed to `patchQueryData` */
+        patchQueryResult: PatchQueryDataThunk<
           Definitions,
           RootState<Definitions, string, ReducerPath>
         >
         /**
-         * TODO
+         * A Redux action creator that can be dispatched to manually reset the api state completely. This will immediately remove all existing cache entries, and all queries will be considered 'uninitialized'.
+         *
+         * @example
+         *
+         * ```ts
+         * dispatch(api.util.resetApiState())
+         * ```
          */
         resetApiState: SliceActions['resetApiState']
         /**
-         * TODO
+         * A Redux action creator that can be used to manually invalidate cache tags for [automated re-fetching](../../usage/automated-refetching.mdx).
+         *
+         * The action creator accepts one argument: the cache tags to be invalidated. It returns an action with those tags as a payload, and the corresponding `invalidateTags` action type for the api.
+         *
+         * Dispatching the result of this action creator will [invalidate](../../usage/automated-refetching.mdx#invalidating-cache-data) the given tags, causing queries to automatically re-fetch if they are subscribed to cache data that [provides](../../usage/automated-refetching.mdx#providing-cache-data) the corresponding tags.
+         *
+         * The array of tags provided to the action creator should be in one of the following formats, where `TagType` is equal to a string provided to the [`tagTypes`](../createApi.mdx#tagtypes) property of the api:
+         *
+         * - `[TagType]`
+         * - `[{ type: TagType }]`
+         * - `[{ type: TagType, id: number | string }]`
+         *
+         * @example
+         *
+         * ```ts
+         * dispatch(api.util.invalidateTags(['Post']))
+         * dispatch(api.util.invalidateTags([{ type: 'Post', id: 1 }]))
+         * dispatch(
+         *   api.util.invalidateTags([
+         *     { type: 'Post', id: 1 },
+         *     { type: 'Post', id: 'LIST' },
+         *   ])
+         * )
+         * ```
          */
         invalidateTags: ActionCreatorWithPayload<
           Array<TagTypes | FullTagDescription<TagTypes>>,
@@ -172,9 +257,9 @@ declare module '../apiTypes' {
           any,
           any
         >
-          ? Id<ApiEndpointQuery<Definitions[K], Definitions>>
+          ? ApiEndpointQuery<Definitions[K], Definitions>
           : Definitions[K] extends MutationDefinition<any, any, any, any, any>
-          ? Id<ApiEndpointMutation<Definitions[K], Definitions>>
+          ? ApiEndpointMutation<Definitions[K], Definitions>
           : never
       }
     }
@@ -237,6 +322,8 @@ export const coreModule = (): Module<CoreModule> => ({
     },
     context
   ) {
+    enablePatches()
+
     assertCast<InternalSerializeQueryArgs>(serializeQueryArgs)
 
     const assertTagType: AssertTagTypes = (tag) => {
@@ -268,8 +355,8 @@ export const coreModule = (): Module<CoreModule> => ({
     const {
       queryThunk,
       mutationThunk,
-      patchQueryResult,
-      updateQueryResult,
+      patchQueryData,
+      updateQueryData,
       prefetch,
       buildMatchThunkActions,
     } = buildThunks({
@@ -296,12 +383,41 @@ export const coreModule = (): Module<CoreModule> => ({
     })
 
     safeAssign(api.util, {
-      patchQueryResult,
-      updateQueryResult,
+      patchQueryData,
+      updateQueryData,
       prefetch,
       resetApiState: sliceActions.resetApiState,
     })
     safeAssign(api.internalActions, sliceActions)
+
+    // remove in final release
+    Object.defineProperty(api.util, 'updateQueryResult', {
+      get() {
+        if (
+          typeof process !== 'undefined' &&
+          process.env.NODE_ENV === 'development'
+        ) {
+          console.warn(
+            '`api.util.updateQueryResult` has been renamed to `api.util.updateQueryData`, please change your code accordingly'
+          )
+        }
+        return api.util.updateQueryData
+      },
+    })
+    // remove in final release
+    Object.defineProperty(api.util, 'patchQueryResult', {
+      get() {
+        if (
+          typeof process !== 'undefined' &&
+          process.env.NODE_ENV === 'development'
+        ) {
+          console.warn(
+            '`api.util.patchQueryResult` has been renamed to `api.util.patchQueryData`, please change your code accordingly'
+          )
+        }
+        return api.util.patchQueryData
+      },
+    })
 
     const { middleware, actions: middlewareActions } = buildMiddleware({
       reducerPath,

@@ -1,10 +1,5 @@
 export { QueryStatus } from './core/apiState'
-export type {
-  Api,
-  ApiWithInjectedEndpoints,
-  Module,
-  ApiModules,
-} from './apiTypes'
+export type { Api, Module, ApiModules } from './apiTypes'
 export type { BaseQueryEnhancer, BaseQueryFn } from './baseQueryTypes'
 export type {
   EndpointDefinitions,
@@ -13,10 +8,14 @@ export type {
   MutationDefinition,
 } from './endpointDefinitions'
 export { fetchBaseQuery } from './fetchBaseQuery'
-export type { FetchBaseQueryError, FetchArgs } from './fetchBaseQuery'
+export type {
+  FetchBaseQueryError,
+  FetchBaseQueryMeta,
+  FetchArgs,
+} from './fetchBaseQuery'
 export { retry } from './retry'
 export { setupListeners } from './core/setupListeners'
-export { skipSelector } from './core/buildSelectors'
+export { skipSelector, skipToken, SkipToken } from './core/buildSelectors'
 export type { CreateApi, CreateApiOptions } from './createApi'
 export { buildCreateApi } from './createApi'
 export { fakeBaseQuery } from './fakeBaseQuery'

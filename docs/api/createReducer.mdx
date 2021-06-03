@@ -5,6 +5,8 @@ sidebar_label: createReducer
 hide_title: true
 ---
 
+&nbsp;
+
 # `createReducer()`
 
 ## Overview
@@ -54,7 +56,7 @@ const incrementByAmount = createAction<number>('counter/incrementByAmount')
 
 const initialState = { value: 0 } as CounterState
 
-const counterReducer = createReducer(initialState, builder => {
+const counterReducer = createReducer(initialState, (builder) => {
   builder
     .addCase(increment, (state, action) => {
       state.value++
@@ -128,7 +130,7 @@ so we recommend the "builder callback" notation in most cases.
 The most readable approach to define matcher cases and default cases is by using the `builder.addMatcher` and `builder.addDefaultCase` methods described above, but it is also possible to use these with the object notation by passing an array of `{matcher, reducer}` objects as the third argument, and a default case reducer as the fourth argument:
 
 ```js
-const isStringPayloadAction = action => typeof action.payload === 'string'
+const isStringPayloadAction = (action) => typeof action.payload === 'string'
 
 const lengthOfAllStringsReducer = createReducer(
   // initial state
@@ -143,11 +145,11 @@ const lengthOfAllStringsReducer = createReducer(
       matcher: isStringPayloadAction,
       reducer(state, action) {
         state.strLen += action.payload.length
-      }
-    }
+      },
+    },
   ],
   // default reducer
-  state => {
+  (state) => {
     state.nonStringActions++
   }
 )
@@ -168,7 +170,7 @@ interface Todo {
 const addTodo = createAction<Todo>('todos/add')
 const toggleTodo = createAction<number>('todos/toggle')
 
-const todosReducer = createReducer([] as Todo[], builder => {
+const todosReducer = createReducer([] as Todo[], (builder) => {
   builder
     .addCase(addTodo, (state, action) => {
       const todo = action.payload
@@ -180,7 +182,7 @@ const todosReducer = createReducer([] as Todo[], builder => {
       return [
         ...state.slice(0, index),
         { ...todo, completed: !todo.completed },
-        ...state.slice(index + 1)
+        ...state.slice(index + 1),
       ]
     })
 })
@@ -201,7 +203,7 @@ interface Todo {
 const addTodo = createAction<Todo>('todos/add')
 const toggleTodo = createAction<number>('todos/toggle')
 
-const todosReducer = createReducer([] as Todo[], builder => {
+const todosReducer = createReducer([] as Todo[], (builder) => {
   builder
     .addCase(addTodo, (state, action) => {
       // This push() operation gets translated into the same
@@ -231,7 +233,7 @@ interface Todo {
 
 const toggleTodo = createAction<number>('todos/toggle')
 
-const todosReducer = createReducer([] as Todo[], builder => {
+const todosReducer = createReducer([] as Todo[], (builder) => {
   builder.addCase(toggleTodo, (state, action) => {
     const index = action.payload
     const todo = state[index]
@@ -265,16 +267,16 @@ The executing reducers form a pipeline, and each of them will receive the output
 ```ts
 import { createReducer } from '@reduxjs/toolkit'
 
-const reducer = createReducer(0, builder => {
+const reducer = createReducer(0, (builder) => {
   builder
-    .addCase('increment', state => state + 1)
+    .addCase('increment', (state) => state + 1)
     .addMatcher(
-      action => action.startsWith('i'),
-      state => state * 5
+      (action) => action.startsWith('i'),
+      (state) => state * 5
     )
     .addMatcher(
-      action => action.endsWith('t'),
-      state => state + 2
+      (action) => action.endsWith('t'),
+      (state) => state + 2
     )
 })
 
@@ -302,7 +304,7 @@ const slice = createSlice({
       console.log('before', current(state))
       state.push(action.payload)
       console.log('after', current(state))
-    }
-  }
+    },
+  },
 })
 ```

@@ -1,0 +1,36 @@
+---
+id: conditional-fetching
+title: Conditional Fetching
+sidebar_label: Conditional Fetching
+hide_title: true
+---
+
+&nbsp;
+
+# Conditional Fetching
+
+If you want to prevent a query from automatically running, you can use the `skip` parameter in a hook.
+
+[examples](docblock://query/react/buildHooks.ts?token=UseQuerySubscriptionOptions.skip)
+
+[remarks](docblock://query/react/buildHooks.ts?token=UseQuerySubscriptionOptions.skip)
+
+:::tip
+Typescript users may wish to use [`skipToken`](../api/created-api/hooks.mdx#skiptoken) as an alternative to the `skip` option in order to skip running a query, while still keeping types for the endpoint accurate.
+:::
+
+### Example
+
+<iframe
+  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/feature/v1.6-integration/examples/query/react/conditional-fetching?fontsize=12&hidenavigation=1&module=%2Fsrc%2FPokemon.tsx&moduleview=1&theme=dark"
+  style={{
+    width: '100%',
+    height: '600px',
+    border: 0,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  }}
+  title="Conditional Fetching Example"
+  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
+></iframe>

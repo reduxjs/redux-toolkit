@@ -1,8 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit'
-import React, { Context } from 'react'
-import { Provider, ReactReduxContextValue } from 'react-redux'
-import { setupListeners } from '../core/setupListeners'
-import { Api } from '../apiTypes'
+import type { Context } from 'react';
+import React from 'react'
+import type { ReactReduxContextValue } from 'react-redux';
+import { Provider } from 'react-redux'
+import { setupListeners } from '@reduxjs/toolkit/query'
+import type { Api } from '@reduxjs/toolkit/dist/query/apiTypes'
 
 /**
  * Can be used as a `Provider` if you **do not already have a Redux store**.

@@ -1,9 +1,5 @@
-import {
-  AnyAction,
-  createSelector,
-  ThunkAction,
-  ThunkDispatch,
-} from '@reduxjs/toolkit'
+import type { AnyAction, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit'
+import { createSelector } from '@reduxjs/toolkit'
 import {
   useCallback,
   useEffect,
@@ -12,42 +8,46 @@ import {
   useRef,
   useState,
 } from 'react'
-import {
-  QueryStatus,
+import { QueryStatus, skipToken } from '@reduxjs/toolkit/query'
+import type {
   QuerySubState,
   SubscriptionOptions,
   QueryKeys,
   RootState,
-} from '../core/apiState'
-import {
+} from '@reduxjs/toolkit/dist/query/core/apiState'
+import type {
   EndpointDefinitions,
   MutationDefinition,
   QueryDefinition,
   QueryArgFrom,
   ResultTypeFrom,
-} from '../endpointDefinitions'
-import {
+} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
+import type {
   QueryResultSelectorResult,
   MutationResultSelectorResult,
-  skipSelector,
-} from '../core/buildSelectors'
-import {
+  SkipToken,
+} from '@reduxjs/toolkit/dist/query/core/buildSelectors'
+import type {
   QueryActionCreatorResult,
   MutationActionCreatorResult,
-} from '../core/buildInitiate'
-import { shallowEqual } from '../utils'
-import { Api } from '../apiTypes'
-import { Id, NoInfer, Override } from '../tsHelpers'
-import {
+} from '@reduxjs/toolkit/dist/query/core/buildInitiate'
+import { shallowEqual } from 'react-redux'
+import type { Api } from '@reduxjs/toolkit/dist/query/apiTypes'
+import type {
+  Id,
+  NoInfer,
+  Override,
+} from '@reduxjs/toolkit/dist/query/tsHelpers'
+import type {
   ApiEndpointMutation,
   ApiEndpointQuery,
   CoreModule,
   PrefetchOptions,
-} from '../core/module'
-import { ReactHooksModuleOptions } from './module'
+} from '@reduxjs/toolkit/dist/query/core/module'
+import type { ReactHooksModuleOptions } from './module'
 import { useShallowStableValue } from './useShallowStableValue'
-import { UninitializedValue, UNINITIALIZED_VALUE } from '../constants'
-import { useStore } from 'react-redux'
+import type { UninitializedValue } from './constants'
+import { UNINITIALIZED_VALUE } from './constants'
 
 export interface QueryHooks<
   Definition extends QueryDefinition<any, any, any, any, any>
@@ -83,7 +83,7 @@ export interface MutationHooks<
 export type UseQuery<D extends QueryDefinition<any, any, any, any>> = <
   R extends Record<string, any> = UseQueryStateDefaultResult<D>
 >(
-  arg: QueryArgFrom<D>,
+  arg: QueryArgFrom<D> | SkipToken,
   options?: UseQuerySubscriptionOptions & UseQueryStateOptions<D, R>
 ) => UseQueryStateResult<D, R> & ReturnType<UseQuerySubscription<D>>
 
@@ -92,7 +92,7 @@ interface UseQuerySubscriptionOptions extends SubscriptionOptions {
    * Prevents a query from automatically running.
    *
    * @remarks
-   * When skip is true:
+   * When `skip` is true (or `skipToken` is passed in as `arg`):
    *
    * - **If the query has cached data:**
    *   * The cached data **will not be used** on the initial load, and will ignore updates from any identical query until the `skip` condition is removed
@@ -148,7 +148,7 @@ interface UseQuerySubscriptionOptions extends SubscriptionOptions {
 export type UseQuerySubscription<
   D extends QueryDefinition<any, any, any, any>
 > = (
-  arg: QueryArgFrom<D>,
+  arg: QueryArgFrom<D> | SkipToken,
   options?: UseQuerySubscriptionOptions
 ) => Pick<QueryActionCreatorResult<D>, 'refetch'>
 
@@ -217,7 +217,7 @@ export type QueryStateSelector<
 export type UseQueryState<D extends QueryDefinition<any, any, any, any>> = <
   R = UseQueryStateDefaultResult<D>
 >(
-  arg: QueryArgFrom<D>,
+  arg: QueryArgFrom<D> | SkipToken,
   options?: UseQueryStateOptions<D, R>
 ) => UseQueryStateResult<D, R>
 
@@ -451,7 +451,7 @@ type GenericPrefetchThunk = (
  */
 export function buildHooks<Definitions extends EndpointDefinitions>({
   api,
-  moduleOptions: { batch, useDispatch, useSelector },
+  moduleOptions: { batch, useDispatch, useSelector, useStore },
 }: {
   api: Api<any, Definitions, any, any, CoreModule>
   moduleOptions: Required<ReactHooksModuleOptions>
@@ -493,7 +493,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         Definitions
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
-      const stableArg = useShallowStableValue(arg)
+      const stableArg = useShallowStableValue(skip ? skipToken : arg)
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,
         refetchOnFocus,
@@ -503,11 +503,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const promiseRef = useRef<QueryActionCreatorResult<any>>()
 
       useEffect(() => {
-        if (skip) {
+        const lastPromise = promiseRef.current
+
+        if (stableArg === skipToken) {
+          lastPromise?.unsubscribe()
+          promiseRef.current = undefined
           return
         }
 
-        const lastPromise = promiseRef.current
         const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions
 
         if (!lastPromise || lastPromise.arg !== stableArg) {
@@ -526,7 +529,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         dispatch,
         initiate,
         refetchOnMountOrArgChange,
-        skip,
         stableArg,
         stableSubscriptionOptions,
       ])
@@ -626,20 +628,17 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         QueryDefinition<any, any, any, any, any>,
         Definitions
       >
-      const stableArg = useShallowStableValue(arg)
+      const stableArg = useShallowStableValue(skip ? skipToken : arg)
 
       const lastValue = useRef<any>()
 
       const selectDefaultResult = useMemo(
         () =>
           createSelector(
-            [
-              select(skip ? skipSelector : stableArg),
-              (_: any, lastResult: any) => lastResult,
-            ],
+            [select(stableArg), (_: any, lastResult: any) => lastResult],
             queryStatePreSelector
           ),
-        [select, skip, stableArg]
+        [select, stableArg]
       )
 
       const querySelector = useMemo(
@@ -686,9 +685,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       useQuery(arg, options) {
         const querySubscriptionResults = useQuerySubscription(arg, options)
         const queryStateResults = useQueryState(arg, {
-          selectFromResult: options?.skip
-            ? undefined
-            : noPendingQueryStateSelector,
+          selectFromResult:
+            arg === skipToken || options?.skip
+              ? undefined
+              : noPendingQueryStateSelector,
           ...options,
         })
         return useMemo(
@@ -733,7 +733,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       const mutationSelector = useMemo(
         () =>
-          createSelector([select(requestId || skipSelector)], (subState) =>
+          createSelector([select(requestId || skipToken)], (subState) =>
             selectFromResult(subState)
           ),
         [select, requestId, selectFromResult]

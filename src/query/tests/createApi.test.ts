@@ -1,11 +1,10 @@
 import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
-import {
+import type {
   Api,
-  createApi,
-  fetchBaseQuery,
   MutationDefinition,
   QueryDefinition,
 } from '@reduxjs/toolkit/query'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import {
   ANY,
   expectType,
@@ -18,8 +17,8 @@ import { server } from './mocks/server'
 import { rest } from 'msw'
 
 const originalEnv = process.env.NODE_ENV
-beforeAll(() => void (process.env.NODE_ENV = 'development'))
-afterAll(() => void (process.env.NODE_ENV = originalEnv))
+beforeAll(() => void ((process.env as any).NODE_ENV = 'development'))
+afterAll(() => void ((process.env as any).NODE_ENV = originalEnv))
 
 let spy: jest.SpyInstance
 beforeAll(() => {

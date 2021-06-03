@@ -1,13 +1,15 @@
 import type { Api, ApiContext, Module, ModuleName } from './apiTypes'
 import type { BaseQueryArg, BaseQueryFn } from './baseQueryTypes'
+import type {
+  SerializeQueryArgs} from './defaultSerializeQueryArgs';
 import {
-  defaultSerializeQueryArgs,
-  SerializeQueryArgs,
+  defaultSerializeQueryArgs
 } from './defaultSerializeQueryArgs'
-import {
-  DefinitionType,
+import type {
   EndpointBuilder,
-  EndpointDefinitions,
+  EndpointDefinitions} from './endpointDefinitions';
+import {
+  DefinitionType
 } from './endpointDefinitions'
 
 export interface CreateApiOptions<
@@ -17,53 +19,42 @@ export interface CreateApiOptions<
   TagTypes extends string = never
 > {
   /**
-   * The base query used by each endpoint if no `queryFn` option is specified. RTK Query exports a utility called [fetchBaseQuery](./fetchBaseQuery) as a lightweight wrapper around `fetch` for common use-cases.
+   * The base query used by each endpoint if no `queryFn` option is specified. RTK Query exports a utility called [fetchBaseQuery](./fetchBaseQuery) as a lightweight wrapper around `fetch` for common use-cases. See [Customizing Queries](../../rtk-query/usage/customizing-queries) if `fetchBaseQuery` does not handle your requirements.
    *
    * @example
    *
    * ```ts
-   * // codeblock-meta title="Simulating axios-like interceptors with a custom base query"
-   * // file: authSlice.ts noEmit
-   * declare function setToken(args?: any): void;
-   * declare function loggedOut(): void;
-   * export { setToken, loggedOut }
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
    *
-   * // file: baseQueryWithReauth.ts
-   * import {
-   *   BaseQueryFn,
-   *   FetchArgs,
-   *   fetchBaseQuery,
-   *   FetchBaseQueryError
-   * } from '@reduxjs/toolkit/query';
-   * import { setToken, loggedOut } from './authSlice';
-   *
-   * const baseQuery = fetchBaseQuery({ baseUrl: '/' });
-   *
-   * const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
-   *   args,
-   *   api,
-   *   extraOptions
-   * ) => {
-   *   let result = await baseQuery(args, api, extraOptions);
-   *   if (result.error && result.error.status === 401) {
-   *     // try to get a new token
-   *     const refreshResult = await baseQuery('/refreshToken', api, extraOptions);
-   *     if (refreshResult.data) {
-   *       // store the new token
-   *       api.dispatch(setToken(refreshResult.data));
-   *       // retry the initial query
-   *       result = await baseQuery(args, api, extraOptions);
-   *     } else {
-   *       api.dispatch(loggedOut());
-   *     }
-   *   }
-   *   return result;
-   * };
+   * const api = createApi({
+   *   // highlight-start
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   // highlight-end
+   *   endpoints: (build) => ({
+   *     // ...endpoints
+   *   }),
+   * })
    * ```
    */
   baseQuery: BaseQuery
   /**
-   * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining an tag type, you will be able to [provide](../../usage/rtk-query/cached-data#providing-tags) them with `provides` and [invalidate](../../usage/rtk-query/cached-data#invalidating-tags) them with `invalidates` when configuring [endpoints](#endpoints).
+   * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining an tag type, you will be able to [provide](../../rtk-query/usage/automated-refetching#providing-tags) them with `provides` and [invalidate](../../rtk-query/usage/automated-refetching#invalidating-tags) them with `invalidates` when configuring [endpoints](#endpoints).
+   *
+   * @example
+   *
+   * ```ts
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   // highlight-start
+   *   tagTypes: ['Post', 'User'],
+   *   // highlight-end
+   *   endpoints: (build) => ({
+   *     // ...endpoints
+   *   }),
+   * })
+   * ```
    */
   tagTypes?: readonly TagTypes[]
   /**
@@ -76,7 +67,9 @@ export interface CreateApiOptions<
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query';
    *
    * const apiOne = createApi({
+   *   // highlight-start
    *   reducerPath: 'apiOne',
+   *   // highlight-end
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   endpoints: (builder) => ({
    *     // ...endpoints
@@ -84,7 +77,9 @@ export interface CreateApiOptions<
    * });
    *
    * const apiTwo = createApi({
+   *   // highlight-start
    *   reducerPath: 'apiTwo',
+   *   // highlight-end
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   endpoints: (builder) => ({
    *     // ...endpoints
@@ -98,13 +93,36 @@ export interface CreateApiOptions<
    */
   serializeQueryArgs?: SerializeQueryArgs<BaseQueryArg<BaseQuery>>
   /**
-   * Endpoints are just a set of operations that you want to perform against your server. You define them as an object using the builder syntax. There are two basic endpoint types: [`query`](../../usage/rtk-query/queries) and [`mutation`](../../usage/rtk-query/mutations).
+   * Endpoints are just a set of operations that you want to perform against your server. You define them as an object using the builder syntax. There are two basic endpoint types: [`query`](../../rtk-query/usage/queries) and [`mutation`](../../rtk-query/usage/mutations).
    */
   endpoints(
     build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
   ): Definitions
   /**
    * Defaults to `60` _(this value is in seconds)_. This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.
+   * 
+   * ```ts
+   * // codeblock-meta title="keepUnusedDataFor example"
+   * 
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * interface Post {
+   *   id: number
+   *   name: string
+   * }
+   * type PostsResponse = Post[]
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPosts: build.query<PostsResponse, void>({
+   *       query: () => 'posts',
+   *       // highlight-start
+   *       keepUnusedDataFor: 5
+   *       // highlight-end
+   *     })
+   *   })
+   * })
+   * ```
    */
   keepUnusedDataFor?: number
   /**
@@ -121,7 +139,7 @@ export interface CreateApiOptions<
    *
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
    *
-   * Note: requires `setupListeners` to have been called.
+   * Note: requires [`setupListeners`](./setupListeners) to have been called.
    */
   refetchOnFocus?: boolean
   /**
@@ -129,7 +147,7 @@ export interface CreateApiOptions<
    *
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
    *
-   * Note: requires `setupListeners` to have been called.
+   * Note: requires [`setupListeners`](./setupListeners) to have been called.
    */
   refetchOnReconnect?: boolean
 }

@@ -1,18 +1,18 @@
-import { buildHooks, MutationHooks, QueryHooks } from './buildHooks'
-import {
+import type { MutationHooks, QueryHooks } from './buildHooks'
+import { buildHooks } from './buildHooks'
+import { isQueryDefinition, isMutationDefinition } from '../endpointDefinitions'
+import type {
   EndpointDefinitions,
   QueryDefinition,
   MutationDefinition,
-  isQueryDefinition,
-  isMutationDefinition,
   QueryArgFrom,
-} from '../endpointDefinitions'
-import { Api, Module } from '../apiTypes'
+} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
+import type { Api, Module } from '../apiTypes'
 import { capitalize } from '../utils'
 import { safeAssign } from '../tsHelpers'
-import { BaseQueryFn } from '../baseQueryTypes'
+import type { BaseQueryFn } from '@reduxjs/toolkit/dist/query/baseQueryTypes'
 
-import { HooksWithUniqueNames } from './versionedTypes'
+import type { HooksWithUniqueNames } from './versionedTypes'
 
 import {
   useDispatch as rrUseDispatch,
@@ -20,13 +20,13 @@ import {
   useStore as rrUseStore,
   batch as rrBatch,
 } from 'react-redux'
-import { QueryKeys } from '../core/apiState'
-import { PrefetchOptions } from '../core/module'
+import type { QueryKeys } from '../core/apiState'
+import type { PrefetchOptions } from '../core/module'
 
-export const reactHooksModuleName = Symbol()
+export const reactHooksModuleName = /* @__PURE__ */ Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName
 
-declare module '../apiTypes' {
+declare module '@reduxjs/toolkit/dist/query/apiTypes' {
   export interface ApiModules<
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     BaseQuery extends BaseQueryFn,
@@ -67,25 +67,25 @@ declare module '../apiTypes' {
   }
 }
 
-// type RR = typeof import('react-redux')
+type RR = typeof import('react-redux')
 
 export interface ReactHooksModuleOptions {
   /**
    * The version of the `batchedUpdates` function to be used
    */
-  batch?: typeof rrBatch // RR['batch']
+  batch?: RR['batch']
   /**
    * The version of the `useDispatch` hook to be used
    */
-  useDispatch?: typeof rrUseDispatch // RR['useDispatch']
+  useDispatch?: RR['useDispatch']
   /**
    * The version of the `useSelector` hook to be used
    */
-  useSelector?: typeof rrUseSelector //RR['useSelector']
+  useSelector?: RR['useSelector']
   /**
-   * Currently unused - for potential future use
+   * The version of the `useStore` hook to be used
    */
-  useStore?: typeof rrUseStore //RR['useStore']
+  useStore?: RR['useStore']
 }
 
 /**

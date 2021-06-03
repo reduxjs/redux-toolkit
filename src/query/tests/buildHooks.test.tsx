@@ -3,6 +3,7 @@ import {
   createApi,
   fetchBaseQuery,
   QueryStatus,
+  skipToken,
 } from '@reduxjs/toolkit/query/react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -11,15 +12,15 @@ import {
   actionsReducer,
   expectExactType,
   expectType,
-  matchSequence,
   setupApiStore,
   useRenderCounter,
   waitMs,
 } from './helpers'
 import { server } from './mocks/server'
-import { AnyAction } from 'redux'
+import type { AnyAction } from 'redux'
 import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
-import { SerializedError } from '@reduxjs/toolkit'
+import type { SerializedError } from '@reduxjs/toolkit'
+import { renderHook } from '@testing-library/react-hooks'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -848,7 +849,6 @@ describe('hooks tests', () => {
             endpointName: string
             originalArgs: { name: string }
             track?: boolean
-            startedTimeStamp: number
           }>(res.arg)
           expectType<string>(res.requestId)
           expectType<() => void>(res.abort)
@@ -1266,16 +1266,15 @@ describe('hooks tests', () => {
       )
 
       const { checkSession, login } = api.endpoints
-      const completeSequence = [
+      expect(storeRef.store.getState().actions).toMatchSequence(
+        api.internalActions.middlewareRegistered.match,
         checkSession.matchPending,
         checkSession.matchRejected,
         login.matchPending,
         login.matchFulfilled,
         checkSession.matchPending,
-        checkSession.matchFulfilled,
-      ]
-
-      matchSequence(storeRef.store.getState().actions, ...completeSequence)
+        checkSession.matchFulfilled
+      )
     })
   })
 })
@@ -1876,15 +1875,14 @@ describe('hooks with createApi defaults set', () => {
 
       const { increment } = api.endpoints
 
-      const completeSequence = [
+      expect(storeRef.store.getState().actions).toMatchSequence(
+        api.internalActions.middlewareRegistered.match,
         increment.matchPending,
         increment.matchFulfilled,
         api.internalActions.unsubscribeMutationResult.match,
         increment.matchPending,
-        increment.matchFulfilled,
-      ]
-
-      matchSequence(storeRef.store.getState().actions, ...completeSequence)
+        increment.matchFulfilled
+      )
     })
 
     it('causes rerenders when only selected data changes', async () => {
@@ -1987,5 +1985,70 @@ describe('hooks with createApi defaults set', () => {
 
       render(<Counter />, { wrapper: storeRef.wrapper })
     })
+  })
+})
+
+describe('skip behaviour', () => {
+  const uninitialized = {
+    status: QueryStatus.uninitialized,
+    refetch: expect.any(Function),
+    data: undefined,
+    isError: false,
+    isFetching: false,
+    isLoading: false,
+    isSuccess: false,
+    isUninitialized: true,
+  }
+
+  function subscriptionCount(key: string) {
+    return Object.keys(storeRef.store.getState().api.subscriptions[key] || {})
+      .length
+  }
+
+  test('normal skip', async () => {
+    const { result, rerender } = renderHook(
+      ([arg, options]: Parameters<typeof api.endpoints.getUser.useQuery>) =>
+        api.endpoints.getUser.useQuery(arg, options),
+      {
+        wrapper: storeRef.wrapper,
+        initialProps: [1, { skip: true }],
+      }
+    )
+
+    expect(result.current).toEqual(uninitialized)
+    expect(subscriptionCount('getUser(1)')).toBe(0)
+
+    rerender([1])
+    expect(result.current).toMatchObject({ status: QueryStatus.pending })
+    expect(subscriptionCount('getUser(1)')).toBe(1)
+
+    rerender([1, { skip: true }])
+    expect(result.current).toEqual(uninitialized)
+    expect(subscriptionCount('getUser(1)')).toBe(0)
+  })
+
+  test('skipToken', async () => {
+    const { result, rerender } = renderHook(
+      ([arg, options]: Parameters<typeof api.endpoints.getUser.useQuery>) =>
+        api.endpoints.getUser.useQuery(arg, options),
+      {
+        wrapper: storeRef.wrapper,
+        initialProps: [skipToken],
+      }
+    )
+
+    expect(result.current).toEqual(uninitialized)
+    expect(subscriptionCount('getUser(1)')).toBe(0)
+    // also no subscription on `getUser(skipToken)` or similar:
+    expect(storeRef.store.getState().api.subscriptions).toEqual({})
+
+    rerender([1])
+    expect(result.current).toMatchObject({ status: QueryStatus.pending })
+    expect(subscriptionCount('getUser(1)')).toBe(1)
+    expect(storeRef.store.getState().api.subscriptions).not.toEqual({})
+
+    rerender([skipToken])
+    expect(result.current).toEqual(uninitialized)
+    expect(subscriptionCount('getUser(1)')).toBe(0)
   })
 })

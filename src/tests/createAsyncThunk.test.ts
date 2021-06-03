@@ -1,8 +1,8 @@
+import type { AnyAction } from '@reduxjs/toolkit'
 import {
   createAsyncThunk,
   unwrapResult,
   configureStore,
-  AnyAction,
   createReducer,
 } from '@reduxjs/toolkit'
 import { miniSerializeError } from '@internal/createAsyncThunk'
@@ -12,6 +12,7 @@ import {
   createConsole,
   getLog,
 } from 'console-testing-library/pure'
+import { expectType } from './helpers'
 
 declare global {
   interface Window {
@@ -252,6 +253,51 @@ describe('createAsyncThunk', () => {
     expect(errorAction.meta.arg).toBe(args)
   })
 
+  it('dispatches a rejected action with a customized payload when a user throws rejectWithValue()', async () => {
+    const dispatch = jest.fn()
+
+    const args = 123
+    let generatedRequestId = ''
+
+    const errorPayload = {
+      errorMessage:
+        'I am a fake server-provided 400 payload with validation details',
+      errors: [
+        { field_one: 'Must be a string' },
+        { field_two: 'Must be a number' },
+      ],
+    }
+
+    const thunkActionCreator = createAsyncThunk(
+      'testType',
+      async (args: number, { requestId, rejectWithValue }) => {
+        generatedRequestId = requestId
+
+        throw rejectWithValue(errorPayload)
+      }
+    )
+
+    const thunkFunction = thunkActionCreator(args)
+
+    try {
+      await thunkFunction(dispatch, () => {}, undefined)
+    } catch (e) {}
+
+    expect(dispatch).toHaveBeenNthCalledWith(
+      1,
+      thunkActionCreator.pending(generatedRequestId, args)
+    )
+
+    expect(dispatch).toHaveBeenCalledTimes(2)
+
+    // Have to check the bits of the action separately since the error was processed
+    const errorAction = dispatch.mock.calls[1][0]
+
+    expect(errorAction.error.message).toEqual('Rejected')
+    expect(errorAction.payload).toBe(errorPayload)
+    expect(errorAction.meta.arg).toBe(args)
+  })
+
   it('dispatches a rejected action with a miniSerializeError when rejectWithValue conditions are not satisfied', async () => {
     const dispatch = jest.fn()
 
@@ -447,11 +493,11 @@ describe('createAsyncThunk with abortController', () => {
       freshlyLoadedModule = require('../createAsyncThunk')
       restore = mockConsole(createConsole())
       nodeEnv = process.env.NODE_ENV!
-      process.env.NODE_ENV = 'development'
+      ;(process.env as any).NODE_ENV = 'development'
     })
 
     afterEach(() => {
-      process.env.NODE_ENV = nodeEnv
+      ;(process.env as any).NODE_ENV = nodeEnv
       restore()
       window.AbortController = keepAbortController
       jest.resetModules()
@@ -770,4 +816,94 @@ test('`condition` will see state changes from a synchonously invoked asyncThunk'
   expect(onStart).toHaveBeenCalledTimes(1)
   store.dispatch(asyncThunk({ force: true }))
   expect(onStart).toHaveBeenCalledTimes(2)
+})
+
+describe.only('meta', () => {
+  const getNewStore = () =>
+    configureStore({
+      reducer(actions = [], action) {
+        return [...actions, action]
+      },
+    })
+  let store = getNewStore()
+
+  beforeEach(() => {
+    const store = getNewStore()
+  })
+
+  test('pendingMeta', () => {
+    const pendingThunk = createAsyncThunk('test', (arg: string) => {}, {
+      getPendingMeta({ arg, requestId }) {
+        expect(arg).toBe('testArg')
+        expect(requestId).toEqual(expect.any(String))
+        return { extraProp: 'foo' }
+      },
+    })
+    const ret = store.dispatch(pendingThunk('testArg'))
+    expect(store.getState()[1]).toEqual({
+      meta: {
+        arg: 'testArg',
+        extraProp: 'foo',
+        requestId: ret.requestId,
+        requestStatus: 'pending',
+      },
+      payload: undefined,
+      type: 'test/pending',
+    })
+  })
+
+  test('fulfilledMeta', async () => {
+    const fulfilledThunk = createAsyncThunk<
+      string,
+      string,
+      { fulfilledMeta: { extraProp: string } }
+    >('test', (arg: string, { fulfillWithValue }) => {
+      return fulfillWithValue('hooray!', { extraProp: 'bar' })
+    })
+    const ret = store.dispatch(fulfilledThunk('testArg'))
+    expect(await ret).toEqual({
+      meta: {
+        arg: 'testArg',
+        extraProp: 'bar',
+        requestId: ret.requestId,
+        requestStatus: 'fulfilled',
+      },
+      payload: 'hooray!',
+      type: 'test/fulfilled',
+    })
+  })
+
+  test('rejectedMeta', async () => {
+    const fulfilledThunk = createAsyncThunk<
+      string,
+      string,
+      { rejectedMeta: { extraProp: string } }
+    >('test', (arg: string, { rejectWithValue }) => {
+      return rejectWithValue('damn!', { extraProp: 'baz' })
+    })
+    const promise = store.dispatch(fulfilledThunk('testArg'))
+    const ret = await promise
+    expect(ret).toEqual({
+      meta: {
+        arg: 'testArg',
+        extraProp: 'baz',
+        requestId: promise.requestId,
+        requestStatus: 'rejected',
+        rejectedWithValue: true,
+        aborted: false,
+        condition: false,
+      },
+      error: { message: 'Rejected' },
+      payload: 'damn!',
+      type: 'test/rejected',
+    })
+
+    if (ret.meta.requestStatus === 'rejected' && ret.meta.rejectedWithValue) {
+      expectType<string>(ret.meta.extraProp)
+    } else {
+      // could be caused by a `throw`, `abort()` or `condition` - no `rejectedMeta` in that case
+      // @ts-expect-error
+      ret.meta.extraProp
+    }
+  })
 })

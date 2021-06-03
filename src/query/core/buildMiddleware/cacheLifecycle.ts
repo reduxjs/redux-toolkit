@@ -1,19 +1,19 @@
 import { isAsyncThunkAction, isFulfilled } from '@reduxjs/toolkit'
 import type { AnyAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
-import type { BaseQueryFn } from '../../baseQueryTypes'
+import type { BaseQueryFn, BaseQueryMeta } from '../../baseQueryTypes'
 import { DefinitionType } from '../../endpointDefinitions'
-import {
-  OptionalPromise,
-  toOptionalPromise,
-} from '../../utils/toOptionalPromise'
 import type { RootState } from '../apiState'
 import type {
   MutationResultSelectorResult,
   QueryResultSelectorResult,
 } from '../buildSelectors'
 import type { PatchCollection, Recipe } from '../buildThunks'
-import type { SubMiddlewareApi, SubMiddlewareBuilder } from './types'
+import type {
+  PromiseWithKnownReason,
+  SubMiddlewareApi,
+  SubMiddlewareBuilder,
+} from './types'
 
 export type ReferenceCacheLifecycle = never
 
@@ -36,9 +36,9 @@ declare module '../../endpointDefinitions' {
     >
     /**
      * Updates the current cache entry value.
-     * For documentation see `api.util.updateQueryResult.
+     * For documentation see `api.util.updateQueryData`.
      */
-    updateCacheEntry(updateRecipe: Recipe<ResultType>): PatchCollection
+    updateCachedData(updateRecipe: Recipe<ResultType>): PatchCollection
   }
 
   export interface MutationBaseLifecycleApi<
@@ -78,25 +78,42 @@ declare module '../../endpointDefinitions' {
     requestId: string
   }
 
-  export interface CacheLifecyclePromises<ResultType = unknown> {
+  export interface CacheLifecyclePromises<
+    ResultType = unknown,
+    MetaType = unknown
+  > {
     /**
      * Promise that will resolve with the first value for this cache key.
      * This allows you to `await` until an actual value is in cache.
      *
      * If the cache entry is removed from the cache before any value has ever
      * been resolved, this Promise will reject with
-     * `new Error('Promise never resolved before cleanup.')`
+     * `new Error('Promise never resolved before cacheEntryRemoved.')`
      * to prevent memory leaks.
      * You can just re-throw that error (or not handle it at all) -
      * it will be caught outside of `cacheEntryAdded`.
+     *
+     * If you don't interact with this promise, it will not throw.
      */
-    firstValueResolved: OptionalPromise<ResultType>
+    cacheDataLoaded: PromiseWithKnownReason<
+      {
+        /**
+         * The (transformed) query result.
+         */
+        data: ResultType
+        /**
+         * The `meta` returned by the `baseQuery`
+         */
+        meta: MetaType
+      },
+      typeof neverResolvedError
+    >
     /**
      * Promise that allows you to wait for the point in time when the cache entry
      * has been removed from the cache, by not being used/subscribed to any more
      * in the application for too long or by dispatching `api.util.resetApiState`.
      */
-    cleanup: Promise<void>
+    cacheEntryRemoved: Promise<void>
   }
 
   export interface QueryCacheLifecycleApi<
@@ -105,7 +122,7 @@ declare module '../../endpointDefinitions' {
     ResultType,
     ReducerPath extends string = string
   > extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
-      CacheLifecyclePromises<ResultType> {}
+      CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>> {}
 
   export interface MutationCacheLifecycleApi<
     QueryArg,
@@ -118,7 +135,7 @@ declare module '../../endpointDefinitions' {
         ResultType,
         ReducerPath
       >,
-      CacheLifecyclePromises<ResultType> {}
+      CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>> {}
 
   interface QueryExtraOptions<
     TagTypes extends string,
@@ -152,6 +169,12 @@ declare module '../../endpointDefinitions' {
   }
 }
 
+const neverResolvedError = new Error(
+  'Promise never resolved before cacheEntryRemoved.'
+) as Error & {
+  message: 'Promise never resolved before cacheEntryRemoved.'
+}
+
 export const build: SubMiddlewareBuilder = ({
   api,
   reducerPath,
@@ -165,8 +188,8 @@ export const build: SubMiddlewareBuilder = ({
 
   return (mwApi) => {
     type CacheLifecycle = {
-      valueResolved?(value: unknown): unknown
-      cleanup(): void
+      valueResolved?(value: { data: unknown; meta: unknown }): unknown
+      cacheEntryRemoved(): void
     }
     const lifecycleMap: Record<string, CacheLifecycle> = {}
 
@@ -203,7 +226,10 @@ export const build: SubMiddlewareBuilder = ({
       } else if (isFullfilledThunk(action)) {
         const lifecycle = lifecycleMap[cacheKey]
         if (lifecycle?.valueResolved) {
-          lifecycle.valueResolved(action.payload.result)
+          lifecycle.valueResolved({
+            data: action.payload,
+            meta: action.meta.baseQueryMeta,
+          })
           delete lifecycle.valueResolved
         }
       } else if (
@@ -213,12 +239,12 @@ export const build: SubMiddlewareBuilder = ({
         const lifecycle = lifecycleMap[cacheKey]
         if (lifecycle) {
           delete lifecycleMap[cacheKey]
-          lifecycle.cleanup()
+          lifecycle.cacheEntryRemoved()
         }
       } else if (api.util.resetApiState.match(action)) {
         for (const [cacheKey, lifecycle] of Object.entries(lifecycleMap)) {
           delete lifecycleMap[cacheKey]
-          lifecycle.cleanup()
+          lifecycle.cacheEntryRemoved()
         }
       }
 
@@ -246,24 +272,25 @@ export const build: SubMiddlewareBuilder = ({
       const onCacheEntryAdded = endpointDefinition?.onCacheEntryAdded
       if (!onCacheEntryAdded) return
 
-      const neverResolvedError = new Error(
-        'Promise never resolved before cleanup.'
-      )
       let lifecycle = {} as CacheLifecycle
 
-      const cleanup = new Promise<void>((resolve) => {
-        lifecycle.cleanup = resolve
+      const cacheEntryRemoved = new Promise<void>((resolve) => {
+        lifecycle.cacheEntryRemoved = resolve
       })
-      const firstValueResolved = toOptionalPromise(
-        Promise.race([
-          new Promise<void>((resolve) => {
-            lifecycle.valueResolved = resolve
-          }),
-          cleanup.then(() => {
-            throw neverResolvedError
-          }),
-        ])
-      )
+      const cacheDataLoaded: PromiseWithKnownReason<
+        { data: unknown; meta: unknown },
+        typeof neverResolvedError
+      > = Promise.race([
+        new Promise<{ data: unknown; meta: unknown }>((resolve) => {
+          lifecycle.valueResolved = resolve
+        }),
+        cacheEntryRemoved.then(() => {
+          throw neverResolvedError
+        }),
+      ])
+      // prevent uncaught promise rejections from happening.
+      // if the original promise is used in any way, that will create a new promise that will throw again
+      cacheDataLoaded.catch(() => {})
       lifecycleMap[queryCacheKey] = lifecycle
       const selector = (api.endpoints[endpointName] as any).select(
         endpointDefinition.type === DefinitionType.query
@@ -277,10 +304,10 @@ export const build: SubMiddlewareBuilder = ({
         getCacheEntry: () => selector(mwApi.getState()),
         requestId,
         extra,
-        updateCacheEntry: (endpointDefinition.type === DefinitionType.query
+        updateCachedData: (endpointDefinition.type === DefinitionType.query
           ? (updateRecipe: Recipe<any>) =>
               mwApi.dispatch(
-                api.util.updateQueryResult(
+                api.util.updateQueryData(
                   endpointName as never,
                   originalArgs,
                   updateRecipe
@@ -288,8 +315,8 @@ export const build: SubMiddlewareBuilder = ({
               )
           : undefined) as any,
 
-        firstValueResolved,
-        cleanup,
+        cacheDataLoaded,
+        cacheEntryRemoved,
       }
 
       const runningHandler = onCacheEntryAdded(originalArgs, lifecycleApi)

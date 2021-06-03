@@ -1,18 +1,20 @@
 import * as React from 'react'
+import type {
+  BaseQueryFn} from '@reduxjs/toolkit/query/react';
 import {
-  BaseQueryFn,
   createApi,
   fetchBaseQuery,
 } from '@reduxjs/toolkit/query/react'
 import { renderHook, act } from '@testing-library/react-hooks'
 import { rest } from 'msw'
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
+import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios from 'axios'
 
 import { expectExactType, hookWaitFor, setupApiStore } from './helpers'
 import { server } from './mocks/server'
 import { fireEvent, render, waitFor, screen } from '@testing-library/react'
 import { useDispatch } from 'react-redux'
-import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit'
+import type { AnyAction, ThunkDispatch } from '@reduxjs/toolkit'
 
 const baseQuery = fetchBaseQuery({ baseUrl: 'http://example.com' })
 
@@ -40,7 +42,7 @@ describe('fetchBaseQuery', () => {
       baseQuery(
         '/success',
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -60,7 +62,7 @@ describe('fetchBaseQuery', () => {
       baseQuery(
         '/error',
         {
-          signal: undefined,
+          signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
           getState: storeRef.store.getState,
         },
@@ -528,15 +530,15 @@ describe('error handling in a component', () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
 
       const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>
-      let mutationResultPromise: ReturnType<
+      let mutationqueryFulfilled: ReturnType<
         ReturnType<typeof api.endpoints.update.initiate>
       >
       act(() => {
-        mutationResultPromise = dispatch(
+        mutationqueryFulfilled = dispatch(
           api.endpoints.update.initiate({}, { track })
         )
       })
-      const result = await mutationResultPromise!
+      const result = await mutationqueryFulfilled!
       expect(result).toMatchObject({
         data: { value: 'success' },
       })
@@ -546,15 +548,15 @@ describe('error handling in a component', () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
 
       const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>
-      let mutationResultPromise: ReturnType<
+      let mutationqueryFulfilled: ReturnType<
         ReturnType<typeof api.endpoints.failedUpdate.initiate>
       >
       act(() => {
-        mutationResultPromise = dispatch(
+        mutationqueryFulfilled = dispatch(
           api.endpoints.failedUpdate.initiate({}, { track })
         )
       })
-      const result = await mutationResultPromise!
+      const result = await mutationqueryFulfilled!
       expect(result).toMatchObject({
         error: { status: 500, data: { value: 'error' } },
       })
@@ -563,15 +565,15 @@ describe('error handling in a component', () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
 
       const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>
-      let mutationResultPromise: ReturnType<
+      let mutationqueryFulfilled: ReturnType<
         ReturnType<typeof api.endpoints.update.initiate>
       >
       act(() => {
-        mutationResultPromise = dispatch(
+        mutationqueryFulfilled = dispatch(
           api.endpoints.update.initiate({}, { track })
         )
       })
-      const result = await mutationResultPromise!.unwrap()
+      const result = await mutationqueryFulfilled!.unwrap()
       expect(result).toMatchObject({
         value: 'success',
       })
@@ -581,15 +583,15 @@ describe('error handling in a component', () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
 
       const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>
-      let mutationResultPromise: ReturnType<
+      let mutationqueryFulfilled: ReturnType<
         ReturnType<typeof api.endpoints.failedUpdate.initiate>
       >
       act(() => {
-        mutationResultPromise = dispatch(
+        mutationqueryFulfilled = dispatch(
           api.endpoints.failedUpdate.initiate({}, { track })
         )
       })
-      const unwrappedPromise = mutationResultPromise!.unwrap()
+      const unwrappedPromise = mutationqueryFulfilled!.unwrap()
       expect(unwrappedPromise).rejects.toMatchObject({
         status: 500,
         data: { value: 'error' },

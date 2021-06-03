@@ -1,5 +1,5 @@
-import { QueryCacheKey } from './core/apiState'
-import { EndpointDefinition } from './endpointDefinitions'
+import type { QueryCacheKey } from './core/apiState'
+import type { EndpointDefinition } from './endpointDefinitions'
 import { isPlainObject } from '@reduxjs/toolkit'
 
 export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({

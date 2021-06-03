@@ -1,6 +1,7 @@
 import { createApi } from '@reduxjs/toolkit/query'
-import { fetchBaseQuery } from '../fetchBaseQuery'
-import { fakeTimerWaitFor, setupApiStore, waitMs } from './helpers'
+import type { FetchBaseQueryMeta } from '@reduxjs/toolkit/query'
+import { fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { expectType, fakeTimerWaitFor, setupApiStore, waitMs } from './helpers'
 
 beforeAll(() => {
   jest.useFakeTimers()
@@ -43,15 +44,18 @@ describe.each([['query'], ['mutation']] as const)(
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
     })
 
-    test(`${type}: await cleanup`, async () => {
+    test(`${type}: await cacheEntryRemoved`, async () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
         endpoints: (build) => ({
           injected: build[type as 'mutation']<unknown, string>({
             query: () => '/success',
-            async onCacheEntryAdded(arg, { dispatch, getState, cleanup }) {
+            async onCacheEntryAdded(
+              arg,
+              { dispatch, getState, cacheEntryRemoved }
+            ) {
               onNewCacheEntry(arg)
-              await cleanup
+              await cacheEntryRemoved
               onCleanup()
             },
           }),
@@ -74,20 +78,23 @@ describe.each([['query'], ['mutation']] as const)(
       expect(onCleanup).toHaveBeenCalled()
     })
 
-    test(`${type}: await firstValueResolved, await cleanup (success)`, async () => {
+    test(`${type}: await cacheDataLoaded, await cacheEntryRemoved (success)`, async () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
         endpoints: (build) => ({
-          injected: build[type as 'mutation']<unknown, string>({
+          injected: build[type as 'mutation']<number, string>({
             query: () => '/success',
             async onCacheEntryAdded(
               arg,
-              { dispatch, getState, cleanup, firstValueResolved }
+              { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }
             ) {
               onNewCacheEntry(arg)
-              const firstValue = await firstValueResolved
+              const firstValue = await cacheDataLoaded
+              expectType<{ data: number; meta?: FetchBaseQueryMeta }>(
+                firstValue
+              )
               gotFirstValue(firstValue)
-              await cleanup
+              await cacheEntryRemoved
               onCleanup()
             },
           }),
@@ -105,7 +112,13 @@ describe.each([['query'], ['mutation']] as const)(
       await fakeTimerWaitFor(() => {
         expect(gotFirstValue).toHaveBeenCalled()
       })
-      expect(gotFirstValue).toHaveBeenCalledWith({ value: 'success' })
+      expect(gotFirstValue).toHaveBeenCalledWith({
+        data: { value: 'success' },
+        meta: {
+          request: expect.any(Request),
+          response: expect.any(Object), // Response is not available in jest env
+        },
+      })
       expect(onCleanup).not.toHaveBeenCalled()
 
       promise.unsubscribe(), await waitMs()
@@ -118,23 +131,23 @@ describe.each([['query'], ['mutation']] as const)(
       expect(onCleanup).toHaveBeenCalled()
     })
 
-    test(`${type}: await firstValueResolved, await cleanup (firstValueResolved never resolves)`, async () => {
+    test(`${type}: await cacheDataLoaded, await cacheEntryRemoved (cacheDataLoaded never resolves)`, async () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
         endpoints: (build) => ({
           injected: build[type as 'mutation']<unknown, string>({
-            query: () => '/error', // we will initiate only once and that one time will be an error -> firstValueResolved will never resolve
+            query: () => '/error', // we will initiate only once and that one time will be an error -> cacheDataLoaded will never resolve
             async onCacheEntryAdded(
               arg,
-              { dispatch, getState, cleanup, firstValueResolved }
+              { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }
             ) {
               onNewCacheEntry(arg)
-              // this will wait until cleanup, then reject => nothing past that line will execute
-              // but since this special "cleanup" rejection is handled outside, there will be no
+              // this will wait until cacheEntryRemoved, then reject => nothing past that line will execute
+              // but since this special "cacheEntryRemoved" rejection is handled outside, there will be no
               // uncaught rejection error
-              const firstValue = await firstValueResolved
+              const firstValue = await cacheDataLoaded
               gotFirstValue(firstValue)
-              await cleanup
+              await cacheEntryRemoved
               onCleanup()
             },
           }),
@@ -153,26 +166,26 @@ describe.each([['query'], ['mutation']] as const)(
       expect(onCleanup).not.toHaveBeenCalled()
     })
 
-    test(`${type}: try { await firstValueResolved }, await cleanup (firstValueResolved never resolves)`, async () => {
+    test(`${type}: try { await cacheDataLoaded }, await cacheEntryRemoved (cacheDataLoaded never resolves)`, async () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
         endpoints: (build) => ({
           injected: build[type as 'mutation']<unknown, string>({
-            query: () => '/error', // we will initiate only once and that one time will be an error -> firstValueResolved will never resolve
+            query: () => '/error', // we will initiate only once and that one time will be an error -> cacheDataLoaded will never resolve
             async onCacheEntryAdded(
               arg,
-              { dispatch, getState, cleanup, firstValueResolved }
+              { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }
             ) {
               onNewCacheEntry(arg)
 
               try {
-                // this will wait until cleanup, then reject => nothing else in this try..catch block will execute
-                const firstValue = await firstValueResolved
+                // this will wait until cacheEntryRemoved, then reject => nothing else in this try..catch block will execute
+                const firstValue = await cacheDataLoaded
                 gotFirstValue(firstValue)
               } catch (e) {
                 onCatch(e)
               }
-              await cleanup
+              await cacheEntryRemoved
               onCleanup()
             },
           }),
@@ -193,28 +206,28 @@ describe.each([['query'], ['mutation']] as const)(
       expect(onCleanup).toHaveBeenCalled()
       expect(gotFirstValue).not.toHaveBeenCalled()
       expect(onCatch.mock.calls[0][0]).toMatchObject({
-        message: 'Promise never resolved before cleanup.',
+        message: 'Promise never resolved before cacheEntryRemoved.',
       })
     })
 
-    test(`${type}: try { await firstValueResolved, await cleanup } (firstValueResolved never resolves)`, async () => {
+    test(`${type}: try { await cacheDataLoaded, await cacheEntryRemoved } (cacheDataLoaded never resolves)`, async () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
         endpoints: (build) => ({
           injected: build[type as 'mutation']<unknown, string>({
-            query: () => '/error', // we will initiate only once and that one time will be an error -> firstValueResolved will never resolve
+            query: () => '/error', // we will initiate only once and that one time will be an error -> cacheDataLoaded will never resolve
             async onCacheEntryAdded(
               arg,
-              { dispatch, getState, cleanup, firstValueResolved }
+              { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }
             ) {
               onNewCacheEntry(arg)
 
               try {
-                // this will wait until cleanup, then reject => nothing else in this try..catch block will execute
-                const firstValue = await firstValueResolved
+                // this will wait until cacheEntryRemoved, then reject => nothing else in this try..catch block will execute
+                const firstValue = await cacheDataLoaded
                 gotFirstValue(firstValue)
                 // cleanup in this scenario only needs to be done for stuff within this try..catch block - totally valid scenario
-                await cleanup
+                await cacheEntryRemoved
                 onCleanup()
               } catch (e) {
                 onCatch(e)
@@ -238,30 +251,30 @@ describe.each([['query'], ['mutation']] as const)(
       expect(onCleanup).not.toHaveBeenCalled()
       expect(gotFirstValue).not.toHaveBeenCalled()
       expect(onCatch.mock.calls[0][0]).toMatchObject({
-        message: 'Promise never resolved before cleanup.',
+        message: 'Promise never resolved before cacheEntryRemoved.',
       })
     })
 
-    test(`${type}: try { await firstValueResolved } finally { await cleanup } (firstValueResolved never resolves)`, async () => {
+    test(`${type}: try { await cacheDataLoaded } finally { await cacheEntryRemoved } (cacheDataLoaded never resolves)`, async () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
         endpoints: (build) => ({
           injected: build[type as 'mutation']<unknown, string>({
-            query: () => '/error', // we will initiate only once and that one time will be an error -> firstValueResolved will never resolve
+            query: () => '/error', // we will initiate only once and that one time will be an error -> cacheDataLoaded will never resolve
             async onCacheEntryAdded(
               arg,
-              { dispatch, getState, cleanup, firstValueResolved }
+              { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }
             ) {
               onNewCacheEntry(arg)
 
               try {
-                // this will wait until cleanup, then reject => nothing else in this try..catch block will execute
-                const firstValue = await firstValueResolved
+                // this will wait until cacheEntryRemoved, then reject => nothing else in this try..catch block will execute
+                const firstValue = await cacheDataLoaded
                 gotFirstValue(firstValue)
               } catch (e) {
                 onCatch(e)
               } finally {
-                await cleanup
+                await cacheEntryRemoved
                 onCleanup()
               }
             },
@@ -283,7 +296,7 @@ describe.each([['query'], ['mutation']] as const)(
       expect(onCleanup).toHaveBeenCalled()
       expect(gotFirstValue).not.toHaveBeenCalled()
       expect(onCatch.mock.calls[0][0]).toMatchObject({
-        message: 'Promise never resolved before cleanup.',
+        message: 'Promise never resolved before cacheEntryRemoved.',
       })
     })
   }
@@ -298,12 +311,18 @@ test(`query: getCacheEntry`, async () => {
         query: () => '/success',
         async onCacheEntryAdded(
           arg,
-          { dispatch, getState, getCacheEntry, cleanup, firstValueResolved }
+          {
+            dispatch,
+            getState,
+            getCacheEntry,
+            cacheEntryRemoved,
+            cacheDataLoaded,
+          }
         ) {
           snapshot(getCacheEntry())
-          gotFirstValue(await firstValueResolved)
+          gotFirstValue(await cacheDataLoaded)
           snapshot(getCacheEntry())
-          await cleanup
+          await cacheEntryRemoved
           snapshot(getCacheEntry())
         },
       }),
@@ -365,12 +384,18 @@ test(`mutation: getCacheEntry`, async () => {
         query: () => '/success',
         async onCacheEntryAdded(
           arg,
-          { dispatch, getState, getCacheEntry, cleanup, firstValueResolved }
+          {
+            dispatch,
+            getState,
+            getCacheEntry,
+            cacheEntryRemoved,
+            cacheDataLoaded,
+          }
         ) {
           snapshot(getCacheEntry())
-          gotFirstValue(await firstValueResolved)
+          gotFirstValue(await cacheDataLoaded)
           snapshot(getCacheEntry())
-          await cleanup
+          await cacheEntryRemoved
           snapshot(getCacheEntry())
         },
       }),
@@ -419,7 +444,7 @@ test(`mutation: getCacheEntry`, async () => {
   })
 })
 
-test('updateCacheEntry', async () => {
+test('updateCachedData', async () => {
   const trackCalls = jest.fn()
 
   const extended = api.injectEndpoints({
@@ -433,35 +458,35 @@ test('updateCacheEntry', async () => {
             dispatch,
             getState,
             getCacheEntry,
-            updateCacheEntry,
-            cleanup,
-            firstValueResolved,
+            updateCachedData,
+            cacheEntryRemoved,
+            cacheDataLoaded,
           }
         ) {
           expect(getCacheEntry().data).toEqual(undefined)
-          // calling `updateCacheEntry` when there is no data yet should not do anything
-          updateCacheEntry((draft) => {
+          // calling `updateCachedData` when there is no data yet should not do anything
+          updateCachedData((draft) => {
             draft.value = 'TEST'
             trackCalls()
           })
           expect(trackCalls).toHaveBeenCalledTimes(0)
           expect(getCacheEntry().data).toEqual(undefined)
 
-          gotFirstValue(await firstValueResolved)
+          gotFirstValue(await cacheDataLoaded)
 
           expect(getCacheEntry().data).toEqual({ value: 'success' })
-          updateCacheEntry((draft) => {
+          updateCachedData((draft) => {
             draft.value = 'TEST'
             trackCalls()
           })
           expect(trackCalls).toHaveBeenCalledTimes(1)
           expect(getCacheEntry().data).toEqual({ value: 'TEST' })
 
-          await cleanup
+          await cacheEntryRemoved
 
           expect(getCacheEntry().data).toEqual(undefined)
-          // calling `updateCacheEntry` when there is no data any more should not do anything
-          updateCacheEntry((draft) => {
+          // calling `updateCachedData` when there is no data any more should not do anything
+          updateCachedData((draft) => {
             draft.value = 'TEST2'
             trackCalls()
           })

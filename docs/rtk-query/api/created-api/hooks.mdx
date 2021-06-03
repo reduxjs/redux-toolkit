@@ -1,0 +1,576 @@
+---
+id: hooks
+title: 'API Slices: React Hooks'
+sidebar_label: React Hooks
+hide_title: true
+---
+
+&nbsp;
+
+# API Slices: React Hooks
+
+## Hooks Overview
+
+The core RTK Query `createApi` method is UI-agnostic, in the same way that the Redux core library and Redux Toolkit are UI-agnostic. They are all plain JS logic that can be used anywhere.
+
+However, RTK Query also provides the ability to auto-generate React hooks for each of your endpoints. Since this specifically depends on React itself, RTK Query provides an alternate entry point that exposes a customized version of `createApi` that includes that functionality:
+
+```ts no-transpile
+import { createApi } from '@reduxjs/toolkit/query/react'
+```
+
+If you have used the React-specific version of `createApi`, the generated `Api` slice structure will also contain a set of React hooks. The primary endpoint hooks are available as `api.endpoints[endpointName].useQuery` or `api.endpoints[endpointName].useMutation`, matching how you defined that endpoint.
+
+The same hooks are also added to the `Api` object itself, and given auto-generated names based on the endpoint name and query/mutation type.
+
+For example, if you had endpoints for `getPosts` and `updatePost`, these options would be available:
+
+```ts title="Generated React Hook names" no-transpile
+// Hooks attached to the endpoint definition
+const { data } = api.endpoints.getPosts.useQuery()
+const [updatePost, { data }] = api.endpoints.updatePost.useMutation()
+
+// Same hooks, but given unique names and attached to the API slice object
+const { data } = api.useGetPostsQuery()
+const [updatePost, { data }] = api.useUpdatePostMutation()
+```
+
+The general format is `use(Endpointname)(Query|Mutation)` - `use` is prefixed, the first letter of your endpoint name is capitalized, then `Query` or `Mutation` is appended depending on the type.
+
+The full list of hooks generated in the React-specific version of `createApi` is as follows:
+
+- [`useQuery`](#usequery) (endpoint-specific)
+- [`useMutation`](#usemutation) (endpoint-specific)
+- [`useQueryState`](#usequerystate) (endpoint-specific)
+- [`useQuerySubscription`](#usequerysubscription) (endpoint-specific)
+- [`useLazyQuery`](#uselazyquery) (endpoint-specific)
+- [`useLazyQuerySubscription`](#uselazyquerysubscription) (endpoint-specific)
+- [`usePrefetch`](#useprefetch) (endpoint-agnostic)
+
+For the example above, the full set of generated hooks for the api would be like so:
+
+```ts title="Generated React Hooks" no-transpile
+/* Hooks attached to the `getPosts` query endpoint definition */
+const { data } = api.endpoints.getPosts.useQuery(arg, options)
+const post = api.endpoints.getPosts.useQueryState(arg, options)
+const { refetch } = api.endpoints.getPosts.useQuerySubscription(arg, options)
+const [getPosts, { data }, { lastArg }] = api.endpoints.getPosts.useLazyQuery(
+  options
+)
+const [getPosts, lastArg] = api.endpoints.getPosts.useLazyQuerySubscription(
+  options
+)
+
+/* Hooks attached to the `updatePost` mutation endpoint definition */
+const [updatePost, { data }] = api.endpoints.updatePost.useMutation(options)
+
+/* Hooks attached to the `Api` object */
+// same as api.endpoints.getPosts.useQuery
+const { data } = api.useGetPostsQuery(arg, options)
+// same as api.endpoints.getPosts.useLazyQuery
+const [getPosts, { data }, { lastArg }] = api.useLazyGetPostsQuery(options)
+// same as api.endpoints.updatePost.useMutation
+const [updatePost, { data }] = api.useUpdatePostMutation(options)
+const fetchData = api.usePrefetch(endpointName, options)
+```
+
+### Feature Comparison
+
+The provided hooks have a degree of feature overlap in order to provide options optimized for a given situation. The table below provides a comparison of the core features for each hook.
+
+<table style={{ 'overflow-y': 'hidden' }}>
+  <thead>
+    <tr style={{ height: '250px', border: 'none' }}>
+      <th style={{ width: '300px' }}>Feature</th>
+      <th style={{ 'white-space': 'nowrap', border: 'none' }}>
+        <div
+          style={{
+            transform: 'translate(0px, 51px) rotate(315deg)',
+            width: '20px',
+          }}
+        >
+          <a href="#usequery">useQuery</a>
+        </div>
+      </th>
+      <th style={{ 'white-space': 'nowrap', border: 'none' }}>
+        <div
+          style={{
+            transform: 'translate(0px, 51px) rotate(315deg)',
+            width: '20px',
+          }}
+        >
+          <a href="#usemutation">useMutation</a>
+        </div>
+      </th>
+      <th style={{ 'white-space': 'nowrap', border: 'none' }}>
+        <div
+          style={{
+            transform: 'translate(0px, 51px) rotate(315deg)',
+            width: '20px',
+          }}
+        >
+          <a href="#usequerystate">useQueryState</a>
+        </div>
+      </th>
+      <th style={{ 'white-space': 'nowrap', border: 'none' }}>
+        <div
+          style={{
+            transform: 'translate(0px, 51px) rotate(315deg)',
+            width: '20px',
+          }}
+        >
+          <a href="#usequerysubscription">useQuerySubscription</a>
+        </div>
+      </th>
+      <th style={{ 'white-space': 'nowrap', border: 'none' }}>
+        <div
+          style={{
+            transform: 'translate(0px, 51px) rotate(315deg)',
+            width: '20px',
+          }}
+        >
+          <a href="#uselazyquery">useLazyQuery</a>
+        </div>
+      </th>
+      <th style={{ 'white-space': 'nowrap', border: 'none' }}>
+        <div
+          style={{
+            transform: 'translate(0px, 51px) rotate(315deg)',
+            width: '20px',
+          }}
+        >
+          <a href="#uselazyquerysubscription">useLazyQuerySubscription</a>
+        </div>
+      </th>
+      <th style={{ 'white-space': 'nowrap', border: 'none' }}>
+        <div
+          style={{
+            transform: 'translate(0px, 51px) rotate(315deg)',
+            width: '20px',
+          }}
+        >
+          <a href="#useprefetch">usePrefetch</a>
+        </div>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style={{ width: '330px' }}>Automatically triggers query requests</td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td style={{ width: '330px' }}>
+        Allows manually triggering query requests
+      </td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td>✔️</td>
+    </tr>
+    <tr>
+      <td style={{ width: '330px' }}>
+        Allows manually triggering mutation requests
+      </td>
+      <td></td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td style={{ width: '330px' }}>
+        Subscribes a component to keep cached data in the store
+      </td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td></td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td style={{ width: '330px' }}>
+        Returns request status and cached data from the store
+      </td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td></td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td style={{ width: '330px' }}>
+        Re-renders as request status and data become available
+      </td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td></td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td style={{ width: '330px' }}>
+        Accepts polling/re-fetching options to trigger automatic re-fetches
+      </td>
+      <td>✔️</td>
+      <td></td>
+      <td></td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td>✔️</td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+
+## `useQuery`
+
+#### Signature
+
+```ts no-transpile
+type UseQuery = (
+  arg: any | SkipToken,
+  options?: UseQueryOptions
+) => UseQueryResult
+
+type UseQueryOptions = {
+  pollingInterval?: number
+  refetchOnReconnect?: boolean
+  refetchOnFocus?: boolean
+  skip?: boolean
+  refetchOnMountOrArgChange?: boolean | number
+  selectFromResult?: QueryStateSelector
+}
+
+type UseQueryResult<T> = {
+  // Base query state
+  originalArgs?: unknown // Arguments passed to the query
+  data?: T // Returned result if present
+  error?: unknown // Error result if present
+  requestId?: string // A string generated by RTK Query
+  endpointName?: string // The name of the given endpoint for the query
+  startedTimeStamp?: number // Timestamp for when the query was initiated
+  fulfilledTimeStamp?: number // Timestamp for when the query was completed
+
+  // Derived request status booleans
+  isUninitialized: boolean // Query has not started yet.
+  isLoading: boolean // Query is currently loading for the first time. No data yet.
+  isFetching: boolean // Query is currently fetching, but might have data from an earlier request.
+  isSuccess: boolean // Query has data from a successful load.
+  isError: boolean // Query is currently in an "error" state.
+
+  refetch: () => void // A function to force refetch the query
+}
+```
+
+- **Parameters**
+  - `arg`: The query argument to be used in constructing the query itself, and as a cache key for the query.
+    You can also pass in `skipToken` here as an alternative way of skipping the query, see [skipToken](#skiptoken)
+  - `options`: A set of options that control the fetching behavior of the hook
+- **Returns**
+  - A query result object containing the current loading state, the actual data or error returned from the API call, metadata about the request, and a function to `refetch` the data. Can be customized with `selectFromResult`
+
+#### Description
+
+[summary](docblock://query/react/buildHooks.ts?token=UseQuery)
+
+#### `skipToken`
+
+[summary](docblock://query/core/buildSelectors.ts?token=skipToken)
+
+See also [Skipping queries with TypeScript using `skipToken`](../../usage-with-typescript.mdx#skipping-queries-with-typescript-using-skiptoken)
+
+## `useMutation`
+
+#### Signature
+
+```ts no-transpile
+type UseMutation = (
+  options?: UseMutationStateOptions
+) => [UseMutationTrigger, UseMutationResult | SelectedUseMutationResult]
+
+type UseMutationStateOptions = {
+  // A method to determine the contents of `UseMutationResult`
+  selectFromResult?: (state, defaultMutationStateSelector) => SelectedUseMutationResult extends Record<string, any>
+}
+
+type UseMutationTrigger<T> = (
+  arg: any
+) => Promise<{ data: T } | { error: BaseQueryError | SerializedError }> & {
+  requestId: string // A string generated by RTK Query
+  abort: () => void // A method to cancel the mutation promise
+  unwrap: () => Promise<T> // A method to unwrap the mutation call and provide the raw response/error
+  unsubscribe: () => void // A method to manually unsubscribe from the mutation call
+}
+
+type UseMutationResult<T> = {
+  // Base query state
+  originalArgs?: unknown // Arguments passed to the latest mutation call
+  data?: T // Returned result if present
+  error?: unknown // Error result if present
+  endpointName?: string // The name of the given endpoint for the mutation
+  fulfilledTimestamp?: number // Timestamp for when the mutation was completed
+
+  // Derived request status booleans
+  isUninitialized: boolean // Mutation has not been fired yet
+  isLoading: boolean // Mutation has been fired and is awaiting a response
+  isSuccess: boolean // Mutation has data from a successful call
+  isError: boolean // Mutation is currently in an "error" state
+  startedTimeStamp?: number // Timestamp for when the latest mutation was initiated
+}
+```
+
+:::tip
+
+The generated `UseMutation` hook will cause a component to re-render by default after the trigger callback is fired, as it affects the properties of the result. If you want to call the trigger but don't care about subscribing to the result with the hook, you can use the `selectFromResult` option to limit the properties that the hook cares about.
+
+Returning a completely empty object will mean that any individual mutation call will cause only one re-render at most, e.g.
+
+```ts no-transpile
+selectFromResult: () => ({})
+```
+
+:::
+
+- **Parameters**
+
+  - `options`: A set of options that control the subscription behavior of the hook
+
+- **Returns**: A tuple containing:
+  - `trigger`: A function that triggers an update to the data based on the provided argument. The trigger function returns a promise with the properties shown above that may be used to handle the behavior of the promise
+  - `mutationState`: A query status object containing the current loading state and metadata about the request, or the values returned by the `selectFromResult` option where applicable
+
+#### Description
+
+[summary](docblock://query/react/buildHooks.ts?token=UseMutation)
+
+## `useQueryState`
+
+#### Signature
+
+```ts no-transpile
+type UseQueryState = (
+  arg: any | SkipToken,
+  options?: UseQueryStateOptions
+) => UseQueryStateResult | SelectedQueryStateResult
+
+type UseQueryStateOptions = {
+  skip?: boolean
+  selectFromResult?: (
+    state,
+    lastResult,
+    defaultQueryStateSelector
+  ) => SelectedQueryStateResult
+}
+
+type UseQueryStateResult<T> = {
+  // Base query state
+  originalArgs?: unknown // Arguments passed to the query
+  data?: T // Returned result if present
+  error?: unknown // Error result if present
+  requestId?: string // A string generated by RTK Query
+  endpointName?: string // The name of the given endpoint for the query
+  startedTimeStamp?: number // Timestamp for when the query was initiated
+  fulfilledTimeStamp?: number // Timestamp for when the query was completed
+
+  isUninitialized: false // Query has not started yet.
+  isLoading: false // Query is currently loading for the first time. No data yet.
+  isFetching: false // Query is currently fetching, but might have data from an earlier request.
+  isSuccess: false // Query has data from a successful load.
+  isError: false // Query is currently in an "error" state.
+}
+```
+
+- **Parameters**
+
+  - `arg`: The argument passed to the query defined in the endpoint.
+    You can also pass in `skipToken` here as an alternative way of skipping the selection, see [skipToken](#skiptoken)
+  - `options`: A set of options that control the return value for the hook
+
+- **Returns**
+  - A query result object containing the current loading state, the actual data or error returned from the API call and metadata about the request. Can be customized with `selectFromResult`
+
+#### Description
+
+[summary](docblock://query/react/buildHooks.ts?token=UseQueryState)
+
+## `useQuerySubscription`
+
+#### Signature
+
+```ts no-transpile
+type UseQuerySubscription = (
+  arg: any | SkipToken,
+  options?: UseQuerySubscriptionOptions
+) => UseQuerySubscriptionResult
+
+type UseQuerySubscriptionOptions = {
+  skip?: boolean
+  refetchOnMountOrArgChange?: boolean | number
+  pollingInterval?: number
+  refetchOnReconnect?: boolean
+  refetchOnFocus?: boolean
+}
+
+type UseQuerySubscriptionResult = {
+  refetch: () => void // A function to force refetch the query
+}
+```
+
+- **Parameters**
+
+  - `arg`: The argument passed to the query defined in the endpoint.
+    You can also pass in `skipToken` here as an alternative way of skipping the query, see [skipToken](#skiptoken)
+  - `options`: A set of options that control the fetching behaviour of the hook
+
+- **Returns**
+  - An object containing a function to `refetch` the data
+
+#### Description
+
+[summary](docblock://query/react/buildHooks.ts?token=UseQuerySubscription)
+
+## `useLazyQuery`
+
+#### Signature
+
+```ts no-transpile
+type UseLazyQuery = (
+  options?: UseLazyQueryOptions
+) => [UseLazyQueryTrigger, UseQueryStateResult, UseLazyQueryLastPromiseInfo]
+
+type UseLazyQueryOptions = {
+  pollingInterval?: number
+  refetchOnReconnect?: boolean
+  refetchOnFocus?: boolean
+  selectFromResult?: (
+    state,
+    lastResult,
+    defaultQueryStateSelector
+  ) => UseQueryStateResult
+}
+
+type UseLazyQueryTrigger = (arg: any) => void
+
+type UseQueryStateResult<T> = {
+  // Base query state
+  originalArgs?: unknown // Arguments passed to the query
+  data?: T // Returned result if present
+  error?: unknown // Error result if present
+  requestId?: string // A string generated by RTK Query
+  endpointName?: string // The name of the given endpoint for the query
+  startedTimeStamp?: number // Timestamp for when the query was initiated
+  fulfilledTimeStamp?: number // Timestamp for when the query was completed
+
+  isUninitialized: false // Query has not started yet.
+  isLoading: false // Query is currently loading for the first time. No data yet.
+  isFetching: false // Query is currently fetching, but might have data from an earlier request.
+  isSuccess: false // Query has data from a successful load.
+  isError: false // Query is currently in an "error" state.
+}
+
+type UseLazyQueryLastPromiseInfo = {
+  lastArg: any
+}
+```
+
+- **Parameters**
+
+  - `options`: A set of options that control the fetching behavior and returned result value of the hook. Options affecting fetching behavior will only have an effect after the lazy query has been triggered at least once.
+
+- **Returns**: A tuple containing:
+  - `trigger`: A function that fetches the corresponding data for the endpoint when called
+  - `result`: A query result object containing the current loading state, the actual data or error returned from the API call and metadata about the request. Can be customized with `selectFromResult`
+  - `lastPromiseInfo`: An object containing the last argument used to call the trigger function
+
+#### Description
+
+[summary](docblock://query/react/buildHooks.ts?token=UseLazyQuery)
+
+## `useLazyQuerySubscription`
+
+#### Signature
+
+```ts no-transpile
+type UseLazyQuerySubscription = (
+  options?: UseLazyQuerySubscriptionOptions
+) => [UseLazyQuerySubscriptionTrigger, LastArg]
+
+type UseLazyQuerySubscriptionOptions = {
+  pollingInterval?: number
+  refetchOnReconnect?: boolean
+  refetchOnFocus?: boolean
+}
+
+type UseLazyQuerySubscriptionTrigger = (arg: any) => void
+```
+
+- **Parameters**
+
+  - `options`: A set of options that control the fetching behavior of the hook. The options will only have an effect after the lazy query has been triggered at least once.
+
+- **Returns**: A tuple containing:
+  - `trigger`: A function that fetches the corresponding data for the endpoint when called
+  - `lastArg`: The last argument used to call the trigger function
+
+#### Description
+
+[summary](docblock://query/react/buildHooks.ts?token=UseLazyQuerySubscription)
+
+## `usePrefetch`
+
+#### Signature
+
+```ts no-transpile
+type UsePrefetch = (
+  endpointName: string,
+  options?: UsePrefetchOptions
+) => PrefetchCallback
+
+type UsePrefetchOptions =
+  | {
+      // If specified, only runs the query if the difference between `new Date()` and the last
+      // `fulfilledTimeStamp` is greater than the given value (in seconds)
+      ifOlderThan?: false | number
+    }
+  | {
+      // If `force: true`, it will ignore the `ifOlderThan` value if it is set and the query
+      // will be run even if it exists in the cache.
+      force?: boolean
+    }
+
+type PrefetchCallback = (arg: any, options?: UsePrefetchOptions) => void
+```
+
+- **Parameters**
+
+  - `endpointName`: The name of the endpoint to prefetch data for
+  - `options`: A set of options that control whether the prefetch request should occur
+
+- **Returns**
+  - A `prefetch` callback that when called, will initiate fetching the data for the provided endpoint
+
+#### Description
+
+A React hook which can be used to initiate fetching data ahead of time.
+
+#### Features
+
+- Manual control over firing a request to retrieve data

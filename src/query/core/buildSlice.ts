@@ -1,12 +1,11 @@
+import type { AsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import {
-  AsyncThunk,
   combineReducers,
   createAction,
   createSlice,
   isAnyOf,
   isFulfilled,
   isRejectedWithValue,
-  PayloadAction,
   // Workaround for API-Extractor
   AnyAction,
   CombinedState,
@@ -14,13 +13,12 @@ import {
   ActionCreatorWithPayload,
   ActionCreatorWithoutPayload,
 } from '@reduxjs/toolkit'
-import {
+import type {
   CombinedState as CombinedQueryState,
   QuerySubstateIdentifier,
   QuerySubState,
   MutationSubstateIdentifier,
   MutationSubState,
-  QueryStatus,
   MutationState,
   QueryState,
   InvalidationState,
@@ -29,21 +27,28 @@ import {
   SubscriptionState,
   ConfigState,
 } from './apiState'
-import {
-  calculateProvidedByThunk,
+import { QueryStatus } from './apiState'
+import type {
+  MutationThunk,
   MutationThunkArg,
+  QueryThunk,
   QueryThunkArg,
   ThunkResult,
 } from './buildThunks'
-import { AssertTagTypes, EndpointDefinitions } from '../endpointDefinitions'
-import { applyPatches, Patch } from 'immer'
+import { calculateProvidedByThunk } from './buildThunks'
+import type {
+  AssertTagTypes,
+  EndpointDefinitions,
+} from '../endpointDefinitions'
+import type { Patch } from 'immer'
+import { applyPatches } from 'immer'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import {
   isDocumentVisible,
   isOnline,
   copyWithStructuralSharing,
 } from '../utils'
-import { ApiContext } from '../apiTypes'
+import type { ApiContext } from '../apiTypes'
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
@@ -78,11 +83,14 @@ export function buildSlice({
   config,
 }: {
   reducerPath: string
-  queryThunk: AsyncThunk<ThunkResult, QueryThunkArg, {}>
-  mutationThunk: AsyncThunk<ThunkResult, MutationThunkArg, {}>
+  queryThunk: QueryThunk
+  mutationThunk: MutationThunk
   context: ApiContext<EndpointDefinitions>
   assertTagType: AssertTagTypes
-  config: Omit<ConfigState<string>, 'online' | 'focused'>
+  config: Omit<
+    ConfigState<string>,
+    'online' | 'focused' | 'middlewareRegistered'
+  >
 }) {
   const resetApiState = createAction(`${reducerPath}/resetApiState`)
   const querySlice = createSlice({
@@ -108,7 +116,7 @@ export function buildSlice({
     },
     extraReducers(builder) {
       builder
-        .addCase(queryThunk.pending, (draft, { meta: { arg, requestId } }) => {
+        .addCase(queryThunk.pending, (draft, { meta, meta: { arg } }) => {
           if (arg.subscribe) {
             // only initialize substate if we want to subscribe to it
             draft[arg.queryCacheKey] ??= {
@@ -119,9 +127,9 @@ export function buildSlice({
 
           updateQuerySubstateIfExists(draft, arg.queryCacheKey, (substate) => {
             substate.status = QueryStatus.pending
-            substate.requestId = requestId
+            substate.requestId = meta.requestId
             substate.originalArgs = arg.originalArgs
-            substate.startedTimeStamp = arg.startedTimeStamp
+            substate.startedTimeStamp = meta.startedTimeStamp
           })
         })
         .addCase(queryThunk.fulfilled, (draft, { meta, payload }) => {
@@ -131,12 +139,9 @@ export function buildSlice({
             (substate) => {
               if (substate.requestId !== meta.requestId) return
               substate.status = QueryStatus.fulfilled
-              substate.data = copyWithStructuralSharing(
-                substate.data,
-                payload.result
-              )
+              substate.data = copyWithStructuralSharing(substate.data, payload)
               delete substate.error
-              substate.fulfilledTimeStamp = payload.fulfilledTimeStamp
+              substate.fulfilledTimeStamp = meta.fulfilledTimeStamp
             }
           )
         })
@@ -165,7 +170,7 @@ export function buildSlice({
     name: `${reducerPath}/mutations`,
     initialState: initialState as MutationState<any>,
     reducers: {
-      unsubscribeResult(
+      unsubscribeMutationResult(
         draft,
         action: PayloadAction<MutationSubstateIdentifier>
       ) {
@@ -178,26 +183,26 @@ export function buildSlice({
       builder
         .addCase(
           mutationThunk.pending,
-          (draft, { meta: { arg, requestId } }) => {
+          (draft, { meta: { arg, requestId, startedTimeStamp } }) => {
             if (!arg.track) return
 
             draft[requestId] = {
               status: QueryStatus.pending,
               originalArgs: arg.originalArgs,
               endpointName: arg.endpointName,
-              startedTimeStamp: arg.startedTimeStamp,
+              startedTimeStamp,
             }
           }
         )
         .addCase(
           mutationThunk.fulfilled,
-          (draft, { payload, meta: { requestId, arg } }) => {
-            if (!arg.track) return
+          (draft, { payload, meta, meta: { requestId } }) => {
+            if (!meta.arg.track) return
 
             updateMutationSubstateIfExists(draft, { requestId }, (substate) => {
               substate.status = QueryStatus.fulfilled
-              substate.data = payload.result
-              substate.fulfilledTimeStamp = payload.fulfilledTimeStamp
+              substate.data = payload
+              substate.fulfilledTimeStamp = meta.fulfilledTimeStamp
             })
           }
         )
@@ -283,7 +288,7 @@ export function buildSlice({
           draft[queryCacheKey]![requestId] = options
         }
       },
-      unsubscribeResult(
+      unsubscribeQueryResult(
         draft,
         {
           payload: { queryCacheKey, requestId },
@@ -328,9 +333,14 @@ export function buildSlice({
     initialState: {
       online: isOnline(),
       focused: isDocumentVisible(),
+      middlewareRegistered: false,
       ...config,
     } as ConfigState<string>,
-    reducers: {},
+    reducers: {
+      middlewareRegistered(state) {
+        state.middlewareRegistered = true
+      },
+    },
     extraReducers: (builder) => {
       builder
         .addCase(onOnline, (state) => {
@@ -362,12 +372,10 @@ export function buildSlice({
     combinedReducer(resetApiState.match(action) ? undefined : state, action)
 
   const actions = {
-    updateSubscriptionOptions:
-      subscriptionSlice.actions.updateSubscriptionOptions,
-    queryResultPatched: querySlice.actions.queryResultPatched,
-    removeQueryResult: querySlice.actions.removeQueryResult,
-    unsubscribeQueryResult: subscriptionSlice.actions.unsubscribeResult,
-    unsubscribeMutationResult: mutationSlice.actions.unsubscribeResult,
+    ...configSlice.actions,
+    ...querySlice.actions,
+    ...subscriptionSlice.actions,
+    ...mutationSlice.actions,
     resetApiState,
   }
 

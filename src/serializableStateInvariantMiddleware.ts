@@ -1,5 +1,5 @@
 import isPlainObject from './isPlainObject'
-import { Middleware } from 'redux'
+import type { Middleware } from 'redux'
 import { getTimeMeasureUtils } from './utils'
 
 /**
@@ -156,7 +156,7 @@ export function createSerializableStateInvariantMiddleware(
     isSerializable = isPlain,
     getEntries,
     ignoredActions = [],
-    ignoredActionPaths = ['meta.arg'],
+    ignoredActionPaths = ['meta.arg', 'meta.baseQueryMeta'],
     ignoredPaths = [],
     warnAfter = 32,
     ignoreState = false,

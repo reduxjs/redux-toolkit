@@ -1,7 +1,11 @@
 import { createApi } from '@reduxjs/toolkit/query'
 import { waitFor } from '@testing-library/react'
-import { fetchBaseQuery } from '../fetchBaseQuery'
-import { setupApiStore } from './helpers'
+import type {
+  FetchBaseQueryMeta,
+  FetchBaseQueryError,
+} from '@reduxjs/toolkit/query'
+import { fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { expectType, setupApiStore } from './helpers'
 import { server } from './mocks/server'
 import { rest } from 'msw'
 
@@ -30,7 +34,7 @@ describe.each([['query'], ['mutation']] as const)(
         endpoints: (build) => ({
           injected: build[type as 'mutation']<unknown, string>({
             query: () => '/success',
-            onQuery(arg) {
+            onQueryStarted(arg) {
               onStart(arg)
             },
           }),
@@ -44,13 +48,14 @@ describe.each([['query'], ['mutation']] as const)(
       const extended = api.injectEndpoints({
         overrideExisting: true,
         endpoints: (build) => ({
-          injected: build[type as 'mutation']<unknown, string>({
+          injected: build[type as 'mutation']<number, string>({
             query: () => '/success',
-            async onQuery(arg, { resultPromise }) {
+            async onQueryStarted(arg, { queryFulfilled }) {
               onStart(arg)
               // awaiting without catching like this would result in an `unhandledRejection` exception if there was an error
               // unfortunately we cannot test for that in jest.
-              const result = await resultPromise
+              const result = await queryFulfilled
+              expectType<{ data: number; meta?: FetchBaseQueryMeta }>(result)
               onSuccess(result)
             },
           }),
@@ -59,7 +64,13 @@ describe.each([['query'], ['mutation']] as const)(
       storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
       expect(onStart).toHaveBeenCalledWith('arg')
       await waitFor(() => {
-        expect(onSuccess).toHaveBeenCalledWith({ value: 'success' })
+        expect(onSuccess).toHaveBeenCalledWith({
+          data: { value: 'success' },
+          meta: {
+            request: expect.any(Request),
+            response: expect.any(Object), // Response is not available in jest env
+          },
+        })
       })
     })
 
@@ -69,10 +80,10 @@ describe.each([['query'], ['mutation']] as const)(
         endpoints: (build) => ({
           injected: build[type as 'mutation']<unknown, string>({
             query: () => '/error',
-            async onQuery(arg, { resultPromise }) {
+            async onQueryStarted(arg, { queryFulfilled }) {
               onStart(arg)
               try {
-                const result = await resultPromise
+                const result = await queryFulfilled
                 onSuccess(result)
               } catch (e) {
                 onError(e)
@@ -85,8 +96,15 @@ describe.each([['query'], ['mutation']] as const)(
       expect(onStart).toHaveBeenCalledWith('arg')
       await waitFor(() => {
         expect(onError).toHaveBeenCalledWith({
-          status: 500,
-          data: { value: 'error' },
+          error: {
+            status: 500,
+            data: { value: 'error' },
+          },
+          isUnhandledError: false,
+          meta: {
+            request: expect.any(Request),
+            response: expect.any(Object), // Response is not available in jest env
+          },
         })
       })
       expect(onSuccess).not.toHaveBeenCalled()
@@ -101,13 +119,13 @@ test('query: getCacheEntry (success)', async () => {
     endpoints: (build) => ({
       injected: build.query<unknown, string>({
         query: () => '/success',
-        async onQuery(
+        async onQueryStarted(
           arg,
-          { dispatch, getState, getCacheEntry, resultPromise }
+          { dispatch, getState, getCacheEntry, queryFulfilled }
         ) {
           try {
             snapshot(getCacheEntry())
-            const result = await resultPromise
+            const result = await queryFulfilled
             onSuccess(result)
             snapshot(getCacheEntry())
           } catch (e) {
@@ -162,13 +180,13 @@ test('query: getCacheEntry (error)', async () => {
     endpoints: (build) => ({
       injected: build.query<unknown, string>({
         query: () => '/error',
-        async onQuery(
+        async onQueryStarted(
           arg,
-          { dispatch, getState, getCacheEntry, resultPromise }
+          { dispatch, getState, getCacheEntry, queryFulfilled }
         ) {
           try {
             snapshot(getCacheEntry())
-            const result = await resultPromise
+            const result = await queryFulfilled
             onSuccess(result)
             snapshot(getCacheEntry())
           } catch (e) {
@@ -222,13 +240,13 @@ test('mutation: getCacheEntry (success)', async () => {
     endpoints: (build) => ({
       injected: build.mutation<unknown, string>({
         query: () => '/success',
-        async onQuery(
+        async onQueryStarted(
           arg,
-          { dispatch, getState, getCacheEntry, resultPromise }
+          { dispatch, getState, getCacheEntry, queryFulfilled }
         ) {
           try {
             snapshot(getCacheEntry())
-            const result = await resultPromise
+            const result = await queryFulfilled
             onSuccess(result)
             snapshot(getCacheEntry())
           } catch (e) {
@@ -281,13 +299,13 @@ test('mutation: getCacheEntry (error)', async () => {
     endpoints: (build) => ({
       injected: build.mutation<unknown, string>({
         query: () => '/error',
-        async onQuery(
+        async onQueryStarted(
           arg,
-          { dispatch, getState, getCacheEntry, resultPromise }
+          { dispatch, getState, getCacheEntry, queryFulfilled }
         ) {
           try {
             snapshot(getCacheEntry())
-            const result = await resultPromise
+            const result = await queryFulfilled
             onSuccess(result)
             snapshot(getCacheEntry())
           } catch (e) {
@@ -332,7 +350,7 @@ test('mutation: getCacheEntry (error)', async () => {
   })
 })
 
-test('query: updateCacheEntry', async () => {
+test('query: updateCachedData', async () => {
   const trackCalls = jest.fn()
 
   const extended = api.injectEndpoints({
@@ -340,21 +358,27 @@ test('query: updateCacheEntry', async () => {
     endpoints: (build) => ({
       injected: build.query<{ value: string }, string>({
         query: () => '/success',
-        async onQuery(
+        async onQueryStarted(
           arg,
-          { dispatch, getState, getCacheEntry, updateCacheEntry, resultPromise }
+          {
+            dispatch,
+            getState,
+            getCacheEntry,
+            updateCachedData,
+            queryFulfilled,
+          }
         ) {
-          // calling `updateCacheEntry` when there is no data yet should not do anything
+          // calling `updateCachedData` when there is no data yet should not do anything
           // but if there is a cache value it will be updated & overwritten by the next succesful result
-          updateCacheEntry((draft) => {
+          updateCachedData((draft) => {
             draft.value += '.'
           })
 
           try {
-            const val = await resultPromise
+            const val = await queryFulfilled
             onSuccess(getCacheEntry().data)
           } catch (error) {
-            updateCacheEntry((draft) => {
+            updateCachedData((draft) => {
               draft.value += 'x'
             })
             onError(getCacheEntry().data)
@@ -410,7 +434,7 @@ test('query: will only start lifecycle if query is not skipped due to `condition
     endpoints: (build) => ({
       injected: build.query<unknown, string>({
         query: () => '/success',
-        onQuery(arg) {
+        onQueryStarted(arg) {
           onStart(arg)
         },
       }),
@@ -427,4 +451,112 @@ test('query: will only start lifecycle if query is not skipped due to `condition
     extended.endpoints.injected.initiate('arg', { forceRefetch: true })
   )
   expect(onStart).toHaveBeenCalledTimes(2)
+})
+
+test('query types', () => {
+  const extended = api.injectEndpoints({
+    overrideExisting: true,
+    endpoints: (build) => ({
+      injected: build['query']<number, string>({
+        query: () => '/success',
+        async onQueryStarted(arg, { queryFulfilled }) {
+          onStart(arg)
+
+          queryFulfilled.then(
+            (result) => {
+              expectType<{ data: number; meta?: FetchBaseQueryMeta }>(result)
+            },
+            (reason) => {
+              if (reason.isUnhandledError) {
+                expectType<{
+                  error: unknown
+                  meta?: undefined
+                  isUnhandledError: true
+                }>(reason)
+              } else {
+                expectType<{
+                  error: FetchBaseQueryError
+                  isUnhandledError: false
+                  meta: FetchBaseQueryMeta | undefined
+                }>(reason)
+              }
+            }
+          )
+
+          queryFulfilled.catch((reason) => {
+            if (reason.isUnhandledError) {
+              expectType<{
+                error: unknown
+                meta?: undefined
+                isUnhandledError: true
+              }>(reason)
+            } else {
+              expectType<{
+                error: FetchBaseQueryError
+                isUnhandledError: false
+                meta: FetchBaseQueryMeta | undefined
+              }>(reason)
+            }
+          })
+
+          const result = await queryFulfilled
+          expectType<{ data: number; meta?: FetchBaseQueryMeta }>(result)
+        },
+      }),
+    }),
+  })
+})
+
+test('mutation types', () => {
+  const extended = api.injectEndpoints({
+    overrideExisting: true,
+    endpoints: (build) => ({
+      injected: build['query']<number, string>({
+        query: () => '/success',
+        async onQueryStarted(arg, { queryFulfilled }) {
+          onStart(arg)
+
+          queryFulfilled.then(
+            (result) => {
+              expectType<{ data: number; meta?: FetchBaseQueryMeta }>(result)
+            },
+            (reason) => {
+              if (reason.isUnhandledError) {
+                expectType<{
+                  error: unknown
+                  meta?: undefined
+                  isUnhandledError: true
+                }>(reason)
+              } else {
+                expectType<{
+                  error: FetchBaseQueryError
+                  isUnhandledError: false
+                  meta: FetchBaseQueryMeta | undefined
+                }>(reason)
+              }
+            }
+          )
+
+          queryFulfilled.catch((reason) => {
+            if (reason.isUnhandledError) {
+              expectType<{
+                error: unknown
+                meta?: undefined
+                isUnhandledError: true
+              }>(reason)
+            } else {
+              expectType<{
+                error: FetchBaseQueryError
+                isUnhandledError: false
+                meta: FetchBaseQueryMeta | undefined
+              }>(reason)
+            }
+          })
+
+          const result = await queryFulfilled
+          expectType<{ data: number; meta?: FetchBaseQueryMeta }>(result)
+        },
+      }),
+    }),
+  })
 })

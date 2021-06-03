@@ -5,6 +5,8 @@ sidebar_label: createAction
 hide_title: true
 ---
 
+&nbsp;
+
 # `createAction`
 
 A helper function for defining a Redux [action](https://redux.js.org/basics/actions) type and creator.
@@ -21,7 +23,7 @@ const INCREMENT = 'counter/increment'
 function increment(amount: number) {
   return {
     type: INCREMENT,
-    payload: amount
+    payload: amount,
   }
 }
 
@@ -63,8 +65,8 @@ const addTodo = createAction('todos/add', function prepare(text: string) {
     payload: {
       text,
       id: nanoid(),
-      createdAt: new Date().toISOString()
-    }
+      createdAt: new Date().toISOString(),
+    },
   }
 })
 
@@ -95,7 +97,7 @@ import { createAction, createReducer } from '@reduxjs/toolkit'
 const increment = createAction<number>('counter/increment')
 const decrement = createAction<number>('counter/decrement')
 
-const counterReducer = createReducer(0, builder => {
+const counterReducer = createReducer(0, (builder) => {
   builder.addCase(increment, (state, action) => state + action.payload)
   builder.addCase(decrement, (state, action) => state - action.payload)
 })
@@ -133,7 +135,7 @@ const counterReducer = createReducer(0, {
   [increment]: (state, action) => state + action.payload,
 
   // You would need to use the action type explicitly instead.
-  [INCREMENT]: (state, action) => state + action.payload
+  [INCREMENT]: (state, action) => state + action.payload,
 })
 ```
 
@@ -178,7 +180,7 @@ const increment = createAction<number>('INCREMENT')
 export const epic = (actions$: Observable<Action>) =>
   actions$.pipe(
     filter(increment.match),
-    map(action => {
+    map((action) => {
       // action.payload can be safely used as number here (and will also be correctly inferred by TypeScript)
       // ...
     })

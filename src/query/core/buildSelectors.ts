@@ -1,13 +1,12 @@
 import { createNextState, createSelector } from '@reduxjs/toolkit'
-import {
+import type {
   MutationSubState,
-  QueryStatus,
   QuerySubState,
   RootState as _RootState,
-  getRequestStatusFlags,
   RequestStatusFlags,
 } from './apiState'
-import {
+import { QueryStatus, getRequestStatusFlags } from './apiState'
+import type {
   EndpointDefinitions,
   QueryDefinition,
   MutationDefinition,
@@ -15,9 +14,34 @@ import {
   TagTypesFrom,
   ReducerPathFrom,
 } from '../endpointDefinitions'
-import { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 
-export const skipSelector = Symbol('skip selector')
+export type SkipToken = typeof skipToken
+/**
+ * Can be passed into `useQuery`, `useQueryState` or `useQuerySubscription`
+ * instead of the query argument to get the same effect as if setting
+ * `skip: true` in the query options.
+ *
+ * Useful for scenarios where a query should be skipped when `arg` is `undefined`
+ * and TypeScript complains about it because `arg` is not allowed to be passed
+ * in as `undefined`, such as
+ *
+ * ```ts
+ * // codeblock-meta title="will error if the query argument is not allowed to be undefined" no-transpile
+ * useSomeQuery(arg, { skip: !!arg })
+ * ```
+ *
+ * ```ts
+ * // codeblock-meta title="using skipToken instead" no-transpile
+ * useSomeQuery(arg ?? skipToken)
+ * ```
+ *
+ * If passed directly into a query or mutation selector, that selector will always
+ * return an uninitialized state.
+ */
+export const skipToken = /* @__PURE__ */ Symbol('skip selector')
+/** @deprecated renamed to `skipToken` */
+export const skipSelector = skipToken
 
 declare module './module' {
   export interface ApiEndpointQuery<
@@ -53,7 +77,7 @@ type QueryResultSelectorFactory<
   Definition extends QueryDefinition<any, any, any, any>,
   RootState
 > = (
-  queryArg: QueryArgFrom<Definition> | typeof skipSelector
+  queryArg: QueryArgFrom<Definition> | SkipToken
 ) => (state: RootState) => QueryResultSelectorResult<Definition>
 
 export type QueryResultSelectorResult<
@@ -64,7 +88,7 @@ type MutationResultSelectorFactory<
   Definition extends MutationDefinition<any, any, any, any>,
   RootState
 > = (
-  requestId: string | typeof skipSelector
+  requestId: string | SkipToken
 ) => (state: RootState) => MutationResultSelectorResult<Definition>
 
 export type MutationResultSelectorResult<
@@ -76,8 +100,11 @@ const initialSubState: QuerySubState<any> = {
 }
 
 // abuse immer to freeze default states
-const defaultQuerySubState = createNextState(initialSubState, () => {})
-const defaultMutationSubState = createNextState(
+const defaultQuerySubState = /* @__PURE__ */ createNextState(
+  initialSubState,
+  () => {}
+)
+const defaultMutationSubState = /* @__PURE__ */ createNextState(
   initialSubState as MutationSubState<any>,
   () => {}
 )
@@ -106,7 +133,17 @@ export function buildSelectors<
   }
 
   function selectInternalState(rootState: RootState) {
-    return rootState[reducerPath]
+    const state = rootState[reducerPath]
+    if (process.env.NODE_ENV !== 'production') {
+      if (!state) {
+        if ((selectInternalState as any).triggered) return state
+        ;(selectInternalState as any).triggered = true
+        console.error(
+          `Error: No data found at \`state.${reducerPath}\`. Did you forget to add the reducer to the store?`
+        )
+      }
+    }
+    return state
   }
 
   function buildQuerySelector(
@@ -117,9 +154,9 @@ export function buildSelectors<
       const selectQuerySubState = createSelector(
         selectInternalState,
         (internalState) =>
-          (queryArgs === skipSelector
+          (queryArgs === skipToken
             ? undefined
-            : internalState.queries[
+            : internalState?.queries?.[
                 serializeQueryArgs({
                   queryArgs,
                   endpointDefinition,
@@ -139,9 +176,9 @@ export function buildSelectors<
       const selectMutationSubstate = createSelector(
         selectInternalState,
         (internalState) =>
-          (mutationId === skipSelector
+          (mutationId === skipToken
             ? undefined
-            : internalState.mutations[mutationId]) ?? defaultMutationSubState
+            : internalState?.mutations?.[mutationId]) ?? defaultMutationSubState
       )
       return createSelector(selectMutationSubstate, withRequestFlags)
     }

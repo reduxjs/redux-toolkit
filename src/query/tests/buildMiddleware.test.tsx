@@ -1,5 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query'
-import { actionsReducer, matchSequence, setupApiStore, waitMs } from './helpers'
+import { actionsReducer, setupApiStore, waitMs } from './helpers'
 
 const baseQuery = (args?: any) => ({ data: args })
 const api = createApi({
@@ -11,6 +11,12 @@ const api = createApi({
         return { url: `banana/${id}` }
       },
       providesTags: ['Banana'],
+    }),
+    getBananas: build.query<unknown, void>({
+      query() {
+        return { url: 'bananas' }
+      },
+      providesTags: ['Banana']
     }),
     getBread: build.query<unknown, number>({
       query(id) {
@@ -28,8 +34,8 @@ const storeRef = setupApiStore(api, {
 
 it('invalidates the specified tags', async () => {
   await storeRef.store.dispatch(getBanana.initiate(1))
-  matchSequence(
-    storeRef.store.getState().actions,
+  expect(storeRef.store.getState().actions).toMatchSequence(
+    api.internalActions.middlewareRegistered.match,
     getBanana.matchPending,
     getBanana.matchFulfilled
   )
@@ -40,21 +46,21 @@ it('invalidates the specified tags', async () => {
   await waitMs(20)
 
   const firstSequence = [
+    api.internalActions.middlewareRegistered.match,
     getBanana.matchPending,
     getBanana.matchFulfilled,
     api.util.invalidateTags.match,
     getBanana.matchPending,
     getBanana.matchFulfilled,
   ]
-  matchSequence(storeRef.store.getState().actions, ...firstSequence)
+  expect(storeRef.store.getState().actions).toMatchSequence(...firstSequence)
 
   await storeRef.store.dispatch(getBread.initiate(1))
   await storeRef.store.dispatch(api.util.invalidateTags([{ type: 'Bread' }]))
 
   await waitMs(20)
 
-  matchSequence(
-    storeRef.store.getState().actions,
+  expect(storeRef.store.getState().actions).toMatchSequence(
     ...firstSequence,
     getBread.matchPending,
     getBread.matchFulfilled,
@@ -82,5 +88,31 @@ describe.skip('TS only tests', () => {
   it('should error when using non-existing TagTypes in the full format', () => {
     // @ts-expect-error
     api.util.invalidateTags([{ type: 'Missing' }])
+  })
+  it('should allow pre-fetching for an endpoint that takes an arg', () => {
+    api.util.prefetch('getBanana', 5, { force: true })
+    api.util.prefetch('getBanana', 5, { force: false })
+    api.util.prefetch('getBanana', 5, { ifOlderThan: false })
+    api.util.prefetch('getBanana', 5, { ifOlderThan: 30 })
+    api.util.prefetch('getBanana', 5, {})
+  })
+  it('should error when pre-fetching with the incorrect arg type', () => {
+    // @ts-expect-error arg should be number, not string
+    api.util.prefetch('getBanana', '5', { force: true })
+  })
+  it('should allow pre-fetching for an endpoint with a void arg', () => {
+    api.util.prefetch('getBananas', undefined, { force: true })
+    api.util.prefetch('getBananas', undefined, { force: false })
+    api.util.prefetch('getBananas', undefined, { ifOlderThan: false })
+    api.util.prefetch('getBananas', undefined, { ifOlderThan: 30 })
+    api.util.prefetch('getBananas', undefined, {})
+  })
+  it('should error when pre-fetching with a defined arg when expecting void', () => {
+    // @ts-expect-error arg should be void, not number
+    api.util.prefetch('getBananas', 5, { force: true })
+  })
+  it('should error when pre-fetching for an incorrect endpoint name', () => {
+    // @ts-expect-error endpoint name does not exist
+    api.util.prefetch('getPomegranates', undefined, { force: true })
   })
 })
