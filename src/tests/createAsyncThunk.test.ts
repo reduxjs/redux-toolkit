@@ -1,5 +1,4 @@
-import type {
-  AnyAction} from '@reduxjs/toolkit';
+import type { AnyAction } from '@reduxjs/toolkit'
 import {
   createAsyncThunk,
   unwrapResult,
@@ -494,11 +493,11 @@ describe('createAsyncThunk with abortController', () => {
       freshlyLoadedModule = require('../createAsyncThunk')
       restore = mockConsole(createConsole())
       nodeEnv = process.env.NODE_ENV!
-      process.env.NODE_ENV = 'development'
+      ;(process.env as any).NODE_ENV = 'development'
     })
 
     afterEach(() => {
-      process.env.NODE_ENV = nodeEnv
+      ;(process.env as any).NODE_ENV = nodeEnv
       restore()
       window.AbortController = keepAbortController
       jest.resetModules()

@@ -1,6 +1,5 @@
-import { createApi } from '@reduxjs/toolkit/query'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { configureStore } from '@reduxjs/toolkit'
-import { fetchBaseQuery } from '../fetchBaseQuery'
 import { waitMs } from './helpers'
 import type { Middleware, Reducer } from 'redux'
 

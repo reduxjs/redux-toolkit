@@ -12,11 +12,11 @@ let nodeEnv: string
 beforeEach(() => {
   restore = mockConsole(createConsole())
   nodeEnv = process.env.NODE_ENV!
-  process.env.NODE_ENV = 'development'
+  ;(process.env as any).NODE_ENV = 'development'
 })
 
 afterEach(() => {
-  process.env.NODE_ENV = nodeEnv
+  ;(process.env as any).NODE_ENV = nodeEnv
   restore()
 })
 
@@ -49,7 +49,7 @@ describe('missing middleware', () => {
     ['development', true],
     ['production', false],
   ])('%s warns if middleware is missing: %s', ([env, shouldWarn]) => {
-    process.env.NODE_ENV = env
+    ;(process.env as any).NODE_ENV = env
     const store = configureStore({ reducer: { api1: api1.reducer } })
     store.dispatch(api1.endpoints.q1.initiate(undefined))
     expect(getLog().log).toBe(
@@ -97,7 +97,7 @@ describe('missing reducer', () => {
     ['development', true],
     ['production', false],
   ])('%s warns if reducer is missing: %s', ([env, shouldWarn]) => {
-    process.env.NODE_ENV = env
+    ;(process.env as any).NODE_ENV = env
     test('middleware not crashing if reducer is missing', async () => {
       const store = configureStore({
         reducer: { x: () => 0 },
