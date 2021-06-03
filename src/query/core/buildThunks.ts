@@ -3,18 +3,11 @@ import type { Api, ApiContext } from '../apiTypes'
 import type {
   BaseQueryFn,
   BaseQueryError,
-  QueryReturnValue} from '../baseQueryTypes';
-import {
-  BaseQueryArg
+  QueryReturnValue,
 } from '../baseQueryTypes'
-import type {
-  RootState,
-  QueryKeys,
-  QuerySubstateIdentifier} from './apiState';
-import {
-  QueryStatus,
-  CombinedState,
-} from './apiState'
+import { BaseQueryArg } from '../baseQueryTypes'
+import type { RootState, QueryKeys, QuerySubstateIdentifier } from './apiState'
+import { QueryStatus, CombinedState } from './apiState'
 import type { StartQueryActionCreatorOptions } from './buildInitiate'
 import type {
   AssertTagTypes,
@@ -23,14 +16,10 @@ import type {
   MutationDefinition,
   QueryArgFrom,
   QueryDefinition,
-  ResultTypeFrom} from '../endpointDefinitions';
-import {
-  calculateProvidedBy,
-  FullTagDescription,
+  ResultTypeFrom,
 } from '../endpointDefinitions'
-import type {
-  AsyncThunkPayloadCreator,
-  Draft} from '@reduxjs/toolkit';
+import { calculateProvidedBy, FullTagDescription } from '../endpointDefinitions'
+import type { AsyncThunkPayloadCreator, Draft } from '@reduxjs/toolkit'
 import {
   isAllOf,
   isFulfilled,
@@ -38,16 +27,15 @@ import {
   isRejected,
   isRejectedWithValue,
 } from '@reduxjs/toolkit'
-import type { Patch} from 'immer';
+import type { Patch } from 'immer'
 import { isDraftable, produceWithPatches } from 'immer'
 import type {
   AnyAction,
   ThunkAction,
   ThunkDispatch,
-  AsyncThunk} from '@reduxjs/toolkit';
-import {
-  createAsyncThunk
+  AsyncThunk,
 } from '@reduxjs/toolkit'
+import { createAsyncThunk } from '@reduxjs/toolkit'
 
 import { HandledError } from '../HandledError'
 
@@ -161,7 +149,7 @@ export type PatchQueryDataThunk<
 > = <EndpointName extends QueryKeys<Definitions>>(
   endpointName: EndpointName,
   args: QueryArgFrom<Definitions[EndpointName]>,
-  patches: Patch[]
+  patches: readonly Patch[]
 ) => ThunkAction<void, PartialState, any, AnyAction>
 
 export type UpdateQueryDataThunk<

@@ -69,7 +69,10 @@ export function isAllOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]>(
  *
  * @internal
  */
-export function hasExpectedRequestMetadata(action: any, validStatus: string[]) {
+export function hasExpectedRequestMetadata(
+  action: any,
+  validStatus: readonly string[]
+) {
   if (!action || !action.meta) return false
 
   const hasValidRequestId = typeof action.meta.requestId === 'string'

@@ -19,6 +19,25 @@ module.exports = {
     ],
   },
   overrides: [
+    // {
+    //   // only add after https://github.com/typescript-eslint/typescript-eslint/pull/3463 is merged
+    //   files: ['src/**/*.ts'],
+    //   excludedFiles: [
+    //     '**/tests/*.ts',
+    //     '**/tests/**/*.ts',
+    //     '**/tests/*.tsx',
+    //     '**/tests/**/*.tsx',
+    //   ],
+    //   parserOptions: {
+    //     project: './tsconfig.json',
+    //   },
+    //   rules: {
+    //     '@typescript-eslint/prefer-readonly-parameter-types': [
+    //       'warn',
+    //       { arraysAndTuplesOnly: true },
+    //     ],
+    //   },
+    // },
     {
       files: ['src/tests/*.ts', 'src/**/tests/*.ts', 'src/**/tests/*.tsx'],
       rules: {

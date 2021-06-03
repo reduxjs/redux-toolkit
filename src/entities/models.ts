@@ -65,11 +65,11 @@ export interface EntityStateAdapter<T> {
 
   addMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: T[] | Record<EntityId, T>
+    entities: readonly T[] | Record<EntityId, T>
   ): S
   addMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: PayloadAction<T[] | Record<EntityId, T>>
+    entities: PayloadAction<readonly T[] | Record<EntityId, T>>
   ): S
 
   setOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
@@ -79,19 +79,19 @@ export interface EntityStateAdapter<T> {
   ): S
   setMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: T[] | Record<EntityId, T>
+    entities: readonly T[] | Record<EntityId, T>
   ): S
   setMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: PayloadAction<T[] | Record<EntityId, T>>
+    entities: PayloadAction<readonly T[] | Record<EntityId, T>>
   ): S
   setAll<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: T[] | Record<EntityId, T>
+    entities: readonly T[] | Record<EntityId, T>
   ): S
   setAll<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: PayloadAction<T[] | Record<EntityId, T>>
+    entities: PayloadAction<readonly T[] | Record<EntityId, T>>
   ): S
 
   removeOne<S extends EntityState<T>>(state: PreventAny<S, T>, key: EntityId): S
@@ -102,11 +102,11 @@ export interface EntityStateAdapter<T> {
 
   removeMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    keys: EntityId[]
+    keys: readonly EntityId[]
   ): S
   removeMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    keys: PayloadAction<EntityId[]>
+    keys: PayloadAction<readonly EntityId[]>
   ): S
 
   removeAll<S extends EntityState<T>>(state: PreventAny<S, T>): S
@@ -122,11 +122,11 @@ export interface EntityStateAdapter<T> {
 
   updateMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    updates: Update<T>[]
+    updates: ReadonlyArray<Update<T>>
   ): S
   updateMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    updates: PayloadAction<Update<T>[]>
+    updates: PayloadAction<ReadonlyArray<Update<T>>>
   ): S
 
   upsertOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
@@ -137,11 +137,11 @@ export interface EntityStateAdapter<T> {
 
   upsertMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: T[] | Record<EntityId, T>
+    entities: readonly T[] | Record<EntityId, T>
   ): S
   upsertMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: PayloadAction<T[] | Record<EntityId, T>>
+    entities: PayloadAction<readonly T[] | Record<EntityId, T>>
   ): S
 }
 
