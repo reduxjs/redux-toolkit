@@ -1,15 +1,21 @@
 ---
-id: cached-data
-title: Cached Data
-sidebar_label: Cached Data
+id: automated-refetching
+title: Automated Re-fetching
+sidebar_label: Automated Re-fetching
 hide_title: true
 ---
 
-# Cached Data
+&nbsp;
 
-A key feature of RTK Query is it's management of cached data. When data is fetched from the server, RTK Query will store the data in the Redux store as a 'cache'. When an additional request is performed for the same data, RTK Query will provide the existing cached data rather than sending an additional request to the server.
+# Automated Re-fetching
 
-RTK Query provides a number of concepts and tools to manipulate the cache behaviour and adjust it to your needs.
+As seen under [Default Cache Behavior](./cache-behavior.mdx#default-cache-behavior), when a subscription is added for a query endpoint, a request will be sent only if the cache data does not already exist. If it exists, the existing data will be served instead.
+
+RTK Query uses a cache tag system to automate re-fetching for query endpoints that have data affected by mutation endpoints. This enables designing your api such that firing a specific mutation will cause a certain query endpoint to consider it's cached data `invalid`, and re-fetch the data if there is an active subscription.
+
+Each endpoint + parameter combination contributes it's own `queryCacheKey`. The `cache tag` system enables the ability to inform RTK Query that a particular query cache has `provided` specific tags. If a mutation is fired which is said to `invalidate` tags that a query cache has `provided`, the cached data will be considered `invalidated`, and re-fetch if there is an active subscription to the cached data.
+
+For triggering re-fetching through other means, see [Manipulating Cache Behavior](./cache-behavior.mdx#manipulating-cache-behavior).
 
 ## Definitions
 
@@ -17,7 +23,7 @@ RTK Query provides a number of concepts and tools to manipulate the cache behavi
 
 _see also: [tagTypes API reference](../api/createApi.mdx#tagtypes)_
 
-For RTK Query, _tags_ are just a name that you can give to a specific collection of data to control caching and invalidation behavior for refetching purposes. It can be considered as a 'label' attached to cached data that is read after a `mutation`, to decide whether the data should be affected by the mutation.
+For RTK Query, _tags_ are just a name that you can give to a specific collection of data to control caching and invalidation behavior for re-fetching purposes. It can be considered as a 'label' attached to cached data that is read after a `mutation`, to decide whether the data should be affected by the mutation.
 
 Tags are defined in the `tagTypes` argument when defining an api. For example, in an application that has both `Posts` and `Users`, you might define `tagTypes: ['Post', 'User']` when calling `createApi`.
 
@@ -38,63 +44,6 @@ _see also: [invalidatesTags API reference](../api/createApi.mdx#invalidatesTags)
 A _mutation_ can _invalidate_ specific cached data based on the tags. Doing so determines which cached data will be either refetched or removed from the cache.
 
 The `invalidatesTags` argument can either be an array of `string` (such as `['Post']`), `{type: string, id?: string|number}` (such as `[{type: 'Post', id: 1}]`), or a callback that returns such an array. That function will be passed the result as the first argument, the response error as the second argument, and the argument originally passed into the `query` method as the third argument. Note that either the result or error arguments may be undefined based on whether the mutation was successful or not.
-
-## Default cache handling behaviour
-
-With RTK Query, caching is based on:
-
-- API endpoint definitions
-- The serialized query parameters used when components subscribe to data from an endpoint
-- Active subscription reference counts
-
-When a subscription is started, the parameters used with the endpoint are serialized and stored internally as a `queryCacheKey` for the request. Any future request that produces the same `queryCacheKey` (i.e. called with the same parameters, factoring serialization) will be de-duped against the original, and will share the same data and updates. i.e. two separate components performing the same request will use the same cached data.
-
-When a request is attempted, if the data already exists in the cache, then that data is served and no new request is sent to the server. Otherwise, if the data does not exist in the cache, then a new request is sent, and the returned response is stored in the cache.
-
-As long as there is an active 'subscription' to the data (e.g. if a component is mounted that calls a `useQuery` hook for the endpoint), then the data will remain in the cache. Once the subscription is removed (e.g. when last component subscribed to the data unmounts), after an amount of time (default 60 seconds), the data will be removed from the cache. The expiration time can be configured with the `keepUnusedDataFor` property for the [API definition as a whole](../api/createApi.mdx#keepunuseddatafor), as well as on a [per-endpoint](../api/createApi.mdx#keepunuseddatafor-1) basis.
-
-### Cache lifetime & subscription example
-
-Imagine an endpoint that expects an `id` as the query param, and 4 components mounted which are requesting data from this same endpoint:
-
-```ts no-transpile
-import { useGetUserQuery } from './api.ts'
-
-function ComponentOne() {
-  // component subscribes to the data
-  const { data } = useGetUserQuery(1)
-
-  return <div>...</div>
-}
-
-function ComponentTwo() {
-  // component subscribes to the data
-  const { data } = useGetUserQuery(2)
-
-  return <div>...</div>
-}
-
-function ComponentThree() {
-  // component subscribes to the data
-  const { data } = useGetUserQuery(3)
-
-  return <div>...</div>
-}
-
-function ComponentFour() {
-  // component subscribes to the *same* data as ComponentThree,
-  // as it has the same query parameters
-  const { data } = useGetUserQuery(3)
-
-  return <div>...</div>
-}
-```
-
-While four components are subscribed to the endpoint, there are only three distinct combinations of endpoint + query parameters. Query parameters `1` and `2` will each have a single subscriber, while query parameter `3` has two subscribers. RTK Query will make three distinct fetches; one for each unique set of query parameters per endpoint.
-
-Data is kept in the cache as long is there is at least one active subscriber interested in that endpoint + parameter combination. When the subscriber reference count reaches zero, a timer is set, and if there are no new subscriptions to that data by the time the timer expires, the cached data will be removed. The default expiration is 60 seconds, which can be configured both for the [API definition as a whole](../api/createApi.mdx#keepunuseddatafor), as well as on a [per-endpoint](../api/createApi.mdx#keepunuseddatafor-1) basis.
-
-If 'ComponentThree' is unmounted in the example above, regardless of how much time passes, the data will remain in the cache due to 'ComponentFour' still being subscribed to the same data, and the subscribe reference count will be `one`. However, once 'ComponentFour' unmounts, the subscriber reference count will be `zero`. The data will remain in the cache for the remainder of the expiration time, at which point, if no new subscription has been created during that time, the cached data will finally be removed.
 
 ## Cache tags
 
@@ -432,7 +381,7 @@ For the example above, rather than invalidating any tag with the type `'Post'`, 
 In order to provide stronger control over invalidating the appropriate data, you can use an arbitrary ID such a `'LIST'` for a given tag. See [Advanced Invalidation with abstract tag IDs](#advanced-invalidation-with-abstract-tag-ids) for additional details.
 :::
 
-#### Invalidation Behavior
+## Tag Invalidation Behavior
 
 The matrix below shows examples of which invalidated tags will affect and invalidate which provided tags:
 
@@ -581,9 +530,9 @@ The matrix below shows examples of which invalidated tags will affect and invali
   </tbody>
 </table>
 
-The invalidation behavior can be summarized like so:
+The invalidation behavior is summarized based on tag specificity in the sections below.
 
-**General tag**
+### General tag
 
 e.g. `['Post'] / [{ type: 'Post' }]`
 
@@ -608,7 +557,7 @@ Endpoints whose data `provided` the following tags would _not_ have their data i
 - `[{ type: 'User', id: 'LIST' }]`
 - `[{ type: 'User', id: 1 }, { type: 'User', id: 'LIST' }]`
 
-**Specific tag**
+### Specific tag
 
 e.g. `[{ type: 'Post', id: 1 }]`
 
@@ -984,35 +933,3 @@ const api = createApi({
 ```
 
 An example of various abstractions for tag providing/invalidating designed for common rest data formats can be seen in the following gist, including typescript support, and factoring both ['LIST' style advanced tag invalidation](#advanced-invalidation-with-abstract-tag-ids) and ['error' style tag invalidation](#providing-errors-to-the-cache): **[RTK Query cache utils](https://gist.github.com/Shrugsy/6b6af02aef1f783df9d636526c1e05fa)**.
-
-## Tradeoffs
-
-### No Normalized or Deduplicated Cache
-
-RTK Query deliberately **does _not_ implement a cache that would deduplicate identical items across multiple requests**. There are several reasons for this:
-
-- A fully normalized shared-across-queries cache is a _hard_ problem to solve
-- We don't have the time, resources, or interest in trying to solve that right now
-- In many cases, simply refetching data when it's invalidated works well and is easier to understand
-- At a minimum, RTKQ can help solve the general use case of "fetch some data", which is a big pain point for a lot of people
-
-As an example, say that we have an API slice with `getTodos` and `getTodo` endpoints, and our components make the following queries:
-
-- `getTodos()`
-- `getTodos({filter: 'odd'})`
-- `getTodo({id: 1})`
-
-Each of these query results would include a Todo object that looks like `{id: 1}`.
-
-In a fully normalized deduplicating cache, only a single copy of this Todo object would be stored. However, RTK Query saves each query result independently in the cache. So, this would result in three separate copies of this Todo being cached in the Redux store. However, if all the endpoints are consistently providing the same tags (such as `{type: 'Todo', id: 1}`), then invalidating that tag will force all the matching endpoints to refetch their data for consistency.
-
-The Redux docs have always recommended [keeping data in a normalized lookup table](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape) to enable easily finding items by ID and updating them in the store, and [RTK's `createEntityAdapter`](../../api/createEntityAdapter.mdx) was designed to help manage normalized state. Those concepts are still valuable and don't go away. However, if you're using RTK Query to manage caching data, there's less need to manipulate the data that way yourself.
-
-There are a couple additional points that can help here:
-
-- The generated query hooks have [a `selectFromResult` option](../api/created-api/hooks.mdx#selectfromresult) that allow components to read individual pieces of data from a query result. As an example, a `<TodoList>` component might call `useTodosQuery()`, and each individual `<TodoListItem>` could use the same query hook but select from the result to get the right todo object.
-- You can use the [`transformResponse` endpoint option](../api/createApi.mdx#transformresponse) to modify the fetched data so that it's [stored in a different shape](./customizing-queries.mdx#customizing-query-responses-with-transformresponse), such as using `createEntityAdapter` to normalize the data _for this one response_ before it's inserted into the cache.
-
-## Further information
-
-- [Reddit: discussion of why RTKQ doesn't have a normalized cache, and tradeoffs](https://www.reddit.com/r/reactjs/comments/my9vrq/redux_toolkit_v16_alpha1_rtk_query_apis/gvxi5t7/)

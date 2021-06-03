@@ -5,6 +5,8 @@ sidebar_label: TypeScript Quick Start
 hide_title: true
 ---
 
+&nbsp;
+
 # Redux Toolkit TypeScript Quick Start
 
 :::tip What You'll Learn

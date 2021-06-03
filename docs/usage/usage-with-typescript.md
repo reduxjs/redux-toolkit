@@ -5,6 +5,8 @@ sidebar_label: Usage With TypeScript
 hide_title: true
 ---
 
+&nbsp;
+
 # Usage With TypeScript
 
 :::tip What You'll Learn
@@ -495,7 +497,28 @@ const lastReturnedAction = await store.dispatch(fetchUserById(3))
 
 The second argument to the `payloadCreator`, known as `thunkApi`, is an object containing references to the `dispatch`, `getState`, and `extra` arguments from the thunk middleware as well as a utility function called `rejectWithValue`. If you want to use these from within the `payloadCreator`, you will need to define some generic arguments, as the types for these arguments cannot be inferred. Also, as TS cannot mix explicit and inferred generic parameters, from this point on you'll have to define the `Returned` and `ThunkArg` generic parameter as well.
 
-To define the types for these arguments, pass an object as the third generic argument, with type declarations for some or all of these fields: `{dispatch?, state?, extra?, rejectValue?}`.
+To define the types for these arguments, pass an object as the third generic argument, with type declarations for some or all of these fields:
+
+```ts
+type AsyncThunkConfig = {
+  /** return type for `thunkApi.getState` */
+  state?: unknown
+  /** type for `thunkApi.dispatch` */
+  dispatch?: Dispatch
+  /** type of the `extra` argument for the thunk middleware, which will be passed in as `thunkApi.extra` */
+  extra?: unknown
+  /** type to be passed into `rejectWithValue`'s first argument that will end up on `rejectedAction.payload` */
+  rejectValue?: unknown
+  /** return type of the `serializeError` option callback */
+  serializedErrorType?: unknown
+  /** type to be returned from the `getPendingMeta` option callback & merged into `pendingAction.meta` */
+  pendingMeta?: unknown
+  /** type to be passed into the second argument of `fulfillWithValue` to finally be merged into `fulfilledAction.meta` */
+  fulfilledMeta?: unknown
+  /** type to be passed into the second argument of `rejectWithValue` to finally be merged into `rejectedAction.meta` */
+  rejectedMeta?: unknown
+}
+```
 
 ```ts
 const fetchUserById = createAsyncThunk<

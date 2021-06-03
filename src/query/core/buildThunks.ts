@@ -57,7 +57,7 @@ declare module './module' {
 }
 
 type EndpointThunk<
-  Thunk extends AsyncThunk<any, any, any>,
+  Thunk extends QueryThunk | MutationThunk,
   Definition extends EndpointDefinition<any, any, any, any>
 > = Definition extends EndpointDefinition<
   infer QueryArg,
@@ -65,9 +65,9 @@ type EndpointThunk<
   any,
   infer ResultType
 >
-  ? Thunk extends AsyncThunk<infer ATResult, infer ATArg, infer ATConfig>
+  ? Thunk extends AsyncThunk<unknown, infer ATArg, infer ATConfig>
     ? AsyncThunk<
-        ATResult & { result: ResultType },
+        ResultType,
         ATArg & { originalArgs: QueryArg },
         ATConfig & { rejectValue: BaseQueryError<BaseQueryFn> }
       >
@@ -75,24 +75,24 @@ type EndpointThunk<
   : never
 
 export type PendingAction<
-  Thunk extends AsyncThunk<any, any, any>,
+  Thunk extends QueryThunk | MutationThunk,
   Definition extends EndpointDefinition<any, any, any, any>
 > = ReturnType<EndpointThunk<Thunk, Definition>['pending']>
 
 export type FulfilledAction<
-  Thunk extends AsyncThunk<any, any, any>,
+  Thunk extends QueryThunk | MutationThunk,
   Definition extends EndpointDefinition<any, any, any, any>
 > = ReturnType<EndpointThunk<Thunk, Definition>['fulfilled']>
 
 export type RejectedAction<
-  Thunk extends AsyncThunk<any, any, any>,
+  Thunk extends QueryThunk | MutationThunk,
   Definition extends EndpointDefinition<any, any, any, any>
 > = ReturnType<EndpointThunk<Thunk, Definition>['rejected']>
 
 export type Matcher<M> = (value: any) => value is M
 
 export interface Matchers<
-  Thunk extends AsyncThunk<any, any, any>,
+  Thunk extends QueryThunk | MutationThunk,
   Definition extends EndpointDefinition<any, any, any, any>
 > {
   matchPending: Matcher<PendingAction<Thunk, Definition>>
@@ -105,23 +105,36 @@ export interface QueryThunkArg
     StartQueryActionCreatorOptions {
   originalArgs: unknown
   endpointName: string
-  startedTimeStamp: number
 }
 
 export interface MutationThunkArg {
   originalArgs: unknown
   endpointName: string
   track?: boolean
-  startedTimeStamp: number
 }
 
-export interface ThunkResult {
-  fulfilledTimeStamp: number
-  result: unknown
-}
+export type ThunkResult = unknown
 
-export type QueryThunk = AsyncThunk<ThunkResult, QueryThunkArg, {}>
-export type MutationThunk = AsyncThunk<ThunkResult, MutationThunkArg, {}>
+export type ThunkApiMetaConfig = {
+  pendingMeta: { startedTimeStamp: number }
+  fulfilledMeta: {
+    fulfilledTimeStamp: number
+    baseQueryMeta: unknown
+  }
+  rejectedMeta: {
+    baseQueryMeta: unknown
+  }
+}
+export type QueryThunk = AsyncThunk<
+  ThunkResult,
+  QueryThunkArg,
+  ThunkApiMetaConfig
+>
+export type MutationThunk = AsyncThunk<
+  ThunkResult,
+  MutationThunkArg,
+  ThunkApiMetaConfig
+>
 
 function defaultTransformResponse(baseQueryReturnValue: unknown) {
   return baseQueryReturnValue
@@ -181,7 +194,7 @@ export function buildThunks<
   reducerPath: ReducerPath
   context: ApiContext<Definitions>
   serializeQueryArgs: InternalSerializeQueryArgs
-  api: Api<BaseQuery, EndpointDefinitions, ReducerPath, any>
+  api: Api<BaseQuery, Definitions, ReducerPath, any>
 }) {
   type State = RootState<any, string, ReducerPath>
 
@@ -250,8 +263,11 @@ export function buildThunks<
   const executeEndpoint: AsyncThunkPayloadCreator<
     ThunkResult,
     QueryThunkArg | MutationThunkArg,
-    { state: RootState<any, string, ReducerPath> }
-  > = async (arg, { signal, rejectWithValue, dispatch, getState }) => {
+    ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
+  > = async (
+    arg,
+    { signal, rejectWithValue, fulfillWithValue, dispatch, getState }
+  ) => {
     const endpointDefinition = endpointDefinitions[arg.endpointName]
 
     try {
@@ -286,13 +302,16 @@ export function buildThunks<
       }
       if (result.error) throw new HandledError(result.error, result.meta)
 
-      return {
-        fulfilledTimeStamp: Date.now(),
-        result: await transformResponse(result.data, result.meta),
-      }
+      return fulfillWithValue(
+        await transformResponse(result.data, result.meta),
+        {
+          fulfilledTimeStamp: Date.now(),
+          baseQueryMeta: result.meta,
+        }
+      )
     } catch (error) {
       if (error instanceof HandledError) {
-        return rejectWithValue(error.value)
+        return rejectWithValue(error.value, { baseQueryMeta: error.meta })
       }
       throw error
     }
@@ -301,8 +320,11 @@ export function buildThunks<
   const queryThunk = createAsyncThunk<
     ThunkResult,
     QueryThunkArg,
-    { state: RootState<any, string, ReducerPath> }
+    ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
   >(`${reducerPath}/executeQuery`, executeEndpoint, {
+    getPendingMeta() {
+      return { startedTimeStamp: Date.now() }
+    },
     condition(arg, { getState }) {
       const state = getState()[reducerPath]
       const requestState = state?.queries?.[arg.queryCacheKey]
@@ -336,8 +358,12 @@ export function buildThunks<
   const mutationThunk = createAsyncThunk<
     ThunkResult,
     MutationThunkArg,
-    { state: RootState<any, string, ReducerPath> }
-  >(`${reducerPath}/executeMutation`, executeEndpoint)
+    ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
+  >(`${reducerPath}/executeMutation`, executeEndpoint, {
+    getPendingMeta() {
+      return { startedTimeStamp: Date.now() }
+    },
+  })
 
   const hasTheForce = (options: any): options is { force: boolean } =>
     'force' in options
@@ -345,7 +371,7 @@ export function buildThunks<
     options: any
   ): options is { ifOlderThan: false | number } => 'ifOlderThan' in options
 
-  const prefetch = <EndpointName extends QueryKeys<EndpointDefinitions>>(
+  const prefetch = <EndpointName extends QueryKeys<Definitions>>(
     endpointName: EndpointName,
     arg: any,
     options: PrefetchOptions
@@ -393,8 +419,8 @@ export function buildThunks<
 
   function buildMatchThunkActions<
     Thunk extends
-      | AsyncThunk<any, QueryThunkArg, any>
-      | AsyncThunk<any, MutationThunkArg, any>
+      | AsyncThunk<any, QueryThunkArg, ThunkApiMetaConfig>
+      | AsyncThunk<any, MutationThunkArg, ThunkApiMetaConfig>
   >(thunk: Thunk, endpointName: string) {
     return {
       matchPending: isAllOf(isPending(thunk), matchesEndpoint(endpointName)),
@@ -426,7 +452,7 @@ export function calculateProvidedByThunk(
 ) {
   return calculateProvidedBy(
     endpointDefinitions[action.meta.arg.endpointName][type],
-    isFulfilled(action) ? action.payload.result : undefined,
+    isFulfilled(action) ? action.payload : undefined,
     isRejectedWithValue(action) ? action.payload : undefined,
     action.meta.arg.originalArgs,
     assertTagType

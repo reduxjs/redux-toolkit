@@ -5,6 +5,8 @@ sidebar_label: Customizing Queries
 hide_title: true
 ---
 
+&nbsp;
+
 # Customizing queries
 
 RTK Query is agnostic as to how your requests resolve. You can use any library you like to handle requests, or no library at all. RTK Query provides reasonable defaults expected to cover the majority of use cases, while also allowing room for customization to alter query handling to fit specific needs.
@@ -641,7 +643,7 @@ export const { useGetPostsQuery } = api
 
 In certain scenarios, you may wish to have a `query` or `mutation` where sending a request or returning data is not relevant for the situation. Such a scenario would be to leverage the `invalidatesTags` property to force re-fetch specific `tags` that have been provided to the cache.
 
-See also [`providing errors to the cache`](./cached-data.mdx#providing-data-to-the-cache) to see additional detail and an example for such a scenario to 'refetch errored queries'.
+See also [`providing errors to the cache`](./automated-refetching.mdx#providing-data-to-the-cache) to see additional detail and an example for such a scenario to 'refetch errored queries'.
 
 ```ts title="Using a no-op queryFn"
 // file: types.ts noEmit

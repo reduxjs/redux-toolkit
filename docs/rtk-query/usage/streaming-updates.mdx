@@ -5,6 +5,8 @@ sidebar_label: Streaming Updates
 hide_title: true
 ---
 
+&nbsp;
+
 # Streaming Updates
 
 RTK Query gives you the ability to receive **streaming updates** for persistent queries. This enables a query to react to an ongoing connection to the server (typically using WebSockets), updating the cached data as updates to the query are received from the server when they occur.
@@ -15,7 +17,7 @@ To enable streaming updates for a query, pass the asynchronous `onCacheEntryAdde
 
 ## When to use streaming updates
 
-Primarily updates to query data should be done via [`polling`](./polling) intermittently on an interval, using [`cache invalidation`](./cached-data#advanced-invalidation-with-abstract-tag-ids) to invalidate data based on tags associated with queries & mutations, or with [`refetchOnMountOrArgChange`](../api/createApi#refetchonmountorargchange) to fetch fresh data when a component using the data mounts.
+Primarily updates to query data should be done via [`polling`](./polling) intermittently on an interval, using [`cache invalidation`](./automated-refetching#advanced-invalidation-with-abstract-tag-ids) to invalidate data based on tags associated with queries & mutations, or with [`refetchOnMountOrArgChange`](../api/createApi#refetchonmountorargchange) to fetch fresh data when a component using the data mounts.
 
 However, streaming updates is particularly useful for scenarios involving:
 

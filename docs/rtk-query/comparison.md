@@ -5,6 +5,8 @@ sidebar_label: Comparison with Other Tools
 hide_title: true
 ---
 
+&nbsp;
+
 # Comparison with Other Tools
 
 **RTK Query takes inspiration from many other data fetching libraries in the ecosystem**. Much like [the Redux core library was inspired by tools like Flux and Elm](https://redux.js.org/understanding/history-and-design/prior-art), RTK Query builds on API design patterns and feature concepts popularized by libraries like React Query, SWR, Apollo, and Urql. RTK Query has been written from scratch, but tries to use the best concepts from those libraries and other data fetching tools, with an eye towards leveraging the unique strengths and capabilities of Redux.
@@ -77,4 +79,4 @@ This comparison table strives to be as accurate and as unbiased as possible. If 
 
 - The [React Query "Comparison" page](https://react-query.tanstack.com/comparison) has an additional detailed feature set comparison table and discussion of capabilities
 - Urql maintainer Phil Pluckthun wrote [an excellent explanation of what a "normalized cache" is and how Urql's cache works](https://kitten.sh/graphql-normalized-caching)
-- The [RTK Query "Cached Data" page](./usage/cached-data.mdx#tradeoffs) has further details on why RTK Query does not implement a normalized cache
+- The [RTK Query "Cache Behavior" page](./usage/cache-behavior.mdx#tradeoffs) has further details on why RTK Query does not implement a normalized cache

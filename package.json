@@ -16,7 +16,8 @@
     "reducer",
     "slice",
     "immer",
-    "immutable"
+    "immutable",
+    "redux-toolkit"
   ],
   "publishConfig": {
     "access": "public"
@@ -63,6 +64,7 @@
     "magic-string": "^0.25.7",
     "merge-source-map": "^1.1.0",
     "msw": "^0.28.2",
+    "netlify-plugin-cache": "^1.0.3",
     "node-fetch": "^2.6.1",
     "prettier": "^2.2.1",
     "react": "^17.0.2",
@@ -85,7 +87,6 @@
     "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
     "lint": "eslint src examples",
-    "prepare": "true",
     "test": "jest --runInBand",
     "type-tests": "yarn tsc -p src/tests && yarn tsc -p src/query/tests"
   },

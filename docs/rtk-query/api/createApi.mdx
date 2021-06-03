@@ -5,6 +5,8 @@ sidebar_label: createApi
 hide_title: true
 ---
 
+&nbsp;
+
 # `createApi`
 
 `createApi` is the core of RTK Query's functionality. It allows you to define a set of endpoints describe how to retrieve data from a series of endpoints, including configuration of how to fetch and transform that data. It generates [an "API slice" structure](./created-api/overview.mdx) that contains Redux logic (and optionally React hooks) that encapsulate the data fetching and caching process for you.
@@ -304,7 +306,7 @@ By default, this function will take the query arguments, sort object keys where 
 [summary](docblock://query/createApi.ts?token=CreateApiOptions.refetchOnMountOrArgChange)
 
 :::note
-You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnMountOrArgChange` to each individual hook call or when dispatching the [`initiate`](./created-api/endpoints.mdx#initiate) action.
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnMountOrArgChange` to each individual hook call or similarly by passing `forceRefetch: true` when dispatching the [`initiate`](./created-api/endpoints.mdx#initiate) action.
 :::
 
 ### `refetchOnFocus`
@@ -409,7 +411,7 @@ _(optional, only for query endpoints)_
 
 [summary](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.providesTags)
 
-See also [Providing cache data](../usage/cached-data.mdx#providing-cache-data).
+See also [Providing cache data](../usage/automated-refetching.mdx#providing-cache-data).
 
 [examples](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.providesTags)
 
@@ -419,7 +421,7 @@ _(optional, only for mutation endpoints)_
 
 [summary](docblock://query/endpointDefinitions.ts?token=MutationExtraOptions.invalidatesTags)
 
-See also [Invalidating cache data](../usage/cached-data.mdx#invalidating-cache-data).
+See also [Invalidating cache data](../usage/automated-refetching.mdx#invalidating-cache-data).
 
 [examples](docblock://query/endpointDefinitions.ts?token=MutationExtraOptions.invalidatesTags)
 

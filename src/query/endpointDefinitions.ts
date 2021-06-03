@@ -33,7 +33,7 @@ interface EndpointDefinitionWithQuery<
    *
    * ```ts
    * // codeblock-meta title="query example"
-   * 
+   *
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * interface Post {
    *   id: number
@@ -75,7 +75,7 @@ interface EndpointDefinitionWithQueryFn<
    * @example
    * ```ts
    * // codeblock-meta title="Basic queryFn example"
-   * 
+   *
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * interface Post {
    *   id: number
@@ -203,7 +203,7 @@ export interface QueryExtraOptions<
    *
    * ```ts
    * // codeblock-meta title="providesTags example"
-   * 
+   *
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * interface Post {
    *   id: number
@@ -241,22 +241,6 @@ export interface QueryExtraOptions<
    * Not to be used. A query should not invalidate tags in the cache.
    */
   invalidatesTags?: never
-  /** @deprecated please use `onQueryStarted` instead */
-  onStart?(arg: QueryArg, queryApi: QueryApi<ReducerPath, any>): void
-  /** @deprecated please use `onQueryStarted` instead */
-  onError?(
-    arg: QueryArg,
-    queryApi: QueryApi<ReducerPath, any>,
-    error: unknown,
-    meta: undefined
-  ): void
-  /** @deprecated please use `onQueryStarted` instead */
-  onSuccess?(
-    arg: QueryArg,
-    queryApi: QueryApi<ReducerPath, any>,
-    result: ResultType,
-    meta: undefined
-  ): void
 }
 
 export type QueryDefinition<
@@ -267,30 +251,6 @@ export type QueryDefinition<
   ReducerPath extends string = string
 > = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
   QueryExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
-
-/** @deprecated please use `onQueryStarted` instead */
-export interface MutationApi<ReducerPath extends string, Context extends {}> {
-  /**
-   * The dispatch method for the store
-   */
-  dispatch: ThunkDispatch<any, any, AnyAction>
-  /**
-   * A method to get the current state
-   */
-  getState(): RootState<any, any, ReducerPath>
-  /**
-   * `extra` as provided as `thunk.extraArgument` to the `configureStore` `getDefaultMiddleware` option.
-   */
-  extra: unknown
-  /**
-   * A unique ID generated for the mutation
-   */
-  requestId: string
-  /**
-   * A variable shared between `onStart`, `onError` and `onSuccess` of one request to pass data forward between them
-   */
-  context: Context
-}
 
 export interface MutationExtraOptions<
   TagTypes extends string,
@@ -355,22 +315,6 @@ export interface MutationExtraOptions<
    * Not to be used. A mutation should not provide tags to the cache.
    */
   providesTags?: never
-  /** @deprecated please use `onQueryStarted` instead */
-  onStart?(arg: QueryArg, mutationApi: MutationApi<ReducerPath, any>): void
-  /** @deprecated please use `onQueryStarted` instead */
-  onError?(
-    arg: QueryArg,
-    mutationApi: MutationApi<ReducerPath, any>,
-    error: unknown,
-    meta: undefined
-  ): void
-  /** @deprecated please use `onQueryStarted` instead */
-  onSuccess?(
-    arg: QueryArg,
-    mutationApi: MutationApi<ReducerPath, any>,
-    result: ResultType,
-    meta: undefined
-  ): void
 }
 
 export type MutationDefinition<

@@ -79,7 +79,6 @@ export function buildMiddleware<
       originalArgs: querySubState.originalArgs,
       subscribe: false,
       forceRefetch: true,
-      startedTimeStamp: Date.now(),
       queryCacheKey: queryCacheKey as any,
       ...override,
     })

@@ -38,7 +38,7 @@ export interface CreateApiOptions<
    */
   baseQuery: BaseQuery
   /**
-   * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining an tag type, you will be able to [provide](../../rtk-query/usage/cached-data#providing-tags) them with `provides` and [invalidate](../../rtk-query/usage/cached-data#invalidating-tags) them with `invalidates` when configuring [endpoints](#endpoints).
+   * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining an tag type, you will be able to [provide](../../rtk-query/usage/automated-refetching#providing-tags) them with `provides` and [invalidate](../../rtk-query/usage/automated-refetching#invalidating-tags) them with `invalidates` when configuring [endpoints](#endpoints).
    *
    * @example
    *
@@ -243,52 +243,8 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       inject: Parameters<typeof api.injectEndpoints>[0]
     ) {
       const evaluatedEndpoints = inject.endpoints({
-        query: (x) => {
-          // remove in final release
-          if (x.onStart || x.onSuccess || x.onError) {
-            if (
-              typeof process !== 'undefined' &&
-              process.env.NODE_ENV === 'development'
-            ) {
-              console.warn(
-                '`onStart`, `onSuccess` and `onError` have been replaced by `onQueryStarted`, please change your code accordingly'
-              )
-            }
-            x.onQueryStarted ??= (arg, { queryFulfilled, ...api }) => {
-              const queryApi = { ...api, context: {} }
-              x.onStart?.(arg, queryApi)
-              return queryFulfilled.then(
-                (result) =>
-                  x.onSuccess?.(arg, queryApi, result.data, undefined),
-                (reason) => x.onError?.(arg, queryApi, reason.error, undefined)
-              )
-            }
-          }
-          return { ...x, type: DefinitionType.query } as any
-        },
-        mutation: (x) => {
-          // remove in final release
-          if (x.onStart || x.onSuccess || x.onError) {
-            if (
-              typeof process !== 'undefined' &&
-              process.env.NODE_ENV === 'development'
-            ) {
-              console.warn(
-                '`onStart`, `onSuccess` and `onError` have been replaced by `onQueryStarted`, please change your code accordingly'
-              )
-            }
-            x.onQueryStarted ??= (arg, { queryFulfilled, ...api }) => {
-              const queryApi = { ...api, context: {} }
-              x.onStart?.(arg, queryApi)
-              return queryFulfilled.then(
-                (result) =>
-                  x.onSuccess?.(arg, queryApi, result.data, undefined),
-                (reason) => x.onError?.(arg, queryApi, reason.error, undefined)
-              )
-            }
-          }
-          return { ...x, type: DefinitionType.mutation } as any
-        },
+        query: (x) => ({ ...x, type: DefinitionType.query } as any),
+        mutation: (x) => ({ ...x, type: DefinitionType.mutation } as any),
       })
 
       for (const [endpointName, definition] of Object.entries(

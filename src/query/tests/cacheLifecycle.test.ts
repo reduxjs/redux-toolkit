@@ -1,6 +1,7 @@
 import { createApi } from '@reduxjs/toolkit/query'
-import { fetchBaseQuery } from '../fetchBaseQuery'
-import { fakeTimerWaitFor, setupApiStore, waitMs } from './helpers'
+import type { FetchBaseQueryMeta } from '@reduxjs/toolkit/query'
+import { fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { expectType, fakeTimerWaitFor, setupApiStore, waitMs } from './helpers'
 
 beforeAll(() => {
   jest.useFakeTimers()
@@ -81,7 +82,7 @@ describe.each([['query'], ['mutation']] as const)(
       const extended = api.injectEndpoints({
         overrideExisting: true,
         endpoints: (build) => ({
-          injected: build[type as 'mutation']<unknown, string>({
+          injected: build[type as 'mutation']<number, string>({
             query: () => '/success',
             async onCacheEntryAdded(
               arg,
@@ -89,6 +90,9 @@ describe.each([['query'], ['mutation']] as const)(
             ) {
               onNewCacheEntry(arg)
               const firstValue = await cacheDataLoaded
+              expectType<{ data: number; meta?: FetchBaseQueryMeta }>(
+                firstValue
+              )
               gotFirstValue(firstValue)
               await cacheEntryRemoved
               onCleanup()
@@ -108,7 +112,13 @@ describe.each([['query'], ['mutation']] as const)(
       await fakeTimerWaitFor(() => {
         expect(gotFirstValue).toHaveBeenCalled()
       })
-      expect(gotFirstValue).toHaveBeenCalledWith({ data: { value: 'success' } })
+      expect(gotFirstValue).toHaveBeenCalledWith({
+        data: { value: 'success' },
+        meta: {
+          request: expect.any(Request),
+          response: expect.any(Object), // Response is not available in jest env
+        },
+      })
       expect(onCleanup).not.toHaveBeenCalled()
 
       promise.unsubscribe(), await waitMs()

@@ -5,6 +5,8 @@ sidebar_label: Usage Guide
 hide_title: true
 ---
 
+&nbsp;
+
 # Usage Guide
 
 The Redux core library is deliberately unopinionated. It lets you decide how you want to handle everything, like store setup, what your state contains, and how you want to build your reducers.
