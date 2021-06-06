@@ -15,8 +15,8 @@ const slice = createSlice({
     builder.addMatcher(
       api.endpoints.login.matchFulfilled,
       (state, { payload }) => {
-        state.token = payload.result.token
-        state.user = payload.result.user
+        state.token = payload.token
+        state.user = payload.user
       }
     )
   },
