@@ -23,7 +23,7 @@ module.exports = {
               {
                 extractorSettings: {
                   tsconfig: resolve(__dirname, '../docs/tsconfig.json'),
-                  basedir: resolve(__dirname, '../src'),
+                  basedir: resolve(__dirname, '../packages/toolkit/src'),
                   rootFiles: [
                     'index.ts',
                     'query/index.ts',

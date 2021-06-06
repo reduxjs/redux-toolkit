@@ -1,0 +1,43 @@
+{
+  "name": "rtk-monorepo",
+  "private": true,
+  "description": "The official, opinionated, batteries-included toolset for efficient Redux development",
+  "author": "Mark Erikson <mark@isquaredsoftware.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reduxjs/redux-toolkit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/reduxjs/redux-toolkit/issues"
+  },
+  "homepage": "https://redux-toolkit.js.org",
+  "directories": {
+    "doc": "docs",
+    "example": "example"
+  },
+  "workspaces": [
+    "packages/*",
+    "docs",
+    "website",
+    "examples/query/react/*"
+  ],
+  "devDependencies": {
+    "eslint": "^7.25.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-react-app": "^5.0.1",
+    "eslint-plugin-flowtype": "^5.7.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-react": "^7.23.2",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "prettier": "^2.2.1"
+  },
+  "resolutions": {
+    "react-scripts": "patch:react-scripts@npm:4.0.2#.yarn/patches/react-scripts@npm:4.0.2.patch",
+    "react-redux": "npm:7.2.4",
+    "react": "npm:17.0.2",
+    "react-dom": "npm:17.0.2"
+  }
+}
