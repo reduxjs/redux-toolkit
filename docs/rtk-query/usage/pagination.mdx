@@ -9,9 +9,11 @@ hide_title: true
 
 # Pagination
 
-RTK Query makes it straightforward to integrate with a standard index-based pagination API. This is the most common form of pagination that you'll need to implement.
+RTK Query does not include any built-in pagination behavior. However, RTK Query does make it straightforward to integrate with a standard index-based pagination API. This is the most common form of pagination that you'll need to implement.
 
-## Setup an endpoint to accept a page `arg`
+## Pagination Recipes
+
+### Setup an endpoint to accept a page `arg`
 
 ```ts title="src/app/services/posts.ts"
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
@@ -39,7 +41,7 @@ export const api = createApi({
 export const { useListPostsQuery } = api
 ```
 
-## Trigger the next page by incrementing the `page` state variable
+### Trigger the next page by incrementing the `page` state variable
 
 ```tsx title="src/features/posts/PostsManager.tsx"
 const PostList = () => {

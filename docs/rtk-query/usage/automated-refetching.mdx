@@ -11,9 +11,9 @@ hide_title: true
 
 As seen under [Default Cache Behavior](./cache-behavior.mdx#default-cache-behavior), when a subscription is added for a query endpoint, a request will be sent only if the cache data does not already exist. If it exists, the existing data will be served instead.
 
-RTK Query uses a cache tag system to automate re-fetching for query endpoints that have data affected by mutation endpoints. This enables designing your api such that firing a specific mutation will cause a certain query endpoint to consider its cached data `invalid`, and re-fetch the data if there is an active subscription.
+RTK Query uses a "cache tag" system to automate re-fetching for query endpoints that have data affected by mutation endpoints. This enables designing your api such that firing a specific mutation will cause a certain query endpoint to consider its cached data _invalid_, and re-fetch the data if there is an active subscription.
 
-Each endpoint + parameter combination contributes its own `queryCacheKey`. The `cache tag` system enables the ability to inform RTK Query that a particular query cache has `provided` specific tags. If a mutation is fired which is said to `invalidate` tags that a query cache has `provided`, the cached data will be considered `invalidated`, and re-fetch if there is an active subscription to the cached data.
+Each endpoint + parameter combination contributes its own `queryCacheKey`. The cache tag system enables the ability to inform RTK Query that a particular query cache has _provided_ specific tags. If a mutation is fired which is said to `invalidate` tags that a query cache has _provided_, the cached data will be considered _invalidated_, and re-fetch if there is an active subscription to the cached data.
 
 For triggering re-fetching through other means, see [Manipulating Cache Behavior](./cache-behavior.mdx#manipulating-cache-behavior).
 
@@ -23,7 +23,7 @@ For triggering re-fetching through other means, see [Manipulating Cache Behavior
 
 _see also: [tagTypes API reference](../api/createApi.mdx#tagtypes)_
 
-For RTK Query, _tags_ are just a name that you can give to a specific collection of data to control caching and invalidation behavior for re-fetching purposes. It can be considered as a 'label' attached to cached data that is read after a `mutation`, to decide whether the data should be affected by the mutation.
+For RTK Query, _tags_ are just a name that you can give to a specific collection of data to control caching and invalidation behavior for re-fetching purposes. It can be considered as a 'label' attached to cached data that is read after a mutation, to decide whether the data should be affected by the mutation.
 
 Tags are defined in the `tagTypes` argument when defining an api. For example, in an application that has both `Posts` and `Users`, you might define `tagTypes: ['Post', 'User']` when calling `createApi`.
 
@@ -47,11 +47,11 @@ The `invalidatesTags` argument can either be an array of `string` (such as `['Po
 
 ## Cache tags
 
-RTK Query uses the concept of 'tags' to determine whether a mutation for one endpoint intends to 'invalidate' some data that was 'provided' by a query from another endpoint.
+RTK Query uses the concept of 'tags' to determine whether a mutation for one endpoint intends to _invalidate_ some data that was _provided_ by a query from another endpoint.
 
 If cache data is being invalidated, it will either refetch the providing query (if components are still using that data) or remove the data from the cache.
 
-When defining an `api`, `createApi` accepts an array of tag type names for the `tagTypes` property, which is a list of possible tag name options that the queries for the `api` could provide.
+When defining an API slice, `createApi` accepts an array of tag type names for the `tagTypes` property, which is a list of possible tag name options that the queries for the API slice could provide.
 
 The example below declares that endpoints can possibly provide 'Posts' and/or 'Users' to the cache:
 
@@ -107,13 +107,15 @@ By declaring these tags as what can possibly be provided to the cache, it enable
 
 ### Providing cache data
 
-Each individual `query` endpoint can have its cached data `provide` particular tags. Doing so enables a relationship between cached data from one or more `query` endpoints and the behaviour of one or more `mutation` endpoints.
+Each individual `query` endpoint can have its cached data _provide_ particular tags. Doing so enables a relationship between cached data from one or more query endpoints and the behaviour of one or more mutation endpoints.
 
 The `providesTags` property on a `query` endpoint is used for this purpose.
 
-> **Note**
->
-> Provided tags have no inherent relationship across separate `query` endpoints. Provided tags are used to determine whether cached data returned by an endpoint should be `invalidated` and either be refetched or removed from the cache. If two separate endpoints provide the same tags, they will still contribute their own distinct cached data, which could later both be invalidated by a single tag declared from a mutation.
+:::info
+
+Provided tags have no inherent relationship across separate `query` endpoints. Provided tags are used to determine whether cached data returned by an endpoint should be `invalidated` and either be refetched or removed from the cache. If two separate endpoints provide the same tags, they will still contribute their own distinct cached data, which could later both be invalidated by a single tag declared from a mutation.
+
+:::
 
 The example below declares that the `getPosts` `query` endpoint `provides` the `'Post'` tag to the cache, using the `providesTags` property for a `query` endpoint.
 
@@ -385,7 +387,7 @@ In order to provide stronger control over invalidating the appropriate data, you
 
 The matrix below shows examples of which invalidated tags will affect and invalidate which provided tags:
 
-<table>
+<table class="checkbox-table">
   <thead>
     <tr>
       <th className="diagonal-cell">
@@ -605,16 +607,18 @@ Endpoints whose data `provided` the following tags would _not_ have their data i
 
 ### Advanced Invalidation with abstract tag IDs
 
-While using an 'entity ID' for a `tag id` is a common use case, the `id` property is not intended to be limited to database IDs alone. The `id` is simply a way to label a subset of a particular collection of data for a particular `tag type`.
+While using an 'entity ID' for a tag `id` is a common use case, the `id` property is not intended to be limited to database IDs alone. The `id` is simply a way to label a subset of a particular collection of data for a particular `tag type`.
 
 A powerful use-case is to use an ID like `'LIST'` as a label for data provided by a bulk query, _as well as_ using entity IDs for the individual items. Doing so allows future `mutations` to declare whether they invalidate the data only if it contains a particular item (e.g. `{ type: 'Post', id: 5 }`), or invalidate the data if it is a `'LIST'` (e.g. `{ type: 'Post', id: 'LIST' }`).
 
-> **Note about 'LIST' and `id`s**
->
-> 1. `LIST` is an arbitrary string - technically speaking, you could use anything you want here, such as `ALL` or `*`. The important thing when choosing a custom id is to make sure there is no possibility of it colliding with an id that is returned by a query result. If you have unknown ids in your query results and don't want to risk it, you can go with point 3 below.
-> 2. You can add _many_ tag types for even more control
->    - `[{ type: 'Posts', id: 'LIST' }, { type: 'Posts', id: 'SVELTE_POSTS' }, { type: 'Posts', id: 'REACT_POSTS' }]`
-> 3. If the concept of using an `id` like 'LIST' seems strange to you, you can always add another `tagType` and invalidate its root, but we recommend using the `id` approach as shown.
+:::info 'LIST' Tag and IDs
+
+1. `LIST` is an arbitrary string - technically speaking, you could use anything you want here, such as `ALL` or `*`. The important thing when choosing a custom id is to make sure there is no possibility of it colliding with an id that is returned by a query result. If you have unknown ids in your query results and don't want to risk it, you can go with point 3 below.
+2. You can add _many_ tag types for even more control
+   - `[{ type: 'Posts', id: 'LIST' }, { type: 'Posts', id: 'SVELTE_POSTS' }, { type: 'Posts', id: 'REACT_POSTS' }]`
+3. If the concept of using an `id` like 'LIST' seems strange to you, you can always add another `tagType` and invalidate its root, but we recommend using the `id` approach as shown.
+
+:::
 
 We can compare the scenarios below to see how using a `'LIST'` id can be leveraged to optimize behaviour.
 
@@ -759,9 +763,11 @@ function App() {
 
 When `addPost` is fired, it will only cause the `PostsList` to go into an `isFetching` state because `addPost` only invalidates the `'LIST'` id, which causes `getPosts` to rerun (because it provides that specific id). So in your network tab, you would only see 1 new request fire for `GET /posts`. As the singular `getPost` queries have not been invalidated, they will not re-run as a result of `addPost`.
 
-> **Note**
->
-> If you intend for the `addPost` mutation to refresh all posts including individual `PostDetail` components while still only making 1 new `GET /posts` request, this can be done by selecting a part of the data using [`selectFromResult`](./queries.mdx#selecting-data-from-a-query-result).
+:::info
+
+If you intend for the `addPost` mutation to refresh all posts including individual `PostDetail` components while still only making 1 new `GET /posts` request, this can be done by selecting a part of the data using [`selectFromResult`](./queries.mdx#selecting-data-from-a-query-result).
+
+:::
 
 ### Providing errors to the cache
 
@@ -821,14 +827,14 @@ const api = createApi({
 
 ### Abstracting common provides/invalidates usage
 
-The code written to `provide` & `invalidate` tags for a given `api` will be dependent on multiple factors, including:
+The code written to `provide` & `invalidate` tags for a given API slice will be dependent on multiple factors, including:
 
 - The shape of the data returned by your backend
 - Which tags you expect a given query endpoint to provide
 - Which tags you expect a given mutation endpoint to invalidate
 - The extent that you wish to use the invalidation feature for
 
-When declaring your `api`, you may feel as though you're duplicating your code. For instance, for two separate endpoints that both provide a list of a particular entity, the `providesTags` declaration may only differ in the `tagType` provided.
+When declaring your API slice, you may feel as though you're duplicating your code. For instance, for two separate endpoints that both provide a list of a particular entity, the `providesTags` declaration may only differ in the `tagType` provided.
 
 e.g.
 

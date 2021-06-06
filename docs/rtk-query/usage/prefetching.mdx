@@ -18,9 +18,9 @@ There are a handful of situations that you may want to do this, but some very co
 3. User hovers over a next pagination button
 4. User navigates to a page and you know that some components down the tree will require said data. This way, you can prevent fetching waterfalls.
 
-### Prefetching with React Hooks
+## Prefetching with React Hooks
 
-Similar to the [`useMutation`](./mutations) hook, the `usePrefetch` hook will not run automatically — it returns a `callback function`.
+Similar to the [`useMutation`](./mutations) hook, the `usePrefetch` hook will not run automatically — it returns a "trigger function" that can be used to initiate the behavior.
 
 It accepts two arguments: the first is the key of a query action that you [defined in your API service](../api/createApi#endpoints), and the second is an object of two optional parameters:
 
@@ -37,16 +37,16 @@ usePrefetch<EndpointName extends QueryKeys<Definitions>>(
   ): (arg: QueryArgFrom<Definitions[EndpointName]>, options?: PrefetchOptions) => void;
 ```
 
-#### Customizing the hook behavior
+### Customizing the Hook Behavior
 
 You can specify these prefetch options when declaring the hook or at the call site. The call site will take priority over the defaults.
 
 1. [summary](docblock://query/core/module.ts?token=PrefetchOptions)
 2. [overloadSummary](docblock://query/core/module.ts?token=PrefetchOptions)
 
-#### What to expect when you call the `callback`
+### Trigger Function Behavior
 
-1. The `callback` _always_ returns void.
+1. The trigger function _always_ returns `void`.
 2. If `force: true` is set during the declaration or at the call site, the query will be run no matter what. The one exception to that is if the same query is already in-flight.
 3. If no options are specified and the query exists in the cache, the query will not be performed.
 4. If no options are specified and the query _does not exist_ in the cache, the query will be performed.
@@ -76,7 +76,7 @@ function User() {
 }
 ```
 
-#### Recipe: Prefetch Immediately
+### Recipe: Prefetch Immediately
 
 In some cases, you may want to prefetch a resource immediately. You can implement this in just a few lines of code:
 
@@ -98,11 +98,11 @@ export function usePrefetchImmediately<T extends EndpointNames>(
 usePrefetchImmediately('getUser', 5)
 ```
 
-### Prefetching without hooks
+## Prefetching Without Hooks
 
-If you're not using the `usePrefetch` hook, you can recreate the same behavior easily on your own in any framework.
+If you're not using the `usePrefetch` hook, you can recreate the same behavior on your own in any framework.
 
-When dispatching the `prefetch` thunk as shown below you will see the same exact behavior as [described here](#what-to-expect-when-you-call-the-callback).
+When dispatching the `prefetch` thunk as shown below you will see the same exact behavior as [described here](#trigger-function-behavior).
 
 ```ts title="Non-hook prefetching example" no-transpile
 store.dispatch(
@@ -116,7 +116,9 @@ You can also dispatch the query action, but you would be responsible for impleme
 dispatch(api.endpoints[endpointName].initiate(arg, { forceRefetch: true }))
 ```
 
-### Example
+## Prefetching Examples
+
+### Basic Prefetching
 
 This is a very basic example that shows how you can prefetch when a user hovers over the next arrow. This is probably not the optimal solution, because if they hover, click, then change pages without moving their mouse, we wouldn't know to prefetch the next page because we wouldn't see the next `onMouseEnter` event. In this case, you would need to handle this on your own. You could also consider automatically prefetching the next page...
 
@@ -134,7 +136,7 @@ This is a very basic example that shows how you can prefetch when a user hovers 
   sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
 
-### Automatic Prefetching Example
+### Automatic Prefetching
 
 Picking up on our last example, we automatically `prefetch` the next page, giving the appearance of no network delay.
 
@@ -152,7 +154,7 @@ Picking up on our last example, we automatically `prefetch` the next page, givin
   sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
 
-#### Prefetching All Known Pages
+### Prefetching All Known Pages
 
 After the first query initialized by `useQuery` runs, we automatically fetch all remaining pages.
 

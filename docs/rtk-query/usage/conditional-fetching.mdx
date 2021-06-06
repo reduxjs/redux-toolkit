@@ -9,6 +9,10 @@ hide_title: true
 
 # Conditional Fetching
 
+## Overview
+
+Query hooks automatically begin fetching data as soon as the component is mounted. But, there are use cases where you may want to delay fetching data until some condition becomes true. RTK Query supports conditional fetching to enable that behavior.
+
 If you want to prevent a query from automatically running, you can use the `skip` parameter in a hook.
 
 [examples](docblock://query/react/buildHooks.ts?token=UseQuerySubscriptionOptions.skip)
