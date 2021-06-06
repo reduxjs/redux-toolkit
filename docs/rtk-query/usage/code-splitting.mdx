@@ -11,11 +11,11 @@ hide_title: true
 
 RTK Query makes it possible to trim down your initial bundle size by allowing you to inject additional endpoints after you've setup your initial service definition. This can be very beneficial for larger applications that may have _many_ endpoints.
 
-`injectEndpoints` accepts a collection of endpoints an one optional parameter of `overrideExisting`.
+`injectEndpoints` accepts a collection of endpoints, as well as an optional `overrideExisting` parameter.
 
-Calling `injectEndpoints` will inject the endpoints into the original API, but also give you that same API with correct types for these endpoints back. (Unfortunately, it cannot modify the types for the original crossing over files).
+Calling `injectEndpoints` will inject the endpoints into the original API, but also give you that same API with correct types for these endpoints back. (Unfortunately, it cannot modify the types for the original definition.)
 
-So the most basic approach would be to have one empty central api definition:
+A typical approach would be to have one empty central API slice definition:
 
 ```ts title="Basic setup"
 // Or from '@reduxjs/toolkit/query' if not using the auto-generated hooks
@@ -24,7 +24,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 // initialize an empty api service that we'll inject endpoints into later as needed
 export const emptySplitApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-  endpoints: () => ({})
+  endpoints: () => ({}),
 })
 ```
 
@@ -36,19 +36,19 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
 export const emptySplitApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-  endpoints: () => ({})
+  endpoints: () => ({}),
 })
 
 // file: extendedApi.ts
 import { emptySplitApi } from './emptySplitApi'
 
 const extendedApi = emptySplitApi.injectEndpoints({
-  endpoints: build => ({
+  endpoints: (build) => ({
     example: build.query({
-      query: () => 'test'
-    })
+      query: () => 'test',
+    }),
   }),
-  overrideExisting: false
+  overrideExisting: false,
 })
 
 export const { useExampleQuery } = extendedApi

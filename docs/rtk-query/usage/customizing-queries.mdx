@@ -15,9 +15,9 @@ RTK Query is agnostic as to how your requests resolve. You can use any library y
 
 The default method to handle queries is via the [`baseQuery`](../api/createApi#basequery) option on [`createApi`](../api/createApi), in combination with the [`query`](../api/createApi.mdx#query) option on an endpoint definition.
 
-To process queries, endpoints are defined with a [`query`](../api/createApi.mdx#query) option, which passes it's return value to a common [`baseQuery`](../api/createApi#basequery) function used for the API.
+To process queries, endpoints are defined with a [`query`](../api/createApi.mdx#query) option, which passes its return value to a common [`baseQuery`](../api/createApi#basequery) function used for the API.
 
-By default, RTK Query ships with [`fetchBaseQuery`](../api/fetchBaseQuery), which is a lightweight [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) wrapper that automatically handles request headers and response parsing in a manner similar to common libraries like `axios`. If `fetchBaseQuery` alone does not meet your needs, you can customize it's behaviour with a wrapper function, or create your own [`baseQuery`](../api/createApi.mdx#basequery) function from scratch for [`createApi`](../api/createApi) to use.
+By default, RTK Query ships with [`fetchBaseQuery`](../api/fetchBaseQuery), which is a lightweight [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) wrapper that automatically handles request headers and response parsing in a manner similar to common libraries like `axios`. If `fetchBaseQuery` alone does not meet your needs, you can customize its behaviour with a wrapper function, or create your own [`baseQuery`](../api/createApi.mdx#basequery) function from scratch for [`createApi`](../api/createApi) to use.
 
 See also [`baseQuery API Reference`](../api/createApi.mdx#basequery).
 
@@ -65,7 +65,7 @@ const customBaseQuery = (
 This format is required so that RTK Query can infer the return types for your responses.
 :::
 
-At it's core, a `baseQuery` function only needs to have the minimum return value to be valid; an object with a `data` or `error` property. It is up to the user to determine how they wish to use the provided arguments, and how requests are handled within the function itself.
+At its core, a `baseQuery` function only needs to have the minimum return value to be valid; an object with a `data` or `error` property. It is up to the user to determine how they wish to use the provided arguments, and how requests are handled within the function itself.
 
 #### fetchBaseQuery defaults
 
@@ -437,7 +437,7 @@ export const { useGetPostsQuery, useGetPostQuery } = api
 
 ### Adding Meta information to queries
 
-A `baseQuery` can also include a `meta` property in it's return value. This can be beneficial in cases where you may wish to include additional information associated with the request such as a request ID or timestamp.
+A `baseQuery` can also include a `meta` property in its return value. This can be beneficial in cases where you may wish to include additional information associated with the request such as a request ID or timestamp.
 
 In such a scenario, the return value would look like so:
 

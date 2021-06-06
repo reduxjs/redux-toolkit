@@ -27,12 +27,12 @@ In general, the main reasons to use RTK Query are:
 RTK Query has some unique API design aspects and capabilities that are worth considering.
 
 - With React Query and SWR, you usually define your hooks yourself, and you can do that all over the place and on the fly. With RTK Query, you do so in one central place by defining an "API slice" with multiple endpoints ahead of time. This allows for a more tightly integrated model of mutations automatically invalidating/refetching queries on trigger.
-- With the endpoint [matcher functionality](./api/created-api/endpoints#matchers): Every request is automatically is visible to your Redux reducers and can easily update the global application state if necessary ([see example](https://github.com/reduxjs/redux-toolkit/issues/958#issuecomment-809570419)).
+- Because RTK Query dispatches normal Redux actions as requests are processed, all actions are visible in the Redux DevTools. Additionally, every request is automatically is visible to your Redux reducers and can easily update the global application state if necessary ([see example](https://github.com/reduxjs/redux-toolkit/issues/958#issuecomment-809570419)). You can use the endpoint [matcher functionality](./api/created-api/endpoints#matchers) to do additional processing of cache-related actions in your own reducers.
+- Like Redux itself, the main RTK Query functionality is UI-agnostic and can be used with any UI layer
 - You can easily invalidate entities or patch existing query data (via `util.updateQueryData`) from middleware.
 - RTK Query enables [streaming cache updates](./usage/streaming-updates.mdx), such as updating the initial fetched data as messages are received over a websocket, and has built in support for [optimistic updates](./usage/optimistic-updates.mdx) as well.
-- Like Redux itself, the main RTK Query functionality is UI-agnostic and can be used with any UI layer
 - RTK Query ships a very tiny and flexible fetch wrapper: [`fetchBaseQuery`](./api/fetchBaseQuery.mdx). It's also very easy to [swap our client with your own](./usage/customizing-queries.mdx), such as using `axios`, `redaxios`, or something custom.
-- RTK Query has [a (currently experimental) code-gen tool](https://github.com/rtk-incubator/rtk-query-codegen) that will take an OpenAPI spec and give you a typed API client, as well as provide methods for enhancing the generated client after the fact.
+- RTK Query has [a (currently experimental) code-gen tool](https://github.com/rtk-incubator/rtk-query-codegen) that will take an OpenAPI spec or GraphQL schema and give you a typed API client, as well as provide methods for enhancing the generated client after the fact.
 
 ## Tradeoffs
 
@@ -44,6 +44,19 @@ RTK Query deliberately **does _not_ implement a cache that would deduplicate ide
 - We don't have the time, resources, or interest in trying to solve that right now
 - In many cases, simply refetching data when it's invalidated works well and is easier to understand
 - At a minimum, RTKQ can help solve the general use case of "fetch some data", which is a big pain point for a lot of people
+
+### Bundle Size
+
+RTK Query adds a fixed one-time amount to your app's bundle size. Since RTK Query builds on top of Redux Toolkit and React-Redux, the added size varies depending on whether you are already using those in your app. The estimated min+gzip bundle sizes are:
+
+- If you are using RTK already: ~9kb for RTK Query and ~2kb for the hooks.
+- If you are not using RTK already:
+  - Without React: 17 kB for RTK+dependencies+RTK Query
+  - With React: 19kB + React-Redux, which is a peer dependency
+
+Adding additional endpoint definitions should only increase size based on the actual code inside the `endpoints` definitions, which will typically be just a few bytes.
+
+The functionality included in RTK Query quickly pays for the added bundle size, and the elimination of hand-written data fetching logic should be a net improvement in size for most meaningful applications.
 
 ## Comparing Feature Sets
 

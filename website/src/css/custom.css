@@ -81,7 +81,6 @@ blockquote {
   background-color: var(--ifm-blockquote-color);
   border-left: 6px solid var(--ifm-blockquote-color-dark);
   border-radius: var(--ifm-global-radius);
-
 }
 
 .docusaurus-highlight-code-line {
@@ -164,7 +163,6 @@ a:visited {
   overflow: hidden;
 }
 
-
 .admonition {
   color: black;
   border-radius: var(--ifm-global-radius);
@@ -199,6 +197,11 @@ a:visited {
 .admonition .admonition-icon svg {
   fill: black;
   stroke: black;
+}
+
+table.checkbox-table tbody td {
+  text-align: center;
+  vertical-align: center;
 }
 
 .diagonal-cell {

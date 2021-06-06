@@ -9,13 +9,29 @@ hide_title: true
 
 # Queries
 
-This is the most basic feature of RTK Query. A query operation can be performed with any data fetching library of your choice, but the general recommendation is that you only use queries for requests that retrieve data. For anything that alters data on the server or will possibly invalidate the cache, you should use a [Mutation](./mutations).
+## Overview
+
+This is the most common use case for RTK Query. A query operation can be performed with any data fetching library of your choice, but the general recommendation is that you only use queries for requests that retrieve data. For anything that alters data on the server or will possibly invalidate the cache, you should use a [Mutation](./mutations).
 
 By default, RTK Query ships with [`fetchBaseQuery`](../api/fetchBaseQuery), which is a lightweight [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) wrapper that automatically handles request headers and response parsing in a manner similar to common libraries like `axios`. See [Customizing Queries](./customizing-queries) if `fetchBaseQuery` does not handle your requirements.
 
-> Depending on your environment, you may need to polyfill `fetch` with `node-fetch` or `cross-fetch` if you choose to use `fetchBaseQuery` or `fetch` on its own.
+:::info
+
+Depending on your environment, you may need to polyfill `fetch` with `node-fetch` or `cross-fetch` if you choose to use `fetchBaseQuery` or `fetch` on its own.
+
+:::
 
 See [`useQuery`](../api/created-api/hooks.mdx#usequery) for the hook signature and additional details.
+
+## Defining Query Endpoints
+
+Query endpoints are defined by returning an object inside the `endpoints` section of `createApi`, and defining the fields using the `builder.query()` method.
+
+Query endpoints should define either a `query` callback that constructs the URL (including any URL query params), or [a `queryFn` callback](./customizing-queries.mdx#customizing-queries-with-queryfn) that may do arbitrary async logic and return a result.
+
+If the `query` callback needs additional data to generate the URL, it should written to take a single argument. If you need to pass in multiple parameters, pass them formatted as a single "options object".
+
+Query endpoints may also modify the response contents before the result is cached, define "tags" to identify cache invalidation, and provide cache entry lifecycle callbacks to run additional logic as cache entries are added and removed.
 
 ```ts title="Example of all query endpoint options"
 // file: types.ts noEmit
@@ -75,13 +91,13 @@ const api = createApi({
 })
 ```
 
-### Performing Queries with React Hooks
+## Performing Queries with React Hooks
 
 If you're using React Hooks, RTK Query does a few additional things for you. The primary benefit is that you get a render-optimized hook that allows you to have 'background fetching' as well as [derived booleans](#frequently-used-query-hook-return-values) for convenience.
 
 Hooks are automatically generated based on the name of the `endpoint` in the service definition. An endpoint field with `getPost: builder.query()` will generate a hook named `useGetPostQuery`.
 
-#### Hook types
+### Hook types
 
 There are 5 query-related hooks:
 
@@ -96,7 +112,11 @@ There are 5 query-related hooks:
 5. [`useLazyQuerySubscription`](../api/created-api/hooks.mdx#uselazyquerysubscription)
    - Returns a tuple with a `fetch` function, and last promise info. Similar to `useQuerySubscription`, but with manual control over when the data fetching occurs.
 
-#### Query Hook Options
+In practice, the standard `useQuery`-based hooks such as `useGetPostQuery` will be the primary hooks used in your application, but the other hooks are available for specific use cases.
+
+### Query Hook Options
+
+The query hooks expect two parameters: `(queryArg?, queryOptions?)`. The `queryArg` param will be passed through to the underlying `query` callback to generate the URL. The `queryOptions` object accepts several additional parameters that can be used to control the behavior of the data fetching:
 
 - [skip](./conditional-fetching) - Allows a query to 'skip' running for that render. Defaults to `false`
 - [pollingInterval](./polling) - Allows a query to automatically refetch on a provided interval, specified in milliseconds. Defaults to `0` _(off)_
@@ -105,9 +125,13 @@ There are 5 query-related hooks:
 - [refetchOnFocus](../api/createApi#refetchonfocus) - Allows forcing the query to refetch when the browser window regains focus. Defaults to `false`
 - [refetchOnReconnect](../api/createApi#refetchonreconnect) - Allows forcing the query to refetch when regaining a network connection. Defaults to `false`
 
-> All `refetch`-related options will override the defaults you may have set in [createApi](../api/createApi)
+:::info
 
-#### Frequently Used Query Hook Return Values
+All `refetch`-related options will override the defaults you may have set in [createApi](../api/createApi)
+
+:::
+
+### Frequently Used Query Hook Return Values
 
 The query hook returns an object containing properties such as the latest `data` for the query request, as well as status booleans for the current request lifecycle state. Below are some of the most frequently used properties. Refer to [`useQuery`](../api/created-api/hooks.mdx#usequery) for an extensive list of all returned properties.
 
@@ -120,7 +144,9 @@ The query hook returns an object containing properties such as the latest `data`
 - `isError` - When true, indicates that the query is in an `error` state.
 - `refetch` - A function to force refetch the query
 
-#### Example
+In most cases, you will probably read `data` and either `isLoading` or `isFetching` in order to render your UI.
+
+### Query Hook Usage Example
 
 Here is an example of a `PostDetail` component:
 
@@ -146,9 +172,7 @@ export const PostDetail = ({ id }: { id: string }) => {
 The way that this component is setup would have some nice traits:
 
 1. It only shows 'Loading...' on the **initial load**
-
    - **Initial load** is defined as a query that is pending and does not have data in the cache
-
 2. When the request is re-triggered by the polling interval, it will add '...refetching' to the post name
 3. If a user closed this `PostDetail`, but then re-opened it within [the allowed time](../api/createApi#keepunuseddatafor), they would immediately be served a cached result and polling would resume with the previous behavior.
 
@@ -230,23 +254,25 @@ By default, if you add a component that makes the same query as an existing one,
 
 In some cases, you may want to skip this behavior and force a refetch - in that case, you can call `refetch` that is returned by the hook.
 
-> If you're not using React Hooks, you can access `refetch` like this:
->
-> ```ts no-transpile
-> const { status, data, error, refetch } = dispatch(
->   pokemonApi.endpoints.getPokemon.initiate('bulbasaur')
-> )
-> ```
+:::info
 
-### Observing caching behavior
+If you're not using React Hooks, you can access `refetch` like this:
 
-What you'll see below is this:
+```ts no-transpile
+const { status, data, error, refetch } = dispatch(
+  pokemonApi.endpoints.getPokemon.initiate('bulbasaur')
+)
+```
+
+:::
+
+## Example: Observing caching behavior
+
+This example demonstrates request deduplication and caching behavior:
 
 1. The first `Pokemon` component mounts and immediately fetches 'bulbasaur'
 2. A second later, another `Pokemon` component is rendered with 'bulbasaur'
-
    - Notice that this one doesn't ever show 'Loading...' and no new network request happens? It's using the cache here.
-
 3. A moment after that, a `Pokemon` component for 'pikachu' is added, and a new request happens.
 4. When you click 'Refetch' of a particular pokemon type, it'll update all of them with one request.
 
@@ -255,7 +281,7 @@ Click the 'Add bulbasaur' button. You'll observe the same behavior described abo
 :::
 
 <iframe
-  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/feature/v1.6-integration/examples/query/react/deduping-queries?fontsize=12&hidenavigation=1&theme=dark"
+  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/feature/v1.6-integration/examples/query/react/deduping-queries?fontsize=12&runonclick=1&hidenavigation=1&theme=dark"
   style={{
     width: '100%',
     height: '800px',

@@ -9,7 +9,7 @@ hide_title: true
 
 # Cache Behavior
 
-A key feature of RTK Query is it's management of cached data. When data is fetched from the server, RTK Query will store the data in the Redux store as a 'cache'. When an additional request is performed for the same data, RTK Query will provide the existing cached data rather than sending an additional request to the server.
+A key feature of RTK Query is its management of cached data. When data is fetched from the server, RTK Query will store the data in the Redux store as a 'cache'. When an additional request is performed for the same data, RTK Query will provide the existing cached data rather than sending an additional request to the server.
 
 RTK Query provides a number of concepts and tools to manipulate the cache behaviour and adjust it to your needs.
 
@@ -25,9 +25,9 @@ When a subscription is started, the parameters used with the endpoint are serial
 
 When a request is attempted, if the data already exists in the cache, then that data is served and no new request is sent to the server. Otherwise, if the data does not exist in the cache, then a new request is sent, and the returned response is stored in the cache.
 
-As long as there is an active 'subscription' to the data (e.g. if a component is mounted that calls a `useQuery` hook for the endpoint), then the data will remain in the cache. Once the subscription is removed (e.g. when last component subscribed to the data unmounts), after an amount of time (default 60 seconds), the data will be removed from the cache. The expiration time can be configured with the `keepUnusedDataFor` property for the [API definition as a whole](../api/createApi.mdx#keepunuseddatafor), as well as on a [per-endpoint](../api/createApi.mdx#keepunuseddatafor-1) basis.
+Subscriptions are reference-counted. Additional subscriptions that ask for the same endpoint+params increment the reference count. As long as there is an active 'subscription' to the data (e.g. if a component is mounted that calls a `useQuery` hook for the endpoint), then the data will remain in the cache. Once the subscription is removed (e.g. when last component subscribed to the data unmounts), after an amount of time (default 60 seconds), the data will be removed from the cache. The expiration time can be configured with the `keepUnusedDataFor` property for the [API definition as a whole](../api/createApi.mdx#keepunuseddatafor), as well as on a [per-endpoint](../api/createApi.mdx#keepunuseddatafor-1) basis.
 
-## Cache lifetime & subscription example
+### Cache lifetime & subscription example
 
 Imagine an endpoint that expects an `id` as the query param, and 4 components mounted which are requesting data from this same endpoint:
 
@@ -68,7 +68,7 @@ While four components are subscribed to the endpoint, there are only three disti
 
 Data is kept in the cache as long is there is at least one active subscriber interested in that endpoint + parameter combination. When the subscriber reference count reaches zero, a timer is set, and if there are no new subscriptions to that data by the time the timer expires, the cached data will be removed. The default expiration is 60 seconds, which can be configured both for the [API definition as a whole](../api/createApi.mdx#keepunuseddatafor), as well as on a [per-endpoint](../api/createApi.mdx#keepunuseddatafor-1) basis.
 
-If 'ComponentThree' is unmounted in the example above, regardless of how much time passes, the data will remain in the cache due to 'ComponentFour' still being subscribed to the same data, and the subscribe reference count will be `one`. However, once 'ComponentFour' unmounts, the subscriber reference count will be `zero`. The data will remain in the cache for the remainder of the expiration time, at which point, if no new subscription has been created during that time, the cached data will finally be removed.
+If 'ComponentThree' is unmounted in the example above, regardless of how much time passes, the data will remain in the cache due to 'ComponentFour' still being subscribed to the same data, and the subscribe reference count will be `1`. However, once 'ComponentFour' unmounts, the subscriber reference count will be `0`. The data will remain in the cache for the remainder of the expiration time. If no new subscription has been created before the timer expires, the cached data will finally be removed.
 
 ## Manipulating Cache Behavior
 
@@ -163,7 +163,13 @@ Passing `false` (the default value) for this property will use the default behav
 
 Passing `true` for this property will cause the endpoint to always refetch when a new subscriber to the query is added. If passed to an individual hook call and not the api definition itself, then this applies only to that hook call. I.e., when the component calling the hook mounts, or the argument changes, it adds a new subscriber for that query, and will always refetch, regardless of whether cached data for the endpoint + arg combination already exists.
 
-Passing a `number` as a value in seconds will use the following behavior: At the time a query subscription is created, if there is an existing query in the cache, it will compare the current time vs the last fulfilled timestamp for that query, and refetch if the provided amount of time in seconds has elapsed. If there is no query, it will fetch the data. If there is an existing query, but the amount of time specified since the last query has not elapsed, it will serve the existing cached data.
+Passing a `number` as a value in seconds will use the following behavior:
+
+- At the time a query subscription is created:
+  - if there is an existing query in the cache, it will compare the current time vs the last fulfilled timestamp for that query,
+  - It will refetch if the provided amount of time in seconds has elapsed.
+- If there is no query, it will fetch the data.
+- If there is an existing query, but the amount of time specified since the last query has not elapsed, it will serve the existing cached data.
 
 ```ts title="Configuring re-fetching on subscription if data exceeds a given time"
 // file: types.ts noEmit
@@ -412,7 +418,7 @@ This example is a live demo of how the subscriber reference count and the value 
 Two components are mounted, each with the same endpoints query (`useGetUsersQuery(2)`). You will be able to observe that when toggling off the components, the subscriber reference count will be reduced. After toggling off both components such that the subscriber reference count reaches zero, you will observe the cached data under the `Queries` section will persist for 5 seconds (the value of `keepUnusedDataFor` provided for the endpoint in this demo). If the subscriber reference count remains at 0 for the full duration, the cached data will then be removed from the store.
 
 <iframe
-  src="https://codesandbox.io/embed/rtk-query-cache-subscription-lifetime-example-77tn4?fontsize=12&hidenavigation=1&theme=dark&module=%2Fsrc%2Fservice%2Findex.ts"
+  src="https://codesandbox.io/embed/rtk-query-cache-subscription-lifetime-example-77tn4?fontsize=12&runonclick=1&hidenavigation=1&theme=dark&module=%2Fsrc%2Fservice%2Findex.ts"
   style={{
     width: '100%',
     height: '800px',

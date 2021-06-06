@@ -9,9 +9,13 @@ hide_title: true
 
 # Code Generation
 
+RTK Query's API and architecture is oriented around declaring API endpoints up front. This lends itself well to automatically generating API slice definitions from external API schema definitions, such as OpenAPI and GraphQL.
+
+We have early previews of code generation capabilities available as separate tools.
+
 ## OpenAPI
 
-Right now, we have a first version of a code generator from OpenApi schemas over at [rtk-incubator/rtk-query-codegen](https://github.com/rtk-incubator/rtk-query-codegen).
+We have a first version of a code generator from OpenAPI schemas over at [`rtk-incubator/rtk-query-codegen`](https://github.com/rtk-incubator/rtk-query-codegen).
 
 You can create an api by running:
 
@@ -72,3 +76,7 @@ export const {
   useDeletePetMutation,
 } = api
 ```
+
+## GraphQL
+
+There is a _very_ early WIP PR that [implements code generation based on a GraphQL spec](https://github.com/phryneas/graphql-code-generator/pull/1), and an open issue on the GraphQL Generator repo asking [if an RTK Query generator would be potentially useful](https://github.com/dotansimha/graphql-code-generator/issues/6085).

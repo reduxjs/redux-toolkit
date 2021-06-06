@@ -7,9 +7,13 @@ hide_title: true
 
 &nbsp;
 
-# `Error Handling`
+# Error Handling
 
-If your query or mutation happens to throw an error when using [fetchBaseQuery](../api/fetchBaseQuery), it will be returned in the `error` property of the respective hook.
+## Overview
+
+If your query or mutation happens to throw an error when using [fetchBaseQuery](../api/fetchBaseQuery), it will be returned in the `error` property of the respective hook. The component will re-render when that occurs, and you can show appropriate UI based on the error data if desired.
+
+### Error Display Examples
 
 ```tsx title="Query Error"
 function PostsList() {
@@ -70,7 +74,9 @@ Ultimately, you can choose whatever library you prefer to use with your `baseQue
 There are quite a few ways that you can manage your errors, and in some cases, you may want to show a generic toast notification for any async error. Being that RTK Query is built on top of Redux and Redux-Toolkit, you can easily add a middleware to your store for this purpose.
 
 :::tip
-Redux-Toolkit released [matching utilities](https://redux-toolkit.js.org/api/matching-utilities#matching-utilities) in v1.5 that we can leverage for a lot of custom behaviors.
+
+Redux Toolkit has [action matching utilities](../../api/matching-utilities.mdx#matching-utilities) that we can leverage for additional custom behaviors.
+
 :::
 
 ```ts title="Error catching middleware example"
