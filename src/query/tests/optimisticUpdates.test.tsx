@@ -21,12 +21,12 @@ const api = createApi({
   tagTypes: ['Post'],
   endpoints: (build) => ({
     post: build.query<Post, string>({
-      query: (id) => `post/${id}`,
+      query: (id) => `posts/${id}`,
       providesTags: ['Post'],
     }),
     updatePost: build.mutation<void, Pick<Post, 'id'> & Partial<Post>>({
       query: ({ id, ...patch }) => ({
-        url: `post/${id}`,
+        url: `posts/${id}`,
         method: 'PATCH',
         body: patch,
       }),

@@ -35,12 +35,12 @@ const api = createApi({
   tagTypes: ['Post'],
   endpoints: (build) => ({
     getPost: build.query<Post, number>({
-      query: (id) => `post/${id}`,
+      query: (id) => `posts/${id}`,
       providesTags: ['Post'],
     }),
     updatePost: build.mutation<void, Pick<Post, 'id'> & Partial<Post>>({
       query: ({ id, ...patch }) => ({
-        url: `post/${id}`,
+        url: `posts/${id}`,
         method: 'PATCH',
         body: patch,
       }),
@@ -64,7 +64,7 @@ const api = createApi({
 })
 ```
 
-or, if you prefer the slighty shorter version with `.catch`
+or, if you prefer the slightly shorter version with `.catch`
 
 ```diff
 -      async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {

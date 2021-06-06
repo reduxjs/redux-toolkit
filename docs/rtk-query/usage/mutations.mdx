@@ -36,7 +36,7 @@ const api = createApi({
       // highlight-start
       // note: an optional `queryFn` may be used in place of `query`
       query: ({ id, ...patch }) => ({
-        url: `post/${id}`,
+        url: `posts/${id}`,
         method: 'PATCH',
         body: patch,
       }),
