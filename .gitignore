@@ -15,7 +15,7 @@ yarn.lock
 .vscode/
 temp/
 .tmp-projections
-
+build/
 .rts2*
 
 typesversions
