@@ -1,8 +1,9 @@
 {
+  "name": "website",
   "scripts": {
     "start": "docusaurus start",
     "build": "docusaurus build",
-    "netlify-build": "(cd ..; npm install --ignore-scripts --production; cd docs; npm install --ignore-scripts ); npm run build",
+    "netlify-build": "yarn install && yarn build",
     "swizzle": "docusaurus swizzle",
     "publish-gh-pages": "docusaurus deploy",
     "deploy": "docusaurus deploy"
@@ -14,8 +15,8 @@
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-lite-youtube-embed": "^2.0.3",
-    "remark-typescript-tools": "^1.0.6",
-    "typescript": "^4.2.4"
+    "remark-typescript-tools": "^1.0.7",
+    "typescript": "~4.2.4"
   },
   "browserslist": {
     "production": [

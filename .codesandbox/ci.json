@@ -3,7 +3,9 @@
     "vanilla",
     "vanilla-ts",
     "github/reduxjs/rtk-github-issues-example",
-    "github/reduxjs/toolkit/examples/query/react/optimistic-updates"
+    "github/reduxjs/toolkit/examples/query/react/basic",
+    "github/reduxjs/toolkit/examples/query/react/advanced"
   ],
-  "node": "14"
+  "node": "14",
+  "packages": ["packages/toolkit"]
 }

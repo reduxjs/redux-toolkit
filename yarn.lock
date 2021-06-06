@@ -1881,7 +1881,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/types@npm:^7.0.0, @babel/types@npm:^7.12.1, @babel/types@npm:^7.12.13, @babel/types@npm:^7.12.6, @babel/types@npm:^7.12.7, @babel/types@npm:^7.13.0, @babel/types@npm:^7.13.12, @babel/types@npm:^7.13.16, @babel/types@npm:^7.14.0, @babel/types@npm:^7.14.2, @babel/types@npm:^7.14.4, @babel/types@npm:^7.3.0, @babel/types@npm:^7.3.3, @babel/types@npm:^7.4.4, @babel/types@npm:^7.7.0, @babel/types@npm:^7.8.3":
+"@babel/types@npm:^7.0.0, @babel/types@npm:^7.12.1, @babel/types@npm:^7.12.13, @babel/types@npm:^7.12.6, @babel/types@npm:^7.12.7, @babel/types@npm:^7.13.0, @babel/types@npm:^7.13.12, @babel/types@npm:^7.13.16, @babel/types@npm:^7.14.0, @babel/types@npm:^7.14.2, @babel/types@npm:^7.14.4, @babel/types@npm:^7.3.0, @babel/types@npm:^7.3.3, @babel/types@npm:^7.4.4, @babel/types@npm:^7.7.0":
   version: 7.14.4
   resolution: "@babel/types@npm:7.14.4"
   dependencies:
@@ -3301,7 +3301,7 @@ __metadata:
     react-dom: 17.0.0
     react-redux: 7.2.2
     react-scripts: 4.0.2
-    typescript: 4.1.3
+    typescript: ~4.2.4
   languageName: unknown
   linkType: soft
 
@@ -3325,7 +3325,7 @@ __metadata:
     react-redux: ^7.2.4
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
-    typescript: 4.1.3
+    typescript: ~4.2.4
   languageName: unknown
   linkType: soft
 
@@ -3349,7 +3349,7 @@ __metadata:
     react-redux: ^7.2.4
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
-    typescript: 4.1.3
+    typescript: ~4.2.4
   languageName: unknown
   linkType: soft
 
@@ -3365,7 +3365,7 @@ __metadata:
     react-dom: 17.0.0
     react-redux: 7.2.2
     react-scripts: 4.0.2
-    typescript: 4.1.3
+    typescript: ~4.2.4
   languageName: unknown
   linkType: soft
 
@@ -3381,7 +3381,7 @@ __metadata:
     react-dom: 17.0.0
     react-redux: 7.2.2
     react-scripts: 4.0.2
-    typescript: 4.1.3
+    typescript: ~4.2.4
   languageName: unknown
   linkType: soft
 
@@ -3397,7 +3397,7 @@ __metadata:
     react-dom: 17.0.0
     react-redux: 7.2.2
     react-scripts: 4.0.2
-    typescript: 4.1.3
+    typescript: ~4.2.4
   languageName: unknown
   linkType: soft
 
@@ -3426,7 +3426,7 @@ __metadata:
     react-redux: ^7.2.4
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
-    typescript: 4.1.3
+    typescript: ~4.2.4
   languageName: unknown
   linkType: soft
 
@@ -3451,7 +3451,7 @@ __metadata:
     react-redux: ^7.2.4
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
-    typescript: 4.1.3
+    typescript: ~4.2.4
   languageName: unknown
   linkType: soft
 
@@ -3476,7 +3476,7 @@ __metadata:
     react-redux: ^7.2.4
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
-    typescript: 4.1.3
+    typescript: ~4.2.4
     uuid: ^8.3.2
     whatwg-fetch: ^3.4.1
   languageName: unknown
@@ -3505,7 +3505,7 @@ __metadata:
     react-redux: ^7.2.4
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
-    typescript: 4.1.3
+    typescript: ~4.2.4
   languageName: unknown
   linkType: soft
 
@@ -3521,7 +3521,7 @@ __metadata:
     react-dom: 17.0.0
     react-redux: 7.2.2
     react-scripts: 4.0.2
-    typescript: 4.1.3
+    typescript: ~4.2.4
   languageName: unknown
   linkType: soft
 
@@ -3548,7 +3548,7 @@ __metadata:
     react-redux: ^7.2.4
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
-    typescript: 4.1.3
+    typescript: ~4.2.4
   languageName: unknown
   linkType: soft
 
@@ -3575,7 +3575,7 @@ __metadata:
     react-redux: ^7.2.4
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
-    typescript: 4.1.3
+    typescript: ~4.2.4
   languageName: unknown
   linkType: soft
 
@@ -3602,7 +3602,7 @@ __metadata:
     react-redux: ^7.2.4
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
-    typescript: 4.1.3
+    typescript: ~4.2.4
   languageName: unknown
   linkType: soft
 
@@ -3618,7 +3618,7 @@ __metadata:
     react-dom: 17.0.0
     react-redux: 7.2.2
     react-scripts: 4.0.2
-    typescript: 4.1.3
+    typescript: ~4.2.4
   languageName: unknown
   linkType: soft
 
@@ -4283,7 +4283,6 @@ __metadata:
     magic-string: ^0.25.7
     merge-source-map: ^1.1.0
     msw: ^0.28.2
-    netlify-plugin-cache: ^1.0.3
     node-fetch: ^2.6.1
     prettier: ^2.2.1
     redux: ^4.1.0
@@ -4297,7 +4296,7 @@ __metadata:
     terser: ^5.6.1
     ts-jest: ^26.5.5
     tslib: ^1.10.0
-    typescript: ^4.2.3
+    typescript: ~4.2.4
     yargs: ^15.3.1
   peerDependencies:
     react: ^16.14.0 || ^17.0.0
@@ -4975,15 +4974,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/keyv@npm:^3.1.1":
-  version: 3.1.1
-  resolution: "@types/keyv@npm:3.1.1"
-  dependencies:
-    "@types/node": "*"
-  checksum: 3aaf557d5b82e733d5a17b7f55af5d6be953363c3a594f006d64265790fe87c301c6e1400c0b6b1cf72add50a0ceddc25afb8231ab8302a2e5b6ebfbfac30e5d
-  languageName: node
-  linkType: hard
-
 "@types/lodash.mergewith@npm:4.6.6":
   version: 4.6.6
   resolution: "@types/lodash.mergewith@npm:4.6.6"
@@ -5237,15 +5227,6 @@ __metadata:
   dependencies:
     "@types/node": "*"
   checksum: f54f13e4b6ac46a6c7bde9e609cd730f4369b434aa59c5230478b9262bb75e7349c3247fd2cdb917e98d053a57f5609dd552379c612a720b59a8714914d324ed
-  languageName: node
-  linkType: hard
-
-"@types/responselike@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@types/responselike@npm:1.0.0"
-  dependencies:
-    "@types/node": "*"
-  checksum: e6e6613c800aeda63e2331e753e8d21df1a2c9aa7a4bc71ed792a848e4811fc96e609759089355314a2318c76eff1f161499cd242044838ab1e6f56e463ebb9c
   languageName: node
   linkType: hard
 
@@ -11194,25 +11175,6 @@ fsevents@^1.2.7:
   dependencies:
     node-gyp: latest
   checksum: a1883f4ca12b8b403ec528f1a4cb312b0877eacd24719da535cabea78d6fdd78530e3538bdba590a1c0f6c295128f964a89182621885296353a44dcfa4f9db53
-  languageName: node
-  linkType: hard
-
-"fsevents@patch:fsevents@^1.2.7#builtin<compat/fsevents>":
-  version: 1.2.13
-  resolution: "fsevents@patch:fsevents@npm%3A1.2.13#builtin<compat/fsevents>::version=1.2.13&hash=11e9ea"
-  dependencies:
-    bindings: ^1.5.0
-    nan: ^2.12.1
-  checksum: 7bc048c164eb72f91b18ba7cd2ba30679a0afe57e9cd6352eac4bdbc4ddd4ca2ea98674d0bd3a80e96427469adc433c13532494b36aea40fceab36e198982182
-  languageName: node
-  linkType: hard
-
-"fsevents@patch:fsevents@^2.1.2#builtin<compat/fsevents>, fsevents@patch:fsevents@^2.1.3#builtin<compat/fsevents>, fsevents@patch:fsevents@~2.3.1#builtin<compat/fsevents>":
-  version: 2.3.2
-  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#builtin<compat/fsevents>::version=2.3.2&hash=11e9ea"
-  dependencies:
-    node-gyp: latest
-  checksum: 7b25d9251aefe433d508a0eb614217f0495ae05a9e8af15f7dbf9998e08c4e675acd1cf32361e0fcf71d917d9e8c4b76301fdc72a1ec1105a3ea0994f5e15a8d
   languageName: node
   linkType: hard
 
@@ -18908,9 +18870,9 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"remark-typescript-tools@npm:^1.0.6":
-  version: 1.0.6
-  resolution: "remark-typescript-tools@npm:1.0.6"
+"remark-typescript-tools@npm:^1.0.7":
+  version: 1.0.7
+  resolution: "remark-typescript-tools@npm:1.0.7"
   dependencies:
     "@microsoft/tsdoc": ^0.12.21
     prettier: ^2.1.1
@@ -18918,7 +18880,7 @@ fsevents@^1.2.7:
     unist-util-visit: ^2.0.3
   peerDependencies:
     typescript: ">=4.0"
-  checksum: d18614272a09e36d5a6bbcaa6c201a517ea5cbaae900b357d9abbe65b9b8c1f9fd1d5d10f3a35b1b8a971d39f32ae1488d76b29459c12437cb78eb7b7e07ae75
+  checksum: ea4ae8e383b1f38b3de63deda9c9f4baae10ac58a7f164a32e50f8ac2866a9df5cc364be4334b5d7e4ab8881498f3e8660b45797b5cde1199a67cf86a1f10088
   languageName: node
   linkType: hard
 
@@ -19103,62 +19065,6 @@ resolve@^2.0.0-next.3:
     is-core-module: ^2.2.0
     path-parse: ^1.0.6
   checksum: dc9529322d9ac6175e91cd909ca845f31cc2c065e0f79ca2c423499238af9c214373d6682df24ca7be4ff20561332d4fad4516f91ea6c3919853f72f869e542c
-  languageName: node
-  linkType: hard
-
-"resolve@patch:resolve@1.1.7#builtin<compat/resolve>":
-  version: 1.1.7
-  resolution: "resolve@patch:resolve@npm%3A1.1.7#builtin<compat/resolve>::version=1.1.7&hash=3388aa"
-  checksum: ca4e21815c78134fdb248d2175d98c2ead024c680a3a9c7b8ee13fc8a7f5157e061b13ae29ee07a60e1b9faea33c3740cb88d48d94966d7e94479add70d3f544
-  languageName: node
-  linkType: hard
-
-"resolve@patch:resolve@1.18.1#builtin<compat/resolve>":
-  version: 1.18.1
-  resolution: "resolve@patch:resolve@npm%3A1.18.1#builtin<compat/resolve>::version=1.18.1&hash=3388aa"
-  dependencies:
-    is-core-module: ^2.0.0
-    path-parse: ^1.0.6
-  checksum: 9e62d2803ad1ec21b13780cc6a45b72bb7b6525eb5b44f0ede7cde37c00a8eb310c06ebfcc7de7dc10c2234d7d271bc4f1eed9783fb87acac141597cd4efaeec
-  languageName: node
-  linkType: hard
-
-"resolve@patch:resolve@^1.1.6#builtin<compat/resolve>, resolve@patch:resolve@^1.10.0#builtin<compat/resolve>, resolve@patch:resolve@^1.12.0#builtin<compat/resolve>, resolve@patch:resolve@^1.13.1#builtin<compat/resolve>, resolve@patch:resolve@^1.14.2#builtin<compat/resolve>, resolve@patch:resolve@^1.17.0#builtin<compat/resolve>, resolve@patch:resolve@^1.18.1#builtin<compat/resolve>, resolve@patch:resolve@^1.20.0#builtin<compat/resolve>, resolve@patch:resolve@^1.3.2#builtin<compat/resolve>, resolve@patch:resolve@^1.8.1#builtin<compat/resolve>":
-  version: 1.20.0
-  resolution: "resolve@patch:resolve@npm%3A1.20.0#builtin<compat/resolve>::version=1.20.0&hash=3388aa"
-  dependencies:
-    is-core-module: ^2.2.0
-    path-parse: ^1.0.6
-  checksum: c4a515b76026806b5b26513fc7bdb80458c532bc91c02ef45ac928d1025585f93bec0b904be39c02131118a37ff7e3f9258f1526850b025d2ec0948bb5fd03d0
-  languageName: node
-  linkType: hard
-
-"resolve@patch:resolve@^2.0.0-next.3#builtin<compat/resolve>":
-  version: 2.0.0-next.3
-  resolution: "resolve@patch:resolve@npm%3A2.0.0-next.3#builtin<compat/resolve>::version=2.0.0-next.3&hash=3388aa"
-  dependencies:
-    is-core-module: ^2.2.0
-    path-parse: ^1.0.6
-  checksum: a36d174b5e1b72eb9d05f2457fde2e91a4954f4480ee693681eca3a423978304d6232443726384ebf54fc4039f1ec8da7e8731383aab4c11704d157d5bcf5031
-  languageName: node
-  linkType: hard
-
-"resolve@patch:resolve@~1.17.0#builtin<compat/resolve>":
-  version: 1.17.0
-  resolution: "resolve@patch:resolve@npm%3A1.17.0#builtin<compat/resolve>::version=1.17.0&hash=3388aa"
-  dependencies:
-    path-parse: ^1.0.6
-  checksum: 4bcfb568860d0c361fd16c26b6fce429711138ff0de7dd353bdd73fcb5c7eede2f4602d40ccfa08ff45ec7ef9830845eab2021a46036af0a6e5b58bab1ff6399
-  languageName: node
-  linkType: hard
-
-"resolve@patch:resolve@~1.19.0#builtin<compat/resolve>":
-  version: 1.19.0
-  resolution: "resolve@patch:resolve@npm%3A1.19.0#builtin<compat/resolve>::version=1.19.0&hash=3388aa"
-  dependencies:
-    is-core-module: ^2.1.0
-    path-parse: ^1.0.6
-  checksum: 188d5167e8578a9af8d194faf382b8f3526aad5145391c24ecdc6246c6fc82c10fc66d6352267f8e93c5977c503d61803169c91b9e2ee36dd2de759915c9b673
   languageName: node
   linkType: hard
 
@@ -19387,6 +19293,7 @@ resolve@~1.19.0:
     eslint-plugin-prettier: ^3.4.0
     eslint-plugin-react: ^7.23.2
     eslint-plugin-react-hooks: ^4.2.0
+    netlify-plugin-cache: ^1.0.3
     prettier: ^2.2.1
   languageName: unknown
   linkType: soft
@@ -21394,43 +21301,23 @@ resolve@~1.19.0:
   languageName: node
   linkType: hard
 
-typescript@4.1.3:
-  version: 4.1.3
-  resolution: "typescript@npm:4.1.3"
+"typescript@npm:~4.2.4":
+  version: 4.2.4
+  resolution: "typescript@npm:4.2.4"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 4f7ab1506ea22c7a1c313ec5b4285e93ce08d709ad6086d02d3096adb399ca339972ee56d1e578213c51dd0fb7b0fad50283c2d3c39642405644458ae29774f8
+  checksum: edaede2fa77f56b7fba80ee624a2368ab1216e75b0434d968ccb47ab0a5e2f6d94f848b3b111c1237dd71e988cd376af26370dcdad3b94355c76e759f0dd0a1e
   languageName: node
   linkType: hard
 
-"typescript@^4.2.3, typescript@^4.2.4, typescript@~4.3.2":
+"typescript@npm:~4.3.2":
   version: 4.3.2
   resolution: "typescript@npm:4.3.2"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 21e1285402e32fd240f6ad3f97b6fea81b90d2591f412677d01b570a8bd93151d1e08460d58f43689fc758671a5baaebb16fa93d3c8260181612c8e619bd24f7
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@4.1.3#builtin<compat/typescript>":
-  version: 4.1.3
-  resolution: "typescript@patch:typescript@npm%3A4.1.3#builtin<compat/typescript>::version=4.1.3&hash=ddfc1b"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 28f0f616bf6284543bb14d4bfe0e1a74963e5df0396ebccfc6a57bfd4ab70b4284e51b3a2045ed2466151a4a58c8a549edb886a2f7a2232cf08fcf73496592e6
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@^4.2.3#builtin<compat/typescript>, typescript@patch:typescript@^4.2.4#builtin<compat/typescript>, typescript@patch:typescript@~4.3.2#builtin<compat/typescript>":
-  version: 4.3.2
-  resolution: "typescript@patch:typescript@npm%3A4.3.2#builtin<compat/typescript>::version=4.3.2&hash=ddfc1b"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 68d48dc86dacfeab59a22414ff061c976c46b679a9717a3a710051ea7bab779fd23f4edb856434da8155e8e8646c90b3912e342cc0010dfd15ed321a42cb0578
   languageName: node
   linkType: hard
 
@@ -22495,9 +22382,9 @@ typescript@4.1.3:
   languageName: node
   linkType: hard
 
-"website-677e41@workspace:website":
+"website@workspace:website":
   version: 0.0.0-use.local
-  resolution: "website-677e41@workspace:website"
+  resolution: "website@workspace:website"
   dependencies:
     "@docusaurus/core": 2.0.0-beta.0
     "@docusaurus/preset-classic": 2.0.0-beta.0
@@ -22506,8 +22393,8 @@ typescript@4.1.3:
     react: 17.0.2
     react-dom: 17.0.2
     react-lite-youtube-embed: ^2.0.3
-    remark-typescript-tools: ^1.0.6
-    typescript: ^4.2.4
+    remark-typescript-tools: ^1.0.7
+    typescript: ~4.2.4
   languageName: unknown
   linkType: soft
 

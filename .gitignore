@@ -12,7 +12,7 @@ es
 .vscode/
 temp/
 .tmp-projections
-
+build/
 .rts2*
 
 typesversions
@@ -25,3 +25,8 @@ typesversions
 !.yarn/sdks
 !.yarn/versions
 .pnp.*
+*.tgz
+
+.yalc
+yalc.lock
+yalc.sig

@@ -34,7 +34,6 @@ module.exports = {
                 },
               },
             ],
-
             [
               transpileCodeblocks,
               {
@@ -153,7 +152,6 @@ module.exports = {
       ],
       copyright: `Copyright © 2015–${new Date().getFullYear()} Dan Abramov and the Redux documentation authors.`,
     },
-    image: 'img/redux-logo-landscape.png',
     algolia: {
       apiKey: '82d838443b672336bf63cab4772d9eb4',
       indexName: 'redux-starter-kit',

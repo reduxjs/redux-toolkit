@@ -32,6 +32,7 @@
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-react": "^7.23.2",
     "eslint-plugin-react-hooks": "^4.2.0",
+    "netlify-plugin-cache": "^1.0.3",
     "prettier": "^2.2.1"
   },
   "resolutions": {
@@ -39,5 +40,10 @@
     "react-redux": "npm:7.2.4",
     "react": "npm:17.0.2",
     "react-dom": "npm:17.0.2"
+  },
+  "scripts": {
+    "build:examples": "yarn workspaces foreach --include '@reduxjs/*' --include '@examples-query-react/*' -vtp run build",
+    "build:docs": "yarn workspace docs run build",
+    "build:package": "yarn workspace @reduxjs/toolkit run build"
   }
 }
