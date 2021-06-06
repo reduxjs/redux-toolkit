@@ -77,7 +77,7 @@ const api = createApi({
 
 ### Performing Queries with React Hooks
 
-If you're using React Hooks, RTK Query does a few additional things for you. The primary benefit is that you get a render-optimized hook that allows you to have 'background fetching' as well as [derived booleans](#query-hook-return-types) for convenience.
+If you're using React Hooks, RTK Query does a few additional things for you. The primary benefit is that you get a render-optimized hook that allows you to have 'background fetching' as well as [derived booleans](#frequently-used-query-hook-return-values) for convenience.
 
 Hooks are automatically generated based on the name of the `endpoint` in the service definition. An endpoint field with `getPost: builder.query()` will generate a hook named `useGetPostQuery`.
 
@@ -152,6 +152,47 @@ The way that this component is setup would have some nice traits:
 2. When the request is re-triggered by the polling interval, it will add '...refetching' to the post name
 3. If a user closed this `PostDetail`, but then re-opened it within [the allowed time](../api/createApi#keepunuseddatafor), they would immediately be served a cached result and polling would resume with the previous behavior.
 
+### Query Loading State
+
+The auto-generated React hooks created by the React-specific version of `createApi` provide [derived booleans](#frequently-used-query-hook-return-values) that reflect the current state of a given query. Derived booleans are preferred for the generated React hooks as opposed to a `status` flag, as the derived booleans are able to provide a greater amount of detail which would not be possible with a single `status` flag, as multiple statuses may be true at a given time (such as `isFetching` and `isSuccess`).
+
+For query endpoints, RTK Query maintains a semantic distinction between `isLoading` and `isFetching` in order to provide more flexibility with the derived information provided.
+
+- `isLoading` refers to a query being in flight for the _first time_ for the given endpoint + query param combination. No data will be available at this time.
+- `isFetching` refers to a query being in flight for the given endpoint + query param combination, but not necessarily for the first time. Data may be available from an earlier request at this time.
+
+This distinction allows for greater control when handling UI behavior. For example, `isLoading` can be used to display a skeleton while loading for the first time, while `isFetching` can be used to grey out old data when fetching subsequent requests when data is invalidated and re-fetched.
+
+```tsx title="Managing UI behavior with Query Loading States"
+import { Skeleton } from './Skeleton'
+import { useGetPostsQuery } from './api'
+
+function App() {
+  const { data = [], isLoading, isFetching, isError } = useGetPostsQuery()
+
+  if (isError) return <div>An error has occurred!</div>
+
+  if (isLoading) return <Skeleton />
+
+  return (
+    <div className={isFetching ? 'posts--disabled' : ''}>
+      {data.map((post) => (
+        <Post
+          key={post.id}
+          id={post.id}
+          name={post.name}
+          disabled={isFetching}
+        />
+      ))}
+    </div>
+  )
+}
+```
+
+### Query Cache Keys
+
+When you perform a query, RTK Query automatically serializes the request parameters and creates an internal `queryCacheKey` for the request. Any future request that produces the same `queryCacheKey` will be de-duped against the original, and will share updates if a `refetch` is trigged on the query from any subscribed component.
+
 ### Selecting data from a query result
 
 Sometimes you may have a parent component that is subscribed to a query, and then in a child component you want to pick an item from that query. In most cases you don't want to perform an additional request for a `getItemById`-type query when you know that you already have the result.
@@ -182,10 +223,6 @@ function PostById({ id }: { id: number }) {
   return <li>{post?.name}</li>
 }
 ```
-
-### Query Cache Keys
-
-When you perform a query, RTK Query automatically serializes the request parameters and creates an internal `queryCacheKey` for the request. Any future request that produces the same `queryCacheKey` will be de-duped against the original, and will share updates if a `refetch` is trigged on the query from any subscribed component.
 
 ### Avoiding unnecessary requests
 
@@ -218,7 +255,7 @@ Click the 'Add bulbasaur' button. You'll observe the same behavior described abo
 :::
 
 <iframe
-  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/feature/v1.6-integration/examples/query/react/deduping-caching?fontsize=12&hidenavigation=1&theme=dark"
+  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/feature/v1.6-integration/examples/query/react/deduping-queries?fontsize=12&hidenavigation=1&theme=dark"
   style={{
     width: '100%',
     height: '800px',
