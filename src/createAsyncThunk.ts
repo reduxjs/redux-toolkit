@@ -604,7 +604,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
           finalAction =
             err instanceof RejectWithValue
               ? rejected(null, requestId, arg, err.payload, err.meta)
-              : rejected(err, requestId, arg)
+              : rejected(err as any, requestId, arg)
         }
         // We dispatch the result action _after_ the catch, to avoid having any errors
         // here get swallowed by the try/catch block,
