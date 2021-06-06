@@ -87,14 +87,14 @@ const api = createApi({
     }),
     addPost: build.mutation<Post, Omit<Post, 'id'>>({
       query: (body) => ({
-        url: 'posts',
+        url: 'post',
         method: 'POST',
         body,
       }),
     }),
     editPost: build.mutation<Post, Partial<Post> & Pick<Post, 'id'>>({
       query: (body) => ({
-        url: `posts/${body.id}`,
+        url: `post/${body.id}`,
         method: 'POST',
         body,
       }),
@@ -160,7 +160,7 @@ const api = createApi({
     }),
     editPost: build.mutation<Post, Partial<Post> & Pick<Post, 'id'>>({
       query: (body) => ({
-        url: `posts/${body.id}`,
+        url: `post/${body.id}`,
         method: 'POST',
         body,
       }),
@@ -210,14 +210,14 @@ const api = createApi({
     }),
     addPost: build.mutation<Post, Omit<Post, 'id'>>({
       query: (body) => ({
-        url: 'posts',
+        url: 'post',
         method: 'POST',
         body,
       }),
     }),
     editPost: build.mutation<Post, Partial<Post> & Pick<Post, 'id'>>({
       query: (body) => ({
-        url: `posts/${body.id}`,
+        url: `post/${body.id}`,
         method: 'POST',
         body,
       }),
@@ -275,7 +275,7 @@ const api = createApi({
     }),
     addPost: build.mutation<Post, Omit<Post, 'id'>>({
       query: (body) => ({
-        url: 'posts',
+        url: 'post',
         method: 'POST',
         body,
       }),
@@ -285,7 +285,7 @@ const api = createApi({
     }),
     editPost: build.mutation<Post, Partial<Post> & Pick<Post, 'id'>>({
       query: (body) => ({
-        url: `posts/${body.id}`,
+        url: `post/${body.id}`,
         method: 'POST',
         body,
       }),
@@ -355,7 +355,7 @@ const api = createApi({
     }),
     addPost: build.mutation<Post, Omit<Post, 'id'>>({
       query: (body) => ({
-        url: 'posts',
+        url: 'post',
         method: 'POST',
         body,
       }),
@@ -363,7 +363,7 @@ const api = createApi({
     }),
     editPost: build.mutation<Post, Partial<Post> & Pick<Post, 'id'>>({
       query: (body) => ({
-        url: `posts/${body.id}`,
+        url: `post/${body.id}`,
         method: 'POST',
         body,
       }),
@@ -647,14 +647,14 @@ export const api = createApi({
     }),
     addPost: build.mutation<Post, Partial<Post>>({
       query: (body) => ({
-        url: `posts`,
+        url: `post`,
         method: 'POST',
         body,
       }),
       invalidatesTags: ['Posts'],
     }),
     getPost: build.query<Post, number>({
-      query: (id) => `posts/${id}`,
+      query: (id) => `post/${id}`,
       providesTags: (result, error, id) => [{ type: 'Posts', id }],
     }),
   }),
@@ -720,7 +720,7 @@ export const api = createApi({
     addPost: build.mutation<Post, Partial<Post>>({
       query(body) {
         return {
-          url: `posts`,
+          url: `post`,
           method: 'POST',
           body,
         }
@@ -728,7 +728,7 @@ export const api = createApi({
       invalidatesTags: [{ type: 'Posts', id: 'LIST' }],
     }),
     getPost: build.query<Post, number>({
-      query: (id) => `posts/${id}`,
+      query: (id) => `post/${id}`,
       providesTags: (result, error, id) => [{ type: 'Posts', id }],
     }),
   }),

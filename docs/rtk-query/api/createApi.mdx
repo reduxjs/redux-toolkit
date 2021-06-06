@@ -484,6 +484,46 @@ async function onQueryStarted(
 ): Promise<void>
 ```
 
+```ts title="onQueryStarted query lifecycle example"
+// file: notificationsSlice.ts noEmit
+export const messageCreated = (msg: string) => ({
+  type: 'notifications/messageCreated',
+  payload: msg,
+})
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { messageCreated } from './notificationsSlice'
+
+export interface Post {
+  id: number
+  name: string
+}
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/',
+  }),
+  endpoints: (build) => ({
+    getPost: build.query<Post, number>({
+      query: (id) => `post/${id}`,
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        // `onStart` side-effect
+        dispatch(messageCreated('Fetching post...'))
+        try {
+          const { data } = await queryFulfilled
+          // `onSuccess` side-effect
+          dispatch(messageCreated('Post received!'))
+        } catch (err) {
+          // `onError` side-effect
+          dispatch(messageCreated('Error fetching post!'))
+        }
+      },
+    }),
+  }),
+})
+```
+
 ### `onCacheEntryAdded`
 
 _(optional)_
