@@ -9,11 +9,19 @@ hide_title: true
 
 # Mutations
 
-Unlike `useQuery`, `useMutation` returns a tuple. The first item in the tuple is the `trigger` function and the second element contains an object with `status`, `error`, and `data`.
+## Overview
 
-Unlike the `useQuery` hook, the `useMutation` hook doesn't execute automatically. To run a mutation you have to call the trigger function returned as the first tuple value from the hook.
+Mutations are used to send data updates to the server and apply the changes to the local cache. Mutations can also invalidate cached data and force re-fetches.
 
-See [`useMutation`](../api/created-api/hooks.mdx#usemutation) for the hook signature and additional details.
+## Defining Mutation Endpoints
+
+Mutation endpoints are defined by returning an object inside the `endpoints` section of `createApi`, and defining the fields using the `builder.mutation()` method.
+
+Mutation endpoints should define either a `query` callback that constructs the URL (including any URL query params), or [a `queryFn` callback](./customizing-queries.mdx#customizing-queries-with-queryfn) that may do arbitrary async logic and return a result. The `query` callback may also return an object containing the URL, the HTTP method to use and a request body.
+
+If the `query` callback needs additional data to generate the URL, it should written to take a single argument. If you need to pass in multiple parameters, pass them formatted as a single "options object".
+
+Mutation endpoints may also modify the response contents before the result is cached, define "tags" to identify cache invalidation, and provide cache entry lifecycle callbacks to run additional logic as cache entries are added and removed.
 
 ```ts title="Example of all mutation endpoint options"
 // file: types.ts noEmit
@@ -69,20 +77,30 @@ const api = createApi({
 ```
 
 :::info
-Notice the `onQueryStarted` method? Be sure to check out how it can be used for [optimistic updates](./optimistic-updates)
+
+The `onQueryStarted` method can be used for [optimistic updates](./optimistic-updates)
+
 :::
 
-### Performing Mutations with React Hooks
+## Performing Mutations with React Hooks
 
-#### Frequently Used Mutation Hook Return Values
+### Mutation Hook Behavior
 
-The `useMutation` hook returns a tuple containing a `mutation trigger` function, as well as an object containing properties about the `mutation result`.
+Unlike `useQuery`, `useMutation` returns a tuple. The first item in the tuple is the "trigger" function and the second element contains an object with `status`, `error`, and `data`.
 
-The `mutation trigger` is a function that when called, will fire off the mutation request for that endpoint. Calling the `mutation trigger` returns a promise with an `unwrap` property, which can be called to unwrap the mutation call and provide the raw response/error. This can be useful if you wish to determine whether the mutation succeeds/fails inline at the call-site.
+Unlike the `useQuery` hook, the `useMutation` hook doesn't execute automatically. To run a mutation you have to call the trigger function returned as the first tuple value from the hook.
 
-The `mutation result` is an object containing properties such as the latest `data` for the mutation request, as well as status booleans for the current request lifecycle state.
+See [`useMutation`](../api/created-api/hooks.mdx#usemutation) for the hook signature and additional details.
 
-Below are some of the most frequently used properties on the `mutation result` object. Refer to [`useMutation`](../api/created-api/hooks.mdx#usemutation) for an extensive list of all returned properties.
+### Frequently Used Mutation Hook Return Values
+
+The `useMutation` hook returns a tuple containing a "mutation trigger" function, as well as an object containing properties about the "mutation result".
+
+The "mutation trigger" is a function that when called, will fire off the mutation request for that endpoint. Calling the "mutation trigger" returns a promise with an `unwrap` property, which can be called to unwrap the mutation call and provide the raw response/error. This can be useful if you wish to determine whether the mutation succeeds/fails inline at the call-site.
+
+The "mutation result" is an object containing properties such as the latest `data` for the mutation request, as well as status booleans for the current request lifecycle state.
+
+Below are some of the most frequently used properties on the "mutation result" object. Refer to [`useMutation`](../api/created-api/hooks.mdx#usemutation) for an extensive list of all returned properties.
 
 - `data` - The returned result if present.
 - `error` - The error result if present.
@@ -97,7 +115,7 @@ With RTK Query, a mutation does contain a semantic distinction between 'loading'
 
 :::
 
-#### Example
+### Standard Mutation Example
 
 This is a modified version of the complete example you can see at the bottom of the page to highlight the `updatePost` mutation. In this scenario, a post is fetched with `useQuery`, and then a `EditablePostName` component is rendered that allows us to edit the name of the post.
 
@@ -139,11 +157,11 @@ export const PostDetail = () => {
 }
 ```
 
-### Advanced mutations with revalidation
+## Advanced Mutations with Revalidation
 
 In the real world, it's very common that a developer would want to resync their local data cache with the server after performing a mutation (aka "revalidation"). RTK Query takes a more centralized approach to this and requires you to configure the invalidation behavior in your API service definition. See [Advanced Invalidation with abstract tag IDs](./automated-refetching#advanced-invalidation-with-abstract-tag-ids) for details on advanced invalidation handling with RTK Query.
 
-### Example - Commented Posts Service
+### Revalidation Example
 
 This is an example of a [CRUD service](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) for Posts. This implements the [Selectively invalidating lists](./automated-refetching#selectively-invalidating-lists) strategy and will most likely serve as a good foundation for real applications.
 
@@ -205,7 +223,7 @@ export const postApi = createApi({
         }
       },
       // Invalidates all queries that subscribe to this Post `id` only.
-      // In this case, `getPost` will be re-run. `getPosts` *might*  rerun, if this id was under it's results.
+      // In this case, `getPost` will be re-run. `getPosts` *might*  rerun, if this id was under its results.
       invalidatesTags: (result, error, { id }) => [{ type: 'Posts', id }],
     }),
     deletePost: build.mutation<{ success: boolean; id: number }, number>({
