@@ -11,9 +11,9 @@ hide_title: true
 
 As seen under [Default Cache Behavior](./cache-behavior.mdx#default-cache-behavior), when a subscription is added for a query endpoint, a request will be sent only if the cache data does not already exist. If it exists, the existing data will be served instead.
 
-RTK Query uses a cache tag system to automate re-fetching for query endpoints that have data affected by mutation endpoints. This enables designing your api such that firing a specific mutation will cause a certain query endpoint to consider it's cached data `invalid`, and re-fetch the data if there is an active subscription.
+RTK Query uses a cache tag system to automate re-fetching for query endpoints that have data affected by mutation endpoints. This enables designing your api such that firing a specific mutation will cause a certain query endpoint to consider its cached data `invalid`, and re-fetch the data if there is an active subscription.
 
-Each endpoint + parameter combination contributes it's own `queryCacheKey`. The `cache tag` system enables the ability to inform RTK Query that a particular query cache has `provided` specific tags. If a mutation is fired which is said to `invalidate` tags that a query cache has `provided`, the cached data will be considered `invalidated`, and re-fetch if there is an active subscription to the cached data.
+Each endpoint + parameter combination contributes its own `queryCacheKey`. The `cache tag` system enables the ability to inform RTK Query that a particular query cache has `provided` specific tags. If a mutation is fired which is said to `invalidate` tags that a query cache has `provided`, the cached data will be considered `invalidated`, and re-fetch if there is an active subscription to the cached data.
 
 For triggering re-fetching through other means, see [Manipulating Cache Behavior](./cache-behavior.mdx#manipulating-cache-behavior).
 
@@ -33,7 +33,7 @@ An individual `tag` has a `type`, represented as a `string` name, and an optiona
 
 _see also: [providesTags API reference](../api/createApi.mdx#providestags)_
 
-A _query_ can have it's cached data _provide_ tags. Doing so determines which 'tag' is attached to the cached data returned by the query.
+A _query_ can have its cached data _provide_ tags. Doing so determines which 'tag' is attached to the cached data returned by the query.
 
 The `providesTags` argument can either be an array of `string` (such as `['Post']`), `{type: string, id?: string|number}` (such as `[{type: 'Post', id: 1}]`), or a callback that returns such an array. That function will be passed the result as the first argument, the response error as the second argument, and the argument originally passed into the `query` method as the third argument. Note that either the result or error arguments may be undefined based on whether the query was successful or not.
 
@@ -107,7 +107,7 @@ By declaring these tags as what can possibly be provided to the cache, it enable
 
 ### Providing cache data
 
-Each individual `query` endpoint can have it's cached data `provide` particular tags. Doing so enables a relationship between cached data from one or more `query` endpoints and the behaviour of one or more `mutation` endpoints.
+Each individual `query` endpoint can have its cached data `provide` particular tags. Doing so enables a relationship between cached data from one or more `query` endpoints and the behaviour of one or more `mutation` endpoints.
 
 The `providesTags` property on a `query` endpoint is used for this purpose.
 
@@ -614,7 +614,7 @@ A powerful use-case is to use an ID like `'LIST'` as a label for data provided b
 > 1. `LIST` is an arbitrary string - technically speaking, you could use anything you want here, such as `ALL` or `*`. The important thing when choosing a custom id is to make sure there is no possibility of it colliding with an id that is returned by a query result. If you have unknown ids in your query results and don't want to risk it, you can go with point 3 below.
 > 2. You can add _many_ tag types for even more control
 >    - `[{ type: 'Posts', id: 'LIST' }, { type: 'Posts', id: 'SVELTE_POSTS' }, { type: 'Posts', id: 'REACT_POSTS' }]`
-> 3. If the concept of using an `id` like 'LIST' seems strange to you, you can always add another `tagType` and invalidate it's root, but we recommend using the `id` approach as shown.
+> 3. If the concept of using an `id` like 'LIST' seems strange to you, you can always add another `tagType` and invalidate its root, but we recommend using the `id` approach as shown.
 
 We can compare the scenarios below to see how using a `'LIST'` id can be leveraged to optimize behaviour.
 
