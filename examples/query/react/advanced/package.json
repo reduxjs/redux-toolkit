@@ -1,7 +1,8 @@
 {
-  "name": "getting-started-advanced",
+  "name": "@examples-query-react/advanced",
+  "private": true,
   "version": "1.0.0",
-  "description": "",
+  "description": "getting-started-advanced",
   "keywords": [],
   "main": "src/index.tsx",
   "dependencies": {

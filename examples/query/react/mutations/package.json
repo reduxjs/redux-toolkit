@@ -1,5 +1,6 @@
 {
-  "name": "mutations",
+  "name": "@examples-query-react/mutations",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "keywords": [],

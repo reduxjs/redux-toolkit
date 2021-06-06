@@ -1,5 +1,6 @@
 {
-  "name": "authentication-with-extrareducers",
+  "name": "@examples-query-react/authentication-with-extrareducers",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "keywords": [],

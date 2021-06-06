@@ -1,5 +1,6 @@
 {
-  "name": "deduping-queries",
+  "name": "@examples-query-react/deduping-queries",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "keywords": [],

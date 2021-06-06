@@ -1,5 +1,6 @@
 {
-  "name": "polling",
+  "name": "@examples-query-react/polling",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "keywords": [],

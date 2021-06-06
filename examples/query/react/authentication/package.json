@@ -1,5 +1,6 @@
 {
-  "name": "authentication",
+  "name": "@examples-query-react/authentication",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "keywords": [],

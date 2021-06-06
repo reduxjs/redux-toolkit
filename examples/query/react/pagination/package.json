@@ -1,5 +1,6 @@
 {
-  "name": "pagination",
+  "name": "@examples-query-react/pagination",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "keywords": [],

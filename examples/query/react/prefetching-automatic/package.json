@@ -1,5 +1,6 @@
 {
-  "name": "prefetching-automatic",
+  "name": "@examples-query-react/prefetching-automatic",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "keywords": [],

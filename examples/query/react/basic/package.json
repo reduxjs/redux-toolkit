@@ -1,7 +1,8 @@
 {
-  "name": "getting-started-basic",
+  "name": "@examples-query-react/basic",
+  "private": true,
   "version": "1.0.0",
-  "description": "",
+  "description": "getting-started-basic",
   "keywords": [],
   "main": "src/index.tsx",
   "dependencies": {

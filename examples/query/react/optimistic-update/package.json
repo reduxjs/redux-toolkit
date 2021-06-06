@@ -1,7 +1,8 @@
 {
-  "name": "concepts-optimistic-updates",
+  "name": "@examples-query-react/optimistic-update",
+  "private": true,
   "version": "1.0.0",
-  "description": "",
+  "description": "concepts-optimistic-updates",
   "keywords": [],
   "main": "./src/index.tsx",
   "dependencies": {

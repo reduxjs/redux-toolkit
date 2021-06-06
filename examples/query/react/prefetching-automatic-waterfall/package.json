@@ -1,5 +1,6 @@
 {
-  "name": "prefetching-automatic-waterfall",
+  "name": "@examples-query-react/prefetching-automatic-waterfall",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "keywords": [],

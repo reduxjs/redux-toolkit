@@ -1,5 +1,6 @@
 {
-  "name": "with-apiprovider",
+  "name": "@examples-query-react/with-apiprovider",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "keywords": [],

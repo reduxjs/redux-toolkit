@@ -1,5 +1,6 @@
 {
-  "name": "graphql-example",
+  "name": "@examples-query-react/graphql",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "keywords": [],
