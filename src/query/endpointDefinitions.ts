@@ -368,7 +368,7 @@ export type EndpointBuilder<
    *  baseQuery,
    *  endpoints: (build) => ({
    *    getPost: build.query({
-   *      query: (id) => ({ url: `posts/${id}` }),
+   *      query: (id) => ({ url: `post/${id}` }),
    *      // Pick out data and prevent nested properties in a hook or selector
    *      transformResponse: (response) => response.data,
    *      // `result` is the server response
@@ -398,7 +398,7 @@ export type EndpointBuilder<
    *   baseQuery,
    *   endpoints: (build) => ({
    *     updatePost: build.mutation({
-   *       query: ({ id, ...patch }) => ({ url: `posts/${id}`, method: 'PATCH', body: patch }),
+   *       query: ({ id, ...patch }) => ({ url: `post/${id}`, method: 'PATCH', body: patch }),
    *       // Pick out data and prevent nested properties in a hook or selector
    *       transformResponse: (response) => response.data,
    *       // `result` is the server response

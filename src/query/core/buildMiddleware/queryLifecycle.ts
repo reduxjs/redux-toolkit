@@ -93,7 +93,7 @@ declare module '../../endpointDefinitions' {
      *   }),
      *   endpoints: (build) => ({
      *     getPost: build.query<Post, number>({
-     *       query: (id) => `posts/${id}`,
+     *       query: (id) => `post/${id}`,
      *       async onQueryStarted(id, { dispatch, queryFulfilled }) {
      *         // `onStart` side-effect
      *         dispatch(messageCreated('Fetching posts...'))
@@ -145,12 +145,12 @@ declare module '../../endpointDefinitions' {
      *   tagTypes: ['Post'],
      *   endpoints: (build) => ({
      *     getPost: build.query<Post, number>({
-     *       query: (id) => `posts/${id}`,
+     *       query: (id) => `post/${id}`,
      *       providesTags: ['Post'],
      *     }),
      *     updatePost: build.mutation<void, Pick<Post, 'id'> & Partial<Post>>({
      *       query: ({ id, ...patch }) => ({
-     *         url: `posts/${id}`,
+     *         url: `post/${id}`,
      *         method: 'PATCH',
      *         body: patch,
      *       }),

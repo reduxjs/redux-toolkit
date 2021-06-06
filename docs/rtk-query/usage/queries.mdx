@@ -38,7 +38,7 @@ const api = createApi({
     getPost: build.query<Post, number>({
       // highlight-start
       // note: an optional `queryFn` may be used in place of `query`
-      query: (id) => ({ url: `posts/${id}` }),
+      query: (id) => ({ url: `post/${id}` }),
       // Pick out data and prevent nested properties in a hook or selector
       transformResponse: (response: { data: Post }) => response.data,
       providesTags: (result, error, id) => [{ type: 'Post', id }],

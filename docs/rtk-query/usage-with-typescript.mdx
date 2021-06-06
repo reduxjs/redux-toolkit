@@ -216,7 +216,7 @@ const api = createApi({
     getPost: build.query<Post, number>({
       // inferred as `number` from the `QueryArg` type
       //       v
-      query: (id) => `posts/${id}`,
+      query: (id) => `post/${id}`,
       // An explicit type must be provided to the raw result that the query returns
       // when using `transformResponse`
       //                             v
@@ -452,7 +452,7 @@ export const api = createApi({
     // Query argument is required to be `number`, and can't be `undefined`
     //                            V
     getPost: build.query<Post, number>({
-      query: (id) => `posts/${id}`,
+      query: (id) => `post/${id}`,
     }),
   }),
 })
