@@ -343,6 +343,7 @@ import {
   FetchBaseQueryError,
 } from '@reduxjs/toolkit/query'
 import { tokenReceived, loggedOut } from './authSlice'
+
 const baseQuery = fetchBaseQuery({ baseUrl: '/' })
 const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
@@ -528,6 +529,86 @@ const api = createApi({
     }),
   }),
 })
+```
+
+### Constructing a Dynamic Base URL using Redux state
+
+In some cases, you may wish to have a dynamically altered base url determined from a property in your Redux state. A `baseQuery` has access to a [`getState`](../api/createApi.mdx#basequery-function-arguments) method that provides the current store state at the time it is called. This can be used to construct the desired url using a partial url string, and the appropriate data from your store state.
+
+```ts title="Dynamically generated Base URL example"
+// file: src/store.ts noEmit
+export type RootState = {
+  auth: {
+    projectId: number | null
+  }
+}
+
+// file: src/services/projectSlice.ts noEmit
+import type { RootState } from '../store'
+export const selectProjectId = (state: RootState) => state.auth.projectId
+
+// file: src/services/types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+// file: src/services/api.ts
+import {
+  createApi,
+  BaseQueryFn,
+  FetchArgs,
+  fetchBaseQuery,
+  FetchBaseQueryError,
+} from '@reduxjs/toolkit/query/react'
+import type { Post } from './types'
+import { selectProjectId } from './projectSlice'
+import type { RootState } from '../store'
+
+const rawBaseQuery = fetchBaseQuery({
+  baseUrl: 'www.my-cool-site.com/',
+})
+
+const dynamicBaseQuery: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError
+> = async (args, api, extraOptions) => {
+  const projectId = selectProjectId(api.getState() as RootState)
+  // gracefully handle scenarios where data to generate the URL is missing
+  if (!projectId) {
+    return {
+      error: {
+        status: 400,
+        data: 'No project ID received',
+      },
+    }
+  }
+
+  const urlEnd = typeof args === 'string' ? args : args.url
+  // construct a dynamically generated portion of the url
+  const adjustedUrl = `project/${projectId}/${urlEnd}`
+  const adjustedArgs =
+    typeof args === 'string' ? adjustedUrl : { ...args, url: adjustedUrl }
+  // provide the amended url and other params to the raw base query
+  return rawBaseQuery(adjustedArgs, api, extraOptions)
+}
+
+export const api = createApi({
+  baseQuery: dynamicBaseQuery,
+  endpoints: (builder) => ({
+    getPosts: builder.query<Post[], void>({
+      query: () => 'posts',
+    }),
+  }),
+})
+
+export const { useGetPostsQuery } = api
+
+/*
+  Using `useGetPostsQuery()` where a `projectId` of 500 is in the redux state will result in
+  a request being sent to www.my-cool-site.com/project/500/posts
+*/
 ```
 
 ## Examples - `transformResponse`
