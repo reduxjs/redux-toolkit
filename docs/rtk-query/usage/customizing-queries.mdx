@@ -1,0 +1,854 @@
+---
+id: customizing-queries
+title: Customizing Queries
+sidebar_label: Customizing Queries
+hide_title: true
+---
+
+&nbsp;
+
+# Customizing queries
+
+RTK Query is agnostic as to how your requests resolve. You can use any library you like to handle requests, or no library at all. RTK Query provides reasonable defaults expected to cover the majority of use cases, while also allowing room for customization to alter query handling to fit specific needs.
+
+## Customizing queries with `baseQuery`
+
+The default method to handle queries is via the [`baseQuery`](../api/createApi#basequery) option on [`createApi`](../api/createApi), in combination with the [`query`](../api/createApi.mdx#query) option on an endpoint definition.
+
+To process queries, endpoints are defined with a [`query`](../api/createApi.mdx#query) option, which passes its return value to a common [`baseQuery`](../api/createApi#basequery) function used for the API.
+
+By default, RTK Query ships with [`fetchBaseQuery`](../api/fetchBaseQuery), which is a lightweight [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) wrapper that automatically handles request headers and response parsing in a manner similar to common libraries like `axios`. If `fetchBaseQuery` alone does not meet your needs, you can customize its behaviour with a wrapper function, or create your own [`baseQuery`](../api/createApi.mdx#basequery) function from scratch for [`createApi`](../api/createApi) to use.
+
+See also [`baseQuery API Reference`](../api/createApi.mdx#basequery).
+
+### Implementing a custom `baseQuery`
+
+RTK Query expects a `baseQuery` function to be called with three arguments: `args`, `api`, and `extraOptions`. It is expected to return an object with either a `data` or `error` property, or a promise that resolves to return such an object.
+
+#### baseQuery function arguments
+
+```ts title="baseQuery example arguments" no-transpile
+const customBaseQuery = (
+  // highlight-start
+  args,
+  { signal, dispatch, getState },
+  extraOptions
+  // highlight-end
+) => {
+  // omitted
+}
+```
+
+#### baseQuery function return value
+
+1.  ```ts title="Expected success result format" no-transpile
+    return { data: YourData }
+    ```
+2.  ```ts title="Expected error result format" no-transpile
+    return { error: YourError }
+    ```
+
+```ts title="baseQuery example return value" no-transpile
+const customBaseQuery = (
+  args,
+  { signal, dispatch, getState },
+  extraOptions
+) => {
+  // highlight-start
+  if (Math.random() > 0.5) return { error: 'Too high!' }
+  return { data: 'All good!' }
+  // highlight-end
+}
+```
+
+:::note
+This format is required so that RTK Query can infer the return types for your responses.
+:::
+
+At its core, a `baseQuery` function only needs to have the minimum return value to be valid; an object with a `data` or `error` property. It is up to the user to determine how they wish to use the provided arguments, and how requests are handled within the function itself.
+
+#### fetchBaseQuery defaults
+
+For [`fetchBaseQuery`](../api/fetchBaseQuery) specifically, the return type is as follows:
+
+```ts title="Return types of fetchBaseQuery" no-transpile
+Promise<{
+    data: any;
+    error?: undefined;
+    meta?: { request: Request; response: Response };
+} | {
+    error: {
+        status: number;
+        data: any;
+    };
+    data?: undefined;
+    meta?: { request: Request; response: Response };
+}>
+```
+
+1.  ```ts title="Expected success result format with fetchBaseQuery" no-transpile
+    return { data: YourData }
+    ```
+2.  ```ts title="Expected error result format with fetchBaseQuery" no-transpile
+    return { error: { status: number, data: YourErrorData } }
+    ```
+
+## Customizing query responses with `transformResponse`
+
+Individual endpoints on [`createApi`](../api/createApi.mdx) accept a [`transformResponse`](../api/createApi.mdx) property which allows manipulation of the data returned by a query or mutation before it hits the cache.
+
+`transformResponse` is called with the data that a successful `baseQuery` returns for the corresponding endpoint, and the return value of `transformResponse` is used as the cached data associated with that endpoint call.
+
+By default, the payload from the server is returned directly.
+
+```ts
+function defaultTransformResponse(baseQueryReturnValue: unknown) {
+  return baseQueryReturnValue
+}
+```
+
+To change it, provide a function that looks like:
+
+```ts title="Unpack a deeply nested collection" no-transpile
+transformResponse: (response) => response.some.deeply.nested.collection
+```
+
+`transformResponse` is also called with the `meta` property returned from the `baseQuery`, which can be used while determining the transformed response. The value for `meta` is dependent on the `baseQuery` used.
+
+```ts title="transformResponse meta example" no-transpile
+transformResponse: (response: { sideA: Tracks; sideB: Tracks }, meta) => {
+  if (meta?.coinFlip === 'heads') {
+    return response.sideA
+  }
+  return response.sideB
+}
+```
+
+While there is less need to store the response in a [normalized lookup table](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape) with RTK Query managing caching data, `transformResponse` can be leveraged to do so if desired.
+
+```ts title="Normalize the response data" no-transpile
+transformResponse: (response) =>
+  response.reduce((acc, curr) => {
+    acc[curr.id] = curr
+    return acc
+  }, {})
+
+/*
+  will convert:
+  [
+    {id: 1, name: 'Harry'},
+    {id: 2, name: 'Ron'},
+    {id: 3, name: 'Hermione'},
+  ]
+
+  to:
+  {
+    1: { id: 1, name: "Harry" },
+    2: { id: 2, name: "Ron" },
+    3: { id: 3, name: "Hermione" },
+  }
+*/
+```
+
+[`createEntityAdapter`](../../api/createEntityAdapter.mdx) can also be used with `transformResponse` to normalize data, while also taking advantage of other features provided by `createEntityAdapter`, including providing an `ids` array, using [`sortComparer`](../../api/createEntityAdapter.mdx#sortcomparer) to maintain a consistently sorted list, as well as maintaining strong TypeScript support.
+
+See also [Websocket Chat API with a transformed response shape](./streaming-updates.mdx#websocket-chat-api-with-a-transformed-response-shape) for an example of `transformResponse` normalizing response data in combination with `createEntityAdapter`, while also updating further data using [`streaming updates`](./streaming-updates.mdx).
+
+## Customizing queries with `queryFn`
+
+Individual endpoints on [`createApi`](../api/createApi.mdx) accept a [`queryFn`](../api/createApi.mdx#queryfn) property which allows a given endpoint to ignore `baseQuery` for that endpoint by providing an inline function determining how that query resolves.
+
+This can be useful for scenarios where you want to have particularly different behaviour for a single endpoint, or where the query itself is not relevant. Such situations may include:
+
+- One-off queries that use a different base URL
+- One-off queries that use different request handling, such as automatic re-tries
+- One-off queries that use different error handling behaviour
+- Performing multiple requests with a single query ([example](#performing-multiple-requests-with-a-single-query))
+- Leveraging invalidation behaviour with no relevant query ([example](#using-a-no-op-queryfn))
+- Using [Streaming Updates](./streaming-updates) with no relevant initial request ([example](#streaming-data-with-no-initial-request))
+
+See also [`queryFn API Reference`](../api/createApi.mdx#queryfn) for the type signature and available options.
+
+### Implementing a `queryFn`
+
+In order to use `queryFn`, it can be treated as an inline `baseQuery`. It will be called with the same arguments as `baseQuery`, as well as the provided `baseQuery` function itself (`arg`, `api`, `extraOptions`, and `baseQuery`). Similarly to `baseQuery`, it is expected to return an object with either a `data` or `error` property, or a promise that resolves to return such an object.
+
+#### queryFn function arguments
+
+```ts title="queryFn example arguments" no-transpile
+const queryFn = (
+  // highlight-start
+  args,
+  { signal, dispatch, getState },
+  extraOptions,
+  baseQuery
+  // highlight-end
+) => {
+  // omitted
+}
+```
+
+#### queryFn function return value
+
+1.  ```ts title="Expected success result format" no-transpile
+    return { data: YourData }
+    ```
+2.  ```ts title="Expected error result format" no-transpile
+    return { error: YourError }
+    ```
+
+```ts title="queryFn example return value" no-transpile
+const queryFn = (
+  args,
+  { signal, dispatch, getState },
+  extraOptions,
+  baseQuery
+) => {
+  // highlight-start
+  if (Math.random() > 0.5) return { error: 'Too high!' }
+  return { data: 'All good!' }
+  // highlight-end
+}
+```
+
+## Examples - `baseQuery`
+
+### Axios baseQuery
+
+This example implements a very basic axios-based `baseQuery` utility.
+
+```ts title="Basic axios baseQuery"
+import { createApi, BaseQueryFn } from '@reduxjs/toolkit/query'
+import axios, { AxiosRequestConfig, AxiosError } from 'axios'
+
+// highlight-start
+const axiosBaseQuery = (
+  { baseUrl }: { baseUrl: string } = { baseUrl: '' }
+): BaseQueryFn<
+  {
+    url: string
+    method: AxiosRequestConfig['method']
+    data?: AxiosRequestConfig['data']
+  },
+  unknown,
+  unknown
+> => async ({ url, method, data }) => {
+  try {
+    const result = await axios({ url: baseUrl + url, method, data })
+    return { data: result.data }
+  } catch (axiosError) {
+    let err = axiosError as AxiosError
+    return { error: { status: err.response?.status, data: err.response?.data } }
+  }
+}
+// highlight-end
+
+const api = createApi({
+  // highlight-start
+  baseQuery: axiosBaseQuery({
+    baseUrl: 'http://example.com',
+  }),
+  // highlight-end
+  endpoints(build) {
+    return {
+      query: build.query({ query: () => ({ url: '/query', method: 'get' }) }),
+      mutation: build.mutation({
+        query: () => ({ url: '/mutation', method: 'post' }),
+      }),
+    }
+  },
+})
+```
+
+### GraphQL baseQuery
+
+This example implements a very basic GraphQL-based `baseQuery`.
+
+```ts title="Basic GraphQL baseQuery"
+import { createApi } from '@reduxjs/toolkit/query'
+import { request, gql, ClientError } from 'graphql-request'
+
+// highlight-start
+const graphqlBaseQuery = ({ baseUrl }: { baseUrl: string }) => async ({
+  body,
+}: {
+  body: string
+}) => {
+  try {
+    const result = await request(baseUrl, body)
+    return { data: result }
+  } catch (error) {
+    if (error instanceof ClientError) {
+      return { error: { status: error.response.status, data: error } }
+    }
+    return { error: { status: 500, data: error } }
+  }
+}
+// highlight-end
+
+export const api = createApi({
+  // highlight-start
+  baseQuery: graphqlBaseQuery({
+    baseUrl: 'https://graphqlzero.almansi.me/api',
+  }),
+  // highlight-end
+  endpoints: (builder) => ({
+    getPosts: builder.query({
+      query: () => ({
+        body: gql`
+          query {
+            posts {
+              data {
+                id
+                title
+              }
+            }
+          }
+        `,
+      }),
+      transformResponse: (response) => response.posts.data,
+    }),
+    getPost: builder.query({
+      query: (id) => ({
+        body: gql`
+        query {
+          post(id: ${id}) {
+            id
+            title
+            body
+          }
+        }
+        `,
+      }),
+      transformResponse: (response) => response.post,
+    }),
+  }),
+})
+```
+
+### Automatic re-authorization by extending fetchBaseQuery
+
+This example wraps [`fetchBaseQuery`](../api/fetchBaseQuery) such that when encountering a [`401 Unauthorized`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401) error, an additional request is sent to attempt to refresh an authorization token, and re-try to initial query after re-authorizing.
+
+```ts title="Simulating axios-like interceptors with a custom base query"
+// file: authSlice.ts noEmit
+declare function tokenReceived(args?: any): void
+declare function loggedOut(): void
+export { tokenReceived, loggedOut }
+// file: baseQueryWithReauth.ts
+import {
+  BaseQueryFn,
+  FetchArgs,
+  fetchBaseQuery,
+  FetchBaseQueryError,
+} from '@reduxjs/toolkit/query'
+import { tokenReceived, loggedOut } from './authSlice'
+
+const baseQuery = fetchBaseQuery({ baseUrl: '/' })
+const baseQueryWithReauth: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError
+> = async (args, api, extraOptions) => {
+  let result = await baseQuery(args, api, extraOptions)
+  if (result.error && result.error.status === 401) {
+    // try to get a new token
+    const refreshResult = await baseQuery('/refreshToken', api, extraOptions)
+    if (refreshResult.data) {
+      // store the new token
+      api.dispatch(tokenReceived(refreshResult.data))
+      // retry the initial query
+      result = await baseQuery(args, api, extraOptions)
+    } else {
+      api.dispatch(loggedOut())
+    }
+  }
+  return result
+}
+```
+
+### Automatic retries
+
+RTK Query exports a utility called `retry` that you can wrap the `baseQuery` in your API definition with. It defaults to 5 attempts with a basic exponential backoff.
+
+The default behavior would retry at these intervals:
+
+[remarks](docblock://query/retry.ts?token=defaultBackoff)
+
+[examples](docblock://query/retry.ts?token=retry)
+
+In the event that you didn't want to retry on a specific endpoint, you can just set `maxRetries: 0`.
+
+:::info
+It is possible for a hook to return `data` and `error` at the same time. By default, RTK Query will keep whatever the last 'good' result was in `data` until it can be updated or garbage collected.
+:::
+
+#### Bailing out of error re-tries
+
+The `retry` utility has a `fail` method property attached which can be used to bail out of retries immediately. This can be used for situations where it is known that additional re-tries would be guaranteed to all fail and would be redundant.
+
+```ts title="Bailing out of error re-tries"
+import { createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query/react'
+import { FetchArgs } from '@reduxjs/toolkit/dist/query/fetchBaseQuery'
+interface Post {
+  id: number
+  name: string
+}
+type PostsResponse = Post[]
+
+// highlight-start
+const staggeredBaseQueryWithBailOut = retry(
+  async (args: string | FetchArgs, api, extraOptions) => {
+    const result = await fetchBaseQuery({ baseUrl: '/api/' })(
+      args,
+      api,
+      extraOptions
+    )
+
+    // bail out of re-tries immediately if unauthorized,
+    // because we know successive re-retries would be redundant
+    if (result.error?.status === 401) {
+      retry.fail(result.error)
+    }
+
+    return result
+  },
+  {
+    maxRetries: 5,
+  }
+)
+// highlight-end
+
+export const api = createApi({
+  // highlight-start
+  baseQuery: staggeredBaseQueryWithBailOut,
+  // highlight-end
+  endpoints: (build) => ({
+    getPosts: build.query<PostsResponse, void>({
+      query: () => ({ url: 'posts' }),
+    }),
+    getPost: build.query<PostsResponse, string>({
+      query: (id) => ({ url: `post/${id}` }),
+      extraOptions: { maxRetries: 8 }, // You can override the retry behavior on each endpoint
+    }),
+  }),
+})
+export const { useGetPostsQuery, useGetPostQuery } = api
+```
+
+### Adding Meta information to queries
+
+A `baseQuery` can also include a `meta` property in its return value. This can be beneficial in cases where you may wish to include additional information associated with the request such as a request ID or timestamp.
+
+In such a scenario, the return value would look like so:
+
+1.  ```ts title="Expected success result format with meta" no-transpile
+    return { data: YourData, meta: YourMeta }
+    ```
+2.  ```ts title="Expected error result format with meta" no-transpile
+    return { error: YourError, meta: YourMeta }
+    ```
+
+<!-- TODO: re-write below with a more realistic example -->
+
+```ts title="baseQuery example with meta information"
+// file: idGenerator.ts noEmit
+export declare const uuid: () => string
+
+// file: metaBaseQuery.ts
+import {
+  BaseQueryFn,
+  FetchArgs,
+  fetchBaseQuery,
+  FetchBaseQueryError,
+  createApi,
+} from '@reduxjs/toolkit/query'
+import { FetchBaseQueryMeta } from '@reduxjs/toolkit/dist/query/fetchBaseQuery'
+import { uuid } from './idGenerator'
+
+// highlight-start
+type Meta = {
+  requestId: string
+  timestamp: number
+}
+// highlight-end
+
+// highlight-start
+const metaBaseQuery: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError,
+  {},
+  Meta & FetchBaseQueryMeta
+> = async (args, api, extraOptions) => {
+  const requestId = uuid()
+  const timestamp = Date.now()
+
+  const baseResult = await fetchBaseQuery({ baseUrl: '/' })(
+    args,
+    api,
+    extraOptions
+  )
+
+  return {
+    ...baseResult,
+    meta: baseResult.meta && { ...baseResult.meta, requestId, timestamp },
+  }
+}
+// highlight-end
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+interface Post {
+  id: number
+  name: string
+  timestamp: number
+}
+type PostsResponse = Post[]
+
+const api = createApi({
+  // highlight-start
+  baseQuery: metaBaseQuery,
+  // highlight-end
+  endpoints: (build) => ({
+    // a theoretical endpoint where we only want to return data
+    // if request was performed past a certain date
+    getRecentPosts: build.query<PostsResponse, void>({
+      query: () => 'posts',
+      // highlight-start
+      transformResponse: (returnValue: PostsResponse, meta) => {
+        // `meta` here contains our added `requestId` & `timestamp`, as well as
+        // `request` & `response` from fetchBaseQuery's meta object.
+        // These properties can be used to transform the response as desired.
+        if (!meta) return []
+        return returnValue.filter(
+          (post) => post.timestamp >= meta.timestamp - DAY_MS
+        )
+      },
+      // highlight-end
+    }),
+  }),
+})
+```
+
+### Constructing a Dynamic Base URL using Redux state
+
+In some cases, you may wish to have a dynamically altered base url determined from a property in your Redux state. A `baseQuery` has access to a [`getState`](../api/createApi.mdx#basequery-function-arguments) method that provides the current store state at the time it is called. This can be used to construct the desired url using a partial url string, and the appropriate data from your store state.
+
+```ts title="Dynamically generated Base URL example"
+// file: src/store.ts noEmit
+export type RootState = {
+  auth: {
+    projectId: number | null
+  }
+}
+
+// file: src/services/projectSlice.ts noEmit
+import type { RootState } from '../store'
+export const selectProjectId = (state: RootState) => state.auth.projectId
+
+// file: src/services/types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+// file: src/services/api.ts
+import {
+  createApi,
+  BaseQueryFn,
+  FetchArgs,
+  fetchBaseQuery,
+  FetchBaseQueryError,
+} from '@reduxjs/toolkit/query/react'
+import type { Post } from './types'
+import { selectProjectId } from './projectSlice'
+import type { RootState } from '../store'
+
+const rawBaseQuery = fetchBaseQuery({
+  baseUrl: 'www.my-cool-site.com/',
+})
+
+const dynamicBaseQuery: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError
+> = async (args, api, extraOptions) => {
+  const projectId = selectProjectId(api.getState() as RootState)
+  // gracefully handle scenarios where data to generate the URL is missing
+  if (!projectId) {
+    return {
+      error: {
+        status: 400,
+        data: 'No project ID received',
+      },
+    }
+  }
+
+  const urlEnd = typeof args === 'string' ? args : args.url
+  // construct a dynamically generated portion of the url
+  const adjustedUrl = `project/${projectId}/${urlEnd}`
+  const adjustedArgs =
+    typeof args === 'string' ? adjustedUrl : { ...args, url: adjustedUrl }
+  // provide the amended url and other params to the raw base query
+  return rawBaseQuery(adjustedArgs, api, extraOptions)
+}
+
+export const api = createApi({
+  baseQuery: dynamicBaseQuery,
+  endpoints: (builder) => ({
+    getPosts: builder.query<Post[], void>({
+      query: () => 'posts',
+    }),
+  }),
+})
+
+export const { useGetPostsQuery } = api
+
+/*
+  Using `useGetPostsQuery()` where a `projectId` of 500 is in the redux state will result in
+  a request being sent to www.my-cool-site.com/project/500/posts
+*/
+```
+
+## Examples - `transformResponse`
+
+### Unpacking deeply nested GraphQL data
+
+```ts title="GraphQL transformation example"
+// file: graphqlBaseQuery.ts noEmit
+import { BaseQueryFn } from '@reduxjs/toolkit/query'
+declare const graphqlBaseQuery: (args: { baseUrl: string }) => BaseQueryFn
+declare const gql: (literals: TemplateStringsArray) => void
+export { graphqlBaseQuery, gql }
+
+// file: graphqlApi.ts
+import { createApi } from '@reduxjs/toolkit/query'
+import { graphqlBaseQuery, gql } from './graphqlBaseQuery'
+
+interface Post {
+  id: number
+  title: string
+}
+
+export const api = createApi({
+  baseQuery: graphqlBaseQuery({
+    baseUrl: '/graphql',
+  }),
+  endpoints: (builder) => ({
+    getPosts: builder.query<Post[], void>({
+      query: () => ({
+        body: gql`
+          query {
+            posts {
+              data {
+                id
+                title
+              }
+            }
+          }
+        `,
+      }),
+      // highlight-start
+      transformResponse: (response: { posts: { data: Post[] } }) =>
+        response.posts.data,
+      // highlight-end
+    }),
+  }),
+})
+```
+
+### Normalizing data with `createEntityAdapter`
+
+In the example below, `transformResponse` is used in conjunction with [`createEntityAdapter`](../../api/createEntityAdapter.mdx) to normalize the data before storing it in the cache.
+
+For a response such as:
+
+<!-- prettier-ignore -->
+```ts no-transpile
+[
+  { id: 1, name: 'Harry' },
+  { id: 2, name: 'Ron' },
+  { id: 3, name: 'Hermione' },
+]
+```
+
+The normalized cache data will be stored as:
+
+```ts no-transpile
+{
+  ids: [1, 3, 2],
+  entities: {
+    1: { id: 1, name: "Harry" },
+    2: { id: 2, name: "Ron" },
+    3: { id: 3, name: "Hermione" },
+  }
+}
+```
+
+```ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createEntityAdapter, EntityState } from '@reduxjs/toolkit'
+
+export interface Post {
+  id: number
+  name: string
+}
+
+// highlight-start
+const postsAdapter = createEntityAdapter<Post>({
+  sortComparer: (a, b) => a.name.localeCompare(b.name),
+})
+// highlight-end
+
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    getPosts: build.query<EntityState<Post>, void>({
+      query: () => `posts`,
+      // highlight-start
+      transformResponse(response: Post[]) {
+        return postsAdapter.addMany(postsAdapter.getInitialState(), response)
+      },
+      // highlight-end
+    }),
+  }),
+})
+
+export const { useGetPostsQuery } = api
+```
+
+## Examples - `queryFn`
+
+### Using a no-op queryFn
+
+In certain scenarios, you may wish to have a `query` or `mutation` where sending a request or returning data is not relevant for the situation. Such a scenario would be to leverage the `invalidatesTags` property to force re-fetch specific `tags` that have been provided to the cache.
+
+See also [`providing errors to the cache`](./automated-refetching.mdx#providing-data-to-the-cache) to see additional detail and an example for such a scenario to 'refetch errored queries'.
+
+```ts title="Using a no-op queryFn"
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+export interface User {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { Post, User } from './types'
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  tagTypes: ['Post', 'User'],
+  endpoints: (build) => ({
+    getPosts: build.query<Post[], void>({
+      query: () => 'posts',
+      providesTags: ['Post'],
+    }),
+
+    getUsers: build.query<User[], void>({
+      query: () => 'users',
+      providesTags: ['User'],
+    }),
+
+    // highlight-start
+    refetchPostsAndUsers: build.mutation<null, void>({
+      // The query is not relevant here, so a `null` returning `queryFn` is used
+      queryFn: () => ({ data: null }),
+      // This mutation takes advantage of tag invalidation behaviour to trigger
+      // any queries that provide the 'Post' or 'User' tags to re-fetch if the queries
+      // are currently subscribed to the cached data
+      invalidatesTags: ['Post', 'User'],
+    }),
+    // highlight-end
+  }),
+})
+```
+
+### Streaming data with no initial request
+
+RTK Query provides the ability for an endpoint to send an initial request for data, followed up with recurring [streaming updates](./streaming-updates.mdx) that perform further updates to the cached data as the updates occur. However, the initial request is optional, and you may wish to use streaming updates without any initial request fired off.
+
+In the example below, a `queryFn` is used to populate the cache data with an empty array, with no initial request sent. The array is later populated using streaming updates via the [`onCacheEntryAdded`](../api/createApi.mdx#oncacheentryadded) endpoint option, updating the cached data as it is received.
+
+```ts title="Streaming data with no initial request"
+// file: types.ts noEmit
+export interface Message {
+  id: number
+  channel: 'general' | 'redux'
+  userName: string
+  text: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { Message } from './types'
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  tagTypes: ['Message'],
+  endpoints: (build) => ({
+    // highlight-start
+    streamMessages: build.query<Message[], void>({
+      // The query is not relevant here as the data will be provided via streaming updates.
+      // A queryFn returning an empty array is used, with contents being populated via
+      // streaming updates below as they are received.
+      queryFn: () => ({ data: [] }),
+      async onCacheEntryAdded(arg, { updateCachedData, cacheEntryRemoved }) {
+        const ws = new WebSocket('ws://localhost:8080')
+        // populate the array with messages as they are received from the websocket
+        ws.addEventListener('message', (event) => {
+          updateCachedData((draft) => {
+            draft.push(JSON.parse(event.data))
+          })
+        })
+        await cacheEntryRemoved
+        ws.close()
+      },
+    }),
+    // highlight-end
+  }),
+})
+```
+
+### Performing multiple requests with a single query
+
+In the example below, a query is written to fetch all posts for a random user. This is done using a first request for a random user, followed by getting all posts for that user. Using `queryFn` allows the two requests to be included within a single query, avoiding having to chain that logic within component code.
+
+```ts title="Performing multiple requests with a single query"
+// file: types.ts noEmit
+export interface Post {}
+export interface User {
+  id: number
+}
+
+// file: api.ts
+import {
+  createApi,
+  fetchBaseQuery,
+  FetchBaseQueryError,
+} from '@reduxjs/toolkit/query'
+import { Post, User } from './types'
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/ ' }),
+  endpoints: (build) => ({
+    getRandomUserPosts: build.query<Post, void>({
+      async queryFn(_arg, _queryApi, _extraOptions, fetchWithBQ) {
+        // get a random user
+        const randomResult = await fetchWithBQ('users/random')
+        if (randomResult.error) throw randomResult.error
+        const user = randomResult.data as User
+        const result = await fetchWithBQ(`user/${user.id}/posts`)
+        return result.data
+          ? { data: result.data as Post }
+          : { error: result.error as FetchBaseQueryError }
+      },
+    }),
+  }),
+})
+```

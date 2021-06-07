@@ -5,6 +5,8 @@ sidebar_label: Other Exports
 hide_title: true
 ---
 
+&nbsp;
+
 # Other Exports
 
 Redux Toolkit exports some of its internal utilities, and re-exports additional functions from other dependencies as well.
@@ -22,20 +24,28 @@ console.log(nanoid())
 
 ### `miniSerializeError`
 
-A re-worked, inlined copy of [`serialize-error`](https://github.com/sindresorhus/serialize-error). Serializes an error into a plain object. `createAsyncThunk` uses this by default for rejected cases. May also be useful other other cases as well.  
+The default error serialization function used by `createAsyncThunk`, based on https://github.com/sindresorhus/serialize-error. If its argument is an object (such as an `Error` instance), it returns a plain JS `SerializedError` object that copies over any of the listed fields. Otherwise, it returns a stringified form of the value: `{ message: String(value) }`.
 
-Returns a plain object with optional `name`, `message`, `stack` and `code` properties.
+```ts no-transpile
+export interface SerializedError {
+  name?: string
+  message?: string
+  stack?: string
+  code?: string
+}
 
-```ts
-import { miniSerializeError } from '@reduxjs/toolkit'
+export function miniSerializeError(value: any): SerializedError {}
+```
 
-const serializedError = miniSerializeError(new Error('Something has gone wrong'))
-console.log(serializedError.name)
-// "Error"
-console.log(serializedError.message)
-// "Something has gone wrong"
-console.log(serializedError.stack)
-// "Error: Something has gone wrong↵    at <anonymous>:24:34"
+### `copyWithStructuralSharing`
+
+A utility that will recursively merge two similar objects together, preserving existing references if the values appear to be the same. This is used internally to help ensure that re-fetched data keeps using the same references unless the new data has actually changed, to avoid unnecessary re-renders. Otherwise, every re-fetch would likely cause the entire dataset to be replaced and all consuming components to always re-render.
+
+If either of the inputs are not plain JS objects or arrays, the new value is returned.
+
+```ts no-transpile
+export function copyWithStructuralSharing<T>(oldObj: any, newObj: T): T
+export function copyWithStructuralSharing(oldObj: any, newObj: any): any {}
 ```
 
 ## Exports from Other Libraries
@@ -62,7 +72,7 @@ const addTodo = createAction<Todo>('addTodo')
 
 const initialState = [] as Todo[]
 
-const todosReducer = createReducer(initialState, builder => {
+const todosReducer = createReducer(initialState, (builder) => {
   builder.addCase(addTodo, (state, action) => {
     state.push(action.payload)
     console.log(current(state))

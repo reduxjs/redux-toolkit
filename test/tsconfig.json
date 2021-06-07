@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
+    "noEmit": true,
+    "target": "es2018",
+    "jsx": "react",
+    "baseUrl": ".",
+    "skipLibCheck": true,
+    "paths": {
+      "@reduxjs/toolkit": ["../"],
+      "@reduxjs/toolkit/*": ["../*"],
+      "@internal/*": ["../src/query/*"]
+    }
+  }
+}

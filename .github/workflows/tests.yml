@@ -23,17 +23,53 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Pack (including Prepare)
+      - name: Build
+        run: npm run build-ci
+
+      - name: Pack
         run: npm pack
-        env:
-          NODE_ENV: 'production' # this doesn't actually matter, so just set it to production
 
       - uses: actions/upload-artifact@v2
         with:
           name: package
           path: reduxjs-toolkit*.tgz
 
-  test:
+  test-dist:
+    name: Test against dist
+    needs: [build]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['14.x']
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Use node ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - uses: c-hive/gha-npm-cache@v1
+
+      - name: Install deps
+        run: npm ci --ignore-scripts
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: package
+
+      - name: Install build artifact
+        run: |
+          sed -i -e '/"name": "@reduxjs\/toolkit",/d' package.json
+          npm i reduxjs-toolkit-*.tgz --ignore-scripts
+          sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./jest.config.js ./src/tests/*.* ./src/query/tests/*.*
+
+      - name: Run tests, against dist
+        run: npm test
+
+  test-types:
     name: Test Types with TypeScript ${{ matrix.ts }}
 
     needs: [build]
@@ -42,7 +78,7 @@ jobs:
       fail-fast: false
       matrix:
         node: ['14.x']
-        ts: ['3.8', '3.9', '4.0', '4.1', 'next']
+        ts: ['3.9', '4.0', '4.1', '4.2', '4.3', 'next']
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -64,26 +100,19 @@ jobs:
         with:
           name: package
 
-      - name: Unpack build artifact to dist
-        run: tar -xzvf reduxjs-toolkit-*.tgz --strip-components=1 package/dist
-
-      - name: Remap @redux/toolkit from src to dist
+      - name: Install build artifact
         run: |
-          sed -i -e 's|@reduxjs/toolkit": \["./src"\]|@reduxjs/toolkit": ["."]|' ./type-tests/files/tsconfig.json
+          sed -i -e '/"name": "@reduxjs\/toolkit",/d' package.json
+          npm i reduxjs-toolkit-*.tgz --ignore-scripts
+          sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./jest.config.js ./src/tests/*.* ./src/query/tests/*.*
 
-      - name: Prefix `freeze` re-export for pre-3.7 TS versions with @ts-ignore
-        if: ${{ matrix.ts < 3.7 }}
-        run: |
-          sed -i -e "/import .* freeze .* from 'immer'/s/^/\/\/ @ts-ignore\n/" dist/typings.d.ts
-          sed -i -e "/  freeze,/s/^/  \/\/ @ts-ignore\n/" src/index.ts
+      - name: "@ts-ignore stuff that didn't exist pre-4.1 in the tests"
+        if: ${{ matrix.ts < 4.1 }}
+        run: sed -i -e 's/@pre41-ts-ignore/@ts-ignore/' -e  '/pre41-remove-start/,/pre41-remove-end/d' ./src/tests/*.* ./src/query/tests/*.ts*
 
-      - name: Use typings-tester for old TS versions
-        if: ${{ matrix.ts < 3.9 }}
-        run: |
-          sed -i -e 's/"cd type-tests.*"/"npm run test type-tests"/' package.json
-          sed -i -e 's/@ts-expect-error/typings:expect-error/' type-tests/files/*.typetest.ts
-          sed -i -e 's/@ts-expect-error/@ts-ignore/' type-tests/files/*.ts
-          mv type-tests/types.test.disabled.ts type-tests/types.test.ts
+      - name: 'disable strictOptionalProperties'
+        if: ${{ matrix.ts == 'next' }}
+        run: sed -i -e 's|//\(.*strictOptionalProperties.*\)$|\1|' tsconfig.base.json
 
       - name: Test types
         run: |

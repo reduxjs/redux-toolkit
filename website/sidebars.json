@@ -13,7 +13,8 @@
       "items": [
         "tutorials/tutorials-overview",
         "tutorials/quick-start",
-        "tutorials/typescript"
+        "tutorials/typescript",
+        "tutorials/rtk-query"
       ]
     },
     {
@@ -21,7 +22,7 @@
       "label": "Using Redux Toolkit",
       "collapsed": false,
       "items": [
-        "usage/usage-guide", 
+        "usage/usage-guide",
         "usage/usage-with-typescript",
         "usage/immer-reducers"
       ]
@@ -29,6 +30,7 @@
     {
       "type": "category",
       "label": "API Reference",
+      "collapsed": true,
       "items": [
         {
           "type": "category",
@@ -61,6 +63,65 @@
             "api/createSelector",
             "api/matching-utilities",
             "api/other-exports"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "category",
+      "label": "RTK Query",
+      "collapsed": false,
+      "items": [
+        "rtk-query/overview",
+        "rtk-query/comparison",
+        "rtk-query/usage-with-typescript",
+        {
+          "type": "category",
+          "label": "Using RTK Query",
+          "collapsed": true,
+          "items": [
+            "rtk-query/usage/queries",
+            "rtk-query/usage/mutations",
+            "rtk-query/usage/cache-behavior",
+            "rtk-query/usage/automated-refetching",
+            "rtk-query/usage/conditional-fetching",
+            "rtk-query/usage/error-handling",
+            "rtk-query/usage/pagination",
+            "rtk-query/usage/prefetching",
+            "rtk-query/usage/polling",
+            "rtk-query/usage/streaming-updates",
+            "rtk-query/usage/optimistic-updates",
+            "rtk-query/usage/code-splitting",
+            "rtk-query/usage/code-generation",
+            "rtk-query/usage/customizing-create-api",
+            "rtk-query/usage/customizing-queries",
+            "rtk-query/usage/usage-without-react-hooks",
+            "rtk-query/usage/migrating-to-rtk-query",
+            "rtk-query/usage/examples"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "API Reference",
+          "collapsed": true,
+          "items": [
+            "rtk-query/api/createApi",
+            "rtk-query/api/fetchBaseQuery",
+            "rtk-query/api/ApiProvider",
+            "rtk-query/api/setupListeners",
+            {
+              "type": "category",
+              "label": "Generated API Slices",
+              "collapsed": false,
+              "items": [
+                "rtk-query/api/created-api/overview",
+                "rtk-query/api/created-api/redux-integration",
+                "rtk-query/api/created-api/endpoints",
+                "rtk-query/api/created-api/code-splitting",
+                "rtk-query/api/created-api/cache-management-utils",
+                "rtk-query/api/created-api/hooks"
+              ]
+            }
           ]
         }
       ]

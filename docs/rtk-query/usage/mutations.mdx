@@ -1,0 +1,263 @@
+---
+id: mutations
+title: Mutations
+sidebar_label: Mutations
+hide_title: true
+---
+
+&nbsp;
+
+# Mutations
+
+## Overview
+
+Mutations are used to send data updates to the server and apply the changes to the local cache. Mutations can also invalidate cached data and force re-fetches.
+
+## Defining Mutation Endpoints
+
+Mutation endpoints are defined by returning an object inside the `endpoints` section of `createApi`, and defining the fields using the `builder.mutation()` method.
+
+Mutation endpoints should define either a `query` callback that constructs the URL (including any URL query params), or [a `queryFn` callback](./customizing-queries.mdx#customizing-queries-with-queryfn) that may do arbitrary async logic and return a result. The `query` callback may also return an object containing the URL, the HTTP method to use and a request body.
+
+If the `query` callback needs additional data to generate the URL, it should written to take a single argument. If you need to pass in multiple parameters, pass them formatted as a single "options object".
+
+Mutation endpoints may also modify the response contents before the result is cached, define "tags" to identify cache invalidation, and provide cache entry lifecycle callbacks to run additional logic as cache entries are added and removed.
+
+```ts title="Example of all mutation endpoint options"
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { Post } from './types'
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/',
+  }),
+  tagTypes: ['Post'],
+  endpoints: (build) => ({
+    updatePost: build.mutation<Post, Partial<Post> & Pick<Post, 'id'>>({
+      // highlight-start
+      // note: an optional `queryFn` may be used in place of `query`
+      query: ({ id, ...patch }) => ({
+        url: `post/${id}`,
+        method: 'PATCH',
+        body: patch,
+      }),
+      // Pick out data and prevent nested properties in a hook or selector
+      transformResponse: (response: { data: Post }) => response.data,
+      invalidatesTags: ['Post'],
+      // onQueryStarted is useful for optimistic updates
+      // The 2nd parameter is the destructured `MutationLifecycleApi`
+      async onQueryStarted(
+        arg,
+        { dispatch, getState, queryFulfilled, requestId, extra, getCacheEntry }
+      ) {},
+      // The 2nd parameter is the destructured `MutationCacheLifecycleApi`
+      async onCacheEntryAdded(
+        arg,
+        {
+          dispatch,
+          getState,
+          extra,
+          requestId,
+          cacheEntryRemoved,
+          cacheDataLoaded,
+          getCacheEntry,
+        }
+      ) {},
+      // highlight-end
+    }),
+  }),
+})
+```
+
+:::info
+
+The `onQueryStarted` method can be used for [optimistic updates](./optimistic-updates)
+
+:::
+
+## Performing Mutations with React Hooks
+
+### Mutation Hook Behavior
+
+Unlike `useQuery`, `useMutation` returns a tuple. The first item in the tuple is the "trigger" function and the second element contains an object with `status`, `error`, and `data`.
+
+Unlike the `useQuery` hook, the `useMutation` hook doesn't execute automatically. To run a mutation you have to call the trigger function returned as the first tuple value from the hook.
+
+See [`useMutation`](../api/created-api/hooks.mdx#usemutation) for the hook signature and additional details.
+
+### Frequently Used Mutation Hook Return Values
+
+The `useMutation` hook returns a tuple containing a "mutation trigger" function, as well as an object containing properties about the "mutation result".
+
+The "mutation trigger" is a function that when called, will fire off the mutation request for that endpoint. Calling the "mutation trigger" returns a promise with an `unwrap` property, which can be called to unwrap the mutation call and provide the raw response/error. This can be useful if you wish to determine whether the mutation succeeds/fails inline at the call-site.
+
+The "mutation result" is an object containing properties such as the latest `data` for the mutation request, as well as status booleans for the current request lifecycle state.
+
+Below are some of the most frequently used properties on the "mutation result" object. Refer to [`useMutation`](../api/created-api/hooks.mdx#usemutation) for an extensive list of all returned properties.
+
+- `data` - The returned result if present.
+- `error` - The error result if present.
+- `isUninitialized` - When true, indicates that the mutation has not been fired yet.
+- `isLoading` - When true, indicates that the mutation has been fired and is awaiting a response.
+- `isSuccess` - When true, indicates that the last mutation fired has data from a successful request.
+- `isError` - When true, indicates that the last mutation fired resulted in an error state.
+
+:::note
+
+With RTK Query, a mutation does contain a semantic distinction between 'loading' and 'fetching' in the way that a [query does](./queries.mdx#frequently-used-query-hook-return-values). For a mutation, subsequent calls are not assumed to be necessarily related, so a mutation is either 'loading' or 'not loading', with no concept of 're-fetching'.
+
+:::
+
+### Standard Mutation Example
+
+This is a modified version of the complete example you can see at the bottom of the page to highlight the `updatePost` mutation. In this scenario, a post is fetched with `useQuery`, and then a `EditablePostName` component is rendered that allows us to edit the name of the post.
+
+```tsx title="src/features/posts/PostDetail.tsx"
+export const PostDetail = () => {
+  const { id } = useParams<{ id: any }>()
+
+  const { data: post } = useGetPostQuery(id)
+
+  // highlight-start
+  const [
+    updatePost, // This is the mutation trigger
+    { isLoading: isUpdating }, // This is the destructured mutation result
+  ] = useUpdatePostMutation()
+  // highlight-end
+
+  return (
+    <Box p={4}>
+      <EditablePostName
+        name={post.name}
+        onUpdate={(name) => {
+          // If you want to immediately access the result of a mutation, you need to chain `.unwrap()`
+          // if you actually want the payload or to catch the error.
+          // Example: `updatePost().unwrap().then(fulfilled => console.log(fulfilled)).catch(rejected => console.error(rejected))
+
+          return (
+            // highlight-start
+            // Execute the trigger with the `id` and updated `name`
+            updatePost({ id, name })
+            // highlight-end
+          )
+        }}
+        // highlight-start
+        isLoading={isUpdating}
+        // highlight-end
+      />
+    </Box>
+  )
+}
+```
+
+## Advanced Mutations with Revalidation
+
+In the real world, it's very common that a developer would want to resync their local data cache with the server after performing a mutation (aka "revalidation"). RTK Query takes a more centralized approach to this and requires you to configure the invalidation behavior in your API service definition. See [Advanced Invalidation with abstract tag IDs](./automated-refetching#advanced-invalidation-with-abstract-tag-ids) for details on advanced invalidation handling with RTK Query.
+
+### Revalidation Example
+
+This is an example of a [CRUD service](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) for Posts. This implements the [Selectively invalidating lists](./automated-refetching#selectively-invalidating-lists) strategy and will most likely serve as a good foundation for real applications.
+
+```ts title="src/app/services/posts.ts"
+// Or from '@reduxjs/toolkit/query' if not using the auto-generated hooks
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+export interface Post {
+  id: number
+  name: string
+}
+
+type PostsResponse = Post[]
+
+export const postApi = createApi({
+  reducerPath: 'postsApi',
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  tagTypes: ['Posts'],
+  endpoints: (build) => ({
+    getPosts: build.query<PostsResponse, void>({
+      query: () => 'posts',
+      // Provides a list of `Posts` by `id`.
+      // If any mutation is executed that `invalidate`s any of these tags, this query will re-run to be always up-to-date.
+      // The `LIST` id is a "virtual id" we just made up to be able to invalidate this query specifically if a new `Posts` element was added.
+      providesTags: (result) =>
+        // is result available?
+        result
+          ? // successful query
+            [
+              ...result.map(({ id }) => ({ type: 'Posts', id } as const)),
+              { type: 'Posts', id: 'LIST' },
+            ]
+          : // an error occurred, but we still want to refetch this query when `{ type: 'Posts', id: 'LIST' }` is invalidated
+            [{ type: 'Posts', id: 'LIST' }],
+    }),
+    addPost: build.mutation<Post, Partial<Post>>({
+      query(body) {
+        return {
+          url: `poss`,
+          method: 'POST',
+          body,
+        }
+      },
+      // Invalidates all Post-type queries providing the `LIST` id - after all, depending of the sort order,
+      // that newly created post could show up in any lists.
+      invalidatesTags: [{ type: 'Posts', id: 'LIST' }],
+    }),
+    getPost: build.query<Post, number>({
+      query: (id) => `post/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Posts', id }],
+    }),
+    updatePost: build.mutation<Post, Partial<Post>>({
+      query(data) {
+        const { id, ...body } = data
+        return {
+          url: `post/${id}`,
+          method: 'PUT',
+          body,
+        }
+      },
+      // Invalidates all queries that subscribe to this Post `id` only.
+      // In this case, `getPost` will be re-run. `getPosts` *might*  rerun, if this id was under its results.
+      invalidatesTags: (result, error, { id }) => [{ type: 'Posts', id }],
+    }),
+    deletePost: build.mutation<{ success: boolean; id: number }, number>({
+      query(id) {
+        return {
+          url: `post/${id}`,
+          method: 'DELETE',
+        }
+      },
+      // Invalidates all queries that subscribe to this Post `id` only.
+      invalidatesTags: (result, error, id) => [{ type: 'Posts', id }],
+    }),
+  }),
+})
+
+export const {
+  useGetPostsQuery,
+  useAddPostMutation,
+  useGetPostQuery,
+  useUpdatePostMutation,
+  useDeletePostMutation,
+} = postApi
+```
+
+<iframe
+  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/feature/v1.6-integration/examples/query/react/mutations?fontsize=14&runonclick=1&hidenavigation=1&module=%2Fsrc%2Fapp%2Fservices%2Fposts.ts&theme=dark"
+  style={{
+    width: '100%',
+    height: '600px',
+    border: 0,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  }}
+  title="RTK Query - Mutations Example"
+  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
+></iframe>

@@ -5,6 +5,8 @@ sidebar_label: Quick Start
 hide_title: true
 ---
 
+&nbsp;
+
 # Redux Toolkit Quick Start
 
 :::tip What You'll Learn

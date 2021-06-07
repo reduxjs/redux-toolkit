@@ -1,0 +1,104 @@
+---
+id: error-handling
+title: Error Handling
+sidebar_label: Error Handling
+hide_title: true
+---
+
+&nbsp;
+
+# Error Handling
+
+## Overview
+
+If your query or mutation happens to throw an error when using [fetchBaseQuery](../api/fetchBaseQuery), it will be returned in the `error` property of the respective hook. The component will re-render when that occurs, and you can show appropriate UI based on the error data if desired.
+
+### Error Display Examples
+
+```tsx title="Query Error"
+function PostsList() {
+  const { data, error } = useGetPostsQuery()
+
+  return (
+    <div>
+      {error.status} {JSON.stringify(error.data)}
+    </div>
+  )
+}
+```
+
+```tsx title="Mutation Error"
+function AddPost() {
+  const [addPost, { error }] = useAddPostMutation()
+
+  return (
+    <div>
+      {error.status} {JSON.stringify(error.data)}
+    </div>
+  )
+}
+```
+
+:::tip
+If you need to access the error or success payload immediately after a mutation, you can chain `.unwrap()`.
+
+```ts title="Using .unwrap" no-transpile
+addPost({ id: 1, name: 'Example' })
+  .unwrap()
+  .then((payload) => console.log('fulfilled', payload))
+  .catch((error) => console.error('rejected', error))
+```
+
+:::
+
+```tsx title="Manually selecting an error"
+function PostsList() {
+  const { error } = useSelector(api.endpoints.getPosts.select())
+
+  return (
+    <div>
+      {error.status} {JSON.stringify(error.data)}
+    </div>
+  )
+}
+```
+
+## Errors with a custom `baseQuery`
+
+Whether a response is returned as `data` or `error` is dictated by the `baseQuery` provided.
+
+Ultimately, you can choose whatever library you prefer to use with your `baseQuery`, but it's important that you return the correct response format. If you haven't tried [`fetchBaseQuery`](../api/fetchBaseQuery) yet, give it a chance! Otherwise, see [Customizing Queries](./customizing-queries) for information on how to alter the returned errors.
+
+## Handling errors at a macro level
+
+There are quite a few ways that you can manage your errors, and in some cases, you may want to show a generic toast notification for any async error. Being that RTK Query is built on top of Redux and Redux-Toolkit, you can easily add a middleware to your store for this purpose.
+
+:::tip
+
+Redux Toolkit has [action matching utilities](../../api/matching-utilities.mdx#matching-utilities) that we can leverage for additional custom behaviors.
+
+:::
+
+```ts title="Error catching middleware example"
+import {
+  MiddlewareAPI,
+  isRejectedWithValue,
+  Middleware,
+} from '@reduxjs/toolkit'
+import { toast } from 'your-cool-library'
+
+/**
+ * Log a warning and show a toast!
+ */
+export const rtkQueryErrorLogger: Middleware = (api: MiddlewareAPI) => (
+  next
+) => (action) => {
+  // RTK Query uses `createAsyncThunk` from redux-toolkit under the hood, so we're able to utilize these use matchers!
+  if (isRejectedWithValue(action)) {
+    console.warn('We got a rejected action!')
+    toast.warn({ title: 'Async error!', message: action.error.data.message })
+  }
+
+  return next(action)
+}
+```

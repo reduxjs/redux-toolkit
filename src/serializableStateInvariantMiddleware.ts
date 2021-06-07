@@ -1,5 +1,5 @@
 import isPlainObject from './isPlainObject'
-import { Middleware } from 'redux'
+import type { Middleware } from 'redux'
 import { getTimeMeasureUtils } from './utils'
 
 /**
@@ -37,7 +37,7 @@ export function findNonSerializableValue(
   path: string = '',
   isSerializable: (value: unknown) => boolean = isPlain,
   getEntries?: (value: unknown) => [string, any][],
-  ignoredPaths: string[] = []
+  ignoredPaths: readonly string[] = []
 ): NonSerializableValue | false {
   let foundNestedSerializable: NonSerializableValue | false
 
@@ -156,7 +156,7 @@ export function createSerializableStateInvariantMiddleware(
     isSerializable = isPlain,
     getEntries,
     ignoredActions = [],
-    ignoredActionPaths = ['meta.arg'],
+    ignoredActionPaths = ['meta.arg', 'meta.baseQueryMeta'],
     ignoredPaths = [],
     warnAfter = 32,
     ignoreState = false,

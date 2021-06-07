@@ -1,0 +1,582 @@
+---
+id: createApi
+title: createApi
+sidebar_label: createApi
+hide_title: true
+---
+
+&nbsp;
+
+# `createApi`
+
+`createApi` is the core of RTK Query's functionality. It allows you to define a set of endpoints describe how to retrieve data from a series of endpoints, including configuration of how to fetch and transform that data. It generates [an "API slice" structure](./created-api/overview.mdx) that contains Redux logic (and optionally React hooks) that encapsulate the data fetching and caching process for you.
+
+```ts title="Example: src/services/pokemon.ts"
+// file: src/services/types.ts noEmit
+export type Pokemon = {}
+
+// file: src/services/pokemon.ts
+// Need to use the React-specific entry point to allow generating React hooks
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import type { Pokemon } from './types'
+
+// highlight-start
+// Define a service using a base URL and expected endpoints
+export const pokemonApi = createApi({
+  reducerPath: 'pokemonApi',
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+  endpoints: (builder) => ({
+    getPokemonByName: builder.query<Pokemon, string>({
+      query: (name) => `pokemon/${name}`,
+    }),
+  }),
+})
+//highlight-end
+
+// highlight-start
+// Export hooks for usage in function components, which are
+// auto-generated based on the defined endpoints
+export const { useGetPokemonByNameQuery } = pokemonApi
+// highlight-end
+```
+
+## Parameters
+
+`createApi` accepts a single configuration object parameter with the following options:
+
+```ts no-transpile
+  baseQuery(args: InternalQueryArgs, api: BaseQueryApi): any;
+  endpoints(build: EndpointBuilder<InternalQueryArgs, TagTypes>): Definitions;
+  tagTypes?: readonly TagTypes[];
+  reducerPath?: ReducerPath;
+  serializeQueryArgs?: SerializeQueryArgs<InternalQueryArgs>;
+  keepUnusedDataFor?: number; // value is in seconds
+  refetchOnMountOrArgChange?: boolean | number; // value is in seconds
+  refetchOnFocus?: boolean;
+  refetchOnReconnect?: boolean;
+```
+
+### `baseQuery`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.baseQuery)
+
+#### baseQuery function arguments
+
+- `args` - The return value of the `query` function for a given endpoint
+- `api` - The `BaseQueryApi` object, containing `signal`, `dispatch` and `getState` properties
+  - `signal` - An [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) object that may be used to abort DOM requests and/or read whether the request is aborted.
+  - `dispatch` - The `store.dispatch` method for the corresponding Redux store
+  - `getState` - A function that may be called to access the current store state
+- `extraOptions` - The value of the optional `extraOptions` property provided for a given endpoint
+
+#### baseQuery function signature
+
+```ts title="Base Query signature" no-transpile
+export type BaseQueryFn<
+  Args = any,
+  Result = unknown,
+  Error = unknown,
+  DefinitionExtraOptions = {},
+  Meta = {}
+> = (
+  args: Args,
+  api: BaseQueryApi,
+  extraOptions: DefinitionExtraOptions
+) => MaybePromise<QueryReturnValue<Result, Error, Meta>>
+
+export interface BaseQueryApi {
+  signal: AbortSignal
+  dispatch: ThunkDispatch<any, any, any>
+  getState: () => unknown
+}
+
+export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =
+  | {
+      error: E
+      data?: undefined
+      meta?: M
+    }
+  | {
+      error?: undefined
+      data: T
+      meta?: M
+    }
+```
+
+[examples](docblock://query/createApi.ts?token=CreateApiOptions.baseQuery)
+
+### `endpoints`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.endpoints)
+
+See [Anatomy of an endpoint](#anatomy-of-an-endpoint) for details on individual properties.
+
+#### Query endpoint definition
+
+```ts title="Query endpoint definition" no-transpile
+export type QueryDefinition<
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  TagTypes extends string,
+  ResultType,
+  ReducerPath extends string = string
+> = {
+  query(arg: QueryArg): BaseQueryArg<BaseQuery>
+
+  /* either `query` or `queryFn` can be present, but not both simultaneously */
+  queryFn(
+    arg: QueryArg,
+    api: BaseQueryApi,
+    extraOptions: BaseQueryExtraOptions<BaseQuery>,
+    baseQuery: (arg: Parameters<BaseQuery>[0]) => ReturnType<BaseQuery>
+  ): MaybePromise<QueryReturnValue<ResultType, BaseQueryError<BaseQuery>>>
+
+  /* transformResponse only available with `query`, not `queryFn` */
+  transformResponse?(
+    baseQueryReturnValue: BaseQueryResult<BaseQuery>,
+    meta: BaseQueryMeta<BaseQuery>
+  ): ResultType | Promise<ResultType>
+
+  extraOptions?: BaseQueryExtraOptions<BaseQuery>
+
+  providesTags?: ResultDescription<
+    TagTypes,
+    ResultType,
+    QueryArg,
+    BaseQueryError<BaseQuery>
+  >
+
+  keepUnusedDataFor?: number
+
+  onQueryStarted?(
+    arg: QueryArg,
+    {
+      dispatch,
+      getState,
+      extra,
+      requestId,
+      queryFulfilled,
+      getCacheEntry,
+      updateCachedData, // available for query endpoints only
+    }: QueryLifecycleApi
+  ): Promise<void>
+
+  onCacheEntryAdded?(
+    arg: QueryArg,
+    {
+      dispatch,
+      getState,
+      extra,
+      requestId,
+      cacheEntryRemoved,
+      cacheDataLoaded,
+      getCacheEntry,
+      updateCachedData, // available for query endpoints only
+    }: QueryCacheLifecycleApi
+  ): Promise<void>
+}
+```
+
+#### Mutation endpoint definition
+
+```ts title="Mutation endpoint definition" no-transpile
+export type MutationDefinition<
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  TagTypes extends string,
+  ResultType,
+  ReducerPath extends string = string,
+  Context = Record<string, any>
+> = {
+  query(arg: QueryArg): BaseQueryArg<BaseQuery>
+
+  /* either `query` or `queryFn` can be present, but not both simultaneously */
+  queryFn(
+    arg: QueryArg,
+    api: BaseQueryApi,
+    extraOptions: BaseQueryExtraOptions<BaseQuery>,
+    baseQuery: (arg: Parameters<BaseQuery>[0]) => ReturnType<BaseQuery>
+  ): MaybePromise<QueryReturnValue<ResultType, BaseQueryError<BaseQuery>>>
+
+  /* transformResponse only available with `query`, not `queryFn` */
+  transformResponse?(
+    baseQueryReturnValue: BaseQueryResult<BaseQuery>,
+    meta: BaseQueryMeta<BaseQuery>
+  ): ResultType | Promise<ResultType>
+
+  extraOptions?: BaseQueryExtraOptions<BaseQuery>
+
+  invalidatesTags?: ResultDescription<TagTypes, ResultType, QueryArg>
+
+  onQueryStarted?(
+    arg: QueryArg,
+    {
+      dispatch,
+      getState,
+      extra,
+      requestId,
+      queryFulfilled,
+      getCacheEntry,
+    }: MutationLifecycleApi
+  ): Promise<void>
+
+  onCacheEntryAdded?(
+    arg: QueryArg,
+    {
+      dispatch,
+      getState,
+      extra,
+      requestId,
+      cacheEntryRemoved,
+      cacheDataLoaded,
+      getCacheEntry,
+    }: MutationCacheLifecycleApi
+  ): Promise<void>
+}
+```
+
+#### How endpoints get used
+
+When defining a key like `getPosts` as shown below, it's important to know that this name will become exportable from `api` and be able to referenced under `api.endpoints.getPosts.useQuery()`, `api.endpoints.getPosts.initiate()` and `api.endpoints.getPosts.select()`. The same thing applies to `mutation`s but they reference `useMutation` instead of `useQuery`.
+
+```ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+interface Post {
+  id: number
+  name: string
+}
+type PostsResponse = Post[]
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  tagTypes: ['Posts'],
+  endpoints: (build) => ({
+    getPosts: build.query<PostsResponse, void>({
+      query: () => 'posts',
+      providesTags: (result) =>
+        result ? result.map(({ id }) => ({ type: 'Posts', id })) : [],
+    }),
+    addPost: build.mutation<Post, Partial<Post>>({
+      query: (body) => ({
+        url: `posts`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Posts'],
+    }),
+  }),
+})
+
+// Auto-generated hooks
+export const { useGetPostsQuery, useAddPostMutation } = api
+
+// Possible exports
+export const { endpoints, reducerPath, reducer, middleware } = api
+// reducerPath, reducer, middleware are only used in store configuration
+// endpoints will have:
+// endpoints.getPosts.initiate(), endpoints.getPosts.select(), endpoints.getPosts.useQuery()
+// endpoints.addPost.initiate(), endpoints.addPost.select(), endpoints.addPost.useMutation()
+// see `createApi` overview for _all exports_
+```
+
+### `tagTypes`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.tagTypes)
+
+[examples](docblock://query/createApi.ts?token=CreateApiOptions.tagTypes)
+
+### `reducerPath`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.reducerPath)
+
+[examples](docblock://query/createApi.ts?token=CreateApiOptions.reducerPath)
+
+### `serializeQueryArgs`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.serializeQueryArgs)
+
+By default, this function will take the query arguments, sort object keys where applicable, stringify the result, and concatenate it with the endpoint name. This creates a cache key based on the combination of arguments + endpoint name (ignoring object key order), such that calling any given endpoint with the same arguments will result in the same cache key.
+
+### `keepUnusedDataFor`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.keepUnusedDataFor)
+
+### `refetchOnMountOrArgChange`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.refetchOnMountOrArgChange)
+
+:::note
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnMountOrArgChange` to each individual hook call or similarly by passing `forceRefetch: true` when dispatching the [`initiate`](./created-api/endpoints.mdx#initiate) action.
+:::
+
+### `refetchOnFocus`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.refetchOnFocus)
+
+:::note
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnFocus` to each individual hook call or when dispatching the [`initiate`](./created-api/endpoints.mdx#initiate) action.
+
+If you specify `track: false` when manually dispatching queries, RTK Query will not be able to automatically refetch for you.
+:::
+
+### `refetchOnReconnect`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.refetchOnReconnect)
+
+:::note
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnReconnect` to each individual hook call or when dispatching the [`initiate`](./created-api/endpoints.mdx#initiate) action.
+
+If you specify `track: false` when manually dispatching queries, RTK Query will not be able to automatically refetch for you.
+:::
+
+## Anatomy of an endpoint
+
+### `query`
+
+_(required if no `queryFn` provided)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.query)
+
+[examples](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.query)
+
+### `queryFn`
+
+_(required if no `query` provided)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQueryFn.queryFn)
+
+Called with the same arguments as `baseQuery`, as well as the provided `baseQuery` function itself. It is expected to return an object with either a `data` or `error` property, or a promise that resolves to return such an object.
+
+See also [Customizing queries with queryFn](../usage/customizing-queries.mdx#customizing-queries-with-queryfn).
+
+```ts title="queryFn signature" no-transpile
+queryFn(
+  arg: QueryArg,
+  api: BaseQueryApi,
+  extraOptions: BaseQueryExtraOptions<BaseQuery>,
+  baseQuery: (arg: Parameters<BaseQuery>[0]) => ReturnType<BaseQuery>
+): MaybePromise<
+| {
+    error: BaseQueryError<BaseQuery>
+    data?: undefined
+  }
+| {
+    error?: undefined
+    data: ResultType
+  }
+>
+
+export interface BaseQueryApi {
+  signal: AbortSignal
+  dispatch: ThunkDispatch<any, any, any>
+  getState: () => unknown
+}
+```
+
+#### queryFn function arguments
+
+- `args` - The argument provided when the query itself is called
+- `api` - The `BaseQueryApi` object, containing `signal`, `dispatch` and `getState` properties
+  - `signal` - An [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) object that may be used to abort DOM requests and/or read whether the request is aborted.
+  - `dispatch` - The `store.dispatch` method for the corresponding Redux store
+  - `getState` - A function that may be called to access the current store state
+- `extraOptions` - The value of the optional `extraOptions` property provided for the endpoint
+- `baseQuery` - The `baseQuery` function provided to the api itself
+
+[examples](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQueryFn.queryFn)
+
+### `transformResponse`
+
+_(optional, not applicable with `queryFn`)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.transformResponse)
+
+In some cases, you may want to manipulate the data returned from a query before you put it in the cache. In this instance, you can take advantage of `transformResponse`.
+
+See also [Customizing query responses with `transformResponse`](../usage/customizing-queries.mdx#customizing-query-responses-with-transformresponse)
+
+```ts title="Unpack a deeply nested collection" no-transpile
+transformResponse: (response) => response.some.deeply.nested.collection
+```
+
+### `extraOptions`
+
+_(optional)_
+
+Passed as the third argument to the supplied `baseQuery` function
+
+### `providesTags`
+
+_(optional, only for query endpoints)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.providesTags)
+
+See also [Providing cache data](../usage/automated-refetching.mdx#providing-cache-data).
+
+[examples](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.providesTags)
+
+### `invalidatesTags`
+
+_(optional, only for mutation endpoints)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=MutationExtraOptions.invalidatesTags)
+
+See also [Invalidating cache data](../usage/automated-refetching.mdx#invalidating-cache-data).
+
+[examples](docblock://query/endpointDefinitions.ts?token=MutationExtraOptions.invalidatesTags)
+
+### `keepUnusedDataFor`
+
+_(optional, only for query endpoints)_
+
+Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only.
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.keepUnusedDataFor)
+
+[examples](docblock://query/createApi.ts?token=CreateApiOptions.keepUnusedDataFor)
+
+### `onQueryStarted`
+
+_(optional)_
+
+Available to both [queries](../usage/queries.mdx) and [mutations](../usage/mutations.mdx).
+
+A function that is called when you start each individual query or mutation. The function is called with a lifecycle api object containing properties such as `queryFulfilled`, allowing code to be run when a query is started, when it succeeds, and when it fails (i.e. throughout the lifecycle of an individual query/mutation call).
+
+Can be used in `mutations` for [optimistic updates](../usage/optimistic-updates.mdx).
+
+#### Lifecycle API properties
+
+- `dispatch` - The dispatch method for the store.
+- `getState` - A method to get the current state for the store.
+- `extra` - `extra` as provided as `thunk.extraArgument` to the `configureStore` `getDefaultMiddleware` option.
+- `requestId` - A unique ID generated for the query/mutation.
+- `queryFulfilled` - A Promise that will resolve with the (transformed) query result. If the query fails, this Promise will reject with the error. This allows you to `await` for the query to finish.
+- `getCacheEntry` - A function that gets the current value of the cache entry.
+- `updateCachedData` _(query endpoints only)_ - A function that accepts a 'recipe' callback specifying how to update the data for the corresponding cache at the time it is called. This uses `immer` internally, and updates can be written 'mutably' while safely producing the next immutable state.
+
+```ts title="Mutation onQueryStarted signature" no-transpile
+async function onQueryStarted(
+  arg: QueryArg,
+  {
+    dispatch,
+    getState,
+    extra,
+    requestId,
+    queryFulfilled,
+    getCacheEntry,
+  }: MutationLifecycleApi
+): Promise<void>
+```
+
+```ts title="Query onQueryStarted signature" no-transpile
+async function onQueryStarted(
+  arg: QueryArg,
+  {
+    dispatch,
+    getState,
+    extra,
+    requestId,
+    queryFulfilled,
+    getCacheEntry,
+    updateCachedData, // available for query endpoints only
+  }: QueryLifecycleApi
+): Promise<void>
+```
+
+```ts title="onQueryStarted query lifecycle example"
+// file: notificationsSlice.ts noEmit
+export const messageCreated = (msg: string) => ({
+  type: 'notifications/messageCreated',
+  payload: msg,
+})
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { messageCreated } from './notificationsSlice'
+
+export interface Post {
+  id: number
+  name: string
+}
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/',
+  }),
+  endpoints: (build) => ({
+    getPost: build.query<Post, number>({
+      query: (id) => `post/${id}`,
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        // `onStart` side-effect
+        dispatch(messageCreated('Fetching post...'))
+        try {
+          const { data } = await queryFulfilled
+          // `onSuccess` side-effect
+          dispatch(messageCreated('Post received!'))
+        } catch (err) {
+          // `onError` side-effect
+          dispatch(messageCreated('Error fetching post!'))
+        }
+      },
+    }),
+  }),
+})
+```
+
+### `onCacheEntryAdded`
+
+_(optional)_
+
+Available to both [queries](../usage/queries.mdx) and [mutations](../usage/mutations.mdx).
+
+A function that is called when a new cache entry is added, i.e. when a new subscription for the endpoint + query parameters combination is created. The function is called with a lifecycle api object containing properties such as `cacheDataLoaded` & `cacheDataRemoved`, allowing code to be run when a cache entry is added, when cache data is loaded, and when the cache entry is removed (i.e. throughout the lifecycle of a cache entry).
+
+Can be used for [streaming updates](../usage/streaming-updates.mdx).
+
+#### Cache Lifecycle API properties
+
+- `dispatch` - The dispatch method for the store.
+- `getState` - A method to get the current state for the store.
+- `extra` - `extra` as provided as `thunk.extraArgument` to the `configureStore` `getDefaultMiddleware` option.
+- `requestId` - A unique ID generated for the cache entry.
+- `cacheEntryRemoved` - A Promise that allows you to wait for the point in time when the cache entry has been removed from the cache, by not being used/subscribed to any more in the application for too long or by dispatching `api.util.resetApiState`.
+- `cacheDataLoaded` - A Promise that will resolve with the first value for this cache key. This allows you to `await` until an actual value is in the cache.  
+  Note: If the cache entry is removed from the cache before any value has ever been resolved, this Promise will reject with `new Error('Promise never resolved before cacheEntryRemoved.')` to prevent memory leaks. You can just re-throw that error (or not handle it at all) - it will be caught outside of `cacheEntryAdded`.
+- `getCacheEntry` - A function that gets the current value of the cache entry.
+- `updateCachedData` _(query endpoints only)_ - A function that accepts a 'recipe' callback specifying how to update the data at the time it is called. This uses `immer` internally, and updates can be written 'mutably' while safely producing the next immutable state.
+
+```ts title="Mutation onCacheEntryAdded signature" no-transpile
+async function onCacheEntryAdded(
+  arg: QueryArg,
+  {
+    dispatch,
+    getState,
+    extra,
+    requestId,
+    cacheEntryRemoved,
+    cacheDataLoaded,
+    getCacheEntry,
+  }: MutationCacheLifecycleApi
+): Promise<void>
+```
+
+```ts title="Query onCacheEntryAdded signature" no-transpile
+async function onCacheEntryAdded(
+  arg: QueryArg,
+  {
+    dispatch,
+    getState,
+    extra,
+    requestId,
+    cacheEntryRemoved,
+    cacheDataLoaded,
+    getCacheEntry,
+    updateCachedData, // available for query endpoints only
+  }: QueryCacheLifecycleApi
+): Promise<void>
+```
+
+## Return value
+
+See [the "created Api" API reference](./created-api/overview)

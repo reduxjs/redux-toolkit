@@ -1,0 +1,474 @@
+---
+id: migrating-to-rtk-query
+title: Migrating to RTK Query
+sidebar_label: Migrating to RTK Query
+hide_title: true
+---
+
+&nbsp;
+
+# Migrating to RTK Query
+
+:::tip What You'll Learn
+
+- How to convert conventional data-fetching logic implemented with Redux Toolkit`+ `createAsyncThunk`to use`Redux Toolkit Query`
+
+:::
+
+## Overview
+
+The most common use case for side effects in Redux apps is fetching data. Redux apps typically use a tool like thunks, sagas, or observables to make an AJAX request, and [dispatch actions based on the results of the request](https://redux.js.org/tutorials/fundamentals/part-7-standard-patterns#async-request-status). Reducers then listen for those actions to manage loading state and cache the fetched data.
+
+RTK Query is purpose-built to solve the use case of data fetching. While it can't replace all of the situations where you'd use thunks or other side effects approaches, **using RTK Query should eliminate the need for most of that hand-written side effects logic**.
+
+RTK Query is expected to cover a lot of overlapping behaviour that users may have previously used `createAsyncThunk` for, including caching purposes, and request lifecycle management (e.g. `isUninitialized`, `isLoading`, `isError` states).
+
+In order to migrate data-fetching features from existing Redux tools to RTK Query, the appropriate endpoints should be added to an RTK Query API slice, and the previous feature code deleted. This generally will not include much common code kept between the two, as the tools work differently and one will replace the other.
+
+If you're looking to get started with RTK Query from scratch, you may also wish to see [`RTK Query Quick Start`](../../tutorials/rtk-query.mdx).
+
+## Example - Migrating data-fetching logic from Redux Toolkit to RTK Query
+
+A common method used to implement simple, cached, data-fetching logic with Redux is to set up a slice using `createSlice`, with state containing the associated `data` and `status` for a query, using `createAsyncThunk` to handle the asynchronous request lifecycles. Below we will explore an example of such an implementation, and how we can later go about migrating that code to use RTK Query instead.
+
+:::note
+RTK Query also provides many more features than what is created with the thunk example shown below. The example is only intended to demonstrate how the particular implementation could be replaced with RTK Query.
+:::
+
+### Design specifications
+
+For our example, the design specifications required for the tool are as follows:
+
+- Provide a hook to fetch data for a `pokemon` using the api: https://pokeapi.co/api/v2/pokemon/bulbasaur, where bulbasaur can be any pokemon name
+- A request for any given name should only be sent if it hasn't already done so for the session
+- The hook should provide us with the current status of the request for the supplied pokemon name; whether it is in an 'uninitialized', 'pending', 'fulfilled', or 'rejected' state
+- The hook should provide us with the current data for the supplied pokemon name
+
+With the above specifications in mind, lets first look at an overview of how this could be implemented traditionally using `createAsyncThunk` combined with `createSlice`.
+
+## Implementation using `createSlice` & `createAsyncThunk`
+
+### Slice file
+
+The three snippets below make up our slice file. This file is concerned with managing our asynchronous request lifecycles, as well as storing our data & request statuses for a given pokemon name.
+
+#### Thunk action creator
+
+Below we create a thunk action creator using [`createAsyncThunk`](../../api/createAsyncThunk.mdx) in order to manage asynchronous request lifecycles. This will be accessible within components & hooks to be dispatched, in order to fire off a request for some pokemon data. `createAsyncThunk` itself will handle dispatching lifecycle methods for our request: `pending`, `fulfilled`, and `rejected`, which we will handle within our slice.
+
+```ts title="src/services/pokemonSlice.ts - Thunk Action Creator" no-transpile
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { Pokemon } from './types'
+import { RootState } from '../store'
+
+// highlight-start
+export const fetchPokemonByName = createAsyncThunk<Pokemon, string>(
+  'pokemon/fetchByName',
+  async (name, { rejectWithValue }) => {
+    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`)
+    const data = await response.json()
+    if (response.status < 200 || response.status >= 300) {
+      return rejectWithValue(data)
+    }
+    return data
+  }
+)
+// highlight-end
+
+// slice & selectors omitted
+```
+
+#### Slice
+
+Below we have our `slice` created with [`createSlice`](../../api/createSlice.mdx). We have our reducers containing our request handling logic defined here, storing the appropriate 'status' and 'data' in our state based on the name we search with.
+
+```ts title="src/services/pokemonSlice.ts - slice logic" no-transpile
+// imports & thunk action creator omitted
+
+// highlight-start
+type RequestState = 'pending' | 'fulfilled' | 'rejected'
+// highlight-end
+
+export const pokemonSlice = createSlice({
+  name: 'pokemon',
+  initialState: {
+    // highlight-start
+    dataByName: {} as Record<string, Pokemon | undefined>,
+    statusByName: {} as Record<string, RequestState | undefined>,
+    // highlight-end
+  },
+  reducers: {},
+  extraReducers: (builder) => {
+    // highlight-start
+    // When our request is pending:
+    // - store the 'pending' state as the status for the corresponding pokemon name
+    builder.addCase(fetchPokemonByName.pending, (state, action) => {
+      state.statusByName[action.meta.arg] = 'pending'
+    })
+    // When our request is fulfilled:
+    // - store the 'fulfilled' state as the status for the corresponding pokemon name
+    // - and store the received payload as the data for the corresponding pokemon name
+    builder.addCase(fetchPokemonByName.fulfilled, (state, action) => {
+      state.statusByName[action.meta.arg] = 'fulfilled'
+      state.dataByName[action.meta.arg] = action.payload
+    })
+    // When our request is rejected:
+    // - store the 'rejected' state as the status for the corresponding pokemon name
+    builder.addCase(fetchPokemonByName.rejected, (state, action) => {
+      state.statusByName[action.meta.arg] = 'rejected'
+    })
+    // highlight-end
+  },
+})
+
+// selectors omitted
+```
+
+#### Selectors
+
+Below we have our selectors defined, allowing us to later access the appropriate status & data for any given pokemon name.
+
+```ts title="src/services/pokemonSlice.ts - selectors" no-transpile
+// imports, thunk action creator & slice omitted
+
+// highlight-start
+export const selectStatusByName = (state: RootState, name: string) =>
+  state.pokemon.statusByName[name]
+export const selectDataByName = (state: RootState, name: string) =>
+  state.pokemon.dataByName[name]
+// highlight-end
+```
+
+### Store
+
+In our `store` for our app, we include the corresponding reducer from our slice under the `pokemon` branch in our state tree. This lets our store handle the appropriate actions for our requests we will dispatch when running the app, using the logic defined previously.
+
+```ts title="src/services/store.ts"
+// file: src/services/pokemonSlice.ts noEmit
+import { Reducer } from '@reduxjs/toolkit'
+declare const reducer: Reducer<{}>
+export const pokemonSlice = {
+  reducer,
+}
+
+// file: src/store.ts
+import { configureStore } from '@reduxjs/toolkit'
+import { pokemonSlice } from './services/pokemonSlice'
+
+export const store = configureStore({
+  reducer: {
+    // highlight-start
+    pokemon: pokemonSlice.reducer,
+    // highlight-end
+  },
+})
+
+export type RootState = ReturnType<typeof store.getState>
+```
+
+In order to have the store accessible within our app, we will wrap our `App` component with a [`Provider`](https://react-redux.js.org/api/provider) component from `react-redux`.
+
+```tsx title="src/index.ts"
+import { render } from 'react-dom'
+// highlight-start
+import { Provider } from 'react-redux'
+// highlight-end
+
+import App from './App'
+// highlight-start
+import { store } from './store'
+// highlight-end
+
+const rootElement = document.getElementById('root')
+render(
+  // highlight-start
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  // highlight-end
+  rootElement
+)
+```
+
+### Custom hook
+
+Below we create a hook to manage sending our request at the appropriate time, as well as obtaining the appropriate data & status from the store. [`useDispatch`](https://react-redux.js.org/api/hooks#usedispatch) and [`useSelector`](https://react-redux.js.org/api/hooks#useselector) are used from [`react-redux`](https://react-redux.js.org/introduction/getting-started) in order to communicate with the Redux store. At the end of our hook, we return the information in a neat, packaged object to be accessed in components.
+
+```ts title="src/hooks.ts"
+// file: src/services/pokemonSlice.ts noEmit
+import { AsyncThunkAction } from '@reduxjs/toolkit'
+import { RootState } from '../store'
+interface Pokemon {}
+export declare const fetchPokemonByName: (
+  arg: string
+) => AsyncThunkAction<Pokemon, string, {}>
+
+export const selectStatusByName = (state: RootState, name: string) =>
+  state.pokemon.statusByName[name]
+export const selectDataByName = (state: RootState, name: string) =>
+  state.pokemon.dataByName[name]
+
+// file: src/store.ts noEmit
+interface Pokemon {}
+type RequestState = 'pending' | 'fulfilled' | 'rejected'
+
+const initialPokemonSlice = {
+  dataByName: {} as Record<string, Pokemon | undefined>,
+  statusByName: {} as Record<string, RequestState | undefined>,
+}
+export type RootState = {
+  pokemon: typeof initialPokemonSlice
+}
+
+// file: src/hooks.ts
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from './store'
+import {
+  fetchPokemonByName,
+  selectStatusByName,
+  selectDataByName,
+} from './services/pokemonSlice'
+
+// highlight-start
+export function useGetPokemonByNameQuery(name: string) {
+  const dispatch = useDispatch()
+  // select the current status from the store state for the provided name
+  const status = useSelector((state: RootState) =>
+    selectStatusByName(state, name)
+  )
+  // select the current data from the store state for the provided name
+  const data = useSelector((state: RootState) => selectDataByName(state, name))
+  useEffect(() => {
+    // upon mount or name change, if status is uninitialized, send a request
+    // for the pokemon name
+    if (status === undefined) {
+      dispatch(fetchPokemonByName(name))
+    }
+  }, [status, name, dispatch])
+
+  // derive status booleans for ease of use
+  const isUninitialized = status === undefined
+  const isLoading = status === 'pending' || status === undefined
+  const isError = status === 'rejected'
+  const isSuccess = status === 'fulfilled'
+
+  // return the import data for the caller of the hook to use
+  return { data, isUninitialized, isLoading, isError, isSuccess }
+}
+// highlight-end
+```
+
+### Using the custom hook
+
+Our code above meets all of the design specifications, so let's use it! Below we can see how the hook can be called in a component, and return the relevant data & status booleans.
+
+Our implementation below provides the following behaviour in the component:
+
+- When our component is mounted, if a request for the provided pokemon name has not already been sent for the session, send the request off
+- The hook always provides the latest received `data` when available, as well as the request status booleans `isUninitialized`, `isPending`, `isFulfilled` & `isRejected` in order to determine the current UI at any given moment as a function of our state.
+
+```tsx title="src/App.tsx"
+import * as React from 'react'
+// highlight-start
+import { useGetPokemonByNameQuery } from './hooks'
+// highlight-end
+
+export default function App() {
+  // highlight-start
+  const { data, isError, isLoading } = useGetPokemonByNameQuery('bulbasaur')
+  // highlight-end
+
+  return (
+    <div className="App">
+      {isError ? (
+        <>Oh no, there was an error</>
+      ) : isLoading ? (
+        <>Loading...</>
+      ) : data ? (
+        <>
+          <h3>{data.species.name}</h3>
+          <img src={data.sprites.front_shiny} alt={data.species.name} />
+        </>
+      ) : null}
+    </div>
+  )
+}
+```
+
+A runnable example of the above code can be seen below:
+
+<iframe
+  src="https://codesandbox.io/s/data-fetchingcaching-example-rtk-with-thunks-5kf80?fontsize=12&runonclick=1&hidenavigation=1&module=%2Fsrc%2Fservices/pokemonSlice.ts&theme=dark&view=preview"
+  style={{
+    width: '100%',
+    height: '800px',
+    border: 0,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  }}
+  title="Data Fetching Example - RTK with Thunks"
+  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
+></iframe>
+
+## Converting to RTK Query
+
+Our implementation above _does_ work perfectly fine for the requirements specified, however, extending the code to include further endpoints could involve a lot of repetition. It also has some certain limitations that may not be immediately obvious. For example, multiple components rendering simultaneously calling our hook would each send off a request for bulbasaur at the same time!
+
+Below we will walk through how a lot of the boilerplate can be avoided by migrating the above code to use RTK Query instead. RTK Query will also handle many other situations for us, including de-duping requests on a more granular level to prevent sending unnecessary duplicate requests like that brought up above.
+
+### API Slice File
+
+Our code below is for our API slice definition. This acts as our network API interface layer, and is created using [`createApi`](../api/createApi.mdx). This file will contain our endpoint definition, and `createApi` will provide us with an auto-generated hook which manages firing our request only when necessary, as well as providing us with request status lifecycle booleans.
+
+This will completely cover our logic implemented above for the entire slice file, including the thunk, slice definition, selectors, _and_ our custom hook!
+
+```ts title="src/services/api.ts"
+// file: types.ts noEmit
+export interface Pokemon {}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { Pokemon } from './types'
+
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+  endpoints: (build) => ({
+    // highlight-start
+    getPokemonByName: build.query<Pokemon, string>({
+      query: (name) => `pokemon/${name}`,
+    }),
+    // highlight-end
+  }),
+})
+
+// highlight-start
+export const { useGetPokemonByNameQuery } = api
+// highlight-end
+```
+
+### Connecting the API slice to the store
+
+Now that we have our API definition created, we need to hook it up to our store. In order to do that, we will need to use the [`reducerPath`](../api/created-api/redux-integration.mdx#reducerpath) and [`middleware`](../api/created-api/redux-integration.mdx#middleware) properties from our created `api`. This will allow the store to process the internal actions that the generated hook uses, allows the generated API logic to find the state correctly, and adds the logic for managing caching, invalidation, subscriptions, polling, and more.
+
+```ts title="src/store.ts"
+// file: src/services/pokemonSlice.ts noEmit
+import { Reducer } from '@reduxjs/toolkit'
+declare const reducer: Reducer<{}>
+export const pokemonSlice = {
+  reducer,
+}
+
+// file: src/services/api.ts noEmit
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+interface Pokemon {}
+
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+  endpoints: (builder) => ({
+    getPokemonByName: builder.query<Pokemon, string>({
+      query: (name) => `pokemon/${name}`,
+    }),
+  }),
+})
+
+// file: src/store.ts
+import { configureStore } from '@reduxjs/toolkit'
+import { pokemonSlice } from './services/pokemonSlice'
+// highlight-start
+import { api } from './services/api'
+// highlight-end
+
+export const store = configureStore({
+  reducer: {
+    pokemon: pokemonSlice.reducer,
+    // highlight-start
+    [api.reducerPath]: api.reducer,
+    // highlight-end
+  },
+  // highlight-start
+  middleware: (gDM) => gDM().concat(api.middleware),
+  // highlight-end
+})
+
+export type RootState = ReturnType<typeof store.getState>
+```
+
+### Using our auto-generated hook
+
+At this basic level, the usage of the auto-generated hook is identical to our custom hook! All we need to do is change our import path and we're good to go!
+
+```diff title="src/App.tsx"
+  import * as React from 'react'
+- import { useGetPokemonByNameQuery } from './hooks'
++ import { useGetPokemonByNameQuery } from './services/api'
+
+  export default function App() {
+    const { data, isError, isLoading } = useGetPokemonByNameQuery('bulbasaur')
+
+
+    return (
+      <div className="App">
+        {isError ? (
+          <>Oh no, there was an error</>
+        ) : isLoading ? (
+          <>Loading...</>
+        ) : data ? (
+          <>
+            <h3>{data.species.name}</h3>
+            <img src={data.sprites.front_shiny} alt={data.species.name} />
+          </>
+        ) : null}
+      </div>
+    )
+  }
+```
+
+### Cleaning up unused code
+
+As mentioned previously, our `api` definition has replaced all of the logic that we implemented previously using `createAsyncThunk`, `createSlice`, and our custom hook definition.
+
+Given that we're no longer using that slice any longer, we can remove the import and reducer from our store:
+
+```diff title="src/store.ts"
+  import { configureStore } from '@reduxjs/toolkit'
+- import { pokemonSlice } from './services/pokemonSlice'
+  import { api } from './services/api'
+
+
+  export const store = configureStore({
+    reducer: {
+-     pokemon: pokemonSlice.reducer,
+      [api.reducerPath]: api.reducer,
+    },
+    middleware: (gDM) => gDM().concat(api.middleware),
+  })
+
+  export type RootState = ReturnType<typeof store.getState>
+```
+
+We can also remove the _entire slice and hook files_ completely!
+
+```diff
+- src/services/pokemonSlice.ts (-51 lines)
+- src/hooks.ts (-34 lines)
+```
+
+We've now re-implemented the full set of design specifications (and more!) in less than 20 lines of code, with room to easily expand by adding additional endpoints onto our api definition.
+
+A runnable example of our re-factored implementation using RTK Query can be seen below:
+
+<iframe
+  src="https://codesandbox.io/s/data-fetchingcaching-example-rtk-query-ndmwo?fontsize=12&runonclick=1&hidenavigation=1&module=%2Fsrc%2Fservices/api.ts&theme=dark&view=preview"
+  style={{
+    width: '100%',
+    height: '800px',
+    border: 0,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  }}
+  title="Data Fetching Example - RTK with Thunks"
+  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
+></iframe>

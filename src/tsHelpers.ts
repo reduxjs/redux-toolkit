@@ -1,4 +1,4 @@
-import { Middleware } from 'redux'
+import type { Middleware } from 'redux'
 
 /**
  * return True if T is `any`, otherwise return False
@@ -74,7 +74,7 @@ export type DispatchForMiddlewares<M> = M extends ReadonlyArray<any>
       M[number] extends infer MiddlewareValues
         ? MiddlewareValues extends Middleware<infer DispatchExt, any, any>
           ? DispatchExt extends Function
-            ? DispatchExt
+            ? IsAny<DispatchExt, never, DispatchExt>
             : never
           : never
         : never

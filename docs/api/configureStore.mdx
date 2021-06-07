@@ -5,6 +5,8 @@ sidebar_label: configureStore
 hide_title: true
 ---
 
+&nbsp;
+
 # `configureStore`
 
 A friendly abstraction over the standard Redux `createStore` function that adds good defaults
@@ -150,7 +152,7 @@ const store = configureStore({ reducer: rootReducer })
 
 ### Full Example
 
-```ts
+```ts no-transpile
 // file: todos/todosReducer.ts noEmit
 import { Reducer } from '@reduxjs/toolkit'
 declare const reducer: Reducer<{}>
@@ -175,29 +177,29 @@ import visibilityReducer from './visibility/visibilityReducer'
 
 const reducer = {
   todos: todosReducer,
-  visibility: visibilityReducer
+  visibility: visibilityReducer,
 }
 
 const preloadedState = {
   todos: [
     {
       text: 'Eat food',
-      completed: true
+      completed: true,
     },
     {
       text: 'Exercise',
-      completed: false
-    }
+      completed: false,
+    },
   ],
-  visibilityFilter: 'SHOW_COMPLETED'
+  visibilityFilter: 'SHOW_COMPLETED',
 }
 
 const store = configureStore({
   reducer,
-  middleware: getDefaultMiddleware => getDefaultMiddleware().concat(logger),
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger),
   devTools: process.env.NODE_ENV !== 'production',
   preloadedState,
-  enhancers: [reduxBatch]
+  enhancers: [reduxBatch],
 })
 
 // The store has been created with these options:

@@ -1,0 +1,88 @@
+---
+id: optimistic-updates
+title: Optimistic Updates
+sidebar_label: Optimistic Updates
+hide_title: true
+---
+
+&nbsp;
+
+# Optimistic Updates
+
+When you're performing an update on some data that _already exists_ in the cache via [`useMutation`](./mutations), RTK Query gives you a few tools to implement an optimistic update. This can be a useful pattern for when you want to give the user the impression that their changes are immediate.
+
+The core concepts are:
+
+- when you start a query or mutation, `onQueryStarted` will be executed
+- you manually update the cached data by dispatching `api.util.updateQueryData`
+- then, in the case that `promiseResult` rejects, you roll it back via the `.undo` property of the object you got back from the earlier dispatch.
+
+```ts title="Optimistic update mutation example (async await)"
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { Post } from './types'
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/',
+  }),
+  tagTypes: ['Post'],
+  endpoints: (build) => ({
+    getPost: build.query<Post, number>({
+      query: (id) => `post/${id}`,
+      providesTags: ['Post'],
+    }),
+    updatePost: build.mutation<void, Pick<Post, 'id'> & Partial<Post>>({
+      query: ({ id, ...patch }) => ({
+        url: `post/${id}`,
+        method: 'PATCH',
+        body: patch,
+      }),
+      invalidatesTags: ['Post'],
+      // highlight-start
+      async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          api.util.updateQueryData('getPost', id, (draft) => {
+            Object.assign(draft, patch)
+          })
+        )
+        try {
+          await queryFulfilled
+        } catch {
+          patchResult.undo()
+        }
+      },
+      // highlight-end
+    }),
+  }),
+})
+```
+
+or, if you prefer the slightly shorter version with `.catch`
+
+```diff
+-      async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
++      onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          api.util.updateQueryData('getPost', id, (draft) => {
+            Object.assign(draft, patch)
+          })
+        )
+-       try {
+-         await queryFulfilled
+-       } catch {
+-         patchResult.undo()
+-       }
++       queryFulfilled.catch(patchResult.undo)
+      }
+```
+
+### Example
+
+[View Example](./examples#react-optimistic-updates)

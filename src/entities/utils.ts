@@ -1,4 +1,4 @@
-import { EntityState, IdSelector, Update, EntityId } from './models'
+import type { EntityState, IdSelector, Update, EntityId } from './models'
 
 export function selectIdValue<T>(entity: T, selectId: IdSelector<T>) {
   const key = selectId(entity)
@@ -18,8 +18,8 @@ export function selectIdValue<T>(entity: T, selectId: IdSelector<T>) {
 }
 
 export function ensureEntitiesArray<T>(
-  entities: T[] | Record<EntityId, T>
-): T[] {
+  entities: readonly T[] | Record<EntityId, T>
+): readonly T[] {
   if (!Array.isArray(entities)) {
     entities = Object.values(entities)
   }
@@ -28,7 +28,7 @@ export function ensureEntitiesArray<T>(
 }
 
 export function splitAddedUpdatedEntities<T>(
-  newEntities: T[] | Record<EntityId, T>,
+  newEntities: readonly T[] | Record<EntityId, T>,
   selectId: IdSelector<T>,
   state: EntityState<T>
 ): [T[], Update<T>[]] {

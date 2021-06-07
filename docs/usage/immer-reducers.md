@@ -5,6 +5,8 @@ sidebar_label: Writing Reducers with Immer
 hide_title: true
 ---
 
+&nbsp;
+
 # Writing Reducers with Immer
 
 Redux Toolkit's [`createReducer`](../api/createReducer.mdx) and [`createSlice`](../api/createSlice.mdx) automatically use [Immer](https://immerjs.github.io/immer/) internally to let you write simpler immutable update logic using "mutating" syntax. This helps simplify most reducer implementations.

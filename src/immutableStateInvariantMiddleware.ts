@@ -1,4 +1,4 @@
-import { Middleware } from 'redux'
+import type { Middleware } from 'redux'
 import { getTimeMeasureUtils } from './utils'
 
 type EntryProcessor = (key: string, value: any) => any
@@ -121,7 +121,7 @@ function trackProperties(
   return tracked as TrackedProperty
 }
 
-type IgnorePaths = string[]
+type IgnorePaths = readonly string[]
 
 function detectMutations(
   isImmutable: IsImmutableFunc,

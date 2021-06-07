@@ -1,0 +1,495 @@
+---
+id: usage-with-typescript
+title: Usage With TypeScript
+sidebar_label: Usage With TypeScript
+hide_title: true
+---
+
+&nbsp;
+
+# Usage With TypeScript
+
+:::tip What You'll Learn
+
+- Details on how to use various RTK Query APIs with TypeScript
+
+:::
+
+## Introduction
+
+As with the rest of the Redux Toolkit package, RTK Query is written in TypeScript, and its API is designed for seamless use in TypeScript applications.
+
+This page provides details for using APIs included in RTK Query with TypeScript and how to type them correctly.
+
+:::info
+
+**We strongly recommend using TypeScript 4.1+ with RTK Query for best results.**
+
+If you encounter any problems with the types that are not described on this page, please [open an issue](https://github.com/reduxjs/redux-toolkit/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc) for discussion.
+
+:::
+
+## `createApi`
+
+### Using auto-generated React Hooks
+
+The React-specific entry point for RTK Query exports a version of [`createApi`](./api/createApi.mdx) which automatically generates React hooks for each of the defined query & mutation [`endpoints`](./api/createApi.mdx#endpoints).
+
+To use the auto-generated React Hooks as a TypeScript user, **you'll need to use TS4.1+**.
+
+```ts
+// file: src/services/types.ts noEmit
+export type Pokemon = {}
+
+// file: src/services/pokemon.ts
+// Need to use the React-specific entry point to allow generating React hooks
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import type { Pokemon } from './types'
+
+// Define a service using a base URL and expected endpoints
+export const pokemonApi = createApi({
+  reducerPath: 'pokemonApi',
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+  endpoints: (builder) => ({
+    getPokemonByName: builder.query<Pokemon, string>({
+      query: (name) => `pokemon/${name}`,
+    }),
+  }),
+})
+
+// highlight-start
+// Export hooks for usage in function components, which are
+// auto-generated based on the defined endpoints
+export const { useGetPokemonByNameQuery } = pokemonApi
+// highlight-end
+```
+
+For older versions of TS, you can use `api.endpoints.[endpointName].useQuery/useMutation` to access the same hooks.
+
+```ts title="Accessing api hooks directly"
+// file: src/services/types.ts noEmit
+export type Pokemon = {}
+
+// file: src/services/pokemon.ts noEmit
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import type { Pokemon } from './types'
+
+export const pokemonApi = createApi({
+  reducerPath: 'pokemonApi',
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+  endpoints: (builder) => ({
+    getPokemonByName: builder.query<Pokemon, string>({
+      query: (name) => `pokemon/${name}`,
+    }),
+  }),
+})
+
+export const { useGetPokemonByNameQuery } = pokemonApi
+
+// file: src/services/manual-query.ts
+import { pokemonApi } from './pokemon'
+
+const useGetPokemonByNameQuery = pokemonApi.endpoints.getPokemonByName.useQuery
+```
+
+### Typing a `baseQuery`
+
+Typing a custom [`baseQuery`](./api/createApi.mdx#basequery) can be done using the `BaseQueryFn` type exported by RTK Query.
+
+```ts title="Base Query signature" no-transpile
+export type BaseQueryFn<
+  Args = any,
+  Result = unknown,
+  Error = unknown,
+  DefinitionExtraOptions = {},
+  Meta = {}
+> = (
+  args: Args,
+  api: BaseQueryApi,
+  extraOptions: DefinitionExtraOptions
+) => MaybePromise<QueryReturnValue<Result, Error, Meta>>
+
+export interface BaseQueryApi {
+  signal: AbortSignal
+  dispatch: ThunkDispatch<any, any, any>
+  getState: () => unknown
+}
+
+export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =
+  | {
+      error: E
+      data?: undefined
+      meta?: M
+    }
+  | {
+      error?: undefined
+      data: T
+      meta?: M
+    }
+```
+
+The `BaseQueryFn` type accepts the following generics:
+
+- `Args` - The type for the first parameter of the function. The result returned by a [`query`](./api/createApi.mdx#query) property on an endpoint will be passed here.
+- `Result` - The type to be returned in the `data` property for the success case. Unless you expect all queries and mutations to return the same type, it is recommended to keep this typed as `unknown`, and specify the types individually as shown [below](#typing-query-and-mutation-endpoints).
+- `Error` - The type to be returned for the `error` property in the error case. This type also applies to all [`queryFn`](#typing-a-queryfn) functions used in endpoints throughout the API definition.
+- `DefinitionExtraOptions` - The type for the third parameter of the function. The value provided to the [`extraOptions`](./api/createApi.mdx#extraoptions) property on an endpoint will be passed here.
+- `Meta` - the type of the `meta` property that may be returned from calling the `baseQuery`. The `meta` property is accessible as the second argument to [`transformResponse`](./api/createApi.mdx#transformresponse).
+
+:::note
+
+The `meta` property returned from a `baseQuery` will always be considered as potentially undefined, as a `throw` in the error case may result in it not being provided. When accessing values from the `meta` property, this should be accounted for, e.g. using [optional chaining](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining)
+
+:::
+
+```ts title="Simple baseQuery TypeScript example"
+import { createApi, BaseQueryFn } from '@reduxjs/toolkit/query'
+
+const simpleBaseQuery: BaseQueryFn<
+  string, // Args
+  unknown, // Result
+  { reason: string }, // Error
+  { shout?: boolean }, // DefinitionExtraOptions
+  { timestamp: number } // Meta
+> = (arg, api, extraOptions) => {
+  // `arg` has the type `string`
+  // `api` has the type `BaseQueryApi` (not configurable)
+  // `extraOptions` has the type `{ shout?: boolean }
+
+  const meta = { timestamp: Date.now() }
+
+  if (arg === 'forceFail') {
+    return {
+      error: {
+        reason: 'Intentionally requested to fail!',
+        meta,
+      },
+    }
+  }
+
+  if (extraOptions.shout) {
+    return { data: 'CONGRATULATIONS', meta }
+  }
+
+  return { data: 'congratulations', meta }
+}
+
+const api = createApi({
+  baseQuery: simpleBaseQuery,
+  endpoints: (builder) => ({
+    getSupport: builder.query({
+      query: () => 'support me',
+      extraOptions: {
+        shout: true,
+      },
+    }),
+  }),
+})
+```
+
+### Typing query and mutation `endpoints`
+
+`endpoints` for an api are defined as an object using the builder syntax. Both `query` and `mutation` endpoints can be typed by providing types to the generics in `<ResultType, QueryArg>` format.
+
+- `ResultType` - The type of the final data returned by the query, factoring an optional [`transformResponse`](./api/createApi.mdx#transformresponse).
+  - If `transformResponse` is not provided, then it is treated as though a successful query will return this type instead.
+  - If `transformResponse` _is_ provided, the input type for `transformResponse` must also be specified, to indicate the type that the initial query returns. The return type for `transformResponse` must match `ResultType`.
+  - If `queryFn` is used rather than `query`, then it must return the following shape for the success case:
+    ```ts no-transpile
+    {
+      data: ResultType
+    }
+    ```
+- `QueryArg` - The type of the input that will be passed as the only parameter to the `query` property of the endpoint, or the first parameter of a `queryFn` property if used instead.
+
+```ts title="Defining endpoints with TypeScript"
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+interface Post {
+  id: number
+  name: string
+}
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    // highlight-start
+    //              ResultType  QueryArg
+    //                    v       v
+    getPost: build.query<Post, number>({
+      // inferred as `number` from the `QueryArg` type
+      //       v
+      query: (id) => `post/${id}`,
+      // An explicit type must be provided to the raw result that the query returns
+      // when using `transformResponse`
+      //                             v
+      transformResponse: (rawResult: { result: { post: Post } }, meta) => {
+        //                                                        ^
+        // The optional `meta` property is available based on the type for the `baseQuery` used
+
+        // The return value for `transformResponse` must match `ResultType`
+        return rawResult.result.post
+      },
+    }),
+    // highlight-end
+  }),
+})
+```
+
+:::note
+
+`queries` and `mutations` can also have their return type defined by a [`baseQuery`](#typing-a-basequery) rather than the method shown above, however, unless you expect all of your queries and mutations to return the same type, it is recommended to leave the return type of the `baseQuery` as `unknown`.
+
+:::
+
+### Typing a `queryFn`
+
+As mentioned in [Typing query and mutation endpoints](#typing-query-and-mutation-endpoints), a `queryFn` will receive its result & arg types from the generics provided to the corresponding built endpoint.
+
+```ts
+// file: randomData.ts noEmit
+export declare const getRandomName: () => string
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { getRandomName } from './randomData'
+
+interface Post {
+  id: number
+  name: string
+}
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    // highlight-start
+    //              ResultType  QueryArg
+    //                    v       v
+    getPost: build.query<Post, number>({
+      // inferred as `number` from the `QueryArg` type
+      //         v
+      queryFn: (arg, queryApi, extraOptions, baseQuery) => {
+        const post: Post = {
+          id: arg,
+          name: getRandomName(),
+        }
+        // For the success case, the return type for the `data` property
+        // must match `ResultType`
+        //              v
+        return { data: post }
+      },
+    }),
+    // highlight-end
+  }),
+})
+```
+
+The error type that a `queryFn` must return is determined by the [`baseQuery`](#typing-a-basequery) provided to `createApi`.
+
+With [`fetchBaseQuery`](./api/fetchBaseQuery.mdx), the error type is like so:
+
+```ts title="fetchBaseQuery error shape" no-transpile
+{
+  status: number
+  data: any
+}
+```
+
+An error case for the example above using `queryFn` and the error type from `fetchBaseQuery` could look like:
+
+```ts title="queryFn error example with error type from fetchBaseQuery"
+// file: randomData.ts noEmit
+export declare const getRandomName: () => string
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { getRandomName } from './randomData'
+
+interface Post {
+  id: number
+  name: string
+}
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    // highlight-start
+    getPost: build.query<Post, number>({
+      queryFn: (arg, queryApi, extraOptions, baseQuery) => {
+        // highlight-start
+        if (arg <= 0) {
+          return {
+            error: {
+              status: 500,
+              data: 'Invalid ID provided.',
+            },
+          }
+        }
+        // highlight-end
+        const post: Post = {
+          id: arg,
+          name: getRandomName(),
+        }
+        return { data: post }
+      },
+    }),
+  }),
+})
+```
+
+For users who wish to _only_ use `queryFn` for each endpoint and not include a `baseQuery` at all, RTK Query provides a `fakeBaseQuery` function that can be used to easily specify the error type each `queryFn` should return.
+
+```ts title="Excluding baseQuery for all endpoints"
+import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
+
+// highlight-start
+type CustomErrorType = { reason: 'too cold' | 'too hot' }
+// highlight-end
+
+const api = createApi({
+  // highlight-start
+  // This type will be used as the error type for all `queryFn` functions provided
+  //                              v
+  baseQuery: fakeBaseQuery<CustomErrorType>(),
+  // highlight-end
+  endpoints: (build) => ({
+    eatPorridge: build.query<'just right', 1 | 2 | 3>({
+      // highlight-start
+      queryFn(seat) {
+        if (seat === 1) {
+          return { error: { reason: 'too cold' } }
+        }
+
+        if (seat === 2) {
+          return { error: { reason: 'too hot' } }
+        }
+
+        return { data: 'just right' }
+      },
+      // highlight-end
+    }),
+    microwaveHotPocket: build.query<'delicious!', number>({
+      // highlight-start
+      queryFn(duration) {
+        if (duration < 110) {
+          return { error: { reason: 'too cold' } }
+        }
+        if (duration > 140) {
+          return { error: { reason: 'too hot' } }
+        }
+
+        return { data: 'delicious!' }
+      },
+      // highlight-end
+    }),
+  }),
+})
+```
+
+### Typing `providesTags`/`invalidatesTags`
+
+RTK Query utilizes a cache tag invalidation system in order to provide [automated re-fetching](./usage/automated-refetching.mdx) of stale data.
+
+When using the function notation, both the `providesTags` and `invalidatesTags` properties on endpoints are called with the following arguments:
+
+- result: `ResultType` | `undefined` - The result returned by a successful query. The type corresponds with `ResultType` as [supplied to the built endpoint](#typing-query-and-mutation-endpoints). In the error case for a query, this will be `undefined`.
+- error: `ErrorType` | `undefined` - The error returned by an errored query. The type corresponds with `Error` as [supplied to the `baseQuery` for the api](#typing-a-basequery). In the success case for a query, this will be `undefined`.
+- arg: `QueryArg` - The argument supplied to the `query` property when the query itself is called. The type corresponds with `QueryArg` as [supplied to the built endpoint](#typing-query-and-mutation-endpoints).
+
+A recommended use-case with `providesTags` when a query returns a list of items is to provide a tag for each item in the list using the entity ID, as well as a 'LIST' ID tag (see [Advanced Invalidation with abstract tag IDs](./usage/automated-refetching.mdx#advanced-invalidation-with-abstract-tag-ids)).
+
+This is often written by spreading the result of mapping the received data into an array, as well as an additional item in the array for the `'LIST'` ID tag. When spreading the mapped array, by default, TypeScript will broaden the `type` property to `string`. As the tag `type` must correspond to one of the string literals provided to the [`tagTypes`](./api/createApi.mdx#tagtypes) property of the api, the broad `string` type will not satisfy TypeScript. In order to alleviate this, the tag `type` can be cast `as const` to prevent the type being broadened to `string`.
+
+```ts title="providesTags TypeScript example"
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+interface Post {
+  id: number
+  name: string
+}
+type PostsResponse = Post[]
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  tagTypes: ['Posts'],
+  endpoints: (build) => ({
+    getPosts: build.query<PostsResponse, void>({
+      query: () => 'posts',
+      providesTags: (result) =>
+        result
+          ? [
+              // highlight-start
+              ...result.map(({ id }) => ({ type: 'Posts' as const, id })),
+              { type: 'Posts', id: 'LIST' },
+              // highlight-end
+            ]
+          : [{ type: 'Posts', id: 'LIST' }],
+    }),
+  }),
+})
+```
+
+<!-- when mapping, needs the tag `type` cast `as const` to prevent being broadened to `string` -->
+
+## Skipping queries with TypeScript using `skipToken`
+
+<!-- good for scenarios where you never want to send the query for a nullish value (skipping the query), but want the param itself to be typed correctly. Passing `skipToken` as the param will prevents the query from firing, with the same effect as `{ skip: true }`  -->
+
+RTK Query provides the ability to conditionally skip queries from automatically running using the `skip` parameter as part of query hook options (see [Conditional Fetching](./usage/conditional-fetching.mdx)).
+
+TypeScript users may find that they encounter invalid type scenarios when a query argument is typed to not be `undefined`, and they attempt to `skip` the query when an argument would not be valid.
+
+```ts title="API definition"
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { Post } from './types'
+
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    // Query argument is required to be `number`, and can't be `undefined`
+    //                            V
+    getPost: build.query<Post, number>({
+      query: (id) => `post/${id}`,
+    }),
+  }),
+})
+
+export const { useGetPostQuery } = api
+```
+
+```tsx title="Using skip in a component"
+import { useGetPostQuery } from './api'
+
+function MaybePost({ id }: { id?: number }) {
+  // This will produce a typescript error:
+  // Argument of type 'number | undefined' is not assignable to parameter of type 'number | unique symbol'.
+  // Type 'undefined' is not assignable to type 'number | unique symbol'.
+
+  // @ts-expect-error id passed must be a number, but we don't call it when it isn't a number
+  const { data } = useGetPostQuery(id, { skip: !id })
+
+  return <div>...</div>
+}
+```
+
+While you might be able to convince yourself that the query won't be called unless the `id` arg is a `number` at the time, TypeScript won't be convinced so easily.
+
+RTK Query provides a `skipToken` export which can be used as an alternative to the `skip` option in order to skip queries, while remaining type-safe. When `skipToken` is passed as the query argument to `useQuery`, `useQueryState` or `useQuerySubscription`, it provides the same effect as setting `skip: true` in the query options, while also being a valid argument in scenarios where the `arg` might be undefined otherwise.
+
+```tsx title="Using skipToken in a component"
+import { skipToken } from '@reduxjs/toolkit/query/react'
+import { useGetPostQuery } from './api'
+
+function MaybePost({ id }: { id?: number }) {
+  // When `id` is nullish, we will still skip the query.
+  // TypeScript is also happy that the query will only ever be called with a `number` now
+  const { data } = useGetPostQuery(id ?? skipToken)
+
+  return <div>...</div>
+}
+```

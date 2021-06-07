@@ -1,7 +1,11 @@
 .DS_Store
 *.log
 node_modules
-dist
+# Dist and query are both build output folders
+dist*/
+!query/
+# But don't ignore the RTK Query source
+!src/query/
 lib
 es
 yarn.lock
@@ -11,5 +15,10 @@ yarn.lock
 .vscode/
 temp/
 .tmp-projections
-
+build/
 .rts2*
+
+typesversions
+.cache
+.yarn
+.yarnrc

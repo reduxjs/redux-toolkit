@@ -1,0 +1,59 @@
+---
+id: code-splitting
+title: Code Splitting
+sidebar_label: Code Splitting
+hide_title: true
+---
+
+&nbsp;
+
+# Code Splitting
+
+RTK Query makes it possible to trim down your initial bundle size by allowing you to inject additional endpoints after you've setup your initial service definition. This can be very beneficial for larger applications that may have _many_ endpoints.
+
+`injectEndpoints` accepts a collection of endpoints, as well as an optional `overrideExisting` parameter.
+
+Calling `injectEndpoints` will inject the endpoints into the original API, but also give you that same API with correct types for these endpoints back. (Unfortunately, it cannot modify the types for the original definition.)
+
+A typical approach would be to have one empty central API slice definition:
+
+```ts title="Basic setup"
+// Or from '@reduxjs/toolkit/query' if not using the auto-generated hooks
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+// initialize an empty api service that we'll inject endpoints into later as needed
+export const emptySplitApi = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: () => ({}),
+})
+```
+
+and then inject the api endpoints in other files and export them from there - that way you will be sure to always import the endpoints in a way that they are definitely injected.
+
+```ts title="Injecting & exporting additional endpoints"
+// file: emptySplitApi.ts noEmit
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+export const emptySplitApi = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: () => ({}),
+})
+
+// file: extendedApi.ts
+import { emptySplitApi } from './emptySplitApi'
+
+const extendedApi = emptySplitApi.injectEndpoints({
+  endpoints: (build) => ({
+    example: build.query({
+      query: () => 'test',
+    }),
+  }),
+  overrideExisting: false,
+})
+
+export const { useExampleQuery } = extendedApi
+```
+
+:::tip
+You will get a warning if you inject an endpoint that already exists in development mode when you don't explicitly specify `overrideExisting: true`. You **will not see this in production** and the existing endpoint will just be overriden, so make sure to account for this in your tests.
+:::

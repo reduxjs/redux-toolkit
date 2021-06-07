@@ -1,0 +1,98 @@
+---
+id: usage-without-react-hooks
+title: Usage Without React Hooks
+sidebar_label: Usage Without React Hooks
+hide_title: true
+---
+
+&nbsp;
+
+# Usage Without React Hooks
+
+Like the Redux core and Redux Toolkit, RTK Query's primary functionality is UI-agnostic and can be used with any UI layer. RTK Query also includes a version of [`createApi`](../api/createApi.mdx) designed specifically for use with React, which [automatically generates React hooks](../api/created-api/hooks.mdx).
+
+While React hooks are the primary way that the majority of users are expected to be using RTK Query, the library itself uses plain JS logic and can be used both with React Class components, and independent of React itself.
+
+This page documents how to interact with RTK Query when used without React Hooks, in order to make proper use of RTK Query [`cache behavior`](./cache-behavior).
+
+## Adding a subscription
+
+Cache subscriptions are used to tell RTK Query that it needs to fetch data for an endpoint. A subscription for an endpoint can be added by dispatching the result of the [`initiate`](../api/created-api/endpoints.mdx#initiate) thunk action creator attached to a query endpoint.
+
+With React hooks, this behavior is instead handled within [`useQuery`](../api/created-api/hooks.mdx#usequery), [`useQuerySubscription`](../api/created-api/hooks.mdx#usequerysubscription), [`useLazyQuery`](../api/created-api/hooks.mdx#uselazyquery), and [`useLazyQuerySubscription`](../api/created-api/hooks.mdx#uselazyquerysubscription).
+
+```ts title="Subscribing to cached data" no-transpile
+dispatch(api.endpoints.getPosts.initiate())
+```
+
+## Removing a subscription
+
+Removing a cache subscription is necessary for RTK Query to identify that cached data is no longer required. This allows RTK Query to clean up and remove old cache data.
+
+The result of dispatching the [`initiate`](../api/created-api/endpoints.mdx#initiate) thunk action creator of a query endpoint is an object with an `unsubscribe` property. This property is a function that when called, will remove the corresponding cache subscription.
+
+With React hooks, this behavior is instead handled within [`useQuery`](../api/created-api/hooks.mdx#usequery), [`useQuerySubscription`](../api/created-api/hooks.mdx#usequerysubscription), [`useLazyQuery`](../api/created-api/hooks.mdx#uselazyquery), and [`useLazyQuerySubscription`](../api/created-api/hooks.mdx#uselazyquerysubscription).
+
+```ts title="Unsubscribing from cached data" no-transpile
+// Adding a cache subscription
+const result = dispatch(api.endpoints.getPosts.initiate())
+
+// Removing the corresponding cache subscription
+result.unsubscribe()
+```
+
+## Accessing cached data & request status
+
+Accessing cache data and request status information can be performed using the `select` function property of a query endpoint to create a selector and call that with the Redux state. This provides a snapshot of the cache data and request status information at the time it is called.
+
+:::caution
+
+The `endpoint.select()` function creates a _new_ selector instance - it isn't the actual selector function itself!
+
+:::
+
+With React hooks, this behaviour is instead handled within [`useQuery`](../api/created-api/hooks.mdx#usequery), [`useQueryState`](../api/created-api/hooks.mdx#usequerystate), and [`useLazyQuery`](../api/created-api/hooks.mdx#uselazyquery).
+
+```ts title="Accessing cached data & request status" no-transpile
+const result = api.endpoints.getPosts.select()(state)
+const { data, status, error } = result
+```
+
+Note that unlike the auto-generated query hooks, derived booleans such as `isLoading`, `isFetching`, `isSuccess` are not available here. The raw `status` enum is provided instead.
+
+## Performing mutations
+
+[Mutations](./mutations.mdx) are used in order to update data on the server. Mutations can be performed by dispatching the result of the [`initiate`](../api/created-api/endpoints.mdx#initiate) thunk action creator attached to a mutation endpoint.
+
+With React hooks, this behavior is instead handled within [`useMutation`](../api/created-api/hooks.mdx#usemutation).
+
+```ts title="Triggering a mutation endpoint" no-transpile
+dispatch(api.endpoints.addPost.initiate({ name: 'foo' }))
+```
+
+## Examples
+
+Examples of usage without React hooks can be found under the following:
+
+- The `PostDetail` component in the [`React Class Components` example](./examples.mdx#react-class-components)
+- The [`Svelte` example](./examples.mdx#svelte)
+- The below `Cache Lifetime Subscription Class Component` example:
+
+<iframe
+  src="https://codesandbox.io/embed/rtk-query-cache-lifetime-subscription-class-component-example-38mgd?fontsize=12&runonclick=1&hidenavigation=1&module=%2Fsrc%2Fcomponents%2FUsersList.tsx&theme=dark&runonclick=1"
+  style={{
+    width: '100%',
+    height: '800px',
+    border: 0,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  }}
+  title="RTK Query Cache Lietime Subscription Class Component Example"
+  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
+></iframe>
+
+## Further Information
+
+- NgRx maintainer Brandon Roberts has written a post called [Cousins playing nicely: Experimenting with NgRx Store and RTK Query](https://dev.to/brandontroberts/cousins-playing-nicely-experimenting-with-ngrx-store-and-rtk-query-25f4), which demonstrates some approaches for integrating RTK Query into NgRx
+- [`saulmoro/ngrx-rtk-query`](https://github.com/SaulMoro/ngrx-rtk-query) implements an NgRx equivalent of the subscription lifecycle managed in RTKQ's own React hooks

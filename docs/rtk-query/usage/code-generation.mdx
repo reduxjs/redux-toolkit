@@ -1,0 +1,82 @@
+---
+id: code-generation
+title: Code Generation
+sidebar_label: Code Generation
+hide_title: true
+---
+
+&nbsp;
+
+# Code Generation
+
+RTK Query's API and architecture is oriented around declaring API endpoints up front. This lends itself well to automatically generating API slice definitions from external API schema definitions, such as OpenAPI and GraphQL.
+
+We have early previews of code generation capabilities available as separate tools.
+
+## OpenAPI
+
+We have a first version of a code generator from OpenAPI schemas over at [`rtk-incubator/rtk-query-codegen`](https://github.com/rtk-incubator/rtk-query-codegen).
+
+You can create an api by running:
+
+```bash
+curl -o petstore.json https://petstore3.swagger.io/api/v3/openapi.json
+npx @rtk-incubator/rtk-query-codegen-openapi --hooks petstore.json > petstore-api.generated.ts
+```
+
+We recommend placing these generated types in one file that you do not modify (so you can constantly re-generate it when your API definition changes) and creating a second file to enhance it with additional info:
+
+```ts title="petstore-api.ts"
+// file: petstore-api.generated.ts noEmit
+export * from 'petstore-api.generated'
+
+// file: petstoreApi.ts
+import { api as generatedApi } from './petstore-api.generated'
+
+export const api = generatedApi.enhanceEndpoints({
+  addTagTypes: ['Pet'],
+  endpoints: {
+    // basic notation: just specify properties to be overridden
+    getPetById: {
+      providesTags: (result, error, arg) => [{ type: 'Pet', id: arg.petId }],
+    },
+    findPetsByStatus: {
+      providesTags: (result) =>
+        // is result available?
+        result
+          ? // successful query
+            [
+              { type: 'Pet', id: 'LIST' },
+              ...result.map((pet) => ({ type: 'Pet' as const, id: pet.id })),
+            ]
+          : // an error occurred, but we still want to refetch this query when `{ type: 'Pet', id: 'LIST' }` is invalidated
+            [{ type: 'Pet', id: 'LIST' }],
+    },
+    // alternate notation: callback that gets passed in `endpoint` - you can freely modify the object here
+    addPet: (endpoint) => {
+      endpoint.invalidatesTags = (result) =>
+        result ? [{ type: 'Pet', id: result.id }] : []
+    },
+    updatePet: {
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Pet', id: arg.pet.id },
+      ],
+    },
+    deletePet: {
+      invalidatesTags: (result, error, arg) => [{ type: 'Pet', id: arg.petId }],
+    },
+  },
+})
+
+export const {
+  useGetPetByIdQuery,
+  useFindPetsByStatusQuery,
+  useAddPetMutation,
+  useUpdatePetMutation,
+  useDeletePetMutation,
+} = api
+```
+
+## GraphQL
+
+There is a _very_ early WIP PR that [implements code generation based on a GraphQL spec](https://github.com/phryneas/graphql-code-generator/pull/1), and an open issue on the GraphQL Generator repo asking [if an RTK Query generator would be potentially useful](https://github.com/dotansimha/graphql-code-generator/issues/6085).
