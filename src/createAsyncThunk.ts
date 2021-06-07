@@ -85,7 +85,12 @@ class FulfillWithMeta<Payload, FulfilledMeta> {
   ) {}
 }
 
-// Reworked from https://github.com/sindresorhus/serialize-error
+/**
+ * Serializes an error into a plain object.
+ * Reworked from https://github.com/sindresorhus/serialize-error
+ *
+ * @public
+ */
 export const miniSerializeError = (value: any): SerializedError => {
   if (typeof value === 'object' && value !== null) {
     const simpleError: SerializedError = {}

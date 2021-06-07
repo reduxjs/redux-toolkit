@@ -38,10 +38,12 @@ The basics of using `configureStore` are shown in [TypeScript Quick Start tutori
 The easiest way of getting the `State` type is to define the root reducer in advance and extract its `ReturnType`.  
 It is recommend to give the type a different name like `RootState` to prevent confusion, as the type name `State` is usually overused.
 
-```typescript {3}
+```typescript
 import { combineReducers } from '@reduxjs/toolkit'
 const rootReducer = combineReducers({})
+// highlight-start
 export type RootState = ReturnType<typeof rootReducer>
+// highlight-end
 ```
 
 Alternatively, if you choose to not create a `rootReducer` yourself and instead pass the slice reducers directly to `configureStore()`, you need to slightly modify the typing to correctly infer the root reducer:
@@ -56,13 +58,15 @@ const store = configureStore({
   },
 })
 export type RootState = ReturnType<typeof store.getState>
+
+export default store
 ```
 
 ### Getting the `Dispatch` type
 
 If you want to get the `Dispatch` type from your store, you can extract it after creating the store. It is recommended to give the type a different name like `AppDispatch` to prevent confusion, as the type name `Dispatch` is usually overused. You may also find it to be more convenient to export a hook like `useAppDispatch` shown below, then using it wherever you'd call `useDispatch`.
 
-```typescript {6}
+```typescript
 import { configureStore } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
 import rootReducer from './rootReducer'
@@ -71,8 +75,12 @@ const store = configureStore({
   reducer: rootReducer,
 })
 
+// highlight-start
 export type AppDispatch = typeof store.dispatch
 export const useAppDispatch = () => useDispatch<AppDispatch>() // Export a hook that can be reused to resolve types
+// highlight-end
+
+export default store
 ```
 
 ### Correct typings for the `Dispatch` type
@@ -83,7 +91,7 @@ As TypeScript often widens array types when combining arrays using the spread op
 
 Also, we suggest using the callback notation for the `middleware` option to get a correctly pre-typed version of `getDefaultMiddleware` that does not require you to specify any generics by hand.
 
-```ts {10-20}
+```ts
 import { configureStore } from '@reduxjs/toolkit'
 import additionalMiddleware from 'additional-middleware'
 import logger from 'redux-logger'
@@ -91,9 +99,10 @@ import logger from 'redux-logger'
 import untypedMiddleware from 'untyped-middleware'
 import rootReducer from './rootReducer'
 
-type RootState = ReturnType<typeof rootReducer>
+export type RootState = ReturnType<typeof rootReducer>
 const store = configureStore({
   reducer: rootReducer,
+  // highlight-start
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
       .prepend(
@@ -107,9 +116,12 @@ const store = configureStore({
       )
       // prepend and concat calls can be chained
       .concat(logger),
+  // highlight-end
 })
 
-type AppDispatch = typeof store.dispatch
+export type AppDispatch = typeof store.dispatch
+
+export default store
 ```
 
 #### Using `MiddlewareArray` without `getDefaultMiddleware`

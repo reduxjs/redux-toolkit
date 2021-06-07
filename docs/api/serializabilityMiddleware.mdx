@@ -55,6 +55,11 @@ interface SerializableStateInvariantMiddlewareOptions {
    * Defaults to 32ms.
    */
   warnAfter?: number
+
+  /**
+   * Opt out of checking state, but continue checking actions
+   */
+  ignoreState?: boolean
 }
 ```
 
