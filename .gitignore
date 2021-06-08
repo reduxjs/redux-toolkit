@@ -9,7 +9,8 @@ dist*/
 lib
 es
 yarn.lock
-
+.yalc
+yalc.lock
 
 .idea/
 .vscode/
