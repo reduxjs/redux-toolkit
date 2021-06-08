@@ -159,7 +159,7 @@ module.exports = {
     algolia: {
       apiKey: '82d838443b672336bf63cab4772d9eb4',
       indexName: 'redux-starter-kit',
-      algoliaOptions: {},
+      searchParameters: {},
     },
     googleAnalytics: {
       trackingID: 'UA-130598673-3',
