@@ -11,6 +11,12 @@ hide_title: true
 
 `createApi` is the core of RTK Query's functionality. It allows you to define a set of endpoints describe how to retrieve data from a series of endpoints, including configuration of how to fetch and transform that data. It generates [an "API slice" structure](./created-api/overview.mdx) that contains Redux logic (and optionally React hooks) that encapsulate the data fetching and caching process for you.
 
+:::tip
+
+Typically, you should only have one API slice per base URL that your application needs to communicate with. For example, if your site fetches data from both `/api/posts` and `/api/users`, you would have a single API slice with `/api/` as the base URL, and separate endpoint definitions for `posts` and `users`. This allows you to effectively take advantage of [automated-refetching](../usage/automated-refetching.mdx) by defining [tag](../usage/automated-refetching.mdx#tags) relationships across endpoints.
+
+:::
+
 ```ts title="Example: src/services/pokemon.ts"
 // file: src/services/types.ts noEmit
 export type Pokemon = {}

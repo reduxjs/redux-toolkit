@@ -17,7 +17,7 @@ This section documents the contents of that API structure, with the different fi
 
 :::tip
 
-Typically, you should only have one API slice per base URL that your application needs to communicate with. For example, if your site fetches data from both `/api/posts` and `/api/users`, you would have a single API slice with `/api/` as the base URL, and separate endpoint definitions for `posts` and `users`.
+Typically, you should only have one API slice per base URL that your application needs to communicate with. For example, if your site fetches data from both `/api/posts` and `/api/users`, you would have a single API slice with `/api/` as the base URL, and separate endpoint definitions for `posts` and `users`. This allows you to effectively take advantage of [automated-refetching](../../usage/automated-refetching.mdx) by defining [tag](../../usage/automated-refetching.mdx#tags) relationships across endpoints.
 
 :::
 
