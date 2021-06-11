@@ -74,13 +74,15 @@ With RTK Query, you usually define your entire API definition in one place. This
 
 :::tip
 
-Typically, you should only have one API slice per base URL that your application needs to communicate with. For example, if your site fetches data from both `/api/posts` and `/api/users`, you would have a single API slice with `/api/` as the base URL, and separate endpoint definitions for `posts` and `users`. This allows you to effectively take advantage of [automated-refetching](./rtk-query/usage/automated-refetching.mdx) by defining [tag](./rtk-query/usage/automated-refetching.mdx#tags) relationships across endpoints.
+Typically, you should only have one API slice per base URL that your application needs to communicate with. For example, if your site fetches data from both `/api/posts` and `/api/users`, you would have a single API slice with `/api/` as the base URL, and separate endpoint definitions for `posts` and `users`. This allows you to effectively take advantage of [automated re-fetching](./rtk-query/usage/automated-refetching.mdx) by defining [tag](./rtk-query/usage/automated-refetching.mdx#tags) relationships across endpoints.
+
+For maintainability purposes, you may wish to split up endpoint definitions across multiple files, while still maintaining a single API slice which includes all of these endpoints. See [code splitting](./rtk-query/usage/code-splitting.mdx) for how you can use the `injectEndpoints` property to inject API endpoints from other files into a single API slice definition.
 
 :::
 
 ### Add the service to your store
 
-An RTK service generates a "slice reducer" that should be included in the Redux root reducer, and a custom middleware that handles the data fetching. Both need to be added to the Redux store.
+An RTKQ service generates a "slice reducer" that should be included in the Redux root reducer, and a custom middleware that handles the data fetching. Both need to be added to the Redux store.
 
 ```ts title="src/store.ts"
 // file: services/pokemon.ts noEmit
