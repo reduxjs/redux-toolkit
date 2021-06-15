@@ -10,18 +10,23 @@ const db = factory({
   },
 })
 
-db.post.create({ id: nanoid(), name: 'A sample post' })
-db.post.create({ id: nanoid(), name: 'A post about rtk query' })
+;[
+  'A sample post',
+  'A post about RTK Query',
+  'How to randomly throw errors, a novella',
+].forEach((name) => {
+  db.post.create({ id: nanoid(), name })
+})
 
 export const handlers = [
   rest.post('/posts', async (req, res, ctx) => {
     const { name } = req.body as Partial<Post>
 
-    if (Math.random() < 0.5) {
+    if (Math.random() < 0.3) {
       return res(
-        ctx.json({ error: 'Oh no, there was an error' }),
+        ctx.json({ error: 'Oh no, there was an error, try again.' }),
         ctx.status(500),
-        ctx.delay(400)
+        ctx.delay(300)
       )
     }
 
@@ -30,16 +35,16 @@ export const handlers = [
       name,
     })
 
-    return res(ctx.json(post), ctx.delay(400))
+    return res(ctx.json(post), ctx.delay(300))
   }),
   rest.put('/posts/:id', (req, res, ctx) => {
     const { name } = req.body as Partial<Post>
 
-    if (Math.random() < 0.5) {
+    if (Math.random() < 0.3) {
       return res(
-        ctx.json({ error: 'Oh no, there was an error' }),
+        ctx.json({ error: 'Oh no, there was an error, try again.' }),
         ctx.status(500),
-        ctx.delay(400)
+        ctx.delay(300)
       )
     }
 
@@ -48,7 +53,7 @@ export const handlers = [
       data: { name },
     })
 
-    return res(ctx.json(post), ctx.delay(400))
+    return res(ctx.json(post), ctx.delay(300))
   }),
   ...db.post.toHandlers('rest'),
 ] as const
