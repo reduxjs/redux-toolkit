@@ -72,9 +72,17 @@ export const { useGetPokemonByNameQuery } = pokemonApi
 
 With RTK Query, you usually define your entire API definition in one place. This is most likely different from what you see with other libraries such as `swr` or `react-query`, and there are several reasons for that. Our perspective is that it's _much_ easier to keep track of how requests, cache invalidation, and general app configuration behave when they're all in one central location in comparison to having X number of custom hooks in different files throughout your application.
 
+:::tip
+
+Typically, you should only have one API slice per base URL that your application needs to communicate with. For example, if your site fetches data from both `/api/posts` and `/api/users`, you would have a single API slice with `/api/` as the base URL, and separate endpoint definitions for `posts` and `users`. This allows you to effectively take advantage of [automated re-fetching](./rtk-query/usage/automated-refetching.mdx) by defining [tag](./rtk-query/usage/automated-refetching.mdx#tags) relationships across endpoints.
+
+For maintainability purposes, you may wish to split up endpoint definitions across multiple files, while still maintaining a single API slice which includes all of these endpoints. See [code splitting](./rtk-query/usage/code-splitting.mdx) for how you can use the `injectEndpoints` property to inject API endpoints from other files into a single API slice definition.
+
+:::
+
 ### Add the service to your store
 
-An RTK service generates a "slice reducer" that should be included in the Redux root reducer, and a custom middleware that handles the data fetching. Both need to be added to the Redux store.
+An RTKQ service generates a "slice reducer" that should be included in the Redux root reducer, and a custom middleware that handles the data fetching. Both need to be added to the Redux store.
 
 ```ts title="src/store.ts"
 // file: services/pokemon.ts noEmit
@@ -174,7 +182,7 @@ When making a request, you're able to track the state in several ways. You can a
 #### Basic Example
 
 <iframe
-  src="https://githubbox.com/reduxjs/redux-toolkit/tree/feature/v1.6-integration/examples/query/react/basic?fontsize=12&hidenavigation=1&theme=dark"
+  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/master/examples/query/react/basic?fontsize=12&runonclick=1&hidenavigation=1&theme=dark"
   style={{
     width: '100%',
     height: '500px',
@@ -194,7 +202,7 @@ Okay, that's interesting... but what if you wanted to show multiple pokemon at t
 RTK Query ensures that any component that subscribes to the same query will always use the same data. RTK Query automatically de-dupes requests so you don't have to worry about checking in-flight requests and performance optimizations on your end. Let's evaluate the sandbox below - make sure to check the Network panel in your browser's dev tools. You will see 3 requests, even though there are 4 subscribed components - `bulbasaur` only makes one request, and the loading state is synchronized between the two components. For fun, try changing the value of the dropdown from `Off` to `1s` to see this behavior continue when a query is re-ran.
 
 <iframe
-  src="https://githubbox.com/reduxjs/redux-toolkit/tree/feature/v1.6-integration/examples/query/react/advanced?file=/src/App.tsx?fontsize=12&hidenavigation=1&theme=dark"
+  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/master/examples/query/react/advanced?file=/src/App.tsx?fontsize=12&runonclick=1&hidenavigation=1&theme=dark"
   style={{
     width: '100%',
     height: '600px',

@@ -17,11 +17,13 @@ hide_title: true
 
 ## Introduction
 
-In the same manner as the core Redux Toolkit package, RTK Query is also written in TypeScript, with it's API designed for seamless use in TypeScript applications.
+As with the rest of the Redux Toolkit package, RTK Query is written in TypeScript, and its API is designed for seamless use in TypeScript applications.
 
 This page provides details for using APIs included in RTK Query with TypeScript and how to type them correctly.
 
 :::info
+
+**We strongly recommend using TypeScript 4.1+ with RTK Query for best results.**
 
 If you encounter any problems with the types that are not described on this page, please [open an issue](https://github.com/reduxjs/redux-toolkit/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc) for discussion.
 
@@ -31,7 +33,9 @@ If you encounter any problems with the types that are not described on this page
 
 ### Using auto-generated React Hooks
 
-The react-specific entry point for RTK Query exports a version of [`createApi`](./api/createApi.mdx) which automatically generates react hooks for the defined query & mutation [`endpoints`](./api/createApi.mdx#endpoints).
+The React-specific entry point for RTK Query exports a version of [`createApi`](./api/createApi.mdx) which automatically generates React hooks for each of the defined query & mutation [`endpoints`](./api/createApi.mdx#endpoints).
+
+To use the auto-generated React Hooks as a TypeScript user, **you'll need to use TS4.1+**.
 
 ```ts
 // file: src/services/types.ts noEmit
@@ -59,8 +63,6 @@ export const pokemonApi = createApi({
 export const { useGetPokemonByNameQuery } = pokemonApi
 // highlight-end
 ```
-
-To use the auto-generated React Hooks as a TypeScript user, you'll need to use TS4.1+.
 
 For older versions of TS, you can use `api.endpoints.[endpointName].useQuery/useMutation` to access the same hooks.
 
@@ -92,7 +94,7 @@ const useGetPokemonByNameQuery = pokemonApi.endpoints.getPokemonByName.useQuery
 
 ### Typing a `baseQuery`
 
-Typing a custom [`baseQuery`](./api/createApi.mdx#basequery) can be performed using the `BaseQueryFn` type exported by RTK Query.
+Typing a custom [`baseQuery`](./api/createApi.mdx#basequery) can be done using the `BaseQueryFn` type exported by RTK Query.
 
 ```ts title="Base Query signature" no-transpile
 export type BaseQueryFn<
@@ -216,7 +218,7 @@ const api = createApi({
     getPost: build.query<Post, number>({
       // inferred as `number` from the `QueryArg` type
       //       v
-      query: (id) => `posts/${id}`,
+      query: (id) => `post/${id}`,
       // An explicit type must be provided to the raw result that the query returns
       // when using `transformResponse`
       //                             v
@@ -241,7 +243,7 @@ const api = createApi({
 
 ### Typing a `queryFn`
 
-As mentioned in [Typing query and mutation endpoints](#typing-query-and-mutation-endpoints), a `queryFn` will receive it's result & arg types from the generics provided to the corresponding built endpoint.
+As mentioned in [Typing query and mutation endpoints](#typing-query-and-mutation-endpoints), a `queryFn` will receive its result & arg types from the generics provided to the corresponding built endpoint.
 
 ```ts
 // file: randomData.ts noEmit
@@ -292,7 +294,7 @@ With [`fetchBaseQuery`](./api/fetchBaseQuery.mdx), the error type is like so:
 }
 ```
 
-An error case for the example above using `queryFn` and the error type from `fetchBaseQuery` could look like so:
+An error case for the example above using `queryFn` and the error type from `fetchBaseQuery` could look like:
 
 ```ts title="queryFn error example with error type from fetchBaseQuery"
 // file: randomData.ts noEmit
@@ -395,7 +397,7 @@ When using the function notation, both the `providesTags` and `invalidatesTags` 
 
 A recommended use-case with `providesTags` when a query returns a list of items is to provide a tag for each item in the list using the entity ID, as well as a 'LIST' ID tag (see [Advanced Invalidation with abstract tag IDs](./usage/automated-refetching.mdx#advanced-invalidation-with-abstract-tag-ids)).
 
-This is often written by spreading the result of mapping the received data into an array, as well as an additional item in the array for the `'LIST'` ID tag. When spreading the mapped array, by default, TypeScript will broaden the `type` property to `string`. As the `tag type` must correspond to one of the string literals provided to the [`tagTypes`](./api/createApi.mdx#tagtypes) property of the api, the broad `string` type will not satisfy TypeScript. In order to alleviate this, the `tag type` can be cast `as const` to prevent the type being broadened to `string`.
+This is often written by spreading the result of mapping the received data into an array, as well as an additional item in the array for the `'LIST'` ID tag. When spreading the mapped array, by default, TypeScript will broaden the `type` property to `string`. As the tag `type` must correspond to one of the string literals provided to the [`tagTypes`](./api/createApi.mdx#tagtypes) property of the api, the broad `string` type will not satisfy TypeScript. In order to alleviate this, the tag `type` can be cast `as const` to prevent the type being broadened to `string`.
 
 ```ts title="providesTags TypeScript example"
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
@@ -425,7 +427,7 @@ const api = createApi({
 })
 ```
 
-<!-- when mapping, needs the `tag type` cast `as const` to prevent being broadened to `string` -->
+<!-- when mapping, needs the tag `type` cast `as const` to prevent being broadened to `string` -->
 
 ## Skipping queries with TypeScript using `skipToken`
 
@@ -452,7 +454,7 @@ export const api = createApi({
     // Query argument is required to be `number`, and can't be `undefined`
     //                            V
     getPost: build.query<Post, number>({
-      query: (id) => `posts/${id}`,
+      query: (id) => `post/${id}`,
     }),
   }),
 })

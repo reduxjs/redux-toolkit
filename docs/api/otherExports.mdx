@@ -22,6 +22,32 @@ console.log(nanoid())
 // 'dgPXxUz_6fWIQBD8XmiSy'
 ```
 
+### `miniSerializeError`
+
+The default error serialization function used by `createAsyncThunk`, based on https://github.com/sindresorhus/serialize-error. If its argument is an object (such as an `Error` instance), it returns a plain JS `SerializedError` object that copies over any of the listed fields. Otherwise, it returns a stringified form of the value: `{ message: String(value) }`.
+
+```ts no-transpile
+export interface SerializedError {
+  name?: string
+  message?: string
+  stack?: string
+  code?: string
+}
+
+export function miniSerializeError(value: any): SerializedError {}
+```
+
+### `copyWithStructuralSharing`
+
+A utility that will recursively merge two similar objects together, preserving existing references if the values appear to be the same. This is used internally to help ensure that re-fetched data keeps using the same references unless the new data has actually changed, to avoid unnecessary re-renders. Otherwise, every re-fetch would likely cause the entire dataset to be replaced and all consuming components to always re-render.
+
+If either of the inputs are not plain JS objects or arrays, the new value is returned.
+
+```ts no-transpile
+export function copyWithStructuralSharing<T>(oldObj: any, newObj: T): T
+export function copyWithStructuralSharing(oldObj: any, newObj: any): any {}
+```
+
 ## Exports from Other Libraries
 
 ### `createNextState`

@@ -9,25 +9,25 @@ hide_title: true
 
 # Migrating to RTK Query
 
+:::tip What You'll Learn
+
+- How to convert conventional data-fetching logic implemented with Redux Toolkit`+ `createAsyncThunk`to use`Redux Toolkit Query`
+
+:::
+
 ## Overview
 
 The most common use case for side effects in Redux apps is fetching data. Redux apps typically use a tool like thunks, sagas, or observables to make an AJAX request, and [dispatch actions based on the results of the request](https://redux.js.org/tutorials/fundamentals/part-7-standard-patterns#async-request-status). Reducers then listen for those actions to manage loading state and cache the fetched data.
 
-RTK Query is purpose-built to solve the use case of data fetching. While it can't replace all of the situations where you'd use thunks or other side effects approaches, using RTK Query should eliminate the need for most of that hand-written side effects logic.
+RTK Query is purpose-built to solve the use case of data fetching. While it can't replace all of the situations where you'd use thunks or other side effects approaches, **using RTK Query should eliminate the need for most of that hand-written side effects logic**.
 
 RTK Query is expected to cover a lot of overlapping behaviour that users may have previously used `createAsyncThunk` for, including caching purposes, and request lifecycle management (e.g. `isUninitialized`, `isLoading`, `isError` states).
 
-In order to migrate data-fetching features from existing Redux tools to RTK Query, the appropriate endpoints should be added to an RTK Query api, and the previous feature code deleted. This generally will not include much common code kept between the two, as the tools work differently and one will replace the other.
+In order to migrate data-fetching features from existing Redux tools to RTK Query, the appropriate endpoints should be added to an RTK Query API slice, and the previous feature code deleted. This generally will not include much common code kept between the two, as the tools work differently and one will replace the other.
 
 If you're looking to get started with RTK Query from scratch, you may also wish to see [`RTK Query Quick Start`](../../tutorials/rtk-query.mdx).
 
 ## Example - Migrating data-fetching logic from Redux Toolkit to RTK Query
-
-:::tip What You'll Learn
-
-- How to convert conventional data-fetching logic implemented with `Redux Toolkit` + `createAsyncThunk` to use `Redux Toolkit Query`
-
-:::
 
 A common method used to implement simple, cached, data-fetching logic with Redux is to set up a slice using `createSlice`, with state containing the associated `data` and `status` for a query, using `createAsyncThunk` to handle the asynchronous request lifecycles. Below we will explore an example of such an implementation, and how we can later go about migrating that code to use RTK Query instead.
 
@@ -46,13 +46,13 @@ For our example, the design specifications required for the tool are as follows:
 
 With the above specifications in mind, lets first look at an overview of how this could be implemented traditionally using `createAsyncThunk` combined with `createSlice`.
 
-### Implementation using `createSlice` & `createAsyncThunk`
+## Implementation using `createSlice` & `createAsyncThunk`
 
-#### Slice file
+### Slice file
 
 The three snippets below make up our slice file. This file is concerned with managing our asynchronous request lifecycles, as well as storing our data & request statuses for a given pokemon name.
 
-##### Thunk action creator
+#### Thunk action creator
 
 Below we create a thunk action creator using [`createAsyncThunk`](../../api/createAsyncThunk.mdx) in order to manage asynchronous request lifecycles. This will be accessible within components & hooks to be dispatched, in order to fire off a request for some pokemon data. `createAsyncThunk` itself will handle dispatching lifecycle methods for our request: `pending`, `fulfilled`, and `rejected`, which we will handle within our slice.
 
@@ -78,7 +78,7 @@ export const fetchPokemonByName = createAsyncThunk<Pokemon, string>(
 // slice & selectors omitted
 ```
 
-##### Slice
+#### Slice
 
 Below we have our `slice` created with [`createSlice`](../../api/createSlice.mdx). We have our reducers containing our request handling logic defined here, storing the appropriate 'status' and 'data' in our state based on the name we search with.
 
@@ -124,7 +124,7 @@ export const pokemonSlice = createSlice({
 // selectors omitted
 ```
 
-##### Selectors
+#### Selectors
 
 Below we have our selectors defined, allowing us to later access the appropriate status & data for any given pokemon name.
 
@@ -139,7 +139,7 @@ export const selectDataByName = (state: RootState, name: string) =>
 // highlight-end
 ```
 
-#### Store
+### Store
 
 In our `store` for our app, we include the corresponding reducer from our slice under the `pokemon` branch in our state tree. This lets our store handle the appropriate actions for our requests we will dispatch when running the app, using the logic defined previously.
 
@@ -190,7 +190,7 @@ render(
 )
 ```
 
-#### Custom hook
+### Custom hook
 
 Below we create a hook to manage sending our request at the appropriate time, as well as obtaining the appropriate data & status from the store. [`useDispatch`](https://react-redux.js.org/api/hooks#usedispatch) and [`useSelector`](https://react-redux.js.org/api/hooks#useselector) are used from [`react-redux`](https://react-redux.js.org/introduction/getting-started) in order to communicate with the Redux store. At the end of our hook, we return the information in a neat, packaged object to be accessed in components.
 
@@ -259,7 +259,7 @@ export function useGetPokemonByNameQuery(name: string) {
 // highlight-end
 ```
 
-#### Using the custom hook
+### Using the custom hook
 
 Our code above meets all of the design specifications, so let's use it! Below we can see how the hook can be called in a component, and return the relevant data & status booleans.
 
@@ -299,7 +299,7 @@ export default function App() {
 A runnable example of the above code can be seen below:
 
 <iframe
-  src="https://codesandbox.io/s/data-fetchingcaching-example-rtk-with-thunks-5kf80?fontsize=12&hidenavigation=1&module=%2Fsrc%2Fservices/pokemonSlice.ts&theme=dark&view=preview"
+  src="https://codesandbox.io/s/data-fetchingcaching-example-rtk-with-thunks-5kf80?fontsize=12&runonclick=1&hidenavigation=1&module=%2Fsrc%2Fservices/pokemonSlice.ts&theme=dark&view=preview"
   style={{
     width: '100%',
     height: '800px',
@@ -312,15 +312,15 @@ A runnable example of the above code can be seen below:
   sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
 
-### Converting to RTK Query
+## Converting to RTK Query
 
 Our implementation above _does_ work perfectly fine for the requirements specified, however, extending the code to include further endpoints could involve a lot of repetition. It also has some certain limitations that may not be immediately obvious. For example, multiple components rendering simultaneously calling our hook would each send off a request for bulbasaur at the same time!
 
 Below we will walk through how a lot of the boilerplate can be avoided by migrating the above code to use RTK Query instead. RTK Query will also handle many other situations for us, including de-duping requests on a more granular level to prevent sending unnecessary duplicate requests like that brought up above.
 
-#### Api file
+### API Slice File
 
-Our code below is for our `api definition`, acting as our network API interface layer, created using [`createApi`](../api/createApi.mdx). This file will contain our endpoint definition, and `createApi` will provide us with an auto-generated hook which manages firing our request only when necessary, as well as providing us with request status lifecycle booleans.
+Our code below is for our API slice definition. This acts as our network API interface layer, and is created using [`createApi`](../api/createApi.mdx). This file will contain our endpoint definition, and `createApi` will provide us with an auto-generated hook which manages firing our request only when necessary, as well as providing us with request status lifecycle booleans.
 
 This will completely cover our logic implemented above for the entire slice file, including the thunk, slice definition, selectors, _and_ our custom hook!
 
@@ -348,9 +348,9 @@ export const { useGetPokemonByNameQuery } = api
 // highlight-end
 ```
 
-#### Connecting our Api to the store
+### Connecting the API slice to the store
 
-Now that we have our api definition created, we need to hook it up to our store. In order to do that, we will need to use the [`reducerPath`](../api/created-api/redux-integration.mdx#reducerpath) and [`middleware`](../api/created-api/redux-integration.mdx#middleware) properties from our created `api`. This will allow the store to process the internal actions that the generated hook uses, allows the generated API logic to find the state correctly, and adds the logic for managing caching, invalidation, subscriptions, polling, and more.
+Now that we have our API definition created, we need to hook it up to our store. In order to do that, we will need to use the [`reducerPath`](../api/created-api/redux-integration.mdx#reducerpath) and [`middleware`](../api/created-api/redux-integration.mdx#middleware) properties from our created `api`. This will allow the store to process the internal actions that the generated hook uses, allows the generated API logic to find the state correctly, and adds the logic for managing caching, invalidation, subscriptions, polling, and more.
 
 ```ts title="src/store.ts"
 // file: src/services/pokemonSlice.ts noEmit
@@ -395,7 +395,7 @@ export const store = configureStore({
 export type RootState = ReturnType<typeof store.getState>
 ```
 
-#### Using our auto-generated hook
+### Using our auto-generated hook
 
 At this basic level, the usage of the auto-generated hook is identical to our custom hook! All we need to do is change our import path and we're good to go!
 
@@ -425,7 +425,7 @@ At this basic level, the usage of the auto-generated hook is identical to our cu
   }
 ```
 
-#### Cleaning up unused code
+### Cleaning up unused code
 
 As mentioned previously, our `api` definition has replaced all of the logic that we implemented previously using `createAsyncThunk`, `createSlice`, and our custom hook definition.
 
@@ -460,7 +460,7 @@ We've now re-implemented the full set of design specifications (and more!) in le
 A runnable example of our re-factored implementation using RTK Query can be seen below:
 
 <iframe
-  src="https://codesandbox.io/s/data-fetchingcaching-example-rtk-query-ndmwo?fontsize=12&hidenavigation=1&module=%2Fsrc%2Fservices/api.ts&theme=dark&view=preview"
+  src="https://codesandbox.io/s/data-fetchingcaching-example-rtk-query-ndmwo?fontsize=12&runonclick=1&hidenavigation=1&module=%2Fsrc%2Fservices/api.ts&theme=dark&view=preview"
   style={{
     width: '100%',
     height: '800px',

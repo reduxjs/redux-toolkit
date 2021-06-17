@@ -82,6 +82,7 @@ module.exports = {
         { to: 'tutorials/overview', label: 'Tutorials', position: 'right' },
         { to: 'usage/usage-guide', label: 'Usage Guide', position: 'right' },
         { to: 'api/configureStore', label: 'API', position: 'right' },
+        { to: 'rtk-query/overview', label: 'RTK Query', position: 'right' },
         {
           href: 'https://github.com/reduxjs/redux-toolkit',
           label: 'GitHub',
@@ -115,6 +116,7 @@ module.exports = {
               label: 'API Reference',
               to: 'api/configureStore',
             },
+            { to: 'rtk-query/overview', label: 'RTK Query' },
           ],
         },
         {
@@ -155,7 +157,7 @@ module.exports = {
     algolia: {
       apiKey: '82d838443b672336bf63cab4772d9eb4',
       indexName: 'redux-starter-kit',
-      algoliaOptions: {},
+      searchParameters: {},
     },
     googleAnalytics: {
       trackingID: 'UA-130598673-3',
