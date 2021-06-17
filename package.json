@@ -44,6 +44,6 @@
   "scripts": {
     "build:examples": "yarn workspaces foreach --include '@reduxjs/*' --include '@examples-query-react/*' -vtp run build",
     "build:docs": "yarn workspace docs run build",
-    "build:package": "yarn workspace @reduxjs/toolkit run build"
+    "build:packages": "yarn workspace @reduxjs/toolkit run build"
   }
 }

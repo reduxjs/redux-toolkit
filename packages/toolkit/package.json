@@ -78,9 +78,9 @@
     "yargs": "^15.3.1"
   },
   "scripts": {
-    "build-ci": "rimraf dist && tsc && node scripts/cli.js --skipExtraction ",
+    "build-ci": "rimraf dist && tsc && node scripts/cli.js --skipExtraction",
     "build-prepare": "npm run build-ci",
-    "build": "rimraf dist && tsc && node scripts/cli.js --local",
+    "build": "rimraf dist && tsc && node scripts/cli.js --local --skipExtraction",
     "build-only": "rimraf dist && tsc && node scripts/cli.js --skipExtraction",
     "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
