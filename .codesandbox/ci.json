@@ -2,9 +2,9 @@
   "sandboxes": [
     "vanilla",
     "vanilla-ts",
-    "github/reduxjs/rtk-github-issues-example"
-    //"github/reduxjs/toolkit/examples/query/react/basic",
-    //"github/reduxjs/toolkit/examples/query/react/advanced"
+    "github/reduxjs/rtk-github-issues-example",
+    "github/reduxjs/toolkit/examples/query/react/basic",
+    "github/reduxjs/toolkit/examples/query/react/advanced"
   ],
   "node": "14",
   "buildCommand": "build:packages",
