@@ -40,22 +40,6 @@ const store = configureStore({
 export type RootState = ReturnType<typeof store.getState>
 ```
 
-Note that passing the reducers directly is not recommended when you need to add custom middleware,
-because this can cause a circular reference in TypeScript:
-
-```typescript
-import { configureStore } from '@reduxjs/toolkit'
-import rootReducer from './rootReducer'
-const store = configureStore({
-  reducer: rootReducer,
-  middleware: [
-    ...customMiddleware,
-    ...getDefaultMiddleware<RootState>(),
-  ] as const,
-})
-// TS2456: Type alias 'RootState' circularly references itself.
-export type RootState = ReturnType<typeof store.getState>
-```
 
 ### Getting the `Dispatch` type
 
