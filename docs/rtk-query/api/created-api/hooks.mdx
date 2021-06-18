@@ -37,13 +37,13 @@ const [updatePost, { data }] = api.useUpdatePostMutation()
 
 The general format is `use(Endpointname)(Query|Mutation)` - `use` is prefixed, the first letter of your endpoint name is capitalized, then `Query` or `Mutation` is appended depending on the type.
 
-The full list of hooks generated in the React-specific version of `createApi` is as follows:
+RTK Query provides additional hooks for more advanced use-cases, although not all are generated directly on the `Api` object as well. The full list of hooks generated in the React-specific version of `createApi` is as follows:
 
-- [`useQuery`](#usequery) (endpoint-specific)
-- [`useMutation`](#usemutation) (endpoint-specific)
+- [`useQuery`](#usequery) (endpoint-specific, also generated on the `Api` object)
+- [`useMutation`](#usemutation) (endpoint-specific, also generated on the `Api` object)
 - [`useQueryState`](#usequerystate) (endpoint-specific)
 - [`useQuerySubscription`](#usequerysubscription) (endpoint-specific)
-- [`useLazyQuery`](#uselazyquery) (endpoint-specific)
+- [`useLazyQuery`](#uselazyquery) (endpoint-specific, also generated on the `Api` object)
 - [`useLazyQuerySubscription`](#uselazyquerysubscription) (endpoint-specific)
 - [`usePrefetch`](#useprefetch) (endpoint-agnostic)
 
@@ -51,27 +51,20 @@ For the example above, the full set of generated hooks for the api would be like
 
 ```ts title="Generated React Hooks" no-transpile
 /* Hooks attached to the `getPosts` query endpoint definition */
-const { data } = api.endpoints.getPosts.useQuery(arg, options)
-const post = api.endpoints.getPosts.useQueryState(arg, options)
-const { refetch } = api.endpoints.getPosts.useQuerySubscription(arg, options)
-const [getPosts, { data }, { lastArg }] = api.endpoints.getPosts.useLazyQuery(
-  options
-)
-const [getPosts, lastArg] = api.endpoints.getPosts.useLazyQuerySubscription(
-  options
-)
+api.endpoints.getPosts.useQuery(arg, options)
+api.endpoints.getPosts.useQueryState(arg, options)
+api.endpoints.getPosts.useQuerySubscription(arg, options)
+api.endpoints.getPosts.useLazyQuery(options)
+api.endpoints.getPosts.useLazyQuerySubscription(options)
 
 /* Hooks attached to the `updatePost` mutation endpoint definition */
-const [updatePost, { data }] = api.endpoints.updatePost.useMutation(options)
+api.endpoints.updatePost.useMutation(options)
 
 /* Hooks attached to the `Api` object */
-// same as api.endpoints.getPosts.useQuery
-const { data } = api.useGetPostsQuery(arg, options)
-// same as api.endpoints.getPosts.useLazyQuery
-const [getPosts, { data }, { lastArg }] = api.useLazyGetPostsQuery(options)
-// same as api.endpoints.updatePost.useMutation
-const [updatePost, { data }] = api.useUpdatePostMutation(options)
-const fetchData = api.usePrefetch(endpointName, options)
+api.useGetPostsQuery(arg, options) // same as api.endpoints.getPosts.useQuery
+api.useLazyGetPostsQuery(options) // same as api.endpoints.getPosts.useLazyQuery
+api.useUpdatePostMutation(options) // same as api.endpoints.updatePost.useMutation
+api.usePrefetch(endpointName, options)
 ```
 
 ### Feature Comparison
@@ -242,6 +235,12 @@ The provided hooks have a degree of feature overlap in order to provide options 
 
 ## `useQuery`
 
+```ts title="Accessing a useQuery hook" no-transpile
+const useQueryResult = api.endpoints.getPosts.useQuery(arg, options)
+// or
+const useQueryResult = api.useGetPostsQuery(arg, options)
+```
+
 #### Signature
 
 ```ts no-transpile
@@ -298,6 +297,12 @@ type UseQueryResult<T> = {
 See also [Skipping queries with TypeScript using `skipToken`](../../usage-with-typescript.mdx#skipping-queries-with-typescript-using-skiptoken)
 
 ## `useMutation`
+
+```ts title="Accessing a useMutation hook" no-transpile
+const useMutationResult = api.endpoints.updatePost.useMutation(options)
+// or
+const useMutationResult = api.useUpdatePostMutation(options)
+```
 
 #### Signature
 
@@ -363,6 +368,10 @@ selectFromResult: () => ({})
 
 ## `useQueryState`
 
+```ts title="Accessing a useQuery hook" no-transpile
+const useQueryStateResult = api.endpoints.getPosts.useQueryState(arg, options)
+```
+
 #### Signature
 
 ```ts no-transpile
@@ -413,6 +422,10 @@ type UseQueryStateResult<T> = {
 
 ## `useQuerySubscription`
 
+```ts title="Accessing a useQuerySubscription hook" no-transpile
+const { refetch } = api.endpoints.getPosts.useQuerySubscription(arg, options)
+```
+
 #### Signature
 
 ```ts no-transpile
@@ -448,6 +461,14 @@ type UseQuerySubscriptionResult = {
 [summary](docblock://query/react/buildHooks.ts?token=UseQuerySubscription)
 
 ## `useLazyQuery`
+
+```ts title="Accessing a useLazyQuery hook" no-transpile
+const [trigger, result, lastPromiseInfo] = api.endpoints.getPosts.useLazyQuery(
+  options
+)
+// or
+const [trigger, result, lastPromiseInfo] = api.useLazyGetPostsQuery(options)
+```
 
 #### Signature
 
@@ -506,6 +527,12 @@ type UseLazyQueryLastPromiseInfo = {
 
 ## `useLazyQuerySubscription`
 
+```ts title="Accessing a useLazyQuerySubscription hook" no-transpile
+const [trigger, lastArg] = api.endpoints.getPosts.useLazyQuerySubscription(
+  options
+)
+```
+
 #### Signature
 
 ```ts no-transpile
@@ -535,6 +562,10 @@ type UseLazyQuerySubscriptionTrigger = (arg: any) => void
 [summary](docblock://query/react/buildHooks.ts?token=UseLazyQuerySubscription)
 
 ## `usePrefetch`
+
+```ts title="Accessing a usePrefetch hook" no-transpile
+const prefetchCallback = api.usePrefetch(endpointName, options)
+```
 
 #### Signature
 
