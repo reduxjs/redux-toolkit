@@ -3,6 +3,7 @@ id: overview
 title: RTK Query Overview
 sidebar_label: RTK Query Overview
 hide_title: true
+description: 'RTK Query > Overview: a summary of the RTK Query data caching API for Redux Toolkit'
 ---
 
 &nbsp;
