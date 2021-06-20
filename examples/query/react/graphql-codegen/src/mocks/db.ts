@@ -46,5 +46,4 @@ const createPostData = (): Post => {
 ;[...new Array(50)].forEach((_) => db.post.create(createPostData()))
 
 export const handlers = db.post.toHandlers('graphql')
-// https://github.com/mswjs/data/pull/96
-// export const schema = db.post.toSchema('graphql')
+export const schema = db.post.toGraphQLSchema()
