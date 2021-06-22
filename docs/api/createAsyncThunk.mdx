@@ -17,6 +17,12 @@ This abstracts the standard recommended approach for handling async request life
 
 It does not generate any reducer functions, since it does not know what data you're fetching, how you want to track loading state, or how the data you return needs to be processed. You should write your own reducer logic that handles these actions, with whatever loading state and processing logic is appropriate for your own app.
 
+:::tip
+
+Redux Toolkit's [**RTK Query data fetching API**](../rtk-query/overview.md) is a purpose built data fetching and caching solution for Redux apps, and can **eliminate the need to write _any_ thunks or reducers to manage data fetching**. We encourage you to try it out and see if it can help simplify the data fetching code in your own apps!
+
+:::
+
 Sample usage:
 
 ```js {5-11,22-25,30}
@@ -39,12 +45,12 @@ const usersSlice = createSlice({
   reducers: {
     // standard reducer logic, with auto-generated action types per reducer
   },
-  extraReducers: {
+  extraReducers: (builder) => {
     // Add reducers for additional action types here, and handle loading state as needed
-    [fetchUserById.fulfilled]: (state, action) => {
+    builder.addCase(fetchUserById.fulfilled, (state, action) => {
       // Add user to the state array
       state.entities.push(action.payload)
-    },
+    })
   },
 })
 
@@ -467,29 +473,36 @@ const usersSlice = createSlice({
     error: null,
   },
   reducers: {},
-  extraReducers: {
-    [fetchUserById.pending]: (state, action) => {
-      if (state.loading === 'idle') {
-        state.loading = 'pending'
-        state.currentRequestId = action.meta.requestId
-      }
-    },
-    [fetchUserById.fulfilled]: (state, action) => {
-      const { requestId } = action.meta
-      if (state.loading === 'pending' && state.currentRequestId === requestId) {
-        state.loading = 'idle'
-        state.entities.push(action.payload)
-        state.currentRequestId = undefined
-      }
-    },
-    [fetchUserById.rejected]: (state, action) => {
-      const { requestId } = action.meta
-      if (state.loading === 'pending' && state.currentRequestId === requestId) {
-        state.loading = 'idle'
-        state.error = action.error
-        state.currentRequestId = undefined
-      }
-    },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUserById.pending, (state, action) => {
+        if (state.loading === 'idle') {
+          state.loading = 'pending'
+          state.currentRequestId = action.meta.requestId
+        }
+      })
+      .addCase(fetchUserById.fulfilled, (state, action) => {
+        const { requestId } = action.meta
+        if (
+          state.loading === 'pending' &&
+          state.currentRequestId === requestId
+        ) {
+          state.loading = 'idle'
+          state.entities.push(action.payload)
+          state.currentRequestId = undefined
+        }
+      })
+      .addCase(fetchUserById.rejected, (state, action) => {
+        const { requestId } = action.meta
+        if (
+          state.loading === 'pending' &&
+          state.currentRequestId === requestId
+        ) {
+          state.loading = 'idle'
+          state.error = action.error
+          state.currentRequestId = undefined
+        }
+      })
   },
 })
 
