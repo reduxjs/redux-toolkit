@@ -39,12 +39,12 @@ const usersSlice = createSlice({
   reducers: {
     // standard reducer logic, with auto-generated action types per reducer
   },
-  extraReducers: {
+  extraReducers: (builder) => {
     // Add reducers for additional action types here, and handle loading state as needed
-    [fetchUserById.fulfilled]: (state, action) => {
+    builder.addCase(fetchUserById.fulfilled, (state, action) => {
       // Add user to the state array
       state.entities.push(action.payload)
-    },
+    })
   },
 })
 
@@ -467,29 +467,36 @@ const usersSlice = createSlice({
     error: null,
   },
   reducers: {},
-  extraReducers: {
-    [fetchUserById.pending]: (state, action) => {
-      if (state.loading === 'idle') {
-        state.loading = 'pending'
-        state.currentRequestId = action.meta.requestId
-      }
-    },
-    [fetchUserById.fulfilled]: (state, action) => {
-      const { requestId } = action.meta
-      if (state.loading === 'pending' && state.currentRequestId === requestId) {
-        state.loading = 'idle'
-        state.entities.push(action.payload)
-        state.currentRequestId = undefined
-      }
-    },
-    [fetchUserById.rejected]: (state, action) => {
-      const { requestId } = action.meta
-      if (state.loading === 'pending' && state.currentRequestId === requestId) {
-        state.loading = 'idle'
-        state.error = action.error
-        state.currentRequestId = undefined
-      }
-    },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUserById.pending, (state, action) => {
+        if (state.loading === 'idle') {
+          state.loading = 'pending'
+          state.currentRequestId = action.meta.requestId
+        }
+      })
+      .addCase(fetchUserById.fulfilled, (state, action) => {
+        const { requestId } = action.meta
+        if (
+          state.loading === 'pending' &&
+          state.currentRequestId === requestId
+        ) {
+          state.loading = 'idle'
+          state.entities.push(action.payload)
+          state.currentRequestId = undefined
+        }
+      })
+      .addCase(fetchUserById.rejected, (state, action) => {
+        const { requestId } = action.meta
+        if (
+          state.loading === 'pending' &&
+          state.currentRequestId === requestId
+        ) {
+          state.loading = 'idle'
+          state.error = action.error
+          state.currentRequestId = undefined
+        }
+      })
   },
 })
 

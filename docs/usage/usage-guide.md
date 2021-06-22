@@ -666,12 +666,12 @@ const usersSlice = createSlice({
   reducers: {
     // standard reducer logic, with auto-generated action types per reducer
   },
-  extraReducers: {
+  extraReducers: (builder) => {
     // Add reducers for additional action types here, and handle loading state as needed
-    [fetchUserById.fulfilled]: (state, action) => {
+    builder.addCase(fetchUserById.fulfilled, (state, action) => {
       // Add user to the state array
       state.entities.push(action.payload)
-    },
+    })
   },
 })
 
@@ -872,11 +872,11 @@ export const slice = createSlice({
   name: 'articles',
   initialState: articlesAdapter.getInitialState(),
   reducers: {},
-  extraReducers: {
-    [fetchArticle.fulfilled]: (state, action) => {
+  extraReducers: (builder) => {
+    builder.addCase(fetchArticle.fulfilled, (state, action) => {
       // Handle the fetch result by inserting the articles here
       articlesAdapter.upsertMany(state, action.payload.articles)
-    },
+    })
   },
 })
 
@@ -916,11 +916,11 @@ export const slice = createSlice({
   name: 'comments',
   initialState: commentsAdapter.getInitialState(),
   reducers: {},
-  extraReducers: {
-    [fetchArticle.fulfilled]: (state, action) => {
+  extraReducers: (builder) => {
+    builder.addCase(fetchArticle.fulfilled, (state, action) => {
       // Same for the comments
       commentsAdapter.upsertMany(state, action.payload.comments)
-    },
+    })
   },
 })
 
