@@ -4,11 +4,19 @@ import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 import App from '../App'
 import { createStore } from '../store'
-import * as bulbasaurApiResponse from './bulbasaur.json'
 
 const server = setupServer(
   rest.get('https://pokeapi.co/api/v2/pokemon/bulbasaur', (req, res, ctx) => {
-    return res(ctx.json(bulbasaurApiResponse))
+    const mockApiResponse = {
+      species: {
+        name: 'bulbasaur',
+      },
+      sprites: {
+        front_shiny:
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/1.png',
+      },
+    }
+    return res(ctx.json(mockApiResponse))
   })
 )
 
@@ -29,8 +37,12 @@ describe('App', () => {
     await screen.getByText('Loading...')
 
     await waitFor(() => {
-      screen.getByText(bulbasaurApiResponse.species.name)
-      screen.getByAltText(bulbasaurApiResponse.species.name)
+      screen.getByText('bulbasaur')
+
+      const img = screen.getByAltText('bulbasaur') as HTMLImageElement
+      expect(img.src).toBe(
+        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/1.png'
+      )
     })
   })
 
