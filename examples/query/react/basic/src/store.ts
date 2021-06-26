@@ -1,7 +1,7 @@
-import { configureStore, Store } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
 import { pokemonApi } from './services/pokemon'
 
-export const createStore = (): Store => {
+export const setUpStore = () => {
   return configureStore({
     reducer: {
       [pokemonApi.reducerPath]: pokemonApi.reducer,

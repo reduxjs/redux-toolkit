@@ -1,9 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 import App from '../App'
-import { createStore } from '../store'
+import { setUpStore } from '../store'
 
 const server = setupServer(
   rest.get('https://pokeapi.co/api/v2/pokemon/bulbasaur', (req, res, ctx) => {
@@ -29,21 +29,22 @@ describe('App', () => {
 
   it('handles good response', async () => {
     render(
-      <Provider store={createStore()}>
+      <Provider store={setUpStore()}>
         <App />
       </Provider>
     )
 
-    await screen.getByText('Loading...')
+    screen.getByText('Loading...')
 
-    await waitFor(() => {
-      screen.getByText('bulbasaur')
+    await screen.findByRole('heading', { name: /bulbasaur/i })
 
-      const img = screen.getByAltText('bulbasaur') as HTMLImageElement
-      expect(img.src).toBe(
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/1.png'
-      )
-    })
+    const img = screen.getByRole('img', {
+      name: /bulbasaur/i,
+    }) as HTMLImageElement
+
+    expect(img.src).toBe(
+      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/1.png'
+    )
   })
 
   it('handles error response', async () => {
@@ -58,17 +59,13 @@ describe('App', () => {
     )
 
     render(
-      <Provider store={createStore()}>
+      <Provider store={setUpStore()}>
         <App />
       </Provider>
     )
 
-    await waitFor(() => {
-      screen.getByText('Loading...')
-    })
+    screen.getByText('Loading...')
 
-    await waitFor(() => {
-      screen.getByText('Oh no, there was an error')
-    })
+    await screen.findByText('Oh no, there was an error')
   })
 })
