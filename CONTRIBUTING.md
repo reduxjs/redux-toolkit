@@ -18,6 +18,8 @@ Fork, then clone the repo:
 git clone https://github.com/your-username/redux-toolkit.git
 ```
 
+Then run `yarn` from the parent directory.
+
 ### Building
 
 Running the `build` task will create both a CommonJS module-per-module build and a UMD build.
@@ -31,19 +33,13 @@ npm run build
 To run the tests:
 
 ```
-npm run test
+yarn test
 ```
 
 To continuously watch and run tests, run the following:
 
 ```
-npm test -- --watch
-```
-
-To perform linting with `eslint`, run the following:
-
-```
-npm run lint
+yarn test --watch
 ```
 
 ### New Features
