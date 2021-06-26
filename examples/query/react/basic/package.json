@@ -12,9 +12,11 @@
     "react-scripts": "4.0.2"
   },
   "devDependencies": {
+    "@testing-library/react": "^12.0.0",
     "@types/react": "17.0.0",
     "@types/react-dom": "17.0.0",
     "@types/react-redux": "7.1.9",
+    "msw": "^0.30.0",
     "typescript": "4.1.3"
   },
   "eslintConfig": {
@@ -24,7 +26,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build"
+    "build": "react-scripts build",
+    "test": "react-scripts test"
   },
   "browserslist": [
     ">0.2%",
