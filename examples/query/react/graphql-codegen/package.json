@@ -46,7 +46,7 @@
     "@typescript-eslint/parser": "4.4.1"
   },
   "scripts": {
-    "start": "concurrently  'npm:watch-*'",
+    "start": "concurrently --restart-tries 20 'npm:watch-*'",
     "watch-CRA": "react-scripts start",
     "watch-codegen": "graphql-codegen --config codegen.yml --watch",
     "build": "react-scripts build",
