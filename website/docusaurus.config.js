@@ -11,6 +11,7 @@ module.exports = {
       '@docusaurus/preset-classic',
       {
         docs: {
+          docLayoutComponent: '../src/theme/DocPageWithBraveWarning',
           path: '../docs',
           sidebarPath: require.resolve('./sidebars.json'),
           routeBasePath: '/',
