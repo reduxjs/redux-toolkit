@@ -2,9 +2,9 @@ import { render } from 'react-dom'
 import { Provider } from 'react-redux'
 
 import App from './App'
-import { setUpStore } from './store'
+import { setupStore } from './store'
 
-const store = setUpStore()
+const store = setupStore()
 
 const rootElement = document.getElementById('root')
 render(
