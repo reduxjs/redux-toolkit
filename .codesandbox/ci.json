@@ -3,13 +3,17 @@
     "vanilla",
     "vanilla-ts",
     "github/reduxjs/rtk-github-issues-example",
-    "github/reduxjs/toolkit/examples/query/react/basic",
-    "github/reduxjs/toolkit/examples/query/react/advanced"
+    "/examples/query/react/basic",
+    "/examples/query/react/advanced"
   ],
   "node": "14",
   "buildCommand": "build:packages",
-  "packages": ["packages/toolkit"],
+  "packages": [
+    "packages/toolkit",
+    "packages/rtk-query-graphql-request-base-query"
+  ],
   "publishDirectory": {
-    "@reduxjs/toolkit": "packages/toolkit"
+    "@reduxjs/toolkit": "packages/toolkit",
+    "@rtk-query/graphql-request-base-query": "packages/rtk-query-graphql-request-base-query"
   }
 }
