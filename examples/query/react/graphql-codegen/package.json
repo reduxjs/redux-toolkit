@@ -39,6 +39,7 @@
     "@types/react-redux": "7.1.9",
     "@types/react-router-dom": "5.1.6",
     "concurrently": "^6.2.0",
+    "cross-env": "^7.0.3",
     "ts-node": "^10.0.0",
     "typescript": "4.1.3"
   },
@@ -46,9 +47,10 @@
     "@typescript-eslint/parser": "4.4.1"
   },
   "scripts": {
+    "develop": "cross-env CHOKIDAR_USEPOLLING=true yarn start",
     "start": "concurrently --restart-tries 20 'npm:watch-*'",
     "watch-CRA": "react-scripts start",
-    "watch-codegen": "graphql-codegen --config codegen.yml --watch",
+    "watch-codegen": "graphql-codegen --config codegen.yml --watch 'src/**/*.graphql'",
     "build": "react-scripts build",
     "prebuild": "rm -rf dist/",
     "graphql-codegen": "graphql-codegen --config codegen.yml"
