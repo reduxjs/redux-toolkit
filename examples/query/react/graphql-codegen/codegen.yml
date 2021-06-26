@@ -1,6 +1,9 @@
 overwrite: true
 schema: './src/mocks/schema.js'
 documents: 'src/**/*.graphql'
+watchConfig:
+  usePolling: true
+  interval: 1000
 generates:
   src/app/services/types.generated.ts:
     plugins:
