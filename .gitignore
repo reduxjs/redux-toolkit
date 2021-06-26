@@ -3,12 +3,9 @@
 node_modules
 # Dist and query are both build output folders
 dist*/
-!query/
 # But don't ignore the RTK Query source
-!src/query/
 lib
 es
-yarn.lock
 
 
 .idea/
@@ -20,8 +17,20 @@ build/
 
 typesversions
 .cache
-.yarn
 .yarnrc
 
 # Ignore package-lock.json from example projects
 examples/query/react/**/package-lock.json
+
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+*.tgz
+
+.yalc
+yalc.lock
+yalc.sig
