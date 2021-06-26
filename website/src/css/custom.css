@@ -76,6 +76,7 @@
   --ifm-hero-background-color: #593d88;
   --ifm-hero-text-color: #ffffff;
 }
+
 blockquote {
   color: var(--blockquote-text-color);
   background-color: var(--ifm-blockquote-color);
@@ -95,6 +96,14 @@ blockquote {
 }
 div[class*='codeBlockTitle'] {
   padding: 0.15rem var(--ifm-pre-padding);
+}
+
+:root[data-theme='dark'] .admonition code {
+  color: var(--ifm-blockquote-color);
+}
+
+:root[data-theme='dark'] blockquote code {
+  color: var(--ifm-blockquote-color);
 }
 
 code {
