@@ -3,6 +3,7 @@ id: queries
 title: Queries
 sidebar_label: Queries
 hide_title: true
+description: 'RTK Query > Usage > Queries: fetching data from a server'
 ---
 
 &nbsp;
@@ -29,7 +30,7 @@ Query endpoints are defined by returning an object inside the `endpoints` sectio
 
 Query endpoints should define either a `query` callback that constructs the URL (including any URL query params), or [a `queryFn` callback](./customizing-queries.mdx#customizing-queries-with-queryfn) that may do arbitrary async logic and return a result.
 
-If the `query` callback needs additional data to generate the URL, it should written to take a single argument. If you need to pass in multiple parameters, pass them formatted as a single "options object".
+If the `query` callback needs additional data to generate the URL, it should be written to take a single argument. If you need to pass in multiple parameters, pass them formatted as a single "options object".
 
 Query endpoints may also modify the response contents before the result is cached, define "tags" to identify cache invalidation, and provide cache entry lifecycle callbacks to run additional logic as cache entries are added and removed.
 
@@ -116,7 +117,17 @@ In practice, the standard `useQuery`-based hooks such as `useGetPostQuery` will 
 
 ### Query Hook Options
 
-The query hooks expect two parameters: `(queryArg?, queryOptions?)`. The `queryArg` param will be passed through to the underlying `query` callback to generate the URL. The `queryOptions` object accepts several additional parameters that can be used to control the behavior of the data fetching:
+The query hooks expect two parameters: `(queryArg?, queryOptions?)`.
+
+The `queryArg` param will be passed through to the underlying `query` callback to generate the URL.
+
+:::caution
+
+The `queryArg` param is handed to a `useEffect` dependency array internally. RTK Query tries to keep the argument stable by performing a `shallowEquals` diff on the value, however if you pass a deeper nested argument, you will need to keep the param stable yourself, e.g. with `useMemo`.
+
+:::
+
+The `queryOptions` object accepts several additional parameters that can be used to control the behavior of the data fetching:
 
 - [skip](./conditional-fetching) - Allows a query to 'skip' running for that render. Defaults to `false`
 - [pollingInterval](./polling) - Allows a query to automatically refetch on a provided interval, specified in milliseconds. Defaults to `0` _(off)_

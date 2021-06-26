@@ -90,6 +90,62 @@ React Hooks users will most likely never need to use these directly, as the hook
 When dispatching an action creator, you're responsible for storing a reference to the promise it returns in the event that you want to update that specific subscription. Also, you have to manually unsubscribe once your component unmounts. To get an idea of what that entails, see the [Svelte Example](../../usage/examples.mdx#svelte) or the [React Class Components Example](../../usage/examples.mdx#react-class-components)
 :::
 
+#### Example
+
+```tsx title="initiate query example"
+import { useState } from 'react'
+import { useAppDispatch } from './store/hooks'
+import { api } from './services/api'
+
+function App() {
+  const dispatch = useAppDispatch()
+  const [postId, setPostId] = useState<number>(1)
+
+  useEffect(() => {
+    // highlight-start
+    // Add a subscription
+    const result = dispatch(api.endpoints.getPost.initiate(postId))
+
+    // Return the `unsubscribe` callback to be called in the `useEffect` cleanup step
+    return result.unsubscribe
+    // highlight-end
+  }, [dispatch, postId])
+
+  return (
+    <div>
+      <div>Initiate query example</div>
+    </div>
+  )
+}
+```
+
+```tsx title="initiate mutation example"
+import { useState } from 'react'
+import { useAppDispatch } from './store/hooks'
+import { api, Post } from './services/api'
+
+function App() {
+  const dispatch = useAppDispatch()
+  const [newPost, setNewPost] = useState<Omit<Post, 'id'>>({ name: 'Ash' })
+
+  function handleClick() {
+    // highlight-start
+    // Trigger a mutation
+    // The `track` property can be set `false` in situations where we aren't
+    // interested in the result of the mutation
+    dispatch(api.endpoints.addPost.initiate(newPost), { track: false })
+    // highlight-end
+  }
+
+  return (
+    <div>
+      <div>Initiate mutation example</div>
+      <button onClick={handleClick}>Add post</button>
+    </div>
+  )
+}
+```
+
 ## `select`
 
 #### Signature
@@ -100,24 +156,26 @@ type CreateCacheSelectorFactory =
   | MutationResultSelectorFactory
 
 type QueryResultSelectorFactory = (
-  queryArg: QueryArg | SkipSelector
+  queryArg: QueryArg | SkipToken
 ) => (state: RootState) => QueryResultSelectorResult<Definition>
 
 type MutationResultSelectorFactory<
   Definition extends MutationDefinition<any, any, any, any>,
   RootState
 > = (
-  requestId: string | SkipSelector
+  requestId: string | SkipToken
 ) => (state: RootState) => MutationSubState<Definition> & RequestStatusFlags
 
-type SkipSelector = typeof Symbol
+type SkipToken = typeof Symbol
 ```
 
 #### Description
 
 A function that accepts a cache key argument, and generates a new memoized selector for reading cached data for this endpoint using the given cache key. The generated selector is memoized using [Reselect's `createSelector`](https://redux-toolkit.js.org/api/createSelector).
 
-RTKQ defines a `Symbol` named `skipSelector` internally. If `skipSelector` is passed as the query argument to these selectors, the selector will return `undefined`. This can be used to avoid returning a value if a given query is supposed to be disabled.
+When selecting mutation results rather than queries, the function accepts a request ID instead.
+
+RTKQ defines a `Symbol` named `skipToken` internally. If `skipToken` is passed as the query argument to these selectors, the selector will return a default uninitialized state. This can be used to avoid returning a value if a given query is supposed to be disabled.
 
 React Hooks users will most likely never need to use these directly, as the hooks automatically use these selectors as needed.
 
@@ -126,6 +184,84 @@ React Hooks users will most likely never need to use these directly, as the hook
 Each call to `.select(someCacheKey)` returns a _new_ selector function instance. In order for memoization to work correctly, you should create a given selector function once per cache key and reuse that selector function instance, rather than creating a new selector instance each time.
 
 :::
+
+#### Example
+
+```tsx title="select query example"
+import { useState, useMemo } from 'react'
+import { useAppDispatch, useAppSelector } from './store/hooks'
+import { api } from './services/api'
+
+function App() {
+  const dispatch = useAppDispatch()
+  const [postId, setPostId] = useState(1)
+  // highlight-start
+  // useMemo is used to only call `.select()` when required.
+  // Each call will create a new selector function instance
+  const selectPost = useMemo(() => api.endpoints.getPost.select(postId), [
+    postId,
+  ])
+  const { data, isLoading } = useAppSelector(selectPost)
+  // highlight-end
+
+  useEffect(() => {
+    // Add a subscription
+    const result = dispatch(api.endpoints.getPost.initiate(postId))
+
+    // Return the `unsubscribe` callback to be called in the cleanup step
+    return result.unsubscribe
+  }, [dispatch, postId])
+
+  if (isLoading) return <div>Loading post...</div>
+
+  return (
+    <div>
+      <div>Initiate query example</div>
+      <div>Post name: {data.name}</div>
+    </div>
+  )
+}
+```
+
+```tsx title="select mutation example"
+import { useState, useMemo } from 'react'
+import { skipToken } from '@reduxjs/toolkit/query'
+import { useAppDispatch, useAppSelector } from './store/hooks'
+import { api } from './services/api'
+
+function App() {
+  const dispatch = useAppDispatch()
+  const [newPost, setNewPost] = useState({ name: 'Ash' })
+  const [requestId, setRequestId] = useState<typeof skipToken | string>(
+    skipToken
+  )
+  // highlight-start
+  // useMemo is used to only call `.select(..)` when required.
+  // Each call will create a new selector function instance
+  const selectMutationResult = useMemo(
+    () => api.endpoints.addPost.select(requestId),
+    [requestId]
+  )
+  const { isLoading } = useAppSelector(selectMutationResult)
+  // highlight-end
+
+  function handleClick() {
+    // Trigger a mutation
+    const result = dispatch(api.endpoints.addPost.initiate(newPost))
+    // store the requestId to select the mutation result elsewhere
+    setRequestId(result.requestId)
+  }
+
+  if (isLoading) return <div>Adding post...</div>
+
+  return (
+    <div>
+      <div>Select mutation example</div>
+      <button onClick={handleClick}>Add post</button>
+    </div>
+  )
+}
+```
 
 ## Matchers
 

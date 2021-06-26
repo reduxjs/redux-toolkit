@@ -3,12 +3,10 @@
 node_modules
 # Dist and query are both build output folders
 dist*/
-!query/
 # But don't ignore the RTK Query source
-!src/query/
 lib
 es
-yarn.lock
+
 .yalc
 yalc.lock
 
@@ -21,5 +19,16 @@ build/
 
 typesversions
 .cache
-.yarn
 .yarnrc
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+*.tgz
+
+.yalc
+yalc.lock
+yalc.sig
