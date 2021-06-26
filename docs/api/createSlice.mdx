@@ -182,8 +182,11 @@ createSlice({
 })
 ```
 
-> **Note**: If you are using TypeScript, we recommend using the `builder callback` API that is shown above. If you do not use the `builder callback` and are using TypeScript, you will need to use `actionCreator.type` or `actionCreator.toString()`
-> to force the TS compiler to accept the computed property. Please see [Usage With TypeScript](./../usage/usage-with-typescript.md#type-safety-with-extraReducers) for further details.
+:::tip
+
+We recommend using the `builder callback` API as the default, especially if you are using TypeScript. If you do not use the `builder callback` and are using TypeScript, you will need to use `actionCreator.type` or `actionCreator.toString()` to force the TS compiler to accept the computed property. Please see [Usage With TypeScript](./../usage/usage-with-typescript.md#type-safety-with-extraReducers) for further details.
+
+:::
 
 ## Return Value
 

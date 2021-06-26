@@ -3,6 +3,7 @@ id: comparison
 title: Comparison with Other Tools
 sidebar_label: Comparison with Other Tools
 hide_title: true
+description: 'RTK Query > Comparison: Compares features and tradeoffs vs other similar tools'
 ---
 
 &nbsp;
