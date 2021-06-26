@@ -2,25 +2,16 @@ import { render as rtlRender } from '@testing-library/react'
 import type { RenderOptions } from '@testing-library/react'
 import React, { PropsWithChildren } from 'react'
 import { Provider } from 'react-redux'
-import { DeepPartial } from 'redux'
 import { setupStore } from '../store'
 import type { AppStore, RootState } from '../store'
-
-// in ./src/store.ts I have a comment asking if we can make the initialState
-// parameter be DeepPartial<RootState> as opposed to just RootState
-function setupStoreWithPartialState(
-  initialPartialState: DeepPartial<RootState>
-) {
-  const state = { ...initialPartialState, ...setupStore().getState() }
-  return setupStore(state)
-}
+import type { PreloadedState } from '@reduxjs/toolkit'
 
 // This type interface extends the default options for render from RTL, as well
 // as allows the user to specify other things such as initialState, store. For
 // future dependencies, such as wanting to test with react-router, you can extend
 // this interface to accept a path and route and use those in a <MemoryRouter />
 interface IWithStoreOptions extends Omit<RenderOptions, 'queries'> {
-  initialState?: DeepPartial<RootState>
+  initialState?: PreloadedState<RootState>
   store?: AppStore
 }
 
@@ -28,7 +19,7 @@ function render(
   ui: React.ReactElement,
   {
     initialState = {},
-    store = setupStoreWithPartialState(initialState),
+    store = setupStore(initialState),
     ...renderOptions
   }: IWithStoreOptions = {}
 ) {
