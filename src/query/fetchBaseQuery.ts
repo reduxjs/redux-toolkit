@@ -52,6 +52,7 @@ const handleResponse = async (
 }
 
 export interface FetchBaseQueryError {
+  url: string
   status: number
   data: unknown
 }
@@ -191,6 +192,7 @@ export function fetchBaseQuery({
         }
       : {
           error: {
+            url: response.url,
             status: response.status,
             data: resultData,
           },
