@@ -28,10 +28,13 @@ generates:
              *
              * for this file to be re-created
              */
+      - add:
+          content: 'module.hot?.accept();'
       - typescript-operations
       - typescript-rtk-query:
           importBaseApiFrom: 'app/services/baseApi'
           exportHooks: true
+          overrideExisting: 'module.hot?.status() === "apply"'
     config:
       maybeValue: T # normally, this would be T | null, but our msw mock returns everything as nullable, so we want to force these as non-nullalbe
   .introspection.json:

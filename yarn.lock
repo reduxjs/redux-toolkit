@@ -3501,7 +3501,7 @@ __metadata:
     "@graphql-codegen/typed-document-node": ^1.18.6
     "@graphql-codegen/typescript": 1.22.1
     "@graphql-codegen/typescript-operations": ^1.18.0
-    "@graphql-codegen/typescript-rtk-query": ^1.1.0
+    "@graphql-codegen/typescript-rtk-query": "file:.yalc/@graphql-codegen/typescript-rtk-query"
     "@graphql-typed-document-node/core": ^3.1.0
     "@mswjs/data": "npm:@phryneas/mswjs-data-prerelease@0.3.1-672226d"
     "@reduxjs/toolkit": ^1.6.0
@@ -3511,6 +3511,7 @@ __metadata:
     "@types/react-dom": 17.0.0
     "@types/react-redux": 7.1.9
     "@types/react-router-dom": 5.1.6
+    "@types/webpack-env": ^1.16.0
     concurrently: ^6.2.0
     cross-env: ^7.0.3
     faker: ^5.5.3
@@ -3901,9 +3902,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphql-codegen/typescript-rtk-query@npm:^1.1.0":
+"@graphql-codegen/typescript-rtk-query@file:.yalc/@graphql-codegen/typescript-rtk-query::locator=%40examples-query-react%2Fgraphql-codegen%40workspace%3Aexamples%2Fquery%2Freact%2Fgraphql-codegen":
   version: 1.1.1
-  resolution: "@graphql-codegen/typescript-rtk-query@npm:1.1.1"
+  resolution: "@graphql-codegen/typescript-rtk-query@file:.yalc/@graphql-codegen/typescript-rtk-query#.yalc/@graphql-codegen/typescript-rtk-query::hash=dbf59e&locator=%40examples-query-react%2Fgraphql-codegen%40workspace%3Aexamples%2Fquery%2Freact%2Fgraphql-codegen"
   dependencies:
     "@graphql-codegen/plugin-helpers": ^1.18.7
     "@graphql-codegen/visitor-plugin-common": 1.21.2
@@ -3915,7 +3916,10 @@ __metadata:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
     graphql-request: ^3.4.0
     graphql-tag: ^2.0.0
-  checksum: b619a8173983976a08420a6d7180158a9f4a929aebd3fc2ba66460760d65fac8bb505fade54e3f2db56b7031752e63fab4cc8cd23bb209c87533dee74acf38cb
+  peerDependenciesMeta:
+    graphql-request:
+      optional: true
+  checksum: fa64ed8b1000aeb0291bdc43449443f48f091135f0ebf36cffb3dbbb4e51b5855555d850837a1e097bca4f3037a0d4d06ab0bd1360ca70417d89f81172ef3cc2
   languageName: node
   linkType: hard
 
@@ -6204,6 +6208,13 @@ __metadata:
   version: 3.0.0
   resolution: "@types/warning@npm:3.0.0"
   checksum: cb7a16aa88641beceec53ce765274c1ba3a9136e3c7c53cafd769d5063ea96f8899332ce7031c6f374bd23b5713a9a733d42c369ebdb4b62daf9b7562700848c
+  languageName: node
+  linkType: hard
+
+"@types/webpack-env@npm:^1.16.0":
+  version: 1.16.0
+  resolution: "@types/webpack-env@npm:1.16.0"
+  checksum: eaf62fb65ba18737174a520a444bb7407e5a6f32581690c5a7a687e6f86e9d4ce336fd9e79989aafa19e5f390046ad54b9100cd3d70a43dcf0ab0161d30cd5bd
   languageName: node
   linkType: hard
 

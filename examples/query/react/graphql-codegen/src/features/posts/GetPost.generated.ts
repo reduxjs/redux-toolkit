@@ -12,6 +12,7 @@
 import * as Types from '../../app/services/types.generated';
 
 import { api } from 'app/services/baseApi';
+module.hot?.accept();
 export type GetPostQueryVariables = Types.Exact<{
   id: Types.Scalars['ID'];
 }>;
@@ -37,6 +38,7 @@ export const GetPostDocument = `
     `;
 
 const injectedRtkApi = api.injectEndpoints({
+  overrideExisting: module.hot?.status() === "apply",
   endpoints: (build) => ({
     GetPost: build.query<GetPostQuery, GetPostQueryVariables>({
       query: (variables) => ({ document: GetPostDocument, variables })
