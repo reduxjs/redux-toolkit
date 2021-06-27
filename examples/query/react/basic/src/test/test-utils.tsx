@@ -10,36 +10,23 @@ import type { PreloadedState } from '@reduxjs/toolkit'
 // as allows the user to specify other things such as initialState, store. For
 // future dependencies, such as wanting to test with react-router, you can extend
 // this interface to accept a path and route and use those in a <MemoryRouter />
-interface IWithStoreOptions extends Omit<RenderOptions, 'queries'> {
-  initialState?: PreloadedState<RootState>
+interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
+  preloadedState?: PreloadedState<RootState>
   store?: AppStore
 }
 
-function render(
+function renderWithProviders(
   ui: React.ReactElement,
   {
-    initialState = {},
-    store = setupStore(initialState),
+    preloadedState = {},
+    store = setupStore(preloadedState),
     ...renderOptions
-  }: IWithStoreOptions = {}
+  }: ExtendedRenderOptions = {}
 ) {
-  // For example, even though it's the basic project and doesn't use the components,
-  // if we wanted to go ahead and set up the Chakra stuff and MemoryRouter, etc,
-  // all we'd have to do is update the return in Wrapper to:
-  //
-  //  <Provider store={store}>
-  //    <ChakraProvider>
-  //      <BrowserRouter>
-  //        <App />
-  //      </BrowserRouter>
-  //    </ChakraProvider>
-  //  </Provider>
-  //
   function Wrapper({ children }: PropsWithChildren<{}>): JSX.Element {
     return <Provider store={store}>{children}</Provider>
   }
   return { store, ...rtlRender(ui, { wrapper: Wrapper, ...renderOptions }) }
 }
 
-export * from '@testing-library/react'
-export { render }
+export { renderWithProviders }

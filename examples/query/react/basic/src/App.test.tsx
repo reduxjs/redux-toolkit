@@ -1,12 +1,13 @@
 import { rest } from 'msw'
+import { screen } from '@testing-library/react'
 
 import App from './App'
 import { server } from './test/server'
-import { render, screen } from './test/test-utils'
+import { renderWithProviders } from './test/test-utils'
 
 describe('App', () => {
   it('handles good response', async () => {
-    render(<App />)
+    renderWithProviders(<App />)
 
     screen.getByText('Loading...')
 
@@ -32,7 +33,7 @@ describe('App', () => {
       )
     )
 
-    render(<App />)
+    renderWithProviders(<App />)
 
     screen.getByText('Loading...')
 
