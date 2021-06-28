@@ -3,5 +3,4 @@ import { handlers } from './serverHandlers'
 
 const server = setupServer(...handlers)
 
-export * from 'msw'
 export { server }
