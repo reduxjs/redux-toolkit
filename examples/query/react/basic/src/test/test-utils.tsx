@@ -1,4 +1,4 @@
-import { render as rtlRender } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import type { RenderOptions } from '@testing-library/react'
 import React, { PropsWithChildren } from 'react'
 import { Provider } from 'react-redux'
@@ -26,7 +26,7 @@ function renderWithProviders(
   function Wrapper({ children }: PropsWithChildren<{}>): JSX.Element {
     return <Provider store={store}>{children}</Provider>
   }
-  return { store, ...rtlRender(ui, { wrapper: Wrapper, ...renderOptions }) }
+  return { store, ...render(ui, { wrapper: Wrapper, ...renderOptions }) }
 }
 
 export { renderWithProviders }
