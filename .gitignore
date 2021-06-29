@@ -18,10 +18,6 @@ build/
 typesversions
 .cache
 .yarnrc
-
-# Ignore package-lock.json from example projects
-examples/query/react/**/package-lock.json
-
 .yarn/*
 !.yarn/patches
 !.yarn/releases
