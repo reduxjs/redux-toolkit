@@ -94,11 +94,11 @@ When dispatching an action creator, you're responsible for storing a reference t
 
 ```tsx title="initiate query example"
 import { useState } from 'react'
-import { useAppDispatch } from './store/hooks'
+import { useDispatch } from 'react-redux'
 import { api } from './services/api'
 
 function App() {
-  const dispatch = useAppDispatch()
+  const dispatch = useDispatch()
   const [postId, setPostId] = useState<number>(1)
 
   useEffect(() => {
@@ -121,11 +121,11 @@ function App() {
 
 ```tsx title="initiate mutation example"
 import { useState } from 'react'
-import { useAppDispatch } from './store/hooks'
+import { useDispatch } from 'react-redux'
 import { api, Post } from './services/api'
 
 function App() {
-  const dispatch = useAppDispatch()
+  const dispatch = useDispatch()
   const [newPost, setNewPost] = useState<Omit<Post, 'id'>>({ name: 'Ash' })
 
   function handleClick() {
@@ -189,11 +189,11 @@ Each call to `.select(someCacheKey)` returns a _new_ selector function instance.
 
 ```tsx title="select query example"
 import { useState, useMemo } from 'react'
-import { useAppDispatch, useAppSelector } from './store/hooks'
+import { useDispatch, useSelector } from 'react-redux'
 import { api } from './services/api'
 
 function App() {
-  const dispatch = useAppDispatch()
+  const dispatch = useDispatch()
   const [postId, setPostId] = useState(1)
   // highlight-start
   // useMemo is used to only call `.select()` when required.
@@ -201,7 +201,7 @@ function App() {
   const selectPost = useMemo(() => api.endpoints.getPost.select(postId), [
     postId,
   ])
-  const { data, isLoading } = useAppSelector(selectPost)
+  const { data, isLoading } = useSelector(selectPost)
   // highlight-end
 
   useEffect(() => {
@@ -225,12 +225,12 @@ function App() {
 
 ```tsx title="select mutation example"
 import { useState, useMemo } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { skipToken } from '@reduxjs/toolkit/query'
-import { useAppDispatch, useAppSelector } from './store/hooks'
 import { api } from './services/api'
 
 function App() {
-  const dispatch = useAppDispatch()
+  const dispatch = useDispatch()
   const [newPost, setNewPost] = useState({ name: 'Ash' })
   const [requestId, setRequestId] = useState<typeof skipToken | string>(
     skipToken
@@ -242,7 +242,7 @@ function App() {
     () => api.endpoints.addPost.select(requestId),
     [requestId]
   )
-  const { isLoading } = useAppSelector(selectMutationResult)
+  const { isLoading } = useSelector(selectMutationResult)
   // highlight-end
 
   function handleClick() {
