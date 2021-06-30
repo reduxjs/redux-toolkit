@@ -21,7 +21,7 @@ Redux Toolkit is written in TypeScript, and its API is designed to enable great 
 
 This page provides specific details for each of the different APIs included in Redux Toolkit and how to type them correctly with TypeScript.
 
-**See the [TypeScript Quick Start tutorial page](../tutorials/typescript.mdx) for a brief overview of how to set up and use Redux Toolkit and React Redux to work with TypeScript**.
+**See the [TypeScript Quick Start tutorial page](../tutorials/typescript.md) for a brief overview of how to set up and use Redux Toolkit and React Redux to work with TypeScript**.
 
 :::info
 
@@ -31,7 +31,7 @@ If you encounter any problems with the types that are not described on this page
 
 ## `configureStore`
 
-The basics of using `configureStore` are shown in [TypeScript Quick Start tutorial page](../tutorials/typescript.mdx). Here are some additional details that you might find useful.
+The basics of using `configureStore` are shown in [TypeScript Quick Start tutorial page](../tutorials/typescript.md). Here are some additional details that you might find useful.
 
 ### Getting the `State` type
 

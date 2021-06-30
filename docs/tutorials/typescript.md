@@ -47,9 +47,14 @@ Since those are types, it's safe to export them directly from your store setup f
 
 ```ts title="app/store.ts"
 import { configureStore } from '@reduxjs/toolkit'
+// ...
 
 export const store = configureStore({
-  reducer: {},
+  reducer: {
+    posts: postsReducer,
+    comments: commentsReducer,
+    users: usersReducer,
+  },
 })
 
 // highlight-start
@@ -70,15 +75,6 @@ While it's possible to import the `RootState` and `AppDispatch` types into each 
 Since these are actual variables, not types, it's important to define them in a separate file such as `app/hooks.ts`, not the store setup file. This allows you to import them into any component file that needs to use the hooks, and avoids potential circular import dependency issues.
 
 ```ts title="app/hooks.ts"
-// file: store.ts noEmit
-import { configureStore } from '@reduxjs/toolkit'
-export const store = configureStore({
-  reducer: {},
-})
-export type RootState = ReturnType<typeof store.getState>
-export type AppDispatch = typeof store.dispatch
-
-// file: hooks.ts
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
 import type { RootState, AppDispatch } from './store'
 
@@ -100,14 +96,6 @@ All generated actions should be defined using the `PayloadAction<T>` type from R
 You can safely import the `RootState` type from the store file here. It's a circular import, but the TypeScript compiler can correctly handle that for types. This may be needed for use cases like writing selector functions.
 
 ```ts title="features/counter/counterSlice.ts"
-// file: app/store.ts noEmit
-import { configureStore } from '@reduxjs/toolkit'
-const store = configureStore({
-  reducer: {},
-})
-export type RootState = ReturnType<typeof store.getState>
-
-// file: features/counter/counterSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from '../../app/store'
 
@@ -156,10 +144,6 @@ The generated action creators will be correctly typed to accept a `payload` argu
 In some cases, [TypeScript may unnecessarily tighten the type of the initial state](https://github.com/reduxjs/redux-toolkit/pull/827). If that happens, you can work around it by casting the initial state using `as`, instead of declaring the type of the variable:
 
 ```ts
-interface CounterState {
-  value: number
-}
-
 // Workaround: cast state instead of declaring variable type
 const initialState = {
   value: 0,
@@ -170,27 +154,13 @@ const initialState = {
 
 In component files, import the pre-typed hooks instead of the standard hooks from React-Redux.
 
-```ts title="features/counter/Counter.tsx"
-// file: app/store.ts noEmit
-import { configureStore } from '@reduxjs/toolkit'
-export const store = configureStore({
-  reducer: {},
-})
-export type RootState = ReturnType<typeof store.getState>
-export type AppDispatch = typeof store.dispatch
-
-// file: app/hooks.ts noEmit
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
-import type { RootState, AppDispatch } from './store'
-
-export const useAppDispatch = () => useDispatch<AppDispatch>()
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
-
-// file: features/counter/Counter.tsx
-import React from 'react'
+```tsx title="features/counter/Counter.tsx"
+import React, { useState } from 'react'
 
 // highlight-next-line
-import { useAppSelector, useAppDispatch } from '../../app/hooks'
+import { useAppSelector, useAppDispatch } from 'app/hooks'
+
+import { decrement, increment } from './counterSlice'
 
 export function Counter() {
   // highlight-start
