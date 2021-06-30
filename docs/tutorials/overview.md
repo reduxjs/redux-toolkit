@@ -25,7 +25,7 @@ See these linked tutorials to learn how to use Redux Toolkit effectively.
 
 ## Redux Toolkit Quick Starts
 
-The [**Redux Toolkit Quick Start tutorial**](./quick-start.md) briefly shows how to add and use Redux Toolkit in a React application.
+The [**Redux Toolkit Quick Start tutorial**](./quick-start.mdx) briefly shows how to add and use Redux Toolkit in a React application.
 
 **If you just want the fastest way to get a basic example running, read the Quick Start tutorial.**
 
