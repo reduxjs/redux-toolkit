@@ -3,6 +3,7 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   rules: {
     'jsx-a11y/href-no-hash': 'off',
+    'react/react-in-jsx-scope': 'off',
     // Taken care of by TypeScript's `noUnusedLocals` / `noUnusedParameters`
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': 'off',
@@ -39,7 +40,11 @@ module.exports = {
     //   },
     // },
     {
-      files: ['src/tests/*.ts', 'src/**/tests/*.ts', 'src/**/tests/*.tsx'],
+      files: [
+        'packages/toolkit/src/tests/*.ts',
+        'packages/toolkit/src/**/tests/*.ts',
+        'packages/toolkit/src/**/tests/*.tsx',
+      ],
       rules: {
         '@typescript-eslint/no-unused-expressions': 'off',
         'no-lone-blocks': 'off',

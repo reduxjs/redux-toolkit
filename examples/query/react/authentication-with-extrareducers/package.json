@@ -1,5 +1,6 @@
 {
-  "name": "authentication-with-extrareducers",
+  "name": "@examples-query-react/authentication-with-extrareducers",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "keywords": [],
@@ -23,10 +24,7 @@
     "@types/react-dom": "17.0.0",
     "@types/react-redux": "7.1.9",
     "@types/react-router-dom": "5.1.6",
-    "typescript": "4.1.3"
-  },
-  "resolutions": {
-    "@typescript-eslint/parser": "4.4.1"
+    "typescript": "~4.2.4"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -36,7 +34,10 @@
   "eslintConfig": {
     "extends": [
       "react-app"
-    ]
+    ],
+    "rules": {
+      "react/react-in-jsx-scope": "off"
+    }
   },
   "browserslist": [
     ">0.2%",

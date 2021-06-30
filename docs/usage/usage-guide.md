@@ -938,7 +938,7 @@ You can [view the full code of this example `normalizr` usage on CodeSandbox](ht
 
 ### Using selectors with `createEntityAdapter`
 
-The entity adapter providers a selector factory that generates the most common selectors for you. Taking the examples above, we can add selectors to our `usersSlice` like this:
+The entity adapter provides a selector factory that generates the most common selectors for you. Taking the examples above, we can add selectors to our `usersSlice` like this:
 
 ```js
 // Rename the exports for readability in component usage

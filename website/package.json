@@ -1,8 +1,9 @@
 {
+  "name": "website",
   "scripts": {
     "start": "docusaurus start",
     "build": "docusaurus build",
-    "netlify-build": "(cd ..; npm install --ignore-scripts --production; cd docs; npm install --ignore-scripts ); npm run build",
+    "netlify-build": "yarn install && yarn build",
     "swizzle": "docusaurus swizzle",
     "publish-gh-pages": "docusaurus deploy",
     "deploy": "docusaurus deploy"

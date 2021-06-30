@@ -1,5 +1,9 @@
 name: CI
 on: [push, pull_request]
+defaults:
+  run:
+    working-directory: ./packages/toolkit
+
 jobs:
   build:
     name: Lint, Test, Build & Pack on Node ${{ matrix.node }}
@@ -18,21 +22,22 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-      - uses: c-hive/gha-npm-cache@v1
+      - uses: actions/cache@v2
+        with:
+          path: .yarn/cache
+          key: yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: yarn-
 
       - name: Install deps
-        run: npm ci
-
-      - name: Build
-        run: npm run build-ci
+        run: yarn install
 
       - name: Pack
-        run: npm pack
+        run: yarn pack
 
       - uses: actions/upload-artifact@v2
         with:
           name: package
-          path: reduxjs-toolkit*.tgz
+          path: packages/toolkit/package.tgz
 
   test-dist:
     name: Test against dist
@@ -51,23 +56,29 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-      - uses: c-hive/gha-npm-cache@v1
+      - uses: actions/cache@v2
+        with:
+          path: .yarn/cache
+          key: yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: yarn-
 
       - name: Install deps
-        run: npm ci --ignore-scripts
+        run: yarn install
 
       - uses: actions/download-artifact@v2
         with:
           name: package
+          path: packages/toolkit
+
+      - run: ls -lah
 
       - name: Install build artifact
-        run: |
-          sed -i -e '/"name": "@reduxjs\/toolkit",/d' package.json
-          npm i reduxjs-toolkit-*.tgz --ignore-scripts
-          sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./jest.config.js ./src/tests/*.* ./src/query/tests/*.*
+        run: yarn workspace @reduxjs/toolkit add $(pwd)/package.tgz
+
+      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./jest.config.js ./src/tests/*.* ./src/query/tests/*.*
 
       - name: Run tests, against dist
-        run: npm test
+        run: yarn test
 
   test-types:
     name: Test Types with TypeScript ${{ matrix.ts }}
@@ -88,33 +99,33 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-      - uses: c-hive/gha-npm-cache@v1
+      - uses: actions/cache@v2
+        with:
+          path: .yarn/cache
+          key: yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: yarn-
 
       - name: Install deps
-        run: npm ci --ignore-scripts
+        run: yarn install
 
       - name: Install TypeScript ${{ matrix.ts }}
-        run: npm install typescript@${{ matrix.ts }} --ignore-scripts
+        run: yarn add typescript@${{ matrix.ts }}
 
       - uses: actions/download-artifact@v2
         with:
           name: package
+          path: packages/toolkit
 
       - name: Install build artifact
-        run: |
-          sed -i -e '/"name": "@reduxjs\/toolkit",/d' package.json
-          npm i reduxjs-toolkit-*.tgz --ignore-scripts
-          sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./jest.config.js ./src/tests/*.* ./src/query/tests/*.*
+        run: yarn add ./package.tgz
+
+      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./jest.config.js ./src/tests/*.* ./src/query/tests/*.*
 
       - name: "@ts-ignore stuff that didn't exist pre-4.1 in the tests"
         if: ${{ matrix.ts < 4.1 }}
         run: sed -i -e 's/@pre41-ts-ignore/@ts-ignore/' -e  '/pre41-remove-start/,/pre41-remove-end/d' ./src/tests/*.* ./src/query/tests/*.ts*
 
-      - name: 'disable strictOptionalProperties'
-        if: ${{ matrix.ts == 'next' }}
-        run: sed -i -e 's|//\(.*strictOptionalProperties.*\)$|\1|' tsconfig.base.json
-
       - name: Test types
         run: |
-          ./node_modules/.bin/tsc --version
-          npm run type-tests
+          yarn tsc --version
+          yarn type-tests
