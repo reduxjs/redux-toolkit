@@ -30,6 +30,9 @@ export const server = setupServer(
   rest.get('http://example.com/error', (_, res, ctx) =>
     res(ctx.status(500), ctx.json({ value: 'error' }))
   ),
+  rest.get('http://example.com/404-text-error', (_, res, ctx) =>
+    res(ctx.status(404), ctx.text('Not Found'))
+  ),
   rest.post('http://example.com/error', (_, res, ctx) =>
     res(ctx.status(500), ctx.json({ value: 'error' }))
   ),

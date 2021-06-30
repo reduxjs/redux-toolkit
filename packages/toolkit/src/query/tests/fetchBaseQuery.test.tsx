@@ -113,6 +113,22 @@ describe('fetchBaseQuery', () => {
       expect(res).toBeInstanceOf(Object)
       expect(res.error).toEqual({ status: 500, data: { value: 'error' } })
     })
+
+    test('should be able to handle a text/plain response on a 404', async () => {
+      const req = baseQuery(
+        '/404-text-error',
+        {
+          signal: new AbortController().signal,
+          dispatch: storeRef.store.dispatch,
+          getState: storeRef.store.getState,
+        },
+        {}
+      )
+      expect(req).toBeInstanceOf(Promise)
+      const res = await req
+      expect(res).toBeInstanceOf(Object)
+      expect(res.error).toEqual({ status: 404, data: 'Not Found' })
+    })
   })
 
   describe('arg.body', () => {

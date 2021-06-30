@@ -47,7 +47,18 @@ const handleResponse = async (
 
   if (responseHandler === 'json') {
     const text = await response.text()
-    return text.length ? JSON.parse(text) : undefined
+    // We run this check because some 404 endpoints may return a text/plain content type
+    // See: https://github.com/reduxjs/redux-toolkit/issues/1234
+
+    if (text.length) {
+      try {
+        return JSON.parse(text)
+      } catch (err) {
+        return text
+      }
+    }
+
+    return undefined
   }
 }
 
