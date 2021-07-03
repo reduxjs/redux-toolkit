@@ -255,7 +255,7 @@ type UseQueryOptions = {
   refetchOnFocus?: boolean
   skip?: boolean
   refetchOnMountOrArgChange?: boolean | number
-  selectFromResult?: QueryStateSelector
+  selectFromResult?: (result: UseQueryStateDefaultResult) => any
 }
 
 type UseQueryResult<T> = {
@@ -313,7 +313,7 @@ type UseMutation = (
 
 type UseMutationStateOptions = {
   // A method to determine the contents of `UseMutationResult`
-  selectFromResult?: (state, defaultMutationStateSelector) => SelectedUseMutationResult extends Record<string, any>
+  selectFromResult?: (result: UseMutationStateDefaultResult) => any
 }
 
 type UseMutationTrigger<T> = (
@@ -382,11 +382,7 @@ type UseQueryState = (
 
 type UseQueryStateOptions = {
   skip?: boolean
-  selectFromResult?: (
-    state,
-    lastResult,
-    defaultQueryStateSelector
-  ) => SelectedQueryStateResult
+  selectFromResult?: (result: UseQueryStateDefaultResult) => any
 }
 
 type UseQueryStateResult<T> = {
@@ -481,11 +477,7 @@ type UseLazyQueryOptions = {
   pollingInterval?: number
   refetchOnReconnect?: boolean
   refetchOnFocus?: boolean
-  selectFromResult?: (
-    state,
-    lastResult,
-    defaultQueryStateSelector
-  ) => UseQueryStateResult
+  selectFromResult?: (result: UseQueryStateDefaultResult) => any
 }
 
 type UseLazyQueryTrigger = (arg: any) => void
