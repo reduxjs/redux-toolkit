@@ -112,7 +112,7 @@ Redux requires that [we write all state updates immutably, by making copies of d
 ```ts title="features/counter/counterSlice.js"
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-interface CounterState {
+export interface CounterState {
   value: number
 }
 
