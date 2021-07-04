@@ -147,7 +147,7 @@ describe('fetchBaseQuery', () => {
       expect(res.meta?.response).toBe(undefined)
       expect(res.error).toEqual({
         status: 'FETCH_ERROR',
-        data: 'Failed to fetch',
+        error: 'TypeError: Failed to fetch',
       })
     })
   })
@@ -200,6 +200,7 @@ describe('fetchBaseQuery', () => {
       expect(res.meta?.response).toBeInstanceOf(Object)
       expect(res.error).toEqual({
         status: 'PARSING_ERROR',
+        error: 'SyntaxError: Unexpected token h in JSON at position 1',
         originalStatus: 200,
         statusText: 'OK',
         data: `this is not json!`,
@@ -257,6 +258,7 @@ describe('fetchBaseQuery', () => {
       expect(res.meta?.response).toBeInstanceOf(Object)
       expect(res.error).toEqual({
         status: 'PARSING_ERROR',
+        error: 'SyntaxError: Unexpected token h in JSON at position 1',
         originalStatus: 500,
         statusText: 'Internal Server Error',
         data: `this is not json!`,

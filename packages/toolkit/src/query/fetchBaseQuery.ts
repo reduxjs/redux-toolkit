@@ -67,7 +67,8 @@ export type FetchBaseQueryError =
        *   An error that occured during execution of `fetch` or the `fetchFn` callback option
        **/
       status: 'FETCH_ERROR'
-      data: string
+      data?: undefined
+      error: string
     }
   | {
       /**
@@ -80,14 +81,7 @@ export type FetchBaseQueryError =
       originalStatus: number
       statusText: string
       data: string
-    }
-  | {
-      /**
-       * * `"UNKNOWN_ERROR"`:
-       *   Unknown error. Most likely caused due to an error thrown in `prepareHeaders` or `validateStatus`
-       **/
-      status: 'UNKNOWN_ERROR'
-      data: string
+      error: string
     }
 
 function stripUndefined(obj: any) {
@@ -217,7 +211,7 @@ export function fetchBaseQuery({
     try {
       response = await fetchFn(request)
     } catch (e) {
-      return { error: { status: 'FETCH_ERROR', data: e.message }, meta }
+      return { error: { status: 'FETCH_ERROR', error: String(e) }, meta }
     }
     const responseClone = response.clone()
 
@@ -233,6 +227,7 @@ export function fetchBaseQuery({
           originalStatus: response.status,
           statusText: response.statusText,
           data: await responseClone.clone().text(),
+          error: String(e),
         },
         meta,
       }
