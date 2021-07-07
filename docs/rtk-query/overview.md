@@ -152,7 +152,7 @@ import { useGetPokemonByNameQuery } from './services/pokemon'
 export default function App() {
   // Using a query hook automatically fetches data and returns query values
   const { data, error, isLoading } = useGetPokemonByNameQuery('bulbasaur')
-  // You can also perform with raw endpoints name and useQuery() API
+  // Individual hooks are also accessible under the generated endpoints:
   // const { data, error, isLoading } = pokemonApi.endpoints.getPokemonByName.useQuery('bulbasaur')
   
   // render UI based on data and loading state
