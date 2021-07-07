@@ -139,7 +139,9 @@ export default function configureAppStore(preloadedState) {
 }
 ```
 
-If you provide the `middleware` argument, `configureStore` will only use whatever middleware you've listed. If you want to have some custom middleware _and_ the defaults all together, you can call [`getDefaultMiddleware`](../api/getDefaultMiddleware.mdx) and include the results in the `middleware` array you provide.
+If you provide the `middleware` argument, `configureStore` will only use whatever middleware you've listed.
+If you want to have some custom middleware _and_ the defaults all together, you can use the callback notation,
+call [`getDefaultMiddleware`](../api/getDefaultMiddleware.mdx) and include the results in the `middleware` array you return.
 
 ## Writing Reducers
 
@@ -1033,16 +1035,17 @@ The [serializability dev check middleware](../api/serializabilityMiddleware.mdx)
 ```js
 configureStore({
   //...
-  middleware: getDefaultMiddleware({
-    serializableCheck: {
-      // Ignore these action types
-      ignoredActions: ['your/action/type'],
-      // Ignore these field paths in all actions
-      ignoredActionPaths: ['meta.arg', 'payload.timestamp'],
-      // Ignore these paths in the state
-      ignoredPaths: ['items.dates'],
-    },
-  }),
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        // Ignore these action types
+        ignoredActions: ['your/action/type'],
+        // Ignore these field paths in all actions
+        ignoredActionPaths: ['meta.arg', 'payload.timestamp'],
+        // Ignore these paths in the state
+        ignoredPaths: ['items.dates'],
+      },
+    }),
 })
 ```
 
@@ -1051,7 +1054,7 @@ configureStore({
 If using Redux-Persist, you should specifically ignore all the action types it dispatches:
 
 ```jsx
-import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
 import {
   persistStore,
   persistReducer,
@@ -1078,11 +1081,12 @@ const persistedReducer = persistReducer(persistConfig, rootReducer)
 
 const store = configureStore({
   reducer: persistedReducer,
-  middleware: getDefaultMiddleware({
-    serializableCheck: {
-      ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-    },
-  }),
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
+    }),
 })
 
 let persistor = persistStore(store)
