@@ -89,9 +89,9 @@ want added to the store. `configureStore` will automatically pass those to `appl
 If not provided, `configureStore` will call `getDefaultMiddleware` and use the
 array of middleware functions it returns.
 
-Alternately, you may pass a callback function that will receive `getDefaultMiddleware` as its argument,
-and should return a middleware array. This lets you skip importing `getDefaultMiddleware` separately. If using TypeScript, prefer using this syntax, as we provide a more strongly-typed version of `getDefaultMiddleware` that will correctly
-retain the types of the provided middleware when constructing the store.
+Where you wish to add onto or customize the default middleware,
+you may pass a callback function that will receive `getDefaultMiddleware` as its argument,
+and should return a middleware array.
 
 For more details on how the `middleware` parameter works and the list of middleware that are added by default, see the
 [`getDefaultMiddleware` docs page](./getDefaultMiddleware.mdx).
