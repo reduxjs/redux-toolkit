@@ -35,9 +35,7 @@ describe('getDataFromTree walks the tree and collects the data in the store', ()
     queryString: string
     children?: ReactNode
   }) => {
-    const result = testApi.useWithQueryFnQuery(queryString)
-    const { data } = result
-    console.warn('result', { result })
+    const { data } = testApi.useWithQueryFnQuery(queryString)
 
     if (!data) {
       return null

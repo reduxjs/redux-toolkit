@@ -39,7 +39,7 @@ function createQueryMiddleWare() {
 
   const timeout = setTimeout(() => {
     reject?.()
-  }, 500000)
+  }, 5000)
 
   return {
     renderStart: () => {
@@ -67,13 +67,11 @@ function createQueryMiddleWare() {
         if (action.type.endsWith('executeQuery/pending')) {
           state.pendingQueries.add(action.meta.requestId)
           onQueryStarted(state.pendingQueries)
-          console.warn({ action, pendingQueries: state.pendingQueries.size })
         } else if (
           action.type.endsWith('executeQuery/fulfilled') ||
           action.type.endsWith('executeQuery/rejected')
         ) {
           state.pendingQueries.delete(action.meta.requestId)
-          console.warn({ action, pendingQueries: state.pendingQueries.size })
           if (state.renderComplete && state.pendingQueries.size === 0) {
             clearTimeout(timeout)
             resolve?.()
@@ -92,14 +90,10 @@ async function _getDataFromTree(
 ): Promise<any> {
   let queryStarted = false
   middlewareControls.onQueryStarted(() => (queryStarted = true))
-  console.warn('render start')
   middlewareControls.renderStart()
-  console.warn('render')
   renderFn()
-  console.warn('render done')
   middlewareControls.renderDone()
   await middlewareControls.state.promise
-  console.warn('promise awaited', { queryStarted })
 
   if (queryStarted) {
     return _getDataFromTree(middlewareControls, renderFn)
