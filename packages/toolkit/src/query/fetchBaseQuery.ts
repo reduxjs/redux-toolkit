@@ -31,7 +31,8 @@ export interface FetchArgs extends CustomRequestInit {
  * A mini-wrapper that passes arguments straight through to `window.fetch`.
  * Avoids storing `window.fetch` in a closure, in order to permit mocking/monkey-patching.
  */
-const defaultFetchFn = (...args: Parameters<typeof window.fetch>) => window.fetch(...args);
+const defaultFetchFn = (...args: Parameters<typeof window.fetch>) =>
+  window.fetch(...args)
 
 const defaultValidateStatus = (response: Response) =>
   response.status >= 200 && response.status <= 299
@@ -133,6 +134,11 @@ export function fetchBaseQuery({
   {},
   FetchBaseQueryMeta
 > {
+  if (typeof window === 'undefined' && fetchFn === defaultFetchFn) {
+    console.warn(
+      'Warning: `window` is not available. Please supply a custom `fetchFn` property to use `fetchBaseQuery` on SSR environments.'
+    )
+  }
   return async (arg, { signal, getState }) => {
     let {
       url,
