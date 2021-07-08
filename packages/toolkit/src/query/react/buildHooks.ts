@@ -48,7 +48,6 @@ import type { ReactHooksModuleOptions } from './module'
 import { useShallowStableValue } from './useShallowStableValue'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
-import { ApiProvider } from './ApiProvider'
 
 export interface QueryHooks<
   Definition extends QueryDefinition<any, any, any, any, any>
