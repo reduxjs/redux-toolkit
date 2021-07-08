@@ -28,11 +28,11 @@ export interface FetchArgs extends CustomRequestInit {
 }
 
 /**
- * A mini-wrapper that passes arguments straight through to `window.fetch`.
- * Avoids storing `window.fetch` in a closure, in order to permit mocking/monkey-patching.
+ * A mini-wrapper that passes arguments straight through to
+ * {@link [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)}.
+ * Avoids storing `fetch` in a closure, in order to permit mocking/monkey-patching.
  */
-const defaultFetchFn = (...args: Parameters<typeof window.fetch>) =>
-  window.fetch(...args)
+const defaultFetchFn: typeof fetch = (...args) => fetch(...args)
 
 const defaultValidateStatus = (response: Response) =>
   response.status >= 200 && response.status <= 299
