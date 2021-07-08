@@ -48,6 +48,7 @@ import type { ReactHooksModuleOptions } from './module'
 import { useShallowStableValue } from './useShallowStableValue'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
+import { ApiProvider } from './ApiProvider'
 
 export interface QueryHooks<
   Definition extends QueryDefinition<any, any, any, any, any>
@@ -501,6 +502,34 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       })
 
       const promiseRef = useRef<QueryActionCreatorResult<any>>()
+      if (
+        typeof api.ssr === 'object' &&
+        !(
+          api.ssr[api.reducerPath] &&
+          api.ssr[api.reducerPath][name] &&
+          api.ssr[api.reducerPath][name][JSON.stringify(stableArg)]
+        )
+      ) {
+        // ssr mode is on and there is no promise yet
+        const promise = dispatch(
+          initiate(stableArg, {
+            subscriptionOptions: stableSubscriptionOptions,
+            forceRefetch: refetchOnMountOrArgChange,
+          })
+        )
+
+        if (!(typeof api.ssr[api.reducerPath] === 'object')) {
+          api.ssr[api.reducerPath] = {}
+          api.ssr[api.reducerPath][name] = {}
+        }
+
+        console.warn('ssr cache', {
+          ssr: api.ssr,
+          query: api.ssr[api.reducerPath][name][JSON.stringify(stableArg)],
+        })
+
+        api.ssr[api.reducerPath][name][JSON.stringify(stableArg)] = promise
+      }
 
       useEffect(() => {
         const lastPromise = promiseRef.current
