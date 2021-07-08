@@ -27,6 +27,12 @@ export interface FetchArgs extends CustomRequestInit {
   validateStatus?: (response: Response, body: any) => boolean
 }
 
+/**
+ * A mini-wrapper that passes arguments straight through to `window.fetch`.
+ * Avoids storing `window.fetch` in a closure, in order to permit mocking/monkey-patching.
+ */
+const defaultFetchFn = (...args: Parameters<typeof window.fetch>) => window.fetch(...args);
+
 const defaultValidateStatus = (response: Response) =>
   response.status >= 200 && response.status <= 299
 
@@ -118,7 +124,7 @@ export type FetchBaseQueryMeta = { request: Request; response: Response }
 export function fetchBaseQuery({
   baseUrl,
   prepareHeaders = (x) => x,
-  fetchFn = fetch,
+  fetchFn = defaultFetchFn,
   ...baseFetchOptions
 }: FetchBaseQueryArgs = {}): BaseQueryFn<
   string | FetchArgs,
