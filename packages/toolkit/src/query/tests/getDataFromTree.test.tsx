@@ -1,11 +1,13 @@
 import * as React from 'react'
 import { Provider } from 'react-redux'
+import { renderToString } from 'react-dom/server'
 
 import type { ReactNode } from 'react'
 import type { Middleware, Store } from 'redux'
 
 import { createApi, fakeBaseQuery, getDataFromTree } from '../react'
-import { renderToStaticMarkup, renderToString } from 'react-dom/server'
+
+import { configureStore } from '@internal/configureStore'
 
 describe('getDataFromTree walks the tree and collects the data in the store', () => {
   const testApi = createApi({
