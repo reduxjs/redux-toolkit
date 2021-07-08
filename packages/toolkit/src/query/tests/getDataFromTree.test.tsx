@@ -1,5 +1,4 @@
-import { configureStore } from '@internal/configureStore'
-import React from 'react'
+import * as React from 'react'
 import { Provider } from 'react-redux'
 
 import type { ReactNode } from 'react'
@@ -12,7 +11,7 @@ describe('getDataFromTree walks the tree and collects the data in the store', ()
   const testApi = createApi({
     baseQuery: fakeBaseQuery(),
     endpoints: (build) => ({
-      withQueryFn: build.query<string, string>({
+      withQueryFn: build.query({
         queryFn(arg: string) {
           return { data: `resultFrom(${arg})` }
         },
