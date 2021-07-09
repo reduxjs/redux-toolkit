@@ -7,6 +7,8 @@ dist*/
 lib
 es
 
+.yalc
+yalc.lock
 
 .idea/
 .vscode/
