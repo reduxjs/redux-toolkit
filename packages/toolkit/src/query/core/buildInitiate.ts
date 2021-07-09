@@ -54,6 +54,7 @@ export type QueryActionCreatorResult<
   unsubscribe(): void
   refetch(): void
   updateSubscriptionOptions(options: SubscriptionOptions): void
+  resolved: boolean
 }
 
 type StartMutationActionCreator<
@@ -107,6 +108,8 @@ export type MutationActionCreatorResult<
    * A unique string generated for the request sequence
    */
   requestId: string
+
+  resolved: boolean
   /**
    * A method to cancel the mutation promise. Note that this is not intended to prevent the mutation
    * that was fired off from reaching the server, but only to assist in handling the response.
@@ -250,6 +253,7 @@ Features like automatic cache collection, automatic refetching etc. will not be 
             arg,
             requestId,
             subscriptionOptions,
+            resolved: false,
             abort,
             refetch() {
               dispatch(
@@ -278,6 +282,9 @@ Features like automatic cache collection, automatic refetching etc. will not be 
             },
           }
         )
+        statePromise.then(() => {
+          statePromise.resolved = true
+        })
 
         if (!runningQueries[queryCacheKey]) {
           runningQueries[queryCacheKey] = thunkResult
@@ -311,11 +318,15 @@ Features like automatic cache collection, automatic refetching etc. will not be 
         const ret = Object.assign(returnValuePromise, {
           arg: thunkResult.arg,
           requestId,
+          resolved: false,
           abort,
           unwrap: thunkResult.unwrap,
           unsubscribe() {
             if (track) dispatch(unsubscribeMutationResult({ requestId }))
           },
+        })
+        ret.then(() => {
+          ret.resolved = true
         })
 
         runningMutations[requestId] = thunkResult
