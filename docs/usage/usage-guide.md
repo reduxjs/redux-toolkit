@@ -1101,6 +1101,30 @@ ReactDOM.render(
 )
 ```
 
+Additionally, you can purge any persisted state by adding an extra reducer to the specific slice that you would like to clear when calling persistor.purge(). This is especially helpful when you are looking to clear persisted state on a dispatched logout action.
+
+```ts
+import { PURGE } from "redux-persist";
+
+...
+extraReducers: (builder) => {
+    builder.addCase(PURGE, (state) => {
+        customEntityAdapter.removeAll(state);
+    });
+}
+```
+
+It is also strongly recommended to blacklist any api(s) that you have configured with RTK Query. If the api slice reducer is not blacklisted, the api cache will be automatically persisted and restored which could leave you with phantom subscriptions from components that do not exist any more. Configuring this should look something like this:
+
+```ts
+const persistConfig = {
+  key: "root",
+  version: 1,
+  storage,
+  blacklist: [pokemonApi.reducerPath],
+};
+```
+
 See [Redux Toolkit #121: How to use this with Redux-Persist?](https://github.com/reduxjs/redux-toolkit/issues/121) and [Redux-Persist #988: non-serializable value error](https://github.com/rt2zz/redux-persist/issues/988#issuecomment-552242978) for further discussion.
 
 ### Use with React-Redux-Firebase
