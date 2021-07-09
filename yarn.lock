@@ -3501,9 +3501,9 @@ __metadata:
     "@graphql-codegen/typed-document-node": ^1.18.6
     "@graphql-codegen/typescript": 1.22.1
     "@graphql-codegen/typescript-operations": ^1.18.0
-    "@graphql-codegen/typescript-rtk-query": "file:.yalc/@graphql-codegen/typescript-rtk-query"
+    "@graphql-codegen/typescript-rtk-query": ^1.1.0
     "@graphql-typed-document-node/core": ^3.1.0
-    "@mswjs/data": "npm:@phryneas/mswjs-data-prerelease@0.3.1-672226d"
+    "@mswjs/data": ^0.4.0
     "@reduxjs/toolkit": ^1.6.0
     "@rtk-query/graphql-request-base-query": ^1.0.3
     "@types/faker": ^5.5.5
@@ -3539,6 +3539,7 @@ __metadata:
     "@emotion/styled": ^11.3.0
     "@mswjs/data": ^0.3.0
     "@reduxjs/toolkit": ^1.6.0-rc.1
+    "@rtk-query/graphql-request-base-query": "workspace:packages/rtk-query-graphql-request-base-query"
     "@types/faker": ^5.5.5
     "@types/react": 17.0.0
     "@types/react-dom": 17.0.0
@@ -3902,12 +3903,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphql-codegen/typescript-rtk-query@file:.yalc/@graphql-codegen/typescript-rtk-query::locator=%40examples-query-react%2Fgraphql-codegen%40workspace%3Aexamples%2Fquery%2Freact%2Fgraphql-codegen":
-  version: 1.1.1
-  resolution: "@graphql-codegen/typescript-rtk-query@file:.yalc/@graphql-codegen/typescript-rtk-query#.yalc/@graphql-codegen/typescript-rtk-query::hash=dbf59e&locator=%40examples-query-react%2Fgraphql-codegen%40workspace%3Aexamples%2Fquery%2Freact%2Fgraphql-codegen"
+"@graphql-codegen/typescript-rtk-query@npm:^1.1.0":
+  version: 1.2.0
+  resolution: "@graphql-codegen/typescript-rtk-query@npm:1.2.0"
   dependencies:
     "@graphql-codegen/plugin-helpers": ^1.18.7
-    "@graphql-codegen/visitor-plugin-common": 1.21.2
+    "@graphql-codegen/visitor-plugin-common": 1.21.3
     auto-bind: ~4.0.0
     change-case-all: 1.0.14
     tslib: ~2.2.0
@@ -3916,10 +3917,7 @@ __metadata:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
     graphql-request: ^3.4.0
     graphql-tag: ^2.0.0
-  peerDependenciesMeta:
-    graphql-request:
-      optional: true
-  checksum: fa64ed8b1000aeb0291bdc43449443f48f091135f0ebf36cffb3dbbb4e51b5855555d850837a1e097bca4f3037a0d4d06ab0bd1360ca70417d89f81172ef3cc2
+  checksum: 1327e9ee4a6241cd10e34be3becd11169eccd44bc0def976bfdc8cb8fe23bc27b43f00812b1ca3fc80cfa5fa19dcc6d38c9499c50341a1b5046a19c0cc536914
   languageName: node
   linkType: hard
 
@@ -3988,6 +3986,26 @@ __metadata:
   peerDependencies:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
   checksum: 8c8704ee4562254a95cd6ed5f980487c2b044e09f4061c73d817ae07406948265b0227b420d05c410972536dfb8e3360ddfd5f037a0c83166b21f358b4c6e279
+  languageName: node
+  linkType: hard
+
+"@graphql-codegen/visitor-plugin-common@npm:1.21.3":
+  version: 1.21.3
+  resolution: "@graphql-codegen/visitor-plugin-common@npm:1.21.3"
+  dependencies:
+    "@graphql-codegen/plugin-helpers": ^1.18.7
+    "@graphql-tools/optimize": ^1.0.1
+    "@graphql-tools/relay-operation-optimizer": ^6.3.0
+    array.prototype.flatmap: ^1.2.4
+    auto-bind: ~4.0.0
+    change-case-all: 1.0.14
+    dependency-graph: ^0.11.0
+    graphql-tag: ^2.11.0
+    parse-filepath: ^1.0.2
+    tslib: ~2.3.0
+  peerDependencies:
+    graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
+  checksum: bc138cc31cfcf23644041b4ce1eefbd86f43f5cbdcadc2246b8acde4f1af12b45de59a0f18ddefb7f152f9c546cbd6a28f803bf3b01bf77e66429710a2fb6c83
   languageName: node
   linkType: hard
 
@@ -4745,27 +4763,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mswjs/data@npm:@phryneas/mswjs-data-prerelease@0.3.1-672226d":
-  version: 0.3.1-672226d
-  resolution: "@phryneas/mswjs-data-prerelease@npm:0.3.1-672226d"
-  dependencies:
-    "@types/md5": ^2.3.0
-    "@types/pluralize": ^0.0.29
-    "@types/uuid": ^8.3.0
-    date-fns: ^2.21.1
-    graphql: ^15.5.0
-    md5: ^2.3.0
-    msw: ^0.28.2
-    pluralize: ^8.0.0
-    strict-event-emitter: ^0.2.0
-    uuid: ^8.3.1
-  dependenciesMeta:
-    msw:
-      optional: true
-  checksum: aa51e63625df4a874b295fd3981bbfff95e3a6099c8623197cecb4db15fb85815d08419593703162f7a7aed46015fbc883105fbc359c4ba2a29745edcbfd6682
-  languageName: node
-  linkType: hard
-
 "@mswjs/data@npm:^0.3.0":
   version: 0.3.0
   resolution: "@mswjs/data@npm:0.3.0"
@@ -4784,6 +4781,27 @@ __metadata:
     msw:
       optional: true
   checksum: f1784768a35cfab690943b36b84bd36356dd0bed5a8e647ee7d5a58a7f48185d0d40fa1a9a48d37f2c1f7d9e6862b93746769d7e8698f7a776e9cfcb92938c48
+  languageName: node
+  linkType: hard
+
+"@mswjs/data@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "@mswjs/data@npm:0.4.0"
+  dependencies:
+    "@types/md5": ^2.3.0
+    "@types/pluralize": ^0.0.29
+    "@types/uuid": ^8.3.0
+    date-fns: ^2.21.1
+    graphql: ^15.5.0
+    md5: ^2.3.0
+    msw: ^0.28.2
+    pluralize: ^8.0.0
+    strict-event-emitter: ^0.2.0
+    uuid: ^8.3.1
+  dependenciesMeta:
+    msw:
+      optional: true
+  checksum: 39c79f9fff078574a418cdc5d57f906e7656262aff0725fdb50d4f87336d66320cdfdde54ec7fd858587aa4b09efc2ef58a228c39857ff1d0976415edc4cab02
   languageName: node
   linkType: hard
 

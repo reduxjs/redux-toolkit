@@ -1,7 +1,6 @@
-import { DocumentNode } from 'graphql'
-import { ClientError } from 'graphql-request'
-import { BaseQueryFn, createApi } from '@reduxjs/toolkit/query/react'
-import { request, gql } from 'graphql-request'
+import {  createApi } from '@reduxjs/toolkit/query/react'
+import { gql } from 'graphql-request'
+import {graphqlRequestBaseQuery} from '@rtk-query/graphql-request-base-query'
 
 export const postStatuses = ['draft', 'published', 'pending_review'] as const
 
@@ -34,28 +33,9 @@ interface PostResponse {
   }
 }
 
-export const graphqlBaseQuery = ({
-  baseUrl,
-}: {
-  baseUrl: string
-}): BaseQueryFn<
-  { document: string | DocumentNode; variables?: any },
-  unknown,
-  ClientError
-> => async ({ document, variables }) => {
-  try {
-    return { data: await request(baseUrl, document, variables) }
-  } catch (error) {
-    if (error instanceof ClientError) {
-      return { error }
-    }
-    throw error
-  }
-}
-
 export const api = createApi({
-  baseQuery: graphqlBaseQuery({
-    baseUrl: '/graphql',
+  baseQuery: graphqlRequestBaseQuery({
+    url: '/graphql',
   }),
   endpoints: (builder) => ({
     getPosts: builder.query<
