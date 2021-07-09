@@ -1,11 +1,12 @@
+/* eslint-disable */
+/* tslint:disable */
+
 /**
- * Mock Service Worker.
+ * Mock Service Worker (0.30.1).
  * @see https://github.com/mswjs/msw
  * - Please do NOT modify this file.
  * - Please do NOT serve this file on production.
  */
-/* eslint-disable */
-/* tslint:disable */
 
 const INTEGRITY_CHECKSUM = '82ef9b96d8393b6da34527d1d6e19187'
 const bypassHeaderName = 'x-msw-bypass'
