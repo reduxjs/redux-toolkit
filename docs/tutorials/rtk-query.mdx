@@ -128,13 +128,27 @@ setupListeners(store.dispatch)
 
 If you haven't already done so, follow the standard pattern for providing the Redux store to the rest of your React application component tree:
 
-```tsx title="src/index.tsx"
+```ts title="src/index.tsx"
+// file: App.tsx noEmit
+import React from 'react'
+export default function App() {
+  return <div>...</div>
+}
+
+// file: app/store.ts noEmit
+import { configureStore } from '@reduxjs/toolkit'
+
+export default configureStore({
+  reducer: {},
+})
+
+// file: index.tsx
 import * as React from 'react'
 import { render } from 'react-dom'
 import { Provider } from 'react-redux'
 
 import App from './App'
-import { store } from './store'
+import store from './app/store'
 
 const rootElement = document.getElementById('root')
 render(
@@ -149,7 +163,23 @@ render(
 
 Once a service has been defined, you can import the hooks to make a request.
 
-```tsx title="src/App.tsx" no-transpile
+```ts title="src/App.tsx"
+// file: services/pokemon.ts noEmit
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+export const pokemonApi = createApi({
+  reducerPath: 'pokemonApi',
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+  endpoints: (builder) => ({
+    getPokemonByName: builder.query({
+      query: (name: string) => `pokemon/${name}`,
+    }),
+  }),
+})
+
+export const { useGetPokemonByNameQuery } = pokemonApi
+
+// file: App.tsx
 import * as React from 'react'
 // highlight-next-line
 import { useGetPokemonByNameQuery } from './services/pokemon'

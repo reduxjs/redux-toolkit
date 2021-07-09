@@ -103,7 +103,7 @@ The "mutation result" is an object containing properties such as the latest `dat
 
 Below are some of the most frequently used properties on the "mutation result" object. Refer to [`useMutation`](../api/created-api/hooks.mdx#usemutation) for an extensive list of all returned properties.
 
-- `data` - The returned result if present.
+- `data` - The data returned from the latest trigger response, if present. If subsequent triggers from the same hook instance are called, this will return undefined until the new data is received. Consider component level caching if the previous response data is required for a smooth transition to new data.
 - `error` - The error result if present.
 - `isUninitialized` - When true, indicates that the mutation has not been fired yet.
 - `isLoading` - When true, indicates that the mutation has been fired and is awaiting a response.

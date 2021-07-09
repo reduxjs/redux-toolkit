@@ -89,8 +89,6 @@ The type of the `dispatch` function type will be directly inferred from the `mid
 
 As TypeScript often widens array types when combining arrays using the spread operator, we suggest using the `.concat(...)` and `.prepend(...)` methods of the `MiddlewareArray` returned by `getDefaultMiddleware()`.
 
-Also, we suggest using the callback notation for the `middleware` option to get a correctly pre-typed version of `getDefaultMiddleware` that does not require you to specify any generics by hand.
-
 ```ts
 import { configureStore } from '@reduxjs/toolkit'
 import additionalMiddleware from 'additional-middleware'

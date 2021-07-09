@@ -16,6 +16,7 @@
     "checkJs": true,
     "alwaysStrict": false,
     "baseUrl": "..",
+    "jsx": "preserve",
     "paths": {
       "@reduxjs/toolkit": ["packages/toolkit/src/index.ts"],
       "@reduxjs/toolkit/query": ["packages/toolkit/src/query/index.ts"],

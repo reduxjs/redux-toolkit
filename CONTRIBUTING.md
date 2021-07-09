@@ -8,49 +8,48 @@ Before opening an issue, please search the [issue tracker](https://github.com/re
 
 Please ask any general and implementation specific questions on [Stack Overflow with a Redux Toolkit tag](http://stackoverflow.com/questions/tagged/redux-toolkit?sort=votes&pageSize=50) for support.
 
-## Development
+## New Features
+
+Please open an issue with a proposal for a new feature or refactoring before starting on the work. We don't want you to waste your efforts on a pull request that we won't want to accept.
+
+## Getting started
 
 Visit the [Issue tracker](https://github.com/reduxjs/redux-toolkit/issues) to find a list of open issues that need attention.
 
-Fork, then clone the repo:
+### Fork the repository
 
-```
-git clone https://github.com/your-username/redux-toolkit.git
-```
+Please use the GitHub UI to [fork this repository](https://github.com/reduxjs/redux-toolkit) (_read more about [Forking a repository](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo)_). Redux Toolkit has forked builds enabled in the CI, so you will see the build status of your fork's branch.
 
-### Building
+### Install
 
-Running the `build` task will create both a CommonJS module-per-module build and a UMD build.
-
-```
-npm run build
+```bash
+$ cd redux-toolkit
+$ yarn
 ```
 
-### Testing and Linting
+### Tests
 
-To run the tests:
+You can run tests for all packages with:
 
 ```
-npm run test
+yarn test
 ```
 
 To continuously watch and run tests, run the following:
 
 ```
-npm test -- --watch
+yarn test --watch
 ```
 
-To perform linting with `eslint`, run the following:
+### Build
+
+You can build the packages with the following command:
 
 ```
-npm run lint
+yarn build
 ```
 
-### New Features
-
-Please open an issue with a proposal for a new feature or refactoring before starting on the work. We don't want you to waste your efforts on a pull request that we won't want to accept.
-
-## Submitting Changes
+## Git workflow / Submitting Changes
 
 - Open a new issue in the [Issue tracker](https://github.com/reduxjs/redux-toolkit/issues).
 - Fork the repo.
