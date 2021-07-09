@@ -134,9 +134,9 @@ export function fetchBaseQuery({
   {},
   FetchBaseQueryMeta
 > {
-  if (typeof window === 'undefined' && fetchFn === defaultFetchFn) {
+  if (typeof fetch === 'undefined' && fetchFn === defaultFetchFn) {
     console.warn(
-      'Warning: `window` is not available. Please supply a custom `fetchFn` property to use `fetchBaseQuery` on SSR environments.'
+      'Warning: `fetch` is not available. Please supply a custom `fetchFn` property to use `fetchBaseQuery` on SSR environments.'
     )
   }
   return async (arg, { signal, getState }) => {
