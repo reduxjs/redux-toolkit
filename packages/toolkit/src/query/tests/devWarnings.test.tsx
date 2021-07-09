@@ -20,16 +20,18 @@ afterEach(() => {
   restore()
 })
 
+const baseUrl =  'http://example.com'
+
 function createApis() {
   const api1 = createApi({
-    baseQuery: fetchBaseQuery({}),
+    baseQuery: fetchBaseQuery({ baseUrl }),
     endpoints: (builder) => ({
       q1: builder.query({ query: () => '/success' }),
     }),
   })
 
   const api1_2 = createApi({
-    baseQuery: fetchBaseQuery({}),
+    baseQuery: fetchBaseQuery({baseUrl}),
     endpoints: (builder) => ({
       q1: builder.query({ query: () => '/success' }),
     }),
@@ -37,7 +39,7 @@ function createApis() {
 
   const api2 = createApi({
     reducerPath: 'api2',
-    baseQuery: fetchBaseQuery({}),
+    baseQuery: fetchBaseQuery({baseUrl}),
     endpoints: (builder) => ({
       q1: builder.query({ query: () => '/success' }),
     }),
@@ -265,6 +267,10 @@ If you have multiple apis, you *have* to specify the reducerPath option when usi
 You can only have one api per reducer path, this will lead to crashes in various situations!
 If you have multiple apis, you *have* to specify the reducerPath option when using createApi!`
     )
+  })
+})
+
+
 describe('`console.error` on unhandled errors during `initiate`', () => {
   test('error thrown in `baseQuery`', async () => {
     const api = createApi({
@@ -338,7 +344,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated". 
   test('`fetchBaseQuery`: error thrown in `prepareHeaders`', async () => {
     const api = createApi({
       baseQuery: fetchBaseQuery({
-        baseUrl: 'http://example.com',
+        baseUrl,
         prepareHeaders() {
           throw new Error('this was kinda expected')
         },
@@ -365,7 +371,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated". 
   test('`fetchBaseQuery`: error thrown in `validateStatus`',  async () => {
     const api = createApi({
       baseQuery: fetchBaseQuery({
-        baseUrl: 'http://example.com',
+        baseUrl
               }),
       endpoints: (build) => ({
         val: build.query<any, void>({
