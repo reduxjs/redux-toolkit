@@ -27,6 +27,13 @@ export interface FetchArgs extends CustomRequestInit {
   validateStatus?: (response: Response, body: any) => boolean
 }
 
+/**
+ * A mini-wrapper that passes arguments straight through to
+ * {@link [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)}.
+ * Avoids storing `fetch` in a closure, in order to permit mocking/monkey-patching.
+ */
+const defaultFetchFn: typeof fetch = (...args) => fetch(...args)
+
 const defaultValidateStatus = (response: Response) =>
   response.status >= 200 && response.status <= 299
 
@@ -51,11 +58,41 @@ const handleResponse = async (
   }
 }
 
-export interface FetchBaseQueryError {
-  status: number
-  data: unknown
-  url: string
-}
+export type FetchBaseQueryError =
+  | {
+      /**
+       * * `number`:
+       *   HTTP status code
+       */
+      status: number
+      data: unknown
+      statusText: string
+      url: string
+    }
+  | {
+      /**
+       * * `"FETCH_ERROR"`:
+       *   An error that occured during execution of `fetch` or the `fetchFn` callback option
+       **/
+      status: 'FETCH_ERROR'
+      data?: undefined
+      error: string
+      url: string
+    }
+  | {
+      /**
+       * * `"PARSING_ERROR"`:
+       *   An error happened during parsing.
+       *   Most likely a non-JSON-response was returned with the default `responseHandler` "JSON",
+       *   or an error occured while executing a custom `responseHandler`.
+       **/
+      status: 'PARSING_ERROR'
+      originalStatus: number
+      statusText: string
+      data: string
+      error: string
+      url: string
+    }
 
 function stripUndefined(obj: any) {
   if (!isPlainObject(obj)) {
@@ -80,7 +117,7 @@ export type FetchBaseQueryArgs = {
   ) => Promise<Response>
 } & RequestInit
 
-export type FetchBaseQueryMeta = { request: Request; response: Response }
+export type FetchBaseQueryMeta = { request: Request; response?: Response }
 
 /**
  * This is a very small wrapper around fetch that aims to simplify requests.
@@ -119,7 +156,7 @@ export type FetchBaseQueryMeta = { request: Request; response: Response }
 export function fetchBaseQuery({
   baseUrl,
   prepareHeaders = (x) => x,
-  fetchFn = fetch,
+  fetchFn = defaultFetchFn,
   ...baseFetchOptions
 }: FetchBaseQueryArgs = {}): BaseQueryFn<
   string | FetchArgs,
@@ -128,7 +165,13 @@ export function fetchBaseQuery({
   {},
   FetchBaseQueryMeta
 > {
+  if (typeof fetch === 'undefined' && fetchFn === defaultFetchFn) {
+    console.warn(
+      'Warning: `fetch` is not available. Please supply a custom `fetchFn` property to use `fetchBaseQuery` on SSR environments.'
+    )
+  }
   return async (arg, { signal, getState }) => {
+    let meta: FetchBaseQueryMeta | undefined
     let {
       url,
       method = 'GET' as const,
@@ -177,13 +220,34 @@ export function fetchBaseQuery({
 
     const request = new Request(url, config)
     const requestClone = request.clone()
+    meta = { request: requestClone }
 
-    const response = await fetchFn(request)
+    let response
+    try {
+      response = await fetchFn(request)
+    } catch (e) {
+      return { error: { status: 'FETCH_ERROR', error: String(e), url: request.url }, meta }
+    }
     const responseClone = response.clone()
 
-    const meta = { request: requestClone, response: responseClone }
+    meta.response = responseClone
 
-    const resultData = await handleResponse(response, responseHandler)
+    let resultData
+    try {
+      resultData = await handleResponse(response, responseHandler)
+    } catch (e) {
+      return {
+        error: {
+          status: 'PARSING_ERROR',
+          originalStatus: response.status,
+          statusText: response.statusText,
+          data: await responseClone.clone().text(),
+          error: String(e),
+          url: response.url
+        },
+        meta,
+      }
+    }
 
     return validateStatus(response, resultData)
       ? {
@@ -195,6 +259,7 @@ export function fetchBaseQuery({
             url: response.url,
             status: response.status,
             data: resultData,
+            statusText: response.statusText,
           },
           meta,
         }

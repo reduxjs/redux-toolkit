@@ -82,7 +82,7 @@ export type DispatchForMiddlewares<M> = M extends ReadonlyArray<any>
   : never
 
 /**
- * Convert a Union type `(A|B)` to and intersecion type `(A&B)`
+ * Convert a Union type `(A|B)` to an intersection type `(A&B)`
  */
 export type UnionToIntersection<U> = (
   U extends any ? (k: U) => void : never
@@ -102,7 +102,7 @@ export type NoInfer<T> = [T][T extends any ? 0 : never]
 export type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>
 
 export interface HasMatchFunction<T> {
-  match(v: any): v is T
+  match: (v: any) => v is T
 }
 
 export const hasMatchFunction = <T>(
