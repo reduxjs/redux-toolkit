@@ -69,7 +69,7 @@ describe('fetchBaseQuery', () => {
         {}
       )
     ).resolves.toEqual({
-      error: { data: { value: 'error' }, status: 500 },
+      error: { data: { value: 'error' }, status: 500, url: 'http://example.com/error' },
       meta: {
         request: expect.any(Object),
         response: expect.any(Object),
@@ -116,7 +116,7 @@ describe('query error handling', () => {
         isLoading: false,
         isError: true,
         isSuccess: false,
-        error: { status: 500, data: { value: 'error' } },
+        error: { status: 500, data: { value: 'error' }, url: 'http://example.com/query' },
       })
     )
   })
@@ -155,7 +155,7 @@ describe('query error handling', () => {
         isLoading: false,
         isError: true,
         isSuccess: false,
-        error: { status: 500, data: { value: 'error' } },
+        error: { status: 500, data: { value: 'error' }, url: 'http://example.com/query' },
         // last data will stay available
         data: { value: 'success' },
       })
@@ -183,7 +183,7 @@ describe('query error handling', () => {
         isLoading: false,
         isError: true,
         isSuccess: false,
-        error: { status: 500, data: { value: 'error' } },
+        error: { status: 500, data: { value: 'error' }, url: 'http://example.com/query' },
       })
     )
 
@@ -247,7 +247,7 @@ describe('mutation error handling', () => {
         isLoading: false,
         isError: true,
         isSuccess: false,
-        error: { status: 500, data: { value: 'error' } },
+        error: { status: 500, data: { value: 'error' }, url: 'http://example.com/mutation' },
       })
     )
   })
@@ -295,7 +295,7 @@ describe('mutation error handling', () => {
           isLoading: false,
           isError: true,
           isSuccess: false,
-          error: { status: 500, data: { value: 'error' } },
+          error: { status: 500, data: { value: 'error' }, url: 'http://example.com/mutation' },
         })
       )
       expect(result.current[1].data).toBeUndefined()
@@ -329,7 +329,7 @@ describe('mutation error handling', () => {
           isLoading: false,
           isError: true,
           isSuccess: false,
-          error: { status: 500, data: { value: 'error' } },
+          error: { status: 500, data: { value: 'error' }, url: 'http://example.com/mutation' },
         })
       )
     }

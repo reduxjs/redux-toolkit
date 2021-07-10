@@ -100,7 +100,7 @@ describe('fetchBaseQuery', () => {
 
     it('should return an error and status for error responses', async () => {
       const req = baseQuery(
-        '/error',
+        '/error?foo=bar&yee=haw',
         {
           signal: new AbortController().signal,
           dispatch: storeRef.store.dispatch,
@@ -111,7 +111,7 @@ describe('fetchBaseQuery', () => {
       expect(req).toBeInstanceOf(Promise)
       const res = await req
       expect(res).toBeInstanceOf(Object)
-      expect(res.error).toEqual({ status: 500, data: { value: 'error' } })
+      expect(res.error).toEqual({ status: 500, data: { value: 'error' }, url: `${baseUrl}/error?foo=bar&yee=haw` })
     })
   })
 
@@ -307,6 +307,7 @@ describe('fetchBaseQuery', () => {
 
       expect(res.error).toEqual({
         status: 200,
+        url: `${baseUrl}/nonstandard-error`,
         data: {
           success: false,
           message: 'This returns a 200 but is really an error',

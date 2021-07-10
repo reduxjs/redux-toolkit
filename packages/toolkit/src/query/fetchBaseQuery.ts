@@ -54,6 +54,7 @@ const handleResponse = async (
 export interface FetchBaseQueryError {
   status: number
   data: unknown
+  url: string
 }
 
 function stripUndefined(obj: any) {
@@ -191,6 +192,7 @@ export function fetchBaseQuery({
         }
       : {
           error: {
+            url: response.url,
             status: response.status,
             data: resultData,
           },

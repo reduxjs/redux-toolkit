@@ -99,6 +99,7 @@ describe.each([['query'], ['mutation']] as const)(
           error: {
             status: 500,
             data: { value: 'error' },
+            url: 'http://example.com/error'
           },
           isUnhandledError: false,
           meta: {
