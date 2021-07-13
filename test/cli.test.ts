@@ -342,6 +342,12 @@ describe('CLI options testing', () => {
 
     expect(fs.readFileSync(fileName, { encoding: 'utf-8' })).toMatchSnapshot();
   });
+
+  it('should use brackets in a querystring urls arg, when the arg contains full stops', async () => {
+    const fileName = getTmpFileName();
+    const result = await cli(['-h', `./test/fixtures/params.json`], '.');
+    expect(result.stdout).toContain('`/api/v1/list/${queryArg["item.id"]}`');
+  });
 });
 
 describe('yaml parsing', () => {
