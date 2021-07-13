@@ -419,6 +419,12 @@ export async function generateApi(
   }
 }
 
+function accessProperty(rootObject: ts.Identifier, propertyName: string) {
+  return isValidIdentifier(propertyName)
+    ? factory.createPropertyAccessExpression(rootObject, factory.createIdentifier(propertyName))
+    : factory.createElementAccessExpression(rootObject, factory.createStringLiteral(propertyName));
+}
+
 function generatePathExpression(path: string, pathParameters: QueryArgDefinition[], rootObject: ts.Identifier) {
   const expressions: Array<[string, string]> = [];
 
@@ -436,7 +442,7 @@ function generatePathExpression(path: string, pathParameters: QueryArgDefinition
         factory.createTemplateHead(head),
         expressions.map(([prop, literal], index) =>
           factory.createTemplateSpan(
-            factory.createPropertyAccessExpression(rootObject, factory.createIdentifier(prop)),
+            accessProperty(rootObject, prop),
             index === expressions.length - 1
               ? factory.createTemplateTail(literal)
               : factory.createTemplateMiddle(literal)
@@ -448,16 +454,7 @@ function generatePathExpression(path: string, pathParameters: QueryArgDefinition
 
 function generateQuerArgObjectLiteralExpression(queryArgs: QueryArgDefinition[], rootObject: ts.Identifier) {
   return factory.createObjectLiteralExpression(
-    queryArgs.map(
-      (param) =>
-        createPropertyAssignment(
-          param.originalName,
-          isValidIdentifier(param.name)
-            ? factory.createPropertyAccessExpression(rootObject, factory.createIdentifier(param.name))
-            : factory.createElementAccessExpression(rootObject, factory.createStringLiteral(param.name))
-        ),
-      true
-    )
+    queryArgs.map((param) => createPropertyAssignment(param.originalName, accessProperty(rootObject, param.name)), true)
   );
 }
 
