@@ -1297,6 +1297,55 @@ export type User = {
 
 `;
 
+exports[`yaml parsing should generate params with non quoted keys if they don't contain special characters 1`] = `
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query";
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: "https://example.com" }),
+  tagTypes: [],
+  endpoints: (build) => ({
+    getStructureDefinition: build.query<
+      GetStructureDefinitionApiResponse,
+      GetStructureDefinitionApiArg
+    >({
+      query: (queryArg) => ({
+        url: \`/StructureDefinition\`,
+        params: {
+          foo: queryArg.foo,
+          _foo: queryArg._foo,
+          "-bar-bar": queryArg["-bar-bar"],
+          _bar_bar: queryArg._bar_bar,
+          "foo:bar-foo.bar/foo": queryArg["foo:bar-foo.bar/foo"],
+          foo_bar: queryArg.fooBar,
+          namingConflict: queryArg.namingConflict,
+          naming_conflict: queryArg.naming_conflict,
+        },
+      }),
+    }),
+  }),
+});
+export type GetStructureDefinitionApiResponse = unknown;
+export type GetStructureDefinitionApiArg = {
+  /** Some description */
+  foo?: any;
+  /** Some description */
+  _foo?: any;
+  /** Some description */
+  "-bar-bar"?: any;
+  /** Some description */
+  _bar_bar?: any;
+  /** Some description */
+  "foo:bar-foo.bar/foo"?: any;
+  /** Some description */
+  fooBar?: any;
+  /** Some description */
+  namingConflict?: any;
+  /** Some description */
+  naming_conflict?: any;
+};
+
+
+`;
+
 exports[`yaml parsing should parse a yaml schema from a URL 1`] = `
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query";
 export const api = createApi({

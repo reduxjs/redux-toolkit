@@ -356,4 +356,28 @@ describe('yaml parsing', () => {
 
     expect(fs.readFileSync(fileName, { encoding: 'utf-8' })).toMatchSnapshot();
   });
+
+  it("should generate params with non quoted keys if they don't contain special characters", async () => {
+    const result = await cli([`./test/fixtures/fhir.yaml`], '.');
+
+    const output = result.stdout;
+
+    expect(output).toMatchSnapshot();
+
+    expect(output).toContain('foo: queryArg.foo,');
+    expect(output).toContain('_foo: queryArg._foo,');
+    expect(output).toContain('_bar_bar: queryArg._bar_bar,');
+    expect(output).toContain('foo_bar: queryArg.fooBar,');
+    expect(output).toContain('namingConflict: queryArg.namingConflict,');
+    expect(output).toContain('naming_conflict: queryArg.naming_conflict,');
+  });
+
+  it('should generate params with quoted keys if they contain special characters', async () => {
+    const result = await cli([`./test/fixtures/fhir.yaml`], '.');
+
+    const output = result.stdout;
+
+    expect(output).toContain('"-bar-bar": queryArg["-bar-bar"],');
+    expect(output).toContain('"foo:bar-foo.bar/foo": queryArg["foo:bar-foo.bar/foo"],');
+  });
 });
