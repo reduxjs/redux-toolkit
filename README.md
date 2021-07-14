@@ -13,7 +13,7 @@ Code Generator
 
 ### Introduction
 
-This is a utility library meant to be used with [RTK Query](https://rtk-query-docs.netlify.app) that will generate a typed API client from an OpenAPI schema.
+This is a utility library meant to be used with [RTK Query](https://redux-toolkit.js.org/rtk-query/overview) that will generate a typed API client from an OpenAPI schema.
 
 ### Usage
 
@@ -50,4 +50,4 @@ npx @rtk-incubator/rtk-query-codegen-openapi --file generated.api.ts --baseQuery
 
 ### Documentation
 
-[View the RTK Query Code Generation docs](https://rtk-query-docs.netlify.app/concepts/code-generation)
+[View the RTK Query Code Generation docs](https://redux-toolkit.js.org/rtk-query/usage/code-generation)
