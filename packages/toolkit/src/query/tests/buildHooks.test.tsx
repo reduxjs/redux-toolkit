@@ -821,6 +821,7 @@ describe('hooks tests', () => {
 
           expectType<{
             endpointName: string
+            originalArgs: { name: string }
             track?: boolean
           }>(res.arg)
           expectType<string>(res.requestId)
@@ -1926,6 +1927,19 @@ describe('hooks with createApi defaults set', () => {
         expect(screen.getByTestId('status').textContent).toBe('fulfilled')
       )
       expect(getRenderCount()).toBe(5)
+    })
+
+    test('useMutation return value contains originalArgs', async () => {
+      const { result } = renderHook(api.endpoints.increment.useMutation, {
+        wrapper: storeRef.wrapper,
+      })
+
+      const firstRenderResult = result.current
+      expect(firstRenderResult[1].originalArgs).toBe(undefined)
+      firstRenderResult[0](5)
+      const secondRenderResult = result.current
+      expect(firstRenderResult[1].originalArgs).toBe(undefined)
+      expect(secondRenderResult[1].originalArgs).toBe(5)
     })
 
     it('useMutation with selectFromResult option has a type error if the result is not an object', async () => {
