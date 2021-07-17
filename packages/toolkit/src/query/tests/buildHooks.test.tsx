@@ -198,11 +198,8 @@ describe('hooks tests', () => {
         const [value, setValue] = React.useState(0)
         getRenderCount = useRenderCounter()
 
-        const {
-          isLoading,
-          isFetching,
-          refetch,
-        } = api.endpoints.getUser.useQuery(22, { skip: value < 1 })
+        const { isLoading, isFetching, refetch } =
+          api.endpoints.getUser.useQuery(22, { skip: value < 1 })
         refetchMe = refetch
         return (
           <div>
@@ -259,13 +256,10 @@ describe('hooks tests', () => {
     test('useQuery hook respects refetchOnMountOrArgChange: true', async () => {
       let data, isLoading, isFetching
       function User() {
-        ;({
-          data,
-          isLoading,
-          isFetching,
-        } = api.endpoints.getIncrementedAmount.useQuery(undefined, {
-          refetchOnMountOrArgChange: true,
-        }))
+        ;({ data, isLoading, isFetching } =
+          api.endpoints.getIncrementedAmount.useQuery(undefined, {
+            refetchOnMountOrArgChange: true,
+          }))
         return (
           <div>
             <div data-testid="isLoading">{String(isLoading)}</div>
@@ -308,13 +302,10 @@ describe('hooks tests', () => {
     test('useQuery does not refetch when refetchOnMountOrArgChange: NUMBER condition is not met', async () => {
       let data, isLoading, isFetching
       function User() {
-        ;({
-          data,
-          isLoading,
-          isFetching,
-        } = api.endpoints.getIncrementedAmount.useQuery(undefined, {
-          refetchOnMountOrArgChange: 10,
-        }))
+        ;({ data, isLoading, isFetching } =
+          api.endpoints.getIncrementedAmount.useQuery(undefined, {
+            refetchOnMountOrArgChange: 10,
+          }))
         return (
           <div>
             <div data-testid="isLoading">{String(isLoading)}</div>
@@ -351,13 +342,10 @@ describe('hooks tests', () => {
     test('useQuery refetches when refetchOnMountOrArgChange: NUMBER condition is met', async () => {
       let data, isLoading, isFetching
       function User() {
-        ;({
-          data,
-          isLoading,
-          isFetching,
-        } = api.endpoints.getIncrementedAmount.useQuery(undefined, {
-          refetchOnMountOrArgChange: 0.5,
-        }))
+        ;({ data, isLoading, isFetching } =
+          api.endpoints.getIncrementedAmount.useQuery(undefined, {
+            refetchOnMountOrArgChange: 0.5,
+          }))
         return (
           <div>
             <div data-testid="isLoading">{String(isLoading)}</div>
@@ -403,14 +391,11 @@ describe('hooks tests', () => {
       let data, isLoading, isFetching
       function User() {
         const [skip, setSkip] = React.useState(true)
-        ;({
-          data,
-          isLoading,
-          isFetching,
-        } = api.endpoints.getIncrementedAmount.useQuery(undefined, {
-          refetchOnMountOrArgChange: 0.5,
-          skip,
-        }))
+        ;({ data, isLoading, isFetching } =
+          api.endpoints.getIncrementedAmount.useQuery(undefined, {
+            refetchOnMountOrArgChange: 0.5,
+            skip,
+          }))
 
         return (
           <div>
@@ -452,14 +437,11 @@ describe('hooks tests', () => {
       let data, isLoading, isFetching
       function User() {
         const [skip, setSkip] = React.useState(true)
-        ;({
-          data,
-          isLoading,
-          isFetching,
-        } = api.endpoints.getIncrementedAmount.useQuery(undefined, {
-          skip,
-          refetchOnMountOrArgChange: 0.5,
-        }))
+        ;({ data, isLoading, isFetching } =
+          api.endpoints.getIncrementedAmount.useQuery(undefined, {
+            skip,
+            refetchOnMountOrArgChange: 0.5,
+          }))
 
         return (
           <div>
@@ -540,10 +522,8 @@ describe('hooks tests', () => {
     let getRenderCount: () => number = () => 0
     test('useLazyQuery does not automatically fetch when mounted and has undefined data', async () => {
       function User() {
-        const [
-          fetchUser,
-          { data: hookData, isFetching, isUninitialized },
-        ] = api.endpoints.getUser.useLazyQuery()
+        const [fetchUser, { data: hookData, isFetching, isUninitialized }] =
+          api.endpoints.getUser.useLazyQuery()
         getRenderCount = useRenderCounter()
 
         data = hookData
@@ -592,10 +572,8 @@ describe('hooks tests', () => {
       let interval = 1000
       function User() {
         const [options, setOptions] = React.useState<SubscriptionOptions>()
-        const [
-          fetchUser,
-          { data: hookData, isFetching, isUninitialized },
-        ] = api.endpoints.getUser.useLazyQuery(options)
+        const [fetchUser, { data: hookData, isFetching, isUninitialized }] =
+          api.endpoints.getUser.useLazyQuery(options)
         getRenderCount = useRenderCounter()
 
         data = hookData
@@ -676,10 +654,8 @@ describe('hooks tests', () => {
 
     test('useLazyQuery accepts updated args and unsubscribes the original query', async () => {
       function User() {
-        const [
-          fetchUser,
-          { data: hookData, isFetching, isUninitialized },
-        ] = api.endpoints.getUser.useLazyQuery()
+        const [fetchUser, { data: hookData, isFetching, isUninitialized }] =
+          api.endpoints.getUser.useLazyQuery()
 
         data = hookData
 
@@ -766,10 +742,8 @@ describe('hooks tests', () => {
   describe('useMutation', () => {
     test('useMutation hook sets and unsets the isLoading flag when running', async () => {
       function User() {
-        const [
-          updateUser,
-          { isLoading },
-        ] = api.endpoints.updateUser.useMutation()
+        const [updateUser, { isLoading }] =
+          api.endpoints.updateUser.useMutation()
 
         return (
           <div>
@@ -847,7 +821,6 @@ describe('hooks tests', () => {
 
           expectType<{
             endpointName: string
-            originalArgs: { name: string }
             track?: boolean
           }>(res.arg)
           expectType<string>(res.requestId)
@@ -1217,10 +1190,8 @@ describe('hooks tests', () => {
       let data, isLoading, isError
       function User() {
         ;({ data, isError, isLoading } = api.endpoints.checkSession.useQuery())
-        const [
-          login,
-          { isLoading: loginLoading },
-        ] = api.endpoints.login.useMutation()
+        const [login, { isLoading: loginLoading }] =
+          api.endpoints.login.useMutation()
 
         return (
           <div>
@@ -1310,10 +1281,8 @@ describe('hooks with createApi defaults set', () => {
     let data, isLoading, isFetching
 
     function User() {
-      ;({
-        data,
-        isLoading,
-      } = defaultApi.endpoints.getIncrementedAmount.useQuery())
+      ;({ data, isLoading } =
+        defaultApi.endpoints.getIncrementedAmount.useQuery())
       return (
         <div>
           <div data-testid="isLoading">{String(isLoading)}</div>
@@ -1338,12 +1307,10 @@ describe('hooks with createApi defaults set', () => {
     unmount()
 
     function OtherUser() {
-      ;({
-        data,
-        isFetching,
-      } = defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
-        refetchOnMountOrArgChange: true,
-      }))
+      ;({ data, isFetching } =
+        defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
+          refetchOnMountOrArgChange: true,
+        }))
       return (
         <div>
           <div data-testid="isFetching">{String(isFetching)}</div>
@@ -1370,10 +1337,8 @@ describe('hooks with createApi defaults set', () => {
     let data, isLoading, isFetching
 
     function User() {
-      ;({
-        data,
-        isLoading,
-      } = defaultApi.endpoints.getIncrementedAmount.useQuery())
+      ;({ data, isLoading } =
+        defaultApi.endpoints.getIncrementedAmount.useQuery())
       return (
         <div>
           <div data-testid="isLoading">{String(isLoading)}</div>
@@ -1398,12 +1363,10 @@ describe('hooks with createApi defaults set', () => {
     unmount()
 
     function OtherUser() {
-      ;({
-        data,
-        isFetching,
-      } = defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
-        refetchOnMountOrArgChange: false,
-      }))
+      ;({ data, isFetching } =
+        defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
+          refetchOnMountOrArgChange: false,
+        }))
       return (
         <div>
           <div data-testid="isFetching">{String(isFetching)}</div>
