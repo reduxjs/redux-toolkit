@@ -6,7 +6,7 @@ const token = nanoid()
 export const handlers = [
   rest.get('/protected', (req, res, ctx) => {
     const headers = req.headers.all()
-    if (headers.authentication !== `Bearer ${token}`) {
+    if (headers.authorization !== `Bearer ${token}`) {
       return res(
         ctx.json({
           message: 'You shall not pass. Please login first.',
