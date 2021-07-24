@@ -193,10 +193,10 @@ The auto-generated React hooks created by the React-specific version of `createA
 
 For query endpoints, RTK Query maintains a semantic distinction between `isLoading` and `isFetching` in order to provide more flexibility with the derived information provided.
 
-- `isLoading` refers to a query being in flight for the _first time_ for the given endpoint + query param combination. No data will be available at this time.
-- `isFetching` refers to a query being in flight for the given endpoint + query param combination, but not necessarily for the first time. Data may be available from an earlier request at this time.
+- `isLoading` refers to a query being in flight for the _first time_ for the given hook. No data will be available at this time.
+- `isFetching` refers to a query being in flight for the given endpoint + query param combination, but not necessarily for the first time. Data may be available from an earlier request done by this hook, maybe with the previous query param.
 
-This distinction allows for greater control when handling UI behavior. For example, `isLoading` can be used to display a skeleton while loading for the first time, while `isFetching` can be used to grey out old data when fetching subsequent requests when data is invalidated and re-fetched.
+This distinction allows for greater control when handling UI behavior. For example, `isLoading` can be used to display a skeleton while loading for the first time, while `isFetching` can be used to grey out old data when changing from page 1 to page 2 or when data is invalidated and re-fetched.
 
 ```tsx title="Managing UI behavior with Query Loading States"
 import { Skeleton } from './Skeleton'

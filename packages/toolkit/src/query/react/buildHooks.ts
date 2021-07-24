@@ -50,6 +50,14 @@ import { useShallowStableValue } from './useShallowStableValue'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
 
+// Copy-pasted from React-Redux
+export const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' &&
+  typeof window.document !== 'undefined' &&
+  typeof window.document.createElement !== 'undefined'
+    ? useLayoutEffect
+    : useEffect
+
 export interface QueryHooks<
   Definition extends QueryDefinition<any, any, any, any, any>
 > {
@@ -369,9 +377,11 @@ export type UseMutationStateOptions<
 }
 
 export type UseMutationStateResult<
-  _ extends MutationDefinition<any, any, any, any>,
+  D extends MutationDefinition<any, any, any, any>,
   R
-> = NoInfer<R>
+> = NoInfer<R> & {
+  originalArgs?: QueryArgFrom<D>
+}
 
 /**
  * A React hook that lets you trigger an update request for a given endpoint, and subscribes the component to read the request status from the Redux store. The component will re-render as the loading status changes.
@@ -690,7 +700,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         store.getState(),
         lastValue.current
       )
-      useLayoutEffect(() => {
+      useIsomorphicLayoutEffect(() => {
         lastValue.current = newLastValue
       }, [newLastValue])
 
@@ -772,10 +782,18 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       )
 
       const currentState = useSelector(mutationSelector, shallowEqual)
+      const originalArgs = promiseRef.current?.arg.originalArgs
+      const finalState = useMemo(
+        () => ({
+          ...currentState,
+          originalArgs,
+        }),
+        [currentState, originalArgs]
+      )
 
       const ret = useMemo(
-        () => [triggerMutation, currentState] as const,
-        [triggerMutation, currentState]
+        () => [triggerMutation, finalState] as const,
+        [triggerMutation, finalState]
       )
 
       if (unstable__suspense && promiseRef.current?.resolved === false) {
