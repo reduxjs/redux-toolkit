@@ -190,6 +190,8 @@ const resetApiState = () => ({
 
 A Redux action creator that can be dispatched to manually reset the api state completely. This will immediately remove all existing cache entries, and all queries will be considered 'uninitialized'.
 
+Note that [hooks](./hooks.mdx) have their own state that is not affected by `resetApiState`
+
 #### Example
 
 ```ts no-transpile
