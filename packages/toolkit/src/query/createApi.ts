@@ -1,4 +1,5 @@
 import type { Api, ApiContext, Module, ModuleName } from './apiTypes'
+import type { CombinedState } from './core/apiState'
 import type { BaseQueryArg, BaseQueryFn } from './baseQueryTypes'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import { defaultSerializeQueryArgs } from './defaultSerializeQueryArgs'
@@ -8,6 +9,8 @@ import type {
 } from './endpointDefinitions'
 import { DefinitionType } from './endpointDefinitions'
 import { nanoid } from '@reduxjs/toolkit'
+import type { AnyAction } from '@reduxjs/toolkit'
+import type { NoInfer } from './tsHelpers'
 
 export interface CreateApiOptions<
   BaseQuery extends BaseQueryFn,
@@ -147,6 +150,14 @@ export interface CreateApiOptions<
    * Note: requires [`setupListeners`](./setupListeners) to have been called.
    */
   refetchOnReconnect?: boolean
+
+  extractRehydrationInfo?: (
+    action: AnyAction
+  ) => CombinedState<
+    NoInfer<Definitions>,
+    NoInfer<TagTypes>,
+    NoInfer<ReducerPath>
+  >
 }
 
 export type CreateApi<Modules extends ModuleName> = {
@@ -204,6 +215,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
         fn()
       },
       apiUid: nanoid(),
+      extractRehydrationInfo: options.extractRehydrationInfo,
     }
 
     const api = {

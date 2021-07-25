@@ -1,4 +1,4 @@
-import type { AsyncThunk, PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
 import {
   combineReducers,
   createAction,
@@ -6,12 +6,6 @@ import {
   isAnyOf,
   isFulfilled,
   isRejectedWithValue,
-  // Workaround for API-Extractor
-  AnyAction,
-  CombinedState,
-  Reducer,
-  ActionCreatorWithPayload,
-  ActionCreatorWithoutPayload,
 } from '@reduxjs/toolkit'
 import type {
   CombinedState as CombinedQueryState,
@@ -28,13 +22,7 @@ import type {
   ConfigState,
 } from './apiState'
 import { QueryStatus } from './apiState'
-import type {
-  MutationThunk,
-  MutationThunkArg,
-  QueryThunk,
-  QueryThunkArg,
-  ThunkResult,
-} from './buildThunks'
+import type { MutationThunk, QueryThunk } from './buildThunks'
 import { calculateProvidedByThunk } from './buildThunks'
 import type {
   AssertTagTypes,
@@ -93,6 +81,9 @@ export function buildSlice({
   >
 }) {
   const resetApiState = createAction(`${reducerPath}/resetApiState`)
+  const rehydrate = createAction<ReturnType<typeof reducer>>(
+    `${reducerPath}/rehydrate`
+  )
   const querySlice = createSlice({
     name: `${reducerPath}/queries`,
     initialState: initialState as QueryState<any>,
@@ -166,6 +157,9 @@ export function buildSlice({
             )
           }
         )
+        .addCase(rehydrate, (draft, action) => {
+          Object.assign(draft, action.payload.queries)
+        })
     },
   })
   const mutationSlice = createSlice({
@@ -218,6 +212,8 @@ export function buildSlice({
             })
           }
         )
+      // mutation state will not be rehydrated as it could never be retrieved by a component
+      // .addCase(rehydrate, (draft, action) => {})
     },
   })
 
@@ -242,6 +238,24 @@ export function buildSlice({
             }
           }
         )
+        .addCase(rehydrate, (draft, action) => {
+          for (const [type, incomingTags] of Object.entries(
+            action.payload.provided
+          )) {
+            for (const [id, cacheKeys] of Object.entries(incomingTags)) {
+              const subscribedQueries = ((draft[type] ??= {})[
+                id || '__internal_without_id'
+              ] ??= [])
+              for (const queryCacheKey of cacheKeys) {
+                const alreadySubscribed =
+                  subscribedQueries.includes(queryCacheKey)
+                if (!alreadySubscribed) {
+                  subscribedQueries.push(queryCacheKey)
+                }
+              }
+            }
+          }
+        })
         .addMatcher(
           isAnyOf(isFulfilled(queryThunk), isRejectedWithValue(queryThunk)),
           (draft, action) => {
@@ -380,6 +394,7 @@ export function buildSlice({
     ...subscriptionSlice.actions,
     ...mutationSlice.actions,
     resetApiState,
+    rehydrate,
   }
 
   return { reducer, actions }

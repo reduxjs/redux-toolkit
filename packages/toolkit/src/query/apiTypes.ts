@@ -4,7 +4,11 @@ import type {
   EndpointDefinition,
   ReplaceTagTypes,
 } from './endpointDefinitions'
-import type { UnionToIntersection, NoInfer } from './tsHelpers'
+import type {
+  UnionToIntersection,
+  NoInfer,
+  WithRequiredProp,
+} from './tsHelpers'
 import type { CoreModule } from './core/module'
 import type { CreateApiOptions } from './createApi'
 import type { BaseQueryFn } from './baseQueryTypes'
@@ -31,8 +35,15 @@ export type Module<Name extends ModuleName> = {
     TagTypes extends string
   >(
     api: Api<BaseQuery, EndpointDefinitions, ReducerPath, TagTypes, ModuleName>,
-    options: Required<
-      CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>
+    options: WithRequiredProp<
+      CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>,
+      | 'reducerPath'
+      | 'serializeQueryArgs'
+      | 'keepUnusedDataFor'
+      | 'refetchOnMountOrArgChange'
+      | 'refetchOnFocus'
+      | 'refetchOnReconnect'
+      | 'tagTypes'
     >,
     context: ApiContext<Definitions>
   ): {
@@ -47,6 +58,11 @@ export interface ApiContext<Definitions extends EndpointDefinitions> {
   apiUid: string
   endpointDefinitions: Definitions
   batch(cb: () => void): void
+  extractRehydrationInfo: CreateApiOptions<
+    any,
+    Definitions,
+    string
+  >['extractRehydrationInfo']
 }
 
 export type Api<

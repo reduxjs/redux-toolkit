@@ -245,6 +245,7 @@ declare module '../apiTypes' {
           Array<TagTypes | FullTagDescription<TagTypes>>,
           string
         >
+        rehydrate: InternalActions['rehydrate']
       }
       /**
        * Endpoints based on the input endpoints provided to `createApi`, containing `select` and `action matchers`.
@@ -388,6 +389,7 @@ export const coreModule = (): Module<CoreModule> => ({
       updateQueryData,
       prefetch,
       resetApiState: sliceActions.resetApiState,
+      rehydrate: sliceActions.rehydrate,
     })
     safeAssign(api.internalActions, sliceActions)
 
