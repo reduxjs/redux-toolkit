@@ -153,11 +153,13 @@ export interface CreateApiOptions<
 
   extractRehydrationInfo?: (
     action: AnyAction
-  ) => CombinedState<
-    NoInfer<Definitions>,
-    NoInfer<TagTypes>,
-    NoInfer<ReducerPath>
-  >
+  ) =>
+    | undefined
+    | CombinedState<
+        NoInfer<Definitions>,
+        NoInfer<TagTypes>,
+        NoInfer<ReducerPath>
+      >
 }
 
 export type CreateApi<Modules extends ModuleName> = {
