@@ -117,7 +117,7 @@ export const { useGetPokemonByNameQuery } = pokemonApi
 
 ### Configure the Store
 
-The "API slice" also contains an auto-generated Redux slice reducer and a custom middleware that manages suscription lifetimes. Both of those need to be added to the Redux store:
+The "API slice" also contains an auto-generated Redux slice reducer and a custom middleware that manages subscription lifetimes. Both of those need to be added to the Redux store:
 
 ```ts
 import { configureStore } from '@reduxjs/toolkit'
