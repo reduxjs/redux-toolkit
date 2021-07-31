@@ -202,6 +202,8 @@ const api = createApi({
     }
     ```
 - `QueryArg` - The type of the input that will be passed as the only parameter to the `query` property of the endpoint, or the first parameter of a `queryFn` property if used instead.
+  - If `query` doesn't have a parameter, then `void` type has to be provided explicitly.
+  - If `query` has an optional parameter, then a union type with the type of parameter, and `void` has to be provided, e.g. `number | void`.
 
 ```ts title="Defining endpoints with TypeScript"
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
