@@ -157,8 +157,16 @@ export function buildSlice({
             )
           }
         )
-        .addCase(rehydrate, (draft, action) => {
-          Object.assign(draft, action.payload.queries)
+        .addCase(rehydrate, (draft, { payload: { queries } }) => {
+          for (const [key, entry] of Object.entries(queries)) {
+            if (
+              // do not rehydrate entries that were currently in flight.
+              entry?.status === QueryStatus.fulfilled ||
+              entry?.status === QueryStatus.rejected
+            ) {
+              draft[key] = entry
+            }
+          }
         })
     },
   })
