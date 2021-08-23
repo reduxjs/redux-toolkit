@@ -97,10 +97,13 @@ export const postApi = createApi({
           method: 'DELETE',        
         }      
       },      
-      // Invalidates queries that subscribe to this Post `id` as well as the `LIST`.      
-      invalidatesTags: (result, error, id) => [{ type: 'Posts', id }, 
-                                               { type: 'Posts', id: 'LIST'}],    
-   }),
+      // Invalidates queries that subscribe to this Post `id` as well as the `LIST`.
+      invalidatesTags: (result, error, id) => [
+        { type: "Posts", id },
+        { type: "Posts", id: "LIST" },
+      ],
+    }),
+  }),
 })
 ```
 ## General Pagination Example
