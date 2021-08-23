@@ -99,7 +99,7 @@ export const postApi = createApi({
       },      
       // Invalidates queries that subscribe to this Post `id` as well as the `LIST`.      
       invalidatesTags: (result, error, id) => [{ type: 'Posts', id }, 
-                                               { type: 'Posts', 'LIST'}],    
+                                               { type: 'Posts', id: 'LIST'}],    
    }),
 })
 ```
