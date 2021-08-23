@@ -76,6 +76,33 @@ const PostList = () => {
 };
 ```
 
+## Pagination and Caching
+
+If you have caching enabled for your paginated queries, it maybe a good idea to invalidate the `LIST` cache as well when you do a `delete` mutation.
+
+```ts title="src/features/services/post.ts
+// Or from '@reduxjs/toolkit/query' if not using the auto-generated hooks
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { Post } from './types'
+
+export const postApi = createApi({  
+  reducerPath: 'postsApi',  
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),  
+  tagTypes: ['Posts'],  
+  endpoints: (build) => ({
+    deletePost: build.mutation<{ success: boolean; id: number }, number>({ 
+      query(id) {        
+        return {          
+          url: `post/${id}`,          
+          method: 'DELETE',        
+        }      
+      },      
+      // Invalidates queries that subscribe to this Post `id` as well as the `LIST`.      
+      invalidatesTags: (result, error, id) => [{ type: 'Posts', id }, 
+                                               { type: 'Posts, 'LIST'}],    
+   }),
+})
+```
 ## General Pagination Example
 
 In the following example, you'll see `Loading` on the initial query, but then as you move forward we'll use the next/previous buttons as a _fetching_ indicator while any non-cached query is performed. When you go back, the cached data will be served instantaneously.
