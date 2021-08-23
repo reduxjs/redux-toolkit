@@ -80,8 +80,15 @@ const PostList = () => {
 
 If you have caching enabled for your paginated queries, it maybe a good idea to invalidate the `LIST` cache as well when you do a `delete` mutation.
 
-```ts title="src/features/services/post.ts
-// Or from '@reduxjs/toolkit/query' if not using the auto-generated hooks
+```ts title="Example of invalidating cache for paginated queries"
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+// file: api.ts
+// Or from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { Post } from './types'
 
