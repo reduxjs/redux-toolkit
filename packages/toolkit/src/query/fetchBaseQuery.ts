@@ -238,7 +238,10 @@ export function fetchBaseQuery({
 
     let resultData
     try {
-      resultData = await handleResponse(response, responseHandler)
+      // note: node-fetch will hang when using response.clone() unless we resolve the cloned response in parallel
+      // https://github.com/node-fetch/node-fetch#custom-highwatermark
+      const results = await Promise.all([handleResponse(response, responseHandler), responseClone.text()]);
+      resultData = results[0];
     } catch (e) {
       return {
         error: {
