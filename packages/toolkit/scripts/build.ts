@@ -207,6 +207,7 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
           format !== 'cjs' ? ts.ModuleKind.ES2015 : ts.ModuleKind.CommonJS,
         target: esVersion,
       },
+      fileName: chunk.path
     })
 
     const mergedSourcemap = merge(sourcemap, result.sourceMapText)
