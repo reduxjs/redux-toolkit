@@ -370,6 +370,7 @@ export type UseMutationStateOptions<
   R extends Record<string, any>
 > = {
   selectFromResult?: MutationStateSelector<R, D>
+  fixedCacheKey?: string
 }
 
 export type UseMutationStateResult<
@@ -716,7 +717,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   }
 
   function buildMutationHook(name: string): UseMutation<any> {
-    return ({ selectFromResult = defaultMutationStateSelector } = {}) => {
+    return ({
+      selectFromResult = defaultMutationStateSelector,
+      fixedCacheKey,
+    } = {}) => {
       const { select, initiate } = api.endpoints[name] as ApiEndpointMutation<
         MutationDefinition<any, any, any, any, any>,
         Definitions
@@ -724,24 +728,31 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
       const [promise, setPromise] = useState<MutationActionCreatorResult<any>>()
 
-      useEffect(() => () => promise?.unsubscribe(), [promise])
+      useEffect(
+        () => () => {
+          if (!promise?.arg.fixedCacheKey) {
+            promise?.unsubscribe()
+          }
+        },
+        [promise]
+      )
 
       const triggerMutation = useCallback(
         function (arg) {
-          const promise = dispatch(initiate(arg))
+          const promise = dispatch(initiate(arg, { fixedCacheKey }))
           setPromise(promise)
           return promise
         },
-        [dispatch, initiate]
+        [dispatch, initiate, fixedCacheKey]
       )
 
       const mutationSelector = useMemo(
         () =>
           createSelector(
-            [select(promise?.requestId || skipToken)],
+            [select({ fixedCacheKey, requestId: promise?.requestId })],
             selectFromResult
           ),
-        [select, promise, selectFromResult]
+        [select, promise, selectFromResult, fixedCacheKey]
       )
 
       const currentState = useSelector(mutationSelector, shallowEqual)

@@ -79,6 +79,7 @@ type StartMutationActionCreator<
      * (defaults to `true`)
      */
     track?: boolean
+    fixedCacheKey?: string
   }
 ) => ThunkAction<MutationActionCreatorResult<D>, any, any, AnyAction>
 
@@ -113,6 +114,7 @@ export type MutationActionCreatorResult<
      * Whether the mutation is being tracked in the store.
      */
     track?: boolean
+    fixedCacheKey?: string
   }
   /**
    * A unique string generated for the request sequence
@@ -285,12 +287,13 @@ Features like automatic cache collection, automatic refetching etc. will not be 
     endpointName: string,
     definition: MutationDefinition<any, any, any, any>
   ): StartMutationActionCreator<any> {
-    return (arg, { track = true } = {}) =>
+    return (arg, { track = true, fixedCacheKey } = {}) =>
       (dispatch, getState) => {
         const thunk = mutationThunk({
           endpointName,
           originalArgs: arg,
           track,
+          fixedCacheKey,
         })
         const thunkResult = dispatch(thunk)
         middlewareWarning(getState)
@@ -305,7 +308,8 @@ Features like automatic cache collection, automatic refetching etc. will not be 
           abort,
           unwrap: thunkResult.unwrap,
           unsubscribe() {
-            if (track) dispatch(unsubscribeMutationResult({ requestId }))
+            if (track)
+              dispatch(unsubscribeMutationResult({ requestId, fixedCacheKey }))
           },
         })
       }

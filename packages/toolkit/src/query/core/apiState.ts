@@ -12,7 +12,10 @@ import type { Id, WithRequiredProp } from '../tsHelpers'
 
 export type QueryCacheKey = string & { _type: 'queryCacheKey' }
 export type QuerySubstateIdentifier = { queryCacheKey: QueryCacheKey }
-export type MutationSubstateIdentifier = { requestId: string }
+export type MutationSubstateIdentifier = {
+  requestId: string
+  fixedCacheKey: string | undefined
+}
 
 export type RefetchConfigOptions = {
   refetchOnMountOrArgChange: boolean | number
