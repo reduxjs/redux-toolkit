@@ -377,6 +377,11 @@ export type UseMutationStateResult<
   R
 > = NoInfer<R> & {
   originalArgs?: QueryArgFrom<D>
+  /**
+   * Resets the hook state to it's initial `uninitialized` state.
+   * This will also remove the last result from the cache.
+   */
+  reset: () => void
 }
 
 /**
@@ -717,47 +722,37 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         Definitions
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
-      const [requestId, setRequestId] = useState<string>()
+      const [promise, setPromise] = useState<MutationActionCreatorResult<any>>()
 
-      const promiseRef = useRef<MutationActionCreatorResult<any>>()
-
-      useEffect(() => {
-        return () => {
-          promiseRef.current?.unsubscribe()
-          promiseRef.current = undefined
-        }
-      }, [])
+      useEffect(() => () => promise?.unsubscribe(), [promise])
 
       const triggerMutation = useCallback(
         function (arg) {
-          let promise: MutationActionCreatorResult<any>
-          batch(() => {
-            promiseRef?.current?.unsubscribe()
-            promise = dispatch(initiate(arg))
-            promiseRef.current = promise
-            setRequestId(promise.requestId)
-          })
-          return promise!
+          const promise = dispatch(initiate(arg))
+          setPromise(promise)
+          return promise
         },
         [dispatch, initiate]
       )
 
       const mutationSelector = useMemo(
         () =>
-          createSelector([select(requestId || skipToken)], (subState) =>
-            selectFromResult(subState)
+          createSelector(
+            [select(promise?.requestId || skipToken)],
+            selectFromResult
           ),
-        [select, requestId, selectFromResult]
+        [select, promise, selectFromResult]
       )
 
       const currentState = useSelector(mutationSelector, shallowEqual)
-      const originalArgs = promiseRef.current?.arg.originalArgs
+      const originalArgs = promise?.arg.originalArgs
       const finalState = useMemo(
         () => ({
           ...currentState,
           originalArgs,
+          reset: promise?.unsubscribe,
         }),
-        [currentState, originalArgs]
+        [currentState, originalArgs, promise]
       )
 
       return useMemo(

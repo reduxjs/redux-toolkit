@@ -869,6 +869,45 @@ describe('hooks tests', () => {
       expect(screen.queryByText(/Successfully updated user/i)).toBeNull()
       screen.getByText('Request was aborted')
     })
+
+    test('`reset` sets state back to original state', async () => {
+      function User() {
+        const [updateUser, result] = api.endpoints.updateUser.useMutation()
+        return (
+          <>
+            <span>
+              {result.isUninitialized
+                ? 'isUninitialized'
+                : result.isSuccess
+                ? 'isSuccess'
+                : 'other'}
+            </span>
+            <button onClick={() => updateUser({ name: 'Yay' })}>trigger</button>
+            <button onClick={result.reset}>reset</button>
+          </>
+        )
+      }
+      render(<User />, { wrapper: storeRef.wrapper })
+
+      await screen.findByText(/isUninitialized/i)
+      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(
+        0
+      )
+
+      userEvent.click(screen.getByRole('button', { name: 'trigger' }))
+
+      await screen.findByText(/isSuccess/i)
+      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(
+        1
+      )
+
+      userEvent.click(screen.getByRole('button', { name: 'reset' }))
+
+      await screen.findByText(/isUninitialized/i)
+      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(
+        0
+      )
+    })
   })
 
   describe('usePrefetch', () => {
@@ -1843,8 +1882,8 @@ describe('hooks with createApi defaults set', () => {
         api.internalActions.middlewareRegistered.match,
         increment.matchPending,
         increment.matchFulfilled,
-        api.internalActions.unsubscribeMutationResult.match,
         increment.matchPending,
+        api.internalActions.unsubscribeMutationResult.match,
         increment.matchFulfilled
       )
     })
