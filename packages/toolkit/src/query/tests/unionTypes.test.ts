@@ -483,6 +483,7 @@ describe.skip('TS only tests', () => {
       isLoading: true,
       isSuccess: false,
       isError: false,
+      reset: () => {},
     })(result)
   })
 
