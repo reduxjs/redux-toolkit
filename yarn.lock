@@ -5034,7 +5034,7 @@ __metadata:
     eslint-plugin-react: ^7.23.2
     eslint-plugin-react-hooks: ^4.2.0
     fs-extra: ^9.1.0
-    immer: ^9.0.1
+    immer: ^9.0.6
     invariant: ^2.2.4
     jest: ^26.6.3
     json-stringify-safe: ^5.0.1
@@ -13776,10 +13776,10 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"immer@npm:^9.0.1":
-  version: 9.0.2
-  resolution: "immer@npm:9.0.2"
-  checksum: 71487285a890e6fb92ed8950ce3b5b0e2546321bb4dfe82a7395fbc3f24308b0481387b5939fd35681bac8e36161d903f2bcd99ac045acd25ed3a7f21c629bfd
+"immer@npm:^9.0.6":
+  version: 9.0.6
+  resolution: "immer@npm:9.0.6"
+  checksum: 48c9b673ee0f3a05f0651f26c8ccdcbc034a47502dd26e716bd7bb301bcede194d1c5e895d4d6ec8d1e7bfb6444dd1056095b3f10e6c5e08cc3e798497a96531
   languageName: node
   linkType: hard
 
