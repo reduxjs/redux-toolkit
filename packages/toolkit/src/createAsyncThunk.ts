@@ -554,11 +554,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
         let finalAction: ReturnType<typeof fulfilled | typeof rejected>
         try {
           let conditionResult = options?.condition?.(arg, { getState, extra })
-          if (
-            conditionResult !== null &&
-            typeof conditionResult === 'object' &&
-            typeof conditionResult.then === 'function'
-          ) {
+          if (isThenable(conditionResult)) {
             conditionResult = await conditionResult
           }
           if (conditionResult === false) {
@@ -682,3 +678,11 @@ export function unwrapResult<R extends UnwrappableAction>(
 type WithStrictNullChecks<True, False> = undefined extends boolean
   ? False
   : True
+
+function isThenable(value: any): value is PromiseLike<any> {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    typeof value.then === 'function'
+  )
+}
