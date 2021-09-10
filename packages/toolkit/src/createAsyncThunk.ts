@@ -553,12 +553,15 @@ If you want to use the AbortController to react to \`abort\` events, please cons
       const promise = (async function () {
         let finalAction: ReturnType<typeof fulfilled | typeof rejected>
         try {
-          const conditionResult = options?.condition?.(arg, { getState, extra })
-          if (
-            conditionResult === false ||
-            (conditionResult instanceof Promise &&
-              (await conditionResult.catch(() => false)) === false)
-          ) {
+          let conditionResult = options?.condition?.(arg, { getState, extra })
+          if (conditionResult instanceof Promise) {
+            try {
+              conditionResult = await conditionResult
+            } catch {
+              conditionResult = false
+            }
+          }
+          if (conditionResult === false) {
             // eslint-disable-next-line no-throw-literal
             throw {
               name: 'ConditionError',
