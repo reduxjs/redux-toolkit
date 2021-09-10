@@ -554,12 +554,11 @@ If you want to use the AbortController to react to \`abort\` events, please cons
         let finalAction: ReturnType<typeof fulfilled | typeof rejected>
         try {
           let conditionResult = options?.condition?.(arg, { getState, extra })
-          if (conditionResult instanceof Promise) {
-            try {
-              conditionResult = await conditionResult
-            } catch {
-              conditionResult = false
-            }
+          if (
+            typeof conditionResult === 'object' &&
+            typeof conditionResult.then === 'function'
+          ) {
+            conditionResult = await conditionResult
           }
           if (conditionResult === false) {
             // eslint-disable-next-line no-throw-literal

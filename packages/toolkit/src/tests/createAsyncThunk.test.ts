@@ -615,7 +615,10 @@ describe('conditional skipping of asyncThunks', () => {
     const condition = () => Promise.reject()
     const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
     await asyncThunk(arg)(dispatch, getState, extra)
-    expect(dispatch).toHaveBeenCalledTimes(0)
+    expect(dispatch).toHaveBeenCalledTimes(1)
+    expect(dispatch).toHaveBeenLastCalledWith(
+      expect.objectContaining({ type: 'test/rejected' })
+    )
   })
 
   test('rejected action is not dispatched by default', async () => {
