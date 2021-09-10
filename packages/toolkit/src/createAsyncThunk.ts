@@ -555,6 +555,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
         try {
           let conditionResult = options?.condition?.(arg, { getState, extra })
           if (
+            conditionResult !== null &&
             typeof conditionResult === 'object' &&
             typeof conditionResult.then === 'function'
           ) {
