@@ -40,8 +40,8 @@ const api = createApi({
     baseUrl: '/',
   }),
   tagTypes: ['Post'],
-  endpoints: (build) => ({
-    updatePost: build.mutation<Post, Partial<Post> & Pick<Post, 'id'>>({
+  endpoints: (builder) => ({
+    updatePost: builder.mutation<Post, Partial<Post> & Pick<Post, 'id'>>({
       // highlight-start
       // note: an optional `queryFn` may be used in place of `query`
       query: ({ id, ...patch }) => ({
