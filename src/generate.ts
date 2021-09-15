@@ -288,6 +288,8 @@ export async function generateApi(
       return name;
     };
 
+    const queryArgValues = Object.values(queryArg);
+
     const QueryArg = factory.createTypeReferenceNode(
       registerInterface(
         factory.createTypeAliasDeclaration(
@@ -295,22 +297,29 @@ export async function generateApi(
           [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
           capitalize(getOperationName(verb, path, operation.operationId) + argSuffix),
           undefined,
-          factory.createTypeLiteralNode(
-            Object.values(queryArg).map((def) => {
-              const comment = def.origin === 'param' ? def.param.description : def.body.description;
-              const node = factory.createPropertySignature(
-                undefined,
-                propertyName(def.name),
-                createQuestionToken(!def.required),
-                def.type
-              );
+          queryArgValues.length > 0
+            ? factory.createTypeLiteralNode(
+                queryArgValues.map((def) => {
+                  const comment = def.origin === 'param' ? def.param.description : def.body.description;
+                  const node = factory.createPropertySignature(
+                    undefined,
+                    propertyName(def.name),
+                    createQuestionToken(!def.required),
+                    def.type
+                  );
 
-              if (comment) {
-                return ts.addSyntheticLeadingComment(node, ts.SyntaxKind.MultiLineCommentTrivia, `* ${comment} `, true);
-              }
-              return node;
-            })
-          )
+                  if (comment) {
+                    return ts.addSyntheticLeadingComment(
+                      node,
+                      ts.SyntaxKind.MultiLineCommentTrivia,
+                      `* ${comment} `,
+                      true
+                    );
+                  }
+                  return node;
+                })
+              )
+            : factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword)
         )
       ).name
     );
