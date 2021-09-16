@@ -135,12 +135,14 @@ export type AddPetApiArg = {
   /** Create a new pet in the store */
   pet: Pet;
 };
-export type FindPetsByStatusApiResponse = /** status 200 successful operation */ Pet[];
+export type FindPetsByStatusApiResponse =
+  /** status 200 successful operation */ Pet[];
 export type FindPetsByStatusApiArg = {
   /** Status values that need to be considered for filter */
   status?: "available" | "pending" | "sold";
 };
-export type FindPetsByTagsApiResponse = /** status 200 successful operation */ Pet[];
+export type FindPetsByTagsApiResponse =
+  /** status 200 successful operation */ Pet[];
 export type FindPetsByTagsApiArg = {
   /** Tags to filter by */
   tags?: string[];
@@ -165,7 +167,8 @@ export type DeletePetApiArg = {
   /** Pet id to delete */
   petId: number;
 };
-export type UploadFileApiResponse = /** status 200 successful operation */ ApiResponse;
+export type UploadFileApiResponse =
+  /** status 200 successful operation */ ApiResponse;
 export type UploadFileApiArg = {
   /** ID of pet to update */
   petId: number;
@@ -177,11 +180,13 @@ export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
 };
 export type GetInventoryApiArg = void;
-export type PlaceOrderApiResponse = /** status 200 successful operation */ Order;
+export type PlaceOrderApiResponse =
+  /** status 200 successful operation */ Order;
 export type PlaceOrderApiArg = {
   order: Order;
 };
-export type GetOrderByIdApiResponse = /** status 200 successful operation */ Order;
+export type GetOrderByIdApiResponse =
+  /** status 200 successful operation */ Order;
 export type GetOrderByIdApiArg = {
   /** ID of order that needs to be fetched */
   orderId: number;
@@ -196,11 +201,13 @@ export type CreateUserApiArg = {
   /** Created user object */
   user: User;
 };
-export type CreateUsersWithListInputApiResponse = /** status 200 Successful operation */ User;
+export type CreateUsersWithListInputApiResponse =
+  /** status 200 Successful operation */ User;
 export type CreateUsersWithListInputApiArg = {
   body: User[];
 };
-export type LoginUserApiResponse = /** status 200 successful operation */ string;
+export type LoginUserApiResponse =
+  /** status 200 successful operation */ string;
 export type LoginUserApiArg = {
   /** The user name for login */
   username?: string;
@@ -209,7 +216,8 @@ export type LoginUserApiArg = {
 };
 export type LogoutUserApiResponse = unknown;
 export type LogoutUserApiArg = void;
-export type GetUserByNameApiResponse = /** status 200 successful operation */ User;
+export type GetUserByNameApiResponse =
+  /** status 200 successful operation */ User;
 export type GetUserByNameApiArg = {
   /** The name that needs to be fetched. Use user1 for testing.  */
   username: string;
@@ -642,12 +650,14 @@ export type AddPetApiArg = {
   /** Create a new pet in the store */
   pet: Pet;
 };
-export type FindPetsByStatusApiResponse = /** status 200 successful operation */ Pet[];
+export type FindPetsByStatusApiResponse =
+  /** status 200 successful operation */ Pet[];
 export type FindPetsByStatusApiArg = {
   /** Status values that need to be considered for filter */
   status?: "available" | "pending" | "sold";
 };
-export type FindPetsByTagsApiResponse = /** status 200 successful operation */ Pet[];
+export type FindPetsByTagsApiResponse =
+  /** status 200 successful operation */ Pet[];
 export type FindPetsByTagsApiArg = {
   /** Tags to filter by */
   tags?: string[];
@@ -672,7 +682,8 @@ export type DeletePetApiArg = {
   /** Pet id to delete */
   petId: number;
 };
-export type UploadFileApiResponse = /** status 200 successful operation */ ApiResponse;
+export type UploadFileApiResponse =
+  /** status 200 successful operation */ ApiResponse;
 export type UploadFileApiArg = {
   /** ID of pet to update */
   petId: number;
@@ -684,11 +695,13 @@ export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
 };
 export type GetInventoryApiArg = void;
-export type PlaceOrderApiResponse = /** status 200 successful operation */ Order;
+export type PlaceOrderApiResponse =
+  /** status 200 successful operation */ Order;
 export type PlaceOrderApiArg = {
   order: Order;
 };
-export type GetOrderByIdApiResponse = /** status 200 successful operation */ Order;
+export type GetOrderByIdApiResponse =
+  /** status 200 successful operation */ Order;
 export type GetOrderByIdApiArg = {
   /** ID of order that needs to be fetched */
   orderId: number;
@@ -703,11 +716,13 @@ export type CreateUserApiArg = {
   /** Created user object */
   user: User;
 };
-export type CreateUsersWithListInputApiResponse = /** status 200 Successful operation */ User;
+export type CreateUsersWithListInputApiResponse =
+  /** status 200 Successful operation */ User;
 export type CreateUsersWithListInputApiArg = {
   body: User[];
 };
-export type LoginUserApiResponse = /** status 200 successful operation */ string;
+export type LoginUserApiResponse =
+  /** status 200 successful operation */ string;
 export type LoginUserApiArg = {
   /** The user name for login */
   username?: string;
@@ -716,7 +731,8 @@ export type LoginUserApiArg = {
 };
 export type LogoutUserApiResponse = unknown;
 export type LogoutUserApiArg = void;
-export type GetUserByNameApiResponse = /** status 200 successful operation */ User;
+export type GetUserByNameApiResponse =
+  /** status 200 successful operation */ User;
 export type GetUserByNameApiArg = {
   /** The name that needs to be fetched. Use user1 for testing.  */
   username: string;
@@ -943,12 +959,14 @@ export type AddPetApiArg = {
   /** Create a new pet in the store */
   pet: Pet;
 };
-export type FindPetsByStatusApiResponse = /** status 200 successful operation */ Pet[];
+export type FindPetsByStatusApiResponse =
+  /** status 200 successful operation */ Pet[];
 export type FindPetsByStatusApiArg = {
   /** Status values that need to be considered for filter */
   status?: "available" | "pending" | "sold";
 };
-export type FindPetsByTagsApiResponse = /** status 200 successful operation */ Pet[];
+export type FindPetsByTagsApiResponse =
+  /** status 200 successful operation */ Pet[];
 export type FindPetsByTagsApiArg = {
   /** Tags to filter by */
   tags?: string[];
@@ -973,7 +991,8 @@ export type DeletePetApiArg = {
   /** Pet id to delete */
   petId: number;
 };
-export type UploadFileApiResponse = /** status 200 successful operation */ ApiResponse;
+export type UploadFileApiResponse =
+  /** status 200 successful operation */ ApiResponse;
 export type UploadFileApiArg = {
   /** ID of pet to update */
   petId: number;
@@ -985,11 +1004,13 @@ export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
 };
 export type GetInventoryApiArg = void;
-export type PlaceOrderApiResponse = /** status 200 successful operation */ Order;
+export type PlaceOrderApiResponse =
+  /** status 200 successful operation */ Order;
 export type PlaceOrderApiArg = {
   order: Order;
 };
-export type GetOrderByIdApiResponse = /** status 200 successful operation */ Order;
+export type GetOrderByIdApiResponse =
+  /** status 200 successful operation */ Order;
 export type GetOrderByIdApiArg = {
   /** ID of order that needs to be fetched */
   orderId: number;
@@ -1004,11 +1025,13 @@ export type CreateUserApiArg = {
   /** Created user object */
   user: User;
 };
-export type CreateUsersWithListInputApiResponse = /** status 200 Successful operation */ User;
+export type CreateUsersWithListInputApiResponse =
+  /** status 200 Successful operation */ User;
 export type CreateUsersWithListInputApiArg = {
   body: User[];
 };
-export type LoginUserApiResponse = /** status 200 successful operation */ string;
+export type LoginUserApiResponse =
+  /** status 200 successful operation */ string;
 export type LoginUserApiArg = {
   /** The user name for login */
   username?: string;
@@ -1017,7 +1040,8 @@ export type LoginUserApiArg = {
 };
 export type LogoutUserApiResponse = unknown;
 export type LogoutUserApiArg = void;
-export type GetUserByNameApiResponse = /** status 200 successful operation */ User;
+export type GetUserByNameApiResponse =
+  /** status 200 successful operation */ User;
 export type GetUserByNameApiArg = {
   /** The name that needs to be fetched. Use user1 for testing.  */
   username: string;
@@ -1481,12 +1505,14 @@ export type AddPetApiArg = {
   /** Create a new pet in the store */
   pet: Pet;
 };
-export type FindPetsByStatusApiResponse = /** status 200 successful operation */ Pet[];
+export type FindPetsByStatusApiResponse =
+  /** status 200 successful operation */ Pet[];
 export type FindPetsByStatusApiArg = {
   /** Status values that need to be considered for filter */
   status?: "available" | "pending" | "sold";
 };
-export type FindPetsByTagsApiResponse = /** status 200 successful operation */ Pet[];
+export type FindPetsByTagsApiResponse =
+  /** status 200 successful operation */ Pet[];
 export type FindPetsByTagsApiArg = {
   /** Tags to filter by */
   tags?: string[];
@@ -1511,7 +1537,8 @@ export type DeletePetApiArg = {
   /** Pet id to delete */
   petId: number;
 };
-export type UploadFileApiResponse = /** status 200 successful operation */ ApiResponse;
+export type UploadFileApiResponse =
+  /** status 200 successful operation */ ApiResponse;
 export type UploadFileApiArg = {
   /** ID of pet to update */
   petId: number;
@@ -1523,11 +1550,13 @@ export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
 };
 export type GetInventoryApiArg = void;
-export type PlaceOrderApiResponse = /** status 200 successful operation */ Order;
+export type PlaceOrderApiResponse =
+  /** status 200 successful operation */ Order;
 export type PlaceOrderApiArg = {
   order: Order;
 };
-export type GetOrderByIdApiResponse = /** status 200 successful operation */ Order;
+export type GetOrderByIdApiResponse =
+  /** status 200 successful operation */ Order;
 export type GetOrderByIdApiArg = {
   /** ID of order that needs to be fetched */
   orderId: number;
@@ -1542,11 +1571,13 @@ export type CreateUserApiArg = {
   /** Created user object */
   user: User;
 };
-export type CreateUsersWithListInputApiResponse = /** status 200 Successful operation */ User;
+export type CreateUsersWithListInputApiResponse =
+  /** status 200 Successful operation */ User;
 export type CreateUsersWithListInputApiArg = {
   body: User[];
 };
-export type LoginUserApiResponse = /** status 200 successful operation */ string;
+export type LoginUserApiResponse =
+  /** status 200 successful operation */ string;
 export type LoginUserApiArg = {
   /** The user name for login */
   username?: string;
@@ -1555,7 +1586,8 @@ export type LoginUserApiArg = {
 };
 export type LogoutUserApiResponse = unknown;
 export type LogoutUserApiArg = void;
-export type GetUserByNameApiResponse = /** status 200 successful operation */ User;
+export type GetUserByNameApiResponse =
+  /** status 200 successful operation */ User;
 export type GetUserByNameApiArg = {
   /** The name that needs to be fetched. Use user1 for testing.  */
   username: string;
