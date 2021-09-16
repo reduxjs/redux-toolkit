@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 const { factory } = ts;
+import { GenerationOptions } from './types';
 
 const defaultEndpointBuilder = factory.createIdentifier('build');
 
@@ -126,4 +127,40 @@ export function generateEndpointDefinition({
       ]
     )
   );
+}
+
+export function generatePackageImports({
+  createApiImportPath,
+  hooks,
+  isUsingFetchBaseQuery,
+}: {
+  createApiImportPath?: GenerationOptions['createApiImportPath'];
+  isUsingFetchBaseQuery: boolean;
+  hooks?: boolean;
+}) {
+  const DEFAULT_IMPORT_PATH = '@reduxjs/toolkit/query';
+
+  const entryPoint = hooks ? 'react' : createApiImportPath;
+
+  function getBasePackageImportsFromOptions() {
+    return {
+      ...(entryPoint === 'base' ? { createApi: 'createApi' } : {}),
+      ...(isUsingFetchBaseQuery ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
+    };
+  }
+
+  const basePackageImports = getBasePackageImportsFromOptions();
+
+  const hasBasePackageImports = Object.keys(basePackageImports).length > 0;
+
+  const basePackageImportNode = hasBasePackageImports
+    ? [generateImportNode(DEFAULT_IMPORT_PATH, getBasePackageImportsFromOptions())]
+    : [];
+
+  const subPackageImportNode =
+    entryPoint !== 'base'
+      ? [generateImportNode(`${DEFAULT_IMPORT_PATH}/${entryPoint}`, { createApi: 'createApi' })]
+      : [];
+
+  return [...subPackageImportNode, ...basePackageImportNode];
 }
