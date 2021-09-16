@@ -21,10 +21,10 @@ import {
   generateCreateApiCall,
   generateEndpointDefinition,
   generateStringLiteralArray,
+  generatePackageImports,
   ObjectPropertyDefinitions,
 } from './codegen';
 import { generateSmartImportNode } from './generators/smart-import-node';
-import { generateImportNode } from './generators/import-node';
 
 const { factory } = ts;
 
@@ -44,6 +44,7 @@ export async function generateApi(
     baseQuery = 'fetchBaseQuery',
     argSuffix = 'ApiArg',
     responseSuffix = 'ApiResponse',
+    createApiImportPath = 'base',
     baseUrl,
     hooks,
     outputFile,
@@ -127,34 +128,11 @@ export async function generateApi(
 
   const isUsingFetchBaseQuery = baseQuery === 'fetchBaseQuery';
 
-  function getBasePackageImportsFromOptions() {
-    return hooks
-      ? {
-          ...(isUsingFetchBaseQuery ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
-        }
-      : {
-          createApi: 'createApi',
-          ...(isUsingFetchBaseQuery ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
-        };
-  }
-
-  const hasBasePackageImports = Object.keys(getBasePackageImportsFromOptions()).length > 0;
-
   const sourceCode = printer.printNode(
     ts.EmitHint.Unspecified,
     factory.createSourceFile(
       [
-        // If hooks are specified, we need to import them from the react entry point
-        ...(hooks
-          ? [
-              generateImportNode('@reduxjs/toolkit/query/react', {
-                createApi: 'createApi',
-              }),
-            ]
-          : []),
-        ...(hasBasePackageImports
-          ? [generateImportNode('@reduxjs/toolkit/query', getBasePackageImportsFromOptions())]
-          : []),
+        ...generatePackageImports({ hooks, isUsingFetchBaseQuery, createApiImportPath }),
         ...(customBaseQueryNode ? [customBaseQueryNode] : []),
         generateCreateApiCall({
           exportName,

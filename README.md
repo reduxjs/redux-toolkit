@@ -45,6 +45,7 @@ npx @rtk-incubator/rtk-query-codegen-openapi --file generated.api.ts --baseQuery
 - `--argSuffix <name>` - change the suffix of the arg type (default: `ApiArg` - ex: `AddPetApiArg`)
 - `--responseSuffix <name>` - change the suffix of the response type (default: `ApiResponse` - ex: `AddPetApiResponse`)
 - `--baseUrl <url>` - set the `baseUrl` when using `fetchBaseQuery` (will be ignored if you pass `--baseQuery`)
+- `--createApiImportPath <path>` - set the entry point to import `createApi` from. Currently only `react` is available. Defaults to `react` if `--hooks` is passed.
 - `--hooks` - include React Hooks in the output (ex: `export const { useGetModelQuery, useUpdateModelMutation } = api`)
 - `--file <filename>` - specify a filename to output to (ex: `./generated.api.ts`)
 
