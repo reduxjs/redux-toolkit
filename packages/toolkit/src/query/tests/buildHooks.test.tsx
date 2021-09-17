@@ -144,16 +144,20 @@ describe('hooks tests', () => {
     })
 
     test('useQuery hook sets isLoading=true only on initial request', async () => {
-      let refetch: any, isLoading: boolean
+      let refetch: any, isLoading: boolean, isFetching: boolean
       function User() {
         const [value, setValue] = React.useState(0)
 
-        ;({ isLoading, refetch } = api.endpoints.getUser.useQuery(2, {
-          skip: value < 1,
-        }))
+        ;({ isLoading, isFetching, refetch } = api.endpoints.getUser.useQuery(
+          2,
+          {
+            skip: value < 1,
+          }
+        ))
         return (
           <div>
             <div data-testid="isLoading">{String(isLoading)}</div>
+            <div data-testid="isFetching">{String(isFetching)}</div>
             <button onClick={() => setValue((val) => val + 1)}>
               Increment value
             </button>
@@ -180,14 +184,12 @@ describe('hooks tests', () => {
       await waitFor(() =>
         expect(screen.getByTestId('isLoading').textContent).toBe('false')
       )
-      // We call a refetch, should set to true
+      // We call a refetch, should still be `false`
       act(() => refetch())
       await waitFor(() =>
-        expect(screen.getByTestId('isLoading').textContent).toBe('true')
+        expect(screen.getByTestId('isFetching').textContent).toBe('true')
       )
-      await waitFor(() =>
-        expect(screen.getByTestId('isLoading').textContent).toBe('false')
-      )
+      expect(screen.getByTestId('isLoading').textContent).toBe('false')
     })
 
     test('useQuery hook sets isLoading and isFetching to the correct states', async () => {
@@ -238,10 +240,10 @@ describe('hooks tests', () => {
       })
       expect(getRenderCount()).toBe(5)
 
-      // We call a refetch, should set both to true, then false when complete/errored
+      // We call a refetch, should set `isFetching` to true, then false when complete/errored
       act(() => refetchMe())
       await waitFor(() => {
-        expect(screen.getByTestId('isLoading').textContent).toBe('true')
+        expect(screen.getByTestId('isLoading').textContent).toBe('false')
         expect(screen.getByTestId('isFetching').textContent).toBe('true')
       })
       await waitFor(() => {
@@ -937,7 +939,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: undefined,
+        data: {},
         endpointName: 'getUser',
         error: undefined,
         fulfilledTimeStamp: expect.any(Number),
@@ -958,7 +960,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: undefined,
+        data: {},
         endpointName: 'getUser',
         fulfilledTimeStamp: expect.any(Number),
         isError: false,
@@ -1006,7 +1008,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: undefined,
+        data: {},
         endpointName: 'getUser',
         fulfilledTimeStamp: expect.any(Number),
         isError: false,
@@ -1024,7 +1026,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: undefined,
+        data: {},
         endpointName: 'getUser',
         fulfilledTimeStamp: expect.any(Number),
         isError: false,
@@ -1074,7 +1076,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: undefined,
+        data: {},
         endpointName: 'getUser',
         fulfilledTimeStamp: expect.any(Number),
         isError: false,
@@ -1094,7 +1096,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: undefined,
+        data: {},
         endpointName: 'getUser',
         fulfilledTimeStamp: expect.any(Number),
         isError: false,
