@@ -9,7 +9,7 @@ hide_title: true
 
 # `createSlice`
 
-A function that accepts an initial state, an object full of reducer functions, and a "slice name",
+A function that accepts an initial state, an object of reducer functions, and a "slice name",
 and automatically generates action creators and action types that correspond to the reducers and state.
 
 This API is the standard approach for writing Redux logic.
@@ -106,8 +106,7 @@ const counterSlice = createSlice({
 If you need to customize the creation of the payload value of an action creator by means of a [`prepare callback`](./createAction.mdx#using-prepare-callbacks-to-customize-action-contents), the value of the appropriate field of the `reducers` argument object should be an object instead of a function. This object must contain two properties: `reducer` and `prepare`. The value of the `reducer` field should be the case reducer function while the value of the `prepare` field should be the prepare callback function:
 
 ```ts
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { nanoid } from 'nanoid'
+import { createSlice, PayloadAction, nanoid } from '@reduxjs/toolkit'
 
 interface Item {
   id: string
