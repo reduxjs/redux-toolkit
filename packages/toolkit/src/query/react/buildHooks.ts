@@ -735,13 +735,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         [dispatch, initiate]
       )
 
+      const { requestId } = promise || {}
       const mutationSelector = useMemo(
         () =>
-          createSelector(
-            [select(promise?.requestId || skipToken)],
-            selectFromResult
-          ),
-        [select, promise, selectFromResult]
+          createSelector([select(requestId || skipToken)], selectFromResult),
+        [select, requestId, selectFromResult]
       )
 
       const currentState = useSelector(mutationSelector, shallowEqual)
@@ -750,9 +748,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         () => ({
           ...currentState,
           originalArgs,
-          reset: promise?.unsubscribe,
+          reset: () =>
+            requestId &&
+            dispatch(api.internalActions.removeMutationResult({ requestId })),
         }),
-        [currentState, originalArgs, promise]
+        [currentState, originalArgs, requestId, dispatch]
       )
 
       return useMemo(
