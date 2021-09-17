@@ -473,7 +473,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     useSelector,
     useStore,
     unstable__sideEffectsInRender,
-    unstable__suspense,
   },
 }: {
   api: Api<any, Definitions, any, any, CoreModule>
@@ -482,10 +481,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   const usePossiblyImmediateEffect: (
     effect: () => void | undefined,
     deps?: DependencyList
-  ) => void =
-    unstable__sideEffectsInRender || unstable__suspense
-      ? (cb) => cb()
-      : useEffect
+  ) => void = unstable__sideEffectsInRender ? (cb) => cb() : useEffect
 
   return { buildQueryHooks, buildMutationHook, usePrefetch }
 
@@ -581,10 +577,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         []
       )
 
-      if (unstable__suspense && promiseRef.current?.resolved === false) {
-        throw promiseRef.current
-      }
-
       return ret
     }
 
@@ -655,10 +647,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       }, [arg, trigger])
 
       const ret = useMemo(() => [trigger, arg] as const, [trigger, arg])
-
-      if (unstable__suspense && promiseRef.current?.resolved === false) {
-        throw promiseRef.current
-      }
 
       return ret
     }
@@ -795,10 +783,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         () => [triggerMutation, finalState] as const,
         [triggerMutation, finalState]
       )
-
-      if (unstable__suspense && promiseRef.current?.resolved === false) {
-        throw promiseRef.current
-      }
 
       return ret
     }

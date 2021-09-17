@@ -87,7 +87,6 @@ export interface ReactHooksModuleOptions {
    */
   useStore?: RR['useStore']
   unstable__sideEffectsInRender?: boolean
-  unstable__suspense?: boolean
 }
 
 /**
@@ -110,7 +109,6 @@ export const reactHooksModule = ({
   useSelector = rrUseSelector,
   useStore = rrUseStore,
   unstable__sideEffectsInRender = false,
-  unstable__suspense = false,
 }: ReactHooksModuleOptions = {}): Module<ReactHooksModule> => ({
   name: reactHooksModuleName,
   init(api, options, context) {
@@ -129,7 +127,6 @@ export const reactHooksModule = ({
         useSelector,
         useStore,
         unstable__sideEffectsInRender,
-        unstable__suspense,
       },
     })
     safeAssign(anyApi, { usePrefetch })
