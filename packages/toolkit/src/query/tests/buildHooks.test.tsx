@@ -44,9 +44,7 @@ const api = createApi({
     }
 
     return {
-      data: arg?.body
-        ? { ...arg.body, ...(amount ? { amount } : {}) }
-        : undefined,
+      data: arg?.body ? { ...arg.body, ...(amount ? { amount } : {}) } : {},
     }
   },
   endpoints: (build) => ({
@@ -251,6 +249,42 @@ describe('hooks tests', () => {
         expect(screen.getByTestId('isFetching').textContent).toBe('false')
       })
       expect(getRenderCount()).toBe(7)
+    })
+
+    test('`isLoading` does not jump back to true, while `isFetching` does', async () => {
+      const loadingHist: boolean[] = [],
+        fetchingHist: boolean[] = []
+
+      function User({ id }: { id: number }) {
+        const { isLoading, isFetching, status } =
+          api.endpoints.getUser.useQuery(id)
+
+        React.useEffect(() => {
+          loadingHist.push(isLoading)
+        }, [isLoading])
+        React.useEffect(() => {
+          fetchingHist.push(isFetching)
+        }, [isFetching])
+        return (
+          <div data-testid="status">
+            {status === QueryStatus.fulfilled && id}
+          </div>
+        )
+      }
+
+      let { rerender } = render(<User id={1} />, { wrapper: storeRef.wrapper })
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('1')
+      )
+      rerender(<User id={2} />)
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('2')
+      )
+
+      expect(loadingHist).toEqual([true, false])
+      expect(fetchingHist).toEqual([true, false, true, false])
     })
 
     test('useQuery hook respects refetchOnMountOrArgChange: true', async () => {
