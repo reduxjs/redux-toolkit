@@ -1,0 +1,236 @@
+---
+id: manual-cache-updates
+title: Manual Cache Updates
+sidebar_label: Manual Cache Updates
+hide_title: true
+description: 'RTK Query > Usage > Manual Cache Updates: Updating cached data manually'
+---
+
+&nbsp;
+
+# Manual Cache Updates
+
+## Overview
+
+For most cases, in order to receive up to date data after a triggering a change in the backend,
+you can take advantage of `cache tag invalidation` to perform
+[automated re-fetching](./automated-refetching), which will cause a query to re-fetch it's data
+when it has been told that a mutation has occurred which would cause it's data to become out of date.
+In most cases, we recommend to use `automated re-fetching` as a preference over `manual cache updates`,
+unless you encounter the need to do so.
+
+However, in some cases, you may want to update the cache manually. When you wish to update cache
+data that _already exists_ for query endpoints, you can do so using the
+[`updateQueryData`](../api/created-api/cache-management-utils.mdx#updatequerydata) thunk action
+available on the `util` object of your created API.
+
+Anywhere you have access to the `dispatch` method for the store instance, you can dispatch the
+result of calling `updateQueryData` in order to update the cache data for a query endpoint,
+if the corresponding cache entry exists.
+
+Use cases for manual cache updates include:
+
+- Providing immediate feedback to the user when a mutation is attempted
+- After a mutation, updating a single item in a large list of items that is already cached,
+  rather than re-fetching the whole list
+- Debouncing a large number of mutations with immediate feedback as though they are being
+  applied, followed by a single request sent to the server to update the debounced attempts
+
+## Recipes
+
+### Optimistic Updates
+
+When you wish to perform an update to cache data immediately after a [`mutation`](./mutations) is
+triggered, you can apply an `optimistic update`. This can be a useful pattern for when you want to
+give the user the impression that their changes are immediate, even while the mutation request is
+still in flight.
+
+The core concepts for an optimistic update are:
+
+- when you start a query or mutation, `onQueryStarted` will be executed
+- you manually update the cached data by dispatching `api.util.updateQueryData` within `onQueryStarted`
+- then, in the case that `queryFulfilled` rejects:
+  - you roll it back via the `.undo` property of the object you got back from the earlier dispatch,  
+    OR
+  - you invalidate the cache data via `api.util.invalidateTags` to trigger a full re-fetch of the data
+
+:::tip
+Where many mutations are potentially triggered in short succession causing overlapping requests,
+you may encounter race conditions if attempting to roll back patches using the `.undo` property
+on failures. For these scenarios, it is often simplest and safest to invalidate the tags on error
+instead, and re-fetch truly up-to-date data straight from the server.
+:::
+
+```ts title="Optimistic update mutation example (async await)"
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { Post } from './types'
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/',
+  }),
+  tagTypes: ['Post'],
+  endpoints: (build) => ({
+    getPost: build.query<Post, number>({
+      query: (id) => `post/${id}`,
+      providesTags: ['Post'],
+    }),
+    updatePost: build.mutation<void, Pick<Post, 'id'> & Partial<Post>>({
+      query: ({ id, ...patch }) => ({
+        url: `post/${id}`,
+        method: 'PATCH',
+        body: patch,
+      }),
+      invalidatesTags: ['Post'],
+      // highlight-start
+      async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          api.util.updateQueryData('getPost', id, (draft) => {
+            Object.assign(draft, patch)
+          })
+        )
+        try {
+          await queryFulfilled
+        } catch {
+          patchResult.undo()
+
+          /**
+           * Alternatively, on failure you can invalidate the corresponding cache tags
+           * to trigger a re-fetch:
+           * dispatch(api.util.invalidateTags(['Post']))
+           */
+        }
+      },
+      // highlight-end
+    }),
+  }),
+})
+```
+
+or, if you prefer the slightly shorter version with `.catch`
+
+```diff
+-      async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
++      onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          api.util.updateQueryData('getPost', id, (draft) => {
+            Object.assign(draft, patch)
+          })
+        )
+-       try {
+-         await queryFulfilled
+-       } catch {
+-         patchResult.undo()
+-       }
++       queryFulfilled.catch(patchResult.undo)
+      }
+```
+
+#### Example
+
+[React Optimistic Updates](./examples#react-optimistic-updates)
+
+### Pessimistic Updates
+
+When you wish to perform an update to cache data based on the response received from the server
+after a [`mutation`](./mutations) is triggered, you can apply a `pessimistic update`.
+The distinction between a `pessimistic update` and an `optimistic update` is that the
+`pessimistic update` will instead wait for the response from the server prior to updating
+the cached data.
+
+The core concepts for a pessimistic update are:
+
+- when you start a query or mutation, `onQueryStarted` will be executed
+- you await `queryFulfilled` to resolve to an object containing the transformed response from the
+  server in the `data` property
+- you manually update the cached data by dispatching `api.util.updateQueryData` within
+  `onQueryStarted`, using the data in the response from the server for your draft updates
+
+```ts title="Pessimistic update mutation example (async await)"
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { Post } from './types'
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/',
+  }),
+  tagTypes: ['Post'],
+  endpoints: (build) => ({
+    getPost: build.query<Post, number>({
+      query: (id) => `post/${id}`,
+      providesTags: ['Post'],
+    }),
+    updatePost: build.mutation<Post, Pick<Post, 'id'> & Partial<Post>>({
+      query: ({ id, ...patch }) => ({
+        url: `post/${id}`,
+        method: 'PATCH',
+        body: patch,
+      }),
+      invalidatesTags: ['Post'],
+      // highlight-start
+      async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
+        try {
+          const { data: updatedPost } = await queryFulfilled
+          const patchResult = dispatch(
+            api.util.updateQueryData('getPost', id, (draft) => {
+              Object.assign(draft, updatedPost)
+            })
+          )
+        } catch {}
+      },
+      // highlight-end
+    }),
+  }),
+})
+```
+
+### General Updates
+
+If you find yourself wanting to update cache data elsewhere in your application, you can do so
+anywhere you have access to the `store.dispatch` method, including within React components via
+the [useDispatch](https://react-redux.js.org/api/hooks#usedispatch) hook (or a typed version such
+as [useAppDispatch](https://react-redux.js.org/using-react-redux/usage-with-typescript#define-typed-hooks)
+for typescript users).
+
+:::info
+You should generally avoid manually updating the cache outside of the `onQueryStarted`
+callback for a mutation without a good reason, as RTK Query is intended to be used by considering
+your cached data as a reflection of the server-side state.
+:::
+
+```tsx title="General manual cache update example"
+import { api } from './api'
+import { useAppDispatch } from './store/hooks'
+
+function App() {
+  const dispatch = useAppDispatch()
+
+  function handleClick() {
+    /**
+     * This will update the cache data for the query corresponding to the `getPosts` endpoint,
+     * when that endpoint is used with no argument (undefined).
+     */
+    const patchCollection = dispatch(
+      api.util.updateQueryData('getPosts', undefined, (draftPosts) => {
+        draftPosts.push({ id: 1, name: 'Teddy' })
+      })
+    )
+  }
+
+  return <button onClick={handleClick}>Add post to cache</button>
+}
+```
