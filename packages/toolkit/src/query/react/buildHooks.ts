@@ -46,6 +46,7 @@ import type {
 } from '@reduxjs/toolkit/dist/query/core/module'
 import type { ReactHooksModuleOptions } from './module'
 import { useShallowStableValue } from './useShallowStableValue'
+import { useStabilityMonitor } from './useStabilityMonitor'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
 
@@ -506,6 +507,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
       const stableArg = useShallowStableValue(skip ? skipToken : arg)
+      useStabilityMonitor(stableArg, {
+        errMsg:
+          'The Query argument has been detected as changing too many times within a short period. See https://redux-toolkit.js.org/rtk-query/usage/queries#query-hook-options for more information on how to stabilize the argument and fix this issue.',
+      })
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,
         refetchOnFocus,

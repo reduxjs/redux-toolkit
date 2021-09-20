@@ -34,7 +34,7 @@ const api = createApi({
       amount += 1
     }
 
-    if (arg?.body && 'forceError' in arg.body) {
+    if (arg?.body && 'forceError' in arg.body && arg.body.forceError) {
       return {
         error: {
           status: 500,
@@ -65,7 +65,12 @@ const api = createApi({
       query: (update) => ({ body: update }),
     }),
     getError: build.query({
-      query: (query) => '/error',
+      query: (query) => ({
+        url: '/error',
+        body: {
+          forceError: true,
+        },
+      }),
     }),
   }),
 })
@@ -2027,5 +2032,61 @@ describe('skip behaviour', () => {
     rerender([skipToken])
     expect(result.current).toEqual(uninitialized)
     expect(subscriptionCount('getUser(1)')).toBe(0)
+  })
+})
+
+describe('query arg stability monitoring', () => {
+  type ErrorBoundaryProps = {
+    children: React.ReactNode
+  }
+  class ErrorBoundary extends React.Component<
+    ErrorBoundaryProps,
+    { hasError: boolean; errMsg: string }
+  > {
+    constructor(props: ErrorBoundaryProps) {
+      super(props)
+      this.state = { hasError: false, errMsg: '' }
+    }
+    static getDerivedStateFromError(error: unknown) {
+      return {
+        hasError: true,
+        errMsg: error instanceof Error ? error.message : 'Unknown error',
+      }
+    }
+
+    render() {
+      if (this.state.hasError) {
+        return <div>{this.state.errMsg}</div>
+      }
+      return <>{this.props.children}</>
+    }
+  }
+
+  function FilterList() {
+    const nestedArg = {
+      kind: 'berries',
+      sort: { field: 'created_at', order: 'ASC' },
+    }
+
+    const result = api.endpoints.getError.useQuery(nestedArg)
+
+    return (
+      <div>
+        <div data-testid="isFetching">{String(result.isFetching)}</div>
+      </div>
+    )
+  }
+
+  test('Throws an error early upon an infinite loop due to nested args', async () => {
+    render(
+      <ErrorBoundary>
+        <FilterList />
+      </ErrorBoundary>,
+      { wrapper: storeRef.wrapper }
+    )
+
+    await screen.findByText(
+      /The Query argument has been detected as changing too many times within a short period/i
+    )
   })
 })

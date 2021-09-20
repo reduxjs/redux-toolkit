@@ -123,7 +123,29 @@ The `queryArg` param will be passed through to the underlying `query` callback t
 
 :::caution
 
-The `queryArg` param is handed to a `useEffect` dependency array internally. RTK Query tries to keep the argument stable by performing a `shallowEquals` diff on the value, however if you pass a deeper nested argument, you will need to keep the param stable yourself, e.g. with `useMemo`.
+The `queryArg` param is handed to a `useEffect` dependency array internally.
+RTK Query tries to keep the argument stable by performing a `shallowEquals` diff on the value,
+however if you pass a deeper nested argument, you will need to keep the param stable yourself,
+e.g. with `useMemo`.
+
+```diff
+  function FilterList({ kind, sortField = 'created_at', sortOrder = 'ASC' }) {
+-   // The `sort` object would fail the internal shallow stability check and be new every render
+-   const result = useMyQuery({
+-     kind,
+-     sort: { field: sortField, order: sortOrder },
+-   })
+
++   // `useMemo` can be used to maintain stability for the entire argument object
++   const queryArg = useMemo(
++     () => ({ kind, sort: { field: sortField, order: sortOrder } }),
++     [kind, sortField, sortOrder]
++   )
++   const result = useMyQuery(queryArg)
+
+    return <div>...</div>
+  }
+```
 
 :::
 
