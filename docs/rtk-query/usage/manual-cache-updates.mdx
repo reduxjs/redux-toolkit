@@ -58,7 +58,7 @@ The core concepts for an optimistic update are:
 Where many mutations are potentially triggered in short succession causing overlapping requests,
 you may encounter race conditions if attempting to roll back patches using the `.undo` property
 on failures. For these scenarios, it is often simplest and safest to invalidate the tags on error
-instead, and re-fetch truly up-to-date data straight from the server.
+instead, and re-fetch truly up-to-date data from the server.
 :::
 
 ```ts title="Optimistic update mutation example (async await)"
