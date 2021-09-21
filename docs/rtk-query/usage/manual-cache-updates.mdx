@@ -36,6 +36,13 @@ Use cases for manual cache updates include:
 - Debouncing a large number of mutations with immediate feedback as though they are being
   applied, followed by a single request sent to the server to update the debounced attempts
 
+:::note
+`updateQueryData` is strictly intended to perform _updates_ to existing cache entries,
+not create new entries. If an `updateQueryData` thunk action is dispatched that corresponds to
+no existing cache entry for the provided `endpointName` + `args` combination, the provided `recipe`
+will not be called, and no `patches` or `inversePatches` will be returned.
+:::
+
 ## Recipes
 
 ### Optimistic Updates
