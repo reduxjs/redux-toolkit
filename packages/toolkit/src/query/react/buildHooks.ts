@@ -179,6 +179,9 @@ export type UseLazyQueryLastPromiseInfo<
  * - Re-renders as the request status changes and data becomes available
  * - Accepts polling/re-fetching options to trigger automatic re-fetches when the corresponding criteria is met and the fetch has been manually called at least once
  *
+ * #### Note
+ *
+ * When the trigger function returned from a LazyQuery, it always initiates a new request to the server even if there is cached data. Set `preferredCacheValue`(the second argument to the function) as true if you want it to use cache.
  */
 export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
   R = UseQueryStateDefaultResult<D>
