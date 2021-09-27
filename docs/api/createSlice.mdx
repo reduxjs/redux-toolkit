@@ -284,7 +284,7 @@ store.dispatch(counter.actions.multiply(3))
 // -> { counter: 6, user: {name: '', age: 22} }
 store.dispatch(counter.actions.multiply())
 // -> { counter: 12, user: {name: '', age: 22} }
-console.log(`${counter.actions.decrement}`)
+console.log(`${counter.actions.decrement.type}`)
 // -> "counter/decrement"
 store.dispatch(user.actions.setUserName('eric'))
 // -> { counter: 12, user: { name: 'eric', age: 22} }
