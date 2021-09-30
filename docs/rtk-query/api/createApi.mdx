@@ -54,7 +54,7 @@ export const { useGetPokemonByNameQuery } = pokemonApi
 `createApi` accepts a single configuration object parameter with the following options:
 
 ```ts no-transpile
-  baseQuery(args: InternalQueryArgs, api: BaseQueryApi): any;
+  baseQuery(args: InternalQueryArgs, api: BaseQueryApi, extraOptions?: DefinitionExtraOptions): any;
   endpoints(build: EndpointBuilder<InternalQueryArgs, TagTypes>): Definitions;
   tagTypes?: readonly TagTypes[];
   reducerPath?: ReducerPath;
