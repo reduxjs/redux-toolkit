@@ -179,6 +179,8 @@ export type MutationActionCreatorResult<
    * A method to manually unsubscribe from the mutation call, meaning it will be removed from cache after the usual caching grace period.
    The value returned by the hook will reset to `isUninitialized` afterwards.
    */
+  reset(): void
+  /** @deprecated has been renamed to `reset` */
   unsubscribe(): void
 }
 
@@ -195,7 +197,7 @@ export function buildInitiate({
 }) {
   const {
     unsubscribeQueryResult,
-    unsubscribeMutationResult,
+    removeMutationResult,
     updateSubscriptionOptions,
   } = api.internalActions
   return { buildInitiateQuery, buildInitiateMutation }
@@ -302,15 +304,18 @@ Features like automatic cache collection, automatic refetching etc. will not be 
           .unwrap()
           .then((data) => ({ data }))
           .catch((error) => ({ error }))
+
+        const reset = () => {
+          dispatch(removeMutationResult({ requestId, fixedCacheKey }))
+        }
+
         return Object.assign(returnValuePromise, {
           arg: thunkResult.arg,
           requestId,
           abort,
           unwrap: thunkResult.unwrap,
-          unsubscribe() {
-            if (track)
-              dispatch(unsubscribeMutationResult({ requestId, fixedCacheKey }))
-          },
+          unsubscribe: reset,
+          reset,
         })
       }
   }

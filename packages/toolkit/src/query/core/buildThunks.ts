@@ -265,8 +265,11 @@ export function buildThunks<
     const endpointDefinition = endpointDefinitions[arg.endpointName]
 
     try {
-      let transformResponse: (baseQueryReturnValue: any, meta: any) => any =
-        defaultTransformResponse
+      let transformResponse: (
+        baseQueryReturnValue: any,
+        meta: any,
+        arg: any
+      ) => any = defaultTransformResponse
       let result: QueryReturnValue
       const baseQueryApi = {
         signal,
@@ -296,7 +299,7 @@ export function buildThunks<
       if (result.error) throw new HandledError(result.error, result.meta)
 
       return fulfillWithValue(
-        await transformResponse(result.data, result.meta),
+        await transformResponse(result.data, result.meta, arg),
         {
           fulfilledTimeStamp: Date.now(),
           baseQueryMeta: result.meta,
