@@ -120,6 +120,13 @@ declare global {
   }
 }
 
+function normalize(str: string) {
+  return str
+    .normalize()
+    .replace(/\s*\r?\n\r?\s*/g, '')
+    .trim()
+}
+
 expect.extend({
   async toHaveConsoleOutput(
     fn: () => void | Promise<void>,
@@ -130,7 +137,7 @@ expect.extend({
     const log = getLog().log
     restore()
 
-    if (log === expectedOutput)
+    if (normalize(log) === normalize(expectedOutput))
       return {
         message: () => `Console output matches 
 ===
