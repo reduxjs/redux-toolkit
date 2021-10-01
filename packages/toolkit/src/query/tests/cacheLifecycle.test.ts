@@ -68,7 +68,7 @@ describe.each([['query'], ['mutation']] as const)(
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
       expect(onCleanup).not.toHaveBeenCalled()
 
-      promise.unsubscribe(), await waitMs()
+      promise.reset(), await waitMs()
       if (type === 'query') {
         jest.advanceTimersByTime(59000), await waitMs()
         expect(onCleanup).not.toHaveBeenCalled()
@@ -121,7 +121,7 @@ describe.each([['query'], ['mutation']] as const)(
       })
       expect(onCleanup).not.toHaveBeenCalled()
 
-      promise.unsubscribe(), await waitMs()
+      promise.reset(), await waitMs()
       if (type === 'query') {
         jest.advanceTimersByTime(59000), await waitMs()
         expect(onCleanup).not.toHaveBeenCalled()
@@ -158,7 +158,7 @@ describe.each([['query'], ['mutation']] as const)(
       )
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
 
-      promise.unsubscribe(), await waitMs()
+      promise.reset(), await waitMs()
       if (type === 'query') {
         jest.advanceTimersByTime(120000), await waitMs()
       }
@@ -196,7 +196,7 @@ describe.each([['query'], ['mutation']] as const)(
       )
 
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
-      promise.unsubscribe(), await waitMs()
+      promise.reset(), await waitMs()
       if (type === 'query') {
         jest.advanceTimersByTime(59000), await waitMs()
         expect(onCleanup).not.toHaveBeenCalled()
@@ -242,7 +242,7 @@ describe.each([['query'], ['mutation']] as const)(
 
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
 
-      promise.unsubscribe(), await waitMs()
+      promise.reset(), await waitMs()
       if (type === 'query') {
         jest.advanceTimersByTime(59000), await waitMs()
         expect(onCleanup).not.toHaveBeenCalled()
@@ -287,7 +287,7 @@ describe.each([['query'], ['mutation']] as const)(
 
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
 
-      promise.unsubscribe(), await waitMs()
+      promise.reset(), await waitMs()
       if (type === 'query') {
         jest.advanceTimersByTime(59000), await waitMs()
         expect(onCleanup).not.toHaveBeenCalled()
@@ -408,7 +408,7 @@ test(`mutation: getCacheEntry`, async () => {
     expect(gotFirstValue).toHaveBeenCalled()
   })
 
-  promise.unsubscribe(), await waitMs()
+  promise.reset(), await waitMs()
 
   expect(snapshot).toHaveBeenCalledTimes(3)
   expect(snapshot.mock.calls[0][0]).toMatchObject({
