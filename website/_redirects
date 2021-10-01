@@ -2,9 +2,12 @@
 /docs/*          /:splat
 
 # Deleted old tutorials
-/tutorials/basic-tutorial           /tutorials/overview
-/tutorials/intermediate-tutorial    /tutorials/overview
-/tutorials/advanced-tutorial        /tutorials/overview
+/tutorials/basic-tutorial               /tutorials/overview
+/tutorials/intermediate-tutorial        /tutorials/overview
+/tutorials/advanced-tutorial            /tutorials/overview
 
 # Renamed start page
-/introduction/quick-start           /introduction/getting-started
+/introduction/quick-start               /introduction/getting-started
+
+# Relocated content
+/rtk-query/usage/optimistic-updates     /rtk-query/usage/manual-cache-updates#optimistic-updates
