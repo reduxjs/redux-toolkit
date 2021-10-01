@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
+import './helpers'
 
 type CustomErrorType = { type: 'Custom' }
 
@@ -122,8 +123,14 @@ const store = configureStore({
 
 test('fakeBaseQuery throws when invoking query', async () => {
   const thunk = api.endpoints.withQuery.initiate('')
-  const result = await store.dispatch(thunk)
-  expect(result.error).toEqual({
+  let result: { error?: any } | undefined
+  await expect(async () => {
+    result = await store.dispatch(thunk)
+  }).toHaveConsoleOutput(
+    '[Error: When using `fakeBaseQuery`, all queries & mutations must use the `queryFn` definition syntax.]'
+  )
+
+  expect(result!.error).toEqual({
     message:
       'When using `fakeBaseQuery`, all queries & mutations must use the `queryFn` definition syntax.',
     name: 'Error',
