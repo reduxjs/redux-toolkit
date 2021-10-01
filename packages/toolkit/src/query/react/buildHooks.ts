@@ -398,10 +398,28 @@ export type UseMutation<D extends MutationDefinition<any, any, any, any>> = <
   R extends Record<string, any> = MutationResultSelectorResult<D>
 >(
   options?: UseMutationStateOptions<D, R>
-) => [
-  (arg: QueryArgFrom<D>) => MutationActionCreatorResult<D>,
-  UseMutationStateResult<D, R>
-]
+) => [MutationTrigger<D>, UseMutationStateResult<D, R>]
+
+export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> =
+  {
+    /**
+     * Triggers the mutation and returns a Promise.
+     * @remarks
+     * If you need to access the error or success payload immediately after a mutation, you can chain .unwrap().
+     *
+     * @example
+     * ```ts
+     * // codeblock-meta title="Using .unwrap with async await"
+     * try {
+     *   const payload = await addPost({ id: 1, name: 'Example' }).unwrap();
+     *   console.log('fulfilled', payload)
+     * } catch (error) {
+     *   console.error('rejected', error);
+     * }
+     * ```
+     */
+    (arg: QueryArgFrom<D>): MutationActionCreatorResult<D>
+  }
 
 const defaultQueryStateSelector: QueryStateSelector<any, any> = (x) => x
 const defaultMutationStateSelector: MutationStateSelector<any, any> = (x) => x
@@ -725,7 +743,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
       const [promise, setPromise] = useState<MutationActionCreatorResult<any>>()
 
-      useEffect(() => () => promise?.unsubscribe(), [promise])
+      useEffect(() => () => promise?.reset(), [promise])
 
       const triggerMutation = useCallback(
         function (arg) {
@@ -745,15 +763,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       const currentState = useSelector(mutationSelector, shallowEqual)
       const originalArgs = promise?.arg.originalArgs
+      const reset = useCallback(() => setPromise(undefined), [])
       const finalState = useMemo(
-        () => ({
-          ...currentState,
-          originalArgs,
-          reset: () =>
-            requestId &&
-            dispatch(api.internalActions.removeMutationResult({ requestId })),
-        }),
-        [currentState, originalArgs, requestId, dispatch]
+        () => ({ ...currentState, originalArgs, reset }),
+        [currentState, originalArgs, reset]
       )
 
       return useMemo(
