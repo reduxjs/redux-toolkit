@@ -181,17 +181,27 @@ export type UseLazyQueryLastPromiseInfo<
  *
  * #### Note
  *
- * When the trigger function returned from a LazyQuery, it always initiates a new request to the server even if there is cached data. Set `preferredCacheValue`(the second argument to the function) as true if you want it to use cache.
+ * When the trigger function returned from a LazyQuery, it always initiates a new request to the server even if there is cached data. Set `preferCacheValue`(the second argument to the function) as true if you want it to use cache.
  */
 export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
   R = UseQueryStateDefaultResult<D>
 >(
   options?: SubscriptionOptions & Omit<UseQueryStateOptions<D, R>, 'skip'>
 ) => [
-  (arg: QueryArgFrom<D>) => void,
+  LazyQueryTrigger<D>,
   UseQueryStateResult<D, R>,
   UseLazyQueryLastPromiseInfo<D>
 ]
+
+export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
+  /**
+   * Triggers a lazy query.
+   *
+   * By default, this will start a new request even if there is already a value in the cache.
+   * If you want to use the cache value and only start a request if there is no cache value, set the second argument to `true`.
+   */
+  (arg: QueryArgFrom<D>, preferCacheValue?: boolean): void
+}
 
 /**
  * A React hook similar to [`useQuerySubscription`](#usequerysubscription), but with manual control over when the data fetching occurs.
