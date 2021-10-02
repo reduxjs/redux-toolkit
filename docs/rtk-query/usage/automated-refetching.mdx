@@ -819,7 +819,7 @@ const api = createApi({
       invalidatesTags: (result) => (result ? ['UNAUTHORIZED'] : []),
     }),
     refetchErroredQueries: build.mutation<null, void>({
-      queryFn: () => ({ data: null }),
+      query: () => ({ data: null }),
       invalidatesTags: ['UNKNOWN_ERROR'],
     }),
   }),
