@@ -121,12 +121,6 @@ The query hooks expect two parameters: `(queryArg?, queryOptions?)`.
 
 The `queryArg` param will be passed through to the underlying `query` callback to generate the URL.
 
-:::caution
-
-The `queryArg` param is handed to a `useEffect` dependency array internally. RTK Query tries to keep the argument stable by performing a `shallowEquals` diff on the value, however if you pass a deeper nested argument, you will need to keep the param stable yourself, e.g. with `useMemo`.
-
-:::
-
 The `queryOptions` object accepts several additional parameters that can be used to control the behavior of the data fetching:
 
 - [skip](./conditional-fetching) - Allows a query to 'skip' running for that render. Defaults to `false`
