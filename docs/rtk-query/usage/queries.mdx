@@ -146,7 +146,8 @@ All `refetch`-related options will override the defaults you may have set in [cr
 
 The query hook returns an object containing properties such as the latest `data` for the query request, as well as status booleans for the current request lifecycle state. Below are some of the most frequently used properties. Refer to [`useQuery`](../api/created-api/hooks.mdx#usequery) for an extensive list of all returned properties.
 
-- `data` - The returned result if present.
+- `data` - The latest returned result regardless of hook arg, if present.
+- `currentData` - The latest returned result for the current hook arg, if present.
 - `error` - The error result if present.
 - `isUninitialized` - When true, indicates that the query has not started yet.
 - `isLoading` - When true, indicates that the query is currently loading for the first time, and has no data yet. This will be `true` for the first request fired off, but _not_ for subsequent requests.
@@ -223,6 +224,45 @@ function App() {
           disabled={isFetching}
         />
       ))}
+    </div>
+  )
+}
+```
+
+While `data` is expected to used in the majority of situations, `currentData` is also provided,
+which allows for a further level of granularity. For example, if you wanted to show data in the UI
+as translucent to represent a re-fetching state, you can use `data` in combination with `isFetching`
+to achieve this. However, if you also wish to _only_ show data corresponding to the current arg,
+you can instead use `currentData` to achieve this.
+
+In the example below, if posts are being fetched for the first time, a loading skeleton will be
+shown. If posts for the current user have previously been fetched, and are re-fetching (e.g. as a
+result of a mutation), the UI will show the previous data, but will grey out the data. If the user
+changes, it will instead show the skeleton again as opposed to greying out data for the previous user.
+
+```tsx title="Managing UI behavior with currentData"
+import { Skeleton } from './Skeleton'
+import { useGetPostsByUserQuery } from './api'
+
+function PostsList({ userName }: { userName: string }) {
+  const { currentData, isFetching, isError } = useGetPostsByUserQuery(userName)
+
+  if (isError) return <div>An error has occurred!</div>
+
+  if (isFetching && !currentData) return <Skeleton />
+
+  return (
+    <div className={isFetching ? 'posts--disabled' : ''}>
+      {currentData
+        ? currentData.map((post) => (
+            <Post
+              key={post.id}
+              id={post.id}
+              name={post.name}
+              disabled={isFetching}
+            />
+          ))
+        : 'No data available'}
     </div>
   )
 }
