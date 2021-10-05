@@ -95,7 +95,6 @@ const api = createApi({
         method: 'PATCH',
         body: patch,
       }),
-      invalidatesTags: ['Post'],
       // highlight-start
       async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
         const patchResult = dispatch(
@@ -187,7 +186,6 @@ const api = createApi({
         method: 'PATCH',
         body: patch,
       }),
-      invalidatesTags: ['Post'],
       // highlight-start
       async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
         try {
