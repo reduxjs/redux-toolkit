@@ -50,7 +50,7 @@ const api = createApi({
         body: patch,
       }),
       // Pick out data and prevent nested properties in a hook or selector
-      transformResponse: (response: { data: Post }) => response.data,
+      transformResponse: (response: { data: Post }, meta, arg) => response.data,
       invalidatesTags: ['Post'],
       // onQueryStarted is useful for optimistic updates
       // The 2nd parameter is the destructured `MutationLifecycleApi`

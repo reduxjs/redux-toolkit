@@ -57,7 +57,7 @@ const api = createApi({
       // note: an optional `queryFn` may be used in place of `query`
       query: (id) => ({ url: `post/${id}` }),
       // Pick out data and prevent nested properties in a hook or selector
-      transformResponse: (response: { data: Post }) => response.data,
+      transformResponse: (response: { data: Post }, meta, arg) => response.data,
       providesTags: (result, error, id) => [{ type: 'Post', id }],
       // The 2nd parameter is the destructured `QueryLifecycleApi`
       async onQueryStarted(
@@ -163,7 +163,11 @@ Here is an example of a `PostDetail` component:
 
 ```tsx title="Example"
 export const PostDetail = ({ id }: { id: string }) => {
-  const { data: post, isFetching, isLoading } = useGetPostQuery(id, {
+  const {
+    data: post,
+    isFetching,
+    isLoading,
+  } = useGetPostQuery(id, {
     pollingInterval: 3000,
     refetchOnMountOrArgChange: true,
     skip: false,
