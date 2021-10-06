@@ -10,7 +10,7 @@ description: 'RTK Query > Comparison: Compares features and tradeoffs vs other s
 
 # Comparison with Other Tools
 
-**RTK Query takes inspiration from many other data fetching libraries in the ecosystem**. Much like [the Redux core library was inspired by tools like Flux and Elm](https://redux.js.org/understanding/history-and-design/prior-art), RTK Query builds on API design patterns and feature concepts popularized by libraries like React Query, SWR, Apollo, and Urql. RTK Query has been written from scratch, but tries to use the best concepts from those libraries and other data fetching tools, with an eye towards leveraging the unique strengths and capabilities of Redux.
+**RTK Query takes inspiration from many other data fetching libraries in the ecosystem**. Much like [the Redux core library was inspired by tools like Flux and Elm](https://redux.js.org/understanding/history-and-design/prior-art), RTK Query builds on API design patterns and feature concepts popularized by libraries like [React Query](https://react-query.tanstack.com/), [SWR](https://swr.vercel.app/), [Apollo](https://www.apollographql.com/), and [Urql](https://formidable.com/open-source/urql/). RTK Query has been written from scratch, but tries to use the best concepts from those libraries and other data fetching tools, with an eye towards leveraging the unique strengths and capabilities of Redux.
 
 We think that all of those tools are great! If you're using one of them, you're happy with it, and it solves the problems you are facing in your app, keep using that tool. The information on this page is meant to help show **where there are differences in features, implementation approaches, and API design**. The goal is to help you **make informed decisions and understand tradeoffs**, rather than argue that tool X is better than tool Y.
 
@@ -69,7 +69,7 @@ This comparison table strives to be as accurate and as unbiased as possible. If 
 
 :::
 
-| Feature                                | rtk-query                               | react-query              | apollo                                                                              | urql                                                                                                        |
+| Feature                                | rtk-query                               | [react-query]            | [apollo]                                                                            | [urql]                                                                                                      |
 | -------------------------------------- | --------------------------------------- | ------------------------ | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | **Supported Protocols**                | any, REST included                      | any, none included       | GraphQL                                                                             | GraphQL                                                                                                     |
 | **API Definition**                     | declarative                             | on use, declarative      | GraphQL schema                                                                      | GraphQL schema                                                                                              |
@@ -88,6 +88,10 @@ This comparison table strives to be as accurate and as unbiased as possible. If 
 | **Optimistic updates**                 | can update cache by hand                | can update cache by hand | `optimisticResponse`                                                                | ?                                                                                                           |
 | **Manual cache manipulation**          | yes                                     | yes                      | yes                                                                                 | yes                                                                                                         |
 | **Platforms**                          | hooks for React, everywhere Redux works | hooks for React          | various                                                                             | various                                                                                                     |
+
+[react-query]: https://react-query.tanstack.com/
+[apollo]: https://www.apollographql.com/
+[urql]: https://formidable.com/open-source/urql/
 
 ## Further Information
 
