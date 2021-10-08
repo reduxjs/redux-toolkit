@@ -46,7 +46,7 @@ import { emptySplitApi } from './emptySplitApi'
 const extendedApi = emptySplitApi.injectEndpoints({
   endpoints: (build) => ({
     example: build.query({
-      query: () => 'test',
+      query: () => ({ url: 'test' }),
     }),
   }),
   overrideExisting: false,
