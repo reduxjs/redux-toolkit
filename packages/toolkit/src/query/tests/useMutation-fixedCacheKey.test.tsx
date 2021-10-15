@@ -1,15 +1,15 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
-import { setupApiStore } from './helpers'
+import { setupApiStore, waitMs } from './helpers'
 import React from 'react'
 import { render, screen, getByTestId, waitFor } from '@testing-library/react'
 
 describe('fixedCacheKey', () => {
   const api = createApi({
-    baseQuery(arg: string) {
-      return { data: arg }
+    async baseQuery(arg: string | Promise<string>) {
+      return { data: await arg }
     },
     endpoints: (build) => ({
-      send: build.mutation<string, string>({
+      send: build.mutation<string, string | Promise<string>>({
         query: (arg) => arg,
       }),
     }),
@@ -23,7 +23,7 @@ describe('fixedCacheKey', () => {
   }: {
     name: string
     fixedCacheKey?: string
-    value?: string
+    value?: string | Promise<string>
   }) {
     const [trigger, result] = api.endpoints.send.useMutation({ fixedCacheKey })
 
@@ -184,5 +184,50 @@ describe('fixedCacheKey', () => {
     getByTestId(c1, 'trigger').click()
 
     expect(getByTestId(c1, 'originalArgs').textContent).toBe('undefined')
+  })
+
+  test('using `fixedCacheKey` will always use the latest dispatched thunk, prevent races', async () => {
+    let resolve1: (str: string) => void, resolve2: (str: string) => void
+    const p1 = new Promise<string>((resolve) => {
+      resolve1 = resolve
+    })
+    const p2 = new Promise<string>((resolve) => {
+      resolve2 = resolve
+    })
+    render(
+      <>
+        <Component name="C1" fixedCacheKey="test" value={p1} />
+        <Component name="C2" fixedCacheKey="test" value={p2} />
+      </>,
+      { wrapper: storeRef.wrapper }
+    )
+    const c1 = screen.getByTestId('C1')
+    const c2 = screen.getByTestId('C2')
+    expect(getByTestId(c1, 'status').textContent).toBe('uninitialized')
+    expect(getByTestId(c2, 'status').textContent).toBe('uninitialized')
+
+    getByTestId(c1, 'trigger').click()
+
+    expect(getByTestId(c1, 'status').textContent).toBe('pending')
+    expect(getByTestId(c1, 'data').textContent).toBe('')
+
+    getByTestId(c2, 'trigger').click()
+
+    expect(getByTestId(c1, 'status').textContent).toBe('pending')
+    expect(getByTestId(c1, 'data').textContent).toBe('')
+
+    resolve1!('this should not show up any more')
+
+    await waitMs()
+
+    expect(getByTestId(c1, 'status').textContent).toBe('pending')
+    expect(getByTestId(c1, 'data').textContent).toBe('')
+
+    resolve2!('this should be visible')
+
+    await waitMs()
+
+    expect(getByTestId(c1, 'status').textContent).toBe('fulfilled')
+    expect(getByTestId(c1, 'data').textContent).toBe('this should be visible')
   })
 })

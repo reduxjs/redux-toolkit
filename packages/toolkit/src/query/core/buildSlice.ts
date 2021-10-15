@@ -201,10 +201,11 @@ export function buildSlice({
       builder
         .addCase(
           mutationThunk.pending,
-          (draft, { meta, meta: { arg, startedTimeStamp } }) => {
+          (draft, { meta, meta: { requestId, arg, startedTimeStamp } }) => {
             if (!arg.track) return
 
             draft[getMutationCacheKey(meta)] = {
+              requestId,
               status: QueryStatus.pending,
               endpointName: arg.endpointName,
               startedTimeStamp,
@@ -215,6 +216,8 @@ export function buildSlice({
           if (!meta.arg.track) return
 
           updateMutationSubstateIfExists(draft, meta, (substate) => {
+            if (substate.requestId !== meta.requestId) return
+
             substate.status = QueryStatus.fulfilled
             substate.data = payload
             substate.fulfilledTimeStamp = meta.fulfilledTimeStamp
@@ -224,6 +227,8 @@ export function buildSlice({
           if (!meta.arg.track) return
 
           updateMutationSubstateIfExists(draft, meta, (substate) => {
+            if (substate.requestId !== meta.requestId) return
+
             substate.status = QueryStatus.rejected
             substate.error = (payload ?? error) as any
           })

@@ -183,6 +183,7 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
 >
 
 type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
+  requestId: string
   data?: ResultTypeFrom<D>
   error?:
     | SerializedError
@@ -208,6 +209,7 @@ export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
       status: QueryStatus.rejected
     } & WithRequiredProp<BaseMutationSubState<D>, 'error'>)
   | {
+      requestId?: undefined
       status: QueryStatus.uninitialized
       data?: undefined
       error?: undefined
