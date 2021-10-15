@@ -822,7 +822,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       )
 
       const currentState = useSelector(mutationSelector, shallowEqual)
-      const originalArgs = promise?.arg.originalArgs
+      const originalArgs =
+        fixedCacheKey == null ? promise?.arg.originalArgs : undefined
       const reset = useCallback(() => {
         if (promise) {
           setPromise(undefined)
