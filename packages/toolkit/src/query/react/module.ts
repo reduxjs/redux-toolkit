@@ -111,7 +111,7 @@ export const reactHooksModule = ({
   unstable__sideEffectsInRender = false,
 }: ReactHooksModuleOptions = {}): Module<ReactHooksModule> => ({
   name: reactHooksModuleName,
-  init(api, options, context) {
+  init(api, { serializeQueryArgs }, context) {
     const anyApi = api as any as Api<
       any,
       Record<string, any>,
@@ -128,6 +128,8 @@ export const reactHooksModule = ({
         useStore,
         unstable__sideEffectsInRender,
       },
+      serializeQueryArgs,
+      context,
     })
     safeAssign(anyApi, { usePrefetch })
     safeAssign(context, { batch })

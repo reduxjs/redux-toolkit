@@ -44,9 +44,7 @@ const api = createApi({
     }
 
     return {
-      data: arg?.body
-        ? { ...arg.body, ...(amount ? { amount } : {}) }
-        : undefined,
+      data: arg?.body ? { ...arg.body, ...(amount ? { amount } : {}) } : {},
     }
   },
   endpoints: (build) => ({
@@ -146,16 +144,20 @@ describe('hooks tests', () => {
     })
 
     test('useQuery hook sets isLoading=true only on initial request', async () => {
-      let refetch: any, isLoading: boolean
+      let refetch: any, isLoading: boolean, isFetching: boolean
       function User() {
         const [value, setValue] = React.useState(0)
 
-        ;({ isLoading, refetch } = api.endpoints.getUser.useQuery(2, {
-          skip: value < 1,
-        }))
+        ;({ isLoading, isFetching, refetch } = api.endpoints.getUser.useQuery(
+          2,
+          {
+            skip: value < 1,
+          }
+        ))
         return (
           <div>
             <div data-testid="isLoading">{String(isLoading)}</div>
+            <div data-testid="isFetching">{String(isFetching)}</div>
             <button onClick={() => setValue((val) => val + 1)}>
               Increment value
             </button>
@@ -182,14 +184,12 @@ describe('hooks tests', () => {
       await waitFor(() =>
         expect(screen.getByTestId('isLoading').textContent).toBe('false')
       )
-      // We call a refetch, should set to true
+      // We call a refetch, should still be `false`
       act(() => refetch())
       await waitFor(() =>
-        expect(screen.getByTestId('isLoading').textContent).toBe('true')
+        expect(screen.getByTestId('isFetching').textContent).toBe('true')
       )
-      await waitFor(() =>
-        expect(screen.getByTestId('isLoading').textContent).toBe('false')
-      )
+      expect(screen.getByTestId('isLoading').textContent).toBe('false')
     })
 
     test('useQuery hook sets isLoading and isFetching to the correct states', async () => {
@@ -240,10 +240,10 @@ describe('hooks tests', () => {
       })
       expect(getRenderCount()).toBe(5)
 
-      // We call a refetch, should set both to true, then false when complete/errored
+      // We call a refetch, should set `isFetching` to true, then false when complete/errored
       act(() => refetchMe())
       await waitFor(() => {
-        expect(screen.getByTestId('isLoading').textContent).toBe('true')
+        expect(screen.getByTestId('isLoading').textContent).toBe('false')
         expect(screen.getByTestId('isFetching').textContent).toBe('true')
       })
       await waitFor(() => {
@@ -251,6 +251,42 @@ describe('hooks tests', () => {
         expect(screen.getByTestId('isFetching').textContent).toBe('false')
       })
       expect(getRenderCount()).toBe(7)
+    })
+
+    test('`isLoading` does not jump back to true, while `isFetching` does', async () => {
+      const loadingHist: boolean[] = [],
+        fetchingHist: boolean[] = []
+
+      function User({ id }: { id: number }) {
+        const { isLoading, isFetching, status } =
+          api.endpoints.getUser.useQuery(id)
+
+        React.useEffect(() => {
+          loadingHist.push(isLoading)
+        }, [isLoading])
+        React.useEffect(() => {
+          fetchingHist.push(isFetching)
+        }, [isFetching])
+        return (
+          <div data-testid="status">
+            {status === QueryStatus.fulfilled && id}
+          </div>
+        )
+      }
+
+      let { rerender } = render(<User id={1} />, { wrapper: storeRef.wrapper })
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('1')
+      )
+      rerender(<User id={2} />)
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('2')
+      )
+
+      expect(loadingHist).toEqual([true, false])
+      expect(fetchingHist).toEqual([true, false, true, false])
     })
 
     test('useQuery hook respects refetchOnMountOrArgChange: true', async () => {
@@ -458,18 +494,19 @@ describe('hooks tests', () => {
 
       let { unmount } = render(<User />, { wrapper: storeRef.wrapper })
 
+      expect(screen.getByTestId('isFetching').textContent).toBe('false')
+
       // skipped queries do nothing by default, so we need to toggle that to get a cached result
       fireEvent.click(screen.getByText('change skip'))
 
       await waitFor(() =>
         expect(screen.getByTestId('isFetching').textContent).toBe('true')
       )
-      await waitFor(() =>
-        expect(screen.getByTestId('isFetching').textContent).toBe('false')
-      )
-      await waitFor(() =>
+
+      await waitFor(() => {
         expect(screen.getByTestId('amount').textContent).toBe('1')
-      )
+        expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      })
 
       unmount()
 
@@ -827,6 +864,7 @@ describe('hooks tests', () => {
           expectType<string>(res.requestId)
           expectType<() => void>(res.abort)
           expectType<() => Promise<{ name: string }>>(res.unwrap)
+          expectType<() => void>(res.reset)
           expectType<() => void>(res.unsubscribe)
 
           // abort the mutation immediately to force an error
@@ -869,6 +907,63 @@ describe('hooks tests', () => {
       expect(screen.queryByText(/Successfully updated user/i)).toBeNull()
       screen.getByText('Request was aborted')
     })
+
+    test('useMutation return value contains originalArgs', async () => {
+      const { result } = renderHook(api.endpoints.updateUser.useMutation, {
+        wrapper: storeRef.wrapper,
+      })
+      const arg = { name: 'Foo' }
+
+      const firstRenderResult = result.current
+      expect(firstRenderResult[1].originalArgs).toBe(undefined)
+      act(() => void firstRenderResult[0](arg))
+      const secondRenderResult = result.current
+      expect(firstRenderResult[1].originalArgs).toBe(undefined)
+      expect(secondRenderResult[1].originalArgs).toBe(arg)
+    })
+
+    test('`reset` sets state back to original state', async () => {
+      function User() {
+        const [updateUser, result] = api.endpoints.updateUser.useMutation()
+        return (
+          <>
+            <span>
+              {result.isUninitialized
+                ? 'isUninitialized'
+                : result.isSuccess
+                ? 'isSuccess'
+                : 'other'}
+            </span>
+            <span>{result.originalArgs?.name}</span>
+            <button onClick={() => updateUser({ name: 'Yay' })}>trigger</button>
+            <button onClick={result.reset}>reset</button>
+          </>
+        )
+      }
+      render(<User />, { wrapper: storeRef.wrapper })
+
+      await screen.findByText(/isUninitialized/i)
+      expect(screen.queryByText('Yay')).toBeNull()
+      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(
+        0
+      )
+
+      userEvent.click(screen.getByRole('button', { name: 'trigger' }))
+
+      await screen.findByText(/isSuccess/i)
+      expect(screen.queryByText('Yay')).not.toBeNull()
+      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(
+        1
+      )
+
+      userEvent.click(screen.getByRole('button', { name: 'reset' }))
+
+      await screen.findByText(/isUninitialized/i)
+      expect(screen.queryByText('Yay')).toBeNull()
+      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(
+        0
+      )
+    })
   })
 
   describe('usePrefetch', () => {
@@ -903,7 +998,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: undefined,
+        data: {},
         endpointName: 'getUser',
         error: undefined,
         fulfilledTimeStamp: expect.any(Number),
@@ -924,7 +1019,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: undefined,
+        data: {},
         endpointName: 'getUser',
         fulfilledTimeStamp: expect.any(Number),
         isError: false,
@@ -972,7 +1067,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: undefined,
+        data: {},
         endpointName: 'getUser',
         fulfilledTimeStamp: expect.any(Number),
         isError: false,
@@ -990,7 +1085,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: undefined,
+        data: {},
         endpointName: 'getUser',
         fulfilledTimeStamp: expect.any(Number),
         isError: false,
@@ -1040,7 +1135,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: undefined,
+        data: {},
         endpointName: 'getUser',
         fulfilledTimeStamp: expect.any(Number),
         isError: false,
@@ -1060,7 +1155,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: undefined,
+        data: {},
         endpointName: 'getUser',
         fulfilledTimeStamp: expect.any(Number),
         isError: false,
@@ -1843,8 +1938,8 @@ describe('hooks with createApi defaults set', () => {
         api.internalActions.middlewareRegistered.match,
         increment.matchPending,
         increment.matchFulfilled,
-        api.internalActions.unsubscribeMutationResult.match,
         increment.matchPending,
+        api.internalActions.removeMutationResult.match,
         increment.matchFulfilled
       )
     })
@@ -1927,19 +2022,6 @@ describe('hooks with createApi defaults set', () => {
         expect(screen.getByTestId('status').textContent).toBe('fulfilled')
       )
       expect(getRenderCount()).toBe(5)
-    })
-
-    test('useMutation return value contains originalArgs', async () => {
-      const { result } = renderHook(api.endpoints.increment.useMutation, {
-        wrapper: storeRef.wrapper,
-      })
-
-      const firstRenderResult = result.current
-      expect(firstRenderResult[1].originalArgs).toBe(undefined)
-      firstRenderResult[0](5)
-      const secondRenderResult = result.current
-      expect(firstRenderResult[1].originalArgs).toBe(undefined)
-      expect(secondRenderResult[1].originalArgs).toBe(5)
     })
 
     it('useMutation with selectFromResult option has a type error if the result is not an object', async () => {

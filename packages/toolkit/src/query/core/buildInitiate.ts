@@ -69,6 +69,7 @@ type StartMutationActionCreator<
      * (defaults to `true`)
      */
     track?: boolean
+    fixedCacheKey?: string
   }
 ) => ThunkAction<MutationActionCreatorResult<D>, any, any, AnyAction>
 
@@ -103,6 +104,7 @@ export type MutationActionCreatorResult<
      * Whether the mutation is being tracked in the store.
      */
     track?: boolean
+    fixedCacheKey?: string
   }
   /**
    * A unique string generated for the request sequence
@@ -169,6 +171,8 @@ export type MutationActionCreatorResult<
    * A method to manually unsubscribe from the mutation call, meaning it will be removed from cache after the usual caching grace period.
    The value returned by the hook will reset to `isUninitialized` afterwards.
    */
+  reset(): void
+  /** @deprecated has been renamed to `reset` */
   unsubscribe(): void
 }
 
@@ -196,7 +200,7 @@ export function buildInitiate({
 
   const {
     unsubscribeQueryResult,
-    unsubscribeMutationResult,
+    removeMutationResult,
     updateSubscriptionOptions,
   } = api.internalActions
   return {
@@ -320,12 +324,13 @@ Features like automatic cache collection, automatic refetching etc. will not be 
   function buildInitiateMutation(
     endpointName: string
   ): StartMutationActionCreator<any> {
-    return (arg, { track = true } = {}) =>
+    return (arg, { track = true, fixedCacheKey } = {}) =>
       (dispatch, getState) => {
         const thunk = mutationThunk({
           endpointName,
           originalArgs: arg,
           track,
+          fixedCacheKey,
         })
         const thunkResult = dispatch(thunk)
         middlewareWarning(getState)
@@ -334,15 +339,19 @@ Features like automatic cache collection, automatic refetching etc. will not be 
           .unwrap()
           .then((data) => ({ data }))
           .catch((error) => ({ error }))
+
+        const reset = () => {
+          dispatch(removeMutationResult({ requestId, fixedCacheKey }))
+        }
+
         const ret = Object.assign(returnValuePromise, {
           arg: thunkResult.arg,
           requestId,
           resolved: false,
           abort,
           unwrap: thunkResult.unwrap,
-          unsubscribe() {
-            if (track) dispatch(unsubscribeMutationResult({ requestId }))
-          },
+          unsubscribe: reset,
+          reset,
         })
 
         runningMutations[requestId] = ret
