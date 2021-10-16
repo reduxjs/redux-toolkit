@@ -827,7 +827,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const reset = useCallback(() => {
         if (promise) {
           setPromise(undefined)
-        } else if (fixedCacheKey) {
+        }
+        if (fixedCacheKey) {
           dispatch(
             api.internalActions.removeMutationResult({
               requestId,
