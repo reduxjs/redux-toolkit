@@ -5,6 +5,7 @@ import type {
   QueryArgFrom,
   ResultTypeFrom,
 } from '../endpointDefinitions'
+import { DefinitionType } from '../endpointDefinitions'
 import type { QueryThunk, MutationThunk } from './buildThunks'
 import type { AnyAction, ThunkAction, SerializedError } from '@reduxjs/toolkit'
 import type { QuerySubState, SubscriptionOptions, RootState } from './apiState'
@@ -207,7 +208,24 @@ export function buildInitiate({
     buildInitiateQuery,
     buildInitiateMutation,
     getRunningOperationPromises,
-    getRunningQueryPromise,
+    getRunningOperationPromise,
+  }
+
+  function getRunningOperationPromise(
+    endpointName: string,
+    argOrRequestId: any
+  ) {
+    const endpointDefinition = context.endpointDefinitions[endpointName]
+    if (endpointDefinition.type === DefinitionType.query) {
+      const queryCacheKey = serializeQueryArgs({
+        queryArgs: argOrRequestId,
+        endpointDefinition,
+        endpointName,
+      })
+      return runningQueries[queryCacheKey]
+    } else {
+      return runningMutations[argOrRequestId]
+    }
   }
 
   function getRunningOperationPromises() {
@@ -215,15 +233,6 @@ export function buildInitiate({
       ...Object.values(runningQueries),
       ...Object.values(runningMutations),
     ].filter(<T>(t: T | undefined): t is T => !!t)
-  }
-
-  function getRunningQueryPromise(endpointName: string, queryArgs: any) {
-    const queryCacheKey = serializeQueryArgs({
-      queryArgs,
-      endpointDefinition: context.endpointDefinitions[endpointName],
-      endpointName,
-    })
-    return runningQueries[queryCacheKey]
   }
 
   function middlewareWarning(getState: () => RootState<{}, string, string>) {

@@ -26,7 +26,10 @@ import { onFocus, onFocusLost, onOnline, onOffline } from './setupListeners'
 import { buildSlice } from './buildSlice'
 import { buildMiddleware } from './buildMiddleware'
 import { buildSelectors } from './buildSelectors'
-import type { QueryActionCreatorResult } from './buildInitiate'
+import type {
+  MutationActionCreatorResult,
+  QueryActionCreatorResult,
+} from './buildInitiate'
 import { buildInitiate } from './buildInitiate'
 import { assertCast, safeAssign } from '../tsHelpers'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
@@ -265,10 +268,13 @@ declare module '../apiTypes' {
           : never
       }
       getRunningOperationPromises: () => Array<Promise<unknown>>
-      getRunningQueryPromise: <EndpointName extends QueryKeys<Definitions>>(
+      getRunningOperationPromise: <EndpointName extends QueryKeys<Definitions>>(
         endpointName: EndpointName,
         args: QueryArgFrom<Definitions[EndpointName]>
-      ) => QueryActionCreatorResult<Definitions[EndpointName]> | undefined
+      ) =>
+        | QueryActionCreatorResult<Definitions[EndpointName]>
+        | MutationActionCreatorResult<Definitions[EndpointName]>
+        | undefined
     }
   }
 }
@@ -448,7 +454,7 @@ export const coreModule = (): Module<CoreModule> => ({
       buildInitiateQuery,
       buildInitiateMutation,
       getRunningOperationPromises,
-      getRunningQueryPromise,
+      getRunningOperationPromise,
     } = buildInitiate({
       queryThunk,
       mutationThunk,
@@ -457,7 +463,7 @@ export const coreModule = (): Module<CoreModule> => ({
       context,
     })
 
-    safeAssign(api, { getRunningOperationPromises, getRunningQueryPromise })
+    safeAssign(api, { getRunningOperationPromises, getRunningOperationPromise })
 
     return {
       name: coreModuleName,
