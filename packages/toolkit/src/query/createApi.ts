@@ -11,6 +11,7 @@ import { DefinitionType } from './endpointDefinitions'
 import { nanoid } from '@reduxjs/toolkit'
 import type { AnyAction } from '@reduxjs/toolkit'
 import type { NoInfer } from './tsHelpers'
+import { defaultMemoize } from 'reselect'
 
 export interface CreateApiOptions<
   BaseQuery extends BaseQueryFn,
@@ -199,6 +200,10 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
   ...modules: Modules
 ): CreateApi<Modules[number]['name']> {
   return function baseCreateApi(options) {
+    const extractRehydrationInfo = defaultMemoize(
+      options.extractRehydrationInfo ??
+        ((() => {}) as (a: AnyAction) => undefined)
+    )
     const optionsWithDefaults = {
       reducerPath: 'api',
       serializeQueryArgs: defaultSerializeQueryArgs,
@@ -207,6 +212,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       refetchOnFocus: false,
       refetchOnReconnect: false,
       ...options,
+      extractRehydrationInfo,
       tagTypes: [...(options.tagTypes || [])],
     }
 
@@ -217,7 +223,10 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
         fn()
       },
       apiUid: nanoid(),
-      extractRehydrationInfo: options.extractRehydrationInfo,
+      extractRehydrationInfo,
+      hasRehydrationInfo: defaultMemoize(
+        (action) => extractRehydrationInfo(action) != null
+      ),
     }
 
     const api = {

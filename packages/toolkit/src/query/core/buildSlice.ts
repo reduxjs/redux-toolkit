@@ -1,4 +1,4 @@
-import type { PayloadAction } from '@reduxjs/toolkit'
+import type { AnyAction, PayloadAction } from '@reduxjs/toolkit'
 import {
   combineReducers,
   createAction,
@@ -37,6 +37,7 @@ import {
   copyWithStructuralSharing,
 } from '../utils'
 import type { ApiContext } from '../apiTypes'
+import { defaultMemoize } from 'reselect'
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
@@ -87,7 +88,12 @@ export function buildSlice({
   reducerPath,
   queryThunk,
   mutationThunk,
-  context: { endpointDefinitions: definitions, apiUid },
+  context: {
+    endpointDefinitions: definitions,
+    apiUid,
+    extractRehydrationInfo,
+    hasRehydrationInfo,
+  },
   assertTagType,
   config,
 }: {
@@ -102,9 +108,6 @@ export function buildSlice({
   >
 }) {
   const resetApiState = createAction(`${reducerPath}/resetApiState`)
-  const rehydrate = createAction<ReturnType<typeof reducer>>(
-    `${reducerPath}/rehydrate`
-  )
   const querySlice = createSlice({
     name: `${reducerPath}/queries`,
     initialState: initialState as QueryState<any>,
@@ -178,7 +181,8 @@ export function buildSlice({
             )
           }
         )
-        .addCase(rehydrate, (draft, { payload: { queries } }) => {
+        .addMatcher(hasRehydrationInfo, (draft, action) => {
+          const { queries } = extractRehydrationInfo(action)!
           for (const [key, entry] of Object.entries(queries)) {
             if (
               // do not rehydrate entries that were currently in flight.
@@ -240,8 +244,20 @@ export function buildSlice({
             substate.error = (payload ?? error) as any
           })
         })
-      // mutation state will not be rehydrated as it could never be retrieved by a component
-      // .addCase(rehydrate, (draft, action) => {})
+        .addMatcher(hasRehydrationInfo, (draft, action) => {
+          const { mutations } = extractRehydrationInfo(action)!
+          for (const [key, entry] of Object.entries(mutations)) {
+            if (
+              // do not rehydrate entries that were currently in flight.
+              entry?.status === QueryStatus.fulfilled ||
+              entry?.status === QueryStatus.rejected ||
+              // only rehydrate endpoints that were persisted using a `fixedCacheKey`
+              key !== entry?.requestId
+            ) {
+              draft[key] = entry
+            }
+          }
+        })
     },
   })
 
@@ -266,10 +282,9 @@ export function buildSlice({
             }
           }
         )
-        .addCase(rehydrate, (draft, action) => {
-          for (const [type, incomingTags] of Object.entries(
-            action.payload.provided
-          )) {
+        .addMatcher(hasRehydrationInfo, (draft, action) => {
+          const { provided } = extractRehydrationInfo(action)!
+          for (const [type, incomingTags] of Object.entries(provided)) {
             for (const [id, cacheKeys] of Object.entries(incomingTags)) {
               const subscribedQueries = ((draft[type] ??= {})[
                 id || '__internal_without_id'
@@ -424,7 +439,6 @@ export function buildSlice({
     /** @deprecated has been renamed to `removeMutationResult` */
     unsubscribeMutationResult: mutationSlice.actions.removeMutationResult,
     resetApiState,
-    rehydrate,
   }
 
   return { reducer, actions }

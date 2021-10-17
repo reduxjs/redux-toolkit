@@ -633,7 +633,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         }
       }, [])
 
-      const ret = useMemo(
+      return useMemo(
         () => ({
           /**
            * A method to manually refetch data for the query
@@ -642,8 +642,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         }),
         []
       )
-
-      return ret
     }
 
     const useLazyQuerySubscription: UseLazyQuerySubscription<any> = ({
@@ -712,9 +710,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         }
       }, [arg, trigger])
 
-      const ret = useMemo(() => [trigger, arg] as const, [trigger, arg])
-
-      return ret
+      return useMemo(() => [trigger, arg] as const, [trigger, arg])
     }
 
     const useQueryState: UseQueryState<any> = (
@@ -860,12 +856,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         [currentState, originalArgs, reset]
       )
 
-      const ret = useMemo(
+      return useMemo(
         () => [triggerMutation, finalState] as const,
         [triggerMutation, finalState]
       )
-
-      return ret
     }
   }
 }

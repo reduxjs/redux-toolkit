@@ -360,6 +360,13 @@ Features like automatic cache collection, automatic refetching etc. will not be 
         ret.then(() => {
           delete runningMutations[requestId]
         })
+        if (fixedCacheKey) {
+          runningMutations[fixedCacheKey] = ret
+          ret.then(() => {
+            if (runningMutations[fixedCacheKey] === ret)
+              delete runningMutations[fixedCacheKey]
+          })
+        }
 
         return ret
       }

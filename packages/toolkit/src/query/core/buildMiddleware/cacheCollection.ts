@@ -29,8 +29,7 @@ declare module '../../endpointDefinitions' {
 }
 
 export const build: SubMiddlewareBuilder = ({ reducerPath, api, context }) => {
-  const { removeQueryResult, unsubscribeQueryResult, rehydrate } =
-    api.internalActions
+  const { removeQueryResult, unsubscribeQueryResult } = api.internalActions
 
   return (mwApi) => {
     const currentRemovalTimeouts: QueryStateMeta<TimeoutId> = {}
@@ -58,12 +57,10 @@ export const build: SubMiddlewareBuilder = ({ reducerPath, api, context }) => {
           }
         }
 
-        if (rehydrate.match(action)) {
+        if (context.hasRehydrationInfo(action)) {
           const state = mwApi.getState()[reducerPath]
-
-          for (const [queryCacheKey, queryState] of Object.entries(
-            action.payload.queries
-          )) {
+          const { queries } = context.extractRehydrationInfo(action)!
+          for (const [queryCacheKey, queryState] of Object.entries(queries)) {
             // Gotcha:
             // If rehydrating before the endpoint has been injected,the global `keepUnusedDataFor`
             // will be used instead of the endpoint-specific one.
@@ -74,12 +71,6 @@ export const build: SubMiddlewareBuilder = ({ reducerPath, api, context }) => {
               state.config
             )
           }
-        }
-
-        // this part could have it's own middleware, but for now it lives here
-        const extracted = context.extractRehydrationInfo?.(action)
-        if (extracted) {
-          mwApi.dispatch(api.internalActions.rehydrate(extracted))
         }
 
         return result

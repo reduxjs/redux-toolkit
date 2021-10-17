@@ -12,6 +12,8 @@ import type {
 import type { CoreModule } from './core/module'
 import type { CreateApiOptions } from './createApi'
 import type { BaseQueryFn } from './baseQueryTypes'
+import type { CombinedState } from './core/apiState'
+import type { AnyAction } from '@reduxjs/toolkit'
 
 export interface ApiModules<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -58,11 +60,10 @@ export interface ApiContext<Definitions extends EndpointDefinitions> {
   apiUid: string
   endpointDefinitions: Definitions
   batch(cb: () => void): void
-  extractRehydrationInfo: CreateApiOptions<
-    any,
-    Definitions,
-    string
-  >['extractRehydrationInfo']
+  extractRehydrationInfo: (
+    action: AnyAction
+  ) => CombinedState<any, any, any> | undefined
+  hasRehydrationInfo: (action: AnyAction) => boolean
 }
 
 export type Api<
