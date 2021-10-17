@@ -382,6 +382,9 @@ export function buildSlice({
             }
           }
         )
+        // update the state to be a new object to be picked up as a "state change"
+        // by redux-persist's `autoMergeLevel2`
+        .addMatcher(hasRehydrationInfo, (draft) => ({ ...draft }))
     },
   })
 
@@ -415,6 +418,9 @@ export function buildSlice({
         .addCase(onFocusLost, (state) => {
           state.focused = false
         })
+        // update the state to be a new object to be picked up as a "state change"
+        // by redux-persist's `autoMergeLevel2`
+        .addMatcher(hasRehydrationInfo, (draft) => ({ ...draft }))
     },
   })
 
