@@ -374,9 +374,9 @@ export function buildSlice({
         .addCase(
           queryThunk.rejected,
           (draft, { meta: { condition, arg, requestId }, error, payload }) => {
-            const substate = draft[arg.queryCacheKey]
             // request was aborted due to condition (another query already running)
-            if (condition && arg.subscribe && substate) {
+            if (condition && arg.subscribe) {
+              const substate = (draft[arg.queryCacheKey] ??= {})
               substate[requestId] =
                 arg.subscriptionOptions ?? substate[requestId] ?? {}
             }
