@@ -49,6 +49,11 @@ type Api = {
     updateQueryData: UpdateQueryDataThunk
     patchQueryData: PatchQueryDataThunk
     prefetch: PrefetchThunk
+    invalidateTags: ActionCreatorWithPayload<
+      Array<TagTypes | FullTagDescription<TagTypes>>,
+      string
+    >
+    resetApiState: SliceActions['resetApiState']
   }
 
   // Internal actions
@@ -92,6 +97,18 @@ Each API slice object has `injectEndpoints` and `enhanceEndpoints` functions to 
 :::info API Reference
 
 - [API Slices: Code Splitting and Generation](./code-splitting.mdx)
+
+:::
+
+## Cache Management Utilities
+
+The `util` field includes various utility functions that can be used to manage the cache, including
+manually updating query cache data, triggering pre-fetching of data, manually invalidating tags,
+and manually resetting the api state.
+
+:::info API Reference
+
+- [API Slices: Cache Management Utilities](./cache-management-utils.mdx)
 
 :::
 
