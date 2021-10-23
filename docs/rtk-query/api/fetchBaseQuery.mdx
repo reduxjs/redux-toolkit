@@ -156,7 +156,7 @@ By default, `fetchBaseQuery` assumes that every request you make will be `json`,
 
 ### Setting the query string
 
-`fetchBaseQuery` provides a simple mechanism that converts an `object` to a serialized query string by passing the object. If this doesn't suit your needs, you have two options:
+`fetchBaseQuery` provides a simple mechanism that converts an `object` to a serialized query string by passing the object to `new URLSearchParms()`. If this doesn't suit your needs, you have two options:
 
 1. Pass the `paramsSerializer` option to `fetchBaseQuery` to apply custom transformations
 2. Build your own querystring and set it in the `url`
