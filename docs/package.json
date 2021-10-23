@@ -11,6 +11,7 @@
     "graphql-request": "^3.4.0",
     "immutable": "^3.8.2",
     "nanoid": "^3.1.23",
+    "next-redux-wrapper": "^7.0.5",
     "rxjs": "^6.6.2"
   }
 }

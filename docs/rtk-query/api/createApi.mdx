@@ -56,6 +56,7 @@ export const { useGetPokemonByNameQuery } = pokemonApi
 ```ts no-transpile
   baseQuery(args: InternalQueryArgs, api: BaseQueryApi, extraOptions?: DefinitionExtraOptions): any;
   endpoints(build: EndpointBuilder<InternalQueryArgs, TagTypes>): Definitions;
+  extractRehydrationInfo?(action: AnyAction): CombinedState<any, any, any>;
   tagTypes?: readonly TagTypes[];
   reducerPath?: ReducerPath;
   serializeQueryArgs?: SerializeQueryArgs<InternalQueryArgs>;
@@ -289,6 +290,13 @@ export const { endpoints, reducerPath, reducer, middleware } = api
 // endpoints.addPost.initiate(), endpoints.addPost.select(), endpoints.addPost.useMutation()
 // see `createApi` overview for _all exports_
 ```
+
+### `extractRehydrationInfo`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.extractRehydrationInfo)
+
+[examples](docblock://query/createApi.ts?token=CreateApiOptions.extractRehydrationInfo)
+
 
 ### `tagTypes`
 

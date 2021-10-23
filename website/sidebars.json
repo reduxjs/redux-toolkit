@@ -93,6 +93,7 @@
             "rtk-query/usage/streaming-updates",
             "rtk-query/usage/code-splitting",
             "rtk-query/usage/code-generation",
+            "rtk-query/usage/server-side-rendering",
             "rtk-query/usage/customizing-create-api",
             "rtk-query/usage/customizing-queries",
             "rtk-query/usage/usage-without-react-hooks",
@@ -119,6 +120,7 @@
                 "rtk-query/api/created-api/endpoints",
                 "rtk-query/api/created-api/code-splitting",
                 "rtk-query/api/created-api/cache-management-utils",
+                "rtk-query/api/created-api/miscellaneous-utils",
                 "rtk-query/api/created-api/hooks"
               ]
             }

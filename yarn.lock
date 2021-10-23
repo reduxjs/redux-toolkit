@@ -10739,6 +10739,7 @@ __metadata:
     graphql-request: ^3.4.0
     immutable: ^3.8.2
     nanoid: ^3.1.23
+    next-redux-wrapper: ^7.0.5
     rxjs: ^6.6.2
   languageName: unknown
   linkType: soft
@@ -17282,6 +17283,17 @@ fsevents@^1.2.7:
   version: 1.0.3
   resolution: "netlify-plugin-cache@npm:1.0.3"
   checksum: cf4ca2f25130a0126c547a14fa0039d5db89c1fb8ffee86eda50ff094c87bd8f33903c2eec0e728faa7187b357e0084b3c95b2fa89c1727e3c198a68382134e7
+  languageName: node
+  linkType: hard
+
+"next-redux-wrapper@npm:^7.0.5":
+  version: 7.0.5
+  resolution: "next-redux-wrapper@npm:7.0.5"
+  peerDependencies:
+    next: ">=10.0.3"
+    react: "*"
+    react-redux: "*"
+  checksum: 882a86b058898dd24ac5b49d9fe497ebac4ee2a8c7d19a5592a2f9a0a01429571d632bef4c109af9712559de40dc1cceb17f99d4b8fea780572f4a8e1dcd47ea
   languageName: node
   linkType: hard
 

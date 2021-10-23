@@ -56,6 +56,16 @@ type Api = {
     resetApiState: SliceActions['resetApiState']
   }
 
+  // Miscellaneous utilities
+  getRunningOperationPromises: () => Array<Promise<unknown>>
+  getRunningOperationPromise: <EndpointName extends QueryKeys<Definitions>>(
+    endpointName: EndpointName,
+    args: QueryArgFrom<Definitions[EndpointName]>
+  ) =>
+    | QueryActionCreatorResult<Definitions[EndpointName]>
+    | MutationActionCreatorResult<Definitions[EndpointName]>
+    | undefined
+
   // Internal actions
   internalActions: InternalActions
 
@@ -109,6 +119,16 @@ and manually resetting the api state.
 :::info API Reference
 
 - [API Slices: Cache Management Utilities](./cache-management-utils.mdx)
+
+:::
+
+## Miscellaneous Utilities
+
+Miscellaneous utilities are provided that can be used in various scenarios, including SSR.
+
+:::info API Reference
+
+- [API Slices: Miscellaneous Utilities](./miscellaneous-utils.mdx)
 
 :::
 
