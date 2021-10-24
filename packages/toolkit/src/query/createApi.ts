@@ -207,7 +207,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
   return function baseCreateApi(options) {
     const extractRehydrationInfo = defaultMemoize((action: AnyAction) =>
       options.extractRehydrationInfo?.(action, {
-        reducerPath: options.reducerPath as any,
+        reducerPath: (options.reducerPath ?? 'api') as any,
       })
     )
     const optionsWithDefaults = {
