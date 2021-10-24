@@ -153,7 +153,12 @@ export interface CreateApiOptions<
   refetchOnReconnect?: boolean
 
   extractRehydrationInfo?: (
-    action: AnyAction
+    action: AnyAction,
+    {
+      reducerPath,
+    }: {
+      reducerPath: ReducerPath
+    }
   ) =>
     | undefined
     | CombinedState<
@@ -202,7 +207,14 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
   return function baseCreateApi(options) {
     const extractRehydrationInfo = defaultMemoize(
       options.extractRehydrationInfo ??
-        ((() => {}) as (a: AnyAction) => undefined)
+        ((() => {}) as (
+          a: AnyAction,
+          {
+            reducerPath,
+          }: {
+            reducerPath: string
+          }
+        ) => undefined)
     )
     const optionsWithDefaults = {
       reducerPath: 'api',
@@ -223,10 +235,14 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
         fn()
       },
       apiUid: nanoid(),
-      extractRehydrationInfo,
-      hasRehydrationInfo: defaultMemoize(
-        (action) => extractRehydrationInfo(action) != null
-      ),
+      extractRehydrationInfo: extractRehydrationInfo as any,
+      hasRehydrationInfo: defaultMemoize((action) => {
+        return (
+          extractRehydrationInfo(action, {
+            reducerPath: optionsWithDefaults.reducerPath as any,
+          }) != null
+        )
+      }),
     }
 
     const api = {
@@ -257,7 +273,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
     } as Api<BaseQueryFn, {}, string, string, Modules[number]['name']>
 
     const initializedModules = modules.map((m) =>
-      m.init(api as any, optionsWithDefaults, context)
+      m.init(api as any, optionsWithDefaults as any, context)
     )
 
     function injectEndpoints(
