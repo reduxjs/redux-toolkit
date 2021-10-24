@@ -182,7 +182,7 @@ export function buildSlice({
           }
         )
         .addMatcher(hasRehydrationInfo, (draft, action) => {
-          const { queries } = extractRehydrationInfo(action, { reducerPath })!
+          const { queries } = extractRehydrationInfo(action)!
           for (const [key, entry] of Object.entries(queries)) {
             if (
               // do not rehydrate entries that were currently in flight.
@@ -245,7 +245,7 @@ export function buildSlice({
           })
         })
         .addMatcher(hasRehydrationInfo, (draft, action) => {
-          const { mutations } = extractRehydrationInfo(action, { reducerPath })!
+          const { mutations } = extractRehydrationInfo(action)!
           for (const [key, entry] of Object.entries(mutations)) {
             if (
               // do not rehydrate entries that were currently in flight.
@@ -283,7 +283,7 @@ export function buildSlice({
           }
         )
         .addMatcher(hasRehydrationInfo, (draft, action) => {
-          const { provided } = extractRehydrationInfo(action, { reducerPath })!
+          const { provided } = extractRehydrationInfo(action)!
           for (const [type, incomingTags] of Object.entries(provided)) {
             for (const [id, cacheKeys] of Object.entries(incomingTags)) {
               const subscribedQueries = ((draft[type] ??= {})[

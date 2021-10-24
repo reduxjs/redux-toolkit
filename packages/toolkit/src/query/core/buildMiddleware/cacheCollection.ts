@@ -59,9 +59,7 @@ export const build: SubMiddlewareBuilder = ({ reducerPath, api, context }) => {
 
         if (context.hasRehydrationInfo(action)) {
           const state = mwApi.getState()[reducerPath]
-          const { queries } = context.extractRehydrationInfo(action, {
-            reducerPath,
-          })!
+          const { queries } = context.extractRehydrationInfo(action)!
           for (const [queryCacheKey, queryState] of Object.entries(queries)) {
             // Gotcha:
             // If rehydrating before the endpoint has been injected,the global `keepUnusedDataFor`

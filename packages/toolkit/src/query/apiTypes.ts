@@ -61,8 +61,7 @@ export interface ApiContext<Definitions extends EndpointDefinitions> {
   endpointDefinitions: Definitions
   batch(cb: () => void): void
   extractRehydrationInfo: (
-    action: AnyAction,
-    { reducerPath }: { reducerPath: string }
+    action: AnyAction
   ) => CombinedState<any, any, any> | undefined
   hasRehydrationInfo: (action: AnyAction) => boolean
 }
