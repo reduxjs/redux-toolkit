@@ -168,6 +168,10 @@ export interface CreateApiOptions<
       >
 }
 
+type ReducerPathFromCreateApiOptions<
+  Options extends CreateApiOptions<any, any, any, any>
+> = Options extends CreateApiOptions<any, any, infer RP, any> ? RP : unknown
+
 export type CreateApi<Modules extends ModuleName> = {
   /**
    * Creates a service to use in your application. Contains only the basic redux logic (the core module).
@@ -212,12 +216,12 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
           {
             reducerPath,
           }: {
-            reducerPath: string
+            reducerPath: ReducerPathFromCreateApiOptions<typeof options>
           }
         ) => undefined)
     )
     const optionsWithDefaults = {
-      reducerPath: 'api',
+      reducerPath: 'api' as ReducerPathFromCreateApiOptions<typeof options>,
       serializeQueryArgs: defaultSerializeQueryArgs,
       keepUnusedDataFor: 60,
       refetchOnMountOrArgChange: false,
@@ -228,18 +232,21 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       tagTypes: [...(options.tagTypes || [])],
     }
 
-    const context: ApiContext<EndpointDefinitions> = {
+    const context: ApiContext<
+      EndpointDefinitions,
+      ReducerPathFromCreateApiOptions<typeof options>
+    > = {
       endpointDefinitions: {},
       batch(fn) {
         // placeholder "batch" method to be overridden by plugins, for example with React.unstable_batchedUpdate
         fn()
       },
       apiUid: nanoid(),
-      extractRehydrationInfo: extractRehydrationInfo as any,
+      extractRehydrationInfo,
       hasRehydrationInfo: defaultMemoize((action) => {
         return (
           extractRehydrationInfo(action, {
-            reducerPath: optionsWithDefaults.reducerPath as any,
+            reducerPath: optionsWithDefaults.reducerPath,
           }) != null
         )
       }),
@@ -273,7 +280,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
     } as Api<BaseQueryFn, {}, string, string, Modules[number]['name']>
 
     const initializedModules = modules.map((m) =>
-      m.init(api as any, optionsWithDefaults as any, context)
+      m.init(api as any, optionsWithDefaults, context)
     )
 
     function injectEndpoints(

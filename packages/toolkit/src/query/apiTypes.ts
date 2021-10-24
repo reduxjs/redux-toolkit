@@ -47,7 +47,7 @@ export type Module<Name extends ModuleName> = {
       | 'refetchOnReconnect'
       | 'tagTypes'
     >,
-    context: ApiContext<Definitions>
+    context: ApiContext<Definitions, ReducerPath>
   ): {
     injectEndpoint(
       endpointName: string,
@@ -56,13 +56,16 @@ export type Module<Name extends ModuleName> = {
   }
 }
 
-export interface ApiContext<Definitions extends EndpointDefinitions> {
+export interface ApiContext<
+  Definitions extends EndpointDefinitions,
+  ReducerPath extends string
+> {
   apiUid: string
   endpointDefinitions: Definitions
   batch(cb: () => void): void
   extractRehydrationInfo: (
     action: AnyAction,
-    { reducerPath }: { reducerPath: string }
+    { reducerPath }: { reducerPath: ReducerPath }
   ) => CombinedState<any, any, any> | undefined
   hasRehydrationInfo: (action: AnyAction) => boolean
 }
