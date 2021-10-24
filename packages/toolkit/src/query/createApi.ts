@@ -162,11 +162,12 @@ export interface CreateApiOptions<
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * import { HYDRATE } from 'next-redux-wrapper'
    *
-   * createApi({
+   * export const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   // highlight-start
    *   extractRehydrationInfo(action) {
    *     if (action.type === HYDRATE) {
+   *       // where `api` matches the reducer path used in the store config. Default `reducerPath` is `api`.
    *       return action.payload.api
    *     }
    *   },

@@ -1,0 +1,45 @@
+---
+id: persistence-and-rehydration
+title: Persistence and Rehydration
+sidebar_label: Persistence and Rehydration
+hide_title: true
+description: 'RTK Query > Usage > Persistence and Rehydration'
+---
+
+&nbsp;
+
+# Persistence and Rehydration
+
+RTK Query supports rehydration via the [`extractRehydrationInfo`](../api/createApi.mdx#extractrehydrationinfo)
+option on [`createApi`](../api/createApi.mdx). This function is passed every dispatched action,
+and where it returns a value other than `undefined`, that value is used to rehydrate the API state
+for fulfilled & errored queries.
+
+See also [Server Side Rendering](./server-side-rendering.mdx).
+
+## Redux Persist
+
+API state rehydration can be used in conjunction with [Redux Persist](https://github.com/rt2zz/redux-persist)
+by leveraging the `REHYDRATE` action type imported from `redux-persist`. This can be used out of the
+box with the `autoMergeLevel1` or `autoMergeLevel2` [state reconcilers](https://github.com/rt2zz/redux-persist#state-reconciler),
+but not with the `hardSet` reconciler.
+
+```ts title="redux-persist rehydration example"
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { REHYDRATE } from 'redux-persist'
+
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  // highlight-start
+  extractRehydrationInfo(action) {
+    if (action.type === REHYDRATE) {
+      // where `api` matches the reducer path used in the store config. Default `reducerPath` is `api`.
+      return action.payload.api
+    }
+  },
+  // highlight-end
+  endpoints: (build) => ({
+    // omitted
+  }),
+})
+```

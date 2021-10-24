@@ -10740,6 +10740,7 @@ __metadata:
     immutable: ^3.8.2
     nanoid: ^3.1.23
     next-redux-wrapper: ^7.0.5
+    redux-persist: ^6.0.0
     rxjs: ^6.6.2
   languageName: unknown
   linkType: soft
@@ -20949,6 +20950,15 @@ fsevents@^1.2.7:
   dependencies:
     minimatch: 3.0.4
   checksum: 7ca5c180a8f1158171bd68ecb8b540e3c4e187de52a724eeea5383faece2b8ccae45f99e212d69ac7af574e1014d4963bfdf13fa124f18604aa9f47563e9f086
+  languageName: node
+  linkType: hard
+
+"redux-persist@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "redux-persist@npm:6.0.0"
+  peerDependencies:
+    redux: ">4.0.0"
+  checksum: 6b7c74526155c53ecdd49ec51d27fa07d265454440c734e8f1ef71dcbb78ae864a9965e152b9b1f35950ad933b66a79b8cf6be555f2dc89e1a61f01fc70a2965
   languageName: node
   linkType: hard
 
