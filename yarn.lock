@@ -5853,6 +5853,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@rtk-incubator/action-listener-middleware@workspace:packages/action-listener-middleware":
+  version: 0.0.0-use.local
+  resolution: "@rtk-incubator/action-listener-middleware@workspace:packages/action-listener-middleware"
+  dependencies:
+    "@reduxjs/toolkit": ^1.6.0
+    microbundle: ^0.13.3
+    rimraf: ^3.0.2
+    typescript: ^4.3.4
+  peerDependencies:
+    "@reduxjs/toolkit": ^1.6.0
+  languageName: unknown
+  linkType: soft
+
 "@rtk-query/graphql-request-base-query@^1.0.3, @rtk-query/graphql-request-base-query@workspace:packages/rtk-query-graphql-request-base-query":
   version: 0.0.0-use.local
   resolution: "@rtk-query/graphql-request-base-query@workspace:packages/rtk-query-graphql-request-base-query"
