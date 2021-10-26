@@ -24,7 +24,7 @@ Each API slice object has `getRunningOperationPromises` and `getRunningOperation
 #### Signature
 
 ```ts no-transpile
-const getRunningOperationPromises: () => Array<Promise<unknown>>
+getRunningOperationPromises: () => Array<Promise<unknown>>
 ```
 
 #### Description
@@ -43,11 +43,17 @@ await Promise.all(api.getRunningOperationPromises())
 #### Signature
 
 ```ts no-transpile
-const getRunningOperationPromise: <EndpointName extends QueryKeys<Definitions>>(
+getRunningOperationPromise: <EndpointName extends QueryKeys<Definitions>>(
   endpointName: EndpointName,
   args: QueryArgFrom<Definitions[EndpointName]>
 ) =>
   | QueryActionCreatorResult<Definitions[EndpointName]>
+  | undefined
+
+getRunningOperationPromise: <EndpointName extends MutationKeys<Definitions>>(
+  endpointName: EndpointName,
+  fixedCacheKeyOrRequestId: string
+) =>
   | MutationActionCreatorResult<Definitions[EndpointName]>
   | undefined
 ```
@@ -57,5 +63,6 @@ const getRunningOperationPromise: <EndpointName extends QueryKeys<Definitions>>(
 A function that returns a single promise for a given endpoint name + argument combination,
 if it is currently running. If it is not currently running, the function returns `undefined`.
 
-This enables writing custom hooks that look up if RTK Query has already got a running promise
+This is primarily added to add experimental support for suspense in the future.
+It enables writing custom hooks that look up if RTK Query has already got a running promise
 for a certain endpoint/argument combination, and retrieving that promise to `throw` it.
