@@ -165,10 +165,9 @@ export interface CreateApiOptions<
    * export const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   // highlight-start
-   *   extractRehydrationInfo(action) {
+   *   extractRehydrationInfo(action, { reducerPath }) {
    *     if (action.type === HYDRATE) {
-   *       // where `api` matches the reducer path used in the store config. Default `reducerPath` is `api`.
-   *       return action.payload.api
+   *       return action.payload[reducerPath]
    *     }
    *   },
    *   // highlight-end

@@ -56,7 +56,20 @@ export const { useGetPokemonByNameQuery } = pokemonApi
 ```ts no-transpile
   baseQuery(args: InternalQueryArgs, api: BaseQueryApi, extraOptions?: DefinitionExtraOptions): any;
   endpoints(build: EndpointBuilder<InternalQueryArgs, TagTypes>): Definitions;
-  extractRehydrationInfo?(action: AnyAction): CombinedState<any, any, any>;
+  extractRehydrationInfo?: (
+    action: AnyAction,
+    {
+      reducerPath,
+    }: {
+      reducerPath: ReducerPath
+    }
+  ) =>
+    | undefined
+    | CombinedState<
+        NoInfer<Definitions>,
+        NoInfer<TagTypes>,
+        NoInfer<ReducerPath>
+      >
   tagTypes?: readonly TagTypes[];
   reducerPath?: ReducerPath;
   serializeQueryArgs?: SerializeQueryArgs<InternalQueryArgs>;

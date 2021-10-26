@@ -31,10 +31,9 @@ import { REHYDRATE } from 'redux-persist'
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   // highlight-start
-  extractRehydrationInfo(action) {
+  extractRehydrationInfo(action, { reducerPath }) {
     if (action.type === REHYDRATE) {
-      // where `api` matches the reducer path used in the store config. Default `reducerPath` is `api`.
-      return action.payload.api
+      return action.payload[reducerPath]
     }
   },
   // highlight-end
