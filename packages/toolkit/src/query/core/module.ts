@@ -133,6 +133,18 @@ declare module '../apiTypes' {
        * A collection of utility thunks for various situations.
        */
       util: {
+        getRunningOperationPromises: () => Array<Promise<unknown>>
+        getRunningOperationPromise<EndpointName extends QueryKeys<Definitions>>(
+          endpointName: EndpointName,
+          args: QueryArgFrom<Definitions[EndpointName]>
+        ): QueryActionCreatorResult<Definitions[EndpointName]> | undefined
+        getRunningOperationPromise<
+          EndpointName extends MutationKeys<Definitions>
+        >(
+          endpointName: EndpointName,
+          fixedCacheKeyOrRequestId: string
+        ): MutationActionCreatorResult<Definitions[EndpointName]> | undefined
+
         /**
          * A Redux thunk that can be used to manually trigger pre-fetching of data.
          *
@@ -271,17 +283,6 @@ declare module '../apiTypes' {
           ? ApiEndpointMutation<Definitions[K], Definitions>
           : never
       }
-      getRunningOperationPromises: () => Array<Promise<unknown>>
-      getRunningOperationPromise<EndpointName extends QueryKeys<Definitions>>(
-        endpointName: EndpointName,
-        args: QueryArgFrom<Definitions[EndpointName]>
-      ): QueryActionCreatorResult<Definitions[EndpointName]> | undefined
-      getRunningOperationPromise<
-        EndpointName extends MutationKeys<Definitions>
-      >(
-        endpointName: EndpointName,
-        fixedCacheKeyOrRequestId: string
-      ): MutationActionCreatorResult<Definitions[EndpointName]> | undefined
     }
   }
 }
@@ -469,7 +470,10 @@ export const coreModule = (): Module<CoreModule> => ({
       context,
     })
 
-    safeAssign(api, { getRunningOperationPromises, getRunningOperationPromise })
+    safeAssign(api.util, {
+      getRunningOperationPromises,
+      getRunningOperationPromise,
+    })
 
     return {
       name: coreModuleName,
