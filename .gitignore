@@ -16,6 +16,7 @@ temp/
 .tmp-projections
 build/
 .rts2*
+coverage/
 
 typesversions
 .cache
