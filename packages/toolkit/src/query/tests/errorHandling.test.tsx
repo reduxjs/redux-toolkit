@@ -34,14 +34,17 @@ const failQueryOnce = rest.get('/query', (_, req, ctx) =>
 )
 
 describe('fetchBaseQuery', () => {
-  const commonBaseQueryApiArgs: BaseQueryApi = {
-    signal: new AbortController().signal,
-    dispatch: storeRef.store.dispatch,
-    getState: storeRef.store.getState,
-    extra: undefined,
-    type: 'query',
-    endpoint: 'doesntmatterhere',
-  }
+  let commonBaseQueryApiArgs: BaseQueryApi = {} as any
+  beforeEach(() => {
+    commonBaseQueryApiArgs = {
+      signal: new AbortController().signal,
+      dispatch: storeRef.store.dispatch,
+      getState: storeRef.store.getState,
+      extra: undefined,
+      type: 'query',
+      endpoint: 'doesntmatterhere',
+    }
+  })
   test('success', async () => {
     await expect(
       baseQuery('/success', commonBaseQueryApiArgs, {})

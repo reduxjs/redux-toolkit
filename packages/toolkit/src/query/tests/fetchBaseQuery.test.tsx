@@ -79,8 +79,8 @@ beforeEach(() => {
     dispatch: storeRef.store.dispatch,
     getState: storeRef.store.getState,
     extra: undefined,
-    endpoint: '',
     type: 'query',
+    endpoint: 'doesntmatterhere',
   }
 })
 
