@@ -178,7 +178,7 @@ export function fetchBaseQuery({
       'Warning: `fetch` is not available. Please supply a custom `fetchFn` property to use `fetchBaseQuery` on SSR environments.'
     )
   }
-  return async (arg, { signal, getState, endpoint, forced }) => {
+  return async (arg, { signal, getState, endpoint, forced, type }) => {
     let meta: FetchBaseQueryMeta | undefined
     let {
       url,
@@ -200,7 +200,7 @@ export function fetchBaseQuery({
 
     config.headers = await prepareHeaders(
       new Headers(stripUndefined(headers)),
-      { getState, endpoint, forced }
+      { getState, endpoint, forced, type }
     )
 
     // Only set the content-type to json if appropriate. Will not be true for FormData, ArrayBuffer, Blob, etc.
