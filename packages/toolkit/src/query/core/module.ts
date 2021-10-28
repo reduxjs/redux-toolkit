@@ -20,7 +20,12 @@ import type {
   FullTagDescription,
 } from '../endpointDefinitions'
 import { isQueryDefinition, isMutationDefinition } from '../endpointDefinitions'
-import type { CombinedState, QueryKeys, RootState } from './apiState'
+import type {
+  CombinedState,
+  QueryKeys,
+  MutationKeys,
+  RootState,
+} from './apiState'
 import type { Api, Module } from '../apiTypes'
 import { onFocus, onFocusLost, onOnline, onOffline } from './setupListeners'
 import { buildSlice } from './buildSlice'
@@ -267,13 +272,16 @@ declare module '../apiTypes' {
           : never
       }
       getRunningOperationPromises: () => Array<Promise<unknown>>
-      getRunningOperationPromise: <EndpointName extends QueryKeys<Definitions>>(
+      getRunningOperationPromise<EndpointName extends QueryKeys<Definitions>>(
         endpointName: EndpointName,
         args: QueryArgFrom<Definitions[EndpointName]>
-      ) =>
-        | QueryActionCreatorResult<Definitions[EndpointName]>
-        | MutationActionCreatorResult<Definitions[EndpointName]>
-        | undefined
+      ): QueryActionCreatorResult<Definitions[EndpointName]> | undefined
+      getRunningOperationPromise<
+        EndpointName extends MutationKeys<Definitions>
+      >(
+        endpointName: EndpointName,
+        fixedCacheKeyOrRequestId: string
+      ): MutationActionCreatorResult<Definitions[EndpointName]> | undefined
     }
   }
 }

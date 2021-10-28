@@ -249,8 +249,8 @@ export function buildSlice({
           for (const [key, entry] of Object.entries(mutations)) {
             if (
               // do not rehydrate entries that were currently in flight.
-              entry?.status === QueryStatus.fulfilled ||
-              entry?.status === QueryStatus.rejected ||
+              (entry?.status === QueryStatus.fulfilled ||
+                entry?.status === QueryStatus.rejected) &&
               // only rehydrate endpoints that were persisted using a `fixedCacheKey`
               key !== entry?.requestId
             ) {

@@ -212,7 +212,7 @@ export function buildInitiate({
   function getRunningOperationPromise(
     endpointName: string,
     argOrRequestId: any
-  ) {
+  ): any {
     const endpointDefinition = context.endpointDefinitions[endpointName]
     if (endpointDefinition.type === DefinitionType.query) {
       const queryCacheKey = serializeQueryArgs({
