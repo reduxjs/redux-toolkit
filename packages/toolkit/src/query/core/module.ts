@@ -245,6 +245,15 @@ declare module '../apiTypes' {
           Array<TagTypes | FullTagDescription<TagTypes>>,
           string
         >
+
+        selectInvalidatedBy: (
+          state: RootState<Definitions, string, ReducerPath>,
+          tags: ReadonlyArray<FullTagDescription<string>>
+        ) => Array<{
+          endpointName: string
+          originalArgs: any
+          queryCacheKey: string
+        }>
       }
       /**
        * Endpoints based on the input endpoints provided to `createApi`, containing `select` and `action matchers`.
@@ -431,10 +440,13 @@ export const coreModule = (): Module<CoreModule> => ({
 
     safeAssign(api, { reducer: reducer as any, middleware })
 
-    const { buildQuerySelector, buildMutationSelector } = buildSelectors({
-      serializeQueryArgs: serializeQueryArgs as any,
-      reducerPath,
-    })
+    const { buildQuerySelector, buildMutationSelector, selectInvalidatedBy } =
+      buildSelectors({
+        serializeQueryArgs: serializeQueryArgs as any,
+        reducerPath,
+      })
+
+    safeAssign(api.util, { selectInvalidatedBy })
 
     const { buildInitiateQuery, buildInitiateMutation } = buildInitiate({
       queryThunk,
