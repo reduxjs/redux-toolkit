@@ -11,6 +11,7 @@ import { server } from './mocks/server'
 import { fireEvent, render, waitFor, screen } from '@testing-library/react'
 import { useDispatch } from 'react-redux'
 import type { AnyAction, ThunkDispatch } from '@reduxjs/toolkit'
+import type { BaseQueryApi } from '../baseQueryTypes'
 
 const baseQuery = fetchBaseQuery({ baseUrl: 'http://example.com' })
 
@@ -33,18 +34,17 @@ const failQueryOnce = rest.get('/query', (_, req, ctx) =>
 )
 
 describe('fetchBaseQuery', () => {
+  const commonBaseQueryApiArgs: BaseQueryApi = {
+    signal: new AbortController().signal,
+    dispatch: storeRef.store.dispatch,
+    getState: storeRef.store.getState,
+    extra: undefined,
+    type: 'query',
+    endpoint: 'doesntmatterhere',
+  }
   test('success', async () => {
     await expect(
-      baseQuery(
-        '/success',
-        {
-          signal: new AbortController().signal,
-          dispatch: storeRef.store.dispatch,
-          getState: storeRef.store.getState,
-          extra: undefined,
-        },
-        {}
-      )
+      baseQuery('/success', commonBaseQueryApiArgs, {})
     ).resolves.toEqual({
       data: { value: 'success' },
       meta: {
@@ -56,16 +56,7 @@ describe('fetchBaseQuery', () => {
   test('error', async () => {
     server.use(failQueryOnce)
     await expect(
-      baseQuery(
-        '/error',
-        {
-          signal: new AbortController().signal,
-          dispatch: storeRef.store.dispatch,
-          getState: storeRef.store.getState,
-          extra: undefined,
-        },
-        {}
-      )
+      baseQuery('/error', commonBaseQueryApiArgs, {})
     ).resolves.toEqual({
       error: {
         data: { value: 'error' },
