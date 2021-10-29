@@ -1,6 +1,6 @@
 import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
 import { setupApiStore, waitMs } from './helpers'
-import type { ResultDescription } from '@reduxjs/toolkit/dist/query/endpointDefinitions'
+import type { TagDescription } from '@reduxjs/toolkit/dist/query/endpointDefinitions'
 import { waitFor } from '@testing-library/react'
 
 const tagTypes = [
@@ -13,7 +13,7 @@ const tagTypes = [
   'giraffe',
 ] as const
 type TagTypes = typeof tagTypes[number]
-type Tags = ResultDescription<TagTypes, any, any, any>
+type Tags = TagDescription<TagTypes>[]
 
 /** providesTags, invalidatesTags, shouldInvalidate */
 const caseMatrix: [Tags, Tags, boolean][] = [
@@ -116,7 +116,7 @@ test.each(caseMatrix)(
     })
     const toInvalidate = api.util.selectInvalidatedBy(
       store.getState(),
-      invalidatesTags as any
+      invalidatesTags
     )
 
     if (shouldInvalidate) {
