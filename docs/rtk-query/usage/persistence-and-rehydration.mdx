@@ -1,0 +1,56 @@
+---
+id: persistence-and-rehydration
+title: Persistence and Rehydration
+sidebar_label: Persistence and Rehydration
+hide_title: true
+description: 'RTK Query > Usage > Persistence and Rehydration'
+---
+
+&nbsp;
+
+# Persistence and Rehydration
+
+RTK Query supports rehydration via the [`extractRehydrationInfo`](../api/createApi.mdx#extractrehydrationinfo)
+option on [`createApi`](../api/createApi.mdx). This function is passed every dispatched action,
+and where it returns a value other than `undefined`, that value is used to rehydrate the API state
+for fulfilled & errored queries.
+
+See also [Server Side Rendering](./server-side-rendering.mdx).
+
+:::info
+
+Generally, persisting API slices is not recommended and instead, mechanisms like
+[`Cache-Control` Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)
+should be used in browsers to define cache behaviour.
+Persisting and rehydrating an api slice might always leave the user with very stale data if the user
+has not visited the page for some time.
+Nonetheless, in environments like Native Apps, where there is no browser cache to take care of this,
+persistance might still be a viable option.
+
+:::
+
+## Redux Persist
+
+API state rehydration can be used in conjunction with [Redux Persist](https://github.com/rt2zz/redux-persist)
+by leveraging the `REHYDRATE` action type imported from `redux-persist`. This can be used out of the
+box with the `autoMergeLevel1` or `autoMergeLevel2` [state reconcilers](https://github.com/rt2zz/redux-persist#state-reconciler)
+when persisting the root reducer, or with the `autoMergeLevel1` reconciler when persisting just the api reducer.
+
+```ts title="redux-persist rehydration example"
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { REHYDRATE } from 'redux-persist'
+
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  // highlight-start
+  extractRehydrationInfo(action, { reducerPath }) {
+    if (action.type === REHYDRATE) {
+      return action.payload[reducerPath]
+    }
+  },
+  // highlight-end
+  endpoints: (build) => ({
+    // omitted
+  }),
+})
+```

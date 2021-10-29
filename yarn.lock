@@ -10739,6 +10739,8 @@ __metadata:
     graphql-request: ^3.4.0
     immutable: ^3.8.2
     nanoid: ^3.1.23
+    next-redux-wrapper: ^7.0.5
+    redux-persist: ^6.0.0
     rxjs: ^6.6.2
   languageName: unknown
   linkType: soft
@@ -17285,6 +17287,17 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"next-redux-wrapper@npm:^7.0.5":
+  version: 7.0.5
+  resolution: "next-redux-wrapper@npm:7.0.5"
+  peerDependencies:
+    next: ">=10.0.3"
+    react: "*"
+    react-redux: "*"
+  checksum: 882a86b058898dd24ac5b49d9fe497ebac4ee2a8c7d19a5592a2f9a0a01429571d632bef4c109af9712559de40dc1cceb17f99d4b8fea780572f4a8e1dcd47ea
+  languageName: node
+  linkType: hard
+
 "next-tick@npm:~1.0.0":
   version: 1.0.0
   resolution: "next-tick@npm:1.0.0"
@@ -20937,6 +20950,15 @@ fsevents@^1.2.7:
   dependencies:
     minimatch: 3.0.4
   checksum: 7ca5c180a8f1158171bd68ecb8b540e3c4e187de52a724eeea5383faece2b8ccae45f99e212d69ac7af574e1014d4963bfdf13fa124f18604aa9f47563e9f086
+  languageName: node
+  linkType: hard
+
+"redux-persist@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "redux-persist@npm:6.0.0"
+  peerDependencies:
+    redux: ">4.0.0"
+  checksum: 6b7c74526155c53ecdd49ec51d27fa07d265454440c734e8f1ef71dcbb78ae864a9965e152b9b1f35950ad933b66a79b8cf6be555f2dc89e1a61f01fc70a2965
   languageName: node
   linkType: hard
 
