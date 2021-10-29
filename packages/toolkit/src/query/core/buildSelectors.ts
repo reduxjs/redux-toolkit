@@ -14,8 +14,9 @@ import type {
   QueryArgFrom,
   TagTypesFrom,
   ReducerPathFrom,
-  FullTagDescription,
+  TagDescription,
 } from '../endpointDefinitions'
+import { expandTagDescription } from '../endpointDefinitions'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import { getMutationCacheKey } from './buildSlice'
 import { flatten } from '../utils'
@@ -199,7 +200,7 @@ export function buildSelectors<
 
   function selectInvalidatedBy(
     state: RootState,
-    tags: ReadonlyArray<FullTagDescription<string>>
+    tags: ReadonlyArray<TagDescription<string>>
   ): Array<{
     endpointName: string
     originalArgs: any
@@ -207,7 +208,7 @@ export function buildSelectors<
   }> {
     const apiState = state[reducerPath]
     const toInvalidate = new Set<QueryCacheKey>()
-    for (const tag of tags) {
+    for (const tag of tags.map(expandTagDescription)) {
       const provided = apiState.provided[tag.type]
       if (!provided) {
         continue

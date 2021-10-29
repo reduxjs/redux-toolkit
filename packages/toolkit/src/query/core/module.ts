@@ -17,7 +17,7 @@ import type {
   QueryDefinition,
   MutationDefinition,
   AssertTagTypes,
-  FullTagDescription,
+  TagDescription,
 } from '../endpointDefinitions'
 import { isQueryDefinition, isMutationDefinition } from '../endpointDefinitions'
 import type { CombinedState, QueryKeys, RootState } from './apiState'
@@ -242,13 +242,13 @@ declare module '../apiTypes' {
          * ```
          */
         invalidateTags: ActionCreatorWithPayload<
-          Array<TagTypes | FullTagDescription<TagTypes>>,
+          Array<TagDescription<TagTypes>>,
           string
         >
 
         selectInvalidatedBy: (
           state: RootState<Definitions, string, ReducerPath>,
-          tags: ReadonlyArray<FullTagDescription<string>>
+          tags: ReadonlyArray<TagDescription<TagTypes>>
         ) => Array<{
           endpointName: string
           originalArgs: any
