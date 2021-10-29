@@ -16,7 +16,7 @@ Mutations are used to send data updates to the server and apply the changes to t
 
 ## Defining Mutation Endpoints
 
-Mutation endpoints are defined by returning an object inside the `endpoints` section of `createApi`, and defining the fields using the `builder.mutation()` method.
+Mutation endpoints are defined by returning an object inside the `endpoints` section of `createApi`, and defining the fields using the `build.mutation()` method.
 
 Mutation endpoints should define either a `query` callback that constructs the URL (including any URL query params), or [a `queryFn` callback](./customizing-queries.mdx#customizing-queries-with-queryfn) that may do arbitrary async logic and return a result. The `query` callback may also return an object containing the URL, the HTTP method to use and a request body.
 
@@ -79,7 +79,7 @@ const api = createApi({
 
 :::info
 
-The `onQueryStarted` method can be used for [optimistic updates](./optimistic-updates)
+The `onQueryStarted` method can be used for [optimistic updates](./manual-cache-updates.mdx#optimistic-updates)
 
 :::
 

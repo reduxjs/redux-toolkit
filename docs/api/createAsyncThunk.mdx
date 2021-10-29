@@ -560,7 +560,7 @@ const usersSlice = createSlice({
 })
 
 const UsersComponent = () => {
-  const { users, loading, error } = useSelector((state) => state.users)
+  const { entities, loading, error } = useSelector((state) => state.users)
   const dispatch = useDispatch()
 
   const fetchOneUser = async (userId) => {

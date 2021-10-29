@@ -10,7 +10,7 @@ description: 'RTK Query > Comparison: Compares features and tradeoffs vs other s
 
 # Comparison with Other Tools
 
-**RTK Query takes inspiration from many other data fetching libraries in the ecosystem**. Much like [the Redux core library was inspired by tools like Flux and Elm](https://redux.js.org/understanding/history-and-design/prior-art), RTK Query builds on API design patterns and feature concepts popularized by libraries like React Query, SWR, Apollo, and Urql. RTK Query has been written from scratch, but tries to use the best concepts from those libraries and other data fetching tools, with an eye towards leveraging the unique strengths and capabilities of Redux.
+**RTK Query takes inspiration from many other data fetching libraries in the ecosystem**. Much like [the Redux core library was inspired by tools like Flux and Elm](https://redux.js.org/understanding/history-and-design/prior-art), RTK Query builds on API design patterns and feature concepts popularized by libraries like [React Query](https://react-query.tanstack.com/), [SWR](https://swr.vercel.app/), [Apollo](https://www.apollographql.com/), and [Urql](https://formidable.com/open-source/urql/). RTK Query has been written from scratch, but tries to use the best concepts from those libraries and other data fetching tools, with an eye towards leveraging the unique strengths and capabilities of Redux.
 
 We think that all of those tools are great! If you're using one of them, you're happy with it, and it solves the problems you are facing in your app, keep using that tool. The information on this page is meant to help show **where there are differences in features, implementation approaches, and API design**. The goal is to help you **make informed decisions and understand tradeoffs**, rather than argue that tool X is better than tool Y.
 
@@ -28,10 +28,10 @@ In general, the main reasons to use RTK Query are:
 RTK Query has some unique API design aspects and capabilities that are worth considering.
 
 - With React Query and SWR, you usually define your hooks yourself, and you can do that all over the place and on the fly. With RTK Query, you do so in one central place by defining an "API slice" with multiple endpoints ahead of time. This allows for a more tightly integrated model of mutations automatically invalidating/refetching queries on trigger.
-- Because RTK Query dispatches normal Redux actions as requests are processed, all actions are visible in the Redux DevTools. Additionally, every request is automatically is visible to your Redux reducers and can easily update the global application state if necessary ([see example](https://github.com/reduxjs/redux-toolkit/issues/958#issuecomment-809570419)). You can use the endpoint [matcher functionality](./api/created-api/endpoints#matchers) to do additional processing of cache-related actions in your own reducers.
+- Because RTK Query dispatches normal Redux actions as requests are processed, all actions are visible in the Redux DevTools. Additionally, every request is automatically visible to your Redux reducers and can easily update the global application state if necessary ([see example](https://github.com/reduxjs/redux-toolkit/issues/958#issuecomment-809570419)). You can use the endpoint [matcher functionality](./api/created-api/endpoints#matchers) to do additional processing of cache-related actions in your own reducers.
 - Like Redux itself, the main RTK Query functionality is UI-agnostic and can be used with any UI layer
 - You can easily invalidate entities or patch existing query data (via `util.updateQueryData`) from middleware.
-- RTK Query enables [streaming cache updates](./usage/streaming-updates.mdx), such as updating the initial fetched data as messages are received over a websocket, and has built in support for [optimistic updates](./usage/optimistic-updates.mdx) as well.
+- RTK Query enables [streaming cache updates](./usage/streaming-updates.mdx), such as updating the initial fetched data as messages are received over a websocket, and has built in support for [optimistic updates](./usage/manual-cache-updates.mdx#optimistic-updates) as well.
 - RTK Query ships a very tiny and flexible fetch wrapper: [`fetchBaseQuery`](./api/fetchBaseQuery.mdx). It's also very easy to [swap our client with your own](./usage/customizing-queries.mdx), such as using `axios`, `redaxios`, or something custom.
 - RTK Query has [a (currently experimental) code-gen tool](https://github.com/rtk-incubator/rtk-query-codegen) that will take an OpenAPI spec or GraphQL schema and give you a typed API client, as well as provide methods for enhancing the generated client after the fact.
 
@@ -69,7 +69,7 @@ This comparison table strives to be as accurate and as unbiased as possible. If 
 
 :::
 
-| Feature                                | rtk-query                               | react-query              | apollo                                                                              | urql                                                                                                        |
+| Feature                                | rtk-query                               | [react-query]            | [apollo]                                                                            | [urql]                                                                                                      |
 | -------------------------------------- | --------------------------------------- | ------------------------ | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | **Supported Protocols**                | any, REST included                      | any, none included       | GraphQL                                                                             | GraphQL                                                                                                     |
 | **API Definition**                     | declarative                             | on use, declarative      | GraphQL schema                                                                      | GraphQL schema                                                                                              |
@@ -88,6 +88,10 @@ This comparison table strives to be as accurate and as unbiased as possible. If 
 | **Optimistic updates**                 | can update cache by hand                | can update cache by hand | `optimisticResponse`                                                                | ?                                                                                                           |
 | **Manual cache manipulation**          | yes                                     | yes                      | yes                                                                                 | yes                                                                                                         |
 | **Platforms**                          | hooks for React, everywhere Redux works | hooks for React          | various                                                                             | various                                                                                                     |
+
+[react-query]: https://react-query.tanstack.com/
+[apollo]: https://www.apollographql.com/
+[urql]: https://formidable.com/open-source/urql/
 
 ## Further Information
 

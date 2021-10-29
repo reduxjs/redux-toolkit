@@ -335,6 +335,7 @@ import { Pokemon } from './types'
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+  reducerPath: 'pokemonApi',
   endpoints: (build) => ({
     // highlight-start
     getPokemonByName: build.query<Pokemon, string>({

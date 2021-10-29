@@ -7,7 +7,6 @@ import path from 'path'
 import fs from 'fs-extra'
 import ts from 'typescript'
 import type { RawSourceMap } from 'source-map'
-import { SourceMapConsumer } from 'source-map'
 import merge from 'merge-source-map'
 import type { ExtractorResult } from '@microsoft/api-extractor'
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
@@ -200,6 +199,7 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     const origin = chunk.text
     const sourcemap = extractInlineSourcemap(origin)
     const result = ts.transpileModule(removeInlineSourceMap(origin), {
+      fileName: chunk.path.replace(/.js$/, '.ts'),
       compilerOptions: {
         sourceMap: true,
         module:
@@ -216,7 +216,11 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
       const transformResult = await terser.minify(
         appendInlineSourceMap(code, mapping),
         {
-          sourceMap: { content: 'inline', asObject: true } as any,
+          sourceMap: {
+            content: 'inline',
+            asObject: true,
+            url: path.basename(chunk.path) + '.map',
+          } as any,
           output: {
             comments: false,
           },

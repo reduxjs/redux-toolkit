@@ -179,16 +179,29 @@ export type UseLazyQueryLastPromiseInfo<
  * - Re-renders as the request status changes and data becomes available
  * - Accepts polling/re-fetching options to trigger automatic re-fetches when the corresponding criteria is met and the fetch has been manually called at least once
  *
+ * #### Note
+ *
+ * When the trigger function returned from a LazyQuery, it always initiates a new request to the server even if there is cached data. Set `preferCacheValue`(the second argument to the function) as true if you want it to use cache.
  */
 export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
   R = UseQueryStateDefaultResult<D>
 >(
   options?: SubscriptionOptions & Omit<UseQueryStateOptions<D, R>, 'skip'>
 ) => [
-  (arg: QueryArgFrom<D>) => void,
+  LazyQueryTrigger<D>,
   UseQueryStateResult<D, R>,
   UseLazyQueryLastPromiseInfo<D>
 ]
+
+export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
+  /**
+   * Triggers a lazy query.
+   *
+   * By default, this will start a new request even if there is already a value in the cache.
+   * If you want to use the cache value and only start a request if there is no cache value, set the second argument to `true`.
+   */
+  (arg: QueryArgFrom<D>, preferCacheValue?: boolean): void
+}
 
 /**
  * A React hook similar to [`useQuerySubscription`](#usequerysubscription), but with manual control over when the data fetching occurs.
@@ -406,16 +419,17 @@ const queryStatePreSelector = (
   lastResult: UseQueryStateDefaultResult<any>
 ): UseQueryStateDefaultResult<any> => {
   // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
-  const data =
-    (currentState.isSuccess ? currentState.data : lastResult?.data) ??
-    currentState.data
+  let data = currentState.isSuccess ? currentState.data : lastResult?.data
+  if (data === undefined) data = currentState.data
+
+  const hasData = data !== undefined
 
   // isFetching = true any time a request is in flight
   const isFetching = currentState.isLoading
   // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
-  const isLoading = !data && isFetching
+  const isLoading = !hasData && isFetching
   // isSuccess = true when data is present
-  const isSuccess = currentState.isSuccess || (isFetching && !!data)
+  const isSuccess = currentState.isSuccess || (isFetching && hasData)
 
   return {
     ...currentState,
@@ -440,7 +454,7 @@ const noPendingQueryStateSelector: QueryStateSelector<any, any> = (
       ...selected,
       isUninitialized: false,
       isFetching: true,
-      isLoading: true,
+      isLoading: selected.data !== undefined ? false : true,
       status: QueryStatus.pending,
     } as any
   }
