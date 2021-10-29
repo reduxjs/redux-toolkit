@@ -246,6 +246,9 @@ getRunningOperationPromise: <EndpointName extends MutationKeys<Definitions>>(
 A function that returns a single promise for a given endpoint name + argument combination,
 if it is currently running. If it is not currently running, the function returns `undefined`.
 
+When used with mutation endpoints, it accepts a [fixed cache key](./hooks.mdx#signature-1)
+or request ID rather than the argument.
+
 This is primarily added to add experimental support for suspense in the future.
 It enables writing custom hooks that look up if RTK Query has already got a running promise
 for a certain endpoint/argument combination, and retrieving that promise to `throw` it.
