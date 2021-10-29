@@ -465,7 +465,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   api,
   moduleOptions: { batch, useDispatch, useSelector, useStore },
 }: {
-  api: Api<any, Definitions, any, any>
+  api: Api<any, Definitions, any, any, CoreModule>
   moduleOptions: Required<ReactHooksModuleOptions>
 }) {
   return { buildQueryHooks, buildMutationHook, usePrefetch }
