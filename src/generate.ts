@@ -1,8 +1,8 @@
 import * as ts from 'typescript';
 import * as path from 'path';
-import { camelCase } from 'lodash';
+import { camelCase, filter } from 'lodash';
 import ApiGenerator, {
-  getOperationName,
+  getOperationName as _getOperationName,
   getReferenceName,
   isReference,
   supportDeepObjects,
@@ -15,16 +15,21 @@ import {
 } from 'oazapfts/lib/codegen/tscodegen';
 import { OpenAPIV3 } from 'openapi-types';
 import { generateReactHooks } from './generators/react-hooks';
-import { GenerationOptions, OperationDefinition } from './types';
-import { capitalize, getOperationDefinitions, getV3Doc, isQuery, MESSAGES, removeUndefined } from './utils';
+import { EndpointOverrides, GenerationOptions, OperationDefinition, OutputFileOptions } from './types';
+import {
+  capitalize,
+  getOperationDefinitions,
+  getV3Doc,
+  isQuery as testIsQuery,
+  MESSAGES,
+  removeUndefined,
+} from './utils';
 import {
   generateCreateApiCall,
   generateEndpointDefinition,
-  generateStringLiteralArray,
-  generatePackageImports,
   ObjectPropertyDefinitions,
+  generateImportNode,
 } from './codegen';
-import { generateSmartImportNode } from './generators/smart-import-node';
 
 const { factory } = ts;
 
@@ -33,35 +38,48 @@ function defaultIsDataResponse(code: string) {
   return !Number.isNaN(parsedCode) && parsedCode >= 200 && parsedCode < 300;
 }
 
-let customBaseQueryNode: ts.ImportDeclaration | undefined;
-let moduleName: string;
+function getOperationName({ verb, path, operation }: Pick<OperationDefinition, 'verb' | 'path' | 'operation'>) {
+  return _getOperationName(verb, path, operation.operationId);
+}
+
+function patternMatches(pattern?: string | string[] | RegExp | RegExp[]) {
+  const filters = Array.isArray(pattern) ? pattern : [pattern];
+  return function matcher(operationDefinition: OperationDefinition) {
+    if (!pattern) return true;
+    const operationName = getOperationName(operationDefinition);
+    return filters.some((filter) =>
+      typeof filter === 'string' ? filter == operationName : filter?.test(operationName)
+    );
+  };
+}
+
+function getOverrides(
+  operation: OperationDefinition,
+  endpointOverrides?: EndpointOverrides[]
+): EndpointOverrides | undefined {
+  return endpointOverrides?.find((override) => patternMatches(override.pattern)(operation));
+}
 
 export async function generateApi(
   spec: string,
   {
-    exportName = 'api',
-    reducerPath,
-    baseQuery = 'fetchBaseQuery',
+    apiFile,
+    apiImport = 'api',
+    exportName = 'enhancedApi',
     argSuffix = 'ApiArg',
     responseSuffix = 'ApiResponse',
-    createApiImportPath = 'base',
-    baseUrl,
-    hooks,
+    hooks = false,
     outputFile,
     isDataResponse = defaultIsDataResponse,
-    compilerOptions,
+    filterEndpoints,
+    endpointOverrides,
   }: GenerationOptions
 ) {
   const v3Doc = await getV3Doc(spec);
-  if (typeof baseUrl !== 'string') {
-    baseUrl = v3Doc.servers?.[0].url ?? 'https://example.com';
-  } else if (baseQuery !== 'fetchBaseQuery') {
-    console.warn(MESSAGES.BASE_URL_IGNORED);
-  }
 
   const apiGen = new ApiGenerator(v3Doc, {});
 
-  const operationDefinitions = getOperationDefinitions(v3Doc);
+  const operationDefinitions = getOperationDefinitions(v3Doc).filter(patternMatches(filterEndpoints));
 
   const resultFile = ts.createSourceFile(
     'someFileName.ts',
@@ -82,73 +100,39 @@ export async function generateApi(
     return declaration;
   }
 
-  /**
-   * --baseQuery handling
-   * 1. If baseQuery is specified, we confirm that the file exists
-   * 2. If there is a seperator in the path, file presence + named function existence is verified.
-   * 3. If there is a not a seperator, file presence + default export existence is verified.
-   */
+  console.log(arguments);
 
-  if (outputFile) {
+  if (outputFile && outputFile !== '-') {
     outputFile = path.resolve(process.cwd(), outputFile);
+    apiFile = path.relative(path.dirname(outputFile), apiFile);
   }
-
-  // If a baseQuery was specified as an arg, we try to parse and resolve it. If not, fallback to `fetchBaseQuery` or throw when appropriate.
-
-  let targetName = 'default';
-  if (baseQuery !== 'fetchBaseQuery') {
-    if (baseQuery.includes(':')) {
-      // User specified a named function
-      [moduleName, baseQuery] = baseQuery.split(':');
-
-      if (!baseQuery) {
-        throw new Error(MESSAGES.NAMED_EXPORT_MISSING);
-      }
-      targetName = baseQuery;
-    } else {
-      moduleName = baseQuery;
-      baseQuery = 'customBaseQuery';
-    }
-
-    customBaseQueryNode = generateSmartImportNode({
-      moduleName,
-      containingFile: outputFile,
-      targetName,
-      targetAlias: baseQuery,
-      compilerOptions,
-    });
-  }
-
-  const fetchBaseQueryCall = factory.createCallExpression(factory.createIdentifier('fetchBaseQuery'), undefined, [
-    factory.createObjectLiteralExpression(
-      [factory.createPropertyAssignment(factory.createIdentifier('baseUrl'), factory.createStringLiteral(baseUrl))],
-      false
-    ),
-  ]);
-
-  const isUsingFetchBaseQuery = baseQuery === 'fetchBaseQuery';
 
   const sourceCode = printer.printNode(
     ts.EmitHint.Unspecified,
     factory.createSourceFile(
       [
-        ...generatePackageImports({ hooks, isUsingFetchBaseQuery, createApiImportPath }),
-        ...(customBaseQueryNode ? [customBaseQueryNode] : []),
+        generateImportNode(apiFile, { api: apiImport }),
         generateCreateApiCall({
           exportName,
-          reducerPath,
-          createApiFn: factory.createIdentifier('createApi'),
-          baseQuery: isUsingFetchBaseQuery ? fetchBaseQueryCall : factory.createIdentifier(baseQuery),
-          tagTypes: generateTagTypes({ v3Doc, operationDefinitions }),
           endpointDefinitions: factory.createObjectLiteralExpression(
             operationDefinitions.map((operationDefinition) =>
               generateEndpoint({
                 operationDefinition,
+                overrides: getOverrides(operationDefinition, endpointOverrides),
               })
             ),
             true
           ),
         }),
+        factory.createExportDeclaration(
+          undefined,
+          undefined,
+          false,
+          factory.createNamedExports([
+            factory.createExportSpecifier(factory.createIdentifier('injectedRtkApi'), factory.createIdentifier('api')),
+          ]),
+          undefined
+        ),
         ...Object.values(interfaces),
         ...apiGen['aliases'],
         ...(hooks ? [generateReactHooks({ exportName, operationDefinitions })] : []),
@@ -161,11 +145,13 @@ export async function generateApi(
 
   return sourceCode;
 
-  function generateTagTypes(_: { operationDefinitions: OperationDefinition[]; v3Doc: OpenAPIV3.Document }) {
-    return generateStringLiteralArray([]); // TODO
-  }
-
-  function generateEndpoint({ operationDefinition }: { operationDefinition: OperationDefinition }) {
+  function generateEndpoint({
+    operationDefinition,
+    overrides,
+  }: {
+    operationDefinition: OperationDefinition;
+    overrides?: EndpointOverrides;
+  }) {
     const {
       verb,
       path,
@@ -173,8 +159,9 @@ export async function generateApi(
       operation,
       operation: { responses, requestBody },
     } = operationDefinition;
+    const operationName = getOperationName({ verb, path, operation });
 
-    const _isQuery = isQuery(verb);
+    const isQuery = testIsQuery(verb, overrides);
 
     const returnsJson = apiGen.getResponseType(responses) === 'json';
     let ResponseType: ts.TypeNode = factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
@@ -208,7 +195,7 @@ export async function generateApi(
         factory.createTypeAliasDeclaration(
           undefined,
           [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-          capitalize(getOperationName(verb, path, operation.operationId) + responseSuffix),
+          capitalize(operationName + responseSuffix),
           undefined,
           ResponseType
         )
@@ -273,7 +260,7 @@ export async function generateApi(
         factory.createTypeAliasDeclaration(
           undefined,
           [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-          capitalize(getOperationName(verb, path, operation.operationId) + argSuffix),
+          capitalize(operationName + argSuffix),
           undefined,
           queryArgValues.length > 0
             ? factory.createTypeLiteralNode(
@@ -303,12 +290,12 @@ export async function generateApi(
     );
 
     return generateEndpointDefinition({
-      operationName: getOperationName(verb, path, operation.operationId),
-      type: _isQuery ? 'query' : 'mutation',
+      operationName,
+      type: isQuery ? 'query' : 'mutation',
       Response: ResponseTypeName,
       QueryArg,
-      queryFn: generateQueryFn({ operationDefinition, queryArg }),
-      extraEndpointsProps: _isQuery
+      queryFn: generateQueryFn({ operationDefinition, queryArg, isQuery }),
+      extraEndpointsProps: isQuery
         ? generateQueryEndpointProps({ operationDefinition })
         : generateMutationEndpointProps({ operationDefinition }),
     });
@@ -317,9 +304,11 @@ export async function generateApi(
   function generateQueryFn({
     operationDefinition,
     queryArg,
+    isQuery,
   }: {
     operationDefinition: OperationDefinition;
     queryArg: QueryArgDefinitions;
+    isQuery: boolean;
   }) {
     const { path, verb } = operationDefinition;
 
@@ -360,7 +349,7 @@ export async function generateApi(
               factory.createIdentifier('url'),
               generatePathExpression(path, pathParameters, rootObject)
             ),
-            isQuery(verb)
+            isQuery
               ? undefined
               : factory.createPropertyAssignment(
                   factory.createIdentifier('method'),

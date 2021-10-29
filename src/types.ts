@@ -10,16 +10,52 @@ export type OperationDefinition = {
 
 export const operationKeys = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const;
 
-export type GenerationOptions = {
+export type GenerationOptions = CommonOptions &
+  OutputFileOptions & {
+    isDataResponse?(code: string, response: OpenAPIV3.ResponseObject, allResponses: OpenAPIV3.ResponsesObject): boolean;
+  };
+
+export interface CommonOptions {
+  apiFile: string;
+  /**
+   * filename or url
+   */
+  schemaFile: string;
+  /**
+   * defaults to "api"
+   */
+  apiImport?: string;
+  /**
+   * defaults to "enhancedApi"
+   */
   exportName?: string;
-  reducerPath?: string;
-  baseQuery?: string;
+  /**
+   * defaults to "ApiArg"
+   */
   argSuffix?: string;
+  /**
+   * defaults to "ApiResponse"
+   */
   responseSuffix?: string;
-  baseUrl?: string;
-  createApiImportPath?: 'base' | 'react';
+  /**
+   * defaults to false
+   */
   hooks?: boolean;
-  outputFile?: string;
-  compilerOptions?: ts.CompilerOptions;
-  isDataResponse?(code: string, response: OpenAPIV3.ResponseObject, allResponses: OpenAPIV3.ResponsesObject): boolean;
-};
+}
+
+export interface OutputFileOptions extends Partial<CommonOptions> {
+  outputFile: string;
+  filterEndpoints?: string | string[] | RegExp | RegExp[];
+  endpointOverrides?: EndpointOverrides[];
+}
+
+export interface EndpointOverrides {
+  pattern: string | string[] | RegExp | RegExp[];
+  type: 'mutation' | 'query';
+}
+
+export type ConfigFile =
+  | (CommonOptions & OutputFileOptions)
+  | (Omit<CommonOptions, 'outputFile'> & {
+      outputFiles: { [outputFile: string]: Omit<OutputFileOptions, 'outputFile'> };
+    });

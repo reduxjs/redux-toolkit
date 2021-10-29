@@ -14,7 +14,9 @@ const getReactHookName = ({ operationDefinition: { verb, path, operation } }: Ge
     undefined,
     undefined,
     factory.createIdentifier(
-      `use${capitalize(getOperationName(verb, path, operation.operationId))}${isQuery(verb) ? 'Query' : 'Mutation'}`
+      `use${capitalize(getOperationName(verb, path, operation.operationId))}${
+        isQuery(verb, undefined /* TODO */) ? 'Query' : 'Mutation'
+      }`
     ),
     undefined
   );

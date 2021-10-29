@@ -9,13 +9,6 @@ export function generateObjectProperties(obj: ObjectPropertyDefinitions) {
   return Object.entries(obj).map(([k, v]) => factory.createPropertyAssignment(factory.createIdentifier(k), v));
 }
 
-export function generateStringLiteralArray(arr: string[]) {
-  return factory.createArrayLiteralExpression(
-    arr.map((elem) => factory.createStringLiteral(elem)),
-    false
-  );
-}
-
 export function generateImportNode(pkg: string, namedImports: Record<string, string>, defaultImportName?: string) {
   return factory.createImportDeclaration(
     undefined,
@@ -38,57 +31,54 @@ export function generateImportNode(pkg: string, namedImports: Record<string, str
 
 export function generateCreateApiCall({
   exportName,
-  reducerPath,
-  createApiFn,
-  baseQuery,
-  tagTypes,
   endpointBuilder = defaultEndpointBuilder,
   endpointDefinitions,
 }: {
   exportName: string;
-  reducerPath?: string;
-  createApiFn: ts.Expression;
-  baseQuery: ts.Expression;
-  tagTypes: ts.Expression;
   endpointBuilder?: ts.Identifier;
   endpointDefinitions: ts.ObjectLiteralExpression;
 }) {
   return factory.createVariableStatement(
-    [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+    undefined,
     factory.createVariableDeclarationList(
       [
         factory.createVariableDeclaration(
-          factory.createIdentifier(exportName),
+          factory.createIdentifier('injectedRtkApi'),
           undefined,
           undefined,
-          factory.createCallExpression(createApiFn, undefined, [
-            factory.createObjectLiteralExpression(
-              generateObjectProperties({
-                ...(!reducerPath ? {} : { reducerPath: factory.createStringLiteral(reducerPath) }),
-                baseQuery,
-                tagTypes,
-                endpoints: factory.createArrowFunction(
-                  undefined,
-                  undefined,
-                  [
-                    factory.createParameterDeclaration(
-                      undefined,
-                      undefined,
-                      undefined,
-                      endpointBuilder,
-                      undefined,
-                      undefined,
-                      undefined
-                    ),
-                  ],
-                  undefined,
-                  factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-                  factory.createParenthesizedExpression(endpointDefinitions)
-                ),
-              }),
-              true
+          factory.createCallExpression(
+            factory.createPropertyAccessExpression(
+              factory.createIdentifier('api'),
+              factory.createIdentifier('injectEndpoints')
             ),
-          ])
+            undefined,
+            [
+              factory.createObjectLiteralExpression(
+                generateObjectProperties({
+                  endpoints: factory.createArrowFunction(
+                    undefined,
+                    undefined,
+                    [
+                      factory.createParameterDeclaration(
+                        undefined,
+                        undefined,
+                        undefined,
+                        endpointBuilder,
+                        undefined,
+                        undefined,
+                        undefined
+                      ),
+                    ],
+                    undefined,
+                    factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+                    factory.createParenthesizedExpression(endpointDefinitions)
+                  ),
+                  overrideExisting: factory.createFalse(),
+                }),
+                true
+              ),
+            ]
+          )
         ),
       ],
       ts.NodeFlags.Const
@@ -127,40 +117,4 @@ export function generateEndpointDefinition({
       ]
     )
   );
-}
-
-export function generatePackageImports({
-  createApiImportPath,
-  hooks,
-  isUsingFetchBaseQuery,
-}: {
-  createApiImportPath?: GenerationOptions['createApiImportPath'];
-  isUsingFetchBaseQuery: boolean;
-  hooks?: boolean;
-}) {
-  const DEFAULT_IMPORT_PATH = '@reduxjs/toolkit/query';
-
-  const entryPoint = hooks ? 'react' : createApiImportPath;
-
-  function getBasePackageImportsFromOptions() {
-    return {
-      ...(entryPoint === 'base' ? { createApi: 'createApi' } : {}),
-      ...(isUsingFetchBaseQuery ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
-    };
-  }
-
-  const basePackageImports = getBasePackageImportsFromOptions();
-
-  const hasBasePackageImports = Object.keys(basePackageImports).length > 0;
-
-  const basePackageImportNode = hasBasePackageImports
-    ? [generateImportNode(DEFAULT_IMPORT_PATH, getBasePackageImportsFromOptions())]
-    : [];
-
-  const subPackageImportNode =
-    entryPoint !== 'base'
-      ? [generateImportNode(`${DEFAULT_IMPORT_PATH}/${entryPoint}`, { createApi: 'createApi' })]
-      : [];
-
-  return [...subPackageImportNode, ...basePackageImportNode];
 }
