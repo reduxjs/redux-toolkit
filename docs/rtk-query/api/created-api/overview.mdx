@@ -44,7 +44,7 @@ type Api = {
   injectEndpoints: (options: InjectEndpointsOptions) => UpdatedApi
   enhanceEndpoints: (options: EnhanceEndpointsOptions) => UpdatedApi
 
-  // Cache management utilities
+  // Utilities
   utils: {
     updateQueryData: UpdateQueryDataThunk
     patchQueryData: PatchQueryDataThunk
@@ -54,17 +54,15 @@ type Api = {
       string
     >
     resetApiState: SliceActions['resetApiState']
+    getRunningOperationPromises: () => Array<Promise<unknown>>
+    getRunningOperationPromise: <EndpointName extends QueryKeys<Definitions>>(
+      endpointName: EndpointName,
+      args: QueryArgFrom<Definitions[EndpointName]>
+    ) =>
+      | QueryActionCreatorResult<Definitions[EndpointName]>
+      | MutationActionCreatorResult<Definitions[EndpointName]>
+      | undefined
   }
-
-  // Miscellaneous utilities
-  getRunningOperationPromises: () => Array<Promise<unknown>>
-  getRunningOperationPromise: <EndpointName extends QueryKeys<Definitions>>(
-    endpointName: EndpointName,
-    args: QueryArgFrom<Definitions[EndpointName]>
-  ) =>
-    | QueryActionCreatorResult<Definitions[EndpointName]>
-    | MutationActionCreatorResult<Definitions[EndpointName]>
-    | undefined
 
   // Internal actions
   internalActions: InternalActions
@@ -110,25 +108,16 @@ Each API slice object has `injectEndpoints` and `enhanceEndpoints` functions to 
 
 :::
 
-## Cache Management Utilities
+## API Slice Utilities
 
 The `util` field includes various utility functions that can be used to manage the cache, including
 manually updating query cache data, triggering pre-fetching of data, manually invalidating tags,
-and manually resetting the api state.
+and manually resetting the api state, as well as other utility functions that can be used in
+various scenarios, including SSR.
 
 :::info API Reference
 
-- [API Slices: Cache Management Utilities](./cache-management-utils.mdx)
-
-:::
-
-## Miscellaneous Utilities
-
-Miscellaneous utilities are provided that can be used in various scenarios, including SSR.
-
-:::info API Reference
-
-- [API Slices: Miscellaneous Utilities](./miscellaneous-utils.mdx)
+- [API Slices: Utilities](./api-slice-utils.mdx)
 
 :::
 
