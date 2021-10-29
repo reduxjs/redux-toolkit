@@ -65,11 +65,7 @@ export const { useGetPokemonByNameQuery } = pokemonApi
     }
   ) =>
     | undefined
-    | CombinedState<
-        NoInfer<Definitions>,
-        NoInfer<TagTypes>,
-        NoInfer<ReducerPath>
-      >
+    | CombinedState<Definitions, TagTypes, ReducerPath>
   tagTypes?: readonly TagTypes[];
   reducerPath?: ReducerPath;
   serializeQueryArgs?: SerializeQueryArgs<InternalQueryArgs>;

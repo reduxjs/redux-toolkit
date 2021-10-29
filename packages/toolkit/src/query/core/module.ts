@@ -142,7 +142,7 @@ declare module '../apiTypes' {
         /**
          * If a promise is running for a given endpoint name + argument combination,
          * returns that promise. Otherwise, returns `undefined`.
-         * Useful for SSR scenarios to await a specific query/mutation triggered in any way,
+         * Can be used to await a specific query/mutation triggered in any way,
          * including via hook calls, or manually dispatching `initiate` actions.
          */
         getRunningOperationPromise<EndpointName extends QueryKeys<Definitions>>(

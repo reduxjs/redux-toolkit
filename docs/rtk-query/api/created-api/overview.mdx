@@ -60,6 +60,11 @@ type Api = {
       args: QueryArgFrom<Definitions[EndpointName]>
     ) =>
       | QueryActionCreatorResult<Definitions[EndpointName]>
+      | undefined
+    getRunningOperationPromise: <EndpointName extends MutationKeys<Definitions>>(
+      endpointName: EndpointName,
+      fixedCacheKeyOrRequestId: string
+    ) =>
       | MutationActionCreatorResult<Definitions[EndpointName]>
       | undefined
   }
