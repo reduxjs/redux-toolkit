@@ -72,11 +72,11 @@ export const { useGetPokemonByNameQuery } = pokemonApi
 #### baseQuery function arguments
 
 - `args` - The return value of the `query` function for a given endpoint
-- `api` - The `BaseQueryApi` object, containing `signal`, `dispatch` and `getState` properties
+- `api` - The `BaseQueryApi` object, containing `signal`, `dispatch`, `getState` and `extra` properties
   - `signal` - An [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) object that may be used to abort DOM requests and/or read whether the request is aborted.
   - `dispatch` - The `store.dispatch` method for the corresponding Redux store
   - `getState` - A function that may be called to access the current store state
-  - `exta` - Provided as thunk.extraArgument to the configureStore getDefaultMiddleware option.
+  - `extra` - Provided as thunk.extraArgument to the configureStore getDefaultMiddleware option.
 - `extraOptions` - The value of the optional `extraOptions` property provided for a given endpoint
 
 #### baseQuery function signature
