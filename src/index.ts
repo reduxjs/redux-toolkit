@@ -2,8 +2,9 @@ import path from 'path';
 import fs from 'fs';
 import { CommonOptions, OutputFileOptions } from './types';
 import { generateApi } from './generate';
-import { isValidUrl, MESSAGES, prettify } from './utils';
-import { getCompilerOptions } from './utils/getTsConfig';
+import { isValidUrl, prettify } from './utils';
+export { ConfigFile } from './types';
+
 export type GenerateEndpointsOptions = CommonOptions & OutputFileOptions;
 
 export async function generateEndpoints(options: GenerateEndpointsOptions): Promise<string | void> {

@@ -106,6 +106,7 @@ export async function generateApi(
     outputFile = path.resolve(process.cwd(), outputFile);
     apiFile = path.relative(path.dirname(outputFile), apiFile);
   }
+  apiFile = apiFile.replace(/\.[jt]sx?$/, '');
 
   const sourceCode = printer.printNode(
     ts.EmitHint.Unspecified,

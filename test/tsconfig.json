@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "paths": {
-      "@/*": ["./test/fixtures/*"]
+      "@/*": ["./test/fixtures/*"],
+      "@rtk-incubator/rtk-query-codegen-openapi": ["./src"]
     },
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -13,6 +14,8 @@
     "jsx": "react",
     "baseUrl": "..",
     "resolveJsonModule": true,
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "allowJs": true,
+    "checkJs": true
   }
 }

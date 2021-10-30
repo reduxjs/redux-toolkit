@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import program from 'commander';
+import { dirname, resolve } from 'path';
 
 // tslint:disable-next-line
 const meta = require('../../package.json');
@@ -12,10 +13,12 @@ program.version(meta.version).usage('</path/to/config.js>').parse(process.argv);
 if (program.args.length === 0 || !(program.args[0].endsWith('.js') || program.args[0].endsWith('.json'))) {
   program.help();
 } else {
-  run(program.args[0]);
+  run(resolve(process.cwd(), program.args[0]));
 }
 
 async function run(configFile: string) {
+  process.chdir(dirname(configFile));
+
   const fullConfig: ConfigFile = require(configFile);
 
   const outFiles: (CommonOptions & OutputFileOptions)[] = [];

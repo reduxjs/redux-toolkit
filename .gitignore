@@ -136,3 +136,4 @@ dist
 yalc.lock
 lib
 yarn.lock
+test/tmp/example.ts
