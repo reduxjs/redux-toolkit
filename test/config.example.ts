@@ -1,7 +1,7 @@
 import { ConfigFile } from '@rtk-incubator/rtk-query-codegen-openapi';
 
 const config: ConfigFile = {
-  schemaFile: 'https://petstore3.swagger.io/api/v3/openapi.json',
+  schemaFile: './fixtures/petstore.yaml',
   apiFile: './fixtures/emptyApi.ts',
   outputFile: './tmp/example.ts',
 };
