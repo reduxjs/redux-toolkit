@@ -42,7 +42,7 @@ function getOperationName({ verb, path, operation }: Pick<OperationDefinition, '
   return _getOperationName(verb, path, operation.operationId);
 }
 
-function patternMatches(pattern?: string | string[] | RegExp | RegExp[]) {
+function patternMatches(pattern?: string | RegExp | (string | RegExp)[]) {
   const filters = Array.isArray(pattern) ? pattern : [pattern];
   return function matcher(operationDefinition: OperationDefinition) {
     if (!pattern) return true;
@@ -53,7 +53,7 @@ function patternMatches(pattern?: string | string[] | RegExp | RegExp[]) {
   };
 }
 
-function getOverrides(
+export function getOverrides(
   operation: OperationDefinition,
   endpointOverrides?: EndpointOverrides[]
 ): EndpointOverrides | undefined {
@@ -100,8 +100,6 @@ export async function generateApi(
     return declaration;
   }
 
-  console.log(arguments);
-
   if (outputFile && outputFile !== '-') {
     outputFile = path.resolve(process.cwd(), outputFile);
     apiFile = path.relative(path.dirname(outputFile), apiFile);
@@ -136,7 +134,7 @@ export async function generateApi(
         ),
         ...Object.values(interfaces),
         ...apiGen['aliases'],
-        ...(hooks ? [generateReactHooks({ exportName, operationDefinitions })] : []),
+        ...(hooks ? [generateReactHooks({ exportName, operationDefinitions, endpointOverrides })] : []),
       ],
       factory.createToken(ts.SyntaxKind.EndOfFileToken),
       ts.NodeFlags.None

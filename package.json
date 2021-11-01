@@ -42,7 +42,7 @@
     "openapi-types": "^9.1.0",
     "pretty-quick": "^3.1.0",
     "ts-jest": "^26.4.4",
-    "ts-node": "^9.1.0",
+    "ts-node": "^10.4.0",
     "yalc": "^1.0.0-pre.47"
   },
   "dependencies": {

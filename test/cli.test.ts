@@ -6,8 +6,6 @@ import del from 'del';
 let id = 0;
 const tmpDir = path.resolve(__dirname, 'tmp');
 
-console.log(tmpDir);
-
 function getTmpFileName() {
   return path.resolve(tmpDir, `${++id}.test.generated.ts`);
 }
@@ -40,21 +38,20 @@ afterAll(() => {
 
 describe('CLI options testing', () => {
   test('generation with `config.example.js`', async () => {
-    const out = await cli([`./config.example.js`], __dirname);
-    console.log(out);
+    await cli([`./config.example.js`], __dirname);
     expect(fs.readFileSync(path.resolve(tmpDir, 'example.ts'), 'utf-8')).toMatchSnapshot();
   });
 
-  it.todo('hooks generation');
+  test('ts, js and json all work the same', async () => {
+    await cli([`./config.example.js`], __dirname);
+    const fromJs = fs.readFileSync(path.resolve(tmpDir, 'example.ts'), 'utf-8');
+    await cli([`./config.example.ts`], __dirname);
+    const fromTs = fs.readFileSync(path.resolve(tmpDir, 'example.ts'), 'utf-8');
+    await cli([`./config.example.json`], __dirname);
+    const fromJson = fs.readFileSync(path.resolve(tmpDir, 'example.ts'), 'utf-8');
 
-  it.todo('endpoint filtering');
-
-  it.todo('endpoint overrides');
-
-  it.skip('should use brackets in a querystring urls arg, when the arg contains full stops', async () => {
-    const fileName = getTmpFileName();
-    const result = await cli(['-h', `./test/fixtures/params.json`], '.');
-    expect(result.stdout).toContain('`/api/v1/list/${queryArg["item.id"]}`');
+    expect(fromTs).toEqual(fromJs);
+    expect(fromJson).toEqual(fromJs);
   });
 });
 

@@ -2,41 +2,49 @@
 
 import program from 'commander';
 import { dirname, resolve } from 'path';
+import { generateEndpoints, parseConfig } from '../';
+
+let ts = false;
+try {
+  if (require.resolve('esbuild') && require.resolve('esbuild-runner')) {
+    require('esbuild-runner/register');
+  }
+  ts = true;
+} catch {}
+
+try {
+  if (!ts) {
+    if (require.resolve('typescript') && require.resolve('ts-node')) {
+      require('ts-node/register/transpile-only');
+    }
+
+    ts = true;
+  }
+} catch {}
 
 // tslint:disable-next-line
 const meta = require('../../package.json');
-import { generateEndpoints } from '../';
-import { CommonOptions, ConfigFile, OutputFileOptions } from '../types';
 
 program.version(meta.version).usage('</path/to/config.js>').parse(process.argv);
 
-if (program.args.length === 0 || !(program.args[0].endsWith('.js') || program.args[0].endsWith('.json'))) {
+const configFile = program.args[0];
+
+if (program.args.length === 0 || !/\.(jsx?|tsx?|jsonc?)?$/.test(configFile)) {
   program.help();
 } else {
-  run(resolve(process.cwd(), program.args[0]));
+  if (/\.tsx?$/.test(configFile) && !ts) {
+    console.error('Encountered a TypeScript configfile, but neither esbuild-runner nor ts-node are installed.');
+    process.exit(1);
+  }
+  run(resolve(process.cwd(), configFile));
 }
 
 async function run(configFile: string) {
   process.chdir(dirname(configFile));
 
-  const fullConfig: ConfigFile = require(configFile);
+  const unparsedConfig = require(configFile);
 
-  const outFiles: (CommonOptions & OutputFileOptions)[] = [];
-
-  if ('outputFiles' in fullConfig) {
-    const { outputFiles, ...commonConfig } = fullConfig;
-    for (const [outputFile, specificConfig] of Object.entries(outputFiles)) {
-      outFiles.push({
-        ...commonConfig,
-        ...specificConfig,
-        outputFile,
-      });
-    }
-  } else {
-    outFiles.push(fullConfig);
-  }
-
-  for (const config of outFiles) {
+  for (const config of parseConfig(unparsedConfig.default ?? unparsedConfig)) {
     try {
       console.log(`Generating ${config.outputFile}`);
       await generateEndpoints(config);
