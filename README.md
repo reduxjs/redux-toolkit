@@ -17,38 +17,124 @@ This is a utility library meant to be used with [RTK Query](https://redux-toolki
 
 ### Usage
 
-By default, running the CLI will only log the output to the terminal. You can either pipe this output to a new file, or you can specify an output file via CLI args.
+Create an empty api using `createApi` like
 
-#### Piping to a file (including react hooks generation)
+```ts
+// Or from '@reduxjs/toolkit/query' if not using the auto-generated hooks
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-```bash
-npx @rtk-incubator/rtk-query-codegen-openapi --hooks https://petstore3.swagger.io/api/v3/openapi.json > petstore-api.generated.ts
+// initialize an empty api service that we'll inject endpoints into later as needed
+export const emptySplitApi = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: () => ({}),
+});
 ```
 
-#### Specifying an output file (including react hooks generation)
+Generate a config file (json, js or ts) with contents like
 
-```bash
-npx @rtk-incubator/rtk-query-codegen-openapi --file petstore-api.generated.ts --hooks https://petstore3.swagger.io/api/v3/openapi.json
+```ts
+import { ConfigFile } from '@rtk-incubator/rtk-query-codegen-openapi';
+
+const config: ConfigFile = {
+  schemaFile: 'https://petstore3.swagger.io/api/v3/openapi.json',
+  apiFile: './src/store/emptyApi.ts',
+  apiImport: 'emptyApi',
+  outputFile: './src/store/petApi.ts',
+  exportName: 'petApi',
+  hooks: true,
+};
+
+export default config;
 ```
 
-#### Using a custom baseQuery
+and then call the code generator:
 
 ```bash
-npx @rtk-incubator/rtk-query-codegen-openapi --file generated.api.ts --baseQuery ./customBaseQuery.ts:namedBaseQueryFn --hooks https://petstore3.swagger.io/api/v3/openapi.json
+npx @rtk-incubator/rtk-query-codegen-openapi openapi-config.ts
 ```
 
-### CLI Options
+### Programmatic usage
 
-- `--exportName <name>` - change the name of the exported api (default: `api`)
-- `--reducerPath <path>` - change the name of the `reducerPath` (default: `api`)
-- `--baseQuery <file>` - specify a file with a custom `baseQuery` function. Optionally takes a named function in that file. (default: `fetchBaseQuery` - ex: `./customBaseQuery.ts:myCustomBaseQueryFn`)
-- `--argSuffix <name>` - change the suffix of the arg type (default: `ApiArg` - ex: `AddPetApiArg`)
-- `--responseSuffix <name>` - change the suffix of the response type (default: `ApiResponse` - ex: `AddPetApiResponse`)
-- `--baseUrl <url>` - set the `baseUrl` when using `fetchBaseQuery` (will be ignored if you pass `--baseQuery`)
-- `--createApiImportPath <path>` - set the entry point to import `createApi` from. Currently only `react` is available. Defaults to `react` if `--hooks` is passed.
-- `--hooks` - include React Hooks in the output (ex: `export const { useGetModelQuery, useUpdateModelMutation } = api`)
-- `--file <filename>` - specify a filename to output to (ex: `./generated.api.ts`)
+```ts
+import { generateEndpoints } from '@rtk-incubator/rtk-query-codegen-openapi';
+
+const api = await generateEndpoints({
+  apiFile: './fixtures/emptyApi.ts',
+  schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+  filterEndpoints: ['getPetById', 'addPet'],
+  hooks: true,
+});
+```
+
+### Config file options
+
+#### Simple usage
+
+```ts
+interface SimpleUsage {
+  apiFile: string;
+  schemaFile: string;
+  apiImport?: string;
+  exportName?: string;
+  argSuffix?: string;
+  responseSuffix?: string;
+  hooks?: boolean;
+  outputFile: string;
+  filterEndpoints?: string | RegExp | (string | RegExp)[];
+  endpointOverrides?: EndpointOverrides[];
+}
+```
+
+#### Filtering endpoints
+
+If you only want to include a few endpoints, you can use the `filterEndpoints` config option to filter your endpoints.
+
+```ts
+const filteredConfig: ConfigFile = {
+  // ...
+  // should only have endpoints loginUser, placeOrder, getOrderById, deleteOrder
+  filterEndpoints: ['loginUser', /Order/],
+};
+```
+
+#### Endpoint overrides
+
+If an endpoint is generated as a mutation instead of a query or the other way round, you can override that:
+
+```ts
+const withOverride: ConfigFile = {
+  // ...
+  endpointOverrides: [
+    {
+      pattern: 'loginUser',
+      type: 'mutation',
+    },
+  ],
+};
+```
+
+#### Multiple output files
+
+```ts
+const config: ConfigFile = {
+  schemaFile: 'https://petstore3.swagger.io/api/v3/openapi.json',
+  apiFile: './src/store/emptyApi.ts',
+  outputFiles: {
+    './src/store/user.js': {
+      filterEndpoints: [/user/i],
+    },
+    './src/store/order.js': {
+      filterEndpoints: [/order/i],
+    },
+    './src/store/pet.js': {
+      filterEndpoints: [/pet/i],
+    },
+  },
+};
+```
 
 ### Documentation
 
 [View the RTK Query Code Generation docs](https://redux-toolkit.js.org/rtk-query/usage/code-generation)
+
+TODO these need to be updated!
