@@ -5,5 +5,4 @@ export * from './isQuery';
 export * from './isValidUrl';
 export * from './prettier';
 export * from './messages';
-export * from './stripFileExtension';
 export * from './removeUndefined';
