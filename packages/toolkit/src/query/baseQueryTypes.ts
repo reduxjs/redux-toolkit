@@ -25,10 +25,11 @@ export type BaseQueryFn<
   Result = unknown,
   Error = unknown,
   DefinitionExtraOptions = {},
-  Meta = {}
+  Meta = {},
+  QueryApi extends BaseQueryApi = BaseQueryApi,
 > = (
   args: Args,
-  api: BaseQueryApi,
+  api: QueryApi,
   extraOptions: DefinitionExtraOptions
 ) => MaybePromise<QueryReturnValue<Result, Error, Meta>>
 
