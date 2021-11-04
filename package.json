@@ -45,7 +45,7 @@
     "test": "yarn test:packages",
     "build:examples": "yarn workspaces foreach --include '@reduxjs/*' --include '@examples-query-react/*' -vtp run build",
     "build:docs": "yarn workspace website run build",
-    "build:packages": "yarn workspaces foreach --include '@reduxjs/*' --include '@rtk-query/*' --topological-dev run build",
+    "build:packages": "yarn workspaces foreach --include '@reduxjs/*' --include '@rtk-query/*' --include '@rtk-incubator/*' --topological-dev run build",
     "test:packages": "yarn workspaces foreach --include '@reduxjs/*' --include '@rtk-query/*' run test",
     "dev:docs": "yarn workspace website run start"
   }
