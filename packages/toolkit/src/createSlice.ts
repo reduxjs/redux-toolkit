@@ -320,12 +320,16 @@ export function createSlice<
   return {
     name,
     reducer(state, action) {
-      return (_reducer ??= buildReducer())(state, action)
+      if (!_reducer) _reducer = buildReducer()
+
+      return _reducer(state, action)
     },
     actions: actionCreators as any,
     caseReducers: sliceCaseReducersByName as any,
     getInitialState() {
-      return (_reducer ??= buildReducer()).getInitialState()
+      if (!_reducer) _reducer = buildReducer()
+
+      return _reducer.getInitialState()
     },
   }
 }
