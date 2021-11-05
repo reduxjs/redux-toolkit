@@ -113,16 +113,8 @@ export async function generateApi(
             ),
             true
           ),
+          exportName,
         }),
-        factory.createExportDeclaration(
-          undefined,
-          undefined,
-          false,
-          factory.createNamedExports([
-            factory.createExportSpecifier(factory.createIdentifier('injectedRtkApi'), factory.createIdentifier('api')),
-          ]),
-          undefined
-        ),
         ...Object.values(interfaces),
         ...apiGen['aliases'],
         ...(hooks ? [generateReactHooks({ exportName, operationDefinitions, endpointOverrides })] : []),
