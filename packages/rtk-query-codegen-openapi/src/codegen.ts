@@ -32,18 +32,16 @@ export function generateImportNode(pkg: string, namedImports: Record<string, str
 export function generateCreateApiCall({
   endpointBuilder = defaultEndpointBuilder,
   endpointDefinitions,
-  exportName,
 }: {
   endpointBuilder?: ts.Identifier;
   endpointDefinitions: ts.ObjectLiteralExpression;
-  exportName: string;
 }) {
   return factory.createVariableStatement(
-    [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+    undefined,
     factory.createVariableDeclarationList(
       [
         factory.createVariableDeclaration(
-          factory.createIdentifier(exportName),
+          factory.createIdentifier('injectedRtkApi'),
           undefined,
           undefined,
           factory.createCallExpression(

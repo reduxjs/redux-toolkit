@@ -22,6 +22,8 @@ import { generateCreateApiCall, generateEndpointDefinition, generateImportNode }
 
 const { factory } = ts;
 
+const generatedApiName = 'injectedRtkApi';
+
 function defaultIsDataResponse(code: string) {
   const parsedCode = Number(code);
   return !Number.isNaN(parsedCode) && parsedCode >= 200 && parsedCode < 300;
@@ -113,11 +115,24 @@ export async function generateApi(
             ),
             true
           ),
-          exportName,
         }),
+        factory.createExportDeclaration(
+          undefined,
+          undefined,
+          false,
+          factory.createNamedExports([
+            factory.createExportSpecifier(
+              factory.createIdentifier(generatedApiName),
+              factory.createIdentifier(exportName)
+            ),
+          ]),
+          undefined
+        ),
         ...Object.values(interfaces),
         ...apiGen['aliases'],
-        ...(hooks ? [generateReactHooks({ exportName, operationDefinitions, endpointOverrides })] : []),
+        ...(hooks
+          ? [generateReactHooks({ exportName: generatedApiName, operationDefinitions, endpointOverrides })]
+          : []),
       ],
       factory.createToken(ts.SyntaxKind.EndOfFileToken),
       ts.NodeFlags.None
