@@ -6156,9 +6156,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rtk-query/codgen-openapi@workspace:packages/rtk-query-codegen-openapi":
+"@rtk-query/codegen-openapi@workspace:packages/rtk-query-codegen-openapi":
   version: 0.0.0-use.local
-  resolution: "@rtk-query/codgen-openapi@workspace:packages/rtk-query-codegen-openapi"
+  resolution: "@rtk-query/codegen-openapi@workspace:packages/rtk-query-codegen-openapi"
   dependencies:
     "@apidevtools/swagger-parser": ^10.0.2
     "@babel/core": ^7.12.10
