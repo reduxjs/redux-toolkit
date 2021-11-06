@@ -792,9 +792,6 @@ describe('hooks tests', () => {
                   error: { status: number; data: unknown } | SerializedError
                 }
               | {
-                  data: undefined
-                }
-              | {
                   data: {
                     name: string
                   }

@@ -47,7 +47,7 @@ type StartQueryActionCreator<
 
 export type QueryActionCreatorResult<
   D extends QueryDefinition<any, any, any, any>
-> = Promise<QuerySubState<D>> & {
+> = Promise<QuerySubState<D> & { data: ResultTypeFrom<D> }> & {
   arg: QueryArgFrom<D>
   requestId: string
   subscriptionOptions: SubscriptionOptions | undefined
