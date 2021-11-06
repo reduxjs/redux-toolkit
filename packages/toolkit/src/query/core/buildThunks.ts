@@ -302,6 +302,34 @@ export function buildThunks<
             baseQuery(arg, baseQueryApi, endpointDefinition.extraOptions as any)
         )
       }
+      if (
+        typeof process !== 'undefined' &&
+        process.env.NODE_ENV === 'development'
+      ) {
+        let err: undefined | string
+        if (result && typeof result !== 'object') {
+          err = `\`queryFn\` did not return an object.`
+        } else {
+          const keys = Object.keys(result)
+          if (keys.length === 0) {
+            err = `The object returned by \`queryFn\` did not have any keys.`
+          } else if (keys.length > 1) {
+            err = `The object returned by \`queryFn\` has too many properties (${keys.join(
+              ', '
+            )}).`
+          } else if (keys[0] !== 'data' && keys[0] !== 'error') {
+            err = `The object returned by \`queryFn\` has the unknown property ${keys[0]}.`
+          }
+        }
+        if (err) {
+          console.error(
+            `Error encountered handling the \`queryFn\` of endpoint ${arg.endpointName}.
+              ${err}
+              \`queryFn\` needs to return an object with either the shape \`{ data: ... }\` or \`{ error: ... }\`.`
+          )
+        }
+      }
+
       if (result.error) throw new HandledError(result.error, result.meta)
 
       return fulfillWithValue(
