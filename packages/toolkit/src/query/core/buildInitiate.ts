@@ -52,6 +52,7 @@ export type QueryActionCreatorResult<
   requestId: string
   subscriptionOptions: SubscriptionOptions | undefined
   abort(): void
+  unwrap(): Promise<ResultTypeFrom<D>>
   unsubscribe(): void
   refetch(): void
   updateSubscriptionOptions(options: SubscriptionOptions): void
@@ -285,6 +286,7 @@ Features like automatic cache collection, automatic refetching etc. will not be 
             requestId,
             subscriptionOptions,
             abort,
+            unwrap: thunkResult.unwrap,
             refetch() {
               dispatch(
                 queryAction(arg, { subscribe: false, forceRefetch: true })
