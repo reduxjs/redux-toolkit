@@ -48,7 +48,7 @@ const api = createApi({
     }
   },
   endpoints: (build) => ({
-    getUser: build.query<any, number>({
+    getUser: build.query<{ name: string }, number>({
       query: (arg) => arg,
     }),
     getIncrementedAmount: build.query<any, void>({
@@ -773,6 +773,82 @@ describe('hooks tests', () => {
           .getState()
           .actions.filter(api.internalActions.unsubscribeQueryResult.match)
       ).toHaveLength(4)
+    })
+
+    test('useLazyQuery hook callback returns various properties to handle the result', async () => {
+      function User() {
+        const [getUser] = api.endpoints.getUser.useLazyQuery()
+        const [successMsg, setSuccessMsg] = React.useState('')
+        const [errMsg, setErrMsg] = React.useState('')
+        const [isAborted, setIsAborted] = React.useState(false)
+
+        const handleClick = async () => {
+          const res = getUser(1)
+
+          // no-op simply for clearer type assertions
+          res.then((result) => {
+            expectExactType<
+              | {
+                  error: { status: number; data: unknown } | SerializedError
+                }
+              | {
+                  data: undefined
+                }
+              | {
+                  data: {
+                    name: string
+                  }
+                }
+            >(result)
+          })
+
+          expectType<number>(res.arg)
+          expectType<string>(res.requestId)
+          expectType<() => void>(res.abort)
+          expectType<() => Promise<{ name: string }>>(res.unwrap)
+          expectType<() => void>(res.unsubscribe)
+          expectType<(options: SubscriptionOptions) => void>(
+            res.updateSubscriptionOptions
+          )
+          expectType<() => void>(res.refetch)
+
+          // abort the query immediately to force an error
+          res.abort()
+          res
+            .unwrap()
+            .then((result) => {
+              expectType<{ name: string }>(result)
+              setSuccessMsg(`Successfully fetched user ${result.name}`)
+            })
+            .catch((err) => {
+              setErrMsg(`An error has occurred fetching userId: ${res.arg}`)
+              if (err.name === 'AbortError') {
+                setIsAborted(true)
+              }
+            })
+        }
+
+        return (
+          <div>
+            <button onClick={handleClick}>Fetch User and abort</button>
+            <div>{successMsg}</div>
+            <div>{errMsg}</div>
+            <div>{isAborted ? 'Request was aborted' : ''}</div>
+          </div>
+        )
+      }
+
+      render(<User />, { wrapper: storeRef.wrapper })
+      expect(screen.queryByText(/An error has occurred/i)).toBeNull()
+      expect(screen.queryByText(/Successfully fetched user/i)).toBeNull()
+      expect(screen.queryByText('Request was aborted')).toBeNull()
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Fetch User and abort' })
+      )
+      await screen.findByText('An error has occurred fetching userId: 1')
+      expect(screen.queryByText(/Successfully fetched user/i)).toBeNull()
+      screen.getByText('Request was aborted')
     })
   })
 
