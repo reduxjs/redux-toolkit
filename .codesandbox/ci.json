@@ -18,6 +18,6 @@
     "@reduxjs/toolkit": "packages/toolkit",
     "@rtk-query/graphql-request-base-query": "packages/rtk-query-graphql-request-base-query",
     "@rtk-incubator/action-listener-middleware": "packages/action-listener-middleware",
-    "@rtk-query/codgen-openapi": "packages/rtk-query-codegen-openapi"
+    "@rtk-query/codegen-openapi": "packages/rtk-query-codegen-openapi"
   }
 }
