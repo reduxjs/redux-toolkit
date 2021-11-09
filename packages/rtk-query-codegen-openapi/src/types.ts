@@ -53,14 +53,21 @@ export interface CommonOptions {
   hooks?: boolean;
 }
 
+export type TextMatcher = string | RegExp | (string | RegExp)[];
+
+export type EndpointMatchFunction = (operationName: string, operationDefinition: OperationDefinition) => boolean;
+
+export type EndpointMatcher = TextMatcher | EndpointMatchFunction;
+
 export interface OutputFileOptions extends Partial<CommonOptions> {
   outputFile: string;
-  filterEndpoints?: string | RegExp | (string | RegExp)[];
+  filterEndpoints?: EndpointMatcher;
+  excludeEndpoints?: EndpointMatcher;
   endpointOverrides?: EndpointOverrides[];
 }
 
 export interface EndpointOverrides {
-  pattern: string | RegExp | (string | RegExp)[];
+  pattern: EndpointMatcher;
   type: 'mutation' | 'query';
 }
 
