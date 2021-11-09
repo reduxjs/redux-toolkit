@@ -31,6 +31,15 @@ test('endpoint filtering', async () => {
   expect(api).toMatchSnapshot('should only have endpoints loginUser, placeOrder, getOrderById, deleteOrder');
 });
 
+test('negated endpoint filtering', async () => {
+  const api = await generateEndpoints({
+    apiFile: './fixtures/emptyApi.ts',
+    schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+    excludeEndpoints: [/user/i],
+  });
+  expect(api).not.toMatch(/loginUser:/);
+});
+
 test('endpoint overrides', async () => {
   const api = await generateEndpoints({
     apiFile: './fixtures/emptyApi.ts',

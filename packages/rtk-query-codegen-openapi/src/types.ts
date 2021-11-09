@@ -53,14 +53,17 @@ export interface CommonOptions {
   hooks?: boolean;
 }
 
+export type Matcher = string | RegExp | (string | RegExp)[];
+
 export interface OutputFileOptions extends Partial<CommonOptions> {
   outputFile: string;
-  filterEndpoints?: string | RegExp | (string | RegExp)[];
+  filterEndpoints?: Matcher;
+  excludeEndpoints?: Matcher;
   endpointOverrides?: EndpointOverrides[];
 }
 
 export interface EndpointOverrides {
-  pattern: string | RegExp | (string | RegExp)[];
+  pattern: Matcher;
   type: 'mutation' | 'query';
 }
 

@@ -15,7 +15,7 @@ import {
 } from 'oazapfts/lib/codegen/tscodegen';
 import type { OpenAPIV3 } from 'openapi-types';
 import { generateReactHooks } from './generators/react-hooks';
-import type { EndpointOverrides, GenerationOptions, OperationDefinition } from './types';
+import type { EndpointOverrides, GenerationOptions, Matcher, OperationDefinition } from './types';
 import { capitalize, getOperationDefinitions, getV3Doc, isQuery as testIsQuery, removeUndefined } from './utils';
 import type { ObjectPropertyDefinitions } from './codegen';
 import { generateCreateApiCall, generateEndpointDefinition, generateImportNode } from './codegen';
@@ -33,14 +33,15 @@ function getOperationName({ verb, path, operation }: Pick<OperationDefinition, '
   return _getOperationName(verb, path, operation.operationId);
 }
 
-function patternMatches(pattern?: string | RegExp | (string | RegExp)[]) {
+function patternMatches(pattern?: Matcher, negative?: boolean) {
   const filters = Array.isArray(pattern) ? pattern : [pattern];
   return function matcher(operationDefinition: OperationDefinition) {
     if (!pattern) return true;
     const operationName = getOperationName(operationDefinition);
-    return filters.some((filter) =>
+    const isMatch = filters.some((filter) =>
       typeof filter === 'string' ? filter === operationName : filter?.test(operationName)
     );
+    return negative ? !isMatch : isMatch;
   };
 }
 
@@ -63,6 +64,7 @@ export async function generateApi(
     outputFile,
     isDataResponse = defaultIsDataResponse,
     filterEndpoints,
+    excludeEndpoints,
     endpointOverrides,
   }: GenerationOptions
 ) {
@@ -70,7 +72,9 @@ export async function generateApi(
 
   const apiGen = new ApiGenerator(v3Doc, {});
 
-  const operationDefinitions = getOperationDefinitions(v3Doc).filter(patternMatches(filterEndpoints));
+  const operationDefinitions = getOperationDefinitions(v3Doc)
+    .filter(patternMatches(filterEndpoints, false))
+    .filter(patternMatches(excludeEndpoints, true));
 
   const resultFile = ts.createSourceFile(
     'someFileName.ts',
