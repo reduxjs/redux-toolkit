@@ -89,9 +89,9 @@ export function usePrefetchImmediately<T extends EndpointNames>(
   arg: Parameters<typeof api.endpoints[T]['initiate']>[0],
   options: PrefetchOptions = {}
 ) {
-  const dispatch = useDispatch()
+  const dispatch = useAppDispatch()
   useEffect(() => {
-    dispatch(api.util.prefetch(endpoint, arg, options))
+    dispatch(api.util.prefetch(endpoint, arg as any, options))
   }, [])
 }
 
