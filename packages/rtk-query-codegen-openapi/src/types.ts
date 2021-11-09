@@ -62,7 +62,6 @@ export type EndpointMatcher = TextMatcher | EndpointMatchFunction;
 export interface OutputFileOptions extends Partial<CommonOptions> {
   outputFile: string;
   filterEndpoints?: EndpointMatcher;
-  excludeEndpoints?: EndpointMatcher;
   endpointOverrides?: EndpointOverrides[];
 }
 

@@ -43,13 +43,12 @@ function patternMatches(pattern?: TextMatcher) {
   };
 }
 
-function operationMatches(pattern?: EndpointMatcher, negative?: boolean) {
+function operationMatches(pattern?: EndpointMatcher) {
   const checkMatch = typeof pattern === 'function' ? pattern : patternMatches(pattern);
   return function matcher(operationDefinition: OperationDefinition) {
     if (!pattern) return true;
     const operationName = getOperationName(operationDefinition);
-    const matches = checkMatch(operationName, operationDefinition);
-    return negative ? !matches : matches;
+    return checkMatch(operationName, operationDefinition);
   };
 }
 
@@ -72,7 +71,6 @@ export async function generateApi(
     outputFile,
     isDataResponse = defaultIsDataResponse,
     filterEndpoints,
-    excludeEndpoints,
     endpointOverrides,
   }: GenerationOptions
 ) {
@@ -80,9 +78,7 @@ export async function generateApi(
 
   const apiGen = new ApiGenerator(v3Doc, {});
 
-  const operationDefinitions = getOperationDefinitions(v3Doc)
-    .filter(operationMatches(filterEndpoints, false))
-    .filter(operationMatches(excludeEndpoints, true));
+  const operationDefinitions = getOperationDefinitions(v3Doc).filter(operationMatches(filterEndpoints));
 
   const resultFile = ts.createSourceFile(
     'someFileName.ts',
