@@ -1,5 +1,6 @@
 import {
   createAction,
+  createSlice,
   nanoid,
   PayloadAction,
   Middleware,
@@ -26,7 +27,7 @@ type ListenerPredicate<Action extends AnyAction, State> = (
   action: Action,
   currentState?: State,
   originalState?: State
-) => boolean
+) => action is Action
 
 type ConditionFunction<Action extends AnyAction, State> = (
   predicate: ListenerPredicate<Action, State> | (() => boolean),
@@ -82,8 +83,8 @@ const defaultWhen: MiddlewarePhase = 'afterReducer'
 const actualMiddlewarePhases = ['beforeReducer', 'afterReducer'] as const
 
 export type When = MiddlewarePhase | 'both' | undefined
-type WhenFromOptions<O extends ActionListenerBaseOptions> =
-  O extends ActionListenerBaseOptions ? O['when'] : never
+// type WhenFromOptions<O extends ActionListenerBaseOptions> =
+//   O extends ActionListenerBaseOptions ? O['when'] : never
 
 /**
  * @alpha
@@ -126,48 +127,150 @@ export interface ActionListenerBaseOptions<
   listener: ActionListener<Action, S, D>
 }
 
-interface ActionListenerTypeStringOptions<
-  T extends string,
-  S = unknown,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
-> extends ActionListenerBaseOptions<Action<T>, S, D> {
+interface ActionListenerTypeStringOptions<T extends string> {
   type: T
 }
 
 interface ActionListenerActionCreatorOptions<
-  AC extends TypedActionCreator<string>,
-  S = unknown,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
-> extends ActionListenerBaseOptions<ReturnType<AC>, S, D> {
+  AC extends TypedActionCreator<string>
+> {
   action: AC
 }
 
 interface ActionListenerMatcherOptions<
   MA extends AnyAction,
-  M extends MatchFunction<MA>,
-  S = unknown,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
-> extends ActionListenerBaseOptions<GuardedType<M>, S, D> {
+  M extends MatchFunction<MA>
+> {
   matcher: M
 }
 
 interface ActionListenerPredicateOptions<
   MA extends AnyAction,
-  LP extends ListenerPredicate<MA, unknown>,
-  S = unknown,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
-> extends ActionListenerBaseOptions<AnyAction, S, D> {
+  State = unknown,
+  LP extends ListenerPredicate<MA, State> = ListenerPredicate<MA, State>
+> {
   predicate: LP
 }
 
-type ActionListenerOptions =
-  | ActionListenerTypeStringOptions<string>
-  | ActionListenerActionCreatorOptions<TypedActionCreator<string>>
-  | ActionListenerMatcherOptions<AnyAction, MatchFunction<AnyAction>>
+type CombinedOptions =
+  | ActionListenerTypeStringOptions<any>
+  | ActionListenerActionCreatorOptions<any>
+  | ActionListenerMatcherOptions<any, any>
+  | ActionListenerPredicateOptions<any, any>
+
+type InferStringAction<O extends ActionListenerTypeStringOptions<any>> =
+  O extends ActionListenerTypeStringOptions<any> ? Action<O['type']> : never
+
+type TypeWithGeneric<T> = T[]
+type extractGeneric<Type> = Type extends TypeWithGeneric<infer X> ? X : never
+
+type InferOptions<O extends CombinedOptions> = O extends infer AO ? AO : never
+
+type ActionListenerOptions<
+  S = unknown,
+  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>,
+  Options extends CombinedOptions = CombinedOptions
+  // ActualOptions = Options extends infer AO ? AO : never
+> = Options &
+  ActionListenerBaseOptions<
+    Options extends ActionListenerTypeStringOptions<any>
+      ? Action<Options['type']>
+      : Options extends ActionListenerActionCreatorOptions<any>
+      ? ReturnType<Options['action']>
+      : // : ActualOptions extends ActionListenerMatcherOptions<any, any>
+        // ? GuardedType<ActualOptions['matcher']>
+        AnyAction,
+    S,
+    D
+  >
+/*
+
+type ActionListenerTypeStringOptions<
+  T extends string,
+  S = unknown,
+  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
+> = ActionListenerBaseOptions<Action<T>, S, D> & {
+  type: T
+}
+
+type ActionListenerActionCreatorOptions<
+  AC extends TypedActionCreator<string>,
+  S = unknown,
+  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
+> = ActionListenerBaseOptions<ReturnType<AC>, S, D> & {
+  action: AC
+}
+
+type ActionListenerMatcherOptions<
+  MA extends AnyAction,
+  M extends MatchFunction<MA>,
+  S = unknown,
+  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
+> = ActionListenerBaseOptions<GuardedType<M>, S, D> & {
+  matcher: M
+}
+
+type ActionListenerPredicateOptions<
+  MA extends AnyAction,
+  LP extends ListenerPredicate<MA, unknown>,
+  S = unknown,
+  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
+> = ActionListenerBaseOptions<AnyAction, S, D> & {
+  predicate: LP
+}
+
+type ActionListenerOptions<
+  S = unknown,
+  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>,
+  T extends string = string,
+  AC extends TypedActionCreator<string> = TypedActionCreator<string>,
+  MA extends AnyAction = AnyAction,
+  M extends MatchFunction<MA> = MatchFunction<MA>,
+  LP extends ListenerPredicate<MA, S> = ListenerPredicate<MA, S>
+  // UniqueOption =
+  //   | {
+  //       type: T
+  //     }
+  //   | {
+  //       action: AC
+  //     }
+  //   | {
+  //       matcher: M
+  //     }
+  //   | {
+  //       predicate: LP
+  //     },
+  // ActualAction extends AnyAction = UniqueOption extends { type: T }
+  //   ? Action<T>
+  //   : UniqueOption extends { action: AC }
+  //   ? ReturnType<AC>
+  //   : AnyAction
+> =
+  | {
+      type: T
+    }
+  | {
+      action: AC
+    }
+  | {
+      matcher: M
+    }
+  | ({
+      predicate: LP
+    } & ActionListenerBaseOptions<ActualAction, S, D>)
+
+    */
+/*
+  | ActionListenerTypeStringOptions<string, S, D>
+  | ActionListenerActionCreatorOptions<TypedActionCreator<string>, S, D>
+  | ActionListenerMatcherOptions<AnyAction, MatchFunction<AnyAction>, S, D>
   | ActionListenerPredicateOptions<
       AnyAction,
-      ListenerPredicate<AnyAction, unknown>
+      ListenerPredicate<AnyAction, unknown>,
+      S,
+      D
     >
+*/
 
 export interface CreateListenerMiddlewareOptions<ExtraArgument = unknown> {
   extra?: ExtraArgument
@@ -276,10 +379,10 @@ function createListenerEntry<
   */
 
 const createListenerEntry = <
-  S,
+  S = unknown,
   D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
 >(
-  options: ActionListenerOptions
+  options: ActionListenerOptions<S, D>
 ) => {
   let predicate: ListenerPredicate<any, any>
   let type: string | undefined
@@ -310,6 +413,32 @@ const createListenerEntry = <
 
   return entry
 }
+
+interface CounterState {
+  value: number
+}
+
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 } as CounterState,
+  reducers: {
+    increment(state) {
+      state.value += 1
+    },
+    // Use the PayloadAction type to declare the contents of `action.payload`
+    incrementByAmount: (state, action: PayloadAction<number>) => {
+      state.value += action.payload
+    },
+  },
+})
+const { increment, incrementByAmount } = counterSlice.actions
+
+const entry = createListenerEntry<CounterState>({
+  action: incrementByAmount,
+  listener: (action, listenerApi) => {
+    listenerApi.getState()
+  },
+})
 
 export interface AddListenerAction<
   A extends AnyAction,
@@ -364,9 +493,8 @@ type OverloadedArguments<T> = T extends {
 
 export type TypedAddListenerAction<
   S,
-  O extends ActionListenerOptions = ActionListenerOptions,
   D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>,
-  Options = ActionListenerOptions,
+  Options = ActionListenerOptions<S, D>,
   Payload = ListenerEntry<S, D>,
   T extends string = 'actionListenerMiddleware/add'
 > = BaseActionCreator<Payload, T> &
@@ -377,29 +505,21 @@ export type TypedAddListenerAction<
 /**
  * @alpha
  */
-export const addListenerAction: TypedAddListenerAction<unknown> = createAction(
+export const addListenerAction = createAction(
   'actionListenerMiddleware/add',
   function prepare(options: ActionListenerOptions) {
-    // const type =
-    //   typeof typeOrActionCreator === 'string'
-    //     ? typeOrActionCreator
-    //     : (typeOrActionCreator as TypedActionCreator<string>).type
     const entry = createListenerEntry(options)
 
     return {
       payload: entry,
     }
   }
-)
+) as TypedAddListenerAction<unknown>
 // as unknown as BaseActionCreator<
 //   ListenerEntry<unknown, Dispatch<AnyAction>>,
 //   'actionListenerMiddleware/add'
 // > & ListenerEntryCreator<unknown, ActionListenerOptions>
 
-const res = addListenerAction({
-  type: 'abcd',
-  listener: (action, listenerApi) => {},
-})
 // const res = addListenerAction({
 //   type: 'abcd',
 
@@ -415,17 +535,17 @@ interface CounterState {
 }
 const ala2 = addListenerAction as TypedAddListenerAction<CounterState>
 
-ala2(
-  'abcd',
-  (action, listenerApi) => {
-    const state = listenerApi.getState()
+// ala2(
+//   'abcd',
+//   (action, listenerApi) => {
+//     const state = listenerApi.getState()
 
-    listenerApi.dispatch((dispatch, getState) => {
-      const state2 = getState()
-    })
-  },
-  { when: 'beforeReducer' }
-)
+//     listenerApi.dispatch((dispatch, getState) => {
+//       const state2 = getState()
+//     })
+//   },
+//   { when: 'beforeReducer' }
+// )
 /* {
   <
     C extends TypedActionCreator<any>,
@@ -454,7 +574,7 @@ interface RemoveListenerAction<
   type: 'actionListenerMiddleware/remove'
   payload: {
     type: string
-    listener: ActionListener<A, S, D, any>
+    listener: ActionListener<A, S, D>
   }
 }
 
@@ -607,7 +727,7 @@ export function createActionListenerMiddleware<
     O extends ActionListenerOptions
   >(
     matcher: M,
-    listener: ActionListener<GuardedType<M>, S, D, O>,
+    listener: ActionListener<GuardedType<M>, S, D>,
     options?: O
   ): Unsubscribe
   // eslint-disable-next-line no-redeclare
@@ -617,7 +737,7 @@ export function createActionListenerMiddleware<
     O extends ActionListenerOptions
   >(
     matcher: M,
-    listener: ActionListener<AnyAction, S, D, O>,
+    listener: ActionListener<AnyAction, S, D>,
     options?: O
   ): Unsubscribe
   // eslint-disable-next-line no-redeclare
@@ -626,7 +746,7 @@ export function createActionListenerMiddleware<
       | string
       | TypedActionCreator<any>
       | ListenerPredicate<any, any>,
-    listener: ActionListener<AnyAction, S, D, any>,
+    listener: ActionListener<AnyAction, S, D>,
     options?: ActionListenerOptions
   ): Unsubscribe {
     let predicate: ListenerPredicate<any, any>
@@ -672,17 +792,17 @@ export function createActionListenerMiddleware<
 
   function removeListener<C extends TypedActionCreator<any>>(
     actionCreator: C,
-    listener: ActionListener<ReturnType<C>, S, D, any>
+    listener: ActionListener<ReturnType<C>, S, D>
   ): boolean
   // eslint-disable-next-line no-redeclare
   function removeListener(
     type: string,
-    listener: ActionListener<AnyAction, S, D, any>
+    listener: ActionListener<AnyAction, S, D>
   ): boolean
   // eslint-disable-next-line no-redeclare
   function removeListener(
     typeOrActionCreator: string | TypedActionCreator<any>,
-    listener: ActionListener<AnyAction, S, D, any>
+    listener: ActionListener<AnyAction, S, D>
   ): boolean {
     const type =
       typeof typeOrActionCreator === 'string'
