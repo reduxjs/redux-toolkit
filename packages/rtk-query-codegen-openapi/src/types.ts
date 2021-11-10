@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import type { OpenAPIV3 } from 'openapi-types';
+import type { QueryArgDefinition } from './generate';
 
 export type OperationDefinition = {
   path: string;
@@ -63,6 +64,7 @@ export interface OutputFileOptions extends Partial<CommonOptions> {
   outputFile: string;
   filterEndpoints?: EndpointMatcher;
   endpointOverrides?: EndpointOverrides[];
+  bodyArgName?: string | ((definition: Omit<QueryArgDefinition, 'name'>) => string);
 }
 
 export interface EndpointOverrides {

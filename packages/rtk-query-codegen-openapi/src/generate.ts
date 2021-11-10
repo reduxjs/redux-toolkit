@@ -72,6 +72,7 @@ export async function generateApi(
     isDataResponse = defaultIsDataResponse,
     filterEndpoints,
     endpointOverrides,
+    bodyArgName,
   }: GenerationOptions
 ) {
   const v3Doc = await getV3Doc(spec);
@@ -235,19 +236,28 @@ export async function generateApi(
       const schema = apiGen.getSchemaFromContent(body.content);
       const type = apiGen.getTypeFromSchema(schema);
       const schemaName = camelCase((type as any).name || getReferenceName(schema) || 'body');
+
+      const definition = {
+        origin: 'body',
+        originalName: schemaName,
+        type,
+        required: true,
+        body,
+      } as const;
+
       let name = schemaName in queryArg ? 'body' : schemaName;
+
+      if (bodyArgName) {
+        name = typeof bodyArgName === 'string' ? bodyArgName : bodyArgName(definition);
+      }
 
       while (name in queryArg) {
         name = '_' + name;
       }
 
       queryArg[name] = {
-        origin: 'body',
+        ...definition,
         name,
-        originalName: schemaName,
-        type: apiGen.getTypeFromSchema(schema),
-        required: true,
-        body,
       };
     }
 
@@ -441,7 +451,7 @@ function generateQuerArgObjectLiteralExpression(queryArgs: QueryArgDefinition[],
   );
 }
 
-type QueryArgDefinition = {
+export type QueryArgDefinition = {
   name: string;
   originalName: string;
   type: ts.TypeNode;

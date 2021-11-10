@@ -1,3 +1,4 @@
+import { body } from 'msw/lib/types/context';
 import { resolve } from 'path';
 import { generateEndpoints } from '../src';
 import fs from 'fs';
@@ -49,6 +50,17 @@ test('negated endpoint filtering', async () => {
     filterEndpoints: (name) => !/user/i.test(name),
   });
   expect(api).not.toMatch(/loginUser:/);
+});
+
+test('overriding body property name', async () => {
+  const api = await generateEndpoints({
+    apiFile: './fixtures/emptyApi.ts',
+    schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+    bodyArgName: () => 'body',
+  });
+  expect(api).toContain('body: queryArg.body');
+  expect(api).not.toContain('body: queryArg.order');
+  expect(api).toContain('body: Order;');
 });
 
 test('endpoint overrides', async () => {
