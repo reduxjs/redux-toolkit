@@ -55,9 +55,9 @@ export interface CommonOptions {
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];
 
-export type EndpointMatchFunction = (operationName: string, operationDefinition: OperationDefinition) => boolean;
+export type EndpointMatcherFunction = (operationName: string, operationDefinition: OperationDefinition) => boolean;
 
-export type EndpointMatcher = TextMatcher | EndpointMatchFunction;
+export type EndpointMatcher = TextMatcher | EndpointMatcherFunction;
 
 export interface OutputFileOptions extends Partial<CommonOptions> {
   outputFile: string;
