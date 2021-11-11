@@ -1,3 +1,36 @@
+/**
+ * CURRENT BRANCH GOALS:
+ * 
+ * The `middleware.addListener` and `dispatch(addListenerAction())` methods are disconnected from the store, so they can't know the real app State/Dispatch types.
+
+I want to enable a "pre-typed" setup like we have for React-Redux hooks.
+
+Right now there's 4 overloads / options you can pass in to tell the middleware what action to listen to:
+
+- plain string (for action type)
+- RTK action creator
+- RTK "matcher" function
+- A "listener predicate" (action, currState, prevState) => boolean
+
+Currently, the overloads are buried inside the middleware and dependent on its `State` generic.
+
+I want to:
+
+- Extract the overloads
+- Have a common function for creating a "listener entry" from the args
+- Use the overloads for `middleware.addListener` + `addListenerAction`
+
+I would like the `State` to default to `unknown`. But, I then want to allow:
+
+export const addAppListener : TypedAddListenerFunction<RootState> = middleware.addListener
+
+so that all further usages elsewhere have the right state type
+
+On top of that, the code needs to correctly infer the right type for `action` in the listener, but the way it does that has to vary based on the option provided for matching.
+
+The original `addListener` gets action inference okay, but I can't extract things how I want to.
+ */
+
 import {
   createAction,
   createSlice,
