@@ -1,4 +1,3 @@
-import { body } from 'msw/lib/types/context';
 import { resolve } from 'path';
 import { generateEndpoints } from '../src';
 import fs from 'fs';
