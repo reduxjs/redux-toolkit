@@ -495,31 +495,10 @@ const defaultErrorHandler: ListenerErrorHandler = (...args: unknown[]) => {
   console.error('action-listener-middleware-error', ...args)
 }
 
-// type SampleState = {
-
-//   foo: {
-//     bar: {
-//       baz: string
-//       quuz: number
-//     }
-//   }
-// }
-// declare module './globals' {
-//   interface AddListenerGlobals {
-//     state: SampleState
-//     dispatch: Dispatch<AnyAction>
-//   }
-// }
-
-type GlobalState = AddListenerGlobals extends { state : infer State} ? State : unknown
-type GlobalDispatch = AddListenerGlobals extends { dispatch: infer D} ? D extends Dispatch ? D : Dispatch<AnyAction> : Dispatch<AnyAction>
-
-type StateType<S = unknown> = S extends unknown ? GlobalState : S
-
 interface AddListenerOverloads<
   Return,
-  S = GlobalState,
-  D extends Dispatch = GlobalDispatch
+  S = unknown,
+  D extends Dispatch = ThunkDispatch<S, unknown, AnyAction>
 > {
   <C extends TypedActionCreator<any>, O extends ActionListenerBaseConfig>(
     actionCreator: C,
@@ -553,69 +532,131 @@ interface AddListenerOverloads<
     options?: O
   ): Return
 }
+
+interface RemoveListenerOverloads<
+  S = unknown,
+  D extends Dispatch = ThunkDispatch<S, unknown, AnyAction>
+> {
+  <C extends TypedActionCreator<any>>(
+    actionCreator: C,
+    listener: ActionListener<ReturnType<C>, S, D>
+  ): boolean
+  // eslint-disable-next-line no-redeclare
+  (type: string, listener: ActionListener<AnyAction, S, D>): boolean
+}
+
+export type ActionListenerMiddleware<
+  S = any,
+  // TODO Carry through the thunk extra arg somehow?
+  D extends ThunkDispatch<S, unknown, AnyAction> = ThunkDispatch<
+    S,
+    unknown,
+    AnyAction
+  >,
+  ExtraArgument = unknown
+> = Middleware<
+  {
+    (action: Action<'actionListenerMiddleware/add'>): Unsubscribe
+  },
+  S,
+  D
+> & {
+  addListener: AddListenerOverloads<Unsubscribe, S, D>
+  removeListener: RemoveListenerOverloads<S, D>
+}
+
 /**
  * @alpha
  */
 export function createActionListenerMiddleware<
   S = any,
   // TODO Carry through the thunk extra arg somehow?
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>,
+  D extends ThunkDispatch<S, unknown, AnyAction> = ThunkDispatch<
+    S,
+    unknown,
+    AnyAction
+  >,
   ExtraArgument = unknown
->(middlewareOptions: CreateListenerMiddlewareOptions<ExtraArgument> = {}) {
+>(
+  middlewareOptions: CreateListenerMiddlewareOptions<ExtraArgument> = {}
+): ActionListenerMiddleware<S, D, ExtraArgument> {
   const listenerMap = new Map<string, ListenerEntry<S, D>>()
   const { extra, onError = defaultErrorHandler } = middlewareOptions
 
   assertFunction(onError, 'onError')
 
   // eslint-disable-next-line no-redeclare
-  const addListener: AddListenerOverloads<Unsubscribe,S,D> = function addListener(
-    typeOrActionCreator:
-      | string
-      | TypedActionCreator<any>
-      | ListenerPredicate<any, any>,
-    listener: ActionListener<AnyAction, S, D>,
-    options?: ActionListenerBaseConfig
-  ): Unsubscribe {
-    let predicate: ListenerPredicate<any, any>
-    let type: string | undefined
+  const addListener: AddListenerOverloads<Unsubscribe, S, D> =
+    function addListener(
+      typeOrActionCreator:
+        | string
+        | TypedActionCreator<any>
+        | ListenerPredicate<any, any>,
+      listener: ActionListener<AnyAction, S, D>,
+      options?: ActionListenerBaseConfig
+    ): Unsubscribe {
+      let predicate: ListenerPredicate<any, any>
+      let type: string | undefined
 
-    let entry = findListenerEntry(
-      (existingEntry) => existingEntry.listener === listener
-    )
+      let entry = findListenerEntry(
+        (existingEntry) => existingEntry.listener === listener
+      )
 
-    if (!entry) {
-      if (typeof typeOrActionCreator === 'string') {
-        type = typeOrActionCreator
-        predicate = (action: any): action is Action => action.type === type
-      } else {
-        if (isActionCreator(typeOrActionCreator)) {
-          type = typeOrActionCreator.type
-          predicate = typeOrActionCreator.match
+      if (!entry) {
+        if (typeof typeOrActionCreator === 'string') {
+          type = typeOrActionCreator
+          predicate = (action: any): action is Action => action.type === type
         } else {
-          predicate = typeOrActionCreator as unknown as ListenerPredicate<
-            any,
-            any
-          >
+          if (isActionCreator(typeOrActionCreator)) {
+            type = typeOrActionCreator.type
+            predicate = typeOrActionCreator.match
+          } else {
+            predicate = typeOrActionCreator as unknown as ListenerPredicate<
+              any,
+              any
+            >
+          }
         }
+
+        const id = nanoid()
+        const unsubscribe = () => listenerMap.delete(id)
+        entry = {
+          when: defaultWhen,
+          ...options,
+          id,
+          listener,
+          type,
+          predicate,
+          unsubscribe,
+        }
+
+        listenerMap.set(id, entry)
       }
 
-      const id = nanoid()
-      const unsubscribe = () => listenerMap.delete(id)
-      entry = {
-        when: defaultWhen,
-        ...options,
-        id,
-        listener,
-        type,
-        predicate,
-        unsubscribe,
+      return entry.unsubscribe
+    }
+    
+    const removeListener: RemoveListenerOverloads<S, D> = function removeListener(
+      typeOrActionCreator: string | TypedActionCreator<any>,
+      listener: ActionListener<AnyAction, S, D>
+    ): boolean {
+      const type =
+        typeof typeOrActionCreator === 'string'
+          ? typeOrActionCreator
+          : typeOrActionCreator.type
+  
+      let entry = findListenerEntry(
+        (entry) => entry.type === type && entry.listener === listener
+      )
+  
+      if (!entry) {
+        return false
       }
-
-      listenerMap.set(id, entry)
+  
+      listenerMap.delete(entry.id)
+      return true
     }
 
-    return entry.unsubscribe
-  }
   const middleware: Middleware<
     {
       (action: Action<'actionListenerMiddleware/add'>): Unsubscribe
@@ -633,7 +674,6 @@ export function createActionListenerMiddleware<
       return unsubscribe
     }
     if (removeListenerAction.match(action)) {
-      // @ts-ignore
       removeListener(action.payload.type, action.payload.listener)
 
       return
@@ -691,36 +731,6 @@ export function createActionListenerMiddleware<
   }
 
 
-  function removeListener<C extends TypedActionCreator<any>>(
-    actionCreator: C,
-    listener: ActionListener<ReturnType<C>, S, D>
-  ): boolean
-  // eslint-disable-next-line no-redeclare
-  function removeListener(
-    type: string,
-    listener: ActionListener<AnyAction, S, D>
-  ): boolean
-  // eslint-disable-next-line no-redeclare
-  function removeListener(
-    typeOrActionCreator: string | TypedActionCreator<any>,
-    listener: ActionListener<AnyAction, S, D>
-  ): boolean {
-    const type =
-      typeof typeOrActionCreator === 'string'
-        ? typeOrActionCreator
-        : typeOrActionCreator.type
-
-    let entry = findListenerEntry(
-      (entry) => entry.type === type && entry.listener === listener
-    )
-
-    if (!entry) {
-      return false
-    }
-
-    listenerMap.delete(entry.id)
-    return true
-  }
 
   function findListenerEntry(
     comparator: (entry: ListenerEntry<S, D>) => boolean

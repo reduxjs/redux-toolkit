@@ -12,6 +12,7 @@ import {
   removeListenerAction,
   When,
   ActionListenerMiddlewareAPI,
+  ActionListenerMiddleware,
 } from '../index'
 
 const middlewareApi = {
@@ -25,6 +26,7 @@ const middlewareApi = {
 }
 
 const noop = () => {}
+
 
 describe('createActionListenerMiddleware', () => {
   let store = configureStore({
@@ -52,7 +54,7 @@ describe('createActionListenerMiddleware', () => {
   }
 
   let reducer: jest.Mock
-  let middleware: ReturnType<typeof createActionListenerMiddleware>
+  let middleware: ActionListenerMiddleware<CounterState>//: ReturnType<typeof createActionListenerMiddleware>
 
   const testAction1 = createAction<string>('testAction1')
   type TestAction1 = ReturnType<typeof testAction1>
@@ -111,17 +113,15 @@ describe('createActionListenerMiddleware', () => {
     })
     store.dispatch(increment())
 
-    let testState = 0
+    let testState: unknown = 0
 
     middleware.addListener(
-      (action: any, state: any) => {
-        return increment.match(action) && state > 1
-      },
+      increment.match,
       (action, listenerApi) => {
-        // TODO Can't get the thunk dispatch types to carry through
-        // listenerApi.dispatch((dispatch, getState) => {
-        //   testState = getState()
-        // })
+         // TODO Can't get the thunk dispatch types to carry through
+         listenerApi.dispatch((dispatch, getState) => {
+           testState = getState() 
+         })
       }
     )
 
@@ -148,7 +148,7 @@ describe('createActionListenerMiddleware', () => {
   test('can subscribe with a string action type', () => {
     const listener = jest.fn((_: AnyAction) => {})
 
-    store.dispatch(addListenerAction({type: testAction2.type, listener}))
+    store.dispatch(addListenerAction(testAction2.type, listener))
 
     store.dispatch(testAction2('b'))
     expect(listener.mock.calls).toEqual([[testAction2('b'), middlewareApi]])
@@ -338,7 +338,7 @@ describe('createActionListenerMiddleware', () => {
     const listener = jest.fn(
       (
         action: TestAction1,
-        api: ActionListenerMiddlewareAPI<any, any, any>
+        api: ActionListenerMiddlewareAPI<any, any>
       ) => {
         if (action.payload === 'b') {
           api.unsubscribe()
@@ -485,6 +485,7 @@ describe('createActionListenerMiddleware', () => {
     const firstListener = jest.fn(() => {})
     const secondListener = jest.fn(() => {})
 
+    // @ts-expect-error
     middleware.addListener(() => {
       throw new Error('Predicate Panic!')
     }, firstListener);
