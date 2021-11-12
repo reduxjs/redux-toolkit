@@ -58,11 +58,18 @@ interface TypedActionCreator<Type extends string> {
 }
 
 type ListenerPredicate<Action extends AnyAction, State> = (
-  action: Action,
+  action: AnyAction,
   currentState?: State,
   originalState?: State
 ) => action is Action
 
+type ListenerPredicateGuardedActionType<T> = T extends ListenerPredicate<
+  infer Action,
+  any
+>
+  ? Action
+  : never
+  
 interface ConditionFunction<Action extends AnyAction, State> {
   (
     predicate: ListenerPredicate<Action, State>,
@@ -378,7 +385,7 @@ export type TypedAddListener<
 /**
  * @alpha
  */
-export const addListenerAction = createAction(
+export const addListenerAction: TypedAddListenerAction<unknown> = createAction(
   'actionListenerMiddleware/add',
   function prepare(options: ActionListenerOptions) {
     const entry = createListenerEntry(options)
@@ -387,7 +394,7 @@ export const addListenerAction = createAction(
       payload: entry,
     }
   }
-) as TypedAddListenerAction<unknown>
+)
 
 interface CounterState {
   value: number
@@ -461,6 +468,16 @@ interface AddListenerOverloads<
   S = unknown,
   D extends Dispatch = ThunkDispatch<S, unknown, AnyAction>
 > {
+  <
+    MA extends AnyAction,
+    LP extends ListenerPredicate<MA, S>,
+    O extends ActionListenerBaseConfig
+  >(
+    predicate: LP,
+    listener: ActionListener<ListenerPredicateGuardedActionType<MA>, S, D>,
+    options?: O
+  ): Return
+  // eslint-disable-next-line no-redeclare
   <C extends TypedActionCreator<any>, O extends ActionListenerBaseConfig>(
     actionCreator: C,
     listener: ActionListener<ReturnType<C>, S, D>,
@@ -482,17 +499,8 @@ interface AddListenerOverloads<
     listener: ActionListener<GuardedType<M>, S, D>,
     options?: O
   ): Return
-  // eslint-disable-next-line no-redeclare
-  <
-    MA extends AnyAction,
-    LP extends ListenerPredicate<MA, S>,
-    O extends ActionListenerBaseConfig
-  >(
-    predicate: LP,
-    listener: ActionListener<AnyAction, S, D>,
-    options?: O
-  ): Return
 }
+
 
 interface RemoveListenerOverloads<
   S = unknown,
@@ -502,11 +510,10 @@ interface RemoveListenerOverloads<
     actionCreator: C,
     listener: ActionListener<ReturnType<C>, S, D>
   ): boolean
-  // eslint-disable-next-line no-redeclare
   (type: string, listener: ActionListener<AnyAction, S, D>): boolean
 }
 
-export type ActionListenerMiddleware<
+export interface ActionListenerMiddleware<
   S = unknown,
   // TODO Carry through the thunk extra arg somehow?
   D extends ThunkDispatch<S, unknown, AnyAction> = ThunkDispatch<
@@ -515,13 +522,13 @@ export type ActionListenerMiddleware<
     AnyAction
   >,
   ExtraArgument = unknown
-> = Middleware<
-  {
-    (action: Action<'actionListenerMiddleware/add'>): Unsubscribe
-  },
-  S,
-  D
-> & {
+> extends Middleware<
+    {
+      (action: Action<'actionListenerMiddleware/add'>): Unsubscribe
+    },
+    S,
+    D
+  > {
   addListener: AddListenerOverloads<Unsubscribe, S, D>
   removeListener: RemoveListenerOverloads<S, D>
 }
