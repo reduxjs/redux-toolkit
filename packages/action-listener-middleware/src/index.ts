@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/consistent-type-imports */
 /**
  * CURRENT BRANCH GOALS:
  * 
@@ -44,6 +45,7 @@ import {
   ThunkDispatch,
   ActionCreatorWithPreparedPayload,
 } from '@reduxjs/toolkit'
+import { AddListenerGlobals } from './globals'
 
 interface BaseActionCreator<P, T extends string, M = never, E = never> {
   type: T
@@ -62,10 +64,18 @@ type ListenerPredicate<Action extends AnyAction, State> = (
   originalState?: State
 ) => action is Action
 
-type ConditionFunction<Action extends AnyAction, State> = (
-  predicate: ListenerPredicate<Action, State> | (() => boolean),
-  timeout?: number
-) => Promise<boolean>
+// type ConditionFunction<Action extends AnyAction, State> = (
+//   predicate: ListenerPredicate<Action, State> | (() => boolean),
+//   timeout?: number
+// ) => Promise<boolean>
+
+interface ConditionFunction<Action extends AnyAction, State> {
+  (
+    predicate: ListenerPredicate<Action, State>,
+    timeout?: number
+  ): Promise<boolean>
+  (predicate: () => boolean, timeout?: number): Promise<boolean>
+}
 
 type MatchFunction<T> = (v: any) => v is T
 
@@ -145,18 +155,20 @@ export interface ListenerErrorHandler {
   (error: unknown): void
 }
 
-export interface ActionListenerBaseOptions<
-  Action extends AnyAction,
-  S = unknown,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
-> {
+export interface ActionListenerBaseConfig {
   /**
    * Determines if the listener runs 'before' or 'after' the reducers have been called.
    * If set to 'before', calling `api.stopPropagation()` from the listener becomes possible.
    * Defaults to 'before'.
    */
   when?: When
+}
 
+export interface ActionListenerBaseOptions<
+  Action extends AnyAction,
+  S = unknown,
+  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
+> extends ActionListenerBaseConfig {
   listener: ActionListener<Action, S, D>
 }
 
@@ -216,94 +228,6 @@ type ActionListenerOptions<
     S,
     D
   >
-/*
-
-type ActionListenerTypeStringOptions<
-  T extends string,
-  S = unknown,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
-> = ActionListenerBaseOptions<Action<T>, S, D> & {
-  type: T
-}
-
-type ActionListenerActionCreatorOptions<
-  AC extends TypedActionCreator<string>,
-  S = unknown,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
-> = ActionListenerBaseOptions<ReturnType<AC>, S, D> & {
-  action: AC
-}
-
-type ActionListenerMatcherOptions<
-  MA extends AnyAction,
-  M extends MatchFunction<MA>,
-  S = unknown,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
-> = ActionListenerBaseOptions<GuardedType<M>, S, D> & {
-  matcher: M
-}
-
-type ActionListenerPredicateOptions<
-  MA extends AnyAction,
-  LP extends ListenerPredicate<MA, unknown>,
-  S = unknown,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
-> = ActionListenerBaseOptions<AnyAction, S, D> & {
-  predicate: LP
-}
-
-type ActionListenerOptions<
-  S = unknown,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>,
-  T extends string = string,
-  AC extends TypedActionCreator<string> = TypedActionCreator<string>,
-  MA extends AnyAction = AnyAction,
-  M extends MatchFunction<MA> = MatchFunction<MA>,
-  LP extends ListenerPredicate<MA, S> = ListenerPredicate<MA, S>
-  // UniqueOption =
-  //   | {
-  //       type: T
-  //     }
-  //   | {
-  //       action: AC
-  //     }
-  //   | {
-  //       matcher: M
-  //     }
-  //   | {
-  //       predicate: LP
-  //     },
-  // ActualAction extends AnyAction = UniqueOption extends { type: T }
-  //   ? Action<T>
-  //   : UniqueOption extends { action: AC }
-  //   ? ReturnType<AC>
-  //   : AnyAction
-> =
-  | {
-      type: T
-    }
-  | {
-      action: AC
-    }
-  | {
-      matcher: M
-    }
-  | ({
-      predicate: LP
-    } & ActionListenerBaseOptions<ActualAction, S, D>)
-
-    */
-/*
-  | ActionListenerTypeStringOptions<string, S, D>
-  | ActionListenerActionCreatorOptions<TypedActionCreator<string>, S, D>
-  | ActionListenerMatcherOptions<AnyAction, MatchFunction<AnyAction>, S, D>
-  | ActionListenerPredicateOptions<
-      AnyAction,
-      ListenerPredicate<AnyAction, unknown>,
-      S,
-      D
-    >
-*/
 
 export interface CreateListenerMiddlewareOptions<ExtraArgument = unknown> {
   extra?: ExtraArgument
@@ -313,103 +237,18 @@ export interface CreateListenerMiddlewareOptions<ExtraArgument = unknown> {
   onError?: ListenerErrorHandler
 }
 
-type ListenerEntry<S, D extends Dispatch<AnyAction>> = {
+type ListenerEntry<
+  S = any,
+  D extends Dispatch<AnyAction> = Dispatch<AnyAction>
+> = {
   id: string
   when: When
   listener: ActionListener<any, S, D>
   unsubscribe: () => void
   type?: string
   predicate: ListenerPredicate<any, any>
+  options?: ActionListenerOptions<S, D>
 }
-
-/*
-interface ListenerEntryCreator<
-  S,
-  O extends ActionListenerOptions,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
-> {
-  <T extends string>(
-    type: T,
-    listener: ActionListener<Action<T>, S, D, O>,
-    options?: O
-  ): ListenerEntry<S, D>
-
-  <C extends TypedActionCreator<any>>(
-    listener: ActionListener<ReturnType<C>, S, D, O>,
-    options?: O
-  ): ListenerEntry<S, D>
-
-  <MA extends AnyAction, M extends MatchFunction<MA>>(
-    matcher: M,
-    listener: ActionListener<GuardedType<M>, S, D, O>,
-    options?: O
-  ): ListenerEntry<S, D>
-
-  <MA extends AnyAction, LP extends ListenerPredicate<MA, S>>(
-    matcher: LP,
-    listener: ActionListener<AnyAction, S, D, O>,
-    options?: O
-  ): ListenerEntry<S, D>
-}
-*/
-
-/*
-function createListenerEntry<
-  C extends TypedActionCreator<any>,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
->(
-  actionCreator: C,
-  listener: ActionListener<ReturnType<C>, S, D, O>,
-  options?: O
-): ListenerEntry<S, D>
-// eslint-disable-next-line no-redeclare
-function createListenerEntry<
-  S,
-  T extends string,
-  O extends ActionListenerOptions,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
->(
-  type: T,
-  listener: ActionListener<Action<T>, S, D, O>,
-  options?: O
-): ListenerEntry<S, D>
-// eslint-disable-next-line no-redeclare
-function createListenerEntry<
-  S,
-  MA extends AnyAction,
-  M extends MatchFunction<MA>,
-  O extends ActionListenerOptions,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
->(
-  matcher: M,
-  listener: ActionListener<GuardedType<M>, S, D, O>,
-  options?: O
-): ListenerEntry<S, D>
-// eslint-disable-next-line no-redeclare
-function createListenerEntry<
-  S,
-  MA extends AnyAction,
-  M extends ListenerPredicate<MA, S>,
-  O extends ActionListenerOptions,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
->(
-  matcher: M,
-  listener: ActionListener<AnyAction, S, D, O>,
-  options?: O
-): ListenerEntry<S, D>
-// eslint-disable-next-line no-redeclare
-function createListenerEntry<
-  S,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
->(
-  typeOrActionCreator:
-    | string
-    | TypedActionCreator<any>
-    | ListenerPredicate<any, any>,
-  listener: ActionListener<AnyAction, S, D, any>,
-  options?: ActionListenerOptions
-): ListenerEntry<S, D> {
-  */
 
 const createListenerEntry = <
   S = unknown,
@@ -422,7 +261,7 @@ const createListenerEntry = <
 
   if ('type' in options) {
     type = options.type
-    predicate = (action: any) => action.type === type
+    predicate = (action: any): action is any => action.type === type
   } else if ('action' in options) {
     type = options.action.type
     predicate = options.action.match
@@ -439,6 +278,7 @@ const createListenerEntry = <
     listener: options.listener,
     type,
     predicate,
+    options,
     unsubscribe: () => {
       throw new Error('Unsubscribe not initialized')
     },
@@ -531,9 +371,13 @@ export type TypedAddListenerAction<
   Payload = ListenerEntry<S, D>,
   T extends string = 'actionListenerMiddleware/add'
 > = BaseActionCreator<Payload, T> &
-  ((
-    options: Options
-  ) => ReturnType<ActionCreatorWithPreparedPayload<[Options], Payload>>)
+  AddListenerOverloads<
+    ReturnType<ActionCreatorWithPreparedPayload<[Options], Payload>>
+  >
+//&
+// ((
+//   options: Options
+// ) => ReturnType<ActionCreatorWithPreparedPayload<[Options], Payload>>)
 
 /**
  * @alpha
@@ -651,6 +495,64 @@ const defaultErrorHandler: ListenerErrorHandler = (...args: unknown[]) => {
   console.error('action-listener-middleware-error', ...args)
 }
 
+// type SampleState = {
+
+//   foo: {
+//     bar: {
+//       baz: string
+//       quuz: number
+//     }
+//   }
+// }
+// declare module './globals' {
+//   interface AddListenerGlobals {
+//     state: SampleState
+//     dispatch: Dispatch<AnyAction>
+//   }
+// }
+
+type GlobalState = AddListenerGlobals extends { state : infer State} ? State : unknown
+type GlobalDispatch = AddListenerGlobals extends { dispatch: infer D} ? D extends Dispatch ? D : Dispatch<AnyAction> : Dispatch<AnyAction>
+
+type StateType<S = unknown> = S extends unknown ? GlobalState : S
+
+interface AddListenerOverloads<
+  Return,
+  S = GlobalState,
+  D extends Dispatch = GlobalDispatch
+> {
+  <C extends TypedActionCreator<any>, O extends ActionListenerBaseConfig>(
+    actionCreator: C,
+    listener: ActionListener<ReturnType<C>, S, D>,
+    options?: O
+  ): Return
+  // eslint-disable-next-line no-redeclare
+  <T extends string, O extends ActionListenerBaseConfig>(
+    type: T | undefined,
+    listener: ActionListener<Action<T>, S, D>,
+    options?: O
+  ): Return
+  // eslint-disable-next-line no-redeclare
+  <
+    MA extends AnyAction,
+    M extends MatchFunction<MA>,
+    O extends ActionListenerBaseConfig
+  >(
+    matcher: M,
+    listener: ActionListener<GuardedType<M>, S, D>,
+    options?: O
+  ): Return
+  // eslint-disable-next-line no-redeclare
+  <
+    MA extends AnyAction,
+    M extends ListenerPredicate<MA, S>,
+    O extends ActionListenerBaseConfig
+  >(
+    matcher: M,
+    listener: ActionListener<AnyAction, S, D>,
+    options?: O
+  ): Return
+}
 /**
  * @alpha
  */
@@ -665,6 +567,55 @@ export function createActionListenerMiddleware<
 
   assertFunction(onError, 'onError')
 
+  // eslint-disable-next-line no-redeclare
+  const addListener: AddListenerOverloads<Unsubscribe,S,D> = function addListener(
+    typeOrActionCreator:
+      | string
+      | TypedActionCreator<any>
+      | ListenerPredicate<any, any>,
+    listener: ActionListener<AnyAction, S, D>,
+    options?: ActionListenerBaseConfig
+  ): Unsubscribe {
+    let predicate: ListenerPredicate<any, any>
+    let type: string | undefined
+
+    let entry = findListenerEntry(
+      (existingEntry) => existingEntry.listener === listener
+    )
+
+    if (!entry) {
+      if (typeof typeOrActionCreator === 'string') {
+        type = typeOrActionCreator
+        predicate = (action: any): action is Action => action.type === type
+      } else {
+        if (isActionCreator(typeOrActionCreator)) {
+          type = typeOrActionCreator.type
+          predicate = typeOrActionCreator.match
+        } else {
+          predicate = typeOrActionCreator as unknown as ListenerPredicate<
+            any,
+            any
+          >
+        }
+      }
+
+      const id = nanoid()
+      const unsubscribe = () => listenerMap.delete(id)
+      entry = {
+        when: defaultWhen,
+        ...options,
+        id,
+        listener,
+        type,
+        predicate,
+        unsubscribe,
+      }
+
+      listenerMap.set(id, entry)
+    }
+
+    return entry.unsubscribe
+  }
   const middleware: Middleware<
     {
       (action: Action<'actionListenerMiddleware/add'>): Unsubscribe
@@ -739,89 +690,6 @@ export function createActionListenerMiddleware<
     }
   }
 
-  function addListener<
-    C extends TypedActionCreator<any>,
-    O extends ActionListenerOptions
-  >(
-    actionCreator: C,
-    listener: ActionListener<ReturnType<C>, S, D, O>,
-    options?: O
-  ): Unsubscribe
-  // eslint-disable-next-line no-redeclare
-  function addListener<T extends string, O extends ActionListenerOptions>(
-    type: T,
-    listener: ActionListener<Action<T>, S, D, O>,
-    options?: O
-  ): Unsubscribe
-  // eslint-disable-next-line no-redeclare
-  function addListener<
-    MA extends AnyAction,
-    M extends MatchFunction<MA>,
-    O extends ActionListenerOptions
-  >(
-    matcher: M,
-    listener: ActionListener<GuardedType<M>, S, D>,
-    options?: O
-  ): Unsubscribe
-  // eslint-disable-next-line no-redeclare
-  function addListener<
-    MA extends AnyAction,
-    M extends ListenerPredicate<MA, S>,
-    O extends ActionListenerOptions
-  >(
-    matcher: M,
-    listener: ActionListener<AnyAction, S, D>,
-    options?: O
-  ): Unsubscribe
-  // eslint-disable-next-line no-redeclare
-  function addListener(
-    typeOrActionCreator:
-      | string
-      | TypedActionCreator<any>
-      | ListenerPredicate<any, any>,
-    listener: ActionListener<AnyAction, S, D>,
-    options?: ActionListenerOptions
-  ): Unsubscribe {
-    let predicate: ListenerPredicate<any, any>
-    let type: string | undefined
-
-    let entry = findListenerEntry(
-      (existingEntry) => existingEntry.listener === listener
-    )
-
-    if (!entry) {
-      if (typeof typeOrActionCreator === 'string') {
-        type = typeOrActionCreator
-        predicate = (action: any) => action.type === type
-      } else {
-        if (isActionCreator(typeOrActionCreator)) {
-          type = typeOrActionCreator.type
-          predicate = typeOrActionCreator.match
-        } else {
-          predicate = typeOrActionCreator as unknown as ListenerPredicate<
-            any,
-            any
-          >
-        }
-      }
-
-      const id = nanoid()
-      const unsubscribe = () => listenerMap.delete(id)
-      entry = {
-        when: defaultWhen,
-        ...options,
-        id,
-        listener,
-        type,
-        predicate,
-        unsubscribe,
-      }
-
-      listenerMap.set(id, entry)
-    }
-
-    return entry.unsubscribe
-  }
 
   function removeListener<C extends TypedActionCreator<any>>(
     actionCreator: C,
@@ -855,8 +723,8 @@ export function createActionListenerMiddleware<
   }
 
   function findListenerEntry(
-    comparator: (entry: ListenerEntry) => boolean
-  ): ListenerEntry | undefined {
+    comparator: (entry: ListenerEntry<S, D>) => boolean
+  ): ListenerEntry<S, D> | undefined {
     for (const entry of listenerMap.values()) {
       if (comparator(entry)) {
         return entry
@@ -875,7 +743,7 @@ export function createActionListenerMiddleware<
     const conditionSucceededPromise = new Promise<boolean>(
       (resolve, reject) => {
         unsubscribe = addListener(
-          predicate,
+          predicate as any,
           (action, listenerApi) => {
             // One-shot listener that cleans up as soon as the predicate resolves
             listenerApi.unsubscribe()

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/consistent-type-imports */
 import {
   configureStore,
   createAction,
@@ -87,7 +88,7 @@ describe('createActionListenerMiddleware', () => {
     let foundExtra = null
 
     middleware.addListener(
-      (action: AnyAction) => true,
+      (action: AnyAction): action is AnyAction => true,
       (action, listenerApi) => {
         foundExtra = listenerApi.extra
       }
@@ -147,7 +148,7 @@ describe('createActionListenerMiddleware', () => {
   test('can subscribe with a string action type', () => {
     const listener = jest.fn((_: AnyAction) => {})
 
-    store.dispatch(addListenerAction(testAction2.type, listener))
+    store.dispatch(addListenerAction({type: testAction2.type, listener}))
 
     store.dispatch(testAction2('b'))
     expect(listener.mock.calls).toEqual([[testAction2('b'), middlewareApi]])
@@ -466,7 +467,7 @@ describe('createActionListenerMiddleware', () => {
   })
 
   test('Continues running other listeners if one of them raises an error', () => {
-    const matcher = (action: any) => true
+    const matcher = (action: any): action is any => true
 
     middleware.addListener(matcher, () => {
       throw new Error('Panic!')
@@ -480,7 +481,7 @@ describe('createActionListenerMiddleware', () => {
   })
 
   test('Continues running other listeners if a predicate raises an error', () => {
-    const matcher = (action: any) => true
+    const matcher = (action: any): action is any => true
     const firstListener = jest.fn(() => {})
     const secondListener = jest.fn(() => {})
 
@@ -510,7 +511,7 @@ describe('createActionListenerMiddleware', () => {
   
     const listenerError = new Error('Boom!');
   
-    const matcher = (action: any) => true
+    const matcher = (action: any): action is any => true
   
     middleware.addListener(matcher, () => {
       throw listenerError;
