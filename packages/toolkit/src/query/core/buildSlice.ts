@@ -144,7 +144,7 @@ export function buildSlice({
           updateQuerySubstateIfExists(draft, arg.queryCacheKey, (substate) => {
             substate.status = QueryStatus.pending
             substate.requestId = meta.requestId
-            if (typeof arg.originalArgs !== 'undefined') {
+            if (arg.originalArgs !== undefined) {
               substate.originalArgs = arg.originalArgs
             }
             substate.startedTimeStamp = meta.startedTimeStamp
