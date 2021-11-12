@@ -306,26 +306,31 @@ export function buildThunks<
         typeof process !== 'undefined' &&
         process.env.NODE_ENV === 'development'
       ) {
+        const what = endpointDefinition.query ? '`baseQuery`' : '`queryFn`'
         let err: undefined | string
-        if (result && typeof result !== 'object') {
-          err = `\`queryFn\` did not return an object.`
+        if (!result) {
+          err = `${what} did not return anything.`
+        } else if (typeof result !== 'object') {
+          err = `${what} did not return an object.`
+        } else if (result.error && result.data) {
+          err = `${what} returned an object containing both \`error\` and \`result\`.`
+        } else if (result.error === undefined && result.data === undefined) {
+          err = `${what} returned an object containing neither a valid \`error\` and \`result\`. At least one of them should not be \`undefined\``
         } else {
-          const keys = Object.keys(result)
-          if (keys.length === 0) {
-            err = `The object returned by \`queryFn\` did not have any keys.`
-          } else if (keys.length > 1) {
-            err = `The object returned by \`queryFn\` has too many properties (${keys.join(
-              ', '
-            )}).`
-          } else if (keys[0] !== 'data' && keys[0] !== 'error') {
-            err = `The object returned by \`queryFn\` has the unknown property ${keys[0]}.`
+          for (const key of Object.keys(result)) {
+            if (key !== 'error' && key !== 'data' && key !== 'meta') {
+              err = `The object returned by ${what} has the unknown property ${key}.`
+              break
+            }
           }
         }
         if (err) {
           console.error(
-            `Error encountered handling the \`queryFn\` of endpoint ${arg.endpointName}.
+            `Error encountered handling the endpoint ${arg.endpointName}.
               ${err}
-              \`queryFn\` needs to return an object with either the shape \`{ data: ... }\` or \`{ error: ... }\`.`
+              It needs to return an object with either the shape \`{ data: <value> }\` or \`{ error: <value> }\` that may contain an optional \`meta\` property.
+              Object returned was:`,
+            result
           )
         }
       }
