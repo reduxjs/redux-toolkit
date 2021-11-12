@@ -63,11 +63,6 @@ type ListenerPredicate<Action extends AnyAction, State> = (
   originalState?: State
 ) => action is Action
 
-// type ConditionFunction<Action extends AnyAction, State> = (
-//   predicate: ListenerPredicate<Action, State> | (() => boolean),
-//   timeout?: number
-// ) => Promise<boolean>
-
 interface ConditionFunction<Action extends AnyAction, State> {
   (
     predicate: ListenerPredicate<Action, State>,
@@ -458,7 +453,7 @@ const defaultErrorHandler: ListenerErrorHandler = (...args: unknown[]) => {
 interface AddListenerOverloads<
   Return,
   S = unknown,
-  D extends Dispatch = Dispatch<AnyAction>
+  D extends Dispatch = ThunkDispatch<S, unknown, AnyAction>
 > {
   <C extends TypedActionCreator<any>, O extends ActionListenerBaseConfig>(
     actionCreator: C,
