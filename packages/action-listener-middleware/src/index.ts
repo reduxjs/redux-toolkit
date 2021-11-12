@@ -45,7 +45,6 @@ import {
   ThunkDispatch,
   ActionCreatorWithPreparedPayload,
 } from '@reduxjs/toolkit'
-import { AddListenerGlobals } from './globals'
 
 interface BaseActionCreator<P, T extends string, M = never, E = never> {
   type: T
@@ -372,13 +371,9 @@ export type TypedAddListenerAction<
   T extends string = 'actionListenerMiddleware/add'
 > = BaseActionCreator<Payload, T> &
   AddListenerOverloads<
-    ReturnType<ActionCreatorWithPreparedPayload<[Options], Payload>>
+    ReturnType<ActionCreatorWithPreparedPayload<[Options], Payload>>,
+    D
   >
-//&
-// ((
-//   options: Options
-// ) => ReturnType<ActionCreatorWithPreparedPayload<[Options], Payload>>)
-
 /**
  * @alpha
  */
@@ -397,37 +392,16 @@ interface CounterState {
   value: number
 }
 const ala2 = addListenerAction as TypedAddListenerAction<CounterState>
-
-// ala2(
-//   'abcd',
-//   (action, listenerApi) => {
-//     const state = listenerApi.getState()
-
-//     listenerApi.dispatch((dispatch, getState) => {
-//       const state2 = getState()
-//     })
-//   },
-//   { when: 'beforeReducer' }
-// )
-/* {
-  <
-    C extends TypedActionCreator<any>,
-    S,
-    D extends Dispatch,
-    O extends ActionListenerOptions
-  >(
-    actionCreator: C,
-    listener: ActionListener<ReturnType<C>, S, D, O>,
-    options?: O
-  ): AddListenerAction<ReturnType<C>, S, D, O>
-
-  <S, D extends Dispatch, O extends ActionListenerOptions>(
-    type: string,
-    listener: ActionListener<AnyAction, S, D, O>,
-    options?: O
-  ): AddListenerAction<AnyAction, S, D, O>
-}
-*/
+ ala2(
+   'abcd',
+   (action, listenerApi) => {
+     const state = listenerApi.getState()
+     listenerApi.dispatch((dispatch, getState) => {
+       const state2 = getState()
+     })
+   },
+   { when: 'beforeReducer' }
+ )
 
 interface RemoveListenerAction<
   A extends AnyAction,
@@ -484,7 +458,7 @@ const defaultErrorHandler: ListenerErrorHandler = (...args: unknown[]) => {
 interface AddListenerOverloads<
   Return,
   S = unknown,
-  D extends Dispatch = ThunkDispatch<S, unknown, AnyAction>
+  D extends Dispatch = Dispatch<AnyAction>
 > {
   <C extends TypedActionCreator<any>, O extends ActionListenerBaseConfig>(
     actionCreator: C,
