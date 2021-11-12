@@ -392,20 +392,6 @@ export const addListenerAction = createAction(
     }
   }
 ) as TypedAddListenerAction<unknown>
-// as unknown as BaseActionCreator<
-//   ListenerEntry<unknown, Dispatch<AnyAction>>,
-//   'actionListenerMiddleware/add'
-// > & ListenerEntryCreator<unknown, ActionListenerOptions>
-
-// const res = addListenerAction({
-//   type: 'abcd',
-
-//   listener: (action, listenerApi) => {
-//     const state = listenerApi.getState()
-//     const state2 = listenerApi.getState() as CounterState
-//   },
-//   when: 'beforeReducer',
-// })
 
 interface CounterState {
   value: number
@@ -635,7 +621,7 @@ export function createActionListenerMiddleware<
 
       return entry.unsubscribe
     }
-    
+
     const removeListener: RemoveListenerOverloads<S, D> = function removeListener(
       typeOrActionCreator: string | TypedActionCreator<any>,
       listener: ActionListener<AnyAction, S, D>
