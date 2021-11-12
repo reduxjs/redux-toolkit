@@ -49,7 +49,9 @@ const api = createApi({
   },
   endpoints: (build) => ({
     getUser: build.query<{ name: string }, number>({
-      query: (arg) => arg,
+      query: () => ({
+        body: { name: 'Timmy' },
+      }),
     }),
     getIncrementedAmount: build.query<any, void>({
       query: () => ({
@@ -778,11 +780,13 @@ describe('hooks tests', () => {
     test('useLazyQuery hook callback returns various properties to handle the result', async () => {
       function User() {
         const [getUser] = api.endpoints.getUser.useLazyQuery()
-        const [successMsg, setSuccessMsg] = React.useState('')
-        const [errMsg, setErrMsg] = React.useState('')
-        const [isAborted, setIsAborted] = React.useState(false)
+        const [{ successMsg, errMsg, isAborted }, setValues] = React.useState({
+          successMsg: '',
+          errMsg: '',
+          isAborted: false,
+        })
 
-        const handleClick = async () => {
+        const handleClick = (abort: boolean) => async () => {
           const res = getUser(1)
 
           // no-op simply for clearer type assertions
@@ -810,24 +814,32 @@ describe('hooks tests', () => {
           expectType<() => void>(res.refetch)
 
           // abort the query immediately to force an error
-          res.abort()
+          if (abort) res.abort()
           res
             .unwrap()
             .then((result) => {
               expectType<{ name: string }>(result)
-              setSuccessMsg(`Successfully fetched user ${result.name}`)
+              setValues({
+                successMsg: `Successfully fetched user ${result.name}`,
+                errMsg: '',
+                isAborted: false,
+              })
             })
             .catch((err) => {
-              setErrMsg(`An error has occurred fetching userId: ${res.arg}`)
-              if (err.name === 'AbortError') {
-                setIsAborted(true)
-              }
+              setValues({
+                successMsg: '',
+                errMsg: `An error has occurred fetching userId: ${res.arg}`,
+                isAborted: err.name === 'AbortError',
+              })
             })
         }
 
         return (
           <div>
-            <button onClick={handleClick}>Fetch User and abort</button>
+            <button onClick={handleClick(false)}>
+              Fetch User successfully
+            </button>
+            <button onClick={handleClick(true)}>Fetch User and abort</button>
             <div>{successMsg}</div>
             <div>{errMsg}</div>
             <div>{isAborted ? 'Request was aborted' : ''}</div>
@@ -846,6 +858,13 @@ describe('hooks tests', () => {
       await screen.findByText('An error has occurred fetching userId: 1')
       expect(screen.queryByText(/Successfully fetched user/i)).toBeNull()
       screen.getByText('Request was aborted')
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Fetch User successfully' })
+      )
+      await screen.findByText('Successfully fetched user Timmy')
+      expect(screen.queryByText(/An error has occurred/i)).toBeNull()
+      expect(screen.queryByText('Request was aborted')).toBeNull()
     })
   })
 
@@ -1071,7 +1090,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: {},
+        data: { name: 'Timmy' },
         endpointName: 'getUser',
         error: undefined,
         fulfilledTimeStamp: expect.any(Number),
@@ -1092,7 +1111,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: {},
+        data: { name: 'Timmy' },
         endpointName: 'getUser',
         fulfilledTimeStamp: expect.any(Number),
         isError: false,
@@ -1140,7 +1159,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: {},
+        data: { name: 'Timmy' },
         endpointName: 'getUser',
         fulfilledTimeStamp: expect.any(Number),
         isError: false,
@@ -1158,7 +1177,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: {},
+        data: { name: 'Timmy' },
         endpointName: 'getUser',
         fulfilledTimeStamp: expect.any(Number),
         isError: false,
@@ -1208,7 +1227,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: {},
+        data: { name: 'Timmy' },
         endpointName: 'getUser',
         fulfilledTimeStamp: expect.any(Number),
         isError: false,
@@ -1228,7 +1247,7 @@ describe('hooks tests', () => {
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
       ).toEqual({
-        data: {},
+        data: { name: 'Timmy' },
         endpointName: 'getUser',
         fulfilledTimeStamp: expect.any(Number),
         isError: false,
