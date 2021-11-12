@@ -232,7 +232,7 @@ export interface CreateListenerMiddlewareOptions<ExtraArgument = unknown> {
 }
 
 type ListenerEntry<
-  S = any,
+  S = unknown,
   D extends Dispatch<AnyAction> = Dispatch<AnyAction>
 > = {
   id: string
@@ -240,7 +240,7 @@ type ListenerEntry<
   listener: ActionListener<any, S, D>
   unsubscribe: () => void
   type?: string
-  predicate: ListenerPredicate<any, any>
+  predicate: ListenerPredicate<AnyAction, S>
   options?: ActionListenerOptions<S, D>
 }
 
@@ -367,8 +367,14 @@ export type TypedAddListenerAction<
 > = BaseActionCreator<Payload, T> &
   AddListenerOverloads<
     ReturnType<ActionCreatorWithPreparedPayload<[Options], Payload>>,
+    S,
     D
   >
+
+export type TypedAddListener<
+  S,
+  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>
+> = AddListenerOverloads<Unsubscribe, S, D>
 /**
  * @alpha
  */
@@ -479,10 +485,10 @@ interface AddListenerOverloads<
   // eslint-disable-next-line no-redeclare
   <
     MA extends AnyAction,
-    M extends ListenerPredicate<MA, S>,
+    LP extends ListenerPredicate<MA, S>,
     O extends ActionListenerBaseConfig
   >(
-    matcher: M,
+    predicate: LP,
     listener: ActionListener<AnyAction, S, D>,
     options?: O
   ): Return
@@ -501,7 +507,7 @@ interface RemoveListenerOverloads<
 }
 
 export type ActionListenerMiddleware<
-  S = any,
+  S = unknown,
   // TODO Carry through the thunk extra arg somehow?
   D extends ThunkDispatch<S, unknown, AnyAction> = ThunkDispatch<
     S,
@@ -524,7 +530,7 @@ export type ActionListenerMiddleware<
  * @alpha
  */
 export function createActionListenerMiddleware<
-  S = any,
+  S = unknown,
   // TODO Carry through the thunk extra arg somehow?
   D extends ThunkDispatch<S, unknown, AnyAction> = ThunkDispatch<
     S,
