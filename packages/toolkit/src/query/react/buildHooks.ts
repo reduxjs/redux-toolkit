@@ -521,8 +521,33 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
   function queryStatePreSelector(
     currentState: QueryResultSelectorResult<any>,
-    lastResult?: UseQueryStateDefaultResult<any>
+    lastResult: UseQueryStateDefaultResult<any> | undefined,
+    queryArgs: any
   ): UseQueryStateDefaultResult<any> {
+    // if we had a last result and the current result is uninitialized,
+    // we might have called `api.util.resetApiState`
+    // in this case, reset the hook
+    if (lastResult?.endpointName && currentState.isUninitialized) {
+      const { endpointName } = lastResult
+      const endpointDefinition = context.endpointDefinitions[endpointName]
+      if (
+        serializeQueryArgs({
+          queryArgs: lastResult.originalArgs,
+          endpointDefinition,
+          endpointName,
+        }) ===
+        serializeQueryArgs({
+          queryArgs,
+          endpointDefinition,
+          endpointName,
+        })
+      )
+        return {
+          isFetching: false,
+          ...currentState,
+        }
+    }
+
     // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
     let data = currentState.isSuccess ? currentState.data : lastResult?.data
     if (data === undefined) data = currentState.data
@@ -733,7 +758,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const selectDefaultResult = useMemo(
         () =>
           createSelector(
-            [select(stableArg), (_: any, lastResult: any) => lastResult],
+            [
+              select(stableArg),
+              (_: any, lastResult: any) => lastResult,
+              () => stableArg,
+            ],
             queryStatePreSelector
           ),
         [select, stableArg]
