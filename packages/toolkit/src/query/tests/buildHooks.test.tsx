@@ -805,12 +805,6 @@ describe('hooks tests', () => {
             }
           })
 
-          res.unwrap().then((result) => {
-            expectType<{
-              name: string
-            }>(result)
-          })
-
           expectType<number>(res.arg)
           expectType<string>(res.requestId)
           expectType<() => void>(res.abort)
