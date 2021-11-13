@@ -13,6 +13,7 @@ import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { Api, ApiContext } from '../apiTypes'
 import type { ApiEndpointQuery } from './module'
 import type { BaseQueryError } from '../baseQueryTypes'
+import type { QueryResultSelectorResult } from './buildSelectors'
 
 declare module './module' {
   export interface ApiEndpointQuery<
@@ -47,7 +48,7 @@ type StartQueryActionCreator<
 
 export type QueryActionCreatorResult<
   D extends QueryDefinition<any, any, any, any>
-> = Promise<QuerySubState<D> & { data: ResultTypeFrom<D> }> & {
+> = Promise<QueryResultSelectorResult<D>> & {
   arg: QueryArgFrom<D>
   requestId: string
   subscriptionOptions: SubscriptionOptions | undefined
