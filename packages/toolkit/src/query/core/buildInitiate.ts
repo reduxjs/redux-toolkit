@@ -356,7 +356,7 @@ Features like automatic cache collection, automatic refetching etc. will not be 
           arg: thunkResult.arg,
           requestId,
           abort,
-          unwrap: unwrap,
+          unwrap,
           unsubscribe: reset,
           reset,
         })

@@ -791,16 +791,24 @@ describe('hooks tests', () => {
 
           // no-op simply for clearer type assertions
           res.then((result) => {
-            expectExactType<
-              | {
-                  error: { status: number; data: unknown } | SerializedError
+            if (result.isSuccess) {
+              expectType<{
+                data: {
+                  name: string
                 }
-              | {
-                  data: {
-                    name: string
-                  }
-                }
-            >(result)
+              }>(result)
+            }
+            if (result.isError) {
+              expectType<{
+                error: { status: number; data: unknown } | SerializedError
+              }>(result)
+            }
+          })
+
+          res.unwrap().then((result) => {
+            expectType<{
+              name: string
+            }>(result)
           })
 
           expectType<number>(res.arg)
