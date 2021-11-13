@@ -8,7 +8,7 @@ import type {
 import { DefinitionType } from '../endpointDefinitions'
 import type { QueryThunk, MutationThunk } from './buildThunks'
 import type { AnyAction, ThunkAction, SerializedError } from '@reduxjs/toolkit'
-import type { QuerySubState, SubscriptionOptions, RootState } from './apiState'
+import type { SubscriptionOptions, RootState } from './apiState'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { Api, ApiContext } from '../apiTypes'
 import type { ApiEndpointQuery } from './module'

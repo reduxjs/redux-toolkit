@@ -10,6 +10,7 @@ import userEvent from '@testing-library/user-event'
 import { rest } from 'msw'
 import {
   actionsReducer,
+  ANY,
   expectExactType,
   expectType,
   setupApiStore,
@@ -938,7 +939,7 @@ describe('hooks tests', () => {
 
           // no-op simply for clearer type assertions
           res.then((result) => {
-            expectExactType<
+            expectType<
               | {
                   error: { status: number; data: unknown } | SerializedError
                 }
