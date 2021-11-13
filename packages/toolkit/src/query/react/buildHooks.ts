@@ -460,33 +460,6 @@ export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> =
 const defaultQueryStateSelector: QueryStateSelector<any, any> = (x) => x
 const defaultMutationStateSelector: MutationStateSelector<any, any> = (x) => x
 
-const queryStatePreSelector = (
-  currentState: QueryResultSelectorResult<any>,
-  lastResult: UseQueryStateDefaultResult<any>
-): UseQueryStateDefaultResult<any> => {
-  // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
-  let data = currentState.isSuccess ? currentState.data : lastResult?.data
-  if (data === undefined) data = currentState.data
-
-  const hasData = data !== undefined
-
-  // isFetching = true any time a request is in flight
-  const isFetching = currentState.isLoading
-  // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
-  const isLoading = !hasData && isFetching
-  // isSuccess = true when data is present
-  const isSuccess = currentState.isSuccess || (isFetching && hasData)
-
-  return {
-    ...currentState,
-    data,
-    currentData: currentState.data,
-    isFetching,
-    isLoading,
-    isSuccess,
-  } as UseQueryStateDefaultResult<any>
-}
-
 /**
  * Wrapper around `defaultQueryStateSelector` to be used in `useQuery`.
  * We want the initial render to already come back with
@@ -545,6 +518,33 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   ) => void = unstable__sideEffectsInRender ? (cb) => cb() : useEffect
 
   return { buildQueryHooks, buildMutationHook, usePrefetch }
+
+  function queryStatePreSelector(
+    currentState: QueryResultSelectorResult<any>,
+    lastResult?: UseQueryStateDefaultResult<any>
+  ): UseQueryStateDefaultResult<any> {
+    // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
+    let data = currentState.isSuccess ? currentState.data : lastResult?.data
+    if (data === undefined) data = currentState.data
+
+    const hasData = data !== undefined
+
+    // isFetching = true any time a request is in flight
+    const isFetching = currentState.isLoading
+    // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
+    const isLoading = !hasData && isFetching
+    // isSuccess = true when data is present
+    const isSuccess = currentState.isSuccess || (isFetching && hasData)
+
+    return {
+      ...currentState,
+      data,
+      currentData: currentState.data,
+      isFetching,
+      isLoading,
+      isSuccess,
+    } as UseQueryStateDefaultResult<any>
+  }
 
   function usePrefetch<EndpointName extends QueryKeys<Definitions>>(
     endpointName: EndpointName,
