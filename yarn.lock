@@ -3668,6 +3668,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@examples-action-listener/counter@workspace:examples/action-listener/counter":
+  version: 0.0.0-use.local
+  resolution: "@examples-action-listener/counter@workspace:examples/action-listener/counter"
+  dependencies:
+    "@reduxjs/toolkit": ^1.6.0-rc.1
+    "@rtk-incubator/action-listener-middleware": 0.3.0
+    "@types/node": ^12.0.0
+    "@types/react": ^17.0.0
+    "@types/react-dom": ^17.0.0
+    clsx: 1.1.1
+    react: ^17.0.2
+    react-dom: ^17.0.2
+    react-redux: 7.2.2
+    react-scripts: 4.0.3
+    typescript: ^4.1.2
+  languageName: unknown
+  linkType: soft
+
 "@examples-query-react/advanced@workspace:examples/query/react/advanced":
   version: 0.0.0-use.local
   resolution: "@examples-query-react/advanced@workspace:examples/query/react/advanced"
@@ -5496,6 +5514,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@rtk-incubator/action-listener-middleware@npm:0.3.0":
+  version: 0.3.0
+  resolution: "@rtk-incubator/action-listener-middleware@npm:0.3.0"
+  peerDependencies:
+    "@reduxjs/toolkit": ^1.6.0
+  checksum: c3be483c341c5c7e22a653e5d0ae7ff06d8680bae76f3ab42f9224ab8282013b6fbf65b9d06e927a4a1254cf122a8e222f133c0a1f5925d448cd8ee7d82da171
+  languageName: node
+  linkType: hard
+
 "@rtk-incubator/action-listener-middleware@workspace:packages/action-listener-middleware":
   version: 0.0.0-use.local
   resolution: "@rtk-incubator/action-listener-middleware@workspace:packages/action-listener-middleware"
@@ -6526,6 +6553,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/react-dom@npm:^17.0.0":
+  version: 17.0.11
+  resolution: "@types/react-dom@npm:17.0.11"
+  dependencies:
+    "@types/react": "*"
+  checksum: 4d5730dffbef86c887cecad7e3cecda424ce6a64d0b5441c63b5b015d48219868660a2bb1aa15e897e565ad8867fa6b885d4358b04e1c4e589ba4c07c3fda55c
+  languageName: node
+  linkType: hard
+
 "@types/react-redux@npm:7.1.9":
   version: 7.1.9
   resolution: "@types/react-redux@npm:7.1.9"
@@ -6609,6 +6645,17 @@ __metadata:
     "@types/scheduler": "*"
     csstype: ^3.0.2
   checksum: c24ddc95282358db7c26d3fba7d7e8cdfb768d6a4489386772c5fb0d30aa6bf8c22b04b55bf9ee0b9057278839dad5b22d24eaccc4ec352e77d8a05ce116623a
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:^17.0.0":
+  version: 17.0.34
+  resolution: "@types/react@npm:17.0.34"
+  dependencies:
+    "@types/prop-types": "*"
+    "@types/scheduler": "*"
+    csstype: ^3.0.2
+  checksum: 16729ad7d50922ccbf8eb93874d7781dc2f1c64edc78134b5edc7154839d41e9fe320eb1c11ad2d1c9bf28b99cb1febda344509c1fda025955a5c2b43c688c8f
   languageName: node
   linkType: hard
 
@@ -9548,7 +9595,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clsx@npm:^1.1.1":
+"clsx@npm:1.1.1, clsx@npm:^1.1.1":
   version: 1.1.1
   resolution: "clsx@npm:1.1.1"
   checksum: ff052650329773b9b245177305fc4c4dc3129f7b2be84af4f58dc5defa99538c61d4207be7419405a5f8f3d92007c954f4daba5a7b74e563d5de71c28c830063

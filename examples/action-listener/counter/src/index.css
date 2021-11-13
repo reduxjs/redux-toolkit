@@ -1,0 +1,36 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+h1 {
+  font-size: 2.5rem;
+}
+
+@media screen and (min-width: 780px) {
+  h1 {
+    font-size: 3.5rem;
+  }
+}
+
+h1,
+h2,
+h3 {
+  margin: 0.5rem 0;
+}
+
+h4,
+h5,
+h6 {
+  font-size: 1.2rem;
+  margin: 0;
+}

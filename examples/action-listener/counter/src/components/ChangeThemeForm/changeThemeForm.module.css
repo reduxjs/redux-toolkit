@@ -1,0 +1,18 @@
+.form {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  z-index: 3;
+}
+
+.colorSchemeIcon {
+  width: 1.1rem;
+  margin: 0 !important;
+  padding-top: 0.1rem;
+}
+
+.form :global(.form-group) {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
