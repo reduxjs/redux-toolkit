@@ -620,35 +620,58 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       const promiseRef = useRef<QueryActionCreatorResult<any>>()
 
+      let { queryCacheKey, requestId } = promiseRef.current || {}
+      const subscriptionRemoved = useSelector(
+        (state: RootState<Definitions, string, string>) =>
+          !!queryCacheKey &&
+          !!requestId &&
+          !state[api.reducerPath].subscriptions[queryCacheKey]?.[requestId]
+      )
+
       usePossiblyImmediateEffect((): void | undefined => {
-        const lastPromise = promiseRef.current
+        promiseRef.current = undefined
+      }, [subscriptionRemoved])
 
-        if (stableArg === skipToken) {
-          lastPromise?.unsubscribe()
-          promiseRef.current = undefined
-          return
-        }
+      usePossiblyImmediateEffect((): void | undefined => {
+        batch(() => {
+          const lastPromise = promiseRef.current
+          if (
+            typeof process !== 'undefined' &&
+            process.env.NODE_ENV === 'removeMeOnCompilation'
+          ) {
+            // this is only present to enforce the rule of hooks to keep `isSubscribed` in the dependency array
+            console.log(subscriptionRemoved)
+          }
 
-        const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions
+          if (stableArg === skipToken) {
+            lastPromise?.unsubscribe()
+            promiseRef.current = undefined
+            return
+          }
 
-        if (!lastPromise || lastPromise.arg !== stableArg) {
-          lastPromise?.unsubscribe()
-          const promise = dispatch(
-            initiate(stableArg, {
-              subscriptionOptions: stableSubscriptionOptions,
-              forceRefetch: refetchOnMountOrArgChange,
-            })
-          )
-          promiseRef.current = promise
-        } else if (stableSubscriptionOptions !== lastSubscriptionOptions) {
-          lastPromise.updateSubscriptionOptions(stableSubscriptionOptions)
-        }
+          const lastSubscriptionOptions =
+            promiseRef.current?.subscriptionOptions
+
+          if (!lastPromise || lastPromise.arg !== stableArg) {
+            lastPromise?.unsubscribe()
+            const promise = dispatch(
+              initiate(stableArg, {
+                subscriptionOptions: stableSubscriptionOptions,
+                forceRefetch: refetchOnMountOrArgChange,
+              })
+            )
+            promiseRef.current = promise
+          } else if (stableSubscriptionOptions !== lastSubscriptionOptions) {
+            lastPromise.updateSubscriptionOptions(stableSubscriptionOptions)
+          }
+        })
       }, [
         dispatch,
         initiate,
         refetchOnMountOrArgChange,
         stableArg,
         stableSubscriptionOptions,
+        subscriptionRemoved,
       ])
 
       useEffect(() => {

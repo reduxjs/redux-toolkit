@@ -558,38 +558,37 @@ describe('hooks tests', () => {
 
         act(() => void storeRef.store.dispatch(api.util.resetApiState()))
 
-        expect(result.current).toEqual({
-          isError: false,
-          isFetching: true,
-          isLoading: true,
-          isSuccess: false,
-          isUninitialized: false,
-          refetch: expect.any(Function),
-          status: 'pending',
-        })
+        expect(result.current).toEqual(
+          expect.objectContaining({
+            isError: false,
+            isFetching: true,
+            isLoading: true,
+            isSuccess: false,
+            isUninitialized: false,
+            refetch: expect.any(Function),
+            status: 'pending',
+          })
+        )
       })
       test('with `selectFromResult`', async () => {
+        const selectFromResult = jest.fn((x) => x)
         const { result } = renderHook(
-          () =>
-            api.endpoints.getUser.useQuery(5, {
-              selectFromResult: (x) => x,
-            }),
+          () => api.endpoints.getUser.useQuery(5, { selectFromResult }),
           {
             wrapper: storeRef.wrapper,
           }
         )
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true))
-
+        selectFromResult.mockClear()
         act(() => void storeRef.store.dispatch(api.util.resetApiState()))
 
-        expect(result.current).toEqual({
+        expect(selectFromResult).toHaveBeenNthCalledWith(1, {
           isError: false,
           isFetching: false,
           isLoading: false,
           isSuccess: false,
           isUninitialized: true,
-          refetch: expect.any(Function),
           status: 'uninitialized',
         })
       })
