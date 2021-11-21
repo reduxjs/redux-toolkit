@@ -4116,16 +4116,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dsherret/to-absolute-glob@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "@dsherret/to-absolute-glob@npm:2.0.2"
-  dependencies:
-    is-absolute: ^1.0.0
-    is-negated-glob: ^1.0.0
-  checksum: 2d91148261bcbbdf0dd8176c74348546660607750000c49bb99315777b2dd6d8f0223f1a93ec02486e8e6319ecc0a8342e32efb57b8013f6acb21b8592a3e180
-  languageName: node
-  linkType: hard
-
 "@emotion/babel-plugin@npm:^11.3.0":
   version: 11.3.0
   resolution: "@emotion/babel-plugin@npm:11.3.0"
@@ -6171,25 +6161,25 @@ __metadata:
     "@types/lodash": ^4.14.165
     "@types/node": ^14.14.12
     "@types/prettier": ^2.1.6
+    "@types/semver": ^7.3.9
     babel-jest: ^26.6.3
     chalk: ^4.1.0
     commander: ^6.2.0
     del: ^6.0.0
     esbuild: ^0.13.10
     esbuild-runner: ^2.2.1
-    glob-to-regexp: ^0.4.1
     husky: ^4.3.6
     jest: ^26.6.3
     msw: ^0.25.0
-    oazapfts: 3.4.0
+    oazapfts: ^3.5.0
     openapi-types: ^9.1.0
     prettier: ^2.2.1
     pretty-quick: ^3.1.0
+    semver: ^7.3.5
     swagger2openapi: ^7.0.4
     ts-jest: ^26.4.4
-    ts-morph: ^9.1.0
     ts-node: ^10.4.0
-    typescript: ^4.1.2
+    typescript: ">=4.1 <=4.5"
     yalc: ^1.0.0-pre.47
   bin:
     rtk-query-codegen-openapi: lib/bin/cli.js
@@ -6631,20 +6621,6 @@ __metadata:
   version: 0.1.1
   resolution: "@trysound/sax@npm:0.1.1"
   checksum: 6fe9a87f2a6808c468789b5f2d3677a8ea8d342facce2d9ca3198efa920a169bd6f546805ebad6dc0a851c6468cf1569f63a3b97a4e9380a2c17711636d77eed
-  languageName: node
-  linkType: hard
-
-"@ts-morph/common@npm:~0.7.0":
-  version: 0.7.5
-  resolution: "@ts-morph/common@npm:0.7.5"
-  dependencies:
-    "@dsherret/to-absolute-glob": ^2.0.2
-    fast-glob: ^3.2.5
-    is-negated-glob: ^1.0.0
-    mkdirp: ^1.0.4
-    multimatch: ^5.0.0
-    typescript: ~4.1.3
-  checksum: 2734e7779377b0956e70377114c599a9cc656c85c4b53e16fb55c561f3c548493f8c8dbc3c27faab3f1acf953c7e9a08b1bea368ae4cc5a22e8d0f30768eec7d
   languageName: node
   linkType: hard
 
@@ -7323,6 +7299,13 @@ __metadata:
   version: 0.16.1
   resolution: "@types/scheduler@npm:0.16.1"
   checksum: 2ff8034df029a6cbb3623b05fa895cac4fc504806a8e948ebe29675a1edfa5ac04faac7611016076b3ffefc2037bbe344ad1978304059b2d4c78e513ec43c7bf
+  languageName: node
+  linkType: hard
+
+"@types/semver@npm:^7.3.9":
+  version: 7.3.9
+  resolution: "@types/semver@npm:7.3.9"
+  checksum: 60bfcfdfa7f937be2c6f4b37ddb6714fb0f27b05fe4cbdfdd596a97d35ed95d13ee410efdd88e72a66449d0384220bf20055ab7d6b5df10de4990fbd20e5cbe0
   languageName: node
   linkType: hard
 
@@ -10355,13 +10338,6 @@ __metadata:
     chalk: ^2.4.1
     q: ^1.1.2
   checksum: 44736914aac2160d3d840ed64432a90a3bb72285a0cd6a688eb5cabdf15d15a85eee0915b3f6f2a4659d5075817b1cb577340d3c9cbb47d636d59ab69f819552
-  languageName: node
-  linkType: hard
-
-"code-block-writer@npm:^10.1.1":
-  version: 10.1.1
-  resolution: "code-block-writer@npm:10.1.1"
-  checksum: e048037acbcbda19fca62a3a63e4a64226ea6b5dc0fad7632d34a88c1165b29a357e5e19f0497811e9911472e824ab85f68176f40e439da87e051908956eb47c
   languageName: node
   linkType: hard
 
@@ -16140,13 +16116,6 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"is-negated-glob@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "is-negated-glob@npm:1.0.0"
-  checksum: 2a767da06435b492daa98d3049480f0b7032abd5bfd3930ac01dbe9d6fcae04f2b3d883c6dca6b9c0c3f8a703952643c78540151c3eb1a2fe90fec543d61d241
-  languageName: node
-  linkType: hard
-
 "is-negative-zero@npm:^2.0.1":
   version: 2.0.1
   resolution: "is-negative-zero@npm:2.0.1"
@@ -18965,19 +18934,6 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"multimatch@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "multimatch@npm:5.0.0"
-  dependencies:
-    "@types/minimatch": ^3.0.3
-    array-differ: ^3.0.0
-    array-union: ^2.1.0
-    arrify: ^2.0.1
-    minimatch: ^3.0.4
-  checksum: 82c8030a53af965cab48da22f1b0f894ef99e16ee680dabdfbd38d2dfacc3c8208c475203d747afd9e26db44118ed0221d5a0d65268c864f06d6efc7ac6df812
-  languageName: node
-  linkType: hard
-
 "mute-stream@npm:0.0.8":
   version: 0.0.8
   resolution: "mute-stream@npm:0.0.8"
@@ -19495,9 +19451,9 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"oazapfts@npm:3.4.0":
-  version: 3.4.0
-  resolution: "oazapfts@npm:3.4.0"
+"oazapfts@npm:^3.5.0":
+  version: 3.5.0
+  resolution: "oazapfts@npm:3.5.0"
   dependencies:
     "@apidevtools/swagger-parser": ^10.0.1
     lodash: ^4.17.20
@@ -19506,7 +19462,7 @@ fsevents@^1.2.7:
     typescript: ^4.1.2
   bin:
     oazapfts: lib/codegen/cli.js
-  checksum: 4d1f101d6e39bd93b3c435fa525a121edaa171efaf50e641f3c65c2e548921fe1e0234fbcf3ec77742b5f386e46341cc8e7785c02c401563821f0b223797e64f
+  checksum: 5ffc99c88afc300313c77c683953c8da56a5d190fe01c3d5128c6c1df4dd14eb27852344b880a4d91de811911826a31c58f9ac8dc060bef8fe05277a066035b5
   languageName: node
   linkType: hard
 
@@ -26062,17 +26018,6 @@ resolve@~1.19.0:
   languageName: node
   linkType: hard
 
-"ts-morph@npm:^9.1.0":
-  version: 9.1.0
-  resolution: "ts-morph@npm:9.1.0"
-  dependencies:
-    "@dsherret/to-absolute-glob": ^2.0.2
-    "@ts-morph/common": ~0.7.0
-    code-block-writer: ^10.1.1
-  checksum: e1376f32e96bd8110707818a38374bfdb9f89c78ebbcd7b028bb73c6b052ec59fd209faf1abbfa5b1b2c7685a35bb58925812eaa10173e62eea69fe2151b6e5f
-  languageName: node
-  linkType: hard
-
 "ts-node@npm:^10.0.0":
   version: 10.0.0
   resolution: "ts-node@npm:10.0.0"
@@ -26370,33 +26315,13 @@ resolve@~1.19.0:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.1.2":
-  version: 4.4.4
-  resolution: "typescript@npm:4.4.4"
+"typescript@npm:>=4.1 <=4.5, typescript@npm:^4.1.2, typescript@npm:^4.1.3, typescript@npm:^4.3.4":
+  version: 4.5.2
+  resolution: "typescript@npm:4.5.2"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 89ecb8436bb48ef5594d49289f5f89103071716b6e4844278f4fb3362856e31203e187a9c76d205c3f0b674d221a058fd28310dbcbcf5d95e9a57229bb5203f1
-  languageName: node
-  linkType: hard
-
-"typescript@npm:^4.1.3, typescript@npm:^4.3.4, typescript@npm:~4.3.2":
-  version: 4.3.4
-  resolution: "typescript@npm:4.3.4"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 75e1f2769c7ff38c718523d05eaf1c2611dbf92c0ab0f85f603ead9bb23416af2009a5dac46e76ef6a207a8508fa53f51b43a41f2a91b1241b53cd744c16128c
-  languageName: node
-  linkType: hard
-
-"typescript@npm:~4.1.3":
-  version: 4.1.6
-  resolution: "typescript@npm:4.1.6"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 54aed909f94b16178c8a8d8911871b4e1c04454a3e6c82166715e28083e7ce6271e4d1df6f82c89544a4759b07aec780785032534e9c93b254e2107a18712c05
+  checksum: 74f9ce65d532bdf5d0214b3f60cf37992180023388c87a11ee6f838a803067ef0b63c600fa501b0deb07f989257dce1e244c9635ed79feca40bbccf6e0aa1ebc
   languageName: node
   linkType: hard
 
@@ -26410,6 +26335,16 @@ resolve@~1.19.0:
   languageName: node
   linkType: hard
 
+"typescript@npm:~4.3.2":
+  version: 4.3.4
+  resolution: "typescript@npm:4.3.4"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 75e1f2769c7ff38c718523d05eaf1c2611dbf92c0ab0f85f603ead9bb23416af2009a5dac46e76ef6a207a8508fa53f51b43a41f2a91b1241b53cd744c16128c
+  languageName: node
+  linkType: hard
+
 "typescript@patch:typescript@4.1.3#~builtin<compat/typescript>":
   version: 4.1.3
   resolution: "typescript@patch:typescript@npm%3A4.1.3#~builtin<compat/typescript>::version=4.1.3&hash=ddd1e8"
@@ -26420,33 +26355,13 @@ resolve@~1.19.0:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.1.2#~builtin<compat/typescript>":
-  version: 4.4.4
-  resolution: "typescript@patch:typescript@npm%3A4.4.4#~builtin<compat/typescript>::version=4.4.4&hash=ddd1e8"
+"typescript@patch:typescript@>=4.1 <=4.5#~builtin<compat/typescript>, typescript@patch:typescript@^4.1.2#~builtin<compat/typescript>, typescript@patch:typescript@^4.1.3#~builtin<compat/typescript>, typescript@patch:typescript@^4.3.4#~builtin<compat/typescript>":
+  version: 4.5.2
+  resolution: "typescript@patch:typescript@npm%3A4.5.2#~builtin<compat/typescript>::version=4.5.2&hash=ddd1e8"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: bd629ad0da4a15d79aaad56baf3ee7d96f6a181760d430ae77f8c5325df7bffd9edee57544a3970e3651e8b796fe03a5838a7eb39c6d46cc3866c0b23d36a0dd
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@^4.1.3#~builtin<compat/typescript>, typescript@patch:typescript@^4.3.4#~builtin<compat/typescript>, typescript@patch:typescript@~4.3.2#~builtin<compat/typescript>":
-  version: 4.3.4
-  resolution: "typescript@patch:typescript@npm%3A4.3.4#~builtin<compat/typescript>::version=4.3.4&hash=ddd1e8"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 49f3e6734d6f27c1931d3a665439350d9015b28eee87ba26ebcae0ba35fc609962ad8eb0b09f0324366497d65260c4222b8735098325bba46d508b5cab7b4640
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@~4.1.3#~builtin<compat/typescript>":
-  version: 4.1.6
-  resolution: "typescript@patch:typescript@npm%3A4.1.6#~builtin<compat/typescript>::version=4.1.6&hash=ddd1e8"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 3bd9915f236817e4e2d32dd0d90e8902875929f014bb87a478000e32adda91d12f0425931ee6f9d6a2bc7d0c9242588fcee1050ac294497dfabf27d3d73b335c
+  checksum: 24a439e062a05e3285a4f0e8a40644116ecdca89f3e908bed01e5a01b9aee747e3bcf0e85fe9e017e5ebf0c0863437c39479f2616f55a244c2d82d37022cdc4f
   languageName: node
   linkType: hard
 
@@ -26457,6 +26372,16 @@ resolve@~1.19.0:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: bafcad6990f5d8ea9ccff09e440ce42630b2e42a5752dde5455b55c806ae43f8726a03770577d4fc6c2aa624597f796725cc6fe2c173f558a753a2f23a5198a4
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@~4.3.2#~builtin<compat/typescript>":
+  version: 4.3.4
+  resolution: "typescript@patch:typescript@npm%3A4.3.4#~builtin<compat/typescript>::version=4.3.4&hash=ddd1e8"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 49f3e6734d6f27c1931d3a665439350d9015b28eee87ba26ebcae0ba35fc609962ad8eb0b09f0324366497d65260c4222b8735098325bba46d508b5cab7b4640
   languageName: node
   linkType: hard
 
