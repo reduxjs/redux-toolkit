@@ -14,70 +14,139 @@ RTK Query's API and architecture is oriented around declaring API endpoints up f
 
 We have early previews of code generation capabilities available as separate tools.
 
-## OpenAPI
-
-We have a first version of a code generator from OpenAPI schemas over at [`rtk-incubator/rtk-query-codegen`](https://github.com/rtk-incubator/rtk-query-codegen).
-
-You can create an api by running:
-
-```bash
-curl -o petstore.json https://petstore3.swagger.io/api/v3/openapi.json
-npx @rtk-incubator/rtk-query-codegen-openapi --hooks petstore.json > petstore-api.generated.ts
-```
-
-We recommend placing these generated types in one file that you do not modify (so you can constantly re-generate it when your API definition changes) and creating a second file to enhance it with additional info:
-
-```ts title="petstore-api.ts"
-// file: petstore-api.generated.ts noEmit
-export * from 'petstore-api.generated'
-
-// file: petstoreApi.ts
-import { api as generatedApi } from './petstore-api.generated'
-
-export const api = generatedApi.enhanceEndpoints({
-  addTagTypes: ['Pet'],
-  endpoints: {
-    // basic notation: just specify properties to be overridden
-    getPetById: {
-      providesTags: (result, error, arg) => [{ type: 'Pet', id: arg.petId }],
-    },
-    findPetsByStatus: {
-      providesTags: (result) =>
-        // is result available?
-        result
-          ? // successful query
-            [
-              { type: 'Pet', id: 'LIST' },
-              ...result.map((pet) => ({ type: 'Pet' as const, id: pet.id })),
-            ]
-          : // an error occurred, but we still want to refetch this query when `{ type: 'Pet', id: 'LIST' }` is invalidated
-            [{ type: 'Pet', id: 'LIST' }],
-    },
-    // alternate notation: callback that gets passed in `endpoint` - you can freely modify the object here
-    addPet: (endpoint) => {
-      endpoint.invalidatesTags = (result) =>
-        result ? [{ type: 'Pet', id: result.id }] : []
-    },
-    updatePet: {
-      invalidatesTags: (result, error, arg) => [
-        { type: 'Pet', id: arg.pet.id },
-      ],
-    },
-    deletePet: {
-      invalidatesTags: (result, error, arg) => [{ type: 'Pet', id: arg.petId }],
-    },
-  },
-})
-
-export const {
-  useGetPetByIdQuery,
-  useFindPetsByStatusQuery,
-  useAddPetMutation,
-  useUpdatePetMutation,
-  useDeletePetMutation,
-} = api
-```
-
 ## GraphQL
 
-There is a _very_ early WIP PR that [implements code generation based on a GraphQL spec](https://github.com/phryneas/graphql-code-generator/pull/1), and an open issue on the GraphQL Generator repo asking [if an RTK Query generator would be potentially useful](https://github.com/dotansimha/graphql-code-generator/issues/6085).
+We provide a [Plugin for GraphQL Codegen](https://www.graphql-code-generator.com/docs/plugins/typescript-rtk-query). You can find the documentation to that on the graphql-codegen homepage.
+
+For a full example on how to use it, you can see [this example project](https://github.com/reduxjs/redux-toolkit/tree/master/examples/query/react/graphql-codegen).
+
+## OpenAPI
+
+We provide a package for RTK Query code generation from OpenAPI schemas. It is published as `@rtk-query/codegen-openapi` and you can find the source code at [`packages/rtk-query-codegen-openapi`](https://github.com/reduxjs/redux-toolkit/tree/master/packages/rtk-query-codegen-openapi).
+
+### Usage
+
+Create an empty api using `createApi` like
+
+```ts
+// Or from '@reduxjs/toolkit/query' if not using the auto-generated hooks
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+// initialize an empty api service that we'll inject endpoints into later as needed
+export const emptySplitApi = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: () => ({}),
+})
+```
+
+Generate a config file (json, js or ts) with contents like
+
+```ts
+import { ConfigFile } from '@rtk-incubator/rtk-query-codegen-openapi'
+
+const config: ConfigFile = {
+  schemaFile: 'https://petstore3.swagger.io/api/v3/openapi.json',
+  apiFile: './src/store/emptyApi.ts',
+  apiImport: 'emptyApi',
+  outputFile: './src/store/petApi.ts',
+  exportName: 'petApi',
+  hooks: true,
+}
+
+export default config
+```
+
+and then call the code generator:
+
+```bash
+npx @rtk-query/codegen-openapi openapi-config.ts
+```
+
+### Programmatic usage
+
+```ts
+import { generateEndpoints } from '@rtk-query/codegen-openapi'
+
+const api = await generateEndpoints({
+  apiFile: './fixtures/emptyApi.ts',
+  schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+  filterEndpoints: ['getPetById', 'addPet'],
+  hooks: true,
+})
+```
+
+### Config file options
+
+#### Simple usage
+
+```ts
+interface SimpleUsage {
+  apiFile: string
+  schemaFile: string
+  apiImport?: string
+  exportName?: string
+  argSuffix?: string
+  responseSuffix?: string
+  hooks?: boolean
+  outputFile: string
+  filterEndpoints?:
+    | string
+    | RegExp
+    | EndpointMatcherFunction
+    | Array<string | RegExp | EndpointMatcherFunction>
+  endpointOverrides?: EndpointOverrides[]
+}
+
+export type EndpointMatcherFunction = (
+  operationName: string,
+  operationDefinition: OperationDefinition
+) => boolean
+```
+
+#### Filtering endpoints
+
+If you only want to include a few endpoints, you can use the `filterEndpoints` config option to filter your endpoints.
+
+```ts
+const filteredConfig: ConfigFile = {
+  // ...
+  // should only have endpoints loginUser, placeOrder, getOrderById, deleteOrder
+  filterEndpoints: ['loginUser', /Order/],
+}
+```
+
+#### Endpoint overrides
+
+If an endpoint is generated as a mutation instead of a query or the other way round, you can override that:
+
+```ts
+const withOverride: ConfigFile = {
+  // ...
+  endpointOverrides: [
+    {
+      pattern: 'loginUser',
+      type: 'mutation',
+    },
+  ],
+}
+```
+
+#### Multiple output files
+
+```ts
+const config: ConfigFile = {
+  schemaFile: 'https://petstore3.swagger.io/api/v3/openapi.json',
+  apiFile: './src/store/emptyApi.ts',
+  outputFiles: {
+    './src/store/user.js': {
+      filterEndpoints: [/user/i],
+    },
+    './src/store/order.js': {
+      filterEndpoints: [/order/i],
+    },
+    './src/store/pet.js': {
+      filterEndpoints: [/pet/i],
+    },
+  },
+}
+```

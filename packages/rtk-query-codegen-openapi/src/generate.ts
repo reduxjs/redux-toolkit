@@ -1,6 +1,6 @@
-import * as ts from 'typescript';
+import ts from 'typescript';
 import * as path from 'path';
-import { camelCase, filter } from 'lodash';
+import { camelCase } from 'lodash';
 import ApiGenerator, {
   getOperationName as _getOperationName,
   getReferenceName,
@@ -15,12 +15,11 @@ import {
 } from 'oazapfts/lib/codegen/tscodegen';
 import type { OpenAPIV3 } from 'openapi-types';
 import { generateReactHooks } from './generators/react-hooks';
-import type { EndpointOverrides, GenerationOptions, OperationDefinition } from './types';
+import type { EndpointMatcher, EndpointOverrides, GenerationOptions, OperationDefinition, TextMatcher } from './types';
 import { capitalize, getOperationDefinitions, getV3Doc, isQuery as testIsQuery, removeUndefined } from './utils';
 import type { ObjectPropertyDefinitions } from './codegen';
 import { generateCreateApiCall, generateEndpointDefinition, generateImportNode } from './codegen';
-
-const { factory } = ts;
+import { factory } from './utils/factory';
 
 const generatedApiName = 'injectedRtkApi';
 
@@ -33,14 +32,22 @@ function getOperationName({ verb, path, operation }: Pick<OperationDefinition, '
   return _getOperationName(verb, path, operation.operationId);
 }
 
-function patternMatches(pattern?: string | RegExp | (string | RegExp)[]) {
+function patternMatches(pattern?: TextMatcher) {
   const filters = Array.isArray(pattern) ? pattern : [pattern];
-  return function matcher(operationDefinition: OperationDefinition) {
+  return function matcher(operationName: string) {
     if (!pattern) return true;
-    const operationName = getOperationName(operationDefinition);
     return filters.some((filter) =>
       typeof filter === 'string' ? filter === operationName : filter?.test(operationName)
     );
+  };
+}
+
+function operationMatches(pattern?: EndpointMatcher) {
+  const checkMatch = typeof pattern === 'function' ? pattern : patternMatches(pattern);
+  return function matcher(operationDefinition: OperationDefinition) {
+    if (!pattern) return true;
+    const operationName = getOperationName(operationDefinition);
+    return checkMatch(operationName, operationDefinition);
   };
 }
 
@@ -48,7 +55,7 @@ export function getOverrides(
   operation: OperationDefinition,
   endpointOverrides?: EndpointOverrides[]
 ): EndpointOverrides | undefined {
-  return endpointOverrides?.find((override) => patternMatches(override.pattern)(operation));
+  return endpointOverrides?.find((override) => operationMatches(override.pattern)(operation));
 }
 
 export async function generateApi(
@@ -70,7 +77,7 @@ export async function generateApi(
 
   const apiGen = new ApiGenerator(v3Doc, {});
 
-  const operationDefinitions = getOperationDefinitions(v3Doc).filter(patternMatches(filterEndpoints));
+  const operationDefinitions = getOperationDefinitions(v3Doc).filter(operationMatches(filterEndpoints));
 
   const resultFile = ts.createSourceFile(
     'someFileName.ts',
