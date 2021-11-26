@@ -65,7 +65,7 @@ Done
   });
 
   test('ts, js and json all work the same', async () => {
-    jest.setTimeout(15000);
+    jest.setTimeout(25000);
 
     await cli([`./config.example.js`], __dirname);
     const fromJs = fs.readFileSync(path.resolve(tmpDir, 'example.ts'), 'utf-8');
