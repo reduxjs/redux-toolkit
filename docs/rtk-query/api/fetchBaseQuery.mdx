@@ -57,7 +57,7 @@ export const pokemonApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }), // Set the baseUrl for every endpoint below
   endpoints: (builder) => ({
     getPokemonByName: builder.query({
-      query: (name: string) => `pokemon/${name}`, // Will make a request like https://pokeapi.co/api/v2/bulbasaur
+      query: (name: string) => `pokemon/${name}`, // Will make a request like https://pokeapi.co/api/v2/pokemon/bulbasaur
     }),
     updatePokemon: builder.mutation({
       query: ({ name, patch }) => ({
