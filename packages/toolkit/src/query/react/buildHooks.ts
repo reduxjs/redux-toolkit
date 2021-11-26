@@ -542,10 +542,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           endpointName,
         })
       )
-        return {
-          isFetching: false,
-          ...currentState,
-        }
+      lastResult = undefined
     }
 
     // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
