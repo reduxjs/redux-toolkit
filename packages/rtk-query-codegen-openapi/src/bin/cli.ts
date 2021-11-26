@@ -2,26 +2,26 @@
 
 import program from 'commander';
 import { dirname, resolve } from 'path';
+import { generateEndpoints, parseConfig } from '../';
 import semver from 'semver';
-import ts from 'typescript';
-import mock from 'mock-require';
+import { version as tsVersion } from 'typescript';
 
-if (!semver.satisfies(ts.version, '>=4.1 <=4.5')) {
+if (!semver.satisfies(tsVersion, '>=4.1 <=4.5')) {
   console.warn(
     'Please note that `@rtk-query/codegen-openapi` only has been tested with TS versions 4.1 to 4.5 - other versions might cause problems.'
   );
 }
 
-let canHandleTs = false;
+let ts = false;
 try {
   if (require.resolve('esbuild') && require.resolve('esbuild-runner')) {
     require('esbuild-runner/register');
   }
-  canHandleTs = true;
+  ts = true;
 } catch {}
 
 try {
-  if (!canHandleTs) {
+  if (!ts) {
     if (require.resolve('typescript') && require.resolve('ts-node')) {
       (require('ts-node') as typeof import('ts-node')).register({
         transpileOnly: true,
@@ -32,7 +32,7 @@ try {
       });
     }
 
-    canHandleTs = true;
+    ts = true;
   }
 } catch {}
 
@@ -46,18 +46,14 @@ const configFile = program.args[0];
 if (program.args.length === 0 || !/\.(jsx?|tsx?|jsonc?)?$/.test(configFile)) {
   program.help();
 } else {
-  if (/\.tsx?$/.test(configFile) && !canHandleTs) {
+  if (/\.tsx?$/.test(configFile) && !ts) {
     console.error('Encountered a TypeScript configfile, but neither esbuild-runner nor ts-node are installed.');
     process.exit(1);
   }
-  mock('typescript', ts);
   run(resolve(process.cwd(), configFile));
-  mock.stop('typescript');
 }
 
 async function run(configFile: string) {
-  const { generateEndpoints, parseConfig } = require('../');
-
   process.chdir(dirname(configFile));
 
   const unparsedConfig = require(configFile);

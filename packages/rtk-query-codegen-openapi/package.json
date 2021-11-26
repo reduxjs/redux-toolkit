@@ -37,7 +37,6 @@
     "@types/glob-to-regexp": "^0.4.0",
     "@types/jest": "^26.0.20",
     "@types/lodash": "^4.14.165",
-    "@types/mock-require": "^2.0.0",
     "@types/node": "^14.14.12",
     "@types/prettier": "^2.1.6",
     "@types/semver": "^7.3.9",
@@ -58,7 +57,6 @@
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.0.2",
     "commander": "^6.2.0",
-    "mock-require": "^3.0.3",
     "oazapfts": "^3.5.0",
     "prettier": "^2.2.1",
     "semver": "^7.3.5",
