@@ -5524,6 +5524,7 @@ __metadata:
     "@types/glob-to-regexp": ^0.4.0
     "@types/jest": ^26.0.20
     "@types/lodash": ^4.14.165
+    "@types/mock-require": ^2.0.0
     "@types/node": ^14.14.12
     "@types/prettier": ^2.1.6
     "@types/semver": ^7.3.9
@@ -5535,6 +5536,7 @@ __metadata:
     esbuild-runner: ^2.2.1
     husky: ^4.3.6
     jest: ^26.6.3
+    mock-require: ^3.0.3
     msw: ^0.25.0
     oazapfts: ^3.5.0
     openapi-types: ^9.1.0
@@ -6394,6 +6396,15 @@ __metadata:
   version: 3.0.5
   resolution: "@types/minimatch@npm:3.0.5"
   checksum: c41d136f67231c3131cf1d4ca0b06687f4a322918a3a5adddc87ce90ed9dbd175a3610adee36b106ae68c0b92c637c35e02b58c8a56c424f71d30993ea220b92
+  languageName: node
+  linkType: hard
+
+"@types/mock-require@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@types/mock-require@npm:2.0.0"
+  dependencies:
+    "@types/node": "*"
+  checksum: 55ad7adb34053dbf9b82bd99d6b07c6f79cbeedd8f43cc09b21f35f6da3c0a859be5bc5982300195b6bbe6541d18873e47f771750b8726314d52022296110f87
   languageName: node
   linkType: hard
 
@@ -13439,6 +13450,13 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"get-caller-file@npm:^1.0.2":
+  version: 1.0.3
+  resolution: "get-caller-file@npm:1.0.3"
+  checksum: 2b90a7f848896abcebcdc0acc627a435bcf05b9cd280599bc980ebfcdc222416c3df12c24c4845f69adc4346728e8966f70b758f9369f3534182791dfbc25c05
+  languageName: node
+  linkType: hard
+
 "get-caller-file@npm:^2.0.1, get-caller-file@npm:^2.0.5":
   version: 2.0.5
   resolution: "get-caller-file@npm:2.0.5"
@@ -17863,6 +17881,16 @@ fsevents@^1.2.7:
   bin:
     mkdirp: bin/cmd.js
   checksum: 3bce20ea525f9477befe458ab85284b0b66c8dc3812f94155af07c827175948cdd8114852ac6c6d82009b13c1048c37f6d98743eb019651ee25c39acc8aabe7d
+  languageName: node
+  linkType: hard
+
+"mock-require@npm:^3.0.3":
+  version: 3.0.3
+  resolution: "mock-require@npm:3.0.3"
+  dependencies:
+    get-caller-file: ^1.0.2
+    normalize-path: ^2.1.1
+  checksum: 6355c0bd9d7acb5247155142928b0154ace2913264b42d9a611a85d469ed11048f405efe432ffc627a57efb87ec359589a7419bf680b4fd248612311deb031bd
   languageName: node
   linkType: hard
 

@@ -49,7 +49,7 @@ function assertCompatibleTsVersions() {
       `TypeScript versions available to the \`@rtk-query/codegen-openapi\` package (${ts.version}) and the \`oazapfts\` package (${oazapftsTsVersion}) differ.
       This makes code generation impossible.
       This is a problem with your local node_modules installation and can be resolved with a "resolutions" field in your package.json if you are using  \`yarn\`.
-      Otherwise, use a tool like \`override-require\` to ensure all imports of TypeScript will result in the same package version.`
+      Otherwise, use a tool like \`mock-require\` to ensure all imports of TypeScript will result in the same package version.`
     );
   }
 }
