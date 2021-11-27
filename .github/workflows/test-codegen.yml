@@ -1,0 +1,45 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: RTK-Query OpenAPI Codegen Tests
+defaults:
+  run:
+    working-directory: ./packages/rtk-query-codegen-openapi
+
+on: [push, pull_request]
+
+jobs:
+  changes:
+    name: Check for changes
+    runs-on: ubuntu-latest
+    outputs:
+      codegen: ${{ steps.filter.outputs.codegen }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            codegen:
+              - 'packages/rtk-query-codegen-openapi/**'
+
+  build:
+    needs: changes
+    if: ${{ needs.changes.outputs.codegen == 'true' }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'yarn'
+
+      - run: yarn install
+      - run: yarn test
