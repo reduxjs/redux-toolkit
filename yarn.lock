@@ -5546,6 +5546,14 @@ __metadata:
     ts-node: ^10.4.0
     typescript: ">=4.1 <=4.5"
     yalc: ^1.0.0-pre.47
+  peerDependencies:
+    esbuild-runner: ^2.2.1
+    ts-node: ^10.4.0
+  peerDependenciesMeta:
+    esbuild-runner:
+      optional: true
+    ts-node:
+      optional: true
   bin:
     rtk-query-codegen-openapi: lib/bin/cli.js
   languageName: unknown
