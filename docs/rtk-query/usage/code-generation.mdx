@@ -28,8 +28,7 @@ We provide a package for RTK Query code generation from OpenAPI schemas. It is p
 
 Create an empty api using `createApi` like
 
-```ts no-transpile
-// src/store/emptyApi.ts
+```ts no-transpile title="src/store/emptyApi.ts"
 
 // Or from '@reduxjs/toolkit/query' if not using the auto-generated hooks
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
@@ -43,8 +42,7 @@ export const emptySplitApi = createApi({
 
 Generate a config file (json, js or ts) with contents like
 
-```ts no-transpile
-// openapi-config.ts
+```ts no-transpile title="openapi-config.ts"
 
 import { ConfigFile } from '@rtk-query/codegen-openapi'
 
@@ -68,8 +66,7 @@ npx @rtk-query/codegen-openapi openapi-config.ts
 
 ### Programmatic usage
 
-```ts no-transpile
-// src/store/petApi.ts
+```ts no-transpile title="src/store/petApi.ts"
 
 import { generateEndpoints } from '@rtk-query/codegen-openapi'
 
@@ -113,7 +110,7 @@ export type EndpointMatcherFunction = (
 
 If you only want to include a few endpoints, you can use the `filterEndpoints` config option to filter your endpoints.
 
-```ts no-transpile
+```ts no-transpile title="openapi-config.ts"
 const filteredConfig: ConfigFile = {
   // ...
   // should only have endpoints loginUser, placeOrder, getOrderById, deleteOrder
@@ -125,7 +122,7 @@ const filteredConfig: ConfigFile = {
 
 If an endpoint is generated as a mutation instead of a query or the other way round, you can override that:
 
-```ts no-transpile
+```ts no-transpile title="openapi-config.ts"
 const withOverride: ConfigFile = {
   // ...
   endpointOverrides: [
@@ -139,7 +136,7 @@ const withOverride: ConfigFile = {
 
 #### Multiple output files
 
-```ts no-transpile
+```ts no-transpile title="openapi-config.ts"
 const config: ConfigFile = {
   schemaFile: 'https://petstore3.swagger.io/api/v3/openapi.json',
   apiFile: './src/store/emptyApi.ts',
