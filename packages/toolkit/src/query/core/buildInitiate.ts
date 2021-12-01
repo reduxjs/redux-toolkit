@@ -276,20 +276,35 @@ Features like automatic cache collection, automatic refetching etc. will not be 
         })
         const thunkResult = dispatch(thunk)
         middlewareWarning(getState)
-        const { requestId, abort, unwrap } = thunkResult
+
+        const { requestId, abort } = thunkResult
+
+        const aggregatePromise = Promise.all([
+          runningQueries[queryCacheKey],
+          thunkResult,
+        ]).then(() =>
+          (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).select(
+            arg
+          )(getState())
+        )
+
         const statePromise: QueryActionCreatorResult<any> = Object.assign(
-          Promise.all([runningQueries[queryCacheKey], thunkResult]).then(() =>
-            (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).select(
-              arg
-            )(getState())
-          ),
+          aggregatePromise,
           {
             arg,
             requestId,
             subscriptionOptions,
             queryCacheKey,
             abort,
-            unwrap,
+            unwrap() {
+              return aggregatePromise.then<any>((result) => {
+                if (result.isError) {
+                  throw result.error
+                }
+
+                return result.data
+              })
+            },
             refetch() {
               dispatch(
                 queryAction(arg, { subscribe: false, forceRefetch: true })
