@@ -928,7 +928,7 @@ describe('hooks tests', () => {
         const [getUser, { data, error }] =
           api.endpoints.getUserAndForceError.useLazyQuery()
 
-        const [unwrappedError, setUnwrappedError] = React.useState()
+        const [unwrappedError, setUnwrappedError] = React.useState<any>()
 
         const handleClick = async () => {
           const res = getUser(1)
