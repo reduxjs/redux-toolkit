@@ -46,6 +46,34 @@ interface ConditionFunction<State> {
 
 type MatchFunction<T> = (v: any) => v is T
 
+type TakePatternOutputWithoutTimeout<
+  State,
+  Predicate extends AnyActionListenerPredicate<State>
+> = Predicate extends MatchFunction<infer Action>
+  ? Promise<[Action, State, State]>
+  : Promise<[AnyAction, State, State]>
+
+type TakePatternOutputWithTimeout<
+  State,
+  Predicate extends AnyActionListenerPredicate<State>
+> = Predicate extends MatchFunction<infer Action>
+  ? Promise<[Action, State, State] | null>
+  : Promise<[AnyAction, State, State] | null>
+
+interface TakePattern<State> {
+  <Predicate extends AnyActionListenerPredicate<State>>(
+    predicate: Predicate
+  ): TakePatternOutputWithoutTimeout<State, Predicate>
+  <Predicate extends AnyActionListenerPredicate<State>>(
+    predicate: Predicate,
+    timeout: number
+  ): TakePatternOutputWithTimeout<State, Predicate>;
+  <Predicate extends AnyActionListenerPredicate<State>>(
+    predicate: Predicate,
+    timeout?: number | undefined
+  ): Promise<[AnyAction, State, State] | null>;
+}
+
 export interface HasMatchFunction<T> {
   match: MatchFunction<T>
 }
@@ -93,6 +121,7 @@ export interface ActionListenerMiddlewareAPI<S, D extends Dispatch<AnyAction>>
   unsubscribe(): void
   subscribe(): void
   condition: ConditionFunction<S>
+  take: TakePattern<S>
   currentPhase: MiddlewarePhase
   // TODO Figure out how to pass this through the other types correctly
   extra: unknown
@@ -245,6 +274,49 @@ type FallbackAddListenerOptions = (
   | { predicate: ListenerPredicate<any, any> }
 ) &
   ActionListenerOptions & { listener: ActionListener<any, any, any> }
+
+function createTakePattern<S>(
+  addListener: AddListenerOverloads<Unsubscribe, S,Dispatch<AnyAction>>
+): TakePattern<S> {
+  async function take<P extends AnyActionListenerPredicate<S>>(
+    predicate: P,
+    timeout: number | undefined
+  ) {
+    let unsubscribe: Unsubscribe = () => {}
+
+    const tuplePromise = new Promise<[AnyAction, S, S]>((resolve) => {
+      unsubscribe = addListener({
+        predicate: predicate as any,
+        listener: (action, listenerApi): void => {
+          // One-shot listener that cleans up as soon as the predicate resolves
+          listenerApi.unsubscribe()
+          resolve([
+            action,
+            listenerApi.getState(),
+            listenerApi.getOriginalState(),
+          ])
+        },
+      })
+    })
+
+    if (timeout === undefined) {
+      return tuplePromise
+    }
+
+    const timedOutPromise = new Promise<null>((resolve, reject) => {
+      setTimeout(() => {
+        resolve(null)
+      }, timeout)
+    })
+
+    const result = await Promise.race([tuplePromise, timedOutPromise])
+
+    unsubscribe()
+    return result
+  }
+
+  return take as TakePattern<S>
+}
 
 /** Accepts the possible options for creating a listener, and returns a formatted listener entry */
 export const createListenerEntry: TypedCreateListenerEntry<unknown> = (
@@ -413,6 +485,64 @@ export function createActionListenerMiddleware<
     return entry.unsubscribe
   }
 
+  function findListenerEntry(
+    comparator: (entry: ListenerEntry) => boolean
+  ): ListenerEntry | undefined {
+    for (const entry of listenerMap.values()) {
+      if (comparator(entry)) {
+        return entry
+      }
+    }
+
+    return undefined
+  }
+
+  const addListener = ((options: FallbackAddListenerOptions) => {
+    let entry = findListenerEntry(
+      (existingEntry) => existingEntry.listener === options.listener
+    )
+
+    if (!entry) {
+      entry = createListenerEntry(options as any)
+    }
+
+    return insertEntry(entry)
+  }) as TypedAddListener<S, D>
+
+  function removeListener<C extends TypedActionCreator<any>>(
+    actionCreator: C,
+    listener: ActionListener<ReturnType<C>, S, D>
+  ): boolean
+  function removeListener(
+    type: string,
+    listener: ActionListener<AnyAction, S, D>
+  ): boolean
+  function removeListener(
+    typeOrActionCreator: string | TypedActionCreator<any>,
+    listener: ActionListener<AnyAction, S, D>
+  ): boolean {
+    const type =
+      typeof typeOrActionCreator === 'string'
+        ? typeOrActionCreator
+        : typeOrActionCreator.type
+
+    let entry = findListenerEntry(
+      (entry) => entry.type === type && entry.listener === listener
+    )
+
+    if (!entry) {
+      return false
+    }
+
+    listenerMap.delete(entry.id)
+    return true
+  }
+
+  const take = createTakePattern(addListener)
+  const condition: ConditionFunction<S> = (predicate, timeout) => {
+    return take(predicate, timeout).then(Boolean)
+  }
+
   const middleware: Middleware<
     {
       (action: Action<'actionListenerMiddleware/add'>): Unsubscribe
@@ -469,8 +599,8 @@ export function createActionListenerMiddleware<
           entry.listener(action, {
             ...api,
             getOriginalState,
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
             condition,
+            take,
             currentPhase,
             extra,
             unsubscribe: entry.unsubscribe,
@@ -488,94 +618,6 @@ export function createActionListenerMiddleware<
         return result
       }
     }
-  }
-
-  const addListener = ((options: FallbackAddListenerOptions) => {
-    let entry = findListenerEntry(
-      (existingEntry) => existingEntry.listener === options.listener
-    )
-
-    if (!entry) {
-      entry = createListenerEntry(options as any)
-    }
-
-    return insertEntry(entry)
-  }) as TypedAddListener<S, D>
-
-  function removeListener<C extends TypedActionCreator<any>>(
-    actionCreator: C,
-    listener: ActionListener<ReturnType<C>, S, D>
-  ): boolean
-  function removeListener(
-    type: string,
-    listener: ActionListener<AnyAction, S, D>
-  ): boolean
-  function removeListener(
-    typeOrActionCreator: string | TypedActionCreator<any>,
-    listener: ActionListener<AnyAction, S, D>
-  ): boolean {
-    const type =
-      typeof typeOrActionCreator === 'string'
-        ? typeOrActionCreator
-        : typeOrActionCreator.type
-
-    let entry = findListenerEntry(
-      (entry) => entry.type === type && entry.listener === listener
-    )
-
-    if (!entry) {
-      return false
-    }
-
-    listenerMap.delete(entry.id)
-    return true
-  }
-
-  function findListenerEntry(
-    comparator: (entry: ListenerEntry) => boolean
-  ): ListenerEntry | undefined {
-    for (const entry of listenerMap.values()) {
-      if (comparator(entry)) {
-        return entry
-      }
-    }
-
-    return undefined
-  }
-
-  const condition: ConditionFunction<S> = async (predicate, timeout) => {
-    let unsubscribe: Unsubscribe = () => {}
-
-    const conditionSucceededPromise = new Promise<boolean>(
-      (resolve, reject) => {
-        unsubscribe = addListener({
-          predicate,
-          listener: (action, listenerApi) => {
-            // One-shot listener that cleans up as soon as the predicate resolves
-            listenerApi.unsubscribe()
-            resolve(true)
-          },
-        })
-      }
-    )
-
-    if (timeout === undefined) {
-      return conditionSucceededPromise
-    }
-
-    const timedOutPromise = new Promise<boolean>((resolve, reject) => {
-      setTimeout(() => {
-        resolve(false)
-      }, timeout)
-    })
-
-    const result = await Promise.race([
-      conditionSucceededPromise,
-      timedOutPromise,
-    ])
-
-    unsubscribe()
-    return result
   }
 
   return Object.assign(
