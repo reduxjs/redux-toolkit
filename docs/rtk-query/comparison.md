@@ -33,7 +33,7 @@ RTK Query has some unique API design aspects and capabilities that are worth con
 - You can easily invalidate entities or patch existing query data (via `util.updateQueryData`) from middleware.
 - RTK Query enables [streaming cache updates](./usage/streaming-updates.mdx), such as updating the initial fetched data as messages are received over a websocket, and has built in support for [optimistic updates](./usage/manual-cache-updates.mdx#optimistic-updates) as well.
 - RTK Query ships a very tiny and flexible fetch wrapper: [`fetchBaseQuery`](./api/fetchBaseQuery.mdx). It's also very easy to [swap our client with your own](./usage/customizing-queries.mdx), such as using `axios`, `redaxios`, or something custom.
-- RTK Query has [a (currently experimental) code-gen tool](https://github.com/rtk-incubator/rtk-query-codegen) that will take an OpenAPI spec or GraphQL schema and give you a typed API client, as well as provide methods for enhancing the generated client after the fact.
+- RTK Query has [a (currently experimental) code-gen tool](https://github.com/reduxjs/redux-toolkit/tree/master/packages/rtk-query-codegen-openapi) that will take an OpenAPI spec or GraphQL schema and give you a typed API client, as well as provide methods for enhancing the generated client after the fact.
 
 ## Tradeoffs
 
