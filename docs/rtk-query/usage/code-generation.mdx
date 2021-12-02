@@ -49,7 +49,7 @@ import { ConfigFile } from '@rtk-query/codegen-openapi'
 const config: ConfigFile = {
   schemaFile: 'https://petstore3.swagger.io/api/v3/openapi.json',
   apiFile: './src/store/emptyApi.ts',
-  apiImport: 'emptyApi',
+  apiImport: 'emptySplitApi',
   outputFile: './src/store/petApi.ts',
   exportName: 'petApi',
   hooks: true,
@@ -141,13 +141,13 @@ const config: ConfigFile = {
   schemaFile: 'https://petstore3.swagger.io/api/v3/openapi.json',
   apiFile: './src/store/emptyApi.ts',
   outputFiles: {
-    './src/store/user.js': {
+    './src/store/user.ts': {
       filterEndpoints: [/user/i],
     },
-    './src/store/order.js': {
+    './src/store/order.ts': {
       filterEndpoints: [/order/i],
     },
-    './src/store/pet.js': {
+    './src/store/pet.ts': {
       filterEndpoints: [/pet/i],
     },
   },
