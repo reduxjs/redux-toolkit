@@ -12,7 +12,7 @@ import { HandledError } from './HandledError'
  * 5. 9600ms * random(0.4, 1.4)
  *
  * @param attempt - Current attempt
- * @param maxRetries - Maximum number of retries
+ * @param maxRetries - Maximum value of the exponential
  */
 async function defaultBackoff(attempt: number = 0, maxRetries: number = 5) {
   const attempts = Math.min(attempt, maxRetries)
