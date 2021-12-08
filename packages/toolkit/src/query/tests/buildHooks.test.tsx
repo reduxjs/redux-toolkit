@@ -923,7 +923,7 @@ describe('hooks tests', () => {
       expect(screen.queryByText('Request was aborted')).toBeNull()
     })
 
-    test('useLazyQuery does not throw on ConditionError and instead returns the aggregate error', async () => {
+    test('unwrapping the useLazyQuery trigger result does not throw on ConditionError and instead returns the aggregate error', async () => {
       function User() {
         const [getUser, { data, error }] =
           api.endpoints.getUserAndForceError.useLazyQuery()
