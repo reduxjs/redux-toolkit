@@ -291,7 +291,7 @@ Features like automatic cache collection, automatic refetching etc. will not be 
             subscriptionOptions,
             queryCacheKey,
             abort,
-            unwrap: async function () {
+            async unwrap() {
               const result = await statePromise
 
               if (result.isError) {
