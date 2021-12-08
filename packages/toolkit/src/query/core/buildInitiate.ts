@@ -279,31 +279,26 @@ Features like automatic cache collection, automatic refetching etc. will not be 
 
         const { requestId, abort } = thunkResult
 
-        const aggregatePromise = Promise.all([
-          runningQueries[queryCacheKey],
-          thunkResult,
-        ]).then(() =>
-          (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).select(
-            arg
-          )(getState())
-        )
-
         const statePromise: QueryActionCreatorResult<any> = Object.assign(
-          aggregatePromise,
+          Promise.all([runningQueries[queryCacheKey], thunkResult]).then(() =>
+            (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).select(
+              arg
+            )(getState())
+          ),
           {
             arg,
             requestId,
             subscriptionOptions,
             queryCacheKey,
             abort,
-            unwrap() {
-              return aggregatePromise.then<any>((result) => {
-                if (result.isError) {
-                  throw result.error
-                }
+            unwrap: async function () {
+              const result = await statePromise
 
-                return result.data
-              })
+              if (result.isError) {
+                throw result.error
+              }
+
+              return result.data
             },
             refetch() {
               dispatch(
