@@ -56,6 +56,16 @@ export const { useGetPokemonByNameQuery } = pokemonApi
 ```ts no-transpile
   baseQuery(args: InternalQueryArgs, api: BaseQueryApi, extraOptions?: DefinitionExtraOptions): any;
   endpoints(build: EndpointBuilder<InternalQueryArgs, TagTypes>): Definitions;
+  extractRehydrationInfo?: (
+    action: AnyAction,
+    {
+      reducerPath,
+    }: {
+      reducerPath: ReducerPath
+    }
+  ) =>
+    | undefined
+    | CombinedState<Definitions, TagTypes, ReducerPath>
   tagTypes?: readonly TagTypes[];
   reducerPath?: ReducerPath;
   serializeQueryArgs?: SerializeQueryArgs<InternalQueryArgs>;
@@ -144,7 +154,8 @@ export type QueryDefinition<
   /* transformResponse only available with `query`, not `queryFn` */
   transformResponse?(
     baseQueryReturnValue: BaseQueryResult<BaseQuery>,
-    meta: BaseQueryMeta<BaseQuery>
+    meta: BaseQueryMeta<BaseQuery>,
+    arg: QueryArg
   ): ResultType | Promise<ResultType>
 
   extraOptions?: BaseQueryExtraOptions<BaseQuery>
@@ -211,7 +222,8 @@ export type MutationDefinition<
   /* transformResponse only available with `query`, not `queryFn` */
   transformResponse?(
     baseQueryReturnValue: BaseQueryResult<BaseQuery>,
-    meta: BaseQueryMeta<BaseQuery>
+    meta: BaseQueryMeta<BaseQuery>,
+    arg: QueryArg
   ): ResultType | Promise<ResultType>
 
   extraOptions?: BaseQueryExtraOptions<BaseQuery>
@@ -288,6 +300,15 @@ export const { endpoints, reducerPath, reducer, middleware } = api
 // endpoints.addPost.initiate(), endpoints.addPost.select(), endpoints.addPost.useMutation()
 // see `createApi` overview for _all exports_
 ```
+
+### `extractRehydrationInfo`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.extractRehydrationInfo)
+
+[examples](docblock://query/createApi.ts?token=CreateApiOptions.extractRehydrationInfo)
+
+See also [Server Side Rendering](../usage/server-side-rendering.mdx) and
+[Persistence and Rehydration](../usage/persistence-and-rehydration.mdx).
 
 ### `tagTypes`
 
@@ -406,7 +427,8 @@ In some cases, you may want to manipulate the data returned from a query before 
 See also [Customizing query responses with `transformResponse`](../usage/customizing-queries.mdx#customizing-query-responses-with-transformresponse)
 
 ```ts title="Unpack a deeply nested collection" no-transpile
-transformResponse: (response) => response.some.deeply.nested.collection
+transformResponse: (response, meta, arg) =>
+  response.some.deeply.nested.collection
 ```
 
 ### `extraOptions`

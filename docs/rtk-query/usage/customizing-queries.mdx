@@ -103,7 +103,11 @@ Individual endpoints on [`createApi`](../api/createApi.mdx) accept a [`transform
 By default, the payload from the server is returned directly.
 
 ```ts
-function defaultTransformResponse(baseQueryReturnValue: unknown) {
+function defaultTransformResponse(
+  baseQueryReturnValue: unknown,
+  meta: unknown,
+  arg: unknown
+) {
   return baseQueryReturnValue
 }
 ```
@@ -111,17 +115,33 @@ function defaultTransformResponse(baseQueryReturnValue: unknown) {
 To change it, provide a function that looks like:
 
 ```ts title="Unpack a deeply nested collection" no-transpile
-transformResponse: (response) => response.some.deeply.nested.collection
+transformResponse: (response, meta, arg) =>
+  response.some.deeply.nested.collection
 ```
 
-`transformResponse` is also called with the `meta` property returned from the `baseQuery`, which can be used while determining the transformed response. The value for `meta` is dependent on the `baseQuery` used.
+`transformResponse` is called with the `meta` property returned from the `baseQuery` as it's second
+argument, which can be used while determining the transformed response. The value for `meta` is
+dependent on the `baseQuery` used.
 
 ```ts title="transformResponse meta example" no-transpile
-transformResponse: (response: { sideA: Tracks; sideB: Tracks }, meta) => {
+transformResponse: (response: { sideA: Tracks; sideB: Tracks }, meta, arg) => {
   if (meta?.coinFlip === 'heads') {
     return response.sideA
   }
   return response.sideB
+}
+```
+
+`transformResponse` is called with the `arg` property provided to the endpoint as it's third
+argument, which can be used while determining the transformed response. The value for `arg` is
+dependent on the `endpoint` used, as well as the argument used when calling the query/mutation.
+
+```ts title="transformResponse arg example" no-transpile
+transformResponse: (response: Posts, meta, arg) => {
+  return {
+    originalArg: arg,
+    data: response,
+  }
 }
 ```
 
