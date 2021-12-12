@@ -71,6 +71,8 @@ function createSlice({
 
 The initial state value for this slice of state.
 
+This may also be a "lazy initializer" function, which should return an initial state value when called. This will be used whenever the reducer is called with `undefined` as its state value, and is primarily useful for cases like reading initial state from `localStorage`.
+
 ### `name`
 
 A string name for this slice of state. Generated action type constants will use this as a prefix.
@@ -196,7 +198,8 @@ We recommend using the `builder callback` API as the default, especially if you 
     name : string,
     reducer : ReducerFunction,
     actions : Record<string, ActionCreator>,
-    caseReducers: Record<string, CaseReducer>
+    caseReducers: Record<string, CaseReducer>.
+    getInitialState: () => State
 }
 ```
 

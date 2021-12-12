@@ -96,9 +96,9 @@ The logic in the `payloadCreator` function may use any of these values as needed
 
 An object with the following optional fields:
 
-- `condition(arg, { getState, extra } ): boolean`: a callback that can be used to skip execution of the payload creator and all action dispatches, if desired. See [Canceling Before Execution](#canceling-before-execution) for a complete description.
+- `condition(arg, { getState, extra } ): boolean | Promise<boolean>`: a callback that can be used to skip execution of the payload creator and all action dispatches, if desired. See [Canceling Before Execution](#canceling-before-execution) for a complete description.
 - `dispatchConditionRejection`: if `condition()` returns `false`, the default behavior is that no actions will be dispatched at all. If you still want a "rejected" action to be dispatched when the thunk was canceled, set this flag to `true`.
-- `idGenerator(): string`: a function to use when generating the `requestId` for the request sequence. Defaults to use [nanoid](./otherExports.mdx/#nanoid).
+- `idGenerator(arg): string`: a function to use when generating the `requestId` for the request sequence. Defaults to use [nanoid](./otherExports.mdx/#nanoid), but you can implement your own ID generation logic.
 - `serializeError(error: unknown) => any` to replace the internal `miniSerializeError` method with your own serialization logic.
 - `getPendingMeta({ arg, requestId }, { getState, extra }): any`: a function to create an object that will be merged into the `pendingAction.meta` field.
 
@@ -357,7 +357,7 @@ const updateUser = createAsyncThunk(
 
 ### Canceling Before Execution
 
-If you need to cancel a thunk before the payload creator is called, you may provide a `condition` callback as an option after the payload creator. The callback will receive the thunk argument and an object with `{getState, extra}` as parameters, and use those to decide whether to continue or not. If the execution should be canceled, the `condition` callback should return a literal `false` value:
+If you need to cancel a thunk before the payload creator is called, you may provide a `condition` callback as an option after the payload creator. The callback will receive the thunk argument and an object with `{getState, extra}` as parameters, and use those to decide whether to continue or not. If the execution should be canceled, the `condition` callback should return a literal `false` value or a promise that should resolve to `false`. If a promise is returned, the thunk waits for it to get fulfilled before dispatching the `pending` action, otherwise it proceeds with dispatching synchronously.
 
 ```js
 const fetchUserById = createAsyncThunk(

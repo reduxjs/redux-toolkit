@@ -5328,6 +5328,7 @@ __metadata:
     "@types/json-stringify-safe": ^5.0.0
     "@types/nanoid": ^2.1.0
     "@types/node": ^10.14.4
+    "@types/query-string": ^6.3.0
     "@types/react": ^17.0.3
     "@types/react-dom": ^17.0.3
     "@types/react-redux": ^7.1.16
@@ -5349,7 +5350,7 @@ __metadata:
     eslint-plugin-react: ^7.23.2
     eslint-plugin-react-hooks: ^4.2.0
     fs-extra: ^9.1.0
-    immer: ^9.0.6
+    immer: ^9.0.7
     invariant: ^2.2.4
     jest: ^26.6.3
     json-stringify-safe: ^5.0.1
@@ -5358,9 +5359,10 @@ __metadata:
     msw: ^0.28.2
     node-fetch: ^2.6.1
     prettier: ^2.2.1
-    redux: ^4.1.0
-    redux-thunk: ^2.3.0
-    reselect: ^4.0.0
+    query-string: ^7.0.1
+    redux: ^4.1.2
+    redux-thunk: ^2.4.1
+    reselect: ^4.1.5
     rimraf: ^3.0.2
     rollup: ^2.47.0
     rollup-plugin-strip-code: ^0.2.6
@@ -5372,8 +5374,8 @@ __metadata:
     typescript: ~4.2.4
     yargs: ^15.3.1
   peerDependencies:
-    react: ^16.14.0 || ^17.0.0
-    react-redux: ^7.2.1
+    react: ^16.9.0 || ^17.0.0 || 18.0.0-beta
+    react-redux: ^7.2.1 || ^8.0.0-beta
   peerDependenciesMeta:
     react:
       optional: true
@@ -6494,6 +6496,15 @@ __metadata:
   version: 1.5.4
   resolution: "@types/q@npm:1.5.4"
   checksum: 0842d7d71b5f102dcc2d78f893d0b42c1149f8cdc194d09e7a00be3187999ee3041e535357344818f8fee1b5e216b06bb7df7754d0fe08bd8aca38d3c45f1af6
+  languageName: node
+  linkType: hard
+
+"@types/query-string@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "@types/query-string@npm:6.3.0"
+  dependencies:
+    query-string: "*"
+  checksum: 7d507aea24e650548bc8a164ae695deb1eaf7a566fdaeb53ec3f89605dbd2c5201daf9b76c31843bc8accc01e866df8b2a06557514ad8014c3af99c664cd0b5c
   languageName: node
   linkType: hard
 
@@ -11242,6 +11253,8 @@ __metadata:
     graphql-request: ^3.4.0
     immutable: ^3.8.2
     nanoid: ^3.1.23
+    next-redux-wrapper: ^7.0.5
+    redux-persist: ^6.0.0
     rxjs: ^6.6.2
   languageName: unknown
   linkType: soft
@@ -12978,6 +12991,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"filter-obj@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "filter-obj@npm:1.1.0"
+  checksum: cf2104a7c45ff48e7f505b78a3991c8f7f30f28bd8106ef582721f321f1c6277f7751aacd5d83026cb079d9d5091082f588d14a72e7c5d720ece79118fa61e10
+  languageName: node
+  linkType: hard
+
 "finalhandler@npm:~1.1.2":
   version: 1.1.2
   resolution: "finalhandler@npm:1.1.2"
@@ -14578,10 +14598,10 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"immer@npm:^9.0.6":
-  version: 9.0.6
-  resolution: "immer@npm:9.0.6"
-  checksum: 75da22f3b32f3f14604eb389b4f50e84a14f2e42f306f0cbe4d2969aed54ec7fda9a7e9ca42ebae2ba73ec9bb6ec1001fafbac535accaf03860054ab0f7e8388
+"immer@npm:^9.0.7":
+  version: 9.0.7
+  resolution: "immer@npm:9.0.7"
+  checksum: 3655ad64bf5ab5adf2854f7d2a9ad543f2cd995fcd169b6f10294f41fdb2cbcbd44d8beaa3e01b3c0b6149001190e57f6ab2cd735e6a929780b7462f2e973c9b
   languageName: node
   linkType: hard
 
@@ -18122,6 +18142,17 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"next-redux-wrapper@npm:^7.0.5":
+  version: 7.0.5
+  resolution: "next-redux-wrapper@npm:7.0.5"
+  peerDependencies:
+    next: ">=10.0.3"
+    react: "*"
+    react-redux: "*"
+  checksum: 064e3d562954a13128f94fec6420c802f819f763db8157bd57108e2549ef8597db72e77f3e53a36cfb3c661a3d370227578ec86d1aeca1b3ebfa9009db680c69
+  languageName: node
+  linkType: hard
+
 "next-tick@npm:~1.0.0":
   version: 1.0.0
   resolution: "next-tick@npm:1.0.0"
@@ -21165,6 +21196,18 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"query-string@npm:*, query-string@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "query-string@npm:7.0.1"
+  dependencies:
+    decode-uri-component: ^0.2.0
+    filter-obj: ^1.1.0
+    split-on-first: ^1.0.0
+    strict-uri-encode: ^2.0.0
+  checksum: 2eb990c0eaa80998d074aac2ad5bcc7f21fa2e53a7d129d19883abe724a2eedb987ca81b731755307431914b0f958767bfe7c5f7433d0974a1650b5d313e5618
+  languageName: node
+  linkType: hard
+
 "query-string@npm:^4.1.0":
   version: 4.3.4
   resolution: "query-string@npm:4.3.4"
@@ -21943,19 +21986,30 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"redux-thunk@npm:^2.3.0":
-  version: 2.3.0
-  resolution: "redux-thunk@npm:2.3.0"
-  checksum: d13f442ffc91249b534bf14884c33feff582894be2562169637dc9d4d70aec6423bfe6d66f88c46ac027ac1c0cd07d6c2dd4a61cf7695b8e43491de679df9bcf
+"redux-persist@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "redux-persist@npm:6.0.0"
+  peerDependencies:
+    redux: ">4.0.0"
+  checksum: edaf10dbf17351ce8058d0802357adae8665b3a1ff39371834e37838ddbe1a79cccbc717b8ba54acb5307651ccf51d0f7dc1cbc8dbae0726ff952d11ef61c6b8
   languageName: node
   linkType: hard
 
-"redux@npm:^4.0.0, redux@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "redux@npm:4.1.0"
+"redux-thunk@npm:^2.4.1":
+  version: 2.4.1
+  resolution: "redux-thunk@npm:2.4.1"
+  peerDependencies:
+    redux: ^4
+  checksum: af5abb425fb9dccda02e5f387d6f3003997f62d906542a3d35fc9420088f550dc1a018bdc246c7d23ee852b4d4ab8b5c64c5be426e45a328d791c4586a3c6b6e
+  languageName: node
+  linkType: hard
+
+"redux@npm:^4.0.0, redux@npm:^4.1.2":
+  version: 4.1.2
+  resolution: "redux@npm:4.1.2"
   dependencies:
     "@babel/runtime": ^7.9.2
-  checksum: 322d5f4b49cbbdb3f64f04e9279cabbdea9a698024b530dc98563eb598b6bd55ff8a715208e3ee09db9802a2f426c991c78906b1c6491ebb52e7310e55ee5cdf
+  checksum: 6a839cee5bd580c5298d968e9e2302150e961318253819bcd97f9d945a5a409559eacddf6026f4118bb68b681c593d90e8a2c5bbf278f014aff9bf0d2d8fa084
   languageName: node
   linkType: hard
 
@@ -22345,10 +22399,10 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"reselect@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "reselect@npm:4.0.0"
-  checksum: ac7dfc9ef2cdb42b6fc87a856f3ce904c2e4363a2bc1e6fb7eea5f78902a6f506e4388e6509752984877c6dbfe501100c076671d334799eb5a1bfe9936cb2c12
+"reselect@npm:^4.1.5":
+  version: 4.1.5
+  resolution: "reselect@npm:4.1.5"
+  checksum: 54c13c1e795b2ea70cba8384138aebe78adda00cbea303cc94b64da0a70d74c896cc9a03115ae38b8bff990e7a60dcd6452ab68cbec01b0b38c1afda70714cf0
   languageName: node
   linkType: hard
 
@@ -23850,6 +23904,13 @@ resolve@~1.19.0:
   languageName: node
   linkType: hard
 
+"split-on-first@npm:^1.0.0":
+  version: 1.1.0
+  resolution: "split-on-first@npm:1.1.0"
+  checksum: 16ff85b54ddcf17f9147210a4022529b343edbcbea4ce977c8f30e38408b8d6e0f25f92cd35b86a524d4797f455e29ab89eb8db787f3c10708e0b47ebf528d30
+  languageName: node
+  linkType: hard
+
 "split-string@npm:^3.0.1, split-string@npm:^3.0.2":
   version: 3.1.0
   resolution: "split-string@npm:3.1.0"
@@ -24025,6 +24086,13 @@ resolve@~1.19.0:
   version: 1.1.0
   resolution: "strict-uri-encode@npm:1.1.0"
   checksum: 9466d371f7b36768d43f7803f26137657559e4c8b0161fb9e320efb8edba3ae22f8e99d4b0d91da023b05a13f62ec5412c3f4f764b5788fac11d1fea93720bb3
+  languageName: node
+  linkType: hard
+
+"strict-uri-encode@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "strict-uri-encode@npm:2.0.0"
+  checksum: eaac4cf978b6fbd480f1092cab8b233c9b949bcabfc9b598dd79a758f7243c28765ef7639c876fa72940dac687181b35486ea01ff7df3e65ce3848c64822c581
   languageName: node
   linkType: hard
 

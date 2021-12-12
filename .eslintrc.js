@@ -18,6 +18,12 @@ module.exports = {
       'error',
       { prefer: 'type-imports', disallowTypeAnnotations: false },
     ],
+    'react-hooks/exhaustive-deps': [
+      'warn',
+      {
+        additionalHooks: '(usePossiblyImmediateEffect)',
+      },
+    ],
   },
   overrides: [
     // {

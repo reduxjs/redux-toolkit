@@ -121,6 +121,21 @@ so we recommend the "builder callback" notation in most cases.
 
 [params](docblock://createReducer.ts?token=createReducer&overload=1)
 
+### Returns
+
+The generated reducer function.
+
+The reducer will have a `getInitialState` function attached that will return the initial state when called. This may be useful for tests or usage with React's `useReducer` hook:
+
+```js
+const counterReducer = createReducer(0, {
+  increment: (state, action) => state + action.payload,
+  decrement: (state, action) => state - action.payload,
+})
+
+console.log(counterReducer.getInitialState()) // 0
+```
+
 ### Example Usage
 
 [examples](docblock://createReducer.ts?token=createReducer&overload=1)
