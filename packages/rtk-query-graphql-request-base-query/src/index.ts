@@ -3,12 +3,8 @@ import { GraphQLClient, ClientError } from 'graphql-request'
 import type {
   BaseQueryFn,
   GraphqlRequestBaseQueryArgs,
+  RequestHeaders,
 } from './GraphqlBaseQueryTypes'
-
-type P = Parameters<GraphQLClient['request']>
-export type Document = P[0]
-export type Variables = P[1]
-export type RequestHeaders = P[2]
 
 export const graphqlRequestBaseQuery = ({
   options,
@@ -21,9 +17,20 @@ export const graphqlRequestBaseQuery = ({
 > => {
   const client =
     'client' in options ? options.client : new GraphQLClient(options.url)
+  let requestHeaders: RequestHeaders = {}
+  if ('requestHeaders' in options) {
+    requestHeaders = options.requestHeaders
+  }
   return async ({ document, variables }, { getState }) => {
     try {
-      client.setHeaders(await prepareHeaders(new Headers({}), { getState }))
+      const headers = new Headers({})
+      if (requestHeaders) {
+        for (const [key, value] of Object.entries(requestHeaders)) {
+          headers.append(key, value)
+        }
+      }
+
+      client.setHeaders(await prepareHeaders(headers, { getState }))
       return { data: await client.request(document, variables), meta: {} }
     } catch (error) {
       if (error instanceof ClientError) {

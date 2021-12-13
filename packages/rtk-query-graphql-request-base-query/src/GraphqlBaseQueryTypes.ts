@@ -1,6 +1,11 @@
 import type { GraphQLClient } from 'graphql-request'
 import type { ThunkDispatch } from 'redux-thunk'
 
+type P = Parameters<GraphQLClient['request']>
+export type Document = P[0]
+export type Variables = P[1]
+export type RequestHeaders = P[2]
+
 export interface GraphqlBaseQueryApi {
   dispatch: ThunkDispatch<any, any, any>
   getState: () => unknown
@@ -10,6 +15,7 @@ export type GraphqlRequestBaseQueryArgs = {
   options:
     | {
         url: string
+        requestHeaders?: RequestHeaders
       }
     | { client: GraphQLClient }
   prepareHeaders?: (
