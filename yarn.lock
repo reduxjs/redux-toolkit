@@ -9913,13 +9913,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"console-testing-library@npm:^0.3.1":
+"console-testing-library@npm:0.3.1":
   version: 0.3.1
   resolution: "console-testing-library@npm:0.3.1"
   dependencies:
     jest-snapshot: ^24.9.0
     pretty-format: ^24.9.0
   checksum: 94438ceb34b035764c62df76effc54a84a8a4f6368c9285d40d379eb90d30f442a24ff8606a33dc02570555974b8102aa53444b382d6403522f8e74a8ff95f8d
+  languageName: node
+  linkType: hard
+
+"console-testing-library@patch:console-testing-library@npm:0.3.1#.yarn/patches/console-testing-library__npm_0.3.1.patch::locator=rtk-monorepo%40workspace%3A.":
+  version: 0.3.1
+  resolution: "console-testing-library@patch:console-testing-library@npm%3A0.3.1#.yarn/patches/console-testing-library__npm_0.3.1.patch::version=0.3.1&hash=790984&locator=rtk-monorepo%40workspace%3A."
+  dependencies:
+    jest-snapshot: ^24.9.0
+    pretty-format: ^24.9.0
+  checksum: 8cf742ea934f40d9c6a71f2c975fb42a93fc24ffaf9b78d98d9cfd420f705bb2e31738d07273d5ce1d099255a6314df3a247a9a8eb6e228d586f8743cdb2565e
   languageName: node
   linkType: hard
 
