@@ -1,0 +1,26 @@
+diff --git a/index.d.ts b/index.d.ts
+index 1dbf70a6fdf4369188ad44166aee188c8efd2054..56b85e26b2b3030bc3407aab2b358fd4e5e39c6a 100644
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -1,4 +1,4 @@
+-export const originalConsole = Console;
++export declare const originalConsole: Console;
+ 
+ type Options = {
+   isSilent?: boolean;
+@@ -24,14 +24,13 @@ export type TestingConsoleInstance = {
+   };
+   getRecord: (method: string) => string;
+   silence: boolean;
+-  private _targetConsole: TestingConsole | Console;
+ };
+ 
+ export function createConsole(options?: Options): TestingConsole;
+ 
+ export function mockConsole(
+   testingConsole: TestingConsole,
+-  targetConsoleParent?: {} = global,
++  targetConsoleParent?: typeof globalThis,
+   targetConsoleKey?: string
+ ): () => void;
+ 
