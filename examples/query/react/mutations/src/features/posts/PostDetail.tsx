@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useHistory, useParams } from 'react-router-dom'
 import {
   useDeletePostMutation,
@@ -29,7 +29,10 @@ const EditablePostName = ({
   onCancel: () => void
   isLoading?: boolean
 }) => {
-  const [name, setName] = useState(initialName)
+
+  useEffect(() => {
+    setName(initialName)
+}, [initialName]);
 
   const handleChange = ({
     target: { value },
