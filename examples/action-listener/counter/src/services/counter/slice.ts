@@ -19,8 +19,14 @@ export const counterSlice = createSlice({
     counters: counterEntity.getInitialState(),
   },
   reducers: {
-    addCounter(state) {
-      counterEntity.addOne(state.counters, { value: 0, id: nanoid() })
+    addCounter(
+      state,
+      { payload: { initialValue } }: PayloadAction<{ initialValue: number }>
+    ) {
+      counterEntity.addOne(state.counters, {
+        value: initialValue,
+        id: nanoid(),
+      })
     },
     removeCounter(state, { payload }: PayloadAction<string>) {
       counterEntity.removeOne(state.counters, payload)
@@ -40,17 +46,19 @@ export const counterSlice = createSlice({
         })
       }
     },
-    incrementByPeriodically(
+    updateByPeriodically(
       state,
       {
-        payload: { id, delta, intervalMs },
+        payload: { id, intervalMs },
       }: PayloadAction<{ id: string; delta: number; intervalMs: number }>
     ) {
       const previousValue = state.counters.entities[id]?.value
+      const previousIntervalMs = state.counters.entities[id]?.intervalMs
       if (
         typeof previousValue === 'number' &&
         Number.isFinite(intervalMs) &&
-        intervalMs > 0
+        intervalMs > 0 &&
+        !previousIntervalMs
       ) {
         counterEntity.updateOne(state.counters, {
           id,
@@ -58,7 +66,11 @@ export const counterSlice = createSlice({
         })
       }
     },
-    cancelIncrementBy(state, { payload }: PayloadAction<string>) {
+    updateByAsync(
+      _,
+      { payload }: PayloadAction<{ id: string; delta: number; delayMs: number }>
+    ) {},
+    cancelAsyncUpdates(state, { payload }: PayloadAction<string>) {
       delete state.counters.entities[payload]?.intervalMs
     },
   },

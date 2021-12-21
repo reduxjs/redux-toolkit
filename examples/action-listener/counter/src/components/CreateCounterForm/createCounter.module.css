@@ -14,3 +14,11 @@
 .form label {
   width: 150px;
 }
+
+.form input[type='range'] {
+  max-width: 75%;
+}
+
+.section {
+  overflow: hidden;
+}

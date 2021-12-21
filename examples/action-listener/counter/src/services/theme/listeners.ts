@@ -1,6 +1,7 @@
 import { themeActions } from './slice'
+import type { AppActionListenerMiddleware } from '../../store'
 
-export function onChangeColorScheme(
+function onChangeColorScheme(
   action: ReturnType<typeof themeActions.changeColorScheme>
 ) {
   if (action.payload === 'light') {
@@ -8,4 +9,13 @@ export function onChangeColorScheme(
   } else {
     document.documentElement.classList.add('dark')
   }
+}
+
+export function setupThemeListeners(
+  actionListener: AppActionListenerMiddleware
+) {
+  actionListener.addListener({
+    actionCreator: themeActions.changeColorScheme,
+    listener: onChangeColorScheme,
+  })
 }

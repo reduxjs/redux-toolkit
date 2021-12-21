@@ -3673,7 +3673,7 @@ __metadata:
   resolution: "@examples-action-listener/counter@workspace:examples/action-listener/counter"
   dependencies:
     "@reduxjs/toolkit": ^1.6.0-rc.1
-    "@rtk-incubator/action-listener-middleware": 0.3.0
+    "@rtk-incubator/action-listener-middleware": ^0.6.0
     "@types/node": ^12.0.0
     "@types/react": ^17.0.0
     "@types/react-dom": ^17.0.0
@@ -3682,7 +3682,7 @@ __metadata:
     react-dom: ^17.0.2
     react-redux: 7.2.2
     react-scripts: 4.0.3
-    typescript: ^4.1.2
+    typescript: ~4.2.4
   languageName: unknown
   linkType: soft
 
@@ -5514,16 +5514,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rtk-incubator/action-listener-middleware@npm:0.3.0":
-  version: 0.3.0
-  resolution: "@rtk-incubator/action-listener-middleware@npm:0.3.0"
-  peerDependencies:
-    "@reduxjs/toolkit": ^1.6.0
-  checksum: c3be483c341c5c7e22a653e5d0ae7ff06d8680bae76f3ab42f9224ab8282013b6fbf65b9d06e927a4a1254cf122a8e222f133c0a1f5925d448cd8ee7d82da171
-  languageName: node
-  linkType: hard
-
-"@rtk-incubator/action-listener-middleware@workspace:packages/action-listener-middleware":
+"@rtk-incubator/action-listener-middleware@^0.6.0, @rtk-incubator/action-listener-middleware@workspace:packages/action-listener-middleware":
   version: 0.0.0-use.local
   resolution: "@rtk-incubator/action-listener-middleware@workspace:packages/action-listener-middleware"
   dependencies:
@@ -6453,6 +6444,13 @@ __metadata:
   version: 10.17.60
   resolution: "@types/node@npm:10.17.60"
   checksum: 2cdb3a77d071ba8513e5e8306fa64bf50e3c3302390feeaeff1fd325dd25c8441369715dfc8e3701011a72fed5958c7dfa94eb9239a81b3c286caa4d97db6eef
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^12.0.0":
+  version: 12.20.37
+  resolution: "@types/node@npm:12.20.37"
+  checksum: 8c8b12f802678b3b87c5344b6c84082be08561dda81dc161d42be8cd327330d1a5227cef039c45a5e63a6d4a01ef5ef215dccc42d06100f59f6a8814b4f91cdd
   languageName: node
   linkType: hard
 

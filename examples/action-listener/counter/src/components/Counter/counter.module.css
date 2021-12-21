@@ -28,6 +28,7 @@
   position: relative;
   align-items: baseline;
   padding: 1.5rem 1rem;
+  overflow: hidden;
 }
 
 .btnGroup {
@@ -49,7 +50,7 @@
 
 @media screen and (min-width: 780px) {
   .wrapper {
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: 1fr auto 2fr;
   }
 
   .btnGroup {

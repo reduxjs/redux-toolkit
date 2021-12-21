@@ -1,13 +1,13 @@
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
-import { configureStore } from '@reduxjs/toolkit'
-import { counterActions, counterSlice } from './services/counter/slice'
+import { configureStore, Store, EnhancedStore } from '@reduxjs/toolkit'
+import { counterSlice } from './services/counter/slice'
 import {
   createActionListenerMiddleware,
   ActionListenerMiddlewareAPI,
 } from '@rtk-incubator/action-listener-middleware'
-import { themeSlice, themeActions } from './services/theme/slice'
-import { onChangeColorScheme } from './services/theme/listeners'
-import { onIncrementByPeriodically } from './services/counter/listener'
+import { themeSlice } from './services/theme/slice'
+import { setupCounterListeners } from './services/counter/listeners'
+import { setupThemeListeners } from './services/theme/listeners'
 
 export const actionlistener = createActionListenerMiddleware({
   onError: () => console.error,
@@ -28,19 +28,20 @@ export type RootState = ReturnType<typeof store.getState>
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch
 
-export type AppListenerApi = ActionListenerMiddlewareAPI<RootState, AppDispatch>
+export type AppListenerApiOf<ReduxStore> = ReduxStore extends EnhancedStore<
+  infer State
+>
+  ? ActionListenerMiddlewareAPI<State, ReduxStore['dispatch']>
+  : ReduxStore extends Store<infer State>
+  ? ActionListenerMiddlewareAPI<State, ReduxStore['dispatch']>
+  : never
+
+export type AppListenerApi = AppListenerApiOf<typeof store>
+export type AppActionListenerMiddleware = typeof actionlistener
 
 // Use throughout your app instead of plain `useDispatch` and `useSelector`
 export const useAppDispatch = () => useDispatch<AppDispatch>()
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
 
-actionlistener.addListener({
-  predicate: themeActions.changeColorScheme.match,
-  listener: onChangeColorScheme,
-})
-
-actionlistener.addListener({
-  predicate: counterActions.incrementByPeriodically.match,
-  // @ts-expect-error
-  listener: onIncrementByPeriodically,
-})
+setupCounterListeners(actionlistener)
+setupThemeListeners(actionlistener)

@@ -11,8 +11,7 @@ export function CreateCounterForm() {
   const appDispatch = useAppDispatch()
   const handleSubmit = (evt: FormEvent) => {
     evt.preventDefault()
-    setInitialValue(0)
-    appDispatch(counterActions.addCounter())
+    appDispatch(counterActions.addCounter({ initialValue }))
   }
 
   return (
