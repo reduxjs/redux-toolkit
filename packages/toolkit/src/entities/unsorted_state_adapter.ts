@@ -98,26 +98,6 @@ export function createUnsortedStateAdapter<T>(
     })
   }
 
-  function takeNewKey(
-    keys: { [id: string]: EntityId },
-    update: Update<T>,
-    state: R
-  ): boolean {
-    const original = state.entities[update.id]
-    const updated: T = Object.assign({}, original, update.changes)
-    const newKey = selectIdValue(updated, selectId)
-    const hasNewKey = newKey !== update.id
-
-    if (hasNewKey) {
-      keys[update.id] = newKey
-      delete state.entities[update.id]
-    }
-
-    state.entities[newKey] = updated
-
-    return hasNewKey
-  }
-
   function updateOneMutably(update: Update<T>, state: R): void {
     return updateManyMutably([update], state)
   }
@@ -127,7 +107,6 @@ export function createUnsortedStateAdapter<T>(
     state: R
   ): void {
     const newKeys: { [id: string]: EntityId } = {}
-
     const updatesPerEntity: { [id: string]: Update<T> } = {}
 
     updates.forEach((update) => {
@@ -146,6 +125,10 @@ export function createUnsortedStateAdapter<T>(
           },
         }
       }
+      const newId = selectId(update.changes as T)
+      if (newId !== undefined && update.id !== newId) {
+        newKeys[update.id] = newId;
+      }
     })
 
     updates = Object.values(updatesPerEntity)
@@ -153,9 +136,15 @@ export function createUnsortedStateAdapter<T>(
     const didMutateEntities = updates.length > 0
 
     if (didMutateEntities) {
-      const didMutateIds =
-        updates.filter((update) => takeNewKey(newKeys, update, state)).length >
-        0
+      const changedKeys = Object.keys(newKeys);
+      const didMutateIds = changedKeys.length > 0;
+
+      updates.forEach((update) => {
+        const newEntity = Object.assign({}, state.entities[update.id], update.changes)
+        state.entities[newKeys[update.id] || update.id] = newEntity
+      })
+
+      changedKeys.forEach(key => delete state.entities[key])
 
       if (didMutateIds) {
         state.ids = state.ids.map((id) => newKeys[id] || id)

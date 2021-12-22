@@ -71,32 +71,40 @@ export function createSortedStateAdapter<T>(
     return updateManyMutably([update], state)
   }
 
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-  function takeUpdatedModel(models: T[], update: Update<T>, state: R): boolean {
-    if (!(update.id in state.entities)) {
-      return false
-    }
-
-    const original = state.entities[update.id]
-    const updated = Object.assign({}, original, update.changes)
-    const newKey = selectIdValue(updated, selectId)
-
-    delete state.entities[update.id]
-
-    models.push(updated)
-
-    return newKey !== update.id
-  }
-
   function updateManyMutably(
     updates: ReadonlyArray<Update<T>>,
     state: R
   ): void {
-    const models: T[] = []
+    const changedKeys: EntityId[] = []
 
-    updates.forEach((update) => takeUpdatedModel(models, update, state))
+    const updatesPerEntity: { [id: string]: Update<T> } = {}
 
-    if (models.length !== 0) {
+    updates.forEach((update) => {
+      if (update.id in state.entities) {
+        updatesPerEntity[update.id] = {
+          id: update.id,
+          changes: {
+            ...(updatesPerEntity[update.id]
+              ? updatesPerEntity[update.id].changes
+              : null),
+            ...update.changes,
+          },
+        }
+      }
+      const newId = selectId(update.changes as T)
+      if (newId !== undefined && update.id !== newId) {
+        changedKeys.push(update.id)
+      }
+    })
+
+    updates = Object.values(updatesPerEntity)
+
+    if (updates.length > 0) {
+      const models = updates.map(
+        (update) =>
+          Object.assign({}, state.entities[update.id], update.changes) as T
+      )
+      changedKeys.forEach((key) => delete state.entities[key])
       merge(models, state)
     }
   }
