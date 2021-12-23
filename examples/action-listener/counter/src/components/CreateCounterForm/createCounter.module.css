@@ -1,0 +1,24 @@
+.form {
+  padding: 0.5rem 0 0;
+}
+
+.heading {
+  margin: 0;
+}
+
+.form :global(.form-group) {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.form label {
+  width: 150px;
+}
+
+.form input[type='range'] {
+  max-width: 75%;
+}
+
+.section {
+  overflow: hidden;
+}

@@ -1,0 +1,7 @@
+.wrapper {
+  display: contents;
+}
+
+.wrapper p {
+  margin: 0.2rem;
+}

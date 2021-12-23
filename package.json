@@ -19,7 +19,8 @@
     "packages/*",
     "docs",
     "website",
-    "examples/query/react/*"
+    "examples/query/react/*",
+    "examples/action-listener/*"
   ],
   "devDependencies": {
     "eslint": "^7.25.0",

@@ -1,0 +1,59 @@
+.counterValue {
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+.closeBtn {
+  position: absolute;
+  right: -8px;
+  top: -8px;
+  border: none;
+  background: transparent;
+  transition: none;
+  box-shadow: none;
+}
+
+.wrapper .closeBtn.closeBtn:hover,
+.wrapper .closeBtn.closeBtn:focus {
+  box-shadow: none;
+  transform: none;
+  border-color: transparent;
+  border: none;
+}
+
+.wrapper {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: 1fr 1fr;
+  position: relative;
+  align-items: baseline;
+  padding: 1.5rem 1rem;
+  overflow: hidden;
+}
+
+.btnGroup {
+  display: flex;
+  gap: 4px;
+}
+
+.wrapper .btnGroup button {
+  margin: 0;
+}
+
+.wrapper h4 {
+  font-size: 1rem;
+}
+
+.btnGroup button:not(:first-of-type) {
+  margin-left: 0.4rem;
+}
+
+@media screen and (min-width: 780px) {
+  .wrapper {
+    grid-template-columns: 1fr auto 2fr;
+  }
+
+  .btnGroup {
+    justify-content: flex-end;
+  }
+}
