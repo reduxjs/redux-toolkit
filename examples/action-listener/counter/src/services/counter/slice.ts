@@ -39,6 +39,7 @@ export const counterSlice = createSlice({
       { payload: { id, delta } }: PayloadAction<{ id: string; delta: number }>
     ) {
       const previousValue = state.counters.entities[id]?.value
+
       if (typeof previousValue === 'number') {
         counterEntity.updateOne(state.counters, {
           id,
@@ -68,7 +69,7 @@ export const counterSlice = createSlice({
     },
     updateByAsync(
       _,
-      { payload }: PayloadAction<{ id: string; delta: number; delayMs: number }>
+      action: PayloadAction<{ id: string; delta: number; delayMs: number }>
     ) {},
     cancelAsyncUpdates(state, { payload }: PayloadAction<string>) {
       delete state.counters.entities[payload]?.intervalMs

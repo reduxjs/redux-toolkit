@@ -1,21 +1,28 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import './index.css'
-import App from './App'
 import { Provider } from 'react-redux'
 import { store } from './store'
 import { themeActions } from './services/theme/slice'
+import { ChangeThemeForm } from './components/ChangeThemeForm/ChangeThemeForm'
+import { CounterList } from './components/CounterList/CounterList'
+import { CreateCounterForm } from './components/CreateCounterForm/CreateCounterForm'
 
-if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    store.dispatch(themeActions.changeColorScheme('dark'))
-  }
+if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+  store.dispatch(themeActions.changeColorScheme('dark'))
 }
 
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
-      <App />
+      <main className={'main'}>
+        <header className="App-header">
+          <h1>Counter example</h1>
+        </header>
+        <ChangeThemeForm />
+        <CreateCounterForm />
+        <CounterList />
+      </main>
     </Provider>
   </React.StrictMode>,
   document.getElementById('root')

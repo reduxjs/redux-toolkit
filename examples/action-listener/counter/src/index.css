@@ -35,3 +35,18 @@ h6 {
   font-size: 1.2rem;
   margin: 0;
 }
+
+.main {
+  max-width: 90%;
+  margin: 0 auto;
+}
+
+@media screen and (min-width: 780px) {
+  .main {
+    max-width: 720px;
+  }
+}
+
+.dark body {
+  background: var(--main-background);
+}

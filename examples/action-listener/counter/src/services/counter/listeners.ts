@@ -69,7 +69,7 @@ export function setupCounterListeners(
   })
 
   actionListener.addListener({
-    predicate: counterActions.updateByAsync.match,
+    actionCreator: counterActions.updateByAsync,
     listener: onUpdateAsync,
   })
 }
