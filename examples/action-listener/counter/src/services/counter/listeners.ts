@@ -60,16 +60,31 @@ async function onUpdateAsync(
   }
 }
 
+/**
+ * Subscribes counter listeners and returns a `teardown` function.
+ * @example
+ * ```ts
+ * useEffect(() => {
+ *   const unsubscribe = setupCounterListeners();
+ *   return unsubscribe;
+ * }, []);
+ * ```
+ */
 export function setupCounterListeners(
   actionListener: AppActionListenerMiddleware
 ) {
-  actionListener.addListener({
-    actionCreator: counterActions.updateByPeriodically,
-    listener: onUpdateByPeriodically,
-  })
+  const subscriptions = [
+    actionListener.addListener({
+      actionCreator: counterActions.updateByPeriodically,
+      listener: onUpdateByPeriodically,
+    }),
+    actionListener.addListener({
+      actionCreator: counterActions.updateByAsync,
+      listener: onUpdateAsync,
+    }),
+  ]
 
-  actionListener.addListener({
-    actionCreator: counterActions.updateByAsync,
-    listener: onUpdateAsync,
-  })
+  return () => {
+    subscriptions.forEach((unsubscribe) => unsubscribe())
+  }
 }

@@ -14,7 +14,7 @@ function onChangeColorScheme(
 export function setupThemeListeners(
   actionListener: AppActionListenerMiddleware
 ) {
-  actionListener.addListener({
+  return actionListener.addListener({
     actionCreator: themeActions.changeColorScheme,
     listener: onChangeColorScheme,
   })
