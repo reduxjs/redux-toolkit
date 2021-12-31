@@ -10,7 +10,7 @@ import { themeSlice } from './services/theme/slice'
 import { setupCounterListeners } from './services/counter/listeners'
 import { setupThemeListeners } from './services/theme/listeners'
 
-export const actionListener = createActionListenerMiddleware({
+const actionListenerMiddleware = createActionListenerMiddleware({
   onError: () => console.error,
 })
 
@@ -19,7 +19,7 @@ const store = configureStore({
     [counterSlice.name]: counterSlice.reducer,
     [themeSlice.name]: themeSlice.reducer,
   },
-  middleware: (gDM) => gDM().prepend(actionListener),
+  middleware: (gDM) => gDM().prepend(actionListenerMiddleware),
 })
 
 export { store }
@@ -35,11 +35,13 @@ export type AppActionListenerMiddleware = ActionListenerMiddleware<
   AppDispatch
 >
 
-actionListener as AppActionListenerMiddleware
+// Typed version of `actionListenerMiddleware`
+export const appActionListener =
+  actionListenerMiddleware as AppActionListenerMiddleware
 
 // Use throughout your app instead of plain `useDispatch` and `useSelector`
 export const useAppDispatch = () => useDispatch<AppDispatch>()
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
 
-setupCounterListeners(actionListener as AppActionListenerMiddleware)
-setupThemeListeners(actionListener as AppActionListenerMiddleware)
+setupCounterListeners(appActionListener)
+setupThemeListeners(appActionListener)
