@@ -96,9 +96,9 @@ const reducer = createReducer(initialState, (builder) => {
 });
 ```
    */
-  addMatcher<A extends AnyAction>(
-    matcher: ActionMatcher<A> | ((action: AnyAction) => boolean),
-    reducer: CaseReducer<State, A>
+  addMatcher<A>(
+    matcher: ActionMatcher<A> | ((action: any) => boolean),
+    reducer: CaseReducer<State, A extends AnyAction ? A : A & AnyAction>
   ): Omit<ActionReducerMapBuilder<State>, 'addCase'>
 
   /**
@@ -167,9 +167,9 @@ export function executeReducerBuilderCallback<S>(
       actionsMap[type] = reducer
       return builder
     },
-    addMatcher<A extends AnyAction>(
+    addMatcher<A>(
       matcher: ActionMatcher<A>,
-      reducer: CaseReducer<S, A>
+      reducer: CaseReducer<S, A extends AnyAction ? A : A & AnyAction>
     ) {
       if (process.env.NODE_ENV !== 'production') {
         if (defaultCaseReducer) {

@@ -15,8 +15,8 @@ import type { NoInfer } from './tsHelpers'
  */
 export type Actions<T extends keyof any = string> = Record<T, Action>
 
-export interface ActionMatcher<A extends AnyAction> {
-  (action: AnyAction): action is A
+export interface ActionMatcher<A> {
+  (action: any): action is A
 }
 
 export type ActionMatcherDescription<S, A extends AnyAction> = {
