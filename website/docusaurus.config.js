@@ -14,6 +14,7 @@ module.exports = {
           docLayoutComponent: '../src/theme/DocPageWithBraveWarning',
           path: '../docs',
           sidebarPath: require.resolve('./sidebars.json'),
+          showLastUpdateTime: true,
           routeBasePath: '/',
           include: [
             '{api,assets,introduction,rtk-query,tutorials,usage}/**/*.{md,mdx}',
