@@ -83,16 +83,6 @@ The functionality included in RTK Query quickly pays for the added bundle size, 
 
 ### Create an API Slice
 
-RTK Query is included within the installation of the core Redux Toolkit package. It is available via either of the two entry points below:
-
-```ts
-import { createApi } from '@reduxjs/toolkit/query'
-
-/* React-specific entry point that automatically generates
-   hooks corresponding to the defined endpoints */
-import { createApi } from '@reduxjs/toolkit/query/react'
-```
-
 For typical usage with React, start by importing `createApi` and defining an "API slice" that lists the server's base URL and which endpoints we want to interact with:
 
 ```ts
