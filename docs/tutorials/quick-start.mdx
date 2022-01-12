@@ -167,12 +167,17 @@ import { configureStore } from '@reduxjs/toolkit'
 // highlight-next-line
 import counterReducer from '../features/counter/counterSlice'
 
-export default configureStore({
+export const store = configureStore({
   reducer: {
     // highlight-next-line
     counter: counterReducer,
   },
 })
+
+// Infer the `RootState` and `AppDispatch` types from the store itself
+export type RootState = ReturnType<typeof store.getState>
+// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
+export type AppDispatch = typeof store.dispatch
 ```
 
 ### Use Redux State and Actions in React Components
