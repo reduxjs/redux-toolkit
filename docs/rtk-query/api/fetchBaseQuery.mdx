@@ -19,10 +19,18 @@ It takes all standard options from fetch's [`RequestInit`](https://developer.moz
   - Typically a string like `https://api.your-really-great-app.com/v1/`. If you don't provide a `baseUrl`, it defaults to a relative path from where the request is being made. You should most likely _always_ specify this.
 - `prepareHeaders` _(optional)_
 
-  - Allows you to inject headers on every request. You can specify headers at the endpoint level, but you'll typically want to set common headers like `authorization` here. As a convenience mechanism, the second argument allows you to use `getState` to access your redux store in the event you store information you'll need there such as an auth token.
+  - Allows you to inject headers on every request. You can specify headers at the endpoint level, but you'll typically want to set common headers like `authorization` here. As a convenience mechanism, the second argument allows you to use `getState` to access your redux store in the event you store information you'll need there such as an auth token. Additionally, it provides access to `endpoint`, `type`, and `forced` to unlock more granular conditional behaviors.
 
   - ```ts title="prepareHeaders signature" no-transpile
-    ;(headers: Headers, api: { getState: () => unknown }) => Headers
+    ;(
+      headers: Headers,
+      api: {
+        getState: () => unknown
+        endpoint: string
+        type: 'query' | 'mutation'
+        forced: boolean | undefined
+      }
+    ) => Headers
     ```
 
 - `paramsSerializer` _(optional)_
