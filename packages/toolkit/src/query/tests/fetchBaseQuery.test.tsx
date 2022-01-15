@@ -536,6 +536,45 @@ describe('fetchBaseQuery', () => {
 
       expect(request.headers['authorization']).toBe(`Bearer ${token}`)
     })
+
+    test('prepareHeaders provides extra api information for getState, endpoint, type and forced', async () => {
+      let _getState, _endpoint, _type, _forced
+
+      const baseQuery = fetchBaseQuery({
+        baseUrl,
+        fetchFn: fetchFn as any,
+        prepareHeaders: (headers, { getState, endpoint, type, forced }) => {
+          _getState = getState
+          _endpoint = endpoint
+          _type = type
+          _forced = forced
+
+          return headers
+        },
+      })
+
+      const doRequest = async () =>
+        baseQuery(
+          { url: '/echo' },
+          {
+            signal: new AbortController().signal,
+            dispatch: storeRef.store.dispatch,
+            getState: storeRef.store.getState,
+            extra: undefined,
+            type: 'query',
+            forced: true,
+            endpoint: 'someEndpointName',
+          },
+          {}
+        )
+
+      await doRequest()
+
+      expect(_getState).toBeDefined()
+      expect(_endpoint).toBe('someEndpointName')
+      expect(_type).toBe('query')
+      expect(_forced).toBe(true)
+    })
   })
 
   test('lets a header be undefined', async () => {
