@@ -5,9 +5,8 @@ import type {
   BaseQueryError,
   QueryReturnValue,
 } from '../baseQueryTypes'
-import { BaseQueryArg } from '../baseQueryTypes'
 import type { RootState, QueryKeys, QuerySubstateIdentifier } from './apiState'
-import { QueryStatus, CombinedState } from './apiState'
+import { QueryStatus } from './apiState'
 import type { StartQueryActionCreatorOptions } from './buildInitiate'
 import type {
   AssertTagTypes,
@@ -18,10 +17,11 @@ import type {
   QueryDefinition,
   ResultTypeFrom,
 } from '../endpointDefinitions'
-import { calculateProvidedBy, FullTagDescription } from '../endpointDefinitions'
+import { calculateProvidedBy } from '../endpointDefinitions'
 import type { AsyncThunkPayloadCreator, Draft } from '@reduxjs/toolkit'
 import {
   isAllOf,
+  isAnyOf,
   isFulfilled,
   isPending,
   isRejected,
@@ -500,20 +500,30 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   }
 }
 
+type CalculatableAction = UnwrapPromise<
+  ReturnType<ReturnType<QueryThunk>> | ReturnType<ReturnType<MutationThunk>>
+>
 export function calculateProvidedByThunk(
-  action: UnwrapPromise<
-    ReturnType<ReturnType<QueryThunk>> | ReturnType<ReturnType<MutationThunk>>
-  >,
+  action: CalculatableAction,
   type: 'providesTags' | 'invalidatesTags',
   endpointDefinitions: EndpointDefinitions,
   assertTagType: AssertTagTypes
 ) {
+  const isQuery = (action: CalculatableAction) =>
+    action.meta.arg.type === 'query'
+  const isFulfilledQuery = (action: any): action is QueryThunk =>
+    isQuery(action)
+  const isFulfilledMutation = (action: any): action is MutationThunk =>
+    !isQuery(action)
+
   return calculateProvidedBy(
     endpointDefinitions[action.meta.arg.endpointName][type],
     isFulfilled(action) ? action.payload : undefined,
     isRejectedWithValue(action) ? action.payload : undefined,
     action.meta.arg.originalArgs,
-    action.meta,
+    isAnyOf(isRejected, isFulfilledQuery, isFulfilledMutation)(action)
+      ? action.meta.baseQueryMeta
+      : undefined,
     assertTagType
   )
 }
