@@ -109,9 +109,9 @@ There are 5 query-related hooks:
 3. [`useQueryState`](../api/created-api/hooks.mdx#usequerystate)
    - Returns the query state and accepts `skip` and `selectFromResult`. Reads the request status and cached data from the Redux store.
 4. [`useLazyQuery`](../api/created-api/hooks.mdx#uselazyquery)
-   - Returns a tuple with a `fetch` function, the query result, and last promise info. Similar to `useQuery`, but with manual control over when the data fetching occurs.
+   - Returns a tuple with a `trigger` function, the query result, and last promise info. Similar to `useQuery`, but with manual control over when the data fetching occurs. **Note: the `trigger` function takes a second argument of `preferCacheValue?: boolean` in the event you want to skip making a request if cached data already exists.**
 5. [`useLazyQuerySubscription`](../api/created-api/hooks.mdx#uselazyquerysubscription)
-   - Returns a tuple with a `fetch` function, and last promise info. Similar to `useQuerySubscription`, but with manual control over when the data fetching occurs.
+   - Returns a tuple with a `trigger` function, and last promise info. Similar to `useQuerySubscription`, but with manual control over when the data fetching occurs. **Note: the `trigger` function takes a second argument of `preferCacheValue?: boolean` in the event you want to skip making a request if cached data already exists.**
 
 In practice, the standard `useQuery`-based hooks such as `useGetPostQuery` will be the primary hooks used in your application, but the other hooks are available for specific use cases.
 

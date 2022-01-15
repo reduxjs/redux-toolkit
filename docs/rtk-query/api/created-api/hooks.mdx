@@ -490,7 +490,7 @@ type UseLazyQueryOptions = {
   selectFromResult?: (result: UseQueryStateDefaultResult) => any
 }
 
-type UseLazyQueryTrigger<T> = (arg: any) => Promise<
+type UseLazyQueryTrigger<T> = (arg: any, preferCacheValue?: boolean) => Promise<
   QueryResultSelectorResult
 > & {
   arg: unknown // Whatever argument was provided to the query
@@ -559,7 +559,10 @@ type UseLazyQuerySubscriptionOptions = {
   refetchOnFocus?: boolean
 }
 
-type UseLazyQuerySubscriptionTrigger = (arg: any) => void
+type UseLazyQuerySubscriptionTrigger = (
+  arg: any,
+  preferCacheValue?: boolean
+) => void
 ```
 
 - **Parameters**
