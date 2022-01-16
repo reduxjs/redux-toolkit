@@ -1,4 +1,4 @@
-import type { QuerySubstateIdentifier, Subscribers } from '../apiState'
+import type { QuerySubstateIdentifier, Subscribers, SubscriptionState } from '../apiState'
 import { QueryStatus } from '../apiState'
 import type {
   QueryStateMeta,
@@ -90,13 +90,8 @@ export const build: SubMiddlewareBuilder = ({
       const state = api.getState()[reducerPath]
       const querySubState = state.queries[queryCacheKey]
       const subscriptions = state.subscriptions[queryCacheKey]
-      const { queryCacheKey: omitted, ...oldSubscriptions } = state.subscriptions
 
-      const hasDeadSubscriptions = Object.entries(oldSubscriptions).some(x => !Object.entries(x[1] ?? {}).length)
-      
-      if (hasDeadSubscriptions) {
-        clearPolls();
-      }
+      clearExpiredPolls(state.subscriptions)
 
       if (
         !querySubState ||
@@ -127,6 +122,19 @@ export const build: SubMiddlewareBuilder = ({
       for (const [key, poll] of Object.entries(currentPolls)) {
         if (poll?.timeout) clearTimeout(poll.timeout)
         delete currentPolls[key]
+      }
+    }
+
+    function clearExpiredPolls(subscribers: SubscriptionState) {
+      for (const [key, poll] of Object.entries(currentPolls)) {
+        const sub = subscribers[key]
+
+        if (sub) {
+          const isActiveSubscription = Object.entries(sub).length
+
+          if (poll?.timeout && !isActiveSubscription) clearTimeout(poll.timeout)
+          delete currentPolls[key]
+        }
       }
     }
   }
