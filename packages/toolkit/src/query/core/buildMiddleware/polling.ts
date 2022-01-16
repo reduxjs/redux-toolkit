@@ -132,8 +132,10 @@ export const build: SubMiddlewareBuilder = ({
         if (sub) {
           const isActiveSubscription = Object.entries(sub).length
 
-          if (poll?.timeout && !isActiveSubscription) clearTimeout(poll.timeout)
-          delete currentPolls[key]
+          if (poll?.timeout && !isActiveSubscription) {
+            clearTimeout(poll.timeout)
+            delete currentPolls[key]
+          }
         }
       }
     }
