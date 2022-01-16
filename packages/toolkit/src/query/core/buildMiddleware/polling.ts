@@ -90,6 +90,13 @@ export const build: SubMiddlewareBuilder = ({
       const state = api.getState()[reducerPath]
       const querySubState = state.queries[queryCacheKey]
       const subscriptions = state.subscriptions[queryCacheKey]
+      const { queryCacheKey: omitted, ...oldSubscriptions } = state.subscriptions
+
+      const hasDeadSubscriptions = Object.entries(oldSubscriptions).some(x => !Object.entries(x[1] ?? {}).length)
+      
+      if (hasDeadSubscriptions) {
+        clearPolls();
+      }
 
       if (
         !querySubState ||
