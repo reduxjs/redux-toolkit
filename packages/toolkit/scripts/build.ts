@@ -14,7 +14,8 @@ import yargs from 'yargs/yargs'
 
 import { extractInlineSourcemap, removeInlineSourceMap } from './sourcemap'
 import type { BuildOptions, EntryPointOptions } from './types'
-import { appendInlineSourceMap, getLocation } from './sourcemap'
+import { appendInlineSourceMap } from './sourcemap'
+import type { BuildResult } from 'esbuild'
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -28,6 +29,11 @@ const { argv } = yargs(process.argv)
     alias: 's',
     type: 'boolean',
     description: 'Skip running API extractor',
+  })
+  .option('watch', {
+    alias: 'w',
+    type: 'boolean',
+    description: 'Run in watch mode',
   })
 
 const outputDir = path.join(__dirname, '../dist')
@@ -134,6 +140,7 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     name,
     target = 'es2015',
     entryPoint,
+    watch,
   } = options
 
   const outputFolder = path.join('dist', folder)
@@ -144,7 +151,7 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     entryPoints: [entryPoint],
     outfile: outputFilePath,
     write: false,
-    target: target,
+    target,
     sourcemap: 'inline',
     bundle: true,
     format: format === 'umd' ? 'esm' : format,
@@ -191,8 +198,49 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
         },
       },
     ],
+    ...(watch
+      ? {
+          watch: {
+            async onRebuild(error, result) {
+              if (error) {
+                console.error('watch build failed:', error)
+              } else {
+                await buildSourceMaps({
+                  target,
+                  format,
+                  minify,
+                  result,
+                })
+
+                // This should happen after every changed bundle is output, but there isn't a good way to know
+                // how much work is left... so we just rewrite it a handful of times :)
+                // Additionally, the normal UMD output behavior doesn't apply to watch mode at this time,
+                // so dev mode is really just targeting esm/cjs
+                await writeEntry(folder, prefix)
+              }
+            },
+          },
+        }
+      : {}),
   })
 
+  await buildSourceMaps({
+    target,
+    format,
+    minify,
+    result,
+  })
+}
+
+async function buildSourceMaps({
+  target,
+  format,
+  minify,
+  result,
+}: Pick<BuildOptions, 'format' | 'minify'> & {
+  result: BuildResult
+  target: 'es2017' | 'es2015'
+}) {
   for (const chunk of result.outputFiles) {
     const esVersion =
       target in esVersionMappings
@@ -297,9 +345,17 @@ if (process.env.NODE_ENV === 'production') {
 interface BuildArgs {
   skipExtraction?: boolean
   local: boolean
+  watch?: boolean
 }
 
-async function main({ skipExtraction = false, local = false }: BuildArgs) {
+async function main({
+  skipExtraction = false,
+  local = false,
+  watch = false,
+}: BuildArgs) {
+  if (watch) {
+    console.log('Starting bundling in watch mode...')
+  }
   // Dist folder will be removed by rimraf beforehand so TSC can generate typedefs
   await fs.ensureDir(outputDir)
 
@@ -313,9 +369,11 @@ async function main({ skipExtraction = false, local = false }: BuildArgs) {
       bundle({
         ...options,
         ...entryPoint,
+        watch,
       })
     )
     await Promise.all(bundlePromises)
+
     await writeEntry(folder, prefix)
   }
 
@@ -368,5 +426,5 @@ async function main({ skipExtraction = false, local = false }: BuildArgs) {
   }
 }
 
-const { skipExtraction, local } = argv
-main({ skipExtraction, local })
+const { skipExtraction, local, watch } = argv
+main({ skipExtraction, local, watch })

@@ -84,6 +84,7 @@
     "build-prepare": "npm run build-ci",
     "build": "yarn rimraf dist && yarn tsc && node scripts/cli.js --local --skipExtraction",
     "build-only": "yarn rimraf dist && yarn tsc && node scripts/cli.js --skipExtraction",
+    "dev": "node scripts/cli.js --local --skipExtraction --watch",
     "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
     "lint": "eslint src examples",

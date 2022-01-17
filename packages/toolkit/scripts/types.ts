@@ -1,3 +1,5 @@
+import type { BuildOptions as ESBuildOptions } from 'esbuild'
+
 export interface BuildOptions {
   format: 'cjs' | 'umd' | 'esm'
   name:
@@ -12,6 +14,7 @@ export interface BuildOptions {
   minify: boolean
   env: 'development' | 'production' | ''
   target?: 'es2017'
+  watch?: ESBuildOptions['watch']
 }
 
 export interface EntryPointOptions {
