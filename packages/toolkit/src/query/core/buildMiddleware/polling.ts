@@ -45,6 +45,11 @@ export const build: SubMiddlewareBuilder = ({
           clearPolls()
         }
 
+        if (api.internalActions.unsubscribeQueryResult.match(action)) {
+          const { queryCacheKey } = action.payload
+          clearPoll(queryCacheKey)
+        }
+
         return result
       }
 
@@ -91,8 +96,6 @@ export const build: SubMiddlewareBuilder = ({
       const querySubState = state.queries[queryCacheKey]
       const subscriptions = state.subscriptions[queryCacheKey]
 
-      clearExpiredPolls(state.subscriptions)
-
       if (
         !querySubState ||
         querySubState.status === QueryStatus.uninitialized
@@ -119,25 +122,15 @@ export const build: SubMiddlewareBuilder = ({
     }
 
     function clearPolls() {
-      for (const [key, poll] of Object.entries(currentPolls)) {
-        if (poll?.timeout) clearTimeout(poll.timeout)
-        delete currentPolls[key]
+      for (const [key] of Object.entries(currentPolls)) {
+        clearPoll(key)
       }
     }
 
-    function clearExpiredPolls(subscribers: SubscriptionState) {
-      for (const [key, poll] of Object.entries(currentPolls)) {
-        const sub = subscribers[key]
-
-        if (sub) {
-          const isActiveSubscription = Object.entries(sub).length
-
-          if (poll?.timeout && !isActiveSubscription) {
-            clearTimeout(poll.timeout)
-            delete currentPolls[key]
-          }
-        }
-      }
+    function clearPoll(key: string) {
+      const poll = currentPolls[key];
+      if (poll?.timeout) clearTimeout(poll.timeout)
+      delete currentPolls[key]
     }
   }
 
