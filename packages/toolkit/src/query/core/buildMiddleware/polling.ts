@@ -19,9 +19,23 @@ export const build: SubMiddlewareBuilder = ({
       timeout?: TimeoutId
       pollingInterval: number
     }> = {}
+
     return (next) =>
       (action): any => {
         const result = next(action)
+
+        if (api.internalActions.unsubscribeQueryResult.match(action)) {
+          const { queryCacheKey } = action.payload
+          const existingSubscriptionCount = Object.keys(
+            mwApi.getState()[reducerPath].subscriptions[queryCacheKey] || {}
+          ).length
+
+          // There are no other components subscribed and sharing a poll for this queryCacheKey, so we can
+          // safely remove it
+          if (existingSubscriptionCount === 0) {
+            cleanupPollForKey(queryCacheKey)
+          }
+        }
 
         if (api.internalActions.updateSubscriptionOptions.match(action)) {
           updatePollingInterval(action.payload, mwApi)
@@ -102,10 +116,7 @@ export const build: SubMiddlewareBuilder = ({
       const currentPoll = currentPolls[queryCacheKey]
 
       if (!Number.isFinite(lowestPollingInterval)) {
-        if (currentPoll?.timeout) {
-          clearTimeout(currentPoll.timeout)
-        }
-        delete currentPolls[queryCacheKey]
+        cleanupPollForKey(queryCacheKey)
         return
       }
 
@@ -116,10 +127,15 @@ export const build: SubMiddlewareBuilder = ({
       }
     }
 
+    function cleanupPollForKey(key: string) {
+      const existingPoll = currentPolls[key]
+      existingPoll?.timeout && clearTimeout(existingPoll.timeout)
+      delete currentPolls[key]
+    }
+
     function clearPolls() {
-      for (const [key, poll] of Object.entries(currentPolls)) {
-        if (poll?.timeout) clearTimeout(poll.timeout)
-        delete currentPolls[key]
+      for (const key of Object.keys(currentPolls)) {
+        cleanupPollForKey(key)
       }
     }
   }
