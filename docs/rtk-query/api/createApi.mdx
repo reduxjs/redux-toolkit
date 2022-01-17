@@ -164,7 +164,8 @@ export type QueryDefinition<
     TagTypes,
     ResultType,
     QueryArg,
-    BaseQueryError<BaseQuery>
+    BaseQueryError<BaseQuery>,
+    BaseQueryMeta<BaseQuery>
   >
 
   keepUnusedDataFor?: number
@@ -228,7 +229,13 @@ export type MutationDefinition<
 
   extraOptions?: BaseQueryExtraOptions<BaseQuery>
 
-  invalidatesTags?: ResultDescription<TagTypes, ResultType, QueryArg>
+  invalidatesTags?: ResultDescription<
+    TagTypes,
+    ResultType,
+    QueryArg,
+    BaseQueryError<BaseQuery>,
+    BaseQueryMeta<BaseQuery>
+  >
 
   onQueryStarted?(
     arg: QueryArg,
