@@ -1,4 +1,4 @@
-import type { QuerySubstateIdentifier, Subscribers, SubscriptionState } from '../apiState'
+import type { QuerySubstateIdentifier, Subscribers } from '../apiState'
 import { QueryStatus } from '../apiState'
 import type {
   QueryStateMeta,
