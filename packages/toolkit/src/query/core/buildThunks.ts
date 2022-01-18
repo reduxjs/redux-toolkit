@@ -467,31 +467,30 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       ).select(arg)(getState())
 
       if (force) {
-        handlePrefetchSubscription(
+        return handlePrefetchSubscription(
           dispatch(queryAction()),
           handleUnsubscribeDownstream
         )
       } else if (maxAge) {
         const lastFulfilledTs = latestStateValue?.fulfilledTimeStamp
         if (!lastFulfilledTs) {
-          handlePrefetchSubscription(
+          return handlePrefetchSubscription(
             dispatch(queryAction()),
             handleUnsubscribeDownstream
           )
-          return
         }
         const shouldRetrigger =
           (Number(new Date()) - Number(new Date(lastFulfilledTs))) / 1000 >=
           maxAge
         if (shouldRetrigger) {
-          handlePrefetchSubscription(
+          return handlePrefetchSubscription(
             dispatch(queryAction()),
             handleUnsubscribeDownstream
           )
         }
       } else {
         // If prefetching with no options, just let it try
-        handlePrefetchSubscription(
+        return handlePrefetchSubscription(
           dispatch(queryAction(false)),
           handleUnsubscribeDownstream
         )
