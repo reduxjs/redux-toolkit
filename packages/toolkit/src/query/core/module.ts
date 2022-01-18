@@ -49,16 +49,21 @@ import { enablePatches } from 'immer'
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
  * - If specified, it will only run the query if the difference between `new Date()` and the last `fulfilledTimeStamp` is greater than the given value
+ * `subscribe` - (default: `false` | `boolean`)
+ * - If `true`, `prefetch` will return an interface with `unsubscribe`
  *
  * @overloadSummary
  * `force`
  * - If `force: true`, it will ignore the `ifOlderThan` value if it is set and the query will be run even if it exists in the cache.
  */
-export type PrefetchOptions =
+export type PrefetchOptions = (
   | {
       ifOlderThan?: false | number
     }
   | { force?: boolean }
+) & {
+  subscribe?: boolean
+}
 
 export const coreModuleName = /* @__PURE__ */ Symbol()
 export type CoreModule =
