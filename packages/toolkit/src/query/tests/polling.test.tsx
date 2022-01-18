@@ -33,5 +33,21 @@ describe('polling tests', () => {
     expect(subscriptions).toHaveProperty(key) // TODO: key is gone after resetApiState. Expected?
     expect(subscriptions[key]?.pollingInterval).toBeFalsy()
   })
+
+  test('arg change replaces polling interval', async () => {
+    /**
+     * TODO
+     * - start query
+     * - change query arg
+     */
+  })
+
+  test(`removing a shared query instance with a poll doesn't replace the interval`, async () => {
+    // TODO
+  })
+
+  test('use lowest specified interval when two components are mounted', async () => {
+    // TODO
+  })
 })
 
