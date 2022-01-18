@@ -433,8 +433,8 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   const hasMaxAge = (
     options: any
   ): options is { ifOlderThan: false | number } => 'ifOlderThan' in options
-  const handlePrefetchSubscription = (result: QueryActionCreatorResult<any>) =>
-    result.unwrap().finally(result.unsubscribe)
+  const hasCleanup = (options: any): options is { cleanup?: boolean } =>
+    'cleanup' in options
 
   const prefetch =
     <EndpointName extends QueryKeys<Definitions>>(
@@ -445,33 +445,42 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     (dispatch: ThunkDispatch<any, any, any>, getState: () => any) => {
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan
+      const cleanupSubscription = hasCleanup(options) && options.cleanup
 
       const queryAction = (force: boolean = true) =>
         (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).initiate(
           arg,
           { forceRefetch: force }
         )
+      const queryCleanup = (
+        result: QueryActionCreatorResult<any>,
+        doCleanup: boolean = false
+      ) => {
+        if (doCleanup) {
+          result.unwrap().finally(result.unsubscribe)
+        }
+      }
       const latestStateValue = (
         api.endpoints[endpointName] as ApiEndpointQuery<any, any>
       ).select(arg)(getState())
 
       if (force) {
-        handlePrefetchSubscription(dispatch(queryAction()))
+        queryCleanup(dispatch(queryAction()), cleanupSubscription)
       } else if (maxAge) {
         const lastFulfilledTs = latestStateValue?.fulfilledTimeStamp
         if (!lastFulfilledTs) {
-          handlePrefetchSubscription(dispatch(queryAction()))
+          queryCleanup(dispatch(queryAction()), cleanupSubscription)
           return
         }
         const shouldRetrigger =
           (Number(new Date()) - Number(new Date(lastFulfilledTs))) / 1000 >=
           maxAge
         if (shouldRetrigger) {
-          handlePrefetchSubscription(dispatch(queryAction()))
+          queryCleanup(dispatch(queryAction()), cleanupSubscription)
         }
       } else {
         // If prefetching with no options, just let it try
-        handlePrefetchSubscription(dispatch(queryAction(false)))
+        queryCleanup(dispatch(queryAction(false)), cleanupSubscription)
       }
     }
 
