@@ -433,17 +433,8 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   const hasMaxAge = (
     options: any
   ): options is { ifOlderThan: false | number } => 'ifOlderThan' in options
-  const hasSubscribe = (options: any): options is { subscribe: boolean } =>
-    'subscribe' in options
-  const handlePrefetchSubscription = (
-    result: QueryActionCreatorResult<any>,
-    subscribe: boolean
-  ): void | QueryActionCreatorResult<any> => {
-    if (subscribe) {
-      return result
-    }
+  const handlePrefetchSubscription = (result: QueryActionCreatorResult<any>) =>
     result.unwrap().finally(result.unsubscribe)
-  }
 
   const prefetch =
     <EndpointName extends QueryKeys<Definitions>>(
@@ -454,8 +445,6 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     (dispatch: ThunkDispatch<any, any, any>, getState: () => any) => {
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan
-      const handleUnsubscribeDownstream =
-        hasSubscribe(options) && options.subscribe
 
       const queryAction = (force: boolean = true) =>
         (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).initiate(
@@ -467,33 +456,22 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       ).select(arg)(getState())
 
       if (force) {
-        return handlePrefetchSubscription(
-          dispatch(queryAction()),
-          handleUnsubscribeDownstream
-        )
+        handlePrefetchSubscription(dispatch(queryAction()))
       } else if (maxAge) {
         const lastFulfilledTs = latestStateValue?.fulfilledTimeStamp
         if (!lastFulfilledTs) {
-          return handlePrefetchSubscription(
-            dispatch(queryAction()),
-            handleUnsubscribeDownstream
-          )
+          handlePrefetchSubscription(dispatch(queryAction()))
+          return
         }
         const shouldRetrigger =
           (Number(new Date()) - Number(new Date(lastFulfilledTs))) / 1000 >=
           maxAge
         if (shouldRetrigger) {
-          return handlePrefetchSubscription(
-            dispatch(queryAction()),
-            handleUnsubscribeDownstream
-          )
+          handlePrefetchSubscription(dispatch(queryAction()))
         }
       } else {
         // If prefetching with no options, just let it try
-        return handlePrefetchSubscription(
-          dispatch(queryAction(false)),
-          handleUnsubscribeDownstream
-        )
+        handlePrefetchSubscription(dispatch(queryAction(false)))
       }
     }
 
