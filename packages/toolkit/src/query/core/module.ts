@@ -54,11 +54,14 @@ import { enablePatches } from 'immer'
  * `force`
  * - If `force: true`, it will ignore the `ifOlderThan` value if it is set and the query will be run even if it exists in the cache.
  */
-export type PrefetchOptions =
+export type PrefetchOptions = (
   | {
       ifOlderThan?: false | number
     }
   | { force?: boolean }
+) & {
+  cleanup?: boolean
+}
 
 export const coreModuleName = /* @__PURE__ */ Symbol()
 export type CoreModule =
