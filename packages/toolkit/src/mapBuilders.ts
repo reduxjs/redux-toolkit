@@ -2,9 +2,9 @@ import type { Action, AnyAction } from 'redux'
 import type {
   CaseReducer,
   CaseReducers,
-  ActionMatcher,
   ActionMatcherDescriptionCollection,
 } from './createReducer'
+import type { TypeGuard } from './tsHelpers'
 
 export interface TypedActionCreator<Type extends string> {
   (...args: any[]): Action<Type>
@@ -97,7 +97,7 @@ const reducer = createReducer(initialState, (builder) => {
 ```
    */
   addMatcher<A>(
-    matcher: ActionMatcher<A> | ((action: any) => boolean),
+    matcher: TypeGuard<A> | ((action: any) => boolean),
     reducer: CaseReducer<State, A extends AnyAction ? A : A & AnyAction>
   ): Omit<ActionReducerMapBuilder<State>, 'addCase'>
 
@@ -168,7 +168,7 @@ export function executeReducerBuilderCallback<S>(
       return builder
     },
     addMatcher<A>(
-      matcher: ActionMatcher<A>,
+      matcher: TypeGuard<A>,
       reducer: CaseReducer<S, A extends AnyAction ? A : A & AnyAction>
     ) {
       if (process.env.NODE_ENV !== 'production') {
