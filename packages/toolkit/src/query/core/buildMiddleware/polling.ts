@@ -24,20 +24,10 @@ export const build: SubMiddlewareBuilder = ({
       (action): any => {
         const result = next(action)
 
-        if (api.internalActions.unsubscribeQueryResult.match(action)) {
-          const { queryCacheKey } = action.payload
-          const existingSubscriptionCount = Object.keys(
-            mwApi.getState()[reducerPath].subscriptions[queryCacheKey] || {}
-          ).length
-
-          // There are no other components subscribed and sharing a poll for this queryCacheKey, so we can
-          // safely remove it
-          if (existingSubscriptionCount === 0) {
-            cleanupPollForKey(queryCacheKey)
-          }
-        }
-
-        if (api.internalActions.updateSubscriptionOptions.match(action)) {
+        if (
+          api.internalActions.updateSubscriptionOptions.match(action) ||
+          api.internalActions.unsubscribeQueryResult.match(action)
+        ) {
           updatePollingInterval(action.payload, mwApi)
         }
 
