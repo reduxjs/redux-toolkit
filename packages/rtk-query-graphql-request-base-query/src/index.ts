@@ -1,7 +1,8 @@
+import { isPlainObject } from '@reduxjs/toolkit'
+import type { BaseQueryFn } from '@reduxjs/toolkit/query'
 import type { DocumentNode } from 'graphql'
 import { GraphQLClient, ClientError } from 'graphql-request'
 import type {
-  BaseQueryFn,
   GraphqlRequestBaseQueryArgs,
   RequestHeaders,
 } from './GraphqlBaseQueryTypes'
@@ -17,20 +18,19 @@ export const graphqlRequestBaseQuery = ({
 > => {
   const client =
     'client' in options ? options.client : new GraphQLClient(options.url)
-  let requestHeaders: RequestHeaders = {}
-  if ('requestHeaders' in options) {
-    requestHeaders = options.requestHeaders
-  }
-  return async ({ document, variables }, { getState }) => {
-    try {
-      const headers = new Headers({})
-      if (requestHeaders) {
-        for (const [key, value] of Object.entries(requestHeaders)) {
-          headers.append(key, value)
-        }
-      }
+  const requestHeaders: RequestHeaders =
+    'requestHeaders' in options ? options.requestHeaders : {}
 
-      client.setHeaders(await prepareHeaders(headers, { getState }))
+  return async (
+    { document, variables },
+    { getState, endpoint, forced, type }
+  ) => {
+    try {
+      const headers = new Headers(stripUndefined({}))
+
+      client.setHeaders(
+        await prepareHeaders(headers, { getState, endpoint, forced, type })
+      )
       return { data: await client.request(document, variables), meta: {} }
     } catch (error) {
       if (error instanceof ClientError) {
@@ -40,4 +40,15 @@ export const graphqlRequestBaseQuery = ({
       throw error
     }
   }
+}
+
+function stripUndefined(obj: any) {
+  if (!isPlainObject(obj)) {
+    return obj
+  }
+  const copy: Record<string, any> = { ...obj }
+  for (const [k, v] of Object.entries(copy)) {
+    if (typeof v === 'undefined') delete copy[k]
+  }
+  return copy
 }
