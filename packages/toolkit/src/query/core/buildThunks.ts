@@ -500,30 +500,20 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   }
 }
 
-type CalculatableAction = UnwrapPromise<
-  ReturnType<ReturnType<QueryThunk>> | ReturnType<ReturnType<MutationThunk>>
->
 export function calculateProvidedByThunk(
-  action: CalculatableAction,
+  action: UnwrapPromise<
+    ReturnType<ReturnType<QueryThunk>> | ReturnType<ReturnType<MutationThunk>>
+  >,
   type: 'providesTags' | 'invalidatesTags',
   endpointDefinitions: EndpointDefinitions,
   assertTagType: AssertTagTypes
 ) {
-  const isQuery = (action: CalculatableAction) =>
-    action.meta.arg.type === 'query'
-  const isFulfilledQuery = (action: any): action is QueryThunk =>
-    isQuery(action)
-  const isFulfilledMutation = (action: any): action is MutationThunk =>
-    !isQuery(action)
-
   return calculateProvidedBy(
     endpointDefinitions[action.meta.arg.endpointName][type],
     isFulfilled(action) ? action.payload : undefined,
     isRejectedWithValue(action) ? action.payload : undefined,
     action.meta.arg.originalArgs,
-    isAnyOf(isRejected, isFulfilledQuery, isFulfilledMutation)(action)
-      ? action.meta.baseQueryMeta
-      : undefined,
+    'baseQueryMeta' in action.meta ? action.meta.baseQueryMeta : undefined,
     assertTagType
   )
 }
