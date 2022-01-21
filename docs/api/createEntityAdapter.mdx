@@ -222,7 +222,7 @@ All three options will insert _new_ entities into the list. However they differ 
 
 - `addOne` and `addMany` will do nothing with the new entity
 - `setOne` and `setMany` will completely replace the old entity with the new one. This will also get rid of any properties on the entity that are not present in the new version of said entity.
-- `upsertOne` and `upsertMany` will do a shallow copy to merge the old and new entities overwritng existing values, adding any that were not there and not touching properties not provided in the new entity.
+- `upsertOne` and `upsertMany` will do a shallow copy to merge the old and new entities overwriting existing values, adding any that were not there and not touching properties not provided in the new entity.
 
 :::
 
