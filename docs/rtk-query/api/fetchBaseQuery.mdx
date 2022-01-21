@@ -176,7 +176,7 @@ By default, `fetchBaseQuery` assumes that every request you make will be `json`,
 
 ### Parsing a Response
 
-By default, `fetchBaseQuery` assumes that every `Response` you get will be parsed as `json`. In the event that you don't want that to happen, you can specify an alternative response handler like `text`, or take complete control and use a custom function that accepts the raw `Response` object &mdash; allowing you to use any [`Body` method](https://developer.mozilla.org/en-US/docs/Web/API/Body).
+By default, `fetchBaseQuery` assumes that every `Response` you get will be parsed as `json`. In the event that you don't want that to happen, you can specify an alternative response handler like `text`, or take complete control and use a custom function that accepts the raw `Response` object &mdash; allowing you to use any [`Response` method](https://developer.mozilla.org/en-US/docs/Web/API/Response).
 
 ```ts title="Parse a Response as text"
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
