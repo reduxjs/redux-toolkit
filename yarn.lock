@@ -7995,6 +7995,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"async-mutex@npm:^0.3.2":
+  version: 0.3.2
+  resolution: "async-mutex@npm:0.3.2"
+  dependencies:
+    tslib: ^2.3.1
+  checksum: 620b771dfdea1cad0a6b712915c31a1e3ca880a8cf1eae92b4590f435995e0260929c6ebaae0b9126b1456790ea498064b5bb9a506948cda760f48d3d0dcc4c8
+  languageName: node
+  linkType: hard
+
 "async@npm:^2.6.2":
   version: 2.6.3
   resolution: "async@npm:2.6.3"
@@ -11303,6 +11312,7 @@ __metadata:
     "@types/react": ^16.9.46
     "@types/react-redux": ^7.1.9
     "@types/redux-logger": ^3.0.8
+    async-mutex: ^0.3.2
     axios: ^0.20.0
     formik: ^2.1.5
     graphql-request: ^3.4.0
