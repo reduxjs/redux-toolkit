@@ -3,7 +3,7 @@ import { createAsyncThunk } from '@internal/createAsyncThunk'
 import { executeReducerBuilderCallback } from '@internal/mapBuilders'
 import type { AnyAction } from '@reduxjs/toolkit'
 import { createAction } from '@reduxjs/toolkit'
-import { expectType } from './helpers'
+import { expectExactType, expectType } from './helpers'
 
 /** Test:  alternative builder callback for actionMap */
 {
@@ -66,6 +66,7 @@ import { expectType } from './helpers'
         (action): action is PredicateWithoutTypeProperty => true,
         (state, action) => {
           expectType<PredicateWithoutTypeProperty>(action)
+          expectType<AnyAction>(action)
         }
       )
     }
@@ -74,6 +75,15 @@ import { expectType } from './helpers'
     builder.addMatcher(
       () => true,
       (state, action) => {
+        expectExactType({} as AnyAction)(action)
+      }
+    )
+
+    // with a boolean checker, action can also be typed by type argument
+    builder.addMatcher<{ foo: boolean }>(
+      () => true,
+      (state, action) => {
+        expectType<{ foo: boolean }>(action)
         expectType<AnyAction>(action)
       }
     )
