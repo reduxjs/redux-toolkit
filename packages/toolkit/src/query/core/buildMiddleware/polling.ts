@@ -103,13 +103,13 @@ export const build: SubMiddlewareBuilder = ({
       }
 
       const lowestPollingInterval = findLowestPollingInterval(subscriptions)
-      const currentPoll = currentPolls[queryCacheKey]
 
       if (!Number.isFinite(lowestPollingInterval)) {
         cleanupPollForKey(queryCacheKey)
         return
       }
 
+      const currentPoll = currentPolls[queryCacheKey]
       const nextPollTimestamp = Date.now() + lowestPollingInterval
 
       if (!currentPoll || nextPollTimestamp < currentPoll.nextPollTimestamp) {
@@ -119,7 +119,9 @@ export const build: SubMiddlewareBuilder = ({
 
     function cleanupPollForKey(key: string) {
       const existingPoll = currentPolls[key]
-      existingPoll?.timeout && clearTimeout(existingPoll.timeout)
+      if (existingPoll?.timeout) {
+        clearTimeout(existingPoll.timeout)
+      }
       delete currentPolls[key]
     }
 
