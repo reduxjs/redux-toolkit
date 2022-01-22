@@ -503,7 +503,7 @@ describe('additional transformResponse behaviors', () => {
   type SuccessResponse = { value: 'success' }
   type EchoResponseData = { banana: 'bread' }
   const api = createApi({
-    baseQuery: fetchBaseQuery({ baseUrl: 'http://example.com' }),
+    baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
     endpoints: (build) => ({
       echo: build.mutation({
         query: () => ({ method: 'PUT', url: '/echo' }),
@@ -541,7 +541,7 @@ describe('additional transformResponse behaviors', () => {
       query: build.query<SuccessResponse & EchoResponseData, void>({
         query: () => '/success',
         transformResponse: async (response: SuccessResponse) => {
-          const res = await fetch('http://example.com/echo', {
+          const res = await fetch('https://example.com/echo', {
             method: 'POST',
             body: JSON.stringify({ banana: 'bread' }),
           }).then((res) => res.json())
@@ -640,7 +640,7 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
 
   type SuccessResponse = { value: 'success' }
   const api = createApi({
-    baseQuery: fetchBaseQuery({ baseUrl: 'http://example.com' }),
+    baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
     endpoints: (build) => ({
       echo: build.mutation({
         query: () => ({ method: 'PUT', url: '/echo' }),
@@ -677,7 +677,7 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
   test('query lifecycle events fire properly', async () => {
     // We intentionally fail the first request so we can test all lifecycles
     server.use(
-      rest.get('http://example.com/success', (_, res, ctx) =>
+      rest.get('https://example.com/success', (_, res, ctx) =>
         res.once(ctx.status(500), ctx.json({ value: 'failed' }))
       )
     )
@@ -701,7 +701,7 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
   test('mutation lifecycle events fire properly', async () => {
     // We intentionally fail the first request so we can test all lifecycles
     server.use(
-      rest.post('http://example.com/success', (_, res, ctx) =>
+      rest.post('https://example.com/success', (_, res, ctx) =>
         res.once(ctx.status(500), ctx.json({ value: 'failed' }))
       )
     )
