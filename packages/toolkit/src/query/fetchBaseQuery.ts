@@ -91,7 +91,7 @@ export type FetchBaseQueryError =
   | {
       /**
        * * `"CUSTOM_ERROR"`:
-       *   A custom error type that you can return from your `fetchFn` where another error might not make sense.
+       *   A custom error type that you can return from your `queryFn` where another error might not make sense.
        **/
       status: 'CUSTOM_ERROR'
       data?: unknown
