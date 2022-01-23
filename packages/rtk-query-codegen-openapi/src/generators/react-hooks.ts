@@ -10,23 +10,39 @@ type GetReactHookNameParams = {
   endpointOverrides: EndpointOverrides[] | undefined;
 };
 
-const getReactHookName = ({
-  operationDefinition: { verb, path, operation },
-  operationDefinition,
-  endpointOverrides,
-}: GetReactHookNameParams) => {
-  const overrides = getOverrides(operationDefinition, endpointOverrides);
+type CreateBindingParams = {
+  operationDefinition: OperationDefinition;
+  overrides?: EndpointOverrides;
+  isLazy?: boolean;
+};
 
-  return factory.createBindingElement(
+const createBinding = ({
+  operationDefinition: { verb, path, operation },
+  overrides,
+  isLazy = false,
+}: CreateBindingParams) =>
+  factory.createBindingElement(
     undefined,
     undefined,
     factory.createIdentifier(
-      `use${capitalize(getOperationName(verb, path, operation.operationId))}${
+      `use${isLazy ? 'Lazy' : ''}${capitalize(getOperationName(verb, path, operation.operationId))}${
         isQuery(verb, overrides) ? 'Query' : 'Mutation'
       }`
     ),
     undefined
   );
+
+const getReactHookName = ({ operationDefinition, endpointOverrides }: GetReactHookNameParams) => {
+  const overrides = getOverrides(operationDefinition, endpointOverrides);
+
+  const baseParams = {
+    operationDefinition,
+    overrides,
+  };
+
+  return isQuery(operationDefinition.verb, overrides)
+    ? [createBinding(baseParams), createBinding({ ...baseParams, isLazy: true })]
+    : createBinding(baseParams);
 };
 
 type GenerateReactHooksParams = {
@@ -41,9 +57,9 @@ export const generateReactHooks = ({ exportName, operationDefinitions, endpointO
       [
         factory.createVariableDeclaration(
           factory.createObjectBindingPattern(
-            operationDefinitions.map((operationDefinition) =>
-              getReactHookName({ operationDefinition, endpointOverrides })
-            )
+            operationDefinitions
+              .map((operationDefinition) => getReactHookName({ operationDefinition, endpointOverrides }))
+              .flat()
           ),
           undefined,
           undefined,
