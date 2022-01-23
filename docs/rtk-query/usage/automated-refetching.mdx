@@ -800,7 +800,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { Post, LoginResponse } from './types'
 
 const api = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: 'http://example.com' }),
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
   tagTypes: ['Post', 'UNAUTHORIZED', 'UNKNOWN_ERROR'],
   endpoints: (build) => ({
     postById: build.query<Post, number>({
@@ -856,7 +856,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { Post, User } from './types'
 
 const api = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: 'http://example.com' }),
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
   tagTypes: ['Post', 'User'],
   endpoints: (build) => ({
     getPosts: build.query<Post[], void>({
@@ -920,7 +920,7 @@ function providesList<R extends { id: string | number }[], T extends string>(
 // highlight-end
 
 const api = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: 'http://example.com' }),
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
   tagTypes: ['Post', 'User'],
   endpoints: (build) => ({
     getPosts: build.query({
