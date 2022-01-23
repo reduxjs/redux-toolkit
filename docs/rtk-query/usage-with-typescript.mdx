@@ -497,3 +497,184 @@ function MaybePost({ id }: { id?: number }) {
   return <div>...</div>
 }
 ```
+
+## Type safe error handling
+
+When an error is gracefully provided from a [`base query`](./api/createApi.mdx#baseQuery), RTK query will provide the error
+directly. If an unexpected error is thrown by user code rather than a handled error,
+that error will be transformed into a `SerializedError` shape. Users should make sure that they are checking which kind of error they are dealing with before attempting to access its properties. This can be done in a type safe manner either
+by using a type guard, e.g. by checking for [discriminated properties](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#the-in-operator-narrowing),
+or using a [type predicate](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates).
+
+When using [`fetchBaseQuery`](./api/fetchBaseQuery.mdx), as your base query,
+errors will be of type `FetchBaseQueryError | SerializedError`. The specific shapes of those types can be seen below.
+
+```ts title="FetchBaseQueryError type"
+export type FetchBaseQueryError =
+  | {
+      /**
+       * * `number`:
+       *   HTTP status code
+       */
+      status: number
+      data: unknown
+    }
+  | {
+      /**
+       * * `"FETCH_ERROR"`:
+       *   An error that occurred during execution of `fetch` or the `fetchFn` callback option
+       **/
+      status: 'FETCH_ERROR'
+      data?: undefined
+      error: string
+    }
+  | {
+      /**
+       * * `"PARSING_ERROR"`:
+       *   An error happened during parsing.
+       *   Most likely a non-JSON-response was returned with the default `responseHandler` "JSON",
+       *   or an error occurred while executing a custom `responseHandler`.
+       **/
+      status: 'PARSING_ERROR'
+      originalStatus: number
+      data: string
+      error: string
+    }
+  | {
+      /**
+       * * `"CUSTOM_ERROR"`:
+       *   A custom error type that you can return from your `queryFn` where another error might not make sense.
+       **/
+      status: 'CUSTOM_ERROR'
+      data?: unknown
+      error: string
+    }
+```
+
+```ts title="SerializedError type"
+export interface SerializedError {
+  name?: string
+  message?: string
+  stack?: string
+  code?: string
+}
+```
+
+### Error result example
+
+When using `fetchBaseQuery`, the `error` property returned from a hook will have the type `FetchBaseQueryError | SerializedError | undefined`.
+If an error is present, you can access error properties after narrowing the type to either `FetchBaseQueryError` or `SerializedError`.
+
+```tsx
+import { api } from './services/api'
+
+function PostDetail() {
+  const { data, error, isLoading } = usePostsQuery()
+
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+
+  if (error) {
+    if ('status' in error) {
+      // you can access all properties of `FetchBaseQueryError` here
+      const errMsg = 'error' in err ? err.error : JSON.stringify(err.data)
+
+      return (
+        <div>
+          <div>An error has occurred:</div>
+          <div>{errMsg}</div>
+        </div>
+      )
+    }
+    else {
+        // you can access all properties of `SerializedError` here
+        return <div>{error.message}</div>
+    }
+  }
+
+  if (data) {
+    return (
+      <div>
+        {data.map((post) => (
+          <div key={post.id}>Name: {post.name}</div>
+        ))}
+      </div>
+    )
+  }
+
+  return null
+}
+```
+
+### Inline error handling example
+
+When handling errors inline after [`unwrapping`](../api/createAsyncThunk.mdx#unwrapping-result-actions) a mutation call,
+a thrown error will have a type of `any` for typescript versions below 4.4,
+or [`unknown` for versions 4.4+](https://devblogs.microsoft.com/typescript/announcing-typescript-4-4/#use-unknown-catch-variables).
+In order to safely access properties of the error, you must first narrow the type to a known type.
+This can be done using a [type predicate](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)
+as shown below.
+
+```tsx title="services/helpers.ts"
+import { FetchBaseQueryError } from '@reduxjs/toolkit/query'
+
+/**
+ * Type predicate to narrow an unknown error to `FetchBaseQueryError`
+ */
+export function isFetchBaseQueryError(
+  error: unknown
+): error is FetchBaseQueryError {
+  return typeof error === 'object' && error != null && 'status' in error
+}
+
+/**
+ * Type predicate to narrow an unknown error to an object with a string 'message' property
+ */
+export function isErrorWithMessage(
+  error: unknown
+): error is { message: string } {
+  return (
+    typeof error === 'object' &&
+    error != null &&
+    'message' in error &&
+    typeof (error as any).message === 'string'
+  )
+}
+```
+
+```tsx title="addPost.tsx"
+import { useState } from 'react'
+import { useSnackbar } from 'notistack'
+import { api } from './services/api'
+import { isFetchBaseQueryError, isErrorWithMessage } from './services/helpers'
+
+function AddPost() {
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar()
+  const [name, setName] = useState('')
+  const [addPost] = useAddPostMutation()
+
+  async function handleAddPost() {
+    try {
+      await addPost(name).unwrap()
+      setName('')
+    } catch (err) {
+      if (isFetchBaseQueryError(err)) {
+        // you can access all properties of `FetchBaseQueryError` here
+        const errMsg = 'error' in err ? err.error : JSON.stringify(err.data)
+        enqueueSnackbar(errMsg, { variant: 'error' })
+      } else if (isErrorWithMessage(err)) {
+        // you can access a string 'message' property here
+        enqueueSnackbar(err.message, { variant: 'error' })
+      }
+    }
+  }
+
+  return (
+    <div>
+      <input value={name} onChange={(e) => setName(e.target.value)} />
+      <button>Add post</button>
+    </div>
+  )
+}
+```
