@@ -32,6 +32,10 @@ export interface RetryOptions {
    * Function used to determine delay between retries
    */
   backoff?: (attempt: number, maxRetries: number) => Promise<void>
+  /**
+   * No Retry Endpoint List
+   */
+  noRetryEndpointList?: string[]
 }
 
 function fail(e: any): never {
@@ -48,10 +52,12 @@ const retryWithBackoff: BaseQueryEnhancer<
   const options = {
     maxRetries: 5,
     backoff: defaultBackoff,
+    noRetryEndpointList: [],
     ...defaultOptions,
     ...extraOptions,
   }
   let retry = 0
+  const isNoRetryEndpoint = options.noRetryEndpointList.includes(api.endpoint)
 
   while (true) {
     try {
@@ -63,7 +69,7 @@ const retryWithBackoff: BaseQueryEnhancer<
       return result
     } catch (e) {
       retry++
-      if (e.throwImmediately || retry > options.maxRetries) {
+      if (e.throwImmediately || retry > options.maxRetries || isNoRetryEndpoint) {
         if (e instanceof HandledError) {
           return e.value
         }
