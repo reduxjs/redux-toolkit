@@ -64,6 +64,7 @@ export interface ApiContext<Definitions extends EndpointDefinitions> {
     action: AnyAction
   ) => CombinedState<any, any, any> | undefined
   hasRehydrationInfo: (action: AnyAction) => boolean
+  isStructuralSharingEnabled: boolean
 }
 
 export type Api<
