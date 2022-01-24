@@ -695,7 +695,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           /**
            * A method to manually refetch data for the query
            */
-          refetch: () => void promiseRef.current?.refetch(),
+          refetch: () => promiseRef.current?.refetch(),
         }),
         []
       )

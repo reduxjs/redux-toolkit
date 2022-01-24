@@ -55,7 +55,7 @@ export type QueryActionCreatorResult<
   abort(): void
   unwrap(): Promise<ResultTypeFrom<D>>
   unsubscribe(): void
-  refetch(): void
+  refetch(): undefined | QueryActionCreatorResult<D>
   updateSubscriptionOptions(options: SubscriptionOptions): void
   queryCacheKey: string
 }
@@ -301,7 +301,7 @@ Features like automatic cache collection, automatic refetching etc. will not be 
               return result.data
             },
             refetch() {
-              dispatch(
+              return dispatch(
                 queryAction(arg, { subscribe: false, forceRefetch: true })
               )
             },
