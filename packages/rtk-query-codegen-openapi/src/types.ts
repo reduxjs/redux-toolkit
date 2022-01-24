@@ -1,4 +1,3 @@
-import * as ts from 'typescript';
 import type { OpenAPIV3 } from 'openapi-types';
 
 export type OperationDefinition = {
@@ -50,7 +49,7 @@ export interface CommonOptions {
   /**
    * defaults to false
    */
-  hooks?: boolean;
+  hooks?: boolean | { queries: boolean; lazyQueries: boolean; mutations: boolean };
 
   /**
    * defaults to false
