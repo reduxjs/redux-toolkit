@@ -63,6 +63,7 @@ interface EndpointDefinitionWithQuery<
     meta: BaseQueryMeta<BaseQuery>,
     arg: QueryArg
   ): ResultType | Promise<ResultType>
+  structuralSharing?: boolean
 }
 
 interface EndpointDefinitionWithQueryFn<
@@ -116,6 +117,7 @@ interface EndpointDefinitionWithQueryFn<
   ): MaybePromise<QueryReturnValue<ResultType, BaseQueryError<BaseQuery>>>
   query?: never
   transformResponse?: never
+  structuralSharing?: boolean
 }
 
 export type BaseEndpointDefinition<

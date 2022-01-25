@@ -92,7 +92,7 @@ export function buildSlice({
     apiUid,
     extractRehydrationInfo,
     hasRehydrationInfo,
-    isStructuralSharingEnabled,
+    structuralSharing,
   },
   assertTagType,
   config,
@@ -158,9 +158,10 @@ export function buildSlice({
             (substate) => {
               if (substate.requestId !== meta.requestId) return
               substate.status = QueryStatus.fulfilled
-              substate.data = isStructuralSharingEnabled
-                ? copyWithStructuralSharing(substate.data, payload)
-                : payload
+              substate.data =
+                structuralSharing && meta.arg.structuralSharing
+                  ? copyWithStructuralSharing(substate.data, payload)
+                  : payload
               delete substate.error
               substate.fulfilledTimeStamp = meta.fulfilledTimeStamp
             }

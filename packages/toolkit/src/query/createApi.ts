@@ -196,14 +196,15 @@ export interface CreateApiOptions<
    *
    * Most apps should leave this setting on. The only time it can be a performance issue
    * is if an API returns extremely large amounts of data (e.g. 10,000 rows per request) and
-   * you're unable to paginate it.
+   * you're unable to paginate it. Even then, you should consider doing this at the endpoint
+   * or hook / initiate level instead for more granular control.
    *
    * For details of how this works, please see the below. When it is set to `false`,
    * every request will cause subscribed components to rerender, even when the data has not changed.
    *
    * @see https://redux-toolkit.js.org/api/other-exports#copywithstructuralsharing
    */
-  isStructuralSharingEnabled?: boolean
+  structuralSharing?: boolean
 }
 
 export type CreateApi<Modules extends ModuleName> = {
@@ -242,10 +243,7 @@ export type CreateApi<Modules extends ModuleName> = {
 export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
   ...modules: Modules
 ): CreateApi<Modules[number]['name']> {
-  return function baseCreateApi({
-    isStructuralSharingEnabled = true,
-    ...options
-  }) {
+  return function baseCreateApi({ structuralSharing = true, ...options }) {
     const extractRehydrationInfo = defaultMemoize((action: AnyAction) =>
       options.extractRehydrationInfo?.(action, {
         reducerPath: (options.reducerPath ?? 'api') as any,
@@ -259,7 +257,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       refetchOnMountOrArgChange: false,
       refetchOnFocus: false,
       refetchOnReconnect: false,
-      isStructuralSharingEnabled,
+      structuralSharing,
       ...options,
       extractRehydrationInfo,
       tagTypes: [...(options.tagTypes || [])],
@@ -276,7 +274,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       hasRehydrationInfo: defaultMemoize(
         (action) => extractRehydrationInfo(action) != null
       ),
-      isStructuralSharingEnabled,
+      structuralSharing,
     }
 
     const api = {

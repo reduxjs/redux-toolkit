@@ -46,6 +46,7 @@ export type Module<Name extends ModuleName> = {
       | 'refetchOnFocus'
       | 'refetchOnReconnect'
       | 'tagTypes'
+      | 'structuralSharing'
     >,
     context: ApiContext<Definitions>
   ): {
@@ -64,7 +65,7 @@ export interface ApiContext<Definitions extends EndpointDefinitions> {
     action: AnyAction
   ) => CombinedState<any, any, any> | undefined
   hasRehydrationInfo: (action: AnyAction) => boolean
-  isStructuralSharingEnabled: boolean
+  structuralSharing: boolean
 }
 
 export type Api<
