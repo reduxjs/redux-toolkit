@@ -26,7 +26,7 @@ export const graphqlRequestBaseQuery = ({
     { getState, endpoint, forced, type }
   ) => {
     try {
-      const headers = new Headers(stripUndefined({}))
+      const headers = new Headers(stripUndefined(requestHeaders))
 
       client.setHeaders(
         await prepareHeaders(headers, { getState, endpoint, forced, type })
