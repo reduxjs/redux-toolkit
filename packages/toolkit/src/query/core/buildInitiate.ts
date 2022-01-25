@@ -265,7 +265,7 @@ Features like automatic cache collection, automatic refetching etc. will not be 
           subscribe = true,
           forceRefetch,
           subscriptionOptions,
-          structuralSharing = true,
+          structuralSharing,
         } = {}
       ) =>
       (dispatch, getState) => {

@@ -17,6 +17,7 @@ import {
 } from './helpers'
 import { server } from './mocks/server'
 import { rest } from 'msw'
+import * as utils from '../utils'
 
 const originalEnv = process.env.NODE_ENV
 beforeAll(() => void ((process.env as any).NODE_ENV = 'development'))
@@ -762,4 +763,63 @@ test('providesTags and invalidatesTags can use baseQueryMeta', async () => {
   await storeRef.store.dispatch(api.endpoints.mutation.initiate())
 
   expect('request' in _meta! && 'response' in _meta!).toBe(true)
+})
+
+describe('strucutralSharing flag behaviors', () => {
+  const mockCopyFn = jest.spyOn(utils, 'copyWithStructuralSharing')
+
+  beforeEach(() => {
+    mockCopyFn.mockClear()
+  })
+
+  type SuccessResponse = { value: 'success' }
+
+  const apiSuccessResponse: SuccessResponse = { value: 'success' }
+
+  const api = createApi({
+    baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+    tagTypes: ['success'],
+    endpoints: (build) => ({
+      enabled: build.query<SuccessResponse, void>({
+        query: () => '/success',
+      }),
+      disabled: build.query<SuccessResponse, void>({
+        query: () => ({ url: '/success' }),
+        structuralSharing: false,
+      }),
+    }),
+  })
+
+  const storeRef = setupApiStore(api)
+
+  it('enables structural sharing for query endpoints by default', async () => {
+    const result = await storeRef.store.dispatch(
+      api.endpoints.enabled.initiate()
+    )
+    expect(mockCopyFn).toHaveBeenCalledTimes(1)
+    expect(result.data).toMatchObject(apiSuccessResponse)
+  })
+  it('allows a query endpoint to opt-out of structural sharing', async () => {
+    const result = await storeRef.store.dispatch(
+      api.endpoints.disabled.initiate()
+    )
+    expect(mockCopyFn).toHaveBeenCalledTimes(0)
+    expect(result.data).toMatchObject(apiSuccessResponse)
+  })
+  it('allows initiate to override endpoint and global settings and disable at the call site level', async () => {
+    // global flag is enabled, endpoint is also enabled by default
+    const result = await storeRef.store.dispatch(
+      api.endpoints.enabled.initiate(undefined, { structuralSharing: false })
+    )
+    expect(mockCopyFn).toHaveBeenCalledTimes(0)
+    expect(result.data).toMatchObject(apiSuccessResponse)
+  })
+  it('allows initiate to override the endpoint flag and enable sharing at the call site', async () => {
+    // global flag is enabled, endpoint is disabled
+    const result = await storeRef.store.dispatch(
+      api.endpoints.disabled.initiate(undefined, { structuralSharing: true })
+    )
+    expect(mockCopyFn).toHaveBeenCalledTimes(1)
+    expect(result.data).toMatchObject(apiSuccessResponse)
+  })
 })
