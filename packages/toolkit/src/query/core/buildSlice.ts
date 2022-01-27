@@ -92,7 +92,6 @@ export function buildSlice({
     apiUid,
     extractRehydrationInfo,
     hasRehydrationInfo,
-    structuralSharing: globalStructuralSharing,
   },
   assertTagType,
   config,
@@ -156,16 +155,10 @@ export function buildSlice({
             draft,
             meta.arg.queryCacheKey,
             (substate) => {
-              const endpointStructuralSharing =
-                definitions[meta.arg.endpointName].structuralSharing
-              const argStructuralSharing = meta.arg.structuralSharing
-
               if (substate.requestId !== meta.requestId) return
               substate.status = QueryStatus.fulfilled
               substate.data =
-                argStructuralSharing ??
-                endpointStructuralSharing ??
-                globalStructuralSharing
+                definitions[meta.arg.endpointName].structuralSharing ?? true
                   ? copyWithStructuralSharing(substate.data, payload)
                   : payload
               delete substate.error

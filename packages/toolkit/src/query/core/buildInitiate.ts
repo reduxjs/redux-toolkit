@@ -37,7 +37,6 @@ export interface StartQueryActionCreatorOptions {
   subscribe?: boolean
   forceRefetch?: boolean | number
   subscriptionOptions?: SubscriptionOptions
-  structuralSharing?: boolean
 }
 
 type StartQueryActionCreator<
@@ -259,15 +258,7 @@ Features like automatic cache collection, automatic refetching etc. will not be 
     endpointDefinition: QueryDefinition<any, any, any, any>
   ) {
     const queryAction: StartQueryActionCreator<any> =
-      (
-        arg,
-        {
-          subscribe = true,
-          forceRefetch,
-          subscriptionOptions,
-          structuralSharing,
-        } = {}
-      ) =>
+      (arg, { subscribe = true, forceRefetch, subscriptionOptions } = {}) =>
       (dispatch, getState) => {
         const queryCacheKey = serializeQueryArgs({
           queryArgs: arg,
@@ -282,7 +273,6 @@ Features like automatic cache collection, automatic refetching etc. will not be 
           endpointName,
           originalArgs: arg,
           queryCacheKey,
-          structuralSharing,
         })
         const thunkResult = dispatch(thunk)
         middlewareWarning(getState)

@@ -806,20 +806,4 @@ describe('strucutralSharing flag behaviors', () => {
     expect(mockCopyFn).toHaveBeenCalledTimes(0)
     expect(result.data).toMatchObject(apiSuccessResponse)
   })
-  it('allows initiate to override endpoint and global settings and disable at the call site level', async () => {
-    // global flag is enabled, endpoint is also enabled by default
-    const result = await storeRef.store.dispatch(
-      api.endpoints.enabled.initiate(undefined, { structuralSharing: false })
-    )
-    expect(mockCopyFn).toHaveBeenCalledTimes(0)
-    expect(result.data).toMatchObject(apiSuccessResponse)
-  })
-  it('allows initiate to override the endpoint flag and enable sharing at the call site', async () => {
-    // global flag is enabled, endpoint is disabled
-    const result = await storeRef.store.dispatch(
-      api.endpoints.disabled.initiate(undefined, { structuralSharing: true })
-    )
-    expect(mockCopyFn).toHaveBeenCalledTimes(1)
-    expect(result.data).toMatchObject(apiSuccessResponse)
-  })
 })

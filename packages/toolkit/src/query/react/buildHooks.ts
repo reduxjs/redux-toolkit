@@ -142,16 +142,6 @@ interface UseQuerySubscriptionOptions extends SubscriptionOptions {
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
    */
   refetchOnMountOrArgChange?: boolean | number
-  /**
-   * Defaults to `true`.
-   *
-   * Most apps should leave this setting on. The only time it can be a performance issue
-   * is if an API returns extremely large amounts of data (e.g. 10,000 rows per request) and
-   * you're unable to paginate it.
-   *
-   * @see https://redux-toolkit.js.org/api/other-exports#copywithstructuralsharing
-   */
-  structuralSharing?: boolean
 }
 
 /**
@@ -621,7 +611,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         refetchOnMountOrArgChange,
         skip = false,
         pollingInterval = 0,
-        structuralSharing,
       } = {}
     ) => {
       const { initiate } = api.endpoints[name] as ApiEndpointQuery<
@@ -679,7 +668,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
             initiate(stableArg, {
               subscriptionOptions: stableSubscriptionOptions,
               forceRefetch: refetchOnMountOrArgChange,
-              structuralSharing,
             })
           )
           promiseRef.current = promise
