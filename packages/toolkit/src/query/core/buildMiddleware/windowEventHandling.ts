@@ -37,6 +37,7 @@ export const build: SubMiddlewareBuilder = ({
 
         if (
           !subscriptionSubState ||
+          Object.keys(subscriptionSubState).length === 0 ||
           !querySubState ||
           querySubState.status === QueryStatus.uninitialized
         )
