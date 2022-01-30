@@ -72,6 +72,28 @@ test('data is removed from store after 60 seconds', async () => {
   expect(getSubStateA()).toBeUndefined()
 })
 
+test('data is removed from store if refetch without active subscribers', async () => {
+  expect(getSubStateA()).toBeUndefined()
+
+  const { unmount } = render(<UsingA />, { wrapper: storeRef.wrapper })
+  await waitFor(() =>
+    expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
+  )
+
+  unmount()
+
+  jest.advanceTimersByTime(20000)
+
+  expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
+
+  await storeRef.store.dispatch(api.endpoints.a.initiate())
+
+  jest.advanceTimersByTime(2000)
+
+  console.log(storeRef.store.getState())
+  expect(getSubStateA()).toBeUndefined()
+})
+
 test('data stays in store when component stays rendered while data for another component is removed after it unmounted', async () => {
   expect(getSubStateA()).toBeUndefined()
   expect(getSubStateB()).toBeUndefined()

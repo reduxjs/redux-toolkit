@@ -1,12 +1,16 @@
 import { QueryStatus } from '../apiState'
+import type { QueryCacheKey } from '../apiState'
 import { onFocus, onOnline } from '../setupListeners'
 import type { SubMiddlewareApi, SubMiddlewareBuilder } from './types'
 
 export const build: SubMiddlewareBuilder = ({
   reducerPath,
   context,
+  api,
   refetchQuery,
 }) => {
+  const { removeQueryResult } = api.internalActions
+
   return (mwApi) =>
     (next) =>
     (action): any => {
@@ -35,25 +39,27 @@ export const build: SubMiddlewareBuilder = ({
         const querySubState = queries[queryCacheKey]
         const subscriptionSubState = subscriptions[queryCacheKey]
 
-        if (
-          !subscriptionSubState ||
-          Object.keys(subscriptionSubState).length === 0 ||
-          !querySubState ||
-          querySubState.status === QueryStatus.uninitialized
-        )
-          return
+        if (!subscriptionSubState || !querySubState) return
 
-        const shouldRefetch =
-          Object.values(subscriptionSubState).some(
-            (sub) => sub[type] === true
-          ) ||
-          (Object.values(subscriptionSubState).every(
-            (sub) => sub[type] === undefined
-          ) &&
-            state.config[type])
+        if (Object.keys(subscriptionSubState).length === 0) {
+          api.dispatch(
+            removeQueryResult({
+              queryCacheKey: queryCacheKey as QueryCacheKey,
+            })
+          )
+        } else if (querySubState.status !== QueryStatus.uninitialized) {
+          const shouldRefetch =
+            Object.values(subscriptionSubState).some(
+              (sub) => sub[type] === true
+            ) ||
+            (Object.values(subscriptionSubState).every(
+              (sub) => sub[type] === undefined
+            ) &&
+              state.config[type])
 
-        if (shouldRefetch) {
-          api.dispatch(refetchQuery(querySubState, queryCacheKey))
+          if (shouldRefetch) {
+            api.dispatch(refetchQuery(querySubState, queryCacheKey))
+          }
         }
       }
     })
