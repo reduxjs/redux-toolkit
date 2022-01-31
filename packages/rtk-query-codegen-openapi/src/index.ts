@@ -60,3 +60,5 @@ function enforceOazapftsTsVersion<T>(cb: () => T): T {
     }
   }
 }
+
+function forceACIChange() {}
