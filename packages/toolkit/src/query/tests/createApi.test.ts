@@ -17,7 +17,6 @@ import {
 } from './helpers'
 import { server } from './mocks/server'
 import { rest } from 'msw'
-import * as utils from '../utils'
 
 const originalEnv = process.env.NODE_ENV
 beforeAll(() => void ((process.env as any).NODE_ENV = 'development'))
@@ -765,16 +764,8 @@ test('providesTags and invalidatesTags can use baseQueryMeta', async () => {
   expect('request' in _meta! && 'response' in _meta!).toBe(true)
 })
 
-describe('strucutralSharing flag behaviors', () => {
-  const mockCopyFn = jest.spyOn(utils, 'copyWithStructuralSharing')
-
-  beforeEach(() => {
-    mockCopyFn.mockClear()
-  })
-
+describe('structuralSharing flag behaviors', () => {
   type SuccessResponse = { value: 'success' }
-
-  const apiSuccessResponse: SuccessResponse = { value: 'success' }
 
   const api = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
@@ -793,17 +784,30 @@ describe('strucutralSharing flag behaviors', () => {
   const storeRef = setupApiStore(api)
 
   it('enables structural sharing for query endpoints by default', async () => {
-    const result = await storeRef.store.dispatch(
-      api.endpoints.enabled.initiate()
+    await storeRef.store.dispatch(api.endpoints.enabled.initiate())
+    const firstRef = api.endpoints.enabled.select()(storeRef.store.getState())
+
+    await storeRef.store.dispatch(
+      api.endpoints.enabled.initiate(undefined, { forceRefetch: true })
     )
-    expect(mockCopyFn).toHaveBeenCalledTimes(1)
-    expect(result.data).toMatchObject(apiSuccessResponse)
+
+    const secondRef = api.endpoints.enabled.select()(storeRef.store.getState())
+
+    expect(firstRef.requestId).not.toEqual(secondRef.requestId)
+    expect(firstRef.data === secondRef.data).toBeTruthy()
   })
+
   it('allows a query endpoint to opt-out of structural sharing', async () => {
-    const result = await storeRef.store.dispatch(
-      api.endpoints.disabled.initiate()
+    await storeRef.store.dispatch(api.endpoints.disabled.initiate())
+    const firstRef = api.endpoints.disabled.select()(storeRef.store.getState())
+
+    await storeRef.store.dispatch(
+      api.endpoints.disabled.initiate(undefined, { forceRefetch: true })
     )
-    expect(mockCopyFn).toHaveBeenCalledTimes(0)
-    expect(result.data).toMatchObject(apiSuccessResponse)
+
+    const secondRef = api.endpoints.disabled.select()(storeRef.store.getState())
+
+    expect(firstRef.requestId).not.toEqual(secondRef.requestId)
+    expect(firstRef.data === secondRef.data).toBeFalsy()
   })
 })
