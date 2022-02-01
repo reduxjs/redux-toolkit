@@ -57,9 +57,14 @@ interface SerializableStateInvariantMiddlewareOptions {
   warnAfter?: number
 
   /**
-   * Opt out of checking state, but continue checking actions
+   * Opt out of checking state. When set to `true`, other state-related params will be ignored.
    */
   ignoreState?: boolean
+
+  /**
+   * Opt out of checking actions. When set to `true`, other action-related params will be ignored.
+   */
+  ignoreActions?: boolean
 }
 ```
 
