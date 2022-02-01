@@ -39,25 +39,25 @@ export const build: SubMiddlewareBuilder = ({
         const querySubState = queries[queryCacheKey]
         const subscriptionSubState = subscriptions[queryCacheKey]
 
-        if (!subscriptionSubState || !querySubState) return
+        if (!subscriptionSubState || !querySubState) continue
 
-        if (Object.keys(subscriptionSubState).length === 0) {
-          api.dispatch(
-            removeQueryResult({
-              queryCacheKey: queryCacheKey as QueryCacheKey,
-            })
-          )
-        } else if (querySubState.status !== QueryStatus.uninitialized) {
-          const shouldRefetch =
-            Object.values(subscriptionSubState).some(
-              (sub) => sub[type] === true
-            ) ||
-            (Object.values(subscriptionSubState).every(
-              (sub) => sub[type] === undefined
-            ) &&
-              state.config[type])
+        const shouldRefetch =
+          Object.values(subscriptionSubState).some(
+            (sub) => sub[type] === true
+          ) ||
+          (Object.values(subscriptionSubState).every(
+            (sub) => sub[type] === undefined
+          ) &&
+            state.config[type])
 
-          if (shouldRefetch) {
+        if (shouldRefetch) {
+          if (Object.keys(subscriptionSubState).length === 0) {
+            api.dispatch(
+              removeQueryResult({
+                queryCacheKey: queryCacheKey as QueryCacheKey,
+              })
+            )
+          } else if (querySubState.status !== QueryStatus.uninitialized) {
             api.dispatch(refetchQuery(querySubState, queryCacheKey))
           }
         }
