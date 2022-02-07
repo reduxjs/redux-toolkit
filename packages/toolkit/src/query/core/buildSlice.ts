@@ -1,4 +1,4 @@
-import type { AnyAction, PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
 import {
   combineReducers,
   createAction,
@@ -22,7 +22,7 @@ import type {
   ConfigState,
 } from './apiState'
 import { QueryStatus } from './apiState'
-import type { MutationThunk, QueryThunk } from './buildThunks'
+import type { MutationThunk, QueryThunk, QueryThunkArg } from './buildThunks'
 import { calculateProvidedByThunk } from './buildThunks'
 import type {
   AssertTagTypes,
@@ -128,6 +128,31 @@ export function buildSlice({
         updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
           substate.data = applyPatches(substate.data as any, patches.concat())
         })
+      },
+      insertQueryResult(
+        draft,
+        {
+          payload: {
+            data,
+            arg: { originalArgs, endpointName, queryCacheKey },
+            fulfilledTimeStamp,
+          },
+        }: PayloadAction<{
+          data: any
+          arg: QueryThunkArg
+          fulfilledTimeStamp: number
+        }>
+      ) {
+        draft[queryCacheKey] = {
+          status: QueryStatus.fulfilled,
+          endpointName,
+          requestId: '',
+          originalArgs,
+          startedTimeStamp: fulfilledTimeStamp,
+          fulfilledTimeStamp,
+          data,
+          error: undefined,
+        }
       },
     },
     extraReducers(builder) {

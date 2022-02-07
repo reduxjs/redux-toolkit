@@ -224,6 +224,85 @@ describe('updateQueryData', () => {
   })
 })
 
+describe('upsertQueryData', () => {
+  test('can add new cache entries', async () => {
+    const { result } = renderHook(
+      () => api.endpoints.post.useQuery('4', { skip: true }),
+      {
+        wrapper: storeRef.wrapper,
+      }
+    )
+    await hookWaitFor(() => expect(result.current.isUninitialized).toBeTruthy())
+
+    const dataBefore = result.current.data
+    expect(dataBefore).toBeUndefined()
+
+    let returnValue!: ReturnType<ReturnType<typeof api.util.updateQueryData>>
+    act(() => {
+      returnValue = storeRef.store.dispatch(
+        api.util.upsertQueryData('post', '4', {
+          id: '4',
+          title: 'All about cheese.',
+          contents: 'I love cheese!',
+        })
+      )
+    })
+
+    const selector = api.endpoints.post.select('4')
+
+    const queryStateAfter = selector(storeRef.store.getState())
+
+    expect(queryStateAfter.data).toEqual({
+      id: '4',
+      title: 'All about cheese.',
+      contents: 'I love cheese!',
+    })
+
+    // TODO: expect(returnValue).toEqual(???)
+  })
+
+  test('can update existing', async () => {
+    baseQuery
+      .mockImplementationOnce(async () => ({
+        id: '3',
+        title: 'All about cheese.',
+        contents: 'TODO',
+      }))
+      .mockResolvedValueOnce(42)
+
+    const { result } = renderHook(() => api.endpoints.post.useQuery('3'), {
+      wrapper: storeRef.wrapper,
+    })
+    await hookWaitFor(() => expect(result.current.isSuccess).toBeTruthy())
+
+    const dataBefore = result.current.data
+    expect(dataBefore).toEqual({
+      id: '3',
+      title: 'All about cheese.',
+      contents: 'TODO',
+    })
+
+    let returnValue!: ReturnType<ReturnType<typeof api.util.updateQueryData>>
+    act(() => {
+      returnValue = storeRef.store.dispatch(
+        api.util.upsertQueryData('post', '3', {
+          id: '3',
+          title: 'All about cheese.',
+          contents: 'I love cheese!',
+        })
+      )
+    })
+
+    expect(result.current.data).toEqual({
+      id: '3',
+      title: 'All about cheese.',
+      contents: 'I love cheese!',
+    })
+
+    // TODO: expect(returnValue).toEqual(???)
+  })
+})
+
 describe('full integration', () => {
   test('success case', async () => {
     baseQuery

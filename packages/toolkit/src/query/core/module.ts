@@ -1,7 +1,11 @@
 /**
  * Note: this file should import all other files for type discovery and declaration merging
  */
-import type { PatchQueryDataThunk, UpdateQueryDataThunk } from './buildThunks'
+import type {
+  PatchQueryDataThunk,
+  UpdateQueryDataThunk,
+  UpsertQueryDataThunk,
+} from './buildThunks'
 import { buildThunks } from './buildThunks'
 import type {
   ActionCreatorWithPayload,
@@ -211,6 +215,25 @@ declare module '../apiTypes' {
           RootState<Definitions, string, ReducerPath>
         >
         /**
+         * A Redux thunk that manually adds a 'fulfilled' result to the API cache state with the provided data.  Unlike `patchQueryData`, which can only update previously-fetched data, `upsertQueryData` can both update existing results and add completely new entries to the cache.
+         *
+         * The thunk action creator accepts three arguments: the name of the endpoint we are updating (such as `'getPost'`), any relevant query arguments, and the result data for this API call.
+         *
+         * Caution: This is an advanced function which should be avoided unless absolutely necessary.
+         *
+         *  @example
+         *
+         * ```ts
+         * dispatch(
+         *   api.util.updateQueryData('getPosts', '1', { id: 1, name: 'Teddy' })
+         * )
+         * ```
+         */
+        upsertQueryData: UpsertQueryDataThunk<
+          Definitions,
+          RootState<Definitions, string, ReducerPath>
+        >
+        /**
          * A Redux thunk that applies a JSON diff/patch array to the cached data for a given query result. This immediately updates the Redux state with those changes.
          *
          * The thunk accepts three arguments: the name of the endpoint we are updating (such as `'getPost'`), any relevant query arguments, and a JSON diff/patch array as produced by Immer's `produceWithPatches`.
@@ -406,6 +429,7 @@ export const coreModule = (): Module<CoreModule> => ({
       mutationThunk,
       patchQueryData,
       updateQueryData,
+      upsertQueryData,
       prefetch,
       buildMatchThunkActions,
     } = buildThunks({
@@ -434,6 +458,7 @@ export const coreModule = (): Module<CoreModule> => ({
     safeAssign(api.util, {
       patchQueryData,
       updateQueryData,
+      upsertQueryData,
       prefetch,
       resetApiState: sliceActions.resetApiState,
     })

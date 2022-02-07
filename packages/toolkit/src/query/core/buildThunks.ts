@@ -163,6 +163,15 @@ export type UpdateQueryDataThunk<
   updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>
 ) => ThunkAction<PatchCollection, PartialState, any, AnyAction>
 
+export type UpsertQueryDataThunk<
+  Definitions extends EndpointDefinitions,
+  PartialState
+> = <EndpointName extends QueryKeys<Definitions>>(
+  endpointName: EndpointName,
+  args: QueryArgFrom<Definitions[EndpointName]>,
+  data: ResultTypeFrom<Definitions[EndpointName]>
+) => ThunkAction<PatchCollection, PartialState, any, AnyAction>
+
 /**
  * An object returned from dispatching a `api.util.updateQueryData` call.
  */
@@ -200,16 +209,26 @@ export function buildThunks<
 }) {
   type State = RootState<any, string, ReducerPath>
 
+  const querySubstateIdentifier = <
+    EndpointName extends string & QueryKeys<Definitions>
+  >(
+    endpointName: EndpointName,
+    args: QueryArgFrom<Definitions[EndpointName]>
+  ): QuerySubstateIdentifier => {
+    const endpointDefinition = endpointDefinitions[endpointName]
+    const queryCacheKey = serializeQueryArgs({
+      queryArgs: args,
+      endpointDefinition,
+      endpointName,
+    })
+    return { queryCacheKey }
+  }
+
   const patchQueryData: PatchQueryDataThunk<EndpointDefinitions, State> =
     (endpointName, args, patches) => (dispatch) => {
-      const endpointDefinition = endpointDefinitions[endpointName]
       dispatch(
         api.internalActions.queryResultPatched({
-          queryCacheKey: serializeQueryArgs({
-            queryArgs: args,
-            endpointDefinition,
-            endpointName,
-          }),
+          ...querySubstateIdentifier(endpointName, args),
           patches,
         })
       )
@@ -251,6 +270,43 @@ export function buildThunks<
       }
 
       dispatch(api.util.patchQueryData(endpointName, args, ret.patches))
+
+      return ret
+    }
+
+  const upsertQueryData: UpsertQueryDataThunk<EndpointDefinitions, State> =
+    (endpointName, args, data) => (dispatch, getState) => {
+      const currentState = (
+        api.endpoints[endpointName] as ApiEndpointQuery<any, any>
+      ).select(args)(getState())
+      if ('data' in currentState) {
+        return dispatch(
+          api.util.updateQueryData(endpointName, args, () => data)
+        )
+      }
+      let ret: PatchCollection = {
+        patches: [{ op: 'replace', path: [], value: data }],
+        inversePatches: [{ op: 'replace', path: [], value: undefined }],
+        undo: () =>
+          dispatch(
+            api.internalActions.removeQueryResult(
+              querySubstateIdentifier(endpointName, args)
+            )
+          ),
+      }
+
+      dispatch(
+        api.internalActions.insertQueryResult({
+          arg: {
+            ...querySubstateIdentifier(endpointName, args),
+            endpointName,
+            originalArgs: args,
+            type: 'query',
+          },
+          data,
+          fulfilledTimeStamp: Date.now(),
+        })
+      )
 
       return ret
     }
@@ -494,6 +550,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     mutationThunk,
     prefetch,
     updateQueryData,
+    upsertQueryData,
     patchQueryData,
     buildMatchThunkActions,
   }
