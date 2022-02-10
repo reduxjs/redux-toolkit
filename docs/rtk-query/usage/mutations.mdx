@@ -20,7 +20,7 @@ Mutation endpoints are defined by returning an object inside the `endpoints` sec
 
 Mutation endpoints should define either a `query` callback that constructs the URL (including any URL query params), or [a `queryFn` callback](./customizing-queries.mdx#customizing-queries-with-queryfn) that may do arbitrary async logic and return a result. The `query` callback may also return an object containing the URL, the HTTP method to use and a request body.
 
-If the `query` callback needs additional data to generate the URL, it should written to take a single argument. If you need to pass in multiple parameters, pass them formatted as a single "options object".
+If the `query` callback needs additional data to generate the URL, it should be written to take a single argument. If you need to pass in multiple parameters, pass them formatted as a single "options object".
 
 Mutation endpoints may also modify the response contents before the result is cached, define "tags" to identify cache invalidation, and provide cache entry lifecycle callbacks to run additional logic as cache entries are added and removed.
 
