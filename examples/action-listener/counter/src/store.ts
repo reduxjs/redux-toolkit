@@ -2,15 +2,15 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
 import { configureStore } from '@reduxjs/toolkit'
 import { counterSlice } from './services/counter/slice'
 import {
-  createActionListenerMiddleware,
-  ActionListenerMiddlewareAPI,
-  ActionListenerMiddleware,
+  createListenerMiddleware,
+  TypedStartListening,
+  TypedAddListener,
+  ListenerEffectAPI,
+  addListener,
 } from '@rtk-incubator/action-listener-middleware'
 import { themeSlice } from './services/theme/slice'
-import { setupCounterListeners } from './services/counter/listeners'
-import { setupThemeListeners } from './services/theme/listeners'
 
-const actionListenerMiddleware = createActionListenerMiddleware({
+const listenerMiddlewareInstance = createListenerMiddleware({
   onError: () => console.error,
 })
 
@@ -19,7 +19,7 @@ const store = configureStore({
     [counterSlice.name]: counterSlice.reducer,
     [themeSlice.name]: themeSlice.reducer,
   },
-  middleware: (gDM) => gDM().prepend(actionListenerMiddleware),
+  middleware: (gDM) => gDM().prepend(listenerMiddlewareInstance.middleware),
 })
 
 export { store }
@@ -29,19 +29,15 @@ export type RootState = ReturnType<typeof store.getState>
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch
 
-export type AppListenerApi = ActionListenerMiddlewareAPI<RootState, AppDispatch>
-export type AppActionListenerMiddleware = ActionListenerMiddleware<
-  RootState,
-  AppDispatch
->
+export type AppListenerEffectAPI = ListenerEffectAPI<RootState, AppDispatch>
 
-// Typed version of `actionListenerMiddleware`
-export const appActionListener =
-  actionListenerMiddleware as AppActionListenerMiddleware
+export type AppStartListening = TypedStartListening<RootState>
+export type AppAddListener = TypedAddListener<RootState>
+
+export const startAppListening =
+  listenerMiddlewareInstance.startListening as AppStartListening
+export const addAppListener = addListener as AppAddListener
 
 // Use throughout your app instead of plain `useDispatch` and `useSelector`
 export const useAppDispatch = () => useDispatch<AppDispatch>()
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
-
-setupCounterListeners(appActionListener)
-setupThemeListeners(appActionListener)

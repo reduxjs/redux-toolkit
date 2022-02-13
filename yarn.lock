@@ -3673,7 +3673,7 @@ __metadata:
   resolution: "@examples-action-listener/counter@workspace:examples/action-listener/counter"
   dependencies:
     "@reduxjs/toolkit": ^1.6.0-rc.1
-    "@rtk-incubator/action-listener-middleware": ^0.6.0
+    "@rtk-incubator/action-listener-middleware": ^0.8.0
     "@types/node": ^12.0.0
     "@types/react": ^17.0.0
     "@types/react-dom": ^17.0.0
@@ -5513,12 +5513,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rtk-incubator/action-listener-middleware@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "@rtk-incubator/action-listener-middleware@npm:0.6.0"
+"@rtk-incubator/action-listener-middleware@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@rtk-incubator/action-listener-middleware@npm:0.8.0"
   peerDependencies:
     "@reduxjs/toolkit": ^1.6.0
-  checksum: 01e600a9e513f883e4c6d02cbe4565b9691d6b43ebff432a9ad7f4f96d07c3164c3a0c14fde4391e3d3f65e18753e567b67d9645a2af27daba6b0aadd5fa2066
+  checksum: 2e9c0a235758bf2e7915c708ad641a7d3c25b0f7b0da787dca0fbdf73b0f530f3e9923f251232d1650c847e3447e96377ac592d5b167b7b63f216dccbb7c4d61
   languageName: node
   linkType: hard
 
