@@ -5513,16 +5513,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rtk-incubator/action-listener-middleware@npm:^0.8.0":
-  version: 0.8.0
-  resolution: "@rtk-incubator/action-listener-middleware@npm:0.8.0"
-  peerDependencies:
-    "@reduxjs/toolkit": ^1.6.0
-  checksum: 2e9c0a235758bf2e7915c708ad641a7d3c25b0f7b0da787dca0fbdf73b0f530f3e9923f251232d1650c847e3447e96377ac592d5b167b7b63f216dccbb7c4d61
-  languageName: node
-  linkType: hard
-
-"@rtk-incubator/action-listener-middleware@workspace:packages/action-listener-middleware":
+"@rtk-incubator/action-listener-middleware@^0.8.0, @rtk-incubator/action-listener-middleware@workspace:packages/action-listener-middleware":
   version: 0.0.0-use.local
   resolution: "@rtk-incubator/action-listener-middleware@workspace:packages/action-listener-middleware"
   dependencies:
