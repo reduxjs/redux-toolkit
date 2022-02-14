@@ -7,18 +7,21 @@ import type {
 
 export type Document = RequestDocument
 export type RequestHeaders = RequestOptions['requestHeaders']
+export type PrepareHeaders = (
+  headers: Headers,
+  api: Pick<BaseQueryApi, 'getState' | 'endpoint' | 'type' | 'forced'>
+) => MaybePromise<Headers>
 
 export type GraphqlRequestBaseQueryArgs = {
-  options:
+  options: (
     | {
         url: string
         requestHeaders?: RequestHeaders
       }
     | { client: GraphQLClient }
-  prepareHeaders?: (
-    headers: Headers,
-    api: Pick<BaseQueryApi, 'getState' | 'endpoint' | 'type' | 'forced'>
-  ) => MaybePromise<Headers>
+  ) & {
+    prepareHeaders?: PrepareHeaders
+  }
 }
 
 export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =

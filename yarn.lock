@@ -3853,7 +3853,7 @@ __metadata:
     "@emotion/styled": ^11.3.0
     "@mswjs/data": ^0.3.0
     "@reduxjs/toolkit": ^1.6.0-rc.1
-    "@rtk-query/graphql-request-base-query": "workspace:packages/rtk-query-graphql-request-base-query"
+    "@rtk-query/graphql-request-base-query": ^2.0.0
     "@types/faker": ^5.5.5
     "@types/react": 17.0.0
     "@types/react-dom": 17.0.0

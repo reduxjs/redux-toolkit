@@ -4,12 +4,12 @@ import type { DocumentNode } from 'graphql'
 import { GraphQLClient, ClientError } from 'graphql-request'
 import type {
   GraphqlRequestBaseQueryArgs,
+  PrepareHeaders,
   RequestHeaders,
 } from './GraphqlBaseQueryTypes'
 
 export const graphqlRequestBaseQuery = ({
   options,
-  prepareHeaders = (x) => x,
 }: GraphqlRequestBaseQueryArgs): BaseQueryFn<
   { document: string | DocumentNode; variables?: any },
   unknown,
@@ -26,10 +26,17 @@ export const graphqlRequestBaseQuery = ({
     { getState, endpoint, forced, type, signal }
   ) => {
     try {
+      const prepareHeaders: PrepareHeaders =
+        options.prepareHeaders ?? ((x) => x)
       const headers = new Headers(stripUndefined(requestHeaders))
 
       client.setHeaders(
-        await prepareHeaders(headers, { getState, endpoint, forced, type })
+        await prepareHeaders(headers, {
+          getState,
+          endpoint,
+          forced,
+          type,
+        })
       )
       return {
         data: await client.request({ document, variables, signal }),
