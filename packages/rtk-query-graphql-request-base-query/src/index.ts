@@ -8,9 +8,9 @@ import type {
   RequestHeaders,
 } from './GraphqlBaseQueryTypes'
 
-export const graphqlRequestBaseQuery = ({
-  options,
-}: GraphqlRequestBaseQueryArgs): BaseQueryFn<
+export const graphqlRequestBaseQuery = (
+  options: GraphqlRequestBaseQueryArgs
+): BaseQueryFn<
   { document: string | DocumentNode; variables?: any },
   unknown,
   Pick<ClientError, 'name' | 'message' | 'stack'>,
@@ -30,16 +30,20 @@ export const graphqlRequestBaseQuery = ({
         options.prepareHeaders ?? ((x) => x)
       const headers = new Headers(stripUndefined(requestHeaders))
 
-      client.setHeaders(
-        await prepareHeaders(headers, {
-          getState,
-          endpoint,
-          forced,
-          type,
-        })
-      )
+      const preparedHeaders = await prepareHeaders(headers, {
+        getState,
+        endpoint,
+        forced,
+        type,
+      })
+
       return {
-        data: await client.request({ document, variables, signal }),
+        data: await client.request({
+          document,
+          variables,
+          signal,
+          requestHeaders: preparedHeaders,
+        }),
         meta: {},
       }
     } catch (error) {

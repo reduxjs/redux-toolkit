@@ -12,16 +12,14 @@ export type PrepareHeaders = (
   api: Pick<BaseQueryApi, 'getState' | 'endpoint' | 'type' | 'forced'>
 ) => MaybePromise<Headers>
 
-export type GraphqlRequestBaseQueryArgs = {
-  options: (
-    | {
-        url: string
-        requestHeaders?: RequestHeaders
-      }
-    | { client: GraphQLClient }
-  ) & {
-    prepareHeaders?: PrepareHeaders
-  }
+export type GraphqlRequestBaseQueryArgs = (
+  | {
+      url: string
+    }
+  | { client: GraphQLClient }
+) & {
+  requestHeaders?: RequestHeaders
+  prepareHeaders?: PrepareHeaders
 }
 
 export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =
