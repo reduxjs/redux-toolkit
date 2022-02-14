@@ -3819,7 +3819,7 @@ __metadata:
     "@graphql-typed-document-node/core": ^3.1.0
     "@mswjs/data": ^0.4.0
     "@reduxjs/toolkit": ^1.6.0
-    "@rtk-query/graphql-request-base-query": ^1.0.3
+    "@rtk-query/graphql-request-base-query": ^2.0.0
     "@types/faker": ^5.5.5
     "@types/react": 17.0.0
     "@types/react-dom": 17.0.0
@@ -5579,13 +5579,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rtk-query/graphql-request-base-query@^1.0.3, @rtk-query/graphql-request-base-query@workspace:packages/rtk-query-graphql-request-base-query":
+"@rtk-query/graphql-request-base-query@^2.0.0, @rtk-query/graphql-request-base-query@workspace:packages/rtk-query-graphql-request-base-query":
   version: 0.0.0-use.local
   resolution: "@rtk-query/graphql-request-base-query@workspace:packages/rtk-query-graphql-request-base-query"
   dependencies:
     "@reduxjs/toolkit": ^1.6.0
     graphql: ^15.5.0
-    graphql-request: ^3.4.0
+    graphql-request: ^4.0.0
     microbundle: ^0.13.3
     typescript: ^4.3.4
   peerDependencies:
@@ -13829,6 +13829,19 @@ fsevents@^1.2.7:
   peerDependencies:
     graphql: 14.x || 15.x
   checksum: 5be0398af5cd02694893169bcc3b92f454910dac3b257aa350fa59686d8ef24334619f0b5bdd2fdefea654eab9544ec6f270688255dde9eeff5475d5e64ea073
+  languageName: node
+  linkType: hard
+
+"graphql-request@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "graphql-request@npm:4.0.0"
+  dependencies:
+    cross-fetch: ^3.0.6
+    extract-files: ^9.0.0
+    form-data: ^3.0.0
+  peerDependencies:
+    graphql: 14 - 16
+  checksum: 0d16c7f06360679c022faaa19554c2693e200263beae0dec920b0668f6c48b0d08de6e1155a50a050283a58a878b29b04db129a2d932a645bfadbe8d55530243
   languageName: node
   linkType: hard
 

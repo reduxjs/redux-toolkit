@@ -23,7 +23,7 @@ export const graphqlRequestBaseQuery = ({
 
   return async (
     { document, variables },
-    { getState, endpoint, forced, type }
+    { getState, endpoint, forced, type, signal }
   ) => {
     try {
       const headers = new Headers(stripUndefined(requestHeaders))
@@ -31,7 +31,10 @@ export const graphqlRequestBaseQuery = ({
       client.setHeaders(
         await prepareHeaders(headers, { getState, endpoint, forced, type })
       )
-      return { data: await client.request(document, variables), meta: {} }
+      return {
+        data: await client.request({ document, variables, signal }),
+        meta: {},
+      }
     } catch (error) {
       if (error instanceof ClientError) {
         const { name, message, stack, request, response } = error
