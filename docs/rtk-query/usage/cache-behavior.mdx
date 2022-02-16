@@ -154,7 +154,7 @@ const Component = () => {
 
 ### Encouraging re-fetching with `refetchOnMountOrArgChange`
 
-Queries can be encouraged to re-fetch more frequently than usual via the [`refetchOnMountOrArgChange`](../api/createApi.mdx#refetchonmountorargchange) property. This can be passed to the endpoint as a whole, to individual hook calls, or when dispatching the [`initiate`](../api/created-api/endpoints.mdx#initiate)action.
+Queries can be encouraged to re-fetch more frequently than usual via the [`refetchOnMountOrArgChange`](../api/createApi.mdx#refetchonmountorargchange) property. This can be passed to the endpoint as a whole, to individual hook calls, or when dispatching the [`initiate`](../api/created-api/endpoints.mdx#initiate) action (the name of the action creator's option is `forceRefetch` in the last case).
 
 `refetchOnMountOrArgChange` is used to encourage re-fetching in additional situations where the default behavior would instead serve cached data.
 
@@ -162,7 +162,7 @@ Queries can be encouraged to re-fetch more frequently than usual via the [`refet
 
 Passing `false` (the default value) for this property will use the default behavior [described above](#default-cache-behavior).
 
-Passing `true` for this property will cause the endpoint to always refetch when a new subscriber to the query is added. If passed to an individual hook call and not the api definition itself, then this applies only to that hook call. I.e., when the component calling the hook mounts, or the argument changes, it adds a new subscriber for that query, and will always refetch, regardless of whether cached data for the endpoint + arg combination already exists.
+Passing `true` for this property will cause the endpoint to always refetch when a new subscriber to the query is added. If passed to an individual hook call and not the api definition itself, then this applies only to that hook call. I.e., when the component calling the hook mounts, or the argument changes, it will always refetch, regardless of whether cached data for the endpoint + arg combination already exists.
 
 Passing a `number` as a value in seconds will use the following behavior:
 
