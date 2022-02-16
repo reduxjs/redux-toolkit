@@ -154,7 +154,7 @@ const Component = () => {
 
 ### Encouraging re-fetching with `refetchOnMountOrArgChange`
 
-Queries can be encouraged to re-fetch more frequently than usual via the [`refetchOnMountOrArgChange`](../api/createApi.mdx#refetchonmountorargchange) property. This can be passed to the endpoint as a whole, to individual hook calls, or when dispatching the [`initiate`](../api/created-api/endpoints.mdx#initiate) action (the name of the action creator's option is `forceRefetch` in the last case).
+Queries can be encouraged to re-fetch more frequently than usual via the [`refetchOnMountOrArgChange`](../api/createApi.mdx#refetchonmountorargchange) property. This can be passed to the endpoint as a whole, to individual hook calls, or when dispatching the [`initiate`](../api/created-api/endpoints.mdx#initiate) action (the name of the action creator's option is `forceRefetch`).
 
 `refetchOnMountOrArgChange` is used to encourage re-fetching in additional situations where the default behavior would instead serve cached data.
 
