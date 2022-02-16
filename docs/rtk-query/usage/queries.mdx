@@ -297,6 +297,34 @@ function PostById({ id }: { id: number }) {
 }
 ```
 
+Note that a shallow equality check is performed on the overall return value of `selectFromResult` to determine whether to force a rerender. i.e. it will trigger a rerender if any of the returned object values change reference. If a new array/object is created and used as a return value within the callback, it will hinder the performance benefits due to being identified as a new item each time the callback is run. When intentionally providing an empty array/object, in order to avoid re-creating it each time the callback runs, you can declare an empty array/object outside of the component in order to maintain a stable reference.
+
+```tsx title="Using selectFromResult with a stable empty array"
+// An array declared here will maintain a stable reference rather than be re-created again
+const emptyArray: Post[] = []
+
+function PostsList() {
+  // This call will result in an initial render returning an empty array for `posts`,
+  // and a second render when the data is received.
+  // It will trigger additional rerenders only if the `posts` data changes
+  const { posts } = api.useGetPostsQuery(undefined, {
+    selectFromResult: ({ data }) => ({
+      posts: data ?? emptyArray,
+    }),
+  })
+
+  return (
+    <ul>
+      {posts.map((post) => (
+        <PostById key={post.id} id={post.id} />
+      ))}
+    </ul>
+  )
+}
+```
+
+To summarize the above behaviour - the returned values must be correctly memoized. See also [Deriving Data with Selectors](https://redux.js.org/usage/deriving-data-selectors) and [Redux Essentials - RTK Query Advanced Patterns](https://redux.js.org/tutorials/essentials/part-8-rtk-query-advanced#selecting-values-from-results) for additional information.
+
 ### Avoiding unnecessary requests
 
 By default, if you add a component that makes the same query as an existing one, no request will be performed.
