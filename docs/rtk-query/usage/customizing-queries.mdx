@@ -390,6 +390,80 @@ const baseQueryWithReauth: BaseQueryFn<
 }
 ```
 
+#### Preventing multiple unauthorized errors
+
+Using [`async-mutex`](https://github.com/DirtyHairy/async-mutex) to prevent multiple calls to '/refreshToken' when multiple calls fail with [`401 Unauthorized`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401) errors.
+
+```ts title="Preventing multiple calls to '/refreshToken'"
+// file: authSlice.ts noEmit
+declare function tokenReceived(args?: any): void
+declare function loggedOut(): void
+export { tokenReceived, loggedOut }
+// file: baseQueryWithReauth.ts
+
+import {
+  BaseQueryFn,
+  FetchArgs,
+  fetchBaseQuery,
+  FetchBaseQueryError,
+} from '@reduxjs/toolkit/query'
+import { tokenReceived, loggedOut } from './authSlice'
+// highlight-start
+import { Mutex } from 'async-mutex'
+// highlight-end
+
+// create a new mutex
+// highlight-start
+const mutex = new Mutex()
+// highlight-end
+const baseQuery = fetchBaseQuery({ baseUrl: '/' })
+const baseQueryWithReauth: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError
+> = async (args, api, extraOptions) => {
+  // wait until the mutex is available without locking it
+  // highlight-start
+  await mutex.waitForUnlock()
+  // highlight-end
+  let result = await baseQuery(args, api, extraOptions)
+  if (result.error && result.error.status === 401) {
+    // checking whether the mutex is locked
+    // highlight-start
+    if (!mutex.isLocked()) {
+      const release = await mutex.acquire()
+      // highlight-end
+      try {
+        const refreshResult = await baseQuery(
+          '/refreshToken',
+          api,
+          extraOptions
+        )
+        if (refreshResult.data) {
+          api.dispatch(tokenReceived(refreshResult.data))
+          // retry the initial query
+          result = await baseQuery(args, api, extraOptions)
+        } else {
+          api.dispatch(loggedOut())
+        }
+      } finally {
+        // release must be called once the mutex should be released again.
+        // highlight-start
+        release()
+        // highlight-end
+      }
+    } else {
+      // wait until the mutex is available without locking it
+      // highlight-start
+      await mutex.waitForUnlock()
+      // highlight-end
+      result = await baseQuery(args, api, extraOptions)
+    }
+  }
+  return result
+}
+```
+
 ### Automatic retries
 
 RTK Query exports a utility called `retry` that you can wrap the `baseQuery` in your API definition with. It defaults to 5 attempts with a basic exponential backoff.
