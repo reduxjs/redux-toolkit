@@ -392,7 +392,7 @@ const baseQueryWithReauth: BaseQueryFn<
 
 #### Preventing multiple unauthorized errors
 
-Implementing [`async-mutex`](https://github.com/DirtyHairy/async-mutex) to prevent multiple calls to '/refreshToken' when multiple calls fail with [`401 Unauthorized`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401) errors.
+Using [`async-mutex`](https://github.com/DirtyHairy/async-mutex) to prevent multiple calls to '/refreshToken' when multiple calls fail with [`401 Unauthorized`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401) errors.
 
 ```ts title="Preventing multiple calls to '/refreshToken'"
 // file: authSlice.ts noEmit
