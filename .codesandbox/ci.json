@@ -12,13 +12,11 @@
   "packages": [
     "packages/toolkit",
     "packages/rtk-query-graphql-request-base-query",
-    "packages/action-listener-middleware",
     "packages/rtk-query-codegen-openapi"
   ],
   "publishDirectory": {
     "@reduxjs/toolkit": "packages/toolkit",
     "@rtk-query/graphql-request-base-query": "packages/rtk-query-graphql-request-base-query",
-    "@rtk-incubator/action-listener-middleware": "packages/action-listener-middleware",
     "@rtk-query/codegen-openapi": "packages/rtk-query-codegen-openapi"
   }
 }
