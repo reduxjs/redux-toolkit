@@ -32,6 +32,10 @@ function getOperationName({ verb, path, operation }: Pick<OperationDefinition, '
   return _getOperationName(verb, path, operation.operationId);
 }
 
+function getTags({ verb, pathItem }: Pick<OperationDefinition, 'verb' | 'pathItem'>): string[] {
+  return verb ? pathItem[verb]?.tags || [] : [];
+}
+
 function patternMatches(pattern?: TextMatcher) {
   const filters = Array.isArray(pattern) ? pattern : [pattern];
   return function matcher(operationName: string) {
@@ -175,7 +179,7 @@ export async function generateApi(
       operation: { responses, requestBody },
     } = operationDefinition;
     const operationName = getOperationName({ verb, path, operation });
-
+    const tags = getTags({ verb, pathItem });
     const isQuery = testIsQuery(verb, overrides);
 
     const returnsJson = apiGen.getResponseType(responses) === 'json';
@@ -309,7 +313,7 @@ export async function generateApi(
       type: isQuery ? 'query' : 'mutation',
       Response: ResponseTypeName,
       QueryArg,
-      queryFn: generateQueryFn({ operationDefinition, queryArg, isQuery }),
+      queryFn: generateQueryFn({ operationDefinition, queryArg, isQuery, tags }),
       extraEndpointsProps: isQuery
         ? generateQueryEndpointProps({ operationDefinition })
         : generateMutationEndpointProps({ operationDefinition }),
@@ -320,10 +324,12 @@ export async function generateApi(
     operationDefinition,
     queryArg,
     isQuery,
+    tags,
   }: {
     operationDefinition: OperationDefinition;
     queryArg: QueryArgDefinitions;
     isQuery: boolean;
+    tags: string[];
   }) {
     const { path, verb } = operationDefinition;
 
@@ -394,6 +400,12 @@ export async function generateApi(
                   factory.createIdentifier('params'),
                   generateQuerArgObjectLiteralExpression(queryParameters, rootObject)
                 ),
+            tags.length > 0
+              ? factory.createPropertyAssignment(
+                  factory.createIdentifier(isQuery ? 'providesTags' : 'invalidatesTags'),
+                  factory.createArrayLiteralExpression(tags.map((tag) => factory.createStringLiteral(tag), false))
+                )
+              : undefined,
           ].filter(removeUndefined),
           false
         )
