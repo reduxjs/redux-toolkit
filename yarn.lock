@@ -5513,22 +5513,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rtk-incubator/action-listener-middleware@^0.8.0, @rtk-incubator/action-listener-middleware@workspace:packages/action-listener-middleware":
-  version: 0.0.0-use.local
-  resolution: "@rtk-incubator/action-listener-middleware@workspace:packages/action-listener-middleware"
-  dependencies:
-    "@reduxjs/toolkit": ^1.6.0
-    "@types/jest": ^24.0.11
-    "@types/node": ^10.14.4
-    jest: ^26.6.3
-    microbundle: ^0.13.3
-    rimraf: ^3.0.2
-    ts-jest: ^26.5.5
-    typescript: ^4.3.4
+"@rtk-incubator/action-listener-middleware@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@rtk-incubator/action-listener-middleware@npm:0.8.0"
   peerDependencies:
     "@reduxjs/toolkit": ^1.6.0
-  languageName: unknown
-  linkType: soft
+  checksum: 2e9c0a235758bf2e7915c708ad641a7d3c25b0f7b0da787dca0fbdf73b0f530f3e9923f251232d1650c847e3447e96377ac592d5b167b7b63f216dccbb7c4d61
+  languageName: node
+  linkType: hard
 
 "@rtk-query/codegen-openapi@workspace:packages/rtk-query-codegen-openapi":
   version: 0.0.0-use.local
