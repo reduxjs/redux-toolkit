@@ -40,7 +40,8 @@
             "api/configureStore",
             "api/getDefaultMiddleware",
             "api/immutabilityMiddleware",
-            "api/serializabilityMiddleware"
+            "api/serializabilityMiddleware",
+            "api/createListenerMiddleware"
           ]
         },
         {
