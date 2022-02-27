@@ -699,3 +699,33 @@ listenerMiddleware.startListening({
   },
 })
 ```
+
+### Adding Listeners Inside Components
+
+Listeners can be added at runtime via `dispatch(addListener())`. This means that you can add listeners anywhere you have access to `dispatch`, and that includes React components.
+
+Since dispatching `addListener` returns an `unsubscribe` callback, this naturally maps to the behavior of React `useEffect` hooks, which let you return a cleanup function. You can add a listener in an effect, and remove the listener when the hook is cleaned up.
+
+The basic pattern might look like:
+
+```js
+useEffect(() => {
+  // Could also just `return dispatch(addListener())` directly, but showing this
+  // as a separate variable to be clear on what's happening
+  const unsubscribe = dispatch(
+    addListener({
+      actionCreator: todoAdded,
+      effect: (action, listenerApi) => {
+        // do some useful logic here
+      },
+    })
+  )
+  return unsubscribe
+}, [])
+```
+
+While this pattern is _possible_, **we do not necessarily _recommend_ doing this!** The React and Redux communities have always tried to emphasize basing behavior on _state_ as much as possible. Having React components directly tie into the Redux action dispatch pipeline could potentialy lead to codebases that are more difficult to maintain.
+
+At the same time, this _is_ a valid technique, both in terms of API behavior and potential use cases. It's been common to lazy-load sagas as part of a code-split app, and that has often required some complex additional setup work to "inject" sagas. In contrast, `dispatch(addListener())` fits naturally into a React component's lifecycle.
+
+So, while we're not specifically encouraging use of this pattern, it's worth documenting here so that users are aware of it as a possibility.
