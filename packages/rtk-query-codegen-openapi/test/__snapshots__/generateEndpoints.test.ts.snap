@@ -673,38 +673,52 @@ export const { useGetApiV1AnimalsQuery } = injectedRtkApi;
 
 exports[`yaml parsing should be able to use read a yaml file 1`] = `
 import { api } from './tmp/emptyApi';
+export const addTagTypes = ['pet', 'store', 'user'] as const;
 const injectedRtkApi = api.injectEndpoints({
+  addTagTypes,
   endpoints: (build) => ({
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
-      query: (queryArg) => ({ url: \`/pet\`, method: 'PUT', body: queryArg.pet }),
+      query: (queryArg) => ({
+        url: \`/pet\`,
+        method: 'PUT',
+        body: queryArg.pet,
+        invalidatesTags: ['pet'],
+      }),
     }),
     addPet: build.mutation<AddPetApiResponse, AddPetApiArg>({
       query: (queryArg) => ({
         url: \`/pet\`,
         method: 'POST',
         body: queryArg.pet,
+        invalidatesTags: ['pet'],
       }),
     }),
     findPetsByStatus: build.query<FindPetsByStatusApiResponse, FindPetsByStatusApiArg>({
       query: (queryArg) => ({
         url: \`/pet/findByStatus\`,
         params: { status: queryArg.status },
+        providesTags: ['pet'],
       }),
     }),
     findPetsByTags: build.query<FindPetsByTagsApiResponse, FindPetsByTagsApiArg>({
       query: (queryArg) => ({
         url: \`/pet/findByTags\`,
         params: { tags: queryArg.tags },
+        providesTags: ['pet'],
       }),
     }),
     getPetById: build.query<GetPetByIdApiResponse, GetPetByIdApiArg>({
-      query: (queryArg) => ({ url: \`/pet/\${queryArg.petId}\` }),
+      query: (queryArg) => ({
+        url: \`/pet/\${queryArg.petId}\`,
+        providesTags: ['pet'],
+      }),
     }),
     updatePetWithForm: build.mutation<UpdatePetWithFormApiResponse, UpdatePetWithFormApiArg>({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
         method: 'POST',
         params: { name: queryArg.name, status: queryArg.status },
+        invalidatesTags: ['pet'],
       }),
     }),
     deletePet: build.mutation<DeletePetApiResponse, DeletePetApiArg>({
@@ -712,6 +726,7 @@ const injectedRtkApi = api.injectEndpoints({
         url: \`/pet/\${queryArg.petId}\`,
         method: 'DELETE',
         headers: { api_key: queryArg.apiKey },
+        invalidatesTags: ['pet'],
       }),
     }),
     uploadFile: build.mutation<UploadFileApiResponse, UploadFileApiArg>({
@@ -720,25 +735,31 @@ const injectedRtkApi = api.injectEndpoints({
         method: 'POST',
         body: queryArg.body,
         params: { additionalMetadata: queryArg.additionalMetadata },
+        invalidatesTags: ['pet'],
       }),
     }),
     getInventory: build.query<GetInventoryApiResponse, GetInventoryApiArg>({
-      query: () => ({ url: \`/store/inventory\` }),
+      query: () => ({ url: \`/store/inventory\`, providesTags: ['store'] }),
     }),
     placeOrder: build.mutation<PlaceOrderApiResponse, PlaceOrderApiArg>({
       query: (queryArg) => ({
         url: \`/store/order\`,
         method: 'POST',
         body: queryArg.order,
+        invalidatesTags: ['store'],
       }),
     }),
     getOrderById: build.query<GetOrderByIdApiResponse, GetOrderByIdApiArg>({
-      query: (queryArg) => ({ url: \`/store/order/\${queryArg.orderId}\` }),
+      query: (queryArg) => ({
+        url: \`/store/order/\${queryArg.orderId}\`,
+        providesTags: ['store'],
+      }),
     }),
     deleteOrder: build.mutation<DeleteOrderApiResponse, DeleteOrderApiArg>({
       query: (queryArg) => ({
         url: \`/store/order/\${queryArg.orderId}\`,
         method: 'DELETE',
+        invalidatesTags: ['store'],
       }),
     }),
     createUser: build.mutation<CreateUserApiResponse, CreateUserApiArg>({
@@ -746,6 +767,7 @@ const injectedRtkApi = api.injectEndpoints({
         url: \`/user\`,
         method: 'POST',
         body: queryArg.user,
+        invalidatesTags: ['user'],
       }),
     }),
     createUsersWithListInput: build.mutation<CreateUsersWithListInputApiResponse, CreateUsersWithListInputApiArg>({
@@ -753,31 +775,38 @@ const injectedRtkApi = api.injectEndpoints({
         url: \`/user/createWithList\`,
         method: 'POST',
         body: queryArg.body,
+        invalidatesTags: ['user'],
       }),
     }),
     loginUser: build.query<LoginUserApiResponse, LoginUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/login\`,
         params: { username: queryArg.username, password: queryArg.password },
+        providesTags: ['user'],
       }),
     }),
     logoutUser: build.query<LogoutUserApiResponse, LogoutUserApiArg>({
-      query: () => ({ url: \`/user/logout\` }),
+      query: () => ({ url: \`/user/logout\`, providesTags: ['user'] }),
     }),
     getUserByName: build.query<GetUserByNameApiResponse, GetUserByNameApiArg>({
-      query: (queryArg) => ({ url: \`/user/\${queryArg.username}\` }),
+      query: (queryArg) => ({
+        url: \`/user/\${queryArg.username}\`,
+        providesTags: ['user'],
+      }),
     }),
     updateUser: build.mutation<UpdateUserApiResponse, UpdateUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/\${queryArg.username}\`,
         method: 'PUT',
         body: queryArg.user,
+        invalidatesTags: ['user'],
       }),
     }),
     deleteUser: build.mutation<DeleteUserApiResponse, DeleteUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/\${queryArg.username}\`,
         method: 'DELETE',
+        invalidatesTags: ['user'],
       }),
     }),
   }),
@@ -950,7 +979,9 @@ export const {
 
 exports[`yaml parsing should generate params with non quoted keys if they don't contain special characters 1`] = `
 import { api } from './tmp/emptyApi';
+export const addTagTypes = ['StructureDefinition'] as const;
 const injectedRtkApi = api.injectEndpoints({
+  addTagTypes,
   endpoints: (build) => ({
     getStructureDefinition: build.query<GetStructureDefinitionApiResponse, GetStructureDefinitionApiArg>({
       query: (queryArg) => ({
@@ -965,6 +996,7 @@ const injectedRtkApi = api.injectEndpoints({
           namingConflict: queryArg.namingConflict,
           naming_conflict: queryArg.naming_conflict,
         },
+        providesTags: ['StructureDefinition'],
       }),
     }),
   }),
@@ -996,38 +1028,52 @@ export const { useGetStructureDefinitionQuery } = injectedRtkApi;
 
 exports[`yaml parsing should parse a yaml schema from a URL 1`] = `
 import { api } from './tmp/emptyApi';
+export const addTagTypes = ['pet', 'store', 'user'] as const;
 const injectedRtkApi = api.injectEndpoints({
+  addTagTypes,
   endpoints: (build) => ({
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
-      query: (queryArg) => ({ url: \`/pet\`, method: 'PUT', body: queryArg.pet }),
+      query: (queryArg) => ({
+        url: \`/pet\`,
+        method: 'PUT',
+        body: queryArg.pet,
+        invalidatesTags: ['pet'],
+      }),
     }),
     addPet: build.mutation<AddPetApiResponse, AddPetApiArg>({
       query: (queryArg) => ({
         url: \`/pet\`,
         method: 'POST',
         body: queryArg.pet,
+        invalidatesTags: ['pet'],
       }),
     }),
     findPetsByStatus: build.query<FindPetsByStatusApiResponse, FindPetsByStatusApiArg>({
       query: (queryArg) => ({
         url: \`/pet/findByStatus\`,
         params: { status: queryArg.status },
+        providesTags: ['pet'],
       }),
     }),
     findPetsByTags: build.query<FindPetsByTagsApiResponse, FindPetsByTagsApiArg>({
       query: (queryArg) => ({
         url: \`/pet/findByTags\`,
         params: { tags: queryArg.tags },
+        providesTags: ['pet'],
       }),
     }),
     getPetById: build.query<GetPetByIdApiResponse, GetPetByIdApiArg>({
-      query: (queryArg) => ({ url: \`/pet/\${queryArg.petId}\` }),
+      query: (queryArg) => ({
+        url: \`/pet/\${queryArg.petId}\`,
+        providesTags: ['pet'],
+      }),
     }),
     updatePetWithForm: build.mutation<UpdatePetWithFormApiResponse, UpdatePetWithFormApiArg>({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
         method: 'POST',
         params: { name: queryArg.name, status: queryArg.status },
+        invalidatesTags: ['pet'],
       }),
     }),
     deletePet: build.mutation<DeletePetApiResponse, DeletePetApiArg>({
@@ -1035,6 +1081,7 @@ const injectedRtkApi = api.injectEndpoints({
         url: \`/pet/\${queryArg.petId}\`,
         method: 'DELETE',
         headers: { api_key: queryArg.apiKey },
+        invalidatesTags: ['pet'],
       }),
     }),
     uploadFile: build.mutation<UploadFileApiResponse, UploadFileApiArg>({
@@ -1043,25 +1090,31 @@ const injectedRtkApi = api.injectEndpoints({
         method: 'POST',
         body: queryArg.body,
         params: { additionalMetadata: queryArg.additionalMetadata },
+        invalidatesTags: ['pet'],
       }),
     }),
     getInventory: build.query<GetInventoryApiResponse, GetInventoryApiArg>({
-      query: () => ({ url: \`/store/inventory\` }),
+      query: () => ({ url: \`/store/inventory\`, providesTags: ['store'] }),
     }),
     placeOrder: build.mutation<PlaceOrderApiResponse, PlaceOrderApiArg>({
       query: (queryArg) => ({
         url: \`/store/order\`,
         method: 'POST',
         body: queryArg.order,
+        invalidatesTags: ['store'],
       }),
     }),
     getOrderById: build.query<GetOrderByIdApiResponse, GetOrderByIdApiArg>({
-      query: (queryArg) => ({ url: \`/store/order/\${queryArg.orderId}\` }),
+      query: (queryArg) => ({
+        url: \`/store/order/\${queryArg.orderId}\`,
+        providesTags: ['store'],
+      }),
     }),
     deleteOrder: build.mutation<DeleteOrderApiResponse, DeleteOrderApiArg>({
       query: (queryArg) => ({
         url: \`/store/order/\${queryArg.orderId}\`,
         method: 'DELETE',
+        invalidatesTags: ['store'],
       }),
     }),
     createUser: build.mutation<CreateUserApiResponse, CreateUserApiArg>({
@@ -1069,6 +1122,7 @@ const injectedRtkApi = api.injectEndpoints({
         url: \`/user\`,
         method: 'POST',
         body: queryArg.user,
+        invalidatesTags: ['user'],
       }),
     }),
     createUsersWithListInput: build.mutation<CreateUsersWithListInputApiResponse, CreateUsersWithListInputApiArg>({
@@ -1076,31 +1130,38 @@ const injectedRtkApi = api.injectEndpoints({
         url: \`/user/createWithList\`,
         method: 'POST',
         body: queryArg.body,
+        invalidatesTags: ['user'],
       }),
     }),
     loginUser: build.query<LoginUserApiResponse, LoginUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/login\`,
         params: { username: queryArg.username, password: queryArg.password },
+        providesTags: ['user'],
       }),
     }),
     logoutUser: build.query<LogoutUserApiResponse, LogoutUserApiArg>({
-      query: () => ({ url: \`/user/logout\` }),
+      query: () => ({ url: \`/user/logout\`, providesTags: ['user'] }),
     }),
     getUserByName: build.query<GetUserByNameApiResponse, GetUserByNameApiArg>({
-      query: (queryArg) => ({ url: \`/user/\${queryArg.username}\` }),
+      query: (queryArg) => ({
+        url: \`/user/\${queryArg.username}\`,
+        providesTags: ['user'],
+      }),
     }),
     updateUser: build.mutation<UpdateUserApiResponse, UpdateUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/\${queryArg.username}\`,
         method: 'PUT',
         body: queryArg.user,
+        invalidatesTags: ['user'],
       }),
     }),
     deleteUser: build.mutation<DeleteUserApiResponse, DeleteUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/\${queryArg.username}\`,
         method: 'DELETE',
+        invalidatesTags: ['user'],
       }),
     }),
   }),
