@@ -33,9 +33,11 @@ export function generateImportNode(pkg: string, namedImports: Record<string, str
 export function generateCreateApiCall({
   endpointBuilder = defaultEndpointBuilder,
   endpointDefinitions,
+  tag,
 }: {
   endpointBuilder?: ts.Identifier;
   endpointDefinitions: ts.ObjectLiteralExpression;
+  tag: boolean;
 }) {
   return factory.createVariableStatement(
     undefined,
@@ -54,7 +56,9 @@ export function generateCreateApiCall({
             [
               factory.createObjectLiteralExpression(
                 [
-                  factory.createShorthandPropertyAssignment(factory.createIdentifier('addTagTypes'), undefined),
+                  ...(tag
+                    ? [factory.createShorthandPropertyAssignment(factory.createIdentifier('addTagTypes'), undefined)]
+                    : []),
                   ...generateObjectProperties({
                     endpoints: factory.createArrowFunction(
                       undefined,

@@ -71,6 +71,7 @@ export async function generateApi(
     argSuffix = 'ApiArg',
     responseSuffix = 'ApiResponse',
     hooks = false,
+    tag = false,
     outputFile,
     isDataResponse = defaultIsDataResponse,
     filterEndpoints,
@@ -120,8 +121,9 @@ export async function generateApi(
     factory.createSourceFile(
       [
         generateImportNode(apiFile, { [apiImport]: 'api' }),
-        generateTagTypes({ addTagTypes: generateAddTagTypes({ operationDefinitions }) }),
+        ...(tag ? [generateTagTypes({ addTagTypes: generateAddTagTypes({ operationDefinitions }) })] : []),
         generateCreateApiCall({
+          tag,
           endpointDefinitions: factory.createObjectLiteralExpression(
             operationDefinitions.map((operationDefinition) =>
               generateEndpoint({
@@ -412,7 +414,7 @@ export async function generateApi(
                   factory.createIdentifier('params'),
                   generateQuerArgObjectLiteralExpression(queryParameters, rootObject)
                 ),
-            tags.length > 0
+            tag && tags.length > 0
               ? factory.createPropertyAssignment(
                   factory.createIdentifier(isQuery ? 'providesTags' : 'invalidatesTags'),
                   factory.createArrayLiteralExpression(tags.map((tag) => factory.createStringLiteral(tag), false))
