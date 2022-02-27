@@ -259,12 +259,12 @@ Returns `true` if the `options.listener` listener has been removed, `false` if n
 store.dispatch(removeListener({ predicate, listener }))
 ```
 
-### `removeAllListeners`
+### `clearAllListeners`
 
 A standard RTK action creator, imported from the package. Dispatching this action tells the middleware to dynamically remove all listeners at runtime.
 
 ```js
-store.dispatch(removeAllListeners())
+store.dispatch(clearAllListeners())
 ```
 
 ## Listener API
