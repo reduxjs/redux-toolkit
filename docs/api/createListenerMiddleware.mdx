@@ -144,7 +144,7 @@ const store = configureStore({
 Adds a new listener entry to the middleware. Typically used to "statically" add new listeners during application setup.
 
 ```ts no-transpile
-const startListening = (options: AddListenerOptions) => Unsubscribe
+const startListening = (options: AddListenerOptions) => UnsubscribeListener
 
 interface AddListenerOptions {
   // Four options for deciding when the listener will run:
@@ -170,6 +170,14 @@ type ListenerPredicate<Action extends AnyAction, State> = (
   currentState?: State,
   originalState?: State
 ) => boolean
+
+type UnsubscribeListener = (
+  unsuscribeOptions?: UnsubscribeListenerOptions
+) => void
+
+interface UnsubscribeListenerOptions {
+  cancelActive?: true
+}
 ```
 
 **You must provide exactly _one_ of the four options for deciding when the listener will run: `type`, `actionCreator`, `matcher`, or `predicate`**. Every time an action is dispatched, each listener will be checked to see if it should run based on the current action vs the comparison option provided.
@@ -199,7 +207,9 @@ Note that the `predicate` option actually allows matching solely against state-r
 
 The ["matcher" utility functions included in RTK](./matching-utilities.mdx) are acceptable as either the `matcher` or `predicate` option.
 
-The return value is a standard `unsubscribe()` callback that will remove this listener. If you try to add a listener entry but another entry with this exact function reference already exists, no new entry will be added, and the existing `unsubscribe` method will be returned.
+The return value is an `unsubscribe()` callback that will remove this listener. By default, unsubscribing will _not_ cancel any active instances of the listener. However, you may also pass in `{cancelActive: true}` to cancel running instances.
+
+If you try to add a listener entry but another entry with this exact function reference already exists, no new entry will be added, and the existing `unsubscribe` method will be returned.
 
 The `effect` callback will receive the current action as its first argument, as well as a "listener API" object similar to the "thunk API" object in `createAsyncThunk`.
 
@@ -207,28 +217,45 @@ All listener predicates and callbacks are checked _after_ the root reducer has a
 
 ### `stopListening`
 
-Removes a given listener. It accepts the same arguments as `startListening()`. It checks for an existing listener entry by comparing the function references of `listener` and the provided `actionCreator/matcher/predicate` function or `type` string.
+Removes a given listener entry.
+
+It accepts the same arguments as `startListening()`. It checks for an existing listener entry by comparing the function references of `listener` and the provided `actionCreator/matcher/predicate` function or `type` string.
+
+By default, this does _not_ cancel any active running instances. However, you may also pass in `{cancelActive: true}` to cancel running instances.
 
 ```ts no-transpile
-const stopListening = (options: AddListenerOptions) => boolean
+const stopListening = (
+  options: AddListenerOptions & UnsubscribeListenerOptions
+) => boolean
+
+interface UnsubscribeListenerOptions {
+  cancelActive?: true
+}
 ```
 
 Returns `true` if the `options.effect` listener has been removed, or `false` if no subscription matching the input provided has been found.
 
 ```js
+// Examples:
 // 1) Action type string
-listenerMiddleware.stopListening({ type: 'todos/todoAdded', listener })
+listenerMiddleware.stopListening({
+  type: 'todos/todoAdded',
+  listener,
+  cancelActive: true,
+})
 // 2) RTK action creator
 listenerMiddleware.stopListening({ actionCreator: todoAdded, listener })
 // 3) RTK matcher function
-listenerMiddleware.stopListening({ matcher, listener })
+listenerMiddleware.stopListening({ matcher, listener, cancelActive: true })
 // 4) Listener predicate
 listenerMiddleware.stopListening({ predicate, listener })
 ```
 
 ### `clearListeners`
 
-Removes all current listener entries. This is most likely useful for test scenarios where a single middleware or store instance might be used in multiple tests, as well as some app cleanup situations.
+Removes all current listener entries. It also cancels all active running instances of those listeners as well.
+
+This is most likely useful for test scenarios where a single middleware or store instance might be used in multiple tests, as well as some app cleanup situations.
 
 ```ts no-transpile
 const clearListeners = () => void;
@@ -253,18 +280,22 @@ const unsubscribe = store.dispatch(addListener({ predicate, listener }))
 
 A standard RTK action creator, imported from the package. Dispatching this action tells the middleware to dynamically remove a listener at runtime. Accepts the same arguments as `stopListening()`.
 
+By default, this does _not_ cancel any active running instances. However, you may also pass in `{cancelActive: true}` to cancel running instances.
+
 Returns `true` if the `options.listener` listener has been removed, `false` if no subscription matching the input provided has been found.
 
 ```js
-store.dispatch(removeListener({ predicate, listener }))
+const wasRemoved = store.dispatch(
+  removeListener({ predicate, listener, cancelActive: true })
+)
 ```
 
-### `removeAllListeners`
+### `clearAllListeners`
 
-A standard RTK action creator, imported from the package. Dispatching this action tells the middleware to dynamically remove all listeners at runtime.
+A standard RTK action creator, imported from the package. Dispatching this action tells the middleware to remove all current listener entries. It also cancels all active running instances of those listeners as well.
 
 ```js
-store.dispatch(removeAllListeners())
+store.dispatch(clearAllListeners())
 ```
 
 ## Listener API
@@ -284,7 +315,7 @@ The `listenerApi` object is the second argument to each listener callback. It co
 
 ### Listener Subscription Management
 
-- `unsubscribe: () => void`: removes the listener entry from the middleware, and prevent future instances of the listener from running.
+- `unsubscribe: () => void`: removes the listener entry from the middleware, and prevent future instances of the listener from running. (This does _not_ cancel any active instances.)
 - `subscribe: () => void`: will re-subscribe the listener entry if it was previously removed, or no-op if currently subscribed
 - `cancelActiveListeners: () => void`: cancels all other running instances of this same listener _except_ for the one that made this call. (The cancellation will only have a meaningful effect if the other instances are paused using one of the cancellation-aware APIs like `take/cancel/pause/delay` - see "Cancelation and Task Management" in the "Usage" section for more details)
 - `signal: AbortSignal`: An [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) whose `aborted` property will be set to `true` if the listener execution is aborted or completed.
