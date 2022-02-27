@@ -3672,8 +3672,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@examples-action-listener/counter@workspace:examples/action-listener/counter"
   dependencies:
-    "@reduxjs/toolkit": ^1.6.0-rc.1
-    "@rtk-incubator/action-listener-middleware": ^0.8.0
+    "@reduxjs/toolkit": ^1.8.0-rc.0
     "@types/node": ^12.0.0
     "@types/react": ^17.0.0
     "@types/react-dom": ^17.0.0
@@ -5332,27 +5331,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@reduxjs/toolkit@npm:^1.6.0, @reduxjs/toolkit@npm:^1.6.0-rc.1":
-  version: 1.7.2
-  resolution: "@reduxjs/toolkit@npm:1.7.2"
-  dependencies:
-    immer: ^9.0.7
-    redux: ^4.1.2
-    redux-thunk: ^2.4.1
-    reselect: ^4.1.5
-  peerDependencies:
-    react: ^16.9.0 || ^17.0.0 || 18.0.0-beta
-    react-redux: ^7.2.1 || ^8.0.0-beta
-  peerDependenciesMeta:
-    react:
-      optional: true
-    react-redux:
-      optional: true
-  checksum: 41c17c660f7c95d776658b9a101f9803c37589b2c08861e90283abe5fab70f99c37af064fae0c5b7501f67308946fa072504f6a801e272f157b9f7427a5e571e
-  languageName: node
-  linkType: hard
-
-"@reduxjs/toolkit@workspace:packages/toolkit":
+"@reduxjs/toolkit@^1.8.0-rc.0, @reduxjs/toolkit@workspace:packages/toolkit":
   version: 0.0.0-use.local
   resolution: "@reduxjs/toolkit@workspace:packages/toolkit"
   dependencies:
@@ -5420,6 +5399,26 @@ __metadata:
       optional: true
   languageName: unknown
   linkType: soft
+
+"@reduxjs/toolkit@npm:^1.6.0, @reduxjs/toolkit@npm:^1.6.0-rc.1":
+  version: 1.7.2
+  resolution: "@reduxjs/toolkit@npm:1.7.2"
+  dependencies:
+    immer: ^9.0.7
+    redux: ^4.1.2
+    redux-thunk: ^2.4.1
+    reselect: ^4.1.5
+  peerDependencies:
+    react: ^16.9.0 || ^17.0.0 || 18.0.0-beta
+    react-redux: ^7.2.1 || ^8.0.0-beta
+  peerDependenciesMeta:
+    react:
+      optional: true
+    react-redux:
+      optional: true
+  checksum: 41c17c660f7c95d776658b9a101f9803c37589b2c08861e90283abe5fab70f99c37af064fae0c5b7501f67308946fa072504f6a801e272f157b9f7427a5e571e
+  languageName: node
+  linkType: hard
 
 "@rollup/plugin-alias@npm:^3.1.1":
   version: 3.1.2
@@ -5530,15 +5529,6 @@ __metadata:
   peerDependencies:
     rollup: ^1.20.0||^2.0.0
   checksum: 8be16e27863c219edbb25a4e6ec2fe0e1e451d9e917b6a43cf2ae5bc025a6b8faaa40f82a6e53b66d0de37b58ff472c6c3d57a83037ae635041f8df959d6d9aa
-  languageName: node
-  linkType: hard
-
-"@rtk-incubator/action-listener-middleware@npm:^0.8.0":
-  version: 0.8.0
-  resolution: "@rtk-incubator/action-listener-middleware@npm:0.8.0"
-  peerDependencies:
-    "@reduxjs/toolkit": ^1.6.0
-  checksum: 2e9c0a235758bf2e7915c708ad641a7d3c25b0f7b0da787dca0fbdf73b0f530f3e9923f251232d1650c847e3447e96377ac592d5b167b7b63f216dccbb7c4d61
   languageName: node
   linkType: hard
 

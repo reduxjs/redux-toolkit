@@ -1,5 +1,11 @@
 import { counterActions, counterSelectors } from './slice'
-import { AnyAction, isAllOf, isAnyOf, PayloadAction, Unsubscribe } from '@reduxjs/toolkit'
+import {
+  AnyAction,
+  isAllOf,
+  isAnyOf,
+  PayloadAction,
+  Unsubscribe,
+} from '@reduxjs/toolkit'
 import type { AppListenerEffectAPI, AppStartListening } from '../../store'
 
 function shouldStopAsyncTasksOf(id: string) {
@@ -70,7 +76,9 @@ async function onUpdateAsync(
  * }, []);
  * ```
  */
-export function setupCounterListeners(startListening: AppStartListening): Unsubscribe {
+export function setupCounterListeners(
+  startListening: AppStartListening
+): Unsubscribe {
   const subscriptions = [
     startListening({
       actionCreator: counterActions.updateByPeriodically,

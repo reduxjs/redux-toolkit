@@ -8,7 +8,6 @@ import { CounterList } from '../CounterList/CounterList'
 import { CreateCounterForm } from '../CreateCounterForm/CreateCounterForm'
 import { store, startAppListening } from '../../store'
 
-
 export function App() {
   useEffect(() => {
     const subscriptions: Unsubscribe[] = [
@@ -32,5 +31,5 @@ export function App() {
         </main>
       </Provider>
     </React.StrictMode>
-  )   
+  )
 }
