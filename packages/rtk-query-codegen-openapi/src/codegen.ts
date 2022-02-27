@@ -33,11 +33,9 @@ export function generateImportNode(pkg: string, namedImports: Record<string, str
 export function generateCreateApiCall({
   endpointBuilder = defaultEndpointBuilder,
   endpointDefinitions,
-  addTagTypes,
 }: {
   endpointBuilder?: ts.Identifier;
   endpointDefinitions: ts.ObjectLiteralExpression;
-  addTagTypes?: ts.ArrayLiteralExpression;
 }) {
   return factory.createVariableStatement(
     undefined,
@@ -55,28 +53,30 @@ export function generateCreateApiCall({
             undefined,
             [
               factory.createObjectLiteralExpression(
-                generateObjectProperties({
-                  addTagTypes,
-                  endpoints: factory.createArrowFunction(
-                    undefined,
-                    undefined,
-                    [
-                      factory.createParameterDeclaration(
-                        undefined,
-                        undefined,
-                        undefined,
-                        endpointBuilder,
-                        undefined,
-                        undefined,
-                        undefined
-                      ),
-                    ],
-                    undefined,
-                    factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-                    factory.createParenthesizedExpression(endpointDefinitions)
-                  ),
-                  overrideExisting: factory.createFalse(),
-                }),
+                [
+                  factory.createShorthandPropertyAssignment(factory.createIdentifier('addTagTypes'), undefined),
+                  ...generateObjectProperties({
+                    endpoints: factory.createArrowFunction(
+                      undefined,
+                      undefined,
+                      [
+                        factory.createParameterDeclaration(
+                          undefined,
+                          undefined,
+                          undefined,
+                          endpointBuilder,
+                          undefined,
+                          undefined,
+                          undefined
+                        ),
+                      ],
+                      undefined,
+                      factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+                      factory.createParenthesizedExpression(endpointDefinitions)
+                    ),
+                    overrideExisting: factory.createFalse(),
+                  }),
+                ],
                 true
               ),
             ]
@@ -117,6 +117,29 @@ export function generateEndpointDefinition({
           true
         ),
       ]
+    )
+  );
+}
+
+export function generateTagTypes({ addTagTypes }: { addTagTypes: string[] }) {
+  return factory.createVariableStatement(
+    [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+    factory.createVariableDeclarationList(
+      [
+        factory.createVariableDeclaration(
+          factory.createIdentifier('addTagTypes'),
+          undefined,
+          undefined,
+          factory.createAsExpression(
+            factory.createArrayLiteralExpression(
+              addTagTypes.map((tagType) => factory.createStringLiteral(tagType)),
+              true
+            ),
+            factory.createTypeReferenceNode(factory.createIdentifier('const'), undefined)
+          )
+        ),
+      ],
+      ts.NodeFlags.Const
     )
   );
 }

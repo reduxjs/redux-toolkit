@@ -17,7 +17,7 @@ import type { OpenAPIV3 } from 'openapi-types';
 import { generateReactHooks } from './generators/react-hooks';
 import type { EndpointMatcher, EndpointOverrides, GenerationOptions, OperationDefinition, TextMatcher } from './types';
 import { capitalize, getOperationDefinitions, getV3Doc, isQuery as testIsQuery, removeUndefined } from './utils';
-import type { ObjectPropertyDefinitions } from './codegen';
+import { generateTagTypes, ObjectPropertyDefinitions } from './codegen';
 import { generateCreateApiCall, generateEndpointDefinition, generateImportNode } from './codegen';
 import { factory } from './utils/factory';
 
@@ -120,10 +120,8 @@ export async function generateApi(
     factory.createSourceFile(
       [
         generateImportNode(apiFile, { [apiImport]: 'api' }),
+        generateTagTypes({ addTagTypes: generateAddTagTypes({ operationDefinitions }) }),
         generateCreateApiCall({
-          addTagTypes: factory.createArrayLiteralExpression(
-            generateAddTagTypes({ operationDefinitions }).map((tag) => factory.createStringLiteral(tag), false)
-          ),
           endpointDefinitions: factory.createObjectLiteralExpression(
             operationDefinitions.map((operationDefinition) =>
               generateEndpoint({
