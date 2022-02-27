@@ -1,13 +1,13 @@
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
-import { configureStore } from '@reduxjs/toolkit'
-import { counterSlice } from './services/counter/slice'
 import {
+  configureStore,
   createListenerMiddleware,
   TypedStartListening,
   TypedAddListener,
   ListenerEffectAPI,
   addListener,
-} from '@rtk-incubator/action-listener-middleware'
+} from '@reduxjs/toolkit'
+import { counterSlice } from './services/counter/slice'
 import { themeSlice } from './services/theme/slice'
 
 const listenerMiddlewareInstance = createListenerMiddleware({
