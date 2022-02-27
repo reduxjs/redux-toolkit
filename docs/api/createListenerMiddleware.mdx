@@ -186,20 +186,20 @@ These are all acceptable:
 
 ```js
 // 1) Action type string
-listenerMiddleware.startListening({ type: 'todos/todoAdded', listener })
+listenerMiddleware.startListening({ type: 'todos/todoAdded', effect })
 // 2) RTK action creator
-listenerMiddleware.startListening({ actionCreator: todoAdded, listener })
+listenerMiddleware.startListening({ actionCreator: todoAdded, effect })
 // 3) RTK matcher function
 listenerMiddleware.startListening({
   matcher: isAnyOf(todoAdded, todoToggled),
-  listener,
+  effect,
 })
 // 4) Listener predicate
 listenerMiddleware.startListening({
   predicate: (action, currentState, previousState) => {
     // return true when the listener should run
   },
-  listener,
+  effect,
 })
 ```
 
@@ -233,7 +233,7 @@ interface UnsubscribeListenerOptions {
 }
 ```
 
-Returns `true` if the `options.effect` listener has been removed, or `false` if no subscription matching the input provided has been found.
+Returns `true` if the listener entry has been removed, or `false` if no subscription matching the input provided has been found.
 
 ```js
 // Examples:
@@ -244,11 +244,11 @@ listenerMiddleware.stopListening({
   cancelActive: true,
 })
 // 2) RTK action creator
-listenerMiddleware.stopListening({ actionCreator: todoAdded, listener })
+listenerMiddleware.stopListening({ actionCreator: todoAdded, effect })
 // 3) RTK matcher function
-listenerMiddleware.stopListening({ matcher, listener, cancelActive: true })
+listenerMiddleware.stopListening({ matcher, effect, cancelActive: true })
 // 4) Listener predicate
-listenerMiddleware.stopListening({ predicate, listener })
+listenerMiddleware.stopListening({ predicate, effect })
 ```
 
 ### `clearListeners`
@@ -273,7 +273,7 @@ Dispatching this action returns an `unsubscribe()` callback from `dispatch`.
 
 ```js
 // Per above, provide `predicate` or any of the other comparison options
-const unsubscribe = store.dispatch(addListener({ predicate, listener }))
+const unsubscribe = store.dispatch(addListener({ predicate, effect }))
 ```
 
 ### `removeListener`
@@ -282,11 +282,11 @@ A standard RTK action creator, imported from the package. Dispatching this actio
 
 By default, this does _not_ cancel any active running instances. However, you may also pass in `{cancelActive: true}` to cancel running instances.
 
-Returns `true` if the `options.listener` listener has been removed, `false` if no subscription matching the input provided has been found.
+Returns `true` if the listener entry has been removed, `false` if no subscription matching the input provided has been found.
 
 ```js
 const wasRemoved = store.dispatch(
-  removeListener({ predicate, listener, cancelActive: true })
+  removeListener({ predicate, effect, cancelActive: true })
 )
 ```
 
