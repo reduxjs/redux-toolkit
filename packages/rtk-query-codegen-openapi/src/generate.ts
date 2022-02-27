@@ -121,6 +121,9 @@ export async function generateApi(
       [
         generateImportNode(apiFile, { [apiImport]: 'api' }),
         generateCreateApiCall({
+          addTagTypes: factory.createArrayLiteralExpression(
+            generateAddTagTypes({ operationDefinitions }).map((tag) => factory.createStringLiteral(tag), false)
+          ),
           endpointDefinitions: factory.createObjectLiteralExpression(
             operationDefinitions.map((operationDefinition) =>
               generateEndpoint({
@@ -163,6 +166,17 @@ export async function generateApi(
   );
 
   return sourceCode;
+
+  function generateAddTagTypes({ operationDefinitions }: { operationDefinitions: OperationDefinition[] }) {
+    let addTagTypes: string[] = [];
+
+    operationDefinitions.map((operationDefinition) => {
+      const { verb, pathItem } = operationDefinition;
+      addTagTypes = addTagTypes.concat(getTags({ verb, pathItem }));
+    });
+
+    return [...new Set(addTagTypes)];
+  }
 
   function generateEndpoint({
     operationDefinition,

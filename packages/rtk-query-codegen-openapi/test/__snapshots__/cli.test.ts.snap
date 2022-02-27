@@ -3,6 +3,7 @@
 exports[`CLI options testing generation with \`config.example.js\` 1`] = `
 import { api } from '../fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
+  addTagTypes: ['pet', 'store', 'user'],
   endpoints: (build) => ({
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
       query: (queryArg) => ({ url: \`/pet\`, method: 'PUT', body: queryArg.pet, invalidatesTags: ['pet'] }),
@@ -241,6 +242,7 @@ export type User = {
 exports[`CLI options testing paths are relative to configfile, not to cwd 1`] = `
 import { api } from '../fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
+  addTagTypes: ['pet', 'store', 'user'],
   endpoints: (build) => ({
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
       query: (queryArg) => ({ url: \`/pet\`, method: 'PUT', body: queryArg.pet, invalidatesTags: ['pet'] }),

@@ -3,9 +3,11 @@ import { factory } from './utils/factory';
 
 const defaultEndpointBuilder = factory.createIdentifier('build');
 
-export type ObjectPropertyDefinitions = Record<string, ts.Expression>;
+export type ObjectPropertyDefinitions = Record<string, ts.Expression | undefined>;
 export function generateObjectProperties(obj: ObjectPropertyDefinitions) {
-  return Object.entries(obj).map(([k, v]) => factory.createPropertyAssignment(factory.createIdentifier(k), v));
+  return Object.entries(obj)
+    .filter(([_, v]) => v)
+    .map(([k, v]) => factory.createPropertyAssignment(factory.createIdentifier(k), v as ts.Expression));
 }
 
 export function generateImportNode(pkg: string, namedImports: Record<string, string>, defaultImportName?: string) {
@@ -31,9 +33,11 @@ export function generateImportNode(pkg: string, namedImports: Record<string, str
 export function generateCreateApiCall({
   endpointBuilder = defaultEndpointBuilder,
   endpointDefinitions,
+  addTagTypes,
 }: {
   endpointBuilder?: ts.Identifier;
   endpointDefinitions: ts.ObjectLiteralExpression;
+  addTagTypes?: ts.ArrayLiteralExpression;
 }) {
   return factory.createVariableStatement(
     undefined,
@@ -52,6 +56,7 @@ export function generateCreateApiCall({
             [
               factory.createObjectLiteralExpression(
                 generateObjectProperties({
+                  addTagTypes,
                   endpoints: factory.createArrowFunction(
                     undefined,
                     undefined,

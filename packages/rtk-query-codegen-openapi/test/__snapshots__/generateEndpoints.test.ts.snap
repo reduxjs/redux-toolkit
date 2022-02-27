@@ -3,6 +3,7 @@
 exports[`calling without \`outputFile\` returns the generated api 1`] = `
 import { api } from './fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
+  addTagTypes: ['pet', 'store', 'user'],
   endpoints: (build) => ({
     getHealthcheck: build.query<GetHealthcheckApiResponse, GetHealthcheckApiArg>({
       query: () => ({ url: \`/healthcheck\` }),
@@ -341,6 +342,7 @@ export const { useAddPetMutation, useGetPetByIdQuery } = injectedRtkApi;
 exports[`endpoint filtering: should only have endpoints loginUser, placeOrder, getOrderById, deleteOrder 1`] = `
 import { api } from './fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
+  addTagTypes: ['store', 'user'],
   endpoints: (build) => ({
     placeOrder: build.mutation<PlaceOrderApiResponse, PlaceOrderApiArg>({
       query: (queryArg) => ({
@@ -409,6 +411,7 @@ export type Order = {
 exports[`endpoint overrides: loginUser should be a mutation 1`] = `
 import { api } from './fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
+  addTagTypes: ['user'],
   endpoints: (build) => ({
     loginUser: build.mutation<LoginUserApiResponse, LoginUserApiArg>({
       query: (queryArg) => ({
@@ -435,6 +438,7 @@ export type LoginUserApiArg = {
 exports[`hooks generation uses overrides: should generate an \`useLoginMutation\` mutation hook 1`] = `
 import { api } from './fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
+  addTagTypes: ['user'],
   endpoints: (build) => ({
     loginUser: build.mutation<LoginUserApiResponse, LoginUserApiArg>({
       query: (queryArg) => ({
@@ -483,6 +487,7 @@ export type PatchApiV1ListByItemIdApiArg = {
 exports[`supports granular hooks generation that includes all query types 1`] = `
 import { api } from './fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
+  addTagTypes: ['pet'],
   endpoints: (build) => ({
     addPet: build.mutation<AddPetApiResponse, AddPetApiArg>({
       query: (queryArg) => ({
@@ -535,6 +540,7 @@ export const { useAddPetMutation, useGetPetByIdQuery, useLazyGetPetByIdQuery } =
 exports[`supports granular hooks generation with only lazy queries 1`] = `
 import { api } from './fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
+  addTagTypes: [],
   endpoints: (build) => ({
     addPet: build.mutation<AddPetApiResponse, AddPetApiArg>({
       query: (queryArg) => ({
@@ -713,6 +719,7 @@ export const { useGetApiV1AnimalsQuery } = injectedRtkApi;
 exports[`yaml parsing should be able to use read a yaml file 1`] = `
 import { api } from './tmp/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
+  addTagTypes: ['pet', 'store', 'user'],
   endpoints: (build) => ({
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
       query: (queryArg) => ({
@@ -1017,6 +1024,7 @@ export const {
 exports[`yaml parsing should generate params with non quoted keys if they don't contain special characters 1`] = `
 import { api } from './tmp/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
+  addTagTypes: ['StructureDefinition'],
   endpoints: (build) => ({
     getStructureDefinition: build.query<GetStructureDefinitionApiResponse, GetStructureDefinitionApiArg>({
       query: (queryArg) => ({
@@ -1064,6 +1072,7 @@ export const { useGetStructureDefinitionQuery } = injectedRtkApi;
 exports[`yaml parsing should parse a yaml schema from a URL 1`] = `
 import { api } from './tmp/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
+  addTagTypes: ['pet', 'store', 'user'],
   endpoints: (build) => ({
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
       query: (queryArg) => ({
