@@ -1,6 +1,12 @@
 import { counterActions, counterSelectors } from './slice'
-import { AnyAction, isAllOf, isAnyOf, PayloadAction } from '@reduxjs/toolkit'
-import type { AppListenerApi, AppActionListenerMiddleware } from '../../store'
+import {
+  AnyAction,
+  isAllOf,
+  isAnyOf,
+  PayloadAction,
+  Unsubscribe,
+} from '@reduxjs/toolkit'
+import type { AppListenerEffectAPI, AppStartListening } from '../../store'
 
 function shouldStopAsyncTasksOf(id: string) {
   return isAllOf(
@@ -14,7 +20,7 @@ async function onUpdateByPeriodically(
   {
     payload: { id, delta },
   }: ReturnType<typeof counterActions.updateByPeriodically>,
-  { dispatch, getState, getOriginalState, condition }: AppListenerApi
+  { dispatch, getState, getOriginalState, condition }: AppListenerEffectAPI
 ) {
   const counter = counterSelectors.selectById(getState(), id)
 
@@ -44,7 +50,7 @@ async function onUpdateAsync(
   {
     payload: { id, delta, delayMs },
   }: ReturnType<typeof counterActions.updateByAsync>,
-  { condition, dispatch, getState }: AppListenerApi
+  { condition, dispatch, getState }: AppListenerEffectAPI
 ) {
   const counter = counterSelectors.selectById(getState(), id)
 
@@ -71,16 +77,16 @@ async function onUpdateAsync(
  * ```
  */
 export function setupCounterListeners(
-  actionListener: AppActionListenerMiddleware
-) {
+  startListening: AppStartListening
+): Unsubscribe {
   const subscriptions = [
-    actionListener.addListener({
+    startListening({
       actionCreator: counterActions.updateByPeriodically,
-      listener: onUpdateByPeriodically,
+      effect: onUpdateByPeriodically,
     }),
-    actionListener.addListener({
+    startListening({
       actionCreator: counterActions.updateByAsync,
-      listener: onUpdateAsync,
+      effect: onUpdateAsync,
     }),
   ]
 

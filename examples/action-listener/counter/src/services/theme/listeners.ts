@@ -1,21 +1,22 @@
 import { themeActions } from './slice'
-import type { AppActionListenerMiddleware } from '../../store'
+import type { AppStartListening } from '../../store'
+import { Unsubscribe } from '@reduxjs/toolkit'
 
 function onChangeColorScheme(
   action: ReturnType<typeof themeActions.changeColorScheme>
 ) {
-  if (action.payload === 'light') {
-    document.documentElement.classList.remove('dark')
-  } else {
-    document.documentElement.classList.add('dark')
-  }
+  document.documentElement.classList.toggle('dark', action.payload !== 'light')
 }
 
 export function setupThemeListeners(
-  actionListener: AppActionListenerMiddleware
-) {
-  return actionListener.addListener({
-    actionCreator: themeActions.changeColorScheme,
-    listener: onChangeColorScheme,
-  })
+  startListening: AppStartListening
+): Unsubscribe {
+  const listeners = [
+    startListening({
+      actionCreator: themeActions.changeColorScheme,
+      effect: onChangeColorScheme,
+    }),
+  ]
+
+  return () => listeners.forEach((unsubscribe) => unsubscribe())
 }
