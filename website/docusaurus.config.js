@@ -69,6 +69,9 @@ module.exports = {
       theme: require('./src/js/monokaiTheme.js'),
     },
     image: 'img/redux-logo-landscape.png',
+    colorMode: {
+      respectPrefersColorScheme: true,
+    },
     navbar: {
       title: 'Redux Toolkit',
       logo: {
