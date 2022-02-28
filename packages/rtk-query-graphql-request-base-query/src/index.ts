@@ -23,7 +23,7 @@ export const graphqlRequestBaseQuery = (
 
   return async (
     { document, variables },
-    { getState, endpoint, forced, type, signal }
+    { getState, endpoint, forced, type, signal, extra }
   ) => {
     try {
       const prepareHeaders: PrepareHeaders =
@@ -35,6 +35,7 @@ export const graphqlRequestBaseQuery = (
         endpoint,
         forced,
         type,
+        extra,
       })
 
       return {
