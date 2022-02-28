@@ -397,7 +397,7 @@ export const listenerMiddleware = createListenerMiddleware()
 
 export const startAppListening =
   listenerMiddleware.startListening as TypedStartListening<RootState>
-export const addAppListener = addListener as TypedAddListenern<RootState>
+export const addAppListener = addListener as TypedAddListener<RootState>
 ```
 
 Then import and use those pre-typed methods in your components.
