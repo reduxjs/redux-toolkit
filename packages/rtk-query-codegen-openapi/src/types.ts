@@ -47,7 +47,8 @@ export interface CommonOptions {
    */
   responseSuffix?: string;
   /**
-   * defaults to false
+   * defaults to `false`
+   * `true` will generate hooks for queries and mutations, but no lazyQueries
    */
   hooks?: boolean | { queries: boolean; lazyQueries: boolean; mutations: boolean };
 

@@ -87,7 +87,9 @@ interface SimpleUsage {
   exportName?: string
   argSuffix?: string
   responseSuffix?: string
-  hooks?: boolean
+  hooks?:
+    | boolean
+    | { queries: boolean; lazyQueries: boolean; mutations: boolean }
   outputFile: string
   filterEndpoints?:
     | string
@@ -130,6 +132,10 @@ const withOverride: ConfigFile = {
   ],
 }
 ```
+
+#### Generating hooks
+
+Setting `hooks: true` will generate `useQuery` and `useMuation` hook exports. If you also want `useLazyQuery` hooks generated or more granular control, you can also pass an object in the shape of: `{ queries: boolean; lazyQueries: boolean; mutations: boolean }`.
 
 #### Multiple output files
 
