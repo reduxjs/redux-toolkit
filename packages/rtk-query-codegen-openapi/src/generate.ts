@@ -17,7 +17,8 @@ import type { OpenAPIV3 } from 'openapi-types';
 import { generateReactHooks } from './generators/react-hooks';
 import type { EndpointMatcher, EndpointOverrides, GenerationOptions, OperationDefinition, TextMatcher } from './types';
 import { capitalize, getOperationDefinitions, getV3Doc, isQuery as testIsQuery, removeUndefined } from './utils';
-import { generateTagTypes, ObjectPropertyDefinitions } from './codegen';
+import { generateTagTypes } from './codegen';
+import type { ObjectPropertyDefinitions } from './codegen';
 import { generateCreateApiCall, generateEndpointDefinition, generateImportNode } from './codegen';
 import { factory } from './utils/factory';
 
@@ -121,7 +122,7 @@ export async function generateApi(
     factory.createSourceFile(
       [
         generateImportNode(apiFile, { [apiImport]: 'api' }),
-        ...(tag ? [generateTagTypes({ addTagTypes: generateAddTagTypes({ operationDefinitions }) })] : []),
+        ...(tag ? [generateTagTypes({ addTagTypes: extractAllTagTypes({ operationDefinitions }) })] : []),
         generateCreateApiCall({
           tag,
           endpointDefinitions: factory.createObjectLiteralExpression(
@@ -167,15 +168,16 @@ export async function generateApi(
 
   return sourceCode;
 
-  function generateAddTagTypes({ operationDefinitions }: { operationDefinitions: OperationDefinition[] }) {
-    let addTagTypes: string[] = [];
+  function extractAllTagTypes({ operationDefinitions }: { operationDefinitions: OperationDefinition[] }) {
+    let allTagTypes = new Set<string>();
 
-    operationDefinitions.map((operationDefinition) => {
+    for (const operationDefinition of operationDefinitions) {
       const { verb, pathItem } = operationDefinition;
-      addTagTypes = addTagTypes.concat(getTags({ verb, pathItem }));
-    });
-
-    return [...new Set(addTagTypes)];
+      for (const tag of getTags({ verb, pathItem })) {
+        allTagTypes.add(tag);
+      }
+    }
+    return [...allTagTypes];
   }
 
   function generateEndpoint({
@@ -193,7 +195,7 @@ export async function generateApi(
       operation: { responses, requestBody },
     } = operationDefinition;
     const operationName = getOperationName({ verb, path, operation });
-    const tags = getTags({ verb, pathItem });
+    const tags = tag ? getTags({ verb, pathItem }) : [];
     const isQuery = testIsQuery(verb, overrides);
 
     const returnsJson = apiGen.getResponseType(responses) === 'json';
@@ -414,7 +416,7 @@ export async function generateApi(
                   factory.createIdentifier('params'),
                   generateQuerArgObjectLiteralExpression(queryParameters, rootObject)
                 ),
-            tag && tags.length > 0
+            tags.length > 0
               ? factory.createPropertyAssignment(
                   factory.createIdentifier(isQuery ? 'providesTags' : 'invalidatesTags'),
                   factory.createArrayLiteralExpression(tags.map((tag) => factory.createStringLiteral(tag), false))
