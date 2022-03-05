@@ -10,18 +10,21 @@ import { createSelectorsFactory } from './state_selectors'
 import { createSortedStateAdapter } from './sorted_state_adapter'
 import { createUnsortedStateAdapter } from './unsorted_state_adapter'
 
-type ExtractEntityId<T extends { id: EntityId }> = T extends { id: infer Id }
+export interface EntityAdapterOptions<T, Id extends EntityId = EntityId> {
+  selectId?: IdSelector<T, Id>
+  sortComparer?: false | Comparer<T>
+}
+
+type IsEntityId<T> = T extends EntityId ? T : EntityId
+
+type ExtractId<T> = T extends { id: infer Id } ? Id : never
+
+type ExtractEntityId<
+  T,
+  O extends EntityAdapterOptions<T>
+> = O['selectId'] extends IdSelector<T, infer Id>
   ? Id
-  : never
-
-export function createEntityAdapter<T extends { id: EntityId }>(options?: {
-  sortComparer?: false | Comparer<T>
-}): EntityAdapter<T, ExtractEntityId<T>>
-
-export function createEntityAdapter<T, Id extends EntityId>(options: {
-  selectId: IdSelector<T, Id>
-  sortComparer?: false | Comparer<T>
-}): EntityAdapter<T, Id>
+  : IsEntityId<ExtractId<T>>
 
 /**
  *
@@ -29,12 +32,11 @@ export function createEntityAdapter<T, Id extends EntityId>(options: {
  *
  * @public
  */
-export function createEntityAdapter<T, Id extends EntityId>(
-  options: {
-    selectId?: IdSelector<T, Id>
-    sortComparer?: false | Comparer<T>
-  } = {}
-): EntityAdapter<T, Id> {
+export function createEntityAdapter<
+  T,
+  O extends EntityAdapterOptions<T> = EntityAdapterOptions<T>
+>(options: O = {} as O): EntityAdapter<T, ExtractEntityId<T, O>> {
+  type Id = ExtractEntityId<T, O>
   const { selectId, sortComparer }: EntityDefinition<T, Id> = {
     sortComparer: false,
     selectId: (instance: any) => instance.id as Id,
