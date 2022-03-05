@@ -9,9 +9,9 @@ import type {
 import { createSlice, createEntityAdapter } from '@reduxjs/toolkit'
 import { expectType } from './helpers'
 
-function extractReducers<T>(
-  adapter: EntityAdapter<T>
-): Omit<EntityStateAdapter<T>, 'map'> {
+function extractReducers<T, Id extends EntityId>(
+  adapter: EntityAdapter<T, Id>
+): Omit<EntityStateAdapter<T, Id>, 'map'> {
   const { selectId, sortComparer, getInitialState, getSelectors, ...rest } =
     adapter
   return rest
@@ -21,7 +21,9 @@ function extractReducers<T>(
  * should be usable in a slice, with all the "reducer-like" functions
  */
 {
+  type Id = EntityId & { readonly __tag: unique symbol }
   type Entity = {
+    id: Id
     value: string
   }
   const adapter = createEntityAdapter<Entity>()
@@ -35,7 +37,7 @@ function extractReducers<T>(
 
   expectType<ActionCreatorWithPayload<Entity>>(slice.actions.addOne)
   expectType<
-    ActionCreatorWithPayload<ReadonlyArray<Entity> | Record<string, Entity>>
+    ActionCreatorWithPayload<ReadonlyArray<Entity> | Record<Id, Entity>>
   >(slice.actions.addMany)
   expectType<
     ActionCreatorWithPayload<ReadonlyArray<Entity> | Record<string, Entity>>
@@ -48,26 +50,28 @@ function extractReducers<T>(
     // @ts-expect-error
     slice.actions.setAll
   )
-  expectType<ActionCreatorWithPayload<EntityId>>(slice.actions.removeOne)
-  expectType<ActionCreatorWithPayload<ReadonlyArray<EntityId>>>(
+  expectType<ActionCreatorWithPayload<Id>>(slice.actions.removeOne)
+  expectType<ActionCreatorWithPayload<ReadonlyArray<Id>>>(
     slice.actions.removeMany
   )
   // @ts-expect-error
-  expectType<ActionCreatorWithPayload<EntityId[]>>(slice.actions.removeMany)
+  expectType<ActionCreatorWithPayload<Id[]>>(slice.actions.removeMany)
   expectType<ActionCreatorWithoutPayload>(slice.actions.removeAll)
-  expectType<ActionCreatorWithPayload<Update<Entity>>>(slice.actions.updateOne)
-  expectType<ActionCreatorWithPayload<Update<Entity>[]>>(
+  expectType<ActionCreatorWithPayload<Update<Entity, Id>>>(
+    slice.actions.updateOne
+  )
+  expectType<ActionCreatorWithPayload<Update<Entity, Id>[]>>(
     // @ts-expect-error
     slice.actions.updateMany
   )
-  expectType<ActionCreatorWithPayload<ReadonlyArray<Update<Entity>>>>(
+  expectType<ActionCreatorWithPayload<ReadonlyArray<Update<Entity, Id>>>>(
     slice.actions.updateMany
   )
   expectType<ActionCreatorWithPayload<Entity>>(slice.actions.upsertOne)
   expectType<
-    ActionCreatorWithPayload<ReadonlyArray<Entity> | Record<string, Entity>>
+    ActionCreatorWithPayload<ReadonlyArray<Entity> | Record<Id, Entity>>
   >(slice.actions.upsertMany)
-  expectType<ActionCreatorWithPayload<Entity[] | Record<string, Entity>>>(
+  expectType<ActionCreatorWithPayload<Entity[] | Record<Id, Entity>>>(
     // @ts-expect-error
     slice.actions.upsertMany
   )
@@ -78,9 +82,11 @@ function extractReducers<T>(
  */
 {
   type Entity = {
+    id: EntityId
     value: string
   }
   type Entity2 = {
+    id: EntityId
     value2: string
   }
   const adapter = createEntityAdapter<Entity>()
@@ -101,6 +107,7 @@ function extractReducers<T>(
  */
 {
   type Entity = {
+    id: EntityId
     value: string
   }
   const adapter = createEntityAdapter<Entity>()
@@ -118,6 +125,7 @@ function extractReducers<T>(
  */
 {
   type Entity = {
+    id: EntityId
     value: string
   }
   const adapter = createEntityAdapter<Entity>()
