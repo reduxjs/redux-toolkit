@@ -939,7 +939,7 @@ const api = createApi({
       async queryFn(_arg, _queryApi, _extraOptions, fetchWithBQ) {
         // get a random user
         const randomResult = await fetchWithBQ('users/random')
-        if (randomResult.error) throw randomResult.error
+        if (randomResult.error) return { error: randomResult.error as FetchBaseQueryError } 
         const user = randomResult.data as User
         const result = await fetchWithBQ(`user/${user.id}/posts`)
         return result.data
