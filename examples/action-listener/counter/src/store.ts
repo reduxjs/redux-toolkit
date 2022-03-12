@@ -26,13 +26,14 @@ export { store }
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>
-// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
+// @see https://redux-toolkit.js.org/usage/usage-with-typescript#getting-the-dispatch-type
 export type AppDispatch = typeof store.dispatch
 
 export type AppListenerEffectAPI = ListenerEffectAPI<RootState, AppDispatch>
 
+// @see https://redux-toolkit.js.org/api/createListenerMiddleware#typescript-usage
 export type AppStartListening = TypedStartListening<RootState, AppDispatch>
-export type AppAddListener = TypedAddListener<RootState>
+export type AppAddListener = TypedAddListener<RootState, AppDispatch>
 
 export const startAppListening =
   listenerMiddlewareInstance.startListening as AppStartListening
