@@ -31,7 +31,7 @@ export type AppDispatch = typeof store.dispatch
 
 export type AppListenerEffectAPI = ListenerEffectAPI<RootState, AppDispatch>
 
-export type AppStartListening = TypedStartListening<RootState>
+export type AppStartListening = TypedStartListening<RootState, AppDispatch>
 export type AppAddListener = TypedAddListener<RootState>
 
 export const startAppListening =
