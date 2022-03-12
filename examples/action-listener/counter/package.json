@@ -17,7 +17,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "lint:ts": "tsc --noEmit"
+    "lint:ts": "tsc --noEmit",
+    "test": "react-scripts test --runInBand"
   },
   "eslintConfig": {
     "extends": [
