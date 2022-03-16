@@ -25,23 +25,33 @@ Redux Toolkit's [**RTK Query data fetching API**](../rtk-query/overview.md) is a
 
 Sample usage:
 
-```js {5-11,22-25,30}
+```ts {5-11,22-25,30}
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { userAPI } from './userAPI'
 
 // First, create the thunk
 const fetchUserById = createAsyncThunk(
   'users/fetchByIdStatus',
-  async (userId, thunkAPI) => {
+  async (userId: number, thunkAPI) => {
     const response = await userAPI.fetchById(userId)
     return response.data
   }
 )
 
+interface UsersState {
+  entities: []
+  loading: 'idle' | 'pending' | 'succeeded' | 'failed'
+}
+
+const initialState = {
+  entities: [],
+  loading: 'idle',
+} as UsersState
+
 // Then, handle actions in your reducers:
 const usersSlice = createSlice({
   name: 'users',
-  initialState: { entities: [], loading: 'idle' },
+  initialState,
   reducers: {
     // standard reducer logic, with auto-generated action types per reducer
   },
