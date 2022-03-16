@@ -372,7 +372,7 @@ If you need to cancel a thunk before the payload creator is called, you may prov
 ```js
 const fetchUserById = createAsyncThunk(
   'users/fetchByIdStatus',
-  async (userId, thunkAPI) => {
+  async (userId: number, thunkAPI) => {
     const response = await userAPI.fetchById(userId)
     return response.data
   },
@@ -494,7 +494,7 @@ import axios from 'axios'
 
 const fetchUserById = createAsyncThunk(
   'users/fetchById',
-  async (userId, { signal }) => {
+  async (userId: string, { signal }) => {
     const source = axios.CancelToken.source()
     signal.addEventListener('abort', () => {
       source.cancel()
@@ -517,7 +517,7 @@ import { userAPI } from './userAPI'
 
 const fetchUserById = createAsyncThunk(
   'users/fetchByIdStatus',
-  async (userId, { getState, requestId }) => {
+  async (userId: string, { getState, requestId }) => {
     const { currentRequestId, loading } = getState().users
     if (loading !== 'pending' || requestId !== currentRequestId) {
       return
