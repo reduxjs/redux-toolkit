@@ -1027,6 +1027,73 @@ describe('hooks tests', () => {
 
       expect(screen.getByTestId('error').textContent).toBe('')
     })
+
+    test('useLazyQuery can be manually unsubscribed', async () => {
+      function User() {
+        const [getUser, { data, error }, _lastInfo, unsubscribe] =
+          api.endpoints.getUser.useLazyQuery()
+
+        const [unwrappedResult, setUnwrappedResult] = React.useState<
+          undefined | { name: string }
+        >()
+        
+        const handleFetchClick = async () => {
+          const res = getUser(1)
+
+          const result = await res.unwrap()
+          setUnwrappedResult(result)
+        }
+
+        return (
+          <div>
+            <button onClick={handleFetchClick}>Fetch User</button>
+            <button onClick={unsubscribe}>Unsubscribe</button>
+            <div data-testid="result">{JSON.stringify(data)}</div>
+            <div data-testid="error">{JSON.stringify(error)}</div>
+            <div data-testid="unwrappedResult">
+              {JSON.stringify(unwrappedResult)}
+            </div>
+          </div>
+        )
+      }
+
+      render(<User />, { wrapper: storeRef.wrapper })
+
+      const fetchButton = screen.getByRole('button', { name: 'Fetch User' })
+      fireEvent.click(fetchButton)
+
+      await waitFor(() => {
+        const dataResult = screen.getByTestId('result')?.textContent
+        const unwrappedDataResult =
+          screen.getByTestId('unwrappedResult')?.textContent
+
+        if (dataResult && unwrappedDataResult) {
+          expect(JSON.parse(dataResult)).toMatchObject({
+            name: 'Timmy',
+          })
+          expect(JSON.parse(unwrappedDataResult)).toMatchObject(
+            JSON.parse(dataResult)
+          )
+        }
+      })
+
+      expect(screen.getByTestId('error').textContent).toBe('')
+    
+      const initialSubscriptionsCount = Object.keys(
+        storeRef.store.getState().api.subscriptions['getUser(1)']!
+      ).length
+  
+      expect(initialSubscriptionsCount).toEqual(1)
+
+      const unsubscribeButton = screen.getByRole('button', { name: 'Unsubscribe' })
+      fireEvent.click(unsubscribeButton)
+
+      const subscriptionsCountAfterUnsubscribing = Object.keys(
+        storeRef.store.getState().api.subscriptions['getUser(1)']!
+      ).length
+        
+      expect(subscriptionsCountAfterUnsubscribing).toEqual(0)
+    })
   })
 
   describe('useMutation', () => {
