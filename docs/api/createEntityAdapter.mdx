@@ -103,6 +103,8 @@ If provided, the `state.ids` array will be kept in sorted order based on compari
 
 If not provided, the `state.ids` array will not be sorted, and no guarantees are made about the ordering. In other words, `state.ids` can be expected to behave like a standard Javascript array.
 
+Note that sorting only kicks in when state is changed via one of the CRUD functions below (for example, `addOne()`, `updateMany()`).
+
 ## Return Value
 
 A "entity adapter" instance. An entity adapter is a plain JS object (not a class) containing the generated reducer functions, the original provided `selectId` and `sortComparer` callbacks, a method to generate an initial "entity state" value, and functions to generate a set of globalized and non-globalized memoized selector functions for this entity type.
