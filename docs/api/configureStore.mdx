@@ -53,7 +53,7 @@ interface ConfigureStoreOptions<
    * function (either directly or indirectly by passing an object as `reducer`),
    * this must be an object with the same shape as the reducer map keys.
    */
-  preloadedState?: DeepPartial<S extends any ? S : S>
+  preloadedState?: PreloadedState<CombinedState<NoInfer<S>>>
 
   /**
    * The store enhancers to apply. See Redux's `createStore()`.
@@ -113,6 +113,96 @@ If the DevTools are enabled by passing `true` or an object, then `configureStore
 ### `preloadedState`
 
 An optional initial state value to be passed to the Redux `createStore` function.
+
+This allows you to override part (or all) of the initial state values that you have defined for each of your reducers and slices. This is useful for things like hydrating the state from `localStorage` or for [writing tests](https://redux.js.org/usage/writing-tests) for your Redux applications.
+
+<!-- :::tip
+
+**Note**: `preloadedState` is not recursively partial. Which means that if you have a part of
+::: -->
+
+> **Note**: `preloadedState` is not recursively partial! For each part of your application's initial state that you decide to provide initial values for, you must define values for **all** properties of that part of state. They will be passed to your reducers as the initial state, and they themselves can't be partial.
+
+Let's discuss the above point some more and provide a few tips for how you fully leverage `preloadedState` in your application and tests. For example, let's stay we start with the following initial state:
+
+```ts
+const initialState = {
+  appState: {
+    theme: 'Dark',
+    showNavigationPanel: true,
+  },
+}
+```
+
+The `appState` from `initialState` comes from the following slice:
+
+```ts
+import type { PayloadAction } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit'
+
+export type AppState = {
+  theme: 'Dark' | 'Light'
+  showNavigationPanel: boolean
+}
+
+export const initialAppState: AppState = {
+  theme: 'Dark',
+  showNavigationPanel: false,
+}
+
+const appSlice = createSlice({
+  name: 'appState',
+  initialState: initialAppState,
+  reducers: {
+    // Reducer methods...
+  },
+})
+```
+
+If we were writing tests for our application and we wanted to make it so that `showNavigationPanel` was `true` by default, we would be tempted to just provide a value for that property in our preloaded state, which would not be correct since we're only defining part of the expected values for `AppState`. For examples on the correct way to utilize preloadedState here, refer to the following:
+
+```ts
+import type { PreloadedState } from '@reduxjs/toolkit'
+
+type AppState = {
+  theme: 'Dark' | 'Light'
+  showNavigationPanel: boolean
+}
+
+export const initialAppState: AppState = {
+  theme: 'Dark',
+  showNavigationPanel: false,
+}
+
+type RootState = {
+  appState: AppState
+}
+
+// Not correct, we don't provide a value for `theme`. You would get the following typescript error if you tried to assign preloadedState the `PreloadedState<RootState>` type: Property 'theme' is missing in type '{ showNavigationPanel: false; }' but required in type '{ theme: "Dark" | "Light"; showNavigationPanel: boolean; }'.
+const incorrectPreloadedState = {
+  appState: {
+    showNavigationPanel: false,
+  },
+}
+
+// Correct, we provide a default value for all properties of appState.
+const preloadedState: PreloadedState<RootState> = {
+  appState: {
+    theme: 'Dark',
+    showNavigationPanel: false,
+  },
+}
+
+// You may only care about providing a default value for `showNavigationPanel`. To accomplish this, just spread the initial state value for that slice!
+const otherPreloadedState: PreloadedState<RootState> = {
+  appState: {
+    ...initialAppState,
+    showNavigationPanel: false,
+  },
+}
+```
+
+For more discussion of how `preloadedState` can be used, you may refer to the Redux Core documentation about [Initializing State](https://redux.js.org/usage/structuring-reducers/initializing-state).
 
 ### `enhancers`
 
