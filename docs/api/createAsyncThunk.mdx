@@ -26,6 +26,10 @@ Redux Toolkit's [**RTK Query data fetching API**](../rtk-query/overview.md) is a
 Sample usage:
 
 ```ts {5-11,22-25,30}
+interface userAPI {
+  fetchById: (userId: number) => Promise<any>
+}
+
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { userAPI } from './userAPI'
 
@@ -212,7 +216,7 @@ type RejectedWithValue = <ThunkArg, RejectedValue>(
 
 To handle these actions in your reducers, reference the action creators in `createReducer` or `createSlice` using either the object key notation or the "builder callback" notation. (Note that if you use TypeScript, you [should use the "builder callback" notation to ensure the types are inferred correctly](../usage/usage-with-typescript.md#type-safety-with-extrareducers)):
 
-```js {2,6,14,23}
+```ts {2,6,14,23}
 const reducer1 = createReducer(initialState, {
   [fetchUserById.fulfilled]: (state, action) => {},
 })
@@ -246,7 +250,7 @@ const reducer4 = createSlice({
 
 Thunks may return a value when dispatched. A common use case is to return a promise from the thunk, dispatch the thunk from a component, and then wait for the promise to resolve before doing additional work:
 
-```js
+```ts
 const onClick = () => {
   dispatch(fetchUserById(userId)).then(() => {
     // do additional work
@@ -346,7 +350,7 @@ If you need to customize the contents of the `rejected` action, you should catch
 
 The `rejectWithValue` approach should also be used if your API response "succeeds", but contains some kind of additional error details that the reducer should know about. This is particularly common when expecting field-level validation errors from an API.
 
-```js
+```ts
 const updateUser = createAsyncThunk(
   'users/update',
   async (userData, { rejectWithValue }) => {
@@ -369,7 +373,7 @@ const updateUser = createAsyncThunk(
 
 If you need to cancel a thunk before the payload creator is called, you may provide a `condition` callback as an option after the payload creator. The callback will receive the thunk argument and an object with `{getState, extra}` as parameters, and use those to decide whether to continue or not. If the execution should be canceled, the `condition` callback should return a literal `false` value or a promise that should resolve to `false`. If a promise is returned, the thunk waits for it to get fulfilled before dispatching the `pending` action, otherwise it proceeds with dispatching synchronously.
 
-```js
+```ts
 const fetchUserById = createAsyncThunk(
   'users/fetchByIdStatus',
   async (userId: number, thunkAPI) => {
@@ -511,7 +515,7 @@ const fetchUserById = createAsyncThunk(
 
 - Requesting a user by ID, with loading state, and only one request at a time:
 
-```js
+```ts
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { userAPI } from './userAPI'
 
