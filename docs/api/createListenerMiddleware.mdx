@@ -300,7 +300,76 @@ store.dispatch(clearAllListeners())
 
 ## Listener API
 
-The `listenerApi` object is the second argument to each listener callback. It contains several utility functions that may be called anywhere inside the listener's logic. These can be divided into several categories.
+The `listenerApi` object is the second argument to each listener callback. It contains several utility functions that may be called anywhere inside the listener's logic.
+
+```ts no-transpile
+export interface ListenerEffectAPI<
+  State,
+  Dispatch extends ReduxDispatch<AnyAction>,
+  ExtraArgument = unknown
+> extends MiddlewareAPI<Dispatch, State> {
+  // NOTE: MiddlewareAPI contains `dispatch` and `getState` already
+
+  /**
+   * Returns the store state as it existed when the action was originally dispatched, _before_ the reducers ran.
+   * This function can **only** be invoked **synchronously**, it throws error otherwise.
+   */
+  getOriginalState: () => State
+  /**
+   * Removes the listener entry from the middleware and prevent future instances of the listener from running.
+   * It does **not** cancel any active instances.
+   */
+  unsubscribe(): void
+  /**
+   * It will subscribe a listener if it was previously removed, noop otherwise.
+   */
+  subscribe(): void
+  /**
+   * Returns a promise that resolves when the input predicate returns `true` or
+   * rejects if the listener has been cancelled or is completed.
+   *
+   * The return value is `true` if the predicate succeeds or `false` if a timeout is provided and expires first.
+   */
+  condition: ConditionFunction<State>
+  /**
+   * Returns a promise that resolves when the input predicate returns `true` or
+   * rejects if the listener has been cancelled or is completed.
+   *
+   * The return value is the `[action, currentState, previousState]` combination that the predicate saw as arguments.
+   *
+   * The promise resolves to null if a timeout is provided and expires first.
+   */
+  take: TakePattern<State>
+  /**
+   * Cancels all other running instances of this same listener except for the one that made this call.
+   */
+  cancelActiveListeners: () => void
+  /**
+   * An abort signal whose `aborted` property is set to `true`
+   * if the listener execution is either aborted or completed.
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
+   */
+  signal: AbortSignal
+  /**
+   * Returns a promise resolves after `timeoutMs` or
+   * rejects if the listener has been cancelled or is completed.
+   */
+  delay(timeoutMs: number): Promise<void>
+  /**
+   * Queues in the next microtask the execution of a task.
+   */
+  fork<T>(executor: ForkedTaskExecutor<T>): ForkedTask<T>
+  /**
+   * Returns a promise that resolves when `waitFor` resolves or
+   * rejects if the listener has been cancelled or is completed.
+   * @param promise
+   */
+  pause<M>(promise: Promise<M>): Promise<M>
+  extra: ExtraArgument
+}
+```
+
+These can be divided into several categories.
 
 ### Store Interaction Methods
 
@@ -395,9 +464,15 @@ import type { RootState, AppDispatch } from './store'
 
 export const listenerMiddleware = createListenerMiddleware()
 
+export type AppStartListening = TypedStartListening<RootState, AppDispatch>
+
 export const startAppListening =
-  listenerMiddleware.startListening as TypedStartListening<RootState, AppDispatch>
-export const addAppListener = addListener as TypedAddListener<RootState, AppDispatch>
+  listenerMiddleware.startListening as AppStartListening
+
+export const addAppListener = addListener as TypedAddListener<
+  RootState,
+  AppDispatch
+>
 ```
 
 Then import and use those pre-typed methods in your components.
@@ -410,7 +485,7 @@ This middleware lets you run additional logic when some action is dispatched, as
 
 This middleware is not intended to handle all possible use cases. Like thunks, it provides you with a basic set of primitives (including access to `dispatch` and `getState`), and gives you freedom to write any sync or async logic you want. This is both a strength (you can do anything!) and a weakness (you can do anything, with no guard rails!).
 
-The middleware includes several async workflow primitives that are sufficient to write equivalents to many Redux-Saga effects operators like `takeLatest`, `takeLeading`, and `debounce`.
+The middleware includes several async workflow primitives that are sufficient to write equivalents to many Redux-Saga effects operators like `takeLatest`, `takeLeading`, and `debounce`, although none of those methods are directly included. (See [the listener middleware tests file for examples of how to write code equivalent to those effects](https://github.com/reduxjs/redux-toolkit/blob/03eafd5236f16574935cdf1c5958e32ee8cf3fbe/packages/toolkit/src/listenerMiddleware/tests/effectScenarios.test.ts#L74-L363).)
 
 ### Standard Usage Patterns
 
@@ -573,7 +648,7 @@ listenerMiddleware.startListening({
 
 ### Complex Async Workflows
 
-The provided async workflow primitives (`cancelActiveListeners`, `unsuscribe`, `subscribe`, `take`, `condition`, `pause`, `delay`) can be used to implement many of the more complex async workflow capabilities found in the Redux-Saga library. This includes effects such as `throttle`, `debounce`, `takeLatest`, `takeLeading`, and `fork/join`. Some examples from the test suite:
+The provided async workflow primitives (`cancelActiveListeners`, `unsuscribe`, `subscribe`, `take`, `condition`, `pause`, `delay`) can be used to implement behavior that is equivalent to many of the more complex async workflow capabilities found in the Redux-Saga library. This includes effects such as `throttle`, `debounce`, `takeLatest`, `takeLeading`, and `fork/join`. Some examples from the test suite:
 
 ```js
 test('debounce / takeLatest', async () => {
@@ -729,3 +804,65 @@ While this pattern is _possible_, **we do not necessarily _recommend_ doing this
 At the same time, this _is_ a valid technique, both in terms of API behavior and potential use cases. It's been common to lazy-load sagas as part of a code-split app, and that has often required some complex additional setup work to "inject" sagas. In contrast, `dispatch(addListener())` fits naturally into a React component's lifecycle.
 
 So, while we're not specifically encouraging use of this pattern, it's worth documenting here so that users are aware of it as a possibility.
+
+### Organizing Listeners in Files
+
+As a starting point, **it's best to create the listener middleware in a separate file, such as `app/listenerMiddleware.ts`, rather than in the same file as the store**. This avoids any potential circular import problems from other files trying to import `middleware.addListener`.
+
+From there, so far we've come up with three different ways to organize listener functions and setup.
+
+First, you can import effect callbacks from slice files into the middleware file, and add the listeners:
+
+```ts no-transpile title="app/listenerMiddleware.ts"
+import { action1, listener1 } from '../features/feature1/feature1Slice'
+import { action2, listener2 } from '../features/feature2/feature1Slice'
+
+listenerMiddleware.startListening({ actionCreator: action1, effect: listener1 })
+listenerMiddleware.startListening({ actionCreator: action2, effect: listener2 })
+```
+
+This is probably the simplest option, and mirrors how the store setup pulls together all the slice reducers to create the app.
+
+The second option is the opposite: have the slice files import the middleware and directly add their listeners:
+
+```ts no-transpile  title="features/feature1/feature1Slice.ts"
+import { listenerMiddleware } from '../../app/listenerMiddleware'
+
+const feature1Slice = createSlice(/* */)
+const { action1 } = feature1Slice.actions
+
+export default feature1Slice.reducer
+
+listenerMiddleware.startListening({
+  actionCreator: action1,
+  effect: () => {},
+})
+```
+
+This keeps all the logic in the slice, although it does lock the setup into a single middleware instance.
+
+The third option is to create a setup function in the slice, but let the listener file call that on startup:
+
+```ts no-transpile  title="features/feature1/feature1Slice.ts"
+import type { AppStartListening } from '../../app/listenerMiddleware'
+
+const feature1Slice = createSlice(/* */)
+const { action1 } = feature1Slice.actions
+
+export default feature1Slice.reducer
+
+export const addFeature1Listeners = (startListening: AppStartListening) => {
+  startListening({
+    actionCreator: action1,
+    effect: () => {},
+  })
+}
+```
+
+```ts no-transpile title="app/listenerMiddleware.ts"
+import { addFeature1Listeners } from '../features/feature1/feature1Slice'
+
+addFeature1Listeners(listenerMiddleware.startListening)
+```
+
+Feel free to use whichever of these approaches works best in your app.
