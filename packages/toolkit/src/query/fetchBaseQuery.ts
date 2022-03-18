@@ -25,6 +25,7 @@ export interface FetchArgs extends CustomRequestInit {
   body?: any
   responseHandler?: ResponseHandler
   validateStatus?: (response: Response, body: any) => boolean
+  timeout?: number
 }
 
 /**
@@ -38,7 +39,7 @@ const defaultValidateStatus = (response: Response) =>
   response.status >= 200 && response.status <= 299
 
 const defaultIsJsonContentType = (headers: Headers) =>
-  /*applicat*//ion\/(vnd\.api\+)?json/.test(headers.get('content-type') || '')
+  /*applicat*/ /ion\/(vnd\.api\+)?json/.test(headers.get('content-type') || '')
 
 const handleResponse = async (
   response: Response,
@@ -90,6 +91,15 @@ export type FetchBaseQueryError =
     }
   | {
       /**
+       * * `"TIMEOUT_ERROR"`:
+       *   Request timed out
+       **/
+      status: 'TIMEOUT_ERROR'
+      data?: undefined
+      error: string
+    }
+  | {
+      /**
        * * `"CUSTOM_ERROR"`:
        *   A custom error type that you can return from your `queryFn` where another error might not make sense.
        **/
@@ -136,6 +146,7 @@ export type FetchBaseQueryArgs = {
    * Defaults to `application/json`;
    */
   jsonContentType?: string
+  timeout?: number
 } & RequestInit
 
 export type FetchBaseQueryMeta = { request: Request; response?: Response }
@@ -188,6 +199,7 @@ export function fetchBaseQuery({
   paramsSerializer,
   isJsonContentType = defaultIsJsonContentType,
   jsonContentType = 'application/json',
+  timeout: defaultTimeout,
   ...baseFetchOptions
 }: FetchBaseQueryArgs = {}): BaseQueryFn<
   string | FetchArgs,
@@ -212,6 +224,7 @@ export function fetchBaseQuery({
       params = undefined,
       responseHandler = 'json' as const,
       validateStatus = defaultValidateStatus,
+      timeout = defaultTimeout,
       ...rest
     } = typeof arg == 'string' ? { url: arg } : arg
     let config: RequestInit = {
@@ -256,11 +269,26 @@ export function fetchBaseQuery({
     const requestClone = request.clone()
     meta = { request: requestClone }
 
-    let response
+    let response,
+      timedOut = false,
+      timeoutId =
+        timeout &&
+        setTimeout(() => {
+          timedOut = true
+          api.abort()
+        }, timeout)
     try {
       response = await fetchFn(request)
     } catch (e) {
-      return { error: { status: 'FETCH_ERROR', error: String(e) }, meta }
+      return {
+        error: {
+          status: timedOut ? 'TIMEOUT_ERROR' : 'FETCH_ERROR',
+          error: String(e),
+        },
+        meta,
+      }
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId)
     }
     const responseClone = response.clone()
 
