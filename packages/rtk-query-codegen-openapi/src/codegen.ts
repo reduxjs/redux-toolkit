@@ -39,6 +39,63 @@ export function generateCreateApiCall({
   endpointDefinitions: ts.ObjectLiteralExpression;
   tag: boolean;
 }) {
+  const injectEndpointsObjectLiteralExpression = factory.createObjectLiteralExpression(
+    generateObjectProperties({
+      endpoints: factory.createArrowFunction(
+        undefined,
+        undefined,
+        [
+          factory.createParameterDeclaration(
+            undefined,
+            undefined,
+            undefined,
+            endpointBuilder,
+            undefined,
+            undefined,
+            undefined
+          ),
+        ],
+        undefined,
+        factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+        factory.createParenthesizedExpression(endpointDefinitions)
+      ),
+      overrideExisting: factory.createFalse(),
+    }),
+    true
+  );
+  if (tag) {
+    const enhanceEndpointsObjectLiteralExpression = factory.createObjectLiteralExpression(
+      [factory.createShorthandPropertyAssignment(factory.createIdentifier('addTagTypes'), undefined)],
+      true
+    )
+    return factory.createVariableStatement(
+      undefined,
+      factory.createVariableDeclarationList(
+        [factory.createVariableDeclaration(
+          factory.createIdentifier("injectedRtkApi"),
+          undefined,
+          undefined,
+          factory.createCallExpression(
+            factory.createPropertyAccessExpression(
+              factory.createCallExpression(
+                factory.createPropertyAccessExpression(
+                  factory.createIdentifier("api"),
+                  factory.createIdentifier("enhanceEndpoints")
+                ),
+                undefined,
+                [enhanceEndpointsObjectLiteralExpression]
+              ),
+              factory.createIdentifier("injectEndpoints")
+            ),
+            undefined,
+            [injectEndpointsObjectLiteralExpression]
+          )
+        )],
+        ts.NodeFlags.Const
+      )
+    );
+  }
+
   return factory.createVariableStatement(
     undefined,
     factory.createVariableDeclarationList(
@@ -53,37 +110,7 @@ export function generateCreateApiCall({
               factory.createIdentifier('injectEndpoints')
             ),
             undefined,
-            [
-              factory.createObjectLiteralExpression(
-                [
-                  ...(tag
-                    ? [factory.createShorthandPropertyAssignment(factory.createIdentifier('addTagTypes'), undefined)]
-                    : []),
-                  ...generateObjectProperties({
-                    endpoints: factory.createArrowFunction(
-                      undefined,
-                      undefined,
-                      [
-                        factory.createParameterDeclaration(
-                          undefined,
-                          undefined,
-                          undefined,
-                          endpointBuilder,
-                          undefined,
-                          undefined,
-                          undefined
-                        ),
-                      ],
-                      undefined,
-                      factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-                      factory.createParenthesizedExpression(endpointDefinitions)
-                    ),
-                    overrideExisting: factory.createFalse(),
-                  }),
-                ],
-                true
-              ),
-            ]
+            [injectEndpointsObjectLiteralExpression]
           )
         ),
       ],
