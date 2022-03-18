@@ -164,10 +164,11 @@ export type UseQuerySubscription<
   options?: UseQuerySubscriptionOptions
 ) => Pick<QueryActionCreatorResult<D>, 'refetch'>
 
-export type UseLazyQueryLastPromiseInfo<
+export type UseLazyQueryExtras<
   D extends QueryDefinition<any, any, any, any>
 > = {
   lastArg: QueryArgFrom<D>
+  unsubscribe: Unsubscribe | undefined
 }
 
 /**
@@ -194,8 +195,7 @@ export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
 ) => [
   LazyQueryTrigger<D>,
   UseQueryStateResult<D, R>,
-  UseLazyQueryLastPromiseInfo<D>,
-  Unsubscribe | undefined
+  UseLazyQueryExtras<D>
 ]
 
 export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
@@ -842,10 +842,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           skip: arg === UNINITIALIZED_VALUE,
         })
 
-        const info = useMemo(() => ({ lastArg: arg }), [arg])
+        const extras = useMemo(() => ({ lastArg: arg, unsubscribe }), [arg, unsubscribe])
+        
         return useMemo(
-          () => [trigger, queryStateResults, info, unsubscribe],
-          [trigger, queryStateResults, info, unsubscribe]
+          () => [trigger, queryStateResults, extras],
+          [trigger, queryStateResults, extras]
         )
       },
       useQuery(arg, options) {

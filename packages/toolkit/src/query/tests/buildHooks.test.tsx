@@ -1030,7 +1030,7 @@ describe('hooks tests', () => {
 
     test('useLazyQuery can be manually unsubscribed', async () => {
       function User() {
-        const [getUser, { data, error }, _lastInfo, unsubscribe] =
+        const [getUser, { data, error }, { unsubscribe }] =
           api.endpoints.getUser.useLazyQuery()
 
         const [unwrappedResult, setUnwrappedResult] = React.useState<
