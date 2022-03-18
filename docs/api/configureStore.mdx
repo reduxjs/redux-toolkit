@@ -116,11 +116,6 @@ An optional initial state value to be passed to the Redux `createStore` function
 
 This allows you to override part (or all) of the initial state values that you have defined for each of your reducers and slices. This is useful for things like hydrating the state from `localStorage` or for [writing tests](https://redux.js.org/usage/writing-tests) for your Redux applications.
 
-<!-- :::tip
-
-**Note**: `preloadedState` is not recursively partial. Which means that if you have a part of
-::: -->
-
 > **Note**: `preloadedState` is not recursively partial! For each part of your application's initial state that you decide to provide initial values for, you must define values for **all** properties of that part of state. They will be passed to your reducers as the initial state, and they themselves can't be partial.
 
 Let's discuss the above point some more and provide a few tips for how you fully leverage `preloadedState` in your application and tests. For example, let's stay we start with the following initial state:
