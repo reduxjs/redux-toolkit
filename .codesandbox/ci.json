@@ -5,6 +5,7 @@
     "github/reduxjs/rtk-github-issues-example",
     "/examples/query/react/basic",
     "/examples/query/react/advanced",
+    "/examples/query/react/suspense",
     "/examples/action-listener/counter"
   ],
   "node": "14",
