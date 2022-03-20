@@ -4049,6 +4049,23 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@examples-query-react/suspense@workspace:examples/query/react/suspense":
+  version: 0.0.0-use.local
+  resolution: "@examples-query-react/suspense@workspace:examples/query/react/suspense"
+  dependencies:
+    "@reduxjs/toolkit": ^1.6.0-rc.1
+    "@types/react": 17.0.0
+    "@types/react-dom": 17.0.0
+    "@types/react-redux": 7.1.9
+    react: 17.0.0
+    react-dom: 17.0.0
+    react-error-boundary: 3.1.4
+    react-redux: 7.2.2
+    react-scripts: 4.0.2
+    typescript: ~4.2.4
+  languageName: unknown
+  linkType: soft
+
 "@examples-query-react/with-apiprovider@workspace:examples/query/react/with-apiprovider":
   version: 0.0.0-use.local
   resolution: "@examples-query-react/with-apiprovider@workspace:examples/query/react/with-apiprovider"
@@ -21961,6 +21978,17 @@ fsevents@^1.2.7:
   peerDependencies:
     react: 17.0.2
   checksum: 1c1eaa3bca7c7228d24b70932e3d7c99e70d1d04e13bb0843bbf321582bc25d7961d6b8a6978a58a598af2af496d1cedcfb1bf65f6b0960a0a8161cb8dab743c
+  languageName: node
+  linkType: hard
+
+"react-error-boundary@npm:3.1.4":
+  version: 3.1.4
+  resolution: "react-error-boundary@npm:3.1.4"
+  dependencies:
+    "@babel/runtime": ^7.12.5
+  peerDependencies:
+    react: ">=16.13.1"
+  checksum: f36270a5d775a25c8920f854c0d91649ceea417b15b5bc51e270a959b0476647bb79abb4da3be7dd9a4597b029214e8fe43ea914a7f16fa7543c91f784977f1b
   languageName: node
   linkType: hard
 

@@ -22,6 +22,7 @@ import type { AnyAction } from 'redux'
 import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
 import type { SerializedError } from '@reduxjs/toolkit'
 import { renderHook } from '@testing-library/react-hooks'
+import { Suspense } from 'react'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -602,6 +603,115 @@ describe('hooks tests', () => {
           status: 'uninitialized',
         })
       })
+    })
+  })
+
+  describe('useSuspenseQuery', () => {
+    type UserProps = {
+      userId: number
+      skipFetch?: boolean
+      suspendOnRefetch?: boolean
+    }
+
+    function User({
+      userId,
+      skipFetch = false,
+      suspendOnRefetch = false,
+    }: UserProps) {
+      const { data, isFetching, refetch } =
+        api.endpoints.getUser.useUnstable_SuspenseQuery(
+          skipFetch ? skipToken : userId,
+          { suspendOnRefetch }
+        )
+
+      return (
+        <div>
+          <div data-testid="isFetching">{String(isFetching)}</div>
+          <div data-testid="name">{String(data?.name)}</div>
+          <button data-testid="refetch" onClick={() => refetch()}>
+            refetch
+          </button>
+        </div>
+      )
+    }
+
+    test('suspends queries only if isLoading is true', async () => {
+      render(
+        <Suspense fallback={<div data-testid="fallback">fallback</div>}>
+          <User userId={5} />
+        </Suspense>,
+        { wrapper: storeRef.wrapper }
+      )
+
+      expect(screen.getByTestId('fallback').textContent).toBe('fallback')
+
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      )
+
+      expect(screen.getByTestId('name').textContent).toBe('Timmy')
+
+      fireEvent.click(screen.getByTestId('refetch'))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('isFetching').textContent).toBe('true')
+      })
+
+      await waitFor(() => {
+        expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      })
+
+      expect(screen.getByTestId('name').textContent).toBe('Timmy')
+    })
+
+    test('does not suspend while a query is skipped', async () => {
+      let { rerender } = render(
+        <Suspense fallback={<div data-testid="fallback">fallback</div>}>
+          <User skipFetch userId={5} />
+        </Suspense>,
+        { wrapper: storeRef.wrapper }
+      )
+
+      expect(screen.getByTestId('isFetching').textContent).toBe('false')
+
+      rerender(
+        <Suspense fallback={<div data-testid="fallback">fallback</div>}>
+          <User userId={5} />
+        </Suspense>
+      )
+
+      expect(screen.getByTestId('fallback')?.textContent).toBe('fallback')
+
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      )
+
+      expect(screen.getByTestId('name').textContent).toBe('Timmy')
+    })
+
+    test('suspends on refetches if options.suspendOnRefetch is true', async () => {
+      render(
+        <Suspense fallback={<div data-testid="fallback">fallback</div>}>
+          <User userId={5} suspendOnRefetch />
+        </Suspense>,
+        { wrapper: storeRef.wrapper }
+      )
+
+      expect(screen.getByTestId('fallback').textContent).toBe('fallback')
+
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      )
+
+      expect(screen.getByTestId('name').textContent).toBe('Timmy')
+
+      fireEvent.click(screen.getByTestId('refetch'))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('fallback').textContent).toBe('fallback')
+      })
+
+      expect(screen.getByTestId('name').textContent).toBe('Timmy')
     })
   })
 

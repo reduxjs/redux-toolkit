@@ -1,0 +1,10 @@
+.App {
+  font-family: sans-serif;
+  text-align: center;
+}
+
+.pokemon-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 180px);
+  grid-gap: 20px;
+}

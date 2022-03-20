@@ -161,6 +161,7 @@ export const reactHooksModule = ({
             useLazyQuerySubscription,
             useQueryState,
             useQuerySubscription,
+            useUnstable_SuspenseQuery,
           } = buildQueryHooks(endpointName)
           safeAssign(anyApi.endpoints[endpointName], {
             useQuery,
@@ -168,6 +169,7 @@ export const reactHooksModule = ({
             useLazyQuerySubscription,
             useQueryState,
             useQuerySubscription,
+            useUnstable_SuspenseQuery,
           })
           ;(api as any)[`use${capitalize(endpointName)}Query`] = useQuery
           ;(api as any)[`useLazy${capitalize(endpointName)}Query`] =

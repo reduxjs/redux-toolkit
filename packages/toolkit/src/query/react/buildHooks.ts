@@ -69,6 +69,7 @@ export interface QueryHooks<
   useQuerySubscription: UseQuerySubscription<Definition>
   useLazyQuerySubscription: UseLazyQuerySubscription<Definition>
   useQueryState: UseQueryState<Definition>
+  useUnstable_SuspenseQuery: UseSuspenseQuery<Definition>
 }
 
 export interface MutationHooks<
@@ -98,6 +99,23 @@ export type UseQuery<D extends QueryDefinition<any, any, any, any>> = <
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseQuerySubscriptionOptions & UseQueryStateOptions<D, R>
 ) => UseQueryStateResult<D, R> & ReturnType<UseQuerySubscription<D>>
+
+export interface UseSuspenseOptions {
+  /**
+   * If set to `true` it will suspend the query on subsequent fetches,
+   * hence when `data !== undefined && isFetching` is truthy.
+   */
+  suspendOnRefetch?: boolean
+}
+
+export type UseSuspenseQuery<D extends QueryDefinition<any, any, any, any>> = <
+  R extends Record<string, any> = UseQueryStateDefaultResult<D>
+>(
+  arg: QueryArgFrom<D> | SkipToken,
+  options?: UseQuerySubscriptionOptions &
+    UseQueryStateOptions<D, R> &
+    UseSuspenseOptions
+) => Omit<UseQueryStateResult<D, R>, 'isLoading' | 'status'> & ReturnType<UseQuerySubscription<D>>
 
 interface UseQuerySubscriptionOptions extends SubscriptionOptions {
   /**
@@ -502,6 +520,13 @@ type GenericPrefetchThunk = (
   options: PrefetchOptions
 ) => ThunkAction<void, any, any, AnyAction>
 
+const isSkippedQuery = <Opt extends { skip?: boolean | undefined }>(
+  arg: unknown,
+  opt?: Opt | undefined
+): boolean => {
+  return arg === skipToken || !!opt?.skip
+}
+
 /**
  *
  * @param opts.api - An API with defined endpoints to create hooks for
@@ -858,6 +883,50 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         })
         return useMemo(
           () => ({ ...queryStateResults, ...querySubscriptionResults }),
+          [queryStateResults, querySubscriptionResults]
+        )
+      },
+      useUnstable_SuspenseQuery(arg, options) {
+        const querySubscriptionResults = useQuerySubscription(arg, options)
+        const queryStateResults = useQueryState(arg, {
+          selectFromResult: isSkippedQuery(arg, options)
+            ? undefined
+            : noPendingQueryStateSelector,
+          ...options,
+        })
+
+        // We do not suspend if a query is skipped:
+        // @see https://github.com/vercel/swr/pull/357#issuecomment-627089889
+        if (!isSkippedQuery(arg, options)) {
+          if (
+            queryStateResults.isLoading ||
+            (queryStateResults.isFetching && options?.suspendOnRefetch)
+          ) {
+            const pendingPromise = api.util.getRunningOperationPromise<any>(
+              name,
+              arg as unknown as string
+            )
+
+            if (pendingPromise) {
+              throw pendingPromise
+            }
+          } else if (
+            queryStateResults.isError &&
+            !queryStateResults.isFetching
+          ) {
+            throw queryStateResults.error
+          }
+        }
+
+        return useMemo(
+          () => {
+            const output = { ...queryStateResults, ...querySubscriptionResults };
+
+            delete output.isLoading;
+            delete output.status;
+
+            return output
+          },
           [queryStateResults, querySubscriptionResults]
         )
       },
