@@ -127,6 +127,7 @@ export function generateEndpointDefinition({
   queryFn,
   endpointBuilder = defaultEndpointBuilder,
   extraEndpointsProps,
+  tags,
 }: {
   operationName: string;
   type: 'query' | 'mutation';
@@ -135,7 +136,17 @@ export function generateEndpointDefinition({
   queryFn: ts.Expression;
   endpointBuilder?: ts.Identifier;
   extraEndpointsProps: ObjectPropertyDefinitions;
+  tags: string[];
 }) {
+  const objectProperties = generateObjectProperties({ query: queryFn, ...extraEndpointsProps });
+  if (tags.length > 0) {
+    objectProperties.push(
+      factory.createPropertyAssignment(
+        factory.createIdentifier(type === 'query' ? 'providesTags' : 'invalidatesTags'),
+        factory.createArrayLiteralExpression(tags.map((tag) => factory.createStringLiteral(tag), false))
+      )
+    )
+  }
   return factory.createPropertyAssignment(
     factory.createIdentifier(operationName),
 
@@ -144,11 +155,11 @@ export function generateEndpointDefinition({
       [Response, QueryArg],
       [
         factory.createObjectLiteralExpression(
-          generateObjectProperties({ query: queryFn, ...extraEndpointsProps }),
+          objectProperties,
           true
         ),
       ]
-    )
+    ),
   );
 }
 

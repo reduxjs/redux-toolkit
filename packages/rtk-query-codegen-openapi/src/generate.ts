@@ -333,6 +333,7 @@ export async function generateApi(
       extraEndpointsProps: isQuery
         ? generateQueryEndpointProps({ operationDefinition })
         : generateMutationEndpointProps({ operationDefinition }),
+      tags,
     });
   }
 
@@ -416,12 +417,6 @@ export async function generateApi(
                   factory.createIdentifier('params'),
                   generateQuerArgObjectLiteralExpression(queryParameters, rootObject)
                 ),
-            tags.length > 0
-              ? factory.createPropertyAssignment(
-                  factory.createIdentifier(isQuery ? 'providesTags' : 'invalidatesTags'),
-                  factory.createArrayLiteralExpression(tags.map((tag) => factory.createStringLiteral(tag), false))
-                )
-              : undefined,
           ].filter(removeUndefined),
           false
         )
