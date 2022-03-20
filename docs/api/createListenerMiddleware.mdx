@@ -115,7 +115,9 @@ interface ListenerMiddlewareInstance<
 > {
   middleware: ListenerMiddleware<State, Dispatch, ExtraArgument>
   startListening: (options: AddListenerOptions) => Unsubscribe
-  stopListening: (options: AddListenerOptions) => boolean
+  stopListening: (
+    options: AddListenerOptions & UnsubscribeListenerOptions
+  ) => boolean
   clearListeners: () => void
 }
 ```
@@ -172,7 +174,7 @@ type ListenerPredicate<Action extends AnyAction, State> = (
 ) => boolean
 
 type UnsubscribeListener = (
-  unsuscribeOptions?: UnsubscribeListenerOptions
+  unsubscribeOptions?: UnsubscribeListenerOptions
 ) => void
 
 interface UnsubscribeListenerOptions {
@@ -351,7 +353,7 @@ export interface ListenerEffectAPI<
    */
   signal: AbortSignal
   /**
-   * Returns a promise resolves after `timeoutMs` or
+   * Returns a promise that resolves after `timeoutMs` or
    * rejects if the listener has been cancelled or is completed.
    */
   delay(timeoutMs: number): Promise<void>
@@ -648,7 +650,7 @@ listenerMiddleware.startListening({
 
 ### Complex Async Workflows
 
-The provided async workflow primitives (`cancelActiveListeners`, `unsuscribe`, `subscribe`, `take`, `condition`, `pause`, `delay`) can be used to implement behavior that is equivalent to many of the more complex async workflow capabilities found in the Redux-Saga library. This includes effects such as `throttle`, `debounce`, `takeLatest`, `takeLeading`, and `fork/join`. Some examples from the test suite:
+The provided async workflow primitives (`cancelActiveListeners`, `unsubscribe`, `subscribe`, `take`, `condition`, `pause`, `delay`) can be used to implement behavior that is equivalent to many of the more complex async workflow capabilities found in the Redux-Saga library. This includes effects such as `throttle`, `debounce`, `takeLatest`, `takeLeading`, and `fork/join`. Some examples from the test suite:
 
 ```js
 test('debounce / takeLatest', async () => {
