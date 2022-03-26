@@ -115,7 +115,8 @@ export type UseSuspenseQuery<D extends QueryDefinition<any, any, any, any>> = <
   options?: UseQuerySubscriptionOptions &
     UseQueryStateOptions<D, R> &
     UseSuspenseOptions
-) => Omit<UseQueryStateResult<D, R>, 'isLoading' | 'status'> & ReturnType<UseQuerySubscription<D>>
+) => Omit<UseQueryStateResult<D, R>, 'isLoading' | 'status'> &
+  ReturnType<UseQuerySubscription<D>>
 
 interface UseQuerySubscriptionOptions extends SubscriptionOptions {
   /**
@@ -887,6 +888,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         )
       },
       useUnstable_SuspenseQuery(arg, options) {
+        const dispatch = useDispatch()
         const querySubscriptionResults = useQuerySubscription(arg, options)
         const queryStateResults = useQueryState(arg, {
           selectFromResult: isSkippedQuery(arg, options)
@@ -902,14 +904,29 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
             queryStateResults.isLoading ||
             (queryStateResults.isFetching && options?.suspendOnRefetch)
           ) {
-            const pendingPromise = api.util.getRunningOperationPromise<any>(
+            let pendingPromise = api.util.getRunningOperationPromise<any>(
               name,
               arg as unknown as string
             )
 
-            if (pendingPromise) {
-              throw pendingPromise
+            if (!pendingPromise) {
+              dispatch(
+                api.util.prefetch(name as any, arg as any, { force: true })
+              )
+
+              pendingPromise = api.util.getRunningOperationPromise<any>(
+                name,
+                arg as unknown as string
+              )
+
+              if (!pendingPromise) {
+                throw new Error(
+                  `[rtk-query][react]: invalid state error, expected getRunningOperationPromise(${name}, ${arg}) to be defined`
+                )
+              }
             }
+
+            throw pendingPromise
           } else if (
             queryStateResults.isError &&
             !queryStateResults.isFetching
@@ -918,17 +935,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           }
         }
 
-        return useMemo(
-          () => {
-            const output = { ...queryStateResults, ...querySubscriptionResults };
+        return useMemo(() => {
+          const output = { ...queryStateResults, ...querySubscriptionResults }
 
-            delete output.isLoading;
-            delete output.status;
+          delete output.isLoading
+          delete output.status
 
-            return output
-          },
-          [queryStateResults, querySubscriptionResults]
-        )
+          return output
+        }, [queryStateResults, querySubscriptionResults])
       },
     }
   }
