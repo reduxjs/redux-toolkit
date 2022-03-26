@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Suspense, useState } from 'react'
 import { Pokemon } from './Pokemon'
 import { PokemonName } from './pokemon.data'
@@ -11,13 +12,13 @@ export interface SuspendedPokemonProps {
 
 function BuggyComponent({ errorCount, name }:Pick<SuspendedPokemonProps, 'name'> & { errorCount: number }) {
   if(!errorCount) {
-    throw new Error('error while rendering:' + name)
+    throw new Error(`error while rendering: ${name}, errorCount ${errorCount}`);
   }
 
   return <></>
 }
 
-export function SuspendedPokemon({
+export const SuspendedPokemon = memo(function SuspendedPokemon({
   name,
   suspendOnRefetch,
   throwOnIntialRender,
@@ -45,9 +46,9 @@ export function SuspendedPokemon({
         {throwOnIntialRender && <BuggyComponent name={name} errorCount={errorCount} />}
         <Suspense
           fallback={
-            <div>
-              suspense fallback <br />
-              loading pokemon {name}
+            <div className={'suspense-fallback-wrapper'}>
+              Suspense fallback UI.<br />
+              Loading pokemon {name}
             </div>
           }
         >
@@ -56,4 +57,4 @@ export function SuspendedPokemon({
       </ErrorBoundary>
     </div>
   )
-}
+});

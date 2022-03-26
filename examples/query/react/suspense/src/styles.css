@@ -8,3 +8,13 @@
   grid-template-columns: repeat(auto-fill, 180px);
   grid-gap: 20px;
 }
+
+.suspense-fallback-wrapper {
+  display: flex;
+  place-items: center;
+  background: #e0e0e0;
+  color: #202020;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  height: 250px;
+}
