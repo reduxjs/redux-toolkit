@@ -119,7 +119,7 @@ transformResponse: (response, meta, arg) =>
   response.some.deeply.nested.collection
 ```
 
-`transformResponse` is called with the `meta` property returned from the `baseQuery` as it's second
+`transformResponse` is called with the `meta` property returned from the `baseQuery` as its second
 argument, which can be used while determining the transformed response. The value for `meta` is
 dependent on the `baseQuery` used.
 
@@ -132,7 +132,7 @@ transformResponse: (response: { sideA: Tracks; sideB: Tracks }, meta, arg) => {
 }
 ```
 
-`transformResponse` is called with the `arg` property provided to the endpoint as it's third
+`transformResponse` is called with the `arg` property provided to the endpoint as its third
 argument, which can be used while determining the transformed response. The value for `arg` is
 dependent on the `endpoint` used, as well as the argument used when calling the query/mutation.
 
