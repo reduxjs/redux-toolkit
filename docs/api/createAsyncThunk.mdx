@@ -25,11 +25,7 @@ Redux Toolkit's [**RTK Query data fetching API**](../rtk-query/overview.md) is a
 
 Sample usage:
 
-```ts {5-11,22-25,30}
-interface userAPI {
-  fetchById: (userId: number) => Promise<any>
-}
-
+```ts no-transpile {5-11,22-25,30}
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { userAPI } from './userAPI'
 
@@ -373,7 +369,7 @@ const updateUser = createAsyncThunk(
 
 If you need to cancel a thunk before the payload creator is called, you may provide a `condition` callback as an option after the payload creator. The callback will receive the thunk argument and an object with `{getState, extra}` as parameters, and use those to decide whether to continue or not. If the execution should be canceled, the `condition` callback should return a literal `false` value or a promise that should resolve to `false`. If a promise is returned, the thunk waits for it to get fulfilled before dispatching the `pending` action, otherwise it proceeds with dispatching synchronously.
 
-```ts
+```ts no-transpile
 const fetchUserById = createAsyncThunk(
   'users/fetchByIdStatus',
   async (userId: number, thunkAPI) => {
@@ -401,7 +397,7 @@ If you want to cancel your running thunk before it has finished, you can use the
 
 A real-life example of that would look like this:
 
-```ts
+```ts no-transpile
 // file: store.ts noEmit
 import { configureStore, Reducer } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
@@ -443,7 +439,7 @@ Additionally, your `payloadCreator` can use the `AbortSignal` it is passed via `
 
 The `fetch` api of modern browsers already comes with support for an `AbortSignal`:
 
-```ts
+```ts no-transpile
 import { createAsyncThunk } from '@reduxjs/toolkit'
 
 const fetchUserById = createAsyncThunk(
@@ -463,7 +459,7 @@ const fetchUserById = createAsyncThunk(
 
 You can use the `signal.aborted` property to regularly check if the thunk has been aborted and in that case stop costly long-running work:
 
-```ts
+```ts no-transpile
 import { createAsyncThunk } from '@reduxjs/toolkit'
 
 const readStream = createAsyncThunk(
@@ -492,7 +488,7 @@ const readStream = createAsyncThunk(
 You can also call `signal.addEventListener('abort', callback)` to have logic inside the thunk be notified when `promise.abort()` was called.
 This can for example be used in conjunction with an axios `CancelToken`:
 
-```ts
+```ts no-transpile
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import axios from 'axios'
 
@@ -515,7 +511,7 @@ const fetchUserById = createAsyncThunk(
 
 - Requesting a user by ID, with loading state, and only one request at a time:
 
-```ts
+```ts no-transpile
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { userAPI } from './userAPI'
 
