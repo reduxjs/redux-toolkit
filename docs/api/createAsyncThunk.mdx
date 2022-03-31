@@ -212,7 +212,7 @@ type RejectedWithValue = <ThunkArg, RejectedValue>(
 
 To handle these actions in your reducers, reference the action creators in `createReducer` or `createSlice` using either the object key notation or the "builder callback" notation. (Note that if you use TypeScript, you [should use the "builder callback" notation to ensure the types are inferred correctly](../usage/usage-with-typescript.md#type-safety-with-extrareducers)):
 
-```ts {2,6,14,23}
+```ts no-transpile {2,6,14,23}
 const reducer1 = createReducer(initialState, {
   [fetchUserById.fulfilled]: (state, action) => {},
 })
@@ -246,7 +246,7 @@ const reducer4 = createSlice({
 
 Thunks may return a value when dispatched. A common use case is to return a promise from the thunk, dispatch the thunk from a component, and then wait for the promise to resolve before doing additional work:
 
-```ts
+```ts no-transpile
 const onClick = () => {
   dispatch(fetchUserById(userId)).then(() => {
     // do additional work
@@ -346,7 +346,7 @@ If you need to customize the contents of the `rejected` action, you should catch
 
 The `rejectWithValue` approach should also be used if your API response "succeeds", but contains some kind of additional error details that the reducer should know about. This is particularly common when expecting field-level validation errors from an API.
 
-```ts
+```ts no-transpile
 const updateUser = createAsyncThunk(
   'users/update',
   async (userData, { rejectWithValue }) => {
@@ -590,7 +590,7 @@ const UsersComponent = () => {
 
   _Note: this is a contrived example assuming our userAPI only ever throws validation-specific errors_
 
-```ts
+```ts no-transpile
 // file: store.ts noEmit
 import { configureStore, Reducer } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
