@@ -25,23 +25,33 @@ Redux Toolkit's [**RTK Query data fetching API**](../rtk-query/overview.md) is a
 
 Sample usage:
 
-```js {5-11,22-25,30}
+```ts no-transpile {5-11,22-25,30}
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { userAPI } from './userAPI'
 
 // First, create the thunk
 const fetchUserById = createAsyncThunk(
   'users/fetchByIdStatus',
-  async (userId, thunkAPI) => {
+  async (userId: number, thunkAPI) => {
     const response = await userAPI.fetchById(userId)
     return response.data
   }
 )
 
+interface UsersState {
+  entities: []
+  loading: 'idle' | 'pending' | 'succeeded' | 'failed'
+}
+
+const initialState = {
+  entities: [],
+  loading: 'idle',
+} as UsersState
+
 // Then, handle actions in your reducers:
 const usersSlice = createSlice({
   name: 'users',
-  initialState: { entities: [], loading: 'idle' },
+  initialState,
   reducers: {
     // standard reducer logic, with auto-generated action types per reducer
   },
@@ -202,7 +212,7 @@ type RejectedWithValue = <ThunkArg, RejectedValue>(
 
 To handle these actions in your reducers, reference the action creators in `createReducer` or `createSlice` using either the object key notation or the "builder callback" notation. (Note that if you use TypeScript, you [should use the "builder callback" notation to ensure the types are inferred correctly](../usage/usage-with-typescript.md#type-safety-with-extrareducers)):
 
-```js {2,6,14,23}
+```ts no-transpile {2,6,14,23}
 const reducer1 = createReducer(initialState, {
   [fetchUserById.fulfilled]: (state, action) => {},
 })
@@ -236,7 +246,7 @@ const reducer4 = createSlice({
 
 Thunks may return a value when dispatched. A common use case is to return a promise from the thunk, dispatch the thunk from a component, and then wait for the promise to resolve before doing additional work:
 
-```js
+```ts no-transpile
 const onClick = () => {
   dispatch(fetchUserById(userId)).then(() => {
     // do additional work
@@ -336,7 +346,7 @@ If you need to customize the contents of the `rejected` action, you should catch
 
 The `rejectWithValue` approach should also be used if your API response "succeeds", but contains some kind of additional error details that the reducer should know about. This is particularly common when expecting field-level validation errors from an API.
 
-```js
+```ts no-transpile
 const updateUser = createAsyncThunk(
   'users/update',
   async (userData, { rejectWithValue }) => {
@@ -359,10 +369,10 @@ const updateUser = createAsyncThunk(
 
 If you need to cancel a thunk before the payload creator is called, you may provide a `condition` callback as an option after the payload creator. The callback will receive the thunk argument and an object with `{getState, extra}` as parameters, and use those to decide whether to continue or not. If the execution should be canceled, the `condition` callback should return a literal `false` value or a promise that should resolve to `false`. If a promise is returned, the thunk waits for it to get fulfilled before dispatching the `pending` action, otherwise it proceeds with dispatching synchronously.
 
-```js
+```ts no-transpile
 const fetchUserById = createAsyncThunk(
   'users/fetchByIdStatus',
-  async (userId, thunkAPI) => {
+  async (userId: number, thunkAPI) => {
     const response = await userAPI.fetchById(userId)
     return response.data
   },
@@ -387,7 +397,7 @@ If you want to cancel your running thunk before it has finished, you can use the
 
 A real-life example of that would look like this:
 
-```ts
+```ts no-transpile
 // file: store.ts noEmit
 import { configureStore, Reducer } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
@@ -429,7 +439,7 @@ Additionally, your `payloadCreator` can use the `AbortSignal` it is passed via `
 
 The `fetch` api of modern browsers already comes with support for an `AbortSignal`:
 
-```ts
+```ts no-transpile
 import { createAsyncThunk } from '@reduxjs/toolkit'
 
 const fetchUserById = createAsyncThunk(
@@ -449,7 +459,7 @@ const fetchUserById = createAsyncThunk(
 
 You can use the `signal.aborted` property to regularly check if the thunk has been aborted and in that case stop costly long-running work:
 
-```ts
+```ts no-transpile
 import { createAsyncThunk } from '@reduxjs/toolkit'
 
 const readStream = createAsyncThunk(
@@ -478,13 +488,13 @@ const readStream = createAsyncThunk(
 You can also call `signal.addEventListener('abort', callback)` to have logic inside the thunk be notified when `promise.abort()` was called.
 This can for example be used in conjunction with an axios `CancelToken`:
 
-```ts
+```ts no-transpile
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import axios from 'axios'
 
 const fetchUserById = createAsyncThunk(
   'users/fetchById',
-  async (userId, { signal }) => {
+  async (userId: string, { signal }) => {
     const source = axios.CancelToken.source()
     signal.addEventListener('abort', () => {
       source.cancel()
@@ -501,13 +511,13 @@ const fetchUserById = createAsyncThunk(
 
 - Requesting a user by ID, with loading state, and only one request at a time:
 
-```js
+```ts no-transpile
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { userAPI } from './userAPI'
 
 const fetchUserById = createAsyncThunk(
   'users/fetchByIdStatus',
-  async (userId, { getState, requestId }) => {
+  async (userId: string, { getState, requestId }) => {
     const { currentRequestId, loading } = getState().users
     if (loading !== 'pending' || requestId !== currentRequestId) {
       return
@@ -580,7 +590,7 @@ const UsersComponent = () => {
 
   _Note: this is a contrived example assuming our userAPI only ever throws validation-specific errors_
 
-```ts
+```ts no-transpile
 // file: store.ts noEmit
 import { configureStore, Reducer } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
