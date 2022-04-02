@@ -24,7 +24,7 @@ export type Dictionary<T, Id extends EntityId> = Partial<Record<Id, T>>
 /**
  * @public
  */
-export type DictionaryNum<T> = Dictionary<TemplateStringsArray, number>
+export type DictionaryNum<T> = Dictionary<T, number>
 
 /**
  * @public
