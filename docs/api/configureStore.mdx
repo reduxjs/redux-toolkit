@@ -199,7 +199,7 @@ const store = configureStore({
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger),
   devTools: process.env.NODE_ENV !== 'production',
   preloadedState,
-  enhancers: [reduxBatch],
+  enhancers: (existingEnhancersArray) => [reduxBatch, ...existingEnhancersArray, reduxBatch],
 })
 
 // The store has been created with these options:
