@@ -12,6 +12,7 @@ export interface BuildOptions {
   minify: boolean
   env: 'development' | 'production' | ''
   target?: 'es2017'
+  extension?: 'js' | 'mjs'
 }
 
 export interface EntryPointOptions {

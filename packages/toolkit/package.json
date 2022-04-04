@@ -24,6 +24,21 @@
   },
   "main": "dist/index.js",
   "module": "dist/redux-toolkit.esm.js",
+  "exports": {
+    ".": {
+      "import": "./dist/redux-toolkit.esm.mjs",
+      "require": "./dist/index.js"
+    },
+    "./query": {
+      "import": "./dist/query/rtk-query.esm.mjs",
+      "require": "./dist/query/index.js"
+    },
+    "./query/react": {
+      "import": "./dist/query/react/rtk-query-react.esm.mjs",
+      "require": "./dist/query/react/index.js"
+    },
+    "./*": "./*"
+  },
   "unpkg": "dist/redux-toolkit.umd.min.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
