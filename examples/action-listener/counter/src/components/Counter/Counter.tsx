@@ -6,7 +6,7 @@ import styles from './counter.module.css'
 import clsx from 'clsx'
 
 export interface CounterProps {
-  counterId: EntityId
+  counterId: string
 }
 
 const intervalMs = 1_000

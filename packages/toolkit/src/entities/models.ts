@@ -21,10 +21,6 @@ export type IdSelector<T, Id extends EntityId> = (model: T) => Id
  */
 export type Dictionary<T, Id extends EntityId> = Partial<Record<Id, T>>
 
-/**
- * @public
- */
-export type DictionaryNum<T> = Dictionary<T, number>
 
 /**
  * @public
