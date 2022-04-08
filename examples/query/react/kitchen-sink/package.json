@@ -1,0 +1,49 @@
+{
+  "name": "@examples-query-react/kitchen-sink",
+  "private": true,
+  "version": "1.0.0",
+  "description": "getting-started-hooks",
+  "keywords": [],
+  "main": "src/index.tsx",
+  "dependencies": {
+    "@reduxjs/toolkit": "workspace:^",
+    "react": "17.0.0",
+    "react-dom": "17.0.0",
+    "react-redux": "7.2.2",
+    "react-scripts": "4.0.2"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.11.5",
+    "@testing-library/react": "^12.0.0",
+    "@types/jest": "^26.0.23",
+    "@types/node": "^14.14.6",
+    "@types/react": "17.0.0",
+    "@types/react-dom": "17.0.0",
+    "@types/react-redux": "7.1.9",
+    "msw": "^0.39.2",
+    "typescript": "~4.2.4",
+    "whatwg-fetch": "^3.4.1"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ],
+    "rules": {
+      "react/react-in-jsx-scope": "off"
+    }
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --runInBand"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
+  "msw": {
+    "workerDirectory": "public"
+  }
+}
