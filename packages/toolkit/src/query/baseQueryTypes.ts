@@ -36,7 +36,7 @@ export type BaseQueryFn<
   Result = unknown,
   Error = unknown,
   DefinitionExtraOptions = {},
-  Meta = {}
+  Meta = {} | undefined
 > = (
   args: Args,
   api: BaseQueryApi,
@@ -54,7 +54,8 @@ export type BaseQueryEnhancer<
   BaseQueryArg<BaseQuery> & AdditionalArgs,
   BaseQueryResult<BaseQuery>,
   BaseQueryError<BaseQuery>,
-  BaseQueryExtraOptions<BaseQuery> & AdditionalDefinitionExtraOptions
+  BaseQueryExtraOptions<BaseQuery> & AdditionalDefinitionExtraOptions,
+  BaseQueryMeta<BaseQuery>
 >
 
 export type BaseQueryResult<BaseQuery extends BaseQueryFn> = UnwrapPromise<
