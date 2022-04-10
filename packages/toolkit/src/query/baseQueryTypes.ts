@@ -36,7 +36,7 @@ export type BaseQueryFn<
   Result = unknown,
   Error = unknown,
   DefinitionExtraOptions = {},
-  Meta = {} | undefined
+  Meta = {}
 > = (
   args: Args,
   api: BaseQueryApi,
