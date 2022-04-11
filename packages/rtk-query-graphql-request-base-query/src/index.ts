@@ -50,7 +50,13 @@ export const graphqlRequestBaseQuery = (
     } catch (error) {
       if (error instanceof ClientError) {
         const { name, message, stack, request, response } = error
-        return { error: { name, message, stack }, meta: { request, response } }
+
+      const customErrors =
+        options.customErrors ?? (() => ({ name, message, stack }));
+
+      const customizedErrors = customErrors(error);
+
+        return { error: customizedErrors, meta: { request, response } }
       }
       throw error
     }
