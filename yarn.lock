@@ -4072,6 +4072,26 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@examples-query-react/suspense@workspace:examples/query/react/suspense":
+  version: 0.0.0-use.local
+  resolution: "@examples-query-react/suspense@workspace:examples/query/react/suspense"
+  dependencies:
+    "@reduxjs/toolkit": ^1.8.0
+    "@types/react": 17.0.0
+    "@types/react-dom": 17.0.0
+    "@types/react-redux": 7.1.9
+    "@types/use-sync-external-store": ^0.0.3
+    clsx: ^1.1.1
+    react: 17.0.0
+    react-dom: 17.0.0
+    react-error-boundary: 3.1.4
+    react-redux: 7.2.2
+    react-scripts: 4.0.2
+    typescript: ~4.2.4
+    use-sync-external-store: ^1.0.0
+  languageName: unknown
+  linkType: soft
+
 "@examples-query-react/with-apiprovider@workspace:examples/query/react/with-apiprovider":
   version: 0.0.0-use.local
   resolution: "@examples-query-react/with-apiprovider@workspace:examples/query/react/with-apiprovider"
@@ -7041,6 +7061,13 @@ __metadata:
   version: 2.0.3
   resolution: "@types/unist@npm:2.0.3"
   checksum: 4427306b094561da28164e7e5250c4e6b382cb8eac40bf7e6bb0ff1e6e00c13e47aaf32e4a08fc8ba54602d07f79a39fb9ba304cc9dc886b1e3caf824649edbd
+  languageName: node
+  linkType: hard
+
+"@types/use-sync-external-store@npm:^0.0.3":
+  version: 0.0.3
+  resolution: "@types/use-sync-external-store@npm:0.0.3"
+  checksum: 161ddb8eec5dbe7279ac971531217e9af6b99f7783213566d2b502e2e2378ea19cf5e5ea4595039d730aa79d3d35c6567d48599f69773a02ffcff1776ec2a44e
   languageName: node
   linkType: hard
 
@@ -22197,6 +22224,17 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"react-error-boundary@npm:3.1.4":
+  version: 3.1.4
+  resolution: "react-error-boundary@npm:3.1.4"
+  dependencies:
+    "@babel/runtime": ^7.12.5
+  peerDependencies:
+    react: ">=16.13.1"
+  checksum: f36270a5d775a25c8920f854c0d91649ceea417b15b5bc51e270a959b0476647bb79abb4da3be7dd9a4597b029214e8fe43ea914a7f16fa7543c91f784977f1b
+  languageName: node
+  linkType: hard
+
 "react-error-boundary@npm:^3.1.0":
   version: 3.1.3
   resolution: "react-error-boundary@npm:3.1.3"
@@ -26873,6 +26911,15 @@ resolve@~1.19.0:
   peerDependencies:
     react: ^16.8.0 || ^17.0.0
   checksum: 9207ad8af787f4005b55813dd34ab392c06c5c86971182068f74f4aca5781c067085813167d438d460a84289d67dc915d04f2309dfc016172423c65bfd22bb3e
+  languageName: node
+  linkType: hard
+
+"use-sync-external-store@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "use-sync-external-store@npm:1.0.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0-rc
+  checksum: f3df10af62625169d6a8cd8d4f38942dc6817aa27398fa7f474421fd574b0c4c83679b9d15f983f482c396ee1183416eb146814c81f44241e1480acd701ef018
   languageName: node
   linkType: hard
 

@@ -52,6 +52,8 @@ import { useStableQueryArgs } from './useSerializedStableValue'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
 import { useShallowStableValue } from './useShallowStableValue'
+import { SuspenseQueryError } from './exceptions'
+import type { Suspendable } from './suspense-utils'
 
 // Copy-pasted from React-Redux
 export const useIsomorphicLayoutEffect =
@@ -77,6 +79,10 @@ export interface MutationHooks<
   useMutation: UseMutation<Definition>
 }
 
+type IdleState<Arg> = Arg extends SkipToken
+  ? { isSkipped: true }
+  : { isSkipped: boolean }
+
 /**
  * A React hook that automatically triggers fetches of data from an endpoint, 'subscribes' the component to the cached data, and reads the request status and cached data from the Redux store. The component will re-render as the loading status changes and the data becomes available.
  *
@@ -93,11 +99,15 @@ export interface MutationHooks<
  * - Re-renders as the request status changes and data becomes available
  */
 export type UseQuery<D extends QueryDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = UseQueryStateDefaultResult<D>
+  R extends Record<string, any> = UseQueryStateDefaultResult<D>,
+  Arg extends QueryArgFrom<D> | SkipToken = QueryArgFrom<D> | SkipToken
 >(
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseQuerySubscriptionOptions & UseQueryStateOptions<D, R>
-) => UseQueryStateResult<D, R> & ReturnType<UseQuerySubscription<D>>
+) => UseQueryStateResult<D, R> &
+  ReturnType<UseQuerySubscription<D>> &
+  Suspendable &
+  IdleState<Arg>
 
 interface UseQuerySubscriptionOptions extends SubscriptionOptions {
   /**
@@ -503,6 +513,87 @@ type GenericPrefetchThunk = (
 ) => ThunkAction<void, any, any, AnyAction>
 
 /**
+ * @internal
+ */
+type CreateSuspendableQueryOptions<
+  Definitions extends EndpointDefinitions,
+  Key extends keyof Definitions
+> = {
+  name: Key
+  isSkipped: boolean
+  args: any
+  api: Api<any, Definitions, any, any, CoreModule>
+  prefetch: (arg: any, options?: PrefetchOptions | undefined) => void
+  queryStateResults: UseQueryStateResult<
+    QueryDefinitionOf<Key, Definitions>,
+    UseQueryStateDefaultResult<QueryDefinitionOf<Key, Definitions>>
+  >
+}
+
+type QueryDefinitionOf<
+  Key extends keyof Definitions,
+  Definitions extends EndpointDefinitions
+> = Definitions[Key] extends QueryDefinition<infer A, infer B, infer C, infer D>
+  ? QueryDefinition<A, B, C, D>
+  : never
+
+const createSuspendablePromise = <
+  Definitions extends EndpointDefinitions,
+  Key extends QueryKeys<Definitions>
+>({
+  isSkipped,
+  args,
+  prefetch,
+  api,
+  name,
+  queryStateResults,
+}: CreateSuspendableQueryOptions<
+  Definitions,
+  Key
+>): Suspendable['getSuspendablePromise'] => {
+  const retry = () => {
+    prefetch(args, {
+      force: true,
+    })
+  }
+
+  return (): Promise<unknown> | undefined => {
+    // We do not suspend if a query is skipped:
+    // @see https://github.com/vercel/swr/pull/357#issuecomment-627089889
+    if (!isSkipped && typeof queryStateResults.data === 'undefined') {
+      if (queryStateResults.isLoading) {
+        let pendingPromise = api.util.getRunningOperationPromise(name, args)
+
+        if (!pendingPromise) {
+          prefetch(args, {
+            force: true,
+          })
+
+          pendingPromise = api.util.getRunningOperationPromise(
+            name as any,
+            args
+          )
+
+          if (!pendingPromise) {
+            throw new Error(
+              `[rtk-query][react]: invalid state error, expected getRunningOperationPromise(${name}, ${queryStateResults.requestId}) to be defined`
+            )
+          }
+        }
+        return pendingPromise
+      } else if (queryStateResults.isError && !queryStateResults.isFetching) {
+        throw new SuspenseQueryError(
+          queryStateResults.error,
+          queryStateResults.endpointName + '',
+          retry
+        )
+      }
+    }
+    return undefined
+  }
+}
+
+/**
  *
  * @param opts.api - An API with defined endpoints to create hooks for
  * @param opts.moduleOptions.batch - The version of the `batchedUpdates` function to be used
@@ -848,17 +939,46 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         )
       },
       useQuery(arg, options) {
+        const isSkipped: boolean = arg === skipToken || !!options?.skip
         const querySubscriptionResults = useQuerySubscription(arg, options)
         const queryStateResults = useQueryState(arg, {
-          selectFromResult:
-            arg === skipToken || options?.skip
-              ? undefined
-              : noPendingQueryStateSelector,
+          selectFromResult: isSkipped ? undefined : noPendingQueryStateSelector,
           ...options,
         })
+
+        const stableArg = useStableQueryArgs(
+          options?.skip ? skipToken : arg,
+          serializeQueryArgs,
+          context.endpointDefinitions[name],
+          name
+        )
+
+        const prefetch = usePrefetch(name as any)
+
         return useMemo(
-          () => ({ ...queryStateResults, ...querySubscriptionResults }),
-          [queryStateResults, querySubscriptionResults]
+          () => ({
+            ...queryStateResults,
+            ...querySubscriptionResults,
+            isSkipped,
+            /**
+             * This implementation will also trigger a fetch using prefetch, if possible, during the initial render.
+             */
+            getSuspendablePromise: createSuspendablePromise({
+              args: stableArg,
+              isSkipped,
+              prefetch,
+              api: api,
+              queryStateResults,
+              name: name as unknown as QueryKeys<Definitions>,
+            }),
+          }),
+          [
+            queryStateResults,
+            querySubscriptionResults,
+            prefetch,
+            isSkipped,
+            stableArg,
+          ]
         )
       },
     }

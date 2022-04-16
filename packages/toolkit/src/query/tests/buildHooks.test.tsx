@@ -4,6 +4,7 @@ import {
   fetchBaseQuery,
   QueryStatus,
   skipToken,
+  useSuspendAll,
 } from '@reduxjs/toolkit/query/react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -22,6 +23,7 @@ import type { AnyAction } from 'redux'
 import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
 import type { SerializedError } from '@reduxjs/toolkit'
 import { renderHook } from '@testing-library/react-hooks'
+import { Suspense } from 'react'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -77,6 +79,39 @@ const api = createApi({
     }),
   }),
 })
+
+class ErrorBoundary extends React.Component<
+  {
+    fallback?:
+      | React.ReactNode
+      | ((error: Error, reset: () => void) => React.ReactNode)
+    children: React.ReactNode
+  },
+  { error: Error | null }
+> {
+  state = { error: null } as { error: Error | null }
+
+  componentDidCatch(error: Error) {
+    this.setState({ error })
+  }
+
+  reset = () => {
+    this.setState({ error: null })
+  }
+
+  render(): React.ReactNode {
+    const { error } = this.state
+    const { fallback, children } = this.props
+
+    if (error) {
+      return typeof fallback === 'function'
+        ? fallback(error, this.reset)
+        : fallback
+    }
+
+    return children
+  }
+}
 
 const storeRef = setupApiStore(api, {
   actions(state: AnyAction[] = [], action: AnyAction) {
@@ -1904,7 +1939,9 @@ describe('hooks with createApi defaults set', () => {
      */
     test('useQuery with selectFromResult with all flags destructured rerenders like the default useQuery behavior', async () => {
       function Posts() {
-        const { data: posts } = api.endpoints.getPosts.useQuery()
+        const { data: posts } = api.endpoints.getPosts.useQuery(undefined, {
+          skip: true,
+        })
         const [addPost] = api.endpoints.addPost.useMutation()
         getRenderCount = useRenderCounter()
         return (
@@ -1965,7 +2002,7 @@ describe('hooks with createApi defaults set', () => {
       await waitFor(() => expect(getRenderCount()).toBe(5))
       fireEvent.click(addBtn)
       fireEvent.click(addBtn)
-      await waitFor(() => expect(getRenderCount()).toBe(9))
+      await waitFor(() => expect(getRenderCount()).toBe(7))
     })
 
     test('useQuery with selectFromResult option serves a deeply memoized value and does not rerender unnecessarily', async () => {
@@ -2302,6 +2339,7 @@ describe('hooks with createApi defaults set', () => {
 
 describe('skip behaviour', () => {
   const uninitialized = {
+    getSuspendablePromise: expect.any(Function),
     status: QueryStatus.uninitialized,
     refetch: expect.any(Function),
     data: undefined,
@@ -2310,6 +2348,11 @@ describe('skip behaviour', () => {
     isLoading: false,
     isSuccess: false,
     isUninitialized: true,
+  }
+
+  const skipped = {
+    ...uninitialized,
+    isSkipped: true,
   }
 
   function subscriptionCount(key: string) {
@@ -2327,7 +2370,7 @@ describe('skip behaviour', () => {
       }
     )
 
-    expect(result.current).toEqual(uninitialized)
+    expect(result.current).toEqual(skipped)
     expect(subscriptionCount('getUser(1)')).toBe(0)
 
     rerender([1])
@@ -2335,7 +2378,7 @@ describe('skip behaviour', () => {
     expect(subscriptionCount('getUser(1)')).toBe(1)
 
     rerender([1, { skip: true }])
-    expect(result.current).toEqual(uninitialized)
+    expect(result.current).toEqual(skipped)
     expect(subscriptionCount('getUser(1)')).toBe(0)
   })
 
@@ -2349,7 +2392,7 @@ describe('skip behaviour', () => {
       }
     )
 
-    expect(result.current).toEqual(uninitialized)
+    expect(result.current).toEqual(skipped)
     expect(subscriptionCount('getUser(1)')).toBe(0)
     // also no subscription on `getUser(skipToken)` or similar:
     expect(storeRef.store.getState().api.subscriptions).toEqual({})
@@ -2360,7 +2403,121 @@ describe('skip behaviour', () => {
     expect(storeRef.store.getState().api.subscriptions).not.toEqual({})
 
     rerender([skipToken])
-    expect(result.current).toEqual(uninitialized)
+    expect(result.current).toEqual(skipped)
     expect(subscriptionCount('getUser(1)')).toBe(0)
+  })
+})
+
+describe('suspense', () => {
+  type UserProps = {
+    userId: number
+    skipFetch?: boolean
+  }
+
+  function User({ userId, skipFetch = false }: UserProps) {
+    const [{ data, isFetching, refetch, isLoading }] = useSuspendAll(
+      api.useGetUserQuery(skipFetch ? skipToken : userId)
+    )
+
+    return (
+      <div>
+        <div data-testid="isLoading">{String(isLoading)}</div>
+        <div data-testid="isFetching">{String(isFetching)}</div>
+        <div data-testid="name">{String(data?.name)}</div>
+        <button data-testid="refetch" onClick={() => refetch()}>
+          refetch
+        </button>
+      </div>
+    )
+  }
+
+  describe('useSuspendAll', () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error')
+
+    function ThrowsBecauseNoArgs() {
+      const tuple = [
+        {
+          getSuspendablePromise() {
+            return undefined
+          },
+        },
+      ] as const
+
+      ;(tuple as unknown as any[]).splice(0, tuple.length)
+
+      useSuspendAll(...tuple)
+      return <div></div>
+    }
+
+    test('throws error if no arg is provided', () => {
+      consoleErrorSpy.mockImplementationOnce(() => {})
+      const { container } = render(
+        <ErrorBoundary
+          fallback={(error) => (
+            <div data-testid="error-fallback">{String(error)}</div>
+          )}
+        >
+          <ThrowsBecauseNoArgs />
+        </ErrorBoundary>
+      )
+
+      expect(
+        container.querySelector('[data-testid="error-fallback"]')
+      ).toBeDefined()
+    })
+
+    test('suspends queries only if isLoading is true', async () => {
+      render(
+        <Suspense fallback={<div data-testid="fallback">fallback</div>}>
+          <User userId={5} />
+        </Suspense>,
+        { wrapper: storeRef.wrapper }
+      )
+
+      expect(screen.getByTestId('fallback').textContent).toBe('fallback')
+
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      )
+
+      expect(screen.getByTestId('name').textContent).toBe('Timmy')
+
+      fireEvent.click(screen.getByTestId('refetch'))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('isFetching').textContent).toBe('true')
+      })
+
+      await waitFor(() => {
+        expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      })
+
+      expect(screen.getByTestId('name').textContent).toBe('Timmy')
+    })
+
+    test('does not suspend while a query is skipped', async () => {
+      let { rerender } = render(
+        <Suspense fallback={<div data-testid="fallback">fallback</div>}>
+          <User skipFetch userId={5} />
+        </Suspense>,
+        { wrapper: storeRef.wrapper }
+      )
+
+      expect(screen.getByTestId('isFetching').textContent).toBe('false')
+
+      rerender(
+        <Suspense fallback={<div data-testid="fallback">fallback</div>}>
+          <User userId={5} />
+        </Suspense>
+      )
+
+      expect(screen.getByTestId('fallback')?.textContent).toBe('fallback')
+
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      )
+
+      expect(screen.getByTestId('name').textContent).toBe('Timmy')
+    })
   })
 })

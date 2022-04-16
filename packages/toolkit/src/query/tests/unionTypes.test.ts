@@ -353,7 +353,11 @@ describe.skip('TS only tests', () => {
       }
     )
 
-    const { refetch: _omit, ...useQueryResultWithoutMethods } = useQueryResult
+    const {
+      refetch: _omit,
+      getSuspendablePromise,
+      ...useQueryResultWithoutMethods
+    } = useQueryResult
     expectExactType(useQueryStateResult)(useQueryResultWithoutMethods)
     expectExactType(useQueryStateWithSelectFromResult)(
       // @ts-expect-error
@@ -412,6 +416,7 @@ describe.skip('TS only tests', () => {
       },
     })
     expectExactType({
+      getSuspendablePromise: expect.any(Function),
       data: '' as string | number,
       isUninitialized: false,
       isLoading: true,
