@@ -18424,9 +18424,9 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"msw@npm:0.39.2":
-  version: 0.39.2
-  resolution: "msw@npm:0.39.2"
+"msw@https://pkg.csb.dev/mswjs/msw/commit/503e8a4d/msw/_pkg.tgz":
+  version: 0.36.4
+  resolution: "msw@https://pkg.csb.dev/mswjs/msw/commit/503e8a4d/msw/_pkg.tgz"
   dependencies:
     "@mswjs/cookies": ^0.2.0
     "@mswjs/interceptors": ^0.15.1
@@ -18445,40 +18445,16 @@ fsevents@^1.2.7:
     path-to-regexp: ^6.2.0
     statuses: ^2.0.0
     strict-event-emitter: ^0.2.0
-    type-fest: ^1.2.2
+    type-fest: ^2.12.2
     yargs: ^17.3.1
+  peerDependencies:
+    typescript: 4.2.x
+  peerDependenciesMeta:
+    typescript:
+      optional: true
   bin:
     msw: cli/index.js
-  checksum: 4802f5568cbaadedd488f03b953523fb5dd7e1b8e48a85f142d7cfd1b8c25241729a0af4a06b9f2be543c18b67475c8777fa4924bdc6f1de19dbe142ea4a8405
-  languageName: node
-  linkType: hard
-
-"msw@patch:msw@npm:0.39.2#.yarn/patches/msw__npm:0.39.2.patch::locator=rtk-monorepo%40workspace%3A.":
-  version: 0.39.2
-  resolution: "msw@patch:msw@npm%3A0.39.2#.yarn/patches/msw__npm%3A0.39.2.patch::version=0.39.2&hash=03bb7a&locator=rtk-monorepo%40workspace%3A."
-  dependencies:
-    "@mswjs/cookies": ^0.2.0
-    "@mswjs/interceptors": ^0.15.1
-    "@open-draft/until": ^1.0.3
-    "@types/cookie": ^0.4.1
-    "@types/js-levenshtein": ^1.1.1
-    chalk: 4.1.1
-    chokidar: ^3.4.2
-    cookie: ^0.4.2
-    graphql: ^16.3.0
-    headers-polyfill: ^3.0.4
-    inquirer: ^8.2.0
-    is-node-process: ^1.0.1
-    js-levenshtein: ^1.1.6
-    node-fetch: ^2.6.7
-    path-to-regexp: ^6.2.0
-    statuses: ^2.0.0
-    strict-event-emitter: ^0.2.0
-    type-fest: ^1.2.2
-    yargs: ^17.3.1
-  bin:
-    msw: cli/index.js
-  checksum: ae0121213a69ed9f8c8a1f16fc8341fc0c178b190f1642605f37a9f923f3abb8ee34e5c318753a78423199530bd159870487c2699d50005645da8046585b8c9f
+  checksum: 3460db398b23eae91692fa2383a7b4e5efc67beb046376c004392a713c0de9f45ccb4dcf2fbdeb0b3f11cae7a07162af6a9d6c251de5fccbabad09fb68a8f110
   languageName: node
   linkType: hard
 
@@ -25914,13 +25890,6 @@ resolve@~1.19.0:
   languageName: node
   linkType: hard
 
-"type-fest@npm:2.12.2":
-  version: 2.12.2
-  resolution: "type-fest@npm:2.12.2"
-  checksum: ee69676da1f69d2b14bbec28c7b95220a3221ab14093f54bde179c59e185a80470859553eada535ec35d8637a245c2f0efe9d7c99cc46a43f3b4c7ef64db7957
-  languageName: node
-  linkType: hard
-
 "type-fest@npm:^0.20.2":
   version: 0.20.2
   resolution: "type-fest@npm:0.20.2"
@@ -25960,6 +25929,13 @@ resolve@~1.19.0:
   version: 0.8.1
   resolution: "type-fest@npm:0.8.1"
   checksum: d61c4b2eba24009033ae4500d7d818a94fd6d1b481a8111612ee141400d5f1db46f199c014766b9fa9b31a6a7374d96fc748c6d688a78a3ce5a33123839becb7
+  languageName: node
+  linkType: hard
+
+"type-fest@npm:^2.12.2":
+  version: 2.12.2
+  resolution: "type-fest@npm:2.12.2"
+  checksum: ee69676da1f69d2b14bbec28c7b95220a3221ab14093f54bde179c59e185a80470859553eada535ec35d8637a245c2f0efe9d7c99cc46a43f3b4c7ef64db7957
   languageName: node
   linkType: hard
 
