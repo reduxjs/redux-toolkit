@@ -43,7 +43,8 @@
     "react": "npm:17.0.2",
     "react-dom": "npm:17.0.2",
     "@types/inquirer": "npm:8.2.1",
-    "msw/type-fest": "npm:2.12.2"
+    "msw/type-fest": "npm:2.12.2",
+    "msw": "patch:msw@npm:0.39.2#.yarn/patches/msw__npm:0.39.2.patch"
   },
   "scripts": {
     "build": "yarn build:packages",

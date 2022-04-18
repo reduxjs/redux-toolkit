@@ -5106,16 +5106,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mswjs/cookies@npm:^0.1.4":
-  version: 0.1.6
-  resolution: "@mswjs/cookies@npm:0.1.6"
-  dependencies:
-    "@types/set-cookie-parser": ^2.4.0
-    set-cookie-parser: ^2.4.6
-  checksum: a08edee5c3bae24ed193ea48e30537fa34a8d1e11e49abf440dd48444682e3505abcdc9acb03ebab012779034629da1ed9c65e5c0b751286a80bf8281de3faa6
-  languageName: node
-  linkType: hard
-
 "@mswjs/cookies@npm:^0.2.0":
   version: 0.2.0
   resolution: "@mswjs/cookies@npm:0.2.0"
@@ -5179,18 +5169,6 @@ __metadata:
     outvariant: ^1.2.1
     strict-event-emitter: ^0.2.0
   checksum: 896ebae458f92fd601ed7dd3a5dfd18b30be54e7558a57f689013627ec5d4a50e2794a1c04d5bf587f40a65f9163a930cf88e54b12fa96bfa1677e7c12c7cb59
-  languageName: node
-  linkType: hard
-
-"@mswjs/interceptors@npm:^0.8.0":
-  version: 0.8.1
-  resolution: "@mswjs/interceptors@npm:0.8.1"
-  dependencies:
-    "@open-draft/until": ^1.0.3
-    debug: ^4.3.0
-    headers-utils: ^3.0.2
-    strict-event-emitter: ^0.2.0
-  checksum: cb4aaf4d83b0f12560f856952a4fa12b77cc50d273da08823b8a7c4a89602a770b0143823f1dcb38832c9a8fc064c9497c455f6079656fcf113b80561b3488a8
   languageName: node
   linkType: hard
 
@@ -6267,13 +6245,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/cookie@npm:^0.4.0":
-  version: 0.4.0
-  resolution: "@types/cookie@npm:0.4.0"
-  checksum: ffb58d8065d2b2672bc96a2c163ac4319b37a6b08a330530de4da4ceba8004ac5532dab735a4c5ff5964b083522eea94237b3e9313d7463ebb46f8368055d4cd
-  languageName: node
-  linkType: hard
-
 "@types/cookie@npm:^0.4.1":
   version: 0.4.1
   resolution: "@types/cookie@npm:0.4.1"
@@ -6404,16 +6375,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/inquirer@npm:8.2.1":
-  version: 8.2.1
-  resolution: "@types/inquirer@npm:8.2.1"
-  dependencies:
-    "@types/through": "*"
-    rxjs: ^7.2.0
-  checksum: 5362d0b1cbec3887c9d5a671a0b19c58cf54066456c8967dd7ee799dfcc242cc8cd8959440c0f2fe7768becaf721b45fd30c222e6b9bcca378f45c68af43bab5
-  languageName: node
-  linkType: hard
-
 "@types/istanbul-lib-coverage@npm:*, @types/istanbul-lib-coverage@npm:^2.0.0, @types/istanbul-lib-coverage@npm:^2.0.1":
   version: 2.0.3
   resolution: "@types/istanbul-lib-coverage@npm:2.0.3"
@@ -6465,13 +6426,6 @@ __metadata:
     jest-diff: ^26.0.0
     pretty-format: ^26.0.0
   checksum: ae39675412f08d884926254e9b12bfd2b5a4e4d204c94d3148cb942174a474930d0c60540133c968f22241d4712b7940c96cbc883096eb326a4d5b206fb78bd0
-  languageName: node
-  linkType: hard
-
-"@types/js-levenshtein@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@types/js-levenshtein@npm:1.1.0"
-  checksum: 607aef621ca862726f03f64b50030933eabe0bd08977c81100946c7ff861278c966d03e9f625370d0333153120f9d86b80ec81bf9cdec03d561127ab26eb1a1e
   languageName: node
   linkType: hard
 
@@ -6923,15 +6877,6 @@ __metadata:
   version: 1.0.7
   resolution: "@types/tapable@npm:1.0.7"
   checksum: efae5c6cd184cbd768f98c0777c829e30045d57664731f36fcc7e32a372fd01c0f50283375e8cd6e325d321d7962906d2bdb82ee4595f7b9f53cefd3011bfa82
-  languageName: node
-  linkType: hard
-
-"@types/through@npm:*":
-  version: 0.0.30
-  resolution: "@types/through@npm:0.0.30"
-  dependencies:
-    "@types/node": "*"
-  checksum: 9578470db0b527c26e246a1220ae9bffc6bf47f20f89c54aac467c083ab1f7e16c00d9a7b4bb6cb4e2dfae465027270827e5908a6236063f6214625e50585d78
   languageName: node
   linkType: hard
 
@@ -10300,13 +10245,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cookie@npm:^0.4.1":
-  version: 0.4.1
-  resolution: "cookie@npm:0.4.1"
-  checksum: bd7c47f5d94ab70ccdfe8210cde7d725880d2fcda06d8e375afbdd82de0c8d3b73541996e9ce57d35f67f672c4ee6d60208adec06b3c5fc94cebb85196084cf8
-  languageName: node
-  linkType: hard
-
 "cookie@npm:^0.4.2":
   version: 0.4.2
   resolution: "cookie@npm:0.4.2"
@@ -11173,7 +11111,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"debug@npm:4, debug@npm:^4.0.1, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.3.0, debug@npm:^4.3.1":
+"debug@npm:4, debug@npm:^4.0.1, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.3.1":
   version: 4.3.2
   resolution: "debug@npm:4.3.2"
   dependencies:
@@ -14214,7 +14152,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"graphql@npm:^15.4.0, graphql@npm:^15.5.0":
+"graphql@npm:^15.5.0":
   version: 15.5.0
   resolution: "graphql@npm:15.5.0"
   checksum: 58a69f7274ae94c690bfa2517f96bbaf1327e1ca1fc46606e772ba2f7ca517adeb375346301373351e693022f448b7866163034209623d7c5315819ef8c5e7c0
@@ -14537,13 +14475,6 @@ fsevents@^1.2.7:
   version: 3.0.7
   resolution: "headers-polyfill@npm:3.0.7"
   checksum: ee392c1acdd2be797090837a085b14c8dc79f221e2501508afc1474667fba0627d583e06f9ab5cad57cf9dd570942d3166f791c75b92522a17c69c1e6bfcfbc4
-  languageName: node
-  linkType: hard
-
-"headers-utils@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "headers-utils@npm:3.0.2"
-  checksum: 210fe65756d6de8a96afe68617463fb6faf675a24d864e849b17bddf051c4a24d621a510a1bb80fd9d4763b932eb44b5d8fd6fc4f14fa62fb211603456a57b4f
   languageName: node
   linkType: hard
 
@@ -18493,35 +18424,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"msw@npm:^0.28.2":
-  version: 0.28.2
-  resolution: "msw@npm:0.28.2"
-  dependencies:
-    "@mswjs/cookies": ^0.1.4
-    "@mswjs/interceptors": ^0.8.0
-    "@open-draft/until": ^1.0.3
-    "@types/cookie": ^0.4.0
-    "@types/inquirer": ^7.3.1
-    "@types/js-levenshtein": ^1.1.0
-    chalk: ^4.1.0
-    chokidar: ^3.4.2
-    cookie: ^0.4.1
-    graphql: ^15.4.0
-    headers-utils: ^3.0.2
-    inquirer: ^7.3.3
-    js-levenshtein: ^1.1.6
-    node-fetch: ^2.6.1
-    node-match-path: ^0.6.1
-    statuses: ^2.0.0
-    strict-event-emitter: ^0.2.0
-    yargs: ^16.2.0
-  bin:
-    msw: cli/index.js
-  checksum: bfcac14831d88ebee0375933a84294696410a2f93a8dd0cf0d37fb8f641ce93e9d2d840253fb5755003ea8bd7126dc83bd6844066bf5073f0a264cd8c768dec7
-  languageName: node
-  linkType: hard
-
-"msw@npm:^0.39.2":
+"msw@npm:0.39.2":
   version: 0.39.2
   resolution: "msw@npm:0.39.2"
   dependencies:
@@ -18547,6 +18450,35 @@ fsevents@^1.2.7:
   bin:
     msw: cli/index.js
   checksum: 4802f5568cbaadedd488f03b953523fb5dd7e1b8e48a85f142d7cfd1b8c25241729a0af4a06b9f2be543c18b67475c8777fa4924bdc6f1de19dbe142ea4a8405
+  languageName: node
+  linkType: hard
+
+"msw@patch:msw@npm:0.39.2#.yarn/patches/msw__npm:0.39.2.patch::locator=rtk-monorepo%40workspace%3A.":
+  version: 0.39.2
+  resolution: "msw@patch:msw@npm%3A0.39.2#.yarn/patches/msw__npm%3A0.39.2.patch::version=0.39.2&hash=03bb7a&locator=rtk-monorepo%40workspace%3A."
+  dependencies:
+    "@mswjs/cookies": ^0.2.0
+    "@mswjs/interceptors": ^0.15.1
+    "@open-draft/until": ^1.0.3
+    "@types/cookie": ^0.4.1
+    "@types/js-levenshtein": ^1.1.1
+    chalk: 4.1.1
+    chokidar: ^3.4.2
+    cookie: ^0.4.2
+    graphql: ^16.3.0
+    headers-polyfill: ^3.0.4
+    inquirer: ^8.2.0
+    is-node-process: ^1.0.1
+    js-levenshtein: ^1.1.6
+    node-fetch: ^2.6.7
+    path-to-regexp: ^6.2.0
+    statuses: ^2.0.0
+    strict-event-emitter: ^0.2.0
+    type-fest: ^1.2.2
+    yargs: ^17.3.1
+  bin:
+    msw: cli/index.js
+  checksum: ae0121213a69ed9f8c8a1f16fc8341fc0c178b190f1642605f37a9f923f3abb8ee34e5c318753a78423199530bd159870487c2699d50005645da8046585b8c9f
   languageName: node
   linkType: hard
 
@@ -18808,13 +18740,6 @@ fsevents@^1.2.7:
     util: ^0.11.0
     vm-browserify: ^1.0.1
   checksum: 41fa7927378edc0cb98a8cc784d3f4a47e43378d3b42ec57a23f81125baa7287c4b54d6d26d062072226160a3ce4d8b7a62e873d2fb637aceaddf71f5a26eca0
-  languageName: node
-  linkType: hard
-
-"node-match-path@npm:^0.6.1":
-  version: 0.6.3
-  resolution: "node-match-path@npm:0.6.3"
-  checksum: d515bc069f293688109c058ee02567528fdaa856290d362b80a2254734975014e4eefcdcc5164a8adfd5560aa870e277c97fe8be648074d5088056cf61553c7c
   languageName: node
   linkType: hard
 
