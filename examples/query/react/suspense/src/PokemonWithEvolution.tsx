@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { PokemonName } from './pokemon.data'
 import { useGetPokemonByNameQuery } from './services/pokemon'
 import { useSuspendAll } from '@reduxjs/toolkit/query/react'
@@ -20,7 +19,7 @@ export function PokemonWithEvolution({
   return (
     <>
       {[baseDataQuery, evolutionQuery].map(
-        ({ data, isFetching, refetch }, idx) => (
+        ({ data, isFetching, refetch, }, idx) => (
           <section className="pokemon-card" key={idx}>
             <h3>{data.species.name}</h3>
             <img

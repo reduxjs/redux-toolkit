@@ -16,7 +16,7 @@ export const PokemonParallelQueries = React.memo(
 
     return (
       <article className="parallel-queries">
-        <h2>Suspense: indipendent parallel queries</h2>
+        <h2>Indipendent parallel queries</h2>
         <form
           className="select-pokemon-form"
           action="#"
@@ -35,14 +35,14 @@ export const PokemonParallelQueries = React.memo(
           }}
         >
           <label htmlFor="addBulbasaurandEvolution">
-            addBulbasaur
+            add bulbasaur
             <input
               type="checkbox"
               name="addBulbasaur"
               id="addBulbasaurandEvolution"
             />
           </label>
-          <button type="submit">Add pokemon + evolution</button>
+          <button className="btn" type="submit">Add pokemon + evolution</button>
         </form>
         <div className="pokemon-list">
           {evolutions.map((name, idx) => (

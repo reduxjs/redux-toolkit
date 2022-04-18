@@ -1,4 +1,3 @@
-import { SuspenseQueryError } from '@reduxjs/toolkit/dist/query/react'
 import * as React from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { Pokemon, PokemonProps } from './Pokemon'
@@ -15,7 +14,7 @@ export const PokemonSingleQueries = React.memo(function PokemonSingleQueries() {
 
   return (
     <article className="pokemon-article">
-      <h2>Suspense: single query</h2>
+      <h2>Single queries</h2>
       <form
         className="select-pokemon-form"
         action="#"
@@ -35,7 +34,7 @@ export const PokemonSingleQueries = React.memo(function PokemonSingleQueries() {
         }}
       >
         <label htmlFor="addBulbasaur">
-          addBulbasaur
+          add bulbasaur
           <input type="checkbox" name="addBulbasaur" id="addBulbasaur" />
         </label>
         <button className="btn">Add pokemon</button>

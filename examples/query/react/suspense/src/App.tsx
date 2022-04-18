@@ -18,7 +18,8 @@ export default function App() {
 
   return (
     <div className="App">
-      <div>
+      <div className='fixed-toolbar'>
+        <h1>Suspense</h1>
         <form action="#" className="global-controls">
           <label htmlFor="error-rate-input">
             fetch error rate: {errorRate}
