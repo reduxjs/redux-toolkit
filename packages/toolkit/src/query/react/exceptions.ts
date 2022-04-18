@@ -4,11 +4,13 @@ const computeErrorMessage = (reason: any, queryKey: string) => {
   if (reason instanceof Error) {
     message += reason
   } else if (typeof reason === 'object' && reason !== null) {
-    ;[reason?.status, reason?.code, reason?.error].forEach((value) => {
-      if (value) {
-        message += ` ${value}`
+    const relevantProperties = [reason?.status, reason?.code, reason?.error]
+
+    for (const property of relevantProperties) {
+      if (property) {
+        message += ` ${property}`
       }
-    })
+    }
   } else {
     message += reason
   }
@@ -25,5 +27,8 @@ export class SuspenseQueryError extends Error {
     super(computeErrorMessage(reason, endpointName))
     this.reason = reason
     this.name = 'SuspenseQueryError'
+
+    // https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
+    Object.setPrototypeOf(this, SuspenseQueryError.prototype)
   }
 }

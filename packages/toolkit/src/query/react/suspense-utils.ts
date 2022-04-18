@@ -1,3 +1,5 @@
+import { isPromiseLike } from '../utils/isPromiseLike'
+
 export interface Resource<Data> {
   data?: Data | undefined
   isLoading?: boolean
@@ -34,26 +36,13 @@ export type UseSuspendAllOutput<Sus extends readonly unknown[]> = {
     : never
 }
 
-function isPromiseLike(val: unknown): val is PromiseLike<unknown> {
-  return (
-    !!val && typeof val === 'object' && typeof (val as any).then === 'function'
-  )
-}
-
-function getSuspendable(suspendable: Suspendable) {
+const getSuspendable = (suspendable: Suspendable) => {
   return suspendable.getSuspendablePromise()
 }
 
 export function useSuspendAll<
-  G extends SuspendableResource<any>,
-  T extends SuspendableResource<any>[]
->(
-  ...suspendables: readonly [G, ...T]
-): UseSuspendAllOutput<readonly [G, ...T]> {
-  if (!suspendables.length) {
-    throw new TypeError('useSuspendAll: requires one or more arguments')
-  }
-
+  T extends ReadonlyArray<SuspendableResource<any>>
+>(...suspendables: T): UseSuspendAllOutput<T> {
   let promises = suspendables
     .map(getSuspendable)
     .filter(isPromiseLike) as Promise<unknown>[]
@@ -62,5 +51,5 @@ export function useSuspendAll<
     throw Promise.all(promises)
   }
 
-  return suspendables as UseSuspendAllOutput<readonly [G, ...T]>
+  return suspendables as UseSuspendAllOutput<T>
 }

@@ -1542,7 +1542,7 @@ describe('hooks tests', () => {
       baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
       tagTypes: ['User'],
       endpoints: (build) => ({
-        checkSession: build.query<any, void>({
+        checkSession: build.query<any, void | undefined>({
           query: () => '/me',
           providesTags: ['User'],
         }),
@@ -1837,7 +1837,7 @@ describe('hooks with createApi defaults set', () => {
       baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com/' }),
       tagTypes: ['Posts'],
       endpoints: (build) => ({
-        getPosts: build.query<PostsResponse, void>({
+        getPosts: build.query<PostsResponse, void | undefined>({
           query: () => ({ url: 'posts' }),
           providesTags: (result) =>
             result ? result.map(({ id }) => ({ type: 'Posts', id })) : [],
@@ -2134,9 +2134,9 @@ describe('hooks with createApi defaults set', () => {
 
     test('useQuery with selectFromResult option has a type error if the result is not an object', async () => {
       function SelectedPost() {
+        // @ts-expect-error
         const _res1 = api.endpoints.getPosts.useQuery(undefined, {
           // selectFromResult must always return an object
-          // @ts-expect-error
           selectFromResult: ({ data }) => data?.length ?? 0,
         })
 
@@ -2434,18 +2434,16 @@ describe('suspense', () => {
   describe('useSuspendAll', () => {
     const consoleErrorSpy = jest.spyOn(console, 'error')
 
-    function ThrowsBecauseNoArgs() {
+    function ExceptionCausedByAnInvalidArg() {
       const tuple = [
         {
-          getSuspendablePromise() {
+          invalid() {
             return undefined
           },
         },
       ] as const
 
-      ;(tuple as unknown as any[]).splice(0, tuple.length)
-
-      useSuspendAll(...tuple)
+      useSuspendAll(...(tuple as any))
       return <div></div>
     }
 
@@ -2457,7 +2455,7 @@ describe('suspense', () => {
             <div data-testid="error-fallback">{String(error)}</div>
           )}
         >
-          <ThrowsBecauseNoArgs />
+          <ExceptionCausedByAnInvalidArg />
         </ErrorBoundary>
       )
 

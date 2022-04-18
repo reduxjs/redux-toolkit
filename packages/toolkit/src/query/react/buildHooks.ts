@@ -79,9 +79,7 @@ export interface MutationHooks<
   useMutation: UseMutation<Definition>
 }
 
-type IdleState<Arg> = Arg extends SkipToken
-  ? { isSkipped: true }
-  : { isSkipped: boolean }
+type SkippedState<Skipped extends boolean> = { isSkipped: Skipped }
 
 /**
  * A React hook that automatically triggers fetches of data from an endpoint, 'subscribes' the component to the cached data, and reads the request status and cached data from the Redux store. The component will re-render as the loading status changes and the data becomes available.
@@ -98,16 +96,43 @@ type IdleState<Arg> = Arg extends SkipToken
  * - Returns the latest request status and cached data from the Redux store
  * - Re-renders as the request status changes and data becomes available
  */
-export type UseQuery<D extends QueryDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = UseQueryStateDefaultResult<D>,
-  Arg extends QueryArgFrom<D> | SkipToken = QueryArgFrom<D> | SkipToken
->(
-  arg: QueryArgFrom<D> | SkipToken,
-  options?: UseQuerySubscriptionOptions & UseQueryStateOptions<D, R>
-) => UseQueryStateResult<D, R> &
-  ReturnType<UseQuerySubscription<D>> &
-  Suspendable &
-  IdleState<Arg>
+export interface UseQuery<D extends QueryDefinition<any, any, any, any>> {
+  // arg provided
+  <R extends Record<string, any> = UseQueryStateDefaultResult<D>>(
+    arg: QueryArgFrom<D>,
+    options?: UseQuerySubscriptionOptions & UseQueryStateOptions<D, R>
+  ): UseQueryStateResult<D, R> &
+    ReturnType<UseQuerySubscription<D>> &
+    Suspendable &
+    SkippedState<false>
+  // skipped query
+  <R extends Record<string, any> = UseQueryStateDefaultResult<D>>(
+    arg: SkipToken,
+    options?: UseQuerySubscriptionOptions & UseQueryStateOptions<D, R>
+  ): UseQueryStateResult<D, R> &
+    ReturnType<UseQuerySubscription<D>> &
+    Suspendable &
+    SkippedState<true>
+  <R extends Record<string, any> = UseQueryStateDefaultResult<D>>(
+    arg: QueryArgFrom<D> | SkipToken,
+    options?: UseQuerySubscriptionOptions & UseQueryStateOptions<D, R>
+  ): UseQueryStateResult<D, R> &
+    ReturnType<UseQuerySubscription<D>> &
+    Suspendable &
+    SkippedState<boolean>
+}
+
+/**
+ * @internal
+ */
+type UseQueryParams<D extends QueryDefinition<any, any, any, any>> = Parameters<
+  UseQuery<D>
+>
+
+/**
+ * @internal
+ */
+type AnyQueryDefinition = QueryDefinition<any, any, any, any, any>
 
 interface UseQuerySubscriptionOptions extends SubscriptionOptions {
   /**
@@ -551,7 +576,7 @@ const createSuspendablePromise = <
   Definitions,
   Key
 >): Suspendable['getSuspendablePromise'] => {
-  const retry = () => {
+  const fetchOnce = () => {
     prefetch(args, {
       force: true,
     })
@@ -565,27 +590,19 @@ const createSuspendablePromise = <
         let pendingPromise = api.util.getRunningOperationPromise(name, args)
 
         if (!pendingPromise) {
-          prefetch(args, {
-            force: true,
-          })
+          fetchOnce()
 
           pendingPromise = api.util.getRunningOperationPromise(
             name as any,
             args
           )
-
-          if (!pendingPromise) {
-            throw new Error(
-              `[rtk-query][react]: invalid state error, expected getRunningOperationPromise(${name}, ${queryStateResults.requestId}) to be defined`
-            )
-          }
         }
         return pendingPromise
       } else if (queryStateResults.isError && !queryStateResults.isFetching) {
         throw new SuspenseQueryError(
           queryStateResults.error,
           queryStateResults.endpointName + '',
-          retry
+          fetchOnce
         )
       }
     }
@@ -938,7 +955,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           [trigger, queryStateResults, info]
         )
       },
-      useQuery(arg, options) {
+      useQuery(
+        arg: UseQueryParams<AnyQueryDefinition>['0'],
+        options: UseQueryParams<AnyQueryDefinition>['1']
+      ) {
         const isSkipped: boolean = arg === skipToken || !!options?.skip
         const querySubscriptionResults = useQuerySubscription(arg, options)
         const queryStateResults = useQueryState(arg, {

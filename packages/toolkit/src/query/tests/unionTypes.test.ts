@@ -358,7 +358,10 @@ describe.skip('TS only tests', () => {
       getSuspendablePromise,
       ...useQueryResultWithoutMethods
     } = useQueryResult
-    expectExactType(useQueryStateResult)(useQueryResultWithoutMethods)
+    expectExactType(useQueryStateResult)(
+      // @ts-expect-error
+      useQueryResultWithoutMethods
+    )
     expectExactType(useQueryStateWithSelectFromResult)(
       // @ts-expect-error
       useQueryResultWithoutMethods
@@ -411,10 +414,12 @@ describe.skip('TS only tests', () => {
           isFetching,
           isError,
           isSuccess,
+          isSkipped: false,
           isUninitialized,
         }
       },
     })
+
     expectExactType({
       getSuspendablePromise: expect.any(Function),
       data: '' as string | number,
@@ -423,6 +428,7 @@ describe.skip('TS only tests', () => {
       isFetching: true,
       isSuccess: false,
       isError: false,
+      isSkipped: false,
       refetch: () => {},
     })(result)
   })
