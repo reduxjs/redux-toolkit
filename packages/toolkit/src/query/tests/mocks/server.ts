@@ -9,7 +9,7 @@ export type Post = {
   body: string
 }
 
-export const posts: Record<number, Post> = {
+export const posts: Record<string, Post> = {
   1: { id: 1, title: 'hello', body: 'extra body!' },
 }
 
@@ -53,10 +53,7 @@ export const server = setupServer(
     const { id, ..._post } = posts[1]
     return res(ctx.json({ id }))
   }),
-  rest.get<Post, any, { id: number }>(
-    'https://example.com/post/:id',
-    (req, res, ctx) => {
-      return res(ctx.json(posts[req.params.id]))
-    }
-  )
+  rest.get('https://example.com/post/:id', (req, res, ctx) => {
+    return res(ctx.json(posts[req.params.id]))
+  })
 )
