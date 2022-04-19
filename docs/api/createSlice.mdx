@@ -273,8 +273,8 @@ const user = createSlice({
 })
 
 const reducer = combineReducers({
-  counter: counter.reducer,
-  user: user.reducer,
+  [counter.name]: counter.reducer,
+  [user.name]: user.reducer,
 })
 
 const store = createStore(reducer)
