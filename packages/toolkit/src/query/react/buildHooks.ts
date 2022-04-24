@@ -579,6 +579,7 @@ const createSuspendablePromise = <
   const fetchOnce = () => {
     prefetch(args, {
       force: true,
+      keepSubscriptionFor: 1,
     })
   }
 
