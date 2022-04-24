@@ -11,6 +11,18 @@
   --primary: #6c3eb7;
 }
 
+hr {
+  box-sizing: border-box;
+  height: 2px;
+  border: none;
+  border-top: 2px solid var(--primary);
+}
+
+
+input[type="range"] {
+  max-width: 100px;
+}
+
 body {
   margin: 0;
 }
@@ -132,6 +144,15 @@ h3 {
   color: var(--danger);
   border-color: #f5c2c7;
   background: var(--danger-bg);
+}
+
+.alert__heading {
+  color: inherit;
+}
+
+.alert__btn {
+  color: inherit !important;
+  border-color: currentColor;
 }
 
 .alert--info {

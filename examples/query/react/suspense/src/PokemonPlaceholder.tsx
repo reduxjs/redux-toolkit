@@ -21,10 +21,10 @@ export function PokemonPlaceholder({
 
   let content: React.ReactNode = isError ? (
     <>
-      <h3>An error has occurred while loading {name}</h3>
+      <h3 className='alert__heading'>An error has occurred while loading {name}</h3>
       <div>{error?.message}</div>
       {onRetry && (
-        <button type="button" className="btn" onClick={onRetry}>
+        <button type="button" className="btn alert__btn" onClick={onRetry}>
           retry
         </button>
       )}
@@ -32,7 +32,7 @@ export function PokemonPlaceholder({
     </>
   ) : (
     <>
-      <h3>Loading pokemon {name}</h3>
+      <h3 className='alert__heading'>Loading pokemon {name}</h3>
       <br />
       (Suspense fallback)
       {children}
