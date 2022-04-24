@@ -42,6 +42,7 @@ it('only resets the api state when resetApiState is dispatched', async () => {
       config: {
         focused: true,
         keepUnusedDataFor: 60,
+        keepPrefetchSubscriptionsFor: 10,
         middlewareRegistered: true,
         online: true,
         reducerPath: 'api',

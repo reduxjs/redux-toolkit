@@ -253,7 +253,8 @@ export type ConfigState<ReducerPath> = RefetchConfigOptions & {
 } & ModifiableConfigState
 
 export type ModifiableConfigState = {
-  keepUnusedDataFor: number
+  keepUnusedDataFor: number,
+  keepPrefetchSubscriptionsFor: number
 } & RefetchConfigOptions
 
 export type MutationState<D extends EndpointDefinitions> = {

@@ -49,16 +49,21 @@ import { enablePatches } from 'immer'
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
  * - If specified, it will only run the query if the difference between `new Date()` and the last `fulfilledTimeStamp` is greater than the given value
- *
+ * 
+ * - `keepSubscriptionFor`: how long before the data is considered unused;
+ *   defaults to `api.config.keepPrefetchSubscriptionsFor`.  - _number is value in seconds_
+ * 
+ * 
  * @overloadSummary
  * `force`
  * - If `force: true`, it will ignore the `ifOlderThan` value if it is set and the query will be run even if it exists in the cache.
  */
 export type PrefetchOptions =
   | {
-      ifOlderThan?: false | number
+      ifOlderThan?: false | number,
+      keepSubscriptionFor?: number,
     }
-  | { force?: boolean }
+  | { force?: boolean, keepSubscriptionFor?: number, }
 
 export const coreModuleName = /* @__PURE__ */ Symbol()
 export type CoreModule =
@@ -365,6 +370,7 @@ export const coreModule = (): Module<CoreModule> => ({
       reducerPath,
       serializeQueryArgs,
       keepUnusedDataFor,
+      keepPrefetchSubscriptionsFor,
       refetchOnMountOrArgChange,
       refetchOnFocus,
       refetchOnReconnect,
@@ -427,6 +433,7 @@ export const coreModule = (): Module<CoreModule> => ({
         refetchOnReconnect,
         refetchOnMountOrArgChange,
         keepUnusedDataFor,
+        keepPrefetchSubscriptionsFor,
         reducerPath,
       },
     })

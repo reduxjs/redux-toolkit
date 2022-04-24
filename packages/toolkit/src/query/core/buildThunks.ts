@@ -18,13 +18,14 @@ import type {
   ResultTypeFrom,
 } from '../endpointDefinitions'
 import { calculateProvidedBy } from '../endpointDefinitions'
-import type { AsyncThunkPayloadCreator, Draft } from '@reduxjs/toolkit'
 import {
   isAllOf,
   isFulfilled,
   isPending,
   isRejected,
   isRejectedWithValue,
+  nanoid,
+  createAsyncThunk,
 } from '@reduxjs/toolkit'
 import type { Patch } from 'immer'
 import { isDraftable, produceWithPatches } from 'immer'
@@ -33,9 +34,9 @@ import type {
   ThunkAction,
   ThunkDispatch,
   AsyncThunk,
+  AsyncThunkPayloadCreator,
+  Draft,
 } from '@reduxjs/toolkit'
-import { createAsyncThunk } from '@reduxjs/toolkit'
-
 import { HandledError } from '../HandledError'
 
 import type { ApiEndpointQuery, PrefetchOptions } from './module'
@@ -105,6 +106,7 @@ export interface QueryThunkArg
   type: 'query'
   originalArgs: unknown
   endpointName: string
+  reducerPath: string
 }
 
 export interface MutationThunkArg {
@@ -411,6 +413,13 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
 
       return true
     },
+    idGenerator(args): string {
+      if (args.prefetch) {
+        return `${args.reducerPath}-${args.queryCacheKey}-prefetch`
+      }
+
+      return nanoid()
+    },
     dispatchConditionRejection: true,
   })
 
@@ -443,7 +452,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       const queryAction = (force: boolean = true) =>
         (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).initiate(
           arg,
-          { forceRefetch: force }
+          { forceRefetch: force, prefetch: options || true }
         )
       const latestStateValue = (
         api.endpoints[endpointName] as ApiEndpointQuery<any, any>
