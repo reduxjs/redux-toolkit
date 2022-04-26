@@ -774,8 +774,10 @@ describe('still throws on completely unexpected errors', () => {
     expect(req).toBeInstanceOf(Promise)
     await expect(req).rejects.toBe(error)
   })
+})
 
-  test('timeout behaviour', async () => {
+describe('timeout', () => {
+  it('throws a timeout error when a request takes longer than specified timeout duration', async () => {
     jest.useFakeTimers()
     let result: any
     server.use(

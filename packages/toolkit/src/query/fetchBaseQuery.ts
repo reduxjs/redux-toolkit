@@ -146,6 +146,9 @@ export type FetchBaseQueryArgs = {
    * Defaults to `application/json`;
    */
   jsonContentType?: string
+  /**
+   * A number in milliseconds that represents that maximum time a request can take before timing out.
+   */
   timeout?: number
 } & RequestInit
 
@@ -191,6 +194,9 @@ export type FetchBaseQueryMeta = { request: Request; response?: Response }
  * An optional predicate function to determine if `JSON.stringify()` should be called on the `body` arg of `FetchArgs`
  *
  * @param {string} jsonContentType Defaults to `application/json`. Used when automatically setting the content-type header for a request with a jsonifiable body that does not have an explicit content-type header.
+ *
+ * @param {number} timeout
+ * A number in milliseconds that represents that maximum time a request can take before timing out.
  */
 export function fetchBaseQuery({
   baseUrl,
