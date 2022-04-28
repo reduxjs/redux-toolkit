@@ -25,7 +25,7 @@ Every Redux app needs to configure and create a Redux store. This usually involv
 
 - Importing or creating the root reducer function
 - Setting up middleware, likely including at least one middleware to handle asynchronous logic
-- Configuring the [Redux DevTools Extension](https://github.com/zalmoxisus/redux-devtools-extension)
+- Configuring the [Redux DevTools Extension](https://github.com/reduxjs/redux-devtools)
 - Possibly altering some of the logic based on whether the application is being built for development or production
 
 ### Manual Store Setup
