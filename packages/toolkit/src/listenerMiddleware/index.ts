@@ -263,7 +263,7 @@ const safelyNotifyError = (
  */
 export const addListener = createAction(
   `${alm}/add`
-) as TypedAddListener<unknown>
+) as unknown as TypedAddListener<unknown>
 
 /**
  * @public
@@ -275,7 +275,7 @@ export const clearAllListeners = createAction(`${alm}/removeAll`)
  */
 export const removeListener = createAction(
   `${alm}/remove`
-) as TypedRemoveListener<unknown>
+) as unknown as TypedRemoveListener<unknown>
 
 const defaultErrorHandler: ListenerErrorHandler = (...args: unknown[]) => {
   console.error(`${alm}/error`, ...args)
