@@ -34,6 +34,7 @@
     "@testing-library/user-event": "^13.1.5",
     "@types/convert-source-map": "^1.5.1",
     "@types/jest": "^24.0.11",
+    "@types/jscodeshift": "^0.11.5",
     "@types/json-stringify-safe": "^5.0.0",
     "@types/nanoid": "^2.1.0",
     "@types/node": "^10.14.4",
@@ -60,6 +61,7 @@
     "fs-extra": "^9.1.0",
     "invariant": "^2.2.4",
     "jest": "^26.6.3",
+    "jscodeshift": "^0.13.1",
     "json-stringify-safe": "^5.0.1",
     "magic-string": "^0.25.7",
     "merge-source-map": "^1.1.0",
@@ -87,6 +89,7 @@
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
     "lint": "eslint src examples",
     "test": "jest --runInBand",
+    "test:codemods": "jest --config codemods/jest.config.js",
     "type-tests": "yarn tsc -p src/tests && yarn tsc -p src/query/tests",
     "prepack": "npm run build-prepare"
   },
