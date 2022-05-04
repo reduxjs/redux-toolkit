@@ -6,6 +6,8 @@ export {
   freeze,
   original,
   isDraft,
+  castDraft,
+  castImmutable,
 } from 'immer'
 export type { Draft } from 'immer'
 export { createSelector } from 'reselect'
