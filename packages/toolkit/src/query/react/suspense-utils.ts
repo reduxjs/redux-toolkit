@@ -1,4 +1,4 @@
-import { isPromiseLike } from '../utils/isPromiseLike'
+import { isPromiseLike } from '../utils/promise'
 
 export interface Resource<Data> {
   data?: Data | undefined

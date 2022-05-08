@@ -12,6 +12,7 @@ import type {
   PromiseWithKnownReason,
   PromiseConstructorWithKnownReason,
 } from './types'
+import { catchRejection } from '../../utils/promise'
 
 export type ReferenceQueryLifecycle = never
 
@@ -240,7 +241,7 @@ export const build: SubMiddlewareBuilder = ({
               })
             // prevent uncaught promise rejections from happening.
             // if the original promise is used in any way, that will create a new promise that will throw again
-            queryFulfilled.catch(() => {})
+            catchRejection(queryFulfilled)
             lifecycleMap[requestId] = lifecycle
             const selector = (api.endpoints[endpointName] as any).select(
               endpointDefinition.type === DefinitionType.query

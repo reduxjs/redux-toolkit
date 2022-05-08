@@ -1535,6 +1535,33 @@ describe('hooks tests', () => {
         status: 'pending',
       })
     })
+
+    test('usePrefetch returns an object with specific shape', async () => {
+      const { usePrefetch } = api
+      const USER_ID = 2
+
+      function User() {
+        const prefetchUser = usePrefetch('getUser', { ifOlderThan: 10 })
+
+        const handleClick = () => {
+          expectType<{ abort(): void; unwrap(): Promise<void> }>(
+            prefetchUser(USER_ID)
+          )
+        }
+
+        return (
+          <div>
+            <button type="button" onClick={handleClick} data-testid="button">
+              Click
+            </button>
+          </div>
+        )
+      }
+
+      render(<User />, { wrapper: storeRef.wrapper })
+
+      userEvent.click(screen.getByTestId('button'))
+    })
   })
 
   describe('useQuery and useMutation invalidation behavior', () => {

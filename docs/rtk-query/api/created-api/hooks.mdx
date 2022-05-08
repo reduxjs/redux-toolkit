@@ -586,6 +586,13 @@ const prefetchCallback = api.usePrefetch(endpointName, options)
 #### Signature
 
 ```ts no-transpile
+interface PrefetchActionCreatorResult {
+  // resolves when there are no pending request.
+  unwrap(): Promise<void>
+  // cancels pending requests.
+  abort(): void
+}
+
 type UsePrefetch = (
   endpointName: string,
   options?: UsePrefetchOptions
@@ -593,17 +600,20 @@ type UsePrefetch = (
 
 type UsePrefetchOptions =
   | {
+      // how long is seconds before the data retrived by this prefetch request is considered unused.
+      keepSubscriptionFor?: number
       // If specified, only runs the query if the difference between `new Date()` and the last
       // `fulfilledTimeStamp` is greater than the given value (in seconds)
       ifOlderThan?: false | number
     }
   | {
+      keepSubscriptionFor?: number
       // If `force: true`, it will ignore the `ifOlderThan` value if it is set and the query
       // will be run even if it exists in the cache.
       force?: boolean
     }
 
-type PrefetchCallback = (arg: any, options?: UsePrefetchOptions) => void
+type PrefetchCallback = (arg: any, options?: UsePrefetchOptions) => PrefetchActionCreatorResult
 ```
 
 - **Parameters**
@@ -612,7 +622,7 @@ type PrefetchCallback = (arg: any, options?: UsePrefetchOptions) => void
   - `options`: A set of options that control whether the prefetch request should occur
 
 - **Returns**
-  - A `prefetch` callback that when called, will initiate fetching the data for the provided endpoint
+  - A `prefetch` callback that when called, will initiate fetching the data for the provided endpoint and will return `PrefetchActionCreatorResult`.
 
 #### Description
 

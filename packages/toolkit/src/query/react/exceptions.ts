@@ -1,34 +1,32 @@
-const computeErrorMessage = (reason: any, queryKey: string) => {
-  let message = `rtk-query suspense error ${queryKey}: `
+import type { SerializedError } from '@reduxjs/toolkit'
 
-  if (reason instanceof Error) {
-    message += reason
-  } else if (typeof reason === 'object' && reason !== null) {
-    const relevantProperties = [reason?.status, reason?.code, reason?.error]
+const errorName = 'SuspenseQueryError'
 
-    for (const property of relevantProperties) {
-      if (property) {
-        message += ` ${property}`
-      }
-    }
-  } else {
-    message += reason
-  }
+const computeErrorMessage = (reason: any, endpointName: string): string => {
+  let reasonMessage = reason?.message ?? ''
 
-  return message
+  return (
+    `${errorName} suspense error of ${endpointName}` +
+    (reasonMessage && `: ${reasonMessage}`)
+  )
 }
 
-export class SuspenseQueryError extends Error {
+export class SuspenseQueryError implements SerializedError {
+  message: string
+  name: string
+
   constructor(
     public reason: unknown,
     public endpointName: string,
     public retryQuery: () => void
   ) {
-    super(computeErrorMessage(reason, endpointName))
-    this.reason = reason
-    this.name = 'SuspenseQueryError'
+    this.message = computeErrorMessage(reason, endpointName)
+    this.name = errorName
+  }
 
-    // https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-    Object.setPrototypeOf(this, SuspenseQueryError.prototype)
+  get code(): string | undefined {
+    let reasonCode = (this.reason as any)?.code ?? undefined
+
+    return reasonCode && String(reasonCode)
   }
 }

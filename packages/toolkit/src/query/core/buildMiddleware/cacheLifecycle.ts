@@ -3,6 +3,7 @@ import type { AnyAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import type { BaseQueryFn, BaseQueryMeta } from '../../baseQueryTypes'
 import { DefinitionType } from '../../endpointDefinitions'
+import { catchRejection } from '../../utils/promise'
 import type { RootState } from '../apiState'
 import type {
   MutationResultSelectorResult,
@@ -292,7 +293,7 @@ export const build: SubMiddlewareBuilder = ({
       ])
       // prevent uncaught promise rejections from happening.
       // if the original promise is used in any way, that will create a new promise that will throw again
-      cacheDataLoaded.catch(() => {})
+      catchRejection(cacheDataLoaded)
       lifecycleMap[queryCacheKey] = lifecycle
       const selector = (api.endpoints[endpointName] as any).select(
         endpointDefinition.type === DefinitionType.query

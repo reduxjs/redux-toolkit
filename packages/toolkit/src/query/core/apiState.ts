@@ -253,7 +253,7 @@ export type ConfigState<ReducerPath> = RefetchConfigOptions & {
 } & ModifiableConfigState
 
 export type ModifiableConfigState = {
-  keepUnusedDataFor: number,
+  keepUnusedDataFor: number
   keepPrefetchSubscriptionsFor: number
 } & RefetchConfigOptions
 

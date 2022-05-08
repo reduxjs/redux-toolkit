@@ -32,6 +32,7 @@ import type {
 import type {
   QueryActionCreatorResult,
   MutationActionCreatorResult,
+  PrefetchActionCreatorResult,
 } from '@reduxjs/toolkit/dist/query/core/buildInitiate'
 import type { SerializeQueryArgs } from '@reduxjs/toolkit/dist/query/defaultSerializeQueryArgs'
 import { shallowEqual } from 'react-redux'
@@ -535,7 +536,7 @@ type GenericPrefetchThunk = (
   endpointName: any,
   arg: any,
   options: PrefetchOptions
-) => ThunkAction<void, any, any, AnyAction>
+) => ThunkAction<PrefetchActionCreatorResult, any, any, AnyAction>
 
 /**
  * @internal
@@ -548,7 +549,10 @@ type CreateSuspendableQueryOptions<
   isSkipped: boolean
   args: any
   api: Api<any, Definitions, any, any, CoreModule>
-  prefetch: (arg: any, options?: PrefetchOptions | undefined) => void
+  prefetch: (
+    arg: any,
+    options?: PrefetchOptions | undefined
+  ) => PrefetchActionCreatorResult
   queryStateResults: UseQueryStateResult<
     QueryDefinitionOf<Key, Definitions>,
     UseQueryStateDefaultResult<QueryDefinitionOf<Key, Definitions>>
@@ -576,29 +580,21 @@ const createSuspendablePromise = <
   Definitions,
   Key
 >): Suspendable['getSuspendablePromise'] => {
-  const fetchOnce = () => {
+  const fetchOnce = () =>
     prefetch(args, {
       force: true,
       keepSubscriptionFor: 1,
     })
-  }
 
   return (): Promise<unknown> | undefined => {
     // We do not suspend if a query is skipped:
     // @see https://github.com/vercel/swr/pull/357#issuecomment-627089889
     if (!isSkipped && typeof queryStateResults.data === 'undefined') {
       if (queryStateResults.isLoading) {
-        let pendingPromise = api.util.getRunningOperationPromise(name, args)
-
-        if (!pendingPromise) {
-          fetchOnce()
-
-          pendingPromise = api.util.getRunningOperationPromise(
-            name as any,
-            args
-          )
-        }
-        return pendingPromise
+        return (
+          api.util.getRunningOperationPromise(name, args) ||
+          fetchOnce().unwrap()
+        )
       } else if (queryStateResults.isError && !queryStateResults.isFetching) {
         throw new SuspenseQueryError(
           queryStateResults.error,

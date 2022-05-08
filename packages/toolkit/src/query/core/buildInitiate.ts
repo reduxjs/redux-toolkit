@@ -34,14 +34,14 @@ declare module './module' {
 }
 
 export interface PrefetchSubscribriptionOptions {
-  keepSubscriptionFor?: number;
+  keepSubscriptionFor?: number
 }
 
 export interface StartQueryActionCreatorOptions {
   subscribe?: boolean
   forceRefetch?: boolean | number
-  subscriptionOptions?: SubscriptionOptions,
-  prefetch?: boolean | PrefetchSubscribriptionOptions,
+  subscriptionOptions?: SubscriptionOptions
+  prefetch?: boolean | PrefetchSubscribriptionOptions
 }
 
 type StartQueryActionCreator<
@@ -63,6 +63,21 @@ export type QueryActionCreatorResult<
   refetch(): void
   updateSubscriptionOptions(options: SubscriptionOptions): void
   queryCacheKey: string
+}
+
+/**
+ * @public
+ */
+export interface PrefetchActionCreatorResult {
+  /**
+   * Returns a promise that **always** resolves to `undefined`
+   * when there are no pending requests initiated by input thunk.
+   */
+  unwrap(): Promise<void>
+  /**
+   * Cancels pending requests.
+   */
+  abort(): void
 }
 
 type StartMutationActionCreator<
@@ -263,7 +278,10 @@ Features like automatic cache collection, automatic refetching etc. will not be 
     endpointDefinition: QueryDefinition<any, any, any, any>
   ) {
     const queryAction: StartQueryActionCreator<any> =
-      (arg, { subscribe = true, forceRefetch, subscriptionOptions, prefetch } = {}) =>
+      (
+        arg,
+        { subscribe = true, forceRefetch, subscriptionOptions, prefetch } = {}
+      ) =>
       (dispatch, getState) => {
         const queryCacheKey = serializeQueryArgs({
           queryArgs: arg,

@@ -1,5 +1,6 @@
+import type { BaseQueryFn } from '@reduxjs/toolkit/query/react'
 import { createApi } from '@reduxjs/toolkit/query/react'
-import { setupApiStore, waitMs } from './helpers'
+import { expectType, setupApiStore, waitMs } from './helpers'
 
 beforeAll(() => {
   jest.useFakeTimers()
@@ -7,9 +8,19 @@ beforeAll(() => {
 
 const mockBaseQuery = jest
   .fn()
-  .mockImplementation((args: any) => Promise.resolve({ data: args }))
+  .mockImplementation((...args: Parameters<BaseQueryFn>) => {
+    return Promise.resolve().then(() => {
+      if (args[1].signal.aborted) {
+        throw new Error('query-arboted')
+      }
+
+      return { data: args[0], meta: { conf: args[1] } }
+    })
+  })
 
 describe('Query prefetches', () => {
+  const consoleErrorSpy = jest.spyOn(console, 'error')
+
   const apiKeepPrefetchSubscriptionsFor = 5
   const apiKeepUnusedDataFor = 5
   const queryKey = 'query("dada")'
@@ -18,7 +29,7 @@ describe('Query prefetches', () => {
     keepPrefetchSubscriptionsFor: apiKeepPrefetchSubscriptionsFor,
     keepUnusedDataFor: apiKeepUnusedDataFor,
     endpoints: (build) => ({
-      query: build.query<unknown, string>({
+      query: build.query<string, string>({
         query: () => '/success',
       }),
     }),
@@ -32,6 +43,12 @@ describe('Query prefetches', () => {
   ) => {
     return Object.keys(store.getState().api.subscriptions[key] ?? {})
   }
+
+  beforeEach(() => {
+    store.dispatch(api.util.resetApiState())
+    mockBaseQuery.mockClear()
+    consoleErrorSpy.mockImplementation(() => {})
+  })
 
   test('prefetch subscription gets removed after options.keepSubscriptionFor', async () => {
     store.dispatch(
@@ -147,5 +164,58 @@ describe('Query prefetches', () => {
     await waitMs()
 
     expect(getSubscriptionsKeysOf(store, queryKey)).toHaveLength(0)
+  })
+
+  test('prefetch request bails if abort() is invoked', async () => {
+    const prefetchOptions = { force: true, keepSubscriptionFor: 10 }
+
+    const output = store.dispatch(
+      api.util.prefetch('query', 'dada', prefetchOptions)
+    )
+    output.abort()
+
+    await output.unwrap()
+
+    const queryState = api.endpoints.query.select('dada')(store.getState())
+
+    expect(queryState).toHaveProperty(['error', 'name'], 'AbortError')
+  })
+
+  test('prefetch request resolves to undefined if a request was made', async () => {
+    const prefetchOptions = { force: true, keepSubscriptionFor: 10 }
+
+    const output = store.dispatch(
+      api.util.prefetch('query', 'dada', prefetchOptions)
+    )
+    expect(await output.unwrap()).not.toBeDefined()
+    const queryState = api.endpoints.query.select('dada')(store.getState())
+    expect(queryState).toHaveProperty(['data'], '/success')
+  })
+
+  test('prefetch resolves to undefined if the request was skipped', async () => {
+    const prefetchOptions = { force: true, keepSubscriptionFor: 10 }
+
+    store.dispatch(api.util.prefetch('query', 'dada', prefetchOptions))
+
+    jest.advanceTimersByTime(3000)
+    await waitMs()
+
+    const output = store.dispatch(
+      api.util.prefetch('query', 'dada', {
+        force: false,
+      })
+    )
+
+    expect(await output.unwrap()).not.toBeDefined()
+    const queryState = api.endpoints.query.select('dada')(store.getState())
+    expect(queryState).toHaveProperty(['data'], '/success')
+  })
+
+  test('prefetch output returns an object with specific shape', () => {
+    const prefetchOptions = { force: true, keepSubscriptionFor: 10 }
+
+    expectType<{ abort(): void; unwrap(): Promise<void> }>(
+      store.dispatch(api.util.prefetch('query', 'dada', prefetchOptions))
+    )
   })
 })
