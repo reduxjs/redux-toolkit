@@ -17,10 +17,9 @@ export type ErrorResponse = {
   message: string;
   stack: string;
   name: string;
-  [key: string]: unknown;
 };
 
-export type GraphqlRequestBaseQueryArgs = (
+export type GraphqlRequestBaseQueryArgs<E = ErrorResponse> = (
   | {
       url: string
     }
@@ -28,8 +27,7 @@ export type GraphqlRequestBaseQueryArgs = (
 ) & {
   requestHeaders?: RequestHeaders
   prepareHeaders?: PrepareHeaders,
-  customErrors?: (args: ClientError) => ErrorResponse;
-
+  customErrors?: (args: ClientError) => E;
 }
 
 export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =
