@@ -13,7 +13,7 @@ export const graphqlRequestBaseQuery = <T>(
 ): BaseQueryFn<
   { document: string | DocumentNode; variables?: any },
   unknown,
-  Pick<ClientError, 'name' | 'message' | 'stack'>,
+  Pick<ClientError, 'name' | 'message' | 'stack'> | T,
   Partial<Pick<ClientError, 'request' | 'response'>>
 > => {
   const client =
