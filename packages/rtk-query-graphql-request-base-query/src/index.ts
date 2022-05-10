@@ -8,8 +8,8 @@ import type {
   RequestHeaders,
 } from './GraphqlBaseQueryTypes'
 
-export const graphqlRequestBaseQuery = (
-  options: GraphqlRequestBaseQueryArgs
+export const graphqlRequestBaseQuery = <T>(
+  options: GraphqlRequestBaseQueryArgs<T>
 ): BaseQueryFn<
   { document: string | DocumentNode; variables?: any },
   unknown,
