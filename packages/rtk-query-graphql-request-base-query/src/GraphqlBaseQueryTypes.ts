@@ -27,7 +27,7 @@ export type GraphqlRequestBaseQueryArgs<E = ErrorResponse> = (
 ) & {
   requestHeaders?: RequestHeaders
   prepareHeaders?: PrepareHeaders,
-  customErrors?: (args: ClientError) =>  Partial<E | ErrorResponse>;
+  customErrors?: (args: ClientError) =>  E;
 }
 
 export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =

@@ -3,12 +3,13 @@ import type { BaseQueryFn } from '@reduxjs/toolkit/query'
 import type { DocumentNode } from 'graphql'
 import { GraphQLClient, ClientError } from 'graphql-request'
 import type {
+  ErrorResponse,
   GraphqlRequestBaseQueryArgs,
   PrepareHeaders,
   RequestHeaders,
 } from './GraphqlBaseQueryTypes'
 
-export const graphqlRequestBaseQuery = <T>(
+export const graphqlRequestBaseQuery = <T = ErrorResponse>(
   options: GraphqlRequestBaseQueryArgs<T>
 ): BaseQueryFn<
   { document: string | DocumentNode; variables?: any },
