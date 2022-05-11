@@ -33,3 +33,5 @@ typesversions
 .yalc
 yalc.lock
 yalc.sig
+
+packages/rtk-query-codegen-openapi/test/tmp/
