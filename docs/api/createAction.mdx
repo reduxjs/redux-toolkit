@@ -149,7 +149,7 @@ This has different uses:
 
 ### As a TypeScript Type Guard
 
-This `match` method is a [TypeScript type guard](https://www.typescriptlang.org/docs/handbook/advanced-types.html#user-defined-type-guards) and can be used to discriminate the `payload` type of an action.
+This `match` method is a [TypeScript type guard](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates) and can be used to discriminate the `payload` type of an action.
 
 This behavior can be particularly useful when used in custom middlewares, where manual casts might be neccessary otherwise.
 
