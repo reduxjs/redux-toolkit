@@ -39,10 +39,7 @@ const defaultValidateStatus = (response: Response) =>
 
 const isJsonContentType = (headers: Headers) => {
   const contentType = headers.get('content-type')?.trim();
-  if (typeof contentType === 'string') {
-    return contentType.startsWith('application/') && contentType.endsWith('json');
-  }
-  return false;
+  return contentType?.startsWith('application/') && contentType.endsWith('json');
 }
 
 const handleResponse = async (
