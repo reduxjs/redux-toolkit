@@ -37,8 +37,14 @@ const defaultFetchFn: typeof fetch = (...args) => fetch(...args)
 const defaultValidateStatus = (response: Response) =>
   response.status >= 200 && response.status <= 299
 
-const isJsonContentType = (headers: Headers) =>
-  headers.get('content-type')?.trim()?.startsWith('application/json')
+const isJsonContentType = (headers: Headers) => {
+  const contentType = headers.get('content-type')?.trim();
+  if (typeof contentType === 'string') {
+    return contentType.startsWith('application/') && contentType.endsWith('json');
+  }
+  return false;
+}
+                                                                                            }
 
 const handleResponse = async (
   response: Response,
