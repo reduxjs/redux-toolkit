@@ -14,7 +14,7 @@ export const graphqlRequestBaseQuery = <E = ErrorResponse>(
 ): BaseQueryFn<
   { document: string | DocumentNode; variables?: any },
   unknown,
-  ErrorResponse | E,
+  ErrorResponse | E | undefined,
   Partial<Pick<ClientError, 'request' | 'response'>>
 > => {
   const client =
