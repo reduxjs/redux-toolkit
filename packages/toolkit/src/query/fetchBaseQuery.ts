@@ -39,7 +39,10 @@ const defaultValidateStatus = (response: Response) =>
 
 const isJsonContentType = (headers: Headers) => {
   const contentType = headers.get('content-type')?.trim();
-  return contentType?.startsWith('application/json') || contentType?.startsWith('application/vnd.api+json');
+  return (
+    contentType?.startsWith('application/json') || 
+    contentType?.startsWith('application/vnd.api+json')
+   );
 }
 
 const handleResponse = async (
