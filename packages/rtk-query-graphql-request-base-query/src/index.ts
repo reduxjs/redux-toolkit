@@ -9,12 +9,12 @@ import type {
   RequestHeaders,
 } from './GraphqlBaseQueryTypes'
 
-export const graphqlRequestBaseQuery = <T = ErrorResponse>(
-  options: GraphqlRequestBaseQueryArgs<T>
+export const graphqlRequestBaseQuery = <E = ErrorResponse>(
+  options: GraphqlRequestBaseQueryArgs<E>
 ): BaseQueryFn<
   { document: string | DocumentNode; variables?: any },
   unknown,
-  Pick<ClientError, 'name' | 'message' | 'stack'> | T,
+  ErrorResponse | E,
   Partial<Pick<ClientError, 'request' | 'response'>>
 > => {
   const client =
