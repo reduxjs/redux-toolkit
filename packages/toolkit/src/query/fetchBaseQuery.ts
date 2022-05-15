@@ -43,8 +43,7 @@ const isJsonContentType = (headers: Headers) => {
     return contentType.startsWith('application/') && contentType.endsWith('json');
   }
   return false;
-}
-                                                                                            }
+}                                                                                          }
 
 const handleResponse = async (
   response: Response,
