@@ -14,7 +14,7 @@ export const graphqlRequestBaseQuery = <E = ErrorResponse>(
 ): BaseQueryFn<
   { document: string | DocumentNode; variables?: any },
   unknown,
-  ErrorResponse | E | undefined,
+  E,
   Partial<Pick<ClientError, 'request' | 'response'>>
 > => {
   const client =
@@ -55,7 +55,7 @@ export const graphqlRequestBaseQuery = <E = ErrorResponse>(
       const customErrors =
         options.customErrors ?? (() => ({ name, message, stack }));
 
-      const customizedErrors = customErrors(error);
+      const customizedErrors = customErrors(error) as E;
 
         return { error: customizedErrors, meta: { request, response } }
       }
