@@ -12,7 +12,7 @@ export const themeSlice = createSlice({
     colorScheme: 'light',
   } as ThemeState,
   reducers: {
-    changeColorScheme(state, action: PayloadAction<ColorScheme>) {
+    changeColorScheme(state: {colorScheme: string; }, action: PayloadAction<ColorScheme>) {
       state.colorScheme = action.payload
     },
   },
