@@ -5509,7 +5509,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@reduxjs/toolkit@1.8.1, @reduxjs/toolkit@^1.6.0, @reduxjs/toolkit@^1.6.0-rc.1, @reduxjs/toolkit@^1.8.0, @reduxjs/toolkit@workspace:packages/toolkit":
+"@reduxjs/toolkit@^1.6.0, @reduxjs/toolkit@^1.6.0-rc.1, @reduxjs/toolkit@^1.8.0, @reduxjs/toolkit@workspace:packages/toolkit":
   version: 0.0.0-use.local
   resolution: "@reduxjs/toolkit@workspace:packages/toolkit"
   dependencies:
@@ -5577,6 +5577,26 @@ __metadata:
       optional: true
   languageName: unknown
   linkType: soft
+
+"@reduxjs/toolkit@npm:1.8.1":
+  version: 1.8.1
+  resolution: "@reduxjs/toolkit@npm:1.8.1"
+  dependencies:
+    immer: ^9.0.7
+    redux: ^4.1.2
+    redux-thunk: ^2.4.1
+    reselect: ^4.1.5
+  peerDependencies:
+    react: ^16.9.0 || ^17.0.0 || ^18
+    react-redux: ^7.2.1 || ^8.0.0-beta
+  peerDependenciesMeta:
+    react:
+      optional: true
+    react-redux:
+      optional: true
+  checksum: be5cdea975a8a631fe2d88cafc7077554c7bc3621a4a7031556cc17e5dec26359018f2614c325895e7ab50865f5c511025d1e589ca01de7e2bd88d95e0a1a963
+  languageName: node
+  linkType: hard
 
 "@rollup/plugin-alias@npm:^3.1.1":
   version: 3.1.2
