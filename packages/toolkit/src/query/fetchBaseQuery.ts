@@ -46,6 +46,7 @@ const handleResponse = async (
   response: Response,
   responseHandler: ResponseHandler
 ) => {
+  let x: never
   if (typeof responseHandler === 'function') {
     return responseHandler(response)
   }
@@ -62,6 +63,9 @@ const handleResponse = async (
     const text = await response.text()
     return text.length ? JSON.parse(text) : null
   }
+
+  x = responseHandler
+  return x
 }
 
 export type FetchBaseQueryError =
