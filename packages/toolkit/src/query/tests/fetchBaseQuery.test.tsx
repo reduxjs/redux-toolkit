@@ -181,6 +181,35 @@ describe('fetchBaseQuery', () => {
       })
     })
 
+    it('success: should fail gracefully if content-type specifies json but body does not match ("content-type" responseHandler)', async () => {
+      server.use(
+        rest.get('https://example.com/success', (_, res, ctx) =>
+          res.once(ctx.text(`this is not json!`))
+        )
+      )
+
+      const req = baseQuery(
+        {
+          url: '/success',
+          responseHandler: 'content-type',
+          headers: { 'content-type': 'application/json' },
+        },
+        commonBaseQueryApi,
+        {}
+      )
+      expect(req).toBeInstanceOf(Promise)
+      const res = await req
+      expect(res).toBeInstanceOf(Object)
+      expect(res.meta?.request).toBeInstanceOf(Request)
+      expect(res.meta?.response).toBeInstanceOf(Object)
+      expect(res.error).toEqual({
+        status: 'PARSING_ERROR',
+        error: 'SyntaxError: Unexpected token h in JSON at position 1',
+        originalStatus: 200,
+        data: `this is not json!`,
+      })
+    })
+
     it('server error: should fail normally with a 500 status ("text" responseHandler)', async () => {
       server.use(
         rest.get('https://example.com/error', (_, res, ctx) =>
