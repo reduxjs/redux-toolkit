@@ -4,6 +4,7 @@ import type { BaseQueryApi, BaseQueryFn } from './baseQueryTypes'
 import type { MaybePromise, Override } from './tsHelpers'
 
 export type ResponseHandler =
+  | 'content-type'
   | 'json'
   | 'text'
   | ((response: Response) => Promise<any>)
@@ -47,6 +48,10 @@ const handleResponse = async (
 ) => {
   if (typeof responseHandler === 'function') {
     return responseHandler(response)
+  }
+
+  if (responseHandler === 'content-type') {
+    responseHandler = isJsonContentType(response.headers) ? 'json' : 'text'
   }
 
   if (responseHandler === 'text') {
