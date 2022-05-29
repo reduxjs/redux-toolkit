@@ -181,10 +181,13 @@ describe('fetchBaseQuery', () => {
       })
     })
 
-    it('success: should fail gracefully if content-type specifies json but body does not match ("content-type" responseHandler)', async () => {
+    it('success: parse text without error ("content-type" responseHandler)', async () => {
       server.use(
         rest.get('https://example.com/success', (_, res, ctx) =>
-          res.once(ctx.text(`this is not json!`))
+          res.once(
+            ctx.text(`this is not json!`)
+            // NOTE: MSW sets content-type header as text automatically
+          )
         )
       )
 
@@ -192,7 +195,6 @@ describe('fetchBaseQuery', () => {
         {
           url: '/success',
           responseHandler: 'content-type',
-          headers: { 'content-type': 'application/json' },
         },
         commonBaseQueryApi,
         {}
@@ -200,14 +202,41 @@ describe('fetchBaseQuery', () => {
       expect(req).toBeInstanceOf(Promise)
       const res = await req
       expect(res).toBeInstanceOf(Object)
+      expect(res.meta?.response?.headers.get('content-type')).toEqual(
+        'text/plain'
+      )
       expect(res.meta?.request).toBeInstanceOf(Request)
       expect(res.meta?.response).toBeInstanceOf(Object)
-      expect(res.error).toEqual({
-        status: 'PARSING_ERROR',
-        error: 'SyntaxError: Unexpected token h in JSON at position 1',
-        originalStatus: 200,
-        data: `this is not json!`,
-      })
+      expect(res.data).toEqual(`this is not json!`)
+    })
+
+    it('success: parse json without error ("content-type" responseHandler)', async () => {
+      server.use(
+        rest.get('https://example.com/success', (_, res, ctx) =>
+          res.once(
+            ctx.json(`this will become json!`)
+            // NOTE: MSW sets content-type header as json automatically
+          )
+        )
+      )
+
+      const req = baseQuery(
+        {
+          url: '/success',
+          responseHandler: 'content-type',
+        },
+        commonBaseQueryApi,
+        {}
+      )
+      expect(req).toBeInstanceOf(Promise)
+      const res = await req
+      expect(res).toBeInstanceOf(Object)
+      expect(res.meta?.response?.headers.get('content-type')).toEqual(
+        'application/json'
+      )
+      expect(res.meta?.request).toBeInstanceOf(Request)
+      expect(res.meta?.response).toBeInstanceOf(Object)
+      expect(res.data).toEqual(`this will become json!`)
     })
 
     it('server error: should fail normally with a 500 status ("text" responseHandler)', async () => {
