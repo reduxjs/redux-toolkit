@@ -262,6 +262,62 @@ describe('fetchBaseQuery', () => {
       })
     })
 
+    it('server error: should fail normally with a 500 status as text ("content-type" responseHandler)', async () => {
+      const serverResponse = 'Internal Server Error'
+      server.use(
+        rest.get('https://example.com/error', (_, res, ctx) =>
+          res(ctx.status(500), ctx.text(serverResponse))
+        )
+      )
+
+      const req = baseQuery(
+        { url: '/error', responseHandler: 'content-type' },
+        commonBaseQueryApi,
+        {}
+      )
+      expect(req).toBeInstanceOf(Promise)
+      const res = await req
+      expect(res).toBeInstanceOf(Object)
+      expect(res.meta?.request).toBeInstanceOf(Request)
+      expect(res.meta?.response).toBeInstanceOf(Object)
+      expect(res.meta?.response?.headers.get('content-type')).toEqual(
+        'text/plain'
+      )
+      expect(res.error).toEqual({
+        status: 500,
+        data: serverResponse,
+      })
+    })
+
+    it('server error: should fail normally with a 500 status as json ("content-type" responseHandler)', async () => {
+      const serverResponse = {
+        errors: { field1: "Password cannot be 'password'" },
+      }
+      server.use(
+        rest.get('https://example.com/error', (_, res, ctx) =>
+          res(ctx.status(500), ctx.json(serverResponse))
+        )
+      )
+
+      const req = baseQuery(
+        { url: '/error', responseHandler: 'content-type' },
+        commonBaseQueryApi,
+        {}
+      )
+      expect(req).toBeInstanceOf(Promise)
+      const res = await req
+      expect(res).toBeInstanceOf(Object)
+      expect(res.meta?.request).toBeInstanceOf(Request)
+      expect(res.meta?.response).toBeInstanceOf(Object)
+      expect(res.meta?.response?.headers.get('content-type')).toEqual(
+        'application/json'
+      )
+      expect(res.error).toEqual({
+        status: 500,
+        data: serverResponse,
+      })
+    })
+
     it('server error: should fail gracefully (default="json" responseHandler)', async () => {
       server.use(
         rest.get('https://example.com/error', (_, res, ctx) =>
