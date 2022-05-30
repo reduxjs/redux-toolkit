@@ -41,7 +41,8 @@
     "console-testing-library": "patch:console-testing-library@npm:0.3.1#.yarn/patches/console-testing-library__npm_0.3.1.patch",
     "react-redux": "npm:7.2.4",
     "react": "npm:17.0.2",
-    "react-dom": "npm:17.0.2"
+    "react-dom": "npm:17.0.2",
+    "@types/inquirer": "npm:8.2.1"
   },
   "scripts": {
     "build": "yarn build:packages",

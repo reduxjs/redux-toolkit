@@ -7,7 +7,7 @@
   "main": "src/index.tsx",
   "dependencies": {
     "@reduxjs/toolkit": "1.8.1",
-    "msw": "^0.39.2",
+    "msw": "^0.41.1",
     "react": "17.0.0",
     "react-dom": "17.0.0",
     "react-redux": "7.2.2",

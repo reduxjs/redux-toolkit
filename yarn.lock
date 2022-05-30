@@ -3714,7 +3714,7 @@ __metadata:
     "@types/react-redux": 7.1.9
     "@types/react-router-dom": 5.1.6
     framer-motion: ^2.9.5
-    msw: 0.28.2
+    msw: ^0.41.1
     react: 17.0.2
     react-dom: 17.0.2
     react-icons: 3.11.0
@@ -3738,7 +3738,7 @@ __metadata:
     "@types/react-redux": 7.1.9
     "@types/react-router-dom": 5.1.6
     framer-motion: ^2.9.5
-    msw: 0.28.2
+    msw: ^0.41.1
     react: 17.0.2
     react-dom: 17.0.2
     react-icons: 3.11.0
@@ -3759,7 +3759,7 @@ __metadata:
     "@types/react": 17.0.0
     "@types/react-dom": 17.0.0
     "@types/react-redux": 7.1.9
-    msw: ^0.30.0
+    msw: ^0.41.1
     react: 17.0.0
     react-dom: 17.0.0
     react-redux: 7.2.2
@@ -3885,7 +3885,7 @@ __metadata:
     "@types/react": 17.0.0
     "@types/react-dom": 17.0.0
     "@types/react-redux": 7.1.9
-    msw: ^0.39.2
+    msw: ^0.41.1
     react: 17.0.0
     react-dom: 17.0.0
     react-redux: 7.2.2
@@ -3910,7 +3910,7 @@ __metadata:
     "@types/react-redux": 7.1.9
     "@types/react-router-dom": 5.1.6
     framer-motion: ^2.9.5
-    msw: 0.28.2
+    msw: ^0.41.1
     react: 17.0.2
     react-dom: 17.0.2
     react-icons: 3.11.0
@@ -3935,7 +3935,7 @@ __metadata:
     "@types/react-redux": 7.1.9
     "@types/react-router-dom": 5.1.6
     framer-motion: ^2.9.5
-    msw: 0.28.2
+    msw: ^0.41.1
     react: 17.0.2
     react-dom: 17.0.2
     react-icons: 3.11.0
@@ -3964,7 +3964,7 @@ __metadata:
     "@types/react-router-dom": 5.1.6
     faker: ^5.5.3
     framer-motion: ^2.9.5
-    msw: 0.28.2
+    msw: ^0.41.1
     react: 17.0.2
     react-dom: 17.0.2
     react-icons: 3.11.0
@@ -4007,7 +4007,7 @@ __metadata:
     "@types/react-router-dom": 5.1.6
     faker: ^5.5.3
     framer-motion: ^2.9.5
-    msw: 0.28.2
+    msw: ^0.41.1
     react: 17.0.2
     react-dom: 17.0.2
     react-icons: 3.11.0
@@ -4034,7 +4034,7 @@ __metadata:
     "@types/react-router-dom": 5.1.6
     faker: ^5.5.3
     framer-motion: ^2.9.5
-    msw: 0.28.2
+    msw: ^0.41.1
     react: 17.0.2
     react-dom: 17.0.2
     react-icons: 3.11.0
@@ -4061,7 +4061,7 @@ __metadata:
     "@types/react-router-dom": 5.1.6
     faker: ^5.5.3
     framer-motion: ^2.9.5
-    msw: 0.28.2
+    msw: ^0.41.1
     react: 17.0.2
     react-dom: 17.0.2
     react-icons: 3.11.0
@@ -5129,7 +5129,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mswjs/cookies@npm:^0.1.4, @mswjs/cookies@npm:^0.1.5":
+"@mswjs/cookies@npm:^0.1.4":
   version: 0.1.6
   resolution: "@mswjs/cookies@npm:0.1.6"
   dependencies:
@@ -5188,19 +5188,6 @@ __metadata:
     msw:
       optional: true
   checksum: 626df7fc49b7192cd010c23358e10b33f8806b5323b855f3217159fc8c659fe8d76c25646e578498de6222c22af2ed77e604d14a5f19237e08bb7012de303d83
-  languageName: node
-  linkType: hard
-
-"@mswjs/interceptors@npm:^0.11.1":
-  version: 0.11.1
-  resolution: "@mswjs/interceptors@npm:0.11.1"
-  dependencies:
-    "@open-draft/until": ^1.0.3
-    debug: ^4.3.0
-    headers-utils: ^3.0.2
-    strict-event-emitter: ^0.2.0
-    xmldom: ^0.6.0
-  checksum: b40bbf5ee7d2121c2ceab3df8e4de21b518ce540ac847a30a7c88c9801e60d74dd9ce6503d92f68667051b99855148588c0f63f2ff882c4344c3e9cbdd09dd1f
   languageName: node
   linkType: hard
 
@@ -5550,7 +5537,7 @@ __metadata:
     json-stringify-safe: ^5.0.1
     magic-string: ^0.25.7
     merge-source-map: ^1.1.0
-    msw: ^0.28.2
+    msw: ^0.41.1
     node-fetch: ^2.6.1
     prettier: ^2.2.1
     query-string: ^7.0.1
@@ -5734,7 +5721,7 @@ __metadata:
     esbuild-runner: ^2.2.1
     husky: ^4.3.6
     jest: ^26.6.3
-    msw: ^0.25.0
+    msw: ^0.41.1
     oazapfts: ^3.5.0
     openapi-types: ^9.1.0
     prettier: ^2.2.1
@@ -6477,13 +6464,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/inquirer@npm:^7.3.1":
-  version: 7.3.1
-  resolution: "@types/inquirer@npm:7.3.1"
+"@types/inquirer@npm:8.2.1":
+  version: 8.2.1
+  resolution: "@types/inquirer@npm:8.2.1"
   dependencies:
     "@types/through": "*"
-    rxjs: ^6.4.0
-  checksum: 93b06308b0caae00889bf982a198871013d30a847cf3aacc06d9ccce75a9d778e401d3e5228c12d02ebbec803980b620c4f6570d29016c40f69a154b712576dc
+    rxjs: ^7.2.0
+  checksum: 5362d0b1cbec3887c9d5a671a0b19c58cf54066456c8967dd7ee799dfcc242cc8cd8959440c0f2fe7768becaf721b45fd30c222e6b9bcca378f45c68af43bab5
   languageName: node
   linkType: hard
 
@@ -14671,13 +14658,6 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"headers-utils@npm:^1.2.0":
-  version: 1.2.5
-  resolution: "headers-utils@npm:1.2.5"
-  checksum: 569523a4eeefc59ecbe458ef57f1f59067de67470b1bd76e430f80b7ece5d5bb87e453a54c14a2db72a92c69a44435bfc68b0d2a406c26502a736a89b1236e45
-  languageName: node
-  linkType: hard
-
 "headers-utils@npm:^3.0.2":
   version: 3.0.2
   resolution: "headers-utils@npm:3.0.2"
@@ -15427,28 +15407,6 @@ fsevents@^1.2.7:
     strip-ansi: ^6.0.0
     through: ^2.3.6
   checksum: 4d387fc1eb6126acbd58cbdb9ad99d2887d181df86ab0c2b9abdf734e751093e2d5882c2b6dc7144d9ab16b7ab30a78a1d7f01fb6a2850a44aeb175d1e3f8778
-  languageName: node
-  linkType: hard
-
-"inquirer@npm:^8.1.0":
-  version: 8.1.1
-  resolution: "inquirer@npm:8.1.1"
-  dependencies:
-    ansi-escapes: ^4.2.1
-    chalk: ^4.1.1
-    cli-cursor: ^3.1.0
-    cli-width: ^3.0.0
-    external-editor: ^3.0.3
-    figures: ^3.0.0
-    lodash: ^4.17.21
-    mute-stream: 0.0.8
-    ora: ^5.3.0
-    run-async: ^2.4.0
-    rxjs: ^6.6.6
-    string-width: ^4.1.0
-    strip-ansi: ^6.0.0
-    through: ^2.3.6
-  checksum: 5e6f24cb7764d380bdcb201ae848af9adeeecf686f0dfedeaa182744d447a49288f6c3e343c0628135440891c664c886d496edc54d82964917f83a96ea344c46
   languageName: node
   linkType: hard
 
@@ -18719,61 +18677,9 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"msw@npm:^0.25.0":
-  version: 0.25.0
-  resolution: "msw@npm:0.25.0"
-  dependencies:
-    "@open-draft/until": ^1.0.3
-    "@types/cookie": ^0.4.0
-    chalk: ^4.1.0
-    chokidar: ^3.4.2
-    cookie: ^0.4.1
-    graphql: ^15.4.0
-    headers-utils: ^1.2.0
-    node-fetch: ^2.6.1
-    node-match-path: ^0.6.0
-    node-request-interceptor: ^0.6.3
-    statuses: ^2.0.0
-    strict-event-emitter: ^0.1.0
-    yargs: ^16.2.0
-  bin:
-    msw: cli/index.js
-  checksum: 445f6cb8fe6ebd58cd7dbb3dbc267c734de64263e38cbffd72085aa68ffc71d99b332e12c114e8fb5be0bcc45c8e8ff25b248a231ba5a2207035906a66a3ecc8
-  languageName: node
-  linkType: hard
-
-"msw@npm:^0.30.0":
-  version: 0.30.1
-  resolution: "msw@npm:0.30.1"
-  dependencies:
-    "@mswjs/cookies": ^0.1.5
-    "@mswjs/interceptors": ^0.11.1
-    "@open-draft/until": ^1.0.3
-    "@types/cookie": ^0.4.0
-    "@types/inquirer": ^7.3.1
-    "@types/js-levenshtein": ^1.1.0
-    chalk: ^4.1.1
-    chokidar: ^3.4.2
-    cookie: ^0.4.1
-    graphql: ^15.4.0
-    headers-utils: ^3.0.2
-    inquirer: ^8.1.0
-    js-levenshtein: ^1.1.6
-    node-fetch: ^2.6.1
-    node-match-path: ^0.6.3
-    statuses: ^2.0.0
-    strict-event-emitter: ^0.2.0
-    type-fest: ^1.1.3
-    yargs: ^17.0.1
-  bin:
-    msw: cli/index.js
-  checksum: 0958dc934cc431d2632fe7fcee9c72731db408850c55eae8bc23737aac2b81f7f66107a29394246bed204a7763257714050d54bad4024b7ab0fb5317bfe1316e
-  languageName: node
-  linkType: hard
-
-"msw@npm:^0.39.2":
-  version: 0.39.2
-  resolution: "msw@npm:0.39.2"
+"msw@npm:^0.41.1":
+  version: 0.41.1
+  resolution: "msw@npm:0.41.1"
   dependencies:
     "@mswjs/cookies": ^0.2.0
     "@mswjs/interceptors": ^0.15.1
@@ -18794,9 +18700,14 @@ fsevents@^1.2.7:
     strict-event-emitter: ^0.2.0
     type-fest: ^1.2.2
     yargs: ^17.3.1
+  peerDependencies:
+    typescript: ">= 4.2.x <= 4.7.x"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
   bin:
     msw: cli/index.js
-  checksum: 4802f5568cbaadedd488f03b953523fb5dd7e1b8e48a85f142d7cfd1b8c25241729a0af4a06b9f2be543c18b67475c8777fa4924bdc6f1de19dbe142ea4a8405
+  checksum: e6c8ec832da41023d293e9033728b99e987792de155f17bac56388ea57ca4110fab13f422510114a9ae0b12754f38a922c09a1eae7bc3339ee86a9db8a963c16
   languageName: node
   linkType: hard
 
@@ -19061,7 +18972,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"node-match-path@npm:^0.6.0, node-match-path@npm:^0.6.1, node-match-path@npm:^0.6.3":
+"node-match-path@npm:^0.6.1":
   version: 0.6.3
   resolution: "node-match-path@npm:0.6.3"
   checksum: d515bc069f293688109c058ee02567528fdaa856290d362b80a2254734975014e4eefcdcc5164a8adfd5560aa870e277c97fe8be648074d5088056cf61553c7c
@@ -19109,18 +19020,6 @@ fsevents@^1.2.7:
   version: 2.0.0
   resolution: "node-releases@npm:2.0.0"
   checksum: 4342ab76816ad2c82826a74a2334e51f1d328e3d0ce505547a68d32c38d05d84affa1b5918650f205b32d0b80ab3a4870d8951489552a2ba6060ef7fd521c8de
-  languageName: node
-  linkType: hard
-
-"node-request-interceptor@npm:^0.6.3":
-  version: 0.6.3
-  resolution: "node-request-interceptor@npm:0.6.3"
-  dependencies:
-    "@open-draft/until": ^1.0.3
-    debug: ^4.3.0
-    headers-utils: ^1.2.0
-    strict-event-emitter: ^0.1.0
-  checksum: 182472717ce6abd27141c138bf989f5a60d180bec8ba5d4b2831e9f19ad4ffe651d8b63955ef220e5c9d80b726229b2145f3907a5bd48badee3617eaa848d696
   languageName: node
   linkType: hard
 
@@ -19653,7 +19552,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"ora@npm:5.4.1, ora@npm:^5.3.0, ora@npm:^5.4.0, ora@npm:^5.4.1":
+"ora@npm:5.4.1, ora@npm:^5.4.0, ora@npm:^5.4.1":
   version: 5.4.1
   resolution: "ora@npm:5.4.1"
   dependencies:
@@ -23926,7 +23825,7 @@ resolve@~1.19.0:
   languageName: node
   linkType: hard
 
-"rxjs@npm:^6.3.3, rxjs@npm:^6.4.0, rxjs@npm:^6.6.0, rxjs@npm:^6.6.2, rxjs@npm:^6.6.3, rxjs@npm:^6.6.6":
+"rxjs@npm:^6.3.3, rxjs@npm:^6.6.0, rxjs@npm:^6.6.2, rxjs@npm:^6.6.3":
   version: 6.6.7
   resolution: "rxjs@npm:6.6.7"
   dependencies:
@@ -25108,13 +25007,6 @@ resolve@~1.19.0:
   version: 1.0.1
   resolution: "stream-shift@npm:1.0.1"
   checksum: 59b82b44b29ec3699b5519a49b3cedcc6db58c72fb40c04e005525dfdcab1c75c4e0c180b923c380f204bed78211b9bad8faecc7b93dece4d004c3f6ec75737b
-  languageName: node
-  linkType: hard
-
-"strict-event-emitter@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "strict-event-emitter@npm:0.1.0"
-  checksum: 94e0ed586d5352b36f116fa925f83149b84b1116f0e951abf292af92d03f4a52a53b43ea2aee7fc640cfab900eb6ddfcba99031df9e6b533743dc646e5dd1214
   languageName: node
   linkType: hard
 
@@ -26374,13 +26266,6 @@ resolve@~1.19.0:
   version: 0.8.1
   resolution: "type-fest@npm:0.8.1"
   checksum: d61c4b2eba24009033ae4500d7d818a94fd6d1b481a8111612ee141400d5f1db46f199c014766b9fa9b31a6a7374d96fc748c6d688a78a3ce5a33123839becb7
-  languageName: node
-  linkType: hard
-
-"type-fest@npm:^1.1.3":
-  version: 1.2.2
-  resolution: "type-fest@npm:1.2.2"
-  checksum: 51ea6792ffae81c037ace48bbf085672273efc5af0226092d8debabb9b724ee6ade0f6456ca173c98975ac1ff267a1778bbe051d08479d18e47c2a60fd4a399e
   languageName: node
   linkType: hard
 
@@ -28169,13 +28054,6 @@ resolve@~1.19.0:
   version: 2.2.0
   resolution: "xmlchars@npm:2.2.0"
   checksum: 8c70ac94070ccca03f47a81fcce3b271bd1f37a591bf5424e787ae313fcb9c212f5f6786e1fa82076a2c632c0141552babcd85698c437506dfa6ae2d58723062
-  languageName: node
-  linkType: hard
-
-"xmldom@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "xmldom@npm:0.6.0"
-  checksum: 710f64f5b2ba8ac1cbcf62c2e35b095a2f9ccbd596062efe037a5ca85d3ee077b691c4d74952ff476e4bab0dd82727604262899f25dddbb02f89ddeea4cca7f9
   languageName: node
   linkType: hard
 
