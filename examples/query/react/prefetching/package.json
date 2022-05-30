@@ -19,7 +19,7 @@
     "react-icons": "3.11.0",
     "react-redux": "^7.2.4",
     "react-router-dom": "5.2.0",
-    "react-scripts": "4.0.2"
+    "react-scripts": "5.0.1"
   },
   "devDependencies": {
     "@types/faker": "^5.5.5",

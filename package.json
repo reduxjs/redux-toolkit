@@ -25,7 +25,7 @@
   "devDependencies": {
     "eslint": "^7.25.0",
     "eslint-config-prettier": "^8.3.0",
-    "eslint-config-react-app": "^5.0.1",
+    "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-flowtype": "^5.7.2",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsx-a11y": "^6.4.1",
@@ -37,7 +37,7 @@
     "release-it": "^14.12.5"
   },
   "resolutions": {
-    "react-scripts": "patch:react-scripts@npm:4.0.2#.yarn/patches/react-scripts__npm_4.0.2.patch",
+    "react-scripts": "5.0.1",
     "console-testing-library": "patch:console-testing-library@npm:0.3.1#.yarn/patches/console-testing-library__npm_0.3.1.patch",
     "react-redux": "npm:7.2.4",
     "react": "npm:17.0.2",
