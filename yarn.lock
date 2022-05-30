@@ -6962,7 +6962,6 @@ __metadata:
     eslint: ^8.16.0
     eslint-config-prettier: ^8.3.0
     eslint-config-react-app: ^7.0.1
-    eslint-plugin-flowtype: ^5.7.2
     eslint-plugin-import: ^2.22.1
     eslint-plugin-jsx-a11y: ^6.4.1
     eslint-plugin-prettier: ^3.4.0
@@ -14610,18 +14609,6 @@ __metadata:
     debug: ^3.2.7
     find-up: ^2.1.0
   checksum: 77048263f309167a1e6a1e1b896bfb5ddd1d3859b2e2abbd9c32c432aee13d610d46e6820b1ca81b37fba437cf423a404bc6649be64ace9148a3062d1886a678
-  languageName: node
-  linkType: hard
-
-"eslint-plugin-flowtype@npm:^5.7.2":
-  version: 5.7.2
-  resolution: "eslint-plugin-flowtype@npm:5.7.2"
-  dependencies:
-    lodash: ^4.17.15
-    string-natural-compare: ^3.0.1
-  peerDependencies:
-    eslint: ^7.1.0
-  checksum: 6749e5952003e7d9164c214552b4c91b9b34b3e7407e9cb2655ab3e627ddbfbc8b711549a6385cd68285599c8dbda2f6dc0e5eefd7fd770c3a1e06748334a9b5
   languageName: node
   linkType: hard
 
@@ -26840,7 +26827,6 @@ resolve@~1.19.0:
     eslint: ^8.16.0
     eslint-config-prettier: ^8.3.0
     eslint-config-react-app: ^7.0.1
-    eslint-plugin-flowtype: ^5.7.2
     eslint-plugin-import: ^2.22.1
     eslint-plugin-jsx-a11y: ^6.4.1
     eslint-plugin-prettier: ^3.4.0
