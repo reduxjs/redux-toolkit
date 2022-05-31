@@ -71,11 +71,14 @@ export async function generateApi(
     isDataResponse = defaultIsDataResponse,
     filterEndpoints,
     endpointOverrides,
+    unionUndefined,
   }: GenerationOptions
 ) {
   const v3Doc = await getV3Doc(spec);
 
-  const apiGen = new ApiGenerator(v3Doc, {});
+  const apiGen = new ApiGenerator(v3Doc, {
+    unionUndefined
+  });
 
   const operationDefinitions = getOperationDefinitions(v3Doc).filter(operationMatches(filterEndpoints));
 
