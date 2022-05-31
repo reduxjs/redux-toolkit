@@ -165,6 +165,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@apidevtools/json-schema-ref-parser@npm:9.0.6":
+  version: 9.0.6
+  resolution: "@apidevtools/json-schema-ref-parser@npm:9.0.6"
+  dependencies:
+    "@jsdevtools/ono": ^7.1.3
+    call-me-maybe: ^1.0.1
+    js-yaml: ^3.13.1
+  checksum: c7ff53623ab8a9dd221772a5757fa0b9e5167a5ac3a71c23596634bae6efc85d8efcdebbe17f73ee5c027ea5afc48c705e8a720f02c4909f9a357d8027040b7b
+  languageName: node
+  linkType: hard
+
 "@apidevtools/json-schema-ref-parser@npm:^9.0.6":
   version: 9.0.9
   resolution: "@apidevtools/json-schema-ref-parser@npm:9.0.9"
@@ -177,7 +188,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@apidevtools/openapi-schemas@npm:^2.0.4":
+"@apidevtools/openapi-schemas@npm:^2.0.4, @apidevtools/openapi-schemas@npm:^2.1.0":
   version: 2.1.0
   resolution: "@apidevtools/openapi-schemas@npm:2.1.0"
   checksum: 4a8f64935b9049ef21e41fa4b188f39f6bc3f5291cebd451701db1115451ccb246a739e46cc5ce9ecdec781671431db40db7851acdac84a990a45756e0f32de3
@@ -191,7 +202,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@apidevtools/swagger-parser@npm:^10.0.1, @apidevtools/swagger-parser@npm:^10.0.2":
+"@apidevtools/swagger-parser@npm:^10.0.1":
+  version: 10.1.0
+  resolution: "@apidevtools/swagger-parser@npm:10.1.0"
+  dependencies:
+    "@apidevtools/json-schema-ref-parser": 9.0.6
+    "@apidevtools/openapi-schemas": ^2.1.0
+    "@apidevtools/swagger-methods": ^3.0.2
+    "@jsdevtools/ono": ^7.1.3
+    ajv: ^8.6.3
+    ajv-draft-04: ^1.0.0
+    call-me-maybe: ^1.0.1
+  peerDependencies:
+    openapi-types: ">=7"
+  checksum: c7c923755bd025ee2cae97e1cfd525538523ba74c341a0ac814c023ffe5e63fc2d997539a8ccf9a0fcec41a2d6337d40cc5735acb991ddcbb415853a241908d1
+  languageName: node
+  linkType: hard
+
+"@apidevtools/swagger-parser@npm:^10.0.2":
   version: 10.0.3
   resolution: "@apidevtools/swagger-parser@npm:10.0.3"
   dependencies:
@@ -4998,6 +5026,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@kahirokunn/oazapfts@npm:3.6.0":
+  version: 3.6.0
+  resolution: "@kahirokunn/oazapfts@npm:3.6.0"
+  dependencies:
+    "@apidevtools/swagger-parser": ^10.0.1
+    lodash: ^4.17.20
+    minimist: ^1.2.5
+    swagger2openapi: ^7.0.7
+    typescript: ^4.1.2
+  bin:
+    oazapfts: lib/codegen/cli.js
+  checksum: 7d702b9202f658407412959c511afd2d90da417ba8b9f90ded2b118065415e0a0c3fe99a2e0333edc3b0812b736313b2c60eaa7f63ea3a76993d6e599034fd2f
+  languageName: node
+  linkType: hard
+
 "@manaflair/redux-batch@npm:^1.0.0":
   version: 1.0.0
   resolution: "@manaflair/redux-batch@npm:1.0.0"
@@ -5705,6 +5748,7 @@ __metadata:
     "@babel/core": ^7.12.10
     "@babel/preset-env": ^7.12.11
     "@babel/preset-typescript": ^7.12.7
+    "@kahirokunn/oazapfts": 3.6.0
     "@reduxjs/toolkit": ^1.6.0
     "@types/commander": ^2.12.2
     "@types/glob-to-regexp": ^0.4.0
@@ -5722,7 +5766,6 @@ __metadata:
     husky: ^4.3.6
     jest: ^26.6.3
     msw: ^0.41.1
-    oazapfts: ^3.5.0
     openapi-types: ^9.1.0
     prettier: ^2.2.1
     pretty-quick: ^3.1.0
@@ -7792,6 +7835,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ajv-draft-04@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "ajv-draft-04@npm:1.0.0"
+  peerDependencies:
+    ajv: ^8.5.0
+  peerDependenciesMeta:
+    ajv:
+      optional: true
+  checksum: 3f11fa0e7f7359bef6608657f02ab78e9cc62b1fb7bdd860db0d00351b3863a1189c1a23b72466d2d82726cab4eb20725c76f5e7c134a89865e2bfd0e6828137
+  languageName: node
+  linkType: hard
+
 "ajv-errors@npm:^1.0.0":
   version: 1.0.1
   resolution: "ajv-errors@npm:1.0.1"
@@ -7831,6 +7886,18 @@ __metadata:
     require-from-string: ^2.0.2
     uri-js: ^4.2.2
   checksum: 0115531d0fd8314867d21b4748f3a91f82b464ca92855ac0702bbe9fc6fb6202b032af7f2849da92fd8e23a7ea2ba91cbae3dde64f05a804dd1bd32809ba0f73
+  languageName: node
+  linkType: hard
+
+"ajv@npm:^8.6.3":
+  version: 8.11.0
+  resolution: "ajv@npm:8.11.0"
+  dependencies:
+    fast-deep-equal: ^3.1.1
+    json-schema-traverse: ^1.0.0
+    require-from-string: ^2.0.2
+    uri-js: ^4.2.2
+  checksum: 5e0ff226806763be73e93dd7805b634f6f5921e3e90ca04acdf8db81eed9d8d3f0d4c5f1213047f45ebbf8047ffe0c840fa1ef2ec42c3a644899f69aa72b5bef
   languageName: node
   linkType: hard
 
@@ -19270,21 +19337,6 @@ fsevents@^1.2.7:
     should: ^13.2.1
     yaml: ^1.10.0
   checksum: 9f4c27022f961ca60472a9094803f347e986f7fb9f0dd12e14bafe5dcfdb677f7108a90dc01934af167e7cf27d78ac06b9cb63ecdd9cb5d8f532a0cf83242df9
-  languageName: node
-  linkType: hard
-
-"oazapfts@npm:^3.5.0":
-  version: 3.5.0
-  resolution: "oazapfts@npm:3.5.0"
-  dependencies:
-    "@apidevtools/swagger-parser": ^10.0.1
-    lodash: ^4.17.20
-    minimist: ^1.2.5
-    swagger2openapi: ^7.0.7
-    typescript: ^4.1.2
-  bin:
-    oazapfts: lib/codegen/cli.js
-  checksum: 5ffc99c88afc300313c77c683953c8da56a5d190fe01c3d5128c6c1df4dd14eb27852344b880a4d91de811911826a31c58f9ac8dc060bef8fe05277a066035b5
   languageName: node
   linkType: hard
 

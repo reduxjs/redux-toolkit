@@ -56,8 +56,8 @@
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.0.2",
+    "@kahirokunn/oazapfts": "3.6.0",
     "commander": "^6.2.0",
-    "oazapfts": "^3.5.0",
     "prettier": "^2.2.1",
     "semver": "^7.3.5",
     "swagger2openapi": "^7.0.4",

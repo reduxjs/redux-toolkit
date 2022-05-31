@@ -6,13 +6,13 @@ import ApiGenerator, {
   getReferenceName,
   isReference,
   supportDeepObjects,
-} from 'oazapfts/lib/codegen/generate';
+} from '@kahirokunn/oazapfts/lib/codegen/generate';
 import {
   createQuestionToken,
   keywordType,
   createPropertyAssignment,
   isValidIdentifier,
-} from 'oazapfts/lib/codegen/tscodegen';
+} from '@kahirokunn/oazapfts/lib/codegen/tscodegen';
 import type { OpenAPIV3 } from 'openapi-types';
 import { generateReactHooks } from './generators/react-hooks';
 import type { EndpointMatcher, EndpointOverrides, GenerationOptions, OperationDefinition, TextMatcher } from './types';
