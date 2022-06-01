@@ -22,6 +22,12 @@ description: 'RTK Query > Overview: a summary of the RTK Query data caching API 
 
 RTK Query is **an optional addon included in the Redux Toolkit package**, and its functionality is built on top of the other APIs in Redux Toolkit.
 
+:::info
+
+To learn how to use RTK Query, see the full ["Redux Essentials" tutorial](https://redux.js.org/tutorials/essentials/part-7-rtk-query-basics) on the Redux core docs site.
+
+:::
+
 ## Motivation
 
 Web applications normally need to fetch data from a server in order to display it. They also usually need to make updates to that data, send those updates to the server, and keep the cached data on the client in sync with the data on the server. This is made more complicated by the need to implement other behaviors used in today's applications:

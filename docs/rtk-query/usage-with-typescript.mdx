@@ -578,7 +578,7 @@ function PostDetail() {
   if (error) {
     if ('status' in error) {
       // you can access all properties of `FetchBaseQueryError` here
-      const errMsg = 'error' in err ? err.error : JSON.stringify(err.data)
+      const errMsg = 'error' in error ? error.error : JSON.stringify(error.data)
 
       return (
         <div>
