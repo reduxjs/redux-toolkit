@@ -75,6 +75,10 @@ function isStateFunction<S>(x: unknown): x is () => S {
   return typeof x === 'function'
 }
 
+function freezeDraftable<T>(val: T) {
+  return isDraftable(val) ? createNextState(val, () => {}) : val
+}
+
 export type ReducerWithInitialState<S extends NotFunction<any>> = Reducer<S> & {
   getInitialState: () => S
 }
@@ -223,12 +227,12 @@ export function createReducer<S extends NotFunction<any>>(
       ? executeReducerBuilderCallback(mapOrBuilderCallback)
       : [mapOrBuilderCallback, actionMatchers, defaultCaseReducer]
 
-  // Ensure the initial state gets frozen either way
+  // Ensure the initial state gets frozen either way (if draftable)
   let getInitialState: () => S
   if (isStateFunction(initialState)) {
-    getInitialState = () => createNextState(initialState(), () => {})
+    getInitialState = () => freezeDraftable(initialState())
   } else {
-    const frozenInitialState = createNextState(initialState, () => {})
+    const frozenInitialState = freezeDraftable(initialState)
     getInitialState = () => frozenInitialState
   }
 
