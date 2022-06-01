@@ -4,6 +4,7 @@ import type { AnyAction, Action, Reducer } from 'redux'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type { NoInfer } from './tsHelpers'
+import { freezeDraftable } from './utils'
 
 /**
  * Defines a mapping from action types to corresponding action object shapes.
@@ -73,10 +74,6 @@ export type NotFunction<T> = T extends Function ? never : T
 
 function isStateFunction<S>(x: unknown): x is () => S {
   return typeof x === 'function'
-}
-
-function freezeDraftable<T>(val: T) {
-  return isDraftable(val) ? createNextState(val, () => {}) : val
 }
 
 export type ReducerWithInitialState<S extends NotFunction<any>> = Reducer<S> & {
