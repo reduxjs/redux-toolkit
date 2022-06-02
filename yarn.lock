@@ -5026,21 +5026,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@kahirokunn/oazapfts@npm:3.6.0":
-  version: 3.6.0
-  resolution: "@kahirokunn/oazapfts@npm:3.6.0"
-  dependencies:
-    "@apidevtools/swagger-parser": ^10.0.1
-    lodash: ^4.17.20
-    minimist: ^1.2.5
-    swagger2openapi: ^7.0.7
-    typescript: ^4.1.2
-  bin:
-    oazapfts: lib/codegen/cli.js
-  checksum: 7d702b9202f658407412959c511afd2d90da417ba8b9f90ded2b118065415e0a0c3fe99a2e0333edc3b0812b736313b2c60eaa7f63ea3a76993d6e599034fd2f
-  languageName: node
-  linkType: hard
-
 "@manaflair/redux-batch@npm:^1.0.0":
   version: 1.0.0
   resolution: "@manaflair/redux-batch@npm:1.0.0"
@@ -5748,8 +5733,8 @@ __metadata:
     "@babel/core": ^7.12.10
     "@babel/preset-env": ^7.12.11
     "@babel/preset-typescript": ^7.12.7
-    "@kahirokunn/oazapfts": 3.6.0
     "@reduxjs/toolkit": ^1.6.0
+    "@rtk-query/oazapfts-patched": ^3.6.0-2
     "@types/commander": ^2.12.2
     "@types/glob-to-regexp": ^0.4.0
     "@types/jest": ^26.0.20
@@ -5795,6 +5780,21 @@ __metadata:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
   languageName: unknown
   linkType: soft
+
+"@rtk-query/oazapfts-patched@npm:^3.6.0-2":
+  version: 3.6.0-2
+  resolution: "@rtk-query/oazapfts-patched@npm:3.6.0-2"
+  dependencies:
+    "@apidevtools/swagger-parser": ^10.0.1
+    lodash: ^4.17.20
+    minimist: ^1.2.5
+    swagger2openapi: ^7.0.7
+    typescript: ^4.1.2
+  bin:
+    oazapfts: lib/codegen/cli.js
+  checksum: f95227696b6c1e71ebaa87f7848e0af82a1b900b5c7657a8e5b94c07c8b6328894a09b17a0ff5dceb8333aa48800948081d8476d7dcce4d93e0082374f598039
+  languageName: node
+  linkType: hard
 
 "@rushstack/node-core-library@npm:3.39.0":
   version: 3.39.0
