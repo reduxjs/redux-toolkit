@@ -292,20 +292,20 @@ export type GetPetByIdApiArg = {
   petId: number;
 };
 export type Category = {
-  id?: number;
-  name?: string;
+  id?: number | undefined;
+  name?: string | undefined;
 };
 export type Tag = {
-  id?: number;
-  name?: string;
+  id?: number | undefined;
+  name?: string | undefined;
 };
 export type Pet = {
-  id?: number;
+  id?: number | undefined;
   name: string;
-  category?: Category;
+  category?: Category | undefined;
   photoUrls: string[];
-  tags?: Tag[];
-  status?: 'available' | 'pending' | 'sold';
+  tags?: Tag[] | undefined;
+  status?: ('available' | 'pending' | 'sold') | undefined;
 };
 export const { useAddPetMutation, useGetPetByIdQuery } = injectedRtkApi;
 
@@ -474,20 +474,20 @@ export type GetPetByIdApiArg = {
   petId: number;
 };
 export type Category = {
-  id?: number | undefined;
-  name?: string | undefined;
+  id?: number;
+  name?: string;
 };
 export type Tag = {
-  id?: number | undefined;
-  name?: string | undefined;
+  id?: number;
+  name?: string;
 };
 export type Pet = {
-  id?: number | undefined;
+  id?: number;
   name: string;
-  category?: Category | undefined;
+  category?: Category;
   photoUrls: string[];
-  tags?: Tag[] | undefined;
-  status?: ('available' | 'pending' | 'sold') | undefined;
+  tags?: Tag[];
+  status?: 'available' | 'pending' | 'sold';
 };
 export const { useAddPetMutation, useGetPetByIdQuery, useLazyGetPetByIdQuery } = injectedRtkApi;
 
