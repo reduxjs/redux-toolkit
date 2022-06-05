@@ -61,9 +61,20 @@ Returns an updated and enhanced version of the API slice object, containing the 
 
 This is primarily useful for taking an API slice object that was code-generated from an API schema file like OpenAPI, and adding additional specific hand-written configuration for cache invalidation management on top of the generated endpoint definitions.
 
-For example, `enhanceEndpoints` can be used to modify caching behaviour by changing the values of `providesTags`, `invalidatesTags`, and `keepUnusedDataFor`:
+For example, `enhanceEndpoints` can be used to modify caching behavior by changing the values of `providesTags`, `invalidatesTags`, and `keepUnusedDataFor`:
 
 ```ts
+// file: api.ts noEmit
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (builder) => ({}),
+})
+
+// file: enhanceEndpoints.ts
+import { api } from './api'
+
 const enhancedApi = api.enchanceEndpoints({
   addTagTypes: ['User'],
   endpoints: {
@@ -75,9 +86,9 @@ const enhancedApi = api.enchanceEndpoints({
     },
     // alternatively, define a function which is called with the endpoint definition as an argument
     postUsers(endpoint) {
-      endpoint.invalidatesTags = ['User'];
-      endpoint.keepUnusedDataFor = 120;
+      endpoint.invalidatesTags = ['User']
+      endpoint.keepUnusedDataFor = 120
     }
   }
-});
+})
 ```
