@@ -60,3 +60,24 @@ Any provided tag types or endpoint definitions will be merged into the existing 
 Returns an updated and enhanced version of the API slice object, containing the combined endpoint definitions.
 
 This is primarily useful for taking an API slice object that was code-generated from an API schema file like OpenAPI, and adding additional specific hand-written configuration for cache invalidation management on top of the generated endpoint definitions.
+
+For example, `enhanceEndpoints` can be used to modify caching behaviour by changing the values of `providesTags`, `invalidatesTags`, and `keepUnusedDataFor`:
+
+```ts
+const enhancedApi = api.enchanceEndpoints({
+  addTagTypes: ['User'],
+  endpoints: {
+    getUserByUserId: {
+      providesTags: ['User'],
+    },
+    patchUserByUserId: {
+      invalidatesTags: ['User'],
+    },
+    // alternatively, define a function which is called with the endpoint definition as an argument
+    postUsers(endpoint) {
+      endpoint.invalidatesTags = ['User'];
+      endpoint.keepUnusedDataFor = 120;
+    }
+  }
+});
+```
