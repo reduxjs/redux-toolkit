@@ -75,7 +75,7 @@ export const api = createApi({
 // file: enhanceEndpoints.ts
 import { api } from './api'
 
-const enhancedApi = api.enchanceEndpoints({
+const enhancedApi = api.enhanceEndpoints({
   addTagTypes: ['User'],
   endpoints: {
     getUserByUserId: {
@@ -85,7 +85,7 @@ const enhancedApi = api.enchanceEndpoints({
       invalidatesTags: ['User'],
     },
     // alternatively, define a function which is called with the endpoint definition as an argument
-    postUsers(endpoint) {
+    postUsers(endpoint: any) {
       endpoint.invalidatesTags = ['User']
       endpoint.keepUnusedDataFor = 120
     }
