@@ -52,6 +52,9 @@ export interface ConfigureStoreOptions<
   /**
    * An array of Redux middleware to install. If not supplied, defaults to
    * the set of middleware returned by `getDefaultMiddleware()`.
+   * 
+   * @example `middleware: (gDM) => gDM().concat(logger, apiMiddleware, yourCustomMiddleware)`
+   * @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
    */
   middleware?: ((getDefaultMiddleware: CurriedGetDefaultMiddleware<S>) => M) | M
 
@@ -141,7 +144,7 @@ export function configureStore<
   if (typeof reducer === 'function') {
     rootReducer = reducer
   } else if (isPlainObject(reducer)) {
-    rootReducer = combineReducers(reducer)
+    rootReducer = combineReducers(reducer) as unknown as Reducer<S, A>
   } else {
     throw new Error(
       '"reducer" is a required argument, and must be a function or an object of functions that can be passed to combineReducers'
