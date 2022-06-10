@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query'
 
 /**
- * Test: BaseQuery propagates meta types to its callbacks
+ * Test: BaseQuery propagates meta types to endpoint callbacks
  */
 {
   createApi({
@@ -11,13 +11,13 @@ import { createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query'
         query: () => 'dummy',
         onCacheEntryAdded: async (arg, { cacheDataLoaded }) => {
           const { meta } = await cacheDataLoaded
-          const { request, response } = meta! // We expect request and response to be there
+          const { request, response } = meta! // Expect request and response to be there
         },
       }),
     }),
   })
 
-  const baseQuery = retry(fetchBaseQuery()) // Expect meta type even when wrapped with retry
+  const baseQuery = retry(fetchBaseQuery()) // Even when wrapped with retry
   createApi({
     baseQuery,
     endpoints: (build) => ({
@@ -25,7 +25,7 @@ import { createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query'
         query: () => 'dummy',
         onCacheEntryAdded: async (arg, { cacheDataLoaded }) => {
           const { meta } = await cacheDataLoaded
-          const { request, response } = meta!
+          const { request, response } = meta! // Expect request and response to be there
         },
       }),
     }),
