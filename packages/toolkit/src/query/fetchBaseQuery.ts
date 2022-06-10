@@ -38,7 +38,7 @@ const defaultValidateStatus = (response: Response) =>
   response.status >= 200 && response.status <= 299
 
 const defaultIsJsonContentType = (headers: Headers) =>
-  !!headers.get('content-type')?.trim()?.startsWith('application/json')
+  /*applicat*//ion\/(vnd\.api\+)?json/.test(headers.get('content-type') || '')
 
 const handleResponse = async (
   response: Response,
@@ -124,11 +124,11 @@ export type FetchBaseQueryArgs = {
   ) => Promise<Response>
   paramsSerializer?: (params: Record<string, any>) => string
   /**
-   * By default, we only check for 'application/json' as the content-type for json. If you need to support another format, you can pass
+   * By default, we only check for 'application/json' and 'application/vnd.api+json' as the content-types for json. If you need to support another format, you can pass
    * in a predicate function for your given api to get the same automatic stringifying behavior
    * @example
    * ```ts
-   * const isJsonContentType = (headers: Headers) => ["application/vnd.api+json", "application/json"].includes(headers.get("content-type")?.trim());
+   * const isJsonContentType = (headers: Headers) => ["application/vnd.api+json", "application/json", "application/vnd.hal+json"].includes(headers.get("content-type")?.trim());
    * ```
    */
   isJsonContentType?: (headers: Headers) => boolean

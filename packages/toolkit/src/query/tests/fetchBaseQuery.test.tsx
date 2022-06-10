@@ -408,7 +408,7 @@ describe('fetchBaseQuery', () => {
         baseUrl,
         fetchFn: fetchFn as any,
         isJsonContentType: (headers) =>
-          ['application/vnd.api+json', 'application/json'].includes(
+          ['application/vnd.api+json', 'application/json', 'application/vnd.hal+json'].includes(
             headers.get('content-type') ?? ''
           ),
       })
@@ -419,7 +419,7 @@ describe('fetchBaseQuery', () => {
           url: '/echo',
           method: 'POST',
           body: testBody,
-          headers: { 'content-type': 'application/vnd.api+json' },
+          headers: { 'content-type': 'application/vnd.hal+json' },
         },
         commonBaseQueryApi,
         {}
