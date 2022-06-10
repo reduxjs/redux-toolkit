@@ -69,7 +69,23 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-  endpoints: (builder) => ({}),
+  endpoints: (builder) => ({
+    getUserByUserId: builder.query({
+      query() {
+        return ''
+      },
+    }),
+    patchUserByUserId: builder.mutation({
+      query() {
+        return ''
+      },
+    }),
+    getUsers: builder.query({
+      query() {
+        return ''
+      },
+    }),
+  }),
 })
 
 // file: enhanceEndpoints.ts
@@ -85,10 +101,10 @@ const enhancedApi = api.enhanceEndpoints({
       invalidatesTags: ['User'],
     },
     // alternatively, define a function which is called with the endpoint definition as an argument
-    postUsers(endpoint: any) {
-      endpoint.invalidatesTags = ['User']
+    getUsers(endpoint) {
+      endpoint.providesTags = ['User']
       endpoint.keepUnusedDataFor = 120
-    }
-  }
+    },
+  },
 })
 ```
