@@ -38,7 +38,7 @@ const defaultValidateStatus = (response: Response) =>
   response.status >= 200 && response.status <= 299
 
 const defaultIsJsonContentType = (headers: Headers) =>
-  /*applicat*/ /ion\/(vnd\.api\+)?json/.test(headers.get('content-type') || '')
+  /*applicat*//ion\/(vnd\.api\+)?json/.test(headers.get('content-type') || '')
 
 const handleResponse = async (
   response: Response,
