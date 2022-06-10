@@ -48,7 +48,10 @@ import type {
   PrefetchOptions,
 } from '@reduxjs/toolkit/dist/query/core/module'
 import type { ReactHooksModuleOptions } from './module'
-import { useStableQueryArgs } from './useSerializedStableValue'
+import {
+  useQueryArgCache,
+  useStableQueryArgs,
+} from './useSerializedStableValue'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
 import { useShallowStableValue } from './useShallowStableValue'
@@ -603,36 +606,36 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   }
 
   function buildQueryHooks(name: string): QueryHooks<any> {
-    const useQuerySubscription: UseQuerySubscription<any> = (
-      arg: any,
+    const useQuerySubscriptions = (
+      args: any[],
       {
         refetchOnReconnect,
         refetchOnFocus,
         refetchOnMountOrArgChange,
         skip = false,
         pollingInterval = 0,
-      } = {}
+      }: UseQuerySubscriptionOptions = {}
     ) => {
       const { initiate } = api.endpoints[name] as ApiEndpointQuery<
         QueryDefinition<any, any, any, any, any>,
         Definitions
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
-      const stableArg = useStableQueryArgs(
-        skip ? skipToken : arg,
+      const { cache, lastCache } = useQueryArgCache(
+        skip ? [] : args,
         serializeQueryArgs,
         context.endpointDefinitions[name],
         name
       )
+
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,
         refetchOnFocus,
         pollingInterval,
       })
 
-      const promiseRef = useRef<QueryActionCreatorResult<any>>()
-
-      let { queryCacheKey, requestId } = promiseRef.current || {}
+      /* TODO
+            let { queryCacheKey, requestId } = promiseRef.current || {}
       const subscriptionRemoved = useSelector(
         (state: RootState<Definitions, string, string>) =>
           !!queryCacheKey &&
@@ -643,9 +646,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       usePossiblyImmediateEffect((): void | undefined => {
         promiseRef.current = undefined
       }, [subscriptionRemoved])
-
+*/
       usePossiblyImmediateEffect((): void | undefined => {
-        const lastPromise = promiseRef.current
+        /*
+        TODO
         if (
           typeof process !== 'undefined' &&
           process.env.NODE_ENV === 'removeMeOnCompilation'
@@ -653,52 +657,75 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           // this is only present to enforce the rule of hooks to keep `isSubscribed` in the dependency array
           console.log(subscriptionRemoved)
         }
+        */
 
-        if (stableArg === skipToken) {
-          lastPromise?.unsubscribe()
-          promiseRef.current = undefined
-          return
+        for (const oldQuery of Object.values(lastCache)) {
+          if (!cache[oldQuery.serialized]) {
+            oldQuery.promise?.unsubscribe()
+            oldQuery.promise = undefined
+          }
         }
 
-        const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions
+        for (const query of Object.values(cache)) {
+          const lastPromise = query.promise
 
-        if (!lastPromise || lastPromise.arg !== stableArg) {
-          lastPromise?.unsubscribe()
-          const promise = dispatch(
-            initiate(stableArg, {
-              subscriptionOptions: stableSubscriptionOptions,
-              forceRefetch: refetchOnMountOrArgChange,
-            })
-          )
-          promiseRef.current = promise
-        } else if (stableSubscriptionOptions !== lastSubscriptionOptions) {
-          lastPromise.updateSubscriptionOptions(stableSubscriptionOptions)
+          const lastSubscriptionOptions = query.promise?.subscriptionOptions
+
+          if (!lastPromise) {
+            const promise = dispatch(
+              initiate(query.queryArgs, {
+                subscriptionOptions: stableSubscriptionOptions,
+                forceRefetch: refetchOnMountOrArgChange,
+              })
+            )
+            query.promise = promise
+          } else if (stableSubscriptionOptions !== lastSubscriptionOptions) {
+            lastPromise.updateSubscriptionOptions(stableSubscriptionOptions)
+          }
         }
       }, [
         dispatch,
         initiate,
+        lastCache,
+        cache,
         refetchOnMountOrArgChange,
-        stableArg,
         stableSubscriptionOptions,
-        subscriptionRemoved,
       ])
 
+      const cacheRef = useRef(cache)
+      useEffect(() => {
+        cacheRef.current = cache
+      })
       useEffect(() => {
         return () => {
-          promiseRef.current?.unsubscribe()
-          promiseRef.current = undefined
+          for (const query of Object.values(cacheRef.current)) {
+            query.promise?.unsubscribe()
+            query.promise = undefined
+          }
         }
       }, [])
 
       return useMemo(
+        // TODO: should we return something else here?
         () => ({
           /**
            * A method to manually refetch data for the query
            */
-          refetch: () => void promiseRef.current?.refetch(),
+          refetch: () => {
+            for (const query of Object.values(cacheRef.current)) {
+              query.promise?.refetch()
+            }
+          },
         }),
         []
       )
+    }
+
+    const useQuerySubscription: UseQuerySubscription<any> = (
+      arg: any,
+      options
+    ) => {
+      return useQuerySubscriptions(arg === skipToken ? [] : [arg], options)
     }
 
     const useLazyQuerySubscription: UseLazyQuerySubscription<any> = ({
