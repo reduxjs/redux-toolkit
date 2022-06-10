@@ -26,7 +26,7 @@ For maintainability purposes, you may wish to split up endpoint definitions acro
 ```ts title="API Slice Contents" no-transpile
 const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-  endpoints: (builder) => ({
+  endpoints: (build) => ({
     // ...
   }),
 })

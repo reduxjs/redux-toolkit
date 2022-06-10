@@ -60,3 +60,51 @@ Any provided tag types or endpoint definitions will be merged into the existing 
 Returns an updated and enhanced version of the API slice object, containing the combined endpoint definitions.
 
 This is primarily useful for taking an API slice object that was code-generated from an API schema file like OpenAPI, and adding additional specific hand-written configuration for cache invalidation management on top of the generated endpoint definitions.
+
+For example, `enhanceEndpoints` can be used to modify caching behavior by changing the values of `providesTags`, `invalidatesTags`, and `keepUnusedDataFor`:
+
+```ts
+// file: api.ts noEmit
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (builder) => ({
+    getUserByUserId: builder.query({
+      query() {
+        return ''
+      },
+    }),
+    patchUserByUserId: builder.mutation({
+      query() {
+        return ''
+      },
+    }),
+    getUsers: builder.query({
+      query() {
+        return ''
+      },
+    }),
+  }),
+})
+
+// file: enhanceEndpoints.ts
+import { api } from './api'
+
+const enhancedApi = api.enhanceEndpoints({
+  addTagTypes: ['User'],
+  endpoints: {
+    getUserByUserId: {
+      providesTags: ['User'],
+    },
+    patchUserByUserId: {
+      invalidatesTags: ['User'],
+    },
+    // alternatively, define a function which is called with the endpoint definition as an argument
+    getUsers(endpoint) {
+      endpoint.providesTags = ['User']
+      endpoint.keepUnusedDataFor = 120
+    },
+  },
+})
+```

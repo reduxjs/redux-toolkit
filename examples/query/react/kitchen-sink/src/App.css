@@ -1,0 +1,28 @@
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 100%;
+  flex: 3;
+}
+
+.column-3 {
+  flex: 3;
+}
+
+.column-1 {
+  flex: 1;
+}
+
+.column-2 {
+  flex: 2;
+}
+
+.text-left {
+  text-align: left;
+}
