@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query'
 
 /**
- * Test: BaseQuery propagates meta types to endpoint callbacks
+ * Test: BaseQuery meta types propagate to endpoint callbacks
  */
 {
   createApi({
