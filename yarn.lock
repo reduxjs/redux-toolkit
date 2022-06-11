@@ -3674,12 +3674,12 @@ __metadata:
   dependencies:
     "@reduxjs/toolkit": ^1.8.0
     "@types/node": ^12.0.0
-    "@types/react": ^17.0.0
-    "@types/react-dom": ^17.0.0
+    "@types/react": ^18.0.12
+    "@types/react-dom": ^18.0.5
     clsx: 1.1.1
-    react: ^17.0.2
-    react-dom: ^17.0.2
-    react-redux: 7.2.2
+    react: ^18.1.0
+    react-dom: ^18.1.0
+    react-redux: ^8.0.2
     react-scripts: 4.0.3
     typescript: ~4.2.4
   languageName: unknown
@@ -3690,12 +3690,11 @@ __metadata:
   resolution: "@examples-query-react/advanced@workspace:examples/query/react/advanced"
   dependencies:
     "@reduxjs/toolkit": ^1.6.0-rc.1
-    "@types/react": 17.0.0
-    "@types/react-dom": 17.0.0
-    "@types/react-redux": 7.1.9
-    react: 17.0.0
-    react-dom: 17.0.0
-    react-redux: 7.2.2
+    "@types/react": ^18.0.5
+    "@types/react-dom": ^18.0.5
+    react: ^18.1.0
+    react-dom: ^18.1.0
+    react-redux: ^8.0.2
     react-scripts: 4.0.2
     typescript: ~4.2.4
   languageName: unknown
@@ -3709,16 +3708,15 @@ __metadata:
     "@emotion/react": ^11.4.0
     "@emotion/styled": ^11.3.0
     "@reduxjs/toolkit": ^1.6.0-rc.1
-    "@types/react": 17.0.0
-    "@types/react-dom": 17.0.0
-    "@types/react-redux": 7.1.9
+    "@types/react": ^18.0.5
+    "@types/react-dom": ^18.0.5
     "@types/react-router-dom": 5.1.6
     framer-motion: ^2.9.5
     msw: ^0.41.1
-    react: 17.0.2
-    react-dom: 17.0.2
+    react: ^18.1.0
+    react-dom: ^18.1.0
     react-icons: 3.11.0
-    react-redux: ^7.2.4
+    react-redux: ^8.0.2
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
@@ -3733,16 +3731,15 @@ __metadata:
     "@emotion/react": ^11.4.0
     "@emotion/styled": ^11.3.0
     "@reduxjs/toolkit": ^1.6.0-rc.1
-    "@types/react": 17.0.0
-    "@types/react-dom": 17.0.0
-    "@types/react-redux": 7.1.9
+    "@types/react": ^18.0.5
+    "@types/react-dom": ^18.0.5
     "@types/react-router-dom": 5.1.6
     framer-motion: ^2.9.5
     msw: ^0.41.1
-    react: 17.0.2
-    react-dom: 17.0.2
+    react: ^18.1.0
+    react-dom: ^18.1.0
     react-icons: 3.11.0
-    react-redux: ^7.2.4
+    react-redux: ^8.0.2
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
@@ -3756,13 +3753,12 @@ __metadata:
     "@reduxjs/toolkit": ^1.6.0-rc.1
     "@testing-library/react": ^12.0.0
     "@types/jest": ^26.0.23
-    "@types/react": 17.0.0
-    "@types/react-dom": 17.0.0
-    "@types/react-redux": 7.1.9
+    "@types/react": ^18.0.5
+    "@types/react-dom": ^18.0.5
     msw: ^0.41.1
-    react: 17.0.0
-    react-dom: 17.0.0
-    react-redux: 7.2.2
+    react: ^18.1.0
+    react-dom: ^18.1.0
+    react-redux: ^8.0.2
     react-scripts: 4.0.2
     typescript: ~4.2.4
   languageName: unknown
@@ -3773,12 +3769,11 @@ __metadata:
   resolution: "@examples-query-react/conditional-fetching@workspace:examples/query/react/conditional-fetching"
   dependencies:
     "@reduxjs/toolkit": ^1.6.0-rc.1
-    "@types/react": 17.0.0
-    "@types/react-dom": 17.0.0
-    "@types/react-redux": 7.1.9
-    react: 17.0.0
-    react-dom: 17.0.0
-    react-redux: 7.2.2
+    "@types/react": ^18.0.5
+    "@types/react-dom": ^18.0.5
+    react: ^18.1.0
+    react-dom: ^18.1.0
+    react-redux: ^8.0.2
     react-scripts: 4.0.2
     typescript: ~4.2.4
   languageName: unknown
@@ -3789,12 +3784,11 @@ __metadata:
   resolution: "@examples-query-react/deduping-queries@workspace:examples/query/react/deduping-queries"
   dependencies:
     "@reduxjs/toolkit": ^1.6.0-rc.1
-    "@types/react": 17.0.0
-    "@types/react-dom": 17.0.0
-    "@types/react-redux": 7.1.9
-    react: 17.0.0
-    react-dom: 17.0.0
-    react-redux: 7.2.2
+    "@types/react": ^18.0.5
+    "@types/react-dom": ^18.0.5
+    react: ^18.1.0
+    react-dom: ^18.1.0
+    react-redux: ^8.0.2
     react-scripts: 4.0.2
     typescript: ~4.2.4
   languageName: unknown
@@ -3820,9 +3814,8 @@ __metadata:
     "@reduxjs/toolkit": ^1.6.0
     "@rtk-query/graphql-request-base-query": ^2.0.0
     "@types/faker": ^5.5.5
-    "@types/react": 17.0.0
-    "@types/react-dom": 17.0.0
-    "@types/react-redux": 7.1.9
+    "@types/react": ^18.0.5
+    "@types/react-dom": ^18.0.5
     "@types/react-router-dom": 5.1.6
     "@types/webpack-env": ^1.16.0
     concurrently: ^6.2.0
@@ -3832,10 +3825,10 @@ __metadata:
     graphql: ^15.5.0
     graphql-request: ^3.4.0
     msw: 0.28.2
-    react: 17.0.2
-    react-dom: 17.0.2
+    react: ^18.1.0
+    react-dom: ^18.1.0
     react-icons: 3.11.0
-    react-redux: ^7.2.4
+    react-redux: ^8.0.2
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
     ts-node: ^10.0.0
@@ -3854,19 +3847,18 @@ __metadata:
     "@reduxjs/toolkit": ^1.6.0-rc.1
     "@rtk-query/graphql-request-base-query": ^2.0.0
     "@types/faker": ^5.5.5
-    "@types/react": 17.0.0
-    "@types/react-dom": 17.0.0
-    "@types/react-redux": 7.1.9
+    "@types/react": ^18.0.5
+    "@types/react-dom": ^18.0.5
     "@types/react-router-dom": 5.1.6
     faker: ^5.5.3
     framer-motion: ^2.9.5
     graphql: ^15.5.0
     graphql-request: ^3.4.0
     msw: 0.28.2
-    react: 17.0.2
-    react-dom: 17.0.2
+    react: ^18.1.0
+    react-dom: ^18.1.0
     react-icons: 3.11.0
-    react-redux: ^7.2.4
+    react-redux: ^8.0.2
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
@@ -3882,13 +3874,12 @@ __metadata:
     "@testing-library/react": ^12.0.0
     "@types/jest": ^26.0.23
     "@types/node": ^14.14.6
-    "@types/react": 17.0.0
-    "@types/react-dom": 17.0.0
-    "@types/react-redux": 7.1.9
+    "@types/react": ^18.0.5
+    "@types/react-dom": ^18.0.5
     msw: ^0.41.1
-    react: 17.0.0
-    react-dom: 17.0.0
-    react-redux: 7.2.2
+    react: ^18.1.0
+    react-dom: ^18.1.0
+    react-redux: ^8.0.2
     react-router-dom: 5.3.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
@@ -3905,16 +3896,15 @@ __metadata:
     "@emotion/styled": ^11.3.0
     "@mswjs/data": ^0.3.0
     "@reduxjs/toolkit": ^1.6.0-rc.1
-    "@types/react": 17.0.0
-    "@types/react-dom": 17.0.0
-    "@types/react-redux": 7.1.9
+    "@types/react": ^18.0.5
+    "@types/react-dom": ^18.0.5
     "@types/react-router-dom": 5.1.6
     framer-motion: ^2.9.5
     msw: ^0.41.1
-    react: 17.0.2
-    react-dom: 17.0.2
+    react: ^18.1.0
+    react-dom: ^18.1.0
     react-icons: 3.11.0
-    react-redux: ^7.2.4
+    react-redux: ^8.0.2
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
@@ -3930,16 +3920,15 @@ __metadata:
     "@emotion/styled": ^11.3.0
     "@mswjs/data": ^0.3.0
     "@reduxjs/toolkit": ^1.6.0-rc.1
-    "@types/react": 17.0.0
-    "@types/react-dom": 17.0.0
-    "@types/react-redux": 7.1.9
+    "@types/react": ^18.0.5
+    "@types/react-dom": ^18.0.5
     "@types/react-router-dom": 5.1.6
     framer-motion: ^2.9.5
     msw: ^0.41.1
-    react: 17.0.2
-    react-dom: 17.0.2
+    react: ^18.1.0
+    react-dom: ^18.1.0
     react-icons: 3.11.0
-    react-redux: ^7.2.4
+    react-redux: ^8.0.2
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
@@ -3958,17 +3947,16 @@ __metadata:
     "@mswjs/data": ^0.3.0
     "@reduxjs/toolkit": ^1.6.0-rc.1
     "@types/faker": ^5.5.5
-    "@types/react": 17.0.0
-    "@types/react-dom": 17.0.0
-    "@types/react-redux": 7.1.9
+    "@types/react": ^18.0.5
+    "@types/react-dom": ^18.0.5
     "@types/react-router-dom": 5.1.6
     faker: ^5.5.3
     framer-motion: ^2.9.5
     msw: ^0.41.1
-    react: 17.0.2
-    react-dom: 17.0.2
+    react: ^18.1.0
+    react-dom: ^18.1.0
     react-icons: 3.11.0
-    react-redux: ^7.2.4
+    react-redux: ^8.0.2
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
@@ -3980,12 +3968,11 @@ __metadata:
   resolution: "@examples-query-react/polling@workspace:examples/query/react/polling"
   dependencies:
     "@reduxjs/toolkit": ^1.6.0-rc.1
-    "@types/react": 17.0.0
-    "@types/react-dom": 17.0.0
-    "@types/react-redux": 7.1.9
-    react: 17.0.0
-    react-dom: 17.0.0
-    react-redux: 7.2.2
+    "@types/react": ^18.0.5
+    "@types/react-dom": ^18.0.5
+    react: ^18.1.0
+    react-dom: ^18.1.0
+    react-redux: ^8.0.2
     react-scripts: 4.0.2
     typescript: ~4.2.4
   languageName: unknown
@@ -4001,17 +3988,16 @@ __metadata:
     "@mswjs/data": ^0.3.0
     "@reduxjs/toolkit": ^1.6.0-rc.1
     "@types/faker": ^5.5.5
-    "@types/react": 17.0.0
-    "@types/react-dom": 17.0.0
-    "@types/react-redux": 7.1.9
+    "@types/react": ^18.0.5
+    "@types/react-dom": ^18.0.5
     "@types/react-router-dom": 5.1.6
     faker: ^5.5.3
     framer-motion: ^2.9.5
     msw: ^0.41.1
-    react: 17.0.2
-    react-dom: 17.0.2
+    react: ^18.1.0
+    react-dom: ^18.1.0
     react-icons: 3.11.0
-    react-redux: ^7.2.4
+    react-redux: ^8.0.2
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
@@ -4028,17 +4014,16 @@ __metadata:
     "@mswjs/data": ^0.3.0
     "@reduxjs/toolkit": ^1.6.0-rc.1
     "@types/faker": ^5.5.5
-    "@types/react": 17.0.0
-    "@types/react-dom": 17.0.0
-    "@types/react-redux": 7.1.9
+    "@types/react": ^18.0.5
+    "@types/react-dom": ^18.0.5
     "@types/react-router-dom": 5.1.6
     faker: ^5.5.3
     framer-motion: ^2.9.5
     msw: ^0.41.1
-    react: 17.0.2
-    react-dom: 17.0.2
+    react: ^18.1.0
+    react-dom: ^18.1.0
     react-icons: 3.11.0
-    react-redux: ^7.2.4
+    react-redux: ^8.0.2
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
@@ -4055,17 +4040,16 @@ __metadata:
     "@mswjs/data": ^0.3.0
     "@reduxjs/toolkit": ^1.6.0-rc.1
     "@types/faker": ^5.5.5
-    "@types/react": 17.0.0
-    "@types/react-dom": 17.0.0
-    "@types/react-redux": 7.1.9
+    "@types/react": ^18.0.5
+    "@types/react-dom": ^18.0.5
     "@types/react-router-dom": 5.1.6
     faker: ^5.5.3
     framer-motion: ^2.9.5
     msw: ^0.41.1
-    react: 17.0.2
-    react-dom: 17.0.2
+    react: ^18.1.0
+    react-dom: ^18.1.0
     react-icons: 3.11.0
-    react-redux: ^7.2.4
+    react-redux: ^8.0.2
     react-router-dom: 5.2.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
@@ -4077,12 +4061,11 @@ __metadata:
   resolution: "@examples-query-react/with-apiprovider@workspace:examples/query/react/with-apiprovider"
   dependencies:
     "@reduxjs/toolkit": ^1.6.0-rc.1
-    "@types/react": 17.0.0
-    "@types/react-dom": 17.0.0
-    "@types/react-redux": 7.1.9
-    react: 17.0.0
-    react-dom: 17.0.0
-    react-redux: 7.2.2
+    "@types/react": ^18.0.5
+    "@types/react-dom": ^18.0.5
+    react: ^18.1.0
+    react-dom: ^18.1.0
+    react-redux: ^8.0.2
     react-scripts: 4.0.2
     typescript: ~4.2.4
   languageName: unknown
@@ -5511,9 +5494,8 @@ __metadata:
     "@types/nanoid": ^2.1.0
     "@types/node": ^10.14.4
     "@types/query-string": ^6.3.0
-    "@types/react": ^17.0.3
-    "@types/react-dom": ^17.0.3
-    "@types/react-redux": ^7.1.16
+    "@types/react": ^18.0.12
+    "@types/react-dom": ^18.0.5
     "@types/yargs": ^16.0.1
     "@typescript-eslint/eslint-plugin": ^4.22.0
     "@typescript-eslint/parser": ^4.22.0
@@ -6431,7 +6413,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/hoist-non-react-statics@npm:^3.3.0":
+"@types/hoist-non-react-statics@npm:^3.3.0, @types/hoist-non-react-statics@npm:^3.3.1":
   version: 3.3.1
   resolution: "@types/hoist-non-react-statics@npm:3.3.1"
   dependencies:
@@ -6783,46 +6765,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:17.0.0":
-  version: 17.0.0
-  resolution: "@types/react-dom@npm:17.0.0"
+"@types/react-dom@npm:18.0.5":
+  version: 18.0.5
+  resolution: "@types/react-dom@npm:18.0.5"
   dependencies:
     "@types/react": "*"
-  checksum: d0f989e12fabb2572a38d79630c209499afa2edc865cc3ebc50333845715bd73d88ac88e24274977cd62433e46e91ddf94c30c2c12f89e427bbb739682caf677
+  checksum: cd48b81950f499b52a3f0c08261f00046f9b7c96699fa249c9664e257e820daf6ecac815cd1028cebc9d105094adc39d047d1efd79214394b8b2d515574c0787
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:>=16.9.0, @types/react-dom@npm:^17.0.3":
-  version: 17.0.6
-  resolution: "@types/react-dom@npm:17.0.6"
-  dependencies:
-    "@types/react": "*"
-  checksum: cc167c24a77cef2be8dcabd1bbe8b95c0d713b943b2f1c8a1468c8009c50daad51a46859a217a8383b89bb4ea499937d405699ce8db164f70c871f9d22d703f0
-  languageName: node
-  linkType: hard
-
-"@types/react-dom@npm:^17.0.0":
-  version: 17.0.11
-  resolution: "@types/react-dom@npm:17.0.11"
-  dependencies:
-    "@types/react": "*"
-  checksum: 4d5730dffbef86c887cecad7e3cecda424ce6a64d0b5441c63b5b015d48219868660a2bb1aa15e897e565ad8867fa6b885d4358b04e1c4e589ba4c07c3fda55c
-  languageName: node
-  linkType: hard
-
-"@types/react-redux@npm:7.1.9":
-  version: 7.1.9
-  resolution: "@types/react-redux@npm:7.1.9"
-  dependencies:
-    "@types/hoist-non-react-statics": ^3.3.0
-    "@types/react": "*"
-    hoist-non-react-statics: ^3.3.0
-    redux: ^4.0.0
-  checksum: 9de7513cdb2105798168208c57878bc14539b51ba45639b4b9e1e99544dea506cc0bf4e24e4a25ef2845c1169bc51932462799a4bf763bd9c109232f6516af69
-  languageName: node
-  linkType: hard
-
-"@types/react-redux@npm:^7.1.16, @types/react-redux@npm:^7.1.9":
+"@types/react-redux@npm:^7.1.9":
   version: 7.1.16
   resolution: "@types/react-redux@npm:7.1.16"
   dependencies:
@@ -6864,46 +6816,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:>=16.9.0, @types/react@npm:^17.0.3":
-  version: 17.0.9
-  resolution: "@types/react@npm:17.0.9"
+"@types/react@npm:18.0.12":
+  version: 18.0.12
+  resolution: "@types/react@npm:18.0.12"
   dependencies:
     "@types/prop-types": "*"
     "@types/scheduler": "*"
     csstype: ^3.0.2
-  checksum: c626e3ca42b6173b0617102af6c1c8c6068f69fafeba51f5d614962cabaf98a5706295081941ece93da04117268cb0aad471be87e76dde7e0d5f79a46280c586
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:17.0.0":
-  version: 17.0.0
-  resolution: "@types/react@npm:17.0.0"
-  dependencies:
-    "@types/prop-types": "*"
-    csstype: ^3.0.2
-  checksum: 0767d1c635613cb08de1ad6b8f73e3ee01ae0069733fa56382c72a8dbed741849e74f62a17756c7b76ccd2b57dd9891d5767c3134f35788720c6bb9c186a933b
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:^16.9.46":
-  version: 16.14.8
-  resolution: "@types/react@npm:16.14.8"
-  dependencies:
-    "@types/prop-types": "*"
-    "@types/scheduler": "*"
-    csstype: ^3.0.2
-  checksum: c24ddc95282358db7c26d3fba7d7e8cdfb768d6a4489386772c5fb0d30aa6bf8c22b04b55bf9ee0b9057278839dad5b22d24eaccc4ec352e77d8a05ce116623a
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:^17.0.0":
-  version: 17.0.34
-  resolution: "@types/react@npm:17.0.34"
-  dependencies:
-    "@types/prop-types": "*"
-    "@types/scheduler": "*"
-    csstype: ^3.0.2
-  checksum: 16729ad7d50922ccbf8eb93874d7781dc2f1c64edc78134b5edc7154839d41e9fe320eb1c11ad2d1c9bf28b99cb1febda344509c1fda025955a5c2b43c688c8f
+  checksum: 526ea13b3adf7fe4b475e55b7426510a7861ef2910664a9014ef42cba0c699d5167dc378eb161e2ec26c07a3b6fde9b6bdcbbb6f4b5580612246bc289395ef03
   languageName: node
   linkType: hard
 
@@ -7041,6 +6961,13 @@ __metadata:
   version: 2.0.3
   resolution: "@types/unist@npm:2.0.3"
   checksum: 4427306b094561da28164e7e5250c4e6b382cb8eac40bf7e6bb0ff1e6e00c13e47aaf32e4a08fc8ba54602d07f79a39fb9ba304cc9dc886b1e3caf824649edbd
+  languageName: node
+  linkType: hard
+
+"@types/use-sync-external-store@npm:^0.0.3":
+  version: 0.0.3
+  resolution: "@types/use-sync-external-store@npm:0.0.3"
+  checksum: 161ddb8eec5dbe7279ac971531217e9af6b99f7783213566d2b502e2e2378ea19cf5e5ea4595039d730aa79d3d35c6567d48599f69773a02ffcff1776ec2a44e
   languageName: node
   linkType: hard
 
@@ -22184,16 +22111,15 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"react-dom@npm:17.0.2":
-  version: 17.0.2
-  resolution: "react-dom@npm:17.0.2"
+"react-dom@npm:18.1.0":
+  version: 18.1.0
+  resolution: "react-dom@npm:18.1.0"
   dependencies:
     loose-envify: ^1.1.0
-    object-assign: ^4.1.1
-    scheduler: ^0.20.2
+    scheduler: ^0.22.0
   peerDependencies:
-    react: 17.0.2
-  checksum: 1c1eaa3bca7c7228d24b70932e3d7c99e70d1d04e13bb0843bbf321582bc25d7961d6b8a6978a58a598af2af496d1cedcfb1bf65f6b0960a0a8161cb8dab743c
+    react: ^18.1.0
+  checksum: bb0d48eeb0b297c79c2a03978baa29f5b3ff7ba3d070b21e34c9af1a6e7fdf0ca8b8d73e41f9214d91ad40eeb6d1f3559f884cbbc338713374a51320637c23df
   languageName: node
   linkType: hard
 
@@ -22270,7 +22196,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"react-is@npm:^16.13.1, react-is@npm:^16.6.0, react-is@npm:^16.7.0, react-is@npm:^16.8.1, react-is@npm:^16.8.4":
+"react-is@npm:^16.6.0, react-is@npm:^16.7.0, react-is@npm:^16.8.1, react-is@npm:^16.8.4":
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
   checksum: f7a19ac3496de32ca9ae12aa030f00f14a3d45374f1ceca0af707c831b2a6098ef0d6bdae51bd437b0a306d7f01d4677fcc8de7c0d331eb47ad0f46130e53c5f
@@ -22281,6 +22207,13 @@ fsevents@^1.2.7:
   version: 17.0.2
   resolution: "react-is@npm:17.0.2"
   checksum: 9d6d111d8990dc98bc5402c1266a808b0459b5d54830bbea24c12d908b536df7883f268a7868cfaedde3dd9d4e0d574db456f84d2e6df9c4526f99bb4b5344d8
+  languageName: node
+  linkType: hard
+
+"react-is@npm:^18.0.0":
+  version: 18.1.0
+  resolution: "react-is@npm:18.1.0"
+  checksum: d206a0fe6790851bff168727bfb896de02c5591695afb0c441163e8630136a3e13ee1a7ddd59fdccddcc93968b4721ae112c10f790b194b03b35a3dc13a355ef
   languageName: node
   linkType: hard
 
@@ -22339,24 +22272,35 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"react-redux@npm:7.2.4":
-  version: 7.2.4
-  resolution: "react-redux@npm:7.2.4"
+"react-redux@npm:8.0.2":
+  version: 8.0.2
+  resolution: "react-redux@npm:8.0.2"
   dependencies:
     "@babel/runtime": ^7.12.1
-    "@types/react-redux": ^7.1.16
+    "@types/hoist-non-react-statics": ^3.3.1
+    "@types/use-sync-external-store": ^0.0.3
     hoist-non-react-statics: ^3.3.2
-    loose-envify: ^1.4.0
-    prop-types: ^15.7.2
-    react-is: ^16.13.1
+    react-is: ^18.0.0
+    use-sync-external-store: ^1.0.0
   peerDependencies:
-    react: ^16.8.3 || ^17
+    "@types/react": ^16.8 || ^17.0 || ^18.0
+    "@types/react-dom": ^16.8 || ^17.0 || ^18.0
+    react: ^16.8 || ^17.0 || ^18.0
+    react-dom: ^16.8 || ^17.0 || ^18.0
+    react-native: ">=0.59"
+    redux: ^4
   peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
     react-dom:
       optional: true
     react-native:
       optional: true
-  checksum: 214fa1a4811f95090b77d96ec7114c322adf388b6d086ebebf50cdaf03549758037283f953d2b920cf6ee2f6ffad8f35e92f1ab959b3f2c957f5075d00e16d0a
+    redux:
+      optional: true
+  checksum: 44c1739c45dad04ecc65a290897c73828ff0bf43f2b7618ed5ef6d4ceecedae38e76cecd189a5ecedf579c28ead05427bc000fb45ad30b9fcd5c2be27cd3ac73
   languageName: node
   linkType: hard
 
@@ -22683,13 +22627,12 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"react@npm:17.0.2":
-  version: 17.0.2
-  resolution: "react@npm:17.0.2"
+"react@npm:18.1.0":
+  version: 18.1.0
+  resolution: "react@npm:18.1.0"
   dependencies:
     loose-envify: ^1.1.0
-    object-assign: ^4.1.1
-  checksum: b254cc17ce3011788330f7bbf383ab653c6848902d7936a87b09d835d091e3f295f7e9dd1597c6daac5dc80f90e778c8230218ba8ad599f74adcc11e33b9d61b
+  checksum: 5bb296b561b43ef2220395da4faac86c14a087c8c80e1a7598a5740f01ee605c11eaf249985c1e2000971c4cd32ccb46d40f00479bbd9fb6b1c7cf857393b7d4
   languageName: node
   linkType: hard
 
@@ -23974,13 +23917,12 @@ resolve@~1.19.0:
   languageName: node
   linkType: hard
 
-"scheduler@npm:^0.20.2":
-  version: 0.20.2
-  resolution: "scheduler@npm:0.20.2"
+"scheduler@npm:^0.22.0":
+  version: 0.22.0
+  resolution: "scheduler@npm:0.22.0"
   dependencies:
     loose-envify: ^1.1.0
-    object-assign: ^4.1.1
-  checksum: c4b35cf967c8f0d3e65753252d0f260271f81a81e427241295c5a7b783abf4ea9e905f22f815ab66676f5313be0a25f47be582254db8f9241b259213e999b8fc
+  checksum: a8ef5cab769c020cd6382ad9ecc3f72dbde56a50a36639b3a42ad9c11f7724f03700bcad373044059b8067d4a6365154dc7c0ca8027ef20ff4900cf58a0fc2c5
   languageName: node
   linkType: hard
 
@@ -26876,6 +26818,15 @@ resolve@~1.19.0:
   languageName: node
   linkType: hard
 
+"use-sync-external-store@npm:^1.0.0":
+  version: 1.1.0
+  resolution: "use-sync-external-store@npm:1.1.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: 8993a0b642f91d7fcdbb02b7b3ac984bd3af4769686f38291fe7fcfe73dfb73d6c64d20dfb7e5e7fbf5a6da8f5392d6f8e5b00c243a04975595946e82c02b883
+  languageName: node
+  linkType: hard
+
 "use@npm:^3.1.0":
   version: 3.1.1
   resolution: "use@npm:3.1.1"
@@ -27550,8 +27501,8 @@ resolve@~1.19.0:
     "@docusaurus/preset-classic": 2.0.0-beta.7
     classnames: ^2.2.6
     netlify-plugin-cache: ^1.0.3
-    react: 17.0.2
-    react-dom: 17.0.2
+    react: ^18.1.0
+    react-dom: ^18.1.0
     react-lite-youtube-embed: ^2.0.3
     remark-typescript-tools: ^1.0.8
     typescript: ~4.2.4

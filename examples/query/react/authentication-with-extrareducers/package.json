@@ -12,17 +12,16 @@
     "@reduxjs/toolkit": "^1.6.0-rc.1",
     "framer-motion": "^2.9.5",
     "msw": "^0.41.1",
-    "react": "17.0.2",
-    "react-dom": "17.0.2",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
     "react-icons": "3.11.0",
-    "react-redux": "^7.2.4",
+    "react-redux": "^8.0.2",
     "react-router-dom": "5.2.0",
     "react-scripts": "4.0.2"
   },
   "devDependencies": {
-    "@types/react": "17.0.0",
-    "@types/react-dom": "17.0.0",
-    "@types/react-redux": "7.1.9",
+    "@types/react": "^18.0.5",
+    "@types/react-dom": "^18.0.5",
     "@types/react-router-dom": "5.1.6",
     "typescript": "~4.2.4"
   },
