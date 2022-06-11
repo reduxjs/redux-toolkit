@@ -44,7 +44,15 @@
     "react-dom": "npm:18.1.0",
     "@types/react": "npm:18.0.12",
     "@types/react-dom": "npm:18.0.5",
-    "@types/inquirer": "npm:8.2.1"
+    "@types/inquirer": "npm:8.2.1",
+    "website/react": "npm:17.0.2",
+    "website/react-dom": "npm:17.0.2",
+    "website/@types/react-dom": "npm:17.0.11",
+    "website/@types/react": "npm:17.0.11",
+    "docs/react": "npm:17.0.2",
+    "docs/react-dom": "npm:17.0.2",
+    "docs/@types/react-dom": "npm:17.0.11",
+    "docs/@types/react": "npm:17.0.11"
   },
   "scripts": {
     "build": "yarn build:packages",
