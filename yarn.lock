@@ -2108,6 +2108,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:^7.7.6":
+  version: 7.18.3
+  resolution: "@babel/runtime@npm:7.18.3"
+  dependencies:
+    regenerator-runtime: ^0.13.4
+  checksum: db8526226aa02cfa35a5a7ac1a34b5f303c62a1f000c7db48cb06c6290e616483e5036ab3c4e7a84d0f3be6d4e2148d5fe5cec9564bf955f505c3e764b83d7f1
+  languageName: node
+  linkType: hard
+
 "@babel/template@npm:^7.10.4, @babel/template@npm:^7.12.7, @babel/template@npm:^7.14.5, @babel/template@npm:^7.15.4, @babel/template@npm:^7.3.3":
   version: 7.15.4
   resolution: "@babel/template@npm:7.15.4"
@@ -3710,14 +3719,13 @@ __metadata:
     "@reduxjs/toolkit": ^1.6.0-rc.1
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
-    "@types/react-router-dom": 5.1.6
     framer-motion: ^2.9.5
     msw: ^0.41.1
     react: ^18.1.0
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 5.2.0
+    react-router-dom: 6.3.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
   languageName: unknown
@@ -3733,14 +3741,13 @@ __metadata:
     "@reduxjs/toolkit": ^1.6.0-rc.1
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
-    "@types/react-router-dom": 5.1.6
     framer-motion: ^2.9.5
     msw: ^0.41.1
     react: ^18.1.0
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 5.2.0
+    react-router-dom: 6.3.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
   languageName: unknown
@@ -3751,7 +3758,7 @@ __metadata:
   resolution: "@examples-query-react/basic@workspace:examples/query/react/basic"
   dependencies:
     "@reduxjs/toolkit": ^1.6.0-rc.1
-    "@testing-library/react": ^12.0.0
+    "@testing-library/react": ^13.3.0
     "@types/jest": ^26.0.23
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
@@ -3816,7 +3823,6 @@ __metadata:
     "@types/faker": ^5.5.5
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
-    "@types/react-router-dom": 5.1.6
     "@types/webpack-env": ^1.16.0
     concurrently: ^6.2.0
     cross-env: ^7.0.3
@@ -3829,7 +3835,7 @@ __metadata:
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 5.2.0
+    react-router-dom: 6.3.0
     react-scripts: 4.0.2
     ts-node: ^10.0.0
     typescript: 4.1.3
@@ -3849,7 +3855,6 @@ __metadata:
     "@types/faker": ^5.5.5
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
-    "@types/react-router-dom": 5.1.6
     faker: ^5.5.3
     framer-motion: ^2.9.5
     graphql: ^15.5.0
@@ -3859,7 +3864,7 @@ __metadata:
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 5.2.0
+    react-router-dom: 6.3.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
   languageName: unknown
@@ -3871,7 +3876,7 @@ __metadata:
   dependencies:
     "@reduxjs/toolkit": 1.8.1
     "@testing-library/jest-dom": ^5.11.5
-    "@testing-library/react": ^12.0.0
+    "@testing-library/react": ^13.3.0
     "@types/jest": ^26.0.23
     "@types/node": ^14.14.6
     "@types/react": ^18.0.5
@@ -3880,7 +3885,7 @@ __metadata:
     react: ^18.1.0
     react-dom: ^18.1.0
     react-redux: ^8.0.2
-    react-router-dom: 5.3.0
+    react-router-dom: 6.3.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
     whatwg-fetch: ^3.4.1
@@ -3898,14 +3903,13 @@ __metadata:
     "@reduxjs/toolkit": ^1.6.0-rc.1
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
-    "@types/react-router-dom": 5.1.6
     framer-motion: ^2.9.5
     msw: ^0.41.1
     react: ^18.1.0
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 5.2.0
+    react-router-dom: 6.3.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
   languageName: unknown
@@ -3922,14 +3926,13 @@ __metadata:
     "@reduxjs/toolkit": ^1.6.0-rc.1
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
-    "@types/react-router-dom": 5.1.6
     framer-motion: ^2.9.5
     msw: ^0.41.1
     react: ^18.1.0
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 5.2.0
+    react-router-dom: 6.3.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
     uuid: ^8.3.2
@@ -3949,7 +3952,6 @@ __metadata:
     "@types/faker": ^5.5.5
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
-    "@types/react-router-dom": 5.1.6
     faker: ^5.5.3
     framer-motion: ^2.9.5
     msw: ^0.41.1
@@ -3957,7 +3959,7 @@ __metadata:
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 5.2.0
+    react-router-dom: 6.3.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
   languageName: unknown
@@ -3990,7 +3992,6 @@ __metadata:
     "@types/faker": ^5.5.5
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
-    "@types/react-router-dom": 5.1.6
     faker: ^5.5.3
     framer-motion: ^2.9.5
     msw: ^0.41.1
@@ -3998,7 +3999,7 @@ __metadata:
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 5.2.0
+    react-router-dom: 6.3.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
   languageName: unknown
@@ -4016,7 +4017,6 @@ __metadata:
     "@types/faker": ^5.5.5
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
-    "@types/react-router-dom": 5.1.6
     faker: ^5.5.3
     framer-motion: ^2.9.5
     msw: ^0.41.1
@@ -4024,7 +4024,7 @@ __metadata:
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 5.2.0
+    react-router-dom: 6.3.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
   languageName: unknown
@@ -4042,7 +4042,6 @@ __metadata:
     "@types/faker": ^5.5.5
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
-    "@types/react-router-dom": 5.1.6
     faker: ^5.5.3
     framer-motion: ^2.9.5
     msw: ^0.41.1
@@ -4050,7 +4049,7 @@ __metadata:
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 5.2.0
+    react-router-dom: 6.3.0
     react-scripts: 4.0.2
     typescript: ~4.2.4
   languageName: unknown
@@ -5485,7 +5484,7 @@ __metadata:
   dependencies:
     "@microsoft/api-extractor": ^7.13.2
     "@size-limit/preset-small-lib": ^4.11.0
-    "@testing-library/react": ^11.2.6
+    "@testing-library/react": ^13.3.0
     "@testing-library/react-hooks": ^5.1.2
     "@testing-library/user-event": ^13.1.5
     "@types/convert-source-map": ^1.5.1
@@ -6068,35 +6067,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/dom@npm:^7.28.1":
-  version: 7.31.2
-  resolution: "@testing-library/dom@npm:7.31.2"
+"@testing-library/dom@npm:^8.5.0":
+  version: 8.13.0
+  resolution: "@testing-library/dom@npm:8.13.0"
   dependencies:
     "@babel/code-frame": ^7.10.4
     "@babel/runtime": ^7.12.5
     "@types/aria-query": ^4.2.0
-    aria-query: ^4.2.2
+    aria-query: ^5.0.0
     chalk: ^4.1.0
-    dom-accessibility-api: ^0.5.6
-    lz-string: ^1.4.4
-    pretty-format: ^26.6.2
-  checksum: 54fbedd1ecdfe1d47be2e592b98d18b2ab9d7e731f57231caf9b152593fe7329fe5ebe219e0e5d1e0df5b1ab803121cb8acd8b73bd1fb292bfdc2c55663eb01d
-  languageName: node
-  linkType: hard
-
-"@testing-library/dom@npm:^8.0.0":
-  version: 8.1.0
-  resolution: "@testing-library/dom@npm:8.1.0"
-  dependencies:
-    "@babel/code-frame": ^7.10.4
-    "@babel/runtime": ^7.12.5
-    "@types/aria-query": ^4.2.0
-    aria-query: ^4.2.2
-    chalk: ^4.1.0
-    dom-accessibility-api: ^0.5.6
+    dom-accessibility-api: ^0.5.9
     lz-string: ^1.4.4
     pretty-format: ^27.0.2
-  checksum: 8d3778b59c08dba4f1ba62823c0dad0990d2fcbd0396fcf0b8a2c4ce7420f8c5adbcae708f8f58a75ead749bd06d9ef4285187763abb18ac464ed47c2f8e332b
+  checksum: 880f1872b9949800d4444e3bdbd03df86d6f41ec7c27136dff1da29e87d2df2d7ee904afcdf895ffce351c25bd12119117eae023354d50e707ad56d43b2ed3ed
   languageName: node
   linkType: hard
 
@@ -6140,29 +6123,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/react@npm:^11.2.6":
-  version: 11.2.7
-  resolution: "@testing-library/react@npm:11.2.7"
+"@testing-library/react@npm:^13.3.0":
+  version: 13.3.0
+  resolution: "@testing-library/react@npm:13.3.0"
   dependencies:
     "@babel/runtime": ^7.12.5
-    "@testing-library/dom": ^7.28.1
+    "@testing-library/dom": ^8.5.0
+    "@types/react-dom": ^18.0.0
   peerDependencies:
-    react: "*"
-    react-dom: "*"
-  checksum: 64e07cb96e40dbdbd3c46a09c47bed14446b30efafaa65a5d4fed5a7553878990cda108578f2b114422a775f31c635d51fd50b752f6163ddd6b8474e0e5fc2ce
-  languageName: node
-  linkType: hard
-
-"@testing-library/react@npm:^12.0.0":
-  version: 12.0.0
-  resolution: "@testing-library/react@npm:12.0.0"
-  dependencies:
-    "@babel/runtime": ^7.12.5
-    "@testing-library/dom": ^8.0.0
-  peerDependencies:
-    react: "*"
-    react-dom: "*"
-  checksum: 07f0ba4092f7cd3232c2c61329353b2f2fa65388fc58666780be80f99f75daaf897a09a9897ac53f213d7b2d57e3cecb8127fd940da8cfd4275fa4a281e5b32c
+    react: ^18.0.0
+    react-dom: ^18.0.0
+  checksum: 98fd8616a7cae0ecfcbe97b5b3c5b91fbafccf449c04875395ccc0e3f0b139e53b3261b9536ec2169a5e2883a1be2098907209064061fe0c2ff21dfbc785dd40
   languageName: node
   linkType: hard
 
@@ -6403,13 +6374,6 @@ __metadata:
   dependencies:
     "@types/unist": "*"
   checksum: 3e2ec0a56a06cd2fb5474b4ee312b40e70dc82e4e711514b393bb4e5ace2e9912576c9b44c2504bbb46c9b772794be49f1a4c418d01ceac1fafd66d15c158f62
-  languageName: node
-  linkType: hard
-
-"@types/history@npm:*":
-  version: 4.7.8
-  resolution: "@types/history@npm:4.7.8"
-  checksum: 9c867532afd80f72a7101a5bb3c10c1ad7cc8c2c14e92fdbc54d5fed0ef8cdb6060c0f261a39884e243424636c6ff85d8aaffb984e2edaac348d2f216f9eedeb
   languageName: node
   linkType: hard
 
@@ -6783,27 +6747,6 @@ __metadata:
     hoist-non-react-statics: ^3.3.0
     redux: ^4.0.0
   checksum: c07ee677be781df70aa6209d4152373ec470f6c99b50051e302add8b57d49e89322250959bf9e192738cccc5dbbe05c77514339a45b46ec973c8326227408f26
-  languageName: node
-  linkType: hard
-
-"@types/react-router-dom@npm:5.1.6":
-  version: 5.1.6
-  resolution: "@types/react-router-dom@npm:5.1.6"
-  dependencies:
-    "@types/history": "*"
-    "@types/react": "*"
-    "@types/react-router": "*"
-  checksum: 0c24556d0fd7fa63d46e1e821f5b5f17254cfaa8fe1cb354e275144b9651d08b3158732e0e2c9078bc61ca71c9b770572c6d8e72ea7d48c2e253de83e1ba6cc2
-  languageName: node
-  linkType: hard
-
-"@types/react-router@npm:*":
-  version: 5.1.14
-  resolution: "@types/react-router@npm:5.1.14"
-  dependencies:
-    "@types/history": "*"
-    "@types/react": "*"
-  checksum: 3dd8b89112da5ccae373868073b2a0b6f8bc4d53897e90f85f496f9ef9a7b104ccdc4f874b2ad9e61400ae622bcbcffeb98c4fca400939a9da64632ebd7cc61a
   languageName: node
   linkType: hard
 
@@ -11703,6 +11646,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dom-accessibility-api@npm:^0.5.9":
+  version: 0.5.14
+  resolution: "dom-accessibility-api@npm:0.5.14"
+  checksum: 782c813f75a09ba6735ef03b5e1624406a3829444ae49d5bdedd272a49d437ae3354f53e02ffc8c9fd9165880250f41546538f27461f839dd4ea1234e77e8d5e
+  languageName: node
+  linkType: hard
+
 "dom-converter@npm:^0.2.0":
   version: 0.2.0
   resolution: "dom-converter@npm:0.2.0"
@@ -14617,6 +14567,15 @@ fsevents@^1.2.7:
     tiny-warning: ^1.0.0
     value-equal: ^1.0.1
   checksum: addd84bc4683929bae4400419b5af132ff4e4e9b311a0d4e224579ea8e184a6b80d7f72c55927e4fa117f69076a9e47ce082d8d0b422f1a9ddac7991490ca1d0
+  languageName: node
+  linkType: hard
+
+"history@npm:^5.2.0":
+  version: 5.3.0
+  resolution: "history@npm:5.3.0"
+  dependencies:
+    "@babel/runtime": ^7.7.6
+  checksum: d73c35df49d19ac172f9547d30a21a26793e83f16a78386d99583b5bf1429cc980799fcf1827eb215d31816a6600684fba9686ce78104e23bd89ec239e7c726f
   languageName: node
   linkType: hard
 
@@ -22358,7 +22317,20 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:5.2.0, react-router-dom@npm:^5.2.0":
+"react-router-dom@npm:6.3.0":
+  version: 6.3.0
+  resolution: "react-router-dom@npm:6.3.0"
+  dependencies:
+    history: ^5.2.0
+    react-router: 6.3.0
+  peerDependencies:
+    react: ">=16.8"
+    react-dom: ">=16.8"
+  checksum: 77603a654f8a8dc7f65535a2e5917a65f8d9ffcb06546d28dd297e52adcc4b8a84377e0115f48dca330b080af2da3e78f29d590c89307094d36927d2b1751ec3
+  languageName: node
+  linkType: hard
+
+"react-router-dom@npm:^5.2.0":
   version: 5.2.0
   resolution: "react-router-dom@npm:5.2.0"
   dependencies:
@@ -22372,23 +22344,6 @@ fsevents@^1.2.7:
   peerDependencies:
     react: ">=15"
   checksum: 98d2d35f9540ac4a3c14dc023623fc8411a6a6338e95d726370e07b27c3bc6e854516537c8e3f9ad2483c4bbd579ba28cce9aff843a19fe8ebff663318886335
-  languageName: node
-  linkType: hard
-
-"react-router-dom@npm:5.3.0":
-  version: 5.3.0
-  resolution: "react-router-dom@npm:5.3.0"
-  dependencies:
-    "@babel/runtime": ^7.12.13
-    history: ^4.9.0
-    loose-envify: ^1.3.1
-    prop-types: ^15.6.2
-    react-router: 5.2.1
-    tiny-invariant: ^1.0.2
-    tiny-warning: ^1.0.0
-  peerDependencies:
-    react: ">=15"
-  checksum: 47584fd629ecca52398d7888cab193b8a74057cc99a7ef44410c405d4082f618c3c0399db5325bc3524f9c511404086169570013b61a94dfa6acdfdc850d7a1f
   languageName: node
   linkType: hard
 
@@ -22412,23 +22367,14 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"react-router@npm:5.2.1":
-  version: 5.2.1
-  resolution: "react-router@npm:5.2.1"
+"react-router@npm:6.3.0":
+  version: 6.3.0
+  resolution: "react-router@npm:6.3.0"
   dependencies:
-    "@babel/runtime": ^7.12.13
-    history: ^4.9.0
-    hoist-non-react-statics: ^3.1.0
-    loose-envify: ^1.3.1
-    mini-create-react-context: ^0.4.0
-    path-to-regexp: ^1.7.0
-    prop-types: ^15.6.2
-    react-is: ^16.6.0
-    tiny-invariant: ^1.0.2
-    tiny-warning: ^1.0.0
+    history: ^5.2.0
   peerDependencies:
-    react: ">=15"
-  checksum: 7daae084bf64531eb619cc5f4cc40ce5ae0a541b64f71d74ec71a38cbf6130ebdbb7cf38f157303fad5846deec259401f96c4d6c7386466dcc989719e01f9aaa
+    react: ">=16.8"
+  checksum: 7be673f5e72104be01e6ab274516bdb932efd93305243170690f6560e3bd1035dd1df3d3c9ce1e0f452638a2529f43a1e77dcf0934fc8031c4783da657be13ca
   languageName: node
   linkType: hard
 

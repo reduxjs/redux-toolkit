@@ -1,11 +1,11 @@
-import { Route, Switch } from 'react-router'
+import { Route, Routes } from 'react-router-dom'
 import { PostsManager } from './features/posts/PostsManager'
 
 function App() {
   return (
-    <Switch>
-      <Route path="/" component={PostsManager} />
-    </Switch>
+    <Routes>
+      <Route path="/" element={<PostsManager />} />
+    </Routes>
   )
 }
 
