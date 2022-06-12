@@ -6469,7 +6469,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/hoist-non-react-statics@npm:^3.3.0, @types/hoist-non-react-statics@npm:^3.3.1":
+"@types/hoist-non-react-statics@npm:^3.3.1":
   version: 3.3.1
   resolution: "@types/hoist-non-react-statics@npm:3.3.1"
   dependencies:
@@ -6822,18 +6822,6 @@ __metadata:
   dependencies:
     "@types/react": "*"
   checksum: cd48b81950f499b52a3f0c08261f00046f9b7c96699fa249c9664e257e820daf6ecac815cd1028cebc9d105094adc39d047d1efd79214394b8b2d515574c0787
-  languageName: node
-  linkType: hard
-
-"@types/react-redux@npm:^7.1.9":
-  version: 7.1.16
-  resolution: "@types/react-redux@npm:7.1.16"
-  dependencies:
-    "@types/hoist-non-react-statics": ^3.3.0
-    "@types/react": "*"
-    hoist-non-react-statics: ^3.3.0
-    redux: ^4.0.0
-  checksum: c07ee677be781df70aa6209d4152373ec470f6c99b50051e302add8b57d49e89322250959bf9e192738cccc5dbbe05c77514339a45b46ec973c8326227408f26
   languageName: node
   linkType: hard
 
@@ -11785,7 +11773,6 @@ __metadata:
     "@manaflair/redux-batch": ^1.0.0
     "@types/nanoid": ^2.1.0
     "@types/react": ^16.9.46
-    "@types/react-redux": ^7.1.9
     "@types/redux-logger": ^3.0.8
     async-mutex: ^0.3.2
     axios: ^0.20.0
