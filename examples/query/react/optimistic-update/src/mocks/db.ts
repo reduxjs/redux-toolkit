@@ -22,8 +22,11 @@ export const handlers = [
         ctx.delay(400)
       )
     }
+
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
+
     const post = db.post.update({
-      where: { id: { equals: req.params.id } },
+      where: { id: { equals: id } },
       data: { name },
     })
 
