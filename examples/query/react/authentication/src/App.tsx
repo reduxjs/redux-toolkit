@@ -23,7 +23,7 @@ function App() {
     <Box>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/" element={<PrivateOutlet />}>
+        <Route path="*" element={<PrivateOutlet />}>
           <Route index element={<Hooray />} />
         </Route>
       </Routes>
