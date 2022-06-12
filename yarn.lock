@@ -5523,8 +5523,8 @@ __metadata:
     "@microsoft/api-extractor": ^7.13.2
     "@size-limit/preset-small-lib": ^4.11.0
     "@testing-library/react": ^13.3.0
-    "@testing-library/react-hooks": ^5.1.2
-    "@testing-library/user-event": ^13.1.5
+    "@testing-library/react-hooks": ^8.0.0
+    "@testing-library/user-event": ^14.2.0
     "@types/convert-source-map": ^1.5.1
     "@types/jest": ^24.0.11
     "@types/json-stringify-safe": ^5.0.0
@@ -6148,26 +6148,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/react-hooks@npm:^5.1.2":
-  version: 5.1.3
-  resolution: "@testing-library/react-hooks@npm:5.1.3"
+"@testing-library/react-hooks@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@testing-library/react-hooks@npm:8.0.0"
   dependencies:
     "@babel/runtime": ^7.12.5
-    "@types/react": ">=16.9.0"
-    "@types/react-dom": ">=16.9.0"
-    "@types/react-test-renderer": ">=16.9.0"
-    filter-console: ^0.1.1
     react-error-boundary: ^3.1.0
   peerDependencies:
-    react: ">=16.9.0"
-    react-dom: ">=16.9.0"
-    react-test-renderer: ">=16.9.0"
+    "@types/react": ^16.9.0 || ^17.0.0
+    react: ^16.9.0 || ^17.0.0
+    react-dom: ^16.9.0 || ^17.0.0
+    react-test-renderer: ^16.9.0 || ^17.0.0
   peerDependenciesMeta:
+    "@types/react":
+      optional: true
     react-dom:
       optional: true
     react-test-renderer:
       optional: true
-  checksum: cc1991e2c1bd2fcfbc374817859e1439a06b39507fe2d8a1d903abec0b0937e20f82ce6d15eb1afa55b449b1894b0b1d5ce9d265dafadf555d6438d443809877
+  checksum: f45bd06601bf1d00e375c3d945b0e54b4d997b18402c45711deada7e8c4a8f569fe283973e6786c9ecd55e4bd01a43bd42546a2924453065880abf4b13dbafdb
   languageName: node
   linkType: hard
 
@@ -6185,14 +6184,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/user-event@npm:^13.1.5":
-  version: 13.1.9
-  resolution: "@testing-library/user-event@npm:13.1.9"
-  dependencies:
-    "@babel/runtime": ^7.12.5
+"@testing-library/user-event@npm:^14.2.0":
+  version: 14.2.0
+  resolution: "@testing-library/user-event@npm:14.2.0"
   peerDependencies:
     "@testing-library/dom": ">=7.21.4"
-  checksum: 3a910ba206dc14c276db55ce9344e41485edcd64cc218571e5238d3e92544679e555d50d6472d2a8b2e839a5d1f7dc331d91af6753cf443b995293c3cd276283
+  checksum: b34f19bbfe938d03778831b9c083d451c53f983f6f6c0db05a572b71ba5323c4125097bb4b8c97595bc9b946610d2c2f65cf1e113f047eed7a3078f28a1027e2
   languageName: node
   linkType: hard
 
@@ -6837,15 +6834,6 @@ __metadata:
     hoist-non-react-statics: ^3.3.0
     redux: ^4.0.0
   checksum: c07ee677be781df70aa6209d4152373ec470f6c99b50051e302add8b57d49e89322250959bf9e192738cccc5dbbe05c77514339a45b46ec973c8326227408f26
-  languageName: node
-  linkType: hard
-
-"@types/react-test-renderer@npm:>=16.9.0":
-  version: 17.0.1
-  resolution: "@types/react-test-renderer@npm:17.0.1"
-  dependencies:
-    "@types/react": "*"
-  checksum: ecaae8df36cd8cfeb89080d52534856acc3789bad9a6e369ff5119426377c827b4e5b5daa638507f2c1c2fd6c994bf45de288a698143178cd4049c2cd8b77b35
   languageName: node
   linkType: hard
 
@@ -13594,13 +13582,6 @@ __metadata:
   dependencies:
     to-regex-range: ^5.0.1
   checksum: cc283f4e65b504259e64fd969bcf4def4eb08d85565e906b7d36516e87819db52029a76b6363d0f02d0d532f0033c9603b9e2d943d56ee3b0d4f7ad3328ff917
-  languageName: node
-  linkType: hard
-
-"filter-console@npm:^0.1.1":
-  version: 0.1.1
-  resolution: "filter-console@npm:0.1.1"
-  checksum: 020a6aee2b0b7f0e7fdff76b2b86429a7cfc0fd2bae131a8d0d6eaddad05ffbeac16e3267f382a2beaead9568d6b90f2aba923daeb8dd0c97720d8eba885ede2
   languageName: node
   linkType: hard
 
