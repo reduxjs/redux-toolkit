@@ -18,7 +18,8 @@ Internally, it uses [`createAction`](./createAction.mdx) and [`createReducer`](.
 you may also use [Immer](https://immerjs.github.io/immer/) to write "mutating" immutable updates:
 
 ```ts
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
 
 interface CounterState {
   value: number
