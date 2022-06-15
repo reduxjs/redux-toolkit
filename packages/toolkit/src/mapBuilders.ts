@@ -52,12 +52,8 @@ export interface ActionReducerMapBuilder<State> {
    *
    * @example
 ```ts
-import {
-  createAction,
-  createReducer,
-  AsyncThunk,
-  AnyAction,
-} from "@reduxjs/toolkit";
+import { createAction, createReducer } from "@reduxjs/toolkit";
+import type { AsyncThunk, AnyAction } from "@reduxjs/toolkit";
 
 type GenericAsyncThunk = AsyncThunk<unknown, unknown, any>;
 

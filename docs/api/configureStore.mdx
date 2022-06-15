@@ -137,7 +137,7 @@ of `[offline, applyMiddleware, devToolsExtension]`.
 
 ```ts
 // file: reducers.ts noEmit
-import { Reducer } from '@reduxjs/toolkit'
+import type { Reducer } from '@reduxjs/toolkit'
 declare const rootReducer: Reducer<{}>
 export default rootReducer
 
@@ -154,12 +154,12 @@ const store = configureStore({ reducer: rootReducer })
 
 ```ts no-transpile
 // file: todos/todosReducer.ts noEmit
-import { Reducer } from '@reduxjs/toolkit'
+import type { Reducer } from '@reduxjs/toolkit'
 declare const reducer: Reducer<{}>
 export default reducer
 
 // file: visibility/visibilityReducer.ts noEmit
-import { Reducer } from '@reduxjs/toolkit'
+import type { Reducer } from '@reduxjs/toolkit'
 declare const reducer: Reducer<{}>
 export default reducer
 

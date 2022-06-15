@@ -104,7 +104,8 @@ export interface CreateSliceOptions<
    * 
    * @example
 ```ts
-import { createAction, createSlice, Action, AnyAction } from '@reduxjs/toolkit'
+import { createAction, createSlice } from '@reduxjs/toolkit'
+import type { Action, AnyAction } from '@reduxjs/toolkit'
 const incrementBy = createAction<number>('incrementBy')
 const decrement = createAction('decrement')
 

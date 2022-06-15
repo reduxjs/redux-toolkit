@@ -77,7 +77,7 @@ export interface Post {
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { Post } from './types'
+import type { Post } from './types'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({
@@ -168,7 +168,7 @@ export interface Post {
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { Post } from './types'
+import type { Post } from './types'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({
