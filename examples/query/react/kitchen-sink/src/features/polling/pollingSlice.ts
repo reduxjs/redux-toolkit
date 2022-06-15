@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import  type { RootState } from '../../app/store';
+import type { RootState } from '../../app/store';
 
 type PollingConfig = {
   enabled: boolean;

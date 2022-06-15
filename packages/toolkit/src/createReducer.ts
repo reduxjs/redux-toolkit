@@ -103,8 +103,12 @@ export type ReducerWithInitialState<S extends NotFunction<any>> = Reducer<S> & {
  *   case reducers via calls to `builder.addCase(actionCreatorOrType, reducer)`.
  * @example
 ```ts
-import { createAction, createReducer } from "@reduxjs/toolkit";
-import type { AnyAction, PayloadAction } from "@reduxjs/toolkit";
+import {
+  createAction,
+  createReducer,
+  AnyAction,
+  PayloadAction,
+} from "@reduxjs/toolkit";
 
 const increment = createAction<number>("increment");
 const decrement = createAction<number>("decrement");
