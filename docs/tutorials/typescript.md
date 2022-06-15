@@ -75,7 +75,7 @@ While it's possible to import the `RootState` and `AppDispatch` types into each 
 Since these are actual variables, not types, it's important to define them in a separate file such as `app/hooks.ts`, not the store setup file. This allows you to import them into any component file that needs to use the hooks, and avoids potential circular import dependency issues.
 
 ```ts title="app/hooks.ts"
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import type { TypedUseSelectorHook } from 'react-redux'
 import type { RootState, AppDispatch } from './store'
 
