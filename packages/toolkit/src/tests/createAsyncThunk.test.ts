@@ -13,6 +13,7 @@ import {
   getLog,
 } from 'console-testing-library/pure'
 import { expectType } from './helpers'
+import type { AbortSignalWithReason } from '../function-utils'
 
 declare global {
   interface Window {
@@ -426,6 +427,47 @@ describe('createAsyncThunk with abortController', () => {
     )
   })
 
+  test('signal.reason contains the first argument provided to asyncThunkHandle.abort', async () => {
+    const rejectionReason = 'custom-abort-reason'
+    let apiSignal: AbortSignalWithReason<typeof rejectionReason> | undefined
+
+    const signalReasonAsyncThunk = createAsyncThunk(
+      'test-signal-reason',
+      function abortablePayloadCreator(_: any, { signal }) {
+        apiSignal = signal
+        return new Promise((resolve, reject) => {
+          if (signal.aborted) {
+            reject(
+              new DOMException(
+                'This should never be reached as it should already be handled.',
+                'AbortError'
+              )
+            )
+          }
+          signal.addEventListener('abort', () => {
+            reject((signal as NonNullable<typeof apiSignal>).reason)
+          })
+          setTimeout(resolve, 10)
+        })
+      }
+    )
+
+    const asyncThunkHandle = store.dispatch(signalReasonAsyncThunk({}))
+
+    expect(apiSignal).toHaveProperty(['aborted'], false)
+    expect(apiSignal).not.toHaveProperty(['reason'], rejectionReason)
+
+    asyncThunkHandle.abort(rejectionReason)
+
+    const result = await asyncThunkHandle
+
+    // calling unwrapResult on the returned object re-throws the error from the abortablePayloadCreator
+    expect(() => unwrapResult(result)).toThrowError()
+
+    expect(apiSignal).toHaveProperty(['aborted'], true)
+    expect(apiSignal).toHaveProperty(['reason'], rejectionReason)
+  })
+
   test('even when the payloadCreator does not directly support the signal, no further actions are dispatched', async () => {
     const unawareAsyncThunk = createAsyncThunk('unaware', async () => {
       await new Promise((resolve) => setTimeout(resolve, 100))
@@ -519,6 +561,34 @@ describe('createAsyncThunk with abortController', () => {
         "This platform does not implement AbortController. 
         If you want to use the AbortController to react to \`abort\` events, please consider importing a polyfill like 'abortcontroller-polyfill/dist/abortcontroller-polyfill-only'."
       `)
+    })
+
+    test('signal.reason contains the first argument provided to asyncThunkHandle.abort', async () => {
+      const rejectionReason = 'custom-abort-reason'
+      let apiSignal: AbortSignalWithReason<typeof rejectionReason> | undefined
+
+      const asyncThunk = freshlyLoadedModule.createAsyncThunk(
+        'longRunning',
+        async (_: unknown, { signal }) => {
+          await new Promise((resolve) => {
+            apiSignal = signal
+
+            setTimeout(resolve, 10)
+          })
+        }
+      )
+
+      const asyncThunkHandle = store.dispatch(asyncThunk({}))
+
+      expect(apiSignal).toHaveProperty(['aborted'], false)
+      expect(apiSignal).not.toHaveProperty(['reason'], rejectionReason)
+
+      asyncThunkHandle.abort(rejectionReason)
+
+      const result = await asyncThunkHandle
+
+      expect(apiSignal).toHaveProperty(['aborted'], true)
+      expect(apiSignal).toHaveProperty(['reason'], rejectionReason)
     })
   })
 })

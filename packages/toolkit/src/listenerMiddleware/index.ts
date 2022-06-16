@@ -2,7 +2,8 @@ import type { Dispatch, AnyAction, MiddlewareAPI } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import { createAction } from '../createAction'
 import { nanoid } from '../nanoid'
-
+import { abortControllerWithReason } from '../function-utils'
+import type { AbortSignalWithReason } from '../function-utils'
 import type {
   ListenerMiddleware,
   ListenerMiddlewareInstance,
@@ -21,15 +22,9 @@ import type {
   ForkedTask,
   TypedRemoveListener,
   TaskResult,
-  AbortSignalWithReason,
   UnsubscribeListenerOptions,
 } from './types'
-import {
-  abortControllerWithReason,
-  addAbortSignalListener,
-  assertFunction,
-  catchRejection,
-} from './utils'
+import { addAbortSignalListener, assertFunction, catchRejection } from './utils'
 import {
   listenerCancelled,
   listenerCompleted,

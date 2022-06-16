@@ -1,12 +1,8 @@
 import type { EnhancedStore } from '@reduxjs/toolkit'
 import { configureStore, createSlice, createAction } from '@reduxjs/toolkit'
-
+import type { AbortSignalWithReason } from '../../function-utils'
 import type { PayloadAction } from '@reduxjs/toolkit'
-import type {
-  AbortSignalWithReason,
-  ForkedTaskExecutor,
-  TaskResult,
-} from '../types'
+import type { ForkedTaskExecutor, TaskResult } from '../types'
 import { createListenerMiddleware, TaskAbortError } from '../index'
 import {
   listenerCancelled,

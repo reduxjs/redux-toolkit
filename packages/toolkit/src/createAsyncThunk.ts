@@ -7,6 +7,8 @@ import { createAction } from './createAction'
 import type { ThunkDispatch } from 'redux-thunk'
 import type { FallbackIfUnknown, IsAny, IsUnknown } from './tsHelpers'
 import { nanoid } from './nanoid'
+import type { AbortSignalWithReason } from './function-utils'
+import { abortControllerWithReason } from './function-utils'
 
 // @ts-ignore we need the import of these types due to a bundling issue.
 type _Keep = PayloadAction | ActionCreatorWithPreparedPayload<any, unknown>
@@ -541,7 +543,7 @@ export function createAsyncThunk<
             reason: undefined,
             throwIfAborted() {},
           }
-          abort() {
+          abort(reason?: any) {
             if (process.env.NODE_ENV !== 'production') {
               if (!displayedWarning) {
                 displayedWarning = true
@@ -550,6 +552,12 @@ export function createAsyncThunk<
 If you want to use the AbortController to react to \`abort\` events, please consider importing a polyfill like 'abortcontroller-polyfill/dist/abortcontroller-polyfill-only'.`
                 )
               }
+            }
+
+            if (!this.signal.aborted) {
+              this.signal.aborted = true
+              ;(this.signal as AbortSignalWithReason<typeof reason>).reason =
+                reason
             }
           }
         }
@@ -575,7 +583,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
       function abort(reason?: string) {
         if (started) {
           abortReason = reason
-          abortController.abort()
+          abortControllerWithReason(abortController, reason)
         }
       }
 

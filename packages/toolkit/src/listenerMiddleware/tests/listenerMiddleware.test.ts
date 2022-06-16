@@ -25,11 +25,8 @@ import type {
   UnsubscribeListener,
   ListenerMiddleware,
 } from '../index'
-import type {
-  AbortSignalWithReason,
-  AddListenerOverloads,
-  TypedRemoveListener,
-} from '../types'
+import type { AbortSignalWithReason } from '../../function-utils'
+import type { AddListenerOverloads, TypedRemoveListener } from '../types'
 import { listenerCancelled, listenerCompleted } from '../exceptions'
 
 const middlewareApi = {
@@ -185,7 +182,7 @@ describe('createListenerMiddleware', () => {
         middleware: (gDM) => gDM().prepend(listenerMiddleware.middleware),
       })
 
-      let foundExtra = null
+      let foundExtra: number | null = null
 
       const typedAddListener =
         listenerMiddleware.startListening as TypedStartListening<
@@ -1122,31 +1119,34 @@ describe('createListenerMiddleware', () => {
       expect(takeResult).toEqual([increment(), stateCurrent, stateBefore])
     })
 
-    test("take resolves to `[A, CurrentState, PreviousState] | null` if a possibly undefined timeout parameter is provided", async () => {
+    test('take resolves to `[A, CurrentState, PreviousState] | null` if a possibly undefined timeout parameter is provided', async () => {
       const store = configureStore({
         reducer: counterSlice.reducer,
         middleware: (gDM) => gDM().prepend(middleware),
       })
 
-      type ExpectedTakeResultType = readonly [ReturnType<typeof increment>, CounterState, CounterState] | null
+      type ExpectedTakeResultType =
+        | readonly [ReturnType<typeof increment>, CounterState, CounterState]
+        | null
 
       let timeout: number | undefined = undefined
       let done = false
 
-      const startAppListening = startListening as TypedStartListening<CounterState>
+      const startAppListening =
+        startListening as TypedStartListening<CounterState>
       startAppListening({
         predicate: incrementByAmount.match,
         effect: async (_, listenerApi) => {
           const stateBefore = listenerApi.getState()
-          
+
           let takeResult = await listenerApi.take(increment.match, timeout)
           const stateCurrent = listenerApi.getState()
           expect(takeResult).toEqual([increment(), stateCurrent, stateBefore])
-          
+
           timeout = 1
           takeResult = await listenerApi.take(increment.match, timeout)
           expect(takeResult).toBeNull()
-          
+
           expectType<ExpectedTakeResultType>(takeResult)
 
           done = true
@@ -1156,7 +1156,7 @@ describe('createListenerMiddleware', () => {
       store.dispatch(increment())
 
       await delay(25)
-      expect(done).toBe(true);
+      expect(done).toBe(true)
     })
 
     test('condition method resolves promise when the predicate succeeds', async () => {

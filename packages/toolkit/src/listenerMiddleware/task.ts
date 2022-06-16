@@ -1,5 +1,6 @@
 import { TaskAbortError } from './exceptions'
-import type { AbortSignalWithReason, TaskResult } from './types'
+import type { TaskResult } from './types'
+import type { AbortSignalWithReason } from '../function-utils'
 import { addAbortSignalListener, catchRejection } from './utils'
 
 /**
