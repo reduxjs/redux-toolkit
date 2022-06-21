@@ -513,9 +513,11 @@ const fetchUserById = createAsyncThunk(
 
 ```ts no-transpile
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { userAPI } from './userAPI'
+import { userAPI, User } from './userAPI'
 
-const fetchUserById = createAsyncThunk(
+const fetchUserById = createAsyncThunk<User, string, {
+    state: { users: { loading: string, currentRequestId: string } }
+}> (  
   'users/fetchByIdStatus',
   async (userId: string, { getState, requestId }) => {
     const { currentRequestId, loading } = getState().users
