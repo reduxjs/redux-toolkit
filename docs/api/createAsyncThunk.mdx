@@ -507,9 +507,9 @@ const fetchUserById = createAsyncThunk(
 )
 ```
 
-### Testing Cancellation Behavior
+### Checking if a Promise Rejection was from an Error or Cancellation
 
-To test behavior around thunk cancellation, you can check various properties on the `meta` object of the dispatched action.
+To investigate behavior around thunk cancellation, you can inspect various properties on the `meta` object of the dispatched action.
 If a thunk was cancelled, the result of the promise will be a `rejected` action (regardless of whether that action was actually dispatched to the store).
 
 - If it was cancelled before execution, `meta.condition` will be true.
@@ -517,7 +517,7 @@ If a thunk was cancelled, the result of the promise will be a `rejected` action 
 - If neither of those is true, the thunk was not cancelled, it was simply rejected, either by a Promise rejection or `rejectWithValue`.
 - If the thunk was not rejected, both `meta.aborted` and `meta.condition` will be `undefined`.
 
-So to test that a thunk was cancelled before executing, you can do the following:
+So if you wanted to test that a thunk was cancelled before executing, you can do the following:
 
 ```ts no-transpile
 import { createAsyncThunk, isRejected } from '@reduxjs/toolkit'
@@ -525,7 +525,7 @@ import { createAsyncThunk, isRejected } from '@reduxjs/toolkit'
 test('this thunk should always be skipped', async () => {
   const thunk = createAsyncThunk(
     'users/fetchById',
-    async () => 'This promise should never be entered',
+    async () => throw new Error('This promise should never be entered'),
     {
       condition: () => false,
     }
