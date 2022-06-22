@@ -124,7 +124,7 @@ export const PostsManager = () => {
         </div>
         <div className="column column-3 text-left">
           <Routes>
-            <Route path="/posts/:id" element={<PostDetail />} />
+            <Route path="/:id" element={<PostDetail />} />
           </Routes>
         </div>
       </div>
