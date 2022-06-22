@@ -1,6 +1,7 @@
-import { emptySplitApi, Post } from '.'
+import { api } from './api'
+import { Post } from './posts'
 
-export const apiWithPost = emptySplitApi.injectEndpoints({
+export const postApi = api.injectEndpoints({
   endpoints: (build) => ({
     addPost: build.mutation<Post, Partial<Post>>({
       query(body) {

@@ -1,13 +1,10 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { api } from './api'
 
 interface CountResponse {
   count: number
 }
 
-export const counterApi = createApi({
-  reducerPath: 'counterApi',
-  baseQuery: fetchBaseQuery(),
-  tagTypes: ['Counter'],
+export const counterApi = api.injectEndpoints({
   endpoints: (build) => ({
     getCount: build.query<CountResponse, void>({
       query: () => 'count',
