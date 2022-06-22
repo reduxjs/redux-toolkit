@@ -27,7 +27,7 @@ function App() {
         <Routes>
           <Route path="/" element={<TimeList />} />
           <Route path="/counters" element={<CounterList />} />
-          <Route path="/posts" element={<PostsManager />} />
+          <Route path="/posts/*" element={<PostsManager />} />
           <Route path="/bundleSplitting" element={<Lazy />} />
         </Routes>
       </div>

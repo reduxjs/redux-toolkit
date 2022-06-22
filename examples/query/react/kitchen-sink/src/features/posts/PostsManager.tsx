@@ -24,25 +24,31 @@ const AddPost = () => {
     }))
   }
 
-  const handleAddPost = () => addPost(post).then(() => setPost(initialValue))
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
+    e.preventDefault()
+    await addPost(post)
+    setPost(initialValue)
+  }
 
   return (
-    <div className="row">
-      <div className="column column-3">
-        <input
-          name="name"
-          placeholder="New post name"
-          type="text"
-          onChange={handleChange}
-          value={post.name}
-        />
+    <form onSubmit={handleSubmit}>
+      <div className="row">
+        <div className="column column-3">
+          <input
+            name="name"
+            placeholder="New post name"
+            type="text"
+            onChange={handleChange}
+            value={post.name}
+          />
+        </div>
+        <div className="column column-1">
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? 'Adding...' : 'Add Post'}
+          </button>
+        </div>
       </div>
-      <div className="column column-1">
-        <button onClick={handleAddPost} disabled={isLoading}>
-          {isLoading ? 'Adding...' : 'Add Post'}
-        </button>
-      </div>
-    </div>
+    </form>
   )
 }
 
@@ -124,7 +130,7 @@ export const PostsManager = () => {
         </div>
         <div className="column column-3 text-left">
           <Routes>
-            <Route path="/posts/:id" element={<PostDetail />} />
+            <Route path="/:id" element={<PostDetail />} />
           </Routes>
         </div>
       </div>
