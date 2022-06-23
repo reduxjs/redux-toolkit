@@ -44,6 +44,7 @@ import {
   createPause,
   createDelay,
 } from './task'
+import { AC } from "../abortController";
 export { TaskAbortError } from './exceptions'
 export type {
   ListenerEffect,
@@ -86,7 +87,7 @@ const createFork = (parentAbortSignal: AbortSignalWithReason<unknown>) => {
 
   return <T>(taskExecutor: ForkedTaskExecutor<T>): ForkedTask<T> => {
     assertFunction(taskExecutor, 'taskExecutor')
-    const childAbortController = new AbortController()
+    const childAbortController = new AC()
 
     linkControllers(childAbortController)
 
@@ -368,7 +369,7 @@ export function createListenerMiddleware<
     api: MiddlewareAPI,
     getOriginalState: () => S
   ) => {
-    const internalTaskController = new AbortController()
+    const internalTaskController = new AC()
     const take = createTakePattern(
       startListening,
       internalTaskController.signal
