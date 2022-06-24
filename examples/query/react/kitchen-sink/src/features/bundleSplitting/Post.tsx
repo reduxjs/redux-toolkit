@@ -1,7 +1,7 @@
 import React from 'react'
 
 // import the file that injects "post" to make sure it has been loaded
-import { apiWithPost } from '../../app/services/split/post'
+import { postApi } from '../../app/services/post'
 
 function assert(condition: any, msg = 'Generic Assertion'): asserts condition {
   if (!condition) {
@@ -17,10 +17,10 @@ const Post = ({ id }: { id: number }) => {
    * catch early anyways.
    */
   assert(
-    apiWithPost.endpoints.getPost?.useQuery,
+    postApi.endpoints.getPost?.useQuery,
     'Endpoint `getPost` not loaded!'
   )
-  const { data, error } = apiWithPost.endpoints.getPost.useQuery(id)
+  const { data, error } = postApi.endpoints.getPost.useQuery(id)
   return error ? (
     <>there was an error</>
   ) : !data ? (

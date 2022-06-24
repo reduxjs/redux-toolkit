@@ -10,7 +10,7 @@ import {
   Box,
   useToast,
 } from '@chakra-ui/react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 
 import { ProtectedComponent } from './ProtectedComponent'
@@ -47,7 +47,7 @@ function PasswordInput({
 
 export const Login = () => {
   const dispatch = useDispatch()
-  const { push } = useHistory()
+  const navigate = useNavigate()
   const toast = useToast()
 
   const [formState, setFormState] = React.useState<LoginRequest>({
@@ -86,7 +86,7 @@ export const Login = () => {
               // Being that the result is handled in extraReducers in authSlice,
               // we know that we're authenticated after this, so the user
               // and token will be present in the store
-              push('/')
+              navigate('/')
             } catch (err) {
               toast({
                 status: 'error',

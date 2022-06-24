@@ -1,8 +1,12 @@
-import * as React from 'react';
-import { useHistory, useParams } from 'react-router-dom';
-import { useTypedSelector } from '../../app/store';
-import { useDeletePostMutation, useGetPostQuery, useUpdatePostMutation } from '../../app/services/posts';
-import { selectGlobalPollingEnabled } from '../polling/pollingSlice';
+import * as React from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useTypedSelector } from '../../app/store'
+import {
+  useDeletePostMutation,
+  useGetPostQuery,
+  useUpdatePostMutation,
+} from '../../app/services/posts'
+import { selectGlobalPollingEnabled } from '../polling/pollingSlice'
 
 const EditablePostName = ({
   name: initialName,
@@ -10,59 +14,75 @@ const EditablePostName = ({
   onCancel,
   loading = false,
 }: {
-  name: string;
-  onUpdate: (name: string) => void;
-  onCancel: () => void;
-  loading?: boolean;
+  name: string
+  onUpdate: (name: string) => void
+  onCancel: () => void
+  loading?: boolean
 }) => {
-  const [name, setName] = React.useState(initialName);
+  const [name, setName] = React.useState(initialName)
 
-  const handleChange = ({ target: { value } }: React.ChangeEvent<HTMLInputElement>) => setName(value);
+  const handleChange = ({
+    target: { value },
+  }: React.ChangeEvent<HTMLInputElement>) => setName(value)
 
-  const handleUpdate = () => onUpdate(name);
-  const handleCancel = () => onCancel();
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+    e.preventDefault()
+    onUpdate(name)
+  }
+  const handleCancel = () => onCancel()
 
   return (
     <div>
-      <input type="text" onChange={handleChange} value={name} disabled={loading} />
-      <button onClick={handleUpdate} disabled={loading}>
-        {loading ? 'Updating...' : 'Update'}
-      </button>
-      <button onClick={handleCancel} disabled={loading}>
-        Cancel
-      </button>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          onChange={handleChange}
+          value={name}
+          disabled={loading}
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? 'Updating...' : 'Update'}
+        </button>
+        <button onClick={handleCancel} disabled={loading}>
+          Cancel
+        </button>
+      </form>
     </div>
-  );
-};
+  )
+}
 
 const PostJsonDetail = ({ id }: { id: number }) => {
-  const { data: post } = useGetPostQuery(id);
+  const { data: post } = useGetPostQuery(id)
 
   return (
     <div className="row" style={{ background: '#eee' }}>
       <pre>{JSON.stringify(post, null, 2)}</pre>
     </div>
-  );
-};
+  )
+}
 
 export const PostDetail = () => {
-  const { id } = useParams<{ id: any }>();
-  const { push } = useHistory();
-  const globalPolling = useTypedSelector(selectGlobalPollingEnabled);
+  const { id } = useParams<{ id: any }>()
+  const navigate = useNavigate()
+  const globalPolling = useTypedSelector(selectGlobalPollingEnabled)
 
-  const [isEditing, setIsEditing] = React.useState(false);
+  const [isEditing, setIsEditing] = React.useState(false)
 
-  const { data: post, isFetching, isLoading } = useGetPostQuery(id, { pollingInterval: globalPolling ? 3000 : 0 });
+  const {
+    data: post,
+    isFetching,
+    isLoading,
+  } = useGetPostQuery(id, { pollingInterval: globalPolling ? 3000 : 0 })
 
-  const [updatePost, { isLoading: isUpdating }] = useUpdatePostMutation();
-  const [deletePost, { isLoading: isDeleting }] = useDeletePostMutation();
+  const [updatePost, { isLoading: isUpdating }] = useUpdatePostMutation()
+  const [deletePost, { isLoading: isDeleting }] = useDeletePostMutation()
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>Loading...</div>
   }
 
   if (!post) {
-    return <div>Missing post!</div>;
+    return <div>Missing post!</div>
   }
 
   return (
@@ -74,8 +94,8 @@ export const PostDetail = () => {
             updatePost({ id, name })
               .then((result) => {
                 // handle the success!
-                console.log('Update Result', result);
-                setIsEditing(false);
+                console.log('Update Result', result)
+                setIsEditing(false)
               })
               .catch((error) => console.error('Update Error', error))
           }
@@ -90,10 +110,16 @@ export const PostDetail = () => {
                 {post.name} {isFetching ? '...refetching' : ''}
               </h3>
             </div>
-            <button onClick={() => setIsEditing(true)} disabled={isDeleting || isUpdating}>
+            <button
+              onClick={() => setIsEditing(true)}
+              disabled={isDeleting || isUpdating}
+            >
               {isUpdating ? 'Updating...' : 'Edit'}
             </button>
-            <button onClick={() => deletePost(id).then(() => push('/posts'))} disabled={isDeleting}>
+            <button
+              onClick={() => deletePost(id).then(() => navigate('/posts'))}
+              disabled={isDeleting}
+            >
               {isDeleting ? 'Deleting...' : 'Delete'}
             </button>
           </div>
@@ -101,5 +127,5 @@ export const PostDetail = () => {
       )}
       <PostJsonDetail id={id} />
     </div>
-  );
-};
+  )
+}

@@ -1,8 +1,8 @@
-import { Switch, Route } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import { Box, Center, VStack } from '@chakra-ui/react'
 
 import { Login } from './features/auth/Login'
-import { PrivateRoute } from './utils/PrivateRoute'
+import { PrivateOutlet } from './utils/PrivateOutlet'
 import { ProtectedComponent } from './features/auth/ProtectedComponent'
 
 function Hooray() {
@@ -21,12 +21,12 @@ function Hooray() {
 function App() {
   return (
     <Box>
-      <Switch>
-        <Route exact path="/login" component={Login} />
-        <PrivateRoute path="/">
-          <Hooray />
-        </PrivateRoute>
-      </Switch>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<PrivateOutlet />}>
+          <Route index element={<Hooray />} />
+        </Route>
+      </Routes>
     </Box>
   )
 }

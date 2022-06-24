@@ -90,7 +90,7 @@ const store = configureStore({
 
 // highlight-start
 export type AppDispatch = typeof store.dispatch
-export const useAppDispatch = () => useDispatch<AppDispatch>() // Export a hook that can be reused to resolve types
+export const useAppDispatch: () => AppDispatch = useDispatch // Export a hook that can be reused to resolve types
 // highlight-end
 
 export default store
