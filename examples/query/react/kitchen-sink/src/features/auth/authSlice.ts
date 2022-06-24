@@ -1,5 +1,4 @@
 import { createSlice } from '@reduxjs/toolkit'
-
 import { postApi } from '../../app/services/posts'
 import type { RootState, User } from '../../app/store'
 
