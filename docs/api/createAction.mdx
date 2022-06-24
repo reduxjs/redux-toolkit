@@ -154,7 +154,8 @@ This `match` method is a [TypeScript type guard](https://www.typescriptlang.org/
 This behavior can be particularly useful when used in custom middlewares, where manual casts might be neccessary otherwise.
 
 ```ts
-import { createAction, Action } from '@reduxjs/toolkit'
+import { createAction } from '@reduxjs/toolkit'
+import type { Action } from '@reduxjs/toolkit'
 
 const increment = createAction<number>('INCREMENT')
 
@@ -171,8 +172,9 @@ function someFunction(action: Action) {
 The `match` method can also be used as a filter method, which makes it powerful when used with redux-observable:
 
 ```ts
-import { createAction, Action } from '@reduxjs/toolkit'
-import { Observable } from 'rxjs'
+import { createAction } from '@reduxjs/toolkit'
+import type { Action } from '@reduxjs/toolkit'
+import type { Observable } from 'rxjs'
 import { map, filter } from 'rxjs/operators'
 
 const increment = createAction<number>('INCREMENT')
