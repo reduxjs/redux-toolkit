@@ -508,15 +508,47 @@ const fetchUserById = createAsyncThunk(
 )
 ```
 
+### Checking if a Promise Rejection was from an Error or Cancellation
+
+To investigate behavior around thunk cancellation, you can inspect various properties on the `meta` object of the dispatched action.
+If a thunk was cancelled, the result of the promise will be a `rejected` action (regardless of whether that action was actually dispatched to the store).
+
+- If it was cancelled before execution, `meta.condition` will be true.
+- If it was aborted while running, `meta.aborted` will be true.
+- If neither of those is true, the thunk was not cancelled, it was simply rejected, either by a Promise rejection or `rejectWithValue`.
+- If the thunk was not rejected, both `meta.aborted` and `meta.condition` will be `undefined`.
+
+So if you wanted to test that a thunk was cancelled before executing, you can do the following:
+
+```ts no-transpile
+import { createAsyncThunk, isRejected } from '@reduxjs/toolkit'
+
+test('this thunk should always be skipped', async () => {
+  const thunk = createAsyncThunk(
+    'users/fetchById',
+    async () => throw new Error('This promise should never be entered'),
+    {
+      condition: () => false,
+    }
+  )
+  const result = await thunk()(dispatch, getState, null)
+
+  expect(result.meta.condition).toBe(true)
+  expect(result.meta.aborted).toBe(false)
+})
+```
+
 ## Examples
 
 - Requesting a user by ID, with loading state, and only one request at a time:
 
 ```ts no-transpile
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { userAPI } from './userAPI'
+import { userAPI, User } from './userAPI'
 
-const fetchUserById = createAsyncThunk(
+const fetchUserById = createAsyncThunk<User, string, {
+    state: { users: { loading: string, currentRequestId: string } }
+}> (  
   'users/fetchByIdStatus',
   async (userId: string, { getState, requestId }) => {
     const { currentRequestId, loading } = getState().users

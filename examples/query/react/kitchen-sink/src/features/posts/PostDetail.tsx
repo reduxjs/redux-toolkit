@@ -25,23 +25,28 @@ const EditablePostName = ({
     target: { value },
   }: React.ChangeEvent<HTMLInputElement>) => setName(value)
 
-  const handleUpdate = () => onUpdate(name)
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+    e.preventDefault()
+    onUpdate(name)
+  }
   const handleCancel = () => onCancel()
 
   return (
     <div>
-      <input
-        type="text"
-        onChange={handleChange}
-        value={name}
-        disabled={loading}
-      />
-      <button onClick={handleUpdate} disabled={loading}>
-        {loading ? 'Updating...' : 'Update'}
-      </button>
-      <button onClick={handleCancel} disabled={loading}>
-        Cancel
-      </button>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          onChange={handleChange}
+          value={name}
+          disabled={loading}
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? 'Updating...' : 'Update'}
+        </button>
+        <button onClick={handleCancel} disabled={loading}>
+          Cancel
+        </button>
+      </form>
     </div>
   )
 }

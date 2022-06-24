@@ -1,7 +1,7 @@
 import * as React from 'react';
 
-import { apiWithPosts } from '../../app/services/split/posts';
 import { Post } from '.';
+import { postsApi } from '../../app/services/posts';
 
 const PostsList = () => {
   /**
@@ -13,7 +13,7 @@ const PostsList = () => {
    * injected though.
    */
 
-  const { data, error } = apiWithPosts.endpoints.getPosts.useQuery();
+  const { data, error } = postsApi.endpoints.getPosts.useQuery();
   const [selected, select] = React.useState<number | undefined>();
   return error ? (
     <>there was an error</>

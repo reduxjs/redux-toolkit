@@ -414,7 +414,7 @@ There are a couple additional points that can help here:
 
 ### Cache Subscription Lifetime Demo
 
-This example is a live demo of how the subscriber reference count and the value of `keepUnusedDataFor` interact with each other. The `Subscriptions` and `Queries` (including the cached data) are shown in the demo for you to visualize (note that this can also be viewed in the [Redux Devtools Extension](https://github.com/zalmoxisus/redux-devtools-extension)).
+This example is a live demo of how the subscriber reference count and the value of `keepUnusedDataFor` interact with each other. The `Subscriptions` and `Queries` (including the cached data) are shown in the demo for you to visualize (note that this can also be viewed in the [Redux Devtools Extension](https://github.com/reduxjs/redux-devtools)).
 
 Two components are mounted, each with the same endpoints query (`useGetUsersQuery(2)`). You will be able to observe that when toggling off the components, the subscriber reference count will be reduced. After toggling off both components such that the subscriber reference count reaches zero, you will observe the cached data under the `Queries` section will persist for 5 seconds (the value of `keepUnusedDataFor` provided for the endpoint in this demo). If the subscriber reference count remains at 0 for the full duration, the cached data will then be removed from the store.
 
