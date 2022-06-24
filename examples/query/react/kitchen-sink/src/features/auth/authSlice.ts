@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { postApi } from '../../app/services/posts'
-import type { RootState, User } from '../../app/store'
+import type { User } from '../../app/services/posts'
+import type { RootState } from '../../app/store'
 
 const initialState = {
   user: null,
