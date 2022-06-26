@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { postApi } from '../../app/services/posts'
+import { postsApi } from '../../app/services/posts'
 import type { User } from '../../app/services/posts'
 import type { RootState } from '../../app/store'
 
