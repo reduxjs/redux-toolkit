@@ -11,7 +11,6 @@ module.exports = {
       '@docusaurus/preset-classic',
       {
         docs: {
-          docLayoutComponent: '../src/theme/DocPageWithBraveWarning',
           path: '../docs',
           sidebarPath: require.resolve('./sidebars.json'),
           showLastUpdateTime: true,
@@ -50,6 +49,9 @@ module.exports = {
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
+        googleAnalytics: {
+          trackingID: 'UA-130598673-3',
+        },
       },
     ],
   ],
@@ -64,7 +66,7 @@ module.exports = {
     repoUrl: 'https://github.com/reduxjs/redux-toolkit',
   },
   themeConfig: {
-    metadatas: [{ name: 'twitter:card', content: 'summary' }],
+    metadata: [{ name: 'twitter:card', content: 'summary' }],
     prism: {
       theme: require('./src/js/monokaiTheme.js'),
     },
@@ -160,12 +162,10 @@ module.exports = {
       copyright: `Copyright © 2015–${new Date().getFullYear()} Dan Abramov and the Redux documentation authors.`,
     },
     algolia: {
-      apiKey: '82d838443b672336bf63cab4772d9eb4',
+      appId: 'CK59DFV0FC',
+      apiKey: '98e886dfbcde7f7e8ec8d7ff1c2c34c8',
       indexName: 'redux-starter-kit',
-      searchParameters: {},
-    },
-    googleAnalytics: {
-      trackingID: 'UA-130598673-3',
+      algoliaOptions: {},
     },
   },
 }

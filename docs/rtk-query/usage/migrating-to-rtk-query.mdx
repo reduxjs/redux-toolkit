@@ -59,8 +59,8 @@ Below we create a thunk action creator using [`createAsyncThunk`](../../api/crea
 
 ```ts title="src/services/pokemonSlice.ts - Thunk Action Creator" no-transpile
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { Pokemon } from './types'
-import { RootState } from '../store'
+import type { Pokemon } from './types'
+import type { RootState } from '../store'
 
 // highlight-start
 export const fetchPokemonByName = createAsyncThunk<Pokemon, string>(
@@ -146,7 +146,7 @@ In our `store` for our app, we include the corresponding reducer from our slice 
 
 ```ts title="src/services/store.ts"
 // file: src/services/pokemonSlice.ts noEmit
-import { Reducer } from '@reduxjs/toolkit'
+import type { Reducer } from '@reduxjs/toolkit'
 declare const reducer: Reducer<{}>
 export const pokemonSlice = {
   reducer,
@@ -230,7 +230,8 @@ export declare const useAppDispatch: () => (...args: any[])=> any;
 // file: src/hooks.ts
 import { useEffect } from 'react'
 import { useSelector } from 'react-redux'
-import { RootState, useAppDispatch } from './store'
+import { useAppDispatch } from './store'
+import type { RootState } from './store'
 import {
   fetchPokemonByName,
   selectStatusByName,
@@ -337,7 +338,7 @@ export interface Pokemon {}
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { Pokemon } from './types'
+import type { Pokemon } from './types'
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
@@ -362,7 +363,7 @@ Now that we have our API definition created, we need to hook it up to our store.
 
 ```ts title="src/store.ts"
 // file: src/services/pokemonSlice.ts noEmit
-import { Reducer } from '@reduxjs/toolkit'
+import type { Reducer } from '@reduxjs/toolkit'
 declare const reducer: Reducer<{}>
 export const pokemonSlice = {
   reducer,

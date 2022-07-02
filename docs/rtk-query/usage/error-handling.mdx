@@ -81,11 +81,8 @@ Redux Toolkit has [action matching utilities](../../api/matching-utilities.mdx#m
 :::
 
 ```ts title="Error catching middleware example"
-import {
-  MiddlewareAPI,
-  isRejectedWithValue,
-  Middleware,
-} from '@reduxjs/toolkit'
+import { isRejectedWithValue } from '@reduxjs/toolkit'
+import type { MiddlewareAPI, Middleware } from '@reduxjs/toolkit'
 import { toast } from 'your-cool-library'
 
 /**

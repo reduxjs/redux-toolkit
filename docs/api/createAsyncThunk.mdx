@@ -399,7 +399,8 @@ A real-life example of that would look like this:
 
 ```ts no-transpile
 // file: store.ts noEmit
-import { configureStore, Reducer } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
+import type { Reducer } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
 
 declare const reducer: Reducer<{}>
@@ -624,7 +625,8 @@ const UsersComponent = () => {
 
 ```ts no-transpile
 // file: store.ts noEmit
-import { configureStore, Reducer } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
+import type { Reducer } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
 import usersReducer from './user/slice'
 
@@ -641,7 +643,7 @@ export declare const userAPI: {
 // file: user/slice.ts
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { userAPI } from './userAPI'
-import { AxiosError } from 'axios'
+import type { AxiosError } from 'axios'
 
 // Sample types that will be used
 export interface User {
@@ -723,10 +725,12 @@ declare module 'some-toast-library' {
 // file: user/UsersComponent.ts
 
 import React from 'react'
-import { useAppDispatch, RootState } from '../store'
+import { useAppDispatch } from '../store'
+import type { RootState } from '../store'
 import { useSelector } from 'react-redux'
-import { User, updateUser } from './slice'
-import { FormikHelpers } from 'formik'
+import { updateUser } from './slice'
+import type { User } from './slice'
+import type { FormikHelpers } from 'formik'
 import { showToast } from 'some-toast-library'
 
 interface FormValues extends Omit<User, 'id'> {}
