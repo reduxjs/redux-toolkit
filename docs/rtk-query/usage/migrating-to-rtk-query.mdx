@@ -59,8 +59,8 @@ Below we create a thunk action creator using [`createAsyncThunk`](../../api/crea
 
 ```ts title="src/services/pokemonSlice.ts - Thunk Action Creator" no-transpile
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { Pokemon } from './types'
-import { RootState } from '../store'
+import type { Pokemon } from './types'
+import type { RootState } from '../store'
 
 // highlight-start
 export const fetchPokemonByName = createAsyncThunk<Pokemon, string>(
@@ -146,7 +146,7 @@ In our `store` for our app, we include the corresponding reducer from our slice 
 
 ```ts title="src/services/store.ts"
 // file: src/services/pokemonSlice.ts noEmit
-import { Reducer } from '@reduxjs/toolkit'
+import type { Reducer } from '@reduxjs/toolkit'
 declare const reducer: Reducer<{}>
 export const pokemonSlice = {
   reducer,
@@ -210,6 +210,8 @@ export const selectDataByName = (state: RootState, name: string) =>
   state.pokemon.dataByName[name]
 
 // file: src/store.ts noEmit
+import { useDispatch } from 'react-redux'
+import { EnhancedStore } from '@reduxjs/toolkit'
 interface Pokemon {}
 type RequestState = 'pending' | 'fulfilled' | 'rejected'
 
@@ -221,10 +223,15 @@ export type RootState = {
   pokemon: typeof initialPokemonSlice
 }
 
+export declare const store: EnhancedStore<RootState> 
+export type AppDispatch = typeof store.dispatch
+export declare const useAppDispatch: () => (...args: any[])=> any;
+
 // file: src/hooks.ts
 import { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { RootState } from './store'
+import { useSelector } from 'react-redux'
+import { useAppDispatch } from './store'
+import type { RootState } from './store'
 import {
   fetchPokemonByName,
   selectStatusByName,
@@ -233,7 +240,7 @@ import {
 
 // highlight-start
 export function useGetPokemonByNameQuery(name: string) {
-  const dispatch = useDispatch()
+  const dispatch = useAppDispatch()
   // select the current status from the store state for the provided name
   const status = useSelector((state: RootState) =>
     selectStatusByName(state, name)
@@ -331,7 +338,7 @@ export interface Pokemon {}
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { Pokemon } from './types'
+import type { Pokemon } from './types'
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
@@ -356,7 +363,7 @@ Now that we have our API definition created, we need to hook it up to our store.
 
 ```ts title="src/store.ts"
 // file: src/services/pokemonSlice.ts noEmit
-import { Reducer } from '@reduxjs/toolkit'
+import type { Reducer } from '@reduxjs/toolkit'
 declare const reducer: Reducer<{}>
 export const pokemonSlice = {
   reducer,

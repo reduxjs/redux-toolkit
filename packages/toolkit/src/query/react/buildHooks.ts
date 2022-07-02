@@ -923,7 +923,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         shallowEqual
       )
 
-      const store = useStore()
+      const store = useStore<RootState<Definitions, any, any>>()
       const newLastValue = selectDefaultResult(
         store.getState(),
         lastValue.current
@@ -1023,7 +1023,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       )
 
       const triggerMutation = useCallback(
-        function (arg) {
+        function (arg: Parameters<typeof initiate>['0']) {
           const promise = dispatch(initiate(arg, { fixedCacheKey }))
           setPromise(promise)
           return promise

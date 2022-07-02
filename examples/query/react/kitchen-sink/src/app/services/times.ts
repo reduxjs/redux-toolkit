@@ -1,13 +1,10 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { api } from './api'
 
 interface TimeResponse {
   time: string
 }
 
-export const timeApi = createApi({
-  reducerPath: 'timeApi',
-  baseQuery: fetchBaseQuery(),
-  tagTypes: ['Time'],
+export const timeApi = api.injectEndpoints({
   endpoints: (build) => ({
     getTime: build.query<TimeResponse, string>({
       query: (id) => `time/${id}`,

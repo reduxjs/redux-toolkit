@@ -1,5 +1,5 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { ChakraProvider } from '@chakra-ui/react'
 
@@ -11,7 +11,7 @@ import { Provider } from 'react-redux'
 
 // Initialize the msw worker, wait for the service worker registration to resolve, then mount
 worker.start({ quiet: true }).then(() =>
-  ReactDOM.render(
+  ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <React.StrictMode>
       <Provider store={store}>
         <ChakraProvider>
@@ -20,7 +20,6 @@ worker.start({ quiet: true }).then(() =>
           </BrowserRouter>
         </ChakraProvider>
       </Provider>
-    </React.StrictMode>,
-    document.getElementById('root')
+    </React.StrictMode>
   )
 )

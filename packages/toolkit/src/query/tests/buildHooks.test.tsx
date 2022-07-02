@@ -22,8 +22,8 @@ import { server } from './mocks/server'
 import type { AnyAction } from 'redux'
 import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
 import type { SerializedError } from '@reduxjs/toolkit'
-import { renderHook } from '@testing-library/react-hooks'
 import { Suspense } from 'react'
+import { renderHook } from '@testing-library/react'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -1197,7 +1197,7 @@ describe('hooks tests', () => {
     })
 
     test('useMutation return value contains originalArgs', async () => {
-      const { result } = renderHook(api.endpoints.updateUser.useMutation, {
+      const { result } = renderHook(() => api.endpoints.updateUser.useMutation(), {
         wrapper: storeRef.wrapper,
       })
       const arg = { name: 'Foo' }

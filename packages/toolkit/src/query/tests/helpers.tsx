@@ -6,8 +6,6 @@ import type {
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
-
-import { act } from '@testing-library/react-hooks'
 import type { Reducer } from 'react'
 import React, { useCallback } from 'react'
 import { Provider } from 'react-redux'
@@ -17,7 +15,7 @@ import {
   createConsole,
   getLog,
 } from 'console-testing-library/pure'
-import { cleanup } from '@testing-library/react'
+import { cleanup, act } from '@testing-library/react'
 
 export const ANY = 0 as any
 
@@ -175,7 +173,11 @@ export function setupApiStore<
     util: { resetApiState(): any }
   },
   R extends Record<string, Reducer<any, any>> = Record<never, never>
->(api: A, extraReducers?: R, withoutListeners?: boolean) {
+>(
+  api: A,
+  extraReducers?: R,
+  options: { withoutListeners?: boolean; withoutTestLifecycles?: boolean } = {}
+) {
   const getStore = () =>
     configureStore({
       reducer: { api: api.reducer, ...extraReducers },
@@ -205,21 +207,23 @@ export function setupApiStore<
   }
   let cleanupListeners: () => void
 
-  beforeEach(() => {
-    const store = getStore() as StoreType
-    refObj.store = store
-    refObj.wrapper = withProvider(store)
-    if (!withoutListeners) {
-      cleanupListeners = setupListeners(store.dispatch)
-    }
-  })
-  afterEach(() => {
-    cleanup()
-    if (!withoutListeners) {
-      cleanupListeners()
-    }
-    refObj.store.dispatch(api.util.resetApiState())
-  })
+  if (!options.withoutTestLifecycles) {
+    beforeEach(() => {
+      const store = getStore() as StoreType
+      refObj.store = store
+      refObj.wrapper = withProvider(store)
+      if (!options.withoutListeners) {
+        cleanupListeners = setupListeners(store.dispatch)
+      }
+    })
+    afterEach(() => {
+      cleanup()
+      if (!options.withoutListeners) {
+        cleanupListeners()
+      }
+      refObj.store.dispatch(api.util.resetApiState())
+    })
+  }
 
   return refObj
 }

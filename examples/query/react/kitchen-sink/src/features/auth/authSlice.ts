@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { postApi, User } from '../../app/services/posts'
-import { RootState } from '../../app/store'
+import { postsApi } from '../../app/services/posts'
+import type { User } from '../../app/services/posts'
+import type { RootState } from '../../app/store'
 
 const initialState = {
   user: null,
@@ -16,15 +17,15 @@ const slice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addMatcher(postApi.endpoints.login.matchPending, (state, action) => {
+      .addMatcher(postsApi.endpoints.login.matchPending, (state, action) => {
         console.log('pending', action)
       })
-      .addMatcher(postApi.endpoints.login.matchFulfilled, (state, action) => {
+      .addMatcher(postsApi.endpoints.login.matchFulfilled, (state, action) => {
         console.log('fulfilled', action)
         state.user = action.payload.user
         state.token = action.payload.token
       })
-      .addMatcher(postApi.endpoints.login.matchRejected, (state, action) => {
+      .addMatcher(postsApi.endpoints.login.matchRejected, (state, action) => {
         console.log('rejected', action)
       })
   },

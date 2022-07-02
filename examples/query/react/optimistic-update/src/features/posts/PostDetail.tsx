@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useHistory, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   useDeletePostMutation,
   useGetPostQuery,
@@ -73,7 +73,7 @@ const PostJsonDetail = ({ id }: { id: string }) => {
 
 export const PostDetail = () => {
   const { id } = useParams<{ id: any }>()
-  const { push } = useHistory()
+  const navigate = useNavigate()
 
   const toast = useToast()
 
@@ -137,7 +137,7 @@ export const PostDetail = () => {
                 {isUpdating ? 'Updating...' : 'Edit'}
               </Button>
               <Button
-                onClick={() => deletePost(id).then(() => push('/posts'))}
+                onClick={() => deletePost(id).then(() => navigate('/posts'))}
                 disabled={isDeleting}
                 colorScheme="red"
               >
