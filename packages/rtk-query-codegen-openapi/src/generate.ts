@@ -340,7 +340,7 @@ export async function generateApi(
       type: isQuery ? 'query' : 'mutation',
       Response: ResponseTypeName,
       QueryArg,
-      queryFn: generateQueryFn({ operationDefinition, queryArg, isQuery, tags, isFlatArg }),
+      queryFn: generateQueryFn({ operationDefinition, queryArg, isQuery, isFlatArg }),
       extraEndpointsProps: isQuery
         ? generateQueryEndpointProps({ operationDefinition })
         : generateMutationEndpointProps({ operationDefinition }),
