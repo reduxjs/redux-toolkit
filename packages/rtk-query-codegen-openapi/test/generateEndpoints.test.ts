@@ -73,7 +73,7 @@ test('endpoint overrides', async () => {
   expect(api).toMatchSnapshot('loginUser should be a mutation');
 });
 
-describe('option flattenArg', async () => {
+describe('option flattenArg', () => {
   const config = {
     apiFile: './fixtures/emptyApi.ts',
     schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
