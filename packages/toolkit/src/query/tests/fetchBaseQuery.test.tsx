@@ -778,7 +778,7 @@ describe('still throws on completely unexpected errors', () => {
 
 describe('timeout', () => {
   it('throws a timeout error when a request takes longer than specified timeout duration', async () => {
-    jest.useFakeTimers()
+    jest.useFakeTimers('legacy')
     let result: any
     server.use(
       rest.get('https://example.com/empty', (req, res, ctx) =>
