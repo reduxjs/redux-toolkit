@@ -54,16 +54,12 @@ const handleResponse = async (
     responseHandler = isJsonContentType(response.headers) ? 'json' : 'text'
   }
 
-  if (responseHandler === 'text') {
-    return response.text()
-  }
-
   if (responseHandler === 'json') {
     const text = await response.text()
     return text.length ? JSON.parse(text) : null
   }
 
-  return responseHandler
+  return response.text()
 }
 
 export type FetchBaseQueryError =
