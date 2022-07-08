@@ -39,7 +39,7 @@ It takes all standard options from fetch's [`RequestInit`](https://developer.moz
 - `fetchFn` _(optional)_
   - A fetch function that overrides the default on the window. Can be useful in SSR environments where you may need to leverage `isomorphic-fetch` or `cross-fetch`.
 - `timeout` _(optional)_
-  - A number in milliseconds that represents that maximum time a request can take before timing out.
+  - A number in milliseconds that represents the maximum time a request can take before timing out.
 
 ```ts title="Return types of fetchBaseQuery" no-transpile
 Promise<{
