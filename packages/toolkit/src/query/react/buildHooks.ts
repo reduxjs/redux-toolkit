@@ -52,7 +52,7 @@ import { useStableQueryArgs } from './useSerializedStableValue'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
 import { useShallowStableValue } from './useShallowStableValue'
-import { BaseQueryFn } from '../baseQueryTypes'
+import type { BaseQueryFn } from '../baseQueryTypes'
 
 // Copy-pasted from React-Redux
 export const useIsomorphicLayoutEffect =
@@ -105,6 +105,10 @@ export type UseQueryHookResult<
   R = UseQueryStateDefaultResult<D>
 > = UseQueryStateResult<D, R> & UseQuerySubscriptionResult<D>
 
+/**
+ * Helper type to manually type the result
+ * of the `useQuery` hook in userland code.
+ */
 export type TypedUseQueryHookResult<
   ResultType,
   QueryArg,
@@ -184,6 +188,10 @@ export type UseQuerySubscriptionResult<
   D extends QueryDefinition<any, any, any, any>
 > = Pick<QueryActionCreatorResult<D>, 'refetch'>
 
+/**
+ * Helper type to manually type the result
+ * of the `useQuerySubscription` hook in userland code.
+ */
 export type TypedUseQuerySubscriptionResult<
   ResultType,
   QueryArg,
@@ -366,6 +374,10 @@ export type UseQueryStateResult<
   R
 > = NoInfer<R>
 
+/**
+ * Helper type to manually type the result
+ * of the `useQueryState` hook in userland code.
+ */
 export type TypedUseQueryStateResult<
   ResultType,
   QueryArg,
@@ -472,6 +484,10 @@ export type UseMutationStateResult<
   reset: () => void
 }
 
+/**
+ * Helper type to manually type the result
+ * of the `useMutation` hook in userland code.
+ */
 export type TypedUseMutationResult<
   ResultType,
   QueryArg,
