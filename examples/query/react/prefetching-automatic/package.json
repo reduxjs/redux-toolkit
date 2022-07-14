@@ -13,7 +13,7 @@
     "@reduxjs/toolkit": "^1.6.0-rc.1",
     "faker": "^5.5.3",
     "framer-motion": "^2.9.5",
-    "msw": "^0.41.1",
+    "msw": "^0.40.2",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
     "react-icons": "3.11.0",
