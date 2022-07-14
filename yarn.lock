@@ -3720,7 +3720,7 @@ __metadata:
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
     framer-motion: ^2.9.5
-    msw: ^0.41.1
+    msw: ^0.40.2
     react: ^18.1.0
     react-dom: ^18.1.0
     react-icons: 3.11.0
@@ -3742,7 +3742,7 @@ __metadata:
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
     framer-motion: ^2.9.5
-    msw: ^0.41.1
+    msw: ^0.40.2
     react: ^18.1.0
     react-dom: ^18.1.0
     react-icons: 3.11.0
@@ -3881,7 +3881,7 @@ __metadata:
     "@types/node": ^14.14.6
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
-    msw: ^0.41.1
+    msw: ^0.40.2
     react: ^18.1.0
     react-dom: ^18.1.0
     react-redux: ^8.0.2
@@ -3927,7 +3927,7 @@ __metadata:
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
     framer-motion: ^2.9.5
-    msw: ^0.41.1
+    msw: ^0.40.2
     react: ^18.1.0
     react-dom: ^18.1.0
     react-icons: 3.11.0
@@ -18949,6 +18949,40 @@ fsevents@^1.2.7:
   bin:
     msw: cli/index.js
   checksum: bfcac14831d88ebee0375933a84294696410a2f93a8dd0cf0d37fb8f641ce93e9d2d840253fb5755003ea8bd7126dc83bd6844066bf5073f0a264cd8c768dec7
+  languageName: node
+  linkType: hard
+
+"msw@npm:^0.40.2":
+  version: 0.40.2
+  resolution: "msw@npm:0.40.2"
+  dependencies:
+    "@mswjs/cookies": ^0.2.0
+    "@mswjs/interceptors": ^0.15.1
+    "@open-draft/until": ^1.0.3
+    "@types/cookie": ^0.4.1
+    "@types/js-levenshtein": ^1.1.1
+    chalk: 4.1.1
+    chokidar: ^3.4.2
+    cookie: ^0.4.2
+    graphql: ^16.3.0
+    headers-polyfill: ^3.0.4
+    inquirer: ^8.2.0
+    is-node-process: ^1.0.1
+    js-levenshtein: ^1.1.6
+    node-fetch: ^2.6.7
+    path-to-regexp: ^6.2.0
+    statuses: ^2.0.0
+    strict-event-emitter: ^0.2.0
+    type-fest: ^1.2.2
+    yargs: ^17.3.1
+  peerDependencies:
+    typescript: ">= 4.2.x <= 4.6.x"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  bin:
+    msw: cli/index.js
+  checksum: a37c3aa79c0fc86499dab70d02942040ce34f16cc7db003c334b2c65b4e5e8236a2a992aa8507b4156188e9ad637c912ff7c02732132278eb6b266ef9982fbf5
   languageName: node
   linkType: hard
 
