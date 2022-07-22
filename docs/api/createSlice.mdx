@@ -18,7 +18,8 @@ Internally, it uses [`createAction`](./createAction.mdx) and [`createReducer`](.
 you may also use [Immer](https://immerjs.github.io/immer/) to write "mutating" immutable updates:
 
 ```ts
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
 
 interface CounterState {
   value: number
@@ -108,7 +109,8 @@ const counterSlice = createSlice({
 If you need to customize the creation of the payload value of an action creator by means of a [`prepare callback`](./createAction.mdx#using-prepare-callbacks-to-customize-action-contents), the value of the appropriate field of the `reducers` argument object should be an object instead of a function. This object must contain two properties: `reducer` and `prepare`. The value of the `reducer` field should be the case reducer function while the value of the `prepare` field should be the prepare callback function:
 
 ```ts
-import { createSlice, PayloadAction, nanoid } from '@reduxjs/toolkit'
+import { createSlice, nanoid } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
 
 interface Item {
   id: string
@@ -224,7 +226,8 @@ for references in a larger codebase.
 ## Examples
 
 ```ts
-import { createSlice, createAction, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, createAction } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
 import { createStore, combineReducers } from 'redux'
 
 const incrementBy = createAction<number>('incrementBy')

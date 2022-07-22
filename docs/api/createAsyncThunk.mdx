@@ -399,7 +399,8 @@ A real-life example of that would look like this:
 
 ```ts no-transpile
 // file: store.ts noEmit
-import { configureStore, Reducer } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
+import type { Reducer } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
 
 declare const reducer: Reducer<{}>
@@ -507,15 +508,47 @@ const fetchUserById = createAsyncThunk(
 )
 ```
 
+### Checking if a Promise Rejection was from an Error or Cancellation
+
+To investigate behavior around thunk cancellation, you can inspect various properties on the `meta` object of the dispatched action.
+If a thunk was cancelled, the result of the promise will be a `rejected` action (regardless of whether that action was actually dispatched to the store).
+
+- If it was cancelled before execution, `meta.condition` will be true.
+- If it was aborted while running, `meta.aborted` will be true.
+- If neither of those is true, the thunk was not cancelled, it was simply rejected, either by a Promise rejection or `rejectWithValue`.
+- If the thunk was not rejected, both `meta.aborted` and `meta.condition` will be `undefined`.
+
+So if you wanted to test that a thunk was cancelled before executing, you can do the following:
+
+```ts no-transpile
+import { createAsyncThunk, isRejected } from '@reduxjs/toolkit'
+
+test('this thunk should always be skipped', async () => {
+  const thunk = createAsyncThunk(
+    'users/fetchById',
+    async () => throw new Error('This promise should never be entered'),
+    {
+      condition: () => false,
+    }
+  )
+  const result = await thunk()(dispatch, getState, null)
+
+  expect(result.meta.condition).toBe(true)
+  expect(result.meta.aborted).toBe(false)
+})
+```
+
 ## Examples
 
 - Requesting a user by ID, with loading state, and only one request at a time:
 
 ```ts no-transpile
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { userAPI } from './userAPI'
+import { userAPI, User } from './userAPI'
 
-const fetchUserById = createAsyncThunk(
+const fetchUserById = createAsyncThunk<User, string, {
+    state: { users: { loading: string, currentRequestId: string } }
+}> (  
   'users/fetchByIdStatus',
   async (userId: string, { getState, requestId }) => {
     const { currentRequestId, loading } = getState().users
@@ -592,7 +625,8 @@ const UsersComponent = () => {
 
 ```ts no-transpile
 // file: store.ts noEmit
-import { configureStore, Reducer } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
+import type { Reducer } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
 import usersReducer from './user/slice'
 
@@ -609,7 +643,7 @@ export declare const userAPI: {
 // file: user/slice.ts
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { userAPI } from './userAPI'
-import { AxiosError } from 'axios'
+import type { AxiosError } from 'axios'
 
 // Sample types that will be used
 export interface User {
@@ -691,10 +725,12 @@ declare module 'some-toast-library' {
 // file: user/UsersComponent.ts
 
 import React from 'react'
-import { useAppDispatch, RootState } from '../store'
+import { useAppDispatch } from '../store'
+import type { RootState } from '../store'
 import { useSelector } from 'react-redux'
-import { User, updateUser } from './slice'
-import { FormikHelpers } from 'formik'
+import { updateUser } from './slice'
+import type { User } from './slice'
+import type { FormikHelpers } from 'formik'
 import { showToast } from 'some-toast-library'
 
 interface FormValues extends Omit<User, 'id'> {}

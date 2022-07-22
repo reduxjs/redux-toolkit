@@ -1,4 +1,4 @@
-import ReactDOM from 'react-dom'
+import ReactDOM from 'react-dom/client'
 import './index.css'
 import { store } from './store'
 import { themeActions } from './services/theme/slice'
@@ -8,4 +8,6 @@ if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
   store.dispatch(themeActions.changeColorScheme('dark'))
 }
 
-ReactDOM.render(<App />, document.getElementById('root'))
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
+
+root.render(<App />)

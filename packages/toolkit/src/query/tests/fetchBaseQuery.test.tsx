@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { setupApiStore } from './helpers'
+import { setupApiStore, waitMs } from './helpers'
 import { server } from './mocks/server'
 // @ts-ignore
 import nodeFetch from 'node-fetch'
@@ -76,8 +76,12 @@ type RootState = ReturnType<typeof storeRef.store.getState>
 
 let commonBaseQueryApi: BaseQueryApi = {} as any
 beforeEach(() => {
+  let abortController = new AbortController()
   commonBaseQueryApi = {
-    signal: new AbortController().signal,
+    signal: abortController.signal,
+    abort: (reason) =>
+      // @ts-ignore
+      abortController.abort(reason),
     dispatch: storeRef.store.dispatch,
     getState: storeRef.store.getState,
     extra: undefined,
@@ -177,6 +181,64 @@ describe('fetchBaseQuery', () => {
       })
     })
 
+    it('success: parse text without error ("content-type" responseHandler)', async () => {
+      server.use(
+        rest.get('https://example.com/success', (_, res, ctx) =>
+          res.once(
+            ctx.text(`this is not json!`)
+            // NOTE: MSW sets content-type header as text automatically
+          )
+        )
+      )
+
+      const req = baseQuery(
+        {
+          url: '/success',
+          responseHandler: 'content-type',
+        },
+        commonBaseQueryApi,
+        {}
+      )
+      expect(req).toBeInstanceOf(Promise)
+      const res = await req
+      expect(res).toBeInstanceOf(Object)
+      expect(res.meta?.response?.headers.get('content-type')).toEqual(
+        'text/plain'
+      )
+      expect(res.meta?.request).toBeInstanceOf(Request)
+      expect(res.meta?.response).toBeInstanceOf(Object)
+      expect(res.data).toEqual(`this is not json!`)
+    })
+
+    it('success: parse json without error ("content-type" responseHandler)', async () => {
+      server.use(
+        rest.get('https://example.com/success', (_, res, ctx) =>
+          res.once(
+            ctx.json(`this will become json!`)
+            // NOTE: MSW sets content-type header as json automatically
+          )
+        )
+      )
+
+      const req = baseQuery(
+        {
+          url: '/success',
+          responseHandler: 'content-type',
+        },
+        commonBaseQueryApi,
+        {}
+      )
+      expect(req).toBeInstanceOf(Promise)
+      const res = await req
+      expect(res).toBeInstanceOf(Object)
+      expect(res.meta?.response?.headers.get('content-type')).toEqual(
+        'application/json'
+      )
+      expect(res.meta?.request).toBeInstanceOf(Request)
+      expect(res.meta?.response).toBeInstanceOf(Object)
+      expect(res.data).toEqual(`this will become json!`)
+    })
+
     it('server error: should fail normally with a 500 status ("text" responseHandler)', async () => {
       server.use(
         rest.get('https://example.com/error', (_, res, ctx) =>
@@ -197,6 +259,62 @@ describe('fetchBaseQuery', () => {
       expect(res.error).toEqual({
         status: 500,
         data: `this is not json!`,
+      })
+    })
+
+    it('server error: should fail normally with a 500 status as text ("content-type" responseHandler)', async () => {
+      const serverResponse = 'Internal Server Error'
+      server.use(
+        rest.get('https://example.com/error', (_, res, ctx) =>
+          res(ctx.status(500), ctx.text(serverResponse))
+        )
+      )
+
+      const req = baseQuery(
+        { url: '/error', responseHandler: 'content-type' },
+        commonBaseQueryApi,
+        {}
+      )
+      expect(req).toBeInstanceOf(Promise)
+      const res = await req
+      expect(res).toBeInstanceOf(Object)
+      expect(res.meta?.request).toBeInstanceOf(Request)
+      expect(res.meta?.response).toBeInstanceOf(Object)
+      expect(res.meta?.response?.headers.get('content-type')).toEqual(
+        'text/plain'
+      )
+      expect(res.error).toEqual({
+        status: 500,
+        data: serverResponse,
+      })
+    })
+
+    it('server error: should fail normally with a 500 status as json ("content-type" responseHandler)', async () => {
+      const serverResponse = {
+        errors: { field1: "Password cannot be 'password'" },
+      }
+      server.use(
+        rest.get('https://example.com/error', (_, res, ctx) =>
+          res(ctx.status(500), ctx.json(serverResponse))
+        )
+      )
+
+      const req = baseQuery(
+        { url: '/error', responseHandler: 'content-type' },
+        commonBaseQueryApi,
+        {}
+      )
+      expect(req).toBeInstanceOf(Promise)
+      const res = await req
+      expect(res).toBeInstanceOf(Object)
+      expect(res.meta?.request).toBeInstanceOf(Request)
+      expect(res.meta?.response).toBeInstanceOf(Object)
+      expect(res.meta?.response?.headers.get('content-type')).toEqual(
+        'application/json'
+      )
+      expect(res.error).toEqual({
+        status: 500,
+        data: serverResponse,
       })
     })
 
@@ -291,6 +409,27 @@ describe('fetchBaseQuery', () => {
 
       expect(request.headers['content-type']).toBe('text/html')
       expect(request.body).toEqual(data.join(','))
+    })
+
+    it('supports a custom jsonContentType', async () => {
+      const baseQuery = fetchBaseQuery({
+        baseUrl,
+        fetchFn: fetchFn as any,
+        jsonContentType: 'application/vnd.api+json',
+      })
+
+      let request: any
+      ;({ data: request } = await baseQuery(
+        {
+          url: '/echo',
+          body: {},
+          method: 'POST',
+        },
+        commonBaseQueryApi,
+        {}
+      ))
+
+      expect(request.headers['content-type']).toBe('application/vnd.api+json')
     })
   })
 
@@ -398,6 +537,36 @@ describe('fetchBaseQuery', () => {
       expect(request.url).toEqual(
         `${baseUrl}/echo?someArray[]=a&someArray[]=b&someArray[]=c`
       )
+    })
+
+    it('should supports a custom isJsonContentType function', async () => {
+      const testBody = {
+        i_should_be_stringified: true,
+      }
+      const baseQuery = fetchBaseQuery({
+        baseUrl,
+        fetchFn: fetchFn as any,
+        isJsonContentType: (headers) =>
+          [
+            'application/vnd.api+json',
+            'application/json',
+            'application/vnd.hal+json',
+          ].includes(headers.get('content-type') ?? ''),
+      })
+
+      let request: any
+      ;({ data: request } = await baseQuery(
+        {
+          url: '/echo',
+          method: 'POST',
+          body: testBody,
+          headers: { 'content-type': 'application/vnd.hal+json' },
+        },
+        commonBaseQueryApi,
+        {}
+      ))
+
+      expect(request.body).toMatchObject(testBody)
     })
   })
 
@@ -513,11 +682,15 @@ describe('fetchBaseQuery', () => {
     test('prepareHeaders is able to select from a state', async () => {
       let request: any
 
-      const doRequest = async () =>
-        baseQuery(
+      const doRequest = async () => {
+        const abortController = new AbortController()
+        return baseQuery(
           { url: '/echo' },
           {
-            signal: new AbortController().signal,
+            signal: abortController.signal,
+            abort: (reason) =>
+              // @ts-ignore
+              abortController.abort(reason),
             dispatch: storeRef.store.dispatch,
             getState: storeRef.store.getState,
             extra: undefined,
@@ -526,6 +699,7 @@ describe('fetchBaseQuery', () => {
           },
           {}
         )
+      }
 
       ;({ data: request } = await doRequest())
 
@@ -563,11 +737,15 @@ describe('fetchBaseQuery', () => {
         getTokenSilently: async () => 'fakeToken',
       }
 
-      const doRequest = async () =>
-        baseQuery(
+      const doRequest = async () => {
+        const abortController = new AbortController()
+        return baseQuery(
           { url: '/echo' },
           {
-            signal: new AbortController().signal,
+            signal: abortController.signal,
+            abort: (reason) =>
+              // @ts-ignore
+              abortController.abort(reason),
             dispatch: storeRef.store.dispatch,
             getState: storeRef.store.getState,
             extra: fakeAuth0Client,
@@ -577,6 +755,7 @@ describe('fetchBaseQuery', () => {
           },
           {}
         )
+      }
 
       await doRequest()
 
@@ -708,5 +887,32 @@ describe('still throws on completely unexpected errors', () => {
     )
     expect(req).toBeInstanceOf(Promise)
     await expect(req).rejects.toBe(error)
+  })
+})
+
+describe('timeout', () => {
+  it('throws a timeout error when a request takes longer than specified timeout duration', async () => {
+    jest.useFakeTimers('legacy')
+    let result: any
+    server.use(
+      rest.get('https://example.com/empty', (req, res, ctx) =>
+        res.once(
+          ctx.delay(3000),
+          ctx.json({ ...req, headers: req.headers.all() })
+        )
+      )
+    )
+    Promise.resolve(
+      baseQuery({ url: '/empty', timeout: 2000 }, commonBaseQueryApi, {})
+    ).then((r) => {
+      result = r
+    })
+    await waitMs()
+    jest.runAllTimers()
+    await waitMs()
+    expect(result?.error).toEqual({
+      status: 'TIMEOUT_ERROR',
+      error: 'AbortError: The user aborted a request.',
+    })
   })
 })

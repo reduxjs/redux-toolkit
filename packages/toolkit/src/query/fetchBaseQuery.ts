@@ -4,6 +4,7 @@ import type { BaseQueryApi, BaseQueryFn } from './baseQueryTypes'
 import type { MaybePromise, Override } from './tsHelpers'
 
 export type ResponseHandler =
+  | 'content-type'
   | 'json'
   | 'text'
   | ((response: Response) => Promise<any>)
@@ -25,6 +26,7 @@ export interface FetchArgs extends CustomRequestInit {
   body?: any
   responseHandler?: ResponseHandler
   validateStatus?: (response: Response, body: any) => boolean
+  timeout?: number
 }
 
 /**
@@ -37,26 +39,8 @@ const defaultFetchFn: typeof fetch = (...args) => fetch(...args)
 const defaultValidateStatus = (response: Response) =>
   response.status >= 200 && response.status <= 299
 
-const isJsonContentType = (headers: Headers) =>
-  headers.get('content-type')?.trim()?.startsWith('application/json')
-
-const handleResponse = async (
-  response: Response,
-  responseHandler: ResponseHandler
-) => {
-  if (typeof responseHandler === 'function') {
-    return responseHandler(response)
-  }
-
-  if (responseHandler === 'text') {
-    return response.text()
-  }
-
-  if (responseHandler === 'json') {
-    const text = await response.text()
-    return text.length ? JSON.parse(text) : null
-  }
-}
+const defaultIsJsonContentType = (headers: Headers) =>
+  /*applicat*/ /ion\/(vnd\.api\+)?json/.test(headers.get('content-type') || '')
 
 export type FetchBaseQueryError =
   | {
@@ -86,6 +70,15 @@ export type FetchBaseQueryError =
       status: 'PARSING_ERROR'
       originalStatus: number
       data: string
+      error: string
+    }
+  | {
+      /**
+       * * `"TIMEOUT_ERROR"`:
+       *   Request timed out
+       **/
+      status: 'TIMEOUT_ERROR'
+      data?: undefined
       error: string
     }
   | {
@@ -123,6 +116,23 @@ export type FetchBaseQueryArgs = {
     init?: RequestInit | undefined
   ) => Promise<Response>
   paramsSerializer?: (params: Record<string, any>) => string
+  /**
+   * By default, we only check for 'application/json' and 'application/vnd.api+json' as the content-types for json. If you need to support another format, you can pass
+   * in a predicate function for your given api to get the same automatic stringifying behavior
+   * @example
+   * ```ts
+   * const isJsonContentType = (headers: Headers) => ["application/vnd.api+json", "application/json", "application/vnd.hal+json"].includes(headers.get("content-type")?.trim());
+   * ```
+   */
+  isJsonContentType?: (headers: Headers) => boolean
+  /**
+   * Defaults to `application/json`;
+   */
+  jsonContentType?: string
+  /**
+   * A number in milliseconds that represents that maximum time a request can take before timing out.
+   */
+  timeout?: number
 } & RequestInit
 
 export type FetchBaseQueryMeta = { request: Request; response?: Response }
@@ -162,12 +172,23 @@ export type FetchBaseQueryMeta = { request: Request; response?: Response }
  *
  * @param {(params: Record<string, unknown>) => string} paramsSerializer
  * An optional function that can be used to stringify querystring parameters.
+ *
+ * @param {(headers: Headers) => boolean} isJsonContentType
+ * An optional predicate function to determine if `JSON.stringify()` should be called on the `body` arg of `FetchArgs`
+ *
+ * @param {string} jsonContentType Defaults to `application/json`. Used when automatically setting the content-type header for a request with a jsonifiable body that does not have an explicit content-type header.
+ *
+ * @param {number} timeout
+ * A number in milliseconds that represents the maximum time a request can take before timing out.
  */
 export function fetchBaseQuery({
   baseUrl,
   prepareHeaders = (x) => x,
   fetchFn = defaultFetchFn,
   paramsSerializer,
+  isJsonContentType = defaultIsJsonContentType,
+  jsonContentType = 'application/json',
+  timeout: defaultTimeout,
   ...baseFetchOptions
 }: FetchBaseQueryArgs = {}): BaseQueryFn<
   string | FetchArgs,
@@ -192,6 +213,7 @@ export function fetchBaseQuery({
       params = undefined,
       responseHandler = 'json' as const,
       validateStatus = defaultValidateStatus,
+      timeout = defaultTimeout,
       ...rest
     } = typeof arg == 'string' ? { url: arg } : arg
     let config: RequestInit = {
@@ -215,10 +237,10 @@ export function fetchBaseQuery({
         typeof body.toJSON === 'function')
 
     if (!config.headers.has('content-type') && isJsonifiable(body)) {
-      config.headers.set('content-type', 'application/json')
+      config.headers.set('content-type', jsonContentType)
     }
 
-    if (body && isJsonContentType(config.headers)) {
+    if (isJsonifiable(body) && isJsonContentType(config.headers)) {
       config.body = JSON.stringify(body)
     }
 
@@ -236,11 +258,26 @@ export function fetchBaseQuery({
     const requestClone = request.clone()
     meta = { request: requestClone }
 
-    let response
+    let response,
+      timedOut = false,
+      timeoutId =
+        timeout &&
+        setTimeout(() => {
+          timedOut = true
+          api.abort()
+        }, timeout)
     try {
       response = await fetchFn(request)
     } catch (e) {
-      return { error: { status: 'FETCH_ERROR', error: String(e) }, meta }
+      return {
+        error: {
+          status: timedOut ? 'TIMEOUT_ERROR' : 'FETCH_ERROR',
+          error: String(e),
+        },
+        meta,
+      }
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId)
     }
     const responseClone = response.clone()
 
@@ -287,5 +324,25 @@ export function fetchBaseQuery({
           },
           meta,
         }
+  }
+
+  async function handleResponse(
+    response: Response,
+    responseHandler: ResponseHandler
+  ) {
+    if (typeof responseHandler === 'function') {
+      return responseHandler(response)
+    }
+
+    if (responseHandler === 'content-type') {
+      responseHandler = isJsonContentType(response.headers) ? 'json' : 'text'
+    }
+
+    if (responseHandler === 'json') {
+      const text = await response.text()
+      return text.length ? JSON.parse(text) : null
+    }
+
+    return response.text()
   }
 }

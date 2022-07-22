@@ -138,7 +138,8 @@ export function isMessage(message: unknown): message is Message {
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { createEntityAdapter, EntityState } from '@reduxjs/toolkit'
+import { createEntityAdapter } from '@reduxjs/toolkit'
+import type { EntityState } from '@reduxjs/toolkit'
 import { isMessage } from './schemaValidators'
 
 export type Channel = 'redux' | 'general'

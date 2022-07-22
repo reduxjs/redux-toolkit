@@ -70,7 +70,7 @@ export interface User {
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { Post, User } from './types'
+import type { Post, User } from './types'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({
@@ -134,7 +134,7 @@ export interface User {
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { Post, User } from './types'
+import type { Post, User } from './types'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({
@@ -190,7 +190,7 @@ export interface User {
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { Post, User } from './types'
+import type { Post, User } from './types'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({
@@ -257,7 +257,7 @@ export interface User {
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { Post, User } from './types'
+import type { Post, User } from './types'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({
@@ -337,7 +337,7 @@ export interface User {
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { Post, User } from './types'
+import type { Post, User } from './types'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({
@@ -639,7 +639,7 @@ export interface User {
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { Post, User } from './types'
+import type { Post, User } from './types'
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -706,7 +706,7 @@ export interface User {
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { Post, User } from './types'
+import type { Post, User } from './types'
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -853,7 +853,7 @@ export interface User {
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { Post, User } from './types'
+import type { Post, User } from './types'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
@@ -903,7 +903,7 @@ export interface User {
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { Post, User } from './types'
+import type { Post, User } from './types'
 
 // highlight-start
 function providesList<R extends { id: string | number }[], T extends string>(

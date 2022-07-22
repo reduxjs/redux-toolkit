@@ -1,5 +1,5 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+import ReactDOM from 'react-dom/client'
 import App from './App'
 import { store } from './app/store'
 import { Provider } from 'react-redux'
@@ -11,15 +11,19 @@ async function render() {
   if (process.env.NODE_ENV === 'development') {
     await worker.start()
   }
-  ReactDOM.render(
+
+  const rootNode = ReactDOM.createRoot(
+    document.getElementById('root') as HTMLElement
+  )
+
+  rootNode.render(
     <React.StrictMode>
       <Provider store={store}>
         <BrowserRouter>
           <App />
         </BrowserRouter>
       </Provider>
-    </React.StrictMode>,
-    document.getElementById('root')
+    </React.StrictMode>
   )
 }
 

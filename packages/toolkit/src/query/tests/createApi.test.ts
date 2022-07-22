@@ -310,6 +310,7 @@ describe('endpoint definition typings', () => {
     const commonBaseQueryApi = {
       dispatch: expect.any(Function),
       endpoint: expect.any(String),
+      abort: expect.any(Function),
       extra: undefined,
       forced: expect.any(Boolean),
       getState: expect.any(Function),
@@ -332,13 +333,14 @@ describe('endpoint definition typings', () => {
       })
     }
     let api = getNewApi()
-    let storeRef = setupApiStore(api)
     beforeEach(() => {
       api = getNewApi()
-      storeRef = setupApiStore(api)
     })
 
     test('pre-modification behaviour', async () => {
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
       storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
       storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
       storeRef.store.dispatch(api.endpoints.mutation1.initiate('in1'))
@@ -352,6 +354,7 @@ describe('endpoint definition typings', () => {
             endpoint: expect.any(String),
             getState: expect.any(Function),
             signal: expect.any(Object),
+            abort: expect.any(Function),
             forced: expect.any(Boolean),
             type: expect.any(String),
           },
@@ -364,6 +367,7 @@ describe('endpoint definition typings', () => {
             endpoint: expect.any(String),
             getState: expect.any(Function),
             signal: expect.any(Object),
+            abort: expect.any(Function),
             forced: expect.any(Boolean),
             type: expect.any(String),
           },
@@ -376,6 +380,7 @@ describe('endpoint definition typings', () => {
             endpoint: expect.any(String),
             getState: expect.any(Function),
             signal: expect.any(Object),
+            abort: expect.any(Function),
             // forced: undefined,
             type: expect.any(String),
           },
@@ -388,6 +393,7 @@ describe('endpoint definition typings', () => {
             endpoint: expect.any(String),
             getState: expect.any(Function),
             signal: expect.any(Object),
+            abort: expect.any(Function),
             // forced: undefined,
             type: expect.any(String),
           },
@@ -397,6 +403,9 @@ describe('endpoint definition typings', () => {
     })
 
     test('warn on wrong tagType', async () => {
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
       // only type-test this part
       if (2 > 1) {
         api.enhanceEndpoints({
@@ -432,7 +441,6 @@ describe('endpoint definition typings', () => {
 
       storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
       await waitMs(1)
-      debugger
       expect(spy).toHaveBeenCalledWith(
         "Tag type 'missing' was used, but not specified in `tagTypes`!"
       )
@@ -455,6 +463,9 @@ describe('endpoint definition typings', () => {
     })
 
     test('modify', () => {
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
       api.enhanceEndpoints({
         endpoints: {
           query1: {
@@ -751,7 +762,9 @@ test('providesTags and invalidatesTags can use baseQueryMeta', async () => {
     }),
   })
 
-  const storeRef = setupApiStore(api)
+  const storeRef = setupApiStore(api, undefined, {
+    withoutTestLifecycles: true,
+  })
 
   await storeRef.store.dispatch(api.endpoints.query.initiate())
   expect('request' in _meta! && 'response' in _meta!).toBe(true)

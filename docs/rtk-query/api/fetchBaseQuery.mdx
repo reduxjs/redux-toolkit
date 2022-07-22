@@ -13,7 +13,7 @@ description: 'RTK Query > API: fetchBaseQuery reference'
 
 This is a very small wrapper around [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) that aims to simplify requests. It is not a full-blown replacement for `axios`, `superagent`, or any other more heavy-weight library, but it will cover the large majority of your needs.
 
-It takes all standard options from fetch's [`RequestInit`](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) interface, as well as `baseUrl`, a `prepareHeaders` function, an optional `fetch` function, and a `paramsSerializer` function.
+It takes all standard options from fetch's [`RequestInit`](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) interface, as well as `baseUrl`, a `prepareHeaders` function, an optional `fetch` function, a `paramsSerializer` function, and a `timeout`.
 
 - `baseUrl` _(required)_
   - Typically a string like `https://api.your-really-great-app.com/v1/`. If you don't provide a `baseUrl`, it defaults to a relative path from where the request is being made. You should most likely _always_ specify this.
@@ -38,6 +38,8 @@ It takes all standard options from fetch's [`RequestInit`](https://developer.moz
   - A function that can be used to apply custom transformations to the data passed into [`params`](#setting-the-query-string). If you don't provide this, `params` will be given directly to `new URLSearchParms()`. With some API integrations, you may need to leverage this to use something like the [`query-string`](https://github.com/sindresorhus/query-string) library to support different array types.
 - `fetchFn` _(optional)_
   - A fetch function that overrides the default on the window. Can be useful in SSR environments where you may need to leverage `isomorphic-fetch` or `cross-fetch`.
+- `timeout` _(optional)_
+  - A number in milliseconds that represents the maximum time a request can take before timing out.
 
 ```ts title="Return types of fetchBaseQuery" no-transpile
 Promise<{
@@ -114,6 +116,7 @@ There is more behavior that you can define on a per-request basis that extends t
 - [`body`](#setting-the-body)
 - [`responseHandler`](#parsing-a-Response)
 - [`validateStatus`](#handling-non-standard-response-status-codes)
+- [`timeout`](#adding-a-custom-timeout-to-requests)
 
 ```ts title="endpoint request options"
 interface FetchArgs extends RequestInit {
@@ -122,6 +125,7 @@ interface FetchArgs extends RequestInit {
   body?: any
   responseHandler?: 'json' | 'text' | ((response: Response) => Promise<any>)
   validateStatus?: (response: Response, body: any) => boolean
+  timeout?: number
 }
 
 const defaultValidateStatus = (response: Response) =>
@@ -222,6 +226,26 @@ export const customApi = createApi({
         url: `users`,
         validateStatus: (response, result) =>
           response.status === 200 && !result.isError, // Our tricky API always returns a 200, but sets an `isError` property when there is an error.
+      }),
+    }),
+  }),
+})
+```
+
+### Adding a custom timeout to requests
+
+By default, `fetchBaseQuery` has no default timeout value set, meaning your requests will stay pending until your api resolves the request(s) or it reaches the browser's default timeout (normally 5 minutes). Most of the time, this isn't what you'll want. When using `fetchBaseQuery`, you have the ability to set a `timeout` on the `baseQuery` or on individual endpoints. When specifying both options, the endpoint value will take priority.
+
+```ts title="Setting a timeout value"
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/api/', timeout: 10000 }), // Set a default timeout of 10 seconds
+  endpoints: (builder) => ({
+    getUsers: builder.query({
+      query: () => ({
+        url: `users`,
+        timeout: 1000, // We know the users endpoint is _really fast_ because it's always cached. We can assume if its over > 1000ms, something is wrong and we should abort the request.
       }),
     }),
   }),
