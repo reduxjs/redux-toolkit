@@ -686,7 +686,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         Definitions
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
-      const { cache, lastCache } = useQueryArgCache(
+      const { cache, lastCache, cacheArray } = useQueryArgCache<
+        any,
+        { promise?: QueryActionCreatorResult<any> }
+      >(
         skip ? [] : args,
         serializeQueryArgs,
         context.endpointDefinitions[name],
@@ -731,7 +734,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           }
         }
 
-        for (const query of Object.values(cache)) {
+        for (const query of cacheArray) {
           const lastPromise = query.promise
 
           const lastSubscriptionOptions = query.promise?.subscriptionOptions
@@ -755,15 +758,16 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         cache,
         refetchOnMountOrArgChange,
         stableSubscriptionOptions,
+        cacheArray,
       ])
 
-      const cacheRef = useRef(cache)
+      const cacheRef = useRef(cacheArray)
       useEffect(() => {
-        cacheRef.current = cache
+        cacheRef.current = cacheArray
       })
       useEffect(() => {
         return () => {
-          for (const query of Object.values(cacheRef.current)) {
+          for (const query of cacheRef.current) {
             query.promise?.unsubscribe()
             query.promise = undefined
           }
@@ -867,59 +871,72 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       return useMemo(() => [trigger, arg] as const, [trigger, arg])
     }
 
-    const useQueryState: UseQueryState<any> = (
-      arg: any,
-      { skip = false, selectFromResult = defaultQueryStateSelector } = {}
-    ) => {
+    const useQueryStates = (
+      args: any[],
+      {
+        selectFromResult = defaultQueryStateSelector,
+      }: Omit<UseQueryStateOptions<any, any>, 'skip'> = {}
+    ): Array<UseQueryStateResult<any, any>> => {
       const { select } = api.endpoints[name] as ApiEndpointQuery<
         QueryDefinition<any, any, any, any, any>,
         Definitions
       >
-      const stableArg = useStableQueryArgs(
-        skip ? skipToken : arg,
-        serializeQueryArgs,
-        context.endpointDefinitions[name],
-        name
-      )
 
       type ApiRootState = Parameters<ReturnType<typeof select>>[0]
 
-      const lastValue = useRef<any>()
+      // TODO: has to accept skipToken as well!
+      const { cacheArray } = useQueryArgCache<
+        any,
+        {
+          lastResult?: any
+          select?: Selector<ApiRootState, any, []>
+        }
+      >(args, serializeQueryArgs, context.endpointDefinitions[name], name)
 
-      const selectDefaultResult: Selector<ApiRootState, any, [any]> = useMemo(
-        () =>
-          createSelector(
+      for (const entry of cacheArray) {
+        if (!entry.select) {
+          entry.select ??= createSelector(
             [
-              select(stableArg),
-              (_: ApiRootState, lastResult: any) => lastResult,
-              (_: ApiRootState) => stableArg,
+              select(entry.queryArgs),
+              () => entry.lastResult,
+              () => entry.queryArgs,
             ],
             queryStatePreSelector
+          )
+        }
+      }
+
+      const combinedQuerySelector: Selector<ApiRootState, any[]> = useMemo(
+        () =>
+          (createSelector as any)(
+            cacheArray.map((e) => e.select),
+            (...x: any[]) => x
           ),
-        [select, stableArg]
+        [cacheArray]
       )
 
-      const querySelector: Selector<ApiRootState, any, [any]> = useMemo(
-        () => createSelector([selectDefaultResult], selectFromResult),
-        [selectDefaultResult, selectFromResult]
+      const currentState = useSelector(combinedQuerySelector)
+      const selectedFromResult = useMemo(
+        () => currentState.map((r) => selectFromResult(r)),
+        [currentState, selectFromResult]
       )
 
-      const currentState = useSelector(
-        (state: RootState<Definitions, any, any>) =>
-          querySelector(state, lastValue.current),
-        shallowEqual
-      )
-
-      const store = useStore<RootState<Definitions, any, any>>()
-      const newLastValue = selectDefaultResult(
-        store.getState(),
-        lastValue.current
-      )
+      const state = useStore<RootState<Definitions, any, any>>().getState()
+      const newLastResults = cacheArray.map((e) => e.select?.(state))
       useIsomorphicLayoutEffect(() => {
-        lastValue.current = newLastValue
-      }, [newLastValue])
+        for (let i = 0; i < cacheArray.length; i++) {
+          cacheArray[i].lastResult = newLastResults[i]
+        }
+      }, [cacheArray, newLastResults])
 
-      return currentState
+      return selectedFromResult
+    }
+
+    const useQueryState: UseQueryState<any> = (
+      arg: any,
+      { skip = false, selectFromResult } = {}
+    ) => {
+      return useQueryStates([skip ? skipToken : arg], { selectFromResult })[0]
     }
 
     return {

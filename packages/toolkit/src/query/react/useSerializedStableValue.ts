@@ -4,6 +4,8 @@ import type { EndpointDefinition } from '@reduxjs/toolkit/dist/query/endpointDef
 import { shallowEqual } from 'react-redux'
 import produce from 'immer'
 import type { QueryActionCreatorResult } from '../core/buildInitiate'
+import type { SkipToken } from '../core/buildSelectors'
+import { skipToken } from '../core/buildSelectors'
 
 export function useStableQueryArgs<T>(
   queryArgs: T,
@@ -21,44 +23,53 @@ export function useStableQueryArgs<T>(
   return obj ? Object.values(cache)[0].queryArgs : queryArgs
 }
 
-type CacheEntry<T> = {
+type CacheEntry<T, ExtraProps> = ExtraProps & {
   queryArgs: T
   serialized: string | T
-  promise?: QueryActionCreatorResult<any>
 }
-type Cache<T> = {
-  [serialized: string]: CacheEntry<T>
+type Cache<T, ExtraProps> = {
+  [serialized: string]: CacheEntry<T, ExtraProps>
 }
 
-export function useQueryArgCache<T>(
+export function useQueryArgCache<T, ExtraProps>(
   queryArgsArray: Array<T>,
   serialize: SerializeQueryArgs<any>,
   endpointDefinition: EndpointDefinition<any, any, any, any>,
   endpointName: string
 ) {
-  const lastCache = useRef<Cache<T>>({})
-  let cache: Cache<T> = {}
+  const lastCache = useRef<Cache<T, ExtraProps>>({})
+  let cache: Cache<T, ExtraProps> = {}
+  const lastCacheArray = useRef<Array<CacheEntry<T, ExtraProps>>>([])
+  let cacheArray: Array<CacheEntry<T, ExtraProps>> = []
 
   for (const queryArgs of queryArgsArray) {
-    const serialized = serialize({
-      queryArgs,
-      endpointDefinition,
-      endpointName,
-    })
+    const serialized =
+      (queryArgs as any) === skipToken
+        ? '____skipToken'
+        : serialize({
+            queryArgs,
+            endpointDefinition,
+            endpointName,
+          })
 
-    cache[serialized] = lastCache.current[serialized] || {
-      queryArgs,
-      serialized,
-    }
+    // @ts-ignore
+    cache[serialized] = cache[serialized] ||
+      lastCache.current[serialized] || {
+        queryArgs,
+        serialized,
+      }
+    cacheArray.push(cache[serialized])
   }
 
   if (shallowEqual(lastCache.current, cache)) {
     cache = lastCache.current
+    cacheArray = lastCacheArray.current
   }
 
   useEffect(() => {
     lastCache.current = cache
+    lastCacheArray.current = cacheArray
   })
 
-  return { cache, lastCache: lastCache.current }
+  return { cache, lastCache: lastCache.current, cacheArray }
 }
