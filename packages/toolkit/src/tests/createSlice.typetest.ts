@@ -9,8 +9,8 @@ import type {
   PayloadAction,
   SliceCaseReducers,
   ValidateSliceCaseReducers,
-} from '@reduxjs/toolkit'
-import { createAction, createSlice } from '@reduxjs/toolkit'
+} from '..'
+import { createAction, createSlice } from '..'
 import { expectType } from './helpers'
 
 /*
@@ -58,7 +58,7 @@ const value = actionCreators.anyKey
     reducers: {
       increment: (state: number, action) => {
         // @ts-expect-error
-        expect<string>(state)
+        expectType<string>(state)
         return state + action.payload
       },
       decrement: (state: number, action) => state - action.payload,
@@ -101,7 +101,7 @@ const value = actionCreators.anyKey
         { payload = 1 }: PayloadAction<number | undefined>
       ) => {
         // @ts-expect-error
-        expect<string>(state)
+        expectType<string>(state)
         return state - payload
       },
 

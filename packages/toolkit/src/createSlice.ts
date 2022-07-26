@@ -235,7 +235,9 @@ export type ValidateSliceCaseReducers<
       ? {
           prepare(...a: never[]): Omit<A, 'type'>
         }
-      : ACR[T]
+      : {}
+    // this should still error in 4.8 - the fix woule be
+    // : ACR[T]
   }
 
 function getType(slice: string, actionKey: string): string {
@@ -268,8 +270,10 @@ export function createSlice<
     typeof process !== 'undefined' &&
     process.env.NODE_ENV === 'development'
   ) {
-    if(options.initialState === undefined) {
-      console.error('You must provide an `initialState` value that is not `undefined`. You may have misspelled `initialState`')
+    if (options.initialState === undefined) {
+      console.error(
+        'You must provide an `initialState` value that is not `undefined`. You may have misspelled `initialState`'
+      )
     }
   }
 

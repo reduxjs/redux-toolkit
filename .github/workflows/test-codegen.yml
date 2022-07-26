@@ -6,27 +6,18 @@ defaults:
   run:
     working-directory: ./packages/rtk-query-codegen-openapi
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'packages/rtk-query-codegen-openapi/**'
+  pull_request:
+    paths:
+      - 'packages/rtk-query-codegen-openapi/**'
 
 jobs:
-  changes:
-    name: Check for changes
-    runs-on: ubuntu-latest
-    outputs:
-      codegen: ${{ steps.filter.outputs.codegen }}
-    steps:
-      - uses: actions/checkout@v2
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            codegen:
-              - 'packages/rtk-query-codegen-openapi/**'
-
   build:
-    needs: changes
-    if: ${{ needs.changes.outputs.codegen == 'true' }}
-
     runs-on: ubuntu-latest
 
     strategy:

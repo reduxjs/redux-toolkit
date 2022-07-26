@@ -1,28 +1,20 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'packages/toolkit/**'
+  pull_request:
+    paths:
+      - 'packages/toolkit/**'
+
 defaults:
   run:
     working-directory: ./packages/toolkit
 
 jobs:
-  changes:
-    name: Check for changes
-    runs-on: ubuntu-latest
-    outputs:
-      toolkit: ${{ steps.filter.outputs.toolkit }}
-    steps:
-      - uses: actions/checkout@v2
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            toolkit:
-              - 'packages/toolkit/**'
-
   build:
-    needs: changes
-    if: ${{ needs.changes.outputs.toolkit == 'true' }}
-
     name: Lint, Test, Build & Pack on Node ${{ matrix.node }}
 
     runs-on: ubuntu-latest
