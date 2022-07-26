@@ -56,7 +56,11 @@ const value = actionCreators.anyKey
     name: 'counter',
     initialState: 0,
     reducers: {
-      increment: (state: number, action) => state + action.payload,
+      increment: (state: number, action) => {
+        // @ts-expect-error
+        expect<string>(state)
+        return state + action.payload
+      },
       decrement: (state: number, action) => state - action.payload,
     },
     extraReducers: {
@@ -92,14 +96,25 @@ const value = actionCreators.anyKey
     initialState: 0,
     reducers: {
       increment: (state) => state + 1,
-      decrement: (state, { payload = 1 }: PayloadAction<number | undefined>) =>
-        state - payload,
+      decrement: (
+        state,
+        { payload = 1 }: PayloadAction<number | undefined>
+      ) => {
+        // @ts-expect-error
+        expect<string>(state)
+        return state - payload
+      },
+
       multiply: (state, { payload }: PayloadAction<number | number[]>) =>
         Array.isArray(payload)
           ? payload.reduce((acc, val) => acc * val, state)
           : state * payload,
       addTwo: {
-        reducer: (s, { payload }: PayloadAction<number>) => s + payload,
+        reducer: (s, { payload }: PayloadAction<number>) => {
+          // @ts-expect-error
+          expect<string>(state)
+          return s + payload
+        },
         prepare: (a: number, b: number) => ({
           payload: a + b,
         }),
