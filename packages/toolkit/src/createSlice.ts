@@ -228,7 +228,7 @@ export type ValidateSliceCaseReducers<
   S,
   ACR extends SliceCaseReducers<S>
 > = ACR & {
-  [T in (keyof ACR) & symbol]: ACR[T] extends {
+  [T in keyof ACR]: ACR[T] extends {
     reducer(s: S, action?: infer A): any
   }
     ? {
