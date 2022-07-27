@@ -5598,7 +5598,7 @@ __metadata:
     "@microsoft/api-extractor": ^7.13.2
     "@size-limit/preset-small-lib": ^4.11.0
     "@testing-library/react": ^13.3.0
-    "@testing-library/user-event": ^14.2.0
+    "@testing-library/user-event": ^13.1.5
     "@types/convert-source-map": ^1.5.1
     "@types/jest": ^27
     "@types/json-stringify-safe": ^5.0.0
@@ -6379,12 +6379,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/user-event@npm:^14.2.0":
-  version: 14.2.0
-  resolution: "@testing-library/user-event@npm:14.2.0"
+"@testing-library/user-event@npm:^13.1.5":
+  version: 13.5.0
+  resolution: "@testing-library/user-event@npm:13.5.0"
+  dependencies:
+    "@babel/runtime": ^7.12.5
   peerDependencies:
     "@testing-library/dom": ">=7.21.4"
-  checksum: b34f19bbfe938d03778831b9c083d451c53f983f6f6c0db05a572b71ba5323c4125097bb4b8c97595bc9b946610d2c2f65cf1e113f047eed7a3078f28a1027e2
+  checksum: 16319de685fbb7008f1ba667928f458b2d08196918002daca56996de80ef35e6d9de26e9e1ece7d00a004692b95a597cf9142fff0dc53f2f51606a776584f549
   languageName: node
   linkType: hard
 
