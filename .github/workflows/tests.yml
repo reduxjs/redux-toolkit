@@ -128,6 +128,4 @@ jobs:
         run: sed -i -e 's/@pre41-ts-ignore/@ts-ignore/' -e  '/pre41-remove-start/,/pre41-remove-end/d' ./src/tests/*.* ./src/query/tests/*.ts*
 
       - name: Test types
-        run: |
-          yarn tsc --version
-          yarn type-tests
+        run: yarn type-tests
