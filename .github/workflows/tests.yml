@@ -129,5 +129,5 @@ jobs:
 
       - name: Test types
         run: |
-          yarn tsc --version
+          yarn tsc-version
           yarn type-tests
