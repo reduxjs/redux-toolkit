@@ -235,9 +235,7 @@ export type ValidateSliceCaseReducers<
       ? {
           prepare(...a: never[]): Omit<A, 'type'>
         }
-      : {}
-    // this should still error in 4.8 - the fix woule be
-    // : ACR[T]
+      : ACR[T]
   }
 
 function getType(slice: string, actionKey: string): string {

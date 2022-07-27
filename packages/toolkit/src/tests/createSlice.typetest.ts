@@ -9,8 +9,8 @@ import type {
   PayloadAction,
   SliceCaseReducers,
   ValidateSliceCaseReducers,
-} from '..'
-import { createAction, createSlice } from '..'
+} from '@reduxjs/toolkit'
+import { createAction, createSlice } from '@reduxjs/toolkit'
 import { expectType } from './helpers'
 
 /*
