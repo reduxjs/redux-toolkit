@@ -235,7 +235,9 @@ export type ValidateSliceCaseReducers<
       ? {
           prepare(...a: never[]): Omit<A, 'type'>
         }
-      : ACR[T]
+      : import('@phryneas/ts-version').TSVersion.AtLeast<'4', '8'> extends true
+      ? ACR[T]
+      : {}
   }
 
 function getType(slice: string, actionKey: string): string {
