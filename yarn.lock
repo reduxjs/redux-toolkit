@@ -5484,10 +5484,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@phryneas/ts-version@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@phryneas/ts-version@npm:1.0.1"
-  checksum: 897ee7a6c673fa48847518913418a51d96bf3a72092c4e1bbf3e8e715abe781ac17479e346e872a55ce7a48b70df88729056955f800a60259381d08d20563ec7
+"@phryneas/ts-version@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "@phryneas/ts-version@npm:1.0.2"
+  checksum: d51914a8ea35ff8b686a9379b9e9fe6d5b5feaf2e7511b880d2835015736e33bc82952bbc369918f251d4a755f32f4a9c4a34b0ec4dfdbc3e87a41d26401105c
   languageName: node
   linkType: hard
 
@@ -5603,7 +5603,7 @@ __metadata:
   resolution: "@reduxjs/toolkit@workspace:packages/toolkit"
   dependencies:
     "@microsoft/api-extractor": ^7.13.2
-    "@phryneas/ts-version": ^1.0.1
+    "@phryneas/ts-version": ^1.0.2
     "@size-limit/preset-small-lib": ^4.11.0
     "@testing-library/react": ^13.3.0
     "@testing-library/user-event": ^13.1.5

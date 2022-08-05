@@ -97,7 +97,7 @@
     "query"
   ],
   "dependencies": {
-    "@phryneas/ts-version": "^1.0.1",
+    "@phryneas/ts-version": "^1.0.2",
     "immer": "^9.0.7",
     "redux": "^4.1.2",
     "redux-thunk": "^2.4.1",
