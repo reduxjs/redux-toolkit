@@ -3720,7 +3720,7 @@ __metadata:
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
     framer-motion: ^2.9.5
-    msw: ^0.41.1
+    msw: ^0.40.2
     react: ^18.1.0
     react-dom: ^18.1.0
     react-icons: 3.11.0
@@ -3742,7 +3742,7 @@ __metadata:
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
     framer-motion: ^2.9.5
-    msw: ^0.41.1
+    msw: ^0.40.2
     react: ^18.1.0
     react-dom: ^18.1.0
     react-icons: 3.11.0
@@ -3881,7 +3881,7 @@ __metadata:
     "@types/node": ^14.14.6
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
-    msw: ^0.41.1
+    msw: ^0.40.2
     react: ^18.1.0
     react-dom: ^18.1.0
     react-redux: ^8.0.2
@@ -3904,7 +3904,7 @@ __metadata:
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
     framer-motion: ^2.9.5
-    msw: ^0.41.1
+    msw: ^0.40.2
     react: ^18.1.0
     react-dom: ^18.1.0
     react-icons: 3.11.0
@@ -3927,7 +3927,7 @@ __metadata:
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
     framer-motion: ^2.9.5
-    msw: ^0.41.1
+    msw: ^0.40.2
     react: ^18.1.0
     react-dom: ^18.1.0
     react-icons: 3.11.0
@@ -3954,7 +3954,7 @@ __metadata:
     "@types/react-dom": ^18.0.5
     faker: ^5.5.3
     framer-motion: ^2.9.5
-    msw: ^0.41.1
+    msw: ^0.40.2
     react: ^18.1.0
     react-dom: ^18.1.0
     react-icons: 3.11.0
@@ -3994,7 +3994,7 @@ __metadata:
     "@types/react-dom": ^18.0.5
     faker: ^5.5.3
     framer-motion: ^2.9.5
-    msw: ^0.41.1
+    msw: ^0.40.2
     react: ^18.1.0
     react-dom: ^18.1.0
     react-icons: 3.11.0
@@ -4019,7 +4019,7 @@ __metadata:
     "@types/react-dom": ^18.0.5
     faker: ^5.5.3
     framer-motion: ^2.9.5
-    msw: ^0.41.1
+    msw: ^0.40.2
     react: ^18.1.0
     react-dom: ^18.1.0
     react-icons: 3.11.0
@@ -4044,7 +4044,7 @@ __metadata:
     "@types/react-dom": ^18.0.5
     faker: ^5.5.3
     framer-motion: ^2.9.5
-    msw: ^0.41.1
+    msw: ^0.40.2
     react: ^18.1.0
     react-dom: ^18.1.0
     react-icons: 3.11.0
@@ -5598,7 +5598,7 @@ __metadata:
     "@microsoft/api-extractor": ^7.13.2
     "@size-limit/preset-small-lib": ^4.11.0
     "@testing-library/react": ^13.3.0
-    "@testing-library/user-event": ^14.2.0
+    "@testing-library/user-event": ^13.1.5
     "@types/convert-source-map": ^1.5.1
     "@types/jest": ^27
     "@types/json-stringify-safe": ^5.0.0
@@ -5820,14 +5820,14 @@ __metadata:
   resolution: "@rtk-query/graphql-request-base-query@workspace:packages/rtk-query-graphql-request-base-query"
   dependencies:
     "@reduxjs/toolkit": ^1.6.0
-    graphql: ^15.5.0
+    graphql: ^16.5.0
     graphql-request: ^4.0.0
     microbundle: ^0.13.3
     rimraf: ^3.0.2
     typescript: ^4.3.4
   peerDependencies:
     "@reduxjs/toolkit": ^1.7.1
-    graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
+    graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
   languageName: unknown
   linkType: soft
 
@@ -6379,12 +6379,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/user-event@npm:^14.2.0":
-  version: 14.2.0
-  resolution: "@testing-library/user-event@npm:14.2.0"
+"@testing-library/user-event@npm:^13.1.5":
+  version: 13.5.0
+  resolution: "@testing-library/user-event@npm:13.5.0"
+  dependencies:
+    "@babel/runtime": ^7.12.5
   peerDependencies:
     "@testing-library/dom": ">=7.21.4"
-  checksum: b34f19bbfe938d03778831b9c083d451c53f983f6f6c0db05a572b71ba5323c4125097bb4b8c97595bc9b946610d2c2f65cf1e113f047eed7a3078f28a1027e2
+  checksum: 16319de685fbb7008f1ba667928f458b2d08196918002daca56996de80ef35e6d9de26e9e1ece7d00a004692b95a597cf9142fff0dc53f2f51606a776584f549
   languageName: node
   linkType: hard
 
@@ -14705,6 +14707,13 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"graphql@npm:^16.5.0":
+  version: 16.5.0
+  resolution: "graphql@npm:16.5.0"
+  checksum: a82a926d085818934d04fdf303a269af170e79de943678bd2726370a96194f9454ade9d6d76c2de69afbd7b9f0b4f8061619baecbbddbe82125860e675ac219e
+  languageName: node
+  linkType: hard
+
 "gray-matter@npm:^4.0.3":
   version: 4.0.3
   resolution: "gray-matter@npm:4.0.3"
@@ -18942,6 +18951,40 @@ fsevents@^1.2.7:
   bin:
     msw: cli/index.js
   checksum: bfcac14831d88ebee0375933a84294696410a2f93a8dd0cf0d37fb8f641ce93e9d2d840253fb5755003ea8bd7126dc83bd6844066bf5073f0a264cd8c768dec7
+  languageName: node
+  linkType: hard
+
+"msw@npm:^0.40.2":
+  version: 0.40.2
+  resolution: "msw@npm:0.40.2"
+  dependencies:
+    "@mswjs/cookies": ^0.2.0
+    "@mswjs/interceptors": ^0.15.1
+    "@open-draft/until": ^1.0.3
+    "@types/cookie": ^0.4.1
+    "@types/js-levenshtein": ^1.1.1
+    chalk: 4.1.1
+    chokidar: ^3.4.2
+    cookie: ^0.4.2
+    graphql: ^16.3.0
+    headers-polyfill: ^3.0.4
+    inquirer: ^8.2.0
+    is-node-process: ^1.0.1
+    js-levenshtein: ^1.1.6
+    node-fetch: ^2.6.7
+    path-to-regexp: ^6.2.0
+    statuses: ^2.0.0
+    strict-event-emitter: ^0.2.0
+    type-fest: ^1.2.2
+    yargs: ^17.3.1
+  peerDependencies:
+    typescript: ">= 4.2.x <= 4.6.x"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  bin:
+    msw: cli/index.js
+  checksum: a37c3aa79c0fc86499dab70d02942040ce34f16cc7db003c334b2c65b4e5e8236a2a992aa8507b4156188e9ad637c912ff7c02732132278eb6b266ef9982fbf5
   languageName: node
   linkType: hard
 
