@@ -12,8 +12,19 @@ import type { BaseQueryFn } from '@reduxjs/toolkit/dist/query/baseQueryTypes'
 
 import type { QueryKeys } from '@reduxjs/toolkit/dist/query/core/apiState'
 import type { PrefetchOptions } from '@reduxjs/toolkit/dist/query/core/module'
-
+export { SuspenseQueryError } from './exceptions'
 export * from '@reduxjs/toolkit/query'
+export { useSuspendAll } from './suspense-utils'
+export type {
+  Suspendable,
+  Resource,
+  SuspendableResource,
+  UseSuspendAllOutput,
+  ResolvedSuspendableResource,
+  IdleResource,
+  IdleSuspendableResource,
+} from './suspense-utils'
+
 export { ApiProvider } from './ApiProvider'
 
 const createApi = /* @__PURE__ */ buildCreateApi(

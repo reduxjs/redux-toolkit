@@ -80,6 +80,7 @@ export function buildMiddleware<
       originalArgs: querySubState.originalArgs,
       subscribe: false,
       forceRefetch: true,
+      reducerPath: reducerPath,
       queryCacheKey: queryCacheKey as any,
       ...override,
     })

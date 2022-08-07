@@ -126,6 +126,36 @@ export interface CreateApiOptions<
    * ```
    */
   keepUnusedDataFor?: number
+
+  /**
+   * Defaults to `10` _(this value is in seconds)_.
+   * 
+   * The default time to live of prefetch subscriptions.
+   *
+   * ```ts
+   * // codeblock-meta title="keepPrefetchSubscriptionsFor example"
+   *
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * interface Post {
+   *   id: number
+   *   name: string
+   * }
+   * type PostsResponse = Post[]
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   keepPrefetchSubscriptionsFor: 5,
+   *   endpoints: (build) => ({
+   *     getPosts: build.query<PostsResponse, void>({
+   *       query: () => 'posts',
+   *       // highlight-start
+   *       // highlight-end
+   *     })
+   *   })
+   * })
+   * ```
+   */
+  keepPrefetchSubscriptionsFor?: number
   /**
    * Defaults to `false`. This setting allows you to control whether if a cached result is already available RTK Query will only serve a cached result, or if it should `refetch` when set to `true` or if an adequate amount of time has passed since the last successful query result.
    * - `false` - Will not cause a query to be performed _unless_ it does not exist yet.
@@ -240,6 +270,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       reducerPath: 'api',
       serializeQueryArgs: defaultSerializeQueryArgs,
       keepUnusedDataFor: 60,
+      keepPrefetchSubscriptionsFor: 10,
       refetchOnMountOrArgChange: false,
       refetchOnFocus: false,
       refetchOnReconnect: false,

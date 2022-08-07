@@ -30,7 +30,7 @@ const getColorForStatus = (status: Post['status']) => {
 const PostList = () => {
   const [page, setPage] = useState(1)
   const { data: posts, isLoading, isFetching } = useListPostsQuery(page)
-  const prefetchPage = usePrefetch('listPosts')
+  const prefetchPage = usePrefetch('listPosts', { keepSubscriptionFor: 5 })
 
   const prefetchNext = useCallback(() => {
     prefetchPage(page + 1)

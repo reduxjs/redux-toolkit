@@ -42,6 +42,7 @@ export type Module<Name extends ModuleName> = {
       | 'reducerPath'
       | 'serializeQueryArgs'
       | 'keepUnusedDataFor'
+      | 'keepPrefetchSubscriptionsFor'
       | 'refetchOnMountOrArgChange'
       | 'refetchOnFocus'
       | 'refetchOnReconnect'

@@ -155,13 +155,23 @@ patchCollection.undo()
 #### Signature
 
 ```ts no-transpile
-type PrefetchOptions = { ifOlderThan?: false | number } | { force?: boolean };
+interface PrefetchActionCreatorResult {
+  unwrap(): Promise<void>,
+  abort(): void
+}
+
+type PrefetchOptions =
+  | {
+      ifOlderThan?: false | number,
+      keepSubscriptionFor?: number
+    }
+  | { force?: boolean, keepSubscriptionFor?: number }
 
 const prefetch = (
   endpointName: string,
   arg: any,
   options: PrefetchOptions
-) => ThunkAction<void, any, any, AnyAction>;
+) => ThunkAction<PrefetchActionCreatorResult, any, any, AnyAction>
 ```
 
 - **Parameters**
@@ -171,13 +181,18 @@ const prefetch = (
   - `options`: options to determine whether the request should be sent for a given situation:
     - `ifOlderThan`: if specified, only runs the query if the difference between `new Date()` and the last`fulfilledTimeStamp` is greater than the given value (in seconds)
     - `force`: if `true`, it will ignore the `ifOlderThan` value if it is set and the query will be run even if it exists in the cache.
-
+    - `keepSubscriptionFor`: how long in seconds before the data retrieved is considered unused;
+      defaults to `api.config.keepPrefetchSubscriptionsFor`.
 #### Description
 
 A Redux thunk action creator that can be used to manually trigger pre-fetching of data.
 
 The thunk action creator accepts three arguments: the name of the endpoint we are updating (such as `'getPost'`), any relevant query arguments, and a set of options used to determine if the data actually should be re-fetched based on cache staleness.
 
+The output is an object with methods:
+ - `unwrap`: returns a promise that resolves to `undefined` when there are no pending requests initiated by this thunk.
+ - `abort`: cancels pending requests.
+ 
 React Hooks users will most likely never need to use this directly, as the `usePrefetch` hook will dispatch the thunk action creator result internally as needed when you call the prefetching function supplied by the hook.
 
 #### Example

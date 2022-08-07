@@ -22,6 +22,7 @@ import {
 } from 'react-redux'
 import type { QueryKeys } from '../core/apiState'
 import type { PrefetchOptions } from '../core/module'
+import type { PrefetchActionCreatorResult } from '../core/buildInitiate'
 
 export const reactHooksModuleName = /* @__PURE__ */ Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName
@@ -62,7 +63,7 @@ declare module '@reduxjs/toolkit/dist/query/apiTypes' {
       ): (
         arg: QueryArgFrom<Definitions[EndpointName]>,
         options?: PrefetchOptions
-      ) => void
+      ) => PrefetchActionCreatorResult
     } & HooksWithUniqueNames<Definitions>
   }
 }

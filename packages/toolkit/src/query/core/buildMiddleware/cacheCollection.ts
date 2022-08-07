@@ -2,6 +2,7 @@ import type { BaseQueryFn } from '../../baseQueryTypes'
 import type { QueryDefinition } from '../../endpointDefinitions'
 import type { ConfigState, QueryCacheKey } from '../apiState'
 import { QuerySubstateIdentifier } from '../apiState'
+import type { PrefetchSubscribriptionOptions } from '../buildInitiate'
 import type {
   QueryStateMeta,
   SubMiddlewareApi,
@@ -28,11 +29,35 @@ declare module '../../endpointDefinitions' {
   }
 }
 
-export const build: SubMiddlewareBuilder = ({ reducerPath, api, context }) => {
+/**
+ * Output is in *milliseconds*.
+ */
+const getPrefetchSubscriptionTTLMs = (
+  prefetch: true | PrefetchSubscribriptionOptions,
+  config: ConfigState<string>
+): number => {
+  if (
+    typeof prefetch === 'object' &&
+    prefetch !== null &&
+    typeof prefetch.keepSubscriptionFor === 'number'
+  ) {
+    return prefetch.keepSubscriptionFor * 1000
+  }
+
+  return config.keepPrefetchSubscriptionsFor * 1000
+}
+
+export const build: SubMiddlewareBuilder = ({
+  reducerPath,
+  api,
+  context,
+  queryThunk,
+}) => {
   const { removeQueryResult, unsubscribeQueryResult } = api.internalActions
 
   return (mwApi) => {
     const currentRemovalTimeouts: QueryStateMeta<TimeoutId> = {}
+    const autoUnsubscribeTimeouts: QueryStateMeta<TimeoutId> = {}
 
     return (next) =>
       (action): any => {
@@ -50,8 +75,31 @@ export const build: SubMiddlewareBuilder = ({ reducerPath, api, context }) => {
           )
         }
 
+        if (queryThunk.pending.match(action) && action.meta.arg.prefetch) {
+          const requestId = action.meta.requestId
+          const currentTimeout = autoUnsubscribeTimeouts[requestId]
+
+          if (currentTimeout) {
+            clearTimeout(currentTimeout)
+          }
+
+          autoUnsubscribeTimeouts[requestId] = setTimeout(
+            mwApi.dispatch,
+            getPrefetchSubscriptionTTLMs(
+              action.meta.arg.prefetch,
+              mwApi.getState()[reducerPath].config
+            ),
+            unsubscribeQueryResult({
+              requestId,
+              queryCacheKey: action.meta.arg.queryCacheKey,
+            })
+          )
+        }
+
         if (api.util.resetApiState.match(action)) {
-          for (const [key, timeout] of Object.entries(currentRemovalTimeouts)) {
+          for (const [key, timeout] of Object.entries(
+            currentRemovalTimeouts
+          ).concat(Object.entries(autoUnsubscribeTimeouts))) {
             if (timeout) clearTimeout(timeout)
             delete currentRemovalTimeouts[key]
           }

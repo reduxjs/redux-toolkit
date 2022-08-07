@@ -7,7 +7,10 @@ import type {
 } from '../baseQueryTypes'
 import type { RootState, QueryKeys, QuerySubstateIdentifier } from './apiState'
 import { QueryStatus } from './apiState'
-import type { StartQueryActionCreatorOptions } from './buildInitiate'
+import type {
+  PrefetchActionCreatorResult,
+  StartQueryActionCreatorOptions,
+} from './buildInitiate'
 import type {
   AssertTagTypes,
   EndpointDefinition,
@@ -18,13 +21,14 @@ import type {
   ResultTypeFrom,
 } from '../endpointDefinitions'
 import { calculateProvidedBy } from '../endpointDefinitions'
-import type { AsyncThunkPayloadCreator, Draft } from '@reduxjs/toolkit'
 import {
   isAllOf,
   isFulfilled,
   isPending,
   isRejected,
   isRejectedWithValue,
+  nanoid,
+  createAsyncThunk,
 } from '@reduxjs/toolkit'
 import type { Patch } from 'immer'
 import { isDraftable, produceWithPatches } from 'immer'
@@ -33,13 +37,14 @@ import type {
   ThunkAction,
   ThunkDispatch,
   AsyncThunk,
+  AsyncThunkPayloadCreator,
+  Draft,
 } from '@reduxjs/toolkit'
-import { createAsyncThunk } from '@reduxjs/toolkit'
-
 import { HandledError } from '../HandledError'
 
 import type { ApiEndpointQuery, PrefetchOptions } from './module'
 import type { UnwrapPromise } from '../tsHelpers'
+import { noop } from '../utils/promise'
 
 declare module './module' {
   export interface ApiEndpointQuery<
@@ -105,6 +110,7 @@ export interface QueryThunkArg
   type: 'query'
   originalArgs: unknown
   endpointName: string
+  reducerPath: string
 }
 
 export interface MutationThunkArg {
@@ -411,6 +417,13 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
 
       return true
     },
+    idGenerator(args): string {
+      if (args.prefetch) {
+        return `${args.reducerPath}-${args.queryCacheKey}-prefetch`
+      }
+
+      return nanoid()
+    },
     dispatchConditionRejection: true,
   })
 
@@ -435,37 +448,56 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       endpointName: EndpointName,
       arg: any,
       options: PrefetchOptions
-    ): ThunkAction<void, any, any, AnyAction> =>
-    (dispatch: ThunkDispatch<any, any, any>, getState: () => any) => {
+    ): ThunkAction<PrefetchActionCreatorResult, any, any, AnyAction> =>
+    (dispatch: ThunkDispatch<any, any, AnyAction>, getState: () => any) => {
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan
 
-      const queryAction = (force: boolean = true) =>
-        (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).initiate(
-          arg,
-          { forceRefetch: force }
+      const dispatchPrefetchRequest = (
+        forceRefetch: boolean = true
+      ): PrefetchActionCreatorResult => {
+        const initiateOutput = dispatch(
+          (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).initiate(
+            arg,
+            { forceRefetch, prefetch: options || true }
+          )
         )
-      const latestStateValue = (
-        api.endpoints[endpointName] as ApiEndpointQuery<any, any>
-      ).select(arg)(getState())
+
+        return {
+          unwrap() {
+            return initiateOutput.unwrap().then(noop, noop)
+          },
+          abort: initiateOutput.abort,
+        }
+      }
 
       if (force) {
-        dispatch(queryAction())
+        return dispatchPrefetchRequest()
       } else if (maxAge) {
+        const latestStateValue = (
+          api.endpoints[endpointName] as ApiEndpointQuery<any, any>
+        ).select(arg)(getState())
+
         const lastFulfilledTs = latestStateValue?.fulfilledTimeStamp
         if (!lastFulfilledTs) {
-          dispatch(queryAction())
-          return
+          return dispatchPrefetchRequest()
         }
         const shouldRetrigger =
           (Number(new Date()) - Number(new Date(lastFulfilledTs))) / 1000 >=
           maxAge
         if (shouldRetrigger) {
-          dispatch(queryAction())
+          return dispatchPrefetchRequest()
         }
       } else {
         // If prefetching with no options, just let it try
-        dispatch(queryAction(false))
+        return dispatchPrefetchRequest(false)
+      }
+
+      return {
+        unwrap() {
+          return Promise.resolve()
+        },
+        abort: noop,
       }
     }
 

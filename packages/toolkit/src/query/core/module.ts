@@ -33,6 +33,7 @@ import { buildMiddleware } from './buildMiddleware'
 import { buildSelectors } from './buildSelectors'
 import type {
   MutationActionCreatorResult,
+  PrefetchActionCreatorResult,
   QueryActionCreatorResult,
 } from './buildInitiate'
 import { buildInitiate } from './buildInitiate'
@@ -50,6 +51,10 @@ import { enablePatches } from 'immer'
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
  * - If specified, it will only run the query if the difference between `new Date()` and the last `fulfilledTimeStamp` is greater than the given value
  *
+ * - `keepSubscriptionFor`: how long before the data is considered unused;
+ *   defaults to `api.config.keepPrefetchSubscriptionsFor`.  - _number is value in seconds_
+ *
+ *
  * @overloadSummary
  * `force`
  * - If `force: true`, it will ignore the `ifOlderThan` value if it is set and the query will be run even if it exists in the cache.
@@ -57,8 +62,9 @@ import { enablePatches } from 'immer'
 export type PrefetchOptions =
   | {
       ifOlderThan?: false | number
+      keepSubscriptionFor?: number
     }
-  | { force?: boolean }
+  | { force?: boolean; keepSubscriptionFor?: number }
 
 export const coreModuleName = /* @__PURE__ */ Symbol()
 export type CoreModule =
@@ -169,6 +175,10 @@ declare module '../apiTypes' {
          *
          * The thunk accepts three arguments: the name of the endpoint we are updating (such as `'getPost'`), any relevant query arguments, and a set of options used to determine if the data actually should be re-fetched based on cache staleness.
          *
+         * The output is an object with the following methods:
+         * - `unwrap`: returns a promise that resolves to `undefined` when there are no pending requests initiated by this thunk.
+         * - `abort`: cancels pending requests.
+         *
          * React Hooks users will most likely never need to use this directly, as the `usePrefetch` hook will dispatch this thunk internally as needed when you call the prefetching function supplied by the hook.
          *
          * @example
@@ -181,7 +191,7 @@ declare module '../apiTypes' {
           endpointName: EndpointName,
           arg: QueryArgFrom<Definitions[EndpointName]>,
           options: PrefetchOptions
-        ): ThunkAction<void, any, any, AnyAction>
+        ): ThunkAction<PrefetchActionCreatorResult, any, any, AnyAction>
         /**
          * A Redux thunk action creator that, when dispatched, creates and applies a set of JSON diff/patch objects to the current state. This immediately updates the Redux state with those changes.
          *
@@ -365,6 +375,7 @@ export const coreModule = (): Module<CoreModule> => ({
       reducerPath,
       serializeQueryArgs,
       keepUnusedDataFor,
+      keepPrefetchSubscriptionsFor,
       refetchOnMountOrArgChange,
       refetchOnFocus,
       refetchOnReconnect,
@@ -427,6 +438,7 @@ export const coreModule = (): Module<CoreModule> => ({
         refetchOnReconnect,
         refetchOnMountOrArgChange,
         keepUnusedDataFor,
+        keepPrefetchSubscriptionsFor,
         reducerPath,
       },
     })
