@@ -62,6 +62,15 @@ and then call the code generator:
 npx @rtk-query/codegen-openapi openapi-config.ts
 ```
 
+#### Generating tags
+
+If your OpenAPI specification uses [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/), you can specify the `tag` option to the codegen.  
+That will result in all generated endpoints having `providesTags`/`invalidatesTags` declarations for the `tags` of their respective operation definition.
+
+Note that this will only result in string tags with no ids, so it might lead to scenarios where too much is invalidated and unneccessary requests are made on mutation.
+
+In that case it is still recommended to manually specify tags by using [`enhanceEndpoints`](./code-splitting.mdx) on top of the generated api and manually declare `providesTags`/`invalidatesTags`.
+
 ### Programmatic usage
 
 ```ts no-transpile title="src/store/petApi.ts"
@@ -87,7 +96,10 @@ interface SimpleUsage {
   exportName?: string
   argSuffix?: string
   responseSuffix?: string
-  hooks?: boolean
+  hooks?:
+    | boolean
+    | { queries: boolean; lazyQueries: boolean; mutations: boolean }
+  tag?: boolean
   outputFile: string
   filterEndpoints?:
     | string
@@ -130,6 +142,10 @@ const withOverride: ConfigFile = {
   ],
 }
 ```
+
+#### Generating hooks
+
+Setting `hooks: true` will generate `useQuery` and `useMuation` hook exports. If you also want `useLazyQuery` hooks generated or more granular control, you can also pass an object in the shape of: `{ queries: boolean; lazyQueries: boolean; mutations: boolean }`.
 
 #### Multiple output files
 
