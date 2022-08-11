@@ -12,7 +12,7 @@ description: 'RTK Query > Usage > Automated Refetching: cache invalidation manag
 
 As seen under [Default Cache Behavior](./cache-behavior.mdx#default-cache-behavior), when a subscription is added for a query endpoint, a request will be sent only if the cache data does not already exist. If it exists, the existing data will be served instead.
 
-RTK Query uses a "cache tag" system to automate re-fetching for query endpoints that have data affected by mutation endpoints. This enables designing your api such that firing a specific mutation will cause a certain query endpoint to consider its cached data _invalid_, and re-fetch the data if there is an active subscription.
+RTK Query uses a "cache tag" system to automate re-fetching for query endpoints that have data affected by mutation endpoints. This enables designing your API such that firing a specific mutation will cause a certain query endpoint to consider its cached data _invalid_, and re-fetch the data if there is an active subscription.
 
 Each endpoint + parameter combination contributes its own `queryCacheKey`. The cache tag system enables the ability to inform RTK Query that a particular query cache has _provided_ specific tags. If a mutation is fired which is said to `invalidate` tags that a query cache has _provided_, the cached data will be considered _invalidated_, and re-fetch if there is an active subscription to the cached data.
 
