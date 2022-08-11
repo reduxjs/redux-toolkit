@@ -4,6 +4,7 @@ import type { Selector } from '@reduxjs/toolkit'
 import type { DependencyList } from 'react'
 import {
   useCallback,
+  useDebugValue,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -52,6 +53,7 @@ import { useStableQueryArgs } from './useSerializedStableValue'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
 import { useShallowStableValue } from './useShallowStableValue'
+import type { BaseQueryFn } from '../baseQueryTypes'
 
 // Copy-pasted from React-Redux
 export const useIsomorphicLayoutEffect =
@@ -97,7 +99,26 @@ export type UseQuery<D extends QueryDefinition<any, any, any, any>> = <
 >(
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseQuerySubscriptionOptions & UseQueryStateOptions<D, R>
-) => UseQueryStateResult<D, R> & ReturnType<UseQuerySubscription<D>>
+) => UseQueryHookResult<D, R>
+
+export type UseQueryHookResult<
+  D extends QueryDefinition<any, any, any, any>,
+  R = UseQueryStateDefaultResult<D>
+> = UseQueryStateResult<D, R> & UseQuerySubscriptionResult<D>
+
+/**
+ * Helper type to manually type the result
+ * of the `useQuery` hook in userland code.
+ */
+export type TypedUseQueryHookResult<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  R = UseQueryStateDefaultResult<
+    QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+  >
+> = TypedUseQueryStateResult<ResultType, QueryArg, BaseQuery, R> &
+  TypedUseQuerySubscriptionResult<ResultType, QueryArg, BaseQuery>
 
 interface UseQuerySubscriptionOptions extends SubscriptionOptions {
   /**
@@ -109,7 +130,7 @@ interface UseQuerySubscriptionOptions extends SubscriptionOptions {
    * - **If the query has cached data:**
    *   * The cached data **will not be used** on the initial load, and will ignore updates from any identical query until the `skip` condition is removed
    *   * The query will have a status of `uninitialized`
-   *   * If `skip: false` is set after skipping the initial load, the cached result will be used
+   *   * If `skip: false` is set after the initial load, the cached result will be used
    * - **If the query does not have cached data:**
    *   * The query will have a status of `uninitialized`
    *   * The query will not exist in the state when viewed with the dev tools
@@ -162,7 +183,23 @@ export type UseQuerySubscription<
 > = (
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseQuerySubscriptionOptions
-) => Pick<QueryActionCreatorResult<D>, 'refetch'>
+) => UseQuerySubscriptionResult<D>
+
+export type UseQuerySubscriptionResult<
+  D extends QueryDefinition<any, any, any, any>
+> = Pick<QueryActionCreatorResult<D>, 'refetch'>
+
+/**
+ * Helper type to manually type the result
+ * of the `useQuerySubscription` hook in userland code.
+ */
+export type TypedUseQuerySubscriptionResult<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn
+> = UseQuerySubscriptionResult<
+  QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+>
 
 export type UseLazyQueryLastPromiseInfo<
   D extends QueryDefinition<any, any, any, any>
@@ -185,10 +222,10 @@ export type UseLazyQueryLastPromiseInfo<
  *
  * #### Note
  *
- * When the trigger function returned from a LazyQuery, it always initiates a new request to the server even if there is cached data. Set `preferCacheValue`(the second argument to the function) as `true` if you want it to immediately return a cached value if one exists.
+ * When the trigger function returned from a LazyQuery is called, it always initiates a new request to the server even if there is cached data. Set `preferCacheValue`(the second argument to the function) as `true` if you want it to immediately return a cached value if one exists.
  */
 export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
-  R = UseQueryStateDefaultResult<D>
+  R extends Record<string, any> = UseQueryStateDefaultResult<D>
 >(
   options?: SubscriptionOptions & Omit<UseQueryStateOptions<D, R>, 'skip'>
 ) => [
@@ -257,7 +294,7 @@ export type QueryStateSelector<
  * - Re-renders as the request status changes and data becomes available
  */
 export type UseQueryState<D extends QueryDefinition<any, any, any, any>> = <
-  R = UseQueryStateDefaultResult<D>
+  R extends Record<string, any> = UseQueryStateDefaultResult<D>
 >(
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseQueryStateOptions<D, R>
@@ -336,6 +373,19 @@ export type UseQueryStateOptions<
 export type UseQueryStateResult<
   _ extends QueryDefinition<any, any, any, any>,
   R
+> = NoInfer<R>
+
+/**
+ * Helper type to manually type the result
+ * of the `useQueryState` hook in userland code.
+ */
+export type TypedUseQueryStateResult<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  R = UseQueryStateDefaultResult<
+    QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+  >
 > = NoInfer<R>
 
 type UseQueryStateBaseResult<D extends QueryDefinition<any, any, any, any>> =
@@ -434,6 +484,22 @@ export type UseMutationStateResult<
    */
   reset: () => void
 }
+
+/**
+ * Helper type to manually type the result
+ * of the `useMutation` hook in userland code.
+ */
+export type TypedUseMutationResult<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  R = MutationResultSelectorResult<
+    MutationDefinition<QueryArg, BaseQuery, string, ResultType, string>
+  >
+> = UseMutationStateResult<
+  MutationDefinition<QueryArg, BaseQuery, string, ResultType, string>,
+  R
+>
 
 /**
  * A React hook that lets you trigger an update request for a given endpoint, and subscribes the component to read the request status from the Redux store. The component will re-render as the loading status changes.
@@ -818,7 +884,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         shallowEqual
       )
 
-      const store = useStore()
+      const store = useStore<RootState<Definitions, any, any>>()
       const newLastValue = selectDefaultResult(
         store.getState(),
         lastValue.current
@@ -856,6 +922,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
               : noPendingQueryStateSelector,
           ...options,
         })
+
+        const { data, status, isLoading, isSuccess, isError, error } = queryStateResults;
+        useDebugValue({ data, status, isLoading, isSuccess, isError, error });
+
         return useMemo(
           () => ({ ...queryStateResults, ...querySubscriptionResults }),
           [queryStateResults, querySubscriptionResults]
@@ -886,7 +956,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       )
 
       const triggerMutation = useCallback(
-        function (arg) {
+        function (arg: Parameters<typeof initiate>['0']) {
           const promise = dispatch(initiate(arg, { fixedCacheKey }))
           setPromise(promise)
           return promise
@@ -922,6 +992,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           }
         })
       }, [dispatch, fixedCacheKey, promise, requestId])
+
+      const { endpointName, data, status, isLoading, isSuccess, isError, error } = currentState;
+      useDebugValue({ endpointName, data, status, isLoading, isSuccess, isError, error });
+
       const finalState = useMemo(
         () => ({ ...currentState, originalArgs, reset }),
         [currentState, originalArgs, reset]

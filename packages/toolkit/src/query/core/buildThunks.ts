@@ -261,7 +261,15 @@ export function buildThunks<
     ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
   > = async (
     arg,
-    { signal, rejectWithValue, fulfillWithValue, dispatch, getState, extra }
+    {
+      signal,
+      abort,
+      rejectWithValue,
+      fulfillWithValue,
+      dispatch,
+      getState,
+      extra,
+    }
   ) => {
     const endpointDefinition = endpointDefinitions[arg.endpointName]
 
@@ -274,6 +282,7 @@ export function buildThunks<
       let result: QueryReturnValue
       const baseQueryApi = {
         signal,
+        abort,
         dispatch,
         getState,
         extra,
@@ -352,7 +361,7 @@ export function buildThunks<
         process.env.NODE_ENV === 'development'
       ) {
         console.error(
-          `An unhandled error occured processing a request for the endpoint "${arg.endpointName}".
+          `An unhandled error occurred processing a request for the endpoint "${arg.endpointName}".
 In the case of an unhandled error, no tags will be "provided" or "invalidated".`,
           error
         )

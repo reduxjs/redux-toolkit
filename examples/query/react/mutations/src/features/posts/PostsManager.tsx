@@ -19,7 +19,7 @@ import {
 } from '@chakra-ui/react'
 import { MdBook } from 'react-icons/md'
 import React, { useState } from 'react'
-import { Route, Switch, useHistory } from 'react-router-dom'
+import { Route, Routes, useNavigate } from 'react-router-dom'
 import {
   Post,
   useAddPostMutation,
@@ -86,7 +86,7 @@ const AddPost = () => {
 
 const PostList = () => {
   const { data: posts, isLoading } = useGetPostsQuery()
-  const { push } = useHistory()
+  const navigate = useNavigate()
 
   if (isLoading) {
     return <div>Loading</div>
@@ -99,7 +99,7 @@ const PostList = () => {
   return (
     <List spacing={3}>
       {posts.map(({ id, name }) => (
-        <ListItem key={id} onClick={() => push(`/posts/${id}`)}>
+        <ListItem key={id} onClick={() => navigate(`/posts/${id}`)}>
           <ListIcon as={MdBook} color="green.500" /> {name}
         </ListItem>
       ))}
@@ -145,14 +145,16 @@ export const PostsManager = () => {
           </Box>
         </Box>
         <Box flex={2}>
-          <Switch>
-            <Route path="/posts/:id" component={PostDetail} />
-            <Route>
-              <Center h="200px">
-                <Heading size="md">Select a post to edit!</Heading>
-              </Center>
-            </Route>
-          </Switch>
+          <Routes>
+            <Route path="/posts/:id" element={<PostDetail />} />
+            <Route
+              element={
+                <Center h="200px">
+                  <Heading size="md">Select a post to edit!</Heading>
+                </Center>
+              }
+            />
+          </Routes>
         </Box>
       </Flex>
     </Box>

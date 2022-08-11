@@ -3,26 +3,30 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@reduxjs/toolkit": "^1.8.0-rc.0",
+    "@reduxjs/toolkit": "^1.8.0",
     "@types/node": "^12.0.0",
-    "@types/react": "^17.0.0",
-    "@types/react-dom": "^17.0.0",
+    "@types/react": "^18.0.12",
+    "@types/react-dom": "^18.0.5",
     "clsx": "1.1.1",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-redux": "7.2.2",
-    "react-scripts": "4.0.3",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
+    "react-redux": "^8.0.2",
+    "react-scripts": "5.0.1",
     "typescript": "~4.2.4"
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build"
+    "build": "react-scripts build",
+    "lint:ts": "tsc --noEmit",
+    "test": "react-scripts test --runInBand"
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+      "react-app"
+    ],
+    "rules": {
+      "react/react-in-jsx-scope": "off"
+    }
   },
   "browserslist": {
     "production": [
@@ -35,5 +39,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "jest-watch-typeahead": "^1.1.0"
   }
 }

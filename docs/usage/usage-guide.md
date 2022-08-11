@@ -25,7 +25,7 @@ Every Redux app needs to configure and create a Redux store. This usually involv
 
 - Importing or creating the root reducer function
 - Setting up middleware, likely including at least one middleware to handle asynchronous logic
-- Configuring the [Redux DevTools Extension](https://github.com/zalmoxisus/redux-devtools-extension)
+- Configuring the [Redux DevTools Extension](https://github.com/reduxjs/redux-devtools)
 - Possibly altering some of the logic based on whether the application is being built for development or production
 
 ### Manual Store Setup
@@ -1026,7 +1026,7 @@ export const usersAdapter = createEntityAdapter({
 
 ## Working with Non-Serializable Data
 
-One of the core usage principles for Redux is that [you should not put non-serializable values in state or actions](https://redux.js.org/style-guide/style-guide#do-not-put-non-serializable-values-in-state-or-actions).
+One of the core usage principles for Redux is that [you should not put non-serializable values in state or actions](https://redux.js.org/style-guide/#do-not-put-non-serializable-values-in-state-or-actions).
 
 However, like most rules, there are exceptions. There may be occasions when you have to deal with actions that need to accept non-serializable data. This should be done very rarely and only if necessary, and these non-serializable payloads shouldn't ever make it into your application state through a reducer.
 

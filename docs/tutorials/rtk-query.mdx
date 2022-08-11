@@ -23,7 +23,13 @@ hide_title: true
 
 ## Introduction
 
-Welcome to the Redux Toolkit Query tutorial! **This tutorial will briefly introduce you to Redux Toolkit's "RTK Query" data fetching capability and teach you how to start using it correctly**.
+Welcome to the Redux Toolkit Query tutorial! **This tutorial will briefly introduce you to Redux Toolkit's "RTK Query" data fetching capability and teach you how to start using it correctly**. 
+
+:::info
+
+For a more in-depth tutorial on RTK Query, see the full ["Redux Essentials" tutorial](https://redux.js.org/tutorials/essentials/part-7-rtk-query-basics) on the Redux core docs site.
+
+:::
 
 RTK Query is an advanced data fetching and caching tool, designed to simplify common cases for loading data in a web application. RTK Query itself is built on top of the Redux Toolkit core, and leverages RTK's APIs like [`createSlice`](../api/createSlice.mdx) and [`createAsyncThunk`](../api/createAsyncThunk.mdx) to implement its capabilities.
 
@@ -48,7 +54,7 @@ export type Pokemon = {}
 // file: services/pokemon.ts
 // Need to use the React-specific entry point to import createApi
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { Pokemon } from './types'
+import type { Pokemon } from './types'
 
 // highlight-start
 // Define a service using a base URL and expected endpoints
@@ -74,9 +80,9 @@ With RTK Query, you usually define your entire API definition in one place. This
 
 :::tip
 
-Typically, you should only have one API slice per base URL that your application needs to communicate with. For example, if your site fetches data from both `/api/posts` and `/api/users`, you would have a single API slice with `/api/` as the base URL, and separate endpoint definitions for `posts` and `users`. This allows you to effectively take advantage of [automated re-fetching](./rtk-query/usage/automated-refetching.mdx) by defining [tag](./rtk-query/usage/automated-refetching.mdx#tags) relationships across endpoints.
+Typically, you should only have one API slice per base URL that your application needs to communicate with. For example, if your site fetches data from both `/api/posts` and `/api/users`, you would have a single API slice with `/api/` as the base URL, and separate endpoint definitions for `posts` and `users`. This allows you to effectively take advantage of [automated re-fetching](../rtk-query/usage/automated-refetching.mdx) by defining [tag](../rtk-query/usage/automated-refetching.mdx#tags) relationships across endpoints.
 
-For maintainability purposes, you may wish to split up endpoint definitions across multiple files, while still maintaining a single API slice which includes all of these endpoints. See [code splitting](./rtk-query/usage/code-splitting.mdx) for how you can use the `injectEndpoints` property to inject API endpoints from other files into a single API slice definition.
+For maintainability purposes, you may wish to split up endpoint definitions across multiple files, while still maintaining a single API slice which includes all of these endpoints. See [code splitting](../rtk-query/usage/code-splitting.mdx) for how you can use the `injectEndpoints` property to inject API endpoints from other files into a single API slice definition.
 
 :::
 

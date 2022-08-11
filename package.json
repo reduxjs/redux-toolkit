@@ -25,7 +25,7 @@
   "devDependencies": {
     "eslint": "^7.25.0",
     "eslint-config-prettier": "^8.3.0",
-    "eslint-config-react-app": "^5.0.1",
+    "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-flowtype": "^5.7.2",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsx-a11y": "^6.4.1",
@@ -37,11 +37,21 @@
     "release-it": "^14.12.5"
   },
   "resolutions": {
-    "react-scripts": "patch:react-scripts@npm:4.0.2#.yarn/patches/react-scripts__npm_4.0.2.patch",
     "console-testing-library": "patch:console-testing-library@npm:0.3.1#.yarn/patches/console-testing-library__npm_0.3.1.patch",
-    "react-redux": "npm:7.2.4",
-    "react": "npm:17.0.2",
-    "react-dom": "npm:17.0.2"
+    "react-redux": "npm:8.0.2",
+    "react": "npm:18.1.0",
+    "react-dom": "npm:18.1.0",
+    "@types/react": "npm:18.0.12",
+    "@types/react-dom": "npm:18.0.5",
+    "@types/inquirer": "npm:8.2.1",
+    "website/react": "npm:17.0.2",
+    "website/react-dom": "npm:17.0.2",
+    "website/@types/react-dom": "npm:17.0.11",
+    "website/@types/react": "npm:17.0.11",
+    "docs/react": "npm:17.0.2",
+    "docs/react-dom": "npm:17.0.2",
+    "docs/@types/react-dom": "npm:17.0.11",
+    "docs/@types/react": "npm:17.0.11"
   },
   "scripts": {
     "build": "yarn build:packages",

@@ -4,6 +4,7 @@ import type { AnyAction, Action, Reducer } from 'redux'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type { NoInfer } from './tsHelpers'
+import { freezeDraftable } from './utils'
 
 /**
  * Defines a mapping from action types to corresponding action object shapes.
@@ -36,7 +37,7 @@ export type ActionMatcherDescriptionCollection<S> = Array<
 >
 
 /**
- * An *case reducer* is a reducer function for a specific action type. Case
+ * A *case reducer* is a reducer function for a specific action type. Case
  * reducers can be composed to full reducers using `createReducer()`.
  *
  * Unlike a normal Redux reducer, a case reducer is never called with an
@@ -223,12 +224,12 @@ export function createReducer<S extends NotFunction<any>>(
       ? executeReducerBuilderCallback(mapOrBuilderCallback)
       : [mapOrBuilderCallback, actionMatchers, defaultCaseReducer]
 
-  // Ensure the initial state gets frozen either way
+  // Ensure the initial state gets frozen either way (if draftable)
   let getInitialState: () => S
   if (isStateFunction(initialState)) {
-    getInitialState = () => createNextState(initialState(), () => {})
+    getInitialState = () => freezeDraftable(initialState())
   } else {
-    const frozenInitialState = createNextState(initialState, () => {})
+    const frozenInitialState = freezeDraftable(initialState)
     getInitialState = () => frozenInitialState
   }
 

@@ -24,6 +24,7 @@ export type BaseThunkAPI<
   extra: E
   requestId: string
   signal: AbortSignal
+  abort: (reason?: string) => void
   rejectWithValue: IsUnknown<
     RejectedMeta,
     (value: RejectedValue) => RejectWithValue<RejectedValue, RejectedMeta>,
@@ -530,7 +531,7 @@ export function createAsyncThunk<
     typeof AbortController !== 'undefined'
       ? AbortController
       : class implements AbortController {
-          signal: AbortSignal = {
+          signal = {
             aborted: false,
             addEventListener() {},
             dispatchEvent() {
@@ -538,6 +539,8 @@ export function createAsyncThunk<
             },
             onabort() {},
             removeEventListener() {},
+            reason: undefined,
+            throwIfAborted() {},
           }
           abort() {
             if (process.env.NODE_ENV !== 'production') {
@@ -608,6 +611,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
                 extra,
                 requestId,
                 signal: abortController.signal,
+                abort,
                 rejectWithValue: ((
                   value: RejectedValue,
                   meta?: RejectedMeta

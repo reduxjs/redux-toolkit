@@ -1,5 +1,4 @@
-import { FormEvent } from 'react'
-import { ChangeEvent } from 'react-redux/node_modules/@types/react'
+import { FormEvent, ChangeEvent } from 'react'
 import { useAppDispatch, useAppSelector } from '../../store'
 import { themeActions, ThemeState } from '../../services/theme/slice'
 import styles from './changeThemeForm.module.css'

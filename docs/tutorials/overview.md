@@ -76,6 +76,6 @@ In addition, the [Redux + TS template for Create-React-App](https://github.com/r
 
 We previously had a set of "Basic/Intermediate/Advanced" tutorials directly in the Redux Toolkit docs. They were helpful, but we've removed them in favor of pointing to the "Essentials" and "Fundamentals" tutorials in the Redux core docs.
 
-If you'd like to browse the the old tutorials, you can see the content files in our repo's history:
+If you'd like to browse the old tutorials, you can see the content files in our repo's history:
 
 [Redux Toolkit repo: legacy "Basic/Intermediate/Advanced" tutorial files](https://github.com/reduxjs/redux-toolkit/tree/e85eb17b39/docs/tutorials)

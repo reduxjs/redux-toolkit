@@ -24,7 +24,7 @@ Primarily updates to query data should be done via [`polling`](./polling) interm
 
 However, streaming updates is particularly useful for scenarios involving:
 
-- _Small, frequent changes to large objects_. Rather than repeatedly polling for a large object repeatedly, the object can be fetched with an initial query, and streaming updates can update individual properties as updates are received.
+- _Small, frequent changes to large objects_. Rather than repeatedly polling for a large object, the object can be fetched with an initial query, and streaming updates can update individual properties as updates are received.
 - _External event-driven updates_. Where data may be changed by the server or otherwise external users and where real-time updates are expected to be shown to an active user, polling alone would result in periods of stale data in between queries, causing state to easily get out of sync. Streaming updates can update all active clients as the updates occur rather than waiting for the next interval to elapse.
 
 Example use cases that benefit from streaming updates are:
@@ -138,7 +138,8 @@ export function isMessage(message: unknown): message is Message {
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { createEntityAdapter, EntityState } from '@reduxjs/toolkit'
+import { createEntityAdapter } from '@reduxjs/toolkit'
+import type { EntityState } from '@reduxjs/toolkit'
 import { isMessage } from './schemaValidators'
 
 export type Channel = 'redux' | 'general'

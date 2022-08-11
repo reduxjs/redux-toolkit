@@ -119,7 +119,7 @@ transformResponse: (response, meta, arg) =>
   response.some.deeply.nested.collection
 ```
 
-`transformResponse` is called with the `meta` property returned from the `baseQuery` as it's second
+`transformResponse` is called with the `meta` property returned from the `baseQuery` as its second
 argument, which can be used while determining the transformed response. The value for `meta` is
 dependent on the `baseQuery` used.
 
@@ -132,7 +132,7 @@ transformResponse: (response: { sideA: Tracks; sideB: Tracks }, meta, arg) => {
 }
 ```
 
-`transformResponse` is called with the `arg` property provided to the endpoint as it's third
+`transformResponse` is called with the `arg` property provided to the endpoint as its third
 argument, which can be used while determining the transformed response. The value for `arg` is
 dependent on the `endpoint` used, as well as the argument used when calling the query/mutation.
 
@@ -239,8 +239,10 @@ const queryFn = (
 This example implements a very basic axios-based `baseQuery` utility.
 
 ```ts title="Basic axios baseQuery"
-import { createApi, BaseQueryFn } from '@reduxjs/toolkit/query'
-import axios, { AxiosRequestConfig, AxiosError } from 'axios'
+import { createApi } from '@reduxjs/toolkit/query'
+import type { BaseQueryFn } from '@reduxjs/toolkit/query'
+import axios from 'axios'
+import type { AxiosRequestConfig, AxiosError } from 'axios'
 
 // highlight-start
 const axiosBaseQuery =
@@ -251,18 +253,22 @@ const axiosBaseQuery =
       url: string
       method: AxiosRequestConfig['method']
       data?: AxiosRequestConfig['data']
+      params?: AxiosRequestConfig['params']
     },
     unknown,
     unknown
   > =>
-  async ({ url, method, data }) => {
+  async ({ url, method, data, params }) => {
     try {
-      const result = await axios({ url: baseUrl + url, method, data })
+      const result = await axios({ url: baseUrl + url, method, data, params })
       return { data: result.data }
     } catch (axiosError) {
       let err = axiosError as AxiosError
       return {
-        error: { status: err.response?.status, data: err.response?.data },
+        error: {
+          status: err.response?.status,
+          data: err.response?.data || err.message
+        },
       }
     }
   }
@@ -359,10 +365,10 @@ declare function tokenReceived(args?: any): void
 declare function loggedOut(): void
 export { tokenReceived, loggedOut }
 // file: baseQueryWithReauth.ts
-import {
+import { fetchBaseQuery } from '@reduxjs/toolkit/query'
+import type {
   BaseQueryFn,
   FetchArgs,
-  fetchBaseQuery,
   FetchBaseQueryError,
 } from '@reduxjs/toolkit/query'
 import { tokenReceived, loggedOut } from './authSlice'
@@ -401,10 +407,10 @@ declare function loggedOut(): void
 export { tokenReceived, loggedOut }
 // file: baseQueryWithReauth.ts
 
-import {
+import { fetchBaseQuery } from '@reduxjs/toolkit/query'
+import type {
   BaseQueryFn,
   FetchArgs,
-  fetchBaseQuery,
   FetchBaseQueryError,
 } from '@reduxjs/toolkit/query'
 import { tokenReceived, loggedOut } from './authSlice'
@@ -486,7 +492,7 @@ The `retry` utility has a `fail` method property attached which can be used to b
 
 ```ts title="Bailing out of error re-tries"
 import { createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query/react'
-import { FetchArgs } from '@reduxjs/toolkit/dist/query/fetchBaseQuery'
+import type { FetchArgs } from '@reduxjs/toolkit/dist/query/fetchBaseQuery'
 interface Post {
   id: number
   name: string
@@ -554,13 +560,15 @@ export declare const uuid: () => string
 
 // file: metaBaseQuery.ts
 import {
-  BaseQueryFn,
-  FetchArgs,
   fetchBaseQuery,
-  FetchBaseQueryError,
   createApi,
 } from '@reduxjs/toolkit/query'
-import { FetchBaseQueryMeta } from '@reduxjs/toolkit/dist/query/fetchBaseQuery'
+import type {
+  BaseQueryFn,
+  FetchArgs,
+  FetchBaseQueryError,
+} from '@reduxjs/toolkit/query'
+import type { FetchBaseQueryMeta } from '@reduxjs/toolkit/dist/query/fetchBaseQuery'
 import { uuid } from './idGenerator'
 
 // highlight-start
@@ -653,9 +661,11 @@ export interface Post {
 // file: src/services/api.ts
 import {
   createApi,
+  fetchBaseQuery,
+} from '@reduxjs/toolkit/query/react'
+import type {
   BaseQueryFn,
   FetchArgs,
-  fetchBaseQuery,
   FetchBaseQueryError,
 } from '@reduxjs/toolkit/query/react'
 import type { Post } from './types'
@@ -786,7 +796,8 @@ The normalized cache data will be stored as:
 
 ```ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { createEntityAdapter, EntityState } from '@reduxjs/toolkit'
+import { createEntityAdapter } from '@reduxjs/toolkit'
+import type { EntityState } from '@reduxjs/toolkit'
 
 export interface Post {
   id: number
@@ -837,7 +848,7 @@ export interface User {
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { Post, User } from './types'
+import type { Post, User } from './types'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -884,7 +895,7 @@ export interface Message {
 
 // file: api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { Message } from './types'
+import type { Message } from './types'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -928,9 +939,9 @@ export interface User {
 import {
   createApi,
   fetchBaseQuery,
-  FetchBaseQueryError,
 } from '@reduxjs/toolkit/query'
-import { Post, User } from './types'
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query'
+import type { Post, User } from './types'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/ ' }),
@@ -939,7 +950,7 @@ const api = createApi({
       async queryFn(_arg, _queryApi, _extraOptions, fetchWithBQ) {
         // get a random user
         const randomResult = await fetchWithBQ('users/random')
-        if (randomResult.error) throw randomResult.error
+        if (randomResult.error) return { error: randomResult.error as FetchBaseQueryError } 
         const user = randomResult.data as User
         const result = await fetchWithBQ(`user/${user.id}/posts`)
         return result.data
