@@ -49,7 +49,10 @@ import type {
   PrefetchOptions,
 } from '@reduxjs/toolkit/dist/query/core/module'
 import type { ReactHooksModuleOptions } from './module'
-import { useStableQueryArgs } from './useSerializedStableValue'
+import {
+  useQueryArgCache,
+  useStableQueryArgs,
+} from './useSerializedStableValue'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
 import { useShallowStableValue } from './useShallowStableValue'
@@ -669,36 +672,39 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   }
 
   function buildQueryHooks(name: string): QueryHooks<any> {
-    const useQuerySubscription: UseQuerySubscription<any> = (
-      arg: any,
+    const useQuerySubscriptions = (
+      args: any[],
       {
         refetchOnReconnect,
         refetchOnFocus,
         refetchOnMountOrArgChange,
         skip = false,
         pollingInterval = 0,
-      } = {}
+      }: UseQuerySubscriptionOptions = {}
     ) => {
       const { initiate } = api.endpoints[name] as ApiEndpointQuery<
         QueryDefinition<any, any, any, any, any>,
         Definitions
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
-      const stableArg = useStableQueryArgs(
-        skip ? skipToken : arg,
+      const { cache, lastCache, cacheArray } = useQueryArgCache<
+        any,
+        { promise?: QueryActionCreatorResult<any> }
+      >(
+        skip ? [] : args,
         serializeQueryArgs,
         context.endpointDefinitions[name],
         name
       )
+
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,
         refetchOnFocus,
         pollingInterval,
       })
 
-      const promiseRef = useRef<QueryActionCreatorResult<any>>()
-
-      let { queryCacheKey, requestId } = promiseRef.current || {}
+      /* TODO
+            let { queryCacheKey, requestId } = promiseRef.current || {}
       const subscriptionRemoved = useSelector(
         (state: RootState<Definitions, string, string>) =>
           !!queryCacheKey &&
@@ -709,9 +715,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       usePossiblyImmediateEffect((): void | undefined => {
         promiseRef.current = undefined
       }, [subscriptionRemoved])
-
+*/
       usePossiblyImmediateEffect((): void | undefined => {
-        const lastPromise = promiseRef.current
+        /*
+        TODO
         if (
           typeof process !== 'undefined' &&
           process.env.NODE_ENV === 'removeMeOnCompilation'
@@ -719,52 +726,76 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           // this is only present to enforce the rule of hooks to keep `isSubscribed` in the dependency array
           console.log(subscriptionRemoved)
         }
+        */
 
-        if (stableArg === skipToken) {
-          lastPromise?.unsubscribe()
-          promiseRef.current = undefined
-          return
+        for (const oldQuery of Object.values(lastCache)) {
+          if (!cache[oldQuery.serialized]) {
+            oldQuery.promise?.unsubscribe()
+            oldQuery.promise = undefined
+          }
         }
 
-        const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions
+        for (const query of cacheArray) {
+          const lastPromise = query.promise
 
-        if (!lastPromise || lastPromise.arg !== stableArg) {
-          lastPromise?.unsubscribe()
-          const promise = dispatch(
-            initiate(stableArg, {
-              subscriptionOptions: stableSubscriptionOptions,
-              forceRefetch: refetchOnMountOrArgChange,
-            })
-          )
-          promiseRef.current = promise
-        } else if (stableSubscriptionOptions !== lastSubscriptionOptions) {
-          lastPromise.updateSubscriptionOptions(stableSubscriptionOptions)
+          const lastSubscriptionOptions = query.promise?.subscriptionOptions
+
+          if (!lastPromise) {
+            const promise = dispatch(
+              initiate(query.queryArgs, {
+                subscriptionOptions: stableSubscriptionOptions,
+                forceRefetch: refetchOnMountOrArgChange,
+              })
+            )
+            query.promise = promise
+          } else if (stableSubscriptionOptions !== lastSubscriptionOptions) {
+            lastPromise.updateSubscriptionOptions(stableSubscriptionOptions)
+          }
         }
       }, [
         dispatch,
         initiate,
+        lastCache,
+        cache,
         refetchOnMountOrArgChange,
-        stableArg,
         stableSubscriptionOptions,
-        subscriptionRemoved,
+        cacheArray,
       ])
 
+      const cacheRef = useRef(cacheArray)
+      useEffect(() => {
+        cacheRef.current = cacheArray
+      })
       useEffect(() => {
         return () => {
-          promiseRef.current?.unsubscribe()
-          promiseRef.current = undefined
+          for (const query of cacheRef.current) {
+            query.promise?.unsubscribe()
+            query.promise = undefined
+          }
         }
       }, [])
 
       return useMemo(
+        // TODO: should we return something else here?
         () => ({
           /**
            * A method to manually refetch data for the query
            */
-          refetch: () => void promiseRef.current?.refetch(),
+          refetch: () => {
+            for (const query of Object.values(cacheRef.current)) {
+              query.promise?.refetch()
+            }
+          },
         }),
         []
       )
+    }
+
+    const useQuerySubscription: UseQuerySubscription<any> = (
+      arg: any,
+      options
+    ) => {
+      return useQuerySubscriptions(arg === skipToken ? [] : [arg], options)
     }
 
     const useLazyQuerySubscription: UseLazyQuerySubscription<any> = ({
@@ -841,59 +872,72 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       return useMemo(() => [trigger, arg] as const, [trigger, arg])
     }
 
-    const useQueryState: UseQueryState<any> = (
-      arg: any,
-      { skip = false, selectFromResult = defaultQueryStateSelector } = {}
-    ) => {
+    const useQueryStates = (
+      args: any[],
+      {
+        selectFromResult = defaultQueryStateSelector,
+      }: Omit<UseQueryStateOptions<any, any>, 'skip'> = {}
+    ): Array<UseQueryStateResult<any, any>> => {
       const { select } = api.endpoints[name] as ApiEndpointQuery<
         QueryDefinition<any, any, any, any, any>,
         Definitions
       >
-      const stableArg = useStableQueryArgs(
-        skip ? skipToken : arg,
-        serializeQueryArgs,
-        context.endpointDefinitions[name],
-        name
-      )
 
       type ApiRootState = Parameters<ReturnType<typeof select>>[0]
 
-      const lastValue = useRef<any>()
+      // TODO: has to accept skipToken as well!
+      const { cacheArray } = useQueryArgCache<
+        any,
+        {
+          lastResult?: any
+          select?: Selector<ApiRootState, any, []>
+        }
+      >(args, serializeQueryArgs, context.endpointDefinitions[name], name)
 
-      const selectDefaultResult: Selector<ApiRootState, any, [any]> = useMemo(
-        () =>
-          createSelector(
+      for (const entry of cacheArray) {
+        if (!entry.select) {
+          entry.select ??= createSelector(
             [
-              select(stableArg),
-              (_: ApiRootState, lastResult: any) => lastResult,
-              (_: ApiRootState) => stableArg,
+              select(entry.queryArgs),
+              () => entry.lastResult,
+              () => entry.queryArgs,
             ],
             queryStatePreSelector
+          )
+        }
+      }
+
+      const combinedQuerySelector: Selector<ApiRootState, any[]> = useMemo(
+        () =>
+          (createSelector as any)(
+            cacheArray.map((e) => e.select),
+            (...x: any[]) => x
           ),
-        [select, stableArg]
+        [cacheArray]
       )
 
-      const querySelector: Selector<ApiRootState, any, [any]> = useMemo(
-        () => createSelector([selectDefaultResult], selectFromResult),
-        [selectDefaultResult, selectFromResult]
+      const currentState = useSelector(combinedQuerySelector)
+      const selectedFromResult = useMemo(
+        () => currentState.map((r) => selectFromResult(r)),
+        [currentState, selectFromResult]
       )
 
-      const currentState = useSelector(
-        (state: RootState<Definitions, any, any>) =>
-          querySelector(state, lastValue.current),
-        shallowEqual
-      )
-
-      const store = useStore<RootState<Definitions, any, any>>()
-      const newLastValue = selectDefaultResult(
-        store.getState(),
-        lastValue.current
-      )
+      const state = useStore<RootState<Definitions, any, any>>().getState()
+      const newLastResults = cacheArray.map((e) => e.select?.(state))
       useIsomorphicLayoutEffect(() => {
-        lastValue.current = newLastValue
-      }, [newLastValue])
+        for (let i = 0; i < cacheArray.length; i++) {
+          cacheArray[i].lastResult = newLastResults[i]
+        }
+      }, [cacheArray, newLastResults])
 
-      return currentState
+      return selectedFromResult
+    }
+
+    const useQueryState: UseQueryState<any> = (
+      arg: any,
+      { skip = false, selectFromResult } = {}
+    ) => {
+      return useQueryStates([skip ? skipToken : arg], { selectFromResult })[0]
     }
 
     return {
