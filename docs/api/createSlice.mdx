@@ -213,6 +213,10 @@ The generated `reducer` function is suitable for passing to the Redux `combineRe
 You may want to consider destructuring the action creators and exporting them individually, for ease of searching
 for references in a larger codebase.
 
+The functions passed to the `reducers` parameter can be accessed through the `caseReducers` return field. This can be particularly useful for testing or direct access to reducers created inline.
+
+Result's function `getInitialState` provides access to the initial state value given to the slice. If a lazy state initializer was provided, it will be called and a fresh value returned.
+
 > **Note**: the result object is conceptually similar to a
 > ["Redux duck" code structure](https://redux.js.org/faq/code-structure#what-should-my-file-structure-look-like-how-should-i-group-my-action-creators-and-reducers-in-my-project-where-should-my-selectors-go).
 > The actual code structure you use is up to you, but there are a couple caveats to keep in mind:
