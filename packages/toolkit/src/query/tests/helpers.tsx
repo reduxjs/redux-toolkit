@@ -4,7 +4,7 @@ import type {
   Middleware,
   Store,
 } from '@reduxjs/toolkit'
-import { configureStore } from '@reduxjs/toolkit'
+import { configureStore, autoBatchEnhancer } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
 import type { Reducer } from 'react'
 import React, { useCallback } from 'react'
@@ -176,9 +176,13 @@ export function setupApiStore<
 >(
   api: A,
   extraReducers?: R,
-  options: { withoutListeners?: boolean; withoutTestLifecycles?: boolean, middleware?: Middleware[] } = {}
+  options: {
+    withoutListeners?: boolean
+    withoutTestLifecycles?: boolean
+    middleware?: Middleware[]
+  } = {}
 ) {
-  const { middleware = [] } = options;
+  const { middleware = [] } = options
   const getStore = () =>
     configureStore({
       reducer: { api: api.reducer, ...extraReducers },
@@ -187,6 +191,7 @@ export function setupApiStore<
           api.middleware,
           ...middleware
         ),
+      enhancers: (e) => e.concat(autoBatchEnhancer(0)),
     })
 
   type StoreType = EnhancedStore<

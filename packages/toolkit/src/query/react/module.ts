@@ -150,7 +150,8 @@ export const reactHooksModule = ({
       context,
     })
     safeAssign(anyApi, { usePrefetch })
-    safeAssign(context, { batch })
+    // even with React batching completely out of the picture, we should get similar results now
+    // safeAssign(context, { batch })
 
     return {
       injectEndpoint(endpointName, definition) {

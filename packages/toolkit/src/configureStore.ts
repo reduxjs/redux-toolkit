@@ -34,7 +34,7 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production'
  * @public
  */
 export type ConfigureEnhancersCallback<E extends Enhancers = Enhancers> = (
-    defaultEnhancers: readonly StoreEnhancer[]
+  defaultEnhancers: readonly StoreEnhancer[]
 ) => [...E]
 
 /**
@@ -104,10 +104,10 @@ type Middlewares<S> = ReadonlyArray<Middleware<{}, S>>
 
 type Enhancers = ReadonlyArray<StoreEnhancer>
 
-interface ToolkitStore<
+export interface ToolkitStore<
   S = any,
   A extends Action = AnyAction,
-  M extends Middlewares<S> = Middlewares<S>,
+  M extends Middlewares<S> = Middlewares<S>
 > extends Store<S, A> {
   /**
    * The `dispatch` method of your store, enhanced by all its middlewares.

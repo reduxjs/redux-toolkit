@@ -1,5 +1,6 @@
 import type { AnyAction, PayloadAction } from '@reduxjs/toolkit'
 import {
+  autoBatch,
   combineReducers,
   createAction,
   createSlice,
@@ -85,6 +86,12 @@ function updateMutationSubstateIfExists(
 }
 
 const initialState = {} as any
+const prepareAutoBatched =
+  <T>() =>
+  (payload: T): { payload: T; meta: unknown } => ({
+    payload,
+    meta: { [autoBatch]: true },
+  })
 
 export function buildSlice({
   reducerPath,
@@ -114,11 +121,14 @@ export function buildSlice({
     name: `${reducerPath}/queries`,
     initialState: initialState as QueryState<any>,
     reducers: {
-      removeQueryResult(
-        draft,
-        { payload: { queryCacheKey } }: PayloadAction<QuerySubstateIdentifier>
-      ) {
-        delete draft[queryCacheKey]
+      removeQueryResult: {
+        reducer(
+          draft,
+          { payload: { queryCacheKey } }: PayloadAction<QuerySubstateIdentifier>
+        ) {
+          delete draft[queryCacheKey]
+        },
+        prepare: prepareAutoBatched<QuerySubstateIdentifier>(),
       },
       queryResultPatched(
         draft,
@@ -243,14 +253,14 @@ export function buildSlice({
     name: `${reducerPath}/mutations`,
     initialState: initialState as MutationState<any>,
     reducers: {
-      removeMutationResult(
-        draft,
-        { payload }: PayloadAction<MutationSubstateIdentifier>
-      ) {
-        const cacheKey = getMutationCacheKey(payload)
-        if (cacheKey in draft) {
-          delete draft[cacheKey]
-        }
+      removeMutationResult: {
+        reducer(draft, { payload }: PayloadAction<MutationSubstateIdentifier>) {
+          const cacheKey = getMutationCacheKey(payload)
+          if (cacheKey in draft) {
+            delete draft[cacheKey]
+          }
+        },
+        prepare: prepareAutoBatched<MutationSubstateIdentifier>(),
       },
     },
     extraReducers(builder) {
@@ -369,35 +379,42 @@ export function buildSlice({
     },
   })
 
+  type SubscriptionUpdate = {
+    endpointName: string
+    requestId: string
+    options: Subscribers[number]
+  } & QuerySubstateIdentifier
   const subscriptionSlice = createSlice({
     name: `${reducerPath}/subscriptions`,
     initialState: initialState as SubscriptionState,
     reducers: {
-      updateSubscriptionOptions(
-        draft,
-        {
-          payload: { queryCacheKey, requestId, options },
-        }: PayloadAction<
+      updateSubscriptionOptions: {
+        reducer(
+          draft,
           {
-            endpointName: string
-            requestId: string
-            options: Subscribers[number]
-          } & QuerySubstateIdentifier
-        >
-      ) {
-        if (draft?.[queryCacheKey]?.[requestId]) {
-          draft[queryCacheKey]![requestId] = options
-        }
+            payload: { queryCacheKey, requestId, options },
+          }: PayloadAction<SubscriptionUpdate>
+        ) {
+          if (draft?.[queryCacheKey]?.[requestId]) {
+            draft[queryCacheKey]![requestId] = options
+          }
+        },
+        prepare: prepareAutoBatched<SubscriptionUpdate>(),
       },
-      unsubscribeQueryResult(
-        draft,
-        {
-          payload: { queryCacheKey, requestId },
-        }: PayloadAction<{ requestId: string } & QuerySubstateIdentifier>
-      ) {
-        if (draft[queryCacheKey]) {
-          delete draft[queryCacheKey]![requestId]
-        }
+      unsubscribeQueryResult: {
+        reducer(
+          draft,
+          {
+            payload: { queryCacheKey, requestId },
+          }: PayloadAction<{ requestId: string } & QuerySubstateIdentifier>
+        ) {
+          if (draft[queryCacheKey]) {
+            delete draft[queryCacheKey]![requestId]
+          }
+        },
+        prepare: prepareAutoBatched<
+          { requestId: string } & QuerySubstateIdentifier
+        >(),
       },
       subscriptionRequestsRejected(
         draft,
