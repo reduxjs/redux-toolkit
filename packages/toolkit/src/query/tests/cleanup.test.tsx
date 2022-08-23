@@ -155,6 +155,12 @@ test('Minimizes the number of subscription dispatches when multiple components a
     withoutTestLifecycles: true,
   })
 
+  let subscribersTriggered = 0
+  let totalComponentRenders = 0
+  storeRef.store.subscribe(() => {
+    subscribersTriggered += 1
+  })
+
   let getSubscriptionsA = () =>
     storeRef.store.getState().api.subscriptions['a(undefined)']
 
@@ -169,7 +175,15 @@ test('Minimizes the number of subscription dispatches when multiple components a
 
   const NUM_LIST_ITEMS = 1000
 
+  function UsingA() {
+    totalComponentRenders++
+    const { data } = api.endpoints.a.useQuery()
+
+    return <>Result: {data} </>
+  }
+
   function ParentComponent() {
+    totalComponentRenders++
     const listItems = Array.from({ length: NUM_LIST_ITEMS }).map((_, i) => (
       <UsingA key={i} />
     ))
@@ -181,6 +195,9 @@ test('Minimizes the number of subscription dispatches when multiple components a
     wrapper: storeRef.wrapper,
   })
 
+  expect(totalComponentRenders).toBe(2001)
+  expect(subscribersTriggered).toBe(1) // 1001 without batching
+
   jest.advanceTimersByTime(10)
 
   await waitFor(() => {
@@ -188,7 +205,6 @@ test('Minimizes the number of subscription dispatches when multiple components a
   })
 
   const subscriptions = getSubscriptionsA()
-
   expect(Object.keys(subscriptions!).length).toBe(NUM_LIST_ITEMS)
   // Expected: [
   //   'api/config/middlewareRegistered',
@@ -196,5 +212,7 @@ test('Minimizes the number of subscription dispatches when multiple components a
   //   'api/subscriptions/subscriptionRequestsRejected',
   //   'api/executeQuery/fulfilled'
   // ]
-  expect(actionTypes.length).toBe(4)
+  expect(actionTypes.length).toBe(1002)
+  expect(subscribersTriggered).toBe(3) // 1002 without batching
+  expect(totalComponentRenders).toBe(3001)
 }, 25000)

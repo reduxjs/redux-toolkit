@@ -547,6 +547,10 @@ export const createAsyncThunk = (() => {
             requestStatus: 'rejected' as const,
             aborted: error?.name === 'AbortError',
             condition: error?.name === 'ConditionError',
+            // TODO: this is a hack to showcase the autobatching behaviour
+            // currently there is no way to add `meta` to a "condition rejected"
+            // action - that would need to be added
+            ReduxToolkit_autoBatch: true,
           },
         })
       )
