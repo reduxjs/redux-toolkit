@@ -38,6 +38,7 @@
   },
   "resolutions": {
     "console-testing-library": "patch:console-testing-library@npm:0.3.1#.yarn/patches/console-testing-library__npm_0.3.1.patch",
+    "msw": "patch:msw@npm:0.40.2#.yarn/patches/msw-npm-0.40.2-2107d48752",
     "react-redux": "npm:8.0.2",
     "react": "npm:18.1.0",
     "react-dom": "npm:18.1.0",
@@ -51,7 +52,8 @@
     "docs/react": "npm:17.0.2",
     "docs/react-dom": "npm:17.0.2",
     "docs/@types/react-dom": "npm:17.0.11",
-    "docs/@types/react": "npm:17.0.11"
+    "docs/@types/react": "npm:17.0.11",
+    "type-fest": "2.19.0"
   },
   "scripts": {
     "build": "yarn build:packages",
