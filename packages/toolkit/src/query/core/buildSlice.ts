@@ -39,6 +39,7 @@ import {
   copyWithStructuralSharing,
 } from '../utils'
 import type { ApiContext } from '../apiTypes'
+import { isUpsertQuery } from './buildInitiate'
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
@@ -145,7 +146,13 @@ export function buildSlice({
 
           updateQuerySubstateIfExists(draft, arg.queryCacheKey, (substate) => {
             substate.status = QueryStatus.pending
-            substate.requestId = meta.requestId
+
+            substate.requestId =
+              isUpsertQuery(arg) && substate.requestId
+                ? // for `upsertQuery` **updates**, keep the current `requestId`
+                  substate.requestId
+                : // for normal queries or `upsertQuery` **inserts** always update the `requestId`
+                  meta.requestId
             if (arg.originalArgs !== undefined) {
               substate.originalArgs = arg.originalArgs
             }
