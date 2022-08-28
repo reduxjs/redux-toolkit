@@ -1,0 +1,20 @@
+diff --git a/lib/types/context/set.d.ts b/lib/types/context/set.d.ts
+index 266229bad706ec49392b8b87e18560c1566b490d..4fad485f8ffec2db92e808a05ccd9274414a9bd9 100644
+--- a/lib/types/context/set.d.ts
++++ b/lib/types/context/set.d.ts
+@@ -15,4 +15,5 @@ export declare type ForbiddenHeaderError<HeaderName extends string> = `SafeRespo
+  * })
+  * @see {@link https://mswjs.io/docs/api/context/set `ctx.set()`}
+  */
++// @ts-ignore
+ export declare function set<N extends string | HeadersObject>(...args: N extends string ? Lowercase<N> extends ForbiddenHeaderNames ? ForbiddenHeaderError<N> : [N, string] : N extends HeadersObject<infer CookieName> ? Lowercase<CookieName> extends ForbiddenHeaderNames ? ForbiddenHeaderError<CookieName> : [N] : [N]): ResponseTransformer;
+diff --git a/lib/types/sharedOptions.d.ts b/lib/types/sharedOptions.d.ts
+index d1d6e05df2dc2c29f06d8d0b91c500a10e651a29..3d8c29fd2089b2abf21d78cd277aac9271e781c2 100644
+--- a/lib/types/sharedOptions.d.ts
++++ b/lib/types/sharedOptions.d.ts
+@@ -21,4 +21,5 @@ export interface LifeCycleEventsMap<ResponseType> {
+     'response:bypass': (response: ResponseType, requestId: string) => void;
+     unhandledException: (error: Error, request: MockedRequest) => void;
+ }
++// @ts-ignore
+ export declare type LifeCycleEventEmitter<ResponseType> = Pick<StrictEventEmitter<ResponseType>, 'on' | 'removeListener' | 'removeAllListeners'>;
