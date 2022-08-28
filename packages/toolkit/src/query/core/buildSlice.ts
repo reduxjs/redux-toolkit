@@ -164,7 +164,11 @@ export function buildSlice({
             draft,
             meta.arg.queryCacheKey,
             (substate) => {
-              if (substate.requestId !== meta.requestId) return
+              if (
+                substate.requestId !== meta.requestId &&
+                !isUpsertQuery(meta.arg)
+              )
+                return
               const { merge } = definitions[
                 meta.arg.endpointName
               ] as QueryDefinition<any, any, any, any>
