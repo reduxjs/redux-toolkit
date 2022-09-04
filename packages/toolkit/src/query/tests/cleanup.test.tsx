@@ -148,7 +148,7 @@ test('data stays in store when one component requiring the data stays in the sto
   expect(getSubStateB()).toEqual(statusB)
 })
 
-test('Minimizes the number of subscription dispatches when multiple components ask for the same data', async () => {
+test.only('Minimizes the number of subscription dispatches when multiple components ask for the same data', async () => {
   const listenerMiddleware = createListenerMiddleware()
   const storeRef = setupApiStore(api, undefined, {
     middleware: [listenerMiddleware.middleware],
@@ -156,7 +156,8 @@ test('Minimizes the number of subscription dispatches when multiple components a
   })
 
   let subscribersTriggered = 0
-  let totalComponentRenders = 0
+  let totalListItemRenders = 0
+  let totalParentComponentRenders = 0
   storeRef.store.subscribe(() => {
     subscribersTriggered += 1
   })
@@ -176,14 +177,14 @@ test('Minimizes the number of subscription dispatches when multiple components a
   const NUM_LIST_ITEMS = 1000
 
   function UsingA() {
-    totalComponentRenders++
+    totalListItemRenders++
     const { data } = api.endpoints.a.useQuery()
 
     return <>Result: {data} </>
   }
 
   function ParentComponent() {
-    totalComponentRenders++
+    totalParentComponentRenders++
     const listItems = Array.from({ length: NUM_LIST_ITEMS }).map((_, i) => (
       <UsingA key={i} />
     ))
@@ -195,10 +196,15 @@ test('Minimizes the number of subscription dispatches when multiple components a
     wrapper: storeRef.wrapper,
   })
 
-  expect(totalComponentRenders).toBe(2001)
-  expect(subscribersTriggered).toBe(1) // 1001 without batching
+  expect(totalListItemRenders).toBe(NUM_LIST_ITEMS * 2)
+  expect(totalParentComponentRenders).toBe(1)
+  expect(actionTypes.length).toBe(2)
+  expect(subscribersTriggered).toBe(2)
+  // expect(subscribersTriggered).toBe(1) // 1001 without batching
 
-  jest.advanceTimersByTime(10)
+  await act(async () => {
+    jest.advanceTimersByTime(10)
+  })
 
   await waitFor(() => {
     return screen.getAllByText(/42/).length > 0
@@ -212,7 +218,9 @@ test('Minimizes the number of subscription dispatches when multiple components a
   //   'api/subscriptions/subscriptionRequestsRejected',
   //   'api/executeQuery/fulfilled'
   // ]
-  expect(actionTypes.length).toBe(1002)
-  expect(subscribersTriggered).toBe(3) // 1002 without batching
-  expect(totalComponentRenders).toBe(3001)
+  expect(actionTypes.length).toBe(4)
+  expect(subscribersTriggered).toBe(4)
+  // expect(actionTypes.length).toBe(1002)
+  // expect(subscribersTriggered).toBe(3) // 1002 without batching
+  // expect(totalComponentRenders).toBe(3001)
 }, 25000)
