@@ -179,10 +179,11 @@ export function setupApiStore<
   options: {
     withoutListeners?: boolean
     withoutTestLifecycles?: boolean
+    addAutoBatchEnhancer?: boolean
     middleware?: Middleware[]
   } = {}
 ) {
-  const { middleware = [] } = options
+  const { middleware = [], addAutoBatchEnhancer = true } = options
   const getStore = () =>
     configureStore({
       reducer: { api: api.reducer, ...extraReducers },
@@ -191,7 +192,13 @@ export function setupApiStore<
           api.middleware,
           ...middleware
         ),
-      enhancers: (e) => e.concat(autoBatchEnhancer()),
+      enhancers: (e) => {
+        if (addAutoBatchEnhancer) {
+          return e.concat(autoBatchEnhancer())
+        }
+        // stupid TS `readonly` error if we `return e`
+        return e.concat()
+      },
     })
 
   type StoreType = EnhancedStore<

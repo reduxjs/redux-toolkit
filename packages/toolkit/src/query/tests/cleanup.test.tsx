@@ -157,6 +157,7 @@ test('Minimizes the number of subscription dispatches when multiple components a
   const storeRef = setupApiStore(api, undefined, {
     middleware: [listenerMiddleware.middleware],
     withoutTestLifecycles: true,
+    addAutoBatchEnhancer: true,
   })
 
   let subscribersTriggered = 0
