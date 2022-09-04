@@ -2,17 +2,33 @@ import type { StoreEnhancer } from 'redux'
 
 export const autoBatch = 'ReduxToolkit_autoBatch'
 
+// Copied from https://github.com/feross/queue-microtask
+let promise: Promise<any>
+const queueMicrotaskShim =
+  typeof queueMicrotask === 'function'
+    ? queueMicrotask.bind(typeof window !== 'undefined' ? window : global)
+    : // reuse resolved promise, and allocate it lazily
+      (cb: () => void) =>
+        (promise || (promise = Promise.resolve())).then(cb).catch((err: any) =>
+          setTimeout(() => {
+            throw err
+          }, 0)
+        )
+
 export const autoBatchEnhancer =
-  (batchTimeout: number = 0): StoreEnhancer =>
+  (): StoreEnhancer =>
   (next) =>
   (...args) => {
     const store = next(...args)
 
     let notifying = true
-    let nextNotification: NodeJS.Timeout | undefined = undefined
+    let notificationQueued = false
+    // let nextNotification: NodeJS.Timeout | undefined = undefined
     const listeners = new Set<() => void>()
     const notifyListeners = () => {
-      nextNotification = void listeners.forEach((l) => l())
+      //nextNotification = void
+      notificationQueued = false
+      listeners.forEach((l) => l())
     }
 
     return Object.assign({}, store, {
@@ -29,14 +45,19 @@ export const autoBatchEnhancer =
         try {
           notifying = !action?.meta?.[autoBatch]
           if (notifying) {
-            if (nextNotification) {
-              nextNotification = void clearTimeout(nextNotification)
-            }
+            notificationQueued = false
+            // if (nextNotification) {
+            //   nextNotification = void clearTimeout(nextNotification)
+            // }
           } else {
-            nextNotification ||= setTimeout(
-              notifyListeners,
-              batchTimeout
-            ) as any
+            if (!notificationQueued) {
+              notificationQueued = true
+              queueMicrotaskShim(notifyListeners)
+            }
+            // nextNotification ||= setTimeout(
+            //   notifyListeners,
+            //   batchTimeout
+            // ) as any
           }
           return store.dispatch(action)
         } finally {

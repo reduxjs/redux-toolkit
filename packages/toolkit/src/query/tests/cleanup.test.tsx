@@ -152,7 +152,7 @@ test('data stays in store when one component requiring the data stays in the sto
   expect(getSubStateB()).toEqual(statusB)
 })
 
-test.only('Minimizes the number of subscription dispatches when multiple components ask for the same data', async () => {
+test('Minimizes the number of subscription dispatches when multiple components ask for the same data', async () => {
   const listenerMiddleware = createListenerMiddleware()
   const storeRef = setupApiStore(api, undefined, {
     middleware: [listenerMiddleware.middleware],
