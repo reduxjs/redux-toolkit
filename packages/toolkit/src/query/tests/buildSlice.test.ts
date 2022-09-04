@@ -82,7 +82,7 @@ it('only resets the api state when resetApiState is dispatched', async () => {
   expect(storeRef.store.getState()).toEqual(initialState)
 })
 
-describe.only('`merge` callback', () => {
+describe('`merge` callback', () => {
   const baseQuery = (args?: any) => ({ data: args })
 
   interface Todo {

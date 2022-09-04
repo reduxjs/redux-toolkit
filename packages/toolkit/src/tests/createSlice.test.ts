@@ -372,7 +372,7 @@ describe('createSlice', () => {
     })
   })
 
-  describe.only('Deprecation warnings', () => {
+  describe('Deprecation warnings', () => {
     let originalNodeEnv = process.env.NODE_ENV
 
     beforeEach(() => {
