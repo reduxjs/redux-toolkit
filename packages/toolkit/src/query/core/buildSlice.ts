@@ -1,6 +1,6 @@
 import type { AnyAction, PayloadAction } from '@reduxjs/toolkit'
 import {
-  autoBatch,
+  shouldAutoBatch,
   combineReducers,
   createAction,
   createSlice,
@@ -90,7 +90,7 @@ const prepareAutoBatched =
   <T>() =>
   (payload: T): { payload: T; meta: unknown } => ({
     payload,
-    meta: { [autoBatch]: true },
+    meta: { [shouldAutoBatch]: true },
   })
 
 export function buildSlice({

@@ -6,6 +6,7 @@ import {
   createReducer,
 } from '@reduxjs/toolkit'
 import { miniSerializeError } from '@internal/createAsyncThunk'
+import { shouldAutoBatch } from '@internal/autoBatchEnhancer'
 
 import {
   mockConsole,
@@ -664,6 +665,7 @@ describe('conditional skipping of asyncThunks', () => {
           condition: true,
           requestId: expect.stringContaining(''),
           requestStatus: 'rejected',
+          [shouldAutoBatch]: true,
         },
         payload: undefined,
         type: 'test/rejected',
@@ -939,6 +941,7 @@ describe('meta', () => {
         rejectedWithValue: true,
         aborted: false,
         condition: false,
+        [shouldAutoBatch]: true,
       },
       error: { message: 'Rejected' },
       payload: 'damn!',

@@ -1,6 +1,6 @@
 import type { StoreEnhancer } from 'redux'
 
-export const autoBatch = 'ReduxToolkit_autoBatch'
+export const shouldAutoBatch = 'RTK_autoBatch'
 
 // Copied from https://github.com/feross/queue-microtask
 let promise: Promise<any>
@@ -43,7 +43,7 @@ export const autoBatchEnhancer =
       },
       dispatch(action: any) {
         try {
-          notifying = !action?.meta?.[autoBatch]
+          notifying = !action?.meta?.[shouldAutoBatch]
           if (notifying) {
             notificationQueued = false
             // if (nextNotification) {

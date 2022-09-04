@@ -7,6 +7,7 @@ import { createAction } from './createAction'
 import type { ThunkDispatch } from 'redux-thunk'
 import type { FallbackIfUnknown, Id, IsAny, IsUnknown } from './tsHelpers'
 import { nanoid } from './nanoid'
+import { shouldAutoBatch } from './autoBatchEnhancer'
 
 // @ts-ignore we need the import of these types due to a bundling issue.
 type _Keep = PayloadAction | ActionCreatorWithPreparedPayload<any, unknown>
@@ -550,7 +551,7 @@ export const createAsyncThunk = (() => {
             // TODO: this is a hack to showcase the autobatching behaviour
             // currently there is no way to add `meta` to a "condition rejected"
             // action - that would need to be added
-            ReduxToolkit_autoBatch: true,
+            [shouldAutoBatch]: true,
           },
         })
       )

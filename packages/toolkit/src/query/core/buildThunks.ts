@@ -38,7 +38,7 @@ import type {
   ThunkDispatch,
   AsyncThunk,
 } from '@reduxjs/toolkit'
-import { createAsyncThunk, autoBatch } from '@reduxjs/toolkit'
+import { createAsyncThunk, shouldAutoBatch } from '@reduxjs/toolkit'
 
 import { HandledError } from '../HandledError'
 
@@ -124,16 +124,16 @@ export type ThunkResult = unknown
 export type ThunkApiMetaConfig = {
   pendingMeta: {
     startedTimeStamp: number
-    [autoBatch]: true
+    [shouldAutoBatch]: true
   }
   fulfilledMeta: {
     fulfilledTimeStamp: number
     baseQueryMeta: unknown
-    [autoBatch]: true
+    [shouldAutoBatch]: true
   }
   rejectedMeta: {
     baseQueryMeta: unknown
-    [autoBatch]: true
+    [shouldAutoBatch]: true
   }
 }
 export type QueryThunk = AsyncThunk<
@@ -403,7 +403,7 @@ export function buildThunks<
         {
           fulfilledTimeStamp: Date.now(),
           baseQueryMeta: result.meta,
-          [autoBatch]: true,
+          [shouldAutoBatch]: true,
         }
       )
     } catch (error) {
@@ -428,7 +428,7 @@ export function buildThunks<
               catchedError.meta,
               arg.originalArgs
             ),
-            { baseQueryMeta: catchedError.meta, [autoBatch]: true }
+            { baseQueryMeta: catchedError.meta, [shouldAutoBatch]: true }
           )
         } catch (e) {
           catchedError = e
@@ -478,7 +478,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
   >(`${reducerPath}/executeQuery`, executeEndpoint, {
     getPendingMeta() {
-      return { startedTimeStamp: Date.now(), [autoBatch]: true }
+      return { startedTimeStamp: Date.now(), [shouldAutoBatch]: true }
     },
     condition(arg, { getState }) {
       const state = getState()
@@ -512,7 +512,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
   >(`${reducerPath}/executeMutation`, executeEndpoint, {
     getPendingMeta() {
-      return { startedTimeStamp: Date.now(), [autoBatch]: true }
+      return { startedTimeStamp: Date.now(), [shouldAutoBatch]: true }
     },
   })
 
