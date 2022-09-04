@@ -19,6 +19,10 @@ const storeRef = setupApiStore(api)
 let getSubStateA = () => storeRef.store.getState().api.queries['a(undefined)']
 let getSubStateB = () => storeRef.store.getState().api.queries['b(undefined)']
 
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 function UsingA() {
   const { data } = api.endpoints.a.useQuery()
 
@@ -174,7 +178,7 @@ test.only('Minimizes the number of subscription dispatches when multiple compone
     },
   })
 
-  const NUM_LIST_ITEMS = 1000
+  const NUM_LIST_ITEMS = 5
 
   function UsingA() {
     totalListItemRenders++
@@ -198,9 +202,26 @@ test.only('Minimizes the number of subscription dispatches when multiple compone
 
   expect(totalListItemRenders).toBe(NUM_LIST_ITEMS * 2)
   expect(totalParentComponentRenders).toBe(1)
-  expect(actionTypes.length).toBe(2)
-  expect(subscribersTriggered).toBe(2)
-  // expect(subscribersTriggered).toBe(1) // 1001 without batching
+
+  const firstActions = actionTypes.slice(0, 2)
+  const remainingActions = actionTypes.slice(2)
+  expect(firstActions).toEqual([
+    // First action is always registration
+    'api/config/middlewareRegistered',
+    // First list item always initiates the request
+    'api/executeQuery/pending',
+  ])
+  expect(remainingActions.length).toBe(NUM_LIST_ITEMS - 1)
+  // All remaining list items end up triggering a "rejected" action that adds a subscription
+  expect(
+    remainingActions.every(
+      (actionType) => actionType === 'api/executeQuery/rejected'
+    )
+  ).toBe(true)
+
+  // expect(actionTypes.length).toBe(2)
+  // expect(subscribersTriggered).toBe(2)
+  expect(subscribersTriggered).toBe(1) // N + 1 without batching
 
   await act(async () => {
     jest.advanceTimersByTime(10)
@@ -218,9 +239,11 @@ test.only('Minimizes the number of subscription dispatches when multiple compone
   //   'api/subscriptions/subscriptionRequestsRejected',
   //   'api/executeQuery/fulfilled'
   // ]
-  expect(actionTypes.length).toBe(4)
-  expect(subscribersTriggered).toBe(4)
+  // "registered", "pending", N-1 "rejected", "fulfilled"
+  expect(actionTypes.length).toBe(NUM_LIST_ITEMS + 2)
+  // expect(subscribersTriggered).toBe(4)
   // expect(actionTypes.length).toBe(1002)
-  // expect(subscribersTriggered).toBe(3) // 1002 without batching
-  // expect(totalComponentRenders).toBe(3001)
+  expect(subscribersTriggered).toBe(3) // N + 2 without batching
+  expect(totalListItemRenders).toBe(NUM_LIST_ITEMS * 3)
+  expect(totalParentComponentRenders).toBe(1)
 }, 25000)

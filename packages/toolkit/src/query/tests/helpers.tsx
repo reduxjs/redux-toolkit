@@ -191,7 +191,7 @@ export function setupApiStore<
           api.middleware,
           ...middleware
         ),
-      // enhancers: (e) => e.concat(autoBatchEnhancer(0)),
+      enhancers: (e) => e.concat(autoBatchEnhancer(0)),
     })
 
   type StoreType = EnhancedStore<

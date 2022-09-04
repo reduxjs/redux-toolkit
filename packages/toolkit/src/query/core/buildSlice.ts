@@ -453,17 +453,17 @@ export function buildSlice({
           }
         })
         // original case added back in as otherwise nothing would happen without the batching middleware
-        // .addCase(
-        //   queryThunk.rejected,
-        //   (draft, { meta: { condition, arg, requestId }, error, payload }) => {
-        //     // request was aborted due to condition (another query already running)
-        //     if (condition && arg.subscribe) {
-        //       const substate = (draft[arg.queryCacheKey] ??= {})
-        //       substate[requestId] =
-        //         arg.subscriptionOptions ?? substate[requestId] ?? {}
-        //     }
-        //   }
-        // )
+        .addCase(
+          queryThunk.rejected,
+          (draft, { meta: { condition, arg, requestId }, error, payload }) => {
+            // request was aborted due to condition (another query already running)
+            if (condition && arg.subscribe) {
+              const substate = (draft[arg.queryCacheKey] ??= {})
+              substate[requestId] =
+                arg.subscriptionOptions ?? substate[requestId] ?? {}
+            }
+          }
+        )
         // update the state to be a new object to be picked up as a "state change"
         // by redux-persist's `autoMergeLevel2`
         .addMatcher(hasRehydrationInfo, (draft) => ({ ...draft }))

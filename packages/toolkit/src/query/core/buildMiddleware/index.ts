@@ -79,9 +79,9 @@ export function buildMiddleware<
 
         const stateBefore = mwApi.getState()
 
-        if (!batchedActionsHandler(action, mwApi, stateBefore)) {
-          return
-        }
+        // if (!batchedActionsHandler(action, mwApi, stateBefore)) {
+        //   return
+        // }
 
         const res = next(action)
 
