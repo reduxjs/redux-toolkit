@@ -1277,8 +1277,13 @@ describe('hooks tests', () => {
       )
 
       userEvent.hover(screen.getByTestId('highPriority'))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('isFetching').textContent).toBe('true')
+      })
+
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())
       ).toEqual({
         data: { name: 'Timmy' },
         endpointName: 'getUser',
@@ -1299,7 +1304,7 @@ describe('hooks tests', () => {
       )
 
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())
       ).toEqual({
         data: { name: 'Timmy' },
         endpointName: 'getUser',
@@ -1347,7 +1352,7 @@ describe('hooks tests', () => {
       userEvent.hover(screen.getByTestId('lowPriority'))
 
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())
       ).toEqual({
         data: { name: 'Timmy' },
         endpointName: 'getUser',
@@ -1365,7 +1370,7 @@ describe('hooks tests', () => {
       await waitMs()
 
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())
       ).toEqual({
         data: { name: 'Timmy' },
         endpointName: 'getUser',
@@ -1414,8 +1419,13 @@ describe('hooks tests', () => {
 
       // This should run the query being that we're past the threshold
       userEvent.hover(screen.getByTestId('lowPriority'))
+
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('true')
+      )
+
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())
       ).toEqual({
         data: { name: 'Timmy' },
         endpointName: 'getUser',
@@ -1435,7 +1445,7 @@ describe('hooks tests', () => {
       )
 
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())
       ).toEqual({
         data: { name: 'Timmy' },
         endpointName: 'getUser',
@@ -1482,13 +1492,13 @@ describe('hooks tests', () => {
 
       // Get a snapshot of the last result
       const latestQueryData = api.endpoints.getUser.select(USER_ID)(
-        storeRef.store.getState() as any
+        storeRef.store.getState()
       )
 
       userEvent.hover(screen.getByTestId('lowPriority'))
       //  Serve up the result from the cache being that the condition wasn't met
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())
       ).toEqual(latestQueryData)
     })
 
@@ -1516,7 +1526,7 @@ describe('hooks tests', () => {
       userEvent.hover(screen.getByTestId('lowPriority'))
 
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())
       ).toEqual({
         endpointName: 'getUser',
         isError: false,
@@ -1984,13 +1994,13 @@ describe('hooks with createApi defaults set', () => {
 
       const addBtn = screen.getByTestId('addPost')
 
-      await waitFor(() => expect(getRenderCount()).toBe(4))
+      await waitFor(() => expect(getRenderCount()).toBe(3))
 
       fireEvent.click(addBtn)
-      await waitFor(() => expect(getRenderCount()).toBe(6))
+      await waitFor(() => expect(getRenderCount()).toBe(5))
       fireEvent.click(addBtn)
       fireEvent.click(addBtn)
-      await waitFor(() => expect(getRenderCount()).toBe(8))
+      await waitFor(() => expect(getRenderCount()).toBe(7))
     })
 
     test('useQuery with selectFromResult option serves a deeply memoized value and does not rerender unnecessarily', async () => {
@@ -2355,13 +2365,19 @@ describe('skip behaviour', () => {
     expect(result.current).toEqual(uninitialized)
     expect(subscriptionCount('getUser(1)')).toBe(0)
 
-    rerender([1])
+    act(() => {
+      rerender([1])
+    })
     expect(result.current).toMatchObject({ status: QueryStatus.pending })
     expect(subscriptionCount('getUser(1)')).toBe(1)
 
-    rerender([1, { skip: true }])
+    act(() => {
+      rerender([1, { skip: true }])
+    })
     expect(result.current).toEqual(uninitialized)
     expect(subscriptionCount('getUser(1)')).toBe(0)
+
+    await act(async () => {})
   })
 
   test('skipToken', async () => {
@@ -2379,14 +2395,20 @@ describe('skip behaviour', () => {
     // also no subscription on `getUser(skipToken)` or similar:
     expect(storeRef.store.getState().api.subscriptions).toEqual({})
 
-    rerender([1])
+    act(() => {
+      rerender([1])
+    })
     expect(result.current).toMatchObject({ status: QueryStatus.pending })
     expect(subscriptionCount('getUser(1)')).toBe(1)
     expect(storeRef.store.getState().api.subscriptions).not.toEqual({})
 
-    rerender([skipToken])
+    act(() => {
+      rerender([skipToken])
+    })
     expect(result.current).toEqual(uninitialized)
     expect(subscriptionCount('getUser(1)')).toBe(0)
+
+    await act(async () => {})
   })
 })
 

@@ -6,7 +6,14 @@ import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
 import axios from 'axios'
 import { expectExactType, hookWaitFor, setupApiStore } from './helpers'
 import { server } from './mocks/server'
-import { fireEvent, render, waitFor, screen, act, renderHook } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  waitFor,
+  screen,
+  act,
+  renderHook,
+} from '@testing-library/react'
 import { useDispatch } from 'react-redux'
 import type { AnyAction, ThunkDispatch } from '@reduxjs/toolkit'
 import type { BaseQueryApi } from '../baseQueryTypes'
@@ -131,7 +138,7 @@ describe('query error handling', () => {
       wrapper: storeRef.wrapper,
     })
 
-    await hookWaitFor(() => expect(result.current.isFetching).toBeFalsy())
+    await hookWaitFor(() => expect(result.current.isFetching).toBe(false))
     expect(result.current).toEqual(
       expect.objectContaining({
         isLoading: false,
@@ -147,9 +154,10 @@ describe('query error handling', () => {
       )
     )
 
-    act(() => void result.current.refetch())
+    await act(async () => {
+      await result.current.refetch()
+    })
 
-    await hookWaitFor(() => expect(result.current.isFetching).toBeFalsy())
     expect(result.current).toEqual(
       expect.objectContaining({
         isLoading: false,
@@ -193,9 +201,10 @@ describe('query error handling', () => {
       })
     )
 
-    act(() => void result.current.refetch())
+    await act(async () => {
+      await result.current.refetch()
+    })
 
-    await hookWaitFor(() => expect(result.current.isFetching).toBeFalsy())
     expect(result.current).toEqual(
       expect.objectContaining({
         isLoading: false,
