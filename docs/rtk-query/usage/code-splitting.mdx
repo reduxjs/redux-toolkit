@@ -56,5 +56,5 @@ export const { useExampleQuery } = extendedApi
 ```
 
 :::tip
-You will get a warning if you inject an endpoint that already exists in development mode when you don't explicitly specify `overrideExisting: true`. You **will not see this in production** and the existing endpoint will just be overriden, so make sure to account for this in your tests.
+In development mode, if you inject an endpoint that already exists and don't explicitly specify `overrideExisting: true`, the endpoint will not be overridden and you will get a warning about it. You **will not see the warning in production** and the existing endpoint will just be overriden, so make sure to account for this in your tests.
 :::

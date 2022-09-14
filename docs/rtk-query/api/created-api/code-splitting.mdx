@@ -35,7 +35,7 @@ Accepts an options object containing the same `endpoints` builder callback you w
 
 Returns an updated and enhanced version of the API slice object, containing the combined endpoint definitions.
 
-The `overrideExisting` flag controls a development-only warning that notifies you if there is a name clash between endpoint definitions. When set to `true`, the warning will not be printed.
+In development, endpoints will not be overridden unless `overrideExisting` is set to `true`. If not, a warning will be shown to notify you if there is a name clash between endpoint definitions.
 
 This method is primarily useful for code splitting and hot reloading.
 
