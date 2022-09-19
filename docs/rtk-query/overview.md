@@ -149,7 +149,7 @@ setupListeners(store.dispatch)
 
 ### Use Hooks in Components
 
-Finally, import the auto-generated React hooks from the API slice into your component file, and call the hooks in your component with any needed parameters. RTK Query will automatically fetch data on mount, re-fetch when parameters change, provide `{data, isFetching}` values in the result, and re-render the component as those values change:
+Finally, import the auto-generated React hooks from the API slice into your component file, and call the hooks in your component with any needed parameters. RTK Query will automatically fetch data on mount, re-fetch when parameters change, provide `{data, isLoading}` values in the result, and re-render the component as those values change:
 
 ```ts
 import * as React from 'react'
