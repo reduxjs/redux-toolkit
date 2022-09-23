@@ -32,7 +32,7 @@ import { userAPI } from './userAPI'
 // First, create the thunk
 const fetchUserById = createAsyncThunk(
   'users/fetchByIdStatus',
-  async (userId: number, thunkAPI) => {
+  async (userId: number, userAPI) => {
     const response = await userAPI.fetchById(userId)
     return response.data
   }
