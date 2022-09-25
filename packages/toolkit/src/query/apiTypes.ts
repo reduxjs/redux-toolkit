@@ -6,11 +6,13 @@ import type {
   ResultTypeFrom,
   QueryArgFrom,
   QueryDefinition,
+  MutationDefinition,
 } from './endpointDefinitions'
 import type {
   UnionToIntersection,
   NoInfer,
   WithRequiredProp,
+  OverrideAtKey,
 } from './tsHelpers'
 import type { CoreModule } from './core/module'
 import type { CreateApiOptions } from './createApi'
@@ -145,16 +147,11 @@ export type Api<
     >
   ): Api<
     BaseQuery,
-    Omit<Definitions, QueryName> &
-      {
-        [Q in QueryName]: QueryDefinition<
-          QueryArg,
-          BaseQuery,
-          TagTypes,
-          ResultType,
-          ReducerPath
-        >
-      },
+    OverrideAtKey<
+      Definitions,
+      QueryName,
+      QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+    >,
     ReducerPath,
     TagTypes,
     Enhancers
@@ -170,20 +167,15 @@ export type Api<
   >(
     mutationName: MutationName,
     mutationDefinition: Partial<
-      QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+      MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
     >
   ): Api<
     BaseQuery,
-    Omit<Definitions, MutationName> &
-      {
-        [Q in MutationName]: QueryDefinition<
-          QueryArg,
-          BaseQuery,
-          TagTypes,
-          ResultType,
-          ReducerPath
-        >
-      },
+    OverrideAtKey<
+      Definitions,
+      MutationName,
+      MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+    >,
     ReducerPath,
     TagTypes,
     Enhancers
