@@ -359,7 +359,6 @@ export interface QueryExtraOptions<
    * merge(currentCacheData, responseData) {
    *   currentCacheData.push(...responseData)
    * }
-   *
    * ```
    */
   forceRefetch?(params: {
