@@ -107,6 +107,7 @@ interface SimpleUsage {
     | EndpointMatcherFunction
     | Array<string | RegExp | EndpointMatcherFunction>
   endpointOverrides?: EndpointOverrides[]
+  flattenArg?: boolean
 }
 
 export type EndpointMatcherFunction = (
