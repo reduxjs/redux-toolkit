@@ -53,7 +53,11 @@ Create a file named `src/app/store.js`. Import the `configureStore` API from Red
 import { configureStore } from '@reduxjs/toolkit'
 
 export const store = configureStore({
-  reducer: {},
+  reducer: {
+    posts: PostsState,
+    comments: CommentsState,
+    users: UsersState
+  },
 })
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
