@@ -5390,17 +5390,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@reduxjs/rtk-codemods@workspace:packages/rtk-codemods":
-  version: 0.0.0-use.local
-  resolution: "@reduxjs/rtk-codemods@workspace:packages/rtk-codemods"
-  dependencies:
-    "@types/jest": ^27
-    "@types/jscodeshift": ^0.11.5
-    jest: ^27
-    jscodeshift: ^0.13.1
-  languageName: unknown
-  linkType: soft
-
 "@reduxjs/toolkit@npm:1.8.1":
   version: 1.8.1
   resolution: "@reduxjs/toolkit@npm:1.8.1"
@@ -23472,9 +23461,9 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"rtk-codemods2@workspace:packages/rtk-codemods2":
+"rtk-codemods@workspace:packages/rtk-codemods":
   version: 0.0.0-use.local
-  resolution: "rtk-codemods2@workspace:packages/rtk-codemods2"
+  resolution: "rtk-codemods@workspace:packages/rtk-codemods"
   dependencies:
     "@types/jest": ^27
     "@types/jscodeshift": ^0.11.5
@@ -23488,7 +23477,7 @@ fsevents@^1.2.7:
     prettier: ^2.2.1
     ts-jest: ^27
   bin:
-    rtk-codemods2: ./bin/cli.js
+    rtk-codemods: ./bin/cli.js
   languageName: unknown
   linkType: soft
 
