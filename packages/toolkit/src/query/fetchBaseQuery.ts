@@ -110,7 +110,7 @@ export type FetchBaseQueryArgs = {
       BaseQueryApi,
       'getState' | 'extra' | 'endpoint' | 'type' | 'forced'
     >
-  ) => MaybePromise<Headers> | void
+  ) => MaybePromise<Headers | void>
   fetchFn?: (
     input: RequestInfo,
     init?: RequestInit | undefined
