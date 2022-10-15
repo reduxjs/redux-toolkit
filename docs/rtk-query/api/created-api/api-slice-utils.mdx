@@ -249,53 +249,59 @@ Note that [hooks](./hooks.mdx) also track state in local component state and mig
 dispatch(api.util.resetApiState())
 ```
 
-## `getRunningOperationPromises`
+## `getRunningQueriesThunk` and `getRunningMutationsThunk`
 
 #### Signature
 
 ```ts no-transpile
-getRunningOperationPromises: () => Array<Promise<unknown>>
+getRunningQueriesThunk(): ThunkWithReturnValue<Array<QueryActionCreatorResult<any>>>
+getRunningMutationsThunk(): ThunkWithReturnValue<Array<MutationActionCreatorResult<any>>>
 ```
 
 #### Description
 
-A function that returns all promises for running queries and mutations.
+Thunks that (if dispatched) return either all running queries or mutations.
+These returned values can be awaited like promises.
 
-This is useful for SSR scenarios to await everything triggered in any way, including via hook calls,
+This is useful for SSR scenarios to await all queries (or mutations) triggered in any way, including via hook calls
 or manually dispatching `initiate` actions.
 
-```ts no-transpile title="Awaiting all currently running queries & mutations example"
-await Promise.all(api.util.getRunningOperationPromises())
+```ts no-transpile title="Awaiting all currently running queries example"
+await Promise.all(dispatch(api.util.getRunningQueriesThunk()))
 ```
 
-## `getRunningOperationPromise`
+## `getRunningQueryThunk` and `getRunningMutationThunk`
 
 #### Signature
 
 ```ts no-transpile
-getRunningOperationPromise: <EndpointName extends QueryKeys<Definitions>>(
+getRunningQueryThunk<EndpointName extends QueryKeys<Definitions>>(
   endpointName: EndpointName,
   args: QueryArgFrom<Definitions[EndpointName]>
-) =>
-  | QueryActionCreatorResult<Definitions[EndpointName]>
+): ThunkWithReturnValue<
+  | QueryActionCreatorResult<
+      Definitions[EndpointName] & { type: 'query' }
+    >
   | undefined
+>
 
-getRunningOperationPromise: <EndpointName extends MutationKeys<Definitions>>(
+getRunningMutationThunk<EndpointName extends MutationKeys<Definitions>>(
   endpointName: EndpointName,
   fixedCacheKeyOrRequestId: string
-) =>
-  | MutationActionCreatorResult<Definitions[EndpointName]>
+): ThunkWithReturnValue<
+  | MutationActionCreatorResult<
+      Definitions[EndpointName] & { type: 'mutation' }
+    >
   | undefined
+>
 ```
 
 #### Description
 
-A function that returns a single promise for a given endpoint name + argument combination,
-if it is currently running. If it is not currently running, the function returns `undefined`.
+Thunks that (if dispatched) return a single running query (or mutation) for a given
+endpoint name + argument (or requestId/fixedCacheKey) combination, if it is currently running.
+If it is not currently running, the function returns `undefined`.
 
-When used with mutation endpoints, it accepts a [fixed cache key](./hooks.mdx#signature-1)
-or request ID rather than the argument.
-
-This is primarily added to add experimental support for suspense in the future.
-It enables writing custom hooks that look up if RTK Query has already got a running promise
-for a certain endpoint/argument combination, and retrieving that promise to `throw` it.
+These thunks are primarily added to add experimental support for suspense in the future.
+They enable writing custom hooks that look up if RTK Query has already got a running query/mutation
+for a certain endpoint/argument combination, and retrieving that to `throw` it as a promise.
