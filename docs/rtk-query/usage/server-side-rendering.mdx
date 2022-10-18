@@ -21,7 +21,7 @@ The workflow is as follows:
 - Set up `next-redux-wrapper`
 - In `getStaticProps` or `getServerSideProps`:
   - Pre-fetch all queries via the `initiate` actions, e.g. `store.dispatch(api.endpoints.getPokemonByName.initiate(name))`
-  - Wait for each query to finish using `await Promise.all(api.util.getRunningOperationPromises())`
+  - Wait for each query to finish using `await Promise.all(dispatch(api.util.getRunningQueriesThunk()))`
 - In your `createApi` call, configure rehydration using the `extractRehydrationInfo` option:
 
   [examples](docblock://query/createApi.ts?token=CreateApiOptions.extractRehydrationInfo)
@@ -56,4 +56,4 @@ The workflow is as follows:
   [examples](docblock://query/react/module.ts?token=ReactHooksModuleOptions.unstable__sideEffectsInRender)
 
 - Use your custom `createApi` when calling `const api = createApi({...})`
-- Wait for all queries to finish using `await Promise.all(api.util.getRunningOperationPromises())` before performing the next render cycle
+- Wait for all queries to finish using `await Promise.all(dispatch(api.util.getRunningQueriesThunk()))` before performing the next render cycle
