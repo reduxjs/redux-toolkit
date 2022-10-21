@@ -380,6 +380,15 @@ If you specify `track: false` when manually dispatching queries, RTK Query will 
 
 _(required if no `queryFn` provided)_
 
+```ts title="query signature" no-transpile
+export type query = <QueryArg>(
+  arg: QueryArg
+) => string | Record<string, unknown>
+
+// with `fetchBaseQuery`
+export type query = <QueryArg>(arg: QueryArg) => string | FetchArgs
+```
+
 [summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.query)
 
 [examples](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.query)
@@ -506,11 +515,28 @@ _(optional, only for query endpoints)_
 
 ### `merge`
 
-_(optional, only for query endpoints)_ w
+_(optional, only for query endpoints)_
 
 [summary](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.merge)
 
 [examples](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.merge)
+
+### `forceRefetch`
+
+_(optional, only for query endpoints)_
+
+```ts title="forceRefetch signature" no-transpile
+type forceRefetch = (params: {
+  currentArg: QueryArg | undefined
+  previousArg: QueryArg | undefined
+  state: RootState<any, any, string>
+  endpointState?: QuerySubState<any>
+}) => boolean
+```
+
+[summary](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.forceRefetch)
+
+[examples](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.forceRefetch)
 
 ### `onQueryStarted`
 
