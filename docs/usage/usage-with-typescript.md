@@ -667,7 +667,7 @@ const handleUpdateUser = async (userData) => {
 }
 ```
 
-#### Defining a Pre-Typed `createAsyncThunk`
+### Defining a Pre-Typed `createAsyncThunk`
 
 As of RTK 1.9, you can define a "pre-typed" version of `createAsyncThunk` that can have the types for `state`, `dispatch`, and `extra` built in. This lets you set up those types once, so you don't have to repeat them each time you call `createAsyncThunk`.
 
@@ -682,7 +682,7 @@ const createAppAsyncThunk = createAsyncThunk.withTypes<{
 }>()
 ```
 
-Import and use that pre-typed `createAppAsyncThunk` instead of the original, and the types will be used automatically:
+Import and use that pre-typed `createAppAsyncThunk` instead of the original, and the types will be used automatically.
 
 ## `createEntityAdapter`
 

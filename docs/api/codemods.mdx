@@ -1,0 +1,77 @@
+---
+id: codemods
+title: Codemods
+sidebar_label: Codemods
+hide_title: true
+---
+
+&nbsp;
+
+# Codemods
+
+Per [the description in `1.9.0-alpha.0`](https://github.com/reduxjs/redux-toolkit/releases/tag/v1.9.0-alpha.0), we plan to remove the "object" argument from `createReducer` and `createSlice.extraReducers` in the future RTK 2.0 major version. In `1.9.0-alpha.0`, we added a one-shot runtime warning to each of those APIs.
+
+To simplify upgrading codebases, we've published a set of codemods that will automatically transform the deprecated "object" syntax into the equivalent "builder" syntax.
+
+The codemods package is available on NPM as [**`@reduxjs/rtk-codemods`**](https://www.npmjs.com/package/@reduxjs/rtk-codemods). It currently contains two codemods: `createReducerBuilder` and `createSliceBuilder`.
+
+To run the codemods against your codebase, run `npx @reduxjs/rtk-codemods <TRANSFORM NAME> path/of/files/ or/some**/*glob.js`.
+
+Examples:
+
+```bash
+npx @reduxjs/rtk-codemods createReducerBuilder ./src
+
+npx @reduxjs/rtk-codemods createSliceBuilder ./packages/my-app/**/*.ts
+```
+
+We also recommend re-running Prettier on the codebase before committing the changes.
+
+**These codemods _should_ work, but we would greatly appreciate testing and feedback on more real-world codebases!**
+
+Before:
+
+```js
+createReducer(initialState, {
+  [todoAdded1a]: (state, action) => {
+    // stuff
+  },
+  [todoAdded1b]: (state, action) => action.payload,
+})
+
+const slice1 = createSlice({
+  name: 'a',
+  initialState: {},
+  extraReducers: {
+    [todoAdded1a]: (state, action) => {
+      // stuff
+    },
+    [todoAdded1b]: (state, action) => action.payload,
+  },
+})
+```
+
+After:
+
+```js
+createReducer(initialState, (builder) => {
+  builder.addCase(todoAdded1a, (state, action) => {
+    // stuff
+  })
+
+  builder.addCase(todoAdded1b, (state, action) => action.payload)
+})
+
+const slice1 = createSlice({
+  name: 'a',
+  initialState: {},
+
+  extraReducers: (builder) => {
+    builder.addCase(todoAdded1a, (state, action) => {
+      // stuff
+    })
+
+    builder.addCase(todoAdded1b, (state, action) => action.payload)
+  },
+})
+```
