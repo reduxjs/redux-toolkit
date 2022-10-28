@@ -380,6 +380,15 @@ If you specify `track: false` when manually dispatching queries, RTK Query will 
 
 _(required if no `queryFn` provided)_
 
+```ts title="query signature" no-transpile
+export type query = <QueryArg>(
+  arg: QueryArg
+) => string | Record<string, unknown>
+
+// with `fetchBaseQuery`
+export type query = <QueryArg>(arg: QueryArg) => string | FetchArgs
+```
+
 [summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.query)
 
 [examples](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.query)
@@ -490,11 +499,44 @@ See also [Invalidating cache data](../usage/automated-refetching.mdx#invalidatin
 
 _(optional, only for query endpoints)_
 
-Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only.
+Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only.a
 
 [summary](docblock://query/createApi.ts?token=CreateApiOptions.keepUnusedDataFor)
 
 [examples](docblock://query/createApi.ts?token=CreateApiOptions.keepUnusedDataFor)
+
+### `serializeQueryArgs`
+
+_(optional, only for query endpoints)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.serializeQueryArgs)
+
+[examples](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.serializeQueryArgs)
+
+### `merge`
+
+_(optional, only for query endpoints)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.merge)
+
+[examples](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.merge)
+
+### `forceRefetch`
+
+_(optional, only for query endpoints)_
+
+```ts title="forceRefetch signature" no-transpile
+type forceRefetch = (params: {
+  currentArg: QueryArg | undefined
+  previousArg: QueryArg | undefined
+  state: RootState<any, any, string>
+  endpointState?: QuerySubState<any>
+}) => boolean
+```
+
+[summary](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.forceRefetch)
+
+[examples](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.forceRefetch)
 
 ### `onQueryStarted`
 

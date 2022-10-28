@@ -63,7 +63,8 @@
           "items": [
             "api/createSelector",
             "api/matching-utilities",
-            "api/other-exports"
+            "api/other-exports",
+            "api/codemods"
           ]
         }
       ]
