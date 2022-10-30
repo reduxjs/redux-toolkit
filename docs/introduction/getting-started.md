@@ -7,6 +7,8 @@ hide_title: true
 
 import LiteYouTubeEmbed from 'react-lite-youtube-embed';
 import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css'
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 &nbsp;
 
@@ -30,17 +32,53 @@ you make your Redux code better.
 
 ## Installation
 
-### Using Create React App
+<Tabs>
+  <TabItem value="Using Create React App" label="Using Create React App" default>
 
 The recommended way to start new apps with React and Redux is by using the [official Redux+JS template](https://github.com/reduxjs/cra-template-redux) or [Redux+TS template](https://github.com/reduxjs/cra-template-redux-typescript) for [Create React App](https://github.com/facebook/create-react-app), which takes advantage of **[Redux Toolkit](https://redux-toolkit.js.org/)** and React Redux's integration with React components.
 
 ```bash
 # Redux + Plain JS template
 npx create-react-app my-app --template redux
+```
 
+```bash
 # Redux + TypeScript template
 npx create-react-app my-app --template redux-typescript
 ```
+
+  </TabItem>
+  <TabItem value="Using React Native CLI" label="Using React Native CLI" default>
+
+You can start new apps with React and Redux in React Native CLI by using the [React Native Redux+JS template](https://github.com/rahsheen/react-native-template-redux) or [React Native Redux+TS template](https://github.com/rahsheen/react-native-template-redux-typescript), which takes advantage of **[Redux Toolkit](https://redux-toolkit.js.org/)** and React Redux's integration with React components.
+
+```bash
+# Redux + Plain JS template
+npx react-native init AwesomeTSProject --template react-native-template-redux
+```
+
+```bash
+# Redux + TypeScript template
+npx react-native init AwesomeTSProject --template react-native-template-redux-typescript
+```
+
+  </TabItem>
+  <TabItem value="Using Expo" label="Using Expo" default>
+
+You can start new apps with React and Redux in Expo by using the [Expo Redux+JS template](https://github.com/rahsheen/expo-template-redux) or [Expo Redux+TS template](https://github.com/rahsheen/expo-template-redux-typescript), which takes advantage of **[Redux Toolkit](https://redux-toolkit.js.org/)** and React Redux's integration with React components.
+
+```bash
+# Redux + Plain JS template
+npx create-expo-app -t expo-template-redux
+```
+
+```bash
+# Redux + TypeScript template
+npx create-expo-app -t expo-template-redux-typescript
+```
+
+  </TabItem>
+</Tabs>
 
 ### An Existing App
 
