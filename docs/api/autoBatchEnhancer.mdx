@@ -65,17 +65,30 @@ const store = configureStore({
 
 ```ts title="autoBatchEnhancer signature" no-transpile
 export type SHOULD_AUTOBATCH = string
-export type autoBatchEnhancer = () => StoreEnhancer
+type AutoBatchOptions =
+  | { type: 'tick' }
+  | { type: 'timer'; timeout: number }
+  | { type: 'raf' }
+  | { type: 'callback'; queueNotification: (notify: () => void) => void }
+
+export type autoBatchEnhancer = (options?: AutoBatchOptions) => StoreEnhancer
 ```
 
 Creates a new instance of the autobatch store enhancer.
 
-Any action that is tagged with `action.meta[SHOULD_AUTOBATCH] = true` will be treated as "low-priority", and the enhancer will delay notifying subscribers until either:
+Any action that is tagged with `action.meta[SHOULD_AUTOBATCH] = true` will be treated as "low-priority", and a notification callback will be queued. The enhancer will delay notifying subscribers until either:
 
-- The end of the current event loop tick happens, and a queued microtask runs the notifications
+- The queued callback runs and triggers the notifications
 - A "normal-priority" action (any action _without_ `action.meta[SHOULD_AUTOBATCH] = true`) is dispatched in the same tick
 
-This method currently does not accept any options. We may consider allowing customization of the delay behavior in the future.
+`autoBatchEnhancer` accepts options to configure how the notification callback is queued:
+
+- `{type: 'tick'}: queues using `queueMicrotask` (default)
+- `{type: 'timer, timeout: number}`: queues using `setTimeout`
+- `{type: 'raf'}`: queues using `requestAnimationFrame`
+- `{type: 'callback', queueNotification: (notify: () => void) => void}: lets you provide your own callback
+
+The default behavior is to queue the notifications at the end of the current event loop using `queueMicrotask`.
 
 The `SHOULD_AUTOBATCH` value is meant to be opaque - it's currently a string for simplicity, but could be a `Symbol` in the future.
 
@@ -117,7 +130,7 @@ This enhancer is a variation of the "debounce" approach, but with a twist.
 
 Instead of _just_ debouncing _all_ subscriber notifications, it watches for any actions with a specific `action.meta[SHOULD_AUTOBATCH]: true` field attached.
 
-When it sees an action with that field, it queues a microtask. The reducer is updated immediately, but the enhancer does _not_ notify subscribers right way. If other actions with the same field are dispatched in succession, the enhancer will continue to _not_ notify subscribers. Then, when the queued microtask runs at the end of the event loop tick, it finally notifies all subscribers, similar to how React batches re-renders.
+When it sees an action with that field, it queues a callback. The reducer is updated immediately, but the enhancer does _not_ notify subscribers right way. If other actions with the same field are dispatched in succession, the enhancer will continue to _not_ notify subscribers. Then, when the queued callback runs, it finally notifies all subscribers, similar to how React batches re-renders.
 
 The additional twist is also inspired by React's separation of updates into "low-priority" and "immediate" behavior (such as a render queued by an AJAX request vs a render queued by a user input that should be handled synchronously).
 
