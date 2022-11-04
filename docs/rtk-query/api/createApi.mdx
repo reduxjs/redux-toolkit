@@ -158,6 +158,13 @@ export type QueryDefinition<
     arg: QueryArg
   ): ResultType | Promise<ResultType>
 
+  /* transformErrorResponse only available with `query`, not `queryFn` */
+  transformErrorResponse?(
+    baseQueryReturnValue: BaseQueryError<BaseQuery>,
+    meta: BaseQueryMeta<BaseQuery>,
+    arg: QueryArg
+  ): unknown
+
   extraOptions?: BaseQueryExtraOptions<BaseQuery>
 
   providesTags?: ResultDescription<
@@ -225,6 +232,13 @@ export type MutationDefinition<
     meta: BaseQueryMeta<BaseQuery>,
     arg: QueryArg
   ): ResultType | Promise<ResultType>
+
+  /* transformErrorResponse only available with `query`, not `queryFn` */
+  transformErrorResponse?(
+    baseQueryReturnValue: BaseQueryError<BaseQuery>,
+    meta: BaseQueryMeta<BaseQuery>,
+    arg: QueryArg
+  ): unknown
 
   extraOptions?: BaseQueryExtraOptions<BaseQuery>
 
@@ -366,6 +380,15 @@ If you specify `track: false` when manually dispatching queries, RTK Query will 
 
 _(required if no `queryFn` provided)_
 
+```ts title="query signature" no-transpile
+export type query = <QueryArg>(
+  arg: QueryArg
+) => string | Record<string, unknown>
+
+// with `fetchBaseQuery`
+export type query = <QueryArg>(arg: QueryArg) => string | FetchArgs
+```
+
 [summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.query)
 
 [examples](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.query)
@@ -431,6 +454,21 @@ transformResponse: (response, meta, arg) =>
   response.some.deeply.nested.collection
 ```
 
+### `transformErrorResponse`
+
+_(optional, not applicable with `queryFn`)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.transformErrorResponse)
+
+In some cases, you may want to manipulate the error returned from a query before you put it in the cache. In this instance, you can take advantage of `transformErrorResponse`.
+
+See also [Customizing query responses with `transformErrorResponse`](../usage/customizing-queries.mdx#customizing-query-responses-with-transformerrorresponse)
+
+```ts title="Unpack a deeply nested error object" no-transpile
+transformErrorResponse: (response, meta, arg) =>
+  response.data.some.deeply.nested.errorObject
+```
+
 ### `extraOptions`
 
 _(optional)_
@@ -461,11 +499,44 @@ See also [Invalidating cache data](../usage/automated-refetching.mdx#invalidatin
 
 _(optional, only for query endpoints)_
 
-Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only.
+Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only.a
 
 [summary](docblock://query/createApi.ts?token=CreateApiOptions.keepUnusedDataFor)
 
 [examples](docblock://query/createApi.ts?token=CreateApiOptions.keepUnusedDataFor)
+
+### `serializeQueryArgs`
+
+_(optional, only for query endpoints)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.serializeQueryArgs)
+
+[examples](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.serializeQueryArgs)
+
+### `merge`
+
+_(optional, only for query endpoints)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.merge)
+
+[examples](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.merge)
+
+### `forceRefetch`
+
+_(optional, only for query endpoints)_
+
+```ts title="forceRefetch signature" no-transpile
+type forceRefetch = (params: {
+  currentArg: QueryArg | undefined
+  previousArg: QueryArg | undefined
+  state: RootState<any, any, string>
+  endpointState?: QuerySubState<any>
+}) => boolean
+```
+
+[summary](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.forceRefetch)
+
+[examples](docblock://query/endpointDefinitions.ts?token=QueryExtraOptions.forceRefetch)
 
 ### `onQueryStarted`
 

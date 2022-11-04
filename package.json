@@ -37,10 +37,20 @@
     "release-it": "^14.12.5"
   },
   "resolutions": {
+    "@babel/core": "7.19.3",
+    "@babel/code-frame": "7.18.6",
+    "@babel/generator": "7.19.3",
+    "@babel/helper-compilation-targets": "7.19.3",
+    "@babel/traverse": "7.19.3",
+    "@babel/types": "7.19.3",
     "console-testing-library": "patch:console-testing-library@npm:0.3.1#.yarn/patches/console-testing-library__npm_0.3.1.patch",
+    "msw": "patch:msw@npm:0.40.2#.yarn/patches/msw-npm-0.40.2-2107d48752",
+    "jscodeshift": "0.13.1",
     "react-redux": "npm:8.0.2",
     "react": "npm:18.1.0",
     "react-dom": "npm:18.1.0",
+    "resolve": "1.22.1",
+    "ts-node": "10.4.0",
     "@types/react": "npm:18.0.12",
     "@types/react-dom": "npm:18.0.5",
     "@types/inquirer": "npm:8.2.1",
@@ -51,7 +61,8 @@
     "docs/react": "npm:17.0.2",
     "docs/react-dom": "npm:17.0.2",
     "docs/@types/react-dom": "npm:17.0.11",
-    "docs/@types/react": "npm:17.0.11"
+    "docs/@types/react": "npm:17.0.11",
+    "type-fest": "2.19.0"
   },
   "scripts": {
     "build": "yarn build:packages",

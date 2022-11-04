@@ -1,0 +1,143 @@
+---
+id: autoBatchEnhancer
+title: autoBatchEnhancer
+sidebar_label: autoBatchEnhancer
+hide_title: true
+---
+
+&nbsp;
+
+# `autoBatchEnhancer`
+
+A Redux store enhancer that looks for one or more "low-priority" dispatched actions in a row, and queues a callback to run subscriber notifications on a delay. It then notifies subscribers either when the queued callback runs, or when the next "normal-priority" action is dispatched, whichever is first.
+
+## Basic Usage
+
+```ts
+import {
+  createSlice,
+  configureStore,
+  autoBatchEnhancer,
+  prepareAutoBatched,
+} from '@reduxjs/toolkit'
+
+interface CounterState {
+  value: number
+}
+
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 } as CounterState,
+  reducers: {
+    incrementBatched: {
+      // Batched, low-priority
+      reducer(state) {
+        state.value += 1
+      },
+      // highlight-start
+      // Use the `prepareAutoBatched` utility to automatically
+      // add the `action.meta[SHOULD_AUTOBATCH]` field the enhancer needs
+      prepare: prepareAutoBatched<void>(),
+      // highlight-end
+    },
+    // Not batched, normal priority
+    decrementUnbatched(state) {
+      state.value -= 1
+    },
+  },
+})
+const { incrementBatched, decrementUnbatched } = counterSlice.actions
+
+const store = configureStore({
+  reducer: counterSlice.reducer,
+  // highlight-start
+  enhancers: (existingEnhancers) => {
+    // Add the autobatch enhancer to the store setup
+    return existingEnhancers.concat(autoBatchEnhancer())
+  },
+  // highlight-end
+})
+```
+
+## API
+
+### `autoBatchEnhancer`
+
+```ts title="autoBatchEnhancer signature" no-transpile
+export type SHOULD_AUTOBATCH = string
+type AutoBatchOptions =
+  | { type: 'tick' }
+  | { type: 'timer'; timeout: number }
+  | { type: 'raf' }
+  | { type: 'callback'; queueNotification: (notify: () => void) => void }
+
+export type autoBatchEnhancer = (options?: AutoBatchOptions) => StoreEnhancer
+```
+
+Creates a new instance of the autobatch store enhancer.
+
+Any action that is tagged with `action.meta[SHOULD_AUTOBATCH] = true` will be treated as "low-priority", and a notification callback will be queued. The enhancer will delay notifying subscribers until either:
+
+- The queued callback runs and triggers the notifications
+- A "normal-priority" action (any action _without_ `action.meta[SHOULD_AUTOBATCH] = true`) is dispatched in the same tick
+
+`autoBatchEnhancer` accepts options to configure how the notification callback is queued:
+
+- `{type: 'raf'}`: queues using `requestAnimationFrame` (default)
+- `{type: 'tick'}: queues using `queueMicrotask`
+- `{type: 'timer, timeout: number}`: queues using `setTimeout`
+- `{type: 'callback', queueNotification: (notify: () => void) => void}: lets you provide your own callback, such as a debounced or throttled function
+
+The default behavior is to queue the notifications using `requestAnimationFrame`.
+
+The `SHOULD_AUTOBATCH` value is meant to be opaque - it's currently a string for simplicity, but could be a `Symbol` in the future.
+
+### `prepareAutoBatched`
+
+```ts title="prepareAutoBatched signature" no-transpile
+type prepareAutoBatched = <T>() => (payload: T) => { payload: T; meta: unknown }
+```
+
+Creates a function that accepts a `payload` value, and returns an object with `{payload, meta: {[SHOULD_AUTOBATCH]: true}}`. This is meant to be used with RTK's `createSlice` and its "`prepare` callback" syntax:
+
+```ts no-transpile
+createSlice({
+  name: 'todos',
+  initialState,
+  reducers: {
+    todoAdded: {
+      reducer(state, action: PayloadAction<Todo>) {
+        state.push(action.payload)
+      },
+      // highlight-start
+      prepare: prepareAutoBatched<Todo>(),
+      // highlight-end
+    },
+  },
+})
+```
+
+## Batching Approach and Background
+
+The post [A Comparison of Redux Batching Techniques](https://blog.isquaredsoftware.com/2020/01/blogged-answers-redux-batching-techniques/) describes four different approaches for "batching Redux actions/dispatches"
+
+- a higher-order reducer that accepts multiple actions nested inside one real action, and iterates over them together
+- an enhancer that wraps `dispatch` and debounces the notification callback
+- an enhancer that wraps `dispatch` to accept an array of actions
+- React's `unstable_batchedUpdates()`, which just combines multiple queued renders into one but doesn't affect subscriber notifications
+
+This enhancer is a variation of the "debounce" approach, but with a twist.
+
+Instead of _just_ debouncing _all_ subscriber notifications, it watches for any actions with a specific `action.meta[SHOULD_AUTOBATCH]: true` field attached.
+
+When it sees an action with that field, it queues a callback. The reducer is updated immediately, but the enhancer does _not_ notify subscribers right way. If other actions with the same field are dispatched in succession, the enhancer will continue to _not_ notify subscribers. Then, when the queued callback runs, it finally notifies all subscribers, similar to how React batches re-renders.
+
+The additional twist is also inspired by React's separation of updates into "low-priority" and "immediate" behavior (such as a render queued by an AJAX request vs a render queued by a user input that should be handled synchronously).
+
+If some low-pri actions have been dispatched and a notification microtask is queued, then a _normal_ priority action (without the field) is dispatched, the enhancer will go ahead and notify all subscribers synchronously as usual, and _not_ notify them at the end of the tick.
+
+This allows Redux users to selectively tag certain actions for effective batching behavior, making this purely opt-in on a per-action basis, while retaining normal notification behavior for all other actions.
+
+### RTK Query and Batching
+
+RTK Query already marks several of its key internal action types as batchable. If you add the `autoBatchEnhancer` to the store setup, it will improve the overall UI performance, especially when rendering large lists of components that use the RTKQ query hooks.
