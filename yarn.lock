@@ -6401,7 +6401,7 @@ __metadata:
     eslint-plugin-react: ^7.23.2
     eslint-plugin-react-hooks: ^4.2.0
     fs-extra: ^9.1.0
-    immer: ^9.0.7
+    immer: ^9.0.16
     invariant: ^2.2.4
     jest: ^27
     json-stringify-safe: ^5.0.1
@@ -6411,9 +6411,9 @@ __metadata:
     node-fetch: ^2.6.1
     prettier: ^2.2.1
     query-string: ^7.0.1
-    redux: ^4.1.2
-    redux-thunk: ^2.4.1
-    reselect: ^4.1.5
+    redux: ^4.2.0
+    redux-thunk: ^2.4.2
+    reselect: ^4.1.7
     rimraf: ^3.0.2
     rollup: ^2.47.0
     rollup-plugin-strip-code: ^0.2.6
@@ -16212,6 +16212,13 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"immer@npm:^9.0.16":
+  version: 9.0.16
+  resolution: "immer@npm:9.0.16"
+  checksum: e9a5ca65c929b329da7a3b7beccf7984271cda7bdd47b2cab619eac3277dcd56598c211b55cc340786b6eff0c06652ac018808d9fd744443f06882364dece6bc
+  languageName: node
+  linkType: hard
+
 "immer@npm:^9.0.7":
   version: 9.0.7
   resolution: "immer@npm:9.0.7"
@@ -23474,12 +23481,30 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"redux-thunk@npm:^2.4.2":
+  version: 2.4.2
+  resolution: "redux-thunk@npm:2.4.2"
+  peerDependencies:
+    redux: ^4
+  checksum: c7f757f6c383b8ec26152c113e20087818d18ed3edf438aaad43539e9a6b77b427ade755c9595c4a163b6ad3063adf3497e5fe6a36c68884eb1f1cfb6f049a5c
+  languageName: node
+  linkType: hard
+
 "redux@npm:^4.0.0, redux@npm:^4.1.2":
   version: 4.1.2
   resolution: "redux@npm:4.1.2"
   dependencies:
     "@babel/runtime": ^7.9.2
   checksum: 6a839cee5bd580c5298d968e9e2302150e961318253819bcd97f9d945a5a409559eacddf6026f4118bb68b681c593d90e8a2c5bbf278f014aff9bf0d2d8fa084
+  languageName: node
+  linkType: hard
+
+"redux@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "redux@npm:4.2.0"
+  dependencies:
+    "@babel/runtime": ^7.9.2
+  checksum: 75f3955c89b3f18edf5411e5fb482aa2e4f41a416183e8802a6bf6472c4fc3d47675b8b321d147f8af8e0f616436ac507bf5a25f1c4d6180e797b549c7db2c1d
   languageName: node
   linkType: hard
 
@@ -23906,6 +23931,13 @@ fsevents@^1.2.7:
   version: 4.1.5
   resolution: "reselect@npm:4.1.5"
   checksum: 54c13c1e795b2ea70cba8384138aebe78adda00cbea303cc94b64da0a70d74c896cc9a03115ae38b8bff990e7a60dcd6452ab68cbec01b0b38c1afda70714cf0
+  languageName: node
+  linkType: hard
+
+"reselect@npm:^4.1.7":
+  version: 4.1.7
+  resolution: "reselect@npm:4.1.7"
+  checksum: 738d8e2b8f0dca154ad29de6a209c9fbca2d70ae6788fd85df87f2c74b95a65bbf2d16d43a9e2faff39de34d17a29d706ba08a6b2ee5660c09589edbd19af7e1
   languageName: node
   linkType: hard
 
