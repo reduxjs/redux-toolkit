@@ -9,7 +9,7 @@ hide_title: true
 
 # `autoBatchEnhancer`
 
-A Redux store enhancer that looks for one or more "low-priority" dispatched actions in a row, and delays notifying subscribers until either the end of the current event loop tick or when the next "normal-priority" action is dispatched.
+A Redux store enhancer that looks for one or more "low-priority" dispatched actions in a row, and queues a callback to run subscriber notifications on a delay. It then notifies subscribers either when the queued callback runs, or when the next "normal-priority" action is dispatched, whichever is first.
 
 ## Basic Usage
 
@@ -83,12 +83,12 @@ Any action that is tagged with `action.meta[SHOULD_AUTOBATCH] = true` will be tr
 
 `autoBatchEnhancer` accepts options to configure how the notification callback is queued:
 
-- `{type: 'tick'}: queues using `queueMicrotask` (default)
+- `{type: 'raf'}`: queues using `requestAnimationFrame` (default)
+- `{type: 'tick'}: queues using `queueMicrotask`
 - `{type: 'timer, timeout: number}`: queues using `setTimeout`
-- `{type: 'raf'}`: queues using `requestAnimationFrame`
-- `{type: 'callback', queueNotification: (notify: () => void) => void}: lets you provide your own callback
+- `{type: 'callback', queueNotification: (notify: () => void) => void}: lets you provide your own callback, such as a debounced or throttled function
 
-The default behavior is to queue the notifications at the end of the current event loop using `queueMicrotask`.
+The default behavior is to queue the notifications using `requestAnimationFrame`.
 
 The `SHOULD_AUTOBATCH` value is meant to be opaque - it's currently a string for simplicity, but could be a `Symbol` in the future.
 
