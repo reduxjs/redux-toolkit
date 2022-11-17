@@ -303,13 +303,13 @@ const axiosBaseQuery =
     {
       url: string
       method: AxiosRequestConfig['method']
-      data?: AxiosRequestConfig['data']
+      body?: AxiosRequestConfig['data']
       params?: AxiosRequestConfig['params']
     },
     unknown,
     unknown
   > =>
-  async ({ url, method, data, params }) => {
+  async ({ url, method, body: data, params }) => {
     try {
       const result = await axios({ url: baseUrl + url, method, data, params })
       return { data: result.data }
