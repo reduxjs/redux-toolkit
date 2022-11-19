@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "../../dist/query/react/index.js",
-  "module": "../../dist/query/react/rtk-query-react.esm.js",
+  "module": "../../dist/query/react/rtk-query-react.modern.js",
   "unpkg": "../../dist/query/react/rtk-query-react.umd.min.js",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
