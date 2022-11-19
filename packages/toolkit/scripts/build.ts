@@ -36,28 +36,22 @@ const buildTargets: BuildOptions[] = [
   {
     format: 'cjs',
     name: 'cjs.development',
+    target: 'es2018',
     minify: false,
     env: 'development',
   },
-
   {
     format: 'cjs',
     name: 'cjs.production.min',
+    target: 'es2018',
     minify: true,
     env: 'production',
-  },
-  // ESM, embedded `process`, ES5 syntax: typical Webpack dev
-  {
-    format: 'esm',
-    name: 'esm',
-    minify: false,
-    env: '',
   },
   // ESM, embedded `process`, ES2017 syntax: modern Webpack dev
   {
     format: 'esm',
     name: 'modern',
-    target: 'es2017',
+    target: 'es2018',
     minify: false,
     env: '',
   },
@@ -65,7 +59,7 @@ const buildTargets: BuildOptions[] = [
   {
     format: 'esm',
     name: 'modern.development',
-    target: 'es2017',
+    target: 'es2018',
     minify: false,
     env: 'development',
   },
@@ -73,19 +67,21 @@ const buildTargets: BuildOptions[] = [
   {
     format: 'esm',
     name: 'modern.production.min',
-    target: 'es2017',
+    target: 'es2018',
     minify: true,
     env: 'production',
   },
   {
     format: 'umd',
     name: 'umd',
+    target: 'es2018',
     minify: false,
     env: 'development',
   },
   {
     format: 'umd',
     name: 'umd.min',
+    target: 'es2018',
     minify: true,
     env: 'production',
   },
@@ -197,7 +193,7 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     const esVersion =
       target in esVersionMappings
         ? esVersionMappings[target]
-        : ts.ScriptTarget.ES5
+        : ts.ScriptTarget.ES2017
 
     const origin = chunk.text
     const sourcemap = extractInlineSourcemap(origin)
