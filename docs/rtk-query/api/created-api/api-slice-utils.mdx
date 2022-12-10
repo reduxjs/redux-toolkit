@@ -228,6 +228,54 @@ React Hooks users will most likely never need to use this directly, as the `useP
 dispatch(api.util.prefetch('getPosts', undefined, { force: true }))
 ```
 
+### `selectInvalidatedBy`
+ 
+#### Signature
+ 
+```ts no-transpile
+ function selectInvalidatedBy(
+   state: RootState,
+   tags: ReadonlyArray<TagDescription<string>>
+ ): Array<{
+   endpointName: string
+   originalArgs: any
+   queryCacheKey: QueryCacheKey
+ }>
+```
+ 
+- **Parameters**
+  - `state`: the root state
+  - `tags`: a readonly array of invalidated tags, where the provided `TagDescription` is one of the strings provided to the [`tagTypes`](../createApi.mdx#tagtypes) property of the api. e.g.
+    - `[TagType]`
+    - `[{ type: TagType }]`
+    - `[{ type: TagType, id: number | string }]`
+ 
+#### Description
+ 
+A function that can select query parameters to be invalidated.
+ 
+The function accepts two arguments
+  - the root state and
+  - the cache tags to be invalidated.
+ 
+It returns an array that contains
+  - the endpoint name,
+  - the original args and
+  - the queryCacheKey.
+ 
+#### Example
+ 
+```ts no-transpile
+dispatch(api.util.selectInvalidatedBy(state, ['Post']))
+dispatch(api.util.selectInvalidatedBy(state, [{ type: 'Post', id: 1 }]))
+dispatch(
+  api.util.selectInvalidatedBy(state, [
+    { type: 'Post', id: 1 },
+    { type: 'Post', id: 4 },
+  ])
+)
+```
+
 ### `invalidateTags`
 
 #### Signature
