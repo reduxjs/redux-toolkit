@@ -453,11 +453,19 @@ const itemsSlice = createSlice({
 
 Many ESLint configs include the https://eslint.org/docs/rules/no-param-reassign rule, which may also warn about mutations to nested fields. That can cause the rule to warn about mutations to `state` in Immer-powered reducers, which is not helpful.
 
-To resolve this, you can tell the ESLint rule to ignore mutations to a parameter named `state`:
+To resolve this, you can tell the ESLint rule to ignore mutations and assignment to a parameter named `state` only in slice files:
 
 ```js
-{
-  'no-param-reassign': ['error', { props: true, ignorePropertyModificationsFor: ['state'] }]
+// @filename .eslintrc.js
+module.exports = {
+  ...
+  overrides: [
+		...,
+		{
+			files: ['src/**/*.slice.ts'], // feel free to replace with your preferred file pattern - eg. 'src/**/*Slice.ts'
+			rules: { 'no-param-reassign': ['error', { props: false }] }, // avoid state param assignment
+		},
+	],
 }
 
 ```
