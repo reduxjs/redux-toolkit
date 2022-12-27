@@ -458,16 +458,16 @@ To resolve this, you can tell the ESLint rule to ignore mutations and assignment
 ```js
 // @filename .eslintrc.js
 module.exports = {
-  ...
+  // add to your ESLint config definition
   overrides: [
-		...,
-		{
-			files: ['src/**/*.slice.ts'], // feel free to replace with your preferred file pattern - eg. 'src/**/*Slice.ts'
-			rules: { 'no-param-reassign': ['error', { props: false }] }, // avoid state param assignment
-		},
-	],
+    {
+      // feel free to replace with your preferred file pattern - eg. 'src/**/*Slice.ts'
+      files: ['src/**/*.slice.ts'], 
+      // avoid state param assignment
+      rules: { 'no-param-reassign': ['error', { props: false }] }, 
+    },
+  ],
 }
-
 ```
 
 ## Why Immer is Built In
