@@ -183,9 +183,13 @@ describe('createSlice', () => {
         increment: (state) => state + 1,
         multiply: (state, action) => state * action.payload,
       },
-      extraReducers: {
-        [addMore.type]: (state, action) => state + action.payload.amount,
+      extraReducers: (builder) => {
+        builder.addCase(
+          addMore,
+          (state, action) => state + action.payload.amount
+        )
       },
+
       initialState: 0,
     })
 
@@ -372,7 +376,7 @@ describe('createSlice', () => {
     })
   })
 
-  describe.only('Deprecation warnings', () => {
+  describe('Deprecation warnings', () => {
     let originalNodeEnv = process.env.NODE_ENV
 
     beforeEach(() => {
@@ -385,7 +389,7 @@ describe('createSlice', () => {
     })
 
     // NOTE: This needs to be in front of the later `createReducer` call to check the one-time warning
-    it('Warns about object notation deprecation, once', () => {
+    it('Throws an error if the legacy object notation is used', () => {
       const { createSlice } = require('../createSlice')
 
       let dummySlice = (createSlice as CreateSlice)({
@@ -393,32 +397,37 @@ describe('createSlice', () => {
         initialState: [],
         reducers: {},
         extraReducers: {
+          // @ts-ignore
           a: () => [],
         },
       })
+      let reducer: any
       // Have to trigger the lazy creation
-      let { reducer } = dummySlice
-      reducer(undefined, { type: 'dummy' })
+      const wrapper = () => {
+        reducer = dummySlice.reducer
+        reducer(undefined, { type: 'dummy' })
+      }
 
-      expect(getLog().levels.warn).toMatch(
-        /The object notation for `createSlice.extraReducers` is deprecated/
+      expect(wrapper).toThrowError(
+        /The object notation for `createSlice.extraReducers` has been removed/
       )
-      restore = mockConsole(createConsole())
 
       dummySlice = (createSlice as CreateSlice)({
         name: 'dummy',
         initialState: [],
         reducers: {},
         extraReducers: {
+          // @ts-ignore
           a: () => [],
         },
       })
-      reducer = dummySlice.reducer
-      reducer(undefined, { type: 'dummy' })
-      expect(getLog().levels.warn).toBe('')
+      expect(wrapper).toThrowError(
+        /The object notation for `createSlice.extraReducers` has been removed/
+      )
     })
 
-    it('Does not warn in production', () => {
+    // TODO Determine final production behavior here
+    it.skip('Crashes in production', () => {
       process.env.NODE_ENV = 'production'
       const { createSlice } = require('../createSlice')
 
@@ -426,9 +435,17 @@ describe('createSlice', () => {
         name: 'dummy',
         initialState: [],
         reducers: {},
+        // @ts-ignore
         extraReducers: {},
       })
-      expect(getLog().levels.warn).toBe('')
+      const wrapper = () => {
+        let reducer = dummySlice.reducer
+        reducer(undefined, { type: 'dummy' })
+      }
+
+      expect(wrapper).toThrowError(
+        /The object notation for `createSlice.extraReducers` has been removed/
+      )
     })
   })
 })

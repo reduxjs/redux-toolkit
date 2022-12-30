@@ -141,9 +141,7 @@ createSlice({
 })
 ```
    */
-  extraReducers?:
-    | CaseReducers<NoInfer<State>, any>
-    | ((builder: ActionReducerMapBuilder<NoInfer<State>>) => void)
+  extraReducers?: (builder: ActionReducerMapBuilder<NoInfer<State>>) => void
 }
 
 /**
@@ -330,12 +328,9 @@ export function createSlice<
   function buildReducer() {
     if (process.env.NODE_ENV !== 'production') {
       if (typeof options.extraReducers === 'object') {
-        if (!hasWarnedAboutObjectNotation) {
-          hasWarnedAboutObjectNotation = true
-          console.warn(
-            "The object notation for `createSlice.extraReducers` is deprecated, and will be removed in RTK 2.0. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createSlice"
-          )
-        }
+        throw new Error(
+          "The object notation for `createSlice.extraReducers` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createSlice"
+        )
       }
     }
     const [
