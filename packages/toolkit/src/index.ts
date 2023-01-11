@@ -47,20 +47,26 @@ export type {
 export {
   // js
   createReducer,
+  buildCreateReducer,
 } from './createReducer'
 export type {
   // types
   Actions,
   CaseReducer,
   CaseReducers,
+  CreateReducer,
+  BuildCreateReducerConfiguration,
 } from './createReducer'
 export {
   // js
   createSlice,
+  buildCreateSlice,
 } from './createSlice'
 
 export type {
   // types
+  BuildCreateSliceConfiguration,
+  CreateSlice,
   CreateSliceOptions,
   Slice,
   CaseReducerActions,

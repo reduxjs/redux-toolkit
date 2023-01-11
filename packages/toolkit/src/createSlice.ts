@@ -1,4 +1,4 @@
-import type { AnyAction, Reducer } from 'redux'
+import type { Reducer } from 'redux'
 import { createNextState } from '.'
 import type {
   ActionCreatorWithoutPayload,
@@ -9,11 +9,12 @@ import type {
 } from './createAction'
 import { createAction } from './createAction'
 import type {
+  BuildCreateReducerConfiguration,
   CaseReducer,
   CaseReducers,
   ReducerWithInitialState,
 } from './createReducer'
-import { createReducer, NotFunction } from './createReducer'
+import { buildCreateReducer } from './createReducer'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type { NoInfer } from './tsHelpers'
@@ -258,120 +259,142 @@ function getType(slice: string, actionKey: string): string {
   return `${slice}/${actionKey}`
 }
 
-/**
- * A function that accepts an initial state, an object full of reducer
- * functions, and a "slice name", and automatically generates
- * action creators and action types that correspond to the
- * reducers and state.
- *
- * The `reducer` argument is passed to `createReducer()`.
- *
- * @public
- */
-export function createSlice<
-  State,
-  CaseReducers extends SliceCaseReducers<State>,
-  Name extends string = string
->(
-  options: CreateSliceOptions<State, CaseReducers, Name>
-): Slice<State, CaseReducers, Name> {
-  const { name } = options
-  if (!name) {
-    throw new Error('`name` is a required option for createSlice')
-  }
+export type CreateSlice = {
+  /**
+   * A function that accepts an initial state, an object full of reducer
+   * functions, and a "slice name", and automatically generates
+   * action creators and action types that correspond to the
+   * reducers and state.
+   *
+   * The `reducer` argument is passed to `createReducer()`.
+   *
+   * @public
+   */
+  <
+    State,
+    CaseReducers extends SliceCaseReducers<State>,
+    Name extends string = string
+  >(
+    options: CreateSliceOptions<State, CaseReducers, Name>
+  ): Slice<State, CaseReducers, Name>
+}
 
-  if (
-    typeof process !== 'undefined' &&
-    process.env.NODE_ENV === 'development'
-  ) {
-    if (options.initialState === undefined) {
-      console.error(
-        'You must provide an `initialState` value that is not `undefined`. You may have misspelled `initialState`'
-      )
-    }
-  }
+export interface BuildCreateSliceConfiguration
+  extends BuildCreateReducerConfiguration {}
 
-  const initialState =
-    typeof options.initialState == 'function'
-      ? options.initialState
-      : freezeDraftable(options.initialState)
-
-  const reducers = options.reducers || {}
-
-  const reducerNames = Object.keys(reducers)
-
-  const sliceCaseReducersByName: Record<string, CaseReducer> = {}
-  const sliceCaseReducersByType: Record<string, CaseReducer> = {}
-  const actionCreators: Record<string, Function> = {}
-
-  reducerNames.forEach((reducerName) => {
-    const maybeReducerWithPrepare = reducers[reducerName]
-    const type = getType(name, reducerName)
-
-    let caseReducer: CaseReducer<State, any>
-    let prepareCallback: PrepareAction<any> | undefined
-
-    if ('reducer' in maybeReducerWithPrepare) {
-      caseReducer = maybeReducerWithPrepare.reducer
-      prepareCallback = maybeReducerWithPrepare.prepare
-    } else {
-      caseReducer = maybeReducerWithPrepare
+export function buildCreateSlice(
+  configuration: BuildCreateSliceConfiguration
+): CreateSlice {
+  const createReducer = buildCreateReducer(configuration)
+  return function createSlice<
+    State,
+    CaseReducers extends SliceCaseReducers<State>,
+    Name extends string = string
+  >(
+    options: CreateSliceOptions<State, CaseReducers, Name>
+  ): Slice<State, CaseReducers, Name> {
+    const { name } = options
+    if (!name) {
+      throw new Error('`name` is a required option for createSlice')
     }
 
-    sliceCaseReducersByName[reducerName] = caseReducer
-    sliceCaseReducersByType[type] = caseReducer
-    actionCreators[reducerName] = prepareCallback
-      ? createAction(type, prepareCallback)
-      : createAction(type)
-  })
-
-  function buildReducer() {
-    if (process.env.NODE_ENV !== 'production') {
-      if (typeof options.extraReducers === 'object') {
-        throw new Error(
-          "The object notation for `createSlice.extraReducers` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createSlice"
+    if (
+      typeof process !== 'undefined' &&
+      process.env.NODE_ENV === 'development'
+    ) {
+      if (options.initialState === undefined) {
+        console.error(
+          'You must provide an `initialState` value that is not `undefined`. You may have misspelled `initialState`'
         )
       }
     }
-    const [
-      extraReducers = {},
-      actionMatchers = [],
-      defaultCaseReducer = undefined,
-    ] =
-      typeof options.extraReducers === 'function'
-        ? executeReducerBuilderCallback(options.extraReducers)
-        : [options.extraReducers]
 
-    const finalCaseReducers = { ...extraReducers, ...sliceCaseReducersByType }
+    const initialState =
+      typeof options.initialState == 'function'
+        ? options.initialState
+        : freezeDraftable(options.initialState)
 
-    return createReducer(initialState, (builder) => {
-      for (let key in finalCaseReducers) {
-        builder.addCase(key, finalCaseReducers[key] as CaseReducer<any>)
+    const reducers = options.reducers || {}
+
+    const reducerNames = Object.keys(reducers)
+
+    const sliceCaseReducersByName: Record<string, CaseReducer> = {}
+    const sliceCaseReducersByType: Record<string, CaseReducer> = {}
+    const actionCreators: Record<string, Function> = {}
+
+    reducerNames.forEach((reducerName) => {
+      const maybeReducerWithPrepare = reducers[reducerName]
+      const type = getType(name, reducerName)
+
+      let caseReducer: CaseReducer<State, any>
+      let prepareCallback: PrepareAction<any> | undefined
+
+      if ('reducer' in maybeReducerWithPrepare) {
+        caseReducer = maybeReducerWithPrepare.reducer
+        prepareCallback = maybeReducerWithPrepare.prepare
+      } else {
+        caseReducer = maybeReducerWithPrepare
       }
-      for (let m of actionMatchers) {
-        builder.addMatcher(m.matcher, m.reducer)
-      }
-      if (defaultCaseReducer) {
-        builder.addDefaultCase(defaultCaseReducer)
-      }
+
+      sliceCaseReducersByName[reducerName] = caseReducer
+      sliceCaseReducersByType[type] = caseReducer
+      actionCreators[reducerName] = prepareCallback
+        ? createAction(type, prepareCallback)
+        : createAction(type)
     })
-  }
 
-  let _reducer: ReducerWithInitialState<State>
+    function buildReducer() {
+      if (process.env.NODE_ENV !== 'production') {
+        if (typeof options.extraReducers === 'object') {
+          throw new Error(
+            "The object notation for `createSlice.extraReducers` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createSlice"
+          )
+        }
+      }
+      const [
+        extraReducers = {},
+        actionMatchers = [],
+        defaultCaseReducer = undefined,
+      ] =
+        typeof options.extraReducers === 'function'
+          ? executeReducerBuilderCallback(options.extraReducers)
+          : [options.extraReducers]
 
-  return {
-    name,
-    reducer(state, action) {
-      if (!_reducer) _reducer = buildReducer()
+      const finalCaseReducers = { ...extraReducers, ...sliceCaseReducersByType }
 
-      return _reducer(state, action)
-    },
-    actions: actionCreators as any,
-    caseReducers: sliceCaseReducersByName as any,
-    getInitialState() {
-      if (!_reducer) _reducer = buildReducer()
+      return createReducer(initialState, (builder) => {
+        for (let key in finalCaseReducers) {
+          builder.addCase(key, finalCaseReducers[key] as CaseReducer<any>)
+        }
+        for (let m of actionMatchers) {
+          builder.addMatcher(m.matcher, m.reducer)
+        }
+        if (defaultCaseReducer) {
+          builder.addDefaultCase(defaultCaseReducer)
+        }
+      })
+    }
 
-      return _reducer.getInitialState()
-    },
+    let _reducer: ReducerWithInitialState<State>
+
+    return {
+      name,
+      reducer(state, action) {
+        if (!_reducer) _reducer = buildReducer()
+
+        return _reducer(state, action)
+      },
+      actions: actionCreators as any,
+      caseReducers: sliceCaseReducersByName as any,
+      getInitialState() {
+        if (!_reducer) _reducer = buildReducer()
+
+        return _reducer.getInitialState()
+      },
+    }
   }
 }
+
+export const createSlice = buildCreateSlice({
+  createNextState,
+})
