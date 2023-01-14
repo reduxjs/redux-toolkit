@@ -2,7 +2,7 @@
 // @ts-check
 import { build } from 'esbuild'
 import terser from 'terser'
-import rollup from 'rollup'
+import { rollup } from 'rollup'
 import path from 'path'
 import fs from 'fs-extra'
 import ts from 'typescript'
@@ -256,7 +256,7 @@ async function buildUMD(
 ) {
   for (let umdExtension of ['umd', 'umd.min']) {
     const input = path.join(outputPath, `${prefix}.${umdExtension}.js`)
-    const instance = await rollup.rollup({
+    const instance = await rollup({
       input: [input],
       onwarn(warning, warn) {
         if (warning.code === 'THIS_IS_UNDEFINED') return
@@ -272,6 +272,7 @@ async function buildUMD(
         // These packages have specific global names from their UMD bundles
         react: 'React',
         'react-redux': 'ReactRedux',
+        '@reduxjs/toolkit': 'RTK',
       },
     })
   }
