@@ -1,7 +1,9 @@
 /* eslint-disable import/first */
+import { fileURLToPath } from 'url'
+
 // @ts-check
 import { build } from 'esbuild'
-import terser from 'terser'
+import { minify as terserMinify } from 'terser'
 import { rollup } from 'rollup'
 import path from 'path'
 import fs from 'fs-extra'
@@ -16,7 +18,9 @@ import { extractInlineSourcemap, removeInlineSourceMap } from './sourcemap'
 import type { BuildOptions, EntryPointOptions } from './types'
 import { appendInlineSourceMap, getLocation } from './sourcemap'
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+// No __dirname under Node ESM
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const { argv } = yargs(process.argv)
   .option('local', {
@@ -36,14 +40,14 @@ const buildTargets: BuildOptions[] = [
   {
     format: 'cjs',
     name: 'cjs.development',
-    target: 'es2018',
+    target: 'esnext',
     minify: false,
     env: 'development',
   },
   {
     format: 'cjs',
     name: 'cjs.production.min',
-    target: 'es2018',
+    target: 'esnext',
     minify: true,
     env: 'production',
   },
@@ -51,7 +55,7 @@ const buildTargets: BuildOptions[] = [
   {
     format: 'esm',
     name: 'modern',
-    target: 'es2018',
+    target: 'esnext',
     minify: false,
     env: '',
   },
@@ -59,7 +63,7 @@ const buildTargets: BuildOptions[] = [
   {
     format: 'esm',
     name: 'modern.development',
-    target: 'es2018',
+    target: 'esnext',
     minify: false,
     env: 'development',
   },
@@ -67,24 +71,24 @@ const buildTargets: BuildOptions[] = [
   {
     format: 'esm',
     name: 'modern.production.min',
-    target: 'es2018',
+    target: 'esnext',
     minify: true,
     env: 'production',
   },
-  {
-    format: 'umd',
-    name: 'umd',
-    target: 'es2018',
-    minify: false,
-    env: 'development',
-  },
-  {
-    format: 'umd',
-    name: 'umd.min',
-    target: 'es2018',
-    minify: true,
-    env: 'production',
-  },
+  // {
+  //   format: 'umd',
+  //   name: 'umd',
+  //   target: 'es2018',
+  //   minify: false,
+  //   env: 'development',
+  // },
+  // {
+  //   format: 'umd',
+  //   name: 'umd.min',
+  //   target: 'es2018',
+  //   minify: true,
+  //   env: 'production',
+  // },
 ]
 
 const entryPoints: EntryPointOptions[] = [
@@ -118,6 +122,9 @@ const esVersionMappings = {
   es2018: ts.ScriptTarget.ES2018,
   es2019: ts.ScriptTarget.ES2019,
   es2020: ts.ScriptTarget.ES2020,
+  es2021: ts.ScriptTarget.ES2021,
+  es2022: ts.ScriptTarget.ES2022,
+  esnext: ts.ScriptTarget.ESNext,
 }
 
 async function bundle(options: BuildOptions & EntryPointOptions) {
@@ -132,9 +139,21 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     entryPoint,
   } = options
 
-  const outputFolder = path.join('dist', folder)
+  const folderSegments = ['dist', folder]
+
+  if (format === 'cjs') {
+    folderSegments.push('cjs')
+  }
+
+  const outputFolder = path.join(...folderSegments)
   const outputFilename = `${prefix}.${name}.js`
+
+  fs.mkdirs(outputFolder)
   const outputFilePath = path.join(outputFolder, outputFilename)
+
+  if (format === 'cjs') {
+    await writeCommonJSEntry(outputFolder, prefix)
+  }
 
   const result = await build({
     entryPoints: [entryPoint],
@@ -212,7 +231,7 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     let mapping: RawSourceMap = mergedSourcemap
 
     if (minify) {
-      const transformResult = await terser.minify(
+      const transformResult = await terserMinify(
         appendInlineSourceMap(code, mapping),
         {
           sourceMap: {
@@ -237,12 +256,14 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     }
 
     const relativePath = path.relative(process.cwd(), chunk.path)
-    console.log(`Build artifact: ${relativePath}, settings: `, {
-      target,
-      output: ts.ScriptTarget[esVersion],
-    })
     await fs.writeFile(chunk.path, code)
     await fs.writeJSON(chunk.path + '.map', mapping)
+
+    if (!chunk.path.includes('.map')) {
+      console.log(`Build artifact: ${relativePath}, settings: `, {
+        target,
+      })
+    }
   }
 }
 
@@ -279,9 +300,9 @@ async function buildUMD(
 }
 
 // Generates an index file to handle importing CJS dev/prod
-async function writeEntry(folder: string, prefix: string) {
+async function writeCommonJSEntry(folder: string, prefix: string) {
   await fs.writeFile(
-    path.join('dist', folder, 'index.js'),
+    path.join(folder, 'index.js'),
     `'use strict'
 if (process.env.NODE_ENV === 'production') {
   module.exports = require('./${prefix}.cjs.production.min.js')
@@ -289,6 +310,8 @@ if (process.env.NODE_ENV === 'production') {
   module.exports = require('./${prefix}.cjs.development.js')
 }`
   )
+
+  await fs.writeFile(path.join(folder, 'package.json'), `{"type": "commonjs"}`)
 }
 
 interface BuildArgs {
@@ -313,14 +336,13 @@ async function main({ skipExtraction = false, local = false }: BuildArgs) {
       })
     )
     await Promise.all(bundlePromises)
-    await writeEntry(folder, prefix)
   }
 
   // Run UMD builds after everything else so we don't have to sleep after each set
   for (let entryPoint of entryPoints) {
     const { folder } = entryPoint
     const outputPath = path.join('dist', folder)
-    await buildUMD(outputPath, entryPoint.prefix, entryPoint.globalName)
+    // await buildUMD(outputPath, entryPoint.prefix, entryPoint.globalName)
   }
 
   if (!skipExtraction) {
