@@ -23,7 +23,7 @@
     "access": "public"
   },
   "main": "dist/index.js",
-  "module": "dist/redux-toolkit.esm.js",
+  "module": "dist/redux-toolkit.modern.js",
   "unpkg": "dist/redux-toolkit.umd.min.js",
   "types": "dist/index.d.ts",
   "devDependencies": {

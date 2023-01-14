@@ -151,91 +151,20 @@ export function createReducer<S extends NotFunction<any>>(
   builderCallback: (builder: ActionReducerMapBuilder<S>) => void
 ): ReducerWithInitialState<S>
 
-/**
- * A utility function that allows defining a reducer as a mapping from action
- * type to *case reducer* functions that handle these action types. The
- * reducer's initial state is passed as the first argument.
- *
- * The body of every case reducer is implicitly wrapped with a call to
- * `produce()` from the [immer](https://github.com/mweststrate/immer) library.
- * This means that rather than returning a new state object, you can also
- * mutate the passed-in state object directly; these mutations will then be
- * automatically and efficiently translated into copies, giving you both
- * convenience and immutability.
- * 
- * @overloadSummary
- * This overload accepts an object where the keys are string action types, and the values
- * are case reducer functions to handle those action types.
- *
- * @param initialState - `State | (() => State)`: The initial state that should be used when the reducer is called the first time. This may also be a "lazy initializer" function, which should return an initial state value when called. This will be used whenever the reducer is called with `undefined` as its state value, and is primarily useful for cases like reading initial state from `localStorage`.
- * @param actionsMap - An object mapping from action types to _case reducers_, each of which handles one specific action type.
- * @param actionMatchers - An array of matcher definitions in the form `{matcher, reducer}`.
- *   All matching reducers will be executed in order, independently if a case reducer matched or not.
- * @param defaultCaseReducer - A "default case" reducer that is executed if no case reducer and no matcher
- *   reducer was executed for this action.
- *
- * @example
-```js
-const counterReducer = createReducer(0, {
-  increment: (state, action) => state + action.payload,
-  decrement: (state, action) => state - action.payload
-})
-
-// Alternately, use a "lazy initializer" to provide the initial state
-// (works with either form of createReducer)
-const initialState = () => 0
-const counterReducer = createReducer(initialState, {
-  increment: (state, action) => state + action.payload,
-  decrement: (state, action) => state - action.payload
-})
-```
- 
- * Action creators that were generated using [`createAction`](./createAction) may be used directly as the keys here, using computed property syntax:
-
-```js
-const increment = createAction('increment')
-const decrement = createAction('decrement')
-
-const counterReducer = createReducer(0, {
-  [increment]: (state, action) => state + action.payload,
-  [decrement.type]: (state, action) => state - action.payload
-})
-```
- * @public
- */
-export function createReducer<
-  S extends NotFunction<any>,
-  CR extends CaseReducers<S, any> = CaseReducers<S, any>
->(
-  initialState: S | (() => S),
-  actionsMap: CR,
-  actionMatchers?: ActionMatcherDescriptionCollection<S>,
-  defaultCaseReducer?: CaseReducer<S>
-): ReducerWithInitialState<S>
-
 export function createReducer<S extends NotFunction<any>>(
   initialState: S | (() => S),
-  mapOrBuilderCallback:
-    | CaseReducers<S, any>
-    | ((builder: ActionReducerMapBuilder<S>) => void),
-  actionMatchers: ReadonlyActionMatcherDescriptionCollection<S> = [],
-  defaultCaseReducer?: CaseReducer<S>
+  mapOrBuilderCallback: (builder: ActionReducerMapBuilder<S>) => void
 ): ReducerWithInitialState<S> {
   if (process.env.NODE_ENV !== 'production') {
     if (typeof mapOrBuilderCallback === 'object') {
-      if (!hasWarnedAboutObjectNotation) {
-        hasWarnedAboutObjectNotation = true
-        console.warn(
-          "The object notation for `createReducer` is deprecated, and will be removed in RTK 2.0. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createReducer"
-        )
-      }
+      throw new Error(
+        "The object notation for `createReducer` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createReducer"
+      )
     }
   }
 
   let [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
-    typeof mapOrBuilderCallback === 'function'
-      ? executeReducerBuilderCallback(mapOrBuilderCallback)
-      : [mapOrBuilderCallback, actionMatchers, defaultCaseReducer]
+    executeReducerBuilderCallback(mapOrBuilderCallback)
 
   // Ensure the initial state gets frozen either way (if draftable)
   let getInitialState: () => S
