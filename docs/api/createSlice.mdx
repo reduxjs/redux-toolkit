@@ -59,12 +59,8 @@ function createSlice({
     initialState: any,
     // An object of "case reducers". Key names will be used to generate actions.
     reducers: Object<string, ReducerFunction | ReducerAndPrepareObject>
-    // A "builder callback" function used to add more reducers, or
-    // an additional object of "case reducers", where the keys should be other
-    // action types
-    extraReducers?:
-    | Object<string, ReducerFunction>
-    | ((builder: ActionReducerMapBuilder<State>) => void)
+    // A "builder callback" function used to add more reducers
+    extraReducers?: ((builder: ActionReducerMapBuilder<State>) => void)
 })
 ```
 
@@ -149,47 +145,11 @@ the function from `reducers` will be used to handle that action type.
 
 ### The `extraReducers` "builder callback" notation
 
-The recommended way of using `extraReducers` is to use a callback that receives a `ActionReducerMapBuilder` instance.
-
-This builder notation is also the only way to add matcher reducers and default case reducers to your slice.
+Similar to `createReducer`, the `extraReducers` field uses a "builder callback" notation to define handlers for specific action types, matching against a range of actions, or handling a default case. This is conceptually similar to a switch statement, but with better TS support as it can infer the action type from the provided action creator. It's particularly useful for working with actions produced by `createAction` and `createAsyncThunk`.
 
 [examples](docblock://createSlice.ts?token=CreateSliceOptions.extraReducers)
 
-We recommend using this API as it has better TypeScript support (and thus, IDE autocomplete even for JavaScript users), as it will correctly infer the action type in the reducer based on the provided action creator.
-It's particularly useful for working with actions produced by `createAction` and `createAsyncThunk`.
-
 See [the "Builder Callback Notation" section of the `createReducer` reference](./createReducer.mdx#usage-with-the-builder-callback-notation) for details on how to use `builder.addCase`, `builder.addMatcher`, and `builder.addDefault`
-
-### The `extraReducers` "map object" notation
-
-Like `reducers`, `extraReducers` can be an object containing Redux case reducer functions. However, the keys should
-be other Redux string action type constants, and `createSlice` will _not_ auto-generate action types or action creators
-for reducers included in this parameter.
-
-Action creators that were generated using [`createAction`](./createAction.mdx) may be used directly as the keys here, using
-computed property syntax.
-
-```js
-const incrementBy = createAction('incrementBy')
-
-createSlice({
-  name: 'counter',
-  initialState: 0,
-  reducers: {},
-  extraReducers: {
-    [incrementBy]: (state, action) => {
-      return state + action.payload
-    },
-    'some/other/action': (state, action) => {},
-  },
-})
-```
-
-:::tip
-
-We recommend using the `builder callback` API as the default, especially if you are using TypeScript. If you do not use the `builder callback` and are using TypeScript, you will need to use `actionCreator.type` or `actionCreator.toString()` to force the TS compiler to accept the computed property. Please see [Usage With TypeScript](./../usage/usage-with-typescript.md#type-safety-with-extraReducers) for further details.
-
-:::
 
 ## Return Value
 
@@ -268,14 +228,16 @@ const user = createSlice({
     },
   },
   // "map object API"
-  extraReducers: {
-    // @ts-expect-error in TypeScript, this would need to be [counter.actions.increment.type]
-    [counter.actions.increment]: (
-      state,
-      action /* action will be inferred as "any", as the map notation does not contain type information */
-    ) => {
-      state.age += 1
-    },
+  extraReducers: (builder) => {
+    builder.addCase(
+      counter.actions.increment,
+      (
+        state,
+        action /* action will be inferred as "any", as the map notation does not contain type information */
+      ) => {
+        state.age += 1
+      }
+    )
   },
 })
 

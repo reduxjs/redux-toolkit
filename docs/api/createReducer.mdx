@@ -37,9 +37,7 @@ function counterReducer(state = initialState, action) {
 This approach works well, but is a bit boilerplate-y and error-prone. For instance, it is easy to forget the `default` case or
 setting the initial state.
 
-The `createReducer` helper streamlines the implementation of such reducers. It supports two different forms of defining case
-reducers to handle actions: a "builder callback" notation and a "map object" notation. Both are equivalent, but the "builder callback"
-notation is preferred.
+The `createReducer` helper streamlines the implementation of such reducers. It uses a "builder callback" notation to define handlers for specific action types, matching against a range of actions, or handling a default case. This is conceptually similar to a switch statement, but with better TS support.
 
 With `createReducer`, your reducers instead look like:
 
@@ -74,8 +72,6 @@ const counterReducer = createReducer(initialState, (builder) => {
 
 [overloadSummary](docblock://createReducer.ts?token=createReducer&overload=0)
 
-The recommended way of using `createReducer` is the builder callback notation, as it works best with TypeScript and most IDEs.
-
 ### Parameters
 
 [params](docblock://createReducer.ts?token=createReducer&overload=0)
@@ -109,17 +105,6 @@ The recommended way of using `createReducer` is the builder callback notation, a
 #### Parameters
 
 [params,examples](docblock://mapBuilders.ts?token=ActionReducerMapBuilder.addDefaultCase)
-
-## Usage with the "Map Object" Notation
-
-[overloadSummary](docblock://createReducer.ts?token=createReducer&overload=1)
-
-While this notation is a bit shorter, it works only in JavaScript, not TypeScript and has less integration with IDEs,
-so we recommend the "builder callback" notation in most cases.
-
-### Parameters
-
-[params](docblock://createReducer.ts?token=createReducer&overload=1)
 
 ### Returns
 
