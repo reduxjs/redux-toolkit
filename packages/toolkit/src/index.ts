@@ -1,6 +1,6 @@
 export * from 'redux'
 export {
-  default as createNextState,
+  produce as createNextState,
   current,
   freeze,
   original,
