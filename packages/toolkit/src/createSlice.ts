@@ -99,11 +99,11 @@ export interface CreateSliceOptions<
   /**
    * A callback that receives a *builder* object to define
    * case reducers via calls to `builder.addCase(actionCreatorOrType, reducer)`.
-   * 
+   *
    * Alternatively, a mapping from action types to action-type-specific *case reducer*
    * functions. These reducers should have existing action types used
    * as the keys, and action creators will _not_ be generated.
-   * 
+   *
    * @example
 ```ts
 import { createAction, createSlice, Action, AnyAction } from '@reduxjs/toolkit'
@@ -253,7 +253,7 @@ export type ValidateSliceCaseReducers<
       ? {
           prepare(...a: never[]): Omit<A, 'type'>
         }
-      : {}
+      : ACR[T]
   }
 
 function getType(slice: string, actionKey: string): string {
