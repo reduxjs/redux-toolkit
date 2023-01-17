@@ -1,4 +1,4 @@
-import createNextState, { isDraftable } from 'immer'
+import { produce as createNextState, isDraftable } from 'immer'
 import type { Middleware } from 'redux'
 
 export function getTimeMeasureUtils(maxDelay: number, fnName: string) {
