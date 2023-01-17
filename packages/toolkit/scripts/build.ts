@@ -139,7 +139,7 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     entryPoint,
   } = options
 
-  const folderSegments = ['dist', folder]
+  const folderSegments = [outputDir, folder]
 
   if (format === 'cjs') {
     folderSegments.push('cjs')
