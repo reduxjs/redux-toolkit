@@ -148,7 +148,8 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
   const outputFolder = path.join(...folderSegments)
   const outputFilename = `${prefix}.${name}.js`
 
-  fs.mkdirs(outputFolder)
+  await fs.ensureDir(outputFolder)
+
   const outputFilePath = path.join(outputFolder, outputFilename)
 
   if (format === 'cjs') {
