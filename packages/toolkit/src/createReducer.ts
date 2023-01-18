@@ -1,5 +1,5 @@
 import type { Draft } from 'immer'
-import createNextState, { isDraft, isDraftable } from 'immer'
+import { produce as createNextState, isDraft, isDraftable } from 'immer'
 import type { AnyAction, Action, Reducer } from 'redux'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
