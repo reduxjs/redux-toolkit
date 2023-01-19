@@ -17,6 +17,7 @@ export default defineConfig({
     },
     deps: {
       interopDefault: true,
+      inline: ['redux', '@reduxjs/toolkit'],
     },
   },
 })
