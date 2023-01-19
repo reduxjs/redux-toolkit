@@ -30,6 +30,7 @@
     "allowSyntheticDefaultImports": true,
     "emitDeclarationOnly": true,
     "baseUrl": ".",
+    "types": ["vitest/globals"],
     "paths": {
       "@reduxjs/toolkit": ["src/index.ts"], // @remap-prod-remove-line
       "@reduxjs/toolkit/query": ["src/query/index.ts"], // @remap-prod-remove-line

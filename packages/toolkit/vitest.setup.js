@@ -1,10 +1,11 @@
 //@ts-ignore
-const nodeFetch = require('node-fetch')
+import nodeFetch from 'node-fetch'
 //@ts-ignore
-global.fetch = nodeFetch
+globalThis.fetch = nodeFetch
 //@ts-ignore
-global.Request = nodeFetch.Request
-const { server } = require('./src/query/tests/mocks/server')
+globalThis.Request = nodeFetch.Request
+globalThis.Headers = nodeFetch.Headers
+import { server } from './src/query/tests/mocks/server'
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 afterEach(() => server.resetHandlers())
