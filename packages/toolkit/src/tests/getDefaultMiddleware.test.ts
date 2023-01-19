@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import type {
   AnyAction,
   Middleware,
@@ -25,13 +26,13 @@ describe('getDefaultMiddleware', () => {
 
   describe('Production behavior', () => {
     beforeEach(() => {
-      jest.resetModules()
+      vi.resetModules()
     })
 
-    it('returns an array with only redux-thunk in production', () => {
+    it('returns an array with only redux-thunk in production', async () => {
       process.env.NODE_ENV = 'production'
-      const { thunk } = require('redux-thunk')
-      const { getDefaultMiddleware } = require('@reduxjs/toolkit')
+      const { thunk } = await import('redux-thunk')
+      const { getDefaultMiddleware } = await import('@reduxjs/toolkit')
 
       const middleware = getDefaultMiddleware()
       expect(middleware).toContain(thunk)

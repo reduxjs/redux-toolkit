@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import type { StoreEnhancer, StoreEnhancerStoreCreator } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import * as RTK from '@reduxjs/toolkit'
@@ -5,15 +6,17 @@ import * as redux from 'redux'
 import * as devtools from '@internal/devtoolsExtension'
 
 describe('configureStore', () => {
-  jest.spyOn(redux, 'applyMiddleware')
-  jest.spyOn(redux, 'combineReducers')
-  jest.spyOn(redux, 'compose')
-  jest.spyOn(redux, 'createStore')
-  jest.spyOn(devtools, 'composeWithDevTools') // @remap-prod-remove-line
+  vi.spyOn(redux, 'applyMiddleware')
+  vi.spyOn(redux, 'combineReducers')
+  vi.spyOn(redux, 'compose')
+  vi.spyOn(redux, 'createStore')
+  vi.spyOn(devtools, 'composeWithDevTools') // @remap-prod-remove-line
 
   const reducer: redux.Reducer = (state = {}, _action) => state
 
-  beforeEach(() => jest.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
 
   describe('given a function reducer', () => {
     it('calls createStore with the reducer', () => {
@@ -90,7 +93,7 @@ describe('configureStore', () => {
 
   describe('given a middleware creation function that returns undefined', () => {
     it('throws an error', () => {
-      const invalidBuilder = jest.fn((getDefaultMiddleware) => undefined as any)
+      const invalidBuilder = vi.fn((getDefaultMiddleware) => undefined as any)
       expect(() =>
         configureStore({ middleware: invalidBuilder, reducer })
       ).toThrow(
@@ -101,7 +104,7 @@ describe('configureStore', () => {
 
   describe('given a middleware creation function that returns an array with non-functions', () => {
     it('throws an error', () => {
-      const invalidBuilder = jest.fn((getDefaultMiddleware) => [true] as any)
+      const invalidBuilder = vi.fn((getDefaultMiddleware) => [true] as any)
       expect(() =>
         configureStore({ middleware: invalidBuilder, reducer })
       ).toThrow('each middleware provided to configureStore must be a function')
@@ -135,11 +138,11 @@ describe('configureStore', () => {
 
   describe('middleware builder notation', () => {
     it('calls builder, passes getDefaultMiddleware and uses returned middlewares', () => {
-      const thank = jest.fn(
+      const thank = vi.fn(
         ((_store) => (next) => (action) => 'foobar') as redux.Middleware
       )
 
-      const builder = jest.fn((getDefaultMiddleware) => {
+      const builder = vi.fn((getDefaultMiddleware) => {
         expect(getDefaultMiddleware).toEqual(expect.any(Function))
         expect(getDefaultMiddleware()).toEqual(expect.any(Array))
 

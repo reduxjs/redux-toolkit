@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import type { ThunkAction, AnyAction } from '@reduxjs/toolkit'
 import {
   isAllOf,
@@ -282,8 +283,8 @@ describe('isRejectedWithValue', () => {
     )
     expect(isRejectedWithValue()(rejectedAction)).toBe(false)
 
-    const getState = jest.fn(() => ({}))
-    const dispatch = jest.fn((x: any) => x)
+    const getState = vi.fn(() => ({}))
+    const dispatch = vi.fn((x: any) => x)
     const extra = {}
 
     // note: doesn't throw because we don't unwrap it
@@ -321,8 +322,8 @@ describe('isRejectedWithValue', () => {
       // rejected-with-value is a narrower requirement than rejected
       expect(matchAC(rejectedAction)).toBe(false)
 
-      const getState = jest.fn(() => ({}))
-      const dispatch = jest.fn((x: any) => x)
+      const getState = vi.fn(() => ({}))
+      const dispatch = vi.fn((x: any) => x)
       const extra = {}
 
       // note: doesn't throw because we don't unwrap it

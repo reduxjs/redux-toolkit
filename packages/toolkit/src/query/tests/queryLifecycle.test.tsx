@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { createApi } from '@reduxjs/toolkit/query'
 import { waitFor } from '@testing-library/react'
 import type {
@@ -15,9 +16,9 @@ const api = createApi({
 })
 const storeRef = setupApiStore(api)
 
-const onStart = jest.fn()
-const onSuccess = jest.fn()
-const onError = jest.fn()
+const onStart = vi.fn()
+const onSuccess = vi.fn()
+const onError = vi.fn()
 
 beforeEach(() => {
   onStart.mockClear()
@@ -113,7 +114,7 @@ describe.each([['query'], ['mutation']] as const)(
 )
 
 test('query: getCacheEntry (success)', async () => {
-  const snapshot = jest.fn()
+  const snapshot = vi.fn()
   const extended = api.injectEndpoints({
     overrideExisting: true,
     endpoints: (build) => ({
@@ -174,7 +175,7 @@ test('query: getCacheEntry (success)', async () => {
 })
 
 test('query: getCacheEntry (error)', async () => {
-  const snapshot = jest.fn()
+  const snapshot = vi.fn()
   const extended = api.injectEndpoints({
     overrideExisting: true,
     endpoints: (build) => ({
@@ -234,7 +235,7 @@ test('query: getCacheEntry (error)', async () => {
 })
 
 test('mutation: getCacheEntry (success)', async () => {
-  const snapshot = jest.fn()
+  const snapshot = vi.fn()
   const extended = api.injectEndpoints({
     overrideExisting: true,
     endpoints: (build) => ({
@@ -291,7 +292,7 @@ test('mutation: getCacheEntry (success)', async () => {
 })
 
 test('mutation: getCacheEntry (error)', async () => {
-  const snapshot = jest.fn()
+  const snapshot = vi.fn()
   const extended = api.injectEndpoints({
     overrideExisting: true,
     endpoints: (build) => ({
@@ -347,7 +348,7 @@ test('mutation: getCacheEntry (error)', async () => {
 })
 
 test('query: updateCachedData', async () => {
-  const trackCalls = jest.fn()
+  const trackCalls = vi.fn()
 
   const extended = api.injectEndpoints({
     overrideExisting: true,

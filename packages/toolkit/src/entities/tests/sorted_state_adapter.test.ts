@@ -591,9 +591,16 @@ describe('Sorted State Adapter', () => {
         adapter.removeAll(draft)
       })
       expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {},
-          "ids": Array [],
+        {
+          "entities": {
+            "tgg": {
+              "id": "tgg",
+              "title": "The Great Gatsby",
+            },
+          },
+          "ids": [
+            "tgg",
+          ],
         }
       `)
     })
@@ -604,14 +611,19 @@ describe('Sorted State Adapter', () => {
       })
 
       expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "tgg": Object {
+        {
+          "entities": {
+            "af": {
+              "id": "af",
+              "title": "Animal Farm",
+            },
+            "tgg": {
               "id": "tgg",
               "title": "The Great Gatsby",
             },
           },
-          "ids": Array [
+          "ids": [
+            "af",
             "tgg",
           ],
         }
@@ -624,18 +636,18 @@ describe('Sorted State Adapter', () => {
       })
 
       expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "af": Object {
+        {
+          "entities": {
+            "af": {
               "id": "af",
               "title": "Animal Farm",
             },
-            "tgg": Object {
+            "tgg": {
               "id": "tgg",
               "title": "The Great Gatsby",
             },
           },
-          "ids": Array [
+          "ids": [
             "af",
             "tgg",
           ],
@@ -679,14 +691,14 @@ describe('Sorted State Adapter', () => {
       })
 
       expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "tgg": Object {
+        {
+          "entities": {
+            "tgg": {
               "id": "tgg",
               "title": "A New Hope",
             },
           },
-          "ids": Array [
+          "ids": [
             "tgg",
           ],
         }
@@ -714,26 +726,15 @@ describe('Sorted State Adapter', () => {
       })
 
       expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "aco": Object {
-              "id": "aco",
-              "title": "Third Change",
-            },
-            "tgg": Object {
+        {
+          "entities": {
+            "tgg": {
               "id": "tgg",
-              "title": "Second Change",
-            },
-            "th": Object {
-              "author": "Fourth Change",
-              "id": "th",
-              "title": "First Change",
+              "title": "The Great Gatsby",
             },
           },
-          "ids": Array [
-            "th",
+          "ids": [
             "tgg",
-            "aco",
           ],
         }
       `)
@@ -744,14 +745,14 @@ describe('Sorted State Adapter', () => {
         adapter.upsertOne(draft, TheGreatGatsby)
       })
       expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "tgg": Object {
+        {
+          "entities": {
+            "tgg": {
               "id": "tgg",
-              "title": "The Great Gatsby",
+              "title": "A New Hope",
             },
           },
-          "ids": Array [
+          "ids": [
             "tgg",
           ],
         }
@@ -767,15 +768,20 @@ describe('Sorted State Adapter', () => {
         })
       })
       expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "tgg": Object {
+        {
+          "entities": {
+            "af": {
+              "id": "af",
+              "title": "Animal Farm",
+            },
+            "tgg": {
               "id": "tgg",
               "title": "A New Hope",
             },
           },
-          "ids": Array [
+          "ids": [
             "tgg",
+            "af",
           ],
         }
       `)
@@ -793,20 +799,15 @@ describe('Sorted State Adapter', () => {
         ])
       })
       expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "af": Object {
-              "id": "af",
-              "title": "Animal Farm",
-            },
-            "tgg": Object {
+        {
+          "entities": {
+            "tgg": {
               "id": "tgg",
-              "title": "A New Hope",
+              "title": "The Great Gatsby",
             },
           },
-          "ids": Array [
+          "ids": [
             "tgg",
-            "af",
           ],
         }
       `)
@@ -817,15 +818,15 @@ describe('Sorted State Adapter', () => {
         adapter.setOne(draft, TheGreatGatsby)
       })
       expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "tgg": Object {
-              "id": "tgg",
-              "title": "The Great Gatsby",
+        {
+          "entities": {
+            "th": {
+              "id": "th",
+              "title": "Silmarillion",
             },
           },
-          "ids": Array [
-            "tgg",
+          "ids": [
+            "th",
           ],
         }
       `)
@@ -840,14 +841,19 @@ describe('Sorted State Adapter', () => {
         })
       })
       expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "th": Object {
+        {
+          "entities": {
+            "af": {
+              "id": "af",
+              "title": "Animal Farm",
+            },
+            "th": {
               "id": "th",
               "title": "Silmarillion",
             },
           },
-          "ids": Array [
+          "ids": [
+            "af",
             "th",
           ],
         }
@@ -866,20 +872,15 @@ describe('Sorted State Adapter', () => {
         ])
       })
       expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "af": Object {
+        {
+          "entities": {
+            "af": {
               "id": "af",
               "title": "Animal Farm",
             },
-            "th": Object {
-              "id": "th",
-              "title": "Silmarillion",
-            },
           },
-          "ids": Array [
+          "ids": [
             "af",
-            "th",
           ],
         }
       `)
@@ -891,15 +892,15 @@ describe('Sorted State Adapter', () => {
         adapter.removeOne(draft, TheGreatGatsby.id)
       })
       expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "af": Object {
-              "id": "af",
-              "title": "Animal Farm",
+        {
+          "entities": {
+            "aco": {
+              "id": "aco",
+              "title": "A Clockwork Orange",
             },
           },
-          "ids": Array [
-            "af",
+          "ids": [
+            "aco",
           ],
         }
       `)

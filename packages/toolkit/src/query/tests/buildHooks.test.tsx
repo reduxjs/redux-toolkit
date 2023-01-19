@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { vi, SpyInstance } from 'vitest'
 import type {
   UseMutation,
   UseQuery,
@@ -672,7 +673,7 @@ describe('hooks tests', () => {
         )
       })
       test('with `selectFromResult`', async () => {
-        const selectFromResult = jest.fn((x) => x)
+        const selectFromResult = vi.fn((x) => x)
         const { result } = renderHook(
           () => api.endpoints.getUser.useQuery(5, { selectFromResult }),
           {
@@ -718,10 +719,10 @@ describe('hooks tests', () => {
     })
 
     describe('Hook middleware requirements', () => {
-      let mock: jest.SpyInstance
+      let mock: SpyInstance
 
       beforeEach(() => {
-        mock = jest.spyOn(console, 'error').mockImplementation(() => {})
+        mock = vi.spyOn(console, 'error').mockImplementation(() => {})
       })
 
       afterEach(() => {
