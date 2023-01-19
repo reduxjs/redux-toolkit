@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "lib": ["es2019"],
     "paths": {
       "@/*": ["./test/fixtures/*"],
       "@rtk-query/codegen-openapi": ["./src"]
