@@ -11,7 +11,14 @@ export interface BuildOptions {
     | 'umd.min'
   minify: boolean
   env: 'development' | 'production' | ''
-  target?: 'es2017' | 'es2018' | 'es2019' | 'es2020'
+  target?:
+    | 'es2017'
+    | 'es2018'
+    | 'es2019'
+    | 'es2020'
+    | 'es2021'
+    | 'es2022'
+    | 'esnext'
 }
 
 export interface EntryPointOptions {

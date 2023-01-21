@@ -1,6 +1,6 @@
 import type { Middleware, AnyAction } from 'redux'
 import type { ThunkMiddleware } from 'redux-thunk'
-import thunkMiddleware from 'redux-thunk'
+import { thunk as thunkMiddleware, withExtraArgument } from 'redux-thunk'
 import type { ImmutableStateInvariantMiddlewareOptions } from './immutableStateInvariantMiddleware'
 /* PROD_START_REMOVE_UMD */
 import { createImmutableStateInvariantMiddleware } from './immutableStateInvariantMiddleware'
@@ -88,9 +88,7 @@ export function getDefaultMiddleware<
     if (isBoolean(thunk)) {
       middlewareArray.push(thunkMiddleware)
     } else {
-      middlewareArray.push(
-        thunkMiddleware.withExtraArgument(thunk.extraArgument)
-      )
+      middlewareArray.push(withExtraArgument(thunk.extraArgument))
     }
   }
 

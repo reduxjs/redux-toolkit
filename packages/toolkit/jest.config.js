@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   testEnvironment: 'jest-environment-jsdom',
   setupFilesAfterEnv: ['./jest.setup.js'],
   testMatch: ['<rootDir>/src/**/*.(spec|test).[jt]s?(x)'],

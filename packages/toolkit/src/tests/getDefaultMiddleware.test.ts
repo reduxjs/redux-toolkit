@@ -11,7 +11,7 @@ import {
   MiddlewareArray,
   configureStore,
 } from '@reduxjs/toolkit'
-import thunk from 'redux-thunk'
+import { thunk } from 'redux-thunk'
 import type { ThunkMiddleware } from 'redux-thunk'
 
 import { expectType } from './helpers'
@@ -23,10 +23,20 @@ describe('getDefaultMiddleware', () => {
     process.env.NODE_ENV = ORIGINAL_NODE_ENV
   })
 
-  it('returns an array with only redux-thunk in production', () => {
-    process.env.NODE_ENV = 'production'
+  describe('Production behavior', () => {
+    beforeEach(() => {
+      jest.resetModules()
+    })
 
-    expect(getDefaultMiddleware()).toEqual([thunk]) // @remap-prod-remove-line
+    it('returns an array with only redux-thunk in production', () => {
+      process.env.NODE_ENV = 'production'
+      const { thunk } = require('redux-thunk')
+      const { getDefaultMiddleware } = require('@reduxjs/toolkit')
+
+      const middleware = getDefaultMiddleware()
+      expect(middleware).toContain(thunk)
+      expect(middleware.length).toBe(1)
+    })
   })
 
   it('returns an array with additional middleware in development', () => {

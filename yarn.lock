@@ -6596,7 +6596,7 @@ __metadata:
     prettier: ^2.2.1
     query-string: ^7.0.1
     redux: ^4.2.0
-    redux-thunk: ^2.4.2
+    redux-thunk: 3.0.0-alpha.1
     reselect: ^4.1.7
     rimraf: ^3.0.2
     rollup: ^2.47.0
@@ -23548,6 +23548,15 @@ fsevents@^1.2.7:
   peerDependencies:
     redux: ">4.0.0"
   checksum: edaf10dbf17351ce8058d0802357adae8665b3a1ff39371834e37838ddbe1a79cccbc717b8ba54acb5307651ccf51d0f7dc1cbc8dbae0726ff952d11ef61c6b8
+  languageName: node
+  linkType: hard
+
+"redux-thunk@npm:3.0.0-alpha.1":
+  version: 3.0.0-alpha.1
+  resolution: "redux-thunk@npm:3.0.0-alpha.1"
+  peerDependencies:
+    redux: ^4
+  checksum: 280e0d399c96d071030f6dfa5bdb0b05b9f228dd0b840ffbb213e778b773efc25e6ba24f7ed13818696ea54a359ecc06a9e5e718e07d960a772101b14c0dd8c7
   languageName: node
   linkType: hard
 
