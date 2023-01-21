@@ -1,13 +1,14 @@
+import React, { useCallback } from 'react'
 import type {
   AnyAction,
   EnhancedStore,
   Middleware,
   Store,
+  Reducer,
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
-import type { Reducer } from 'react'
-import React, { useCallback } from 'react'
+
 import { Provider } from 'react-redux'
 
 import {
@@ -57,11 +58,29 @@ export const hookWaitFor = async (cb: () => void, time = 2000) => {
       if (Date.now() > startedAt + time) {
         throw e
       }
-      await act(() => waitMs(2))
+      await act(async () => {
+        await waitMs(2)
+      })
     }
   }
 }
-export const fakeTimerWaitFor = hookWaitFor
+export const fakeTimerWaitFor = async (cb: () => void, time = 2000) => {
+  const startedAt = Date.now()
+
+  while (true) {
+    try {
+      cb()
+      return true
+    } catch (e) {
+      if (Date.now() > startedAt + time) {
+        throw e
+      }
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2)
+      })
+    }
+  }
+}
 
 export const useRenderCounter = () => {
   const countRef = React.useRef(0)

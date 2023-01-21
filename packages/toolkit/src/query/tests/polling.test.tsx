@@ -1,8 +1,9 @@
+import { vi } from 'vitest'
 import { createApi } from '@reduxjs/toolkit/query'
 import { setupApiStore, waitMs } from './helpers'
 import { delay } from '../../utils'
 
-const mockBaseQuery = jest
+const mockBaseQuery = vi
   .fn()
   .mockImplementation((args: any) => ({ data: args }))
 

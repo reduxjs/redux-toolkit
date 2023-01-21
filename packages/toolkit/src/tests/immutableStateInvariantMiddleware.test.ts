@@ -10,7 +10,11 @@ import {
 } from '@reduxjs/toolkit'
 
 import { trackForMutations } from '@internal/immutableStateInvariantMiddleware'
-import { mockConsole, createConsole, getLog } from 'console-testing-library'
+import {
+  mockConsole,
+  createConsole,
+  getLog,
+} from 'console-testing-library/pure'
 
 describe('createImmutableStateInvariantMiddleware', () => {
   let state: { foo: { bar: number[]; baz: string } }

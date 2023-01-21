@@ -4,6 +4,7 @@ import {
   createSlice,
   isAnyOf,
 } from '@reduxjs/toolkit'
+import { vi, Mock } from 'vitest'
 
 import type { AnyAction, PayloadAction, Action } from '@reduxjs/toolkit'
 
@@ -141,7 +142,7 @@ describe('createListenerMiddleware', () => {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
-  let reducer: jest.Mock
+  let reducer: Mock
   let listenerMiddleware = createListenerMiddleware()
   let { middleware, startListening, stopListening, clearListeners } =
     listenerMiddleware
@@ -157,7 +158,7 @@ describe('createListenerMiddleware', () => {
   type TestAction3 = ReturnType<typeof testAction3>
 
   beforeAll(() => {
-    jest.spyOn(console, 'error').mockImplementation(noop)
+    vi.spyOn(console, 'error').mockImplementation(noop)
   })
 
   beforeEach(() => {
@@ -166,7 +167,7 @@ describe('createListenerMiddleware', () => {
     startListening = listenerMiddleware.startListening
     stopListening = listenerMiddleware.stopListening
     clearListeners = listenerMiddleware.clearListeners
-    reducer = jest.fn(() => ({}))
+    reducer = vi.fn(() => ({}))
     store = configureStore({
       reducer,
       middleware: (gDM) => gDM().prepend(middleware),
@@ -214,7 +215,7 @@ describe('createListenerMiddleware', () => {
 
   describe('Subscription and unsubscription', () => {
     test('directly subscribing', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       startListening({
         actionCreator: testAction1,
@@ -232,7 +233,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('stopListening returns true if an entry has been unsubscribed, false otherwise', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       startListening({
         actionCreator: testAction1,
@@ -244,7 +245,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('dispatch(removeListener({...})) returns true if an entry has been unsubscribed, false otherwise', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       startListening({
         actionCreator: testAction1,
@@ -270,7 +271,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('can subscribe with a string action type', () => {
-      const effect = jest.fn((_: AnyAction) => {})
+      const effect = vi.fn((_: AnyAction) => {})
 
       store.dispatch(
         addListener({
@@ -289,7 +290,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('can subscribe with a matcher function', () => {
-      const effect = jest.fn((_: AnyAction) => {})
+      const effect = vi.fn((_: AnyAction) => {})
 
       const isAction1Or2 = isAnyOf(testAction1, testAction2)
 
@@ -356,7 +357,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('subscribing with the same listener will not make it trigger twice (like EventTarget.addEventListener())', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       startListening({
         actionCreator: testAction1,
@@ -378,7 +379,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('unsubscribing via callback', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       const unsubscribe = startListening({
         actionCreator: testAction1,
@@ -394,7 +395,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('directly unsubscribing', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       startListening({
         actionCreator: testAction1,
@@ -415,7 +416,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('subscribing via action', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       store.dispatch(
         addListener({
@@ -435,7 +436,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('unsubscribing via callback from dispatch', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       const unsubscribe = store.dispatch(
         addListener({
@@ -456,7 +457,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('unsubscribing via action', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       startListening({
         actionCreator: testAction1,
@@ -575,7 +576,7 @@ describe('createListenerMiddleware', () => {
           AnyAction,
           typeof store.getState,
           typeof store.dispatch
-        > = jest.fn()
+        > = vi.fn()
 
         startListening({ ...params, effect } as any)
 
@@ -646,7 +647,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('"can unsubscribe via middleware api', () => {
-      const effect = jest.fn(
+      const effect = vi.fn(
         (action: TestAction1, api: ListenerEffectAPI<any, any>) => {
           if (action.payload === 'b') {
             api.unsubscribe()
@@ -847,7 +848,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('getOriginalState can only be invoked synchronously', async () => {
-      const onError = jest.fn()
+      const onError = vi.fn()
 
       const listenerMiddleware = createListenerMiddleware<CounterState>({
         onError,
@@ -897,7 +898,7 @@ describe('createListenerMiddleware', () => {
     test('by default, actions are forwarded to the store', () => {
       reducer.mockClear()
 
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       startListening({
         actionCreator: testAction1,
@@ -962,7 +963,7 @@ describe('createListenerMiddleware', () => {
         },
       })
 
-      const effect = jest.fn(() => {})
+      const effect = vi.fn(() => {})
       startListening({ matcher, effect })
 
       store.dispatch(testAction1('a'))
@@ -971,8 +972,8 @@ describe('createListenerMiddleware', () => {
 
     test('Continues running other listeners if a predicate raises an error', () => {
       const matcher = (action: any): action is any => true
-      const firstListener = jest.fn(() => {})
-      const secondListener = jest.fn(() => {})
+      const firstListener = vi.fn(() => {})
+      const secondListener = vi.fn(() => {})
 
       startListening({
         // @ts-expect-error
@@ -992,12 +993,12 @@ describe('createListenerMiddleware', () => {
     })
 
     test('Notifies sync listener errors to `onError`, if provided', async () => {
-      const onError = jest.fn()
+      const onError = vi.fn()
       const listenerMiddleware = createListenerMiddleware({
         onError,
       })
       const { middleware, startListening } = listenerMiddleware
-      reducer = jest.fn(() => ({}))
+      reducer = vi.fn(() => ({}))
       store = configureStore({
         reducer,
         middleware: (gDM) => gDM().prepend(middleware),
@@ -1023,12 +1024,12 @@ describe('createListenerMiddleware', () => {
     })
 
     test('Notifies async listeners errors to `onError`, if provided', async () => {
-      const onError = jest.fn()
+      const onError = vi.fn()
       const listenerMiddleware = createListenerMiddleware({
         onError,
       })
       const { middleware, startListening } = listenerMiddleware
-      reducer = jest.fn(() => ({}))
+      reducer = vi.fn(() => ({}))
       store = configureStore({
         reducer,
         middleware: (gDM) => gDM().prepend(middleware),

@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import type {
   CaseReducer,
   PayloadAction,
@@ -72,15 +73,15 @@ describe('createReducer', () => {
     let originalNodeEnv = process.env.NODE_ENV
 
     beforeEach(() => {
-      jest.resetModules()
+      vi.resetModules()
     })
 
     afterEach(() => {
       process.env.NODE_ENV = originalNodeEnv
     })
 
-    it('Throws an error if the legacy object notation is used', () => {
-      const { createReducer } = require('../createReducer')
+    it('Throws an error if the legacy object notation is used', async () => {
+      const { createReducer } = await import('../createReducer')
       const wrapper = () => {
         // @ts-ignore
         let dummyReducer = (createReducer as CreateReducer)([] as TodoState, {})
@@ -95,9 +96,9 @@ describe('createReducer', () => {
       )
     })
 
-    it('Crashes in production', () => {
+    it('Crashes in production', async () => {
       process.env.NODE_ENV = 'production'
-      const { createReducer } = require('../createReducer')
+      const { createReducer } = await import('../createReducer')
       const wrapper = () => {
         // @ts-ignore
         let dummyReducer = (createReducer as CreateReducer)([] as TodoState, {})
@@ -111,7 +112,7 @@ describe('createReducer', () => {
     let originalNodeEnv = process.env.NODE_ENV
 
     beforeEach(() => {
-      jest.resetModules()
+      vi.resetModules()
       process.env.NODE_ENV = 'production'
     })
 
@@ -119,9 +120,8 @@ describe('createReducer', () => {
       process.env.NODE_ENV = originalNodeEnv
     })
 
-    test('Freezes data in production', () => {
-      const createReducer: CreateReducer =
-        require('../createReducer').createReducer
+    test('Freezes data in production', async () => {
+      const { createReducer } = await import('../createReducer')
       const addTodo: AddTodoReducer = (state, action) => {
         const { newTodo } = action.payload
         state.push({ ...newTodo, completed: false })
@@ -212,7 +212,7 @@ describe('createReducer', () => {
     behavesLikeReducer(todosReducer)
 
     it('Should only call the init function when `undefined` state is passed in', () => {
-      const spy = jest.fn().mockReturnValue(42)
+      const spy = vi.fn().mockReturnValue(42)
 
       const dummyReducer = createReducer(spy, () => {})
       expect(spy).not.toHaveBeenCalled()

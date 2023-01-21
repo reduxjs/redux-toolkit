@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { createSlice, createAction } from '@reduxjs/toolkit'
 import {
@@ -280,7 +281,7 @@ describe('createSlice', () => {
 
   describe('behaviour with enhanced case reducers', () => {
     it('should pass all arguments to the prepare function', () => {
-      const prepare = jest.fn((payload, somethingElse) => ({ payload }))
+      const prepare = vi.fn((payload, somethingElse) => ({ payload }))
 
       const testSlice = createSlice({
         name: 'test',
@@ -301,7 +302,7 @@ describe('createSlice', () => {
     })
 
     it('should call the reducer function', () => {
-      const reducer = jest.fn(() => 5)
+      const reducer = vi.fn(() => 5)
 
       const testSlice = createSlice({
         name: 'test',
@@ -380,7 +381,7 @@ describe('createSlice', () => {
     let originalNodeEnv = process.env.NODE_ENV
 
     beforeEach(() => {
-      jest.resetModules()
+      vi.resetModules()
       restore = mockConsole(createConsole())
     })
 
@@ -389,8 +390,8 @@ describe('createSlice', () => {
     })
 
     // NOTE: This needs to be in front of the later `createReducer` call to check the one-time warning
-    it('Throws an error if the legacy object notation is used', () => {
-      const { createSlice } = require('../createSlice')
+    it('Throws an error if the legacy object notation is used', async () => {
+      const { createSlice } = await import('../createSlice')
 
       let dummySlice = (createSlice as CreateSlice)({
         name: 'dummy',
