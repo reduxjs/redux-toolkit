@@ -7,6 +7,7 @@ import type {
   BaseEndpointDefinition,
   ResultTypeFrom,
   QueryArgFrom,
+  FullTagDescription,
 } from '../endpointDefinitions'
 import type { Id, WithRequiredProp } from '../tsHelpers'
 
@@ -228,6 +229,7 @@ export type CombinedState<
   provided: InvalidationState<E>
   subscriptions: SubscriptionState
   config: ConfigState<ReducerPath>
+  pendingTagInvalidations: FullTagDescription<string>[]
 }
 
 export type InvalidationState<TagTypes extends string> = {

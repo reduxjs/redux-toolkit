@@ -60,6 +60,7 @@ describe('buildSlice', () => {
           refetchOnReconnect: false,
         },
         mutations: {},
+        pendingTagInvalidations: [],
         provided: expect.any(Object),
         queries: {
           'getUser(1)': {

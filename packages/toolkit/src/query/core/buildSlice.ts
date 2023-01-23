@@ -420,6 +420,20 @@ export function buildSlice({
     },
   })
 
+  const pendingTagInvalidationsSlice = createSlice({
+    name: `${reducerPath}/pendingTagInvalidations`,
+    initialState: [] as FullTagDescription<string>[],
+    reducers: {
+      addPendingTagInvalidations: (
+        state,
+        action: PayloadAction<readonly FullTagDescription<string>[]>
+      ) => {
+        state.push(...action.payload)
+      },
+      clearPendingTagInvalidations: () => [],
+    },
+  })
+
   // Dummy slice to generate actions
   const subscriptionSlice = createSlice({
     name: `${reducerPath}/subscriptions`,
@@ -502,6 +516,7 @@ export function buildSlice({
     provided: invalidationSlice.reducer,
     subscriptions: internalSubscriptionsSlice.reducer,
     config: configSlice.reducer,
+    pendingTagInvalidations: pendingTagInvalidationsSlice.reducer,
   })
 
   const reducer: typeof combinedReducer = (state, action) =>
@@ -514,6 +529,7 @@ export function buildSlice({
     ...internalSubscriptionsSlice.actions,
     ...mutationSlice.actions,
     ...invalidationSlice.actions,
+    ...pendingTagInvalidationsSlice.actions,
     resetApiState,
   }
 

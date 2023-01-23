@@ -1,4 +1,9 @@
-import { isAnyOf, isFulfilled, isRejectedWithValue } from '../rtkImports'
+import {
+  isAnyOf,
+  isFulfilled,
+  isRejected,
+  isRejectedWithValue,
+} from '../rtkImports'
 
 import type { FullTagDescription } from '../../endpointDefinitions'
 import { calculateProvidedBy } from '../../endpointDefinitions'
@@ -18,20 +23,32 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   context,
   context: { endpointDefinitions },
   mutationThunk,
+  queryThunk,
   api,
   assertTagType,
   refetchQuery,
   internalState,
 }) => {
-  const { removeQueryResult } = api.internalActions
+  const {
+    removeQueryResult,
+    addPendingTagInvalidations,
+    clearPendingTagInvalidations,
+  } = api.internalActions
   const isThunkActionWithTags = isAnyOf(
     isFulfilled(mutationThunk),
     isRejectedWithValue(mutationThunk)
   )
 
+  const isQueryEnd = isAnyOf(
+    isFulfilled(mutationThunk),
+    isRejected(mutationThunk),
+    isFulfilled(queryThunk),
+    isRejected(queryThunk)
+  )
+
   const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
     if (isThunkActionWithTags(action)) {
-      invalidateTags(
+      processPendingTagInvalidations(
         calculateProvidedByThunk(
           action,
           'invalidatesTags',
@@ -41,10 +58,10 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
         mwApi,
         internalState
       )
-    }
-
-    if (api.util.invalidateTags.match(action)) {
-      invalidateTags(
+    } else if (isQueryEnd(action)) {
+      processPendingTagInvalidations([], mwApi, internalState)
+    } else if (api.util.invalidateTags.match(action)) {
+      processPendingTagInvalidations(
         calculateProvidedBy(
           action.payload,
           undefined,
@@ -59,7 +76,7 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
     }
   }
 
-  function invalidateTags(
+  function processPendingTagInvalidations(
     tags: readonly FullTagDescription<string>[],
     mwApi: SubMiddlewareApi,
     internalState: InternalMiddlewareState
@@ -68,9 +85,36 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
 
     const state = rootState[reducerPath]
 
+    const hasPendingQueries = Object.values(state.queries).some(
+      (x) => x?.status === QueryStatus.pending
+    )
+    const hasPendingMutations = Object.values(state.mutations).some(
+      (x) => x?.status === QueryStatus.pending
+    )
+
+    if (hasPendingQueries || hasPendingMutations) {
+      if (tags && tags.length > 0)
+        mwApi.dispatch(addPendingTagInvalidations(tags))
+    } else {
+      handleInvalidatedTags(tags, mwApi)
+    }
+  }
+
+  function handleInvalidatedTags(
+    newTags: readonly FullTagDescription<string>[],
+    mwApi: SubMiddlewareApi
+  ) {
+    const rootState = mwApi.getState()
+    const state = rootState[reducerPath]
+
+    const tags = [...state.pendingTagInvalidations, ...newTags]
+
     const toInvalidate = api.util.selectInvalidatedBy(rootState, tags)
 
     context.batch(() => {
+      if (state.pendingTagInvalidations.length > 0)
+        mwApi.dispatch(clearPendingTagInvalidations())
+
       const valuesArray = Array.from(toInvalidate.values())
       for (const { queryCacheKey } of valuesArray) {
         const querySubState = state.queries[queryCacheKey]
