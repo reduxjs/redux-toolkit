@@ -108,6 +108,7 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
     const state = rootState[reducerPath]
 
     const tags = [...state.pendingTagInvalidations, ...newTags]
+    if (tags.length === 0) return
 
     const toInvalidate = api.util.selectInvalidatedBy(rootState, tags)
 
