@@ -152,6 +152,15 @@ export interface CreateApiOptions<
    */
   refetchOnReconnect?: boolean
   /**
+   * Defaults to `false`. This setting allows you to disable a consistency measure that delay tag invalidations until all pending queries and mutations are settled.
+   *
+   * Context: If a mutation finishes while a query is pending, then RTK-query has to wait until the query is finished until it can invalidate any tags, since the query itself could provide a tag that the mutation will invalidate.
+   * RTK-query also waits with the tag invalidations if another mutation is pending, to "batch" the tag invalidations if two mutations invalidate the same tag, avoiding unnecessary re-fetching.
+   *
+   * If you constantly have some queries running, this can delay the tag invalidations. In this case, you can enable this setting to opt-out of the "correct" behavior and refetch immediately when a mutation finishes instead.
+   */
+  invalidateImmediately?: boolean
+  /**
    * A function that is passed every dispatched action. If this returns something other than `undefined`,
    * that return value will be used to rehydrate fulfilled & errored queries.
    *
@@ -255,6 +264,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       refetchOnMountOrArgChange: false,
       refetchOnFocus: false,
       refetchOnReconnect: false,
+      invalidateImmediately: false,
       ...options,
       extractRehydrationInfo,
       serializeQueryArgs(queryArgsApi) {

@@ -51,6 +51,7 @@ describe('buildSlice', () => {
       api: {
         config: {
           focused: true,
+          invalidateImmediately: false,
           keepUnusedDataFor: 60,
           middlewareRegistered: true,
           online: true,

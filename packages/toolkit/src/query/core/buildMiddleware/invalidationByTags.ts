@@ -85,6 +85,11 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
 
     const state = rootState[reducerPath]
 
+    if (state.config.invalidateImmediately) {
+      handleInvalidatedTags(tags, mwApi)
+      return
+    }
+
     const hasPendingQueries = Object.values(state.queries).some(
       (x) => x?.status === QueryStatus.pending
     )

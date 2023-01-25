@@ -167,6 +167,7 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
     > & { error: undefined })
   | ({
       status: QueryStatus.pending
+      pendingTagInvalidations: FullTagDescription<string>[]
     } & BaseQuerySubState<D>)
   | ({
       status: QueryStatus.rejected
@@ -256,6 +257,7 @@ export type ConfigState<ReducerPath> = RefetchConfigOptions & {
 
 export type ModifiableConfigState = {
   keepUnusedDataFor: number
+  invalidateImmediately: boolean
 } & RefetchConfigOptions
 
 export type MutationState<D extends EndpointDefinitions> = {
