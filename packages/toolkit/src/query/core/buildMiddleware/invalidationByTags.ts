@@ -5,9 +5,12 @@ import {
   isRejectedWithValue,
 } from '../rtkImports'
 
-import type { FullTagDescription } from '../../endpointDefinitions'
+import type {
+  EndpointDefinitions,
+  FullTagDescription,
+} from '../../endpointDefinitions'
 import { calculateProvidedBy } from '../../endpointDefinitions'
-import type { QueryCacheKey } from '../apiState'
+import type { CombinedState, QueryCacheKey } from '../apiState'
 import { QueryStatus } from '../apiState'
 import { calculateProvidedByThunk } from '../buildThunks'
 import type {
@@ -29,11 +32,7 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   refetchQuery,
   internalState,
 }) => {
-  const {
-    removeQueryResult,
-    addPendingTagInvalidations,
-    clearPendingTagInvalidations,
-  } = api.internalActions
+  const { removeQueryResult } = api.internalActions
   const isThunkActionWithTags = isAnyOf(
     isFulfilled(mutationThunk),
     isRejectedWithValue(mutationThunk)
@@ -46,22 +45,23 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
     isRejected(queryThunk)
   )
 
+  let pendingTagInvalidations: FullTagDescription<string>[] = []
+
   const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
     if (isThunkActionWithTags(action)) {
-      processPendingTagInvalidations(
+      invalidateTags(
         calculateProvidedByThunk(
           action,
           'invalidatesTags',
           endpointDefinitions,
           assertTagType
         ),
-        mwApi,
-        internalState
+        mwApi
       )
     } else if (isQueryEnd(action)) {
-      processPendingTagInvalidations([], mwApi, internalState)
+      invalidateTags([], mwApi)
     } else if (api.util.invalidateTags.match(action)) {
-      processPendingTagInvalidations(
+      invalidateTags(
         calculateProvidedBy(
           action.payload,
           undefined,
@@ -70,57 +70,40 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
           undefined,
           assertTagType
         ),
-        mwApi,
-        internalState
+        mwApi
       )
     }
   }
 
-  function processPendingTagInvalidations(
-    tags: readonly FullTagDescription<string>[],
-    mwApi: SubMiddlewareApi,
-    internalState: InternalMiddlewareState
+  function hasPendingRequests(
+    state: CombinedState<EndpointDefinitions, string, string>
   ) {
-    const rootState = mwApi.getState()
-
-    const state = rootState[reducerPath]
-
-    if (state.config.invalidateImmediately) {
-      handleInvalidatedTags(tags, mwApi)
-      return
-    }
-
-    const hasPendingQueries = Object.values(state.queries).some(
-      (x) => x?.status === QueryStatus.pending
-    )
-    const hasPendingMutations = Object.values(state.mutations).some(
-      (x) => x?.status === QueryStatus.pending
-    )
-
-    if (hasPendingQueries || hasPendingMutations) {
-      if (tags && tags.length > 0)
-        mwApi.dispatch(addPendingTagInvalidations(tags))
-    } else {
-      handleInvalidatedTags(tags, mwApi)
-    }
+    return Object.values({
+      ...state.queries,
+      ...state.mutations,
+    }).some((x) => x?.status === QueryStatus.pending)
   }
 
-  function handleInvalidatedTags(
+  function invalidateTags(
     newTags: readonly FullTagDescription<string>[],
     mwApi: SubMiddlewareApi
   ) {
     const rootState = mwApi.getState()
     const state = rootState[reducerPath]
 
-    const tags = [...state.pendingTagInvalidations, ...newTags]
+    pendingTagInvalidations.push(...newTags)
+
+    if (!state.config.invalidateImmediately && hasPendingRequests(state)) {
+      return
+    }
+
+    const tags = pendingTagInvalidations
+    pendingTagInvalidations = []
     if (tags.length === 0) return
 
     const toInvalidate = api.util.selectInvalidatedBy(rootState, tags)
 
     context.batch(() => {
-      if (state.pendingTagInvalidations.length > 0)
-        mwApi.dispatch(clearPendingTagInvalidations())
-
       const valuesArray = Array.from(toInvalidate.values())
       for (const { queryCacheKey } of valuesArray) {
         const querySubState = state.queries[queryCacheKey]

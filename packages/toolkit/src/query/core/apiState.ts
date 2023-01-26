@@ -167,7 +167,6 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
     > & { error: undefined })
   | ({
       status: QueryStatus.pending
-      pendingTagInvalidations: FullTagDescription<string>[]
     } & BaseQuerySubState<D>)
   | ({
       status: QueryStatus.rejected
@@ -230,7 +229,6 @@ export type CombinedState<
   provided: InvalidationState<E>
   subscriptions: SubscriptionState
   config: ConfigState<ReducerPath>
-  pendingTagInvalidations: FullTagDescription<string>[]
 }
 
 export type InvalidationState<TagTypes extends string> = {
