@@ -9,7 +9,7 @@ import type { MiddlewareArray } from './utils'
  */
 export type IsAny<T, True, False = never> =
   // test if we are going the left AND right path in the condition
-  true | false extends (T extends never ? true : false) ? True : False
+  True | False extends (T extends never ? True : False) ? True : False
 
 /**
  * return True if T is `unknown`, otherwise return False
