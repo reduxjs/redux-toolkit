@@ -244,8 +244,8 @@ export function setupApiStore<
 
 // type test helpers
 
-export declare type IsAny<T, True, False = never> = true | false extends (
-  T extends never ? true : false
+export declare type IsAny<T, True, False = never> = True | False extends (
+  T extends never ? True : False
 )
   ? True
   : False
