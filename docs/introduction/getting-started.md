@@ -7,6 +7,8 @@ hide_title: true
 
 import LiteYouTubeEmbed from 'react-lite-youtube-embed';
 import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css'
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 &nbsp;
 
@@ -46,17 +48,34 @@ npx create-react-app my-app --template redux-typescript
 
 Redux Toolkit is available as a package on NPM for use with a module bundler or in a Node application:
 
+<Tabs>
+  <TabItem value="npm" label="npm" default>
+
 ```bash
-# NPM
 npm install @reduxjs/toolkit
 ```
 
-or
+If you need React bindings:
 
 ```bash
-# Yarn
+npm install react-redux
+```
+
+  </TabItem>
+  <TabItem value="yarn" label="yarn" default>
+
+```bash
 yarn add @reduxjs/toolkit
 ```
+
+If you need React bindings:
+
+```bash
+yarn add react-redux
+```
+
+  </TabItem>
+</Tabs>
 
 It is also available as a precompiled UMD package that defines a `window.RTK` global variable.
 The UMD package can be used as a [`<script>` tag](https://unpkg.com/@reduxjs/toolkit/dist/redux-toolkit.umd.js) directly.
