@@ -29,11 +29,11 @@ interface ImmutableStateInvariantMiddlewareOptions {
    */
   isImmutable?: IsImmutableFunc
   /** 
-    An array of dot-separated path strings that match named nodes from 
+    An array of dot-separated path strings or RegExps that match named nodes from 
     the root state to ignore when checking for immutability.
     Defaults to undefined
    */
-  ignoredPaths?: string[]
+  ignoredPaths?: (string | RegExp)[]
   /** Print a warning if checks take longer than N ms. Default: 32ms */
   warnAfter?: number
   // @deprecated. Use ignoredPaths
