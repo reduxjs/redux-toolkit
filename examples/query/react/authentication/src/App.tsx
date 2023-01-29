@@ -5,6 +5,14 @@ import { Login } from './features/auth/Login'
 import { PrivateOutlet } from './utils/PrivateOutlet'
 import { ProtectedComponent } from './features/auth/ProtectedComponent'
 
+function AppLayout() {
+  return (
+    <Box>
+      <Outlet />
+    </Box>
+  )
+}
+
 function Hooray() {
   return (
     <Center h="500px">
@@ -21,7 +29,7 @@ function Hooray() {
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Outlet />,
+    element: <AppLayout />,
     children: [
       { path: '/login', element: <Login /> },
       {
@@ -38,11 +46,7 @@ const router = createBrowserRouter([
   },
 ])
 function App() {
-  return (
-    <Box>
-      <RouterProvider router={router} />
-    </Box>
-  )
+  return <RouterProvider router={router} />
 }
 
 export default App

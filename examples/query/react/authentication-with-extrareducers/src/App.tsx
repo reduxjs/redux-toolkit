@@ -1,9 +1,17 @@
-import { Routes, Route } from 'react-router-dom'
+import { createBrowserRouter, Outlet, RouterProvider } from 'react-router-dom'
 import { Box, Center, VStack } from '@chakra-ui/react'
 
 import { Login } from './features/auth/Login'
 import { PrivateOutlet } from './utils/PrivateOutlet'
 import { ProtectedComponent } from './features/auth/ProtectedComponent'
+
+function AppLayout() {
+  return (
+    <Box>
+      <Outlet />
+    </Box>
+  )
+}
 
 function Hooray() {
   return (
@@ -18,17 +26,28 @@ function Hooray() {
   )
 }
 
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <AppLayout />,
+    children: [
+      { path: '/login', element: <Login /> },
+      {
+        path: '*',
+        element: <PrivateOutlet />,
+        children: [
+          {
+            index: true,
+            element: <Hooray />,
+          },
+        ],
+      },
+    ],
+  },
+])
+
 function App() {
-  return (
-    <Box>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<PrivateOutlet />}>
-          <Route index element={<Hooray />} />
-        </Route>
-      </Routes>
-    </Box>
-  )
+  return <RouterProvider router={router} />
 }
 
 export default App

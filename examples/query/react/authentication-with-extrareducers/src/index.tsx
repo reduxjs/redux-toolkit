@@ -1,6 +1,5 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
 import { ChakraProvider } from '@chakra-ui/react'
 
 import App from './App'
@@ -15,9 +14,7 @@ worker.start({ quiet: true }).then(() =>
     <React.StrictMode>
       <Provider store={store}>
         <ChakraProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
+          <App />
         </ChakraProvider>
       </Provider>
     </React.StrictMode>
