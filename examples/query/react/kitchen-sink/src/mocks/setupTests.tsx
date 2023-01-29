@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import { PropsWithChildren, ReactNode } from 'react'
 import { render } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { store } from '../app/store'
@@ -11,8 +11,7 @@ import {
 import { mockServer } from './mockServer'
 import 'whatwg-fetch'
 
-interface DataMemoryRouterProps {
-  children?: ReactNode
+interface DataMemoryRouterProps extends PropsWithChildren {
   initialEntries?: string[]
 }
 
@@ -35,7 +34,7 @@ export const setupTests = () => {
     path?: string
   }
   function renderWithProvider(
-    children: React.ReactChild,
+    children: ReactNode,
     { route, path }: RenderOptions = { route: '/', path: '' }
   ) {
     return render(
