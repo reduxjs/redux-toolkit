@@ -11,7 +11,7 @@
     "@emotion/styled": "^11.3.0",
     "@mswjs/data": "^0.3.0",
     "@reduxjs/toolkit": "^1.6.0-rc.1",
-    "@rtk-query/graphql-request-base-query": "workspace:^",
+    "@rtk-query/graphql-request-base-query": "^2.0.0",
     "faker": "^5.5.3",
     "framer-motion": "^2.9.5",
     "graphql": "^15.5.0",
