@@ -1,15 +1,25 @@
-import { Routes, Route } from 'react-router-dom'
+import { Outlet, createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { PostsManager } from './features/posts/PostsManager'
 import { Box } from '@chakra-ui/react'
 
-function App() {
+function AppLayout() {
   return (
     <Box>
-      <Routes>
-        <Route path="*" element={<PostsManager />} />
-      </Routes>
+      <Outlet />
     </Box>
   )
+}
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <AppLayout />,
+    children: [{ path: '*', element: <PostsManager /> }],
+  },
+])
+
+function App() {
+  return <RouterProvider router={router} />
 }
 
 export default App

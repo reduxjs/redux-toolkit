@@ -5,7 +5,6 @@ import { store } from './store'
 import { Provider } from 'react-redux'
 import { ChakraProvider } from '@chakra-ui/react'
 
-import { BrowserRouter } from 'react-router-dom'
 import { worker } from './mocks/browser'
 
 // Initialize the msw worker, wait for the service worker registration to resolve, then mount
@@ -14,9 +13,7 @@ worker.start({ quiet: true }).then(() =>
     <React.StrictMode>
       <Provider store={store}>
         <ChakraProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
+          <App />
         </ChakraProvider>
       </Provider>
     </React.StrictMode>
