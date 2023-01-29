@@ -1,12 +1,10 @@
-import { Route, Routes } from 'react-router-dom'
-import { PostsManager } from './features/posts/PostsManager'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import PostsManager from './features/posts/PostsManager'
+
+const router = createBrowserRouter([{ path: '*', element: <PostsManager /> }])
 
 function App() {
-  return (
-    <Routes>
-      <Route path="*" element={<PostsManager />} />
-    </Routes>
-  )
+  return <RouterProvider router={router} />
 }
 
 export default App
