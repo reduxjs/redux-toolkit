@@ -2583,7 +2583,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.10.2, @babel/runtime@npm:^7.10.3, @babel/runtime@npm:^7.11.2, @babel/runtime@npm:^7.12.1, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.16.3, @babel/runtime@npm:^7.7.2, @babel/runtime@npm:^7.7.6, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.9.2":
+"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.10.2, @babel/runtime@npm:^7.10.3, @babel/runtime@npm:^7.11.2, @babel/runtime@npm:^7.12.1, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.16.3, @babel/runtime@npm:^7.7.2, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.9.2":
   version: 7.18.3
   resolution: "@babel/runtime@npm:7.18.3"
   dependencies:
@@ -4361,7 +4361,7 @@ __metadata:
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 6.3.0
+    react-router-dom: ^6.8.0
     react-scripts: 5.0.1
     typescript: ~4.2.4
   languageName: unknown
@@ -4471,7 +4471,7 @@ __metadata:
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 6.3.0
+    react-router-dom: ^6.8.0
     react-scripts: 5.0.1
     ts-node: ^10.0.0
     typescript: 4.1.3
@@ -4500,7 +4500,7 @@ __metadata:
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 6.3.0
+    react-router-dom: ^6.8.0
     react-scripts: 5.0.1
     typescript: ~4.2.4
   languageName: unknown
@@ -4521,7 +4521,7 @@ __metadata:
     react: ^18.1.0
     react-dom: ^18.1.0
     react-redux: ^8.0.2
-    react-router-dom: 6.3.0
+    react-router-dom: ^6.8.0
     react-scripts: 5.0.1
     typescript: ~4.2.4
     whatwg-fetch: ^3.4.1
@@ -4545,7 +4545,7 @@ __metadata:
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 6.3.0
+    react-router-dom: ^6.8.0
     react-scripts: 5.0.1
     typescript: ~4.2.4
   languageName: unknown
@@ -4568,7 +4568,7 @@ __metadata:
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 6.3.0
+    react-router-dom: ^6.8.0
     react-scripts: 5.0.1
     typescript: ~4.2.4
     uuid: ^8.3.2
@@ -4595,7 +4595,7 @@ __metadata:
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 6.3.0
+    react-router-dom: ^6.8.0
     react-scripts: 5.0.1
     typescript: ~4.2.4
   languageName: unknown
@@ -4635,7 +4635,7 @@ __metadata:
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 6.3.0
+    react-router-dom: ^6.8.0
     react-scripts: 5.0.1
     typescript: ~4.2.4
   languageName: unknown
@@ -4660,7 +4660,7 @@ __metadata:
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 6.3.0
+    react-router-dom: ^6.8.0
     react-scripts: 5.0.1
     typescript: ~4.2.4
   languageName: unknown
@@ -4685,7 +4685,7 @@ __metadata:
     react-dom: ^18.1.0
     react-icons: 3.11.0
     react-redux: ^8.0.2
-    react-router-dom: 6.3.0
+    react-router-dom: ^6.8.0
     react-scripts: 5.0.1
     typescript: ~4.2.4
   languageName: unknown
@@ -15775,15 +15775,6 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"history@npm:^5.2.0":
-  version: 5.3.0
-  resolution: "history@npm:5.3.0"
-  dependencies:
-    "@babel/runtime": ^7.7.6
-  checksum: d73c35df49d19ac172f9547d30a21a26793e83f16a78386d99583b5bf1429cc980799fcf1827eb215d31816a6600684fba9686ce78104e23bd89ec239e7c726f
-  languageName: node
-  linkType: hard
-
 "hmac-drbg@npm:^1.0.1":
   version: 1.0.1
   resolution: "hmac-drbg@npm:1.0.1"
@@ -23149,19 +23140,6 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:6.3.0":
-  version: 6.3.0
-  resolution: "react-router-dom@npm:6.3.0"
-  dependencies:
-    history: ^5.2.0
-    react-router: 6.3.0
-  peerDependencies:
-    react: ">=16.8"
-    react-dom: ">=16.8"
-  checksum: 77603a654f8a8dc7f65535a2e5917a65f8d9ffcb06546d28dd297e52adcc4b8a84377e0115f48dca330b080af2da3e78f29d590c89307094d36927d2b1751ec3
-  languageName: node
-  linkType: hard
-
 "react-router-dom@npm:^5.3.3":
   version: 5.3.3
   resolution: "react-router-dom@npm:5.3.3"
@@ -23212,14 +23190,14 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"react-router@npm:6.3.0":
-  version: 6.3.0
-  resolution: "react-router@npm:6.3.0"
+"react-router@npm:6.8.0":
+  version: 6.8.0
+  resolution: "react-router@npm:6.8.0"
   dependencies:
-    history: ^5.2.0
+    "@remix-run/router": 1.3.1
   peerDependencies:
     react: ">=16.8"
-  checksum: 7be673f5e72104be01e6ab274516bdb932efd93305243170690f6560e3bd1035dd1df3d3c9ce1e0f452638a2529f43a1e77dcf0934fc8031c4783da657be13ca
+  checksum: 6e258c47f6cbbd0b0c7c9fd7bbaf7cd5cd60472935512fbe97c91e4bbd9b1717f0dee231f5d7206bedfbccdbc21ab77eaf336ba971ea5d8c6b1277045a7b958a
   languageName: node
   linkType: hard
 
