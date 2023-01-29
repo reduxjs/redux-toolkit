@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { createBrowserRouter, Outlet, RouterProvider } from 'react-router-dom'
 import { Box, Center, VStack } from '@chakra-ui/react'
 
 import { Login } from './features/auth/Login'
@@ -18,15 +18,29 @@ function Hooray() {
   )
 }
 
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Outlet />,
+    children: [
+      { path: '/login', element: <Login /> },
+      {
+        path: '*',
+        element: <PrivateOutlet />,
+        children: [
+          {
+            index: true,
+            element: <Hooray />,
+          },
+        ],
+      },
+    ],
+  },
+])
 function App() {
   return (
     <Box>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="*" element={<PrivateOutlet />}>
-          <Route index element={<Hooray />} />
-        </Route>
-      </Routes>
+      <RouterProvider router={router} />
     </Box>
   )
 }

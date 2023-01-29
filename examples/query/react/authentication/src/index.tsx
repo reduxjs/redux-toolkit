@@ -19,9 +19,7 @@ worker
       <React.StrictMode>
         <Provider store={store}>
           <ChakraProvider>
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
+            <App />
           </ChakraProvider>
         </Provider>
       </React.StrictMode>
