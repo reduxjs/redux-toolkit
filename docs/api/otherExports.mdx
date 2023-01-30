@@ -58,10 +58,6 @@ The default immutable update function from the [`immer` library](https://immerjs
 
 [The `current` function](https://immerjs.github.io/immer/current) from the [`immer` library](https://immerjs.github.io/immer/), which takes a snapshot of the current state of a draft and finalizes it (but without freezing). Current is a great utility to print the current state during debugging, and the output of `current` can also be safely leaked outside the producer.
 
-### `original`
-
-[The `original` function](https://immerjs.github.io/immer/original) from the [`immer` library](https://immerjs.github.io/immer/), which returns the original object. This is particularly useful for referential equality check in reducers.
-
 ```ts
 import { createReducer, createAction, current } from '@reduxjs/toolkit'
 
@@ -79,6 +75,10 @@ const todosReducer = createReducer(initialState, (builder) => {
   })
 })
 ```
+
+### `original`
+
+[The `original` function](https://immerjs.github.io/immer/original) from the [`immer` library](https://immerjs.github.io/immer/), which returns the original object. This is particularly useful for referential equality check in reducers.
 
 ### `isDraft`
 
