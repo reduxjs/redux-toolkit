@@ -876,8 +876,13 @@ describe('custom serializeQueryArgs per endpoint', () => {
     },
   }
 
+  const TagTypes = {
+    ListItemsTag: 'ListItemsTag',
+  } as const;
+
   const api = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+    tagTypes: Object.values(TagTypes),
     serializeQueryArgs: ({ endpointName, queryArgs }) =>
       `base-${endpointName}-${queryArgs}`,
     endpoints: (build) => ({
@@ -943,6 +948,16 @@ describe('custom serializeQueryArgs per endpoint', () => {
         forceRefetch({ currentArg, previousArg }) {
           return currentArg !== previousArg
         },
+      }),
+      listItems3: build.query<string[], number>({
+        query: (pageNumber) => {
+          console.log(pageNumber);
+          return `/listItems3?page=${pageNumber}`
+        },
+        serializeQueryArgs: ({ endpointName }) => {
+          return endpointName
+        },
+        providesTags: [TagTypes.ListItemsTag],
       }),
     }),
   })
@@ -1082,5 +1097,36 @@ describe('custom serializeQueryArgs per endpoint', () => {
       arg: 2,
       baseQueryMeta: expect.any(Object),
     })
+  })
+
+  test('serializeQueryArgs allows refetching as args change with same cache key if invalidated', async () => {
+    const allItems = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'i']
+    const PAGE_SIZE = 3
+
+    server.use(
+      rest.get('https://example.com/listItems3', (req, res, ctx) => {
+        const pageString = req.url.searchParams.get('page')
+        const pageNum = parseInt(pageString || '0')
+
+        const results = paginate(allItems, PAGE_SIZE, pageNum)
+        return res(ctx.json(results))
+      })
+    )
+
+    // Page number shouldn't matter here, because the cache key ignores that.
+    // We just need to select the only cache entry.
+    const selectListItems = api.endpoints.listItems3.select(0)
+
+    await storeRef.store.dispatch(api.endpoints.listItems3.initiate(1))
+
+    const initialEntry = selectListItems(storeRef.store.getState())
+    expect(initialEntry.data).toEqual(['a', 'b', 'c'])
+
+    await storeRef.store.dispatch(api.util.invalidateTags([TagTypes.ListItemsTag]));
+
+    // TODO: due to bug, the call to listItems3 still uses `1` instead of `2` as expected
+    await storeRef.store.dispatch(api.endpoints.listItems3.initiate(2))
+    const updatedEntry = selectListItems(storeRef.store.getState())
+    expect(updatedEntry.data).toEqual(['a', 'b', 'c', 'd', 'e', 'f'])
   })
 })
