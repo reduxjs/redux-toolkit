@@ -7,7 +7,6 @@ import type {
   BaseEndpointDefinition,
   ResultTypeFrom,
   QueryArgFrom,
-  FullTagDescription,
 } from '../endpointDefinitions'
 import type { Id, WithRequiredProp } from '../tsHelpers'
 
@@ -255,7 +254,7 @@ export type ConfigState<ReducerPath> = RefetchConfigOptions & {
 
 export type ModifiableConfigState = {
   keepUnusedDataFor: number
-  invalidateImmediately: boolean
+  invalidationBehavior: 'delayed' | 'immediately'
 } & RefetchConfigOptions
 
 export type MutationState<D extends EndpointDefinitions> = {

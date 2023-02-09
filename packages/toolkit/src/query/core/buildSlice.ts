@@ -28,7 +28,6 @@ import { calculateProvidedByThunk } from './buildThunks'
 import type {
   AssertTagTypes,
   EndpointDefinitions,
-  FullTagDescription,
   QueryDefinition,
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'

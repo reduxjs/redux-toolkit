@@ -45,7 +45,7 @@ export type Module<Name extends ModuleName> = {
       | 'refetchOnMountOrArgChange'
       | 'refetchOnFocus'
       | 'refetchOnReconnect'
-      | 'invalidateImmediately'
+      | 'invalidationBehavior'
       | 'tagTypes'
     >,
     context: ApiContext<Definitions>

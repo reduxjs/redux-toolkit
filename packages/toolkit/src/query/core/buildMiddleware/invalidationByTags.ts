@@ -84,11 +84,11 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
 
     pendingTagInvalidations.push(...newTags)
 
-    if (!state.config.invalidateImmediately) {
-      const hasPendingRequests = Object.values({
-        ...state.queries,
-        ...state.mutations,
-      }).some((x) => x?.status === QueryStatus.pending)
+    if (state.config.invalidationBehavior === 'delayed') {
+      const hasPendingRequests = [
+        ...Object.values(state.queries),
+        ...Object.values(state.mutations),
+      ].some((x) => x?.status === QueryStatus.pending)
 
       if (hasPendingRequests) return
     }
