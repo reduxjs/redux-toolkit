@@ -6781,7 +6781,7 @@ __metadata:
     node-fetch: ^2.6.1
     prettier: ^2.2.1
     query-string: ^7.0.1
-    redux: ^4.2.0
+    redux: 5.0.0-alpha.2
     redux-thunk: 3.0.0-alpha.1
     reselect: ^4.1.7
     rimraf: ^3.0.2
@@ -24423,6 +24423,13 @@ fsevents@^1.2.7:
   peerDependencies:
     redux: ^4
   checksum: c7f757f6c383b8ec26152c113e20087818d18ed3edf438aaad43539e9a6b77b427ade755c9595c4a163b6ad3063adf3497e5fe6a36c68884eb1f1cfb6f049a5c
+  languageName: node
+  linkType: hard
+
+"redux@npm:5.0.0-alpha.2":
+  version: 5.0.0-alpha.2
+  resolution: "redux@npm:5.0.0-alpha.2"
+  checksum: fbae31c55bab62a210a5a24a64721f593080fb94808c547b646ddff91515f8ab4e3363af5ece16491f0179d43729fc0350235c9fea7500b37b67d762a55b6945
   languageName: node
   linkType: hard
 
