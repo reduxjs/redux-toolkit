@@ -220,7 +220,9 @@ type Compose = typeof compose
 
 interface ComposeWithDevTools {
   (options: DevToolsEnhancerOptions): Compose
-  <StoreExt>(...funcs: StoreEnhancer<StoreExt>[]): StoreEnhancer<StoreExt>
+  <StoreExt extends {}>(
+    ...funcs: StoreEnhancer<StoreExt>[]
+  ): StoreEnhancer<StoreExt>
 }
 
 /**

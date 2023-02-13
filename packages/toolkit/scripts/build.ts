@@ -209,7 +209,7 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     ],
   })
 
-  for (const chunk of result.outputFiles) {
+  for (const chunk of result.outputFiles!) {
     const esVersion =
       target in esVersionMappings
         ? esVersionMappings[target]
@@ -252,7 +252,7 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
           toplevel: true,
         }
       )
-      code = transformResult.code
+      code = transformResult.code!
       mapping = transformResult.map as RawSourceMap
     }
 
