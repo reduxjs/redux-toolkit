@@ -101,8 +101,14 @@ export type ExtractDispatchExtensions<M> = M extends MiddlewareArray<
   ? ExtractDispatchFromMiddlewareTuple<[...M], {}>
   : never
 
-export type ExtractStoreExtensions<E> = E extends any[]
-  ? UnionToIntersection<E[number] extends StoreEnhancer<infer Ext> ? Ext extends {} ? Ext : {} : {}>
+export type ExtractStoreExtensions<E> = E extends readonly any[]
+  ? UnionToIntersection<
+      E[number] extends StoreEnhancer<infer Ext>
+        ? Ext extends {}
+          ? Ext
+          : {}
+        : {}
+    >
   : {}
 
 /**

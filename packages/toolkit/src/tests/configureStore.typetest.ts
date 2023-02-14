@@ -159,9 +159,9 @@ const _anyMiddleware: any = () => () => () => {}
   })
 
   {
-    type SomePropertyStoreEnhancer = StoreEnhancer<{ someProperty: string }>
-
-    const somePropertyStoreEnhancer: SomePropertyStoreEnhancer = (next) => {
+    const somePropertyStoreEnhancer: StoreEnhancer<{ someProperty: string }> = (
+      next
+    ) => {
       return (reducer, preloadedState) => {
         return {
           ...next(reducer, preloadedState),
@@ -170,13 +170,9 @@ const _anyMiddleware: any = () => () => () => {}
       }
     }
 
-    type AnotherPropertyStoreEnhancer = StoreEnhancer<{
+    const anotherPropertyStoreEnhancer: StoreEnhancer<{
       anotherProperty: number
-    }>
-
-    const anotherPropertyStoreEnhancer: AnotherPropertyStoreEnhancer = (
-      next
-    ) => {
+    }> = (next) => {
       return (reducer, preloadedState) => {
         return {
           ...next(reducer, preloadedState),
@@ -187,7 +183,10 @@ const _anyMiddleware: any = () => () => () => {}
 
     const store = configureStore({
       reducer: () => 0,
-      enhancers: [somePropertyStoreEnhancer, anotherPropertyStoreEnhancer],
+      enhancers: [
+        somePropertyStoreEnhancer,
+        anotherPropertyStoreEnhancer,
+      ] as const,
     })
 
     expectType<Dispatch & ThunkDispatch<number, undefined, AnyAction>>(
