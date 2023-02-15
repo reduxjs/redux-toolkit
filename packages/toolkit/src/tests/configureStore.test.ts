@@ -270,7 +270,7 @@ describe('configureStore', async () => {
       let dummyEnhancerCalled = false
 
       const dummyEnhancer: StoreEnhancer =
-        (createStore: StoreEnhancerStoreCreator) =>
+        (createStore) =>
         (reducer, ...args: any[]) => {
           dummyEnhancerCalled = true
 
