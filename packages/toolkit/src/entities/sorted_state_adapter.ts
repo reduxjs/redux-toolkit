@@ -78,7 +78,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     let appliedUpdates = false
 
     for (let update of updates) {
-      const entity = state.entities[update.id]
+      const entity: T | undefined = state.entities[update.id]
       if (!entity) {
         continue
       }
