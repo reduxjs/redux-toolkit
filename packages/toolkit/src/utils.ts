@@ -1,5 +1,6 @@
-import { produce as createNextState, isDraftable } from 'immer'
 import type { Middleware } from 'redux'
+
+import type { BuildCreateReducerConfiguration } from './createReducer'
 
 export function getTimeMeasureUtils(maxDelay: number, fnName: string) {
   let elapsed = 0
@@ -70,6 +71,11 @@ export class MiddlewareArray<
   }
 }
 
-export function freezeDraftable<T>(val: T) {
-  return isDraftable(val) ? createNextState(val, () => {}) : val
+export function makeFreezeDraftable<T>({
+  isDraftable,
+  createNextState,
+}: BuildCreateReducerConfiguration) {
+  return function freezeDraftable<T>(val: T) {
+    return isDraftable(val) ? createNextState(val, () => {}) : val
+  }
 }

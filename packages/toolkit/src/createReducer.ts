@@ -4,7 +4,7 @@ import type { AnyAction, Action, Reducer } from 'redux'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type { NoInfer } from './tsHelpers'
-import { freezeDraftable } from './utils'
+import { makeFreezeDraftable } from './utils'
 
 /**
  * Defines a mapping from action types to corresponding action object shapes.
@@ -158,11 +158,20 @@ export interface BuildCreateReducerConfiguration {
     base: Base,
     recipe: (draft: Draft<Base>) => void | Base | Draft<Base>
   ) => Base
+  isDraft(value: any): boolean
+  isDraftable(value: any): boolean
 }
 
 export function buildCreateReducer({
   createNextState,
+  isDraft,
+  isDraftable,
 }: BuildCreateReducerConfiguration): CreateReducer {
+  const freezeDraftable = makeFreezeDraftable({
+    createNextState,
+    isDraft,
+    isDraftable,
+  })
   return function createReducer<S extends NotFunction<any>>(
     initialState: S | (() => S),
     mapOrBuilderCallback: (builder: ActionReducerMapBuilder<S>) => void
@@ -247,4 +256,8 @@ export function buildCreateReducer({
   }
 }
 
-export const createReducer = buildCreateReducer({ createNextState })
+export const createReducer = buildCreateReducer({
+  createNextState,
+  isDraft,
+  isDraftable,
+})
