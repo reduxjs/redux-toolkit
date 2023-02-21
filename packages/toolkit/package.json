@@ -118,6 +118,7 @@
   ],
   "dependencies": {
     "immer": "^9.0.16",
+    "mutative": "^0.4.2",
     "redux": "5.0.0-alpha.2",
     "redux-thunk": "3.0.0-alpha.1",
     "reselect": "^4.1.7"

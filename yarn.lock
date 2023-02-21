@@ -6778,6 +6778,7 @@ __metadata:
     magic-string: ^0.25.7
     merge-source-map: ^1.1.0
     msw: ^0.40.2
+    mutative: ^0.4.2
     node-fetch: ^2.6.1
     prettier: ^2.2.1
     query-string: ^7.0.1
@@ -20606,6 +20607,13 @@ fsevents@^1.2.7:
     arrify: ^2.0.1
     minimatch: ^3.0.4
   checksum: bdb6a98dad4e919d9a1a2a0db872f44fa2337315f2fd5827d91ae005cf22f4425782bdfa97c10b80d567f0cb3c226c31f4e85f8f6a4a4be4facf9af0de1bb0c2
+  languageName: node
+  linkType: hard
+
+"mutative@npm:^0.4.2":
+  version: 0.4.2
+  resolution: "mutative@npm:0.4.2"
+  checksum: fe5c579071bebbb32eb8da921fc4044bd1ca2ca399f998f49271d0bb35ff2c56eff0adcb66a2b398d62207f48ff6bc902bc9101278a30b8cb74ba2acce961a76
   languageName: node
   linkType: hard
 
