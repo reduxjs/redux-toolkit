@@ -31,8 +31,8 @@ import {
   isRejected,
   isRejectedWithValue,
 } from '@reduxjs/toolkit'
-import type { Patch } from 'immer'
-import { isDraftable, produceWithPatches } from 'immer'
+import type { Patches, Patch } from 'mutative'
+import { isDraftable, create } from 'mutative'
 import type {
   AnyAction,
   ThunkAction,
@@ -264,10 +264,11 @@ export function buildThunks<
       }
       if ('data' in currentState) {
         if (isDraftable(currentState.data)) {
-          const [, patches, inversePatches] = produceWithPatches(
+          const [, patches, inversePatches] = create(
             currentState.data,
-            updateRecipe
-          )
+            updateRecipe,
+            { enablePatches: true }
+          ) as [unknown, Patches<true>, Patches<true>]
           ret.patches.push(...patches)
           ret.inversePatches.push(...inversePatches)
         } else {

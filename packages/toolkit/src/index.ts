@@ -1,11 +1,11 @@
 export * from 'redux'
 export {
-  produce as createNextState,
+  create as createNextState,
   current,
-  freeze,
+  // freeze,
   original,
   isDraft,
-} from 'immer'
+} from 'mutative'
 export type { Draft } from 'immer'
 export { createSelector } from 'reselect'
 export type {

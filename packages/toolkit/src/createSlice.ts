@@ -1,5 +1,5 @@
 import type { Reducer } from 'redux'
-import { produce as createNextState, isDraft, isDraftable } from 'immer'
+import { create as createNextState, isDraft, isDraftable } from 'mutative'
 import type {
   ActionCreatorWithoutPayload,
   PayloadAction,

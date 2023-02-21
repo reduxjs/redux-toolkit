@@ -31,8 +31,10 @@ import type {
   EndpointDefinitions,
   QueryDefinition,
 } from '../endpointDefinitions'
-import type { Patch } from 'immer'
-import { applyPatches } from 'immer'
+// import type { Patch } from 'immer'
+// import { applyPatches } from 'immer'
+import type { Patch } from 'mutative'
+import { apply } from 'mutative'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import {
   isDocumentVisible,
@@ -133,7 +135,7 @@ export function buildSlice({
         >
       ) {
         updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
-          substate.data = applyPatches(substate.data as any, patches.concat())
+          substate.data = apply(substate.data as any, patches.concat())
         })
       },
     },
@@ -428,7 +430,7 @@ export function buildSlice({
     initialState: initialState as SubscriptionState,
     reducers: {
       subscriptionsUpdated(state, action: PayloadAction<Patch[]>) {
-        return applyPatches(state, action.payload)
+        return apply(state, action.payload)
       },
     },
   })

@@ -48,7 +48,7 @@ import type { BaseQueryFn } from '../baseQueryTypes'
 import type { ReferenceCacheLifecycle } from './buildMiddleware/cacheLifecycle'
 import type { ReferenceQueryLifecycle } from './buildMiddleware/queryLifecycle'
 import type { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
-import { enablePatches } from 'immer'
+// import { enablePatches } from 'immer'
 
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
@@ -71,7 +71,8 @@ export type CoreModule =
   | ReferenceQueryLifecycle
   | ReferenceCacheCollection
 
-export interface ThunkWithReturnValue<T> extends ThunkAction<T, any, any, AnyAction> {}
+export interface ThunkWithReturnValue<T>
+  extends ThunkAction<T, any, any, AnyAction> {}
 
 declare module '../apiTypes' {
   export interface ApiModules<
@@ -474,7 +475,7 @@ export const coreModule = (): Module<CoreModule> => ({
     },
     context
   ) {
-    enablePatches()
+    // enablePatches()
 
     assertCast<InternalSerializeQueryArgs>(serializeQueryArgs)
 
