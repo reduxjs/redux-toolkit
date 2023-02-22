@@ -7,8 +7,6 @@ import type {
   StoreEnhancer,
   Store,
   Dispatch,
-  PreloadedState,
-  CombinedState,
 } from 'redux'
 import { createStore, compose, applyMiddleware, combineReducers } from 'redux'
 import type { DevToolsEnhancerOptions as DevToolsOptions } from './devtoolsExtension'
@@ -21,7 +19,6 @@ import type {
 } from './getDefaultMiddleware'
 import { curryGetDefaultMiddleware } from './getDefaultMiddleware'
 import type {
-  NoInfer,
   ExtractDispatchExtensions,
   ExtractStoreExtensions,
 } from './tsHelpers'
@@ -45,6 +42,7 @@ export type ConfigureEnhancersCallback<E extends Enhancers = Enhancers> = (
 export interface ConfigureStoreOptions<
   S = any,
   A extends Action = AnyAction,
+  PreloadedState = S,
   M extends Middlewares<S> = Middlewares<S>,
   E extends Enhancers = Enhancers
 > {
@@ -52,7 +50,9 @@ export interface ConfigureStoreOptions<
    * A single reducer function that will be used as the root reducer, or an
    * object of slice reducers that will be passed to `combineReducers()`.
    */
-  reducer: Reducer<S, A> | ReducersMapObject<S, A>
+  reducer:
+    | Reducer<S, A, PreloadedState>
+    | ReducersMapObject<S, A, PreloadedState>
 
   /**
    * An array of Redux middleware to install. If not supplied, defaults to
@@ -87,7 +87,7 @@ export interface ConfigureStoreOptions<
     As we cannot distinguish between those two cases without adding another generic parameter,
     we just make the pragmatic assumption that the latter almost never happens.
   */
-  preloadedState?: PreloadedState<CombinedState<NoInfer<S>>>
+  preloadedState?: PreloadedState
 
   /**
    * The store enhancers to apply. See Redux's `createStore()`.
@@ -141,9 +141,12 @@ export type EnhancedStore<
 export function configureStore<
   S = any,
   A extends Action = AnyAction,
+  PreloadedState = S,
   M extends Middlewares<S> = [ThunkMiddlewareFor<S>],
   E extends Enhancers = [StoreEnhancer]
->(options: ConfigureStoreOptions<S, A, M, E>): EnhancedStore<S, A, M, E> {
+>(
+  options: ConfigureStoreOptions<S, A, PreloadedState, M, E>
+): EnhancedStore<S, A, M, E> {
   const curriedGetDefaultMiddleware = curryGetDefaultMiddleware<S>()
 
   const {
@@ -154,12 +157,16 @@ export function configureStore<
     enhancers = undefined,
   } = options || {}
 
-  let rootReducer: Reducer<S, A>
+  let rootReducer: Reducer<S, A, PreloadedState>
 
   if (typeof reducer === 'function') {
     rootReducer = reducer
   } else if (isPlainObject(reducer)) {
-    rootReducer = combineReducers(reducer) as unknown as Reducer<S, A>
+    rootReducer = combineReducers(reducer) as unknown as Reducer<
+      S,
+      A,
+      PreloadedState
+    >
   } else {
     throw new Error(
       '"reducer" is a required argument, and must be a function or an object of functions that can be passed to combineReducers'

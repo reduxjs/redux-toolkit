@@ -131,8 +131,8 @@ const _anyMiddleware: any = () => () => () => {}
   })
 
   configureStore({
-    reducer: () => 0,
     // @ts-expect-error
+    reducer: (_: number) => 0,
     preloadedState: 'non-matching state type',
   })
 }
