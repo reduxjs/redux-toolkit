@@ -146,7 +146,7 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
   }
 
   const outputFolder = path.join(...folderSegments)
-  const outputFilename = `${prefix}.${name}.js`
+  const outputFilename = `${prefix}.${name}.${format === 'cjs' ? 'js' : 'mjs'}`
 
   await fs.ensureDir(outputFolder)
 
@@ -344,6 +344,20 @@ async function main({ skipExtraction = false, local = false }: BuildArgs) {
     const { folder } = entryPoint
     const outputPath = path.join('dist', folder)
     // await buildUMD(outputPath, entryPoint.prefix, entryPoint.globalName)
+  }
+
+  // Copy .modern.mjs -> .modern.js to support the top-level `"module"` field
+  for (let entryPoint of entryPoints) {
+    const { folder } = entryPoint
+    const outputPath = path.join('dist', folder)
+    const outputFiles = await fs.readdir(outputPath)
+    const copyPromises = outputFiles
+      .filter((file: string) => /\.mjs$/.test(file))
+      .map((file: string) => {
+        const fileNameNoExtension = path.parse(file).name
+        return fs.copy(`${outputPath}/${file}`, `${outputPath}/${fileNameNoExtension + '.js'}`)
+    })
+    await Promise.all(copyPromises)
   }
 
   if (!skipExtraction) {
