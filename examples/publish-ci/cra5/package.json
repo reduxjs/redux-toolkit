@@ -14,10 +14,9 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
     "eject": "react-scripts eject",
     "serve-app": "yarn serve -s build",
-    "test-playwright": "yarn playwright test",
+    "test": "yarn playwright test",
     "format": "prettier --write \"./src/**/*.{ts,tsx}\" \"**/*.md\""
   },
   "eslintConfig": {
