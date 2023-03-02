@@ -6538,7 +6538,7 @@ __metadata:
     husky: ^4.3.6
     jest: ^27
     msw: ^0.40.2
-    oazapfts: "https://github.com/cvereterra/oazapfts.git"
+    oazapfts: "https://github.com/cvereterra/oazapfts#2323e446033d7a17b0445028b83c48c2fd07df7c"
     openapi-types: ^9.1.0
     prettier: ^2.2.1
     pretty-quick: ^3.1.0
@@ -20195,9 +20195,9 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"oazapfts@https://github.com/cvereterra/oazapfts.git":
+"oazapfts@https://github.com/cvereterra/oazapfts#2323e446033d7a17b0445028b83c48c2fd07df7c":
   version: 4.5.2
-  resolution: "oazapfts@https://github.com/cvereterra/oazapfts.git#commit=107c6ffa95e5b94998393a701d9a951c4f766f46"
+  resolution: "oazapfts@https://github.com/cvereterra/oazapfts.git#commit=2323e446033d7a17b0445028b83c48c2fd07df7c"
   dependencies:
     "@apidevtools/swagger-parser": ^10.1.0
     lodash: ^4.17.21
@@ -20206,7 +20206,7 @@ fsevents@^1.2.7:
     typescript: ^4.9.3
   bin:
     oazapfts: lib/codegen/cli.js
-  checksum: 3abda3fc9b1cf98512254347b6e3c9eea31f0fd7dd663078e7791cd04ec94aff261fa41feceb552f70fae9863f81f537cac0079f697589faa753ba6520b883c4
+  checksum: e279c24a8c2bbfb05e099de1b7a326d6686eec29fe143c7aced47615c9eec183dd7b748caa300d2e70d376e80d7e7cc5e1605c71cdfd44a9e6f420b05e02f17c
   languageName: node
   linkType: hard
 
