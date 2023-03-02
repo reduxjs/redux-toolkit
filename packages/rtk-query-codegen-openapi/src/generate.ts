@@ -1,18 +1,21 @@
 import ts from 'typescript';
 import * as path from 'path';
 import { camelCase } from 'lodash';
+
 import ApiGenerator, {
   getOperationName as _getOperationName,
   getReferenceName,
   isReference,
   supportDeepObjects,
-} from '@rtk-query/oazapfts-patched/lib/codegen/generate';
+} from 'oazapfts/lib/codegen/generate';
+
 import {
   createQuestionToken,
   keywordType,
   createPropertyAssignment,
   isValidIdentifier,
-} from '@rtk-query/oazapfts-patched/lib/codegen/tscodegen';
+} from 'oazapfts/lib/codegen/tscodegen';
+
 import type { OpenAPIV3 } from 'openapi-types';
 import { generateReactHooks } from './generators/react-hooks';
 import type { EndpointMatcher, EndpointOverrides, GenerationOptions, OperationDefinition, TextMatcher } from './types';
@@ -151,7 +154,6 @@ export async function generateApi(
         }),
         factory.createExportDeclaration(
           undefined,
-          undefined,
           false,
           factory.createNamedExports([
             factory.createExportSpecifier(
@@ -242,7 +244,6 @@ export async function generateApi(
     const ResponseTypeName = factory.createTypeReferenceNode(
       registerInterface(
         factory.createTypeAliasDeclaration(
-          undefined,
           [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
           capitalize(operationName + responseSuffix),
           undefined,
@@ -391,17 +392,7 @@ export async function generateApi(
       undefined,
       undefined,
       Object.keys(queryArg).length
-        ? [
-            factory.createParameterDeclaration(
-              undefined,
-              undefined,
-              undefined,
-              rootObject,
-              undefined,
-              undefined,
-              undefined
-            ),
-          ]
+        ? [factory.createParameterDeclaration(undefined, undefined, rootObject, undefined, undefined, undefined)]
         : [],
       undefined,
       factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
