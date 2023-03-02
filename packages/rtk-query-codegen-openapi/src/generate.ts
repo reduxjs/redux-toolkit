@@ -310,7 +310,6 @@ export async function generateApi(
     const QueryArg = factory.createTypeReferenceNode(
       registerInterface(
         factory.createTypeAliasDeclaration(
-          undefined,
           [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
           capitalize(operationName + argSuffix),
           undefined,
