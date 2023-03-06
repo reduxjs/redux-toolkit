@@ -6781,7 +6781,7 @@ __metadata:
     node-fetch: ^2.6.1
     prettier: ^2.2.1
     query-string: ^7.0.1
-    redux: 5.0.0-alpha.2
+    redux: "Methuselah96/redux#head=preloaded-state-generic-4"
     redux-thunk: 3.0.0-alpha.1
     reselect: ^4.1.7
     rimraf: ^3.0.2
@@ -24426,10 +24426,10 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"redux@npm:5.0.0-alpha.2":
+"redux@Methuselah96/redux#head=preloaded-state-generic-4":
   version: 5.0.0-alpha.2
-  resolution: "redux@npm:5.0.0-alpha.2"
-  checksum: fbae31c55bab62a210a5a24a64721f593080fb94808c547b646ddff91515f8ab4e3363af5ece16491f0179d43729fc0350235c9fea7500b37b67d762a55b6945
+  resolution: "redux@https://github.com/Methuselah96/redux.git#commit=20501975b7445f07b83a6890fb8af8aeb84eb5a2"
+  checksum: 452f50587bc3936c3a5c1fe19082cc7efba31ddd4016c68d8cd8a899b7b7e6ffdcdcd17a4d472e80bf443257b4396445fbe3140a5f0396f55f2f89bd44a6d4b7
   languageName: node
   linkType: hard
 

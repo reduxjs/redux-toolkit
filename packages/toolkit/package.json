@@ -118,7 +118,7 @@
   ],
   "dependencies": {
     "immer": "^9.0.16",
-    "redux": "5.0.0-alpha.2",
+    "redux": "Methuselah96/redux#head=preloaded-state-generic-4",
     "redux-thunk": "3.0.0-alpha.1",
     "reselect": "^4.1.7"
   },
