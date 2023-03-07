@@ -12,7 +12,6 @@ import type { CurriedGetDefaultMiddleware, ThunkMiddlewareFor } from '../../getD
 
 // copied from configureStore
 type Middlewares<S> = ReadonlyArray<Middleware<{}, S>>
-
 type Enhancers = ReadonlyArray<StoreEnhancer>
 
 /**
