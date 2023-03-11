@@ -53,20 +53,29 @@ type Api = {
       Array<TagTypes | FullTagDescription<TagTypes>>,
       string
     >
-    resetApiState: SliceActions['resetApiState']
-    getRunningOperationPromises: () => Array<Promise<unknown>>
-    getRunningOperationPromise: <EndpointName extends QueryKeys<Definitions>>(
+    selectInvalidatedBy: (
+      state: FullState,
+      tags: Array<TagTypes | FullTagDescription<TagTypes>>
+    ) => Array<{
+      endpointName: string
+      originalArgs: any
+      queryCacheKey: string
+    }>
+    resetApiState: ActionCreator<ResetAction>
+    getRunningQueryThunk(
       endpointName: EndpointName,
-      args: QueryArgFrom<Definitions[EndpointName]>
-    ) =>
-      | QueryActionCreatorResult<Definitions[EndpointName]>
-      | undefined
-    getRunningOperationPromise: <EndpointName extends MutationKeys<Definitions>>(
+      args: QueryArg
+    ): ThunkWithReturnValue<QueryActionCreatorResult | undefined>
+    getRunningMutationThunk(
       endpointName: EndpointName,
       fixedCacheKeyOrRequestId: string
-    ) =>
-      | MutationActionCreatorResult<Definitions[EndpointName]>
-      | undefined
+    ): ThunkWithReturnValue<MutationActionCreatorResult | undefined>
+    getRunningQueriesThunk(): ThunkWithReturnValue<
+      Array<QueryActionCreatorResult<any>>
+    >
+    getRunningMutationsThunk(): ThunkWithReturnValue<
+      Array<MutationActionCreatorResult<any>>
+    >
   }
 
   // Internal actions

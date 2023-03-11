@@ -11,73 +11,150 @@ description: 'RTK Query > API: fetchBaseQuery reference'
 
 # `fetchBaseQuery`
 
-This is a very small wrapper around [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) that aims to simplify requests. It is not a full-blown replacement for `axios`, `superagent`, or any other more heavy-weight library, but it will cover the large majority of your needs.
+This is a very small wrapper around [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) that aims to simplify HTTP requests. It is not a full-blown replacement for `axios`, `superagent`, or any other more heavyweight library, but it will cover the vast majority of your HTTP request needs.
 
-It takes all standard options from fetch's [`RequestInit`](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) interface, as well as `baseUrl`, a `prepareHeaders` function, an optional `fetch` function, and a `paramsSerializer` function.
+`fetchBaseQuery` is a factory function that generates a data fetching method compatible with RTK Query's `baseQuery` configuration option. It takes all standard options from fetch's [`RequestInit`](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) interface, as well as `baseUrl`, a `prepareHeaders` function, an optional `fetch` function, a `paramsSerializer` function, and a `timeout`.
 
-- `baseUrl` _(required)_
-  - Typically a string like `https://api.your-really-great-app.com/v1/`. If you don't provide a `baseUrl`, it defaults to a relative path from where the request is being made. You should most likely _always_ specify this.
-- `prepareHeaders` _(optional)_
+## Basic Usage
 
-  - Allows you to inject headers on every request. You can specify headers at the endpoint level, but you'll typically want to set common headers like `authorization` here. As a convenience mechanism, the second argument allows you to use `getState` to access your redux store in the event you store information you'll need there such as an auth token. Additionally, it provides access to `extra`, `endpoint`, `type`, and `forced` to unlock more granular conditional behaviors.
-
-  - ```ts title="prepareHeaders signature" no-transpile
-    ;(
-      headers: Headers,
-      api: {
-        getState: () => unknown
-        extra: unknown
-        endpoint: string
-        type: 'query' | 'mutation'
-        forced: boolean | undefined
-      }
-    ) => Headers
-    ```
-
-- `paramsSerializer` _(optional)_
-  - A function that can be used to apply custom transformations to the data passed into [`params`](#setting-the-query-string). If you don't provide this, `params` will be given directly to `new URLSearchParms()`. With some API integrations, you may need to leverage this to use something like the [`query-string`](https://github.com/sindresorhus/query-string) library to support different array types.
-- `fetchFn` _(optional)_
-  - A fetch function that overrides the default on the window. Can be useful in SSR environments where you may need to leverage `isomorphic-fetch` or `cross-fetch`.
-
-```ts title="Return types of fetchBaseQuery" no-transpile
-Promise<{
-    data: any;
-    error?: undefined;
-    meta?: { request: Request; response: Response };
-} | {
-    error: {
-        status: number;
-        data: any;
-    };
-    data?: undefined;
-    meta?: { request: Request; response: Response };
-}>
-```
-
-### Using `fetchBaseQuery`
-
-To use it, import it when you are [creating an API service definition](../../tutorials/rtk-query#create-an-api-service).
+To use it, import it when you are [creating an API service definition](../../tutorials/rtk-query#create-an-api-service), call it as `fetchBaseQuery(options)`, and pass the result as the `baseQuery` field in `createApi`:
 
 ```ts title="src/services/pokemon.ts"
 // Or from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
 export const pokemonApi = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }), // Set the baseUrl for every endpoint below
+  // Set the baseUrl for every endpoint below
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
   endpoints: (builder) => ({
     getPokemonByName: builder.query({
-      query: (name: string) => `pokemon/${name}`, // Will make a request like https://pokeapi.co/api/v2/pokemon/bulbasaur
+      // Will make a request like https://pokeapi.co/api/v2/pokemon/bulbasaur
+      query: (name: string) => `pokemon/${name}`,
     }),
     updatePokemon: builder.mutation({
       query: ({ name, patch }) => ({
         url: `pokemon/${name}`,
-        method: 'PATCH', // When performing a mutation, you typically use a method of PATCH/PUT/POST/DELETE for REST endpoints
-        body: patch, // fetchBaseQuery automatically adds `content-type: application/json` to the Headers and calls `JSON.stringify(patch)`
+        // When performing a mutation, you typically use a method of
+        // PATCH/PUT/POST/DELETE for REST endpoints
+        method: 'PATCH',
+        // fetchBaseQuery automatically adds `content-type: application/json` to
+        // the Headers and calls `JSON.stringify(patch)`
+        body: patch,
       }),
     }),
   }),
 })
 ```
+
+## Signature
+
+```ts title="fetchBaseQuery signature" no-transpile
+type FetchBaseQuery = (
+  args: FetchBaseQueryArgs
+) => (
+  args: string | FetchArgs,
+  api: BaseQueryApi,
+  extraOptions: ExtraOptions
+) => FetchBaseQueryResult
+
+type FetchBaseQueryArgs = {
+  baseUrl?: string
+  prepareHeaders?: (
+    headers: Headers,
+    api: Pick<
+      BaseQueryApi,
+      'getState' | 'extra' | 'endpoint' | 'type' | 'forced'
+    >
+  ) => MaybePromise<Headers | void>
+  fetchFn?: (
+    input: RequestInfo,
+    init?: RequestInit | undefined
+  ) => Promise<Response>
+  paramsSerializer?: (params: Record<string, any>) => string
+  isJsonContentType?: (headers: Headers) => boolean
+  jsonContentType?: string
+  timeout?: number
+} & RequestInit
+
+type FetchBaseQueryResult = Promise<
+  | {
+      data: any
+      error?: undefined
+      meta?: { request: Request; response: Response }
+    }
+  | {
+      error: {
+        status: number
+        data: any
+      }
+      data?: undefined
+      meta?: { request: Request; response: Response }
+    }
+>
+```
+
+## Parameters
+
+### `baseUrl`
+
+_(required)_
+
+Typically a string like `https://api.your-really-great-app.com/v1/`. If you don't provide a `baseUrl`, it defaults to a relative path from where the request is being made. **You should most likely _always_ specify this**.
+
+### `prepareHeaders`
+
+_(optional)_
+
+Allows you to inject headers on every request. You can specify headers at the endpoint level, but you'll typically want to set common headers like `authorization` here. As a convenience mechanism, the second argument allows you to use `getState` to access your redux store in the event you store information you'll need there such as an auth token. Additionally, it provides access to `extra`, `endpoint`, `type`, and `forced` to unlock more granular conditional behaviors.
+
+You can mutate the `headers` argument directly, and returning it is optional.
+
+```ts title="prepareHeaders signature" no-transpile
+type prepareHeaders = (
+  headers: Headers,
+  api: {
+    getState: () => unknown
+    extra: unknown
+    endpoint: string
+    type: 'query' | 'mutation'
+    forced: boolean | undefined
+  }
+) => Headers | void
+```
+
+### `paramsSerializer`
+
+_(optional)_
+
+A function that can be used to apply custom transformations to the data passed into [`params`](#setting-the-query-string). If you don't provide this, `params` will be given directly to `new URLSearchParams()`. With some API integrations, you may need to leverage this to use something like the [`query-string`](https://github.com/sindresorhus/query-string) library to support different array types.
+
+### `fetchFn`
+
+_(optional)_
+
+A fetch function that overrides the default on the window. Can be useful in SSR environments where you may need to leverage `isomorphic-fetch` or `cross-fetch`.
+
+### `timeout`
+
+_(optional)_
+
+A number in milliseconds that represents the maximum time a request can take before timing out.
+
+### `isJsonContentType`
+
+_(optional)_
+
+A callback that receives a `Headers` object and determines the `body` field of the `FetchArgs` argument should be stringified via `JSON.stringify()`.
+
+The default implementation inspects the `content-type` header, and will match values like `"application/json"` and `"application/vnd.api+json"`.
+
+### `jsonContentType`
+
+_(optional)_
+
+Used when automatically setting the `content-type` header for a request with a jsonifiable body that does not have an explicit `content-type` header. Defaults to `"application/json"`.
+
+## Common Usage Patterns
 
 ### Setting default headers on requests
 
@@ -106,22 +183,22 @@ const baseQuery = fetchBaseQuery({
 })
 ```
 
-### Individual query options
+## Individual query options
 
-There is more behavior that you can define on a per-request basis that extends the default options available to the `RequestInit` interface.
-
-- [`params`](#setting-the-query-string)
-- [`body`](#setting-the-body)
-- [`responseHandler`](#parsing-a-Response)
-- [`validateStatus`](#handling-non-standard-response-status-codes)
+There is more behavior that you can define on a per-request basis. The `query` field may return an object containing any of the default `fetch` options available to the `RequestInit` interface, as well as these additional options:
 
 ```ts title="endpoint request options"
 interface FetchArgs extends RequestInit {
   url: string
   params?: Record<string, any>
   body?: any
-  responseHandler?: 'json' | 'text' | ((response: Response) => Promise<any>)
+  responseHandler?:
+    | 'json'
+    | 'text'
+    | `content-type`
+    | ((response: Response) => Promise<any>)
   validateStatus?: (response: Response, body: any) => boolean
+  timeout?: number
 }
 
 const defaultValidateStatus = (response: Response) =>
@@ -185,7 +262,19 @@ By default, `fetchBaseQuery` assumes that every request you make will be `json`,
 
 ### Parsing a Response
 
-By default, `fetchBaseQuery` assumes that every `Response` you get will be parsed as `json`. In the event that you don't want that to happen, you can specify an alternative response handler like `text`, or take complete control and use a custom function that accepts the raw `Response` object &mdash; allowing you to use any [`Response` method](https://developer.mozilla.org/en-US/docs/Web/API/Response).
+By default, `fetchBaseQuery` assumes that every `Response` you get will be parsed as `json`. In the event that you don't want that to happen, you can customize the behavior by specifying an alternative response handler like `text`, or take complete control and use a custom function that accepts the raw `Response` object &mdash; allowing you to use any [`Response` method](https://developer.mozilla.org/en-US/docs/Web/API/Response).
+
+The `responseHandler` field can be either:
+
+```ts
+type ResponseHandler =
+  | 'content-type'
+  | 'json'
+  | 'text'
+  | ((response: Response) => Promise<any>)
+```
+
+The `"json"` and `"text"` values instruct `fetchBaseQuery` to the corresponding fetch response methods for reading the body. `content-type` will check the header field to first determine if this appears to be JSON, and then use one of those two methods. The callback allows you to process the body yourself.
 
 ```ts title="Parse a Response as text"
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
@@ -196,7 +285,8 @@ export const customApi = createApi({
     getUsers: builder.query({
       query: () => ({
         url: `users`,
-        responseHandler: (response) => response.text(), // This is the same as passing 'text'
+        // This is the same as passing 'text'
+        responseHandler: (response) => response.text(),
       }),
     }),
   }),
@@ -215,13 +305,39 @@ By default, `fetchBaseQuery` will `reject` any `Response` that does not have a s
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
 export const customApi = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: '/api/' }), // Set the baseUrl for every endpoint below
+  // Set the baseUrl for every endpoint below
+  baseQuery: fetchBaseQuery({ baseUrl: '/api/' }),
   endpoints: (builder) => ({
     getUsers: builder.query({
       query: () => ({
         url: `users`,
+        // Example: we have a backend API always returns a 200,
+        // but sets an `isError` property when there is an error.
         validateStatus: (response, result) =>
-          response.status === 200 && !result.isError, // Our tricky API always returns a 200, but sets an `isError` property when there is an error.
+          response.status === 200 && !result.isError,
+      }),
+    }),
+  }),
+})
+```
+
+### Adding a custom timeout to requests
+
+By default, `fetchBaseQuery` has no default timeout value set, meaning your requests will stay pending until your api resolves the request(s) or it reaches the browser's default timeout (normally 5 minutes). Most of the time, this isn't what you'll want. When using `fetchBaseQuery`, you have the ability to set a `timeout` on the `baseQuery` or on individual endpoints. When specifying both options, the endpoint value will take priority.
+
+```ts title="Setting a timeout value"
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+
+export const api = createApi({
+  // Set a default timeout of 10 seconds
+  baseQuery: fetchBaseQuery({ baseUrl: '/api/', timeout: 10000 }),
+  endpoints: (builder) => ({
+    getUsers: builder.query({
+      query: () => ({
+        url: `users`,
+        // Example: we know the users endpoint is _really fast_ because it's always cached.
+        // We can assume if its over > 1000ms, something is wrong and we should abort the request.
+        timeout: 1000,
       }),
     }),
   }),

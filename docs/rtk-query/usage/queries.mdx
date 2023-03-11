@@ -58,6 +58,8 @@ const api = createApi({
       query: (id) => ({ url: `post/${id}` }),
       // Pick out data and prevent nested properties in a hook or selector
       transformResponse: (response: { data: Post }, meta, arg) => response.data,
+      // Pick out errors and prevent nested properties in a hook or selector
+      transformErrorResponse: (response: { status: string | number }, meta, arg) => response.status,
       providesTags: (result, error, id) => [{ type: 'Post', id }],
       // The 2nd parameter is the destructured `QueryLifecycleApi`
       async onQueryStarted(

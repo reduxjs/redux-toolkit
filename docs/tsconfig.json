@@ -18,6 +18,8 @@
     "baseUrl": "..",
     "jsx": "preserve",
     "paths": {
+      "react": [ "../node_modules/@types/react" ],
+      "react-dom": [ "../node_modules/@types/react-dom" ],
       "@reduxjs/toolkit": ["packages/toolkit/src/index.ts"],
       "@reduxjs/toolkit/query": ["packages/toolkit/src/query/index.ts"],
       "@reduxjs/toolkit/query/react": [

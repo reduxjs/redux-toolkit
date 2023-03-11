@@ -41,7 +41,8 @@
             "api/getDefaultMiddleware",
             "api/immutabilityMiddleware",
             "api/serializabilityMiddleware",
-            "api/createListenerMiddleware"
+            "api/createListenerMiddleware",
+            "api/autoBatchEnhancer"
           ]
         },
         {
@@ -63,7 +64,8 @@
           "items": [
             "api/createSelector",
             "api/matching-utilities",
-            "api/other-exports"
+            "api/other-exports",
+            "api/codemods"
           ]
         }
       ]

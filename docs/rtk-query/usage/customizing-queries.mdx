@@ -175,6 +175,57 @@ transformResponse: (response) =>
 
 See also [Websocket Chat API with a transformed response shape](./streaming-updates.mdx#websocket-chat-api-with-a-transformed-response-shape) for an example of `transformResponse` normalizing response data in combination with `createEntityAdapter`, while also updating further data using [`streaming updates`](./streaming-updates.mdx).
 
+## Customizing query responses with `transformErrorResponse`
+
+Individual endpoints on [`createApi`](../api/createApi.mdx) accept a [`transformErrorResponse`](../api/createApi.mdx) property which allows manipulation of the error returned by a query or mutation before it hits the cache.
+
+`transformErrorResponse` is called with the error that a failed `baseQuery` returns for the corresponding endpoint, and the return value of `transformErrorResponse` is used as the cached error associated with that endpoint call.
+
+By default, the payload from the server is returned directly.
+
+```ts
+function defaultTransformResponse(
+  baseQueryReturnValue: unknown,
+  meta: unknown,
+  arg: unknown
+) {
+  return baseQueryReturnValue
+}
+```
+
+To change it, provide a function that looks like:
+
+```ts title="Unpack a deeply nested error object" no-transpile
+transformErrorResponse: (response, meta, arg) =>
+  response.data.some.deeply.nested.errorObject
+```
+
+`transformErrorResponse` is called with the `meta` property returned from the `baseQuery` as its second
+argument, which can be used while determining the transformed response. The value for `meta` is
+dependent on the `baseQuery` used.
+
+```ts title="transformErrorResponse meta example" no-transpile
+transformErrorResponse: (response: { data: { sideA: Tracks; sideB: Tracks } }, meta, arg) => {
+  if (meta?.coinFlip === 'heads') {
+    return response.data.sideA
+  }
+  return response.data.sideB
+}
+```
+
+`transformErrorResponse` is called with the `arg` property provided to the endpoint as its third
+argument, which can be used while determining the transformed response. The value for `arg` is
+dependent on the `endpoint` used, as well as the argument used when calling the query/mutation.
+
+```ts title="transformErrorResponse arg example" no-transpile
+transformErrorResponse: (response: Posts, meta, arg) => {
+  return {
+    originalArg: arg,
+    error: response,
+  }
+}
+```
+
 ## Customizing queries with `queryFn`
 
 Individual endpoints on [`createApi`](../api/createApi.mdx) accept a [`queryFn`](../api/createApi.mdx#queryfn) property which allows a given endpoint to ignore `baseQuery` for that endpoint by providing an inline function determining how that query resolves.

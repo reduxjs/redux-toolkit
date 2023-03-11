@@ -135,7 +135,7 @@ The `BaseQueryFn` type accepts the following generics:
 - `Result` - The type to be returned in the `data` property for the success case. Unless you expect all queries and mutations to return the same type, it is recommended to keep this typed as `unknown`, and specify the types individually as shown [below](#typing-query-and-mutation-endpoints).
 - `Error` - The type to be returned for the `error` property in the error case. This type also applies to all [`queryFn`](#typing-a-queryfn) functions used in endpoints throughout the API definition.
 - `DefinitionExtraOptions` - The type for the third parameter of the function. The value provided to the [`extraOptions`](./api/createApi.mdx#extraoptions) property on an endpoint will be passed here.
-- `Meta` - the type of the `meta` property that may be returned from calling the `baseQuery`. The `meta` property is accessible as the second argument to [`transformResponse`](./api/createApi.mdx#transformresponse).
+- `Meta` - the type of the `meta` property that may be returned from calling the `baseQuery`. The `meta` property is accessible as the second argument to [`transformResponse`](./api/createApi.mdx#transformresponse) and [`transformErrorResponse`](./api/createApi.mdx#transformerrorresponse).
 
 :::note
 

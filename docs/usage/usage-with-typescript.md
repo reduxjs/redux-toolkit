@@ -62,18 +62,17 @@ export type RootState = ReturnType<typeof store.getState>
 export default store
 ```
 
-If you pass the reducers directly to `configureStore()` and do not define the root reducer explicitly, there is no reference to `rootReducer`. 
+If you pass the reducers directly to `configureStore()` and do not define the root reducer explicitly, there is no reference to `rootReducer`.
 Instead, you can refer to `store.getState`, in order to get the `State` type.
 
 ```typescript
 import { configureStore } from '@reduxjs/toolkit'
 import rootReducer from './rootReducer'
 const store = configureStore({
-  reducer: rootReducer
+  reducer: rootReducer,
 })
 export type RootState = ReturnType<typeof store.getState>
 ```
-
 
 ### Getting the `Dispatch` type
 
@@ -489,6 +488,8 @@ const wrappedSlice = createGenericSlice({
 
 ## `createAsyncThunk`
 
+### Basic `createAsyncThunk` Types
+
 In the most common use cases, you should not need to explicitly declare any types for the `createAsyncThunk` call itself.
 
 Just provide a type for the first argument to the `payloadCreator` argument as you would for any function argument, and the resulting thunk will accept the same type as its input parameter.
@@ -518,7 +519,11 @@ const fetchUserById = createAsyncThunk(
 const lastReturnedAction = await store.dispatch(fetchUserById(3))
 ```
 
+### Typing the `thunkApi` Object
+
 The second argument to the `payloadCreator`, known as `thunkApi`, is an object containing references to the `dispatch`, `getState`, and `extra` arguments from the thunk middleware as well as a utility function called `rejectWithValue`. If you want to use these from within the `payloadCreator`, you will need to define some generic arguments, as the types for these arguments cannot be inferred. Also, as TS cannot mix explicit and inferred generic parameters, from this point on you'll have to define the `Returned` and `ThunkArg` generic parameter as well.
+
+#### Manually Defining `thunkApi` Types
 
 To define the types for these arguments, pass an object as the third generic argument, with type declarations for some or all of these fields:
 
@@ -661,6 +666,23 @@ const handleUpdateUser = async (userData) => {
   }
 }
 ```
+
+### Defining a Pre-Typed `createAsyncThunk`
+
+As of RTK 1.9, you can define a "pre-typed" version of `createAsyncThunk` that can have the types for `state`, `dispatch`, and `extra` built in. This lets you set up those types once, so you don't have to repeat them each time you call `createAsyncThunk`.
+
+To do this, call `createAsyncThunk.withTypes<>()`, and pass in an object containing the field names and types for any of the fields in the `AsyncThunkConfig` type listed above. This might look like:
+
+```ts
+const createAppAsyncThunk = createAsyncThunk.withTypes<{
+  state: RootState
+  dispatch: AppDispatch
+  rejectValue: string
+  extra: { s: string; n: number }
+}>()
+```
+
+Import and use that pre-typed `createAppAsyncThunk` instead of the original, and the types will be used automatically.
 
 ## `createEntityAdapter`
 
