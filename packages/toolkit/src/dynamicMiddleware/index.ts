@@ -8,8 +8,8 @@ import { compose } from 'redux'
 import { createAction } from '../createAction'
 import { nanoid } from '../nanoid'
 import type {
-  TypedWithMiddleware,
-  TypedAddMiddleware,
+  WithMiddleware,
+  AddMiddleware,
   MiddlewareEntry,
   DynamicMiddleware,
   DynamicMiddlewareInstance,
@@ -22,7 +22,7 @@ export const withMiddleware = (() => {
   )
   // @ts-ignore
   withMiddleware.withTypes = () => withMiddleware
-  return withMiddleware as TypedWithMiddleware
+  return withMiddleware as WithMiddleware
 })()
 
 const createMiddlewareEntry = <
@@ -62,7 +62,6 @@ export const createDynamicMiddleware = <
     return undefined
   }
 
-  // TODO: better name?
   const addMiddleware = (() => {
     function addMiddleware(...middlewares: Middleware<any, State, Dispatch>[]) {
       middlewares.forEach((middleware) => {
@@ -76,7 +75,7 @@ export const createDynamicMiddleware = <
       })
     }
     addMiddleware.withTypes = () => addMiddleware
-    return addMiddleware as TypedAddMiddleware<State, Dispatch>
+    return addMiddleware as AddMiddleware<State, Dispatch>
   })()
 
   const getFinalMiddleware = (

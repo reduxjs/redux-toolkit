@@ -2,7 +2,6 @@ import type {
   Middleware,
   Dispatch as ReduxDispatch,
   AnyAction,
-  Action,
   MiddlewareAPI,
 } from 'redux'
 import type { ExtractDispatchExtensions, FallbackIfUnknown } from '../tsHelpers'
@@ -31,18 +30,18 @@ export type GetDispatch<MiddlewareApiConfig> = MiddlewareApiConfig extends {
   ? FallbackIfUnknown<Dispatch, ReduxDispatch>
   : ReduxDispatch
 
-export type TypedAddMiddleware<
+export type AddMiddleware<
   State = any,
   Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
 > = {
   (...middlewares: Middleware<any, State, Dispatch>[]): void
-  withTypes<MiddlewareConfig extends MiddlewareApiConfig>(): TypedAddMiddleware<
+  withTypes<MiddlewareConfig extends MiddlewareApiConfig>(): AddMiddleware<
     GetState<MiddlewareConfig>,
     GetDispatch<MiddlewareConfig>
   >
 }
 
-export interface TypedWithMiddleware<
+export interface WithMiddleware<
   State = any,
   Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
 > extends BaseActionCreator<
@@ -52,9 +51,7 @@ export interface TypedWithMiddleware<
   <Middlewares extends Middleware<any, State, Dispatch>[]>(
     ...middlewares: Middlewares
   ): PayloadAction<Middlewares, 'dynamicMiddleware/add'>
-  withTypes<
-    MiddlewareConfig extends MiddlewareApiConfig
-  >(): TypedWithMiddleware<
+  withTypes<MiddlewareConfig extends MiddlewareApiConfig>(): WithMiddleware<
     GetState<MiddlewareConfig>,
     GetDispatch<MiddlewareConfig>
   >
@@ -65,8 +62,6 @@ export interface DynamicDispatch {
   <Middlewares extends Middleware<any>[]>(
     action: PayloadAction<Middlewares, 'dynamicMiddleware/add'>
   ): ExtractDispatchExtensions<Middlewares> & this
-  (action: Action<'dynamicMiddleware/remove'>): boolean[]
-  (action: Action<'dynamicMiddleware/reset'>): void
 }
 
 export type MiddlewareEntry<
@@ -91,5 +86,5 @@ export type DynamicMiddlewareInstance<
   Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
 > = {
   middleware: DynamicMiddleware<State, Dispatch>
-  addMiddleware: TypedAddMiddleware<State, Dispatch>
+  addMiddleware: AddMiddleware<State, Dispatch>
 }
