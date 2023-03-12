@@ -186,6 +186,13 @@ export {
 } from './listenerMiddleware/index'
 
 export {
+  createDynamicMiddleware,
+  addMiddleware,
+  removeMiddleware,
+  clearAllMiddlewares,
+} from './dynamicMiddleware/index'
+
+export {
   SHOULD_AUTOBATCH,
   prepareAutoBatched,
   autoBatchEnhancer,
