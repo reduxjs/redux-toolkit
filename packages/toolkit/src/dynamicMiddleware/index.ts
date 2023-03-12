@@ -8,39 +8,22 @@ import { compose } from 'redux'
 import { createAction } from '../createAction'
 import { nanoid } from '../nanoid'
 import type {
+  TypedWithMiddleware,
   TypedAddMiddleware,
-  TypedRemoveMiddleware,
-  TypedStartMiddleware,
-  TypedStopMiddleware,
   MiddlewareEntry,
   DynamicMiddleware,
   DynamicMiddlewareInstance,
 } from './types'
 
-export const addMiddleware = (() => {
-  const addMiddleware = createAction(
+export const withMiddleware = (() => {
+  const withMiddleware = createAction(
     'dynamicMiddleware/add',
     (...middlewares: Middleware<any>[]) => ({ payload: middlewares })
   )
   // @ts-ignore
-  addMiddleware.withTypes = () => addMiddleware
-  return addMiddleware as TypedAddMiddleware
+  withMiddleware.withTypes = () => withMiddleware
+  return withMiddleware as TypedWithMiddleware
 })()
-
-export const removeMiddleware = (() => {
-  const removeMiddleware = createAction(
-    'dynamicMiddleware/remove',
-    (...middlewares: Middleware<any>[]) => ({ payload: middlewares })
-  )
-  // @ts-ignore
-  removeMiddleware.withTypes = () => removeMiddleware
-  return removeMiddleware as TypedRemoveMiddleware
-})()
-
-export const clearAllMiddlewares = createAction<
-  void,
-  'dynamicMiddleware/removeAll'
->('dynamicMiddleware/removeAll')
 
 const createMiddlewareEntry = <
   State = any,
@@ -53,9 +36,6 @@ const createMiddlewareEntry = <
     id,
     middleware,
     applied: new Map(),
-    unsubscribe: () => {
-      throw new Error('Unsubscribe not initialized')
-    },
   }
   return entry
 }
@@ -67,12 +47,7 @@ export const createDynamicMiddleware = <
   const middlewareMap = new Map<string, MiddlewareEntry<State, Dispatch>>()
 
   const insertEntry = (entry: MiddlewareEntry<State, Dispatch>) => {
-    // TODO: decide if middleware should be removeable or not
-    entry.unsubscribe = () => middlewareMap.delete(entry.id)
     middlewareMap.set(entry.id, entry)
-    return () => {
-      entry.unsubscribe()
-    }
   }
 
   const findMiddlewareEntry = (
@@ -88,44 +63,21 @@ export const createDynamicMiddleware = <
   }
 
   // TODO: better name?
-  const startMiddleware = (() => {
-    function startMiddleware(
-      ...middlewares: Middleware<any, State, Dispatch>[]
-    ) {
-      const unsubs = middlewares.map((middleware) => {
+  const addMiddleware = (() => {
+    function addMiddleware(...middlewares: Middleware<any, State, Dispatch>[]) {
+      middlewares.forEach((middleware) => {
         let entry = findMiddlewareEntry(
           (entry) => entry.middleware === middleware
         )
         if (!entry) {
           entry = createMiddlewareEntry(middleware)
         }
-        return insertEntry(entry)
-      })
-      return () => unsubs.forEach((unsub) => unsub())
-    }
-    startMiddleware.withTypes = () => startMiddleware
-    return startMiddleware as TypedStartMiddleware<State, Dispatch>
-  })()
-
-  const stopMiddleware = (() => {
-    function stopMiddleware(
-      ...middlewares: Middleware<any, State, Dispatch>[]
-    ) {
-      return middlewares.map((middleware) => {
-        let entry = findMiddlewareEntry(
-          (entry) => entry.middleware === middleware
-        )
-        if (entry) {
-          entry.unsubscribe()
-        }
-        return !!entry
+        insertEntry(entry)
       })
     }
-    stopMiddleware.withTypes = () => stopMiddleware
-    return stopMiddleware as TypedStopMiddleware<State, Dispatch>
+    addMiddleware.withTypes = () => addMiddleware
+    return addMiddleware as TypedAddMiddleware<State, Dispatch>
   })()
-
-  const clearMiddlewares = () => middlewareMap.clear()
 
   const getFinalMiddleware = (
     api: MiddlewareAPI<Dispatch, State>
@@ -145,24 +97,15 @@ export const createDynamicMiddleware = <
 
   const middleware: DynamicMiddleware<State, Dispatch> =
     (api) => (next) => (action) => {
-      if (addMiddleware.match(action)) {
-        const dispatch = (action: any, ...args: any[]) =>
-          // @ts-ignore
-          api.dispatch(action, ...args)
-        dispatch.remove = startMiddleware(...action.payload)
-        return dispatch
-      } else if (removeMiddleware.match(action)) {
-        return stopMiddleware(...action.payload)
-      } else if (clearAllMiddlewares.match(action)) {
-        return clearMiddlewares()
+      if (withMiddleware.match(action)) {
+        addMiddleware(...action.payload)
+        return api.dispatch
       }
       return getFinalMiddleware(api)(next)(action)
     }
 
   return {
     middleware,
-    startMiddleware,
-    stopMiddleware,
-    clearMiddlewares,
+    addMiddleware,
   } as DynamicMiddlewareInstance<State, Dispatch>
 }

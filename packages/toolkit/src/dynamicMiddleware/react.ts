@@ -20,9 +20,15 @@ import type {
   MiddlewareApiConfig,
 } from './types'
 
-export type TypedUseMiddlewareDispatchHook<
-  Dispatch extends ReduxDispatch<AnyAction>,
-  State = any
+export type UseDispatchWithMiddlewareHook<
+  Middlewares extends Middleware<any, State, Dispatch>[] = [],
+  State = any,
+  Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
+> = () => ExtractDispatchExtensions<Middlewares> & Dispatch
+
+export type TypedCreateDispatchWithMiddlewareHook<
+  State = any,
+  Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
 > = {
   <
     Middlewares extends [
@@ -31,13 +37,12 @@ export type TypedUseMiddlewareDispatchHook<
     ]
   >(
     ...middlewares: Middlewares
-  ): () => ExtractDispatchExtensions<Middlewares> &
-    Dispatch & { remove: () => void }
+  ): UseDispatchWithMiddlewareHook<Middlewares, State, Dispatch>
   withTypes<
     MiddlewareConfig extends MiddlewareApiConfig
-  >(): TypedUseMiddlewareDispatchHook<
-    GetDispatch<MiddlewareConfig>,
-    GetState<MiddlewareConfig>
+  >(): TypedCreateDispatchWithMiddlewareHook<
+    GetState<MiddlewareConfig>,
+    GetDispatch<MiddlewareConfig>
   >
 }
 
@@ -48,12 +53,15 @@ interface ReactDynamicMiddlewareInstance<
   State = any,
   Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
 > extends DynamicMiddlewareInstance<State, Dispatch> {
-  createDispatchHookWithMW: (
+  createDispatchWithMiddlewareHookFactory: (
     context?: Context<
       ReactReduxContextValue<State, ActionFromDispatch<Dispatch>>
     >
-  ) => TypedUseMiddlewareDispatchHook<Dispatch, State>
-  dispatchHookWithMiddleware: TypedUseMiddlewareDispatchHook<Dispatch, State>
+  ) => TypedCreateDispatchWithMiddlewareHook<State, Dispatch>
+  createDispatchWithMiddlewareHook: TypedCreateDispatchWithMiddlewareHook<
+    State,
+    Dispatch
+  >
 }
 
 export const createDynamicMiddleware = <
@@ -61,8 +69,7 @@ export const createDynamicMiddleware = <
   Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
 >() => {
   const instance = cDM<State, Dispatch>()
-  // TODO: naming - create with custom context vs create with middlewares?
-  const createDispatchHookWithMW = (
+  const createDispatchWithMiddlewareHookFactory = (
     // @ts-ignore
     context: Context<
       ReactReduxContextValue<State, ActionFromDispatch<Dispatch>>
@@ -73,26 +80,28 @@ export const createDynamicMiddleware = <
       context === ReactReduxContext
         ? useDefaultDispatch
         : createDispatchHook(context)
-    function dispatchHookWithMiddleware<
+    function createDispatchWithMiddlewareHook<
       Middlewares extends Middleware<any, State, Dispatch>[]
     >(...middlewares: Middlewares) {
-      instance.startMiddleware(...middlewares)
+      instance.addMiddleware(...middlewares)
       return function useDispatchWithMiddleware() {
         return useDispatch()
       }
     }
-    dispatchHookWithMiddleware.withTypes = () => dispatchHookWithMiddleware
-    return dispatchHookWithMiddleware as TypedUseMiddlewareDispatchHook<
-      Dispatch,
-      State
+    createDispatchWithMiddlewareHook.withTypes = () =>
+      createDispatchWithMiddlewareHook
+    return createDispatchWithMiddlewareHook as TypedCreateDispatchWithMiddlewareHook<
+      State,
+      Dispatch
     >
   }
 
-  const dispatchHookWithMiddleware = createDispatchHookWithMW()
+  const createDispatchWithMiddlewareHook =
+    createDispatchWithMiddlewareHookFactory()
 
   return {
     ...instance,
-    createDispatchHookWithMW,
-    dispatchHookWithMiddleware,
+    createDispatchWithMiddlewareHookFactory,
+    createDispatchWithMiddlewareHook,
   } as ReactDynamicMiddlewareInstance<State, Dispatch>
 }

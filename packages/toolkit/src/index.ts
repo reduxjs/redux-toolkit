@@ -187,9 +187,7 @@ export {
 
 export {
   createDynamicMiddleware,
-  addMiddleware,
-  removeMiddleware,
-  clearAllMiddlewares,
+  withMiddleware,
 } from './dynamicMiddleware/index'
 
 export { createDynamicMiddleware as createReactDynamicMiddleware } from './dynamicMiddleware/react'

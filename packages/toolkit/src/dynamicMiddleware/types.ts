@@ -6,11 +6,7 @@ import type {
   MiddlewareAPI,
 } from 'redux'
 import type { ExtractDispatchExtensions, FallbackIfUnknown } from '../tsHelpers'
-import type {
-  ActionCreatorWithPreparedPayload,
-  PayloadAction,
-  BaseActionCreator,
-} from '../createAction'
+import type { PayloadAction, BaseActionCreator } from '../createAction'
 
 export type GetMiddlewareApi<MiddlewareApiConfig> = MiddlewareAPI<
   GetDispatch<MiddlewareApiConfig>,
@@ -35,33 +31,18 @@ export type GetDispatch<MiddlewareApiConfig> = MiddlewareApiConfig extends {
   ? FallbackIfUnknown<Dispatch, ReduxDispatch>
   : ReduxDispatch
 
-export type TypedStartMiddleware<
+export type TypedAddMiddleware<
   State = any,
   Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
 > = {
-  (...middlewares: Middleware<any, State, Dispatch>[]): () => void
-  withTypes<
-    MiddlewareConfig extends MiddlewareApiConfig
-  >(): TypedStartMiddleware<
+  (...middlewares: Middleware<any, State, Dispatch>[]): void
+  withTypes<MiddlewareConfig extends MiddlewareApiConfig>(): TypedAddMiddleware<
     GetState<MiddlewareConfig>,
     GetDispatch<MiddlewareConfig>
   >
 }
 
-export type TypedStopMiddleware<
-  State = any,
-  Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
-> = {
-  (...middlewares: Middleware<any, State, Dispatch>[]): boolean[]
-  withTypes<
-    MiddlewareConfig extends MiddlewareApiConfig
-  >(): TypedStopMiddleware<
-    GetState<MiddlewareConfig>,
-    GetDispatch<MiddlewareConfig>
-  >
-}
-
-export interface TypedAddMiddleware<
+export interface TypedWithMiddleware<
   State = any,
   Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
 > extends BaseActionCreator<
@@ -71,23 +52,9 @@ export interface TypedAddMiddleware<
   <Middlewares extends Middleware<any, State, Dispatch>[]>(
     ...middlewares: Middlewares
   ): PayloadAction<Middlewares, 'dynamicMiddleware/add'>
-  withTypes<MiddlewareConfig extends MiddlewareApiConfig>(): TypedAddMiddleware<
-    GetState<MiddlewareConfig>,
-    GetDispatch<MiddlewareConfig>
-  >
-}
-
-export interface TypedRemoveMiddleware<
-  State = any,
-  Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
-> extends ActionCreatorWithPreparedPayload<
-    Middleware<any, State, Dispatch>[],
-    Middleware<any, State, Dispatch>[],
-    'dynamicMiddleware/remove'
-  > {
   withTypes<
     MiddlewareConfig extends MiddlewareApiConfig
-  >(): TypedRemoveMiddleware<
+  >(): TypedWithMiddleware<
     GetState<MiddlewareConfig>,
     GetDispatch<MiddlewareConfig>
   >
@@ -115,7 +82,6 @@ export type MiddlewareEntry<
     MiddlewareAPI<Dispatch, State>,
     ReturnType<Middleware<any, State, Dispatch>>
   >
-  unsubscribe: () => void
 }
 
 export type DynamicMiddleware<
@@ -128,8 +94,7 @@ export type DynamicMiddlewareInstance<
   Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
 > = {
   middleware: DynamicMiddleware<State, Dispatch>
-  startMiddleware: TypedStartMiddleware<State, Dispatch>
-  stopMiddleware: TypedStopMiddleware<State, Dispatch>
+  addMiddleware: TypedAddMiddleware<State, Dispatch>
   /**
    * removes all middleware
    */
