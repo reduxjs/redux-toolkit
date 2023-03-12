@@ -61,7 +61,7 @@ export const createDynamicMiddleware = <
   Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
 >() => {
   const instance = cDM<State, Dispatch>()
-
+  // TODO: naming - create with custom context vs create with middlewares?
   const createDispatchHookWithMW = (
     // @ts-ignore
     context: Context<
