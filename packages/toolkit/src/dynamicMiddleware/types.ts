@@ -64,10 +64,7 @@ export interface DynamicDispatch {
   // return a version of dispatch that knows about middleware
   <Middlewares extends Middleware<any>[]>(
     action: PayloadAction<Middlewares, 'dynamicMiddleware/add'>
-  ): ExtractDispatchExtensions<Middlewares> &
-    this & {
-      remove: () => void
-    }
+  ): ExtractDispatchExtensions<Middlewares> & this
   (action: Action<'dynamicMiddleware/remove'>): boolean[]
   (action: Action<'dynamicMiddleware/reset'>): void
 }
@@ -95,8 +92,4 @@ export type DynamicMiddlewareInstance<
 > = {
   middleware: DynamicMiddleware<State, Dispatch>
   addMiddleware: TypedAddMiddleware<State, Dispatch>
-  /**
-   * removes all middleware
-   */
-  clearMiddlewares: () => void
 }
