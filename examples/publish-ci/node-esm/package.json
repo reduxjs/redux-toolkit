@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "echo Done",
-    "test": "node test-cjs.cjs"
+    "test": "node test-cjs.cjs && node test-esm.mjs"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.9.3",

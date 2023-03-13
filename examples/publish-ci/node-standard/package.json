@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "build": "echo Done",
-    "test": "node test-cjs.js"
+    "test": "node test-cjs.js && node test-esm.mjs"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.9.3",
