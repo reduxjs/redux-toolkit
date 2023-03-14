@@ -15,16 +15,6 @@ import type {
   DynamicMiddlewareInstance,
 } from './types'
 
-export const withMiddleware = (() => {
-  const withMiddleware = createAction(
-    'dynamicMiddleware/add',
-    (...middlewares: Middleware<any>[]) => ({ payload: middlewares })
-  )
-  // @ts-ignore
-  withMiddleware.withTypes = () => withMiddleware
-  return withMiddleware as WithMiddleware
-})()
-
 const createMiddlewareEntry = <
   State = any,
   Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
@@ -44,6 +34,7 @@ export const createDynamicMiddleware = <
   State = any,
   Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
 >() => {
+  const instanceId = nanoid()
   const middlewareMap = new Map<string, MiddlewareEntry<State, Dispatch>>()
 
   const insertEntry = (entry: MiddlewareEntry<State, Dispatch>) => {
@@ -61,6 +52,21 @@ export const createDynamicMiddleware = <
 
     return undefined
   }
+
+  const withMiddleware = (() => {
+    const withMiddleware = createAction(
+      'dynamicMiddleware/add',
+      (...middlewares: Middleware<any, State, Dispatch>[]) => ({
+        payload: middlewares,
+        meta: {
+          instanceId,
+        },
+      })
+    )
+    // @ts-ignore
+    withMiddleware.withTypes = () => withMiddleware
+    return withMiddleware as WithMiddleware<State, Dispatch>
+  })()
 
   const addMiddleware = (() => {
     function addMiddleware(...middlewares: Middleware<any, State, Dispatch>[]) {
@@ -96,7 +102,10 @@ export const createDynamicMiddleware = <
 
   const middleware: DynamicMiddleware<State, Dispatch> =
     (api) => (next) => (action) => {
-      if (withMiddleware.match(action)) {
+      if (
+        withMiddleware.match(action) &&
+        action.meta.instanceId === instanceId
+      ) {
         addMiddleware(...action.payload)
         return api.dispatch
       }
@@ -106,5 +115,6 @@ export const createDynamicMiddleware = <
   return {
     middleware,
     addMiddleware,
+    withMiddleware,
   } as DynamicMiddlewareInstance<State, Dispatch>
 }

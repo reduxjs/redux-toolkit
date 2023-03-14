@@ -46,11 +46,12 @@ export interface WithMiddleware<
   Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
 > extends BaseActionCreator<
     Middleware<any, State, Dispatch>[],
-    'dynamicMiddleware/add'
+    'dynamicMiddleware/add',
+    { instanceId: string }
   > {
   <Middlewares extends Middleware<any, State, Dispatch>[]>(
     ...middlewares: Middlewares
-  ): PayloadAction<Middlewares, 'dynamicMiddleware/add'>
+  ): PayloadAction<Middlewares, 'dynamicMiddleware/add', { instanceId: string }>
   withTypes<MiddlewareConfig extends MiddlewareApiConfig>(): WithMiddleware<
     GetState<MiddlewareConfig>,
     GetDispatch<MiddlewareConfig>
@@ -87,4 +88,5 @@ export type DynamicMiddlewareInstance<
 > = {
   middleware: DynamicMiddleware<State, Dispatch>
   addMiddleware: AddMiddleware<State, Dispatch>
+  withMiddleware: WithMiddleware<State, Dispatch>
 }

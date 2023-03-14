@@ -185,10 +185,7 @@ export {
   TaskAbortError,
 } from './listenerMiddleware/index'
 
-export {
-  createDynamicMiddleware,
-  withMiddleware,
-} from './dynamicMiddleware/index'
+export { createDynamicMiddleware } from './dynamicMiddleware/index'
 
 export { createDynamicMiddleware as createReactDynamicMiddleware } from './dynamicMiddleware/react'
 
