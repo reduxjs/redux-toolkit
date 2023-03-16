@@ -33,7 +33,7 @@ const createMiddlewareEntry = <
 export const createDynamicMiddleware = <
   State = any,
   Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
->() => {
+>(): DynamicMiddlewareInstance<State, Dispatch> => {
   const instanceId = nanoid()
   const middlewareMap = new Map<string, MiddlewareEntry<State, Dispatch>>()
 
@@ -116,5 +116,5 @@ export const createDynamicMiddleware = <
     middleware,
     addMiddleware,
     withMiddleware,
-  } as DynamicMiddlewareInstance<State, Dispatch>
+  }
 }
