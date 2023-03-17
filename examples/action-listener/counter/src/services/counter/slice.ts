@@ -32,7 +32,7 @@ export const counterSlice = createSlice({
       counterEntity.removeOne(state.counters, payload)
     },
     updateValue(state, action: PayloadAction<{ id: string; value: number }>) {
-      counterEntity.upsertOne(state.counters, action)
+      counterEntity.upsertOne(state.counters, action.payload)
     },
     updateBy(
       state,
