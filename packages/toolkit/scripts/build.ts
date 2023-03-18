@@ -51,7 +51,7 @@ const buildTargets: BuildOptions[] = [
     minify: true,
     env: 'production',
   },
-  // ESM, embedded `process`, ES2017 syntax: modern Webpack dev
+  // ESM, embedded `process`: modern Webpack dev
   {
     format: 'esm',
     name: 'modern',
@@ -59,7 +59,7 @@ const buildTargets: BuildOptions[] = [
     minify: false,
     env: '',
   },
-  // ESM, pre-compiled "dev", ES2017 syntax: browser development
+  // ESM, pre-compiled "dev": browser development
   {
     format: 'esm',
     name: 'modern.development',
@@ -67,7 +67,7 @@ const buildTargets: BuildOptions[] = [
     minify: false,
     env: 'development',
   },
-  // ESM, pre-compiled "prod", ES2017 syntax: browser prod
+  // ESM, pre-compiled "prod": browser prod
   {
     format: 'esm',
     name: 'modern.production.min',
