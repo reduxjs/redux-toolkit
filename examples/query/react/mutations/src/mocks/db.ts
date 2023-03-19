@@ -51,7 +51,11 @@ export const handlers = [
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
 
     const post = db.post.update({
-      where: { id },
+      where: {
+        id: {
+          equals: id,
+        },
+      },
       data: { name },
     })
 
