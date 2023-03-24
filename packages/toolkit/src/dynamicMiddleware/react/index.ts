@@ -67,7 +67,7 @@ interface ReactDynamicMiddlewareInstance<
 export const createDynamicMiddleware = <
   State = any,
   Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
->() => {
+>(): ReactDynamicMiddlewareInstance<State, Dispatch> => {
   const instance = cDM<State, Dispatch>()
   const createDispatchWithMiddlewareHookFactory = (
     // @ts-ignore
@@ -103,5 +103,5 @@ export const createDynamicMiddleware = <
     ...instance,
     createDispatchWithMiddlewareHookFactory,
     createDispatchWithMiddlewareHook,
-  } as ReactDynamicMiddlewareInstance<State, Dispatch>
+  }
 }
