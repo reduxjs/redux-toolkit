@@ -33,6 +33,11 @@
       "import": "./dist/redux-toolkit.modern.js",
       "default": "./dist/cjs/index.js"
     },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/redux-toolkit-react.modern.js",
+      "default": "./dist/react/cjs/index.js"
+    },
     "./query": {
       "types": "./dist/query/index.d.ts",
       "import": "./dist/query/rtk-query.modern.js",
