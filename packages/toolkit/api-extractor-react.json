@@ -45,7 +45,7 @@
    *
    * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
    */
-  "mainEntryPointFilePath": "dist/react.d.ts",
+  "mainEntryPointFilePath": "dist/react/index.d.ts",
   //"mainEntryPointFilePath": "/home/weber/tmp/rtk-origin-master/dist/index.d.ts",
 
   /**

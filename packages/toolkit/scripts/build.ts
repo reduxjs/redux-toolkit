@@ -102,7 +102,7 @@ const entryPoints: EntryPointOptions[] = [
   {
     prefix: 'redux-toolkit-react',
     folder: 'react',
-    entryPoint: 'src/react.ts',
+    entryPoint: 'src/react/index.ts',
     extractionConfig: 'api-extractor-react.json',
     globalName: 'RTK',
   },
