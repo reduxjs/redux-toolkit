@@ -33,7 +33,8 @@
     "emitDeclarationOnly": true,
     "baseUrl": ".",
     "paths": {
-      "@reduxjs/toolkit": ["src/index.ts"], // @remap-prod-remove-line
+      "@reduxjs/toolkit": ["src/index.ts"], // @remap-prod-remove-line,
+      "@reduxjs/toolkit/react": ["src/react.ts"], // @remap-prod-remove-line
       "@reduxjs/toolkit/query": ["src/query/index.ts"], // @remap-prod-remove-line
       "@reduxjs/toolkit/query/react": ["src/query/react/index.ts"], // @remap-prod-remove-line
       // for type imports in tests only
