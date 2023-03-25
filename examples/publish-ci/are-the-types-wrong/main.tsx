@@ -1,17 +1,18 @@
 import path from 'path'
 import fs from 'fs'
-import util from 'util'
 
 import { fileURLToPath } from 'node:url'
-import {
-  checkTgz,
-  summarizeProblems,
-  getProblems,
+import type {
   Analysis,
   ProblemSummary,
   Problem,
   ResolutionKind,
   ProblemKind,
+} from 'are-the-types-wrong-core'
+import {
+  checkTgz,
+  summarizeProblems,
+  getProblems,
 } from 'are-the-types-wrong-core'
 import React from 'react'
 import { render, Text, Box } from 'ink'
@@ -77,6 +78,44 @@ function Header({ text, width }: { text: string; width: number | string }) {
   return (
     <Box borderStyle="single" width={width}>
       <Text color="blue">{text}</Text>
+    </Box>
+  )
+}
+
+function Traces({
+  analysis,
+  subpaths,
+}: {
+  analysis: Analysis
+  subpaths: string[]
+}) {
+  if (!('entrypointResolutions' in analysis)) {
+    return null
+  }
+  return (
+    <Box flexDirection="column" width="100%">
+      {subpaths.map((subpath) => {
+        const resolutionDetails = Object.entries(
+          analysis.entrypointResolutions[subpath]
+        )
+        return (
+          <Box width="100%" key={'traces-' + subpath} flexDirection="column">
+            <Text color="blue" bold>
+              {subpath}
+            </Text>
+            {resolutionDetails.map(([resolutionKind, details]) => {
+              return (
+                <Box width="100%" key={subpath} flexDirection="column">
+                  <Text bold>{resolutionKind} Traces:</Text>
+                  {details.trace.map((traceLine, i) => {
+                    return <Text key={i}>{traceLine}</Text>
+                  })}
+                </Box>
+              )
+            })}
+          </Box>
+        )
+      })}
     </Box>
   )
 }
@@ -170,38 +209,33 @@ function ChecksTable(props: { checks?: Checks }) {
           </Box>
         )
       })}
+      <Traces analysis={analysis} subpaths={subpaths} />
     </Box>
   )
 }
 
 ;(async function main() {
   const analysis = await checkTgz(rtkPackageTgzBytes)
+
+  const checks: Checks = {
+    analysis,
+    problems: undefined,
+    problemSummaries: undefined,
+  }
   if ('entrypointResolutions' in analysis) {
     const problems = analysis.containsTypes ? getProblems(analysis) : undefined
+    checks.problems = problems
 
-    // console.log(
-    //   'Analysis: ',
-    //   util.inspect(analysis.entrypointResolutions, { depth: 3 })
-    // )
     if (problems) {
-      // for (let problem of problems) {
-      //   console.log('Problem: ', problem)
-      // }
       const problemSummaries = analysis.containsTypes
         ? summarizeProblems(problems, analysis)
         : undefined
-      // if (problemSummaries) {
-      //   for (let summary of problemSummaries) {
-      //     console.log('Summary: ', summary)
-      //   }
-      // }
-      const checks: Checks = {
-        analysis,
-        problems,
-        problemSummaries,
-      }
-
-      render(<ChecksTable checks={checks} />)
+      checks.problemSummaries = problemSummaries
     }
   }
+
+  render(<ChecksTable checks={checks} />)
+
+  const exitCode = checks.problems?.length ?? 0
+  process.exit(exitCode)
 })()
