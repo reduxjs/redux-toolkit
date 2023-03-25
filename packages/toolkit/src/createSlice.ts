@@ -17,6 +17,7 @@ import { createReducer, NotFunction } from './createReducer'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type { NoInfer } from './tsHelpers'
+import { safeAssign } from './tsHelpers'
 import { freezeDraftable } from './utils'
 
 let hasWarnedAboutObjectNotation = false
@@ -305,6 +306,40 @@ function getType(slice: string, actionKey: string): string {
   return `${slice}/${actionKey}`
 }
 
+function processReducersObject(name: string, reducers: SliceCaseReducers<any>) {
+  const reducerNames = Object.keys(reducers)
+
+  const sliceCaseReducersByName: Record<string, CaseReducer> = {}
+  const sliceCaseReducersByType: Record<string, CaseReducer> = {}
+  const actionCreators: Record<string, Function> = {}
+
+  reducerNames.forEach((reducerName) => {
+    const maybeReducerWithPrepare = reducers[reducerName]
+    const type = getType(name, reducerName)
+
+    let caseReducer: CaseReducer<any, any>
+    let prepareCallback: PrepareAction<any> | undefined
+
+    if ('reducer' in maybeReducerWithPrepare) {
+      caseReducer = maybeReducerWithPrepare.reducer
+      prepareCallback = maybeReducerWithPrepare.prepare
+    } else {
+      caseReducer = maybeReducerWithPrepare
+    }
+
+    sliceCaseReducersByName[reducerName] = caseReducer
+    sliceCaseReducersByType[type] = caseReducer
+    actionCreators[reducerName] = prepareCallback
+      ? createAction(type, prepareCallback)
+      : createAction(type)
+  })
+  return {
+    sliceCaseReducersByName,
+    sliceCaseReducersByType,
+    actionCreators,
+  }
+}
+
 /**
  * A function that accepts an initial state, an object full of reducer
  * functions, and a "slice name", and automatically generates
@@ -345,32 +380,8 @@ export function createSlice<
 
   const reducers = options.reducers || {}
 
-  const reducerNames = Object.keys(reducers)
-
-  const sliceCaseReducersByName: Record<string, CaseReducer> = {}
-  const sliceCaseReducersByType: Record<string, CaseReducer> = {}
-  const actionCreators: Record<string, Function> = {}
-
-  reducerNames.forEach((reducerName) => {
-    const maybeReducerWithPrepare = reducers[reducerName]
-    const type = getType(name, reducerName)
-
-    let caseReducer: CaseReducer<State, any>
-    let prepareCallback: PrepareAction<any> | undefined
-
-    if ('reducer' in maybeReducerWithPrepare) {
-      caseReducer = maybeReducerWithPrepare.reducer
-      prepareCallback = maybeReducerWithPrepare.prepare
-    } else {
-      caseReducer = maybeReducerWithPrepare
-    }
-
-    sliceCaseReducersByName[reducerName] = caseReducer
-    sliceCaseReducersByType[type] = caseReducer
-    actionCreators[reducerName] = prepareCallback
-      ? createAction(type, prepareCallback)
-      : createAction(type)
-  })
+  const { sliceCaseReducersByName, sliceCaseReducersByType, actionCreators } =
+    processReducersObject(name, reducers)
 
   function buildReducer() {
     if (process.env.NODE_ENV !== 'production') {
@@ -425,34 +436,15 @@ export function createSlice<
     >(reducerParam: ValidateSliceCaseReducers<State, CR>) {
       if (!_reducer) _reducer = buildReducer()
 
-      // TODO: this duplicates a lot of code - make DRY?
-      const reducers = reducerParam || {}
+      // TODO: check for duplicates? or let injectCaseReducers handle
+      const {
+        sliceCaseReducersByName: newSliceCaseReducersByName,
+        sliceCaseReducersByType,
+        actionCreators: newActionCreators,
+      } = processReducersObject(name, reducerParam)
 
-      // TODO: check for duplicates? or let createReducer make check
-      const reducerNames = Object.keys(reducers)
-
-      const sliceCaseReducersByType: Record<string, CaseReducer> = {}
-
-      reducerNames.forEach((reducerName) => {
-        const maybeReducerWithPrepare = reducers[reducerName]
-        const type = getType(name, reducerName)
-
-        let caseReducer: CaseReducer<State, any>
-        let prepareCallback: PrepareAction<any> | undefined
-
-        if ('reducer' in maybeReducerWithPrepare) {
-          caseReducer = maybeReducerWithPrepare.reducer
-          prepareCallback = maybeReducerWithPrepare.prepare
-        } else {
-          caseReducer = maybeReducerWithPrepare
-        }
-
-        sliceCaseReducersByName[reducerName] = caseReducer
-        sliceCaseReducersByType[type] = caseReducer
-        actionCreators[reducerName] = prepareCallback
-          ? createAction(type, prepareCallback)
-          : createAction(type)
-      })
+      safeAssign(sliceCaseReducersByName, newSliceCaseReducersByName)
+      safeAssign(actionCreators, newActionCreators)
 
       _reducer.injectCaseReducers((builder) => {
         for (let key in sliceCaseReducersByType) {
