@@ -7,6 +7,7 @@
     "test": "yarn tsx main.tsx"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^1.9.3",
     "@tanstack/react-table": "^8.7.9",
     "ink": "^4.0.0",
     "object-hash": "^3.0.0",
