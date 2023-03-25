@@ -1,6 +1,13 @@
 import type { Middleware, StoreEnhancer } from 'redux'
 import type { MiddlewareArray } from './utils'
 
+export function safeAssign<T extends object>(
+  target: T,
+  ...args: Array<Partial<NoInfer<T>>>
+) {
+  Object.assign(target, ...args)
+}
+
 /**
  * return True if T is `any`, otherwise return False
  * taken from https://github.com/joonhocho/tsdef

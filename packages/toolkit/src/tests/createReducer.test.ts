@@ -506,6 +506,32 @@ describe('createReducer', () => {
       )
     })
   })
+  describe('injectCaseReducers', () => {
+    const increment = createAction<number>('increment')
+    it('allows injecting case reducers after reducer initialisation', () => {
+      const reducer = createReducer(0, () => {})
+      expect(reducer(undefined, increment(1))).toBe(reducer.getInitialState())
+
+      reducer.injectCaseReducers((builder) => {
+        builder.addCase(increment, (state, action) => state + action.payload)
+      })
+      expect(reducer(1, increment(2))).toBe(3)
+    })
+    it('throws error if default is injected twice', () => {
+      const reducer = createReducer(0, (builder) => {
+        builder.addDefaultCase((state) => state + 1)
+      })
+      expect(reducer(undefined, increment(0))).toBe(1)
+
+      expect(() =>
+        reducer.injectCaseReducers((builder) => {
+          builder.addDefaultCase((state) => state - 1)
+        })
+      ).toThrowErrorMatchingInlineSnapshot(
+        '"cannot inject default case reducer as one has already been added"'
+      )
+    })
+  })
 })
 
 function behavesLikeReducer(todosReducer: TodosReducer) {

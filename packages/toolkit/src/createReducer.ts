@@ -4,6 +4,7 @@ import type { AnyAction, Action, Reducer } from 'redux'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type { NoInfer } from './tsHelpers'
+import { safeAssign } from './tsHelpers'
 import { freezeDraftable } from './utils'
 
 /**
@@ -80,6 +81,13 @@ export type ReducerWithInitialState<S extends NotFunction<any>> = Reducer<S> & {
   getInitialState: () => S
 }
 
+export type InjectableReducer<S extends NotFunction<any>> =
+  ReducerWithInitialState<S> & {
+    injectCaseReducers: (
+      builderCallback: (builder: ActionReducerMapBuilder<S>) => void
+    ) => void
+  }
+
 let hasWarnedAboutObjectNotation = false
 
 /**
@@ -149,12 +157,12 @@ const reducer = createReducer(
 export function createReducer<S extends NotFunction<any>>(
   initialState: S | (() => S),
   builderCallback: (builder: ActionReducerMapBuilder<S>) => void
-): ReducerWithInitialState<S>
+): InjectableReducer<S>
 
 export function createReducer<S extends NotFunction<any>>(
   initialState: S | (() => S),
   mapOrBuilderCallback: (builder: ActionReducerMapBuilder<S>) => void
-): ReducerWithInitialState<S> {
+): InjectableReducer<S> {
   if (process.env.NODE_ENV !== 'production') {
     if (typeof mapOrBuilderCallback === 'object') {
       throw new Error(
@@ -231,5 +239,25 @@ export function createReducer<S extends NotFunction<any>>(
 
   reducer.getInitialState = getInitialState
 
-  return reducer as ReducerWithInitialState<S>
+  reducer.injectCaseReducers = (
+    builderCallback: (builder: ActionReducerMapBuilder<S>) => void
+  ) => {
+    const [newActionsMap, newActionMatchers, newDefaultCaseReducer] =
+      executeReducerBuilderCallback(builderCallback)
+    // TODO: do we want to check for duplicate keys?
+    safeAssign(actionsMap, newActionsMap)
+    finalActionMatchers.push(...newActionMatchers)
+    if (newDefaultCaseReducer) {
+      if (process.env.NODE_ENV !== 'production') {
+        if (finalDefaultCaseReducer) {
+          throw new Error(
+            'cannot inject default case reducer as one has already been added'
+          )
+        }
+      }
+      finalDefaultCaseReducer = newDefaultCaseReducer
+    }
+  }
+
+  return reducer as InjectableReducer<S>
 }

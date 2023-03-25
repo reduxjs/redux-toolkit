@@ -70,11 +70,26 @@ import { expectType } from './helpers'
   })
 }
 
-/** Test:  alternative builder callback for actionMap */
+/** Test: builder callback for actionMap */
 {
   const increment = createAction<number, 'increment'>('increment')
 
   const reducer = createReducer(0, (builder) =>
+    expectType<ActionReducerMapBuilder<number>>(builder)
+  )
+
+  expectType<number>(reducer(0, increment(5)))
+  // @ts-expect-error
+  expectType<string>(reducer(0, increment(5)))
+}
+
+/** Test: injectCaseReducers builder callback */
+{
+  const increment = createAction<number, 'increment'>('increment')
+
+  const reducer = createReducer(0, (builder) => {})
+
+  reducer.injectCaseReducers((builder) =>
     expectType<ActionReducerMapBuilder<number>>(builder)
   )
 
