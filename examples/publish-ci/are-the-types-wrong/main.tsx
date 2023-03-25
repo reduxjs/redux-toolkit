@@ -8,14 +8,14 @@ import type {
   Problem,
   ResolutionKind,
   ProblemKind,
-} from 'are-the-types-wrong-core'
+} from '@arethetypeswrong/core'
 import {
   checkTgz,
   summarizeProblems,
   getProblems,
-} from 'are-the-types-wrong-core'
+} from '@arethetypeswrong/core'
 import React from 'react'
-import { render, Text, Box } from 'ink'
+import { render, Text, Box, Static } from 'ink'
 
 const allResolutionKinds: ResolutionKind[] = [
   'node10',
@@ -34,6 +34,8 @@ const problemEmoji: Record<ProblemKind, string> = {
   FallbackCondition: '🐛',
   CJSOnlyExportsDefault: '🤨',
   FalseExportDefault: '❗️',
+  UnexpectedESMSyntax: '🚭',
+  UnexpectedCJSSyntax: '🚱',
 }
 
 const problemShortDescriptions: Record<ProblemKind, string> = {
@@ -46,6 +48,8 @@ const problemShortDescriptions: Record<ProblemKind, string> = {
   FallbackCondition: `${problemEmoji.FallbackCondition} Used fallback condition`,
   CJSOnlyExportsDefault: `${problemEmoji.CJSOnlyExportsDefault} CJS default export`,
   FalseExportDefault: `${problemEmoji.FalseExportDefault} Incorrect default export`,
+  UnexpectedESMSyntax: `${problemEmoji.UnexpectedESMSyntax} Unexpected ESM syntax`,
+  UnexpectedCJSSyntax: `${problemEmoji.UnexpectedCJSSyntax} Unexpected CJS syntax`,
 }
 
 const resolutionKinds: Record<ResolutionKind, string> = {
@@ -92,6 +96,7 @@ function Traces({
   if (!('entrypointResolutions' in analysis)) {
     return null
   }
+
   return (
     <Box flexDirection="column" width="100%">
       {subpaths.map((subpath) => {
@@ -101,15 +106,27 @@ function Traces({
         return (
           <Box width="100%" key={'traces-' + subpath} flexDirection="column">
             <Text color="blue" bold>
-              {subpath}
+              Traces for Subpath: {subpath}
             </Text>
             {resolutionDetails.map(([resolutionKind, details]) => {
               return (
-                <Box width="100%" key={subpath} flexDirection="column">
+                <Box
+                  width="100%"
+                  key={`resolutionDetails-${resolutionKind}-${subpath}`}
+                  flexDirection="column"
+                >
                   <Text bold>{resolutionKind} Traces:</Text>
-                  {details.trace.map((traceLine, i) => {
-                    return <Text key={i}>{traceLine}</Text>
-                  })}
+                  <Box flexDirection="column">
+                    {details.trace.map((traceLine, i) => {
+                      return (
+                        <Text
+                          key={`resolutionDetails-traces-${subpath}-${resolutionKind}-${i}`}
+                        >
+                          {traceLine}
+                        </Text>
+                      )
+                    })}
+                  </Box>
                 </Box>
               )
             })}
@@ -182,7 +199,8 @@ function ChecksTable(props: { checks?: Checks }) {
               } else {
                 content = (
                   <Text>
-                    {'✅ ' + moduleKinds[resolution?.moduleKind || '']}
+                    {'✅ ' +
+                      moduleKinds[resolution?.moduleKind?.detectedKind || '']}
                   </Text>
                 )
               }
@@ -234,7 +252,16 @@ function ChecksTable(props: { checks?: Checks }) {
     }
   }
 
-  render(<ChecksTable checks={checks} />)
+  // Ink will duplicate all of its output if it is longer than the terminal height.
+  // Known bug with the underlying rendering: https://github.com/vadimdemedes/ink/issues/48
+  // Solution is to mark the entire content as "static" so it won't get updated, but flushed.
+  render(
+    <Static items={[checks]}>
+      {(checks: Checks, index: number) => {
+        return <ChecksTable key={`checks-${index}`} checks={checks} />
+      }}
+    </Static>
+  )
 
   const exitCode = checks.problems?.length ?? 0
   process.exit(exitCode)

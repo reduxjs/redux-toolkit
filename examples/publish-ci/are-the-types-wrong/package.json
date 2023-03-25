@@ -2,6 +2,10 @@
   "name": "are-the-types-wrong",
   "packageManager": "yarn@3.2.4",
   "type": "module",
+  "scripts": {
+    "build": "echo Nothing to build",
+    "test": "yarn tsx main.tsx"
+  },
   "dependencies": {
     "@tanstack/react-table": "^8.7.9",
     "ink": "^4.0.0",
