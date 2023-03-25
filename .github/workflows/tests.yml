@@ -149,7 +149,16 @@ jobs:
       fail-fast: false
       matrix:
         node: ['16.x']
-        example: ['cra4', 'cra5', 'next', 'vite', 'node-standard', 'node-esm']
+        example:
+          [
+            'cra4',
+            'cra5',
+            'next',
+            'vite',
+            'node-standard',
+            'node-esm',
+            'are-the-types-wrong',
+          ]
     defaults:
       run:
         working-directory: ./examples/publish-ci/${{ matrix.example }}
@@ -186,5 +195,5 @@ jobs:
       - name: Build example
         run: yarn build
 
-      - name: Run Playwright test
+      - name: Run test step
         run: yarn test
