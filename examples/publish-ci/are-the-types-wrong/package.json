@@ -4,14 +4,17 @@
   "type": "module",
   "dependencies": {
     "@tanstack/react-table": "^8.7.9",
-    "are-the-types-wrong-core": "file:.yalc/are-the-types-wrong-core",
     "ink": "^4.0.0",
     "object-hash": "^3.0.0",
     "react": "^18.2.0"
   },
   "devDependencies": {
+    "@arethetypeswrong/core": "^0.0.4",
     "@types/react": "^18.0.28",
     "shelljs": "^0.8.5",
     "tsx": "^3.12.5"
+  },
+  "resolutions": {
+    "@arethetypeswrong/core@^0.0.4": "patch:@arethetypeswrong/core@npm%3A0.0.4#./.yarn/patches/@arethetypeswrong-core-npm-0.0.4-edb717a66b.patch"
   }
 }

@@ -12,6 +12,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@arethetypeswrong/core@npm:0.0.4":
+  version: 0.0.4
+  resolution: "@arethetypeswrong/core@npm:0.0.4"
+  dependencies:
+    "@andrewbranch/untar.js": ^1.0.0
+    fetch-ponyfill: ^7.1.0
+    fflate: ^0.7.4
+    typescript: ^5.0.0-dev.20230207
+  checksum: dc9ea074e5f2e7d2df7d700cb7c727892204df5939008a059ec24247779ffc5cde57eec8dded21a852a3fa76b4058cfcaee7fc7789d265754c39c3f45394277e
+  languageName: node
+  linkType: hard
+
+"@arethetypeswrong/core@patch:@arethetypeswrong/core@npm%3A0.0.4#./.yarn/patches/@arethetypeswrong-core-npm-0.0.4-edb717a66b.patch::locator=are-the-types-wrong%40workspace%3A.":
+  version: 0.0.4
+  resolution: "@arethetypeswrong/core@patch:@arethetypeswrong/core@npm%3A0.0.4#./.yarn/patches/@arethetypeswrong-core-npm-0.0.4-edb717a66b.patch::version=0.0.4&hash=d09a56&locator=are-the-types-wrong%40workspace%3A."
+  dependencies:
+    "@andrewbranch/untar.js": ^1.0.0
+    fetch-ponyfill: ^7.1.0
+    fflate: ^0.7.4
+    typescript: ^5.0.0-dev.20230207
+  checksum: 7d0034bf02cfd1473cbf6beeaabbb84057be26068cfdd2ed351cacbd8b8945dc8403965b3140524c7f3c41d6608c01988c2396300e01436fc77ca52ebfd2359c
+  languageName: node
+  linkType: hard
+
 "@esbuild-kit/cjs-loader@npm:^2.4.2":
   version: 2.4.2
   resolution: "@esbuild-kit/cjs-loader@npm:2.4.2"
@@ -355,25 +379,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"are-the-types-wrong-core@file:.yalc/are-the-types-wrong-core::locator=are-the-types-wrong%40workspace%3A.":
-  version: 0.0.3
-  resolution: "are-the-types-wrong-core@file:.yalc/are-the-types-wrong-core#.yalc/are-the-types-wrong-core::hash=b1277b&locator=are-the-types-wrong%40workspace%3A."
-  dependencies:
-    "@andrewbranch/untar.js": ^1.0.0
-    fetch-ponyfill: ^7.1.0
-    fflate: ^0.7.4
-    typescript: ^5.0.0-dev.20230207
-  checksum: 399a94f9862d7eba5bf0f41cb17038e72d5daed4a7ead3b5feb113ac2fb4c90190bb06942c637674758acdbefcfc742020bee345ef0a2f9a0fbe5aee757d0cc5
-  languageName: node
-  linkType: hard
-
 "are-the-types-wrong@workspace:.":
   version: 0.0.0-use.local
   resolution: "are-the-types-wrong@workspace:."
   dependencies:
+    "@arethetypeswrong/core": ^0.0.4
     "@tanstack/react-table": ^8.7.9
     "@types/react": ^18.0.28
-    are-the-types-wrong-core: "file:.yalc/are-the-types-wrong-core"
     ink: ^4.0.0
     object-hash: ^3.0.0
     react: ^18.2.0
