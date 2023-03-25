@@ -323,6 +323,34 @@ describe('createSlice', () => {
     })
   })
 
+  describe('injectSliceReducers', () => {
+    it('allows injecting reducers after slice is initialised, returning the slice with added action creators and case reducers', () => {
+      const testSlice = createSlice({
+        name: 'test',
+        initialState: 0,
+        reducers: {
+          increment: (state, action: PayloadAction<number>) =>
+            state + action.payload,
+        },
+      })
+
+      expect(testSlice.reducer(1, testSlice.actions.increment(1))).toBe(2)
+
+      const injectedSlice = testSlice.injectSliceReducers({
+        decrement: (state, action: PayloadAction<number>) =>
+          state - action.payload,
+      })
+
+      expect(testSlice.reducer(1, injectedSlice.actions.decrement(1))).toBe(0)
+      expect(
+        injectedSlice.caseReducers.decrement(
+          1,
+          injectedSlice.actions.decrement(1)
+        )
+      ).toBe(0)
+    })
+  })
+
   describe('injectExtraReducers', () => {
     it('allows injecting extra reducers after slice is initialised', () => {
       const increment = createAction<number>('increment')

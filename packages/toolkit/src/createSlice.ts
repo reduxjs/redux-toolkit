@@ -68,9 +68,56 @@ export interface Slice<
    */
   getInitialState: () => State
 
+  injectSliceReducers: <
+    CR extends SliceCaseReducers<State> = SliceCaseReducers<State>
+  >(
+    /**
+     * A mapping from action types to action-type-specific *case reducer*
+     * functions. For every action type, a matching action creator will be
+     * generated using `createAction()`.
+     */
+    reducers: ValidateSliceCaseReducers<State, CR>
+  ) => Slice<State, CaseReducers & CR, Name>
+
   injectExtraReducers: (
+    /**
+   * A callback that receives a *builder* object to define
+   * case reducers via calls to `builder.addCase(actionCreatorOrType, reducer)`.
+   * 
+   * @example
+```ts
+import { createAction, createSlice, Action, AnyAction } from '@reduxjs/toolkit'
+const incrementBy = createAction<number>('incrementBy')
+const decrement = createAction('decrement')
+
+interface RejectedAction extends Action {
+  error: Error
+}
+
+function isRejectedAction(action: AnyAction): action is RejectedAction {
+  return action.type.endsWith('rejected')
+}
+
+slice.injectExtraReducers((builder) => {
+  builder
+    .addCase(incrementBy, (state, action) => {
+      // action is inferred correctly here if using TS
+    })
+    // You can chain calls, or have separate `builder.addCase()` lines each time
+    .addCase(decrement, (state, action) => {})
+    // You can match a range of action types
+    .addMatcher(
+      isRejectedAction,
+      // `action` will be inferred as a RejectedAction due to isRejectedAction being defined as a type guard
+      (state, action) => {}
+    )
+    // and provide a default case if no other handlers matched
+    .addDefaultCase((state, action) => {});
+});
+```
+   */
     builderCallback: (builder: ActionReducerMapBuilder<State>) => void
-  ) => void
+  ) => this
 }
 
 /**
@@ -103,10 +150,6 @@ export interface CreateSliceOptions<
   /**
    * A callback that receives a *builder* object to define
    * case reducers via calls to `builder.addCase(actionCreatorOrType, reducer)`.
-   * 
-   * Alternatively, a mapping from action types to action-type-specific *case reducer*
-   * functions. These reducers should have existing action types used
-   * as the keys, and action creators will _not_ be generated.
    * 
    * @example
 ```ts
@@ -377,10 +420,54 @@ export function createSlice<
 
       return _reducer.getInitialState()
     },
+    injectSliceReducers<
+      CR extends SliceCaseReducers<State> = SliceCaseReducers<State>
+    >(reducerParam: ValidateSliceCaseReducers<State, CR>) {
+      if (!_reducer) _reducer = buildReducer()
+
+      // TODO: this duplicates a lot of code - make DRY?
+      const reducers = reducerParam || {}
+
+      // TODO: check for duplicates? or let createReducer make check
+      const reducerNames = Object.keys(reducers)
+
+      const sliceCaseReducersByType: Record<string, CaseReducer> = {}
+
+      reducerNames.forEach((reducerName) => {
+        const maybeReducerWithPrepare = reducers[reducerName]
+        const type = getType(name, reducerName)
+
+        let caseReducer: CaseReducer<State, any>
+        let prepareCallback: PrepareAction<any> | undefined
+
+        if ('reducer' in maybeReducerWithPrepare) {
+          caseReducer = maybeReducerWithPrepare.reducer
+          prepareCallback = maybeReducerWithPrepare.prepare
+        } else {
+          caseReducer = maybeReducerWithPrepare
+        }
+
+        sliceCaseReducersByName[reducerName] = caseReducer
+        sliceCaseReducersByType[type] = caseReducer
+        actionCreators[reducerName] = prepareCallback
+          ? createAction(type, prepareCallback)
+          : createAction(type)
+      })
+
+      _reducer.injectCaseReducers((builder) => {
+        for (let key in sliceCaseReducersByType) {
+          builder.addCase(key, sliceCaseReducersByType[key] as CaseReducer<any>)
+        }
+      })
+
+      return this as Slice<State, CaseReducers & CR, Name>
+    },
     injectExtraReducers(builderCallback) {
       if (!_reducer) _reducer = buildReducer()
 
       _reducer.injectCaseReducers(builderCallback)
+
+      return this
     },
   }
 }
