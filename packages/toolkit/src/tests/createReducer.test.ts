@@ -254,7 +254,7 @@ describe('createReducer', () => {
     behavesLikeReducer(wrappedReducer)
   })
 
-  describe('alternative builder callback for actionMap', () => {
+  describe('builder callback for actionMap', () => {
     const increment = createAction<number, 'increment'>('increment')
     const decrement = createAction<number, 'decrement'>('decrement')
 
