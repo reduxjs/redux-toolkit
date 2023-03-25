@@ -200,7 +200,7 @@ describe('createSlice', () => {
       expect(result).toBe(15)
     })
 
-    describe('alternative builder callback for extraReducers', () => {
+    describe('builder callback for extraReducers', () => {
       const increment = createAction<number, 'increment'>('increment')
 
       test('can be used with actionCreators', () => {
@@ -320,6 +320,23 @@ describe('createSlice', () => {
         0,
         expect.objectContaining({ payload: 'testPayload' })
       )
+    })
+  })
+
+  describe('injectExtraReducers', () => {
+    it('allows injecting extra reducers after slice is initialised', () => {
+      const increment = createAction<number>('increment')
+      const testSlice = createSlice({
+        name: 'test',
+        initialState: 0,
+        reducers: {},
+      })
+      expect(testSlice.reducer(0, increment(1))).toBe(0)
+
+      testSlice.injectExtraReducers((builder) => {
+        builder.addCase(increment, (state, action) => state + action.payload)
+      })
+      expect(testSlice.reducer(1, increment(2))).toBe(3)
     })
   })
 

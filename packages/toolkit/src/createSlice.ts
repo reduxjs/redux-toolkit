@@ -11,7 +11,7 @@ import { createAction } from './createAction'
 import type {
   CaseReducer,
   CaseReducers,
-  ReducerWithInitialState,
+  InjectableReducer,
 } from './createReducer'
 import { createReducer, NotFunction } from './createReducer'
 import type { ActionReducerMapBuilder } from './mapBuilders'
@@ -67,6 +67,10 @@ export interface Slice<
    * If a lazy state initializer was provided, it will be called and a fresh value returned.
    */
   getInitialState: () => State
+
+  injectExtraReducers: (
+    builderCallback: (builder: ActionReducerMapBuilder<State>) => void
+  ) => void
 }
 
 /**
@@ -357,7 +361,7 @@ export function createSlice<
     })
   }
 
-  let _reducer: ReducerWithInitialState<State>
+  let _reducer: InjectableReducer<State>
 
   return {
     name,
@@ -372,6 +376,11 @@ export function createSlice<
       if (!_reducer) _reducer = buildReducer()
 
       return _reducer.getInitialState()
+    },
+    injectExtraReducers(builderCallback) {
+      if (!_reducer) _reducer = buildReducer()
+
+      _reducer.injectCaseReducers(builderCallback)
     },
   }
 }

@@ -398,7 +398,7 @@ const value = actionCreators.anyKey
   }
 }
 
-/** Test:  alternative builder callback for extraReducers */
+/** Test: builder callback for extraReducers */
 {
   createSlice({
     name: 'test',
@@ -408,6 +408,19 @@ const value = actionCreators.anyKey
       expectType<ActionReducerMapBuilder<number>>(builder)
     },
   })
+}
+
+/** Test: builder callback for injectExtraReducers */
+{
+  const slice = createSlice({
+    name: 'test',
+    initialState: 0,
+    reducers: {},
+  })
+
+  slice.injectExtraReducers((builder) =>
+    expectType<ActionReducerMapBuilder<number>>(builder)
+  )
 }
 
 /** Test: wrapping createSlice should be possible */
