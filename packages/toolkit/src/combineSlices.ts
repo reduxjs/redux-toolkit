@@ -97,7 +97,7 @@ interface CombinedSliceReducer<
     AnyAction
   > {
   withLazyLoadedSlices<
-    Lazy extends Record<string, unknown>
+    Lazy extends Record<string, unknown> = {}
   >(): CombinedSliceReducer<StaticState, LazyLoadedState & Lazy, InjectedKeys>
 
   injectSlices<
