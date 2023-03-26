@@ -149,7 +149,9 @@ export function combineSlices<
     if (isSlice(slice)) {
       map[slice.name] = slice.reducer
     } else {
-      safeAssign(map, slice)
+      for (const [name, reducer] of Object.entries(map)) {
+        map[name] = reducer
+      }
     }
     return map
   }, {})
@@ -164,12 +166,26 @@ export function combineSlices<
 
   combinedReducer.withLazyLoadedSlices = () => combinedReducer
 
+  const injectReducer = (name: string, reducer: Reducer) => {
+    if (process.env.NODE_ENV !== 'production') {
+      const currentReducer = reducerMap[name]
+      if (currentReducer && currentReducer !== reducer) {
+        throw new Error(
+          `Name '${name}' has already been injected with different reducer instance`
+        )
+      }
+    }
+    reducerMap[name] = reducer
+  }
+
   combinedReducer.injectSlices = (...slices: Array<AnySlice | ReducerMap>) => {
     slices.forEach((slice) => {
       if (isSlice(slice)) {
-        reducerMap[slice.name] = slice.reducer
+        injectReducer(slice.name, slice.reducer)
       } else {
-        safeAssign(reducerMap, slice)
+        for (const [name, reducer] of Object.entries(slice)) {
+          injectReducer(name, reducer)
+        }
       }
     })
     reducer = getReducer()
