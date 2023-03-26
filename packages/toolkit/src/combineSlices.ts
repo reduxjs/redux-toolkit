@@ -175,9 +175,11 @@ export function combineSlices<
           )
         }
       }
-      reducerMap[name] = reducer
+      reducerMap[name] = newReducer
     }
     reducer = getReducer()
+
+    return combinedReducer
   }
 
   combinedReducer.selector =
