@@ -54,6 +54,26 @@ type CombinedSliceState<
   >
 >
 
+// Prevent undeclared keys in reducer maps
+type ValidateReducerMaps<
+  LazyLoadedState extends Record<string, unknown>,
+  Slices extends [
+    LazyLoadedSlice<LazyLoadedState> | LazyLoadedReducerMap<LazyLoadedState>,
+    ...Array<
+      LazyLoadedSlice<LazyLoadedState> | LazyLoadedReducerMap<LazyLoadedState>
+    >
+  ]
+> = Slices &
+  {
+    [Index in keyof Slices]: Slices[Index] extends AnySlice
+      ? {}
+      : {
+          [Name in keyof Slices[Index]]: Name extends keyof LazyLoadedState
+            ? Reducer
+            : never
+        }
+  }
+
 type NewKeys<
   LazyLoadedState extends Record<string, unknown>,
   Slices extends [
@@ -88,7 +108,7 @@ interface CombinedSliceReducer<
       >
     ]
   >(
-    ...slices: Slices
+    ...slices: ValidateReducerMaps<LazyLoadedState, Slices>
   ): CombinedSliceReducer<
     StaticState,
     LazyLoadedState,
@@ -135,11 +155,11 @@ declare const bazSlice: Slice<'baz', {}, 'baz'>
 
 const baseReducer = combineSlices(fooSlice, {
   bar2: barReducer,
-}).withLazyLoadedSlices<
-  WithSlice<typeof bazSlice> & {
+})
+  .withLazyLoadedSlices<WithSlice<typeof bazSlice>>()
+  .withLazyLoadedSlices<{
     bar2: ReturnType<typeof barReducer>
-  }
->()
+  }>()
 
 const store = configureStore({
   reducer: baseReducer,
@@ -157,6 +177,12 @@ const withInjection = baseReducer
     bar2: barReducer,
   })
   .selector((state) => state.baz)
+
+// @ts-expect-error unexpected key
+baseReducer.injectSlices({
+  bar2: barReducer,
+  bar3: barReducer,
+})
 
 const selector2 = withInjection(store.getState())
 //    ^?
