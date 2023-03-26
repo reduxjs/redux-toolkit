@@ -6,7 +6,6 @@ import type {
 } from 'redux'
 import { combineReducers } from 'redux'
 import type { Slice } from './createSlice'
-import { configureStore } from './configureStore'
 import type {
   Id,
   UnionToIntersection,
@@ -14,7 +13,6 @@ import type {
   WithRequiredProp,
 } from './tsHelpers'
 import { safeAssign } from './tsHelpers'
-import { createSelector } from 'reselect'
 
 type AnySlice = Slice<any, any, any>
 
@@ -187,70 +185,3 @@ export function combineSlices<
 
   return combinedReducer as any
 }
-
-// test it works
-
-declare const fooSlice: Slice<'foo', {}, 'foo'>
-
-declare const barReducer: Reducer<'bar'>
-
-declare const bazSlice: Slice<'baz', {}, 'baz'>
-
-const baseReducer = combineSlices(fooSlice, {
-  bar2: barReducer,
-})
-  .withLazyLoadedSlices<WithSlice<typeof bazSlice>>()
-  .withLazyLoadedSlices<{
-    bar2: ReturnType<typeof barReducer>
-  }>()
-
-const store = configureStore({
-  reducer: baseReducer,
-})
-
-type RootState = ReturnType<typeof store.getState>
-
-const withoutInjection = baseReducer.selector((state) => state.baz)
-
-const selector1 = withoutInjection(store.getState())
-//    ^?
-
-const withInjection = baseReducer
-  .injectSlices(bazSlice, {
-    bar2: barReducer,
-  })
-  .selector((state) => state.baz)
-
-// @ts-expect-error unexpected key
-baseReducer.injectSlices({
-  bar2: barReducer,
-  bar3: barReducer,
-})
-
-const selector2 = withInjection(store.getState())
-//    ^?
-
-const memoizedWithoutInjection = baseReducer.selector(
-  createSelector(
-    // can't be inferred
-    (state: RootState & WithSlice<typeof bazSlice>) => state.baz,
-    (_: unknown, id: string) => id,
-    (state, id) => `${state?.length}${id}` as const
-  )
-)
-
-// @ts-expect-error doesn't guarantee injection, so errors
-const selector3 = memoizedWithoutInjection(store.getState(), 'id')
-//    ^?
-
-const memoizedWithInjection = baseReducer.injectSlices(bazSlice).selector(
-  createSelector(
-    // can't be inferred
-    (state: RootState & WithSlice<typeof bazSlice>) => state.baz,
-    (_: unknown, id: string) => id,
-    (state, id) => `${state.length}${id}` as const
-  )
-)
-
-const selector4 = memoizedWithInjection(store.getState(), 'id')
-//    ^?
