@@ -12,7 +12,6 @@ import type {
   WithOptionalProp,
   WithRequiredProp,
 } from './tsHelpers'
-import { safeAssign } from './tsHelpers'
 
 type AnySlice = Slice<any, any, any>
 
@@ -54,7 +53,7 @@ type CombinedSliceState<
   >
 >
 
-// Prevent undeclared keys in reducer maps
+// Prevent undeclared keys in reducer maps and slices
 type ValidateReducerMaps<
   LazyLoadedState extends Record<string, unknown>,
   Slices extends [
@@ -66,7 +65,9 @@ type ValidateReducerMaps<
 > = Slices &
   {
     [Index in keyof Slices]: Slices[Index] extends AnySlice
-      ? {}
+      ? SliceName<Slices[Index]> extends keyof LazyLoadedState
+        ? {}
+        : never
       : {
           [Name in keyof Slices[Index]]: Name extends keyof LazyLoadedState
             ? Reducer

@@ -7,14 +7,14 @@ declare const fooSlice: Slice<true, {}, 'foo'>
 
 declare const barSlice: Slice<true, {}, 'bar'>
 
-declare const bazReducer: Reducer<true>
+declare const bazReducer: Reducer<false>
 
 /**
  * Test: combineSlices correctly combines static state
  */
 {
   const rootReducer = combineSlices(fooSlice, barSlice, { baz: bazReducer })
-  expectType<{ foo: true; bar: true; baz: true }>(
+  expectType<{ foo: true; bar: true; baz: false }>(
     rootReducer(undefined, { type: '' })
   )
 }
@@ -35,13 +35,13 @@ declare const bazReducer: Reducer<true>
  */
 {
   const rootReducer = combineSlices(fooSlice).withLazyLoadedSlices<
-    WithSlice<typeof barSlice> & { baz: true }
+    WithSlice<typeof barSlice> & { baz: false }
   >()
 
   expectExactType<true | undefined>(true)(
     rootReducer(undefined, { type: '' }).bar
   )
-  expectExactType<true | undefined>(true)(
+  expectExactType<false | undefined>(false)(
     rootReducer(undefined, { type: '' }).baz
   )
 
@@ -49,7 +49,40 @@ declare const bazReducer: Reducer<true>
   expectExactType<true>(true)(injectedReducer(undefined, { type: '' }).bar)
 
   const injectedReducer2 = rootReducer.injectSlices({ baz: bazReducer })
-  expectExactType<true>(true)(injectedReducer2(undefined, { type: '' }).baz)
+  expectExactType<false>(false)(injectedReducer2(undefined, { type: '' }).baz)
+}
+
+declare const wrongBarSlice: Slice<false, {}, 'bar'>
+
+declare const wrongBazReducer: Reducer<true>
+
+/**
+ * Test: slices/reducers can only be injected if first added with withLazyLoadedSlices
+ */
+{
+  const rootReducer = combineSlices(fooSlice)
+
+  // @ts-expect-error bar undeclared
+  rootReducer.injectSlices(barSlice)
+
+  // @ts-expect-error baz undeclared
+  rootReducer.injectSlices({
+    baz: bazReducer,
+  })
+
+  const withLazy = rootReducer.withLazyLoadedSlices<
+    WithSlice<typeof barSlice> & { baz: false }
+  >()
+
+  // @ts-expect-error right name, wrong state
+  withLazy.injectSlices(wrongBarSlice)
+
+  // @ts-expect-error right name, wrong state
+  withLazy.injectSlices({
+    baz: wrongBazReducer,
+  })
+
+  withLazy.injectSlices(barSlice, { baz: bazReducer })
 }
 
 /**
@@ -75,4 +108,24 @@ declare const bazReducer: Reducer<true>
   expectExactType<true>(true)(
     withInjection(rootReducer(undefined, { type: '' }))
   )
+}
+
+/**
+ * Test: nested calls inferred correctly
+ */
+{
+  const innerReducer =
+    combineSlices(fooSlice).withLazyLoadedSlices<WithSlice<typeof barSlice>>()
+
+  const innerSelector = innerReducer
+    .injectSlices(barSlice)
+    .selector((state) => state.bar)
+
+  const outerReducer = combineSlices({ inner: innerReducer })
+
+  const outerSelector = outerReducer.selector((state) =>
+    innerSelector(state.inner)
+  )
+
+  expectType<{ inner: { foo: true } }>(outerReducer(undefined, { type: '' }))
 }
