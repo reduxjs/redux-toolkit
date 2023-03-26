@@ -1,4 +1,9 @@
-import type { CombinedState, AnyAction, Reducer } from 'redux'
+import type {
+  CombinedState,
+  AnyAction,
+  Reducer,
+  StateFromReducersMapObject,
+} from 'redux'
 import type { Slice } from './createSlice'
 import { configureStore } from './configureStore'
 import type {
@@ -11,6 +16,8 @@ import { createSelector } from 'reselect'
 
 type AnySlice = Slice<any, any, any>
 
+type ReducerMap = Record<string, Reducer>
+
 type SliceState<Sl extends AnySlice> = Sl extends Slice<infer State, any, any>
   ? State
   : never
@@ -20,12 +27,9 @@ type SliceName<Sl extends AnySlice> = Sl extends Slice<any, any, infer Name>
   : never
 
 export type WithSlice<Sl extends AnySlice> = Id<
-  // distribute
-  Sl extends AnySlice
-    ? {
-        [K in SliceName<Sl>]: SliceState<Sl>
-      }
-    : never
+  {
+    [K in SliceName<Sl>]: SliceState<Sl>
+  }
 >
 
 // only allow injection of slices we've already declared
@@ -34,6 +38,10 @@ type LazyLoadedSlice<LazyLoadedState extends Record<string, unknown>> = {
     ? Slice<LazyLoadedState[Name], any, Name>
     : never
 }[keyof LazyLoadedState]
+
+type LazyLoadedReducerMap<LazyLoadedState extends Record<string, unknown>> = {
+  [Name in keyof LazyLoadedState]?: Reducer<LazyLoadedState[Name]>
+}
 
 type CombinedSliceState<
   StaticState,
@@ -45,6 +53,20 @@ type CombinedSliceState<
     StaticState & WithRequiredProp<Partial<LazyLoadedState>, InjectedKeys>
   >
 >
+
+type NewKeys<
+  LazyLoadedState extends Record<string, unknown>,
+  Slices extends [
+    LazyLoadedSlice<LazyLoadedState> | LazyLoadedReducerMap<LazyLoadedState>,
+    ...Array<
+      LazyLoadedSlice<LazyLoadedState> | LazyLoadedReducerMap<LazyLoadedState>
+    >
+  ]
+> = Slices[number] extends infer Slice
+  ? Slice extends AnySlice
+    ? SliceName<Slice>
+    : keyof Slice
+  : never
 
 interface CombinedSliceReducer<
   StaticState,
@@ -60,15 +82,17 @@ interface CombinedSliceReducer<
 
   injectSlices<
     Slices extends [
-      LazyLoadedSlice<LazyLoadedState>,
-      ...LazyLoadedSlice<LazyLoadedState>[]
+      LazyLoadedSlice<LazyLoadedState> | LazyLoadedReducerMap<LazyLoadedState>,
+      ...Array<
+        LazyLoadedSlice<LazyLoadedState> | LazyLoadedReducerMap<LazyLoadedState>
+      >
     ]
   >(
     ...slices: Slices
   ): CombinedSliceReducer<
     StaticState,
     LazyLoadedState,
-    InjectedKeys | SliceName<Slices[number]>
+    InjectedKeys | NewKeys<LazyLoadedState, Slices>
   >
 
   // TODO: deal with nested state?
@@ -85,22 +109,37 @@ interface CombinedSliceReducer<
   ): (state: WithOptionalProp<State, InjectedKeys>, ...args: Args) => Selected
 }
 
-// TODO: support arbitrary { key: reducer } objects
-declare const combineSlices: <Slices extends [AnySlice, ...AnySlice[]]>(
+type StaticState<
+  Slices extends [AnySlice | ReducerMap, ...Array<AnySlice | ReducerMap>]
+> = UnionToIntersection<
+  Slices[number] extends infer Slice
+    ? Slice extends AnySlice
+      ? WithSlice<Slice>
+      : StateFromReducersMapObject<Slice>
+    : never
+>
+
+declare const combineSlices: <
+  Slices extends [AnySlice | ReducerMap, ...Array<AnySlice | ReducerMap>]
+>(
   ...slices: Slices
-) => CombinedSliceReducer<Id<UnionToIntersection<WithSlice<Slices[number]>>>>
+) => CombinedSliceReducer<Id<StaticState<Slices>>>
 
 // test it works
 
 declare const fooSlice: Slice<'foo', {}, 'foo'>
 
-declare const barSlice: Slice<'bar', {}, 'bar'>
+declare const barReducer: Reducer<'bar'>
 
 declare const bazSlice: Slice<'baz', {}, 'baz'>
 
-const baseReducer = combineSlices(fooSlice, barSlice).withLazyLoadedSlices<{
-  [bazSlice.name]: ReturnType<typeof bazSlice.reducer>
-}>()
+const baseReducer = combineSlices(fooSlice, {
+  bar2: barReducer,
+}).withLazyLoadedSlices<
+  WithSlice<typeof bazSlice> & {
+    bar2: ReturnType<typeof barReducer>
+  }
+>()
 
 const store = configureStore({
   reducer: baseReducer,
@@ -108,19 +147,34 @@ const store = configureStore({
 
 type RootState = ReturnType<typeof store.getState>
 
-const withoutInjection = baseReducer.selector((state) => state.bar)
+const withoutInjection = baseReducer.selector((state) => state.baz)
 
 const selector1 = withoutInjection(store.getState())
 //    ^?
 
 const withInjection = baseReducer
-  .injectSlices(bazSlice)
-  .selector((state) => state.bar)
+  .injectSlices(bazSlice, {
+    bar2: barReducer,
+  })
+  .selector((state) => state.baz)
 
 const selector2 = withInjection(store.getState())
 //    ^?
 
-const memoized = baseReducer.injectSlices(bazSlice).selector(
+const memoizedWithoutInjection = baseReducer.selector(
+  createSelector(
+    // can't be inferred
+    (state: RootState & WithSlice<typeof bazSlice>) => state.baz,
+    (_: unknown, id: string) => id,
+    (state, id) => `${state?.length}${id}` as const
+  )
+)
+
+// @ts-expect-error doesn't guarantee injection, so errors
+const selector3 = memoizedWithoutInjection(store.getState(), 'id')
+//    ^?
+
+const memoizedWithInjection = baseReducer.injectSlices(bazSlice).selector(
   createSelector(
     // can't be inferred
     (state: RootState & WithSlice<typeof bazSlice>) => state.baz,
@@ -129,5 +183,5 @@ const memoized = baseReducer.injectSlices(bazSlice).selector(
   )
 )
 
-const selector3 = memoized(store.getState(), 'id')
+const selector4 = memoizedWithInjection(store.getState(), 'id')
 //    ^?
