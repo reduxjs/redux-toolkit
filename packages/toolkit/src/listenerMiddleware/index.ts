@@ -44,6 +44,7 @@ import {
   createDelay,
   raceWithSignal,
 } from './task'
+import { find } from '../utils'
 export { TaskAbortError } from './exceptions'
 export type {
   ListenerEffect,
@@ -317,20 +318,9 @@ export function createListenerMiddleware<
     }
   }
 
-  const findListenerEntry = (
-    comparator: (entry: ListenerEntry) => boolean
-  ): ListenerEntry | undefined => {
-    for (const entry of Array.from(listenerMap.values())) {
-      if (comparator(entry)) {
-        return entry
-      }
-    }
-
-    return undefined
-  }
-
   const startListening = (options: FallbackAddListenerOptions) => {
-    let entry = findListenerEntry(
+    let entry = find(
+      Array.from(listenerMap.values()),
       (existingEntry) => existingEntry.effect === options.effect
     )
 
@@ -346,7 +336,7 @@ export function createListenerMiddleware<
   ): boolean => {
     const { type, effect, predicate } = getListenerEntryPropsFrom(options)
 
-    const entry = findListenerEntry((entry) => {
+    const entry = find(Array.from(listenerMap.values()), (entry) => {
       const matchPredicateOrType =
         typeof type === 'string'
           ? entry.type === type

@@ -27,6 +27,19 @@ export function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+export function find<T>(
+  iterable: Iterable<T>,
+  comparator: (item: T) => boolean
+): T | undefined {
+  for (const entry of iterable) {
+    if (comparator(entry)) {
+      return entry
+    }
+  }
+
+  return undefined
+}
+
 /**
  * @public
  */

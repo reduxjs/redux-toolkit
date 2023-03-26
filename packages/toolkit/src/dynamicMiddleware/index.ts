@@ -7,6 +7,7 @@ import type {
 import { compose } from 'redux'
 import { createAction } from '../createAction'
 import { nanoid } from '../nanoid'
+import { find } from '../utils'
 import type {
   WithMiddleware,
   AddMiddleware,
@@ -41,18 +42,6 @@ export const createDynamicMiddleware = <
     middlewareMap.set(entry.id, entry)
   }
 
-  const findMiddlewareEntry = (
-    comparator: (entry: MiddlewareEntry<State, Dispatch>) => boolean
-  ): MiddlewareEntry<State, Dispatch> | undefined => {
-    for (const entry of Array.from(middlewareMap.values())) {
-      if (comparator(entry)) {
-        return entry
-      }
-    }
-
-    return undefined
-  }
-
   const withMiddleware = (() => {
     const withMiddleware = createAction(
       'dynamicMiddleware/add',
@@ -71,7 +60,8 @@ export const createDynamicMiddleware = <
   const addMiddleware = (() => {
     function addMiddleware(...middlewares: Middleware<any, State, Dispatch>[]) {
       middlewares.forEach((middleware) => {
-        let entry = findMiddlewareEntry(
+        let entry = find(
+          Array.from(middlewareMap.values()),
           (entry) => entry.middleware === middleware
         )
         if (!entry) {
