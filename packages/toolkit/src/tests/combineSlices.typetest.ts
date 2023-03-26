@@ -3,18 +3,20 @@ import type { Reducer, Slice, WithSlice } from '@reduxjs/toolkit'
 import { combineSlices } from '@reduxjs/toolkit'
 import { expectExactType, expectType } from './helpers'
 
-declare const fooSlice: Slice<true, {}, 'foo'>
+declare const stringSlice: Slice<string, {}, 'string'>
 
-declare const barSlice: Slice<true, {}, 'bar'>
+declare const numberSlice: Slice<number, {}, 'number'>
 
-declare const bazReducer: Reducer<false>
+declare const booleanReducer: Reducer<boolean>
 
 /**
  * Test: combineSlices correctly combines static state
  */
 {
-  const rootReducer = combineSlices(fooSlice, barSlice, { baz: bazReducer })
-  expectType<{ foo: true; bar: true; baz: false }>(
+  const rootReducer = combineSlices(stringSlice, numberSlice, {
+    boolean: booleanReducer,
+  })
+  expectType<{ string: string; number: number; boolean: boolean }>(
     rootReducer(undefined, { type: '' })
   )
 }
@@ -24,9 +26,11 @@ declare const bazReducer: Reducer<false>
  */
 {
   const rootReducer =
-    combineSlices(fooSlice).withLazyLoadedSlices<WithSlice<typeof barSlice>>()
-  expectExactType<true | undefined>(true)(
-    rootReducer(undefined, { type: '' }).bar
+    combineSlices(stringSlice).withLazyLoadedSlices<
+      WithSlice<typeof numberSlice>
+    >()
+  expectExactType<number | undefined>(0)(
+    rootReducer(undefined, { type: '' }).number
   )
 }
 
@@ -34,78 +38,82 @@ declare const bazReducer: Reducer<false>
  * Test: injectSlices marks injected keys as required
  */
 {
-  const rootReducer = combineSlices(fooSlice).withLazyLoadedSlices<
-    WithSlice<typeof barSlice> & { baz: false }
+  const rootReducer = combineSlices(stringSlice).withLazyLoadedSlices<
+    WithSlice<typeof numberSlice> & { boolean: boolean }
   >()
 
-  expectExactType<true | undefined>(true)(
-    rootReducer(undefined, { type: '' }).bar
+  expectExactType<number | undefined>(0)(
+    rootReducer(undefined, { type: '' }).number
   )
-  expectExactType<false | undefined>(false)(
-    rootReducer(undefined, { type: '' }).baz
+  expectExactType<boolean | undefined>(true)(
+    rootReducer(undefined, { type: '' }).boolean
   )
 
-  const injectedReducer = rootReducer.injectSlices(barSlice)
-  expectExactType<true>(true)(injectedReducer(undefined, { type: '' }).bar)
+  const injectedReducer = rootReducer.injectSlices(numberSlice)
+  expectExactType<number>(0)(injectedReducer(undefined, { type: '' }).number)
 
-  const injectedReducer2 = rootReducer.injectSlices({ baz: bazReducer })
-  expectExactType<false>(false)(injectedReducer2(undefined, { type: '' }).baz)
+  const injectedReducer2 = rootReducer.injectSlices({ boolean: booleanReducer })
+  expectExactType<boolean>(true)(
+    injectedReducer2(undefined, { type: '' }).boolean
+  )
 }
 
-declare const wrongBarSlice: Slice<false, {}, 'bar'>
+declare const wrongNumberSlice: Slice<string, {}, 'number'>
 
-declare const wrongBazReducer: Reducer<true>
+declare const wrongBooleanReducer: Reducer<number>
 
 /**
  * Test: slices/reducers can only be injected if first added with withLazyLoadedSlices
  */
 {
-  const rootReducer = combineSlices(fooSlice)
+  const rootReducer = combineSlices(stringSlice)
 
-  // @ts-expect-error bar undeclared
-  rootReducer.injectSlices(barSlice)
+  // @ts-expect-error number undeclared
+  rootReducer.injectSlices(numberSlice)
 
-  // @ts-expect-error baz undeclared
+  // @ts-expect-error boolean undeclared
   rootReducer.injectSlices({
-    baz: bazReducer,
+    boolean: booleanReducer,
   })
 
   const withLazy = rootReducer.withLazyLoadedSlices<
-    WithSlice<typeof barSlice> & { baz: false }
+    WithSlice<typeof numberSlice> & { boolean: boolean }
   >()
 
   // @ts-expect-error right name, wrong state
-  withLazy.injectSlices(wrongBarSlice)
+  withLazy.injectSlices(wrongNumberSlice)
 
   // @ts-expect-error right name, wrong state
   withLazy.injectSlices({
-    baz: wrongBazReducer,
+    boolean: wrongBooleanReducer,
   })
 
-  withLazy.injectSlices(barSlice, { baz: bazReducer })
+  withLazy.injectSlices(numberSlice, { boolean: booleanReducer })
 }
 
 /**
  * Test: selector() allows defining selectors with injected reducers defined
  */
 {
-  const rootReducer = combineSlices(fooSlice).withLazyLoadedSlices<
-    WithSlice<typeof barSlice> & { baz: true }
+  const rootReducer = combineSlices(stringSlice).withLazyLoadedSlices<
+    WithSlice<typeof numberSlice> & { boolean: boolean }
   >()
 
   type RootState = ReturnType<typeof rootReducer>
 
-  const withoutInjection = (state: RootState) => state.bar
+  const withoutInjection = rootReducer.selector(
+    (state: RootState) => state.number
+  )
 
-  expectExactType<true | undefined>(true)(
+  expectExactType<number | undefined>(0)(
     withoutInjection(rootReducer(undefined, { type: '' }))
   )
 
   const withInjection = rootReducer
-    .injectSlices(barSlice)
-    .selector((state) => state.bar)
+    .injectSlices(numberSlice)
+    .selector((state) => state.number)
 
-  expectExactType<true>(true)(
+  expectExactType<number>(0)(
     withInjection(rootReducer(undefined, { type: '' }))
   )
 }
@@ -115,11 +123,13 @@ declare const wrongBazReducer: Reducer<true>
  */
 {
   const innerReducer =
-    combineSlices(fooSlice).withLazyLoadedSlices<WithSlice<typeof barSlice>>()
+    combineSlices(stringSlice).withLazyLoadedSlices<
+      WithSlice<typeof numberSlice>
+    >()
 
   const innerSelector = innerReducer
-    .injectSlices(barSlice)
-    .selector((state) => state.bar)
+    .injectSlices(numberSlice)
+    .selector((state) => state.number)
 
   const outerReducer = combineSlices({ inner: innerReducer })
 
@@ -127,5 +137,7 @@ declare const wrongBazReducer: Reducer<true>
     innerSelector(state.inner)
   )
 
-  expectType<{ inner: { foo: true } }>(outerReducer(undefined, { type: '' }))
+  expectType<{ inner: { string: string } }>(
+    outerReducer(undefined, { type: '' })
+  )
 }

@@ -143,19 +143,17 @@ type StaticState<
 const isSlice = (maybeSlice: AnySlice | ReducerMap): maybeSlice is AnySlice =>
   typeof maybeSlice.actions === 'object'
 
+const getReducers = (slices: Array<AnySlice | ReducerMap>) =>
+  slices.flatMap((sliceOrMap) =>
+    isSlice(sliceOrMap)
+      ? [[sliceOrMap.name, sliceOrMap.reducer] as const]
+      : Object.entries(sliceOrMap)
+  )
+
 export function combineSlices<
   Slices extends [AnySlice | ReducerMap, ...Array<AnySlice | ReducerMap>]
 >(...slices: Slices): CombinedSliceReducer<Id<StaticState<Slices>>> {
-  const reducerMap = slices.reduce<Record<string, Reducer>>((map, slice) => {
-    if (isSlice(slice)) {
-      map[slice.name] = slice.reducer
-    } else {
-      for (const [name, reducer] of Object.entries(map)) {
-        map[name] = reducer
-      }
-    }
-    return map
-  }, {})
+  const reducerMap = Object.fromEntries<Reducer>(getReducers(slices))
 
   const getReducer = () => combineReducers(reducerMap)
 
@@ -167,28 +165,18 @@ export function combineSlices<
 
   combinedReducer.withLazyLoadedSlices = () => combinedReducer
 
-  const injectReducer = (name: string, reducer: Reducer) => {
-    if (process.env.NODE_ENV !== 'production') {
-      const currentReducer = reducerMap[name]
-      if (currentReducer && currentReducer !== reducer) {
-        throw new Error(
-          `Name '${name}' has already been injected with different reducer instance`
-        )
-      }
-    }
-    reducerMap[name] = reducer
-  }
-
   combinedReducer.injectSlices = (...slices: Array<AnySlice | ReducerMap>) => {
-    slices.forEach((slice) => {
-      if (isSlice(slice)) {
-        injectReducer(slice.name, slice.reducer)
-      } else {
-        for (const [name, reducer] of Object.entries(slice)) {
-          injectReducer(name, reducer)
+    for (const [name, newReducer] of getReducers(slices)) {
+      if (process.env.NODE_ENV !== 'production') {
+        const currentReducer = reducerMap[name]
+        if (currentReducer && currentReducer !== newReducer) {
+          throw new Error(
+            `Name '${name}' has already been injected with different reducer instance`
+          )
         }
       }
-    })
+      reducerMap[name] = reducer
+    }
     reducer = getReducer()
   }
 
