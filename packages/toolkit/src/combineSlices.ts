@@ -4,6 +4,7 @@ import type {
   Reducer,
   StateFromReducersMapObject,
 } from 'redux'
+import { combineReducers } from 'redux'
 import type { Slice } from './createSlice'
 import { configureStore } from './configureStore'
 import type {
@@ -12,6 +13,7 @@ import type {
   WithOptionalProp,
   WithRequiredProp,
 } from './tsHelpers'
+import { safeAssign } from './tsHelpers'
 import { createSelector } from 'reselect'
 
 type AnySlice = Slice<any, any, any>
@@ -139,11 +141,52 @@ type StaticState<
     : never
 >
 
-declare const combineSlices: <
+const isSlice = (maybeSlice: AnySlice | ReducerMap): maybeSlice is AnySlice =>
+  typeof maybeSlice.actions === 'object'
+
+export function combineSlices<
   Slices extends [AnySlice | ReducerMap, ...Array<AnySlice | ReducerMap>]
->(
-  ...slices: Slices
-) => CombinedSliceReducer<Id<StaticState<Slices>>>
+>(...slices: Slices): CombinedSliceReducer<Id<StaticState<Slices>>> {
+  const reducerMap = slices.reduce<Record<string, Reducer>>((map, slice) => {
+    if (isSlice(slice)) {
+      map[slice.name] = slice.reducer
+    } else {
+      safeAssign(map, slice)
+    }
+    return map
+  }, {})
+
+  const getReducer = () => combineReducers(reducerMap)
+
+  let reducer = getReducer()
+
+  function combinedReducer(state: Record<string, unknown>, action: AnyAction) {
+    return reducer(state, action)
+  }
+
+  combinedReducer.withLazyLoadedSlices = () => combinedReducer
+
+  combinedReducer.injectSlices = (...slices: Array<AnySlice | ReducerMap>) => {
+    slices.forEach((slice) => {
+      if (isSlice(slice)) {
+        reducerMap[slice.name] = slice.reducer
+      } else {
+        safeAssign(reducerMap, slice)
+      }
+    })
+    reducer = getReducer()
+  }
+
+  combinedReducer.selector =
+    <State, Args extends any[]>(
+      selectorFn: (state: State, ...args: Args) => any
+    ) =>
+    (state: State, ...args: Args) =>
+      // TODO: ensure injected reducers have state
+      selectorFn(state, ...args)
+
+  return combinedReducer as any
+}
 
 // test it works
 
