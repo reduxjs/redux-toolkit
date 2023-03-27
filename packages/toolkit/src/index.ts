@@ -185,6 +185,6 @@ export {
 } from './autoBatchEnhancer'
 export type { AutoBatchOptions } from './autoBatchEnhancer'
 
-export { combineSlices } from './combineSlices'
+export { combineSlices, markReplaceable } from './combineSlices'
 
 export type { WithSlice, WithApi } from './combineSlices'
