@@ -415,38 +415,88 @@ const getReducers = (slices: Array<AnySlice | AnyApi | ReducerMap>) =>
       : Object.entries(sliceOrMap)
   )
 
-const ORIGINAL_STATE = Symbol()
+const IS_REPLACEABLE = Symbol.for('rtk-is-replaceable')
+const ORIGINAL_REDUCER = Symbol.for('rtk-reducer-proxy-original')
+
+const reducerProxyMap = new WeakMap<Reducer, Reducer>()
+
+const makeReducerProxy = <R extends Reducer>(reducer: R): R => {
+  let proxy = reducerProxyMap.get(reducer)
+  if (!proxy) {
+    proxy = new Proxy(reducer, {
+      get: (target, prop, receiver) => {
+        if (prop === IS_REPLACEABLE) return true
+        if (prop === ORIGINAL_REDUCER) return target
+        return Reflect.get(target, prop, receiver)
+      },
+    })
+    reducerProxyMap.set(reducer, proxy)
+  }
+  return proxy as R
+}
+
+/**
+ * Marks a slice/api/reducer as replaceable, so injectSlices won't throw an error when a new reducer instance is injected with the same name
+ *
+ * ```ts
+ * injectSlices(markReplaceable(fooSlice), markReplaceable(fooApi), { custom: markReplaceable(fooReducer) })
+ * ```
+ *
+ */
+export const markReplaceable = <Input extends AnySlice | AnyApi | Reducer>(
+  input: Input
+): Input => {
+  if ('reducer' in input) {
+    return {
+      ...input,
+      reducer: makeReducerProxy(input.reducer),
+    }
+  }
+  return makeReducerProxy(input) as Input
+}
+
+const isReplaceable = (reducer: Reducer) => !!(reducer as any)[IS_REPLACEABLE]
+
+const ORIGINAL_STATE = Symbol.for('rtk-state-proxy-original')
 
 const isStateProxy = (value: any) => !!value && !!value[ORIGINAL_STATE]
+
+const stateProxyMap = new WeakMap<object, object>()
 
 const createStateProxy = <State extends object>(
   state: State,
   reducerMap: Partial<Record<string, Reducer>>
-) =>
-  new Proxy(state, {
-    get: (target, prop, receiver) => {
-      if (prop === ORIGINAL_STATE) return target
-      const result = Reflect.get(target, prop, receiver)
-      if (typeof result === 'undefined') {
-        const reducer = reducerMap[prop.toString()]
-        if (reducer) {
-          // ensure action type is random, to prevent reducer treating it differently
-          const reducerResult = reducer(undefined, { type: nanoid() })
-          if (typeof reducerResult === 'undefined') {
-            throw new Error(
-              `The slice reducer for key "${prop.toString()}" returned undefined when called for selector(). ` +
-                `If the state passed to the reducer is undefined, you must ` +
-                `explicitly return the initial state. The initial state may ` +
-                `not be undefined. If you don't want to set a value for this reducer, ` +
-                `you can use null instead of undefined.`
-            )
+) => {
+  let proxy = stateProxyMap.get(state)
+  if (!proxy) {
+    proxy = new Proxy(state, {
+      get: (target, prop, receiver) => {
+        if (prop === ORIGINAL_STATE) return target
+        const result = Reflect.get(target, prop, receiver)
+        if (typeof result === 'undefined') {
+          const reducer = reducerMap[prop.toString()]
+          if (reducer) {
+            // ensure action type is random, to prevent reducer treating it differently
+            const reducerResult = reducer(undefined, { type: nanoid() })
+            if (typeof reducerResult === 'undefined') {
+              throw new Error(
+                `The slice reducer for key "${prop.toString()}" returned undefined when called for selector(). ` +
+                  `If the state passed to the reducer is undefined, you must ` +
+                  `explicitly return the initial state. The initial state may ` +
+                  `not be undefined. If you don't want to set a value for this reducer, ` +
+                  `you can use null instead of undefined.`
+              )
+            }
+            return reducerResult
           }
-          return reducerResult
         }
-      }
-      return result
-    },
-  })
+        return result
+      },
+    })
+    stateProxyMap.set(state, proxy)
+  }
+  return proxy as State
+}
 
 const original = (state: any) => {
   if (!isStateProxy(state)) {
@@ -476,7 +526,11 @@ export function combineSlices<
     for (const [name, newReducer] of getReducers(slices)) {
       if (process.env.NODE_ENV !== 'production') {
         const currentReducer = reducerMap[name]
-        if (currentReducer && currentReducer !== newReducer) {
+        if (
+          currentReducer &&
+          !isReplaceable(currentReducer) &&
+          currentReducer !== newReducer
+        ) {
           throw new Error(
             `Name '${name}' has already been injected with different reducer instance`
           )

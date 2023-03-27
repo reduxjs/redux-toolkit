@@ -1,7 +1,8 @@
 import { createReducer } from '../createReducer'
 import { createAction } from '../createAction'
 import { createSlice } from '../createSlice'
-import type { WithSlice } from '../combineSlices'
+import type { WithApi, WithSlice } from '../combineSlices'
+import { markReplaceable } from '../combineSlices'
 import { combineSlices } from '../combineSlices'
 import { expectType } from './helpers'
 import type { CombinedState } from '../query/core/apiState'
@@ -94,6 +95,29 @@ describe('combineSlices', () => {
       ).toThrow(
         "Name 'boolean' has already been injected with different reducer instance"
       )
+    })
+    it('allows replacement of reducers specifically marked as replaceable', () => {
+      const combinedReducer = combineSlices(stringSlice).withLazyLoadedSlices<
+        WithSlice<typeof numberSlice> &
+          WithApi<typeof api> & { boolean: boolean }
+      >()
+
+      combinedReducer.injectSlices(
+        markReplaceable(numberSlice),
+        markReplaceable(api),
+        { boolean: markReplaceable(booleanReducer) }
+      )
+
+      // for brevity
+      const anyReducer = createReducer({} as any, () => {})
+
+      expect(() =>
+        combinedReducer.injectSlices({
+          number: anyReducer,
+          api: anyReducer,
+          boolean: anyReducer,
+        })
+      ).not.toThrow()
     })
   })
   describe('selector', () => {
