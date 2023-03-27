@@ -438,6 +438,13 @@ const createStateProxy = <State extends object>(
     },
   })
 
+const original = (state: any) => {
+  if (!isStateProxy(state)) {
+    throw new Error('original must be used on state Proxy')
+  }
+  return state[ORIGINAL_STATE]
+}
+
 export function combineSlices<
   Slices extends Array<AnySlice | AnyApi | ReducerMap>
 >(...slices: Slices): CombinedSliceReducer<Id<StaticState<Slices>>> {
@@ -472,26 +479,23 @@ export function combineSlices<
     return combinedReducer
   }
 
-  combinedReducer.selector =
-    <State extends object, RootState, Args extends any[]>(
+  combinedReducer.selector = Object.assign(
+    function makeSelector<State extends object, RootState, Args extends any[]>(
       selectorFn: (state: State, ...args: Args) => any,
       selectState?: (rootState: RootState, ...args: Args) => State
-    ) =>
-    (state: State, ...args: Args) =>
-      selectorFn(
-        createStateProxy(
-          selectState ? selectState(state as any, ...args) : state,
-          reducerMap
-        ),
-        ...args
-      )
-  ;(combinedReducer.selector as CombinedSliceReducer<{}>['selector']).original =
-    (state: any) => {
-      if (!isStateProxy(state)) {
-        throw new Error('original must be used on state Proxy')
+    ) {
+      return function selector(state: State, ...args: Args) {
+        return selectorFn(
+          createStateProxy(
+            selectState ? selectState(state as any, ...args) : state,
+            reducerMap
+          ),
+          ...args
+        )
       }
-      return state[ORIGINAL_STATE]
-    }
+    },
+    { original }
+  )
 
   return combinedReducer as any
 }
