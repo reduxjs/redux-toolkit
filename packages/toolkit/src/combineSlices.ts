@@ -431,7 +431,17 @@ const createStateProxy = <State extends object>(
         const reducer = reducerMap[prop.toString()]
         if (reducer) {
           // ensure action type is random, to prevent reducer treating it differently
-          return reducer(undefined, { type: nanoid() })
+          const reducerResult = reducer(undefined, { type: nanoid() })
+          if (typeof reducerResult === 'undefined') {
+            throw new Error(
+              `The slice reducer for key "${prop.toString()}" returned undefined when called for selector(). ` +
+                `If the state passed to the reducer is undefined, you must ` +
+                `explicitly return the initial state. The initial state may ` +
+                `not be undefined. If you don't want to set a value for this reducer, ` +
+                `you can use null instead of undefined.`
+            )
+          }
+          return reducerResult
         }
       }
       return result
