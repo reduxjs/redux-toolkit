@@ -85,9 +85,9 @@ describe('combineSlices', () => {
       )
     })
     it('exposes original to allow for logging', () => {
-      const selectBoolean = injectedReducer.selector((state) => {
-        return injectedReducer.selector.original(state).boolean
-      })
+      const selectBoolean = injectedReducer.selector(
+        (state) => injectedReducer.selector.original(state).boolean
+      )
       expect(selectBoolean(uninjectedState)).toBe(undefined)
     })
     it('throws if original is called on something other than state proxy', () => {

@@ -217,13 +217,12 @@ export function combineSlices<
     return combinedReducer
   }
 
-  combinedReducer.selector = function selector<
-    State extends object,
-    Args extends any[]
-  >(selectorFn: (state: State, ...args: Args) => any) {
-    return (state: State, ...args: Args) =>
+  combinedReducer.selector =
+    <State extends object, Args extends any[]>(
+      selectorFn: (state: State, ...args: Args) => any
+    ) =>
+    (state: State, ...args: Args) =>
       selectorFn(createStateProxy(state, reducerMap), ...args)
-  }
 
   // @ts-ignore
   combinedReducer.selector.original = (state: any) => {
