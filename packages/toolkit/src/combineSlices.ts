@@ -6,6 +6,7 @@ import type {
 } from 'redux'
 import { combineReducers } from 'redux'
 import type { Slice } from './createSlice'
+import { nanoid } from './nanoid'
 import type {
   Id,
   UnionToIntersection,
@@ -117,17 +118,28 @@ interface CombinedSliceReducer<
   >
 
   // TODO: deal with nested state?
-  selector<
-    Selected,
-    State extends CombinedSliceState<
-      StaticState,
-      LazyLoadedState,
-      InjectedKeys
-    >,
-    Args extends any[]
-  >(
-    selectorFn: (state: State, ...args: Args) => Selected
-  ): (state: WithOptionalProp<State, InjectedKeys>, ...args: Args) => Selected
+  selector: {
+    <
+      Selected,
+      State extends CombinedSliceState<
+        StaticState,
+        LazyLoadedState,
+        InjectedKeys
+      >,
+      Args extends any[]
+    >(
+      selectorFn: (state: State, ...args: Args) => Selected
+    ): (state: WithOptionalProp<State, InjectedKeys>, ...args: Args) => Selected
+    original: <
+      State extends CombinedSliceState<
+        StaticState,
+        LazyLoadedState,
+        InjectedKeys
+      >
+    >(
+      state: State
+    ) => WithOptionalProp<State, InjectedKeys>
+  }
 }
 
 type StaticState<
@@ -149,6 +161,29 @@ const getReducers = (slices: Array<AnySlice | ReducerMap>) =>
       ? [[sliceOrMap.name, sliceOrMap.reducer] as const]
       : Object.entries(sliceOrMap)
   )
+
+const ORIGINAL_STATE = Symbol()
+
+const isStateProxy = (value: any) => !!value && !!value[ORIGINAL_STATE]
+
+const createStateProxy = <State extends object>(
+  state: State,
+  reducerMap: Partial<Record<string, Reducer>>
+) =>
+  new Proxy(state, {
+    get: (target, prop, receiver) => {
+      if (prop === ORIGINAL_STATE) return target
+      const result = Reflect.get(target, prop, receiver)
+      if (typeof result === 'undefined') {
+        const reducer = reducerMap[prop.toString()]
+        if (reducer) {
+          // ensure action type is random, to prevent reducer treating it differently
+          return reducer(undefined, { type: nanoid() })
+        }
+      }
+      return result
+    },
+  })
 
 export function combineSlices<
   Slices extends [AnySlice | ReducerMap, ...Array<AnySlice | ReducerMap>]
@@ -182,13 +217,21 @@ export function combineSlices<
     return combinedReducer
   }
 
-  combinedReducer.selector =
-    <State, Args extends any[]>(
-      selectorFn: (state: State, ...args: Args) => any
-    ) =>
-    (state: State, ...args: Args) =>
-      // TODO: ensure injected reducers have state
-      selectorFn(state, ...args)
+  combinedReducer.selector = function selector<
+    State extends object,
+    Args extends any[]
+  >(selectorFn: (state: State, ...args: Args) => any) {
+    return (state: State, ...args: Args) =>
+      selectorFn(createStateProxy(state, reducerMap), ...args)
+  }
+
+  // @ts-ignore
+  combinedReducer.selector.original = (state: any) => {
+    if (!isStateProxy(state)) {
+      throw new Error('original must be used on state Proxy')
+    }
+    return state[ORIGINAL_STATE]
+  }
 
   return combinedReducer as any
 }
