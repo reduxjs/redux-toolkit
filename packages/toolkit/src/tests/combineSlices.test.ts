@@ -95,5 +95,21 @@ describe('combineSlices', () => {
         'original must be used on state Proxy'
       )
     })
+    it('allows passing a selectState selector, to handle nested state', () => {
+      const wrappedReducer = combineSlices({
+        inner: combinedReducer,
+      })
+
+      type RootState = ReturnType<typeof wrappedReducer>
+
+      const selector = injectedReducer.selector(
+        (state) => state.boolean,
+        (rootState: RootState) => rootState.inner
+      )
+
+      expect(selector(wrappedReducer(undefined, dummyAction()))).toBe(
+        booleanReducer.getInitialState()
+      )
+    })
   })
 })

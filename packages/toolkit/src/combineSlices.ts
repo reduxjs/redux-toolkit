@@ -9,6 +9,7 @@ import type { Slice } from './createSlice'
 import { nanoid } from './nanoid'
 import type {
   Id,
+  NoInfer,
   UnionToIntersection,
   WithOptionalProp,
   WithRequiredProp,
@@ -117,7 +118,6 @@ interface CombinedSliceReducer<
     InjectedKeys | NewKeys<LazyLoadedState, Slices>
   >
 
-  // TODO: deal with nested state?
   selector: {
     <
       Selected,
@@ -130,6 +130,22 @@ interface CombinedSliceReducer<
     >(
       selectorFn: (state: State, ...args: Args) => Selected
     ): (state: WithOptionalProp<State, InjectedKeys>, ...args: Args) => Selected
+    <
+      Selected,
+      State extends CombinedSliceState<
+        StaticState,
+        LazyLoadedState,
+        InjectedKeys
+      >,
+      RootState,
+      Args extends any[]
+    >(
+      selectorFn: (state: State, ...args: Args) => Selected,
+      selectState: (
+        rootState: RootState,
+        ...args: NoInfer<Args>
+      ) => WithOptionalProp<NoInfer<State>, InjectedKeys>
+    ): (state: RootState, ...args: Args) => Selected
     original: <
       State extends CombinedSliceState<
         StaticState,
@@ -218,11 +234,18 @@ export function combineSlices<
   }
 
   combinedReducer.selector =
-    <State extends object, Args extends any[]>(
-      selectorFn: (state: State, ...args: Args) => any
+    <State extends object, RootState, Args extends any[]>(
+      selectorFn: (state: State, ...args: Args) => any,
+      selectState?: (rootState: RootState, ...args: Args) => State
     ) =>
     (state: State, ...args: Args) =>
-      selectorFn(createStateProxy(state, reducerMap), ...args)
+      selectorFn(
+        createStateProxy(
+          selectState ? selectState(state as any, ...args) : state,
+          reducerMap
+        ),
+        ...args
+      )
 
   // @ts-ignore
   combinedReducer.selector.original = (state: any) => {

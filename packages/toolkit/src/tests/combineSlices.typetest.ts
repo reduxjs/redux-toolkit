@@ -127,17 +127,57 @@ declare const wrongBooleanReducer: Reducer<number>
       WithSlice<typeof numberSlice>
     >()
 
-  const innerSelector = innerReducer
-    .injectSlices(numberSlice)
-    .selector((state) => state.number)
+  const innerSelector = innerReducer.injectSlices(numberSlice).selector(
+    (state) => state.number,
+    (rootState: RootState) => rootState.inner
+  )
 
   const outerReducer = combineSlices({ inner: innerReducer })
 
-  const outerSelector = outerReducer.selector((state) =>
-    innerSelector(state.inner)
-  )
+  type RootState = ReturnType<typeof outerReducer>
 
   expectType<{ inner: { string: string } }>(
     outerReducer(undefined, { type: '' })
+  )
+
+  expectType<number>(innerSelector(outerReducer(undefined, { type: '' })))
+}
+
+/**
+ * Test: selector errors if selectorFn and selectState are mismatched
+ */
+
+{
+  const combinedReducer =
+    combineSlices(stringSlice).withLazyLoadedSlices<
+      WithSlice<typeof numberSlice>
+    >()
+
+  const outerReducer = combineSlices({ inner: combinedReducer })
+
+  type RootState = ReturnType<typeof outerReducer>
+
+  combinedReducer.selector(
+    (state) => state.number,
+    // @ts-expect-error wrong state returned
+    (rootState: RootState) => rootState.inner.number
+  )
+  combinedReducer.selector(
+    (state, num: number) => state.number,
+    // @ts-expect-error wrong arguments
+    (rootState: RootState, str: string) => rootState.inner
+  )
+
+  combinedReducer.selector(
+    (state, num: number) => state.number,
+    (rootState: RootState) => rootState.inner
+  )
+
+  // TODO: see if there's a way of making this work
+  // probably a rare case so not the end of the world if not
+  combinedReducer.selector(
+    (state) => state.number,
+    // @ts-ignore
+    (rootState: RootState, num: number) => rootState.inner
   )
 }
