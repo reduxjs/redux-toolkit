@@ -78,15 +78,17 @@ describe('combineSlices', () => {
     it('ensures state is defined in selector even if action has not been dispatched', () => {
       expect(uninjectedState.boolean).toBe(undefined)
 
-      injectedReducer.selector((state) =>
-        expect(state.boolean).toBe(booleanReducer.getInitialState())
+      const selectBoolean = injectedReducer.selector((state) => state.boolean)
+
+      expect(selectBoolean(uninjectedState)).toBe(
+        booleanReducer.getInitialState()
       )
     })
     it('exposes original to allow for logging', () => {
-      injectedReducer.selector((state) => {
-        expect(state.boolean).toBe(booleanReducer.getInitialState())
-        expect(injectedReducer.selector.original(state).boolean).toBe(undefined)
+      const selectBoolean = injectedReducer.selector((state) => {
+        return injectedReducer.selector.original(state).boolean
       })
+      expect(selectBoolean(uninjectedState)).toBe(undefined)
     })
     it('throws if original is called on something other than state proxy', () => {
       expect(() => injectedReducer.selector.original({} as any)).toThrow(
