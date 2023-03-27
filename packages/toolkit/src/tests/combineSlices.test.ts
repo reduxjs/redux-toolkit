@@ -3,6 +3,8 @@ import { createAction } from '../createAction'
 import { createSlice } from '../createSlice'
 import type { WithSlice } from '../combineSlices'
 import { combineSlices } from '../combineSlices'
+import { expectType } from './helpers'
+import type { CombinedState } from '../query/core/apiState'
 
 const dummyAction = createAction<void>('dummy')
 
@@ -20,16 +22,45 @@ const numberSlice = createSlice({
 
 const booleanReducer = createReducer(false, () => {})
 
+// mimic - we can't use RTKQ here directly
+const api = {
+  reducerPath: 'api' as const,
+  reducer: createReducer(
+    expectType<CombinedState<{}, never, 'api'>>({
+      queries: {},
+      mutations: {},
+      provided: {},
+      subscriptions: {},
+      config: {
+        reducerPath: 'api',
+        online: false,
+        focused: false,
+        keepUnusedDataFor: 60,
+        middlewareRegistered: false,
+        refetchOnMountOrArgChange: false,
+        refetchOnReconnect: false,
+        refetchOnFocus: false,
+      },
+    }),
+    () => {}
+  ),
+}
+
 describe('combineSlices', () => {
   it('calls combineReducers to combine static slices/reducers', () => {
-    const combinedReducer = combineSlices(stringSlice, {
-      num: numberSlice.reducer,
-      boolean: booleanReducer,
-    })
+    const combinedReducer = combineSlices(
+      stringSlice,
+      {
+        num: numberSlice.reducer,
+        boolean: booleanReducer,
+      },
+      api
+    )
     expect(combinedReducer(undefined, dummyAction())).toEqual({
       string: stringSlice.getInitialState(),
       num: numberSlice.getInitialState(),
       boolean: booleanReducer.getInitialState(),
+      api: api.reducer.getInitialState(),
     })
   })
   describe('injectSlices', () => {

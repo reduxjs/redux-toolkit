@@ -1,6 +1,7 @@
 /* eslint-disable no-lone-blocks */
-import type { Reducer, Slice, WithSlice } from '@reduxjs/toolkit'
+import type { Reducer, Slice, WithSlice, WithApi } from '@reduxjs/toolkit'
 import { combineSlices } from '@reduxjs/toolkit'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { expectExactType, expectType } from './helpers'
 
 declare const stringSlice: Slice<string, {}, 'string'>
@@ -9,28 +10,44 @@ declare const numberSlice: Slice<number, {}, 'number'>
 
 declare const booleanReducer: Reducer<boolean>
 
+const exampleApi = createApi({
+  baseQuery: fetchBaseQuery(),
+  endpoints: (build) => ({
+    getThing: build.query({
+      query: () => '',
+    }),
+  }),
+})
+
+type ExampleApiState = ReturnType<typeof exampleApi.reducer>
+
 /**
  * Test: combineSlices correctly combines static state
  */
 {
-  const rootReducer = combineSlices(stringSlice, numberSlice, {
+  const rootReducer = combineSlices(stringSlice, numberSlice, exampleApi, {
     boolean: booleanReducer,
   })
-  expectType<{ string: string; number: number; boolean: boolean }>(
-    rootReducer(undefined, { type: '' })
-  )
+  expectType<{
+    string: string
+    number: number
+    boolean: boolean
+    api: ExampleApiState
+  }>(rootReducer(undefined, { type: '' }))
 }
 
 /**
  * Test: withLazyLoadedSlices adds partial to state
  */
 {
-  const rootReducer =
-    combineSlices(stringSlice).withLazyLoadedSlices<
-      WithSlice<typeof numberSlice>
-    >()
+  const rootReducer = combineSlices(stringSlice).withLazyLoadedSlices<
+    WithSlice<typeof numberSlice> & WithApi<typeof exampleApi>
+  >()
   expectExactType<number | undefined>(0)(
     rootReducer(undefined, { type: '' }).number
+  )
+  expectExactType<ExampleApiState | undefined>(undefined)(
+    rootReducer(undefined, { type: '' }).api
   )
 }
 
@@ -39,7 +56,8 @@ declare const booleanReducer: Reducer<boolean>
  */
 {
   const rootReducer = combineSlices(stringSlice).withLazyLoadedSlices<
-    WithSlice<typeof numberSlice> & { boolean: boolean }
+    WithSlice<typeof numberSlice> &
+      WithApi<typeof exampleApi> & { boolean: boolean }
   >()
 
   expectExactType<number | undefined>(0)(
@@ -48,19 +66,34 @@ declare const booleanReducer: Reducer<boolean>
   expectExactType<boolean | undefined>(true)(
     rootReducer(undefined, { type: '' }).boolean
   )
+  expectExactType<ExampleApiState | undefined>(undefined)(
+    rootReducer(undefined, { type: '' }).api
+  )
 
-  const injectedReducer = rootReducer.injectSlices(numberSlice)
-  expectExactType<number>(0)(injectedReducer(undefined, { type: '' }).number)
+  const withNumber = rootReducer.injectSlices(numberSlice)
+  expectExactType<number>(0)(withNumber(undefined, { type: '' }).number)
 
-  const injectedReducer2 = rootReducer.injectSlices({ boolean: booleanReducer })
-  expectExactType<boolean>(true)(
-    injectedReducer2(undefined, { type: '' }).boolean
+  const withBool = rootReducer.injectSlices({ boolean: booleanReducer })
+  expectExactType<boolean>(true)(withBool(undefined, { type: '' }).boolean)
+
+  const withApi = rootReducer.injectSlices(exampleApi)
+  expectExactType<ExampleApiState>({} as ExampleApiState)(
+    withApi(undefined, { type: '' }).api
   )
 }
 
 declare const wrongNumberSlice: Slice<string, {}, 'number'>
 
 declare const wrongBooleanReducer: Reducer<number>
+
+const wrongApi = createApi({
+  baseQuery: fetchBaseQuery(),
+  endpoints: (build) => ({
+    getThing2: build.query({
+      query: () => '',
+    }),
+  }),
+})
 
 /**
  * Test: slices/reducers can only be injected if first added with withLazyLoadedSlices
@@ -71,24 +104,31 @@ declare const wrongBooleanReducer: Reducer<number>
   // @ts-expect-error number undeclared
   rootReducer.injectSlices(numberSlice)
 
+  // @ts-expect-error api undeclared
+  rootReducer.injectSlices(exampleApi)
+
   // @ts-expect-error boolean undeclared
   rootReducer.injectSlices({
     boolean: booleanReducer,
   })
 
   const withLazy = rootReducer.withLazyLoadedSlices<
-    WithSlice<typeof numberSlice> & { boolean: boolean }
+    WithSlice<typeof numberSlice> &
+      WithApi<typeof exampleApi> & { boolean: boolean }
   >()
 
   // @ts-expect-error right name, wrong state
   withLazy.injectSlices(wrongNumberSlice)
 
   // @ts-expect-error right name, wrong state
+  withLazy.injectSlices(wrongApi)
+
+  // @ts-expect-error right name, wrong state
   withLazy.injectSlices({
     boolean: wrongBooleanReducer,
   })
 
-  withLazy.injectSlices(numberSlice, { boolean: booleanReducer })
+  withLazy.injectSlices(numberSlice, exampleApi, { boolean: booleanReducer })
 }
 
 /**

@@ -15,9 +15,7 @@ import type {
   WithRequiredProp,
 } from './tsHelpers'
 
-type AnySlice = Slice<any, any, any>
-
-type ReducerMap = Record<string, Reducer>
+type AnySlice = Slice<any, any, string>
 
 type SliceState<Sl extends AnySlice> = Sl extends Slice<infer State, any, any>
   ? State
@@ -33,10 +31,38 @@ export type WithSlice<Sl extends AnySlice> = Id<
   }
 >
 
+type Api<ReducerPath extends string, State> = {
+  reducerPath: ReducerPath
+  reducer: Reducer<State>
+}
+
+type AnyApi = Api<string, any>
+
+type ApiReducerPath<A extends AnyApi> = A extends Api<infer ReducerPath, any>
+  ? ReducerPath
+  : never
+
+type ApiState<A extends AnyApi> = A extends Api<any, infer State>
+  ? State
+  : never
+
+export type WithApi<A extends AnyApi> = {
+  [Path in ApiReducerPath<A>]: ApiState<A>
+}
+
+type ReducerMap = Record<string, Reducer>
+
 // only allow injection of slices we've already declared
+
 type LazyLoadedSlice<LazyLoadedState extends Record<string, unknown>> = {
   [Name in keyof LazyLoadedState]: Name extends string
     ? Slice<LazyLoadedState[Name], any, Name>
+    : never
+}[keyof LazyLoadedState]
+
+type LazyLoadedApi<LazyLoadedState extends Record<string, unknown>> = {
+  [Name in keyof LazyLoadedState]: Name extends string
+    ? Api<Name, LazyLoadedState[Name]>
     : never
 }[keyof LazyLoadedState]
 
@@ -55,19 +81,29 @@ type CombinedSliceState<
   >
 >
 
-// Prevent undeclared keys in reducer maps and slices
+// Prevent undeclared keys in reducer maps, apis and slices
 type ValidateReducerMaps<
   LazyLoadedState extends Record<string, unknown>,
   Slices extends [
-    LazyLoadedSlice<LazyLoadedState> | LazyLoadedReducerMap<LazyLoadedState>,
+    (
+      | LazyLoadedSlice<LazyLoadedState>
+      | LazyLoadedApi<LazyLoadedState>
+      | LazyLoadedReducerMap<LazyLoadedState>
+    ),
     ...Array<
-      LazyLoadedSlice<LazyLoadedState> | LazyLoadedReducerMap<LazyLoadedState>
+      | LazyLoadedSlice<LazyLoadedState>
+      | LazyLoadedApi<LazyLoadedState>
+      | LazyLoadedReducerMap<LazyLoadedState>
     >
   ]
 > = Slices &
   {
     [Index in keyof Slices]: Slices[Index] extends AnySlice
       ? SliceName<Slices[Index]> extends keyof LazyLoadedState
+        ? {}
+        : never
+      : Slices[Index] extends AnyApi
+      ? ApiReducerPath<Slices[Index]> extends keyof LazyLoadedState
         ? {}
         : never
       : {
@@ -80,14 +116,22 @@ type ValidateReducerMaps<
 type NewKeys<
   LazyLoadedState extends Record<string, unknown>,
   Slices extends [
-    LazyLoadedSlice<LazyLoadedState> | LazyLoadedReducerMap<LazyLoadedState>,
+    (
+      | LazyLoadedSlice<LazyLoadedState>
+      | LazyLoadedApi<LazyLoadedState>
+      | LazyLoadedReducerMap<LazyLoadedState>
+    ),
     ...Array<
-      LazyLoadedSlice<LazyLoadedState> | LazyLoadedReducerMap<LazyLoadedState>
+      | LazyLoadedSlice<LazyLoadedState>
+      | LazyLoadedApi<LazyLoadedState>
+      | LazyLoadedReducerMap<LazyLoadedState>
     >
   ]
 > = Slices[number] extends infer Slice
   ? Slice extends AnySlice
     ? SliceName<Slice>
+    : Slice extends AnyApi
+    ? ApiReducerPath<Slice>
     : keyof Slice
   : never
 
@@ -137,18 +181,24 @@ interface CombinedSliceReducer<
   /**
    * Inject slices/reducers previously declared with `withLazyLoadedSlices`.
    *
-   * Accepts same parameters as `combineSlices` - each can be an individual slice, or an object mapping from key to reducer.
+   * Accepts same parameters as `combineSlices` - each can be an individual slice, an RTKQ api instance, or an object mapping from key to reducer.
    *
    * ```ts
-   * rootReducer.injectSlices(booleanSlice, { custom: customSlice.reducer })
+   * rootReducer.injectSlices(booleanSlice, baseApi, { custom: customSlice.reducer })
    * ```
    *
    */
   injectSlices<
     Slices extends [
-      LazyLoadedSlice<LazyLoadedState> | LazyLoadedReducerMap<LazyLoadedState>,
+      (
+        | LazyLoadedSlice<LazyLoadedState>
+        | LazyLoadedApi<LazyLoadedState>
+        | LazyLoadedReducerMap<LazyLoadedState>
+      ),
       ...Array<
-        LazyLoadedSlice<LazyLoadedState> | LazyLoadedReducerMap<LazyLoadedState>
+        | LazyLoadedSlice<LazyLoadedState>
+        | LazyLoadedApi<LazyLoadedState>
+        | LazyLoadedReducerMap<LazyLoadedState>
       >
     ]
   >(
@@ -337,23 +387,31 @@ interface CombinedSliceReducer<
   }
 }
 
-type StaticState<
-  Slices extends [AnySlice | ReducerMap, ...Array<AnySlice | ReducerMap>]
-> = UnionToIntersection<
-  Slices[number] extends infer Slice
-    ? Slice extends AnySlice
-      ? WithSlice<Slice>
-      : StateFromReducersMapObject<Slice>
-    : never
->
+type StaticState<Slices extends Array<AnySlice | AnyApi | ReducerMap>> =
+  UnionToIntersection<
+    Slices[number] extends infer Slice
+      ? Slice extends AnySlice
+        ? WithSlice<Slice>
+        : Slice extends AnyApi
+        ? WithApi<Slice>
+        : StateFromReducersMapObject<Slice>
+      : never
+  >
 
-const isSlice = (maybeSlice: AnySlice | ReducerMap): maybeSlice is AnySlice =>
-  typeof maybeSlice.actions === 'object'
+const isSlice = (
+  maybeSlice: AnySlice | AnyApi | ReducerMap
+): maybeSlice is AnySlice =>
+  'actions' in maybeSlice && typeof maybeSlice.actions === 'object'
 
-const getReducers = (slices: Array<AnySlice | ReducerMap>) =>
+const isApi = (maybeApi: AnySlice | AnyApi | ReducerMap): maybeApi is AnyApi =>
+  'reducerPath' in maybeApi && typeof maybeApi.reducerPath === 'string'
+
+const getReducers = (slices: Array<AnySlice | AnyApi | ReducerMap>) =>
   slices.flatMap((sliceOrMap) =>
     isSlice(sliceOrMap)
       ? [[sliceOrMap.name, sliceOrMap.reducer] as const]
+      : isApi(sliceOrMap)
+      ? [[sliceOrMap.reducerPath, sliceOrMap.reducer] as const]
       : Object.entries(sliceOrMap)
   )
 
@@ -381,7 +439,7 @@ const createStateProxy = <State extends object>(
   })
 
 export function combineSlices<
-  Slices extends [AnySlice | ReducerMap, ...Array<AnySlice | ReducerMap>]
+  Slices extends Array<AnySlice | AnyApi | ReducerMap>
 >(...slices: Slices): CombinedSliceReducer<Id<StaticState<Slices>>> {
   const reducerMap = Object.fromEntries<Reducer>(getReducers(slices))
 
@@ -395,7 +453,9 @@ export function combineSlices<
 
   combinedReducer.withLazyLoadedSlices = () => combinedReducer
 
-  combinedReducer.injectSlices = (...slices: Array<AnySlice | ReducerMap>) => {
+  combinedReducer.injectSlices = (
+    ...slices: Array<AnySlice | AnyApi | ReducerMap>
+  ) => {
     for (const [name, newReducer] of getReducers(slices)) {
       if (process.env.NODE_ENV !== 'production') {
         const currentReducer = reducerMap[name]

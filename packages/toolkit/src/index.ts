@@ -187,4 +187,4 @@ export type { AutoBatchOptions } from './autoBatchEnhancer'
 
 export { combineSlices } from './combineSlices'
 
-export type { WithSlice } from './combineSlices'
+export type { WithSlice, WithApi } from './combineSlices'
