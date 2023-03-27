@@ -246,14 +246,13 @@ export function combineSlices<
         ),
         ...args
       )
-
-  // @ts-ignore
-  combinedReducer.selector.original = (state: any) => {
-    if (!isStateProxy(state)) {
-      throw new Error('original must be used on state Proxy')
+  ;(combinedReducer.selector as CombinedSliceReducer<{}>['selector']).original =
+    (state: any) => {
+      if (!isStateProxy(state)) {
+        throw new Error('original must be used on state Proxy')
+      }
+      return state[ORIGINAL_STATE]
     }
-    return state[ORIGINAL_STATE]
-  }
 
   return combinedReducer as any
 }
