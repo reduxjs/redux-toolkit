@@ -78,28 +78,30 @@ describe('combineSlices', () => {
         numberSlice.getInitialState()
       )
     })
-    it('throws error when same name is used for different reducers', () => {
+    it('logs error when same name is used for different reducers', () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
       const combinedReducer =
         combineSlices(stringSlice).withLazyLoadedSlices<{ boolean: boolean }>()
 
       combinedReducer.inject({ name: 'boolean', reducer: booleanReducer })
 
-      expect(() =>
-        combinedReducer.inject({
-          name: 'boolean',
-          reducer: booleanReducer,
-        })
-      ).not.toThrow()
+      combinedReducer.inject({
+        name: 'boolean',
+        reducer: booleanReducer,
+      })
 
-      expect(() =>
-        // @ts-expect-error wrong reducer
-        combinedReducer.inject({
-          name: 'boolean',
-          reducer: stringSlice.reducer,
-        })
-      ).toThrow(
-        "Name 'boolean' has already been injected with different reducer instance"
+      expect(spy).not.toHaveBeenCalled()
+
+      // @ts-expect-error wrong reducer
+      combinedReducer.inject({
+        name: 'boolean',
+        reducer: stringSlice.reducer,
+      })
+
+      expect(spy).toHaveBeenCalledWith(
+        `called \`inject\` to override already-existing reducer boolean without specifying \`overrideExisting: true\``
       )
+      spy.mockRestore()
     })
     it('allows replacement of reducers if overrideExisting is true', () => {
       const combinedReducer = combineSlices(stringSlice).withLazyLoadedSlices<
