@@ -5,7 +5,6 @@ import type {
   StateFromReducersMapObject,
 } from 'redux'
 import { combineReducers } from 'redux'
-import type { Slice } from './createSlice'
 import { nanoid } from './nanoid'
 import type {
   Id,
@@ -15,13 +14,18 @@ import type {
   WithRequiredProp,
 } from './tsHelpers'
 
-type AnySlice = Slice<any, any, string>
+type Slice<Name extends string, State> = {
+  name: Name
+  reducer: Reducer<State>
+}
 
-type SliceState<Sl extends AnySlice> = Sl extends Slice<infer State, any, any>
+type AnySlice = Slice<string, any>
+
+type SliceState<Sl extends AnySlice> = Sl extends Slice<any, infer State>
   ? State
   : never
 
-type SliceName<Sl extends AnySlice> = Sl extends Slice<any, any, infer Name>
+type SliceName<Sl extends AnySlice> = Sl extends Slice<infer Name, any>
   ? Name
   : never
 
@@ -56,7 +60,7 @@ type ReducerMap = Record<string, Reducer>
 
 type LazyLoadedSlice<LazyLoadedState extends Record<string, unknown>> = {
   [Name in keyof LazyLoadedState]: Name extends string
-    ? Slice<LazyLoadedState[Name], any, Name>
+    ? Slice<Name, LazyLoadedState[Name]>
     : never
 }[keyof LazyLoadedState]
 
@@ -66,8 +70,11 @@ type LazyLoadedApi<LazyLoadedState extends Record<string, unknown>> = {
     : never
 }[keyof LazyLoadedState]
 
-type LazyLoadedReducerMap<LazyLoadedState extends Record<string, unknown>> = {
-  [Name in keyof LazyLoadedState]?: Reducer<LazyLoadedState[Name]>
+type InjectConfig = {
+  /**
+   * Allow replacing reducer with a different reference. Normally, an error will be thrown if a different reducer instance to the one already injected is used.
+   */
+  allowReplace?: boolean
 }
 
 type CombinedSliceState<
@@ -80,60 +87,6 @@ type CombinedSliceState<
     StaticState & WithRequiredProp<Partial<LazyLoadedState>, InjectedKeys>
   >
 >
-
-// Prevent undeclared keys in reducer maps, apis and slices
-type ValidateReducerMaps<
-  LazyLoadedState extends Record<string, unknown>,
-  Slices extends [
-    (
-      | LazyLoadedSlice<LazyLoadedState>
-      | LazyLoadedApi<LazyLoadedState>
-      | LazyLoadedReducerMap<LazyLoadedState>
-    ),
-    ...Array<
-      | LazyLoadedSlice<LazyLoadedState>
-      | LazyLoadedApi<LazyLoadedState>
-      | LazyLoadedReducerMap<LazyLoadedState>
-    >
-  ]
-> = Slices &
-  {
-    [Index in keyof Slices]: Slices[Index] extends AnySlice
-      ? SliceName<Slices[Index]> extends keyof LazyLoadedState
-        ? {}
-        : never
-      : Slices[Index] extends AnyApi
-      ? ApiReducerPath<Slices[Index]> extends keyof LazyLoadedState
-        ? {}
-        : never
-      : {
-          [Name in keyof Slices[Index]]: Name extends keyof LazyLoadedState
-            ? Reducer
-            : never
-        }
-  }
-
-type NewKeys<
-  LazyLoadedState extends Record<string, unknown>,
-  Slices extends [
-    (
-      | LazyLoadedSlice<LazyLoadedState>
-      | LazyLoadedApi<LazyLoadedState>
-      | LazyLoadedReducerMap<LazyLoadedState>
-    ),
-    ...Array<
-      | LazyLoadedSlice<LazyLoadedState>
-      | LazyLoadedApi<LazyLoadedState>
-      | LazyLoadedReducerMap<LazyLoadedState>
-    >
-  ]
-> = Slices[number] extends infer Slice
-  ? Slice extends AnySlice
-    ? SliceName<Slice>
-    : Slice extends AnyApi
-    ? ApiReducerPath<Slice>
-    : keyof Slice
-  : never
 
 /**
  * A reducer that allows for slices/reducers to be injected after initialisation.
@@ -162,7 +115,7 @@ interface CombinedSliceReducer<
    *   export interface LazyLoadedSlices extends WithSlice<typeof booleanSlice> {}
    * }
    *
-   * const withBoolean = rootReducer.injectSlices(booleanSlice);
+   * const withBoolean = rootReducer.injectSlice(booleanSlice);
    *
    * // elsewhere again
    *
@@ -172,41 +125,48 @@ interface CombinedSliceReducer<
    *   }
    * }
    *
-   * const withCustom = rootReducer.injectSlices({ customName: customSlice.reducer })
+   * const withCustom = rootReducer.injectSlice({ name: "customName", reducer: customSlice.reducer })
    * ```
    */
   withLazyLoadedSlices<
     Lazy extends Record<string, unknown> = {}
   >(): CombinedSliceReducer<StaticState, LazyLoadedState & Lazy, InjectedKeys>
+
   /**
-   * Inject slices/reducers previously declared with `withLazyLoadedSlices`.
+   * Inject a slice previously declared with `withLazyLoadedSlices`.
    *
-   * Accepts same parameters as `combineSlices` - each can be an individual slice, an RTKQ api instance, or an object mapping from key to reducer.
+   * Accepts an individual slice, or a { name, reducer } object.
    *
    * ```ts
-   * rootReducer.injectSlices(booleanSlice, baseApi, { custom: customSlice.reducer })
+   * rootReducer.injectSlice(booleanSlice)
+   * rootReducer.injectSlice({ name: 'boolean', reducer: newReducer }, { allowReplace: true })
    * ```
    *
    */
-  injectSlices<
-    Slices extends [
-      (
-        | LazyLoadedSlice<LazyLoadedState>
-        | LazyLoadedApi<LazyLoadedState>
-        | LazyLoadedReducerMap<LazyLoadedState>
-      ),
-      ...Array<
-        | LazyLoadedSlice<LazyLoadedState>
-        | LazyLoadedApi<LazyLoadedState>
-        | LazyLoadedReducerMap<LazyLoadedState>
-      >
-    ]
-  >(
-    ...slices: ValidateReducerMaps<LazyLoadedState, Slices>
+  injectSlice<Sl extends LazyLoadedSlice<StaticState & LazyLoadedState>>(
+    slice: Sl,
+    config?: InjectConfig
   ): CombinedSliceReducer<
     StaticState,
     LazyLoadedState,
-    InjectedKeys | NewKeys<LazyLoadedState, Slices>
+    InjectedKeys | SliceName<Sl>
+  >
+
+  /**
+   * Inject an RTKQ API instance previously declared with `withLazyLoadedSlices`.
+   *
+   * ```ts
+   * rootReducer.injectSlice(baseApi)
+   * ```
+   *
+   */
+  injectSlice<A extends LazyLoadedApi<StaticState & LazyLoadedState>>(
+    slice: A,
+    config?: InjectConfig
+  ): CombinedSliceReducer<
+    StaticState,
+    LazyLoadedState,
+    InjectedKeys | ApiReducerPath<A>
   >
 
   /**
@@ -216,7 +176,7 @@ interface CombinedSliceReducer<
    * const selectBooleanWithoutInjection = (state: RootState) => state.boolean;
    * //                                                                ^? boolean | undefined
    *
-   * const selectBoolean = rootReducer.injectSlices(booleanSlice).selector((state) => {
+   * const selectBoolean = rootReducer.injectSlice(booleanSlice).selector((state) => {
    *   // if action hasn't been dispatched since slice was injected, this would usually be undefined
    *   // however selector() uses a Proxy around the first parameter to ensure that it evaluates to the initial state instead, if undefined
    *   return state.boolean;
@@ -242,7 +202,7 @@ interface CombinedSliceReducer<
    *  export interface LazyLoadedSlices extends WithSlice<typeof booleanSlice> {}
    * }
    *
-   * const withBool = innerReducer.injectSlices(booleanSlice);
+   * const withBool = innerReducer.injectSlice(booleanSlice);
    *
    * const selectBoolean = withBool.selector(
    *   (state) => state.boolean,
@@ -255,7 +215,7 @@ interface CombinedSliceReducer<
    * Value passed to selectorFn will be a Proxy - use selector.original(proxy) to get original state value (useful for debugging)
    *
    * ```ts
-   * const injectedReducer = rootReducer.injectSlices(booleanSlice);
+   * const injectedReducer = rootReducer.injectSlice(booleanSlice);
    * const selectBoolean = injectedReducer.selector((state) => {
    *   console.log(injectedReducer.selector.original(state).boolean) // possibly undefined
    *   return state.boolean
@@ -270,7 +230,7 @@ interface CombinedSliceReducer<
      * const selectBooleanWithoutInjection = (state: RootState) => state.boolean;
      * //                                                                ^? boolean | undefined
      *
-     * const selectBoolean = rootReducer.injectSlices(booleanSlice).selector((state) => {
+     * const selectBoolean = rootReducer.injectSlice(booleanSlice).selector((state) => {
      *   // if action hasn't been dispatched since slice was injected, this would usually be undefined
      *   // however selector() uses a Proxy around the first parameter to ensure that it evaluates to the initial state instead, if undefined
      *   return state.boolean;
@@ -281,7 +241,7 @@ interface CombinedSliceReducer<
      * Value passed to selectorFn will be a Proxy - use selector.original(proxy) to get original state value (useful for debugging)
      *
      * ```ts
-     * const injectedReducer = rootReducer.injectSlices(booleanSlice);
+     * const injectedReducer = rootReducer.injectSlice(booleanSlice);
      * const selectBoolean = injectedReducer.selector((state) => {
      *   console.log(injectedReducer.selector.original(state).boolean) // undefined
      *   return state.boolean
@@ -307,7 +267,7 @@ interface CombinedSliceReducer<
      * const selectBooleanWithoutInjection = (state: RootState) => state.boolean;
      * //                                                                ^? boolean | undefined
      *
-     * const selectBoolean = rootReducer.injectSlices(booleanSlice).selector((state) => {
+     * const selectBoolean = rootReducer.injectSlice(booleanSlice).selector((state) => {
      *   // if action hasn't been dispatched since slice was injected, this would usually be undefined
      *   // however selector() uses a Proxy around the first parameter to ensure that it evaluates to the initial state instead, if undefined
      *   return state.boolean;
@@ -333,7 +293,7 @@ interface CombinedSliceReducer<
      *  interface LazyLoadedSlices extends WithSlice<typeof booleanSlice> {}
      * }
      *
-     * const withBool = innerReducer.injectSlices(booleanSlice);
+     * const withBool = innerReducer.injectSlice(booleanSlice);
      *
      * const selectBoolean = withBool.selector(
      *   (state) => state.boolean,
@@ -346,7 +306,7 @@ interface CombinedSliceReducer<
      * Value passed to selectorFn will be a Proxy - use selector.original(proxy) to get original state value (useful for debugging)
      *
      * ```ts
-     * const injectedReducer = rootReducer.injectSlices(booleanSlice);
+     * const injectedReducer = rootReducer.injectSlice(booleanSlice);
      * const selectBoolean = injectedReducer.selector((state) => {
      *   console.log(injectedReducer.selector.original(state).boolean) // possibly undefined
      *   return state.boolean
@@ -401,7 +361,7 @@ type StaticState<Slices extends Array<AnySlice | AnyApi | ReducerMap>> =
 const isSlice = (
   maybeSlice: AnySlice | AnyApi | ReducerMap
 ): maybeSlice is AnySlice =>
-  'actions' in maybeSlice && typeof maybeSlice.actions === 'object'
+  'name' in maybeSlice && typeof maybeSlice.name === 'string'
 
 const isApi = (maybeApi: AnySlice | AnyApi | ReducerMap): maybeApi is AnyApi =>
   'reducerPath' in maybeApi && typeof maybeApi.reducerPath === 'string'
@@ -414,48 +374,6 @@ const getReducers = (slices: Array<AnySlice | AnyApi | ReducerMap>) =>
       ? [[sliceOrMap.reducerPath, sliceOrMap.reducer] as const]
       : Object.entries(sliceOrMap)
   )
-
-const IS_REPLACEABLE = Symbol.for('rtk-is-replaceable')
-const ORIGINAL_REDUCER = Symbol.for('rtk-reducer-proxy-original')
-
-const reducerProxyMap = new WeakMap<Reducer, Reducer>()
-
-const makeReducerProxy = <R extends Reducer>(reducer: R): R => {
-  let proxy = reducerProxyMap.get(reducer)
-  if (!proxy) {
-    proxy = new Proxy(reducer, {
-      get: (target, prop, receiver) => {
-        if (prop === IS_REPLACEABLE) return true
-        if (prop === ORIGINAL_REDUCER) return target
-        return Reflect.get(target, prop, receiver)
-      },
-    })
-    reducerProxyMap.set(reducer, proxy)
-  }
-  return proxy as R
-}
-
-/**
- * Marks a slice/api/reducer as replaceable, so injectSlices won't throw an error when a new reducer instance is injected with the same name
- *
- * ```ts
- * injectSlices(markReplaceable(fooSlice), markReplaceable(fooApi), { custom: markReplaceable(fooReducer) })
- * ```
- *
- */
-export const markReplaceable = <Input extends AnySlice | AnyApi | Reducer>(
-  input: Input
-): Input => {
-  if ('reducer' in input) {
-    return {
-      ...input,
-      reducer: makeReducerProxy(input.reducer),
-    }
-  }
-  return makeReducerProxy(input) as Input
-}
-
-const isReplaceable = (reducer: Reducer) => !!(reducer as any)[IS_REPLACEABLE]
 
 const ORIGINAL_STATE = Symbol.for('rtk-state-proxy-original')
 
@@ -520,30 +438,39 @@ export function combineSlices<
 
   combinedReducer.withLazyLoadedSlices = () => combinedReducer
 
-  combinedReducer.injectSlices = (
-    ...slices: Array<AnySlice | AnyApi | ReducerMap>
-  ) => {
-    for (const [name, newReducer] of getReducers(slices)) {
-      if (process.env.NODE_ENV !== 'production') {
-        const currentReducer = reducerMap[name]
-        if (
-          currentReducer &&
-          !isReplaceable(currentReducer) &&
-          currentReducer !== newReducer
-        ) {
-          throw new Error(
-            `Name '${name}' has already been injected with different reducer instance`
-          )
-        }
-      }
-      reducerMap[name] = newReducer
+  const injectSlice = (
+    slice: AnySlice | AnyApi,
+    config: InjectConfig = {}
+  ): typeof combinedReducer => {
+    if (isApi(slice)) {
+      return injectSlice(
+        {
+          name: slice.reducerPath,
+          reducer: slice.reducer,
+        },
+        config
+      )
     }
+
+    const { name, reducer: reducerToInject } = slice
+
+    if (process.env.NODE_ENV !== 'production' && !config.allowReplace) {
+      const currentReducer = reducerMap[name]
+      if (currentReducer && currentReducer !== reducerToInject) {
+        throw new Error(
+          `Name '${name}' has already been injected with different reducer instance`
+        )
+      }
+    }
+
+    reducerMap[name] = reducerToInject
+
     reducer = getReducer()
 
     return combinedReducer
   }
 
-  combinedReducer.selector = Object.assign(
+  const selector = Object.assign(
     function makeSelector<State extends object, RootState, Args extends any[]>(
       selectorFn: (state: State, ...args: Args) => any,
       selectState?: (rootState: RootState, ...args: Args) => State
@@ -561,5 +488,5 @@ export function combineSlices<
     { original }
   )
 
-  return combinedReducer as any
+  return Object.assign(combinedReducer, { injectSlice, selector }) as any
 }

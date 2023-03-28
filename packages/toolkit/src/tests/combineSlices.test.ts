@@ -2,7 +2,6 @@ import { createReducer } from '../createReducer'
 import { createAction } from '../createAction'
 import { createSlice } from '../createSlice'
 import type { WithApi, WithSlice } from '../combineSlices'
-import { markReplaceable } from '../combineSlices'
 import { combineSlices } from '../combineSlices'
 import { expectType } from './helpers'
 import type { CombinedState } from '../query/core/apiState'
@@ -73,7 +72,7 @@ describe('combineSlices', () => {
 
       expect(combinedReducer(undefined, dummyAction()).number).toBe(undefined)
 
-      const injectedReducer = combinedReducer.injectSlices(numberSlice)
+      const injectedReducer = combinedReducer.injectSlice(numberSlice)
 
       expect(injectedReducer(undefined, dummyAction()).number).toBe(
         numberSlice.getInitialState()
@@ -83,15 +82,21 @@ describe('combineSlices', () => {
       const combinedReducer =
         combineSlices(stringSlice).withLazyLoadedSlices<{ boolean: boolean }>()
 
-      combinedReducer.injectSlices({ boolean: booleanReducer })
+      combinedReducer.injectSlice({ name: 'boolean', reducer: booleanReducer })
 
       expect(() =>
-        combinedReducer.injectSlices({ boolean: booleanReducer })
+        combinedReducer.injectSlice({
+          name: 'boolean',
+          reducer: booleanReducer,
+        })
       ).not.toThrow()
 
       expect(() =>
         // @ts-expect-error wrong reducer
-        combinedReducer.injectSlices({ boolean: stringSlice.reducer })
+        combinedReducer.injectSlice({
+          name: 'boolean',
+          reducer: stringSlice.reducer,
+        })
       ).toThrow(
         "Name 'boolean' has already been injected with different reducer instance"
       )
@@ -102,21 +107,16 @@ describe('combineSlices', () => {
           WithApi<typeof api> & { boolean: boolean }
       >()
 
-      combinedReducer.injectSlices(
-        markReplaceable(numberSlice),
-        markReplaceable(api),
-        { boolean: markReplaceable(booleanReducer) }
-      )
+      combinedReducer.injectSlice(numberSlice)
 
       // for brevity
       const anyReducer = createReducer({} as any, () => {})
 
       expect(() =>
-        combinedReducer.injectSlices({
-          number: anyReducer,
-          api: anyReducer,
-          boolean: anyReducer,
-        })
+        combinedReducer.injectSlice(
+          { name: 'number', reducer: anyReducer },
+          { allowReplace: true }
+        )
       ).not.toThrow()
     })
   })
@@ -126,8 +126,9 @@ describe('combineSlices', () => {
 
     const uninjectedState = combinedReducer(undefined, dummyAction())
 
-    const injectedReducer = combinedReducer.injectSlices({
-      boolean: booleanReducer,
+    const injectedReducer = combinedReducer.injectSlice({
+      name: 'boolean',
+      reducer: booleanReducer,
     })
 
     it('ensures state is defined in selector even if action has not been dispatched', () => {

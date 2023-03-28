@@ -70,13 +70,16 @@ type ExampleApiState = ReturnType<typeof exampleApi.reducer>
     rootReducer(undefined, { type: '' }).api
   )
 
-  const withNumber = rootReducer.injectSlices(numberSlice)
+  const withNumber = rootReducer.injectSlice(numberSlice)
   expectExactType<number>(0)(withNumber(undefined, { type: '' }).number)
 
-  const withBool = rootReducer.injectSlices({ boolean: booleanReducer })
+  const withBool = rootReducer.injectSlice({
+    name: 'boolean',
+    reducer: booleanReducer,
+  })
   expectExactType<boolean>(true)(withBool(undefined, { type: '' }).boolean)
 
-  const withApi = rootReducer.injectSlices(exampleApi)
+  const withApi = rootReducer.injectSlice(exampleApi)
   expectExactType<ExampleApiState>({} as ExampleApiState)(
     withApi(undefined, { type: '' }).api
   )
@@ -128,7 +131,10 @@ const wrongApi = createApi({
     boolean: wrongBooleanReducer,
   })
 
-  withLazy.injectSlices(numberSlice, exampleApi, { boolean: booleanReducer })
+  withLazy
+    .injectSlice(numberSlice)
+    .injectSlice(exampleApi)
+    .injectSlice({ name: 'boolean', reducer: booleanReducer })
 }
 
 /**
@@ -150,7 +156,7 @@ const wrongApi = createApi({
   )
 
   const withInjection = rootReducer
-    .injectSlices(numberSlice)
+    .injectSlice(numberSlice)
     .selector((state) => state.number)
 
   expectExactType<number>(0)(
@@ -167,7 +173,7 @@ const wrongApi = createApi({
       WithSlice<typeof numberSlice>
     >()
 
-  const innerSelector = innerReducer.injectSlices(numberSlice).selector(
+  const innerSelector = innerReducer.injectSlice(numberSlice).selector(
     (state) => state.number,
     (rootState: RootState) => rootState.inner
   )
