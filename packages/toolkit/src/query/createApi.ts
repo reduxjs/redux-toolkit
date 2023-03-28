@@ -287,13 +287,24 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
 
     const api = {
       injectEndpoints,
+      addTagTypes(...addTagTypes) {
+        for (const eT of addTagTypes) {
+          if (!optionsWithDefaults.tagTypes!.includes(eT as any)) {
+            ;(optionsWithDefaults.tagTypes as any[]).push(eT)
+          }
+        }
+        return api
+      },
+      enhanceEndpoint(endpointName, partialDefinition) {
+        Object.assign(
+          context.endpointDefinitions[endpointName] || {},
+          partialDefinition
+        )
+        return api
+      },
       enhanceEndpoints({ addTagTypes, endpoints }) {
         if (addTagTypes) {
-          for (const eT of addTagTypes) {
-            if (!optionsWithDefaults.tagTypes!.includes(eT as any)) {
-              ;(optionsWithDefaults.tagTypes as any[]).push(eT)
-            }
-          }
+          api.addTagTypes(...addTagTypes)
         }
         if (endpoints) {
           for (const [endpointName, partialDefinition] of Object.entries(
@@ -302,8 +313,9 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
             if (typeof partialDefinition === 'function') {
               partialDefinition(context.endpointDefinitions[endpointName])
             } else {
-              Object.assign(
-                context.endpointDefinitions[endpointName] || {},
+              // @ts-expect-error Type 'string' does not satisfy the constraint 'never'.
+              api.enhanceEndpoint<string, unknown, unknown>(
+                endpointName,
                 partialDefinition
               )
             }

@@ -47,3 +47,7 @@ export type IsAny<T, True, False = never> = true | false extends (
   : False
 
 export type CastAny<T, CastTo> = IsAny<T, CastTo, T>
+
+export type OverrideAtKey<Type, Key, NewKeyType> = {
+  [K in keyof Type]: Key extends K ? NewKeyType : Type[K]
+}

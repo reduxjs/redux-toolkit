@@ -3,16 +3,21 @@ import type {
   EndpointBuilder,
   EndpointDefinition,
   ReplaceTagTypes,
+  ResultTypeFrom,
+  QueryArgFrom,
+  QueryDefinition,
+  MutationDefinition,
 } from './endpointDefinitions'
 import type {
   UnionToIntersection,
   NoInfer,
   WithRequiredProp,
+  OverrideAtKey,
 } from './tsHelpers'
 import type { CoreModule } from './core/module'
 import type { CreateApiOptions } from './createApi'
 import type { BaseQueryFn } from './baseQueryTypes'
-import type { CombinedState } from './core/apiState'
+import type { CombinedState, MutationKeys, QueryKeys } from './core/apiState'
 import type { AnyAction } from '@reduxjs/toolkit'
 
 export interface ApiModules<
@@ -92,6 +97,8 @@ export type Api<
   >
   /**
    *A function to enhance a generated API with additional information. Useful with code-generation.
+
+   @deprecated this will be replaced by `addTagTypes` and `enhanceEndpoint`
    */
   enhanceEndpoints<NewTagTypes extends string = never>(_: {
     addTagTypes?: readonly NewTagTypes[]
@@ -110,6 +117,67 @@ export type Api<
     ReplaceTagTypes<Definitions, TagTypes | NewTagTypes>,
     ReducerPath,
     TagTypes | NewTagTypes,
+    Enhancers
+  >
+
+  /**
+   *A function to enhance a generated API with additional information. Useful with code-generation.
+   */
+  addTagTypes<NewTagTypes extends string = never>(
+    ...addTagTypes: readonly NewTagTypes[]
+  ): Api<
+    BaseQuery,
+    ReplaceTagTypes<Definitions, TagTypes | NewTagTypes>,
+    ReducerPath,
+    TagTypes | NewTagTypes,
+    Enhancers
+  >
+
+  /**
+   *A function to enhance a generated API with additional information. Useful with code-generation.
+   */
+  enhanceEndpoint<
+    QueryName extends QueryKeys<Definitions>,
+    ResultType = ResultTypeFrom<Definitions[QueryName]>,
+    QueryArg = QueryArgFrom<Definitions[QueryName]>
+  >(
+    queryName: QueryName,
+    queryDefinition: Partial<
+      QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+    >
+  ): Api<
+    BaseQuery,
+    OverrideAtKey<
+      Definitions,
+      QueryName,
+      QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+    >,
+    ReducerPath,
+    TagTypes,
+    Enhancers
+  >
+
+  /**
+   *A function to enhance a generated API with additional information. Useful with code-generation.
+   */
+  enhanceEndpoint<
+    MutationName extends MutationKeys<Definitions>,
+    ResultType = ResultTypeFrom<Definitions[MutationName]>,
+    QueryArg = QueryArgFrom<Definitions[MutationName]>
+  >(
+    mutationName: MutationName,
+    mutationDefinition: Partial<
+      MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+    >
+  ): Api<
+    BaseQuery,
+    OverrideAtKey<
+      Definitions,
+      MutationName,
+      MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+    >,
+    ReducerPath,
+    TagTypes,
     Enhancers
   >
 }
