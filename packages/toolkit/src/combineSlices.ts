@@ -78,13 +78,13 @@ type InjectConfig = {
 }
 
 type CombinedSliceState<
-  StaticState,
+  InitialState,
   LazyLoadedState extends Record<string, unknown> = {},
   InjectedKeys extends keyof LazyLoadedState = never
 > = Id<
   // TODO: use PreloadedState generic instead
   CombinedState<
-    StaticState & WithRequiredProp<Partial<LazyLoadedState>, InjectedKeys>
+    InitialState & WithRequiredProp<Partial<LazyLoadedState>, InjectedKeys>
   >
 >
 
@@ -92,11 +92,11 @@ type CombinedSliceState<
  * A reducer that allows for slices/reducers to be injected after initialisation.
  */
 interface CombinedSliceReducer<
-  StaticState,
+  InitialState,
   LazyLoadedState extends Record<string, unknown> = {},
   InjectedKeys extends keyof LazyLoadedState = never
 > extends Reducer<
-    CombinedSliceState<StaticState, LazyLoadedState, InjectedKeys>,
+    CombinedSliceState<InitialState, LazyLoadedState, InjectedKeys>,
     AnyAction
   > {
   /**
@@ -130,7 +130,7 @@ interface CombinedSliceReducer<
    */
   withLazyLoadedSlices<
     Lazy extends Record<string, unknown> = {}
-  >(): CombinedSliceReducer<StaticState, LazyLoadedState & Lazy, InjectedKeys>
+  >(): CombinedSliceReducer<InitialState, LazyLoadedState & Lazy, InjectedKeys>
 
   /**
    * Inject a slice previously declared with `withLazyLoadedSlices`.
@@ -143,11 +143,11 @@ interface CombinedSliceReducer<
    * ```
    *
    */
-  injectSlice<Sl extends LazyLoadedSlice<StaticState & LazyLoadedState>>(
+  injectSlice<Sl extends LazyLoadedSlice<InitialState & LazyLoadedState>>(
     slice: Sl,
     config?: InjectConfig
   ): CombinedSliceReducer<
-    StaticState,
+    InitialState,
     LazyLoadedState,
     InjectedKeys | SliceName<Sl>
   >
@@ -160,11 +160,11 @@ interface CombinedSliceReducer<
    * ```
    *
    */
-  injectSlice<A extends LazyLoadedApi<StaticState & LazyLoadedState>>(
+  injectSlice<A extends LazyLoadedApi<InitialState & LazyLoadedState>>(
     slice: A,
     config?: InjectConfig
   ): CombinedSliceReducer<
-    StaticState,
+    InitialState,
     LazyLoadedState,
     InjectedKeys | ApiReducerPath<A>
   >
@@ -251,7 +251,7 @@ interface CombinedSliceReducer<
     <
       Selected,
       State extends CombinedSliceState<
-        StaticState,
+        InitialState,
         LazyLoadedState,
         InjectedKeys
       >,
@@ -316,7 +316,7 @@ interface CombinedSliceReducer<
     <
       Selected,
       State extends CombinedSliceState<
-        StaticState,
+        InitialState,
         LazyLoadedState,
         InjectedKeys
       >,
@@ -337,7 +337,7 @@ interface CombinedSliceReducer<
      */
     original: <
       State extends CombinedSliceState<
-        StaticState,
+        InitialState,
         LazyLoadedState,
         InjectedKeys
       >
@@ -347,7 +347,7 @@ interface CombinedSliceReducer<
   }
 }
 
-type StaticState<Slices extends Array<AnySlice | AnyApi | ReducerMap>> =
+type InitialState<Slices extends Array<AnySlice | AnyApi | ReducerMap>> =
   UnionToIntersection<
     Slices[number] extends infer Slice
       ? Slice extends AnySlice
@@ -425,7 +425,7 @@ const original = (state: any) => {
 
 export function combineSlices<
   Slices extends Array<AnySlice | AnyApi | ReducerMap>
->(...slices: Slices): CombinedSliceReducer<Id<StaticState<Slices>>> {
+>(...slices: Slices): CombinedSliceReducer<Id<InitialState<Slices>>> {
   const reducerMap = Object.fromEntries<Reducer>(getReducers(slices))
 
   const getReducer = () => combineReducers(reducerMap)
