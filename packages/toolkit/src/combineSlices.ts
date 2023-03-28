@@ -14,59 +14,68 @@ import type {
   WithRequiredProp,
 } from './tsHelpers'
 
-type Slice<Name extends string, State> = {
+type SliceLike<Name extends string, State> = {
   name: Name
   reducer: Reducer<State>
 }
 
-type AnySlice = Slice<string, any>
+type AnySliceLike = SliceLike<string, any>
 
-type SliceState<Sl extends AnySlice> = Sl extends Slice<any, infer State>
+type SliceLikeState<Sl extends AnySliceLike> = Sl extends SliceLike<
+  any,
+  infer State
+>
   ? State
   : never
 
-type SliceName<Sl extends AnySlice> = Sl extends Slice<infer Name, any>
+type SliceLikeName<Sl extends AnySliceLike> = Sl extends SliceLike<
+  infer Name,
+  any
+>
   ? Name
   : never
 
-export type WithSlice<Sl extends AnySlice> = Id<
+export type WithSlice<Sl extends AnySliceLike> = Id<
   {
-    [K in SliceName<Sl>]: SliceState<Sl>
+    [K in SliceLikeName<Sl>]: SliceLikeState<Sl>
   }
 >
 
-type Api<ReducerPath extends string, State> = {
+type ApiLike<ReducerPath extends string, State> = {
   reducerPath: ReducerPath
   reducer: Reducer<State>
 }
 
-type AnyApi = Api<string, any>
+type AnyApiLike = ApiLike<string, any>
 
-type ApiReducerPath<A extends AnyApi> = A extends Api<infer ReducerPath, any>
+type ApiLikeReducerPath<A extends AnyApiLike> = A extends ApiLike<
+  infer ReducerPath,
+  any
+>
   ? ReducerPath
   : never
 
-type ApiState<A extends AnyApi> = A extends Api<any, infer State>
+type ApiLikeState<A extends AnyApiLike> = A extends ApiLike<any, infer State>
   ? State
   : never
 
-export type WithApi<A extends AnyApi> = {
-  [Path in ApiReducerPath<A>]: ApiState<A>
+export type WithApi<A extends AnyApiLike> = {
+  [Path in ApiLikeReducerPath<A>]: ApiLikeState<A>
 }
 
 type ReducerMap = Record<string, Reducer>
 
 // only allow injection of slices we've already declared
 
-type LazyLoadedSlice<LazyLoadedState extends Record<string, unknown>> = {
+type LazyLoadedSliceLike<LazyLoadedState extends Record<string, unknown>> = {
   [Name in keyof LazyLoadedState]: Name extends string
-    ? Slice<Name, LazyLoadedState[Name]>
+    ? SliceLike<Name, LazyLoadedState[Name]>
     : never
 }[keyof LazyLoadedState]
 
-type LazyLoadedApi<LazyLoadedState extends Record<string, unknown>> = {
+type LazyLoadedApiLike<LazyLoadedState extends Record<string, unknown>> = {
   [Name in keyof LazyLoadedState]: Name extends string
-    ? Api<Name, LazyLoadedState[Name]>
+    ? ApiLike<Name, LazyLoadedState[Name]>
     : never
 }[keyof LazyLoadedState]
 
@@ -74,7 +83,7 @@ type InjectConfig = {
   /**
    * Allow replacing reducer with a different reference. Normally, an error will be thrown if a different reducer instance to the one already injected is used.
    */
-  allowReplace?: boolean
+  overrideExisting?: boolean
 }
 
 type CombinedSliceState<
@@ -115,7 +124,7 @@ interface CombinedSliceReducer<
    *   export interface LazyLoadedSlices extends WithSlice<typeof booleanSlice> {}
    * }
    *
-   * const withBoolean = rootReducer.injectSlice(booleanSlice);
+   * const withBoolean = rootReducer.inject(booleanSlice);
    *
    * // elsewhere again
    *
@@ -125,7 +134,7 @@ interface CombinedSliceReducer<
    *   }
    * }
    *
-   * const withCustom = rootReducer.injectSlice({ name: "customName", reducer: customSlice.reducer })
+   * const withCustom = rootReducer.inject({ name: "customName", reducer: customSlice.reducer })
    * ```
    */
   withLazyLoadedSlices<
@@ -138,35 +147,35 @@ interface CombinedSliceReducer<
    * Accepts an individual slice, or a { name, reducer } object.
    *
    * ```ts
-   * rootReducer.injectSlice(booleanSlice)
-   * rootReducer.injectSlice({ name: 'boolean', reducer: newReducer }, { allowReplace: true })
+   * rootReducer.inject(booleanSlice)
+   * rootReducer.inject({ name: 'boolean', reducer: newReducer }, { overrideExisting: true })
    * ```
    *
    */
-  injectSlice<Sl extends LazyLoadedSlice<InitialState & LazyLoadedState>>(
+  inject<Sl extends LazyLoadedSliceLike<InitialState & LazyLoadedState>>(
     slice: Sl,
     config?: InjectConfig
   ): CombinedSliceReducer<
     InitialState,
     LazyLoadedState,
-    InjectedKeys | SliceName<Sl>
+    InjectedKeys | SliceLikeName<Sl>
   >
 
   /**
    * Inject an RTKQ API instance previously declared with `withLazyLoadedSlices`.
    *
    * ```ts
-   * rootReducer.injectSlice(baseApi)
+   * rootReducer.inject(baseApi)
    * ```
    *
    */
-  injectSlice<A extends LazyLoadedApi<InitialState & LazyLoadedState>>(
+  inject<A extends LazyLoadedApiLike<InitialState & LazyLoadedState>>(
     slice: A,
     config?: InjectConfig
   ): CombinedSliceReducer<
     InitialState,
     LazyLoadedState,
-    InjectedKeys | ApiReducerPath<A>
+    InjectedKeys | ApiLikeReducerPath<A>
   >
 
   /**
@@ -176,7 +185,7 @@ interface CombinedSliceReducer<
    * const selectBooleanWithoutInjection = (state: RootState) => state.boolean;
    * //                                                                ^? boolean | undefined
    *
-   * const selectBoolean = rootReducer.injectSlice(booleanSlice).selector((state) => {
+   * const selectBoolean = rootReducer.inject(booleanSlice).selector((state) => {
    *   // if action hasn't been dispatched since slice was injected, this would usually be undefined
    *   // however selector() uses a Proxy around the first parameter to ensure that it evaluates to the initial state instead, if undefined
    *   return state.boolean;
@@ -202,7 +211,7 @@ interface CombinedSliceReducer<
    *  export interface LazyLoadedSlices extends WithSlice<typeof booleanSlice> {}
    * }
    *
-   * const withBool = innerReducer.injectSlice(booleanSlice);
+   * const withBool = innerReducer.inject(booleanSlice);
    *
    * const selectBoolean = withBool.selector(
    *   (state) => state.boolean,
@@ -215,7 +224,7 @@ interface CombinedSliceReducer<
    * Value passed to selectorFn will be a Proxy - use selector.original(proxy) to get original state value (useful for debugging)
    *
    * ```ts
-   * const injectedReducer = rootReducer.injectSlice(booleanSlice);
+   * const injectedReducer = rootReducer.inject(booleanSlice);
    * const selectBoolean = injectedReducer.selector((state) => {
    *   console.log(injectedReducer.selector.original(state).boolean) // possibly undefined
    *   return state.boolean
@@ -230,7 +239,7 @@ interface CombinedSliceReducer<
      * const selectBooleanWithoutInjection = (state: RootState) => state.boolean;
      * //                                                                ^? boolean | undefined
      *
-     * const selectBoolean = rootReducer.injectSlice(booleanSlice).selector((state) => {
+     * const selectBoolean = rootReducer.inject(booleanSlice).selector((state) => {
      *   // if action hasn't been dispatched since slice was injected, this would usually be undefined
      *   // however selector() uses a Proxy around the first parameter to ensure that it evaluates to the initial state instead, if undefined
      *   return state.boolean;
@@ -241,7 +250,7 @@ interface CombinedSliceReducer<
      * Value passed to selectorFn will be a Proxy - use selector.original(proxy) to get original state value (useful for debugging)
      *
      * ```ts
-     * const injectedReducer = rootReducer.injectSlice(booleanSlice);
+     * const injectedReducer = rootReducer.inject(booleanSlice);
      * const selectBoolean = injectedReducer.selector((state) => {
      *   console.log(injectedReducer.selector.original(state).boolean) // undefined
      *   return state.boolean
@@ -267,7 +276,7 @@ interface CombinedSliceReducer<
      * const selectBooleanWithoutInjection = (state: RootState) => state.boolean;
      * //                                                                ^? boolean | undefined
      *
-     * const selectBoolean = rootReducer.injectSlice(booleanSlice).selector((state) => {
+     * const selectBoolean = rootReducer.inject(booleanSlice).selector((state) => {
      *   // if action hasn't been dispatched since slice was injected, this would usually be undefined
      *   // however selector() uses a Proxy around the first parameter to ensure that it evaluates to the initial state instead, if undefined
      *   return state.boolean;
@@ -293,7 +302,7 @@ interface CombinedSliceReducer<
      *  interface LazyLoadedSlices extends WithSlice<typeof booleanSlice> {}
      * }
      *
-     * const withBool = innerReducer.injectSlice(booleanSlice);
+     * const withBool = innerReducer.inject(booleanSlice);
      *
      * const selectBoolean = withBool.selector(
      *   (state) => state.boolean,
@@ -306,7 +315,7 @@ interface CombinedSliceReducer<
      * Value passed to selectorFn will be a Proxy - use selector.original(proxy) to get original state value (useful for debugging)
      *
      * ```ts
-     * const injectedReducer = rootReducer.injectSlice(booleanSlice);
+     * const injectedReducer = rootReducer.inject(booleanSlice);
      * const selectBoolean = injectedReducer.selector((state) => {
      *   console.log(injectedReducer.selector.original(state).boolean) // possibly undefined
      *   return state.boolean
@@ -347,30 +356,33 @@ interface CombinedSliceReducer<
   }
 }
 
-type InitialState<Slices extends Array<AnySlice | AnyApi | ReducerMap>> =
-  UnionToIntersection<
-    Slices[number] extends infer Slice
-      ? Slice extends AnySlice
-        ? WithSlice<Slice>
-        : Slice extends AnyApi
-        ? WithApi<Slice>
-        : StateFromReducersMapObject<Slice>
-      : never
-  >
+type InitialState<
+  Slices extends Array<AnySliceLike | AnyApiLike | ReducerMap>
+> = UnionToIntersection<
+  Slices[number] extends infer Slice
+    ? Slice extends AnySliceLike
+      ? WithSlice<Slice>
+      : Slice extends AnyApiLike
+      ? WithApi<Slice>
+      : StateFromReducersMapObject<Slice>
+    : never
+>
 
-const isSlice = (
-  maybeSlice: AnySlice | AnyApi | ReducerMap
-): maybeSlice is AnySlice =>
-  'name' in maybeSlice && typeof maybeSlice.name === 'string'
+const isSliceLike = (
+  maybeSliceLike: AnySliceLike | AnyApiLike | ReducerMap
+): maybeSliceLike is AnySliceLike =>
+  'name' in maybeSliceLike && typeof maybeSliceLike.name === 'string'
 
-const isApi = (maybeApi: AnySlice | AnyApi | ReducerMap): maybeApi is AnyApi =>
-  'reducerPath' in maybeApi && typeof maybeApi.reducerPath === 'string'
+const isApiLike = (
+  maybeApiLike: AnySliceLike | AnyApiLike | ReducerMap
+): maybeApiLike is AnyApiLike =>
+  'reducerPath' in maybeApiLike && typeof maybeApiLike.reducerPath === 'string'
 
-const getReducers = (slices: Array<AnySlice | AnyApi | ReducerMap>) =>
+const getReducers = (slices: Array<AnySliceLike | AnyApiLike | ReducerMap>) =>
   slices.flatMap((sliceOrMap) =>
-    isSlice(sliceOrMap)
+    isSliceLike(sliceOrMap)
       ? [[sliceOrMap.name, sliceOrMap.reducer] as const]
-      : isApi(sliceOrMap)
+      : isApiLike(sliceOrMap)
       ? [[sliceOrMap.reducerPath, sliceOrMap.reducer] as const]
       : Object.entries(sliceOrMap)
   )
@@ -424,7 +436,7 @@ const original = (state: any) => {
 }
 
 export function combineSlices<
-  Slices extends Array<AnySlice | AnyApi | ReducerMap>
+  Slices extends Array<AnySliceLike | AnyApiLike | ReducerMap>
 >(...slices: Slices): CombinedSliceReducer<Id<InitialState<Slices>>> {
   const reducerMap = Object.fromEntries<Reducer>(getReducers(slices))
 
@@ -438,12 +450,12 @@ export function combineSlices<
 
   combinedReducer.withLazyLoadedSlices = () => combinedReducer
 
-  const injectSlice = (
-    slice: AnySlice | AnyApi,
+  const inject = (
+    slice: AnySliceLike | AnyApiLike,
     config: InjectConfig = {}
   ): typeof combinedReducer => {
-    if (isApi(slice)) {
-      return injectSlice(
+    if (isApiLike(slice)) {
+      return inject(
         {
           name: slice.reducerPath,
           reducer: slice.reducer,
@@ -454,7 +466,7 @@ export function combineSlices<
 
     const { name, reducer: reducerToInject } = slice
 
-    if (process.env.NODE_ENV !== 'production' && !config.allowReplace) {
+    if (process.env.NODE_ENV !== 'production' && !config.overrideExisting) {
       const currentReducer = reducerMap[name]
       if (currentReducer && currentReducer !== reducerToInject) {
         throw new Error(
@@ -488,5 +500,5 @@ export function combineSlices<
     { original }
   )
 
-  return Object.assign(combinedReducer, { injectSlice, selector }) as any
+  return Object.assign(combinedReducer, { inject, selector }) as any
 }

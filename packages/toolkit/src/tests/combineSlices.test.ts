@@ -63,7 +63,7 @@ describe('combineSlices', () => {
       api: api.reducer.getInitialState(),
     })
   })
-  describe('injectSlices', () => {
+  describe('injects', () => {
     it('injects slice', () => {
       const combinedReducer =
         combineSlices(stringSlice).withLazyLoadedSlices<
@@ -72,7 +72,7 @@ describe('combineSlices', () => {
 
       expect(combinedReducer(undefined, dummyAction()).number).toBe(undefined)
 
-      const injectedReducer = combinedReducer.injectSlice(numberSlice)
+      const injectedReducer = combinedReducer.inject(numberSlice)
 
       expect(injectedReducer(undefined, dummyAction()).number).toBe(
         numberSlice.getInitialState()
@@ -82,10 +82,10 @@ describe('combineSlices', () => {
       const combinedReducer =
         combineSlices(stringSlice).withLazyLoadedSlices<{ boolean: boolean }>()
 
-      combinedReducer.injectSlice({ name: 'boolean', reducer: booleanReducer })
+      combinedReducer.inject({ name: 'boolean', reducer: booleanReducer })
 
       expect(() =>
-        combinedReducer.injectSlice({
+        combinedReducer.inject({
           name: 'boolean',
           reducer: booleanReducer,
         })
@@ -93,7 +93,7 @@ describe('combineSlices', () => {
 
       expect(() =>
         // @ts-expect-error wrong reducer
-        combinedReducer.injectSlice({
+        combinedReducer.inject({
           name: 'boolean',
           reducer: stringSlice.reducer,
         })
@@ -101,21 +101,21 @@ describe('combineSlices', () => {
         "Name 'boolean' has already been injected with different reducer instance"
       )
     })
-    it('allows replacement of reducers specifically marked as replaceable', () => {
+    it('allows replacement of reducers if overrideExisting is true', () => {
       const combinedReducer = combineSlices(stringSlice).withLazyLoadedSlices<
         WithSlice<typeof numberSlice> &
           WithApi<typeof api> & { boolean: boolean }
       >()
 
-      combinedReducer.injectSlice(numberSlice)
+      combinedReducer.inject(numberSlice)
 
       // for brevity
       const anyReducer = createReducer({} as any, () => {})
 
       expect(() =>
-        combinedReducer.injectSlice(
+        combinedReducer.inject(
           { name: 'number', reducer: anyReducer },
-          { allowReplace: true }
+          { overrideExisting: true }
         )
       ).not.toThrow()
     })
@@ -126,7 +126,7 @@ describe('combineSlices', () => {
 
     const uninjectedState = combinedReducer(undefined, dummyAction())
 
-    const injectedReducer = combinedReducer.injectSlice({
+    const injectedReducer = combinedReducer.inject({
       name: 'boolean',
       reducer: booleanReducer,
     })

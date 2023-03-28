@@ -52,7 +52,7 @@ type ExampleApiState = ReturnType<typeof exampleApi.reducer>
 }
 
 /**
- * Test: injectSlices marks injected keys as required
+ * Test: injects marks injected keys as required
  */
 {
   const rootReducer = combineSlices(stringSlice).withLazyLoadedSlices<
@@ -70,16 +70,16 @@ type ExampleApiState = ReturnType<typeof exampleApi.reducer>
     rootReducer(undefined, { type: '' }).api
   )
 
-  const withNumber = rootReducer.injectSlice(numberSlice)
+  const withNumber = rootReducer.inject(numberSlice)
   expectExactType<number>(0)(withNumber(undefined, { type: '' }).number)
 
-  const withBool = rootReducer.injectSlice({
+  const withBool = rootReducer.inject({
     name: 'boolean',
     reducer: booleanReducer,
   })
   expectExactType<boolean>(true)(withBool(undefined, { type: '' }).boolean)
 
-  const withApi = rootReducer.injectSlice(exampleApi)
+  const withApi = rootReducer.inject(exampleApi)
   expectExactType<ExampleApiState>({} as ExampleApiState)(
     withApi(undefined, { type: '' }).api
   )
@@ -105,13 +105,13 @@ const wrongApi = createApi({
   const rootReducer = combineSlices(stringSlice)
 
   // @ts-expect-error number undeclared
-  rootReducer.injectSlices(numberSlice)
+  rootReducer.injects(numberSlice)
 
   // @ts-expect-error api undeclared
-  rootReducer.injectSlices(exampleApi)
+  rootReducer.injects(exampleApi)
 
   // @ts-expect-error boolean undeclared
-  rootReducer.injectSlices({
+  rootReducer.injects({
     boolean: booleanReducer,
   })
 
@@ -121,20 +121,20 @@ const wrongApi = createApi({
   >()
 
   // @ts-expect-error right name, wrong state
-  withLazy.injectSlices(wrongNumberSlice)
+  withLazy.injects(wrongNumberSlice)
 
   // @ts-expect-error right name, wrong state
-  withLazy.injectSlices(wrongApi)
+  withLazy.injects(wrongApi)
 
   // @ts-expect-error right name, wrong state
-  withLazy.injectSlices({
+  withLazy.injects({
     boolean: wrongBooleanReducer,
   })
 
   withLazy
-    .injectSlice(numberSlice)
-    .injectSlice(exampleApi)
-    .injectSlice({ name: 'boolean', reducer: booleanReducer })
+    .inject(numberSlice)
+    .inject(exampleApi)
+    .inject({ name: 'boolean', reducer: booleanReducer })
 }
 
 /**
@@ -156,7 +156,7 @@ const wrongApi = createApi({
   )
 
   const withInjection = rootReducer
-    .injectSlice(numberSlice)
+    .inject(numberSlice)
     .selector((state) => state.number)
 
   expectExactType<number>(0)(
@@ -173,7 +173,7 @@ const wrongApi = createApi({
       WithSlice<typeof numberSlice>
     >()
 
-  const innerSelector = innerReducer.injectSlice(numberSlice).selector(
+  const innerSelector = innerReducer.inject(numberSlice).selector(
     (state) => state.number,
     (rootState: RootState) => rootState.inner
   )
