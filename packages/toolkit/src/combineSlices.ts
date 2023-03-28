@@ -466,13 +466,22 @@ export function combineSlices<
 
     const { name, reducer: reducerToInject } = slice
 
-    if (process.env.NODE_ENV !== 'production' && !config.overrideExisting) {
-      const currentReducer = reducerMap[name]
-      if (currentReducer && currentReducer !== reducerToInject) {
-        throw new Error(
-          `Name '${name}' has already been injected with different reducer instance`
+    const currentReducer = reducerMap[name]
+    if (
+      !config.overrideExisting &&
+      currentReducer &&
+      currentReducer !== reducerToInject
+    ) {
+      if (
+        typeof process !== 'undefined' &&
+        process.env.NODE_ENV === 'development'
+      ) {
+        console.error(
+          `called \`inject\` to override already-existing reducer ${name} without specifying \`overrideExisting: true\``
         )
       }
+
+      return combinedReducer
     }
 
     reducerMap[name] = reducerToInject
