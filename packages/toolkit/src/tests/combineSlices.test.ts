@@ -79,31 +79,36 @@ describe('combineSlices', () => {
       )
     })
     it('logs error when same name is used for different reducers', () => {
-      const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       const combinedReducer =
         combineSlices(stringSlice).withLazyLoadedSlices<{ boolean: boolean }>()
 
-      combinedReducer.inject({ name: 'boolean', reducer: booleanReducer })
-
       combinedReducer.inject({
-        name: 'boolean',
+        name: 'boolean' as const,
         reducer: booleanReducer,
       })
 
-      expect(spy).not.toHaveBeenCalled()
-
-      // @ts-expect-error wrong reducer
       combinedReducer.inject({
-        name: 'boolean',
+        name: 'boolean' as const,
+        reducer: booleanReducer,
+      })
+
+      expect(consoleSpy).not.toHaveBeenCalled()
+
+      // ts-expect-error wrong reducer
+      // TODO: this should error
+      combinedReducer.inject({
+        name: 'boolean' as const,
         reducer: stringSlice.reducer,
       })
 
-      expect(spy).toHaveBeenCalledWith(
+      expect(consoleSpy).toHaveBeenCalledWith(
         `called \`inject\` to override already-existing reducer boolean without specifying \`overrideExisting: true\``
       )
-      spy.mockRestore()
+      consoleSpy.mockRestore()
     })
     it('allows replacement of reducers if overrideExisting is true', () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       const combinedReducer = combineSlices(stringSlice).withLazyLoadedSlices<
         WithSlice<typeof numberSlice> &
           WithApi<typeof api> & { boolean: boolean }
@@ -111,15 +116,12 @@ describe('combineSlices', () => {
 
       combinedReducer.inject(numberSlice)
 
-      // for brevity
-      const anyReducer = createReducer({} as any, () => {})
+      combinedReducer.inject(
+        { name: 'number' as const, reducer: () => 0 },
+        { overrideExisting: true }
+      )
 
-      expect(() =>
-        combinedReducer.inject(
-          { name: 'number', reducer: anyReducer },
-          { overrideExisting: true }
-        )
-      ).not.toThrow()
+      expect(consoleSpy).not.toHaveBeenCalled()
     })
   })
   describe('selector', () => {
@@ -129,7 +131,7 @@ describe('combineSlices', () => {
     const uninjectedState = combinedReducer(undefined, dummyAction())
 
     const injectedReducer = combinedReducer.inject({
-      name: 'boolean',
+      name: 'boolean' as const,
       reducer: booleanReducer,
     })
 

@@ -65,20 +65,6 @@ export type WithApi<A extends AnyApiLike> = {
 
 type ReducerMap = Record<string, Reducer>
 
-// only allow injection of slices we've already declared
-
-type LazyLoadedSliceLike<LazyLoadedState extends Record<string, unknown>> = {
-  [Name in keyof LazyLoadedState]: Name extends string
-    ? SliceLike<Name, LazyLoadedState[Name]>
-    : never
-}[keyof LazyLoadedState]
-
-type LazyLoadedApiLike<LazyLoadedState extends Record<string, unknown>> = {
-  [Name in keyof LazyLoadedState]: Name extends string
-    ? ApiLike<Name, LazyLoadedState[Name]>
-    : never
-}[keyof LazyLoadedState]
-
 type InjectConfig = {
   /**
    * Allow replacing reducer with a different reference. Normally, an error will be thrown if a different reducer instance to the one already injected is used.
@@ -86,26 +72,15 @@ type InjectConfig = {
   overrideExisting?: boolean
 }
 
-type CombinedSliceState<
-  InitialState,
-  LazyLoadedState extends Record<string, unknown> = {},
-  InjectedKeys extends keyof LazyLoadedState = never
-> = Id<
-  // TODO: use PreloadedState generic instead
-  CombinedState<
-    InitialState & WithRequiredProp<Partial<LazyLoadedState>, InjectedKeys>
-  >
->
-
 /**
  * A reducer that allows for slices/reducers to be injected after initialisation.
  */
 interface CombinedSliceReducer<
   InitialState,
-  LazyLoadedState extends Record<string, unknown> = {},
-  InjectedKeys extends keyof LazyLoadedState = never
+  DeclaredState = InitialState
 > extends Reducer<
-    CombinedSliceState<InitialState, LazyLoadedState, InjectedKeys>,
+    // TODO: use PreloadedState generic instead
+    CombinedState<DeclaredState>,
     AnyAction
   > {
   /**
@@ -139,44 +114,40 @@ interface CombinedSliceReducer<
    */
   withLazyLoadedSlices<
     Lazy extends Record<string, unknown> = {}
-  >(): CombinedSliceReducer<InitialState, LazyLoadedState & Lazy, InjectedKeys>
+  >(): CombinedSliceReducer<InitialState, Id<DeclaredState & Partial<Lazy>>>
 
   /**
-   * Inject a slice previously declared with `withLazyLoadedSlices`.
+   * Inject a slice.
    *
-   * Accepts an individual slice, or a { name, reducer } object.
+   * Accepts an individual slice, or a "slice-like" { name, reducer } object.
    *
    * ```ts
    * rootReducer.inject(booleanSlice)
-   * rootReducer.inject({ name: 'boolean', reducer: newReducer }, { overrideExisting: true })
+   * rootReducer.inject({ name: 'boolean' as const, reducer: newReducer }, { overrideExisting: true })
    * ```
    *
    */
-  inject<Sl extends LazyLoadedSliceLike<InitialState & LazyLoadedState>>(
+  inject<Sl extends AnySliceLike>(
+    // TODO: verify replacement matches
     slice: Sl,
     config?: InjectConfig
-  ): CombinedSliceReducer<
-    InitialState,
-    LazyLoadedState,
-    InjectedKeys | SliceLikeName<Sl>
-  >
+  ): CombinedSliceReducer<InitialState, Id<DeclaredState & WithSlice<Sl>>>
 
   /**
-   * Inject an RTKQ API instance previously declared with `withLazyLoadedSlices`.
+   * Inject an RTKQ API instance.
+   *
+   * Accepts an individual instance, or an "api-like" { reducerPath, reducer } object
    *
    * ```ts
    * rootReducer.inject(baseApi)
    * ```
    *
    */
-  inject<A extends LazyLoadedApiLike<InitialState & LazyLoadedState>>(
+  inject<A extends AnyApiLike>(
+    // TODO: verify replacement matches
     slice: A,
     config?: InjectConfig
-  ): CombinedSliceReducer<
-    InitialState,
-    LazyLoadedState,
-    InjectedKeys | ApiLikeReducerPath<A>
-  >
+  ): CombinedSliceReducer<InitialState, Id<DeclaredState & WithApi<A>>>
 
   /**
    * Create a selector that guarantees that the slices injected will have a defined value when selector is run.
@@ -257,17 +228,9 @@ interface CombinedSliceReducer<
      * })
      * ```
      */
-    <
-      Selected,
-      State extends CombinedSliceState<
-        InitialState,
-        LazyLoadedState,
-        InjectedKeys
-      >,
-      Args extends any[]
-    >(
-      selectorFn: (state: State, ...args: Args) => Selected
-    ): (state: WithOptionalProp<State, InjectedKeys>, ...args: Args) => Selected
+    <Selected, Args extends any[]>(
+      selectorFn: (state: DeclaredState, ...args: Args) => Selected
+    ): (state: InitialState, ...args: Args) => Selected
 
     /**
      * Create a selector that guarantees that the slices injected will have a defined value when selector is run.
@@ -322,21 +285,12 @@ interface CombinedSliceReducer<
      * })
      * ```
      */
-    <
-      Selected,
-      State extends CombinedSliceState<
-        InitialState,
-        LazyLoadedState,
-        InjectedKeys
-      >,
-      RootState,
-      Args extends any[]
-    >(
-      selectorFn: (state: State, ...args: Args) => Selected,
+    <Selected, RootState, Args extends any[]>(
+      selectorFn: (state: DeclaredState, ...args: Args) => Selected,
       selectState: (
         rootState: RootState,
         ...args: NoInfer<Args>
-      ) => WithOptionalProp<NoInfer<State>, InjectedKeys>
+      ) => InitialState & Partial<DeclaredState>
     ): (state: RootState, ...args: Args) => Selected
     /**
      * Returns the unproxied state. Useful for debugging.
@@ -344,15 +298,7 @@ interface CombinedSliceReducer<
      * @returns original, unproxied state
      * @throws if value passed is not a state Proxy
      */
-    original: <
-      State extends CombinedSliceState<
-        InitialState,
-        LazyLoadedState,
-        InjectedKeys
-      >
-    >(
-      state: State
-    ) => WithOptionalProp<State, InjectedKeys>
+    original: (state: DeclaredState) => InitialState & Partial<DeclaredState>
   }
 }
 

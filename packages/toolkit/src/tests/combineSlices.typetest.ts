@@ -52,7 +52,7 @@ type ExampleApiState = ReturnType<typeof exampleApi.reducer>
 }
 
 /**
- * Test: injects marks injected keys as required
+ * Test: inject marks injected keys as required
  */
 {
   const rootReducer = combineSlices(stringSlice).withLazyLoadedSlices<
@@ -74,7 +74,7 @@ type ExampleApiState = ReturnType<typeof exampleApi.reducer>
   expectExactType<number>(0)(withNumber(undefined, { type: '' }).number)
 
   const withBool = rootReducer.inject({
-    name: 'boolean',
+    name: 'boolean' as const,
     reducer: booleanReducer,
   })
   expectExactType<boolean>(true)(withBool(undefined, { type: '' }).boolean)
@@ -97,45 +97,6 @@ const wrongApi = createApi({
     }),
   }),
 })
-
-/**
- * Test: slices/reducers can only be injected if first added with withLazyLoadedSlices
- */
-{
-  const rootReducer = combineSlices(stringSlice)
-
-  // @ts-expect-error number undeclared
-  rootReducer.injects(numberSlice)
-
-  // @ts-expect-error api undeclared
-  rootReducer.injects(exampleApi)
-
-  // @ts-expect-error boolean undeclared
-  rootReducer.injects({
-    boolean: booleanReducer,
-  })
-
-  const withLazy = rootReducer.withLazyLoadedSlices<
-    WithSlice<typeof numberSlice> &
-      WithApi<typeof exampleApi> & { boolean: boolean }
-  >()
-
-  // @ts-expect-error right name, wrong state
-  withLazy.injects(wrongNumberSlice)
-
-  // @ts-expect-error right name, wrong state
-  withLazy.injects(wrongApi)
-
-  // @ts-expect-error right name, wrong state
-  withLazy.injects({
-    boolean: wrongBooleanReducer,
-  })
-
-  withLazy
-    .inject(numberSlice)
-    .inject(exampleApi)
-    .inject({ name: 'boolean', reducer: booleanReducer })
-}
 
 /**
  * Test: selector() allows defining selectors with injected reducers defined
