@@ -668,7 +668,7 @@ export const api = createApi({
 export const { useGetPostsQuery, useGetPostQuery, useAddPostMutation } = api
 ```
 
-```tsx title="App.tsx"
+```tsx no-transpile title="App.tsx"
 function App() {
   const { data: posts } = useGetPostsQuery()
   const [addPost] = useAddPostMutation()
@@ -742,7 +742,7 @@ export const api = createApi({
 export const { useGetPostsQuery, useAddPostMutation, useGetPostQuery } = api
 ```
 
-```tsx title="App.tsx"
+```tsx no-transpile title="App.tsx"
 function App() {
   const { data: posts } = useGetPostsQuery()
   const [addPost] = useAddPostMutation()
