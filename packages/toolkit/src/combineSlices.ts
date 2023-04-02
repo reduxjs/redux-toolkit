@@ -8,6 +8,7 @@ import { combineReducers } from 'redux'
 import { nanoid } from './nanoid'
 import type {
   Id,
+  NonUndefined,
   Tail,
   UnionToIntersection,
   WithOptionalProp,
@@ -64,6 +65,20 @@ export type WithApi<A extends AnyApiLike> = {
 
 type ReducerMap = Record<string, Reducer>
 
+type ExistingSliceLike<DeclaredState> = {
+  [Name in keyof DeclaredState]: SliceLike<
+    Name & string,
+    NonUndefined<DeclaredState[Name]>
+  >
+}[keyof DeclaredState]
+
+type ExistingApiLike<DeclaredState> = {
+  [Name in keyof DeclaredState]: ApiLike<
+    Name & string,
+    NonUndefined<DeclaredState[Name]>
+  >
+}[keyof DeclaredState]
+
 type InjectConfig = {
   /**
    * Allow replacing reducer with a different reference. Normally, an error will be thrown if a different reducer instance to the one already injected is used.
@@ -116,21 +131,19 @@ interface CombinedSliceReducer<
   >(): CombinedSliceReducer<InitialState, Id<DeclaredState & Partial<Lazy>>>
 
   /**
-   * Inject a slice.
+   * Inject an RTKQ API instance.
    *
-   * Accepts an individual slice, or a "slice-like" { name, reducer } object.
+   * Accepts an individual instance, or an "api-like" { reducerPath, reducer } object
    *
    * ```ts
-   * rootReducer.inject(booleanSlice)
-   * rootReducer.inject({ name: 'boolean' as const, reducer: newReducer }, { overrideExisting: true })
+   * rootReducer.inject(baseApi)
    * ```
    *
    */
-  inject<Sl extends AnySliceLike>(
-    // TODO: verify replacement matches
-    slice: Sl,
+  inject<A extends ExistingApiLike<DeclaredState>>(
+    api: A,
     config?: InjectConfig
-  ): CombinedSliceReducer<InitialState, Id<DeclaredState & WithSlice<Sl>>>
+  ): CombinedSliceReducer<InitialState, Id<DeclaredState & WithApi<A>>>
 
   /**
    * Inject an RTKQ API instance.
@@ -142,11 +155,54 @@ interface CombinedSliceReducer<
    * ```
    *
    */
-  inject<A extends AnyApiLike>(
-    // TODO: verify replacement matches
-    slice: A,
+  inject<ReducerPath extends string, State>(
+    api: ApiLike<
+      ReducerPath,
+      State & (ReducerPath extends keyof DeclaredState ? never : State)
+    >,
     config?: InjectConfig
-  ): CombinedSliceReducer<InitialState, Id<DeclaredState & WithApi<A>>>
+  ): CombinedSliceReducer<
+    InitialState,
+    Id<DeclaredState & WithApi<ApiLike<ReducerPath, State>>>
+  >
+
+  /**
+   * Inject a slice.
+   *
+   * Accepts an individual slice, or a "slice-like" { name, reducer } object.
+   *
+   * ```ts
+   * rootReducer.inject(booleanSlice)
+   * rootReducer.inject({ name: 'boolean' as const, reducer: newReducer }, { overrideExisting: true })
+   * ```
+   *
+   */
+  inject<Sl extends Id<ExistingSliceLike<DeclaredState>>>(
+    slice: Sl,
+    config?: InjectConfig
+  ): CombinedSliceReducer<InitialState, Id<DeclaredState & WithSlice<Sl>>>
+
+  /**
+   * Inject a slice.
+   *
+   * Accepts an individual slice, or a "slice-like" { name, reducer } object.
+   *
+   * ```ts
+   * rootReducer.inject(booleanSlice)
+   * rootReducer.inject({ name: 'boolean' as const, reducer: newReducer }, { overrideExisting: true })
+   * ```
+   *
+   */
+  inject<Name extends string, State>(
+    slice: SliceLike<
+      Name,
+      State & (Name extends keyof DeclaredState ? never : State)
+    >,
+    config?: InjectConfig
+  ): CombinedSliceReducer<
+    InitialState,
+    Id<DeclaredState & WithSlice<SliceLike<Name, String>>>
+  >
 
   /**
    * Create a selector that guarantees that the slices injected will have a defined value when selector is run.

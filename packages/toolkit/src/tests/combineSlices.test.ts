@@ -95,10 +95,9 @@ describe('combineSlices', () => {
 
       expect(consoleSpy).not.toHaveBeenCalled()
 
-      // ts-expect-error wrong reducer
-      // TODO: this should error
       combinedReducer.inject({
         name: 'boolean' as const,
+        // @ts-expect-error wrong reducer
         reducer: stringSlice.reducer,
       })
 
