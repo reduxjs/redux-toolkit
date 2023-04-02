@@ -160,3 +160,7 @@ export type ActionFromMatcher<M extends Matcher<any>> = M extends Matcher<
   : never
 
 export type Id<T> = { [K in keyof T]: T[K] } & {}
+
+export type Tail<T extends any[]> = T extends [any, ...infer Tail]
+  ? Tail
+  : never

@@ -8,10 +8,9 @@ import { combineReducers } from 'redux'
 import { nanoid } from './nanoid'
 import type {
   Id,
-  NoInfer,
+  Tail,
   UnionToIntersection,
   WithOptionalProp,
-  WithRequiredProp,
 } from './tsHelpers'
 
 type SliceLike<Name extends string, State> = {
@@ -228,9 +227,15 @@ interface CombinedSliceReducer<
      * })
      * ```
      */
-    <Selected, Args extends any[]>(
-      selectorFn: (state: DeclaredState, ...args: Args) => Selected
-    ): (state: InitialState, ...args: Args) => Selected
+    <Selector extends (state: DeclaredState, ...args: any[]) => unknown>(
+      selectorFn: Selector
+    ): (
+      state: WithOptionalProp<
+        Parameters<Selector>[0],
+        Exclude<keyof DeclaredState, keyof InitialState>
+      >,
+      ...args: Tail<Parameters<Selector>>
+    ) => ReturnType<Selector>
 
     /**
      * Create a selector that guarantees that the slices injected will have a defined value when selector is run.
@@ -285,13 +290,22 @@ interface CombinedSliceReducer<
      * })
      * ```
      */
-    <Selected, RootState, Args extends any[]>(
-      selectorFn: (state: DeclaredState, ...args: Args) => Selected,
+    <
+      Selector extends (state: DeclaredState, ...args: any[]) => unknown,
+      RootState
+    >(
+      selectorFn: Selector,
       selectState: (
         rootState: RootState,
-        ...args: NoInfer<Args>
-      ) => InitialState & Partial<DeclaredState>
-    ): (state: RootState, ...args: Args) => Selected
+        ...args: Tail<Parameters<Selector>>
+      ) => WithOptionalProp<
+        Parameters<Selector>[0],
+        Exclude<keyof DeclaredState, keyof InitialState>
+      >
+    ): (
+      state: RootState,
+      ...args: Tail<Parameters<Selector>>
+    ) => ReturnType<Selector>
     /**
      * Returns the unproxied state. Useful for debugging.
      * @param state state Proxy, that ensures injected reducers have value

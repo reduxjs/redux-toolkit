@@ -126,6 +126,26 @@ const wrongApi = createApi({
 }
 
 /**
+ * Test: selector() passes arguments through
+ */
+{
+  const rootReducer = combineSlices(stringSlice).withLazyLoadedSlices<
+    WithSlice<typeof numberSlice> & { boolean: boolean }
+  >()
+
+  const selector = rootReducer
+    .inject(numberSlice)
+    .selector((state, num: number) => state.number)
+
+  const state = rootReducer(undefined, { type: '' })
+  // @ts-expect-error required argument
+  selector(state)
+  // @ts-expect-error number not string
+  selector(state, '')
+  selector(state, 0)
+}
+
+/**
  * Test: nested calls inferred correctly
  */
 {
