@@ -17,7 +17,8 @@
     "@arethetypeswrong/core": "^0.0.4",
     "@types/react": "^18.0.28",
     "shelljs": "^0.8.5",
-    "tsx": "^3.12.5"
+    "tsx": "^3.12.5",
+    "yargs": "^17.7.1"
   },
   "resolutions": {
     "@arethetypeswrong/core@^0.0.4": "patch:@arethetypeswrong/core@npm%3A0.0.4#./.yarn/patches/@arethetypeswrong-core-npm-0.0.4-edb717a66b.patch"

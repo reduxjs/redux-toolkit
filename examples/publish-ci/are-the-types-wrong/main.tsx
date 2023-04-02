@@ -16,6 +16,7 @@ import {
 } from '@arethetypeswrong/core'
 import React from 'react'
 import { render, Text, Box, Static } from 'ink'
+import yargs from 'yargs/yargs'
 
 const allResolutionKinds: ResolutionKind[] = [
   'node10',
@@ -232,7 +233,18 @@ function ChecksTable(props: { checks?: Checks }) {
   )
 }
 
-;(async function main() {
+const { argv } = yargs(process.argv).option('nonErrorProblems', {
+  alias: 'n',
+  type: 'array',
+  description: 'Do not treat these problems as errors for CLI exit codes',
+  choices: Object.keys(problemShortDescriptions) as ProblemKind[],
+})
+
+interface CLIOptions {
+  nonErrorProblems?: ProblemKind[]
+}
+
+;(async function main({ nonErrorProblems = [] }: CLIOptions) {
   const analysis = await checkTgz(rtkPackageTgzBytes)
 
   const checks: Checks = {
@@ -263,6 +275,32 @@ function ChecksTable(props: { checks?: Checks }) {
     </Static>
   )
 
-  const exitCode = checks.problems?.length ?? 0
+  const { problems = [] } = checks
+
+  console.log('\n\nProblem results:')
+
+  if (nonErrorProblems.length) {
+    console.log(
+      'Treating these problem categories as non-errors: ',
+      nonErrorProblems
+    )
+  }
+
+  const filteredProblems = problems.filter(
+    (p) => !nonErrorProblems.includes(p.kind)
+  )
+
+  if (filteredProblems.length) {
+    console.error(
+      'Remaining problems: ',
+      filteredProblems.map((p) => p.kind)
+    )
+  } else {
+    console.log('No errors found!')
+  }
+
+  const exitCode = filteredProblems.length
   process.exit(exitCode)
-})()
+})({
+  nonErrorProblems: argv.nonErrorProblems as ProblemKind[],
+})
