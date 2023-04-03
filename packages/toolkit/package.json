@@ -118,8 +118,8 @@
   ],
   "dependencies": {
     "immer": "^9.0.16",
-    "redux": "5.0.0-alpha.2",
-    "redux-thunk": "3.0.0-alpha.1",
+    "redux": "5.0.0-alpha.4",
+    "redux-thunk": "3.0.0-alpha.3",
     "reselect": "^4.1.7"
   },
   "peerDependencies": {
