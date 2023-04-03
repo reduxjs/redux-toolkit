@@ -6771,7 +6771,7 @@ __metadata:
     eslint-plugin-react: ^7.23.2
     eslint-plugin-react-hooks: ^4.2.0
     fs-extra: ^9.1.0
-    immer: ^9.0.16
+    immer: ^10.0.0-beta.4
     invariant: ^2.2.4
     jsdom: ^21.0.0
     json-stringify-safe: ^5.0.1
@@ -16747,6 +16747,13 @@ fsevents@^1.2.7:
   bin:
     image-size: bin/image-size.js
   checksum: ffa74672dc7a1b6529c66255adbfe4e7865408004db88ed100855816f03175494ec21ef9dad199b8685b5b194996ebe83ab27803af152adb66a301172fdd622d
+  languageName: node
+  linkType: hard
+
+"immer@npm:^10.0.0-beta.4":
+  version: 10.0.0-beta.4
+  resolution: "immer@npm:10.0.0-beta.4"
+  checksum: 121d89855b91d83e415d30ab83cf1ce52aae24fee704980da0d3e34ea5f7be2c9febce2457f0ff133a68da6aafdf243e8c947d1bc0a6d6ef40137118213187a6
   languageName: node
   linkType: hard
 
