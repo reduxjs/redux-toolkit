@@ -22,25 +22,24 @@
   "publishConfig": {
     "access": "public"
   },
-  "type": "module",
-  "module": "dist/redux-toolkit.modern.js",
+  "module": "dist/redux-toolkit.legacy-esm.js",
   "main": "dist/cjs/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/redux-toolkit.modern.js",
+      "import": "./dist/redux-toolkit.modern.mjs",
       "default": "./dist/cjs/index.js"
     },
     "./query": {
       "types": "./dist/query/index.d.ts",
-      "import": "./dist/query/rtk-query.modern.js",
+      "import": "./dist/query/rtk-query.modern.mjs",
       "default": "./dist/query/cjs/index.js"
     },
     "./query/react": {
       "types": "./dist/query/react/index.d.ts",
-      "import": "./dist/query/react/rtk-query-react.modern.js",
+      "import": "./dist/query/react/rtk-query-react.modern.mjs",
       "default": "./dist/query/react/cjs/index.js"
     }
   },
@@ -99,7 +98,7 @@
     "run-build": "tsx ./scripts/build.ts",
     "build-ci": "yarn rimraf dist && yarn tsc && yarn run-build --skipExtraction",
     "build-prepare": "npm run build-ci",
-    "build": "yarn rimraf dist && yarn tsc && yarn run-build --local --skipExtraction",
+    "build": "yarn rimraf dist && echo Compiling... && yarn tsc && yarn run-build --local --skipExtraction",
     "build-only": "yarn rimraf dist && yarn tsc && yarn run-build --skipExtraction",
     "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
@@ -109,17 +108,14 @@
     "prepack": "npm run build-prepare"
   },
   "files": [
-    "dist/**/*.js",
-    "dist/**/*.js.map",
-    "dist/**/*.d.ts",
-    "dist/**/package.json",
+    "dist/",
     "src/",
     "query"
   ],
   "dependencies": {
     "immer": "^9.0.16",
-    "redux": "5.0.0-alpha.2",
-    "redux-thunk": "3.0.0-alpha.1",
+    "redux": "5.0.0-alpha.4",
+    "redux-thunk": "3.0.0-alpha.3",
     "reselect": "^4.1.7"
   },
   "peerDependencies": {

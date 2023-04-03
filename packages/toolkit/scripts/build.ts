@@ -39,14 +39,14 @@ const outputDir = path.join(__dirname, '../dist')
 const buildTargets: BuildOptions[] = [
   {
     format: 'cjs',
-    name: 'cjs.development',
+    name: 'development',
     target: 'esnext',
     minify: false,
     env: 'development',
   },
   {
     format: 'cjs',
-    name: 'cjs.production.min',
+    name: 'production.min',
     target: 'esnext',
     minify: true,
     env: 'production',
@@ -55,6 +55,15 @@ const buildTargets: BuildOptions[] = [
   {
     format: 'esm',
     name: 'modern',
+    target: 'esnext',
+    minify: false,
+    env: '',
+  },
+  // ESM, embedded `process`: fallback for Webpack 4,
+  // which doesn't support `exports` field or optional chaining
+  {
+    format: 'esm',
+    name: 'legacy-esm',
     target: 'esnext',
     minify: false,
     env: '',
@@ -145,8 +154,11 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     folderSegments.push('cjs')
   }
 
+  const extension =
+    name === 'legacy-esm' ? 'js' : format === 'esm' ? 'mjs' : 'cjs'
+
   const outputFolder = path.join(...folderSegments)
-  const outputFilename = `${prefix}.${name}.js`
+  const outputFilename = `${prefix}.${name}.${extension}`
 
   await fs.ensureDir(outputFolder)
 
@@ -306,9 +318,9 @@ async function writeCommonJSEntry(folder: string, prefix: string) {
     path.join(folder, 'index.js'),
     `'use strict'
 if (process.env.NODE_ENV === 'production') {
-  module.exports = require('./${prefix}.cjs.production.min.js')
+  module.exports = require('./${prefix}.production.min.cjs')
 } else {
-  module.exports = require('./${prefix}.cjs.development.js')
+  module.exports = require('./${prefix}.development.cjs')
 }`
   )
 
