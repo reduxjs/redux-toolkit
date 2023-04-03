@@ -1,8 +1,8 @@
 export interface BuildOptions {
   format: 'cjs' | 'umd' | 'esm'
   name:
-    | 'cjs.development'
-    | 'cjs.production.min'
+    | 'development'
+    | 'production.min'
     | 'esm'
     | 'modern'
     | 'modern.development'

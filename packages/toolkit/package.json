@@ -22,25 +22,24 @@
   "publishConfig": {
     "access": "public"
   },
-  "type": "module",
-  "module": "dist/redux-toolkit.modern.js",
+  "module": "dist/redux-toolkit.esm.mjs",
   "main": "dist/cjs/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/redux-toolkit.modern.js",
+      "import": "./dist/redux-toolkit.modern.mjs",
       "default": "./dist/cjs/index.js"
     },
     "./query": {
       "types": "./dist/query/index.d.ts",
-      "import": "./dist/query/rtk-query.modern.js",
+      "import": "./dist/query/rtk-query.modern.mjs",
       "default": "./dist/query/cjs/index.js"
     },
     "./query/react": {
       "types": "./dist/query/react/index.d.ts",
-      "import": "./dist/query/react/rtk-query-react.modern.js",
+      "import": "./dist/query/react/rtk-query-react.modern.mjs",
       "default": "./dist/query/react/cjs/index.js"
     }
   },
@@ -109,10 +108,7 @@
     "prepack": "npm run build-prepare"
   },
   "files": [
-    "dist/**/*.js",
-    "dist/**/*.js.map",
-    "dist/**/*.d.ts",
-    "dist/**/package.json",
+    "dist/",
     "src/",
     "query"
   ],

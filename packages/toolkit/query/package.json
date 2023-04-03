@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "module": "../dist/query/rtk-query.modern.js",
+  "module": "../dist/query/rtk-query.esm.mjs",
   "main": "../dist/query/cjs/index.js",
   "types": "./../dist/query/index.d.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
       "types": "./../dist/query/index.d.ts",
-      "import": "./../dist/query/rtk-query.modern.js",
+      "import": "./../dist/query/rtk-query.modern.mjs",
       "default": "./../dist/query/cjs/index.js"
     }
   },
