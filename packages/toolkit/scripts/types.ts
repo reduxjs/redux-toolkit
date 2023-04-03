@@ -3,7 +3,7 @@ export interface BuildOptions {
   name:
     | 'development'
     | 'production.min'
-    | 'esm'
+    | 'legacy-esm'
     | 'modern'
     | 'modern.development'
     | 'modern.production.min'

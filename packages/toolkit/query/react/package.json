@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "module": "../../dist/query/react/rtk-query-react.esm.mjs",
+  "module": "../../dist/query/react/rtk-query-react.legacy-esm.js",
   "main": "../../dist/query/react/cjs/index.js",
   "types": "./../../dist/query/react/index.d.ts",
   "exports": {

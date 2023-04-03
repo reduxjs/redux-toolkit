@@ -63,7 +63,7 @@ const buildTargets: BuildOptions[] = [
   // which doesn't support `exports` field or optional chaining
   {
     format: 'esm',
-    name: 'esm',
+    name: 'legacy-esm',
     target: 'esnext',
     minify: false,
     env: '',
@@ -154,7 +154,8 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     folderSegments.push('cjs')
   }
 
-  const extension = format === 'esm' ? 'mjs' : 'cjs'
+  const extension =
+    name === 'legacy-esm' ? 'js' : format === 'esm' ? 'mjs' : 'cjs'
 
   const outputFolder = path.join(...folderSegments)
   const outputFilename = `${prefix}.${name}.${extension}`
