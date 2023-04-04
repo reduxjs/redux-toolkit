@@ -11,6 +11,8 @@ import type {
 export function buildCreateSelectorsFactory(
   config: BuildCreateDraftSafeSelectorConfiguration
 ) {
+  const createDraftSafeSelector = buildCreateDraftSafeSelector(config)
+
   return function createSelectorsFactory<T>() {
     function getSelectors(): EntitySelectors<T, EntityState<T>>
     function getSelectors<V>(
@@ -19,7 +21,6 @@ export function buildCreateSelectorsFactory(
     function getSelectors<V>(
       selectState?: (state: V) => EntityState<T>
     ): EntitySelectors<T, any> {
-      const createDraftSafeSelector = buildCreateDraftSafeSelector(config)
       const selectIds = (state: EntityState<T>) => state.ids
 
       const selectEntities = (state: EntityState<T>) => state.entities
