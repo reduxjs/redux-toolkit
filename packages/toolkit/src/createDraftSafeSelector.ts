@@ -1,10 +1,11 @@
 import { current, isDraft } from 'immer'
 import { createSelector } from 'reselect'
+import type { ImmutableHelpers } from './tsHelpers'
 
-export interface BuildCreateDraftSafeSelectorConfiguration {
-  isDraft(value: any): boolean
-  current<T>(value: T): T
-}
+export type BuildCreateDraftSafeSelectorConfiguration = Pick<
+  ImmutableHelpers,
+  'isDraft' | 'current'
+>
 
 /**
  * "Draft-Safe" version of `reselect`'s `createSelector`:

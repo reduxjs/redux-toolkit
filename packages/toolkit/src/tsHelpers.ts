@@ -1,5 +1,17 @@
 import type { Middleware, StoreEnhancer } from 'redux'
 import type { MiddlewareArray } from './utils'
+import type { Draft } from 'immer'
+
+export interface ImmutableHelpers {
+  createNextState: <Base>(
+    base: Base,
+    recipe: (draft: Draft<Base>) => void | Base | Draft<Base>
+  ) => Base
+  isDraft(value: any): boolean
+  isDraftable(value: any): boolean
+  original<T>(value: T): T | undefined
+  current<T>(value: T): T
+}
 
 /**
  * return True if T is `any`, otherwise return False

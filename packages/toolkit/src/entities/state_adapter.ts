@@ -1,16 +1,13 @@
-import type { Draft } from 'immer'
 import type { EntityState, PreventAny } from './models'
 import type { PayloadAction } from '../createAction'
 import { isFSA } from '../createAction'
+import type { ImmutableHelpers } from '../tsHelpers'
 import { IsAny } from '../tsHelpers'
 
-export interface BuildStateOperatorConfiguration {
-  isDraft(value: any): boolean
-  createNextState: <Base>(
-    base: Base,
-    recipe: (draft: Draft<Base>) => void | Base | Draft<Base>
-  ) => Base
-}
+export type BuildStateOperatorConfiguration = Pick<
+  ImmutableHelpers,
+  'isDraft' | 'createNextState'
+>
 
 export function buildCreateSingleArgumentStateOperator(
   config: BuildStateOperatorConfiguration

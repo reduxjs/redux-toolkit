@@ -3,7 +3,7 @@ import { produce as createNextState, isDraft, isDraftable } from 'immer'
 import type { AnyAction, Action, Reducer } from 'redux'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { NoInfer } from './tsHelpers'
+import type { ImmutableHelpers, NoInfer } from './tsHelpers'
 import { makeFreezeDraftable } from './utils'
 
 /**
@@ -153,14 +153,10 @@ const reducer = createReducer(
   ): ReducerWithInitialState<S>
 }
 
-export interface BuildCreateReducerConfiguration {
-  createNextState: <Base>(
-    base: Base,
-    recipe: (draft: Draft<Base>) => void | Base | Draft<Base>
-  ) => Base
-  isDraft(value: any): boolean
-  isDraftable(value: any): boolean
-}
+export type BuildCreateReducerConfiguration = Pick<
+  ImmutableHelpers,
+  'createNextState' | 'isDraft' | 'isDraftable'
+>
 
 export function buildCreateReducer({
   createNextState,
