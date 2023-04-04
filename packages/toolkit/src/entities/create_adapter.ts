@@ -1,4 +1,3 @@
-import type { Draft } from 'immer'
 import { isDraft, current, produce as createNextState } from 'immer'
 import type {
   EntityDefinition,
