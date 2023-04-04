@@ -1,6 +1,11 @@
 import { current, isDraft } from 'immer'
 import { createSelector } from 'reselect'
 
+export interface BuildCreateDraftSafeSelectorConfiguration {
+  isDraft(value: any): boolean
+  current<T>(value: T): T
+}
+
 /**
  * "Draft-Safe" version of `reselect`'s `createSelector`:
  * If an `immer`-drafted object is passed into the resulting selector's first argument,
@@ -8,11 +13,21 @@ import { createSelector } from 'reselect'
  * that might be possibly outdated if the draft has been modified since.
  * @public
  */
-export const createDraftSafeSelector: typeof createSelector = (
-  ...args: unknown[]
-) => {
-  const selector = (createSelector as any)(...args)
-  const wrappedSelector = (value: unknown, ...rest: unknown[]) =>
-    selector(isDraft(value) ? current(value) : value, ...rest)
-  return wrappedSelector as any
+export type CreateDraftSafeSelector = typeof createSelector
+
+export function buildCreateDraftSafeSelector({
+  isDraft,
+  current,
+}: BuildCreateDraftSafeSelectorConfiguration): CreateDraftSafeSelector {
+  return function createDraftSafeSelector(...args: unknown[]) {
+    const selector = (createSelector as any)(...args)
+    const wrappedSelector = (value: unknown, ...rest: unknown[]) =>
+      selector(isDraft(value) ? current(value) : value, ...rest)
+    return wrappedSelector as any
+  }
 }
+
+export const createDraftSafeSelector = buildCreateDraftSafeSelector({
+  isDraft,
+  current,
+})

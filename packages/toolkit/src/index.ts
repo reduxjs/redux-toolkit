@@ -14,7 +14,11 @@ export type {
   OutputSelector,
   ParametricSelector,
 } from 'reselect'
-export { createDraftSafeSelector } from './createDraftSafeSelector'
+export type { BuildCreateDraftSafeSelectorConfiguration } from './createDraftSafeSelector'
+export {
+  buildCreateDraftSafeSelector,
+  createDraftSafeSelector,
+} from './createDraftSafeSelector'
 export type { ThunkAction, ThunkDispatch, ThunkMiddleware } from 'redux-thunk'
 
 export {
