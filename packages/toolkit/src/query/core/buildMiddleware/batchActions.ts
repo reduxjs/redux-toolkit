@@ -5,8 +5,7 @@ import type {
   QuerySubstateIdentifier,
   Subscribers,
 } from '../apiState'
-import { produceWithPatches } from 'immer'
-import type { AnyAction } from '@reduxjs/toolkit';
+import type { AnyAction } from '@reduxjs/toolkit'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 // Copied from https://github.com/feross/queue-microtask
@@ -30,7 +29,12 @@ const queueMicrotaskShim =
 
 export const buildBatchedActionsHandler: InternalHandlerBuilder<
   [actionShouldContinue: boolean, subscriptionExists: boolean]
-> = ({ api, queryThunk, internalState }) => {
+> = ({
+  api,
+  queryThunk,
+  internalState,
+  immutableHelpers: { createWithPatches },
+}) => {
   const subscriptionsPrefix = `${api.reducerPath}/subscriptions`
 
   let previousSubscriptions: SubscriptionState =
@@ -125,7 +129,7 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
             JSON.stringify(internalState.currentSubscriptions)
           )
           // Figure out a smaller diff between original and current
-          const [, patches] = produceWithPatches(
+          const [, patches] = createWithPatches(
             previousSubscriptions,
             () => newSubscriptions
           )

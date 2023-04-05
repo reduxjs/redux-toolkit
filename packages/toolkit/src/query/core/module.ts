@@ -40,6 +40,7 @@ import type {
   QueryActionCreatorResult,
 } from './buildInitiate'
 import { buildInitiate } from './buildInitiate'
+import type { ImmutableHelpers } from '../tsHelpers'
 import { assertCast, safeAssign } from '../tsHelpers'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { SliceActions } from './buildSlice'
@@ -48,7 +49,12 @@ import type { BaseQueryFn } from '../baseQueryTypes'
 import type { ReferenceCacheLifecycle } from './buildMiddleware/cacheLifecycle'
 import type { ReferenceQueryLifecycle } from './buildMiddleware/queryLifecycle'
 import type { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
-import { enablePatches } from 'immer'
+import {
+  applyPatches,
+  enablePatches,
+  isDraftable,
+  produceWithPatches,
+} from 'immer'
 
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
@@ -71,7 +77,8 @@ export type CoreModule =
   | ReferenceQueryLifecycle
   | ReferenceCacheCollection
 
-export interface ThunkWithReturnValue<T> extends ThunkAction<T, any, any, AnyAction> {}
+export interface ThunkWithReturnValue<T>
+  extends ThunkAction<T, any, any, AnyAction> {}
 
 declare module '../apiTypes' {
   export interface ApiModules<
@@ -450,6 +457,13 @@ export type ListenerActions = {
 
 export type InternalActions = SliceActions & ListenerActions
 
+interface CoreModuleOptions {
+  immutableHelpers?: Pick<
+    ImmutableHelpers,
+    'createWithPatches' | 'applyPatches' | 'isDraftable'
+  >
+}
+
 /**
  * Creates a module containing the basic redux logic for use with `buildCreateApi`.
  *
@@ -458,7 +472,13 @@ export type InternalActions = SliceActions & ListenerActions
  * const createBaseApi = buildCreateApi(coreModule());
  * ```
  */
-export const coreModule = (): Module<CoreModule> => ({
+export const coreModule = ({
+  immutableHelpers = {
+    createWithPatches: produceWithPatches,
+    applyPatches,
+    isDraftable,
+  },
+}: CoreModuleOptions = {}): Module<CoreModule> => ({
   name: coreModuleName,
   init(
     api,
@@ -518,6 +538,7 @@ export const coreModule = (): Module<CoreModule> => ({
       context,
       api,
       serializeQueryArgs,
+      immutableHelpers,
     })
 
     const { reducer, actions: sliceActions } = buildSlice({
@@ -533,6 +554,7 @@ export const coreModule = (): Module<CoreModule> => ({
         keepUnusedDataFor,
         reducerPath,
       },
+      immutableHelpers,
     })
 
     safeAssign(api.util, {
@@ -551,6 +573,7 @@ export const coreModule = (): Module<CoreModule> => ({
       mutationThunk,
       api,
       assertTagType,
+      immutableHelpers,
     })
     safeAssign(api.util, middlewareActions)
 

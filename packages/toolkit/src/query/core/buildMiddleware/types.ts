@@ -24,6 +24,7 @@ import type {
   QueryThunkArg,
   ThunkResult,
 } from '../buildThunks'
+import type { ImmutableHelpers } from '../../tsHelpers'
 
 export type QueryStateMeta<T> = Record<string, undefined | T>
 export type TimeoutId = ReturnType<typeof setTimeout>
@@ -43,6 +44,7 @@ export interface BuildMiddlewareInput<
   mutationThunk: MutationThunk
   api: Api<any, Definitions, ReducerPath, TagTypes>
   assertTagType: AssertTagTypes
+  immutableHelpers: Pick<ImmutableHelpers, 'createWithPatches'>
 }
 
 export type SubMiddlewareApi = MiddlewareAPI<

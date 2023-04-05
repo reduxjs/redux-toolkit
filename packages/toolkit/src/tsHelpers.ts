@@ -1,12 +1,18 @@
 import type { Middleware, StoreEnhancer } from 'redux'
+import type { Draft, Patch, applyPatches } from 'immer'
 import type { MiddlewareArray } from './utils'
-import type { Draft } from 'immer'
 
 export interface ImmutableHelpers {
   createNextState: <Base>(
     base: Base,
     recipe: (draft: Draft<Base>) => void | Base | Draft<Base>
   ) => Base
+  createWithPatches: <Base>(
+    base: Base,
+    recipe: (draft: Draft<Base>) => void | Base | Draft<Base>
+  ) => readonly [Base, Patch[], Patch[]]
+  // depends on an Objectish type that immer doesn't export
+  applyPatches: typeof applyPatches
   isDraft(value: any): boolean
   isDraftable(value: any): boolean
   original<T>(value: T): T | undefined

@@ -32,7 +32,6 @@ import type {
   QueryDefinition,
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
-import { applyPatches } from 'immer'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import {
   isDocumentVisible,
@@ -41,6 +40,7 @@ import {
 } from '../utils'
 import type { ApiContext } from '../apiTypes'
 import { isUpsertQuery } from './buildInitiate'
+import type { ImmutableHelpers } from '../tsHelpers'
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
@@ -99,6 +99,7 @@ export function buildSlice({
   },
   assertTagType,
   config,
+  immutableHelpers: { applyPatches },
 }: {
   reducerPath: string
   queryThunk: QueryThunk
@@ -109,6 +110,7 @@ export function buildSlice({
     ConfigState<string>,
     'online' | 'focused' | 'middlewareRegistered'
   >
+  immutableHelpers: Pick<ImmutableHelpers, 'applyPatches'>
 }) {
   const resetApiState = createAction(`${reducerPath}/resetApiState`)
   const querySlice = createSlice({
