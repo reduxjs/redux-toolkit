@@ -1,13 +1,16 @@
-import type { AnyAction, PayloadAction } from '@reduxjs/toolkit'
+import type {
+  AnyAction,
+  PayloadAction,
+  BuildCreateSliceConfiguration,
+} from '@reduxjs/toolkit'
 import {
   combineReducers,
   createAction,
-  createSlice,
   isAnyOf,
   isFulfilled,
   isRejectedWithValue,
-  createNextState,
   prepareAutoBatched,
+  buildCreateSlice,
 } from '@reduxjs/toolkit'
 import type {
   CombinedState as CombinedQueryState,
@@ -99,7 +102,8 @@ export function buildSlice({
   },
   assertTagType,
   config,
-  immutableHelpers: { applyPatches },
+  immutableHelpers,
+  immutableHelpers: { applyPatches, createNextState },
 }: {
   reducerPath: string
   queryThunk: QueryThunk
@@ -110,8 +114,11 @@ export function buildSlice({
     ConfigState<string>,
     'online' | 'focused' | 'middlewareRegistered'
   >
-  immutableHelpers: Pick<ImmutableHelpers, 'applyPatches'>
+  immutableHelpers: Pick<ImmutableHelpers, 'applyPatches'> &
+    BuildCreateSliceConfiguration
 }) {
+  const createSlice = buildCreateSlice(immutableHelpers)
+
   const resetApiState = createAction(`${reducerPath}/resetApiState`)
   const querySlice = createSlice({
     name: `${reducerPath}/queries`,

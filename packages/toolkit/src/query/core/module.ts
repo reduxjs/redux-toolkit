@@ -10,6 +10,7 @@ import { buildThunks } from './buildThunks'
 import type {
   ActionCreatorWithPayload,
   AnyAction,
+  BuildCreateSliceConfiguration,
   Middleware,
   Reducer,
   ThunkAction,
@@ -49,9 +50,10 @@ import type { BaseQueryFn } from '../baseQueryTypes'
 import type { ReferenceCacheLifecycle } from './buildMiddleware/cacheLifecycle'
 import type { ReferenceQueryLifecycle } from './buildMiddleware/queryLifecycle'
 import type { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
-import {
+import produce, {
   applyPatches,
   enablePatches,
+  isDraft,
   isDraftable,
   produceWithPatches,
 } from 'immer'
@@ -458,10 +460,8 @@ export type ListenerActions = {
 export type InternalActions = SliceActions & ListenerActions
 
 interface CoreModuleOptions {
-  immutableHelpers?: Pick<
-    ImmutableHelpers,
-    'createWithPatches' | 'applyPatches' | 'isDraftable'
-  >
+  immutableHelpers?: BuildCreateSliceConfiguration &
+    Pick<ImmutableHelpers, 'createWithPatches' | 'applyPatches' | 'isDraftable'>
 }
 
 /**
@@ -474,8 +474,10 @@ interface CoreModuleOptions {
  */
 export const coreModule = ({
   immutableHelpers = {
+    createNextState: produce,
     createWithPatches: produceWithPatches,
     applyPatches,
+    isDraft,
     isDraftable,
   },
 }: CoreModuleOptions = {}): Module<CoreModule> => ({
