@@ -57,6 +57,7 @@ import {
   isDraft,
   isDraftable,
   produceWithPatches,
+  freeze,
 } from 'immer'
 
 /**
@@ -462,7 +463,10 @@ export type InternalActions = SliceActions & ListenerActions
 
 interface CoreModuleOptions {
   immutableHelpers?: BuildCreateSliceConfiguration &
-    Pick<ImmutableHelpers, 'createWithPatches' | 'applyPatches' | 'isDraftable'>
+    Pick<
+      ImmutableHelpers,
+      'createWithPatches' | 'applyPatches' | 'isDraftable' | 'freeze'
+    >
 }
 
 /**
@@ -480,6 +484,7 @@ export const coreModule = ({
     applyPatches,
     isDraft,
     isDraftable,
+    freeze,
   },
 }: CoreModuleOptions = {}): Module<CoreModule> => ({
   name: coreModuleName,
@@ -586,6 +591,7 @@ export const coreModule = ({
       buildSelectors({
         serializeQueryArgs: serializeQueryArgs as any,
         reducerPath,
+        immutableHelpers,
       })
 
     safeAssign(api.util, { selectInvalidatedBy })

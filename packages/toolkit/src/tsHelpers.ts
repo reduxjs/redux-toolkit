@@ -17,6 +17,7 @@ export interface ImmutableHelpers {
   isDraftable(value: any): boolean
   original<T>(value: T): T | undefined
   current<T>(value: T): T
+  freeze<T>(obj: T, deep?: boolean): T
 }
 
 /**

@@ -20,6 +20,7 @@ import { expandTagDescription } from '../endpointDefinitions'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import { getMutationCacheKey } from './buildSlice'
 import { flatten } from '../utils'
+import type { ImmutableHelpers } from '../tsHelpers'
 
 export type SkipToken = typeof skipToken
 /**
@@ -103,30 +104,28 @@ export type MutationResultSelectorResult<
   Definition extends MutationDefinition<any, any, any, any>
 > = MutationSubState<Definition> & RequestStatusFlags
 
-const initialSubState: QuerySubState<any> = {
-  status: QueryStatus.uninitialized as const,
-}
-
-// abuse immer to freeze default states
-const defaultQuerySubState = /* @__PURE__ */ createNextState(
-  initialSubState,
-  () => {}
-)
-const defaultMutationSubState = /* @__PURE__ */ createNextState(
-  initialSubState as MutationSubState<any>,
-  () => {}
-)
-
 export function buildSelectors<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string
 >({
   serializeQueryArgs,
   reducerPath,
+  immutableHelpers: { freeze },
 }: {
   serializeQueryArgs: InternalSerializeQueryArgs
   reducerPath: ReducerPath
+  immutableHelpers: Pick<ImmutableHelpers, 'freeze'>
 }) {
+  const initialSubState: QuerySubState<any> = {
+    status: QueryStatus.uninitialized as const,
+  }
+
+  const defaultQuerySubState = freeze(initialSubState, true)
+  const defaultMutationSubState = freeze(
+    initialSubState as MutationSubState<any>,
+    true
+  )
+
   type RootState = _RootState<Definitions, string, string>
 
   const selectSkippedQuery = (state: RootState) => defaultQuerySubState

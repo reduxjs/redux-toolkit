@@ -1,10 +1,9 @@
 import type { Draft } from 'immer'
-import { produce as createNextState, isDraft, isDraftable } from 'immer'
+import { produce as createNextState, isDraft, freeze, isDraftable } from 'immer'
 import type { AnyAction, Action, Reducer } from 'redux'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type { ImmutableHelpers, NoInfer } from './tsHelpers'
-import { makeFreezeDraftable } from './utils'
 
 /**
  * Defines a mapping from action types to corresponding action object shapes.
@@ -155,19 +154,15 @@ const reducer = createReducer(
 
 export type BuildCreateReducerConfiguration = Pick<
   ImmutableHelpers,
-  'createNextState' | 'isDraft' | 'isDraftable'
+  'createNextState' | 'isDraft' | 'isDraftable' | 'freeze'
 >
 
 export function buildCreateReducer({
   createNextState,
   isDraft,
   isDraftable,
+  freeze,
 }: BuildCreateReducerConfiguration): CreateReducer {
-  const freezeDraftable = makeFreezeDraftable({
-    createNextState,
-    isDraft,
-    isDraftable,
-  })
   return function createReducer<S extends NotFunction<any>>(
     initialState: S | (() => S),
     mapOrBuilderCallback: (builder: ActionReducerMapBuilder<S>) => void
@@ -186,9 +181,9 @@ export function buildCreateReducer({
     // Ensure the initial state gets frozen either way (if draftable)
     let getInitialState: () => S
     if (isStateFunction(initialState)) {
-      getInitialState = () => freezeDraftable(initialState())
+      getInitialState = () => freeze(initialState(), true)
     } else {
-      const frozenInitialState = freezeDraftable(initialState)
+      const frozenInitialState = freeze(initialState, true)
       getInitialState = () => frozenInitialState
     }
 
@@ -256,4 +251,5 @@ export const createReducer = buildCreateReducer({
   createNextState,
   isDraft,
   isDraftable,
+  freeze,
 })
