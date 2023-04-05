@@ -1,9 +1,9 @@
 export interface BuildOptions {
   format: 'cjs' | 'umd' | 'esm'
   name:
-    | 'cjs.development'
-    | 'cjs.production.min'
-    | 'esm'
+    | 'development'
+    | 'production.min'
+    | 'legacy-esm'
     | 'modern'
     | 'modern.development'
     | 'modern.production.min'

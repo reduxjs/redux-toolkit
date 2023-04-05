@@ -398,7 +398,7 @@ const value = actionCreators.anyKey
   }
 }
 
-/** Test:  alternative builder callback for extraReducers */
+/** Test:  builder callback for extraReducers */
 {
   createSlice({
     name: 'test',
