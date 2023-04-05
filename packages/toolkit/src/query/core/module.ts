@@ -16,6 +16,7 @@ import type {
   ThunkAction,
   ThunkDispatch,
 } from '@reduxjs/toolkit'
+import { immerImmutableHelpers } from '@reduxjs/toolkit'
 import type {
   EndpointDefinitions,
   QueryArgFrom,
@@ -50,15 +51,7 @@ import type { BaseQueryFn } from '../baseQueryTypes'
 import type { ReferenceCacheLifecycle } from './buildMiddleware/cacheLifecycle'
 import type { ReferenceQueryLifecycle } from './buildMiddleware/queryLifecycle'
 import type { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
-import {
-  produce,
-  applyPatches,
-  enablePatches,
-  isDraft,
-  isDraftable,
-  produceWithPatches,
-  freeze,
-} from 'immer'
+import { enablePatches } from 'immer'
 
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
@@ -478,14 +471,7 @@ interface CoreModuleOptions {
  * ```
  */
 export const coreModule = ({
-  immutableHelpers = {
-    createNextState: produce,
-    createWithPatches: produceWithPatches,
-    applyPatches,
-    isDraft,
-    isDraftable,
-    freeze,
-  },
+  immutableHelpers = immerImmutableHelpers,
 }: CoreModuleOptions = {}): Module<CoreModule> => ({
   name: coreModuleName,
   init(

@@ -199,3 +199,5 @@ export {
 export type { AutoBatchOptions } from './autoBatchEnhancer'
 
 export type { ImmutableHelpers } from './tsHelpers'
+export { defineImmutableHelpers } from './tsHelpers'
+export { immutableHelpers as immerImmutableHelpers } from './immer'

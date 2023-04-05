@@ -1,9 +1,9 @@
 import type { Draft } from 'immer'
-import { produce as createNextState, isDraft, freeze, isDraftable } from 'immer'
 import type { AnyAction, Action, Reducer } from 'redux'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type { ImmutableHelpers, NoInfer } from './tsHelpers'
+import { immutableHelpers } from './immer'
 
 /**
  * Defines a mapping from action types to corresponding action object shapes.
@@ -247,9 +247,4 @@ export function buildCreateReducer({
   }
 }
 
-export const createReducer = buildCreateReducer({
-  createNextState,
-  isDraft,
-  isDraftable,
-  freeze,
-})
+export const createReducer = buildCreateReducer(immutableHelpers)

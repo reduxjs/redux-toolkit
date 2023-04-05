@@ -1,6 +1,6 @@
-import { current, isDraft } from 'immer'
 import { createSelector } from 'reselect'
 import type { ImmutableHelpers } from './tsHelpers'
+import { immutableHelpers } from './immer'
 
 export type BuildCreateDraftSafeSelectorConfiguration = Pick<
   ImmutableHelpers,
@@ -28,7 +28,5 @@ export function buildCreateDraftSafeSelector({
   }
 }
 
-export const createDraftSafeSelector = buildCreateDraftSafeSelector({
-  isDraft,
-  current,
-})
+export const createDraftSafeSelector =
+  buildCreateDraftSafeSelector(immutableHelpers)
