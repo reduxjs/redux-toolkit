@@ -10,7 +10,7 @@ import { buildCreateSortedStateAdapter } from './sorted_state_adapter'
 import { buildCreateUnsortedStateAdapter } from './unsorted_state_adapter'
 import type { BuildCreateDraftSafeSelectorConfiguration } from '..'
 import type { BuildStateOperatorConfiguration } from './state_adapter'
-import { immutableHelpers } from '@internal/immer'
+import { immutableHelpers } from '../immer'
 
 export interface BuildCreateEntityAdapterConfiguration
   extends BuildCreateDraftSafeSelectorConfiguration,
