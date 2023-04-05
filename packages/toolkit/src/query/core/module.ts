@@ -50,7 +50,8 @@ import type { BaseQueryFn } from '../baseQueryTypes'
 import type { ReferenceCacheLifecycle } from './buildMiddleware/cacheLifecycle'
 import type { ReferenceQueryLifecycle } from './buildMiddleware/queryLifecycle'
 import type { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
-import produce, {
+import {
+  produce,
   applyPatches,
   enablePatches,
   isDraft,
