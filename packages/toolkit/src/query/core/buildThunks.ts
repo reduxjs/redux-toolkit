@@ -23,7 +23,11 @@ import type {
 } from '../endpointDefinitions'
 import { isQueryDefinition } from '../endpointDefinitions'
 import { calculateProvidedBy } from '../endpointDefinitions'
-import type { AsyncThunkPayloadCreator, Draft } from '@reduxjs/toolkit'
+import type {
+  AsyncThunkPayloadCreator,
+  Draft,
+  ImmutableHelpers,
+} from '@reduxjs/toolkit'
 import {
   isAllOf,
   isFulfilled,
@@ -43,7 +47,7 @@ import { createAsyncThunk, SHOULD_AUTOBATCH } from '@reduxjs/toolkit'
 import { HandledError } from '../HandledError'
 
 import type { ApiEndpointQuery, PrefetchOptions } from './module'
-import type { ImmutableHelpers, UnwrapPromise } from '../tsHelpers'
+import type { UnwrapPromise } from '../tsHelpers'
 
 declare module './module' {
   export interface ApiEndpointQuery<

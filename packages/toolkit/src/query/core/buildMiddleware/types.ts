@@ -5,6 +5,7 @@ import type {
   Middleware,
   MiddlewareAPI,
   ThunkDispatch,
+  ImmutableHelpers,
 } from '@reduxjs/toolkit'
 
 import type { Api, ApiContext } from '../../apiTypes'
@@ -24,7 +25,6 @@ import type {
   QueryThunkArg,
   ThunkResult,
 } from '../buildThunks'
-import type { ImmutableHelpers } from '../../tsHelpers'
 
 export type QueryStateMeta<T> = Record<string, undefined | T>
 export type TimeoutId = ReturnType<typeof setTimeout>

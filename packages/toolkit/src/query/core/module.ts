@@ -15,6 +15,7 @@ import type {
   Reducer,
   ThunkAction,
   ThunkDispatch,
+  ImmutableHelpers,
 } from '@reduxjs/toolkit'
 import { immerImmutableHelpers } from '@reduxjs/toolkit'
 import type {
@@ -42,7 +43,6 @@ import type {
   QueryActionCreatorResult,
 } from './buildInitiate'
 import { buildInitiate } from './buildInitiate'
-import type { ImmutableHelpers } from '../tsHelpers'
 import { assertCast, safeAssign } from '../tsHelpers'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { SliceActions } from './buildSlice'

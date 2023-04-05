@@ -1,7 +1,7 @@
 import type {
-  AnyAction,
   PayloadAction,
   BuildCreateSliceConfiguration,
+  ImmutableHelpers,
 } from '@reduxjs/toolkit'
 import {
   combineReducers,
@@ -43,7 +43,6 @@ import {
 } from '../utils'
 import type { ApiContext } from '../apiTypes'
 import { isUpsertQuery } from './buildInitiate'
-import type { ImmutableHelpers } from '../tsHelpers'
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,

@@ -1,4 +1,5 @@
-import { createNextState, createSelector } from '@reduxjs/toolkit'
+import type { ImmutableHelpers } from '@reduxjs/toolkit'
+import { createSelector } from '@reduxjs/toolkit'
 import type {
   MutationSubState,
   QuerySubState,
@@ -20,7 +21,6 @@ import { expandTagDescription } from '../endpointDefinitions'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import { getMutationCacheKey } from './buildSlice'
 import { flatten } from '../utils'
-import type { ImmutableHelpers } from '../tsHelpers'
 
 export type SkipToken = typeof skipToken
 /**
