@@ -39,19 +39,19 @@ const outputDir = path.join(__dirname, '../dist')
 const buildTargets: BuildOptions[] = [
   {
     format: 'cjs',
-    name: 'cjs.development',
+    name: 'development',
     target: 'esnext',
     minify: false,
     env: 'development',
   },
   {
     format: 'cjs',
-    name: 'cjs.production.min',
+    name: 'production.min',
     target: 'esnext',
     minify: true,
     env: 'production',
   },
-  // ESM, embedded `process`, ES2017 syntax: modern Webpack dev
+  // ESM, embedded `process`: modern Webpack dev
   {
     format: 'esm',
     name: 'modern',
@@ -59,7 +59,16 @@ const buildTargets: BuildOptions[] = [
     minify: false,
     env: '',
   },
-  // ESM, pre-compiled "dev", ES2017 syntax: browser development
+  // ESM, embedded `process`: fallback for Webpack 4,
+  // which doesn't support `exports` field or optional chaining
+  {
+    format: 'esm',
+    name: 'legacy-esm',
+    target: 'esnext',
+    minify: false,
+    env: '',
+  },
+  // ESM, pre-compiled "dev": browser development
   {
     format: 'esm',
     name: 'modern.development',
@@ -67,7 +76,7 @@ const buildTargets: BuildOptions[] = [
     minify: false,
     env: 'development',
   },
-  // ESM, pre-compiled "prod", ES2017 syntax: browser prod
+  // ESM, pre-compiled "prod": browser prod
   {
     format: 'esm',
     name: 'modern.production.min',
@@ -145,8 +154,11 @@ async function bundle(options: BuildOptions & EntryPointOptions) {
     folderSegments.push('cjs')
   }
 
+  const extension =
+    name === 'legacy-esm' ? 'js' : format === 'esm' ? 'mjs' : 'cjs'
+
   const outputFolder = path.join(...folderSegments)
-  const outputFilename = `${prefix}.${name}.js`
+  const outputFilename = `${prefix}.${name}.${extension}`
 
   await fs.ensureDir(outputFolder)
 
@@ -306,9 +318,9 @@ async function writeCommonJSEntry(folder: string, prefix: string) {
     path.join(folder, 'index.js'),
     `'use strict'
 if (process.env.NODE_ENV === 'production') {
-  module.exports = require('./${prefix}.cjs.production.min.js')
+  module.exports = require('./${prefix}.production.min.cjs')
 } else {
-  module.exports = require('./${prefix}.cjs.development.js')
+  module.exports = require('./${prefix}.development.cjs')
 }`
   )
 
