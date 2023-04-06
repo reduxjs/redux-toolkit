@@ -1,5 +1,4 @@
 import type { AnyAction, Reducer } from 'redux'
-import { createNextState, createSelector } from '.'
 import type {
   ActionCreatorWithoutPayload,
   PayloadAction,
@@ -16,7 +15,7 @@ import type {
 import { createReducer, NotFunction } from './createReducer'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { NoInfer } from './tsHelpers'
+import type { NoInfer, Tail } from './tsHelpers'
 import { freezeDraftable } from './utils'
 import type { CombinedSliceReducer } from './combineSlices'
 
@@ -110,7 +109,10 @@ type SliceDefinedSelectors<
   Selectors extends SliceSelectors<State>,
   RootState
 > = {
-  [K in keyof Selectors]: (rootState: RootState) => ReturnType<Selectors[K]>
+  [K in keyof Selectors]: (
+    rootState: RootState,
+    ...args: Tail<Parameters<Selectors[K]>>
+  ) => ReturnType<Selectors[K]>
 }
 
 /**
@@ -213,7 +215,7 @@ export type SliceCaseReducers<State> = {
 }
 
 export type SliceSelectors<State> = {
-  [K: string]: (sliceState: State, ...args: never[]) => any
+  [K: string]: (sliceState: State, ...args: any[]) => any
 }
 
 type SliceActionType<
@@ -453,7 +455,8 @@ export function createSlice<
         for (const [name, selector] of Object.entries(
           options.selectors ?? {}
         )) {
-          selectors[name] = (rootState: any) => selector(selectState(rootState))
+          selectors[name] = (rootState: any, ...args: any[]) =>
+            selector(selectState(rootState), ...args)
         }
         selectorCache.set(selectState, selectors)
         return selectors as any
@@ -484,8 +487,11 @@ export function createSlice<
           for (const [name, selector] of Object.entries(
             options.selectors ?? {}
           )) {
-            selectors[name] = (rootState: any) =>
-              selector(selectState(rootState) ?? this.getInitialState())
+            selectors[name] = (rootState: any, ...args: any[]) =>
+              selector(
+                selectState(rootState) ?? this.getInitialState(),
+                ...args
+              )
           }
           selectorCache!.set(selectState, selectors)
           return selectors as any

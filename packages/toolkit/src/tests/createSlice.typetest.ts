@@ -511,7 +511,7 @@ const value = actionCreators.anyKey
     },
     selectors: {
       selectValue: (state) => state.value,
-      selectDouble: (state) => state.value * 2,
+      selectMultiply: (state, multiplier: number) => state.value * multiplier,
       selectToFixed: (state) => state.value.toFixed(2),
     },
   })
@@ -520,11 +520,11 @@ const value = actionCreators.anyKey
     [sliceWithSelectors.name]: sliceWithSelectors.getInitialState(),
   }
 
-  const { selectValue, selectDouble, selectToFixed } =
+  const { selectValue, selectMultiply, selectToFixed } =
     sliceWithSelectors.selectors
 
   expectType<number>(selectValue(rootState))
-  expectType<number>(selectDouble(rootState))
+  expectType<number>(selectMultiply(rootState, 2))
   expectType<string>(selectToFixed(rootState))
 
   const nestedState = {
@@ -536,6 +536,6 @@ const value = actionCreators.anyKey
   )
 
   expectType<number>(nestedSelectors.selectValue(nestedState))
-  expectType<number>(nestedSelectors.selectDouble(nestedState))
+  expectType<number>(nestedSelectors.selectMultiply(nestedState, 2))
   expectType<string>(nestedSelectors.selectToFixed(nestedState))
 }
