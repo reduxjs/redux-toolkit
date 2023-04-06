@@ -499,3 +499,56 @@ const value = actionCreators.anyKey
     return { doNothing, setData, slice }
   }
 }
+
+/**
+ * Test: slice selectors
+ */
+
+{
+  const sliceWithoutSelectors = createSlice({
+    name: '',
+    initialState: '',
+    reducers: {},
+  })
+
+  // @ts-expect-error
+  sliceWithoutSelectors.selectors.foo
+
+  const sliceWithSelectors = createSlice({
+    name: 'counter',
+    initialState: { value: 0 },
+    reducers: {
+      increment: (state) => {
+        state.value += 1
+      },
+    },
+    selectors: {
+      selectValue: (state) => state.value,
+      selectMultiply: (state, multiplier: number) => state.value * multiplier,
+      selectToFixed: (state) => state.value.toFixed(2),
+    },
+  })
+
+  const rootState = {
+    [sliceWithSelectors.name]: sliceWithSelectors.getInitialState(),
+  }
+
+  const { selectValue, selectMultiply, selectToFixed } =
+    sliceWithSelectors.selectors
+
+  expectType<number>(selectValue(rootState))
+  expectType<number>(selectMultiply(rootState, 2))
+  expectType<string>(selectToFixed(rootState))
+
+  const nestedState = {
+    nested: rootState,
+  }
+
+  const nestedSelectors = sliceWithSelectors.getSelectors(
+    (rootState: typeof nestedState) => rootState.nested.counter
+  )
+
+  expectType<number>(nestedSelectors.selectValue(nestedState))
+  expectType<number>(nestedSelectors.selectMultiply(nestedState, 2))
+  expectType<string>(nestedSelectors.selectToFixed(nestedState))
+}

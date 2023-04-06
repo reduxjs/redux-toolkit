@@ -1,5 +1,6 @@
 import { vi } from 'vitest'
-import type { PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction, WithSlice } from '@reduxjs/toolkit'
+import { combineSlices } from '@reduxjs/toolkit'
 import { createSlice, createAction } from '@reduxjs/toolkit'
 import {
   mockConsole,
@@ -446,6 +447,73 @@ describe('createSlice', () => {
 
       expect(wrapper).toThrowError(
         /The object notation for `createSlice.extraReducers` has been removed/
+      )
+    })
+  })
+  describe('slice selectors', () => {
+    const slice = createSlice({
+      name: 'counter',
+      initialState: 42,
+      reducers: {},
+      selectors: {
+        selectSlice: (state) => state,
+        selectMultiple: (state, multiplier: number) => state * multiplier,
+      },
+    })
+    it('expects reducer under slice.name if no selectState callback passed', () => {
+      const testState = {
+        [slice.name]: slice.getInitialState(),
+      }
+      const { selectSlice, selectMultiple } = slice.selectors
+      expect(selectSlice(testState)).toBe(slice.getInitialState())
+      expect(selectMultiple(testState, 2)).toBe(slice.getInitialState() * 2)
+    })
+    it('allows passing a selector for a custom location', () => {
+      const customState = {
+        number: slice.getInitialState(),
+      }
+      const { selectSlice, selectMultiple } = slice.getSelectors(
+        (state: typeof customState) => state.number
+      )
+      expect(selectSlice(customState)).toBe(slice.getInitialState())
+      expect(selectMultiple(customState, 2)).toBe(slice.getInitialState() * 2)
+    })
+  })
+  describe('slice injections', () => {
+    it('uses injectInto to inject slice into combined reducer', () => {
+      const slice = createSlice({
+        name: 'counter',
+        initialState: 42,
+        reducers: {
+          increment: (state) => ++state,
+        },
+        selectors: {
+          selectSlice: (state) => state,
+          selectMultiple: (state, multiplier: number) => state * multiplier,
+        },
+      })
+
+      const { increment } = slice.actions
+
+      const combinedReducer = combineSlices({
+        static: slice.reducer,
+      }).withLazyLoadedSlices<WithSlice<typeof slice>>()
+
+      const uninjectedState = combinedReducer(undefined, increment())
+
+      expect(uninjectedState.counter).toBe(undefined)
+
+      const injectedSlice = slice.injectInto(combinedReducer)
+
+      // selector returns initial state if undefined in real state
+      expect(injectedSlice.selectors.selectSlice(uninjectedState)).toBe(
+        slice.getInitialState()
+      )
+
+      const injectedState = combinedReducer(undefined, increment())
+
+      expect(injectedSlice.selectors.selectSlice(injectedState)).toBe(
+        slice.getInitialState() + 1
       )
     })
   })
