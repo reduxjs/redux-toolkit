@@ -1,5 +1,5 @@
 import type { AnyAction, Reducer } from 'redux'
-import { createNextState } from '.'
+import { createNextState, createSelector } from '.'
 import type {
   ActionCreatorWithoutPayload,
   PayloadAction,
@@ -38,7 +38,8 @@ export type SliceActionCreator<P> = PayloadActionCreator<P>
 export interface Slice<
   State = any,
   CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-  Name extends string = string
+  Name extends string = string,
+  Selectors extends SliceSelectors<State> = {}
 > {
   /**
    * The slice name.
@@ -67,6 +68,23 @@ export interface Slice<
    * If a lazy state initializer was provided, it will be called and a fresh value returned.
    */
   getInitialState: () => State
+
+  getSelectors(): SliceDefinedSelectors<State, Name, Selectors>
+
+  getSelectors<RootState>(
+    selectState: (rootState: RootState) => State
+  ): SliceDefinedSelectors<State, Name, Selectors, RootState>
+
+  selectors: SliceDefinedSelectors<State, Name, Selectors>
+}
+
+type SliceDefinedSelectors<
+  State,
+  Name extends string,
+  Selectors extends SliceSelectors<State>,
+  RootState = { [K in Name]: State }
+> = {
+  [K in keyof Selectors]: (rootState: RootState) => ReturnType<Selectors[K]>
 }
 
 /**
@@ -77,7 +95,8 @@ export interface Slice<
 export interface CreateSliceOptions<
   State = any,
   CR extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-  Name extends string = string
+  Name extends string = string,
+  Selectors extends SliceSelectors<State> = Record<never, never>
 > {
   /**
    * The slice's name. Used to namespace the generated action types.
@@ -142,6 +161,8 @@ createSlice({
 ```
    */
   extraReducers?: (builder: ActionReducerMapBuilder<NoInfer<State>>) => void
+
+  selectors?: Selectors
 }
 
 /**
@@ -163,6 +184,10 @@ export type SliceCaseReducers<State> = {
   [K: string]:
     | CaseReducer<State, PayloadAction<any>>
     | CaseReducerWithPrepare<State, PayloadAction<any, string, any, any>>
+}
+
+export type SliceSelectors<State> = {
+  [K: string]: (sliceState: State, ...args: never[]) => any
 }
 
 type SliceActionType<
@@ -271,10 +296,11 @@ function getType(slice: string, actionKey: string): string {
 export function createSlice<
   State,
   CaseReducers extends SliceCaseReducers<State>,
-  Name extends string = string
+  Name extends string,
+  Selectors extends SliceSelectors<State>
 >(
-  options: CreateSliceOptions<State, CaseReducers, Name>
-): Slice<State, CaseReducers, Name> {
+  options: CreateSliceOptions<State, CaseReducers, Name, Selectors>
+): Slice<State, CaseReducers, Name, Selectors> {
   const { name } = options
   if (!name) {
     throw new Error('`name` is a required option for createSlice')
@@ -372,6 +398,20 @@ export function createSlice<
       if (!_reducer) _reducer = buildReducer()
 
       return _reducer.getInitialState()
+    },
+    getSelectors: (
+      selectState: (rootState: any) => State = (
+        rootState: { [K in Name]: State }
+      ) => rootState[name]
+    ) => {
+      const selectors: Record<string, (rootState: any) => any> = {}
+      for (const [name, selector] of Object.entries(options.selectors ?? {})) {
+        selectors[name] = (rootState: any) => selector(selectState(rootState))
+      }
+      return selectors as any
+    },
+    get selectors() {
+      return this.getSelectors()
     },
   }
 }
