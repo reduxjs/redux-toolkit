@@ -89,7 +89,7 @@ type InjectConfig = {
 /**
  * A reducer that allows for slices/reducers to be injected after initialisation.
  */
-interface CombinedSliceReducer<
+export interface CombinedSliceReducer<
   InitialState,
   DeclaredState = InitialState
 > extends Reducer<

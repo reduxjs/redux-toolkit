@@ -18,6 +18,7 @@ import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type { NoInfer } from './tsHelpers'
 import { freezeDraftable } from './utils'
+import type { CombinedSliceReducer } from './combineSlices'
 
 let hasWarnedAboutObjectNotation = false
 
@@ -69,20 +70,45 @@ export interface Slice<
    */
   getInitialState: () => State
 
-  getSelectors(): SliceDefinedSelectors<State, Name, Selectors, State>
+  getSelectors(): SliceDefinedSelectors<State, Selectors, State>
 
   getSelectors<RootState>(
     selectState: (rootState: RootState) => State
-  ): SliceDefinedSelectors<State, Name, Selectors, RootState>
+  ): SliceDefinedSelectors<State, Selectors, RootState>
 
-  selectors: SliceDefinedSelectors<State, Name, Selectors>
+  selectors: SliceDefinedSelectors<State, Selectors, { [K in Name]: State }>
+
+  injectInto(
+    combinedReducer: CombinedSliceReducer<any>
+  ): InjectedSlice<State, CaseReducers, Name, Selectors>
+}
+
+interface InjectedSlice<
+  State = any,
+  CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+  Name extends string = string,
+  Selectors extends SliceSelectors<State> = {}
+> extends Omit<
+    Slice<State, CaseReducers, Name, Selectors>,
+    'getSelectors' | 'selectors'
+  > {
+  getSelectors(): SliceDefinedSelectors<State, Selectors, State | undefined>
+
+  getSelectors<RootState>(
+    selectState: (rootState: RootState) => State | undefined
+  ): SliceDefinedSelectors<State, Selectors, RootState>
+
+  selectors: SliceDefinedSelectors<
+    State,
+    Selectors,
+    { [K in Name]?: State | undefined }
+  >
 }
 
 type SliceDefinedSelectors<
   State,
-  Name extends string,
   Selectors extends SliceSelectors<State>,
-  RootState = { [K in Name]: State }
+  RootState
 > = {
   [K in keyof Selectors]: (rootState: RootState) => ReturnType<Selectors[K]>
 }
@@ -386,9 +412,16 @@ export function createSlice<
   const defaultSelectSlice = (rootState: { [K in Name]: State }) =>
     rootState[name]
 
+  const selectSelf = (state: State) => state
+
   const selectorCache = new WeakMap<
     (rootState: any) => State,
     Record<string, (rootState: any) => any>
+  >()
+
+  const injectedSelectorCache = new WeakMap<
+    CombinedSliceReducer<any>,
+    WeakMap<(rootState: any) => State, Record<string, (rootState: any) => any>>
   >()
 
   let _reducer: ReducerWithInitialState<State>
@@ -407,7 +440,7 @@ export function createSlice<
 
       return _reducer.getInitialState()
     },
-    getSelectors: (selectState?: (rootState: any) => State) => {
+    getSelectors(selectState?: (rootState: any) => State) {
       if (selectState) {
         const cached = selectorCache.get(selectState)
         if (cached) {
@@ -427,6 +460,35 @@ export function createSlice<
     },
     get selectors() {
       return this.getSelectors(defaultSelectSlice)
+    },
+    injectInto(reducer) {
+      reducer.inject(this)
+      let selectorCache = injectedSelectorCache.get(reducer)
+      if (!selectorCache) {
+        selectorCache = new WeakMap()
+        injectedSelectorCache.set(reducer, selectorCache)
+      }
+      return {
+        ...this,
+        getSelectors(selectState: (rootState: any) => State = selectSelf) {
+          const cached = selectorCache!.get(selectState)
+          if (cached) {
+            return cached
+          }
+          const selectors: Record<string, (rootState: any) => any> = {}
+          for (const [name, selector] of Object.entries(
+            options.selectors ?? {}
+          )) {
+            selectors[name] = (rootState: any) =>
+              selector(selectState(rootState) ?? this.getInitialState())
+          }
+          selectorCache!.set(selectState, selectors)
+          return selectors as any
+        },
+        get selectors() {
+          return this.getSelectors(defaultSelectSlice)
+        },
+      } as any
     },
   }
 }
