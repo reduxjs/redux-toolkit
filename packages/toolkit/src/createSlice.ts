@@ -426,7 +426,6 @@ export function createSlice<
       }
     },
     get selectors() {
-      // TODO: do we want to cache this at all?
       return this.getSelectors(defaultSelectSlice)
     },
   }
