@@ -421,7 +421,10 @@ export function createSlice<
 
   const injectedSelectorCache = new WeakMap<
     CombinedSliceReducer<any>,
-    WeakMap<(rootState: any) => State, Record<string, (rootState: any) => any>>
+    WeakMap<
+      (rootState: any) => State | undefined,
+      Record<string, (rootState: any) => any>
+    >
   >()
 
   let _reducer: ReducerWithInitialState<State>
@@ -470,7 +473,9 @@ export function createSlice<
       }
       return {
         ...this,
-        getSelectors(selectState: (rootState: any) => State = selectSelf) {
+        getSelectors(
+          selectState: (rootState: any) => State | undefined = selectSelf
+        ) {
           const cached = selectorCache!.get(selectState)
           if (cached) {
             return cached
