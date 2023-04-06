@@ -500,7 +500,20 @@ const value = actionCreators.anyKey
   }
 }
 
+/**
+ * Test: slice selectors
+ */
+
 {
+  const sliceWithoutSelectors = createSlice({
+    name: '',
+    initialState: '',
+    reducers: {},
+  })
+
+  // @ts-expect-error
+  sliceWithoutSelectors.selectors.foo
+
   const sliceWithSelectors = createSlice({
     name: 'counter',
     initialState: { value: 0 },

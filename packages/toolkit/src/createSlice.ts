@@ -15,7 +15,7 @@ import type {
 import { createReducer, NotFunction } from './createReducer'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { NoInfer, Tail } from './tsHelpers'
+import type { Id, NoInfer, Tail } from './tsHelpers'
 import { freezeDraftable } from './utils'
 import type { CombinedSliceReducer } from './combineSlices'
 
@@ -69,13 +69,13 @@ export interface Slice<
    */
   getInitialState: () => State
 
-  getSelectors(): SliceDefinedSelectors<State, Selectors, State>
+  getSelectors(): Id<SliceDefinedSelectors<State, Selectors, State>>
 
   getSelectors<RootState>(
     selectState: (rootState: RootState) => State
-  ): SliceDefinedSelectors<State, Selectors, RootState>
+  ): Id<SliceDefinedSelectors<State, Selectors, RootState>>
 
-  selectors: SliceDefinedSelectors<State, Selectors, { [K in Name]: State }>
+  selectors: Id<SliceDefinedSelectors<State, Selectors, { [K in Name]: State }>>
 
   injectInto(
     combinedReducer: CombinedSliceReducer<any>
@@ -91,16 +91,14 @@ interface InjectedSlice<
     Slice<State, CaseReducers, Name, Selectors>,
     'getSelectors' | 'selectors'
   > {
-  getSelectors(): SliceDefinedSelectors<State, Selectors, State | undefined>
+  getSelectors(): Id<SliceDefinedSelectors<State, Selectors, State | undefined>>
 
   getSelectors<RootState>(
     selectState: (rootState: RootState) => State | undefined
-  ): SliceDefinedSelectors<State, Selectors, RootState>
+  ): Id<SliceDefinedSelectors<State, Selectors, RootState>>
 
-  selectors: SliceDefinedSelectors<
-    State,
-    Selectors,
-    { [K in Name]?: State | undefined }
+  selectors: Id<
+    SliceDefinedSelectors<State, Selectors, { [K in Name]?: State | undefined }>
   >
 }
 
@@ -109,7 +107,7 @@ type SliceDefinedSelectors<
   Selectors extends SliceSelectors<State>,
   RootState
 > = {
-  [K in keyof Selectors]: (
+  [K in keyof Selectors as [string] extends [K] ? never : K]: (
     rootState: RootState,
     ...args: Tail<Parameters<Selectors[K]>>
   ) => ReturnType<Selectors[K]>
