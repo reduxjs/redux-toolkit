@@ -69,7 +69,7 @@ export interface Slice<
    */
   getInitialState: () => State
 
-  getSelectors(): SliceDefinedSelectors<State, Name, Selectors>
+  getSelectors(): SliceDefinedSelectors<State, Name, Selectors, State>
 
   getSelectors<RootState>(
     selectState: (rootState: RootState) => State
@@ -402,18 +402,22 @@ export function createSlice<
 
       return _reducer.getInitialState()
     },
-    getSelectors: (
-      selectState: (rootState: any) => State = defaultSelectSlice
-    ) => {
-      const selectors: Record<string, (rootState: any) => any> = {}
-      for (const [name, selector] of Object.entries(options.selectors ?? {})) {
-        selectors[name] = (rootState: any) => selector(selectState(rootState))
+    getSelectors: (selectState?: (rootState: any) => State) => {
+      if (selectState) {
+        const selectors: Record<string, (rootState: any) => any> = {}
+        for (const [name, selector] of Object.entries(
+          options.selectors ?? {}
+        )) {
+          selectors[name] = (rootState: any) => selector(selectState(rootState))
+        }
+        return selectors as any
+      } else {
+        return options.selectors ?? {}
       }
-      return selectors as any
     },
     get selectors() {
       // TODO: do we want to cache this at all?
-      return this.getSelectors()
+      return this.getSelectors(defaultSelectSlice)
     },
   }
 }
