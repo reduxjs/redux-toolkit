@@ -383,6 +383,9 @@ export function createSlice<
     })
   }
 
+  const defaultSelectSlice = (rootState: { [K in Name]: State }) =>
+    rootState[name]
+
   let _reducer: ReducerWithInitialState<State>
 
   return {
@@ -400,9 +403,7 @@ export function createSlice<
       return _reducer.getInitialState()
     },
     getSelectors: (
-      selectState: (rootState: any) => State = (
-        rootState: { [K in Name]: State }
-      ) => rootState[name]
+      selectState: (rootState: any) => State = defaultSelectSlice
     ) => {
       const selectors: Record<string, (rootState: any) => any> = {}
       for (const [name, selector] of Object.entries(options.selectors ?? {})) {
@@ -411,6 +412,7 @@ export function createSlice<
       return selectors as any
     },
     get selectors() {
+      // TODO: do we want to cache this at all?
       return this.getSelectors()
     },
   }

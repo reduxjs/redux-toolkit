@@ -449,4 +449,33 @@ describe('createSlice', () => {
       )
     })
   })
+  describe('slice selectors', () => {
+    const slice = createSlice({
+      name: 'counter',
+      initialState: 42,
+      reducers: {},
+      selectors: {
+        selectSlice: (state) => state,
+        selectDouble: (state) => state * 2,
+      },
+    })
+    it('expects reducer under slice.name if no selectState callback passed', () => {
+      const testState = {
+        [slice.name]: slice.getInitialState(),
+      }
+      const { selectSlice, selectDouble } = slice.selectors
+      expect(selectSlice(testState)).toBe(slice.getInitialState())
+      expect(selectDouble(testState)).toBe(slice.getInitialState() * 2)
+    })
+    it('allows passing a selector for a custom location', () => {
+      const customState = {
+        number: slice.getInitialState(),
+      }
+      const { selectSlice, selectDouble } = slice.getSelectors(
+        (state: typeof customState) => state.number
+      )
+      expect(selectSlice(customState)).toBe(slice.getInitialState())
+      expect(selectDouble(customState)).toBe(slice.getInitialState() * 2)
+    })
+  })
 })
