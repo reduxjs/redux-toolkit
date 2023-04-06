@@ -831,7 +831,7 @@ First, you can import effect callbacks from slice files into the middleware file
 
 ```ts no-transpile title="app/listenerMiddleware.ts"
 import { action1, listener1 } from '../features/feature1/feature1Slice'
-import { action2, listener2 } from '../features/feature2/feature1Slice'
+import { action2, listener2 } from '../features/feature2/feature2Slice'
 
 listenerMiddleware.startListening({ actionCreator: action1, effect: listener1 })
 listenerMiddleware.startListening({ actionCreator: action2, effect: listener2 })
