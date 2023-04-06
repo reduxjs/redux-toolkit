@@ -386,6 +386,11 @@ export function createSlice<
   const defaultSelectSlice = (rootState: { [K in Name]: State }) =>
     rootState[name]
 
+  const selectorCache = new WeakMap<
+    (rootState: any) => State,
+    Record<string, (rootState: any) => any>
+  >()
+
   let _reducer: ReducerWithInitialState<State>
 
   return {
@@ -404,12 +409,17 @@ export function createSlice<
     },
     getSelectors: (selectState?: (rootState: any) => State) => {
       if (selectState) {
+        const cached = selectorCache.get(selectState)
+        if (cached) {
+          return cached
+        }
         const selectors: Record<string, (rootState: any) => any> = {}
         for (const [name, selector] of Object.entries(
           options.selectors ?? {}
         )) {
           selectors[name] = (rootState: any) => selector(selectState(rootState))
         }
+        selectorCache.set(selectState, selectors)
         return selectors as any
       } else {
         return options.selectors ?? {}
