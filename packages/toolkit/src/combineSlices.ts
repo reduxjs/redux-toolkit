@@ -126,9 +126,10 @@ export interface CombinedSliceReducer<
    * const withCustom = rootReducer.inject({ name: "customName", reducer: customSlice.reducer })
    * ```
    */
-  withLazyLoadedSlices<
-    Lazy extends Record<string, unknown> = {}
-  >(): CombinedSliceReducer<InitialState, Id<DeclaredState & Partial<Lazy>>>
+  withLazyLoadedSlices<Lazy = {}>(): CombinedSliceReducer<
+    InitialState,
+    Id<DeclaredState & Partial<Lazy>>
+  >
 
   /**
    * Inject an RTKQ API instance.
