@@ -79,7 +79,7 @@ type ExistingApiLike<DeclaredState> = {
   >
 }[keyof DeclaredState]
 
-type InjectConfig = {
+export type InjectConfig = {
   /**
    * Allow replacing reducer with a different reference. Normally, an error will be thrown if a different reducer instance to the one already injected is used.
    */

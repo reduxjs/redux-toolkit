@@ -17,7 +17,7 @@ import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type { Id, NoInfer, Tail } from './tsHelpers'
 import { freezeDraftable } from './utils'
-import type { CombinedSliceReducer } from './combineSlices'
+import type { CombinedSliceReducer, InjectConfig } from './combineSlices'
 
 let hasWarnedAboutObjectNotation = false
 
@@ -79,7 +79,7 @@ export interface Slice<
 
   injectInto(
     combinedReducer: CombinedSliceReducer<any>,
-    name?: string
+    config?: InjectConfig & { name?: string }
   ): InjectedSlice<State, CaseReducers, Name, Selectors>
 }
 
@@ -466,8 +466,8 @@ export function createSlice<
     get selectors() {
       return this.getSelectors(defaultSelectSlice)
     },
-    injectInto(reducer, name) {
-      reducer.inject({ ...this, ...(name && { name }) })
+    injectInto(reducer, { name, ...config } = {}) {
+      reducer.inject({ ...this, ...(name && { name }) }, config)
       let selectorCache = injectedSelectorCache.get(reducer)
       if (!selectorCache) {
         selectorCache = new WeakMap()
