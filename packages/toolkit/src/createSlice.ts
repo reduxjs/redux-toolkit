@@ -466,8 +466,8 @@ export function createSlice<
     get selectors() {
       return this.getSelectors(defaultSelectSlice)
     },
-    injectInto(reducer, name = options.name) {
-      reducer.inject({ name, reducer: this.reducer })
+    injectInto(reducer, name) {
+      reducer.inject({ ...this, ...(name && { name }) })
       let selectorCache = injectedSelectorCache.get(reducer)
       if (!selectorCache) {
         selectorCache = new WeakMap()
