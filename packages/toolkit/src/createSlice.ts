@@ -78,7 +78,8 @@ export interface Slice<
   selectors: Id<SliceDefinedSelectors<State, Selectors, { [K in Name]: State }>>
 
   injectInto(
-    combinedReducer: CombinedSliceReducer<any>
+    combinedReducer: CombinedSliceReducer<any>,
+    name?: string
   ): InjectedSlice<State, CaseReducers, Name, Selectors>
 }
 
@@ -465,8 +466,8 @@ export function createSlice<
     get selectors() {
       return this.getSelectors(defaultSelectSlice)
     },
-    injectInto(reducer) {
-      reducer.inject(this)
+    injectInto(reducer, name = options.name) {
+      reducer.inject({ name, reducer: this.reducer })
       let selectorCache = injectedSelectorCache.get(reducer)
       if (!selectorCache) {
         selectorCache = new WeakMap()
