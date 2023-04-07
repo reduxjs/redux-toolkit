@@ -519,6 +519,7 @@ describe('createSlice', () => {
     it('allows providing a custom name to inject under', () => {
       const slice = createSlice({
         name: 'counter',
+        reducerPath: 'injected',
         initialState: 42,
         reducers: {
           increment: (state) => ++state,
@@ -539,7 +540,7 @@ describe('createSlice', () => {
 
       expect(uninjectedState.injected).toBe(undefined)
 
-      slice.injectInto(combinedReducer, { name: 'injected' })
+      slice.injectInto(combinedReducer, { reducerPath: 'injected' })
 
       const injectedState = combinedReducer(undefined, increment())
 

@@ -1,5 +1,5 @@
 /* eslint-disable no-lone-blocks */
-import type { Reducer, Slice, WithSlice, WithApi } from '@reduxjs/toolkit'
+import type { Reducer, Slice, WithSlice } from '@reduxjs/toolkit'
 import { combineSlices } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { expectExactType, expectType } from './helpers'
@@ -41,7 +41,7 @@ type ExampleApiState = ReturnType<typeof exampleApi.reducer>
  */
 {
   const rootReducer = combineSlices(stringSlice).withLazyLoadedSlices<
-    WithSlice<typeof numberSlice> & WithApi<typeof exampleApi>
+    WithSlice<typeof numberSlice> & WithSlice<typeof exampleApi>
   >()
   expectExactType<number | undefined>(0)(
     rootReducer(undefined, { type: '' }).number
@@ -57,7 +57,7 @@ type ExampleApiState = ReturnType<typeof exampleApi.reducer>
 {
   const rootReducer = combineSlices(stringSlice).withLazyLoadedSlices<
     WithSlice<typeof numberSlice> &
-      WithApi<typeof exampleApi> & { boolean: boolean }
+      WithSlice<typeof exampleApi> & { boolean: boolean }
   >()
 
   expectExactType<number | undefined>(0)(
@@ -74,7 +74,7 @@ type ExampleApiState = ReturnType<typeof exampleApi.reducer>
   expectExactType<number>(0)(withNumber(undefined, { type: '' }).number)
 
   const withBool = rootReducer.inject({
-    name: 'boolean' as const,
+    reducerPath: 'boolean' as const,
     reducer: booleanReducer,
   })
   expectExactType<boolean>(true)(withBool(undefined, { type: '' }).boolean)

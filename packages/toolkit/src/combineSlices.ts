@@ -14,68 +14,37 @@ import type {
   WithOptionalProp,
 } from './tsHelpers'
 
-type SliceLike<Name extends string, State> = {
-  name: Name
+type SliceLike<ReducerPath extends string, State> = {
+  reducerPath: ReducerPath
   reducer: Reducer<State>
 }
 
 type AnySliceLike = SliceLike<string, any>
 
-type SliceLikeState<Sl extends AnySliceLike> = Sl extends SliceLike<
-  any,
-  infer State
->
-  ? State
-  : never
-
-type SliceLikeName<Sl extends AnySliceLike> = Sl extends SliceLike<
-  infer Name,
-  any
->
-  ? Name
-  : never
-
-export type WithSlice<Sl extends AnySliceLike> = Id<
-  {
-    [K in SliceLikeName<Sl>]: SliceLikeState<Sl>
-  }
->
-
-type ApiLike<ReducerPath extends string, State> = {
-  reducerPath: ReducerPath
-  reducer: Reducer<State>
-}
-
-type AnyApiLike = ApiLike<string, any>
-
-type ApiLikeReducerPath<A extends AnyApiLike> = A extends ApiLike<
+type SliceLikeReducerPath<A extends AnySliceLike> = A extends SliceLike<
   infer ReducerPath,
   any
 >
   ? ReducerPath
   : never
 
-type ApiLikeState<A extends AnyApiLike> = A extends ApiLike<any, infer State>
+type SliceLikeState<A extends AnySliceLike> = A extends SliceLike<
+  any,
+  infer State
+>
   ? State
   : never
 
-export type WithApi<A extends AnyApiLike> = {
-  [Path in ApiLikeReducerPath<A>]: ApiLikeState<A>
+export type WithSlice<A extends AnySliceLike> = {
+  [Path in SliceLikeReducerPath<A>]: SliceLikeState<A>
 }
 
 type ReducerMap = Record<string, Reducer>
 
 type ExistingSliceLike<DeclaredState> = {
-  [Name in keyof DeclaredState]: SliceLike<
-    Name & string,
-    NonUndefined<DeclaredState[Name]>
-  >
-}[keyof DeclaredState]
-
-type ExistingApiLike<DeclaredState> = {
-  [Name in keyof DeclaredState]: ApiLike<
-    Name & string,
-    NonUndefined<DeclaredState[Name]>
+  [ReducerPath in keyof DeclaredState]: SliceLike<
+    ReducerPath & string,
+    NonUndefined<DeclaredState[ReducerPath]>
   >
 }[keyof DeclaredState]
 
@@ -123,7 +92,7 @@ export interface CombinedSliceReducer<
    *   }
    * }
    *
-   * const withCustom = rootReducer.inject({ name: "customName", reducer: customSlice.reducer })
+   * const withCustom = rootReducer.inject({ reducerPath: "customName", reducer: customSlice.reducer })
    * ```
    */
   withLazyLoadedSlices<Lazy = {}>(): CombinedSliceReducer<
@@ -132,49 +101,14 @@ export interface CombinedSliceReducer<
   >
 
   /**
-   * Inject an RTKQ API instance.
-   *
-   * Accepts an individual instance, or an "api-like" { reducerPath, reducer } object
-   *
-   * ```ts
-   * rootReducer.inject(baseApi)
-   * ```
-   *
-   */
-  inject<A extends ExistingApiLike<DeclaredState>>(
-    api: A,
-    config?: InjectConfig
-  ): CombinedSliceReducer<InitialState, Id<DeclaredState & WithApi<A>>>
-
-  /**
-   * Inject an RTKQ API instance.
-   *
-   * Accepts an individual instance, or an "api-like" { reducerPath, reducer } object
-   *
-   * ```ts
-   * rootReducer.inject(baseApi)
-   * ```
-   *
-   */
-  inject<ReducerPath extends string, State>(
-    api: ApiLike<
-      ReducerPath,
-      State & (ReducerPath extends keyof DeclaredState ? never : State)
-    >,
-    config?: InjectConfig
-  ): CombinedSliceReducer<
-    InitialState,
-    Id<DeclaredState & WithApi<ApiLike<ReducerPath, State>>>
-  >
-
-  /**
    * Inject a slice.
    *
-   * Accepts an individual slice, or a "slice-like" { name, reducer } object.
+   * Accepts an individual slice, RTKQ API instance, or a "slice-like" { reducerPath, reducer } object.
    *
    * ```ts
    * rootReducer.inject(booleanSlice)
-   * rootReducer.inject({ name: 'boolean' as const, reducer: newReducer }, { overrideExisting: true })
+   * rootReducer.inject(baseApi)
+   * rootReducer.inject({ reducerPath: 'boolean' as const, reducer: newReducer }, { overrideExisting: true })
    * ```
    *
    */
@@ -186,23 +120,24 @@ export interface CombinedSliceReducer<
   /**
    * Inject a slice.
    *
-   * Accepts an individual slice, or a "slice-like" { name, reducer } object.
+   * Accepts an individual slice, RTKQ API instance, or a "slice-like" { reducerPath, reducer } object.
    *
    * ```ts
    * rootReducer.inject(booleanSlice)
-   * rootReducer.inject({ name: 'boolean' as const, reducer: newReducer }, { overrideExisting: true })
+   * rootReducer.inject(baseApi)
+   * rootReducer.inject({ reducerPath: 'boolean' as const, reducer: newReducer }, { overrideExisting: true })
    * ```
    *
    */
-  inject<Name extends string, State>(
+  inject<ReducerPath extends string, State>(
     slice: SliceLike<
-      Name,
-      State & (Name extends keyof DeclaredState ? never : State)
+      ReducerPath,
+      State & (ReducerPath extends keyof DeclaredState ? never : State)
     >,
     config?: InjectConfig
   ): CombinedSliceReducer<
     InitialState,
-    Id<DeclaredState & WithSlice<SliceLike<Name, String>>>
+    Id<DeclaredState & WithSlice<SliceLike<ReducerPath, String>>>
   >
 
   /**
@@ -373,33 +308,24 @@ export interface CombinedSliceReducer<
   }
 }
 
-type InitialState<
-  Slices extends Array<AnySliceLike | AnyApiLike | ReducerMap>
-> = UnionToIntersection<
-  Slices[number] extends infer Slice
-    ? Slice extends AnySliceLike
-      ? WithSlice<Slice>
-      : Slice extends AnyApiLike
-      ? WithApi<Slice>
-      : StateFromReducersMapObject<Slice>
-    : never
->
+type InitialState<Slices extends Array<AnySliceLike | ReducerMap>> =
+  UnionToIntersection<
+    Slices[number] extends infer Slice
+      ? Slice extends AnySliceLike
+        ? WithSlice<Slice>
+        : StateFromReducersMapObject<Slice>
+      : never
+  >
 
 const isSliceLike = (
-  maybeSliceLike: AnySliceLike | AnyApiLike | ReducerMap
+  maybeSliceLike: AnySliceLike | ReducerMap
 ): maybeSliceLike is AnySliceLike =>
-  'name' in maybeSliceLike && typeof maybeSliceLike.name === 'string'
+  'reducerPath' in maybeSliceLike &&
+  typeof maybeSliceLike.reducerPath === 'string'
 
-const isApiLike = (
-  maybeApiLike: AnySliceLike | AnyApiLike | ReducerMap
-): maybeApiLike is AnyApiLike =>
-  'reducerPath' in maybeApiLike && typeof maybeApiLike.reducerPath === 'string'
-
-const getReducers = (slices: Array<AnySliceLike | AnyApiLike | ReducerMap>) =>
+const getReducers = (slices: Array<AnySliceLike | ReducerMap>) =>
   slices.flatMap((sliceOrMap) =>
     isSliceLike(sliceOrMap)
-      ? [[sliceOrMap.name, sliceOrMap.reducer] as const]
-      : isApiLike(sliceOrMap)
       ? [[sliceOrMap.reducerPath, sliceOrMap.reducer] as const]
       : Object.entries(sliceOrMap)
   )
@@ -452,9 +378,9 @@ const original = (state: any) => {
   return state[ORIGINAL_STATE]
 }
 
-export function combineSlices<
-  Slices extends Array<AnySliceLike | AnyApiLike | ReducerMap>
->(...slices: Slices): CombinedSliceReducer<Id<InitialState<Slices>>> {
+export function combineSlices<Slices extends Array<AnySliceLike | ReducerMap>>(
+  ...slices: Slices
+): CombinedSliceReducer<Id<InitialState<Slices>>> {
   const reducerMap = Object.fromEntries<Reducer>(getReducers(slices))
 
   const getReducer = () => combineReducers(reducerMap)
@@ -468,22 +394,12 @@ export function combineSlices<
   combinedReducer.withLazyLoadedSlices = () => combinedReducer
 
   const inject = (
-    slice: AnySliceLike | AnyApiLike,
+    slice: AnySliceLike,
     config: InjectConfig = {}
   ): typeof combinedReducer => {
-    if (isApiLike(slice)) {
-      return inject(
-        {
-          name: slice.reducerPath,
-          reducer: slice.reducer,
-        },
-        config
-      )
-    }
+    const { reducerPath, reducer: reducerToInject } = slice
 
-    const { name, reducer: reducerToInject } = slice
-
-    const currentReducer = reducerMap[name]
+    const currentReducer = reducerMap[reducerPath]
     if (
       !config.overrideExisting &&
       currentReducer &&
@@ -494,14 +410,14 @@ export function combineSlices<
         process.env.NODE_ENV === 'development'
       ) {
         console.error(
-          `called \`inject\` to override already-existing reducer ${name} without specifying \`overrideExisting: true\``
+          `called \`inject\` to override already-existing reducer ${reducerPath} without specifying \`overrideExisting: true\``
         )
       }
 
       return combinedReducer
     }
 
-    reducerMap[name] = reducerToInject
+    reducerMap[reducerPath] = reducerToInject
 
     reducer = getReducer()
 

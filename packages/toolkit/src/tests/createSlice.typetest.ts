@@ -530,7 +530,7 @@ const value = actionCreators.anyKey
   })
 
   const rootState = {
-    [sliceWithSelectors.name]: sliceWithSelectors.getInitialState(),
+    [sliceWithSelectors.reducerPath]: sliceWithSelectors.getInitialState(),
   }
 
   const { selectValue, selectMultiply, selectToFixed } =
