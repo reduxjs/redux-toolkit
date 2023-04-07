@@ -516,5 +516,34 @@ describe('createSlice', () => {
         slice.getInitialState() + 1
       )
     })
+    it('allows providing a custom name to inject under', () => {
+      const slice = createSlice({
+        name: 'counter',
+        initialState: 42,
+        reducers: {
+          increment: (state) => ++state,
+        },
+        selectors: {
+          selectSlice: (state) => state,
+          selectMultiple: (state, multiplier: number) => state * multiplier,
+        },
+      })
+
+      const { increment } = slice.actions
+
+      const combinedReducer = combineSlices({
+        static: slice.reducer,
+      }).withLazyLoadedSlices<{ injected: number }>()
+
+      const uninjectedState = combinedReducer(undefined, increment())
+
+      expect(uninjectedState.injected).toBe(undefined)
+
+      slice.injectInto(combinedReducer, { name: 'injected' })
+
+      const injectedState = combinedReducer(undefined, increment())
+
+      expect(injectedState.injected).toBe(slice.getInitialState() + 1)
+    })
   })
 })
