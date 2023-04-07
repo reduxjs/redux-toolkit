@@ -477,13 +477,8 @@ export function createSlice<
 
   const selectSelf = (state: State) => state
 
-  const selectorCache = new WeakMap<
-    (rootState: any) => State,
-    Record<string, (rootState: any) => any>
-  >()
-
   const injectedSelectorCache = new WeakMap<
-    CombinedSliceReducer<any>,
+    Slice<State, CaseReducers, Name, ReducerPath, Selectors>,
     WeakMap<
       (rootState: any) => State | undefined,
       Record<string, (rootState: any) => any>
@@ -492,7 +487,7 @@ export function createSlice<
 
   let _reducer: ReducerWithInitialState<State>
 
-  return {
+  const slice: Slice<State, CaseReducers, Name, ReducerPath, Selectors> = {
     name,
     reducerPath,
     reducer(state, action) {
@@ -507,64 +502,44 @@ export function createSlice<
 
       return _reducer.getInitialState()
     },
-    getSelectors(selectState?: (rootState: any) => State) {
-      if (selectState) {
-        const cached = selectorCache.get(selectState)
-        if (cached) {
-          return cached
-        }
-        const selectors: Record<string, (rootState: any) => any> = {}
+    getSelectors(selectState: (rootState: any) => State = selectSelf) {
+      let selectorCache = injectedSelectorCache.get(this)
+      if (!selectorCache) {
+        selectorCache = new WeakMap()
+        injectedSelectorCache.set(this, selectorCache)
+      }
+      let cached = selectorCache.get(selectState)
+      if (!cached) {
+        cached = {}
         for (const [name, selector] of Object.entries(
           options.selectors ?? {}
         )) {
-          selectors[name] = (rootState: any, ...args: any[]) =>
-            selector(selectState(rootState), ...args)
+          cached[name] = (rootState: any, ...args: any[]) =>
+            selector(
+              selectState(rootState) ??
+                (this !== slice ? this.getInitialState() : (undefined as any)),
+              ...args
+            )
         }
-        selectorCache.set(selectState, selectors)
-        return selectors as any
-      } else {
-        return options.selectors ?? {}
+        selectorCache.set(selectState, cached)
       }
+      return cached as any
     },
     get selectors() {
       return this.getSelectors(defaultSelectSlice)
     },
-    injectInto(reducer, { reducerPath, ...config } = {}) {
-      reducer.inject(
+    injectInto(injectable, { reducerPath, ...config } = {}) {
+      injectable.inject(
         { reducerPath: reducerPath ?? this.reducerPath, reducer: this.reducer },
         config
       )
-      let selectorCache = injectedSelectorCache.get(reducer)
-      if (!selectorCache) {
-        selectorCache = new WeakMap()
-        injectedSelectorCache.set(reducer, selectorCache)
-      }
       return {
         ...this,
-        getSelectors(
-          selectState: (rootState: any) => State | undefined = selectSelf
-        ) {
-          const cached = selectorCache!.get(selectState)
-          if (cached) {
-            return cached
-          }
-          const selectors: Record<string, (rootState: any) => any> = {}
-          for (const [name, selector] of Object.entries(
-            options.selectors ?? {}
-          )) {
-            selectors[name] = (rootState: any, ...args: any[]) =>
-              selector(
-                selectState(rootState) ?? this.getInitialState(),
-                ...args
-              )
-          }
-          selectorCache!.set(selectState, selectors)
-          return selectors as any
-        },
         get selectors() {
           return this.getSelectors(defaultSelectSlice)
         },
       } as any
     },
   }
+  return slice
 }

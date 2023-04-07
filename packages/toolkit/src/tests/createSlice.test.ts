@@ -534,17 +534,23 @@ describe('createSlice', () => {
 
       const combinedReducer = combineSlices({
         static: slice.reducer,
-      }).withLazyLoadedSlices<{ injected: number }>()
+      }).withLazyLoadedSlices<WithSlice<typeof slice> & { injected2: number }>()
 
       const uninjectedState = combinedReducer(undefined, increment())
 
       expect(uninjectedState.injected).toBe(undefined)
 
-      slice.injectInto(combinedReducer, { reducerPath: 'injected' })
+      slice.injectInto(combinedReducer)
 
       const injectedState = combinedReducer(undefined, increment())
 
       expect(injectedState.injected).toBe(slice.getInitialState() + 1)
+
+      slice.injectInto(combinedReducer, { reducerPath: 'injected2' })
+
+      const injected2State = combinedReducer(undefined, increment())
+
+      expect(injected2State.injected2).toBe(slice.getInitialState() + 1)
     })
   })
 })
