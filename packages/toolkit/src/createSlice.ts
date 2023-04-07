@@ -514,12 +514,20 @@ export function createSlice<
         for (const [name, selector] of Object.entries(
           options.selectors ?? {}
         )) {
-          cached[name] = (rootState: any, ...args: any[]) =>
-            selector(
-              selectState(rootState) ??
-                (this !== slice ? this.getInitialState() : (undefined as any)),
-              ...args
-            )
+          cached[name] = (rootState: any, ...args: any[]) => {
+            let sliceState = selectState(rootState)
+            if (typeof sliceState === 'undefined') {
+              // check if injectInto has been called
+              if (this !== slice) {
+                sliceState = this.getInitialState()
+              } else {
+                throw new Error(
+                  'selectState returned undefined for an uninjected slice reducer'
+                )
+              }
+            }
+            return selector(sliceState, ...args)
+          }
         }
         selectorCache.set(selectState, cached)
       }
