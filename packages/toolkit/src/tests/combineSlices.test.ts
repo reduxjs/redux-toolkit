@@ -1,7 +1,7 @@
 import { createReducer } from '../createReducer'
 import { createAction } from '../createAction'
 import { createSlice } from '../createSlice'
-import type { WithApi, WithSlice } from '../combineSlices'
+import type { WithSlice } from '../combineSlices'
 import { combineSlices } from '../combineSlices'
 import { expectType } from './helpers'
 import type { CombinedState } from '../query/core/apiState'
@@ -84,19 +84,19 @@ describe('combineSlices', () => {
         combineSlices(stringSlice).withLazyLoadedSlices<{ boolean: boolean }>()
 
       combinedReducer.inject({
-        name: 'boolean' as const,
+        reducerPath: 'boolean' as const,
         reducer: booleanReducer,
       })
 
       combinedReducer.inject({
-        name: 'boolean' as const,
+        reducerPath: 'boolean' as const,
         reducer: booleanReducer,
       })
 
       expect(consoleSpy).not.toHaveBeenCalled()
 
       combinedReducer.inject({
-        name: 'boolean' as const,
+        reducerPath: 'boolean' as const,
         // @ts-expect-error wrong reducer
         reducer: stringSlice.reducer,
       })
@@ -110,13 +110,13 @@ describe('combineSlices', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       const combinedReducer = combineSlices(stringSlice).withLazyLoadedSlices<
         WithSlice<typeof numberSlice> &
-          WithApi<typeof api> & { boolean: boolean }
+          WithSlice<typeof api> & { boolean: boolean }
       >()
 
       combinedReducer.inject(numberSlice)
 
       combinedReducer.inject(
-        { name: 'number' as const, reducer: () => 0 },
+        { reducerPath: 'number' as const, reducer: () => 0 },
         { overrideExisting: true }
       )
 
@@ -130,7 +130,7 @@ describe('combineSlices', () => {
     const uninjectedState = combinedReducer(undefined, dummyAction())
 
     const injectedReducer = combinedReducer.inject({
-      name: 'boolean' as const,
+      reducerPath: 'boolean' as const,
       reducer: booleanReducer,
     })
 
