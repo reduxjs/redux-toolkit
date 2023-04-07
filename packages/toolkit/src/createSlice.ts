@@ -39,7 +39,7 @@ export interface Slice<
   State = any,
   CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
   Name extends string = string,
-  Selectors extends SliceSelectors<State> = {}
+  Selectors extends SliceSelectors<State> = SliceSelectors<State>
 > {
   /**
    * The slice name.
@@ -69,49 +69,68 @@ export interface Slice<
    */
   getInitialState: () => State
 
+  /**
+   * Get localised slice selectors (expects to be called with *just* the slice's state as the first parameter)
+   */
   getSelectors(): Id<SliceDefinedSelectors<State, Selectors, State>>
 
+  /**
+   * Get globalised slice selectors (`selectState` callback is expected to receive first parameter and return slice state)
+   */
   getSelectors<RootState>(
     selectState: (rootState: RootState) => State
   ): Id<SliceDefinedSelectors<State, Selectors, RootState>>
 
+  /**
+   * Selectors that assume the slice's state is `rootState[slice.name]` (which is usually the case)
+   *
+   * Equivalent to `slice.getSelectors((state: RootState) => state[slice.name])`.
+   */
   selectors: Id<SliceDefinedSelectors<State, Selectors, { [K in Name]: State }>>
 
+  /**
+   * Inject slice into provided reducer (return value from `combineSlices`), and return injected slice.
+   */
   injectInto(
     combinedReducer: CombinedSliceReducer<any>,
     config?: InjectConfig & { name?: string }
   ): InjectedSlice<State, CaseReducers, Name, Selectors>
 }
 
+/**
+ * A slice after being called with `injectInto(reducer)`.
+ *
+ * Selectors can now be called with an `undefined` value, in which case they use the slice's initial state.
+ */
 interface InjectedSlice<
   State = any,
   CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
   Name extends string = string,
-  Selectors extends SliceSelectors<State> = {}
+  Selectors extends SliceSelectors<State> = SliceSelectors<State>
 > extends Omit<
     Slice<State, CaseReducers, Name, Selectors>,
     'getSelectors' | 'selectors'
   > {
+  /**
+   * Get localised slice selectors (expects to be called with *just* the slice's state as the first parameter)
+   */
   getSelectors(): Id<SliceDefinedSelectors<State, Selectors, State | undefined>>
 
+  /**
+   * Get globalised slice selectors (`selectState` callback is expected to receive first parameter and return slice state)
+   */
   getSelectors<RootState>(
     selectState: (rootState: RootState) => State | undefined
   ): Id<SliceDefinedSelectors<State, Selectors, RootState>>
 
+  /**
+   * Selectors that assume the slice's state is `rootState[slice.name]` (which is usually the case)
+   *
+   * Equivalent to `slice.getSelectors((state: RootState) => state[slice.name])`.
+   */
   selectors: Id<
     SliceDefinedSelectors<State, Selectors, { [K in Name]?: State | undefined }>
   >
-}
-
-type SliceDefinedSelectors<
-  State,
-  Selectors extends SliceSelectors<State>,
-  RootState
-> = {
-  [K in keyof Selectors as [string] extends [K] ? never : K]: (
-    rootState: RootState,
-    ...args: Tail<Parameters<Selectors[K]>>
-  ) => ReturnType<Selectors[K]>
 }
 
 /**
@@ -123,7 +142,7 @@ export interface CreateSliceOptions<
   State = any,
   CR extends SliceCaseReducers<State> = SliceCaseReducers<State>,
   Name extends string = string,
-  Selectors extends SliceSelectors<State> = Record<never, never>
+  Selectors extends SliceSelectors<State> = SliceSelectors<State>
 > {
   /**
    * The slice's name. Used to namespace the generated action types.
@@ -189,6 +208,9 @@ createSlice({
    */
   extraReducers?: (builder: ActionReducerMapBuilder<NoInfer<State>>) => void
 
+  /**
+   * A map of selectors that receive the slice's state and any additional arguments, and return a result.
+   */
   selectors?: Selectors
 }
 
@@ -213,6 +235,9 @@ export type SliceCaseReducers<State> = {
     | CaseReducerWithPrepare<State, PayloadAction<any, string, any, any>>
 }
 
+/**
+ * The type describing a slice's `selectors` option.
+ */
 export type SliceSelectors<State> = {
   [K: string]: (sliceState: State, ...args: any[]) => any
 }
@@ -278,6 +303,22 @@ type SliceDefinedCaseReducers<CaseReducers extends SliceCaseReducers<any>> = {
   }
     ? Reducer
     : CaseReducers[Type]
+}
+
+/**
+ * Extracts the final selector type from the `selectors` object.
+ *
+ * Removes the `string` index signature from the default value.
+ */
+type SliceDefinedSelectors<
+  State,
+  Selectors extends SliceSelectors<State>,
+  RootState
+> = {
+  [K in keyof Selectors as string extends K ? never : K]: (
+    rootState: RootState,
+    ...args: Tail<Parameters<Selectors[K]>>
+  ) => ReturnType<Selectors[K]>
 }
 
 /**
