@@ -520,7 +520,7 @@ export function createSlice<
               // check if injectInto has been called
               if (this !== slice) {
                 sliceState = this.getInitialState()
-              } else {
+              } else if (process.env.NODE_ENV !== 'production') {
                 throw new Error(
                   'selectState returned undefined for an uninjected slice reducer'
                 )
