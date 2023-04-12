@@ -23,7 +23,6 @@ export {
 } from './configureStore'
 export type {
   // types
-  ConfigureEnhancersCallback,
   ConfigureStoreOptions,
   EnhancedStore,
 } from './configureStore'
@@ -88,10 +87,6 @@ export type {
   // types
   SerializableStateInvariantMiddlewareOptions,
 } from './serializableStateInvariantMiddleware'
-export {
-  // js
-  getDefaultMiddleware,
-} from './getDefaultMiddleware'
 export type {
   // types
   ActionReducerMapBuilder,

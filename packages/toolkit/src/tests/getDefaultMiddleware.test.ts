@@ -7,15 +7,13 @@ import type {
   ThunkDispatch,
   Dispatch,
 } from '@reduxjs/toolkit'
-import {
-  getDefaultMiddleware,
-  MiddlewareArray,
-  configureStore,
-} from '@reduxjs/toolkit'
+import { MiddlewareArray, configureStore } from '@reduxjs/toolkit'
 import { thunk } from 'redux-thunk'
 import type { ThunkMiddleware } from 'redux-thunk'
 
 import { expectType } from './helpers'
+
+import { getDefaultMiddleware } from '@internal/getDefaultMiddleware'
 
 describe('getDefaultMiddleware', () => {
   const ORIGINAL_NODE_ENV = process.env.NODE_ENV
@@ -32,7 +30,9 @@ describe('getDefaultMiddleware', () => {
     it('returns an array with only redux-thunk in production', async () => {
       process.env.NODE_ENV = 'production'
       const { thunk } = await import('redux-thunk')
-      const { getDefaultMiddleware } = await import('@reduxjs/toolkit')
+      const { getDefaultMiddleware } = await import(
+        '@internal/getDefaultMiddleware'
+      )
 
       const middleware = getDefaultMiddleware()
       expect(middleware).toContain(thunk)

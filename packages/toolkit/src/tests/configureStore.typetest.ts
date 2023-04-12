@@ -12,12 +12,12 @@ import { applyMiddleware } from 'redux'
 import type { PayloadAction, ConfigureStoreOptions } from '@reduxjs/toolkit'
 import {
   configureStore,
-  getDefaultMiddleware,
   createSlice,
 } from '@reduxjs/toolkit'
 import type { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
 import { thunk } from 'redux-thunk'
 import { expectNotAny, expectType } from './helpers'
+import { getDefaultMiddleware } from '@internal/getDefaultMiddleware'
 
 const _anyMiddleware: any = () => () => () => {}
 

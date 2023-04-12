@@ -6,7 +6,6 @@ import type {
   AnyAction,
   StoreEnhancer,
   Store,
-  Dispatch,
   PreloadedState,
   CombinedState,
 } from 'redux'
@@ -25,22 +24,12 @@ import type {
   ExtractDispatchExtensions,
   ExtractStoreExtensions,
   ExtractStateExtensions,
-  Id,
 } from './tsHelpers'
 import type { EnhancerArray, MiddlewareArray } from './utils'
 import type { GetDefaultEnhancers } from './getDefaultEnhancers'
 import { buildGetDefaultEnhancers } from './getDefaultEnhancers'
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
-
-/**
- * Callback function type, to be used in `ConfigureStoreOptions.enhancers`
- *
- * @public
- */
-export type ConfigureEnhancersCallback<E extends Enhancers = Enhancers> = (
-  defaultEnhancers: EnhancerArray<[StoreEnhancer<{}, {}>]>
-) => E
 
 /**
  * Options for `configureStore()`.
@@ -189,7 +178,7 @@ export function configureStore<
   }
 
   const getDefaultEnhancers = buildGetDefaultEnhancers(finalMiddleware)
-  let storeEnhancers: readonly StoreEnhancer[] = []
+  let storeEnhancers: readonly StoreEnhancer[] = getDefaultEnhancers()
   if (Array.isArray(enhancers)) {
     // TODO: this matches the typing, but technically allows for a scenario where middlewares are specified but the applyMiddleware enhancer is never used
     storeEnhancers = enhancers
@@ -197,7 +186,7 @@ export function configureStore<
     storeEnhancers = enhancers(getDefaultEnhancers)
   }
 
-  const composedEnhancer = finalCompose(...storeEnhancers) as StoreEnhancer<any>
+  const composedEnhancer: StoreEnhancer<any> = finalCompose(...storeEnhancers)
 
   return createStore(rootReducer, preloadedState, composedEnhancer)
 }
