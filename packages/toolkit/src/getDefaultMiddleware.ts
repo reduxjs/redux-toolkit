@@ -37,7 +37,7 @@ export type ThunkMiddlewareFor<
   : ThunkMiddleware<S, AnyAction>
 
 export type GetDefaultMiddleware<S = any> = <
-  O extends Partial<GetDefaultMiddlewareOptions> = {
+  O extends GetDefaultMiddlewareOptions = {
     thunk: true
     immutableCheck: true
     serializableCheck: true

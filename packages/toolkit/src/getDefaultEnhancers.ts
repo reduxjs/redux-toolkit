@@ -10,12 +10,13 @@ type GetDefaultEnhancersOptions = {
   autoBatch?: boolean | AutoBatchOptions
 }
 
-type AutoBatchEnhancerFor<O> = O extends { autoBatch: false }
-  ? never
-  : StoreEnhancer
+type AutoBatchEnhancerFor<O extends GetDefaultEnhancersOptions = {}> =
+  O extends { autoBatch: false } ? never : StoreEnhancer
 
 export type GetDefaultEnhancers<M extends Middlewares<any>> = <
-  O extends GetDefaultEnhancersOptions
+  O extends GetDefaultEnhancersOptions = {
+    autoBatch: true
+  }
 >(
   options?: O
 ) => EnhancerArray<
