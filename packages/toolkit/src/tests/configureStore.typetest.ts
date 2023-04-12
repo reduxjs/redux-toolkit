@@ -10,14 +10,10 @@ import type {
 } from 'redux'
 import { applyMiddleware } from 'redux'
 import type { PayloadAction, ConfigureStoreOptions } from '@reduxjs/toolkit'
-import {
-  configureStore,
-  createSlice,
-} from '@reduxjs/toolkit'
+import { configureStore, createSlice } from '@reduxjs/toolkit'
 import type { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
 import { thunk } from 'redux-thunk'
 import { expectNotAny, expectType } from './helpers'
-import { getDefaultMiddleware } from '@internal/getDefaultMiddleware'
 
 const _anyMiddleware: any = () => () => () => {}
 
@@ -399,19 +395,6 @@ const _anyMiddleware: any = () => () => () => {}
     store.dispatch(thunkB())
   }
   /**
-   * Test: using getDefaultMiddleware
-   */
-  {
-    const store = configureStore({
-      reducer: reducerA,
-      middleware: getDefaultMiddleware<StateA>(),
-    })
-
-    store.dispatch(thunkA())
-    // @ts-expect-error
-    store.dispatch(thunkB())
-  }
-  /**
    * Test: custom middleware
    */
   {
@@ -477,66 +460,6 @@ const _anyMiddleware: any = () => () => () => {}
     store.dispatch(function () {} as ThunkAction<void, {}, unknown, AnyAction>)
     // @ts-expect-error
     store.dispatch(function () {} as ThunkAction<void, {}, boolean, AnyAction>)
-  }
-
-  /**
-   * Test: custom middleware and getDefaultMiddleware
-   */
-  {
-    const middleware = getDefaultMiddleware<StateA>().prepend(
-      (() => {}) as any as Middleware<(a: 'a') => 'A', StateA>
-    )
-    const store = configureStore({
-      reducer: reducerA,
-      middleware,
-    })
-
-    const result1: 'A' = store.dispatch('a')
-    const result2: Promise<'A'> = store.dispatch(thunkA())
-    // @ts-expect-error
-    store.dispatch(thunkB())
-  }
-
-  /**
-   * Test: custom middleware and getDefaultMiddleware, using prepend
-   */
-  {
-    const otherMiddleware: Middleware<(a: 'a') => 'A', StateA> = _anyMiddleware
-    const concatenated = getDefaultMiddleware<StateA>().prepend(otherMiddleware)
-
-    expectType<
-      ReadonlyArray<typeof otherMiddleware | ThunkMiddleware | Middleware<{}>>
-    >(concatenated)
-
-    const store = configureStore({
-      reducer: reducerA,
-      middleware: concatenated,
-    })
-    const result1: 'A' = store.dispatch('a')
-    const result2: Promise<'A'> = store.dispatch(thunkA())
-    // @ts-expect-error
-    store.dispatch(thunkB())
-  }
-
-  /**
-   * Test: custom middleware and getDefaultMiddleware, using concat
-   */
-  {
-    const otherMiddleware: Middleware<(a: 'a') => 'A', StateA> = _anyMiddleware
-    const concatenated = getDefaultMiddleware<StateA>().concat(otherMiddleware)
-
-    expectType<
-      ReadonlyArray<typeof otherMiddleware | ThunkMiddleware | Middleware<{}>>
-    >(concatenated)
-
-    const store = configureStore({
-      reducer: reducerA,
-      middleware: concatenated,
-    })
-    const result1: 'A' = store.dispatch('a')
-    const result2: Promise<'A'> = store.dispatch(thunkA())
-    // @ts-expect-error
-    store.dispatch(thunkB())
   }
 
   /**

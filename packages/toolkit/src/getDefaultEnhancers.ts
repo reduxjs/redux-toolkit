@@ -35,7 +35,9 @@ export const buildGetDefaultEnhancers = <M extends Middlewares<any>>(
   function getDefaultEnhancers(options) {
     const { autoBatch = true } = options ?? {}
 
-    let enhancerArray = new EnhancerArray(applyMiddleware(...middlewares))
+    let enhancerArray = new EnhancerArray<StoreEnhancer[]>(
+      applyMiddleware(...middlewares)
+    )
     if (autoBatch) {
       enhancerArray.push(
         autoBatchEnhancer(typeof autoBatch === 'object' ? autoBatch : undefined)
