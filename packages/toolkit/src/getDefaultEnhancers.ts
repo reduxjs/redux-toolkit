@@ -1,6 +1,8 @@
-import type { AutoBatchOptions, StoreEnhancer } from '.'
-import { applyMiddleware } from '.'
-import { EnhancerArray, autoBatchEnhancer } from '.'
+import type { StoreEnhancer } from 'redux'
+import { applyMiddleware } from 'redux'
+import type { AutoBatchOptions } from './autoBatchEnhancer'
+import { autoBatchEnhancer } from './autoBatchEnhancer'
+import { EnhancerArray } from './utils'
 import type { Middlewares } from './configureStore'
 import type { ExcludeFromTuple, ExtractDispatchExtensions } from './tsHelpers'
 
