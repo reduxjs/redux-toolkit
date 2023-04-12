@@ -16,9 +16,9 @@ import { composeWithDevTools } from './devtoolsExtension'
 import isPlainObject from './isPlainObject'
 import type {
   ThunkMiddlewareFor,
-  CurriedGetDefaultMiddleware,
+  GetDefaultMiddleware,
 } from './getDefaultMiddleware'
-import { curryGetDefaultMiddleware } from './getDefaultMiddleware'
+import { buildGetDefaultMiddleware } from './getDefaultMiddleware'
 import type {
   NoInfer,
   ExtractDispatchExtensions,
@@ -55,7 +55,7 @@ export interface ConfigureStoreOptions<
    * @example `middleware: (gDM) => gDM().concat(logger, apiMiddleware, yourCustomMiddleware)`
    * @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
    */
-  middleware?: ((getDefaultMiddleware: CurriedGetDefaultMiddleware<S>) => M) | M
+  middleware?: ((getDefaultMiddleware: GetDefaultMiddleware<S>) => M) | M
 
   /**
    * Whether to enable Redux DevTools integration. Defaults to `true`.
@@ -126,11 +126,11 @@ export function configureStore<
     [StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>, StoreEnhancer]
   >
 >(options: ConfigureStoreOptions<S, A, M, E>): EnhancedStore<S, A, E> {
-  const curriedGetDefaultMiddleware = curryGetDefaultMiddleware<S>()
+  const getDefaultMiddleware = buildGetDefaultMiddleware<S>()
 
   const {
     reducer = undefined,
-    middleware = curriedGetDefaultMiddleware(),
+    middleware = getDefaultMiddleware(),
     devTools = true,
     preloadedState = undefined,
     enhancers = undefined,
@@ -150,7 +150,7 @@ export function configureStore<
 
   let finalMiddleware = middleware
   if (typeof finalMiddleware === 'function') {
-    finalMiddleware = finalMiddleware(curriedGetDefaultMiddleware)
+    finalMiddleware = finalMiddleware(getDefaultMiddleware)
 
     if (!IS_PRODUCTION && !Array.isArray(finalMiddleware)) {
       throw new Error(

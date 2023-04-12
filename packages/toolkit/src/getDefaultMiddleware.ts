@@ -36,7 +36,7 @@ export type ThunkMiddlewareFor<
   ? ThunkMiddleware<S, AnyAction, E>
   : ThunkMiddleware<S, AnyAction>
 
-export type CurriedGetDefaultMiddleware<S = any> = <
+export type GetDefaultMiddleware<S = any> = <
   O extends Partial<GetDefaultMiddlewareOptions> = {
     thunk: true
     immutableCheck: true
@@ -46,79 +46,60 @@ export type CurriedGetDefaultMiddleware<S = any> = <
   options?: O
 ) => MiddlewareArray<ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>>
 
-export function curryGetDefaultMiddleware<
-  S = any
->(): CurriedGetDefaultMiddleware<S> {
-  return function curriedGetDefaultMiddleware(options) {
-    return getDefaultMiddleware(options)
-  }
-}
-
-/**
- * Returns any array containing the default middleware installed by
- * `configureStore()`. Useful if you want to configure your store with a custom
- * `middleware` array but still keep the default set.
- *
- * @return The default middleware used by `configureStore()`.
- *
- * @public
- *
- * @deprecated Prefer to use the callback notation for the `middleware` option in `configureStore`
- * to access a pre-typed `getDefaultMiddleware` instead.
- */
-export function getDefaultMiddleware<
-  S = any,
-  O extends Partial<GetDefaultMiddlewareOptions> = {
-    thunk: true
-    immutableCheck: true
-    serializableCheck: true
-  }
->(
-  options: O = {} as O
-): MiddlewareArray<ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>> {
-  const {
-    thunk = true,
-    immutableCheck = true,
-    serializableCheck = true,
-  } = options
-
-  let middlewareArray = new MiddlewareArray<Middleware[]>()
-
-  if (thunk) {
-    if (isBoolean(thunk)) {
-      middlewareArray.push(thunkMiddleware)
-    } else {
-      middlewareArray.push(withExtraArgument(thunk.extraArgument))
+export const buildGetDefaultMiddleware = <S = any>(): GetDefaultMiddleware<S> =>
+  function getDefaultMiddleware<
+    O extends Partial<GetDefaultMiddlewareOptions> = {
+      thunk: true
+      immutableCheck: true
+      serializableCheck: true
     }
-  }
+  >(
+    options: O = {} as O
+  ): MiddlewareArray<ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>> {
+    const {
+      thunk = true,
+      immutableCheck = true,
+      serializableCheck = true,
+    } = options
 
-  if (process.env.NODE_ENV !== 'production') {
-    if (immutableCheck) {
-      /* PROD_START_REMOVE_UMD */
-      let immutableOptions: ImmutableStateInvariantMiddlewareOptions = {}
+    let middlewareArray = new MiddlewareArray<Middleware[]>()
 
-      if (!isBoolean(immutableCheck)) {
-        immutableOptions = immutableCheck
+    if (thunk) {
+      if (isBoolean(thunk)) {
+        middlewareArray.push(thunkMiddleware)
+      } else {
+        middlewareArray.push(withExtraArgument(thunk.extraArgument))
+      }
+    }
+
+    if (process.env.NODE_ENV !== 'production') {
+      if (immutableCheck) {
+        /* PROD_START_REMOVE_UMD */
+        let immutableOptions: ImmutableStateInvariantMiddlewareOptions = {}
+
+        if (!isBoolean(immutableCheck)) {
+          immutableOptions = immutableCheck
+        }
+
+        middlewareArray.unshift(
+          createImmutableStateInvariantMiddleware(immutableOptions)
+        )
+        /* PROD_STOP_REMOVE_UMD */
       }
 
-      middlewareArray.unshift(
-        createImmutableStateInvariantMiddleware(immutableOptions)
-      )
-      /* PROD_STOP_REMOVE_UMD */
-    }
+      if (serializableCheck) {
+        let serializableOptions: SerializableStateInvariantMiddlewareOptions =
+          {}
 
-    if (serializableCheck) {
-      let serializableOptions: SerializableStateInvariantMiddlewareOptions = {}
+        if (!isBoolean(serializableCheck)) {
+          serializableOptions = serializableCheck
+        }
 
-      if (!isBoolean(serializableCheck)) {
-        serializableOptions = serializableCheck
+        middlewareArray.push(
+          createSerializableStateInvariantMiddleware(serializableOptions)
+        )
       }
-
-      middlewareArray.push(
-        createSerializableStateInvariantMiddleware(serializableOptions)
-      )
     }
-  }
 
-  return middlewareArray as any
-}
+    return middlewareArray as any
+  }

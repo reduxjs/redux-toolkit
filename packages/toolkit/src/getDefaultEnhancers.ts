@@ -28,9 +28,10 @@ export type GetDefaultEnhancers<M extends Middlewares<any>> = <
   >
 >
 
-export const buildGetDefaultEnhancers =
-  <M extends Middlewares<any>>(middlewares: M): GetDefaultEnhancers<M> =>
-  (options) => {
+export const buildGetDefaultEnhancers = <M extends Middlewares<any>>(
+  middlewares: M
+): GetDefaultEnhancers<M> =>
+  function getDefaultEnhancers(options) {
     const { autoBatch = true } = options ?? {}
 
     let enhancerArray = new EnhancerArray(applyMiddleware(...middlewares))
