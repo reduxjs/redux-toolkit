@@ -178,12 +178,14 @@ export function configureStore<
   }
 
   const getDefaultEnhancers = buildGetDefaultEnhancers(finalMiddleware)
-  let storeEnhancers: readonly StoreEnhancer[] = getDefaultEnhancers()
+  let storeEnhancers: readonly StoreEnhancer[]
   if (Array.isArray(enhancers)) {
     // TODO: this matches the typing, but technically allows for a scenario where middlewares are specified but the applyMiddleware enhancer is never used
     storeEnhancers = enhancers
   } else if (typeof enhancers === 'function') {
     storeEnhancers = enhancers(getDefaultEnhancers)
+  } else {
+    storeEnhancers = getDefaultEnhancers()
   }
 
   const composedEnhancer: StoreEnhancer<any> = finalCompose(...storeEnhancers)
