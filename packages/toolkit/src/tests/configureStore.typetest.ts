@@ -143,7 +143,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: () => 0,
-      enhancers: [applyMiddleware(() => (next) => next)],
+      enhancers: [applyMiddleware(() => (next) => next)] as const,
     })
 
     expectType<Dispatch & ThunkDispatch<number, undefined, AnyAction>>(
@@ -188,16 +188,14 @@ const _anyMiddleware: any = () => () => () => {}
       ] as const,
     })
 
-    expectType<Dispatch & ThunkDispatch<number, undefined, AnyAction>>(
-      store.dispatch
-    )
+    expectType<Dispatch>(store.dispatch)
     expectType<string>(store.someProperty)
     expectType<number>(store.anotherProperty)
 
     const storeWithCallback = configureStore({
       reducer: () => 0,
-      enhancers: (defaultEnhancers) =>
-        defaultEnhancers
+      enhancers: (getDefaultEnhancers) =>
+        getDefaultEnhancers()
           .prepend(anotherPropertyStoreEnhancer)
           .concat(somePropertyStoreEnhancer),
     })
@@ -210,11 +208,11 @@ const _anyMiddleware: any = () => () => () => {}
   }
 
   {
-    type StateExtendingEnhancer = StoreEnhancer<{}, { someProperty: string }>
-
-    const someStateExtendingEnhancer: StateExtendingEnhancer =
+    const someStateExtendingEnhancer: StoreEnhancer<
+      {},
+      { someProperty: string }
+    > =
       (next) =>
-      // @ts-expect-error how do you properly return an enhancer that extends state?
       (...args) => {
         const store = next(...args)
         const getState = () => ({
@@ -224,17 +222,14 @@ const _anyMiddleware: any = () => () => () => {}
         return {
           ...store,
           getState,
-        }
+        } as any
       }
 
-    type AnotherStateExtendingEnhancer = StoreEnhancer<
+    const anotherStateExtendingEnhancer: StoreEnhancer<
       {},
       { anotherProperty: number }
-    >
-
-    const anotherStateExtendingEnhancer: AnotherStateExtendingEnhancer =
+    > =
       (next) =>
-      // @ts-expect-error any input on this would be great
       (...args) => {
         const store = next(...args)
         const getState = () => ({
@@ -244,7 +239,7 @@ const _anyMiddleware: any = () => () => () => {}
         return {
           ...store,
           getState,
-        }
+        } as any
       }
 
     const store = configureStore({
@@ -264,8 +259,8 @@ const _anyMiddleware: any = () => () => () => {}
 
     const storeWithCallback = configureStore({
       reducer: () => ({ aProperty: 0 }),
-      enhancers: (dE) =>
-        dE.concat(someStateExtendingEnhancer, anotherStateExtendingEnhancer),
+      enhancers: (gDE) =>
+        gDE().concat(someStateExtendingEnhancer, anotherStateExtendingEnhancer),
     })
 
     const stateWithCallback = storeWithCallback.getState()

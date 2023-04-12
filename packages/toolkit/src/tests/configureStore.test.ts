@@ -257,7 +257,7 @@ describe('configureStore', async () => {
       expect(configureStore({ enhancers: [enhancer], reducer })).toBeInstanceOf(
         Object
       )
-      expect(redux.applyMiddleware).toHaveBeenCalled()
+      expect(redux.applyMiddleware).not.toHaveBeenCalled()
       expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
@@ -281,7 +281,8 @@ describe('configureStore', async () => {
 
       const store = configureStore({
         reducer,
-        enhancers: (defaultEnhancers) => defaultEnhancers.concat(dummyEnhancer),
+        enhancers: (getDefaultEnhancers) =>
+          getDefaultEnhancers().concat(dummyEnhancer),
       })
 
       expect(dummyEnhancerCalled).toBe(true)

@@ -10,7 +10,7 @@ import type {
   PreloadedState,
   CombinedState,
 } from 'redux'
-import { createStore, compose, applyMiddleware, combineReducers } from 'redux'
+import { createStore, compose, combineReducers } from 'redux'
 import type { DevToolsEnhancerOptions as DevToolsOptions } from './devtoolsExtension'
 import { composeWithDevTools } from './devtoolsExtension'
 
@@ -25,8 +25,11 @@ import type {
   ExtractDispatchExtensions,
   ExtractStoreExtensions,
   ExtractStateExtensions,
+  Id,
 } from './tsHelpers'
-import { EnhancerArray } from './utils'
+import type { EnhancerArray, MiddlewareArray } from './utils'
+import type { GetDefaultEnhancers } from './getDefaultEnhancers'
+import { buildGetDefaultEnhancers } from './getDefaultEnhancers'
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
@@ -95,29 +98,16 @@ export interface ConfigureStoreOptions<
    * The store enhancers to apply. See Redux's `createStore()`.
    * All enhancers will be included before the DevTools Extension enhancer.
    * If you need to customize the order of enhancers, supply a callback
-   * function that will receive the original array (ie, `[applyMiddleware]`),
-   * and should return a new array (such as `[applyMiddleware, offline]`).
+   * function that will receieve a `getDefaultEnhancers` function that returns an EnhancerArray,
+   * and should return a new array (such as `getDefaultEnhancers().concat(offline)`).
    * If you only need to add middleware, you can use the `middleware` parameter instead.
    */
-  enhancers?: E | ConfigureEnhancersCallback<E>
+  enhancers?: ((getDefaultEnhancers: GetDefaultEnhancers<M>) => E) | E
 }
 
-type Middlewares<S> = ReadonlyArray<Middleware<{}, S>>
+export type Middlewares<S> = ReadonlyArray<Middleware<{}, S>>
 
 type Enhancers = ReadonlyArray<StoreEnhancer>
-
-export interface ToolkitStore<
-  S = any,
-  A extends Action = AnyAction,
-  M extends Middlewares<S> = Middlewares<S>
-> extends Store<S, A> {
-  /**
-   * The `dispatch` method of your store, enhanced by all its middlewares.
-   *
-   * @inheritdoc
-   */
-  dispatch: ExtractDispatchExtensions<M> & Dispatch<A>
-}
 
 /**
  * A Redux store returned by `configureStore()`. Supports dispatching
@@ -128,10 +118,8 @@ export interface ToolkitStore<
 export type EnhancedStore<
   S = any,
   A extends Action = AnyAction,
-  M extends Middlewares<S> = Middlewares<S>,
   E extends Enhancers = Enhancers
-> = ToolkitStore<S & ExtractStateExtensions<E>, A, M> &
-  ExtractStoreExtensions<E>
+> = ExtractStoreExtensions<E> & Store<S & ExtractStateExtensions<E>, A>
 
 /**
  * A friendly abstraction over the standard Redux `createStore()` function.
@@ -144,9 +132,11 @@ export type EnhancedStore<
 export function configureStore<
   S = any,
   A extends Action = AnyAction,
-  M extends Middlewares<S> = [ThunkMiddlewareFor<S>],
-  E extends Enhancers = [StoreEnhancer]
->(options: ConfigureStoreOptions<S, A, M, E>): EnhancedStore<S, A, M, E> {
+  M extends Middlewares<S> = MiddlewareArray<[ThunkMiddlewareFor<S>]>,
+  E extends Enhancers = EnhancerArray<
+    [StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>, StoreEnhancer]
+  >
+>(options: ConfigureStoreOptions<S, A, M, E>): EnhancedStore<S, A, E> {
   const curriedGetDefaultMiddleware = curryGetDefaultMiddleware<S>()
 
   const {
@@ -188,8 +178,6 @@ export function configureStore<
     )
   }
 
-  const middlewareEnhancer: StoreEnhancer = applyMiddleware(...finalMiddleware)
-
   let finalCompose = compose
 
   if (devTools) {
@@ -200,13 +188,13 @@ export function configureStore<
     })
   }
 
-  const defaultEnhancers = new EnhancerArray(middlewareEnhancer)
-  let storeEnhancers: Enhancers = defaultEnhancers
-
+  const getDefaultEnhancers = buildGetDefaultEnhancers(finalMiddleware)
+  let storeEnhancers: readonly StoreEnhancer[] = []
   if (Array.isArray(enhancers)) {
-    storeEnhancers = [middlewareEnhancer, ...enhancers]
+    // TODO: this matches the typing, but technically allows for a scenario where middlewares are specified but the applyMiddleware enhancer is never used
+    storeEnhancers = enhancers
   } else if (typeof enhancers === 'function') {
-    storeEnhancers = enhancers(defaultEnhancers)
+    storeEnhancers = enhancers(getDefaultEnhancers)
   }
 
   const composedEnhancer = finalCompose(...storeEnhancers) as StoreEnhancer<any>

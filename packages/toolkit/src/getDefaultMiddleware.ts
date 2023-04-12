@@ -11,7 +11,7 @@ import { createSerializableStateInvariantMiddleware } from './serializableStateI
 import type { ExcludeFromTuple } from './tsHelpers'
 import { MiddlewareArray } from './utils'
 
-function isBoolean(x: any): x is boolean {
+export function isBoolean(x: any): x is boolean {
   return typeof x === 'boolean'
 }
 
