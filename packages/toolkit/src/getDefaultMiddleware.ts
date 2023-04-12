@@ -11,7 +11,7 @@ import { createSerializableStateInvariantMiddleware } from './serializableStateI
 import type { ExcludeFromTuple } from './tsHelpers'
 import { MiddlewareArray } from './utils'
 
-export function isBoolean(x: any): x is boolean {
+function isBoolean(x: any): x is boolean {
   return typeof x === 'boolean'
 }
 
@@ -47,20 +47,12 @@ export type GetDefaultMiddleware<S = any> = <
 ) => MiddlewareArray<ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>>
 
 export const buildGetDefaultMiddleware = <S = any>(): GetDefaultMiddleware<S> =>
-  function getDefaultMiddleware<
-    O extends Partial<GetDefaultMiddlewareOptions> = {
-      thunk: true
-      immutableCheck: true
-      serializableCheck: true
-    }
-  >(
-    options: O = {} as O
-  ): MiddlewareArray<ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>> {
+  function getDefaultMiddleware(options) {
     const {
       thunk = true,
       immutableCheck = true,
       serializableCheck = true,
-    } = options
+    } = options ?? {}
 
     let middlewareArray = new MiddlewareArray<Middleware[]>()
 
