@@ -181,6 +181,20 @@ export function configureStore<
   let storeEnhancers = enhancers ?? getDefaultEnhancers()
   if (typeof storeEnhancers === 'function') {
     storeEnhancers = storeEnhancers(getDefaultEnhancers)
+
+    if (!IS_PRODUCTION && !Array.isArray(storeEnhancers)) {
+      throw new Error(
+        'when using a enhancer builder function, an array of enhancers must be returned'
+      )
+    }
+  }
+  if (
+    !IS_PRODUCTION &&
+    storeEnhancers.some((item: any) => typeof item !== 'function')
+  ) {
+    throw new Error(
+      'each enhancer provided to configureStore must be a function'
+    )
   }
 
   const composedEnhancer: StoreEnhancer<any> = finalCompose(...storeEnhancers)
