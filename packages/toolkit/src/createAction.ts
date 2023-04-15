@@ -224,7 +224,7 @@ export type PayloadActionCreator<
  * A utility function to create an action creator for the given action type
  * string. The action creator accepts a single argument, which will be included
  * in the action object as a field called payload. The action creator function
- * will also have its toString() overriden so that it returns the action type,
+ * will also have its toString() overridden so that it returns the action type,
  * allowing it to be used in reducer logic that is looking for that action type.
  *
  * @param type The action type to use for created actions.
@@ -241,7 +241,7 @@ export function createAction<P = void, T extends string = string>(
  * A utility function to create an action creator for the given action type
  * string. The action creator accepts a single argument, which will be included
  * in the action object as a field called payload. The action creator function
- * will also have its toString() overriden so that it returns the action type,
+ * will also have its toString() overridden so that it returns the action type,
  * allowing it to be used in reducer logic that is looking for that action type.
  *
  * @param type The action type to use for created actions.

@@ -9,7 +9,7 @@ import type {
   PreloadedState,
   CombinedState,
 } from 'redux'
-import { createStore, compose, combineReducers } from 'redux'
+import { applyMiddleware, createStore, compose, combineReducers } from 'redux'
 import type { DevToolsEnhancerOptions as DevToolsOptions } from './devtoolsExtension'
 import { composeWithDevTools } from './devtoolsExtension'
 
@@ -87,7 +87,7 @@ export interface ConfigureStoreOptions<
    * The store enhancers to apply. See Redux's `createStore()`.
    * All enhancers will be included before the DevTools Extension enhancer.
    * If you need to customize the order of enhancers, supply a callback
-   * function that will receieve a `getDefaultEnhancers` function that returns an EnhancerArray,
+   * function that will receive a `getDefaultEnhancers` function that returns an EnhancerArray,
    * and should return a new array (such as `getDefaultEnhancers().concat(offline)`).
    * If you only need to add middleware, you can use the `middleware` parameter instead.
    */
@@ -177,7 +177,9 @@ export function configureStore<
     })
   }
 
-  const getDefaultEnhancers = buildGetDefaultEnhancers(finalMiddleware)
+  const middlewareEnhancer = applyMiddleware(...finalMiddleware)
+
+  const getDefaultEnhancers = buildGetDefaultEnhancers<M>(middlewareEnhancer)
   let storeEnhancers = enhancers ?? getDefaultEnhancers()
   if (typeof storeEnhancers === 'function') {
     storeEnhancers = storeEnhancers(getDefaultEnhancers)
@@ -194,6 +196,15 @@ export function configureStore<
   ) {
     throw new Error(
       'each enhancer provided to configureStore must be a function'
+    )
+  }
+  if (
+    !IS_PRODUCTION &&
+    finalMiddleware.length &&
+    !storeEnhancers.includes(middlewareEnhancer)
+  ) {
+    console.error(
+      'middlewares were provided, but middleware enhancer was not included in final enhancers'
     )
   }
 

@@ -1,5 +1,4 @@
 import type { StoreEnhancer } from 'redux'
-import { applyMiddleware } from 'redux'
 import type { AutoBatchOptions } from './autoBatchEnhancer'
 import { autoBatchEnhancer } from './autoBatchEnhancer'
 import { EnhancerArray } from './utils'
@@ -30,14 +29,12 @@ export type GetDefaultEnhancers<M extends Middlewares<any>> = <
 >
 
 export const buildGetDefaultEnhancers = <M extends Middlewares<any>>(
-  middlewares: M
+  middlewareEnhancer: StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>
 ): GetDefaultEnhancers<M> =>
   function getDefaultEnhancers(options) {
     const { autoBatch = true } = options ?? {}
 
-    let enhancerArray = new EnhancerArray<StoreEnhancer[]>(
-      applyMiddleware(...middlewares)
-    )
+    let enhancerArray = new EnhancerArray<StoreEnhancer[]>(middlewareEnhancer)
     if (autoBatch) {
       enhancerArray.push(
         autoBatchEnhancer(typeof autoBatch === 'object' ? autoBatch : undefined)
