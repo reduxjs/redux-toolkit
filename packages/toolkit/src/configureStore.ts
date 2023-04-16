@@ -21,7 +21,6 @@ import { curryGetDefaultMiddleware } from './getDefaultMiddleware'
 import type {
   ExtractDispatchExtensions,
   ExtractStoreExtensions,
-  NoInfer,
 } from './tsHelpers'
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
@@ -77,7 +76,7 @@ export interface ConfigureStoreOptions<
    * function (either directly or indirectly by passing an object as `reducer`),
    * this must be an object with the same shape as the reducer map keys.
    */
-  preloadedState?: NoInfer<P>
+  preloadedState?: P
 
   /**
    * The store enhancers to apply. See Redux's `createStore()`.
