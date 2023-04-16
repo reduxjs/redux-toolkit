@@ -89,23 +89,22 @@
     "source-map": "^0.7.3",
     "terser": "^5.6.1",
     "tslib": "^1.10.0",
+    "tsup": "^6.7.0",
     "tsx": "^3.12.2",
     "typescript": "~4.9",
     "vitest": "^0.27.2",
     "yargs": "^15.3.1"
   },
   "scripts": {
-    "run-build": "tsx ./scripts/build.ts",
-    "build-ci": "yarn rimraf dist && yarn tsc && yarn run-build --skipExtraction",
-    "build-prepare": "npm run build-ci",
-    "build": "yarn rimraf dist && echo Compiling... && yarn tsc && yarn run-build --local --skipExtraction",
-    "build-only": "yarn rimraf dist && yarn tsc && yarn run-build --skipExtraction",
+    "run-build": "tsup",
+    "build": "yarn rimraf dist && echo Compiling TS... &&  yarn tsc && yarn run-build",
+    "build-only": "yarn rimraf dist && yarn run-build",
     "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
     "lint": "eslint src examples",
     "test": "vitest",
     "type-tests": "yarn tsc -p src/tests/tsconfig.typetests.json && yarn tsc -p src/query/tests/tsconfig.typetests.json",
-    "prepack": "npm run build-prepare"
+    "prepack": "yarn build"
   },
   "files": [
     "dist/",
