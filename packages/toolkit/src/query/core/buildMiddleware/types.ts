@@ -1,10 +1,10 @@
 import type {
-  AnyAction,
+  Action,
   AsyncThunkAction,
-  Dispatch,
   Middleware,
   MiddlewareAPI,
   ThunkDispatch,
+  UnknownAction,
 } from '@reduxjs/toolkit'
 
 import type { Api, ApiContext } from '../../apiTypes'
@@ -46,7 +46,7 @@ export interface BuildMiddlewareInput<
 }
 
 export type SubMiddlewareApi = MiddlewareAPI<
-  ThunkDispatch<any, any, AnyAction>,
+  ThunkDispatch<any, any, UnknownAction>,
   RootState<EndpointDefinitions, string, string>
 >
 
@@ -68,12 +68,12 @@ export type SubMiddlewareBuilder = (
 ) => Middleware<
   {},
   RootState<EndpointDefinitions, string, string>,
-  ThunkDispatch<any, any, AnyAction>
+  ThunkDispatch<any, any, UnknownAction>
 >
 
 export type ApiMiddlewareInternalHandler<ReturnType = void> = (
-  action: AnyAction,
-  mwApi: SubMiddlewareApi & { next: Dispatch<AnyAction> },
+  action: Action,
+  mwApi: SubMiddlewareApi & { next: (action: unknown) => unknown },
   prevState: RootState<EndpointDefinitions, string, string>
 ) => ReturnType
 

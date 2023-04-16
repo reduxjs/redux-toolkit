@@ -32,6 +32,8 @@ export {
   // js
   createAction,
   getType,
+  isAction,
+  isFSA,
 } from './createAction'
 export type {
   // types

@@ -1,5 +1,4 @@
-import type { AnyAction, Reducer } from 'redux'
-import { createNextState } from '.'
+import type { Reducer, Action } from 'redux'
 import type {
   ActionCreatorWithoutPayload,
   PayloadAction,
@@ -103,7 +102,7 @@ export interface CreateSliceOptions<
    * 
    * @example
 ```ts
-import { createAction, createSlice, Action, AnyAction } from '@reduxjs/toolkit'
+import { createAction, createSlice, Action, UnknownAction } from '@reduxjs/toolkit'
 const incrementBy = createAction<number>('incrementBy')
 const decrement = createAction('decrement')
 
@@ -111,7 +110,7 @@ interface RejectedAction extends Action {
   error: Error
 }
 
-function isRejectedAction(action: AnyAction): action is RejectedAction {
+function isRejectedAction(action: UnknownAction): action is RejectedAction {
   return action.type.endsWith('rejected')
 }
 

@@ -1,4 +1,4 @@
-import type { Action } from 'redux'
+import type { Action, UnknownAction } from 'redux'
 import type {
   IsUnknownOrNonInferrable,
   IfMaybeUndefined,
@@ -83,7 +83,7 @@ export type _ActionCreatorWithPreparedPayload<
  */
 export interface BaseActionCreator<P, T extends string, M = never, E = never> {
   type: T
-  match: (action: Action<unknown>) => action is PayloadAction<P, T, M, E>
+  match: (action: unknown) => action is PayloadAction<P, T, M, E>
 }
 
 /**
@@ -280,10 +280,14 @@ export function createAction(type: string, prepareAction?: Function): any {
 
   actionCreator.type = type
 
-  actionCreator.match = (action: Action<unknown>): action is PayloadAction =>
+  actionCreator.match = (action: UnknownAction): action is PayloadAction =>
     action.type === type
 
   return actionCreator
+}
+
+export function isAction(action: unknown): action is Action {
+  return isPlainObject(action) && 'type' in action
 }
 
 export function isFSA(action: unknown): action is {
@@ -293,8 +297,8 @@ export function isFSA(action: unknown): action is {
   meta?: unknown
 } {
   return (
-    isPlainObject(action) &&
-    typeof (action as any).type === 'string' &&
+    isAction(action) &&
+    typeof action.type === 'string' &&
     Object.keys(action).every(isValidKey)
   )
 }

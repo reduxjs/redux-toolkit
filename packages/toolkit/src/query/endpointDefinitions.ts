@@ -1,4 +1,4 @@
-import type { AnyAction, ThunkDispatch } from '@reduxjs/toolkit'
+import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type { QuerySubState, RootState } from './core/apiState'
 import type {
@@ -231,7 +231,7 @@ export type ResultDescription<
 /** @deprecated please use `onQueryStarted` instead */
 export interface QueryApi<ReducerPath extends string, Context extends {}> {
   /** @deprecated please use `onQueryStarted` instead */
-  dispatch: ThunkDispatch<any, any, AnyAction>
+  dispatch: ThunkDispatch<any, any, UnknownAction>
   /** @deprecated please use `onQueryStarted` instead */
   getState(): RootState<any, any, ReducerPath>
   /** @deprecated please use `onQueryStarted` instead */

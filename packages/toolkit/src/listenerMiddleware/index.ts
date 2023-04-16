@@ -1,4 +1,4 @@
-import type { Dispatch, AnyAction, MiddlewareAPI } from 'redux'
+import type { Action, Dispatch, MiddlewareAPI, UnknownAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import { createAction } from '../createAction'
 import { nanoid } from '../nanoid'
@@ -115,11 +115,7 @@ const createFork = (parentAbortSignal: AbortSignalWithReason<unknown>) => {
 }
 
 const createTakePattern = <S>(
-  startListening: AddListenerOverloads<
-    UnsubscribeListener,
-    S,
-    Dispatch<AnyAction>
-  >,
+  startListening: AddListenerOverloads<UnsubscribeListener, S, Dispatch>,
   signal: AbortSignal
 ): TakePattern<S> => {
   /**
@@ -138,7 +134,7 @@ const createTakePattern = <S>(
     // Placeholder unsubscribe function until the listener is added
     let unsubscribe: UnsubscribeListener = () => {}
 
-    const tuplePromise = new Promise<[AnyAction, S, S]>((resolve, reject) => {
+    const tuplePromise = new Promise<[Action, S, S]>((resolve, reject) => {
       // Inside the Promise, we synchronously add the listener.
       let stopListening = startListening({
         predicate: predicate as any,
@@ -159,9 +155,7 @@ const createTakePattern = <S>(
       }
     })
 
-    const promises: (Promise<null> | Promise<[AnyAction, S, S]>)[] = [
-      tuplePromise,
-    ]
+    const promises: (Promise<null> | Promise<[Action, S, S]>)[] = [tuplePromise]
 
     if (timeout != null) {
       promises.push(
@@ -229,7 +223,7 @@ export const createListenerEntry: TypedCreateListenerEntry<unknown> = (
 }
 
 const cancelActiveListeners = (
-  entry: ListenerEntry<unknown, Dispatch<AnyAction>>
+  entry: ListenerEntry<unknown, Dispatch<UnknownAction>>
 ) => {
   entry.pending.forEach((controller) => {
     abortControllerWithReason(controller, listenerCancelled)
@@ -297,7 +291,7 @@ const defaultErrorHandler: ListenerErrorHandler = (...args: unknown[]) => {
  */
 export function createListenerMiddleware<
   S = unknown,
-  D extends Dispatch<AnyAction> = ThunkDispatch<S, unknown, AnyAction>,
+  D extends Dispatch<Action> = ThunkDispatch<S, unknown, UnknownAction>,
   ExtraArgument = unknown
 >(middlewareOptions: CreateListenerMiddlewareOptions<ExtraArgument> = {}) {
   const listenerMap = new Map<string, ListenerEntry>()
@@ -366,8 +360,8 @@ export function createListenerMiddleware<
   }
 
   const notifyListener = async (
-    entry: ListenerEntry<unknown, Dispatch<AnyAction>>,
-    action: AnyAction,
+    entry: ListenerEntry<unknown, Dispatch<UnknownAction>>,
+    action: unknown,
     api: MiddlewareAPI,
     getOriginalState: () => S
   ) => {

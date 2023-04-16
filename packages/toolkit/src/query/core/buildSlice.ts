@@ -1,4 +1,4 @@
-import type { AnyAction, PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction, UnknownAction } from '@reduxjs/toolkit'
 import {
   combineReducers,
   createAction,
@@ -469,9 +469,7 @@ export function buildSlice({
     },
   })
 
-  const combinedReducer = combineReducers<
-    CombinedQueryState<any, string, string>
-  >({
+  const combinedReducer = combineReducers({
     queries: querySlice.reducer,
     mutations: mutationSlice.reducer,
     provided: invalidationSlice.reducer,
@@ -479,8 +477,10 @@ export function buildSlice({
     config: configSlice.reducer,
   })
 
-  const reducer: typeof combinedReducer = (state, action) =>
-    combinedReducer(resetApiState.match(action) ? undefined : state, action)
+  const reducer = (
+    state: CombinedQueryState<any, string, string> | undefined,
+    action: UnknownAction
+  ) => combinedReducer(resetApiState.match(action) ? undefined : state, action)
 
   const actions = {
     ...configSlice.actions,

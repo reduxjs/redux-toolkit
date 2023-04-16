@@ -1,5 +1,5 @@
 import React from 'react'
-import type { Action, AnyAction, ActionCreator } from 'redux'
+import type { Action, UnknownAction, ActionCreator } from 'redux'
 import type {
   PayloadAction,
   PayloadActionCreator,
@@ -92,7 +92,7 @@ import { expectType } from './helpers'
     }),
     { type: 'action' }
   ) as PayloadActionCreator
-  const actionCreator: ActionCreator<AnyAction> = payloadActionCreator
+  const actionCreator: ActionCreator<UnknownAction> = payloadActionCreator
 
   const payloadActionCreator2 = Object.assign(
     (payload?: number) => ({

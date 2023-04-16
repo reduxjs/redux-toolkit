@@ -1,5 +1,9 @@
 /* eslint-disable no-lone-blocks */
-import type { AnyAction, SerializedError, AsyncThunk } from '@reduxjs/toolkit'
+import type {
+  UnknownAction,
+  SerializedError,
+  AsyncThunk,
+} from '@reduxjs/toolkit'
 import {
   createAsyncThunk,
   createReducer,
@@ -19,8 +23,8 @@ import type {
 } from '@internal/createAsyncThunk'
 
 const ANY = {} as any
-const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, AnyAction>
-const anyAction = { type: 'foo' } as AnyAction
+const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, UnknownAction>
+const unknownAction = { type: 'foo' } as UnknownAction
 
 // basic usage
 ;(async function () {
@@ -90,7 +94,7 @@ const anyAction = { type: 'foo' } as AnyAction
   const correctDispatch = (() => {}) as ThunkDispatch<
     BookModel[],
     { userAPI: Function },
-    AnyAction
+    UnknownAction
   >
 
   // Verify that the the first type args to createAsyncThunk line up right
@@ -489,8 +493,8 @@ const anyAction = { type: 'foo' } as AnyAction
     serializeError: funkySerializeError,
   })
 
-  if (shouldWork.rejected.match(anyAction)) {
-    expectType<Funky>(anyAction.error)
+  if (shouldWork.rejected.match(unknownAction)) {
+    expectType<Funky>(unknownAction.error)
   }
 }
 
@@ -645,7 +649,7 @@ const anyAction = { type: 'foo' } as AnyAction
     // correct dispatch type
     const test2: number = api.dispatch((dispatch, getState) => {
       expectExactType<
-        ThunkDispatch<{ foo: { value: number } }, undefined, AnyAction>
+        ThunkDispatch<{ foo: { value: number } }, undefined, UnknownAction>
       >(ANY)(dispatch)
       expectExactType<() => { foo: { value: number } }>(ANY)(getState)
       return getState().foo.value
@@ -671,7 +675,7 @@ const anyAction = { type: 'foo' } as AnyAction
     // correct dispatch type
     const test2: number = api.dispatch((dispatch, getState) => {
       expectExactType<
-        ThunkDispatch<{ foo: { value: number } }, undefined, AnyAction>
+        ThunkDispatch<{ foo: { value: number } }, undefined, UnknownAction>
       >(ANY)(dispatch)
       expectExactType<() => { foo: { value: number } }>(ANY)(getState)
       return getState().foo.value
@@ -698,7 +702,7 @@ const anyAction = { type: 'foo' } as AnyAction
       // correct dispatch type
       const test2: number = api.dispatch((dispatch, getState) => {
         expectExactType<
-          ThunkDispatch<{ foo: { value: number } }, undefined, AnyAction>
+          ThunkDispatch<{ foo: { value: number } }, undefined, UnknownAction>
         >(ANY)(dispatch)
         expectExactType<() => { foo: { value: number } }>(ANY)(getState)
         return getState().foo.value

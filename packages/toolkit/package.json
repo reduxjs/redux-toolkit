@@ -114,7 +114,7 @@
   ],
   "dependencies": {
     "immer": "^10.0.0-beta.4",
-    "redux": "5.0.0-alpha.4",
+    "redux": "https://pkg.csb.dev/reduxjs/redux/commit/985fdefd/redux/_pkg.tgz",
     "redux-thunk": "3.0.0-alpha.3",
     "reselect": "^4.1.7"
   },

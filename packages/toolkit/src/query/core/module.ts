@@ -9,11 +9,11 @@ import type {
 import { buildThunks } from './buildThunks'
 import type {
   ActionCreatorWithPayload,
-  AnyAction,
   Middleware,
   Reducer,
   ThunkAction,
   ThunkDispatch,
+  UnknownAction,
 } from '@reduxjs/toolkit'
 import type {
   EndpointDefinitions,
@@ -71,7 +71,8 @@ export type CoreModule =
   | ReferenceQueryLifecycle
   | ReferenceCacheCollection
 
-export interface ThunkWithReturnValue<T> extends ThunkAction<T, any, any, AnyAction> {}
+export interface ThunkWithReturnValue<T>
+  extends ThunkAction<T, any, any, UnknownAction> {}
 
 declare module '../apiTypes' {
   export interface ApiModules<
@@ -115,7 +116,7 @@ declare module '../apiTypes' {
        */
       reducer: Reducer<
         CombinedState<Definitions, TagTypes, ReducerPath>,
-        AnyAction
+        UnknownAction
       >
       /**
        * This is a standard redux middleware and is responsible for things like polling, garbage collection and a handful of other things. Make sure it's included in your store.
@@ -133,7 +134,7 @@ declare module '../apiTypes' {
       middleware: Middleware<
         {},
         RootState<Definitions, string, ReducerPath>,
-        ThunkDispatch<any, any, AnyAction>
+        ThunkDispatch<any, any, UnknownAction>
       >
       /**
        * A collection of utility thunks for various situations.
@@ -242,7 +243,7 @@ declare module '../apiTypes' {
           endpointName: EndpointName,
           arg: QueryArgFrom<Definitions[EndpointName]>,
           options: PrefetchOptions
-        ): ThunkAction<void, any, any, AnyAction>
+        ): ThunkAction<void, any, any, UnknownAction>
         /**
          * A Redux thunk action creator that, when dispatched, creates and applies a set of JSON diff/patch objects to the current state. This immediately updates the Redux state with those changes.
          *

@@ -1,9 +1,9 @@
 import type { Draft } from 'immer'
 import { produce as createNextState, isDraft, isDraftable } from 'immer'
-import type { AnyAction, Action, Reducer } from 'redux'
+import type { Action, Reducer, UnknownAction } from 'redux'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { NoInfer } from './tsHelpers'
+import type { NoInfer, TypeGuard } from './tsHelpers'
 import { freezeDraftable } from './utils'
 
 /**
@@ -16,15 +16,8 @@ import { freezeDraftable } from './utils'
  */
 export type Actions<T extends keyof any = string> = Record<T, Action>
 
-/**
- * @deprecated use `TypeGuard` instead
- */
-export interface ActionMatcher<A extends AnyAction> {
-  (action: AnyAction): action is A
-}
-
-export type ActionMatcherDescription<S, A extends AnyAction> = {
-  matcher: ActionMatcher<A>
+export type ActionMatcherDescription<S, A extends Action> = {
+  matcher: TypeGuard<A>
   reducer: CaseReducer<S, NoInfer<A>>
 }
 
@@ -52,7 +45,7 @@ export type ActionMatcherDescriptionCollection<S> = Array<
  *
  * @public
  */
-export type CaseReducer<S = any, A extends Action = AnyAction> = (
+export type CaseReducer<S = any, A extends Action = UnknownAction> = (
   state: Draft<S>,
   action: A
 ) => NoInfer<S> | void | Draft<NoInfer<S>>
@@ -108,7 +101,7 @@ let hasWarnedAboutObjectNotation = false
 import {
   createAction,
   createReducer,
-  AnyAction,
+  UnknownAction,
   PayloadAction,
 } from "@reduxjs/toolkit";
 
@@ -116,7 +109,7 @@ const increment = createAction<number>("increment");
 const decrement = createAction<number>("decrement");
 
 function isActionWithNumberPayload(
-  action: AnyAction
+  action: UnknownAction
 ): action is PayloadAction<number> {
   return typeof action.payload === "number";
 }

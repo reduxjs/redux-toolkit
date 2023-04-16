@@ -1,7 +1,7 @@
 /* eslint-disable no-lone-blocks */
 import type {
   Dispatch,
-  AnyAction,
+  UnknownAction,
   Middleware,
   Reducer,
   Store,
@@ -52,10 +52,10 @@ const _anyMiddleware: any = () => () => () => {}
 {
   const reducer: Reducer<number> = () => 0
   const store = configureStore({ reducer })
-  const numberStore: Store<number, AnyAction> = store
+  const numberStore: Store<number, UnknownAction> = store
 
   // @ts-expect-error
-  const stringStore: Store<string, AnyAction> = store
+  const stringStore: Store<string, UnknownAction> = store
 }
 
 /*
@@ -146,7 +146,7 @@ const _anyMiddleware: any = () => () => () => {}
       enhancers: [applyMiddleware(() => (next) => next)],
     })
 
-    expectType<Dispatch & ThunkDispatch<number, undefined, AnyAction>>(
+    expectType<Dispatch & ThunkDispatch<number, undefined, UnknownAction>>(
       store.dispatch
     )
   }
@@ -188,7 +188,7 @@ const _anyMiddleware: any = () => () => () => {}
       ] as const,
     })
 
-    expectType<Dispatch & ThunkDispatch<number, undefined, AnyAction>>(
+    expectType<Dispatch & ThunkDispatch<number, undefined, UnknownAction>>(
       store.dispatch
     )
     expectType<string>(store.someProperty)
@@ -390,18 +390,28 @@ const _anyMiddleware: any = () => () => () => {}
       void,
       {},
       undefined,
-      AnyAction
+      UnknownAction
     >)
     // `null` for the `extra` generic was previously documented in the RTK "Advanced Tutorial", but
     // is a bad pattern and users should use `unknown` instead
     // @ts-expect-error
-    store.dispatch(function () {} as ThunkAction<void, {}, null, AnyAction>)
+    store.dispatch(function () {} as ThunkAction<void, {}, null, UnknownAction>)
     // unknown is the best way to type a ThunkAction if you do not care
     // about the value of the extraArgument, as it will always work with every
     // ThunkMiddleware, no matter the actual extraArgument type
-    store.dispatch(function () {} as ThunkAction<void, {}, unknown, AnyAction>)
+    store.dispatch(function () {} as ThunkAction<
+      void,
+      {},
+      unknown,
+      UnknownAction
+    >)
     // @ts-expect-error
-    store.dispatch(function () {} as ThunkAction<void, {}, boolean, AnyAction>)
+    store.dispatch(function () {} as ThunkAction<
+      void,
+      {},
+      boolean,
+      UnknownAction
+    >)
   }
 
   /**
@@ -601,8 +611,8 @@ const _anyMiddleware: any = () => () => () => {}
     // the thunk middleware type kicks in and TS thinks a plain action is being returned
     expectType<
       ((action: Action<'actionListenerMiddleware/add'>) => Unsubscribe) &
-        ThunkDispatch<CounterState, undefined, AnyAction> &
-        Dispatch<AnyAction>
+        ThunkDispatch<CounterState, undefined, UnknownAction> &
+        Dispatch<UnknownAction>
     >(store.dispatch)
 
     const unsubscribe = store.dispatch({

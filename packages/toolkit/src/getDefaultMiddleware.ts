@@ -1,4 +1,4 @@
-import type { Middleware, AnyAction } from 'redux'
+import type { Middleware, UnknownAction } from 'redux'
 import type { ThunkMiddleware } from 'redux-thunk'
 import { thunk as thunkMiddleware, withExtraArgument } from 'redux-thunk'
 import type { ImmutableStateInvariantMiddlewareOptions } from './immutableStateInvariantMiddleware'
@@ -33,8 +33,8 @@ export type ThunkMiddlewareFor<
 }
   ? never
   : O extends { thunk: { extraArgument: infer E } }
-  ? ThunkMiddleware<S, AnyAction, E>
-  : ThunkMiddleware<S, AnyAction>
+  ? ThunkMiddleware<S, UnknownAction, E>
+  : ThunkMiddleware<S, UnknownAction>
 
 export type CurriedGetDefaultMiddleware<S = any> = <
   O extends Partial<GetDefaultMiddlewareOptions> = {

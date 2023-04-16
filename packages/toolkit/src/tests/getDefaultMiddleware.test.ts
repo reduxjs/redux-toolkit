@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 import type {
-  AnyAction,
+  UnknownAction,
   Middleware,
   ThunkAction,
   Action,
@@ -93,20 +93,20 @@ describe('getDefaultMiddleware', () => {
     expectType<
       MiddlewareArray<
         [
-          ThunkMiddleware<any, AnyAction, 42>,
+          ThunkMiddleware<any, UnknownAction, 42>,
           Middleware<
             (action: Action<'actionListenerMiddleware/add'>) => () => void,
             {
               counter: number
             },
-            Dispatch<AnyAction>
+            Dispatch<UnknownAction>
           >,
-          Middleware<{}, any, Dispatch<AnyAction>>
+          Middleware<{}, any, Dispatch<UnknownAction>>
         ]
       >
     >(m3)
 
-    const testThunk: ThunkAction<void, {}, number, AnyAction> = (
+    const testThunk: ThunkAction<void, {}, number, UnknownAction> = (
       dispatch,
       getState,
       extraArg
@@ -121,7 +121,7 @@ describe('getDefaultMiddleware', () => {
       middleware,
     })
 
-    expectType<ThunkDispatch<any, 42, AnyAction> & Dispatch<AnyAction>>(
+    expectType<ThunkDispatch<any, 42, UnknownAction> & Dispatch<UnknownAction>>(
       store.dispatch
     )
 

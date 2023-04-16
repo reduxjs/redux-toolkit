@@ -1,4 +1,4 @@
-import type { Dispatch, AnyAction } from 'redux'
+import type { Dispatch, UnknownAction } from 'redux'
 import type {
   PayloadAction,
   ActionCreatorWithPreparedPayload,
@@ -132,10 +132,14 @@ type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
       ThunkDispatch<
         GetState<ThunkApiConfig>,
         GetExtra<ThunkApiConfig>,
-        AnyAction
+        UnknownAction
       >
     >
-  : ThunkDispatch<GetState<ThunkApiConfig>, GetExtra<ThunkApiConfig>, AnyAction>
+  : ThunkDispatch<
+      GetState<ThunkApiConfig>,
+      GetExtra<ThunkApiConfig>,
+      UnknownAction
+    >
 
 type GetThunkAPI<ThunkApiConfig> = BaseThunkAPI<
   GetState<ThunkApiConfig>,

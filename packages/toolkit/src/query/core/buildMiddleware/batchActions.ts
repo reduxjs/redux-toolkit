@@ -1,13 +1,7 @@
-import type { QueryThunk, RejectedAction } from '../buildThunks'
 import type { InternalHandlerBuilder } from './types'
-import type {
-  SubscriptionState,
-  QuerySubstateIdentifier,
-  Subscribers,
-} from '../apiState'
+import type { SubscriptionState } from '../apiState'
 import { produceWithPatches } from 'immer'
-import type { AnyAction } from '@reduxjs/toolkit';
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import type { Action } from '@reduxjs/toolkit'
 
 // Copied from https://github.com/feross/queue-microtask
 let promise: Promise<any>
@@ -45,7 +39,7 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
   // This is done to speed up perf when loading many components
   const actuallyMutateSubscriptions = (
     mutableState: SubscriptionState,
-    action: AnyAction
+    action: Action
   ) => {
     if (updateSubscriptionOptions.match(action)) {
       const { queryCacheKey, requestId, options } = action.payload
@@ -140,7 +134,8 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
       }
 
       const isSubscriptionSliceAction =
-        !!action.type?.startsWith(subscriptionsPrefix)
+        typeof action.type == 'string' &&
+        !!action.type.startsWith(subscriptionsPrefix)
       const isAdditionalSubscriptionAction =
         queryThunk.rejected.match(action) &&
         action.meta.condition &&

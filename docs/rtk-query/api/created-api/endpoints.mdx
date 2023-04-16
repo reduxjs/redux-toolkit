@@ -33,12 +33,12 @@ type InitiateRequestThunk = StartQueryActionCreator | StartMutationActionCreator
 type StartQueryActionCreator = (
   arg:any,
   options?: StartQueryActionCreatorOptions
-) => ThunkAction<QueryActionCreatorResult, any, any, AnyAction>;
+) => ThunkAction<QueryActionCreatorResult, any, any, UnknownAction>;
 
 type StartMutationActionCreator<D extends MutationDefinition<any, any, any, any>> = (
   arg: any
   options?: StartMutationActionCreatorOptions
-) => ThunkAction<MutationActionCreatorResult<D>, any, any, AnyAction>;
+) => ThunkAction<MutationActionCreatorResult<D>, any, any, UnknownAction>;
 
 type SubscriptionOptions = {
   /**
@@ -198,9 +198,10 @@ function App() {
   // highlight-start
   // useMemo is used to only call `.select()` when required.
   // Each call will create a new selector function instance
-  const selectPost = useMemo(() => api.endpoints.getPost.select(postId), [
-    postId,
-  ])
+  const selectPost = useMemo(
+    () => api.endpoints.getPost.select(postId),
+    [postId]
+  )
   const { data, isLoading } = useAppSelector(selectPost)
   // highlight-end
 

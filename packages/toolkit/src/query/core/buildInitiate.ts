@@ -7,7 +7,11 @@ import type {
 } from '../endpointDefinitions'
 import { DefinitionType, isQueryDefinition } from '../endpointDefinitions'
 import type { QueryThunk, MutationThunk, QueryThunkArg } from './buildThunks'
-import type { AnyAction, ThunkAction, SerializedError } from '@reduxjs/toolkit'
+import type {
+  UnknownAction,
+  ThunkAction,
+  SerializedError,
+} from '@reduxjs/toolkit'
 import type { SubscriptionOptions, RootState } from './apiState'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { Api, ApiContext } from '../apiTypes'
@@ -51,7 +55,7 @@ type StartQueryActionCreator<
 > = (
   arg: QueryArgFrom<D>,
   options?: StartQueryActionCreatorOptions
-) => ThunkAction<QueryActionCreatorResult<D>, any, any, AnyAction>
+) => ThunkAction<QueryActionCreatorResult<D>, any, any, UnknownAction>
 
 export type QueryActionCreatorResult<
   D extends QueryDefinition<any, any, any, any>
@@ -81,7 +85,7 @@ type StartMutationActionCreator<
     track?: boolean
     fixedCacheKey?: string
   }
-) => ThunkAction<MutationActionCreatorResult<D>, any, any, AnyAction>
+) => ThunkAction<MutationActionCreatorResult<D>, any, any, UnknownAction>
 
 export type MutationActionCreatorResult<
   D extends MutationDefinition<any, any, any, any>
@@ -241,7 +245,7 @@ export function buildInitiate({
       removalWarning()
     } else {
       const extract = <T>(
-        v: Map<Dispatch<AnyAction>, Record<string, T | undefined>>
+        v: Map<Dispatch<UnknownAction>, Record<string, T | undefined>>
       ) =>
         Array.from(v.values()).flatMap((queriesForStore) =>
           queriesForStore ? Object.values(queriesForStore) : []

@@ -1,5 +1,10 @@
-import type { AnyAction, Middleware, ThunkDispatch } from '@reduxjs/toolkit'
-import { createAction } from '@reduxjs/toolkit'
+import type {
+  Action,
+  Middleware,
+  ThunkDispatch,
+  UnknownAction,
+} from '@reduxjs/toolkit'
+import { isAction, createAction } from '@reduxjs/toolkit'
 
 import type {
   EndpointDefinitions,
@@ -35,7 +40,7 @@ export function buildMiddleware<
     >(`${reducerPath}/invalidateTags`),
   }
 
-  const isThisApiSliceAction = (action: AnyAction) => {
+  const isThisApiSliceAction = (action: Action) => {
     return (
       !!action &&
       typeof action.type === 'string' &&
@@ -55,7 +60,7 @@ export function buildMiddleware<
   const middleware: Middleware<
     {},
     RootState<Definitions, string, ReducerPath>,
-    ThunkDispatch<any, any, AnyAction>
+    ThunkDispatch<any, any, UnknownAction>
   > = (mwApi) => {
     let initialized = false
 
@@ -80,6 +85,9 @@ export function buildMiddleware<
 
     return (next) => {
       return (action) => {
+        if (!isAction(action)) {
+          return next(action)
+        }
         if (!initialized) {
           initialized = true
           // dispatch before any other action
