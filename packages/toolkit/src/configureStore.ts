@@ -19,9 +19,9 @@ import type {
 } from './getDefaultMiddleware'
 import { curryGetDefaultMiddleware } from './getDefaultMiddleware'
 import type {
-  NoInfer,
   ExtractDispatchExtensions,
   ExtractStoreExtensions,
+  NoInfer,
 } from './tsHelpers'
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
