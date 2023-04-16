@@ -8,7 +8,7 @@ import type {
   Action,
   StoreEnhancer,
 } from 'redux'
-import { applyMiddleware } from 'redux'
+import { applyMiddleware, combineReducers } from 'redux'
 import type { PayloadAction, ConfigureStoreOptions } from '@reduxjs/toolkit'
 import {
   configureStore,
@@ -130,8 +130,8 @@ const _anyMiddleware: any = () => () => () => {}
   })
 
   configureStore({
-    reducer: () => 0,
     // @ts-expect-error
+    reducer: (_: number) => 0,
     preloadedState: 'non-matching state type',
   })
 }
@@ -197,25 +197,162 @@ const _anyMiddleware: any = () => () => () => {}
 }
 
 /**
- * Test: configureStore() state type inference works when specifying both a
- * reducer object and a partial preloaded state.
+ * Test: Preloaded state typings
  */
 {
   let counterReducer1: Reducer<number> = () => 0
   let counterReducer2: Reducer<number> = () => 0
 
-  const store = configureStore({
-    reducer: {
-      counter1: counterReducer1,
-      counter2: counterReducer2,
-    },
-    preloadedState: {
-      counter1: 0,
-    },
-  })
+  /**
+   * Test: partial preloaded state
+   */
+  {
+    const store = configureStore({
+      reducer: {
+        counter1: counterReducer1,
+        counter2: counterReducer2,
+      },
+      preloadedState: {
+        counter1: 0,
+      },
+    })
 
-  const counter1: number = store.getState().counter1
-  const counter2: number = store.getState().counter2
+    const counter1: number = store.getState().counter1
+    const counter2: number = store.getState().counter2
+  }
+
+  /**
+   * Test: empty preloaded state
+   */
+  {
+    const store = configureStore({
+      reducer: {
+        counter1: counterReducer1,
+        counter2: counterReducer2,
+      },
+      preloadedState: {},
+    })
+
+    const counter1: number = store.getState().counter1
+    const counter2: number = store.getState().counter2
+  }
+
+  /**
+   * Test: excess properties in preloaded state
+   */
+  {
+    const store = configureStore({
+      reducer: {
+        // @ts-expect-error
+        counter1: counterReducer1,
+        counter2: counterReducer2,
+      },
+      preloadedState: {
+        counter1: 0,
+        counter3: 5,
+      },
+    })
+
+    const counter1: number = store.getState().counter1
+    const counter2: number = store.getState().counter2
+  }
+
+  /**
+   * Test: mismatching properties in preloaded state
+   */
+  {
+    const store = configureStore({
+      reducer: {
+        // @ts-expect-error
+        counter1: counterReducer1,
+        counter2: counterReducer2,
+      },
+      preloadedState: {
+        counter3: 5,
+      },
+    })
+
+    const counter1: number = store.getState().counter1
+    const counter2: number = store.getState().counter2
+  }
+
+  /**
+   * Test: string preloaded state when expecting object
+   */
+  {
+    const store = configureStore({
+      reducer: {
+        // @ts-expect-error
+        counter1: counterReducer1,
+        counter2: counterReducer2,
+      },
+      preloadedState: 'test',
+    })
+
+    const counter1: number = store.getState().counter1
+    const counter2: number = store.getState().counter2
+  }
+
+  /**
+   * Test: nested combineReducers allows partial
+   */
+  {
+    const store = configureStore({
+      reducer: {
+        group1: combineReducers({
+          counter1: counterReducer1,
+          counter2: counterReducer2,
+        }),
+        group2: combineReducers({
+          counter1: counterReducer1,
+          counter2: counterReducer2,
+        }),
+      },
+      preloadedState: {
+        group1: {
+          counter1: 5,
+        },
+      },
+    })
+
+    const group1counter1: number = store.getState().group1.counter1
+    const group1counter2: number = store.getState().group1.counter2
+    const group2counter1: number = store.getState().group2.counter1
+    const group2counter2: number = store.getState().group2.counter2
+  }
+
+  /**
+   * Test: non-nested combineReducers does not allow partial
+   */
+  {
+    interface GroupState {
+      counter1: number
+      counter2: number
+    }
+
+    const initialState = { counter1: 0, counter2: 0 }
+
+    const group1Reducer: Reducer<GroupState> = (state = initialState) => state
+    const group2Reducer: Reducer<GroupState> = (state = initialState) => state
+
+    const store = configureStore({
+      reducer: {
+        // @ts-expect-error
+        group1: group1Reducer,
+        group2: group2Reducer,
+      },
+      preloadedState: {
+        group1: {
+          counter1: 5,
+        },
+      },
+    })
+
+    const group1counter1: number = store.getState().group1.counter1
+    const group1counter2: number = store.getState().group1.counter2
+    const group2counter1: number = store.getState().group2.counter1
+    const group2counter2: number = store.getState().group2.counter2
+  }
 }
 
 /**
