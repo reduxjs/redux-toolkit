@@ -1,7 +1,6 @@
 import type {
   Store,
   MiddlewareAPI,
-  Dispatch,
   ImmutableStateInvariantMiddlewareOptions,
   Middleware,
 } from '@reduxjs/toolkit'
@@ -35,7 +34,8 @@ describe('createImmutableStateInvariantMiddleware', () => {
 
   it('sends the action through the middleware chain', () => {
     const next: MWNext = vi.fn()
-    middleware()(next)
+    const dispatch = middleware()(next)
+    dispatch({ type: 'SOME_ACTION' })
 
     expect(next).toHaveBeenCalledWith({
       type: 'SOME_ACTION',
