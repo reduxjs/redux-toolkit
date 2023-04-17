@@ -71,11 +71,13 @@ export type SubMiddlewareBuilder = (
   ThunkDispatch<any, any, AnyAction>
 >
 
-export type ApiMiddlewareInternalHandler<ReturnType = void> = (
+type MwNext = Parameters<ReturnType<Middleware>>[0]
+
+export type ApiMiddlewareInternalHandler<Return = void> = (
   action: AnyAction,
-  mwApi: SubMiddlewareApi & { next: Dispatch<AnyAction> },
+  mwApi: SubMiddlewareApi & { next: MwNext },
   prevState: RootState<EndpointDefinitions, string, string>
-) => ReturnType
+) => Return
 
 export type InternalHandlerBuilder<ReturnType = void> = (
   input: BuildSubMiddlewareInput

@@ -1,6 +1,6 @@
 import type { Dispatch, AnyAction, MiddlewareAPI } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
-import { createAction } from '../createAction'
+import { createAction, isAction } from '../createAction'
 import { nanoid } from '../nanoid'
 
 import type {
@@ -426,6 +426,11 @@ export function createListenerMiddleware<
 
   const middleware: ListenerMiddleware<S, D, ExtraArgument> =
     (api) => (next) => (action) => {
+      if (!isAction(action)) {
+        // this means that the listeners can't react to anything that doesn't look like an action (plain object with .type property)
+        // but that matches the typing, so i think that's fine?
+        return next(action)
+      }
       if (addListener.match(action)) {
         return startListening(action.payload)
       }

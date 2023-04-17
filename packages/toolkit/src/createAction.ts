@@ -286,6 +286,10 @@ export function createAction(type: string, prepareAction?: Function): any {
   return actionCreator
 }
 
+export function isAction(action: unknown): action is Action<unknown> {
+  return isPlainObject(action) && 'type' in action
+}
+
 export function isFSA(action: unknown): action is {
   type: string
   payload?: unknown
@@ -293,8 +297,8 @@ export function isFSA(action: unknown): action is {
   meta?: unknown
 } {
   return (
-    isPlainObject(action) &&
-    typeof (action as any).type === 'string' &&
+    isAction(action) &&
+    typeof action.type === 'string' &&
     Object.keys(action).every(isValidKey)
   )
 }
