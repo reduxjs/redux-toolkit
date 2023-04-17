@@ -25,42 +25,6 @@ function invariant(condition: any, message?: string) {
   throw new Error(`${prefix}: ${message || ''}`)
 }
 
-function stringify(
-  obj: any,
-  serializer?: EntryProcessor,
-  indent?: string | number,
-  decycler?: EntryProcessor
-): string {
-  return JSON.stringify(obj, getSerialize(serializer, decycler), indent)
-}
-
-function getSerialize(
-  serializer?: EntryProcessor,
-  decycler?: EntryProcessor
-): EntryProcessor {
-  let stack: any[] = [],
-    keys: any[] = []
-
-  if (!decycler)
-    decycler = function (_: string, value: any) {
-      if (stack[0] === value) return '[Circular ~]'
-      return (
-        '[Circular ~.' + keys.slice(0, stack.indexOf(value)).join('.') + ']'
-      )
-    }
-
-  return function (this: any, key: string, value: any) {
-    if (stack.length > 0) {
-      var thisPos = stack.indexOf(this)
-      ~thisPos ? stack.splice(thisPos + 1) : stack.push(this)
-      ~thisPos ? keys.splice(thisPos, Infinity, key) : keys.push(key)
-      if (~stack.indexOf(value)) value = decycler!.call(this, key, value)
-    } else stack.push(value)
-
-    return serializer == null ? value : serializer.call(this, key, value)
-  }
-}
-
 /**
  * The default `isImmutable` function.
  *
@@ -221,69 +185,105 @@ export function createImmutableStateInvariantMiddleware(
 ): Middleware {
   if (process.env.NODE_ENV === 'production') {
     return () => (next) => (action) => next(action)
-  }
+  } else {
+    function stringify(
+      obj: any,
+      serializer?: EntryProcessor,
+      indent?: string | number,
+      decycler?: EntryProcessor
+    ): string {
+      return JSON.stringify(obj, getSerialize(serializer, decycler), indent)
+    }
 
-  let {
-    isImmutable = isImmutableDefault,
-    ignoredPaths,
-    warnAfter = 32,
-    ignore,
-  } = options
+    function getSerialize(
+      serializer?: EntryProcessor,
+      decycler?: EntryProcessor
+    ): EntryProcessor {
+      let stack: any[] = [],
+        keys: any[] = []
 
-  // Alias ignore->ignoredPaths, but prefer ignoredPaths if present
-  ignoredPaths = ignoredPaths || ignore
+      if (!decycler)
+        decycler = function (_: string, value: any) {
+          if (stack[0] === value) return '[Circular ~]'
+          return (
+            '[Circular ~.' + keys.slice(0, stack.indexOf(value)).join('.') + ']'
+          )
+        }
 
-  const track = trackForMutations.bind(null, isImmutable, ignoredPaths)
+      return function (this: any, key: string, value: any) {
+        if (stack.length > 0) {
+          var thisPos = stack.indexOf(this)
+          ~thisPos ? stack.splice(thisPos + 1) : stack.push(this)
+          ~thisPos ? keys.splice(thisPos, Infinity, key) : keys.push(key)
+          if (~stack.indexOf(value)) value = decycler!.call(this, key, value)
+        } else stack.push(value)
 
-  return ({ getState }) => {
-    let state = getState()
-    let tracker = track(state)
+        return serializer == null ? value : serializer.call(this, key, value)
+      }
+    }
 
-    let result
-    return (next) => (action) => {
-      const measureUtils = getTimeMeasureUtils(
-        warnAfter,
-        'ImmutableStateInvariantMiddleware'
-      )
+    let {
+      isImmutable = isImmutableDefault,
+      ignoredPaths,
+      warnAfter = 32,
+      ignore,
+    } = options
 
-      measureUtils.measureTime(() => {
-        state = getState()
+    // Alias ignore->ignoredPaths, but prefer ignoredPaths if present
+    ignoredPaths = ignoredPaths || ignore
 
-        result = tracker.detectMutations()
-        // Track before potentially not meeting the invariant
-        tracker = track(state)
+    const track = trackForMutations.bind(null, isImmutable, ignoredPaths)
 
-        invariant(
-          !result.wasMutated,
-          `A state mutation was detected between dispatches, in the path '${
-            result.path || ''
-          }'.  This may cause incorrect behavior. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`
+    return ({ getState }) => {
+      let state = getState()
+      let tracker = track(state)
+
+      let result
+      return (next) => (action) => {
+        const measureUtils = getTimeMeasureUtils(
+          warnAfter,
+          'ImmutableStateInvariantMiddleware'
         )
-      })
 
-      const dispatchedAction = next(action)
+        measureUtils.measureTime(() => {
+          state = getState()
 
-      measureUtils.measureTime(() => {
-        state = getState()
+          result = tracker.detectMutations()
+          // Track before potentially not meeting the invariant
+          tracker = track(state)
 
-        result = tracker.detectMutations()
-        // Track before potentially not meeting the invariant
-        tracker = track(state)
-
-        result.wasMutated &&
           invariant(
             !result.wasMutated,
-            `A state mutation was detected inside a dispatch, in the path: ${
+            `A state mutation was detected between dispatches, in the path '${
               result.path || ''
-            }. Take a look at the reducer(s) handling the action ${stringify(
-              action
-            )}. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`
+            }'.  This may cause incorrect behavior. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`
           )
-      })
+        })
 
-      measureUtils.warnIfExceeded()
+        const dispatchedAction = next(action)
 
-      return dispatchedAction
+        measureUtils.measureTime(() => {
+          state = getState()
+
+          result = tracker.detectMutations()
+          // Track before potentially not meeting the invariant
+          tracker = track(state)
+
+          result.wasMutated &&
+            invariant(
+              !result.wasMutated,
+              `A state mutation was detected inside a dispatch, in the path: ${
+                result.path || ''
+              }. Take a look at the reducer(s) handling the action ${stringify(
+                action
+              )}. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`
+            )
+        })
+
+        measureUtils.warnIfExceeded()
+
+        return dispatchedAction
+      }
     }
   }
 }

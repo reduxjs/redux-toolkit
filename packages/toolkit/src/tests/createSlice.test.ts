@@ -200,7 +200,7 @@ describe('createSlice', () => {
       expect(result).toBe(15)
     })
 
-    describe('alternative builder callback for extraReducers', () => {
+    describe('builder callback for extraReducers', () => {
       const increment = createAction<number, 'increment'>('increment')
 
       test('can be used with actionCreators', () => {

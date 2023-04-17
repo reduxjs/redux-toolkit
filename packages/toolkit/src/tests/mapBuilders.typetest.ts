@@ -5,7 +5,7 @@ import type { AnyAction } from '@reduxjs/toolkit'
 import { createAction } from '@reduxjs/toolkit'
 import { expectExactType, expectType } from './helpers'
 
-/** Test:  alternative builder callback for actionMap */
+/** Test:  builder callback for actionMap */
 {
   const increment = createAction<number, 'increment'>('increment')
   const decrement = createAction<number, 'decrement'>('decrement')
