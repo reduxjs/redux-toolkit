@@ -117,8 +117,8 @@ export function configureStore<
     [StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>, StoreEnhancer]
   >,
   P = S
->(options: ConfigureStoreOptions<S, A, M, E, P>): EnhancedStore<S, A, M, E> {
-  const curriedGetDefaultMiddleware = curryGetDefaultMiddleware<S>()
+>(options: ConfigureStoreOptions<S, A, M, E, P>): EnhancedStore<S, A, E> {
+  const getDefaultMiddleware = buildGetDefaultMiddleware<S>()
 
   const {
     reducer = undefined,
