@@ -6771,7 +6771,7 @@ __metadata:
     eslint-plugin-react: ^7.23.2
     eslint-plugin-react-hooks: ^4.2.0
     fs-extra: ^9.1.0
-    immer: ^10.0.0-beta.4
+    immer: ^10.0.1
     invariant: ^2.2.4
     jsdom: ^21.0.0
     json-stringify-safe: ^5.0.1
@@ -6783,7 +6783,7 @@ __metadata:
     query-string: ^7.0.1
     redux: 5.0.0-alpha.5
     redux-thunk: 3.0.0-alpha.3
-    reselect: ^4.1.7
+    reselect: ^4.1.8
     rimraf: ^3.0.2
     rollup: ^2.47.0
     rollup-plugin-strip-code: ^0.2.6
@@ -16790,10 +16790,10 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"immer@npm:^10.0.0-beta.4":
-  version: 10.0.0-beta.4
-  resolution: "immer@npm:10.0.0-beta.4"
-  checksum: 121d89855b91d83e415d30ab83cf1ce52aae24fee704980da0d3e34ea5f7be2c9febce2457f0ff133a68da6aafdf243e8c947d1bc0a6d6ef40137118213187a6
+"immer@npm:^10.0.1":
+  version: 10.0.1
+  resolution: "immer@npm:10.0.1"
+  checksum: 24ab640e9d928385047f6f31bc77966117087236faf1a1f52b6b9a0159f78d543f648fecbf04d5e8c782a6f6cddd6eeb9e09c3b616a104632e701c7a22735654
   languageName: node
   linkType: hard
 
@@ -25046,7 +25046,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"reselect@npm:^4.1.7":
+"reselect@npm:^4.1.7, reselect@npm:^4.1.8":
   version: 4.1.8
   resolution: "reselect@npm:4.1.8"
   checksum: a4ac87cedab198769a29be92bc221c32da76cfdad6911eda67b4d3e7136dca86208c3b210e31632eae31ebd2cded18596f0dd230d3ccc9e978df22f233b5583e

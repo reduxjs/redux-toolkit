@@ -112,10 +112,10 @@
     "query"
   ],
   "dependencies": {
-    "immer": "^10.0.0-beta.4",
+    "immer": "^10.0.1",
     "redux": "5.0.0-alpha.5",
     "redux-thunk": "3.0.0-alpha.3",
-    "reselect": "^4.1.7"
+    "reselect": "^4.1.8"
   },
   "peerDependencies": {
     "react": "^16.9.0 || ^17.0.0 || ^18",
