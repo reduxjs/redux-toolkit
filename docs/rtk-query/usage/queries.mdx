@@ -59,7 +59,11 @@ const api = createApi({
       // Pick out data and prevent nested properties in a hook or selector
       transformResponse: (response: { data: Post }, meta, arg) => response.data,
       // Pick out errors and prevent nested properties in a hook or selector
-      transformErrorResponse: (response: { status: string | number }, meta, arg) => response.status,
+      transformErrorResponse: (
+        response: { status: string | number },
+        meta,
+        arg
+      ) => response.status,
       providesTags: (result, error, id) => [{ type: 'Post', id }],
       // The 2nd parameter is the destructured `QueryLifecycleApi`
       async onQueryStarted(
@@ -158,7 +162,7 @@ In most cases, you will probably read `data` and either `isLoading` or `isFetchi
 
 Here is an example of a `PostDetail` component:
 
-```tsx title="Example"
+```tsx no-transpile title="Example"
 export const PostDetail = ({ id }: { id: string }) => {
   const {
     data: post,
@@ -199,7 +203,7 @@ For query endpoints, RTK Query maintains a semantic distinction between `isLoadi
 
 This distinction allows for greater control when handling UI behavior. For example, `isLoading` can be used to display a skeleton while loading for the first time, while `isFetching` can be used to grey out old data when changing from page 1 to page 2 or when data is invalidated and re-fetched.
 
-```tsx title="Managing UI behavior with Query Loading States"
+```tsx no-transpile title="Managing UI behavior with Query Loading States"
 import { Skeleton } from './Skeleton'
 import { useGetPostsQuery } from './api'
 
@@ -236,7 +240,7 @@ shown. If posts for the current user have previously been fetched, and are re-fe
 result of a mutation), the UI will show the previous data, but will grey out the data. If the user
 changes, it will instead show the skeleton again as opposed to greying out data for the previous user.
 
-```tsx title="Managing UI behavior with currentData"
+```tsx no-transpile title="Managing UI behavior with currentData"
 import { Skeleton } from './Skeleton'
 import { useGetPostsByUserQuery } from './api'
 
@@ -274,7 +278,7 @@ Sometimes you may have a parent component that is subscribed to a query, and the
 
 `selectFromResult` allows you to get a specific segment from a query result in a performant manner. When using this feature, the component will not rerender unless the underlying data of the selected item has changed. If the selected item is one element in a larger collection, it will disregard changes to elements in the same collection.
 
-```tsx title="Using selectFromResult to extract a single result"
+```tsx no-transpile title="Using selectFromResult to extract a single result"
 function PostsList() {
   const { data: posts } = api.useGetPostsQuery()
 
@@ -301,7 +305,7 @@ function PostById({ id }: { id: number }) {
 
 Note that a shallow equality check is performed on the overall return value of `selectFromResult` to determine whether to force a rerender. i.e. it will trigger a rerender if any of the returned object values change reference. If a new array/object is created and used as a return value within the callback, it will hinder the performance benefits due to being identified as a new item each time the callback is run. When intentionally providing an empty array/object, in order to avoid re-creating it each time the callback runs, you can declare an empty array/object outside of the component in order to maintain a stable reference.
 
-```tsx title="Using selectFromResult with a stable empty array"
+```tsx no-transpile title="Using selectFromResult with a stable empty array"
 // An array declared here will maintain a stable reference rather than be re-created again
 const emptyArray: Post[] = []
 

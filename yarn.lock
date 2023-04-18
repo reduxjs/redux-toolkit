@@ -24593,11 +24593,11 @@ fsevents@^1.2.7:
   linkType: hard
 
 "redux@npm:^4.2.0":
-  version: 4.2.0
-  resolution: "redux@npm:4.2.0"
+  version: 4.2.1
+  resolution: "redux@npm:4.2.1"
   dependencies:
     "@babel/runtime": ^7.9.2
-  checksum: 75f3955c89b3f18edf5411e5fb482aa2e4f41a416183e8802a6bf6472c4fc3d47675b8b321d147f8af8e0f616436ac507bf5a25f1c4d6180e797b549c7db2c1d
+  checksum: f63b9060c3a1d930ae775252bb6e579b42415aee7a23c4114e21a0b4ba7ec12f0ec76936c00f546893f06e139819f0e2855e0d55ebfce34ca9c026241a6950dd
   languageName: node
   linkType: hard
 
@@ -24935,9 +24935,9 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"remark-typescript-tools@npm:^1.0.8":
-  version: 1.0.8
-  resolution: "remark-typescript-tools@npm:1.0.8"
+"remark-typescript-tools@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "remark-typescript-tools@npm:1.1.0"
   dependencies:
     "@microsoft/tsdoc": ^0.12.21
     prettier: ^2.1.1
@@ -24945,7 +24945,7 @@ fsevents@^1.2.7:
     unist-util-visit: ^2.0.3
   peerDependencies:
     typescript: ">=4.0"
-  checksum: 6d2c1390e73fc1ed2b2d3816fbea34d72bc822ec3bb0e605cabcbdb3624576196242d0a752e6e6a79be2821a2d335c868fe4ef7dd6bb550c41552b49d391d867
+  checksum: 3f48c77c449461fffb1d19e85b4a81de3327fae5a98c909330b7ffb85f2600359e7070f73f0b57476eae25b32f57906e3f438bb76bb65b6bd176af025e34ce67
   languageName: node
   linkType: hard
 
@@ -25047,9 +25047,9 @@ fsevents@^1.2.7:
   linkType: hard
 
 "reselect@npm:^4.1.7":
-  version: 4.1.7
-  resolution: "reselect@npm:4.1.7"
-  checksum: 738d8e2b8f0dca154ad29de6a209c9fbca2d70ae6788fd85df87f2c74b95a65bbf2d16d43a9e2faff39de34d17a29d706ba08a6b2ee5660c09589edbd19af7e1
+  version: 4.1.8
+  resolution: "reselect@npm:4.1.8"
+  checksum: a4ac87cedab198769a29be92bc221c32da76cfdad6911eda67b4d3e7136dca86208c3b210e31632eae31ebd2cded18596f0dd230d3ccc9e978df22f233b5583e
   languageName: node
   linkType: hard
 
@@ -28177,6 +28177,16 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"typescript@npm:^4.9":
+  version: 4.9.5
+  resolution: "typescript@npm:4.9.5"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: ee000bc26848147ad423b581bd250075662a354d84f0e06eb76d3b892328d8d4440b7487b5a83e851b12b255f55d71835b008a66cbf8f255a11e4400159237db
+  languageName: node
+  linkType: hard
+
 "typescript@npm:~4.2.4":
   version: 4.2.4
   resolution: "typescript@npm:4.2.4"
@@ -28234,6 +28244,16 @@ fsevents@^1.2.7:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 301459fc3eb3b1a38fe91bf96d98eb55da88a9cb17b4ef80b4d105d620f4d547ba776cc27b44cc2ef58b66eda23fe0a74142feb5e79a6fb99f54fc018a696afa
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@^4.9#~builtin<compat/typescript>":
+  version: 4.9.5
+  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=701156"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 2eee5c37cad4390385db5db5a8e81470e42e8f1401b0358d7390095d6f681b410f2c4a0c496c6ff9ebd775423c7785cdace7bcdad76c7bee283df3d9718c0f20
   languageName: node
   linkType: hard
 
@@ -29542,8 +29562,8 @@ fsevents@^1.2.7:
     react: ^18.1.0
     react-dom: ^18.1.0
     react-lite-youtube-embed: ^2.0.3
-    remark-typescript-tools: ^1.0.8
-    typescript: ~4.9
+    remark-typescript-tools: ^1.1.0
+    typescript: ^4.9
   languageName: unknown
   linkType: soft
 
