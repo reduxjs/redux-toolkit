@@ -10,7 +10,6 @@ import {
   prepareAutoBatched,
 } from '@reduxjs/toolkit'
 import type {
-  CombinedState as CombinedQueryState,
   QuerySubstateIdentifier,
   QuerySubState,
   MutationSubstateIdentifier,
@@ -469,9 +468,7 @@ export function buildSlice({
     },
   })
 
-  const combinedReducer = combineReducers<
-    CombinedQueryState<any, string, string>
-  >({
+  const combinedReducer = combineReducers({
     queries: querySlice.reducer,
     mutations: mutationSlice.reducer,
     provided: invalidationSlice.reducer,
