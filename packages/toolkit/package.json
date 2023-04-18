@@ -114,7 +114,8 @@
   "files": [
     "dist/",
     "src/",
-    "query"
+    "query",
+    "react"
   ],
   "dependencies": {
     "immer": "^10.0.0-beta.4",
