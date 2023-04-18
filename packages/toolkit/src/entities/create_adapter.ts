@@ -17,7 +17,7 @@ export interface BuildCreateEntityAdapterConfiguration
     BuildStateOperatorConfiguration {}
 
 export type CreateEntityAdapter = {
-  <T>(options: {
+  <T>(options?: {
     selectId?: IdSelector<T>
     sortComparer?: false | Comparer<T>
   }): EntityAdapter<T>
