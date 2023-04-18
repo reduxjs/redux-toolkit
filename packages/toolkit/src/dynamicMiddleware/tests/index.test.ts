@@ -2,6 +2,7 @@ import type { Middleware } from 'redux'
 import { createDynamicMiddleware } from '../index'
 import { configureStore } from '../../configureStore'
 import type { BaseActionCreator, PayloadAction } from '../../createAction'
+import { isAction } from '../../createAction'
 import { createAction } from '../../createAction'
 
 export interface ProbeMiddleware
@@ -22,7 +23,11 @@ export const makeProbeableMiddleware =
   (api) =>
   (next) =>
   (action) => {
-    if (probeMiddleware.match(action) && action.payload === id) {
+    if (
+      isAction(action) &&
+      probeMiddleware.match(action) &&
+      action.payload === id
+    ) {
       return id
     }
     return next(action)

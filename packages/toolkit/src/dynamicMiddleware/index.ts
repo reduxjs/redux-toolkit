@@ -5,7 +5,7 @@ import type {
   MiddlewareAPI,
 } from 'redux'
 import { compose } from 'redux'
-import { createAction } from '../createAction'
+import { createAction, isAction } from '../createAction'
 import { nanoid } from '../nanoid'
 import { find } from '../utils'
 import type {
@@ -93,6 +93,7 @@ export const createDynamicMiddleware = <
   const middleware: DynamicMiddleware<State, Dispatch> =
     (api) => (next) => (action) => {
       if (
+        isAction(action) &&
         withMiddleware.match(action) &&
         action.meta.instanceId === instanceId
       ) {
