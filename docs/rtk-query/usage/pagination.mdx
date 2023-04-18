@@ -44,36 +44,35 @@ export const { useListPostsQuery } = api
 
 ### Trigger the next page by incrementing the `page` state variable
 
-```tsx title="src/features/posts/PostsManager.tsx"
+```tsx no-transpile title="src/features/posts/PostsManager.tsx"
 const PostList = () => {
-  const [page, setPage] = useState(1);
-  const { data: posts, isLoading, isFetching } = useListPostsQuery(page);
+  const [page, setPage] = useState(1)
+  const { data: posts, isLoading, isFetching } = useListPostsQuery(page)
 
   if (isLoading) {
-    return <div>Loading</div>;
+    return <div>Loading</div>
   }
 
   if (!posts?.data) {
-    return <div>No posts :(</div>;
+    return <div>No posts :(</div>
   }
 
   return (
     <div>
-        {posts.data.map(({ id, title, status }) => (
-          <div key={id}>{title} - {status}</div>
-        ))}
-        <button onClick={() => setPage(page - 1)} isLoading={isFetching}>
-          Previous
-        </button>
-        <button
-          onClick={() => setPage(page + 1)}
-          isLoading={isFetching}
-        >
-         Next
-        </button>
+      {posts.data.map(({ id, title, status }) => (
+        <div key={id}>
+          {title} - {status}
+        </div>
+      ))}
+      <button onClick={() => setPage(page - 1)} isLoading={isFetching}>
+        Previous
+      </button>
+      <button onClick={() => setPage(page + 1)} isLoading={isFetching}>
+        Next
+      </button>
     </div>
-  );
-};
+  )
+}
 ```
 
 ### Automated Re-fetching of Paginated Queries
@@ -149,6 +148,7 @@ export const postApi = createApi({
   }),
 })
 ```
+
 ## General Pagination Example
 
 In the following example, you'll see `Loading` on the initial query, but then as you move forward we'll use the next/previous buttons as a _fetching_ indicator while any non-cached query is performed. When you go back, the cached data will be served instantaneously.

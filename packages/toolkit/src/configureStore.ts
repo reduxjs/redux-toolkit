@@ -21,7 +21,9 @@ import { curryGetDefaultMiddleware } from './getDefaultMiddleware'
 import type {
   ExtractDispatchExtensions,
   ExtractStoreExtensions,
+  ExtractStateExtensions,
 } from './tsHelpers'
+import { EnhancerArray } from './utils'
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
@@ -31,8 +33,8 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production'
  * @public
  */
 export type ConfigureEnhancersCallback<E extends Enhancers = Enhancers> = (
-  defaultEnhancers: readonly StoreEnhancer[]
-) => [...E]
+  defaultEnhancers: EnhancerArray<[StoreEnhancer<{}, {}>]>
+) => E
 
 /**
  * Options for `configureStore()`.
@@ -118,7 +120,8 @@ export type EnhancedStore<
   A extends Action = AnyAction,
   M extends Middlewares<S> = Middlewares<S>,
   E extends Enhancers = Enhancers
-> = ToolkitStore<S, A, M> & ExtractStoreExtensions<E>
+> = ToolkitStore<S & ExtractStateExtensions<E>, A, M> &
+  ExtractStoreExtensions<E>
 
 /**
  * A friendly abstraction over the standard Redux `createStore()` function.
@@ -188,12 +191,13 @@ export function configureStore<
     })
   }
 
-  let storeEnhancers: Enhancers = [middlewareEnhancer]
+  const defaultEnhancers = new EnhancerArray(middlewareEnhancer)
+  let storeEnhancers: Enhancers = defaultEnhancers
 
   if (Array.isArray(enhancers)) {
     storeEnhancers = [middlewareEnhancer, ...enhancers]
   } else if (typeof enhancers === 'function') {
-    storeEnhancers = enhancers(storeEnhancers)
+    storeEnhancers = enhancers(defaultEnhancers)
   }
 
   const composedEnhancer = finalCompose(...storeEnhancers) as StoreEnhancer<any>

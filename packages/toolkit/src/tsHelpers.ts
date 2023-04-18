@@ -1,5 +1,5 @@
 import type { Middleware, StoreEnhancer } from 'redux'
-import type { MiddlewareArray } from './utils'
+import type { EnhancerArray, MiddlewareArray } from './utils'
 
 export function safeAssign<T extends object>(
   target: T,
@@ -108,15 +108,56 @@ export type ExtractDispatchExtensions<M> = M extends MiddlewareArray<
   ? ExtractDispatchFromMiddlewareTuple<[...M], {}>
   : never
 
-export type ExtractStoreExtensions<E> = E extends readonly any[]
+type ExtractStoreExtensionsFromEnhancerTuple<
+  EnhancerTuple extends any[],
+  Acc extends {}
+> = EnhancerTuple extends [infer Head, ...infer Tail]
+  ? ExtractStoreExtensionsFromEnhancerTuple<
+      Tail,
+      Acc & (Head extends StoreEnhancer<infer Ext> ? IsAny<Ext, {}, Ext> : {})
+    >
+  : Acc
+
+export type ExtractStoreExtensions<E> = E extends EnhancerArray<
+  infer EnhancerTuple
+>
+  ? ExtractStoreExtensionsFromEnhancerTuple<EnhancerTuple, {}>
+  : E extends ReadonlyArray<StoreEnhancer>
   ? UnionToIntersection<
       E[number] extends StoreEnhancer<infer Ext>
         ? Ext extends {}
-          ? Ext
+          ? IsAny<Ext, {}, Ext>
           : {}
         : {}
     >
-  : {}
+  : never
+
+type ExtractStateExtensionsFromEnhancerTuple<
+  EnhancerTuple extends any[],
+  Acc extends {}
+> = EnhancerTuple extends [infer Head, ...infer Tail]
+  ? ExtractStateExtensionsFromEnhancerTuple<
+      Tail,
+      Acc &
+        (Head extends StoreEnhancer<any, infer StateExt>
+          ? IsAny<StateExt, {}, StateExt>
+          : {})
+    >
+  : Acc
+
+export type ExtractStateExtensions<E> = E extends EnhancerArray<
+  infer EnhancerTuple
+>
+  ? ExtractStateExtensionsFromEnhancerTuple<EnhancerTuple, {}>
+  : E extends ReadonlyArray<StoreEnhancer>
+  ? UnionToIntersection<
+      E[number] extends StoreEnhancer<any, infer StateExt>
+        ? StateExt extends {}
+          ? IsAny<StateExt, {}, StateExt>
+          : {}
+        : {}
+    >
+  : never
 
 /**
  * Helper type. Passes T out again, but boxes it in a way that it cannot

@@ -58,7 +58,7 @@ You can specify these prefetch options when declaring the hook or at the call si
    - **Assuming** you have a `useQuery` hook in the tree that is subscribed to the same query that you are prefetching:
      - `useQuery` will return `{isLoading: false, isFetching: true, ...rest`}
 
-```tsx title="usePrefetch Example"
+```tsx no-transpile title="usePrefetch Example"
 function User() {
   const prefetchUser = usePrefetch('getUser')
 

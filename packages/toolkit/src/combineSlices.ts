@@ -1,9 +1,4 @@
-import type {
-  CombinedState,
-  AnyAction,
-  Reducer,
-  StateFromReducersMapObject,
-} from 'redux'
+import type { AnyAction, Reducer, StateFromReducersMapObject } from 'redux'
 import { combineReducers } from 'redux'
 import { nanoid } from './nanoid'
 import type {
@@ -61,11 +56,7 @@ export type InjectConfig = {
 export interface CombinedSliceReducer<
   InitialState,
   DeclaredState = InitialState
-> extends Reducer<
-    // TODO: use PreloadedState generic instead
-    CombinedState<DeclaredState>,
-    AnyAction
-  > {
+> extends Reducer<DeclaredState, AnyAction> {
   /**
    * Provide a type for slices that will be injected lazily.
    *

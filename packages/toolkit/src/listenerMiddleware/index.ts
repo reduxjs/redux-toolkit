@@ -427,10 +427,10 @@ export function createListenerMiddleware<
   const middleware: ListenerMiddleware<S, D, ExtraArgument> =
     (api) => (next) => (action) => {
       if (!isAction(action)) {
-        // this means that the listeners can't react to anything that doesn't look like an action (plain object with .type property)
-        // but that matches the typing, so i think that's fine?
+        // we only want to notify listeners for action objects
         return next(action)
       }
+
       if (addListener.match(action)) {
         return startListening(action.payload)
       }

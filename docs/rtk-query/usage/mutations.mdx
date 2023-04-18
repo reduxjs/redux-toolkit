@@ -52,7 +52,11 @@ const api = createApi({
       // Pick out data and prevent nested properties in a hook or selector
       transformResponse: (response: { data: Post }, meta, arg) => response.data,
       // Pick out errors and prevent nested properties in a hook or selector
-      transformErrorResponse: (response: { status: string | number }, meta, arg) => response.status,
+      transformErrorResponse: (
+        response: { status: string | number },
+        meta,
+        arg
+      ) => response.status,
       invalidatesTags: ['Post'],
       // onQueryStarted is useful for optimistic updates
       // The 2nd parameter is the destructured `MutationLifecycleApi`
@@ -177,7 +181,7 @@ When using `fixedCacheKey`, the `originalArgs` property is not able to be shared
 
 This is a modified version of the complete example you can see at the bottom of the page to highlight the `updatePost` mutation. In this scenario, a post is fetched with `useQuery`, and then an `EditablePostName` component is rendered that allows us to edit the name of the post.
 
-```tsx title="src/features/posts/PostDetail.tsx"
+```tsx no-transpile title="src/features/posts/PostDetail.tsx"
 export const PostDetail = () => {
   const { id } = useParams<{ id: any }>()
 
