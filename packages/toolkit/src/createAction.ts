@@ -286,6 +286,16 @@ export function createAction(type: string, prepareAction?: Function): any {
   return actionCreator
 }
 
+/**
+ * Returns true if value is a plain object with a `type` property.
+ */
+export function isAction(action: unknown): action is Action<unknown> {
+  return isPlainObject(action) && 'type' in action
+}
+
+/**
+ * Returns true if value is an action with a string type and valid Flux Standard Action keys.
+ */
 export function isFSA(action: unknown): action is {
   type: string
   payload?: unknown
@@ -293,8 +303,8 @@ export function isFSA(action: unknown): action is {
   meta?: unknown
 } {
   return (
-    isPlainObject(action) &&
-    typeof (action as any).type === 'string' &&
+    isAction(action) &&
+    typeof action.type === 'string' &&
     Object.keys(action).every(isValidKey)
   )
 }

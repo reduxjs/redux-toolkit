@@ -169,7 +169,7 @@ export type RootState = ReturnType<typeof store.getState>
 
 In order to have the store accessible within our app, we will wrap our `App` component with a [`Provider`](https://react-redux.js.org/api/provider) component from `react-redux`.
 
-```tsx title="src/index.ts"
+```tsx no-transpile title="src/index.ts"
 import { render } from 'react-dom'
 // highlight-start
 import { Provider } from 'react-redux'
@@ -223,9 +223,9 @@ export type RootState = {
   pokemon: typeof initialPokemonSlice
 }
 
-export declare const store: EnhancedStore<RootState> 
+export declare const store: EnhancedStore<RootState>
 export type AppDispatch = typeof store.dispatch
-export declare const useAppDispatch: () => (...args: any[])=> any;
+export declare const useAppDispatch: () => (...args: any[]) => any
 
 // file: src/hooks.ts
 import { useEffect } from 'react'
@@ -276,7 +276,7 @@ Our implementation below provides the following behaviour in the component:
 - When our component is mounted, if a request for the provided pokemon name has not already been sent for the session, send the request off
 - The hook always provides the latest received `data` when available, as well as the request status booleans `isUninitialized`, `isPending`, `isFulfilled` & `isRejected` in order to determine the current UI at any given moment as a function of our state.
 
-```tsx title="src/App.tsx"
+```tsx no-transpile title="src/App.tsx"
 import * as React from 'react'
 // highlight-start
 import { useGetPokemonByNameQuery } from './hooks'

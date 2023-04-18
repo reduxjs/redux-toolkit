@@ -31,6 +31,8 @@ export {
   // js
   createAction,
   getType,
+  isAction,
+  isFSA as isFluxStandardAction,
 } from './createAction'
 export type {
   // types
@@ -179,3 +181,7 @@ export {
   autoBatchEnhancer,
 } from './autoBatchEnhancer'
 export type { AutoBatchOptions } from './autoBatchEnhancer'
+
+export { combineSlices } from './combineSlices'
+
+export type { WithSlice } from './combineSlices'

@@ -1,6 +1,13 @@
 import type { Middleware, StoreEnhancer } from 'redux'
 import type { EnhancerArray, MiddlewareArray } from './utils'
 
+export function safeAssign<T extends object>(
+  target: T,
+  ...args: Array<Partial<NoInfer<T>>>
+) {
+  Object.assign(target, ...args)
+}
+
 /**
  * return True if T is `any`, otherwise return False
  * taken from https://github.com/joonhocho/tsdef
@@ -161,7 +168,15 @@ export type ExtractStateExtensions<E> = E extends EnhancerArray<
  */
 export type NoInfer<T> = [T][T extends any ? 0 : never]
 
+export type NonUndefined<T> = T extends undefined ? never : T
+
 export type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>
+
+export type WithRequiredProp<T, K extends keyof T> = Omit<T, K> &
+  Required<Pick<T, K>>
+
+export type WithOptionalProp<T, K extends keyof T> = Omit<T, K> &
+  Partial<Pick<T, K>>
 
 export interface TypeGuard<T> {
   (value: any): value is T
@@ -188,3 +203,7 @@ export type ActionFromMatcher<M extends Matcher<any>> = M extends Matcher<
   : never
 
 export type Id<T> = { [K in keyof T]: T[K] } & {}
+
+export type Tail<T extends any[]> = T extends [any, ...infer Tail]
+  ? Tail
+  : never

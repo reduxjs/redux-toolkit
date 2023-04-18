@@ -16,7 +16,7 @@ If your query or mutation happens to throw an error when using [fetchBaseQuery](
 
 ### Error Display Examples
 
-```tsx title="Query Error"
+```tsx no-transpile title="Query Error"
 function PostsList() {
   const { data, error } = useGetPostsQuery()
 
@@ -28,7 +28,7 @@ function PostsList() {
 }
 ```
 
-```tsx title="Mutation Error"
+```tsx no-transpile title="Mutation Error"
 function AddPost() {
   const [addPost, { error }] = useAddPostMutation()
 
@@ -52,7 +52,7 @@ addPost({ id: 1, name: 'Example' })
 
 :::
 
-```tsx title="Manually selecting an error"
+```tsx no-transpile title="Manually selecting an error"
 function PostsList() {
   const { error } = useSelector(api.endpoints.getPosts.select())
 
@@ -88,15 +88,14 @@ import { toast } from 'your-cool-library'
 /**
  * Log a warning and show a toast!
  */
-export const rtkQueryErrorLogger: Middleware = (api: MiddlewareAPI) => (
-  next
-) => (action) => {
-  // RTK Query uses `createAsyncThunk` from redux-toolkit under the hood, so we're able to utilize these matchers!
-  if (isRejectedWithValue(action)) {
-    console.warn('We got a rejected action!')
-    toast.warn({ title: 'Async error!', message: action.error.data.message })
-  }
+export const rtkQueryErrorLogger: Middleware =
+  (api: MiddlewareAPI) => (next) => (action) => {
+    // RTK Query uses `createAsyncThunk` from redux-toolkit under the hood, so we're able to utilize these matchers!
+    if (isRejectedWithValue(action)) {
+      console.warn('We got a rejected action!')
+      toast.warn({ title: 'Async error!', message: action.error.data.message })
+    }
 
-  return next(action)
-}
+    return next(action)
+  }
 ```
