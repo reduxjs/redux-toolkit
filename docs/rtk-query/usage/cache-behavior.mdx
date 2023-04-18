@@ -120,7 +120,7 @@ Calling the `refetch` function will force refetch the associated query.
 
 Alternatively, you can dispatch the `initiate` thunk action for an endpoint, passing the option `forceRefetch: true` to the thunk action creator for the same effect.
 
-```tsx title="Force refetch example"
+```tsx no-transpile title="Force refetch example"
 import { useDispatch } from 'react-redux'
 import { useGetPostsQuery } from './api'
 
@@ -197,7 +197,7 @@ export const api = createApi({
 })
 ```
 
-```tsx title="Forcing refetch on component mount"
+```tsx no-transpile title="Forcing refetch on component mount"
 import { useGetPostsQuery } from './api'
 
 const Component = () => {

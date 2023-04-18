@@ -422,6 +422,8 @@ These methods provide the ability to write conditional logic based on future dis
 
 Both these methods are cancellation-aware, and will throw a `TaskAbortError` if the listener instance is cancelled while paused.
 
+Note that both `take` and `condition` will only resolve **after the next action** has been dispatched. They do not resolve immediately even if their predicate would return true for the current state.
+
 ### Child Tasks
 
 - `fork: (executor: (forkApi: ForkApi) => T | Promise<T>) => ForkedTask<T>`: Launches a "child task" that may be used to accomplish additional work. Accepts any sync or async function as its argument, and returns a `{result, cancel}` object that can be used to check the final status and return value of the child task, or cancel it while in-progress.
@@ -831,7 +833,7 @@ First, you can import effect callbacks from slice files into the middleware file
 
 ```ts no-transpile title="app/listenerMiddleware.ts"
 import { action1, listener1 } from '../features/feature1/feature1Slice'
-import { action2, listener2 } from '../features/feature2/feature1Slice'
+import { action2, listener2 } from '../features/feature2/feature2Slice'
 
 listenerMiddleware.startListening({ actionCreator: action1, effect: listener1 })
 listenerMiddleware.startListening({ actionCreator: action2, effect: listener2 })

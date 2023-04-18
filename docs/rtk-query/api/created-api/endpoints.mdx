@@ -92,7 +92,7 @@ When dispatching an action creator, you're responsible for storing a reference t
 
 #### Example
 
-```tsx title="initiate query example"
+```tsx no-transpile title="initiate query example"
 import { useState } from 'react'
 import { useAppDispatch } from './store/hooks'
 import { api } from './services/api'
@@ -119,7 +119,7 @@ function App() {
 }
 ```
 
-```tsx title="initiate mutation example"
+```tsx no-transpile title="initiate mutation example"
 import { useState } from 'react'
 import { useAppDispatch } from './store/hooks'
 import { api, Post } from './services/api'
@@ -187,7 +187,7 @@ Each call to `.select(someCacheKey)` returns a _new_ selector function instance.
 
 #### Example
 
-```tsx title="select query example"
+```tsx no-transpile title="select query example"
 import { useState, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from './store/hooks'
 import { api } from './services/api'
@@ -198,9 +198,10 @@ function App() {
   // highlight-start
   // useMemo is used to only call `.select()` when required.
   // Each call will create a new selector function instance
-  const selectPost = useMemo(() => api.endpoints.getPost.select(postId), [
-    postId,
-  ])
+  const selectPost = useMemo(
+    () => api.endpoints.getPost.select(postId),
+    [postId]
+  )
   const { data, isLoading } = useAppSelector(selectPost)
   // highlight-end
 
@@ -223,7 +224,7 @@ function App() {
 }
 ```
 
-```tsx title="select mutation example"
+```tsx no-transpile title="select mutation example"
 import { useState, useMemo } from 'react'
 import { skipToken } from '@reduxjs/toolkit/query'
 import { useAppDispatch, useAppSelector } from './store/hooks'

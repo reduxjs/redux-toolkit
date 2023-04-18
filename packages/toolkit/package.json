@@ -1,6 +1,6 @@
 {
   "name": "@reduxjs/toolkit",
-  "version": "2.0.0-alpha.4",
+  "version": "2.0.0-alpha.5",
   "description": "The official, opinionated, batteries-included toolset for efficient Redux development",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
@@ -54,7 +54,6 @@
     "@testing-library/react": "^13.3.0",
     "@testing-library/user-event": "^13.1.5",
     "@types/convert-source-map": "^1.5.1",
-    "@types/jest": "^27",
     "@types/json-stringify-safe": "^5.0.0",
     "@types/nanoid": "^2.1.0",
     "@types/node": "^10.14.4",
@@ -67,7 +66,6 @@
     "axios": "^0.19.2",
     "console-testing-library": "0.6.1",
     "convert-source-map": "^1.7.0",
-    "esbuild": "~0.17",
     "eslint": "^7.25.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-config-react-app": "^7.0.1",
@@ -81,23 +79,17 @@
     "invariant": "^2.2.4",
     "jsdom": "^21.0.0",
     "json-stringify-safe": "^5.0.1",
-    "magic-string": "^0.25.7",
-    "merge-source-map": "^1.1.0",
     "msw": "^0.40.2",
     "node-fetch": "^2.6.1",
     "prettier": "^2.2.1",
     "query-string": "^7.0.1",
     "rimraf": "^3.0.2",
-    "rollup": "^2.47.0",
-    "rollup-plugin-strip-code": "^0.2.6",
     "size-limit": "^4.11.0",
-    "source-map": "^0.7.3",
-    "terser": "^5.6.1",
     "tslib": "^1.10.0",
     "tsup": "^6.7.0",
     "tsx": "^3.12.2",
     "typescript": "~4.9",
-    "vitest": "^0.27.2",
+    "vitest": "^0.30.1",
     "yargs": "^15.3.1"
   },
   "scripts": {
@@ -118,10 +110,10 @@
     "react"
   ],
   "dependencies": {
-    "immer": "^10.0.0-beta.4",
-    "redux": "5.0.0-alpha.4",
+    "immer": "^10.0.1",
+    "redux": "5.0.0-alpha.5",
     "redux-thunk": "3.0.0-alpha.3",
-    "reselect": "^4.1.7"
+    "reselect": "^4.1.8"
   },
   "peerDependencies": {
     "react": "^16.9.0 || ^17.0.0 || ^18",

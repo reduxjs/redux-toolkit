@@ -1,8 +1,8 @@
 import type {
   Store,
   MiddlewareAPI,
-  Dispatch,
   ImmutableStateInvariantMiddlewareOptions,
+  Middleware,
 } from '@reduxjs/toolkit'
 import {
   createImmutableStateInvariantMiddleware,
@@ -15,6 +15,8 @@ import {
   createConsole,
   getLog,
 } from 'console-testing-library/pure'
+
+type MWNext = Parameters<ReturnType<Middleware>>[0]
 
 describe('createImmutableStateInvariantMiddleware', () => {
   let state: { foo: { bar: number[]; baz: string } }
@@ -31,17 +33,17 @@ describe('createImmutableStateInvariantMiddleware', () => {
   })
 
   it('sends the action through the middleware chain', () => {
-    const next: Dispatch = (action) => ({ ...action, returned: true })
+    const next: MWNext = vi.fn()
     const dispatch = middleware()(next)
+    dispatch({ type: 'SOME_ACTION' })
 
-    expect(dispatch({ type: 'SOME_ACTION' })).toEqual({
+    expect(next).toHaveBeenCalledWith({
       type: 'SOME_ACTION',
-      returned: true,
     })
   })
 
   it('throws if mutating inside the dispatch', () => {
-    const next: Dispatch = (action) => {
+    const next: MWNext = (action) => {
       state.foo.bar.push(5)
       return action
     }
@@ -54,7 +56,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
   })
 
   it('throws if mutating between dispatches', () => {
-    const next: Dispatch = (action) => action
+    const next: MWNext = (action) => action
 
     const dispatch = middleware()(next)
 
@@ -66,7 +68,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
   })
 
   it('does not throw if not mutating inside the dispatch', () => {
-    const next: Dispatch = (action) => {
+    const next: MWNext = (action) => {
       state = { ...state, foo: { ...state.foo, baz: 'changed!' } }
       return action
     }
@@ -79,7 +81,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
   })
 
   it('does not throw if not mutating between dispatches', () => {
-    const next: Dispatch = (action) => action
+    const next: MWNext = (action) => action
 
     const dispatch = middleware()(next)
 
@@ -91,7 +93,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
   })
 
   it('works correctly with circular references', () => {
-    const next: Dispatch = (action) => action
+    const next: MWNext = (action) => action
 
     const dispatch = middleware()(next)
 
@@ -107,7 +109,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
 
   it('respects "isImmutable" option', function () {
     const isImmutable = (value: any) => true
-    const next: Dispatch = (action) => {
+    const next: MWNext = (action) => {
       state.foo.bar.push(5)
       return action
     }
@@ -120,7 +122,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
   })
 
   it('respects "ignoredPaths" option', () => {
-    const next: Dispatch = (action) => {
+    const next: MWNext = (action) => {
       state.foo.bar.push(5)
       return action
     }
@@ -139,7 +141,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
   })
 
   it('alias "ignore" to "ignoredPath" and respects option', () => {
-    const next: Dispatch = (action) => {
+    const next: MWNext = (action) => {
       state.foo.bar.push(5)
       return action
     }
@@ -154,7 +156,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
   it('Should print a warning if execution takes too long', () => {
     state.foo.bar = new Array(10000).fill({ value: 'more' })
 
-    const next: Dispatch = (action) => action
+    const next: MWNext = (action) => action
 
     const dispatch = middleware({ warnAfter: 4 })(next)
 
@@ -170,7 +172,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
   })
 
   it('Should not print a warning if "next" takes too long', () => {
-    const next: Dispatch = (action) => {
+    const next: MWNext = (action) => {
       const started = Date.now()
       while (Date.now() - started < 8) {}
       return action

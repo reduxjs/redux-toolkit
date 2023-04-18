@@ -18,7 +18,7 @@ to the store setup for a better development experience.
 
 ```ts no-transpile
 type ConfigureEnhancersCallback = (
-  defaultEnhancers: StoreEnhancer[]
+  defaultEnhancers: EnhancerArray<[StoreEnhancer]>
 ) => StoreEnhancer[]
 
 interface ConfigureStoreOptions<
@@ -107,7 +107,8 @@ a list of the specific options that are available.
 Defaults to `true`.
 
 #### `trace`
-The Redux DevTools Extension recently added [support for showing action stack traces](https://github.com/reduxjs/redux-devtools/blob/main/extension/docs/Features/Trace.md) that show exactly where each action was dispatched. 
+
+The Redux DevTools Extension recently added [support for showing action stack traces](https://github.com/reduxjs/redux-devtools/blob/main/extension/docs/Features/Trace.md) that show exactly where each action was dispatched.
 Capturing the traces can add a bit of overhead, so the DevTools Extension allows users to configure whether action stack traces are captured by [setting the 'trace' argument](https://github.com/reduxjs/redux-devtools/blob/main/extension/docs/API/Arguments.md#trace).
 If the DevTools are enabled by passing `true` or an object, then `configureStore` will default to enabling capturing action stack traces in development mode only.
 
@@ -129,7 +130,7 @@ If defined as a callback function, it will be called with the existing array of 
 and should return a new array of enhancers. This is primarily useful for cases where a store enhancer needs to be added
 in front of `applyMiddleware`, such as `redux-first-router` or `redux-offline`.
 
-Example: `enhancers: (defaultEnhancers) => [offline, ...defaultEnhancers]` will result in a final setup
+Example: `enhancers: (defaultEnhancers) => defaultEnhancers.prepend(offline)` will result in a final setup
 of `[offline, applyMiddleware, devToolsExtension]`.
 
 ## Usage
@@ -195,7 +196,7 @@ const preloadedState = {
   visibilityFilter: 'SHOW_COMPLETED',
 }
 
-const debounceNotify = _.debounce(notify => notify());
+const debounceNotify = _.debounce((notify) => notify())
 
 const store = configureStore({
   reducer,

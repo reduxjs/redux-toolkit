@@ -467,7 +467,7 @@ export const api = createApi({
 export const { useGetPostQuery } = api
 ```
 
-```tsx title="Using skip in a component"
+```tsx no-transpile title="Using skip in a component"
 import { useGetPostQuery } from './api'
 
 function MaybePost({ id }: { id?: number }) {
@@ -486,7 +486,7 @@ While you might be able to convince yourself that the query won't be called unle
 
 RTK Query provides a `skipToken` export which can be used as an alternative to the `skip` option in order to skip queries, while remaining type-safe. When `skipToken` is passed as the query argument to `useQuery`, `useQueryState` or `useQuerySubscription`, it provides the same effect as setting `skip: true` in the query options, while also being a valid argument in scenarios where the `arg` might be undefined otherwise.
 
-```tsx title="Using skipToken in a component"
+```tsx no-transpile title="Using skipToken in a component"
 import { skipToken } from '@reduxjs/toolkit/query/react'
 import { useGetPostQuery } from './api'
 
@@ -566,7 +566,7 @@ export interface SerializedError {
 When using `fetchBaseQuery`, the `error` property returned from a hook will have the type `FetchBaseQueryError | SerializedError | undefined`.
 If an error is present, you can access error properties after narrowing the type to either `FetchBaseQueryError` or `SerializedError`.
 
-```tsx
+```tsx no-transpile
 import { api } from './services/api'
 
 function PostDetail() {
@@ -587,10 +587,9 @@ function PostDetail() {
           <div>{errMsg}</div>
         </div>
       )
-    }
-    else {
-        // you can access all properties of `SerializedError` here
-        return <div>{error.message}</div>
+    } else {
+      // you can access all properties of `SerializedError` here
+      return <div>{error.message}</div>
     }
   }
 
@@ -617,7 +616,7 @@ In order to safely access properties of the error, you must first narrow the typ
 This can be done using a [type predicate](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)
 as shown below.
 
-```tsx title="services/helpers.ts"
+```tsx no-transpile title="services/helpers.ts"
 import { FetchBaseQueryError } from '@reduxjs/toolkit/query'
 
 /**
@@ -644,7 +643,7 @@ export function isErrorWithMessage(
 }
 ```
 
-```tsx title="addPost.tsx"
+```tsx no-transpile title="addPost.tsx"
 import { useState } from 'react'
 import { useSnackbar } from 'notistack'
 import { api } from './services/api'

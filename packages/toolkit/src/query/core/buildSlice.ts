@@ -10,7 +10,6 @@ import {
   prepareAutoBatched,
 } from '@reduxjs/toolkit'
 import type {
-  CombinedState as CombinedQueryState,
   QuerySubstateIdentifier,
   QuerySubState,
   MutationSubstateIdentifier,
@@ -32,7 +31,8 @@ import type {
   QueryDefinition,
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
-import { applyPatches } from 'immer'
+import { isDraft } from 'immer'
+import { applyPatches, original } from 'immer'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import {
   isDocumentVisible,
@@ -208,7 +208,12 @@ export function buildSlice({
                 // Assign or safely update the cache data.
                 substate.data =
                   definitions[meta.arg.endpointName].structuralSharing ?? true
-                    ? copyWithStructuralSharing(substate.data, payload)
+                    ? copyWithStructuralSharing(
+                        isDraft(substate.data)
+                          ? original(substate.data)
+                          : substate.data,
+                        payload
+                      )
                     : payload
               }
 
@@ -427,8 +432,11 @@ export function buildSlice({
     name: `${reducerPath}/internalSubscriptions`,
     initialState: initialState as SubscriptionState,
     reducers: {
-      subscriptionsUpdated(state, action: PayloadAction<Patch[]>) {
-        return applyPatches(state, action.payload)
+      subscriptionsUpdated: {
+        reducer(state, action: PayloadAction<Patch[]>) {
+          return applyPatches(state, action.payload)
+        },
+        prepare: prepareAutoBatched<Patch[]>(),
       },
     },
   })
@@ -469,9 +477,7 @@ export function buildSlice({
     },
   })
 
-  const combinedReducer = combineReducers<
-    CombinedQueryState<any, string, string>
-  >({
+  const combinedReducer = combineReducers({
     queries: querySlice.reducer,
     mutations: mutationSlice.reducer,
     provided: invalidationSlice.reducer,

@@ -1,6 +1,7 @@
 import isPlainObject from './isPlainObject'
 import type { Middleware } from 'redux'
 import { getTimeMeasureUtils } from './utils'
+import { isAction } from './createAction'
 
 /**
  * Returns true if the passed value is "plain", i.e. a value that is either
@@ -207,6 +208,10 @@ export function createSerializableStateInvariantMiddleware(
       !disableCache && WeakSet ? new WeakSet() : undefined
 
     return (storeAPI) => (next) => (action) => {
+      if (!isAction(action)) {
+        return next(action)
+      }
+
       const result = next(action)
 
       const measureUtils = getTimeMeasureUtils(
@@ -216,7 +221,10 @@ export function createSerializableStateInvariantMiddleware(
 
       if (
         !ignoreActions &&
-        !(ignoredActions.length && ignoredActions.indexOf(action.type) !== -1)
+        !(
+          ignoredActions.length &&
+          ignoredActions.indexOf(action.type as any) !== -1
+        )
       ) {
         measureUtils.measureTime(() => {
           const foundActionNonSerializableValue = findNonSerializableValue(

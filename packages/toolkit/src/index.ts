@@ -32,6 +32,8 @@ export {
   // js
   createAction,
   getType,
+  isAction,
+  isFSA as isFluxStandardAction,
 } from './createAction'
 export type {
   // types
@@ -96,7 +98,7 @@ export type {
   // types
   ActionReducerMapBuilder,
 } from './mapBuilders'
-export { MiddlewareArray } from './utils'
+export { MiddlewareArray, EnhancerArray } from './utils'
 
 export { createEntityAdapter } from './entities/create_adapter'
 export type {
@@ -186,3 +188,7 @@ export {
   autoBatchEnhancer,
 } from './autoBatchEnhancer'
 export type { AutoBatchOptions } from './autoBatchEnhancer'
+
+export { combineSlices } from './combineSlices'
+
+export type { WithSlice } from './combineSlices'
