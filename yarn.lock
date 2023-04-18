@@ -23900,9 +23900,9 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"remark-typescript-tools@npm:^1.0.8":
-  version: 1.0.8
-  resolution: "remark-typescript-tools@npm:1.0.8"
+"remark-typescript-tools@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "remark-typescript-tools@npm:1.1.0"
   dependencies:
     "@microsoft/tsdoc": ^0.12.21
     prettier: ^2.1.1
@@ -23910,7 +23910,7 @@ fsevents@^1.2.7:
     unist-util-visit: ^2.0.3
   peerDependencies:
     typescript: ">=4.0"
-  checksum: 6d2c1390e73fc1ed2b2d3816fbea34d72bc822ec3bb0e605cabcbdb3624576196242d0a752e6e6a79be2821a2d335c868fe4ef7dd6bb550c41552b49d391d867
+  checksum: 3f48c77c449461fffb1d19e85b4a81de3327fae5a98c909330b7ffb85f2600359e7070f73f0b57476eae25b32f57906e3f438bb76bb65b6bd176af025e34ce67
   languageName: node
   linkType: hard
 
@@ -28100,7 +28100,7 @@ fsevents@^1.2.7:
     react: ^18.1.0
     react-dom: ^18.1.0
     react-lite-youtube-embed: ^2.0.3
-    remark-typescript-tools: ^1.0.8
+    remark-typescript-tools: ^1.1.0
     typescript: ~4.2.4
   languageName: unknown
   linkType: soft
