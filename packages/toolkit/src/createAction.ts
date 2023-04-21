@@ -50,26 +50,6 @@ export type PrepareAction<P> =
   | ((...args: any[]) => { payload: P; error: any })
   | ((...args: any[]) => { payload: P; meta: any; error: any })
 
-export type _PayloadActionForPrepare<
-  PA extends PrepareAction<any>,
-  T extends string = string
-> = PA extends PrepareAction<infer P>
-  ? PayloadAction<
-      P,
-      T,
-      ReturnType<PA> extends {
-        meta: infer M
-      }
-        ? M
-        : never,
-      ReturnType<PA> extends {
-        error: infer E
-      }
-        ? E
-        : never
-    >
-  : never
-
 /**
  * Internal version of `ActionCreatorWithPreparedPayload`. Not to be used externally.
  *

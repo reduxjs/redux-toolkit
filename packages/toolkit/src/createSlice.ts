@@ -5,7 +5,6 @@ import type {
   PayloadActionCreator,
   PrepareAction,
   _ActionCreatorWithPreparedPayload,
-  _PayloadActionForPrepare,
 } from './createAction'
 import { createAction } from './createAction'
 import type {
@@ -373,11 +372,17 @@ interface ReducerCreators<State> {
 
   preparedReducer<Prepare extends PrepareAction<any>>(
     prepare: Prepare,
-    reducer: CaseReducer<State, _PayloadActionForPrepare<Prepare>>
+    reducer: CaseReducer<
+      State,
+      ReturnType<_ActionCreatorWithPreparedPayload<Prepare>>
+    >
   ): {
     [reducerDefinitionType]: ReducerType.reducerWithPrepare
     prepare: Prepare
-    reducer: CaseReducer<State, _PayloadActionForPrepare<Prepare>>
+    reducer: CaseReducer<
+      State,
+      ReturnType<_ActionCreatorWithPreparedPayload<Prepare>>
+    >
   }
 }
 

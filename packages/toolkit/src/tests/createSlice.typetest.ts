@@ -17,7 +17,7 @@ import type {
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { createAction, createSlice } from '@reduxjs/toolkit'
-import { expectType, expectUnknown } from './helpers'
+import { expectExactType, expectType, expectUnknown } from './helpers'
 
 /*
  * Test: Slice name is strongly typed.
@@ -597,6 +597,19 @@ const value = actionCreators.anyKey
           expectType<TestState>(state)
           expectType<string>(action.payload)
         }),
+        preparedReducer: create.preparedReducer(
+          (payload: string) => ({
+            payload,
+            meta: 'meta' as const,
+            error: 'error' as const,
+          }),
+          (state, action) => {
+            expectType<TestState>(state)
+            expectType<string>(action.payload)
+            expectExactType('meta' as const)(action.meta)
+            expectExactType('error' as const)(action.error)
+          }
+        ),
         testInfer: create.asyncThunk(
           function payloadCreator(arg: TestArg, api) {
             return Promise.resolve<TestReturned>({ payload: 'foo' })
@@ -688,6 +701,15 @@ const value = actionCreators.anyKey
   type StoreDispatch = typeof store.dispatch
 
   expectType<PayloadActionCreator<string>>(slice.actions.normalReducer)
+  expectType<
+    ActionCreatorWithPreparedPayload<
+      [string],
+      string,
+      'test/preparedReducer',
+      'error',
+      'meta'
+    >
+  >(slice.actions.preparedReducer)
   expectType<AsyncThunk<TestReturned, TestArg, {}>>(slice.actions.testInfer)
   expectType<AsyncThunk<TestReturned, TestArg, { rejectValue: TestReject }>>(
     slice.actions.testExplicitType
