@@ -167,8 +167,6 @@ export interface ImmutableStateInvariantMiddlewareOptions {
   ignoredPaths?: IgnorePaths
   /** Print a warning if checks take longer than N ms. Default: 32ms */
   warnAfter?: number
-  // @deprecated. Use ignoredPaths
-  ignore?: string[]
 }
 
 /**
@@ -226,11 +224,7 @@ export function createImmutableStateInvariantMiddleware(
       isImmutable = isImmutableDefault,
       ignoredPaths,
       warnAfter = 32,
-      ignore,
     } = options
-
-    // Alias ignore->ignoredPaths, but prefer ignoredPaths if present
-    ignoredPaths = ignoredPaths || ignore
 
     const track = trackForMutations.bind(null, isImmutable, ignoredPaths)
 

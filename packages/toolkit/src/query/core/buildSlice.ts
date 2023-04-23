@@ -494,8 +494,6 @@ export function buildSlice({
     ...subscriptionSlice.actions,
     ...internalSubscriptionsSlice.actions,
     ...mutationSlice.actions,
-    /** @deprecated has been renamed to `removeMutationResult` */
-    unsubscribeMutationResult: mutationSlice.actions.removeMutationResult,
     resetApiState,
   }
 
