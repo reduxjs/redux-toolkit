@@ -9,7 +9,6 @@ import type {
 } from '@reduxjs/toolkit/dist/query/endpointDefinitions'
 import type { Api, Module } from '../apiTypes'
 import { capitalize } from '../utils'
-import type { AllOrNone } from '../tsHelpers'
 import { safeAssign } from '../tsHelpers'
 import type { BaseQueryFn } from '@reduxjs/toolkit/dist/query/baseQueryTypes'
 
@@ -70,22 +69,24 @@ declare module '@reduxjs/toolkit/dist/query/apiTypes' {
 
 type RR = typeof import('react-redux')
 
-type ReactHooks = {
+export interface ReactHooksModuleOptions {
   /**
-   * The version of the `useDispatch` hook to be used
+   * The hooks from React Redux to be used
    */
-  useDispatch: RR['useDispatch']
-  /**
-   * The version of the `useSelector` hook to be used
-   */
-  useSelector: RR['useSelector']
-  /**
-   * The version of the `useStore` hook to be used
-   */
-  useStore: RR['useStore']
-}
-
-export type ReactHooksModuleOptions = AllOrNone<ReactHooks> & {
+  hooks?: {
+    /**
+     * The version of the `useDispatch` hook to be used
+     */
+    useDispatch: RR['useDispatch']
+    /**
+     * The version of the `useSelector` hook to be used
+     */
+    useSelector: RR['useSelector']
+    /**
+     * The version of the `useStore` hook to be used
+     */
+    useStore: RR['useStore']
+  }
   /**
    * The version of the `batchedUpdates` function to be used
    */
@@ -120,9 +121,11 @@ export type ReactHooksModuleOptions = AllOrNone<ReactHooks> & {
  * const customCreateApi = buildCreateApi(
  *   coreModule(),
  *   reactHooksModule({
- *     useDispatch: createDispatchHook(MyContext),
- *     useSelector: createSelectorHook(MyContext),
- *     useStore: createStoreHook(MyContext)
+ *     hooks: {
+ *       useDispatch: createDispatchHook(MyContext),
+ *       useSelector: createSelectorHook(MyContext),
+ *       useStore: createStoreHook(MyContext)
+ *     }
  *   })
  * );
  * ```
@@ -131,9 +134,11 @@ export type ReactHooksModuleOptions = AllOrNone<ReactHooks> & {
  */
 export const reactHooksModule = ({
   batch = rrBatch,
-  useDispatch = rrUseDispatch,
-  useSelector = rrUseSelector,
-  useStore = rrUseStore,
+  hooks = {
+    useDispatch: rrUseDispatch,
+    useSelector: rrUseSelector,
+    useStore: rrUseStore,
+  },
   unstable__sideEffectsInRender = false,
 }: ReactHooksModuleOptions = {}): Module<ReactHooksModule> => ({
   name: reactHooksModuleName,
@@ -149,9 +154,7 @@ export const reactHooksModule = ({
       api,
       moduleOptions: {
         batch,
-        useDispatch,
-        useSelector,
-        useStore,
+        hooks,
         unstable__sideEffectsInRender,
       },
       serializeQueryArgs,

@@ -220,9 +220,11 @@ export type CreateApi<Modules extends ModuleName> = {
  * const customCreateApi = buildCreateApi(
  *   coreModule(),
  *   reactHooksModule({
- *     useDispatch: createDispatchHook(MyContext),
- *     useSelector: createSelectorHook(MyContext),
- *     useStore: createStoreHook(MyContext)
+ *     hooks: {
+ *       useDispatch: createDispatchHook(MyContext),
+ *       useSelector: createSelectorHook(MyContext),
+ *       useStore: createStoreHook(MyContext)
+ *     }
  *   })
  * );
  * ```
