@@ -219,7 +219,11 @@ export type CreateApi<Modules extends ModuleName> = {
  * const MyContext = React.createContext<ReactReduxContextValue>(null as any);
  * const customCreateApi = buildCreateApi(
  *   coreModule(),
- *   reactHooksModule({ useDispatch: createDispatchHook(MyContext) })
+ *   reactHooksModule({
+ *     useDispatch: createDispatchHook(MyContext),
+ *     useSelector: createSelectorHook(MyContext),
+ *     useStore: createStoreHook(MyContext)
+ *   })
  * );
  * ```
  *

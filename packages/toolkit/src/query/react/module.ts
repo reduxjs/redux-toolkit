@@ -9,6 +9,7 @@ import type {
 } from '@reduxjs/toolkit/dist/query/endpointDefinitions'
 import type { Api, Module } from '../apiTypes'
 import { capitalize } from '../utils'
+import type { AllOrNone } from '../tsHelpers'
 import { safeAssign } from '../tsHelpers'
 import type { BaseQueryFn } from '@reduxjs/toolkit/dist/query/baseQueryTypes'
 
@@ -69,23 +70,26 @@ declare module '@reduxjs/toolkit/dist/query/apiTypes' {
 
 type RR = typeof import('react-redux')
 
-export interface ReactHooksModuleOptions {
+type ReactHooks = {
+  /**
+   * The version of the `useDispatch` hook to be used
+   */
+  useDispatch: RR['useDispatch']
+  /**
+   * The version of the `useSelector` hook to be used
+   */
+  useSelector: RR['useSelector']
+  /**
+   * The version of the `useStore` hook to be used
+   */
+  useStore: RR['useStore']
+}
+
+export type ReactHooksModuleOptions = AllOrNone<ReactHooks> & {
   /**
    * The version of the `batchedUpdates` function to be used
    */
   batch?: RR['batch']
-  /**
-   * The version of the `useDispatch` hook to be used
-   */
-  useDispatch?: RR['useDispatch']
-  /**
-   * The version of the `useSelector` hook to be used
-   */
-  useSelector?: RR['useSelector']
-  /**
-   * The version of the `useStore` hook to be used
-   */
-  useStore?: RR['useStore']
   /**
    * Enables performing asynchronous tasks immediately within a render.
    *
@@ -115,7 +119,11 @@ export interface ReactHooksModuleOptions {
  * const MyContext = React.createContext<ReactReduxContextValue>(null as any);
  * const customCreateApi = buildCreateApi(
  *   coreModule(),
- *   reactHooksModule({ useDispatch: createDispatchHook(MyContext) })
+ *   reactHooksModule({
+ *     useDispatch: createDispatchHook(MyContext),
+ *     useSelector: createSelectorHook(MyContext),
+ *     useStore: createStoreHook(MyContext)
+ *   })
  * );
  * ```
  *
