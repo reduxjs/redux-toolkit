@@ -581,9 +581,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   api,
   moduleOptions: {
     batch,
-    useDispatch,
-    useSelector,
-    useStore,
+    hooks: { useDispatch, useSelector, useStore },
     unstable__sideEffectsInRender,
   },
   serializeQueryArgs,
