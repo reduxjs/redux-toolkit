@@ -95,6 +95,6 @@ This comparison table strives to be as accurate and as unbiased as possible. If 
 
 ## Further Information
 
-- The [React Query "Comparison" page](https://react-query.tanstack.com/comparison) has an additional detailed feature set comparison table and discussion of capabilities
+- The [React Query "Comparison" page](https://tanstack.com/query/latest/docs/react/comparison) has an additional detailed feature set comparison table and discussion of capabilities
 - Urql maintainer Phil Pluckthun wrote [an excellent explanation of what a "normalized cache" is and how Urql's cache works](https://kitten.sh/graphql-normalized-caching)
 - The [RTK Query "Cache Behavior" page](./usage/cache-behavior.mdx#tradeoffs) has further details on why RTK Query does not implement a normalized cache
