@@ -17,7 +17,7 @@ import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type { Id, NoInfer, Tail } from './tsHelpers'
 import { freezeDraftable } from './utils'
-import type { CombinedSliceReducer, InjectConfig } from './combineSlices'
+import type { InjectConfig } from './combineSlices'
 
 let hasWarnedAboutObjectNotation = false
 
@@ -100,7 +100,12 @@ export interface Slice<
    * Inject slice into provided reducer (return value from `combineSlices`), and return injected slice.
    */
   injectInto(
-    combinedReducer: CombinedSliceReducer<any>,
+    injectable: {
+      inject: (
+        slice: { reducerPath: string; reducer: Reducer },
+        config?: InjectConfig
+      ) => void
+    },
     config?: InjectConfig & { reducerPath?: string }
   ): InjectedSlice<State, CaseReducers, Name, ReducerPath, Selectors>
 }
