@@ -168,26 +168,25 @@ The above example uses the `WithSlice` utility type for a slice mounted under it
 import { rootReducer } from '.'
 
 const lazySlice = createSlice({
-/_ ... _/
+  /* ... */
 })
 
 declare module '.' {
-export interface LazyLoadedSlices {
-customKey: LazyState
-}
+  export interface LazyLoadedSlices {
+    customKey: LazyState
+  }
 }
 
 const injectedReducer = rootReducer.inject({
-reducerPath: 'customKey',
-reducer: lazySlice.reducer,
+  reducerPath: 'customKey',
+  reducer: lazySlice.reducer,
 })
 
 // and/or
 
 const injectedSlice = lazySlice.injectInto(rootReducer, {
-reducerPath: 'customKey',
+  reducerPath: 'customKey',
 })
-
 ```
 
 :::
