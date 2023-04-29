@@ -127,8 +127,8 @@ It's recommended to [infer your RootState type from your store](https://redux.js
 
 One possible pattern of managing this would be with declaration merging:
 
-```ts no-transpile
-// slices/index.ts
+```ts no-transpile title="Using declaration merging to declare injected slices"
+// file: slices/index.ts
 import { combineSlices } from '@reduxjs/toolkit'
 import { staticSlice } from './static'
 
@@ -140,7 +140,7 @@ export const rootReducer =
 // keys in LazyLoadedSlices are marked as optional
 export type RootState = ReturnType<typeof rootReducer>
 
-// slices/lazySlice.ts
+// file: slices/lazySlice.ts
 import type { WithSlice } from '@reduxjs/toolkit'
 import { rootReducer } from '.'
 
@@ -163,30 +163,31 @@ const injectedSlice = lazySlice.injectInto(rootReducer)
 
 The above example uses the `WithSlice` utility type for a slice mounted under its `reducerPath`. If the slice is mounted under a different key, you can declare it as a regular key instead.
 
-```ts no-transpile
-// slices/lazySlice.ts
+```ts no-transpile title="Declaring a slice mounted outside its reducerPath"
+// file: slices/lazySlice.ts
 import { rootReducer } from '.'
 
 const lazySlice = createSlice({
-  /* ... */
+/_ ... _/
 })
 
 declare module '.' {
-  export interface LazyLoadedSlices {
-    customKey: LazyState
-  }
+export interface LazyLoadedSlices {
+customKey: LazyState
+}
 }
 
 const injectedReducer = rootReducer.inject({
-  reducerPath: 'customKey',
-  reducer: lazySlice.reducer,
+reducerPath: 'customKey',
+reducer: lazySlice.reducer,
 })
 
 // and/or
 
 const injectedSlice = lazySlice.injectInto(rootReducer, {
-  reducerPath: 'customKey',
+reducerPath: 'customKey',
 })
+
 ```
 
 :::
