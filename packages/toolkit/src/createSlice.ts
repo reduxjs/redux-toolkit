@@ -30,6 +30,10 @@ let hasWarnedAboutObjectNotation = false
  */
 export type SliceActionCreator<P> = PayloadActionCreator<P>
 
+interface InjectIntoConfig extends InjectConfig {
+  reducerPath?: string
+}
+
 /**
  * The return value of `createSlice`
  *
@@ -106,7 +110,7 @@ export interface Slice<
         config?: InjectConfig
       ) => void
     },
-    config?: InjectConfig & { reducerPath?: string }
+    config?: InjectIntoConfig
   ): InjectedSlice<State, CaseReducers, Name, ReducerPath, Selectors>
 }
 

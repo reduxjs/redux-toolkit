@@ -13,11 +13,56 @@ hide_title: true
 
 A function that combines slices into a single reducer, and enables injection of more reducers after initialisation.
 
+```ts
+// file: slices/api.ts noEmit
+import type { Api } from '@reduxjs/toolkit/query'
+
+export declare const api: Api<() => any, {}, 'api', never>
+
+// file: slices/users.ts noEmit
+import type { Slice } from '@reduxjs/toolkit'
+
+export declare const userSlice: Slice<string, {}, 'user'>
+
+// file: slices/index.ts
+import { combineSlices } from '@reduxjs/toolkit'
+import { api } from './api'
+import { userSlice } from './users'
+
+export const rootReducer = combineSlices(api, userSlice)
+
+// file: store.ts
+import { configureStore } from '@reduxjs/toolkit'
+import { rootReducer } from './slices'
+
+export const store = configureStore({
+  reducer: rootReducer,
+})
+```
+
+:::note
+
+A "slice" for `combineSlices` is typically created with [`createSlice`](./createSlice.mdx),
+but can be any "slice-like" object with `reducerPath` and `reducer` properties (meaning RTK Query [API instances](/rtk-query/api/created-api/overview.mdx) are also compatible).
+
+```ts no-transpile
+const withUserReducer = rootReducer.inject({
+  reducerPath: 'user',
+  reducer: userReducer,
+})
+
+const withApiReducer = rootReducer.inject(fooApi)
+```
+
+For simplicity, this `{ reducerPath, reducer }` shape will be described in these docs as a "slice".
+
+:::
+
 ## Parameters
 
-`combineSlices` accepts a set of [slices](./createSlice.mdx), RTKQ API [instances](/rtk-query/api/created-api/overview.mdx), and/or reducer map objects, and combines them into a single reducer.
+`combineSlices` accepts a set of slices and/or reducer map objects, and combines them into a single reducer.
 
-Slices (and API instances) will be mounted at their `reducerPath`, and items from reducer map objects will be mounted under their respective key.
+Slices will be mounted at their `reducerPath`, and items from reducer map objects will be mounted under their respective key.
 
 ```ts no-transpile
 const rootReducer = combineSlices(counterSlice, baseApi, {
@@ -56,49 +101,99 @@ const rootReducer = combineSlices()
 
 `combineSlices` returns a reducer function, with attached methods.
 
-```ts
-// file: slices/api.ts noEmit
-import type { Api } from '@reduxjs/toolkit/query'
-
-export declare const api: Api<() => any, {}, 'api', never>
-
-// file: slices/users.ts noEmit
-import type { Slice } from '@reduxjs/toolkit'
-
-export declare const userSlice: Slice<string, {}, 'user'>
-
-// file: slices/index.ts
-import { combineSlices } from '@reduxjs/toolkit'
-import { api } from './api'
-import { userSlice } from './users'
-
-export const rootReducer = combineSlices(api, userSlice)
-
-// file: store.ts
-import { configureStore } from '@reduxjs/toolkit'
-import { rootReducer } from './slices'
-
-export const store = configureStore({
-  reducer: rootReducer,
-})
+```ts no-transpile
+interface CombinedSliceReducer<InitialState, DeclaredState = InitialState>
+  extends Reducer<DeclaredState, AnyAction, Partial<DeclaredState>> {
+  withLazyLoadedSlices<LazyLoadedSlices>(): CombinedSliceReducer<
+    InitialState,
+    DeclaredState & Partial<LazyLoadedSlices>
+  >
+  inject<Slice extends SliceLike>(
+    slice: Slice,
+    config?: InjectConfig
+  ): CombinedSliceReducer<InitialState, DeclaredState & WithSlice<Slice>>
+  selector: {
+    (selectorFn: Selector, selectState?: SelectFromRootState) => WrappedSelector
+    original(state: DeclaredState) => InitialState & Partial<DeclaredState>
+  }
+}
 ```
 
 ### `withLazyLoadedSlices`
 
-### `inject`
+It's recommended to [infer your RootState type from your store](https://redux.js.org/usage/usage-with-typescript#define-root-state-and-dispatch-types), which is inferred from the reducer. However, this can present issues if slices are lazy loaded, and thus not able to be inferred from.
 
-:::note
+`withLazyLoadedSlices` allows you to declare slices that will be added to state later, which will be included in the final state type.
 
-A "slice" for `combineSlices` is typically created with [`createSlice`](./createSlice.mdx), but can be any object with `reducerPath` and `reducer` properties.
+One possible pattern of managing this would be with declaration merging:
 
 ```ts no-transpile
-const withUserReducer = rootReducer.inject({
-  reducerPath: 'user',
-  reducer: userReducer,
+// slices/index.ts
+import { combineSlices } from '@reduxjs/toolkit'
+import { staticSlice } from './static'
+
+export interface LazyLoadedSlices {}
+
+export const rootReducer =
+  combineSlices(staticSlice).withLazyLoadedSlices<LazyLoadedSlices>()
+
+// keys in LazyLoadedSlices are marked as optional
+export type RootState = ReturnType<typeof rootReducer>
+
+// slices/lazySlice.ts
+import type { WithSlice } from '@reduxjs/toolkit'
+import { rootReducer } from '.'
+
+const lazySlice = createSlice({
+  /* ... */
+})
+
+declare module '.' {
+  export interface LazyLoadedSlices extends WithSlice<typeof lazySlice> {}
+}
+
+const injectedReducer = rootReducer.inject(lazySlice)
+
+// and/or
+
+const injectedSlice = lazySlice.injectInto(rootReducer)
+```
+
+:::tip
+
+The above example uses the `WithSlice` utility type for a slice mounted under its `reducerPath`. If the slice is mounted under a different key, you can declare it as a regular key instead.
+
+```ts no-transpile
+// slices/lazySlice.ts
+import { rootReducer } from '.'
+
+const lazySlice = createSlice({
+  /* ... */
+})
+
+declare module '.' {
+  export interface LazyLoadedSlices {
+    customKey: LazyState
+  }
+}
+
+const injectedReducer = rootReducer.inject({
+  reducerPath: 'customKey',
+  reducer: lazySlice.reducer,
+})
+
+// and/or
+
+const injectedSlice = lazySlice.injectInto(rootReducer, {
+  reducerPath: 'customKey',
 })
 ```
 
 :::
+
+### `inject`
+
+#### Configuration
 
 ### `selector`
 
