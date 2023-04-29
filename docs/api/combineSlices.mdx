@@ -1,0 +1,111 @@
+---
+id: combineSlices
+title: combineSlices
+sidebar_label: combineSlices
+hide_title: true
+---
+
+&nbsp;
+
+# `combineSlices`
+
+## Overview
+
+A function that combines slices into a single reducer, and enables injection of more reducers after initialisation.
+
+## Parameters
+
+`combineSlices` accepts a set of [slices](./createSlice.mdx), RTKQ API [instances](/rtk-query/api/created-api/overview.mdx), and/or reducer map objects, and combines them into a single reducer.
+
+Slices (and API instances) will be mounted at their `reducerPath`, and items from reducer map objects will be mounted under their respective key.
+
+```ts no-transpile
+const rootReducer = combineSlices(counterSlice, baseApi, {
+  user: userSlice.reducer,
+  auth: authSlice.reducer,
+})
+// is like
+const rootReducer = combineReducers({
+  [counterSlice.reducerPath]: counterSlice.reducer,
+  [baseApi.reducerPath]: baseApi.reducer,
+  user: userSlice.reducer,
+  auth: authSlice.reducer,
+})
+```
+
+:::caution
+
+If multiple slices/map objects have the same reducer path, the reducer provided later in the arguments will override the previous.
+
+However, typing will not be able to account for this. It's best to ensure that all of your reducers will aim for a unique location.
+
+:::
+
+:::warning
+
+Like [`combineReducers`](https://redux.js.org/api/combinereducers), `combineSlices` requires at least one reducer at initialisation.
+
+```ts no-transpile
+// will throw an error
+const rootReducer = combineSlices()
+```
+
+:::
+
+## Return Value
+
+`combineSlices` returns a reducer function, with attached methods.
+
+```ts
+// file: slices/api.ts noEmit
+import type { Api } from '@reduxjs/toolkit/query'
+
+export declare const api: Api<() => any, {}, 'api', never>
+
+// file: slices/users.ts noEmit
+import type { Slice } from '@reduxjs/toolkit'
+
+export declare const userSlice: Slice<string, {}, 'user'>
+
+// file: slices/index.ts
+import { combineSlices } from '@reduxjs/toolkit'
+import { api } from './api'
+import { userSlice } from './users'
+
+export const rootReducer = combineSlices(api, userSlice)
+
+// file: store.ts
+import { configureStore } from '@reduxjs/toolkit'
+import { rootReducer } from './slices'
+
+export const store = configureStore({
+  reducer: rootReducer,
+})
+```
+
+### `withLazyLoadedSlices`
+
+### `inject`
+
+:::note
+
+A "slice" for `combineSlices` is typically created with [`createSlice`](./createSlice.mdx), but can be any object with `reducerPath` and `reducer` properties.
+
+```ts no-transpile
+const withUserReducer = rootReducer.inject({
+  reducerPath: 'user',
+  reducer: userReducer,
+})
+```
+
+:::
+
+### `selector`
+
+#### `original`
+
+## Slice integration
+
+### `injectInto`
+
+### `selectors` / `getSelectors`

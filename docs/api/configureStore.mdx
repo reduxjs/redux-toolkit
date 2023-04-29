@@ -17,20 +17,22 @@ to the store setup for a better development experience.
 `configureStore` accepts a single configuration object parameter, with the following options:
 
 ```ts no-transpile
-type ConfigureEnhancersCallback = (
+type ConfigureEnhancersCallback<E extends Enhancers> = (
   defaultEnhancers: EnhancerArray<[StoreEnhancer]>
 ) => StoreEnhancer[]
 
 interface ConfigureStoreOptions<
   S = any,
   A extends Action = AnyAction,
-  M extends Middlewares<S> = Middlewares<S>
+  M extends Middlewares<S> = Middlewares<S>,
+  E extends Enhancers = Enhancers,
+  P = S
 > {
   /**
    * A single reducer function that will be used as the root reducer, or an
    * object of slice reducers that will be passed to `combineReducers()`.
    */
-  reducer: Reducer<S, A> | ReducersMapObject<S, A>
+  reducer: Reducer<S, A, P> | ReducersMapObject<S, A, P>
 
   /**
    * An array of Redux middleware to install. If not supplied, defaults to
@@ -53,7 +55,7 @@ interface ConfigureStoreOptions<
    * function (either directly or indirectly by passing an object as `reducer`),
    * this must be an object with the same shape as the reducer map keys.
    */
-  preloadedState?: DeepPartial<S extends any ? S : S>
+  preloadedState?: P
 
   /**
    * The store enhancers to apply. See Redux's `createStore()`.
@@ -63,12 +65,16 @@ interface ConfigureStoreOptions<
    * and should return a new array (such as `[applyMiddleware, offline]`).
    * If you only need to add middleware, you can use the `middleware` parameter instead.
    */
-  enhancers?: StoreEnhancer[] | ConfigureEnhancersCallback
+  enhancers?: E | ConfigureEnhancersCallback<E>
 }
 
-function configureStore<S = any, A extends Action = AnyAction>(
-  options: ConfigureStoreOptions<S, A>
-): EnhancedStore<S, A>
+function configureStore<
+  S = any,
+  A extends Action = AnyAction,
+  M extends Middlewares<S> = Middlewares<S>,
+  E extends Enhancers = Enhancers,
+  P = S
+>(options: ConfigureStoreOptions<S, A, M, E, P>): EnhancedStore<S, A, M, E>
 ```
 
 ### `reducer`
