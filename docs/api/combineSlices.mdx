@@ -223,10 +223,10 @@ const reducerWithUser = rootReducer.inject(userSlice, {
 })
 ```
 
-This may be useful for hot reload, or "removing" a reducer by replacing it with a function that always returns null.
+This may be useful for hot reload, or "removing" a reducer by replacing it with a function that always returns `null`.
 Note that for predictable behaviour, your types should account for all of the possible reducers you intend to occupy a path.
 
-```ts no-transpile
+```ts no-transpile title="'Removing' a reducer, by replacing it with a no-op function"
 declare module '.' {
   export interface LazyLoadedSlices {
     removable: RemovableState | null
@@ -249,7 +249,91 @@ const removeReducer = () =>
 
 ### `selector`
 
+As noted previously, an injected reducer can still be undefined in state if no action has been dispatched.
+
+Dealing with this possibly-optional state can be inconvient when writing selectors, as you may end up with a lot of results being possibly undefined or relying on explicit defaults.
+
+`selector` allows you to get around this, by wrapping the reducer state in a `Proxy` that ensures that any currently injected reducers evaluate to their initial state if they're currently `undefined` in state.
+
+```ts no-transpile
+declare module '.' {
+  export interface LazyLoadedSlices extends WithSlice<typeof counterSlice> {}
+}
+
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 },
+  reducers: {
+    /* ... */
+  },
+})
+
+const withCounter = rootReducer.inject(counterSlice)
+
+const selectCounterValue = (rootState: RootState) => rootState.counter?.value // number | undefined
+
+const wrappedSelectCounterValue = withCounter.selector(
+  (rootState) => rootState.counter.value // number
+)
+
+console.log(
+  selectCounterValue({}), // undefined
+  selectCounterValue({ counter: { value: 2 } }), // 2
+  wrappedSelectCounterValue({}), // 0
+  wrappedSelectCounterValue({ counter: { value: 2 } }) // 2
+)
+```
+
+:::caution
+
+The `Proxy` retrieves a reducer's initial state by calling it with a randomly generated action type - don't try to handle this as a special case inside your reducer.
+
+:::
+
+#### Nested combined reducer
+
+The wrapped selector expects to use the state returned by the combined reducer as its first argument.
+
+If the combined reducer is nested further inside the store state, pass a `selectState` callback as the second argument to `selector`:
+
+```ts no-transpile
+interface RootState {
+  innerCombined: ReturnType<typeof combinedReducer>
+}
+
+const selectCounterValue = withCounter.selector(
+  (combinedState) => combinedState.counter.value,
+  (rootState: RootState) => rootState.innerCombined
+)
+
+console.log(
+  selectCounterValue({
+    innerCombined: {},
+  }), // 0
+  selectCounterValue({
+    innerCombined: {
+      counter: {
+        value: 2,
+      },
+    },
+  }) // 2
+)
+```
+
 #### `original`
+
+Similar to [Immer usage](/usage/immer-reducers.md#debugging-and-inspecting-drafted-state), an `original` function is provided to retrieve the original state value provided to the `Proxy`.
+
+This is mainly useful for debugging/inspecting, as `Proxy` instances tend to be displayed in a format that's hard to read.
+
+The function is attached as a method on the `selector` function:
+
+```ts no-transpile
+const wrappedSelectCounterValue = withCounter.selector((rootState) => {
+  console.log(withCounter.selector.original(rootState))
+  return rootState.counter.value
+})
+```
 
 ## Slice integration
 
