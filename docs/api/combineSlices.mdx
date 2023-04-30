@@ -193,7 +193,59 @@ const injectedSlice = lazySlice.injectInto(rootReducer, {
 
 ### `inject`
 
-#### Configuration
+`inject` allows you to add a slice to your set of reducers after initialisation.
+It expects to be passed a slice and an optional config, and returns an updated version of the reducer with the slice included.
+
+This is mainly useful for lazy loading reducers.
+
+```ts no-transpile
+const reducerWithUser = rootReducer.inject(userSlice)
+```
+
+:::note
+
+`inject` adds the slice to the map of reducers in your original reducer, but doesn't dispatch an action.
+
+This means that the added reducer state will not show up in your store until the next action is dispatched.
+
+:::
+
+#### Reducer replacement
+
+By default, replacing a reducer is not allowed.
+In development mode, a warning will be logged to console if a new reducer instance is attempted to inject into a `reducerPath` that's already injected. (It won't warn if the same reducer instance is injected into the same place twice.)
+
+If you wish to allow replacing a reducer with a new instance, you must explicitly pass `overrideExisting: true` as part of your configuration object.
+
+```ts no-transpile
+const reducerWithUser = rootReducer.inject(userSlice, {
+  overrideExisting: true,
+})
+```
+
+This may be useful for hot reload, or "removing" a reducer by replacing it with a function that always returns null.
+Note that for predictable behaviour, your types should account for all of the possible reducers you intend to occupy a path.
+
+```ts no-transpile
+declare module '.' {
+  export interface LazyLoadedSlices {
+    removable: RemovableState | null
+  }
+}
+
+const withInjected = rootReducer.inject(
+  { reducerPath: 'removable', reducer: removableReducer },
+  { overrideExisting: true }
+)
+
+const emptyReducer = () => null
+
+const removeReducer = () =>
+  rootReducer.inject(
+    { reducerPath: 'removable', reducer: emptyReducer },
+    { overrideExisting: true }
+  )
+```
 
 ### `selector`
 
