@@ -30,8 +30,8 @@ let hasWarnedAboutObjectNotation = false
  */
 export type SliceActionCreator<P> = PayloadActionCreator<P>
 
-interface InjectIntoConfig extends InjectConfig {
-  reducerPath?: string
+interface InjectIntoConfig<NewReducerPath extends string> extends InjectConfig {
+  reducerPath?: NewReducerPath
 }
 
 /**
@@ -103,15 +103,15 @@ export interface Slice<
   /**
    * Inject slice into provided reducer (return value from `combineSlices`), and return injected slice.
    */
-  injectInto(
+  injectInto<NewReducerPath extends string = ReducerPath>(
     injectable: {
       inject: (
         slice: { reducerPath: string; reducer: Reducer },
         config?: InjectConfig
       ) => void
     },
-    config?: InjectIntoConfig
-  ): InjectedSlice<State, CaseReducers, Name, ReducerPath, Selectors>
+    config?: InjectIntoConfig<NewReducerPath>
+  ): InjectedSlice<State, CaseReducers, Name, NewReducerPath, Selectors>
 }
 
 /**
@@ -542,15 +542,15 @@ export function createSlice<
     get selectors() {
       return this.getSelectors(defaultSelectSlice)
     },
-    injectInto(injectable, { reducerPath, ...config } = {}) {
-      injectable.inject(
-        { reducerPath: reducerPath ?? this.reducerPath, reducer: this.reducer },
-        config
-      )
+    injectInto(injectable, { reducerPath: pathOpt, ...config } = {}) {
+      const reducerPath = pathOpt ?? this.reducerPath
+      injectable.inject({ reducerPath, reducer: this.reducer }, config)
+      const selectSlice = (state: any) => state[reducerPath]
       return {
         ...this,
+        reducerPath,
         get selectors() {
-          return this.getSelectors(defaultSelectSlice)
+          return this.getSelectors(selectSlice)
         },
       } as any
     },

@@ -339,4 +339,32 @@ const wrappedSelectCounterValue = withCounter.selector((rootState) => {
 
 ### `injectInto`
 
+Slice instances returned by [`createSlice`](./createSlice) have an attached `injectInto` method, which receive an injectable reducer from `combineSlices` and returns an "injected" version of that slice.
+
+```ts no-transpile
+const injectedCounterSlice = counterSlice.injectInto(rootReducer)
+```
+
+An optional configuration object can be passed. This follows [`inject`](#inject)'s options with an additional `reducerPath` field, for injecting the slice under a path other than its current `reducerPath` property.
+
+```ts no-transpile
+const aCounterSlice = counterSlice.injectInto(rootReducer, {
+  reducerPath: 'aCounter',
+})
+```
+
 ### `selectors` / `getSelectors`
+
+Similar to [`selector`](#selector), the selectors from an "injected" slice instance behave slightly differently.
+
+If the slice state is undefined in the store state passed, the selector will instead be called with the slice's initial state.
+
+`selectors` will also reflect the change in `reducerPath` if one was made during injection.
+
+```ts no-transpile
+console.log(
+  injectedCounterSlice.selectors.selectValue({}), // 0
+  injectedCounterSlice.selectors.selectValue({ counter: { value: 2 } }), // 2
+  aCounterSlice.selectors.selectValue({ aCounter: { value: 2 } }) // 2
+)
+```
