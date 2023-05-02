@@ -42,6 +42,7 @@
             "api/immutabilityMiddleware",
             "api/serializabilityMiddleware",
             "api/createListenerMiddleware",
+            "api/createDynamicMiddleware",
             "api/autoBatchEnhancer"
           ]
         },

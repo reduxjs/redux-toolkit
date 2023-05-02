@@ -21,15 +21,11 @@ const createMiddlewareEntry = <
   Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
 >(
   middleware: Middleware<any, State, Dispatch>
-) => {
-  const id = nanoid()
-  const entry: MiddlewareEntry<State, Dispatch> = {
-    id,
-    middleware,
-    applied: new Map(),
-  }
-  return entry
-}
+): MiddlewareEntry<State, Dispatch> => ({
+  id: nanoid(),
+  middleware,
+  applied: new Map(),
+})
 
 export const createDynamicMiddleware = <
   State = any,
