@@ -19,17 +19,6 @@ import type { Id, NoInfer, Tail } from './tsHelpers'
 import { freezeDraftable } from './utils'
 import type { InjectConfig } from './combineSlices'
 
-let hasWarnedAboutObjectNotation = false
-
-/**
- * An action creator attached to a slice.
- *
- * @deprecated please use PayloadActionCreator directly
- *
- * @public
- */
-export type SliceActionCreator<P> = PayloadActionCreator<P>
-
 interface InjectIntoConfig<NewReducerPath extends string> extends InjectConfig {
   reducerPath?: NewReducerPath
 }

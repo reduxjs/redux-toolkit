@@ -19,11 +19,16 @@ You can create your own versions of `createApi` by either specifying non-default
 
 ## Customizing the React-Redux Hooks
 
-If you want the hooks to use different versions of `useSelector` or `useDispatch`, such as if you are using a custom context, you can pass these in at module creation:
+If you want the hooks to use different versions of `useSelector`, `useDispatch` and `useStore`, such as if you are using a custom context, you can pass these in at module creation:
 
 ```ts
 import * as React from 'react'
-import { createDispatchHook, ReactReduxContextValue } from 'react-redux'
+import {
+  createDispatchHook,
+  createSelectorHook,
+  createStoreHook,
+  ReactReduxContextValue,
+} from 'react-redux'
 import {
   buildCreateApi,
   coreModule,
@@ -33,7 +38,13 @@ import {
 const MyContext = React.createContext<ReactReduxContextValue>(null as any)
 const customCreateApi = buildCreateApi(
   coreModule(),
-  reactHooksModule({ useDispatch: createDispatchHook(MyContext) })
+  reactHooksModule({
+    hooks: {
+      useDispatch: createDispatchHook(MyContext),
+      useSelector: createSelectorHook(MyContext),
+      useStore: createStoreHook(MyContext),
+    },
+  })
 )
 ```
 
@@ -81,7 +92,7 @@ export const myModule = (): Module<CustomModule> => ({
 
     return {
       injectEndpoint(endpoint, definition) {
-        const anyApi = (api as any) as Api<
+        const anyApi = api as any as Api<
           any,
           Record<string, any>,
           string,
