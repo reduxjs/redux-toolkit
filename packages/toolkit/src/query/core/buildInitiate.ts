@@ -181,8 +181,6 @@ export type MutationActionCreatorResult<
    The value returned by the hook will reset to `isUninitialized` afterwards.
    */
   reset(): void
-  /** @deprecated has been renamed to `reset` */
-  unsubscribe(): void
 }
 
 export function buildInitiate({
@@ -219,37 +217,6 @@ export function buildInitiate({
     getRunningMutationThunk,
     getRunningQueriesThunk,
     getRunningMutationsThunk,
-    getRunningOperationPromises,
-    removalWarning,
-  }
-
-  /** @deprecated to be removed in 2.0 */
-  function removalWarning(): never {
-    throw new Error(
-      `This method had to be removed due to a conceptual bug in RTK.
-       Please see https://github.com/reduxjs/redux-toolkit/pull/2481 for details.
-       See https://redux-toolkit.js.org/rtk-query/usage/server-side-rendering for new guidance on SSR.`
-    )
-  }
-
-  /** @deprecated to be removed in 2.0 */
-  function getRunningOperationPromises() {
-    if (
-      typeof process !== 'undefined' &&
-      process.env.NODE_ENV === 'development'
-    ) {
-      removalWarning()
-    } else {
-      const extract = <T>(
-        v: Map<Dispatch<AnyAction>, Record<string, T | undefined>>
-      ) =>
-        Array.from(v.values()).flatMap((queriesForStore) =>
-          queriesForStore ? Object.values(queriesForStore) : []
-        )
-      return [...extract(runningQueries), ...extract(runningMutations)].filter(
-        isNotNullish
-      )
-    }
   }
 
   function getRunningQueryThunk(endpointName: string, queryArgs: any) {
@@ -464,7 +431,6 @@ You must add the middleware for RTK-Query to function correctly!`
           requestId,
           abort,
           unwrap,
-          unsubscribe: reset,
           reset,
         })
 

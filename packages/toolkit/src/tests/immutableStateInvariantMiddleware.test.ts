@@ -140,19 +140,6 @@ describe('createImmutableStateInvariantMiddleware', () => {
     }).not.toThrow()
   })
 
-  it('alias "ignore" to "ignoredPath" and respects option', () => {
-    const next: MWNext = (action) => {
-      state.foo.bar.push(5)
-      return action
-    }
-
-    const dispatch = middleware({ ignore: ['foo.bar'] })(next)
-
-    expect(() => {
-      dispatch({ type: 'SOME_ACTION' })
-    }).not.toThrow()
-  })
-
   it('Should print a warning if execution takes too long', () => {
     state.foo.bar = new Array(10000).fill({ value: 'more' })
 

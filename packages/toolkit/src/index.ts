@@ -69,7 +69,6 @@ export type {
   SliceCaseReducers,
   ValidateSliceCaseReducers,
   CaseReducerWithPrepare,
-  SliceActionCreator,
   ReducerCreators,
 } from './createSlice'
 export {
@@ -91,10 +90,6 @@ export type {
   // types
   SerializableStateInvariantMiddlewareOptions,
 } from './serializableStateInvariantMiddleware'
-export {
-  // js
-  getDefaultMiddleware,
-} from './getDefaultMiddleware'
 export type {
   // types
   ActionReducerMapBuilder,

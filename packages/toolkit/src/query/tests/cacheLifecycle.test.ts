@@ -8,6 +8,7 @@ import {
   setupApiStore,
   DEFAULT_DELAY_MS,
 } from './helpers'
+import { QueryActionCreatorResult } from '../core/buildInitiate'
 
 beforeAll(() => {
   vi.useFakeTimers()
@@ -54,6 +55,7 @@ describe.each([['query'], ['mutation']] as const)(
       const extended = api.injectEndpoints({
         overrideExisting: true,
         endpoints: (build) => ({
+          // Lying to TS here
           injected: build[type as 'mutation']<unknown, string>({
             query: () => '/success',
             async onCacheEntryAdded(
@@ -74,7 +76,11 @@ describe.each([['query'], ['mutation']] as const)(
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
       expect(onCleanup).not.toHaveBeenCalled()
 
-      promise.unsubscribe()
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
       await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
       if (type === 'query') {
         await vi.advanceTimersByTimeAsync(59000)
@@ -128,7 +134,11 @@ describe.each([['query'], ['mutation']] as const)(
       })
       expect(onCleanup).not.toHaveBeenCalled()
 
-      promise.unsubscribe()
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
       await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
       if (type === 'query') {
         await vi.advanceTimersByTimeAsync(59000)
@@ -166,7 +176,11 @@ describe.each([['query'], ['mutation']] as const)(
       )
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
 
-      promise.unsubscribe()
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
       await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
       if (type === 'query') {
         await vi.advanceTimersByTimeAsync(120000)
@@ -205,7 +219,11 @@ describe.each([['query'], ['mutation']] as const)(
       )
 
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
-      promise.unsubscribe()
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
       await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
 
       if (type === 'query') {
@@ -253,7 +271,11 @@ describe.each([['query'], ['mutation']] as const)(
 
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
 
-      promise.unsubscribe()
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
       await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
       if (type === 'query') {
         await vi.advanceTimersByTimeAsync(59000)
@@ -299,7 +321,11 @@ describe.each([['query'], ['mutation']] as const)(
 
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
 
-      promise.unsubscribe()
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
       await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
       if (type === 'query') {
         await vi.advanceTimersByTimeAsync(59000)
@@ -421,7 +447,7 @@ test(`mutation: getCacheEntry`, async () => {
     expect(gotFirstValue).toHaveBeenCalled()
   })
 
-  promise.unsubscribe()
+  promise.reset()
   await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
 
   expect(snapshot).toHaveBeenCalledTimes(3)

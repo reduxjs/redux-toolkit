@@ -27,17 +27,6 @@ import type {
 } from './createAsyncThunk'
 import { createAsyncThunk } from './createAsyncThunk'
 
-let hasWarnedAboutObjectNotation = false
-
-/**
- * An action creator attached to a slice.
- *
- * @deprecated please use PayloadActionCreator directly
- *
- * @public
- */
-export type SliceActionCreator<P> = PayloadActionCreator<P>
-
 /**
  * The return value of `createSlice`
  *
