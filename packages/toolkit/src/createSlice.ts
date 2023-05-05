@@ -574,15 +574,10 @@ export function createSlice<
     }
   }
 
-  const initialState =
-    typeof options.initialState == 'function'
-      ? options.initialState
-      : freezeDraftable(options.initialState)
-
   const reducers =
-    typeof options.reducers === 'function'
+    (typeof options.reducers === 'function'
       ? options.reducers(buildReducerCreators<State>())
-      : options.reducers || {}
+      : options.reducers) || {}
 
   const reducerNames = Object.keys(reducers)
 
@@ -636,7 +631,7 @@ export function createSlice<
       ...context.sliceCaseReducersByType,
     }
 
-    return createReducer(initialState, (builder) => {
+    return createReducer(options.initialState, (builder) => {
       for (let key in finalCaseReducers) {
         builder.addCase(key, finalCaseReducers[key] as CaseReducer<any>)
       }
