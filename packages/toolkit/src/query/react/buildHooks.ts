@@ -452,14 +452,7 @@ type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
             Pick<UseQueryStateBaseResult<D>, 'error'>
           >)
       >
-  > & {
-    /**
-     * @deprecated will be removed in the next version
-     * please use the `isLoading`, `isFetching`, `isSuccess`, `isError`
-     * and `isUninitialized` flags instead
-     */
-    status: QueryStatus
-  }
+  >
 
 export type MutationStateSelector<
   R extends Record<string, any>,
