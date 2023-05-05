@@ -23,7 +23,12 @@ If you want the hooks to use different versions of `useSelector`, `useDispatch` 
 
 ```ts
 import * as React from 'react'
-import { createDispatchHook, ReactReduxContextValue } from 'react-redux'
+import {
+  createDispatchHook,
+  createSelectorHook,
+  createStoreHook,
+  ReactReduxContextValue,
+} from 'react-redux'
 import {
   buildCreateApi,
   coreModule,
