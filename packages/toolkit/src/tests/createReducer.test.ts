@@ -384,14 +384,14 @@ describe('createReducer', () => {
     ): a is PayloadAction<number> =>
       isPlainObject(a.meta) &&
       'type' in a.meta &&
-      a.meta.type === 'number_action'
+      (a.meta as Record<'type', unknown>).type === 'number_action'
 
     const stringActionMatcher = (
       a: UnknownAction
     ): a is PayloadAction<string> =>
       isPlainObject(a.meta) &&
       'type' in a.meta &&
-      a.meta.type === 'string_action'
+      (a.meta as Record<'type', unknown>).type === 'string_action'
 
     const incrementBy = createAction('increment', prepareNumberAction)
     const decrementBy = createAction('decrement', prepareNumberAction)

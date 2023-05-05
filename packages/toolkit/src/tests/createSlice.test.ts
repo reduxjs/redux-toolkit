@@ -271,7 +271,10 @@ describe('createSlice', () => {
           initialState: 0,
           reducers: {},
           extraReducers: (builder) =>
-            builder.addDefaultCase((state, action) => state + action.payload),
+            builder.addDefaultCase(
+              (state, action) =>
+                state + (action as PayloadAction<number>).payload
+            ),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
       })
