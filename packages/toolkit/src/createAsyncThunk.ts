@@ -625,16 +625,12 @@ If you want to use the AbortController to react to \`abort\` events, please cons
                 })
               )
             )
-            dispatch(
-              pending(
-                requestId,
-                arg,
-                options?.getPendingMeta?.(
-                  { requestId, arg },
-                  { getState, extra }
-                )
-              )
+            const pendingAction = pending(
+              requestId,
+              arg,
+              options?.getPendingMeta?.({ requestId, arg }, { getState, extra })
             )
+            dispatch(pendingAction)
             finalAction = await Promise.race([
               abortedPromise,
               Promise.resolve(

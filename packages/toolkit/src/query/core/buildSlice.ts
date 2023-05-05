@@ -485,10 +485,8 @@ export function buildSlice({
     config: configSlice.reducer,
   })
 
-  const reducer = (
-    state: CombinedQueryState<any, string, string> | undefined,
-    action: UnknownAction
-  ) => combinedReducer(resetApiState.match(action) ? undefined : state, action)
+  const reducer: typeof combinedReducer = (state, action) =>
+    combinedReducer(resetApiState.match(action) ? undefined : state, action)
 
   const actions = {
     ...configSlice.actions,
