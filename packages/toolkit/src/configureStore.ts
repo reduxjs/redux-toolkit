@@ -172,15 +172,13 @@ export function configureStore<
   const middlewareEnhancer = applyMiddleware(...finalMiddleware)
 
   const getDefaultEnhancers = buildGetDefaultEnhancers<M>(middlewareEnhancer)
-  let storeEnhancers = enhancers ?? getDefaultEnhancers()
-  if (typeof storeEnhancers === 'function') {
-    storeEnhancers = storeEnhancers(getDefaultEnhancers)
+  let storeEnhancers =
+    (typeof enhancers === 'function'
+      ? enhancers(getDefaultEnhancers)
+      : enhancers) ?? getDefaultEnhancers()
 
-    if (!IS_PRODUCTION && !Array.isArray(storeEnhancers)) {
-      throw new Error(
-        'when using a enhancer builder function, an array of enhancers must be returned'
-      )
-    }
+  if (!IS_PRODUCTION && !Array.isArray(storeEnhancers)) {
+    throw new Error('enhancers must be an array')
   }
   if (
     !IS_PRODUCTION &&
