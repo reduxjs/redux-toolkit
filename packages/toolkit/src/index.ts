@@ -70,6 +70,7 @@ export type {
   ValidateSliceCaseReducers,
   CaseReducerWithPrepare,
   SliceActionCreator,
+  ReducerCreators,
 } from './createSlice'
 export {
   // js

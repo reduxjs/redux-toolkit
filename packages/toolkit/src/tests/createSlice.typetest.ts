@@ -10,6 +10,7 @@ import type {
   CaseReducer,
   PayloadAction,
   PayloadActionCreator,
+  ReducerCreators,
   SerializedError,
   SliceCaseReducers,
   ThunkDispatch,
@@ -18,6 +19,7 @@ import type {
 import { configureStore } from '@reduxjs/toolkit'
 import { createAction, createSlice } from '@reduxjs/toolkit'
 import { expectExactType, expectType, expectUnknown } from './helpers'
+import { castDraft } from 'immer'
 
 /*
  * Test: Slice name is strongly typed.
@@ -559,6 +561,10 @@ const value = actionCreators.anyKey
   expectType<string>(nestedSelectors.selectToFixed(nestedState))
 }
 
+/**
+ * Test: reducer callback
+ */
+
 {
   interface TestState {
     foo: string
@@ -726,4 +732,58 @@ const value = actionCreators.anyKey
       slice.caseReducers.testInfer.rejected
     )
   }
+}
+
+/** Test: wrapping createSlice should be possible, with callback */
+{
+  interface GenericState<T> {
+    data?: T
+    status: 'loading' | 'finished' | 'error'
+  }
+
+  const createGenericSlice = <
+    T,
+    Reducers extends SliceCaseReducers<GenericState<T>>
+  >({
+    name = '',
+    initialState,
+    reducers,
+  }: {
+    name: string
+    initialState: GenericState<T>
+    reducers: (create: ReducerCreators<GenericState<T>>) => Reducers
+  }) => {
+    return createSlice({
+      name,
+      initialState,
+      reducers: (create) => ({
+        start: create.reducer((state) => {
+          state.status = 'loading'
+        }),
+        success: create.reducer((state, action: PayloadAction<T>) => {
+          state.data = castDraft(action.payload)
+          state.status = 'finished'
+        }),
+        ...reducers(create),
+      }),
+    })
+  }
+
+  const wrappedSlice = createGenericSlice({
+    name: 'test',
+    initialState: { status: 'loading' } as GenericState<string>,
+    reducers: (create) => ({
+      magic: create.reducer((state) => {
+        expectType<GenericState<string>>(state)
+        // @ts-expect-error
+        expectType<GenericState<number>>(state)
+
+        state.status = 'finished'
+        state.data = 'hocus pocus'
+      }),
+    }),
+  })
+
+  expectType<ActionCreatorWithPayload<string>>(wrappedSlice.actions.success)
+  expectType<ActionCreatorWithoutPayload<string>>(wrappedSlice.actions.magic)
 }

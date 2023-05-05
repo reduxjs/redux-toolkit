@@ -363,7 +363,7 @@ interface AsyncThunkCreator<
   >
 }
 
-interface ReducerCreators<State> {
+export interface ReducerCreators<State> {
   reducer<Payload>(
     caseReducer: CaseReducer<State, PayloadAction<Payload>>
   ): CaseReducerDefinition<State, PayloadAction<Payload>>
