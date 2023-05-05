@@ -683,7 +683,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
             (finalAction as any).meta.condition
 
           if (!skipDispatch) {
-            dispatch(finalAction)
+            dispatch(finalAction as any)
           }
           return finalAction
         })()
