@@ -218,6 +218,10 @@ export function setupApiStore<
           .concat(...(middleware?.concat ?? []))
           .prepend(...(middleware?.prepend ?? [])) as typeof tempMiddleware
       },
+      enhancers: (gde) =>
+        gde({
+          autoBatch: false,
+        }),
     })
 
   type StoreType = EnhancedStore<
