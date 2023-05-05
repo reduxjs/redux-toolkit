@@ -301,15 +301,11 @@ reducers: (create) => {
 
   return {
     fetchTodo: createAThunk<Todo, string>(async (id, thunkApi) => {
-      const state = thunkApi.getState() as RootState
-      const dispatch = thunkApi.dispatch as AppDispatch
       throw thunkApi.rejectWithValue({
         error: 'Oh no!',
       })
     }),
     fetchTodos: createAThunk<Todo[], string>(async (id, thunkApi) => {
-      const state = thunkApi.getState() as RootState
-      const dispatch = thunkApi.dispatch as AppDispatch
       throw thunkApi.rejectWithValue({
         error: 'Oh no, not again!',
       })
