@@ -5,8 +5,9 @@ import type {
   Middleware,
   Store,
   Reducer,
-  MiddlewareArray,
-  ThunkMiddleware,
+  EnhancerArray,
+  StoreEnhancer,
+  ThunkDispatch,
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
@@ -206,13 +207,24 @@ export function setupApiStore<
     }
   } = {}
 ) {
+  type State = {
+    api: ReturnType<A['reducer']>
+  } & {
+    [K in keyof R]: ReturnType<R[K]>
+  }
+  type StoreType = EnhancedStore<
+    State,
+    AnyAction,
+    EnhancerArray<
+      [StoreEnhancer<{ dispatch: ThunkDispatch<State, unknown, AnyAction> }>]
+    >
+  >
+
   const { middleware } = options
   const getStore = () =>
     configureStore({
       reducer: { api: api.reducer, ...extraReducers },
-      middleware: (
-        gdm
-      ): MiddlewareArray<[ThunkMiddleware<{ api: any }>, ...Middleware[]]> => {
+      middleware: (gdm) => {
         const tempMiddleware = gdm({
           serializableCheck: false,
           immutableCheck: false,
@@ -220,27 +232,15 @@ export function setupApiStore<
 
         return tempMiddleware
           .concat(...(middleware?.concat ?? []))
-          .prepend(...(middleware?.prepend ?? [])) as typeof tempMiddleware
+          .prepend(...(middleware?.prepend ?? [])) as any
       },
       enhancers: (gde) =>
         gde({
           autoBatch: false,
         }),
-    })
+    }) as StoreType
 
-  type StoreType = EnhancedStore<
-    {
-      api: ReturnType<A['reducer']>
-    } & {
-      [K in keyof R]: ReturnType<R[K]>
-    },
-    AnyAction,
-    ReturnType<typeof getStore> extends EnhancedStore<any, any, infer M>
-      ? M
-      : never
-  >
-
-  const initialStore = getStore() as StoreType
+  const initialStore = getStore()
   const refObj = {
     api,
     store: initialStore,
@@ -250,7 +250,7 @@ export function setupApiStore<
 
   if (!options.withoutTestLifecycles) {
     beforeEach(() => {
-      const store = getStore() as StoreType
+      const store = getStore()
       refObj.store = store
       refObj.wrapper = withProvider(store)
       if (!options.withoutListeners) {
