@@ -232,7 +232,7 @@ const api = createApi({
 Note that for the example above, the `id` is used where possible on a successful result. In the case of an error, no result is supplied, and we still consider that it has provided the general `'Post'` tag type rather than any specific instance of that tag.
 
 :::tip Advanced List Invalidation
-In order to provide stronger control over invalidating the appropriate data, you can use an arbitrary ID such a `'LIST'` for a given tag. See [Advanced Invalidation with abstract tag IDs](#advanced-invalidation-with-abstract-tag-ids) for additional details.
+In order to provide stronger control over invalidating the appropriate data, you can use an arbitrary ID such as `'LIST'` for a given tag. See [Advanced Invalidation with abstract tag IDs](#advanced-invalidation-with-abstract-tag-ids) for additional details.
 :::
 
 ### Invalidating cache data
@@ -381,7 +381,7 @@ const api = createApi({
 For the example above, rather than invalidating any tag with the type `'Post'`, calling the `editPost` mutation function will now only invalidate a tag for the provided `id`. I.e. if cached data from an endpoint does not provide a `'Post'` for that same `id`, it will remain considered as 'valid', and will not be triggered to automatically re-fetch.
 
 :::tip Using abstract tag IDs
-In order to provide stronger control over invalidating the appropriate data, you can use an arbitrary ID such a `'LIST'` for a given tag. See [Advanced Invalidation with abstract tag IDs](#advanced-invalidation-with-abstract-tag-ids) for additional details.
+In order to provide stronger control over invalidating the appropriate data, you can use an arbitrary ID such as `'LIST'` for a given tag. See [Advanced Invalidation with abstract tag IDs](#advanced-invalidation-with-abstract-tag-ids) for additional details.
 :::
 
 ## Tag Invalidation Behavior
@@ -668,7 +668,7 @@ export const api = createApi({
 export const { useGetPostsQuery, useGetPostQuery, useAddPostMutation } = api
 ```
 
-```tsx title="App.tsx"
+```tsx no-transpile title="App.tsx"
 function App() {
   const { data: posts } = useGetPostsQuery()
   const [addPost] = useAddPostMutation()
@@ -742,7 +742,7 @@ export const api = createApi({
 export const { useGetPostsQuery, useAddPostMutation, useGetPostQuery } = api
 ```
 
-```tsx title="App.tsx"
+```tsx no-transpile title="App.tsx"
 function App() {
   const { data: posts } = useGetPostsQuery()
   const [addPost] = useAddPostMutation()

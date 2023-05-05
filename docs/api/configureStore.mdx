@@ -18,7 +18,7 @@ to the store setup for a better development experience.
 
 ```ts no-transpile
 type ConfigureEnhancersCallback = (
-  defaultEnhancers: StoreEnhancer[]
+  defaultEnhancers: EnhancerArray<[StoreEnhancer]>
 ) => StoreEnhancer[]
 
 interface ConfigureStoreOptions<
@@ -130,7 +130,7 @@ If defined as a callback function, it will be called with the existing array of 
 and should return a new array of enhancers. This is primarily useful for cases where a store enhancer needs to be added
 in front of `applyMiddleware`, such as `redux-first-router` or `redux-offline`.
 
-Example: `enhancers: (defaultEnhancers) => [offline, ...defaultEnhancers]` will result in a final setup
+Example: `enhancers: (defaultEnhancers) => defaultEnhancers.prepend(offline)` will result in a final setup
 of `[offline, applyMiddleware, devToolsExtension]`.
 
 ## Usage

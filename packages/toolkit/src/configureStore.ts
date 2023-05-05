@@ -21,7 +21,9 @@ import { curryGetDefaultMiddleware } from './getDefaultMiddleware'
 import type {
   ExtractDispatchExtensions,
   ExtractStoreExtensions,
+  ExtractStateExtensions,
 } from './tsHelpers'
+import { EnhancerArray } from './utils'
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
@@ -31,8 +33,8 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production'
  * @public
  */
 export type ConfigureEnhancersCallback<E extends Enhancers = Enhancers> = (
-  defaultEnhancers: readonly StoreEnhancer[]
-) => [...E]
+  defaultEnhancers: EnhancerArray<[StoreEnhancer<{}, {}>]>
+) => E
 
 /**
  * Options for `configureStore()`.
@@ -76,6 +78,7 @@ export interface ConfigureStoreOptions<
    * function (either directly or indirectly by passing an object as `reducer`),
    * this must be an object with the same shape as the reducer map keys.
    */
+  // we infer here, and instead complain if the reducer doesn't match
   preloadedState?: P
 
   /**
@@ -117,7 +120,8 @@ export type EnhancedStore<
   A extends Action = UnknownAction,
   M extends Middlewares<S> = Middlewares<S>,
   E extends Enhancers = Enhancers
-> = ToolkitStore<S, A, M> & ExtractStoreExtensions<E>
+> = ToolkitStore<S & ExtractStateExtensions<E>, A, M> &
+  ExtractStoreExtensions<E>
 
 /**
  * A friendly abstraction over the standard Redux `createStore()` function.
@@ -149,7 +153,7 @@ export function configureStore<
   if (typeof reducer === 'function') {
     rootReducer = reducer
   } else if (isPlainObject(reducer)) {
-    rootReducer = combineReducers(reducer) as any
+    rootReducer = combineReducers(reducer) as unknown as Reducer<S, A, P>
   } else {
     throw new Error(
       '"reducer" is a required argument, and must be a function or an object of functions that can be passed to combineReducers'
@@ -187,12 +191,13 @@ export function configureStore<
     })
   }
 
-  let storeEnhancers: Enhancers = [middlewareEnhancer]
+  const defaultEnhancers = new EnhancerArray(middlewareEnhancer)
+  let storeEnhancers: Enhancers = defaultEnhancers
 
   if (Array.isArray(enhancers)) {
     storeEnhancers = [middlewareEnhancer, ...enhancers]
   } else if (typeof enhancers === 'function') {
-    storeEnhancers = enhancers(storeEnhancers)
+    storeEnhancers = enhancers(defaultEnhancers)
   }
 
   const composedEnhancer = finalCompose(...storeEnhancers) as StoreEnhancer<any>
