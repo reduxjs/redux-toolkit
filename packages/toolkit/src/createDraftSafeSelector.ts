@@ -7,19 +7,10 @@ export type BuildCreateDraftSafeSelectorConfiguration = Pick<
   'isDraft' | 'current'
 >
 
-/**
- * "Draft-Safe" version of `reselect`'s `createSelector`:
- * If an `immer`-drafted object is passed into the resulting selector's first argument,
- * the selector will act on the current draft value, instead of returning a cached value
- * that might be possibly outdated if the draft has been modified since.
- * @public
- */
-export type CreateDraftSafeSelector = typeof createSelector
-
 export function buildCreateDraftSafeSelector({
   isDraft,
   current,
-}: BuildCreateDraftSafeSelectorConfiguration): CreateDraftSafeSelector {
+}: BuildCreateDraftSafeSelectorConfiguration): typeof createSelector {
   return function createDraftSafeSelector(...args: unknown[]) {
     const selector = (createSelector as any)(...args)
     const wrappedSelector = (value: unknown, ...rest: unknown[]) =>
@@ -28,5 +19,12 @@ export function buildCreateDraftSafeSelector({
   }
 }
 
-export const createDraftSafeSelector =
+/**
+ * "Draft-Safe" version of `reselect`'s `createSelector`:
+ * If an `immer`-drafted object is passed into the resulting selector's first argument,
+ * the selector will act on the current draft value, instead of returning a cached value
+ * that might be possibly outdated if the draft has been modified since.
+ * @public
+ */
+export const createDraftSafeSelector: typeof createSelector =
   buildCreateDraftSafeSelector(immutableHelpers)
