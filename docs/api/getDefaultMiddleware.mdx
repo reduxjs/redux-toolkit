@@ -40,14 +40,7 @@ to the store. `configureStore` will not add any extra middleware beyond what you
 `getDefaultMiddleware` is useful if you want to add some custom middleware, but also still want to have the default
 middleware added as well:
 
-```ts
-// file: reducer.ts noEmit
-
-export default function rootReducer(state = {}, action: any) {
-  return state
-}
-
-// file: store.ts
+```ts no-transpile
 import { configureStore } from '@reduxjs/toolkit'
 
 import logger from 'redux-logger'
