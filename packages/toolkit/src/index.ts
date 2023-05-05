@@ -68,7 +68,6 @@ export type {
   SliceCaseReducers,
   ValidateSliceCaseReducers,
   CaseReducerWithPrepare,
-  SliceActionCreator,
 } from './createSlice'
 export {
   // js

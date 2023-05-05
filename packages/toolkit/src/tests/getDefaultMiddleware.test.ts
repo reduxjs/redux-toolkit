@@ -69,11 +69,6 @@ describe('getDefaultMiddleware', () => {
 
   it('allows passing options to thunk', () => {
     const extraArgument = 42 as const
-    const middleware = getDefaultMiddleware({
-      thunk: { extraArgument },
-      immutableCheck: false,
-      serializableCheck: false,
-    })
 
     const m2 = getDefaultMiddleware({
       thunk: false,
@@ -86,41 +81,49 @@ describe('getDefaultMiddleware', () => {
         (action: Action<'actionListenerMiddleware/add'>): () => void
       },
       { counter: number }
-    > = (storeApi) => (next) => (action) => {}
-
-    const dummyMiddleware2: Middleware = (storeApi) => (next) => (action) => {}
-
-    const m3 = middleware.concat(dummyMiddleware, dummyMiddleware2)
-
-    expectType<
-      MiddlewareArray<
-        [
-          ThunkMiddleware<any, AnyAction, 42>,
-          Middleware<
-            (action: Action<'actionListenerMiddleware/add'>) => () => void,
-            {
-              counter: number
-            },
-            Dispatch<AnyAction>
-          >,
-          Middleware<{}, any, Dispatch<AnyAction>>
-        ]
-      >
-    >(m3)
-
-    const testThunk: ThunkAction<void, {}, number, AnyAction> = (
-      dispatch,
-      getState,
-      extraArg
-    ) => {
-      expect(extraArg).toBe(extraArgument)
+    > = (storeApi) => (next) => (action) => {
+      return next(action)
     }
 
-    const reducer = () => ({})
+    const dummyMiddleware2: Middleware<{}, { counter: number }> =
+      (storeApi) => (next) => (action) => {}
+
+    const testThunk: ThunkAction<void, { counter: number }, number, AnyAction> =
+      (dispatch, getState, extraArg) => {
+        expect(extraArg).toBe(extraArgument)
+      }
+
+    const reducer = () => ({ counter: 123 })
 
     const store = configureStore({
       reducer,
-      middleware,
+      middleware: (gDM) => {
+        const middleware = gDM({
+          thunk: { extraArgument },
+          immutableCheck: false,
+          serializableCheck: false,
+        })
+
+        const m3 = middleware.concat(dummyMiddleware, dummyMiddleware2)
+
+        expectType<
+          MiddlewareArray<
+            [
+              ThunkMiddleware<any, AnyAction, 42>,
+              Middleware<
+                (action: Action<'actionListenerMiddleware/add'>) => () => void,
+                {
+                  counter: number
+                },
+                Dispatch<AnyAction>
+              >,
+              Middleware<{}, any, Dispatch<AnyAction>>
+            ]
+          >
+        >(m3)
+
+        return m3
+      },
     })
 
     expectType<ThunkDispatch<any, 42, AnyAction> & Dispatch<AnyAction>>(

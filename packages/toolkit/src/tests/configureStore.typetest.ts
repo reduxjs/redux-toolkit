@@ -600,6 +600,72 @@ const _anyMiddleware: any = () => () => () => {}
   }
 
   /**
+   * Test: custom middleware and getDefaultMiddleware
+   */
+  {
+    const store = configureStore({
+      reducer: reducerA,
+      middleware: (gDM) =>
+        gDM().prepend((() => {}) as any as Middleware<(a: 'a') => 'A', StateA>),
+    })
+
+    const result1: 'A' = store.dispatch('a')
+    const result2: Promise<'A'> = store.dispatch(thunkA())
+    // @ts-expect-error
+    store.dispatch(thunkB())
+  }
+
+  /**
+   * Test: custom middleware and getDefaultMiddleware, using prepend
+   */
+  {
+    const otherMiddleware: Middleware<(a: 'a') => 'A', StateA> = _anyMiddleware
+
+    const store = configureStore({
+      reducer: reducerA,
+      middleware: (gDM) => {
+        const concatenated = gDM().prepend(otherMiddleware)
+        expectType<
+          ReadonlyArray<
+            typeof otherMiddleware | ThunkMiddleware | Middleware<{}>
+          >
+        >(concatenated)
+
+        return concatenated
+      },
+    })
+    const result1: 'A' = store.dispatch('a')
+    const result2: Promise<'A'> = store.dispatch(thunkA())
+    // @ts-expect-error
+    store.dispatch(thunkB())
+  }
+
+  /**
+   * Test: custom middleware and getDefaultMiddleware, using concat
+   */
+  {
+    const otherMiddleware: Middleware<(a: 'a') => 'A', StateA> = _anyMiddleware
+
+    const store = configureStore({
+      reducer: reducerA,
+      middleware: (gDM) => {
+        const concatenated = gDM().concat(otherMiddleware)
+
+        expectType<
+          ReadonlyArray<
+            typeof otherMiddleware | ThunkMiddleware | Middleware<{}>
+          >
+        >(concatenated)
+        return concatenated
+      },
+    })
+    const result1: 'A' = store.dispatch('a')
+    const result2: Promise<'A'> = store.dispatch(thunkA())
+    // @ts-expect-error
+    store.dispatch(thunkB())
+  }
+
+  /**
    * Test: middlewareBuilder notation, getDefaultMiddleware (unconfigured)
    */
   {

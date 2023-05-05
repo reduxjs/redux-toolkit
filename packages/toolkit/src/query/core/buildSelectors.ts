@@ -45,8 +45,6 @@ export type SkipToken = typeof skipToken
  * return an uninitialized state.
  */
 export const skipToken = /* @__PURE__ */ Symbol.for('RTKQ/skipToken')
-/** @deprecated renamed to `skipToken` */
-export const skipSelector = skipToken
 
 declare module './module' {
   export interface ApiEndpointQuery<
