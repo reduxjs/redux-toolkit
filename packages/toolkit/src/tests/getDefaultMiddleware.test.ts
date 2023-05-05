@@ -7,13 +7,14 @@ import type {
   ThunkDispatch,
   Dispatch,
 } from '@reduxjs/toolkit'
-import { MiddlewareArray, configureStore } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
 import { thunk } from 'redux-thunk'
 import type { ThunkMiddleware } from 'redux-thunk'
 
 import { expectType } from './helpers'
 
 import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
+import { MiddlewareArray } from '@internal/utils'
 
 const getDefaultMiddleware = buildGetDefaultMiddleware()
 
