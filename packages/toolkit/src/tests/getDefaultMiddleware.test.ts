@@ -7,11 +7,9 @@ import type {
   ThunkDispatch,
   Dispatch,
 } from '@reduxjs/toolkit'
-import {
-  getDefaultMiddleware,
-  MiddlewareArray,
-  configureStore,
-} from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
+import { getDefaultMiddleware } from '@internal/getDefaultMiddleware'
+import { MiddlewareArray } from '@internal/utils'
 import { thunk } from 'redux-thunk'
 import type { ThunkMiddleware } from 'redux-thunk'
 
@@ -32,7 +30,9 @@ describe('getDefaultMiddleware', () => {
     it('returns an array with only redux-thunk in production', async () => {
       process.env.NODE_ENV = 'production'
       const { thunk } = await import('redux-thunk')
-      const { getDefaultMiddleware } = await import('@reduxjs/toolkit')
+      const { getDefaultMiddleware } = await import(
+        '@internal/getDefaultMiddleware'
+      )
 
       const middleware = getDefaultMiddleware()
       expect(middleware).toContain(thunk)
@@ -67,11 +67,6 @@ describe('getDefaultMiddleware', () => {
 
   it('allows passing options to thunk', () => {
     const extraArgument = 42 as const
-    const middleware = getDefaultMiddleware({
-      thunk: { extraArgument },
-      immutableCheck: false,
-      serializableCheck: false,
-    })
 
     const m2 = getDefaultMiddleware({
       thunk: false,
@@ -84,41 +79,53 @@ describe('getDefaultMiddleware', () => {
         (action: Action<'actionListenerMiddleware/add'>): () => void
       },
       { counter: number }
-    > = (storeApi) => (next) => (action) => {}
+    > = (storeApi) => (next) => (action) => {
+      return next(action)
+    }
 
-    const dummyMiddleware2: Middleware = (storeApi) => (next) => (action) => {}
+    const dummyMiddleware2: Middleware<{}, { counter: number }> =
+      (storeApi) => (next) => (action) => {}
 
-    const m3 = middleware.concat(dummyMiddleware, dummyMiddleware2)
-
-    expectType<
-      MiddlewareArray<
-        [
-          ThunkMiddleware<any, UnknownAction, 42>,
-          Middleware<
-            (action: Action<'actionListenerMiddleware/add'>) => () => void,
-            {
-              counter: number
-            },
-            Dispatch<UnknownAction>
-          >,
-          Middleware<{}, any, Dispatch<UnknownAction>>
-        ]
-      >
-    >(m3)
-
-    const testThunk: ThunkAction<void, {}, number, UnknownAction> = (
-      dispatch,
-      getState,
-      extraArg
-    ) => {
+    const testThunk: ThunkAction<
+      void,
+      { counter: number },
+      number,
+      UnknownAction
+    > = (dispatch, getState, extraArg) => {
       expect(extraArg).toBe(extraArgument)
     }
 
-    const reducer = () => ({})
+    const reducer = () => ({ counter: 123 })
 
     const store = configureStore({
       reducer,
-      middleware,
+      middleware: (gDM) => {
+        const middleware = gDM({
+          thunk: { extraArgument },
+          immutableCheck: false,
+          serializableCheck: false,
+        })
+
+        const m3 = middleware.concat(dummyMiddleware, dummyMiddleware2)
+
+        expectType<
+          MiddlewareArray<
+            [
+              ThunkMiddleware<any, UnknownAction, 42>,
+              Middleware<
+                (action: Action<'actionListenerMiddleware/add'>) => () => void,
+                {
+                  counter: number
+                },
+                Dispatch<UnknownAction>
+              >,
+              Middleware<{}, any, Dispatch<UnknownAction>>
+            ]
+          >
+        >(m3)
+
+        return m3
+      },
     })
 
     expectType<ThunkDispatch<any, 42, UnknownAction> & Dispatch<UnknownAction>>(

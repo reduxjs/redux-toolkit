@@ -458,8 +458,8 @@ type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
       >
   > & {
     /**
-     * @deprecated will be removed in the next version
-     * please use the `isLoading`, `isFetching`, `isSuccess`, `isError`
+     * @deprecated Included for completeness, but discouraged.
+     * Please use the `isLoading`, `isFetching`, `isSuccess`, `isError`
      * and `isUninitialized` flags instead
      */
     status: QueryStatus
@@ -585,9 +585,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   api,
   moduleOptions: {
     batch,
-    useDispatch,
-    useSelector,
-    useStore,
+    hooks: { useDispatch, useSelector, useStore },
     unstable__sideEffectsInRender,
   },
   serializeQueryArgs,

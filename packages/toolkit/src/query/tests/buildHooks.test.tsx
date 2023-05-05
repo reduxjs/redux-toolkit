@@ -1345,7 +1345,6 @@ describe('hooks tests', () => {
           expectType<() => void>(res.abort)
           expectType<() => Promise<{ name: string }>>(res.unwrap)
           expectType<() => void>(res.reset)
-          expectType<() => void>(res.unsubscribe)
 
           // abort the mutation immediately to force an error
           res.abort()

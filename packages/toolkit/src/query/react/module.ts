@@ -71,21 +71,26 @@ type RR = typeof import('react-redux')
 
 export interface ReactHooksModuleOptions {
   /**
+   * The hooks from React Redux to be used
+   */
+  hooks?: {
+    /**
+     * The version of the `useDispatch` hook to be used
+     */
+    useDispatch: RR['useDispatch']
+    /**
+     * The version of the `useSelector` hook to be used
+     */
+    useSelector: RR['useSelector']
+    /**
+     * The version of the `useStore` hook to be used
+     */
+    useStore: RR['useStore']
+  }
+  /**
    * The version of the `batchedUpdates` function to be used
    */
   batch?: RR['batch']
-  /**
-   * The version of the `useDispatch` hook to be used
-   */
-  useDispatch?: RR['useDispatch']
-  /**
-   * The version of the `useSelector` hook to be used
-   */
-  useSelector?: RR['useSelector']
-  /**
-   * The version of the `useStore` hook to be used
-   */
-  useStore?: RR['useStore']
   /**
    * Enables performing asynchronous tasks immediately within a render.
    *
@@ -115,7 +120,13 @@ export interface ReactHooksModuleOptions {
  * const MyContext = React.createContext<ReactReduxContextValue>(null as any);
  * const customCreateApi = buildCreateApi(
  *   coreModule(),
- *   reactHooksModule({ useDispatch: createDispatchHook(MyContext) })
+ *   reactHooksModule({
+ *     hooks: {
+ *       useDispatch: createDispatchHook(MyContext),
+ *       useSelector: createSelectorHook(MyContext),
+ *       useStore: createStoreHook(MyContext)
+ *     }
+ *   })
  * );
  * ```
  *
@@ -123,9 +134,11 @@ export interface ReactHooksModuleOptions {
  */
 export const reactHooksModule = ({
   batch = rrBatch,
-  useDispatch = rrUseDispatch,
-  useSelector = rrUseSelector,
-  useStore = rrUseStore,
+  hooks = {
+    useDispatch: rrUseDispatch,
+    useSelector: rrUseSelector,
+    useStore: rrUseStore,
+  },
   unstable__sideEffectsInRender = false,
 }: ReactHooksModuleOptions = {}): Module<ReactHooksModule> => ({
   name: reactHooksModuleName,
@@ -141,9 +154,7 @@ export const reactHooksModule = ({
       api,
       moduleOptions: {
         batch,
-        useDispatch,
-        useSelector,
-        useStore,
+        hooks,
         unstable__sideEffectsInRender,
       },
       serializeQueryArgs,
