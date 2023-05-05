@@ -5,6 +5,8 @@ import type {
   Middleware,
   Store,
   Reducer,
+  MiddlewareArray,
+  ThunkMiddleware,
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
@@ -208,7 +210,9 @@ export function setupApiStore<
   const getStore = () =>
     configureStore({
       reducer: { api: api.reducer, ...extraReducers },
-      middleware: (gdm) => {
+      middleware: (
+        gdm
+      ): MiddlewareArray<[ThunkMiddleware<{ api: any }>, ...Middleware[]]> => {
         const tempMiddleware = gdm({
           serializableCheck: false,
           immutableCheck: false,
