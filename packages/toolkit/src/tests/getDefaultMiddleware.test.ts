@@ -121,7 +121,6 @@ describe('getDefaultMiddleware', () => {
     const store = configureStore({
       reducer,
       middleware,
-      enhancers: (gDE) => gDE(),
     })
 
     expectType<ThunkDispatch<any, 42, AnyAction> & Dispatch<AnyAction>>(
