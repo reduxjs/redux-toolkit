@@ -1,5 +1,4 @@
 import type { Reducer } from 'redux'
-import { produce as createNextState, isDraft, isDraftable } from 'immer'
 import type {
   ActionCreatorWithoutPayload,
   PayloadAction,
@@ -18,7 +17,7 @@ import { buildCreateReducer } from './createReducer'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type { NoInfer } from './tsHelpers'
-import { makeFreezeDraftable } from './utils'
+import { immutableHelpers } from './immer'
 
 let hasWarnedAboutObjectNotation = false
 
@@ -283,7 +282,7 @@ export function buildCreateSlice(
   configuration: BuildCreateSliceConfiguration
 ): CreateSlice {
   const createReducer = buildCreateReducer(configuration)
-  const freezeDraftable = makeFreezeDraftable(configuration)
+  const { freeze } = configuration
 
   return function createSlice<
     State,
@@ -311,7 +310,7 @@ export function buildCreateSlice(
     const initialState =
       typeof options.initialState == 'function'
         ? options.initialState
-        : freezeDraftable(options.initialState)
+        : freeze(options.initialState)
 
     const reducers = options.reducers || {}
 
@@ -394,8 +393,4 @@ export function buildCreateSlice(
   }
 }
 
-export const createSlice = buildCreateSlice({
-  createNextState,
-  isDraft,
-  isDraftable,
-})
+export const createSlice = buildCreateSlice(immutableHelpers)

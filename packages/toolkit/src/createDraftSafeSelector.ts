@@ -1,5 +1,23 @@
-import { current, isDraft } from 'immer'
 import { createSelector } from 'reselect'
+import type { ImmutableHelpers } from './tsHelpers'
+import { immutableHelpers } from './immer'
+
+export type BuildCreateDraftSafeSelectorConfiguration = Pick<
+  ImmutableHelpers,
+  'isDraft' | 'current'
+>
+
+export function buildCreateDraftSafeSelector({
+  isDraft,
+  current,
+}: BuildCreateDraftSafeSelectorConfiguration): typeof createSelector {
+  return function createDraftSafeSelector(...args: unknown[]) {
+    const selector = (createSelector as any)(...args)
+    const wrappedSelector = (value: unknown, ...rest: unknown[]) =>
+      selector(isDraft(value) ? current(value) : value, ...rest)
+    return wrappedSelector as any
+  }
+}
 
 /**
  * "Draft-Safe" version of `reselect`'s `createSelector`:
@@ -8,11 +26,5 @@ import { createSelector } from 'reselect'
  * that might be possibly outdated if the draft has been modified since.
  * @public
  */
-export const createDraftSafeSelector: typeof createSelector = (
-  ...args: unknown[]
-) => {
-  const selector = (createSelector as any)(...args)
-  const wrappedSelector = (value: unknown, ...rest: unknown[]) =>
-    selector(isDraft(value) ? current(value) : value, ...rest)
-  return wrappedSelector as any
-}
+export const createDraftSafeSelector: typeof createSelector =
+  buildCreateDraftSafeSelector(immutableHelpers)

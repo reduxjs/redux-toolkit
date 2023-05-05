@@ -12,6 +12,7 @@ import { buildInvalidationByTagsHandler } from './invalidationByTags'
 import { buildPollingHandler } from './polling'
 import type {
   BuildMiddlewareInput,
+  BuildSubMiddlewareInput,
   InternalHandlerBuilder,
   InternalMiddlewareState,
 } from './types'
@@ -63,7 +64,7 @@ export function buildMiddleware<
       currentSubscriptions: {},
     }
 
-    const builderArgs = {
+    const builderArgs: BuildSubMiddlewareInput = {
       ...(input as any as BuildMiddlewareInput<
         EndpointDefinitions,
         string,

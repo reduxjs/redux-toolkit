@@ -14,7 +14,11 @@ export type {
   OutputSelector,
   ParametricSelector,
 } from 'reselect'
-export { createDraftSafeSelector } from './createDraftSafeSelector'
+export type { BuildCreateDraftSafeSelectorConfiguration } from './createDraftSafeSelector'
+export {
+  buildCreateDraftSafeSelector,
+  createDraftSafeSelector,
+} from './createDraftSafeSelector'
 export type { ThunkAction, ThunkDispatch, ThunkMiddleware } from 'redux-thunk'
 
 export {
@@ -104,7 +108,10 @@ export type {
 } from './mapBuilders'
 export { MiddlewareArray } from './utils'
 
-export { createEntityAdapter } from './entities/create_adapter'
+export {
+  buildCreateEntityAdapter,
+  createEntityAdapter,
+} from './entities/create_adapter'
 export type {
   Dictionary,
   EntityState,
@@ -190,3 +197,7 @@ export {
   autoBatchEnhancer,
 } from './autoBatchEnhancer'
 export type { AutoBatchOptions } from './autoBatchEnhancer'
+
+export type { ImmutableHelpers } from './tsHelpers'
+export { defineImmutableHelpers } from './tsHelpers'
+export { immutableHelpers as immerImmutableHelpers } from './immer'

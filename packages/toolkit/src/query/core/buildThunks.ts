@@ -23,7 +23,11 @@ import type {
 } from '../endpointDefinitions'
 import { isQueryDefinition } from '../endpointDefinitions'
 import { calculateProvidedBy } from '../endpointDefinitions'
-import type { AsyncThunkPayloadCreator, Draft } from '@reduxjs/toolkit'
+import type {
+  AsyncThunkPayloadCreator,
+  Draft,
+  ImmutableHelpers,
+} from '@reduxjs/toolkit'
 import {
   isAllOf,
   isFulfilled,
@@ -32,7 +36,6 @@ import {
   isRejectedWithValue,
 } from '@reduxjs/toolkit'
 import type { Patch } from 'immer'
-import { isDraftable, produceWithPatches } from 'immer'
 import type {
   AnyAction,
   ThunkAction,
@@ -222,12 +225,14 @@ export function buildThunks<
   context: { endpointDefinitions },
   serializeQueryArgs,
   api,
+  immutableHelpers: { isDraftable, createWithPatches },
 }: {
   baseQuery: BaseQuery
   reducerPath: ReducerPath
   context: ApiContext<Definitions>
   serializeQueryArgs: InternalSerializeQueryArgs
   api: Api<BaseQuery, Definitions, ReducerPath, any>
+  immutableHelpers: Pick<ImmutableHelpers, 'isDraftable' | 'createWithPatches'>
 }) {
   type State = RootState<any, string, ReducerPath>
 
@@ -264,7 +269,7 @@ export function buildThunks<
       }
       if ('data' in currentState) {
         if (isDraftable(currentState.data)) {
-          const [, patches, inversePatches] = produceWithPatches(
+          const [, patches, inversePatches] = createWithPatches(
             currentState.data,
             updateRecipe
           )

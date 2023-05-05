@@ -5,6 +5,7 @@ import type {
   Middleware,
   MiddlewareAPI,
   ThunkDispatch,
+  ImmutableHelpers,
 } from '@reduxjs/toolkit'
 
 import type { Api, ApiContext } from '../../apiTypes'
@@ -43,6 +44,7 @@ export interface BuildMiddlewareInput<
   mutationThunk: MutationThunk
   api: Api<any, Definitions, ReducerPath, TagTypes>
   assertTagType: AssertTagTypes
+  immutableHelpers: Pick<ImmutableHelpers, 'createWithPatches'>
 }
 
 export type SubMiddlewareApi = MiddlewareAPI<

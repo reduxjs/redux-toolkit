@@ -10,11 +10,14 @@ import { buildThunks } from './buildThunks'
 import type {
   ActionCreatorWithPayload,
   AnyAction,
+  BuildCreateSliceConfiguration,
   Middleware,
   Reducer,
   ThunkAction,
   ThunkDispatch,
+  ImmutableHelpers,
 } from '@reduxjs/toolkit'
+import { immerImmutableHelpers } from '@reduxjs/toolkit'
 import type {
   EndpointDefinitions,
   QueryArgFrom,
@@ -71,7 +74,8 @@ export type CoreModule =
   | ReferenceQueryLifecycle
   | ReferenceCacheCollection
 
-export interface ThunkWithReturnValue<T> extends ThunkAction<T, any, any, AnyAction> {}
+export interface ThunkWithReturnValue<T>
+  extends ThunkAction<T, any, any, AnyAction> {}
 
 declare module '../apiTypes' {
   export interface ApiModules<
@@ -450,6 +454,14 @@ export type ListenerActions = {
 
 export type InternalActions = SliceActions & ListenerActions
 
+interface CoreModuleOptions {
+  immutableHelpers?: BuildCreateSliceConfiguration &
+    Pick<
+      ImmutableHelpers,
+      'createWithPatches' | 'applyPatches' | 'isDraftable' | 'freeze'
+    >
+}
+
 /**
  * Creates a module containing the basic redux logic for use with `buildCreateApi`.
  *
@@ -458,7 +470,9 @@ export type InternalActions = SliceActions & ListenerActions
  * const createBaseApi = buildCreateApi(coreModule());
  * ```
  */
-export const coreModule = (): Module<CoreModule> => ({
+export const coreModule = ({
+  immutableHelpers = immerImmutableHelpers,
+}: CoreModuleOptions = {}): Module<CoreModule> => ({
   name: coreModuleName,
   init(
     api,
@@ -518,6 +532,7 @@ export const coreModule = (): Module<CoreModule> => ({
       context,
       api,
       serializeQueryArgs,
+      immutableHelpers,
     })
 
     const { reducer, actions: sliceActions } = buildSlice({
@@ -533,6 +548,7 @@ export const coreModule = (): Module<CoreModule> => ({
         keepUnusedDataFor,
         reducerPath,
       },
+      immutableHelpers,
     })
 
     safeAssign(api.util, {
@@ -551,6 +567,7 @@ export const coreModule = (): Module<CoreModule> => ({
       mutationThunk,
       api,
       assertTagType,
+      immutableHelpers,
     })
     safeAssign(api.util, middlewareActions)
 
@@ -560,6 +577,7 @@ export const coreModule = (): Module<CoreModule> => ({
       buildSelectors({
         serializeQueryArgs: serializeQueryArgs as any,
         reducerPath,
+        immutableHelpers,
       })
 
     safeAssign(api.util, { selectInvalidatedBy })

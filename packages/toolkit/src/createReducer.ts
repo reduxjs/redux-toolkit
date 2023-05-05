@@ -1,10 +1,9 @@
 import type { Draft } from 'immer'
-import { produce as createNextState, isDraft, isDraftable } from 'immer'
 import type { AnyAction, Action, Reducer } from 'redux'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { NoInfer } from './tsHelpers'
-import { makeFreezeDraftable } from './utils'
+import type { ImmutableHelpers, NoInfer } from './tsHelpers'
+import { immutableHelpers } from './immer'
 
 /**
  * Defines a mapping from action types to corresponding action object shapes.
@@ -153,25 +152,17 @@ const reducer = createReducer(
   ): ReducerWithInitialState<S>
 }
 
-export interface BuildCreateReducerConfiguration {
-  createNextState: <Base>(
-    base: Base,
-    recipe: (draft: Draft<Base>) => void | Base | Draft<Base>
-  ) => Base
-  isDraft(value: any): boolean
-  isDraftable(value: any): boolean
-}
+export type BuildCreateReducerConfiguration = Pick<
+  ImmutableHelpers,
+  'createNextState' | 'isDraft' | 'isDraftable' | 'freeze'
+>
 
 export function buildCreateReducer({
   createNextState,
   isDraft,
   isDraftable,
+  freeze,
 }: BuildCreateReducerConfiguration): CreateReducer {
-  const freezeDraftable = makeFreezeDraftable({
-    createNextState,
-    isDraft,
-    isDraftable,
-  })
   return function createReducer<S extends NotFunction<any>>(
     initialState: S | (() => S),
     mapOrBuilderCallback: (builder: ActionReducerMapBuilder<S>) => void
@@ -190,9 +181,9 @@ export function buildCreateReducer({
     // Ensure the initial state gets frozen either way (if draftable)
     let getInitialState: () => S
     if (isStateFunction(initialState)) {
-      getInitialState = () => freezeDraftable(initialState())
+      getInitialState = () => freeze(initialState(), true)
     } else {
-      const frozenInitialState = freezeDraftable(initialState)
+      const frozenInitialState = freeze(initialState, true)
       getInitialState = () => frozenInitialState
     }
 
@@ -256,8 +247,4 @@ export function buildCreateReducer({
   }
 }
 
-export const createReducer = buildCreateReducer({
-  createNextState,
-  isDraft,
-  isDraftable,
-})
+export const createReducer = buildCreateReducer(immutableHelpers)
