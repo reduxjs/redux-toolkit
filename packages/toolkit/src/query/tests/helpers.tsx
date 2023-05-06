@@ -207,19 +207,6 @@ export function setupApiStore<
     }
   } = {}
 ) {
-  type State = {
-    api: ReturnType<A['reducer']>
-  } & {
-    [K in keyof R]: ReturnType<R[K]>
-  }
-  type StoreType = EnhancedStore<
-    State,
-    AnyAction,
-    EnhancerArray<
-      [StoreEnhancer<{ dispatch: ThunkDispatch<State, unknown, AnyAction> }>]
-    >
-  >
-
   const { middleware } = options
   const getStore = () =>
     configureStore({
@@ -232,15 +219,28 @@ export function setupApiStore<
 
         return tempMiddleware
           .concat(...(middleware?.concat ?? []))
-          .prepend(...(middleware?.prepend ?? [])) as any
+          .prepend(...(middleware?.prepend ?? [])) as typeof tempMiddleware
       },
       enhancers: (gde) =>
         gde({
           autoBatch: false,
         }),
-    }) as StoreType
+    })
 
-  const initialStore = getStore()
+  type State = {
+    api: ReturnType<A['reducer']>
+  } & {
+    [K in keyof R]: ReturnType<R[K]>
+  }
+  type StoreType = EnhancedStore<
+    State,
+    AnyAction,
+    ReturnType<typeof getStore> extends EnhancedStore<any, any, infer E>
+      ? E
+      : []
+  >
+
+  const initialStore = getStore() as StoreType
   const refObj = {
     api,
     store: initialStore,
@@ -250,7 +250,7 @@ export function setupApiStore<
 
   if (!options.withoutTestLifecycles) {
     beforeEach(() => {
-      const store = getStore()
+      const store = getStore() as StoreType
       refObj.store = store
       refObj.wrapper = withProvider(store)
       if (!options.withoutListeners) {
