@@ -32,7 +32,7 @@ you make your Redux code better.
 
 ## Installation
 
-### Using Create React App
+### Create a React Redux App
 
 The recommended way to start new apps with React and Redux is by using [our official Redux+TS template for Vite](https://github.com/reduxjs/redux-templates), or by creating a new Next.js project using [Next's `with-redux` template](https://github.com/vercel/next.js/tree/canary/examples/with-redux).
 
