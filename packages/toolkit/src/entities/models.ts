@@ -139,7 +139,10 @@ export interface EntitySelectors<T, V> {
   selectEntities: (state: V) => Record<EntityId, T>
   selectAll: (state: V) => T[]
   selectTotal: (state: V) => number
-  selectById: (state: V, id: EntityId) => T | undefined
+  selectById: (
+    state: V,
+    id: EntityId
+  ) => import('@reduxjs/toolkit/dist/tsHelpers').UncheckedIndexedAccess<T>
 }
 
 /**
