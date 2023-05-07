@@ -142,7 +142,7 @@ export interface EntitySelectors<T, V> {
   selectById: (
     state: V,
     id: EntityId
-  ) => import('@reduxjs/toolkit/dist/tsHelpers').UncheckedIndexedAccess<T>
+  ) => import('@reduxjs/toolkit/src/tsHelpers').UncheckedIndexedAccess<T>
 }
 
 /**
