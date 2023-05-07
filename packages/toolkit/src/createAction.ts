@@ -224,9 +224,7 @@ export type PayloadActionCreator<
 /**
  * A utility function to create an action creator for the given action type
  * string. The action creator accepts a single argument, which will be included
- * in the action object as a field called payload. The action creator function
- * will also have its toString() overridden so that it returns the action type,
- * allowing it to be used in reducer logic that is looking for that action type.
+ * in the action object as a field called payload.
  *
  * @param type The action type to use for created actions.
  * @param prepare (optional) a method that takes any number of arguments and returns { payload } or { payload, meta }.
@@ -241,9 +239,7 @@ export function createAction<P = void, T extends string = string>(
 /**
  * A utility function to create an action creator for the given action type
  * string. The action creator accepts a single argument, which will be included
- * in the action object as a field called payload. The action creator function
- * will also have its toString() overridden so that it returns the action type,
- * allowing it to be used in reducer logic that is looking for that action type.
+ * in the action object as a field called payload.
  *
  * @param type The action type to use for created actions.
  * @param prepare (optional) a method that takes any number of arguments and returns { payload } or { payload, meta }.
@@ -276,8 +272,6 @@ export function createAction(type: string, prepareAction?: Function): any {
     }
     return { type, payload: args[0] }
   }
-
-  actionCreator.toString = () => `${type}`
 
   actionCreator.type = type
 
@@ -326,22 +320,6 @@ export function isFSA(action: unknown): action is {
 
 function isValidKey(key: string) {
   return ['type', 'payload', 'error', 'meta'].indexOf(key) > -1
-}
-
-/**
- * Returns the action type of the actions created by the passed
- * `createAction()`-generated action creator (arbitrary action creators
- * are not supported).
- *
- * @param action The action creator whose action type to get.
- * @returns The action type used by the action creator.
- *
- * @public
- */
-export function getType<T extends string>(
-  actionCreator: PayloadActionCreator<any, T>
-): T {
-  return `${actionCreator}` as T
 }
 
 // helper types for more readable typings
