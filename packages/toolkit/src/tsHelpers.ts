@@ -208,9 +208,7 @@ export type Tail<T extends any[]> = T extends [any, ...infer Tail]
   ? Tail
   : never
 
-declare const record: Record<string, 0>
-
-const value = record[0]
+const value = ({} as Record<string, 0>)[0]
 
 export type UncheckedIndexedAccess<T> = IfMaybeUndefined<
   typeof value,
