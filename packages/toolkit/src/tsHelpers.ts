@@ -207,13 +207,3 @@ export type Id<T> = { [K in keyof T]: T[K] } & {}
 export type Tail<T extends any[]> = T extends [any, ...infer Tail]
   ? Tail
   : never
-
-const record: Record<string, 0> = {}
-
-const value = record[0]
-
-export type UncheckedIndexedAccess<T> = IfMaybeUndefined<
-  typeof value,
-  T | undefined,
-  T
->
