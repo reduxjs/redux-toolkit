@@ -6538,7 +6538,7 @@ __metadata:
     husky: ^4.3.6
     jest: ^27
     msw: ^0.40.2
-    oazapfts: "https://github.com/cvereterra/oazapfts#2323e446033d7a17b0445028b83c48c2fd07df7c"
+    oazapfts: 4.7.0
     openapi-types: ^9.1.0
     prettier: ^2.2.1
     pretty-quick: ^3.1.0
@@ -19466,7 +19466,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"minimist@npm:^1.2.7":
+"minimist@npm:^1.2.8":
   version: 1.2.8
   resolution: "minimist@npm:1.2.8"
   checksum: 75a6d645fb122dad29c06a7597bddea977258957ed88d7a6df59b5cd3fe4a527e253e9bbf2e783e4b73657f9098b96a5fe96ab8a113655d4109108577ecf85b0
@@ -20195,18 +20195,18 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"oazapfts@https://github.com/cvereterra/oazapfts#2323e446033d7a17b0445028b83c48c2fd07df7c":
-  version: 4.5.2
-  resolution: "oazapfts@https://github.com/cvereterra/oazapfts.git#commit=2323e446033d7a17b0445028b83c48c2fd07df7c"
+"oazapfts@npm:4.7.0":
+  version: 4.7.0
+  resolution: "oazapfts@npm:4.7.0"
   dependencies:
     "@apidevtools/swagger-parser": ^10.1.0
     lodash: ^4.17.21
-    minimist: ^1.2.7
+    minimist: ^1.2.8
     swagger2openapi: ^7.0.8
-    typescript: ^4.9.3
+    typescript: ^5.0.4
   bin:
     oazapfts: lib/codegen/cli.js
-  checksum: e279c24a8c2bbfb05e099de1b7a326d6686eec29fe143c7aced47615c9eec183dd7b748caa300d2e70d376e80d7e7cc5e1605c71cdfd44a9e6f420b05e02f17c
+  checksum: a38ab5e0582cc75bbebd5594ff8d18945f639806a0588b0b58592118176325cb6ef5ec41f0e0d1b174815a056730342f50faf309790507c43e704e5f3ceb585c
   languageName: node
   linkType: hard
 
@@ -26801,13 +26801,13 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.9.3":
-  version: 4.9.5
-  resolution: "typescript@npm:4.9.5"
+"typescript@npm:^5.0.4":
+  version: 5.0.4
+  resolution: "typescript@npm:5.0.4"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: ee000bc26848147ad423b581bd250075662a354d84f0e06eb76d3b892328d8d4440b7487b5a83e851b12b255f55d71835b008a66cbf8f255a11e4400159237db
+  checksum: 82b94da3f4604a8946da585f7d6c3025fff8410779e5bde2855ab130d05e4fd08938b9e593b6ebed165bda6ad9292b230984f10952cf82f0a0ca07bbeaa08172
   languageName: node
   linkType: hard
 
@@ -26871,13 +26871,13 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.9.3#~builtin<compat/typescript>":
-  version: 4.9.5
-  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=701156"
+"typescript@patch:typescript@^5.0.4#~builtin<compat/typescript>":
+  version: 5.0.4
+  resolution: "typescript@patch:typescript@npm%3A5.0.4#~builtin<compat/typescript>::version=5.0.4&hash=701156"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 2eee5c37cad4390385db5db5a8e81470e42e8f1401b0358d7390095d6f681b410f2c4a0c496c6ff9ebd775423c7785cdace7bcdad76c7bee283df3d9718c0f20
+  checksum: 6a1fe9a77bb9c5176ead919cc4a1499ee63e46b4e05bf667079f11bf3a8f7887f135aa72460a4c3b016e6e6bb65a822cb8689a6d86cbfe92d22cc9f501f09213
   languageName: node
   linkType: hard
 
