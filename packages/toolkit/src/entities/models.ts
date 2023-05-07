@@ -1,5 +1,5 @@
 import type { PayloadAction } from '../createAction'
-import type { IsAny } from '../tsHelpers'
+import type { IsAny, UncheckedIndexedAccess } from '../tsHelpers'
 
 /**
  * @public
@@ -139,7 +139,7 @@ export interface EntitySelectors<T, V> {
   selectEntities: (state: V) => Record<EntityId, T>
   selectAll: (state: V) => T[]
   selectTotal: (state: V) => number
-  selectById: (state: V, id: EntityId) => T | undefined
+  selectById: (state: V, id: EntityId) => UncheckedIndexedAccess<T>
 }
 
 /**
