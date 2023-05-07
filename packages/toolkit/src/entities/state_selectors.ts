@@ -1,11 +1,6 @@
 import type { Selector } from 'reselect'
 import { createDraftSafeSelector } from '../createDraftSafeSelector'
-import type {
-  EntityState,
-  EntitySelectors,
-  Dictionary,
-  EntityId,
-} from './models'
+import type { EntityState, EntitySelectors, EntityId } from './models'
 
 export function createSelectorsFactory<T>() {
   function getSelectors(): EntitySelectors<T, EntityState<T>>
@@ -27,7 +22,8 @@ export function createSelectorsFactory<T>() {
 
     const selectId = (_: unknown, id: EntityId) => id
 
-    const selectById = (entities: Dictionary<T>, id: EntityId) => entities[id]
+    const selectById = (entities: Record<EntityId, T>, id: EntityId) =>
+      entities[id]
 
     const selectTotal = createDraftSafeSelector(selectIds, (ids) => ids.length)
 

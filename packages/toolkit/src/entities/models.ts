@@ -19,20 +19,6 @@ export type IdSelector<T> = (model: T) => EntityId
 /**
  * @public
  */
-export interface DictionaryNum<T> {
-  [id: number]: T | undefined
-}
-
-/**
- * @public
- */
-export interface Dictionary<T> extends DictionaryNum<T> {
-  [id: string]: T | undefined
-}
-
-/**
- * @public
- */
 export type Update<T> = { id: EntityId; changes: Partial<T> }
 
 /**
@@ -40,7 +26,7 @@ export type Update<T> = { id: EntityId; changes: Partial<T> }
  */
 export interface EntityState<T> {
   ids: EntityId[]
-  entities: Dictionary<T>
+  entities: Record<EntityId, T>
 }
 
 /**
@@ -150,7 +136,7 @@ export interface EntityStateAdapter<T> {
  */
 export interface EntitySelectors<T, V> {
   selectIds: (state: V) => EntityId[]
-  selectEntities: (state: V) => Dictionary<T>
+  selectEntities: (state: V) => Record<EntityId, T>
   selectAll: (state: V) => T[]
   selectTotal: (state: V) => number
   selectById: (state: V, id: EntityId) => T | undefined
