@@ -103,8 +103,6 @@ export async function generateApi(
     unionUndefined,
   });
 
-  apiGen.generateApi();
-
   const operationDefinitions = getOperationDefinitions(v3Doc).filter(operationMatches(filterEndpoints));
 
   const resultFile = ts.createSourceFile(
