@@ -96,17 +96,17 @@ export const buildGetDefaultMiddleware = <S = any>(): GetDefaultMiddleware<S> =>
           createSerializableStateInvariantMiddleware(serializableOptions)
         )
       }
-    }
-    if (actionCreatorCheck) {
-      let actionCreatorOptions: ActionCreatorInvariantMiddlewareOptions = {}
+      if (actionCreatorCheck) {
+        let actionCreatorOptions: ActionCreatorInvariantMiddlewareOptions = {}
 
-      if (!isBoolean(actionCreatorCheck)) {
-        actionCreatorOptions = actionCreatorCheck
+        if (!isBoolean(actionCreatorCheck)) {
+          actionCreatorOptions = actionCreatorCheck
+        }
+
+        middlewareArray.unshift(
+          createActionCreatorInvariantMiddleware(actionCreatorOptions)
+        )
       }
-
-      middlewareArray.unshift(
-        createActionCreatorInvariantMiddleware(actionCreatorOptions)
-      )
     }
 
     return middlewareArray as any
