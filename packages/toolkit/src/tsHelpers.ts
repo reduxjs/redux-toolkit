@@ -208,7 +208,7 @@ export type Tail<T extends any[]> = T extends [any, ...infer Tail]
   ? Tail
   : never
 
-declare const record: Record<string, 0>
+const record: Record<string, 0> = {}
 
 const value = record[0]
 
