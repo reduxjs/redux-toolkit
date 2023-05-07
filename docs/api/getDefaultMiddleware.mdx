@@ -70,7 +70,7 @@ It is preferable to use the chainable `.concat(...)` and `.prepend(...)` methods
 
 One of the goals of Redux Toolkit is to provide opinionated defaults and prevent common mistakes. As part of that,
 `getDefaultMiddleware` includes some middleware that are added **in development builds of your app only** to
-provide runtime checks for two common issues:
+provide runtime checks for three common issues:
 
 - [Immutability check middleware](./immutabilityMiddleware.mdx): deeply compares
   state values for mutations. It can detect mutations in reducers during a dispatch, and also mutations that occur between
@@ -82,13 +82,21 @@ provide runtime checks for two common issues:
   such as functions, Promises, Symbols, and other non-plain-JS-data values. When a non-serializable value is detected, a
   console error will be printed with the key path for where the non-serializable value was detected.
 
+- [Action creator check middleware](./actionCreatorMiddleware.mdx): another custom middleware created specifically for use in Redux Toolkit.
+  Identifies when an action creator was mistakenly dispatched without being called, and warns to console with the action type.
+
 In addition to these development tool middleware, it also adds [`redux-thunk`](https://github.com/reduxjs/redux-thunk)
 by default, since thunks are the basic recommended side effects middleware for Redux.
 
 Currently, the return value is:
 
 ```js
-const middleware = [thunk, immutableStateInvariant, serializableStateInvariant]
+const middleware = [
+  actionCreatorInvariant,
+  immutableStateInvariant,
+  thunk,
+  serializableStateInvariant,
+]
 ```
 
 ### Production
@@ -153,10 +161,15 @@ interface SerializableStateInvariantMiddlewareOptions {
   // See "Serializability Middleware" page for definition
 }
 
+interface ActionCreatorInvariantMiddlewareOptions {
+  // See "Action Creator Middleware" page for definition
+}
+
 interface GetDefaultMiddlewareOptions {
   thunk?: boolean | ThunkOptions
   immutableCheck?: boolean | ImmutableStateInvariantMiddlewareOptions
   serializableCheck?: boolean | SerializableStateInvariantMiddlewareOptions
+  actionCreatorCheck?: boolean | ActionCreatorInvariantMiddlewareOptions
 }
 
 function getDefaultMiddleware<S = any>(

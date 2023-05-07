@@ -1,0 +1,67 @@
+---
+id: actionCreatorMiddleware
+title: Action Creator Middleware
+sidebar_label: Action Creator Middleware
+hide_title: true
+---
+
+&nbsp;
+
+# Action Creator Middleware
+
+A custom middleware that detects if an action creator has been mistakenly dispatched, instead of being called before dispatching.
+
+A common mistake is to call `dispatch(actionCreator)` instead of `dispatch(actionCreator())`.
+This tends to "work" as the action creator has the static `type` property, but can lead to unexpected behaviour.
+
+## Options
+
+```ts no-transpile
+export interface ActionCreatorInvariantMiddlewareOptions {
+  /**
+   * The function to identify whether a value is an action creator.
+   * The default checks for a function with a static type property and match method.
+   */
+  isActionCreator?: (action: unknown) => action is Function & { type?: unknown }
+}
+```
+
+## Exports
+
+### `createActionCreatorInvariantMiddleware`
+
+Creates an instance of the action creator check middleware, with the given options.
+
+You will most likely not need to call this yourself, as `getDefaultMiddleware` already does so.
+Example:
+
+```ts
+// file: reducer.ts noEmit
+
+export default function (state = {}, action: any) {
+  return state
+}
+
+// file: store.ts
+
+import {
+  configureStore,
+  createActionCreatorInvariantMiddleware,
+} from '@reduxjs/toolkit'
+import reducer from './reducer'
+
+// Augment middleware to consider all functions with a static type property to be action creators
+const isActionCreator = (
+  action: unknown
+): action is Function & { type: unknown } =>
+  typeof action === 'function' && 'type' in action
+
+const actionCreatorMiddleware = createActionCreatorInvariantMiddleware({
+  isActionCreator,
+})
+
+const store = configureStore({
+  reducer,
+  middleware: [actionCreatorMiddleware],
+})
+```

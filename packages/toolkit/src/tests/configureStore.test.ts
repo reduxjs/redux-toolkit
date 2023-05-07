@@ -125,9 +125,10 @@ describe('configureStore', async () => {
         Object
       )
       expect(redux.applyMiddleware).toHaveBeenCalledWith(
-        expect.any(Function), // thunk
         expect.any(Function), // immutableCheck
-        expect.any(Function) // serializableCheck
+        expect.any(Function), // thunk
+        expect.any(Function), // serializableCheck
+        expect.any(Function) // actionCreatorCheck
       )
       expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line-line
       expect(redux.createStore).toHaveBeenCalledWith(
