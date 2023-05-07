@@ -208,10 +208,10 @@ export type Tail<T extends any[]> = T extends [any, ...infer Tail]
   ? Tail
   : never
 
-const value = ({} as Record<string, 0>).a
+const getValue = () => (({} as Record<string, 0>).a)
 
 export type UncheckedIndexedAccess<T> = IfMaybeUndefined<
-  typeof value,
+  ReturnType<typeof getValue>,
   T | undefined,
   T
 >
