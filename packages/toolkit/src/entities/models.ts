@@ -1,3 +1,4 @@
+import type { UncheckedIndexedAccess } from 'uncheckedindexed'
 import type { PayloadAction } from '../createAction'
 import type { CastAny } from '../tsHelpers'
 
@@ -139,13 +140,7 @@ export interface EntitySelectors<T, V> {
   selectEntities: (state: V) => Record<EntityId, T>
   selectAll: (state: V) => T[]
   selectTotal: (state: V) => number
-  selectById: (
-    state: V,
-    id: EntityId
-  ) => CastAny<
-    import('@reduxjs/toolkit/src/userland').UncheckedIndexedAccess<T>,
-    T
-  >
+  selectById: (state: V, id: EntityId) => CastAny<UncheckedIndexedAccess<T>, T>
 }
 
 /**

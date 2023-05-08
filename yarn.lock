@@ -6793,6 +6793,7 @@ __metadata:
     tsup: ^6.7.0
     tsx: ^3.12.2
     typescript: ~4.9
+    uncheckedindexed: "https://github.com/EskiMojo14/uncheckedindexed"
     vitest: ^0.30.1
     yargs: ^15.3.1
   peerDependencies:
@@ -28405,6 +28406,13 @@ fsevents@^1.2.7:
   version: 0.1.2
   resolution: "unc-path-regex@npm:0.1.2"
   checksum: a05fa2006bf4606051c10fc7968f08ce7b28fa646befafa282813aeb1ac1a56f65cb1b577ca7851af2726198d59475bb49b11776036257b843eaacee2860a4ec
+  languageName: node
+  linkType: hard
+
+"uncheckedindexed@https://github.com/EskiMojo14/uncheckedindexed":
+  version: 0.0.1
+  resolution: "uncheckedindexed@https://github.com/EskiMojo14/uncheckedindexed.git#commit=d08490cc8efa3fcf3fac05f55377681e0823c6e3"
+  checksum: 1cdc6ab2963da63582603e481b4fbf834ba533d8f83e3c4d2aeb682be6866327b585a1440497fd41e13c9d5196f84316dba27c8ac8168ed31d2b1f46d232c395
   languageName: node
   linkType: hard
 
