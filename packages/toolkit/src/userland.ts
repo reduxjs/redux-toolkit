@@ -1,11 +1,14 @@
-import type { IfMaybeUndefined } from '@reduxjs/toolkit/dist/tsHelpers'
+/*
+these helpers should be imported like `import('@reduxjs/toolkit/src/userland').Helper<T>`
+because they depend on remaining as a .ts file instead of being in a .d.ts
+*/
 
-// helpers that should be imported like `import('@reduxjs/toolkit/src/userland')`
+type IfMaybeUndefined<P, True, False> = [undefined] extends [P] ? True : False
 
-const getValue = () => (({} as Record<string, 0>).a)
+const value = ({} as Record<string, 0>).a
 
 export type UncheckedIndexedAccess<T> = IfMaybeUndefined<
-  ReturnType<typeof getValue>,
+  typeof value,
   T | undefined,
   T
 >
