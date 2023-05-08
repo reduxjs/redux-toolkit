@@ -1,5 +1,5 @@
 import type { PayloadAction } from '../createAction'
-import type { IsAny } from '../tsHelpers'
+import type { CastAny } from '../tsHelpers'
 
 /**
  * @public
@@ -37,7 +37,7 @@ export interface EntityDefinition<T> {
   sortComparer: false | Comparer<T>
 }
 
-export type PreventAny<S, T> = IsAny<S, EntityState<T>, S>
+export type PreventAny<S, T> = CastAny<S, EntityState<T>>
 
 /**
  * @public
@@ -142,7 +142,10 @@ export interface EntitySelectors<T, V> {
   selectById: (
     state: V,
     id: EntityId
-  ) => import('@reduxjs/toolkit/src/userland').UncheckedIndexedAccess<T>
+  ) => CastAny<
+    import('@reduxjs/toolkit/src/userland').UncheckedIndexedAccess<T>,
+    T
+  >
 }
 
 /**
