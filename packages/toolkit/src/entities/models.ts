@@ -1,4 +1,4 @@
-import type { UncheckedIndexedAccess } from 'uncheckedindexed'
+import type { UncheckedIndexedAccess } from '../uncheckedindexed'
 import type { PayloadAction } from '../createAction'
 import type { CastAny, Id } from '../tsHelpers'
 

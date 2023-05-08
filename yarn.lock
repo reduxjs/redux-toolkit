@@ -6793,7 +6793,6 @@ __metadata:
     tsup: ^6.7.0
     tsx: ^3.12.2
     typescript: ~4.9
-    uncheckedindexed: ^0.0.1
     vitest: ^0.30.1
     yargs: ^15.3.1
   peerDependencies:
@@ -28406,13 +28405,6 @@ fsevents@^1.2.7:
   version: 0.1.2
   resolution: "unc-path-regex@npm:0.1.2"
   checksum: a05fa2006bf4606051c10fc7968f08ce7b28fa646befafa282813aeb1ac1a56f65cb1b577ca7851af2726198d59475bb49b11776036257b843eaacee2860a4ec
-  languageName: node
-  linkType: hard
-
-"uncheckedindexed@npm:^0.0.1":
-  version: 0.0.1
-  resolution: "uncheckedindexed@npm:0.0.1"
-  checksum: 66cf7c42df36eeb8520de61ed16df0b1506bb40ede645d9c146672799d2392a3ad8c7b54131b07ff764414dcc12bd74eca90c3fdf13f19631181e6198f916075
   languageName: node
   linkType: hard
 
