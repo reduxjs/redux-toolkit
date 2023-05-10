@@ -13,7 +13,6 @@ export function generateObjectProperties(obj: ObjectPropertyDefinitions) {
 export function generateImportNode(pkg: string, namedImports: Record<string, string>, defaultImportName?: string) {
   return factory.createImportDeclaration(
     undefined,
-    undefined,
     factory.createImportClause(
       false,
       defaultImportName !== undefined ? factory.createIdentifier(defaultImportName) : undefined,
@@ -46,7 +45,6 @@ export function generateCreateApiCall({
         undefined,
         [
           factory.createParameterDeclaration(
-            undefined,
             undefined,
             undefined,
             endpointBuilder,
