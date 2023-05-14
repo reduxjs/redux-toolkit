@@ -386,13 +386,13 @@ const value = actionCreators.anyKey
     },
   })
 
-  const x: Action<unknown> = {} as any
+  const x: Action<string> = {} as any
   if (mySlice.actions.setName.match(x)) {
     expectType<'name/setName'>(x.type)
     expectType<string>(x.payload)
   } else {
     // @ts-expect-error
-    expectType<string>(x.type)
+    expectType<'name/setName'>(x.type)
     // @ts-expect-error
     expectType<string>(x.payload)
   }
