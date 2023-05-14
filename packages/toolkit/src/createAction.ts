@@ -290,8 +290,10 @@ export function createAction(type: string, prepareAction?: Function): any {
 /**
  * Returns true if value is a plain object with a `type` property.
  */
-export function isAction(action: unknown): action is Action<unknown> {
-  return isPlainObject(action) && 'type' in action
+export function isAction(action: unknown): action is Action<string> {
+  return (
+    isPlainObject(action) && 'type' in action && typeof action.type === 'string'
+  )
 }
 
 /**
@@ -317,11 +319,7 @@ export function isFSA(action: unknown): action is {
   error?: unknown
   meta?: unknown
 } {
-  return (
-    isAction(action) &&
-    typeof action.type === 'string' &&
-    Object.keys(action).every(isValidKey)
-  )
+  return isAction(action) && Object.keys(action).every(isValidKey)
 }
 
 function isValidKey(key: string) {

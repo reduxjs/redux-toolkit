@@ -15,7 +15,7 @@ A function that generates a set of prebuilt reducers and selectors for performin
 
 This API was ported from [the `@ngrx/entity` library](https://ngrx.io/guide/entity) created by the NgRx maintainers, but has been significantly modified for use with Redux Toolkit. We'd like to thank the NgRx team for originally creating this API and allowing us to port and adapt it for our needs.
 
-::: note
+:::note
 The term "Entity" is used to refer to a unique type of data object in an application. For example, in a blogging application, you might have `User`, `Post`, and `Comment` data objects, with many instances of each being stored in the client and persisted on the server. `User` is an "entity" - a unique type of data object that the application uses. Each unique instance of an entity is assumed to have a unique ID value in a specific field.
 
 As with all Redux logic, [_only_ plain JS objects and arrays should be passed in to the store - **no class instances!**](https://redux.js.org/style-guide/style-guide#do-not-put-non-serializable-values-in-state-or-actions)

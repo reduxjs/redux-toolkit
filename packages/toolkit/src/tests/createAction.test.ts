@@ -123,7 +123,7 @@ describe('createAction', () => {
 })
 
 describe('isAction', () => {
-  it('should only return true for plain objects with a type property', () => {
+  it('should only return true for plain objects with a string type property', () => {
     const actionCreator = createAction('anAction')
     class Action {
       type = 'totally an action'
@@ -131,6 +131,7 @@ describe('isAction', () => {
     const testCases: [action: unknown, expected: boolean][] = [
       [{ type: 'an action' }, true],
       [{ type: 'more props', extra: true }, true],
+      [{ type: 0 }, false],
       [actionCreator(), true],
       [actionCreator, false],
       [Promise.resolve({ type: 'an action' }), false],

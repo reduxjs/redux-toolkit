@@ -266,7 +266,7 @@ The [`slice.selectors`](#selectors-2) object is the equivalent of calling
 
 ```ts no-transpile
 const { selectValue } = counterSlice.getSelectors(
-  (rootState: RootState) => rootState[slice.reducerPath]
+  (rootState: RootState) => rootState[counterSlice.reducerPath]
 )
 ```
 
