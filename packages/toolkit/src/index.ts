@@ -30,7 +30,6 @@ export type { DevToolsEnhancerOptions } from './devtoolsExtension'
 export {
   // js
   createAction,
-  getType,
   isAction,
   isActionCreator,
   isFSA as isFluxStandardAction,
