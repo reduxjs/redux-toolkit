@@ -51,9 +51,9 @@ const { incrementBatched, decrementUnbatched } = counterSlice.actions
 const store = configureStore({
   reducer: counterSlice.reducer,
   // highlight-start
-  enhancers: (existingEnhancers) => {
+  enhancers: (getDefaultEnhancers) => {
     // Add the autobatch enhancer to the store setup
-    return existingEnhancers.concat(autoBatchEnhancer())
+    return getDefaultEnhancers().concat(autoBatchEnhancer())
   },
   // highlight-end
 })

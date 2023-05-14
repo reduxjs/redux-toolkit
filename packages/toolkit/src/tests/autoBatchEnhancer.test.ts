@@ -31,9 +31,10 @@ const { incrementBatched, decrementUnbatched } = counterSlice.actions
 const makeStore = (autoBatchOptions?: AutoBatchOptions) => {
   return configureStore({
     reducer: counterSlice.reducer,
-    enhancers: (existingEnhancers) => {
-      return existingEnhancers.concat(autoBatchEnhancer(autoBatchOptions))
-    },
+    enhancers: (getDefaultEnhancers) =>
+      getDefaultEnhancers({
+        autoBatch: autoBatchOptions,
+      }),
   })
 }
 

@@ -17,14 +17,12 @@ to the store setup for a better development experience.
 `configureStore` accepts a single configuration object parameter, with the following options:
 
 ```ts no-transpile
-type ConfigureEnhancersCallback = (
-  defaultEnhancers: EnhancerArray<[StoreEnhancer]>
-) => StoreEnhancer[]
 
 interface ConfigureStoreOptions<
   S = any,
   A extends Action = AnyAction,
   M extends Middlewares<S> = Middlewares<S>
+  E extends Enhancers = Enhancers
 > {
   /**
    * A single reducer function that will be used as the root reducer, or an
@@ -59,11 +57,11 @@ interface ConfigureStoreOptions<
    * The store enhancers to apply. See Redux's `createStore()`.
    * All enhancers will be included before the DevTools Extension enhancer.
    * If you need to customize the order of enhancers, supply a callback
-   * function that will receive the original array (ie, `[applyMiddleware]`),
-   * and should return a new array (such as `[applyMiddleware, offline]`).
+   * function that will receive the getDefaultEnhancers,
+   * and should return a new array (such as `getDefaultEnhancers().concat(offline)`).
    * If you only need to add middleware, you can use the `middleware` parameter instead.
    */
-  enhancers?: StoreEnhancer[] | ConfigureEnhancersCallback
+  enhancers?: (getDefaultEnhancers: GetDefaultEnhancers<M>) => E | E
 }
 
 function configureStore<S = any, A extends Action = AnyAction>(
@@ -203,7 +201,10 @@ const store = configureStore({
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger),
   devTools: process.env.NODE_ENV !== 'production',
   preloadedState,
-  enhancers: [batchedSubscribe(debounceNotify)],
+  enhancers: (getDefaultEnhancers) =>
+    getDefaultEnhancers({
+      autoBatch: false,
+    }).concat(batchedSubscribe(debounceNotify)),
 })
 
 // The store has been created with these options:

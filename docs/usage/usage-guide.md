@@ -128,7 +128,8 @@ export default function configureAppStore(preloadedState) {
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(loggerMiddleware),
     preloadedState,
-    enhancers: [monitorReducersEnhancer],
+    enhancers: (getDefaultEnhancers) =>
+      getDefaultEnhancers().concat(monitorReducersEnhancer),
   })
 
   if (process.env.NODE_ENV !== 'production' && module.hot) {
@@ -619,17 +620,17 @@ A typical implementation might look like:
 
 ```js
 const getRepoDetailsStarted = () => ({
-  type: "repoDetails/fetchStarted"
+  type: 'repoDetails/fetchStarted',
 })
 const getRepoDetailsSuccess = (repoDetails) => ({
-  type: "repoDetails/fetchSucceeded",
-  payload: repoDetails
+  type: 'repoDetails/fetchSucceeded',
+  payload: repoDetails,
 })
 const getRepoDetailsFailed = (error) => ({
-  type: "repoDetails/fetchFailed",
-  error
+  type: 'repoDetails/fetchFailed',
+  error,
 })
-const fetchIssuesCount = (org, repo) => async dispatch => {
+const fetchIssuesCount = (org, repo) => async (dispatch) => {
   dispatch(getRepoDetailsStarted())
   try {
     const repoDetails = await getRepoDetails(org, repo)
@@ -1118,11 +1119,11 @@ It is also strongly recommended to blacklist any api(s) that you have configured
 
 ```ts
 const persistConfig = {
-  key: "root",
+  key: 'root',
   version: 1,
   storage,
   blacklist: [pokemonApi.reducerPath],
-};
+}
 ```
 
 See [Redux Toolkit #121: How to use this with Redux-Persist?](https://github.com/reduxjs/redux-toolkit/issues/121) and [Redux-Persist #988: non-serializable value error](https://github.com/rt2zz/redux-persist/issues/988#issuecomment-552242978) for further discussion.
