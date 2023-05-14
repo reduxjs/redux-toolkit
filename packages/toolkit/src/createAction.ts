@@ -292,7 +292,9 @@ export function createAction(type: string, prepareAction?: Function): any {
  */
 export function isAction(action: unknown): action is Action<string> {
   return (
-    isPlainObject(action) && 'type' in action && typeof action.type === 'string'
+    isPlainObject(action) &&
+    'type' in action &&
+    typeof (action as Record<'type', unknown>).type === 'string'
   )
 }
 
