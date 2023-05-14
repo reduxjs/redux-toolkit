@@ -281,7 +281,7 @@ export function createAction(type: string, prepareAction?: Function): any {
 
   actionCreator.type = type
 
-  actionCreator.match = (action: Action<unknown>): action is PayloadAction =>
+  actionCreator.match = (action: Action<string>): action is PayloadAction =>
     action.type === type
 
   return actionCreator
