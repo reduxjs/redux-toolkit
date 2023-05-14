@@ -84,7 +84,7 @@ export type _ActionCreatorWithPreparedPayload<
  */
 export interface BaseActionCreator<P, T extends string, M = never, E = never> {
   type: T
-  match: (action: Action<unknown>) => action is PayloadAction<P, T, M, E>
+  match: (action: Action<string>) => action is PayloadAction<P, T, M, E>
 }
 
 /**
@@ -281,7 +281,7 @@ export function createAction(type: string, prepareAction?: Function): any {
 
   actionCreator.type = type
 
-  actionCreator.match = (action: Action<unknown>): action is PayloadAction =>
+  actionCreator.match = (action: Action<string>): action is PayloadAction =>
     action.type === type
 
   return actionCreator
@@ -290,8 +290,12 @@ export function createAction(type: string, prepareAction?: Function): any {
 /**
  * Returns true if value is a plain object with a `type` property.
  */
-export function isAction(action: unknown): action is Action<unknown> {
-  return isPlainObject(action) && 'type' in action
+export function isAction(action: unknown): action is Action<string> {
+  return (
+    isPlainObject(action) &&
+    'type' in action &&
+    typeof (action as Record<'type', unknown>).type === 'string'
+  )
 }
 
 /**
@@ -317,11 +321,7 @@ export function isFSA(action: unknown): action is {
   error?: unknown
   meta?: unknown
 } {
-  return (
-    isAction(action) &&
-    typeof action.type === 'string' &&
-    Object.keys(action).every(isValidKey)
-  )
+  return isAction(action) && Object.keys(action).every(isValidKey)
 }
 
 function isValidKey(key: string) {
