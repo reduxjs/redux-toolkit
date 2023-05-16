@@ -68,6 +68,7 @@ export type {
   SliceCaseReducers,
   ValidateSliceCaseReducers,
   CaseReducerWithPrepare,
+  ReducerCreators,
 } from './createSlice'
 export type { ActionCreatorInvariantMiddlewareOptions } from './actionCreatorInvariantMiddleware'
 export { createActionCreatorInvariantMiddleware } from './actionCreatorInvariantMiddleware'
