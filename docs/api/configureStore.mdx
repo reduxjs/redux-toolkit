@@ -145,26 +145,26 @@ If you provide an array, this `applyMiddleware` enhancer will _not_ be used.
 // warns - middleware left as default but not included in final enhancers
 configureStore({
   reducer,
-  enhancers: [offline],
+  enhancers: [offline(offlineConfig)],
 })
 // warns - middleware customised but not included in final enhancers
 configureStore({
   reducer,
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger)
-  enhancers: [offline],
+  enhancers: [offline(offlineConfig)],
 })
 
 // fine - default enhancers included
 configureStore({
   reducer,
-  enhancers: (getDefaultEnhancers) => getDefaultEnhancers().concat(offline),
+  enhancers: (getDefaultEnhancers) => getDefaultEnhancers().concat(offline(offlineConfig)),
 })
 
 // also allowed
 configureStore({
   reducer,
   middleware: [],
-  enhancers: [offline],
+  enhancers: [offline(offlineConfig)],
 })
 ```
 
