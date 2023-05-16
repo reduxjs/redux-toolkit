@@ -69,7 +69,10 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     return false
   }
 
-  return (action, mwApi) => {
+  return (
+    action,
+    mwApi
+  ): [actionShouldContinue: boolean, hasSubscription: boolean] => {
     if (!previousSubscriptions) {
       // Initialize it the first time this handler runs
       previousSubscriptions = JSON.parse(
