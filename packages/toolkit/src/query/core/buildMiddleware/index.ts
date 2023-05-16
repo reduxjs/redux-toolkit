@@ -40,13 +40,8 @@ export function buildMiddleware<
     >(`${reducerPath}/invalidateTags`),
   }
 
-  const isThisApiSliceAction = (action: Action) => {
-    return (
-      !!action &&
-      typeof action.type === 'string' &&
-      action.type.startsWith(`${reducerPath}/`)
-    )
-  }
+  const isThisApiSliceAction = (action: Action) =>
+    action.type.startsWith(`${reducerPath}/`)
 
   const handlerBuilders: InternalHandlerBuilder[] = [
     buildDevCheckHandler,
