@@ -139,7 +139,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: () => 0,
-      enhancers: [applyMiddleware(() => (next) => next)],
+      enhancers: [applyMiddleware(() => (next) => next)] as const,
     })
 
     expectType<Dispatch & ThunkDispatch<number, undefined, UnknownAction>>(
@@ -184,11 +184,86 @@ const _anyMiddleware: any = () => () => () => {}
       ] as const,
     })
 
+    expectType<Dispatch>(store.dispatch)
+    expectType<string>(store.someProperty)
+    expectType<number>(store.anotherProperty)
+
+    const storeWithCallback = configureStore({
+      reducer: () => 0,
+      enhancers: (getDefaultEnhancers) =>
+        getDefaultEnhancers()
+          .prepend(anotherPropertyStoreEnhancer)
+          .concat(somePropertyStoreEnhancer),
+    })
+
     expectType<Dispatch & ThunkDispatch<number, undefined, UnknownAction>>(
       store.dispatch
     )
-    expectType<string>(store.someProperty)
-    expectType<number>(store.anotherProperty)
+    expectType<string>(storeWithCallback.someProperty)
+    expectType<number>(storeWithCallback.anotherProperty)
+  }
+
+  {
+    const someStateExtendingEnhancer: StoreEnhancer<
+      {},
+      { someProperty: string }
+    > =
+      (next) =>
+      (...args) => {
+        const store = next(...args)
+        const getState = () => ({
+          ...store.getState(),
+          someProperty: 'some value',
+        })
+        return {
+          ...store,
+          getState,
+        } as any
+      }
+
+    const anotherStateExtendingEnhancer: StoreEnhancer<
+      {},
+      { anotherProperty: number }
+    > =
+      (next) =>
+      (...args) => {
+        const store = next(...args)
+        const getState = () => ({
+          ...store.getState(),
+          anotherProperty: 123,
+        })
+        return {
+          ...store,
+          getState,
+        } as any
+      }
+
+    const store = configureStore({
+      reducer: () => ({ aProperty: 0 }),
+      enhancers: [
+        someStateExtendingEnhancer,
+        anotherStateExtendingEnhancer,
+        // this doesn't work without the as const
+      ] as const,
+    })
+
+    const state = store.getState()
+
+    expectType<number>(state.aProperty)
+    expectType<string>(state.someProperty)
+    expectType<number>(state.anotherProperty)
+
+    const storeWithCallback = configureStore({
+      reducer: () => ({ aProperty: 0 }),
+      enhancers: (gDE) =>
+        gDE().concat(someStateExtendingEnhancer, anotherStateExtendingEnhancer),
+    })
+
+    const stateWithCallback = storeWithCallback.getState()
+
+    expectType<number>(stateWithCallback.aProperty)
+    expectType<string>(stateWithCallback.someProperty)
+    expectType<number>(stateWithCallback.anotherProperty)
   }
 }
 
@@ -456,7 +531,6 @@ const _anyMiddleware: any = () => () => () => {}
     // @ts-expect-error
     store.dispatch(thunkB())
   }
-
   /**
    * Test: custom middleware
    */

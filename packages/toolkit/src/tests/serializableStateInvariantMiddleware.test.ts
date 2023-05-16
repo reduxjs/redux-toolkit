@@ -103,15 +103,16 @@ describe('serializableStateInvariantMiddleware', () => {
       middleware: [serializableStateInvariantMiddleware],
     })
 
-    const type = Symbol.for('SOME_CONSTANT')
-    const dispatchedAction = { type }
+    const symbol = Symbol.for('SOME_CONSTANT')
+    const dispatchedAction = { type: 'an-action', payload: symbol }
 
     store.dispatch(dispatchedAction)
 
     expect(getLog().log).toMatchInlineSnapshot(`
-      "A non-serializable value was detected in an action, in the path: \`type\`. Value: Symbol(SOME_CONSTANT) 
+      "A non-serializable value was detected in an action, in the path: \`payload\`. Value: Symbol(SOME_CONSTANT) 
       Take a look at the logic that dispatched this action:  Object {
-        \\"type\\": Symbol(SOME_CONSTANT),
+        \\"payload\\": Symbol(SOME_CONSTANT),
+        \\"type\\": \\"an-action\\",
       } 
       (See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants) 
       (To allow non-serializable values see: https://redux-toolkit.js.org/usage/usage-guide#working-with-non-serializable-data)"

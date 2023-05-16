@@ -5,6 +5,7 @@ import type {
   IfVoid,
   IsAny,
 } from './tsHelpers'
+import { hasMatchFunction } from './tsHelpers'
 import isPlainObject from './isPlainObject'
 
 /**
@@ -83,7 +84,7 @@ export type _ActionCreatorWithPreparedPayload<
  */
 export interface BaseActionCreator<P, T extends string, M = never, E = never> {
   type: T
-  match: (action: unknown) => action is PayloadAction<P, T, M, E>
+  match: (action: Action<string>) => action is PayloadAction<P, T, M, E>
 }
 
 /**
@@ -223,9 +224,7 @@ export type PayloadActionCreator<
 /**
  * A utility function to create an action creator for the given action type
  * string. The action creator accepts a single argument, which will be included
- * in the action object as a field called payload. The action creator function
- * will also have its toString() overridden so that it returns the action type,
- * allowing it to be used in reducer logic that is looking for that action type.
+ * in the action object as a field called payload.
  *
  * @param type The action type to use for created actions.
  * @param prepare (optional) a method that takes any number of arguments and returns { payload } or { payload, meta }.
@@ -240,9 +239,7 @@ export function createAction<P = void, T extends string = string>(
 /**
  * A utility function to create an action creator for the given action type
  * string. The action creator accepts a single argument, which will be included
- * in the action object as a field called payload. The action creator function
- * will also have its toString() overridden so that it returns the action type,
- * allowing it to be used in reducer logic that is looking for that action type.
+ * in the action object as a field called payload.
  *
  * @param type The action type to use for created actions.
  * @param prepare (optional) a method that takes any number of arguments and returns { payload } or { payload, meta }.
@@ -276,11 +273,9 @@ export function createAction(type: string, prepareAction?: Function): any {
     return { type, payload: args[0] }
   }
 
-  actionCreator.toString = () => `${type}`
-
   actionCreator.type = type
 
-  actionCreator.match = (action: UnknownAction): action is PayloadAction =>
+  actionCreator.match = (action: Action<string>): action is PayloadAction =>
     action.type === type
 
   return actionCreator
@@ -289,8 +284,26 @@ export function createAction(type: string, prepareAction?: Function): any {
 /**
  * Returns true if value is a plain object with a `type` property.
  */
-export function isAction(action: unknown): action is Action<unknown> {
-  return isPlainObject(action) && 'type' in action
+export function isAction(action: unknown): action is Action<string> {
+  return (
+    isPlainObject(action) &&
+    'type' in action &&
+    typeof (action as Record<'type', unknown>).type === 'string'
+  )
+}
+
+/**
+ * Returns true if value is an RTK-like action creator, with a static type property and match method.
+ */
+export function isActionCreator(
+  action: unknown
+): action is BaseActionCreator<unknown, string> & Function {
+  return (
+    typeof action === 'function' &&
+    'type' in action &&
+    // hasMatchFunction only wants Matchers but I don't see the point in rewriting it
+    hasMatchFunction(action as any)
+  )
 }
 
 /**
@@ -302,31 +315,11 @@ export function isFSA(action: unknown): action is {
   error?: unknown
   meta?: unknown
 } {
-  return (
-    isAction(action) &&
-    typeof action.type === 'string' &&
-    Object.keys(action).every(isValidKey)
-  )
+  return isAction(action) && Object.keys(action).every(isValidKey)
 }
 
 function isValidKey(key: string) {
   return ['type', 'payload', 'error', 'meta'].indexOf(key) > -1
-}
-
-/**
- * Returns the action type of the actions created by the passed
- * `createAction()`-generated action creator (arbitrary action creators
- * are not supported).
- *
- * @param action The action creator whose action type to get.
- * @returns The action type used by the action creator.
- *
- * @public
- */
-export function getType<T extends string>(
-  actionCreator: PayloadActionCreator<any, T>
-): T {
-  return `${actionCreator}` as T
 }
 
 // helper types for more readable typings

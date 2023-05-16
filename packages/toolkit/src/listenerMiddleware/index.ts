@@ -23,6 +23,7 @@ import type {
   TaskResult,
   AbortSignalWithReason,
   UnsubscribeListenerOptions,
+  ForkOptions,
 } from './types'
 import {
   abortControllerWithReason,
@@ -44,6 +45,7 @@ import {
   createDelay,
   raceWithSignal,
 } from './task'
+import { find } from '../utils'
 export { TaskAbortError } from './exceptions'
 export type {
   ListenerEffect,
@@ -78,13 +80,19 @@ const INTERNAL_NIL_TOKEN = {} as const
 
 const alm = 'listenerMiddleware' as const
 
-const createFork = (parentAbortSignal: AbortSignalWithReason<unknown>) => {
+const createFork = (
+  parentAbortSignal: AbortSignalWithReason<unknown>,
+  parentBlockingPromises: Promise<any>[]
+) => {
   const linkControllers = (controller: AbortController) =>
     addAbortSignalListener(parentAbortSignal, () =>
       abortControllerWithReason(controller, parentAbortSignal.reason)
     )
 
-  return <T>(taskExecutor: ForkedTaskExecutor<T>): ForkedTask<T> => {
+  return <T>(
+    taskExecutor: ForkedTaskExecutor<T>,
+    opts?: ForkOptions
+  ): ForkedTask<T> => {
     assertFunction(taskExecutor, 'taskExecutor')
     const childAbortController = new AbortController()
 
@@ -104,6 +112,10 @@ const createFork = (parentAbortSignal: AbortSignalWithReason<unknown>) => {
       },
       () => abortControllerWithReason(childAbortController, taskCompleted)
     )
+
+    if (opts?.autoJoin) {
+      parentBlockingPromises.push(result)
+    }
 
     return {
       result: createPause<TaskResult<T>>(parentAbortSignal)(result),
@@ -311,20 +323,9 @@ export function createListenerMiddleware<
     }
   }
 
-  const findListenerEntry = (
-    comparator: (entry: ListenerEntry) => boolean
-  ): ListenerEntry | undefined => {
-    for (const entry of Array.from(listenerMap.values())) {
-      if (comparator(entry)) {
-        return entry
-      }
-    }
-
-    return undefined
-  }
-
   const startListening = (options: FallbackAddListenerOptions) => {
-    let entry = findListenerEntry(
+    let entry = find(
+      Array.from(listenerMap.values()),
       (existingEntry) => existingEntry.effect === options.effect
     )
 
@@ -340,7 +341,7 @@ export function createListenerMiddleware<
   ): boolean => {
     const { type, effect, predicate } = getListenerEntryPropsFrom(options)
 
-    const entry = findListenerEntry((entry) => {
+    const entry = find(Array.from(listenerMap.values()), (entry) => {
       const matchPredicateOrType =
         typeof type === 'string'
           ? entry.type === type
@@ -370,6 +371,7 @@ export function createListenerMiddleware<
       startListening,
       internalTaskController.signal
     )
+    const autoJoinPromises: Promise<any>[] = []
 
     try {
       entry.pending.add(internalTaskController)
@@ -388,7 +390,7 @@ export function createListenerMiddleware<
             pause: createPause<any>(internalTaskController.signal),
             extra,
             signal: internalTaskController.signal,
-            fork: createFork(internalTaskController.signal),
+            fork: createFork(internalTaskController.signal, autoJoinPromises),
             unsubscribe: entry.unsubscribe,
             subscribe: () => {
               listenerMap.set(entry.id, entry)
@@ -411,6 +413,8 @@ export function createListenerMiddleware<
         })
       }
     } finally {
+      await Promise.allSettled(autoJoinPromises)
+
       abortControllerWithReason(internalTaskController, listenerCompleted) // Notify that the task has completed
       entry.pending.delete(internalTaskController)
     }

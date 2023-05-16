@@ -156,6 +156,10 @@ function storeForApi<
       gdm({ serializableCheck: false, immutableCheck: false }).concat(
         api.middleware
       ),
+    enhancers: (gde) =>
+      gde({
+        autoBatch: false,
+      }),
   })
   let hadQueries = false
   store.subscribe(() => {

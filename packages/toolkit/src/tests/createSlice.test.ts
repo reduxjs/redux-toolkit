@@ -1,7 +1,11 @@
 import { vi } from 'vitest'
 import type { PayloadAction, WithSlice } from '@reduxjs/toolkit'
-import { combineSlices } from '@reduxjs/toolkit'
-import { createSlice, createAction } from '@reduxjs/toolkit'
+import {
+  configureStore,
+  combineSlices,
+  createSlice,
+  createAction,
+} from '@reduxjs/toolkit'
 import {
   mockConsole,
   createConsole,
@@ -554,6 +558,217 @@ describe('createSlice', () => {
       const injected2State = combinedReducer(undefined, increment())
 
       expect(injected2State.injected2).toBe(slice.getInitialState() + 1)
+    })
+  })
+  describe('reducers definition with asyncThunks', () => {
+    function pending(state: any[], action: any) {
+      state.push(['pendingReducer', action])
+    }
+    function fulfilled(state: any[], action: any) {
+      state.push(['fulfilledReducer', action])
+    }
+    function rejected(state: any[], action: any) {
+      state.push(['rejectedReducer', action])
+    }
+
+    test('successful thunk', async () => {
+      const slice = createSlice({
+        name: 'test',
+        initialState: [] as any[],
+        reducers: (create) => ({
+          thunkReducers: create.asyncThunk(
+            function payloadCreator(arg, api) {
+              return Promise.resolve('resolved payload')
+            },
+            { pending, fulfilled, rejected }
+          ),
+        }),
+      })
+
+      const store = configureStore({
+        reducer: slice.reducer,
+      })
+      await store.dispatch(slice.actions.thunkReducers('test'))
+      expect(store.getState()).toMatchObject([
+        [
+          'pendingReducer',
+          {
+            type: 'test/thunkReducers/pending',
+            payload: undefined,
+          },
+        ],
+        [
+          'fulfilledReducer',
+          {
+            type: 'test/thunkReducers/fulfilled',
+            payload: 'resolved payload',
+          },
+        ],
+      ])
+    })
+
+    test('rejected thunk', async () => {
+      const slice = createSlice({
+        name: 'test',
+        initialState: [] as any[],
+        reducers: (create) => ({
+          thunkReducers: create.asyncThunk(
+            // payloadCreator isn't allowed to return never
+            function payloadCreator(arg, api): any {
+              throw new Error('')
+            },
+            { pending, fulfilled, rejected }
+          ),
+        }),
+      })
+
+      const store = configureStore({
+        reducer: slice.reducer,
+      })
+      await store.dispatch(slice.actions.thunkReducers('test'))
+      expect(store.getState()).toMatchObject([
+        [
+          'pendingReducer',
+          {
+            type: 'test/thunkReducers/pending',
+            payload: undefined,
+          },
+        ],
+        [
+          'rejectedReducer',
+          {
+            type: 'test/thunkReducers/rejected',
+            payload: undefined,
+          },
+        ],
+      ])
+    })
+
+    test('with options', async () => {
+      const slice = createSlice({
+        name: 'test',
+        initialState: [] as any[],
+        reducers: (create) => ({
+          thunkReducers: create.asyncThunk(
+            function payloadCreator(arg, api) {
+              return 'should not call this'
+            },
+            {
+              options: {
+                condition() {
+                  return false
+                },
+                dispatchConditionRejection: true,
+              },
+              pending,
+              fulfilled,
+              rejected,
+            }
+          ),
+        }),
+      })
+
+      const store = configureStore({
+        reducer: slice.reducer,
+      })
+      await store.dispatch(slice.actions.thunkReducers('test'))
+      expect(store.getState()).toMatchObject([
+        [
+          'rejectedReducer',
+          {
+            type: 'test/thunkReducers/rejected',
+            payload: undefined,
+            meta: { condition: true },
+          },
+        ],
+      ])
+    })
+
+    test('has caseReducers for the asyncThunk', async () => {
+      const slice = createSlice({
+        name: 'test',
+        initialState: [],
+        reducers: (create) => ({
+          thunkReducers: create.asyncThunk(
+            function payloadCreator(arg, api) {
+              return Promise.resolve('resolved payload')
+            },
+            { pending, fulfilled }
+          ),
+        }),
+      })
+
+      expect(slice.caseReducers.thunkReducers.pending).toBe(pending)
+      expect(slice.caseReducers.thunkReducers.fulfilled).toBe(fulfilled)
+      // even though it is not defined above, this should at least be a no-op function to match the TypeScript typings
+      // and should be callable as a reducer even if it does nothing
+      expect(() =>
+        slice.caseReducers.thunkReducers.rejected(
+          [],
+          slice.actions.thunkReducers.rejected(
+            new Error('test'),
+            'fakeRequestId',
+            {}
+          )
+        )
+      ).not.toThrow()
+    })
+
+    test('can define reducer with prepare statement using create.preparedReducer', async () => {
+      const slice = createSlice({
+        name: 'test',
+        initialState: [] as any[],
+        reducers: (create) => ({
+          prepared: create.preparedReducer(
+            (p: string, m: number, e: { message: string }) => ({
+              payload: p,
+              meta: m,
+              error: e,
+            }),
+            (state, action) => {
+              state.push(action)
+            }
+          ),
+        }),
+      })
+
+      expect(
+        slice.reducer([], slice.actions.prepared('test', 1, { message: 'err' }))
+      ).toMatchInlineSnapshot(`
+        [
+          {
+            "error": {
+              "message": "err",
+            },
+            "meta": 1,
+            "payload": "test",
+            "type": "test/prepared",
+          },
+        ]
+      `)
+    })
+
+    test('throws an error when invoked with a normal `prepare` object that has not gone through a `create.preparedReducer` call', async () => {
+      expect(() =>
+        createSlice({
+          name: 'test',
+          initialState: [] as any[],
+          reducers: (create) => ({
+            prepared: {
+              prepare: (p: string, m: number, e: { message: string }) => ({
+                payload: p,
+                meta: m,
+                error: e,
+              }),
+              reducer: (state, action) => {
+                state.push(action)
+              },
+            },
+          }),
+        })
+      ).toThrowErrorMatchingInlineSnapshot(
+        `"Please use the \`create.preparedReducer\` notation for prepared action creators with the \`create\` notation."`
+      )
     })
   })
 })

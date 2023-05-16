@@ -5,6 +5,9 @@ import type {
   Middleware,
   Store,
   Reducer,
+  EnhancerArray,
+  StoreEnhancer,
+  ThunkDispatch,
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
@@ -218,8 +221,17 @@ export function setupApiStore<
           .concat(...(middleware?.concat ?? []))
           .prepend(...(middleware?.prepend ?? [])) as typeof tempMiddleware
       },
+      enhancers: (gde) =>
+        gde({
+          autoBatch: false,
+        }),
     })
 
+  type State = {
+    api: ReturnType<A['reducer']>
+  } & {
+    [K in keyof R]: ReturnType<R[K]>
+  }
   type StoreType = EnhancedStore<
     {
       api: ReturnType<A['reducer']>
