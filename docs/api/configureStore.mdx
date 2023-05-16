@@ -77,7 +77,7 @@ If it is an object of slice reducers, like `{users : usersReducer, posts : posts
 
 ### `middleware`
 
-An optional array of Redux middleware functions
+An optional array of Redux middleware functions, or a callback to customise the array of middleware.
 
 If this option is provided, it should contain all the middleware functions you
 want added to the store. `configureStore` will automatically pass those to `applyMiddleware`.
@@ -118,16 +118,57 @@ An optional array of Redux store enhancers, or a callback function to customize 
 
 If defined as an array, these will be passed to [the Redux `compose` function](https://redux.js.org/api/compose), and the combined enhancer will be passed to `createStore`.
 
-This should _not_ include `applyMiddleware()` or the Redux DevTools Extension `composeWithDevTools`, as those are already handled by `configureStore`.
+:::tip Dev Tools
+This should _not_ include the Redux DevTools Extension `composeWithDevTools`, as this is already handled by `configureStore`.
 
-Example: `enhancers: [offline]` will result in a final setup of `[applyMiddleware, offline, devToolsExtension]`.
+Example: `enhancers: [offline]` will result in a final setup of `[offline, devToolsExtension]`.
+:::
 
-If defined as a callback function, it will be called with the existing array of enhancers _without_ the DevTools Extension (currently `[applyMiddleware]`),
-and should return a new array of enhancers. This is primarily useful for cases where a store enhancer needs to be added
-in front of `applyMiddleware`, such as `redux-first-router` or `redux-offline`.
+If not provided, `configureStore` will call `getDefaultEnhancers` and use the array of enhancers it returns (including `applyMiddleware` with specified middleware).
+
+Where you wish to add onto or customize the default enhancers, you may pass a callback function that will receive `getDefaultEnhancers` as its argument, and should return an enhancer array.
 
 Example: `enhancers: (defaultEnhancers) => defaultEnhancers.prepend(offline)` will result in a final setup
 of `[offline, applyMiddleware, devToolsExtension]`.
+
+For more details on how the `enhancer` parameter works and the list of enhancers that are added by default, see the [`getDefaultEnhancers` docs page](./getDefaultEnhancers).
+
+:::caution Middleware
+
+In order to use any [middleware](#middleware) specified, you _need_ to use the `getDefaultEnhancers` callback, which will include the built `applyMiddleware` enhancer.
+
+If you provide an array, this `applyMiddleware` enhancer will _not_ be used.
+
+`configureStore` will warn in console if any middleware are provided (or left as default) but not included in the final list of enhancers.
+
+```ts no-transpile
+// warns - middleware left as default but not included in final enhancers
+configureStore({
+  reducer,
+  enhancers: [offline],
+})
+// warns - middleware customised but not included in final enhancers
+configureStore({
+  reducer,
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger)
+  enhancers: [offline],
+})
+
+// fine - default enhancers included
+configureStore({
+  reducer,
+  enhancers: (getDefaultEnhancers) => getDefaultEnhancers().concat(offline),
+})
+
+// also allowed
+configureStore({
+  reducer,
+  middleware: [],
+  enhancers: [offline],
+})
+```
+
+:::
 
 ## Usage
 

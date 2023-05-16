@@ -44,6 +44,7 @@
             "api/actionCreatorMiddleware",
             "api/createListenerMiddleware",
             "api/createDynamicMiddleware",
+            "api/getDefaultEnhancers",
             "api/autoBatchEnhancer"
           ]
         },
