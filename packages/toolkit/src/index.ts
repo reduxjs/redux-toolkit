@@ -177,6 +177,8 @@ export {
   TaskAbortError,
 } from './listenerMiddleware/index'
 
+export { createDynamicMiddleware } from './dynamicMiddleware/index'
+
 export {
   SHOULD_AUTOBATCH,
   prepareAutoBatched,

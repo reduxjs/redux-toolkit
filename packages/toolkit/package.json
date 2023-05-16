@@ -32,6 +32,11 @@
       "import": "./dist/redux-toolkit.modern.mjs",
       "default": "./dist/cjs/index.js"
     },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/redux-toolkit-react.modern.mjs",
+      "default": "./dist/react/cjs/index.js"
+    },
     "./query": {
       "types": "./dist/query/index.d.ts",
       "import": "./dist/query/rtk-query.modern.mjs",
@@ -101,7 +106,8 @@
   "files": [
     "dist/",
     "src/",
-    "query"
+    "query",
+    "react"
   ],
   "dependencies": {
     "immer": "^10.0.1",

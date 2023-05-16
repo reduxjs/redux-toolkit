@@ -43,6 +43,7 @@
             "api/serializabilityMiddleware",
             "api/actionCreatorMiddleware",
             "api/createListenerMiddleware",
+            "api/createDynamicMiddleware",
             "api/autoBatchEnhancer"
           ]
         },
