@@ -15,7 +15,7 @@ export type BaseThunkAPI<
   S,
   E,
   D extends Dispatch = Dispatch,
-  RejectedValue = undefined,
+  RejectedValue = unknown,
   RejectedMeta = unknown,
   FulfilledMeta = unknown
 > = {
@@ -105,7 +105,7 @@ export const miniSerializeError = (value: any): SerializedError => {
   return { message: String(value) }
 }
 
-type AsyncThunkConfig = {
+export type AsyncThunkConfig = {
   state?: unknown
   dispatch?: Dispatch
   extra?: unknown
@@ -137,7 +137,7 @@ type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
     >
   : ThunkDispatch<GetState<ThunkApiConfig>, GetExtra<ThunkApiConfig>, AnyAction>
 
-type GetThunkAPI<ThunkApiConfig> = BaseThunkAPI<
+export type GetThunkAPI<ThunkApiConfig> = BaseThunkAPI<
   GetState<ThunkApiConfig>,
   GetExtra<ThunkApiConfig>,
   GetDispatch<ThunkApiConfig>,
@@ -414,7 +414,7 @@ export type AsyncThunk<
   typePrefix: string
 }
 
-type OverrideThunkApiConfigs<OldConfig, NewConfig> = Id<
+export type OverrideThunkApiConfigs<OldConfig, NewConfig> = Id<
   NewConfig & Omit<OldConfig, keyof NewConfig>
 >
 

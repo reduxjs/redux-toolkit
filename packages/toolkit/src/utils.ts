@@ -1,6 +1,4 @@
-import type { Middleware } from 'redux'
-
-import type { BuildCreateReducerConfiguration } from './createReducer'
+import type { Middleware, StoreEnhancer } from 'redux'
 
 export function getTimeMeasureUtils(maxDelay: number, fnName: string) {
   let elapsed = 0
@@ -26,6 +24,19 @@ It is disabled in production builds, so you don't need to worry about that.`)
 
 export function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+export function find<T>(
+  iterable: Iterable<T>,
+  comparator: (item: T) => boolean
+): T | undefined {
+  for (const entry of iterable) {
+    if (comparator(entry)) {
+      return entry
+    }
+  }
+
+  return undefined
 }
 
 /**
@@ -71,11 +82,45 @@ export class MiddlewareArray<
   }
 }
 
-export function makeFreezeDraftable<T>({
-  isDraftable,
-  createNextState,
-}: BuildCreateReducerConfiguration) {
-  return function freezeDraftable<T>(val: T) {
-    return isDraftable(val) ? createNextState(val, () => {}) : val
+/**
+ * @public
+ */
+export class EnhancerArray<
+  Enhancers extends StoreEnhancer<any, any>[]
+> extends Array<Enhancers[number]> {
+  constructor(...items: Enhancers)
+  constructor(...args: any[]) {
+    super(...args)
+    Object.setPrototypeOf(this, EnhancerArray.prototype)
+  }
+
+  static get [Symbol.species]() {
+    return EnhancerArray as any
+  }
+
+  concat<AdditionalEnhancers extends ReadonlyArray<StoreEnhancer<any, any>>>(
+    items: AdditionalEnhancers
+  ): EnhancerArray<[...Enhancers, ...AdditionalEnhancers]>
+
+  concat<AdditionalEnhancers extends ReadonlyArray<StoreEnhancer<any, any>>>(
+    ...items: AdditionalEnhancers
+  ): EnhancerArray<[...Enhancers, ...AdditionalEnhancers]>
+  concat(...arr: any[]) {
+    return super.concat.apply(this, arr)
+  }
+
+  prepend<AdditionalEnhancers extends ReadonlyArray<StoreEnhancer<any, any>>>(
+    items: AdditionalEnhancers
+  ): EnhancerArray<[...AdditionalEnhancers, ...Enhancers]>
+
+  prepend<AdditionalEnhancers extends ReadonlyArray<StoreEnhancer<any, any>>>(
+    ...items: AdditionalEnhancers
+  ): EnhancerArray<[...AdditionalEnhancers, ...Enhancers]>
+
+  prepend(...arr: any[]) {
+    if (arr.length === 1 && Array.isArray(arr[0])) {
+      return new EnhancerArray(...arr[0].concat(this))
+    }
+    return new EnhancerArray(...arr.concat(this))
   }
 }

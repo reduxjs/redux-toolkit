@@ -6,12 +6,20 @@ import type {
   ActionCreatorWithPayload,
   ActionCreatorWithPreparedPayload,
   ActionReducerMapBuilder,
+  AsyncThunk,
+  CaseReducer,
   PayloadAction,
+  PayloadActionCreator,
+  ReducerCreators,
+  SerializedError,
   SliceCaseReducers,
+  ThunkDispatch,
   ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
 import { createAction, createSlice } from '@reduxjs/toolkit'
-import { expectType } from './helpers'
+import { expectExactType, expectType, expectUnknown } from './helpers'
+import { castDraft } from 'immer'
 
 /*
  * Test: Slice name is strongly typed.
@@ -386,13 +394,13 @@ const value = actionCreators.anyKey
     },
   })
 
-  const x: Action<unknown> = {} as any
+  const x: Action<string> = {} as any
   if (mySlice.actions.setName.match(x)) {
     expectType<'name/setName'>(x.type)
     expectType<string>(x.payload)
   } else {
     // @ts-expect-error
-    expectType<string>(x.type)
+    expectType<'name/setName'>(x.type)
     // @ts-expect-error
     expectType<string>(x.payload)
   }
@@ -498,4 +506,284 @@ const value = actionCreators.anyKey
     })
     return { doNothing, setData, slice }
   }
+}
+
+/**
+ * Test: slice selectors
+ */
+
+{
+  const sliceWithoutSelectors = createSlice({
+    name: '',
+    initialState: '',
+    reducers: {},
+  })
+
+  // @ts-expect-error
+  sliceWithoutSelectors.selectors.foo
+
+  const sliceWithSelectors = createSlice({
+    name: 'counter',
+    initialState: { value: 0 },
+    reducers: {
+      increment: (state) => {
+        state.value += 1
+      },
+    },
+    selectors: {
+      selectValue: (state) => state.value,
+      selectMultiply: (state, multiplier: number) => state.value * multiplier,
+      selectToFixed: (state) => state.value.toFixed(2),
+    },
+  })
+
+  const rootState = {
+    [sliceWithSelectors.reducerPath]: sliceWithSelectors.getInitialState(),
+  }
+
+  const { selectValue, selectMultiply, selectToFixed } =
+    sliceWithSelectors.selectors
+
+  expectType<number>(selectValue(rootState))
+  expectType<number>(selectMultiply(rootState, 2))
+  expectType<string>(selectToFixed(rootState))
+
+  const nestedState = {
+    nested: rootState,
+  }
+
+  const nestedSelectors = sliceWithSelectors.getSelectors(
+    (rootState: typeof nestedState) => rootState.nested.counter
+  )
+
+  expectType<number>(nestedSelectors.selectValue(nestedState))
+  expectType<number>(nestedSelectors.selectMultiply(nestedState, 2))
+  expectType<string>(nestedSelectors.selectToFixed(nestedState))
+}
+
+/**
+ * Test: reducer callback
+ */
+
+{
+  interface TestState {
+    foo: string
+  }
+
+  interface TestArg {
+    test: string
+  }
+
+  interface TestReturned {
+    payload: string
+  }
+
+  interface TestReject {
+    cause: string
+  }
+
+  const slice = createSlice({
+    name: 'test',
+    initialState: {} as TestState,
+    reducers: (create) => {
+      const pretypedAsyncThunk =
+        create.asyncThunk.withTypes<{ rejectValue: TestReject }>()
+
+      // @ts-expect-error
+      create.asyncThunk<any, any, { state: StoreState }>(() => {})
+
+      // @ts-expect-error
+      create.asyncThunk.withTypes<{
+        rejectValue: string
+        dispatch: StoreDispatch
+      }>()
+
+      return {
+        normalReducer: create.reducer<string>((state, action) => {
+          expectType<TestState>(state)
+          expectType<string>(action.payload)
+        }),
+        preparedReducer: create.preparedReducer(
+          (payload: string) => ({
+            payload,
+            meta: 'meta' as const,
+            error: 'error' as const,
+          }),
+          (state, action) => {
+            expectType<TestState>(state)
+            expectType<string>(action.payload)
+            expectExactType('meta' as const)(action.meta)
+            expectExactType('error' as const)(action.error)
+          }
+        ),
+        testInfer: create.asyncThunk(
+          function payloadCreator(arg: TestArg, api) {
+            return Promise.resolve<TestReturned>({ payload: 'foo' })
+          },
+          {
+            pending(state, action) {
+              expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
+            },
+            fulfilled(state, action) {
+              expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
+              expectType<TestReturned>(action.payload)
+            },
+            rejected(state, action) {
+              expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
+              expectType<SerializedError>(action.error)
+            },
+          }
+        ),
+        testExplicitType: create.asyncThunk<
+          TestArg,
+          TestReturned,
+          {
+            rejectValue: TestReject
+          }
+        >(
+          function payloadCreator(arg, api) {
+            // here would be a circular reference
+            expectUnknown(api.getState())
+            // here would be a circular reference
+            expectType<ThunkDispatch<any, any, any>>(api.dispatch)
+            // so you need to cast inside instead
+            const getState = api.getState as () => StoreState
+            const dispatch = api.dispatch as StoreDispatch
+            expectType<TestArg>(arg)
+            expectType<(value: TestReject) => any>(api.rejectWithValue)
+            return Promise.resolve({ payload: 'foo' })
+          },
+          {
+            pending(state, action) {
+              expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
+            },
+            fulfilled(state, action) {
+              expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
+              expectType<TestReturned>(action.payload)
+            },
+            rejected(state, action) {
+              expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
+              expectType<SerializedError>(action.error)
+              expectType<TestReject | undefined>(action.payload)
+            },
+          }
+        ),
+        testPretyped: pretypedAsyncThunk(
+          function payloadCreator(arg: TestArg, api) {
+            expectType<(value: TestReject) => any>(api.rejectWithValue)
+            return Promise.resolve<TestReturned>({ payload: 'foo' })
+          },
+          {
+            pending(state, action) {
+              expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
+            },
+            fulfilled(state, action) {
+              expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
+              expectType<TestReturned>(action.payload)
+            },
+            rejected(state, action) {
+              expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
+              expectType<SerializedError>(action.error)
+              expectType<TestReject | undefined>(action.payload)
+            },
+          }
+        ),
+      }
+    },
+  })
+
+  const store = configureStore({ reducer: { test: slice.reducer } })
+
+  type StoreState = ReturnType<typeof store.getState>
+  type StoreDispatch = typeof store.dispatch
+
+  expectType<PayloadActionCreator<string>>(slice.actions.normalReducer)
+  expectType<
+    ActionCreatorWithPreparedPayload<
+      [string],
+      string,
+      'test/preparedReducer',
+      'error',
+      'meta'
+    >
+  >(slice.actions.preparedReducer)
+  expectType<AsyncThunk<TestReturned, TestArg, {}>>(slice.actions.testInfer)
+  expectType<AsyncThunk<TestReturned, TestArg, { rejectValue: TestReject }>>(
+    slice.actions.testExplicitType
+  )
+  {
+    type TestInferThunk = AsyncThunk<TestReturned, TestArg, {}>
+    expectType<CaseReducer<TestState, ReturnType<TestInferThunk['pending']>>>(
+      slice.caseReducers.testInfer.pending
+    )
+    expectType<CaseReducer<TestState, ReturnType<TestInferThunk['fulfilled']>>>(
+      slice.caseReducers.testInfer.fulfilled
+    )
+    expectType<CaseReducer<TestState, ReturnType<TestInferThunk['rejected']>>>(
+      slice.caseReducers.testInfer.rejected
+    )
+  }
+}
+
+/** Test: wrapping createSlice should be possible, with callback */
+{
+  interface GenericState<T> {
+    data?: T
+    status: 'loading' | 'finished' | 'error'
+  }
+
+  const createGenericSlice = <
+    T,
+    Reducers extends SliceCaseReducers<GenericState<T>>
+  >({
+    name = '',
+    initialState,
+    reducers,
+  }: {
+    name: string
+    initialState: GenericState<T>
+    reducers: (create: ReducerCreators<GenericState<T>>) => Reducers
+  }) => {
+    return createSlice({
+      name,
+      initialState,
+      reducers: (create) => ({
+        start: create.reducer((state) => {
+          state.status = 'loading'
+        }),
+        success: create.reducer((state, action: PayloadAction<T>) => {
+          state.data = castDraft(action.payload)
+          state.status = 'finished'
+        }),
+        ...reducers(create),
+      }),
+    })
+  }
+
+  const wrappedSlice = createGenericSlice({
+    name: 'test',
+    initialState: { status: 'loading' } as GenericState<string>,
+    reducers: (create) => ({
+      magic: create.reducer((state) => {
+        expectType<GenericState<string>>(state)
+        // @ts-expect-error
+        expectType<GenericState<number>>(state)
+
+        state.status = 'finished'
+        state.data = 'hocus pocus'
+      }),
+    }),
+  })
+
+  expectType<ActionCreatorWithPayload<string>>(wrappedSlice.actions.success)
+  expectType<ActionCreatorWithoutPayload<string>>(wrappedSlice.actions.magic)
 }

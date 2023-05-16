@@ -144,28 +144,6 @@ declare module '../apiTypes' {
        */
       util: {
         /**
-         * This method had to be removed due to a conceptual bug in RTK.
-         *
-         * Despite TypeScript errors, it will continue working in the "buggy" way it did
-         * before in production builds and will be removed in the next major release.
-         *
-         * Nonetheless, you should immediately replace it with the new recommended approach.
-         * See https://redux-toolkit.js.org/rtk-query/usage/server-side-rendering for new guidance on SSR.
-         *
-         * Please see https://github.com/reduxjs/redux-toolkit/pull/2481 for details.
-         * @deprecated
-         */
-        getRunningOperationPromises: never // this is now types as `never` to immediately throw TS errors on use, but still allow for a comment
-
-        /**
-         * This method had to be removed due to a conceptual bug in RTK.
-         * It has been replaced by `api.util.getRunningQueryThunk` and `api.util.getRunningMutationThunk`.
-         * Please see https://github.com/reduxjs/redux-toolkit/pull/2481 for details.
-         * @deprecated
-         */
-        getRunningOperationPromise: never // this is now types as `never` to immediately throw TS errors on use, but still allow for a comment
-
-        /**
          * A thunk that (if dispatched) will return a specific running query, identified
          * by `endpointName` and `args`.
          * If that query is not running, dispatching the thunk will result in `undefined`.
@@ -272,11 +250,7 @@ declare module '../apiTypes' {
           Definitions,
           RootState<Definitions, string, ReducerPath>
         >
-        /** @deprecated renamed to `updateQueryData` */
-        updateQueryResult: UpdateQueryDataThunk<
-          Definitions,
-          RootState<Definitions, string, ReducerPath>
-        >
+
         /**
          * A Redux thunk action creator that, when dispatched, acts as an artificial API request to upsert a value into the cache.
          *
@@ -330,11 +304,7 @@ declare module '../apiTypes' {
           Definitions,
           RootState<Definitions, string, ReducerPath>
         >
-        /** @deprecated renamed to `patchQueryData` */
-        patchQueryResult: PatchQueryDataThunk<
-          Definitions,
-          RootState<Definitions, string, ReducerPath>
-        >
+
         /**
          * A Redux action creator that can be dispatched to manually reset the api state completely. This will immediately remove all existing cache entries, and all queries will be considered 'uninitialized'.
          *
@@ -458,7 +428,11 @@ interface CoreModuleOptions {
   immutableHelpers?: BuildCreateSliceConfiguration &
     Pick<
       ImmutableHelpers,
-      'createWithPatches' | 'applyPatches' | 'isDraftable' | 'freeze'
+      | 'createWithPatches'
+      | 'applyPatches'
+      | 'isDraftable'
+      | 'freeze'
+      | 'original'
     >
 }
 
@@ -589,8 +563,6 @@ export const coreModule = ({
       getRunningMutationsThunk,
       getRunningQueriesThunk,
       getRunningQueryThunk,
-      getRunningOperationPromises,
-      removalWarning,
     } = buildInitiate({
       queryThunk,
       mutationThunk,
@@ -600,8 +572,6 @@ export const coreModule = ({
     })
 
     safeAssign(api.util, {
-      getRunningOperationPromises: getRunningOperationPromises as any,
-      getRunningOperationPromise: removalWarning as any,
       getRunningMutationThunk,
       getRunningMutationsThunk,
       getRunningQueryThunk,

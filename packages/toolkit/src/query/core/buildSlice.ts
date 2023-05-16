@@ -13,7 +13,6 @@ import {
   buildCreateSlice,
 } from '@reduxjs/toolkit'
 import type {
-  CombinedState as CombinedQueryState,
   QuerySubstateIdentifier,
   QuerySubState,
   MutationSubstateIdentifier,
@@ -102,7 +101,7 @@ export function buildSlice({
   assertTagType,
   config,
   immutableHelpers,
-  immutableHelpers: { applyPatches, createNextState },
+  immutableHelpers: { applyPatches, createNextState, isDraft, original },
 }: {
   reducerPath: string
   queryThunk: QueryThunk
@@ -113,7 +112,7 @@ export function buildSlice({
     ConfigState<string>,
     'online' | 'focused' | 'middlewareRegistered'
   >
-  immutableHelpers: Pick<ImmutableHelpers, 'applyPatches'> &
+  immutableHelpers: Pick<ImmutableHelpers, 'applyPatches' | 'original'> &
     BuildCreateSliceConfiguration
 }) {
   const createSlice = buildCreateSlice(immutableHelpers)
@@ -216,7 +215,12 @@ export function buildSlice({
                 // Assign or safely update the cache data.
                 substate.data =
                   definitions[meta.arg.endpointName].structuralSharing ?? true
-                    ? copyWithStructuralSharing(substate.data, payload)
+                    ? copyWithStructuralSharing(
+                        isDraft(substate.data)
+                          ? original(substate.data)
+                          : substate.data,
+                        payload
+                      )
                     : payload
               }
 
@@ -435,8 +439,11 @@ export function buildSlice({
     name: `${reducerPath}/internalSubscriptions`,
     initialState: initialState as SubscriptionState,
     reducers: {
-      subscriptionsUpdated(state, action: PayloadAction<Patch[]>) {
-        return applyPatches(state, action.payload)
+      subscriptionsUpdated: {
+        reducer(state, action: PayloadAction<Patch[]>) {
+          return applyPatches(state, action.payload)
+        },
+        prepare: prepareAutoBatched<Patch[]>(),
       },
     },
   })
@@ -477,9 +484,7 @@ export function buildSlice({
     },
   })
 
-  const combinedReducer = combineReducers<
-    CombinedQueryState<any, string, string>
-  >({
+  const combinedReducer = combineReducers({
     queries: querySlice.reducer,
     mutations: mutationSlice.reducer,
     provided: invalidationSlice.reducer,
@@ -496,8 +501,6 @@ export function buildSlice({
     ...subscriptionSlice.actions,
     ...internalSubscriptionsSlice.actions,
     ...mutationSlice.actions,
-    /** @deprecated has been renamed to `removeMutationResult` */
-    unsubscribeMutationResult: mutationSlice.actions.removeMutationResult,
     resetApiState,
   }
 

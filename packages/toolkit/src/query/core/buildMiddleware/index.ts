@@ -1,5 +1,5 @@
 import type { AnyAction, Middleware, ThunkDispatch } from '@reduxjs/toolkit'
-import { createAction } from '@reduxjs/toolkit'
+import { isAction, createAction } from '@reduxjs/toolkit'
 
 import type {
   EndpointDefinitions,
@@ -81,6 +81,9 @@ export function buildMiddleware<
 
     return (next) => {
       return (action) => {
+        if (!isAction(action)) {
+          return next(action)
+        }
         if (!initialized) {
           initialized = true
           // dispatch before any other action

@@ -7,7 +7,13 @@ export {
   isDraft,
 } from 'immer'
 export type { Draft } from 'immer'
-export { createSelector } from 'reselect'
+export {
+  createSelector,
+  createSelectorCreator,
+  defaultMemoize,
+  autotrackMemoize,
+  weakMapMemoize,
+} from 'reselect'
 export type {
   Selector,
   OutputParametricSelector,
@@ -27,7 +33,6 @@ export {
 } from './configureStore'
 export type {
   // types
-  ConfigureEnhancersCallback,
   ConfigureStoreOptions,
   EnhancedStore,
 } from './configureStore'
@@ -35,7 +40,9 @@ export type { DevToolsEnhancerOptions } from './devtoolsExtension'
 export {
   // js
   createAction,
-  getType,
+  isAction,
+  isActionCreator,
+  isFSA as isFluxStandardAction,
 } from './createAction'
 export type {
   // types
@@ -77,8 +84,10 @@ export type {
   SliceCaseReducers,
   ValidateSliceCaseReducers,
   CaseReducerWithPrepare,
-  SliceActionCreator,
+  ReducerCreators,
 } from './createSlice'
+export type { ActionCreatorInvariantMiddlewareOptions } from './actionCreatorInvariantMiddleware'
+export { createActionCreatorInvariantMiddleware } from './actionCreatorInvariantMiddleware'
 export {
   // js
   createImmutableStateInvariantMiddleware,
@@ -98,15 +107,11 @@ export type {
   // types
   SerializableStateInvariantMiddlewareOptions,
 } from './serializableStateInvariantMiddleware'
-export {
-  // js
-  getDefaultMiddleware,
-} from './getDefaultMiddleware'
 export type {
   // types
   ActionReducerMapBuilder,
 } from './mapBuilders'
-export { MiddlewareArray } from './utils'
+export { MiddlewareArray, EnhancerArray } from './utils'
 
 export {
   buildCreateEntityAdapter,
@@ -191,6 +196,8 @@ export {
   TaskAbortError,
 } from './listenerMiddleware/index'
 
+export { createDynamicMiddleware } from './dynamicMiddleware/index'
+
 export {
   SHOULD_AUTOBATCH,
   prepareAutoBatched,
@@ -201,3 +208,6 @@ export type { AutoBatchOptions } from './autoBatchEnhancer'
 export type { ImmutableHelpers } from './tsHelpers'
 export { defineImmutableHelpers } from './tsHelpers'
 export { immutableHelpers as immerImmutableHelpers } from './immer'
+
+export { combineSlices } from './combineSlices'
+export type { WithSlice } from './combineSlices'

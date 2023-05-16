@@ -130,6 +130,192 @@ const todosSlice = createSlice({
 })
 ```
 
+### The `reducers` "creator callback" notation
+
+Alternatively, the `reducers` field can be a callback which receives a "create" object.
+
+The main benefit of this is that you can create [async thunks](./createAsyncThunk) as part of your slice. Types are also slightly simplified for prepared reducers.
+
+```ts title="Creator callback for reducers"
+import { createSlice, nanoid } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
+
+interface Item {
+  id: string
+  text: string
+}
+
+interface TodoState {
+  loading: boolean
+  todos: Item[]
+}
+
+const todosSlice = createSlice({
+  name: 'todos',
+  initialState: {
+    loading: false,
+    todos: [],
+  } as TodoState,
+  reducers: (create) => ({
+    deleteTodo: create.reducer((state, action: PayloadAction<number>) => {
+      state.todos.splice(action.payload, 1)
+    }),
+    addTodo: create.preparedReducer(
+      (text: string) => {
+        const id = nanoid()
+        return { payload: { id, text } }
+      },
+      // action type is inferred from prepare callback
+      (state, action) => {
+        state.todos.push(action.payload)
+      }
+    ),
+    fetchTodo: create.asyncThunk(
+      async (id: string, thunkApi) => {
+        const res = await fetch(`myApi/todos?id=${id}`)
+        return (await res.json()) as Item
+      },
+      {
+        pending: (state) => {
+          state.loading = true
+        },
+        rejected: (state, action) => {
+          state.loading = false
+        },
+        fulfilled: (state, action) => {
+          state.loading = false
+          state.todos.push(action.payload)
+        },
+      }
+    ),
+  }),
+})
+
+export const { addTodo, deleteTodo, fetchTodo } = todosSlice.actions
+```
+
+#### Create Methods
+
+#### `create.reducer`
+
+A standard slice case reducer.
+
+**Parameters**
+
+- **reducer** The slice case reducer to use.
+
+```ts no-transpile
+create.reducer((state, action: PayloadAction<Todo>) => {
+  state.todos.push(action.payload)
+})
+```
+
+#### `create.preparedReducer`
+
+A [prepared](#customizing-generated-action-creators) reducer, to customize the action creator.
+
+**Parameters**
+
+- **prepareAction** The [`prepare callback`](./createAction#using-prepare-callbacks-to-customize-action-contents).
+- **reducer** The slice case reducer to use.
+
+The action passed to the case reducer will be inferred from the prepare callback's return.
+
+```ts no-transpile
+create.preparedReducer(
+  (text: string) => {
+    const id = nanoid()
+    return { payload: { id, text } }
+  },
+  (state, action) => {
+    state.todos.push(action.payload)
+  }
+)
+```
+
+#### `create.asyncThunk`
+
+Creates an async thunk instead of an action creator.
+
+**Parameters**
+
+- **payloadCreator** The thunk [payload creator](./createAsyncThunk#payloadcreator).
+- **config** The configuration object. (optional)
+
+The configuration object can contain case reducers for each of the [lifecycle actions](./createAsyncThunk#promise-lifecycle-actions) (`pending`, `fulfilled`, and `rejected`).
+
+Each case reducer will be attached to the slice's `caseReducers` object, e.g. `slice.caseReducers.fetchTodo.fulfilled`.
+
+The configuration object can also contain [`options`](./createAsyncThunk#options).
+
+```ts no-transpile
+create.asyncThunk(
+  async (id: string, thunkApi) => {
+    const res = await fetch(`myApi/todos?id=${id}`)
+    return (await res.json()) as Item
+  },
+  {
+    pending: (state) => {
+      state.loading = true
+    },
+    rejected: (state, action) => {
+      state.loading = false
+    },
+    fulfilled: (state, action) => {
+      state.loading = false
+      state.todos.push(action.payload)
+    },
+    options: {
+      idGenerator: uuid,
+    },
+  }
+)
+```
+
+:::note
+
+Typing for the `create.asyncThunk` works in the same way as [`createAsyncThunk`](usage/usage-with-typescript#createasyncthunk), with one key difference.
+
+A type for `state` and/or `dispatch` _cannot_ be provided as part of the `ThunkApiConfig`, as this would cause circular types.
+
+Instead, it is necessary to assert the type when needed.
+
+```ts no-transpile
+create.asyncThunk<Todo, string, { rejectValue: { error: string } }>(
+  async (id, thunkApi) => {
+    const state = thunkApi.getState() as RootState
+    const dispatch = thunkApi.dispatch as AppDispatch
+    throw thunkApi.rejectWithValue({
+      error: 'Oh no!',
+    })
+  }
+)
+```
+
+For common thunk API configuration options, a [`withTypes` helper](usage/usage-with-typescript#defining-a-pre-typed-createasyncthunk) is provided:
+
+```ts no-transpile
+reducers: (create) => {
+  const createAThunk =
+    create.asyncThunk.withTypes<{ rejectValue: { error: string } }>()
+
+  return {
+    fetchTodo: createAThunk<Todo, string>(async (id, thunkApi) => {
+      throw thunkApi.rejectWithValue({
+        error: 'Oh no!',
+      })
+    }),
+    fetchTodos: createAThunk<Todo[], string>(async (id, thunkApi) => {
+      throw thunkApi.rejectWithValue({
+        error: 'Oh no, not again!',
+      })
+    }),
+  }
+}
+```
+
+:::
+
 ### `extraReducers`
 
 One of the key concepts of Redux is that each slice reducer "owns" its slice of state, and that many slice reducers

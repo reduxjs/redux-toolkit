@@ -125,9 +125,10 @@ describe('configureStore', async () => {
         Object
       )
       expect(redux.applyMiddleware).toHaveBeenCalledWith(
-        expect.any(Function), // thunk
         expect.any(Function), // immutableCheck
-        expect.any(Function) // serializableCheck
+        expect.any(Function), // thunk
+        expect.any(Function), // serializableCheck
+        expect.any(Function) // actionCreatorCheck
       )
       expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line-line
       expect(redux.createStore).toHaveBeenCalledWith(
@@ -252,11 +253,26 @@ describe('configureStore', async () => {
   })
 
   describe('given enhancers', () => {
+    let dummyEnhancerCalled = false
+
+    const dummyEnhancer: StoreEnhancer =
+      (createStore) => (reducer, preloadedState) => {
+        dummyEnhancerCalled = true
+
+        return createStore(reducer, preloadedState)
+      }
+
+    beforeEach(() => {
+      dummyEnhancerCalled = false
+    })
+
     it('calls createStore with enhancers', () => {
-      const enhancer: Redux.StoreEnhancer = (next) => next
-      expect(configureStore({ enhancers: [enhancer], reducer })).toBeInstanceOf(
-        Object
-      )
+      expect(
+        configureStore({
+          enhancers: (gDE) => gDE().concat(dummyEnhancer),
+          reducer,
+        })
+      ).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalled()
       expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
@@ -267,26 +283,45 @@ describe('configureStore', async () => {
     })
 
     it('accepts a callback for customizing enhancers', () => {
-      let dummyEnhancerCalled = false
-
-      const dummyEnhancer: StoreEnhancer =
-        (createStore) =>
-        (reducer, ...args: any[]) => {
-          dummyEnhancerCalled = true
-
-          return createStore(reducer, ...args)
-        }
-
-      const reducer = () => ({})
-
       const store = configureStore({
         reducer,
-        enhancers: (defaultEnhancers) => {
-          return [...defaultEnhancers, dummyEnhancer]
-        },
+        enhancers: (getDefaultEnhancers) =>
+          getDefaultEnhancers().concat(dummyEnhancer),
       })
 
       expect(dummyEnhancerCalled).toBe(true)
+    })
+
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    beforeEach(() => {
+      consoleSpy.mockClear()
+    })
+    afterAll(() => {
+      consoleSpy.mockRestore()
+    })
+
+    it('warns if middleware enhancer is excluded from final array when middlewares are provided', () => {
+      const store = configureStore({
+        reducer,
+        enhancers: [dummyEnhancer],
+      })
+
+      expect(dummyEnhancerCalled).toBe(true)
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'middlewares were provided, but middleware enhancer was not included in final enhancers'
+      )
+    })
+    it("doesn't warn when middleware enhancer is excluded if no middlewares provided", () => {
+      const store = configureStore({
+        reducer,
+        middleware: [],
+        enhancers: [dummyEnhancer],
+      })
+
+      expect(dummyEnhancerCalled).toBe(true)
+
+      expect(consoleSpy).not.toHaveBeenCalled()
     })
   })
 })

@@ -1,6 +1,13 @@
 import type { Middleware, StoreEnhancer } from 'redux'
 import type { Draft, Patch, applyPatches } from 'immer'
-import type { MiddlewareArray } from './utils'
+import type { EnhancerArray, MiddlewareArray } from './utils'
+
+export function safeAssign<T extends object>(
+  target: T,
+  ...args: Array<Partial<NoInfer<T>>>
+) {
+  Object.assign(target, ...args)
+}
 
 export interface ImmutableHelpers {
   /**
@@ -153,15 +160,56 @@ export type ExtractDispatchExtensions<M> = M extends MiddlewareArray<
   ? ExtractDispatchFromMiddlewareTuple<[...M], {}>
   : never
 
-export type ExtractStoreExtensions<E> = E extends readonly any[]
+type ExtractStoreExtensionsFromEnhancerTuple<
+  EnhancerTuple extends any[],
+  Acc extends {}
+> = EnhancerTuple extends [infer Head, ...infer Tail]
+  ? ExtractStoreExtensionsFromEnhancerTuple<
+      Tail,
+      Acc & (Head extends StoreEnhancer<infer Ext> ? IsAny<Ext, {}, Ext> : {})
+    >
+  : Acc
+
+export type ExtractStoreExtensions<E> = E extends EnhancerArray<
+  infer EnhancerTuple
+>
+  ? ExtractStoreExtensionsFromEnhancerTuple<EnhancerTuple, {}>
+  : E extends ReadonlyArray<StoreEnhancer>
   ? UnionToIntersection<
       E[number] extends StoreEnhancer<infer Ext>
         ? Ext extends {}
-          ? Ext
+          ? IsAny<Ext, {}, Ext>
           : {}
         : {}
     >
-  : {}
+  : never
+
+type ExtractStateExtensionsFromEnhancerTuple<
+  EnhancerTuple extends any[],
+  Acc extends {}
+> = EnhancerTuple extends [infer Head, ...infer Tail]
+  ? ExtractStateExtensionsFromEnhancerTuple<
+      Tail,
+      Acc &
+        (Head extends StoreEnhancer<any, infer StateExt>
+          ? IsAny<StateExt, {}, StateExt>
+          : {})
+    >
+  : Acc
+
+export type ExtractStateExtensions<E> = E extends EnhancerArray<
+  infer EnhancerTuple
+>
+  ? ExtractStateExtensionsFromEnhancerTuple<EnhancerTuple, {}>
+  : E extends ReadonlyArray<StoreEnhancer>
+  ? UnionToIntersection<
+      E[number] extends StoreEnhancer<any, infer StateExt>
+        ? StateExt extends {}
+          ? IsAny<StateExt, {}, StateExt>
+          : {}
+        : {}
+    >
+  : never
 
 /**
  * Helper type. Passes T out again, but boxes it in a way that it cannot
@@ -172,7 +220,15 @@ export type ExtractStoreExtensions<E> = E extends readonly any[]
  */
 export type NoInfer<T> = [T][T extends any ? 0 : never]
 
+export type NonUndefined<T> = T extends undefined ? never : T
+
 export type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>
+
+export type WithRequiredProp<T, K extends keyof T> = Omit<T, K> &
+  Required<Pick<T, K>>
+
+export type WithOptionalProp<T, K extends keyof T> = Omit<T, K> &
+  Partial<Pick<T, K>>
 
 export interface TypeGuard<T> {
   (value: any): value is T
@@ -199,3 +255,7 @@ export type ActionFromMatcher<M extends Matcher<any>> = M extends Matcher<
   : never
 
 export type Id<T> = { [K in keyof T]: T[K] } & {}
+
+export type Tail<T extends any[]> = T extends [any, ...infer Tail]
+  ? Tail
+  : never

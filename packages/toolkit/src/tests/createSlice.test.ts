@@ -1,6 +1,11 @@
 import { vi } from 'vitest'
-import type { PayloadAction } from '@reduxjs/toolkit'
-import { createSlice, createAction } from '@reduxjs/toolkit'
+import type { PayloadAction, WithSlice } from '@reduxjs/toolkit'
+import {
+  configureStore,
+  combineSlices,
+  createSlice,
+  createAction,
+} from '@reduxjs/toolkit'
 import {
   mockConsole,
   createConsole,
@@ -446,6 +451,320 @@ describe('createSlice', () => {
 
       expect(wrapper).toThrowError(
         /The object notation for `createSlice.extraReducers` has been removed/
+      )
+    })
+  })
+  describe('slice selectors', () => {
+    const slice = createSlice({
+      name: 'counter',
+      initialState: 42,
+      reducers: {},
+      selectors: {
+        selectSlice: (state) => state,
+        selectMultiple: (state, multiplier: number) => state * multiplier,
+      },
+    })
+    it('expects reducer under slice.name if no selectState callback passed', () => {
+      const testState = {
+        [slice.name]: slice.getInitialState(),
+      }
+      const { selectSlice, selectMultiple } = slice.selectors
+      expect(selectSlice(testState)).toBe(slice.getInitialState())
+      expect(selectMultiple(testState, 2)).toBe(slice.getInitialState() * 2)
+    })
+    it('allows passing a selector for a custom location', () => {
+      const customState = {
+        number: slice.getInitialState(),
+      }
+      const { selectSlice, selectMultiple } = slice.getSelectors(
+        (state: typeof customState) => state.number
+      )
+      expect(selectSlice(customState)).toBe(slice.getInitialState())
+      expect(selectMultiple(customState, 2)).toBe(slice.getInitialState() * 2)
+    })
+  })
+  describe('slice injections', () => {
+    it('uses injectInto to inject slice into combined reducer', () => {
+      const slice = createSlice({
+        name: 'counter',
+        initialState: 42,
+        reducers: {
+          increment: (state) => ++state,
+        },
+        selectors: {
+          selectSlice: (state) => state,
+          selectMultiple: (state, multiplier: number) => state * multiplier,
+        },
+      })
+
+      const { increment } = slice.actions
+
+      const combinedReducer = combineSlices({
+        static: slice.reducer,
+      }).withLazyLoadedSlices<WithSlice<typeof slice>>()
+
+      const uninjectedState = combinedReducer(undefined, increment())
+
+      expect(uninjectedState.counter).toBe(undefined)
+
+      const injectedSlice = slice.injectInto(combinedReducer)
+
+      // selector returns initial state if undefined in real state
+      expect(injectedSlice.selectors.selectSlice(uninjectedState)).toBe(
+        slice.getInitialState()
+      )
+
+      const injectedState = combinedReducer(undefined, increment())
+
+      expect(injectedSlice.selectors.selectSlice(injectedState)).toBe(
+        slice.getInitialState() + 1
+      )
+    })
+    it('allows providing a custom name to inject under', () => {
+      const slice = createSlice({
+        name: 'counter',
+        reducerPath: 'injected',
+        initialState: 42,
+        reducers: {
+          increment: (state) => ++state,
+        },
+        selectors: {
+          selectSlice: (state) => state,
+          selectMultiple: (state, multiplier: number) => state * multiplier,
+        },
+      })
+
+      const { increment } = slice.actions
+
+      const combinedReducer = combineSlices({
+        static: slice.reducer,
+      }).withLazyLoadedSlices<WithSlice<typeof slice> & { injected2: number }>()
+
+      const uninjectedState = combinedReducer(undefined, increment())
+
+      expect(uninjectedState.injected).toBe(undefined)
+
+      slice.injectInto(combinedReducer)
+
+      const injectedState = combinedReducer(undefined, increment())
+
+      expect(injectedState.injected).toBe(slice.getInitialState() + 1)
+
+      slice.injectInto(combinedReducer, { reducerPath: 'injected2' })
+
+      const injected2State = combinedReducer(undefined, increment())
+
+      expect(injected2State.injected2).toBe(slice.getInitialState() + 1)
+    })
+  })
+  describe('reducers definition with asyncThunks', () => {
+    function pending(state: any[], action: any) {
+      state.push(['pendingReducer', action])
+    }
+    function fulfilled(state: any[], action: any) {
+      state.push(['fulfilledReducer', action])
+    }
+    function rejected(state: any[], action: any) {
+      state.push(['rejectedReducer', action])
+    }
+
+    test('successful thunk', async () => {
+      const slice = createSlice({
+        name: 'test',
+        initialState: [] as any[],
+        reducers: (create) => ({
+          thunkReducers: create.asyncThunk(
+            function payloadCreator(arg, api) {
+              return Promise.resolve('resolved payload')
+            },
+            { pending, fulfilled, rejected }
+          ),
+        }),
+      })
+
+      const store = configureStore({
+        reducer: slice.reducer,
+      })
+      await store.dispatch(slice.actions.thunkReducers('test'))
+      expect(store.getState()).toMatchObject([
+        [
+          'pendingReducer',
+          {
+            type: 'test/thunkReducers/pending',
+            payload: undefined,
+          },
+        ],
+        [
+          'fulfilledReducer',
+          {
+            type: 'test/thunkReducers/fulfilled',
+            payload: 'resolved payload',
+          },
+        ],
+      ])
+    })
+
+    test('rejected thunk', async () => {
+      const slice = createSlice({
+        name: 'test',
+        initialState: [] as any[],
+        reducers: (create) => ({
+          thunkReducers: create.asyncThunk(
+            // payloadCreator isn't allowed to return never
+            function payloadCreator(arg, api): any {
+              throw new Error('')
+            },
+            { pending, fulfilled, rejected }
+          ),
+        }),
+      })
+
+      const store = configureStore({
+        reducer: slice.reducer,
+      })
+      await store.dispatch(slice.actions.thunkReducers('test'))
+      expect(store.getState()).toMatchObject([
+        [
+          'pendingReducer',
+          {
+            type: 'test/thunkReducers/pending',
+            payload: undefined,
+          },
+        ],
+        [
+          'rejectedReducer',
+          {
+            type: 'test/thunkReducers/rejected',
+            payload: undefined,
+          },
+        ],
+      ])
+    })
+
+    test('with options', async () => {
+      const slice = createSlice({
+        name: 'test',
+        initialState: [] as any[],
+        reducers: (create) => ({
+          thunkReducers: create.asyncThunk(
+            function payloadCreator(arg, api) {
+              return 'should not call this'
+            },
+            {
+              options: {
+                condition() {
+                  return false
+                },
+                dispatchConditionRejection: true,
+              },
+              pending,
+              fulfilled,
+              rejected,
+            }
+          ),
+        }),
+      })
+
+      const store = configureStore({
+        reducer: slice.reducer,
+      })
+      await store.dispatch(slice.actions.thunkReducers('test'))
+      expect(store.getState()).toMatchObject([
+        [
+          'rejectedReducer',
+          {
+            type: 'test/thunkReducers/rejected',
+            payload: undefined,
+            meta: { condition: true },
+          },
+        ],
+      ])
+    })
+
+    test('has caseReducers for the asyncThunk', async () => {
+      const slice = createSlice({
+        name: 'test',
+        initialState: [],
+        reducers: (create) => ({
+          thunkReducers: create.asyncThunk(
+            function payloadCreator(arg, api) {
+              return Promise.resolve('resolved payload')
+            },
+            { pending, fulfilled }
+          ),
+        }),
+      })
+
+      expect(slice.caseReducers.thunkReducers.pending).toBe(pending)
+      expect(slice.caseReducers.thunkReducers.fulfilled).toBe(fulfilled)
+      // even though it is not defined above, this should at least be a no-op function to match the TypeScript typings
+      // and should be callable as a reducer even if it does nothing
+      expect(() =>
+        slice.caseReducers.thunkReducers.rejected(
+          [],
+          slice.actions.thunkReducers.rejected(
+            new Error('test'),
+            'fakeRequestId',
+            {}
+          )
+        )
+      ).not.toThrow()
+    })
+
+    test('can define reducer with prepare statement using create.preparedReducer', async () => {
+      const slice = createSlice({
+        name: 'test',
+        initialState: [] as any[],
+        reducers: (create) => ({
+          prepared: create.preparedReducer(
+            (p: string, m: number, e: { message: string }) => ({
+              payload: p,
+              meta: m,
+              error: e,
+            }),
+            (state, action) => {
+              state.push(action)
+            }
+          ),
+        }),
+      })
+
+      expect(
+        slice.reducer([], slice.actions.prepared('test', 1, { message: 'err' }))
+      ).toMatchInlineSnapshot(`
+        [
+          {
+            "error": {
+              "message": "err",
+            },
+            "meta": 1,
+            "payload": "test",
+            "type": "test/prepared",
+          },
+        ]
+      `)
+    })
+
+    test('throws an error when invoked with a normal `prepare` object that has not gone through a `create.preparedReducer` call', async () => {
+      expect(() =>
+        createSlice({
+          name: 'test',
+          initialState: [] as any[],
+          reducers: (create) => ({
+            prepared: {
+              prepare: (p: string, m: number, e: { message: string }) => ({
+                payload: p,
+                meta: m,
+                error: e,
+              }),
+              reducer: (state, action) => {
+                state.push(action)
+              },
+            },
+          }),
+        })
+      ).toThrowErrorMatchingInlineSnapshot(
+        `"Please use the \`create.preparedReducer\` notation for prepared action creators with the \`create\` notation."`
       )
     })
   })
