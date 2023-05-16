@@ -34,7 +34,7 @@
     },
     "./react": {
       "types": "./dist/react/index.d.ts",
-      "import": "./dist/react/redux-toolkit-react.modern.js",
+      "import": "./dist/react/redux-toolkit-react.modern.mjs",
       "default": "./dist/react/cjs/index.js"
     },
     "./query": {

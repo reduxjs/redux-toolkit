@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "module": "../dist/react/redux-toolkit-react.modern.js",
+  "module": "../dist/react/redux-toolkit-react.legacy-esm.js",
   "main": "../dist/react/cjs/index.js",
   "types": "./../dist/react/index.d.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
       "types": "./../dist/react/index.d.ts",
-      "import": "./../dist/react/redux-toolkit-react.modern.js",
+      "import": "./../dist/react/redux-toolkit-react.modern.mjs",
       "default": "./../dist/react/cjs/index.js"
     }
   },
