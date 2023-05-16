@@ -105,7 +105,7 @@ export const miniSerializeError = (value: any): SerializedError => {
   return { message: String(value) }
 }
 
-type AsyncThunkConfig = {
+export type AsyncThunkConfig = {
   state?: unknown
   dispatch?: Dispatch
   extra?: unknown
@@ -414,7 +414,7 @@ export type AsyncThunk<
   typePrefix: string
 }
 
-type OverrideThunkApiConfigs<OldConfig, NewConfig> = Id<
+export type OverrideThunkApiConfigs<OldConfig, NewConfig> = Id<
   NewConfig & Omit<OldConfig, keyof NewConfig>
 >
 

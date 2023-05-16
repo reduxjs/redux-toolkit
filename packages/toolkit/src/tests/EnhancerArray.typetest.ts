@@ -22,7 +22,7 @@ declare const enhancer2: StoreEnhancer<
   {
     const store = configureStore({
       reducer: () => 0,
-      enhancers: (dE) => dE.prepend(enhancer1),
+      enhancers: (gDE) => gDE().prepend(enhancer1),
     })
     expectType<true>(store.has1)
     expectType<true>(store.getState().stateHas1)
@@ -37,7 +37,7 @@ declare const enhancer2: StoreEnhancer<
   {
     const store = configureStore({
       reducer: () => 0,
-      enhancers: (dE) => dE.prepend(enhancer1, enhancer2),
+      enhancers: (gDE) => gDE().prepend(enhancer1, enhancer2),
     })
     expectType<true>(store.has1)
     expectType<true>(store.getState().stateHas1)
@@ -54,7 +54,7 @@ declare const enhancer2: StoreEnhancer<
   {
     const store = configureStore({
       reducer: () => 0,
-      enhancers: (dE) => dE.prepend([enhancer1, enhancer2] as const),
+      enhancers: (gDE) => gDE().prepend([enhancer1, enhancer2] as const),
     })
     expectType<true>(store.has1)
     expectType<true>(store.getState().stateHas1)
@@ -71,7 +71,7 @@ declare const enhancer2: StoreEnhancer<
   {
     const store = configureStore({
       reducer: () => 0,
-      enhancers: (dE) => dE.concat(enhancer1),
+      enhancers: (gDE) => gDE().concat(enhancer1),
     })
     expectType<true>(store.has1)
     expectType<true>(store.getState().stateHas1)
@@ -86,7 +86,7 @@ declare const enhancer2: StoreEnhancer<
   {
     const store = configureStore({
       reducer: () => 0,
-      enhancers: (dE) => dE.concat(enhancer1, enhancer2),
+      enhancers: (gDE) => gDE().concat(enhancer1, enhancer2),
     })
     expectType<true>(store.has1)
     expectType<true>(store.getState().stateHas1)
@@ -103,7 +103,7 @@ declare const enhancer2: StoreEnhancer<
   {
     const store = configureStore({
       reducer: () => 0,
-      enhancers: (dE) => dE.concat([enhancer1, enhancer2] as const),
+      enhancers: (gDE) => gDE().concat([enhancer1, enhancer2] as const),
     })
     expectType<true>(store.has1)
     expectType<true>(store.getState().stateHas1)
@@ -120,7 +120,7 @@ declare const enhancer2: StoreEnhancer<
   {
     const store = configureStore({
       reducer: () => 0,
-      enhancers: (dE) => dE.concat(enhancer1).prepend(enhancer2),
+      enhancers: (gDE) => gDE().concat(enhancer1).prepend(enhancer2),
     })
     expectType<true>(store.has1)
     expectType<true>(store.getState().stateHas1)

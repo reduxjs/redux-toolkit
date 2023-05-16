@@ -6,27 +6,8 @@ import type {
   Subscribers,
 } from '../apiState'
 import { produceWithPatches } from 'immer'
-import type { AnyAction } from '@reduxjs/toolkit';
+import type { AnyAction } from '@reduxjs/toolkit'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-
-// Copied from https://github.com/feross/queue-microtask
-let promise: Promise<any>
-const queueMicrotaskShim =
-  typeof queueMicrotask === 'function'
-    ? queueMicrotask.bind(
-        typeof window !== 'undefined'
-          ? window
-          : typeof global !== 'undefined'
-          ? global
-          : globalThis
-      )
-    : // reuse resolved promise, and allocate it lazily
-      (cb: () => void) =>
-        (promise || (promise = Promise.resolve())).then(cb).catch((err: any) =>
-          setTimeout(() => {
-            throw err
-          }, 0)
-        )
 
 export const buildBatchedActionsHandler: InternalHandlerBuilder<
   [actionShouldContinue: boolean, subscriptionExists: boolean]
@@ -124,7 +105,7 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
 
     if (didMutate) {
       if (!dispatchQueued) {
-        queueMicrotaskShim(() => {
+        queueMicrotask(() => {
           // Deep clone the current subscription data
           const newSubscriptions: SubscriptionState = JSON.parse(
             JSON.stringify(internalState.currentSubscriptions)

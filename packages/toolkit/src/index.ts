@@ -7,7 +7,13 @@ export {
   isDraft,
 } from 'immer'
 export type { Draft } from 'immer'
-export { createSelector } from 'reselect'
+export {
+  createSelector,
+  createSelectorCreator,
+  defaultMemoize,
+  autotrackMemoize,
+  weakMapMemoize,
+} from 'reselect'
 export type {
   Selector,
   OutputParametricSelector,
@@ -23,7 +29,6 @@ export {
 } from './configureStore'
 export type {
   // types
-  ConfigureEnhancersCallback,
   ConfigureStoreOptions,
   EnhancedStore,
 } from './configureStore'
@@ -31,7 +36,6 @@ export type { DevToolsEnhancerOptions } from './devtoolsExtension'
 export {
   // js
   createAction,
-  getType,
   isAction,
   isActionCreator,
   isFSA as isFluxStandardAction,
@@ -70,6 +74,7 @@ export type {
   SliceCaseReducers,
   ValidateSliceCaseReducers,
   CaseReducerWithPrepare,
+  ReducerCreators,
 } from './createSlice'
 export type { ActionCreatorInvariantMiddlewareOptions } from './actionCreatorInvariantMiddleware'
 export { createActionCreatorInvariantMiddleware } from './actionCreatorInvariantMiddleware'
@@ -177,6 +182,8 @@ export {
   clearAllListeners,
   TaskAbortError,
 } from './listenerMiddleware/index'
+
+export { createDynamicMiddleware } from './dynamicMiddleware/index'
 
 export {
   SHOULD_AUTOBATCH,

@@ -32,6 +32,11 @@
       "import": "./dist/redux-toolkit.modern.mjs",
       "default": "./dist/cjs/index.js"
     },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/redux-toolkit-react.modern.mjs",
+      "default": "./dist/react/cjs/index.js"
+    },
     "./query": {
       "types": "./dist/query/index.d.ts",
       "import": "./dist/query/rtk-query.modern.mjs",
@@ -101,13 +106,14 @@
   "files": [
     "dist/",
     "src/",
-    "query"
+    "query",
+    "react"
   ],
   "dependencies": {
-    "immer": "^10.0.1",
-    "redux": "5.0.0-alpha.5",
+    "immer": "^10.0.2",
+    "redux": "5.0.0-alpha.6",
     "redux-thunk": "3.0.0-alpha.3",
-    "reselect": "^4.1.8"
+    "reselect": "^5.0.0-alpha.2"
   },
   "peerDependencies": {
     "react": "^16.9.0 || ^17.0.0 || ^18",
