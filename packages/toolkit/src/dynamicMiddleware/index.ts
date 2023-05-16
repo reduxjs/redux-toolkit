@@ -1,7 +1,7 @@
 import type {
   Middleware,
   Dispatch as ReduxDispatch,
-  AnyAction,
+  UnknownAction,
   MiddlewareAPI,
 } from 'redux'
 import { compose } from 'redux'
@@ -18,7 +18,7 @@ import type {
 
 const createMiddlewareEntry = <
   State = any,
-  Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
 >(
   middleware: Middleware<any, State, Dispatch>
 ): MiddlewareEntry<State, Dispatch> => ({
@@ -29,7 +29,7 @@ const createMiddlewareEntry = <
 
 export const createDynamicMiddleware = <
   State = any,
-  Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
 >(): DynamicMiddlewareInstance<State, Dispatch> => {
   const instanceId = nanoid()
   const middlewareMap = new Map<string, MiddlewareEntry<State, Dispatch>>()
