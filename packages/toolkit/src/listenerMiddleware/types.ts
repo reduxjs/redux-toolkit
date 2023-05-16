@@ -28,14 +28,14 @@ export interface TypedActionCreator<Type extends string> {
 
 /** @internal */
 export type AnyListenerPredicate<State> = (
-  action: unknown,
+  action: UnknownAction,
   currentState: State,
   originalState: State
 ) => boolean
 
 /** @public */
 export type ListenerPredicate<Action extends ReduxAction, State> = (
-  action: unknown,
+  action: UnknownAction,
   currentState: State,
   originalState: State
 ) => action is Action
@@ -137,7 +137,7 @@ export interface ForkOptions {
    * If true, causes the parent task to not be marked as complete until
    * all autoJoined forks have completed or failed.
    */
-  autoJoin: boolean;
+  autoJoin: boolean
 }
 
 /** @public */
