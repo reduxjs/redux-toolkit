@@ -7,7 +7,13 @@ export {
   isDraft,
 } from 'immer'
 export type { Draft } from 'immer'
-export { createSelector } from 'reselect'
+export {
+  createSelector,
+  createSelectorCreator,
+  defaultMemoize,
+  autotrackMemoize,
+  weakMapMemoize,
+} from 'reselect'
 export type {
   Selector,
   OutputParametricSelector,
