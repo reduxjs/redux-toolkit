@@ -82,7 +82,7 @@ export interface ConfigureStoreOptions<
    * and should return a Tuple of enhancers (such as `getDefaultEnhancers().concat(offline)`).
    * If you only need to add middleware, you can use the `middleware` parameter instead.
    */
-  enhancers?: ((getDefaultEnhancers: GetDefaultEnhancers<M>) => E) | E
+  enhancers?: (getDefaultEnhancers: GetDefaultEnhancers<M>) => E
 }
 
 export type Middlewares<S> = ReadonlyArray<Middleware<{}, S>>
@@ -172,13 +172,18 @@ export function configureStore<
   const middlewareEnhancer = applyMiddleware(...finalMiddleware)
 
   const getDefaultEnhancers = buildGetDefaultEnhancers<M>(middlewareEnhancer)
+
+  if (!IS_PRODUCTION && enhancers && typeof enhancers !== 'function') {
+    throw new Error('"enhancers" field must be a callback')
+  }
+
   let storeEnhancers =
-    (typeof enhancers === 'function'
+    typeof enhancers === 'function'
       ? enhancers(getDefaultEnhancers)
-      : enhancers) ?? getDefaultEnhancers()
+      : getDefaultEnhancers()
 
   if (!IS_PRODUCTION && !Array.isArray(storeEnhancers)) {
-    throw new Error('enhancers must be an array')
+    throw new Error('"enhancers" callback must return an array')
   }
   if (
     !IS_PRODUCTION &&
@@ -194,7 +199,7 @@ export function configureStore<
     !storeEnhancers.includes(middlewareEnhancer)
   ) {
     console.error(
-      'middlewares were provided, but middleware enhancer was not included in final enhancers'
+      'middlewares were provided, but middleware enhancer was not included in final enhancers - make sure to call `getDefaultEnhancers`'
     )
   }
 
