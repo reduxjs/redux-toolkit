@@ -37,8 +37,8 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 export interface ConfigureStoreOptions<
   S = any,
   A extends Action = AnyAction,
-  M extends Middlewares<S> = Middlewares<S>,
-  E extends Enhancers = Enhancers,
+  M extends MiddlewareArray<Middlewares<S>> = MiddlewareArray<Middlewares<S>>,
+  E extends EnhancerArray<Enhancers> = EnhancerArray<Enhancers>,
   P = S
 > {
   /**
@@ -112,8 +112,10 @@ export type EnhancedStore<
 export function configureStore<
   S = any,
   A extends Action = AnyAction,
-  M extends Middlewares<S> = MiddlewareArray<[ThunkMiddlewareFor<S>]>,
-  E extends Enhancers = EnhancerArray<
+  M extends MiddlewareArray<Middlewares<S>> = MiddlewareArray<
+    [ThunkMiddlewareFor<S>]
+  >,
+  E extends EnhancerArray<Enhancers> = EnhancerArray<
     [StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>, StoreEnhancer]
   >,
   P = S
