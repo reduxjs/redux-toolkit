@@ -91,7 +91,7 @@ export type ExcludeFromTuple<T, E, Acc extends unknown[] = []> = T extends [
   : Acc
 
 type ExtractDispatchFromMiddlewareTuple<
-  MiddlewareTuple extends any[],
+  MiddlewareTuple extends readonly any[],
   Acc extends {}
 > = MiddlewareTuple extends [infer Head, ...infer Tail]
   ? ExtractDispatchFromMiddlewareTuple<
@@ -109,7 +109,7 @@ export type ExtractDispatchExtensions<M> = M extends MiddlewareArray<
   : never
 
 type ExtractStoreExtensionsFromEnhancerTuple<
-  EnhancerTuple extends any[],
+  EnhancerTuple extends readonly any[],
   Acc extends {}
 > = EnhancerTuple extends [infer Head, ...infer Tail]
   ? ExtractStoreExtensionsFromEnhancerTuple<
@@ -133,7 +133,7 @@ export type ExtractStoreExtensions<E> = E extends EnhancerArray<
   : never
 
 type ExtractStateExtensionsFromEnhancerTuple<
-  EnhancerTuple extends any[],
+  EnhancerTuple extends readonly any[],
   Acc extends {}
 > = EnhancerTuple extends [infer Head, ...infer Tail]
   ? ExtractStateExtensionsFromEnhancerTuple<

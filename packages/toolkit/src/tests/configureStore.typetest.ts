@@ -10,7 +10,12 @@ import type {
 } from 'redux'
 import { applyMiddleware, combineReducers } from 'redux'
 import type { PayloadAction, ConfigureStoreOptions } from '@reduxjs/toolkit'
-import { configureStore, createSlice } from '@reduxjs/toolkit'
+import {
+  configureStore,
+  createSlice,
+  MiddlewareArray,
+  EnhancerArray,
+} from '@reduxjs/toolkit'
 import type { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
 import { thunk } from 'redux-thunk'
 import { expectNotAny, expectType } from './helpers'
@@ -67,20 +72,26 @@ const _anyMiddleware: any = () => () => () => {}
 }
 
 /*
- * Test: configureStore() accepts middleware array.
+ * Test: configureStore() accepts MiddlewareArray, but not plain array.
  */
 {
   const middleware: Middleware = (store) => (next) => next
 
   configureStore({
     reducer: () => 0,
+    middleware: new MiddlewareArray(middleware),
+  })
+
+  configureStore({
+    reducer: () => 0,
+    // @ts-expect-error
     middleware: [middleware],
   })
 
   configureStore({
     reducer: () => 0,
     // @ts-expect-error
-    middleware: ['not middleware'],
+    middleware: new MiddlewareArray('not middleware'),
   })
 }
 
@@ -133,13 +144,21 @@ const _anyMiddleware: any = () => () => () => {}
 }
 
 /*
- * Test: configureStore() accepts store enhancer.
+ * Test: configureStore() accepts store EnhancerArray, but not plain array
  */
 {
   {
+    const enhancer = applyMiddleware(() => (next) => next)
+
     const store = configureStore({
       reducer: () => 0,
-      enhancers: [applyMiddleware(() => (next) => next)] as const,
+      enhancers: new EnhancerArray(enhancer),
+    })
+
+    const store2 = configureStore({
+      reducer: () => 0,
+      // @ts-expect-error
+      enhancers: [enhancer],
     })
 
     expectType<Dispatch & ThunkDispatch<number, undefined, AnyAction>>(
@@ -150,7 +169,7 @@ const _anyMiddleware: any = () => () => () => {}
   configureStore({
     reducer: () => 0,
     // @ts-expect-error
-    enhancers: ['not a store enhancer'],
+    enhancers: new EnhancerArray('not a store enhancer'),
   })
 
   {
@@ -178,10 +197,10 @@ const _anyMiddleware: any = () => () => () => {}
 
     const store = configureStore({
       reducer: () => 0,
-      enhancers: [
+      enhancers: new EnhancerArray(
         somePropertyStoreEnhancer,
-        anotherPropertyStoreEnhancer,
-      ] as const,
+        anotherPropertyStoreEnhancer
+      ),
     })
 
     expectType<Dispatch>(store.dispatch)
@@ -240,11 +259,10 @@ const _anyMiddleware: any = () => () => () => {}
 
     const store = configureStore({
       reducer: () => ({ aProperty: 0 }),
-      enhancers: [
+      enhancers: new EnhancerArray(
         someStateExtendingEnhancer,
-        anotherStateExtendingEnhancer,
-        // this doesn't work without the as const
-      ] as const,
+        anotherStateExtendingEnhancer
+      ),
     })
 
     const state = store.getState()
@@ -512,7 +530,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: [],
+      middleware: new MiddlewareArray(),
     })
     // @ts-expect-error
     store.dispatch(thunkA())
@@ -525,7 +543,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: [thunk] as [ThunkMiddleware<StateA>],
+      middleware: new MiddlewareArray(thunk as ThunkMiddleware<StateA>),
     })
     store.dispatch(thunkA())
     // @ts-expect-error
@@ -537,21 +555,9 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: [] as any as [Middleware<(a: StateA) => boolean, StateA>],
-    })
-    const result: boolean = store.dispatch(5)
-    // @ts-expect-error
-    const result2: string = store.dispatch(5)
-  }
-  /**
-   * Test: read-only middleware tuple
-   */
-  {
-    const store = configureStore({
-      reducer: reducerA,
-      middleware: [] as any as readonly [
-        Middleware<(a: StateA) => boolean, StateA>
-      ],
+      middleware: new MiddlewareArray(
+        0 as unknown as Middleware<(a: StateA) => boolean, StateA>
+      ),
     })
     const result: boolean = store.dispatch(5)
     // @ts-expect-error
@@ -561,11 +567,13 @@ const _anyMiddleware: any = () => () => () => {}
    * Test: multiple custom middleware
    */
   {
-    const middleware = [] as any as [
-      Middleware<(a: 'a') => 'A', StateA>,
-      Middleware<(b: 'b') => 'B', StateA>,
-      ThunkMiddleware<StateA>
-    ]
+    const middleware = [] as any as MiddlewareArray<
+      [
+        Middleware<(a: 'a') => 'A', StateA>,
+        Middleware<(b: 'b') => 'B', StateA>,
+        ThunkMiddleware<StateA>
+      ]
+    >
     const store = configureStore({
       reducer: reducerA,
       middleware,

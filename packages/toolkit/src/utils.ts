@@ -44,7 +44,7 @@ export function find<T>(
  * @public
  */
 export class MiddlewareArray<
-  Middlewares extends Middleware<any, any>[]
+  Middlewares extends readonly Middleware<any, any>[]
 > extends Array<Middlewares[number]> {
   constructor(...items: Middlewares)
   constructor(...args: any[]) {
@@ -87,7 +87,7 @@ export class MiddlewareArray<
  * @public
  */
 export class EnhancerArray<
-  Enhancers extends StoreEnhancer<any, any>[]
+  Enhancers extends readonly StoreEnhancer<any, any>[]
 > extends Array<Enhancers[number]> {
   constructor(...items: Enhancers)
   constructor(...args: any[]) {
