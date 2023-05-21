@@ -10,12 +10,7 @@ import type {
 } from 'redux'
 import { applyMiddleware, combineReducers } from 'redux'
 import type { PayloadAction, ConfigureStoreOptions } from '@reduxjs/toolkit'
-import {
-  configureStore,
-  createSlice,
-  MiddlewareArray,
-  EnhancerArray,
-} from '@reduxjs/toolkit'
+import { configureStore, createSlice, Tuple } from '@reduxjs/toolkit'
 import type { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
 import { thunk } from 'redux-thunk'
 import { expectNotAny, expectType } from './helpers'
@@ -72,14 +67,14 @@ const _anyMiddleware: any = () => () => () => {}
 }
 
 /*
- * Test: configureStore() accepts MiddlewareArray, but not plain array.
+ * Test: configureStore() accepts Tuple, but not plain array.
  */
 {
   const middleware: Middleware = (store) => (next) => next
 
   configureStore({
     reducer: () => 0,
-    middleware: new MiddlewareArray(middleware),
+    middleware: new Tuple(middleware),
   })
 
   configureStore({
@@ -91,7 +86,7 @@ const _anyMiddleware: any = () => () => () => {}
   configureStore({
     reducer: () => 0,
     // @ts-expect-error
-    middleware: new MiddlewareArray('not middleware'),
+    middleware: new Tuple('not middleware'),
   })
 }
 
@@ -144,7 +139,7 @@ const _anyMiddleware: any = () => () => () => {}
 }
 
 /*
- * Test: configureStore() accepts store EnhancerArray, but not plain array
+ * Test: configureStore() accepts store Tuple, but not plain array
  */
 {
   {
@@ -152,7 +147,7 @@ const _anyMiddleware: any = () => () => () => {}
 
     const store = configureStore({
       reducer: () => 0,
-      enhancers: () => new EnhancerArray(enhancer),
+      enhancers: () => new Tuple(enhancer),
     })
 
     const store2 = configureStore({
@@ -169,7 +164,7 @@ const _anyMiddleware: any = () => () => () => {}
   configureStore({
     reducer: () => 0,
     // @ts-expect-error
-    enhancers: () => new EnhancerArray('not a store enhancer'),
+    enhancers: () => new Tuple('not a store enhancer'),
   })
 
   {
@@ -198,10 +193,7 @@ const _anyMiddleware: any = () => () => () => {}
     const store = configureStore({
       reducer: () => 0,
       enhancers: () =>
-        new EnhancerArray(
-          somePropertyStoreEnhancer,
-          anotherPropertyStoreEnhancer
-        ),
+        new Tuple(somePropertyStoreEnhancer, anotherPropertyStoreEnhancer),
     })
 
     expectType<Dispatch>(store.dispatch)
@@ -261,10 +253,7 @@ const _anyMiddleware: any = () => () => () => {}
     const store = configureStore({
       reducer: () => ({ aProperty: 0 }),
       enhancers: () =>
-        new EnhancerArray(
-          someStateExtendingEnhancer,
-          anotherStateExtendingEnhancer
-        ),
+        new Tuple(someStateExtendingEnhancer, anotherStateExtendingEnhancer),
     })
 
     const state = store.getState()
@@ -532,7 +521,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: new MiddlewareArray(),
+      middleware: new Tuple(),
     })
     // @ts-expect-error
     store.dispatch(thunkA())
@@ -545,7 +534,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: new MiddlewareArray(thunk as ThunkMiddleware<StateA>),
+      middleware: new Tuple(thunk as ThunkMiddleware<StateA>),
     })
     store.dispatch(thunkA())
     // @ts-expect-error
@@ -557,7 +546,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: new MiddlewareArray(
+      middleware: new Tuple(
         0 as unknown as Middleware<(a: StateA) => boolean, StateA>
       ),
     })
@@ -569,7 +558,7 @@ const _anyMiddleware: any = () => () => () => {}
    * Test: multiple custom middleware
    */
   {
-    const middleware = [] as any as MiddlewareArray<
+    const middleware = [] as any as Tuple<
       [
         Middleware<(a: 'a') => 'A', StateA>,
         Middleware<(b: 'b') => 'B', StateA>,

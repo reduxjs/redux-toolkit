@@ -23,7 +23,7 @@ import type {
   ExtractStoreExtensions,
   ExtractStateExtensions,
 } from './tsHelpers'
-import type { MiddlewareArray, EnhancerArray } from './utils'
+import type { Tuple } from './utils'
 import type { GetDefaultEnhancers } from './getDefaultEnhancers'
 import { buildGetDefaultEnhancers } from './getDefaultEnhancers'
 
@@ -37,8 +37,8 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 export interface ConfigureStoreOptions<
   S = any,
   A extends Action = AnyAction,
-  M extends MiddlewareArray<Middlewares<S>> = MiddlewareArray<Middlewares<S>>,
-  E extends EnhancerArray<Enhancers> = EnhancerArray<Enhancers>,
+  M extends Tuple<Middlewares<S>> = Tuple<Middlewares<S>>,
+  E extends Tuple<Enhancers> = Tuple<Enhancers>,
   P = S
 > {
   /**
@@ -48,8 +48,8 @@ export interface ConfigureStoreOptions<
   reducer: Reducer<S, A, P> | ReducersMapObject<S, A, P>
 
   /**
-   * An array of Redux middleware to install. If not supplied, defaults to
-   * the set of middleware returned by `getDefaultMiddleware()`.
+   * An array of Redux middleware to install, or a callback receiving `getDefaultMiddleware` and returning a Tuple of middleware.
+   * If not supplied, defaults to the set of middleware returned by `getDefaultMiddleware()`.
    *
    * @example `middleware: (gDM) => gDM().concat(logger, apiMiddleware, yourCustomMiddleware)`
    * @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
@@ -78,8 +78,8 @@ export interface ConfigureStoreOptions<
    * The store enhancers to apply. See Redux's `createStore()`.
    * All enhancers will be included before the DevTools Extension enhancer.
    * If you need to customize the order of enhancers, supply a callback
-   * function that will receive a `getDefaultEnhancers` function that returns an EnhancerArray,
-   * and should return a new array (such as `getDefaultEnhancers().concat(offline)`).
+   * function that will receive a `getDefaultEnhancers` function that returns a Tuple,
+   * and should return a Tuple of enhancers (such as `getDefaultEnhancers().concat(offline)`).
    * If you only need to add middleware, you can use the `middleware` parameter instead.
    */
   enhancers?: (getDefaultEnhancers: GetDefaultEnhancers<M>) => E
@@ -112,10 +112,8 @@ export type EnhancedStore<
 export function configureStore<
   S = any,
   A extends Action = AnyAction,
-  M extends MiddlewareArray<Middlewares<S>> = MiddlewareArray<
-    [ThunkMiddlewareFor<S>]
-  >,
-  E extends EnhancerArray<Enhancers> = EnhancerArray<
+  M extends Tuple<Middlewares<S>> = Tuple<[ThunkMiddlewareFor<S>]>,
+  E extends Tuple<Enhancers> = Tuple<
     [StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>, StoreEnhancer]
   >,
   P = S

@@ -1,5 +1,5 @@
 import type { Middleware, StoreEnhancer } from 'redux'
-import type { EnhancerArray, MiddlewareArray } from './utils'
+import type { Tuple } from './utils'
 
 export function safeAssign<T extends object>(
   target: T,
@@ -100,7 +100,7 @@ type ExtractDispatchFromMiddlewareTuple<
     >
   : Acc
 
-export type ExtractDispatchExtensions<M> = M extends MiddlewareArray<
+export type ExtractDispatchExtensions<M> = M extends Tuple<
   infer MiddlewareTuple
 >
   ? ExtractDispatchFromMiddlewareTuple<MiddlewareTuple, {}>
@@ -118,9 +118,7 @@ type ExtractStoreExtensionsFromEnhancerTuple<
     >
   : Acc
 
-export type ExtractStoreExtensions<E> = E extends EnhancerArray<
-  infer EnhancerTuple
->
+export type ExtractStoreExtensions<E> = E extends Tuple<infer EnhancerTuple>
   ? ExtractStoreExtensionsFromEnhancerTuple<EnhancerTuple, {}>
   : E extends ReadonlyArray<StoreEnhancer>
   ? UnionToIntersection<
@@ -145,9 +143,7 @@ type ExtractStateExtensionsFromEnhancerTuple<
     >
   : Acc
 
-export type ExtractStateExtensions<E> = E extends EnhancerArray<
-  infer EnhancerTuple
->
+export type ExtractStateExtensions<E> = E extends Tuple<infer EnhancerTuple>
   ? ExtractStateExtensionsFromEnhancerTuple<EnhancerTuple, {}>
   : E extends ReadonlyArray<StoreEnhancer>
   ? UnionToIntersection<
