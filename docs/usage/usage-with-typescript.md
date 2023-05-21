@@ -136,23 +136,16 @@ export default store
 
 #### Using `MiddlewareArray` without `getDefaultMiddleware`
 
-If you want to skip the usage of `getDefaultMiddleware` altogether, you can still use `MiddlewareArray` for type-safe concatenation of your `middleware` array. This class extends the default JavaScript `Array` type, only with modified typings for `.concat(...)` and the additional `.prepend(...)` method.
+If you want to skip the usage of `getDefaultMiddleware` altogether, you are requred to use `MiddlewareArray` for type-safe creation of your `middleware` array. This class extends the default JavaScript `Array` type, only with modified typings for `.concat(...)` and the additional `.prepend(...)` method.
 
-This is generally not required though, as you will probably not run into any array-type-widening issues as long as you are using `as const` and do not use the spread operator.
-
-So the following two calls would be equivalent:
+For example:
 
 ```ts
 import { configureStore, MiddlewareArray } from '@reduxjs/toolkit'
 
 configureStore({
   reducer: rootReducer,
-  middleware: new MiddlewareArray().concat(additionalMiddleware, logger),
-})
-
-configureStore({
-  reducer: rootReducer,
-  middleware: [additionalMiddleware, logger] as const,
+  middleware: new MiddlewareArray(additionalMiddleware, logger),
 })
 ```
 

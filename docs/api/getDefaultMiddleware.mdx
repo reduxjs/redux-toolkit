@@ -28,7 +28,7 @@ If you want to customize the list of middleware, you can supply an array of midd
 ```js
 const store = configureStore({
   reducer: rootReducer,
-  middleware: [thunk, logger],
+  middleware: new MiddlewareArray(thunk, logger),
 })
 
 // Store specifically has the thunk and logger middleware applied
