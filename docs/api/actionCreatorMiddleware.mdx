@@ -47,7 +47,7 @@ export default function (state = {}, action: any) {
 import {
   configureStore,
   createActionCreatorInvariantMiddleware,
-  MiddlewareArray,
+  Tuple,
 } from '@reduxjs/toolkit'
 import reducer from './reducer'
 
@@ -63,6 +63,6 @@ const actionCreatorMiddleware = createActionCreatorInvariantMiddleware({
 
 const store = configureStore({
   reducer,
-  middleware: new MiddlewareArray(actionCreatorMiddleware),
+  middleware: new Tuple(actionCreatorMiddleware),
 })
 ```

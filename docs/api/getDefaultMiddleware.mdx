@@ -28,7 +28,7 @@ If you want to customize the list of middleware, you can supply an array of midd
 ```js
 const store = configureStore({
   reducer: rootReducer,
-  middleware: new MiddlewareArray(thunk, logger),
+  middleware: new Tuple(thunk, logger),
 })
 
 // Store specifically has the thunk and logger middleware applied
@@ -55,7 +55,7 @@ const store = configureStore({
 // Store has all of the default middleware added, _plus_ the logger middleware
 ```
 
-It is preferable to use the chainable `.concat(...)` and `.prepend(...)` methods of the returned `MiddlewareArray` instead of the array spread operator, as the latter can lose valuable type information under some circumstances.
+It is preferable to use the chainable `.concat(...)` and `.prepend(...)` methods of the returned `Tuple` instead of the array spread operator, as the latter can lose valuable type information under some circumstances.
 
 ## Included Default Middleware
 

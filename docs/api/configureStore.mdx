@@ -94,15 +94,15 @@ and should return a middleware array.
 For more details on how the `middleware` parameter works and the list of middleware that are added by default, see the
 [`getDefaultMiddleware` docs page](./getDefaultMiddleware.mdx).
 
-:::note MiddlewareArray
-Typescript users are required to use a `MiddlewareArray` instance (if not using a `getDefaultMiddleware` result, which is already a `MiddlewareArray`), for better inference.
+:::note Tuple
+Typescript users are required to use a `Tuple` instance (if not using a `getDefaultMiddleware` result, which is already a `Tuple`), for better inference.
 
 ```ts no-transpile
-import { configureStore, MiddlewareArray } from '@reduxjs/toolkit'
+import { configureStore, Tuple } from '@reduxjs/toolkit'
 
 configureStore({
   reducer: rootReducer,
-  middleware: new MiddlewareArray(additionalMiddleware, logger),
+  middleware: new Tuple(additionalMiddleware, logger),
 })
 ```
 
@@ -138,7 +138,7 @@ If defined as an array, these will be passed to [the Redux `compose` function](h
 
 This should _not_ include `applyMiddleware()` or the Redux DevTools Extension `composeWithDevTools`, as those are already handled by `configureStore`.
 
-Example: `enhancers: new EnhancerArray(offline)` will result in a final setup of `[applyMiddleware, offline, devToolsExtension]`.
+Example: `enhancers: new Tuple(offline)` will result in a final setup of `[applyMiddleware, offline, devToolsExtension]`.
 
 If defined as a callback function, it will be called with the existing array of enhancers _without_ the DevTools Extension (currently `[applyMiddleware]`),
 and should return a new array of enhancers. This is primarily useful for cases where a store enhancer needs to be added
@@ -147,15 +147,15 @@ in front of `applyMiddleware`, such as `redux-first-router` or `redux-offline`.
 Example: `enhancers: (defaultEnhancers) => defaultEnhancers.prepend(offline)` will result in a final setup
 of `[offline, applyMiddleware, devToolsExtension]`.
 
-:::note EnhancerArray
-Typescript users are required to use a `EnhancerArray` instance (if not using a `getDefaultEnhancer` result, which is already a `EnhancerArray`), for better inference.
+:::note Tuple
+Typescript users are required to use a `Tuple` instance (if not using a `getDefaultEnhancer` result, which is already a `Tuple`), for better inference.
 
 ```ts no-transpile
-import { configureStore, EnhancerArray } from '@reduxjs/toolkit'
+import { configureStore, Tuple } from '@reduxjs/toolkit'
 
 configureStore({
   reducer: rootReducer,
-  enhancers: new EnhancerArray(offline),
+  enhancers: new Tuple(offline),
 })
 ```
 

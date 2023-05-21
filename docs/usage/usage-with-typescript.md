@@ -99,7 +99,7 @@ export default store
 
 The type of the `dispatch` function type will be directly inferred from the `middleware` option. So if you add _correctly typed_ middlewares, `dispatch` should already be correctly typed.
 
-As TypeScript often widens array types when combining arrays using the spread operator, we suggest using the `.concat(...)` and `.prepend(...)` methods of the `MiddlewareArray` returned by `getDefaultMiddleware()`.
+As TypeScript often widens array types when combining arrays using the spread operator, we suggest using the `.concat(...)` and `.prepend(...)` methods of the `Tuple` returned by `getDefaultMiddleware()`.
 
 ```ts
 import { configureStore } from '@reduxjs/toolkit'
@@ -134,18 +134,18 @@ export type AppDispatch = typeof store.dispatch
 export default store
 ```
 
-#### Using `MiddlewareArray` without `getDefaultMiddleware`
+#### Using `Tuple` without `getDefaultMiddleware`
 
-If you want to skip the usage of `getDefaultMiddleware` altogether, you are requred to use `MiddlewareArray` for type-safe creation of your `middleware` array. This class extends the default JavaScript `Array` type, only with modified typings for `.concat(...)` and the additional `.prepend(...)` method.
+If you want to skip the usage of `getDefaultMiddleware` altogether, you are requred to use `Tuple` for type-safe creation of your `middleware` array. This class extends the default JavaScript `Array` type, only with modified typings for `.concat(...)` and the additional `.prepend(...)` method.
 
 For example:
 
 ```ts
-import { configureStore, MiddlewareArray } from '@reduxjs/toolkit'
+import { configureStore, Tuple } from '@reduxjs/toolkit'
 
 configureStore({
   reducer: rootReducer,
-  middleware: new MiddlewareArray(additionalMiddleware, logger),
+  middleware: new Tuple(additionalMiddleware, logger),
 })
 ```
 
