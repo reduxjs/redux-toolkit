@@ -74,7 +74,7 @@ export default exampleSlice.reducer
 import {
   configureStore,
   createImmutableStateInvariantMiddleware,
-  MiddlewareArray,
+  Tuple,
 } from '@reduxjs/toolkit'
 
 import exampleSliceReducer from './exampleSlice'
@@ -86,7 +86,7 @@ const immutableInvariantMiddleware = createImmutableStateInvariantMiddleware({
 const store = configureStore({
   reducer: exampleSliceReducer,
   // Note that this will replace all default middleware
-  middleware: new MiddlewareArray(immutableInvariantMiddleware),
+  middleware: new Tuple(immutableInvariantMiddleware),
 })
 ```
 
