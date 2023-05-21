@@ -168,4 +168,18 @@ module.exports = {
       algoliaOptions: {},
     },
   },
+  plugins: [
+    [
+      '@dipakparmar/docusaurus-plugin-umami',
+      /** @type {import('@dipakparmar/docusaurus-plugin-umami').Options} */
+      ({
+        websiteID: '616c102e-05dd-4a74-b63e-01bb52f1bc6c',
+        analyticsDomain: 'redux-docs-umami.vercel.app',
+        scriptName: 'script.js',
+        dataAutoTrack: true,
+        dataDoNotTrack: true,
+        dataCache: true
+      })
+    ]
+  ]
 }
