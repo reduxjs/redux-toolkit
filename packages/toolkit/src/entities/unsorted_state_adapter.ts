@@ -161,7 +161,9 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
         0
 
       if (didMutateIds) {
-        state.ids = Object.keys(state.entities) as Id[]
+        state.ids = Object.values(state.entities).map((e) =>
+          selectIdValue(e as T, selectId)
+        )
       }
     }
   }
