@@ -40,10 +40,12 @@ export function find<T>(
   return undefined
 }
 
-export class Tuple<Items extends ReadonlyArray<unknown>> extends Array<
+export class Tuple<Items extends ReadonlyArray<unknown> = []> extends Array<
   Items[number]
 > {
-  constructor(...items: Items) {
+  constructor(length: number)
+  constructor(...items: Items)
+  constructor(...items: any[]) {
     super(...items)
     Object.setPrototypeOf(this, Tuple.prototype)
   }
