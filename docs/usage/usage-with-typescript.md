@@ -136,7 +136,7 @@ export default store
 
 #### Using `Tuple` without `getDefaultMiddleware`
 
-If you want to skip the usage of `getDefaultMiddleware` altogether, you are requred to use `Tuple` for type-safe creation of your `middleware` array. This class extends the default JavaScript `Array` type, only with modified typings for `.concat(...)` and the additional `.prepend(...)` method.
+If you want to skip the usage of `getDefaultMiddleware` altogether, you are required to use `Tuple` for type-safe creation of your `middleware` array. This class extends the default JavaScript `Array` type, only with modified typings for `.concat(...)` and the additional `.prepend(...)` method.
 
 For example:
 
