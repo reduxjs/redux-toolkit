@@ -14,7 +14,7 @@ import { expectType } from './helpers'
   // @ts-expect-error
   expectType<Tuple<[string, string]>>(stringTuple)
 
-  const numberTuple = new Tuple(0)
+  const numberTuple = new Tuple(0, 1)
   // @ts-expect-error
   expectType<Tuple<string[]>>(numberTuple)
 }
@@ -63,19 +63,19 @@ import { expectType } from './helpers'
 {
   const stringTuple = new Tuple('')
 
-  const numberTuple = new Tuple(0)
+  const numberTuple = new Tuple(0, 1)
 
-  expectType<Tuple<[string, number]>>(stringTuple.concat(numberTuple))
+  expectType<Tuple<[string, number, number]>>(stringTuple.concat(numberTuple))
 
-  expectType<Tuple<[number, string]>>(stringTuple.prepend(numberTuple))
+  expectType<Tuple<[number, number, string]>>(stringTuple.prepend(numberTuple))
 
-  expectType<Tuple<[number, string]>>(numberTuple.concat(stringTuple))
+  expectType<Tuple<[number, number, string]>>(numberTuple.concat(stringTuple))
 
-  expectType<Tuple<[string, number]>>(numberTuple.prepend(stringTuple))
-
-  // @ts-expect-error
-  expectType<Tuple<[string, number]>>(stringTuple.prepend(numberTuple))
+  expectType<Tuple<[string, number, number]>>(numberTuple.prepend(stringTuple))
 
   // @ts-expect-error
-  expectType<Tuple<[number, string]>>(stringTuple.concat(numberTuple))
+  expectType<Tuple<[string, number, number]>>(stringTuple.prepend(numberTuple))
+
+  // @ts-expect-error
+  expectType<Tuple<[number, number, string]>>(stringTuple.concat(numberTuple))
 }
