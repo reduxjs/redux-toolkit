@@ -353,6 +353,71 @@ A set of selectors that receive the slice state as their first parameter, and an
 
 Each selector will have a corresponding key in the resulting [`selectors`](#selectors-1) object.
 
+:::caution Circular types
+
+It's fairly common to have selectors that use other selectors. This is still possible with slice selectors, but defining a selector without a return type can cause a circular type inference problem:
+
+```ts no-transpile
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 },
+  reducers: {},
+  selectors: {
+    selectValue: (state) => state.value,
+    // highlight-start
+    // this creates a cycle, because it's inferring a type from the object we're creating here
+    selectTimes: (state, times = 1) =>
+      counterSlice.getSelectors().selectValue(state) * times,
+    // highlight-end
+  },
+})
+```
+
+This cycle can be fixed by providing an explicit return type for the selector:
+
+```ts no-transpile
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 },
+  reducers: {},
+  selectors: {
+    selectValue: (state) => state.value,
+    // highlight-start
+    // explicit return type means cycle is broken
+    selectTimes: (state, times = 1): number =>
+      counterSlice.getSelectors().selectValue(state) * times,
+    // highlight-end
+  },
+})
+```
+
+This limitation may be also encountered when using a slice's `asyncThunk` creator.
+In the same way, the issue is resolved by explicitly providing a type somewhere in the chain and breaking the cycle.
+
+```ts no-transpile
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 },
+  reducers: (create) => ({
+    getCountData: create.asyncThunk(async (_arg, { getState }) => {
+      const currentCount = counterSlice.selectors.selectValue(
+        getState() as RootState
+      )
+      // highlight-start
+      // this would cause a circular type, but the type annotation breaks the circle
+      const result: Response = await fetch('api/' + currentCount)
+      // highlight-end
+      return result.json()
+    }),
+  }),
+  selectors: {
+    selectValue: (state) => state.value,
+  },
+})
+```
+
+:::
+
 ## Return Value
 
 `createSlice` will return an object that looks like:
