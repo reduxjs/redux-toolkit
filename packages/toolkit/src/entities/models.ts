@@ -1,5 +1,6 @@
 import type { PayloadAction } from '../createAction'
 import type { IsAny } from '../tsHelpers'
+import type { AnyCreateSelectorFunction } from './state_selectors'
 
 /**
  * @public
@@ -164,8 +165,12 @@ export interface EntityAdapter<T> extends EntityStateAdapter<T> {
   sortComparer: false | Comparer<T>
   getInitialState(): EntityState<T>
   getInitialState<S extends object>(state: S): EntityState<T> & S
-  getSelectors(): EntitySelectors<T, EntityState<T>>
+  getSelectors(
+    selectState?: undefined,
+    createSelector?: AnyCreateSelectorFunction
+  ): EntitySelectors<T, EntityState<T>>
   getSelectors<V>(
-    selectState: (state: V) => EntityState<T>
+    selectState: (state: V) => EntityState<T>,
+    createSelector?: AnyCreateSelectorFunction
   ): EntitySelectors<T, V>
 }
