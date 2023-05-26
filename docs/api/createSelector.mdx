@@ -37,7 +37,7 @@ All selectors created by `entityAdapter.getSelectors` are "draft safe" selectors
 
 Example:
 
-```js
+```ts no-transpile
 const selectSelf = (state: State) => state
 const unsafeSelector = createSelector(selectSelf, (state) => state.value)
 const draftSafeSelector = createDraftSafeSelector(
@@ -67,7 +67,7 @@ value instead of returning a cached value.
 
 RTK also exports a `createDraftSafeSelectorCreator` function, the "draft safe" equivalent of [`createSelectorCreator`](https://github.com/reduxjs/reselect#createselectorcreatormemoize-memoizeoptions).
 
-```js
+```ts no-transpile
 import {
   createDraftSafeSelectorCreator,
   weakMapMemoize,
