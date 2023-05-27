@@ -59,7 +59,7 @@ aware of, we can avoid unnecessary requests and loaders.
 
 :::
 
-Use cases for upserting cache entries in pair with [pessimistic updates]((../usage/manual-cache-updates.mdx#pessimistic-updates)):
+Use cases for upserting cache entries in pair with [pessimistic updates](../usage/manual-cache-updates.mdx#pessimistic-updates):
 - you create a new Post and backend returns its complete data including `id`. Then we
   can use `upsertQueryData` to create a new cache entry for the `getPostById(id)` query, preventing unnecessary fetching it on enter.
 - same can be applied for batch creations of items, when backend returns a list of created items with their ids.
