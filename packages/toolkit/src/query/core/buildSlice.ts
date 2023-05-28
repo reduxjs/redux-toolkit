@@ -1,4 +1,4 @@
-import type { AnyAction, PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
 import {
   combineReducers,
   createAction,
@@ -24,7 +24,7 @@ import type {
   ConfigState,
 } from './apiState'
 import { QueryStatus } from './apiState'
-import type { MutationThunk, QueryThunk, RejectedAction } from './buildThunks'
+import type { MutationThunk, QueryThunk } from './buildThunks'
 import { calculateProvidedByThunk } from './buildThunks'
 import type {
   AssertTagTypes,

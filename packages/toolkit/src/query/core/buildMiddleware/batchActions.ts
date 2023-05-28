@@ -1,13 +1,7 @@
-import type { QueryThunk, RejectedAction } from '../buildThunks'
 import type { InternalHandlerBuilder } from './types'
-import type {
-  SubscriptionState,
-  QuerySubstateIdentifier,
-  Subscribers,
-} from '../apiState'
+import type { SubscriptionState } from '../apiState'
 import { produceWithPatches } from 'immer'
 import type { AnyAction } from '@reduxjs/toolkit';
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 // Copied from https://github.com/feross/queue-microtask
 let promise: Promise<any>

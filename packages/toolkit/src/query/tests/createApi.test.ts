@@ -22,7 +22,6 @@ import {
 import { server } from './mocks/server'
 import { rest } from 'msw'
 import type { SerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import { string } from 'yargs'
 import type {
   DefinitionsFromApi,
   OverrideResultType,

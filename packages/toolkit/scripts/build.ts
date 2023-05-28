@@ -14,7 +14,7 @@ import yargs from 'yargs/yargs'
 
 import { extractInlineSourcemap, removeInlineSourceMap } from './sourcemap'
 import type { BuildOptions, EntryPointOptions } from './types'
-import { appendInlineSourceMap, getLocation } from './sourcemap'
+import { appendInlineSourceMap } from './sourcemap'
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 

@@ -2,7 +2,6 @@ import createNextState, { isDraft } from 'immer'
 import type { EntityState, PreventAny } from './models'
 import type { PayloadAction } from '../createAction'
 import { isFSA } from '../createAction'
-import { IsAny } from '../tsHelpers'
 
 export function createSingleArgumentStateOperator<V>(
   mutator: (state: EntityState<V>) => void

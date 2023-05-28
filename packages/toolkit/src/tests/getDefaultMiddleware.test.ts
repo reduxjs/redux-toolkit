@@ -15,7 +15,6 @@ import thunk from 'redux-thunk'
 import type { ThunkMiddleware } from 'redux-thunk'
 
 import { expectType } from './helpers'
-import { BaseActionCreator } from '@internal/createAction'
 
 describe('getDefaultMiddleware', () => {
   const ORIGINAL_NODE_ENV = process.env.NODE_ENV

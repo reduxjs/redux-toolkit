@@ -1,5 +1,4 @@
-import type { AnyAction, Reducer } from 'redux'
-import { createNextState } from '.'
+import type { Reducer } from 'redux'
 import type {
   ActionCreatorWithoutPayload,
   PayloadAction,
@@ -13,7 +12,7 @@ import type {
   CaseReducers,
   ReducerWithInitialState,
 } from './createReducer'
-import { createReducer, NotFunction } from './createReducer'
+import { createReducer } from './createReducer'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type { NoInfer } from './tsHelpers'

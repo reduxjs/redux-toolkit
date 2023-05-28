@@ -1,4 +1,4 @@
-import { getDefaultMiddleware, configureStore } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
 import type { Middleware } from 'redux'
 
 declare const expectType: <T>(t: T) => T

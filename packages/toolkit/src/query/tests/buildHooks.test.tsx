@@ -21,7 +21,6 @@ import userEvent from '@testing-library/user-event'
 import { rest } from 'msw'
 import {
   actionsReducer,
-  ANY,
   expectExactType,
   expectType,
   setupApiStore,

@@ -1,4 +1,3 @@
-import type { EnhancedStore } from '@reduxjs/toolkit'
 import { configureStore, createSlice, createAction } from '@reduxjs/toolkit'
 
 import type { PayloadAction } from '@reduxjs/toolkit'

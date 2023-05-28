@@ -1,6 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { actionsReducer, hookWaitFor, setupApiStore, waitMs } from './helpers'
-import { skipToken } from '../core/buildSelectors'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { delay } from '../../utils'
 

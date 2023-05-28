@@ -8,7 +8,6 @@ import { combineSlices } from '@reduxjs/toolkit'
 import { sliceA } from 'fileA'
 import { sliceB } from 'fileB'
 import { lazySliceC } from 'fileC'
-import type { lazySliceD } from 'fileD'
 
 import { anotherReducer } from 'somewhere'
 

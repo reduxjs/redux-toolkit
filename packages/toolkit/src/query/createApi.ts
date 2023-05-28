@@ -7,7 +7,7 @@ import type {
   EndpointBuilder,
   EndpointDefinitions,
 } from './endpointDefinitions'
-import { DefinitionType, isQueryDefinition } from './endpointDefinitions'
+import { DefinitionType } from './endpointDefinitions'
 import { nanoid } from '@reduxjs/toolkit'
 import type { AnyAction } from '@reduxjs/toolkit'
 import type { NoInfer } from './tsHelpers'

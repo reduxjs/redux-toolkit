@@ -1,6 +1,6 @@
 import type { EntityAdapter, EntityState } from '../models'
 import { createEntityAdapter } from '../create_adapter'
-import { createAction, createSlice, configureStore } from '@reduxjs/toolkit'
+import { createAction } from '@reduxjs/toolkit'
 import type { BookModel } from './fixtures/book'
 import {
   TheGreatGatsby,

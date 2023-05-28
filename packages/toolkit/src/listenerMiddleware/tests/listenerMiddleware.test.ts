@@ -5,7 +5,7 @@ import {
   isAnyOf,
 } from '@reduxjs/toolkit'
 
-import type { AnyAction, PayloadAction, Action } from '@reduxjs/toolkit'
+import type { AnyAction, PayloadAction } from '@reduxjs/toolkit'
 
 import {
   createListenerMiddleware,
@@ -22,7 +22,6 @@ import type {
   TypedAddListener,
   TypedStartListening,
   UnsubscribeListener,
-  ListenerMiddleware,
 } from '../index'
 import type {
   AbortSignalWithReason,

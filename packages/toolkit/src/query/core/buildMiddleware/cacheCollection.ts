@@ -7,7 +7,6 @@ import type {
   TimeoutId,
   InternalHandlerBuilder,
   ApiMiddlewareInternalHandler,
-  InternalMiddlewareState,
 } from './types'
 
 export type ReferenceCacheCollection = never

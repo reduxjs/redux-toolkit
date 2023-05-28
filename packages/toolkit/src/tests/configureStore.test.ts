@@ -1,6 +1,5 @@
 import type { StoreEnhancer, StoreEnhancerStoreCreator } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
-import * as RTK from '@reduxjs/toolkit'
 import * as redux from 'redux'
 import * as devtools from '@internal/devtoolsExtension'
 

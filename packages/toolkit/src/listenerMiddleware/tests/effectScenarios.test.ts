@@ -5,11 +5,9 @@ import {
   isAnyOf,
 } from '@reduxjs/toolkit'
 
-import type { AnyAction, PayloadAction, Action } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
 
 import { createListenerMiddleware, TaskAbortError } from '../index'
-
-import type { TypedAddListener } from '../index'
 
 describe('Saga-style Effects Scenarios', () => {
   interface CounterState {

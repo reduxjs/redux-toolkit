@@ -6,7 +6,6 @@ import type {
   TimeoutId,
   InternalHandlerBuilder,
   ApiMiddlewareInternalHandler,
-  InternalMiddlewareState,
 } from './types'
 
 export const buildPollingHandler: InternalHandlerBuilder = ({

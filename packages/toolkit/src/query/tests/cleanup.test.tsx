@@ -1,12 +1,11 @@
 // tests for "cleanup-after-unsubscribe" behaviour
 
-import React, { Profiler, ProfilerOnRenderCallback } from 'react'
+import React from 'react'
 
 import { createListenerMiddleware } from '@reduxjs/toolkit'
 import { createApi, QueryStatus } from '@reduxjs/toolkit/query/react'
 import { render, waitFor, act, screen } from '@testing-library/react'
 import { setupApiStore } from './helpers'
-import { delay } from '../../utils'
 
 const tick = () => new Promise((res) => setImmediate(res))
 
