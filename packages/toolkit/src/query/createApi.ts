@@ -301,6 +301,17 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
         }
         return api
       },
+      enhanceEndpoint(endpointName, partialDefinition) {
+        if (typeof partialDefinition === 'function') {
+          ;(partialDefinition as any)(context.endpointDefinitions[endpointName])
+        } else {
+          Object.assign(
+            context.endpointDefinitions[endpointName] || {},
+            partialDefinition
+          )
+        }
+        return api
+      },
       enhanceEndpoints({ addTagTypes, endpoints }) {
         if (addTagTypes) {
           api.addTagTypes(...addTagTypes)
@@ -309,14 +320,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
           for (const [endpointName, partialDefinition] of Object.entries(
             endpoints
           )) {
-            if (typeof partialDefinition === 'function') {
-              partialDefinition(context.endpointDefinitions[endpointName])
-            } else {
-              Object.assign(
-                context.endpointDefinitions[endpointName] || {},
-                partialDefinition
-              )
-            }
+            ;(api.enhanceEndpoint as any)(endpointName, partialDefinition)
           }
         }
         return api
@@ -363,6 +367,6 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       return api as any
     }
 
-    return api.injectEndpoints({ endpoints: options.endpoints as any })
+    return api.injectEndpoints({ endpoints: options.endpoints as any }) as any
   }
 }

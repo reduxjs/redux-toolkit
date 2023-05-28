@@ -7,11 +7,14 @@ import type {
   ResultTypeFrom,
   QueryArgFrom,
   MutationDefinition,
+  AddTagTypes,
+  EnhanceEndpoint,
 } from './endpointDefinitions'
 import type {
   UnionToIntersection,
   NoInfer,
   WithRequiredProp,
+  Id,
 } from './tsHelpers'
 import type { CoreModule } from './core/module'
 import type { CreateApiOptions } from './createApi'
@@ -96,6 +99,7 @@ export type Api<
   >
   /**
    * A function to enhance a generated API with additional information. Useful with code-generation.
+   * @deprecated use addTagTypes and/or enhanceEndpoint instead
    */
   enhanceEndpoints<
     NewTagTypes extends string = never,
@@ -127,9 +131,93 @@ export type Api<
     ...addTagTypes: readonly NewTagTypes[]
   ): Api<
     BaseQuery,
-    UpdateDefinitions<Definitions, TagTypes | NewTagTypes, {}>,
+    AddTagTypes<Definitions, TagTypes | NewTagTypes>,
     ReducerPath,
     TagTypes | NewTagTypes,
+    Enhancers
+  >
+
+  /**
+   *A function to enhance a generated API with additional information. Useful with code-generation.
+   */
+  enhanceEndpoint<
+    QueryName extends QueryKeys<Definitions>,
+    QueryArg = QueryArgFrom<Definitions[QueryName]>,
+    ResultType = ResultTypeFrom<Definitions[QueryName]>
+  >(
+    queryName: QueryName,
+    partialDefinition:
+      | Partial<
+          QueryDefinition<
+            QueryArg,
+            BaseQuery,
+            TagTypes,
+            ResultType,
+            ReducerPath
+          >
+        >
+      | ((
+          definition: QueryDefinition<
+            QueryArg,
+            BaseQuery,
+            TagTypes,
+            ResultType,
+            ReducerPath
+          >
+        ) => void)
+  ): Api<
+    BaseQuery,
+    Id<
+      Omit<Definitions, QueryName> &
+        Record<
+          QueryName,
+          EnhanceEndpoint<Definitions[QueryName], QueryArg, ResultType>
+        >
+    >,
+    ReducerPath,
+    TagTypes,
+    Enhancers
+  >
+
+  /**
+   *A function to enhance a generated API with additional information. Useful with code-generation.
+   */
+  enhanceEndpoint<
+    MutationName extends MutationKeys<Definitions>,
+    ResultType = ResultTypeFrom<Definitions[MutationName]>,
+    QueryArg = QueryArgFrom<Definitions[MutationName]>
+  >(
+    mutationName: MutationName,
+    partialDefinition:
+      | Partial<
+          MutationDefinition<
+            QueryArg,
+            BaseQuery,
+            TagTypes,
+            ResultType,
+            ReducerPath
+          >
+        >
+      | ((
+          definition: MutationDefinition<
+            QueryArg,
+            BaseQuery,
+            TagTypes,
+            ResultType,
+            ReducerPath
+          >
+        ) => void)
+  ): Api<
+    BaseQuery,
+    Id<
+      Omit<Definitions, MutationName> &
+        Record<
+          MutationName,
+          EnhanceEndpoint<Definitions[MutationName], QueryArg, ResultType>
+        >
+    >,
+    ReducerPath,
+    TagTypes,
     Enhancers
   >
 }

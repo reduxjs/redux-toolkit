@@ -489,7 +489,7 @@ describe('endpoint definition typings', () => {
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
-      api.enhanceEndpoints({
+      const enhanced = api.enhanceEndpoints({
         endpoints: {
           query1: {
             query: (x) => {
@@ -520,10 +520,10 @@ describe('endpoint definition typings', () => {
         },
       })
 
-      storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
-      storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
-      storeRef.store.dispatch(api.endpoints.mutation1.initiate('in1'))
-      storeRef.store.dispatch(api.endpoints.mutation2.initiate('in2'))
+      storeRef.store.dispatch(enhanced.endpoints.query1.initiate('in1'))
+      storeRef.store.dispatch(enhanced.endpoints.query2.initiate('in2'))
+      storeRef.store.dispatch(enhanced.endpoints.mutation1.initiate('in1'))
+      storeRef.store.dispatch(enhanced.endpoints.mutation2.initiate('in2'))
 
       expect(baseQuery.mock.calls).toEqual([
         ['modified1', commonBaseQueryApi, undefined],
@@ -543,36 +543,23 @@ describe('endpoint definition typings', () => {
         }),
       })
 
-      type Transformed = { value: string }
-
-      type Definitions = DefinitionsFromApi<typeof api>
-      type TagTypes = TagTypesFromApi<typeof api>
-
-      type Q1Definition = OverrideResultType<Definitions['query1'], Transformed>
-      type M1Definition = OverrideResultType<
-        Definitions['mutation1'],
-        Transformed
-      >
-
-      type UpdatedDefitions = Omit<Definitions, 'query1' | 'mutation1'> & {
-        query1: Q1Definition
-        mutation1: M1Definition
+      const transformed = {
+        value: 'transformed',
       }
 
-      const enhancedApi = baseApi.enhanceEndpoints<TagTypes, UpdatedDefitions>({
-        endpoints: {
-          query1: {
-            transformResponse: (a, b, c) => ({
-              value: 'transformed',
-            }),
-          },
-          mutation1: {
-            transformResponse: (a, b, c) => ({
-              value: 'transformed',
-            }),
-          },
-        },
-      })
+      type Transformed = typeof transformed
+
+      const enhancedApi = baseApi
+        .enhanceEndpoint('query1', {
+          transformResponse: () => transformed,
+        })
+        // technically a cast, but works:tm:
+        .enhanceEndpoint<'mutation1', Transformed>(
+          'mutation1',
+          (definition) => {
+            definition.transformResponse = () => transformed
+          }
+        )
 
       const storeRef = setupApiStore(enhancedApi, undefined, {
         withoutTestLifecycles: true,
@@ -581,21 +568,18 @@ describe('endpoint definition typings', () => {
       const queryResponse = await storeRef.store.dispatch(
         enhancedApi.endpoints.query1.initiate()
       )
-      expect(queryResponse.data).toEqual({ value: 'transformed' })
-      expectType<Transformed | Promise<Transformed> | undefined>(
-        queryResponse.data
-      )
+      expect(queryResponse.data).toEqual(transformed)
+      expectType<Transformed | undefined>(queryResponse.data)
 
       const mutationResponse = await storeRef.store.dispatch(
         enhancedApi.endpoints.mutation1.initiate()
       )
       expectType<
-        | { data: Transformed | Promise<Transformed> }
-        | { error: FetchBaseQueryError | SerializedError }
+        { data: Transformed } | { error: FetchBaseQueryError | SerializedError }
       >(mutationResponse)
-      expect('data' in mutationResponse && mutationResponse.data).toEqual({
-        value: 'transformed',
-      })
+      expect('data' in mutationResponse && mutationResponse.data).toEqual(
+        transformed
+      )
     })
   })
 })
