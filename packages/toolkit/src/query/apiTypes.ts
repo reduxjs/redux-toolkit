@@ -3,6 +3,10 @@ import type {
   EndpointBuilder,
   EndpointDefinition,
   UpdateDefinitions,
+  QueryDefinition,
+  ResultTypeFrom,
+  QueryArgFrom,
+  MutationDefinition,
 } from './endpointDefinitions'
 import type {
   UnionToIntersection,
@@ -12,7 +16,7 @@ import type {
 import type { CoreModule } from './core/module'
 import type { CreateApiOptions } from './createApi'
 import type { BaseQueryFn } from './baseQueryTypes'
-import type { CombinedState } from './core/apiState'
+import type { CombinedState, MutationKeys, QueryKeys } from './core/apiState'
 import type { AnyAction } from '@reduxjs/toolkit'
 
 export interface ApiModules<
@@ -91,7 +95,7 @@ export type Api<
     Enhancers
   >
   /**
-   *A function to enhance a generated API with additional information. Useful with code-generation.
+   * A function to enhance a generated API with additional information. Useful with code-generation.
    */
   enhanceEndpoints<
     NewTagTypes extends string = never,
@@ -112,6 +116,18 @@ export type Api<
   }): Api<
     BaseQuery,
     UpdateDefinitions<Definitions, TagTypes | NewTagTypes, NewDefinitions>,
+    ReducerPath,
+    TagTypes | NewTagTypes,
+    Enhancers
+  >
+  /**
+   *A function to enhance a generated API with additional information. Useful with code-generation.
+   */
+  addTagTypes<NewTagTypes extends string = never>(
+    ...addTagTypes: readonly NewTagTypes[]
+  ): Api<
+    BaseQuery,
+    UpdateDefinitions<Definitions, TagTypes | NewTagTypes, {}>,
     ReducerPath,
     TagTypes | NewTagTypes,
     Enhancers

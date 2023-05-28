@@ -1,6 +1,7 @@
 import type { SerializedError } from '@reduxjs/toolkit'
 import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
-import { vi, SpyInstance } from 'vitest'
+import type { SpyInstance } from 'vitest'
+import { vi } from 'vitest'
 import type {
   Api,
   MutationDefinition,
@@ -445,8 +446,7 @@ describe('endpoint definition typings', () => {
         })
       }
 
-      const enhanced = api.enhanceEndpoints({
-        addTagTypes: ['new'],
+      const enhanced = api.addTagTypes('new').enhanceEndpoints({
         endpoints: {
           query1: {
             providesTags: ['new'],
