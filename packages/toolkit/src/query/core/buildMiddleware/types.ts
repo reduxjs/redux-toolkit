@@ -7,7 +7,7 @@ import type {
   ThunkDispatch,
 } from '@reduxjs/toolkit'
 
-import type { Api, ApiContext } from '../../apiTypes'
+import type { Api, ApiContext, BaseApiMethods } from '../../apiTypes'
 import type {
   AssertTagTypes,
   EndpointDefinitions,
@@ -41,7 +41,10 @@ export interface BuildMiddlewareInput<
   context: ApiContext<Definitions>
   queryThunk: QueryThunk
   mutationThunk: MutationThunk
-  api: Api<any, Definitions, ReducerPath, TagTypes>
+  api: Omit<
+    Api<any, Definitions, ReducerPath, TagTypes>,
+    keyof BaseApiMethods<any, any, any, any>
+  >
   assertTagType: AssertTagTypes
 }
 

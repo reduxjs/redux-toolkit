@@ -73,15 +73,13 @@ export interface ApiContext<Definitions extends EndpointDefinitions> {
   hasRehydrationInfo: (action: AnyAction) => boolean
 }
 
-export type Api<
+export type BaseApiMethods<
   BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
   TagTypes extends string,
   Enhancers extends ModuleName = CoreModule
-> = UnionToIntersection<
-  ApiModules<BaseQuery, Definitions, ReducerPath, TagTypes>[Enhancers]
-> & {
+> = {
   /**
    * A function to inject the endpoints into the original API, but also give you that same API with correct types for these endpoints back. Useful with code-splitting.
    */
@@ -221,3 +219,14 @@ export type Api<
     Enhancers
   >
 }
+
+export type Api<
+  BaseQuery extends BaseQueryFn,
+  Definitions extends EndpointDefinitions,
+  ReducerPath extends string,
+  TagTypes extends string,
+  Enhancers extends ModuleName = CoreModule
+> = UnionToIntersection<
+  ApiModules<BaseQuery, Definitions, ReducerPath, TagTypes>[Enhancers]
+> &
+  BaseApiMethods<BaseQuery, Definitions, ReducerPath, TagTypes, Enhancers>

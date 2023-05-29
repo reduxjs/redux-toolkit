@@ -36,7 +36,11 @@ import type {
 } from '@reduxjs/toolkit/dist/query/core/buildInitiate'
 import type { SerializeQueryArgs } from '@reduxjs/toolkit/dist/query/defaultSerializeQueryArgs'
 import { shallowEqual } from 'react-redux'
-import type { Api, ApiContext } from '@reduxjs/toolkit/dist/query/apiTypes'
+import type {
+  Api,
+  ApiContext,
+  BaseApiMethods,
+} from '@reduxjs/toolkit/dist/query/apiTypes'
 import type {
   Id,
   NoInfer,
@@ -587,7 +591,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   serializeQueryArgs,
   context,
 }: {
-  api: Api<any, Definitions, any, any, CoreModule>
+  api: Omit<
+    Api<any, Definitions, any, any, CoreModule>,
+    keyof BaseApiMethods<any, any, any, any>
+  >
   moduleOptions: Required<ReactHooksModuleOptions>
   serializeQueryArgs: SerializeQueryArgs<any>
   context: ApiContext<Definitions>
