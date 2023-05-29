@@ -1,10 +1,10 @@
 import type {
+  UnknownAction,
+  Selector,
   ThunkAction,
   ThunkDispatch,
-  UnknownAction,
 } from '@reduxjs/toolkit'
 import { createSelector } from '@reduxjs/toolkit'
-import type { Selector } from '@reduxjs/toolkit'
 import type { DependencyList } from 'react'
 import {
   useCallback,

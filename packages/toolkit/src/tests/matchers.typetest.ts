@@ -1,5 +1,4 @@
 import { expectExactType, expectUnknown } from './helpers'
-import { IsUnknown } from '@internal/tsHelpers'
 import type { UnknownAction } from 'redux'
 import type { SerializedError } from '../../src'
 import {

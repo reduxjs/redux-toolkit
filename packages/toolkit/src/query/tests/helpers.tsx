@@ -5,9 +5,6 @@ import type {
   Middleware,
   Store,
   Reducer,
-  EnhancerArray,
-  StoreEnhancer,
-  ThunkDispatch,
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
@@ -218,8 +215,8 @@ export function setupApiStore<
         }).concat(api.middleware)
 
         return tempMiddleware
-          .concat(...(middleware?.concat ?? []))
-          .prepend(...(middleware?.prepend ?? [])) as typeof tempMiddleware
+          .concat(middleware?.concat ?? [])
+          .prepend(middleware?.prepend ?? []) as typeof tempMiddleware
       },
       enhancers: (gde) =>
         gde({
