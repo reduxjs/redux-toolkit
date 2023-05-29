@@ -1,6 +1,6 @@
 import type { PayloadAction } from '../createAction'
 import type { IsAny } from '../tsHelpers'
-import type { AnyCreateSelectorFunction } from './state_selectors'
+import type { GetSelectorsOptions } from './state_selectors'
 
 /**
  * @public
@@ -167,10 +167,10 @@ export interface EntityAdapter<T> extends EntityStateAdapter<T> {
   getInitialState<S extends object>(state: S): EntityState<T> & S
   getSelectors(
     selectState?: undefined,
-    createSelector?: AnyCreateSelectorFunction
+    options?: GetSelectorsOptions
   ): EntitySelectors<T, EntityState<T>>
   getSelectors<V>(
     selectState: (state: V) => EntityState<T>,
-    createSelector?: AnyCreateSelectorFunction
+    options?: GetSelectorsOptions
   ): EntitySelectors<T, V>
 }

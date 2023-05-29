@@ -12,19 +12,24 @@ export type AnyCreateSelectorFunction = CreateSelectorFunction<
   <F extends (...args: any[]) => any>(func: F) => F
 >
 
+export interface GetSelectorsOptions {
+  createSelector?: AnyCreateSelectorFunction
+}
+
 export function createSelectorsFactory<T>() {
   function getSelectors(
     selectState?: undefined,
-    createSelector?: AnyCreateSelectorFunction
+    options?: GetSelectorsOptions
   ): EntitySelectors<T, EntityState<T>>
   function getSelectors<V>(
     selectState: (state: V) => EntityState<T>,
-    createSelector?: AnyCreateSelectorFunction
+    options?: GetSelectorsOptions
   ): EntitySelectors<T, V>
   function getSelectors<V>(
     selectState?: (state: V) => EntityState<T>,
-    createSelector: AnyCreateSelectorFunction = createDraftSafeSelector
+    options: GetSelectorsOptions = {}
   ): EntitySelectors<T, any> {
+    const { createSelector = createDraftSafeSelector } = options
     const selectIds = (state: EntityState<T>) => state.ids
 
     const selectEntities = (state: EntityState<T>) => state.entities

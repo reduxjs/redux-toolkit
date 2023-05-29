@@ -133,7 +133,7 @@ describe('Entity State Selectors', () => {
         selectId: (book: BookModel) => book.id,
       })
 
-      adapter.getSelectors(undefined, createCustomSelector)
+      adapter.getSelectors(undefined, { createSelector: createCustomSelector })
 
       expect(memoizeSpy).toHaveBeenCalled()
 
