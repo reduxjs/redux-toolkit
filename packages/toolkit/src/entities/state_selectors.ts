@@ -13,17 +13,17 @@ export function buildCreateSelectorsFactory(
 ) {
   const createDraftSafeSelector = buildCreateDraftSafeSelector(config)
 
-  return function createSelectorsFactory<T>() {
-    function getSelectors(): EntitySelectors<T, EntityState<T>>
+  return function createSelectorsFactory<T, Id extends EntityId>() {
+    function getSelectors(): EntitySelectors<T, EntityState<T, Id>, Id>
     function getSelectors<V>(
-      selectState: (state: V) => EntityState<T>
-    ): EntitySelectors<T, V>
+      selectState: (state: V) => EntityState<T, Id>
+    ): EntitySelectors<T, V, Id>
     function getSelectors<V>(
-      selectState?: (state: V) => EntityState<T>
-    ): EntitySelectors<T, any> {
-      const selectIds = (state: EntityState<T>) => state.ids
+      selectState?: (state: V) => EntityState<T, Id>
+    ): EntitySelectors<T, any, Id> {
+      const selectIds = (state: EntityState<T, Id>) => state.ids
 
-      const selectEntities = (state: EntityState<T>) => state.entities
+      const selectEntities = (state: EntityState<T, Id>) => state.entities
 
       const selectAll = createDraftSafeSelector(
         selectIds,
@@ -31,10 +31,9 @@ export function buildCreateSelectorsFactory(
         (ids, entities): T[] => ids.map((id) => entities[id]!)
       )
 
-      const selectId = (_: unknown, id: EntityId) => id
+      const selectId = (_: unknown, id: Id) => id
 
-      const selectById = (entities: Dictionary<T>, id: EntityId) => entities[id]
-
+      const selectById = (entities: Dictionary<T, Id>, id: Id) => entities[id]
       const selectTotal = createDraftSafeSelector(
         selectIds,
         (ids) => ids.length
@@ -55,7 +54,7 @@ export function buildCreateSelectorsFactory(
       }
 
       const selectGlobalizedEntities = createDraftSafeSelector(
-        selectState as Selector<V, EntityState<T>>,
+        selectState as Selector<V, EntityState<T, Id>>,
         selectEntities
       )
 

@@ -1,8 +1,7 @@
-import type { EntityState, PreventAny } from './models'
+import type { EntityId, EntityState, PreventAny } from './models'
 import type { PayloadAction } from '../createAction'
 import { isFSA } from '../createAction'
 import type { ImmutableHelpers } from '../tsHelpers'
-import { IsAny } from '../tsHelpers'
 
 export type BuildStateOperatorConfiguration = Pick<
   ImmutableHelpers,
@@ -13,15 +12,15 @@ export function buildCreateSingleArgumentStateOperator(
   config: BuildStateOperatorConfiguration
 ) {
   const createStateOperator = buildCreateStateOperator(config)
-  return function createSingleArgumentStateOperator<V>(
-    mutator: (state: EntityState<V>) => void
+  return function createSingleArgumentStateOperator<V, Id extends EntityId>(
+    mutator: (state: EntityState<V, Id>) => void
   ) {
     const operator = createStateOperator(
-      (_: undefined, state: EntityState<V>) => mutator(state)
+      (_: undefined, state: EntityState<V, Id>) => mutator(state)
     )
 
-    return function operation<S extends EntityState<V>>(
-      state: PreventAny<S, V>
+    return function operation<S extends EntityState<V, Id>>(
+      state: PreventAny<S, V, Id>
     ): S {
       return operator(state as S, undefined)
     }
@@ -32,10 +31,10 @@ export function buildCreateStateOperator({
   isDraft,
   createNextState,
 }: BuildStateOperatorConfiguration) {
-  return function createStateOperator<V, R>(
-    mutator: (arg: R, state: EntityState<V>) => void
+  return function createStateOperator<V, Id extends EntityId, R>(
+    mutator: (arg: R, state: EntityState<V, Id>) => void
   ) {
-    return function operation<S extends EntityState<V>>(
+    return function operation<S extends EntityState<V, Id>>(
       state: S,
       arg: R | PayloadAction<R>
     ): S {
@@ -45,7 +44,7 @@ export function buildCreateStateOperator({
         return isFSA(arg)
       }
 
-      const runMutator = (draft: EntityState<V>) => {
+      const runMutator = (draft: EntityState<V, Id>) => {
         if (isPayloadActionArgument(arg)) {
           mutator(arg.payload, draft)
         } else {
