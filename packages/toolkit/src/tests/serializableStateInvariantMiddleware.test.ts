@@ -10,6 +10,7 @@ import {
   createSerializableStateInvariantMiddleware,
   findNonSerializableValue,
   isPlain,
+  Tuple,
 } from '@reduxjs/toolkit'
 import { isNestedFrozen } from '@internal/serializableStateInvariantMiddleware'
 
@@ -100,18 +101,19 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const store = configureStore({
       reducer,
-      middleware: [serializableStateInvariantMiddleware],
+      middleware: new Tuple(serializableStateInvariantMiddleware),
     })
 
-    const type = Symbol.for('SOME_CONSTANT')
-    const dispatchedAction = { type }
+    const symbol = Symbol.for('SOME_CONSTANT')
+    const dispatchedAction = { type: 'an-action', payload: symbol }
 
     store.dispatch(dispatchedAction)
 
     expect(getLog().log).toMatchInlineSnapshot(`
-      "A non-serializable value was detected in an action, in the path: \`type\`. Value: Symbol(SOME_CONSTANT) 
+      "A non-serializable value was detected in an action, in the path: \`payload\`. Value: Symbol(SOME_CONSTANT) 
       Take a look at the logic that dispatched this action:  Object {
-        \\"type\\": Symbol(SOME_CONSTANT),
+        \\"payload\\": Symbol(SOME_CONSTANT),
+        \\"type\\": \\"an-action\\",
       } 
       (See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants) 
       (To allow non-serializable values see: https://redux-toolkit.js.org/usage/usage-guide#working-with-non-serializable-data)"
@@ -146,7 +148,7 @@ describe('serializableStateInvariantMiddleware', () => {
       reducer: {
         testSlice: reducer,
       },
-      middleware: [serializableStateInvariantMiddleware],
+      middleware: new Tuple(serializableStateInvariantMiddleware),
     })
 
     store.dispatch({ type: ACTION_TYPE })
@@ -206,7 +208,7 @@ describe('serializableStateInvariantMiddleware', () => {
         reducer: {
           testSlice: reducer,
         },
-        middleware: [serializableStateInvariantMiddleware],
+        middleware: new Tuple(serializableStateInvariantMiddleware),
       })
 
       store.dispatch({ type: ACTION_TYPE })
@@ -253,7 +255,7 @@ describe('serializableStateInvariantMiddleware', () => {
         reducer: {
           testSlice: reducer,
         },
-        middleware: [serializableStateInvariantMiddleware],
+        middleware: new Tuple(serializableStateInvariantMiddleware),
       })
 
       store.dispatch({ type: ACTION_TYPE })
@@ -297,7 +299,7 @@ describe('serializableStateInvariantMiddleware', () => {
       reducer: {
         testSlice: reducer,
       },
-      middleware: [serializableStateInvariantMiddleware],
+      middleware: new Tuple(serializableStateInvariantMiddleware),
     })
 
     store.dispatch({ type: ACTION_TYPE })
@@ -321,7 +323,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const store = configureStore({
       reducer: () => ({}),
-      middleware: [serializableStateMiddleware],
+      middleware: new Tuple(serializableStateMiddleware),
     })
 
     expect(numTimesCalled).toBe(0)
@@ -346,7 +348,7 @@ describe('serializableStateInvariantMiddleware', () => {
     it('default value: meta.arg', () => {
       configureStore({
         reducer,
-        middleware: [createSerializableStateInvariantMiddleware()],
+        middleware: new Tuple(createSerializableStateInvariantMiddleware()),
       }).dispatch({ type: 'test', meta: { arg: nonSerializableValue } })
 
       expect(getLog().log).toMatchInlineSnapshot(`""`)
@@ -355,11 +357,11 @@ describe('serializableStateInvariantMiddleware', () => {
     it('default value can be overridden', () => {
       configureStore({
         reducer,
-        middleware: [
+        middleware: new Tuple(
           createSerializableStateInvariantMiddleware({
             ignoredActionPaths: [],
-          }),
-        ],
+          })
+        ),
       }).dispatch({ type: 'test', meta: { arg: nonSerializableValue } })
 
       expect(getLog().log).toMatchInlineSnapshot(`
@@ -378,11 +380,11 @@ describe('serializableStateInvariantMiddleware', () => {
     it('can specify (multiple) different values', () => {
       configureStore({
         reducer,
-        middleware: [
+        middleware: new Tuple(
           createSerializableStateInvariantMiddleware({
             ignoredActionPaths: ['payload', 'meta.arg'],
-          }),
-        ],
+          })
+        ),
       }).dispatch({
         type: 'test',
         payload: { arg: nonSerializableValue },
@@ -395,11 +397,11 @@ describe('serializableStateInvariantMiddleware', () => {
     it('can specify regexp', () => {
       configureStore({
         reducer,
-        middleware: [
+        middleware: new Tuple(
           createSerializableStateInvariantMiddleware({
             ignoredActionPaths: [/^payload\..*$/],
-          }),
-        ],
+          })
+        ),
       }).dispatch({
         type: 'test',
         payload: { arg: nonSerializableValue },
@@ -423,7 +425,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const store = configureStore({
       reducer: () => ({}),
-      middleware: [serializableStateMiddleware],
+      middleware: new Tuple(serializableStateMiddleware),
     })
 
     expect(numTimesCalled).toBe(0)
@@ -486,7 +488,7 @@ describe('serializableStateInvariantMiddleware', () => {
       reducer: {
         testSlice: reducer,
       },
-      middleware: [serializableStateInvariantMiddleware],
+      middleware: new Tuple(serializableStateInvariantMiddleware),
     })
 
     store.dispatch({ type: ACTION_TYPE })
@@ -505,15 +507,15 @@ describe('serializableStateInvariantMiddleware', () => {
     const reducer = () => badValue
     const store = configureStore({
       reducer,
-      middleware: [
+      middleware: new Tuple(
         createSerializableStateInvariantMiddleware({
           isSerializable: () => {
             numTimesCalled++
             return true
           },
           ignoreState: true,
-        }),
-      ],
+        })
+      ),
     })
 
     expect(numTimesCalled).toBe(0)
@@ -532,7 +534,7 @@ describe('serializableStateInvariantMiddleware', () => {
     const reducer = () => badValue
     const store = configureStore({
       reducer,
-      middleware: [
+      middleware: new Tuple(
         createSerializableStateInvariantMiddleware({
           isSerializable: () => {
             numTimesCalled++
@@ -540,8 +542,8 @@ describe('serializableStateInvariantMiddleware', () => {
           },
           ignoreState: true,
           ignoreActions: true,
-        }),
-      ],
+        })
+      ),
     })
 
     expect(numTimesCalled).toBe(0)
@@ -564,7 +566,7 @@ describe('serializableStateInvariantMiddleware', () => {
       reducer: {
         testSlice: reducer,
       },
-      middleware: [serializableStateInvariantMiddleware],
+      middleware: new Tuple(serializableStateInvariantMiddleware),
     })
 
     store.dispatch({
@@ -590,7 +592,7 @@ describe('serializableStateInvariantMiddleware', () => {
       reducer: {
         testSlice: reducer,
       },
-      middleware: [serializableStateInvariantMiddleware],
+      middleware: new Tuple(serializableStateInvariantMiddleware),
     })
 
     store.dispatch({ type: 'SOME_ACTION' })
@@ -614,7 +616,7 @@ describe('serializableStateInvariantMiddleware', () => {
         if (action.type === 'SET_STATE') return action.payload
         return state
       },
-      middleware: [serializableStateInvariantMiddleware],
+      middleware: new Tuple(serializableStateInvariantMiddleware),
     })
 
     const state = createNextState([], () =>

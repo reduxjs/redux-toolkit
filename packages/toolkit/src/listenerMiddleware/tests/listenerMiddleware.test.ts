@@ -4,7 +4,8 @@ import {
   createSlice,
   isAnyOf,
 } from '@reduxjs/toolkit'
-import { vi, Mock } from 'vitest'
+import type { Mock } from 'vitest'
+import { vi } from 'vitest'
 
 import type { AnyAction, PayloadAction, Action } from '@reduxjs/toolkit'
 

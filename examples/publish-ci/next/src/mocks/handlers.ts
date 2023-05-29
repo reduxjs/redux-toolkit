@@ -34,7 +34,8 @@ export const handlers = [
   }),
 
   rest.get('/posts/:id', (req, res, ctx) => {
-    const { id } = req.params as { id: string }
+    const { id: idParam } = req.params as { id: string }
+    const id = parseInt(idParam, 10)
     state = adapter.updateOne(state, {
       id,
       changes: { fetched_at: new Date().toUTCString() },
