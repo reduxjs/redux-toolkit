@@ -11,11 +11,11 @@ import { vi } from 'vitest'
 describe('Entity State Selectors', () => {
   describe('Composed Selectors', () => {
     interface State {
-      books: EntityState<BookModel>
+      books: EntityState<BookModel, string>
     }
 
-    let adapter: EntityAdapter<BookModel>
-    let selectors: EntitySelectors<BookModel, State>
+    let adapter: EntityAdapter<BookModel, string>
+    let selectors: EntitySelectors<BookModel, State, string>
     let state: State
 
     beforeEach(() => {
@@ -67,10 +67,14 @@ describe('Entity State Selectors', () => {
   })
 
   describe('Uncomposed Selectors', () => {
-    type State = EntityState<BookModel>
+    type State = EntityState<BookModel, string>
 
-    let adapter: EntityAdapter<BookModel>
-    let selectors: EntitySelectors<BookModel, EntityState<BookModel>>
+    let adapter: EntityAdapter<BookModel, string>
+    let selectors: EntitySelectors<
+      BookModel,
+      EntityState<BookModel, string>,
+      string
+    >
     let state: State
 
     beforeEach(() => {
@@ -100,9 +104,9 @@ describe('Entity State Selectors', () => {
     })
 
     it('should type single entity from Dictionary as entity type or undefined', () => {
-      expectType<Selector<EntityState<BookModel>, BookModel | undefined>>(
-        createSelector(selectors.selectEntities, (entities) => entities[0])
-      )
+      expectType<
+        Selector<EntityState<BookModel, string>, BookModel | undefined>
+      >(createSelector(selectors.selectEntities, (entities) => entities[0]))
     })
 
     it('should create a selector for selecting the list of models', () => {
