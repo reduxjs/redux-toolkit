@@ -186,9 +186,9 @@ export interface ListenerEffectAPI<
    * rejects if the listener has been cancelled or is completed.
    *
    * The return value is `true` if the predicate succeeds or `false` if a timeout is provided and expires first.
-   * 
+   *
    * ### Example
-   * 
+   *
    * ```ts
    * const updateBy = createAction<number>('counter/updateBy');
    *
@@ -210,7 +210,7 @@ export interface ListenerEffectAPI<
    *
    * The return value is the `[action, currentState, previousState]` combination that the predicate saw as arguments.
    *
-   * The promise resolves to null if a timeout is provided and expires first, 
+   * The promise resolves to null if a timeout is provided and expires first,
    *
    * ### Example
    *

@@ -257,7 +257,6 @@ const _anyMiddleware: any = () => () => () => {}
     })
 
     const state = store.getState()
-
     expectType<number>(state.aProperty)
     expectType<string>(state.someProperty)
     expectType<number>(state.anotherProperty)
