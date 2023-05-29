@@ -1,5 +1,6 @@
 import { vi } from 'vitest'
 import type { StoreEnhancer } from '@reduxjs/toolkit'
+import { Tuple } from '@reduxjs/toolkit'
 import type * as Redux from 'redux'
 import type * as DevTools from '@internal/devtoolsExtension'
 
@@ -108,7 +109,9 @@ describe('configureStore', async () => {
 
   describe('given no middleware', () => {
     it('calls createStore without any middleware', () => {
-      expect(configureStore({ middleware: [], reducer })).toBeInstanceOf(Object)
+      expect(
+        configureStore({ middleware: new Tuple(), reducer })
+      ).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalledWith()
       expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line-line
       expect(redux.createStore).toHaveBeenCalledWith(
@@ -171,9 +174,9 @@ describe('configureStore', async () => {
     it('calls createStore with custom middleware and without default middleware', () => {
       const thank: Redux.Middleware = (_store) => (next) => (action) =>
         next(action)
-      expect(configureStore({ middleware: [thank], reducer })).toBeInstanceOf(
-        Object
-      )
+      expect(
+        configureStore({ middleware: new Tuple(thank), reducer })
+      ).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalledWith(thank)
       expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line-line
       expect(redux.createStore).toHaveBeenCalledWith(
@@ -194,7 +197,7 @@ describe('configureStore', async () => {
         expect(getDefaultMiddleware).toEqual(expect.any(Function))
         expect(getDefaultMiddleware()).toEqual(expect.any(Array))
 
-        return [thank]
+        return new Tuple(thank)
       })
 
       const store = configureStore({ middleware: builder, reducer })
@@ -303,7 +306,7 @@ describe('configureStore', async () => {
     it('warns if middleware enhancer is excluded from final array when middlewares are provided', () => {
       const store = configureStore({
         reducer,
-        enhancers: [dummyEnhancer],
+        enhancers: new Tuple(dummyEnhancer),
       })
 
       expect(dummyEnhancerCalled).toBe(true)
@@ -315,8 +318,8 @@ describe('configureStore', async () => {
     it("doesn't warn when middleware enhancer is excluded if no middlewares provided", () => {
       const store = configureStore({
         reducer,
-        middleware: [],
-        enhancers: [dummyEnhancer],
+        middleware: new Tuple(),
+        enhancers: new Tuple(dummyEnhancer),
       })
 
       expect(dummyEnhancerCalled).toBe(true)
