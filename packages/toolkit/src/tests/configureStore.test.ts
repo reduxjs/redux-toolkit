@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import type { StoreEnhancer, StoreEnhancerStoreCreator } from '@reduxjs/toolkit'
+import type { StoreEnhancer } from '@reduxjs/toolkit'
 import type * as Redux from 'redux'
 import type * as DevTools from '@internal/devtoolsExtension'
 
