@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { vi, SpyInstance } from 'vitest'
+import type { SpyInstance } from 'vitest'
+import { vi } from 'vitest'
 import type {
   UseMutation,
   UseQuery,

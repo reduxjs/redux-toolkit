@@ -1,5 +1,5 @@
 import type { Middleware, StoreEnhancer } from 'redux'
-import type { EnhancerArray, MiddlewareArray } from './utils'
+import type { Tuple } from './utils'
 
 export function safeAssign<T extends object>(
   target: T,
@@ -91,7 +91,7 @@ export type ExcludeFromTuple<T, E, Acc extends unknown[] = []> = T extends [
   : Acc
 
 type ExtractDispatchFromMiddlewareTuple<
-  MiddlewareTuple extends any[],
+  MiddlewareTuple extends readonly any[],
   Acc extends {}
 > = MiddlewareTuple extends [infer Head, ...infer Tail]
   ? ExtractDispatchFromMiddlewareTuple<
@@ -100,7 +100,7 @@ type ExtractDispatchFromMiddlewareTuple<
     >
   : Acc
 
-export type ExtractDispatchExtensions<M> = M extends MiddlewareArray<
+export type ExtractDispatchExtensions<M> = M extends Tuple<
   infer MiddlewareTuple
 >
   ? ExtractDispatchFromMiddlewareTuple<MiddlewareTuple, {}>
@@ -109,7 +109,7 @@ export type ExtractDispatchExtensions<M> = M extends MiddlewareArray<
   : never
 
 type ExtractStoreExtensionsFromEnhancerTuple<
-  EnhancerTuple extends any[],
+  EnhancerTuple extends readonly any[],
   Acc extends {}
 > = EnhancerTuple extends [infer Head, ...infer Tail]
   ? ExtractStoreExtensionsFromEnhancerTuple<
@@ -118,9 +118,7 @@ type ExtractStoreExtensionsFromEnhancerTuple<
     >
   : Acc
 
-export type ExtractStoreExtensions<E> = E extends EnhancerArray<
-  infer EnhancerTuple
->
+export type ExtractStoreExtensions<E> = E extends Tuple<infer EnhancerTuple>
   ? ExtractStoreExtensionsFromEnhancerTuple<EnhancerTuple, {}>
   : E extends ReadonlyArray<StoreEnhancer>
   ? UnionToIntersection<
@@ -133,7 +131,7 @@ export type ExtractStoreExtensions<E> = E extends EnhancerArray<
   : never
 
 type ExtractStateExtensionsFromEnhancerTuple<
-  EnhancerTuple extends any[],
+  EnhancerTuple extends readonly any[],
   Acc extends {}
 > = EnhancerTuple extends [infer Head, ...infer Tail]
   ? ExtractStateExtensionsFromEnhancerTuple<
@@ -145,9 +143,7 @@ type ExtractStateExtensionsFromEnhancerTuple<
     >
   : Acc
 
-export type ExtractStateExtensions<E> = E extends EnhancerArray<
-  infer EnhancerTuple
->
+export type ExtractStateExtensions<E> = E extends Tuple<infer EnhancerTuple>
   ? ExtractStateExtensionsFromEnhancerTuple<EnhancerTuple, {}>
   : E extends ReadonlyArray<StoreEnhancer>
   ? UnionToIntersection<

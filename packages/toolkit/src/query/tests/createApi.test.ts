@@ -1,6 +1,7 @@
 import type { SerializedError } from '@reduxjs/toolkit'
 import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
-import { vi, SpyInstance } from 'vitest'
+import type { SpyInstance } from 'vitest'
+import { vi } from 'vitest'
 import type {
   Api,
   MutationDefinition,

@@ -92,6 +92,22 @@ and should return a middleware array.
 For more details on how the `middleware` parameter works and the list of middleware that are added by default, see the
 [`getDefaultMiddleware` docs page](./getDefaultMiddleware.mdx).
 
+:::note Tuple
+Typescript users are required to use a `Tuple` instance (if not using a `getDefaultMiddleware` result, which is already a `Tuple`), for better inference.
+
+```ts no-transpile
+import { configureStore, Tuple } from '@reduxjs/toolkit'
+
+configureStore({
+  reducer: rootReducer,
+  middleware: new Tuple(additionalMiddleware, logger),
+})
+```
+
+Javascript-only users are free to use a plain array if preferred.
+
+:::
+
 ### `devTools`
 
 If this is a boolean, it will be used to indicate whether `configureStore` should automatically enable support for [the Redux DevTools browser extension](https://github.com/reduxjs/redux-devtools).
@@ -121,8 +137,7 @@ If defined as an array, these will be passed to [the Redux `compose` function](h
 :::tip Dev Tools
 This should _not_ include the Redux DevTools Extension `composeWithDevTools`, as this is already handled by `configureStore`.
 
-Example: `enhancers: [offline]` will result in a final setup of `[offline, devToolsExtension]`.
-:::
+Example: `enhancers: new Tuple(offline)` will result in a final setup of `[offline, devToolsExtension]`.
 
 If not provided, `configureStore` will call `getDefaultEnhancers` and use the array of enhancers it returns (including `applyMiddleware` with specified middleware).
 
@@ -134,8 +149,6 @@ of `[offline, applyMiddleware, devToolsExtension]`.
 For more details on how the `enhancer` parameter works and the list of enhancers that are added by default, see the [`getDefaultEnhancers` docs page](./getDefaultEnhancers).
 
 :::caution Middleware
-
-In order to use any [middleware](#middleware) specified, you _need_ to use the `getDefaultEnhancers` callback, which will include the built `applyMiddleware` enhancer.
 
 If you provide an array, this `applyMiddleware` enhancer will _not_ be used.
 
@@ -170,8 +183,23 @@ configureStore({
 
 :::
 
-## Usage
+:::note Tuple
+Typescript users are required to use a `Tuple` instance (if not using a `getDefaultEnhancer` result, which is already a `Tuple`), for better inference.
 
+import { configureStore, Tuple } from '@reduxjs/toolkit'
+
+configureStore({
+reducer: rootReducer,
+enhancers: new Tuple(offline),
+})
+
+````
+
+Javascript-only users are free to use a plain array if preferred.
+
+:::
+
+## Usage
 ### Basic Example
 
 ```ts
@@ -187,7 +215,7 @@ import rootReducer from './reducers'
 
 const store = configureStore({ reducer: rootReducer })
 // The store now has redux-thunk added and the Redux DevTools Extension is turned on
-```
+````
 
 ### Full Example
 

@@ -6,7 +6,14 @@ import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
 import axios from 'axios'
 import { expectExactType, hookWaitFor, setupApiStore } from './helpers'
 import { server } from './mocks/server'
-import { fireEvent, render, waitFor, screen, act, renderHook } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  waitFor,
+  screen,
+  act,
+  renderHook,
+} from '@testing-library/react'
 import { useDispatch } from 'react-redux'
 import type { AnyAction, ThunkDispatch } from '@reduxjs/toolkit'
 import type { BaseQueryApi } from '../baseQueryTypes'
