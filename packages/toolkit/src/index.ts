@@ -105,7 +105,6 @@ export { Tuple } from './utils'
 
 export { createEntityAdapter } from './entities/create_adapter'
 export type {
-  Dictionary,
   EntityState,
   EntityAdapter,
   EntitySelectors,

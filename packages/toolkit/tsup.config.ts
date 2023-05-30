@@ -203,6 +203,15 @@ export default defineConfig((options) => {
             if (format === 'cjs' && name === 'production.min') {
               writeCommonJSEntry(outputFolder, prefix)
             } else if (generateTypedefs) {
+              if (folder === '') {
+                // we need to delete the declaration file and replace it with the original source file
+                fs.rmSync(path.join(outputFolder, 'uncheckedindexed.d.ts'))
+
+                fs.copyFileSync(
+                  'src/uncheckedindexed.ts',
+                  path.join(outputFolder, 'uncheckedindexed.ts')
+                )
+              }
               // TODO Copy/generate `.d.mts` files?
               // const inputTypedefsFile = `${outputFilename}.d.ts`
               // const outputTypedefsFile = `${outputFilename}.d.mts`

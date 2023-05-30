@@ -118,19 +118,11 @@ export type Comparer<T> = (a: T, b: T) => number
 
 export type IdSelector<T> = (model: T) => EntityId
 
-export interface DictionaryNum<T> {
-  [id: number]: T | undefined
-}
-
-export interface Dictionary<T> extends DictionaryNum<T> {
-  [id: string]: T | undefined
-}
-
 export type Update<T> = { id: EntityId; changes: Partial<T> }
 
 export interface EntityState<T> {
   ids: EntityId[]
-  entities: Dictionary<T>
+  entities: Record<EntityId, T>
 }
 
 export interface EntityDefinition<T> {
@@ -183,7 +175,7 @@ export interface EntityStateAdapter<T> {
 
 export interface EntitySelectors<T, V> {
   selectIds: (state: V) => EntityId[]
-  selectEntities: (state: V) => Dictionary<T>
+  selectEntities: (state: V) => Record<EntityId, T>
   selectAll: (state: V) => T[]
   selectTotal: (state: V) => number
   selectById: (state: V, id: EntityId) => T | undefined
@@ -227,7 +219,6 @@ All three options will insert _new_ entities into the list. However they differ 
 - `upsertOne` and `upsertMany` will do a shallow copy to merge the old and new entities overwriting existing values, adding any that were not there and not touching properties not provided in the new entity.
 
 :::
-
 
 Each method has a signature that looks like:
 
@@ -358,12 +349,8 @@ const booksSlice = createSlice({
   },
 })
 
-const {
-  bookAdded,
-  booksLoading,
-  booksReceived,
-  bookUpdated,
-} = booksSlice.actions
+const { bookAdded, booksLoading, booksReceived, bookUpdated } =
+  booksSlice.actions
 
 const store = configureStore({
   reducer: {
