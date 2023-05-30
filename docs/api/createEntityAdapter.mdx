@@ -46,9 +46,9 @@ import {
 
 type Book = { bookId: string; title: string }
 
-const booksAdapter = createEntityAdapter<Book>({
+const booksAdapter = createEntityAdapter({
   // Assume IDs are stored in a field other than `book.id`
-  selectId: (book) => book.bookId,
+  selectId: (book: Book) => book.bookId,
   // Keep the "all IDs" array sorted based on book titles
   sortComparer: (a, b) => a.title.localeCompare(b.title),
 })
