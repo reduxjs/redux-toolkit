@@ -285,7 +285,7 @@ Each selector function will be created using the `createSelector` function from 
 
 :::tip
 
-The `createSelector` instance used can be replaced, by passing it as a second parameter:
+The `createSelector` instance used can be replaced, by passing it as part of the options object (second parameter):
 
 ```js
 import {
@@ -296,14 +296,13 @@ import {
 const createWeakMapDraftSafeSelector =
   createDraftSafeSelectorCreator(weakMapMemoize)
 
-const simpleSelectors = booksAdapter.getSelectors(
-  undefined,
-  createWeakMapDraftSafeSelector
-)
-const globalizedSelectors = booksAdapter.getSelectors(
-  (state) => state.books,
-  createWeakMapDraftSafeSelector
-)
+const simpleSelectors = booksAdapter.getSelectors(undefined, {
+  createSelector: createWeakMapDraftSafeSelector,
+})
+
+const globalizedSelectors = booksAdapter.getSelectors((state) => state.books, {
+  createSelector: createWeakMapDraftSafeSelector,
+})
 ```
 
 If no instance is passed, it will default to [`createDraftSafeSelector`](./createSelector#createDraftSafeSelector).
