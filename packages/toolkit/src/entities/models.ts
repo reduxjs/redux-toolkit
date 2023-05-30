@@ -1,5 +1,6 @@
 import type { UncheckedIndexedAccess } from '../uncheckedindexed'
 import type { PayloadAction } from '../createAction'
+import type { GetSelectorsOptions } from './state_selectors'
 import type { CastAny, Id as Compute } from '../tsHelpers'
 
 /**
@@ -167,8 +168,12 @@ export interface EntityAdapter<T, Id extends EntityId>
   sortComparer: false | Comparer<T>
   getInitialState(): EntityState<T, Id>
   getInitialState<S extends object>(state: S): EntityState<T, Id> & S
-  getSelectors(): EntitySelectors<T, EntityState<T, Id>, Id>
+  getSelectors(
+    selectState?: undefined,
+    options?: GetSelectorsOptions
+  ): EntitySelectors<T, EntityState<T, Id>, Id>
   getSelectors<V>(
-    selectState: (state: V) => EntityState<T, Id>
+    selectState: (state: V) => EntityState<T, Id>,
+    options?: GetSelectorsOptions
   ): EntitySelectors<T, V, Id>
 }
