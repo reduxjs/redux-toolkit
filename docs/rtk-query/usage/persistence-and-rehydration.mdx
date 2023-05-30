@@ -37,14 +37,21 @@ box with the `autoMergeLevel1` or `autoMergeLevel2` [state reconcilers](https://
 when persisting the root reducer, or with the `autoMergeLevel1` reconciler when persisting just the api reducer.
 
 ```ts title="redux-persist rehydration example"
+import type { Action, PayloadAction } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { REHYDRATE } from 'redux-persist'
+
+type RootState = any // normally inferred from state
+
+function isHydrateAction(action: Action): action is PayloadAction<RootState> {
+  return action.type === REHYDRATE
+}
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   // highlight-start
   extractRehydrationInfo(action, { reducerPath }) {
-    if (action.type === REHYDRATE) {
+    if (isHydrateAction(action)) {
       return action.payload[reducerPath]
     }
   },
