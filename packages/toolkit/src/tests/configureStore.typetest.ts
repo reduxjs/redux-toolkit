@@ -147,13 +147,13 @@ const _anyMiddleware: any = () => () => () => {}
 
     const store = configureStore({
       reducer: () => 0,
-      enhancers: new Tuple(enhancer),
+      enhancers: () => new Tuple(enhancer),
     })
 
     const store2 = configureStore({
       reducer: () => 0,
       // @ts-expect-error
-      enhancers: [enhancer],
+      enhancers: () => [enhancer],
     })
 
     expectType<Dispatch & ThunkDispatch<number, undefined, AnyAction>>(
@@ -164,7 +164,7 @@ const _anyMiddleware: any = () => () => () => {}
   configureStore({
     reducer: () => 0,
     // @ts-expect-error
-    enhancers: new Tuple('not a store enhancer'),
+    enhancers: () => new Tuple('not a store enhancer'),
   })
 
   {
@@ -192,10 +192,8 @@ const _anyMiddleware: any = () => () => () => {}
 
     const store = configureStore({
       reducer: () => 0,
-      enhancers: new Tuple(
-        somePropertyStoreEnhancer,
-        anotherPropertyStoreEnhancer
-      ),
+      enhancers: () =>
+        new Tuple(somePropertyStoreEnhancer, anotherPropertyStoreEnhancer),
     })
 
     expectType<Dispatch>(store.dispatch)
@@ -254,14 +252,11 @@ const _anyMiddleware: any = () => () => () => {}
 
     const store = configureStore({
       reducer: () => ({ aProperty: 0 }),
-      enhancers: new Tuple(
-        someStateExtendingEnhancer,
-        anotherStateExtendingEnhancer
-      ),
+      enhancers: () =>
+        new Tuple(someStateExtendingEnhancer, anotherStateExtendingEnhancer),
     })
 
     const state = store.getState()
-
     expectType<number>(state.aProperty)
     expectType<string>(state.someProperty)
     expectType<number>(state.anotherProperty)
