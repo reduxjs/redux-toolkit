@@ -599,9 +599,20 @@ const value = actionCreators.anyKey
       }>()
 
       return {
-        normalReducer: create.reducer<string>((state, action) => {
+        normalReducer: create.reducer(
+          (state, action: PayloadAction<string>) => {
+            expectType<TestState>(state)
+            expectType<string>(action.payload)
+          }
+        ),
+        optionalReducer: create.reducer(
+          (state, action: PayloadAction<string | undefined>) => {
+            expectType<TestState>(state)
+            expectType<string | undefined>(action.payload)
+          }
+        ),
+        noActionReducer: create.reducer((state) => {
           expectType<TestState>(state)
-          expectType<string>(action.payload)
         }),
         preparedReducer: create.preparedReducer(
           (payload: string) => ({
@@ -707,6 +718,23 @@ const value = actionCreators.anyKey
   type StoreDispatch = typeof store.dispatch
 
   expectType<PayloadActionCreator<string>>(slice.actions.normalReducer)
+  slice.actions.normalReducer('')
+  // @ts-expect-error
+  slice.actions.normalReducer()
+  // @ts-expect-error
+  slice.actions.normalReducer(0)
+  expectType<ActionCreatorWithOptionalPayload<string | undefined>>(
+    slice.actions.optionalReducer
+  )
+  slice.actions.optionalReducer()
+  slice.actions.optionalReducer('')
+  // @ts-expect-error
+  slice.actions.optionalReducer(0)
+
+  expectType<ActionCreatorWithoutPayload>(slice.actions.noActionReducer)
+  slice.actions.noActionReducer()
+  // @ts-expect-error
+  slice.actions.noActionReducer('')
   expectType<
     ActionCreatorWithPreparedPayload<
       [string],

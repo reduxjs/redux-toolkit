@@ -353,6 +353,9 @@ interface AsyncThunkCreator<
 }
 
 export interface ReducerCreators<State> {
+  reducer(
+    caseReducer: CaseReducer<State, PayloadAction>
+  ): CaseReducerDefinition<State, PayloadAction>
   reducer<Payload>(
     caseReducer: CaseReducer<State, PayloadAction<Payload>>
   ): CaseReducerDefinition<State, PayloadAction<Payload>>
@@ -746,7 +749,7 @@ function buildReducerCreators<State>(): ReducerCreators<State> {
   }
   asyncThunk.withTypes = () => asyncThunk
   return {
-    reducer(caseReducer) {
+    reducer(caseReducer: CaseReducer<State, any>) {
       return Object.assign(
         {
           // hack so the wrapping function has the same name as the original
