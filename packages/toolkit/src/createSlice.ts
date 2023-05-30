@@ -186,7 +186,7 @@ export interface CreateSliceOptions<
    * 
    * @example
 ```ts
-import { createAction, createSlice, Action, UnknownAction } from '@reduxjs/toolkit'
+import { createAction, createSlice, Action } from '@reduxjs/toolkit'
 const incrementBy = createAction<number>('incrementBy')
 const decrement = createAction('decrement')
 
@@ -194,7 +194,7 @@ interface RejectedAction extends Action {
   error: Error
 }
 
-function isRejectedAction(action: UnknownAction): action is RejectedAction {
+function isRejectedAction(action: Action): action is RejectedAction {
   return action.type.endsWith('rejected')
 }
 
@@ -240,8 +240,10 @@ interface ReducerDefinition<T extends ReducerType = ReducerType> {
   [reducerDefinitionType]: T
 }
 
-export interface CaseReducerDefinition<S = any, A extends Action = UnknownAction>
-  extends CaseReducer<S, A>,
+export interface CaseReducerDefinition<
+  S = any,
+  A extends Action = UnknownAction
+> extends CaseReducer<S, A>,
     ReducerDefinition<ReducerType.reducer> {}
 
 /**

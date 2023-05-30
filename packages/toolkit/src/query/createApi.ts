@@ -159,14 +159,21 @@ export interface CreateApiOptions<
    *
    * ```ts
    * // codeblock-meta title="next-redux-wrapper rehydration example"
+   * import type { Action, PayloadAction } from '@reduxjs/toolkit'
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * import { HYDRATE } from 'next-redux-wrapper'
+   *
+   * type RootState = any; // normally inferred from state
+   *
+   * function isHydrateAction(action: Action): action is PayloadAction<RootState> {
+   *   return action.type === HYDRATE
+   * }
    *
    * export const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   // highlight-start
    *   extractRehydrationInfo(action, { reducerPath }) {
-   *     if (action.type === HYDRATE) {
+   *     if (isHydrateAction(action)) {
    *       return action.payload[reducerPath]
    *     }
    *   },
