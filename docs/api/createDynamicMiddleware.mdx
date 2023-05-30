@@ -80,7 +80,7 @@ The "dynamic middleware instance" returned from `createDynamicMiddleware` is an 
 ```ts no-transpile
 export type DynamicMiddlewareInstance<
   State = unknown,
-  Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
 > = {
   middleware: DynamicMiddleware<State, Dispatch>
   addMiddleware: AddMiddleware<State, Dispatch>
@@ -131,7 +131,7 @@ _These depend on having `react-redux` installed._
 ```ts no-transpile
 interface ReactDynamicMiddlewareInstance<
   State = any,
-  Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
 > extends DynamicMiddlewareInstance<State, Dispatch> {
   createDispatchWithMiddlewareHook: CreateDispatchWithMiddlewareHook<
     State,

@@ -20,7 +20,7 @@ to the store setup for a better development experience.
 
 interface ConfigureStoreOptions<
   S = any,
-  A extends Action = AnyAction,
+  A extends Action = UnknownAction,
   M extends Middlewares<S> = Middlewares<S>
   E extends Enhancers = Enhancers
 > {
@@ -64,7 +64,7 @@ interface ConfigureStoreOptions<
   enhancers?: (getDefaultEnhancers: GetDefaultEnhancers<M>) => E | E
 }
 
-function configureStore<S = any, A extends Action = AnyAction>(
+function configureStore<S = any, A extends Action = UnknownAction>(
   options: ConfigureStoreOptions<S, A>
 ): EnhancedStore<S, A>
 ```

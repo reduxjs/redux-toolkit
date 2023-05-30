@@ -3,11 +3,12 @@ import {
   createAction,
   createSlice,
   isAnyOf,
+  isFSA,
 } from '@reduxjs/toolkit'
 import type { Mock } from 'vitest'
 import { vi } from 'vitest'
 
-import type { AnyAction, PayloadAction, Action } from '@reduxjs/toolkit'
+import type { Action, UnknownAction, PayloadAction } from '@reduxjs/toolkit'
 
 import {
   createListenerMiddleware,
@@ -196,7 +197,7 @@ describe('createListenerMiddleware', () => {
         >
 
       typedAddListener({
-        matcher: (action: AnyAction): action is AnyAction => true,
+        matcher: (action): action is Action => true,
         effect: (action, listenerApi) => {
           foundExtra = listenerApi.extra
           expectType<typeof originalExtra>(listenerApi.extra)
@@ -272,7 +273,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('can subscribe with a string action type', () => {
-      const effect = vi.fn((_: AnyAction) => {})
+      const effect = vi.fn((_: UnknownAction) => {})
 
       store.dispatch(
         addListener({
@@ -291,7 +292,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('can subscribe with a matcher function', () => {
-      const effect = vi.fn((_: AnyAction) => {})
+      const effect = vi.fn((_: UnknownAction) => {})
 
       const isAction1Or2 = isAnyOf(testAction1, testAction2)
 
@@ -574,7 +575,7 @@ describe('createListenerMiddleware', () => {
       'add and remove listener with "%s" param correctly',
       (_, params) => {
         const effect: ListenerEffect<
-          AnyAction,
+          UnknownAction,
           typeof store.getState,
           typeof store.dispatch
         > = vi.fn()
@@ -591,7 +592,7 @@ describe('createListenerMiddleware', () => {
       }
     )
 
-    const unforwardedActions: [string, AnyAction][] = [
+    const unforwardedActions: [string, UnknownAction][] = [
       [
         'addListener',
         addListener({ actionCreator: testAction1, effect: noop }),
@@ -1073,7 +1074,7 @@ describe('createListenerMiddleware', () => {
 
       typedAddListener({
         predicate: incrementByAmount.match,
-        async effect(_: AnyAction, listenerApi) {
+        async effect(_: UnknownAction, listenerApi) {
           result = await listenerApi.take(increment.match)
         },
       })
@@ -1341,7 +1342,7 @@ describe('createListenerMiddleware', () => {
           action,
           currentState,
           previousState
-        ): action is AnyAction => {
+        ): action is UnknownAction => {
           expectUnknown(currentState)
           expectUnknown(previousState)
           return true
@@ -1361,7 +1362,7 @@ describe('createListenerMiddleware', () => {
           action,
           currentState,
           previousState
-        ): action is AnyAction => {
+        ): action is UnknownAction => {
           expectUnknown(currentState)
           expectUnknown(previousState)
           return true
@@ -1387,7 +1388,7 @@ describe('createListenerMiddleware', () => {
             action,
             currentState,
             previousState
-          ): action is AnyAction => {
+          ): action is UnknownAction => {
             expectUnknown(currentState)
             expectUnknown(previousState)
             return true
@@ -1447,7 +1448,7 @@ describe('createListenerMiddleware', () => {
           currentState,
           previousState
         ): action is PayloadAction<number> => {
-          return typeof action.payload === 'boolean'
+          return isFSA(action) && typeof action.payload === 'boolean'
         },
         effect: (action, listenerApi) => {
           expectExactType<PayloadAction<number>>(action)
@@ -1456,10 +1457,10 @@ describe('createListenerMiddleware', () => {
 
       startListening({
         predicate: (action, currentState) => {
-          return typeof action.payload === 'number'
+          return isFSA(action) && typeof action.payload === 'number'
         },
         effect: (action, listenerApi) => {
-          expectExactType<AnyAction>(action)
+          expectExactType<UnknownAction>(action)
         },
       })
 
@@ -1499,7 +1500,7 @@ describe('createListenerMiddleware', () => {
           action,
           currentState,
           previousState
-        ): action is AnyAction => {
+        ): action is UnknownAction => {
           expectNotAny(currentState)
           expectNotAny(previousState)
           expectExactType<CounterState>(currentState)
@@ -1520,7 +1521,7 @@ describe('createListenerMiddleware', () => {
       typedMiddleware.startListening({
         // TODO Why won't this infer the listener's `action` with implicit argument types?
         predicate: (
-          action: AnyAction,
+          action: UnknownAction,
           currentState: CounterState
         ): action is PayloadAction<number> => {
           expectNotAny(currentState)
@@ -1581,7 +1582,7 @@ describe('createListenerMiddleware', () => {
             action,
             currentState,
             previousState
-          ): action is AnyAction => {
+          ): action is UnknownAction => {
             expectNotAny(currentState)
             expectNotAny(previousState)
             expectExactType<CounterState>(currentState)
@@ -1611,7 +1612,7 @@ describe('createListenerMiddleware', () => {
           action,
           currentState,
           previousState
-        ): action is AnyAction => {
+        ): action is UnknownAction => {
           expectNotAny(currentState)
           expectNotAny(previousState)
           expectExactType<CounterState>(currentState)
@@ -1648,7 +1649,7 @@ describe('createListenerMiddleware', () => {
             action,
             currentState,
             previousState
-          ): action is AnyAction => {
+          ): action is UnknownAction => {
             expectNotAny(currentState)
             expectNotAny(previousState)
             expectExactType<CounterState>(currentState)

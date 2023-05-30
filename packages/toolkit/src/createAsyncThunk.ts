@@ -1,4 +1,4 @@
-import type { Dispatch, AnyAction } from 'redux'
+import type { Dispatch, UnknownAction } from 'redux'
 import type {
   PayloadAction,
   ActionCreatorWithPreparedPayload,
@@ -132,10 +132,14 @@ type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
       ThunkDispatch<
         GetState<ThunkApiConfig>,
         GetExtra<ThunkApiConfig>,
-        AnyAction
+        UnknownAction
       >
     >
-  : ThunkDispatch<GetState<ThunkApiConfig>, GetExtra<ThunkApiConfig>, AnyAction>
+  : ThunkDispatch<
+      GetState<ThunkApiConfig>,
+      GetExtra<ThunkApiConfig>,
+      UnknownAction
+    >
 
 export type GetThunkAPI<ThunkApiConfig> = BaseThunkAPI<
   GetState<ThunkApiConfig>,
@@ -629,7 +633,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
                   { requestId, arg },
                   { getState, extra }
                 )
-              )
+              ) as any
             )
             finalAction = await Promise.race([
               abortedPromise,
@@ -679,7 +683,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
             (finalAction as any).meta.condition
 
           if (!skipDispatch) {
-            dispatch(finalAction)
+            dispatch(finalAction as any)
           }
           return finalAction
         })()

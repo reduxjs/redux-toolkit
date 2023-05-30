@@ -3,10 +3,9 @@ import type {
   ReducersMapObject,
   Middleware,
   Action,
-  AnyAction,
   StoreEnhancer,
   Store,
-  Dispatch,
+  UnknownAction,
 } from 'redux'
 import { applyMiddleware, createStore, compose, combineReducers } from 'redux'
 import type { DevToolsEnhancerOptions as DevToolsOptions } from './devtoolsExtension'
@@ -36,7 +35,7 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production'
  */
 export interface ConfigureStoreOptions<
   S = any,
-  A extends Action = AnyAction,
+  A extends Action = UnknownAction,
   M extends Tuple<Middlewares<S>> = Tuple<Middlewares<S>>,
   E extends Tuple<Enhancers> = Tuple<Enhancers>,
   P = S
@@ -97,7 +96,7 @@ type Enhancers = ReadonlyArray<StoreEnhancer>
  */
 export type EnhancedStore<
   S = any,
-  A extends Action = AnyAction,
+  A extends Action = UnknownAction,
   E extends Enhancers = Enhancers
 > = ExtractStoreExtensions<E> & Store<S & ExtractStateExtensions<E>, A>
 
@@ -111,7 +110,7 @@ export type EnhancedStore<
  */
 export function configureStore<
   S = any,
-  A extends Action = AnyAction,
+  A extends Action = UnknownAction,
   M extends Tuple<Middlewares<S>> = Tuple<[ThunkMiddlewareFor<S>]>,
   E extends Tuple<Enhancers> = Tuple<
     [StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>, StoreEnhancer]
@@ -205,5 +204,5 @@ export function configureStore<
 
   const composedEnhancer: StoreEnhancer<any> = finalCompose(...storeEnhancers)
 
-  return createStore(rootReducer, preloadedState, composedEnhancer)
+  return createStore(rootReducer, preloadedState as P, composedEnhancer)
 }

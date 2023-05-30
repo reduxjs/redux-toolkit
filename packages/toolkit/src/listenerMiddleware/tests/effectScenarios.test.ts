@@ -6,7 +6,7 @@ import {
 } from '@reduxjs/toolkit'
 import { vi } from 'vitest'
 
-import type { AnyAction, PayloadAction, Action } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
 
 import { createListenerMiddleware, TaskAbortError } from '../index'
 

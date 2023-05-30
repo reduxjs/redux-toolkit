@@ -1,4 +1,4 @@
-import type { Action, AnyAction, Reducer } from 'redux'
+import type { Action, UnknownAction, Reducer } from 'redux'
 import type {
   ActionCreatorWithNonInferrablePayload,
   ActionCreatorWithOptionalPayload,
@@ -82,7 +82,7 @@ const value = actionCreators.anyKey
   // @ts-expect-error
   expectType<Reducer<string, PayloadAction>>(slice.reducer)
   // @ts-expect-error
-  expectType<Reducer<string, AnyAction>>(slice.reducer)
+  expectType<Reducer<string, UnknownAction>>(slice.reducer)
   /* Actions */
 
   slice.actions.increment(1)
