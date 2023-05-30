@@ -6,7 +6,7 @@ export function getInitialEntityState<T, Id extends EntityId>(): EntityState<
 > {
   return {
     ids: [],
-    entities: {},
+    entities: {} as Record<Id, T>,
   }
 }
 

@@ -61,7 +61,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     state: R
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
-    state.entities = {}
+    state.entities = {} as Record<Id, T>
     state.ids = []
 
     addManyMutably(newEntities, state)
