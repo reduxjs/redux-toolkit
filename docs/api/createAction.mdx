@@ -100,45 +100,9 @@ const counterReducer = createReducer(0, (builder) => {
 })
 ```
 
-<!-- TODO: how do we handle this? -->
-
-## Non-String Action Types
-
-In principle, Redux lets you use any kind of value as an action type. Instead of strings, you could theoretically use numbers, [symbols](https://developer.mozilla.org/en-US/docs/Glossary/Symbol), or anything else ([although it's recommended that the value should at least be serializable](https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)).
-
-However, Redux Toolkit rests on the assumption that you use string action types.
-
-```js
-const INCREMENT = Symbol('increment')
-const increment = createAction(INCREMENT)
-
-increment.type.toString()
-// returns the string 'Symbol(increment)',
-// not the INCREMENT symbol itself
-
-increment.type.toString() === INCREMENT
-// false
-```
-
-This means that, for instance, you cannot use a non-string-type action creator as a case reducer key for [createReducer()](createReducer.mdx).
-
-```js
-const INCREMENT = Symbol('increment')
-const increment = createAction(INCREMENT)
-
-const counterReducer = createReducer(0, {
-  // The following case reducer will NOT trigger for
-  // increment() actions because `increment` will be
-  // interpreted as a string, rather than being evaluated
-  // to the INCREMENT symbol.
-  [increment]: (state, action) => state + action.payload,
-
-  // You would need to use the action type explicitly instead.
-  [INCREMENT]: (state, action) => state + action.payload,
-})
-```
-
-For this reason, **we strongly recommend you to only use string action types**.
+:::warning Non-String Action Types
+As of Redux 5.0, action types are _required_ to be strings. An error will be thrown by the store if a non-string action type reaches the original store dispatch.
+:::
 
 ## actionCreator.match
 

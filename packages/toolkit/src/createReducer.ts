@@ -73,8 +73,6 @@ export type ReducerWithInitialState<S extends NotFunction<any>> = Reducer<S> & {
   getInitialState: () => S
 }
 
-let hasWarnedAboutObjectNotation = false
-
 /**
  * A utility function that allows defining a reducer as a mapping from action
  * type to *case reducer* functions that handle these action types. The
@@ -89,7 +87,7 @@ let hasWarnedAboutObjectNotation = false
  * convenience and immutability.
  *
  * @overloadSummary
- * This overload accepts a callback function that receives a `builder` object as its argument.
+ * This function accepts a callback that receives a `builder` object as its argument.
  * That builder provides `addCase`, `addMatcher` and `addDefaultCase` functions that may be
  * called to define what actions this reducer will handle.
  *
@@ -139,11 +137,6 @@ const reducer = createReducer(
 ```
  * @public
  */
-export function createReducer<S extends NotFunction<any>>(
-  initialState: S | (() => S),
-  builderCallback: (builder: ActionReducerMapBuilder<S>) => void
-): ReducerWithInitialState<S>
-
 export function createReducer<S extends NotFunction<any>>(
   initialState: S | (() => S),
   mapOrBuilderCallback: (builder: ActionReducerMapBuilder<S>) => void

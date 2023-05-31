@@ -7,17 +7,12 @@ import type {
   _ActionCreatorWithPreparedPayload,
 } from './createAction'
 import { createAction } from './createAction'
-import type {
-  CaseReducer,
-  CaseReducers,
-  ReducerWithInitialState,
-} from './createReducer'
-import { createReducer, NotFunction } from './createReducer'
+import type { CaseReducer, ReducerWithInitialState } from './createReducer'
+import { createReducer } from './createReducer'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { Id, NoInfer, Tail } from './tsHelpers'
-import { freezeDraftable } from './utils'
-import type { CombinedSliceReducer, InjectConfig } from './combineSlices'
+import type { Id, Tail } from './tsHelpers'
+import type { InjectConfig } from './combineSlices'
 import type {
   AsyncThunk,
   AsyncThunkConfig,
@@ -26,6 +21,10 @@ import type {
   OverrideThunkApiConfigs,
 } from './createAsyncThunk'
 import { createAsyncThunk } from './createAsyncThunk'
+
+interface InjectIntoConfig<NewReducerPath extends string> extends InjectConfig {
+  reducerPath?: NewReducerPath
+}
 
 /**
  * The return value of `createSlice`
@@ -96,10 +95,15 @@ export interface Slice<
   /**
    * Inject slice into provided reducer (return value from `combineSlices`), and return injected slice.
    */
-  injectInto(
-    combinedReducer: CombinedSliceReducer<any>,
-    config?: InjectConfig & { reducerPath?: string }
-  ): InjectedSlice<State, CaseReducers, Name, ReducerPath, Selectors>
+  injectInto<NewReducerPath extends string = ReducerPath>(
+    injectable: {
+      inject: (
+        slice: { reducerPath: string; reducer: Reducer },
+        config?: InjectConfig
+      ) => void
+    },
+    config?: InjectIntoConfig<NewReducerPath>
+  ): InjectedSlice<State, CaseReducers, Name, NewReducerPath, Selectors>
 }
 
 /**
@@ -703,15 +707,15 @@ export function createSlice<
     get selectors() {
       return this.getSelectors(defaultSelectSlice)
     },
-    injectInto(injectable, { reducerPath, ...config } = {}) {
-      injectable.inject(
-        { reducerPath: reducerPath ?? this.reducerPath, reducer: this.reducer },
-        config
-      )
+    injectInto(injectable, { reducerPath: pathOpt, ...config } = {}) {
+      const reducerPath = pathOpt ?? this.reducerPath
+      injectable.inject({ reducerPath, reducer: this.reducer }, config)
+      const selectSlice = (state: any) => state[reducerPath]
       return {
         ...this,
+        reducerPath,
         get selectors() {
-          return this.getSelectors(defaultSelectSlice)
+          return this.getSelectors(selectSlice)
         },
       } as any
     },
