@@ -205,7 +205,11 @@ argument, which can be used while determining the transformed response. The valu
 dependent on the `baseQuery` used.
 
 ```ts title="transformErrorResponse meta example" no-transpile
-transformErrorResponse: (response: { data: { sideA: Tracks; sideB: Tracks } }, meta, arg) => {
+transformErrorResponse: (
+  response: { data: { sideA: Tracks; sideB: Tracks } },
+  meta,
+  arg
+) => {
   if (meta?.coinFlip === 'heads') {
     return response.data.sideA
   }
@@ -318,7 +322,7 @@ const axiosBaseQuery =
       return {
         error: {
           status: err.response?.status,
-          data: err.response?.data || err.message
+          data: err.response?.data || err.message,
         },
       }
     }
@@ -610,10 +614,7 @@ In such a scenario, the return value would look like so:
 export declare const uuid: () => string
 
 // file: metaBaseQuery.ts
-import {
-  fetchBaseQuery,
-  createApi,
-} from '@reduxjs/toolkit/query'
+import { fetchBaseQuery, createApi } from '@reduxjs/toolkit/query'
 import type {
   BaseQueryFn,
   FetchArgs,
@@ -710,10 +711,7 @@ export interface Post {
 }
 
 // file: src/services/api.ts
-import {
-  createApi,
-  fetchBaseQuery,
-} from '@reduxjs/toolkit/query/react'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import type {
   BaseQueryFn,
   FetchArgs,
@@ -864,7 +862,7 @@ const postsAdapter = createEntityAdapter<Post>({
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   endpoints: (build) => ({
-    getPosts: build.query<EntityState<Post>, void>({
+    getPosts: build.query<EntityState<Post, number>, void>({
       query: () => `posts`,
       // highlight-start
       transformResponse(response: Post[]) {
@@ -987,10 +985,7 @@ export interface User {
 }
 
 // file: api.ts
-import {
-  createApi,
-  fetchBaseQuery,
-} from '@reduxjs/toolkit/query'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query'
 import type { Post, User } from './types'
 
@@ -1001,7 +996,8 @@ const api = createApi({
       async queryFn(_arg, _queryApi, _extraOptions, fetchWithBQ) {
         // get a random user
         const randomResult = await fetchWithBQ('users/random')
-        if (randomResult.error) return { error: randomResult.error as FetchBaseQueryError } 
+        if (randomResult.error)
+          return { error: randomResult.error as FetchBaseQueryError }
         const user = randomResult.data as User
         const result = await fetchWithBQ(`user/${user.id}/posts`)
         return result.data
