@@ -6,14 +6,15 @@ import { isAction } from '../../createAction'
 import { createAction } from '../../createAction'
 import { isAllOf } from '../../matchers'
 
-export interface ProbeMiddleware
-  extends BaseActionCreator<number, 'probeableMW/probe'> {
-  <Id extends number>(id: Id): PayloadAction<Id, 'probeableMW/probe'>
+const probeType = 'probeableMW/probe'
+
+type ProbeType = typeof probeType
+
+export interface ProbeMiddleware extends BaseActionCreator<number, ProbeType> {
+  <Id extends number>(id: Id): PayloadAction<Id, ProbeType>
 }
 
-export const probeMiddleware = createAction<number>(
-  'probeableMW/probe'
-) as ProbeMiddleware
+export const probeMiddleware = createAction(probeType) as ProbeMiddleware
 
 const matchId =
   <Id extends number>(id: Id) =>
@@ -23,7 +24,7 @@ const matchId =
 export const makeProbeableMiddleware = <Id extends number>(
   id: Id
 ): Middleware<{
-  (action: PayloadAction<Id, 'probeableMW/probe'>): Id
+  (action: PayloadAction<Id, ProbeType>): Id
 }> => {
   const isMiddlewareAction = isAllOf(isAction, probeMiddleware, matchId(id))
   return (api) => (next) => (action) => {
