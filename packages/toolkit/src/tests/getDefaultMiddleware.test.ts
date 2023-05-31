@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 import type {
-  AnyAction,
+  UnknownAction,
   Middleware,
   ThunkAction,
   Action,
@@ -94,10 +94,14 @@ describe('getDefaultMiddleware', () => {
     const dummyMiddleware2: Middleware<{}, { counter: number }> =
       (storeApi) => (next) => (action) => {}
 
-    const testThunk: ThunkAction<void, { counter: number }, number, AnyAction> =
-      (dispatch, getState, extraArg) => {
-        expect(extraArg).toBe(extraArgument)
-      }
+    const testThunk: ThunkAction<
+      void,
+      { counter: number },
+      number,
+      UnknownAction
+    > = (dispatch, getState, extraArg) => {
+      expect(extraArg).toBe(extraArgument)
+    }
 
     const reducer = () => ({ counter: 123 })
 
@@ -116,15 +120,15 @@ describe('getDefaultMiddleware', () => {
         expectType<
           Tuple<
             [
-              ThunkMiddleware<any, AnyAction, 42>,
+              ThunkMiddleware<any, UnknownAction, 42>,
               Middleware<
                 (action: Action<'actionListenerMiddleware/add'>) => () => void,
                 {
                   counter: number
                 },
-                Dispatch<AnyAction>
+                Dispatch<UnknownAction>
               >,
-              Middleware<{}, any, Dispatch<AnyAction>>
+              Middleware<{}, any, Dispatch<UnknownAction>>
             ]
           >
         >(m3)
@@ -133,7 +137,7 @@ describe('getDefaultMiddleware', () => {
       },
     })
 
-    expectType<ThunkDispatch<any, 42, AnyAction> & Dispatch<AnyAction>>(
+    expectType<ThunkDispatch<any, 42, UnknownAction> & Dispatch<UnknownAction>>(
       store.dispatch
     )
 

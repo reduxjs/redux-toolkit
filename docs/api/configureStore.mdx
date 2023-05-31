@@ -20,9 +20,9 @@ to the store setup for a better development experience.
 
 interface ConfigureStoreOptions<
   S = any,
-  A extends Action = AnyAction,
-  M extends Middlewares<S> = Middlewares<S>,
-  E extends Enhancers = Enhancers,
+  A extends Action = UnknownAction,
+  M extends Tuple<Middlewares<S>> = Tuple<Middlewares<S>>
+  E extends Tuple<Enhancers> = Tuple<Enhancers>,
   P = S
 > {
   /**
@@ -63,8 +63,11 @@ interface ConfigureStoreOptions<
 
 function configureStore<
   S = any,
-  A extends Action = AnyAction,
-  M extends Middlewares<S> = Middlewares<S>,
+  A extends Action = UnknownAction,
+  M extends Tuple<Middlewares<S>> = Tuple<Middlewares<S>>
+  E extends Tuple<Enhancers> = Tuple<Enhancers>,
+  P = S
+>(options: ConfigureStoreOptions<S, A, M, E, P>): EnhancedStore<S, A, M, E>
 ```
 
 ### `reducer`

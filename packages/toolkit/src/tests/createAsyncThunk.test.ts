@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import type { AnyAction } from '@reduxjs/toolkit'
+import type { UnknownAction } from '@reduxjs/toolkit'
 import {
   createAsyncThunk,
   unwrapResult,
@@ -377,14 +377,14 @@ describe('createAsyncThunk with abortController', () => {
   )
 
   let store = configureStore({
-    reducer(store: AnyAction[] = []) {
+    reducer(store: UnknownAction[] = []) {
       return store
     },
   })
 
   beforeEach(() => {
     store = configureStore({
-      reducer(store: AnyAction[] = [], action) {
+      reducer(store: UnknownAction[] = [], action) {
         return [...store, action]
       },
     })

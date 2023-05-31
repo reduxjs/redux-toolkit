@@ -1,4 +1,4 @@
-import type { Action, AnyAction, Reducer } from 'redux'
+import type { Action, UnknownAction, Reducer } from 'redux'
 import type {
   ActionCreatorWithoutPayload,
   PayloadAction,
@@ -190,7 +190,7 @@ export interface CreateSliceOptions<
    * 
    * @example
 ```ts
-import { createAction, createSlice, Action, AnyAction } from '@reduxjs/toolkit'
+import { createAction, createSlice, Action } from '@reduxjs/toolkit'
 const incrementBy = createAction<number>('incrementBy')
 const decrement = createAction('decrement')
 
@@ -198,7 +198,7 @@ interface RejectedAction extends Action {
   error: Error
 }
 
-function isRejectedAction(action: AnyAction): action is RejectedAction {
+function isRejectedAction(action: Action): action is RejectedAction {
   return action.type.endsWith('rejected')
 }
 
@@ -244,8 +244,10 @@ interface ReducerDefinition<T extends ReducerType = ReducerType> {
   [reducerDefinitionType]: T
 }
 
-export interface CaseReducerDefinition<S = any, A extends Action = AnyAction>
-  extends CaseReducer<S, A>,
+export interface CaseReducerDefinition<
+  S = any,
+  A extends Action = UnknownAction
+> extends CaseReducer<S, A>,
     ReducerDefinition<ReducerType.reducer> {}
 
 /**
@@ -357,6 +359,9 @@ interface AsyncThunkCreator<
 }
 
 export interface ReducerCreators<State> {
+  reducer(
+    caseReducer: CaseReducer<State, PayloadAction>
+  ): CaseReducerDefinition<State, PayloadAction>
   reducer<Payload>(
     caseReducer: CaseReducer<State, PayloadAction<Payload>>
   ): CaseReducerDefinition<State, PayloadAction<Payload>>
@@ -750,7 +755,7 @@ function buildReducerCreators<State>(): ReducerCreators<State> {
   }
   asyncThunk.withTypes = () => asyncThunk
   return {
-    reducer(caseReducer) {
+    reducer(caseReducer: CaseReducer<State, any>) {
       return Object.assign(
         {
           // hack so the wrapping function has the same name as the original

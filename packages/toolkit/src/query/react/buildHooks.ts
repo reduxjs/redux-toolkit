@@ -1,4 +1,9 @@
-import type { AnyAction, Selector, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit'
+import type {
+  UnknownAction,
+  Selector,
+  ThunkAction,
+  ThunkDispatch,
+} from '@reduxjs/toolkit'
 import { createSelector } from '@reduxjs/toolkit'
 import type { DependencyList } from 'react'
 import {
@@ -566,7 +571,7 @@ type GenericPrefetchThunk = (
   endpointName: any,
   arg: any,
   options: PrefetchOptions
-) => ThunkAction<void, any, any, AnyAction>
+) => ThunkAction<void, any, any, UnknownAction>
 
 /**
  *
@@ -651,7 +656,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     endpointName: EndpointName,
     defaultOptions?: PrefetchOptions
   ) {
-    const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
+    const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
     const stableDefaultOptions = useShallowStableValue(defaultOptions)
 
     return useCallback(
@@ -681,7 +686,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         QueryDefinition<any, any, any, any, any>,
         Definitions
       >
-      const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
+      const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
       const stableArg = useStableQueryArgs(
         skip ? skipToken : arg,
         // Even if the user provided a per-endpoint `serializeQueryArgs` with
@@ -815,7 +820,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         QueryDefinition<any, any, any, any, any>,
         Definitions
       >
-      const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
+      const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
 
       const [arg, setArg] = useState<any>(UNINITIALIZED_VALUE)
       const promiseRef = useRef<QueryActionCreatorResult<any> | undefined>()
@@ -986,7 +991,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         MutationDefinition<any, any, any, any, any>,
         Definitions
       >
-      const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
+      const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
       const [promise, setPromise] = useState<MutationActionCreatorResult<any>>()
 
       useEffect(

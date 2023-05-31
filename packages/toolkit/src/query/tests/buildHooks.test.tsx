@@ -32,7 +32,7 @@ import {
   waitMs,
 } from './helpers'
 import { server } from './mocks/server'
-import type { AnyAction } from 'redux'
+import type { UnknownAction } from 'redux'
 import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
 import type { SerializedError } from '@reduxjs/toolkit'
 import { createListenerMiddleware, configureStore } from '@reduxjs/toolkit'
@@ -126,7 +126,7 @@ const api = createApi({
 
 const listenerMiddleware = createListenerMiddleware()
 
-let actions: AnyAction[] = []
+let actions: UnknownAction[] = []
 
 const storeRef = setupApiStore(
   api,
@@ -1748,7 +1748,7 @@ describe('hooks tests', () => {
     })
 
     const storeRef = setupApiStore(api, {
-      actions(state: AnyAction[] = [], action: AnyAction) {
+      actions(state: UnknownAction[] = [], action: UnknownAction) {
         return [...state, action]
       },
     })

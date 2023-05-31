@@ -3,7 +3,7 @@ import {
   createConsole,
   getLog,
 } from 'console-testing-library/pure'
-import type { AnyAction, Reducer } from '@reduxjs/toolkit'
+import type { Reducer } from '@reduxjs/toolkit'
 import {
   createNextState,
   configureStore,

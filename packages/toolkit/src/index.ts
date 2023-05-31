@@ -20,7 +20,10 @@ export type {
   OutputSelector,
   ParametricSelector,
 } from 'reselect'
-export { createDraftSafeSelector } from './createDraftSafeSelector'
+export {
+  createDraftSafeSelector,
+  createDraftSafeSelectorCreator,
+} from './createDraftSafeSelector'
 export type { ThunkAction, ThunkDispatch, ThunkMiddleware } from 'redux-thunk'
 
 export {
@@ -105,7 +108,6 @@ export { Tuple } from './utils'
 
 export { createEntityAdapter } from './entities/create_adapter'
 export type {
-  Dictionary,
   EntityState,
   EntityAdapter,
   EntitySelectors,

@@ -30,7 +30,7 @@ const updateQueryData = (
   endpointName: string,
   args: any,
   updateRecipe: (draft: Draft<CachedState>) => void
-) => ThunkAction<PatchCollection, PartialState, any, AnyAction>;
+) => ThunkAction<PatchCollection, PartialState, any, UnknownAction>;
 
 interface PatchCollection {
   patches: Patch[];
@@ -119,7 +119,7 @@ const upsertQueryData = <T>(
   endpointName: string,
   args: any,
   newEntryData: T
-) => ThunkAction<Promise<CacheEntry<T>>, PartialState, any, AnyAction>;
+) => ThunkAction<Promise<CacheEntry<T>>, PartialState, any, UnknownAction>;
 ```
 
 - **Parameters**
@@ -156,7 +156,7 @@ const patchQueryData = (
   endpointName: string,
   args: any
   patches: Patch[]
-) => ThunkAction<void, PartialState, any, AnyAction>;
+) => ThunkAction<void, PartialState, any, UnknownAction>;
 ```
 
 - **Parameters**
@@ -203,7 +203,7 @@ const prefetch = (
   endpointName: string,
   arg: any,
   options: PrefetchOptions
-) => ThunkAction<void, any, any, AnyAction>;
+) => ThunkAction<void, any, any, UnknownAction>;
 ```
 
 - **Parameters**
@@ -229,42 +229,44 @@ dispatch(api.util.prefetch('getPosts', undefined, { force: true }))
 ```
 
 ### `selectInvalidatedBy`
- 
+
 #### Signature
- 
+
 ```ts no-transpile
- function selectInvalidatedBy(
-   state: RootState,
-   tags: ReadonlyArray<TagDescription<string>>
- ): Array<{
-   endpointName: string
-   originalArgs: any
-   queryCacheKey: QueryCacheKey
- }>
+function selectInvalidatedBy(
+  state: RootState,
+  tags: ReadonlyArray<TagDescription<string>>
+): Array<{
+  endpointName: string
+  originalArgs: any
+  queryCacheKey: QueryCacheKey
+}>
 ```
- 
+
 - **Parameters**
   - `state`: the root state
   - `tags`: a readonly array of invalidated tags, where the provided `TagDescription` is one of the strings provided to the [`tagTypes`](../createApi.mdx#tagtypes) property of the api. e.g.
     - `[TagType]`
     - `[{ type: TagType }]`
     - `[{ type: TagType, id: number | string }]`
- 
+
 #### Description
- 
+
 A function that can select query parameters to be invalidated.
- 
+
 The function accepts two arguments
-  - the root state and
-  - the cache tags to be invalidated.
- 
+
+- the root state and
+- the cache tags to be invalidated.
+
 It returns an array that contains
-  - the endpoint name,
-  - the original args and
-  - the queryCacheKey.
- 
+
+- the endpoint name,
+- the original args and
+- the queryCacheKey.
+
 #### Example
- 
+
 ```ts no-transpile
 dispatch(api.util.selectInvalidatedBy(state, ['Post']))
 dispatch(api.util.selectInvalidatedBy(state, [{ type: 'Post', id: 1 }]))

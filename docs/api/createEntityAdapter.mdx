@@ -120,19 +120,11 @@ export type Comparer<T> = (a: T, b: T) => number
 
 export type IdSelector<T> = (model: T) => EntityId
 
-export interface DictionaryNum<T> {
-  [id: number]: T | undefined
-}
-
-export interface Dictionary<T> extends DictionaryNum<T> {
-  [id: string]: T | undefined
-}
-
 export type Update<T> = { id: EntityId; changes: Partial<T> }
 
 export interface EntityState<T> {
   ids: EntityId[]
-  entities: Dictionary<T>
+  entities: Record<EntityId, T>
 }
 
 export interface EntityDefinition<T> {
@@ -185,7 +177,7 @@ export interface EntityStateAdapter<T> {
 
 export interface EntitySelectors<T, V> {
   selectIds: (state: V) => EntityId[]
-  selectEntities: (state: V) => Dictionary<T>
+  selectEntities: (state: V) => Record<EntityId, T>
   selectAll: (state: V) => T[]
   selectTotal: (state: V) => number
   selectById: (state: V, id: EntityId) => T | undefined
@@ -287,9 +279,35 @@ The entity adapter will contain a `getSelectors()` function that returns a set o
 
 Each selector function will be created using the `createSelector` function from Reselect, to enable memoizing calculation of the results.
 
+:::tip
+
+The `createSelector` instance used can be replaced, by passing it as part of the options object (second parameter):
+
+```js
+import {
+  createDraftSafeSelectorCreator,
+  weakMapMemoize,
+} from '@reduxjs/toolkit'
+
+const createWeakMapDraftSafeSelector =
+  createDraftSafeSelectorCreator(weakMapMemoize)
+
+const simpleSelectors = booksAdapter.getSelectors(undefined, {
+  createSelector: createWeakMapDraftSafeSelector,
+})
+
+const globalizedSelectors = booksAdapter.getSelectors((state) => state.books, {
+  createSelector: createWeakMapDraftSafeSelector,
+})
+```
+
+If no instance is passed, it will default to [`createDraftSafeSelector`](./createSelector#createDraftSafeSelector).
+
+:::
+
 Because selector functions are dependent on knowing where in the state tree this specific entity state object is kept, `getSelectors()` can be called in two ways:
 
-- If called without any arguments, it returns an "unglobalized" set of selector functions that assume their `state` argument is the actual entity state object to read from.
+- If called without any arguments (or with undefined as the first parameter), it returns an "unglobalized" set of selector functions that assume their `state` argument is the actual entity state object to read from.
 - It may also be called with a selector function that accepts the entire Redux state tree and returns the correct entity state object.
 
 For example, the entity state for a `Book` type might be kept in the Redux state tree as `state.books`. You can use `getSelectors()` to read from that state in two ways:

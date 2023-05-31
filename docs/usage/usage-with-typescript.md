@@ -223,7 +223,7 @@ As the first `matcher` argument to `builder.addMatcher`, a [type predicate](http
 As a result, the `action` argument for the second `reducer` argument can be inferred by TypeScript:
 
 ```ts
-function isNumberValueAction(action: AnyAction): action is PayloadAction<{ value: number }> {
+function isNumberValueAction(action: UnknownAction): action is PayloadAction<{ value: number }> {
   return typeof action.payload.value === 'number'
 }
 

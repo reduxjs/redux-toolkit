@@ -15,7 +15,7 @@ import {
   renderHook,
 } from '@testing-library/react'
 import { useDispatch } from 'react-redux'
-import type { AnyAction, ThunkDispatch } from '@reduxjs/toolkit'
+import type { UnknownAction, ThunkDispatch } from '@reduxjs/toolkit'
 import type { BaseQueryApi } from '../baseQueryTypes'
 
 const baseQuery = fetchBaseQuery({ baseUrl: 'https://example.com' })
@@ -556,7 +556,11 @@ describe('error handling in a component', () => {
     test(`an un-subscribed mutation will still return something useful (success case, track: ${track})`, async () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
 
-      const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>
+      const dispatch = hook.result.current as ThunkDispatch<
+        any,
+        any,
+        UnknownAction
+      >
       let mutationqueryFulfilled: ReturnType<
         ReturnType<typeof api.endpoints.update.initiate>
       >
@@ -574,7 +578,11 @@ describe('error handling in a component', () => {
     test(`an un-subscribed mutation will still return something useful (error case, track: ${track})`, async () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
 
-      const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>
+      const dispatch = hook.result.current as ThunkDispatch<
+        any,
+        any,
+        UnknownAction
+      >
       let mutationqueryFulfilled: ReturnType<
         ReturnType<typeof api.endpoints.failedUpdate.initiate>
       >
@@ -594,7 +602,11 @@ describe('error handling in a component', () => {
     test(`an un-subscribed mutation will still be unwrappable (success case), track: ${track}`, async () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
 
-      const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>
+      const dispatch = hook.result.current as ThunkDispatch<
+        any,
+        any,
+        UnknownAction
+      >
       let mutationqueryFulfilled: ReturnType<
         ReturnType<typeof api.endpoints.update.initiate>
       >
@@ -612,7 +624,11 @@ describe('error handling in a component', () => {
     test(`an un-subscribed mutation will still be unwrappable (error case, track: ${track})`, async () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
 
-      const dispatch = hook.result.current as ThunkDispatch<any, any, AnyAction>
+      const dispatch = hook.result.current as ThunkDispatch<
+        any,
+        any,
+        UnknownAction
+      >
       let mutationqueryFulfilled: ReturnType<
         ReturnType<typeof api.endpoints.failedUpdate.initiate>
       >

@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import type { ThunkAction, AnyAction } from '@reduxjs/toolkit'
+import type { ThunkAction, UnknownAction } from '@reduxjs/toolkit'
 import {
   isAllOf,
   isAnyOf,
@@ -13,7 +13,7 @@ import {
   createReducer,
 } from '@reduxjs/toolkit'
 
-const thunk: ThunkAction<any, any, any, AnyAction> = () => {}
+const thunk: ThunkAction<any, any, any, UnknownAction> = () => {}
 
 describe('isAnyOf', () => {
   it('returns true only if any matchers match (match function)', () => {
