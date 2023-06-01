@@ -22,20 +22,20 @@
     "codemod"
   ],
   "dependencies": {
-    "@types/jest": "^27",
-    "@types/jscodeshift": "^0.11.5",
+    "@types/jest": "^29",
+    "@types/jscodeshift": "^0.11.6",
     "codemod-cli": "^3.2.0",
-    "ts-node": "10.4.0",
-    "typescript": "^4.8.0"
+    "ts-node": "^10.4.0",
+    "typescript": "^5"
   },
   "devDependencies": {
     "eslint": "^7.25.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.4.0",
-    "jest": "^27",
+    "jest": "^29",
     "prettier": "^2.2.1",
-    "ts-jest": "^27"
+    "ts-jest": "^29"
   },
   "engines": {
     "node": ">= 14"
