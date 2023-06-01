@@ -64,33 +64,31 @@ export function generateCreateApiCall({
     true
   );
   if (tag) {
-    const enhanceEndpointsObjectLiteralExpression = factory.createObjectLiteralExpression(
-      [factory.createShorthandPropertyAssignment(factory.createIdentifier('addTagTypes'), undefined)],
-      true
-    )
     return factory.createVariableStatement(
       undefined,
       factory.createVariableDeclarationList(
-        [factory.createVariableDeclaration(
-          factory.createIdentifier("injectedRtkApi"),
-          undefined,
-          undefined,
-          factory.createCallExpression(
-            factory.createPropertyAccessExpression(
-              factory.createCallExpression(
-                factory.createPropertyAccessExpression(
-                  factory.createIdentifier("api"),
-                  factory.createIdentifier("enhanceEndpoints")
-                ),
-                undefined,
-                [enhanceEndpointsObjectLiteralExpression]
-              ),
-              factory.createIdentifier("injectEndpoints")
-            ),
+        [
+          factory.createVariableDeclaration(
+            factory.createIdentifier('injectedRtkApi'),
             undefined,
-            [injectEndpointsObjectLiteralExpression]
-          )
-        )],
+            undefined,
+            factory.createCallExpression(
+              factory.createPropertyAccessExpression(
+                factory.createCallExpression(
+                  factory.createPropertyAccessExpression(
+                    factory.createIdentifier('api'),
+                    factory.createIdentifier('addTagTypes')
+                  ),
+                  undefined,
+                  [factory.createSpreadElement(factory.createIdentifier('addTagTypes'))]
+                ),
+                factory.createIdentifier('injectEndpoints')
+              ),
+              undefined,
+              [injectEndpointsObjectLiteralExpression]
+            )
+          ),
+        ],
         ts.NodeFlags.Const
       )
     );
@@ -145,7 +143,7 @@ export function generateEndpointDefinition({
         factory.createIdentifier(type === 'query' ? 'providesTags' : 'invalidatesTags'),
         factory.createArrayLiteralExpression(tags.map((tag) => factory.createStringLiteral(tag), false))
       )
-    )
+    );
   }
   return factory.createPropertyAssignment(
     factory.createIdentifier(operationName),
@@ -153,13 +151,8 @@ export function generateEndpointDefinition({
     factory.createCallExpression(
       factory.createPropertyAccessExpression(endpointBuilder, factory.createIdentifier(type)),
       [Response, QueryArg],
-      [
-        factory.createObjectLiteralExpression(
-          objectProperties,
-          true
-        ),
-      ]
-    ),
+      [factory.createObjectLiteralExpression(objectProperties, true)]
+    )
   );
 }
 

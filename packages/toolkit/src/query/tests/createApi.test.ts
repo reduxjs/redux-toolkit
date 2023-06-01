@@ -432,31 +432,25 @@ describe('endpoint definition typings', () => {
       })
       // only type-test this part
       if (2 > 1) {
-        api.enhanceEndpoints({
-          endpoints: {
-            query1: {
-              // @ts-expect-error
-              providesTags: ['new'],
-            },
-            query2: {
-              // @ts-expect-error
-              providesTags: ['missing'],
-            },
-          },
+        // @ts-expect-error
+        api.enhanceEndpoint('query1', {
+          providesTags: ['new'],
+        })
+        // @ts-expect-error
+        api.enhanceEndpoint('query2', {
+          providesTags: ['missing'],
         })
       }
 
-      const enhanced = api.addTagTypes('new').enhanceEndpoints({
-        endpoints: {
-          query1: {
-            providesTags: ['new'],
-          },
-          query2: {
-            // @ts-expect-error
-            providesTags: ['missing'],
-          },
-        },
-      })
+      // @ts-expect-error
+      const enhanced = api
+        .addTagTypes('new')
+        .enhanceEndpoint('query1', {
+          providesTags: ['new'],
+        })
+        .enhanceEndpoint('query2', {
+          providesTags: ['missing'],
+        })
 
       storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
       await waitMs(1)
@@ -470,17 +464,12 @@ describe('endpoint definition typings', () => {
 
       // only type-test this part
       if (2 > 1) {
-        enhanced.enhanceEndpoints({
-          endpoints: {
-            query1: {
-              // returned `enhanced` api contains "new" enitityType
-              providesTags: ['new'],
-            },
-            query2: {
-              // @ts-expect-error
-              providesTags: ['missing'],
-            },
-          },
+        enhanced.enhanceEndpoint('query1', {
+          providesTags: ['new'], // tag was added
+        })
+        // @ts-expect-error
+        enhanced.enhanceEndpoint('query2', {
+          providesTags: ['missing'],
         })
       }
     })
@@ -489,36 +478,31 @@ describe('endpoint definition typings', () => {
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
-      const enhanced = api.enhanceEndpoints({
-        endpoints: {
-          query1: {
-            query: (x) => {
-              expectExactType('in1' as const)(x)
-              return 'modified1'
-            },
+      const enhanced = api
+        .enhanceEndpoint('query1', {
+          query: (x) => {
+            expectExactType('in1' as const)(x)
+            return 'modified1'
           },
-          query2(definition) {
-            definition.query = (x) => {
-              expectExactType('in2' as const)(x)
-              return 'modified2'
-            }
+        })
+        .enhanceEndpoint('query2', function query2(definition) {
+          definition.query = (x) => {
+            expectExactType('in2' as const)(x)
+            return 'modified2'
+          }
+        })
+        .enhanceEndpoint('mutation1', {
+          query: (x) => {
+            expectExactType('in1' as const)(x)
+            return 'modified1'
           },
-          mutation1: {
-            query: (x) => {
-              expectExactType('in1' as const)(x)
-              return 'modified1'
-            },
-          },
-          mutation2(definition) {
-            definition.query = (x) => {
-              expectExactType('in2' as const)(x)
-              return 'modified2'
-            }
-          },
-          // @ts-expect-error
-          nonExisting: {},
-        },
-      })
+        })
+        .enhanceEndpoint('mutation2', function mutation2(definition) {
+          definition.query = (x) => {
+            expectExactType('in2' as const)(x)
+            return 'modified2'
+          }
+        })
 
       storeRef.store.dispatch(enhanced.endpoints.query1.initiate('in1'))
       storeRef.store.dispatch(enhanced.endpoints.query2.initiate('in2'))
