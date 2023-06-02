@@ -3,10 +3,9 @@ import type {
   ReducersMapObject,
   Middleware,
   Action,
-  AnyAction,
   StoreEnhancer,
   Store,
-  Dispatch,
+  UnknownAction,
 } from 'redux'
 import { applyMiddleware, createStore, compose, combineReducers } from 'redux'
 import type { DevToolsEnhancerOptions as DevToolsOptions } from './devtoolsExtension'
@@ -23,7 +22,7 @@ import type {
   ExtractStoreExtensions,
   ExtractStateExtensions,
 } from './tsHelpers'
-import type { EnhancerArray, MiddlewareArray } from './utils'
+import type { Tuple } from './utils'
 import type { GetDefaultEnhancers } from './getDefaultEnhancers'
 import { buildGetDefaultEnhancers } from './getDefaultEnhancers'
 
@@ -36,9 +35,9 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production'
  */
 export interface ConfigureStoreOptions<
   S = any,
-  A extends Action = AnyAction,
-  M extends Middlewares<S> = Middlewares<S>,
-  E extends Enhancers = Enhancers,
+  A extends Action = UnknownAction,
+  M extends Tuple<Middlewares<S>> = Tuple<Middlewares<S>>,
+  E extends Tuple<Enhancers> = Tuple<Enhancers>,
   P = S
 > {
   /**
@@ -48,8 +47,8 @@ export interface ConfigureStoreOptions<
   reducer: Reducer<S, A, P> | ReducersMapObject<S, A, P>
 
   /**
-   * An array of Redux middleware to install. If not supplied, defaults to
-   * the set of middleware returned by `getDefaultMiddleware()`.
+   * An array of Redux middleware to install, or a callback receiving `getDefaultMiddleware` and returning a Tuple of middleware.
+   * If not supplied, defaults to the set of middleware returned by `getDefaultMiddleware()`.
    *
    * @example `middleware: (gDM) => gDM().concat(logger, apiMiddleware, yourCustomMiddleware)`
    * @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
@@ -78,11 +77,11 @@ export interface ConfigureStoreOptions<
    * The store enhancers to apply. See Redux's `createStore()`.
    * All enhancers will be included before the DevTools Extension enhancer.
    * If you need to customize the order of enhancers, supply a callback
-   * function that will receive a `getDefaultEnhancers` function that returns an EnhancerArray,
-   * and should return a new array (such as `getDefaultEnhancers().concat(offline)`).
+   * function that will receive a `getDefaultEnhancers` function that returns a Tuple,
+   * and should return a Tuple of enhancers (such as `getDefaultEnhancers().concat(offline)`).
    * If you only need to add middleware, you can use the `middleware` parameter instead.
    */
-  enhancers?: ((getDefaultEnhancers: GetDefaultEnhancers<M>) => E) | E
+  enhancers?: (getDefaultEnhancers: GetDefaultEnhancers<M>) => E
 }
 
 export type Middlewares<S> = ReadonlyArray<Middleware<{}, S>>
@@ -97,7 +96,7 @@ type Enhancers = ReadonlyArray<StoreEnhancer>
  */
 export type EnhancedStore<
   S = any,
-  A extends Action = AnyAction,
+  A extends Action = UnknownAction,
   E extends Enhancers = Enhancers
 > = ExtractStoreExtensions<E> & Store<S & ExtractStateExtensions<E>, A>
 
@@ -111,9 +110,9 @@ export type EnhancedStore<
  */
 export function configureStore<
   S = any,
-  A extends Action = AnyAction,
-  M extends Middlewares<S> = MiddlewareArray<[ThunkMiddlewareFor<S>]>,
-  E extends Enhancers = EnhancerArray<
+  A extends Action = UnknownAction,
+  M extends Tuple<Middlewares<S>> = Tuple<[ThunkMiddlewareFor<S>]>,
+  E extends Tuple<Enhancers> = Tuple<
     [StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>, StoreEnhancer]
   >,
   P = S
@@ -172,13 +171,18 @@ export function configureStore<
   const middlewareEnhancer = applyMiddleware(...finalMiddleware)
 
   const getDefaultEnhancers = buildGetDefaultEnhancers<M>(middlewareEnhancer)
+
+  if (!IS_PRODUCTION && enhancers && typeof enhancers !== 'function') {
+    throw new Error('"enhancers" field must be a callback')
+  }
+
   let storeEnhancers =
-    (typeof enhancers === 'function'
+    typeof enhancers === 'function'
       ? enhancers(getDefaultEnhancers)
-      : enhancers) ?? getDefaultEnhancers()
+      : getDefaultEnhancers()
 
   if (!IS_PRODUCTION && !Array.isArray(storeEnhancers)) {
-    throw new Error('enhancers must be an array')
+    throw new Error('"enhancers" callback must return an array')
   }
   if (
     !IS_PRODUCTION &&
@@ -194,11 +198,11 @@ export function configureStore<
     !storeEnhancers.includes(middlewareEnhancer)
   ) {
     console.error(
-      'middlewares were provided, but middleware enhancer was not included in final enhancers'
+      'middlewares were provided, but middleware enhancer was not included in final enhancers - make sure to call `getDefaultEnhancers`'
     )
   }
 
   const composedEnhancer: StoreEnhancer<any> = finalCompose(...storeEnhancers)
 
-  return createStore(rootReducer, preloadedState, composedEnhancer)
+  return createStore(rootReducer, preloadedState as P, composedEnhancer)
 }

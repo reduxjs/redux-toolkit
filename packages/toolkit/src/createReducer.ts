@@ -1,9 +1,9 @@
 import type { Draft } from 'immer'
 import { produce as createNextState, isDraft, isDraftable } from 'immer'
-import type { AnyAction, Action, Reducer } from 'redux'
+import type { Action, Reducer, UnknownAction } from 'redux'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { NoInfer } from './tsHelpers'
+import type { NoInfer, TypeGuard } from './tsHelpers'
 import { freezeDraftable } from './utils'
 
 /**
@@ -16,15 +16,8 @@ import { freezeDraftable } from './utils'
  */
 export type Actions<T extends keyof any = string> = Record<T, Action>
 
-/**
- * @deprecated use `TypeGuard` instead
- */
-export interface ActionMatcher<A extends AnyAction> {
-  (action: AnyAction): action is A
-}
-
-export type ActionMatcherDescription<S, A extends AnyAction> = {
-  matcher: ActionMatcher<A>
+export type ActionMatcherDescription<S, A extends Action> = {
+  matcher: TypeGuard<A>
   reducer: CaseReducer<S, NoInfer<A>>
 }
 
@@ -52,7 +45,7 @@ export type ActionMatcherDescriptionCollection<S> = Array<
  *
  * @public
  */
-export type CaseReducer<S = any, A extends Action = AnyAction> = (
+export type CaseReducer<S = any, A extends Action = UnknownAction> = (
   state: Draft<S>,
   action: A
 ) => NoInfer<S> | void | Draft<NoInfer<S>>
@@ -80,8 +73,6 @@ export type ReducerWithInitialState<S extends NotFunction<any>> = Reducer<S> & {
   getInitialState: () => S
 }
 
-let hasWarnedAboutObjectNotation = false
-
 /**
  * A utility function that allows defining a reducer as a mapping from action
  * type to *case reducer* functions that handle these action types. The
@@ -96,7 +87,7 @@ let hasWarnedAboutObjectNotation = false
  * convenience and immutability.
  *
  * @overloadSummary
- * This overload accepts a callback function that receives a `builder` object as its argument.
+ * This function accepts a callback that receives a `builder` object as its argument.
  * That builder provides `addCase`, `addMatcher` and `addDefaultCase` functions that may be
  * called to define what actions this reducer will handle.
  *
@@ -108,7 +99,7 @@ let hasWarnedAboutObjectNotation = false
 import {
   createAction,
   createReducer,
-  AnyAction,
+  UnknownAction,
   PayloadAction,
 } from "@reduxjs/toolkit";
 
@@ -116,7 +107,7 @@ const increment = createAction<number>("increment");
 const decrement = createAction<number>("decrement");
 
 function isActionWithNumberPayload(
-  action: AnyAction
+  action: UnknownAction
 ): action is PayloadAction<number> {
   return typeof action.payload === "number";
 }
@@ -146,11 +137,6 @@ const reducer = createReducer(
 ```
  * @public
  */
-export function createReducer<S extends NotFunction<any>>(
-  initialState: S | (() => S),
-  builderCallback: (builder: ActionReducerMapBuilder<S>) => void
-): ReducerWithInitialState<S>
-
 export function createReducer<S extends NotFunction<any>>(
   initialState: S | (() => S),
   mapOrBuilderCallback: (builder: ActionReducerMapBuilder<S>) => void

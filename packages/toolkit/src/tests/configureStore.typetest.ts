@@ -1,7 +1,7 @@
 /* eslint-disable no-lone-blocks */
 import type {
   Dispatch,
-  AnyAction,
+  UnknownAction,
   Middleware,
   Reducer,
   Store,
@@ -10,7 +10,7 @@ import type {
 } from 'redux'
 import { applyMiddleware, combineReducers } from 'redux'
 import type { PayloadAction, ConfigureStoreOptions } from '@reduxjs/toolkit'
-import { configureStore, createSlice } from '@reduxjs/toolkit'
+import { configureStore, createSlice, Tuple } from '@reduxjs/toolkit'
 import type { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
 import { thunk } from 'redux-thunk'
 import { expectNotAny, expectType } from './helpers'
@@ -48,10 +48,10 @@ const _anyMiddleware: any = () => () => () => {}
 {
   const reducer: Reducer<number> = () => 0
   const store = configureStore({ reducer })
-  const numberStore: Store<number, AnyAction> = store
+  const numberStore: Store<number, UnknownAction> = store
 
   // @ts-expect-error
-  const stringStore: Store<string, AnyAction> = store
+  const stringStore: Store<string, UnknownAction> = store
 }
 
 /*
@@ -67,20 +67,26 @@ const _anyMiddleware: any = () => () => () => {}
 }
 
 /*
- * Test: configureStore() accepts middleware array.
+ * Test: configureStore() accepts Tuple, but not plain array.
  */
 {
   const middleware: Middleware = (store) => (next) => next
 
   configureStore({
     reducer: () => 0,
+    middleware: new Tuple(middleware),
+  })
+
+  configureStore({
+    reducer: () => 0,
+    // @ts-expect-error
     middleware: [middleware],
   })
 
   configureStore({
     reducer: () => 0,
     // @ts-expect-error
-    middleware: ['not middleware'],
+    middleware: new Tuple('not middleware'),
   })
 }
 
@@ -133,16 +139,24 @@ const _anyMiddleware: any = () => () => () => {}
 }
 
 /*
- * Test: configureStore() accepts store enhancer.
+ * Test: configureStore() accepts store Tuple, but not plain array
  */
 {
   {
+    const enhancer = applyMiddleware(() => (next) => next)
+
     const store = configureStore({
       reducer: () => 0,
-      enhancers: [applyMiddleware(() => (next) => next)] as const,
+      enhancers: () => new Tuple(enhancer),
     })
 
-    expectType<Dispatch & ThunkDispatch<number, undefined, AnyAction>>(
+    const store2 = configureStore({
+      reducer: () => 0,
+      // @ts-expect-error
+      enhancers: () => [enhancer],
+    })
+
+    expectType<Dispatch & ThunkDispatch<number, undefined, UnknownAction>>(
       store.dispatch
     )
   }
@@ -150,7 +164,7 @@ const _anyMiddleware: any = () => () => () => {}
   configureStore({
     reducer: () => 0,
     // @ts-expect-error
-    enhancers: ['not a store enhancer'],
+    enhancers: () => new Tuple('not a store enhancer'),
   })
 
   {
@@ -178,10 +192,8 @@ const _anyMiddleware: any = () => () => () => {}
 
     const store = configureStore({
       reducer: () => 0,
-      enhancers: [
-        somePropertyStoreEnhancer,
-        anotherPropertyStoreEnhancer,
-      ] as const,
+      enhancers: () =>
+        new Tuple(somePropertyStoreEnhancer, anotherPropertyStoreEnhancer),
     })
 
     expectType<Dispatch>(store.dispatch)
@@ -196,7 +208,7 @@ const _anyMiddleware: any = () => () => () => {}
           .concat(somePropertyStoreEnhancer),
     })
 
-    expectType<Dispatch & ThunkDispatch<number, undefined, AnyAction>>(
+    expectType<Dispatch & ThunkDispatch<number, undefined, UnknownAction>>(
       store.dispatch
     )
     expectType<string>(storeWithCallback.someProperty)
@@ -240,15 +252,11 @@ const _anyMiddleware: any = () => () => () => {}
 
     const store = configureStore({
       reducer: () => ({ aProperty: 0 }),
-      enhancers: [
-        someStateExtendingEnhancer,
-        anotherStateExtendingEnhancer,
-        // this doesn't work without the as const
-      ] as const,
+      enhancers: () =>
+        new Tuple(someStateExtendingEnhancer, anotherStateExtendingEnhancer),
     })
 
     const state = store.getState()
-
     expectType<number>(state.aProperty)
     expectType<string>(state.someProperty)
     expectType<number>(state.anotherProperty)
@@ -512,7 +520,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: [],
+      middleware: new Tuple(),
     })
     // @ts-expect-error
     store.dispatch(thunkA())
@@ -525,7 +533,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: [thunk] as [ThunkMiddleware<StateA>],
+      middleware: new Tuple(thunk as ThunkMiddleware<StateA>),
     })
     store.dispatch(thunkA())
     // @ts-expect-error
@@ -537,21 +545,9 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: [] as any as [Middleware<(a: StateA) => boolean, StateA>],
-    })
-    const result: boolean = store.dispatch(5)
-    // @ts-expect-error
-    const result2: string = store.dispatch(5)
-  }
-  /**
-   * Test: read-only middleware tuple
-   */
-  {
-    const store = configureStore({
-      reducer: reducerA,
-      middleware: [] as any as readonly [
-        Middleware<(a: StateA) => boolean, StateA>
-      ],
+      middleware: new Tuple(
+        0 as unknown as Middleware<(a: StateA) => boolean, StateA>
+      ),
     })
     const result: boolean = store.dispatch(5)
     // @ts-expect-error
@@ -561,11 +557,13 @@ const _anyMiddleware: any = () => () => () => {}
    * Test: multiple custom middleware
    */
   {
-    const middleware = [] as any as [
-      Middleware<(a: 'a') => 'A', StateA>,
-      Middleware<(b: 'b') => 'B', StateA>,
-      ThunkMiddleware<StateA>
-    ]
+    const middleware = [] as any as Tuple<
+      [
+        Middleware<(a: 'a') => 'A', StateA>,
+        Middleware<(b: 'b') => 'B', StateA>,
+        ThunkMiddleware<StateA>
+      ]
+    >
     const store = configureStore({
       reducer: reducerA,
       middleware,
@@ -585,18 +583,28 @@ const _anyMiddleware: any = () => () => () => {}
       void,
       {},
       undefined,
-      AnyAction
+      UnknownAction
     >)
     // `null` for the `extra` generic was previously documented in the RTK "Advanced Tutorial", but
     // is a bad pattern and users should use `unknown` instead
     // @ts-expect-error
-    store.dispatch(function () {} as ThunkAction<void, {}, null, AnyAction>)
+    store.dispatch(function () {} as ThunkAction<void, {}, null, UnknownAction>)
     // unknown is the best way to type a ThunkAction if you do not care
     // about the value of the extraArgument, as it will always work with every
     // ThunkMiddleware, no matter the actual extraArgument type
-    store.dispatch(function () {} as ThunkAction<void, {}, unknown, AnyAction>)
+    store.dispatch(function () {} as ThunkAction<
+      void,
+      {},
+      unknown,
+      UnknownAction
+    >)
     // @ts-expect-error
-    store.dispatch(function () {} as ThunkAction<void, {}, boolean, AnyAction>)
+    store.dispatch(function () {} as ThunkAction<
+      void,
+      {},
+      boolean,
+      UnknownAction
+    >)
   }
 
   /**
@@ -802,8 +810,8 @@ const _anyMiddleware: any = () => () => () => {}
     // the thunk middleware type kicks in and TS thinks a plain action is being returned
     expectType<
       ((action: Action<'actionListenerMiddleware/add'>) => Unsubscribe) &
-        ThunkDispatch<CounterState, undefined, AnyAction> &
-        Dispatch<AnyAction>
+        ThunkDispatch<CounterState, undefined, UnknownAction> &
+        Dispatch<UnknownAction>
     >(store.dispatch)
 
     const unsubscribe = store.dispatch({

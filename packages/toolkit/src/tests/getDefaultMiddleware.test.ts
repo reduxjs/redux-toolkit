@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 import type {
-  AnyAction,
+  UnknownAction,
   Middleware,
   ThunkAction,
   Action,
@@ -14,7 +14,7 @@ import type { ThunkMiddleware } from 'redux-thunk'
 import { expectType } from './helpers'
 
 import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
-import { MiddlewareArray } from '@internal/utils'
+import { Tuple } from '@internal/utils'
 
 const getDefaultMiddleware = buildGetDefaultMiddleware()
 
@@ -80,7 +80,7 @@ describe('getDefaultMiddleware', () => {
       thunk: false,
     })
 
-    expectType<MiddlewareArray<[]>>(m2)
+    expectType<Tuple<[]>>(m2)
 
     const dummyMiddleware: Middleware<
       {
@@ -94,10 +94,14 @@ describe('getDefaultMiddleware', () => {
     const dummyMiddleware2: Middleware<{}, { counter: number }> =
       (storeApi) => (next) => (action) => {}
 
-    const testThunk: ThunkAction<void, { counter: number }, number, AnyAction> =
-      (dispatch, getState, extraArg) => {
-        expect(extraArg).toBe(extraArgument)
-      }
+    const testThunk: ThunkAction<
+      void,
+      { counter: number },
+      number,
+      UnknownAction
+    > = (dispatch, getState, extraArg) => {
+      expect(extraArg).toBe(extraArgument)
+    }
 
     const reducer = () => ({ counter: 123 })
 
@@ -114,17 +118,17 @@ describe('getDefaultMiddleware', () => {
         const m3 = middleware.concat(dummyMiddleware, dummyMiddleware2)
 
         expectType<
-          MiddlewareArray<
+          Tuple<
             [
-              ThunkMiddleware<any, AnyAction, 42>,
+              ThunkMiddleware<any, UnknownAction, 42>,
               Middleware<
                 (action: Action<'actionListenerMiddleware/add'>) => () => void,
                 {
                   counter: number
                 },
-                Dispatch<AnyAction>
+                Dispatch<UnknownAction>
               >,
-              Middleware<{}, any, Dispatch<AnyAction>>
+              Middleware<{}, any, Dispatch<UnknownAction>>
             ]
           >
         >(m3)
@@ -133,7 +137,7 @@ describe('getDefaultMiddleware', () => {
       },
     })
 
-    expectType<ThunkDispatch<any, 42, AnyAction> & Dispatch<AnyAction>>(
+    expectType<ThunkDispatch<any, 42, UnknownAction> & Dispatch<UnknownAction>>(
       store.dispatch
     )
 
@@ -220,7 +224,7 @@ it('allows passing options to actionCreatorCheck', () => {
   expect(actionCreatorCheckWasCalled).toBe(true)
 })
 
-describe('MiddlewareArray functionality', () => {
+describe('Tuple functionality', () => {
   const middleware1: Middleware = () => (next) => (action) => next(action)
   const middleware2: Middleware = () => (next) => (action) => next(action)
   const defaultMiddleware = getDefaultMiddleware()
@@ -232,7 +236,7 @@ describe('MiddlewareArray functionality', () => {
     // value is prepended
     expect(prepended).toEqual([middleware1, ...defaultMiddleware])
     // returned value is of correct type
-    expect(prepended).toBeInstanceOf(MiddlewareArray)
+    expect(prepended).toBeInstanceOf(Tuple)
     // prepended is a new array
     expect(prepended).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified
@@ -245,7 +249,7 @@ describe('MiddlewareArray functionality', () => {
     // value is prepended
     expect(prepended).toEqual([middleware1, middleware2, ...defaultMiddleware])
     // returned value is of correct type
-    expect(prepended).toBeInstanceOf(MiddlewareArray)
+    expect(prepended).toBeInstanceOf(Tuple)
     // prepended is a new array
     expect(prepended).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified
@@ -258,7 +262,7 @@ describe('MiddlewareArray functionality', () => {
     // value is prepended
     expect(prepended).toEqual([middleware1, middleware2, ...defaultMiddleware])
     // returned value is of correct type
-    expect(prepended).toBeInstanceOf(MiddlewareArray)
+    expect(prepended).toBeInstanceOf(Tuple)
     // prepended is a new array
     expect(prepended).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified
@@ -271,7 +275,7 @@ describe('MiddlewareArray functionality', () => {
     // value is concatenated
     expect(concatenated).toEqual([...defaultMiddleware, middleware1])
     // returned value is of correct type
-    expect(concatenated).toBeInstanceOf(MiddlewareArray)
+    expect(concatenated).toBeInstanceOf(Tuple)
     // concatenated is a new array
     expect(concatenated).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified
@@ -288,7 +292,7 @@ describe('MiddlewareArray functionality', () => {
       middleware2,
     ])
     // returned value is of correct type
-    expect(concatenated).toBeInstanceOf(MiddlewareArray)
+    expect(concatenated).toBeInstanceOf(Tuple)
     // concatenated is a new array
     expect(concatenated).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified
@@ -305,7 +309,7 @@ describe('MiddlewareArray functionality', () => {
       middleware2,
     ])
     // returned value is of correct type
-    expect(concatenated).toBeInstanceOf(MiddlewareArray)
+    expect(concatenated).toBeInstanceOf(Tuple)
     // concatenated is a new array
     expect(concatenated).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified

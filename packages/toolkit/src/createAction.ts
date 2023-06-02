@@ -1,4 +1,4 @@
-import type { Action } from 'redux'
+import type { Action, UnknownAction } from 'redux'
 import type {
   IsUnknownOrNonInferrable,
   IfMaybeUndefined,

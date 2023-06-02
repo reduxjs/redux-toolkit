@@ -275,7 +275,10 @@ describe('createSlice', () => {
           initialState: 0,
           reducers: {},
           extraReducers: (builder) =>
-            builder.addDefaultCase((state, action) => state + action.payload),
+            builder.addDefaultCase(
+              (state, action) =>
+                state + (action as PayloadAction<number>).payload
+            ),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
       })
@@ -544,17 +547,23 @@ describe('createSlice', () => {
 
       expect(uninjectedState.injected).toBe(undefined)
 
-      slice.injectInto(combinedReducer)
+      const injected = slice.injectInto(combinedReducer)
 
       const injectedState = combinedReducer(undefined, increment())
 
-      expect(injectedState.injected).toBe(slice.getInitialState() + 1)
+      expect(injected.selectors.selectSlice(injectedState)).toBe(
+        slice.getInitialState() + 1
+      )
 
-      slice.injectInto(combinedReducer, { reducerPath: 'injected2' })
+      const injected2 = slice.injectInto(combinedReducer, {
+        reducerPath: 'injected2',
+      })
 
       const injected2State = combinedReducer(undefined, increment())
 
-      expect(injected2State.injected2).toBe(slice.getInitialState() + 1)
+      expect(injected2.selectors.selectSlice(injected2State)).toBe(
+        slice.getInitialState() + 1
+      )
     })
   })
   describe('reducers definition with asyncThunks', () => {

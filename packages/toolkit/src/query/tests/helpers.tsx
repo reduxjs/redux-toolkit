@@ -1,13 +1,10 @@
 import React, { useCallback } from 'react'
 import type {
-  AnyAction,
+  UnknownAction,
   EnhancedStore,
   Middleware,
   Store,
   Reducer,
-  EnhancerArray,
-  StoreEnhancer,
-  ThunkDispatch,
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
@@ -111,7 +108,7 @@ declare global {
 
 expect.extend({
   toMatchSequence(
-    _actions: AnyAction[],
+    _actions: UnknownAction[],
     ...matchers: Array<(arg: any) => boolean>
   ) {
     const actions = _actions.concat()
@@ -182,7 +179,7 @@ ${expectedOutput}
 })
 
 export const actionsReducer = {
-  actions: (state: AnyAction[] = [], action: AnyAction) => {
+  actions: (state: UnknownAction[] = [], action: UnknownAction) => {
     return [...state, action]
   },
 }
@@ -218,8 +215,8 @@ export function setupApiStore<
         }).concat(api.middleware)
 
         return tempMiddleware
-          .concat(...(middleware?.concat ?? []))
-          .prepend(...(middleware?.prepend ?? [])) as typeof tempMiddleware
+          .concat(middleware?.concat ?? [])
+          .prepend(middleware?.prepend ?? []) as typeof tempMiddleware
       },
       enhancers: (gde) =>
         gde({
@@ -233,11 +230,15 @@ export function setupApiStore<
     [K in keyof R]: ReturnType<R[K]>
   }
   type StoreType = EnhancedStore<
-    State,
-    AnyAction,
-    ReturnType<typeof getStore> extends EnhancedStore<any, any, infer E>
-      ? E
-      : []
+    {
+      api: ReturnType<A['reducer']>
+    } & {
+      [K in keyof R]: ReturnType<R[K]>
+    },
+    UnknownAction,
+    ReturnType<typeof getStore> extends EnhancedStore<any, any, infer M>
+      ? M
+      : never
   >
 
   const initialStore = getStore() as StoreType

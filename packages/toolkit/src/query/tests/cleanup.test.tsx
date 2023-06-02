@@ -162,7 +162,7 @@ test('Minimizes the number of subscription dispatches when multiple components a
   let getSubscriptionsA = () =>
     storeRef.store.getState().api.subscriptions['a(undefined)']
 
-  let actionTypes: string[] = []
+  let actionTypes: unknown[] = []
 
   listenerMiddleware.startListening({
     predicate: () => true,

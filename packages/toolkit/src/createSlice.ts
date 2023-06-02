@@ -1,4 +1,4 @@
-import type { Action, AnyAction, Reducer } from 'redux'
+import type { Action, UnknownAction, Reducer } from 'redux'
 import type {
   ActionCreatorWithoutPayload,
   PayloadAction,
@@ -7,17 +7,12 @@ import type {
   _ActionCreatorWithPreparedPayload,
 } from './createAction'
 import { createAction } from './createAction'
-import type {
-  CaseReducer,
-  CaseReducers,
-  ReducerWithInitialState,
-} from './createReducer'
-import { createReducer, NotFunction } from './createReducer'
+import type { CaseReducer, ReducerWithInitialState } from './createReducer'
+import { createReducer } from './createReducer'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { Id, NoInfer, Tail } from './tsHelpers'
-import { freezeDraftable } from './utils'
-import type { CombinedSliceReducer, InjectConfig } from './combineSlices'
+import type { Id, Tail } from './tsHelpers'
+import type { InjectConfig } from './combineSlices'
 import type {
   AsyncThunk,
   AsyncThunkConfig,
@@ -26,6 +21,10 @@ import type {
   OverrideThunkApiConfigs,
 } from './createAsyncThunk'
 import { createAsyncThunk } from './createAsyncThunk'
+
+interface InjectIntoConfig<NewReducerPath extends string> extends InjectConfig {
+  reducerPath?: NewReducerPath
+}
 
 /**
  * The return value of `createSlice`
@@ -96,10 +95,15 @@ export interface Slice<
   /**
    * Inject slice into provided reducer (return value from `combineSlices`), and return injected slice.
    */
-  injectInto(
-    combinedReducer: CombinedSliceReducer<any>,
-    config?: InjectConfig & { reducerPath?: string }
-  ): InjectedSlice<State, CaseReducers, Name, ReducerPath, Selectors>
+  injectInto<NewReducerPath extends string = ReducerPath>(
+    injectable: {
+      inject: (
+        slice: { reducerPath: string; reducer: Reducer },
+        config?: InjectConfig
+      ) => void
+    },
+    config?: InjectIntoConfig<NewReducerPath>
+  ): InjectedSlice<State, CaseReducers, Name, NewReducerPath, Selectors>
 }
 
 /**
@@ -186,7 +190,7 @@ export interface CreateSliceOptions<
    * 
    * @example
 ```ts
-import { createAction, createSlice, Action, AnyAction } from '@reduxjs/toolkit'
+import { createAction, createSlice, Action } from '@reduxjs/toolkit'
 const incrementBy = createAction<number>('incrementBy')
 const decrement = createAction('decrement')
 
@@ -194,7 +198,7 @@ interface RejectedAction extends Action {
   error: Error
 }
 
-function isRejectedAction(action: AnyAction): action is RejectedAction {
+function isRejectedAction(action: Action): action is RejectedAction {
   return action.type.endsWith('rejected')
 }
 
@@ -240,8 +244,10 @@ interface ReducerDefinition<T extends ReducerType = ReducerType> {
   [reducerDefinitionType]: T
 }
 
-export interface CaseReducerDefinition<S = any, A extends Action = AnyAction>
-  extends CaseReducer<S, A>,
+export interface CaseReducerDefinition<
+  S = any,
+  A extends Action = UnknownAction
+> extends CaseReducer<S, A>,
     ReducerDefinition<ReducerType.reducer> {}
 
 /**
@@ -353,6 +359,9 @@ interface AsyncThunkCreator<
 }
 
 export interface ReducerCreators<State> {
+  reducer(
+    caseReducer: CaseReducer<State, PayloadAction>
+  ): CaseReducerDefinition<State, PayloadAction>
   reducer<Payload>(
     caseReducer: CaseReducer<State, PayloadAction<Payload>>
   ): CaseReducerDefinition<State, PayloadAction<Payload>>
@@ -698,15 +707,15 @@ export function createSlice<
     get selectors() {
       return this.getSelectors(defaultSelectSlice)
     },
-    injectInto(injectable, { reducerPath, ...config } = {}) {
-      injectable.inject(
-        { reducerPath: reducerPath ?? this.reducerPath, reducer: this.reducer },
-        config
-      )
+    injectInto(injectable, { reducerPath: pathOpt, ...config } = {}) {
+      const reducerPath = pathOpt ?? this.reducerPath
+      injectable.inject({ reducerPath, reducer: this.reducer }, config)
+      const selectSlice = (state: any) => state[reducerPath]
       return {
         ...this,
+        reducerPath,
         get selectors() {
-          return this.getSelectors(defaultSelectSlice)
+          return this.getSelectors(selectSlice)
         },
       } as any
     },
@@ -746,7 +755,7 @@ function buildReducerCreators<State>(): ReducerCreators<State> {
   }
   asyncThunk.withTypes = () => asyncThunk
   return {
-    reducer(caseReducer) {
+    reducer(caseReducer: CaseReducer<State, any>) {
       return Object.assign(
         {
           // hack so the wrapping function has the same name as the original

@@ -5,7 +5,7 @@
 ```ts
 import type { Action } from 'redux'
 import type { ActionCreator } from 'redux'
-import type { AnyAction } from 'redux'
+import type { UnknownAction } from 'redux'
 import type { CombinedState } from 'redux'
 import { default as createNextState } from 'immer'
 import { createSelector } from 'reselect'
@@ -85,10 +85,10 @@ export interface ActionReducerMapBuilder<State> {
     type: Type,
     reducer: CaseReducer<State, A>
   ): ActionReducerMapBuilder<State>
-  addDefaultCase(reducer: CaseReducer<State, AnyAction>): {}
+  addDefaultCase(reducer: CaseReducer<State, UnknownAction>): {}
   addMatcher<A>(
     matcher: TypeGuard<A> | ((action: any) => boolean),
-    reducer: CaseReducer<State, A extends AnyAction ? A : A & AnyAction>
+    reducer: CaseReducer<State, A extends Action ? A : A & Action>
   ): Omit<ActionReducerMapBuilder<State>, 'addCase'>
 }
 
@@ -191,7 +191,7 @@ export type AsyncThunkPayloadCreatorReturnValue<
 >
 
 // @public
-export type CaseReducer<S = any, A extends Action = AnyAction> = (
+export type CaseReducer<S = any, A extends Action = UnknownAction> = (
   state: Draft<S>,
   action: A
 ) => S | void | Draft<S>
@@ -227,14 +227,14 @@ export type ConfigureEnhancersCallback = (
 // @public
 export function configureStore<
   S = any,
-  A extends Action = AnyAction,
+  A extends Action = UnknownAction,
   M extends Middlewares<S> = [ThunkMiddlewareFor<S>]
 >(options: ConfigureStoreOptions<S, A, M>): EnhancedStore<S, A, M>
 
 // @public
 export interface ConfigureStoreOptions<
   S = any,
-  A extends Action = AnyAction,
+  A extends Action = UnknownAction,
   M extends Middlewares<S> = Middlewares<S>
 > {
   devTools?: boolean | EnhancerOptions
@@ -352,7 +352,7 @@ export { Draft }
 // @public
 export interface EnhancedStore<
   S = any,
-  A extends Action = AnyAction,
+  A extends Action = UnknownAction,
   M extends Middlewares<S> = Middlewares<S>
 > extends Store<S, A> {
   dispatch: Dispatch<A> & DispatchForMiddlewares<M>

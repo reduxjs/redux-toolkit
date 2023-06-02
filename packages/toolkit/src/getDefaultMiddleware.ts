@@ -1,4 +1,4 @@
-import type { Middleware, AnyAction } from 'redux'
+import type { Middleware, UnknownAction } from 'redux'
 import type { ThunkMiddleware } from 'redux-thunk'
 import { thunk as thunkMiddleware, withExtraArgument } from 'redux-thunk'
 import type { ActionCreatorInvariantMiddlewareOptions } from './actionCreatorInvariantMiddleware'
@@ -11,7 +11,7 @@ import { createImmutableStateInvariantMiddleware } from './immutableStateInvaria
 import type { SerializableStateInvariantMiddlewareOptions } from './serializableStateInvariantMiddleware'
 import { createSerializableStateInvariantMiddleware } from './serializableStateInvariantMiddleware'
 import type { ExcludeFromTuple } from './tsHelpers'
-import { MiddlewareArray } from './utils'
+import { Tuple } from './utils'
 
 function isBoolean(x: any): x is boolean {
   return typeof x === 'boolean'
@@ -36,8 +36,8 @@ export type ThunkMiddlewareFor<
 }
   ? never
   : O extends { thunk: { extraArgument: infer E } }
-  ? ThunkMiddleware<S, AnyAction, E>
-  : ThunkMiddleware<S, AnyAction>
+  ? ThunkMiddleware<S, UnknownAction, E>
+  : ThunkMiddleware<S, UnknownAction>
 
 export type GetDefaultMiddleware<S = any> = <
   O extends GetDefaultMiddlewareOptions = {
@@ -48,7 +48,7 @@ export type GetDefaultMiddleware<S = any> = <
   }
 >(
   options?: O
-) => MiddlewareArray<ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>>
+) => Tuple<ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>>
 
 export const buildGetDefaultMiddleware = <S = any>(): GetDefaultMiddleware<S> =>
   function getDefaultMiddleware(options) {
@@ -59,7 +59,7 @@ export const buildGetDefaultMiddleware = <S = any>(): GetDefaultMiddleware<S> =>
       actionCreatorCheck = true,
     } = options ?? {}
 
-    let middlewareArray = new MiddlewareArray<Middleware[]>()
+    let middlewareArray = new Tuple<Middleware[]>()
 
     if (thunk) {
       if (isBoolean(thunk)) {

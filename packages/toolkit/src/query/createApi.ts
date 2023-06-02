@@ -9,7 +9,7 @@ import type {
 } from './endpointDefinitions'
 import { DefinitionType, isQueryDefinition } from './endpointDefinitions'
 import { nanoid } from '@reduxjs/toolkit'
-import type { AnyAction } from '@reduxjs/toolkit'
+import type { UnknownAction } from '@reduxjs/toolkit'
 import type { NoInfer } from './tsHelpers'
 import { defaultMemoize } from 'reselect'
 
@@ -159,14 +159,21 @@ export interface CreateApiOptions<
    *
    * ```ts
    * // codeblock-meta title="next-redux-wrapper rehydration example"
+   * import type { Action, PayloadAction } from '@reduxjs/toolkit'
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * import { HYDRATE } from 'next-redux-wrapper'
+   *
+   * type RootState = any; // normally inferred from state
+   *
+   * function isHydrateAction(action: Action): action is PayloadAction<RootState> {
+   *   return action.type === HYDRATE
+   * }
    *
    * export const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   // highlight-start
    *   extractRehydrationInfo(action, { reducerPath }) {
-   *     if (action.type === HYDRATE) {
+   *     if (isHydrateAction(action)) {
    *       return action.payload[reducerPath]
    *     }
    *   },
@@ -178,7 +185,7 @@ export interface CreateApiOptions<
    * ```
    */
   extractRehydrationInfo?: (
-    action: AnyAction,
+    action: UnknownAction,
     {
       reducerPath,
     }: {
@@ -236,7 +243,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
   ...modules: Modules
 ): CreateApi<Modules[number]['name']> {
   return function baseCreateApi(options) {
-    const extractRehydrationInfo = defaultMemoize((action: AnyAction) =>
+    const extractRehydrationInfo = defaultMemoize((action: UnknownAction) =>
       options.extractRehydrationInfo?.(action, {
         reducerPath: (options.reducerPath ?? 'api') as any,
       })

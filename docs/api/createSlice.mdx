@@ -56,11 +56,15 @@ function createSlice({
     // A name, used in action types
     name: string,
     // The initial state for the reducer
-    initialState: any,
+    initialState: State,
     // An object of "case reducers". Key names will be used to generate actions.
-    reducers: Object<string, ReducerFunction | ReducerAndPrepareObject>
+    reducers: Record<string, ReducerFunction | ReducerAndPrepareObject>,
     // A "builder callback" function used to add more reducers
-    extraReducers?: ((builder: ActionReducerMapBuilder<State>) => void)
+    extraReducers?: (builder: ActionReducerMapBuilder<State>) => void,
+    // A preference for the slice reducer's location, used by `combineSlices` and `slice.selectors`. Defaults to `name`.
+    reducerPath?: string,
+    // An object of selectors, which receive the slice's state as their first parameter.
+    selectors?: Record<string, (sliceState: State, ...args: any[]) => any>,
 })
 ```
 
@@ -329,7 +333,7 @@ As with `reducers`, these case reducers will also be passed to `createReducer` a
 If two fields from `reducers` and `extraReducers` happen to end up with the same action type string,
 the function from `reducers` will be used to handle that action type.
 
-### The `extraReducers` "builder callback" notation
+#### The `extraReducers` "builder callback" notation
 
 Similar to `createReducer`, the `extraReducers` field uses a "builder callback" notation to define handlers for specific action types, matching against a range of actions, or handling a default case. This is conceptually similar to a switch statement, but with better TS support as it can infer the action type from the provided action creator. It's particularly useful for working with actions produced by `createAction` and `createAsyncThunk`.
 
@@ -337,17 +341,98 @@ Similar to `createReducer`, the `extraReducers` field uses a "builder callback" 
 
 See [the "Builder Callback Notation" section of the `createReducer` reference](./createReducer.mdx#usage-with-the-builder-callback-notation) for details on how to use `builder.addCase`, `builder.addMatcher`, and `builder.addDefault`
 
+### `reducerPath`
+
+Indicates a preference of where the slice should be located. Defaults to [`name`](#name).
+
+This is used by `combineSlices` and the default generated `slice.selectors`.
+
+### `selectors`
+
+A set of selectors that receive the slice state as their first parameter, and any other parameters.
+
+Each selector will have a corresponding key in the resulting [`selectors`](#selectors-1) object.
+
+:::caution Circular types
+
+It's fairly common to have selectors that use other selectors. This is still possible with slice selectors, but defining a selector without a return type can cause a circular type inference problem:
+
+```ts no-transpile
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 },
+  reducers: {},
+  selectors: {
+    selectValue: (state) => state.value,
+    // highlight-start
+    // this creates a cycle, because it's inferring a type from the object we're creating here
+    selectTimes: (state, times = 1) =>
+      counterSlice.getSelectors().selectValue(state) * times,
+    // highlight-end
+  },
+})
+```
+
+This cycle can be fixed by providing an explicit return type for the selector:
+
+```ts no-transpile
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 },
+  reducers: {},
+  selectors: {
+    selectValue: (state) => state.value,
+    // highlight-start
+    // explicit return type means cycle is broken
+    selectTimes: (state, times = 1): number =>
+      counterSlice.getSelectors().selectValue(state) * times,
+    // highlight-end
+  },
+})
+```
+
+This limitation may be also encountered when using a slice's `asyncThunk` creator.
+In the same way, the issue is resolved by explicitly providing a type somewhere in the chain and breaking the cycle.
+
+```ts no-transpile
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 },
+  reducers: (create) => ({
+    getCountData: create.asyncThunk(async (_arg, { getState }) => {
+      const currentCount = counterSlice.selectors.selectValue(
+        getState() as RootState
+      )
+      // highlight-start
+      // this would cause a circular type, but the type annotation breaks the circle
+      const result: Response = await fetch('api/' + currentCount)
+      // highlight-end
+      return result.json()
+    }),
+  }),
+  selectors: {
+    selectValue: (state) => state.value,
+  },
+})
+```
+
+:::
+
 ## Return Value
 
 `createSlice` will return an object that looks like:
 
 ```ts no-transpile
 {
-    name : string,
-    reducer : ReducerFunction,
-    actions : Record<string, ActionCreator>,
+    name: string,
+    reducer: ReducerFunction,
+    actions: Record<string, ActionCreator>,
     caseReducers: Record<string, CaseReducer>.
-    getInitialState: () => State
+    getInitialState: () => State,
+    reducerPath: string,
+    selectors: Record<string, Selector>,
+    getSelectors: (selectState: (rootState: RootState) => State) => Record<string, Selector>
+    injectInto: (injectable: Injectable, config?: InjectConfig & { reducerPath?: string }) => InjectedSlice
 }
 ```
 
@@ -363,15 +448,80 @@ The functions passed to the `reducers` parameter can be accessed through the `ca
 
 Result's function `getInitialState` provides access to the initial state value given to the slice. If a lazy state initializer was provided, it will be called and a fresh value returned.
 
-> **Note**: the result object is conceptually similar to a
-> ["Redux duck" code structure](https://redux.js.org/faq/code-structure#what-should-my-file-structure-look-like-how-should-i-group-my-action-creators-and-reducers-in-my-project-where-should-my-selectors-go).
-> The actual code structure you use is up to you, but there are a couple caveats to keep in mind:
->
-> - Actions are not exclusively limited to a single slice. Any part of the reducer logic can (and should!) respond
->   to any dispatched action.
-> - At the same time, circular references can cause import problems. If slices A and B are defined in
->   separate files, and each file tries to import the other so it can listen to other actions, unexpected
->   behavior may occur.
+`injectInto` creates an instance of the slice that is aware it's been injected - see [`combineSlices`](./combineSlices#slice-integration).
+
+:::note
+The result object is conceptually similar to a
+["Redux duck" code structure](https://redux.js.org/faq/code-structure#what-should-my-file-structure-look-like-how-should-i-group-my-action-creators-and-reducers-in-my-project-where-should-my-selectors-go).
+The actual code structure you use is up to you, but it's worth keeping in mind that actions are not exclusively limited to a single slice.
+Any part of the reducer logic can (and should!) respond to any dispatched action.
+:::
+
+### Selectors
+
+Slice selectors are written to expect the slice's state as their first parameter, but the slice may be located anywhere inside the store's root state.
+
+As a result, there are two ways of getting final selectors:
+
+#### `selectors`
+
+Most commonly, the slice is reliably mounted under its [`reducerPath`](#reducerPath).
+
+Following this, the slice has a `selectors` object attached, which creates selectors with the assumption that the slice is located under `rootState[slice.reducerPath]`.
+
+```ts
+import { createSlice } from '@reduxjs/toolkit'
+
+interface CounterState {
+  value: number
+}
+
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 } as CounterState,
+  reducers: {
+    // omitted
+  },
+  selectors: {
+    selectValue: (sliceState) => sliceState.value,
+  },
+})
+
+const { selectValue } = counterSlice.selectors
+
+console.log(selectValue({ counter: { value: 2 } })) // 2
+```
+
+#### `getSelectors`
+
+`slice.getSelectors` is called with a single parameter, a `selectState` callback. This function should receive the store root state (or whatever you expect to call the resulting selectors with) and return the slice state.
+
+```ts no-transpile
+const { selectValue } = counterSlice.getSelectors(
+  (rootState: RootState) => rootState.aCounter
+)
+
+console.log(selectValue({ aCounter: { value: 2 } })) // 2
+```
+
+If no `selectState` callback is passed, selectors will be returned as is - expecting the slice state as their first parameter (the same as calling `slice.getSelectors(state => state)`).
+
+```ts no-transpile
+const { selectValue } = counterSlice.getSelectors()
+
+console.log(selectValue({ value: 2 })) // 2
+```
+
+:::note
+The [`slice.selectors`](#selectors-2) object is the equivalent of calling
+
+```ts no-transpile
+const { selectValue } = counterSlice.getSelectors(
+  (rootState: RootState) => rootState[counterSlice.reducerPath]
+)
+```
+
+:::
 
 ## Examples
 
@@ -394,7 +544,6 @@ const counter = createSlice({
       prepare: (value?: number) => ({ payload: value || 2 }), // fallback if the payload is a falsy value
     },
   },
-  // "builder callback API", recommended for TypeScript users
   extraReducers: (builder) => {
     builder.addCase(incrementBy, (state, action) => {
       return state + action.payload
@@ -413,23 +562,16 @@ const user = createSlice({
       state.name = action.payload // mutate the state all you want with immer
     },
   },
-  // "map object API"
   extraReducers: (builder) => {
-    builder.addCase(
-      counter.actions.increment,
-      (
-        state,
-        action /* action will be inferred as "any", as the map notation does not contain type information */
-      ) => {
-        state.age += 1
-      }
-    )
+    builder.addCase(counter.actions.increment, (state, action) => {
+      state.age += 1
+    })
   },
 })
 
 const reducer = combineReducers({
-  counter: counter.reducer,
-  user: user.reducer,
+  [counter.reducerPath]: counter.reducer,
+  [user.reducerPath]: user.reducer,
 })
 
 const store = createStore(reducer)
@@ -442,7 +584,7 @@ store.dispatch(counter.actions.multiply(3))
 // -> { counter: 6, user: {name: '', age: 22} }
 store.dispatch(counter.actions.multiply())
 // -> { counter: 12, user: {name: '', age: 22} }
-console.log(`${counter.actions.decrement}`)
+console.log(counter.actions.decrement.type)
 // -> "counter/decrement"
 store.dispatch(user.actions.setUserName('eric'))
 // -> { counter: 12, user: { name: 'eric', age: 22} }
