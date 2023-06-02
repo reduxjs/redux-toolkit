@@ -5,7 +5,7 @@ import React from 'react'
 import type { ReactReduxContextValue } from 'react-redux'
 import { Provider } from 'react-redux'
 import { setupListeners } from '@reduxjs/toolkit/query'
-import type { Api } from '@reduxjs/toolkit/dist/query/apiTypes'
+import type { Api, BaseApiMethods } from '@reduxjs/toolkit/dist/query/apiTypes'
 
 /**
  * Can be used as a `Provider` if you **do not already have a Redux store**.
@@ -31,9 +31,9 @@ import type { Api } from '@reduxjs/toolkit/dist/query/apiTypes'
  * conflict with each other - please use the traditional redux setup
  * in that case.
  */
-export function ApiProvider<A extends Api<any, {}, any, any>>(props: {
+export function ApiProvider(props: {
   children: any
-  api: A
+  api: Omit<Api<any, {}, any, any>, keyof BaseApiMethods<any, {}, any, any>>
   setupListeners?: Parameters<typeof setupListeners>[1] | false
   context?: Context<ReactReduxContextValue>
 }) {
