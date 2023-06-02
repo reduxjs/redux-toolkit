@@ -6728,6 +6728,7 @@ __metadata:
     eslint-plugin-node: ^11.1.0
     eslint-plugin-prettier: ^3.4.0
     jest: ^29
+    jscodeshift: ^0.15.0
     prettier: ^2.2.1
     ts-jest: ^29
     ts-node: ^10.4.0
