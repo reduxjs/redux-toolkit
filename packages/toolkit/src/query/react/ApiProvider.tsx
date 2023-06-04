@@ -34,7 +34,7 @@ import type { CoreModule } from '../core/module'
  */
 export function ApiProvider(props: {
   children: any
-  api: ApiModules<any, any, string, any>[CoreModule]
+  api: ApiModules<any, any, any, any>[CoreModule]
   setupListeners?: Parameters<typeof setupListeners>[1] | false
   context?: Context<ReactReduxContextValue>
 }) {
