@@ -4,8 +4,9 @@ import { useEffect } from 'react'
 import React from 'react'
 import type { ReactReduxContextValue } from 'react-redux'
 import { Provider } from 'react-redux'
+import type { ApiModules } from '@reduxjs/toolkit/query'
 import { setupListeners } from '@reduxjs/toolkit/query'
-import type { Api, BaseApiMethods } from '@reduxjs/toolkit/dist/query/apiTypes'
+import type { CoreModule } from '../core/module'
 
 /**
  * Can be used as a `Provider` if you **do not already have a Redux store**.
@@ -33,7 +34,7 @@ import type { Api, BaseApiMethods } from '@reduxjs/toolkit/dist/query/apiTypes'
  */
 export function ApiProvider(props: {
   children: any
-  api: Omit<Api<any, {}, any, any>, keyof BaseApiMethods<any, {}, any, any>>
+  api: ApiModules<any, any, string, any>[CoreModule]
   setupListeners?: Parameters<typeof setupListeners>[1] | false
   context?: Context<ReactReduxContextValue>
 }) {

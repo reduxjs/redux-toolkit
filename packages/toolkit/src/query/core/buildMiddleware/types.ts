@@ -7,7 +7,7 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 
-import type { Api, ApiContext, BaseApiMethods } from '../../apiTypes'
+import type { ApiContext, ApiModules } from '../../apiTypes'
 import type {
   AssertTagTypes,
   EndpointDefinitions,
@@ -24,6 +24,7 @@ import type {
   QueryThunkArg,
   ThunkResult,
 } from '../buildThunks'
+import type { CoreModule } from '../module'
 
 export type QueryStateMeta<T> = Record<string, undefined | T>
 export type TimeoutId = ReturnType<typeof setTimeout>
@@ -41,10 +42,7 @@ export interface BuildMiddlewareInput<
   context: ApiContext<Definitions>
   queryThunk: QueryThunk
   mutationThunk: MutationThunk
-  api: Omit<
-    Api<any, Definitions, ReducerPath, TagTypes>,
-    keyof BaseApiMethods<any, any, any, any>
-  >
+  api: ApiModules<any, EndpointDefinitions, ReducerPath, TagTypes>[CoreModule]
   assertTagType: AssertTagTypes
 }
 
