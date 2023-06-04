@@ -96,34 +96,7 @@ export type BaseApiMethods<
     Enhancers
   >
   /**
-   * A function to enhance a generated API with additional information. Useful with code-generation.
-   * @deprecated use addTagTypes and/or enhanceEndpoint instead
-   */
-  enhanceEndpoints<
-    NewTagTypes extends string = never,
-    NewDefinitions extends EndpointDefinitions = never
-  >(_: {
-    addTagTypes?: readonly NewTagTypes[]
-    endpoints?: UpdateDefinitions<
-      Definitions,
-      TagTypes | NoInfer<NewTagTypes>,
-      NewDefinitions
-    > extends infer NewDefinitions
-      ? {
-          [K in keyof NewDefinitions]?:
-            | Partial<NewDefinitions[K]>
-            | ((definition: NewDefinitions[K]) => void)
-        }
-      : never
-  }): Api<
-    BaseQuery,
-    UpdateDefinitions<Definitions, TagTypes | NewTagTypes, NewDefinitions>,
-    ReducerPath,
-    TagTypes | NewTagTypes,
-    Enhancers
-  >
-  /**
-   *A function to enhance a generated API with additional information. Useful with code-generation.
+   *A function to add tag types to a generated API. Useful with code-generation.
    */
   addTagTypes<NewTagTypes extends string = never>(
     ...addTagTypes: readonly NewTagTypes[]
@@ -136,7 +109,7 @@ export type BaseApiMethods<
   >
 
   /**
-   *A function to enhance a generated API with additional information. Useful with code-generation.
+   *A function to enhance a generated API endpoint with additional information. Useful with code-generation.
    */
   enhanceEndpoint<
     QueryName extends QueryKeys<Definitions>,

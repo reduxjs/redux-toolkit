@@ -69,7 +69,7 @@ That will result in all generated endpoints having `providesTags`/`invalidatesTa
 
 Note that this will only result in string tags with no ids, so it might lead to scenarios where too much is invalidated and unneccessary requests are made on mutation.
 
-In that case it is still recommended to manually specify tags by using [`enhanceEndpoints`](../api/created-api/code-splitting.mdx) on top of the generated api and manually declare `providesTags`/`invalidatesTags`.
+In that case it is still recommended to manually specify tags by using [`addTagTypes` and `enhanceEndpoint`](../api/created-api/code-splitting.mdx) on top of the generated api and manually declare `providesTags`/`invalidatesTags`.
 
 ### Programmatic usage
 

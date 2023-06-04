@@ -319,20 +319,29 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
         }
         return api
       },
-      enhanceEndpoints({ addTagTypes, endpoints }) {
-        if (addTagTypes) {
-          api.addTagTypes(...addTagTypes)
-        }
-        if (endpoints) {
-          for (const [endpointName, partialDefinition] of Object.entries(
-            endpoints
-          )) {
-            ;(api.enhanceEndpoint as any)(endpointName, partialDefinition)
-          }
-        }
-        return api
-      },
     } as Api<BaseQueryFn, {}, string, string, Modules[number]['name']>
+
+    // add fallback for runtime - undocumented in TS
+    // @ts-ignore
+    api.enhanceEndpoints = ({
+      addTagTypes,
+      endpoints,
+    }: {
+      addTagTypes?: string[]
+      endpoints?: Record<string, object | Function>
+    }) => {
+      if (addTagTypes) {
+        api.addTagTypes(...addTagTypes)
+      }
+      if (endpoints) {
+        for (const [endpointName, partialDefinition] of Object.entries(
+          endpoints
+        )) {
+          ;(api.enhanceEndpoint as any)(endpointName, partialDefinition)
+        }
+      }
+      return api
+    }
 
     const initializedModules = modules.map((m) =>
       m.init(api as any, optionsWithDefaults as any, context)
