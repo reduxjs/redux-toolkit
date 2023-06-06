@@ -11,11 +11,8 @@ import type {
   InternalHandlerBuilder,
   ApiMiddlewareInternalHandler,
 } from './types'
-import type {
-  PromiseWithKnownReason,
-  PromiseWithResolvers,
-} from '../../utils/promiseWithResolvers'
-import { promiseWithResolvers } from '../../utils/promiseWithResolvers'
+import type { PromiseWithKnownReason, PromiseWithResolvers } from '../../utils'
+import { promiseWithResolvers } from '../../utils'
 
 export type ReferenceQueryLifecycle = never
 
