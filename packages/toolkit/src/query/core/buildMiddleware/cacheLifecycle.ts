@@ -15,8 +15,8 @@ import type {
   InternalHandlerBuilder,
   SubMiddlewareApi,
 } from './types'
-import type { PromiseWithKnownReason } from '../../utils/promiseWithResolvers'
-import { promiseWithResolvers } from '../../utils/promiseWithResolvers'
+import type { PromiseWithKnownReason } from '../../utils'
+import { promiseWithResolvers } from '../../utils'
 
 export type ReferenceCacheLifecycle = never
 
