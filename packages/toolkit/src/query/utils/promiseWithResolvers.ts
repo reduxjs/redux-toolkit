@@ -10,7 +10,7 @@ export interface PromiseConstructorWithKnownReason {
   new <T, R>(
     executor: (
       resolve: (value: T | PromiseLike<T>) => void,
-      reject: (reason?: R) => void
+      reject: (reason: R) => void
     ) => void
   ): PromiseWithKnownReason<T, R>
 }
