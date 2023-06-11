@@ -104,7 +104,8 @@ const unknownAction = { type: 'foo' } as UnknownAction
     {
       state: BooksState
       extra: { userAPI: Function }
-    }
+    },
+    'books/fetch'
   >(
     'books/fetch',
     async (arg, { getState, dispatch, extra, requestId, signal }) => {
@@ -133,7 +134,8 @@ const unknownAction = { type: 'foo' } as UnknownAction
     number,
     {
       rejectValue: RejectValue
-    }
+    },
+    'books/fetch'
   >('books/fetch', async (arg, { rejectWithValue }) => {
     return rejectWithValue({ data: 'error' })
   })
@@ -207,7 +209,8 @@ const unknownAction = { type: 'foo' } as UnknownAction
     string,
     {
       rejectValue: ErrorFromServer
-    }
+    },
+    'calls/fetchLiveCalls'
   >('calls/fetchLiveCalls', async (organizationId, { rejectWithValue }) => {
     try {
       const result = await apiRequest.get<CallsResponse>(
@@ -488,7 +491,8 @@ const unknownAction = { type: 'foo' } as UnknownAction
   const shouldWork = createAsyncThunk<
     any,
     void,
-    { serializedErrorType: Funky }
+    { serializedErrorType: Funky },
+    'with generics'
   >('with generics', () => {}, {
     serializeError: funkySerializeError,
   })
@@ -564,70 +568,101 @@ const unknownAction = { type: 'foo' } as UnknownAction
 // meta return values
 {
   // return values
-  createAsyncThunk<'ret', void, {}>('test', (_, api) => 'ret' as const)
-  createAsyncThunk<'ret', void, {}>('test', async (_, api) => 'ret' as const)
-  createAsyncThunk<'ret', void, { fulfilledMeta: string }>('test', (_, api) =>
-    api.fulfillWithValue('ret' as const, '')
+  createAsyncThunk<'ret', void, {}, 'test'>('test', (_, api) => 'ret' as const)
+  createAsyncThunk<'ret', void, {}, 'test'>(
+    'test',
+    async (_, api) => 'ret' as const
   )
-  createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
+  createAsyncThunk<'ret', void, { fulfilledMeta: string }, 'test'>(
+    'test',
+    (_, api) => api.fulfillWithValue('ret' as const, '')
+  )
+  createAsyncThunk<'ret', void, { fulfilledMeta: string }, 'test'>(
     'test',
     async (_, api) => api.fulfillWithValue('ret' as const, '')
   )
-  createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
+  createAsyncThunk<'ret', void, { fulfilledMeta: string }, 'test'>(
     'test',
     // @ts-expect-error has to be a fulfilledWithValue call
     (_, api) => 'ret' as const
   )
-  createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
+  createAsyncThunk<'ret', void, { fulfilledMeta: string }, 'test'>(
     'test',
     // @ts-expect-error has to be a fulfilledWithValue call
     async (_, api) => 'ret' as const
   )
-  createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
+  createAsyncThunk<'ret', void, { fulfilledMeta: string }, 'test'>(
     'test', // @ts-expect-error should only allow returning with 'test'
     (_, api) => api.fulfillWithValue(5, '')
   )
-  createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
+  createAsyncThunk<'ret', void, { fulfilledMeta: string }, 'test'>(
     'test', // @ts-expect-error should only allow returning with 'test'
     async (_, api) => api.fulfillWithValue(5, '')
   )
 
   // reject values
-  createAsyncThunk<'ret', void, { rejectValue: string }>('test', (_, api) =>
-    api.rejectWithValue('ret')
+  createAsyncThunk<'ret', void, { rejectValue: string }, 'test'>(
+    'test',
+    (_, api) => api.rejectWithValue('ret')
   )
-  createAsyncThunk<'ret', void, { rejectValue: string }>(
+  createAsyncThunk<'ret', void, { rejectValue: string }, 'test'>(
     'test',
     async (_, api) => api.rejectWithValue('ret')
   )
-  createAsyncThunk<'ret', void, { rejectValue: string; rejectedMeta: number }>(
-    'test',
-    (_, api) => api.rejectWithValue('ret', 5)
-  )
-  createAsyncThunk<'ret', void, { rejectValue: string; rejectedMeta: number }>(
-    'test',
-    async (_, api) => api.rejectWithValue('ret', 5)
-  )
-  createAsyncThunk<'ret', void, { rejectValue: string; rejectedMeta: number }>(
-    'test',
-    (_, api) => api.rejectWithValue('ret', 5)
-  )
-  createAsyncThunk<'ret', void, { rejectValue: string; rejectedMeta: number }>(
+  createAsyncThunk<
+    'ret',
+    void,
+    { rejectValue: string; rejectedMeta: number },
+    'test'
+  >('test', (_, api) => api.rejectWithValue('ret', 5))
+  createAsyncThunk<
+    'ret',
+    void,
+    { rejectValue: string; rejectedMeta: number },
+    'test'
+  >('test', async (_, api) => api.rejectWithValue('ret', 5))
+  createAsyncThunk<
+    'ret',
+    void,
+    { rejectValue: string; rejectedMeta: number },
+    'test'
+  >('test', (_, api) => api.rejectWithValue('ret', 5))
+  createAsyncThunk<
+    'ret',
+    void,
+    { rejectValue: string; rejectedMeta: number },
+    'test'
+  >(
     'test',
     // @ts-expect-error wrong rejectedMeta type
     (_, api) => api.rejectWithValue('ret', '')
   )
-  createAsyncThunk<'ret', void, { rejectValue: string; rejectedMeta: number }>(
+  createAsyncThunk<
+    'ret',
+    void,
+    { rejectValue: string; rejectedMeta: number },
+    'test'
+  >(
     'test',
     // @ts-expect-error wrong rejectedMeta type
     async (_, api) => api.rejectWithValue('ret', '')
   )
-  createAsyncThunk<'ret', void, { rejectValue: string; rejectedMeta: number }>(
+  createAsyncThunk<
+    'ret',
+    void,
+    { rejectValue: string; rejectedMeta: number },
+    'test'
+  >(
     'test',
     // @ts-expect-error wrong rejectValue type
     (_, api) => api.rejectWithValue(5, '')
   )
-  createAsyncThunk<'ret', void, { rejectValue: string; rejectedMeta: number }>(
+  createAsyncThunk<
+    'ret',
+    void,
+    { rejectValue: string; rejectedMeta: number },
+    'test'
+  >(
     'test',
     // @ts-expect-error wrong rejectValue type
     async (_, api) => api.rejectWithValue(5, '')
@@ -693,7 +728,7 @@ const unknownAction = { type: 'foo' } as UnknownAction
   })
 
   // usage with config override generic
-  const thunk3 = typedCAT<number, string, { rejectValue: number }>(
+  const thunk3 = typedCAT<number, string, { rejectValue: number }, 'foo'>(
     'foo',
     (arg, api) => {
       expectExactType('' as string)(arg)

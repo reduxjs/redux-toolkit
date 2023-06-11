@@ -229,14 +229,24 @@ export type AsyncThunkPayloadCreator<
 export type AsyncThunkAction<
   Returned,
   ThunkArg,
-  ThunkApiConfig extends AsyncThunkConfig
+  ThunkApiConfig extends AsyncThunkConfig,
+  TypePrefix extends string = string
 > = (
   dispatch: GetDispatch<ThunkApiConfig>,
   getState: () => GetState<ThunkApiConfig>,
   extra: GetExtra<ThunkApiConfig>
 ) => Promise<
-  | ReturnType<AsyncThunkFulfilledActionCreator<Returned, ThunkArg>>
-  | ReturnType<AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>>
+  | ReturnType<
+      AsyncThunkFulfilledActionCreator<
+        Returned,
+        ThunkArg,
+        ThunkApiConfig,
+        TypePrefix
+      >
+    >
+  | ReturnType<
+      AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig, TypePrefix>
+    >
 > & {
   abort: (reason?: string) => void
   requestId: string
@@ -247,28 +257,39 @@ export type AsyncThunkAction<
 type AsyncThunkActionCreator<
   Returned,
   ThunkArg,
-  ThunkApiConfig extends AsyncThunkConfig
+  ThunkApiConfig extends AsyncThunkConfig,
+  TypePrefix extends string = string
 > = IsAny<
   ThunkArg,
   // any handling
-  (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>,
+  (
+    arg: ThunkArg
+  ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig, TypePrefix>,
   // unknown handling
   unknown extends ThunkArg
-    ? (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument not specified or specified as void or undefined
+    ? (
+        arg: ThunkArg
+      ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig, TypePrefix> // argument not specified or specified as void or undefined
     : [ThunkArg] extends [void] | [undefined]
-    ? () => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument contains void
+    ? () => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig, TypePrefix> // argument contains void
     : [void] extends [ThunkArg] // make optional
-    ? (arg?: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument contains undefined
+    ? (
+        arg?: ThunkArg
+      ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig, TypePrefix> // argument contains undefined
     : [undefined] extends [ThunkArg]
     ? WithStrictNullChecks<
         // with strict nullChecks: make optional
         (
           arg?: ThunkArg
-        ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>,
+        ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig, TypePrefix>,
         // without strict null checks this will match everything, so don't make it optional
-        (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
+        (
+          arg: ThunkArg
+        ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig, TypePrefix>
       > // default case: normal argument
-    : (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
+    : (
+        arg: ThunkArg
+      ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig, TypePrefix>
 >
 
 /**
@@ -340,11 +361,12 @@ export type AsyncThunkOptions<
 
 export type AsyncThunkPendingActionCreator<
   ThunkArg,
-  ThunkApiConfig = {}
+  ThunkApiConfig = {},
+  TypePrefix extends string = string
 > = ActionCreatorWithPreparedPayload<
   [string, ThunkArg, GetPendingMeta<ThunkApiConfig>?],
   undefined,
-  string,
+  `${TypePrefix}/pending`,
   never,
   {
     arg: ThunkArg
@@ -355,7 +377,8 @@ export type AsyncThunkPendingActionCreator<
 
 export type AsyncThunkRejectedActionCreator<
   ThunkArg,
-  ThunkApiConfig = {}
+  ThunkApiConfig = {},
+  TypePrefix extends string = string
 > = ActionCreatorWithPreparedPayload<
   [
     Error | null,
@@ -365,7 +388,7 @@ export type AsyncThunkRejectedActionCreator<
     GetRejectedMeta<ThunkApiConfig>?
   ],
   GetRejectValue<ThunkApiConfig> | undefined,
-  string,
+  `${TypePrefix}/rejected`,
   GetSerializedErrorType<ThunkApiConfig>,
   {
     arg: ThunkArg
@@ -384,11 +407,12 @@ export type AsyncThunkRejectedActionCreator<
 export type AsyncThunkFulfilledActionCreator<
   Returned,
   ThunkArg,
-  ThunkApiConfig = {}
+  ThunkApiConfig = {},
+  TypePrefix extends string = string
 > = ActionCreatorWithPreparedPayload<
   [Returned, string, ThunkArg, GetFulfilledMeta<ThunkApiConfig>?],
   Returned,
-  string,
+  `${TypePrefix}/fulfilled`,
   never,
   {
     arg: ThunkArg
@@ -406,16 +430,22 @@ export type AsyncThunkFulfilledActionCreator<
 export type AsyncThunk<
   Returned,
   ThunkArg,
-  ThunkApiConfig extends AsyncThunkConfig
-> = AsyncThunkActionCreator<Returned, ThunkArg, ThunkApiConfig> & {
-  pending: AsyncThunkPendingActionCreator<ThunkArg, ThunkApiConfig>
-  rejected: AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>
+  ThunkApiConfig extends AsyncThunkConfig,
+  TypePrefix extends string = string
+> = AsyncThunkActionCreator<Returned, ThunkArg, ThunkApiConfig, TypePrefix> & {
+  pending: AsyncThunkPendingActionCreator<ThunkArg, ThunkApiConfig, TypePrefix>
+  rejected: AsyncThunkRejectedActionCreator<
+    ThunkArg,
+    ThunkApiConfig,
+    TypePrefix
+  >
   fulfilled: AsyncThunkFulfilledActionCreator<
     Returned,
     ThunkArg,
-    ThunkApiConfig
+    ThunkApiConfig,
+    TypePrefix
   >
-  typePrefix: string
+  typePrefix: TypePrefix
 }
 
 export type OverrideThunkApiConfigs<OldConfig, NewConfig> = Id<
@@ -432,15 +462,15 @@ type CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> = {
    * @public
    */
   // separate signature without `AsyncThunkConfig` for better inference
-  <Returned, ThunkArg = void>(
-    typePrefix: string,
+  <Returned, ThunkArg = void, TypePrefix extends string = string>(
+    typePrefix: TypePrefix,
     payloadCreator: AsyncThunkPayloadCreator<
       Returned,
       ThunkArg,
       CurriedThunkApiConfig
     >,
     options?: AsyncThunkOptions<ThunkArg, CurriedThunkApiConfig>
-  ): AsyncThunk<Returned, ThunkArg, CurriedThunkApiConfig>
+  ): AsyncThunk<Returned, ThunkArg, CurriedThunkApiConfig, TypePrefix>
 
   /**
    *
@@ -450,8 +480,13 @@ type CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> = {
    *
    * @public
    */
-  <Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig>(
-    typePrefix: string,
+  <
+    Returned,
+    ThunkArg,
+    ThunkApiConfig extends AsyncThunkConfig,
+    TypePrefix extends string = string
+  >(
+    typePrefix: TypePrefix,
     payloadCreator: AsyncThunkPayloadCreator<
       Returned,
       ThunkArg,
@@ -464,7 +499,8 @@ type CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> = {
   ): AsyncThunk<
     Returned,
     ThunkArg,
-    OverrideThunkApiConfigs<CurriedThunkApiConfig, ThunkApiConfig>
+    OverrideThunkApiConfigs<CurriedThunkApiConfig, ThunkApiConfig>,
+    TypePrefix
   >
 
   withTypes<ThunkApiConfig extends AsyncThunkConfig>(): CreateAsyncThunk<
@@ -476,9 +512,10 @@ export const createAsyncThunk = (() => {
   function createAsyncThunk<
     Returned,
     ThunkArg,
-    ThunkApiConfig extends AsyncThunkConfig
+    ThunkApiConfig extends AsyncThunkConfig,
+    TypePrefix extends string = string
   >(
-    typePrefix: string,
+    typePrefix: TypePrefix,
     payloadCreator: AsyncThunkPayloadCreator<
       Returned,
       ThunkArg,
@@ -494,9 +531,10 @@ export const createAsyncThunk = (() => {
     const fulfilled: AsyncThunkFulfilledActionCreator<
       Returned,
       ThunkArg,
-      ThunkApiConfig
+      ThunkApiConfig,
+      TypePrefix
     > = createAction(
-      typePrefix + '/fulfilled',
+      `${typePrefix}/fulfilled`,
       (
         payload: Returned,
         requestId: string,
@@ -513,45 +551,51 @@ export const createAsyncThunk = (() => {
       })
     )
 
-    const pending: AsyncThunkPendingActionCreator<ThunkArg, ThunkApiConfig> =
-      createAction(
-        typePrefix + '/pending',
-        (requestId: string, arg: ThunkArg, meta?: PendingMeta) => ({
-          payload: undefined,
-          meta: {
-            ...((meta as any) || {}),
-            arg,
-            requestId,
-            requestStatus: 'pending' as const,
-          },
-        })
-      )
+    const pending: AsyncThunkPendingActionCreator<
+      ThunkArg,
+      ThunkApiConfig,
+      TypePrefix
+    > = createAction(
+      `${typePrefix}/pending`,
+      (requestId: string, arg: ThunkArg, meta?: PendingMeta) => ({
+        payload: undefined,
+        meta: {
+          ...((meta as any) || {}),
+          arg,
+          requestId,
+          requestStatus: 'pending' as const,
+        },
+      })
+    )
 
-    const rejected: AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig> =
-      createAction(
-        typePrefix + '/rejected',
-        (
-          error: Error | null,
-          requestId: string,
-          arg: ThunkArg,
-          payload?: RejectedValue,
-          meta?: RejectedMeta
-        ) => ({
-          payload,
-          error: ((options && options.serializeError) || miniSerializeError)(
-            error || 'Rejected'
-          ) as GetSerializedErrorType<ThunkApiConfig>,
-          meta: {
-            ...((meta as any) || {}),
-            arg,
-            requestId,
-            rejectedWithValue: !!payload,
-            requestStatus: 'rejected' as const,
-            aborted: error?.name === 'AbortError',
-            condition: error?.name === 'ConditionError',
-          },
-        })
-      )
+    const rejected: AsyncThunkRejectedActionCreator<
+      ThunkArg,
+      ThunkApiConfig,
+      TypePrefix
+    > = createAction(
+      `${typePrefix}/rejected`,
+      (
+        error: Error | null,
+        requestId: string,
+        arg: ThunkArg,
+        payload?: RejectedValue,
+        meta?: RejectedMeta
+      ) => ({
+        payload,
+        error: ((options && options.serializeError) || miniSerializeError)(
+          error || 'Rejected'
+        ) as GetSerializedErrorType<ThunkApiConfig>,
+        meta: {
+          ...((meta as any) || {}),
+          arg,
+          requestId,
+          rejectedWithValue: !!payload,
+          requestStatus: 'rejected' as const,
+          aborted: error?.name === 'AbortError',
+          condition: error?.name === 'ConditionError',
+        },
+      })
+    )
 
     let displayedWarning = false
 
