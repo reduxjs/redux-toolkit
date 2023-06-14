@@ -1,17 +1,29 @@
 /* eslint-disable node/no-extraneous-import */
 /* eslint-disable node/no-unsupported-features/es-syntax */
 import type { ExpressionKind, SpreadElementKind } from 'ast-types/gen/kinds';
-import type { JSCodeshift, ObjectExpression, ObjectProperty, Transform } from 'jscodeshift';
+import type {
+  CallExpression,
+  JSCodeshift,
+  ObjectExpression,
+  ObjectProperty,
+  Transform,
+} from 'jscodeshift';
 
+function creatorCall(j: JSCodeshift, type: 'reducer', reducer: ExpressionKind): CallExpression;
+// eslint-disable-next-line no-redeclare
+function creatorCall(
+  j: JSCodeshift,
+  type: 'preparedReducer',
+  prepare: ExpressionKind,
+  reducer: ExpressionKind
+): CallExpression;
+// eslint-disable-next-line no-redeclare
 function creatorCall(
   j: JSCodeshift,
   type: 'reducer' | 'preparedReducer',
-  argumentsParam: Array<ExpressionKind | SpreadElementKind>
+  ...rest: Array<ExpressionKind | SpreadElementKind>
 ) {
-  return j.callExpression(
-    j.memberExpression(j.identifier('create'), j.identifier(type)),
-    argumentsParam
-  );
+  return j.callExpression(j.memberExpression(j.identifier('create'), j.identifier(type)), rest);
 }
 
 export function reducerPropsToBuilderExpression(j: JSCodeshift, defNode: ObjectExpression) {
@@ -23,7 +35,7 @@ export function reducerPropsToBuilderExpression(j: JSCodeshift, defNode: ObjectE
         const { key, params, body } = property;
         finalProp = j.objectProperty(
           key,
-          creatorCall(j, 'reducer', [j.arrowFunctionExpression(params, body)])
+          creatorCall(j, 'reducer', j.arrowFunctionExpression(params, body))
         );
         break;
       }
@@ -76,15 +88,17 @@ export function reducerPropsToBuilderExpression(j: JSCodeshift, defNode: ObjectE
             if (preparedReducerParams.prepare && preparedReducerParams.reducer) {
               finalProp = j.objectProperty(
                 key,
-                creatorCall(j, 'preparedReducer', [
+                creatorCall(
+                  j,
+                  'preparedReducer',
                   preparedReducerParams.prepare,
-                  preparedReducerParams.reducer,
-                ])
+                  preparedReducerParams.reducer
+                )
               );
             } else if (preparedReducerParams.reducer) {
               finalProp = j.objectProperty(
                 key,
-                creatorCall(j, 'reducer', [preparedReducerParams.reducer])
+                creatorCall(j, 'reducer', preparedReducerParams.reducer)
               );
             }
             break;
@@ -95,7 +109,7 @@ export function reducerPropsToBuilderExpression(j: JSCodeshift, defNode: ObjectE
           case 'MemberExpression':
           case 'CallExpression': {
             const { value } = property;
-            finalProp = j.objectProperty(key, creatorCall(j, 'reducer', [value]));
+            finalProp = j.objectProperty(key, creatorCall(j, 'reducer', value));
             break;
           }
         }
