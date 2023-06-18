@@ -174,12 +174,12 @@ module.exports = {
       /** @type {import('@dipakparmar/docusaurus-plugin-umami').Options} */
       ({
         websiteID: '616c102e-05dd-4a74-b63e-01bb52f1bc6c',
-        analyticsDomain: 'redux-docs-umami.vercel.app',
+        analyticsDomain: 'redux-docs-umami.up.railway.app',
         scriptName: 'script.js',
         dataAutoTrack: true,
         dataDoNotTrack: true,
-        dataCache: true
-      })
-    ]
-  ]
+        dataCache: true,
+      }),
+    ],
+  ],
 }
