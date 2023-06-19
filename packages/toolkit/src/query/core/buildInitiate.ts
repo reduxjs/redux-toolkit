@@ -231,6 +231,7 @@ export function buildInitiate({
         endpointDefinition,
         endpointName,
       })
+      console.log('runningQueries', runningQueries.get(dispatch), queryCacheKey)
       return runningQueries.get(dispatch)?.[queryCacheKey] as
         | QueryActionCreatorResult<never>
         | undefined
@@ -388,15 +389,17 @@ You must add the middleware for RTK-Query to function correctly!`
           }
         )
 
+        // udf, ture, udf
+        console.log({ runningQuery, skippedSynchronously, forceQueryFn })
         if (!runningQuery && !skippedSynchronously && !forceQueryFn) {
           const running = runningQueries.get(dispatch) || {}
           running[queryCacheKey] = statePromise
           runningQueries.set(dispatch, running)
 
           statePromise.then(() => {
-            delete running[queryCacheKey]
+            //delete running[queryCacheKey]
             if (!Object.keys(running).length) {
-              runningQueries.delete(dispatch)
+              // runningQueries.delete(dispatch)
             }
           })
         }

@@ -4577,14 +4577,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@examples-query-react/basic@workspace:examples/query/react/basic"
   dependencies:
-    "@reduxjs/toolkit": ^1.6.0-rc.1
+    "@reduxjs/toolkit": "workspace:*"
     "@testing-library/react": ^13.3.0
     "@types/jest": ^26.0.23
     "@types/react": ^18.0.5
     "@types/react-dom": ^18.0.5
     msw: ^0.40.2
-    react: ^18.1.0
-    react-dom: ^18.1.0
+    react: 18.3.0-canary-613e6f5fc-20230616
+    react-dom: 18.3.0-canary-613e6f5fc-20230616
     react-redux: ^8.0.2
     react-scripts: 5.0.1
     typescript: ~4.9
@@ -6745,7 +6745,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@reduxjs/toolkit@workspace:packages/toolkit":
+"@reduxjs/toolkit@workspace:*, @reduxjs/toolkit@workspace:packages/toolkit":
   version: 0.0.0-use.local
   resolution: "@reduxjs/toolkit@workspace:packages/toolkit"
   dependencies:
@@ -24114,15 +24114,15 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"react-dom@npm:18.2.0":
-  version: 18.2.0
-  resolution: "react-dom@npm:18.2.0"
+"react-dom@npm:18.3.0-canary-613e6f5fc-20230616":
+  version: 18.3.0-canary-613e6f5fc-20230616
+  resolution: "react-dom@npm:18.3.0-canary-613e6f5fc-20230616"
   dependencies:
     loose-envify: ^1.1.0
-    scheduler: ^0.23.0
+    scheduler: 0.24.0-canary-613e6f5fc-20230616
   peerDependencies:
-    react: ^18.2.0
-  checksum: 7d323310bea3a91be2965f9468d552f201b1c27891e45ddc2d6b8f717680c95a75ae0bc1e3f5cf41472446a2589a75aed4483aee8169287909fcd59ad149e8cc
+    react: 18.3.0-canary-613e6f5fc-20230616
+  checksum: c461e968f545d6fde3ea0f00c6546062f68d3938fff7390828fe4d4ceb41fb351b5320da3ad93a5504a683392557de7f2ba0ffb3b1544b7b5558d303a6e8ddc5
   languageName: node
   linkType: hard
 
@@ -24499,12 +24499,12 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"react@npm:18.2.0":
-  version: 18.2.0
-  resolution: "react@npm:18.2.0"
+"react@npm:18.3.0-canary-613e6f5fc-20230616":
+  version: 18.3.0-canary-613e6f5fc-20230616
+  resolution: "react@npm:18.3.0-canary-613e6f5fc-20230616"
   dependencies:
     loose-envify: ^1.1.0
-  checksum: 88e38092da8839b830cda6feef2e8505dec8ace60579e46aa5490fc3dc9bba0bd50336507dc166f43e3afc1c42939c09fe33b25fae889d6f402721dcd78fca1b
+  checksum: 1f3bbb175278397ce5db3bf73585741e8e314c3a46cbf40f188a831f315c4f3e3d4f99f214887ee26c0dc8f8ccbc1e2ec90b3f320ce5c2ffa2cd5fdcf4153842
   languageName: node
   linkType: hard
 
@@ -25708,12 +25708,12 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"scheduler@npm:^0.23.0":
-  version: 0.23.0
-  resolution: "scheduler@npm:0.23.0"
+"scheduler@npm:0.24.0-canary-613e6f5fc-20230616":
+  version: 0.24.0-canary-613e6f5fc-20230616
+  resolution: "scheduler@npm:0.24.0-canary-613e6f5fc-20230616"
   dependencies:
     loose-envify: ^1.1.0
-  checksum: d79192eeaa12abef860c195ea45d37cbf2bbf5f66e3c4dcd16f54a7da53b17788a70d109ee3d3dde1a0fd50e6a8fc171f4300356c5aee4fc0171de526bf35f8a
+  checksum: 7295859c40541b57ec91a3096a2ca6606983209ac02297eb748a9d54af08980e19520197e8025fb604e821549e35152456768b0e5b4e7e100a8a603577149dd6
   languageName: node
   linkType: hard
 

@@ -76,6 +76,11 @@ export interface QueryHooks<
   useQuerySubscription: UseQuerySubscription<Definition>
   useLazyQuerySubscription: UseLazyQuerySubscription<Definition>
   useQueryState: UseQueryState<Definition>
+  useSuspenseQuery: () => {
+    readQuery: (
+      arg: QueryArgFrom<Definition>
+    ) => SuspensePromise<ResultTypeFrom<Definition>>
+  }
 }
 
 export interface MutationHooks<
@@ -573,6 +578,13 @@ type GenericPrefetchThunk = (
   options: PrefetchOptions
 ) => ThunkAction<void, any, any, UnknownAction>
 
+type SuspensePromise<T> = Promise<T> & {
+  status: 'pending' | 'fulfilled' | 'rejected'
+  value?: T
+  reason?: unknown
+  requestId?: string
+}
+
 /**
  *
  * @param opts.api - An API with defined endpoints to create hooks for
@@ -600,6 +612,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     effect: () => void | undefined,
     deps?: DependencyList
   ) => void = unstable__sideEffectsInRender ? (cb) => cb() : useEffect
+
+  const suspensePromises = new Map<
+    QueryActionCreatorResult<never>,
+    SuspensePromise<unknown>
+  >()
 
   return { buildQueryHooks, buildMutationHook, usePrefetch }
 
@@ -885,6 +902,160 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       return useMemo(() => [trigger, arg] as const, [trigger, arg])
     }
 
+    const useSuspenseQuery = () => {
+      const commitedQueries = useRef<
+        Record<string, QueryActionCreatorResult<never>>
+      >({})
+      const uncommitedQueries: Record<
+        string,
+        QueryActionCreatorResult<never>
+      > = {}
+
+      const { initiate, select } = api.endpoints[name] as ApiEndpointQuery<
+        QueryDefinition<any, any, any, any, any>,
+        Definitions
+      >
+      const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
+
+      const memoizedSelect = useMemo(
+        () =>
+          createSelector(
+            (arg: unknown) => arg,
+            (arg) => select(arg as any)
+            // { memoizeOptions: { maxSize: 10 } }
+          ),
+        [select]
+      )
+
+      const queries: Record<
+        string,
+        QueryResultSelectorResult<any> | undefined
+      > = useSelector(
+        (state: RootState<Definitions, any, any>) =>
+          Object.values(commitedQueries.current).reduce<
+            Record<string, QueryResultSelectorResult<any> | undefined>
+          >((acc, query) => {
+            acc[query.queryCacheKey] = memoizedSelect(query.arg)(state)
+            return acc
+          }, {}),
+        shallowEqual
+      )
+
+      function toSuspensePromise(
+        result: QueryActionCreatorResult<never>
+      ): SuspensePromise<unknown> {
+        let promise = suspensePromises.get(result)
+        const valueAtRenderStart = queries[result.queryCacheKey]
+        const currentValue = dispatch((_, getState) =>
+          select(result.arg)(getState())
+        )
+
+        console.log({ currentValue, valueAtRenderStart, promise, result })
+
+        if (promise && promise.requestId === currentValue.requestId)
+          return promise
+
+        const running = dispatch(
+          api.util.getRunningQueryThunk(name as any, result.arg)
+        )
+        if (running) {
+          promise = Object.assign(running.unwrap(), {
+            status: 'pending' as const,
+            value: currentValue.data,
+            reason: currentValue.error,
+          })
+          console.log('1')
+        } else if (
+          currentValue.status === 'pending' &&
+          (!valueAtRenderStart || valueAtRenderStart.status === 'uninitialized')
+        ) {
+          promise = Object.assign(result.unwrap(), {
+            status: 'pending' as const,
+            value: currentValue.data,
+            reason: currentValue.error,
+          })
+          console.log('2')
+          debugger
+        } else {
+          // prefer the value at render start if it's available to prevent tearing of any kind
+          let resolveFor =
+            !valueAtRenderStart || valueAtRenderStart.status === 'uninitialized'
+              ? currentValue
+              : valueAtRenderStart
+          if (resolveFor.status === 'uninitialized') {
+            throw new Error('should be impossible')
+          }
+          // right now this is still unstable, and even as a resolved promise leads to an infinite loop
+          // needs stability
+          promise = Object.assign(Promise.resolve(resolveFor.data), {
+            status: resolveFor.status,
+            value: resolveFor.data,
+            reason: resolveFor.error,
+          })
+          console.log('3')
+        }
+        suspensePromises.set(result, promise)
+        return promise
+      }
+
+      function readQuery(arg: any) {
+        const queryCacheKey = serializeQueryArgs({
+          queryArgs: arg,
+          endpointDefinition: context.endpointDefinitions[name],
+          endpointName: name,
+        })
+
+        const promise =
+          commitedQueries.current[queryCacheKey] ||
+          dispatch(api.util.getRunningQueryThunk(name as any, arg)) ||
+          (() => {
+            const p = dispatch(initiate(arg, { subscribe: true }))
+            p.unsubscribe()
+            return p
+          })()
+        uncommitedQueries[queryCacheKey] = promise
+        return toSuspensePromise(promise)
+      }
+
+      useEffect(() => {
+        return () => {
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+          const currentCommitedQueries = commitedQueries.current
+          const allCacheKeys = new Set(
+            Object.keys(currentCommitedQueries).concat(
+              Object.keys(uncommitedQueries)
+            )
+          )
+          const newCommitedQueries: typeof commitedQueries.current = {}
+          for (const cacheKey of allCacheKeys) {
+            if (
+              cacheKey in currentCommitedQueries &&
+              !(cacheKey in uncommitedQueries)
+            ) {
+              currentCommitedQueries[cacheKey].unsubscribe()
+            } else if (
+              !(cacheKey in currentCommitedQueries) &&
+              cacheKey in uncommitedQueries
+            ) {
+              const commit = uncommitedQueries[cacheKey]
+              newCommitedQueries[cacheKey] = commit
+              dispatch(
+                api.internalActions.subscribeQueryResult({
+                  queryCacheKey: commit.queryCacheKey as any,
+                  requestId: commit.requestId,
+                })
+              )
+            } else {
+              newCommitedQueries[cacheKey] = uncommitedQueries[cacheKey]
+            }
+          }
+          commitedQueries.current = newCommitedQueries
+        }
+      })
+
+      return { readQuery }
+    }
+
     const useQueryState: UseQueryState<any> = (
       arg: any,
       { skip = false, selectFromResult } = {}
@@ -960,6 +1131,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           [trigger, queryStateResults, info]
         )
       },
+      useSuspenseQuery,
       useQuery(arg, options) {
         const querySubscriptionResults = useQuerySubscription(arg, options)
         const queryStateResults = useQueryState(arg, {

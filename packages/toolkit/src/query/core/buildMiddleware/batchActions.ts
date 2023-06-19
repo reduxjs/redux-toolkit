@@ -13,7 +13,7 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
 
   let dispatchQueued = false
 
-  const { updateSubscriptionOptions, unsubscribeQueryResult } =
+  const { updateSubscriptionOptions, unsubscribeQueryResult, subscribeQueryResult } =
     api.internalActions
 
   // Actually intentionally mutate the subscriptions state used in the middleware
@@ -35,6 +35,13 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
       if (mutableState[queryCacheKey]) {
         delete mutableState[queryCacheKey]![requestId]
       }
+      return true
+    }
+    if (subscribeQueryResult.match(action)) {
+      const {queryCacheKey, requestId} = action.payload
+      const substate = (mutableState[queryCacheKey] ??= {})
+      substate[requestId] = {}
+
       return true
     }
     if (api.internalActions.removeQueryResult.match(action)) {

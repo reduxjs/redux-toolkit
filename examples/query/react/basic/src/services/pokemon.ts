@@ -5,7 +5,12 @@ export const pokemonApi = createApi({
   tagTypes: [],
   endpoints: (builder) => ({
     getPokemonByName: builder.query({
-      query: (name: string) => `pokemon/${name}`,
+      queryFn: (name: string) => {
+        console.log('querying', name)
+        return new Promise((resolve) =>
+          setTimeout(() => resolve({ data: { species: name } }), 10000)
+        )
+      },
     }),
   }),
 })

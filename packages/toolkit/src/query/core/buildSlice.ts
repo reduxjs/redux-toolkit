@@ -419,6 +419,12 @@ export function buildSlice({
       ) {
         // Dummy
       },
+      subscribeQueryResult(
+        d,
+        a: PayloadAction<{ requestId: string } & QuerySubstateIdentifier>
+      ) {
+        // Dummy
+      },
       internal_probeSubscription(
         d,
         a: PayloadAction<{ queryCacheKey: string; requestId: string }>
