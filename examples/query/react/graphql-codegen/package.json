@@ -43,7 +43,7 @@
     "typescript": "4.1.3"
   },
   "resolutions": {
-    "@typescript-eslint/parser": "4.4.1"
+    "@typescript-eslint/parser": "6.0.0-alpha.158"
   },
   "scripts": {
     "develop": "cross-env CHOKIDAR_USEPOLLING=true yarn start",

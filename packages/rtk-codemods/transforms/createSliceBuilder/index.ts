@@ -1,14 +1,5 @@
 import { ExpressionKind, SpreadElementKind } from 'ast-types/gen/kinds';
-import {
-  ExpressionStatement,
-  JSCodeshift,
-  ObjectExpression,
-  ObjectMethod,
-  ObjectProperty,
-  Transform,
-} from 'jscodeshift';
-
-type ObjectKey = ObjectMethod['key'] & ObjectProperty['key'];
+import { ExpressionStatement, JSCodeshift, ObjectExpression, Transform } from 'jscodeshift';
 
 function wrapInAddCaseExpression(
   j: JSCodeshift,
@@ -32,7 +23,7 @@ export function reducerPropsToBuilderExpression(j: JSCodeshift, defNode: ObjectE
         }
         break;
       }
-      case 'ObjectProperty': {    
+      case 'ObjectProperty': {
         const { key } = property;
 
         switch (property.value.type) {
@@ -96,10 +87,7 @@ const transform: Transform = (file, api) => {
                   p.key.name === 'extraReducers' &&
                   p.value.type === 'ObjectExpression'
                 ) {
-                  const expressionStatement = reducerPropsToBuilderExpression(
-                    j,
-                    p.value as ObjectExpression
-                  );
+                  const expressionStatement = reducerPropsToBuilderExpression(j, p.value);
                   return j.objectProperty(p.key, expressionStatement);
                 }
                 return p;

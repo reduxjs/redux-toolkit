@@ -8,7 +8,6 @@ import { combineSlices } from '@reduxjs/toolkit'
 import { sliceA } from 'fileA'
 import { sliceB } from 'fileB'
 import { lazySliceC } from 'fileC'
-import type { lazySliceD } from 'fileD'
 
 import { anotherReducer } from 'somewhere'
 
@@ -31,7 +30,7 @@ export const rootReducer = combineSlices(sliceA, sliceB, {
 // fileC.ts
 // "naive" approach
 
-import type { RootState } from './reducer';
+import type { RootState } from './reducer'
 import { rootReducer } from './reducer'
 import { createSlice } from '@reduxjs/toolkit'
 

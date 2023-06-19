@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "allowJs": true
+  },
+  "extends": "./packages/toolkit/tsconfig.base.json",
+  "include": ["."]
+}

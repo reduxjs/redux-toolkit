@@ -94,12 +94,12 @@ export function expectExactType<T>(t: T) {
   return <U extends Equals<T, U>>(u: U) => {}
 }
 
-type EnsureUnknown<T extends any> = IsUnknown<T, any, never>
+type EnsureUnknown<T> = IsUnknown<T, any, never>
 export function expectUnknown<T extends EnsureUnknown<T>>(t: T) {
   return t
 }
 
-type EnsureAny<T extends any> = IsAny<T, any, never>
+type EnsureAny<T> = IsAny<T, any, never>
 export function expectExactAny<T extends EnsureAny<T>>(t: T) {
   return t
 }
@@ -184,7 +184,7 @@ describe('createListenerMiddleware', () => {
         middleware: (gDM) => gDM().prepend(listenerMiddleware.middleware),
       })
 
-      let foundExtra: number | null  = null
+      let foundExtra: number | null = null
 
       const typedAddListener =
         listenerMiddleware.startListening as TypedStartListening<
@@ -1061,12 +1061,13 @@ describe('createListenerMiddleware', () => {
         middleware: (gDM) => gDM().prepend(middleware),
       })
 
-      const typedAddListener =
-        startListening as TypedStartListening<
-          CounterState,
-          typeof store.dispatch
-        >
-      let result: [ReturnType<typeof increment>, CounterState, CounterState] | null = null
+      const typedAddListener = startListening as TypedStartListening<
+        CounterState,
+        typeof store.dispatch
+      >
+      let result:
+        | [ReturnType<typeof increment>, CounterState, CounterState]
+        | null = null
 
       typedAddListener({
         predicate: incrementByAmount.match,
@@ -1126,31 +1127,34 @@ describe('createListenerMiddleware', () => {
       expect(takeResult).toEqual([increment(), stateCurrent, stateBefore])
     })
 
-    test("take resolves to `[A, CurrentState, PreviousState] | null` if a possibly undefined timeout parameter is provided", async () => {
+    test('take resolves to `[A, CurrentState, PreviousState] | null` if a possibly undefined timeout parameter is provided', async () => {
       const store = configureStore({
         reducer: counterSlice.reducer,
         middleware: (gDM) => gDM().prepend(middleware),
       })
 
-      type ExpectedTakeResultType = readonly [ReturnType<typeof increment>, CounterState, CounterState] | null
+      type ExpectedTakeResultType =
+        | readonly [ReturnType<typeof increment>, CounterState, CounterState]
+        | null
 
       let timeout: number | undefined = undefined
       let done = false
 
-      const startAppListening = startListening as TypedStartListening<CounterState>
+      const startAppListening =
+        startListening as TypedStartListening<CounterState>
       startAppListening({
         predicate: incrementByAmount.match,
         effect: async (_, listenerApi) => {
           const stateBefore = listenerApi.getState()
-          
+
           let takeResult = await listenerApi.take(increment.match, timeout)
           const stateCurrent = listenerApi.getState()
           expect(takeResult).toEqual([increment(), stateCurrent, stateBefore])
-          
+
           timeout = 1
           takeResult = await listenerApi.take(increment.match, timeout)
           expect(takeResult).toBeNull()
-          
+
           expectType<ExpectedTakeResultType>(takeResult)
 
           done = true
@@ -1160,7 +1164,7 @@ describe('createListenerMiddleware', () => {
       store.dispatch(increment())
 
       await delay(25)
-      expect(done).toBe(true);
+      expect(done).toBe(true)
     })
 
     test('condition method resolves promise when the predicate succeeds', async () => {

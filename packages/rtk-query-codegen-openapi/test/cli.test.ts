@@ -5,7 +5,7 @@ import path from 'path';
 import del from 'del';
 
 function cli(args: string[], cwd: string): Promise<{ error: ExecException | null; stdout: string; stderr: string }> {
-  const pwd = (process.env && process.env.PWD) || '.';
+  const pwd = process.env?.PWD ?? '.';
   const cmd = `${require.resolve('ts-node/dist/bin')} -T -P ${path.resolve(pwd, 'tsconfig.json')} ${path.resolve(
     pwd,
     'src/bin/cli.ts'

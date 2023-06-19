@@ -3,12 +3,8 @@ import {
   ExpressionStatement,
   JSCodeshift,
   ObjectExpression,
-  ObjectMethod,
-  ObjectProperty,
   Transform,
 } from 'jscodeshift';
-
-type ObjectKey = ObjectMethod['key'] & ObjectProperty['key'];
 
 function wrapInAddCaseExpression(
   j: JSCodeshift,

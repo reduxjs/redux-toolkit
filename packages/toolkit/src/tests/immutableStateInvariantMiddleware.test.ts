@@ -214,7 +214,7 @@ describe('trackForMutations', () => {
 
   interface TestConfig {
     getState: Store['getState']
-    fn: (s: any) => typeof s | object
+    fn: (s: any) => any
     middlewareOptions?: ImmutableStateInvariantMiddlewareOptions
     path?: string[]
   }

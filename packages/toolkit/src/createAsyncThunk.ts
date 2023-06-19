@@ -534,8 +534,8 @@ export const createAsyncThunk = (() => {
           meta?: RejectedMeta
         ) => ({
           payload,
-          error: ((options && options.serializeError) || miniSerializeError)(
-            error || 'Rejected'
+          error: (options?.serializeError ?? miniSerializeError)(
+            error ?? 'Rejected'
           ) as GetSerializedErrorType<ThunkApiConfig>,
           meta: {
             ...((meta as any) || {}),
@@ -617,7 +617,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
               abortController.signal.addEventListener('abort', () =>
                 reject({
                   name: 'AbortError',
-                  message: abortReason || 'Aborted',
+                  message: abortReason ?? 'Aborted',
                 })
               )
             )
@@ -730,7 +730,7 @@ type UnwrappedActionPayload<T extends UnwrappableAction> = Exclude<
 export function unwrapResult<R extends UnwrappableAction>(
   action: R
 ): UnwrappedActionPayload<R> {
-  if (action.meta && action.meta.rejectedWithValue) {
+  if (action.meta?.rejectedWithValue) {
     throw action.payload
   }
   if (action.error) {

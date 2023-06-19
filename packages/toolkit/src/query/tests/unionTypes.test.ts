@@ -26,9 +26,9 @@ describe.skip('TS only tests', () => {
       expectExactType(undefined)(result.data)
       expectExactType(undefined)(result.error)
 
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isError)
+      expectExactType(false as const)(result.isSuccess)
     }
     if (result.isLoading) {
       expectExactType('' as string | undefined)(result.data)
@@ -36,25 +36,25 @@ describe.skip('TS only tests', () => {
         undefined as SerializedError | FetchBaseQueryError | undefined
       )(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isError)
+      expectExactType(false as const)(result.isSuccess)
     }
     if (result.isError) {
       expectExactType('' as string | undefined)(result.data)
       expectExactType({} as SerializedError | FetchBaseQueryError)(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isSuccess)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isSuccess)
     }
     if (result.isSuccess) {
       expectExactType('' as string)(result.data)
       expectExactType(undefined)(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isError)
     }
 
     // @ts-expect-error
@@ -76,10 +76,10 @@ describe.skip('TS only tests', () => {
       expectExactType(undefined)(result.data)
       expectExactType(undefined)(result.error)
 
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as false)(result.isFetching)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isError)
+      expectExactType(false as const)(result.isSuccess)
+      expectExactType(false as const)(result.isFetching)
     }
     if (result.isLoading) {
       expectExactType(undefined)(result.data)
@@ -87,27 +87,27 @@ describe.skip('TS only tests', () => {
         undefined as SerializedError | FetchBaseQueryError | undefined
       )(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isError)
+      expectExactType(false as const)(result.isSuccess)
       expectExactType(false as boolean)(result.isFetching)
     }
     if (result.isError) {
       expectExactType('' as string | undefined)(result.data)
       expectExactType({} as SerializedError | FetchBaseQueryError)(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as false)(result.isFetching)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isSuccess)
+      expectExactType(false as const)(result.isFetching)
     }
     if (result.isSuccess) {
       expectExactType('' as string)(result.data)
       expectExactType(undefined)(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isError)
       expectExactType(false as boolean)(result.isFetching)
     }
     if (result.isFetching) {
@@ -116,10 +116,10 @@ describe.skip('TS only tests', () => {
         undefined as SerializedError | FetchBaseQueryError | undefined
       )(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
+      expectExactType(false as const)(result.isUninitialized)
       expectExactType(false as boolean)(result.isLoading)
       expectExactType(false as boolean)(result.isSuccess)
-      expectExactType(false as false)(result.isError)
+      expectExactType(false as const)(result.isError)
     }
 
     expectExactType('' as string | undefined)(result.currentData)
@@ -155,10 +155,10 @@ describe.skip('TS only tests', () => {
       expectExactType(undefined)(result.data)
       expectExactType(undefined)(result.error)
 
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as false)(result.isFetching)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isError)
+      expectExactType(false as const)(result.isSuccess)
+      expectExactType(false as const)(result.isFetching)
     }
     if (result.isLoading) {
       expectExactType(undefined)(result.data)
@@ -166,27 +166,27 @@ describe.skip('TS only tests', () => {
         undefined as SerializedError | FetchBaseQueryError | undefined
       )(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isError)
+      expectExactType(false as const)(result.isSuccess)
       expectExactType(false as boolean)(result.isFetching)
     }
     if (result.isError) {
       expectExactType('' as string | undefined)(result.data)
       expectExactType({} as SerializedError | FetchBaseQueryError)(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as false)(result.isFetching)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isSuccess)
+      expectExactType(false as const)(result.isFetching)
     }
     if (result.isSuccess) {
       expectExactType('' as string)(result.data)
       expectExactType(undefined)(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isError)
       expectExactType(false as boolean)(result.isFetching)
     }
     if (result.isFetching) {
@@ -195,10 +195,10 @@ describe.skip('TS only tests', () => {
         undefined as SerializedError | FetchBaseQueryError | undefined
       )(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
+      expectExactType(false as const)(result.isUninitialized)
       expectExactType(false as boolean)(result.isLoading)
       expectExactType(false as boolean)(result.isSuccess)
-      expectExactType(false as false)(result.isError)
+      expectExactType(false as const)(result.isError)
     }
 
     // @ts-expect-error
@@ -221,10 +221,10 @@ describe.skip('TS only tests', () => {
       expectExactType(undefined)(result.data)
       expectExactType(undefined)(result.error)
 
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as false)(result.isFetching)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isError)
+      expectExactType(false as const)(result.isSuccess)
+      expectExactType(false as const)(result.isFetching)
     }
     if (result.isLoading) {
       expectExactType(undefined)(result.data)
@@ -232,27 +232,27 @@ describe.skip('TS only tests', () => {
         undefined as SerializedError | FetchBaseQueryError | undefined
       )(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isError)
+      expectExactType(false as const)(result.isSuccess)
       expectExactType(false as boolean)(result.isFetching)
     }
     if (result.isError) {
       expectExactType('' as string | undefined)(result.data)
       expectExactType({} as SerializedError | FetchBaseQueryError)(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as false)(result.isFetching)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isSuccess)
+      expectExactType(false as const)(result.isFetching)
     }
     if (result.isSuccess) {
       expectExactType('' as string)(result.data)
       expectExactType(undefined)(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isError)
       expectExactType(false as boolean)(result.isFetching)
     }
     if (result.isFetching) {
@@ -261,10 +261,10 @@ describe.skip('TS only tests', () => {
         undefined as SerializedError | FetchBaseQueryError | undefined
       )(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
+      expectExactType(false as const)(result.isUninitialized)
       expectExactType(false as boolean)(result.isLoading)
       expectExactType(false as boolean)(result.isSuccess)
-      expectExactType(false as false)(result.isError)
+      expectExactType(false as const)(result.isError)
     }
 
     // @ts-expect-error
@@ -287,10 +287,10 @@ describe.skip('TS only tests', () => {
       expectExactType(undefined)(result.data)
       expectExactType(undefined)(result.error)
 
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as false)(result.isFetching)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isError)
+      expectExactType(false as const)(result.isSuccess)
+      expectExactType(false as const)(result.isFetching)
     }
     if (result.isLoading) {
       expectExactType(undefined)(result.data)
@@ -298,27 +298,27 @@ describe.skip('TS only tests', () => {
         undefined as SerializedError | FetchBaseQueryError | undefined
       )(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isError)
+      expectExactType(false as const)(result.isSuccess)
       expectExactType(false as boolean)(result.isFetching)
     }
     if (result.isError) {
       expectExactType('' as string | undefined)(result.data)
       expectExactType({} as SerializedError | FetchBaseQueryError)(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as false)(result.isFetching)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isSuccess)
+      expectExactType(false as const)(result.isFetching)
     }
     if (result.isSuccess) {
       expectExactType('' as string)(result.data)
       expectExactType(undefined)(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isError)
       expectExactType(false as boolean)(result.isFetching)
     }
     if (result.isFetching) {
@@ -327,10 +327,10 @@ describe.skip('TS only tests', () => {
         undefined as SerializedError | FetchBaseQueryError | undefined
       )(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
+      expectExactType(false as const)(result.isUninitialized)
       expectExactType(false as boolean)(result.isLoading)
       expectExactType(false as boolean)(result.isSuccess)
-      expectExactType(false as false)(result.isError)
+      expectExactType(false as const)(result.isError)
     }
 
     // @ts-expect-error
@@ -438,35 +438,35 @@ describe.skip('TS only tests', () => {
       expectExactType(undefined)(result.data)
       expectExactType(undefined)(result.error)
 
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isError)
+      expectExactType(false as const)(result.isSuccess)
     }
     if (result.isLoading) {
-      expectExactType(undefined as undefined)(result.data)
+      expectExactType(undefined)(result.data)
       expectExactType(
         undefined as SerializedError | FetchBaseQueryError | undefined
       )(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isError)
+      expectExactType(false as const)(result.isSuccess)
     }
     if (result.isError) {
       expectExactType('' as string | undefined)(result.data)
       expectExactType({} as SerializedError | FetchBaseQueryError)(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isSuccess)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isSuccess)
     }
     if (result.isSuccess) {
       expectExactType('' as string)(result.data)
       expectExactType(undefined)(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isError)
     }
 
     // @ts-expect-error
@@ -517,35 +517,35 @@ describe.skip('TS only tests', () => {
       expectExactType(undefined)(result.data)
       expectExactType(undefined)(result.error)
 
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isError)
+      expectExactType(false as const)(result.isSuccess)
     }
     if (result.isLoading) {
-      expectExactType(undefined as undefined)(result.data)
+      expectExactType(undefined)(result.data)
       expectExactType(
         undefined as SerializedError | FetchBaseQueryError | undefined
       )(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isError)
+      expectExactType(false as const)(result.isSuccess)
     }
     if (result.isError) {
       expectExactType('' as string | undefined)(result.data)
       expectExactType({} as SerializedError | FetchBaseQueryError)(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isSuccess)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isSuccess)
     }
     if (result.isSuccess) {
       expectExactType('' as string)(result.data)
       expectExactType(undefined)(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
+      expectExactType(false as const)(result.isUninitialized)
+      expectExactType(false as const)(result.isLoading)
+      expectExactType(false as const)(result.isError)
     }
 
     // @ts-expect-error

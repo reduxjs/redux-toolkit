@@ -31,14 +31,14 @@ const anyAction = { type: 'foo' } as AnyAction
   const reducer = createReducer({}, (builder) =>
     builder
       .addCase(async.pending, (_, action) => {
-        expectType<ReturnType<typeof async['pending']>>(action)
+        expectType<ReturnType<(typeof async)['pending']>>(action)
       })
       .addCase(async.fulfilled, (_, action) => {
-        expectType<ReturnType<typeof async['fulfilled']>>(action)
+        expectType<ReturnType<(typeof async)['fulfilled']>>(action)
         expectType<number>(action.payload)
       })
       .addCase(async.rejected, (_, action) => {
-        expectType<ReturnType<typeof async['rejected']>>(action)
+        expectType<ReturnType<(typeof async)['rejected']>>(action)
         expectType<Partial<Error> | undefined>(action.error)
       })
   )
@@ -52,13 +52,13 @@ const anyAction = { type: 'foo' } as AnyAction
   const result = await promise
 
   if (async.fulfilled.match(result)) {
-    expectType<ReturnType<typeof async['fulfilled']>>(result)
+    expectType<ReturnType<(typeof async)['fulfilled']>>(result)
     // @ts-expect-error
-    expectType<ReturnType<typeof async['rejected']>>(result)
+    expectType<ReturnType<(typeof async)['rejected']>>(result)
   } else {
-    expectType<ReturnType<typeof async['rejected']>>(result)
+    expectType<ReturnType<(typeof async)['rejected']>>(result)
     // @ts-expect-error
-    expectType<ReturnType<typeof async['fulfilled']>>(result)
+    expectType<ReturnType<(typeof async)['fulfilled']>>(result)
   }
 
   promise
@@ -152,6 +152,7 @@ const anyAction = { type: 'foo' } as AnyAction
  */
 ;(async () => {
   const fn = createAsyncThunk('session/isAdmin', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-inferrable-types
     const response: boolean = false
     return response
   })
@@ -216,17 +217,17 @@ const anyAction = { type: 'foo' } as AnyAction
         // let it be handled as any other unknown error
         throw err
       }
-      return rejectWithValue(error.response && error.response.data)
+      return rejectWithValue(error.response?.data)
     }
   })
 
   defaultDispatch(fetchLiveCallsError('asd')).then((result) => {
     if (fetchLiveCallsError.fulfilled.match(result)) {
       //success
-      expectType<ReturnType<typeof fetchLiveCallsError['fulfilled']>>(result)
+      expectType<ReturnType<(typeof fetchLiveCallsError)['fulfilled']>>(result)
       expectType<Item[]>(result.payload)
     } else {
-      expectType<ReturnType<typeof fetchLiveCallsError['rejected']>>(result)
+      expectType<ReturnType<(typeof fetchLiveCallsError)['rejected']>>(result)
       if (result.payload) {
         // rejected with value
         expectType<ErrorFromServer>(result.payload)
@@ -235,7 +236,7 @@ const anyAction = { type: 'foo' } as AnyAction
         expectType<undefined>(result.payload)
         expectType<SerializedError>(result.error)
         // @ts-expect-error
-        expectType<IsAny<typeof result['error'], true, false>>(true)
+        expectType<IsAny<(typeof result)['error'], true, false>>(true)
       }
     }
     defaultDispatch(fetchLiveCallsError('asd'))

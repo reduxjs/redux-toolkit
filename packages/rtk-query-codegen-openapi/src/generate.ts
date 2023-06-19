@@ -34,7 +34,7 @@ function getOperationName({ verb, path, operation }: Pick<OperationDefinition, '
 }
 
 function getTags({ verb, pathItem }: Pick<OperationDefinition, 'verb' | 'pathItem'>): string[] {
-  return verb ? pathItem[verb]?.tags || [] : [];
+  return verb ? pathItem[verb]?.tags ?? [] : [];
 }
 
 function patternMatches(pattern?: TextMatcher) {
