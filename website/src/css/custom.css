@@ -31,6 +31,8 @@
   --ifm-pre-background: rgb(39, 40, 34);
   --ifm-alert-color: black;
 
+  --ifm-menu-color-active: var(--ifm-blockquote-color);
+
   --ra-admonition-color: #ecf4f9;
   --ra-admonition-color-dark: #2a98b9;
 
@@ -70,6 +72,7 @@
   --ifm-color-primary-lightest: #fcf2ff;
   --ifm-blockquote-color: #ecf4f9;
   --ifm-blockquote-color-dark: #6d1cac;
+  --ifm-menu-color-active: black;
   --blockquote-text-color: black;
 }
 :root[data-theme='dark'] .hero.hero--primary {
@@ -158,6 +161,14 @@ a:visited {
   font-weight: var(--ifm-font-weight-semibold);
 }
 
+.menu__link--active:not(.menu__link--sublist) {
+  background-color: var(--ifm-color-primary);
+}
+
+.menu__link--active:not(.menu__link--sublist) {
+  color: var(--ifm-menu-color-active) !important;
+}
+
 .menu .menu__link.menu__link--sublist:after {
   transform: rotateZ(180deg);
   -webkit-transition: -webkit-transform 0.2s linear;
@@ -168,6 +179,7 @@ a:visited {
   transition-delay: 0s, 0s;
   transition: transform 0.2s linear;
   transition: transform 0.2s linear, -webkit-transform 0.2s linear;
+  color: var(--ifm-font-base-color) !important;
 }
 
 .menu .menu__list-item.menu__list-item--collapsed .menu__link--sublist:after {
