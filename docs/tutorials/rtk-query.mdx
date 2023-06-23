@@ -72,7 +72,7 @@ export const pokemonApi = createApi({
 // highlight-start
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
-export const { useGetPokemonByNameQuery } = pokemonApi
+export const { useGetPokemonByNameQuery } = pokemonApi.endpoints
 // highlight-end
 ```
 
@@ -183,7 +183,7 @@ export const pokemonApi = createApi({
   }),
 })
 
-export const { useGetPokemonByNameQuery } = pokemonApi
+export const { useGetPokemonByNameQuery } = pokemonApi.endpoints
 
 // file: App.tsx
 import * as React from 'react'
