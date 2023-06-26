@@ -39,10 +39,8 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   )
 
   const isQueryEnd = isAnyOf(
-    isFulfilled(mutationThunk),
-    isRejected(mutationThunk),
-    isFulfilled(queryThunk),
-    isRejected(queryThunk)
+    isFulfilled(mutationThunk, queryThunk),
+    isRejected(mutationThunk, queryThunk)
   )
 
   let pendingTagInvalidations: FullTagDescription<string>[] = []
