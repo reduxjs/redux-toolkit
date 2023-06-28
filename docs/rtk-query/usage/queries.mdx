@@ -292,7 +292,7 @@ function PostsList() {
 }
 
 function PostById({ id }: { id: number }) {
-  // Will select the post with the given id, and will only rerender if the given posts data changes
+  // Will select the post with the given id, and will only rerender if the given post's data changes
   const { post } = api.useGetPostsQuery(undefined, {
     selectFromResult: ({ data }) => ({
       post: data?.find((post) => post.id === id),
