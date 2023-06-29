@@ -27,4 +27,4 @@ export type {
   TypedUseQuerySubscriptionResult,
   TypedUseMutationResult,
 } from './buildHooks'
-export { createApi, reactHooksModule }
+export { createApi, reactHooksModule, reactHooksModuleName }
