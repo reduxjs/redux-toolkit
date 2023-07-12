@@ -1,4 +1,5 @@
 export { QueryStatus } from './core/apiState'
+export type { QueryCacheKey, RootState, CombinedState } from './core/apiState'
 export type { Api, Module, ApiModules } from './apiTypes'
 export type {
   BaseQueryApi,
