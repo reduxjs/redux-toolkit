@@ -67,6 +67,7 @@ export type {
 export {
   // js
   createSlice,
+  ReducerType,
 } from './createSlice'
 
 export type {
@@ -78,6 +79,7 @@ export type {
   ValidateSliceCaseReducers,
   CaseReducerWithPrepare,
   ReducerCreators,
+  SliceSelectors,
 } from './createSlice'
 export type { ActionCreatorInvariantMiddlewareOptions } from './actionCreatorInvariantMiddleware'
 export { createActionCreatorInvariantMiddleware } from './actionCreatorInvariantMiddleware'
