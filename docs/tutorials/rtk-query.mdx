@@ -141,7 +141,7 @@ export default function App() {
   return <div>...</div>
 }
 
-// file: app/store.ts noEmit
+// file: store.ts noEmit
 import { configureStore } from '@reduxjs/toolkit'
 
 export const store = configureStore({
@@ -154,7 +154,7 @@ import { render } from 'react-dom'
 import { Provider } from 'react-redux'
 
 import App from './App'
-import { store } from './app/store'
+import { store } from './store'
 
 const rootElement = document.getElementById('root')
 render(
