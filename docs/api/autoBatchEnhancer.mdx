@@ -27,7 +27,7 @@ interface CounterState {
 
 const counterSlice = createSlice({
   name: 'counter',
-  initialState: { value: 0 } as CounterState,
+  initialState: { value: 0 } satisfies CounterState as CounterState,
   reducers: {
     incrementBatched: {
       // Batched, low-priority
