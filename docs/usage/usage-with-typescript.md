@@ -326,7 +326,7 @@ createSlice({
 // Or, cast the initial state as necessary
 createSlice({
   name: 'test2',
-  initialState: { state: 'loading' } as SliceState,
+  initialState: { state: 'loading' } satisfies SliceState as SliceState,
   reducers: {},
 })
 ```
