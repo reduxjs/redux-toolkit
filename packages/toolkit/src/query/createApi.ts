@@ -265,7 +265,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       refetchOnMountOrArgChange: false,
       refetchOnFocus: false,
       refetchOnReconnect: false,
-      invalidationBehavior: 'delayed',
+      invalidationBehavior: 'immediately',
       ...options,
       extractRehydrationInfo,
       serializeQueryArgs(queryArgsApi) {
