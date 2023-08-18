@@ -21,6 +21,7 @@ const eatBananaPromises = createPromiseFactory()
 
 let eatenBananas = 0
 const api = createApi({
+  invalidationBehavior: 'delayed',
   baseQuery: () => undefined as any,
   tagTypes: ['Banana'],
   endpoints: (build) => ({
