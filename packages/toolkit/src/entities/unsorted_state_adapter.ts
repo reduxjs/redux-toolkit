@@ -1,9 +1,12 @@
+import type { Draft } from 'immer'
 import type {
   EntityState,
   EntityStateAdapter,
   IdSelector,
   Update,
   EntityId,
+  DraftableEntityState,
+  DraftableIdSelector,
 } from './models'
 import {
   createStateOperator,
@@ -16,9 +19,9 @@ import {
 } from './utils'
 
 export function createUnsortedStateAdapter<T>(
-  selectId: IdSelector<T>
+  selectId: DraftableIdSelector<T>
 ): EntityStateAdapter<T> {
-  type R = EntityState<T>
+  type R = DraftableEntityState<T>
 
   function addOneMutably(entity: T, state: R): void {
     const key = selectIdValue(entity, selectId)
@@ -104,7 +107,7 @@ export function createUnsortedStateAdapter<T>(
     state: R
   ): boolean {
     const original = state.entities[update.id]
-    const updated: T = Object.assign({}, original, update.changes)
+    const updated: T | Draft<T> = Object.assign({}, original, update.changes)
     const newKey = selectIdValue(updated, selectId)
     const hasNewKey = newKey !== update.id
 

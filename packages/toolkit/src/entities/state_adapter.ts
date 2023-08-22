@@ -1,17 +1,20 @@
 import createNextState, { isDraft } from 'immer'
-import type { EntityState, PreventAny } from './models'
+import type { Draft } from 'immer'
+import type { DraftableEntityState, EntityState, PreventAny } from './models'
 import type { PayloadAction } from '../createAction'
 import { isFSA } from '../createAction'
 import { IsAny } from '../tsHelpers'
 
+export const isDraftTyped = isDraft as <T>(value: any) => value is Draft<T>
+
 export function createSingleArgumentStateOperator<V>(
-  mutator: (state: EntityState<V>) => void
+  mutator: (state: DraftableEntityState<V>) => void
 ) {
-  const operator = createStateOperator((_: undefined, state: EntityState<V>) =>
+  const operator = createStateOperator((_: undefined, state: DraftableEntityState<V>) =>
     mutator(state)
   )
 
-  return function operation<S extends EntityState<V>>(
+  return function operation<S extends DraftableEntityState<V>>(
     state: PreventAny<S, V>
   ): S {
     return operator(state as S, undefined)
@@ -19,9 +22,9 @@ export function createSingleArgumentStateOperator<V>(
 }
 
 export function createStateOperator<V, R>(
-  mutator: (arg: R, state: EntityState<V>) => void
+  mutator: (arg: R, state: DraftableEntityState<V>) => void
 ) {
-  return function operation<S extends EntityState<V>>(
+  return function operation<S extends DraftableEntityState<V>>(
     state: S,
     arg: R | PayloadAction<R>
   ): S {
@@ -31,7 +34,7 @@ export function createStateOperator<V, R>(
       return isFSA(arg)
     }
 
-    const runMutator = (draft: EntityState<V>) => {
+    const runMutator = (draft: DraftableEntityState<V>) => {
       if (isPayloadActionArgument(arg)) {
         mutator(arg.payload, draft)
       } else {
@@ -39,7 +42,7 @@ export function createStateOperator<V, R>(
       }
     }
 
-    if (isDraft(state)) {
+    if (isDraftTyped<EntityState<V>>(state)) {
       // we must already be inside a `createNextState` call, likely because
       // this is being wrapped in `createReducer` or `createSlice`.
       // It's safe to just pass the draft to the mutator.

@@ -1,3 +1,4 @@
+import type { Draft } from 'immer'
 import type { PayloadAction } from '../createAction'
 import type { IsAny } from '../tsHelpers'
 
@@ -47,99 +48,103 @@ export interface EntityState<T> {
  * @public
  */
 export interface EntityDefinition<T> {
-  selectId: IdSelector<T>
+  selectId: IdSelector<T | Draft<T>>
   sortComparer: false | Comparer<T>
 }
 
 export type PreventAny<S, T> = IsAny<S, EntityState<T>, S>
 
+export type DraftableEntityState<T> = EntityState<T> | Draft<EntityState<T>>
+
+export type DraftableIdSelector<T> = IdSelector<T | Draft<T>>
+
 /**
  * @public
  */
 export interface EntityStateAdapter<T> {
-  addOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
-  addOne<S extends EntityState<T>>(
+  addOne<S extends DraftableEntityState<T>>(state: PreventAny<S, T>, entity: T): S
+  addOne<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     action: PayloadAction<T>
   ): S
 
-  addMany<S extends EntityState<T>>(
+  addMany<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     entities: readonly T[] | Record<EntityId, T>
   ): S
-  addMany<S extends EntityState<T>>(
+  addMany<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     entities: PayloadAction<readonly T[] | Record<EntityId, T>>
   ): S
 
-  setOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
-  setOne<S extends EntityState<T>>(
+  setOne<S extends DraftableEntityState<T>>(state: PreventAny<S, T>, entity: T): S
+  setOne<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     action: PayloadAction<T>
   ): S
-  setMany<S extends EntityState<T>>(
+  setMany<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     entities: readonly T[] | Record<EntityId, T>
   ): S
-  setMany<S extends EntityState<T>>(
+  setMany<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     entities: PayloadAction<readonly T[] | Record<EntityId, T>>
   ): S
-  setAll<S extends EntityState<T>>(
+  setAll<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     entities: readonly T[] | Record<EntityId, T>
   ): S
-  setAll<S extends EntityState<T>>(
+  setAll<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     entities: PayloadAction<readonly T[] | Record<EntityId, T>>
   ): S
 
-  removeOne<S extends EntityState<T>>(state: PreventAny<S, T>, key: EntityId): S
-  removeOne<S extends EntityState<T>>(
+  removeOne<S extends DraftableEntityState<T>>(state: PreventAny<S, T>, key: EntityId): S
+  removeOne<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     key: PayloadAction<EntityId>
   ): S
 
-  removeMany<S extends EntityState<T>>(
+  removeMany<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     keys: readonly EntityId[]
   ): S
-  removeMany<S extends EntityState<T>>(
+  removeMany<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     keys: PayloadAction<readonly EntityId[]>
   ): S
 
-  removeAll<S extends EntityState<T>>(state: PreventAny<S, T>): S
+  removeAll<S extends DraftableEntityState<T>>(state: PreventAny<S, T>): S
 
-  updateOne<S extends EntityState<T>>(
+  updateOne<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     update: Update<T>
   ): S
-  updateOne<S extends EntityState<T>>(
+  updateOne<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     update: PayloadAction<Update<T>>
   ): S
 
-  updateMany<S extends EntityState<T>>(
+  updateMany<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     updates: ReadonlyArray<Update<T>>
   ): S
-  updateMany<S extends EntityState<T>>(
+  updateMany<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     updates: PayloadAction<ReadonlyArray<Update<T>>>
   ): S
 
-  upsertOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
-  upsertOne<S extends EntityState<T>>(
+  upsertOne<S extends DraftableEntityState<T>>(state: PreventAny<S, T>, entity: T): S
+  upsertOne<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     entity: PayloadAction<T>
   ): S
 
-  upsertMany<S extends EntityState<T>>(
+  upsertMany<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     entities: readonly T[] | Record<EntityId, T>
   ): S
-  upsertMany<S extends EntityState<T>>(
+  upsertMany<S extends DraftableEntityState<T>>(
     state: PreventAny<S, T>,
     entities: PayloadAction<readonly T[] | Record<EntityId, T>>
   ): S

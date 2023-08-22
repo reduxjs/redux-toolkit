@@ -1,8 +1,10 @@
+import type { Draft } from 'immer'
 import type {
   EntityDefinition,
   Comparer,
   IdSelector,
   EntityAdapter,
+  DraftableIdSelector,
 } from './models'
 import { createInitialStateFactory } from './entity_state'
 import { createSelectorsFactory } from './state_selectors'
@@ -17,7 +19,7 @@ import { createUnsortedStateAdapter } from './unsorted_state_adapter'
  */
 export function createEntityAdapter<T>(
   options: {
-    selectId?: IdSelector<T>
+    selectId?: DraftableIdSelector<T>
     sortComparer?: false | Comparer<T>
   } = {}
 ): EntityAdapter<T> {

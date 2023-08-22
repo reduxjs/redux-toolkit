@@ -1,3 +1,4 @@
+import type {Draft} from 'immer'
 import type {
   EntityState,
   IdSelector,
@@ -5,6 +6,8 @@ import type {
   EntityStateAdapter,
   Update,
   EntityId,
+  DraftableEntityState,
+  DraftableIdSelector,
 } from './models'
 import { createStateOperator } from './state_adapter'
 import { createUnsortedStateAdapter } from './unsorted_state_adapter'
@@ -15,10 +18,10 @@ import {
 } from './utils'
 
 export function createSortedStateAdapter<T>(
-  selectId: IdSelector<T>,
+  selectId: DraftableIdSelector<T>,
   sort: Comparer<T>
 ): EntityStateAdapter<T> {
-  type R = EntityState<T>
+  type R = DraftableEntityState<T>
 
   const { removeOne, removeMany, removeAll } =
     createUnsortedStateAdapter(selectId)
