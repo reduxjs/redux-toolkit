@@ -13,6 +13,15 @@ describe('Entity Slice Enhancer', () => {
     })
     slice = indieSlice
   })
+
+  it('exposes oneAdded', () => {
+    const oneAdded = slice.reducer(undefined, slice.actions.oneAdded({
+      id: '0',
+      title: 'Der Steppenwolf',
+      author: 'Herman Hesse'
+    }))
+    expect(oneAdded.entities['0']?.id).toBe('0')
+  })
 })
 
 interface EntitySliceArgs<T> {
@@ -28,7 +37,7 @@ function entitySliceEnhancer<T>({
   selectDraftableId,
   modelReducer
 }: EntitySliceArgs<T>) {
-  const modelAdapter = createEntityAdapter<T>({
+  const modelAdapter = createEntityAdapter({
     selectId: selectDraftableId // unusableSelectId would give an interesting error
   });
 
