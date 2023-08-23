@@ -1,5 +1,5 @@
 import type { Action, UnknownAction, Reducer } from 'redux'
-import type { createSelector, Selector } from 'reselect'
+import type { Selector } from 'reselect'
 import type {
   ActionCreatorWithoutPayload,
   PayloadAction,
