@@ -1,23 +1,35 @@
 import { createEntityAdapter, createSlice } from "../..";
-import type { PayloadAction, SliceCaseReducers } from "../..";
-import type { DraftableIdSelector, IdSelector } from "../models";
+import type { PayloadAction, Slice, SliceCaseReducers } from "../..";
+import type { DraftableIdSelector, EntityAdapter, EntityState, IdSelector } from "../models";
+import type { BookModel } from "./fixtures/book";
+
+describe('Entity Slice Enhancer', () => {
+  let slice: Slice<EntityState<BookModel>>;
+
+  beforeEach(() => {
+    const indieSlice = entitySliceEnhancer({
+      name: 'book',
+      selectDraftableId: (book: BookModel) => book.id
+    })
+    slice = indieSlice
+  })
+})
 
 interface EntitySliceArgs<T> {
   name: string
-  modelReducer: SliceCaseReducers<T>
-  selectId: IdSelector<T> // unusable
-  selectDraftableId: DraftableIdSelector<T>
+  selectId?: IdSelector<T> // unusable
+  selectDraftableId?: DraftableIdSelector<T>
+  modelReducer?: SliceCaseReducers<T>
 }
 
-// currently this never runs, it only serves to illustrate that the containing calls are type valid
 function entitySliceEnhancer<T>({
   name,
-  modelReducer,
-  selectId: undraftableSelectId,
-  selectDraftableId
+  selectId: unusableSelectId,
+  selectDraftableId,
+  modelReducer
 }: EntitySliceArgs<T>) {
   const modelAdapter = createEntityAdapter<T>({
-    selectId: selectDraftableId // undraftableSelectId would give an interesting error
+    selectId: selectDraftableId // unusableSelectId would give an interesting error
   });
 
   return createSlice({
