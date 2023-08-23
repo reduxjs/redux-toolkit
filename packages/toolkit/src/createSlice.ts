@@ -1,4 +1,5 @@
 import type { Action, UnknownAction, Reducer } from 'redux'
+import type { createSelector, Selector } from 'reselect'
 import type {
   ActionCreatorWithoutPayload,
   PayloadAction,
@@ -11,7 +12,7 @@ import type { CaseReducer, ReducerWithInitialState } from './createReducer'
 import { createReducer } from './createReducer'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { Id, Tail } from './tsHelpers'
+import type { Id } from './tsHelpers'
 import type { InjectConfig } from './combineSlices'
 import type {
   AsyncThunk,
@@ -21,6 +22,7 @@ import type {
   OverrideThunkApiConfigs,
 } from './createAsyncThunk'
 import { createAsyncThunk } from './createAsyncThunk'
+import { capitalize } from './utils'
 
 interface InjectIntoConfig<NewReducerPath extends string> extends InjectConfig {
   reducerPath?: NewReducerPath
@@ -36,7 +38,8 @@ export interface Slice<
   CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
   Name extends string = string,
   ReducerPath extends string = Name,
-  Selectors extends SliceSelectors<State> = SliceSelectors<State>
+  Selectors extends SliceSelectors<State> = SliceSelectors<State>,
+  SelectorFactories extends SliceSelectorFactories<State> = SliceSelectorFactories<State>
 > {
   /**
    * The slice name.
@@ -93,6 +96,33 @@ export interface Slice<
   >
 
   /**
+   * Get localised slice selectors (expects to be called with *just* the slice's state as the first parameter)
+   */
+  getSelectorFactories(): Id<
+    SliceDefinedSelectorFactories<State, SelectorFactories, State>
+  >
+
+  /**
+   * Get globalised slice selector factories (`selectState` callback is expected to receive first parameter and return slice state)
+   */
+  getSelectorFactories<RootState>(
+    selectState: (rootState: RootState) => State
+  ): Id<SliceDefinedSelectorFactories<State, SelectorFactories, RootState>>
+
+  /**
+   * Selector factories that assume the slice's state is `rootState[slice.reducerPath]` (which is usually the case)
+   *
+   * Equivalent to `slice.getSelectors((state: RootState) => state[slice.reducerPath])`.
+   */
+  selectorFactories: Id<
+    SliceDefinedSelectorFactories<
+      State,
+      SelectorFactories,
+      { [K in ReducerPath]: State }
+    >
+  >
+
+  /**
    * Inject slice into provided reducer (return value from `combineSlices`), and return injected slice.
    */
   injectInto<NewReducerPath extends string = ReducerPath>(
@@ -116,10 +146,11 @@ interface InjectedSlice<
   CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
   Name extends string = string,
   ReducerPath extends string = Name,
-  Selectors extends SliceSelectors<State> = SliceSelectors<State>
+  Selectors extends SliceSelectors<State> = SliceSelectors<State>,
+  SelectorFactories extends SliceSelectorFactories<State> = SliceSelectorFactories<State>
 > extends Omit<
     Slice<State, CaseReducers, Name, ReducerPath, Selectors>,
-    'getSelectors' | 'selectors'
+    'getSelectors' | 'selectors' | 'getSelectorFactories' | 'selectorFactories'
   > {
   /**
    * Get localised slice selectors (expects to be called with *just* the slice's state as the first parameter)
@@ -145,6 +176,33 @@ interface InjectedSlice<
       { [K in ReducerPath]?: State | undefined }
     >
   >
+
+  /**
+   * Get localised slice selectors (expects to be called with *just* the slice's state as the first parameter)
+   */
+  getSelectorFactories(): Id<
+    SliceDefinedSelectorFactories<State, SelectorFactories, State>
+  >
+
+  /**
+   * Get globalised slice selector factories (`selectState` callback is expected to receive first parameter and return slice state)
+   */
+  getSelectorFactories<RootState>(
+    selectState: (rootState: RootState) => State
+  ): Id<SliceDefinedSelectorFactories<State, SelectorFactories, RootState>>
+
+  /**
+   * Selector factories that assume the slice's state is `rootState[slice.reducerPath]` (which is usually the case)
+   *
+   * Equivalent to `slice.getSelectors((state: RootState) => state[slice.reducerPath])`.
+   */
+  selectorFactories: Id<
+    SliceDefinedSelectorFactories<
+      State,
+      SelectorFactories,
+      { [K in ReducerPath]: State }
+    >
+  >
 }
 
 /**
@@ -157,7 +215,8 @@ export interface CreateSliceOptions<
   CR extends SliceCaseReducers<State> = SliceCaseReducers<State>,
   Name extends string = string,
   ReducerPath extends string = Name,
-  Selectors extends SliceSelectors<State> = SliceSelectors<State>
+  Selectors extends SliceSelectors<State> = SliceSelectors<State>,
+  SelectorFactories extends SliceSelectorFactories<State> = SliceSelectorFactories<State>
 > {
   /**
    * The slice's name. Used to namespace the generated action types.
@@ -231,6 +290,8 @@ createSlice({
    * A map of selectors that receive the slice's state and any additional arguments, and return a result.
    */
   selectors?: Selectors
+
+  selectorFactories?: SelectorFactories
 }
 
 const reducerDefinitionType: unique symbol = Symbol.for('rtk-reducer-type')
@@ -409,7 +470,19 @@ export type SliceCaseReducers<State> =
  * The type describing a slice's `selectors` option.
  */
 export type SliceSelectors<State> = {
-  [K: string]: (sliceState: State, ...args: any[]) => any
+  [K: string]: Selector<State, any>
+}
+
+export type SelectorFactory<
+  FactoryParams extends readonly any[] = any[],
+  State = any,
+  Result = unknown,
+  Params extends readonly any[] = any[],
+  Props = {}
+> = (...args: FactoryParams) => Selector<State, Result, Params> & Props
+
+export type SliceSelectorFactories<State> = {
+  [K: string]: SelectorFactory<any[], State>
 }
 
 type SliceActionType<
@@ -503,10 +576,42 @@ type SliceDefinedSelectors<
   Selectors extends SliceSelectors<State>,
   RootState
 > = {
-  [K in keyof Selectors as string extends K ? never : K]: (
-    rootState: RootState,
-    ...args: Tail<Parameters<Selectors[K]>>
-  ) => ReturnType<Selectors[K]>
+  [K in keyof Selectors as string extends K
+    ? never
+    : K]: Selectors[K] extends Selector<any, infer R, infer P>
+    ? Selector<RootState, R, P> & Id<Selectors[K]>
+    : never
+}
+
+/**
+ * Extracts the final selector factories type from the `selectorFactories` object.
+ *
+ * Removes the `string` index signature from the default value.
+ */
+type SliceDefinedSelectorFactories<
+  State,
+  SelectorFactories extends SliceSelectorFactories<State>,
+  RootState
+> = {
+  [K in keyof SelectorFactories as string extends K
+    ? never
+    : `make${Capitalize<
+        K & string
+      >}`]: SelectorFactories[K] extends SelectorFactory<
+    infer FP,
+    any,
+    infer R,
+    infer P
+  >
+    ? SelectorFactory<
+        FP,
+        RootState,
+        R,
+        P,
+        Id<ReturnType<SelectorFactories[K]>>
+      > &
+        Id<SelectorFactories[K]>
+    : never
 }
 
 /**
@@ -552,10 +657,18 @@ export function createSlice<
   CaseReducers extends SliceCaseReducers<State>,
   Name extends string,
   Selectors extends SliceSelectors<State>,
+  SelectorFactories extends SliceSelectorFactories<State>,
   ReducerPath extends string = Name
 >(
-  options: CreateSliceOptions<State, CaseReducers, Name, ReducerPath, Selectors>
-): Slice<State, CaseReducers, Name, ReducerPath, Selectors> {
+  options: CreateSliceOptions<
+    State,
+    CaseReducers,
+    Name,
+    ReducerPath,
+    Selectors,
+    SelectorFactories
+  >
+): Slice<State, CaseReducers, Name, ReducerPath, Selectors, SelectorFactories> {
   const { name, reducerPath = name as unknown as ReducerPath } = options
   if (!name) {
     throw new Error('`name` is a required option for createSlice')
@@ -651,14 +764,29 @@ export function createSlice<
   const injectedSelectorCache = new WeakMap<
     Slice<State, CaseReducers, Name, ReducerPath, Selectors>,
     WeakMap<
-      (rootState: any) => State | undefined,
-      Record<string, (rootState: any) => any>
+      Selector<any, State | undefined>,
+      Record<string, Selector<any, any>>
+    >
+  >()
+
+  const injectedSelectorFactoryCache = new WeakMap<
+    Slice<State, CaseReducers, Name, ReducerPath, Selectors>,
+    WeakMap<
+      Selector<any, State | undefined>,
+      Record<string, SelectorFactory<any, any, any>>
     >
   >()
 
   let _reducer: ReducerWithInitialState<State>
 
-  const slice: Slice<State, CaseReducers, Name, ReducerPath, Selectors> = {
+  const slice: Slice<
+    State,
+    CaseReducers,
+    Name,
+    ReducerPath,
+    Selectors,
+    SelectorFactories
+  > = {
     name,
     reducerPath,
     reducer(state, action) {
@@ -673,7 +801,7 @@ export function createSlice<
 
       return _reducer.getInitialState()
     },
-    getSelectors(selectState: (rootState: any) => State = selectSelf) {
+    getSelectors(selectState: Selector<any, State> = selectSelf) {
       let selectorCache = injectedSelectorCache.get(this)
       if (!selectorCache) {
         selectorCache = new WeakMap()
@@ -685,20 +813,11 @@ export function createSlice<
         for (const [name, selector] of Object.entries(
           options.selectors ?? {}
         )) {
-          cached[name] = (rootState: any, ...args: any[]) => {
-            let sliceState = selectState(rootState)
-            if (typeof sliceState === 'undefined') {
-              // check if injectInto has been called
-              if (this !== slice) {
-                sliceState = this.getInitialState()
-              } else if (process.env.NODE_ENV !== 'production') {
-                throw new Error(
-                  'selectState returned undefined for an uninjected slice reducer'
-                )
-              }
-            }
-            return selector(sliceState, ...args)
-          }
+          cached[name] = createSelectorProxy(
+            selector,
+            selectState,
+            this !== slice ? this : undefined
+          )
         }
         selectorCache.set(selectState, cached)
       }
@@ -717,10 +836,66 @@ export function createSlice<
         get selectors() {
           return this.getSelectors(selectSlice)
         },
+        get selectorFactories() {
+          return this.getSelectorFactories(selectSlice)
+        },
       } as any
+    },
+    getSelectorFactories(selectState: Selector<any, State> = selectSelf) {
+      let selectorCache = injectedSelectorFactoryCache.get(this)
+      if (!selectorCache) {
+        selectorCache = new WeakMap()
+        injectedSelectorFactoryCache.set(this, selectorCache)
+      }
+      let cached = selectorCache.get(selectState)
+      if (!cached) {
+        cached = {}
+        for (const [name, selectorFactory] of Object.entries(
+          options.selectorFactories ?? {}
+        )) {
+          cached[`make${capitalize(name)}`] = new Proxy(selectorFactory, {
+            apply: (target, thisArg, argArray) => {
+              const selector = Reflect.apply(target, thisArg, argArray)
+              return createSelectorProxy(
+                selector,
+                selectState,
+                this !== slice ? this : undefined
+              )
+            },
+          })
+        }
+        selectorCache.set(selectState, cached)
+      }
+      return cached as any
+    },
+    get selectorFactories() {
+      return this.getSelectorFactories(defaultSelectSlice)
     },
   }
   return slice
+}
+
+function createSelectorProxy<State, S extends Selector<State>>(
+  selector: S,
+  selectState: Selector<any, State>,
+  slice?: { getInitialState(): State }
+): S {
+  return new Proxy(selector, {
+    apply(target, thisArg, [rootState, ...args]) {
+      let sliceState = selectState(rootState)
+      if (typeof sliceState === 'undefined') {
+        // check if injectInto has been called (slice is only provided for injected slices)
+        if (slice) {
+          sliceState = slice.getInitialState()
+        } else if (process.env.NODE_ENV !== 'production') {
+          throw new Error(
+            'selectState returned undefined for an uninjected slice reducer'
+          )
+        }
+      }
+      return Reflect.apply(target, thisArg, [sliceState, ...args])
+    },
+  })
 }
 
 interface ReducerHandlingContext<State> {

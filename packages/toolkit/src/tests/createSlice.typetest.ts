@@ -16,6 +16,7 @@ import type {
   ThunkDispatch,
   ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit'
+import { createSelector } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { createAction, createSlice } from '@reduxjs/toolkit'
 import { expectExactType, expectType, expectUnknown } from './helpers'
@@ -559,6 +560,49 @@ const value = actionCreators.anyKey
   expectType<number>(nestedSelectors.selectValue(nestedState))
   expectType<number>(nestedSelectors.selectMultiply(nestedState, 2))
   expectType<string>(nestedSelectors.selectToFixed(nestedState))
+}
+
+/**
+ * Test: selector factories
+ */
+{
+  const sliceWithSelectors = createSlice({
+    name: 'counter',
+    initialState: { value: 0 },
+    reducers: {
+      increment: (state) => {
+        state.value += 1
+      },
+    },
+    selectors: {
+      selectValue: (state) => state.value,
+    },
+    selectorFactories: {
+      selectMultiply: () =>
+        createSelector(
+          (state: { value: number }) => state.value,
+          (_: unknown, multiplier: number) => multiplier,
+          (value, multiplier) => value * multiplier
+        ),
+      selectToFixed: Object.assign(
+        (dp: number) =>
+          createSelector(
+            (state: { value: number }) => state.value,
+            (value) => value.toFixed(dp)
+          ),
+        { test: 0 }
+      ),
+    },
+  })
+
+  const selectMultiply =
+    sliceWithSelectors.selectorFactories.makeSelectMultiply()
+  expectType<number>(
+    sliceWithSelectors.selectorFactories.makeSelectToFixed.test
+  )
+  const selectToFixed = sliceWithSelectors
+    .getSelectorFactories()
+    .makeSelectToFixed(2)
 }
 
 /**

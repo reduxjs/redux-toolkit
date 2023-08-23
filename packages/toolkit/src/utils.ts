@@ -87,3 +87,7 @@ export class Tuple<Items extends ReadonlyArray<unknown> = []> extends Array<
 export function freezeDraftable<T>(val: T) {
   return isDraftable(val) ? createNextState(val, () => {}) : val
 }
+
+export function capitalize(str: string) {
+  return str.replace(str[0], str[0].toUpperCase())
+}

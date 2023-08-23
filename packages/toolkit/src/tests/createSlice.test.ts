@@ -1,5 +1,6 @@
 import { vi } from 'vitest'
 import type { PayloadAction, WithSlice } from '@reduxjs/toolkit'
+import { createSelector } from '@reduxjs/toolkit'
 import {
   configureStore,
   combineSlices,
@@ -464,12 +465,15 @@ describe('createSlice', () => {
       reducers: {},
       selectors: {
         selectSlice: (state) => state,
-        selectMultiple: (state, multiplier: number) => state * multiplier,
+        selectMultiple: Object.assign(
+          (state: number, multiplier: number) => state * multiplier,
+          { test: 0 }
+        ),
       },
     })
-    it('expects reducer under slice.name if no selectState callback passed', () => {
+    it('expects reducer under slice.reducerPath if no selectState callback passed', () => {
       const testState = {
-        [slice.name]: slice.getInitialState(),
+        [slice.reducerPath]: slice.getInitialState(),
       }
       const { selectSlice, selectMultiple } = slice.selectors
       expect(selectSlice(testState)).toBe(slice.getInitialState())
@@ -484,6 +488,64 @@ describe('createSlice', () => {
       )
       expect(selectSlice(customState)).toBe(slice.getInitialState())
       expect(selectMultiple(customState, 2)).toBe(slice.getInitialState() * 2)
+    })
+    it('allows accessing properties on the selector', () => {
+      expect(slice.selectors.selectMultiple.test).toBe(0)
+    })
+  })
+  describe('slice selector factories', () => {
+    const slice = createSlice({
+      name: 'counter',
+      initialState: 42,
+      reducers: {},
+      selectorFactories: {
+        selectMultiple: (multiple: number) => (value) => multiple * value,
+        selectMemoized: () =>
+          createSelector(
+            (value: number) => value,
+            (value) => ({ value })
+          ),
+      },
+    })
+    it('expects reducer under slice.reducerPath if no selectState callback passed', () => {
+      const testState = {
+        [slice.reducerPath]: slice.getInitialState(),
+      }
+      const { makeSelectMultiple, makeSelectMemoized } = slice.selectorFactories
+      const selectMemoized = makeSelectMemoized()
+      expect(selectMemoized(testState)).toEqual({
+        value: slice.getInitialState(),
+      })
+
+      const selectDouble = makeSelectMultiple(2)
+      expect(selectDouble(testState)).toBe(slice.getInitialState() * 2)
+    })
+    it('allows passing a selector for a custom location', () => {
+      const customState = {
+        number: slice.getInitialState(),
+      }
+      const { makeSelectMemoized, makeSelectMultiple } =
+        slice.getSelectorFactories((state: typeof customState) => state.number)
+      const selectMemoized = makeSelectMemoized()
+      expect(selectMemoized(customState)).toEqual({
+        value: slice.getInitialState(),
+      })
+
+      const selectDouble = makeSelectMultiple(2)
+      expect(selectDouble(customState)).toBe(slice.getInitialState() * 2)
+    })
+    it('creates a new instance per call, and allows accessing properties on the selector', () => {
+      const testState = {
+        [slice.reducerPath]: slice.getInitialState(),
+      }
+      const { makeSelectMemoized } = slice.selectorFactories
+      const selectMemoized1 = makeSelectMemoized()
+      const selectMemoized2 = makeSelectMemoized()
+      expect(selectMemoized1).not.toBe(selectMemoized2)
+
+      const result = selectMemoized1(testState)
+
+      expect(selectMemoized1.lastResult()).toBe(result)
     })
   })
   describe('slice injections', () => {
