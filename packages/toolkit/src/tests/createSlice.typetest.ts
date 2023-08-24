@@ -584,16 +584,22 @@ const value = actionCreators.anyKey
           (_: unknown, multiplier: number) => multiplier,
           (value, multiplier) => value * multiplier
         ),
-      selectToFixed: (dp: number) =>
-        createSelector(
-          (state: { value: number }) => state.value,
-          (value) => value.toFixed(dp)
-        ),
+      selectToFixed: Object.assign(
+        (dp: number) =>
+          createSelector(
+            (state: { value: number }) => state.value,
+            (value) => value.toFixed(dp)
+          ),
+        { test: 0 }
+      ),
     },
   })
 
   const selectMultiply =
     sliceWithSelectors.selectorFactories.makeSelectMultiply()
+  expectType<number>(
+    sliceWithSelectors.selectorFactories.makeSelectToFixed.unwrapped.test
+  )
   const selectToFixed = sliceWithSelectors
     .getSelectorFactories()
     .makeSelectToFixed(2)

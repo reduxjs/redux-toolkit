@@ -484,7 +484,9 @@ export type RemappedSelectorFactory<
   SF extends SelectorFactory,
   NewState
 > = SF extends SelectorFactory<infer FP>
-  ? (...args: FP) => RemappedSelector<ReturnType<SF>, NewState>
+  ? ((...args: FP) => RemappedSelector<ReturnType<SF>, NewState>) & {
+      unwrapped: SF
+    }
   : never
 
 export type SliceSelectorFactories<State> = {
@@ -853,14 +855,17 @@ export function createSlice<
         for (const [name, selectorFactory] of Object.entries(
           options.selectorFactories ?? {}
         )) {
-          cached[`make${capitalize(name)}`] = (...args: any[]) => {
-            const selector = selectorFactory(...args)
-            return wrapSelector(
-              selector,
-              selectState,
-              this !== slice ? this : undefined
-            )
-          }
+          cached[`make${capitalize(name)}`] = Object.assign(
+            (...args: any[]) => {
+              const selector = selectorFactory(...args)
+              return wrapSelector(
+                selector,
+                selectState,
+                this !== slice ? this : undefined
+              )
+            },
+            { unwrapped: selectorFactory }
+          )
         }
         selectorCache.set(selectState, cached)
       }
