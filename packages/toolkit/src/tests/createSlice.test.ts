@@ -490,7 +490,7 @@ describe('createSlice', () => {
       expect(selectMultiple(customState, 2)).toBe(slice.getInitialState() * 2)
     })
     it('allows accessing properties on the selector', () => {
-      expect(slice.selectors.selectMultiple.test).toBe(0)
+      expect(slice.selectors.selectMultiple.unwrapped.test).toBe(0)
     })
   })
   describe('slice selector factories', () => {
@@ -545,7 +545,7 @@ describe('createSlice', () => {
 
       const result = selectMemoized1(testState)
 
-      expect(selectMemoized1.lastResult()).toBe(result)
+      expect(selectMemoized1.unwrapped.lastResult()).toBe(result)
     })
   })
   describe('slice injections', () => {

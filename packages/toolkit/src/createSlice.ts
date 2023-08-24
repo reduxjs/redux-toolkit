@@ -477,9 +477,15 @@ export type SelectorFactory<
   FactoryParams extends readonly any[] = any[],
   State = any,
   Result = unknown,
-  Params extends readonly any[] = any[],
-  Props = {}
-> = (...args: FactoryParams) => Selector<State, Result, Params> & Props
+  Params extends readonly any[] = any[]
+> = (...args: FactoryParams) => Selector<State, Result, Params>
+
+export type RemappedSelectorFactory<
+  SF extends SelectorFactory,
+  NewState
+> = SF extends SelectorFactory<infer FP>
+  ? (...args: FP) => RemappedSelector<ReturnType<SF>, NewState>
+  : never
 
 export type SliceSelectorFactories<State> = {
   [K: string]: SelectorFactory<any[], State>
@@ -576,12 +582,19 @@ type SliceDefinedSelectors<
   Selectors extends SliceSelectors<State>,
   RootState
 > = {
-  [K in keyof Selectors as string extends K
-    ? never
-    : K]: Selectors[K] extends Selector<any, infer R, infer P>
-    ? Selector<RootState, R, P> & Id<Selectors[K]>
-    : never
+  [K in keyof Selectors as string extends K ? never : K]: RemappedSelector<
+    Selectors[K],
+    RootState
+  >
 }
+
+type RemappedSelector<S extends Selector, NewState> = S extends Selector<
+  any,
+  infer R,
+  infer P
+>
+  ? Selector<NewState, R, P> & { unwrapped: S }
+  : never
 
 /**
  * Extracts the final selector factories type from the `selectorFactories` object.
@@ -595,23 +608,10 @@ type SliceDefinedSelectorFactories<
 > = {
   [K in keyof SelectorFactories as string extends K
     ? never
-    : `make${Capitalize<
-        K & string
-      >}`]: SelectorFactories[K] extends SelectorFactory<
-    infer FP,
-    any,
-    infer R,
-    infer P
+    : `make${Capitalize<K & string>}`]: RemappedSelectorFactory<
+    SelectorFactories[K],
+    RootState
   >
-    ? SelectorFactory<
-        FP,
-        RootState,
-        R,
-        P,
-        Id<ReturnType<SelectorFactories[K]>>
-      > &
-        Id<SelectorFactories[K]>
-    : never
 }
 
 /**
@@ -813,7 +813,7 @@ export function createSlice<
         for (const [name, selector] of Object.entries(
           options.selectors ?? {}
         )) {
-          cached[name] = createSelectorProxy(
+          cached[name] = wrapSelector(
             selector,
             selectState,
             this !== slice ? this : undefined
@@ -856,7 +856,7 @@ export function createSlice<
           cached[`make${capitalize(name)}`] = new Proxy(selectorFactory, {
             apply: (target, thisArg, argArray) => {
               const selector = Reflect.apply(target, thisArg, argArray)
-              return createSelectorProxy(
+              return wrapSelector(
                 selector,
                 selectState,
                 this !== slice ? this : undefined
@@ -875,27 +875,27 @@ export function createSlice<
   return slice
 }
 
-function createSelectorProxy<State, S extends Selector<State>>(
+function wrapSelector<State, S extends Selector<State>>(
   selector: S,
   selectState: Selector<any, State>,
   slice?: { getInitialState(): State }
-): S {
-  return new Proxy(selector, {
-    apply(target, thisArg, [rootState, ...args]) {
-      let sliceState = selectState(rootState)
-      if (typeof sliceState === 'undefined') {
-        // check if injectInto has been called (slice is only provided for injected slices)
-        if (slice) {
-          sliceState = slice.getInitialState()
-        } else if (process.env.NODE_ENV !== 'production') {
-          throw new Error(
-            'selectState returned undefined for an uninjected slice reducer'
-          )
-        }
+) {
+  function wrapper(rootState: any, ...args: any[]) {
+    let sliceState = selectState(rootState)
+    if (typeof sliceState === 'undefined') {
+      // check if injectInto has been called (slice is only provided for injected slices)
+      if (slice) {
+        sliceState = slice.getInitialState()
+      } else if (process.env.NODE_ENV !== 'production') {
+        throw new Error(
+          'selectState returned undefined for an uninjected slice reducer'
+        )
       }
-      return Reflect.apply(target, thisArg, [sliceState, ...args])
-    },
-  })
+    }
+    return selector(sliceState, ...args)
+  }
+  wrapper.unwrapped = selector
+  return wrapper as RemappedSelector<S, any>
 }
 
 interface ReducerHandlingContext<State> {
