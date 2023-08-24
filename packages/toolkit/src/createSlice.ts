@@ -853,16 +853,14 @@ export function createSlice<
         for (const [name, selectorFactory] of Object.entries(
           options.selectorFactories ?? {}
         )) {
-          cached[`make${capitalize(name)}`] = new Proxy(selectorFactory, {
-            apply: (target, thisArg, argArray) => {
-              const selector = Reflect.apply(target, thisArg, argArray)
-              return wrapSelector(
-                selector,
-                selectState,
-                this !== slice ? this : undefined
-              )
-            },
-          })
+          cached[`make${capitalize(name)}`] = (...args: any[]) => {
+            const selector = selectorFactory(...args)
+            return wrapSelector(
+              selector,
+              selectState,
+              this !== slice ? this : undefined
+            )
+          }
         }
         selectorCache.set(selectState, cached)
       }
