@@ -5,7 +5,7 @@ import type { PayloadAction } from '../createAction'
 import { isFSA } from '../createAction'
 import { IsAny } from '../tsHelpers'
 
-export const isDraftTyped = isDraft as <T>(value: any) => value is Draft<T>
+export const isDraftTyped = isDraft as <T>(value: T | Draft<T>) => value is Draft<T>
 
 export function createSingleArgumentStateOperator<V>(
   mutator: (state: DraftableEntityState<V>) => void
