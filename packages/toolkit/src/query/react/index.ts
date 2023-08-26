@@ -1,5 +1,5 @@
 import { coreModule, buildCreateApi } from '@reduxjs/toolkit/query'
-import { reactHooksModule } from './module'
+import { reactHooksModule, reactHooksModuleName } from './module'
 
 export * from '@reduxjs/toolkit/query'
 export { ApiProvider } from './ApiProvider'
