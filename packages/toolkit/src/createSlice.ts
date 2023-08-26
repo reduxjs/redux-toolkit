@@ -233,15 +233,14 @@ createSlice({
   selectors?: Selectors
 }
 
-const reducerDefinitionType: unique symbol = Symbol.for('rtk-reducer-type')
-enum ReducerType {
+export enum ReducerType {
   reducer = 'reducer',
   reducerWithPrepare = 'reducerWithPrepare',
   asyncThunk = 'asyncThunk',
 }
 
 interface ReducerDefinition<T extends ReducerType = ReducerType> {
-  [reducerDefinitionType]: T
+  _reducerDefinitionType: T
 }
 
 export interface CaseReducerDefinition<
@@ -375,7 +374,7 @@ export interface ReducerCreators<State> {
       ReturnType<_ActionCreatorWithPreparedPayload<Prepare>>
     >
   ): {
-    [reducerDefinitionType]: ReducerType.reducerWithPrepare
+    _reducerDefinitionType: ReducerType.reducerWithPrepare
     prepare: Prepare
     reducer: CaseReducer<
       State,
@@ -748,7 +747,7 @@ function buildReducerCreators<State>(): ReducerCreators<State> {
     config: AsyncThunkSliceReducerConfig<State, any>
   ): AsyncThunkSliceReducerDefinition<State, any> {
     return {
-      [reducerDefinitionType]: ReducerType.asyncThunk,
+      _reducerDefinitionType: ReducerType.asyncThunk,
       payloadCreator,
       ...config,
     }
@@ -765,13 +764,13 @@ function buildReducerCreators<State>(): ReducerCreators<State> {
           },
         }[caseReducer.name],
         {
-          [reducerDefinitionType]: ReducerType.reducer,
+          _reducerDefinitionType: ReducerType.reducer,
         } as const
       )
     },
     preparedReducer(prepare, reducer) {
       return {
-        [reducerDefinitionType]: ReducerType.reducerWithPrepare,
+        _reducerDefinitionType: ReducerType.reducerWithPrepare,
         prepare,
         reducer,
       }
@@ -813,14 +812,14 @@ function handleNormalReducerDefinition<State>(
 function isAsyncThunkSliceReducerDefinition<State>(
   reducerDefinition: any
 ): reducerDefinition is AsyncThunkSliceReducerDefinition<State, any, any, any> {
-  return reducerDefinition[reducerDefinitionType] === ReducerType.asyncThunk
+  return reducerDefinition._reducerDefinitionType === ReducerType.asyncThunk
 }
 
 function isCaseReducerWithPrepareDefinition<State>(
   reducerDefinition: any
 ): reducerDefinition is CaseReducerWithPrepareDefinition<State, any> {
   return (
-    reducerDefinition[reducerDefinitionType] === ReducerType.reducerWithPrepare
+    reducerDefinition._reducerDefinitionType === ReducerType.reducerWithPrepare
   )
 }
 
