@@ -6784,8 +6784,8 @@ __metadata:
     node-fetch: ^2.6.1
     prettier: ^2.2.1
     query-string: ^7.0.1
-    redux: 5.0.0-beta.0
-    redux-thunk: 3.0.0-alpha.3
+    redux: ^5.0.0-beta.0
+    redux-thunk: ^3.0.0-beta.0
     reselect: ^5.0.0-alpha.2
     rimraf: ^3.0.2
     size-limit: ^4.11.0
@@ -6797,7 +6797,7 @@ __metadata:
     yargs: ^15.3.1
   peerDependencies:
     react: ^16.9.0 || ^17.0.0 || ^18
-    react-redux: ^7.2.1 || ^8.0.2
+    react-redux: ^7.2.1 || ^8.0.2 || ^9.0.0-alpha.1
   peerDependenciesMeta:
     react:
       optional: true
@@ -24660,15 +24660,6 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"redux-thunk@npm:3.0.0-alpha.3":
-  version: 3.0.0-alpha.3
-  resolution: "redux-thunk@npm:3.0.0-alpha.3"
-  peerDependencies:
-    redux: ^4
-  checksum: a5be77887b422b3182ff7fae617ec552cd5f830afb326d83af32a430c3eb439c942a38c3691e5c975119e37787974172dbc0139f7782cbfaeea5c1292fa123ed
-  languageName: node
-  linkType: hard
-
 "redux-thunk@npm:^2.4.1":
   version: 2.4.1
   resolution: "redux-thunk@npm:2.4.1"
@@ -24687,10 +24678,12 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"redux@npm:5.0.0-beta.0":
-  version: 5.0.0-beta.0
-  resolution: "redux@npm:5.0.0-beta.0"
-  checksum: 11df373e219f2f515ee1bda1a19a1ba5de02d8d5c874800ec353179dcd106eddd54432946fd0ab37c47f99f8fe53f820a6404c14da7f039a46022187e9469d2d
+"redux-thunk@npm:^3.0.0-beta.0":
+  version: 3.0.0-beta.0
+  resolution: "redux-thunk@npm:3.0.0-beta.0"
+  peerDependencies:
+    redux: ^4 || ^5.0.0-beta.0
+  checksum: 1609e18a9fb56ab7403d760999996b50e136fcf7411ec9d809e9a4afa4187bf0ab545652c05ffbfca2e0397e59e6baf2ae0d35631a30bf8ba20af1205e98e0fe
   languageName: node
   linkType: hard
 
@@ -24709,6 +24702,13 @@ fsevents@^1.2.7:
   dependencies:
     "@babel/runtime": ^7.9.2
   checksum: f63b9060c3a1d930ae775252bb6e579b42415aee7a23c4114e21a0b4ba7ec12f0ec76936c00f546893f06e139819f0e2855e0d55ebfce34ca9c026241a6950dd
+  languageName: node
+  linkType: hard
+
+"redux@npm:^5.0.0-beta.0":
+  version: 5.0.0-beta.0
+  resolution: "redux@npm:5.0.0-beta.0"
+  checksum: 11df373e219f2f515ee1bda1a19a1ba5de02d8d5c874800ec353179dcd106eddd54432946fd0ab37c47f99f8fe53f820a6404c14da7f039a46022187e9469d2d
   languageName: node
   linkType: hard
 
