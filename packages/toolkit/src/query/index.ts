@@ -3,6 +3,8 @@ export type {
   SubscriptionOptions,
   QueryKeys,
   RootState,
+  QueryCacheKey,
+  CombinedState,
 } from './core/apiState'
 export { QueryStatus } from './core/apiState'
 export type { Api, ApiContext, Module, ApiModules } from './apiTypes'
@@ -43,7 +45,7 @@ export type { CreateApi, CreateApiOptions } from './createApi'
 export { buildCreateApi } from './createApi'
 export { fakeBaseQuery } from './fakeBaseQuery'
 export { copyWithStructuralSharing } from './utils/copyWithStructuralSharing'
-export { createApi, coreModule } from './core'
+export { createApi, coreModule, coreModuleName } from './core'
 export type {
   ApiEndpointMutation,
   ApiEndpointQuery,
