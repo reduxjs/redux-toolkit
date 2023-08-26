@@ -149,16 +149,7 @@ jobs:
       fail-fast: false
       matrix:
         node: ['16.x']
-        example:
-          [
-            'cra4',
-            'cra5',
-            'next',
-            'vite',
-            'node-standard',
-            'node-esm',
-            'are-the-types-wrong',
-          ]
+        example: ['cra4', 'cra5', 'next', 'vite', 'node-standard', 'node-esm']
     defaults:
       run:
         working-directory: ./examples/publish-ci/${{ matrix.example }}
@@ -197,9 +188,27 @@ jobs:
 
       - name: Run test step
         run: yarn test
-        if: matrix.example != 'are-the-types-wrong'
 
-      - name: Run test step (attw)
-        # Ignore "FalseCJS" errors in the `attw` job
-        run: yarn test -n FalseCJS
-        if: matrix.example == 'are-the-types-wrong'
+  are-the-types-wrong:
+    name: Check package config with are-the-types-wrong
+
+    needs: [build]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['16.x']
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: package
+          path: packages/toolkit
+
+      - name: show folder
+        run: ls -l .
+
+      - name: Run are-the-types-wrong
+        run: npx @arethetypeswrong/cli ./package.tgz --format table --ignore-rules false-cjs

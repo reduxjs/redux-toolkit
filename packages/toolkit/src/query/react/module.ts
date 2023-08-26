@@ -6,11 +6,11 @@ import type {
   QueryDefinition,
   MutationDefinition,
   QueryArgFrom,
-} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
+} from '@reduxjs/toolkit/query'
 import type { Api, Module } from '../apiTypes'
 import { capitalize } from '../utils'
 import { safeAssign } from '../tsHelpers'
-import type { BaseQueryFn } from '@reduxjs/toolkit/dist/query/baseQueryTypes'
+import type { BaseQueryFn } from '@reduxjs/toolkit/query'
 
 import type { HooksWithUniqueNames } from './namedHooks'
 

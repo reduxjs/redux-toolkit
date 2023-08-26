@@ -185,6 +185,12 @@ export {
   TaskAbortError,
 } from './listenerMiddleware/index'
 
+export type {
+  DynamicMiddlewareInstance,
+  GetDispatch,
+  GetState,
+  MiddlewareApiConfig,
+} from './dynamicMiddleware/types'
 export { createDynamicMiddleware } from './dynamicMiddleware/index'
 
 export {
@@ -197,3 +203,5 @@ export type { AutoBatchOptions } from './autoBatchEnhancer'
 export { combineSlices } from './combineSlices'
 
 export type { WithSlice } from './combineSlices'
+
+export type { ExtractDispatchExtensions as TSHelpersExtractDispatchExtensions } from './tsHelpers'
