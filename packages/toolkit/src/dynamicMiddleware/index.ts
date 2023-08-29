@@ -70,9 +70,7 @@ export const createDynamicMiddleware = <
     return addMiddleware as AddMiddleware<State, Dispatch>
   })()
 
-  const getFinalMiddleware = (
-    api: MiddlewareAPI<Dispatch, State>
-  ): ReturnType<Middleware<any, State, Dispatch>> => {
+  const currentMiddleware: Middleware<{}, State, Dispatch> = (api) => {
     const appliedMiddleware = Array.from(middlewareMap.values()).map(
       (entry) => {
         let applied = entry.applied.get(api)
@@ -96,7 +94,7 @@ export const createDynamicMiddleware = <
         addMiddleware(...action.payload)
         return api.dispatch
       }
-      return getFinalMiddleware(api)(next)(action)
+      return currentMiddleware(api)(next)(action)
     }
 
   return {
