@@ -878,12 +878,12 @@ export function createSlice<
   return slice
 }
 
-function wrapSelector<State, S extends Selector<State>>(
+function wrapSelector<State, NewState, S extends Selector<State>>(
   selector: S,
-  selectState: Selector<any, State>,
+  selectState: Selector<NewState, State>,
   slice?: { getInitialState(): State }
 ) {
-  function wrapper(rootState: any, ...args: any[]) {
+  function wrapper(rootState: NewState, ...args: any[]) {
     let sliceState = selectState(rootState)
     if (typeof sliceState === 'undefined') {
       // check if injectInto has been called (slice is only provided for injected slices)
@@ -898,7 +898,7 @@ function wrapSelector<State, S extends Selector<State>>(
     return selector(sliceState, ...args)
   }
   wrapper.unwrapped = selector
-  return wrapper as RemappedSelector<S, any>
+  return wrapper as RemappedSelector<S, NewState>
 }
 
 interface ReducerHandlingContext<State> {
