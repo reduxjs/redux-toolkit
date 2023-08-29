@@ -1,9 +1,9 @@
-import { useEffect, useRef } from 'react'
+import React from 'react'
 import { shallowEqual } from 'react-redux'
 
-export function useShallowStableValue<T>(value: T) {
-  const cache = useRef(value)
-  useEffect(() => {
+export function useShallowStableValue<T>(ReactInstance: typeof React = React, value: T) {
+  const cache = ReactInstance.useRef(value)
+  ReactInstance.useEffect(() => {
     if (!shallowEqual(cache.current, value)) {
       cache.current = value
     }

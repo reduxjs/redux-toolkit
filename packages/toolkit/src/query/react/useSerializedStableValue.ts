@@ -1,14 +1,15 @@
-import { useEffect, useRef, useMemo } from 'react'
+import React from 'react'
 import type { SerializeQueryArgs } from '@reduxjs/toolkit/dist/query/defaultSerializeQueryArgs'
 import type { EndpointDefinition } from '@reduxjs/toolkit/dist/query/endpointDefinitions'
 
 export function useStableQueryArgs<T>(
+  ReactInstance: typeof React = React,
   queryArgs: T,
   serialize: SerializeQueryArgs<any>,
   endpointDefinition: EndpointDefinition<any, any, any, any>,
   endpointName: string
 ) {
-  const incoming = useMemo(
+  const incoming = ReactInstance.useMemo(
     () => ({
       queryArgs,
       serialized:
@@ -18,8 +19,8 @@ export function useStableQueryArgs<T>(
     }),
     [queryArgs, serialize, endpointDefinition, endpointName]
   )
-  const cache = useRef(incoming)
-  useEffect(() => {
+  const cache = ReactInstance.useRef(incoming)
+  ReactInstance.useEffect(() => {
     if (cache.current.serialized !== incoming.serialized) {
       cache.current = incoming
     }

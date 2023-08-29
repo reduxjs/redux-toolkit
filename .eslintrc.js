@@ -19,10 +19,7 @@ module.exports = {
       { prefer: 'type-imports', disallowTypeAnnotations: false },
     ],
     'react-hooks/exhaustive-deps': [
-      'warn',
-      {
-        additionalHooks: '(usePossiblyImmediateEffect)',
-      },
+      'warn'
     ],
   },
   overrides: [

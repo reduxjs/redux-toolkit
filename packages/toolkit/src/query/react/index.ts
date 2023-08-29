@@ -1,6 +1,6 @@
 import { coreModule, buildCreateApi, CreateApi } from '@reduxjs/toolkit/query'
 import { reactHooksModule, reactHooksModuleName } from './module'
-
+import { buildHooks } from './buildHooks'
 import type { MutationHooks, QueryHooks } from './buildHooks'
 import type {
   EndpointDefinitions,
@@ -27,4 +27,4 @@ export type {
   TypedUseQuerySubscriptionResult,
   TypedUseMutationResult,
 } from './buildHooks'
-export { createApi, reactHooksModule }
+export { createApi, reactHooksModule, buildHooks }

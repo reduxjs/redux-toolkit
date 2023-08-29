@@ -2,15 +2,7 @@ import type { AnyAction, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit'
 import { createSelector } from '@reduxjs/toolkit'
 import type { Selector } from '@reduxjs/toolkit'
 import type { DependencyList } from 'react'
-import {
-  useCallback,
-  useDebugValue,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import React from 'react'
 import { QueryStatus, skipToken } from '@reduxjs/toolkit/query'
 import type {
   QuerySubState,
@@ -57,12 +49,12 @@ import type { BaseQueryFn } from '../baseQueryTypes'
 import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 
 // Copy-pasted from React-Redux
-export const useIsomorphicLayoutEffect =
+export const useIsomorphicLayoutEffect = (ReactInstance: typeof React = React) =>
   typeof window !== 'undefined' &&
   !!window.document &&
   !!window.document.createElement
-    ? useLayoutEffect
-    : useEffect
+  ? ReactInstance.useLayoutEffect
+  : ReactInstance.useEffect
 
 export interface QueryHooks<
   Definition extends QueryDefinition<any, any, any, any, any>
@@ -580,6 +572,7 @@ type GenericPrefetchThunk = (
 export function buildHooks<Definitions extends EndpointDefinitions>({
   api,
   moduleOptions: {
+    ReactInstance = React,
     batch,
     useDispatch,
     useSelector,
@@ -597,7 +590,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   const usePossiblyImmediateEffect: (
     effect: () => void | undefined,
     deps?: DependencyList
-  ) => void = unstable__sideEffectsInRender ? (cb) => cb() : useEffect
+  ) => void = unstable__sideEffectsInRender ? (cb) => cb() : ReactInstance.useEffect
 
   return { buildQueryHooks, buildMutationHook, usePrefetch }
 
@@ -655,9 +648,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     defaultOptions?: PrefetchOptions
   ) {
     const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
-    const stableDefaultOptions = useShallowStableValue(defaultOptions)
+    const stableDefaultOptions = useShallowStableValue(ReactInstance, defaultOptions)
 
-    return useCallback(
+    return ReactInstance.useCallback(
       (arg: any, options?: PrefetchOptions) =>
         dispatch(
           (api.util.prefetch as GenericPrefetchThunk)(endpointName, arg, {
@@ -686,6 +679,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
       const stableArg = useStableQueryArgs(
+        ReactInstance,
         skip ? skipToken : arg,
         // Even if the user provided a per-endpoint `serializeQueryArgs` with
         // a consistent return value, _here_ we want to use the default behavior
@@ -696,15 +690,15 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         context.endpointDefinitions[name],
         name
       )
-      const stableSubscriptionOptions = useShallowStableValue({
+      const stableSubscriptionOptions = useShallowStableValue(ReactInstance, {
         refetchOnReconnect,
         refetchOnFocus,
         pollingInterval,
       })
 
-      const lastRenderHadSubscription = useRef(false)
+      const lastRenderHadSubscription = ReactInstance.useRef(false)
 
-      const promiseRef = useRef<QueryActionCreatorResult<any>>()
+      const promiseRef = ReactInstance.useRef<QueryActionCreatorResult<any>>()
 
       let { queryCacheKey, requestId } = promiseRef.current || {}
 
@@ -785,14 +779,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         subscriptionRemoved,
       ])
 
-      useEffect(() => {
+      ReactInstance.useEffect(() => {
         return () => {
           promiseRef.current?.unsubscribe()
           promiseRef.current = undefined
         }
       }, [])
 
-      return useMemo(
+      return ReactInstance.useMemo(
         () => ({
           /**
            * A method to manually refetch data for the query
@@ -820,10 +814,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
 
-      const [arg, setArg] = useState<any>(UNINITIALIZED_VALUE)
-      const promiseRef = useRef<QueryActionCreatorResult<any> | undefined>()
+      const [arg, setArg] = ReactInstance.useState<any>(UNINITIALIZED_VALUE)
+      const promiseRef = ReactInstance.useRef<QueryActionCreatorResult<any> | undefined>()
 
-      const stableSubscriptionOptions = useShallowStableValue({
+      const stableSubscriptionOptions = useShallowStableValue(ReactInstance, {
         refetchOnReconnect,
         refetchOnFocus,
         pollingInterval,
@@ -839,12 +833,12 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         }
       }, [stableSubscriptionOptions])
 
-      const subscriptionOptionsRef = useRef(stableSubscriptionOptions)
+      const subscriptionOptionsRef = ReactInstance.useRef(stableSubscriptionOptions)
       usePossiblyImmediateEffect(() => {
         subscriptionOptionsRef.current = stableSubscriptionOptions
       }, [stableSubscriptionOptions])
 
-      const trigger = useCallback(
+      const trigger = ReactInstance.useCallback(
         function (arg: any, preferCacheValue = false) {
           let promise: QueryActionCreatorResult<any>
 
@@ -867,20 +861,20 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       )
 
       /* cleanup on unmount */
-      useEffect(() => {
+      ReactInstance.useEffect(() => {
         return () => {
           promiseRef?.current?.unsubscribe()
         }
       }, [])
 
       /* if "cleanup on unmount" was triggered from a fast refresh, we want to reinstate the query */
-      useEffect(() => {
+      ReactInstance.useEffect(() => {
         if (arg !== UNINITIALIZED_VALUE && !promiseRef.current) {
           trigger(arg, true)
         }
       }, [arg, trigger])
 
-      return useMemo(() => [trigger, arg] as const, [trigger, arg])
+      return ReactInstance.useMemo(() => [trigger, arg] as const, [trigger, arg])
     }
 
     const useQueryState: UseQueryState<any> = (
@@ -892,6 +886,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         Definitions
       >
       const stableArg = useStableQueryArgs(
+        ReactInstance,
         skip ? skipToken : arg,
         serializeQueryArgs,
         context.endpointDefinitions[name],
@@ -900,9 +895,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       type ApiRootState = Parameters<ReturnType<typeof select>>[0]
 
-      const lastValue = useRef<any>()
+      const lastValue = ReactInstance.useRef<any>()
 
-      const selectDefaultResult: Selector<ApiRootState, any, [any]> = useMemo(
+      const selectDefaultResult: Selector<ApiRootState, any, [any]> = ReactInstance.useMemo(
         () =>
           createSelector(
             [
@@ -915,7 +910,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         [select, stableArg]
       )
 
-      const querySelector: Selector<ApiRootState, any, [any]> = useMemo(
+      const querySelector: Selector<ApiRootState, any, [any]> = ReactInstance.useMemo(
         () =>
           selectFromResult
             ? createSelector([selectDefaultResult], selectFromResult)
@@ -934,7 +929,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         store.getState(),
         lastValue.current
       )
-      useIsomorphicLayoutEffect(() => {
+      useIsomorphicLayoutEffect(ReactInstance)(() => {
         lastValue.current = newLastValue
       }, [newLastValue])
 
@@ -952,8 +947,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           skip: arg === UNINITIALIZED_VALUE,
         })
 
-        const info = useMemo(() => ({ lastArg: arg }), [arg])
-        return useMemo(
+        const info = ReactInstance.useMemo(() => ({ lastArg: arg }), [arg])
+        return ReactInstance.useMemo(
           () => [trigger, queryStateResults, info],
           [trigger, queryStateResults, info]
         )
@@ -970,9 +965,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
         const { data, status, isLoading, isSuccess, isError, error } =
           queryStateResults
-        useDebugValue({ data, status, isLoading, isSuccess, isError, error })
+        ReactInstance.useDebugValue({ data, status, isLoading, isSuccess, isError, error })
 
-        return useMemo(
+        return ReactInstance.useMemo(
           () => ({ ...queryStateResults, ...querySubscriptionResults }),
           [queryStateResults, querySubscriptionResults]
         )
@@ -990,9 +985,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         Definitions
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
-      const [promise, setPromise] = useState<MutationActionCreatorResult<any>>()
+      const [promise, setPromise] = ReactInstance.useState<MutationActionCreatorResult<any>>()
 
-      useEffect(
+      ReactInstance.useEffect(
         () => () => {
           if (!promise?.arg.fixedCacheKey) {
             promise?.reset()
@@ -1001,7 +996,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         [promise]
       )
 
-      const triggerMutation = useCallback(
+      const triggerMutation = ReactInstance.useCallback(
         function (arg: Parameters<typeof initiate>['0']) {
           const promise = dispatch(initiate(arg, { fixedCacheKey }))
           setPromise(promise)
@@ -1011,7 +1006,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       )
 
       const { requestId } = promise || {}
-      const mutationSelector = useMemo(
+      const mutationSelector = ReactInstance.useMemo(
         () =>
           createSelector(
             [select({ fixedCacheKey, requestId: promise?.requestId })],
@@ -1023,7 +1018,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const currentState = useSelector(mutationSelector, shallowEqual)
       const originalArgs =
         fixedCacheKey == null ? promise?.arg.originalArgs : undefined
-      const reset = useCallback(() => {
+      const reset = ReactInstance.useCallback(() => {
         batch(() => {
           if (promise) {
             setPromise(undefined)
@@ -1048,7 +1043,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         isError,
         error,
       } = currentState
-      useDebugValue({
+      ReactInstance.useDebugValue({
         endpointName,
         data,
         status,
@@ -1058,12 +1053,12 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         error,
       })
 
-      const finalState = useMemo(
+      const finalState = ReactInstance.useMemo(
         () => ({ ...currentState, originalArgs, reset }),
         [currentState, originalArgs, reset]
       )
 
-      return useMemo(
+      return ReactInstance.useMemo(
         () => [triggerMutation, finalState] as const,
         [triggerMutation, finalState]
       )
