@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        // "strict": true,
+        "module": "Node16",
+        "moduleResolution": "Node16",
+        "esModuleInterop": true,
+        "isolatedModules": true,
+        "target": "ES6",
+        "lib": ["ES6", "DOM"],
+        "types": ["node", "vitest/globals"],
+        "rootDir": "src",
+        "outDir": "./dist",
+        "sourceMap": false,
+        "declaration": true,
+        "declarationDir": "./dist",
+        "emitDeclarationOnly": true,
+    },
+    "include": ["src/**/*.ts"],
+}

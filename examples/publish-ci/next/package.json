@@ -10,7 +10,7 @@
     "format": "prettier --write \"./src/**/*.{ts,tsx}\" \"**/*.md\""
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^1.9.3",
+    "@reduxjs/toolkit": "file:../../../packages/toolkit/package.tgz",
     "msw": "^0.49.2",
     "next": "^13.2",
     "react": "^18.2.0",

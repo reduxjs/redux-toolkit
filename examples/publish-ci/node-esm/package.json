@@ -8,7 +8,7 @@
     "test": "node test-cjs.cjs && node test-esm.mjs"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^1.9.3",
+    "@reduxjs/toolkit": "file:../../../packages/toolkit/package.tgz",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^8.0.5"
