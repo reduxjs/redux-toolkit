@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "paths": {
+      "@reduxjs/toolkit": ["./dist/index.d.ts"],
+      "@reduxjs/toolkit/react": ["./dist/react/index.d.ts"],
+      "@reduxjs/toolkit/query": ["./dist/query/index.d.ts"],
+      "@reduxjs/toolkit/query/react": ["./dist/query/react/index.d.ts"],
+      "react": ["./node_modules/react/index.d.ts"],
+    }
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "src/**/*.test.ts*",
+    "src/**/tests/*"
+  ]
+}

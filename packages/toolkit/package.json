@@ -49,7 +49,7 @@
     }
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "^7.13.2",
+    "@microsoft/api-extractor": "^7.36.4",
     "@size-limit/preset-small-lib": "^4.11.0",
     "@testing-library/react": "^13.3.0",
     "@testing-library/user-event": "^13.1.5",
@@ -58,7 +58,7 @@
     "@types/nanoid": "^2.1.0",
     "@types/node": "^10.14.4",
     "@types/query-string": "^6.3.0",
-    "@types/react": "^18.0.12",
+    "@types/react": "^18.2.21",
     "@types/react-dom": "^18.0.5",
     "@types/yargs": "^16.0.1",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
@@ -100,6 +100,10 @@
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
     "lint": "eslint src examples",
     "test": "vitest",
+    "api:rtk": "api-extractor run -c api-extractor.jsonc",
+    "api:rtk:react": "api-extractor run --verbose -c api-extractor-react.jsonc",
+    "api:rtk:query": "api-extractor run --verbose -c api-extractor-query.jsonc",
+    "api:rtk:query:react": "api-extractor run --verbose -c api-extractor-query-react.jsonc",
     "type-tests": "yarn tsc -p src/tests/tsconfig.typetests.json && yarn tsc -p src/query/tests/tsconfig.typetests.json",
     "prepack": "yarn build"
   },

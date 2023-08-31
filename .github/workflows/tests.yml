@@ -55,6 +55,13 @@ jobs:
       - name: Pack
         run: yarn pack
 
+      - name: API Exporter
+        run: |
+          yarn api:rtk
+          yarn api:rtk:react
+          yarn api:rtk:query
+          yarn api:rtk:query:react
+
       - uses: actions/upload-artifact@v2
         with:
           name: package

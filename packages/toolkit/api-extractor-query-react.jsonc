@@ -1,0 +1,16 @@
+/**
+ * Config file for API Extractor.  For more info, please visit: https://api-extractor.com
+ */
+ {
+  "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+  "extends": "./api-extractor.jsonc",
+  "projectFolder": ".",
+  "mainEntryPointFilePath": "dist/query/react/index.d.ts",
+  "bundledPackages": [],
+
+  "apiReport": {
+    "enabled": true,
+    "reportFileName": "rtk-query-react.api.md",
+    "reportFolder": "<projectFolder>/etc/"
+  }
+}

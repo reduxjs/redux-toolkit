@@ -32,7 +32,7 @@
    * SUPPORTED TOKENS: <lookup>
    * DEFAULT VALUE: "<lookup>"
    */
-  "projectFolder": ".",
+  // "projectFolder": "..",
 
   /**
    * (REQUIRED) Specifies the .d.ts file to be used as the starting point for analysis.  API Extractor
@@ -45,8 +45,7 @@
    *
    * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
    */
-  "mainEntryPointFilePath": "dist/query/index.d.ts",
-  //"mainEntryPointFilePath": "/home/weber/tmp/rtk-origin-master/dist/index.d.ts",
+  "mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts",
 
   /**
    * A list of NPM package names whose exports should be treated as part of this package.
@@ -64,6 +63,32 @@
   "bundledPackages": [],
 
   /**
+   * Specifies what type of newlines API Extractor should use when writing output files.  By default, the output files
+   * will be written with Windows-style newlines.  To use POSIX-style newlines, specify "lf" instead.
+   * To use the OS's default newline kind, specify "os".
+   *
+   * DEFAULT VALUE: "crlf"
+   */
+  // "newlineKind": "crlf",
+
+  /**
+   * Set to true when invoking API Extractor's test harness. When `testMode` is true, the `toolVersion` field in the
+   * .api.json file is assigned an empty string to prevent spurious diffs in output files tracked for tests.
+   *
+   * DEFAULT VALUE: "false"
+   */
+  // "testMode": false,
+
+  /**
+   * Specifies how API Extractor sorts members of an enum when generating the .api.json file. By default, the output
+   * files will be sorted alphabetically, which is "by-name". To keep the ordering in the source code, specify
+   * "preserve".
+   *
+   * DEFAULT VALUE: "by-name"
+   */
+  // "enumMemberOrder": "by-name",
+
+  /**
    * Determines how the TypeScript compiler engine will be invoked by API Extractor.
    */
   "compiler": {
@@ -78,7 +103,7 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<projectFolder>/tsconfig.json"
      */
-    // "tsconfigFilePath": "<projectFolder>/tsconfig.json",
+    "tsconfigFilePath": "<projectFolder>/tsconfig.api.json"
     /**
      * Provides a compiler configuration that will be used instead of reading the tsconfig.json file from disk.
      * The object must conform to the TypeScript tsconfig schema:
@@ -121,7 +146,7 @@
      * SUPPORTED TOKENS: <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<unscopedPackageName>.api.md"
      */
-    "reportFileName": "rtk-query.api.md",
+    "reportFileName": "redux-toolkit.api.md",
 
     /**
      * Specifies the folder where the API report file is written.  The file name portion is determined by
@@ -134,9 +159,9 @@
      * prepend a folder token such as "<projectFolder>".
      *
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
-     * DEFAULT VALUE: "<projectFolder>/etc/"
+     * DEFAULT VALUE: "<projectFolder>/temp/"
      */
-    "reportFolder": "<projectFolder>/etc/"
+     "reportFolder": "<projectFolder>/etc/"
 
     /**
      * Specifies the folder where the temporary report file is written.  The file name portion is determined by
@@ -151,7 +176,16 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<projectFolder>/temp/"
      */
-    // "reportTempFolder": "<projectFolder>/temp/"
+    // "reportTempFolder": "<projectFolder>/temp/",
+
+    /**
+     * Whether "forgotten exports" should be included in the API report file. Forgotten exports are declarations
+     * flagged with `ae-forgotten-export` warnings. See https://api-extractor.com/pages/messages/ae-forgotten-export/ to
+     * learn more.
+     *
+     * DEFAULT VALUE: "false"
+     */
+    // "includeForgottenExports": false
   },
 
   /**
@@ -172,7 +206,32 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<projectFolder>/temp/<unscopedPackageName>.api.json"
      */
-    // "apiJsonFilePath": "<projectFolder>/temp/<unscopedPackageName>.api.json"
+    // "apiJsonFilePath": "<projectFolder>/temp/<unscopedPackageName>.api.json",
+
+    /**
+     * Whether "forgotten exports" should be included in the doc model file. Forgotten exports are declarations
+     * flagged with `ae-forgotten-export` warnings. See https://api-extractor.com/pages/messages/ae-forgotten-export/ to
+     * learn more.
+     *
+     * DEFAULT VALUE: "false"
+     */
+    // "includeForgottenExports": false,
+
+    /**
+     * The base URL where the project's source code can be viewed on a website such as GitHub or
+     * Azure DevOps. This URL path corresponds to the `<projectFolder>` path on disk.
+     *
+     * This URL is concatenated with the file paths serialized to the doc model to produce URL file paths to individual API items.
+     * For example, if the `projectFolderUrl` is "https://github.com/microsoft/rushstack/tree/main/apps/api-extractor" and an API
+     * item's file path is "api/ExtractorConfig.ts", the full URL file path would be
+     * "https://github.com/microsoft/rushstack/tree/main/apps/api-extractor/api/ExtractorConfig.js".
+     *
+     * Can be omitted if you don't need source code links in your API documentation reference.
+     *
+     * SUPPORTED TOKENS: none
+     * DEFAULT VALUE: ""
+     */
+    // "projectFolderUrl": "http://github.com/path/to/your/projectFolder"
   },
 
   /**
@@ -182,7 +241,7 @@
     /**
      * (REQUIRED) Whether to generate the .d.ts rollup file.
      */
-    "enabled": false,
+    "enabled": false
 
     /**
      * Specifies the output path for a .d.ts rollup file to be generated without any trimming.
@@ -196,7 +255,19 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<projectFolder>/dist/<unscopedPackageName>.d.ts"
      */
-    "untrimmedFilePath": "<projectFolder>/dist/query/typings.d.ts"
+    // "untrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>.d.ts",
+
+    /**
+     * Specifies the output path for a .d.ts rollup file to be generated with trimming for an "alpha" release.
+     * This file will include only declarations that are marked as "@public", "@beta", or "@alpha".
+     *
+     * The path is resolved relative to the folder of the config file that contains the setting; to change this,
+     * prepend a folder token such as "<projectFolder>".
+     *
+     * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
+     * DEFAULT VALUE: ""
+     */
+    // "alphaTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-alpha.d.ts",
 
     /**
      * Specifies the output path for a .d.ts rollup file to be generated with trimming for a "beta" release.
@@ -244,7 +315,6 @@
      * DEFAULT VALUE: true
      */
     "enabled": false
-
     /**
      * Specifies where the TSDoc metadata file should be written.
      *
@@ -321,15 +391,28 @@
      */
     "extractorMessageReporting": {
       "default": {
-        "logLevel": "warning"
+        "logLevel": "none"
         // "addToApiReportFile": false
       },
       "ae-forgotten-export": {
-        "logLevel": "none",
+        "logLevel": "warning",
+        "addToApiReportFile": true
+      },
+      "ae-missing-release-tag": {
+        "logLevel": "warning",
+        "addToApiReportFile": true
+      },
+      "ae-wrong-input-file-type": {
+        "logLevel": "warning",
+        "addToApiReportFile": false
+      },
+      /**
+       * Triggers an error if an internal api is exported.
+       */
+      "ae-internal-missing-underscore": {
+        "logLevel": "error",
         "addToApiReportFile": false
       }
-      //
-      // . . .
     },
 
     /**
