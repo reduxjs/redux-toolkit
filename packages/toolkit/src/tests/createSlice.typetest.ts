@@ -599,18 +599,14 @@ const value = actionCreators.anyKey
       }>()
 
       return {
-        normalReducer: create.reducer(
-          (state, action: PayloadAction<string>) => {
-            expectType<TestState>(state)
-            expectType<string>(action.payload)
-          }
-        ),
-        optionalReducer: create.reducer(
-          (state, action: PayloadAction<string | undefined>) => {
-            expectType<TestState>(state)
-            expectType<string | undefined>(action.payload)
-          }
-        ),
+        normalReducer: create.reducer<string>((state, action) => {
+          expectType<TestState>(state)
+          expectType<string>(action.payload)
+        }),
+        optionalReducer: create.reducer<string | undefined>((state, action) => {
+          expectType<TestState>(state)
+          expectType<string | undefined>(action.payload)
+        }),
         noActionReducer: create.reducer((state) => {
           expectType<TestState>(state)
         }),
@@ -788,7 +784,7 @@ const value = actionCreators.anyKey
         start: create.reducer((state) => {
           state.status = 'loading'
         }),
-        success: create.reducer((state, action: PayloadAction<T>) => {
+        success: create.reducer<T>((state, action) => {
           state.data = castDraft(action.payload)
           state.status = 'finished'
         }),
