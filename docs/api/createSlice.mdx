@@ -161,7 +161,7 @@ const todosSlice = createSlice({
     todos: [],
   } as TodoState,
   reducers: (create) => ({
-    deleteTodo: create.reducer((state, action: PayloadAction<number>) => {
+    deleteTodo: create.reducer<number>((state, action) => {
       state.todos.splice(action.payload, 1)
     }),
     addTodo: create.preparedReducer(
@@ -209,7 +209,7 @@ A standard slice case reducer.
 - **reducer** The slice case reducer to use.
 
 ```ts no-transpile
-create.reducer((state, action: PayloadAction<Todo>) => {
+create.reducer<Todo>((state, action) => {
   state.todos.push(action.payload)
 })
 ```
