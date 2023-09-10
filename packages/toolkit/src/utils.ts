@@ -93,10 +93,40 @@ export function capitalize(str: string) {
 }
 
 interface WeakMapEmplaceHandler<K extends object, V> {
+  /**
+   * Will be called to get value, if no value is currently in map.
+   */
   insert?(key: K, map: WeakMap<K, V>): V
+  /**
+   * Will be called to update a value, if one exists already.
+   */
   update?(previous: V, key: K, map: WeakMap<K, V>): V
 }
 
+/**
+ * Allow inserting a new value, or updating an existing one
+ * @throws if called for a key with no current value and no `insert` handler is provided
+ * @returns current value in map (after insertion/updating)
+ * ```ts
+ * // return current value if already in map, otherwise initialise to 0 and return that
+ * const num = weakMapEmplace(map, key, {
+ *   insert: () => 0
+ * })
+ *
+ * // increase current value by one if already in map, otherwise initialise to 0
+ * const num = weakMapEmplace(map, key, {
+ *   update: (n) => n + 1,
+ *   insert: () => 0,
+ * })
+ *
+ * // only update if value's already in the map - and increase it by one
+ * if (map.has(key)) {
+ *   const num = weakMapEmplace(map, key, {
+ *     update: (n) => n + 1,
+ *   })
+ * }
+ * ```
+ */
 export function weakMapEmplace<K extends object, V>(
   map: WeakMap<K, V>,
   key: K,
@@ -118,10 +148,40 @@ export function weakMapEmplace<K extends object, V>(
 }
 
 interface MapEmplaceHandler<K, V> {
+  /**
+   * Will be called to get value, if no value is currently in map.
+   */
   insert?(key: K, map: Map<K, V>): V
+  /**
+   * Will be called to update a value, if one exists already.
+   */
   update?(previous: V, key: K, map: Map<K, V>): V
 }
 
+/**
+ * Allow inserting a new value, or updating an existing one
+ * @throws if called for a key with no current value and no `insert` handler is provided
+ * @returns current value in map (after insertion/updating)
+ * ```ts
+ * // return current value if already in map, otherwise initialise to 0 and return that
+ * const num = mapEmplace(map, key, {
+ *   insert: () => 0
+ * })
+ *
+ * // increase current value by one if already in map, otherwise initialise to 0
+ * const num = mapEmplace(map, key, {
+ *   update: (n) => n + 1,
+ *   insert: () => 0,
+ * })
+ *
+ * // only update if value's already in the map - and increase it by one
+ * if (map.has(key)) {
+ *   const num = mapEmplace(map, key, {
+ *     update: (n) => n + 1,
+ *   })
+ * }
+ * ```
+ */
 export const mapEmplace = weakMapEmplace as <K, V>(
   map: Map<K, V>,
   key: K,
