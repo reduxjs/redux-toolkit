@@ -7,7 +7,7 @@ import type {
 import { compose } from 'redux'
 import { createAction, isAction } from '../createAction'
 import { nanoid } from '../nanoid'
-import { find, mapEmplace } from '../utils'
+import { find, emplace } from '../utils'
 import type {
   WithMiddleware,
   AddMiddleware,
@@ -72,7 +72,7 @@ export const createDynamicMiddleware = <
 
   const currentMiddleware: Middleware<{}, State, Dispatch> = (api) => {
     const appliedMiddleware = Array.from(middlewareMap.values()).map((entry) =>
-      mapEmplace(entry.applied, api, { insert: () => entry.middleware(api) })
+      emplace(entry.applied, api, { insert: () => entry.middleware(api) })
     )
     return compose(...appliedMiddleware)
   }

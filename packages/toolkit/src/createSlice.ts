@@ -22,7 +22,7 @@ import type {
   OverrideThunkApiConfigs,
 } from './createAsyncThunk'
 import { createAsyncThunk } from './createAsyncThunk'
-import { capitalize, weakMapEmplace } from './utils'
+import { capitalize, emplace } from './utils'
 
 interface InjectIntoConfig<NewReducerPath extends string> extends InjectConfig {
   reducerPath?: NewReducerPath
@@ -804,10 +804,10 @@ export function createSlice<
       return _reducer.getInitialState()
     },
     getSelectors(selectState: Selector<any, State> = selectSelf) {
-      const selectorCache = weakMapEmplace(injectedSelectorCache, this, {
+      const selectorCache = emplace(injectedSelectorCache, this, {
         insert: () => new WeakMap(),
       })
-      const cached = weakMapEmplace(selectorCache, selectState, {
+      const cached = emplace(selectorCache, selectState, {
         insert: () => {
           const map: Record<string, Selector<any, any>> = {}
           for (const [name, selector] of Object.entries(
@@ -843,10 +843,10 @@ export function createSlice<
       } as any
     },
     getSelectorFactories(selectState: Selector<any, State> = selectSelf) {
-      const selectorCache = weakMapEmplace(injectedSelectorFactoryCache, this, {
+      const selectorCache = emplace(injectedSelectorFactoryCache, this, {
         insert: () => new WeakMap(),
       })
-      const cached = weakMapEmplace(selectorCache, selectState, {
+      const cached = emplace(selectorCache, selectState, {
         insert: () => {
           const map: Record<string, SelectorFactory<any, any, any>> = {}
           for (const [name, selectorFactory] of Object.entries(

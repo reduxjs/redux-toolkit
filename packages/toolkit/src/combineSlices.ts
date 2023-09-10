@@ -8,7 +8,7 @@ import type {
   UnionToIntersection,
   WithOptionalProp,
 } from './tsHelpers'
-import { weakMapEmplace } from './utils'
+import { emplace } from './utils'
 
 type SliceLike<ReducerPath extends string, State> = {
   reducerPath: ReducerPath
@@ -332,7 +332,7 @@ const createStateProxy = <State extends object>(
   state: State,
   reducerMap: Partial<Record<string, Reducer>>
 ) =>
-  weakMapEmplace(stateProxyMap, state, {
+  emplace(stateProxyMap, state, {
     insert: () =>
       new Proxy(state, {
         get: (target, prop, receiver) => {
