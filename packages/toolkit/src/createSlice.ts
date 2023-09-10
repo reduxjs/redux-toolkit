@@ -22,7 +22,7 @@ import type {
   OverrideThunkApiConfigs,
 } from './createAsyncThunk'
 import { createAsyncThunk } from './createAsyncThunk'
-import { capitalize } from './utils'
+import { capitalize, weakMapEmplace } from './utils'
 
 interface InjectIntoConfig<NewReducerPath extends string> extends InjectConfig {
   reducerPath?: NewReducerPath
@@ -804,25 +804,24 @@ export function createSlice<
       return _reducer.getInitialState()
     },
     getSelectors(selectState: Selector<any, State> = selectSelf) {
-      let selectorCache = injectedSelectorCache.get(this)
-      if (!selectorCache) {
-        selectorCache = new WeakMap()
-        injectedSelectorCache.set(this, selectorCache)
-      }
-      let cached = selectorCache.get(selectState)
-      if (!cached) {
-        cached = {}
-        for (const [name, selector] of Object.entries(
-          options.selectors ?? {}
-        )) {
-          cached[name] = wrapSelector(
-            selector,
-            selectState,
-            this !== slice ? this : undefined
-          )
-        }
-        selectorCache.set(selectState, cached)
-      }
+      const selectorCache = weakMapEmplace(injectedSelectorCache, this, {
+        insert: () => new WeakMap(),
+      })
+      const cached = weakMapEmplace(selectorCache, selectState, {
+        insert: () => {
+          const map: Record<string, Selector<any, any>> = {}
+          for (const [name, selector] of Object.entries(
+            options.selectors ?? {}
+          )) {
+            map[name] = wrapSelector(
+              selector,
+              selectState,
+              this !== slice ? this : undefined
+            )
+          }
+          return map
+        },
+      })
       return cached as any
     },
     get selectors() {
@@ -844,31 +843,30 @@ export function createSlice<
       } as any
     },
     getSelectorFactories(selectState: Selector<any, State> = selectSelf) {
-      let selectorCache = injectedSelectorFactoryCache.get(this)
-      if (!selectorCache) {
-        selectorCache = new WeakMap()
-        injectedSelectorFactoryCache.set(this, selectorCache)
-      }
-      let cached = selectorCache.get(selectState)
-      if (!cached) {
-        cached = {}
-        for (const [name, selectorFactory] of Object.entries(
-          options.selectorFactories ?? {}
-        )) {
-          cached[`make${capitalize(name)}`] = Object.assign(
-            (...args: any[]) => {
-              const selector = selectorFactory(...args)
-              return wrapSelector(
-                selector,
-                selectState,
-                this !== slice ? this : undefined
-              )
-            },
-            { unwrapped: selectorFactory }
-          )
-        }
-        selectorCache.set(selectState, cached)
-      }
+      const selectorCache = weakMapEmplace(injectedSelectorFactoryCache, this, {
+        insert: () => new WeakMap(),
+      })
+      const cached = weakMapEmplace(selectorCache, selectState, {
+        insert: () => {
+          const map: Record<string, SelectorFactory<any, any, any>> = {}
+          for (const [name, selectorFactory] of Object.entries(
+            options.selectorFactories ?? {}
+          )) {
+            map[`make${capitalize(name)}`] = Object.assign(
+              (...args: any[]) => {
+                const selector = selectorFactory(...args)
+                return wrapSelector(
+                  selector,
+                  selectState,
+                  this !== slice ? this : undefined
+                )
+              },
+              { unwrapped: selectorFactory }
+            )
+          }
+          return map
+        },
+      })
       return cached as any
     },
     get selectorFactories() {

@@ -91,3 +91,39 @@ export function freezeDraftable<T>(val: T) {
 export function capitalize(str: string) {
   return str.replace(str[0], str[0].toUpperCase())
 }
+
+interface WeakMapEmplaceHandler<K extends object, V> {
+  insert?(key: K, map: WeakMap<K, V>): V
+  update?(previous: V, key: K, map: WeakMap<K, V>): V
+}
+
+export function weakMapEmplace<K extends object, V>(
+  map: WeakMap<K, V>,
+  key: K,
+  handler: WeakMapEmplaceHandler<K, V>
+): V {
+  if (map.has(key)) {
+    let value = map.get(key) as V
+    if (handler.update) {
+      value = handler.update(value, key, map)
+      map.set(key, value)
+    }
+    return value
+  }
+  if (!handler.insert)
+    throw new Error('No insert provided for key not already in map')
+  const inserted = handler.insert(key, map)
+  map.set(key, inserted)
+  return inserted
+}
+
+interface MapEmplaceHandler<K, V> {
+  insert?(key: K, map: Map<K, V>): V
+  update?(previous: V, key: K, map: Map<K, V>): V
+}
+
+export const mapEmplace = weakMapEmplace as <K, V>(
+  map: Map<K, V>,
+  key: K,
+  handler: MapEmplaceHandler<K, V>
+) => V
