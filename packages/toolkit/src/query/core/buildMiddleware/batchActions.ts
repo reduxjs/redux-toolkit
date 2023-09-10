@@ -45,13 +45,23 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
       const {
         meta: { arg, requestId },
       } = action
+      const substate = (mutableState[arg.queryCacheKey] ??= {})
+      substate[`${requestId}_running`] = {}
       if (arg.subscribe) {
-        const substate = (mutableState[arg.queryCacheKey] ??= {})
         substate[requestId] =
           arg.subscriptionOptions ?? substate[requestId] ?? {}
-
-        return true
       }
+      return true
+    }
+    let mutated = false
+    if (
+      queryThunk.fulfilled.match(action) ||
+      queryThunk.rejected.match(action)
+    ) {
+      const state = mutableState[action.meta.arg.queryCacheKey] || {}
+      const key = `${action.meta.requestId}_running`
+      mutated ||= !!state[key]
+      delete state[key]
     }
     if (queryThunk.rejected.match(action)) {
       const {
@@ -62,11 +72,11 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
         substate[requestId] =
           arg.subscriptionOptions ?? substate[requestId] ?? {}
 
-        return true
+        mutated = true
       }
     }
 
-    return false
+    return mutated
   }
 
   return (
