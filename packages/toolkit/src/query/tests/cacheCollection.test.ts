@@ -29,7 +29,9 @@ test(`query: await cleanup, defaults`, async () => {
     })
   )
 
-  store.dispatch(api.endpoints.query.initiate('arg')).unsubscribe()
+  const promise = store.dispatch(api.endpoints.query.initiate('arg'))
+  await promise
+  promise.unsubscribe()
   vi.advanceTimersByTime(59000)
   expect(onCleanup).not.toHaveBeenCalled()
   vi.advanceTimersByTime(2000)
@@ -49,7 +51,9 @@ test(`query: await cleanup, keepUnusedDataFor set`, async () => {
     })
   )
 
-  store.dispatch(api.endpoints.query.initiate('arg')).unsubscribe()
+  const promise = store.dispatch(api.endpoints.query.initiate('arg'))
+  await promise
+  promise.unsubscribe()
   vi.advanceTimersByTime(28000)
   expect(onCleanup).not.toHaveBeenCalled()
   vi.advanceTimersByTime(2000)
@@ -69,7 +73,9 @@ test(`query: handles large keepUnuseDataFor values over 32-bit ms`, async () => 
     })
   )
 
-  store.dispatch(api.endpoints.query.initiate('arg')).unsubscribe()
+  const promise = store.dispatch(api.endpoints.query.initiate('arg'))
+  await promise
+  promise.unsubscribe()
 
   // Shouldn't have been called right away
   vi.advanceTimersByTime(1000)
@@ -110,7 +116,9 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
   )
 
   test('global keepUnusedDataFor', async () => {
-    store.dispatch(api.endpoints.query.initiate('arg')).unsubscribe()
+    const promise = store.dispatch(api.endpoints.query.initiate('arg'))
+    await promise
+    promise.unsubscribe()
     vi.advanceTimersByTime(28000)
     expect(onCleanup).not.toHaveBeenCalled()
     vi.advanceTimersByTime(2000)
@@ -118,7 +126,10 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
   })
 
   test('endpoint keepUnusedDataFor', async () => {
-    store.dispatch(api.endpoints.query2.initiate('arg')).unsubscribe()
+    const promise = store.dispatch(api.endpoints.query2.initiate('arg'))
+    await promise
+    promise.unsubscribe()
+
     vi.advanceTimersByTime(34000)
     expect(onCleanup).not.toHaveBeenCalled()
     vi.advanceTimersByTime(2000)
@@ -127,7 +138,9 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
 
   test('endpoint keepUnusedDataFor: 0 ', async () => {
     expect(onCleanup).not.toHaveBeenCalled()
-    store.dispatch(api.endpoints.query3.initiate('arg')).unsubscribe()
+    const promise = store.dispatch(api.endpoints.query3.initiate('arg'))
+    await promise
+    promise.unsubscribe()
     expect(onCleanup).not.toHaveBeenCalled()
     vi.advanceTimersByTime(1)
     expect(onCleanup).toHaveBeenCalled()

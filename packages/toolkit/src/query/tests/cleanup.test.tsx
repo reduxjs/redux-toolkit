@@ -203,5 +203,6 @@ test('Minimizes the number of subscription dispatches when multiple components a
     'api/executeQuery/pending',
     'api/internalSubscriptions/subscriptionsUpdated',
     'api/executeQuery/fulfilled',
+    'api/internalSubscriptions/subscriptionsUpdated',
   ])
 }, 25000)

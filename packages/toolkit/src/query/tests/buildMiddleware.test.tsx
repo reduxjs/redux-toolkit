@@ -38,7 +38,8 @@ it('invalidates the specified tags', async () => {
     api.internalActions.middlewareRegistered.match,
     getBanana.matchPending,
     api.internalActions.subscriptionsUpdated.match,
-    getBanana.matchFulfilled
+    getBanana.matchFulfilled,
+    api.internalActions.subscriptionsUpdated.match
   )
 
   await storeRef.store.dispatch(api.util.invalidateTags(['Banana', 'Bread']))
@@ -51,9 +52,12 @@ it('invalidates the specified tags', async () => {
     getBanana.matchPending,
     api.internalActions.subscriptionsUpdated.match,
     getBanana.matchFulfilled,
+    api.internalActions.subscriptionsUpdated.match,
     api.util.invalidateTags.match,
     getBanana.matchPending,
+    api.internalActions.subscriptionsUpdated.match,
     getBanana.matchFulfilled,
+    api.internalActions.subscriptionsUpdated.match,
   ]
   expect(storeRef.store.getState().actions).toMatchSequence(...firstSequence)
 
@@ -67,9 +71,12 @@ it('invalidates the specified tags', async () => {
     getBread.matchPending,
     api.internalActions.subscriptionsUpdated.match,
     getBread.matchFulfilled,
+    api.internalActions.subscriptionsUpdated.match,
     api.util.invalidateTags.match,
     getBread.matchPending,
-    getBread.matchFulfilled
+    api.internalActions.subscriptionsUpdated.match,
+    getBread.matchFulfilled,
+    api.internalActions.subscriptionsUpdated.match
   )
 })
 

@@ -118,7 +118,9 @@ expect.extend({
       if (!matchers[i](actions[i])) {
         return {
           message: () =>
-            `Action ${actions[i].type} does not match sequence at position ${i}.`,
+            `Action ${actions[i].type} does not match sequence at position ${i}.
+All actions:
+${actions.map((a) => a.type).join('\n')}`,
           pass: false,
         }
       }
