@@ -16,6 +16,8 @@ import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
 import type { QueryResultSelectorResult } from './buildSelectors'
 import type { Dispatch } from 'redux'
 import { isNotNullish } from '../utils/isNotNullish'
+import type { DisposableIfAvailable } from '../utils/disposableIfAvailable'
+import { disposableIfAvailable } from '../utils/disposableIfAvailable'
 
 declare module './module' {
   export interface ApiEndpointQuery<
@@ -65,7 +67,7 @@ export type QueryActionCreatorResult<
   refetch(): QueryActionCreatorResult<D>
   updateSubscriptionOptions(options: SubscriptionOptions): void
   queryCacheKey: string
-}
+} & DisposableIfAvailable
 
 type StartMutationActionCreator<
   D extends MutationDefinition<any, any, any, any>
@@ -362,6 +364,16 @@ You must add the middleware for RTK-Query to function correctly!`
 
         const runningQuery = runningQueries.get(dispatch)?.[queryCacheKey]
         const selectFromState = () => selector(getState())
+        const unsubscribe = () => {
+          if (subscribe) {
+            dispatch(
+              unsubscribeQueryResult({
+                queryCacheKey,
+                requestId,
+              })
+            )
+          }
+        }
 
         const statePromise: QueryActionCreatorResult<any> = Object.assign(
           forceQueryFn
@@ -394,15 +406,7 @@ You must add the middleware for RTK-Query to function correctly!`
               dispatch(
                 queryAction(arg, { subscribe: false, forceRefetch: true })
               ),
-            unsubscribe() {
-              if (subscribe)
-                dispatch(
-                  unsubscribeQueryResult({
-                    queryCacheKey,
-                    requestId,
-                  })
-                )
-            },
+            unsubscribe,
             updateSubscriptionOptions(options: SubscriptionOptions) {
               statePromise.subscriptionOptions = options
               dispatch(
@@ -414,6 +418,7 @@ You must add the middleware for RTK-Query to function correctly!`
                 })
               )
             },
+            ...disposableIfAvailable(unsubscribe),
           }
         )
 
