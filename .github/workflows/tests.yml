@@ -11,7 +11,7 @@ jobs:
     outputs:
       toolkit: ${{ steps.filter.outputs.toolkit }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use node
         uses: actions/setup-node@v3
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use node
         uses: actions/setup-node@v3
@@ -98,7 +98,7 @@ jobs:
         ts: ['4.1', '4.2', '4.3', '4.4', '4.5', '4.6', '4.7', '4.8', '4.9.2-rc']
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use node
         uses: actions/setup-node@v3
@@ -152,7 +152,7 @@ jobs:
         working-directory: ./examples/publish-ci/${{ matrix.example }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use node
         uses: actions/setup-node@v3
