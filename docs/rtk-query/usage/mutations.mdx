@@ -24,6 +24,8 @@ If the `query` callback needs additional data to generate the URL, it should be 
 
 Mutation endpoints may also modify the response contents before the result is cached, define "tags" to identify cache invalidation, and provide cache entry lifecycle callbacks to run additional logic as cache entries are added and removed.
 
+When used with TypeScript, you should supply generics for the return type and the expected query argument: `build.mutation<ReturnType, ArgType>`. If there is no argument, use `void` for the arg type instead.
+
 ```ts title="Example of all mutation endpoint options"
 // file: types.ts noEmit
 export interface Post {
@@ -41,6 +43,7 @@ const api = createApi({
   }),
   tagTypes: ['Post'],
   endpoints: (build) => ({
+    // The mutation accepts a `Partial<Post>` arg, and returns a `Post`
     updatePost: build.mutation<Post, Partial<Post> & Pick<Post, 'id'>>({
       // highlight-start
       // note: an optional `queryFn` may be used in place of `query`
