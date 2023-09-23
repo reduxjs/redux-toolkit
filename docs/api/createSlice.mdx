@@ -165,7 +165,7 @@ See [the "Builder Callback Notation" section of the `createReducer` reference](.
 
 :::caution
 
-The "map object" notation is deprecated and will be removed in RTK 2.0. Please migrate to the "builder callback" notation, which offers much better TypeScript support and more flexibility.
+The "map object" notation is deprecated and will be removed in RTK 2.0. Please migrate to the "builder callback" notation, which offers much better TypeScript support and more flexibility. (There is [a "builder callback" codemod available to help with this migration](./codemods.mdx).)
 
 If you do not use the `builder callback` and are using TypeScript, you will need to use `actionCreator.type` or `actionCreator.toString()` to force the TS compiler to accept the computed property. Please see [Usage With TypeScript](./../usage/usage-with-typescript.md#type-safety-with-extraReducers) for further details.
 
