@@ -108,7 +108,9 @@ interface CounterState {
 }
 
 // Define the initial state using that type
-const initialState = { value: 0 } satisfies CounterState as CounterState
+const initialState: CounterState = {
+  value: 0,
+}
 // highlight-end
 
 export const counterSlice = createSlice({
@@ -147,7 +149,7 @@ In some cases, [TypeScript may unnecessarily tighten the type of the initial sta
 // Workaround: cast state instead of declaring variable type
 const initialState = {
   value: 0,
-} satisfies CounterState as CounterState
+} as CounterState
 ```
 
 ### Use Typed Hooks in Components
