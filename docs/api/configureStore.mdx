@@ -9,8 +9,28 @@ hide_title: true
 
 # `configureStore`
 
-A friendly abstraction over the standard Redux `createStore` function that adds good defaults
-to the store setup for a better development experience.
+The standard method for creating a Redux store. It uses the low-level Redux core `createStore` method internally, but wraps that to provide good defaults to the store setup for a better development experience.
+
+## Purpose and Behavior
+
+A standard Redux store setup typically requires multiple pieces of configuration:
+
+- Combining the slice reducers into the root reducer
+- Creating the middleware enhancer, usually with the thunk middleware or other side effects middleware, as well as middleware that might be used for development checks
+- Adding the Redux DevTools enhancer, and composing the enhancers together
+- Calling `createStore`
+
+Legacy Redux usage patterns typically required several dozen lines of copy-pasted boilerplate to achieve this.
+
+Redux Toolkit's `configureStore` simplifies that setup process, by doing all that work for you. One call to `configureStore` will:
+
+- Call `combineReducers` to combine your slices reducers into the root reducer function
+- Add the thunk middleware and called `applyMiddleware`
+- In development, automatically add more middleware to check for common mistakes like accidentally mutating the state
+- Automatically set up the Redux DevTools Extension connection
+- Call `createStore` to create a Redux store using that root reducer and those configuration options
+
+`configureStore` also offers an improved API and usage patterns compared to the original `createStore` by accepting named fields for `reducer`, `preloadedState`, `middleware`, `enhancers`, and `devtools`, as well as much better TS type inference.
 
 ## Parameters
 
