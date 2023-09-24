@@ -44,8 +44,14 @@ export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   // highlight-start
   extractRehydrationInfo(action, { reducerPath }) {
+    // when persisting the root reducer
     if (action.type === REHYDRATE) {
       return action.payload[reducerPath]
+    }
+
+    // when persisting the api reducer
+    if (action.type === REHYDRATE && action.key === 'key used with redux-persist') {
+      return action.payload
     }
   },
   // highlight-end
