@@ -34,6 +34,8 @@ If the `query` callback needs additional data to generate the URL, it should be 
 
 Query endpoints may also modify the response contents before the result is cached, define "tags" to identify cache invalidation, and provide cache entry lifecycle callbacks to run additional logic as cache entries are added and removed.
 
+When used with TypeScript, you should supply generics for the return type and the expected query argument: `build.query<ReturnType, ArgType>`. If there is no argument, use `void` for the arg type instead.
+
 ```ts title="Example of all query endpoint options"
 // file: types.ts noEmit
 export interface Post {
@@ -52,8 +54,9 @@ const api = createApi({
   }),
   tagTypes: ['Post'],
   endpoints: (build) => ({
+    // highlight-start
+    // The query accepts a number and returns a Post
     getPost: build.query<Post, number>({
-      // highlight-start
       // note: an optional `queryFn` may be used in place of `query`
       query: (id) => ({ url: `post/${id}` }),
       // Pick out data and prevent nested properties in a hook or selector

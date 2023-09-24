@@ -31,9 +31,9 @@ All these matchers can either be called with one or more thunks as arguments, in
 A higher-order function that accepts one or more of:
 
 - `redux-toolkit` action creator functions such as the ones produced by:
-  - [`createAction`](./createAction)
-  - [`createSlice`](./createSlice#return-value)
-  - [`createAsyncThunk`](./createAsyncThunk#promise-lifecycle-actions)
+  - [`createAction`](./createAction.mdx)
+  - [`createSlice`](./createSlice.mdx#return-value)
+  - [`createAsyncThunk`](./createAsyncThunk.mdx#promise-lifecycle-actions)
 - type guard functions
 - custom action creator functions that have a `.match` property that is a type guard
 
@@ -45,7 +45,7 @@ Accepts the same inputs as `isAllOf` and will return a type guard function that 
 
 ## `isAsyncThunkAction`
 
-A higher-order function that returns a type guard function that may be used to check whether an action was created by [`createAsyncThunk`](./createAsyncThunk).
+A higher-order function that returns a type guard function that may be used to check whether an action was created by [`createAsyncThunk`](./createAsyncThunk.mdx).
 
 ```ts title="isAsyncThunkAction usage"
 import { isAsyncThunkAction } from '@reduxjs/toolkit'
@@ -117,7 +117,7 @@ function handleRejectedAction(action: AnyAction) {
 
 ## `isRejectedWithValue`
 
-A higher-order function that returns a type guard function that may be used to check whether an action is a 'rejected' action creator from the `createAsyncThunk` promise lifecycle that was created by [`rejectWithValue`](./createAsyncThunk#handling-thunk-errors).
+A higher-order function that returns a type guard function that may be used to check whether an action is a 'rejected' action creator from the `createAsyncThunk` promise lifecycle that was created by [`rejectWithValue`](./createAsyncThunk.mdx#handling-thunk-errors).
 
 ```ts title="isRejectedWithValue usage"
 import { isRejectedWithValue } from '@reduxjs/toolkit'
@@ -145,10 +145,7 @@ we're able to easily use the same matcher for several cases in a type-safe manne
 First, let's examine an unnecessarily complex example:
 
 ```ts title="Example without using a matcher utility"
-import {
-  createAsyncThunk,
-  createReducer,
-} from '@reduxjs/toolkit'
+import { createAsyncThunk, createReducer } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 
 interface Data {
