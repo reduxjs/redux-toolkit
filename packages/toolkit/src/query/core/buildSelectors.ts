@@ -1,4 +1,4 @@
-import { createNextState, createSelector } from '@reduxjs/toolkit'
+import { createNextState, createSelector } from './rtkImports'
 import type {
   MutationSubState,
   QuerySubState,
