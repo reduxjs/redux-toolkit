@@ -182,6 +182,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ampproject/remapping@npm:^2.2.1":
+  version: 2.2.1
+  resolution: "@ampproject/remapping@npm:2.2.1"
+  dependencies:
+    "@jridgewell/gen-mapping": ^0.3.0
+    "@jridgewell/trace-mapping": ^0.3.9
+  checksum: 03c04fd526acc64a1f4df22651186f3e5ef0a9d6d6530ce4482ec9841269cf7a11dbb8af79237c282d721c5312024ff17529cd72cc4768c11e999b58e2302079
+  languageName: node
+  linkType: hard
+
 "@apideck/better-ajv-errors@npm:^0.3.1":
   version: 0.3.4
   resolution: "@apideck/better-ajv-errors@npm:0.3.4"
@@ -6766,6 +6776,7 @@ __metadata:
     axios: ^0.19.2
     console-testing-library: 0.6.1
     convert-source-map: ^1.7.0
+    esbuild-extra: ^0.3.1
     eslint: ^7.25.0
     eslint-config-prettier: ^8.3.0
     eslint-config-react-app: ^7.0.1
@@ -13866,6 +13877,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"enhanced-resolve@npm:^5.15.0":
+  version: 5.15.0
+  resolution: "enhanced-resolve@npm:5.15.0"
+  dependencies:
+    graceful-fs: ^4.2.4
+    tapable: ^2.2.0
+  checksum: fbd8cdc9263be71cc737aa8a7d6c57b43d6aa38f6cc75dde6fcd3598a130cc465f979d2f4d01bb3bf475acb43817749c79f8eef9be048683602ca91ab52e4f11
+  languageName: node
+  linkType: hard
+
 "enhanced-resolve@npm:^5.9.3":
   version: 5.9.3
   resolution: "enhanced-resolve@npm:5.9.3"
@@ -14018,6 +14039,20 @@ __metadata:
   version: 3.3.1
   resolution: "es6-promise@npm:3.3.1"
   checksum: ce4044009c2b78db18b15212338eb711cd8a4d485961bc9ec18bb24e8c1e91c96d3295b0fcf63066fc0fa1b0ade36da05e6657827d4336dece382be2429b8398
+  languageName: node
+  linkType: hard
+
+"esbuild-extra@npm:^0.3.1":
+  version: 0.3.1
+  resolution: "esbuild-extra@npm:0.3.1"
+  dependencies:
+    "@ampproject/remapping": ^2.2.1
+    convert-source-map: ^2.0.0
+    enhanced-resolve: ^5.15.0
+    tsconfck: ^2.1.1
+  peerDependencies:
+    esbuild: ">=0.15"
+  checksum: 3f4dff21ac44325a986b1ecf35fd07b0e87dbabef0ad480a0ce29fbc85220803ac4ed9514f50258a5fb81bb646d830e8d628d1b9cdc29de0d1eac89db58d9bd4
   languageName: node
   linkType: hard
 
@@ -28067,6 +28102,20 @@ fsevents@^1.2.7:
     typescript:
       optional: true
   checksum: c2a698b85d521298fe6f2435fbf2d3dc5834b423ea25abd321805ead3f399dbeedce7ca09492d7eb005b9d2c009c6b9587055bc3ab273dc6b9e40eefd7edb5b2
+  languageName: node
+  linkType: hard
+
+"tsconfck@npm:^2.1.1":
+  version: 2.1.2
+  resolution: "tsconfck@npm:2.1.2"
+  peerDependencies:
+    typescript: ^4.3.5 || ^5.0.0
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  bin:
+    tsconfck: bin/tsconfck.js
+  checksum: 6fd2f7de012a724f6b4bf48ae76cc7dae2b59dd5cad2dc50bac58d224d4ed7d5c43c6b26e55d3e00636f426f8b5373c996523d73b7830d05f8479a9b83282192
   languageName: node
   linkType: hard
 
