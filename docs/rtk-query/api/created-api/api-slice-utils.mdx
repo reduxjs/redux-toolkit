@@ -268,14 +268,12 @@ It returns an array that contains
 #### Example
 
 ```ts no-transpile
-dispatch(api.util.selectInvalidatedBy(state, ['Post']))
-dispatch(api.util.selectInvalidatedBy(state, [{ type: 'Post', id: 1 }]))
-dispatch(
-  api.util.selectInvalidatedBy(state, [
-    { type: 'Post', id: 1 },
-    { type: 'Post', id: 4 },
-  ])
-)
+const entries = api.util.selectInvalidatedBy(state, ['Post'])
+const entries = api.util.selectInvalidatedBy(state, [{ type: 'Post', id: 1 }])
+const entries = api.util.selectInvalidatedBy(state, [
+  { type: 'Post', id: 1 },
+  { type: 'Post', id: 4 },
+])
 ```
 
 ### `invalidateTags`
@@ -316,6 +314,39 @@ dispatch(
     { type: 'Post', id: 'LIST' },
   ])
 )
+```
+
+### `selectCachedArgsForQuery`
+
+#### Signature
+
+```ts no-transpile
+function selectCachedArgsForQuery(
+  state: RootState,
+  queryName: QueryName
+): Array<QueryArg>
+```
+
+- **Parameters**
+  - `state`: the root state
+  - `queryName`: a string matching an existing query endpoint name
+
+#### Description
+
+A function that can select arguments for currently cached queries.
+
+The function accepts two arguments
+
+- the root state and
+
+- the name of the query
+
+It returns an array that contains arguments used for each entry.
+
+#### Example
+
+```ts no-transpile
+const args = api.util.selectCachedArgsForQuery(state, 'getPosts')
 ```
 
 ### `resetApiState`

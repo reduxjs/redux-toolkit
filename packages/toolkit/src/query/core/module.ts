@@ -356,6 +356,16 @@ declare module '../apiTypes' {
           originalArgs: any
           queryCacheKey: string
         }>
+
+        /**
+         * A function to select all arguments currently cached for a given endpoint.
+         *
+         * Can be used for mutations that want to do optimistic updates instead of invalidating a set of tags, but don't know exactly what they need to update.
+         */
+        selectCachedArgsForQuery: <QueryName extends QueryKeys<Definitions>>(
+          state: RootState<Definitions, string, ReducerPath>,
+          queryName: QueryName
+        ) => Array<QueryArgFrom<Definitions[QueryName]>>
       }
       /**
        * Endpoints based on the input endpoints provided to `createApi`, containing `select` and `action matchers`.
@@ -527,13 +537,17 @@ export const coreModule = (): Module<CoreModule> => ({
 
     safeAssign(api, { reducer: reducer as any, middleware })
 
-    const { buildQuerySelector, buildMutationSelector, selectInvalidatedBy } =
-      buildSelectors({
-        serializeQueryArgs: serializeQueryArgs as any,
-        reducerPath,
-      })
+    const {
+      buildQuerySelector,
+      buildMutationSelector,
+      selectInvalidatedBy,
+      selectCachedArgsForQuery,
+    } = buildSelectors({
+      serializeQueryArgs: serializeQueryArgs as any,
+      reducerPath,
+    })
 
-    safeAssign(api.util, { selectInvalidatedBy })
+    safeAssign(api.util, { selectInvalidatedBy, selectCachedArgsForQuery })
 
     const {
       buildInitiateQuery,
