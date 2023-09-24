@@ -21,37 +21,29 @@ import type {
   SubscriptionOptions,
   QueryKeys,
   RootState,
-} from '@reduxjs/toolkit/query'
-import type {
   EndpointDefinitions,
   MutationDefinition,
   QueryDefinition,
   QueryArgFrom,
   ResultTypeFrom,
-} from '@reduxjs/toolkit/query'
-import type {
   QueryResultSelectorResult,
   MutationResultSelectorResult,
   SkipToken,
-} from '@reduxjs/toolkit/query'
-import type {
   QueryActionCreatorResult,
   MutationActionCreatorResult,
-} from '@reduxjs/toolkit/query'
-import type { SerializeQueryArgs } from '@reduxjs/toolkit/query'
-import { shallowEqual } from 'react-redux'
-import type { Api, ApiContext } from '@reduxjs/toolkit/query'
-import type {
+  SerializeQueryArgs,
+  Api,
+  ApiContext,
   TSHelpersId,
   TSHelpersNoInfer,
   TSHelpersOverride,
-} from '@reduxjs/toolkit/query'
-import type {
   ApiEndpointMutation,
   ApiEndpointQuery,
   CoreModule,
   PrefetchOptions,
 } from '@reduxjs/toolkit/query'
+
+import { shallowEqual } from 'react-redux'
 import type { ReactHooksModuleOptions } from './module'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import type { UninitializedValue } from './constants'

@@ -34,11 +34,12 @@ import {
   isPending,
   isRejected,
   isRejectedWithValue,
-} from '@reduxjs/toolkit'
+  createAsyncThunk,
+  SHOULD_AUTOBATCH,
+} from './rtkImports'
 import type { Patch } from 'immer'
 import { isDraftable, produceWithPatches } from 'immer'
 import type { ThunkAction, ThunkDispatch, AsyncThunk } from '@reduxjs/toolkit'
-import { createAsyncThunk, SHOULD_AUTOBATCH } from '@reduxjs/toolkit'
 
 import { HandledError } from '../HandledError'
 

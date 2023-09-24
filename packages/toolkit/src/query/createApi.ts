@@ -8,7 +8,7 @@ import type {
   EndpointDefinitions,
 } from './endpointDefinitions'
 import { DefinitionType, isQueryDefinition } from './endpointDefinitions'
-import { nanoid } from '@reduxjs/toolkit'
+import { nanoid } from './core/rtkImports'
 import type { UnknownAction } from '@reduxjs/toolkit'
 import type { NoInfer } from './tsHelpers'
 import { defaultMemoize } from 'reselect'

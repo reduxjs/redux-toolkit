@@ -8,7 +8,7 @@ import {
   isRejectedWithValue,
   createNextState,
   prepareAutoBatched,
-} from '@reduxjs/toolkit'
+} from './rtkImports'
 import type {
   QuerySubstateIdentifier,
   QuerySubState,
