@@ -10,7 +10,7 @@
     "@reduxjs/toolkit": "file:../../../packages/toolkit/package.tgz",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-redux": "^8.0.5"
+    "react-redux": "^9.0.0-alpha.1"
   },
   "devDependencies": {
     "resolve-esm": "^1.4.0"

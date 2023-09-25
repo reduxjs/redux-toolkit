@@ -52,6 +52,12 @@ export const api = createApi({
   // highlight-start
   extractRehydrationInfo(action, { reducerPath }) {
     if (isHydrateAction(action)) {
+      if ((action as any).key === 'key used with redux-persist') {
+        // when persisting the api reducer
+        return action.payload
+      }
+
+      // When persisting the root reducer
       return action.payload[reducerPath]
     }
   },

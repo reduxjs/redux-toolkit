@@ -16,6 +16,7 @@ import type {
   OmitFromUnion,
   CastAny,
   NonUndefined,
+  UnwrapPromise,
 } from './tsHelpers'
 import type { NEVER } from './fakeBaseQuery'
 import type { Api } from '@reduxjs/toolkit/query'
@@ -386,7 +387,7 @@ export interface QueryExtraOptions<
    * need to use this with the `serializeQueryArgs` or `forceRefetch` options to keep
    * an existing cache entry so that it can be updated.
    *
-   * Since this is wrapped with Immer, you , you may either mutate the `currentCacheValue` directly,
+   * Since this is wrapped with Immer, you may either mutate the `currentCacheValue` directly,
    * or return a new value, but _not_ both at once.
    *
    * Will only be called if the existing `currentCacheData` is _not_ `undefined` - on first response,
@@ -782,7 +783,9 @@ export type TransformedResponse<
 > = K extends keyof NewDefinitions
   ? NewDefinitions[K]['transformResponse'] extends undefined
     ? ResultType
-    : ReturnType<NonUndefined<NewDefinitions[K]['transformResponse']>>
+    : UnwrapPromise<
+        ReturnType<NonUndefined<NewDefinitions[K]['transformResponse']>>
+      >
   : ResultType
 
 export type OverrideResultType<Definition, NewResultType> =

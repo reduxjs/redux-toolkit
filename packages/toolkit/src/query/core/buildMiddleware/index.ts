@@ -4,7 +4,7 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import { isAction, createAction } from '@reduxjs/toolkit'
+import { isAction, createAction } from '../rtkImports'
 
 import type {
   EndpointDefinitions,

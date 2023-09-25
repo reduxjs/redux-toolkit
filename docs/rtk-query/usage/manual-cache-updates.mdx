@@ -3,7 +3,7 @@ id: manual-cache-updates
 title: Manual Cache Updates
 sidebar_label: Manual Cache Updates
 hide_title: true
-description: 'RTK Query > Usage > Manual Cache Updates: Updating cached data manually'
+description: 'RTK Query > Usage > Manual Cache Updates: Updating and creating cached data manually'
 ---
 
 &nbsp;
@@ -12,36 +12,38 @@ description: 'RTK Query > Usage > Manual Cache Updates: Updating cached data man
 
 ## Overview
 
-For most cases, in order to receive up to date data after a triggering a change in the backend,
-you can take advantage of `cache tag invalidation` to perform
-[automated re-fetching](./automated-refetching), which will cause a query to re-fetch its data
-when it has been told that a mutation has occurred which would cause its data to become out of date.
-In most cases, we recommend using `automated re-fetching` as a preference over `manual cache updates`,
-unless you encounter the need to do so.
+For most cases, in order to receive up to date data after a triggering a change in the backend, you can take advantage of cache tag invalidation to perform [automated re-fetching](./automated-refetching).  This will cause a query to re-fetch its data when it has been told that a mutation has occurred which would cause its data to become out of date.
 
-However, in some cases, you may want to update the cache manually. When you wish to update cache
-data that _already exists_ for query endpoints, you can do so using the
-[`updateQueryData`](../api/created-api/api-slice-utils.mdx#updatequerydata) thunk action
-available on the `util` object of your created API.
+We recommend using automated re-fetching as a preference over manual cache updates in most situations.
 
-Anywhere you have access to the `dispatch` method for the store instance, you can dispatch the
-result of calling `updateQueryData` in order to update the cache data for a query endpoint,
-if the corresponding cache entry exists.
+However, there _are_ use cases when manual cache updates are necessary, such as "optimistic" or "pessimistic" updates, or modifying data as part of cache entry lifecycles.
 
-Use cases for manual cache updates include:
+RTK Query exports thunks for these use cases, attached to `api.utils`:
 
+- [`updateQueryData`](../api/created-api/api-slice-utils.mdx#updatequerydata): updates an already existing cache entry 
+- [`upsertQueryData`](../api/created-api/api-slice-utils.mdx#upsertquerydata): creates or replaces cache entries
+
+Since these are thunks, you can dispatch them anywhere you have access to `dispatch`.
+
+### Updating existing cache entries
+
+For updates of existing cache entries, use [`updateQueryData`](../api/created-api/api-slice-utils.mdx#updatequerydata).
+
+`updateQueryData` is strictly intended to perform _updates_ to existing cache entries, not create new entries. If an `updateQueryData` thunk action is dispatched and the `endpointName` + `args` combination that does not match any existing cache entry, the provided `recipe` callback will not be called, and no `patches` or `inversePatches` will be returned.
+
+Use cases for manual update of cache entries:
 - Providing immediate feedback to the user when a mutation is attempted
-- After a mutation, updating a single item in a large list of items that is already cached,
-  rather than re-fetching the whole list
-- Debouncing a large number of mutations with immediate feedback as though they are being
-  applied, followed by a single request sent to the server to update the debounced attempts
+- After a mutation, updating a single item in a large list of items that is already cached, rather than re-fetching the whole list
+- Debouncing a large number of mutations with immediate feedback as though they are being applied, followed by a single request sent to the server to update the debounced attempts
 
-:::note
-`updateQueryData` is strictly intended to perform _updates_ to existing cache entries,
-not create new entries. If an `updateQueryData` thunk action is dispatched that corresponds to
-no existing cache entry for the provided `endpointName` + `args` combination, the provided `recipe`
-will not be called, and no `patches` or `inversePatches` will be returned.
-:::
+### Creating new cache entries or replacing existing ones
+
+To create or replace existing cache entries, use [`upsertQueryData`](../api/created-api/api-slice-utils.mdx#upsertquerydata).
+
+`upsertQueryData` is intended to perform _replacements_ to existing cache entries or _creation_ of new ones. Since `upsertQueryData` does not have access to the previous state of the cache entry, the update may be performed only as a replacement. In comparison, `updateQueryData` allows patching of the existing cache entry, but cannot create a new one.
+
+
+One example use case is [pessimistic updates](../usage/manual-cache-updates.mdx#pessimistic-updates).  If the client makes an API call to create a `Post`, the backend could return its complete data including the `id`. Then we can use `upsertQueryData` to create a new cache entry for the `getPostById(id)` query, preventing an extra fetch to retrieve the item later.
 
 ## Recipes
 
@@ -57,7 +59,7 @@ The core concepts for an optimistic update are:
 - when you start a query or mutation, `onQueryStarted` will be executed
 - you manually update the cached data by dispatching `api.util.updateQueryData` within `onQueryStarted`
 - then, in the case that `queryFulfilled` rejects:
-  - you roll it back via the `.undo` property of the object you got back from the earlier dispatch,  
+  - you roll it back via the `.undo` property of the object you got back from the earlier dispatch,
     OR
   - you invalidate the cache data via `api.util.invalidateTags` to trigger a full re-fetch of the data
 
@@ -158,6 +160,8 @@ The core concepts for a pessimistic update are:
   server in the `data` property
 - you manually update the cached data by dispatching `api.util.updateQueryData` within
   `onQueryStarted`, using the data in the response from the server for your draft updates
+- you manually create a new cache entry by dispatching `api.util.upsertQueryData` within `onQueryStarted`,
+  using the complete Post object returned by backend.
 
 ```ts title="Pessimistic update mutation example (async await)"
 // file: types.ts noEmit
@@ -194,6 +198,23 @@ const api = createApi({
             api.util.updateQueryData('getPost', id, (draft) => {
               Object.assign(draft, updatedPost)
             })
+          )
+        } catch {}
+      },
+      // highlight-end
+    }),
+    createPost: build.mutation<Post, Pick<Post, 'id'> & Partial<Post>>({
+      query: ({ id, ...body }) => ({
+        url: `post/${id}`,
+        method: 'POST',
+        body,
+      }),
+      // highlight-start
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        try {
+          const { data: createdPost } = await queryFulfilled
+          const patchResult = dispatch(
+            api.util.upsertQueryData('getPost', id, createdPost)
           )
         } catch {}
       },

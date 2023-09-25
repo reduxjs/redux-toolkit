@@ -1,6 +1,6 @@
 {
   "name": "@reduxjs/toolkit",
-  "version": "2.0.0-beta.1",
+  "version": "2.0.0-beta.2",
   "description": "The official, opinionated, batteries-included toolset for efficient Redux development",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
@@ -66,6 +66,7 @@
     "axios": "^0.19.2",
     "console-testing-library": "0.6.1",
     "convert-source-map": "^1.7.0",
+    "esbuild-extra": "^0.3.1",
     "eslint": "^7.25.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-config-react-app": "^7.0.1",

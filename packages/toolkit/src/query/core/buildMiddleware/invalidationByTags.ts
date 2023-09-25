@@ -1,4 +1,4 @@
-import { isAnyOf, isFulfilled, isRejectedWithValue } from '@reduxjs/toolkit'
+import { isAnyOf, isFulfilled, isRejectedWithValue } from '../rtkImports'
 
 import type { FullTagDescription } from '../../endpointDefinitions'
 import { calculateProvidedBy } from '../../endpointDefinitions'
