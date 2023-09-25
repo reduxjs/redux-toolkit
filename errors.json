@@ -27,5 +27,7 @@
   "25": "When using `fakeBaseQuery`, all queries & mutations must use the `queryFn` definition syntax.",
   "26": "Warning: Middleware for RTK-Query API at reducerPath \"\" has not been added to the store.\nYou must add the middleware for RTK-Query to function correctly!",
   "27": "Warning: Middleware for RTK-Query API at reducerPath \"\" has not been added to the store.\n    You must add the middleware for RTK-Query to function correctly!",
-  "28": "Cannot refetch a query that has not been started yet."
+  "28": "Cannot refetch a query that has not been started yet.",
+  "29": "`builder.addCase` cannot be called with an empty action type",
+  "30": "`builder.addCase` cannot be called with two reducers for the same action type"
 }
