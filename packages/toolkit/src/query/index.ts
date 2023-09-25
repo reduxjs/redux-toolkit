@@ -3,15 +3,16 @@
 import { formatProdErrorMessage } from '@reduxjs/toolkit'
 
 export type {
-  QuerySubState,
-  SubscriptionOptions,
-  QueryKeys,
-  RootState,
-  QueryCacheKey,
   CombinedState,
+  QueryCacheKey,
+  QueryKeys,
+  QuerySubState,
+  RootState,
+  SubscriptionOptions,
 } from './core/apiState'
 export { QueryStatus } from './core/apiState'
-export type { Api, ApiContext, Module, ApiModules } from './apiTypes'
+export type { Api, ApiContext, ApiModules, Module } from './apiTypes'
+
 export type {
   BaseQueryApi,
   BaseQueryEnhancer,

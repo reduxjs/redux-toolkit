@@ -21,6 +21,8 @@ import type {
   SubscriptionOptions,
   QueryKeys,
   RootState,
+} from '@reduxjs/toolkit/query'
+import type {
   EndpointDefinitions,
   MutationDefinition,
   QueryDefinition,
