@@ -88,7 +88,7 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
     })
 
     if (didMutate) {
-      state.ids = state.ids.filter((id) => id in state.entities) as Id[] | Draft<Id[]>
+      state.ids = (state.ids as Id[]).filter((id) => id in state.entities) as Id[] | Draft<Id[]>
     }
   }
 
