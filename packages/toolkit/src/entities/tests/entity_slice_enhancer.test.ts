@@ -1,44 +1,44 @@
 import { createEntityAdapter, createSlice } from "../..";
-import type { PayloadAction, Slice, SliceCaseReducers } from "../..";
-import type { DraftableIdSelector, EntityAdapter, EntityState, IdSelector } from "../models";
+import type { PayloadAction, Slice, SliceCaseReducers, UnknownAction } from "../..";
+import type { EntityId, EntityState, IdSelector } from "../models";
 import type { BookModel } from "./fixtures/book";
 
 describe('Entity Slice Enhancer', () => {
-  let slice: Slice<EntityState<BookModel>>;
+  let slice: Slice<EntityState<BookModel, BookModel['id']>>;
 
   beforeEach(() => {
     const indieSlice = entitySliceEnhancer({
       name: 'book',
-      selectDraftableId: (book: BookModel) => book.id
+      selectId: (book: BookModel) => book.id
     })
     slice = indieSlice
   })
 
   it('exposes oneAdded', () => {
-    const oneAdded = slice.reducer(undefined, slice.actions.oneAdded({
+    const book = {
       id: '0',
       title: 'Der Steppenwolf',
       author: 'Herman Hesse'
-    }))
-    expect(oneAdded.entities['0']?.id).toBe('0')
+    }
+    const action = slice.actions.oneAdded(book)
+    const oneAdded = slice.reducer(undefined, action as UnknownAction)
+    expect(oneAdded.entities['0']).toBe(book)
   })
 })
 
-interface EntitySliceArgs<T> {
+interface EntitySliceArgs<T, Id extends EntityId> {
   name: string
-  selectId?: IdSelector<T> // unusable
-  selectDraftableId?: DraftableIdSelector<T>
+  selectId: IdSelector<T, Id>
   modelReducer?: SliceCaseReducers<T>
 }
 
-function entitySliceEnhancer<T>({
+function entitySliceEnhancer<T, Id extends EntityId>({
   name,
-  selectId: unusableSelectId,
-  selectDraftableId,
+  selectId,
   modelReducer
-}: EntitySliceArgs<T>) {
+}: EntitySliceArgs<T, Id>) {
   const modelAdapter = createEntityAdapter({
-    selectId: selectDraftableId // unusableSelectId would give an interesting error
+    selectId
   });
 
   return createSlice({

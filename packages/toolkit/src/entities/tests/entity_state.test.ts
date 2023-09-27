@@ -6,7 +6,7 @@ import { createSlice } from '../../createSlice'
 import type { BookModel } from './fixtures/book'
 
 describe('Entity State', () => {
-  let adapter: EntityAdapter<string, BookModel>
+  let adapter: EntityAdapter<BookModel, string>
 
   beforeEach(() => {
     adapter = createEntityAdapter({

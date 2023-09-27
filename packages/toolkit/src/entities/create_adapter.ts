@@ -1,4 +1,3 @@
-import type { Draft } from 'immer'
 import type {
   EntityDefinition,
   Comparer,
