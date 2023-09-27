@@ -1,6 +1,5 @@
 import { expectExactType, expectUnknown } from './helpers'
-import { IsUnknown } from '@internal/tsHelpers'
-import type { AnyAction } from 'redux'
+import type { UnknownAction } from 'redux'
 import type { SerializedError } from '../../src'
 import {
   createAction,
@@ -19,7 +18,7 @@ import {
 /*
  * Test: isAnyOf correctly narrows types when used with action creators
  */
-function isAnyOfActionTest(action: AnyAction) {
+function isAnyOfActionTest(action: UnknownAction) {
   const actionA = createAction('a', () => {
     return {
       payload: {
@@ -52,7 +51,7 @@ function isAnyOfActionTest(action: AnyAction) {
 /*
  * Test: isAnyOf correctly narrows types when used with async thunks
  */
-function isAnyOfThunkTest(action: AnyAction) {
+function isAnyOfThunkTest(action: UnknownAction) {
   const asyncThunk1 = createAsyncThunk<{ prop1: number; prop3: number }>(
     'asyncThunk1',
 
@@ -89,7 +88,7 @@ function isAnyOfThunkTest(action: AnyAction) {
 /*
  * Test: isAnyOf correctly narrows types when used with type guards
  */
-function isAnyOfTypeGuardTest(action: AnyAction) {
+function isAnyOfTypeGuardTest(action: UnknownAction) {
   interface ActionA {
     type: 'a'
     payload: {
@@ -141,7 +140,7 @@ const isSpecialAction = (v: any): v is SpecialAction => {
  * Test: isAllOf correctly narrows types when used with action creators
  *       and type guards
  */
-function isAllOfActionTest(action: AnyAction) {
+function isAllOfActionTest(action: UnknownAction) {
   const actionA = createAction('a', () => {
     return {
       payload: {
@@ -166,7 +165,7 @@ function isAllOfActionTest(action: AnyAction) {
  * Test: isAllOf correctly narrows types when used with async thunks
  *       and type guards
  */
-function isAllOfThunkTest(action: AnyAction) {
+function isAllOfThunkTest(action: UnknownAction) {
   const asyncThunk1 = createAsyncThunk<{ prop1: number; prop3: number }>(
     'asyncThunk1',
 
@@ -192,7 +191,7 @@ function isAllOfThunkTest(action: AnyAction) {
 /*
  * Test: isAnyOf correctly narrows types when used with type guards
  */
-function isAllOfTypeGuardTest(action: AnyAction) {
+function isAllOfTypeGuardTest(action: UnknownAction) {
   interface ActionA {
     type: 'a'
     payload: {
@@ -219,7 +218,7 @@ function isAllOfTypeGuardTest(action: AnyAction) {
 /*
  * Test: isPending correctly narrows types
  */
-function isPendingTest(action: AnyAction) {
+function isPendingTest(action: UnknownAction) {
   if (isPending(action)) {
     expectExactType<undefined>(action.payload)
     // @ts-expect-error
@@ -238,7 +237,7 @@ function isPendingTest(action: AnyAction) {
 /*
  * Test: isRejected correctly narrows types
  */
-function isRejectedTest(action: AnyAction) {
+function isRejectedTest(action: UnknownAction) {
   if (isRejected(action)) {
     // might be there if rejected with payload
     expectUnknown(action.payload)
@@ -257,7 +256,7 @@ function isRejectedTest(action: AnyAction) {
 /*
  * Test: isFulfilled correctly narrows types
  */
-function isFulfilledTest(action: AnyAction) {
+function isFulfilledTest(action: UnknownAction) {
   if (isFulfilled(action)) {
     expectUnknown(action.payload)
     // @ts-expect-error
@@ -275,7 +274,7 @@ function isFulfilledTest(action: AnyAction) {
 /*
  * Test: isAsyncThunkAction correctly narrows types
  */
-function isAsyncThunkActionTest(action: AnyAction) {
+function isAsyncThunkActionTest(action: UnknownAction) {
   if (isAsyncThunkAction(action)) {
     expectUnknown(action.payload)
     // do not expect an error property because pending/fulfilled lack it
@@ -296,7 +295,7 @@ function isAsyncThunkActionTest(action: AnyAction) {
 /*
  * Test: isRejectedWithValue correctly narrows types
  */
-function isRejectedWithValueTest(action: AnyAction) {
+function isRejectedWithValueTest(action: UnknownAction) {
   if (isRejectedWithValue(action)) {
     expectUnknown(action.payload)
     expectExactType<SerializedError>(action.error)

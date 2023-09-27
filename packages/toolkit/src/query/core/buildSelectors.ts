@@ -1,10 +1,12 @@
-import { createNextState, createSelector } from '@reduxjs/toolkit'
+import { createNextState, createSelector } from './rtkImports'
 import type {
   MutationSubState,
   QuerySubState,
   RootState as _RootState,
   RequestStatusFlags,
   QueryCacheKey,
+  QueryKeys,
+  QueryState,
 } from './apiState'
 import { QueryStatus, getRequestStatusFlags } from './apiState'
 import type {
@@ -45,8 +47,6 @@ export type SkipToken = typeof skipToken
  * return an uninitialized state.
  */
 export const skipToken = /* @__PURE__ */ Symbol.for('RTKQ/skipToken')
-/** @deprecated renamed to `skipToken` */
-export const skipSelector = skipToken
 
 declare module './module' {
   export interface ApiEndpointQuery<
@@ -132,7 +132,12 @@ export function buildSelectors<
   const selectSkippedQuery = (state: RootState) => defaultQuerySubState
   const selectSkippedMutation = (state: RootState) => defaultMutationSubState
 
-  return { buildQuerySelector, buildMutationSelector, selectInvalidatedBy }
+  return {
+    buildQuerySelector,
+    buildMutationSelector,
+    selectInvalidatedBy,
+    selectCachedArgsForQuery,
+  }
 
   function withRequestFlags<T extends { status: QueryStatus }>(
     substate: T
@@ -239,5 +244,23 @@ export function buildSelectors<
           : []
       })
     )
+  }
+
+  function selectCachedArgsForQuery<QueryName extends QueryKeys<Definitions>>(
+    state: RootState,
+    queryName: QueryName
+  ): Array<QueryArgFrom<Definitions[QueryName]>> {
+    return Object.values(state[reducerPath].queries as QueryState<any>)
+      .filter(
+        (
+          entry
+        ): entry is Exclude<
+          QuerySubState<Definitions[QueryName]>,
+          { status: QueryStatus.uninitialized }
+        > =>
+          entry?.endpointName === queryName &&
+          entry.status !== QueryStatus.uninitialized
+      )
+      .map((entry) => entry.originalArgs)
   }
 }

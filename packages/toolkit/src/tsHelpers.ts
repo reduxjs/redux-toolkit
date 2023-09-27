@@ -1,5 +1,12 @@
 import type { Middleware, StoreEnhancer } from 'redux'
-import type { EnhancerArray, MiddlewareArray } from './utils'
+import type { Tuple } from './utils'
+
+export function safeAssign<T extends object>(
+  target: T,
+  ...args: Array<Partial<NoInfer<T>>>
+) {
+  Object.assign(target, ...args)
+}
 
 /**
  * return True if T is `any`, otherwise return False
@@ -10,6 +17,8 @@ import type { EnhancerArray, MiddlewareArray } from './utils'
 export type IsAny<T, True, False = never> =
   // test if we are going the left AND right path in the condition
   true | false extends (T extends never ? true : false) ? True : False
+
+export type CastAny<T, CastTo> = IsAny<T, CastTo, T>
 
 /**
  * return True if T is `unknown`, otherwise return False
@@ -84,7 +93,7 @@ export type ExcludeFromTuple<T, E, Acc extends unknown[] = []> = T extends [
   : Acc
 
 type ExtractDispatchFromMiddlewareTuple<
-  MiddlewareTuple extends any[],
+  MiddlewareTuple extends readonly any[],
   Acc extends {}
 > = MiddlewareTuple extends [infer Head, ...infer Tail]
   ? ExtractDispatchFromMiddlewareTuple<
@@ -93,7 +102,7 @@ type ExtractDispatchFromMiddlewareTuple<
     >
   : Acc
 
-export type ExtractDispatchExtensions<M> = M extends MiddlewareArray<
+export type ExtractDispatchExtensions<M> = M extends Tuple<
   infer MiddlewareTuple
 >
   ? ExtractDispatchFromMiddlewareTuple<MiddlewareTuple, {}>
@@ -102,7 +111,7 @@ export type ExtractDispatchExtensions<M> = M extends MiddlewareArray<
   : never
 
 type ExtractStoreExtensionsFromEnhancerTuple<
-  EnhancerTuple extends any[],
+  EnhancerTuple extends readonly any[],
   Acc extends {}
 > = EnhancerTuple extends [infer Head, ...infer Tail]
   ? ExtractStoreExtensionsFromEnhancerTuple<
@@ -111,9 +120,7 @@ type ExtractStoreExtensionsFromEnhancerTuple<
     >
   : Acc
 
-export type ExtractStoreExtensions<E> = E extends EnhancerArray<
-  infer EnhancerTuple
->
+export type ExtractStoreExtensions<E> = E extends Tuple<infer EnhancerTuple>
   ? ExtractStoreExtensionsFromEnhancerTuple<EnhancerTuple, {}>
   : E extends ReadonlyArray<StoreEnhancer>
   ? UnionToIntersection<
@@ -126,7 +133,7 @@ export type ExtractStoreExtensions<E> = E extends EnhancerArray<
   : never
 
 type ExtractStateExtensionsFromEnhancerTuple<
-  EnhancerTuple extends any[],
+  EnhancerTuple extends readonly any[],
   Acc extends {}
 > = EnhancerTuple extends [infer Head, ...infer Tail]
   ? ExtractStateExtensionsFromEnhancerTuple<
@@ -138,9 +145,7 @@ type ExtractStateExtensionsFromEnhancerTuple<
     >
   : Acc
 
-export type ExtractStateExtensions<E> = E extends EnhancerArray<
-  infer EnhancerTuple
->
+export type ExtractStateExtensions<E> = E extends Tuple<infer EnhancerTuple>
   ? ExtractStateExtensionsFromEnhancerTuple<EnhancerTuple, {}>
   : E extends ReadonlyArray<StoreEnhancer>
   ? UnionToIntersection<
@@ -161,7 +166,15 @@ export type ExtractStateExtensions<E> = E extends EnhancerArray<
  */
 export type NoInfer<T> = [T][T extends any ? 0 : never]
 
+export type NonUndefined<T> = T extends undefined ? never : T
+
 export type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>
+
+export type WithRequiredProp<T, K extends keyof T> = Omit<T, K> &
+  Required<Pick<T, K>>
+
+export type WithOptionalProp<T, K extends keyof T> = Omit<T, K> &
+  Partial<Pick<T, K>>
 
 export interface TypeGuard<T> {
   (value: any): value is T
@@ -188,3 +201,7 @@ export type ActionFromMatcher<M extends Matcher<any>> = M extends Matcher<
   : never
 
 export type Id<T> = { [K in keyof T]: T[K] } & {}
+
+export type Tail<T extends any[]> = T extends [any, ...infer Tail]
+  ? Tail
+  : never

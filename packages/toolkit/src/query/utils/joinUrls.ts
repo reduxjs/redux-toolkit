@@ -22,5 +22,5 @@ export function joinUrls(
   base = withoutTrailingSlash(base)
   url = withoutLeadingSlash(url)
 
-  return `${base}${delimiter}${url}`;
+  return `${base}${delimiter}${url}`
 }

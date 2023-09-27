@@ -1,4 +1,4 @@
-import createNextState, { isDraftable } from 'immer'
+import { produce as createNextState, isDraftable } from 'immer'
 import type { Middleware, StoreEnhancer } from 'redux'
 
 export function getTimeMeasureUtils(maxDelay: number, fnName: string) {
@@ -27,89 +27,60 @@ export function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-/**
- * @public
- */
-export class MiddlewareArray<
-  Middlewares extends Middleware<any, any>[]
-> extends Array<Middlewares[number]> {
-  constructor(...items: Middlewares)
-  constructor(...args: any[]) {
-    super(...args)
-    Object.setPrototypeOf(this, MiddlewareArray.prototype)
-  }
-
-  static get [Symbol.species]() {
-    return MiddlewareArray as any
-  }
-
-  concat<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
-    items: AdditionalMiddlewares
-  ): MiddlewareArray<[...Middlewares, ...AdditionalMiddlewares]>
-
-  concat<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
-    ...items: AdditionalMiddlewares
-  ): MiddlewareArray<[...Middlewares, ...AdditionalMiddlewares]>
-  concat(...arr: any[]) {
-    return super.concat.apply(this, arr)
-  }
-
-  prepend<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
-    items: AdditionalMiddlewares
-  ): MiddlewareArray<[...AdditionalMiddlewares, ...Middlewares]>
-
-  prepend<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
-    ...items: AdditionalMiddlewares
-  ): MiddlewareArray<[...AdditionalMiddlewares, ...Middlewares]>
-
-  prepend(...arr: any[]) {
-    if (arr.length === 1 && Array.isArray(arr[0])) {
-      return new MiddlewareArray(...arr[0].concat(this))
+export function find<T>(
+  iterable: Iterable<T>,
+  comparator: (item: T) => boolean
+): T | undefined {
+  for (const entry of iterable) {
+    if (comparator(entry)) {
+      return entry
     }
-    return new MiddlewareArray(...arr.concat(this))
   }
+
+  return undefined
 }
 
-/**
- * @public
- */
-export class EnhancerArray<
-  Enhancers extends StoreEnhancer<any, any>[]
-> extends Array<Enhancers[number]> {
-  constructor(...items: Enhancers)
-  constructor(...args: any[]) {
-    super(...args)
-    Object.setPrototypeOf(this, EnhancerArray.prototype)
+export class Tuple<Items extends ReadonlyArray<unknown> = []> extends Array<
+  Items[number]
+> {
+  constructor(length: number)
+  constructor(...items: Items)
+  constructor(...items: any[]) {
+    super(...items)
+    Object.setPrototypeOf(this, Tuple.prototype)
   }
 
   static get [Symbol.species]() {
-    return EnhancerArray as any
+    return Tuple as any
   }
 
-  concat<AdditionalEnhancers extends ReadonlyArray<StoreEnhancer<any, any>>>(
-    items: AdditionalEnhancers
-  ): EnhancerArray<[...Enhancers, ...AdditionalEnhancers]>
-
-  concat<AdditionalEnhancers extends ReadonlyArray<StoreEnhancer<any, any>>>(
-    ...items: AdditionalEnhancers
-  ): EnhancerArray<[...Enhancers, ...AdditionalEnhancers]>
+  concat<AdditionalItems extends ReadonlyArray<unknown>>(
+    items: Tuple<AdditionalItems>
+  ): Tuple<[...Items, ...AdditionalItems]>
+  concat<AdditionalItems extends ReadonlyArray<unknown>>(
+    items: AdditionalItems
+  ): Tuple<[...Items, ...AdditionalItems]>
+  concat<AdditionalItems extends ReadonlyArray<unknown>>(
+    ...items: AdditionalItems
+  ): Tuple<[...Items, ...AdditionalItems]>
   concat(...arr: any[]) {
     return super.concat.apply(this, arr)
   }
 
-  prepend<AdditionalEnhancers extends ReadonlyArray<StoreEnhancer<any, any>>>(
-    items: AdditionalEnhancers
-  ): EnhancerArray<[...AdditionalEnhancers, ...Enhancers]>
-
-  prepend<AdditionalEnhancers extends ReadonlyArray<StoreEnhancer<any, any>>>(
-    ...items: AdditionalEnhancers
-  ): EnhancerArray<[...AdditionalEnhancers, ...Enhancers]>
-
+  prepend<AdditionalItems extends ReadonlyArray<unknown>>(
+    items: Tuple<AdditionalItems>
+  ): Tuple<[...AdditionalItems, ...Items]>
+  prepend<AdditionalItems extends ReadonlyArray<unknown>>(
+    items: AdditionalItems
+  ): Tuple<[...AdditionalItems, ...Items]>
+  prepend<AdditionalItems extends ReadonlyArray<unknown>>(
+    ...items: AdditionalItems
+  ): Tuple<[...AdditionalItems, ...Items]>
   prepend(...arr: any[]) {
     if (arr.length === 1 && Array.isArray(arr[0])) {
-      return new EnhancerArray(...arr[0].concat(this))
+      return new Tuple(...arr[0].concat(this))
     }
-    return new EnhancerArray(...arr.concat(this))
+    return new Tuple(...arr.concat(this))
   }
 }
 

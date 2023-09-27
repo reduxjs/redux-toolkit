@@ -18,9 +18,11 @@ For more details on using `createSelector`, see:
 - [Idiomatic Redux: Using Reselect Selectors for Encapsulation and Performance](https://blog.isquaredsoftware.com/2017/12/idiomatic-redux-using-reselect-selectors/)
 - [React/Redux Links: Reducers and Selectors](https://github.com/markerikson/react-redux-links/blob/master/redux-reducers-selectors.md)
 
-> **Note**: Prior to v0.7, RTK re-exported `createSelector` from [`selectorator`](https://github.com/planttheidea/selectorator), which
-> allowed using string keypaths as input selectors. This was removed, as it ultimately did not provide enough benefits, and
-> the string keypaths made static typing for selectors difficult.
+:::note
+Prior to v0.7, RTK re-exported `createSelector` from [`selectorator`](https://github.com/planttheidea/selectorator), which
+allowed using string keypaths as input selectors. This was removed, as it ultimately did not provide enough benefits, and
+the string keypaths made static typing for selectors difficult.
+:::
 
 # `createDraftSafeSelector`
 
@@ -37,7 +39,7 @@ All selectors created by `entityAdapter.getSelectors` are "draft safe" selectors
 
 Example:
 
-```js
+```ts no-transpile
 const selectSelf = (state: State) => state
 const unsafeSelector = createSelector(selectSelf, (state) => state.value)
 const draftSafeSelector = createDraftSafeSelector(
@@ -62,3 +64,25 @@ After executing that, `unsafe1` and `unsafe2` will be of the same value, because
 executed on the same object - but `safe2` will actually be different from `safe1` (with the updated value of `2`),
 because the safe selector detected that it was executed on a Immer draft object and recalculated using the current
 value instead of returning a cached value.
+
+:::tip `createDraftSafeSelectorCreator`
+
+RTK also exports a `createDraftSafeSelectorCreator` function, the "draft safe" equivalent of [`createSelectorCreator`](https://github.com/reduxjs/reselect#createselectorcreatormemoize-memoizeoptions).
+
+```ts no-transpile
+import {
+  createDraftSafeSelectorCreator,
+  weakMapMemoize,
+} from '@reduxjs/toolkit'
+
+const createWeakMapDraftSafeSelector =
+  createDraftSafeSelectorCreator(weakMapMemoize)
+
+const selectSelf = (state: State) => state
+const draftSafeSelector = createWeakMapDraftSafeSelector(
+  selectSelf,
+  (state) => state.value
+)
+```
+
+:::

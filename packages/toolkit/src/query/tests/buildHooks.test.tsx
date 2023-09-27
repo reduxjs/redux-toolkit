@@ -1,4 +1,6 @@
 import * as React from 'react'
+import type { SpyInstance } from 'vitest'
+import { vi } from 'vitest'
 import type {
   UseMutation,
   UseQuery,
@@ -30,7 +32,7 @@ import {
   waitMs,
 } from './helpers'
 import { server } from './mocks/server'
-import type { AnyAction } from 'redux'
+import type { UnknownAction } from 'redux'
 import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
 import type { SerializedError } from '@reduxjs/toolkit'
 import { createListenerMiddleware, configureStore } from '@reduxjs/toolkit'
@@ -124,7 +126,7 @@ const api = createApi({
 
 const listenerMiddleware = createListenerMiddleware()
 
-let actions: AnyAction[] = []
+let actions: UnknownAction[] = []
 
 const storeRef = setupApiStore(
   api,
@@ -675,7 +677,7 @@ describe('hooks tests', () => {
         )
       })
       test('with `selectFromResult`', async () => {
-        const selectFromResult = jest.fn((x) => x)
+        const selectFromResult = vi.fn((x) => x)
         const { result } = renderHook(
           () => api.endpoints.getUser.useQuery(5, { selectFromResult }),
           {
@@ -809,10 +811,10 @@ describe('hooks tests', () => {
     })
 
     describe('Hook middleware requirements', () => {
-      let mock: jest.SpyInstance
+      let mock: SpyInstance
 
       beforeEach(() => {
-        mock = jest.spyOn(console, 'error').mockImplementation(() => {})
+        mock = vi.spyOn(console, 'error').mockImplementation(() => {})
       })
 
       afterEach(() => {
@@ -1343,7 +1345,6 @@ describe('hooks tests', () => {
           expectType<() => void>(res.abort)
           expectType<() => Promise<{ name: string }>>(res.unwrap)
           expectType<() => void>(res.reset)
-          expectType<() => void>(res.unsubscribe)
 
           // abort the mutation immediately to force an error
           res.abort()
@@ -1747,7 +1748,7 @@ describe('hooks tests', () => {
     })
 
     const storeRef = setupApiStore(api, {
-      actions(state: AnyAction[] = [], action: AnyAction) {
+      actions(state: UnknownAction[] = [], action: UnknownAction) {
         return [...state, action]
       },
     })

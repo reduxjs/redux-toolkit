@@ -29,7 +29,8 @@ Some of the TS types on this page are pseudocode to illustrate intent, as the ac
 const updateQueryData = (
   endpointName: string,
   args: any,
-  updateRecipe: (draft: Draft<CachedState>) => void
+  updateRecipe: (draft: Draft<CachedState>) => void,
+  updateProvided?: boolean
 ) => ThunkAction<PatchCollection, PartialState, any, AnyAction>;
 
 interface PatchCollection {
@@ -43,6 +44,7 @@ interface PatchCollection {
   - `endpointName`: a string matching an existing endpoint name
   - `args`: an argument matching that used for a previous query call, used to determine which cached dataset needs to be updated
   - `updateRecipe`: an Immer `produce` callback that can apply changes to the cached state
+  - `updateProvided`: a boolean indicating whether the endpoint's provided tags should be re-calculated based on the updated cache. Defaults to `false`.
 
 #### Description
 
@@ -119,7 +121,7 @@ const upsertQueryData = <T>(
   endpointName: string,
   args: any,
   newEntryData: T
-) => ThunkAction<Promise<CacheEntry<T>>, PartialState, any, AnyAction>;
+) => ThunkAction<Promise<CacheEntry<T>>, PartialState, any, UnknownAction>;
 ```
 
 - **Parameters**
@@ -155,14 +157,16 @@ await dispatch(
 const patchQueryData = (
   endpointName: string,
   args: any
-  patches: Patch[]
-) => ThunkAction<void, PartialState, any, AnyAction>;
+  patches: Patch[],
+  updateProvided?: boolean
+) => ThunkAction<void, PartialState, any, UnknownAction>;
 ```
 
 - **Parameters**
   - `endpointName`: a string matching an existing endpoint name
   - `args`: a cache key, used to determine which cached dataset needs to be updated
   - `patches`: an array of patches (or inverse patches) to apply to cached state. These would typically be obtained from the result of dispatching [`updateQueryData`](#updatequerydata)
+  - `updateProvided`: a boolean indicating whether the endpoint's provided tags should be re-calculated based on the updated cache. Defaults to `false`.
 
 #### Description
 
@@ -203,7 +207,7 @@ const prefetch = (
   endpointName: string,
   arg: any,
   options: PrefetchOptions
-) => ThunkAction<void, any, any, AnyAction>;
+) => ThunkAction<void, any, any, UnknownAction>;
 ```
 
 - **Parameters**
@@ -229,51 +233,61 @@ dispatch(api.util.prefetch('getPosts', undefined, { force: true }))
 ```
 
 ### `selectInvalidatedBy`
- 
+
 #### Signature
- 
+
 ```ts no-transpile
- function selectInvalidatedBy(
-   state: RootState,
-   tags: ReadonlyArray<TagDescription<string>>
- ): Array<{
-   endpointName: string
-   originalArgs: any
-   queryCacheKey: QueryCacheKey
- }>
+function selectInvalidatedBy(
+  state: RootState,
+  tags: ReadonlyArray<TagDescription<string>>
+): Array<{
+  endpointName: string
+  originalArgs: any
+  queryCacheKey: QueryCacheKey
+}>
 ```
- 
+
 - **Parameters**
   - `state`: the root state
   - `tags`: a readonly array of invalidated tags, where the provided `TagDescription` is one of the strings provided to the [`tagTypes`](../createApi.mdx#tagtypes) property of the api. e.g.
     - `[TagType]`
     - `[{ type: TagType }]`
     - `[{ type: TagType, id: number | string }]`
- 
+
 #### Description
- 
+
 A function that can select query parameters to be invalidated.
- 
+
 The function accepts two arguments
-  - the root state and
-  - the cache tags to be invalidated.
- 
+<<<<<<< HEAD
+
+=======
+
+> > > > > > > master
+
+- the root state and
+- the cache tags to be invalidated.
+
 It returns an array that contains
-  - the endpoint name,
-  - the original args and
-  - the queryCacheKey.
- 
+<<<<<<< HEAD
+
+=======
+
+> > > > > > > master
+
+- the endpoint name,
+- the original args and
+- the queryCacheKey.
+
 #### Example
- 
+
 ```ts no-transpile
-dispatch(api.util.selectInvalidatedBy(state, ['Post']))
-dispatch(api.util.selectInvalidatedBy(state, [{ type: 'Post', id: 1 }]))
-dispatch(
-  api.util.selectInvalidatedBy(state, [
-    { type: 'Post', id: 1 },
-    { type: 'Post', id: 4 },
-  ])
-)
+const entries = api.util.selectInvalidatedBy(state, ['Post'])
+const entries = api.util.selectInvalidatedBy(state, [{ type: 'Post', id: 1 }])
+const entries = api.util.selectInvalidatedBy(state, [
+  { type: 'Post', id: 1 },
+  { type: 'Post', id: 4 },
+])
 ```
 
 ### `invalidateTags`
@@ -314,6 +328,39 @@ dispatch(
     { type: 'Post', id: 'LIST' },
   ])
 )
+```
+
+### `selectCachedArgsForQuery`
+
+#### Signature
+
+```ts no-transpile
+function selectCachedArgsForQuery(
+  state: RootState,
+  queryName: QueryName
+): Array<QueryArg>
+```
+
+- **Parameters**
+  - `state`: the root state
+  - `queryName`: a string matching an existing query endpoint name
+
+#### Description
+
+A function that can select arguments for currently cached queries.
+
+The function accepts two arguments
+
+- the root state and
+
+- the name of the query
+
+It returns an array that contains arguments used for each entry.
+
+#### Example
+
+```ts no-transpile
+const args = api.util.selectCachedArgsForQuery(state, 'getPosts')
 ```
 
 ### `resetApiState`

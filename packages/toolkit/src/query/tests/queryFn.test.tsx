@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import type { SerializedError } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import type { BaseQueryFn, FetchBaseQueryError } from '@reduxjs/toolkit/query'
@@ -9,9 +10,11 @@ import type { QuerySubState } from '@reduxjs/toolkit/dist/query/core/apiState'
 
 describe('queryFn base implementation tests', () => {
   const baseQuery: BaseQueryFn<string, { wrappedByBaseQuery: string }, string> =
-    jest.fn((arg: string) => arg.includes('withErrorQuery')
-      ? ({ error: `cut${arg}` })
-      : ({ data: { wrappedByBaseQuery: arg } }))
+    vi.fn((arg: string) =>
+      arg.includes('withErrorQuery')
+        ? { error: `cut${arg}` }
+        : { data: { wrappedByBaseQuery: arg } }
+    )
 
   const api = createApi({
     baseQuery,
@@ -308,11 +311,11 @@ describe('usage scenario tests', () => {
     exists: () => true,
     data: () => mockData,
   }
-  const get = jest.fn(() => Promise.resolve(mockDocResult))
-  const doc = jest.fn((name) => ({
+  const get = vi.fn(() => Promise.resolve(mockDocResult))
+  const doc = vi.fn((name) => ({
     get,
   }))
-  const collection = jest.fn((name) => ({ get, doc }))
+  const collection = vi.fn((name) => ({ get, doc }))
   const firestore = () => {
     return { collection, doc }
   }

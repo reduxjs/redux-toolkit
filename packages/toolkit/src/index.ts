@@ -1,28 +1,34 @@
-import { enableES5 } from 'immer'
+// This must remain here so that the `mangleErrors.cjs` build script
+// does not have to import this into each source file it rewrites.
+import { formatProdErrorMessage } from './formatProdErrorMessage'
+
 export * from 'redux'
 export {
-  default as createNextState,
+  produce as createNextState,
   current,
   freeze,
   original,
   isDraft,
 } from 'immer'
 export type { Draft } from 'immer'
-export { createSelector } from 'reselect'
+export {
+  createSelector,
+  createSelectorCreator,
+  defaultMemoize,
+  autotrackMemoize,
+  weakMapMemoize,
+} from 'reselect'
 export type {
   Selector,
   OutputParametricSelector,
   OutputSelector,
   ParametricSelector,
 } from 'reselect'
-export { createDraftSafeSelector } from './createDraftSafeSelector'
+export {
+  createDraftSafeSelector,
+  createDraftSafeSelectorCreator,
+} from './createDraftSafeSelector'
 export type { ThunkAction, ThunkDispatch, ThunkMiddleware } from 'redux-thunk'
-
-// We deliberately enable Immer's ES5 support, on the grounds that
-// we assume RTK will be used with React Native and other Proxy-less
-// environments.  In addition, that's how Immer 4 behaved, and since
-// we want to ship this in an RTK minor, we should keep the same behavior.
-enableES5()
 
 export {
   // js
@@ -30,7 +36,6 @@ export {
 } from './configureStore'
 export type {
   // types
-  ConfigureEnhancersCallback,
   ConfigureStoreOptions,
   EnhancedStore,
 } from './configureStore'
@@ -38,7 +43,6 @@ export type { DevToolsEnhancerOptions } from './devtoolsExtension'
 export {
   // js
   createAction,
-  getType,
   isAction,
   isActionCreator,
   isFSA as isFluxStandardAction,
@@ -67,6 +71,7 @@ export type {
 export {
   // js
   createSlice,
+  ReducerType,
 } from './createSlice'
 
 export type {
@@ -77,7 +82,8 @@ export type {
   SliceCaseReducers,
   ValidateSliceCaseReducers,
   CaseReducerWithPrepare,
-  SliceActionCreator,
+  ReducerCreators,
+  SliceSelectors,
 } from './createSlice'
 export type { ActionCreatorInvariantMiddlewareOptions } from './actionCreatorInvariantMiddleware'
 export { createActionCreatorInvariantMiddleware } from './actionCreatorInvariantMiddleware'
@@ -100,19 +106,14 @@ export type {
   // types
   SerializableStateInvariantMiddlewareOptions,
 } from './serializableStateInvariantMiddleware'
-export {
-  // js
-  getDefaultMiddleware,
-} from './getDefaultMiddleware'
 export type {
   // types
   ActionReducerMapBuilder,
 } from './mapBuilders'
-export { MiddlewareArray, EnhancerArray } from './utils'
+export { Tuple } from './utils'
 
 export { createEntityAdapter } from './entities/create_adapter'
 export type {
-  Dictionary,
   EntityState,
   EntityAdapter,
   EntitySelectors,
@@ -190,9 +191,25 @@ export {
   TaskAbortError,
 } from './listenerMiddleware/index'
 
+export type {
+  DynamicMiddlewareInstance,
+  GetDispatch,
+  GetState,
+  MiddlewareApiConfig,
+} from './dynamicMiddleware/types'
+export { createDynamicMiddleware } from './dynamicMiddleware/index'
+
 export {
   SHOULD_AUTOBATCH,
   prepareAutoBatched,
   autoBatchEnhancer,
 } from './autoBatchEnhancer'
 export type { AutoBatchOptions } from './autoBatchEnhancer'
+
+export { combineSlices } from './combineSlices'
+
+export type { WithSlice } from './combineSlices'
+
+export type { ExtractDispatchExtensions as TSHelpersExtractDispatchExtensions } from './tsHelpers'
+
+export { formatProdErrorMessage } from './formatProdErrorMessage'

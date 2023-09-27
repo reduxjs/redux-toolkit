@@ -1,4 +1,3 @@
-import type { AnyAction, ThunkDispatch } from '@reduxjs/toolkit'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type { QuerySubState, RootState } from './core/apiState'
 import type {
@@ -231,20 +230,6 @@ export type ResultDescription<
   | ReadonlyArray<TagDescription<TagTypes>>
   | GetResultDescriptionFn<TagTypes, ResultType, QueryArg, ErrorType, MetaType>
 
-/** @deprecated please use `onQueryStarted` instead */
-export interface QueryApi<ReducerPath extends string, Context extends {}> {
-  /** @deprecated please use `onQueryStarted` instead */
-  dispatch: ThunkDispatch<any, any, AnyAction>
-  /** @deprecated please use `onQueryStarted` instead */
-  getState(): RootState<any, any, ReducerPath>
-  /** @deprecated please use `onQueryStarted` instead */
-  extra: unknown
-  /** @deprecated please use `onQueryStarted` instead */
-  requestId: string
-  /** @deprecated please use `onQueryStarted` instead */
-  context: Context
-}
-
 export interface QueryTypes<
   QueryArg,
   BaseQuery extends BaseQueryFn,
@@ -402,7 +387,7 @@ export interface QueryExtraOptions<
    * need to use this with the `serializeQueryArgs` or `forceRefetch` options to keep
    * an existing cache entry so that it can be updated.
    *
-   * Since this is wrapped with Immer, you , you may either mutate the `currentCacheValue` directly,
+   * Since this is wrapped with Immer, you may either mutate the `currentCacheValue` directly,
    * or return a new value, but _not_ both at once.
    *
    * Will only be called if the existing `currentCacheData` is _not_ `undefined` - on first response,

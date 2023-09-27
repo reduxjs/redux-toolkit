@@ -3,9 +3,12 @@ import {
   createAction,
   createSlice,
   isAnyOf,
+  isFSA,
 } from '@reduxjs/toolkit'
+import type { Mock } from 'vitest'
+import { vi } from 'vitest'
 
-import type { AnyAction, PayloadAction, Action } from '@reduxjs/toolkit'
+import type { Action, UnknownAction, PayloadAction } from '@reduxjs/toolkit'
 
 import {
   createListenerMiddleware,
@@ -141,7 +144,7 @@ describe('createListenerMiddleware', () => {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
-  let reducer: jest.Mock
+  let reducer: Mock
   let listenerMiddleware = createListenerMiddleware()
   let { middleware, startListening, stopListening, clearListeners } =
     listenerMiddleware
@@ -157,7 +160,7 @@ describe('createListenerMiddleware', () => {
   type TestAction3 = ReturnType<typeof testAction3>
 
   beforeAll(() => {
-    jest.spyOn(console, 'error').mockImplementation(noop)
+    vi.spyOn(console, 'error').mockImplementation(noop)
   })
 
   beforeEach(() => {
@@ -166,7 +169,7 @@ describe('createListenerMiddleware', () => {
     startListening = listenerMiddleware.startListening
     stopListening = listenerMiddleware.stopListening
     clearListeners = listenerMiddleware.clearListeners
-    reducer = jest.fn(() => ({}))
+    reducer = vi.fn(() => ({}))
     store = configureStore({
       reducer,
       middleware: (gDM) => gDM().prepend(middleware),
@@ -184,7 +187,7 @@ describe('createListenerMiddleware', () => {
         middleware: (gDM) => gDM().prepend(listenerMiddleware.middleware),
       })
 
-      let foundExtra: number | null  = null
+      let foundExtra: number | null = null
 
       const typedAddListener =
         listenerMiddleware.startListening as TypedStartListening<
@@ -194,7 +197,7 @@ describe('createListenerMiddleware', () => {
         >
 
       typedAddListener({
-        matcher: (action: AnyAction): action is AnyAction => true,
+        matcher: (action): action is Action => true,
         effect: (action, listenerApi) => {
           foundExtra = listenerApi.extra
           expectType<typeof originalExtra>(listenerApi.extra)
@@ -214,7 +217,7 @@ describe('createListenerMiddleware', () => {
 
   describe('Subscription and unsubscription', () => {
     test('directly subscribing', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       startListening({
         actionCreator: testAction1,
@@ -232,7 +235,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('stopListening returns true if an entry has been unsubscribed, false otherwise', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       startListening({
         actionCreator: testAction1,
@@ -244,7 +247,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('dispatch(removeListener({...})) returns true if an entry has been unsubscribed, false otherwise', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       startListening({
         actionCreator: testAction1,
@@ -270,7 +273,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('can subscribe with a string action type', () => {
-      const effect = jest.fn((_: AnyAction) => {})
+      const effect = vi.fn((_: UnknownAction) => {})
 
       store.dispatch(
         addListener({
@@ -289,7 +292,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('can subscribe with a matcher function', () => {
-      const effect = jest.fn((_: AnyAction) => {})
+      const effect = vi.fn((_: UnknownAction) => {})
 
       const isAction1Or2 = isAnyOf(testAction1, testAction2)
 
@@ -356,7 +359,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('subscribing with the same listener will not make it trigger twice (like EventTarget.addEventListener())', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       startListening({
         actionCreator: testAction1,
@@ -378,7 +381,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('unsubscribing via callback', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       const unsubscribe = startListening({
         actionCreator: testAction1,
@@ -394,7 +397,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('directly unsubscribing', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       startListening({
         actionCreator: testAction1,
@@ -415,7 +418,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('subscribing via action', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       store.dispatch(
         addListener({
@@ -435,7 +438,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('unsubscribing via callback from dispatch', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       const unsubscribe = store.dispatch(
         addListener({
@@ -456,7 +459,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('unsubscribing via action', () => {
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       startListening({
         actionCreator: testAction1,
@@ -572,10 +575,10 @@ describe('createListenerMiddleware', () => {
       'add and remove listener with "%s" param correctly',
       (_, params) => {
         const effect: ListenerEffect<
-          AnyAction,
+          UnknownAction,
           typeof store.getState,
           typeof store.dispatch
-        > = jest.fn()
+        > = vi.fn()
 
         startListening({ ...params, effect } as any)
 
@@ -589,7 +592,7 @@ describe('createListenerMiddleware', () => {
       }
     )
 
-    const unforwardedActions: [string, AnyAction][] = [
+    const unforwardedActions: [string, UnknownAction][] = [
       [
         'addListener',
         addListener({ actionCreator: testAction1, effect: noop }),
@@ -646,7 +649,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('"can unsubscribe via middleware api', () => {
-      const effect = jest.fn(
+      const effect = vi.fn(
         (action: TestAction1, api: ListenerEffectAPI<any, any>) => {
           if (action.payload === 'b') {
             api.unsubscribe()
@@ -847,7 +850,7 @@ describe('createListenerMiddleware', () => {
     })
 
     test('getOriginalState can only be invoked synchronously', async () => {
-      const onError = jest.fn()
+      const onError = vi.fn()
 
       const listenerMiddleware = createListenerMiddleware<CounterState>({
         onError,
@@ -897,7 +900,7 @@ describe('createListenerMiddleware', () => {
     test('by default, actions are forwarded to the store', () => {
       reducer.mockClear()
 
-      const effect = jest.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {})
 
       startListening({
         actionCreator: testAction1,
@@ -962,7 +965,7 @@ describe('createListenerMiddleware', () => {
         },
       })
 
-      const effect = jest.fn(() => {})
+      const effect = vi.fn(() => {})
       startListening({ matcher, effect })
 
       store.dispatch(testAction1('a'))
@@ -971,8 +974,8 @@ describe('createListenerMiddleware', () => {
 
     test('Continues running other listeners if a predicate raises an error', () => {
       const matcher = (action: any): action is any => true
-      const firstListener = jest.fn(() => {})
-      const secondListener = jest.fn(() => {})
+      const firstListener = vi.fn(() => {})
+      const secondListener = vi.fn(() => {})
 
       startListening({
         // @ts-expect-error
@@ -992,12 +995,12 @@ describe('createListenerMiddleware', () => {
     })
 
     test('Notifies sync listener errors to `onError`, if provided', async () => {
-      const onError = jest.fn()
+      const onError = vi.fn()
       const listenerMiddleware = createListenerMiddleware({
         onError,
       })
       const { middleware, startListening } = listenerMiddleware
-      reducer = jest.fn(() => ({}))
+      reducer = vi.fn(() => ({}))
       store = configureStore({
         reducer,
         middleware: (gDM) => gDM().prepend(middleware),
@@ -1023,12 +1026,12 @@ describe('createListenerMiddleware', () => {
     })
 
     test('Notifies async listeners errors to `onError`, if provided', async () => {
-      const onError = jest.fn()
+      const onError = vi.fn()
       const listenerMiddleware = createListenerMiddleware({
         onError,
       })
       const { middleware, startListening } = listenerMiddleware
-      reducer = jest.fn(() => ({}))
+      reducer = vi.fn(() => ({}))
       store = configureStore({
         reducer,
         middleware: (gDM) => gDM().prepend(middleware),
@@ -1061,16 +1064,17 @@ describe('createListenerMiddleware', () => {
         middleware: (gDM) => gDM().prepend(middleware),
       })
 
-      const typedAddListener =
-        startListening as TypedStartListening<
-          CounterState,
-          typeof store.dispatch
-        >
-      let result: [ReturnType<typeof increment>, CounterState, CounterState] | null = null
+      const typedAddListener = startListening as TypedStartListening<
+        CounterState,
+        typeof store.dispatch
+      >
+      let result:
+        | [ReturnType<typeof increment>, CounterState, CounterState]
+        | null = null
 
       typedAddListener({
         predicate: incrementByAmount.match,
-        async effect(_: AnyAction, listenerApi) {
+        async effect(_: UnknownAction, listenerApi) {
           result = await listenerApi.take(increment.match)
         },
       })
@@ -1126,31 +1130,34 @@ describe('createListenerMiddleware', () => {
       expect(takeResult).toEqual([increment(), stateCurrent, stateBefore])
     })
 
-    test("take resolves to `[A, CurrentState, PreviousState] | null` if a possibly undefined timeout parameter is provided", async () => {
+    test('take resolves to `[A, CurrentState, PreviousState] | null` if a possibly undefined timeout parameter is provided', async () => {
       const store = configureStore({
         reducer: counterSlice.reducer,
         middleware: (gDM) => gDM().prepend(middleware),
       })
 
-      type ExpectedTakeResultType = readonly [ReturnType<typeof increment>, CounterState, CounterState] | null
+      type ExpectedTakeResultType =
+        | readonly [ReturnType<typeof increment>, CounterState, CounterState]
+        | null
 
       let timeout: number | undefined = undefined
       let done = false
 
-      const startAppListening = startListening as TypedStartListening<CounterState>
+      const startAppListening =
+        startListening as TypedStartListening<CounterState>
       startAppListening({
         predicate: incrementByAmount.match,
         effect: async (_, listenerApi) => {
           const stateBefore = listenerApi.getState()
-          
+
           let takeResult = await listenerApi.take(increment.match, timeout)
           const stateCurrent = listenerApi.getState()
           expect(takeResult).toEqual([increment(), stateCurrent, stateBefore])
-          
+
           timeout = 1
           takeResult = await listenerApi.take(increment.match, timeout)
           expect(takeResult).toBeNull()
-          
+
           expectType<ExpectedTakeResultType>(takeResult)
 
           done = true
@@ -1160,7 +1167,7 @@ describe('createListenerMiddleware', () => {
       store.dispatch(increment())
 
       await delay(25)
-      expect(done).toBe(true);
+      expect(done).toBe(true)
     })
 
     test('condition method resolves promise when the predicate succeeds', async () => {
@@ -1335,7 +1342,7 @@ describe('createListenerMiddleware', () => {
           action,
           currentState,
           previousState
-        ): action is AnyAction => {
+        ): action is UnknownAction => {
           expectUnknown(currentState)
           expectUnknown(previousState)
           return true
@@ -1355,7 +1362,7 @@ describe('createListenerMiddleware', () => {
           action,
           currentState,
           previousState
-        ): action is AnyAction => {
+        ): action is UnknownAction => {
           expectUnknown(currentState)
           expectUnknown(previousState)
           return true
@@ -1381,7 +1388,7 @@ describe('createListenerMiddleware', () => {
             action,
             currentState,
             previousState
-          ): action is AnyAction => {
+          ): action is UnknownAction => {
             expectUnknown(currentState)
             expectUnknown(previousState)
             return true
@@ -1441,20 +1448,19 @@ describe('createListenerMiddleware', () => {
           currentState,
           previousState
         ): action is PayloadAction<number> => {
-          return typeof action.payload === 'boolean'
+          return isFSA(action) && typeof action.payload === 'boolean'
         },
         effect: (action, listenerApi) => {
-          // @ts-expect-error
           expectExactType<PayloadAction<number>>(action)
         },
       })
 
       startListening({
         predicate: (action, currentState) => {
-          return typeof action.payload === 'number'
+          return isFSA(action) && typeof action.payload === 'number'
         },
         effect: (action, listenerApi) => {
-          expectExactType<AnyAction>(action)
+          expectExactType<UnknownAction>(action)
         },
       })
 
@@ -1494,7 +1500,7 @@ describe('createListenerMiddleware', () => {
           action,
           currentState,
           previousState
-        ): action is AnyAction => {
+        ): action is UnknownAction => {
           expectNotAny(currentState)
           expectNotAny(previousState)
           expectExactType<CounterState>(currentState)
@@ -1515,7 +1521,7 @@ describe('createListenerMiddleware', () => {
       typedMiddleware.startListening({
         // TODO Why won't this infer the listener's `action` with implicit argument types?
         predicate: (
-          action: AnyAction,
+          action: UnknownAction,
           currentState: CounterState
         ): action is PayloadAction<number> => {
           expectNotAny(currentState)
@@ -1576,7 +1582,7 @@ describe('createListenerMiddleware', () => {
             action,
             currentState,
             previousState
-          ): action is AnyAction => {
+          ): action is UnknownAction => {
             expectNotAny(currentState)
             expectNotAny(previousState)
             expectExactType<CounterState>(currentState)
@@ -1606,7 +1612,7 @@ describe('createListenerMiddleware', () => {
           action,
           currentState,
           previousState
-        ): action is AnyAction => {
+        ): action is UnknownAction => {
           expectNotAny(currentState)
           expectNotAny(previousState)
           expectExactType<CounterState>(currentState)
@@ -1643,7 +1649,7 @@ describe('createListenerMiddleware', () => {
             action,
             currentState,
             previousState
-          ): action is AnyAction => {
+          ): action is UnknownAction => {
             expectNotAny(currentState)
             expectNotAny(previousState)
             expectExactType<CounterState>(currentState)

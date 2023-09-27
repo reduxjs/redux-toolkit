@@ -158,7 +158,7 @@ export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   endpoints: (build) => ({
     // highlight-start
-    getMessages: build.query<EntityState<Message>, Channel>({
+    getMessages: build.query<EntityState<Message, number>, Channel>({
       // highlight-end
       query: (channel) => `messages/${channel}`,
       // highlight-start

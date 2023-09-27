@@ -1,4 +1,4 @@
-import type { AnyAction, PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction, UnknownAction } from '@reduxjs/toolkit'
 import {
   combineReducers,
   createAction,
@@ -8,9 +8,8 @@ import {
   isRejectedWithValue,
   createNextState,
   prepareAutoBatched,
-} from '@reduxjs/toolkit'
+} from './rtkImports'
 import type {
-  CombinedState as CombinedQueryState,
   QuerySubstateIdentifier,
   QuerySubState,
   MutationSubstateIdentifier,
@@ -29,6 +28,7 @@ import { calculateProvidedByThunk } from './buildThunks'
 import type {
   AssertTagTypes,
   EndpointDefinitions,
+  FullTagDescription,
   QueryDefinition,
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
@@ -125,17 +125,22 @@ export function buildSlice({
         },
         prepare: prepareAutoBatched<QuerySubstateIdentifier>(),
       },
-      queryResultPatched(
-        draft,
-        {
-          payload: { queryCacheKey, patches },
-        }: PayloadAction<
+      queryResultPatched: {
+        reducer(
+          draft,
+          {
+            payload: { queryCacheKey, patches },
+          }: PayloadAction<
+            QuerySubstateIdentifier & { patches: readonly Patch[] }
+          >
+        ) {
+          updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
+            substate.data = applyPatches(substate.data as any, patches.concat())
+          })
+        },
+        prepare: prepareAutoBatched<
           QuerySubstateIdentifier & { patches: readonly Patch[] }
-        >
-      ) {
-        updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
-          substate.data = applyPatches(substate.data as any, patches.concat())
-        })
+        >(),
       },
     },
     extraReducers(builder) {
@@ -325,7 +330,42 @@ export function buildSlice({
   const invalidationSlice = createSlice({
     name: `${reducerPath}/invalidation`,
     initialState: initialState as InvalidationState<string>,
-    reducers: {},
+    reducers: {
+      updateProvidedBy: {
+        reducer(
+          draft,
+          action: PayloadAction<{
+            queryCacheKey: QueryCacheKey
+            providedTags: readonly FullTagDescription<string>[]
+          }>
+        ) {
+          const { queryCacheKey, providedTags } = action.payload
+
+          for (const tagTypeSubscriptions of Object.values(draft)) {
+            for (const idSubscriptions of Object.values(tagTypeSubscriptions)) {
+              const foundAt = idSubscriptions.indexOf(queryCacheKey)
+              if (foundAt !== -1) {
+                idSubscriptions.splice(foundAt, 1)
+              }
+            }
+          }
+
+          for (const { type, id } of providedTags) {
+            const subscribedQueries = ((draft[type] ??= {})[
+              id || '__internal_without_id'
+            ] ??= [])
+            const alreadySubscribed = subscribedQueries.includes(queryCacheKey)
+            if (!alreadySubscribed) {
+              subscribedQueries.push(queryCacheKey)
+            }
+          }
+        },
+        prepare: prepareAutoBatched<{
+          queryCacheKey: QueryCacheKey
+          providedTags: readonly FullTagDescription<string>[]
+        }>(),
+      },
+    },
     extraReducers(builder) {
       builder
         .addCase(
@@ -371,27 +411,13 @@ export function buildSlice({
             )
             const { queryCacheKey } = action.meta.arg
 
-            for (const tagTypeSubscriptions of Object.values(draft)) {
-              for (const idSubscriptions of Object.values(
-                tagTypeSubscriptions
-              )) {
-                const foundAt = idSubscriptions.indexOf(queryCacheKey)
-                if (foundAt !== -1) {
-                  idSubscriptions.splice(foundAt, 1)
-                }
-              }
-            }
-
-            for (const { type, id } of providedTags) {
-              const subscribedQueries = ((draft[type] ??= {})[
-                id || '__internal_without_id'
-              ] ??= [])
-              const alreadySubscribed =
-                subscribedQueries.includes(queryCacheKey)
-              if (!alreadySubscribed) {
-                subscribedQueries.push(queryCacheKey)
-              }
-            }
+            invalidationSlice.caseReducers.updateProvidedBy(
+              draft,
+              invalidationSlice.actions.updateProvidedBy({
+                queryCacheKey,
+                providedTags,
+              })
+            )
           }
         )
     },
@@ -478,9 +504,7 @@ export function buildSlice({
     },
   })
 
-  const combinedReducer = combineReducers<
-    CombinedQueryState<any, string, string>
-  >({
+  const combinedReducer = combineReducers({
     queries: querySlice.reducer,
     mutations: mutationSlice.reducer,
     provided: invalidationSlice.reducer,
@@ -497,8 +521,7 @@ export function buildSlice({
     ...subscriptionSlice.actions,
     ...internalSubscriptionsSlice.actions,
     ...mutationSlice.actions,
-    /** @deprecated has been renamed to `removeMutationResult` */
-    unsubscribeMutationResult: mutationSlice.actions.removeMutationResult,
+    ...invalidationSlice.actions,
     resetApiState,
   }
 

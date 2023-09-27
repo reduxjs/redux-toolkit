@@ -1,6 +1,10 @@
-import type { AnyAction, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit'
+import type {
+  UnknownAction,
+  Selector,
+  ThunkAction,
+  ThunkDispatch,
+} from '@reduxjs/toolkit'
 import { createSelector } from '@reduxjs/toolkit'
-import type { Selector } from '@reduxjs/toolkit'
 import type { DependencyList } from 'react'
 import {
   useCallback,
@@ -17,37 +21,31 @@ import type {
   SubscriptionOptions,
   QueryKeys,
   RootState,
-} from '@reduxjs/toolkit/dist/query/core/apiState'
+} from '@reduxjs/toolkit/query'
 import type {
   EndpointDefinitions,
   MutationDefinition,
   QueryDefinition,
   QueryArgFrom,
   ResultTypeFrom,
-} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
-import type {
   QueryResultSelectorResult,
   MutationResultSelectorResult,
   SkipToken,
-} from '@reduxjs/toolkit/dist/query/core/buildSelectors'
-import type {
   QueryActionCreatorResult,
   MutationActionCreatorResult,
-} from '@reduxjs/toolkit/dist/query/core/buildInitiate'
-import type { SerializeQueryArgs } from '@reduxjs/toolkit/dist/query/defaultSerializeQueryArgs'
-import { shallowEqual } from 'react-redux'
-import type { Api, ApiContext } from '@reduxjs/toolkit/dist/query/apiTypes'
-import type {
-  Id,
-  NoInfer,
-  Override,
-} from '@reduxjs/toolkit/dist/query/tsHelpers'
-import type {
+  SerializeQueryArgs,
+  Api,
+  ApiContext,
+  TSHelpersId,
+  TSHelpersNoInfer,
+  TSHelpersOverride,
   ApiEndpointMutation,
   ApiEndpointQuery,
   CoreModule,
   PrefetchOptions,
-} from '@reduxjs/toolkit/dist/query/core/module'
+} from '@reduxjs/toolkit/query'
+
+import { shallowEqual } from 'react-redux'
 import type { ReactHooksModuleOptions } from './module'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import type { UninitializedValue } from './constants'
@@ -374,7 +372,7 @@ export type UseQueryStateOptions<
 export type UseQueryStateResult<
   _ extends QueryDefinition<any, any, any, any>,
   R
-> = NoInfer<R>
+> = TSHelpersNoInfer<R>
 
 /**
  * Helper type to manually type the result
@@ -387,7 +385,7 @@ export type TypedUseQueryStateResult<
   R = UseQueryStateDefaultResult<
     QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
   >
-> = NoInfer<R>
+> = TSHelpersNoInfer<R>
 
 type UseQueryStateBaseResult<D extends QueryDefinition<any, any, any, any>> =
   QuerySubState<D> & {
@@ -420,15 +418,15 @@ type UseQueryStateBaseResult<D extends QueryDefinition<any, any, any, any>> =
   }
 
 type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
-  Id<
-    | Override<
+  TSHelpersId<
+    | TSHelpersOverride<
         Extract<
           UseQueryStateBaseResult<D>,
           { status: QueryStatus.uninitialized }
         >,
         { isUninitialized: true }
       >
-    | Override<
+    | TSHelpersOverride<
         UseQueryStateBaseResult<D>,
         | { isLoading: true; isFetching: boolean; data: undefined }
         | ({
@@ -454,8 +452,8 @@ type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
       >
   > & {
     /**
-     * @deprecated will be removed in the next version
-     * please use the `isLoading`, `isFetching`, `isSuccess`, `isError`
+     * @deprecated Included for completeness, but discouraged.
+     * Please use the `isLoading`, `isFetching`, `isSuccess`, `isError`
      * and `isUninitialized` flags instead
      */
     status: QueryStatus
@@ -477,7 +475,7 @@ export type UseMutationStateOptions<
 export type UseMutationStateResult<
   D extends MutationDefinition<any, any, any, any>,
   R
-> = NoInfer<R> & {
+> = TSHelpersNoInfer<R> & {
   originalArgs?: QueryArgFrom<D>
   /**
    * Resets the hook state to it's initial `uninitialized` state.
@@ -567,7 +565,7 @@ type GenericPrefetchThunk = (
   endpointName: any,
   arg: any,
   options: PrefetchOptions
-) => ThunkAction<void, any, any, AnyAction>
+) => ThunkAction<void, any, any, UnknownAction>
 
 /**
  *
@@ -581,9 +579,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   api,
   moduleOptions: {
     batch,
-    useDispatch,
-    useSelector,
-    useStore,
+    hooks: { useDispatch, useSelector, useStore },
     unstable__sideEffectsInRender,
   },
   serializeQueryArgs,
@@ -654,7 +650,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     endpointName: EndpointName,
     defaultOptions?: PrefetchOptions
   ) {
-    const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
+    const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
     const stableDefaultOptions = useShallowStableValue(defaultOptions)
 
     return useCallback(
@@ -684,7 +680,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         QueryDefinition<any, any, any, any, any>,
         Definitions
       >
-      const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
+      const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
       const stableArg = useStableQueryArgs(
         skip ? skipToken : arg,
         // Even if the user provided a per-endpoint `serializeQueryArgs` with
@@ -818,7 +814,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         QueryDefinition<any, any, any, any, any>,
         Definitions
       >
-      const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
+      const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
 
       const [arg, setArg] = useState<any>(UNINITIALIZED_VALUE)
       const promiseRef = useRef<QueryActionCreatorResult<any> | undefined>()
@@ -989,7 +985,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         MutationDefinition<any, any, any, any, any>,
         Definitions
       >
-      const dispatch = useDispatch<ThunkDispatch<any, any, AnyAction>>()
+      const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
       const [promise, setPromise] = useState<MutationActionCreatorResult<any>>()
 
       useEffect(

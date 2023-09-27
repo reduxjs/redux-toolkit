@@ -7,7 +7,11 @@ import type {
 } from '../endpointDefinitions'
 import { DefinitionType, isQueryDefinition } from '../endpointDefinitions'
 import type { QueryThunk, MutationThunk, QueryThunkArg } from './buildThunks'
-import type { AnyAction, ThunkAction, SerializedError } from '@reduxjs/toolkit'
+import type {
+  UnknownAction,
+  ThunkAction,
+  SerializedError,
+} from '@reduxjs/toolkit'
 import type { SubscriptionOptions, RootState } from './apiState'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { Api, ApiContext } from '../apiTypes'
@@ -51,7 +55,7 @@ type StartQueryActionCreator<
 > = (
   arg: QueryArgFrom<D>,
   options?: StartQueryActionCreatorOptions
-) => ThunkAction<QueryActionCreatorResult<D>, any, any, AnyAction>
+) => ThunkAction<QueryActionCreatorResult<D>, any, any, UnknownAction>
 
 export type QueryActionCreatorResult<
   D extends QueryDefinition<any, any, any, any>
@@ -81,7 +85,7 @@ type StartMutationActionCreator<
     track?: boolean
     fixedCacheKey?: string
   }
-) => ThunkAction<MutationActionCreatorResult<D>, any, any, AnyAction>
+) => ThunkAction<MutationActionCreatorResult<D>, any, any, UnknownAction>
 
 export type MutationActionCreatorResult<
   D extends MutationDefinition<any, any, any, any>
@@ -181,8 +185,6 @@ export type MutationActionCreatorResult<
    The value returned by the hook will reset to `isUninitialized` afterwards.
    */
   reset(): void
-  /** @deprecated has been renamed to `reset` */
-  unsubscribe(): void
 }
 
 export function buildInitiate({
@@ -219,37 +221,6 @@ export function buildInitiate({
     getRunningMutationThunk,
     getRunningQueriesThunk,
     getRunningMutationsThunk,
-    getRunningOperationPromises,
-    removalWarning,
-  }
-
-  /** @deprecated to be removed in 2.0 */
-  function removalWarning(): never {
-    throw new Error(
-      `This method had to be removed due to a conceptual bug in RTK.
-       Please see https://github.com/reduxjs/redux-toolkit/pull/2481 for details.
-       See https://redux-toolkit.js.org/rtk-query/usage/server-side-rendering for new guidance on SSR.`
-    )
-  }
-
-  /** @deprecated to be removed in 2.0 */
-  function getRunningOperationPromises() {
-    if (
-      typeof process !== 'undefined' &&
-      process.env.NODE_ENV === 'development'
-    ) {
-      removalWarning()
-    } else {
-      const extract = <T>(
-        v: Map<Dispatch<AnyAction>, Record<string, T | undefined>>
-      ) =>
-        Array.from(v.values()).flatMap((queriesForStore) =>
-          queriesForStore ? Object.values(queriesForStore) : []
-        )
-      return [...extract(runningQueries), ...extract(runningMutations)].filter(
-        isNotNullish
-      )
-    }
   }
 
   function getRunningQueryThunk(endpointName: string, queryArgs: any) {
@@ -464,7 +435,6 @@ You must add the middleware for RTK-Query to function correctly!`
           requestId,
           abort,
           unwrap,
-          unsubscribe: reset,
           reset,
         })
 

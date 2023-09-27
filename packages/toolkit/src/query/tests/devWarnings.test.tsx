@@ -6,7 +6,7 @@ import {
 } from 'console-testing-library/pure'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
-let restore: () => void
+let restore: () => void = () => {}
 let nodeEnv: string
 
 beforeEach(() => {

@@ -1,6 +1,6 @@
 import type { QueryCacheKey } from './core/apiState'
 import type { EndpointDefinition } from './endpointDefinitions'
-import { isPlainObject } from '@reduxjs/toolkit'
+import { isPlainObject } from './core/rtkImports'
 
 const cache: WeakMap<any, string> | undefined = WeakMap
   ? new WeakMap()

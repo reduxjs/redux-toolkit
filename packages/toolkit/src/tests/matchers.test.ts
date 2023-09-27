@@ -1,4 +1,5 @@
-import type { ThunkAction, AnyAction } from '@reduxjs/toolkit'
+import { vi } from 'vitest'
+import type { ThunkAction, UnknownAction } from '@reduxjs/toolkit'
 import {
   isAllOf,
   isAnyOf,
@@ -12,7 +13,7 @@ import {
   createReducer,
 } from '@reduxjs/toolkit'
 
-const thunk: ThunkAction<any, any, any, AnyAction> = () => {}
+const thunk: ThunkAction<any, any, any, UnknownAction> = () => {}
 
 describe('isAnyOf', () => {
   it('returns true only if any matchers match (match function)', () => {
@@ -282,8 +283,8 @@ describe('isRejectedWithValue', () => {
     )
     expect(isRejectedWithValue()(rejectedAction)).toBe(false)
 
-    const getState = jest.fn(() => ({}))
-    const dispatch = jest.fn((x: any) => x)
+    const getState = vi.fn(() => ({}))
+    const dispatch = vi.fn((x: any) => x)
     const extra = {}
 
     // note: doesn't throw because we don't unwrap it
@@ -321,8 +322,8 @@ describe('isRejectedWithValue', () => {
       // rejected-with-value is a narrower requirement than rejected
       expect(matchAC(rejectedAction)).toBe(false)
 
-      const getState = jest.fn(() => ({}))
-      const dispatch = jest.fn((x: any) => x)
+      const getState = vi.fn(() => ({}))
+      const dispatch = vi.fn((x: any) => x)
       const extra = {}
 
       // note: doesn't throw because we don't unwrap it

@@ -15,7 +15,7 @@ and automatically generates action creators and action types that correspond to 
 This API is the standard approach for writing Redux logic.
 
 Internally, it uses [`createAction`](./createAction.mdx) and [`createReducer`](./createReducer.mdx), so
-you may also use [Immer](https://immerjs.github.io/immer/) to write "mutating" immutable updates:
+you may also use [Immer](../usage/immer-reducers.md) to write "mutating" immutable updates:
 
 ```ts
 import { createSlice } from '@reduxjs/toolkit'
@@ -25,7 +25,7 @@ interface CounterState {
   value: number
 }
 
-const initialState = { value: 0 } satisfies CounterState as CounterState
+const initialState = { value: 0 } as CounterState
 
 const counterSlice = createSlice({
   name: 'counter',
@@ -56,15 +56,15 @@ function createSlice({
     // A name, used in action types
     name: string,
     // The initial state for the reducer
-    initialState: any,
+    initialState: State,
     // An object of "case reducers". Key names will be used to generate actions.
-    reducers: Object<string, ReducerFunction | ReducerAndPrepareObject>
-    // A "builder callback" function used to add more reducers, or
-    // an additional object of "case reducers", where the keys should be other
-    // action types
-    extraReducers?:
-    | Object<string, ReducerFunction>
-    | ((builder: ActionReducerMapBuilder<State>) => void)
+    reducers: Record<string, ReducerFunction | ReducerAndPrepareObject>,
+    // A "builder callback" function used to add more reducers
+    extraReducers?: (builder: ActionReducerMapBuilder<State>) => void,
+    // A preference for the slice reducer's location, used by `combineSlices` and `slice.selectors`. Defaults to `name`.
+    reducerPath?: string,
+    // An object of selectors, which receive the slice's state as their first parameter.
+    selectors?: Record<string, (sliceState: State, ...args: any[]) => any>,
 })
 ```
 
@@ -134,62 +134,294 @@ const todosSlice = createSlice({
 })
 ```
 
+### The `reducers` "creator callback" notation
+
+Alternatively, the `reducers` field can be a callback which receives a "create" object.
+
+The main benefit of this is that you can create [async thunks](./createAsyncThunk) as part of your slice. Types are also slightly simplified for prepared reducers.
+
+```ts title="Creator callback for reducers"
+import { createSlice, nanoid } from '@reduxjs/toolkit'
+
+interface Item {
+  id: string
+  text: string
+}
+
+interface TodoState {
+  loading: boolean
+  todos: Item[]
+}
+
+const todosSlice = createSlice({
+  name: 'todos',
+  initialState: {
+    loading: false,
+    todos: [],
+  } as TodoState,
+  reducers: (create) => ({
+    deleteTodo: create.reducer<number>((state, action) => {
+      state.todos.splice(action.payload, 1)
+    }),
+    addTodo: create.preparedReducer(
+      (text: string) => {
+        const id = nanoid()
+        return { payload: { id, text } }
+      },
+      // action type is inferred from prepare callback
+      (state, action) => {
+        state.todos.push(action.payload)
+      }
+    ),
+    fetchTodo: create.asyncThunk(
+      async (id: string, thunkApi) => {
+        const res = await fetch(`myApi/todos?id=${id}`)
+        return (await res.json()) as Item
+      },
+      {
+        pending: (state) => {
+          state.loading = true
+        },
+        rejected: (state, action) => {
+          state.loading = false
+        },
+        fulfilled: (state, action) => {
+          state.loading = false
+          state.todos.push(action.payload)
+        },
+      }
+    ),
+  }),
+})
+
+export const { addTodo, deleteTodo, fetchTodo } = todosSlice.actions
+```
+
+#### Create Methods
+
+#### `create.reducer`
+
+A standard slice case reducer.
+
+**Parameters**
+
+- **reducer** The slice case reducer to use.
+
+```ts no-transpile
+create.reducer<Todo>((state, action) => {
+  state.todos.push(action.payload)
+})
+```
+
+#### `create.preparedReducer`
+
+A [prepared](#customizing-generated-action-creators) reducer, to customize the action creator.
+
+**Parameters**
+
+- **prepareAction** The [`prepare callback`](./createAction#using-prepare-callbacks-to-customize-action-contents).
+- **reducer** The slice case reducer to use.
+
+The action passed to the case reducer will be inferred from the prepare callback's return.
+
+```ts no-transpile
+create.preparedReducer(
+  (text: string) => {
+    const id = nanoid()
+    return { payload: { id, text } }
+  },
+  (state, action) => {
+    state.todos.push(action.payload)
+  }
+)
+```
+
+#### `create.asyncThunk`
+
+Creates an async thunk instead of an action creator.
+
+**Parameters**
+
+- **payloadCreator** The thunk [payload creator](./createAsyncThunk#payloadcreator).
+- **config** The configuration object. (optional)
+
+The configuration object can contain case reducers for each of the [lifecycle actions](./createAsyncThunk#promise-lifecycle-actions) (`pending`, `fulfilled`, and `rejected`).
+
+Each case reducer will be attached to the slice's `caseReducers` object, e.g. `slice.caseReducers.fetchTodo.fulfilled`.
+
+The configuration object can also contain [`options`](./createAsyncThunk#options).
+
+```ts no-transpile
+create.asyncThunk(
+  async (id: string, thunkApi) => {
+    const res = await fetch(`myApi/todos?id=${id}`)
+    return (await res.json()) as Item
+  },
+  {
+    pending: (state) => {
+      state.loading = true
+    },
+    rejected: (state, action) => {
+      state.loading = false
+    },
+    fulfilled: (state, action) => {
+      state.loading = false
+      state.todos.push(action.payload)
+    },
+    options: {
+      idGenerator: uuid,
+    },
+  }
+)
+```
+
+:::note
+
+Typing for the `create.asyncThunk` works in the same way as [`createAsyncThunk`](usage/usage-with-typescript#createasyncthunk), with one key difference.
+
+A type for `state` and/or `dispatch` _cannot_ be provided as part of the `ThunkApiConfig`, as this would cause circular types.
+
+Instead, it is necessary to assert the type when needed.
+
+```ts no-transpile
+create.asyncThunk<Todo, string, { rejectValue: { error: string } }>(
+  async (id, thunkApi) => {
+    const state = thunkApi.getState() as RootState
+    const dispatch = thunkApi.dispatch as AppDispatch
+    throw thunkApi.rejectWithValue({
+      error: 'Oh no!',
+    })
+  }
+)
+```
+
+For common thunk API configuration options, a [`withTypes` helper](usage/usage-with-typescript#defining-a-pre-typed-createasyncthunk) is provided:
+
+```ts no-transpile
+reducers: (create) => {
+  const createAThunk =
+    create.asyncThunk.withTypes<{ rejectValue: { error: string } }>()
+
+  return {
+    fetchTodo: createAThunk<Todo, string>(async (id, thunkApi) => {
+      throw thunkApi.rejectWithValue({
+        error: 'Oh no!',
+      })
+    }),
+    fetchTodos: createAThunk<Todo[], string>(async (id, thunkApi) => {
+      throw thunkApi.rejectWithValue({
+        error: 'Oh no, not again!',
+      })
+    }),
+  }
+}
+```
+
+:::
+
 ### `extraReducers`
 
-One of the key concepts of Redux is that each slice reducer "owns" its slice of state, and that many slice reducers
-can independently respond to the same action type. `extraReducers` allows `createSlice` to respond to other action types
-besides the types it has generated.
+Conceptually, each slice reducer "owns" its slice of state. There's also a natural correspondance between the update logic defined inside `reducers`, and the action types that are generated based on those.
 
-As case reducers specified with `extraReducers` are meant to reference "external" actions, they will not have actions generated in `slice.actions`.
+However, there are many times that a Redux slice may also need to update its own state in response to action types that were defined elsewhere in the application (such as clearing many different kinds of data when a "user logged out" action is dispatched). This can include action types defined by another `createSlice` call, actions generated by a `createAsyncThunk`, RTK Query endpoint matchers, or any other action. In addition, one of the key concepts of Redux is that many slice reducers can independently respond to the same action type.
 
-As with `reducers`, these case reducers will also be passed to `createReducer` and may "mutate" their state safely.
+**`extraReducers` allows `createSlice` to respond and update its own state in response to other action types besides the types it has generated.**
 
-If two fields from `reducers` and `extraReducers` happen to end up with the same action type string,
-the function from `reducers` will be used to handle that action type.
+As with the `reducers` field, each case reducer in `extraReducers` is [wrapped in Immer and may use "mutating" syntax to safely update the state inside](../usage/immer-reducers.md).
 
-### The `extraReducers` "builder callback" notation
+However, unlike the `reducers` field, each individual case reducer inside of `extraReducers` will _not_ generate a new action type or action creator.
 
-The recommended way of using `extraReducers` is to use a callback that receives a `ActionReducerMapBuilder` instance.
+If two fields from `reducers` and `extraReducers` happen to end up with the same action type string, the function from `reducers` will be used to handle that action type.
 
-This builder notation is also the only way to add matcher reducers and default case reducers to your slice.
+#### The `extraReducers` "builder callback" notation
+
+Similar to `createReducer`, the `extraReducers` field uses a "builder callback" notation to define handlers for specific action types, matching against a range of actions, or handling a default case. This is conceptually similar to a switch statement, but with better TS support as it can infer the action type from the provided action creator. It's particularly useful for working with actions produced by `createAction` and `createAsyncThunk`.
 
 [examples](docblock://createSlice.ts?token=CreateSliceOptions.extraReducers)
 
-We recommend using this API as it has better TypeScript support (and thus, IDE autocomplete even for JavaScript users), as it will correctly infer the action type in the reducer based on the provided action creator.
-It's particularly useful for working with actions produced by `createAction` and `createAsyncThunk`.
-
 See [the "Builder Callback Notation" section of the `createReducer` reference](./createReducer.mdx#usage-with-the-builder-callback-notation) for details on how to use `builder.addCase`, `builder.addMatcher`, and `builder.addDefault`
 
-### The `extraReducers` "map object" notation
+### `reducerPath`
 
-Like `reducers`, `extraReducers` can be an object containing Redux case reducer functions. However, the keys should
-be other Redux string action type constants, and `createSlice` will _not_ auto-generate action types or action creators
-for reducers included in this parameter.
+Indicates a preference of where the slice should be located. Defaults to [`name`](#name).
 
-Action creators that were generated using [`createAction`](./createAction.mdx) may be used directly as the keys here, using
-computed property syntax.
+This is used by `combineSlices` and the default generated `slice.selectors`.
 
-```js
-const incrementBy = createAction('incrementBy')
+### `selectors`
 
-createSlice({
+A set of selectors that receive the slice state as their first parameter, and any other parameters.
+
+Each selector will have a corresponding key in the resulting [`selectors`](#selectors-1) object.
+
+:::caution Circular types
+
+It's fairly common to have selectors that use other selectors. This is still possible with slice selectors, but defining a selector without a return type can cause a circular type inference problem:
+
+```ts no-transpile
+const counterSlice = createSlice({
   name: 'counter',
-  initialState: 0,
+  initialState: { value: 0 },
   reducers: {},
-  extraReducers: {
-    [incrementBy]: (state, action) => {
-      return state + action.payload
-    },
-    'some/other/action': (state, action) => {},
+  selectors: {
+    selectValue: (state) => state.value,
+    // highlight-start
+    // this creates a cycle, because it's inferring a type from the object we're creating here
+    selectTimes: (state, times = 1) =>
+      counterSlice.getSelectors().selectValue(state) * times,
+    // highlight-end
   },
 })
 ```
 
-:::tip
+<<<<<<< HEAD
+This cycle can be fixed by providing an explicit return type for the selector:
 
-We recommend using the `builder callback` API as the default, especially if you are using TypeScript. If you do not use the `builder callback` and are using TypeScript, you will need to use `actionCreator.type` or `actionCreator.toString()` to force the TS compiler to accept the computed property. Please see [Usage With TypeScript](./../usage/usage-with-typescript.md#type-safety-with-extraReducers) for further details.
+```ts no-transpile
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 },
+  reducers: {},
+  selectors: {
+    selectValue: (state) => state.value,
+    // highlight-start
+    // explicit return type means cycle is broken
+    selectTimes: (state, times = 1): number =>
+      counterSlice.getSelectors().selectValue(state) * times,
+    // highlight-end
+  },
+})
+```
+
+This limitation may be also encountered when using a slice's `asyncThunk` creator.
+In the same way, the issue is resolved by explicitly providing a type somewhere in the chain and breaking the cycle.
+
+```ts no-transpile
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 },
+  reducers: (create) => ({
+    getCountData: create.asyncThunk(async (_arg, { getState }) => {
+      const currentCount = counterSlice.selectors.selectValue(
+        getState() as RootState
+      )
+      // highlight-start
+      // this would cause a circular type, but the type annotation breaks the circle
+      const result: Response = await fetch('api/' + currentCount)
+      // highlight-end
+      return result.json()
+    }),
+  }),
+  selectors: {
+    selectValue: (state) => state.value,
+  },
+})
+```
 
 :::
+
+=======
+
+> > > > > > > master
 
 ## Return Value
 
@@ -197,11 +429,15 @@ We recommend using the `builder callback` API as the default, especially if you 
 
 ```ts no-transpile
 {
-    name : string,
-    reducer : ReducerFunction,
-    actions : Record<string, ActionCreator>,
+    name: string,
+    reducer: ReducerFunction,
+    actions: Record<string, ActionCreator>,
     caseReducers: Record<string, CaseReducer>.
-    getInitialState: () => State
+    getInitialState: () => State,
+    reducerPath: string,
+    selectors: Record<string, Selector>,
+    getSelectors: (selectState: (rootState: RootState) => State) => Record<string, Selector>
+    injectInto: (injectable: Injectable, config?: InjectConfig & { reducerPath?: string }) => InjectedSlice
 }
 ```
 
@@ -217,15 +453,80 @@ The functions passed to the `reducers` parameter can be accessed through the `ca
 
 Result's function `getInitialState` provides access to the initial state value given to the slice. If a lazy state initializer was provided, it will be called and a fresh value returned.
 
-> **Note**: the result object is conceptually similar to a
-> ["Redux duck" code structure](https://redux.js.org/faq/code-structure#what-should-my-file-structure-look-like-how-should-i-group-my-action-creators-and-reducers-in-my-project-where-should-my-selectors-go).
-> The actual code structure you use is up to you, but there are a couple caveats to keep in mind:
->
-> - Actions are not exclusively limited to a single slice. Any part of the reducer logic can (and should!) respond
->   to any dispatched action.
-> - At the same time, circular references can cause import problems. If slices A and B are defined in
->   separate files, and each file tries to import the other so it can listen to other actions, unexpected
->   behavior may occur.
+`injectInto` creates an instance of the slice that is aware it's been injected - see [`combineSlices`](./combineSlices#slice-integration).
+
+:::note
+The result object is conceptually similar to a
+["Redux duck" code structure](https://redux.js.org/faq/code-structure#what-should-my-file-structure-look-like-how-should-i-group-my-action-creators-and-reducers-in-my-project-where-should-my-selectors-go).
+The actual code structure you use is up to you, but it's worth keeping in mind that actions are not exclusively limited to a single slice.
+Any part of the reducer logic can (and should!) respond to any dispatched action.
+:::
+
+### Selectors
+
+Slice selectors are written to expect the slice's state as their first parameter, but the slice may be located anywhere inside the store's root state.
+
+As a result, there are two ways of getting final selectors:
+
+#### `selectors`
+
+Most commonly, the slice is reliably mounted under its [`reducerPath`](#reducerPath).
+
+Following this, the slice has a `selectors` object attached, which creates selectors with the assumption that the slice is located under `rootState[slice.reducerPath]`.
+
+```ts
+import { createSlice } from '@reduxjs/toolkit'
+
+interface CounterState {
+  value: number
+}
+
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 } as CounterState,
+  reducers: {
+    // omitted
+  },
+  selectors: {
+    selectValue: (sliceState) => sliceState.value,
+  },
+})
+
+const { selectValue } = counterSlice.selectors
+
+console.log(selectValue({ counter: { value: 2 } })) // 2
+```
+
+#### `getSelectors`
+
+`slice.getSelectors` is called with a single parameter, a `selectState` callback. This function should receive the store root state (or whatever you expect to call the resulting selectors with) and return the slice state.
+
+```ts no-transpile
+const { selectValue } = counterSlice.getSelectors(
+  (rootState: RootState) => rootState.aCounter
+)
+
+console.log(selectValue({ aCounter: { value: 2 } })) // 2
+```
+
+If no `selectState` callback is passed, selectors will be returned as is - expecting the slice state as their first parameter (the same as calling `slice.getSelectors(state => state)`).
+
+```ts no-transpile
+const { selectValue } = counterSlice.getSelectors()
+
+console.log(selectValue({ value: 2 })) // 2
+```
+
+:::note
+The [`slice.selectors`](#selectors-2) object is the equivalent of calling
+
+```ts no-transpile
+const { selectValue } = counterSlice.getSelectors(
+  (rootState: RootState) => rootState[counterSlice.reducerPath]
+)
+```
+
+:::
 
 ## Examples
 
@@ -248,7 +549,6 @@ const counter = createSlice({
       prepare: (value?: number) => ({ payload: value || 2 }), // fallback if the payload is a falsy value
     },
   },
-  // "builder callback API", recommended for TypeScript users
   extraReducers: (builder) => {
     builder.addCase(incrementBy, (state, action) => {
       return state + action.payload
@@ -267,21 +567,16 @@ const user = createSlice({
       state.name = action.payload // mutate the state all you want with immer
     },
   },
-  // "map object API"
-  extraReducers: {
-    // @ts-expect-error in TypeScript, this would need to be [counter.actions.increment.type]
-    [counter.actions.increment]: (
-      state,
-      action /* action will be inferred as "any", as the map notation does not contain type information */
-    ) => {
+  extraReducers: (builder) => {
+    builder.addCase(counter.actions.increment, (state, action) => {
       state.age += 1
-    },
+    })
   },
 })
 
 const reducer = combineReducers({
-  counter: counter.reducer,
-  user: user.reducer,
+  [counter.reducerPath]: counter.reducer,
+  [user.reducerPath]: user.reducer,
 })
 
 const store = createStore(reducer)
@@ -294,7 +589,7 @@ store.dispatch(counter.actions.multiply(3))
 // -> { counter: 6, user: {name: '', age: 22} }
 store.dispatch(counter.actions.multiply())
 // -> { counter: 12, user: {name: '', age: 22} }
-console.log(`${counter.actions.decrement}`)
+console.log(counter.actions.decrement.type)
 // -> "counter/decrement"
 store.dispatch(user.actions.setUserName('eric'))
 // -> { counter: 12, user: { name: 'eric', age: 22} }

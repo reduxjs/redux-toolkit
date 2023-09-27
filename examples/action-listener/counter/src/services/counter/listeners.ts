@@ -1,6 +1,6 @@
 import { counterActions, counterSelectors } from './slice'
 import {
-  AnyAction,
+  UnknownAction,
   isAllOf,
   isAnyOf,
   PayloadAction,
@@ -11,7 +11,7 @@ import type { AppListenerEffectAPI, AppStartListening } from '../../store'
 function shouldStopAsyncTasksOf(id: string) {
   return isAllOf(
     isAnyOf(counterActions.cancelAsyncUpdates, counterActions.removeCounter),
-    (action: AnyAction): action is PayloadAction<string> =>
+    (action: UnknownAction): action is PayloadAction<string> =>
       action?.payload === id
   )
 }

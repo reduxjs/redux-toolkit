@@ -1,32 +1,7 @@
-import type { QueryThunk, RejectedAction } from '../buildThunks'
 import type { InternalHandlerBuilder } from './types'
-import type {
-  SubscriptionState,
-  QuerySubstateIdentifier,
-  Subscribers,
-} from '../apiState'
+import type { SubscriptionState } from '../apiState'
 import { produceWithPatches } from 'immer'
-import type { AnyAction } from '@reduxjs/toolkit';
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-
-// Copied from https://github.com/feross/queue-microtask
-let promise: Promise<any>
-const queueMicrotaskShim =
-  typeof queueMicrotask === 'function'
-    ? queueMicrotask.bind(
-        typeof window !== 'undefined'
-          ? window
-          : typeof global !== 'undefined'
-          ? global
-          : globalThis
-      )
-    : // reuse resolved promise, and allocate it lazily
-      (cb: () => void) =>
-        (promise || (promise = Promise.resolve())).then(cb).catch((err: any) =>
-          setTimeout(() => {
-            throw err
-          }, 0)
-        )
+import type { Action } from '@reduxjs/toolkit'
 
 export const buildBatchedActionsHandler: InternalHandlerBuilder<
   [actionShouldContinue: boolean, subscriptionExists: boolean]
@@ -45,7 +20,7 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
   // This is done to speed up perf when loading many components
   const actuallyMutateSubscriptions = (
     mutableState: SubscriptionState,
-    action: AnyAction
+    action: Action
   ) => {
     if (updateSubscriptionOptions.match(action)) {
       const { queryCacheKey, requestId, options } = action.payload
@@ -94,7 +69,10 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     return false
   }
 
-  return (action, mwApi) => {
+  return (
+    action,
+    mwApi
+  ): [actionShouldContinue: boolean, hasSubscription: boolean] => {
     if (!previousSubscriptions) {
       // Initialize it the first time this handler runs
       previousSubscriptions = JSON.parse(
@@ -124,7 +102,7 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
 
     if (didMutate) {
       if (!dispatchQueued) {
-        queueMicrotaskShim(() => {
+        queueMicrotask(() => {
           // Deep clone the current subscription data
           const newSubscriptions: SubscriptionState = JSON.parse(
             JSON.stringify(internalState.currentSubscriptions)
@@ -145,7 +123,8 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
       }
 
       const isSubscriptionSliceAction =
-        !!action.type?.startsWith(subscriptionsPrefix)
+        typeof action.type == 'string' &&
+        !!action.type.startsWith(subscriptionsPrefix)
       const isAdditionalSubscriptionAction =
         queryThunk.rejected.match(action) &&
         action.meta.condition &&

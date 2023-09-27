@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { createSlice } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { setupApiStore, waitMs } from './helpers'
@@ -18,7 +19,7 @@ const defaultHeaders: Record<string, string> = {
 const baseUrl = 'https://example.com'
 
 // @ts-ignore
-const fetchFn = jest.fn<Promise<any>, any[]>(global.fetch)
+const fetchFn = vi.fn<Promise<any>, any[]>(global.fetch)
 
 const baseQuery = fetchBaseQuery({
   baseUrl,
@@ -1025,7 +1026,7 @@ describe('fetchFn', () => {
       clone: () => fakeResponse,
     }
 
-    const spiedFetch = jest.spyOn(window, 'fetch')
+    const spiedFetch = vi.spyOn(window, 'fetch')
     spiedFetch.mockResolvedValueOnce(fakeResponse as any)
 
     const { data } = await baseQuery({ url: '/echo' }, commonBaseQueryApi, {})

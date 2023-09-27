@@ -80,7 +80,7 @@ Redux Toolkit has [action matching utilities](../../api/matching-utilities.mdx#m
 
 :::
 
-```ts title="Error catching middleware example"
+```ts no-transpile title="Error catching middleware example"
 import { isRejectedWithValue } from '@reduxjs/toolkit'
 import type { MiddlewareAPI, Middleware } from '@reduxjs/toolkit'
 import { toast } from 'your-cool-library'
@@ -93,7 +93,13 @@ export const rtkQueryErrorLogger: Middleware =
     // RTK Query uses `createAsyncThunk` from redux-toolkit under the hood, so we're able to utilize these matchers!
     if (isRejectedWithValue(action)) {
       console.warn('We got a rejected action!')
-      toast.warn({ title: 'Async error!', message: action.error.data.message })
+      toast.warn({
+        title: 'Async error!',
+        message:
+          'data' in action.error
+            ? (action.error.data as { message: string }).message
+            : action.error.message,
+      })
     }
 
     return next(action)

@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { actionsReducer, hookWaitFor, setupApiStore, waitMs } from './helpers'
 import { skipToken } from '../core/buildSelectors'
@@ -10,7 +11,7 @@ interface Post {
   contents: string
 }
 
-const baseQuery = jest.fn()
+const baseQuery = vi.fn()
 beforeEach(() => baseQuery.mockReset())
 
 const api = createApi({
@@ -67,9 +68,9 @@ const storeRef = setupApiStore(api, {
 })
 
 describe('basic lifecycle', () => {
-  let onStart = jest.fn(),
-    onError = jest.fn(),
-    onSuccess = jest.fn()
+  let onStart = vi.fn(),
+    onError = vi.fn(),
+    onSuccess = vi.fn()
 
   const extendedApi = api.injectEndpoints({
     endpoints: (build) => ({
@@ -161,7 +162,7 @@ describe('basic lifecycle', () => {
       }
     )
 
-    baseQuery.mockRejectedValue('error')
+    baseQuery.mockRejectedValueOnce('error')
 
     expect(onStart).not.toHaveBeenCalled()
     expect(baseQuery).not.toHaveBeenCalled()
@@ -295,7 +296,7 @@ describe('upsertQueryData', () => {
     expect(state.data).toEqual(fetchedData)
   })
   test('upsert while a normal query is running (rejected)', async () => {
-    baseQuery.mockImplementation(async () => {
+    baseQuery.mockImplementationOnce(async () => {
       await delay(20)
       // eslint-disable-next-line no-throw-literal
       throw 'Error!'

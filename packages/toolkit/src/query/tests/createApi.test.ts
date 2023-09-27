@@ -1,5 +1,7 @@
-import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
 import type { SerializedError } from '@reduxjs/toolkit'
+import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
+import type { SpyInstance } from 'vitest'
+import { vi } from 'vitest'
 import type {
   Api,
   MutationDefinition,
@@ -33,9 +35,9 @@ const originalEnv = process.env.NODE_ENV
 beforeAll(() => void ((process.env as any).NODE_ENV = 'development'))
 afterAll(() => void ((process.env as any).NODE_ENV = originalEnv))
 
-let spy: jest.SpyInstance
+let spy: SpyInstance
 beforeAll(() => {
-  spy = jest.spyOn(console, 'error').mockImplementation(() => {})
+  spy = vi.spyOn(console, 'error').mockImplementation(() => {})
 })
 afterEach(() => {
   spy.mockReset()
@@ -84,7 +86,7 @@ test('sensible defaults', () => {
 })
 
 describe('wrong tagTypes log errors', () => {
-  const baseQuery = jest.fn()
+  const baseQuery = vi.fn()
   const api = createApi({
     baseQuery,
     tagTypes: ['User'],
@@ -328,7 +330,7 @@ describe('endpoint definition typings', () => {
   })
 
   describe('enhancing endpoint definitions', () => {
-    const baseQuery = jest.fn((x: string) => ({ data: 'success' }))
+    const baseQuery = vi.fn((x: string) => ({ data: 'success' }))
     const commonBaseQueryApi = {
       dispatch: expect.any(Function),
       endpoint: expect.any(String),
@@ -935,7 +937,7 @@ describe('custom serializeQueryArgs per endpoint', () => {
 
   type SuccessResponse = { value: 'success' }
 
-  const serializer1 = jest.fn(customArgsSerializer)
+  const serializer1 = vi.fn(customArgsSerializer)
 
   interface MyApiClient {
     fetchPost: (id: string) => Promise<SuccessResponse>
@@ -1042,7 +1044,7 @@ describe('custom serializeQueryArgs per endpoint', () => {
     ).toBeTruthy()
   })
 
-  const serializer2 = jest.fn(customArgsSerializer)
+  const serializer2 = vi.fn(customArgsSerializer)
 
   const injectedApi = api.injectEndpoints({
     endpoints: (build) => ({

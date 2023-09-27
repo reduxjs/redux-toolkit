@@ -1,10 +1,17 @@
 import { createApi } from '@reduxjs/toolkit/query'
 import type { FetchBaseQueryMeta } from '@reduxjs/toolkit/query'
+import { vi } from 'vitest'
 import { fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { expectType, fakeTimerWaitFor, setupApiStore, waitMs } from './helpers'
+import {
+  expectType,
+  fakeTimerWaitFor,
+  setupApiStore,
+  DEFAULT_DELAY_MS,
+} from './helpers'
+import { QueryActionCreatorResult } from '../core/buildInitiate'
 
 beforeAll(() => {
-  jest.useFakeTimers('legacy')
+  vi.useFakeTimers()
 })
 
 const api = createApi({
@@ -13,10 +20,10 @@ const api = createApi({
 })
 const storeRef = setupApiStore(api)
 
-const onNewCacheEntry = jest.fn()
-const gotFirstValue = jest.fn()
-const onCleanup = jest.fn()
-const onCatch = jest.fn()
+const onNewCacheEntry = vi.fn()
+const gotFirstValue = vi.fn()
+const onCleanup = vi.fn()
+const onCatch = vi.fn()
 
 beforeEach(() => {
   onNewCacheEntry.mockClear()
@@ -48,6 +55,7 @@ describe.each([['query'], ['mutation']] as const)(
       const extended = api.injectEndpoints({
         overrideExisting: true,
         endpoints: (build) => ({
+          // Lying to TS here
           injected: build[type as 'mutation']<unknown, string>({
             query: () => '/success',
             async onCacheEntryAdded(
@@ -68,11 +76,16 @@ describe.each([['query'], ['mutation']] as const)(
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
       expect(onCleanup).not.toHaveBeenCalled()
 
-      promise.unsubscribe(), await waitMs()
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
+      await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
       if (type === 'query') {
-        jest.advanceTimersByTime(59000), await waitMs()
+        await vi.advanceTimersByTimeAsync(59000)
         expect(onCleanup).not.toHaveBeenCalled()
-        jest.advanceTimersByTime(2000), await waitMs()
+        await vi.advanceTimersByTimeAsync(2000)
       }
 
       expect(onCleanup).toHaveBeenCalled()
@@ -121,11 +134,16 @@ describe.each([['query'], ['mutation']] as const)(
       })
       expect(onCleanup).not.toHaveBeenCalled()
 
-      promise.unsubscribe(), await waitMs()
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
+      await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
       if (type === 'query') {
-        jest.advanceTimersByTime(59000), await waitMs()
+        await vi.advanceTimersByTimeAsync(59000)
         expect(onCleanup).not.toHaveBeenCalled()
-        jest.advanceTimersByTime(2000), await waitMs()
+        await vi.advanceTimersByTimeAsync(2000)
       }
 
       expect(onCleanup).toHaveBeenCalled()
@@ -158,9 +176,14 @@ describe.each([['query'], ['mutation']] as const)(
       )
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
 
-      promise.unsubscribe(), await waitMs()
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
+      await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
       if (type === 'query') {
-        jest.advanceTimersByTime(120000), await waitMs()
+        await vi.advanceTimersByTimeAsync(120000)
       }
       expect(gotFirstValue).not.toHaveBeenCalled()
       expect(onCleanup).not.toHaveBeenCalled()
@@ -196,11 +219,17 @@ describe.each([['query'], ['mutation']] as const)(
       )
 
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
-      promise.unsubscribe(), await waitMs()
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
+      await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
+
       if (type === 'query') {
-        jest.advanceTimersByTime(59000), await waitMs()
+        await vi.advanceTimersByTimeAsync(59000)
         expect(onCleanup).not.toHaveBeenCalled()
-        jest.advanceTimersByTime(2000), await waitMs()
+        await vi.advanceTimersByTimeAsync(2000)
       }
 
       expect(onCleanup).toHaveBeenCalled()
@@ -242,11 +271,16 @@ describe.each([['query'], ['mutation']] as const)(
 
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
 
-      promise.unsubscribe(), await waitMs()
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
+      await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
       if (type === 'query') {
-        jest.advanceTimersByTime(59000), await waitMs()
+        await vi.advanceTimersByTimeAsync(59000)
         expect(onCleanup).not.toHaveBeenCalled()
-        jest.advanceTimersByTime(2000), await waitMs()
+        await vi.advanceTimersByTimeAsync(2000)
       }
       expect(onCleanup).not.toHaveBeenCalled()
       expect(gotFirstValue).not.toHaveBeenCalled()
@@ -287,11 +321,16 @@ describe.each([['query'], ['mutation']] as const)(
 
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
 
-      promise.unsubscribe(), await waitMs()
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
+      await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
       if (type === 'query') {
-        jest.advanceTimersByTime(59000), await waitMs()
+        await vi.advanceTimersByTimeAsync(59000)
         expect(onCleanup).not.toHaveBeenCalled()
-        jest.advanceTimersByTime(2000), await waitMs()
+        await vi.advanceTimersByTimeAsync(2000)
       }
       expect(onCleanup).toHaveBeenCalled()
       expect(gotFirstValue).not.toHaveBeenCalled()
@@ -303,7 +342,7 @@ describe.each([['query'], ['mutation']] as const)(
 )
 
 test(`query: getCacheEntry`, async () => {
-  const snapshot = jest.fn()
+  const snapshot = vi.fn()
   const extended = api.injectEndpoints({
     overrideExisting: true,
     endpoints: (build) => ({
@@ -337,7 +376,7 @@ test(`query: getCacheEntry`, async () => {
     expect(gotFirstValue).toHaveBeenCalled()
   })
 
-  jest.advanceTimersByTime(120000), await waitMs()
+  await vi.advanceTimersByTimeAsync(120000)
 
   expect(snapshot).toHaveBeenCalledTimes(3)
   expect(snapshot.mock.calls[0][0]).toMatchObject({
@@ -376,7 +415,7 @@ test(`query: getCacheEntry`, async () => {
 })
 
 test(`mutation: getCacheEntry`, async () => {
-  const snapshot = jest.fn()
+  const snapshot = vi.fn()
   const extended = api.injectEndpoints({
     overrideExisting: true,
     endpoints: (build) => ({
@@ -408,7 +447,8 @@ test(`mutation: getCacheEntry`, async () => {
     expect(gotFirstValue).toHaveBeenCalled()
   })
 
-  promise.unsubscribe(), await waitMs()
+  promise.reset()
+  await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
 
   expect(snapshot).toHaveBeenCalledTimes(3)
   expect(snapshot.mock.calls[0][0]).toMatchObject({
@@ -443,7 +483,7 @@ test(`mutation: getCacheEntry`, async () => {
 })
 
 test('updateCachedData', async () => {
-  const trackCalls = jest.fn()
+  const trackCalls = vi.fn()
 
   const extended = api.injectEndpoints({
     overrideExisting: true,
@@ -505,7 +545,7 @@ test('updateCachedData', async () => {
     expect(gotFirstValue).toHaveBeenCalled()
   })
 
-  jest.advanceTimersByTime(61000)
+  await vi.advanceTimersByTimeAsync(61000)
 
   await fakeTimerWaitFor(() => {
     expect(onCleanup).toHaveBeenCalled()

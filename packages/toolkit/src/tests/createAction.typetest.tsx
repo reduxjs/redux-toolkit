@@ -1,5 +1,5 @@
 import React from 'react'
-import type { Action, AnyAction, ActionCreator } from 'redux'
+import type { Action, UnknownAction, ActionCreator } from 'redux'
 import type {
   PayloadAction,
   PayloadActionCreator,
@@ -92,7 +92,7 @@ import { expectType } from './helpers'
     }),
     { type: 'action' }
   ) as PayloadActionCreator
-  const actionCreator: ActionCreator<AnyAction> = payloadActionCreator
+  const actionCreator: ActionCreator<UnknownAction> = payloadActionCreator
 
   const payloadActionCreator2 = Object.assign(
     (payload?: number) => ({
@@ -258,7 +258,7 @@ import { expectType } from './helpers'
   // simple use case
   {
     const actionCreator = createAction<string, 'test'>('test')
-    const x: Action<unknown> = {} as any
+    const x: Action<string> = {} as any
     if (actionCreator.match(x)) {
       expectType<'test'>(x.type)
       expectType<string>(x.payload)
@@ -273,7 +273,7 @@ import { expectType } from './helpers'
   // special case: optional argument
   {
     const actionCreator = createAction<string | undefined, 'test'>('test')
-    const x: Action<unknown> = {} as any
+    const x: Action<string> = {} as any
     if (actionCreator.match(x)) {
       expectType<'test'>(x.type)
       expectType<string | undefined>(x.payload)
@@ -283,7 +283,7 @@ import { expectType } from './helpers'
   // special case: without argument
   {
     const actionCreator = createAction('test')
-    const x: Action<unknown> = {} as any
+    const x: Action<string> = {} as any
     if (actionCreator.match(x)) {
       expectType<'test'>(x.type)
       // @ts-expect-error
@@ -298,7 +298,7 @@ import { expectType } from './helpers'
       meta: '',
       error: false,
     }))
-    const x: Action<unknown> = {} as any
+    const x: Action<string> = {} as any
     if (actionCreator.match(x)) {
       expectType<'test'>(x.type)
       expectType<string>(x.payload)
@@ -315,7 +315,7 @@ import { expectType } from './helpers'
   // potential use: as array filter
   {
     const actionCreator = createAction<string, 'test'>('test')
-    const x: Array<Action<unknown>> = []
+    const x: Array<Action<string>> = []
     expectType<Array<PayloadAction<string, 'test'>>>(
       x.filter(actionCreator.match)
     )

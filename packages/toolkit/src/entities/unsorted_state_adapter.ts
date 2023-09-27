@@ -18,10 +18,10 @@ import {
   splitAddedUpdatedEntities,
 } from './utils'
 
-export function createUnsortedStateAdapter<T>(
-  selectId: DraftableIdSelector<T>
-): EntityStateAdapter<T> {
-  type R = DraftableEntityState<T>
+export function createUnsortedStateAdapter<T, Id extends EntityId>(
+  selectId: IdSelector<T, Id>
+): EntityStateAdapter<T, Id> {
+  type R = EntityState<T, Id>
 
   function addOneMutably(entity: T, state: R): void {
     const key = selectIdValue(entity, selectId)
@@ -35,7 +35,7 @@ export function createUnsortedStateAdapter<T>(
   }
 
   function addManyMutably(
-    newEntities: readonly T[] | Record<EntityId, T>,
+    newEntities: readonly T[] | Record<Id, T>,
     state: R
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
@@ -54,7 +54,7 @@ export function createUnsortedStateAdapter<T>(
   }
 
   function setManyMutably(
-    newEntities: readonly T[] | Record<EntityId, T>,
+    newEntities: readonly T[] | Record<Id, T>,
     state: R
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
@@ -64,22 +64,22 @@ export function createUnsortedStateAdapter<T>(
   }
 
   function setAllMutably(
-    newEntities: readonly T[] | Record<EntityId, T>,
+    newEntities: readonly T[] | Record<Id, T>,
     state: R
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
 
     state.ids = []
-    state.entities = {}
+    state.entities = {} as Record<Id, T>
 
     addManyMutably(newEntities, state)
   }
 
-  function removeOneMutably(key: EntityId, state: R): void {
+  function removeOneMutably(key: Id, state: R): void {
     return removeManyMutably([key], state)
   }
 
-  function removeManyMutably(keys: readonly EntityId[], state: R): void {
+  function removeManyMutably(keys: readonly Id[], state: R): void {
     let didMutate = false
 
     keys.forEach((key) => {
@@ -102,12 +102,15 @@ export function createUnsortedStateAdapter<T>(
   }
 
   function takeNewKey(
-    keys: { [id: string]: EntityId },
-    update: Update<T>,
+    keys: { [id: string]: Id },
+    update: Update<T, Id>,
     state: R
   ): boolean {
-    const original = state.entities[update.id]
-    const updated: T | Draft<T> = Object.assign({}, original, update.changes)
+    const original: T | undefined = state.entities[update.id]
+    if (original === undefined) {
+      return false
+    }
+    const updated: T = Object.assign({}, original, update.changes)
     const newKey = selectIdValue(updated, selectId)
     const hasNewKey = newKey !== update.id
 
@@ -121,17 +124,17 @@ export function createUnsortedStateAdapter<T>(
     return hasNewKey
   }
 
-  function updateOneMutably(update: Update<T>, state: R): void {
+  function updateOneMutably(update: Update<T, Id>, state: R): void {
     return updateManyMutably([update], state)
   }
 
   function updateManyMutably(
-    updates: ReadonlyArray<Update<T>>,
+    updates: ReadonlyArray<Update<T, Id>>,
     state: R
   ): void {
-    const newKeys: { [id: string]: EntityId } = {}
+    const newKeys: { [id: string]: Id } = {}
 
-    const updatesPerEntity: { [id: string]: Update<T> } = {}
+    const updatesPerEntity: { [id: string]: Update<T, Id> } = {}
 
     updates.forEach((update) => {
       // Only apply updates to entities that currently exist
@@ -161,7 +164,9 @@ export function createUnsortedStateAdapter<T>(
         0
 
       if (didMutateIds) {
-        state.ids = Object.keys(state.entities)
+        state.ids = Object.values(state.entities).map((e) =>
+          selectIdValue(e as T, selectId)
+        )
       }
     }
   }
@@ -171,10 +176,10 @@ export function createUnsortedStateAdapter<T>(
   }
 
   function upsertManyMutably(
-    newEntities: readonly T[] | Record<EntityId, T>,
+    newEntities: readonly T[] | Record<Id, T>,
     state: R
   ): void {
-    const [added, updated] = splitAddedUpdatedEntities<T>(
+    const [added, updated] = splitAddedUpdatedEntities<T, Id>(
       newEntities,
       selectId,
       state

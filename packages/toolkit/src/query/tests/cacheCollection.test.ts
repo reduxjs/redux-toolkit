@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { configureStore } from '@reduxjs/toolkit'
-import { waitMs } from './helpers'
+import { vi } from 'vitest'
 import type { Middleware, Reducer } from 'redux'
 import {
   THIRTY_TWO_BIT_MAX_INT,
@@ -8,10 +8,10 @@ import {
 } from '../core/buildMiddleware/cacheCollection'
 
 beforeAll(() => {
-  jest.useFakeTimers('legacy')
+  vi.useFakeTimers()
 })
 
-const onCleanup = jest.fn()
+const onCleanup = vi.fn()
 
 beforeEach(() => {
   onCleanup.mockClear()
@@ -30,9 +30,9 @@ test(`query: await cleanup, defaults`, async () => {
   )
 
   store.dispatch(api.endpoints.query.initiate('arg')).unsubscribe()
-  jest.advanceTimersByTime(59000), await waitMs()
+  vi.advanceTimersByTime(59000)
   expect(onCleanup).not.toHaveBeenCalled()
-  jest.advanceTimersByTime(2000), await waitMs()
+  vi.advanceTimersByTime(2000)
   expect(onCleanup).toHaveBeenCalled()
 })
 
@@ -50,9 +50,9 @@ test(`query: await cleanup, keepUnusedDataFor set`, async () => {
   )
 
   store.dispatch(api.endpoints.query.initiate('arg')).unsubscribe()
-  jest.advanceTimersByTime(28000), await waitMs()
+  vi.advanceTimersByTime(28000)
   expect(onCleanup).not.toHaveBeenCalled()
-  jest.advanceTimersByTime(2000), await waitMs()
+  vi.advanceTimersByTime(2000)
   expect(onCleanup).toHaveBeenCalled()
 })
 
@@ -72,17 +72,16 @@ test(`query: handles large keepUnuseDataFor values over 32-bit ms`, async () => 
   store.dispatch(api.endpoints.query.initiate('arg')).unsubscribe()
 
   // Shouldn't have been called right away
-  jest.advanceTimersByTime(1000), await waitMs()
+  vi.advanceTimersByTime(1000)
   expect(onCleanup).not.toHaveBeenCalled()
 
   // Shouldn't have been called any time in the next few minutes
-  jest.advanceTimersByTime(1_000_000), await waitMs()
+  vi.advanceTimersByTime(1_000_000)
   expect(onCleanup).not.toHaveBeenCalled()
 
   // _Should_ be called _wayyyy_ in the future (like 24.8 days from now)
-  jest.advanceTimersByTime(THIRTY_TWO_BIT_MAX_TIMER_SECONDS * 1000),
-    await waitMs()
-  expect(onCleanup).toHaveBeenCalled()
+  vi.advanceTimersByTime(THIRTY_TWO_BIT_MAX_TIMER_SECONDS * 1000),
+    expect(onCleanup).toHaveBeenCalled()
 })
 
 describe(`query: await cleanup, keepUnusedDataFor set`, () => {
@@ -112,17 +111,17 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
 
   test('global keepUnusedDataFor', async () => {
     store.dispatch(api.endpoints.query.initiate('arg')).unsubscribe()
-    jest.advanceTimersByTime(28000), await waitMs()
+    vi.advanceTimersByTime(28000)
     expect(onCleanup).not.toHaveBeenCalled()
-    jest.advanceTimersByTime(2000), await waitMs()
+    vi.advanceTimersByTime(2000)
     expect(onCleanup).toHaveBeenCalled()
   })
 
   test('endpoint keepUnusedDataFor', async () => {
     store.dispatch(api.endpoints.query2.initiate('arg')).unsubscribe()
-    jest.advanceTimersByTime(34000), await waitMs()
+    vi.advanceTimersByTime(34000)
     expect(onCleanup).not.toHaveBeenCalled()
-    jest.advanceTimersByTime(2000), await waitMs()
+    vi.advanceTimersByTime(2000)
     expect(onCleanup).toHaveBeenCalled()
   })
 
@@ -130,8 +129,7 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
     expect(onCleanup).not.toHaveBeenCalled()
     store.dispatch(api.endpoints.query3.initiate('arg')).unsubscribe()
     expect(onCleanup).not.toHaveBeenCalled()
-    jest.advanceTimersByTime(1)
-    await waitMs()
+    vi.advanceTimersByTime(1)
     expect(onCleanup).toHaveBeenCalled()
   })
 
@@ -139,7 +137,7 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
     expect(onCleanup).not.toHaveBeenCalled()
     store.dispatch(api.endpoints.query4.initiate('arg')).unsubscribe()
     expect(onCleanup).not.toHaveBeenCalled()
-    jest.advanceTimersByTime(THIRTY_TWO_BIT_MAX_INT)
+    vi.advanceTimersByTime(THIRTY_TWO_BIT_MAX_INT)
     expect(onCleanup).not.toHaveBeenCalled()
   })
 })
@@ -158,6 +156,10 @@ function storeForApi<
       gdm({ serializableCheck: false, immutableCheck: false }).concat(
         api.middleware
       ),
+    enhancers: (gde) =>
+      gde({
+        autoBatch: false,
+      }),
   })
   let hadQueries = false
   store.subscribe(() => {

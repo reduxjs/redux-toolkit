@@ -1,5 +1,5 @@
-import { isAsyncThunkAction, isFulfilled } from '@reduxjs/toolkit'
-import type { AnyAction } from 'redux'
+import { isAsyncThunkAction, isFulfilled } from '../rtkImports'
+import type { UnknownAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import type { BaseQueryFn, BaseQueryMeta } from '../../baseQueryTypes'
 import { DefinitionType } from '../../endpointDefinitions'
@@ -65,7 +65,7 @@ declare module '../../endpointDefinitions' {
     /**
      * The dispatch method for the store
      */
-    dispatch: ThunkDispatch<any, any, AnyAction>
+    dispatch: ThunkDispatch<any, any, UnknownAction>
     /**
      * A method to get the current state
      */

@@ -31,7 +31,7 @@ const action = increment(3)
 // { type: 'counter/increment', payload: 3 }
 ```
 
-The `createAction` helper combines these two declarations into one. It takes an action type and returns an action creator for that type. The action creator can be called either without arguments or with a `payload` to be attached to the action. Also, the action creator overrides [toString()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString) so that the action type becomes its string representation.
+The `createAction` helper combines these two declarations into one. It takes an action type and returns an action creator for that type. The action creator can be called either without arguments or with a `payload` to be attached to the action.
 
 ```ts
 import { createAction } from '@reduxjs/toolkit'
@@ -44,10 +44,7 @@ let action = increment()
 action = increment(3)
 // returns { type: 'counter/increment', payload: 3 }
 
-console.log(increment.toString())
-// 'counter/increment'
-
-console.log(`The action type is: ${increment}`)
+console.log(`The action type is: ${increment.type}`)
 // 'The action type is: counter/increment'
 ```
 
@@ -89,7 +86,7 @@ If provided, all arguments from the action creator will be passed to the prepare
 
 ## Usage with createReducer()
 
-Because of their `toString()` override, action creators returned by `createAction()` can be used directly as keys for the case reducers passed to [createReducer()](createReducer.mdx).
+Action creators can be passed directly to `addCase` in a [createReducer()](createReducer.mdx) build callback.
 
 ```ts
 import { createAction, createReducer } from '@reduxjs/toolkit'
@@ -103,43 +100,9 @@ const counterReducer = createReducer(0, (builder) => {
 })
 ```
 
-## Non-String Action Types
-
-In principle, Redux lets you use any kind of value as an action type. Instead of strings, you could theoretically use numbers, [symbols](https://developer.mozilla.org/en-US/docs/Glossary/Symbol), or anything else ([although it's recommended that the value should at least be serializable](https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)).
-
-However, Redux Toolkit rests on the assumption that you use string action types. Specifically, some of its features rely on the fact that with strings, the `toString()` method of an `createAction()` action creator returns the matching action type. This is not the case for non-string action types because `toString()` will return the string-converted type value rather than the type itself.
-
-```js
-const INCREMENT = Symbol('increment')
-const increment = createAction(INCREMENT)
-
-increment.toString()
-// returns the string 'Symbol(increment)',
-// not the INCREMENT symbol itself
-
-increment.toString() === INCREMENT
-// false
-```
-
-This means that, for instance, you cannot use a non-string-type action creator as a case reducer key for [createReducer()](createReducer.mdx).
-
-```js
-const INCREMENT = Symbol('increment')
-const increment = createAction(INCREMENT)
-
-const counterReducer = createReducer(0, {
-  // The following case reducer will NOT trigger for
-  // increment() actions because `increment` will be
-  // interpreted as a string, rather than being evaluated
-  // to the INCREMENT symbol.
-  [increment]: (state, action) => state + action.payload,
-
-  // You would need to use the action type explicitly instead.
-  [INCREMENT]: (state, action) => state + action.payload,
-})
-```
-
-For this reason, **we strongly recommend you to only use string action types**.
+:::warning Non-String Action Types
+As of Redux 5.0, action types are _required_ to be strings. An error will be thrown by the store if a non-string action type reaches the original store dispatch.
+:::
 
 ## actionCreator.match
 

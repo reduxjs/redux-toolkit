@@ -43,6 +43,8 @@
             "api/serializabilityMiddleware",
             "api/actionCreatorMiddleware",
             "api/createListenerMiddleware",
+            "api/createDynamicMiddleware",
+            "api/getDefaultEnhancers",
             "api/autoBatchEnhancer"
           ]
         },
@@ -55,7 +57,8 @@
             "api/createAction",
             "api/createSlice",
             "api/createAsyncThunk",
-            "api/createEntityAdapter"
+            "api/createEntityAdapter",
+            "api/combineSlices"
           ]
         },
         {
