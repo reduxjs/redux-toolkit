@@ -35,7 +35,7 @@ We also have a [**TypeScript Quick Start tutorial**](./typescript.md) that brief
 
 The [**Redux Essentials tutorial**](https://redux.js.org/tutorials/essentials/part-1-overview-concepts) teaches you "how to use Redux the right way", using Redux Toolkit as the standard approach for writing Redux logic.
 
-It shows how to build a "real world"-style example application, and teaches Redux concepts along the way.
+It shows how to build a "real-world" style example application, and teaches Redux concepts along the way.
 
 **If you've never used Redux before, and just want to know "how do I use this to build something useful?", start with the Redux Essentials tutorial.**
 

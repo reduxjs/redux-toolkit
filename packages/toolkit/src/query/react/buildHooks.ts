@@ -21,37 +21,31 @@ import type {
   SubscriptionOptions,
   QueryKeys,
   RootState,
-} from '@reduxjs/toolkit/dist/query/core/apiState'
+} from '@reduxjs/toolkit/query'
 import type {
   EndpointDefinitions,
   MutationDefinition,
   QueryDefinition,
   QueryArgFrom,
   ResultTypeFrom,
-} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
-import type {
   QueryResultSelectorResult,
   MutationResultSelectorResult,
   SkipToken,
-} from '@reduxjs/toolkit/dist/query/core/buildSelectors'
-import type {
   QueryActionCreatorResult,
   MutationActionCreatorResult,
-} from '@reduxjs/toolkit/dist/query/core/buildInitiate'
-import type { SerializeQueryArgs } from '@reduxjs/toolkit/dist/query/defaultSerializeQueryArgs'
-import { shallowEqual } from 'react-redux'
-import type { Api, ApiContext } from '@reduxjs/toolkit/dist/query/apiTypes'
-import type {
-  Id,
-  NoInfer,
-  Override,
-} from '@reduxjs/toolkit/dist/query/tsHelpers'
-import type {
+  SerializeQueryArgs,
+  Api,
+  ApiContext,
+  TSHelpersId,
+  TSHelpersNoInfer,
+  TSHelpersOverride,
   ApiEndpointMutation,
   ApiEndpointQuery,
   CoreModule,
   PrefetchOptions,
-} from '@reduxjs/toolkit/dist/query/core/module'
+} from '@reduxjs/toolkit/query'
+
+import { shallowEqual } from 'react-redux'
 import type { ReactHooksModuleOptions } from './module'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import type { UninitializedValue } from './constants'
@@ -378,7 +372,7 @@ export type UseQueryStateOptions<
 export type UseQueryStateResult<
   _ extends QueryDefinition<any, any, any, any>,
   R
-> = NoInfer<R>
+> = TSHelpersNoInfer<R>
 
 /**
  * Helper type to manually type the result
@@ -391,7 +385,7 @@ export type TypedUseQueryStateResult<
   R = UseQueryStateDefaultResult<
     QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
   >
-> = NoInfer<R>
+> = TSHelpersNoInfer<R>
 
 type UseQueryStateBaseResult<D extends QueryDefinition<any, any, any, any>> =
   QuerySubState<D> & {
@@ -424,15 +418,15 @@ type UseQueryStateBaseResult<D extends QueryDefinition<any, any, any, any>> =
   }
 
 type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
-  Id<
-    | Override<
+  TSHelpersId<
+    | TSHelpersOverride<
         Extract<
           UseQueryStateBaseResult<D>,
           { status: QueryStatus.uninitialized }
         >,
         { isUninitialized: true }
       >
-    | Override<
+    | TSHelpersOverride<
         UseQueryStateBaseResult<D>,
         | { isLoading: true; isFetching: boolean; data: undefined }
         | ({
@@ -481,7 +475,7 @@ export type UseMutationStateOptions<
 export type UseMutationStateResult<
   D extends MutationDefinition<any, any, any, any>,
   R
-> = NoInfer<R> & {
+> = TSHelpersNoInfer<R> & {
   originalArgs?: QueryArgFrom<D>
   /**
    * Resets the hook state to it's initial `uninitialized` state.

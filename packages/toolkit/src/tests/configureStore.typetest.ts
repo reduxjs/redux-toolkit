@@ -74,19 +74,19 @@ const _anyMiddleware: any = () => () => () => {}
 
   configureStore({
     reducer: () => 0,
-    middleware: new Tuple(middleware),
+    middleware: () => new Tuple(middleware),
   })
 
   configureStore({
     reducer: () => 0,
     // @ts-expect-error
-    middleware: [middleware],
+    middleware: () => [middleware],
   })
 
   configureStore({
     reducer: () => 0,
     // @ts-expect-error
-    middleware: new Tuple('not middleware'),
+    middleware: () => new Tuple('not middleware'),
   })
 }
 
@@ -520,7 +520,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: new Tuple(),
+      middleware: () => new Tuple(),
     })
     // @ts-expect-error
     store.dispatch(thunkA())
@@ -533,7 +533,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: new Tuple(thunk as ThunkMiddleware<StateA>),
+      middleware: () => new Tuple(thunk as ThunkMiddleware<StateA>),
     })
     store.dispatch(thunkA())
     // @ts-expect-error
@@ -545,9 +545,8 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: new Tuple(
-        0 as unknown as Middleware<(a: StateA) => boolean, StateA>
-      ),
+      middleware: () =>
+        new Tuple(0 as unknown as Middleware<(a: StateA) => boolean, StateA>),
     })
     const result: boolean = store.dispatch(5)
     // @ts-expect-error
@@ -566,7 +565,7 @@ const _anyMiddleware: any = () => () => () => {}
     >
     const store = configureStore({
       reducer: reducerA,
-      middleware,
+      middleware: () => middleware,
     })
 
     const result: 'A' = store.dispatch('a')

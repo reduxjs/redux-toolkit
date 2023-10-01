@@ -101,7 +101,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const store = configureStore({
       reducer,
-      middleware: new Tuple(serializableStateInvariantMiddleware),
+      middleware: () => new Tuple(serializableStateInvariantMiddleware),
     })
 
     const symbol = Symbol.for('SOME_CONSTANT')
@@ -148,7 +148,7 @@ describe('serializableStateInvariantMiddleware', () => {
       reducer: {
         testSlice: reducer,
       },
-      middleware: new Tuple(serializableStateInvariantMiddleware),
+      middleware: () => new Tuple(serializableStateInvariantMiddleware),
     })
 
     store.dispatch({ type: ACTION_TYPE })
@@ -208,7 +208,7 @@ describe('serializableStateInvariantMiddleware', () => {
         reducer: {
           testSlice: reducer,
         },
-        middleware: new Tuple(serializableStateInvariantMiddleware),
+        middleware: () => new Tuple(serializableStateInvariantMiddleware),
       })
 
       store.dispatch({ type: ACTION_TYPE })
@@ -255,7 +255,7 @@ describe('serializableStateInvariantMiddleware', () => {
         reducer: {
           testSlice: reducer,
         },
-        middleware: new Tuple(serializableStateInvariantMiddleware),
+        middleware: () => new Tuple(serializableStateInvariantMiddleware),
       })
 
       store.dispatch({ type: ACTION_TYPE })
@@ -299,7 +299,7 @@ describe('serializableStateInvariantMiddleware', () => {
       reducer: {
         testSlice: reducer,
       },
-      middleware: new Tuple(serializableStateInvariantMiddleware),
+      middleware: () => new Tuple(serializableStateInvariantMiddleware),
     })
 
     store.dispatch({ type: ACTION_TYPE })
@@ -323,7 +323,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const store = configureStore({
       reducer: () => ({}),
-      middleware: new Tuple(serializableStateMiddleware),
+      middleware: () => new Tuple(serializableStateMiddleware),
     })
 
     expect(numTimesCalled).toBe(0)
@@ -348,7 +348,8 @@ describe('serializableStateInvariantMiddleware', () => {
     it('default value: meta.arg', () => {
       configureStore({
         reducer,
-        middleware: new Tuple(createSerializableStateInvariantMiddleware()),
+        middleware: () =>
+          new Tuple(createSerializableStateInvariantMiddleware()),
       }).dispatch({ type: 'test', meta: { arg: nonSerializableValue } })
 
       expect(getLog().log).toMatchInlineSnapshot(`""`)
@@ -357,11 +358,12 @@ describe('serializableStateInvariantMiddleware', () => {
     it('default value can be overridden', () => {
       configureStore({
         reducer,
-        middleware: new Tuple(
-          createSerializableStateInvariantMiddleware({
-            ignoredActionPaths: [],
-          })
-        ),
+        middleware: () =>
+          new Tuple(
+            createSerializableStateInvariantMiddleware({
+              ignoredActionPaths: [],
+            })
+          ),
       }).dispatch({ type: 'test', meta: { arg: nonSerializableValue } })
 
       expect(getLog().log).toMatchInlineSnapshot(`
@@ -380,11 +382,12 @@ describe('serializableStateInvariantMiddleware', () => {
     it('can specify (multiple) different values', () => {
       configureStore({
         reducer,
-        middleware: new Tuple(
-          createSerializableStateInvariantMiddleware({
-            ignoredActionPaths: ['payload', 'meta.arg'],
-          })
-        ),
+        middleware: () =>
+          new Tuple(
+            createSerializableStateInvariantMiddleware({
+              ignoredActionPaths: ['payload', 'meta.arg'],
+            })
+          ),
       }).dispatch({
         type: 'test',
         payload: { arg: nonSerializableValue },
@@ -397,11 +400,12 @@ describe('serializableStateInvariantMiddleware', () => {
     it('can specify regexp', () => {
       configureStore({
         reducer,
-        middleware: new Tuple(
-          createSerializableStateInvariantMiddleware({
-            ignoredActionPaths: [/^payload\..*$/],
-          })
-        ),
+        middleware: () =>
+          new Tuple(
+            createSerializableStateInvariantMiddleware({
+              ignoredActionPaths: [/^payload\..*$/],
+            })
+          ),
       }).dispatch({
         type: 'test',
         payload: { arg: nonSerializableValue },
@@ -425,7 +429,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const store = configureStore({
       reducer: () => ({}),
-      middleware: new Tuple(serializableStateMiddleware),
+      middleware: () => new Tuple(serializableStateMiddleware),
     })
 
     expect(numTimesCalled).toBe(0)
@@ -488,7 +492,7 @@ describe('serializableStateInvariantMiddleware', () => {
       reducer: {
         testSlice: reducer,
       },
-      middleware: new Tuple(serializableStateInvariantMiddleware),
+      middleware: () => new Tuple(serializableStateInvariantMiddleware),
     })
 
     store.dispatch({ type: ACTION_TYPE })
@@ -507,15 +511,16 @@ describe('serializableStateInvariantMiddleware', () => {
     const reducer = () => badValue
     const store = configureStore({
       reducer,
-      middleware: new Tuple(
-        createSerializableStateInvariantMiddleware({
-          isSerializable: () => {
-            numTimesCalled++
-            return true
-          },
-          ignoreState: true,
-        })
-      ),
+      middleware: () =>
+        new Tuple(
+          createSerializableStateInvariantMiddleware({
+            isSerializable: () => {
+              numTimesCalled++
+              return true
+            },
+            ignoreState: true,
+          })
+        ),
     })
 
     expect(numTimesCalled).toBe(0)
@@ -534,16 +539,17 @@ describe('serializableStateInvariantMiddleware', () => {
     const reducer = () => badValue
     const store = configureStore({
       reducer,
-      middleware: new Tuple(
-        createSerializableStateInvariantMiddleware({
-          isSerializable: () => {
-            numTimesCalled++
-            return true
-          },
-          ignoreState: true,
-          ignoreActions: true,
-        })
-      ),
+      middleware: () =>
+        new Tuple(
+          createSerializableStateInvariantMiddleware({
+            isSerializable: () => {
+              numTimesCalled++
+              return true
+            },
+            ignoreState: true,
+            ignoreActions: true,
+          })
+        ),
     })
 
     expect(numTimesCalled).toBe(0)
@@ -566,7 +572,7 @@ describe('serializableStateInvariantMiddleware', () => {
       reducer: {
         testSlice: reducer,
       },
-      middleware: new Tuple(serializableStateInvariantMiddleware),
+      middleware: () => new Tuple(serializableStateInvariantMiddleware),
     })
 
     store.dispatch({
@@ -592,7 +598,7 @@ describe('serializableStateInvariantMiddleware', () => {
       reducer: {
         testSlice: reducer,
       },
-      middleware: new Tuple(serializableStateInvariantMiddleware),
+      middleware: () => new Tuple(serializableStateInvariantMiddleware),
     })
 
     store.dispatch({ type: 'SOME_ACTION' })
@@ -616,7 +622,7 @@ describe('serializableStateInvariantMiddleware', () => {
         if (action.type === 'SET_STATE') return action.payload
         return state
       },
-      middleware: new Tuple(serializableStateInvariantMiddleware),
+      middleware: () => new Tuple(serializableStateInvariantMiddleware),
     })
 
     const state = createNextState([], () =>
