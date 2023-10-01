@@ -110,7 +110,7 @@ describe('configureStore', async () => {
   describe('given no middleware', () => {
     it('calls createStore without any middleware', () => {
       expect(
-        configureStore({ middleware: new Tuple(), reducer })
+        configureStore({ middleware: () => new Tuple(), reducer })
       ).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalledWith()
       expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line-line
@@ -118,6 +118,15 @@ describe('configureStore', async () => {
         reducer,
         undefined,
         expect.any(Function)
+      )
+    })
+  })
+
+  describe('given an array of middleware', () => {
+    it('throws an error requiring a callback', () => {
+      // @ts-expect-error
+      expect(() => configureStore({ middleware: [], reducer })).toThrow(
+        '"middleware" field must be a callback'
       )
     })
   })
@@ -162,20 +171,12 @@ describe('configureStore', async () => {
     })
   })
 
-  describe('given custom middleware that contains non-functions', () => {
-    it('throws an error', () => {
-      expect(() =>
-        configureStore({ middleware: [true] as any, reducer })
-      ).toThrow('each middleware provided to configureStore must be a function')
-    })
-  })
-
   describe('given custom middleware', () => {
     it('calls createStore with custom middleware and without default middleware', () => {
       const thank: Redux.Middleware = (_store) => (next) => (action) =>
         next(action)
       expect(
-        configureStore({ middleware: new Tuple(thank), reducer })
+        configureStore({ middleware: () => new Tuple(thank), reducer })
       ).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalledWith(thank)
       expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line-line
@@ -330,7 +331,7 @@ describe('configureStore', async () => {
     it("doesn't warn when middleware enhancer is excluded if no middlewares provided", () => {
       const store = configureStore({
         reducer,
-        middleware: new Tuple(),
+        middleware: () => new Tuple(),
         enhancers: () => new Tuple(dummyEnhancer),
       })
 
