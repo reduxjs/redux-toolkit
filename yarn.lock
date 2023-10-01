@@ -6808,6 +6808,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@phryneas/ts-version@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "@phryneas/ts-version@npm:1.0.2"
+  checksum: d51914a8ea35ff8b686a9379b9e9fe6d5b5feaf2e7511b880d2835015736e33bc82952bbc369918f251d4a755f32f4a9c4a34b0ec4dfdbc3e87a41d26401105c
+  languageName: node
+  linkType: hard
+
 "@pmmmwh/react-refresh-webpack-plugin@npm:^0.5.3":
   version: 0.5.7
   resolution: "@pmmmwh/react-refresh-webpack-plugin@npm:0.5.7"
@@ -6981,6 +6988,7 @@ __metadata:
   resolution: "@reduxjs/toolkit@workspace:packages/toolkit"
   dependencies:
     "@microsoft/api-extractor": ^7.13.2
+    "@phryneas/ts-version": ^1.0.2
     "@size-limit/preset-small-lib": ^4.11.0
     "@testing-library/react": ^13.3.0
     "@testing-library/user-event": ^13.1.5
