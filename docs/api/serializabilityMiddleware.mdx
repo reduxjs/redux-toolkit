@@ -111,7 +111,7 @@ const serializableMiddleware = createSerializableStateInvariantMiddleware({
 
 const store = configureStore({
   reducer,
-  middleware: new Tuple(serializableMiddleware),
+  middleware: () => new Tuple(serializableMiddleware),
 })
 ```
 

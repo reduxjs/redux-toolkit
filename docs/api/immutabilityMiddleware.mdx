@@ -86,7 +86,7 @@ const immutableInvariantMiddleware = createImmutableStateInvariantMiddleware({
 const store = configureStore({
   reducer: exampleSliceReducer,
   // Note that this will replace all default middleware
-  middleware: new Tuple(immutableInvariantMiddleware),
+  middleware: () => new Tuple(immutableInvariantMiddleware),
 })
 ```
 

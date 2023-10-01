@@ -46,7 +46,7 @@ __metadata:
     "@reduxjs/toolkit": ^2.0.0-beta.2
     react: ^18.2.0
     react-dom: ^18.2.0
-    react-redux: ^9.0.0-alpha.1
+    react-redux: ^9.0.0-beta.0
     resolve-esm: ^1.4.0
   languageName: unknown
   linkType: soft
@@ -95,9 +95,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-redux@npm:^9.0.0-alpha.1":
-  version: 9.0.0-alpha.1
-  resolution: "react-redux@npm:9.0.0-alpha.1"
+"react-redux@npm:^9.0.0-beta.0":
+  version: 9.0.0-beta.0
+  resolution: "react-redux@npm:9.0.0-beta.0"
   dependencies:
     "@types/use-sync-external-store": ^0.0.3
     react-is: ^18.0.0
@@ -120,7 +120,7 @@ __metadata:
       optional: true
     redux:
       optional: true
-  checksum: ee4edbf417d0f16297e8bc6d039129f915f4d9330ec160ab4135e859a8ec7f11f943cfc26a2d336ec2395c2549c7e8e6d7a4f341febd5404ed0221fb5cbfc17a
+  checksum: 4fc40fc4b2c03905f5d523b854516f4323d307c0ca33f2a14701f33315b53768d9e19f59511ebcad5448ccbd7c69a362edd0b68f0932669d4f9b2f517b7257b4
   languageName: node
   linkType: hard
 

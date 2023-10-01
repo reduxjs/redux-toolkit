@@ -29,5 +29,7 @@
   "27": "Warning: Middleware for RTK-Query API at reducerPath \"\" has not been added to the store.\n    You must add the middleware for RTK-Query to function correctly!",
   "28": "Cannot refetch a query that has not been started yet.",
   "29": "`builder.addCase` cannot be called with an empty action type",
-  "30": "`builder.addCase` cannot be called with two reducers for the same action type"
+  "30": "`builder.addCase` cannot be called with two reducers for the same action type",
+  "31": "\"middleware\" field must be a callback",
+  "32": "When using custom hooks for context, all  hooks need to be provided: .\\nHook  was either not provided or not a function."
 }
