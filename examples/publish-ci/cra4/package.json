@@ -4,10 +4,10 @@
   "private": true,
   "dependencies": {
     "@reduxjs/toolkit": "^2.0.0-beta.2",
-    "msw": "^0.49.2",
+    "msw": "^1.3.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-redux": "^9.0.0-alpha.1",
+    "react-redux": "^9.0.0-beta.0",
     "react-scripts": "^4",
     "web-vitals": "^2.1.4"
   },

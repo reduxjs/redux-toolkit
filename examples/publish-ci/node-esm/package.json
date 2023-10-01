@@ -11,7 +11,7 @@
     "@reduxjs/toolkit": "^2.0.0-beta.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-redux": "^9.0.0-alpha.1"
+    "react-redux": "^9.0.0-beta.0"
   },
   "devDependencies": {
     "resolve-esm": "^1.4.0"
