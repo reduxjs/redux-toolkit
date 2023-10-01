@@ -53,7 +53,7 @@ export interface ConfigureStoreOptions<
    * @example `middleware: (gDM) => gDM().concat(logger, apiMiddleware, yourCustomMiddleware)`
    * @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
    */
-  middleware?: ((getDefaultMiddleware: GetDefaultMiddleware<S>) => M) | M
+  middleware?: (getDefaultMiddleware: GetDefaultMiddleware<S>) => M
 
   /**
    * Whether to enable Redux DevTools integration. Defaults to `true`.
@@ -121,7 +121,7 @@ export function configureStore<
 
   const {
     reducer = undefined,
-    middleware = getDefaultMiddleware(),
+    middleware,
     devTools = true,
     preloadedState = undefined,
     enhancers = undefined,
@@ -139,15 +139,21 @@ export function configureStore<
     )
   }
 
-  let finalMiddleware = middleware
-  if (typeof finalMiddleware === 'function') {
-    finalMiddleware = finalMiddleware(getDefaultMiddleware)
+  if (!IS_PRODUCTION && middleware && typeof middleware !== 'function') {
+    throw new Error('"middleware" field must be a callback')
+  }
+
+  let finalMiddleware: Tuple<Middlewares<S>>
+  if (typeof middleware === 'function') {
+    finalMiddleware = middleware(getDefaultMiddleware)
 
     if (!IS_PRODUCTION && !Array.isArray(finalMiddleware)) {
       throw new Error(
         'when using a middleware builder function, an array of middleware must be returned'
       )
     }
+  } else {
+    finalMiddleware = getDefaultMiddleware()
   }
   if (
     !IS_PRODUCTION &&
