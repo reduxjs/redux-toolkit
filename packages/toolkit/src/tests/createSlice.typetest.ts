@@ -644,13 +644,10 @@ const value = actionCreators.anyKey
             },
             settled(state, action) {
               expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
               if (isRejected(action)) {
-                expectType<TestState>(state)
-                expectType<TestArg>(action.meta.arg)
                 expectType<SerializedError>(action.error)
               } else {
-                expectType<TestState>(state)
-                expectType<TestArg>(action.meta.arg)
                 expectType<TestReturned>(action.payload)
               }
             },
@@ -693,14 +690,11 @@ const value = actionCreators.anyKey
             },
             settled(state, action) {
               expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
               if (isRejected(action)) {
-                expectType<TestState>(state)
-                expectType<TestArg>(action.meta.arg)
                 expectType<SerializedError>(action.error)
                 expectType<TestReject | undefined>(action.payload)
               } else {
-                expectType<TestState>(state)
-                expectType<TestArg>(action.meta.arg)
                 expectType<TestReturned>(action.payload)
               }
             },
@@ -729,14 +723,11 @@ const value = actionCreators.anyKey
             },
             settled(state, action) {
               expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
               if (isRejected(action)) {
-                expectType<TestState>(state)
-                expectType<TestArg>(action.meta.arg)
                 expectType<SerializedError>(action.error)
                 expectType<TestReject | undefined>(action.payload)
               } else {
-                expectType<TestState>(state)
-                expectType<TestArg>(action.meta.arg)
                 expectType<TestReturned>(action.payload)
               }
             },
