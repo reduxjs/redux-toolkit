@@ -9,11 +9,15 @@ hide_title: true
 
 # Codemods
 
-Per [the description in `1.9.0-alpha.0`](https://github.com/reduxjs/redux-toolkit/releases/tag/v1.9.0-alpha.0), we plan to remove the "object" argument from `createReducer` and `createSlice.extraReducers` in the future RTK 2.0 major version. In `1.9.0-alpha.0`, we added a one-shot runtime warning to each of those APIs.
+Per [the description in `1.9.0`](https://github.com/reduxjs/redux-toolkit/releases/tag/v1.9.0), we have removed the "object" argument from `createReducer` and `createSlice.extraReducers` in the RTK 2.0 major version. We've also added a new optional form of `createSlice.reducers` that uses a callback instead of an object.
 
 To simplify upgrading codebases, we've published a set of codemods that will automatically transform the deprecated "object" syntax into the equivalent "builder" syntax.
 
-The codemods package is available on NPM as [**`@reduxjs/rtk-codemods`**](https://www.npmjs.com/package/@reduxjs/rtk-codemods). It currently contains two codemods: `createReducerBuilder` and `createSliceBuilder`.
+The codemods package is available on NPM as [**`@reduxjs/rtk-codemods`**](https://www.npmjs.com/package/@reduxjs/rtk-codemods). It currently contains these codemods:
+
+- `createReducerBuilder`: migrates `createReducer` calls that use the removed object syntax to the builder callback syntax
+- `createSliceBuilder`: migrates `createSlice` calls that use the removed object syntax for `extraReducers` to the builder callback syntax
+- `createSliceReducerBuilder`: migrates `createSlice` calls that use the still-standard object syntax for `reducers` to the optional new builder callback syntax, including uses of prepared reducers
 
 To run the codemods against your codebase, run `npx @reduxjs/rtk-codemods <TRANSFORM NAME> path/of/files/ or/some**/*glob.js`.
 
