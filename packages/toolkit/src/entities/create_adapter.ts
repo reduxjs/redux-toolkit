@@ -19,9 +19,12 @@ export interface BuildCreateEntityAdapterConfiguration
 
 export type CreateEntityAdapter = {
   <T, Id extends EntityId>(options?: {
-    selectId?: IdSelector<T, Id>
+    selectId: IdSelector<T, Id>
     sortComparer?: false | Comparer<T>
   }): EntityAdapter<T, Id>
+  <T extends { id: EntityId }>(options?: {
+    sortComparer?: false | Comparer<T>
+  }): EntityAdapter<T, T['id']>
 }
 
 export function buildCreateEntityAdapter(
