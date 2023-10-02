@@ -5,8 +5,16 @@ import type {
 } from './createAction'
 import { createAction } from './createAction'
 import type { ThunkDispatch } from 'redux-thunk'
-import type { FallbackIfUnknown, Id, IsAny, IsUnknown } from './tsHelpers'
+import type {
+  ActionFromMatcher,
+  FallbackIfUnknown,
+  Id,
+  IsAny,
+  IsUnknown,
+  TypeGuard,
+} from './tsHelpers'
 import { nanoid } from './nanoid'
+import { isAnyOf } from './matchers'
 
 // @ts-ignore we need the import of these types due to a bundling issue.
 type _Keep = PayloadAction | ActionCreatorWithPreparedPayload<any, unknown>
@@ -415,6 +423,13 @@ export type AsyncThunk<
     ThunkArg,
     ThunkApiConfig
   >
+  // matchSettled?
+  settled: (
+    action: any
+  ) => action is ReturnType<
+    | AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>
+    | AsyncThunkFulfilledActionCreator<Returned, ThunkArg, ThunkApiConfig>
+  >
   typePrefix: string
 }
 
@@ -676,6 +691,7 @@ export const createAsyncThunk = (() => {
         pending,
         rejected,
         fulfilled,
+        settled: isAnyOf(rejected, fulfilled),
         typePrefix,
       }
     )

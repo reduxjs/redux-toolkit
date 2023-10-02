@@ -16,7 +16,7 @@ import type {
   ThunkDispatch,
   ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit'
-import { configureStore } from '@reduxjs/toolkit'
+import { configureStore, isRejected } from '@reduxjs/toolkit'
 import { createAction, createSlice } from '@reduxjs/toolkit'
 import { expectExactType, expectType, expectUnknown } from './helpers'
 import { castDraft } from 'immer'
@@ -642,6 +642,18 @@ const value = actionCreators.anyKey
               expectType<TestArg>(action.meta.arg)
               expectType<SerializedError>(action.error)
             },
+            settled(state, action) {
+              expectType<TestState>(state)
+              if (isRejected(action)) {
+                expectType<TestState>(state)
+                expectType<TestArg>(action.meta.arg)
+                expectType<SerializedError>(action.error)
+              } else {
+                expectType<TestState>(state)
+                expectType<TestArg>(action.meta.arg)
+                expectType<TestReturned>(action.payload)
+              }
+            },
           }
         ),
         testExplicitType: create.asyncThunk<
@@ -679,6 +691,19 @@ const value = actionCreators.anyKey
               expectType<SerializedError>(action.error)
               expectType<TestReject | undefined>(action.payload)
             },
+            settled(state, action) {
+              expectType<TestState>(state)
+              if (isRejected(action)) {
+                expectType<TestState>(state)
+                expectType<TestArg>(action.meta.arg)
+                expectType<SerializedError>(action.error)
+                expectType<TestReject | undefined>(action.payload)
+              } else {
+                expectType<TestState>(state)
+                expectType<TestArg>(action.meta.arg)
+                expectType<TestReturned>(action.payload)
+              }
+            },
           }
         ),
         testPretyped: pretypedAsyncThunk(
@@ -701,6 +726,19 @@ const value = actionCreators.anyKey
               expectType<TestArg>(action.meta.arg)
               expectType<SerializedError>(action.error)
               expectType<TestReject | undefined>(action.payload)
+            },
+            settled(state, action) {
+              expectType<TestState>(state)
+              if (isRejected(action)) {
+                expectType<TestState>(state)
+                expectType<TestArg>(action.meta.arg)
+                expectType<SerializedError>(action.error)
+                expectType<TestReject | undefined>(action.payload)
+              } else {
+                expectType<TestState>(state)
+                expectType<TestArg>(action.meta.arg)
+                expectType<TestReturned>(action.payload)
+              }
             },
           }
         ),
