@@ -17,7 +17,7 @@ import type {
   ImmutableHelpers,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import { immerImmutableHelpers } from '@reduxjs/toolkit'
+import { immerImmutableHelpers } from './rtkImports'
 import type {
   EndpointDefinitions,
   QueryArgFrom,

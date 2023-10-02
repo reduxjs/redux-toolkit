@@ -4,7 +4,6 @@
 
 export {
   createAction,
-  createSlice,
   createSelector,
   createAsyncThunk,
   combineReducers,
@@ -22,4 +21,5 @@ export {
   isPlainObject,
   nanoid,
   buildCreateSlice,
+  immerImmutableHelpers,
 } from '@reduxjs/toolkit'
