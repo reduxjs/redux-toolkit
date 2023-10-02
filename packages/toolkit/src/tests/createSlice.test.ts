@@ -576,6 +576,9 @@ describe('createSlice', () => {
     function rejected(state: any[], action: any) {
       state.push(['rejectedReducer', action])
     }
+    function settled(state: any[], action: any) {
+      state.push(['settledReducer', action])
+    }
 
     test('successful thunk', async () => {
       const slice = createSlice({
@@ -586,7 +589,7 @@ describe('createSlice', () => {
             function payloadCreator(arg, api) {
               return Promise.resolve('resolved payload')
             },
-            { pending, fulfilled, rejected }
+            { pending, fulfilled, rejected, settled }
           ),
         }),
       })
@@ -610,6 +613,13 @@ describe('createSlice', () => {
             payload: 'resolved payload',
           },
         ],
+        [
+          'settledReducer',
+          {
+            type: 'test/thunkReducers/fulfilled',
+            payload: 'resolved payload',
+          },
+        ],
       ])
     })
 
@@ -623,7 +633,7 @@ describe('createSlice', () => {
             function payloadCreator(arg, api): any {
               throw new Error('')
             },
-            { pending, fulfilled, rejected }
+            { pending, fulfilled, rejected, settled }
           ),
         }),
       })
@@ -642,6 +652,13 @@ describe('createSlice', () => {
         ],
         [
           'rejectedReducer',
+          {
+            type: 'test/thunkReducers/rejected',
+            payload: undefined,
+          },
+        ],
+        [
+          'settledReducer',
           {
             type: 'test/thunkReducers/rejected',
             payload: undefined,
@@ -669,6 +686,7 @@ describe('createSlice', () => {
               pending,
               fulfilled,
               rejected,
+              settled,
             }
           ),
         }),
@@ -687,6 +705,14 @@ describe('createSlice', () => {
             meta: { condition: true },
           },
         ],
+        [
+          'settledReducer',
+          {
+            type: 'test/thunkReducers/rejected',
+            payload: undefined,
+            meta: { condition: true },
+          },
+        ],
       ])
     })
 
@@ -699,13 +725,14 @@ describe('createSlice', () => {
             function payloadCreator(arg, api) {
               return Promise.resolve('resolved payload')
             },
-            { pending, fulfilled }
+            { pending, fulfilled, settled }
           ),
         }),
       })
 
       expect(slice.caseReducers.thunkReducers.pending).toBe(pending)
       expect(slice.caseReducers.thunkReducers.fulfilled).toBe(fulfilled)
+      expect(slice.caseReducers.thunkReducers.settled).toBe(settled)
       // even though it is not defined above, this should at least be a no-op function to match the TypeScript typings
       // and should be callable as a reducer even if it does nothing
       expect(() =>
