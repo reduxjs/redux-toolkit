@@ -1,3 +1,7 @@
+// This must remain here so that the `mangleErrors.cjs` build script
+// does not have to import this into each source file it rewrites.
+import { formatProdErrorMessage } from './formatProdErrorMessage'
+
 export * from 'redux'
 export {
   produce as createNextState,
@@ -22,7 +26,8 @@ export type {
 } from 'reselect'
 export type { BuildCreateDraftSafeSelectorConfiguration } from './createDraftSafeSelector'
 export {
-  buildCreateDraftSafeSelector,
+  buildCreateDraftSafeSelectorCreator,
+  createDraftSafeSelectorCreator,
   createDraftSafeSelector,
 } from './createDraftSafeSelector'
 export type { ThunkAction, ThunkDispatch, ThunkMiddleware } from 'redux-thunk'
@@ -72,6 +77,7 @@ export {
   // js
   createSlice,
   buildCreateSlice,
+  ReducerType,
 } from './createSlice'
 
 export type {
@@ -85,6 +91,7 @@ export type {
   ValidateSliceCaseReducers,
   CaseReducerWithPrepare,
   ReducerCreators,
+  SliceSelectors,
 } from './createSlice'
 export type { ActionCreatorInvariantMiddlewareOptions } from './actionCreatorInvariantMiddleware'
 export { createActionCreatorInvariantMiddleware } from './actionCreatorInvariantMiddleware'
@@ -118,7 +125,6 @@ export {
   createEntityAdapter,
 } from './entities/create_adapter'
 export type {
-  Dictionary,
   EntityState,
   EntityAdapter,
   EntitySelectors,
@@ -196,6 +202,12 @@ export {
   TaskAbortError,
 } from './listenerMiddleware/index'
 
+export type {
+  DynamicMiddlewareInstance,
+  GetDispatch,
+  GetState,
+  MiddlewareApiConfig,
+} from './dynamicMiddleware/types'
 export { createDynamicMiddleware } from './dynamicMiddleware/index'
 
 export {
@@ -211,3 +223,7 @@ export { immutableHelpers as immerImmutableHelpers } from './immer'
 
 export { combineSlices } from './combineSlices'
 export type { WithSlice } from './combineSlices'
+
+export type { ExtractDispatchExtensions as TSHelpersExtractDispatchExtensions } from './tsHelpers'
+
+export { formatProdErrorMessage } from './formatProdErrorMessage'

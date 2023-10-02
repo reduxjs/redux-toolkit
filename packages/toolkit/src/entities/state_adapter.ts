@@ -1,4 +1,5 @@
-import type { EntityId, EntityState, PreventAny } from './models'
+import type { Draft } from 'immer'
+import type { EntityId, DraftableEntityState, PreventAny } from './models'
 import type { PayloadAction } from '../createAction'
 import { isFSA } from '../createAction'
 import type { ImmutableHelpers } from '../tsHelpers'
@@ -12,15 +13,15 @@ export function buildCreateSingleArgumentStateOperator(
   config: BuildStateOperatorConfiguration
 ) {
   const createStateOperator = buildCreateStateOperator(config)
-  return function createSingleArgumentStateOperator<V, Id extends EntityId>(
-    mutator: (state: EntityState<V, Id>) => void
+  return function createSingleArgumentStateOperator<T, Id extends EntityId>(
+    mutator: (state: DraftableEntityState<T, Id>) => void
   ) {
     const operator = createStateOperator(
-      (_: undefined, state: EntityState<V, Id>) => mutator(state)
+      (_: undefined, state: DraftableEntityState<T, Id>) => mutator(state)
     )
 
-    return function operation<S extends EntityState<V, Id>>(
-      state: PreventAny<S, V, Id>
+    return function operation<S extends DraftableEntityState<T, Id>>(
+      state: PreventAny<S, T, Id>
     ): S {
       return operator(state as S, undefined)
     }
@@ -28,13 +29,14 @@ export function buildCreateSingleArgumentStateOperator(
 }
 
 export function buildCreateStateOperator({
-  isDraft,
   createNextState,
+  isDraft,
 }: BuildStateOperatorConfiguration) {
-  return function createStateOperator<V, Id extends EntityId, R>(
-    mutator: (arg: R, state: EntityState<V, Id>) => void
+  const isDraftTyped = isDraft as <T>(value: T | Draft<T>) => value is Draft<T>
+  return function createStateOperator<T, Id extends EntityId, R>(
+    mutator: (arg: R, state: DraftableEntityState<T, Id>) => void
   ) {
-    return function operation<S extends EntityState<V, Id>>(
+    return function operation<S extends DraftableEntityState<T, Id>>(
       state: S,
       arg: R | PayloadAction<R>
     ): S {
@@ -44,7 +46,7 @@ export function buildCreateStateOperator({
         return isFSA(arg)
       }
 
-      const runMutator = (draft: EntityState<V, Id>) => {
+      const runMutator = (draft: DraftableEntityState<T, Id>) => {
         if (isPayloadActionArgument(arg)) {
           mutator(arg.payload, draft)
         } else {
@@ -52,7 +54,7 @@ export function buildCreateStateOperator({
         }
       }
 
-      if (isDraft(state)) {
+      if (isDraftTyped(state)) {
         // we must already be inside a `createNextState` call, likely because
         // this is being wrapped in `createReducer` or `createSlice`.
         // It's safe to just pass the draft to the mutator.
@@ -60,12 +62,9 @@ export function buildCreateStateOperator({
 
         // since it's a draft, we'll just return it
         return state
-      } else {
-        // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
-        // than an Immutable<S>, and TypeScript cannot find out how to reconcile
-        // these two types.
-        return createNextState(state, runMutator)
       }
+      // @ts-ignore Type 'Draft<S>' is not assignable to type 'DraftableEntityState<T, Id>'.
+      return createNextState(state, runMutator)
     }
   }
 }

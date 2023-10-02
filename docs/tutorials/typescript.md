@@ -27,7 +27,7 @@ hide_title: true
 
 Welcome to the Redux Toolkit TypeScript Quick Start tutorial! **This tutorial will briefly show how to use TypeScript with Redux Toolkit**.
 
-This page focuses on just how to set up the TypeScript aspects . For explanations of what Redux is, how it works, and full examples of how to use Redux Toolkit, [see the tutorials linked in the "Tutorials Overview" page](./overview.md).
+This page focuses on just how to set up the TypeScript aspects. For explanations of what Redux is, how it works, and full examples of how to use Redux Toolkit, [see the tutorials linked in the "Tutorials Overview" page](./overview.md).
 
 Redux Toolkit is already written in TypeScript, so its TS type definitions are built in.
 

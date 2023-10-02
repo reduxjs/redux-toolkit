@@ -1,10 +1,11 @@
 import { fileURLToPath } from 'url'
 import path from 'path'
 import fs from 'fs'
-import rimraf from 'rimraf'
-import { BuildOptions as ESBuildOptions } from 'esbuild'
+import type { BuildOptions as ESBuildOptions, Plugin } from 'esbuild'
 import type { Options as TsupOptions } from 'tsup'
 import { defineConfig } from 'tsup'
+import * as babel from '@babel/core'
+import { getBuildExtensions } from 'esbuild-extra'
 
 import { delay } from './src/utils'
 
@@ -93,20 +94,6 @@ const buildTargets: BuildOptions[] = [
     minify: true,
     env: 'production',
   },
-  // {
-  //   format: 'umd',
-  //   name: 'umd',
-  //   target: 'es2018',
-  //   minify: false,
-  //   env: 'development',
-  // },
-  // {
-  //   format: 'umd',
-  //   name: 'umd.min',
-  //   target: 'es2018',
-  //   minify: true,
-  //   env: 'production',
-  // },
 ]
 
 const entryPoints: EntryPointOptions[] = [
@@ -151,6 +138,32 @@ if (process.env.NODE_ENV === 'production') {
   )
 }
 
+// Extract error strings, replace them with error codes, and write messages to a file
+const mangleErrorsTransform: Plugin = {
+  name: 'mangle-errors-plugin',
+  setup(build) {
+    const { onTransform } = getBuildExtensions(build, 'mangle-errors-plugin')
+
+    onTransform({ loaders: ['ts', 'tsx'] }, async (args) => {
+      try {
+        const res = babel.transformSync(args.code, {
+          parserOpts: {
+            plugins: ['typescript', 'jsx'],
+          },
+          plugins: [['./scripts/mangleErrors.cjs', { minify: false }]],
+        })!
+        return {
+          code: res.code!,
+          map: res.map!,
+        }
+      } catch (err) {
+        console.error('Babel mangleErrors error: ', err)
+        return null
+      }
+    })
+  },
+}
+
 export default defineConfig((options) => {
   const configs = entryPoints
     .map((entryPointConfig) => {
@@ -190,6 +203,7 @@ export default defineConfig((options) => {
           minify,
           sourcemap: true,
           external: externals,
+          esbuildPlugins: [mangleErrorsTransform],
           esbuildOptions(options) {
             // Needed to prevent auto-replacing of process.env.NODE_ENV in all builds
             options.platform = 'neutral'
@@ -203,6 +217,15 @@ export default defineConfig((options) => {
             if (format === 'cjs' && name === 'production.min') {
               writeCommonJSEntry(outputFolder, prefix)
             } else if (generateTypedefs) {
+              if (folder === '') {
+                // we need to delete the declaration file and replace it with the original source file
+                fs.rmSync(path.join(outputFolder, 'uncheckedindexed.d.ts'))
+
+                fs.copyFileSync(
+                  'src/uncheckedindexed.ts',
+                  path.join(outputFolder, 'uncheckedindexed.ts')
+                )
+              }
               // TODO Copy/generate `.d.mts` files?
               // const inputTypedefsFile = `${outputFilename}.d.ts`
               // const outputTypedefsFile = `${outputFilename}.d.mts`

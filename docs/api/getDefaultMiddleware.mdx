@@ -28,7 +28,7 @@ If you want to customize the list of middleware, you can supply an array of midd
 ```js
 const store = configureStore({
   reducer: rootReducer,
-  middleware: new Tuple(thunk, logger),
+  middleware: () => new Tuple(thunk, logger),
 })
 
 // Store specifically has the thunk and logger middleware applied
@@ -104,7 +104,7 @@ const middleware = [thunk]
 
 `getDefaultMiddleware` accepts an options object that allows customizing each middleware in two ways:
 
-- Each middleware can be excluded the result array by passing `false` for its corresponding field
+- Each middleware can be excluded from the result array by passing `false` for its corresponding field
 - Each middleware can have its options customized by passing the matching options object for its corresponding field
 
 This example shows excluding the serializable state check middleware, and passing a specific value for the thunk

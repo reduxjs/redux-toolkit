@@ -1,5 +1,10 @@
-import type { AnyAction, Middleware, ThunkDispatch } from '@reduxjs/toolkit'
-import { isAction, createAction } from '@reduxjs/toolkit'
+import type {
+  Action,
+  Middleware,
+  ThunkDispatch,
+  UnknownAction,
+} from '@reduxjs/toolkit'
+import { isAction, createAction } from '../rtkImports'
 
 import type {
   EndpointDefinitions,
@@ -36,13 +41,8 @@ export function buildMiddleware<
     >(`${reducerPath}/invalidateTags`),
   }
 
-  const isThisApiSliceAction = (action: AnyAction) => {
-    return (
-      !!action &&
-      typeof action.type === 'string' &&
-      action.type.startsWith(`${reducerPath}/`)
-    )
-  }
+  const isThisApiSliceAction = (action: Action) =>
+    action.type.startsWith(`${reducerPath}/`)
 
   const handlerBuilders: InternalHandlerBuilder[] = [
     buildDevCheckHandler,
@@ -56,7 +56,7 @@ export function buildMiddleware<
   const middleware: Middleware<
     {},
     RootState<Definitions, string, ReducerPath>,
-    ThunkDispatch<any, any, AnyAction>
+    ThunkDispatch<any, any, UnknownAction>
   > = (mwApi) => {
     let initialized = false
 

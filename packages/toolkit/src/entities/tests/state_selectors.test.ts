@@ -1,10 +1,12 @@
+import { createDraftSafeSelectorCreator } from '../../createDraftSafeSelector'
 import type { EntityAdapter, EntityState } from '../index'
 import { createEntityAdapter } from '../index'
 import type { EntitySelectors } from '../models'
 import type { BookModel } from './fixtures/book'
 import { AClockworkOrange, AnimalFarm, TheGreatGatsby } from './fixtures/book'
 import type { Selector } from 'reselect'
-import { createSelector } from 'reselect'
+import { createSelector, weakMapMemoize } from 'reselect'
+import { vi } from 'vitest'
 
 describe('Entity State Selectors', () => {
   describe('Composed Selectors', () => {
@@ -124,6 +126,22 @@ describe('Entity State Selectors', () => {
       expect(first).toBe(AClockworkOrange)
       const second = selectors.selectById(state, AnimalFarm.id)
       expect(second).toBe(AnimalFarm)
+    })
+  })
+  describe('custom createSelector instance', () => {
+    it('should use the custom createSelector function if provided', () => {
+      const memoizeSpy = vi.fn(weakMapMemoize)
+      const createCustomSelector = createDraftSafeSelectorCreator(memoizeSpy)
+
+      const adapter = createEntityAdapter({
+        selectId: (book: BookModel) => book.id,
+      })
+
+      adapter.getSelectors(undefined, { createSelector: createCustomSelector })
+
+      expect(memoizeSpy).toHaveBeenCalled()
+
+      memoizeSpy.mockClear()
     })
   })
 })

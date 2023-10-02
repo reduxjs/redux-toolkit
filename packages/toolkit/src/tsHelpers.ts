@@ -70,6 +70,8 @@ export type IsAny<T, True, False = never> =
   // test if we are going the left AND right path in the condition
   true | false extends (T extends never ? true : false) ? True : False
 
+export type CastAny<T, CastTo> = IsAny<T, CastTo, T>
+
 /**
  * return True if T is `unknown`, otherwise return False
  * taken from https://github.com/joonhocho/tsdef

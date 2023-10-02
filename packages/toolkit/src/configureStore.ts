@@ -3,10 +3,9 @@ import type {
   ReducersMapObject,
   Middleware,
   Action,
-  AnyAction,
   StoreEnhancer,
   Store,
-  Dispatch,
+  UnknownAction,
 } from 'redux'
 import { applyMiddleware, createStore, compose, combineReducers } from 'redux'
 import type { DevToolsEnhancerOptions as DevToolsOptions } from './devtoolsExtension'
@@ -36,7 +35,7 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production'
  */
 export interface ConfigureStoreOptions<
   S = any,
-  A extends Action = AnyAction,
+  A extends Action = UnknownAction,
   M extends Tuple<Middlewares<S>> = Tuple<Middlewares<S>>,
   E extends Tuple<Enhancers> = Tuple<Enhancers>,
   P = S
@@ -54,7 +53,7 @@ export interface ConfigureStoreOptions<
    * @example `middleware: (gDM) => gDM().concat(logger, apiMiddleware, yourCustomMiddleware)`
    * @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
    */
-  middleware?: ((getDefaultMiddleware: GetDefaultMiddleware<S>) => M) | M
+  middleware?: (getDefaultMiddleware: GetDefaultMiddleware<S>) => M
 
   /**
    * Whether to enable Redux DevTools integration. Defaults to `true`.
@@ -82,7 +81,7 @@ export interface ConfigureStoreOptions<
    * and should return a Tuple of enhancers (such as `getDefaultEnhancers().concat(offline)`).
    * If you only need to add middleware, you can use the `middleware` parameter instead.
    */
-  enhancers?: ((getDefaultEnhancers: GetDefaultEnhancers<M>) => E) | E
+  enhancers?: (getDefaultEnhancers: GetDefaultEnhancers<M>) => E
 }
 
 export type Middlewares<S> = ReadonlyArray<Middleware<{}, S>>
@@ -97,7 +96,7 @@ type Enhancers = ReadonlyArray<StoreEnhancer>
  */
 export type EnhancedStore<
   S = any,
-  A extends Action = AnyAction,
+  A extends Action = UnknownAction,
   E extends Enhancers = Enhancers
 > = ExtractStoreExtensions<E> & Store<S & ExtractStateExtensions<E>, A>
 
@@ -111,7 +110,7 @@ export type EnhancedStore<
  */
 export function configureStore<
   S = any,
-  A extends Action = AnyAction,
+  A extends Action = UnknownAction,
   M extends Tuple<Middlewares<S>> = Tuple<[ThunkMiddlewareFor<S>]>,
   E extends Tuple<Enhancers> = Tuple<
     [StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>, StoreEnhancer]
@@ -122,7 +121,7 @@ export function configureStore<
 
   const {
     reducer = undefined,
-    middleware = getDefaultMiddleware(),
+    middleware,
     devTools = true,
     preloadedState = undefined,
     enhancers = undefined,
@@ -140,15 +139,21 @@ export function configureStore<
     )
   }
 
-  let finalMiddleware = middleware
-  if (typeof finalMiddleware === 'function') {
-    finalMiddleware = finalMiddleware(getDefaultMiddleware)
+  if (!IS_PRODUCTION && middleware && typeof middleware !== 'function') {
+    throw new Error('"middleware" field must be a callback')
+  }
+
+  let finalMiddleware: Tuple<Middlewares<S>>
+  if (typeof middleware === 'function') {
+    finalMiddleware = middleware(getDefaultMiddleware)
 
     if (!IS_PRODUCTION && !Array.isArray(finalMiddleware)) {
       throw new Error(
         'when using a middleware builder function, an array of middleware must be returned'
       )
     }
+  } else {
+    finalMiddleware = getDefaultMiddleware()
   }
   if (
     !IS_PRODUCTION &&
@@ -172,13 +177,18 @@ export function configureStore<
   const middlewareEnhancer = applyMiddleware(...finalMiddleware)
 
   const getDefaultEnhancers = buildGetDefaultEnhancers<M>(middlewareEnhancer)
+
+  if (!IS_PRODUCTION && enhancers && typeof enhancers !== 'function') {
+    throw new Error('"enhancers" field must be a callback')
+  }
+
   let storeEnhancers =
-    (typeof enhancers === 'function'
+    typeof enhancers === 'function'
       ? enhancers(getDefaultEnhancers)
-      : enhancers) ?? getDefaultEnhancers()
+      : getDefaultEnhancers()
 
   if (!IS_PRODUCTION && !Array.isArray(storeEnhancers)) {
-    throw new Error('enhancers must be an array')
+    throw new Error('"enhancers" callback must return an array')
   }
   if (
     !IS_PRODUCTION &&
@@ -194,11 +204,11 @@ export function configureStore<
     !storeEnhancers.includes(middlewareEnhancer)
   ) {
     console.error(
-      'middlewares were provided, but middleware enhancer was not included in final enhancers'
+      'middlewares were provided, but middleware enhancer was not included in final enhancers - make sure to call `getDefaultEnhancers`'
     )
   }
 
   const composedEnhancer: StoreEnhancer<any> = finalCompose(...storeEnhancers)
 
-  return createStore(rootReducer, preloadedState, composedEnhancer)
+  return createStore(rootReducer, preloadedState as P, composedEnhancer)
 }

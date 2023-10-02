@@ -110,7 +110,7 @@ describe('configureStore', async () => {
   describe('given no middleware', () => {
     it('calls createStore without any middleware', () => {
       expect(
-        configureStore({ middleware: new Tuple(), reducer })
+        configureStore({ middleware: () => new Tuple(), reducer })
       ).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalledWith()
       expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line-line
@@ -118,6 +118,15 @@ describe('configureStore', async () => {
         reducer,
         undefined,
         expect.any(Function)
+      )
+    })
+  })
+
+  describe('given an array of middleware', () => {
+    it('throws an error requiring a callback', () => {
+      // @ts-expect-error
+      expect(() => configureStore({ middleware: [], reducer })).toThrow(
+        '"middleware" field must be a callback'
       )
     })
   })
@@ -162,20 +171,12 @@ describe('configureStore', async () => {
     })
   })
 
-  describe('given custom middleware that contains non-functions', () => {
-    it('throws an error', () => {
-      expect(() =>
-        configureStore({ middleware: [true] as any, reducer })
-      ).toThrow('each middleware provided to configureStore must be a function')
-    })
-  })
-
   describe('given custom middleware', () => {
     it('calls createStore with custom middleware and without default middleware', () => {
       const thank: Redux.Middleware = (_store) => (next) => (action) =>
         next(action)
       expect(
-        configureStore({ middleware: new Tuple(thank), reducer })
+        configureStore({ middleware: () => new Tuple(thank), reducer })
       ).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalledWith(thank)
       expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line-line
@@ -283,16 +284,28 @@ describe('configureStore', async () => {
         undefined,
         expect.any(Function)
       )
-    })
-
-    it('accepts a callback for customizing enhancers', () => {
-      const store = configureStore({
-        reducer,
-        enhancers: (getDefaultEnhancers) =>
-          getDefaultEnhancers().concat(dummyEnhancer),
-      })
 
       expect(dummyEnhancerCalled).toBe(true)
+    })
+
+    describe('invalid arguments', () => {
+      test('enhancers is not a callback', () => {
+        expect(() => configureStore({ reducer, enhancers: [] as any })).toThrow(
+          '"enhancers" field must be a callback'
+        )
+      })
+
+      test('callback fails to return array', () => {
+        expect(() =>
+          configureStore({ reducer, enhancers: (() => {}) as any })
+        ).toThrow('"enhancers" callback must return an array')
+      })
+
+      test('array contains non-function', () => {
+        expect(() =>
+          configureStore({ reducer, enhancers: (() => ['']) as any })
+        ).toThrow('each enhancer provided to configureStore must be a function')
+      })
     })
 
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -306,20 +319,20 @@ describe('configureStore', async () => {
     it('warns if middleware enhancer is excluded from final array when middlewares are provided', () => {
       const store = configureStore({
         reducer,
-        enhancers: new Tuple(dummyEnhancer),
+        enhancers: () => new Tuple(dummyEnhancer),
       })
 
       expect(dummyEnhancerCalled).toBe(true)
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        'middlewares were provided, but middleware enhancer was not included in final enhancers'
+        'middlewares were provided, but middleware enhancer was not included in final enhancers - make sure to call `getDefaultEnhancers`'
       )
     })
     it("doesn't warn when middleware enhancer is excluded if no middlewares provided", () => {
       const store = configureStore({
         reducer,
-        middleware: new Tuple(),
-        enhancers: new Tuple(dummyEnhancer),
+        middleware: () => new Tuple(),
+        enhancers: () => new Tuple(dummyEnhancer),
       })
 
       expect(dummyEnhancerCalled).toBe(true)

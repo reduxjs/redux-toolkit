@@ -9,13 +9,13 @@ import type {
 import { buildThunks } from './buildThunks'
 import type {
   ActionCreatorWithPayload,
-  AnyAction,
   BuildCreateSliceConfiguration,
   Middleware,
   Reducer,
   ThunkAction,
   ThunkDispatch,
   ImmutableHelpers,
+  UnknownAction,
 } from '@reduxjs/toolkit'
 import { immerImmutableHelpers } from '@reduxjs/toolkit'
 import type {
@@ -75,7 +75,7 @@ export type CoreModule =
   | ReferenceCacheCollection
 
 export interface ThunkWithReturnValue<T>
-  extends ThunkAction<T, any, any, AnyAction> {}
+  extends ThunkAction<T, any, any, UnknownAction> {}
 
 declare module '../apiTypes' {
   export interface ApiModules<
@@ -119,7 +119,7 @@ declare module '../apiTypes' {
        */
       reducer: Reducer<
         CombinedState<Definitions, TagTypes, ReducerPath>,
-        AnyAction
+        UnknownAction
       >
       /**
        * This is a standard redux middleware and is responsible for things like polling, garbage collection and a handful of other things. Make sure it's included in your store.
@@ -137,7 +137,7 @@ declare module '../apiTypes' {
       middleware: Middleware<
         {},
         RootState<Definitions, string, ReducerPath>,
-        ThunkDispatch<any, any, AnyAction>
+        ThunkDispatch<any, any, UnknownAction>
       >
       /**
        * A collection of utility thunks for various situations.
@@ -224,7 +224,7 @@ declare module '../apiTypes' {
           endpointName: EndpointName,
           arg: QueryArgFrom<Definitions[EndpointName]>,
           options: PrefetchOptions
-        ): ThunkAction<void, any, any, AnyAction>
+        ): ThunkAction<void, any, any, UnknownAction>
         /**
          * A Redux thunk action creator that, when dispatched, creates and applies a set of JSON diff/patch objects to the current state. This immediately updates the Redux state with those changes.
          *
@@ -359,6 +359,16 @@ declare module '../apiTypes' {
           originalArgs: any
           queryCacheKey: string
         }>
+
+        /**
+         * A function to select all arguments currently cached for a given endpoint.
+         *
+         * Can be used for mutations that want to do optimistic updates instead of invalidating a set of tags, but don't know exactly what they need to update.
+         */
+        selectCachedArgsForQuery: <QueryName extends QueryKeys<Definitions>>(
+          state: RootState<Definitions, string, ReducerPath>,
+          queryName: QueryName
+        ) => Array<QueryArgFrom<Definitions[QueryName]>>
       }
       /**
        * Endpoints based on the input endpoints provided to `createApi`, containing `select` and `action matchers`.
@@ -507,6 +517,7 @@ export const coreModule = ({
       api,
       serializeQueryArgs,
       immutableHelpers,
+      assertTagType,
     })
 
     const { reducer, actions: sliceActions } = buildSlice({
@@ -547,14 +558,18 @@ export const coreModule = ({
 
     safeAssign(api, { reducer: reducer as any, middleware })
 
-    const { buildQuerySelector, buildMutationSelector, selectInvalidatedBy } =
-      buildSelectors({
-        serializeQueryArgs: serializeQueryArgs as any,
-        reducerPath,
-        immutableHelpers,
-      })
+    const {
+      buildQuerySelector,
+      buildMutationSelector,
+      selectInvalidatedBy,
+      selectCachedArgsForQuery,
+    } = buildSelectors({
+      serializeQueryArgs: serializeQueryArgs as any,
+      reducerPath,
+      immutableHelpers,
+    })
 
-    safeAssign(api.util, { selectInvalidatedBy })
+    safeAssign(api.util, { selectInvalidatedBy, selectCachedArgsForQuery })
 
     const {
       buildInitiateQuery,

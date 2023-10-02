@@ -1,10 +1,10 @@
 import type {
-  EntityState,
   IdSelector,
   Comparer,
   EntityStateAdapter,
   Update,
   EntityId,
+  DraftableEntityState,
 } from './models'
 import type { BuildStateOperatorConfiguration } from './state_adapter'
 import { buildCreateStateOperator } from './state_adapter'
@@ -18,13 +18,13 @@ import {
 export function buildCreateSortedStateAdapter(
   config: BuildStateOperatorConfiguration
 ) {
-  const createUnsortedStateAdapter = buildCreateUnsortedStateAdapter(config)
   const createStateOperator = buildCreateStateOperator(config)
+  const createUnsortedStateAdapter = buildCreateUnsortedStateAdapter(config)
   return function createSortedStateAdapter<T, Id extends EntityId>(
     selectId: IdSelector<T, Id>,
     sort: Comparer<T>
   ): EntityStateAdapter<T, Id> {
-    type R = EntityState<T, Id>
+    type R = DraftableEntityState<T, Id>
 
     const { removeOne, removeMany, removeAll } =
       createUnsortedStateAdapter(selectId)
@@ -67,7 +67,7 @@ export function buildCreateSortedStateAdapter(
       state: R
     ): void {
       newEntities = ensureEntitiesArray(newEntities)
-      state.entities = {}
+      state.entities = {} as Record<Id, T>
       state.ids = []
 
       addManyMutably(newEntities, state)
@@ -84,7 +84,9 @@ export function buildCreateSortedStateAdapter(
       let appliedUpdates = false
 
       for (let update of updates) {
-        const entity = state.entities[update.id]
+        const entity: T | undefined = (state.entities as Record<Id, T>)[
+          update.id
+        ]
         if (!entity) {
           continue
         }
@@ -94,8 +96,8 @@ export function buildCreateSortedStateAdapter(
         Object.assign(entity, update.changes)
         const newId = selectId(entity)
         if (update.id !== newId) {
-          delete state.entities[update.id]
-          state.entities[newId] = entity
+          delete (state.entities as Record<Id, T>)[update.id]
+          ;(state.entities as Record<Id, T>)[newId] = entity
         }
       }
 
@@ -139,7 +141,7 @@ export function buildCreateSortedStateAdapter(
     function merge(models: readonly T[], state: R): void {
       // Insert/overwrite all new/updated
       models.forEach((model) => {
-        state.entities[selectId(model)] = model
+        ;(state.entities as Record<Id, T>)[selectId(model)] = model
       })
 
       resortEntities(state)

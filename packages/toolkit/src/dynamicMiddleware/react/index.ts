@@ -1,10 +1,10 @@
 import type {
   Action as ReduxAction,
-  AnyAction,
+  UnknownAction,
   Dispatch as ReduxDispatch,
   Middleware,
 } from 'redux'
-import type { ExtractDispatchExtensions } from '@reduxjs/toolkit/dist/tsHelpers'
+import type { TSHelpersExtractDispatchExtensions } from '@reduxjs/toolkit'
 import { createDynamicMiddleware as cDM } from '@reduxjs/toolkit'
 import type { ReactReduxContextValue } from 'react-redux'
 import {
@@ -18,17 +18,17 @@ import type {
   GetDispatch,
   GetState,
   MiddlewareApiConfig,
-} from '@reduxjs/toolkit/dist/dynamicMiddleware/types'
+} from '@reduxjs/toolkit'
 
 export type UseDispatchWithMiddlewareHook<
   Middlewares extends Middleware<any, State, Dispatch>[] = [],
   State = any,
-  Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
-> = () => ExtractDispatchExtensions<Middlewares> & Dispatch
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
+> = () => TSHelpersExtractDispatchExtensions<Middlewares> & Dispatch
 
 export type CreateDispatchWithMiddlewareHook<
   State = any,
-  Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
 > = {
   <
     Middlewares extends [
@@ -51,7 +51,7 @@ type ActionFromDispatch<Dispatch extends ReduxDispatch<ReduxAction>> =
 
 interface ReactDynamicMiddlewareInstance<
   State = any,
-  Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
 > extends DynamicMiddlewareInstance<State, Dispatch> {
   createDispatchWithMiddlewareHookFactory: (
     context?: Context<
@@ -66,7 +66,7 @@ interface ReactDynamicMiddlewareInstance<
 
 export const createDynamicMiddleware = <
   State = any,
-  Dispatch extends ReduxDispatch<AnyAction> = ReduxDispatch<AnyAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
 >(): ReactDynamicMiddlewareInstance<State, Dispatch> => {
   const instance = cDM<State, Dispatch>()
   const createDispatchWithMiddlewareHookFactory = (

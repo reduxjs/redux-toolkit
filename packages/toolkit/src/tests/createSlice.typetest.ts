@@ -1,4 +1,4 @@
-import type { Action, AnyAction, Reducer } from 'redux'
+import type { Action, UnknownAction, Reducer } from 'redux'
 import type {
   ActionCreatorWithNonInferrablePayload,
   ActionCreatorWithOptionalPayload,
@@ -82,7 +82,7 @@ const value = actionCreators.anyKey
   // @ts-expect-error
   expectType<Reducer<string, PayloadAction>>(slice.reducer)
   // @ts-expect-error
-  expectType<Reducer<string, AnyAction>>(slice.reducer)
+  expectType<Reducer<string, UnknownAction>>(slice.reducer)
   /* Actions */
 
   slice.actions.increment(1)
@@ -603,6 +603,13 @@ const value = actionCreators.anyKey
           expectType<TestState>(state)
           expectType<string>(action.payload)
         }),
+        optionalReducer: create.reducer<string | undefined>((state, action) => {
+          expectType<TestState>(state)
+          expectType<string | undefined>(action.payload)
+        }),
+        noActionReducer: create.reducer((state) => {
+          expectType<TestState>(state)
+        }),
         preparedReducer: create.preparedReducer(
           (payload: string) => ({
             payload,
@@ -707,6 +714,23 @@ const value = actionCreators.anyKey
   type StoreDispatch = typeof store.dispatch
 
   expectType<PayloadActionCreator<string>>(slice.actions.normalReducer)
+  slice.actions.normalReducer('')
+  // @ts-expect-error
+  slice.actions.normalReducer()
+  // @ts-expect-error
+  slice.actions.normalReducer(0)
+  expectType<ActionCreatorWithOptionalPayload<string | undefined>>(
+    slice.actions.optionalReducer
+  )
+  slice.actions.optionalReducer()
+  slice.actions.optionalReducer('')
+  // @ts-expect-error
+  slice.actions.optionalReducer(0)
+
+  expectType<ActionCreatorWithoutPayload>(slice.actions.noActionReducer)
+  slice.actions.noActionReducer()
+  // @ts-expect-error
+  slice.actions.noActionReducer('')
   expectType<
     ActionCreatorWithPreparedPayload<
       [string],
@@ -760,7 +784,7 @@ const value = actionCreators.anyKey
         start: create.reducer((state) => {
           state.status = 'loading'
         }),
-        success: create.reducer((state, action: PayloadAction<T>) => {
+        success: create.reducer<T>((state, action) => {
           state.data = castDraft(action.payload)
           state.status = 'finished'
         }),

@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 import type {
-  AnyAction,
+  UnknownAction,
   Middleware,
   ThunkAction,
   Action,
@@ -94,10 +94,14 @@ describe('getDefaultMiddleware', () => {
     const dummyMiddleware2: Middleware<{}, { counter: number }> =
       (storeApi) => (next) => (action) => {}
 
-    const testThunk: ThunkAction<void, { counter: number }, number, AnyAction> =
-      (dispatch, getState, extraArg) => {
-        expect(extraArg).toBe(extraArgument)
-      }
+    const testThunk: ThunkAction<
+      void,
+      { counter: number },
+      number,
+      UnknownAction
+    > = (dispatch, getState, extraArg) => {
+      expect(extraArg).toBe(extraArgument)
+    }
 
     const reducer = () => ({ counter: 123 })
 
@@ -116,15 +120,15 @@ describe('getDefaultMiddleware', () => {
         expectType<
           Tuple<
             [
-              ThunkMiddleware<any, AnyAction, 42>,
+              ThunkMiddleware<any, UnknownAction, 42>,
               Middleware<
                 (action: Action<'actionListenerMiddleware/add'>) => () => void,
                 {
                   counter: number
                 },
-                Dispatch<AnyAction>
+                Dispatch<UnknownAction>
               >,
-              Middleware<{}, any, Dispatch<AnyAction>>
+              Middleware<{}, any, Dispatch<UnknownAction>>
             ]
           >
         >(m3)
@@ -133,7 +137,7 @@ describe('getDefaultMiddleware', () => {
       },
     })
 
-    expectType<ThunkDispatch<any, 42, AnyAction> & Dispatch<AnyAction>>(
+    expectType<ThunkDispatch<any, 42, UnknownAction> & Dispatch<UnknownAction>>(
       store.dispatch
     )
 
@@ -143,17 +147,18 @@ describe('getDefaultMiddleware', () => {
   it('allows passing options to immutableCheck', () => {
     let immutableCheckWasCalled = false
 
-    const middleware = getDefaultMiddleware({
-      thunk: false,
-      immutableCheck: {
-        isImmutable: () => {
-          immutableCheckWasCalled = true
-          return true
+    const middleware = () =>
+      getDefaultMiddleware({
+        thunk: false,
+        immutableCheck: {
+          isImmutable: () => {
+            immutableCheckWasCalled = true
+            return true
+          },
         },
-      },
-      serializableCheck: false,
-      actionCreatorCheck: false,
-    })
+        serializableCheck: false,
+        actionCreatorCheck: false,
+      })
 
     const reducer = () => ({})
 
@@ -168,17 +173,18 @@ describe('getDefaultMiddleware', () => {
   it('allows passing options to serializableCheck', () => {
     let serializableCheckWasCalled = false
 
-    const middleware = getDefaultMiddleware({
-      thunk: false,
-      immutableCheck: false,
-      serializableCheck: {
-        isSerializable: () => {
-          serializableCheckWasCalled = true
-          return true
+    const middleware = () =>
+      getDefaultMiddleware({
+        thunk: false,
+        immutableCheck: false,
+        serializableCheck: {
+          isSerializable: () => {
+            serializableCheckWasCalled = true
+            return true
+          },
         },
-      },
-      actionCreatorCheck: false,
-    })
+        actionCreatorCheck: false,
+      })
 
     const reducer = () => ({})
 
@@ -196,17 +202,18 @@ describe('getDefaultMiddleware', () => {
 it('allows passing options to actionCreatorCheck', () => {
   let actionCreatorCheckWasCalled = false
 
-  const middleware = getDefaultMiddleware({
-    thunk: false,
-    immutableCheck: false,
-    serializableCheck: false,
-    actionCreatorCheck: {
-      isActionCreator: (action: unknown): action is Function => {
-        actionCreatorCheckWasCalled = true
-        return false
+  const middleware = () =>
+    getDefaultMiddleware({
+      thunk: false,
+      immutableCheck: false,
+      serializableCheck: false,
+      actionCreatorCheck: {
+        isActionCreator: (action: unknown): action is Function => {
+          actionCreatorCheckWasCalled = true
+          return false
+        },
       },
-    },
-  })
+    })
 
   const reducer = () => ({})
 

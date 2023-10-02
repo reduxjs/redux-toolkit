@@ -4,8 +4,9 @@ import type {
   PayloadAction,
   Draft,
   Reducer,
-  AnyAction,
+  UnknownAction,
 } from '@reduxjs/toolkit'
+import { isPlainObject } from '@reduxjs/toolkit'
 import { createReducer, createAction, createNextState } from '@reduxjs/toolkit'
 import {
   mockConsole,
@@ -353,7 +354,7 @@ describe('createReducer', () => {
             .addCase(decrement, (state, action) => state - action.payload)
         )
       ).toThrowErrorMatchingInlineSnapshot(
-        `"addCase cannot be called with two reducers for the same action type"`
+        '"`builder.addCase` cannot be called with two reducers for the same action type"'
       )
       expect(() =>
         createReducer(0, (builder) =>
@@ -363,7 +364,25 @@ describe('createReducer', () => {
             .addCase(decrement, (state, action) => state - action.payload)
         )
       ).toThrowErrorMatchingInlineSnapshot(
-        `"addCase cannot be called with two reducers for the same action type"`
+        '"`builder.addCase` cannot be called with two reducers for the same action type"'
+      )
+    })
+
+    test('will throw if an empty type is used', () => {
+      const customActionCreator = (payload: number) => ({
+        type: 'custom_action',
+        payload,
+      })
+      customActionCreator.type = ""
+      expect(() =>
+        createReducer(0, (builder) =>
+          builder.addCase(
+            customActionCreator,
+            (state, action) => state + action.payload
+          )
+        )
+      ).toThrowErrorMatchingInlineSnapshot(
+        '"`builder.addCase` cannot be called with an empty action type"'
       )
     })
   })
@@ -378,10 +397,19 @@ describe('createReducer', () => {
       meta: { type: 'string_action' },
     })
 
-    const numberActionMatcher = (a: AnyAction): a is PayloadAction<number> =>
-      a.meta && a.meta.type === 'number_action'
-    const stringActionMatcher = (a: AnyAction): a is PayloadAction<string> =>
-      a.meta && a.meta.type === 'string_action'
+    const numberActionMatcher = (
+      a: UnknownAction
+    ): a is PayloadAction<number> =>
+      isPlainObject(a.meta) &&
+      'type' in a.meta &&
+      (a.meta as Record<'type', unknown>).type === 'number_action'
+
+    const stringActionMatcher = (
+      a: UnknownAction
+    ): a is PayloadAction<string> =>
+      isPlainObject(a.meta) &&
+      'type' in a.meta &&
+      (a.meta as Record<'type', unknown>).type === 'string_action'
 
     const incrementBy = createAction('increment', prepareNumberAction)
     const decrementBy = createAction('decrement', prepareNumberAction)

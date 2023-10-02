@@ -20,6 +20,7 @@ import type {
   QueryArgFrom,
   QueryDefinition,
   ResultTypeFrom,
+  FullTagDescription,
 } from '../endpointDefinitions'
 import { isQueryDefinition } from '../endpointDefinitions'
 import { calculateProvidedBy } from '../endpointDefinitions'
@@ -27,6 +28,7 @@ import type {
   AsyncThunkPayloadCreator,
   Draft,
   ImmutableHelpers,
+  UnknownAction,
 } from '@reduxjs/toolkit'
 import {
   isAllOf,
@@ -34,15 +36,11 @@ import {
   isPending,
   isRejected,
   isRejectedWithValue,
-} from '@reduxjs/toolkit'
+  createAsyncThunk,
+  SHOULD_AUTOBATCH,
+} from './rtkImports'
 import type { Patch } from 'immer'
-import type {
-  AnyAction,
-  ThunkAction,
-  ThunkDispatch,
-  AsyncThunk,
-} from '@reduxjs/toolkit'
-import { createAsyncThunk, SHOULD_AUTOBATCH } from '@reduxjs/toolkit'
+import type { ThunkAction, ThunkDispatch, AsyncThunk } from '@reduxjs/toolkit'
 
 import { HandledError } from '../HandledError'
 
@@ -167,8 +165,9 @@ export type PatchQueryDataThunk<
 > = <EndpointName extends QueryKeys<Definitions>>(
   endpointName: EndpointName,
   args: QueryArgFrom<Definitions[EndpointName]>,
-  patches: readonly Patch[]
-) => ThunkAction<void, PartialState, any, AnyAction>
+  patches: readonly Patch[],
+  updateProvided?: boolean
+) => ThunkAction<void, PartialState, any, UnknownAction>
 
 export type UpdateQueryDataThunk<
   Definitions extends EndpointDefinitions,
@@ -176,8 +175,9 @@ export type UpdateQueryDataThunk<
 > = <EndpointName extends QueryKeys<Definitions>>(
   endpointName: EndpointName,
   args: QueryArgFrom<Definitions[EndpointName]>,
-  updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>
-) => ThunkAction<PatchCollection, PartialState, any, AnyAction>
+  updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>,
+  updateProvided?: boolean
+) => ThunkAction<PatchCollection, PartialState, any, UnknownAction>
 
 export type UpsertQueryDataThunk<
   Definitions extends EndpointDefinitions,
@@ -194,7 +194,7 @@ export type UpsertQueryDataThunk<
   >,
   PartialState,
   any,
-  AnyAction
+  UnknownAction
 >
 
 /**
@@ -226,6 +226,7 @@ export function buildThunks<
   serializeQueryArgs,
   api,
   immutableHelpers: { isDraftable, createWithPatches },
+  assertTagType,
 }: {
   baseQuery: BaseQuery
   reducerPath: ReducerPath
@@ -233,51 +234,86 @@ export function buildThunks<
   serializeQueryArgs: InternalSerializeQueryArgs
   api: Api<BaseQuery, Definitions, ReducerPath, any>
   immutableHelpers: Pick<ImmutableHelpers, 'isDraftable' | 'createWithPatches'>
+  assertTagType: AssertTagTypes
 }) {
   type State = RootState<any, string, ReducerPath>
 
   const patchQueryData: PatchQueryDataThunk<EndpointDefinitions, State> =
-    (endpointName, args, patches) => (dispatch) => {
+    (endpointName, args, patches, updateProvided) => (dispatch, getState) => {
       const endpointDefinition = endpointDefinitions[endpointName]
+
+      const queryCacheKey = serializeQueryArgs({
+        queryArgs: args,
+        endpointDefinition,
+        endpointName,
+      })
+
       dispatch(
-        api.internalActions.queryResultPatched({
-          queryCacheKey: serializeQueryArgs({
-            queryArgs: args,
-            endpointDefinition,
-            endpointName,
-          }),
-          patches,
-        })
+        api.internalActions.queryResultPatched({ queryCacheKey, patches })
+      )
+
+      if (!updateProvided) {
+        return
+      }
+
+      const newValue = api.endpoints[endpointName].select(args)(
+        // Work around TS 4.1 mismatch
+        getState() as RootState<any, any, any>
+      )
+
+      const providedTags = calculateProvidedBy(
+        endpointDefinition.providesTags,
+        newValue.data,
+        undefined,
+        args,
+        {},
+        assertTagType
+      )
+
+      dispatch(
+        api.internalActions.updateProvidedBy({ queryCacheKey, providedTags })
       )
     }
 
   const updateQueryData: UpdateQueryDataThunk<EndpointDefinitions, State> =
-    (endpointName, args, updateRecipe) => (dispatch, getState) => {
-      const currentState = (
-        api.endpoints[endpointName] as ApiEndpointQuery<any, any>
-      ).select(args)(getState())
+    (endpointName, args, updateRecipe, updateProvided = true) =>
+    (dispatch, getState) => {
+      const endpointDefinition = api.endpoints[endpointName]
+
+      const currentState = endpointDefinition.select(args)(
+        // Work around TS 4.1 mismatch
+        getState() as RootState<any, any, any>
+      )
+
       let ret: PatchCollection = {
         patches: [],
         inversePatches: [],
         undo: () =>
           dispatch(
-            api.util.patchQueryData(endpointName, args, ret.inversePatches)
+            api.util.patchQueryData(
+              endpointName,
+              args,
+              ret.inversePatches,
+              updateProvided
+            )
           ),
       }
       if (currentState.status === QueryStatus.uninitialized) {
         return ret
       }
+      let newValue
       if ('data' in currentState) {
         if (isDraftable(currentState.data)) {
-          const [, patches, inversePatches] = createWithPatches(
+          const [value, patches, inversePatches] = createWithPatches(
             currentState.data,
             updateRecipe
           )
           ret.patches.push(...patches)
           ret.inversePatches.push(...inversePatches)
+          newValue = value
         } else {
-          const value = updateRecipe(currentState.data)
-          ret.patches.push({ op: 'replace', path: [], value })
+          newValue = updateRecipe(currentState.data)
+          ret.patches.push({ op: 'replace', path: [], value: newValue })
           ret.inversePatches.push({
             op: 'replace',
             path: [],
@@ -286,7 +322,9 @@ export function buildThunks<
         }
       }
 
-      dispatch(api.util.patchQueryData(endpointName, args, ret.patches))
+      dispatch(
+        api.util.patchQueryData(endpointName, args, ret.patches, updateProvided)
+      )
 
       return ret
     }
@@ -558,7 +596,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       endpointName: EndpointName,
       arg: any,
       options: PrefetchOptions
-    ): ThunkAction<void, any, any, AnyAction> =>
+    ): ThunkAction<void, any, any, UnknownAction> =>
     (dispatch: ThunkDispatch<any, any, any>, getState: () => any) => {
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan
@@ -593,7 +631,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     }
 
   function matchesEndpoint(endpointName: string) {
-    return (action: any): action is AnyAction =>
+    return (action: any): action is UnknownAction =>
       action?.meta?.arg?.endpointName === endpointName
   }
 

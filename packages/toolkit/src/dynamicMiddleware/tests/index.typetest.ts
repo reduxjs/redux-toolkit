@@ -1,5 +1,5 @@
 /* eslint-disable no-lone-blocks */
-import type { Action, AnyAction, Middleware } from 'redux'
+import type { Action, UnknownAction, Middleware } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import { createDynamicMiddleware } from '../index'
 import { configureStore } from '../../configureStore'
@@ -7,7 +7,7 @@ import { expectExactType, expectType } from '../../tests/helpers'
 
 const untypedInstance = createDynamicMiddleware()
 
-interface AppDispatch extends ThunkDispatch<number, undefined, AnyAction> {
+interface AppDispatch extends ThunkDispatch<number, undefined, UnknownAction> {
   (n: 1): 1
 }
 

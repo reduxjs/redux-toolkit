@@ -6,11 +6,11 @@ import type {
   QueryDefinition,
   MutationDefinition,
   QueryArgFrom,
-} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
+} from '@reduxjs/toolkit/query'
 import type { Api, Module } from '../apiTypes'
 import { capitalize } from '../utils'
 import { safeAssign } from '../tsHelpers'
-import type { BaseQueryFn } from '@reduxjs/toolkit/dist/query/baseQueryTypes'
+import type { BaseQueryFn } from '@reduxjs/toolkit/query'
 
 import type { HooksWithUniqueNames } from './namedHooks'
 
@@ -26,7 +26,7 @@ import type { PrefetchOptions } from '../core/module'
 export const reactHooksModuleName = /* @__PURE__ */ Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName
 
-declare module '@reduxjs/toolkit/dist/query/apiTypes' {
+declare module '@reduxjs/toolkit/query' {
   export interface ApiModules<
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     BaseQuery extends BaseQueryFn,
@@ -140,57 +140,93 @@ export const reactHooksModule = ({
     useStore: rrUseStore,
   },
   unstable__sideEffectsInRender = false,
-}: ReactHooksModuleOptions = {}): Module<ReactHooksModule> => ({
-  name: reactHooksModuleName,
-  init(api, { serializeQueryArgs }, context) {
-    const anyApi = api as any as Api<
-      any,
-      Record<string, any>,
-      string,
-      string,
-      ReactHooksModule
-    >
-    const { buildQueryHooks, buildMutationHook, usePrefetch } = buildHooks({
-      api,
-      moduleOptions: {
-        batch,
-        hooks,
-        unstable__sideEffectsInRender,
-      },
-      serializeQueryArgs,
-      context,
-    })
-    safeAssign(anyApi, { usePrefetch })
-    safeAssign(context, { batch })
-
-    return {
-      injectEndpoint(endpointName, definition) {
-        if (isQueryDefinition(definition)) {
-          const {
-            useQuery,
-            useLazyQuery,
-            useLazyQuerySubscription,
-            useQueryState,
-            useQuerySubscription,
-          } = buildQueryHooks(endpointName)
-          safeAssign(anyApi.endpoints[endpointName], {
-            useQuery,
-            useLazyQuery,
-            useLazyQuerySubscription,
-            useQueryState,
-            useQuerySubscription,
-          })
-          ;(api as any)[`use${capitalize(endpointName)}Query`] = useQuery
-          ;(api as any)[`useLazy${capitalize(endpointName)}Query`] =
-            useLazyQuery
-        } else if (isMutationDefinition(definition)) {
-          const useMutation = buildMutationHook(endpointName)
-          safeAssign(anyApi.endpoints[endpointName], {
-            useMutation,
-          })
-          ;(api as any)[`use${capitalize(endpointName)}Mutation`] = useMutation
+  ...rest
+}: ReactHooksModuleOptions = {}): Module<ReactHooksModule> => {
+  if (process.env.NODE_ENV !== 'production') {
+    const hookNames = ['useDispatch', 'useSelector', 'useStore'] as const
+    let warned = false
+    for (const hookName of hookNames) {
+      // warn for old hook options
+      if (Object.keys(rest).length > 0) {
+        if ((rest as Partial<typeof hooks>)[hookName]) {
+          if (!warned) {
+            console.warn(
+              'As of RTK 2.0, the hooks now need to be specified as one object, provided under a `hooks` key:' +
+                '\n`reactHooksModule({ hooks: { useDispatch, useSelector, useStore } })`'
+            )
+            warned = true
+          }
         }
-      },
+        // migrate
+        // @ts-ignore
+        hooks[hookName] = rest[hookName]
+      }
+      // then make sure we have them all
+      if (typeof hooks[hookName] !== 'function') {
+        throw new Error(
+          `When using custom hooks for context, all ${
+            hookNames.length
+          } hooks need to be provided: ${hookNames.join(
+            ', '
+          )}.\nHook ${hookName} was either not provided or not a function.`
+        )
+      }
     }
-  },
-})
+  }
+
+  return {
+    name: reactHooksModuleName,
+    init(api, { serializeQueryArgs }, context) {
+      const anyApi = api as any as Api<
+        any,
+        Record<string, any>,
+        string,
+        string,
+        ReactHooksModule
+      >
+      const { buildQueryHooks, buildMutationHook, usePrefetch } = buildHooks({
+        api,
+        moduleOptions: {
+          batch,
+          hooks,
+          unstable__sideEffectsInRender,
+        },
+        serializeQueryArgs,
+        context,
+      })
+      safeAssign(anyApi, { usePrefetch })
+      safeAssign(context, { batch })
+
+      return {
+        injectEndpoint(endpointName, definition) {
+          if (isQueryDefinition(definition)) {
+            const {
+              useQuery,
+              useLazyQuery,
+              useLazyQuerySubscription,
+              useQueryState,
+              useQuerySubscription,
+            } = buildQueryHooks(endpointName)
+            safeAssign(anyApi.endpoints[endpointName], {
+              useQuery,
+              useLazyQuery,
+              useLazyQuerySubscription,
+              useQueryState,
+              useQuerySubscription,
+            })
+            ;(api as any)[`use${capitalize(endpointName)}Query`] = useQuery
+            ;(api as any)[`useLazy${capitalize(endpointName)}Query`] =
+              useLazyQuery
+          } else if (isMutationDefinition(definition)) {
+            const useMutation = buildMutationHook(endpointName)
+            safeAssign(anyApi.endpoints[endpointName], {
+              useMutation,
+            })
+            ;(api as any)[`use${capitalize(endpointName)}Mutation`] =
+              useMutation
+          }
+        },
+      }
+    },
+  }
+}

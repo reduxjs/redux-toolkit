@@ -1,14 +1,15 @@
+import type { Draft } from 'immer'
 import type {
-  EntityState,
   EntityStateAdapter,
   IdSelector,
   Update,
   EntityId,
+  DraftableEntityState,
 } from './models'
 import type { BuildStateOperatorConfiguration } from './state_adapter'
 import {
-  buildCreateSingleArgumentStateOperator,
   buildCreateStateOperator,
+  buildCreateSingleArgumentStateOperator,
 } from './state_adapter'
 import {
   selectIdValue,
@@ -25,7 +26,7 @@ export function buildCreateUnsortedStateAdapter(
   return function createUnsortedStateAdapter<T, Id extends EntityId>(
     selectId: IdSelector<T, Id>
   ): EntityStateAdapter<T, Id> {
-    type R = EntityState<T, Id>
+    type R = DraftableEntityState<T, Id>
 
     function addOneMutably(entity: T, state: R): void {
       const key = selectIdValue(entity, selectId)
@@ -34,8 +35,8 @@ export function buildCreateUnsortedStateAdapter(
         return
       }
 
-      state.ids.push(key)
-      state.entities[key] = entity
+      state.ids.push(key as Id & Draft<Id>)
+      ;(state.entities as Record<Id, T>)[key] = entity
     }
 
     function addManyMutably(
@@ -52,9 +53,9 @@ export function buildCreateUnsortedStateAdapter(
     function setOneMutably(entity: T, state: R): void {
       const key = selectIdValue(entity, selectId)
       if (!(key in state.entities)) {
-        state.ids.push(key)
+        state.ids.push(key as Id & Draft<Id>)
       }
-      state.entities[key] = entity
+      ;(state.entities as Record<Id, T>)[key] = entity
     }
 
     function setManyMutably(
@@ -74,7 +75,7 @@ export function buildCreateUnsortedStateAdapter(
       newEntities = ensureEntitiesArray(newEntities)
 
       state.ids = []
-      state.entities = {}
+      state.entities = {} as Record<Id, T>
 
       addManyMutably(newEntities, state)
     }
@@ -88,13 +89,15 @@ export function buildCreateUnsortedStateAdapter(
 
       keys.forEach((key) => {
         if (key in state.entities) {
-          delete state.entities[key]
+          delete (state.entities as Record<Id, T>)[key]
           didMutate = true
         }
       })
 
       if (didMutate) {
-        state.ids = state.ids.filter((id) => id in state.entities)
+        state.ids = (state.ids as Id[]).filter((id) => id in state.entities) as
+          | Id[]
+          | Draft<Id[]>
       }
     }
 
@@ -110,17 +113,22 @@ export function buildCreateUnsortedStateAdapter(
       update: Update<T, Id>,
       state: R
     ): boolean {
-      const original: T | undefined = state.entities[update.id]
+      const original: T | undefined = (state.entities as Record<Id, T>)[
+        update.id
+      ]
+      if (original === undefined) {
+        return false
+      }
       const updated: T = Object.assign({}, original, update.changes)
       const newKey = selectIdValue(updated, selectId)
       const hasNewKey = newKey !== update.id
 
       if (hasNewKey) {
         keys[update.id] = newKey
-        delete state.entities[update.id]
+        delete (state.entities as Record<Id, T>)[update.id]
       }
 
-      state.entities[newKey] = updated
+      ;(state.entities as Record<Id, T>)[newKey] = updated
 
       return hasNewKey
     }
