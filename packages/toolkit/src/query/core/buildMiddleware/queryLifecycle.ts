@@ -1,4 +1,4 @@
-import { isPending, isRejected, isFulfilled } from '@reduxjs/toolkit'
+import { isPending, isRejected, isFulfilled } from '../rtkImports'
 import type {
   BaseQueryError,
   BaseQueryFn,

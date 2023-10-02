@@ -145,7 +145,7 @@ import { configureStore, Tuple } from '@reduxjs/toolkit'
 
 configureStore({
   reducer: rootReducer,
-  middleware: new Tuple(additionalMiddleware, logger),
+  middleware: () => new Tuple(additionalMiddleware, logger),
 })
 ```
 
@@ -390,6 +390,23 @@ const usersSlice = createSlice({
 ```
 
 Like the `builder` in `createReducer`, this `builder` also accepts `addMatcher` (see [typing `builder.matcher`](#typing-builderaddmatcher)) and `addDefaultCase`.
+
+### Payload with All Optional Fields
+
+If you try to supply a payload type where all fields are optional, like `PayloadAction<Partial<User>>` or `PayloadAction<{value?: string}>`, TS may not be able to infer the action type correctly.
+
+You can work around this by [using a custom `AtLeastOne` utility type](https://github.com/reduxjs/redux-toolkit/issues/1423#issuecomment-902680573) to help ensure that at least one of the fields must be passed in:
+
+```ts no-transpile
+type AtLeastOne<T extends Record<string, any>> = keyof T extends infer K
+  ? K extends string
+    ? Pick<T, K & keyof T> & Partial<T>
+    : never
+  : never
+
+// Use this type instead of `Partial<MyPayloadType>`
+type AtLeastOneUserField = AtLeastOne<User>
+```
 
 ### Wrapping `createSlice`
 

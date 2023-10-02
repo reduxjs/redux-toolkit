@@ -147,17 +147,18 @@ describe('getDefaultMiddleware', () => {
   it('allows passing options to immutableCheck', () => {
     let immutableCheckWasCalled = false
 
-    const middleware = getDefaultMiddleware({
-      thunk: false,
-      immutableCheck: {
-        isImmutable: () => {
-          immutableCheckWasCalled = true
-          return true
+    const middleware = () =>
+      getDefaultMiddleware({
+        thunk: false,
+        immutableCheck: {
+          isImmutable: () => {
+            immutableCheckWasCalled = true
+            return true
+          },
         },
-      },
-      serializableCheck: false,
-      actionCreatorCheck: false,
-    })
+        serializableCheck: false,
+        actionCreatorCheck: false,
+      })
 
     const reducer = () => ({})
 
@@ -172,17 +173,18 @@ describe('getDefaultMiddleware', () => {
   it('allows passing options to serializableCheck', () => {
     let serializableCheckWasCalled = false
 
-    const middleware = getDefaultMiddleware({
-      thunk: false,
-      immutableCheck: false,
-      serializableCheck: {
-        isSerializable: () => {
-          serializableCheckWasCalled = true
-          return true
+    const middleware = () =>
+      getDefaultMiddleware({
+        thunk: false,
+        immutableCheck: false,
+        serializableCheck: {
+          isSerializable: () => {
+            serializableCheckWasCalled = true
+            return true
+          },
         },
-      },
-      actionCreatorCheck: false,
-    })
+        actionCreatorCheck: false,
+      })
 
     const reducer = () => ({})
 
@@ -200,17 +202,18 @@ describe('getDefaultMiddleware', () => {
 it('allows passing options to actionCreatorCheck', () => {
   let actionCreatorCheckWasCalled = false
 
-  const middleware = getDefaultMiddleware({
-    thunk: false,
-    immutableCheck: false,
-    serializableCheck: false,
-    actionCreatorCheck: {
-      isActionCreator: (action: unknown): action is Function => {
-        actionCreatorCheckWasCalled = true
-        return false
+  const middleware = () =>
+    getDefaultMiddleware({
+      thunk: false,
+      immutableCheck: false,
+      serializableCheck: false,
+      actionCreatorCheck: {
+        isActionCreator: (action: unknown): action is Function => {
+          actionCreatorCheckWasCalled = true
+          return false
+        },
       },
-    },
-  })
+    })
 
   const reducer = () => ({})
 

@@ -44,7 +44,7 @@
     "@babel/helper-compilation-targets": "7.19.3",
     "@babel/traverse": "7.19.3",
     "@babel/types": "7.19.3",
-    "esbuild": "0.17.17",
+    "esbuild": "0.19.3",
     "jest-snapshot": "29.3.1",
     "msw": "patch:msw@npm:0.40.2#.yarn/patches/msw-npm-0.40.2-2107d48752",
     "jscodeshift": "0.13.1",

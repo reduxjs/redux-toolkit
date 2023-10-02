@@ -6,7 +6,7 @@ import type { ReactReduxContextValue } from 'react-redux'
 import { Provider } from 'react-redux'
 import type { ApiModules } from '@reduxjs/toolkit/query'
 import { setupListeners } from '@reduxjs/toolkit/query'
-import type { CoreModule } from '../core/module'
+import type { CoreModule } from '@reduxjs/toolkit/query'
 
 /**
  * Can be used as a `Provider` if you **do not already have a Redux store**.
