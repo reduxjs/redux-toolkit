@@ -63,6 +63,9 @@
     "swagger2openapi": "^7.0.4",
     "typescript": ">=4.1 <=4.5"
   },
+  "resolutions": {
+    "typescript": ">=4.1 <=4.5"
+  },
   "husky": {
     "hooks": {
       "pre-commit": "pretty-quick --staged"
