@@ -87,3 +87,56 @@ export class Tuple<Items extends ReadonlyArray<unknown> = []> extends Array<
 export function freezeDraftable<T>(val: T) {
   return isDraftable(val) ? createNextState(val, () => {}) : val
 }
+
+export class TypedEvent<Type extends string> extends Event {
+  // so it's structurally different from an Event
+  typed = true
+  // @ts-ignore this is already the case, we're just making sure typescript knows
+  type: Type
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+  constructor(type: Type, eventInitDict?: EventInit) {
+    super(type, eventInitDict)
+  }
+}
+
+interface TypedEventListener<E extends TypedEvent<string>, This> {
+  (this: This, evt: E): void
+}
+
+interface TypedEventListenerObject<E extends TypedEvent<string>, This> {
+  handleEvent(this: This, evt: E): void
+}
+
+type TypedEventListenerOrEventListenerObject<
+  E extends TypedEvent<string>,
+  This
+> = TypedEventListener<E, This> | TypedEventListenerObject<E, This>
+
+export class TypedEventTarget<
+  AllowedEvent extends TypedEvent<string>
+> extends EventTarget {
+  dispatchEvent(event: AllowedEvent) {
+    return super.dispatchEvent(event)
+  }
+  addEventListener<Type extends AllowedEvent['type']>(
+    type: Type,
+    callback: TypedEventListenerOrEventListenerObject<
+      Extract<AllowedEvent, { type: Type }>,
+      this
+    > | null,
+    options?: boolean | AddEventListenerOptions
+  ) {
+    super.addEventListener(type, callback as any, options)
+    return () => this.removeEventListener(type, callback, options)
+  }
+  removeEventListener<Type extends AllowedEvent['type']>(
+    type: Type,
+    callback: TypedEventListenerOrEventListenerObject<
+      Extract<AllowedEvent, { type: Type }>,
+      this
+    > | null,
+    options?: boolean | EventListenerOptions | undefined
+  ) {
+    return super.removeEventListener(type, callback as any, options)
+  }
+}

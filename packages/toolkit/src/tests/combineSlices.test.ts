@@ -5,6 +5,8 @@ import type { WithSlice } from '../combineSlices'
 import { combineSlices } from '../combineSlices'
 import { expectType } from './helpers'
 import type { CombinedState } from '../query/core/apiState'
+import { configureStore } from '../configureStore'
+import type { UnknownAction } from 'redux'
 
 const dummyAction = createAction<void>('dummy')
 
@@ -169,6 +171,42 @@ describe('combineSlices', () => {
       expect(selector(wrappedReducer(undefined, dummyAction()))).toBe(
         booleanReducer.getInitialState()
       )
+    })
+  })
+  describe('enhancer', () => {
+    const actionLoggerReducer = (
+      state: UnknownAction[] = [],
+      action: UnknownAction
+    ) => [...state, action]
+    it('allows adding an enhancer to store, which will dispatch automatically when a slice is injected', () => {
+      const rootReducer = combineSlices(stringSlice, {
+        actions: actionLoggerReducer,
+      })
+      const store = configureStore({
+        reducer: rootReducer,
+        enhancers: (gDE) => gDE().concat(rootReducer.enhancer),
+      })
+      const initAction = {
+        type: expect.stringContaining('@@redux/INIT'),
+      }
+      expect(store.getState()).toEqual({
+        string: stringSlice.getInitialState(),
+        actions: [initAction],
+      })
+
+      rootReducer.inject(numberSlice)
+
+      expect(store.getState()).toEqual({
+        string: stringSlice.getInitialState(),
+        number: numberSlice.getInitialState(),
+        actions: [
+          initAction,
+          {
+            type: 'combineSlices/sliceInjected',
+            meta: { reducerPath: 'number', instanceId: expect.any(String) },
+          },
+        ],
+      })
     })
   })
 })

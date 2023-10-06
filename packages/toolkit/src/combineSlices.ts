@@ -1,5 +1,11 @@
-import type { UnknownAction, Reducer, StateFromReducersMapObject } from 'redux'
+import type {
+  UnknownAction,
+  Reducer,
+  StateFromReducersMapObject,
+  StoreEnhancer,
+} from 'redux'
 import { combineReducers } from 'redux'
+import { createAction } from './createAction'
 import { nanoid } from './nanoid'
 import type {
   Id,
@@ -8,6 +14,7 @@ import type {
   UnionToIntersection,
   WithOptionalProp,
 } from './tsHelpers'
+import { TypedEvent, TypedEventTarget } from './utils'
 
 type SliceLike<ReducerPath extends string, State> = {
   reducerPath: ReducerPath
@@ -48,6 +55,8 @@ export type InjectConfig = {
    * Allow replacing reducer with a different reference. Normally, an error will be thrown if a different reducer instance to the one already injected is used.
    */
   overrideExisting?: boolean
+
+  dispatchOnInject?: boolean
 }
 
 /**
@@ -297,6 +306,7 @@ export interface CombinedSliceReducer<
      */
     original: (state: DeclaredState) => InitialState & Partial<DeclaredState>
   }
+  enhancer: StoreEnhancer
 }
 
 type InitialState<Slices extends Array<AnySliceLike | ReducerMap>> =
@@ -369,12 +379,30 @@ const original = (state: any) => {
   return state[ORIGINAL_STATE]
 }
 
+class InjectEvent extends TypedEvent<'inject'> {
+  constructor(public reducerPath: string) {
+    super('inject')
+  }
+}
+
+const sliceInjected = createAction(
+  'combineSlices/sliceInjected',
+  (reducerPath: string, instanceId: string) => ({
+    payload: undefined,
+    meta: { reducerPath, instanceId },
+  })
+)
+
 export function combineSlices<
   Slices extends [
     AnySliceLike | ReducerMap,
     ...Array<AnySliceLike | ReducerMap>
   ]
 >(...slices: Slices): CombinedSliceReducer<Id<InitialState<Slices>>> {
+  const instanceId = nanoid()
+
+  const eventTarget = new TypedEventTarget<InjectEvent>()
+
   const reducerMap = Object.fromEntries<Reducer>(getReducers(slices))
 
   const getReducer = () => combineReducers(reducerMap)
@@ -395,10 +423,11 @@ export function combineSlices<
     config: InjectConfig = {}
   ): typeof combinedReducer => {
     const { reducerPath, reducer: reducerToInject } = slice
+    const { overrideExisting, dispatchOnInject = true } = config
 
     const currentReducer = reducerMap[reducerPath]
     if (
-      !config.overrideExisting &&
+      !overrideExisting &&
       currentReducer &&
       currentReducer !== reducerToInject
     ) {
@@ -417,6 +446,10 @@ export function combineSlices<
     reducerMap[reducerPath] = reducerToInject
 
     reducer = getReducer()
+
+    if (dispatchOnInject) {
+      eventTarget.dispatchEvent(new InjectEvent(reducerPath))
+    }
 
     return combinedReducer
   }
@@ -439,5 +472,15 @@ export function combineSlices<
     { original }
   )
 
-  return Object.assign(combinedReducer, { inject, selector }) as any
+  const enhancer: StoreEnhancer =
+    (next) =>
+    (...args) => {
+      const store = next(...args)
+      eventTarget.addEventListener('inject', (ev) => {
+        store.dispatch(sliceInjected(ev.reducerPath, instanceId) as any)
+      })
+      return store
+    }
+
+  return Object.assign(combinedReducer, { inject, selector, enhancer }) as any
 }
