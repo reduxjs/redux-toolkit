@@ -2,7 +2,7 @@ import { createReducer } from '../createReducer'
 import { createAction } from '../createAction'
 import { createSlice } from '../createSlice'
 import type { WithSlice } from '../combineSlices'
-import { combineSlices } from '../combineSlices'
+import { combineSlices, withEnhancer } from '../combineSlices'
 import { expectType } from './helpers'
 import type { CombinedState } from '../query/core/apiState'
 import { configureStore } from '../configureStore'
@@ -183,9 +183,11 @@ describe('combineSlices', () => {
     ) => [...state, action]
 
     const getReducer = () =>
-      combineSlices(stringSlice, {
-        actions: actionLoggerReducer,
-      })
+      withEnhancer(
+        combineSlices(stringSlice, {
+          actions: actionLoggerReducer,
+        })
+      )
 
     let rootReducer = getReducer()
 
