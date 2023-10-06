@@ -57,9 +57,9 @@ export type InjectConfig = {
   overrideExisting?: boolean
 
   /**
-   * Whether to dispatch an action once the injection is complete, allowing state to appear immediately.
+   * Whether to dispatch an action once the injection is complete, allowing state to appear immediately. Defaults to true
    *
-   * *Requires `withEnhancer`*
+   * *Requires enhancer to have been added to store*
    */
   dispatchOnInject?: boolean
 }
