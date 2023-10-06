@@ -306,6 +306,17 @@ export interface CombinedSliceReducer<
      */
     original: (state: DeclaredState) => InitialState & Partial<DeclaredState>
   }
+  /**
+   * An optional store enhancer, enabling the instance to dispatch an action upon slice injection.
+   * ```ts
+   * const rootReducer = combineSlices(stringSlice);
+   *
+   * const store = configureStore({
+   *   reducer: rootReducer,
+   *   enhancers: (getDefaultEnhancers) => getDefaultEnhancers().concat(rootReducer.enhancer)
+   * })
+   * ```
+   */
   enhancer: StoreEnhancer
 }
 
