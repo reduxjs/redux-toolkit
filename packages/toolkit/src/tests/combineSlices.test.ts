@@ -2,7 +2,7 @@ import { createReducer } from '../createReducer'
 import { createAction } from '../createAction'
 import { createSlice } from '../createSlice'
 import type { WithSlice } from '../combineSlices'
-import { combineSlices, withEnhancer } from '../combineSlices'
+import { combineSlices, createDispatchOnInjectEnhancer } from '../combineSlices'
 import { expectType } from './helpers'
 import type { CombinedState } from '../query/core/apiState'
 import { configureStore } from '../configureStore'
@@ -183,24 +183,27 @@ describe('combineSlices', () => {
     ) => [...state, action]
 
     const getReducer = () =>
-      withEnhancer(
-        combineSlices(stringSlice, {
-          actions: actionLoggerReducer,
-        })
-      )
+      combineSlices(stringSlice, {
+        actions: actionLoggerReducer,
+      })
 
     let rootReducer = getReducer()
+
+    const getEnhancer = () => createDispatchOnInjectEnhancer(rootReducer)
+
+    let enhancer = getEnhancer()
 
     const getStore = () =>
       configureStore({
         reducer: rootReducer,
-        enhancers: (gDE) => gDE().concat(rootReducer.enhancer),
+        enhancers: (gDE) => gDE().concat(enhancer),
       })
 
     let store = getStore()
 
     afterEach(() => {
       rootReducer = getReducer()
+      enhancer = getEnhancer()
       store = getStore()
     })
 

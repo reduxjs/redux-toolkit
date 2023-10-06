@@ -472,35 +472,32 @@ const sliceInjected = createAction(
   })
 )
 
-export function withEnhancer<T extends { onInject(reducerPath: string): void }>(
-  instance: T
-): T & {
-  /**
-   * An optional store enhancer, enabling the instance to dispatch an action upon slice injection.
-   * ```ts
-   * const rootReducer = withEnhancer(combineSlices(stringSlice));
-   *
-   * const store = configureStore({
-   *   reducer: rootReducer,
-   *   enhancers: (getDefaultEnhancers) => getDefaultEnhancers().concat(rootReducer.enhancer)
-   * })
-   * ```
-   */
-  enhancer: StoreEnhancer
-} {
+/**
+ * Creates an optional store enhancer, enabling the instance to dispatch an action upon slice injection.
+ * ```ts
+ * const rootReducer = combineSlices(stringSlice);
+ * const injectEnhancer = createDispatchOnInjectEnhancer(rootReducer);
+ *
+ * const store = configureStore({
+ *   reducer: rootReducer,
+ *   enhancers: (getDefaultEnhancers) => getDefaultEnhancers().concat(injectEnhancer)
+ * })
+ * ```
+ */
+export function createDispatchOnInjectEnhancer(instance: {
+  onInject(reducerPath: string): void
+}): StoreEnhancer {
   let dispatches: Dispatch[] = []
 
-  function onInject(reducerPath: string) {
+  instance.onInject = (reducerPath) => {
     const action = sliceInjected(reducerPath)
     dispatches.forEach((dispatch) => dispatch(action))
   }
 
-  const enhancer: StoreEnhancer =
-    (next) =>
+  return (next) =>
     (...args) => {
       const store = next(...args)
       dispatches.push(store.dispatch)
       return store
     }
-  return Object.assign(instance, { onInject, enhancer })
 }
