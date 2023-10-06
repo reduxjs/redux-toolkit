@@ -436,7 +436,9 @@ export function combineSlices<
 
     reducer = getReducer()
 
-    combinedReducer.onInject(reducerPath)
+    if (dispatchOnInject) {
+      combinedReducer.onInject(reducerPath)
+    }
 
     return combinedReducer
   }
