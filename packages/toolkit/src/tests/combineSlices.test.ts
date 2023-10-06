@@ -219,7 +219,7 @@ describe('combineSlices', () => {
           initAction,
           {
             type: 'combineSlices/sliceInjected',
-            meta: { reducerPath: 'number', instanceId: expect.any(String) },
+            meta: { reducerPath: 'number' },
           },
         ],
       })
