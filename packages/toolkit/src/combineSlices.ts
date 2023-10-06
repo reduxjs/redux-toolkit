@@ -416,7 +416,7 @@ export function combineSlices<
 
   let reducer = getReducer()
 
-  let dispatches: Dispatch[] = []
+  let dispatchRefs: WeakRef<Dispatch>[] = []
 
   function combinedReducer(
     state: Record<string, unknown>,
@@ -429,7 +429,10 @@ export function combineSlices<
 
   function onInject(reducerPath: string) {
     const action = sliceInjected(reducerPath)
-    dispatches.forEach((dispatch) => dispatch(action))
+    dispatchRefs.forEach((ref) => {
+      const dispatch = ref.deref()
+      dispatch?.(action)
+    })
   }
 
   const inject = (
@@ -490,7 +493,7 @@ export function combineSlices<
     (next) =>
     (...args) => {
       const store = next(...args)
-      dispatches.push(store.dispatch)
+      dispatchRefs.push(new WeakRef(store.dispatch))
       return store
     }
 
