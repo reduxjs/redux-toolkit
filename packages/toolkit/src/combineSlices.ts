@@ -311,7 +311,19 @@ export interface CombinedSliceReducer<
      */
     original: (state: DeclaredState) => InitialState & Partial<DeclaredState>
   }
-  onInject(reducerPath: string): void
+
+  /**
+   * An optional store enhancer, enabling the instance to dispatch an action upon slice injection.
+   * ```ts
+   * const rootReducer = combineSlices(stringSlice);
+   *
+   * const store = configureStore({
+   *   reducer: rootReducer,
+   *   enhancers: (getDefaultEnhancers) => getDefaultEnhancers().concat(rootReducer.enhancer)
+   * })
+   * ```
+   */
+  enhancer: StoreEnhancer
 }
 
 type InitialState<Slices extends Array<AnySliceLike | ReducerMap>> =
@@ -384,6 +396,14 @@ const original = (state: any) => {
   return state[ORIGINAL_STATE]
 }
 
+const sliceInjected = createAction(
+  'combineSlices/sliceInjected',
+  (reducerPath: string) => ({
+    payload: undefined,
+    meta: { reducerPath },
+  })
+)
+
 export function combineSlices<
   Slices extends [
     AnySliceLike | ReducerMap,
@@ -396,6 +416,8 @@ export function combineSlices<
 
   let reducer = getReducer()
 
+  let dispatches: Dispatch[] = []
+
   function combinedReducer(
     state: Record<string, unknown>,
     action: UnknownAction
@@ -405,7 +427,10 @@ export function combineSlices<
 
   combinedReducer.withLazyLoadedSlices = () => combinedReducer
 
-  combinedReducer.onInject = (reducerPath: string) => {}
+  combinedReducer.onInject = (reducerPath: string) => {
+    const action = sliceInjected(reducerPath)
+    dispatches.forEach((dispatch) => dispatch(action))
+  }
 
   const inject = (
     slice: AnySliceLike,
@@ -461,43 +486,13 @@ export function combineSlices<
     { original }
   )
 
-  return Object.assign(combinedReducer, { inject, selector }) as any
-}
-
-const sliceInjected = createAction(
-  'combineSlices/sliceInjected',
-  (reducerPath: string) => ({
-    payload: undefined,
-    meta: { reducerPath },
-  })
-)
-
-/**
- * Creates an optional store enhancer, enabling the instance to dispatch an action upon slice injection.
- * ```ts
- * const rootReducer = combineSlices(stringSlice);
- * const injectEnhancer = createDispatchOnInjectEnhancer(rootReducer);
- *
- * const store = configureStore({
- *   reducer: rootReducer,
- *   enhancers: (getDefaultEnhancers) => getDefaultEnhancers().concat(injectEnhancer)
- * })
- * ```
- */
-export function createDispatchOnInjectEnhancer(instance: {
-  onInject(reducerPath: string): void
-}): StoreEnhancer {
-  let dispatches: Dispatch[] = []
-
-  instance.onInject = (reducerPath) => {
-    const action = sliceInjected(reducerPath)
-    dispatches.forEach((dispatch) => dispatch(action))
-  }
-
-  return (next) =>
+  const enhancer: StoreEnhancer =
+    (next) =>
     (...args) => {
       const store = next(...args)
       dispatches.push(store.dispatch)
       return store
     }
+
+  return Object.assign(combinedReducer, { inject, selector, enhancer }) as any
 }
