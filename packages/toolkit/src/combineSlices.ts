@@ -3,6 +3,7 @@ import type {
   Reducer,
   StateFromReducersMapObject,
   StoreEnhancer,
+  Dispatch,
 } from 'redux'
 import { combineReducers } from 'redux'
 import { createAction } from './createAction'
@@ -14,7 +15,6 @@ import type {
   UnionToIntersection,
   WithOptionalProp,
 } from './tsHelpers'
-import { TypedEvent, TypedEventTarget } from './utils'
 
 type SliceLike<ReducerPath extends string, State> = {
   reducerPath: ReducerPath
@@ -464,12 +464,6 @@ export function combineSlices<
   return Object.assign(combinedReducer, { inject, selector }) as any
 }
 
-class InjectEvent extends TypedEvent<'inject'> {
-  constructor(public reducerPath: string) {
-    super('inject')
-  }
-}
-
 const sliceInjected = createAction(
   'combineSlices/sliceInjected',
   (reducerPath: string) => ({
@@ -484,7 +478,7 @@ export function withEnhancer<T extends { onInject(reducerPath: string): void }>(
   /**
    * An optional store enhancer, enabling the instance to dispatch an action upon slice injection.
    * ```ts
-   * const rootReducer = combineSlices(stringSlice);
+   * const rootReducer = withEnhancer(combineSlices(stringSlice));
    *
    * const store = configureStore({
    *   reducer: rootReducer,
@@ -494,19 +488,18 @@ export function withEnhancer<T extends { onInject(reducerPath: string): void }>(
    */
   enhancer: StoreEnhancer
 } {
-  const eventTarget = new TypedEventTarget<InjectEvent>()
+  let dispatches: Dispatch[] = []
 
   function onInject(reducerPath: string) {
-    eventTarget.dispatchEvent(new InjectEvent(reducerPath))
+    const action = sliceInjected(reducerPath)
+    dispatches.forEach((dispatch) => dispatch(action))
   }
 
   const enhancer: StoreEnhancer =
     (next) =>
     (...args) => {
       const store = next(...args)
-      eventTarget.addEventListener('inject', (ev) => {
-        store.dispatch(sliceInjected(ev.reducerPath) as any)
-      })
+      dispatches.push(store.dispatch)
       return store
     }
   return Object.assign(instance, { onInject, enhancer })
