@@ -262,7 +262,24 @@ export async function generateApi(
       const isPureSnakeCase = /^[a-zA-Z][\\w]*$/.test(param.name);
       const camelCaseName = camelCase(param.name);
 
-      const name = isPureSnakeCase && !allNames.includes(camelCaseName) ? camelCaseName : param.name;
+      let name = isPureSnakeCase && !allNames.includes(camelCaseName) ? camelCaseName : param.name;
+
+      if (name in queryArg) {
+        let duplicatedNewName = `${queryArg[name].param?.in}_${name}`
+        duplicatedNewName = isPureSnakeCase && !allNames.includes(duplicatedNewName) ? camelCase(duplicatedNewName) : duplicatedNewName
+        while (duplicatedNewName in queryArg) {
+          duplicatedNewName = '_' + duplicatedNewName;
+        }
+        queryArg[duplicatedNewName] = queryArg[name]
+        queryArg[duplicatedNewName].name = duplicatedNewName
+        delete queryArg[name]
+
+        name = `${param.in}_${name}`
+        name = isPureSnakeCase && !allNames.includes(name) ? camelCase(name) : name;
+      }
+      while (name in queryArg) {
+        name = '_' + name;
+      }
 
       queryArg[name] = {
         origin: 'param',
@@ -479,6 +496,7 @@ type QueryArgDefinition = {
   originalName: string;
   type: ts.TypeNode;
   required?: boolean;
+  param?: OpenAPIV3.ParameterObject
 } & (
   | {
       origin: 'param';
