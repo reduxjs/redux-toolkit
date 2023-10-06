@@ -427,7 +427,7 @@ export function combineSlices<
 
   combinedReducer.withLazyLoadedSlices = () => combinedReducer
 
-  combinedReducer.onInject = (reducerPath: string) => {
+  function onInject(reducerPath: string) {
     const action = sliceInjected(reducerPath)
     dispatches.forEach((dispatch) => dispatch(action))
   }
@@ -462,7 +462,7 @@ export function combineSlices<
     reducer = getReducer()
 
     if (dispatchOnInject) {
-      combinedReducer.onInject(reducerPath)
+      onInject(reducerPath)
     }
 
     return combinedReducer
