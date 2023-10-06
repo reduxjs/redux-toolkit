@@ -174,21 +174,35 @@ describe('combineSlices', () => {
     })
   })
   describe('enhancer', () => {
+    const initAction = {
+      type: expect.stringContaining('INIT'),
+    }
     const actionLoggerReducer = (
       state: UnknownAction[] = [],
       action: UnknownAction
     ) => [...state, action]
-    it('allows adding an enhancer to store, which will dispatch automatically when a slice is injected', () => {
-      const rootReducer = combineSlices(stringSlice, {
+
+    const getReducer = () =>
+      combineSlices(stringSlice, {
         actions: actionLoggerReducer,
       })
-      const store = configureStore({
+
+    let rootReducer = getReducer()
+
+    const getStore = () =>
+      configureStore({
         reducer: rootReducer,
         enhancers: (gDE) => gDE().concat(rootReducer.enhancer),
       })
-      const initAction = {
-        type: expect.stringContaining('@@redux/INIT'),
-      }
+
+    let store = getStore()
+
+    afterEach(() => {
+      rootReducer = getReducer()
+      store = getStore()
+    })
+
+    it('allows adding an enhancer to store, which will dispatch automatically when a slice is injected', () => {
       expect(store.getState()).toEqual({
         string: stringSlice.getInitialState(),
         actions: [initAction],
@@ -206,6 +220,19 @@ describe('combineSlices', () => {
             meta: { reducerPath: 'number', instanceId: expect.any(String) },
           },
         ],
+      })
+    })
+    it('allows disabling the dispatch per inject', () => {
+      expect(store.getState()).toEqual({
+        string: stringSlice.getInitialState(),
+        actions: [initAction],
+      })
+
+      rootReducer.inject(numberSlice, { dispatchOnInject: false })
+
+      expect(store.getState()).toEqual({
+        string: stringSlice.getInitialState(),
+        actions: [initAction],
       })
     })
   })
