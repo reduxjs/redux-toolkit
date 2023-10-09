@@ -427,6 +427,23 @@ const usersSlice = createSlice({
 
 Like the `builder` in `createReducer`, this `builder` also accepts `addMatcher` (see [typing `builder.matcher`](#typing-builderaddmatcher)) and `addDefaultCase`.
 
+### Payload with All Optional Fields
+
+If you try to supply a payload type where all fields are optional, like `PayloadAction<Partial<User>>` or `PayloadAction<{value?: string}>`, TS may not be able to infer the action type correctly.
+
+You can work around this by [using a custom `AtLeastOne` utility type](https://github.com/reduxjs/redux-toolkit/issues/1423#issuecomment-902680573) to help ensure that at least one of the fields must be passed in:
+
+```ts no-transpile
+type AtLeastOne<T extends Record<string, any>> = keyof T extends infer K
+  ? K extends string
+    ? Pick<T, K & keyof T> & Partial<T>
+    : never
+  : never
+
+// Use this type instead of `Partial<MyPayloadType>`
+type AtLeastOneUserField = AtLeastOne<User>
+```
+
 ### Wrapping `createSlice`
 
 If you need to reuse reducer logic, it is common to write ["higher-order reducers"](https://redux.js.org/recipes/structuring-reducers/reusing-reducer-logic#customizing-behavior-with-higher-order-reducers) that wrap a reducer function with additional common behavior. This can be done with `createSlice` as well, but due to the complexity of the types for `createSlice`, you have to use the `SliceCaseReducers` and `ValidateSliceCaseReducers` types in a very specific way.

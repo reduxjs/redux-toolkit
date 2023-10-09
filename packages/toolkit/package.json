@@ -1,6 +1,6 @@
 {
   "name": "@reduxjs/toolkit",
-  "version": "1.9.3",
+  "version": "1.9.7",
   "description": "The official, opinionated, batteries-included toolset for efficient Redux development",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
@@ -28,6 +28,7 @@
   "types": "dist/index.d.ts",
   "devDependencies": {
     "@microsoft/api-extractor": "^7.13.2",
+    "@phryneas/ts-version": "^1.0.2",
     "@size-limit/preset-small-lib": "^4.11.0",
     "@testing-library/react": "^13.3.0",
     "@testing-library/user-event": "^13.1.5",
@@ -97,10 +98,10 @@
     "query"
   ],
   "dependencies": {
-    "immer": "^9.0.16",
-    "redux": "^4.2.0",
+    "immer": "^9.0.21",
+    "redux": "^4.2.1",
     "redux-thunk": "^2.4.2",
-    "reselect": "^4.1.7"
+    "reselect": "^4.1.8"
   },
   "peerDependencies": {
     "react": "^16.9.0 || ^17.0.0 || ^18",

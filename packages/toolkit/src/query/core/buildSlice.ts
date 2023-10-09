@@ -29,10 +29,12 @@ import { calculateProvidedByThunk } from './buildThunks'
 import type {
   AssertTagTypes,
   EndpointDefinitions,
+  FullTagDescription,
   QueryDefinition,
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
-import { applyPatches } from 'immer'
+import { isDraft } from 'immer'
+import { applyPatches, original } from 'immer'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import {
   isDocumentVisible,
@@ -124,17 +126,22 @@ export function buildSlice({
         },
         prepare: prepareAutoBatched<QuerySubstateIdentifier>(),
       },
-      queryResultPatched(
-        draft,
-        {
-          payload: { queryCacheKey, patches },
-        }: PayloadAction<
+      queryResultPatched: {
+        reducer(
+          draft,
+          {
+            payload: { queryCacheKey, patches },
+          }: PayloadAction<
+            QuerySubstateIdentifier & { patches: readonly Patch[] }
+          >
+        ) {
+          updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
+            substate.data = applyPatches(substate.data as any, patches.concat())
+          })
+        },
+        prepare: prepareAutoBatched<
           QuerySubstateIdentifier & { patches: readonly Patch[] }
-        >
-      ) {
-        updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
-          substate.data = applyPatches(substate.data as any, patches.concat())
-        })
+        >(),
       },
     },
     extraReducers(builder) {
@@ -208,7 +215,12 @@ export function buildSlice({
                 // Assign or safely update the cache data.
                 substate.data =
                   definitions[meta.arg.endpointName].structuralSharing ?? true
-                    ? copyWithStructuralSharing(substate.data, payload)
+                    ? copyWithStructuralSharing(
+                        isDraft(substate.data)
+                          ? original(substate.data)
+                          : substate.data,
+                        payload
+                      )
                     : payload
               }
 
@@ -319,7 +331,42 @@ export function buildSlice({
   const invalidationSlice = createSlice({
     name: `${reducerPath}/invalidation`,
     initialState: initialState as InvalidationState<string>,
-    reducers: {},
+    reducers: {
+      updateProvidedBy: {
+        reducer(
+          draft,
+          action: PayloadAction<{
+            queryCacheKey: QueryCacheKey
+            providedTags: readonly FullTagDescription<string>[]
+          }>
+        ) {
+          const { queryCacheKey, providedTags } = action.payload
+
+          for (const tagTypeSubscriptions of Object.values(draft)) {
+            for (const idSubscriptions of Object.values(tagTypeSubscriptions)) {
+              const foundAt = idSubscriptions.indexOf(queryCacheKey)
+              if (foundAt !== -1) {
+                idSubscriptions.splice(foundAt, 1)
+              }
+            }
+          }
+
+          for (const { type, id } of providedTags) {
+            const subscribedQueries = ((draft[type] ??= {})[
+              id || '__internal_without_id'
+            ] ??= [])
+            const alreadySubscribed = subscribedQueries.includes(queryCacheKey)
+            if (!alreadySubscribed) {
+              subscribedQueries.push(queryCacheKey)
+            }
+          }
+        },
+        prepare: prepareAutoBatched<{
+          queryCacheKey: QueryCacheKey
+          providedTags: readonly FullTagDescription<string>[]
+        }>(),
+      },
+    },
     extraReducers(builder) {
       builder
         .addCase(
@@ -365,27 +412,13 @@ export function buildSlice({
             )
             const { queryCacheKey } = action.meta.arg
 
-            for (const tagTypeSubscriptions of Object.values(draft)) {
-              for (const idSubscriptions of Object.values(
-                tagTypeSubscriptions
-              )) {
-                const foundAt = idSubscriptions.indexOf(queryCacheKey)
-                if (foundAt !== -1) {
-                  idSubscriptions.splice(foundAt, 1)
-                }
-              }
-            }
-
-            for (const { type, id } of providedTags) {
-              const subscribedQueries = ((draft[type] ??= {})[
-                id || '__internal_without_id'
-              ] ??= [])
-              const alreadySubscribed =
-                subscribedQueries.includes(queryCacheKey)
-              if (!alreadySubscribed) {
-                subscribedQueries.push(queryCacheKey)
-              }
-            }
+            invalidationSlice.caseReducers.updateProvidedBy(
+              draft,
+              invalidationSlice.actions.updateProvidedBy({
+                queryCacheKey,
+                providedTags,
+              })
+            )
           }
         )
     },
@@ -427,8 +460,11 @@ export function buildSlice({
     name: `${reducerPath}/internalSubscriptions`,
     initialState: initialState as SubscriptionState,
     reducers: {
-      subscriptionsUpdated(state, action: PayloadAction<Patch[]>) {
-        return applyPatches(state, action.payload)
+      subscriptionsUpdated: {
+        reducer(state, action: PayloadAction<Patch[]>) {
+          return applyPatches(state, action.payload)
+        },
+        prepare: prepareAutoBatched<Patch[]>(),
       },
     },
   })
@@ -488,6 +524,7 @@ export function buildSlice({
     ...subscriptionSlice.actions,
     ...internalSubscriptionsSlice.actions,
     ...mutationSlice.actions,
+    ...invalidationSlice.actions,
     /** @deprecated has been renamed to `removeMutationResult` */
     unsubscribeMutationResult: mutationSlice.actions.removeMutationResult,
     resetApiState,

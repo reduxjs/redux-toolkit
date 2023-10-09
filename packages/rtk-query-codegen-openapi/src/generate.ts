@@ -1,6 +1,4 @@
-import ts from 'typescript';
 import * as path from 'path';
-import { camelCase } from 'lodash';
 
 import ApiGenerator, {
   getOperationName as _getOperationName,
@@ -8,22 +6,22 @@ import ApiGenerator, {
   isReference,
   supportDeepObjects,
 } from 'oazapfts/lib/codegen/generate';
-
-import {
-  createQuestionToken,
-  keywordType,
-  createPropertyAssignment,
-  isValidIdentifier,
-} from 'oazapfts/lib/codegen/tscodegen';
-
-import type { OpenAPIV3 } from 'openapi-types';
-import { generateReactHooks } from './generators/react-hooks';
 import type { EndpointMatcher, EndpointOverrides, GenerationOptions, OperationDefinition, TextMatcher } from './types';
-import { capitalize, getOperationDefinitions, getV3Doc, isQuery as testIsQuery, removeUndefined } from './utils';
-import { generateTagTypes } from './codegen';
+import { capitalize, getOperationDefinitions, getV3Doc, removeUndefined, isQuery as testIsQuery } from './utils';
+import {
+  createPropertyAssignment,
+  createQuestionToken,
+  isValidIdentifier,
+  keywordType,
+} from 'oazapfts/lib/codegen/tscodegen';
+import { generateCreateApiCall, generateEndpointDefinition, generateImportNode, generateTagTypes } from './codegen';
+
 import type { ObjectPropertyDefinitions } from './codegen';
-import { generateCreateApiCall, generateEndpointDefinition, generateImportNode } from './codegen';
+import type { OpenAPIV3 } from 'openapi-types';
+import { camelCase } from 'lodash';
 import { factory } from './utils/factory';
+import { generateReactHooks } from './generators/react-hooks';
+import ts from 'typescript';
 
 const generatedApiName = 'injectedRtkApi';
 
@@ -95,12 +93,14 @@ export async function generateApi(
     endpointOverrides,
     unionUndefined,
     flattenArg = false,
+    useEnumType = false,
   }: GenerationOptions
 ) {
   const v3Doc = await getV3Doc(spec);
 
   const apiGen = new ApiGenerator(v3Doc, {
     unionUndefined,
+    useEnumType,
   });
 
   const operationDefinitions = getOperationDefinitions(v3Doc).filter(operationMatches(filterEndpoints));
@@ -134,7 +134,7 @@ export async function generateApi(
   }
   apiFile = apiFile.replace(/\.[jt]sx?$/, '');
 
-  const sourceCode = printer.printNode(
+  return printer.printNode(
     ts.EmitHint.Unspecified,
     factory.createSourceFile(
       [
@@ -164,7 +164,8 @@ export async function generateApi(
           undefined
         ),
         ...Object.values(interfaces),
-        ...apiGen['aliases'],
+        ...apiGen.aliases,
+        ...apiGen.enumAliases,
         ...(hooks
           ? [
               generateReactHooks({
@@ -181,8 +182,6 @@ export async function generateApi(
     ),
     resultFile
   );
-
-  return sourceCode;
 
   function extractAllTagTypes({ operationDefinitions }: { operationDefinitions: OperationDefinition[] }) {
     let allTagTypes = new Set<string>();
@@ -260,12 +259,27 @@ export async function generateApi(
 
     const allNames = parameters.map((p) => p.name);
     const queryArg: QueryArgDefinitions = {};
+    function generateName(name: string, potentialPrefix: string) {
+      const isPureSnakeCase = /^[a-zA-Z][a-zA-Z0-9_]*$/.test(name);
+      // prefix with `query`, `path` or `body` if there are multiple paramters with the same name
+      const hasNamingConflict = allNames.filter((n) => n === name).length > 1;
+      if (hasNamingConflict) {
+        name = `${potentialPrefix}_${name}`;
+      }
+      // convert to camelCase if the name is pure snake_case and there are no naming conflicts
+      const camelCaseName = camelCase(name);
+      if (isPureSnakeCase && !allNames.includes(camelCaseName)) {
+        name = camelCaseName;
+      }
+      // if there are still any naming conflicts, prepend with underscore
+      while (name in queryArg) {
+        name = '_' + name;
+      }
+      return name;
+    }
+
     for (const param of parameters) {
-      const isPureSnakeCase = /^[a-zA-Z][a-zA-Z0-9_]*$/.test(param.name);
-      const camelCaseName = camelCase(param.name);
-
-      const name = isPureSnakeCase && !allNames.includes(camelCaseName) ? camelCaseName : param.name;
-
+      const name = generateName(param.name, param.in);
       queryArg[name] = {
         origin: 'param',
         name,
@@ -281,11 +295,7 @@ export async function generateApi(
       const schema = apiGen.getSchemaFromContent(body.content);
       const type = apiGen.getTypeFromSchema(schema);
       const schemaName = camelCase((type as any).name || getReferenceName(schema) || 'body');
-      let name = schemaName in queryArg ? 'body' : schemaName;
-
-      while (name in queryArg) {
-        name = '_' + name;
-      }
+      const name = generateName(schemaName in queryArg ? 'body' : schemaName, 'body');
 
       queryArg[name] = {
         origin: 'body',
@@ -452,7 +462,7 @@ function generatePathExpression(
 ) {
   const expressions: Array<[string, string]> = [];
 
-  const head = path.replace(/\{(.*?)\}(.*?)(?=\{|$)/g, (_, expression, literal) => {
+  const head = path.replace(/\{(.*?)}(.*?)(?=\{|$)/g, (_, expression, literal) => {
     const param = pathParameters.find((p) => p.originalName === expression);
     if (!param) {
       throw new Error(`path parameter ${expression} does not seem to be defined in '${path}'!`);
@@ -481,6 +491,7 @@ type QueryArgDefinition = {
   originalName: string;
   type: ts.TypeNode;
   required?: boolean;
+  param?: OpenAPIV3.ParameterObject;
 } & (
   | {
       origin: 'param';

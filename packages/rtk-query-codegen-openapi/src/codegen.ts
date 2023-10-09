@@ -1,5 +1,5 @@
-import ts from 'typescript';
 import { factory } from './utils/factory';
+import ts from 'typescript';
 
 const defaultEndpointBuilder = factory.createIdentifier('build');
 

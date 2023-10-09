@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
-import program from 'commander';
 import { dirname, resolve } from 'path';
 import { generateEndpoints, parseConfig } from '../';
+
+import program from 'commander';
 
 let ts = false;
 try {

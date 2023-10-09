@@ -9,6 +9,7 @@ es
 
 .yalc
 yalc.lock
+yalc.sig
 
 .idea/
 .vscode/
@@ -29,7 +30,3 @@ typesversions
 !.yarn/versions
 .pnp.*
 *.tgz
-
-.yalc
-yalc.lock
-yalc.sig

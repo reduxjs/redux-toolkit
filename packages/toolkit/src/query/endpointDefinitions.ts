@@ -16,8 +16,11 @@ import type {
   MaybePromise,
   OmitFromUnion,
   CastAny,
+  NonUndefined,
+  UnwrapPromise,
 } from './tsHelpers'
 import type { NEVER } from './fakeBaseQuery'
+import type { Api } from '@reduxjs/toolkit/query'
 
 const resultType = /* @__PURE__ */ Symbol()
 const baseQuery = /* @__PURE__ */ Symbol()
@@ -399,7 +402,7 @@ export interface QueryExtraOptions<
    * need to use this with the `serializeQueryArgs` or `forceRefetch` options to keep
    * an existing cache entry so that it can be updated.
    *
-   * Since this is wrapped with Immer, you , you may either mutate the `currentCacheValue` directly,
+   * Since this is wrapped with Immer, you may either mutate the `currentCacheValue` directly,
    * or return a new value, but _not_ both at once.
    *
    * Will only be called if the existing `currentCacheData` is _not_ `undefined` - on first response,
@@ -775,9 +778,60 @@ export type ReducerPathFrom<
 export type TagTypesFrom<D extends EndpointDefinition<any, any, any, any>> =
   D extends EndpointDefinition<any, any, infer RP, any> ? RP : unknown
 
-export type ReplaceTagTypes<
+export type TagTypesFromApi<T> = T extends Api<any, any, any, infer TagTypes>
+  ? TagTypes
+  : never
+
+export type DefinitionsFromApi<T> = T extends Api<
+  any,
+  infer Definitions,
+  any,
+  any
+>
+  ? Definitions
+  : never
+
+export type TransformedResponse<
+  NewDefinitions extends EndpointDefinitions,
+  K,
+  ResultType
+> = K extends keyof NewDefinitions
+  ? NewDefinitions[K]['transformResponse'] extends undefined
+    ? ResultType
+    : UnwrapPromise<
+        ReturnType<NonUndefined<NewDefinitions[K]['transformResponse']>>
+      >
+  : ResultType
+
+export type OverrideResultType<Definition, NewResultType> =
+  Definition extends QueryDefinition<
+    infer QueryArg,
+    infer BaseQuery,
+    infer TagTypes,
+    any,
+    infer ReducerPath
+  >
+    ? QueryDefinition<QueryArg, BaseQuery, TagTypes, NewResultType, ReducerPath>
+    : Definition extends MutationDefinition<
+        infer QueryArg,
+        infer BaseQuery,
+        infer TagTypes,
+        any,
+        infer ReducerPath
+      >
+    ? MutationDefinition<
+        QueryArg,
+        BaseQuery,
+        TagTypes,
+        NewResultType,
+        ReducerPath
+      >
+    : never
+
+export type UpdateDefinitions<
   Definitions extends EndpointDefinitions,
-  NewTagTypes extends string
+  NewTagTypes extends string,
+  NewDefinitions extends EndpointDefinitions
 > = {
   [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
     infer QueryArg,
@@ -786,7 +840,13 @@ export type ReplaceTagTypes<
     infer ResultType,
     infer ReducerPath
   >
-    ? QueryDefinition<QueryArg, BaseQuery, NewTagTypes, ResultType, ReducerPath>
+    ? QueryDefinition<
+        QueryArg,
+        BaseQuery,
+        NewTagTypes,
+        TransformedResponse<NewDefinitions, K, ResultType>,
+        ReducerPath
+      >
     : Definitions[K] extends MutationDefinition<
         infer QueryArg,
         infer BaseQuery,
@@ -798,7 +858,7 @@ export type ReplaceTagTypes<
         QueryArg,
         BaseQuery,
         NewTagTypes,
-        ResultType,
+        TransformedResponse<NewDefinitions, K, ResultType>,
         ReducerPath
       >
     : never

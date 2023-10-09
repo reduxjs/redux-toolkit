@@ -46,7 +46,7 @@ export interface ActionReducerMapBuilder<State> {
    * If multiple matcher reducers match, all of them will be executed in the order
    * they were defined in - even if a case reducer already matched.
    * All calls to `builder.addMatcher` must come after any calls to `builder.addCase` and before any calls to `builder.addDefaultCase`.
-   * @param matcher - A matcher function. In TypeScript, this should be a [type predicate](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates)
+   * @param matcher - A matcher function. In TypeScript, this should be a [type predicate](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)
    *   function
    * @param reducer - The actual case reducer function.
    *
@@ -140,7 +140,7 @@ export function executeReducerBuilderCallback<S>(
     ) {
       if (process.env.NODE_ENV !== 'production') {
         /*
-         to keep the definition by the user in line with actual behavior, 
+         to keep the definition by the user in line with actual behavior,
          we enforce `addCase` to always be called before calling `addMatcher`
          as matching cases take precedence over matchers
          */
@@ -159,9 +159,14 @@ export function executeReducerBuilderCallback<S>(
         typeof typeOrActionCreator === 'string'
           ? typeOrActionCreator
           : typeOrActionCreator.type
+      if (!type) {
+        throw new Error(
+          '`builder.addCase` cannot be called with an empty action type'
+        )
+      }
       if (type in actionsMap) {
         throw new Error(
-          'addCase cannot be called with two reducers for the same action type'
+          '`builder.addCase` cannot be called with two reducers for the same action type'
         )
       }
       actionsMap[type] = reducer

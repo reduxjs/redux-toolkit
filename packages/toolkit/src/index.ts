@@ -39,6 +39,9 @@ export {
   // js
   createAction,
   getType,
+  isAction,
+  isActionCreator,
+  isFSA as isFluxStandardAction,
 } from './createAction'
 export type {
   // types
@@ -76,6 +79,8 @@ export type {
   CaseReducerWithPrepare,
   SliceActionCreator,
 } from './createSlice'
+export type { ActionCreatorInvariantMiddlewareOptions } from './actionCreatorInvariantMiddleware'
+export { createActionCreatorInvariantMiddleware } from './actionCreatorInvariantMiddleware'
 export {
   // js
   createImmutableStateInvariantMiddleware,
@@ -103,7 +108,7 @@ export type {
   // types
   ActionReducerMapBuilder,
 } from './mapBuilders'
-export { MiddlewareArray } from './utils'
+export { MiddlewareArray, EnhancerArray } from './utils'
 
 export { createEntityAdapter } from './entities/create_adapter'
 export type {
@@ -191,3 +196,5 @@ export {
   autoBatchEnhancer,
 } from './autoBatchEnhancer'
 export type { AutoBatchOptions } from './autoBatchEnhancer'
+
+export type { ExtractDispatchExtensions as TSHelpersExtractDispatchExtensions } from './tsHelpers'

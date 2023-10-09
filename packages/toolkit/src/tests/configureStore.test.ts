@@ -75,9 +75,10 @@ describe('configureStore', () => {
         Object
       )
       expect(redux.applyMiddleware).toHaveBeenCalledWith(
-        expect.any(Function), // thunk
         expect.any(Function), // immutableCheck
-        expect.any(Function) // serializableCheck
+        expect.any(Function), // thunk
+        expect.any(Function), // serializableCheck
+        expect.any(Function) // actionCreatorCheck
       )
       expect(devtools.composeWithDevTools).toHaveBeenCalled() // @remap-prod-remove-line-line
       expect(redux.createStore).toHaveBeenCalledWith(
@@ -231,9 +232,7 @@ describe('configureStore', () => {
 
       const store = configureStore({
         reducer,
-        enhancers: (defaultEnhancers) => {
-          return [...defaultEnhancers, dummyEnhancer]
-        },
+        enhancers: (defaultEnhancers) => defaultEnhancers.concat(dummyEnhancer),
       })
 
       expect(dummyEnhancerCalled).toBe(true)

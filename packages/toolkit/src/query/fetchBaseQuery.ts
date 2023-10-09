@@ -197,6 +197,7 @@ export function fetchBaseQuery({
   jsonContentType = 'application/json',
   jsonReplacer,
   timeout: defaultTimeout,
+  responseHandler: globalResponseHandler,
   validateStatus: globalValidateStatus,
   ...baseFetchOptions
 }: FetchBaseQueryArgs = {}): BaseQueryFn<
@@ -218,7 +219,7 @@ export function fetchBaseQuery({
       url,
       headers = new Headers(baseFetchOptions.headers),
       params = undefined,
-      responseHandler = 'json' as const,
+      responseHandler = globalResponseHandler ?? ('json' as const),
       validateStatus = globalValidateStatus ?? defaultValidateStatus,
       timeout = defaultTimeout,
       ...rest
@@ -265,7 +266,7 @@ export function fetchBaseQuery({
     url = joinUrls(baseUrl, url)
 
     const request = new Request(url, config)
-    const requestClone = request.clone()
+    const requestClone = new Request(url, config)
     meta = { request: requestClone }
 
     let response,
