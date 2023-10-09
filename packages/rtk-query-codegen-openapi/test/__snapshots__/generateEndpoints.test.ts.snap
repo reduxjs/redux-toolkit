@@ -481,15 +481,17 @@ export type SetExampleApiResponse = /** status 200 OK */ ExampleSchemaRead;
 export type SetExampleApiArg = {
   exampleSchema: ExampleSchemaWrite;
 };
-export interface ExampleSchema {
+export type ExampleSchema = {
   always_present: string;
-}
-export interface ExampleSchemaRead extends ExampleSchema {
+};
+export type ExampleSchemaRead = {
+  always_present: string;
   read_only_prop: string;
-}
-export interface ExampleSchemaWrite extends ExampleSchema {
+};
+export type ExampleSchemaWrite = {
+  always_present: string;
   write_only_prop: string;
-}
+};
 
 `;
 
