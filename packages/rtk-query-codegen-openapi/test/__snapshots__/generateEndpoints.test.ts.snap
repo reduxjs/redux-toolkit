@@ -738,18 +738,14 @@ export type GetApiV1AnimalsApiResponse = /** status 200 Success */ (Dog | Cat)[]
 export type GetApiV1AnimalsApiArg = {
   type?: AnimalType;
 };
-export type AnimalType = 'All' | 'Cats' | 'Dogs';
-export type Animal = {
-  type: AnimalType;
-  id?: number;
-  name?: string | null;
-};
-export type Dog = Animal & {
-  dogUniqueProp?: string | null;
-};
 export type Cat = Animal & {
   catUniqueProp?: string | null;
 };
+export type Animal = Dog | Cat;
+export type Dog = Animal & {
+  dogUniqueProp?: string | null;
+};
+export type AnimalType = 'All' | 'Cats' | 'Dogs';
 export const { useGetApiV1AnimalsQuery } = injectedRtkApi;
 
 `;

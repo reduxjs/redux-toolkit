@@ -63,8 +63,7 @@
     "docs/react-dom": "npm:17.0.2",
     "docs/@types/react-dom": "npm:17.0.11",
     "docs/@types/react": "npm:17.0.11",
-    "type-fest": "2.19.0",
-    "oazapfts": "4.8.0"
+    "type-fest": "2.19.0"
   },
   "scripts": {
     "build": "yarn build:packages",
