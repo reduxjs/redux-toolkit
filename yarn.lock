@@ -20493,9 +20493,9 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"oazapfts@npm:4.8.0":
-  version: 4.8.0
-  resolution: "oazapfts@npm:4.8.0"
+"oazapfts@npm:^4.8.0":
+  version: 4.10.0
+  resolution: "oazapfts@npm:4.10.0"
   dependencies:
     "@apidevtools/swagger-parser": ^10.1.0
     lodash: ^4.17.21
@@ -20504,7 +20504,7 @@ fsevents@^1.2.7:
     typescript: ^5.2.2
   bin:
     oazapfts: lib/codegen/cli.js
-  checksum: 0f3850767a1c18c02a2c002981f3d89304643ecd425d4723f0d73efebddaa3a13d9e7436a070cdd211b24a5fecd270e03686de91d316b3361de64413d2c2a7ee
+  checksum: dbed3d73ba2c3a758b3e5a9ffb62486c628f020232ad513bceb0562a437a45350cc5262689191c664423980421d9f2690b9574a56f75bdaf1375772d179b1210
   languageName: node
   linkType: hard
 
