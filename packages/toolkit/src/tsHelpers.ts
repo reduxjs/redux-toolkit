@@ -1,4 +1,5 @@
 import type { Middleware, StoreEnhancer } from 'redux'
+import type { Draft, Patch, applyPatches } from 'immer'
 import type { Tuple } from './utils'
 
 export function safeAssign<T extends object>(
@@ -7,6 +8,57 @@ export function safeAssign<T extends object>(
 ) {
   Object.assign(target, ...args)
 }
+
+export interface ImmutableHelpers {
+  /**
+   * Function that receives a base object, and a recipe which is called with a draft that the recipe is allowed to mutate.
+   * The recipe can return a new state which will replace the existing state, or it can not return (in which case the existing draft is used)
+   * Returns an immutably modified version of the input object.
+   */
+  createNextState: <Base>(
+    base: Base,
+    recipe: (draft: Draft<Base>) => void | Base | Draft<Base>
+  ) => Base
+  /**
+   * Function that receives a base object, and a recipe which is called with a draft that the recipe is allowed to mutate.
+   * The recipe can return a new state which will replace the existing state, or it can not return (in which case the existing draft is used)
+   * Returns a tuple of an immutably modified version of the input object, an array of patches describing the changes made, and an array of inverse patches.
+   */
+  createWithPatches: <Base>(
+    base: Base,
+    recipe: (draft: Draft<Base>) => void | Base | Draft<Base>
+  ) => readonly [Base, Patch[], Patch[]]
+  /**
+   * Receives a base object and an array of patches describing changes to apply.
+   * Returns an immutably modified version of the base object with changes applied.
+   */
+  applyPatches: typeof applyPatches
+  /**
+   * Indicates whether the value passed is a draft, meaning it's safe to mutate.
+   */
+  isDraft(value: any): boolean
+  /**
+   * Indicates whether the value passed is possible to turn into a mutable draft.
+   */
+  isDraftable(value: any): boolean
+  /**
+   * Receives a draft and returns its base object.
+   */
+  original<T>(value: T): T | undefined
+  /**
+   * Receives a draft and returns an object with any changes to date immutably applied.
+   */
+  current<T>(value: T): T
+  /**
+   * Receives an object and freezes it, causing runtime errors if mutation is attempted after.
+   */
+  freeze<T>(obj: T, deep?: boolean): T
+}
+
+/**
+ * Define a config object indicating utilities for RTK packages to use for immutable operations.
+ */
+export const defineImmutableHelpers = (helpers: ImmutableHelpers) => helpers
 
 /**
  * return True if T is `any`, otherwise return False

@@ -1,11 +1,15 @@
 import type { InternalHandlerBuilder } from './types'
 import type { SubscriptionState } from '../apiState'
-import { produceWithPatches } from 'immer'
 import type { Action } from '@reduxjs/toolkit'
 
 export const buildBatchedActionsHandler: InternalHandlerBuilder<
   [actionShouldContinue: boolean, subscriptionExists: boolean]
-> = ({ api, queryThunk, internalState }) => {
+> = ({
+  api,
+  queryThunk,
+  internalState,
+  immutableHelpers: { createWithPatches },
+}) => {
   const subscriptionsPrefix = `${api.reducerPath}/subscriptions`
 
   let previousSubscriptions: SubscriptionState =
@@ -108,7 +112,7 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
             JSON.stringify(internalState.currentSubscriptions)
           )
           // Figure out a smaller diff between original and current
-          const [, patches] = produceWithPatches(
+          const [, patches] = createWithPatches(
             previousSubscriptions,
             () => newSubscriptions
           )

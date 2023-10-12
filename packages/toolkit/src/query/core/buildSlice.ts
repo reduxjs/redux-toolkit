@@ -1,13 +1,16 @@
-import type { PayloadAction, UnknownAction } from '@reduxjs/toolkit'
+import type {
+  PayloadAction,
+  BuildCreateSliceConfiguration,
+  ImmutableHelpers,
+} from '@reduxjs/toolkit'
 import {
   combineReducers,
   createAction,
-  createSlice,
   isAnyOf,
   isFulfilled,
   isRejectedWithValue,
-  createNextState,
   prepareAutoBatched,
+  buildCreateSlice,
 } from './rtkImports'
 import type {
   QuerySubstateIdentifier,
@@ -32,8 +35,6 @@ import type {
   QueryDefinition,
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
-import { isDraft } from 'immer'
-import { applyPatches, original } from 'immer'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import {
   isDocumentVisible,
@@ -100,6 +101,8 @@ export function buildSlice({
   },
   assertTagType,
   config,
+  immutableHelpers,
+  immutableHelpers: { applyPatches, createNextState, isDraft, original },
 }: {
   reducerPath: string
   queryThunk: QueryThunk
@@ -110,7 +113,11 @@ export function buildSlice({
     ConfigState<string>,
     'online' | 'focused' | 'middlewareRegistered'
   >
+  immutableHelpers: Pick<ImmutableHelpers, 'applyPatches' | 'original'> &
+    BuildCreateSliceConfiguration
 }) {
+  const createSlice = buildCreateSlice(immutableHelpers)
+
   const resetApiState = createAction(`${reducerPath}/resetApiState`)
   const querySlice = createSlice({
     name: `${reducerPath}/queries`,

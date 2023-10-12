@@ -7,10 +7,15 @@ import type {
   _ActionCreatorWithPreparedPayload,
 } from './createAction'
 import { createAction } from './createAction'
-import type { CaseReducer, ReducerWithInitialState } from './createReducer'
-import { createReducer } from './createReducer'
+import type {
+  BuildCreateReducerConfiguration,
+  CaseReducer,
+  ReducerWithInitialState,
+} from './createReducer'
+import { buildCreateReducer } from './createReducer'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
+import { immutableHelpers } from './immer'
 import type { Id, Tail } from './tsHelpers'
 import type { InjectConfig } from './combineSlices'
 import type {
@@ -538,188 +543,222 @@ function getType(slice: string, actionKey: string): string {
   return `${slice}/${actionKey}`
 }
 
-/**
- * A function that accepts an initial state, an object full of reducer
- * functions, and a "slice name", and automatically generates
- * action creators and action types that correspond to the
- * reducers and state.
- *
- * @public
- */
-export function createSlice<
-  State,
-  CaseReducers extends SliceCaseReducers<State>,
-  Name extends string,
-  Selectors extends SliceSelectors<State>,
-  ReducerPath extends string = Name
->(
-  options: CreateSliceOptions<State, CaseReducers, Name, ReducerPath, Selectors>
-): Slice<State, CaseReducers, Name, ReducerPath, Selectors> {
-  const { name, reducerPath = name as unknown as ReducerPath } = options
-  if (!name) {
-    throw new Error('`name` is a required option for createSlice')
-  }
+export type CreateSlice = {
+  /**
+   * A function that accepts an initial state, an object full of reducer
+   * functions, and a "slice name", and automatically generates
+   * action creators and action types that correspond to the
+   * reducers and state.
+   *
+   * The `reducer` argument is passed to `createReducer()`.
+   *
+   * @public
+   */
+  <
+    State,
+    CaseReducers extends SliceCaseReducers<State>,
+    Name extends string,
+    Selectors extends SliceSelectors<State>,
+    ReducerPath extends string = Name
+  >(
+    options: CreateSliceOptions<
+      State,
+      CaseReducers,
+      Name,
+      ReducerPath,
+      Selectors
+    >
+  ): Slice<State, CaseReducers, Name, ReducerPath, Selectors>
+}
 
-  if (
-    typeof process !== 'undefined' &&
-    process.env.NODE_ENV === 'development'
-  ) {
-    if (options.initialState === undefined) {
-      console.error(
-        'You must provide an `initialState` value that is not `undefined`. You may have misspelled `initialState`'
-      )
+export interface BuildCreateSliceConfiguration
+  extends BuildCreateReducerConfiguration {}
+
+export function buildCreateSlice(
+  configuration: BuildCreateSliceConfiguration
+): CreateSlice {
+  const createReducer = buildCreateReducer(configuration)
+
+  return function createSlice<
+    State,
+    CaseReducers extends SliceCaseReducers<State>,
+    Name extends string,
+    Selectors extends SliceSelectors<State>,
+    ReducerPath extends string = Name
+  >(
+    options: CreateSliceOptions<
+      State,
+      CaseReducers,
+      Name,
+      ReducerPath,
+      Selectors
+    >
+  ): Slice<State, CaseReducers, Name, ReducerPath, Selectors> {
+    const { name, reducerPath = name as unknown as ReducerPath } = options
+    if (!name) {
+      throw new Error('`name` is a required option for createSlice')
     }
-  }
 
-  const reducers =
-    (typeof options.reducers === 'function'
-      ? options.reducers(buildReducerCreators<State>())
-      : options.reducers) || {}
-
-  const reducerNames = Object.keys(reducers)
-
-  const context: ReducerHandlingContext<State> = {
-    sliceCaseReducersByName: {},
-    sliceCaseReducersByType: {},
-    actionCreators: {},
-  }
-
-  reducerNames.forEach((reducerName) => {
-    const reducerDefinition = reducers[reducerName]
-    const reducerDetails: ReducerDetails = {
-      reducerName,
-      type: getType(name, reducerName),
-      createNotation: typeof options.reducers === 'function',
-    }
-    if (isAsyncThunkSliceReducerDefinition<State>(reducerDefinition)) {
-      handleThunkCaseReducerDefinition(
-        reducerDetails,
-        reducerDefinition,
-        context
-      )
-    } else {
-      handleNormalReducerDefinition<State>(
-        reducerDetails,
-        reducerDefinition,
-        context
-      )
-    }
-  })
-
-  function buildReducer() {
-    if (process.env.NODE_ENV !== 'production') {
-      if (typeof options.extraReducers === 'object') {
-        throw new Error(
-          "The object notation for `createSlice.extraReducers` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createSlice"
+    if (
+      typeof process !== 'undefined' &&
+      process.env.NODE_ENV === 'development'
+    ) {
+      if (options.initialState === undefined) {
+        console.error(
+          'You must provide an `initialState` value that is not `undefined`. You may have misspelled `initialState`'
         )
       }
     }
-    const [
-      extraReducers = {},
-      actionMatchers = [],
-      defaultCaseReducer = undefined,
-    ] =
-      typeof options.extraReducers === 'function'
-        ? executeReducerBuilderCallback(options.extraReducers)
-        : [options.extraReducers]
+    const reducers =
+      (typeof options.reducers === 'function'
+        ? options.reducers(buildReducerCreators<State>())
+        : options.reducers) || {}
 
-    const finalCaseReducers = {
-      ...extraReducers,
-      ...context.sliceCaseReducersByType,
+    const reducerNames = Object.keys(reducers)
+
+    const context: ReducerHandlingContext<State> = {
+      sliceCaseReducersByName: {},
+      sliceCaseReducersByType: {},
+      actionCreators: {},
     }
 
-    return createReducer(options.initialState, (builder) => {
-      for (let key in finalCaseReducers) {
-        builder.addCase(key, finalCaseReducers[key] as CaseReducer<any>)
+    reducerNames.forEach((reducerName) => {
+      const reducerDefinition = reducers[reducerName]
+      const reducerDetails: ReducerDetails = {
+        reducerName,
+        type: getType(name, reducerName),
+        createNotation: typeof options.reducers === 'function',
       }
-      for (let m of actionMatchers) {
-        builder.addMatcher(m.matcher, m.reducer)
-      }
-      if (defaultCaseReducer) {
-        builder.addDefaultCase(defaultCaseReducer)
+      if (isAsyncThunkSliceReducerDefinition<State>(reducerDefinition)) {
+        handleThunkCaseReducerDefinition(
+          reducerDetails,
+          reducerDefinition,
+          context
+        )
+      } else {
+        handleNormalReducerDefinition<State>(
+          reducerDetails,
+          reducerDefinition,
+          context
+        )
       }
     })
-  }
 
-  const defaultSelectSlice = (
-    rootState: { [K in ReducerPath]: State }
-  ): State => rootState[reducerPath]
-
-  const selectSelf = (state: State) => state
-
-  const injectedSelectorCache = new WeakMap<
-    Slice<State, CaseReducers, Name, ReducerPath, Selectors>,
-    WeakMap<
-      (rootState: any) => State | undefined,
-      Record<string, (rootState: any) => any>
-    >
-  >()
-
-  let _reducer: ReducerWithInitialState<State>
-
-  const slice: Slice<State, CaseReducers, Name, ReducerPath, Selectors> = {
-    name,
-    reducerPath,
-    reducer(state, action) {
-      if (!_reducer) _reducer = buildReducer()
-
-      return _reducer(state, action)
-    },
-    actions: context.actionCreators as any,
-    caseReducers: context.sliceCaseReducersByName as any,
-    getInitialState() {
-      if (!_reducer) _reducer = buildReducer()
-
-      return _reducer.getInitialState()
-    },
-    getSelectors(selectState: (rootState: any) => State = selectSelf) {
-      let selectorCache = injectedSelectorCache.get(this)
-      if (!selectorCache) {
-        selectorCache = new WeakMap()
-        injectedSelectorCache.set(this, selectorCache)
-      }
-      let cached = selectorCache.get(selectState)
-      if (!cached) {
-        cached = {}
-        for (const [name, selector] of Object.entries(
-          options.selectors ?? {}
-        )) {
-          cached[name] = (rootState: any, ...args: any[]) => {
-            let sliceState = selectState(rootState)
-            if (typeof sliceState === 'undefined') {
-              // check if injectInto has been called
-              if (this !== slice) {
-                sliceState = this.getInitialState()
-              } else if (process.env.NODE_ENV !== 'production') {
-                throw new Error(
-                  'selectState returned undefined for an uninjected slice reducer'
-                )
-              }
-            }
-            return selector(sliceState, ...args)
-          }
+    function buildReducer() {
+      if (process.env.NODE_ENV !== 'production') {
+        if (typeof options.extraReducers === 'object') {
+          throw new Error(
+            "The object notation for `createSlice.extraReducers` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createSlice"
+          )
         }
-        selectorCache.set(selectState, cached)
       }
-      return cached as any
-    },
-    get selectors() {
-      return this.getSelectors(defaultSelectSlice)
-    },
-    injectInto(injectable, { reducerPath: pathOpt, ...config } = {}) {
-      const reducerPath = pathOpt ?? this.reducerPath
-      injectable.inject({ reducerPath, reducer: this.reducer }, config)
-      const selectSlice = (state: any) => state[reducerPath]
-      return {
-        ...this,
-        reducerPath,
-        get selectors() {
-          return this.getSelectors(selectSlice)
-        },
-      } as any
-    },
+      const [
+        extraReducers = {},
+        actionMatchers = [],
+        defaultCaseReducer = undefined,
+      ] =
+        typeof options.extraReducers === 'function'
+          ? executeReducerBuilderCallback(options.extraReducers)
+          : [options.extraReducers]
+
+      const finalCaseReducers = {
+        ...extraReducers,
+        ...context.sliceCaseReducersByType,
+      }
+
+      return createReducer(options.initialState, (builder) => {
+        for (let key in finalCaseReducers) {
+          builder.addCase(key, finalCaseReducers[key] as CaseReducer<any>)
+        }
+        for (let m of actionMatchers) {
+          builder.addMatcher(m.matcher, m.reducer)
+        }
+        if (defaultCaseReducer) {
+          builder.addDefaultCase(defaultCaseReducer)
+        }
+      })
+    }
+
+    const defaultSelectSlice = (
+      rootState: { [K in ReducerPath]: State }
+    ): State => rootState[reducerPath]
+
+    const selectSelf = (state: State) => state
+
+    const injectedSelectorCache = new WeakMap<
+      Slice<State, CaseReducers, Name, ReducerPath, Selectors>,
+      WeakMap<
+        (rootState: any) => State | undefined,
+        Record<string, (rootState: any) => any>
+      >
+    >()
+
+    let _reducer: ReducerWithInitialState<State>
+
+    const slice: Slice<State, CaseReducers, Name, ReducerPath, Selectors> = {
+      name,
+      reducerPath,
+      reducer(state, action) {
+        if (!_reducer) _reducer = buildReducer()
+
+        return _reducer(state, action)
+      },
+      actions: context.actionCreators as any,
+      caseReducers: context.sliceCaseReducersByName as any,
+      getInitialState() {
+        if (!_reducer) _reducer = buildReducer()
+
+        return _reducer.getInitialState()
+      },
+      getSelectors(selectState: (rootState: any) => State = selectSelf) {
+        let selectorCache = injectedSelectorCache.get(this)
+        if (!selectorCache) {
+          selectorCache = new WeakMap()
+          injectedSelectorCache.set(this, selectorCache)
+        }
+        let cached = selectorCache.get(selectState)
+        if (!cached) {
+          cached = {}
+          for (const [name, selector] of Object.entries(
+            options.selectors ?? {}
+          )) {
+            cached[name] = (rootState: any, ...args: any[]) => {
+              let sliceState = selectState(rootState)
+              if (typeof sliceState === 'undefined') {
+                // check if injectInto has been called
+                if (this !== slice) {
+                  sliceState = this.getInitialState()
+                } else if (process.env.NODE_ENV !== 'production') {
+                  throw new Error(
+                    'selectState returned undefined for an uninjected slice reducer'
+                  )
+                }
+              }
+              return selector(sliceState, ...args)
+            }
+          }
+          selectorCache.set(selectState, cached)
+        }
+        return cached as any
+      },
+      get selectors() {
+        return this.getSelectors(defaultSelectSlice)
+      },
+      injectInto(injectable, { reducerPath: pathOpt, ...config } = {}) {
+        const reducerPath = pathOpt ?? this.reducerPath
+        injectable.inject({ reducerPath, reducer: this.reducer }, config)
+        const selectSlice = (state: any) => state[reducerPath]
+        return {
+          ...this,
+          reducerPath,
+          get selectors() {
+            return this.getSelectors(selectSlice)
+          },
+        } as any
+      },
+    }
+    return slice
   }
-  return slice
 }
 
 interface ReducerHandlingContext<State> {
@@ -851,3 +890,5 @@ function handleThunkCaseReducerDefinition<State>(
 }
 
 function noop() {}
+
+export const createSlice = buildCreateSlice(immutableHelpers)

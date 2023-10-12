@@ -4,7 +4,6 @@
 
 export {
   createAction,
-  createSlice,
   createSelector,
   createAsyncThunk,
   combineReducers,
@@ -21,4 +20,6 @@ export {
   SHOULD_AUTOBATCH,
   isPlainObject,
   nanoid,
+  buildCreateSlice,
+  immerImmutableHelpers,
 } from '@reduxjs/toolkit'

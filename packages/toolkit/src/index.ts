@@ -24,9 +24,11 @@ export type {
   OutputSelector,
   ParametricSelector,
 } from 'reselect'
+export type { BuildCreateDraftSafeSelectorConfiguration } from './createDraftSafeSelector'
 export {
-  createDraftSafeSelector,
+  buildCreateDraftSafeSelectorCreator,
   createDraftSafeSelectorCreator,
+  createDraftSafeSelector,
 } from './createDraftSafeSelector'
 export type { ThunkAction, ThunkDispatch, ThunkMiddleware } from 'redux-thunk'
 
@@ -61,21 +63,27 @@ export type {
 export {
   // js
   createReducer,
+  buildCreateReducer,
 } from './createReducer'
 export type {
   // types
   Actions,
   CaseReducer,
   CaseReducers,
+  CreateReducer,
+  BuildCreateReducerConfiguration,
 } from './createReducer'
 export {
   // js
   createSlice,
+  buildCreateSlice,
   ReducerType,
 } from './createSlice'
 
 export type {
   // types
+  BuildCreateSliceConfiguration,
+  CreateSlice,
   CreateSliceOptions,
   Slice,
   CaseReducerActions,
@@ -112,7 +120,10 @@ export type {
 } from './mapBuilders'
 export { Tuple } from './utils'
 
-export { createEntityAdapter } from './entities/create_adapter'
+export {
+  buildCreateEntityAdapter,
+  createEntityAdapter,
+} from './entities/create_adapter'
 export type {
   EntityState,
   EntityAdapter,
@@ -206,8 +217,11 @@ export {
 } from './autoBatchEnhancer'
 export type { AutoBatchOptions } from './autoBatchEnhancer'
 
-export { combineSlices } from './combineSlices'
+export type { ImmutableHelpers } from './tsHelpers'
+export { defineImmutableHelpers } from './tsHelpers'
+export { immutableHelpers as immerImmutableHelpers } from './immer'
 
+export { combineSlices } from './combineSlices'
 export type { WithSlice } from './combineSlices'
 
 export type { ExtractDispatchExtensions as TSHelpersExtractDispatchExtensions } from './tsHelpers'

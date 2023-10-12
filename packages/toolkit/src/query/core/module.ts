@@ -9,12 +9,15 @@ import type {
 import { buildThunks } from './buildThunks'
 import type {
   ActionCreatorWithPayload,
+  BuildCreateSliceConfiguration,
   Middleware,
   Reducer,
   ThunkAction,
   ThunkDispatch,
+  ImmutableHelpers,
   UnknownAction,
 } from '@reduxjs/toolkit'
+import { immerImmutableHelpers } from './rtkImports'
 import type {
   EndpointDefinitions,
   QueryArgFrom,
@@ -431,6 +434,18 @@ export type ListenerActions = {
 
 export type InternalActions = SliceActions & ListenerActions
 
+interface CoreModuleOptions {
+  immutableHelpers?: BuildCreateSliceConfiguration &
+    Pick<
+      ImmutableHelpers,
+      | 'createWithPatches'
+      | 'applyPatches'
+      | 'isDraftable'
+      | 'freeze'
+      | 'original'
+    >
+}
+
 /**
  * Creates a module containing the basic redux logic for use with `buildCreateApi`.
  *
@@ -439,7 +454,9 @@ export type InternalActions = SliceActions & ListenerActions
  * const createBaseApi = buildCreateApi(coreModule());
  * ```
  */
-export const coreModule = (): Module<CoreModule> => ({
+export const coreModule = ({
+  immutableHelpers = immerImmutableHelpers,
+}: CoreModuleOptions = {}): Module<CoreModule> => ({
   name: coreModuleName,
   init(
     api,
@@ -499,6 +516,7 @@ export const coreModule = (): Module<CoreModule> => ({
       context,
       api,
       serializeQueryArgs,
+      immutableHelpers,
       assertTagType,
     })
 
@@ -515,6 +533,7 @@ export const coreModule = (): Module<CoreModule> => ({
         keepUnusedDataFor,
         reducerPath,
       },
+      immutableHelpers,
     })
 
     safeAssign(api.util, {
@@ -533,6 +552,7 @@ export const coreModule = (): Module<CoreModule> => ({
       mutationThunk,
       api,
       assertTagType,
+      immutableHelpers,
     })
     safeAssign(api.util, middlewareActions)
 
@@ -546,6 +566,7 @@ export const coreModule = (): Module<CoreModule> => ({
     } = buildSelectors({
       serializeQueryArgs: serializeQueryArgs as any,
       reducerPath,
+      immutableHelpers,
     })
 
     safeAssign(api.util, { selectInvalidatedBy, selectCachedArgsForQuery })

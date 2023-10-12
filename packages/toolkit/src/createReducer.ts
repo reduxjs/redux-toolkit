@@ -1,10 +1,9 @@
 import type { Draft } from 'immer'
-import { produce as createNextState, isDraft, isDraftable } from 'immer'
-import type { Action, Reducer, UnknownAction } from 'redux'
+import type { UnknownAction, Action, Reducer } from 'redux'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { NoInfer, TypeGuard } from './tsHelpers'
-import { freezeDraftable } from './utils'
+import type { ImmutableHelpers, NoInfer, TypeGuard } from './tsHelpers'
+import { immutableHelpers } from './immer'
 
 /**
  * Defines a mapping from action types to corresponding action object shapes.
@@ -73,7 +72,8 @@ export type ReducerWithInitialState<S extends NotFunction<any>> = Reducer<S> & {
   getInitialState: () => S
 }
 
-/**
+export type CreateReducer = {
+  /**
  * A utility function that allows defining a reducer as a mapping from action
  * type to *case reducer* functions that handle these action types. The
  * reducer's initial state is passed as the first argument.
@@ -137,85 +137,105 @@ const reducer = createReducer(
 ```
  * @public
  */
-export function createReducer<S extends NotFunction<any>>(
-  initialState: S | (() => S),
-  mapOrBuilderCallback: (builder: ActionReducerMapBuilder<S>) => void
-): ReducerWithInitialState<S> {
-  if (process.env.NODE_ENV !== 'production') {
-    if (typeof mapOrBuilderCallback === 'object') {
-      throw new Error(
-        "The object notation for `createReducer` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createReducer"
-      )
-    }
-  }
+  <S extends NotFunction<any>>(
+    initialState: S | (() => S),
+    builderCallback: (builder: ActionReducerMapBuilder<S>) => void
+  ): ReducerWithInitialState<S>
+}
 
-  let [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
-    executeReducerBuilderCallback(mapOrBuilderCallback)
+export type BuildCreateReducerConfiguration = Pick<
+  ImmutableHelpers,
+  'createNextState' | 'isDraft' | 'isDraftable' | 'freeze'
+>
 
-  // Ensure the initial state gets frozen either way (if draftable)
-  let getInitialState: () => S
-  if (isStateFunction(initialState)) {
-    getInitialState = () => freezeDraftable(initialState())
-  } else {
-    const frozenInitialState = freezeDraftable(initialState)
-    getInitialState = () => frozenInitialState
-  }
-
-  function reducer(state = getInitialState(), action: any): S {
-    let caseReducers = [
-      actionsMap[action.type],
-      ...finalActionMatchers
-        .filter(({ matcher }) => matcher(action))
-        .map(({ reducer }) => reducer),
-    ]
-    if (caseReducers.filter((cr) => !!cr).length === 0) {
-      caseReducers = [finalDefaultCaseReducer]
+export function buildCreateReducer({
+  createNextState,
+  isDraft,
+  isDraftable,
+  freeze,
+}: BuildCreateReducerConfiguration): CreateReducer {
+  return function createReducer<S extends NotFunction<any>>(
+    initialState: S | (() => S),
+    mapOrBuilderCallback: (builder: ActionReducerMapBuilder<S>) => void
+  ): ReducerWithInitialState<S> {
+    if (process.env.NODE_ENV !== 'production') {
+      if (typeof mapOrBuilderCallback === 'object') {
+        throw new Error(
+          "The object notation for `createReducer` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createReducer"
+        )
+      }
     }
 
-    return caseReducers.reduce((previousState, caseReducer): S => {
-      if (caseReducer) {
-        if (isDraft(previousState)) {
-          // If it's already a draft, we must already be inside a `createNextState` call,
-          // likely because this is being wrapped in `createReducer`, `createSlice`, or nested
-          // inside an existing draft. It's safe to just pass the draft to the mutator.
-          const draft = previousState as Draft<S> // We can assume this is already a draft
-          const result = caseReducer(draft, action)
+    let [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
+      executeReducerBuilderCallback(mapOrBuilderCallback)
 
-          if (result === undefined) {
-            return previousState
-          }
+    // Ensure the initial state gets frozen either way (if draftable)
+    let getInitialState: () => S
+    if (isStateFunction(initialState)) {
+      getInitialState = () => freeze(initialState(), true)
+    } else {
+      const frozenInitialState = freeze(initialState, true)
+      getInitialState = () => frozenInitialState
+    }
 
-          return result as S
-        } else if (!isDraftable(previousState)) {
-          // If state is not draftable (ex: a primitive, such as 0), we want to directly
-          // return the caseReducer func and not wrap it with produce.
-          const result = caseReducer(previousState as any, action)
-
-          if (result === undefined) {
-            if (previousState === null) {
-              return previousState
-            }
-            throw Error(
-              'A case reducer on a non-draftable value must not return undefined'
-            )
-          }
-
-          return result as S
-        } else {
-          // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
-          // than an Immutable<S>, and TypeScript cannot find out how to reconcile
-          // these two types.
-          return createNextState(previousState, (draft: Draft<S>) => {
-            return caseReducer(draft, action)
-          })
-        }
+    function reducer(state = getInitialState(), action: any): S {
+      let caseReducers = [
+        actionsMap[action.type],
+        ...finalActionMatchers
+          .filter(({ matcher }) => matcher(action))
+          .map(({ reducer }) => reducer),
+      ]
+      if (caseReducers.filter((cr) => !!cr).length === 0) {
+        caseReducers = [finalDefaultCaseReducer]
       }
 
-      return previousState
-    }, state)
+      return caseReducers.reduce((previousState, caseReducer): S => {
+        if (caseReducer) {
+          if (isDraft(previousState)) {
+            // If it's already a draft, we must already be inside a `createNextState` call,
+            // likely because this is being wrapped in `createReducer`, `createSlice`, or nested
+            // inside an existing draft. It's safe to just pass the draft to the mutator.
+            const draft = previousState as Draft<S> // We can assume this is already a draft
+            const result = caseReducer(draft, action)
+
+            if (result === undefined) {
+              return previousState
+            }
+
+            return result as S
+          } else if (!isDraftable(previousState)) {
+            // If state is not draftable (ex: a primitive, such as 0), we want to directly
+            // return the caseReducer func and not wrap it with produce.
+            const result = caseReducer(previousState as any, action)
+
+            if (result === undefined) {
+              if (previousState === null) {
+                return previousState
+              }
+              throw Error(
+                'A case reducer on a non-draftable value must not return undefined'
+              )
+            }
+
+            return result as S
+          } else {
+            // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
+            // than an Immutable<S>, and TypeScript cannot find out how to reconcile
+            // these two types.
+            return createNextState(previousState, (draft: Draft<S>) => {
+              return caseReducer(draft, action)
+            })
+          }
+        }
+
+        return previousState
+      }, state)
+    }
+
+    reducer.getInitialState = getInitialState
+
+    return reducer as ReducerWithInitialState<S>
   }
-
-  reducer.getInitialState = getInitialState
-
-  return reducer as ReducerWithInitialState<S>
 }
+
+export const createReducer = buildCreateReducer(immutableHelpers)
