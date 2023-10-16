@@ -73,6 +73,16 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
     }
   }
 
+  function hasPendingRequests(state: CombinedState<EndpointDefinitions, string, string>) {
+    for (const key in state.queries) {
+      if (state.queries[key]?.status === QueryStatus.pending) return true;
+    }
+    for (const key in state.mutations) {
+      if (state.mutations[key]?.status === QueryStatus.pending) return true;
+    }
+    return false;
+  }
+
   function invalidateTags(
     newTags: readonly FullTagDescription<string>[],
     mwApi: SubMiddlewareApi
@@ -82,13 +92,8 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
 
     pendingTagInvalidations.push(...newTags)
 
-    if (state.config.invalidationBehavior === 'delayed') {
-      const hasPendingRequests = [
-        ...Object.values(state.queries),
-        ...Object.values(state.mutations),
-      ].some((x) => x?.status === QueryStatus.pending)
-
-      if (hasPendingRequests) return
+    if (state.config.invalidationBehavior === 'delayed' && hasPendingRequests(state)) {
+      return
     }
 
     const tags = pendingTagInvalidations
