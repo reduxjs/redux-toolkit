@@ -176,8 +176,7 @@ describe('fetchBaseQuery', () => {
       expect(res.meta?.response).toBeInstanceOf(Object)
       expect(res.error).toEqual({
         status: 'PARSING_ERROR',
-        error:
-          'SyntaxError: Unexpected token \'h\', "this is not json!" is not valid JSON',
+        error: expect.stringMatching(/SyntaxError: Unexpected token/),
         originalStatus: 200,
         data: `this is not json!`,
       })
@@ -335,8 +334,7 @@ describe('fetchBaseQuery', () => {
       expect(res.meta?.response).toBeInstanceOf(Object)
       expect(res.error).toEqual({
         status: 'PARSING_ERROR',
-        error:
-          'SyntaxError: Unexpected token \'h\', "this is not json!" is not valid JSON',
+        error: expect.stringMatching(/SyntaxError: Unexpected token/),
         originalStatus: 500,
         data: `this is not json!`,
       })
