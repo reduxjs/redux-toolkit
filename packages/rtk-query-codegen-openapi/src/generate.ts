@@ -85,6 +85,7 @@ export async function generateApi(
     exportName = 'enhancedApi',
     argSuffix = 'ApiArg',
     responseSuffix = 'ApiResponse',
+    operationNameSuffix = '',
     hooks = false,
     tag = false,
     outputFile,
@@ -173,13 +174,13 @@ export async function generateApi(
         ...apiGen.enumAliases,
         ...(hooks
           ? [
-            generateReactHooks({
-              exportName: generatedApiName,
-              operationDefinitions,
-              endpointOverrides,
-              config: hooks,
-            }),
-          ]
+              generateReactHooks({
+                exportName: generatedApiName,
+                operationDefinitions,
+                endpointOverrides,
+                config: hooks,
+              }),
+            ]
           : []),
       ],
       factory.createToken(ts.SyntaxKind.EndOfFileToken),
@@ -250,7 +251,7 @@ export async function generateApi(
       registerInterface(
         factory.createTypeAliasDeclaration(
           [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-          capitalize(operationName + responseSuffix),
+          capitalize(operationName + operationNameSuffix + responseSuffix),
           undefined,
           ResponseType
         )
@@ -299,7 +300,9 @@ export async function generateApi(
       const body = apiGen.resolve(requestBody);
       const schema = apiGen.getSchemaFromContent(body.content);
       const type = apiGen.getTypeFromSchema(schema);
-      const schemaName = camelCase((type as any).name || getReferenceName(schema) || ("title" in schema && schema.title) || 'body');
+      const schemaName = camelCase(
+        (type as any).name || getReferenceName(schema) || ('title' in schema && schema.title) || 'body'
+      );
       const name = generateName(schemaName in queryArg ? 'body' : schemaName, 'body');
 
       queryArg[name] = {
@@ -327,32 +330,32 @@ export async function generateApi(
       registerInterface(
         factory.createTypeAliasDeclaration(
           [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-          capitalize(operationName + argSuffix),
+          capitalize(operationName + operationNameSuffix + argSuffix),
           undefined,
           queryArgValues.length > 0
             ? isFlatArg
               ? withQueryComment({ ...queryArgValues[0].type }, queryArgValues[0], false)
               : factory.createTypeLiteralNode(
-                queryArgValues.map((def) =>
-                  withQueryComment(
-                    factory.createPropertySignature(
-                      undefined,
-                      propertyName(def.name),
-                      createQuestionToken(!def.required),
-                      def.type
-                    ),
-                    def,
-                    true
+                  queryArgValues.map((def) =>
+                    withQueryComment(
+                      factory.createPropertySignature(
+                        undefined,
+                        propertyName(def.name),
+                        createQuestionToken(!def.required),
+                        def.type
+                      ),
+                      def,
+                      true
+                    )
                   )
                 )
-              )
             : factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword)
         )
       ).name
     );
 
     return generateEndpointDefinition({
-      operationName,
+      operationName: operationNameSuffix ? capitalize(operationName + operationNameSuffix) : operationName,
       type: isQuery ? 'query' : 'mutation',
       Response: ResponseTypeName,
       QueryArg,
@@ -389,18 +392,18 @@ export async function generateApi(
       return parameters.length === 0
         ? undefined
         : factory.createPropertyAssignment(
-          factory.createIdentifier(propertyName),
-          factory.createObjectLiteralExpression(
-            parameters.map(
-              (param) =>
-                createPropertyAssignment(
-                  param.originalName,
-                  isFlatArg ? rootObject : accessProperty(rootObject, param.name)
-                ),
-              true
+            factory.createIdentifier(propertyName),
+            factory.createObjectLiteralExpression(
+              parameters.map(
+                (param) =>
+                  createPropertyAssignment(
+                    param.originalName,
+                    isFlatArg ? rootObject : accessProperty(rootObject, param.name)
+                  ),
+                true
+              )
             )
-          )
-        );
+          );
     }
 
     return factory.createArrowFunction(
@@ -421,17 +424,17 @@ export async function generateApi(
             isQuery && verb.toUpperCase() === 'GET'
               ? undefined
               : factory.createPropertyAssignment(
-                factory.createIdentifier('method'),
-                factory.createStringLiteral(verb.toUpperCase())
-              ),
+                  factory.createIdentifier('method'),
+                  factory.createStringLiteral(verb.toUpperCase())
+                ),
             bodyParameter === undefined
               ? undefined
               : factory.createPropertyAssignment(
-                factory.createIdentifier('body'),
-                isFlatArg
-                  ? rootObject
-                  : factory.createPropertyAccessExpression(rootObject, factory.createIdentifier(bodyParameter.name))
-              ),
+                  factory.createIdentifier('body'),
+                  isFlatArg
+                    ? rootObject
+                    : factory.createPropertyAccessExpression(rootObject, factory.createIdentifier(bodyParameter.name))
+                ),
             createObjectLiteralProperty(pickParams('cookie'), 'cookies'),
             createObjectLiteralProperty(pickParams('header'), 'headers'),
             createObjectLiteralProperty(pickParams('query'), 'params'),
@@ -443,12 +446,12 @@ export async function generateApi(
   }
 
   // eslint-disable-next-line no-empty-pattern
-  function generateQueryEndpointProps({ }: { operationDefinition: OperationDefinition }): ObjectPropertyDefinitions {
+  function generateQueryEndpointProps({}: { operationDefinition: OperationDefinition }): ObjectPropertyDefinitions {
     return {}; /* TODO needs implementation - skip for now */
   }
 
   // eslint-disable-next-line no-empty-pattern
-  function generateMutationEndpointProps({ }: { operationDefinition: OperationDefinition }): ObjectPropertyDefinitions {
+  function generateMutationEndpointProps({}: { operationDefinition: OperationDefinition }): ObjectPropertyDefinitions {
     return {}; /* TODO needs implementation - skip for now */
   }
 }
@@ -478,16 +481,16 @@ function generatePathExpression(
 
   return expressions.length
     ? factory.createTemplateExpression(
-      factory.createTemplateHead(head),
-      expressions.map(([prop, literal], index) =>
-        factory.createTemplateSpan(
-          isFlatArg ? rootObject : accessProperty(rootObject, prop),
-          index === expressions.length - 1
-            ? factory.createTemplateTail(literal)
-            : factory.createTemplateMiddle(literal)
+        factory.createTemplateHead(head),
+        expressions.map(([prop, literal], index) =>
+          factory.createTemplateSpan(
+            isFlatArg ? rootObject : accessProperty(rootObject, prop),
+            index === expressions.length - 1
+              ? factory.createTemplateTail(literal)
+              : factory.createTemplateMiddle(literal)
+          )
         )
       )
-    )
     : factory.createNoSubstitutionTemplateLiteral(head);
 }
 
@@ -498,13 +501,13 @@ type QueryArgDefinition = {
   required?: boolean;
   param?: OpenAPIV3.ParameterObject;
 } & (
-    | {
+  | {
       origin: 'param';
       param: OpenAPIV3.ParameterObject;
     }
-    | {
+  | {
       origin: 'body';
       body: OpenAPIV3.RequestBodyObject;
     }
-  );
+);
 type QueryArgDefinitions = Record<string, QueryArgDefinition>;
