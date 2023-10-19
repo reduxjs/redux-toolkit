@@ -7,11 +7,15 @@ import type {
   _ActionCreatorWithPreparedPayload,
 } from './createAction'
 import { createAction } from './createAction'
-import type { CaseReducer, ReducerWithInitialState } from './createReducer'
+import type {
+  ActionMatcherDescriptionCollection,
+  CaseReducer,
+  ReducerWithInitialState,
+} from './createReducer'
 import { createReducer } from './createReducer'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { Id, Tail } from './tsHelpers'
+import type { ActionFromMatcher, Id, Matcher, Tail } from './tsHelpers'
 import type { InjectConfig } from './combineSlices'
 import type {
   AsyncThunk,
@@ -283,6 +287,12 @@ export interface AsyncThunkSliceReducerConfig<
     State,
     ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['fulfilled']>
   >
+  settled?: CaseReducer<
+    State,
+    ReturnType<
+      AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['rejected' | 'fulfilled']
+    >
+  >
   options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
 }
 
@@ -483,7 +493,12 @@ type ActionCreatorForCaseReducer<CR, Type extends string> = CR extends (
 type SliceDefinedCaseReducers<CaseReducers extends SliceCaseReducers<any>> = {
   [Type in keyof CaseReducers]: CaseReducers[Type] extends infer Definition
     ? Definition extends AsyncThunkSliceReducerDefinition<any, any, any, any>
-      ? Id<Pick<Required<Definition>, 'fulfilled' | 'rejected' | 'pending'>>
+      ? Id<
+          Pick<
+            Required<Definition>,
+            'fulfilled' | 'rejected' | 'pending' | 'settled'
+          >
+        >
       : Definition extends {
           reducer: infer Reducer
         }
@@ -582,6 +597,7 @@ export function createSlice<
     sliceCaseReducersByName: {},
     sliceCaseReducersByType: {},
     actionCreators: {},
+    sliceMatchers: [],
   }
 
   reducerNames.forEach((reducerName) => {
@@ -631,6 +647,9 @@ export function createSlice<
     return createReducer(options.initialState, (builder) => {
       for (let key in finalCaseReducers) {
         builder.addCase(key, finalCaseReducers[key] as CaseReducer<any>)
+      }
+      for (let sM of context.sliceMatchers) {
+        builder.addMatcher(sM.matcher, sM.reducer)
       }
       for (let m of actionMatchers) {
         builder.addMatcher(m.matcher, m.reducer)
@@ -728,10 +747,11 @@ interface ReducerHandlingContext<State> {
     | CaseReducer<State, any>
     | Pick<
         AsyncThunkSliceReducerDefinition<State, any, any, any>,
-        'fulfilled' | 'rejected' | 'pending'
+        'fulfilled' | 'rejected' | 'pending' | 'settled'
       >
   >
   sliceCaseReducersByType: Record<string, CaseReducer<State, any>>
+  sliceMatchers: ActionMatcherDescriptionCollection<State>
   actionCreators: Record<string, Function>
 }
 
@@ -828,7 +848,7 @@ function handleThunkCaseReducerDefinition<State>(
   reducerDefinition: AsyncThunkSliceReducerDefinition<State, any, any, any>,
   context: ReducerHandlingContext<State>
 ) {
-  const { payloadCreator, fulfilled, pending, rejected, options } =
+  const { payloadCreator, fulfilled, pending, rejected, settled, options } =
     reducerDefinition
   const thunk = createAsyncThunk(type, payloadCreator, options as any)
   context.actionCreators[reducerName] = thunk
@@ -842,11 +862,15 @@ function handleThunkCaseReducerDefinition<State>(
   if (rejected) {
     context.sliceCaseReducersByType[thunk.rejected.type] = rejected
   }
+  if (settled) {
+    context.sliceMatchers.push({ matcher: thunk.settled, reducer: settled })
+  }
 
   context.sliceCaseReducersByName[reducerName] = {
     fulfilled: fulfilled || noop,
     pending: pending || noop,
     rejected: rejected || noop,
+    settled: settled || noop,
   }
 }
 

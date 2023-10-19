@@ -37,6 +37,20 @@ describe('createAsyncThunk', () => {
     expect(thunkActionCreator.typePrefix).toBe('testType')
   })
 
+  it('includes a settled matcher', () => {
+    const thunkActionCreator = createAsyncThunk('testType', async () => 42)
+    expect(thunkActionCreator.settled).toEqual(expect.any(Function))
+    expect(thunkActionCreator.settled(thunkActionCreator.pending(''))).toBe(
+      false
+    )
+    expect(
+      thunkActionCreator.settled(thunkActionCreator.rejected(null, ''))
+    ).toBe(true)
+    expect(
+      thunkActionCreator.settled(thunkActionCreator.fulfilled(42, ''))
+    ).toBe(true)
+  })
+
   it('works without passing arguments to the payload creator', async () => {
     const thunkActionCreator = createAsyncThunk('testType', async () => 42)
 
@@ -513,7 +527,7 @@ describe('createAsyncThunk with abortController', () => {
         }
       )
 
-      expect(longRunningAsyncThunk()).toThrow("AbortController is not defined")
+      expect(longRunningAsyncThunk()).toThrow('AbortController is not defined')
     })
   })
 })
@@ -975,6 +989,7 @@ describe('meta', () => {
     expect(thunk.fulfilled).toEqual(expectFunction)
     expect(thunk.pending).toEqual(expectFunction)
     expect(thunk.rejected).toEqual(expectFunction)
+    expect(thunk.settled).toEqual(expectFunction)
     expect(thunk.fulfilled.type).toBe('a/fulfilled')
   })
 })
