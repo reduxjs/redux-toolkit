@@ -15,7 +15,8 @@
         "tutorials/tutorials-overview",
         "tutorials/quick-start",
         "tutorials/typescript",
-        "tutorials/rtk-query"
+        "tutorials/rtk-query",
+        "tutorials/nextjs"
       ]
     },
     {

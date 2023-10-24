@@ -1,0 +1,186 @@
+---
+id: nextjs
+title: NextJS
+sidebar_label: NextJS
+hide_title: true
+---
+
+&nbsp;
+
+# NextJS Application Tutorial
+
+:::tip What You'll Learn
+
+- How to set up and use Redux Toolkit with the NextJS framework
+
+:::
+
+:::info Prerequisites
+
+- Familiarity with [ES6 syntax and features](https://www.taniarascia.com/es6-syntax-and-feature-overview/)
+- Knowledge of React terminology: [JSX](https://reactjs.org/docs/introducing-jsx.html), [State](https://reactjs.org/docs/state-and-lifecycle.html), [Function Components, Props](https://reactjs.org/docs/components-and-props.html), and [Hooks](https://reactjs.org/docs/hooks-intro.html)
+- Understanding of [Redux terms and concepts](https://redux.js.org/tutorials/fundamentals/part-2-concepts-data-flow)
+- Working through the [Quick strt guide](./quick-start.mdx) is recommended
+
+:::
+
+## Introduction
+
+NextJS is a server side rendering framework for React that presents some unique challenges for using Redux properly. There are two architectures for a NextJS application; the Pages Router and the App Router. The Pages Router is the original architecture for NextJS. Using Redux with the Pages Router is well understood and handled primarily by the (next-redux-wrapper)[https://github.com/kirill-konshin/next-redux-wrapper]. This tutorial will focus on the App Router architecture as it is the new default architecture option for NextJS and it presents some unique challenges for using Redux properly.
+
+### How to Read This Tutorial
+
+This page assumes that you already have an exisiting NextJS application based on the App Router architecture.
+
+## The App Router Architecture and Redux
+
+The primary new feature of the NextJS App Router is the addition of support for React Server Components (RSCs). RSCs are a special type of React component that only renders on the server, as opposed to "client" components that render on **both** the client and the server. RSCs can be defined as `async` functions and return promises during rendering as they make async requests for data to render.
+
+RSCs abilitiy to block for data means that with the App Router you no longer have `getServerSideProps` to fetch data for rendering. Any component in the tree can make asychronous requests for data. While this is very convenient it also means thats if you define global variables (like the Redux store) they will be shared across requests. This is a problem because the Redux store could be contaminated with data from other requests.
+
+### Creating a Redux Store per Request
+
+Following along with the (Quick-Start guide)[./quick-start.mdx] we need to make some changes to the `app/store.js` file. The first change is to move from defining store as a global to defining a `createStore` function that returns a new store for each request.
+
+```ts title="src/app/store.ts"
+import { configureStore } from '@reduxjs/toolkit'
+
+export const createStore = () =>
+  configureStore({
+    reducer: {},
+  })
+
+// Infer the type of createStore
+export type StoreType = ReturnType<typeof createStore>
+// Infer the `RootState` and `AppDispatch` types from the store itself
+export type RootState = ReturnType<StoreType['getState']>
+// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
+export type AppDispatch = StoreType['dispatch']
+```
+
+To use this new `createStore` function we need to create a new "client" component that will create the store and share it using the React-Redux `Provider` component.
+
+```ts title="src/app/StoreProvider.tsx"
+// file: app/store.ts noEmit
+import { configureStore } from '@reduxjs/toolkit'
+
+// highlight-start
+export const createStore = () =>
+  configureStore({
+    reducer: {},
+  })
+// highlight-end
+
+// Infer the type of createStore
+// highlight-start
+export type StoreType = ReturnType<typeof createStore>
+// highlight-end
+// Infer the `RootState` and `AppDispatch` types from the store itself
+export type RootState = ReturnType<StoreType['getState']>
+// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
+export type AppDispatch = StoreType['dispatch']
+
+// file: app/StoreProvider.tsx
+;('use client')
+import { useRef } from 'react'
+import { Provider } from 'react-redux'
+// highlight-start
+import { createStore } from './store'
+// highlight-end
+
+export default function StoreProvider({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  // highlight-start
+  const storeRef = useRef<ReturnType<typeof createStore>>(createStore())
+  // highlight-end
+
+  return <Provider store={storeRef.current}>{children}</Provider>
+}
+```
+
+If you need to intialize the store with data from the parent component then define that data as a property and use an action on the slice to set the data in the store as shown below.
+
+```ts title="src/app/StoreProvider.tsx"
+// file: features/counter/counterSlice.ts noEmit
+import { createSlice } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
+
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: {
+    value: 0,
+  },
+  reducers: {
+    setCount: (state, action: PayloadAction<number>) => {
+      state.value = action.payload
+    },
+  },
+})
+
+export const { setCount } = counterSlice.actions
+export default counterSlice.reducer
+
+// file: app/store.ts noEmit
+import { configureStore } from '@reduxjs/toolkit'
+import counterReducer from '../features/counter/counterSlice'
+
+export const createStore = () =>
+  configureStore({
+    reducer: {
+      counter: counterReducer,
+    },
+  })
+
+// Infer the type of createStore
+export type StoreType = ReturnType<typeof createStore>
+// Infer the `RootState` and `AppDispatch` types from the store itself
+export type RootState = ReturnType<StoreType['getState']>
+// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
+export type AppDispatch = StoreType['dispatch']
+
+// file: app/StoreProvider.tsx
+;('use client')
+import { useRef } from 'react'
+import { Provider } from 'react-redux'
+import { createStore } from './store'
+// highlight-start
+import { setCount } from '../features/counter/counterSlice'
+// highlight-end
+
+export default function StoreProvider({
+  count,
+  children,
+}: {
+  count: number
+  children: React.ReactNode
+}) {
+  const storeRef = useRef<ReturnType<typeof createStore> | null>(null)
+  if (!storeRef.current) {
+    storeRef.current = createStore()
+    // highlight-start
+    storeRef.current.dispatch(setCount(count))
+    // highlight-end
+  }
+
+  return <Provider store={storeRef.current}>{children}</Provider>
+}
+```
+
+The next step is to include the `StoreProvider` in your layout component. This will ensure that the store is created for each request and that the store is not shared across requests. Use the store exactly as you would normally using the hooks provided by `react-redux`.
+
+## What You've Learned
+
+That was a brief overview of how to set up and use Redux Toolkit with the App Router:
+
+:::tip Summary
+
+- **Create a Redux store per request by using `configureStore` wrapped in a `createStore` function**
+- **Provide the Redux store to the React application components** using a "client" component
+- **Use the store as you normally would using the hooks provided in react-redux**
+
+## What's Next?
+
+We recommend going through [**the "Redux Essentials" and "Redux Fundamentals" tutorials in the Redux core docs**](https://redux.js.org/tutorials/index), which will give you a complete understanding of how Redux works, what Redux Toolkit does, and how to use it correctly.
