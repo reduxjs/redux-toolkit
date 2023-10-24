@@ -26,7 +26,17 @@ hide_title: true
 
 ## Introduction
 
-NextJS is a server side rendering framework for React that presents some unique challenges for using Redux properly. There are two architectures for a NextJS application; the Pages Router and the App Router. The Pages Router is the original architecture for NextJS. Using Redux with the Pages Router is well understood and handled primarily by the (next-redux-wrapper)[https://github.com/kirill-konshin/next-redux-wrapper]. This tutorial will focus on the App Router architecture as it is the new default architecture option for NextJS and it presents some unique challenges for using Redux properly.
+NextJS is a server side rendering framework for React that presents some unique challenges for using Redux properly.
+These challenges include:
+
+- **Per-request safe Redux store creation** - A NextJS server can handle multiple requests simultaneously. This means that the Redux store should be created per request and that the store should not be shared across requests.
+- **SSR-friendly store hydration** - NextJS applications are rendered twice, first on the server and again on the client. Failure to render the same page on both the client and the server will result in a "hydration error". So the Redux store will have to be initialized on the server and then re-initialized on the client with the same data.
+- **SPA routing support** - NextJS supports a hybrid model for client side routing. A customers first page load will get an SSR result from the server. Subsequent page loads will be handled by the client. This means that the Redux store should be preserved appropriately when navigating from route to route using NextJS's client side routing.
+- **Server caching friendly** - Recent versions of NextJS (specifically applications using the App Router architecture) support aggressive server caching. The ideal store artchiecture should support this caching.
+
+There are two architectures for a NextJS application; the Pages Router and the App Router. The Pages Router is the original architecture for NextJS.
+
+Using Redux with the Pages Router is well understood and handled primarily by the (next-redux-wrapper)[https://github.com/kirill-konshin/next-redux-wrapper]. This tutorial will focus on the App Router architecture as it is the new default architecture option for NextJS and it presents some unique challenges for using Redux properly.
 
 ### How to Read This Tutorial
 
@@ -38,54 +48,70 @@ The primary new feature of the NextJS App Router is the addition of support for 
 
 RSCs abilitiy to block for data means that with the App Router you no longer have `getServerSideProps` to fetch data for rendering. Any component in the tree can make asychronous requests for data. While this is very convenient it also means thats if you define global variables (like the Redux store) they will be shared across requests. This is a problem because the Redux store could be contaminated with data from other requests.
 
+Based on the architecture of the App Router we have these general recommendations for appropriate use of Redux:
+
+- **No global stores** - Because the Redux store is shared across requests, it should not be defined as a global variable. Instead, the store should be created per request.
+- **RSCs should not read or write the Redux store** - RSCs cannot use hooks or context. They aren't meant to be stateful. Having an RSC read or write values from a global store violates the architecture of the NextJS App Router.
+- **The store should only contain mutable data** - We recommend that you use your Redux sparingly for data intended to be global and mutable.
+
 ### Creating a Redux Store per Request
 
-Following along with the (Quick-Start guide)[./quick-start.mdx] we need to make some changes to the `app/store.js` file. The first change is to move from defining store as a global to defining a `createStore` function that returns a new store for each request.
+Following along with the (Quick-Start guide)[./quick-start.mdx] we need to make some changes to the `app/store.js` file. The first change is to move from defining store as a global to defining a `makeStore` function that returns a new store for each request.
 
 ```ts title="src/app/store.ts"
 import { configureStore } from '@reduxjs/toolkit'
 
-export const createStore = () =>
+export const makeStore = () =>
   configureStore({
     reducer: {},
   })
 
-// Infer the type of createStore
-export type StoreType = ReturnType<typeof createStore>
+// Infer the type of makeStore
+export type StoreType = ReturnType<typeof makeStore>
 // Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<StoreType['getState']>
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = StoreType['dispatch']
 ```
 
-To use this new `createStore` function we need to create a new "client" component that will create the store and share it using the React-Redux `Provider` component.
+Now we have a function, `makeStore`, that we can use to create a store instance per-request while retaining the strong type safety (if you choose to use TypeScript) that Redux Toolkit provides.
+
+To use this new `makeStore` function we need to create a new "client" component that will create the store and share it using the React-Redux `Provider` component.
+
+:::tip Why Client Components?
+
+Any component that interacts with the Redux store; creating it, providing it, reading from it, or writing to it, needs to be a client component because accessing the store requires React context and context is only available in client components.
+
+:::
 
 ```ts title="src/app/StoreProvider.tsx"
 // file: app/store.ts noEmit
 import { configureStore } from '@reduxjs/toolkit'
 
 // highlight-start
-export const createStore = () =>
+export const makeStore = () =>
   configureStore({
     reducer: {},
   })
 // highlight-end
 
-// Infer the type of createStore
+// Infer the type of makeStore
 // highlight-start
-export type StoreType = ReturnType<typeof createStore>
+export type StoreType = ReturnType<typeof makeStore>
 // highlight-end
 // Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<StoreType['getState']>
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = StoreType['dispatch']
 
+/* prettier-ignore */
+
 // file: app/StoreProvider.tsx
-;('use client')
+'use client'
 import { useRef } from 'react'
 import { Provider } from 'react-redux'
 // highlight-start
-import { createStore } from './store'
+import { makeStore, StoreType } from './store'
 // highlight-end
 
 export default function StoreProvider({
@@ -94,7 +120,7 @@ export default function StoreProvider({
   children: React.ReactNode
 }) {
   // highlight-start
-  const storeRef = useRef<ReturnType<typeof createStore>>(createStore())
+  const storeRef = useRef<StoreType>(makeStore())
   // highlight-end
 
   return <Provider store={storeRef.current}>{children}</Provider>
@@ -114,40 +140,42 @@ const counterSlice = createSlice({
     value: 0,
   },
   reducers: {
-    setCount: (state, action: PayloadAction<number>) => {
+    initializeCount: (state, action: PayloadAction<number>) => {
       state.value = action.payload
     },
   },
 })
 
-export const { setCount } = counterSlice.actions
+export const { initializeCount } = counterSlice.actions
 export default counterSlice.reducer
 
 // file: app/store.ts noEmit
 import { configureStore } from '@reduxjs/toolkit'
 import counterReducer from '../features/counter/counterSlice'
 
-export const createStore = () =>
+export const makeStore = () =>
   configureStore({
     reducer: {
       counter: counterReducer,
     },
   })
 
-// Infer the type of createStore
-export type StoreType = ReturnType<typeof createStore>
+// Infer the type of makeStore
+export type StoreType = ReturnType<typeof makeStore>
 // Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<StoreType['getState']>
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = StoreType['dispatch']
 
+/* prettier-ignore */
+
 // file: app/StoreProvider.tsx
-;('use client')
+'use client'
 import { useRef } from 'react'
 import { Provider } from 'react-redux'
-import { createStore } from './store'
+import { makeStore, StoreType } from './store'
 // highlight-start
-import { setCount } from '../features/counter/counterSlice'
+import { initializeCount } from '../features/counter/counterSlice'
 // highlight-end
 
 export default function StoreProvider({
@@ -157,11 +185,11 @@ export default function StoreProvider({
   count: number
   children: React.ReactNode
 }) {
-  const storeRef = useRef<ReturnType<typeof createStore> | null>(null)
+  const storeRef = useRef<StoreType | null>(null)
   if (!storeRef.current) {
-    storeRef.current = createStore()
+    storeRef.current = makeStore()
     // highlight-start
-    storeRef.current.dispatch(setCount(count))
+    storeRef.current.dispatch(initializeCount(count))
     // highlight-end
   }
 
@@ -169,7 +197,99 @@ export default function StoreProvider({
 }
 ```
 
-The next step is to include the `StoreProvider` in your layout component. This will ensure that the store is created for each request and that the store is not shared across requests. Use the store exactly as you would normally using the hooks provided by `react-redux`.
+In this example code we are insuring that this client component is re-render safe by checking the value of the reference. This component will only be rendered once per request on the server but might be rendered multiple times on the client if there are stateful client components located above this component in the tree, or if this component also contains other mutable state that causes a re-render.
+
+The next step is to include the `StoreProvider` in your layout component. This will ensure that the store is created for each request and that the store is not shared across requests. In all client components further down the tree, you can use the store exactly as you would normally using the hooks provided by `react-redux`.
+
+### Per-route state
+
+If you use NextJS's support for client side SPA-style navigation by using `next/navigation` then when customers navigating from page to page only the route component will be re-rendered. This means that if you have a Redux store created and provided in the layout component it will be preserved across route changes. This is not a problem if you are only using the store for global, mutable data. However, if you are using the store for per-route data then you will need to reset the store when the route changes.
+
+Shown below is a `ProductName` example component that uses the Redux store to store the mutable name of a product. The `ProductName` component part of a product detail route. In order to ensure that we have the correct name in the store we need to set the value in the store any time the `ProductName` component is initially rendered, which happens on any route change to the product detail route.
+
+```ts title="src/app/ProductName.tsx"
+// file: features/product/productSlice.ts noEmit
+import { createSlice } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
+
+export interface Product {
+  name: string
+}
+
+const productSlice = createSlice({
+  name: 'product',
+  initialState: {
+    name: '',
+  },
+  reducers: {
+    initializeProduct: (state, action: PayloadAction<Product>) => {
+      state.name = action.payload.name
+    },
+    setProductName: (state, action: PayloadAction<string>) => {
+      state.name = action.payload
+    },
+  },
+})
+
+export const { initializeProduct, setProductName } = productSlice.actions
+export default productSlice.reducer
+
+// file: app/store.ts noEmit
+import { configureStore } from '@reduxjs/toolkit'
+import productReducer from '../features/product/productSlice'
+
+export const makeStore = () =>
+  configureStore({
+    reducer: {
+      product: productReducer,
+    },
+  })
+
+// Infer the type of makeStore
+export type StoreType = ReturnType<typeof makeStore>
+// Infer the `RootState` and `AppDispatch` types from the store itself
+export type RootState = ReturnType<StoreType['getState']>
+// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
+export type AppDispatch = StoreType['dispatch']
+
+/* prettier-ignore */
+
+// file: app/ProductName.tsx
+'use client'
+import { useRef } from 'react'
+import { Provider, useStore, useSelector, useDispatch } from 'react-redux'
+import { makeStore, RootState } from './store'
+import {
+  initializeProduct,
+  setProductName,
+  Product,
+} from '../features/product/productSlice'
+
+export default function ProductName({ product }: { product: Product }) {
+  // highlight-start
+  // Initialize the store with the product information
+  const store = useStore<RootState>()
+  const initialized = useRef(false)
+  if (!initialized.current) {
+    store.dispatch(initializeProduct(product))
+    initialized.current = true
+  }
+  const name = useSelector((state: RootState) => state.product.name)
+  // highlight-end
+  const dispatch = useDispatch()
+
+  return (
+    <input
+      value={name}
+      onChange={(e) => dispatch(setProductName(e.target.value))}
+    />
+  )
+}
+```
+
+As we did we initializing the store on creation using dispatched actions we can also update the per-route store state to the new route state using dispatched actions. The `initialized` ref is used to ensure that the store is only initialized once per request.
+
+It is worth noting that initializing the store with a `useEffect` would not work because `useEffect` only runs on the client. This would result in hydration errors or flicker because the result from a server side render would not match the result from the client side render.
 
 ## What You've Learned
 
@@ -177,9 +297,11 @@ That was a brief overview of how to set up and use Redux Toolkit with the App Ro
 
 :::tip Summary
 
-- **Create a Redux store per request by using `configureStore` wrapped in a `createStore` function**
+- **Create a Redux store per request by using `configureStore` wrapped in a `makeStore` function**
 - **Provide the Redux store to the React application components** using a "client" component
+- **Only interact with the Redux store in client components** because only client components have access to React context
 - **Use the store as you normally would using the hooks provided in react-redux**
+- **You need to account for the case where you have per-route state in a global store located in the layout**
 
 ## What's Next?
 
