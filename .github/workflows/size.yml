@@ -6,7 +6,11 @@ jobs:
     env:
       CI_JOB_NUMBER: 1
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Install Dep
+        working-directory: packages/toolkit
+        run: YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
       - uses: andresz1/size-limit-action@v1.7.0
         with:
           directory: packages/toolkit
