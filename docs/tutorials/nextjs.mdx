@@ -26,17 +26,16 @@ hide_title: true
 
 ## Introduction
 
-NextJS is a server side rendering framework for React that presents some unique challenges for using Redux properly.
-These challenges include:
+NextJS is a server side rendering framework for React that presents some unique challenges for using Redux properly. These challenges include:
 
 - **Per-request safe Redux store creation** - A NextJS server can handle multiple requests simultaneously. This means that the Redux store should be created per request and that the store should not be shared across requests.
-- **SSR-friendly store hydration** - NextJS applications are rendered twice, first on the server and again on the client. Failure to render the same page on both the client and the server will result in a "hydration error". So the Redux store will have to be initialized on the server and then re-initialized on the client with the same data.
-- **SPA routing support** - NextJS supports a hybrid model for client side routing. A customers first page load will get an SSR result from the server. Subsequent page loads will be handled by the client. This means that the Redux store should be preserved appropriately when navigating from route to route using NextJS's client side routing.
-- **Server caching friendly** - Recent versions of NextJS (specifically applications using the App Router architecture) support aggressive server caching. The ideal store artchiecture should support this caching.
+- **SSR-friendly store hydration** - NextJS applications are rendered twice, first on the server and again on the client. Failure to render the same page contents on both the client and the server will result in a "hydration error". So the Redux store will have to be initialized on the server and then re-initialized on the client with the same data in order to avoid hydration issues.
+- **SPA routing support** - NextJS supports a hybrid model for client side routing. A customer's first page load will get an SSR result from the server. Subsequent page navigation will be handled by the client. This means that with a singleton store defined in the layout, route-specific data will need to be selectively reset on route navigation, while non-route-specific data will need to be retained in the store.
+- **Server caching friendly** - Recent versions of NextJS (specifically applications using the App Router architecture) support aggressive server caching. The ideal store architecture should be compatible with this caching.
 
 There are two architectures for a NextJS application; the Pages Router and the App Router. The Pages Router is the original architecture for NextJS.
 
-Using Redux with the Pages Router is well understood and handled primarily by the (next-redux-wrapper)[https://github.com/kirill-konshin/next-redux-wrapper]. This tutorial will focus on the App Router architecture as it is the new default architecture option for NextJS and it presents some unique challenges for using Redux properly.
+Using Redux with the Pages Router is well understood and handled properly by the (next-redux-wrapper)[https://github.com/kirill-konshin/next-redux-wrapper]. This tutorial will focus on the App Router architecture as it is the new default architecture option for NextJS.
 
 ### How to Read This Tutorial
 
@@ -46,13 +45,15 @@ This page assumes that you already have an exisiting NextJS application based on
 
 The primary new feature of the NextJS App Router is the addition of support for React Server Components (RSCs). RSCs are a special type of React component that only renders on the server, as opposed to "client" components that render on **both** the client and the server. RSCs can be defined as `async` functions and return promises during rendering as they make async requests for data to render.
 
-RSCs abilitiy to block for data means that with the App Router you no longer have `getServerSideProps` to fetch data for rendering. Any component in the tree can make asychronous requests for data. While this is very convenient it also means thats if you define global variables (like the Redux store) they will be shared across requests. This is a problem because the Redux store could be contaminated with data from other requests.
+RSCs abilitiy to block for data requests means that with the App Router you no longer have `getServerSideProps` to fetch data for rendering. Any component in the tree can make asychronous requests for data. While this is very convenient it also means thats if you define global variables (like the Redux store) they will be shared across requests. This is a problem because the Redux store could be contaminated with data from other requests.
 
 Based on the architecture of the App Router we have these general recommendations for appropriate use of Redux:
 
 - **No global stores** - Because the Redux store is shared across requests, it should not be defined as a global variable. Instead, the store should be created per request.
 - **RSCs should not read or write the Redux store** - RSCs cannot use hooks or context. They aren't meant to be stateful. Having an RSC read or write values from a global store violates the architecture of the NextJS App Router.
 - **The store should only contain mutable data** - We recommend that you use your Redux sparingly for data intended to be global and mutable.
+
+These recommendations are specific to applications written with the NextJS App Router. Single Page Applications (SPAs) don't execute on the server and therefore can define stores as global variables. SPAs don't need to worry about RSCs since they don't exist in SPAs. And singleton stores can store whatever data you want.
 
 ### Creating a Redux Store per Request
 
@@ -77,12 +78,6 @@ export type AppDispatch = StoreType['dispatch']
 Now we have a function, `makeStore`, that we can use to create a store instance per-request while retaining the strong type safety (if you choose to use TypeScript) that Redux Toolkit provides.
 
 To use this new `makeStore` function we need to create a new "client" component that will create the store and share it using the React-Redux `Provider` component.
-
-:::tip Why Client Components?
-
-Any component that interacts with the Redux store; creating it, providing it, reading from it, or writing to it, needs to be a client component because accessing the store requires React context and context is only available in client components.
-
-:::
 
 ```ts title="src/app/StoreProvider.tsx"
 // file: app/store.ts noEmit
@@ -127,7 +122,13 @@ export default function StoreProvider({
 }
 ```
 
-If you need to intialize the store with data from the parent component then define that data as a property and use an action on the slice to set the data in the store as shown below.
+:::tip Why Client Components?
+
+Any component that interacts with the Redux store; creating it, providing it, reading from it, or writing to it, needs to be a client component because accessing the store requires React context and context is only available in client components.
+
+:::
+
+If you need to intialize the store with data from the parent component then define that data as a property on the client `StoreProvider` component and use a Redux action on the slice to set the data in the store as shown below.
 
 ```ts title="src/app/StoreProvider.tsx"
 // file: features/counter/counterSlice.ts noEmit
@@ -197,15 +198,15 @@ export default function StoreProvider({
 }
 ```
 
-In this example code we are insuring that this client component is re-render safe by checking the value of the reference. This component will only be rendered once per request on the server but might be rendered multiple times on the client if there are stateful client components located above this component in the tree, or if this component also contains other mutable state that causes a re-render.
+In this example code we are insuring that this client component is re-render safe by checking the value of the reference to ensure that the store is only created once. This component will only be rendered once per request on the server but might be re-rendered multiple times on the client if there are stateful client components located above this component in the tree, or if this component also contains other mutable state that causes a re-render.
 
-The next step is to include the `StoreProvider` in your layout component. This will ensure that the store is created for each request and that the store is not shared across requests. In all client components further down the tree, you can use the store exactly as you would normally using the hooks provided by `react-redux`.
+The next step is to include the `StoreProvider` anywhere in the tree above where the store is used. You can locate the store in the layout component if all the routes using that layout need the store. Or if the store is only used in a specific route you can create and provide the store in that route handler. In all client components further down the tree, you can use the store exactly as you would normally using the hooks provided by `react-redux`.
 
 ### Per-route state
 
-If you use NextJS's support for client side SPA-style navigation by using `next/navigation` then when customers navigating from page to page only the route component will be re-rendered. This means that if you have a Redux store created and provided in the layout component it will be preserved across route changes. This is not a problem if you are only using the store for global, mutable data. However, if you are using the store for per-route data then you will need to reset the store when the route changes.
+If you use NextJS's support for client side SPA-style navigation by using `next/navigation` then when customers navigate from page to page only the route component will be re-rendered. This means that if you have a Redux store created and provided in the layout component it will be preserved across route changes. This is not a problem if you are only using the store for global, mutable data. However, if you are using the store for per-route data then you will need to reset the route-specific data in the store when the route changes.
 
-Shown below is a `ProductName` example component that uses the Redux store to store the mutable name of a product. The `ProductName` component part of a product detail route. In order to ensure that we have the correct name in the store we need to set the value in the store any time the `ProductName` component is initially rendered, which happens on any route change to the product detail route.
+Shown below is a `ProductName` example component that uses the Redux store to manage the mutable name of a product. The `ProductName` component part of a product detail route. In order to ensure that we have the correct name in the store we need to set the value in the store any time the `ProductName` component is initially rendered, which happens on any route change to the product detail route.
 
 ```ts title="src/app/ProductName.tsx"
 // file: features/product/productSlice.ts noEmit
@@ -287,9 +288,37 @@ export default function ProductName({ product }: { product: Product }) {
 }
 ```
 
-As we did we initializing the store on creation using dispatched actions we can also update the per-route store state to the new route state using dispatched actions. The `initialized` ref is used to ensure that the store is only initialized once per request.
+Here we are using the same intialization pattern as before, of dispatching actions to the store, to set the route-specific data. The `initialized` ref is used to ensure that the store is only initialized once per route change.
 
 It is worth noting that initializing the store with a `useEffect` would not work because `useEffect` only runs on the client. This would result in hydration errors or flicker because the result from a server side render would not match the result from the client side render.
+
+### Caching
+
+The App Router has four seperate caches including `fetch` request and route caches. The most likely cache to cause issues is the route cache. If you have an application that accepts login you may have routes (e.g. the home route, `/`) that render different data based on the user you will need to disable the route cache by using the (`dynamic` export from the route handler)[https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#dynamic]:
+
+```ts
+export const dynamic = 'force-dynamic'
+```
+
+After a mutation you should also invalidate the cache by calling (`revalidatePath`)[https://nextjs.org/docs/app/api-reference/functions/revalidatePath] or (`revalidateTag`)[https://nextjs.org/docs/app/api-reference/functions/revalidateTag] as appropriate.
+
+### Redux Toolkit Query
+
+We recommend using Redux Toolkit Query for data fetching **on the client only**. Data fetching on the server should use `fetch` requests from `async` RSCs.
+
+You can learn more about Redux Toolkit Query in the [Redux Toolkit Query tutorial](https://redux-toolkit.js.org/tutorials/rtk-query).
+
+### Checking Your Work
+
+There are three key areas that you should check to ensure that you have set up Redux Toolkit correctly:
+
+- **Server Side Rendering** - Check the HTML output of the server to ensure that the data in the Redux store is present in the server side rendered output.
+- **Route Change** - Navigate between pages on the same route as well as between different routes to ensure that route-specific data is initialized properly.
+- **Mutations** - Check that the store is compatible with the NextJS App Router caches by performing a mutation and then navigating away from the route and back to the original route to ensure that the data is updated.
+
+### Overall Recommendations
+
+The App Router presents a dramatically different archtecture for React applications from either the Pages Router or a SPA application. We recommend rethinking your approach to state mangement in the light of this new architecture. In SPA applications it's not unusual to have a large store that contains all the data, both mutable and immutable, required to drive the application. For App Router applications we recommend that you only use Redux for globally shared, mutable data. And that you use a combination of NextJS state (search params, route parameters, form state, etc.), React context and React hooks for all other state management.
 
 ## What You've Learned
 
