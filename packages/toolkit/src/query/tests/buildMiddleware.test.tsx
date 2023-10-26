@@ -37,9 +37,7 @@ it('invalidates the specified tags', async () => {
   expect(storeRef.store.getState().actions).toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     getBanana.matchPending,
-    api.internalActions.subscriptionsUpdated.match,
-    getBanana.matchFulfilled,
-    api.internalActions.subscriptionsUpdated.match
+    getBanana.matchFulfilled
   )
 
   await storeRef.store.dispatch(api.util.invalidateTags(['Banana', 'Bread']))
@@ -50,14 +48,10 @@ it('invalidates the specified tags', async () => {
   const firstSequence = [
     api.internalActions.middlewareRegistered.match,
     getBanana.matchPending,
-    api.internalActions.subscriptionsUpdated.match,
     getBanana.matchFulfilled,
-    api.internalActions.subscriptionsUpdated.match,
     api.util.invalidateTags.match,
     getBanana.matchPending,
-    api.internalActions.subscriptionsUpdated.match,
     getBanana.matchFulfilled,
-    api.internalActions.subscriptionsUpdated.match,
   ]
   expect(storeRef.store.getState().actions).toMatchSequence(...firstSequence)
 
@@ -69,14 +63,10 @@ it('invalidates the specified tags', async () => {
   expect(storeRef.store.getState().actions).toMatchSequence(
     ...firstSequence,
     getBread.matchPending,
-    api.internalActions.subscriptionsUpdated.match,
     getBread.matchFulfilled,
-    api.internalActions.subscriptionsUpdated.match,
     api.util.invalidateTags.match,
     getBread.matchPending,
-    api.internalActions.subscriptionsUpdated.match,
-    getBread.matchFulfilled,
-    api.internalActions.subscriptionsUpdated.match
+    getBread.matchFulfilled
   )
 })
 

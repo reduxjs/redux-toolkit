@@ -1,4 +1,5 @@
 import { createApi } from '../core'
+import { InternalMiddlewareState } from '../core/buildMiddleware/types'
 import { fakeBaseQuery } from '../fakeBaseQuery'
 import { setupApiStore } from './helpers'
 
@@ -23,6 +24,26 @@ const api = createApi({
 })
 
 const storeRef = setupApiStore(api)
+
+function getSubscriptions() {
+  const internalState = storeRef.store.dispatch(
+    api.internalActions.getRTKQInternalState()
+  ) as unknown as InternalMiddlewareState
+  return internalState?.currentSubscriptions ?? {}
+}
+
+function getSubscriptionCount(key: string) {
+  const subscriptions = getSubscriptions()
+  const subscriptionsForQueryArg = subscriptions[key] ?? {}
+  return Object.keys(subscriptionsForQueryArg).length
+  //return Object.keys(storeRef.store.getState().api.subscriptions[key] || {})
+  //.length
+}
+
+function isRequestSubscribed(key: string, requestId: string) {
+  const subscriptions = getSubscriptions()
+  return !!subscriptions?.[key]?.[requestId]
+}
 
 test('multiple synchonrous initiate calls with pre-existing cache entry', async () => {
   const { store, api } = storeRef
@@ -66,20 +87,13 @@ describe('calling initiate without a cache entry, with subscribe: false still re
     const promise = store.dispatch(
       api.endpoints.increment.initiate(undefined, { subscribe: false })
     )
+    expect(isRequestSubscribed('increment(undefined)', promise.requestId)).toBe(
+      false
+    )
     expect(
-      store.dispatch(
-        api.internalActions.internal_probeSubscription({
-          queryCacheKey: 'increment(undefined)',
-          requestId: promise.requestId,
-        })
-      )
-    ).toBe(false)
-    expect(
-      store.dispatch(
-        api.internalActions.internal_probeSubscription({
-          queryCacheKey: 'increment(undefined)',
-          requestId: `${promise.requestId}_running`,
-        })
+      isRequestSubscribed(
+        'increment(undefined)',
+        `${promise.requestId}_running`
       )
     ).toBe(true)
 
@@ -88,11 +102,9 @@ describe('calling initiate without a cache entry, with subscribe: false still re
       status: 'fulfilled',
     })
     expect(
-      store.dispatch(
-        api.internalActions.internal_probeSubscription({
-          queryCacheKey: 'increment(undefined)',
-          requestId: `${promise.requestId}_running`,
-        })
+      isRequestSubscribed(
+        'increment(undefined)',
+        `${promise.requestId}_running`
       )
     ).toBe(false)
   })
@@ -103,33 +115,18 @@ describe('calling initiate without a cache entry, with subscribe: false still re
     const promise = store.dispatch(
       api.endpoints.failing.initiate(undefined, { subscribe: false })
     )
+    expect(isRequestSubscribed('failing(undefined)', promise.requestId)).toBe(
+      false
+    )
     expect(
-      store.dispatch(
-        api.internalActions.internal_probeSubscription({
-          queryCacheKey: 'failing(undefined)',
-          requestId: promise.requestId,
-        })
-      )
-    ).toBe(false)
-    expect(
-      store.dispatch(
-        api.internalActions.internal_probeSubscription({
-          queryCacheKey: 'failing(undefined)',
-          requestId: `${promise.requestId}_running`,
-        })
-      )
+      isRequestSubscribed('failing(undefined)', `${promise.requestId}_running`)
     ).toBe(true)
 
     await expect(promise).resolves.toMatchObject({
       status: 'rejected',
     })
     expect(
-      store.dispatch(
-        api.internalActions.internal_probeSubscription({
-          queryCacheKey: 'failing(undefined)',
-          requestId: `${promise.requestId}_running`,
-        })
-      )
+      isRequestSubscribed('failing(undefined)', `${promise.requestId}_running`)
     ).toBe(false)
   })
 })

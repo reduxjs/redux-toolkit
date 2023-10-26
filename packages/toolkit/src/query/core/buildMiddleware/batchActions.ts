@@ -1,17 +1,20 @@
-import type { InternalHandlerBuilder } from './types'
+import type { InternalHandlerBuilder, InternalMiddlewareState } from './types'
 import type { SubscriptionState } from '../apiState'
 import { produceWithPatches } from 'immer'
 import type { Action } from '@reduxjs/toolkit'
 
 export const buildBatchedActionsHandler: InternalHandlerBuilder<
-  [actionShouldContinue: boolean, subscriptionExists: boolean]
+  [
+    actionShouldContinue: boolean,
+    returnValue: InternalMiddlewareState | boolean
+  ]
 > = ({ api, queryThunk, internalState }) => {
   const subscriptionsPrefix = `${api.reducerPath}/subscriptions`
 
   let previousSubscriptions: SubscriptionState =
     null as unknown as SubscriptionState
 
-  let dispatchQueued = false
+  let updateSyncTimer: ReturnType<typeof window.setTimeout> | null = null
 
   const { updateSubscriptionOptions, unsubscribeQueryResult } =
     api.internalActions
@@ -82,7 +85,10 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
   return (
     action,
     mwApi
-  ): [actionShouldContinue: boolean, hasSubscription: boolean] => {
+  ): [
+    actionShouldContinue: boolean,
+    result: InternalMiddlewareState | boolean
+  ] => {
     if (!previousSubscriptions) {
       // Initialize it the first time this handler runs
       previousSubscriptions = JSON.parse(
@@ -92,16 +98,16 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
 
     if (api.util.resetApiState.match(action)) {
       previousSubscriptions = internalState.currentSubscriptions = {}
+      updateSyncTimer = null
       return [true, false]
     }
 
     // Intercept requests by hooks to see if they're subscribed
-    // Necessary because we delay updating store state to the end of the tick
-    if (api.internalActions.internal_probeSubscription.match(action)) {
-      const { queryCacheKey, requestId } = action.payload
-      const hasSubscription =
-        !!internalState.currentSubscriptions[queryCacheKey]?.[requestId]
-      return [false, hasSubscription]
+    // We return the internal state reference so that hooks
+    // can do their own checks to see if they're still active.
+    // It's stupid and hacky, but it does cut down on some dispatch calls.
+    if (api.internalActions.getRTKQInternalState.match(action)) {
+      return [false, internalState]
     }
 
     // Update subscription data based on this action
@@ -110,9 +116,16 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
       action
     )
 
+    let actionShouldContinue = true
+
     if (didMutate) {
-      if (!dispatchQueued) {
-        queueMicrotask(() => {
+      if (!updateSyncTimer) {
+        // We only use the subscription state for the Redux DevTools at this point,
+        // as the real data is kept here in the middleware.
+        // Given that, we can throttle synchronizing this state significantly to
+        // save on overall perf.
+        // In 1.9, it was updated in a microtask, but now we do it at most every 500ms.
+        updateSyncTimer = setTimeout(() => {
           // Deep clone the current subscription data
           const newSubscriptions: SubscriptionState = JSON.parse(
             JSON.stringify(internalState.currentSubscriptions)
@@ -127,25 +140,23 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
           mwApi.next(api.internalActions.subscriptionsUpdated(patches))
           // Save the cloned state for later reference
           previousSubscriptions = newSubscriptions
-          dispatchQueued = false
-        })
-        dispatchQueued = true
+          updateSyncTimer = null
+        }, 500)
       }
 
       const isSubscriptionSliceAction =
         typeof action.type == 'string' &&
         !!action.type.startsWith(subscriptionsPrefix)
+
       const isAdditionalSubscriptionAction =
         queryThunk.rejected.match(action) &&
         action.meta.condition &&
         !!action.meta.arg.subscribe
 
-      const actionShouldContinue =
+      actionShouldContinue =
         !isSubscriptionSliceAction && !isAdditionalSubscriptionAction
-
-      return [actionShouldContinue, false]
     }
 
-    return [true, false]
+    return [actionShouldContinue, false]
   }
 }

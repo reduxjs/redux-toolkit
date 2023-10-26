@@ -9,6 +9,7 @@ import type {
   SubMiddlewareApi,
   InternalHandlerBuilder,
   ApiMiddlewareInternalHandler,
+  InternalMiddlewareState,
 } from './types'
 
 export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
@@ -19,6 +20,7 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   api,
   assertTagType,
   refetchQuery,
+  internalState,
 }) => {
   const { removeQueryResult } = api.internalActions
   const isThunkActionWithTags = isAnyOf(
@@ -35,7 +37,8 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
           endpointDefinitions,
           assertTagType
         ),
-        mwApi
+        mwApi,
+        internalState
       )
     }
 
@@ -49,16 +52,19 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
           undefined,
           assertTagType
         ),
-        mwApi
+        mwApi,
+        internalState
       )
     }
   }
 
   function invalidateTags(
     tags: readonly FullTagDescription<string>[],
-    mwApi: SubMiddlewareApi
+    mwApi: SubMiddlewareApi,
+    internalState: InternalMiddlewareState
   ) {
     const rootState = mwApi.getState()
+
     const state = rootState[reducerPath]
 
     const toInvalidate = api.util.selectInvalidatedBy(rootState, tags)
@@ -67,7 +73,8 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
       const valuesArray = Array.from(toInvalidate.values())
       for (const { queryCacheKey } of valuesArray) {
         const querySubState = state.queries[queryCacheKey]
-        const subscriptionSubState = state.subscriptions[queryCacheKey] ?? {}
+        const subscriptionSubState =
+          internalState.currentSubscriptions[queryCacheKey] ?? {}
 
         if (querySubState) {
           if (Object.keys(subscriptionSubState).length === 0) {

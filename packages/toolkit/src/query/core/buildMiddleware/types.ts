@@ -61,6 +61,7 @@ export interface BuildSubMiddlewareInput
     queryCacheKey: string,
     override?: Partial<QueryThunkArg>
   ): AsyncThunkAction<ThunkResult, QueryThunkArg, {}>
+  isThisApiSliceAction: (action: Action) => boolean
 }
 
 export type SubMiddlewareBuilder = (

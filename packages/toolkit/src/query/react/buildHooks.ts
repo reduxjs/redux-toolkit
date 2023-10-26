@@ -53,6 +53,7 @@ import { UNINITIALIZED_VALUE } from './constants'
 import { useShallowStableValue } from './useShallowStableValue'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import { InternalMiddlewareState } from '../core/buildMiddleware/types'
 
 // Copy-pasted from React-Redux
 export const useIsomorphicLayoutEffect =
@@ -681,6 +682,27 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         Definitions
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
+      const internalStateRef = useRef<InternalMiddlewareState | null>(null)
+      if (!internalStateRef.current) {
+        const returnedValue = dispatch(
+          api.internalActions.getRTKQInternalState()
+        )
+
+        if (process.env.NODE_ENV !== 'production') {
+          if (
+            typeof returnedValue !== 'object' ||
+            typeof returnedValue?.type === 'string'
+          ) {
+            throw new Error(
+              `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
+    You must add the middleware for RTK-Query to function correctly!`
+            )
+          }
+        }
+
+        internalStateRef.current =
+          returnedValue as unknown as InternalMiddlewareState
+      }
       const stableArg = useStableQueryArgs(
         skip ? skipToken : arg,
         // Even if the user provided a per-endpoint `serializeQueryArgs` with
@@ -704,28 +726,15 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       let { queryCacheKey, requestId } = promiseRef.current || {}
 
-      // HACK Because the latest state is in the middleware, we actually
-      // dispatch an action that will be intercepted and returned.
+      // HACK We've saved the middleware internal state into a ref,
+      // and that state object gets directly mutated. But, we've _got_ a reference
+      // to it locally, so we can just read the data directly here in the hook.
       let currentRenderHasSubscription = false
       if (queryCacheKey && requestId) {
-        // This _should_ return a boolean, even if the types don't line up
-        const returnedValue = dispatch(
-          api.internalActions.internal_probeSubscription({
-            queryCacheKey,
-            requestId,
-          })
-        )
-
-        if (process.env.NODE_ENV !== 'production') {
-          if (typeof returnedValue !== 'boolean') {
-            throw new Error(
-              `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
-    You must add the middleware for RTK-Query to function correctly!`
-            )
-          }
-        }
-
-        currentRenderHasSubscription = !!returnedValue
+        currentRenderHasSubscription =
+          !!internalStateRef.current?.currentSubscriptions?.[queryCacheKey]?.[
+            requestId
+          ]
       }
 
       const subscriptionRemoved =

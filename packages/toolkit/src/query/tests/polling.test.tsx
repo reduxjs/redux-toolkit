@@ -2,6 +2,7 @@ import { vi } from 'vitest'
 import { createApi } from '@reduxjs/toolkit/query'
 import { setupApiStore, waitMs } from './helpers'
 import { delay } from '../../utils'
+import type { InternalMiddlewareState } from '../core/buildMiddleware/types'
 
 const mockBaseQuery = vi
   .fn()
@@ -23,8 +24,15 @@ const { getPosts } = api.endpoints
 
 const storeRef = setupApiStore(api)
 
+function getSubscriptions() {
+  const internalState = storeRef.store.dispatch(
+    api.internalActions.getRTKQInternalState()
+  ) as unknown as InternalMiddlewareState
+  return internalState?.currentSubscriptions ?? {}
+}
+
 const getSubscribersForQueryCacheKey = (queryCacheKey: string) =>
-  storeRef.store.getState()[api.reducerPath].subscriptions[queryCacheKey] || {}
+  getSubscriptions()[queryCacheKey] || {}
 const createSubscriptionGetter = (queryCacheKey: string) => () =>
   getSubscribersForQueryCacheKey(queryCacheKey)
 

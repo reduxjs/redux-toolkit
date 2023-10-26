@@ -265,19 +265,16 @@ export function buildInitiate({
   function middlewareWarning(dispatch: Dispatch) {
     if (process.env.NODE_ENV !== 'production') {
       if ((middlewareWarning as any).triggered) return
-      const registered:
-        | ReturnType<typeof api.internalActions.internal_probeSubscription>
-        | boolean = dispatch(
-        api.internalActions.internal_probeSubscription({
-          queryCacheKey: 'DOES_NOT_EXIST',
-          requestId: 'DUMMY_REQUEST_ID',
-        })
-      )
+      const returnedValue = dispatch(api.internalActions.getRTKQInternalState())
 
       ;(middlewareWarning as any).triggered = true
 
-      // The RTKQ middleware _should_ always return a boolean for `probeSubscription`
-      if (typeof registered !== 'boolean') {
+      // The RTKQ middleware should return the internal state object,
+      // but it should _not_ be the action object.
+      if (
+        typeof returnedValue !== 'object' ||
+        typeof returnedValue?.type === 'string'
+      ) {
         // Otherwise, must not have been added
         throw new Error(
           `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.

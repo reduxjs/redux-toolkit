@@ -6,6 +6,7 @@ import { createListenerMiddleware } from '@reduxjs/toolkit'
 import { createApi, QueryStatus } from '@reduxjs/toolkit/query/react'
 import { render, waitFor, act, screen } from '@testing-library/react'
 import { setupApiStore } from './helpers'
+import { InternalMiddlewareState } from '../core/buildMiddleware/types'
 
 const tick = () => new Promise((res) => setImmediate(res))
 
@@ -159,15 +160,25 @@ test('Minimizes the number of subscription dispatches when multiple components a
     withoutTestLifecycles: true,
   })
 
-  let getSubscriptionsA = () =>
-    storeRef.store.getState().api.subscriptions['a(undefined)']
+  function getSubscriptions() {
+    const internalState = storeRef.store.dispatch(
+      api.internalActions.getRTKQInternalState()
+    ) as unknown as InternalMiddlewareState
+    return internalState?.currentSubscriptions ?? {}
+  }
+
+  let getSubscriptionsA = () => {
+    return getSubscriptions()['a(undefined)']
+  }
 
   let actionTypes: unknown[] = []
 
   listenerMiddleware.startListening({
     predicate: () => true,
     effect: (action) => {
-      actionTypes.push(action.type)
+      if (!action.type.includes('subscriptionsUpdated')) {
+        actionTypes.push(action.type)
+      }
     },
   })
 
@@ -201,8 +212,6 @@ test('Minimizes the number of subscription dispatches when multiple components a
   expect(actionTypes).toEqual([
     'api/config/middlewareRegistered',
     'api/executeQuery/pending',
-    'api/internalSubscriptions/subscriptionsUpdated',
     'api/executeQuery/fulfilled',
-    'api/internalSubscriptions/subscriptionsUpdated',
   ])
 }, 25000)

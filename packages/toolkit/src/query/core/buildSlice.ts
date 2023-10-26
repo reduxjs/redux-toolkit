@@ -1,4 +1,4 @@
-import type { PayloadAction, UnknownAction } from '@reduxjs/toolkit'
+import type { Action, PayloadAction, UnknownAction } from '@reduxjs/toolkit'
 import {
   combineReducers,
   createAction,
@@ -443,12 +443,7 @@ export function buildSlice({
       ) {
         // Dummy
       },
-      internal_probeSubscription(
-        d,
-        a: PayloadAction<{ queryCacheKey: string; requestId: string }>
-      ) {
-        // dummy
-      },
+      getRTKQInternalState() {},
     },
   })
 
