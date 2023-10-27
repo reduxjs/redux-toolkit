@@ -432,10 +432,12 @@ describe('customListenersHandler', () => {
     })
     expect(dispatchSpy).toHaveBeenCalled()
 
-    // Ignore RTKQ middleware `internal_probeSubscription` calls
-    const mockCallsWithoutInternals = dispatchSpy.mock.calls.filter(
-      (call) => !(call[0] as any)?.type?.includes('internal')
-    )
+    // Ignore RTKQ middleware internal data calls
+    const mockCallsWithoutInternals = dispatchSpy.mock.calls.filter((call) => {
+      const type = (call[0] as any)?.type ?? ''
+      const reIsInternal = /internal/i
+      return !reIsInternal.test(type)
+    })
 
     expect(
       defaultApi.internalActions.onOnline.match(
