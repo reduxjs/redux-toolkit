@@ -20,6 +20,7 @@ import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
 import type { QueryResultSelectorResult } from './buildSelectors'
 import type { Dispatch } from 'redux'
 import { isNotNullish } from '../utils/isNotNullish'
+import { countObjectKeys } from '../utils/countObjectKeys'
 
 declare module './module' {
   export interface ApiEndpointQuery<
@@ -265,19 +266,18 @@ export function buildInitiate({
   function middlewareWarning(dispatch: Dispatch) {
     if (process.env.NODE_ENV !== 'production') {
       if ((middlewareWarning as any).triggered) return
-      const registered:
-        | ReturnType<typeof api.internalActions.internal_probeSubscription>
-        | boolean = dispatch(
-        api.internalActions.internal_probeSubscription({
-          queryCacheKey: 'DOES_NOT_EXIST',
-          requestId: 'DUMMY_REQUEST_ID',
-        })
+      const returnedValue = dispatch(
+        api.internalActions.internal_getRTKQSubscriptions()
       )
 
       ;(middlewareWarning as any).triggered = true
 
-      // The RTKQ middleware _should_ always return a boolean for `probeSubscription`
-      if (typeof registered !== 'boolean') {
+      // The RTKQ middleware should return the internal state object,
+      // but it should _not_ be the action object.
+      if (
+        typeof returnedValue !== 'object' ||
+        typeof returnedValue?.type === 'string'
+      ) {
         // Otherwise, must not have been added
         throw new Error(
           `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
@@ -395,7 +395,7 @@ You must add the middleware for RTK-Query to function correctly!`
 
           statePromise.then(() => {
             delete running[queryCacheKey]
-            if (!Object.keys(running).length) {
+            if (!countObjectKeys(running)) {
               runningQueries.delete(dispatch)
             }
           })
@@ -443,7 +443,7 @@ You must add the middleware for RTK-Query to function correctly!`
         running[requestId] = ret
         ret.then(() => {
           delete running[requestId]
-          if (!Object.keys(running).length) {
+          if (!countObjectKeys(running)) {
             runningMutations.delete(dispatch)
           }
         })
@@ -452,7 +452,7 @@ You must add the middleware for RTK-Query to function correctly!`
           ret.then(() => {
             if (running[fixedCacheKey] === ret) {
               delete running[fixedCacheKey]
-              if (!Object.keys(running).length) {
+              if (!countObjectKeys(running)) {
                 runningMutations.delete(dispatch)
               }
             }

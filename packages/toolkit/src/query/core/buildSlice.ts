@@ -1,4 +1,4 @@
-import type { PayloadAction, UnknownAction } from '@reduxjs/toolkit'
+import type { Action, PayloadAction, UnknownAction } from '@reduxjs/toolkit'
 import {
   combineReducers,
   createAction,
@@ -147,12 +147,9 @@ export function buildSlice({
       builder
         .addCase(queryThunk.pending, (draft, { meta, meta: { arg } }) => {
           const upserting = isUpsertQuery(arg)
-          if (arg.subscribe || upserting) {
-            // only initialize substate if we want to subscribe to it
-            draft[arg.queryCacheKey] ??= {
-              status: QueryStatus.uninitialized,
-              endpointName: arg.endpointName,
-            }
+          draft[arg.queryCacheKey] ??= {
+            status: QueryStatus.uninitialized,
+            endpointName: arg.endpointName,
           }
 
           updateQuerySubstateIfExists(draft, arg.queryCacheKey, (substate) => {
@@ -446,12 +443,7 @@ export function buildSlice({
       ) {
         // Dummy
       },
-      internal_probeSubscription(
-        d,
-        a: PayloadAction<{ queryCacheKey: string; requestId: string }>
-      ) {
-        // dummy
-      },
+      internal_getRTKQSubscriptions() {},
     },
   })
 

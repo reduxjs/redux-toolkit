@@ -118,7 +118,9 @@ expect.extend({
       if (!matchers[i](actions[i])) {
         return {
           message: () =>
-            `Action ${actions[i].type} does not match sequence at position ${i}.`,
+            `Action ${actions[i].type} does not match sequence at position ${i}.
+All actions:
+${actions.map((a) => a.type).join('\n')}`,
           pass: false,
         }
       }
@@ -180,6 +182,11 @@ ${expectedOutput}
 
 export const actionsReducer = {
   actions: (state: UnknownAction[] = [], action: UnknownAction) => {
+    // As of 2.0-beta.4, we are going to ignore all `subscriptionsUpdated` actions in tests
+    if (action.type.includes('subscriptionsUpdated')) {
+      return state
+    }
+
     return [...state, action]
   },
 }
