@@ -11,6 +11,7 @@ import type {
   ApiMiddlewareInternalHandler,
   InternalMiddlewareState,
 } from './types'
+import { countObjectKeys } from '../../utils/countObjectKeys'
 
 export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   reducerPath,
@@ -77,7 +78,7 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
           internalState.currentSubscriptions[queryCacheKey] ?? {}
 
         if (querySubState) {
-          if (Object.keys(subscriptionSubState).length === 0) {
+          if (countObjectKeys(subscriptionSubState) === 0) {
             mwApi.dispatch(
               removeQueryResult({
                 queryCacheKey: queryCacheKey as QueryCacheKey,

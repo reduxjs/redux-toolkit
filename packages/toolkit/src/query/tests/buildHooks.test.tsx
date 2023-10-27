@@ -38,6 +38,7 @@ import type { SerializedError } from '@reduxjs/toolkit'
 import { createListenerMiddleware, configureStore } from '@reduxjs/toolkit'
 import { delay } from '../../utils'
 import type { InternalMiddlewareState } from '../core/buildMiddleware/types'
+import { countObjectKeys } from '../utils/countObjectKeys'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -149,7 +150,7 @@ function getSubscriptions() {
 function getSubscriptionCount(key: string) {
   const subscriptions = getSubscriptions()
   const subscriptionsForQueryArg = subscriptions[key] ?? {}
-  return Object.keys(subscriptionsForQueryArg).length
+  return countObjectKeys(subscriptionsForQueryArg)
 }
 
 beforeEach(() => {
@@ -1439,25 +1440,19 @@ describe('hooks tests', () => {
 
       await screen.findByText(/isUninitialized/i)
       expect(screen.queryByText('Yay')).toBeNull()
-      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(
-        0
-      )
+      expect(countObjectKeys(storeRef.store.getState().api.mutations)).toBe(0)
 
       userEvent.click(screen.getByRole('button', { name: 'trigger' }))
 
       await screen.findByText(/isSuccess/i)
       expect(screen.queryByText('Yay')).not.toBeNull()
-      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(
-        1
-      )
+      expect(countObjectKeys(storeRef.store.getState().api.mutations)).toBe(1)
 
       userEvent.click(screen.getByRole('button', { name: 'reset' }))
 
       await screen.findByText(/isUninitialized/i)
       expect(screen.queryByText('Yay')).toBeNull()
-      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(
-        0
-      )
+      expect(countObjectKeys(storeRef.store.getState().api.mutations)).toBe(0)
     })
   })
 

@@ -20,6 +20,7 @@ import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
 import type { QueryResultSelectorResult } from './buildSelectors'
 import type { Dispatch } from 'redux'
 import { isNotNullish } from '../utils/isNotNullish'
+import { countObjectKeys } from '../utils/countObjectKeys'
 
 declare module './module' {
   export interface ApiEndpointQuery<
@@ -392,7 +393,7 @@ You must add the middleware for RTK-Query to function correctly!`
 
           statePromise.then(() => {
             delete running[queryCacheKey]
-            if (!Object.keys(running).length) {
+            if (!countObjectKeys(running)) {
               runningQueries.delete(dispatch)
             }
           })
@@ -440,7 +441,7 @@ You must add the middleware for RTK-Query to function correctly!`
         running[requestId] = ret
         ret.then(() => {
           delete running[requestId]
-          if (!Object.keys(running).length) {
+          if (!countObjectKeys(running)) {
             runningMutations.delete(dispatch)
           }
         })
@@ -449,7 +450,7 @@ You must add the middleware for RTK-Query to function correctly!`
           ret.then(() => {
             if (running[fixedCacheKey] === ret) {
               delete running[fixedCacheKey]
-              if (!Object.keys(running).length) {
+              if (!countObjectKeys(running)) {
                 runningMutations.delete(dispatch)
               }
             }

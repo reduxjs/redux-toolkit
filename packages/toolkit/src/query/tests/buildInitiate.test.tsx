@@ -31,15 +31,6 @@ function getSubscriptions() {
   ) as unknown as InternalMiddlewareState
   return internalState?.currentSubscriptions ?? {}
 }
-
-function getSubscriptionCount(key: string) {
-  const subscriptions = getSubscriptions()
-  const subscriptionsForQueryArg = subscriptions[key] ?? {}
-  return Object.keys(subscriptionsForQueryArg).length
-  //return Object.keys(storeRef.store.getState().api.subscriptions[key] || {})
-  //.length
-}
-
 function isRequestSubscribed(key: string, requestId: string) {
   const subscriptions = getSubscriptions()
   return !!subscriptions?.[key]?.[requestId]

@@ -22,6 +22,7 @@ import {
 } from 'react-redux'
 import type { QueryKeys } from '../core/apiState'
 import type { PrefetchOptions } from '../core/module'
+import { countObjectKeys } from '../utils/countObjectKeys'
 
 export const reactHooksModuleName = /* @__PURE__ */ Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName
@@ -147,7 +148,7 @@ export const reactHooksModule = ({
     let warned = false
     for (const hookName of hookNames) {
       // warn for old hook options
-      if (Object.keys(rest).length > 0) {
+      if (countObjectKeys(rest) > 0) {
         if ((rest as Partial<typeof hooks>)[hookName]) {
           if (!warned) {
             console.warn(

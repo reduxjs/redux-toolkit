@@ -7,6 +7,7 @@ import { createApi, QueryStatus } from '@reduxjs/toolkit/query/react'
 import { render, waitFor, act, screen } from '@testing-library/react'
 import { setupApiStore } from './helpers'
 import { InternalMiddlewareState } from '../core/buildMiddleware/types'
+import { countObjectKeys } from '../utils/countObjectKeys'
 
 const tick = () => new Promise((res) => setImmediate(res))
 
@@ -207,7 +208,7 @@ test('Minimizes the number of subscription dispatches when multiple components a
 
   const subscriptions = getSubscriptionsA()
 
-  expect(Object.keys(subscriptions!).length).toBe(NUM_LIST_ITEMS)
+  expect(countObjectKeys(subscriptions!)).toBe(NUM_LIST_ITEMS)
 
   expect(actionTypes).toEqual([
     'api/config/middlewareRegistered',
