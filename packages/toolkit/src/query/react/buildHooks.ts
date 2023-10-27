@@ -53,6 +53,10 @@ import { UNINITIALIZED_VALUE } from './constants'
 import { useShallowStableValue } from './useShallowStableValue'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import {
+  InternalMiddlewareState,
+  SubscriptionSelectors,
+} from '../core/buildMiddleware/types'
 
 // Copy-pasted from React-Redux
 export const useIsomorphicLayoutEffect =
@@ -681,6 +685,27 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         Definitions
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
+      const subscriptionSelectorsRef = useRef<SubscriptionSelectors>()
+      if (!subscriptionSelectorsRef.current) {
+        const returnedValue = dispatch(
+          api.internalActions.internal_getRTKQSubscriptions()
+        )
+
+        if (process.env.NODE_ENV !== 'production') {
+          if (
+            typeof returnedValue !== 'object' ||
+            typeof returnedValue?.type === 'string'
+          ) {
+            throw new Error(
+              `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
+    You must add the middleware for RTK-Query to function correctly!`
+            )
+          }
+        }
+
+        subscriptionSelectorsRef.current =
+          returnedValue as unknown as SubscriptionSelectors
+      }
       const stableArg = useStableQueryArgs(
         skip ? skipToken : arg,
         // Even if the user provided a per-endpoint `serializeQueryArgs` with
@@ -704,28 +729,15 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       let { queryCacheKey, requestId } = promiseRef.current || {}
 
-      // HACK Because the latest state is in the middleware, we actually
-      // dispatch an action that will be intercepted and returned.
+      // HACK We've saved the middleware subscription lookup callbacks into a ref,
+      // so we can directly check here if the subscription exists for this query.
       let currentRenderHasSubscription = false
       if (queryCacheKey && requestId) {
-        // This _should_ return a boolean, even if the types don't line up
-        const returnedValue = dispatch(
-          api.internalActions.internal_probeSubscription({
+        currentRenderHasSubscription =
+          subscriptionSelectorsRef.current.isRequestSubscribed(
             queryCacheKey,
-            requestId,
-          })
-        )
-
-        if (process.env.NODE_ENV !== 'production') {
-          if (typeof returnedValue !== 'boolean') {
-            throw new Error(
-              `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
-    You must add the middleware for RTK-Query to function correctly!`
-            )
-          }
-        }
-
-        currentRenderHasSubscription = !!returnedValue
+            requestId
+          )
       }
 
       const subscriptionRemoved =

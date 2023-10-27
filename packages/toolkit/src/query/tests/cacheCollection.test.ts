@@ -6,6 +6,7 @@ import {
   THIRTY_TWO_BIT_MAX_INT,
   THIRTY_TWO_BIT_MAX_TIMER_SECONDS,
 } from '../core/buildMiddleware/cacheCollection'
+import { countObjectKeys } from '../utils/countObjectKeys'
 
 beforeAll(() => {
   vi.useFakeTimers()
@@ -177,10 +178,10 @@ function storeForApi<
   let hadQueries = false
   store.subscribe(() => {
     const queryState = store.getState().api.queries
-    if (hadQueries && Object.keys(queryState).length === 0) {
+    if (hadQueries && countObjectKeys(queryState) === 0) {
       onCleanup()
     }
-    hadQueries = hadQueries || Object.keys(queryState).length > 0
+    hadQueries = hadQueries || countObjectKeys(queryState) > 0
   })
   return { api, store }
 }

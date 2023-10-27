@@ -1,11 +1,12 @@
 // tests for "cleanup-after-unsubscribe" behaviour
 import { vi } from 'vitest'
-import React, { Profiler, ProfilerOnRenderCallback } from 'react'
+import React from 'react'
 
 import { createListenerMiddleware } from '@reduxjs/toolkit'
 import { createApi, QueryStatus } from '@reduxjs/toolkit/query/react'
 import { render, waitFor, act, screen } from '@testing-library/react'
 import { setupApiStore } from './helpers'
+import { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
 const tick = () => new Promise((res) => setImmediate(res))
 
@@ -159,17 +160,25 @@ test('Minimizes the number of subscription dispatches when multiple components a
     withoutTestLifecycles: true,
   })
 
-  let getSubscriptionsA = () =>
-    storeRef.store.getState().api.subscriptions['a(undefined)']
-
   let actionTypes: unknown[] = []
 
   listenerMiddleware.startListening({
     predicate: () => true,
     effect: (action) => {
+      if (
+        action.type.includes('subscriptionsUpdated') ||
+        action.type.includes('internal_')
+      ) {
+        return
+      }
+
       actionTypes.push(action.type)
     },
   })
+
+  const { getSubscriptionCount } = storeRef.store.dispatch(
+    api.internalActions.internal_getRTKQSubscriptions()
+  ) as unknown as SubscriptionSelectors
 
   const NUM_LIST_ITEMS = 1000
 
@@ -194,15 +203,11 @@ test('Minimizes the number of subscription dispatches when multiple components a
     return screen.getAllByText(/42/).length > 0
   })
 
-  const subscriptions = getSubscriptionsA()
-
-  expect(Object.keys(subscriptions!).length).toBe(NUM_LIST_ITEMS)
+  expect(getSubscriptionCount('a(undefined)')).toBe(NUM_LIST_ITEMS)
 
   expect(actionTypes).toEqual([
     'api/config/middlewareRegistered',
     'api/executeQuery/pending',
-    'api/internalSubscriptions/subscriptionsUpdated',
     'api/executeQuery/fulfilled',
-    'api/internalSubscriptions/subscriptionsUpdated',
   ])
 }, 25000)

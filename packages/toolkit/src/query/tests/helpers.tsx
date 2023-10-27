@@ -182,6 +182,11 @@ ${expectedOutput}
 
 export const actionsReducer = {
   actions: (state: UnknownAction[] = [], action: UnknownAction) => {
+    // As of 2.0-beta.4, we are going to ignore all `subscriptionsUpdated` actions in tests
+    if (action.type.includes('subscriptionsUpdated')) {
+      return state
+    }
+
     return [...state, action]
   },
 }
