@@ -266,7 +266,9 @@ export function buildInitiate({
   function middlewareWarning(dispatch: Dispatch) {
     if (process.env.NODE_ENV !== 'production') {
       if ((middlewareWarning as any).triggered) return
-      const returnedValue = dispatch(api.internalActions.getRTKQInternalState())
+      const returnedValue = dispatch(
+        api.internalActions.internal_getRTKQSubscriptions()
+      )
 
       ;(middlewareWarning as any).triggered = true
 

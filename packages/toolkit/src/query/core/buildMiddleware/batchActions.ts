@@ -1,13 +1,11 @@
-import type { InternalHandlerBuilder, InternalMiddlewareState } from './types'
+import type { InternalHandlerBuilder, SubscriptionSelectors } from './types'
 import type { SubscriptionState } from '../apiState'
 import { produceWithPatches } from 'immer'
 import type { Action } from '@reduxjs/toolkit'
+import { countObjectKeys } from '../../utils/countObjectKeys'
 
 export const buildBatchedActionsHandler: InternalHandlerBuilder<
-  [
-    actionShouldContinue: boolean,
-    returnValue: InternalMiddlewareState | boolean
-  ]
+  [actionShouldContinue: boolean, returnValue: SubscriptionSelectors | boolean]
 > = ({ api, queryThunk, internalState }) => {
   const subscriptionsPrefix = `${api.reducerPath}/subscriptions`
 
@@ -82,12 +80,29 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     return mutated
   }
 
+  const getSubscriptions = () => internalState.currentSubscriptions
+  const getSubscriptionCount = (queryCacheKey: string) => {
+    const subscriptions = getSubscriptions()
+    const subscriptionsForQueryArg = subscriptions[queryCacheKey] ?? {}
+    return countObjectKeys(subscriptionsForQueryArg)
+  }
+  const isRequestSubscribed = (queryCacheKey: string, requestId: string) => {
+    const subscriptions = getSubscriptions()
+    return !!subscriptions?.[queryCacheKey]?.[requestId]
+  }
+
+  const subscriptionSelectors: SubscriptionSelectors = {
+    getSubscriptions,
+    getSubscriptionCount,
+    isRequestSubscribed,
+  }
+
   return (
     action,
     mwApi
   ): [
     actionShouldContinue: boolean,
-    result: InternalMiddlewareState | boolean
+    result: SubscriptionSelectors | boolean
   ] => {
     if (!previousSubscriptions) {
       // Initialize it the first time this handler runs
@@ -106,8 +121,8 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     // We return the internal state reference so that hooks
     // can do their own checks to see if they're still active.
     // It's stupid and hacky, but it does cut down on some dispatch calls.
-    if (api.internalActions.getRTKQInternalState.match(action)) {
-      return [false, internalState]
+    if (api.internalActions.internal_getRTKQSubscriptions.match(action)) {
+      return [false, subscriptionSelectors]
     }
 
     // Update subscription data based on this action

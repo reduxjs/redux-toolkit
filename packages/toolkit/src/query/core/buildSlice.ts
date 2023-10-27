@@ -443,7 +443,7 @@ export function buildSlice({
       ) {
         // Dummy
       },
-      getRTKQInternalState() {},
+      internal_getRTKQSubscriptions() {},
     },
   })
 

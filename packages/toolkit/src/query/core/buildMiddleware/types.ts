@@ -32,6 +32,12 @@ export interface InternalMiddlewareState {
   currentSubscriptions: SubscriptionState
 }
 
+export interface SubscriptionSelectors {
+  getSubscriptions: () => SubscriptionState
+  getSubscriptionCount: (queryCacheKey: string) => number
+  isRequestSubscribed: (queryCacheKey: string, requestId: string) => boolean
+}
+
 export interface BuildMiddlewareInput<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,

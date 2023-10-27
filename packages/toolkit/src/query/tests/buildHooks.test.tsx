@@ -37,7 +37,7 @@ import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiSt
 import type { SerializedError } from '@reduxjs/toolkit'
 import { createListenerMiddleware, configureStore } from '@reduxjs/toolkit'
 import { delay } from '../../utils'
-import type { InternalMiddlewareState } from '../core/buildMiddleware/types'
+import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 import { countObjectKeys } from '../utils/countObjectKeys'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
@@ -140,18 +140,8 @@ const storeRef = setupApiStore(
   }
 )
 
-function getSubscriptions() {
-  const internalState = storeRef.store.dispatch(
-    api.internalActions.getRTKQInternalState()
-  ) as unknown as InternalMiddlewareState
-  return internalState?.currentSubscriptions ?? {}
-}
-
-function getSubscriptionCount(key: string) {
-  const subscriptions = getSubscriptions()
-  const subscriptionsForQueryArg = subscriptions[key] ?? {}
-  return countObjectKeys(subscriptionsForQueryArg)
-}
+let getSubscriptions: SubscriptionSelectors['getSubscriptions']
+let getSubscriptionCount: SubscriptionSelectors['getSubscriptionCount']
 
 beforeEach(() => {
   actions = []
@@ -161,6 +151,9 @@ beforeEach(() => {
       actions.push(action)
     },
   })
+  ;({ getSubscriptions, getSubscriptionCount } = storeRef.store.dispatch(
+    api.internalActions.internal_getRTKQSubscriptions()
+  ) as unknown as SubscriptionSelectors)
 })
 
 afterEach(() => {

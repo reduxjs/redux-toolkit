@@ -1,5 +1,5 @@
 import { createApi } from '../core'
-import { InternalMiddlewareState } from '../core/buildMiddleware/types'
+import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 import { fakeBaseQuery } from '../fakeBaseQuery'
 import { setupApiStore } from './helpers'
 
@@ -25,16 +25,14 @@ const api = createApi({
 
 const storeRef = setupApiStore(api)
 
-function getSubscriptions() {
-  const internalState = storeRef.store.dispatch(
-    api.internalActions.getRTKQInternalState()
-  ) as unknown as InternalMiddlewareState
-  return internalState?.currentSubscriptions ?? {}
-}
-function isRequestSubscribed(key: string, requestId: string) {
-  const subscriptions = getSubscriptions()
-  return !!subscriptions?.[key]?.[requestId]
-}
+let getSubscriptions: SubscriptionSelectors['getSubscriptions']
+let isRequestSubscribed: SubscriptionSelectors['isRequestSubscribed']
+
+beforeEach(() => {
+  ;({ getSubscriptions, isRequestSubscribed } = storeRef.store.dispatch(
+    api.internalActions.internal_getRTKQSubscriptions()
+  ) as unknown as SubscriptionSelectors)
+})
 
 test('multiple synchonrous initiate calls with pre-existing cache entry', async () => {
   const { store, api } = storeRef

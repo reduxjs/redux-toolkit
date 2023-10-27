@@ -53,7 +53,10 @@ import { UNINITIALIZED_VALUE } from './constants'
 import { useShallowStableValue } from './useShallowStableValue'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import { InternalMiddlewareState } from '../core/buildMiddleware/types'
+import {
+  InternalMiddlewareState,
+  SubscriptionSelectors,
+} from '../core/buildMiddleware/types'
 
 // Copy-pasted from React-Redux
 export const useIsomorphicLayoutEffect =
@@ -682,10 +685,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         Definitions
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
-      const internalStateRef = useRef<InternalMiddlewareState | null>(null)
-      if (!internalStateRef.current) {
+      const subscriptionSelectorsRef = useRef<SubscriptionSelectors>()
+      if (!subscriptionSelectorsRef.current) {
         const returnedValue = dispatch(
-          api.internalActions.getRTKQInternalState()
+          api.internalActions.internal_getRTKQSubscriptions()
         )
 
         if (process.env.NODE_ENV !== 'production') {
@@ -700,8 +703,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           }
         }
 
-        internalStateRef.current =
-          returnedValue as unknown as InternalMiddlewareState
+        subscriptionSelectorsRef.current =
+          returnedValue as unknown as SubscriptionSelectors
       }
       const stableArg = useStableQueryArgs(
         skip ? skipToken : arg,
@@ -726,15 +729,15 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       let { queryCacheKey, requestId } = promiseRef.current || {}
 
-      // HACK We've saved the middleware internal state into a ref,
-      // and that state object gets directly mutated. But, we've _got_ a reference
-      // to it locally, so we can just read the data directly here in the hook.
+      // HACK We've saved the middleware subscription lookup callbacks into a ref,
+      // so we can directly check here if the subscription exists for this query.
       let currentRenderHasSubscription = false
       if (queryCacheKey && requestId) {
         currentRenderHasSubscription =
-          !!internalStateRef.current?.currentSubscriptions?.[queryCacheKey]?.[
+          subscriptionSelectorsRef.current.isRequestSubscribed(
+            queryCacheKey,
             requestId
-          ]
+          )
       }
 
       const subscriptionRemoved =
