@@ -15,7 +15,6 @@ export {
   createSelector,
   createSelectorCreator,
   defaultMemoize,
-  autotrackMemoize,
   weakMapMemoize,
 } from 'reselect'
 export type {
