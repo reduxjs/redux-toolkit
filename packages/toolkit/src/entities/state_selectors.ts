@@ -1,14 +1,10 @@
-import type { CreateSelectorFunction, Selector } from 'reselect'
+import type { CreateSelectorFunction, Selector, createSelector } from 'reselect'
 import { createDraftSafeSelector } from '../createDraftSafeSelector'
 import type { EntityState, EntitySelectors, EntityId } from './models'
 
-export type AnyCreateSelectorFunction = CreateSelectorFunction<
-  (...args: unknown[]) => unknown,
-  <F extends (...args: any[]) => any>(func: F) => F
->
-
 export interface GetSelectorsOptions {
-  createSelector?: AnyCreateSelectorFunction
+  // TODO Review if this causes issues or if we can go back to using `CreateSelectorFunction`
+  createSelector?: typeof createSelector
 }
 
 export function createSelectorsFactory<T, Id extends EntityId>() {
