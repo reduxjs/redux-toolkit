@@ -101,7 +101,7 @@
     "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
     "lint": "eslint src examples",
-    "test": "vitest",
+    "test": "NODE_OPTIONS=--no-network-family-autoselection vitest",
     "type-tests": "yarn tsc -p src/tests/tsconfig.typetests.json && yarn tsc -p src/query/tests/tsconfig.typetests.json",
     "prepack": "yarn build"
   },
