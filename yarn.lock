@@ -7023,7 +7023,7 @@ __metadata:
     query-string: ^7.0.1
     redux: ^5.0.0-beta.0
     redux-thunk: ^3.0.0-beta.0
-    reselect: ^5.0.0-alpha.2
+    reselect: ^5.0.0-beta.0
     rimraf: ^3.0.2
     size-limit: ^4.11.0
     tslib: ^1.10.0
@@ -25432,10 +25432,10 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"reselect@npm:^5.0.0-alpha.2":
-  version: 5.0.0-alpha.2
-  resolution: "reselect@npm:5.0.0-alpha.2"
-  checksum: c47b66999800e1297721cbc4b2464b520fade9823c598d578759c9fba3eb6be03b184e13c20f30820cc18fe2688fc9fb4475f83e59d8f2347aa0d591e465637d
+"reselect@npm:^5.0.0-beta.0":
+  version: 5.0.0-beta.0
+  resolution: "reselect@npm:5.0.0-beta.0"
+  checksum: 462363aa730af93e396ff0d885f88fb8c43572b07f51c2a890d37f27edc3afecd300085916533e336142b3883f8532f35b5b1a2aaa1a70e9909aea48e5d3b98f
   languageName: node
   linkType: hard
 

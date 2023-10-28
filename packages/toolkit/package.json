@@ -115,7 +115,7 @@
     "immer": "^10.0.2",
     "redux": "^5.0.0-beta.0",
     "redux-thunk": "^3.0.0-beta.0",
-    "reselect": "^5.0.0-alpha.2"
+    "reselect": "^5.0.0-beta.0"
   },
   "peerDependencies": {
     "react": "^16.9.0 || ^17.0.0 || ^18",
