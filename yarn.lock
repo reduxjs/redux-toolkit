@@ -7034,7 +7034,7 @@ __metadata:
     yargs: ^15.3.1
   peerDependencies:
     react: ^16.9.0 || ^17.0.0 || ^18
-    react-redux: ^7.2.1 || ^8.0.2 || ^9.0.0-alpha.1
+    react-redux: ^7.2.1 || ^8.0.2 || ^9.0.0-beta.0
   peerDependenciesMeta:
     react:
       optional: true
