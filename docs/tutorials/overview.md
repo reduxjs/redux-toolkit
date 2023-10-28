@@ -64,7 +64,7 @@ The [Redux Essentials tutorial](https://redux.js.org/tutorials/essentials/part-1
 
 ## RTK Query Video Course
 
-If you prefer a video course, you can [watch this RTK Query video course for free at Egghead](https://egghead.io/courses/rtk-query-basics-query-endpoints-data-flow-and-typescript-57ea3c43?af=7pnhj6) or take a look at the first lesson right here:
+If you prefer a video course, you can [watch this RTK Query video course by Lenz Weber-Tronic, the creator of RTK Query, for free at Egghead](https://egghead.io/courses/rtk-query-basics-query-endpoints-data-flow-and-typescript-57ea3c43?af=7pnhj6) or take a look at the first lesson right here:
 
 <div style={{position:"relative",paddingTop:"56.25%"}}>
   <iframe 
