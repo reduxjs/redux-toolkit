@@ -51,7 +51,7 @@ describe('buildSlice', () => {
       api: {
         config: {
           focused: true,
-          invalidationBehavior: "immediately",
+          invalidationBehavior: 'delayed',
           keepUnusedDataFor: 60,
           middlewareRegistered: true,
           online: true,
