@@ -152,6 +152,16 @@ export interface CreateApiOptions<
    */
   refetchOnReconnect?: boolean
   /**
+   * Defaults to `'immediately'`. This setting allows you to control when tags are invalidated after a mutation.
+   *
+   * - `'immediately'`: Queries are invalidated instantly after the mutation finished, even if they are running.
+   *   If the query provides tags that were invalidated while it ran, it won't be re-fetched.
+   * - `'delayed'`: Invalidation only happens after all queries and mutations are settled.
+   *   This ensures that queries are always invalidated correctly and automatically "batches" invalidations of concurrent mutations.
+   *   Note that if you constantly have some queries (or mutations) running, this can delay tag invalidations indefinitely.
+   */
+  invalidationBehavior?: 'delayed' | 'immediately'
+  /**
    * A function that is passed every dispatched action. If this returns something other than `undefined`,
    * that return value will be used to rehydrate fulfilled & errored queries.
    *
@@ -255,6 +265,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       refetchOnMountOrArgChange: false,
       refetchOnFocus: false,
       refetchOnReconnect: false,
+      invalidationBehavior: 'delayed',
       ...options,
       extractRehydrationInfo,
       serializeQueryArgs(queryArgsApi) {

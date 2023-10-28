@@ -452,6 +452,7 @@ export const coreModule = (): Module<CoreModule> => ({
       refetchOnMountOrArgChange,
       refetchOnFocus,
       refetchOnReconnect,
+      invalidationBehavior,
     },
     context
   ) {
@@ -514,6 +515,7 @@ export const coreModule = (): Module<CoreModule> => ({
         refetchOnMountOrArgChange,
         keepUnusedDataFor,
         reducerPath,
+        invalidationBehavior,
       },
     })
 
