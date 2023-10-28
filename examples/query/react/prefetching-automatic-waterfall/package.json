@@ -10,7 +10,7 @@
     "@emotion/react": "^11.4.0",
     "@emotion/styled": "^11.3.0",
     "@mswjs/data": "^0.3.0",
-    "@reduxjs/toolkit": "^1.6.0-rc.1",
+    "@reduxjs/toolkit": ">=2.0.0-beta.3 || >=2.0.0-rc.0 || ^2.0.0",
     "faker": "^5.5.3",
     "framer-motion": "^2.9.5",
     "msw": "^0.40.2",
