@@ -9,7 +9,6 @@ type AnyCreateSelectorFunction = CreateSelectorFunction<
 >
 
 export interface GetSelectorsOptions {
-  // TODO Review if this causes issues or if we can go back to using `CreateSelectorFunction`
   createSelector?: AnyCreateSelectorFunction
 }
 
