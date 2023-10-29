@@ -418,7 +418,9 @@ export type SliceCaseReducers<State> =
  * The type describing a slice's `selectors` option.
  */
 export type SliceSelectors<State> = {
-  [K: string]: (sliceState: State, ...args: any[]) => any
+  [K: string]:
+    | ((sliceState: State, ...args: any[]) => any)
+    | { factory: () => (sliceState: State, ...args: any[]) => any }
 }
 
 type SliceActionType<
@@ -517,10 +519,13 @@ type SliceDefinedSelectors<
   Selectors extends SliceSelectors<State>,
   RootState
 > = {
-  [K in keyof Selectors as string extends K ? never : K]: (
-    rootState: RootState,
-    ...args: Tail<Parameters<Selectors[K]>>
-  ) => ReturnType<Selectors[K]>
+  [K in keyof Selectors as string extends K ? never : K]: Selectors[K] extends {
+    factory: () => (state: State, ...args: infer Args) => infer Result
+  }
+    ? (rootState: RootState, ...args: Args) => Result
+    : Selectors[K] extends (state: State, ...args: infer Args) => infer Result
+    ? (rootState: RootState, ...args: Args) => Result
+    : never
 }
 
 /**
@@ -666,14 +671,6 @@ export function createSlice<
 
   const selectSelf = (state: State) => state
 
-  const injectedSelectorCache = new WeakMap<
-    Slice<State, CaseReducers, Name, ReducerPath, Selectors>,
-    WeakMap<
-      (rootState: any) => State | undefined,
-      Record<string, (rootState: any) => any>
-    >
-  >()
-
   let _reducer: ReducerWithInitialState<State>
 
   const slice: Slice<State, CaseReducers, Name, ReducerPath, Selectors> = {
@@ -692,35 +689,30 @@ export function createSlice<
       return _reducer.getInitialState()
     },
     getSelectors(selectState: (rootState: any) => State = selectSelf) {
-      let selectorCache = injectedSelectorCache.get(this)
-      if (!selectorCache) {
-        selectorCache = new WeakMap()
-        injectedSelectorCache.set(this, selectorCache)
-      }
-      let cached = selectorCache.get(selectState)
-      if (!cached) {
-        cached = {}
-        for (const [name, selector] of Object.entries(
-          options.selectors ?? {}
-        )) {
-          cached[name] = (rootState: any, ...args: any[]) => {
-            let sliceState = selectState(rootState)
-            if (typeof sliceState === 'undefined') {
-              // check if injectInto has been called
-              if (this !== slice) {
-                sliceState = this.getInitialState()
-              } else if (process.env.NODE_ENV !== 'production') {
-                throw new Error(
-                  'selectState returned undefined for an uninjected slice reducer'
-                )
-              }
+      const result: Record<string, (rootState: any) => any> = {}
+      for (const [name, maybeSelector] of Object.entries(
+        options.selectors ?? {}
+      )) {
+        const selector =
+          typeof maybeSelector === 'object'
+            ? maybeSelector.factory()
+            : maybeSelector
+        result[name] = (rootState: any, ...args: any[]) => {
+          let sliceState = selectState(rootState)
+          if (typeof sliceState === 'undefined') {
+            // check if injectInto has been called
+            if (this !== slice) {
+              sliceState = this.getInitialState()
+            } else if (process.env.NODE_ENV !== 'production') {
+              throw new Error(
+                'selectState returned undefined for an uninjected slice reducer'
+              )
             }
-            return selector(sliceState, ...args)
           }
+          return selector(sliceState, ...args)
         }
-        selectorCache.set(selectState, cached)
       }
-      return cached as any
+      return result as any
     },
     get selectors() {
       return this.getSelectors(defaultSelectSlice)
