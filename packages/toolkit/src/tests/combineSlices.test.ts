@@ -33,6 +33,7 @@ const api = {
       subscriptions: {},
       config: {
         reducerPath: 'api',
+        invalidationBehavior: 'delayed',
         online: false,
         focused: false,
         keepUnusedDataFor: 60,

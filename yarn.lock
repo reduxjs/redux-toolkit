@@ -6983,7 +6983,7 @@ __metadata:
     query-string: "npm:^7.0.1"
     redux: "npm:^5.0.0-beta.0"
     redux-thunk: "npm:^3.0.0-beta.0"
-    reselect: "npm:^5.0.0-alpha.2"
+    reselect: "npm:^5.0.0-beta.0"
     rimraf: "npm:^3.0.2"
     size-limit: "npm:^4.11.0"
     tslib: "npm:^1.10.0"
@@ -6994,7 +6994,7 @@ __metadata:
     yargs: "npm:^15.3.1"
   peerDependencies:
     react: ^16.9.0 || ^17.0.0 || ^18
-    react-redux: ^7.2.1 || ^8.0.2 || ^9.0.0-alpha.1
+    react-redux: ^7.2.1 || ^8.0.2 || ^9.0.0-beta.0
   peerDependenciesMeta:
     react:
       optional: true
@@ -25387,10 +25387,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"reselect@npm:^5.0.0-alpha.2":
-  version: 5.0.0-alpha.2
-  resolution: "reselect@npm:5.0.0-alpha.2"
-  checksum: c19ec20a4e45d4a725d9348a4c7c3eba9b2fc41f6f29cb733a067be253bdad84bd767b8fceff97c57d0940914c677346a22a6adcf2d95ae9ce37cd38a3ebf0e6
+"reselect@npm:^5.0.0-beta.0":
+  version: 5.0.0-beta.0
+  resolution: "reselect@npm:5.0.0-beta.0"
+  checksum: 128b270d206033662a4a41722b937fb2960177dd844f71e1a112e4b8c3435b2c3235eecfcb38d8172a5e6dc4ea72a6fc12d40f713db239fb25a7b8c02e04033e
   languageName: node
   linkType: hard
 
