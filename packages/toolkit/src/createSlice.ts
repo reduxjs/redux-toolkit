@@ -553,6 +553,10 @@ function getType(slice: string, actionKey: string): string {
   return `${slice}/${actionKey}`
 }
 
+interface CreateSliceConfig {
+  createAsyncThunk?: typeof createAsyncThunk
+}
+
 /**
  * A function that accepts an initial state, an object full of reducer
  * functions, and a "slice name", and automatically generates
@@ -561,13 +565,14 @@ function getType(slice: string, actionKey: string): string {
  *
  * @public
  */
-export function createSlice<
+function createSliceBase<
   State,
   CaseReducers extends SliceCaseReducers<State>,
   Name extends string,
   Selectors extends SliceSelectors<State>,
   ReducerPath extends string = Name
 >(
+  this: CreateSliceConfig,
   options: CreateSliceOptions<State, CaseReducers, Name, ReducerPath, Selectors>
 ): Slice<State, CaseReducers, Name, ReducerPath, Selectors> {
   const { name, reducerPath = name as unknown as ReducerPath } = options
@@ -594,6 +599,7 @@ export function createSlice<
   const reducerNames = Object.keys(reducers)
 
   const context: ReducerHandlingContext<State> = {
+    ...this,
     sliceCaseReducersByName: {},
     sliceCaseReducersByType: {},
     actionCreators: {},
@@ -741,7 +747,7 @@ export function createSlice<
   return slice
 }
 
-interface ReducerHandlingContext<State> {
+interface ReducerHandlingContext<State> extends CreateSliceConfig {
   sliceCaseReducersByName: Record<
     string,
     | CaseReducer<State, any>
@@ -850,7 +856,10 @@ function handleThunkCaseReducerDefinition<State>(
 ) {
   const { payloadCreator, fulfilled, pending, rejected, settled, options } =
     reducerDefinition
-  const thunk = createAsyncThunk(type, payloadCreator, options as any)
+    if (!context.createAsyncThunk) {
+      throw new Error("Cannot call `create.asyncThunk` on `pureCreateSlice`")
+    }
+  const thunk = context.createAsyncThunk(type, payloadCreator, options as any)
   context.actionCreators[reducerName] = thunk
 
   if (fulfilled) {
@@ -875,3 +884,6 @@ function handleThunkCaseReducerDefinition<State>(
 }
 
 function noop() {}
+
+export const createSlice = createSliceBase.bind({ createAsyncThunk })
+export const pureCreateSlice = createSliceBase.bind({})
