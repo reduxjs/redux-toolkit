@@ -25,8 +25,7 @@ export function createSelectorsFactory<T, Id extends EntityId>() {
     selectState?: (state: V) => EntityState<T, Id>,
     options: GetSelectorsOptions = {}
   ): EntitySelectors<T, any, Id> {
-    let { createSelector } = options
-    createSelector ??= createDraftSafeSelector
+    const { createSelector = createDraftSafeSelector as AnyCreateSelectorFunction } = options
 
     const selectIds = (state: EntityState<T, Id>) => state.ids
 
