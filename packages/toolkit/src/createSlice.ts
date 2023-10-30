@@ -673,6 +673,11 @@ export function createSlice<
 
   let _reducer: ReducerWithInitialState<State>
 
+  const selectorCache = new WeakMap<
+    Slice,
+    Record<string, (rootState: any) => any>
+  >()
+
   const slice: Slice<State, CaseReducers, Name, ReducerPath, Selectors> = {
     name,
     reducerPath,
@@ -715,7 +720,12 @@ export function createSlice<
       return result as any
     },
     get selectors() {
-      return this.getSelectors(defaultSelectSlice)
+      let cached = selectorCache.get(this)
+      if (!cached) {
+        cached = this.getSelectors(defaultSelectSlice)
+        selectorCache.set(this, cached)
+      }
+      return cached as any
     },
     injectInto(injectable, { reducerPath: pathOpt, ...config } = {}) {
       const reducerPath = pathOpt ?? this.reducerPath
@@ -725,7 +735,12 @@ export function createSlice<
         ...this,
         reducerPath,
         get selectors() {
-          return this.getSelectors(selectSlice)
+          let cached = selectorCache.get(this)
+          if (!cached) {
+            cached = (this as Slice).getSelectors(selectSlice)
+            selectorCache.set(this, cached)
+          }
+          return cached
         },
       } as any
     },
