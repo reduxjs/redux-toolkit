@@ -533,7 +533,7 @@ const value = actionCreators.anyKey
     selectors: {
       selectValue: (state) => state.value,
       selectMultiply: (state, multiplier: number) => state.value * multiplier,
-      selectToFixed: (state) => state.value.toFixed(2),
+      selectToFixed: { factory: () => (state) => state.value.toFixed(2) },
     },
   })
 

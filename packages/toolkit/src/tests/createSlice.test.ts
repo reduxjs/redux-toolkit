@@ -485,6 +485,27 @@ describe('createSlice', () => {
       expect(selectSlice(customState)).toBe(slice.getInitialState())
       expect(selectMultiple(customState, 2)).toBe(slice.getInitialState() * 2)
     })
+    it('allows passing a factory to enable returning a new instance every time getSelector is called', () => {
+      let factoryCalled = 0
+      const slice = createSlice({
+        name: 'counter',
+        initialState: 42,
+        reducers: {},
+        selectors: {
+          factorySelector: {
+            factory: () => {
+              const count = ++factoryCalled
+              return () => count
+            },
+          },
+        },
+      })
+      const firstSelector = slice.getSelectors().factorySelector
+      expect(firstSelector(42)).toBe(1)
+      const secondSelector = slice.getSelectors().factorySelector
+      expect(secondSelector(42)).toBe(2)
+      expect(firstSelector(42)).toBe(1)
+    })
   })
   describe('slice injections', () => {
     it('uses injectInto to inject slice into combined reducer', () => {
