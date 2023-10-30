@@ -485,7 +485,7 @@ describe('createSlice', () => {
       expect(selectSlice(customState)).toBe(slice.getInitialState())
       expect(selectMultiple(customState, 2)).toBe(slice.getInitialState() * 2)
     })
-    it('allows passing a factory to enable returning a new instance every time getSelector is called', () => {
+    it('allows passing a factory to enable returning a new instance every time getSelectors is called', () => {
       let factoryCalled = 0
       const slice = createSlice({
         name: 'counter',
@@ -505,6 +505,20 @@ describe('createSlice', () => {
       const secondSelector = slice.getSelectors().factorySelector
       expect(secondSelector(42)).toBe(2)
       expect(firstSelector(42)).toBe(1)
+    })
+    it('caches the result for .selectors', () => {
+      const slice = createSlice({
+        name: 'counter',
+        initialState: 42,
+        reducers: {},
+        selectors: {
+          selectValue: (value) => value,
+        },
+      })
+      expect(slice.selectors.selectValue).toBe(slice.selectors.selectValue)
+      expect(slice.getSelectors().selectValue).not.toBe(
+        slice.getSelectors().selectValue
+      )
     })
   })
   describe('slice injections', () => {
