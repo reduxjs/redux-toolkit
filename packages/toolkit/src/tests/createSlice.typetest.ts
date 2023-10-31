@@ -840,3 +840,12 @@ const value = actionCreators.anyKey
   expectType<ActionCreatorWithPayload<string>>(wrappedSlice.actions.success)
   expectType<ActionCreatorWithoutPayload<string>>(wrappedSlice.actions.magic)
 }
+
+/**
+ * Test: selectSlice
+ */
+{
+  expectType<number>(counterSlice.selectSlice({ counter: 0 }))
+  // @ts-expect-error
+  counterSlice.selectSlice({})
+}

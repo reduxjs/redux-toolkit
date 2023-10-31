@@ -495,7 +495,6 @@ describe('createSlice', () => {
           increment: (state) => ++state,
         },
         selectors: {
-          selectSlice: (state) => state,
           selectMultiple: (state, multiplier: number) => state * multiplier,
         },
       })
@@ -513,13 +512,13 @@ describe('createSlice', () => {
       const injectedSlice = slice.injectInto(combinedReducer)
 
       // selector returns initial state if undefined in real state
-      expect(injectedSlice.selectors.selectSlice(uninjectedState)).toBe(
+      expect(injectedSlice.selectSlice(uninjectedState)).toBe(
         slice.getInitialState()
       )
 
       const injectedState = combinedReducer(undefined, increment())
 
-      expect(injectedSlice.selectors.selectSlice(injectedState)).toBe(
+      expect(injectedSlice.selectSlice(injectedState)).toBe(
         slice.getInitialState() + 1
       )
     })
@@ -532,7 +531,6 @@ describe('createSlice', () => {
           increment: (state) => ++state,
         },
         selectors: {
-          selectSlice: (state) => state,
           selectMultiple: (state, multiplier: number) => state * multiplier,
         },
       })
@@ -551,8 +549,11 @@ describe('createSlice', () => {
 
       const injectedState = combinedReducer(undefined, increment())
 
-      expect(injected.selectors.selectSlice(injectedState)).toBe(
+      expect(injected.selectSlice(injectedState)).toBe(
         slice.getInitialState() + 1
+      )
+      expect(injected.selectors.selectMultiple(injectedState, 2)).toBe(
+        (slice.getInitialState() + 1) * 2
       )
 
       const injected2 = slice.injectInto(combinedReducer, {
@@ -561,8 +562,11 @@ describe('createSlice', () => {
 
       const injected2State = combinedReducer(undefined, increment())
 
-      expect(injected2.selectors.selectSlice(injected2State)).toBe(
+      expect(injected2.selectSlice(injected2State)).toBe(
         slice.getInitialState() + 1
+      )
+      expect(injected2.selectors.selectMultiple(injected2State, 2)).toBe(
+        (slice.getInitialState() + 1) * 2
       )
     })
   })
