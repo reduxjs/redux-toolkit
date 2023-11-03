@@ -15,7 +15,7 @@ import type {
 import { createReducer } from './createReducer'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { ActionFromMatcher, Id, Matcher, Tail } from './tsHelpers'
+import type { Id, Tail } from './tsHelpers'
 import type { InjectConfig } from './combineSlices'
 import type {
   AsyncThunk,
@@ -78,13 +78,14 @@ export interface Slice<
   /**
    * Get localised slice selectors (expects to be called with *just* the slice's state as the first parameter)
    */
-  getSelectors(): Id<SliceDefinedSelectors<State, Selectors, State>>
+  getSelectors(this: this): Id<SliceDefinedSelectors<State, Selectors, State>>
 
   /**
    * Get globalised slice selectors (`selectState` callback is expected to receive first parameter and return slice state)
    */
   getSelectors<RootState>(
-    selectState: (rootState: RootState) => State
+    this: this,
+    selectState: (this: this, rootState: RootState) => State
   ): Id<SliceDefinedSelectors<State, Selectors, RootState>>
 
   /**
@@ -100,6 +101,7 @@ export interface Slice<
    * Inject slice into provided reducer (return value from `combineSlices`), and return injected slice.
    */
   injectInto<NewReducerPath extends string = ReducerPath>(
+    this: this,
     injectable: {
       inject: (
         slice: { reducerPath: string; reducer: Reducer },
@@ -108,6 +110,13 @@ export interface Slice<
     },
     config?: InjectIntoConfig<NewReducerPath>
   ): InjectedSlice<State, CaseReducers, Name, NewReducerPath, Selectors>
+
+  /**
+   * Select the slice state, using the slice's current reducerPath.
+   *
+   * Will throw an error if slice is not found.
+   */
+  selectSlice(this: this, state: { [K in ReducerPath]: State }): State
 }
 
 /**
@@ -134,7 +143,7 @@ interface InjectedSlice<
    * Get globalised slice selectors (`selectState` callback is expected to receive first parameter and return slice state)
    */
   getSelectors<RootState>(
-    selectState: (rootState: RootState) => State | undefined
+    selectState: (this: this, rootState: RootState) => State | undefined
   ): Id<SliceDefinedSelectors<State, Selectors, RootState>>
 
   /**
@@ -149,6 +158,13 @@ interface InjectedSlice<
       { [K in ReducerPath]?: State | undefined }
     >
   >
+
+  /**
+   * Select the slice state, using the slice's current reducerPath.
+   *
+   * Returns initial state if slice is not found.
+   */
+  selectSlice(state: { [K in ReducerPath]?: State | undefined }): State
 }
 
 /**
@@ -665,10 +681,6 @@ export function createSlice<
     })
   }
 
-  const defaultSelectSlice = (
-    rootState: { [K in ReducerPath]: State }
-  ): State => rootState[reducerPath]
-
   const selectSelf = (state: State) => state
 
   let _reducer: ReducerWithInitialState<State>
@@ -703,7 +715,7 @@ export function createSlice<
             ? maybeSelector.factory()
             : maybeSelector
         result[name] = (rootState: any, ...args: any[]) => {
-          let sliceState = selectState(rootState)
+          let sliceState = selectState.call(this, rootState)
           if (typeof sliceState === 'undefined') {
             // check if injectInto has been called
             if (this !== slice) {
@@ -719,10 +731,24 @@ export function createSlice<
       }
       return result as any
     },
+    selectSlice(state) {
+      let sliceState = state[this.reducerPath]
+      if (typeof sliceState === 'undefined') {
+        // check if injectInto has been called
+        if (this !== slice) {
+          sliceState = this.getInitialState()
+        } else if (process.env.NODE_ENV !== 'production') {
+          throw new Error(
+            'selectSlice returned undefined for an uninjected slice reducer'
+          )
+        }
+      }
+      return sliceState
+    },
     get selectors() {
       let cached = selectorCache.get(this)
       if (!cached) {
-        cached = this.getSelectors(defaultSelectSlice)
+        cached = this.getSelectors(this.selectSlice)
         selectorCache.set(this, cached)
       }
       return cached as any
@@ -730,18 +756,9 @@ export function createSlice<
     injectInto(injectable, { reducerPath: pathOpt, ...config } = {}) {
       const reducerPath = pathOpt ?? this.reducerPath
       injectable.inject({ reducerPath, reducer: this.reducer }, config)
-      const selectSlice = (state: any) => state[reducerPath]
       return {
         ...this,
         reducerPath,
-        get selectors() {
-          let cached = selectorCache.get(this)
-          if (!cached) {
-            cached = (this as Slice).getSelectors(selectSlice)
-            selectorCache.set(this, cached)
-          }
-          return cached
-        },
       } as any
     },
   }
