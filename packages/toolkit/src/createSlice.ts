@@ -917,11 +917,11 @@ function wrapSelector<State, NewState, S extends Selector<State>>(
   selectState: Selector<NewState, State>,
   injected?: boolean
 ) {
-  function wrapper(this: Slice, rootState: NewState, ...args: any[]) {
-    let sliceState = selectState.call(this, rootState)
+  function wrapper(rootState: NewState, ...args: any[]) {
+    let sliceState = selectState.call(slice, rootState)
     if (typeof sliceState === 'undefined') {
       if (injected) {
-        sliceState = this.getInitialState()
+        sliceState = slice.getInitialState()
       } else if (process.env.NODE_ENV !== 'production') {
         throw new Error(
           'selectState returned undefined for an uninjected slice reducer'
@@ -931,7 +931,7 @@ function wrapSelector<State, NewState, S extends Selector<State>>(
     return selector(sliceState, ...args)
   }
   wrapper.unwrapped = selector
-  return wrapper.bind(slice) as RemappedSelector<S, NewState>
+  return wrapper as RemappedSelector<S, NewState>
 }
 
 interface ReducerHandlingContext<State> {
