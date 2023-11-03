@@ -1,4 +1,4 @@
-import { isAsyncThunkAction, isFulfilled } from '@reduxjs/toolkit'
+import { isAsyncThunkAction, isFulfilled } from '../rtkImports'
 import type { UnknownAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import type { BaseQueryFn, BaseQueryMeta } from '../../baseQueryTypes'

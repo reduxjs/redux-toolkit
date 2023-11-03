@@ -16,8 +16,7 @@ import type {
   ThunkDispatch,
   ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit'
-import { createSelector } from '@reduxjs/toolkit'
-import { configureStore } from '@reduxjs/toolkit'
+import { createSelector, configureStore, isRejected } from '@reduxjs/toolkit'
 import { createAction, createSlice } from '@reduxjs/toolkit'
 import { expectExactType, expectType, expectUnknown } from './helpers'
 import { castDraft } from 'immer'
@@ -643,18 +642,14 @@ const value = actionCreators.anyKey
       }>()
 
       return {
-        normalReducer: create.reducer(
-          (state, action: PayloadAction<string>) => {
-            expectType<TestState>(state)
-            expectType<string>(action.payload)
-          }
-        ),
-        optionalReducer: create.reducer(
-          (state, action: PayloadAction<string | undefined>) => {
-            expectType<TestState>(state)
-            expectType<string | undefined>(action.payload)
-          }
-        ),
+        normalReducer: create.reducer<string>((state, action) => {
+          expectType<TestState>(state)
+          expectType<string>(action.payload)
+        }),
+        optionalReducer: create.reducer<string | undefined>((state, action) => {
+          expectType<TestState>(state)
+          expectType<string | undefined>(action.payload)
+        }),
         noActionReducer: create.reducer((state) => {
           expectType<TestState>(state)
         }),
@@ -689,6 +684,15 @@ const value = actionCreators.anyKey
               expectType<TestState>(state)
               expectType<TestArg>(action.meta.arg)
               expectType<SerializedError>(action.error)
+            },
+            settled(state, action) {
+              expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
+              if (isRejected(action)) {
+                expectType<SerializedError>(action.error)
+              } else {
+                expectType<TestReturned>(action.payload)
+              }
             },
           }
         ),
@@ -727,6 +731,16 @@ const value = actionCreators.anyKey
               expectType<SerializedError>(action.error)
               expectType<TestReject | undefined>(action.payload)
             },
+            settled(state, action) {
+              expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
+              if (isRejected(action)) {
+                expectType<SerializedError>(action.error)
+                expectType<TestReject | undefined>(action.payload)
+              } else {
+                expectType<TestReturned>(action.payload)
+              }
+            },
           }
         ),
         testPretyped: pretypedAsyncThunk(
@@ -749,6 +763,16 @@ const value = actionCreators.anyKey
               expectType<TestArg>(action.meta.arg)
               expectType<SerializedError>(action.error)
               expectType<TestReject | undefined>(action.payload)
+            },
+            settled(state, action) {
+              expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
+              if (isRejected(action)) {
+                expectType<SerializedError>(action.error)
+                expectType<TestReject | undefined>(action.payload)
+              } else {
+                expectType<TestReturned>(action.payload)
+              }
             },
           }
         ),
@@ -832,7 +856,7 @@ const value = actionCreators.anyKey
         start: create.reducer((state) => {
           state.status = 'loading'
         }),
-        success: create.reducer((state, action: PayloadAction<T>) => {
+        success: create.reducer<T>((state, action) => {
           state.data = castDraft(action.payload)
           state.status = 'finished'
         }),
@@ -858,4 +882,13 @@ const value = actionCreators.anyKey
 
   expectType<ActionCreatorWithPayload<string>>(wrappedSlice.actions.success)
   expectType<ActionCreatorWithoutPayload<string>>(wrappedSlice.actions.magic)
+}
+
+/**
+ * Test: selectSlice
+ */
+{
+  expectType<number>(counterSlice.selectSlice({ counter: 0 }))
+  // @ts-expect-error
+  counterSlice.selectSlice({})
 }

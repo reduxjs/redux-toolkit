@@ -11,6 +11,13 @@ test('handles normal values correctly', () => {
   let state = { value: 1 }
   expect(unsafeSelector(state)).toBe(1)
   expect(draftSafeSelector(state)).toBe(1)
+  expect(draftSafeSelector).toHaveProperty('resultFunc')
+  expect(draftSafeSelector).toHaveProperty('memoizedResultFunc')
+  expect(draftSafeSelector).toHaveProperty('lastResult')
+  expect(draftSafeSelector).toHaveProperty('dependencies')
+  expect(draftSafeSelector).toHaveProperty('recomputations')
+  expect(draftSafeSelector).toHaveProperty('resetRecomputations')
+  expect(draftSafeSelector).toHaveProperty('clearCache')
 
   state = { value: 2 }
   expect(unsafeSelector(state)).toBe(2)

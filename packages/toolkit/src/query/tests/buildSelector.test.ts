@@ -52,4 +52,37 @@ describe('buildSelector', () => {
     const upperTitle = todoTitle.toUpperCase()
     expectExactType<string>(upperTitle)
   })
+  test.skip('selectCachedArgsForQuery typetest', () => {
+    interface Todo {
+      userId: number
+      id: number
+      title: string
+      completed: boolean
+    }
+
+    type Todos = Array<Todo>
+
+    const exampleApi = createApi({
+      reducerPath: 'api',
+      baseQuery: fetchBaseQuery({
+        baseUrl: 'https://jsonplaceholder.typicode.com',
+      }),
+      endpoints: (build) => ({
+        getTodos: build.query<Todos, string>({
+          query: () => '/todos',
+        }),
+      }),
+    })
+
+    const store = configureStore({
+      reducer: {
+        [exampleApi.reducerPath]: exampleApi.reducer,
+        other: () => 1,
+      },
+    })
+
+    expectExactType<string[]>(
+      exampleApi.util.selectCachedArgsForQuery(store.getState(), 'getTodos')
+    )
+  })
 })

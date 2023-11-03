@@ -1,10 +1,10 @@
 import type {
-  EntityState,
   IdSelector,
   Comparer,
   EntityStateAdapter,
   Update,
   EntityId,
+  DraftableEntityState
 } from './models'
 import { createStateOperator } from './state_adapter'
 import { createUnsortedStateAdapter } from './unsorted_state_adapter'
@@ -18,7 +18,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
   selectId: IdSelector<T, Id>,
   sort: Comparer<T>
 ): EntityStateAdapter<T, Id> {
-  type R = EntityState<T, Id>
+  type R = DraftableEntityState<T, Id>
 
   const { removeOne, removeMany, removeAll } =
     createUnsortedStateAdapter(selectId)
@@ -78,7 +78,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     let appliedUpdates = false
 
     for (let update of updates) {
-      const entity: T | undefined = state.entities[update.id]
+      const entity: T | undefined = (state.entities as Record<Id, T>)[update.id]
       if (!entity) {
         continue
       }
@@ -88,8 +88,8 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
       Object.assign(entity, update.changes)
       const newId = selectId(entity)
       if (update.id !== newId) {
-        delete state.entities[update.id]
-        state.entities[newId] = entity
+        delete (state.entities as Record<Id, T>)[update.id];
+        (state.entities as Record<Id, T>)[newId] = entity
       }
     }
 
@@ -133,7 +133,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
   function merge(models: readonly T[], state: R): void {
     // Insert/overwrite all new/updated
     models.forEach((model) => {
-      state.entities[selectId(model)] = model
+      (state.entities as Record<Id, T>)[selectId(model)] = model
     })
 
     resortEntities(state)

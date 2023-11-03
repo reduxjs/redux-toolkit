@@ -9,8 +9,28 @@ hide_title: true
 
 # `configureStore`
 
-A friendly abstraction over the standard Redux `createStore` function that adds good defaults
-to the store setup for a better development experience.
+The standard method for creating a Redux store. It uses the low-level Redux core `createStore` method internally, but wraps that to provide good defaults to the store setup for a better development experience.
+
+## Purpose and Behavior
+
+A standard Redux store setup typically requires multiple pieces of configuration:
+
+- Combining the slice reducers into the root reducer
+- Creating the middleware enhancer, usually with the thunk middleware or other side effects middleware, as well as middleware that might be used for development checks
+- Adding the Redux DevTools enhancer, and composing the enhancers together
+- Calling `createStore`
+
+Legacy Redux usage patterns typically required several dozen lines of copy-pasted boilerplate to achieve this.
+
+Redux Toolkit's `configureStore` simplifies that setup process, by doing all that work for you. One call to `configureStore` will:
+
+- Call `combineReducers` to combine your slices reducers into the root reducer function
+- Add the thunk middleware and called `applyMiddleware`
+- In development, automatically add more middleware to check for common mistakes like accidentally mutating the state
+- Automatically set up the Redux DevTools Extension connection
+- Call `createStore` to create a Redux store using that root reducer and those configuration options
+
+`configureStore` also offers an improved API and usage patterns compared to the original `createStore` by accepting named fields for `reducer`, `preloadedState`, `middleware`, `enhancers`, and `devtools`, as well as much better TS type inference.
 
 ## Parameters
 
@@ -80,17 +100,14 @@ If it is an object of slice reducers, like `{users : usersReducer, posts : posts
 
 ### `middleware`
 
-An optional array of Redux middleware functions, or a callback to customise the array of middleware.
+A callback which will receive `getDefaultMiddleware` as its argument,
+and should return a middleware array.
 
-If this option is provided, it should contain all the middleware functions you
+If this option is provided, it should return all the middleware functions you
 want added to the store. `configureStore` will automatically pass those to `applyMiddleware`.
 
 If not provided, `configureStore` will call `getDefaultMiddleware` and use the
 array of middleware functions it returns.
-
-Where you wish to add onto or customize the default middleware,
-you may pass a callback function that will receive `getDefaultMiddleware` as its argument,
-and should return a middleware array.
 
 For more details on how the `middleware` parameter works and the list of middleware that are added by default, see the
 [`getDefaultMiddleware` docs page](./getDefaultMiddleware.mdx).
@@ -103,7 +120,7 @@ import { configureStore, Tuple } from '@reduxjs/toolkit'
 
 configureStore({
   reducer: rootReducer,
-  middleware: new Tuple(additionalMiddleware, logger),
+  middleware: () => new Tuple(additionalMiddleware, logger),
 })
 ```
 
@@ -158,11 +175,6 @@ If you provide an array, this `applyMiddleware` enhancer will _not_ be used.
 `configureStore` will warn in console if any middleware are provided (or left as default) but not included in the final list of enhancers.
 
 ```ts no-transpile
-// warns - middleware left as default but not included in final enhancers
-configureStore({
-  reducer,
-  enhancers: [offline(offlineConfig)],
-})
 // warns - middleware customised but not included in final enhancers
 configureStore({
   reducer,
@@ -179,8 +191,8 @@ configureStore({
 // also allowed
 configureStore({
   reducer,
-  middleware: [],
-  enhancers: [offline(offlineConfig)],
+  middleware: () => [],
+  enhancers: ()  => [offline(offlineConfig)],
 })
 ```
 
@@ -189,20 +201,22 @@ configureStore({
 :::note Tuple
 Typescript users are required to use a `Tuple` instance (if not using a `getDefaultEnhancer` result, which is already a `Tuple`), for better inference.
 
+```
 import { configureStore, Tuple } from '@reduxjs/toolkit'
 
 configureStore({
 reducer: rootReducer,
-enhancers: new Tuple(offline),
+enhancers: () => new Tuple(offline),
 })
 
-````
+```
 
 Javascript-only users are free to use a plain array if preferred.
 
 :::
 
 ## Usage
+
 ### Basic Example
 
 ```ts
@@ -218,7 +232,7 @@ import rootReducer from './reducers'
 
 const store = configureStore({ reducer: rootReducer })
 // The store now has redux-thunk added and the Redux DevTools Extension is turned on
-````
+```
 
 ### Full Example
 

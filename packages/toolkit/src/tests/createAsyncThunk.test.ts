@@ -37,6 +37,20 @@ describe('createAsyncThunk', () => {
     expect(thunkActionCreator.typePrefix).toBe('testType')
   })
 
+  it('includes a settled matcher', () => {
+    const thunkActionCreator = createAsyncThunk('testType', async () => 42)
+    expect(thunkActionCreator.settled).toEqual(expect.any(Function))
+    expect(thunkActionCreator.settled(thunkActionCreator.pending(''))).toBe(
+      false
+    )
+    expect(
+      thunkActionCreator.settled(thunkActionCreator.rejected(null, ''))
+    ).toBe(true)
+    expect(
+      thunkActionCreator.settled(thunkActionCreator.fulfilled(42, ''))
+    ).toBe(true)
+  })
+
   it('works without passing arguments to the payload creator', async () => {
     const thunkActionCreator = createAsyncThunk('testType', async () => 42)
 
@@ -505,7 +519,7 @@ describe('createAsyncThunk with abortController', () => {
       vi.resetModules()
     })
 
-    test('calling `abort` on an asyncThunk works with a FallbackAbortController if no global abortController is not available', async () => {
+    test('calling a thunk made with createAsyncThunk should fail if no global abortController is not available', async () => {
       const longRunningAsyncThunk = freshlyLoadedModule.createAsyncThunk(
         'longRunning',
         async () => {
@@ -513,14 +527,7 @@ describe('createAsyncThunk with abortController', () => {
         }
       )
 
-      store.dispatch(longRunningAsyncThunk()).abort()
-      // should only log once, even if called twice
-      store.dispatch(longRunningAsyncThunk()).abort()
-
-      expect(getLog().log).toMatchInlineSnapshot(`
-        "This platform does not implement AbortController. 
-        If you want to use the AbortController to react to \`abort\` events, please consider importing a polyfill like 'abortcontroller-polyfill/dist/abortcontroller-polyfill-only'."
-      `)
+      expect(longRunningAsyncThunk()).toThrow('AbortController is not defined')
     })
   })
 })
@@ -982,6 +989,7 @@ describe('meta', () => {
     expect(thunk.fulfilled).toEqual(expectFunction)
     expect(thunk.pending).toEqual(expectFunction)
     expect(thunk.rejected).toEqual(expectFunction)
+    expect(thunk.settled).toEqual(expectFunction)
     expect(thunk.fulfilled.type).toBe('a/fulfilled')
   })
 })

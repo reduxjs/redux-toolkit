@@ -4,7 +4,7 @@ import type {
   Dispatch as ReduxDispatch,
   Middleware,
 } from 'redux'
-import type { ExtractDispatchExtensions } from '@reduxjs/toolkit/dist/tsHelpers'
+import type { TSHelpersExtractDispatchExtensions } from '@reduxjs/toolkit'
 import { createDynamicMiddleware as cDM } from '@reduxjs/toolkit'
 import type { ReactReduxContextValue } from 'react-redux'
 import {
@@ -18,13 +18,13 @@ import type {
   GetDispatch,
   GetState,
   MiddlewareApiConfig,
-} from '@reduxjs/toolkit/dist/dynamicMiddleware/types'
+} from '@reduxjs/toolkit'
 
 export type UseDispatchWithMiddlewareHook<
   Middlewares extends Middleware<any, State, Dispatch>[] = [],
   State = any,
   Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
-> = () => ExtractDispatchExtensions<Middlewares> & Dispatch
+> = () => TSHelpersExtractDispatchExtensions<Middlewares> & Dispatch
 
 export type CreateDispatchWithMiddlewareHook<
   State = any,
@@ -84,9 +84,7 @@ export const createDynamicMiddleware = <
       Middlewares extends Middleware<any, State, Dispatch>[]
     >(...middlewares: Middlewares) {
       instance.addMiddleware(...middlewares)
-      return function useDispatchWithMiddleware() {
-        return useDispatch()
-      }
+      return useDispatch
     }
     createDispatchWithMiddlewareHook.withTypes = () =>
       createDispatchWithMiddlewareHook

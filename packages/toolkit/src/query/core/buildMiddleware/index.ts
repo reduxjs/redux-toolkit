@@ -4,7 +4,7 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import { isAction, createAction } from '@reduxjs/toolkit'
+import { isAction, createAction } from '../rtkImports'
 
 import type {
   EndpointDefinitions,
@@ -71,6 +71,7 @@ export function buildMiddleware<
       >),
       internalState,
       refetchQuery,
+      isThisApiSliceAction,
     }
 
     const handlers = handlerBuilders.map((build) => build(builderArgs))
@@ -93,18 +94,15 @@ export function buildMiddleware<
 
         const stateBefore = mwApi.getState()
 
-        const [actionShouldContinue, hasSubscription] = batchedActionsHandler(
-          action,
-          mwApiWithNext,
-          stateBefore
-        )
+        const [actionShouldContinue, internalProbeResult] =
+          batchedActionsHandler(action, mwApiWithNext, stateBefore)
 
         let res: any
 
         if (actionShouldContinue) {
           res = next(action)
         } else {
-          res = hasSubscription
+          res = internalProbeResult
         }
 
         if (!!mwApi.getState()[reducerPath]) {

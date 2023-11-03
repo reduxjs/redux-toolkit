@@ -1,4 +1,4 @@
-import type { PayloadAction, UnknownAction } from '@reduxjs/toolkit'
+import type { Action, PayloadAction, UnknownAction } from '@reduxjs/toolkit'
 import {
   combineReducers,
   createAction,
@@ -8,7 +8,7 @@ import {
   isRejectedWithValue,
   createNextState,
   prepareAutoBatched,
-} from '@reduxjs/toolkit'
+} from './rtkImports'
 import type {
   QuerySubstateIdentifier,
   QuerySubState,
@@ -28,6 +28,7 @@ import { calculateProvidedByThunk } from './buildThunks'
 import type {
   AssertTagTypes,
   EndpointDefinitions,
+  FullTagDescription,
   QueryDefinition,
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
@@ -124,29 +125,31 @@ export function buildSlice({
         },
         prepare: prepareAutoBatched<QuerySubstateIdentifier>(),
       },
-      queryResultPatched(
-        draft,
-        {
-          payload: { queryCacheKey, patches },
-        }: PayloadAction<
+      queryResultPatched: {
+        reducer(
+          draft,
+          {
+            payload: { queryCacheKey, patches },
+          }: PayloadAction<
+            QuerySubstateIdentifier & { patches: readonly Patch[] }
+          >
+        ) {
+          updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
+            substate.data = applyPatches(substate.data as any, patches.concat())
+          })
+        },
+        prepare: prepareAutoBatched<
           QuerySubstateIdentifier & { patches: readonly Patch[] }
-        >
-      ) {
-        updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
-          substate.data = applyPatches(substate.data as any, patches.concat())
-        })
+        >(),
       },
     },
     extraReducers(builder) {
       builder
         .addCase(queryThunk.pending, (draft, { meta, meta: { arg } }) => {
           const upserting = isUpsertQuery(arg)
-          if (arg.subscribe || upserting) {
-            // only initialize substate if we want to subscribe to it
-            draft[arg.queryCacheKey] ??= {
-              status: QueryStatus.uninitialized,
-              endpointName: arg.endpointName,
-            }
+          draft[arg.queryCacheKey] ??= {
+            status: QueryStatus.uninitialized,
+            endpointName: arg.endpointName,
           }
 
           updateQuerySubstateIfExists(draft, arg.queryCacheKey, (substate) => {
@@ -324,7 +327,42 @@ export function buildSlice({
   const invalidationSlice = createSlice({
     name: `${reducerPath}/invalidation`,
     initialState: initialState as InvalidationState<string>,
-    reducers: {},
+    reducers: {
+      updateProvidedBy: {
+        reducer(
+          draft,
+          action: PayloadAction<{
+            queryCacheKey: QueryCacheKey
+            providedTags: readonly FullTagDescription<string>[]
+          }>
+        ) {
+          const { queryCacheKey, providedTags } = action.payload
+
+          for (const tagTypeSubscriptions of Object.values(draft)) {
+            for (const idSubscriptions of Object.values(tagTypeSubscriptions)) {
+              const foundAt = idSubscriptions.indexOf(queryCacheKey)
+              if (foundAt !== -1) {
+                idSubscriptions.splice(foundAt, 1)
+              }
+            }
+          }
+
+          for (const { type, id } of providedTags) {
+            const subscribedQueries = ((draft[type] ??= {})[
+              id || '__internal_without_id'
+            ] ??= [])
+            const alreadySubscribed = subscribedQueries.includes(queryCacheKey)
+            if (!alreadySubscribed) {
+              subscribedQueries.push(queryCacheKey)
+            }
+          }
+        },
+        prepare: prepareAutoBatched<{
+          queryCacheKey: QueryCacheKey
+          providedTags: readonly FullTagDescription<string>[]
+        }>(),
+      },
+    },
     extraReducers(builder) {
       builder
         .addCase(
@@ -370,27 +408,13 @@ export function buildSlice({
             )
             const { queryCacheKey } = action.meta.arg
 
-            for (const tagTypeSubscriptions of Object.values(draft)) {
-              for (const idSubscriptions of Object.values(
-                tagTypeSubscriptions
-              )) {
-                const foundAt = idSubscriptions.indexOf(queryCacheKey)
-                if (foundAt !== -1) {
-                  idSubscriptions.splice(foundAt, 1)
-                }
-              }
-            }
-
-            for (const { type, id } of providedTags) {
-              const subscribedQueries = ((draft[type] ??= {})[
-                id || '__internal_without_id'
-              ] ??= [])
-              const alreadySubscribed =
-                subscribedQueries.includes(queryCacheKey)
-              if (!alreadySubscribed) {
-                subscribedQueries.push(queryCacheKey)
-              }
-            }
+            invalidationSlice.caseReducers.updateProvidedBy(
+              draft,
+              invalidationSlice.actions.updateProvidedBy({
+                queryCacheKey,
+                providedTags,
+              })
+            )
           }
         )
     },
@@ -419,12 +443,7 @@ export function buildSlice({
       ) {
         // Dummy
       },
-      internal_probeSubscription(
-        d,
-        a: PayloadAction<{ queryCacheKey: string; requestId: string }>
-      ) {
-        // dummy
-      },
+      internal_getRTKQSubscriptions() {},
     },
   })
 
@@ -494,6 +513,7 @@ export function buildSlice({
     ...subscriptionSlice.actions,
     ...internalSubscriptionsSlice.actions,
     ...mutationSlice.actions,
+    ...invalidationSlice.actions,
     resetApiState,
   }
 

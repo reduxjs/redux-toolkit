@@ -1,5 +1,5 @@
 import { joinUrls } from './utils'
-import { isPlainObject } from '@reduxjs/toolkit'
+import { isPlainObject } from './core/rtkImports'
 import type { BaseQueryApi, BaseQueryFn } from './baseQueryTypes'
 import type { MaybePromise, Override } from './tsHelpers'
 
@@ -266,7 +266,7 @@ export function fetchBaseQuery({
     url = joinUrls(baseUrl, url)
 
     const request = new Request(url, config)
-    const requestClone = request.clone()
+    const requestClone = new Request(url, config)
     meta = { request: requestClone }
 
     let response,

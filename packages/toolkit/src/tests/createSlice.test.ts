@@ -251,7 +251,7 @@ describe('createSlice', () => {
           })
           slice.reducer(undefined, { type: 'unrelated' })
         }).toThrowErrorMatchingInlineSnapshot(
-          `"addCase cannot be called with two reducers for the same action type"`
+          '"`builder.addCase` cannot be called with two reducers for the same action type"'
         )
       })
 
@@ -557,7 +557,6 @@ describe('createSlice', () => {
           increment: (state) => ++state,
         },
         selectors: {
-          selectSlice: (state) => state,
           selectMultiple: (state, multiplier: number) => state * multiplier,
         },
       })
@@ -575,13 +574,13 @@ describe('createSlice', () => {
       const injectedSlice = slice.injectInto(combinedReducer)
 
       // selector returns initial state if undefined in real state
-      expect(injectedSlice.selectors.selectSlice(uninjectedState)).toBe(
+      expect(injectedSlice.selectSlice(uninjectedState)).toBe(
         slice.getInitialState()
       )
 
       const injectedState = combinedReducer(undefined, increment())
 
-      expect(injectedSlice.selectors.selectSlice(injectedState)).toBe(
+      expect(injectedSlice.selectSlice(injectedState)).toBe(
         slice.getInitialState() + 1
       )
     })
@@ -594,7 +593,6 @@ describe('createSlice', () => {
           increment: (state) => ++state,
         },
         selectors: {
-          selectSlice: (state) => state,
           selectMultiple: (state, multiplier: number) => state * multiplier,
         },
       })
@@ -613,8 +611,11 @@ describe('createSlice', () => {
 
       const injectedState = combinedReducer(undefined, increment())
 
-      expect(injected.selectors.selectSlice(injectedState)).toBe(
+      expect(injected.selectSlice(injectedState)).toBe(
         slice.getInitialState() + 1
+      )
+      expect(injected.selectors.selectMultiple(injectedState, 2)).toBe(
+        (slice.getInitialState() + 1) * 2
       )
 
       const injected2 = slice.injectInto(combinedReducer, {
@@ -623,8 +624,11 @@ describe('createSlice', () => {
 
       const injected2State = combinedReducer(undefined, increment())
 
-      expect(injected2.selectors.selectSlice(injected2State)).toBe(
+      expect(injected2.selectSlice(injected2State)).toBe(
         slice.getInitialState() + 1
+      )
+      expect(injected2.selectors.selectMultiple(injected2State, 2)).toBe(
+        (slice.getInitialState() + 1) * 2
       )
     })
   })
@@ -638,6 +642,9 @@ describe('createSlice', () => {
     function rejected(state: any[], action: any) {
       state.push(['rejectedReducer', action])
     }
+    function settled(state: any[], action: any) {
+      state.push(['settledReducer', action])
+    }
 
     test('successful thunk', async () => {
       const slice = createSlice({
@@ -648,7 +655,7 @@ describe('createSlice', () => {
             function payloadCreator(arg, api) {
               return Promise.resolve('resolved payload')
             },
-            { pending, fulfilled, rejected }
+            { pending, fulfilled, rejected, settled }
           ),
         }),
       })
@@ -672,6 +679,13 @@ describe('createSlice', () => {
             payload: 'resolved payload',
           },
         ],
+        [
+          'settledReducer',
+          {
+            type: 'test/thunkReducers/fulfilled',
+            payload: 'resolved payload',
+          },
+        ],
       ])
     })
 
@@ -685,7 +699,7 @@ describe('createSlice', () => {
             function payloadCreator(arg, api): any {
               throw new Error('')
             },
-            { pending, fulfilled, rejected }
+            { pending, fulfilled, rejected, settled }
           ),
         }),
       })
@@ -704,6 +718,13 @@ describe('createSlice', () => {
         ],
         [
           'rejectedReducer',
+          {
+            type: 'test/thunkReducers/rejected',
+            payload: undefined,
+          },
+        ],
+        [
+          'settledReducer',
           {
             type: 'test/thunkReducers/rejected',
             payload: undefined,
@@ -731,6 +752,7 @@ describe('createSlice', () => {
               pending,
               fulfilled,
               rejected,
+              settled,
             }
           ),
         }),
@@ -749,6 +771,14 @@ describe('createSlice', () => {
             meta: { condition: true },
           },
         ],
+        [
+          'settledReducer',
+          {
+            type: 'test/thunkReducers/rejected',
+            payload: undefined,
+            meta: { condition: true },
+          },
+        ],
       ])
     })
 
@@ -761,13 +791,14 @@ describe('createSlice', () => {
             function payloadCreator(arg, api) {
               return Promise.resolve('resolved payload')
             },
-            { pending, fulfilled }
+            { pending, fulfilled, settled }
           ),
         }),
       })
 
       expect(slice.caseReducers.thunkReducers.pending).toBe(pending)
       expect(slice.caseReducers.thunkReducers.fulfilled).toBe(fulfilled)
+      expect(slice.caseReducers.thunkReducers.settled).toBe(settled)
       // even though it is not defined above, this should at least be a no-op function to match the TypeScript typings
       // and should be callable as a reducer even if it does nothing
       expect(() =>

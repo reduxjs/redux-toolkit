@@ -1,9 +1,10 @@
+import type { Draft } from 'immer'
 import type {
-  EntityState,
   EntityStateAdapter,
   IdSelector,
   Update,
   EntityId,
+  DraftableEntityState
 } from './models'
 import {
   createStateOperator,
@@ -18,7 +19,7 @@ import {
 export function createUnsortedStateAdapter<T, Id extends EntityId>(
   selectId: IdSelector<T, Id>
 ): EntityStateAdapter<T, Id> {
-  type R = EntityState<T, Id>
+  type R = DraftableEntityState<T, Id>
 
   function addOneMutably(entity: T, state: R): void {
     const key = selectIdValue(entity, selectId)
@@ -27,8 +28,8 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
       return
     }
 
-    state.ids.push(key)
-    state.entities[key] = entity
+    state.ids.push(key as Id & Draft<Id>);
+    (state.entities as Record<Id, T>)[key] = entity
   }
 
   function addManyMutably(
@@ -45,9 +46,9 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
   function setOneMutably(entity: T, state: R): void {
     const key = selectIdValue(entity, selectId)
     if (!(key in state.entities)) {
-      state.ids.push(key)
+      state.ids.push(key as Id & Draft<Id>);
     }
-    state.entities[key] = entity
+    (state.entities as Record<Id, T>)[key] = entity
   }
 
   function setManyMutably(
@@ -81,13 +82,13 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
 
     keys.forEach((key) => {
       if (key in state.entities) {
-        delete state.entities[key]
+        delete (state.entities as Record<Id, T>)[key]
         didMutate = true
       }
     })
 
     if (didMutate) {
-      state.ids = state.ids.filter((id) => id in state.entities)
+      state.ids = (state.ids as Id[]).filter((id) => id in state.entities) as Id[] | Draft<Id[]>
     }
   }
 
@@ -103,7 +104,7 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
     update: Update<T, Id>,
     state: R
   ): boolean {
-    const original: T | undefined = state.entities[update.id]
+    const original: T | undefined = (state.entities as Record<Id, T>)[update.id]
     if (original === undefined) {
       return false
     }
@@ -113,10 +114,10 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
 
     if (hasNewKey) {
       keys[update.id] = newKey
-      delete state.entities[update.id]
+      delete (state.entities as Record<Id, T>)[update.id]
     }
 
-    state.entities[newKey] = updated
+    (state.entities as Record<Id, T>)[newKey] = updated
 
     return hasNewKey
   }

@@ -1,4 +1,4 @@
-import type { EntityState, IdSelector, Update, EntityId } from './models'
+import type { IdSelector, Update, EntityId, DraftableEntityState } from './models'
 
 export function selectIdValue<T, Id extends EntityId>(
   entity: T,
@@ -33,7 +33,7 @@ export function ensureEntitiesArray<T, Id extends EntityId>(
 export function splitAddedUpdatedEntities<T, Id extends EntityId>(
   newEntities: readonly T[] | Record<Id, T>,
   selectId: IdSelector<T, Id>,
-  state: EntityState<T, Id>
+  state: DraftableEntityState<T, Id>
 ): [T[], Update<T, Id>[]] {
   newEntities = ensureEntitiesArray(newEntities)
 
