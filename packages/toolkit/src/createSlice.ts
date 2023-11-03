@@ -103,14 +103,15 @@ export interface Slice<
   /**
    * Get localised slice selectors (expects to be called with *just* the slice's state as the first parameter)
    */
-  getSelectorFactories(): Id<
-    SliceDefinedSelectorFactories<State, SelectorFactories, State>
-  >
+  getSelectorFactories(
+    this: this
+  ): Id<SliceDefinedSelectorFactories<State, SelectorFactories, State>>
 
   /**
    * Get globalised slice selector factories (`selectState` callback is expected to receive first parameter and return slice state)
    */
   getSelectorFactories<RootState>(
+    this: this,
     selectState: (rootState: RootState) => State
   ): Id<SliceDefinedSelectorFactories<State, SelectorFactories, RootState>>
 
