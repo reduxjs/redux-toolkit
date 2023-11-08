@@ -31,5 +31,7 @@
   "29": "`builder.addCase` cannot be called with an empty action type",
   "30": "`builder.addCase` cannot be called with two reducers for the same action type",
   "31": "\"middleware\" field must be a callback",
-  "32": "When using custom hooks for context, all  hooks need to be provided: .\\nHook  was either not provided or not a function."
+  "32": "When using custom hooks for context, all  hooks need to be provided: .\\nHook  was either not provided or not a function.",
+  "33": "Existing Redux context detected. If you already have a store set up, please use the traditional Redux setup.",
+  "34": "selectSlice returned undefined for an uninjected slice reducer"
 }
