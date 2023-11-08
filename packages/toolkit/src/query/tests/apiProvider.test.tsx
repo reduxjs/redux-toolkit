@@ -2,6 +2,8 @@ import * as React from 'react'
 import { createApi, ApiProvider } from '@reduxjs/toolkit/query/react'
 import { fireEvent, render, waitFor } from '@testing-library/react'
 import { waitMs } from './helpers'
+import { Provider } from 'react-redux'
+import { configureStore } from '@reduxjs/toolkit'
 
 const api = createApi({
   baseQuery: async (arg: any) => {
@@ -56,5 +58,16 @@ describe('ApiProvider', () => {
     fireEvent.click(getByText('Increment value'))
     // Being that nothing has changed in the args, this should never fire.
     expect(getByTestId('isFetching').textContent).toBe('false')
+  })
+  test('ApiProvider throws if nested inside a Redux context', () => {
+    expect(() =>
+      render(
+        <Provider store={configureStore({ reducer: () => null })}>
+          <ApiProvider api={api}>child</ApiProvider>
+        </Provider>
+      )
+    ).toThrowErrorMatchingInlineSnapshot(
+      '"Existing Redux context detected. If you already have a store set up, please use the traditional Redux setup."'
+    )
   })
 })
