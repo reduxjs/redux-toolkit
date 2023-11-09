@@ -67,6 +67,11 @@ export interface CommonOptions {
    * `true` will "flatten" the arg so that you can do things like `useGetEntityById(1)` instead of `useGetEntityById({ entityId: 1 })`
    */
   flattenArg?: boolean;
+  /**
+   * default to false
+   * `true` will not generate separate types for read-only and write-only properties.
+   */
+  mergeReadWriteOnly?: boolean;
 }
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];
