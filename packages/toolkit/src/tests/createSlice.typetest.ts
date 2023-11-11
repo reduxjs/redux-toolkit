@@ -861,7 +861,7 @@ const value = actionCreators.anyKey
  * Test: buildCreateSlice
  */
 {
-  expectType<typeof createSlice>(buildCreateSlice())
+  expectExactType(createSlice)(buildCreateSlice())
   buildCreateSlice({
     // @ts-expect-error not possible to recreate shape because symbol is not exported
     creators: { asyncThunk: { [Symbol()]: createAsyncThunk } },
