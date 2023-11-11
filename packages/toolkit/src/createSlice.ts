@@ -583,14 +583,6 @@ interface BuildCreateSliceConfig {
   }
 }
 
-/**
- * A function that accepts an initial state, an object full of reducer
- * functions, and a "slice name", and automatically generates
- * action creators and action types that correspond to the
- * reducers and state.
- *
- * @public
- */
 export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
   const cAT = creators?.asyncThunk?.[asyncThunkSymbol]
   return function createSlice<
@@ -787,6 +779,14 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
   }
 }
 
+/**
+ * A function that accepts an initial state, an object full of reducer
+ * functions, and a "slice name", and automatically generates
+ * action creators and action types that correspond to the
+ * reducers and state.
+ *
+ * @public
+ */
 export const createSlice = buildCreateSlice()
 
 interface ReducerHandlingContext<State> {
