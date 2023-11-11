@@ -70,6 +70,8 @@ export type {
 export {
   // js
   createSlice,
+  buildCreateSlice,
+  asyncThunkCreator,
   ReducerType,
 } from './createSlice'
 
