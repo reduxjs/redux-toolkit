@@ -899,7 +899,8 @@ function handleThunkCaseReducerDefinition<State>(
 ) {
   if (!cAT) {
     throw new Error(
-      'Cannot use create.asyncThunk without custom initialisation'
+      'Cannot use `create.asyncThunk` in the built-in `createSlice`. ' +
+        'Use `buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })` to create a customised version of `createSlice`.'
     )
   }
   const { payloadCreator, fulfilled, pending, rejected, settled, options } =

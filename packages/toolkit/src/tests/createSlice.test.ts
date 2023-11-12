@@ -580,7 +580,7 @@ describe('createSlice', () => {
           initialState: [] as any[],
           reducers: (create) => ({ thunk: create.asyncThunk(() => {}) }),
         })
-      ).toThrowErrorMatchingInlineSnapshot('"Cannot use create.asyncThunk without custom initialisation"')
+      ).toThrowErrorMatchingInlineSnapshot('"Cannot use `create.asyncThunk` in the built-in `createSlice`. Use `buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })` to create a customised version of `createSlice`."')
     })
     const createThunkSlice = buildCreateSlice({
       creators: { asyncThunk: asyncThunkCreator },
