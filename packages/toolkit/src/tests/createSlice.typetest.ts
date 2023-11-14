@@ -16,8 +16,15 @@ import type {
   ThunkDispatch,
   ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit'
-import { configureStore, isRejected } from '@reduxjs/toolkit'
-import { createAction, createSlice } from '@reduxjs/toolkit'
+import {
+  configureStore,
+  isRejected,
+  createAction,
+  createSlice,
+  buildCreateSlice,
+  asyncThunkCreator,
+  createAsyncThunk,
+} from '@reduxjs/toolkit'
 import { expectExactType, expectType, expectUnknown } from './helpers'
 import { castDraft } from 'immer'
 
@@ -848,4 +855,16 @@ const value = actionCreators.anyKey
   expectType<number>(counterSlice.selectSlice({ counter: 0 }))
   // @ts-expect-error
   counterSlice.selectSlice({})
+}
+
+/**
+ * Test: buildCreateSlice
+ */
+{
+  expectExactType(createSlice)(buildCreateSlice())
+  buildCreateSlice({
+    // @ts-expect-error not possible to recreate shape because symbol is not exported
+    creators: { asyncThunk: { [Symbol()]: createAsyncThunk } },
+  })
+  buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })
 }

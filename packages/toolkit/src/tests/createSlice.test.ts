@@ -1,6 +1,8 @@
 import { vi } from 'vitest'
 import type { PayloadAction, WithSlice } from '@reduxjs/toolkit'
 import {
+  asyncThunkCreator,
+  buildCreateSlice,
   configureStore,
   combineSlices,
   createSlice,
@@ -571,6 +573,18 @@ describe('createSlice', () => {
     })
   })
   describe('reducers definition with asyncThunks', () => {
+    it('is disabled by default', () => {
+      expect(() =>
+        createSlice({
+          name: 'test',
+          initialState: [] as any[],
+          reducers: (create) => ({ thunk: create.asyncThunk(() => {}) }),
+        })
+      ).toThrowErrorMatchingInlineSnapshot('"Cannot use `create.asyncThunk` in the built-in `createSlice`. Use `buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })` to create a customised version of `createSlice`."')
+    })
+    const createThunkSlice = buildCreateSlice({
+      creators: { asyncThunk: asyncThunkCreator },
+    })
     function pending(state: any[], action: any) {
       state.push(['pendingReducer', action])
     }
@@ -585,7 +599,7 @@ describe('createSlice', () => {
     }
 
     test('successful thunk', async () => {
-      const slice = createSlice({
+      const slice = createThunkSlice({
         name: 'test',
         initialState: [] as any[],
         reducers: (create) => ({
@@ -628,7 +642,7 @@ describe('createSlice', () => {
     })
 
     test('rejected thunk', async () => {
-      const slice = createSlice({
+      const slice = createThunkSlice({
         name: 'test',
         initialState: [] as any[],
         reducers: (create) => ({
@@ -672,7 +686,7 @@ describe('createSlice', () => {
     })
 
     test('with options', async () => {
-      const slice = createSlice({
+      const slice = createThunkSlice({
         name: 'test',
         initialState: [] as any[],
         reducers: (create) => ({
@@ -721,7 +735,7 @@ describe('createSlice', () => {
     })
 
     test('has caseReducers for the asyncThunk', async () => {
-      const slice = createSlice({
+      const slice = createThunkSlice({
         name: 'test',
         initialState: [],
         reducers: (create) => ({

@@ -33,5 +33,8 @@
   "31": "\"middleware\" field must be a callback",
   "32": "When using custom hooks for context, all  hooks need to be provided: .\\nHook  was either not provided or not a function.",
   "33": "Existing Redux context detected. If you already have a store set up, please use the traditional Redux setup.",
-  "34": "selectSlice returned undefined for an uninjected slice reducer"
+  "34": "selectSlice returned undefined for an uninjected slice reducer",
+  "35": "Cannot use `create.asyncThunk` in the built-in `createSlice`. Use `buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })` to create a customised version of `createSlice`.",
+  "36": "`context.addCase` cannot be called with an empty action type",
+  "37": "`context.addCase` cannot be called with two reducers for the same action type: type"
 }

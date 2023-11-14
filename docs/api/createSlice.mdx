@@ -138,7 +138,7 @@ const todosSlice = createSlice({
 
 Alternatively, the `reducers` field can be a callback which receives a "create" object.
 
-The main benefit of this is that you can create [async thunks](./createAsyncThunk) as part of your slice. Types are also slightly simplified for prepared reducers.
+The main benefit of this is that you can create [async thunks](./createAsyncThunk) as part of your slice (though for bundle size reasons, you [need a bit of setup for this](#createasyncthunk)). Types are also slightly simplified for prepared reducers.
 
 ```ts title="Creator callback for reducers"
 import { createSlice, nanoid } from '@reduxjs/toolkit'
@@ -239,6 +239,27 @@ create.preparedReducer(
 #### `create.asyncThunk`
 
 Creates an async thunk instead of an action creator.
+
+:::warning Setup
+
+To avoid pulling `createAsyncThunk` into the bundle size of `createSlice` by default, some extra setup is required to use `create.asyncThunk`.
+
+The version of `createSlice` exported from RTK will throw an error if `create.asyncThunk` is called.
+
+Instead, import `buildCreateSlice` and `asyncThunkCreator`, and create your own version of `createSlice`:
+
+```ts
+import { buildCreateSlice, asyncThunkCreator } from '@reduxjs/toolkit'
+
+// name is up to you
+export const createSliceWithThunks = buildCreateSlice({
+  creators: { asyncThunk: asyncThunkCreator },
+})
+```
+
+Then import this `createSlice` as needed instead of the exported version from RTK.
+
+:::
 
 **Parameters**
 
