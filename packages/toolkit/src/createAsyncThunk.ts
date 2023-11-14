@@ -487,7 +487,7 @@ type CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> = {
   >
 }
 
-export const createAsyncThunk = (() => {
+export const createAsyncThunk = /* @__PURE__ */ (() => {
   function createAsyncThunk<
     Returned,
     ThunkArg,
