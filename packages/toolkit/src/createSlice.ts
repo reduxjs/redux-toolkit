@@ -1,4 +1,5 @@
 import type { Action, UnknownAction, Reducer } from 'redux'
+import type { Selector } from 'reselect'
 import type {
   ActionCreatorWithoutPayload,
   PayloadAction,
@@ -25,6 +26,7 @@ import type {
   OverrideThunkApiConfigs,
 } from './createAsyncThunk'
 import { createAsyncThunk as _createAsyncThunk } from './createAsyncThunk'
+import { emplace } from './utils'
 
 const asyncThunkSymbol = Symbol.for('rtk-slice-createasyncthunk')
 // type is annotated because it's too long to infer
@@ -756,35 +758,34 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
         return _reducer.getInitialState()
       },
       getSelectors(selectState: (rootState: any) => State = selectSelf) {
-        let selectorCache = injectedSelectorCache.get(this)
-        if (!selectorCache) {
-          selectorCache = new WeakMap()
-          injectedSelectorCache.set(this, selectorCache)
-        }
-        let cached = selectorCache.get(selectState)
-        if (!cached) {
-          cached = {}
-          for (const [name, selector] of Object.entries(
-            options.selectors ?? {}
-          )) {
-            cached[name] = (rootState: any, ...args: any[]) => {
-              let sliceState = selectState.call(this, rootState)
-              if (typeof sliceState === 'undefined') {
-                // check if injectInto has been called
-                if (this !== slice) {
-                  sliceState = this.getInitialState()
-                } else if (process.env.NODE_ENV !== 'production') {
-                  throw new Error(
-                    'selectState returned undefined for an uninjected slice reducer'
-                  )
+        const selectorCache = emplace(injectedSelectorCache, this, {
+          insert: () => new WeakMap(),
+        })
+
+        return emplace(selectorCache, selectState, {
+          insert: () => {
+            const map: Record<string, Selector<any, any>> = {}
+            for (const [name, selector] of Object.entries(
+              options.selectors ?? {}
+            )) {
+              map[name] = (rootState: any, ...args: any[]) => {
+                let sliceState = selectState.call(this, rootState)
+                if (typeof sliceState === 'undefined') {
+                  // check if injectInto has been called
+                  if (this !== slice) {
+                    sliceState = this.getInitialState()
+                  } else if (process.env.NODE_ENV !== 'production') {
+                    throw new Error(
+                      'selectState returned undefined for an uninjected slice reducer'
+                    )
+                  }
                 }
+                return selector(sliceState, ...args)
               }
-              return selector(sliceState, ...args)
             }
-          }
-          selectorCache.set(selectState, cached)
-        }
-        return cached as any
+            return map
+          },
+        }) as any
       },
       selectSlice(state) {
         let sliceState = state[this.reducerPath]
