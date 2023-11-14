@@ -513,6 +513,40 @@ const { selectValue } = counterSlice.selectors
 console.log(selectValue({ counter: { value: 2 } })) // 2
 ```
 
+:::note
+
+The original selector passed is attached to the wrapped selector as `.unwrapped`. For example:
+
+```ts
+import { createSlice, createSelector } from '@reduxjs/toolkit'
+
+interface CounterState {
+  value: number
+}
+
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 } as CounterState,
+  reducers: {
+    // omitted
+  },
+  selectors: {
+    selectDouble: createSelector(
+      (sliceState: CounterState) => sliceState.value,
+      (value) => value * 2
+    ),
+  },
+})
+
+const { selectDouble } = counterSlice.selectors
+
+console.log(selectDouble({ counter: { value: 2 } })) // 4
+console.log(selectDouble({ counter: { value: 3 } })) // 6
+console.log(selectDouble.unwrapped.recomputations) // 2
+```
+
+:::
+
 #### `getSelectors`
 
 `slice.getSelectors` is called with a single parameter, a `selectState` callback. This function should receive the store root state (or whatever you expect to call the resulting selectors with) and return the slice state.
