@@ -540,7 +540,10 @@ const value = actionCreators.anyKey
     selectors: {
       selectValue: (state) => state.value,
       selectMultiply: (state, multiplier: number) => state.value * multiplier,
-      selectToFixed: (state) => state.value.toFixed(2),
+      selectToFixed: Object.assign(
+        (state: { value: number }) => state.value.toFixed(2),
+        { static: true }
+      ),
     },
   })
 
@@ -554,6 +557,8 @@ const value = actionCreators.anyKey
   expectType<number>(selectValue(rootState))
   expectType<number>(selectMultiply(rootState, 2))
   expectType<string>(selectToFixed(rootState))
+
+  expectType<boolean>(selectToFixed.unwrapped.static)
 
   const nestedState = {
     nested: rootState,

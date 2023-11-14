@@ -466,12 +466,15 @@ describe('createSlice', () => {
       reducers: {},
       selectors: {
         selectSlice: (state) => state,
-        selectMultiple: (state, multiplier: number) => state * multiplier,
+        selectMultiple: Object.assign(
+          (state: number, multiplier: number) => state * multiplier,
+          { test: 0 }
+        ),
       },
     })
-    it('expects reducer under slice.name if no selectState callback passed', () => {
+    it('expects reducer under slice.reducerPath if no selectState callback passed', () => {
       const testState = {
-        [slice.name]: slice.getInitialState(),
+        [slice.reducerPath]: slice.getInitialState(),
       }
       const { selectSlice, selectMultiple } = slice.selectors
       expect(selectSlice(testState)).toBe(slice.getInitialState())
@@ -486,6 +489,9 @@ describe('createSlice', () => {
       )
       expect(selectSlice(customState)).toBe(slice.getInitialState())
       expect(selectMultiple(customState, 2)).toBe(slice.getInitialState() * 2)
+    })
+    it('allows accessing properties on the selector', () => {
+      expect(slice.selectors.selectMultiple.unwrapped.test).toBe(0)
     })
   })
   describe('slice injections', () => {
@@ -580,7 +586,9 @@ describe('createSlice', () => {
           initialState: [] as any[],
           reducers: (create) => ({ thunk: create.asyncThunk(() => {}) }),
         })
-      ).toThrowErrorMatchingInlineSnapshot('"Cannot use `create.asyncThunk` in the built-in `createSlice`. Use `buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })` to create a customised version of `createSlice`."')
+      ).toThrowErrorMatchingInlineSnapshot(
+        '"Cannot use `create.asyncThunk` in the built-in `createSlice`. Use `buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })` to create a customised version of `createSlice`."'
+      )
     })
     const createThunkSlice = buildCreateSlice({
       creators: { asyncThunk: asyncThunkCreator },
