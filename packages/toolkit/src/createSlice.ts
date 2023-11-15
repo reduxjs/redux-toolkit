@@ -1,4 +1,5 @@
 import type { Action, UnknownAction, Reducer } from 'redux'
+import type { Selector } from 'reselect'
 import type {
   ActionCreatorWithoutPayload,
   PayloadAction,
@@ -25,6 +26,7 @@ import type {
   OverrideThunkApiConfigs,
 } from './createAsyncThunk'
 import { createAsyncThunk as _createAsyncThunk } from './createAsyncThunk'
+import { emplace } from './utils'
 
 const asyncThunkSymbol = Symbol.for('rtk-slice-createasyncthunk')
 // type is annotated because it's too long to infer
@@ -531,6 +533,14 @@ type SliceDefinedCaseReducers<CaseReducers extends SliceCaseReducers<any>> = {
     : never
 }
 
+type RemappedSelector<S extends Selector, NewState> = S extends Selector<
+  any,
+  infer R,
+  infer P
+>
+  ? Selector<NewState, R, P> & { unwrapped: S }
+  : never
+
 /**
  * Extracts the final selector type from the `selectors` object.
  *
@@ -541,10 +551,10 @@ type SliceDefinedSelectors<
   Selectors extends SliceSelectors<State>,
   RootState
 > = {
-  [K in keyof Selectors as string extends K ? never : K]: (
-    rootState: RootState,
-    ...args: Tail<Parameters<Selectors[K]>>
-  ) => ReturnType<Selectors[K]>
+  [K in keyof Selectors as string extends K ? never : K]: RemappedSelector<
+    Selectors[K],
+    RootState
+  >
 }
 
 /**
@@ -756,35 +766,26 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
         return _reducer.getInitialState()
       },
       getSelectors(selectState: (rootState: any) => State = selectSelf) {
-        let selectorCache = injectedSelectorCache.get(this)
-        if (!selectorCache) {
-          selectorCache = new WeakMap()
-          injectedSelectorCache.set(this, selectorCache)
-        }
-        let cached = selectorCache.get(selectState)
-        if (!cached) {
-          cached = {}
-          for (const [name, selector] of Object.entries(
-            options.selectors ?? {}
-          )) {
-            cached[name] = (rootState: any, ...args: any[]) => {
-              let sliceState = selectState.call(this, rootState)
-              if (typeof sliceState === 'undefined') {
-                // check if injectInto has been called
-                if (this !== slice) {
-                  sliceState = this.getInitialState()
-                } else if (process.env.NODE_ENV !== 'production') {
-                  throw new Error(
-                    'selectState returned undefined for an uninjected slice reducer'
-                  )
-                }
-              }
-              return selector(sliceState, ...args)
+        const selectorCache = emplace(injectedSelectorCache, this, {
+          insert: () => new WeakMap(),
+        })
+
+        return emplace(selectorCache, selectState, {
+          insert: () => {
+            const map: Record<string, Selector<any, any>> = {}
+            for (const [name, selector] of Object.entries(
+              options.selectors ?? {}
+            )) {
+              map[name] = wrapSelector(
+                this,
+                selector,
+                selectState,
+                this !== slice
+              )
             }
-          }
-          selectorCache.set(selectState, cached)
-        }
-        return cached as any
+            return map
+          },
+        }) as any
       },
       selectSlice(state) {
         let sliceState = state[this.reducerPath]
@@ -814,6 +815,29 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
     }
     return slice
   }
+}
+
+function wrapSelector<State, NewState, S extends Selector<State>>(
+  slice: Slice,
+  selector: S,
+  selectState: Selector<NewState, State>,
+  injected?: boolean
+) {
+  function wrapper(rootState: NewState, ...args: any[]) {
+    let sliceState = selectState.call(slice, rootState)
+    if (typeof sliceState === 'undefined') {
+      if (injected) {
+        sliceState = slice.getInitialState()
+      } else if (process.env.NODE_ENV !== 'production') {
+        throw new Error(
+          'selectState returned undefined for an uninjected slice reducer'
+        )
+      }
+    }
+    return selector(sliceState, ...args)
+  }
+  wrapper.unwrapped = selector
+  return wrapper as RemappedSelector<S, NewState>
 }
 
 /**
