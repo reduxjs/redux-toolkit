@@ -300,7 +300,7 @@ const reducer = createReducer({}, (builder) => {
 
 This means you don't have to write or use a separate action type variable, or repeat the name and value of an action type like `const SOME_ACTION_TYPE = "SOME_ACTION_TYPE"`.
 
-If you want to use one of these action creators in a switch statement, you need to call `actionCreator.type` yourself:
+If you want to use one of these action creators in a switch statement, you need to reference `actionCreator.type` yourself:
 
 ```js
 const actionCreator = createAction('SOME_ACTION_TYPE')
