@@ -266,7 +266,7 @@ Then import this `createSlice` as needed instead of the exported version from RT
 - **payloadCreator** The thunk [payload creator](./createAsyncThunk#payloadcreator).
 - **config** The configuration object. (optional)
 
-The configuration object can contain case reducers for each of the [lifecycle actions](./createAsyncThunk#promise-lifecycle-actions) (`pending`, `fulfilled`, and `rejected`).
+The configuration object can contain case reducers for each of the [lifecycle actions](./createAsyncThunk#promise-lifecycle-actions) (`pending`, `fulfilled`, and `rejected`), as well as a `settled` reducer that will run for both fulfilled and rejected actions (note that this will run _after_ any provided `fulfilled`/`rejected` reducers. Conceptually it can be thought of like a `finally` block.).
 
 Each case reducer will be attached to the slice's `caseReducers` object, e.g. `slice.caseReducers.fetchTodo.fulfilled`.
 
@@ -283,12 +283,14 @@ create.asyncThunk(
       state.loading = true
     },
     rejected: (state, action) => {
-      state.loading = false
+      state.error = action.payload ?? action.error
     },
     fulfilled: (state, action) => {
-      state.loading = false
       state.todos.push(action.payload)
     },
+    settled: (state, action) => {
+      state.loading = false
+    }
     options: {
       idGenerator: uuid,
     },
@@ -298,7 +300,7 @@ create.asyncThunk(
 
 :::note
 
-Typing for the `create.asyncThunk` works in the same way as [`createAsyncThunk`](usage/usage-with-typescript#createasyncthunk), with one key difference.
+Typing for the `create.asyncThunk` works in the same way as [`createAsyncThunk`](../usage/usage-with-typescript#createasyncthunk), with one key difference.
 
 A type for `state` and/or `dispatch` _cannot_ be provided as part of the `ThunkApiConfig`, as this would cause circular types.
 
@@ -316,7 +318,7 @@ create.asyncThunk<Todo, string, { rejectValue: { error: string } }>(
 )
 ```
 
-For common thunk API configuration options, a [`withTypes` helper](usage/usage-with-typescript#defining-a-pre-typed-createasyncthunk) is provided:
+For common thunk API configuration options, a [`withTypes` helper](../usage/usage-with-typescript#defining-a-pre-typed-createasyncthunk) is provided:
 
 ```ts no-transpile
 reducers: (create) => {
@@ -451,6 +453,7 @@ const counterSlice = createSlice({
     caseReducers: Record<string, CaseReducer>.
     getInitialState: () => State,
     reducerPath: string,
+    selectSlice: Selector;
     selectors: Record<string, Selector>,
     getSelectors: (selectState: (rootState: RootState) => State) => Record<string, Selector>
     injectInto: (injectable: Injectable, config?: InjectConfig & { reducerPath?: string }) => InjectedSlice
@@ -488,7 +491,9 @@ As a result, there are two ways of getting final selectors:
 
 Most commonly, the slice is reliably mounted under its [`reducerPath`](#reducerPath).
 
-Following this, the slice has a `selectors` object attached, which creates selectors with the assumption that the slice is located under `rootState[slice.reducerPath]`.
+Following this, the slice has a `selectSlice` selector attached, which assumes that the slice is located under `rootState[slice.reducerPath]`.
+
+`slice.selectors` then uses this selector to wrap each of the selectors provided.
 
 ```ts
 import { createSlice } from '@reduxjs/toolkit'
@@ -507,6 +512,8 @@ const counterSlice = createSlice({
     selectValue: (sliceState) => sliceState.value,
   },
 })
+
+console.log(counterSlice.selectSlice({ counter: { value: 2 } })) // { value: 2 }
 
 const { selectValue } = counterSlice.selectors
 
@@ -571,8 +578,10 @@ console.log(selectValue({ value: 2 })) // 2
 The [`slice.selectors`](#selectors-2) object is the equivalent of calling
 
 ```ts no-transpile
+const { selectValue } = counterSlice.getSelectors(counterSlice.selectSlice)
+// or
 const { selectValue } = counterSlice.getSelectors(
-  (rootState: RootState) => rootState[counterSlice.reducerPath]
+  (state: RootState) => state[counterSlice.reducerPath]
 )
 ```
 
