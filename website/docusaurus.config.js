@@ -16,7 +16,7 @@ module.exports = {
           showLastUpdateTime: true,
           routeBasePath: '/',
           include: [
-            '{api,assets,introduction,rtk-query,tutorials,usage}/**/*.{md,mdx}',
+            '{api,assets,introduction,migrations,rtk-query,tutorials,usage}/**/*.{md,mdx}',
           ], // no other way to exclude node_modules
           remarkPlugins: [
             [
