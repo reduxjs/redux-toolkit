@@ -36,5 +36,6 @@
   "34": "selectSlice returned undefined for an uninjected slice reducer",
   "35": "Cannot use `create.asyncThunk` in the built-in `createSlice`. Use `buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })` to create a customised version of `createSlice`.",
   "36": "`context.addCase` cannot be called with an empty action type",
-  "37": "`context.addCase` cannot be called with two reducers for the same action type: type"
+  "37": "`context.addCase` cannot be called with two reducers for the same action type: type",
+  "38": "No insert provided for key not already in map"
 }
