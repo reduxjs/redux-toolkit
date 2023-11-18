@@ -18,7 +18,7 @@ import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type {
   Id,
-  KeysMatching,
+  KeysForValueOfType,
   TypeGuard,
   UnionToIntersection,
 } from './tsHelpers'
@@ -41,7 +41,7 @@ export enum ReducerType {
 
 export interface ReducerTypes extends Record<ReducerType, true> {}
 
-export type RegisteredReducerType = KeysMatching<ReducerTypes, true>
+export type RegisteredReducerType = KeysForValueOfType<ReducerTypes, true>
 
 interface ReducerDefinition<
   T extends RegisteredReducerType = RegisteredReducerType
@@ -854,8 +854,10 @@ interface BuildCreateSliceConfig<
 
 export function buildCreateSlice<
   CreatorMap extends Record<string, RegisteredReducerType> = {}
->({ creators = {} as any }: BuildCreateSliceConfig<CreatorMap> = {}) {
-  const definers: Record<
+>({
+  creators: creatorMap = {} as any,
+}: BuildCreateSliceConfig<CreatorMap> = {}) {
+  const creators: Record<
     string,
     ReducerCreator<RegisteredReducerType>['define']
   > = {
@@ -873,11 +875,11 @@ export function buildCreateSlice<
   }
   for (const [name, creator] of Object.entries<
     ReducerCreator<RegisteredReducerType>
-  >(creators)) {
+  >(creatorMap)) {
     if (name === 'reducer' || name === 'preparedReducer') {
       throw new Error('Cannot use reserved creator name: ' + name)
     }
-    definers[name] = creator.define
+    creators[name] = creator.define
     handlers[creator.type] = creator.handle
   }
   return function createSlice<
@@ -957,7 +959,7 @@ export function buildCreateSlice<
     }
 
     if (typeof options.reducers === 'function') {
-      const reducers = options.reducers(definers as any)
+      const reducers = options.reducers(creators as any)
       for (const [reducerName, reducerDefinition] of Object.entries(reducers)) {
         const { _reducerDefinitionType: type } = reducerDefinition
         const handler = handlers[type as RegisteredReducerType]
