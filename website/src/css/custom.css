@@ -256,3 +256,9 @@ table.checkbox-table tbody td {
 .diagonal-cell--bottomLeft {
   grid-column-start: 1;
 }
+
+.migration-guide .typescript-only h4:after {
+  content: ' TYPESCRIPT';
+  color: var(--ifm-color-info);
+  position: relative;
+}

@@ -15,7 +15,6 @@ export {
   createSelector,
   createSelectorCreator,
   defaultMemoize,
-  autotrackMemoize,
   weakMapMemoize,
 } from 'reselect'
 export type {
@@ -71,6 +70,8 @@ export type {
 export {
   // js
   createSlice,
+  buildCreateSlice,
+  asyncThunkCreator,
   ReducerType,
 } from './createSlice'
 

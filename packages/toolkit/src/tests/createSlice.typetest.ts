@@ -16,8 +16,15 @@ import type {
   ThunkDispatch,
   ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit'
-import { configureStore } from '@reduxjs/toolkit'
-import { createAction, createSlice } from '@reduxjs/toolkit'
+import {
+  configureStore,
+  isRejected,
+  createAction,
+  createSlice,
+  buildCreateSlice,
+  asyncThunkCreator,
+  createAsyncThunk,
+} from '@reduxjs/toolkit'
 import { expectExactType, expectType, expectUnknown } from './helpers'
 import { castDraft } from 'immer'
 
@@ -533,7 +540,10 @@ const value = actionCreators.anyKey
     selectors: {
       selectValue: (state) => state.value,
       selectMultiply: (state, multiplier: number) => state.value * multiplier,
-      selectToFixed: (state) => state.value.toFixed(2),
+      selectToFixed: Object.assign(
+        (state: { value: number }) => state.value.toFixed(2),
+        { static: true }
+      ),
     },
   })
 
@@ -547,6 +557,8 @@ const value = actionCreators.anyKey
   expectType<number>(selectValue(rootState))
   expectType<number>(selectMultiply(rootState, 2))
   expectType<string>(selectToFixed(rootState))
+
+  expectType<boolean>(selectToFixed.unwrapped.static)
 
   const nestedState = {
     nested: rootState,
@@ -642,6 +654,15 @@ const value = actionCreators.anyKey
               expectType<TestArg>(action.meta.arg)
               expectType<SerializedError>(action.error)
             },
+            settled(state, action) {
+              expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
+              if (isRejected(action)) {
+                expectType<SerializedError>(action.error)
+              } else {
+                expectType<TestReturned>(action.payload)
+              }
+            },
           }
         ),
         testExplicitType: create.asyncThunk<
@@ -679,6 +700,16 @@ const value = actionCreators.anyKey
               expectType<SerializedError>(action.error)
               expectType<TestReject | undefined>(action.payload)
             },
+            settled(state, action) {
+              expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
+              if (isRejected(action)) {
+                expectType<SerializedError>(action.error)
+                expectType<TestReject | undefined>(action.payload)
+              } else {
+                expectType<TestReturned>(action.payload)
+              }
+            },
           }
         ),
         testPretyped: pretypedAsyncThunk(
@@ -701,6 +732,16 @@ const value = actionCreators.anyKey
               expectType<TestArg>(action.meta.arg)
               expectType<SerializedError>(action.error)
               expectType<TestReject | undefined>(action.payload)
+            },
+            settled(state, action) {
+              expectType<TestState>(state)
+              expectType<TestArg>(action.meta.arg)
+              if (isRejected(action)) {
+                expectType<SerializedError>(action.error)
+                expectType<TestReject | undefined>(action.payload)
+              } else {
+                expectType<TestReturned>(action.payload)
+              }
             },
           }
         ),
@@ -810,4 +851,25 @@ const value = actionCreators.anyKey
 
   expectType<ActionCreatorWithPayload<string>>(wrappedSlice.actions.success)
   expectType<ActionCreatorWithoutPayload<string>>(wrappedSlice.actions.magic)
+}
+
+/**
+ * Test: selectSlice
+ */
+{
+  expectType<number>(counterSlice.selectSlice({ counter: 0 }))
+  // @ts-expect-error
+  counterSlice.selectSlice({})
+}
+
+/**
+ * Test: buildCreateSlice
+ */
+{
+  expectExactType(createSlice)(buildCreateSlice())
+  buildCreateSlice({
+    // @ts-expect-error not possible to recreate shape because symbol is not exported
+    creators: { asyncThunk: { [Symbol()]: createAsyncThunk } },
+  })
+  buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })
 }

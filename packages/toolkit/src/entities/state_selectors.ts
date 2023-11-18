@@ -1,10 +1,11 @@
-import type { CreateSelectorFunction, Selector } from 'reselect'
+import type { CreateSelectorFunction, Selector, createSelector } from 'reselect'
 import { createDraftSafeSelector } from '../createDraftSafeSelector'
 import type { EntityState, EntitySelectors, EntityId } from './models'
 
-export type AnyCreateSelectorFunction = CreateSelectorFunction<
-  (...args: unknown[]) => unknown,
-  <F extends (...args: any[]) => any>(func: F) => F
+type AnyFunction = (...args: any) => any
+type AnyCreateSelectorFunction = CreateSelectorFunction<
+  <F extends AnyFunction>(f: F) => F,
+  <F extends AnyFunction>(f: F) => F
 >
 
 export interface GetSelectorsOptions {
@@ -24,7 +25,8 @@ export function createSelectorsFactory<T, Id extends EntityId>() {
     selectState?: (state: V) => EntityState<T, Id>,
     options: GetSelectorsOptions = {}
   ): EntitySelectors<T, any, Id> {
-    const { createSelector = createDraftSafeSelector } = options
+    const { createSelector = createDraftSafeSelector as AnyCreateSelectorFunction } = options
+
     const selectIds = (state: EntityState<T, Id>) => state.ids
 
     const selectEntities = (state: EntityState<T, Id>) => state.entities

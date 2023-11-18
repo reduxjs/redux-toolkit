@@ -1,6 +1,8 @@
 import { vi } from 'vitest'
 import type { PayloadAction, WithSlice } from '@reduxjs/toolkit'
 import {
+  asyncThunkCreator,
+  buildCreateSlice,
   configureStore,
   combineSlices,
   createSlice,
@@ -464,12 +466,15 @@ describe('createSlice', () => {
       reducers: {},
       selectors: {
         selectSlice: (state) => state,
-        selectMultiple: (state, multiplier: number) => state * multiplier,
+        selectMultiple: Object.assign(
+          (state: number, multiplier: number) => state * multiplier,
+          { test: 0 }
+        ),
       },
     })
-    it('expects reducer under slice.name if no selectState callback passed', () => {
+    it('expects reducer under slice.reducerPath if no selectState callback passed', () => {
       const testState = {
-        [slice.name]: slice.getInitialState(),
+        [slice.reducerPath]: slice.getInitialState(),
       }
       const { selectSlice, selectMultiple } = slice.selectors
       expect(selectSlice(testState)).toBe(slice.getInitialState())
@@ -485,6 +490,9 @@ describe('createSlice', () => {
       expect(selectSlice(customState)).toBe(slice.getInitialState())
       expect(selectMultiple(customState, 2)).toBe(slice.getInitialState() * 2)
     })
+    it('allows accessing properties on the selector', () => {
+      expect(slice.selectors.selectMultiple.unwrapped.test).toBe(0)
+    })
   })
   describe('slice injections', () => {
     it('uses injectInto to inject slice into combined reducer', () => {
@@ -495,7 +503,6 @@ describe('createSlice', () => {
           increment: (state) => ++state,
         },
         selectors: {
-          selectSlice: (state) => state,
           selectMultiple: (state, multiplier: number) => state * multiplier,
         },
       })
@@ -513,13 +520,13 @@ describe('createSlice', () => {
       const injectedSlice = slice.injectInto(combinedReducer)
 
       // selector returns initial state if undefined in real state
-      expect(injectedSlice.selectors.selectSlice(uninjectedState)).toBe(
+      expect(injectedSlice.selectSlice(uninjectedState)).toBe(
         slice.getInitialState()
       )
 
       const injectedState = combinedReducer(undefined, increment())
 
-      expect(injectedSlice.selectors.selectSlice(injectedState)).toBe(
+      expect(injectedSlice.selectSlice(injectedState)).toBe(
         slice.getInitialState() + 1
       )
     })
@@ -532,7 +539,6 @@ describe('createSlice', () => {
           increment: (state) => ++state,
         },
         selectors: {
-          selectSlice: (state) => state,
           selectMultiple: (state, multiplier: number) => state * multiplier,
         },
       })
@@ -551,8 +557,11 @@ describe('createSlice', () => {
 
       const injectedState = combinedReducer(undefined, increment())
 
-      expect(injected.selectors.selectSlice(injectedState)).toBe(
+      expect(injected.selectSlice(injectedState)).toBe(
         slice.getInitialState() + 1
+      )
+      expect(injected.selectors.selectMultiple(injectedState, 2)).toBe(
+        (slice.getInitialState() + 1) * 2
       )
 
       const injected2 = slice.injectInto(combinedReducer, {
@@ -561,12 +570,29 @@ describe('createSlice', () => {
 
       const injected2State = combinedReducer(undefined, increment())
 
-      expect(injected2.selectors.selectSlice(injected2State)).toBe(
+      expect(injected2.selectSlice(injected2State)).toBe(
         slice.getInitialState() + 1
+      )
+      expect(injected2.selectors.selectMultiple(injected2State, 2)).toBe(
+        (slice.getInitialState() + 1) * 2
       )
     })
   })
   describe('reducers definition with asyncThunks', () => {
+    it('is disabled by default', () => {
+      expect(() =>
+        createSlice({
+          name: 'test',
+          initialState: [] as any[],
+          reducers: (create) => ({ thunk: create.asyncThunk(() => {}) }),
+        })
+      ).toThrowErrorMatchingInlineSnapshot(
+        '"Cannot use `create.asyncThunk` in the built-in `createSlice`. Use `buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })` to create a customised version of `createSlice`."'
+      )
+    })
+    const createThunkSlice = buildCreateSlice({
+      creators: { asyncThunk: asyncThunkCreator },
+    })
     function pending(state: any[], action: any) {
       state.push(['pendingReducer', action])
     }
@@ -576,9 +602,12 @@ describe('createSlice', () => {
     function rejected(state: any[], action: any) {
       state.push(['rejectedReducer', action])
     }
+    function settled(state: any[], action: any) {
+      state.push(['settledReducer', action])
+    }
 
     test('successful thunk', async () => {
-      const slice = createSlice({
+      const slice = createThunkSlice({
         name: 'test',
         initialState: [] as any[],
         reducers: (create) => ({
@@ -586,7 +615,7 @@ describe('createSlice', () => {
             function payloadCreator(arg, api) {
               return Promise.resolve('resolved payload')
             },
-            { pending, fulfilled, rejected }
+            { pending, fulfilled, rejected, settled }
           ),
         }),
       })
@@ -610,11 +639,18 @@ describe('createSlice', () => {
             payload: 'resolved payload',
           },
         ],
+        [
+          'settledReducer',
+          {
+            type: 'test/thunkReducers/fulfilled',
+            payload: 'resolved payload',
+          },
+        ],
       ])
     })
 
     test('rejected thunk', async () => {
-      const slice = createSlice({
+      const slice = createThunkSlice({
         name: 'test',
         initialState: [] as any[],
         reducers: (create) => ({
@@ -623,7 +659,7 @@ describe('createSlice', () => {
             function payloadCreator(arg, api): any {
               throw new Error('')
             },
-            { pending, fulfilled, rejected }
+            { pending, fulfilled, rejected, settled }
           ),
         }),
       })
@@ -647,11 +683,18 @@ describe('createSlice', () => {
             payload: undefined,
           },
         ],
+        [
+          'settledReducer',
+          {
+            type: 'test/thunkReducers/rejected',
+            payload: undefined,
+          },
+        ],
       ])
     })
 
     test('with options', async () => {
-      const slice = createSlice({
+      const slice = createThunkSlice({
         name: 'test',
         initialState: [] as any[],
         reducers: (create) => ({
@@ -669,6 +712,7 @@ describe('createSlice', () => {
               pending,
               fulfilled,
               rejected,
+              settled,
             }
           ),
         }),
@@ -687,11 +731,19 @@ describe('createSlice', () => {
             meta: { condition: true },
           },
         ],
+        [
+          'settledReducer',
+          {
+            type: 'test/thunkReducers/rejected',
+            payload: undefined,
+            meta: { condition: true },
+          },
+        ],
       ])
     })
 
     test('has caseReducers for the asyncThunk', async () => {
-      const slice = createSlice({
+      const slice = createThunkSlice({
         name: 'test',
         initialState: [],
         reducers: (create) => ({
@@ -699,13 +751,14 @@ describe('createSlice', () => {
             function payloadCreator(arg, api) {
               return Promise.resolve('resolved payload')
             },
-            { pending, fulfilled }
+            { pending, fulfilled, settled }
           ),
         }),
       })
 
       expect(slice.caseReducers.thunkReducers.pending).toBe(pending)
       expect(slice.caseReducers.thunkReducers.fulfilled).toBe(fulfilled)
+      expect(slice.caseReducers.thunkReducers.settled).toBe(settled)
       // even though it is not defined above, this should at least be a no-op function to match the TypeScript typings
       // and should be callable as a reducer even if it does nothing
       expect(() =>

@@ -6,6 +6,7 @@ import type {
   InternalHandlerBuilder,
   SubMiddlewareApi,
 } from './types'
+import { countObjectKeys } from '../../utils/countObjectKeys'
 
 export const buildWindowEventHandler: InternalHandlerBuilder = ({
   reducerPath,
@@ -50,7 +51,7 @@ export const buildWindowEventHandler: InternalHandlerBuilder = ({
             state.config[type])
 
         if (shouldRefetch) {
-          if (Object.keys(subscriptionSubState).length === 0) {
+          if (countObjectKeys(subscriptionSubState) === 0) {
             api.dispatch(
               removeQueryResult({
                 queryCacheKey: queryCacheKey as QueryCacheKey,

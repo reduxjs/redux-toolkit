@@ -6,6 +6,7 @@
       "collapsed": false,
       "items": ["introduction/getting-started"]
     },
+
     {
       "type": "category",
       "label": "Tutorials",
@@ -22,6 +23,11 @@
       "label": "Using Redux Toolkit",
       "collapsed": false,
       "items": [
+        {
+          "type": "category",
+          "label": "Migrations",
+          "items": ["migrations/migrating-1.x-to-2.x"]
+        },
         "usage/usage-guide",
         "usage/usage-with-typescript",
         "usage/immer-reducers"

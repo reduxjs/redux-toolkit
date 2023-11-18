@@ -89,4 +89,5 @@ export type DynamicMiddlewareInstance<
   middleware: DynamicMiddleware<State, Dispatch>
   addMiddleware: AddMiddleware<State, Dispatch>
   withMiddleware: WithMiddleware<State, Dispatch>
+  instanceId: string
 }

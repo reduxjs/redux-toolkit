@@ -151,7 +151,7 @@ Accepts a set of middleware, and returns a [`useDispatch`](https://react-redux.j
 
 ```ts no-transpile
 const useListenerDispatch = createDispatchWithMiddlewareHook(
-  listenerMiddleware.instance
+  listenerInstance.middleware
 )
 
 const Component = () => {

@@ -9,6 +9,13 @@ describe('createAction', () => {
     })
   })
 
+  describe('when stringifying action', () => {
+    it('should return the action type', () => {
+      const actionCreator = createAction('A_TYPE')
+      expect(`${actionCreator}`).toEqual('A_TYPE')
+    })
+  })
+
   describe('when passing a prepareAction method only returning a payload', () => {
     it('should use the payload returned from the prepareAction method', () => {
       const actionCreator = createAction('A_TYPE', (a: number) => ({
