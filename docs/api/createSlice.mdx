@@ -141,7 +141,11 @@ Alternatively, the `reducers` field can be a callback which receives a "create" 
 The main benefit of this is that you can create [async thunks](./createAsyncThunk) as part of your slice (though for bundle size reasons, you [need a bit of setup for this](#createasyncthunk)). Types are also slightly simplified for prepared reducers.
 
 ```ts title="Creator callback for reducers"
-import { createSlice, nanoid } from '@reduxjs/toolkit'
+import { buildCreateSlice, asyncThunkCreator, nanoid } from '@reduxjs/toolkit'
+
+const createSlice = buildCreateSlice({
+  creators: { asyncThunk: asyncThunkCreator },
+})
 
 interface Item {
   id: string
