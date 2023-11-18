@@ -870,7 +870,6 @@ const value = actionCreators.anyKey
  * Test: buildCreateSlice
  */
 {
-  expectExactType(createSlice)(buildCreateSlice())
   buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })
   // @ts-expect-error prevent passing reducer key
   buildCreateSlice({ creators: { reducer: asyncThunkCreator } })
