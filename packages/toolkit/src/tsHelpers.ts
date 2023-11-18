@@ -205,3 +205,7 @@ export type Id<T> = { [K in keyof T]: T[K] } & {}
 export type Tail<T extends any[]> = T extends [any, ...infer Tail]
   ? Tail
   : never
+
+export type KeysMatching<T, V> = {
+  [K in keyof T]: T[K] extends V ? K : never
+}[keyof T]

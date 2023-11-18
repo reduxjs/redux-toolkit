@@ -584,10 +584,11 @@ describe('createSlice', () => {
         createSlice({
           name: 'test',
           initialState: [] as any[],
+          // @ts-expect-error asyncThunk not in creators
           reducers: (create) => ({ thunk: create.asyncThunk(() => {}) }),
         })
       ).toThrowErrorMatchingInlineSnapshot(
-        '"Cannot use `create.asyncThunk` in the built-in `createSlice`. Use `buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })` to create a customised version of `createSlice`."'
+        '"create.asyncThunk is not a function"'
       )
     })
     const createThunkSlice = buildCreateSlice({
@@ -825,9 +826,7 @@ describe('createSlice', () => {
             },
           }),
         })
-      ).toThrowErrorMatchingInlineSnapshot(
-        `"Please use the \`create.preparedReducer\` notation for prepared action creators with the \`create\` notation."`
-      )
+      ).toThrowErrorMatchingInlineSnapshot('"Unsupported reducer type: undefined"')
     })
   })
 })

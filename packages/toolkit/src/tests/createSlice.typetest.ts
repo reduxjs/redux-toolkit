@@ -594,7 +594,11 @@ const value = actionCreators.anyKey
     cause: string
   }
 
-  const slice = createSlice({
+  const createSliceWithAsyncThunk = buildCreateSlice({
+    creators: { asyncThunk: asyncThunkCreator },
+  })
+
+  const slice = createSliceWithAsyncThunk({
     name: 'test',
     initialState: {} as TestState,
     reducers: (create) => {
@@ -816,7 +820,7 @@ const value = actionCreators.anyKey
   }: {
     name: string
     initialState: GenericState<T>
-    reducers: (create: ReducerCreators<GenericState<T>>) => Reducers
+    reducers: (create: ReducerCreators<GenericState<T>, {}>) => Reducers
   }) => {
     return createSlice({
       name,
@@ -867,9 +871,9 @@ const value = actionCreators.anyKey
  */
 {
   expectExactType(createSlice)(buildCreateSlice())
-  buildCreateSlice({
-    // @ts-expect-error not possible to recreate shape because symbol is not exported
-    creators: { asyncThunk: { [Symbol()]: createAsyncThunk } },
-  })
   buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })
+  // @ts-expect-error prevent passing reducer key
+  buildCreateSlice({ creators: { reducer: asyncThunkCreator } })
+  // @ts-expect-error prevent passing preparedReducer key
+  buildCreateSlice({ creators: { preparedReducer: asyncThunkCreator } })
 }
