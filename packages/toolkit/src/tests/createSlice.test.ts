@@ -926,9 +926,7 @@ describe('createSlice', () => {
             },
           }),
         })
-      ).toThrowErrorMatchingInlineSnapshot(
-        '"Unsupported reducer type: undefined"'
-      )
+      ).toThrowErrorMatchingInlineSnapshot('"Please use reducer creators passed to callback. Each reducer definition must have a `_reducerDefinitionType` property indicating which handler to use."')
     })
   })
   describe('custom slice reducer creators', () => {

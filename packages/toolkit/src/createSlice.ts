@@ -962,6 +962,11 @@ export function buildCreateSlice<
       const reducers = options.reducers(creators as any)
       for (const [reducerName, reducerDefinition] of Object.entries(reducers)) {
         const { _reducerDefinitionType: type } = reducerDefinition
+        if (typeof type === 'undefined') {
+          throw new Error(
+            'Please use reducer creators passed to callback. Each reducer definition must have a `_reducerDefinitionType` property indicating which handler to use.'
+          )
+        }
         const handler = handlers[type as RegisteredReducerType]
         if (!handler) {
           throw new Error('Unsupported reducer type: ' + type)
