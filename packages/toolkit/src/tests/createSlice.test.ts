@@ -1,5 +1,16 @@
 import { vi } from 'vitest'
-import type { PayloadAction, WithSlice } from '@reduxjs/toolkit'
+import type {
+  Action,
+  CaseReducer,
+  PayloadAction,
+  PayloadActionCreator,
+  ReducerCreator,
+  ReducerDefinition,
+  SliceActionType,
+  SliceCaseReducers,
+  ThunkAction,
+  WithSlice,
+} from '@reduxjs/toolkit'
 import {
   asyncThunkCreator,
   buildCreateSlice,
@@ -7,12 +18,100 @@ import {
   combineSlices,
   createSlice,
   createAction,
+  nanoid,
 } from '@reduxjs/toolkit'
 import {
   mockConsole,
   createConsole,
   getLog,
 } from 'console-testing-library/pure'
+
+interface LoaderReducerDefinition<State> extends ReducerDefinition<'loader'> {
+  started?: CaseReducer<State, PayloadAction<string>>
+  ended?: CaseReducer<State, PayloadAction<string>>
+}
+
+declare module '@reduxjs/toolkit' {
+  export interface ReducerTypes {
+    loader: true
+  }
+  export interface SliceReducerCreators<
+    State = any,
+    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    Name extends string = string
+  > {
+    loader: {
+      create(
+        reducers: Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>
+      ): LoaderReducerDefinition<State>
+      actions: {
+        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends LoaderReducerDefinition<State>
+          ? ReducerName
+          : never]: (() => ThunkAction<
+          { loaderId: string; end: () => void },
+          unknown,
+          unknown,
+          Action
+        >) & {
+          started: PayloadActionCreator<
+            string,
+            `${SliceActionType<Name, ReducerName>}/started`
+          >
+          ended: PayloadActionCreator<
+            string,
+            `${SliceActionType<Name, ReducerName>}/ended`
+          >
+        }
+      }
+      caseReducers: {
+        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends LoaderReducerDefinition<State>
+          ? ReducerName
+          : never]: Required<
+          Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>
+        >
+      }
+    }
+  }
+}
+
+export const loaderCreator: ReducerCreator<'loader'> = {
+  type: 'loader',
+  define(reducers) {
+    return {
+      _reducerDefinitionType: 'loader',
+      ...reducers,
+    }
+  },
+  handle({ reducerName, type }, { started, ended }, context) {
+    const startedAction = createAction<string>(type + '/started')
+    const endedAction = createAction<string>(type + '/ended')
+
+    function thunkCreator(): ThunkAction<
+      { loaderId: string; end: () => void },
+      unknown,
+      unknown,
+      Action
+    > {
+      return (dispatch) => {
+        const loaderId = nanoid()
+        dispatch(startedAction(loaderId))
+        return {
+          loaderId,
+          end: () => {
+            dispatch(endedAction(loaderId))
+          },
+        }
+      }
+    }
+    Object.assign(thunkCreator, { started: startedAction, ended: endedAction })
+
+    if (started) context.addCase(startedAction, started)
+    if (ended) context.addCase(endedAction, ended)
+
+    context.exposeAction(reducerName, thunkCreator)
+    context.exposeCaseReducer(reducerName, { started, ended })
+  },
+}
 
 type CreateSlice = typeof createSlice
 
@@ -826,7 +925,62 @@ describe('createSlice', () => {
             },
           }),
         })
-      ).toThrowErrorMatchingInlineSnapshot('"Unsupported reducer type: undefined"')
+      ).toThrowErrorMatchingInlineSnapshot(
+        '"Unsupported reducer type: undefined"'
+      )
+    })
+  })
+  describe('custom slice reducer creators', () => {
+    test('allows passing custom reducer creators, which can add actions and case reducers', () => {
+      const createLoaderSlice = buildCreateSlice({
+        creators: { loader: loaderCreator },
+      })
+
+      const loaderSlice = createLoaderSlice({
+        name: 'loader',
+        initialState: {} as Partial<Record<string, true>>,
+        reducers: (create) => ({
+          addLoader: create.loader({
+            started: (state, { payload }) => {
+              state[payload] = true
+            },
+            ended: (state, { payload }) => {
+              delete state[payload]
+            },
+          }),
+        }),
+        selectors: {
+          selectLoader: (state, id: string) => state[id],
+        },
+      })
+
+      const { addLoader } = loaderSlice.actions
+      const { selectLoader } = loaderSlice.selectors
+
+      expect(addLoader).toEqual(expect.any(Function))
+      expect(addLoader.started).toEqual(expect.any(Function))
+      expect(addLoader.started.type).toBe('loader/addLoader/started')
+
+      const store = configureStore({
+        reducer: {
+          [loaderSlice.reducerPath]: loaderSlice.reducer,
+          actions: (state: Action[] = [], action) => [...state, action],
+        },
+      })
+
+      expect(store.getState().loader).toEqual({})
+
+      const { loaderId, end } = store.dispatch(addLoader())
+      expect(selectLoader(store.getState(), loaderId)).toBe(true)
+
+      end()
+      expect(selectLoader(store.getState(), loaderId)).toBe(undefined)
+
+      // slice to ignore INIT action
+      expect(store.getState().actions.slice(1)).toEqual([
+        addLoader.started(loaderId),
+        addLoader.ended(loaderId),
+      ])
     })
   })
 })

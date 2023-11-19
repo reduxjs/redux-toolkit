@@ -43,7 +43,7 @@ export interface ReducerTypes extends Record<ReducerType, true> {}
 
 export type RegisteredReducerType = KeysForValueOfType<ReducerTypes, true>
 
-interface ReducerDefinition<
+export interface ReducerDefinition<
   T extends RegisteredReducerType = RegisteredReducerType
 > {
   _reducerDefinitionType: T
@@ -639,7 +639,7 @@ export type SliceSelectors<State> = {
   [K: string]: (sliceState: State, ...args: any[]) => any
 }
 
-type SliceActionType<
+export type SliceActionType<
   SliceName extends string,
   ActionName extends keyof any
 > = ActionName extends string | number ? `${SliceName}/${ActionName}` : string
