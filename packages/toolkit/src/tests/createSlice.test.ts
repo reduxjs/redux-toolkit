@@ -18,6 +18,7 @@ import {
   combineSlices,
   createSlice,
   createAction,
+  isAnyOf,
   nanoid,
 } from '@reduxjs/toolkit'
 import {
@@ -961,10 +962,13 @@ describe('createSlice', () => {
       expect(addLoader.started).toEqual(expect.any(Function))
       expect(addLoader.started.type).toBe('loader/addLoader/started')
 
+      const isLoaderAction = isAnyOf(addLoader.started, addLoader.ended)
+
       const store = configureStore({
         reducer: {
           [loaderSlice.reducerPath]: loaderSlice.reducer,
-          actions: (state: Action[] = [], action) => [...state, action],
+          actions: (state: PayloadAction<string>[] = [], action) =>
+            isLoaderAction(action) ? [...state, action] : state,
         },
       })
 
@@ -976,8 +980,7 @@ describe('createSlice', () => {
       end()
       expect(selectLoader(store.getState(), loaderId)).toBe(undefined)
 
-      // slice to ignore INIT action
-      expect(store.getState().actions.slice(1)).toEqual([
+      expect(store.getState().actions).toEqual([
         addLoader.started(loaderId),
         addLoader.ended(loaderId),
       ])
