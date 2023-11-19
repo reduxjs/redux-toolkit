@@ -972,7 +972,7 @@ describe('createSlice', () => {
         },
       })
 
-      expect(store.getState().loader).toEqual({})
+      expect(loaderSlice.selectSlice(store.getState())).toEqual({})
 
       const { loaderId, end } = store.dispatch(addLoader())
       expect(selectLoader(store.getState(), loaderId)).toBe(true)
