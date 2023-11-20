@@ -1,4 +1,4 @@
-import type { Action, UnknownAction } from 'redux'
+import type { Action } from 'redux'
 import type {
   IsUnknownOrNonInferrable,
   IfMaybeUndefined,
@@ -84,7 +84,7 @@ export type _ActionCreatorWithPreparedPayload<
  */
 export interface BaseActionCreator<P, T extends string, M = never, E = never> {
   type: T
-  match: (action: Action<string>) => action is PayloadAction<P, T, M, E>
+  match: (action: unknown) => action is PayloadAction<P, T, M, E>
 }
 
 /**
@@ -279,8 +279,8 @@ export function createAction(type: string, prepareAction?: Function): any {
 
   actionCreator.type = type
 
-  actionCreator.match = (action: Action<string>): action is PayloadAction =>
-    action.type === type
+  actionCreator.match = (action: unknown): action is PayloadAction =>
+    isAction(action) && action.type === type
 
   return actionCreator
 }
