@@ -42,7 +42,6 @@ export type { DevToolsEnhancerOptions } from './devtoolsExtension'
 export {
   // js
   createAction,
-  isAction,
   isActionCreator,
   isFSA as isFluxStandardAction,
 } from './createAction'
@@ -156,8 +155,6 @@ export type {
 } from './matchers'
 
 export { nanoid } from './nanoid'
-
-export { default as isPlainObject } from './isPlainObject'
 
 export type {
   ListenerEffect,

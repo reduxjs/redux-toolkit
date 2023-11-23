@@ -7,11 +7,16 @@ import type {
   Store,
   UnknownAction,
 } from 'redux'
-import { applyMiddleware, createStore, compose, combineReducers } from 'redux'
+import {
+  applyMiddleware,
+  createStore,
+  compose,
+  combineReducers,
+  isPlainObject,
+} from 'redux'
 import type { DevToolsEnhancerOptions as DevToolsOptions } from './devtoolsExtension'
 import { composeWithDevTools } from './devtoolsExtension'
 
-import isPlainObject from './isPlainObject'
 import type {
   ThunkMiddlewareFor,
   GetDefaultMiddleware,

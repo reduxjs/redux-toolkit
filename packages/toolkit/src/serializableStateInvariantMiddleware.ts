@@ -1,7 +1,6 @@
-import isPlainObject from './isPlainObject'
 import type { Middleware } from 'redux'
+import { isAction, isPlainObject } from 'redux'
 import { getTimeMeasureUtils } from './utils'
-import { isAction } from './createAction'
 
 /**
  * Returns true if the passed value is "plain", i.e. a value that is either

@@ -1,4 +1,4 @@
-import type { Action } from 'redux'
+import { isAction } from 'redux'
 import type {
   IsUnknownOrNonInferrable,
   IfMaybeUndefined,
@@ -6,7 +6,6 @@ import type {
   IsAny,
 } from './tsHelpers'
 import { hasMatchFunction } from './tsHelpers'
-import isPlainObject from './isPlainObject'
 
 /**
  * An action with a string type and an associated payload. This is the
@@ -283,17 +282,6 @@ export function createAction(type: string, prepareAction?: Function): any {
     isAction(action) && action.type === type
 
   return actionCreator
-}
-
-/**
- * Returns true if value is a plain object with a `type` property.
- */
-export function isAction(action: unknown): action is Action<string> {
-  return (
-    isPlainObject(action) &&
-    'type' in action &&
-    typeof (action as Record<'type', unknown>).type === 'string'
-  )
 }
 
 /**
