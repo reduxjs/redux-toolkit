@@ -25124,13 +25124,6 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"redux@npm:5.0.0-rc.1, redux@npm:^5.0.0-rc.1":
-  version: 5.0.0-rc.1
-  resolution: "redux@npm:5.0.0-rc.1"
-  checksum: e3a26c5df84fb5705c82e17ca59c19374e3da3e87e5582201ca9b727e2569671bc1f01d738044f34bf38baaa296646a42714207a3dbc83d92ddf186ee0fc21c8
-  languageName: node
-  linkType: hard
-
 "redux@npm:^4.1.2":
   version: 4.1.2
   resolution: "redux@npm:4.1.2"
@@ -25146,6 +25139,13 @@ fsevents@^1.2.7:
   dependencies:
     "@babel/runtime": ^7.9.2
   checksum: f63b9060c3a1d930ae775252bb6e579b42415aee7a23c4114e21a0b4ba7ec12f0ec76936c00f546893f06e139819f0e2855e0d55ebfce34ca9c026241a6950dd
+  languageName: node
+  linkType: hard
+
+"redux@npm:^5.0.0-rc.1":
+  version: 5.0.0-rc.1
+  resolution: "redux@npm:5.0.0-rc.1"
+  checksum: e3a26c5df84fb5705c82e17ca59c19374e3da3e87e5582201ca9b727e2569671bc1f01d738044f34bf38baaa296646a42714207a3dbc83d92ddf186ee0fc21c8
   languageName: node
   linkType: hard
 
@@ -25972,7 +25972,6 @@ fsevents@^1.2.7:
     eslint-plugin-react-hooks: ^4.2.0
     netlify-plugin-cache: ^1.0.3
     prettier: ^2.2.1
-    redux: 5.0.0-rc.1
     release-it: ^14.12.5
     serve: ^14.2.0
   languageName: unknown
