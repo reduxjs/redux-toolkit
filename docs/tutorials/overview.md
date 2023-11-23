@@ -62,6 +62,20 @@ The RTK [**Usage Guide** docs page](../usage/usage-guide.md) explains the standa
 
 The [Redux Essentials tutorial](https://redux.js.org/tutorials/essentials/part-1-overview-concepts) also shows how to use each of the APIs while building an application.
 
+## RTK Query Video Course
+
+If you prefer a video course, you can [watch this RTK Query video course by Lenz Weber-Tronic, the creator of RTK Query, for free at Egghead](https://egghead.io/courses/rtk-query-basics-query-endpoints-data-flow-and-typescript-57ea3c43?af=7pnhj6) or take a look at the first lesson right here:
+
+<div style={{position:"relative",paddingTop:"56.25%"}}>
+  <iframe 
+    src="https://app.egghead.io/lessons/redux-course-introduction-and-application-walk-through-for-rtk-query-basics/embed?af=7pnhj6" 
+    title="RTK Query Video course at Egghead: Course Introduction and Application Walk through for RTK Query Basics"
+    frameborder="0" 
+    allowfullscreen
+    style={{position:"absolute",top:0,left:0,width:"100%",height:"100%"}}
+  ></iframe>
+</div>
+
 ## Migrating Vanilla Redux to Redux Toolkit
 
 If you already know Redux and just want to know how to migrate an existing application to use Redux Toolkit, the [**"Modern Redux with Redux Toolkit" page in the Redux Fundamentals tutorial**](https://redux.js.org/tutorials/fundamentals/part-8-modern-redux) shows how RTK's APIs simplify Redux usage patterns and how to handle that migration.
