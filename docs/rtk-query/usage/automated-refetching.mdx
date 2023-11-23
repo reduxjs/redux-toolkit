@@ -38,7 +38,8 @@ A _query_ can have its cached data _provide_ tags. Doing so determines which 'ta
 
 The `providesTags` argument can either be an array of `string` (such as `['Post']`), `{type: string, id?: string|number}` (such as `[{type: 'Post', id: 1}]`), or a callback that returns such an array. That function will be passed the result as the first argument, the response error as the second argument, and the argument originally passed into the `query` method as the third argument. Note that either the result or error arguments may be undefined based on whether the query was successful or not.
 
-Please note, tags provided in an simple array (such as `['Post', 'User']`) and not a callback are only considered for successful requests. In order to provide tags also for failed requests the callback has to be used. With the callback it is also possible providing different tags for failed or successful requests.
+
+Note that tags provided in an simple array (such as `['Post', 'User']`) and not a callback are only considered for successful requests. In order to provide tags for failed requests the callback has to be used. With the callback it is also possible to provide different tags for failed or successful requests.
 
 ### Invalidating tags
 
