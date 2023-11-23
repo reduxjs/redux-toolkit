@@ -354,7 +354,7 @@ describe('createReducer', () => {
             .addCase(decrement, (state, action) => state - action.payload)
         )
       ).toThrowErrorMatchingInlineSnapshot(
-        '"`builder.addCase` cannot be called with two reducers for the same action type"'
+        '"`builder.addCase` cannot be called with two reducers for the same action type \'increment\'"'
       )
       expect(() =>
         createReducer(0, (builder) =>
@@ -364,7 +364,7 @@ describe('createReducer', () => {
             .addCase(decrement, (state, action) => state - action.payload)
         )
       ).toThrowErrorMatchingInlineSnapshot(
-        '"`builder.addCase` cannot be called with two reducers for the same action type"'
+        '"`builder.addCase` cannot be called with two reducers for the same action type \'increment\'"'
       )
     })
 

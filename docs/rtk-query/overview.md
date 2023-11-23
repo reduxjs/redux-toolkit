@@ -26,6 +26,18 @@ RTK Query is **an optional addon included in the Redux Toolkit package**, and it
 
 To learn how to use RTK Query, see the full ["Redux Essentials" tutorial](https://redux.js.org/tutorials/essentials/part-7-rtk-query-basics) on the Redux core docs site.
 
+If you prefer a video course, you can [watch this RTK Query video course by Lenz Weber-Tronic, the creator of RTK Query, for free at Egghead](https://egghead.io/courses/rtk-query-basics-query-endpoints-data-flow-and-typescript-57ea3c43?af=7pnhj6) or take a look at the first lesson right here:
+
+<div style={{position:"relative",paddingTop:"56.25%"}}>
+  <iframe 
+    src="https://app.egghead.io/lessons/redux-course-introduction-and-application-walk-through-for-rtk-query-basics/embed?af=7pnhj6" 
+    title="RTK Query Video course at Egghead: Course Introduction and Application Walk through for RTK Query Basics"
+    frameborder="0" 
+    allowfullscreen
+    style={{position:"absolute",top:0,left:0,width:"100%",height:"100%"}}
+  ></iframe>
+</div>
+
 :::
 
 ## Motivation
@@ -160,7 +172,7 @@ export default function App() {
   const { data, error, isLoading } = useGetPokemonByNameQuery('bulbasaur')
   // Individual hooks are also accessible under the generated endpoints:
   // const { data, error, isLoading } = pokemonApi.endpoints.getPokemonByName.useQuery('bulbasaur')
-  
+
   // render UI based on data and loading state
 }
 ```

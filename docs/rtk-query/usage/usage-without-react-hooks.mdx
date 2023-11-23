@@ -23,7 +23,8 @@ Cache subscriptions are used to tell RTK Query that it needs to fetch data for a
 With React hooks, this behavior is instead handled within [`useQuery`](../api/created-api/hooks.mdx#usequery), [`useQuerySubscription`](../api/created-api/hooks.mdx#usequerysubscription), [`useLazyQuery`](../api/created-api/hooks.mdx#uselazyquery), and [`useLazyQuerySubscription`](../api/created-api/hooks.mdx#uselazyquerysubscription).
 
 ```ts title="Subscribing to cached data" no-transpile
-dispatch(api.endpoints.getPosts.initiate())
+// interact with the cache in the same way as you would with a useFetch...() hook
+const {data, refetch, isLoading, isSuccess, /*...*/} = dispatch(api.endpoints.getPosts.initiate())
 ```
 
 ## Removing a subscription

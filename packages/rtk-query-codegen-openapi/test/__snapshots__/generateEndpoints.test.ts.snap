@@ -263,6 +263,39 @@ export type User = {
 
 `;
 
+exports[`duplicate parameter names must be prefixed with a path or query prefix 1`] = `
+import { api } from './fixtures/emptyApi';
+const injectedRtkApi = api.injectEndpoints({
+  endpoints: (build) => ({
+    patchApiV1ListByItemId: build.mutation<PatchApiV1ListByItemIdApiResponse, PatchApiV1ListByItemIdApiArg>({
+      query: (queryArg) => ({
+        url: \`/api/v1/list/\${queryArg['item.id']}\`,
+        method: 'PATCH',
+      }),
+    }),
+    patchApiV2BySomeName: build.mutation<PatchApiV2BySomeNameApiResponse, PatchApiV2BySomeNameApiArg>({
+      query: (queryArg) => ({
+        url: \`/api/v2/\${queryArg.pathSomeName}\`,
+        method: 'PATCH',
+        params: { some_name: queryArg.querySomeName },
+      }),
+    }),
+  }),
+  overrideExisting: false,
+});
+export { injectedRtkApi as enhancedApi };
+export type PatchApiV1ListByItemIdApiResponse = /** status 200 A successful response. */ string;
+export type PatchApiV1ListByItemIdApiArg = {
+  'item.id': string;
+};
+export type PatchApiV2BySomeNameApiResponse = /** status 200 A successful response. */ string;
+export type PatchApiV2BySomeNameApiArg = {
+  pathSomeName: string;
+  querySomeName: string;
+};
+
+`;
+
 exports[`endpoint filtering: should only have endpoints loginUser, placeOrder, getOrderById, deleteOrder 1`] = `
 import { api } from './fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
@@ -350,6 +383,40 @@ export type LoginUserApiArg = {
 
 `;
 
+exports[`falls back to the \`title\` parameter for the body parameter name when no other name is available 1`] = `
+import { api } from 'fixtures/emptyApi';
+const injectedRtkApi = api.injectEndpoints({
+  endpoints: (build) => ({
+    postV1Export: build.mutation<PostV1ExportApiResponse, PostV1ExportApiArg>({
+      query: (queryArg) => ({
+        url: \`/v1/export\`,
+        method: 'POST',
+        body: queryArg.exportedEntityIds,
+      }),
+    }),
+    postV1Import: build.mutation<PostV1ImportApiResponse, PostV1ImportApiArg>({
+      query: (queryArg) => ({
+        url: \`/v1/import\`,
+        method: 'POST',
+        body: queryArg.rawData,
+      }),
+    }),
+  }),
+  overrideExisting: false,
+});
+export { injectedRtkApi as enhancedApi };
+export type PostV1ExportApiResponse = unknown;
+export type PostV1ExportApiArg = {
+  exportedEntityIds: IdList;
+};
+export type PostV1ImportApiResponse = unknown;
+export type PostV1ImportApiArg = {
+  rawData: string;
+};
+export type IdList = number[];
+
+`;
+
 exports[`hooks generation uses overrides: should generate an \`useLoginMutation\` mutation hook 1`] = `
 import { api } from './fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
@@ -424,6 +491,76 @@ export const { useAddPetMutation, useGetPetByIdQuery } = injectedRtkApi;
 
 `;
 
+exports[`openapi spec readOnly / writeOnly are merged 1`] = `
+import { api } from './fixtures/emptyApi';
+const injectedRtkApi = api.injectEndpoints({
+  endpoints: (build) => ({
+    getExample: build.query<GetExampleApiResponse, GetExampleApiArg>({
+      query: () => ({ url: \`/example\` }),
+    }),
+    setExample: build.mutation<SetExampleApiResponse, SetExampleApiArg>({
+      query: (queryArg) => ({
+        url: \`/example\`,
+        method: 'POST',
+        body: queryArg.exampleSchema,
+      }),
+    }),
+  }),
+  overrideExisting: false,
+});
+export { injectedRtkApi as enhancedApi };
+export type GetExampleApiResponse = /** status 200 OK */ ExampleSchema;
+export type GetExampleApiArg = void;
+export type SetExampleApiResponse = /** status 200 OK */ ExampleSchema;
+export type SetExampleApiArg = {
+  exampleSchema: ExampleSchema;
+};
+export type ExampleSchema = {
+  always_present: string;
+  read_only_prop: string;
+  write_only_prop: string;
+};
+
+`;
+
+exports[`openapi spec readOnly / writeOnly are respected 1`] = `
+import { api } from './fixtures/emptyApi';
+const injectedRtkApi = api.injectEndpoints({
+  endpoints: (build) => ({
+    getExample: build.query<GetExampleApiResponse, GetExampleApiArg>({
+      query: () => ({ url: \`/example\` }),
+    }),
+    setExample: build.mutation<SetExampleApiResponse, SetExampleApiArg>({
+      query: (queryArg) => ({
+        url: \`/example\`,
+        method: 'POST',
+        body: queryArg.exampleSchema,
+      }),
+    }),
+  }),
+  overrideExisting: false,
+});
+export { injectedRtkApi as enhancedApi };
+export type GetExampleApiResponse = /** status 200 OK */ ExampleSchemaRead;
+export type GetExampleApiArg = void;
+export type SetExampleApiResponse = /** status 200 OK */ ExampleSchemaRead;
+export type SetExampleApiArg = {
+  exampleSchema: ExampleSchemaWrite;
+};
+export type ExampleSchema = {
+  always_present: string;
+};
+export type ExampleSchemaRead = {
+  always_present: string;
+  read_only_prop: string;
+};
+export type ExampleSchemaWrite = {
+  always_present: string;
+  write_only_prop: string;
+};
+
+`;
+
 exports[`should use brackets in a querystring urls arg, when the arg contains full stops 1`] = `
 import { api } from './fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
@@ -434,6 +571,13 @@ const injectedRtkApi = api.injectEndpoints({
         method: 'PATCH',
       }),
     }),
+    patchApiV2BySomeName: build.mutation<PatchApiV2BySomeNameApiResponse, PatchApiV2BySomeNameApiArg>({
+      query: (queryArg) => ({
+        url: \`/api/v2/\${queryArg.pathSomeName}\`,
+        method: 'PATCH',
+        params: { some_name: queryArg.querySomeName },
+      }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -441,6 +585,11 @@ export { injectedRtkApi as enhancedApi };
 export type PatchApiV1ListByItemIdApiResponse = /** status 200 A successful response. */ string;
 export type PatchApiV1ListByItemIdApiArg = {
   'item.id': string;
+};
+export type PatchApiV2BySomeNameApiResponse = /** status 200 A successful response. */ string;
+export type PatchApiV2BySomeNameApiArg = {
+  pathSomeName: string;
+  querySomeName: string;
 };
 
 `;
@@ -656,17 +805,21 @@ export type GetApiV1AnimalsApiArg = {
   type?: AnimalType;
 };
 export type AnimalType = 'All' | 'Cats' | 'Dogs';
-export type Animal = {
+export type AnimalBase = {
   type: AnimalType;
   id?: number;
   name?: string | null;
 };
-export type Dog = Animal & {
-  dogUniqueProp?: string | null;
-};
-export type Cat = Animal & {
-  catUniqueProp?: string | null;
-};
+export type Dog = {
+  type: 'Dog';
+} & AnimalBase & {
+    dogUniqueProp?: string | null;
+  };
+export type Cat = {
+  type: 'Cat';
+} & AnimalBase & {
+    catUniqueProp?: string | null;
+  };
 export const { useGetApiV1AnimalsQuery } = injectedRtkApi;
 
 `;
@@ -1005,7 +1158,7 @@ const injectedRtkApi = api
     overrideExisting: false,
   });
 export { injectedRtkApi as enhancedApi };
-export type GetStructureDefinitionApiResponse = unknown;
+export type GetStructureDefinitionApiResponse = /** status 200 Success */ FhirJsonResource;
 export type GetStructureDefinitionApiArg = {
   /** Some description */
   foo?: any;
@@ -1024,6 +1177,7 @@ export type GetStructureDefinitionApiArg = {
   /** Some description */
   naming_conflict?: any;
 };
+export type FhirJsonResource = object;
 export const { useGetStructureDefinitionQuery } = injectedRtkApi;
 
 `;
