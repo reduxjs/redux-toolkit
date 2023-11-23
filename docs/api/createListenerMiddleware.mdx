@@ -361,6 +361,14 @@ export interface ListenerEffectAPI<
    */
   cancelActiveListeners: () => void
   /**
+   * Cancels the listener instance that made this call.
+   */
+  cancel: () => void
+  /**
+   * Throws a `TaskAbortError` if this listener has been cancelled
+   */
+  throwIfCancelled: () => void
+  /**
    * An abort signal whose `aborted` property is set to `true`
    * if the listener execution is either aborted or completed.
    * @see https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
@@ -403,6 +411,8 @@ These can be divided into several categories.
 - `unsubscribe: () => void`: removes the listener entry from the middleware, and prevent future instances of the listener from running. (This does _not_ cancel any active instances.)
 - `subscribe: () => void`: will re-subscribe the listener entry if it was previously removed, or no-op if currently subscribed
 - `cancelActiveListeners: () => void`: cancels all other running instances of this same listener _except_ for the one that made this call. (The cancellation will only have a meaningful effect if the other instances are paused using one of the cancellation-aware APIs like `take/cancel/pause/delay` - see "Cancelation and Task Management" in the "Usage" section for more details)
+- `cancel: () => void`: cancels the instance of this listener that made this call.
+- `throwIfCancelled: () => void`: throws a `TaskAbortError` if the current listener instance was cancelled.
 - `signal: AbortSignal`: An [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) whose `aborted` property will be set to `true` if the listener execution is aborted or completed.
 
 Dynamically unsubscribing and re-subscribing this listener allows for more complex async workflows, such as avoiding duplicate running instances by calling `listenerApi.unsubscribe()` at the start of a listener, or calling `listenerApi.cancelActiveListeners()` to ensure that only the most recent instance is allowed to complete.
@@ -640,6 +650,8 @@ The listener middleware supports cancellation of running listener instances, `ta
 
 The `listenerApi.pause/delay()` functions provide a cancellation-aware way to have the current listener sleep. `pause()` accepts a promise, while `delay` accepts a timeout value. If the listener is cancelled while waiting, a `TaskAbortError` will be thrown. In addition, both `take` and `condition` support cancellation interruption as well.
 
+`listenerApi.cancelActiveListeners()` will cancel _other_ existing instances that are running, while `listenerApi.cancel()` can be used to cancel the _current_ instance (which may be useful from a fork, which could be deeply nested and not able to directly throw a promise to break out of the effect execution). `listenerAPi.throwIfCancelled()` can also be useful to bail out of workflows in case cancellation happened while the effect was doing other work.
+
 `listenerApi.fork()` can used to launch "child tasks" that can do additional work. These can be waited on to collect their results. An example of this might look like:
 
 ```ts no-transpile
@@ -666,7 +678,7 @@ listenerMiddleware.startListening({
 
 ### Complex Async Workflows
 
-The provided async workflow primitives (`cancelActiveListeners`, `unsubscribe`, `subscribe`, `take`, `condition`, `pause`, `delay`) can be used to implement behavior that is equivalent to many of the more complex async workflow capabilities found in the Redux-Saga library. This includes effects such as `throttle`, `debounce`, `takeLatest`, `takeLeading`, and `fork/join`. Some examples from the test suite:
+The provided async workflow primitives (`cancelActiveListeners`, `cancel`, `unsubscribe`, `subscribe`, `take`, `condition`, `pause`, `delay`) can be used to implement behavior that is equivalent to many of the more complex async workflow capabilities found in the Redux-Saga library. This includes effects such as `throttle`, `debounce`, `takeLatest`, `takeLeading`, and `fork/join`. Some examples from the test suite:
 
 ```js
 test('debounce / takeLatest', async () => {
