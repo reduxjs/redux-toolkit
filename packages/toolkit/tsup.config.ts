@@ -16,14 +16,13 @@ const __dirname = path.dirname(__filename)
 const outputDir = path.join(__dirname, 'dist')
 
 export interface BuildOptions {
-  format: 'cjs' | 'umd' | 'esm'
+  format: 'cjs' | 'esm'
   name:
     | 'development'
     | 'production.min'
     | 'legacy-esm'
     | 'modern'
-    | 'modern.development'
-    | 'modern.production.min'
+    | 'browser'
     | 'umd'
     | 'umd.min'
   minify: boolean
@@ -78,18 +77,10 @@ const buildTargets: BuildOptions[] = [
     minify: false,
     env: '',
   },
-  // ESM, pre-compiled "dev": browser development
-  {
-    format: 'esm',
-    name: 'modern.development',
-    target: 'esnext',
-    minify: false,
-    env: 'development',
-  },
   // ESM, pre-compiled "prod": browser prod
   {
     format: 'esm',
-    name: 'modern.production.min',
+    name: 'browser',
     target: 'esnext',
     minify: true,
     env: 'production',
