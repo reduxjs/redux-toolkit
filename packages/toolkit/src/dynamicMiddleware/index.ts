@@ -4,7 +4,7 @@ import type {
   UnknownAction,
 } from 'redux'
 import { compose } from 'redux'
-import { createAction, isAction } from '../createAction'
+import { createAction } from '../createAction'
 import { isAllOf } from '../matchers'
 import { nanoid } from '../nanoid'
 import { emplace, find } from '../utils'
@@ -75,11 +75,7 @@ export const createDynamicMiddleware = <
     return compose(...appliedMiddleware)
   }
 
-  const isWithMiddleware = isAllOf(
-    isAction,
-    withMiddleware,
-    matchInstance(instanceId)
-  )
+  const isWithMiddleware = isAllOf(withMiddleware, matchInstance(instanceId))
 
   const middleware: DynamicMiddleware<State, Dispatch> =
     (api) => (next) => (action) => {
