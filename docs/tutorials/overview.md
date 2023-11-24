@@ -31,7 +31,7 @@ The [**Redux Toolkit Quick Start tutorial**](./quick-start.mdx) briefly shows ho
 
 We also have a [**TypeScript Quick Start tutorial**](./typescript.md) that briefly shows how to set up and use TypeScript with Redux Toolkit and React-Redux.
 
-If you are using NextJS we have a tutorial specific to using Redux Toolkit with NextJS [**NextJS tutorial**](./nextjs.mdx).
+If you are using Next.js we have a tutorial specific to using Redux Toolkit with Next.js [**Next.js tutorial**](../usage/nextjs.mdx).
 
 ## Redux Essentials: A Real-World Example
 
