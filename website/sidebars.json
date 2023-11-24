@@ -15,8 +15,7 @@
         "tutorials/tutorials-overview",
         "tutorials/quick-start",
         "tutorials/typescript",
-        "tutorials/rtk-query",
-        "tutorials/nextjs"
+        "tutorials/rtk-query"
       ]
     },
     {
@@ -31,7 +30,8 @@
         },
         "usage/usage-guide",
         "usage/usage-with-typescript",
-        "usage/immer-reducers"
+        "usage/immer-reducers",
+        "usage/nextjs"
       ]
     },
     {
