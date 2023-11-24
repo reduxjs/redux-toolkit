@@ -1,6 +1,6 @@
 import type { AnyAction, ThunkAction, ThunkDispatch } from '@reduxjs/toolkit'
 import { createSelector } from '@reduxjs/toolkit'
-import type { Selector } from '@reduxjs/toolkit'
+import type { Selector, Unsubscribe } from '@reduxjs/toolkit'
 import type { DependencyList } from 'react'
 import {
   useCallback,
@@ -202,10 +202,11 @@ export type TypedUseQuerySubscriptionResult<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
 
-export type UseLazyQueryLastPromiseInfo<
+export type UseLazyQueryExtras<
   D extends QueryDefinition<any, any, any, any>
 > = {
   lastArg: QueryArgFrom<D>
+  unsubscribe: Unsubscribe | undefined
 }
 
 /**
@@ -232,7 +233,7 @@ export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
 ) => [
   LazyQueryTrigger<D>,
   UseQueryStateResult<D, R>,
-  UseLazyQueryLastPromiseInfo<D>
+  UseLazyQueryExtras<D>
 ]
 
 export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
@@ -277,7 +278,7 @@ export type UseLazyQuerySubscription<
   D extends QueryDefinition<any, any, any, any>
 > = (
   options?: SubscriptionOptions
-) => readonly [LazyQueryTrigger<D>, QueryArgFrom<D> | UninitializedValue]
+) => readonly [LazyQueryTrigger<D>, QueryArgFrom<D> | UninitializedValue, Unsubscribe | undefined]
 
 export type QueryStateSelector<
   R extends Record<string, any>,
@@ -880,7 +881,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         }
       }, [arg, trigger])
 
-      return useMemo(() => [trigger, arg] as const, [trigger, arg])
+      return useMemo(() => [trigger, arg, promiseRef.current?.unsubscribe] as const, [trigger, arg])
     }
 
     const useQueryState: UseQueryState<any> = (
@@ -946,16 +947,17 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       useQuerySubscription,
       useLazyQuerySubscription,
       useLazyQuery(options) {
-        const [trigger, arg] = useLazyQuerySubscription(options)
+        const [trigger, arg, unsubscribe] = useLazyQuerySubscription(options)
         const queryStateResults = useQueryState(arg, {
           ...options,
           skip: arg === UNINITIALIZED_VALUE,
         })
 
-        const info = useMemo(() => ({ lastArg: arg }), [arg])
+        const extras = useMemo(() => ({ lastArg: arg, unsubscribe }), [arg, unsubscribe])
+        
         return useMemo(
-          () => [trigger, queryStateResults, info],
-          [trigger, queryStateResults, info]
+          () => [trigger, queryStateResults, extras],
+          [trigger, queryStateResults, extras]
         )
       },
       useQuery(arg, options) {
