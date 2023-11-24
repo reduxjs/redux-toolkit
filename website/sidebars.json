@@ -75,7 +75,8 @@
             "api/createSelector",
             "api/matching-utilities",
             "api/other-exports",
-            "api/codemods"
+            "api/codemods",
+            { "type": "link", "label": "Error Messages", "href": "/errors" }
           ]
         }
       ]
