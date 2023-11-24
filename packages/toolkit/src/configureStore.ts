@@ -140,12 +140,12 @@ export function configureStore<
     rootReducer = combineReducers(reducer) as unknown as Reducer<S, A, P>
   } else {
     throw new Error(
-      '"reducer" is a required argument, and must be a function or an object of functions that can be passed to combineReducers'
+      '`reducer` is a required argument, and must be a function or an object of functions that can be passed to combineReducers'
     )
   }
 
   if (!IS_PRODUCTION && middleware && typeof middleware !== 'function') {
-    throw new Error('"middleware" field must be a callback')
+    throw new Error('`middleware` field must be a callback')
   }
 
   let finalMiddleware: Tuple<Middlewares<S>>
@@ -184,7 +184,7 @@ export function configureStore<
   const getDefaultEnhancers = buildGetDefaultEnhancers<M>(middlewareEnhancer)
 
   if (!IS_PRODUCTION && enhancers && typeof enhancers !== 'function') {
-    throw new Error('"enhancers" field must be a callback')
+    throw new Error('`enhancers` field must be a callback')
   }
 
   let storeEnhancers =
@@ -193,7 +193,7 @@ export function configureStore<
       : getDefaultEnhancers()
 
   if (!IS_PRODUCTION && !Array.isArray(storeEnhancers)) {
-    throw new Error('"enhancers" callback must return an array')
+    throw new Error('`enhancers` callback must return an array')
   }
   if (
     !IS_PRODUCTION &&
