@@ -34,7 +34,7 @@ you make your Redux code better.
 
 ### Create a React Redux App
 
-The recommended way to start new apps with React and Redux is by using [our official Redux+TS template for Vite](https://github.com/reduxjs/redux-templates), or by creating a new Next.js project using [Next's `with-redux` template](https://github.com/vercel/next.js/tree/canary/examples/with-redux).
+The recommended way to start new apps with React and Redux Toolkit is by using [our official Redux Toolkit + TS template for Vite](https://github.com/reduxjs/redux-templates), or by creating a new Next.js project using [Next's `with-redux` template](https://github.com/vercel/next.js/tree/canary/examples/with-redux).
 
 Both of these already have Redux Toolkit and React-Redux configured appropriately for that build tool, and come with a small example app that demonstrates how to use several of Redux Toolkit's features.
 
@@ -85,8 +85,7 @@ yarn add react-redux
   </TabItem>
 </Tabs>
 
-It is also available as a precompiled UMD package that defines a `window.RTK` global variable.
-The UMD package can be used as a [`<script>` tag](https://unpkg.com/@reduxjs/toolkit/dist/redux-toolkit.umd.js) directly.
+The package includes a precompiled ESM build that can be used as a [`<script type="module">` tag](https://unpkg.com/@reduxjs/toolkit/dist/redux-toolkit.browser.mjs) directly in the browser.
 
 ## What's Included
 
