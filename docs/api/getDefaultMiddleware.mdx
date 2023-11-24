@@ -55,7 +55,7 @@ const store = configureStore({
 // Store has all of the default middleware added, _plus_ the logger middleware
 ```
 
-It is preferable to use the chainable `.concat(...)` and `.prepend(...)` methods of the returned `Tuple` instead of the array spread operator, as the latter can lose valuable type information under some circumstances.
+It is preferable to use the chainable `.concat(...)` and `.prepend(...)` methods of the returned `Tuple` instead of the array spread operator, as the latter can lose valuable TS type information under some circumstances.
 
 ## Included Default Middleware
 

@@ -304,16 +304,25 @@ Typing for the `create.asyncThunk` works in the same way as [`createAsyncThunk`]
 
 A type for `state` and/or `dispatch` _cannot_ be provided as part of the `ThunkApiConfig`, as this would cause circular types.
 
-Instead, it is necessary to assert the type when needed.
+Instead, it is necessary to assert the type when needed - `getState() as RootState`. You may also include an explicit return type for the payload function as well, in order to break the circular type inference cycle.
 
 ```ts no-transpile
 create.asyncThunk<Todo, string, { rejectValue: { error: string } }>(
-  async (id, thunkApi) => {
+  // highlight-start
+  // may need to include an explicit return type
+  async (id: string, thunkApi): Promise<Todo> => {
+    // Cast types for `getState` and `dispatch` manually
     const state = thunkApi.getState() as RootState
     const dispatch = thunkApi.dispatch as AppDispatch
-    throw thunkApi.rejectWithValue({
-      error: 'Oh no!',
-    })
+    // highlight-end
+    try {
+      const todo = await fetchTodo()
+      return todo
+    } catch (e) {
+      throw thunkApi.rejectWithValue({
+        error: 'Oh no!',
+      })
+    }
   }
 )
 ```

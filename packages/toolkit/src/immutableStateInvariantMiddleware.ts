@@ -3,28 +3,6 @@ import { getTimeMeasureUtils } from './utils'
 
 type EntryProcessor = (key: string, value: any) => any
 
-const isProduction: boolean = process.env.NODE_ENV === 'production'
-const prefix: string = 'Invariant failed'
-
-// Throw an error if the condition fails
-// Strip out error messages for production
-// > Not providing an inline default argument for message as the result is smaller
-function invariant(condition: any, message?: string) {
-  if (condition) {
-    return
-  }
-  // Condition not passed
-
-  // In production we strip the message but still throw
-  if (isProduction) {
-    throw new Error(prefix)
-  }
-
-  // When not in production we allow the message to pass through
-  // *This block will be removed in production builds*
-  throw new Error(`${prefix}: ${message || ''}`)
-}
-
 /**
  * The default `isImmutable` function.
  *
@@ -62,7 +40,7 @@ function trackProperties(
   const tracked: Partial<TrackedProperty> = { value: obj }
 
   if (!isImmutable(obj) && !checkedObjects.has(obj)) {
-    checkedObjects.add(obj);
+    checkedObjects.add(obj)
     tracked.children = {}
 
     for (const key in obj) {
@@ -248,12 +226,13 @@ export function createImmutableStateInvariantMiddleware(
           // Track before potentially not meeting the invariant
           tracker = track(state)
 
-          invariant(
-            !result.wasMutated,
-            `A state mutation was detected between dispatches, in the path '${
-              result.path || ''
-            }'.  This may cause incorrect behavior. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`
-          )
+          if (result.wasMutated) {
+            throw new Error(
+              `A state mutation was detected between dispatches, in the path '${
+                result.path || ''
+              }'.  This may cause incorrect behavior. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`
+            )
+          }
         })
 
         const dispatchedAction = next(action)
@@ -265,15 +244,15 @@ export function createImmutableStateInvariantMiddleware(
           // Track before potentially not meeting the invariant
           tracker = track(state)
 
-          result.wasMutated &&
-            invariant(
-              !result.wasMutated,
+          if (result.wasMutated) {
+            throw new Error(
               `A state mutation was detected inside a dispatch, in the path: ${
                 result.path || ''
               }. Take a look at the reducer(s) handling the action ${stringify(
                 action
               )}. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`
             )
+          }
         })
 
         measureUtils.warnIfExceeded()

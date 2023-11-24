@@ -6,23 +6,27 @@
 
 **The official, opinionated, batteries-included toolset for efficient Redux development**
 
-(Formerly known as "Redux Starter Kit")
-
 ## Installation
 
-### Using Create React App
+### Create a React Redux App
 
-The recommended way to start new apps with React and Redux Toolkit is by using the [official Redux+JS template](https://github.com/reduxjs/cra-template-redux) for [Create React App](https://github.com/facebook/create-react-app), which takes advantage of React Redux's integration with React components.
+The recommended way to start new apps with React and Redux Toolkit is by using [our official Redux Toolkit + TS template for Vite](https://github.com/reduxjs/redux-templates), or by creating a new Next.js project using [Next's `with-redux` template](https://github.com/vercel/next.js/tree/canary/examples/with-redux).
 
-```sh
-npx create-react-app my-app --template redux
+Both of these already have Redux Toolkit and React-Redux configured appropriately for that build tool, and come with a small example app that demonstrates how to use several of Redux Toolkit's features.
+
+```bash
+# Vite with our Redux+TS template
+# (using the `degit` tool to clone and extract the template)
+npx degit reduxjs/redux-templates/packages/vite-template-redux my-app
+
+# Next.js using the `with-redux` template
+npx create-next-app --example with-redux my-app
 ```
 
-Or if you are a TypeScript user, use [cra-template-redux-typescript](https://github.com/reduxjs/cra-template-redux-typescript), which is based on that template
+We do not currently have official React Native templates, but recommend these templates for standard React Native and for Expo:
 
-```sh
-npx create-react-app my-app --template redux-typescript
-```
+- https://github.com/rahsheen/react-native-template-redux-typescript
+- https://github.com/rahsheen/expo-template-redux-typescript
 
 ### An Existing App
 
@@ -36,8 +40,13 @@ npm install @reduxjs/toolkit
 yarn add @reduxjs/toolkit
 ```
 
-It is also available as a precompiled UMD package that defines a `window.RTK` global variable.
-The UMD package can be used as a [`<script>` tag](https://unpkg.com/@reduxjs/toolkit/dist/redux-toolkit.umd.js) directly.
+The package includes a precompiled ESM build that can be used as a [`<script type="module">` tag](https://unpkg.com/@reduxjs/toolkit/dist/redux-toolkit.browser.mjs) directly in the browser.
+
+## Documentation
+
+The Redux Toolkit docs are available at **https://redux-toolkit.js.org**, including API references and usage guides for all of the APIs included in Redux Toolkit.
+
+The Redux core docs at https://redux.js.org includes the full Redux tutorials, as well usage guides on general Redux patterns.
 
 ## Purpose
 
@@ -67,6 +76,8 @@ Redux Toolkit includes these APIs:
 - `createEntityAdapter()`: generates a set of reusable reducers and selectors to manage normalized data in the store
 - The `createSelector()` utility from the [Reselect](https://github.com/reduxjs/reselect) library, re-exported for ease of use.
 
+For details, see [the Redux Toolkit API Reference section in the docs](https://redux-toolkit.js.org/api/configureStore).
+
 ## RTK Query
 
 **RTK Query** is provided as an optional addon within the `@reduxjs/toolkit` package. It is purpose-built to solve the use case of data fetching and caching, supplying a compact, but powerful toolset to define an API interface layer for your app. It is intended to simplify common cases for loading data in a web application, eliminating the need to hand-write data fetching & caching logic yourself.
@@ -93,7 +104,3 @@ RTK Query includes these APIs:
 - `setupListeners()`: A utility used to enable refetchOnMount and refetchOnReconnect behaviors.
 
 See the [**RTK Query Overview**](https://redux-toolkit.js.org/rtk-query/overview) page for more details on what RTK Query is, what problems it solves, and how to use it.
-
-## Documentation
-
-The Redux Toolkit docs are available at **https://redux-toolkit.js.org**.
