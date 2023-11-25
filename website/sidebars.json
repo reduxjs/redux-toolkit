@@ -30,7 +30,8 @@
         },
         "usage/usage-guide",
         "usage/usage-with-typescript",
-        "usage/immer-reducers"
+        "usage/immer-reducers",
+        "usage/nextjs"
       ]
     },
     {

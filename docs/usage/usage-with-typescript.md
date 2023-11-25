@@ -328,7 +328,7 @@ const blogSlice = createSlice({
 
 `createSlice` generates action type strings by combining the `name` field from the slice with the field name of the reducer function, like `'test/increment'`. This is strongly typed as the exact value, thanks to TS's string literal analysis.
 
-You can also use the `slice.action.myAction.match` [type predicate](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates) should be a viable alternative:
+You can also use the `slice.action.myAction.match` [type predicate](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates), which will narrow down an action object to the exact type:
 
 ```ts {10}
 const slice = createSlice({
