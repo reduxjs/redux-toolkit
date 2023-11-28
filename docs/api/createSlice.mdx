@@ -233,9 +233,9 @@ Result's function `getInitialState` provides access to the initial state value g
 ## Examples
 
 ```ts
-import { createSlice, createAction } from '@reduxjs/toolkit'
+import { createSlice, createAction, configureStore } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
-import { createStore, combineReducers } from 'redux'
+import { combineReducers } from 'redux'
 
 const incrementBy = createAction<number>('incrementBy')
 const decrementBy = createAction<number>('decrementBy')
@@ -282,12 +282,12 @@ const user = createSlice({
   },
 })
 
-const reducer = combineReducers({
-  counter: counter.reducer,
-  user: user.reducer,
+const store = configureStore({
+  reducer: {
+    counter: counter.reducer,
+    user: user.reducer,
+  },
 })
-
-const store = createStore(reducer)
 
 store.dispatch(counter.actions.increment())
 // -> { counter: 1, user: {name : '', age: 21} }

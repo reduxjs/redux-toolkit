@@ -372,3 +372,15 @@ describe('openapi spec', () => {
     expect(api).toMatchSnapshot();
   });
 });
+
+describe('openapi spec', () => {
+  it('readOnly / writeOnly are merged', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      schemaFile: './fixtures/readOnlyWriteOnly.yaml',
+      apiFile: './fixtures/emptyApi.ts',
+      mergeReadWriteOnly: true
+    });
+    expect(api).toMatchSnapshot();
+  });
+});
