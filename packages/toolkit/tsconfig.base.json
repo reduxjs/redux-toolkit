@@ -43,7 +43,8 @@
       // for type imports in tests only
       "@reduxjs/toolkit/dist/query/*": ["src/query/*"], // @remap-prod-remove-line
       // internal imports in tests only
-      "@internal/*": ["src/*"]
+      "@internal/*": ["src/*"],
+      "react": ["node_modules/react"]
     }
   }
 }
