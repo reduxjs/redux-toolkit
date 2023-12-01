@@ -923,7 +923,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const querySelector: Selector<ApiRootState, any, [any]> = useMemo(
         () =>
           selectFromResult
-            ? createSelector([selectDefaultResult], selectFromResult)
+            ? createSelector([selectDefaultResult], selectFromResult, {
+                devModeChecks: { identityFunctionCheck: 'never' },
+              })
             : selectDefaultResult,
         [selectDefaultResult, selectFromResult]
       )
