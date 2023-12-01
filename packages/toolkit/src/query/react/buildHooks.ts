@@ -1013,16 +1013,16 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       )
 
       const { requestId } = promise || {}
-      const initialSelector = useMemo(
+      const selectDefaultResult = useMemo(
         () => select({ fixedCacheKey, requestId: promise?.requestId }),
         [fixedCacheKey, promise, select]
       )
       const mutationSelector = useMemo(
         () =>
           selectFromResult
-            ? createSelector([initialSelector], selectFromResult)
-            : initialSelector,
-        [selectFromResult, initialSelector]
+            ? createSelector([selectDefaultResult], selectFromResult)
+            : selectDefaultResult,
+        [selectFromResult, selectDefaultResult]
       )
 
       const currentState = useSelector(mutationSelector, shallowEqual)
