@@ -11,7 +11,7 @@ import { DefinitionType, isQueryDefinition } from './endpointDefinitions'
 import { nanoid } from './core/rtkImports'
 import type { UnknownAction } from '@reduxjs/toolkit'
 import type { NoInfer } from './tsHelpers'
-import { defaultMemoize } from 'reselect'
+import { weakMapMemoize } from 'reselect'
 
 export interface CreateApiOptions<
   BaseQuery extends BaseQueryFn,
@@ -253,7 +253,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
   ...modules: Modules
 ): CreateApi<Modules[number]['name']> {
   return function baseCreateApi(options) {
-    const extractRehydrationInfo = defaultMemoize((action: UnknownAction) =>
+    const extractRehydrationInfo = weakMapMemoize((action: UnknownAction) =>
       options.extractRehydrationInfo?.(action, {
         reducerPath: (options.reducerPath ?? 'api') as any,
       })
@@ -304,7 +304,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       },
       apiUid: nanoid(),
       extractRehydrationInfo,
-      hasRehydrationInfo: defaultMemoize(
+      hasRehydrationInfo: weakMapMemoize(
         (action) => extractRehydrationInfo(action) != null
       ),
     }

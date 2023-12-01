@@ -17,12 +17,7 @@ export {
   defaultMemoize,
   weakMapMemoize,
 } from 'reselect'
-export type {
-  Selector,
-  OutputParametricSelector,
-  OutputSelector,
-  ParametricSelector,
-} from 'reselect'
+export type { Selector, OutputSelector } from 'reselect'
 export {
   createDraftSafeSelector,
   createDraftSafeSelectorCreator,
