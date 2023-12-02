@@ -22,12 +22,15 @@ export type IdSelector<T, Id extends EntityId> = (model: T) => Id
 /**
  * @public
  */
-export type Update<T, Id extends EntityId> = { id: Id; changes: Partial<T> }
+export type Update<T, Id extends EntityId = EntityId> = {
+  id: Id
+  changes: Partial<T>
+}
 
 /**
  * @public
  */
-export interface EntityState<T, Id extends EntityId> {
+export interface EntityState<T, Id extends EntityId = EntityId> {
   ids: Id[]
   entities: Record<Id, T>
 }
@@ -35,7 +38,7 @@ export interface EntityState<T, Id extends EntityId> {
 /**
  * @public
  */
-export interface EntityDefinition<T, Id extends EntityId> {
+export interface EntityDefinition<T, Id extends EntityId = EntityId> {
   selectId: IdSelector<T, Id>
   sortComparer: false | Comparer<T>
 }
@@ -43,9 +46,11 @@ export interface EntityDefinition<T, Id extends EntityId> {
 export type PreventAny<S, T, Id extends EntityId> = CastAny<
   S,
   EntityState<T, Id>
-  >
+>
 
-export type DraftableEntityState<T, Id extends EntityId> = EntityState<T, Id> | Draft<EntityState<T, Id>>
+export type DraftableEntityState<T, Id extends EntityId> =
+  | EntityState<T, Id>
+  | Draft<EntityState<T, Id>>
 
 /**
  * @public
@@ -112,7 +117,9 @@ export interface EntityStateAdapter<T, Id extends EntityId> {
     keys: PayloadAction<readonly Id[]>
   ): S
 
-  removeAll<S extends DraftableEntityState<T, Id>>(state: PreventAny<S, T, Id>): S
+  removeAll<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>
+  ): S
 
   updateOne<S extends DraftableEntityState<T, Id>>(
     state: PreventAny<S, T, Id>,
