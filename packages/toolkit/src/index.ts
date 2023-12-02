@@ -14,7 +14,7 @@ export type { Draft } from 'immer'
 export {
   createSelector,
   createSelectorCreator,
-  defaultMemoize,
+  lruMemoize,
   weakMapMemoize,
 } from 'reselect'
 export type { Selector, OutputSelector } from 'reselect'
