@@ -8,7 +8,7 @@
     "test": "node test-cjs.cjs && node test-esm.mjs"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^2.0.0-beta.4",
+    "@reduxjs/toolkit": "^2.0.0-rc.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^9.0.0-rc.0"

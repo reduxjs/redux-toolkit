@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@reduxjs/toolkit": "^2.0.0-beta.4",
+    "@reduxjs/toolkit": "^2.0.0-rc.3",
     "msw": "^1.3.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
