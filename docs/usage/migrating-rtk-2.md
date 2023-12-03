@@ -14,7 +14,7 @@ toc_max_heading_level: 4
 
 :::tip What You'll Learn
 
-- What's changed in Redux Toolkit 2.0 and Redux core 5.0, including breaking changes and new features
+- What's changed in Redux Toolkit 2.0, Redux core 5.0, Reselect 5.0, and Redux Thunk 3.0, including breaking changes and new features
 
 :::
 
@@ -22,9 +22,9 @@ toc_max_heading_level: 4
 
 Redux Toolkit has been available since 2019, and today it's the standard way to write Redux apps. We've gone 4+ years without any breaking changes. Now, RTK 2.0 gives us a chance to modernize the packaging, clean up deprecated options, and tighten up some edge cases.
 
-Redux Toolkit 2.0 is accompanied by major versions of all the other Redux packages: Redux core 5.0, React-Redux 9.0, Redux Thunk 3.0, and Reselect 5.0.
+**Redux Toolkit 2.0 is accompanied by major versions of all the other Redux packages: Redux core 5.0, React-Redux 9.0, Reselect 5.0, and Redux Thunk 3.0**.
 
-This page lists known potentially breaking changes in Redux Toolkit 2.0 and Redux core 5.0, as well as new features in Redux Toolkit 2.0. As a reminder, **you should not need to actually install or use the core `redux` package directly** - RTK wraps that, and re-exports all methods and types.
+This page lists known potentially breaking changes in each of those packages, as well as new features in Redux Toolkit 2.0. As a reminder, **you should not need to actually install or use the core `redux` package directly** - RTK wraps that, and re-exports all methods and types.
 
 In practice, **most of the "breaking" changes should not have an actual effect on end users, and we expect that many projects can just update the package versions with very few code changes needed**.
 
@@ -339,6 +339,10 @@ Redux 4.1.0 optimized its bundle size by [extracting error message strings out o
 
 <div class="typescript-only">
 
+#### `configureStore` field order for `middleware` matters
+
+If you are passing _both_ the `middleware` and `enhancers` fields to `configureStore`, the `middleware` field _must_ come first in order for internal TS inference to work properly.
+
 #### Non-default middleware/enhancers must use `Tuple`
 
 We've seen many cases where users passing the `middleware` parameter to configureStore have tried spreading the array returned by `getDefaultMiddleware()`, or passed an alternate plain array. This unfortunately loses the exact TS types from the individual middleware, and often causes TS problems down the road (such as `dispatch` being typed as `Dispatch<AnyAction>` and not knowing about thunks).
@@ -352,7 +356,7 @@ import { configureStore, Tuple } from '@reduxjs/toolkit'
 
 configureStore({
   reducer: rootReducer,
-  middleware: (getDefaultMidldeware) => new Tuple(additionalMiddleware, logger),
+  middleware: (getDefaultMiddleware) => new Tuple(additionalMiddleware, logger),
 })
 ```
 
@@ -362,13 +366,62 @@ This same restriction applies to the `enhancers` field.
 
 #### Entity adapter type updates
 
-`createEntityAdapter` now has an `Id` generic argument, which will be used to strongly type the item IDs anywhere those are exposed. Previously, the ID field type was always `string | number`. TS will now try to infer the exact type from either the `.id` field of your entity type, or the `selectId` return type. You could also fall back to passing that generic type directly.
+`createEntityAdapter` now has an `Id` generic argument, which will be used to strongly type the item IDs anywhere those are exposed. Previously, the ID field type was always `string | number`. TS will now try to infer the exact type from either the `.id` field of your entity type, or the `selectId` return type. You could also fall back to passing that generic type directly. **If you use the `EntityState<Data, Id>` type directly, you _must_ supply both generic arguments!**
 
 The `.entities` lookup table is now defined to use a standard TS `Record<Id, MyEntityType>`, which assumes that each item lookup exists by default. Previously, it used a `Dictionary<MyEntityType>` type, which assumed the result was `MyEntityType | undefined`. The `Dictionary` type has been removed.
 
 If you prefer to assume that the lookups _might_ be undefined, use TypeScript's `noUncheckedIndexedAccess` configuration option to control that.
 
 </div>
+
+### Reselect
+
+#### `createSelector` Uses `weakMapMemoize` As Default Memoizer
+
+**`createSelector` now uses a new default memoization function called `weakMapMemoize`**. This memoizer offers an effectively infinite cache size, which should simplify usage with varying arguments, but relies exclusively on reference comparisons.
+
+If you need to customize equality comparisons, customize `createSelector` to use the original `lruMemoize` method instead:
+
+```ts no-emit
+createSelector(inputs, resultFn, {
+  memoize: lruMemoize,
+  memoizeOptions: { equalityCheck: yourEqualityFunction },
+})
+```
+
+#### `defaultMemoize` Renamed to `lruMemoize`
+
+Since the original `defaultMemoize` function is no longer actually the default, we've renamed it to `lruMemoize` for clarity. This only matters if you specifically imported it into your app to customize selectors.
+
+#### `createSelector` Dev-Mode Checks
+
+`createSelector` now does checks in development mode for common mistakes, like input selectors that always return new references, or result functions that immediately return their argument. These checks can be customized at selector creation or globally.
+
+<div class="typescript-only">
+
+#### `ParametricSelector` Types Removed
+
+The `ParametricSelector` and `OutputParametricSelector` types have been removed. Use `Selector` and `OutputSelector` instead.
+
+</div>
+
+### React-Redux
+
+#### Requires React 18
+
+React-Redux v7 and v8 worked with all versions of React that supported hooks (16.8+, 17, and 18). v8 switched from internal subscription management to React's new `useSyncExternalStore` hook, but used the "shim" implementation to provide support for React 16.8 and 17, which did not have that hook built in.
+
+**React-Redux v9 switches to _requiring_ React 18, and does _not_ support React 16 or 17**. This allows us to drop the shim and save a small bit of bundle size.
+
+### Redux Thunk
+
+#### Thunk Uses Named Exports
+
+The `redux-thunk` package previously used a single default export that was the middleware, with an attached field named `withExtraArgument` that allowed customization.
+
+The default export has been removed. There are now two named exports: `thunk` (the basic middleware) and `withExtraArgument`.
+
+If you are using Redux Toolkit, this should have no effect, as RTK already handles this inside of `configureStore`.
 
 ## New Features
 
