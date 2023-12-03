@@ -1,7 +1,7 @@
 ---
-id: migrating-1.x-to-2.x
-title: Migrating 1.x → 2.x
-sidebar_label: Migrating 1.x → 2.x
+id: migrating-rtk-2
+title: Migrating to RTK 2.x and Redux 5.x
+sidebar_label: Migrating to RTK 2.x and Redux 5.x
 hide_title: true
 toc_max_heading_level: 4
 ---
@@ -10,7 +10,7 @@ toc_max_heading_level: 4
 
 <div className="migration-guide">
 
-# Migrating 1.x → 2.x
+# Migrating to RTK 2.x and Redux 5.x
 
 :::tip What You'll Learn
 
