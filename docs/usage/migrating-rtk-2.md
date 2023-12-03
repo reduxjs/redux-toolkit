@@ -1,7 +1,7 @@
 ---
 id: migrating-rtk-2
-title: Migrating to RTK 2.x and Redux 5.x
-sidebar_label: Migrating to RTK 2.x and Redux 5.x
+title: Migrating to RTK 2.0 and Redux 5.0
+sidebar_label: Migrating to RTK 2.0 and Redux 5.0
 hide_title: true
 toc_max_heading_level: 4
 ---
@@ -10,7 +10,7 @@ toc_max_heading_level: 4
 
 <div className="migration-guide">
 
-# Migrating to RTK 2.x and Redux 5.x
+# Migrating to RTK 2.0 and Redux 5.0
 
 :::tip What You'll Learn
 
@@ -49,7 +49,7 @@ We've done local testing of the package, but we ask the community to try out thi
 We've updated the build output in several ways:
 
 - **Build output is no longer transpiled!** Instead we target modern JS syntax (ES2020)
-- Moved all build artifacts to live under ./dist/, instead of separate top-level folders
+- Moved all build artifacts to live under `./dist/`, instead of separate top-level folders
 - The lowest Typescript version we test against is now 4.7
 
 #### Dropping UMD builds
@@ -94,7 +94,7 @@ To fix this, there are three options:
 
 In 2019, we began a community-powered conversion of the Redux codebase to TypeScript. The original effort was discussed in [#3500: Port to TypeScript](https://github.com/reduxjs/redux/issues/3500), and the work was integrated in PR [#3536: Convert to TypeScript](https://github.com/reduxjs/redux/issues/3536).
 
-However, the TS-converted code in master has sat around since then, unused and unpublished, due to concerns about possible compatibility issues with the existing ecosystem (as well as general inertia on our part).
+However, the TS-converted code sat around in the repo for several years, unused and unpublished, due to concerns about possible compatibility issues with the existing ecosystem (as well as general inertia on our part).
 
 Redux core v5 is now built from that TS-converted source code. In theory, this should be almost identical in both runtime behavior and types to the 4.x build, but it's very likely that some of the changes may cause types issues.
 
