@@ -50,7 +50,7 @@ We've updated the build output in several ways:
 
 - **Build output is no longer transpiled!** Instead we target modern JS syntax (ES2020)
 - Moved all build artifacts to live under `./dist/`, instead of separate top-level folders
-- The lowest Typescript version we test against is now 4.7
+- The lowest Typescript version we test against is now **TS 4.7**.
 
 #### Dropping UMD builds
 
@@ -70,7 +70,7 @@ If you have strong use cases for us continuing to include UMD build artifacts, p
 
 We've always specifically told our users that [actions and state _must_ be serializable](https://redux.js.org/style-guide/#do-not-put-non-serializable-values-in-state-or-actions), and that `action.type` _should_ be a string. This is both to ensure that actions are serializable, and to help provide a readable action history in the Redux DevTools.
 
-`store.dispatch(action)` now specifically enforces that `action.type` _must_ be a string and will throw an error if not, in the same way it throws an error if the action is not a plain object.
+`store.dispatch(action)` now specifically enforces that **`action.type` _must_ be a string** and will throw an error if not, in the same way it throws an error if the action is not a plain object.
 
 In practice, this was already true 99.99% of the time and shouldn't have any effect on users (especially those using Redux Toolkit and `createSlice`), but there may be some legacy Redux codebases that opted to use Symbols as action types.
 
@@ -78,7 +78,9 @@ In practice, this was already true 99.99% of the time and shouldn't have any eff
 
 In [Redux 4.2.0, we marked the original `createStore` method as `@deprecated`](https://github.com/reduxjs/redux/releases/tag/v4.2.0). Strictly speaking, **this is _not_ a breaking change**, nor is it new in 5.0, but we're documenting it here for completeness.
 
-**This deprecation is solely a _visual_ indicator that is meant to encourage users to [migrate their apps from legacy Redux patterns to use the modern Redux Toolkit APIs](https://redux.js.org/usage/migrating-to-modern-redux)**. The deprecation results in a visual strikethrough when imported and used, like ~~`createStore`~~, but with _no_ runtime errors or warnings.
+**This deprecation is solely a _visual_ indicator that is meant to encourage users to [migrate their apps from legacy Redux patterns to use the modern Redux Toolkit APIs](https://redux.js.org/usage/migrating-to-modern-redux)**.
+
+The deprecation results in a **visual strikethrough** when imported and used, like **~~`createStore`~~**, but with **_no_ runtime errors or warnings**.
 
 **`createStore` will continue to work indefinitely, and will _not_ ever be removed**. But, today we want _all_ Redux users to be using Redux Toolkit for all of their Redux logic.
 
@@ -397,6 +399,29 @@ Since the original `defaultMemoize` function is no longer actually the default, 
 
 `createSelector` now does checks in development mode for common mistakes, like input selectors that always return new references, or result functions that immediately return their argument. These checks can be customized at selector creation or globally.
 
+This is important, as an input selector returning a materially different result with the same parameters means that the output selector will never memoize correctly and be run unnecessarily, thus (potentially) creating a new result and causing rerenders.
+
+```ts
+const addNumbers = createSelector(
+  // this input selector will always return a new reference when run
+  // so cache will never be used
+  (a, b) => ({ a, b }),
+  ({ a, b }) => ({ total: a + b })
+)
+// instead, you should have an input selector for each stable piece of data
+const addNumbersStable = createSelector(
+  (a, b) => a,
+  (a, b) => b,
+  (a, b) => ({
+    total: a + b,
+  })
+)
+```
+
+This is done the first time the selector is called, unless configured otherwise. More details are available in the [Reselect docs on dev-mode checks](https://reselect.js.org/api/development-only-stability-checks).
+
+Note that while RTK re-exports `createSelector`, it intentionally does not re-export the function to configure this check globally - if you wish to do so, you should instead depend on `reselect` directly and import it yourself.
+
 <div class="typescript-only">
 
 #### `ParametricSelector` Types Removed
@@ -677,33 +702,6 @@ We've updated `configureStore` to add the `autoBatchEnhancer` to the store setup
 ### `entityAdapter.getSelectors` accepts a `createSelector` function
 
 [`entityAdapter.getSelectors()`](../api/createEntityAdapter#selector-functions) now accepts an options object as its second argument. This allows you to pass in your own preferred `createSelector` method, which will be used to memoize the generated selectors. This could be useful if you want to use one of Reselect's new alternate memoizers, or some other memoization library with an equivalent signature.
-
-### New dev checks in Reselect v5
-
-Reselect v5 includes a dev-only check to check stability of input selectors, by running them an extra time with the same parameters, and checking that the result matches.
-
-This is important, as an input selector returning a materially different result with the same parameters means that the output selector will be run unnecessarily, thus (potentially) creating a new result and causing rerenders.
-
-```ts
-const addNumbers = createSelector(
-  // this input selector will always return a new reference when run
-  // so cache will never be used
-  (a, b) => ({ a, b }),
-  ({ a, b }) => ({ total: a + b })
-)
-// instead, you should have an input selector for each stable piece of data
-const addNumbersStable = createSelector(
-  (a, b) => a,
-  (a, b) => b,
-  (a, b) => ({
-    total: a + b,
-  })
-)
-```
-
-This is done the first time the selector is called, unless configured otherwise. More details are available in the [README](https://github.com/reduxjs/reselect#inputstabilitycheck).
-
-Note that RTK intentionally does not re-export the function to configure this check globally - if you wish to do so, you should instead depend on `reselect` directly and import it yourself.
 
 ### Immer 10.0
 
