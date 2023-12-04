@@ -7076,8 +7076,8 @@ __metadata:
     prettier: ^2.2.1
     query-string: ^7.0.1
     redux: ^5.0.0
-    redux-thunk: ^3.0.1
-    reselect: ^5.0.0
+    redux-thunk: ^3.1.0
+    reselect: ^5.0.1
     rimraf: ^3.0.2
     size-limit: ^4.11.0
     tslib: ^1.10.0
@@ -25125,12 +25125,12 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"redux-thunk@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "redux-thunk@npm:3.0.1"
+"redux-thunk@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "redux-thunk@npm:3.1.0"
   peerDependencies:
     redux: ^5.0.0
-  checksum: 17c918470a91c6401739e58590ae7c4d1e3590ac51d0d5f2275215a78eb47f64021de98ae7425398c6d2041e0f5bd9b6ce4727ae0d5c53b70df69a836f80cb57
+  checksum: bea96f8233975aad4c9f24ca1ffd08ac7ec91eaefc26e7ba9935544dc55d7f09ba2aa726676dab53dc79d0c91e8071f9729cddfea927f4c41839757d2ade0f50
   languageName: node
   linkType: hard
 
@@ -25611,10 +25611,10 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"reselect@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "reselect@npm:5.0.0"
-  checksum: 9bf3e6ca753d276c45436d4404d952bfc0fc7de2e4b3832df3bafde941edff274f703100fcd2d1f753e4b14a65ef1af8bd0bc68ea5e76ccf2ddde5d2aa27968f
+"reselect@npm:^5.0.1":
+  version: 5.0.1
+  resolution: "reselect@npm:5.0.1"
+  checksum: 7663b4c28a0e908e74dc25262e1d813d028b9c2ee96160cb0f40a16f09c5ac632fa16af6bafede7eb0ff16ab2d5bea2cd8814d9a9488e0262b8317fef90b1dc0
   languageName: node
   linkType: hard
 
