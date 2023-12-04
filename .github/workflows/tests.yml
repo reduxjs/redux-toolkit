@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ['16.x']
+        node: ['18.x']
 
     steps:
       - name: Checkout repo
@@ -67,7 +67,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['16.x']
+        node: ['18.x']
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -104,8 +104,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['16.x']
-        ts: ['4.7', '4.8', '4.9', '5.0', '5.1', '5.2']
+        node: ['18.x']
+        ts: ['4.7', '4.8', '4.9', '5.0', '5.1', '5.2', '5.3']
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -148,7 +148,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['16.x']
+        node: ['18.x']
         example: ['cra4', 'cra5', 'next', 'vite', 'node-standard', 'node-esm']
     defaults:
       run:
@@ -184,7 +184,7 @@ jobs:
         run: yarn info @reduxjs/toolkit && yarn why @reduxjs/toolkit
 
       - name: Build example
-        run: yarn build
+        run: NODE_OPTIONS=--openssl-legacy-provider yarn build
 
       - name: Run test step
         run: yarn test
@@ -197,10 +197,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['16.x']
+        node: ['18.x']
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
+
+      - name: Use node ${{ matrix.node }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'yarn'
+
+      - name: Install deps
+        run: yarn install
 
       - uses: actions/download-artifact@v2
         with:
@@ -211,4 +220,4 @@ jobs:
         run: ls -l .
 
       - name: Run are-the-types-wrong
-        run: npx @arethetypeswrong/cli ./package.tgz --format table --ignore-rules false-cjs
+        run: yarn attw ./package.tgz --format table --ignore-rules false-cjs

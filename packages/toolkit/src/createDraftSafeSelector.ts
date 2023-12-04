@@ -1,5 +1,5 @@
 import { current, isDraft } from 'immer'
-import { createSelectorCreator, defaultMemoize } from 'reselect'
+import { createSelectorCreator, weakMapMemoize } from 'reselect'
 
 export const createDraftSafeSelectorCreator: typeof createSelectorCreator = (
   ...args: unknown[]
@@ -22,4 +22,4 @@ export const createDraftSafeSelectorCreator: typeof createSelectorCreator = (
  * @public
  */
 export const createDraftSafeSelector =
-  createDraftSafeSelectorCreator(defaultMemoize)
+  createDraftSafeSelectorCreator(weakMapMemoize)

@@ -326,9 +326,9 @@ const blogSlice = createSlice({
 
 ### Generated Action Types for Slices
 
-As TS cannot combine two string literals (`slice.name` and the key of `actionMap`) into a new literal, all actionCreators created by `createSlice` are of type 'string'. This is usually not a problem, as these types are only rarely used as literals.
+`createSlice` generates action type strings by combining the `name` field from the slice with the field name of the reducer function, like `'test/increment'`. This is strongly typed as the exact value, thanks to TS's string literal analysis.
 
-In most cases that `type` would be required as a literal, the `slice.action.myAction.match` [type predicate](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates) should be a viable alternative:
+You can also use the `slice.action.myAction.match` [type predicate](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates), which will narrow down an action object to the exact type:
 
 ```ts {10}
 const slice = createSlice({
@@ -338,6 +338,9 @@ const slice = createSlice({
     increment: (state, action: PayloadAction<number>) => state + action.payload,
   },
 })
+
+type incrementType = typeof slice.actions.increment.type
+// type incrementType = 'test/increment'
 
 function myCustomMiddleware(action: Action) {
   if (slice.actions.increment.match(action)) {
@@ -406,6 +409,59 @@ type AtLeastOne<T extends Record<string, any>> = keyof T extends infer K
 
 // Use this type instead of `Partial<MyPayloadType>`
 type AtLeastOneUserField = AtLeastOne<User>
+```
+
+### Typing Async Thunks Inside `createSlice`
+
+As of 2.0, `createSlice` allows [defining thunks inside of `reducers` using a callback syntax](../api/createSlice.mdx/#the-reducers-creator-callback-notation).
+
+Typing for the `create.asyncThunk` method works in the same way as [`createAsyncThunk`](#createasyncthunk), with one key difference.
+
+A type for `state` and/or `dispatch` _cannot_ be provided as part of the `ThunkApiConfig`, as this would cause circular types.
+
+Instead, it is necessary to assert the type when needed - `getState() as RootState`. You may also include an explicit return type for the payload function as well, in order to break the circular type inference cycle.
+
+```ts no-transpile
+create.asyncThunk<Todo, string, { rejectValue: { error: string } }>(
+  // highlight-start
+  // may need to include an explicit return type
+  async (id: string, thunkApi): Promise<Todo> => {
+    // Cast types for `getState` and `dispatch` manually
+    const state = thunkApi.getState() as RootState
+    const dispatch = thunkApi.dispatch as AppDispatch
+    // highlight-end
+    try {
+      const todo = await fetchTodo()
+      return todo
+    } catch (e) {
+      throw thunkApi.rejectWithValue({
+        error: 'Oh no!',
+      })
+    }
+  }
+)
+```
+
+For common thunk API configuration options, a [`withTypes` helper](../usage/usage-with-typescript#defining-a-pre-typed-createasyncthunk) is provided:
+
+```ts no-transpile
+reducers: (create) => {
+  const createAThunk =
+    create.asyncThunk.withTypes<{ rejectValue: { error: string } }>()
+
+  return {
+    fetchTodo: createAThunk<Todo, string>(async (id, thunkApi) => {
+      throw thunkApi.rejectWithValue({
+        error: 'Oh no!',
+      })
+    }),
+    fetchTodos: createAThunk<Todo[], string>(async (id, thunkApi) => {
+      throw thunkApi.rejectWithValue({
+        error: 'Oh no, not again!',
+      })
+    }),
+  }
+}
 ```
 
 ### Wrapping `createSlice`

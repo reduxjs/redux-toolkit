@@ -8,6 +8,7 @@ import type {
 } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import type { TaskAbortError } from './exceptions'
+import { NoInfer } from '../tsHelpers'
 
 /**
  * @internal
@@ -234,6 +235,14 @@ export interface ListenerEffectAPI<
    */
   cancelActiveListeners: () => void
   /**
+   * Cancels the instance of this listener that made this call.
+   */
+  cancel: () => void
+  /**
+   * Throws a `TaskAbortError` if this listener has been cancelled
+   */
+  throwIfCancelled: () => void
+  /**
    * An abort signal whose `aborted` property is set to `true`
    * if the listener execution is either aborted or completed.
    * @see https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
@@ -436,7 +445,7 @@ export interface AddListenerOverloads<
   ): Return
 
   /** Accepts an RTK matcher function, such as `incrementByAmount.match` */
-  <MA extends ReduxAction, M extends MatchFunction<MA>>(
+  <M extends MatchFunction<UnknownAction>>(
     options: {
       actionCreator?: never
       type?: never
@@ -573,10 +582,7 @@ export type FallbackAddListenerOptions = {
  */
 
 /** @public */
-export type GuardedType<T> = T extends (
-  x: any,
-  ...args: unknown[]
-) => x is infer T
+export type GuardedType<T> = T extends (x: any, ...args: any[]) => x is infer T
   ? T
   : never
 

@@ -1,8 +1,7 @@
-import { resolve } from 'path';
-import { generateEndpoints } from '../src';
-import fs from 'fs';
-import path from 'path';
 import del from 'del';
+import fs from 'fs';
+import path, { resolve } from 'path';
+import { generateEndpoints } from '../src';
 
 const tmpDir = path.resolve(__dirname, 'tmp');
 
@@ -199,6 +198,17 @@ it('supports granular hooks generation with only mutations', async () => {
   expect(api).toMatchSnapshot();
 });
 
+it('falls back to the `title` parameter for the body parameter name when no other name is available', async () => {
+  const api = await generateEndpoints({
+    apiFile: 'fixtures/emptyApi.ts',
+    schemaFile: resolve(__dirname, 'fixtures/title-as-param-name.json'),
+  });
+  expect(api).not.toContain('queryArg.body');
+  expect(api).toContain('queryArg.exportedEntityIds');
+  expect(api).toContain('queryArg.rawData');
+  expect(api).toMatchSnapshot();
+});
+
 test('hooks generation uses overrides', async () => {
   const api = await generateEndpoints({
     unionUndefined: true,
@@ -226,6 +236,18 @@ test('should use brackets in a querystring urls arg, when the arg contains full 
   });
   // eslint-disable-next-line no-template-curly-in-string
   expect(api).toContain('`/api/v1/list/${queryArg["item.id"]}`');
+  expect(api).toMatchSnapshot();
+});
+
+test('duplicate parameter names must be prefixed with a path or query prefix', async () => {
+  const api = await generateEndpoints({
+    unionUndefined: true,
+    apiFile: './fixtures/emptyApi.ts',
+    schemaFile: resolve(__dirname, 'fixtures/params.json'),
+  });
+  // eslint-disable-next-line no-template-curly-in-string
+  expect(api).toContain('pathSomeName: string');
+  expect(api).toContain('querySomeName: string');
   expect(api).toMatchSnapshot();
 });
 
@@ -337,5 +359,28 @@ describe('tests from issues', () => {
       hooks: true,
     });
     expect(result).toMatchSnapshot();
+  });
+});
+
+describe('openapi spec', () => {
+  it('readOnly / writeOnly are respected', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      schemaFile: './fixtures/readOnlyWriteOnly.yaml',
+      apiFile: './fixtures/emptyApi.ts',
+    });
+    expect(api).toMatchSnapshot();
+  });
+});
+
+describe('openapi spec', () => {
+  it('readOnly / writeOnly are merged', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      schemaFile: './fixtures/readOnlyWriteOnly.yaml',
+      apiFile: './fixtures/emptyApi.ts',
+      mergeReadWriteOnly: true
+    });
+    expect(api).toMatchSnapshot();
   });
 });

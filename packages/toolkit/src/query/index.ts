@@ -21,6 +21,7 @@ export type {
 export type {
   EndpointDefinitions,
   EndpointDefinition,
+  EndpointBuilder,
   QueryDefinition,
   MutationDefinition,
   TagDescription,

@@ -3,7 +3,7 @@ import {
   createAction,
   createSlice,
   isAnyOf,
-  isFSA,
+  isFluxStandardAction,
 } from '@reduxjs/toolkit'
 import type { Mock } from 'vitest'
 import { vi } from 'vitest'
@@ -48,6 +48,8 @@ const middlewareApi = {
   unsubscribe: expect.any(Function),
   subscribe: expect.any(Function),
   cancelActiveListeners: expect.any(Function),
+  cancel: expect.any(Function),
+  throwIfCancelled: expect.any(Function),
 }
 
 const noop = () => {}
@@ -648,7 +650,78 @@ describe('createListenerMiddleware', () => {
       expect(await deferredCompletedSignalReason).toBe(listenerCompleted)
     })
 
-    test('"can unsubscribe via middleware api', () => {
+    test('can self-cancel via middleware api', async () => {
+      const notifyDeferred = createAction<Deferred<string>>('notify-deferred')
+
+      startListening({
+        actionCreator: notifyDeferred,
+        effect: async ({ payload }, { signal, cancel, delay }) => {
+          signal.addEventListener(
+            'abort',
+            () => {
+              payload.resolve((signal as AbortSignalWithReason<string>).reason)
+            },
+            { once: true }
+          )
+
+          cancel()
+        },
+      })
+
+      const deferredCancelledSignalReason = store.dispatch(
+        notifyDeferred(deferred<string>())
+      ).payload
+
+      expect(await deferredCancelledSignalReason).toBe(listenerCancelled)
+    })
+
+    test('Can easily check if the listener has been cancelled', async () => {
+      const pauseDeferred = deferred<void>()
+
+      let listenerCancelled = false
+      let listenerStarted = false
+      let listenerCompleted = false
+      let cancelListener: () => void = () => {}
+      let error: TaskAbortError | undefined = undefined
+
+      startListening({
+        actionCreator: testAction1,
+        effect: async ({ payload }, { throwIfCancelled, cancel }) => {
+          cancelListener = cancel
+          try {
+            listenerStarted = true
+            throwIfCancelled()
+            await pauseDeferred
+
+            throwIfCancelled()
+            listenerCompleted = true
+          } catch (err) {
+            if (err instanceof TaskAbortError) {
+              listenerCancelled = true
+              error = err
+            }
+          }
+        },
+      })
+
+      store.dispatch(testAction1('a'))
+      expect(listenerStarted).toBe(true)
+      expect(listenerCompleted).toBe(false)
+      expect(listenerCancelled).toBe(false)
+
+      // Cancel it while the listener is paused at a non-cancel-aware promise
+      cancelListener()
+      pauseDeferred.resolve()
+
+      await delay(10)
+      expect(listenerCompleted).toBe(false)
+      expect(listenerCancelled).toBe(true)
+      expect((error as any)?.message).toBe(
+        'task cancelled (reason: listener-cancelled)'
+      )
+    })
+
+    test('can unsubscribe via middleware api', () => {
       const effect = vi.fn(
         (action: TestAction1, api: ListenerEffectAPI<any, any>) => {
           if (action.payload === 'b') {
@@ -1448,7 +1521,9 @@ describe('createListenerMiddleware', () => {
           currentState,
           previousState
         ): action is PayloadAction<number> => {
-          return isFSA(action) && typeof action.payload === 'boolean'
+          return (
+            isFluxStandardAction(action) && typeof action.payload === 'boolean'
+          )
         },
         effect: (action, listenerApi) => {
           expectExactType<PayloadAction<number>>(action)
@@ -1457,7 +1532,9 @@ describe('createListenerMiddleware', () => {
 
       startListening({
         predicate: (action, currentState) => {
-          return isFSA(action) && typeof action.payload === 'number'
+          return (
+            isFluxStandardAction(action) && typeof action.payload === 'number'
+          )
         },
         effect: (action, listenerApi) => {
           expectExactType<UnknownAction>(action)

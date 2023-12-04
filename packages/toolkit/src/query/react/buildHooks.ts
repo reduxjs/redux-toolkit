@@ -541,9 +541,6 @@ export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> =
     (arg: QueryArgFrom<D>): MutationActionCreatorResult<D>
   }
 
-const defaultQueryStateSelector: QueryStateSelector<any, any> = (x) => x
-const defaultMutationStateSelector: MutationStateSelector<any, any> = (x) => x
-
 /**
  * Wrapper around `defaultQueryStateSelector` to be used in `useQuery`.
  * We want the initial render to already come back with
@@ -926,7 +923,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const querySelector: Selector<ApiRootState, any, [any]> = useMemo(
         () =>
           selectFromResult
-            ? createSelector([selectDefaultResult], selectFromResult)
+            ? createSelector([selectDefaultResult], selectFromResult, {
+                devModeChecks: { identityFunctionCheck: 'never' },
+              })
             : selectDefaultResult,
         [selectDefaultResult, selectFromResult]
       )
@@ -989,10 +988,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   }
 
   function buildMutationHook(name: string): UseMutation<any> {
-    return ({
-      selectFromResult = defaultMutationStateSelector,
-      fixedCacheKey,
-    } = {}) => {
+    return ({ selectFromResult, fixedCacheKey } = {}) => {
       const { select, initiate } = api.endpoints[name] as ApiEndpointMutation<
         MutationDefinition<any, any, any, any, any>,
         Definitions
@@ -1019,13 +1015,16 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       )
 
       const { requestId } = promise || {}
+      const selectDefaultResult = useMemo(
+        () => select({ fixedCacheKey, requestId: promise?.requestId }),
+        [fixedCacheKey, promise, select]
+      )
       const mutationSelector = useMemo(
         () =>
-          createSelector(
-            [select({ fixedCacheKey, requestId: promise?.requestId })],
-            selectFromResult
-          ),
-        [select, promise, selectFromResult, fixedCacheKey]
+          selectFromResult
+            ? createSelector([selectDefaultResult], selectFromResult)
+            : selectDefaultResult,
+        [selectFromResult, selectDefaultResult]
       )
 
       const currentState = useSelector(mutationSelector, shallowEqual)

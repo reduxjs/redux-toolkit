@@ -102,7 +102,7 @@ describe('configureStore', async () => {
   describe('given no reducer', () => {
     it('throws', () => {
       expect(configureStore).toThrow(
-        '"reducer" is a required argument, and must be a function or an object of functions that can be passed to combineReducers'
+        '`reducer` is a required argument, and must be a function or an object of functions that can be passed to combineReducers'
       )
     })
   })
@@ -126,7 +126,7 @@ describe('configureStore', async () => {
     it('throws an error requiring a callback', () => {
       // @ts-expect-error
       expect(() => configureStore({ middleware: [], reducer })).toThrow(
-        '"middleware" field must be a callback'
+        '`middleware` field must be a callback'
       )
     })
   })
@@ -291,14 +291,14 @@ describe('configureStore', async () => {
     describe('invalid arguments', () => {
       test('enhancers is not a callback', () => {
         expect(() => configureStore({ reducer, enhancers: [] as any })).toThrow(
-          '"enhancers" field must be a callback'
+          '`enhancers` field must be a callback'
         )
       })
 
       test('callback fails to return array', () => {
         expect(() =>
           configureStore({ reducer, enhancers: (() => {}) as any })
-        ).toThrow('"enhancers" callback must return an array')
+        ).toThrow('`enhancers` callback must return an array')
       })
 
       test('array contains non-function', () => {

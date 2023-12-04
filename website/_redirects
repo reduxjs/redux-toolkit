@@ -12,3 +12,4 @@
 # Relocated content
 /rtk-query/usage/optimistic-updates     /rtk-query/usage/manual-cache-updates#optimistic-updates
 /rtk-query/api/created-api/cache-management-utils     /rtk-query/api/created-api/api-slice-utils
+/migrations/migrating-1.x-to-2.x     /usage/migrating-rtk-2

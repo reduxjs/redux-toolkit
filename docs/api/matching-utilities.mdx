@@ -13,7 +13,6 @@ Redux Toolkit exports several type-safe action matching utilities that you can l
 
 ### General Purpose
 
-- [`isAction`](#isaction) - returns true if a passed value is a standard action object, with a type string
 - [`isAllOf`](#isallof) - returns true when **all** conditions are met
 - [`isAnyOf`](#isanyof) - returns true when **at least one of** the conditions are met
 
@@ -26,16 +25,6 @@ All these matchers can either be called with one or more thunks as arguments, in
 - [`isFulfilled`](#isfulfilled) - accepts one or more action creators and returns true when all match
 - [`isRejected`](#isrejected) - accepts one or more action creators and returns true when all match
 - [`isRejectedWithValue`](#isrejectedwithvalue) - accepts one or more action creators and returns true when all match
-
-## `isAction`
-
-A type guard that takes an unknown variable, and returns `true` if it's a standard Redux action with a string `type` property.
-
-:::caution
-
-As of Redux 5.0, action types are _required_ to be a string.
-
-:::
 
 ## `isAllOf`
 

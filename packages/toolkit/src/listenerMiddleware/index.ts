@@ -1,6 +1,7 @@
 import type { Action, Dispatch, MiddlewareAPI, UnknownAction } from 'redux'
+import { isAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
-import { createAction, isAction } from '../createAction'
+import { createAction } from '../createAction'
 import { nanoid } from '../nanoid'
 
 import type {
@@ -402,6 +403,16 @@ export function createListenerMiddleware<
                   set.delete(controller)
                 }
               })
+            },
+            cancel: () => {
+              abortControllerWithReason(
+                internalTaskController,
+                listenerCancelled
+              )
+              entry.pending.delete(internalTaskController)
+            },
+            throwIfCancelled: () => {
+              validateActive(internalTaskController.signal)
             },
           })
         )

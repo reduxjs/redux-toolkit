@@ -205,7 +205,10 @@ describe('warns on multiple apis using the same `reducerPath`', () => {
   test('common: two apis, same order', async () => {
     const store = configureStore({
       reducer: {
+        // TS 5.3 now errors on identical object keys. We want to force that behavior.
+        // @ts-ignore
         [api1.reducerPath]: api1.reducer,
+        // @ts-ignore
         [api1_2.reducerPath]: api1_2.reducer,
       },
       middleware: (gDM) => gDM().concat(api1.middleware, api1_2.middleware),
@@ -222,7 +225,9 @@ If you have multiple apis, you *have* to specify the reducerPath option when usi
   test('common: two apis, opposing order', async () => {
     const store = configureStore({
       reducer: {
+        // @ts-ignore
         [api1.reducerPath]: api1.reducer,
+        // @ts-ignore
         [api1_2.reducerPath]: api1_2.reducer,
       },
       middleware: (gDM) => gDM().concat(api1_2.middleware, api1.middleware),
@@ -242,7 +247,9 @@ If you have multiple apis, you *have* to specify the reducerPath option when usi
   test('common: two apis, only first middleware', async () => {
     const store = configureStore({
       reducer: {
+        // @ts-ignore
         [api1.reducerPath]: api1.reducer,
+        // @ts-ignore
         [api1_2.reducerPath]: api1_2.reducer,
       },
       middleware: (gDM) => gDM().concat(api1.middleware),
@@ -266,7 +273,9 @@ If you have multiple apis, you *have* to specify the reducerPath option when usi
   test.skip('common: two apis, only second middleware', async () => {
     const store = configureStore({
       reducer: {
+        // @ts-ignore
         [api1.reducerPath]: api1.reducer,
+        // @ts-ignore
         [api1_2.reducerPath]: api1_2.reducer,
       },
       middleware: (gDM) => gDM().concat(api1_2.middleware),

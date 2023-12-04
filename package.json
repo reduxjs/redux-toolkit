@@ -35,7 +35,8 @@
     "netlify-plugin-cache": "^1.0.3",
     "prettier": "^2.2.1",
     "release-it": "^14.12.5",
-    "serve": "^14.2.0"
+    "serve": "^14.2.0",
+    "typescript": "5.2"
   },
   "resolutions": {
     "@babel/core": "7.19.3",
@@ -44,7 +45,7 @@
     "@babel/helper-compilation-targets": "7.19.3",
     "@babel/traverse": "7.19.3",
     "@babel/types": "7.19.3",
-    "esbuild": "0.19.3",
+    "esbuild": "0.19.7",
     "jest-snapshot": "29.3.1",
     "msw": "patch:msw@npm:0.40.2#.yarn/patches/msw-npm-0.40.2-2107d48752",
     "jscodeshift": "0.13.1",
@@ -65,7 +66,10 @@
     "docs/@types/react-dom": "npm:17.0.11",
     "docs/@types/react": "npm:17.0.11",
     "type-fest": "2.19.0",
-    "console-testing-library@0.6.1": "patch:console-testing-library@npm%3A0.6.1#./.yarn/patches/console-testing-library-npm-0.6.1-4d9957d402.patch"
+    "console-testing-library@0.6.1": "patch:console-testing-library@npm%3A0.6.1#./.yarn/patches/console-testing-library-npm-0.6.1-4d9957d402.patch",
+    "@typescript-eslint/eslint-plugin": "6.12.0",
+    "@typescript-eslint/parser": "6.12.0",
+    "typescript": "5.2.2"
   },
   "scripts": {
     "build": "yarn build:packages",

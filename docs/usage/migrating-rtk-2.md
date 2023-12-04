@@ -1,7 +1,7 @@
 ---
-id: migrating-1.x-to-2.x
-title: Migrating 1.x → 2.x
-sidebar_label: Migrating 1.x → 2.x
+id: migrating-rtk-2
+title: Migrating to RTK 2.0 and Redux 5.0
+sidebar_label: Migrating to RTK 2.0 and Redux 5.0
 hide_title: true
 toc_max_heading_level: 4
 ---
@@ -10,17 +10,25 @@ toc_max_heading_level: 4
 
 <div className="migration-guide">
 
-# Migrating 1.x → 2.x
+# Migrating to RTK 2.0 and Redux 5.0
+
+:::tip What You'll Learn
+
+- What's changed in Redux Toolkit 2.0, Redux core 5.0, Reselect 5.0, and Redux Thunk 3.0, including breaking changes and new features
+
+:::
 
 ## Introduction
 
 Redux Toolkit has been available since 2019, and today it's the standard way to write Redux apps. We've gone 4+ years without any breaking changes. Now, RTK 2.0 gives us a chance to modernize the packaging, clean up deprecated options, and tighten up some edge cases.
 
-Redux Toolkit 2.0 is accompanied by major versions of all the other Redux packages: Redux core 5.0, React-Redux 9.0, Redux Thunk 3.0, and Reselect 5.0.
+**Redux Toolkit 2.0 is accompanied by major versions of all the other Redux packages: Redux core 5.0, React-Redux 9.0, Reselect 5.0, and Redux Thunk 3.0**.
 
-This page lists known potentially breaking changes in Redux Toolkit 2.0 and Redux core 5.0, as well as new features in Redux Toolkit 2.0. As a reminder, you should not need to actually install or use the core `redux` package directly - RTK wraps that, and re-exports all methods and types.
+This page lists known potentially breaking changes in each of those packages, as well as new features in Redux Toolkit 2.0. As a reminder, **you should not need to actually install or use the core `redux` package directly** - RTK wraps that, and re-exports all methods and types.
 
-In practice, **most of the "breaking" changes should not have an actual effect on end users**. The changes most likely to need app code updates are:
+In practice, **most of the "breaking" changes should not have an actual effect on end users, and we expect that many projects can just update the package versions with very few code changes needed**.
+
+The changes most likely to need app code updates are:
 
 - [Object syntax removed for `createReducer` and `createSlice.extraReducers`](#object-syntax-for-createsliceextrareducers-and-createreducer-removed)
 - [`configureStore.middleware` must be a callback](#configurestoremiddleware-must-be-a-callback)
@@ -41,8 +49,8 @@ We've done local testing of the package, but we ask the community to try out thi
 We've updated the build output in several ways:
 
 - **Build output is no longer transpiled!** Instead we target modern JS syntax (ES2020)
-- Moved all build artifacts to live under ./dist/, instead of separate top-level folders
-- The lowest Typescript version we test against is now 4.7
+- Moved all build artifacts to live under `./dist/`, instead of separate top-level folders
+- The lowest Typescript version we test against is now **TS 4.7**.
 
 #### Dropping UMD builds
 
@@ -62,9 +70,25 @@ If you have strong use cases for us continuing to include UMD build artifacts, p
 
 We've always specifically told our users that [actions and state _must_ be serializable](https://redux.js.org/style-guide/#do-not-put-non-serializable-values-in-state-or-actions), and that `action.type` _should_ be a string. This is both to ensure that actions are serializable, and to help provide a readable action history in the Redux DevTools.
 
-`store.dispatch(action)` now specifically enforces that `action.type` _must_ be a string and will throw an error if not, in the same way it throws an error if the action is not a plain object.
+`store.dispatch(action)` now specifically enforces that **`action.type` _must_ be a string** and will throw an error if not, in the same way it throws an error if the action is not a plain object.
 
 In practice, this was already true 99.99% of the time and shouldn't have any effect on users (especially those using Redux Toolkit and `createSlice`), but there may be some legacy Redux codebases that opted to use Symbols as action types.
+
+#### `createStore` Deprecation
+
+In [Redux 4.2.0, we marked the original `createStore` method as `@deprecated`](https://github.com/reduxjs/redux/releases/tag/v4.2.0). Strictly speaking, **this is _not_ a breaking change**, nor is it new in 5.0, but we're documenting it here for completeness.
+
+**This deprecation is solely a _visual_ indicator that is meant to encourage users to [migrate their apps from legacy Redux patterns to use the modern Redux Toolkit APIs](https://redux.js.org/usage/migrating-to-modern-redux)**.
+
+The deprecation results in a **visual strikethrough** when imported and used, like **~~`createStore`~~**, but with **_no_ runtime errors or warnings**.
+
+**`createStore` will continue to work indefinitely, and will _not_ ever be removed**. But, today we want _all_ Redux users to be using Redux Toolkit for all of their Redux logic.
+
+To fix this, there are three options:
+
+- **[Follow our strong suggestion to switch over to Redux Toolkit and `configureStore`](https://redux.js.org/usage/migrating-to-modern-redux)**
+- Do nothing. It's just a visual strikethrough, and it doesn't affect how your code behaves. Ignore it.
+- Switch to using the `legacy_createStore` API that is now exported, which is the exact same function but with no `@deprecated` tag. The simplest option is to do an aliased import rename, like `import { legacy_createStore as createStore } from 'redux'`
 
 <div class="typescript-only">
 
@@ -72,11 +96,31 @@ In practice, this was already true 99.99% of the time and shouldn't have any eff
 
 In 2019, we began a community-powered conversion of the Redux codebase to TypeScript. The original effort was discussed in [#3500: Port to TypeScript](https://github.com/reduxjs/redux/issues/3500), and the work was integrated in PR [#3536: Convert to TypeScript](https://github.com/reduxjs/redux/issues/3536).
 
-However, the TS-converted code in master has sat around since then, unused and unpublished, due to concerns about possible compatibility issues with the existing ecosystem (as well as general inertia on our part).
+However, the TS-converted code sat around in the repo for several years, unused and unpublished, due to concerns about possible compatibility issues with the existing ecosystem (as well as general inertia on our part).
 
 Redux core v5 is now built from that TS-converted source code. In theory, this should be almost identical in both runtime behavior and types to the 4.x build, but it's very likely that some of the changes may cause types issues.
 
 Please report any unexpected compatibility issues on [Github](https://github.com/reduxjs/redux/issues)!
+
+#### `AnyAction` deprecated in favour of `UnknownAction`
+
+The Redux TS types have always exported an `AnyAction` type, which is defined to have `{type: string}` and treat any other field as `any`. This makes it easy to write uses like `console.log(action.whatever)`, but unfortunately does not provide any meaningful type safety.
+
+We now export an `UnknownAction` type, which treats all fields other than `action.type` as `unknown`. This encourages users to write type guards that check the action object and assert its _specific_ TS type. Inside of those checks, you can access a field with better type safety.
+
+`UnknownAction` is now the default any place in the Redux source that expects an action object.
+
+`AnyAction` still exists for compatibility, but has been marked as deprecated.
+
+Note that [Redux Toolkit's action creators have a `.match()` method](https://redux-toolkit.js.org/api/createAction#actioncreatormatch) that acts as a useful type guard:
+
+```ts
+if (todoAdded.match(someUnknownAction)) {
+  // action is now typed as a PayloadAction<Todo>
+}
+```
+
+You can also use the new `isAction` util to check if an unknown value is some kind of action object.
 
 #### `Middleware` type changed - Middleware `action` and `next` are typed as `unknown`
 
@@ -87,6 +131,8 @@ Previously, the `next` parameter is typed as the `D` type parameter passed, and 
 - `action` is not necessarily a known action, it can be literally anything - for example a thunk would be a function with no `.type` property (so `AnyAction` would be inaccurate)
 
 We've changed `next` to be `(action: unknown) => unknown` (which is accurate, we have no idea what `next` expects or will return), and changed the `action` parameter to be `unknown` (which as above, is accurate).
+
+In order to safely interact with values or access fields inside of the `action` argument, you must first do a type guard check to narrow the type, such as `isAction(action)` or `someActionCreator.match(action)`.
 
 This new type is incompatible with the v4 `Middleware` type, so if a package's middleware is saying it's incompatible, check which version of Redux it's getting its types from!
 
@@ -118,24 +164,6 @@ This change does include some breaking changes, but overall should not have a hu
 - The `Reducer`, `ReducersMapObject`, and `createStore`/`configureStore` types/function take an additional `PreloadedState` generic which defaults to `S`.
 - The overloads for `combineReducers` are removed in favor of a single function definition that takes the `ReducersMapObject` as its generic parameter. Removing the overloads was necessary with these changes, since sometimes it was choosing the wrong overload.
 - Enhancers that explicitly list the generics for the reducer will need to add the third generic.
-
-#### `AnyAction` deprecated in favour of `UnknownAction`
-
-The Redux TS types have always exported an `AnyAction` type, which is defined to have `{type: string}` and treat any other field as `any`. This makes it easy to write uses like `console.log(action.whatever)`, but unfortunately does not provide any meaningful type safety.
-
-We now export an `UnknownAction` type, which treats all fields other than `action.type` as `unknown`. This encourages users to write type guards that check the action object and assert its _specific_ TS type. Inside of those checks, you can access a field with better type safety.
-
-`UnknownAction` is now the default any place in the Redux source that expects an action object.
-
-`AnyAction` still exists for compatibility, but has been marked as deprecated.
-
-Note that [Redux Toolkit's action creators have a `.match()` method](https://redux-toolkit.js.org/api/createAction#actioncreatormatch) that acts as a useful type guard:
-
-```ts
-if (todoAdded.match(someUnknownAction)) {
-  // action is now typed as a PayloadAction<Todo>
-}
-```
 
 </div>
 
@@ -313,6 +341,10 @@ Redux 4.1.0 optimized its bundle size by [extracting error message strings out o
 
 <div class="typescript-only">
 
+#### `configureStore` field order for `middleware` matters
+
+If you are passing _both_ the `middleware` and `enhancers` fields to `configureStore`, the `middleware` field _must_ come first in order for internal TS inference to work properly.
+
 #### Non-default middleware/enhancers must use `Tuple`
 
 We've seen many cases where users passing the `middleware` parameter to configureStore have tried spreading the array returned by `getDefaultMiddleware()`, or passed an alternate plain array. This unfortunately loses the exact TS types from the individual middleware, and often causes TS problems down the road (such as `dispatch` being typed as `Dispatch<AnyAction>` and not knowing about thunks).
@@ -326,7 +358,7 @@ import { configureStore, Tuple } from '@reduxjs/toolkit'
 
 configureStore({
   reducer: rootReducer,
-  middleware: (getDefaultMidldeware) => new Tuple(additionalMiddleware, logger),
+  middleware: (getDefaultMiddleware) => new Tuple(additionalMiddleware, logger),
 })
 ```
 
@@ -336,13 +368,85 @@ This same restriction applies to the `enhancers` field.
 
 #### Entity adapter type updates
 
-`createEntityAdapter` now has an `Id` generic argument, which will be used to strongly type the item IDs anywhere those are exposed. Previously, the ID field type was always `string | number`. TS will now try to infer the exact type from either the `.id` field of your entity type, or the `selectId` return type. You could also fall back to passing that generic type directly.
+`createEntityAdapter` now has an `Id` generic argument, which will be used to strongly type the item IDs anywhere those are exposed. Previously, the ID field type was always `string | number`. TS will now try to infer the exact type from either the `.id` field of your entity type, or the `selectId` return type. You could also fall back to passing that generic type directly. **If you use the `EntityState<Data, Id>` type directly, you _must_ supply both generic arguments!**
 
 The `.entities` lookup table is now defined to use a standard TS `Record<Id, MyEntityType>`, which assumes that each item lookup exists by default. Previously, it used a `Dictionary<MyEntityType>` type, which assumed the result was `MyEntityType | undefined`. The `Dictionary` type has been removed.
 
 If you prefer to assume that the lookups _might_ be undefined, use TypeScript's `noUncheckedIndexedAccess` configuration option to control that.
 
 </div>
+
+### Reselect
+
+#### `createSelector` Uses `weakMapMemoize` As Default Memoizer
+
+**`createSelector` now uses a new default memoization function called `weakMapMemoize`**. This memoizer offers an effectively infinite cache size, which should simplify usage with varying arguments, but relies exclusively on reference comparisons.
+
+If you need to customize equality comparisons, customize `createSelector` to use the original `lruMemoize` method instead:
+
+```ts no-emit
+createSelector(inputs, resultFn, {
+  memoize: lruMemoize,
+  memoizeOptions: { equalityCheck: yourEqualityFunction },
+})
+```
+
+#### `defaultMemoize` Renamed to `lruMemoize`
+
+Since the original `defaultMemoize` function is no longer actually the default, we've renamed it to `lruMemoize` for clarity. This only matters if you specifically imported it into your app to customize selectors.
+
+#### `createSelector` Dev-Mode Checks
+
+`createSelector` now does checks in development mode for common mistakes, like input selectors that always return new references, or result functions that immediately return their argument. These checks can be customized at selector creation or globally.
+
+This is important, as an input selector returning a materially different result with the same parameters means that the output selector will never memoize correctly and be run unnecessarily, thus (potentially) creating a new result and causing rerenders.
+
+```ts
+const addNumbers = createSelector(
+  // this input selector will always return a new reference when run
+  // so cache will never be used
+  (a, b) => ({ a, b }),
+  ({ a, b }) => ({ total: a + b })
+)
+// instead, you should have an input selector for each stable piece of data
+const addNumbersStable = createSelector(
+  (a, b) => a,
+  (a, b) => b,
+  (a, b) => ({
+    total: a + b,
+  })
+)
+```
+
+This is done the first time the selector is called, unless configured otherwise. More details are available in the [Reselect docs on dev-mode checks](https://reselect.js.org/api/development-only-stability-checks).
+
+Note that while RTK re-exports `createSelector`, it intentionally does not re-export the function to configure this check globally - if you wish to do so, you should instead depend on `reselect` directly and import it yourself.
+
+<div class="typescript-only">
+
+#### `ParametricSelector` Types Removed
+
+The `ParametricSelector` and `OutputParametricSelector` types have been removed. Use `Selector` and `OutputSelector` instead.
+
+</div>
+
+### React-Redux
+
+#### Requires React 18
+
+React-Redux v7 and v8 worked with all versions of React that supported hooks (16.8+, 17, and 18). v8 switched from internal subscription management to React's new `useSyncExternalStore` hook, but used the "shim" implementation to provide support for React 16.8 and 17, which did not have that hook built in.
+
+**React-Redux v9 switches to _requiring_ React 18, and does _not_ support React 16 or 17**. This allows us to drop the shim and save a small bit of bundle size.
+
+### Redux Thunk
+
+#### Thunk Uses Named Exports
+
+The `redux-thunk` package previously used a single default export that was the middleware, with an attached field named `withExtraArgument` that allowed customization.
+
+The default export has been removed. There are now two named exports: `thunk` (the basic middleware) and `withExtraArgument`.
+
+If you are using Redux Toolkit, this should have no effect, as RTK already handles this inside of `configureStore`.
 
 ## New Features
 
@@ -419,7 +523,9 @@ expect(combinedReducer(undefined, dummyAction()).number).toBe(
 
 ### `selectors` field in `createSlice`
 
-The existing `createSlice` API now has support for defining [`selectors`](../api/createSlice#selectors) directly as part of the slice. By default, these will be generated with the assumption that the slice is mounted in the root state using `slice.name` as the field, such as `name: "todos"` -> `rootState.todos`. You can call `sliceObject.getSelectors(selectSliceState)` to generate the selectors with an alternate location, similar to how `entityAdapter.getSelectors()` works.
+The existing `createSlice` API now has support for defining [`selectors`](../api/createSlice#selectors) directly as part of the slice. By default, these will be generated with the assumption that the slice is mounted in the root state using `slice.name` as the field, such as `name: "todos"` -> `rootState.todos`. Additionally, there's now a `slice.selectSlice` method that does that default root state lookup.
+
+You can call `sliceObject.getSelectors(selectSliceState)` to generate the selectors with an alternate location, similar to how `entityAdapter.getSelectors()` works.
 
 ```ts
 const slice = createSlice({
@@ -499,11 +605,11 @@ In practice, we hope these are reasonable tradeoffs. Creating thunks inside of `
 Here's what the new callback syntax looks like:
 
 ```ts
-const createSlice = buildCreateSlice({
+const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 })
 
-const todosSlice = createSlice({
+const todosSlice = createSliceWithThunks({
   name: 'todos',
   initialState: {
     loading: false,
@@ -599,33 +705,6 @@ We've updated `configureStore` to add the `autoBatchEnhancer` to the store setup
 
 [`entityAdapter.getSelectors()`](../api/createEntityAdapter#selector-functions) now accepts an options object as its second argument. This allows you to pass in your own preferred `createSelector` method, which will be used to memoize the generated selectors. This could be useful if you want to use one of Reselect's new alternate memoizers, or some other memoization library with an equivalent signature.
 
-### New dev checks in Reselect v5
-
-Reselect v5 includes a dev-only check to check stability of input selectors, by running them an extra time with the same parameters, and checking that the result matches.
-
-This is important, as an input selector returning a materially different result with the same parameters means that the output selector will be run unnecessarily, thus (potentially) creating a new result and causing rerenders.
-
-```ts
-const addNumbers = createSelector(
-  // this input selector will always return a new reference when run
-  // so cache will never be used
-  (a, b) => ({ a, b }),
-  ({ a, b }) => ({ total: a + b })
-)
-// instead, you should have an input selector for each stable piece of data
-const addNumbersStable = createSelector(
-  (a, b) => a,
-  (a, b) => b,
-  (a, b) => ({
-    total: a + b,
-  })
-)
-```
-
-This is done the first time the selector is called, unless configured otherwise. More details are available in the [README](https://github.com/reduxjs/reselect#inputstabilitycheck).
-
-Note that RTK intentionally does not re-export the function to configure this check globally - if you wish to do so, you should instead depend on `reselect` directly and import it yourself.
-
 ### Immer 10.0
 
 [Immer 10.0](https://github.com/immerjs/immer/releases/tag/v10.0.0) is now final, and has several major improvements and updates:
@@ -637,6 +716,12 @@ Note that RTK intentionally does not re-export the function to configure this ch
 - No ES5 fallback
 
 We've updated RTK to depend on the final Immer 10.0 release.
+
+### Next.js Setup Guide
+
+We now have a docs page that covers [how to set up Redux properly with Next.js](https://redux.js.org/usage/nextjs). We've seen a lot of questions around using Redux, Next, and the App Router together, and this guide should help provide advice.
+
+(At this time, the Next.js `with-redux` example is still showing outdated patterns - we're going to file a PR shortly to update that to match our docs guide.)
 
 ## Recommendations
 

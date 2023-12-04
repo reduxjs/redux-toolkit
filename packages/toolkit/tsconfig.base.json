@@ -50,7 +50,7 @@
       // internal imports in tests only
       "@internal/*": ["src/*"],
       // prevent resolving "react" to "@reduxjs/toolkit/react" entry point
-      "react": ["../../node_modules/react"]
+      "react": ["node_modules/react"]
     }
   }
 }

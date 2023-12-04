@@ -26,11 +26,12 @@
         {
           "type": "category",
           "label": "Migrations",
-          "items": ["migrations/migrating-1.x-to-2.x"]
+          "items": ["usage/migrating-rtk-2"]
         },
         "usage/usage-guide",
         "usage/usage-with-typescript",
-        "usage/immer-reducers"
+        "usage/immer-reducers",
+        "usage/nextjs"
       ]
     },
     {
@@ -75,7 +76,8 @@
             "api/createSelector",
             "api/matching-utilities",
             "api/other-exports",
-            "api/codemods"
+            "api/codemods",
+            { "type": "link", "label": "Error Messages", "href": "/errors" }
           ]
         }
       ]

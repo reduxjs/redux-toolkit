@@ -14,15 +14,10 @@ export type { Draft } from 'immer'
 export {
   createSelector,
   createSelectorCreator,
-  defaultMemoize,
+  lruMemoize,
   weakMapMemoize,
 } from 'reselect'
-export type {
-  Selector,
-  OutputParametricSelector,
-  OutputSelector,
-  ParametricSelector,
-} from 'reselect'
+export type { Selector, OutputSelector } from 'reselect'
 export {
   createDraftSafeSelector,
   createDraftSafeSelectorCreator,
@@ -42,7 +37,6 @@ export type { DevToolsEnhancerOptions } from './devtoolsExtension'
 export {
   // js
   createAction,
-  isAction,
   isActionCreator,
   isFSA as isFluxStandardAction,
 } from './createAction'
@@ -161,8 +155,6 @@ export type {
 } from './matchers'
 
 export { nanoid } from './nanoid'
-
-export { default as isPlainObject } from './isPlainObject'
 
 export type {
   ListenerEffect,
