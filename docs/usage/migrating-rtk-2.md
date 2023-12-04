@@ -523,7 +523,9 @@ expect(combinedReducer(undefined, dummyAction()).number).toBe(
 
 ### `selectors` field in `createSlice`
 
-The existing `createSlice` API now has support for defining [`selectors`](../api/createSlice#selectors) directly as part of the slice. By default, these will be generated with the assumption that the slice is mounted in the root state using `slice.name` as the field, such as `name: "todos"` -> `rootState.todos`. You can call `sliceObject.getSelectors(selectSliceState)` to generate the selectors with an alternate location, similar to how `entityAdapter.getSelectors()` works.
+The existing `createSlice` API now has support for defining [`selectors`](../api/createSlice#selectors) directly as part of the slice. By default, these will be generated with the assumption that the slice is mounted in the root state using `slice.name` as the field, such as `name: "todos"` -> `rootState.todos`. Additionally, there's now a `slice.selectSlice` method that does that default root state lookup.
+
+You can call `sliceObject.getSelectors(selectSliceState)` to generate the selectors with an alternate location, similar to how `entityAdapter.getSelectors()` works.
 
 ```ts
 const slice = createSlice({
@@ -714,6 +716,12 @@ We've updated `configureStore` to add the `autoBatchEnhancer` to the store setup
 - No ES5 fallback
 
 We've updated RTK to depend on the final Immer 10.0 release.
+
+### Next.js Setup Guide
+
+We now have a docs page that covers [how to set up Redux properly with Next.js](https://redux.js.org/usage/nextjs). We've seen a lot of questions around using Redux, Next, and the App Router together, and this guide should help provide advice.
+
+(At this time, the Next.js `with-redux` example is still showing outdated patterns - we're going to file a PR shortly to update that to match our docs guide.)
 
 ## Recommendations
 
