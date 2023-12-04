@@ -8,10 +8,10 @@ import type {
   EndpointDefinitions,
 } from './endpointDefinitions'
 import { DefinitionType, isQueryDefinition } from './endpointDefinitions'
-import { nanoid } from '@reduxjs/toolkit'
-import type { AnyAction } from '@reduxjs/toolkit'
+import { nanoid } from './core/rtkImports'
+import type { UnknownAction } from '@reduxjs/toolkit'
 import type { NoInfer } from './tsHelpers'
-import { defaultMemoize } from 'reselect'
+import { weakMapMemoize } from 'reselect'
 
 export interface CreateApiOptions<
   BaseQuery extends BaseQueryFn,
@@ -152,6 +152,16 @@ export interface CreateApiOptions<
    */
   refetchOnReconnect?: boolean
   /**
+   * Defaults to `'immediately'`. This setting allows you to control when tags are invalidated after a mutation.
+   *
+   * - `'immediately'`: Queries are invalidated instantly after the mutation finished, even if they are running.
+   *   If the query provides tags that were invalidated while it ran, it won't be re-fetched.
+   * - `'delayed'`: Invalidation only happens after all queries and mutations are settled.
+   *   This ensures that queries are always invalidated correctly and automatically "batches" invalidations of concurrent mutations.
+   *   Note that if you constantly have some queries (or mutations) running, this can delay tag invalidations indefinitely.
+   */
+  invalidationBehavior?: 'delayed' | 'immediately'
+  /**
    * A function that is passed every dispatched action. If this returns something other than `undefined`,
    * that return value will be used to rehydrate fulfilled & errored queries.
    *
@@ -159,14 +169,21 @@ export interface CreateApiOptions<
    *
    * ```ts
    * // codeblock-meta title="next-redux-wrapper rehydration example"
+   * import type { Action, PayloadAction } from '@reduxjs/toolkit'
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * import { HYDRATE } from 'next-redux-wrapper'
+   *
+   * type RootState = any; // normally inferred from state
+   *
+   * function isHydrateAction(action: Action): action is PayloadAction<RootState> {
+   *   return action.type === HYDRATE
+   * }
    *
    * export const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   // highlight-start
    *   extractRehydrationInfo(action, { reducerPath }) {
-   *     if (action.type === HYDRATE) {
+   *     if (isHydrateAction(action)) {
    *       return action.payload[reducerPath]
    *     }
    *   },
@@ -178,7 +195,7 @@ export interface CreateApiOptions<
    * ```
    */
   extractRehydrationInfo?: (
-    action: AnyAction,
+    action: UnknownAction,
     {
       reducerPath,
     }: {
@@ -219,7 +236,13 @@ export type CreateApi<Modules extends ModuleName> = {
  * const MyContext = React.createContext<ReactReduxContextValue>(null as any);
  * const customCreateApi = buildCreateApi(
  *   coreModule(),
- *   reactHooksModule({ useDispatch: createDispatchHook(MyContext) })
+ *   reactHooksModule({
+ *     hooks: {
+ *       useDispatch: createDispatchHook(MyContext),
+ *       useSelector: createSelectorHook(MyContext),
+ *       useStore: createStoreHook(MyContext)
+ *     }
+ *   })
  * );
  * ```
  *
@@ -230,7 +253,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
   ...modules: Modules
 ): CreateApi<Modules[number]['name']> {
   return function baseCreateApi(options) {
-    const extractRehydrationInfo = defaultMemoize((action: AnyAction) =>
+    const extractRehydrationInfo = weakMapMemoize((action: UnknownAction) =>
       options.extractRehydrationInfo?.(action, {
         reducerPath: (options.reducerPath ?? 'api') as any,
       })
@@ -242,6 +265,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       refetchOnMountOrArgChange: false,
       refetchOnFocus: false,
       refetchOnReconnect: false,
+      invalidationBehavior: 'delayed',
       ...options,
       extractRehydrationInfo,
       serializeQueryArgs(queryArgsApi) {
@@ -280,7 +304,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       },
       apiUid: nanoid(),
       extractRehydrationInfo,
-      hasRehydrationInfo: defaultMemoize(
+      hasRehydrationInfo: weakMapMemoize(
         (action) => extractRehydrationInfo(action) != null
       ),
     }

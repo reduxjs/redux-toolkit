@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { actionsReducer, hookWaitFor, setupApiStore, waitMs } from './helpers'
 import { renderHook, act } from '@testing-library/react'
@@ -9,7 +10,7 @@ interface Post {
   contents: string
 }
 
-const baseQuery = jest.fn()
+const baseQuery = vi.fn()
 beforeEach(() => baseQuery.mockReset())
 
 const api = createApi({
@@ -58,9 +59,9 @@ const storeRef = setupApiStore(api, {
 })
 
 describe('basic lifecycle', () => {
-  let onStart = jest.fn(),
-    onError = jest.fn(),
-    onSuccess = jest.fn()
+  let onStart = vi.fn(),
+    onError = vi.fn(),
+    onSuccess = vi.fn()
 
   const extendedApi = api.injectEndpoints({
     endpoints: (build) => ({
@@ -117,14 +118,13 @@ describe('basic lifecycle', () => {
       }
     )
 
-    baseQuery.mockRejectedValue('error')
-
+    baseQuery.mockRejectedValueOnce('error')
     expect(onStart).not.toHaveBeenCalled()
     expect(baseQuery).not.toHaveBeenCalled()
+
     act(() => void result.current[0]('arg'))
     expect(onStart).toHaveBeenCalledWith('arg')
     expect(baseQuery).toHaveBeenCalledWith('arg', expect.any(Object), undefined)
-
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).not.toHaveBeenCalled()
     await act(() => waitMs(5))

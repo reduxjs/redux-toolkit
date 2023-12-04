@@ -120,10 +120,10 @@ The "listener middleware instance" returned from `createListenerMiddleware` is a
 ```ts no-transpile
 interface ListenerMiddlewareInstance<
   State = unknown,
-  Dispatch extends ThunkDispatch<State, unknown, AnyAction> = ThunkDispatch<
+  Dispatch extends ThunkDispatch<State, unknown, UnknownAction> = ThunkDispatch<
     State,
     unknown,
-    AnyAction
+    UnknownAction
   >,
   ExtraArgument = unknown
 > {
@@ -181,7 +181,7 @@ interface AddListenerOptions {
   effect: (action: Action, listenerApi: ListenerApi) => void | Promise<void>
 }
 
-type ListenerPredicate<Action extends AnyAction, State> = (
+type ListenerPredicate<Action extends ReduxAction, State> = (
   action: Action,
   currentState?: State,
   originalState?: State
@@ -321,7 +321,7 @@ The `listenerApi` object is the second argument to each listener callback. It co
 ```ts no-transpile
 export interface ListenerEffectAPI<
   State,
-  Dispatch extends ReduxDispatch<AnyAction>,
+  Dispatch extends ReduxDispatch<UnknownAction>,
   ExtraArgument = unknown
 > extends MiddlewareAPI<Dispatch, State> {
   // NOTE: MiddlewareAPI contains `dispatch` and `getState` already
@@ -582,12 +582,12 @@ Listeners can use the `condition` and `take` methods in `listenerApi` to wait un
 The signatures are:
 
 ```ts no-transpile
-type ConditionFunction<Action extends AnyAction, State> = (
+type ConditionFunction<Action extends ReduxAction, State> = (
   predicate: ListenerPredicate<Action, State> | (() => boolean),
   timeout?: number
 ) => Promise<boolean>
 
-type TakeFunction<Action extends AnyAction, State> = (
+type TakeFunction<Action extends ReduxAction, State> = (
   predicate: ListenerPredicate<Action, State> | (() => boolean),
   timeout?: number
 ) => Promise<[Action, State, State] | null>

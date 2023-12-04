@@ -70,7 +70,7 @@ Done
 
     expect(fromTs).toEqual(fromJs);
     expect(fromJson).toEqual(fromJs);
-  }, 25000);
+  }, 120000);
 
   test('missing parameters doesnt fail', async () => {
     const out = await cli([`./config.invalid-example.json`], __dirname);

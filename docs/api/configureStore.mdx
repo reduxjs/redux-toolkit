@@ -37,20 +37,15 @@ Redux Toolkit's `configureStore` simplifies that setup process, by doing all tha
 `configureStore` accepts a single configuration object parameter, with the following options:
 
 ```ts no-transpile
-type ConfigureEnhancersCallback = (
-  defaultEnhancers: EnhancerArray<[StoreEnhancer]>
-) => StoreEnhancer[]
 
 interface ConfigureStoreOptions<
   S = any,
-  A extends Action = AnyAction,
-  M extends Middlewares<S> = Middlewares<S>
+  A extends Action = UnknownAction,
+  M extends Tuple<Middlewares<S>> = Tuple<Middlewares<S>>
+  E extends Tuple<Enhancers> = Tuple<Enhancers>,
+  P = S
 > {
   /**
-   * A single reducer function that will be used as the root reducer, or an
-   * object of slice reducers that will be passed to `combineReducers()`.
-   */
-  reducer: Reducer<S, A> | ReducersMapObject<S, A>
 
   /**
    * An array of Redux middleware to install. If not supplied, defaults to
@@ -73,22 +68,26 @@ interface ConfigureStoreOptions<
    * function (either directly or indirectly by passing an object as `reducer`),
    * this must be an object with the same shape as the reducer map keys.
    */
-  preloadedState?: DeepPartial<S extends any ? S : S>
+  preloadedState?: P
 
   /**
    * The store enhancers to apply. See Redux's `createStore()`.
    * All enhancers will be included before the DevTools Extension enhancer.
    * If you need to customize the order of enhancers, supply a callback
-   * function that will receive the original array (ie, `[applyMiddleware]`),
-   * and should return a new array (such as `[applyMiddleware, offline]`).
+   * function that will receive the getDefaultEnhancers,
+   * and should return a new array (such as `getDefaultEnhancers().concat(offline)`).
    * If you only need to add middleware, you can use the `middleware` parameter instead.
    */
-  enhancers?: StoreEnhancer[] | ConfigureEnhancersCallback
+  enhancers?: (getDefaultEnhancers: GetDefaultEnhancers<M>) => E | E
 }
 
-function configureStore<S = any, A extends Action = AnyAction>(
-  options: ConfigureStoreOptions<S, A>
-): EnhancedStore<S, A>
+function configureStore<
+  S = any,
+  A extends Action = UnknownAction,
+  M extends Tuple<Middlewares<S>> = Tuple<Middlewares<S>>
+  E extends Tuple<Enhancers> = Tuple<Enhancers>,
+  P = S
+>(options: ConfigureStoreOptions<S, A, M, E, P>): EnhancedStore<S, A, M, E>
 ```
 
 ### `reducer`
@@ -101,20 +100,33 @@ If it is an object of slice reducers, like `{users : usersReducer, posts : posts
 
 ### `middleware`
 
-An optional array of Redux middleware functions
+A callback which will receive `getDefaultMiddleware` as its argument,
+and should return a middleware array.
 
-If this option is provided, it should contain all the middleware functions you
+If this option is provided, it should return all the middleware functions you
 want added to the store. `configureStore` will automatically pass those to `applyMiddleware`.
 
 If not provided, `configureStore` will call `getDefaultMiddleware` and use the
 array of middleware functions it returns.
 
-Where you wish to add onto or customize the default middleware,
-you may pass a callback function that will receive `getDefaultMiddleware` as its argument,
-and should return a middleware array.
-
 For more details on how the `middleware` parameter works and the list of middleware that are added by default, see the
 [`getDefaultMiddleware` docs page](./getDefaultMiddleware.mdx).
+
+:::note Tuple
+Typescript users are required to use a `Tuple` instance (if not using a `getDefaultMiddleware` result, which is already a `Tuple`), for better inference.
+
+```ts no-transpile
+import { configureStore, Tuple } from '@reduxjs/toolkit'
+
+configureStore({
+  reducer: rootReducer,
+  middleware: () => new Tuple(additionalMiddleware, logger),
+})
+```
+
+Javascript-only users are free to use a plain array if preferred.
+
+:::
 
 ### `devTools`
 
@@ -142,16 +154,66 @@ An optional array of Redux store enhancers, or a callback function to customize 
 
 If defined as an array, these will be passed to [the Redux `compose` function](https://redux.js.org/api/compose), and the combined enhancer will be passed to `createStore`.
 
-This should _not_ include `applyMiddleware()` or the Redux DevTools Extension `composeWithDevTools`, as those are already handled by `configureStore`.
+:::tip Dev Tools
+This should _not_ include the Redux DevTools Extension `composeWithDevTools`, as this is already handled by `configureStore`.
 
-Example: `enhancers: [offline]` will result in a final setup of `[applyMiddleware, offline, devToolsExtension]`.
+Example: `enhancers: new Tuple(offline)` will result in a final setup of `[offline, devToolsExtension]`.
 
-If defined as a callback function, it will be called with the existing array of enhancers _without_ the DevTools Extension (currently `[applyMiddleware]`),
-and should return a new array of enhancers. This is primarily useful for cases where a store enhancer needs to be added
-in front of `applyMiddleware`, such as `redux-first-router` or `redux-offline`.
+If not provided, `configureStore` will call `getDefaultEnhancers` and use the array of enhancers it returns (including `applyMiddleware` with specified middleware).
+
+Where you wish to add onto or customize the default enhancers, you may pass a callback function that will receive `getDefaultEnhancers` as its argument, and should return an enhancer array.
 
 Example: `enhancers: (defaultEnhancers) => defaultEnhancers.prepend(offline)` will result in a final setup
 of `[offline, applyMiddleware, devToolsExtension]`.
+
+For more details on how the `enhancer` parameter works and the list of enhancers that are added by default, see the [`getDefaultEnhancers` docs page](./getDefaultEnhancers).
+
+:::caution Middleware
+
+If you provide an array, this `applyMiddleware` enhancer will _not_ be used.
+
+`configureStore` will warn in console if any middleware are provided (or left as default) but not included in the final list of enhancers.
+
+```ts no-transpile
+// warns - middleware customised but not included in final enhancers
+configureStore({
+  reducer,
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger)
+  enhancers: [offline(offlineConfig)],
+})
+
+// fine - default enhancers included
+configureStore({
+  reducer,
+  enhancers: (getDefaultEnhancers) => getDefaultEnhancers().concat(offline(offlineConfig)),
+})
+
+// also allowed
+configureStore({
+  reducer,
+  middleware: () => [],
+  enhancers: ()  => [offline(offlineConfig)],
+})
+```
+
+:::
+
+:::note Tuple
+Typescript users are required to use a `Tuple` instance (if not using a `getDefaultEnhancer` result, which is already a `Tuple`), for better inference.
+
+```
+import { configureStore, Tuple } from '@reduxjs/toolkit'
+
+configureStore({
+reducer: rootReducer,
+enhancers: () => new Tuple(offline),
+})
+
+```
+
+Javascript-only users are free to use a plain array if preferred.
+
+:::
 
 ## Usage
 
@@ -223,7 +285,10 @@ const store = configureStore({
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger),
   devTools: process.env.NODE_ENV !== 'production',
   preloadedState,
-  enhancers: [batchedSubscribe(debounceNotify)],
+  enhancers: (getDefaultEnhancers) =>
+    getDefaultEnhancers({
+      autoBatch: false,
+    }).concat(batchedSubscribe(debounceNotify)),
 })
 
 // The store has been created with these options:

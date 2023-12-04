@@ -1,4 +1,4 @@
-import type { AnyAction, PayloadAction } from '@reduxjs/toolkit'
+import type { Action, PayloadAction, UnknownAction } from '@reduxjs/toolkit'
 import {
   combineReducers,
   createAction,
@@ -8,9 +8,8 @@ import {
   isRejectedWithValue,
   createNextState,
   prepareAutoBatched,
-} from '@reduxjs/toolkit'
+} from './rtkImports'
 import type {
-  CombinedState as CombinedQueryState,
   QuerySubstateIdentifier,
   QuerySubState,
   MutationSubstateIdentifier,
@@ -148,12 +147,9 @@ export function buildSlice({
       builder
         .addCase(queryThunk.pending, (draft, { meta, meta: { arg } }) => {
           const upserting = isUpsertQuery(arg)
-          if (arg.subscribe || upserting) {
-            // only initialize substate if we want to subscribe to it
-            draft[arg.queryCacheKey] ??= {
-              status: QueryStatus.uninitialized,
-              endpointName: arg.endpointName,
-            }
+          draft[arg.queryCacheKey] ??= {
+            status: QueryStatus.uninitialized,
+            endpointName: arg.endpointName,
           }
 
           updateQuerySubstateIfExists(draft, arg.queryCacheKey, (substate) => {
@@ -447,12 +443,7 @@ export function buildSlice({
       ) {
         // Dummy
       },
-      internal_probeSubscription(
-        d,
-        a: PayloadAction<{ queryCacheKey: string; requestId: string }>
-      ) {
-        // dummy
-      },
+      internal_getRTKQSubscriptions() {},
     },
   })
 
@@ -505,9 +496,7 @@ export function buildSlice({
     },
   })
 
-  const combinedReducer = combineReducers<
-    CombinedQueryState<any, string, string>
-  >({
+  const combinedReducer = combineReducers({
     queries: querySlice.reducer,
     mutations: mutationSlice.reducer,
     provided: invalidationSlice.reducer,
@@ -525,8 +514,6 @@ export function buildSlice({
     ...internalSubscriptionsSlice.actions,
     ...mutationSlice.actions,
     ...invalidationSlice.actions,
-    /** @deprecated has been renamed to `removeMutationResult` */
-    unsubscribeMutationResult: mutationSlice.actions.removeMutationResult,
     resetApiState,
   }
 

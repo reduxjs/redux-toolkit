@@ -4,7 +4,7 @@
 
 ```ts
 import type { ActionCreatorWithoutPayload } from '@reduxjs/toolkit'
-import type { AnyAction } from '@reduxjs/toolkit'
+import type { UnknownAction } from '@reduxjs/toolkit'
 import type { SerializedError } from '@reduxjs/toolkit'
 import type { ThunkDispatch } from '@reduxjs/toolkit'
 
@@ -127,7 +127,7 @@ export interface CreateApiOptions<
     build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
   ): Definitions
   extractRehydrationInfo?: (
-    action: AnyAction,
+    action: UnknownAction,
     {
       reducerPath,
     }: {

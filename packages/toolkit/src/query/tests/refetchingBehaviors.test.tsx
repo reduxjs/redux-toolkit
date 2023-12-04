@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import * as React from 'react'
 import { createApi, setupListeners } from '@reduxjs/toolkit/query/react'
 import { act, fireEvent, render, waitFor, screen } from '@testing-library/react'
@@ -372,11 +373,11 @@ describe('customListenersHandler', () => {
   })
 
   test('setupListeners accepts a custom callback and executes it', async () => {
-    const consoleSpy = jest.spyOn(console, 'log')
-    consoleSpy.mockImplementation((...args) => {
+    const consoleSpy = vi.spyOn(console, 'log')
+    consoleSpy.mockImplementation((...args: any[]) => {
       // console.info(...args)
     })
-    const dispatchSpy = jest.spyOn(storeRef.store, 'dispatch')
+    const dispatchSpy = vi.spyOn(storeRef.store, 'dispatch')
 
     let unsubscribe = () => {}
     unsubscribe = setupListeners(
@@ -431,10 +432,12 @@ describe('customListenersHandler', () => {
     })
     expect(dispatchSpy).toHaveBeenCalled()
 
-    // Ignore RTKQ middleware `internal_probeSubscription` calls
-    const mockCallsWithoutInternals = dispatchSpy.mock.calls.filter(
-      (call) => !(call[0] as any)?.type?.includes('internal')
-    )
+    // Ignore RTKQ middleware internal data calls
+    const mockCallsWithoutInternals = dispatchSpy.mock.calls.filter((call) => {
+      const type = (call[0] as any)?.type ?? ''
+      const reIsInternal = /internal/i
+      return !reIsInternal.test(type)
+    })
 
     expect(
       defaultApi.internalActions.onOnline.match(

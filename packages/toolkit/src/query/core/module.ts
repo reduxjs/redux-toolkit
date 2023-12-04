@@ -9,11 +9,11 @@ import type {
 import { buildThunks } from './buildThunks'
 import type {
   ActionCreatorWithPayload,
-  AnyAction,
   Middleware,
   Reducer,
   ThunkAction,
   ThunkDispatch,
+  UnknownAction,
 } from '@reduxjs/toolkit'
 import type {
   EndpointDefinitions,
@@ -71,7 +71,8 @@ export type CoreModule =
   | ReferenceQueryLifecycle
   | ReferenceCacheCollection
 
-export interface ThunkWithReturnValue<T> extends ThunkAction<T, any, any, AnyAction> {}
+export interface ThunkWithReturnValue<T>
+  extends ThunkAction<T, any, any, UnknownAction> {}
 
 declare module '../apiTypes' {
   export interface ApiModules<
@@ -115,7 +116,7 @@ declare module '../apiTypes' {
        */
       reducer: Reducer<
         CombinedState<Definitions, TagTypes, ReducerPath>,
-        AnyAction
+        UnknownAction
       >
       /**
        * This is a standard redux middleware and is responsible for things like polling, garbage collection and a handful of other things. Make sure it's included in your store.
@@ -133,34 +134,12 @@ declare module '../apiTypes' {
       middleware: Middleware<
         {},
         RootState<Definitions, string, ReducerPath>,
-        ThunkDispatch<any, any, AnyAction>
+        ThunkDispatch<any, any, UnknownAction>
       >
       /**
        * A collection of utility thunks for various situations.
        */
       util: {
-        /**
-         * This method had to be removed due to a conceptual bug in RTK.
-         *
-         * Despite TypeScript errors, it will continue working in the "buggy" way it did
-         * before in production builds and will be removed in the next major release.
-         *
-         * Nonetheless, you should immediately replace it with the new recommended approach.
-         * See https://redux-toolkit.js.org/rtk-query/usage/server-side-rendering for new guidance on SSR.
-         *
-         * Please see https://github.com/reduxjs/redux-toolkit/pull/2481 for details.
-         * @deprecated
-         */
-        getRunningOperationPromises: never // this is now types as `never` to immediately throw TS errors on use, but still allow for a comment
-
-        /**
-         * This method had to be removed due to a conceptual bug in RTK.
-         * It has been replaced by `api.util.getRunningQueryThunk` and `api.util.getRunningMutationThunk`.
-         * Please see https://github.com/reduxjs/redux-toolkit/pull/2481 for details.
-         * @deprecated
-         */
-        getRunningOperationPromise: never // this is now types as `never` to immediately throw TS errors on use, but still allow for a comment
-
         /**
          * A thunk that (if dispatched) will return a specific running query, identified
          * by `endpointName` and `args`.
@@ -242,7 +221,7 @@ declare module '../apiTypes' {
           endpointName: EndpointName,
           arg: QueryArgFrom<Definitions[EndpointName]>,
           options: PrefetchOptions
-        ): ThunkAction<void, any, any, AnyAction>
+        ): ThunkAction<void, any, any, UnknownAction>
         /**
          * A Redux thunk action creator that, when dispatched, creates and applies a set of JSON diff/patch objects to the current state. This immediately updates the Redux state with those changes.
          *
@@ -268,11 +247,7 @@ declare module '../apiTypes' {
           Definitions,
           RootState<Definitions, string, ReducerPath>
         >
-        /** @deprecated renamed to `updateQueryData` */
-        updateQueryResult: UpdateQueryDataThunk<
-          Definitions,
-          RootState<Definitions, string, ReducerPath>
-        >
+
         /**
          * A Redux thunk action creator that, when dispatched, acts as an artificial API request to upsert a value into the cache.
          *
@@ -326,11 +301,7 @@ declare module '../apiTypes' {
           Definitions,
           RootState<Definitions, string, ReducerPath>
         >
-        /** @deprecated renamed to `patchQueryData` */
-        patchQueryResult: PatchQueryDataThunk<
-          Definitions,
-          RootState<Definitions, string, ReducerPath>
-        >
+
         /**
          * A Redux action creator that can be dispatched to manually reset the api state completely. This will immediately remove all existing cache entries, and all queries will be considered 'uninitialized'.
          *
@@ -385,6 +356,16 @@ declare module '../apiTypes' {
           originalArgs: any
           queryCacheKey: string
         }>
+
+        /**
+         * A function to select all arguments currently cached for a given endpoint.
+         *
+         * Can be used for mutations that want to do optimistic updates instead of invalidating a set of tags, but don't know exactly what they need to update.
+         */
+        selectCachedArgsForQuery: <QueryName extends QueryKeys<Definitions>>(
+          state: RootState<Definitions, string, ReducerPath>,
+          queryName: QueryName
+        ) => Array<QueryArgFrom<Definitions[QueryName]>>
       }
       /**
        * Endpoints based on the input endpoints provided to `createApi`, containing `select` and `action matchers`.
@@ -471,6 +452,7 @@ export const coreModule = (): Module<CoreModule> => ({
       refetchOnMountOrArgChange,
       refetchOnFocus,
       refetchOnReconnect,
+      invalidationBehavior,
     },
     context
   ) {
@@ -533,6 +515,7 @@ export const coreModule = (): Module<CoreModule> => ({
         refetchOnMountOrArgChange,
         keepUnusedDataFor,
         reducerPath,
+        invalidationBehavior,
       },
     })
 
@@ -557,13 +540,17 @@ export const coreModule = (): Module<CoreModule> => ({
 
     safeAssign(api, { reducer: reducer as any, middleware })
 
-    const { buildQuerySelector, buildMutationSelector, selectInvalidatedBy } =
-      buildSelectors({
-        serializeQueryArgs: serializeQueryArgs as any,
-        reducerPath,
-      })
+    const {
+      buildQuerySelector,
+      buildMutationSelector,
+      selectInvalidatedBy,
+      selectCachedArgsForQuery,
+    } = buildSelectors({
+      serializeQueryArgs: serializeQueryArgs as any,
+      reducerPath,
+    })
 
-    safeAssign(api.util, { selectInvalidatedBy })
+    safeAssign(api.util, { selectInvalidatedBy, selectCachedArgsForQuery })
 
     const {
       buildInitiateQuery,
@@ -572,8 +559,6 @@ export const coreModule = (): Module<CoreModule> => ({
       getRunningMutationsThunk,
       getRunningQueriesThunk,
       getRunningQueryThunk,
-      getRunningOperationPromises,
-      removalWarning,
     } = buildInitiate({
       queryThunk,
       mutationThunk,
@@ -583,8 +568,6 @@ export const coreModule = (): Module<CoreModule> => ({
     })
 
     safeAssign(api.util, {
-      getRunningOperationPromises: getRunningOperationPromises as any,
-      getRunningOperationPromise: removalWarning as any,
       getRunningMutationThunk,
       getRunningMutationsThunk,
       getRunningQueryThunk,

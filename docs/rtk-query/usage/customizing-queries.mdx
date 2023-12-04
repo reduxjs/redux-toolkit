@@ -376,7 +376,13 @@ const axiosBaseQuery =
   > =>
   async ({ url, method, data, params, headers }) => {
     try {
-      const result = await axios({ url: baseUrl + url, method, data, params, headers })
+      const result = await axios({
+        url: baseUrl + url,
+        method,
+        data,
+        params,
+        headers,
+      })
       return { data: result.data }
     } catch (axiosError) {
       const err = axiosError as AxiosError
@@ -608,7 +614,7 @@ The `retry` utility has a `fail` method property attached which can be used to b
 
 ```ts title="Bailing out of error re-tries"
 import { createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query/react'
-import type { FetchArgs } from '@reduxjs/toolkit/dist/query/fetchBaseQuery'
+import type { FetchArgs } from '@reduxjs/toolkit/query'
 interface Post {
   id: number
   name: string
@@ -923,7 +929,7 @@ const postsAdapter = createEntityAdapter<Post>({
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   endpoints: (build) => ({
-    getPosts: build.query<EntityState<Post>, void>({
+    getPosts: build.query<EntityState<Post, number>, void>({
       query: () => `posts`,
       // highlight-start
       transformResponse(response: Post[]) {

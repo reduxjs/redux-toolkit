@@ -210,32 +210,38 @@ type RejectedWithValue = <ThunkArg, RejectedValue>(
 ) => RejectedWithValueAction<ThunkArg, RejectedValue>
 ```
 
-To handle these actions in your reducers, reference the action creators in `createReducer` or `createSlice` using either the object key notation or the "builder callback" notation. (Note that if you use TypeScript, you [should use the "builder callback" notation to ensure the types are inferred correctly](../usage/usage-with-typescript.md#type-safety-with-extrareducers)):
+To handle these actions in your reducers, reference the action creators in `createReducer` or `createSlice` using the "builder callback" notation.
 
-```ts no-transpile {2,6,14,23}
-const reducer1 = createReducer(initialState, {
-  [fetchUserById.fulfilled]: (state, action) => {},
-})
-
-const reducer2 = createReducer(initialState, (builder) => {
+```ts no-transpile {2,10}
+const reducer1 = createReducer(initialState, (builder) => {
   builder.addCase(fetchUserById.fulfilled, (state, action) => {})
 })
 
-const reducer3 = createSlice({
-  name: 'users',
-  initialState,
-  reducers: {},
-  extraReducers: {
-    [fetchUserById.fulfilled]: (state, action) => {},
-  },
-})
-
-const reducer4 = createSlice({
+const reducer2 = createSlice({
   name: 'users',
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder.addCase(fetchUserById.fulfilled, (state, action) => {})
+  },
+})
+```
+
+Additionally, a `settled` matcher is attached, for matching against both fulfilled and rejected actions. Conceptually this is similar to a `finally` block.
+
+Make sure you use `addMatcher` instead of `addCase`, since `settled` is a matcher rather than an action creator.
+
+```ts no-transpile {2,10}
+const reducer1 = createReducer(initialState, (builder) => {
+  builder.addMatcher(fetchUserById.settled, (state, action) => {})
+})
+
+const reducer2 = createSlice({
+  name: 'users',
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder.addMatcher(fetchUserById.settled, (state, action) => {})
   },
 })
 ```
@@ -546,19 +552,20 @@ test('this thunk should always be skipped', async () => {
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { userAPI, User } from './userAPI'
 
-const fetchUserById = createAsyncThunk<User, string, {
-    state: { users: { loading: string, currentRequestId: string } }
-}> (  
-  'users/fetchByIdStatus',
-  async (userId: string, { getState, requestId }) => {
-    const { currentRequestId, loading } = getState().users
-    if (loading !== 'pending' || requestId !== currentRequestId) {
-      return
-    }
-    const response = await userAPI.fetchById(userId)
-    return response.data
+const fetchUserById = createAsyncThunk<
+  User,
+  string,
+  {
+    state: { users: { loading: string; currentRequestId: string } }
   }
-)
+>('users/fetchByIdStatus', async (userId: string, { getState, requestId }) => {
+  const { currentRequestId, loading } = getState().users
+  if (loading !== 'pending' || requestId !== currentRequestId) {
+    return
+  }
+  const response = await userAPI.fetchById(userId)
+  return response.data
+})
 
 const usersSlice = createSlice({
   name: 'users',

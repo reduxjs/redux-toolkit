@@ -61,6 +61,10 @@ type Api = {
       originalArgs: any
       queryCacheKey: string
     }>
+    selectCachedArgsForQuery: (
+      state: FullState,
+      endpointName: EndpointName
+    ) => Array<QueryArg>
     resetApiState: ActionCreator<ResetAction>
     getRunningQueryThunk(
       endpointName: EndpointName,

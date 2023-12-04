@@ -1,10 +1,10 @@
 import type {
-  EntityState,
   IdSelector,
   Comparer,
   EntityStateAdapter,
   Update,
   EntityId,
+  DraftableEntityState
 } from './models'
 import { createStateOperator } from './state_adapter'
 import { createUnsortedStateAdapter } from './unsorted_state_adapter'
@@ -14,11 +14,11 @@ import {
   splitAddedUpdatedEntities,
 } from './utils'
 
-export function createSortedStateAdapter<T>(
-  selectId: IdSelector<T>,
+export function createSortedStateAdapter<T, Id extends EntityId>(
+  selectId: IdSelector<T, Id>,
   sort: Comparer<T>
-): EntityStateAdapter<T> {
-  type R = EntityState<T>
+): EntityStateAdapter<T, Id> {
+  type R = DraftableEntityState<T, Id>
 
   const { removeOne, removeMany, removeAll } =
     createUnsortedStateAdapter(selectId)
@@ -28,7 +28,7 @@ export function createSortedStateAdapter<T>(
   }
 
   function addManyMutably(
-    newEntities: readonly T[] | Record<EntityId, T>,
+    newEntities: readonly T[] | Record<Id, T>,
     state: R
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
@@ -47,7 +47,7 @@ export function createSortedStateAdapter<T>(
   }
 
   function setManyMutably(
-    newEntities: readonly T[] | Record<EntityId, T>,
+    newEntities: readonly T[] | Record<Id, T>,
     state: R
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
@@ -57,28 +57,28 @@ export function createSortedStateAdapter<T>(
   }
 
   function setAllMutably(
-    newEntities: readonly T[] | Record<EntityId, T>,
+    newEntities: readonly T[] | Record<Id, T>,
     state: R
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
-    state.entities = {}
+    state.entities = {} as Record<Id, T>
     state.ids = []
 
     addManyMutably(newEntities, state)
   }
 
-  function updateOneMutably(update: Update<T>, state: R): void {
+  function updateOneMutably(update: Update<T, Id>, state: R): void {
     return updateManyMutably([update], state)
   }
 
   function updateManyMutably(
-    updates: ReadonlyArray<Update<T>>,
+    updates: ReadonlyArray<Update<T, Id>>,
     state: R
   ): void {
     let appliedUpdates = false
 
     for (let update of updates) {
-      const entity = state.entities[update.id]
+      const entity: T | undefined = (state.entities as Record<Id, T>)[update.id]
       if (!entity) {
         continue
       }
@@ -88,8 +88,8 @@ export function createSortedStateAdapter<T>(
       Object.assign(entity, update.changes)
       const newId = selectId(entity)
       if (update.id !== newId) {
-        delete state.entities[update.id]
-        state.entities[newId] = entity
+        delete (state.entities as Record<Id, T>)[update.id];
+        (state.entities as Record<Id, T>)[newId] = entity
       }
     }
 
@@ -103,10 +103,10 @@ export function createSortedStateAdapter<T>(
   }
 
   function upsertManyMutably(
-    newEntities: readonly T[] | Record<EntityId, T>,
+    newEntities: readonly T[] | Record<Id, T>,
     state: R
   ): void {
-    const [added, updated] = splitAddedUpdatedEntities<T>(
+    const [added, updated] = splitAddedUpdatedEntities<T, Id>(
       newEntities,
       selectId,
       state
@@ -133,7 +133,7 @@ export function createSortedStateAdapter<T>(
   function merge(models: readonly T[], state: R): void {
     // Insert/overwrite all new/updated
     models.forEach((model) => {
-      state.entities[selectId(model)] = model
+      (state.entities as Record<Id, T>)[selectId(model)] = model
     })
 
     resortEntities(state)

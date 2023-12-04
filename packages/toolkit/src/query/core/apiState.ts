@@ -254,6 +254,7 @@ export type ConfigState<ReducerPath> = RefetchConfigOptions & {
 
 export type ModifiableConfigState = {
   keepUnusedDataFor: number
+  invalidationBehavior: 'delayed' | 'immediately'
 } & RefetchConfigOptions
 
 export type MutationState<D extends EndpointDefinitions> = {

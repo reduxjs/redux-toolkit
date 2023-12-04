@@ -1,12 +1,20 @@
-import type { Dispatch, AnyAction } from 'redux'
+import type { Dispatch, UnknownAction } from 'redux'
 import type {
   PayloadAction,
   ActionCreatorWithPreparedPayload,
 } from './createAction'
 import { createAction } from './createAction'
 import type { ThunkDispatch } from 'redux-thunk'
-import type { FallbackIfUnknown, Id, IsAny, IsUnknown } from './tsHelpers'
+import type {
+  ActionFromMatcher,
+  FallbackIfUnknown,
+  Id,
+  IsAny,
+  IsUnknown,
+  TypeGuard,
+} from './tsHelpers'
 import { nanoid } from './nanoid'
+import { isAnyOf } from './matchers'
 
 // @ts-ignore we need the import of these types due to a bundling issue.
 type _Keep = PayloadAction | ActionCreatorWithPreparedPayload<any, unknown>
@@ -105,7 +113,7 @@ export const miniSerializeError = (value: any): SerializedError => {
   return { message: String(value) }
 }
 
-type AsyncThunkConfig = {
+export type AsyncThunkConfig = {
   state?: unknown
   dispatch?: Dispatch
   extra?: unknown
@@ -132,10 +140,14 @@ type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
       ThunkDispatch<
         GetState<ThunkApiConfig>,
         GetExtra<ThunkApiConfig>,
-        AnyAction
+        UnknownAction
       >
     >
-  : ThunkDispatch<GetState<ThunkApiConfig>, GetExtra<ThunkApiConfig>, AnyAction>
+  : ThunkDispatch<
+      GetState<ThunkApiConfig>,
+      GetExtra<ThunkApiConfig>,
+      UnknownAction
+    >
 
 export type GetThunkAPI<ThunkApiConfig> = BaseThunkAPI<
   GetState<ThunkApiConfig>,
@@ -411,10 +423,17 @@ export type AsyncThunk<
     ThunkArg,
     ThunkApiConfig
   >
+  // matchSettled?
+  settled: (
+    action: any
+  ) => action is ReturnType<
+    | AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>
+    | AsyncThunkFulfilledActionCreator<Returned, ThunkArg, ThunkApiConfig>
+  >
   typePrefix: string
 }
 
-type OverrideThunkApiConfigs<OldConfig, NewConfig> = Id<
+export type OverrideThunkApiConfigs<OldConfig, NewConfig> = Id<
   NewConfig & Omit<OldConfig, keyof NewConfig>
 >
 
@@ -468,7 +487,7 @@ type CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> = {
   >
 }
 
-export const createAsyncThunk = (() => {
+export const createAsyncThunk = /* @__PURE__ */ (() => {
   function createAsyncThunk<
     Returned,
     ThunkArg,
@@ -549,36 +568,6 @@ export const createAsyncThunk = (() => {
         })
       )
 
-    let displayedWarning = false
-
-    const AC =
-      typeof AbortController !== 'undefined'
-        ? AbortController
-        : class implements AbortController {
-            signal = {
-              aborted: false,
-              addEventListener() {},
-              dispatchEvent() {
-                return false
-              },
-              onabort() {},
-              removeEventListener() {},
-              reason: undefined,
-              throwIfAborted() {},
-            }
-            abort() {
-              if (process.env.NODE_ENV !== 'production') {
-                if (!displayedWarning) {
-                  displayedWarning = true
-                  console.info(
-                    `This platform does not implement AbortController. 
-If you want to use the AbortController to react to \`abort\` events, please consider importing a polyfill like 'abortcontroller-polyfill/dist/abortcontroller-polyfill-only'.`
-                  )
-                }
-              }
-            }
-          }
-
     function actionCreator(
       arg: ThunkArg
     ): AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> {
@@ -587,10 +576,9 @@ If you want to use the AbortController to react to \`abort\` events, please cons
           ? options.idGenerator(arg)
           : nanoid()
 
-        const abortController = new AC()
+        const abortController = new AbortController()
         let abortReason: string | undefined
 
-        let started = false
         function abort(reason?: string) {
           abortReason = reason
           abortController.abort()
@@ -611,7 +599,6 @@ If you want to use the AbortController to react to \`abort\` events, please cons
                 message: 'Aborted due to condition callback returning false.',
               }
             }
-            started = true
 
             const abortedPromise = new Promise<never>((_, reject) =>
               abortController.signal.addEventListener('abort', () =>
@@ -629,7 +616,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
                   { requestId, arg },
                   { getState, extra }
                 )
-              )
+              ) as any
             )
             finalAction = await Promise.race([
               abortedPromise,
@@ -679,7 +666,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
             (finalAction as any).meta.condition
 
           if (!skipDispatch) {
-            dispatch(finalAction)
+            dispatch(finalAction as any)
           }
           return finalAction
         })()
@@ -704,6 +691,7 @@ If you want to use the AbortController to react to \`abort\` events, please cons
         pending,
         rejected,
         fulfilled,
+        settled: isAnyOf(rejected, fulfilled),
         typePrefix,
       }
     )

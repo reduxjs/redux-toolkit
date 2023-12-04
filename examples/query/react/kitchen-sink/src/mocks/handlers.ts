@@ -69,13 +69,15 @@ export const handlers = [
   }),
 
   rest.get('/posts/:id', (req, res, ctx) => {
-    const { id } = req.params as { id: string };
+    const { id: idParam } = req.params as { id: string }
+    const id = parseInt(idParam, 10)
     state = adapter.updateOne(state, { id, changes: { fetched_at: new Date().toUTCString() } });
     return res(ctx.json(state.entities[id]), ctx.delay(400));
   }),
 
   rest.put('/posts/:id', (req, res, ctx) => {
-    const { id } = req.params as { id: string };
+    const { id: idParam } = req.params as { id: string }
+    const id = parseInt(idParam, 10)
     const changes = req.body as Partial<Post>;
 
     state = adapter.updateOne(state, { id, changes });
@@ -84,7 +86,8 @@ export const handlers = [
   }),
 
   rest.delete('/posts/:id', (req, res, ctx) => {
-    const { id } = req.params as { id: string };
+    const { id: idParam } = req.params as { id: string }
+    const id = parseInt(idParam, 10)
 
     state = adapter.removeOne(state, id);
 

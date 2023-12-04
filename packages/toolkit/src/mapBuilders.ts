@@ -1,4 +1,4 @@
-import type { Action, AnyAction } from 'redux'
+import type { Action } from 'redux'
 import type {
   CaseReducer,
   CaseReducers,
@@ -56,7 +56,7 @@ import {
   createAction,
   createReducer,
   AsyncThunk,
-  AnyAction,
+  UnknownAction,
 } from "@reduxjs/toolkit";
 
 type GenericAsyncThunk = AsyncThunk<unknown, unknown, any>;
@@ -68,8 +68,8 @@ type FulfilledAction = ReturnType<GenericAsyncThunk["fulfilled"]>;
 const initialState: Record<string, string> = {};
 const resetAction = createAction("reset-tracked-loading-state");
 
-function isPendingAction(action: AnyAction): action is PendingAction {
-  return action.type.endsWith("/pending");
+function isPendingAction(action: UnknownAction): action is PendingAction {
+  return typeof action.type === "string" && action.type.endsWith("/pending");
 }
 
 const reducer = createReducer(initialState, (builder) => {
@@ -98,7 +98,7 @@ const reducer = createReducer(initialState, (builder) => {
    */
   addMatcher<A>(
     matcher: TypeGuard<A> | ((action: any) => boolean),
-    reducer: CaseReducer<State, A extends AnyAction ? A : A & AnyAction>
+    reducer: CaseReducer<State, A extends Action ? A : A & Action>
   ): Omit<ActionReducerMapBuilder<State>, 'addCase'>
 
   /**
@@ -120,7 +120,7 @@ const reducer = createReducer(initialState, builder => {
 })
 ```
    */
-  addDefaultCase(reducer: CaseReducer<State, AnyAction>): {}
+  addDefaultCase(reducer: CaseReducer<State, Action>): {}
 }
 
 export function executeReducerBuilderCallback<S>(
@@ -128,11 +128,11 @@ export function executeReducerBuilderCallback<S>(
 ): [
   CaseReducers<S, any>,
   ActionMatcherDescriptionCollection<S>,
-  CaseReducer<S, AnyAction> | undefined
+  CaseReducer<S, Action> | undefined
 ] {
   const actionsMap: CaseReducers<S, any> = {}
   const actionMatchers: ActionMatcherDescriptionCollection<S> = []
-  let defaultCaseReducer: CaseReducer<S, AnyAction> | undefined
+  let defaultCaseReducer: CaseReducer<S, Action> | undefined
   const builder = {
     addCase(
       typeOrActionCreator: string | TypedActionCreator<any>,
@@ -166,7 +166,8 @@ export function executeReducerBuilderCallback<S>(
       }
       if (type in actionsMap) {
         throw new Error(
-          `\`builder.addCase\` cannot be called with two reducers for the same action type '${type}'`
+          '`builder.addCase` cannot be called with two reducers for the same action type ' +
+            `'${type}'`
         )
       }
       actionsMap[type] = reducer
@@ -174,7 +175,7 @@ export function executeReducerBuilderCallback<S>(
     },
     addMatcher<A>(
       matcher: TypeGuard<A>,
-      reducer: CaseReducer<S, A extends AnyAction ? A : A & AnyAction>
+      reducer: CaseReducer<S, A extends Action ? A : A & Action>
     ) {
       if (process.env.NODE_ENV !== 'production') {
         if (defaultCaseReducer) {
@@ -186,7 +187,7 @@ export function executeReducerBuilderCallback<S>(
       actionMatchers.push({ matcher, reducer })
       return builder
     },
-    addDefaultCase(reducer: CaseReducer<S, AnyAction>) {
+    addDefaultCase(reducer: CaseReducer<S, Action>) {
       if (process.env.NODE_ENV !== 'production') {
         if (defaultCaseReducer) {
           throw new Error('`builder.addDefaultCase` can only be called once')

@@ -99,7 +99,7 @@ export default store
 
 The type of the `dispatch` function type will be directly inferred from the `middleware` option. So if you add _correctly typed_ middlewares, `dispatch` should already be correctly typed.
 
-As TypeScript often widens array types when combining arrays using the spread operator, we suggest using the `.concat(...)` and `.prepend(...)` methods of the `MiddlewareArray` returned by `getDefaultMiddleware()`.
+As TypeScript often widens array types when combining arrays using the spread operator, we suggest using the `.concat(...)` and `.prepend(...)` methods of the `Tuple` returned by `getDefaultMiddleware()`.
 
 ```ts
 import { configureStore } from '@reduxjs/toolkit'
@@ -134,25 +134,18 @@ export type AppDispatch = typeof store.dispatch
 export default store
 ```
 
-#### Using `MiddlewareArray` without `getDefaultMiddleware`
+#### Using `Tuple` without `getDefaultMiddleware`
 
-If you want to skip the usage of `getDefaultMiddleware` altogether, you can still use `MiddlewareArray` for type-safe concatenation of your `middleware` array. This class extends the default JavaScript `Array` type, only with modified typings for `.concat(...)` and the additional `.prepend(...)` method.
+If you want to skip the usage of `getDefaultMiddleware` altogether, you are required to use `Tuple` for type-safe creation of your `middleware` array. This class extends the default JavaScript `Array` type, only with modified typings for `.concat(...)` and the additional `.prepend(...)` method.
 
-This is generally not required though, as you will probably not run into any array-type-widening issues as long as you are using `as const` and do not use the spread operator.
-
-So the following two calls would be equivalent:
+For example:
 
 ```ts
-import { configureStore, MiddlewareArray } from '@reduxjs/toolkit'
+import { configureStore, Tuple } from '@reduxjs/toolkit'
 
 configureStore({
   reducer: rootReducer,
-  middleware: new MiddlewareArray().concat(additionalMiddleware, logger),
-})
-
-configureStore({
-  reducer: rootReducer,
-  middleware: [additionalMiddleware, logger] as const,
+  middleware: () => new Tuple(additionalMiddleware, logger),
 })
 ```
 
@@ -206,36 +199,9 @@ This `match` method is also very useful in combination with `redux-observable` a
 
 ## `createReducer`
 
-The default way of calling `createReducer` would be with a "lookup table" / "map object", like this:
-
-```typescript
-createReducer(0, {
-  increment: (state, action: PayloadAction<number>) => state + action.payload,
-})
-```
-
-Unfortunately, as the keys are only strings, using that API TypeScript can neither infer nor validate the action types for you:
-
-```typescript
-{
-  const increment = createAction<number, 'increment'>('increment')
-  const decrement = createAction<number, 'decrement'>('decrement')
-  createReducer(0, {
-    [increment.type]: (state, action) => {
-      // action is any here
-    },
-    [decrement.type]: (state, action: PayloadAction<string>) => {
-      // even though action should actually be PayloadAction<number>, TypeScript can't detect that and won't give a warning here.
-    },
-  })
-}
-```
-
-As an alternative, RTK includes a type-safe reducer builder API.
-
 ### Building Type-Safe Reducer Argument Objects
 
-Instead of using a simple object as an argument to `createReducer`, you can also use a callback that receives a `ActionReducerMapBuilder` instance:
+The second parameter for `createReducer` is a callback that receives a `ActionReducerMapBuilder` instance:
 
 ```typescript {3-10}
 const increment = createAction<number, 'increment'>('increment')
@@ -251,15 +217,13 @@ createReducer(0, (builder) =>
 )
 ```
 
-We recommend using this API if stricter type safety is necessary when defining reducer argument objects.
-
 #### Typing `builder.addMatcher`
 
 As the first `matcher` argument to `builder.addMatcher`, a [type predicate](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates) function should be used.
 As a result, the `action` argument for the second `reducer` argument can be inferred by TypeScript:
 
 ```ts
-function isNumberValueAction(action: AnyAction): action is PayloadAction<{ value: number }> {
+function isNumberValueAction(action: UnknownAction): action is PayloadAction<{ value: number }> {
   return typeof action.payload.value === 'number'
 }
 
@@ -362,9 +326,9 @@ const blogSlice = createSlice({
 
 ### Generated Action Types for Slices
 
-As TS cannot combine two string literals (`slice.name` and the key of `actionMap`) into a new literal, all actionCreators created by `createSlice` are of type 'string'. This is usually not a problem, as these types are only rarely used as literals.
+`createSlice` generates action type strings by combining the `name` field from the slice with the field name of the reducer function, like `'test/increment'`. This is strongly typed as the exact value, thanks to TS's string literal analysis.
 
-In most cases that `type` would be required as a literal, the `slice.action.myAction.match` [type predicate](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates) should be a viable alternative:
+You can also use the `slice.action.myAction.match` [type predicate](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates), which will narrow down an action object to the exact type:
 
 ```ts {10}
 const slice = createSlice({
@@ -374,6 +338,9 @@ const slice = createSlice({
     increment: (state, action: PayloadAction<number>) => state + action.payload,
   },
 })
+
+type incrementType = typeof slice.actions.increment.type
+// type incrementType = 'test/increment'
 
 function myCustomMiddleware(action: Action) {
   if (slice.actions.increment.match(action)) {
@@ -386,7 +353,7 @@ If you actually _need_ that type, unfortunately there is no other way than manua
 
 ### Type safety with `extraReducers`
 
-Reducer lookup tables that map an action `type` string to a reducer function are not easy to fully type correctly. This affects both `createReducer` and the `extraReducers` argument for `createSlice`. So, like with `createReducer`, [you may also use the "builder callback" approach](#building-type-safe-reducer-argument-objects) for defining the reducer object argument.
+Reducer lookup tables that map an action `type` string to a reducer function are not easy to fully type correctly. This affects both `createReducer` and the `extraReducers` argument for `createSlice`. So, like with `createReducer`, [you should use the "builder callback" approach](#building-type-safe-reducer-argument-objects) for defining the reducer object argument.
 
 This is particularly useful when a slice reducer needs to handle action types generated by other slices, or generated by specific calls to `createAction` (such as the actions generated by [`createAsyncThunk`](../api/createAsyncThunk.mdx)).
 
@@ -442,6 +409,59 @@ type AtLeastOne<T extends Record<string, any>> = keyof T extends infer K
 
 // Use this type instead of `Partial<MyPayloadType>`
 type AtLeastOneUserField = AtLeastOne<User>
+```
+
+### Typing Async Thunks Inside `createSlice`
+
+As of 2.0, `createSlice` allows [defining thunks inside of `reducers` using a callback syntax](../api/createSlice.mdx/#the-reducers-creator-callback-notation).
+
+Typing for the `create.asyncThunk` method works in the same way as [`createAsyncThunk`](#createasyncthunk), with one key difference.
+
+A type for `state` and/or `dispatch` _cannot_ be provided as part of the `ThunkApiConfig`, as this would cause circular types.
+
+Instead, it is necessary to assert the type when needed - `getState() as RootState`. You may also include an explicit return type for the payload function as well, in order to break the circular type inference cycle.
+
+```ts no-transpile
+create.asyncThunk<Todo, string, { rejectValue: { error: string } }>(
+  // highlight-start
+  // may need to include an explicit return type
+  async (id: string, thunkApi): Promise<Todo> => {
+    // Cast types for `getState` and `dispatch` manually
+    const state = thunkApi.getState() as RootState
+    const dispatch = thunkApi.dispatch as AppDispatch
+    // highlight-end
+    try {
+      const todo = await fetchTodo()
+      return todo
+    } catch (e) {
+      throw thunkApi.rejectWithValue({
+        error: 'Oh no!',
+      })
+    }
+  }
+)
+```
+
+For common thunk API configuration options, a [`withTypes` helper](../usage/usage-with-typescript#defining-a-pre-typed-createasyncthunk) is provided:
+
+```ts no-transpile
+reducers: (create) => {
+  const createAThunk =
+    create.asyncThunk.withTypes<{ rejectValue: { error: string } }>()
+
+  return {
+    fetchTodo: createAThunk<Todo, string>(async (id, thunkApi) => {
+      throw thunkApi.rejectWithValue({
+        error: 'Oh no!',
+      })
+    }),
+    fetchTodos: createAThunk<Todo[], string>(async (id, thunkApi) => {
+      throw thunkApi.rejectWithValue({
+        error: 'Oh no, not again!',
+      })
+    }),
+  }
+}
 ```
 
 ### Wrapping `createSlice`

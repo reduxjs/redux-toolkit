@@ -57,7 +57,7 @@ export const { useGetPokemonByNameQuery } = pokemonApi
   baseQuery(args: InternalQueryArgs, api: BaseQueryApi, extraOptions?: DefinitionExtraOptions): any;
   endpoints(build: EndpointBuilder<InternalQueryArgs, TagTypes>): Definitions;
   extractRehydrationInfo?: (
-    action: AnyAction,
+    action: UnknownAction,
     {
       reducerPath,
     }: {
@@ -88,7 +88,7 @@ export const { useGetPokemonByNameQuery } = pokemonApi
   - `dispatch` - The `store.dispatch` method for the corresponding Redux store
   - `getState` - A function that may be called to access the current store state
   - `extra` - Provided as thunk.extraArgument to the configureStore getDefaultMiddleware option.
-  - `endpoint` - The name of the endpoint. 
+  - `endpoint` - The name of the endpoint.
   - `type` - Type of request (`query` or `mutation`).
   - `forced` - Indicates if a query has been forced.
 - `extraOptions` - The value of the optional `extraOptions` property provided for a given endpoint

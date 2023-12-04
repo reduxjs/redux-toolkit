@@ -36,8 +36,6 @@ interface ImmutableStateInvariantMiddlewareOptions {
   ignoredPaths?: (string | RegExp)[]
   /** Print a warning if checks take longer than N ms. Default: 32ms */
   warnAfter?: number
-  // @deprecated. Use ignoredPaths
-  ignore?: string[]
 }
 ```
 
@@ -76,6 +74,7 @@ export default exampleSlice.reducer
 import {
   configureStore,
   createImmutableStateInvariantMiddleware,
+  Tuple,
 } from '@reduxjs/toolkit'
 
 import exampleSliceReducer from './exampleSlice'
@@ -87,7 +86,7 @@ const immutableInvariantMiddleware = createImmutableStateInvariantMiddleware({
 const store = configureStore({
   reducer: exampleSliceReducer,
   // Note that this will replace all default middleware
-  middleware: [immutableInvariantMiddleware],
+  middleware: () => new Tuple(immutableInvariantMiddleware),
 })
 ```
 

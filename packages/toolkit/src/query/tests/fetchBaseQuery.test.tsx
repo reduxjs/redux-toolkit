@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { createSlice } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { setupApiStore, waitMs } from './helpers'
@@ -18,7 +19,7 @@ const defaultHeaders: Record<string, string> = {
 const baseUrl = 'https://example.com'
 
 // @ts-ignore
-const fetchFn = jest.fn<Promise<any>, any[]>(global.fetch)
+const fetchFn = vi.fn<Promise<any>, any[]>(global.fetch)
 
 const baseQuery = fetchBaseQuery({
   baseUrl,
@@ -175,7 +176,7 @@ describe('fetchBaseQuery', () => {
       expect(res.meta?.response).toBeInstanceOf(Object)
       expect(res.error).toEqual({
         status: 'PARSING_ERROR',
-        error: 'SyntaxError: Unexpected token h in JSON at position 1',
+        error: expect.stringMatching(/SyntaxError: Unexpected token/),
         originalStatus: 200,
         data: `this is not json!`,
       })
@@ -333,7 +334,7 @@ describe('fetchBaseQuery', () => {
       expect(res.meta?.response).toBeInstanceOf(Object)
       expect(res.error).toEqual({
         status: 'PARSING_ERROR',
-        error: 'SyntaxError: Unexpected token h in JSON at position 1',
+        error: expect.stringMatching(/SyntaxError: Unexpected token/),
         originalStatus: 500,
         data: `this is not json!`,
       })
@@ -434,7 +435,7 @@ describe('fetchBaseQuery', () => {
 
     it('supports a custom jsonReplacer', async () => {
       const body = {
-        items: new Set(["A", "B", "C"])
+        items: new Set(['A', 'B', 'C']),
       }
 
       let request: any
@@ -455,7 +456,8 @@ describe('fetchBaseQuery', () => {
       const baseQueryWithReplacer = fetchBaseQuery({
         baseUrl,
         fetchFn: fetchFn as any,
-        jsonReplacer: (key, value) => value instanceof Set ? [...value] : value
+        jsonReplacer: (key, value) =>
+          value instanceof Set ? [...value] : value,
       })
 
       ;({ data: request } = await baseQueryWithReplacer(
@@ -469,8 +471,7 @@ describe('fetchBaseQuery', () => {
       ))
 
       expect(request.headers['content-type']).toBe('application/json')
-      expect(request.body).toEqual({ items: ["A", "B", "C"] }) // Set is marshalled correctly by jsonReplacer
-      
+      expect(request.body).toEqual({ items: ['A', 'B', 'C'] }) // Set is marshalled correctly by jsonReplacer
     })
   })
 
@@ -1025,7 +1026,7 @@ describe('fetchFn', () => {
       clone: () => fakeResponse,
     }
 
-    const spiedFetch = jest.spyOn(window, 'fetch')
+    const spiedFetch = vi.spyOn(window, 'fetch')
     spiedFetch.mockResolvedValueOnce(fakeResponse as any)
 
     const { data } = await baseQuery({ url: '/echo' }, commonBaseQueryApi, {})

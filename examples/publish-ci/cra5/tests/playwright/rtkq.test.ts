@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 test('RTK / RTKQ Interactions', async ({ page }) => {
+  page.on('console', (msg) => console.log('Console message: ', msg.text()))
   await page.goto('http://localhost:3000')
 
   const counterValue = page.getByTestId('counter-value')

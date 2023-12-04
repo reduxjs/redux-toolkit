@@ -24,23 +24,23 @@ import type {
 } from '../endpointDefinitions'
 import { isQueryDefinition } from '../endpointDefinitions'
 import { calculateProvidedBy } from '../endpointDefinitions'
-import type { AsyncThunkPayloadCreator, Draft } from '@reduxjs/toolkit'
+import type {
+  AsyncThunkPayloadCreator,
+  Draft,
+  UnknownAction,
+} from '@reduxjs/toolkit'
 import {
   isAllOf,
   isFulfilled,
   isPending,
   isRejected,
   isRejectedWithValue,
-} from '@reduxjs/toolkit'
+  createAsyncThunk,
+  SHOULD_AUTOBATCH,
+} from './rtkImports'
 import type { Patch } from 'immer'
 import { isDraftable, produceWithPatches } from 'immer'
-import type {
-  AnyAction,
-  ThunkAction,
-  ThunkDispatch,
-  AsyncThunk,
-} from '@reduxjs/toolkit'
-import { createAsyncThunk, SHOULD_AUTOBATCH } from '@reduxjs/toolkit'
+import type { ThunkAction, ThunkDispatch, AsyncThunk } from '@reduxjs/toolkit'
 
 import { HandledError } from '../HandledError'
 
@@ -167,7 +167,7 @@ export type PatchQueryDataThunk<
   args: QueryArgFrom<Definitions[EndpointName]>,
   patches: readonly Patch[],
   updateProvided?: boolean
-) => ThunkAction<void, PartialState, any, AnyAction>
+) => ThunkAction<void, PartialState, any, UnknownAction>
 
 export type UpdateQueryDataThunk<
   Definitions extends EndpointDefinitions,
@@ -177,7 +177,7 @@ export type UpdateQueryDataThunk<
   args: QueryArgFrom<Definitions[EndpointName]>,
   updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>,
   updateProvided?: boolean
-) => ThunkAction<PatchCollection, PartialState, any, AnyAction>
+) => ThunkAction<PatchCollection, PartialState, any, UnknownAction>
 
 export type UpsertQueryDataThunk<
   Definitions extends EndpointDefinitions,
@@ -194,7 +194,7 @@ export type UpsertQueryDataThunk<
   >,
   PartialState,
   any,
-  AnyAction
+  UnknownAction
 >
 
 /**
@@ -594,7 +594,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       endpointName: EndpointName,
       arg: any,
       options: PrefetchOptions
-    ): ThunkAction<void, any, any, AnyAction> =>
+    ): ThunkAction<void, any, any, UnknownAction> =>
     (dispatch: ThunkDispatch<any, any, any>, getState: () => any) => {
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan
@@ -629,7 +629,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     }
 
   function matchesEndpoint(endpointName: string) {
-    return (action: any): action is AnyAction =>
+    return (action: any): action is UnknownAction =>
       action?.meta?.arg?.endpointName === endpointName
   }
 

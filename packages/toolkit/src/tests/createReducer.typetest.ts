@@ -7,16 +7,19 @@ import { expectType } from './helpers'
  * Test: createReducer() infers type of returned reducer.
  */
 {
-  type CounterAction =
-    | { type: 'increment'; payload: number }
-    | { type: 'decrement'; payload: number }
+  const incrementHandler = (
+    state: number,
+    action: { type: 'increment'; payload: number }
+  ) => state + 1
+  const decrementHandler = (
+    state: number,
+    action: { type: 'decrement'; payload: number }
+  ) => state - 1
 
-  const incrementHandler = (state: number, action: CounterAction) => state + 1
-  const decrementHandler = (state: number, action: CounterAction) => state - 1
-
-  const reducer = createReducer(0 as number, {
-    increment: incrementHandler,
-    decrement: decrementHandler,
+  const reducer = createReducer(0 as number, (builder) => {
+    builder
+      .addCase('increment', incrementHandler)
+      .addCase('decrement', decrementHandler)
   })
 
   const numberReducer: Reducer<number> = reducer
@@ -29,25 +32,28 @@ import { expectType } from './helpers'
  * Test: createReducer() state type can be specified expliclity.
  */
 {
-  type CounterAction =
-    | { type: 'increment'; payload: number }
-    | { type: 'decrement'; payload: number }
+  const incrementHandler = (
+    state: number,
+    action: { type: 'increment'; payload: number }
+  ) => state + action.payload
 
-  const incrementHandler = (state: number, action: CounterAction) =>
-    state + action.payload
+  const decrementHandler = (
+    state: number,
+    action: { type: 'decrement'; payload: number }
+  ) => state - action.payload
 
-  const decrementHandler = (state: number, action: CounterAction) =>
-    state - action.payload
-
-  createReducer<number>(0, {
-    increment: incrementHandler,
-    decrement: decrementHandler,
+  createReducer(0 as number, (builder) => {
+    builder
+      .addCase('increment', incrementHandler)
+      .addCase('decrement', decrementHandler)
   })
 
   // @ts-expect-error
-  createReducer<string>(0, {
-    increment: incrementHandler,
-    decrement: decrementHandler,
+  createReducer<string>(0 as number, (builder) => {
+    // @ts-expect-error
+    builder
+      .addCase('increment', incrementHandler)
+      .addCase('decrement', decrementHandler)
   })
 }
 
@@ -57,14 +63,14 @@ import { expectType } from './helpers'
 {
   const initialState: { readonly counter: number } = { counter: 0 }
 
-  createReducer(initialState, {
-    increment: (state) => {
+  createReducer(initialState, (builder) => {
+    builder.addCase('increment', (state) => {
       state.counter += 1
-    },
+    })
   })
 }
 
-/** Test:  alternative builder callback for actionMap */
+/** Test: builder callback for actionMap */
 {
   const increment = createAction<number, 'increment'>('increment')
 

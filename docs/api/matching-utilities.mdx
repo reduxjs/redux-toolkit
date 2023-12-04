@@ -49,12 +49,12 @@ A higher-order function that returns a type guard function that may be used to c
 
 ```ts title="isAsyncThunkAction usage"
 import { isAsyncThunkAction } from '@reduxjs/toolkit'
-import type { AnyAction } from '@reduxjs/toolkit'
+import type { UnknownAction } from '@reduxjs/toolkit'
 import { requestThunk1, requestThunk2 } from '@virtual/matchers'
 
 const isARequestAction = isAsyncThunkAction(requestThunk1, requestThunk2)
 
-function handleRequestAction(action: AnyAction) {
+function handleRequestAction(action: UnknownAction) {
   if (isARequestAction(action)) {
     // action is an action dispatched by either `requestThunk1` or `requestThunk2`
   }
@@ -67,12 +67,12 @@ A higher-order function that returns a type guard function that may be used to c
 
 ```ts title="isPending usage"
 import { isPending } from '@reduxjs/toolkit'
-import type { AnyAction } from '@reduxjs/toolkit'
+import type { UnknownAction } from '@reduxjs/toolkit'
 import { requestThunk1, requestThunk2 } from '@virtual/matchers'
 
 const isAPendingAction = isPending(requestThunk1, requestThunk2)
 
-function handlePendingAction(action: AnyAction) {
+function handlePendingAction(action: UnknownAction) {
   if (isAPendingAction(action)) {
     // action is a pending action dispatched by either `requestThunk1` or `requestThunk2`
   }
@@ -85,12 +85,12 @@ A higher-order function that returns a type guard function that may be used to c
 
 ```ts title="isFulfilled usage"
 import { isFulfilled } from '@reduxjs/toolkit'
-import type { AnyAction } from '@reduxjs/toolkit'
+import type { UnknownAction } from '@reduxjs/toolkit'
 import { requestThunk1, requestThunk2 } from '@virtual/matchers'
 
 const isAFulfilledAction = isFulfilled(requestThunk1, requestThunk2)
 
-function handleFulfilledAction(action: AnyAction) {
+function handleFulfilledAction(action: UnknownAction) {
   if (isAFulfilledAction(action)) {
     // action is a fulfilled action dispatched by either `requestThunk1` or `requestThunk2`
   }
@@ -103,12 +103,12 @@ A higher-order function that returns a type guard function that may be used to c
 
 ```ts title="isRejected usage"
 import { isRejected } from '@reduxjs/toolkit'
-import type { AnyAction } from '@reduxjs/toolkit'
+import type { UnknownAction } from '@reduxjs/toolkit'
 import { requestThunk1, requestThunk2 } from '@virtual/matchers'
 
 const isARejectedAction = isRejected(requestThunk1, requestThunk2)
 
-function handleRejectedAction(action: AnyAction) {
+function handleRejectedAction(action: UnknownAction) {
   if (isARejectedAction(action)) {
     // action is a rejected action dispatched by either `requestThunk1` or `requestThunk2`
   }
@@ -121,7 +121,7 @@ A higher-order function that returns a type guard function that may be used to c
 
 ```ts title="isRejectedWithValue usage"
 import { isRejectedWithValue } from '@reduxjs/toolkit'
-import type { AnyAction } from '@reduxjs/toolkit'
+import type { UnknownAction } from '@reduxjs/toolkit'
 import { requestThunk1, requestThunk2 } from '@virtual/matchers'
 
 const isARejectedWithValueAction = isRejectedWithValue(
@@ -129,7 +129,7 @@ const isARejectedWithValueAction = isRejectedWithValue(
   requestThunk2
 )
 
-function handleRejectedWithValueAction(action: AnyAction) {
+function handleRejectedWithValueAction(action: UnknownAction) {
   if (isARejectedWithValueAction(action)) {
     // action is a rejected action dispatched by either `requestThunk1` or `requestThunk2`
     // where rejectWithValue was used

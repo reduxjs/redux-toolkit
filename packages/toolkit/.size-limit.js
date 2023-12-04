@@ -19,30 +19,30 @@ function withRtkPath(suffix) {
         join(__dirname)
       ),
       new webpack.NormalModuleReplacementPlugin(
-        /rtk-query-react.esm.js/,
+        /rtk-query-react.modern.js/,
         (r) => {
           const old = r.request
           r.request = r.request.replace(
-            /rtk-query-react.esm.js$/,
+            /rtk-query-react.modern.js$/,
             `rtk-query-react.${suffix}`
           )
           // console.log(old, '=>', r.request)
         }
       ),
-      new webpack.NormalModuleReplacementPlugin(/rtk-query.esm.js/, (r) => {
+      new webpack.NormalModuleReplacementPlugin(/rtk-query.modern.js/, (r) => {
         const old = r.request
         r.request = r.request.replace(
-          /rtk-query.esm.js$/,
+          /rtk-query.modern.js$/,
           `rtk-query.${suffix}`
         )
         // console.log(old, '=>', r.request)
       }),
       new webpack.NormalModuleReplacementPlugin(
-        /redux-toolkit.esm.js$/,
+        /redux-toolkit.modern.js$/,
         (r) => {
           const old = r.request
           r.request = r.request.replace(
-            /redux-toolkit.esm.js$/,
+            /redux-toolkit.modern.js$/,
             `redux-toolkit.${suffix}`
           )
           // console.log(old, '=>', r.request)
@@ -69,29 +69,29 @@ const ignoreAll = [
 module.exports = [
   {
     name: `1. entry point: @reduxjs/toolkit`,
-    path: 'dist/redux-toolkit.esm.js',
+    path: 'dist/redux-toolkit.modern.js',
   },
   {
     name: `1. entry point: @reduxjs/toolkit/query`,
-    path: 'dist/query/rtk-query.esm.js',
+    path: 'dist/query/rtk-query.modern.js',
   },
   {
     name: `1. entry point: @reduxjs/toolkit/query/react`,
-    path: 'dist/query/react/rtk-query-react.esm.js',
+    path: 'dist/query/react/rtk-query-react.modern.js',
   },
   {
     name: `2. entry point: @reduxjs/toolkit (without dependencies)`,
-    path: 'dist/redux-toolkit.esm.js',
+    path: 'dist/redux-toolkit.modern.js',
     ignore: ignoreAll,
   },
   {
     name: `2. entry point: @reduxjs/toolkit/query (without dependencies)`,
-    path: 'dist/query/rtk-query.esm.js',
+    path: 'dist/query/rtk-query.modern.js',
     ignore: ignoreAll,
   },
   {
     name: `2. entry point: @reduxjs/toolkit/query/react (without dependencies)`,
-    path: 'dist/query/react/rtk-query-react.esm.js',
+    path: 'dist/query/react/rtk-query-react.modern.js',
     ignore: ignoreAll,
   },
 ]

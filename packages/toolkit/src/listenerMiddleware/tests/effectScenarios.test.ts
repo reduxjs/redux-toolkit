@@ -4,8 +4,9 @@ import {
   createSlice,
   isAnyOf,
 } from '@reduxjs/toolkit'
+import { vi } from 'vitest'
 
-import type { AnyAction, PayloadAction, Action } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
 
 import { createListenerMiddleware, TaskAbortError } from '../index'
 
@@ -58,7 +59,7 @@ describe('Saga-style Effects Scenarios', () => {
 
   beforeAll(() => {
     const noop = () => {}
-    jest.spyOn(console, 'error').mockImplementation(noop)
+    vi.spyOn(console, 'error').mockImplementation(noop)
   })
 
   beforeEach(() => {

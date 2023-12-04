@@ -1,3 +1,7 @@
+// This must remain here so that the `mangleErrors.cjs` build script
+// does not have to import this into each source file it rewrites.
+import { formatProdErrorMessage } from '@reduxjs/toolkit'
+
 export type {
   CombinedState,
   QueryCacheKey,
@@ -8,6 +12,7 @@ export type {
 } from './core/apiState'
 export { QueryStatus } from './core/apiState'
 export type { Api, ApiContext, ApiModules, Module } from './apiTypes'
+
 export type {
   BaseQueryApi,
   BaseQueryEnhancer,
@@ -32,7 +37,7 @@ export type {
 } from './fetchBaseQuery'
 export { retry } from './retry'
 export { setupListeners } from './core/setupListeners'
-export { skipSelector, skipToken } from './core/buildSelectors'
+export { skipToken } from './core/buildSelectors'
 export type {
   QueryResultSelectorResult,
   MutationResultSelectorResult,

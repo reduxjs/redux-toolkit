@@ -13,7 +13,7 @@ import type { CoreModule } from './core/module'
 import type { CreateApiOptions } from './createApi'
 import type { BaseQueryFn } from './baseQueryTypes'
 import type { CombinedState } from './core/apiState'
-import type { AnyAction } from '@reduxjs/toolkit'
+import type { UnknownAction } from '@reduxjs/toolkit'
 
 export interface ApiModules<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -45,6 +45,7 @@ export type Module<Name extends ModuleName> = {
       | 'refetchOnMountOrArgChange'
       | 'refetchOnFocus'
       | 'refetchOnReconnect'
+      | 'invalidationBehavior'
       | 'tagTypes'
     >,
     context: ApiContext<Definitions>
@@ -61,9 +62,9 @@ export interface ApiContext<Definitions extends EndpointDefinitions> {
   endpointDefinitions: Definitions
   batch(cb: () => void): void
   extractRehydrationInfo: (
-    action: AnyAction
+    action: UnknownAction
   ) => CombinedState<any, any, any> | undefined
-  hasRehydrationInfo: (action: AnyAction) => boolean
+  hasRehydrationInfo: (action: UnknownAction) => boolean
 }
 
 export type Api<

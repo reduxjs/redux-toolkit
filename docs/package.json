@@ -4,7 +4,6 @@
     "@manaflair/redux-batch": "^1.0.0",
     "@types/nanoid": "^2.1.0",
     "@types/react": "^18.0",
-    "@types/redux-logger": "^3.0.8",
     "async-mutex": "^0.3.2",
     "axios": "^0.20.0",
     "formik": "^2.1.5",

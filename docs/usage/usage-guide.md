@@ -128,7 +128,8 @@ export default function configureAppStore(preloadedState) {
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(loggerMiddleware),
     preloadedState,
-    enhancers: [monitorReducersEnhancer],
+    enhancers: (getDefaultEnhancers) =>
+      getDefaultEnhancers().concat(monitorReducersEnhancer),
   })
 
   if (process.env.NODE_ENV !== 'production' && module.hot) {
@@ -279,24 +280,16 @@ addTodo({ text: 'Buy milk' })
 
 ### Using Action Creators as Action Types
 
-Redux reducers need to look for specific action types to determine how they should update their state. Normally, this is done by defining action type strings and action creator functions separately. Redux Toolkit `createAction` function uses a couple tricks to make this easier.
-
-First, `createAction` overrides the `toString()` method on the action creators it generates. **This means that the action creator itself can be used as the "action type" reference in some places**, such as the keys provided to `builder.addCase` or the `createReducer` object notation.
-
-Second, the action type is also defined as a `type` field on the action creator.
+Redux reducers need to look for specific action types to determine how they should update their state. Normally, this is done by defining action type strings and action creator functions separately. Redux Toolkit `createAction` function make this easier, by defining the action type as a `type` field on the action creator.
 
 ```js
 const actionCreator = createAction('SOME_ACTION_TYPE')
-
-console.log(actionCreator.toString())
-// "SOME_ACTION_TYPE"
 
 console.log(actionCreator.type)
 // "SOME_ACTION_TYPE"
 
 const reducer = createReducer({}, (builder) => {
-  // actionCreator.toString() will automatically be called here
-  // also, if you use TypeScript, the action type will be correctly inferred
+  // if you use TypeScript, the action type will be correctly inferred
   builder.addCase(actionCreator, (state, action) => {})
 
   // Or, you can reference the .type field:
@@ -307,7 +300,7 @@ const reducer = createReducer({}, (builder) => {
 
 This means you don't have to write or use a separate action type variable, or repeat the name and value of an action type like `const SOME_ACTION_TYPE = "SOME_ACTION_TYPE"`.
 
-Unfortunately, the implicit conversion to a string doesn't happen for switch statements. If you want to use one of these action creators in a switch statement, you need to call `actionCreator.toString()` yourself:
+If you want to use one of these action creators in a switch statement, you need to reference `actionCreator.type` yourself:
 
 ```js
 const actionCreator = createAction('SOME_ACTION_TYPE')
@@ -319,18 +312,12 @@ const reducer = (state = {}, action) => {
       break
     }
     // CORRECT: this will work as expected
-    case actionCreator.toString(): {
-      break
-    }
-    // CORRECT: this will also work right
     case actionCreator.type: {
       break
     }
   }
 }
 ```
-
-If you are using Redux Toolkit with TypeScript, note that the TypeScript compiler may not accept the implicit `toString()` conversion when the action creator is used as an object key. In that case, you may need to either manually cast it to a string (`actionCreator as string`), or use the `.type` field as the key.
 
 ## Creating Slices of State
 
@@ -619,17 +606,17 @@ A typical implementation might look like:
 
 ```js
 const getRepoDetailsStarted = () => ({
-  type: "repoDetails/fetchStarted"
+  type: 'repoDetails/fetchStarted',
 })
 const getRepoDetailsSuccess = (repoDetails) => ({
-  type: "repoDetails/fetchSucceeded",
-  payload: repoDetails
+  type: 'repoDetails/fetchSucceeded',
+  payload: repoDetails,
 })
 const getRepoDetailsFailed = (error) => ({
-  type: "repoDetails/fetchFailed",
-  error
+  type: 'repoDetails/fetchFailed',
+  error,
 })
-const fetchIssuesCount = (org, repo) => async dispatch => {
+const fetchIssuesCount = (org, repo) => async (dispatch) => {
   dispatch(getRepoDetailsStarted())
   try {
     const repoDetails = await getRepoDetails(org, repo)
@@ -1118,11 +1105,11 @@ It is also strongly recommended to blacklist any api(s) that you have configured
 
 ```ts
 const persistConfig = {
-  key: "root",
+  key: 'root',
   version: 1,
   storage,
   blacklist: [pokemonApi.reducerPath],
-};
+}
 ```
 
 See [Redux Toolkit #121: How to use this with Redux-Persist?](https://github.com/reduxjs/redux-toolkit/issues/121) and [Redux-Persist #988: non-serializable value error](https://github.com/rt2zz/redux-persist/issues/988#issuecomment-552242978) for further discussion.

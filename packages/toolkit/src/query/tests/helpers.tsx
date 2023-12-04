@@ -1,13 +1,14 @@
+import React, { useCallback } from 'react'
 import type {
-  AnyAction,
+  UnknownAction,
   EnhancedStore,
   Middleware,
   Store,
+  Reducer,
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
-import type { Reducer } from 'react'
-import React, { useCallback } from 'react'
+
 import { Provider } from 'react-redux'
 
 import {
@@ -57,11 +58,29 @@ export const hookWaitFor = async (cb: () => void, time = 2000) => {
       if (Date.now() > startedAt + time) {
         throw e
       }
-      await act(() => waitMs(2))
+      await act(async () => {
+        await waitMs(2)
+      })
     }
   }
 }
-export const fakeTimerWaitFor = hookWaitFor
+export const fakeTimerWaitFor = async (cb: () => void, time = 2000) => {
+  const startedAt = Date.now()
+
+  while (true) {
+    try {
+      cb()
+      return true
+    } catch (e) {
+      if (Date.now() > startedAt + time) {
+        throw e
+      }
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2)
+      })
+    }
+  }
+}
 
 export const useRenderCounter = () => {
   const countRef = React.useRef(0)
@@ -89,7 +108,7 @@ declare global {
 
 expect.extend({
   toMatchSequence(
-    _actions: AnyAction[],
+    _actions: UnknownAction[],
     ...matchers: Array<(arg: any) => boolean>
   ) {
     const actions = _actions.concat()
@@ -99,7 +118,9 @@ expect.extend({
       if (!matchers[i](actions[i])) {
         return {
           message: () =>
-            `Action ${actions[i].type} does not match sequence at position ${i}.`,
+            `Action ${actions[i].type} does not match sequence at position ${i}.
+All actions:
+${actions.map((a) => a.type).join('\n')}`,
           pass: false,
         }
       }
@@ -160,7 +181,12 @@ ${expectedOutput}
 })
 
 export const actionsReducer = {
-  actions: (state: AnyAction[] = [], action: AnyAction) => {
+  actions: (state: UnknownAction[] = [], action: UnknownAction) => {
+    // As of 2.0-beta.4, we are going to ignore all `subscriptionsUpdated` actions in tests
+    if (action.type.includes('subscriptionsUpdated')) {
+      return state
+    }
+
     return [...state, action]
   },
 }
@@ -196,18 +222,27 @@ export function setupApiStore<
         }).concat(api.middleware)
 
         return tempMiddleware
-          .concat(...(middleware?.concat ?? []))
-          .prepend(...(middleware?.prepend ?? [])) as typeof tempMiddleware
+          .concat(middleware?.concat ?? [])
+          .prepend(middleware?.prepend ?? []) as typeof tempMiddleware
       },
+      enhancers: (gde) =>
+        gde({
+          autoBatch: false,
+        }),
     })
 
+  type State = {
+    api: ReturnType<A['reducer']>
+  } & {
+    [K in keyof R]: ReturnType<R[K]>
+  }
   type StoreType = EnhancedStore<
     {
       api: ReturnType<A['reducer']>
     } & {
       [K in keyof R]: ReturnType<R[K]>
     },
-    AnyAction,
+    UnknownAction,
     ReturnType<typeof getStore> extends EnhancedStore<any, any, infer M>
       ? M
       : never

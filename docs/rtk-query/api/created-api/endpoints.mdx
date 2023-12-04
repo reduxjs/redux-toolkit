@@ -33,12 +33,12 @@ type InitiateRequestThunk = StartQueryActionCreator | StartMutationActionCreator
 type StartQueryActionCreator = (
   arg:any,
   options?: StartQueryActionCreatorOptions
-) => ThunkAction<QueryActionCreatorResult, any, any, AnyAction>;
+) => ThunkAction<QueryActionCreatorResult, any, any, UnknownAction>;
 
 type StartMutationActionCreator<D extends MutationDefinition<any, any, any, any>> = (
   arg: any
   options?: StartMutationActionCreatorOptions
-) => ThunkAction<MutationActionCreatorResult<D>, any, any, AnyAction>;
+) => ThunkAction<MutationActionCreatorResult<D>, any, any, UnknownAction>;
 
 type SubscriptionOptions = {
   /**

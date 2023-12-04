@@ -1,4 +1,4 @@
-import { isPlainObject as _iPO } from '@reduxjs/toolkit'
+import { isPlainObject as _iPO } from '../core/rtkImports'
 
 // remove type guard
 const isPlainObject: (_: any) => boolean = _iPO

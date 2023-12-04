@@ -7,8 +7,8 @@ export function assertCast<T>(v: any): asserts v is T {}
 export function safeAssign<T extends object>(
   target: T,
   ...args: Array<Partial<NoInfer<T>>>
-) {
-  Object.assign(target, ...args)
+): T {
+  return Object.assign(target, ...args)
 }
 
 /**

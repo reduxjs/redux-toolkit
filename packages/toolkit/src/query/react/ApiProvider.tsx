@@ -1,9 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit'
 import type { Context } from 'react'
+import { useContext } from 'react'
 import { useEffect } from 'react'
 import React from 'react'
 import type { ReactReduxContextValue } from 'react-redux'
-import { Provider } from 'react-redux'
+import { Provider, ReactReduxContext } from 'react-redux'
 import { setupListeners } from '@reduxjs/toolkit/query'
 import type { Api } from '@reduxjs/toolkit/query'
 
@@ -37,6 +38,13 @@ export function ApiProvider<A extends Api<any, {}, any, any>>(props: {
   setupListeners?: Parameters<typeof setupListeners>[1] | false
   context?: Context<ReactReduxContextValue>
 }) {
+  const context = props.context || ReactReduxContext
+  const existingContext = useContext(context)
+  if (existingContext) {
+    throw new Error(
+      'Existing Redux context detected. If you already have a store set up, please use the traditional Redux setup.'
+    )
+  }
   const [store] = React.useState(() =>
     configureStore({
       reducer: {
@@ -55,7 +63,7 @@ export function ApiProvider<A extends Api<any, {}, any, any>>(props: {
   )
 
   return (
-    <Provider store={store} context={props.context}>
+    <Provider store={store} context={context}>
       {props.children}
     </Provider>
   )

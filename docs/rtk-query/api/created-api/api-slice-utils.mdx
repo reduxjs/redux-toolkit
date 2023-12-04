@@ -121,7 +121,7 @@ const upsertQueryData = <T>(
   endpointName: string,
   args: any,
   newEntryData: T
-) => ThunkAction<Promise<CacheEntry<T>>, PartialState, any, AnyAction>;
+) => ThunkAction<Promise<CacheEntry<T>>, PartialState, any, UnknownAction>;
 ```
 
 - **Parameters**
@@ -159,7 +159,7 @@ const patchQueryData = (
   args: any
   patches: Patch[],
   updateProvided?: boolean
-) => ThunkAction<void, PartialState, any, AnyAction>;
+) => ThunkAction<void, PartialState, any, UnknownAction>;
 ```
 
 - **Parameters**
@@ -207,7 +207,7 @@ const prefetch = (
   endpointName: string,
   arg: any,
   options: PrefetchOptions
-) => ThunkAction<void, any, any, AnyAction>;
+) => ThunkAction<void, any, any, UnknownAction>;
 ```
 
 - **Parameters**
@@ -259,10 +259,12 @@ function selectInvalidatedBy(
 A function that can select query parameters to be invalidated.
 
 The function accepts two arguments
+
 - the root state and
 - the cache tags to be invalidated.
 
 It returns an array that contains
+
 - the endpoint name,
 - the original args and
 - the queryCacheKey.
@@ -270,14 +272,12 @@ It returns an array that contains
 #### Example
 
 ```ts no-transpile
-dispatch(api.util.selectInvalidatedBy(state, ['Post']))
-dispatch(api.util.selectInvalidatedBy(state, [{ type: 'Post', id: 1 }]))
-dispatch(
-  api.util.selectInvalidatedBy(state, [
-    { type: 'Post', id: 1 },
-    { type: 'Post', id: 4 },
-  ])
-)
+const entries = api.util.selectInvalidatedBy(state, ['Post'])
+const entries = api.util.selectInvalidatedBy(state, [{ type: 'Post', id: 1 }])
+const entries = api.util.selectInvalidatedBy(state, [
+  { type: 'Post', id: 1 },
+  { type: 'Post', id: 4 },
+])
 ```
 
 ### `invalidateTags`
@@ -318,6 +318,39 @@ dispatch(
     { type: 'Post', id: 'LIST' },
   ])
 )
+```
+
+### `selectCachedArgsForQuery`
+
+#### Signature
+
+```ts no-transpile
+function selectCachedArgsForQuery(
+  state: RootState,
+  queryName: QueryName
+): Array<QueryArg>
+```
+
+- **Parameters**
+  - `state`: the root state
+  - `queryName`: a string matching an existing query endpoint name
+
+#### Description
+
+A function that can select arguments for currently cached queries.
+
+The function accepts two arguments
+
+- the root state and
+
+- the name of the query
+
+It returns an array that contains arguments used for each entry.
+
+#### Example
+
+```ts no-transpile
+const args = api.util.selectCachedArgsForQuery(state, 'getPosts')
 ```
 
 ### `resetApiState`

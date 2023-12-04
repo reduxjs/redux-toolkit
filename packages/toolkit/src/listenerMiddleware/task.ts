@@ -10,7 +10,8 @@ import { addAbortSignalListener, catchRejection, noop } from './utils'
  */
 export const validateActive = (signal: AbortSignal): void => {
   if (signal.aborted) {
-    throw new TaskAbortError((signal as AbortSignalWithReason<string>).reason)
+    const { reason } = signal as AbortSignalWithReason<string>
+    throw new TaskAbortError(reason)
   }
 }
 

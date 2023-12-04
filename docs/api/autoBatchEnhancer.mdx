@@ -48,14 +48,9 @@ const counterSlice = createSlice({
 })
 const { incrementBatched, decrementUnbatched } = counterSlice.actions
 
+// includes batch enhancer by default, as of RTK 2.0
 const store = configureStore({
   reducer: counterSlice.reducer,
-  // highlight-start
-  enhancers: (existingEnhancers) => {
-    // Add the autobatch enhancer to the store setup
-    return existingEnhancers.concat(autoBatchEnhancer())
-  },
-  // highlight-end
 })
 ```
 
@@ -73,6 +68,25 @@ type AutoBatchOptions =
 
 export type autoBatchEnhancer = (options?: AutoBatchOptions) => StoreEnhancer
 ```
+
+:::tip
+As of RTK 2.0, the `autoBatchEnhancer` is included by default when calling `configureStore`.
+
+This means to configure it, you should instead pass an callback that receives `getDefaultEnhancers` and calls it with your desired settings.
+
+```ts title="Configuring autoBatchEnhancer with getDefaultEnhancers"
+import { configureStore } from '@reduxjs/toolkit'
+
+const store = configureStore({
+  reducer: () => 0,
+  enhancers: (getDefaultEnhancers) =>
+    getDefaultEnhancers({
+      autoBatch: { type: 'tick' },
+    }),
+})
+```
+
+:::
 
 Creates a new instance of the autobatch store enhancer.
 
@@ -140,4 +154,4 @@ This allows Redux users to selectively tag certain actions for effective batchin
 
 ### RTK Query and Batching
 
-RTK Query already marks several of its key internal action types as batchable. If you add the `autoBatchEnhancer` to the store setup, it will improve the overall UI performance, especially when rendering large lists of components that use the RTKQ query hooks.
+RTK Query already marks several of its key internal action types as batchable. By adding the `autoBatchEnhancer` to the store setup, it improves the overall UI performance, especially when rendering large lists of components that use the RTKQ query hooks.

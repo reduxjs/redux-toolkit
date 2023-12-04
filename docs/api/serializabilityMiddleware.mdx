@@ -93,6 +93,7 @@ import {
   configureStore,
   createSerializableStateInvariantMiddleware,
   isPlain,
+  Tuple,
 } from '@reduxjs/toolkit'
 import reducer from './reducer'
 
@@ -110,7 +111,7 @@ const serializableMiddleware = createSerializableStateInvariantMiddleware({
 
 const store = configureStore({
   reducer,
-  middleware: [serializableMiddleware],
+  middleware: () => new Tuple(serializableMiddleware),
 })
 ```
 

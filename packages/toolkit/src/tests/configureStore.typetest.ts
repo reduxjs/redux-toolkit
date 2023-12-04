@@ -1,22 +1,18 @@
 /* eslint-disable no-lone-blocks */
 import type {
   Dispatch,
-  AnyAction,
+  UnknownAction,
   Middleware,
   Reducer,
   Store,
   Action,
   StoreEnhancer,
 } from 'redux'
-import { applyMiddleware } from 'redux'
+import { applyMiddleware, combineReducers } from 'redux'
 import type { PayloadAction, ConfigureStoreOptions } from '@reduxjs/toolkit'
-import {
-  configureStore,
-  getDefaultMiddleware,
-  createSlice,
-} from '@reduxjs/toolkit'
+import { configureStore, createSlice, Tuple } from '@reduxjs/toolkit'
 import type { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
-import thunk from 'redux-thunk'
+import { thunk } from 'redux-thunk'
 import { expectNotAny, expectType } from './helpers'
 
 const _anyMiddleware: any = () => () => () => {}
@@ -52,10 +48,10 @@ const _anyMiddleware: any = () => () => () => {}
 {
   const reducer: Reducer<number> = () => 0
   const store = configureStore({ reducer })
-  const numberStore: Store<number, AnyAction> = store
+  const numberStore: Store<number, UnknownAction> = store
 
   // @ts-expect-error
-  const stringStore: Store<string, AnyAction> = store
+  const stringStore: Store<string, UnknownAction> = store
 }
 
 /*
@@ -71,20 +67,26 @@ const _anyMiddleware: any = () => () => () => {}
 }
 
 /*
- * Test: configureStore() accepts middleware array.
+ * Test: configureStore() accepts Tuple, but not plain array.
  */
 {
   const middleware: Middleware = (store) => (next) => next
 
   configureStore({
     reducer: () => 0,
-    middleware: [middleware],
+    middleware: () => new Tuple(middleware),
   })
 
   configureStore({
     reducer: () => 0,
     // @ts-expect-error
-    middleware: ['not middleware'],
+    middleware: () => [middleware],
+  })
+
+  configureStore({
+    reducer: () => 0,
+    // @ts-expect-error
+    middleware: () => new Tuple('not middleware'),
   })
 }
 
@@ -130,23 +132,31 @@ const _anyMiddleware: any = () => () => () => {}
   })
 
   configureStore({
-    reducer: () => 0,
     // @ts-expect-error
+    reducer: (_: number) => 0,
     preloadedState: 'non-matching state type',
   })
 }
 
 /*
- * Test: configureStore() accepts store enhancer.
+ * Test: configureStore() accepts store Tuple, but not plain array
  */
 {
   {
+    const enhancer = applyMiddleware(() => (next) => next)
+
     const store = configureStore({
       reducer: () => 0,
-      enhancers: [applyMiddleware(() => (next) => next)],
+      enhancers: () => new Tuple(enhancer),
     })
 
-    expectType<Dispatch & ThunkDispatch<number, undefined, AnyAction>>(
+    const store2 = configureStore({
+      reducer: () => 0,
+      // @ts-expect-error
+      enhancers: () => [enhancer],
+    })
+
+    expectType<Dispatch & ThunkDispatch<number, undefined, UnknownAction>>(
       store.dispatch
     )
   }
@@ -154,13 +164,13 @@ const _anyMiddleware: any = () => () => () => {}
   configureStore({
     reducer: () => 0,
     // @ts-expect-error
-    enhancers: ['not a store enhancer'],
+    enhancers: () => new Tuple('not a store enhancer'),
   })
 
   {
-    type SomePropertyStoreEnhancer = StoreEnhancer<{ someProperty: string }>
-
-    const somePropertyStoreEnhancer: SomePropertyStoreEnhancer = (next) => {
+    const somePropertyStoreEnhancer: StoreEnhancer<{ someProperty: string }> = (
+      next
+    ) => {
       return (reducer, preloadedState) => {
         return {
           ...next(reducer, preloadedState),
@@ -169,13 +179,9 @@ const _anyMiddleware: any = () => () => () => {}
       }
     }
 
-    type AnotherPropertyStoreEnhancer = StoreEnhancer<{
+    const anotherPropertyStoreEnhancer: StoreEnhancer<{
       anotherProperty: number
-    }>
-
-    const anotherPropertyStoreEnhancer: AnotherPropertyStoreEnhancer = (
-      next
-    ) => {
+    }> = (next) => {
       return (reducer, preloadedState) => {
         return {
           ...next(reducer, preloadedState),
@@ -186,24 +192,23 @@ const _anyMiddleware: any = () => () => () => {}
 
     const store = configureStore({
       reducer: () => 0,
-      enhancers: [somePropertyStoreEnhancer, anotherPropertyStoreEnhancer],
+      enhancers: () =>
+        new Tuple(somePropertyStoreEnhancer, anotherPropertyStoreEnhancer),
     })
 
-    expectType<Dispatch & ThunkDispatch<number, undefined, AnyAction>>(
-      store.dispatch
-    )
+    expectType<Dispatch>(store.dispatch)
     expectType<string>(store.someProperty)
     expectType<number>(store.anotherProperty)
 
     const storeWithCallback = configureStore({
       reducer: () => 0,
-      enhancers: (defaultEnhancers) =>
-        defaultEnhancers
+      enhancers: (getDefaultEnhancers) =>
+        getDefaultEnhancers()
           .prepend(anotherPropertyStoreEnhancer)
           .concat(somePropertyStoreEnhancer),
     })
 
-    expectType<Dispatch & ThunkDispatch<number, undefined, AnyAction>>(
+    expectType<Dispatch & ThunkDispatch<number, undefined, UnknownAction>>(
       store.dispatch
     )
     expectType<string>(storeWithCallback.someProperty)
@@ -211,11 +216,11 @@ const _anyMiddleware: any = () => () => () => {}
   }
 
   {
-    type StateExtendingEnhancer = StoreEnhancer<{}, { someProperty: string }>
-
-    const someStateExtendingEnhancer: StateExtendingEnhancer =
+    const someStateExtendingEnhancer: StoreEnhancer<
+      {},
+      { someProperty: string }
+    > =
       (next) =>
-      // @ts-expect-error how do you properly return an enhancer that extends state?
       (...args) => {
         const store = next(...args)
         const getState = () => ({
@@ -225,17 +230,14 @@ const _anyMiddleware: any = () => () => () => {}
         return {
           ...store,
           getState,
-        }
+        } as any
       }
 
-    type AnotherStateExtendingEnhancer = StoreEnhancer<
+    const anotherStateExtendingEnhancer: StoreEnhancer<
       {},
       { anotherProperty: number }
-    >
-
-    const anotherStateExtendingEnhancer: AnotherStateExtendingEnhancer =
+    > =
       (next) =>
-      // @ts-expect-error any input on this would be great
       (...args) => {
         const store = next(...args)
         const getState = () => ({
@@ -245,28 +247,24 @@ const _anyMiddleware: any = () => () => () => {}
         return {
           ...store,
           getState,
-        }
+        } as any
       }
 
     const store = configureStore({
       reducer: () => ({ aProperty: 0 }),
-      enhancers: [
-        someStateExtendingEnhancer,
-        anotherStateExtendingEnhancer,
-        // this doesn't work without the as const
-      ] as const,
+      enhancers: () =>
+        new Tuple(someStateExtendingEnhancer, anotherStateExtendingEnhancer),
     })
 
     const state = store.getState()
-
     expectType<number>(state.aProperty)
     expectType<string>(state.someProperty)
     expectType<number>(state.anotherProperty)
 
     const storeWithCallback = configureStore({
       reducer: () => ({ aProperty: 0 }),
-      enhancers: (dE) =>
-        dE.concat(someStateExtendingEnhancer, anotherStateExtendingEnhancer),
+      enhancers: (gDE) =>
+        gDE().concat(someStateExtendingEnhancer, anotherStateExtendingEnhancer),
     })
 
     const stateWithCallback = storeWithCallback.getState()
@@ -278,25 +276,162 @@ const _anyMiddleware: any = () => () => () => {}
 }
 
 /**
- * Test: configureStore() state type inference works when specifying both a
- * reducer object and a partial preloaded state.
+ * Test: Preloaded state typings
  */
 {
   let counterReducer1: Reducer<number> = () => 0
   let counterReducer2: Reducer<number> = () => 0
 
-  const store = configureStore({
-    reducer: {
-      counter1: counterReducer1,
-      counter2: counterReducer2,
-    },
-    preloadedState: {
-      counter1: 0,
-    },
-  })
+  /**
+   * Test: partial preloaded state
+   */
+  {
+    const store = configureStore({
+      reducer: {
+        counter1: counterReducer1,
+        counter2: counterReducer2,
+      },
+      preloadedState: {
+        counter1: 0,
+      },
+    })
 
-  const counter1: number = store.getState().counter1
-  const counter2: number = store.getState().counter2
+    const counter1: number = store.getState().counter1
+    const counter2: number = store.getState().counter2
+  }
+
+  /**
+   * Test: empty preloaded state
+   */
+  {
+    const store = configureStore({
+      reducer: {
+        counter1: counterReducer1,
+        counter2: counterReducer2,
+      },
+      preloadedState: {},
+    })
+
+    const counter1: number = store.getState().counter1
+    const counter2: number = store.getState().counter2
+  }
+
+  /**
+   * Test: excess properties in preloaded state
+   */
+  {
+    const store = configureStore({
+      reducer: {
+        // @ts-expect-error
+        counter1: counterReducer1,
+        counter2: counterReducer2,
+      },
+      preloadedState: {
+        counter1: 0,
+        counter3: 5,
+      },
+    })
+
+    const counter1: number = store.getState().counter1
+    const counter2: number = store.getState().counter2
+  }
+
+  /**
+   * Test: mismatching properties in preloaded state
+   */
+  {
+    const store = configureStore({
+      reducer: {
+        // @ts-expect-error
+        counter1: counterReducer1,
+        counter2: counterReducer2,
+      },
+      preloadedState: {
+        counter3: 5,
+      },
+    })
+
+    const counter1: number = store.getState().counter1
+    const counter2: number = store.getState().counter2
+  }
+
+  /**
+   * Test: string preloaded state when expecting object
+   */
+  {
+    const store = configureStore({
+      reducer: {
+        // @ts-expect-error
+        counter1: counterReducer1,
+        counter2: counterReducer2,
+      },
+      preloadedState: 'test',
+    })
+
+    const counter1: number = store.getState().counter1
+    const counter2: number = store.getState().counter2
+  }
+
+  /**
+   * Test: nested combineReducers allows partial
+   */
+  {
+    const store = configureStore({
+      reducer: {
+        group1: combineReducers({
+          counter1: counterReducer1,
+          counter2: counterReducer2,
+        }),
+        group2: combineReducers({
+          counter1: counterReducer1,
+          counter2: counterReducer2,
+        }),
+      },
+      preloadedState: {
+        group1: {
+          counter1: 5,
+        },
+      },
+    })
+
+    const group1counter1: number = store.getState().group1.counter1
+    const group1counter2: number = store.getState().group1.counter2
+    const group2counter1: number = store.getState().group2.counter1
+    const group2counter2: number = store.getState().group2.counter2
+  }
+
+  /**
+   * Test: non-nested combineReducers does not allow partial
+   */
+  {
+    interface GroupState {
+      counter1: number
+      counter2: number
+    }
+
+    const initialState = { counter1: 0, counter2: 0 }
+
+    const group1Reducer: Reducer<GroupState> = (state = initialState) => state
+    const group2Reducer: Reducer<GroupState> = (state = initialState) => state
+
+    const store = configureStore({
+      reducer: {
+        // @ts-expect-error
+        group1: group1Reducer,
+        group2: group2Reducer,
+      },
+      preloadedState: {
+        group1: {
+          counter1: 5,
+        },
+      },
+    })
+
+    const group1counter1: number = store.getState().group1.counter1
+    const group1counter2: number = store.getState().group1.counter2
+    const group2counter1: number = store.getState().group2.counter1
+    const group2counter2: number = store.getState().group2.counter2
+  }
 }
 
 /**
@@ -385,7 +520,7 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: [],
+      middleware: () => new Tuple(),
     })
     // @ts-expect-error
     store.dispatch(thunkA())
@@ -398,21 +533,8 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: [thunk] as [ThunkMiddleware<StateA>],
+      middleware: () => new Tuple(thunk as ThunkMiddleware<StateA>),
     })
-    store.dispatch(thunkA())
-    // @ts-expect-error
-    store.dispatch(thunkB())
-  }
-  /**
-   * Test: using getDefaultMiddleware
-   */
-  {
-    const store = configureStore({
-      reducer: reducerA,
-      middleware: getDefaultMiddleware<StateA>(),
-    })
-
     store.dispatch(thunkA())
     // @ts-expect-error
     store.dispatch(thunkB())
@@ -423,21 +545,8 @@ const _anyMiddleware: any = () => () => () => {}
   {
     const store = configureStore({
       reducer: reducerA,
-      middleware: [] as any as [Middleware<(a: StateA) => boolean, StateA>],
-    })
-    const result: boolean = store.dispatch(5)
-    // @ts-expect-error
-    const result2: string = store.dispatch(5)
-  }
-  /**
-   * Test: read-only middleware tuple
-   */
-  {
-    const store = configureStore({
-      reducer: reducerA,
-      middleware: [] as any as readonly [
-        Middleware<(a: StateA) => boolean, StateA>
-      ],
+      middleware: () =>
+        new Tuple(0 as unknown as Middleware<(a: StateA) => boolean, StateA>),
     })
     const result: boolean = store.dispatch(5)
     // @ts-expect-error
@@ -447,14 +556,16 @@ const _anyMiddleware: any = () => () => () => {}
    * Test: multiple custom middleware
    */
   {
-    const middleware = [] as any as [
-      Middleware<(a: 'a') => 'A', StateA>,
-      Middleware<(b: 'b') => 'B', StateA>,
-      ThunkMiddleware<StateA>
-    ]
+    const middleware = [] as any as Tuple<
+      [
+        Middleware<(a: 'a') => 'A', StateA>,
+        Middleware<(b: 'b') => 'B', StateA>,
+        ThunkMiddleware<StateA>
+      ]
+    >
     const store = configureStore({
       reducer: reducerA,
-      middleware,
+      middleware: () => middleware,
     })
 
     const result: 'A' = store.dispatch('a')
@@ -471,30 +582,38 @@ const _anyMiddleware: any = () => () => () => {}
       void,
       {},
       undefined,
-      AnyAction
+      UnknownAction
     >)
     // `null` for the `extra` generic was previously documented in the RTK "Advanced Tutorial", but
     // is a bad pattern and users should use `unknown` instead
     // @ts-expect-error
-    store.dispatch(function () {} as ThunkAction<void, {}, null, AnyAction>)
+    store.dispatch(function () {} as ThunkAction<void, {}, null, UnknownAction>)
     // unknown is the best way to type a ThunkAction if you do not care
     // about the value of the extraArgument, as it will always work with every
     // ThunkMiddleware, no matter the actual extraArgument type
-    store.dispatch(function () {} as ThunkAction<void, {}, unknown, AnyAction>)
+    store.dispatch(function () {} as ThunkAction<
+      void,
+      {},
+      unknown,
+      UnknownAction
+    >)
     // @ts-expect-error
-    store.dispatch(function () {} as ThunkAction<void, {}, boolean, AnyAction>)
+    store.dispatch(function () {} as ThunkAction<
+      void,
+      {},
+      boolean,
+      UnknownAction
+    >)
   }
 
   /**
    * Test: custom middleware and getDefaultMiddleware
    */
   {
-    const middleware = getDefaultMiddleware<StateA>().prepend(
-      (() => {}) as any as Middleware<(a: 'a') => 'A', StateA>
-    )
     const store = configureStore({
       reducer: reducerA,
-      middleware,
+      middleware: (gDM) =>
+        gDM().prepend((() => {}) as any as Middleware<(a: 'a') => 'A', StateA>),
     })
 
     const result1: 'A' = store.dispatch('a')
@@ -508,15 +627,19 @@ const _anyMiddleware: any = () => () => () => {}
    */
   {
     const otherMiddleware: Middleware<(a: 'a') => 'A', StateA> = _anyMiddleware
-    const concatenated = getDefaultMiddleware<StateA>().prepend(otherMiddleware)
-
-    expectType<
-      ReadonlyArray<typeof otherMiddleware | ThunkMiddleware | Middleware<{}>>
-    >(concatenated)
 
     const store = configureStore({
       reducer: reducerA,
-      middleware: concatenated,
+      middleware: (gDM) => {
+        const concatenated = gDM().prepend(otherMiddleware)
+        expectType<
+          ReadonlyArray<
+            typeof otherMiddleware | ThunkMiddleware | Middleware<{}>
+          >
+        >(concatenated)
+
+        return concatenated
+      },
     })
     const result1: 'A' = store.dispatch('a')
     const result2: Promise<'A'> = store.dispatch(thunkA())
@@ -529,15 +652,19 @@ const _anyMiddleware: any = () => () => () => {}
    */
   {
     const otherMiddleware: Middleware<(a: 'a') => 'A', StateA> = _anyMiddleware
-    const concatenated = getDefaultMiddleware<StateA>().concat(otherMiddleware)
-
-    expectType<
-      ReadonlyArray<typeof otherMiddleware | ThunkMiddleware | Middleware<{}>>
-    >(concatenated)
 
     const store = configureStore({
       reducer: reducerA,
-      middleware: concatenated,
+      middleware: (gDM) => {
+        const concatenated = gDM().concat(otherMiddleware)
+
+        expectType<
+          ReadonlyArray<
+            typeof otherMiddleware | ThunkMiddleware | Middleware<{}>
+          >
+        >(concatenated)
+        return concatenated
+      },
     })
     const result1: 'A' = store.dispatch('a')
     const result2: Promise<'A'> = store.dispatch(thunkA())
@@ -682,8 +809,8 @@ const _anyMiddleware: any = () => () => () => {}
     // the thunk middleware type kicks in and TS thinks a plain action is being returned
     expectType<
       ((action: Action<'actionListenerMiddleware/add'>) => Unsubscribe) &
-        ThunkDispatch<CounterState, undefined, AnyAction> &
-        Dispatch<AnyAction>
+        ThunkDispatch<CounterState, undefined, UnknownAction> &
+        Dispatch<UnknownAction>
     >(store.dispatch)
 
     const unsubscribe = store.dispatch({

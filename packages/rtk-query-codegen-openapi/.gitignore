@@ -137,3 +137,5 @@ yalc.lock
 lib
 yarn.lock
 test/tmp/example.ts
+test/tmp/emptyApi.ts
+test/tmp/out.ts

@@ -1,26 +1,29 @@
+import { vi } from 'vitest'
 import type { BaseQueryFn } from '@reduxjs/toolkit/query'
 import { createApi, retry } from '@reduxjs/toolkit/query'
 import { setupApiStore, waitMs } from './helpers'
 import type { RetryOptions } from '../retry'
 
 beforeEach(() => {
-  jest.useFakeTimers('legacy')
+  vi.useFakeTimers()
 })
 
 const loopTimers = async (max: number = 12) => {
   let count = 0
   while (count < max) {
-    await waitMs(1)
-    jest.advanceTimersByTime(120000)
+    await vi.advanceTimersByTimeAsync(1)
+    vi.advanceTimersByTime(120000)
     count++
   }
 }
 
+vi.fn()
+
 describe('configuration', () => {
   test('retrying without any config options', async () => {
-    const baseBaseQuery = jest.fn<
-      ReturnType<BaseQueryFn>,
-      Parameters<BaseQueryFn>
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
     >()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
@@ -45,9 +48,9 @@ describe('configuration', () => {
   })
 
   test('retrying with baseQuery config that overrides default behavior (maxRetries: 5)', async () => {
-    const baseBaseQuery = jest.fn<
-      ReturnType<BaseQueryFn>,
-      Parameters<BaseQueryFn>
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
     >()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
@@ -72,9 +75,9 @@ describe('configuration', () => {
   })
 
   test('retrying with endpoint config that overrides baseQuery config', async () => {
-    const baseBaseQuery = jest.fn<
-      ReturnType<BaseQueryFn>,
-      Parameters<BaseQueryFn>
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
     >()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
@@ -111,9 +114,9 @@ describe('configuration', () => {
   })
 
   test('stops retrying a query after a success', async () => {
-    const baseBaseQuery = jest.fn<
-      ReturnType<BaseQueryFn>,
-      Parameters<BaseQueryFn>
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
     >()
     baseBaseQuery
       .mockResolvedValueOnce({ error: 'rejected' })
@@ -141,9 +144,9 @@ describe('configuration', () => {
   })
 
   test('retrying also works with mutations', async () => {
-    const baseBaseQuery = jest.fn<
-      ReturnType<BaseQueryFn>,
-      Parameters<BaseQueryFn>
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
     >()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
@@ -169,9 +172,9 @@ describe('configuration', () => {
   })
 
   test('retrying stops after a success from a mutation', async () => {
-    const baseBaseQuery = jest.fn<
-      ReturnType<BaseQueryFn>,
-      Parameters<BaseQueryFn>
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
     >()
     baseBaseQuery
       .mockRejectedValueOnce(new Error('rejected'))
@@ -199,9 +202,9 @@ describe('configuration', () => {
     expect(baseBaseQuery).toHaveBeenCalledTimes(3)
   })
   test('non-error-cases should **not** retry', async () => {
-    const baseBaseQuery = jest.fn<
-      ReturnType<BaseQueryFn>,
-      Parameters<BaseQueryFn>
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
     >()
     baseBaseQuery.mockResolvedValue({ data: { success: true } })
 
@@ -228,9 +231,9 @@ describe('configuration', () => {
   test('calling retry.fail(error) will skip retrying and expose the error directly', async () => {
     const error = { message: 'banana' }
 
-    const baseBaseQuery = jest.fn<
-      ReturnType<BaseQueryFn>,
-      Parameters<BaseQueryFn>
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
     >()
     baseBaseQuery.mockImplementation((input) => {
       retry.fail(error)
@@ -276,9 +279,9 @@ describe('configuration', () => {
      * Note:
      * This will retry 16 total times because we try the initial + 3 retries (sum: 4), then retry that process 3 times (starting at 0 for a total of 4)... 4x4=16 (allegedly)
      */
-    const baseBaseQuery = jest.fn<
-      ReturnType<BaseQueryFn>,
-      Parameters<BaseQueryFn>
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
     >()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
@@ -306,9 +309,9 @@ describe('configuration', () => {
   })
 
   test('accepts a custom backoff fn', async () => {
-    const baseBaseQuery = jest.fn<
-      ReturnType<BaseQueryFn>,
-      Parameters<BaseQueryFn>
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
     >()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
@@ -342,9 +345,9 @@ describe('configuration', () => {
   })
 
   test('accepts a custom retryCondition fn', async () => {
-    const baseBaseQuery = jest.fn<
-      ReturnType<BaseQueryFn>,
-      Parameters<BaseQueryFn>
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
     >()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
@@ -373,9 +376,9 @@ describe('configuration', () => {
   })
 
   test('retryCondition with endpoint config that overrides baseQuery config', async () => {
-    const baseBaseQuery = jest.fn<
-      ReturnType<BaseQueryFn>,
-      Parameters<BaseQueryFn>
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
     >()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
@@ -405,9 +408,9 @@ describe('configuration', () => {
   })
 
   test('retryCondition also works with mutations', async () => {
-    const baseBaseQuery = jest.fn<
-      ReturnType<BaseQueryFn>,
-      Parameters<BaseQueryFn>
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
     >()
 
     baseBaseQuery
@@ -440,9 +443,9 @@ describe('configuration', () => {
   })
 
   test('Specifying maxRetries as 0 in RetryOptions prevents retries', async () => {
-    const baseBaseQuery = jest.fn<
-      ReturnType<BaseQueryFn>,
-      Parameters<BaseQueryFn>
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
     >()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
@@ -464,7 +467,7 @@ describe('configuration', () => {
     await loopTimers(2)
 
     expect(baseBaseQuery).toHaveBeenCalledTimes(1)
-  });
+  })
 
   test.skip('RetryOptions only accepts one of maxRetries or retryCondition', () => {
     // @ts-expect-error Should complain if both exist at once

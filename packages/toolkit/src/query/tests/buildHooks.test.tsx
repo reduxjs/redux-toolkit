@@ -1,4 +1,6 @@
 import * as React from 'react'
+import type { SpyInstance } from 'vitest'
+import { vi } from 'vitest'
 import type {
   UseMutation,
   UseQuery,
@@ -30,11 +32,13 @@ import {
   waitMs,
 } from './helpers'
 import { server } from './mocks/server'
-import type { AnyAction } from 'redux'
+import type { UnknownAction } from 'redux'
 import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
 import type { SerializedError } from '@reduxjs/toolkit'
 import { createListenerMiddleware, configureStore } from '@reduxjs/toolkit'
 import { delay } from '../../utils'
+import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
+import { countObjectKeys } from '../utils/countObjectKeys'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -124,7 +128,7 @@ const api = createApi({
 
 const listenerMiddleware = createListenerMiddleware()
 
-let actions: AnyAction[] = []
+let actions: UnknownAction[] = []
 
 const storeRef = setupApiStore(
   api,
@@ -136,6 +140,9 @@ const storeRef = setupApiStore(
   }
 )
 
+let getSubscriptions: SubscriptionSelectors['getSubscriptions']
+let getSubscriptionCount: SubscriptionSelectors['getSubscriptionCount']
+
 beforeEach(() => {
   actions = []
   listenerMiddleware.startListening({
@@ -144,6 +151,9 @@ beforeEach(() => {
       actions.push(action)
     },
   })
+  ;({ getSubscriptions, getSubscriptionCount } = storeRef.store.dispatch(
+    api.internalActions.internal_getRTKQSubscriptions()
+  ) as unknown as SubscriptionSelectors)
 })
 
 afterEach(() => {
@@ -675,7 +685,7 @@ describe('hooks tests', () => {
         )
       })
       test('with `selectFromResult`', async () => {
-        const selectFromResult = jest.fn((x) => x)
+        const selectFromResult = vi.fn((x) => x)
         const { result } = renderHook(
           () => api.endpoints.getUser.useQuery(5, { selectFromResult }),
           {
@@ -736,14 +746,13 @@ describe('hooks tests', () => {
         withoutTestLifecycles: true,
       })
 
-      const getSubscriptions = () => storeRef.store.getState().api.subscriptions
-
       const checkNumSubscriptions = (arg: string, count: number) => {
         const subscriptions = getSubscriptions()
         const cacheKeyEntry = subscriptions[arg]
 
         if (cacheKeyEntry) {
-          expect(Object.values(cacheKeyEntry).length).toBe(count)
+          const subscriptionCount = Object.keys(cacheKeyEntry) //getSubscriptionCount(arg)
+          expect(subscriptionCount).toBe(count)
         }
       }
 
@@ -809,10 +818,10 @@ describe('hooks tests', () => {
     })
 
     describe('Hook middleware requirements', () => {
-      let mock: jest.SpyInstance
+      let mock: SpyInstance
 
       beforeEach(() => {
-        mock = jest.spyOn(console, 'error').mockImplementation(() => {})
+        mock = vi.spyOn(console, 'error').mockImplementation(() => {})
       })
 
       afterEach(() => {
@@ -1343,7 +1352,6 @@ describe('hooks tests', () => {
           expectType<() => void>(res.abort)
           expectType<() => Promise<{ name: string }>>(res.unwrap)
           expectType<() => void>(res.reset)
-          expectType<() => void>(res.unsubscribe)
 
           // abort the mutation immediately to force an error
           res.abort()
@@ -1425,25 +1433,19 @@ describe('hooks tests', () => {
 
       await screen.findByText(/isUninitialized/i)
       expect(screen.queryByText('Yay')).toBeNull()
-      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(
-        0
-      )
+      expect(countObjectKeys(storeRef.store.getState().api.mutations)).toBe(0)
 
       userEvent.click(screen.getByRole('button', { name: 'trigger' }))
 
       await screen.findByText(/isSuccess/i)
       expect(screen.queryByText('Yay')).not.toBeNull()
-      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(
-        1
-      )
+      expect(countObjectKeys(storeRef.store.getState().api.mutations)).toBe(1)
 
       userEvent.click(screen.getByRole('button', { name: 'reset' }))
 
       await screen.findByText(/isUninitialized/i)
       expect(screen.queryByText('Yay')).toBeNull()
-      expect(Object.keys(storeRef.store.getState().api.mutations).length).toBe(
-        0
-      )
+      expect(countObjectKeys(storeRef.store.getState().api.mutations)).toBe(0)
     })
   })
 
@@ -1746,11 +1748,7 @@ describe('hooks tests', () => {
       }),
     })
 
-    const storeRef = setupApiStore(api, {
-      actions(state: AnyAction[] = [], action: AnyAction) {
-        return [...state, action]
-      },
-    })
+    const storeRef = setupApiStore(api, { ...actionsReducer })
     test('initially failed useQueries that provide an tag will refetch after a mutation invalidates it', async () => {
       const checkSessionData = { name: 'matt' }
       server.use(
@@ -1817,7 +1815,6 @@ describe('hooks tests', () => {
       expect(storeRef.store.getState().actions).toMatchSequence(
         api.internalActions.middlewareRegistered.match,
         checkSession.matchPending,
-        api.internalActions.subscriptionsUpdated.match,
         checkSession.matchRejected,
         login.matchPending,
         login.matchFulfilled,
@@ -2537,11 +2534,6 @@ describe('skip behaviour', () => {
     isUninitialized: true,
   }
 
-  function subscriptionCount(key: string) {
-    return Object.keys(storeRef.store.getState().api.subscriptions[key] || {})
-      .length
-  }
-
   test('normal skip', async () => {
     const { result, rerender } = renderHook(
       ([arg, options]: Parameters<typeof api.endpoints.getUser.useQuery>) =>
@@ -2554,14 +2546,14 @@ describe('skip behaviour', () => {
 
     expect(result.current).toEqual(uninitialized)
     await delay(1)
-    expect(subscriptionCount('getUser(1)')).toBe(0)
+    expect(getSubscriptionCount('getUser(1)')).toBe(0)
 
     await act(async () => {
       rerender([1])
     })
     expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
     await delay(1)
-    expect(subscriptionCount('getUser(1)')).toBe(1)
+    expect(getSubscriptionCount('getUser(1)')).toBe(1)
 
     await act(async () => {
       rerender([1, { skip: true }])
@@ -2572,7 +2564,7 @@ describe('skip behaviour', () => {
       data: { name: 'Timmy' },
     })
     await delay(1)
-    expect(subscriptionCount('getUser(1)')).toBe(0)
+    expect(getSubscriptionCount('getUser(1)')).toBe(0)
   })
 
   test('skipToken', async () => {
@@ -2588,17 +2580,17 @@ describe('skip behaviour', () => {
     expect(result.current).toEqual(uninitialized)
     await delay(1)
 
-    expect(subscriptionCount('getUser(1)')).toBe(0)
+    expect(getSubscriptionCount('getUser(1)')).toBe(0)
     // also no subscription on `getUser(skipToken)` or similar:
-    expect(storeRef.store.getState().api.subscriptions).toEqual({})
+    expect(getSubscriptions()).toEqual({})
 
     await act(async () => {
       rerender([1])
     })
     expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
     await delay(1)
-    expect(subscriptionCount('getUser(1)')).toBe(1)
-    expect(storeRef.store.getState().api.subscriptions).not.toEqual({})
+    expect(getSubscriptionCount('getUser(1)')).toBe(1)
+    expect(getSubscriptions()).not.toEqual({})
 
     await act(async () => {
       rerender([skipToken])
@@ -2609,7 +2601,7 @@ describe('skip behaviour', () => {
       data: { name: 'Timmy' },
     })
     await delay(1)
-    expect(subscriptionCount('getUser(1)')).toBe(0)
+    expect(getSubscriptionCount('getUser(1)')).toBe(0)
   })
 
   test('skipping a previously fetched query retains the existing value as `data`, but clears `currentData`', async () => {

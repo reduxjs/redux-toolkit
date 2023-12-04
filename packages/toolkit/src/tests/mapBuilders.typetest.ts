@@ -1,11 +1,11 @@
 import type { SerializedError } from '@internal/createAsyncThunk'
 import { createAsyncThunk } from '@internal/createAsyncThunk'
 import { executeReducerBuilderCallback } from '@internal/mapBuilders'
-import type { AnyAction } from '@reduxjs/toolkit'
+import type { UnknownAction } from '@reduxjs/toolkit'
 import { createAction } from '@reduxjs/toolkit'
 import { expectExactType, expectType } from './helpers'
 
-/** Test:  alternative builder callback for actionMap */
+/** Test:  builder callback for actionMap */
 {
   const increment = createAction<number, 'increment'>('increment')
   const decrement = createAction<number, 'decrement'>('decrement')
@@ -66,16 +66,16 @@ import { expectExactType, expectType } from './helpers'
         (action): action is PredicateWithoutTypeProperty => true,
         (state, action) => {
           expectType<PredicateWithoutTypeProperty>(action)
-          expectType<AnyAction>(action)
+          expectType<UnknownAction>(action)
         }
       )
     }
 
-    // action type defaults to AnyAction if no type predicate matcher is passed
+    // action type defaults to UnknownAction if no type predicate matcher is passed
     builder.addMatcher(
       () => true,
       (state, action) => {
-        expectExactType({} as AnyAction)(action)
+        expectExactType({} as UnknownAction)(action)
       }
     )
 
@@ -84,7 +84,7 @@ import { expectExactType, expectType } from './helpers'
       () => true,
       (state, action) => {
         expectType<{ foo: boolean }>(action)
-        expectType<AnyAction>(action)
+        expectType<UnknownAction>(action)
       }
     )
 
@@ -98,14 +98,14 @@ import { expectExactType, expectType } from './helpers'
         expectType<ReturnType<typeof decrement>>(action)
       })
 
-    // addCase().addDefaultCase() is possible, action type is AnyAction
+    // addCase().addDefaultCase() is possible, action type is UnknownAction
     builder
       .addCase(
         'increment',
         (state, action: ReturnType<typeof increment>) => state
       )
       .addDefaultCase((state, action) => {
-        expectType<AnyAction>(action)
+        expectType<UnknownAction>(action)
       })
 
     {

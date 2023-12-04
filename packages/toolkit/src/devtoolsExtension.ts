@@ -92,18 +92,6 @@ export interface DevToolsEnhancerOptions {
   stateSanitizer?: <S>(state: S, index: number) => S
   /**
    * *string or array of strings as regex* - actions types to be hidden / shown in the monitors (while passed to the reducers).
-   * If `actionsWhitelist` specified, `actionsBlacklist` is ignored.
-   * @deprecated Use actionsDenylist instead.
-   */
-  actionsBlacklist?: string | string[]
-  /**
-   * *string or array of strings as regex* - actions types to be hidden / shown in the monitors (while passed to the reducers).
-   * If `actionsWhitelist` specified, `actionsBlacklist` is ignored.
-   * @deprecated Use actionsAllowlist instead.
-   */
-  actionsWhitelist?: string | string[]
-  /**
-   * *string or array of strings as regex* - actions types to be hidden / shown in the monitors (while passed to the reducers).
    * If `actionsAllowlist` specified, `actionsDenylist` is ignored.
    */
   actionsDenylist?: string | string[]
@@ -220,7 +208,9 @@ type Compose = typeof compose
 
 interface ComposeWithDevTools {
   (options: DevToolsEnhancerOptions): Compose
-  <StoreExt>(...funcs: StoreEnhancer<StoreExt>[]): StoreEnhancer<StoreExt>
+  <StoreExt extends {}>(
+    ...funcs: StoreEnhancer<StoreExt>[]
+  ): StoreEnhancer<StoreExt>
 }
 
 /**

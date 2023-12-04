@@ -1,8 +1,10 @@
+import { vi } from 'vitest'
 import { createApi } from '@reduxjs/toolkit/query'
 import { setupApiStore, waitMs } from './helpers'
 import { delay } from '../../utils'
+import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
-const mockBaseQuery = jest
+const mockBaseQuery = vi
   .fn()
   .mockImplementation((args: any) => ({ data: args }))
 
@@ -22,8 +24,16 @@ const { getPosts } = api.endpoints
 
 const storeRef = setupApiStore(api)
 
+let getSubscriptions: SubscriptionSelectors['getSubscriptions']
+
+beforeEach(() => {
+  ;({ getSubscriptions } = storeRef.store.dispatch(
+    api.internalActions.internal_getRTKQSubscriptions()
+  ) as unknown as SubscriptionSelectors)
+})
+
 const getSubscribersForQueryCacheKey = (queryCacheKey: string) =>
-  storeRef.store.getState()[api.reducerPath].subscriptions[queryCacheKey] || {}
+  getSubscriptions()[queryCacheKey] || {}
 const createSubscriptionGetter = (queryCacheKey: string) => () =>
   getSubscribersForQueryCacheKey(queryCacheKey)
 

@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit'
+import { vi } from 'vitest'
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { renderHook, waitFor } from '@testing-library/react'
 import type { BaseQueryApi } from '../baseQueryTypes'
@@ -86,7 +87,7 @@ describe('re-triggering behavior on arg change', () => {
     middleware: (gDM) => gDM().concat(api.middleware),
   })
 
-  const spy = jest.spyOn(getUser, 'initiate')
+  const spy = vi.spyOn(getUser, 'initiate')
   beforeEach(() => void spy.mockClear())
 
   test('re-trigger on literal value change', async () => {
@@ -101,7 +102,7 @@ describe('re-triggering behavior on arg change', () => {
     await waitFor(() => {
       expect(result.current.status).not.toBe('pending')
     })
-    
+
     expect(spy).toHaveBeenCalledTimes(1)
 
     for (let x = 1; x < 3; x++) {
