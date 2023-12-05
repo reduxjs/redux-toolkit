@@ -175,14 +175,18 @@ export interface CreateApiOptions<
    *
    * type RootState = any; // normally inferred from state
    *
-   * function isHydrateAction(action: Action): action is PayloadAction<RootState> {
-   *   return action.type === HYDRATE
+   * function isHydrateAction(action: Action): action is Action<typeof REHYDRATE> & {
+   *   key: string
+   *   payload: RootState
+   *   err: unknown
+   * } {
+   *   return action.type === REHYDRATE
    * }
    *
    * export const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   // highlight-start
-   *   extractRehydrationInfo(action, { reducerPath }) {
+   *   extractRehydrationInfo(action, { reducerPath }): any {
    *     if (isHydrateAction(action)) {
    *       return action.payload[reducerPath]
    *     }

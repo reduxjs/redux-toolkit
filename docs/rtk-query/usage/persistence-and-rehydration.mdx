@@ -43,22 +43,27 @@ import { REHYDRATE } from 'redux-persist'
 
 type RootState = any // normally inferred from state
 
-function isHydrateAction(action: Action): action is PayloadAction<RootState> {
+function isHydrateAction(action: Action): action is Action<typeof REHYDRATE> & {
+  key: string
+  payload: RootState
+  err: unknown
+} {
   return action.type === REHYDRATE
 }
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   // highlight-start
-  extractRehydrationInfo(action, { reducerPath }) {
+  // to prevent circular type issues, the return type needs to be annotated as any
+  extractRehydrationInfo(action, { reducerPath }): any {
     if (isHydrateAction(action)) {
-      if ((action as any).key === 'key used with redux-persist') {
-        // when persisting the api reducer
+      // when persisting the api reducer
+      if (action.key === 'key used with redux-persist') {
         return action.payload
       }
 
       // When persisting the root reducer
-      return action.payload[reducerPath]
+      return action.payload[api.reducerPath]
     }
   },
   // highlight-end
