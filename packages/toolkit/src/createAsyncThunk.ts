@@ -577,6 +577,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
           : nanoid()
 
         const abortController = new AbortController()
+        let abortHandler: (() => void) | undefined
         let abortReason: string | undefined
 
         function abort(reason?: string) {
@@ -600,14 +601,14 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
               }
             }
 
-            const abortedPromise = new Promise<never>((_, reject) =>
-              abortController.signal.addEventListener('abort', () =>
+            const abortedPromise = new Promise<never>((_, reject) => {
+              abortHandler = () => {
                 reject({
                   name: 'AbortError',
                   message: abortReason || 'Aborted',
                 })
-              )
-            )
+              }
+            })
             dispatch(
               pending(
                 requestId,
@@ -653,6 +654,10 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
               err instanceof RejectWithValue
                 ? rejected(null, requestId, arg, err.payload, err.meta)
                 : rejected(err as any, requestId, arg)
+          } finally {
+            if (abortHandler) {
+              abortController.signal.removeEventListener('abort', abortHandler)
+            }
           }
           // We dispatch the result action _after_ the catch, to avoid having any errors
           // here get swallowed by the try/catch block,
