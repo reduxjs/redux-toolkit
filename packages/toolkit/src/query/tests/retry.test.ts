@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import type { BaseQueryFn } from '@reduxjs/toolkit/query'
+import type { BaseQueryFn, FetchBaseQueryError } from '@reduxjs/toolkit/query'
 import { createApi, retry } from '@reduxjs/toolkit/query'
 import { setupApiStore, waitMs } from './helpers'
 import type { RetryOptions } from '../retry'
@@ -16,8 +16,6 @@ const loopTimers = async (max: number = 12) => {
     count++
   }
 }
-
-vi.fn()
 
 describe('configuration', () => {
   test('retrying without any config options', async () => {
@@ -426,7 +424,8 @@ describe('configuration', () => {
         m1: build.mutation({
           query: () => ({ method: 'PUT' }),
           extraOptions: {
-            retryCondition: (e) => e.data === 'hello retryCondition',
+            retryCondition: (e) =>
+              (e as FetchBaseQueryError).data === 'hello retryCondition',
           },
         }),
       }),
