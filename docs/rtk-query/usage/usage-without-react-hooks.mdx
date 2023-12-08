@@ -59,10 +59,10 @@ With React hooks, this behaviour is instead handled within [`useQuery`](../api/c
 
 ```ts title="Accessing cached data & request status" no-transpile
 const result = api.endpoints.getPosts.select()(state)
-const { data, status, error } = result
+const { data, isSuccess, isError, error } = result
 ```
 
-Note that unlike the auto-generated query hooks, derived booleans such as `isLoading`, `isFetching`, `isSuccess` are not available here. The raw `status` enum is provided instead.
+Note that unlike with the auto-generated hooks, there is no `isFetching` flag, and the `isLoading` flag will be true if the status is pending, regardless of if there is already data.
 
 ### Memoization
 
