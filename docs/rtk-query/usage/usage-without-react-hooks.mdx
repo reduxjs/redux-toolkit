@@ -24,23 +24,25 @@ With React hooks, this behavior is instead handled within [`useQuery`](../api/cr
 
 ```ts title="Subscribing to cached data" no-transpile
 // interact with the cache in the same way as you would with a useFetch...() hook
-const {data, refetch, isLoading, isSuccess, /*...*/} = dispatch(api.endpoints.getPosts.initiate())
+const { data, refetch, isLoading, isSuccess /*...*/ } = await dispatch(
+  api.endpoints.getPosts.initiate()
+)
 ```
 
 ## Removing a subscription
 
 Removing a cache subscription is necessary for RTK Query to identify that cached data is no longer required. This allows RTK Query to clean up and remove old cache data.
 
-The result of dispatching the [`initiate`](../api/created-api/endpoints.mdx#initiate) thunk action creator of a query endpoint is an object with an `unsubscribe` property. This property is a function that when called, will remove the corresponding cache subscription.
+The result of dispatching the [`initiate`](../api/created-api/endpoints.mdx#initiate) thunk action creator of a query endpoint is a Promise with an `unsubscribe` property. This property is a function that when called, will remove the corresponding cache subscription.
 
 With React hooks, this behavior is instead handled within [`useQuery`](../api/created-api/hooks.mdx#usequery), [`useQuerySubscription`](../api/created-api/hooks.mdx#usequerysubscription), [`useLazyQuery`](../api/created-api/hooks.mdx#uselazyquery), and [`useLazyQuerySubscription`](../api/created-api/hooks.mdx#uselazyquerysubscription).
 
 ```ts title="Unsubscribing from cached data" no-transpile
 // Adding a cache subscription
-const result = dispatch(api.endpoints.getPosts.initiate())
+const promise = dispatch(api.endpoints.getPosts.initiate())
 
 // Removing the corresponding cache subscription
-result.unsubscribe()
+promise.unsubscribe()
 ```
 
 ## Accessing cached data & request status
@@ -49,7 +51,7 @@ Accessing cache data and request status information can be performed using the `
 
 :::caution
 
-The `endpoint.select()` function creates a _new_ selector instance - it isn't the actual selector function itself!
+The `endpoint.select(arg)` function creates a _new_ selector instance - it isn't the actual selector function itself!
 
 :::
 
@@ -61,6 +63,23 @@ const { data, status, error } = result
 ```
 
 Note that unlike the auto-generated query hooks, derived booleans such as `isLoading`, `isFetching`, `isSuccess` are not available here. The raw `status` enum is provided instead.
+
+### Memoization
+
+Because the `endpoint.select(arg)` function returns a new selector each time it's called, and because this instance itself is memoized, it can be desirable to memoize the creation of a selector (for example, to then use that memoized instance in another selector). This can be done with `createSelector`:
+
+```ts title="Creating a memoized selector creator" no-transpile
+const createGetPostSelector = createSelector(
+  (id: string) => id,
+  (id) => api.endpoints.getPost.select(id)
+)
+
+const selectGetPostError = createSelector(
+  (state: RootState) => state,
+  (state: RootState, id: string) => createGetPostSelector(id),
+  (state, selectGetPost) => selectGetPost(state).error
+)
+```
 
 ## Performing mutations
 
