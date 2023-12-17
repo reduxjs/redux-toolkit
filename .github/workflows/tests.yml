@@ -183,6 +183,13 @@ jobs:
       - name: Show installed RTK versions
         run: yarn info @reduxjs/toolkit && yarn why @reduxjs/toolkit
 
+      - name: Set up JDK 17 for React Native build
+        if: matrix.example == 'react-native'
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17.x'
+          distribution: 'temurin' # AdoptOpenJDK Temurin distribution
+
       - name: Build example
         run: NODE_OPTIONS=--openssl-legacy-provider yarn build
 
