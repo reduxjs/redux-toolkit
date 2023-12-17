@@ -5,8 +5,8 @@
   "scripts": {
     "build": "echo Done",
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
@@ -17,6 +17,7 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.0.1",
     "expo": "~49.0.15",
+    "expo-splash-screen": "~0.20.5",
     "expo-status-bar": "~1.6.0",
     "react": "18.2.0",
     "react-native": "0.72.6",
