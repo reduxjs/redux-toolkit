@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "echo Done",
+    "build": "cd android && chmod +x ./gradlew && ./gradlew bundleRelease --no-daemon && cd ..",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
