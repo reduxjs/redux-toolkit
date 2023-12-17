@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "build": "echo Done",
+    "build": "expo prebuild --clean -p android && cd android && chmod +x ./gradlew && ./gradlew bundleRelease --no-daemon && cd .. && react-native build-android",
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
