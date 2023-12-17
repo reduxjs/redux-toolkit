@@ -182,7 +182,7 @@ export interface CreateApiOptions<
    * export const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   // highlight-start
-   *   extractRehydrationInfo(action, { reducerPath }) {
+   *   extractRehydrationInfo(action, { reducerPath }): any {
    *     if (isHydrateAction(action)) {
    *       return action.payload[reducerPath]
    *     }

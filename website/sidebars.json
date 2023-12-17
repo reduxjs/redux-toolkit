@@ -4,7 +4,10 @@
       "type": "category",
       "label": "Introduction",
       "collapsed": false,
-      "items": ["introduction/getting-started"]
+      "items": [
+        "introduction/getting-started",
+        "introduction/why-rtk-is-redux-today"
+      ]
     },
 
     {
@@ -26,7 +29,7 @@
         {
           "type": "category",
           "label": "Migrations",
-          "items": ["usage/migrating-rtk-2"]
+          "items": ["usage/migrating-to-modern-redux", "usage/migrating-rtk-2"]
         },
         "usage/usage-guide",
         "usage/usage-with-typescript",
