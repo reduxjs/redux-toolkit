@@ -188,7 +188,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '17.x'
-          distribution: 'temurin' # AdoptOpenJDK Temurin distribution
+          distribution: 'temurin'
 
       - name: Build example
         run: NODE_OPTIONS=--openssl-legacy-provider yarn build
