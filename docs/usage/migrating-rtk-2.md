@@ -438,6 +438,38 @@ React-Redux v7 and v8 worked with all versions of React that supported hooks (16
 
 **React-Redux v9 switches to _requiring_ React 18, and does _not_ support React 16 or 17**. This allows us to drop the shim and save a small bit of bundle size.
 
+<div class="typescript-only">
+
+#### Custom context typing
+
+React Redux supports creating `hooks` (and `connect`) with a [custom context](https://react-redux.js.org/api/hooks#custom-context), but typing this has been fairly non-standard. The pre-v9 types required `Context<ReactReduxContextValue>`, but the context default value was usually initialised with `null` (as the hooks use this to make sure they actually have a provided context). This, in "best" cases, would result in something like the below:
+
+```ts title="Pre-v9 custom context"
+import { createContext } from 'react'
+import { ReactReduxContextValue, createDispatchHook } from 'react-redux'
+
+// highlight-next-line
+const context = createContext<ReactReduxContextValue>(null as any)
+
+const useDispatch = createDispatchHook(context)
+```
+
+In v9, the types now match the runtime behaviour. The context is typed to hold `ReactReduxContextValue | null`, and the hooks know that if they receive `null` they'll throw an error so it doesn't affect the return type.
+
+The above example now becomes:
+
+```ts title="v9+ custom context"
+import { createContext } from 'react'
+import { ReactReduxContextValue, createDispatchHook } from 'react-redux'
+
+// highlight-next-line
+const context = createContext<ReactReduxContextValue | null>(null)
+
+const useDispatch = createDispatchHook(context)
+```
+
+</div>
+
 ### Redux Thunk
 
 #### Thunk Uses Named Exports
