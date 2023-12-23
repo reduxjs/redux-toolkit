@@ -273,7 +273,7 @@ function PostsList({ userName }: { userName: string }) {
 
 ### Query Cache Keys
 
-When you perform a query, RTK Query automatically serializes the request parameters and creates an internal `queryCacheKey` for the request. Any future request that produces the same `queryCacheKey` will be de-duped against the original, and will share updates if a `refetch` is trigged on the query from any subscribed component.
+When you perform a query, RTK Query automatically serializes the request parameters and creates an internal `queryCacheKey` for the request. Any future request that produces the same `queryCacheKey` will be de-duped against the original, and will share updates if a `refetch` is triggered on the query from any subscribed component.
 
 ### Selecting data from a query result
 
