@@ -13,7 +13,7 @@ import type { PayloadAction, ConfigureStoreOptions } from '@reduxjs/toolkit'
 import { configureStore, createSlice, Tuple } from '@reduxjs/toolkit'
 import type { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
 import { thunk } from 'redux-thunk'
-import { expectNotAny, expectType } from './helpers'
+import { expectExactType, expectNotAny, expectType } from './helpers'
 
 const _anyMiddleware: any = () => () => () => {}
 
@@ -136,6 +136,17 @@ const _anyMiddleware: any = () => () => () => {}
     reducer: (_: number) => 0,
     preloadedState: 'non-matching state type',
   })
+}
+
+/**
+ * Test: nullable state is preserved
+ */
+
+{
+  const store = configureStore({
+    reducer: (): string | null => null,
+  })
+  expectExactType<string | null>(null)(store.getState())
 }
 
 /*
