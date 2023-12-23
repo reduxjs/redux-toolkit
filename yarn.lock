@@ -7075,7 +7075,7 @@ __metadata:
     node-fetch: ^2.6.1
     prettier: ^2.2.1
     query-string: ^7.0.1
-    redux: ^5.0.0
+    redux: "https://pkg.csb.dev/reduxjs/redux/commit/3e9e484f/redux/_pkg.tgz"
     redux-thunk: ^3.1.0
     reselect: ^5.0.1
     rimraf: ^3.0.2
@@ -25134,6 +25134,13 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"redux@https://pkg.csb.dev/reduxjs/redux/commit/3e9e484f/redux/_pkg.tgz":
+  version: 5.0.0
+  resolution: "redux@https://pkg.csb.dev/reduxjs/redux/commit/3e9e484f/redux/_pkg.tgz"
+  checksum: 9ea2a3a8b387e6c299bd5ac4ec5b26f207ff368546c8a5c226655e57476ee5f87f52724ab2427f31e87e6cdc21566e8132f1dce1db2f5d2003b85d822c350cdc
+  languageName: node
+  linkType: hard
+
 "redux@npm:^4.1.2":
   version: 4.1.2
   resolution: "redux@npm:4.1.2"
@@ -25149,13 +25156,6 @@ fsevents@^1.2.7:
   dependencies:
     "@babel/runtime": ^7.9.2
   checksum: f63b9060c3a1d930ae775252bb6e579b42415aee7a23c4114e21a0b4ba7ec12f0ec76936c00f546893f06e139819f0e2855e0d55ebfce34ca9c026241a6950dd
-  languageName: node
-  linkType: hard
-
-"redux@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "redux@npm:5.0.0"
-  checksum: be49160d4bd01e10108c425ade999f1b456204895c4bdd0c7825ab09efffded51955c5c242847406a7b3f273e9011a9c102848c512a099a75617b97b13d2cca8
   languageName: node
   linkType: hard
 
