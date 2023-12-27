@@ -1,6 +1,7 @@
 import { vi } from 'vitest'
 import type {
   Action,
+  AnyListenerPredicate,
   CaseReducer,
   PayloadAction,
   PayloadActionCreator,
@@ -9,6 +10,8 @@ import type {
   SliceActionType,
   SliceCaseReducers,
   ThunkAction,
+  UnknownAction,
+  UnsubscribeListener,
   WithSlice,
 } from '@reduxjs/toolkit'
 import {
@@ -20,6 +23,8 @@ import {
   createAction,
   isAnyOf,
   nanoid,
+  addListener,
+  createListenerMiddleware,
 } from '@reduxjs/toolkit'
 import {
   mockConsole,
@@ -35,6 +40,7 @@ interface LoaderReducerDefinition<State> extends ReducerDefinition<'loader'> {
 declare module '@reduxjs/toolkit' {
   export interface ReducerTypes {
     loader: true
+    condition: true
   }
   export interface SliceReducerCreators<
     State = any,
@@ -71,6 +77,31 @@ declare module '@reduxjs/toolkit' {
           Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>
         >
       }
+    }
+    condition: {
+      create<Args extends any[]>(
+        makePredicate: (...args: Args) => AnyListenerPredicate<unknown>
+      ): ReducerDefinition<'condition'> & {
+        makePredicate: (...args: Args) => AnyListenerPredicate<unknown>
+      }
+      actions: {
+        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends ReducerDefinition<'condition'>
+          ? ReducerName
+          : never]: CaseReducers[ReducerName] extends {
+          makePredicate: (...args: infer Args) => AnyListenerPredicate<unknown>
+        }
+          ? (
+              timeout?: number,
+              ...args: Args
+            ) => ThunkAction<
+              Promise<boolean> & { unsubscribe?: UnsubscribeListener },
+              unknown,
+              unknown,
+              UnknownAction
+            >
+          : never
+      }
+      caseReducers: {}
     }
   }
 }
@@ -111,6 +142,52 @@ export const loaderCreator: ReducerCreator<'loader'> = {
 
     context.exposeAction(reducerName, thunkCreator)
     context.exposeCaseReducer(reducerName, { started, ended })
+  },
+}
+
+export const conditionCreator: ReducerCreator<'condition'> = {
+  type: 'condition',
+  define(makePredicate) {
+    return { _reducerDefinitionType: 'condition', makePredicate }
+  },
+  handle({ reducerName, type }, { makePredicate }, context) {
+    const trigger = createAction(type, (id: string, args: unknown[]) => ({
+      payload: id,
+      meta: { args },
+    }))
+    function thunkCreator(
+      timeout?: number,
+      ...args: any[]
+    ): ThunkAction<
+      Promise<boolean> & { unsubscribe?: UnsubscribeListener },
+      unknown,
+      unknown,
+      UnknownAction
+    > {
+      const predicate = makePredicate(...args)
+      return (dispatch) => {
+        const listenerId = nanoid()
+        let unsubscribe: UnsubscribeListener | undefined = undefined
+        const promise = new Promise<boolean>((resolve, reject) => {
+          unsubscribe = dispatch(
+            addListener({
+              predicate: (action) =>
+                trigger.match(action) && action.payload === listenerId,
+              effect: (_, { condition, unsubscribe, signal }) => {
+                signal.addEventListener('abort', () => reject(false))
+                return condition(predicate, timeout)
+                  .then(resolve)
+                  .catch(reject)
+                  .finally(unsubscribe)
+              },
+            })
+          ) as any
+          dispatch(trigger(listenerId, args))
+        })
+        return Object.assign(promise, { unsubscribe })
+      }
+    }
+    context.exposeAction(reducerName, thunkCreator)
   },
 }
 
@@ -926,7 +1003,9 @@ describe('createSlice', () => {
             },
           }),
         })
-      ).toThrowErrorMatchingInlineSnapshot('"Please use reducer creators passed to callback. Each reducer definition must have a `_reducerDefinitionType` property indicating which handler to use."')
+      ).toThrowErrorMatchingInlineSnapshot(
+        '"Please use reducer creators passed to callback. Each reducer definition must have a `_reducerDefinitionType` property indicating which handler to use."'
+      )
     })
   })
   describe('custom slice reducer creators', () => {
@@ -982,6 +1061,53 @@ describe('createSlice', () => {
         addLoader.started(loaderId),
         addLoader.ended(loaderId),
       ])
+    })
+    test('condition creator', async () => {
+      const createConditionSlice = buildCreateSlice({
+        creators: { condition: conditionCreator },
+      })
+
+      const counterSlice = createConditionSlice({
+        name: 'counter',
+        initialState: { value: 0 },
+        reducers: (create) => ({
+          increment: create.reducer((state) => void state.value++),
+          waitUntilValue: create.condition(
+            (value: number) =>
+              (_action, state): boolean =>
+                counterSlice.selectors.selectValue(state as any) === value
+          ),
+        }),
+        selectors: {
+          selectValue: (state) => state.value,
+        },
+      })
+
+      const {
+        actions: { increment, waitUntilValue },
+        selectors: { selectValue },
+      } = counterSlice
+
+      const listener = createListenerMiddleware()
+
+      const reducer = combineSlices(counterSlice)
+
+      const store = configureStore({
+        reducer,
+        middleware: (gDM) => gDM().concat(listener.middleware),
+      })
+
+      const promise = store.dispatch(waitUntilValue(undefined, 5))
+      expect(promise).toEqual(expect.any(Promise))
+      expect(promise.unsubscribe).toEqual(expect.any(Function))
+
+      for (let i = 1; i <= 4; i++) {
+        store.dispatch(increment())
+        expect(selectValue(store.getState())).toBe(i)
+      }
+      store.dispatch(increment())
+      expect(selectValue(store.getState())).toBe(5)
+      expect(await promise).toBe(true)
     })
   })
 })
