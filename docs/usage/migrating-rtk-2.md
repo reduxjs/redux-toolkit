@@ -134,7 +134,7 @@ We've changed `next` to be `(action: unknown) => unknown` (which is accurate, we
 
 In order to safely interact with values or access fields inside of the `action` argument, you must first do a type guard check to narrow the type, such as `isAction(action)` or `someActionCreator.match(action)`.
 
-This new type is incompatible with the v4 `Middleware` type, so if a package's middleware is saying it's incompatible, check which version of Redux it's getting its types from!
+This new type is incompatible with the v4 `Middleware` type, so if a package's middleware is saying it's incompatible, check which version of Redux it's getting its types from! (See [overriding dependencies](#overriding-dependencies) later in this page.)
 
 #### `PreloadedState` type removed in favour of `Reducer` generic
 
@@ -438,6 +438,58 @@ React-Redux v7 and v8 worked with all versions of React that supported hooks (16
 
 **React-Redux v9 switches to _requiring_ React 18, and does _not_ support React 16 or 17**. This allows us to drop the shim and save a small bit of bundle size.
 
+<div class="typescript-only">
+
+#### Custom context typing
+
+React Redux supports creating `hooks` (and `connect`) with a [custom context](https://react-redux.js.org/api/hooks#custom-context), but typing this has been fairly non-standard. The pre-v9 types required `Context<ReactReduxContextValue>`, but the context default value was usually initialised with `null` (as the hooks use this to make sure they actually have a provided context). This, in "best" cases, would result in something like the below:
+
+```ts title="Pre-v9 custom context"
+import { createContext } from 'react'
+import {
+  ReactReduxContextValue,
+  TypedUseSelectorHook,
+  createDispatchHook,
+  createSelectorHook,
+  createStoreHook,
+} from 'react-redux'
+import { AppStore, RootState, AppDispatch } from './store'
+
+// highlight-next-line
+const context = createContext<ReactReduxContextValue>(null as any)
+
+export const useStore: () => AppStore = createStoreHook(context)
+export const useDispatch: () => AppDispatch = createDispatchHook(context)
+export const useSelector: TypedUseSelectorHook<RootState> =
+  createSelectorHook(context)
+```
+
+In v9, the types now match the runtime behaviour. The context is typed to hold `ReactReduxContextValue | null`, and the hooks know that if they receive `null` they'll throw an error so it doesn't affect the return type.
+
+The above example now becomes:
+
+```ts title="v9+ custom context"
+import { createContext } from 'react'
+import {
+  ReactReduxContextValue,
+  TypedUseSelectorHook,
+  createDispatchHook,
+  createSelectorHook,
+  createStoreHook,
+} from 'react-redux'
+import { AppStore, RootState, AppDispatch } from './store'
+
+// highlight-next-line
+const context = createContext<ReactReduxContextValue | null>(null)
+
+export const useStore: () => AppStore = createStoreHook(context)
+export const useDispatch: () => AppDispatch = createDispatchHook(context)
+export const useSelector: TypedUseSelectorHook<RootState> =
+  createSelectorHook(context)
+```
+
+</div>
+
 ### Redux Thunk
 
 #### Thunk Uses Named Exports
@@ -722,6 +774,56 @@ We've updated RTK to depend on the final Immer 10.0 release.
 We now have a docs page that covers [how to set up Redux properly with Next.js](https://redux.js.org/usage/nextjs). We've seen a lot of questions around using Redux, Next, and the App Router together, and this guide should help provide advice.
 
 (At this time, the Next.js `with-redux` example is still showing outdated patterns - we're going to file a PR shortly to update that to match our docs guide.)
+
+## Overriding dependencies
+
+It will take a while for packages to update their peer dependencies to allow for Redux core 5.0, and in the meantime changes like the [Middleware type](#middleware-type-changed---middleware-action-and-next-are-typed-as-unknown) will result in perceived incompatibilities.
+
+It's likely that most libraries will not actually have any practices that are incompatible with 5.0, but due to the peer dependency on 4.0 they end up pulling in old type declarations.
+
+This can be solved by manually overriding the dependency resolution, which is supported by both `npm` and `yarn`.
+
+### `npm` - `overrides`
+
+NPM supports this through an [`overrides`](https://docs.npmjs.com/cli/v9/configuring-npm/package-json#overrides) field in your `package.json`. You can override the dependency for a specific package, or make sure that every package that pulls in Redux receives the same version.
+
+```json title="Individual override - redux-persist"
+{
+  "overrides": {
+    "redux-persist": {
+      "redux": "^5.0.0"
+    }
+  }
+}
+```
+
+```json title="Blanket override"
+{
+  "overrides": {
+    "redux": "^5.0.0"
+  }
+}
+```
+
+### `yarn` - `resolutions`
+
+Yarn supports this through a [`resolutions`](https://classic.yarnpkg.com/lang/en/docs/selective-version-resolutions/) field in your `package.json`. Just like with NPM, you can override the dependency for a specific package, or make sure that every package that pulls in Redux receives the same version.
+
+```json title="Individual override - redux-persist"
+{
+  "resolutions": {
+    "redux-persist/redux": "^5.0.0"
+  }
+}
+```
+
+```json title="Blanket override"
+{
+  "resolutions": {
+    "redux": "^5.0.0"
+  }
+}
+```
 
 ## Recommendations
 

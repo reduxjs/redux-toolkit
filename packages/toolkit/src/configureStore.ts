@@ -26,6 +26,7 @@ import type {
   ExtractDispatchExtensions,
   ExtractStoreExtensions,
   ExtractStateExtensions,
+  UnknownIfNonSpecific,
 } from './tsHelpers'
 import type { Tuple } from './utils'
 import type { GetDefaultEnhancers } from './getDefaultEnhancers'
@@ -103,7 +104,8 @@ export type EnhancedStore<
   S = any,
   A extends Action = UnknownAction,
   E extends Enhancers = Enhancers
-> = ExtractStoreExtensions<E> & Store<S & ExtractStateExtensions<E>, A>
+> = ExtractStoreExtensions<E> &
+  Store<S, A, UnknownIfNonSpecific<ExtractStateExtensions<E>>>
 
 /**
  * A friendly abstraction over the standard Redux `createStore()` function.
