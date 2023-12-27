@@ -1062,6 +1062,18 @@ describe('createSlice', () => {
         addLoader.ended(loaderId),
       ])
     })
+
+    function withStatus<P extends PromiseLike<any>>(promiseLike: P) {
+      const assigned = Object.assign(promiseLike, {
+        status: 'pending' as 'pending' | 'fulfilled' | 'rejected',
+      })
+      promiseLike.then(
+        () => (assigned.status = 'fulfilled'),
+        () => (assigned.status = 'rejected')
+      )
+      return assigned
+    }
+
     test('condition creator', async () => {
       const createConditionSlice = buildCreateSlice({
         creators: { condition: conditionCreator },
@@ -1097,17 +1109,19 @@ describe('createSlice', () => {
         middleware: (gDM) => gDM().concat(listener.middleware),
       })
 
-      const promise = store.dispatch(waitUntilValue(undefined, 5))
+      const promise = withStatus(store.dispatch(waitUntilValue(undefined, 5)))
       expect(promise).toEqual(expect.any(Promise))
       expect(promise.unsubscribe).toEqual(expect.any(Function))
 
       for (let i = 1; i <= 4; i++) {
         store.dispatch(increment())
         expect(selectValue(store.getState())).toBe(i)
+        expect(promise.status).toBe('pending')
       }
       store.dispatch(increment())
       expect(selectValue(store.getState())).toBe(5)
       expect(await promise).toBe(true)
+      expect(promise.status).toBe('fulfilled')
     })
   })
 })
