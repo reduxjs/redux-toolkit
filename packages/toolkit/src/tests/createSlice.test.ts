@@ -32,165 +32,6 @@ import {
   getLog,
 } from 'console-testing-library/pure'
 
-interface LoaderReducerDefinition<State> extends ReducerDefinition<'loader'> {
-  started?: CaseReducer<State, PayloadAction<string>>
-  ended?: CaseReducer<State, PayloadAction<string>>
-}
-
-declare module '@reduxjs/toolkit' {
-  export interface ReducerTypes {
-    loader: true
-    condition: true
-  }
-  export interface SliceReducerCreators<
-    State = any,
-    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-    Name extends string = string
-  > {
-    loader: {
-      create(
-        reducers: Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>
-      ): LoaderReducerDefinition<State>
-      actions: {
-        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends LoaderReducerDefinition<State>
-          ? ReducerName
-          : never]: (() => ThunkAction<
-          { loaderId: string; end: () => void },
-          unknown,
-          unknown,
-          Action
-        >) & {
-          started: PayloadActionCreator<
-            string,
-            `${SliceActionType<Name, ReducerName>}/started`
-          >
-          ended: PayloadActionCreator<
-            string,
-            `${SliceActionType<Name, ReducerName>}/ended`
-          >
-        }
-      }
-      caseReducers: {
-        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends LoaderReducerDefinition<State>
-          ? ReducerName
-          : never]: Required<
-          Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>
-        >
-      }
-    }
-    condition: {
-      create<Args extends any[]>(
-        makePredicate: (...args: Args) => AnyListenerPredicate<unknown>
-      ): ReducerDefinition<'condition'> & {
-        makePredicate: (...args: Args) => AnyListenerPredicate<unknown>
-      }
-      actions: {
-        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends ReducerDefinition<'condition'>
-          ? ReducerName
-          : never]: CaseReducers[ReducerName] extends {
-          makePredicate: (...args: infer Args) => AnyListenerPredicate<unknown>
-        }
-          ? (
-              timeout?: number,
-              ...args: Args
-            ) => ThunkAction<
-              Promise<boolean> & { unsubscribe?: UnsubscribeListener },
-              unknown,
-              unknown,
-              UnknownAction
-            >
-          : never
-      }
-      caseReducers: {}
-    }
-  }
-}
-
-export const loaderCreator: ReducerCreator<'loader'> = {
-  type: 'loader',
-  define(reducers) {
-    return {
-      _reducerDefinitionType: 'loader',
-      ...reducers,
-    }
-  },
-  handle({ reducerName, type }, { started, ended }, context) {
-    const startedAction = createAction<string>(type + '/started')
-    const endedAction = createAction<string>(type + '/ended')
-
-    function thunkCreator(): ThunkAction<
-      { loaderId: string; end: () => void },
-      unknown,
-      unknown,
-      Action
-    > {
-      return (dispatch) => {
-        const loaderId = nanoid()
-        dispatch(startedAction(loaderId))
-        return {
-          loaderId,
-          end: () => {
-            dispatch(endedAction(loaderId))
-          },
-        }
-      }
-    }
-    Object.assign(thunkCreator, { started: startedAction, ended: endedAction })
-
-    if (started) context.addCase(startedAction, started)
-    if (ended) context.addCase(endedAction, ended)
-
-    context.exposeAction(reducerName, thunkCreator)
-    context.exposeCaseReducer(reducerName, { started, ended })
-  },
-}
-
-export const conditionCreator: ReducerCreator<'condition'> = {
-  type: 'condition',
-  define(makePredicate) {
-    return { _reducerDefinitionType: 'condition', makePredicate }
-  },
-  handle({ reducerName, type }, { makePredicate }, context) {
-    const trigger = createAction(type, (id: string, args: unknown[]) => ({
-      payload: id,
-      meta: { args },
-    }))
-    function thunkCreator(
-      timeout?: number,
-      ...args: any[]
-    ): ThunkAction<
-      Promise<boolean> & { unsubscribe?: UnsubscribeListener },
-      unknown,
-      unknown,
-      UnknownAction
-    > {
-      const predicate = makePredicate(...args)
-      return (dispatch) => {
-        const listenerId = nanoid()
-        let unsubscribe: UnsubscribeListener | undefined = undefined
-        const promise = new Promise<boolean>((resolve, reject) => {
-          unsubscribe = dispatch(
-            addListener({
-              predicate: (action) =>
-                trigger.match(action) && action.payload === listenerId,
-              effect: (_, { condition, unsubscribe, signal }) => {
-                signal.addEventListener('abort', () => reject(false))
-                return condition(predicate, timeout)
-                  .then(resolve)
-                  .catch(reject)
-                  .finally(unsubscribe)
-              },
-            })
-          ) as any
-          dispatch(trigger(listenerId, args))
-        })
-        return Object.assign(promise, { unsubscribe })
-      }
-    }
-    context.exposeAction(reducerName, thunkCreator)
-  },
-}
-
 type CreateSlice = typeof createSlice
 
 describe('createSlice', () => {
@@ -1009,6 +850,93 @@ describe('createSlice', () => {
     })
   })
   describe('custom slice reducer creators', () => {
+    const loaderCreator: ReducerCreator<'loader'> = {
+      type: 'loader',
+      define(reducers) {
+        return {
+          _reducerDefinitionType: 'loader',
+          ...reducers,
+        }
+      },
+      handle({ reducerName, type }, { started, ended }, context) {
+        const startedAction = createAction<string>(type + '/started')
+        const endedAction = createAction<string>(type + '/ended')
+
+        function thunkCreator(): ThunkAction<
+          { loaderId: string; end: () => void },
+          unknown,
+          unknown,
+          Action
+        > {
+          return (dispatch) => {
+            const loaderId = nanoid()
+            dispatch(startedAction(loaderId))
+            return {
+              loaderId,
+              end: () => {
+                dispatch(endedAction(loaderId))
+              },
+            }
+          }
+        }
+        Object.assign(thunkCreator, {
+          started: startedAction,
+          ended: endedAction,
+        })
+
+        if (started) context.addCase(startedAction, started)
+        if (ended) context.addCase(endedAction, ended)
+
+        context.exposeAction(reducerName, thunkCreator)
+        context.exposeCaseReducer(reducerName, { started, ended })
+      },
+    }
+
+    const conditionCreator: ReducerCreator<'condition'> = {
+      type: 'condition',
+      define(makePredicate) {
+        return { _reducerDefinitionType: 'condition', makePredicate }
+      },
+      handle({ reducerName, type }, { makePredicate }, context) {
+        const trigger = createAction(type, (id: string, args: unknown[]) => ({
+          payload: id,
+          meta: { args },
+        }))
+        function thunkCreator(
+          timeout?: number,
+          ...args: any[]
+        ): ThunkAction<
+          Promise<boolean> & { unsubscribe?: UnsubscribeListener },
+          unknown,
+          unknown,
+          UnknownAction
+        > {
+          const predicate = makePredicate(...args)
+          return (dispatch) => {
+            const listenerId = nanoid()
+            let unsubscribe: UnsubscribeListener | undefined = undefined
+            const promise = new Promise<boolean>((resolve, reject) => {
+              unsubscribe = dispatch(
+                addListener({
+                  predicate: (action) =>
+                    trigger.match(action) && action.payload === listenerId,
+                  effect: (_, { condition, unsubscribe, signal }) => {
+                    signal.addEventListener('abort', () => reject(false))
+                    return condition(predicate, timeout)
+                      .then(resolve)
+                      .catch(reject)
+                      .finally(unsubscribe)
+                  },
+                })
+              ) as any
+              dispatch(trigger(listenerId, args))
+            })
+            return Object.assign(promise, { unsubscribe })
+          }
+        }
+        context.exposeAction(reducerName, thunkCreator)
+      },
+    }
     test('allows passing custom reducer creators, which can add actions and case reducers', () => {
       const createLoaderSlice = buildCreateSlice({
         creators: { loader: loaderCreator },
@@ -1125,3 +1053,77 @@ describe('createSlice', () => {
     })
   })
 })
+
+interface LoaderReducerDefinition<State> extends ReducerDefinition<'loader'> {
+  started?: CaseReducer<State, PayloadAction<string>>
+  ended?: CaseReducer<State, PayloadAction<string>>
+}
+
+declare module '@reduxjs/toolkit' {
+  export interface ReducerTypes {
+    loader: true
+    condition: true
+  }
+  export interface SliceReducerCreators<
+    State = any,
+    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    Name extends string = string
+  > {
+    loader: {
+      create(
+        reducers: Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>
+      ): LoaderReducerDefinition<State>
+      actions: {
+        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends LoaderReducerDefinition<State>
+          ? ReducerName
+          : never]: (() => ThunkAction<
+          { loaderId: string; end: () => void },
+          unknown,
+          unknown,
+          Action
+        >) & {
+          started: PayloadActionCreator<
+            string,
+            `${SliceActionType<Name, ReducerName>}/started`
+          >
+          ended: PayloadActionCreator<
+            string,
+            `${SliceActionType<Name, ReducerName>}/ended`
+          >
+        }
+      }
+      caseReducers: {
+        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends LoaderReducerDefinition<State>
+          ? ReducerName
+          : never]: Required<
+          Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>
+        >
+      }
+    }
+    condition: {
+      create<Args extends any[]>(
+        makePredicate: (...args: Args) => AnyListenerPredicate<unknown>
+      ): ReducerDefinition<'condition'> & {
+        makePredicate: (...args: Args) => AnyListenerPredicate<unknown>
+      }
+      actions: {
+        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends ReducerDefinition<'condition'>
+          ? ReducerName
+          : never]: CaseReducers[ReducerName] extends {
+          makePredicate: (...args: infer Args) => AnyListenerPredicate<unknown>
+        }
+          ? (
+              timeout?: number,
+              ...args: Args
+            ) => ThunkAction<
+              Promise<boolean> & { unsubscribe?: UnsubscribeListener },
+              unknown,
+              unknown,
+              UnknownAction
+            >
+          : never
+      }
+      caseReducers: {}
+    }
+  }
+}
