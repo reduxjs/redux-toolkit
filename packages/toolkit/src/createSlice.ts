@@ -30,7 +30,7 @@ import type {
   AsyncThunkPayloadCreator,
   OverrideThunkApiConfigs,
 } from './createAsyncThunk'
-import { createAsyncThunk as createAsyncThunk } from './createAsyncThunk'
+import { createAsyncThunk } from './createAsyncThunk'
 import { emplace } from './utils'
 
 export enum ReducerType {
