@@ -1120,7 +1120,7 @@ describe('createSlice', () => {
       }
       store.dispatch(increment())
       expect(selectValue(store.getState())).toBe(5)
-      expect(await promise).toBe(true)
+      await expect(promise).resolves.toBe(true)
       expect(promise.status).toBe('fulfilled')
     })
   })
