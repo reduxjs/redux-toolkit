@@ -852,13 +852,16 @@ interface BuildCreateSliceConfig<
   CreatorMap extends Record<string, RegisteredReducerType>
 > {
   creators?: {
-    [Name in keyof CreatorMap]: ReducerCreator<CreatorMap[Name]>
-  } &
-    Partial<Record<'reducer' | 'preparedReducer', never>>
+    [Name in keyof CreatorMap]: Name extends 'reducer' | 'preparedReducer'
+      ? never
+      : ReducerCreator<CreatorMap[Name]>
+  }
 }
 
 export function buildCreateSlice<
-  CreatorMap extends Record<string, RegisteredReducerType> = {}
+  CreatorMap extends Record<string, RegisteredReducerType> = {
+    asyncThunk?: RegisteredReducerType
+  }
 >({
   creators: creatorMap = {} as any,
 }: BuildCreateSliceConfig<CreatorMap> = {}) {
