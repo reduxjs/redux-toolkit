@@ -35,7 +35,7 @@ import { server } from './mocks/server'
 import type { UnknownAction } from 'redux'
 import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
 import type { SerializedError } from '@reduxjs/toolkit'
-import { createListenerMiddleware, configureStore } from '@reduxjs/toolkit'
+import { createListenerMiddleware, configureStore, createSlice } from '@reduxjs/toolkit'
 import { delay } from '../../utils'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 import { countObjectKeys } from '../utils/countObjectKeys'
@@ -2052,22 +2052,18 @@ describe('hooks with createApi defaults set', () => {
       }),
     })
 
-    const counterReducer = {
-      counter: (
-        state: { count: number } = { count: 0 },
-        action: UnknownAction
-      ) => {
-        if (action.type === 'INCREMENT_COUNT') {
-          return {
-            count: state.count + 1,
-          }
+    const counterSlice = createSlice({
+      name: "counter",
+      initialState: { count: 0 },
+      reducers: {
+        increment(state) {
+          state.count++
         }
-        return state
-      },
-    }
+      }
+    })
 
     const storeRef = setupApiStore(api, {
-      ...counterReducer,
+      counter: counterSlice.reducer,
     })
 
     expectExactType(api.useGetPostsQuery)(api.endpoints.getPosts.useQuery)
@@ -2357,7 +2353,7 @@ describe('hooks with createApi defaults set', () => {
         return (
           <div
             data-testid="incrementButton"
-            onClick={() => storeRef.store.dispatch({ type: 'INCREMENT_COUNT' })}
+            onClick={() => storeRef.store.dispatch(counterSlice.actions.increment())}
           >
             Increment Count
           </div>
