@@ -880,7 +880,7 @@ interface BuildCreateSliceConfig<
     [Name in keyof CreatorMap]: Name extends 'reducer' | 'preparedReducer'
       ? never
       : ReducerCreator<CreatorMap[Name]>
-  }
+  } & { asyncThunk?: ReducerCreator<ReducerType.asyncThunk> }
 }
 
 export function buildCreateSlice<
