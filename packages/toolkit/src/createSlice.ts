@@ -13,7 +13,7 @@ import type {
   CaseReducer,
   ReducerWithInitialState,
 } from './createReducer'
-import { createReducer } from './createReducer'
+import { createReducer, makeGetInitialState } from './createReducer'
 import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type {
@@ -88,14 +88,7 @@ export interface SliceReducerCreators<
         State,
         ReturnType<_ActionCreatorWithPreparedPayload<Prepare>>
       >
-    ): {
-      _reducerDefinitionType: ReducerType.reducerWithPrepare
-      prepare: Prepare
-      reducer: CaseReducer<
-        State,
-        ReturnType<_ActionCreatorWithPreparedPayload<Prepare>>
-      >
-    }
+    ): PreparedCaseReducerDefinition<State, Prepare>
     actions: {
       [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends CaseReducerWithPrepare<
         State,
@@ -252,6 +245,11 @@ interface ReducerHandlingContextMethods<
     // TODO: see if there's a way to get the actual type cleanly
     reducer: unknown
   ): ReducerHandlingContextMethods<State, ReducerType>
+  /**
+   * Provides access to the initial state value given to the slice.
+   * If a lazy state initializer was provided, it will be called and a fresh value returned.
+   */
+  getInitialState(): State
 }
 
 interface ReducerDetails {
@@ -264,12 +262,33 @@ interface ReducerDetails {
 export type ReducerCreator<Type extends RegisteredReducerType> = {
   type: Type
   define: SliceReducerCreators[Type]['create']
-  handle<State>(
-    details: ReducerDetails,
-    definition: ReturnType<SliceReducerCreators[Type]['create']>,
-    context: ReducerHandlingContextMethods<State, Type>
-  ): void
-}
+} & (ReturnType<
+  SliceReducerCreators[Type]['create']
+> extends ReducerDefinition<Type>
+  ? {
+      handle<State>(
+        details: ReducerDetails,
+        definition: ReturnType<SliceReducerCreators[Type]['create']>,
+        context: ReducerHandlingContextMethods<State, Type>
+      ): void
+    }
+  : KeysForValueOfType<
+      ReturnType<SliceReducerCreators[Type]['create']>,
+      ReducerDefinition<Type>
+    > extends never
+  ? {}
+  : {
+      handle<State>(
+        details: ReducerDetails,
+        definition: ReturnType<
+          SliceReducerCreators[Type]['create']
+        >[KeysForValueOfType<
+          ReturnType<SliceReducerCreators[Type]['create']>,
+          ReducerDefinition<Type>
+        >],
+        context: ReducerHandlingContextMethods<State, Type>
+      ): void
+    })
 
 interface InjectIntoConfig<NewReducerPath extends string> extends InjectConfig {
   reducerPath?: NewReducerPath
@@ -452,8 +471,8 @@ export interface CreateSliceOptions<
   /**
    * A callback that receives a *builder* object to define
    * case reducers via calls to `builder.addCase(actionCreatorOrType, reducer)`.
-   * 
-   * 
+   *
+   *
    * @example
 ```ts
 import { createAction, createSlice, Action } from '@reduxjs/toolkit'
@@ -520,6 +539,17 @@ export interface CaseReducerWithPrepareDefinition<
   Action extends PayloadAction
 > extends CaseReducerWithPrepare<State, Action>,
     ReducerDefinition<ReducerType.reducerWithPrepare> {}
+
+export interface PreparedCaseReducerDefinition<
+  State,
+  Prepare extends PrepareAction<any>
+> extends ReducerDefinition<ReducerType.reducerWithPrepare> {
+  prepare: Prepare
+  reducer: CaseReducer<
+    State,
+    ReturnType<_ActionCreatorWithPreparedPayload<Prepare>>
+  >
+}
 
 export interface AsyncThunkSliceReducerConfig<
   State,
@@ -850,7 +880,7 @@ interface BuildCreateSliceConfig<
     [Name in keyof CreatorMap]: Name extends 'reducer' | 'preparedReducer'
       ? never
       : ReducerCreator<CreatorMap[Name]>
-  }
+  } & { asyncThunk?: ReducerCreator<ReducerType.asyncThunk> }
 }
 
 export function buildCreateSlice<
@@ -880,7 +910,7 @@ export function buildCreateSlice<
   }
   for (const [name, creator] of Object.entries<
     ReducerCreator<RegisteredReducerType>
-  >(creatorMap!)) {
+  >(creatorMap as any)) {
     if (name === 'reducer' || name === 'preparedReducer') {
       throw new Error('Cannot use reserved creator name: ' + name)
     }
@@ -918,6 +948,8 @@ export function buildCreateSlice<
         )
       }
     }
+
+    const getInitialState = makeGetInitialState(options.initialState)
 
     const context: ReducerHandlingContext<State> = {
       sliceCaseReducersByName: {},
@@ -961,6 +993,7 @@ export function buildCreateSlice<
         context.sliceCaseReducersByName[name] = reducer
         return contextMethods
       },
+      getInitialState,
     }
 
     if (typeof options.reducers === 'function') {
@@ -1066,11 +1099,7 @@ export function buildCreateSlice<
       },
       actions: context.actionCreators as any,
       caseReducers: context.sliceCaseReducersByName as any,
-      getInitialState() {
-        if (!_reducer) _reducer = buildReducer()
-
-        return _reducer.getInitialState()
-      },
+      getInitialState,
       getSelectors(selectState: (rootState: any) => State = selectSelf) {
         const selectorCache = emplace(injectedSelectorCache, this, {
           insert: () => new WeakMap(),

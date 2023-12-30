@@ -10,7 +10,9 @@ import type {
   CaseReducer,
   PayloadAction,
   PayloadActionCreator,
+  ReducerCreator,
   ReducerCreators,
+  ReducerType,
   SerializedError,
   SliceCaseReducers,
   ThunkDispatch,
@@ -875,4 +877,8 @@ const value = actionCreators.anyKey
   buildCreateSlice({ creators: { reducer: asyncThunkCreator } })
   // @ts-expect-error prevent passing preparedReducer key
   buildCreateSlice({ creators: { preparedReducer: asyncThunkCreator } })
+
+  const wrongCreator = {} as ReducerCreator<ReducerType.reducer>
+  // @ts-expect-error asyncThunk must be ReducerType.asyncThunk creator
+  buildCreateSlice({ creators: { asyncThunk: wrongCreator } })
 }
