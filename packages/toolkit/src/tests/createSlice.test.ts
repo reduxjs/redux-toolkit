@@ -38,7 +38,7 @@ import {
   createConsole,
   getLog,
 } from 'console-testing-library/pure'
-import type { IfMaybeUndefined } from '../tsHelpers'
+import type { IfMaybeUndefined, NoInfer } from '../tsHelpers'
 
 enablePatches()
 
@@ -1205,42 +1205,41 @@ describe('createSlice', () => {
           },
         }
 
-        const undoableCreator: ReducerCreator<typeof undoableCreatorType> = {
-          type: undoableCreatorType,
-          define(
-            this: ReducerCreators<HistoryState<any>, {}>,
-            reducer: CaseReducer<any, PayloadAction<any>>
-          ) {
-            return this.preparedReducer(
-              (payload?: any, options?: UndoableOptions) => ({
-                payload,
-                meta: options,
-              }),
-              (state, action) => {
-                const [nextState, redoPatch, undoPatch] = produceWithPatches(
-                  state,
-                  (draft) => {
-                    const result = reducer(draft.present, action)
-                    if (typeof result !== 'undefined') {
-                      draft.present = result
-                    }
-                  }
-                )
-                let finalState = nextState
-                const undoable = action.meta?.undoable ?? true
-                if (undoable) {
-                  finalState = createNextState(finalState, (draft) => {
-                    draft.past.push({
-                      undo: undoPatch,
-                      redo: redoPatch,
-                    })
-                    draft.future = []
-                  })
+        const makeUndoable = function makeUndoable(reducer) {
+          return function wrappedReducer(state: HistoryState<any>, action) {
+            const [nextState, redoPatch, undoPatch] = produceWithPatches(
+              state,
+              (draft) => {
+                const result = reducer(draft.present, action)
+                if (typeof result !== 'undefined') {
+                  draft.present = result
                 }
-                return finalState
               }
             )
-          },
+            let finalState = nextState
+            const undoable = action.meta?.undoable ?? true
+            if (undoable) {
+              finalState = createNextState(finalState, (draft) => {
+                draft.past.push({
+                  undo: undoPatch,
+                  redo: redoPatch,
+                })
+                draft.future = []
+              })
+            }
+            return finalState
+          }
+        } as ReducerCreator<typeof undoableCreatorType>['define']
+
+        makeUndoable.prepare = (() =>
+          (payload: unknown, options?: UndoableOptions) => ({
+            payload,
+            meta: options,
+          })) as any
+
+        const undoableCreator: ReducerCreator<typeof undoableCreatorType> = {
+          type: undoableCreatorType,
+          define: makeUndoable,
         }
 
         const createHistorySlice = buildCreateSlice({
@@ -1255,20 +1254,30 @@ describe('createSlice', () => {
           initialState: getInitialHistoryState({ value: 1 }),
           reducers: (create) => ({
             ...create.historyMethods(),
-            increment: create.undoable((state) => {
-              state.value++
-            }),
-            incrementBy: create.undoable<number>((state, action) => {
-              state.value += action.payload
-            }),
+            increment: create.preparedReducer(
+              (options?: UndoableOptions) => ({
+                payload: undefined,
+                meta: options,
+              }),
+              create.undoable((state) => {
+                state.value++
+              })
+            ),
+            incrementBy: create.preparedReducer(
+              create.undoable.prepare<number>(),
+              create.undoable((state, action) => {
+                state.value += action.payload
+              })
+            ),
           }),
           selectors: {
             selectValue: (state) => state.present.value,
           },
         })
-        const { increment, incrementBy, undo, redo, reset } =
-          historySlice.actions
-        const { selectValue } = historySlice.selectors
+        const {
+          actions: { increment, incrementBy, undo, redo, reset },
+          selectors: { selectValue },
+        } = historySlice
 
         const store = configureStore({
           reducer: { [historySlice.reducerPath]: historySlice.reducer },
@@ -1469,43 +1478,22 @@ declare module '@reduxjs/toolkit' {
       }
     }
     [undoableCreatorType]: {
-      create(
-        this: ReducerCreators<State, {}>,
-        reducer: CaseReducer<
-          State extends HistoryState<infer Data> ? Data : never,
-          PayloadAction
-        >
-      ): State extends HistoryState<unknown>
-        ? PreparedCaseReducerDefinition<
-            State,
-            (
-              payload?: undefined,
-              options?: UndoableOptions
-            ) => { payload: undefined; meta?: UndoableOptions }
+      create: {
+        <A extends Action & { meta?: UndoableOptions }>(
+          this: ReducerCreators<State, {}>,
+          reducer: CaseReducer<
+            State extends HistoryState<infer Data> ? Data : never,
+            NoInfer<A>
           >
-        : never
-      create<Payload>(
-        this: ReducerCreators<State, {}>,
-        reducer: CaseReducer<
-          State extends HistoryState<infer Data> ? Data : never,
-          PayloadAction<Payload>
-        >
-      ): State extends HistoryState<unknown>
-        ? PreparedCaseReducerDefinition<
-            State,
-            IfMaybeUndefined<
-              Payload,
-              (
-                payload?: Payload,
-                options?: UndoableOptions
-              ) => { payload: Payload; meta?: UndoableOptions },
-              (
-                payload: Payload,
-                options?: UndoableOptions
-              ) => { payload: Payload; meta?: UndoableOptions }
-            >
+        ): CaseReducer<State, A>
+        prepare<P>(): (
+          ...args: IfMaybeUndefined<
+            P,
+            [payload?: P, options?: UndoableOptions],
+            [payload: P, options?: UndoableOptions]
           >
-        : never
+        ) => { payload: P; meta: UndoableOptions | undefined }
+      }
       actions: {}
       caseReducers: {}
     }
