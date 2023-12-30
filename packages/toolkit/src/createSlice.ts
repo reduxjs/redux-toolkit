@@ -911,6 +911,12 @@ export function buildCreateSlice<
     if (name === 'reducer' || name === 'preparedReducer') {
       throw new Error('Cannot use reserved creator name: ' + name)
     }
+    if (
+      creator.type === ReducerType.reducer ||
+      creator.type === ReducerType.reducerWithPrepare
+    ) {
+      throw new Error('Cannot use reserved creator type: ' + creator.type)
+    }
     creators[name] = creator.define
     handlers[creator.type] = creator.handle
   }
