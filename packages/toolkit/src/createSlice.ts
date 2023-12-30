@@ -847,7 +847,7 @@ interface BuildCreateSliceConfig<
   CreatorMap extends Record<string, RegisteredReducerType>
 > {
   creators?: {
-    [Name in keyof CreatorMap]: Name extends 'reducer' | 'reducerWithPrepare'
+    [Name in keyof CreatorMap]: Name extends 'reducer' | 'preparedReducer'
       ? never
       : ReducerCreator<CreatorMap[Name]>
   }
@@ -858,7 +858,9 @@ export function buildCreateSlice<
     Record<'asyncThunk', RegisteredReducerType>
   >
 >({
-  creators: creatorMap = {} as Required<BuildCreateSliceConfig<CreatorMap>['creators']>,
+  creators: creatorMap = {} as Required<
+    BuildCreateSliceConfig<CreatorMap>['creators']
+  >,
 }: BuildCreateSliceConfig<CreatorMap> = {}) {
   const creators: Record<
     string,
