@@ -6,6 +6,7 @@ import type {
   PayloadAction,
   PayloadActionCreator,
   ReducerCreator,
+  ReducerCreators,
   ReducerDefinition,
   SliceActionType,
   SliceCaseReducers,
@@ -31,6 +32,7 @@ import {
   createConsole,
   getLog,
 } from 'console-testing-library/pure'
+import type { CaseReducerDefinition } from '../createSlice'
 
 type CreateSlice = typeof createSlice
 
@@ -937,6 +939,23 @@ describe('createSlice', () => {
         context.exposeAction(reducerName, thunkCreator)
       },
     }
+    const fetchCreator: ReducerCreator<'fetch'> = {
+      type: 'fetch',
+      define() {
+        return {
+          start: this.reducer((state) => {
+            state.status = 'loading'
+          }),
+          success: this.reducer<any>((state, action) => {
+            state.data = action.payload
+            state.status = 'finished'
+          }),
+        }
+      },
+      handle() {
+        throw new Error("Shouldn't ever happen")
+      },
+    }
     test('allows passing custom reducer creators, which can add actions and case reducers', () => {
       const createLoaderSlice = buildCreateSlice({
         creators: { loader: loaderCreator },
@@ -1051,6 +1070,42 @@ describe('createSlice', () => {
       await expect(promise).resolves.toBe(true)
       expect(promise.status).toBe('fulfilled')
     })
+    test('creators can return multiple definitions to be spread', () => {
+      const createFetchSlice = buildCreateSlice({
+        creators: { fetchReducers: fetchCreator },
+      })
+
+      const fetchSlice = createFetchSlice({
+        name: 'fetch',
+        initialState: { status: 'loading' } as FetchState<string>,
+        reducers: (create) => ({
+          ...create.fetchReducers(),
+          magic: create.reducer((state) => {
+            state.status = 'finished'
+            state.data = 'hocus pocus'
+          }),
+        }),
+      })
+
+      const { start, success, magic } = fetchSlice.actions
+
+      expect(start).toEqual(expect.any(Function))
+      expect(start.type).toBe('fetch/start')
+    })
+    test.skip('creators can discourage their use if state is incompatible (types only)', () => {
+      const createFetchSlice = buildCreateSlice({
+        creators: { fetchReducers: fetchCreator },
+      })
+
+      const counterSlice = createFetchSlice({
+        name: 'counter',
+        initialState: { value: 0 },
+        reducers: (create) => ({
+          // @ts-expect-error
+          ...create.fetchReducers(),
+        }),
+      })
+    })
   })
 })
 
@@ -1059,10 +1114,16 @@ interface LoaderReducerDefinition<State> extends ReducerDefinition<'loader'> {
   ended?: CaseReducer<State, PayloadAction<string>>
 }
 
+interface FetchState<T> {
+  data?: T
+  status: 'loading' | 'finished' | 'error'
+}
+
 declare module '@reduxjs/toolkit' {
   export interface ReducerTypes {
     loader: true
     condition: true
+    fetch: true
   }
   export interface SliceReducerCreators<
     State = any,
@@ -1123,6 +1184,18 @@ declare module '@reduxjs/toolkit' {
             >
           : never
       }
+      caseReducers: {}
+    }
+    fetch: {
+      create(this: ReducerCreators<State, {}>): State extends FetchState<
+        infer Data
+      >
+        ? {
+            start: CaseReducerDefinition<State, PayloadAction>
+            success: CaseReducerDefinition<State, PayloadAction<Data>>
+          }
+        : never
+      actions: {}
       caseReducers: {}
     }
   }
