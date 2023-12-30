@@ -1,13 +1,18 @@
 import { vi } from 'vitest'
+import type { Patch } from 'immer'
+import { applyPatches, enablePatches, produceWithPatches } from 'immer'
 import type {
   Action,
   AnyListenerPredicate,
   CaseReducer,
+  CaseReducerDefinition,
+  CaseReducerWithPrepareDefinition,
   PayloadAction,
   PayloadActionCreator,
   ReducerCreator,
   ReducerCreators,
   ReducerDefinition,
+  ReducerType,
   SliceActionType,
   SliceCaseReducers,
   ThunkAction,
@@ -26,19 +31,25 @@ import {
   nanoid,
   addListener,
   createListenerMiddleware,
+  createNextState,
 } from '@reduxjs/toolkit'
 import {
   mockConsole,
   createConsole,
   getLog,
 } from 'console-testing-library/pure'
-import type { CaseReducerDefinition } from '../createSlice'
+import type { IfMaybeUndefined } from '../tsHelpers'
+
+enablePatches()
 
 type CreateSlice = typeof createSlice
 
 const loaderCreatorType = Symbol()
 const conditionCreatorType = Symbol()
 const fetchCreatorType = Symbol()
+const paginationCreatorType = Symbol()
+const historyMethodsCreatorType = Symbol()
+const undoableCreatorType = Symbol()
 
 describe('createSlice', () => {
   let restore: () => void
@@ -897,69 +908,6 @@ describe('createSlice', () => {
         context.exposeCaseReducer(reducerName, { started, ended })
       },
     }
-
-    const conditionCreator: ReducerCreator<typeof conditionCreatorType> = {
-      type: conditionCreatorType,
-      define(makePredicate) {
-        return { _reducerDefinitionType: conditionCreatorType, makePredicate }
-      },
-      handle({ reducerName, type }, { makePredicate }, context) {
-        const trigger = createAction(type, (id: string, args: unknown[]) => ({
-          payload: id,
-          meta: { args },
-        }))
-        function thunkCreator(
-          timeout?: number,
-          ...args: any[]
-        ): ThunkAction<
-          Promise<boolean> & { unsubscribe?: UnsubscribeListener },
-          unknown,
-          unknown,
-          UnknownAction
-        > {
-          const predicate = makePredicate(...args)
-          return (dispatch) => {
-            const listenerId = nanoid()
-            let unsubscribe: UnsubscribeListener | undefined = undefined
-            const promise = new Promise<boolean>((resolve, reject) => {
-              unsubscribe = dispatch(
-                addListener({
-                  predicate: (action) =>
-                    trigger.match(action) && action.payload === listenerId,
-                  effect: (_, { condition, unsubscribe, signal }) => {
-                    signal.addEventListener('abort', () => reject(false))
-                    return condition(predicate, timeout)
-                      .then(resolve)
-                      .catch(reject)
-                      .finally(unsubscribe)
-                  },
-                })
-              ) as any
-              dispatch(trigger(listenerId, args))
-            })
-            return Object.assign(promise, { unsubscribe })
-          }
-        }
-        context.exposeAction(reducerName, thunkCreator)
-      },
-    }
-    const fetchCreator: ReducerCreator<typeof fetchCreatorType> = {
-      type: fetchCreatorType,
-      define() {
-        return {
-          start: this.reducer((state) => {
-            state.status = 'loading'
-          }),
-          success: this.reducer<any>((state, action) => {
-            state.data = action.payload
-            state.status = 'finished'
-          }),
-        }
-      },
-      handle() {
-        throw new Error("Shouldn't ever happen")
-      },
-    }
     test('allows passing custom reducer creators, which can add actions and case reducers', () => {
       const createLoaderSlice = buildCreateSlice({
         creators: { loader: loaderCreator },
@@ -1014,6 +962,51 @@ describe('createSlice', () => {
       ])
     })
 
+    const conditionCreator: ReducerCreator<typeof conditionCreatorType> = {
+      type: conditionCreatorType,
+      define(makePredicate) {
+        return { _reducerDefinitionType: conditionCreatorType, makePredicate }
+      },
+      handle({ reducerName, type }, { makePredicate }, context) {
+        const trigger = createAction(type, (id: string, args: unknown[]) => ({
+          payload: id,
+          meta: { args },
+        }))
+        function thunkCreator(
+          timeout?: number,
+          ...args: any[]
+        ): ThunkAction<
+          Promise<boolean> & { unsubscribe?: UnsubscribeListener },
+          unknown,
+          unknown,
+          UnknownAction
+        > {
+          const predicate = makePredicate(...args)
+          return (dispatch) => {
+            const listenerId = nanoid()
+            let unsubscribe: UnsubscribeListener | undefined = undefined
+            const promise = new Promise<boolean>((resolve, reject) => {
+              unsubscribe = dispatch(
+                addListener({
+                  predicate: (action) =>
+                    trigger.match(action) && action.payload === listenerId,
+                  effect: (_, { condition, unsubscribe, signal }) => {
+                    signal.addEventListener('abort', () => reject(false))
+                    return condition(predicate, timeout)
+                      .then(resolve)
+                      .catch(reject)
+                      .finally(unsubscribe)
+                  },
+                })
+              ) as any
+              dispatch(trigger(listenerId, args))
+            })
+            return Object.assign(promise, { unsubscribe })
+          }
+        }
+        context.exposeAction(reducerName, thunkCreator)
+      },
+    }
     function withStatus<P extends PromiseLike<any>>(promiseLike: P) {
       const assigned = Object.assign(promiseLike, {
         status: 'pending' as 'pending' | 'fulfilled' | 'rejected',
@@ -1074,40 +1067,246 @@ describe('createSlice', () => {
       await expect(promise).resolves.toBe(true)
       expect(promise.status).toBe('fulfilled')
     })
-    test('creators can return multiple definitions to be spread', () => {
-      const createFetchSlice = buildCreateSlice({
-        creators: { fetchReducers: fetchCreator },
-      })
+    describe('creators can return multiple definitions to be spread', () => {
+      const fetchCreator: ReducerCreator<typeof fetchCreatorType> = {
+        type: fetchCreatorType,
+        define() {
+          return {
+            start: this.reducer((state: FetchState<unknown>) => {
+              state.status = 'loading'
+            }),
+            success: this.reducer<any>((state: FetchState<unknown>, action) => {
+              state.data = action.payload
+              state.status = 'finished'
+            }),
+          }
+        },
+      }
+      test('fetch slice', () => {
+        const createFetchSlice = buildCreateSlice({
+          creators: { fetchReducers: fetchCreator },
+        })
 
-      const fetchSlice = createFetchSlice({
-        name: 'fetch',
-        initialState: { status: 'loading' } as FetchState<string>,
-        reducers: (create) => ({
-          ...create.fetchReducers(),
-          magic: create.reducer((state) => {
-            state.status = 'finished'
-            state.data = 'hocus pocus'
+        const fetchSlice = createFetchSlice({
+          name: 'fetch',
+          initialState: { status: 'loading' } as FetchState<string>,
+          reducers: (create) => ({
+            ...create.fetchReducers(),
+            magic: create.reducer((state) => {
+              state.status = 'finished'
+              state.data = 'hocus pocus'
+            }),
           }),
-        }),
+        })
+
+        const { start, success, magic } = fetchSlice.actions
+
+        expect(start).toEqual(expect.any(Function))
+        expect(start.type).toBe('fetch/start')
       })
+      test('pagination slice', () => {
+        const paginationCreator: ReducerCreator<typeof paginationCreatorType> =
+          {
+            type: paginationCreatorType,
+            define() {
+              return {
+                nextPage: this.reducer((state: PaginationState) => {
+                  state.page++
+                }),
+                previousPage: this.reducer((state: PaginationState) => {
+                  state.page = Math.max(0, state.page - 1)
+                }),
+                goToPage: this.reducer<number>(
+                  (state: PaginationState, action) => {
+                    state.page = action.payload
+                  }
+                ),
+              }
+            },
+          }
+        const createPaginationSlice = buildCreateSlice({
+          creators: { paginationReducers: paginationCreator },
+        })
 
-      const { start, success, magic } = fetchSlice.actions
+        const paginationSlice = createPaginationSlice({
+          name: 'pagination',
+          initialState: {
+            page: 1,
+            hasMoreData: true,
+          },
+          reducers: (create) => ({
+            ...create.paginationReducers(),
+            noMoreData: create.reducer((state) => {
+              state.hasMoreData = false
+            }),
+          }),
+          selectors: {
+            selectPage: (state) => state.page,
+            selectHasMoreData: (state) => state.hasMoreData,
+          },
+        })
+        const { nextPage, previousPage, goToPage } = paginationSlice.actions
+        const { selectHasMoreData, selectPage } = paginationSlice.selectors
 
-      expect(start).toEqual(expect.any(Function))
-      expect(start.type).toBe('fetch/start')
-    })
-    test.skip('creators can discourage their use if state is incompatible (types only)', () => {
-      const createFetchSlice = buildCreateSlice({
-        creators: { fetchReducers: fetchCreator },
+        const store = configureStore({
+          reducer: { [paginationSlice.reducerPath]: paginationSlice.reducer },
+        })
+
+        expect(selectPage(store.getState())).toBe(1)
+
+        store.dispatch(nextPage())
+
+        expect(selectPage(store.getState())).toBe(2)
       })
+      test('history slice', () => {
+        function getInitialHistoryState<T>(initialState: T): HistoryState<T> {
+          return {
+            past: [],
+            present: initialState,
+            future: [],
+          }
+        }
+        const historyMethodsCreator: ReducerCreator<
+          typeof historyMethodsCreatorType
+        > = {
+          type: historyMethodsCreatorType,
+          define() {
+            return {
+              undo: this.reducer((state: HistoryState<unknown>) => {
+                const historyEntry = state.past.pop()
+                if (historyEntry) {
+                  applyPatches(state, historyEntry.undo)
+                  state.future.unshift(historyEntry)
+                }
+              }),
+              redo: this.reducer((state: HistoryState<unknown>) => {
+                const historyEntry = state.future.shift()
+                if (historyEntry) {
+                  applyPatches(state, historyEntry.redo)
+                  state.past.push(historyEntry)
+                }
+              }),
+              reset: {
+                _reducerDefinitionType: historyMethodsCreatorType,
+                type: 'reset',
+              },
+            }
+          },
+          handle({ reducerName, type }, definition, context) {
+            if (definition.type !== 'reset') {
+              throw new Error('unrecognised definition')
+            }
+            const resetAction = createAction(type)
+            const resetReducer = () => context.getInitialState()
+            context
+              .addCase(resetAction, resetReducer)
+              .exposeAction(reducerName, resetAction)
+              .exposeCaseReducer(reducerName, resetReducer)
+          },
+        }
 
-      const counterSlice = createFetchSlice({
-        name: 'counter',
-        initialState: { value: 0 },
-        reducers: (create) => ({
-          // @ts-expect-error
-          ...create.fetchReducers(),
-        }),
+        const undoableCreator: ReducerCreator<typeof undoableCreatorType> = {
+          type: undoableCreatorType,
+          define(
+            this: ReducerCreators<HistoryState<any>, {}>,
+            reducer: CaseReducer<any, PayloadAction<any>>
+          ) {
+            return this.preparedReducer(
+              (payload: any, options?: UndoableOptions) => ({
+                payload,
+                meta: options,
+              }),
+              (state, action) => {
+                const [nextState, redoPatch, undoPatch] = produceWithPatches(
+                  state,
+                  (draft) => {
+                    const result = reducer(draft.present, action)
+                    if (typeof result !== 'undefined') {
+                      draft.present = result
+                    }
+                  }
+                )
+                let finalState = nextState
+                const undoable = action.meta?.undoable ?? true
+                if (undoable) {
+                  finalState = createNextState(finalState, (draft) => {
+                    draft.past.push({
+                      undo: undoPatch,
+                      redo: redoPatch,
+                    })
+                    draft.future = []
+                  })
+                }
+                return finalState
+              }
+            )
+          },
+        }
+
+        const createHistorySlice = buildCreateSlice({
+          creators: {
+            historyMethods: historyMethodsCreator,
+            undoable: undoableCreator,
+          },
+        })
+
+        const historySlice = createHistorySlice({
+          name: 'history',
+          initialState: getInitialHistoryState({ value: 1 }),
+          reducers: (create) => ({
+            ...create.historyMethods(),
+            increment: create.undoable((state) => {
+              state.value++
+            }),
+            incrementBy: create.undoable<number>((state, action) => {
+              state.value += action.payload
+            }),
+          }),
+          selectors: {
+            selectValue: (state) => state.present.value,
+          },
+        })
+        const { increment, incrementBy, undo, redo, reset } =
+          historySlice.actions
+        const { selectValue } = historySlice.selectors
+
+        const store = configureStore({
+          reducer: { [historySlice.reducerPath]: historySlice.reducer },
+        })
+
+        expect(selectValue(store.getState())).toBe(1)
+
+        store.dispatch(increment())
+        expect(selectValue(store.getState())).toBe(2)
+
+        store.dispatch(undo())
+        expect(selectValue(store.getState())).toBe(1)
+
+        store.dispatch(incrementBy(3))
+        expect(selectValue(store.getState())).toBe(4)
+
+        store.dispatch(undo())
+        expect(selectValue(store.getState())).toBe(1)
+
+        store.dispatch(redo())
+        expect(selectValue(store.getState())).toBe(4)
+
+        store.dispatch(reset())
+        expect(selectValue(store.getState())).toBe(1)
+      })
+      test.skip('creators can discourage their use if state is incompatible (types only)', () => {
+        const createFetchSlice = buildCreateSlice({
+          creators: { fetchReducers: fetchCreator },
+        })
+
+        const counterSlice = createFetchSlice({
+          name: 'counter',
+          initialState: { value: 0 },
+          reducers: (create) => ({
+            // @ts-expect-error
+            ...create.fetchReducers(),
+          }),
+        })
       })
     })
   })
@@ -1124,11 +1323,33 @@ interface FetchState<T> {
   status: 'loading' | 'finished' | 'error'
 }
 
+interface PaginationState {
+  page: number
+}
+
+interface PatchesState {
+  undo: Patch[]
+  redo: Patch[]
+}
+
+interface HistoryState<T> {
+  past: PatchesState[]
+  present: T
+  future: PatchesState[]
+}
+
+interface UndoableOptions {
+  undoable?: boolean
+}
+
 declare module '@reduxjs/toolkit' {
   export interface ReducerTypes {
     [loaderCreatorType]: true
     [conditionCreatorType]: true
     [fetchCreatorType]: true
+    [paginationCreatorType]: true
+    [historyMethodsCreatorType]: true
+    [undoableCreatorType]: true
   }
   export interface SliceReducerCreators<
     State = any,
@@ -1200,6 +1421,95 @@ declare module '@reduxjs/toolkit' {
         ? {
             start: CaseReducerDefinition<State, PayloadAction>
             success: CaseReducerDefinition<State, PayloadAction<Data>>
+          }
+        : never
+      actions: {}
+      caseReducers: {}
+    }
+    [paginationCreatorType]: {
+      create(this: ReducerCreators<State, {}>): State extends PaginationState
+        ? {
+            nextPage: CaseReducerDefinition<State, PayloadAction>
+            previousPage: CaseReducerDefinition<State, PayloadAction>
+            goToPage: CaseReducerDefinition<State, PayloadAction<number>>
+          }
+        : never
+      actions: {}
+      caseReducers: {}
+    }
+    [historyMethodsCreatorType]: {
+      create(
+        this: ReducerCreators<State, {}>
+      ): State extends HistoryState<unknown>
+        ? {
+            undo: CaseReducerDefinition<State, PayloadAction>
+            redo: CaseReducerDefinition<State, PayloadAction>
+            reset: ReducerDefinition<typeof historyMethodsCreatorType> & {
+              type: 'reset'
+            }
+          }
+        : never
+      actions: {
+        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends ReducerDefinition<
+          typeof historyMethodsCreatorType
+        >
+          ? ReducerName
+          : never]: CaseReducers[ReducerName] extends { type: 'reset' }
+          ? PayloadActionCreator<void, SliceActionType<Name, ReducerName>>
+          : never
+      }
+      caseReducers: {
+        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends ReducerDefinition<
+          typeof historyMethodsCreatorType
+        >
+          ? ReducerName
+          : never]: CaseReducers[ReducerName] extends { type: 'reset' }
+          ? CaseReducer<State, PayloadAction>
+          : never
+      }
+    }
+    [undoableCreatorType]: {
+      create(
+        this: ReducerCreators<State, {}>,
+        reducer: CaseReducer<
+          State extends HistoryState<infer Data> ? Data : never,
+          PayloadAction
+        >
+      ): State extends HistoryState<unknown>
+        ? ReducerDefinition<ReducerType.reducerWithPrepare> & {
+            prepare: (
+              payload?: undefined,
+              options?: UndoableOptions
+            ) => { payload: undefined; meta?: UndoableOptions }
+            reducer: CaseReducer<
+              State,
+              PayloadAction<void, string, UndoableOptions | undefined>
+            >
+          }
+        : never
+      create<Payload>(
+        this: ReducerCreators<State, {}>,
+        reducer: CaseReducer<
+          State extends HistoryState<infer Data> ? Data : never,
+          PayloadAction<Payload>
+        >
+      ): State extends HistoryState<unknown>
+        ? ReducerDefinition<ReducerType.reducerWithPrepare> & {
+            prepare: IfMaybeUndefined<
+              Payload,
+              (
+                payload?: Payload,
+                options?: UndoableOptions
+              ) => { payload: Payload; meta?: UndoableOptions },
+              (
+                payload: Payload,
+                options?: UndoableOptions
+              ) => { payload: Payload; meta?: UndoableOptions }
+            >
+            reducer: CaseReducer<
+              State,
+              PayloadAction<Payload, string, UndoableOptions | undefined>
+            >
           }
         : never
       actions: {}

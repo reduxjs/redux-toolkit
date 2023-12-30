@@ -269,12 +269,33 @@ interface ReducerDetails {
 export type ReducerCreator<Type extends RegisteredReducerType> = {
   type: Type
   define: SliceReducerCreators[Type]['create']
-  handle<State>(
-    details: ReducerDetails,
-    definition: ReturnType<SliceReducerCreators[Type]['create']>,
-    context: ReducerHandlingContextMethods<State, Type>
-  ): void
-}
+} & (ReturnType<
+  SliceReducerCreators[Type]['create']
+> extends ReducerDefinition<Type>
+  ? {
+      handle<State>(
+        details: ReducerDetails,
+        definition: ReturnType<SliceReducerCreators[Type]['create']>,
+        context: ReducerHandlingContextMethods<State, Type>
+      ): void
+    }
+  : KeysForValueOfType<
+      ReturnType<SliceReducerCreators[Type]['create']>,
+      ReducerDefinition<Type>
+    > extends never
+  ? {}
+  : {
+      handle<State>(
+        details: ReducerDetails,
+        definition: ReturnType<
+          SliceReducerCreators[Type]['create']
+        >[KeysForValueOfType<
+          ReturnType<SliceReducerCreators[Type]['create']>,
+          ReducerDefinition<Type>
+        >],
+        context: ReducerHandlingContextMethods<State, Type>
+      ): void
+    })
 
 interface InjectIntoConfig<NewReducerPath extends string> extends InjectConfig {
   reducerPath?: NewReducerPath
@@ -881,7 +902,7 @@ export function buildCreateSlice<
   }
   for (const [name, creator] of Object.entries<
     ReducerCreator<RegisteredReducerType>
-  >(creatorMap)) {
+  >(creatorMap as any)) {
     if (name === 'reducer' || name === 'preparedReducer') {
       throw new Error('Cannot use reserved creator name: ' + name)
     }
