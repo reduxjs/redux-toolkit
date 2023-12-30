@@ -6,13 +6,11 @@ import type {
   AnyListenerPredicate,
   CaseReducer,
   CaseReducerDefinition,
-  PreparedCaseReducerDefinition,
   PayloadAction,
   PayloadActionCreator,
   ReducerCreator,
   ReducerCreators,
   ReducerDefinition,
-  ReducerType,
   SliceActionType,
   SliceCaseReducers,
   ThunkAction,
@@ -32,6 +30,8 @@ import {
   addListener,
   createListenerMiddleware,
   createNextState,
+  reducerCreator,
+  ReducerType,
 } from '@reduxjs/toolkit'
 import {
   mockConsole,
@@ -1192,16 +1192,17 @@ describe('createSlice', () => {
               },
             }
           },
-          handle({ reducerName, type }, definition, context) {
+          handle(details, definition, context) {
             if (definition.type !== 'reset') {
               throw new Error('unrecognised definition')
             }
-            const resetAction = createAction(type)
-            const resetReducer = () => context.getInitialState()
-            context
-              .addCase(resetAction, resetReducer)
-              .exposeAction(reducerName, resetAction)
-              .exposeCaseReducer(reducerName, resetReducer)
+            reducerCreator.handle(
+              details,
+              Object.assign(() => context.getInitialState(), {
+                _reducerDefinitionType: ReducerType.reducer as const,
+              }),
+              context
+            )
           },
         }
 

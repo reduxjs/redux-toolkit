@@ -786,7 +786,7 @@ function getType(slice: string, actionKey: string): string {
   return `${slice}/${actionKey}`
 }
 
-const reducerCreator: ReducerCreator<ReducerType.reducer> = {
+export const reducerCreator: ReducerCreator<ReducerType.reducer> = {
   type: ReducerType.reducer,
   define(caseReducer: CaseReducer<any, any>) {
     return Object.assign(
@@ -810,22 +810,23 @@ const reducerCreator: ReducerCreator<ReducerType.reducer> = {
   },
 }
 
-const preparedReducerCreator: ReducerCreator<ReducerType.reducerWithPrepare> = {
-  type: ReducerType.reducerWithPrepare,
-  define(prepare, reducer) {
-    return {
-      _reducerDefinitionType: ReducerType.reducerWithPrepare,
-      prepare,
-      reducer,
-    }
-  },
-  handle({ type, reducerName }, { prepare, reducer }, context) {
-    context
-      .addCase(type, reducer)
-      .exposeCaseReducer(reducerName, reducer)
-      .exposeAction(reducerName, createAction(type, prepare))
-  },
-}
+export const preparedReducerCreator: ReducerCreator<ReducerType.reducerWithPrepare> =
+  {
+    type: ReducerType.reducerWithPrepare,
+    define(prepare, reducer) {
+      return {
+        _reducerDefinitionType: ReducerType.reducerWithPrepare,
+        prepare,
+        reducer,
+      }
+    },
+    handle({ type, reducerName }, { prepare, reducer }, context) {
+      context
+        .addCase(type, reducer)
+        .exposeCaseReducer(reducerName, reducer)
+        .exposeAction(reducerName, createAction(type, prepare))
+    },
+  }
 
 export const asyncThunkCreator: ReducerCreator<ReducerType.asyncThunk> = {
   type: ReducerType.asyncThunk,
