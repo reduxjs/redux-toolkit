@@ -2372,14 +2372,10 @@ describe('hooks with createApi defaults set', () => {
         { wrapper: storeRef.wrapper }
       )
 
-      await delay(1)
+      await waitFor(() => expect(getRenderCount()).toBe(2))
+
       const incrementBtn = screen.getByTestId('incrementButton')
       fireEvent.click(incrementBtn)
-      await delay(1)
-      fireEvent.click(incrementBtn)
-      await delay(1)
-      fireEvent.click(incrementBtn)
-      await delay(1)
       expect(getRenderCount()).toBe(2)
     })
 
