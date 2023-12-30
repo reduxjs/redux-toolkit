@@ -7,6 +7,10 @@
     "url": "https://phryneas.de/"
   },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reduxjs/redux-toolkit.git"
+  },
   "type": "module",
   "source": "src/index.ts",
   "main": "./dist/index.cjs",
