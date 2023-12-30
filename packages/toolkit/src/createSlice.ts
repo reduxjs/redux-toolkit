@@ -88,14 +88,7 @@ export interface SliceReducerCreators<
         State,
         ReturnType<_ActionCreatorWithPreparedPayload<Prepare>>
       >
-    ): {
-      _reducerDefinitionType: ReducerType.reducerWithPrepare
-      prepare: Prepare
-      reducer: CaseReducer<
-        State,
-        ReturnType<_ActionCreatorWithPreparedPayload<Prepare>>
-      >
-    }
+    ): PreparedCaseReducerDefinition<State, Prepare>
     actions: {
       [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends CaseReducerWithPrepare<
         State,
@@ -546,6 +539,17 @@ export interface CaseReducerWithPrepareDefinition<
   Action extends PayloadAction
 > extends CaseReducerWithPrepare<State, Action>,
     ReducerDefinition<ReducerType.reducerWithPrepare> {}
+
+export interface PreparedCaseReducerDefinition<
+  State,
+  Prepare extends PrepareAction<any>
+> extends ReducerDefinition<ReducerType.reducerWithPrepare> {
+  prepare: Prepare
+  reducer: CaseReducer<
+    State,
+    ReturnType<_ActionCreatorWithPreparedPayload<Prepare>>
+  >
+}
 
 export interface AsyncThunkSliceReducerConfig<
   State,

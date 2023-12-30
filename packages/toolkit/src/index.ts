@@ -85,7 +85,7 @@ export type {
   ReducerCreator,
   SliceActionType,
   CaseReducerDefinition,
-  CaseReducerWithPrepareDefinition,
+  PreparedCaseReducerDefinition,
   AsyncThunkSliceReducerDefinition,
 } from './createSlice'
 export type { ActionCreatorInvariantMiddlewareOptions } from './actionCreatorInvariantMiddleware'

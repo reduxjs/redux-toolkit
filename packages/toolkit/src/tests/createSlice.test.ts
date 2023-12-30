@@ -6,7 +6,7 @@ import type {
   AnyListenerPredicate,
   CaseReducer,
   CaseReducerDefinition,
-  CaseReducerWithPrepareDefinition,
+  PreparedCaseReducerDefinition,
   PayloadAction,
   PayloadActionCreator,
   ReducerCreator,
@@ -1212,7 +1212,7 @@ describe('createSlice', () => {
             reducer: CaseReducer<any, PayloadAction<any>>
           ) {
             return this.preparedReducer(
-              (payload: any, options?: UndoableOptions) => ({
+              (payload?: any, options?: UndoableOptions) => ({
                 payload,
                 meta: options,
               }),
@@ -1476,16 +1476,13 @@ declare module '@reduxjs/toolkit' {
           PayloadAction
         >
       ): State extends HistoryState<unknown>
-        ? ReducerDefinition<ReducerType.reducerWithPrepare> & {
-            prepare: (
+        ? PreparedCaseReducerDefinition<
+            State,
+            (
               payload?: undefined,
               options?: UndoableOptions
             ) => { payload: undefined; meta?: UndoableOptions }
-            reducer: CaseReducer<
-              State,
-              PayloadAction<void, string, UndoableOptions | undefined>
-            >
-          }
+          >
         : never
       create<Payload>(
         this: ReducerCreators<State, {}>,
@@ -1494,8 +1491,9 @@ declare module '@reduxjs/toolkit' {
           PayloadAction<Payload>
         >
       ): State extends HistoryState<unknown>
-        ? ReducerDefinition<ReducerType.reducerWithPrepare> & {
-            prepare: IfMaybeUndefined<
+        ? PreparedCaseReducerDefinition<
+            State,
+            IfMaybeUndefined<
               Payload,
               (
                 payload?: Payload,
@@ -1506,11 +1504,7 @@ declare module '@reduxjs/toolkit' {
                 options?: UndoableOptions
               ) => { payload: Payload; meta?: UndoableOptions }
             >
-            reducer: CaseReducer<
-              State,
-              PayloadAction<Payload, string, UndoableOptions | undefined>
-            >
-          }
+          >
         : never
       actions: {}
       caseReducers: {}
