@@ -36,6 +36,10 @@ import type { CaseReducerDefinition } from '../createSlice'
 
 type CreateSlice = typeof createSlice
 
+const loaderCreatorType = Symbol()
+const conditionCreatorType = Symbol()
+const fetchCreatorType = Symbol()
+
 describe('createSlice', () => {
   let restore: () => void
 
@@ -852,11 +856,11 @@ describe('createSlice', () => {
     })
   })
   describe('custom slice reducer creators', () => {
-    const loaderCreator: ReducerCreator<'loader'> = {
-      type: 'loader',
+    const loaderCreator: ReducerCreator<typeof loaderCreatorType> = {
+      type: loaderCreatorType,
       define(reducers) {
         return {
-          _reducerDefinitionType: 'loader',
+          _reducerDefinitionType: loaderCreatorType,
           ...reducers,
         }
       },
@@ -894,10 +898,10 @@ describe('createSlice', () => {
       },
     }
 
-    const conditionCreator: ReducerCreator<'condition'> = {
-      type: 'condition',
+    const conditionCreator: ReducerCreator<typeof conditionCreatorType> = {
+      type: conditionCreatorType,
       define(makePredicate) {
-        return { _reducerDefinitionType: 'condition', makePredicate }
+        return { _reducerDefinitionType: conditionCreatorType, makePredicate }
       },
       handle({ reducerName, type }, { makePredicate }, context) {
         const trigger = createAction(type, (id: string, args: unknown[]) => ({
@@ -939,8 +943,8 @@ describe('createSlice', () => {
         context.exposeAction(reducerName, thunkCreator)
       },
     }
-    const fetchCreator: ReducerCreator<'fetch'> = {
-      type: 'fetch',
+    const fetchCreator: ReducerCreator<typeof fetchCreatorType> = {
+      type: fetchCreatorType,
       define() {
         return {
           start: this.reducer((state) => {
@@ -1109,7 +1113,8 @@ describe('createSlice', () => {
   })
 })
 
-interface LoaderReducerDefinition<State> extends ReducerDefinition<'loader'> {
+interface LoaderReducerDefinition<State>
+  extends ReducerDefinition<typeof loaderCreatorType> {
   started?: CaseReducer<State, PayloadAction<string>>
   ended?: CaseReducer<State, PayloadAction<string>>
 }
@@ -1121,16 +1126,16 @@ interface FetchState<T> {
 
 declare module '@reduxjs/toolkit' {
   export interface ReducerTypes {
-    loader: true
-    condition: true
-    fetch: true
+    [loaderCreatorType]: true
+    [conditionCreatorType]: true
+    [fetchCreatorType]: true
   }
   export interface SliceReducerCreators<
     State = any,
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
     Name extends string = string
   > {
-    loader: {
+    [loaderCreatorType]: {
       create(
         reducers: Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>
       ): LoaderReducerDefinition<State>
@@ -1161,14 +1166,16 @@ declare module '@reduxjs/toolkit' {
         >
       }
     }
-    condition: {
+    [conditionCreatorType]: {
       create<Args extends any[]>(
         makePredicate: (...args: Args) => AnyListenerPredicate<unknown>
-      ): ReducerDefinition<'condition'> & {
+      ): ReducerDefinition<typeof conditionCreatorType> & {
         makePredicate: (...args: Args) => AnyListenerPredicate<unknown>
       }
       actions: {
-        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends ReducerDefinition<'condition'>
+        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends ReducerDefinition<
+          typeof conditionCreatorType
+        >
           ? ReducerName
           : never]: CaseReducers[ReducerName] extends {
           makePredicate: (...args: infer Args) => AnyListenerPredicate<unknown>
@@ -1186,7 +1193,7 @@ declare module '@reduxjs/toolkit' {
       }
       caseReducers: {}
     }
-    fetch: {
+    [fetchCreatorType]: {
       create(this: ReducerCreators<State, {}>): State extends FetchState<
         infer Data
       >
