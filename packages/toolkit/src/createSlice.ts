@@ -859,9 +859,7 @@ interface BuildCreateSliceConfig<
 }
 
 export function buildCreateSlice<
-  CreatorMap extends Record<string, RegisteredReducerType> = {
-    asyncThunk?: RegisteredReducerType
-  }
+  CreatorMap extends Record<string, RegisteredReducerType> = {}
 >({
   creators: creatorMap = {} as any,
 }: BuildCreateSliceConfig<CreatorMap> = {}) {
