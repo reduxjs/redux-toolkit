@@ -1231,7 +1231,11 @@ describe('createSlice', () => {
           }
         } as ReducerCreator<typeof undoableCreatorType>['define']
 
-        makeUndoable.prepare = (() =>
+        makeUndoable.withoutPayload = () => (options) => ({
+          payload: undefined,
+          meta: options,
+        })
+        makeUndoable.withPayload = (() =>
           (payload: unknown, options?: UndoableOptions) => ({
             payload,
             meta: options,
@@ -1255,16 +1259,13 @@ describe('createSlice', () => {
           reducers: (create) => ({
             ...create.historyMethods(),
             increment: create.preparedReducer(
-              (options?: UndoableOptions) => ({
-                payload: undefined,
-                meta: options,
-              }),
+              create.undoable.withoutPayload(),
               create.undoable((state) => {
                 state.value++
               })
             ),
             incrementBy: create.preparedReducer(
-              create.undoable.prepare<number>(),
+              create.undoable.withPayload<number>(),
               create.undoable((state, action) => {
                 state.value += action.payload
               })
@@ -1486,7 +1487,11 @@ declare module '@reduxjs/toolkit' {
             NoInfer<A>
           >
         ): CaseReducer<State, A>
-        prepare<P>(): (
+        withoutPayload(): (options?: UndoableOptions) => {
+          payload: undefined
+          meta: UndoableOptions | undefined
+        }
+        withPayload<P>(): (
           ...args: IfMaybeUndefined<
             P,
             [payload?: P, options?: UndoableOptions],
