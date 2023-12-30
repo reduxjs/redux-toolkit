@@ -259,33 +259,29 @@ interface ReducerDetails {
   type: string
 }
 
+export type ReducerDefinitionsForType<Type extends RegisteredReducerType> = {
+  [T in keyof SliceReducerCreators]-?:
+    | Extract<
+        ReturnType<SliceReducerCreators[Type]['create']>,
+        ReducerDefinition<Type>
+      >
+    | {
+        [K in keyof ReturnType<SliceReducerCreators[T]['create']>]-?: Extract<
+          ReturnType<SliceReducerCreators[T]['create']>[K],
+          ReducerDefinition<Type>
+        >
+      }[keyof ReturnType<SliceReducerCreators[T]['create']>]
+}[keyof SliceReducerCreators]
+
 export type ReducerCreator<Type extends RegisteredReducerType> = {
   type: Type
   define: SliceReducerCreators[Type]['create']
-} & (ReturnType<
-  SliceReducerCreators[Type]['create']
-> extends ReducerDefinition<Type>
-  ? {
-      handle<State>(
-        details: ReducerDetails,
-        definition: ReturnType<SliceReducerCreators[Type]['create']>,
-        context: ReducerHandlingContextMethods<State, Type>
-      ): void
-    }
-  : KeysForValueOfType<
-      ReturnType<SliceReducerCreators[Type]['create']>,
-      ReducerDefinition<Type>
-    > extends never
+} & (ReducerDefinitionsForType<Type> extends never
   ? {}
   : {
       handle<State>(
         details: ReducerDetails,
-        definition: ReturnType<
-          SliceReducerCreators[Type]['create']
-        >[KeysForValueOfType<
-          ReturnType<SliceReducerCreators[Type]['create']>,
-          ReducerDefinition<Type>
-        >],
+        definition: ReducerDefinitionsForType<Type>,
         context: ReducerHandlingContextMethods<State, Type>
       ): void
     })
@@ -802,7 +798,11 @@ export const reducerCreator: ReducerCreator<ReducerType.reducer> = {
       } as const
     )
   },
-  handle({ type, reducerName }, reducer, context) {
+  handle(
+    { type, reducerName },
+    reducer: CaseReducer<any, PayloadAction<any>>,
+    context
+  ) {
     context
       .addCase(type, reducer)
       .exposeCaseReducer(reducerName, reducer)
