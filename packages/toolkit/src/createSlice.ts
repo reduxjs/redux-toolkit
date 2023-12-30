@@ -13,7 +13,7 @@ import type {
   CaseReducer,
   ReducerWithInitialState,
 } from './createReducer'
-import { createReducer } from './createReducer'
+import { createReducer, makeGetInitialState } from './createReducer'
 import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type {
@@ -252,6 +252,11 @@ interface ReducerHandlingContextMethods<
     // TODO: see if there's a way to get the actual type cleanly
     reducer: unknown
   ): ReducerHandlingContextMethods<State, ReducerType>
+  /**
+   * Provides access to the initial state value given to the slice.
+   * If a lazy state initializer was provided, it will be called and a fresh value returned.
+   */
+  getInitialState(): State
 }
 
 interface ReducerDetails {
@@ -914,6 +919,8 @@ export function buildCreateSlice<
       }
     }
 
+    const getInitialState = makeGetInitialState(options.initialState)
+
     const context: ReducerHandlingContext<State> = {
       sliceCaseReducersByName: {},
       sliceCaseReducersByType: {},
@@ -956,6 +963,7 @@ export function buildCreateSlice<
         context.sliceCaseReducersByName[name] = reducer
         return contextMethods
       },
+      getInitialState,
     }
 
     if (typeof options.reducers === 'function') {
@@ -1061,11 +1069,7 @@ export function buildCreateSlice<
       },
       actions: context.actionCreators as any,
       caseReducers: context.sliceCaseReducersByName as any,
-      getInitialState() {
-        if (!_reducer) _reducer = buildReducer()
-
-        return _reducer.getInitialState()
-      },
+      getInitialState,
       getSelectors(selectState: (rootState: any) => State = selectSelf) {
         const selectorCache = emplace(injectedSelectorCache, this, {
           insert: () => new WeakMap(),
