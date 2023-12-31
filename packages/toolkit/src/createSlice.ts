@@ -882,14 +882,10 @@ interface BuildCreateSliceConfig<
 }
 
 export function buildCreateSlice<
-  CreatorMap extends Record<string, RegisteredReducerType> = Partial<
-    Record<'asyncThunk', RegisteredReducerType>
-  >
->({
-  creators: creatorMap = {} as Required<
-    BuildCreateSliceConfig<CreatorMap>['creators']
-  >,
-}: BuildCreateSliceConfig<CreatorMap> = {}) {
+  CreatorMap extends Record<string, RegisteredReducerType> = {}
+>(buildCreateSliceConfig: BuildCreateSliceConfig<CreatorMap> = {}) {
+  const { creators: creatorMap = {} } = buildCreateSliceConfig
+
   const creators: Record<
     string,
     ReducerCreator<RegisteredReducerType>['define']
@@ -906,9 +902,10 @@ export function buildCreateSlice<
     [ReducerType.reducer]: reducerCreator.handle,
     [ReducerType.reducerWithPrepare]: preparedReducerCreator.handle,
   }
+
   for (const [name, creator] of Object.entries<
     ReducerCreator<RegisteredReducerType>
-  >(creatorMap as any)) {
+  >(creatorMap)) {
     if (name === 'reducer' || name === 'preparedReducer') {
       throw new Error('Cannot use reserved creator name: ' + name)
     }
