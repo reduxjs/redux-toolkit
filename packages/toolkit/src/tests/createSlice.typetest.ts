@@ -882,3 +882,33 @@ const value = actionCreators.anyKey
   // @ts-expect-error asyncThunk must be ReducerType.asyncThunk creator
   buildCreateSlice({ creators: { asyncThunk: wrongCreator } })
 }
+
+/**
+ * Test: Default `createSlice` should not allow `create.asyncThunk()`,
+ * but it should allow `create.reducer()` and `create.preparedReducer()`
+ */
+{
+  const sliceWithoutAsyncThunks = createSlice({
+    name: 'counter',
+    initialState: {
+      value: 0,
+      status: 'idle',
+    },
+    reducers: (create) => ({
+      incrementAsync:
+        // @ts-expect-error Default `createSlice` should not allow `create.asyncThunk()`
+        create.asyncThunk(async (amount: number) => amount),
+
+      increment: create.reducer((state) => {
+        state.value += 1
+      }),
+
+      incrementByAmount: create.preparedReducer(
+        (payload: number) => ({ payload }),
+        (state, action: PayloadAction<number>) => {
+          state.value += action.payload
+        }
+      ),
+    }),
+  })
+}

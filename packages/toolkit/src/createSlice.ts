@@ -464,8 +464,8 @@ export interface CreateSliceOptions<
   /**
    * A callback that receives a *builder* object to define
    * case reducers via calls to `builder.addCase(actionCreatorOrType, reducer)`.
-   * 
-   * 
+   *
+   *
    * @example
 ```ts
 import { createAction, createSlice, Action } from '@reduxjs/toolkit'
@@ -883,9 +883,9 @@ interface BuildCreateSliceConfig<
 
 export function buildCreateSlice<
   CreatorMap extends Record<string, RegisteredReducerType> = {}
->({
-  creators: creatorMap = {} as any,
-}: BuildCreateSliceConfig<CreatorMap> = {}) {
+>(buildCreateSliceConfig: BuildCreateSliceConfig<CreatorMap> = {}) {
+  const { creators: creatorMap = {} } = buildCreateSliceConfig
+
   const creators: Record<
     string,
     ReducerCreator<RegisteredReducerType>['define']
@@ -902,9 +902,10 @@ export function buildCreateSlice<
     [ReducerType.reducer]: reducerCreator.handle,
     [ReducerType.reducerWithPrepare]: preparedReducerCreator.handle,
   }
+
   for (const [name, creator] of Object.entries<
     ReducerCreator<RegisteredReducerType>
-  >(creatorMap as any)) {
+  >(creatorMap)) {
     if (name === 'reducer' || name === 'preparedReducer') {
       throw new Error('Cannot use reserved creator name: ' + name)
     }
