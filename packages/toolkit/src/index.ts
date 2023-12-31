@@ -65,6 +65,8 @@ export {
   // js
   createSlice,
   buildCreateSlice,
+  reducerCreator,
+  preparedReducerCreator,
   asyncThunkCreator,
   ReducerType,
 } from './createSlice'
