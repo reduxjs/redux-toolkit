@@ -883,9 +883,11 @@ interface BuildCreateSliceConfig<
 
 export function buildCreateSlice<
   CreatorMap extends Record<string, RegisteredReducerType> = {}
->(buildCreateSliceConfig: BuildCreateSliceConfig<CreatorMap> = {}) {
-  const { creators: creatorMap = {} } = buildCreateSliceConfig
-
+>({
+  creators: creatorMap = {} as NonNullable<
+    BuildCreateSliceConfig<CreatorMap>['creators']
+  >,
+}: BuildCreateSliceConfig<CreatorMap> = {}) {
   const creators: Record<
     string,
     ReducerCreator<RegisteredReducerType>['define']
@@ -904,7 +906,7 @@ export function buildCreateSlice<
   }
 
   for (const [name, creator] of Object.entries<
-    ReducerCreator<RegisteredReducerType>
+    ReducerCreator<CreatorMap[string]>
   >(creatorMap)) {
     if (name === 'reducer' || name === 'preparedReducer') {
       throw new Error('Cannot use reserved creator name: ' + name)
@@ -916,7 +918,9 @@ export function buildCreateSlice<
       throw new Error('Cannot use reserved creator type: ' + creator.type)
     }
     creators[name] = creator.define
-    handlers[creator.type] = creator.handle
+    if ('handle' in creator) {
+      handlers[creator.type] = creator.handle
+    }
   }
   return function createSlice<
     State,
