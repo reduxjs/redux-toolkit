@@ -600,6 +600,155 @@ const { selectValue } = counterSlice.getSelectors(
 
 :::
 
+## Custom creators
+
+TODO: a blurb introducing the idea of custom creators
+
+###
+
+### Reducer definitions
+
+A reducer definition is an object (or function) with a `_reducerDefinitionType` property indicating which creator should handle it. Other than this property, it is entirely up to you what this definition object can look like.
+
+For example, the `create.preparedReducer` creator uses a definition that looks like `{ prepare, reducer }`.
+
+The callback form of `reducers` should return an object of reducer definitions, by calling creators and nesting the result of each under a key.
+
+```js no-transpile
+reducers: (create) => ({
+  addTodo: create.preparedReducer(
+    (todo) => ({ payload: { id: nanoid(), ...todo } }),
+    (state, action) => {
+      state.push(action.payload)
+    }
+  ),
+})
+// becomes
+const definitions = {
+  addTodo: {
+    _reducerDefinitionType: 'reducerWithPrepare',
+    prepare: (todo) => ({ payload: { id: nanoid(), ...todo } }),
+    reducer: (state, action) => {
+      state.push(action.payload)
+    },
+  },
+}
+```
+
+Typically a creator will return a [single reducer definition](#single-definitions), but it could return an object of [multiple definitions](#multiple-definitions) to be spread into the final object, or [something else entirely](#other)!
+
+### Creator definitions
+
+A creator definition is an object with a `type` property, a `create` property, and an optional `handle` method.
+
+The `type` property should be the same constant used for reducer definitions to be handled by this creator. To avoid collision, we recommend using Symbols for this. It's also used for defining/retrieving types - see [Typescript](#typescript).
+
+```ts no-transpile
+const reducerCreatorType = Symbol()
+
+const reducerCreator: ReducerCreator<typeof reducerCreatorType> = {
+  type: reducerCreatorType,
+  create(reducer) {
+    return {
+      _reducerDefinitionType: reducerCreatorType,
+      reducer,
+    }
+  },
+  handle({ reducerName, type }, definition, context) {
+    const actionCreator = createAction(type)
+    context
+      .addCase(actionCreator, definition.reducer)
+      .exposeAction(reducerName, actionCreator)
+      .exposeCaseReducer(reducerName, reducer)
+  },
+}
+```
+
+#### `create`
+
+The `create` property is the value that will be attached to the `create` object, before it's passed to the `reducers` callback.
+
+Typically, it'll be a function (meaning the `this` value will be the final `create` object when called), but it could be anything - and the function could have additional methods attached.
+
+The actual name the creator will be nested under is taken from the `buildCreateSlice` call. For example, `buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })` results in the creator being available as `create.asyncThunk`.
+
+See the [common applications](#common-applications) section for some examples of these.
+
+#### `handle`
+
+The `handle` callback for a creator will be called with any reducer definitions with a matching `_reducerDefinitionType` property.
+
+:::note
+A creator only needs a `handle` callback if it expects to be called with reducer definitions. If it only calls other creators (see [multiple definitions](#multiple-definitions)), it can omit the `handle`.
+:::
+
+It receives three arguments: details about the reducer, the definition, and a `context` object with methods to modify the slice.
+
+The reducer details object has two properties:
+
+- `reducerName` - the key the reducer definition was under (e.g. `addTodo`)
+- `type` - the automatically generated type string for the reducer (e.g. `todos/addTodo`)
+
+The context object includes:
+
+#### `addCase`
+
+The same as [`addCase`](./createReducer#builderaddcase) for `createReducer` and `extraReducers`. Adds a case reducer for a given action type, and can receive an action type string or an action creator with a `.type` property.
+
+```ts no-transpile
+const action = createAction(type)
+context.addCase(action, reducer)
+```
+
+#### `addMatcher`
+
+The same as [`addMatcher`](./createReducer#builderaddmatcher) for `createReducer` and `extraReducers`. Adds a case reducer which will be called when a given matcher returns true.
+
+```ts no-transpile
+const matcher = isAnyOf(action, action2)
+context.addMatcher(matcher, reducer)
+```
+
+#### `exposeAction`
+
+Attaches a value to `slice.actions`. Receives the key to be set under (typically `reducerName`) and the value to be set.
+
+```ts no-transpile
+const action = createAction(type)
+context.exposeAction(reducerName, action)
+```
+
+#### `exposeCaseReducer`
+
+Attaches a value to `slice.caseReducers`. Receives the key to be set under (typically `reducerName`) and the value to be set.
+
+```ts no-transpile
+context.exposeCaseReducer(reducerName, reducer)
+```
+
+#### `getInitialState`
+
+Returns the initial state value for the slice. If a lazy state initializer has been provided, it will be called and a fresh value returned.
+
+```ts no-transpile
+const resetAction = createAction(type)
+const resetReducer = () => context.getInitialState()
+context
+  .addCase(resetAction, resetReducer)
+  .exposeAction(reducerName, resetAction)
+  .exposeCaseReducer(reducerName, resetReducer)
+```
+
+### Typescript
+
+### Common applications
+
+#### Single definitions
+
+#### Multiple definitions
+
+#### Other
+
 ## Examples
 
 ```ts
