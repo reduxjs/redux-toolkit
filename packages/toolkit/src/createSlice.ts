@@ -16,12 +16,7 @@ import type {
 import { createReducer, makeGetInitialState } from './createReducer'
 import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type {
-  Id,
-  KeysForValueOfType,
-  TypeGuard,
-  UnionToIntersection,
-} from './tsHelpers'
+import type { Id, TypeGuard, UnionToIntersection } from './tsHelpers'
 import type { InjectConfig } from './combineSlices'
 import type {
   AsyncThunk,
