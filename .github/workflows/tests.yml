@@ -149,7 +149,7 @@ jobs:
       fail-fast: false
       matrix:
         node: ['18.x']
-        example: ['cra4', 'cra5', 'next', 'vite', 'node-standard', 'node-esm']
+        example: ['cra4', 'cra5', 'next', 'vite', 'node-standard', 'node-esm', 'expo']
     defaults:
       run:
         working-directory: ./examples/publish-ci/${{ matrix.example }}
@@ -182,6 +182,13 @@ jobs:
 
       - name: Show installed RTK versions
         run: yarn info @reduxjs/toolkit && yarn why @reduxjs/toolkit
+
+      - name: Set up JDK 17 for React Native build
+        if: matrix.example == 'react-native' || matrix.example == 'expo'
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17.x'
+          distribution: 'temurin'
 
       - name: Build example
         run: NODE_OPTIONS=--openssl-legacy-provider yarn build

@@ -5813,6 +5813,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@graphql-typed-document-node/core@npm:^3.2.0":
+  version: 3.2.0
+  resolution: "@graphql-typed-document-node/core@npm:3.2.0"
+  peerDependencies:
+    graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+  checksum: fa44443accd28c8cf4cb96aaaf39d144a22e8b091b13366843f4e97d19c7bfeaf609ce3c7603a4aeffe385081eaf8ea245d078633a7324c11c5ec4b2011bb76d
+  languageName: node
+  linkType: hard
+
 "@handlebars/parser@npm:^1.1.0":
   version: 1.1.0
   resolution: "@handlebars/parser@npm:1.1.0"
@@ -6995,47 +7004,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@reduxjs/toolkit@npm:1.8.1":
-  version: 1.8.1
-  resolution: "@reduxjs/toolkit@npm:1.8.1"
-  dependencies:
-    immer: ^9.0.7
-    redux: ^4.1.2
-    redux-thunk: ^2.4.1
-    reselect: ^4.1.5
-  peerDependencies:
-    react: ^16.9.0 || ^17.0.0 || ^18
-    react-redux: ^7.2.1 || ^8.0.0-beta
-  peerDependenciesMeta:
-    react:
-      optional: true
-    react-redux:
-      optional: true
-  checksum: be5cdea975a8a631fe2d88cafc7077554c7bc3621a4a7031556cc17e5dec26359018f2614c325895e7ab50865f5c511025d1e589ca01de7e2bd88d95e0a1a963
-  languageName: node
-  linkType: hard
-
-"@reduxjs/toolkit@npm:^1.6.0, @reduxjs/toolkit@npm:^1.6.0-rc.1, @reduxjs/toolkit@npm:^1.8.0":
-  version: 1.9.1
-  resolution: "@reduxjs/toolkit@npm:1.9.1"
-  dependencies:
-    immer: ^9.0.16
-    redux: ^4.2.0
-    redux-thunk: ^2.4.2
-    reselect: ^4.1.7
-  peerDependencies:
-    react: ^16.9.0 || ^17.0.0 || ^18
-    react-redux: ^7.2.1 || ^8.0.2
-  peerDependenciesMeta:
-    react:
-      optional: true
-    react-redux:
-      optional: true
-  checksum: e6700a0d45198ab525c96ff0425fa0125fbdc37ce514f0c77c30225837113279ceec9190ac3da35cb20e77553e56342021788bbf17465819068c4db34cb3d87f
-  languageName: node
-  linkType: hard
-
-"@reduxjs/toolkit@workspace:packages/toolkit":
+"@reduxjs/toolkit@^1.6.0 || ^2.0.0, @reduxjs/toolkit@workspace:packages/toolkit":
   version: 0.0.0-use.local
   resolution: "@reduxjs/toolkit@workspace:packages/toolkit"
   dependencies:
@@ -7075,9 +7044,9 @@ __metadata:
     node-fetch: ^2.6.1
     prettier: ^2.2.1
     query-string: ^7.0.1
-    redux: ^5.0.0
-    redux-thunk: ^3.0.1
-    reselect: ^5.0.0
+    redux: ^5.0.1
+    redux-thunk: ^3.1.0
+    reselect: ^5.0.1
     rimraf: ^3.0.2
     size-limit: ^4.11.0
     tslib: ^1.10.0
@@ -7096,6 +7065,46 @@ __metadata:
       optional: true
   languageName: unknown
   linkType: soft
+
+"@reduxjs/toolkit@npm:1.8.1":
+  version: 1.8.1
+  resolution: "@reduxjs/toolkit@npm:1.8.1"
+  dependencies:
+    immer: ^9.0.7
+    redux: ^4.1.2
+    redux-thunk: ^2.4.1
+    reselect: ^4.1.5
+  peerDependencies:
+    react: ^16.9.0 || ^17.0.0 || ^18
+    react-redux: ^7.2.1 || ^8.0.0-beta
+  peerDependenciesMeta:
+    react:
+      optional: true
+    react-redux:
+      optional: true
+  checksum: be5cdea975a8a631fe2d88cafc7077554c7bc3621a4a7031556cc17e5dec26359018f2614c325895e7ab50865f5c511025d1e589ca01de7e2bd88d95e0a1a963
+  languageName: node
+  linkType: hard
+
+"@reduxjs/toolkit@npm:^1.6.0, @reduxjs/toolkit@npm:^1.6.0-rc.1, @reduxjs/toolkit@npm:^1.8.0":
+  version: 1.9.1
+  resolution: "@reduxjs/toolkit@npm:1.9.1"
+  dependencies:
+    immer: ^9.0.16
+    redux: ^4.2.0
+    redux-thunk: ^2.4.2
+    reselect: ^4.1.7
+  peerDependencies:
+    react: ^16.9.0 || ^17.0.0 || ^18
+    react-redux: ^7.2.1 || ^8.0.2
+  peerDependenciesMeta:
+    react:
+      optional: true
+    react-redux:
+      optional: true
+  checksum: e6700a0d45198ab525c96ff0425fa0125fbdc37ce514f0c77c30225837113279ceec9190ac3da35cb20e77553e56342021788bbf17465819068c4db34cb3d87f
+  languageName: node
+  linkType: hard
 
 "@rollup/plugin-alias@npm:^3.1.1":
   version: 3.1.2
@@ -7238,9 +7247,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rtk-query/graphql-request-base-query@workspace:packages/rtk-query-graphql-request-base-query"
   dependencies:
-    "@reduxjs/toolkit": ^1.6.0
+    "@reduxjs/toolkit": ^1.6.0 || ^2.0.0
     graphql: ^16.5.0
-    graphql-request: ^4.0.0
+    graphql-request: ^4.0.0 || ^5.0.0 || ^6.0.0
     microbundle: ^0.13.3
     rimraf: ^3.0.2
     typescript: ^4.3.4
@@ -12652,6 +12661,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cross-fetch@npm:^3.1.5":
+  version: 3.1.6
+  resolution: "cross-fetch@npm:3.1.6"
+  dependencies:
+    node-fetch: ^2.6.11
+  checksum: 704b3519ab7de488328cc49a52cf1aa14132ec748382be5b9557b22398c33ffa7f8c2530e8a97ed8cb55da52b0a9740a9791d361271c4591910501682d981d9c
+  languageName: node
+  linkType: hard
+
 "cross-spawn@npm:^6.0.0":
   version: 6.0.5
   resolution: "cross-spawn@npm:6.0.5"
@@ -16429,16 +16447,15 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"graphql-request@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "graphql-request@npm:4.0.0"
+"graphql-request@npm:^4.0.0 || ^5.0.0 || ^6.0.0":
+  version: 6.1.0
+  resolution: "graphql-request@npm:6.1.0"
   dependencies:
-    cross-fetch: ^3.0.6
-    extract-files: ^9.0.0
-    form-data: ^3.0.0
+    "@graphql-typed-document-node/core": ^3.2.0
+    cross-fetch: ^3.1.5
   peerDependencies:
     graphql: 14 - 16
-  checksum: 0d16c7f06360679c022faaa19554c2693e200263beae0dec920b0668f6c48b0d08de6e1155a50a050283a58a878b29b04db129a2d932a645bfadbe8d55530243
+  checksum: 6d62630a0169574442320651c1f7626c0c602025c3c46b19e09417c9579bb209306ee63de9793a03be2e1701bb7f13971f8545d99bc6573e340f823af0ad35b2
   languageName: node
   linkType: hard
 
@@ -21430,6 +21447,20 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"node-fetch@npm:^2.6.11":
+  version: 2.6.11
+  resolution: "node-fetch@npm:2.6.11"
+  dependencies:
+    whatwg-url: ^5.0.0
+  peerDependencies:
+    encoding: ^0.1.0
+  peerDependenciesMeta:
+    encoding:
+      optional: true
+  checksum: 249d0666a9497553384d46b5ab296ba223521ac88fed4d8a17d6ee6c2efb0fc890f3e8091cafe7f9fba8151a5b8d925db2671543b3409a56c3cd522b468b47b3
+  languageName: node
+  linkType: hard
+
 "node-forge@npm:^1":
   version: 1.3.1
   resolution: "node-forge@npm:1.3.1"
@@ -25125,12 +25156,12 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"redux-thunk@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "redux-thunk@npm:3.0.1"
+"redux-thunk@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "redux-thunk@npm:3.1.0"
   peerDependencies:
     redux: ^5.0.0
-  checksum: 17c918470a91c6401739e58590ae7c4d1e3590ac51d0d5f2275215a78eb47f64021de98ae7425398c6d2041e0f5bd9b6ce4727ae0d5c53b70df69a836f80cb57
+  checksum: bea96f8233975aad4c9f24ca1ffd08ac7ec91eaefc26e7ba9935544dc55d7f09ba2aa726676dab53dc79d0c91e8071f9729cddfea927f4c41839757d2ade0f50
   languageName: node
   linkType: hard
 
@@ -25152,10 +25183,10 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"redux@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "redux@npm:5.0.0"
-  checksum: be49160d4bd01e10108c425ade999f1b456204895c4bdd0c7825ab09efffded51955c5c242847406a7b3f273e9011a9c102848c512a099a75617b97b13d2cca8
+"redux@npm:^5.0.1":
+  version: 5.0.1
+  resolution: "redux@npm:5.0.1"
+  checksum: e74affa9009dd5d994878b9a1ce30d6569d986117175056edb003de2651c05b10fe7819d6fa94aea1a94de9a82f252f986547f007a2fbeb35c317a2e5f5ecf2c
   languageName: node
   linkType: hard
 
@@ -25611,10 +25642,10 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"reselect@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "reselect@npm:5.0.0"
-  checksum: 9bf3e6ca753d276c45436d4404d952bfc0fc7de2e4b3832df3bafde941edff274f703100fcd2d1f753e4b14a65ef1af8bd0bc68ea5e76ccf2ddde5d2aa27968f
+"reselect@npm:^5.0.1":
+  version: 5.0.1
+  resolution: "reselect@npm:5.0.1"
+  checksum: 7663b4c28a0e908e74dc25262e1d813d028b9c2ee96160cb0f40a16f09c5ac632fa16af6bafede7eb0ff16ab2d5bea2cd8814d9a9488e0262b8317fef90b1dc0
   languageName: node
   linkType: hard
 
