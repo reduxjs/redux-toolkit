@@ -109,15 +109,11 @@ export interface SliceReducerCreators<
   [ReducerType.asyncThunk]: {
     create: AsyncThunkCreator<State>
     actions: {
-      [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
+      [ReducerName in ReducerNamesOfType<
+        CaseReducers,
+        ReducerType.asyncThunk
+      >]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
         State,
-        any,
-        any,
-        any
-      >
-        ? ReducerName
-        : never]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
-        any,
         infer ThunkArg,
         infer Returned,
         infer ThunkApiConfig
