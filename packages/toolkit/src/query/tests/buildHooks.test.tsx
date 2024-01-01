@@ -35,7 +35,7 @@ import { server } from './mocks/server'
 import type { UnknownAction } from 'redux'
 import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
 import type { SerializedError } from '@reduxjs/toolkit'
-import { createListenerMiddleware, configureStore } from '@reduxjs/toolkit'
+import { createListenerMiddleware, configureStore, createSlice } from '@reduxjs/toolkit'
 import { delay } from '../../utils'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 import { countObjectKeys } from '../utils/countObjectKeys'
@@ -2052,7 +2052,19 @@ describe('hooks with createApi defaults set', () => {
       }),
     })
 
-    const storeRef = setupApiStore(api)
+    const counterSlice = createSlice({
+      name: "counter",
+      initialState: { count: 0 },
+      reducers: {
+        increment(state) {
+          state.count++
+        }
+      }
+    })
+
+    const storeRef = setupApiStore(api, {
+      counter: counterSlice.reducer,
+    })
 
     expectExactType(api.useGetPostsQuery)(api.endpoints.getPosts.useQuery)
     expectExactType(api.useUpdatePostMutation)(
@@ -2315,6 +2327,52 @@ describe('hooks with createApi defaults set', () => {
 
       fireEvent.click(addBtn)
       await waitFor(() => expect(getRenderCount()).toBe(3))
+    })
+
+    test('useQuery with selectFromResult option does not update when unrelated data in the store changes', async () => {
+      function Posts() {
+        const { posts } = api.endpoints.getPosts.useQuery(undefined, {
+          selectFromResult: ({ data }) => ({
+            // Intentionally use an unstable reference to force a rerender
+            posts: data?.filter((post) => post.name.includes('post')),
+          }),
+        })
+
+        getRenderCount = useRenderCounter()
+
+        return (
+          <div>
+            {posts?.map((post) => (
+              <div key={post.id}>{post.name}</div>
+            ))}
+          </div>
+        )
+      }
+
+      function CounterButton() {
+        return (
+          <div
+            data-testid="incrementButton"
+            onClick={() => storeRef.store.dispatch(counterSlice.actions.increment())}
+          >
+            Increment Count
+          </div>
+        )
+      }
+
+      render(
+        <div>
+          <Posts />
+          <CounterButton />
+        </div>,
+        { wrapper: storeRef.wrapper }
+      )
+
+      await waitFor(() => expect(getRenderCount()).toBe(2))
+
+      const incrementBtn = screen.getByTestId('incrementButton')
+      fireEvent.click(incrementBtn)
+      expect(getRenderCount()).toBe(2)
     })
 
     test('useQuery with selectFromResult option has a type error if the result is not an object', async () => {
