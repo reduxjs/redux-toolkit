@@ -460,7 +460,7 @@ export interface CreateSliceOptions<
    */
   reducers:
     | ValidateSliceCaseReducers<State, CR>
-    | ((creators: ReducerCreators<State, CreatorMap>) => CR)
+    | ((create: ReducerCreators<State, CreatorMap>) => CR)
 
   /**
    * A callback that receives a *builder* object to define

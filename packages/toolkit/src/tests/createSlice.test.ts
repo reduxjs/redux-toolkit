@@ -8,6 +8,7 @@ import type {
   CaseReducerDefinition,
   PayloadAction,
   PayloadActionCreator,
+  PreparedCaseReducerDefinition,
   ReducerCreator,
   ReducerCreators,
   ReducerDefinition,
@@ -33,6 +34,8 @@ import {
   createNextState,
   reducerCreator,
   ReducerType,
+  prepareAutoBatched,
+  SHOULD_AUTOBATCH,
 } from '@reduxjs/toolkit'
 import {
   mockConsole,
@@ -51,6 +54,7 @@ const fetchCreatorType = Symbol()
 const paginationCreatorType = Symbol()
 const historyMethodsCreatorType = Symbol()
 const undoableCreatorType = Symbol()
+const batchedCreatorType = Symbol()
 
 describe('createSlice', () => {
   let restore: () => void
@@ -1306,6 +1310,32 @@ describe('createSlice', () => {
         store.dispatch(reset())
         expect(selectValue(store.getState())).toBe(1)
       })
+      test('batchable', () => {
+        const batchedCreator: ReducerCreator<typeof batchedCreatorType> = {
+          type: batchedCreatorType,
+          define(this: ReducerCreators<any>, reducer: CaseReducer<any, any>) {
+            return this.preparedReducer(prepareAutoBatched(), reducer) as any
+          },
+        }
+        const createBatchSlice = buildCreateSlice({
+          creators: { batchedReducer: batchedCreator },
+        })
+        const counterSlice = createBatchSlice({
+          name: 'counter',
+          initialState: { value: 0 },
+          reducers: (create) => ({
+            increment: create.batchedReducer((state) => {
+              state.value++
+            }),
+            incrementBy: create.batchedReducer<number>((state, { payload }) => {
+              state.value += payload
+            }),
+          }),
+        })
+        const { increment, incrementBy } = counterSlice.actions
+        expect(increment().meta).toEqual({ [SHOULD_AUTOBATCH]: true })
+        expect(incrementBy(1).meta).toEqual({ [SHOULD_AUTOBATCH]: true })
+      })
       test.skip('creators can discourage their use if state is incompatible (types only)', () => {
         const createFetchSlice = buildCreateSlice({
           creators: { fetchReducers: fetchCreator },
@@ -1486,6 +1516,28 @@ declare module '@reduxjs/toolkit' {
           >
         ) => { payload: P; meta: UndoableOptions | undefined }
       }
+      actions: {}
+      caseReducers: {}
+    }
+    [batchedCreatorType]: {
+      create(
+        this: ReducerCreators<State>,
+        reducer: CaseReducer<State, PayloadAction>
+      ): PreparedCaseReducerDefinition<
+        State,
+        () => { payload: undefined; meta: unknown }
+      >
+      create<Payload>(
+        this: ReducerCreators<State>,
+        reducer: CaseReducer<State, PayloadAction<Payload>>
+      ): PreparedCaseReducerDefinition<
+        State,
+        IfMaybeUndefined<
+          Payload,
+          (payload?: Payload) => { payload: Payload; meta: unknown },
+          (payload: Payload) => { payload: Payload; meta: unknown }
+        >
+      >
       actions: {}
       caseReducers: {}
     }
