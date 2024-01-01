@@ -81,7 +81,6 @@ export type {
   CaseReducerWithPrepare,
   ReducerCreators,
   SliceSelectors,
-  ReducerTypes,
   SliceReducerCreators,
   ReducerDefinition,
   ReducerCreator,

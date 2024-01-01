@@ -1354,14 +1354,6 @@ interface UndoableOptions {
 }
 
 declare module '@reduxjs/toolkit' {
-  export interface ReducerTypes {
-    [loaderCreatorType]: true
-    [conditionCreatorType]: true
-    [fetchCreatorType]: true
-    [paginationCreatorType]: true
-    [historyMethodsCreatorType]: true
-    [undoableCreatorType]: true
-  }
   export interface SliceReducerCreators<
     State = any,
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,

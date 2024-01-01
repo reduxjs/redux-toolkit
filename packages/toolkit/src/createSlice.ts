@@ -39,9 +39,7 @@ export enum ReducerType {
   asyncThunk = 'asyncThunk',
 }
 
-export interface ReducerTypes extends Record<ReducerType, true> {}
-
-export type RegisteredReducerType = KeysForValueOfType<ReducerTypes, true>
+export type RegisteredReducerType = keyof SliceReducerCreators
 
 export interface ReducerDefinition<
   T extends RegisteredReducerType = RegisteredReducerType
