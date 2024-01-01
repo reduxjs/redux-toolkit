@@ -604,8 +604,6 @@ const { selectValue } = counterSlice.getSelectors(
 
 TODO: a blurb introducing the idea of custom creators
 
-###
-
 ### Reducer definitions
 
 A reducer definition is an object (or function) with a `_reducerDefinitionType` property indicating which creator should handle it. Other than this property, it is entirely up to you what this definition object can look like.
@@ -679,7 +677,7 @@ See the [common applications](#common-applications) section for some examples of
 The `handle` callback of a creator will be called for any reducer definitions with a matching `_reducerDefinitionType` property.
 
 :::note
-A creator only needs a `handle` callback if it expects to be called with reducer definitions. If it only calls other creators (see [multiple definitions](#multiple-definitions)), it can omit the `handle`.
+A creator only needs a `handle` callback if it expects to be called with reducer definitions. If it only calls other creators (see [Using `this` to access other creators](#create-1)), it can omit the `handle`.
 :::
 
 It receives three arguments: details about the reducer, the definition, and a `context` object with methods to modify the slice.
@@ -740,6 +738,170 @@ context
 ```
 
 ### Typescript
+
+The Typescript system for custom slice creators uses a "creator registry" system similar to the module system for [RTK Query](/rtk-query/usage/customizing-create-api#creating-your-own-module).
+
+Creators are registered by using module augmentation to add a new key (their unique `type`) to the `SliceReducerCreators` interface. The interface receives three type parameters (`State`, `CaseReducers` and `Name`), and each entry should have three keys (`create`, `actions`, and `caseReducers`).
+
+```ts no-transpile
+const reducerCreatorType = Symbol()
+
+declare module '@reduxjs/toolkit' {
+  export interface SliceReducerCreators<
+    State = any,
+    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    Name extends string = string
+  > {
+    [reducerCreatorType]: {
+      create(): ReducerDefinition<typeof reducerCreatorType>
+      actions: {}
+      caseReducers: {}
+    }
+  }
+}
+```
+
+:::danger
+
+All three keys must be provided, even if the creator only returns definitions for other creators. If the creator doesn't expose any actions/case reducers itself, leave those keys as `{}`.
+
+:::
+
+#### `create`
+
+The type of the `create` property of the creator definition. Typically a function signature, but this isn't required.
+
+:::tip Using `this` to access other creators
+
+Assuming the creator is called as `create.yourCreator()`, the `this` value for the function is the create object - meaning you can call other creators on the same object.
+
+However, this should be specifically included in the function signature, so Typescript can warn if called with an incorrect context (for example, if the user destructures from the `create` value).
+
+```ts no-transpile
+const batchedCreatorType = Symbol()
+
+declare module '@reduxjs/toolkit' {
+  export interface SliceReducerCreators<
+    State = any,
+    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    Name extends string = string
+  > {
+    [batchedCreatorType]: {
+      // highlight-start
+      create<Payload>(
+        this: ReducerCreators<State, {}>,
+        reducer: CaseReducer<State, PayloadAction<Payload>>
+      ): PreparedCaseReducerDefinition<
+        State,
+        (payload: Payload) => { payload: Payload; meta: unknown }
+      >
+      // highlight-end
+      actions: {}
+      caseReducers: {}
+    }
+  }
+}
+
+const batchedCreator: ReducerCreator<typeof batchedCreatorType> = {
+  type: batchedCreatorType,
+  create(reducer) {
+    return this.preparedReducer(prepareAutoBatched(), reducer)
+  },
+}
+```
+
+The second argument to the `ReducerCreators` type is a map from creator names to types, which you should supply if you're expecting to use any custom creators (anything other than `reducer` and `preparedReducer`) within your own creator. For example, `ReducerCreators<State, { asyncThunk: typeof asyncThunkCreator.type }>` would allow you to call `this.asyncThunk`.
+
+:::
+
+#### `actions`
+
+The actions property will typically be a [mapped type](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html) over the `CaseReducers` type parameter, returning what the creator's `handle` would expose when given that definition.
+
+The `ReducerNamesOfType` utility is exported to easily filter down to reducers that would be passed to the `handle` callback.
+
+For example, with (a simplified version of) the `asyncThunk` creator:
+
+```ts no-transpile
+const asyncThunkCreatorType = Symbol()
+
+declare module '@reduxjs/toolkit' {
+  export interface SliceReducerCreators<
+    State = any,
+    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    Name extends string = string
+  > {
+    [asyncThunkCreatorType]: {
+      create<ThunkArg, Returned>(
+        payloadCreator: AsyncThunkPayloadCreator<ThunkArg, Returned>
+      ): AsyncThunkReducerDefinition<State, ThunkArg, Returned>
+      // highlight-start
+      actions: {
+        [ReducerName in ReducerNamesOfType<
+          CaseReducers,
+          typeof asyncThunkCreatorType
+        >]: CaseReducers[ReducerName] extends AsyncThunkReducerDefinition<
+          State,
+          infer ThunkArg,
+          infer Returned
+        >
+          ? AsyncThunk<ThunkArg, Returned>
+          : never
+      }
+      // highlight-end
+      caseReducers: {}
+    }
+  }
+}
+```
+
+The `actions` returned from all the creators when passed the `CaseReducers` definitions are all intersected to create the final type for `slice.actions`.
+
+#### `caseReducers`
+
+Similar to `actions`, except for `slice.caseReducers`.
+
+For example, with the `preparedReducer` creator:
+
+```ts no-transpile
+const preparedReducerType = Symbol()
+
+declare module '@reduxjs/toolkit' {
+  export interface SliceReducerCreators<
+    State = any,
+    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    Name extends string = string
+  > {
+    [preparedReducerType]: {
+      create<Prepare extends PrepareAction<any>>(
+        prepare: Prepare,
+        caseReducer: CaseReducer<State, ActionForPrepare<Prepare>>
+      ): PreparedCaseReducerDefinition<State, Prepare>
+      actions: {
+        [ReducerName in ReducerNamesOfType<
+          CaseReducers,
+          typeof preparedReducerType
+        >]: CaseReducers[ReducerName] extends { prepare: any }
+          ? ActionCreatorForCaseReducerWithPrepare<
+              CaseReducers[ReducerName],
+              SliceActionType<Name, ReducerName>
+            >
+          : never
+      }
+      // highlight-start
+      caseReducers: {
+        [ReducerName in ReducerNamesOfType<
+          CaseReducers,
+          typeof preparedReducerType
+        >]: CaseReducers[ReducerName] extends { reducer: infer Reducer }
+          ? Reducer
+          : never
+      }
+      // highlight-end
+    }
+  }
+}
+```
 
 ### Common applications
 
