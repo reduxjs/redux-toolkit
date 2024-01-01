@@ -138,7 +138,7 @@ const todosSlice = createSlice({
 
 Alternatively, the `reducers` field can be a callback which receives a "create" object.
 
-The main benefit of this is that you can create [async thunks](./createAsyncThunk) as part of your slice (though for bundle size reasons, you [need a bit of setup for this](#createasyncthunk)). Types are also slightly simplified for prepared reducers.
+The main benefit of this is that you can use [custom creators](#custom-creators) such as [async thunks](./createAsyncThunk) as part of your slice (though for bundle size reasons, you [need a bit of setup for this](#createasyncthunk)). Types are also slightly simplified for prepared reducers.
 
 ```ts title="Creator callback for reducers"
 import { buildCreateSlice, asyncThunkCreator, nanoid } from '@reduxjs/toolkit'
@@ -248,7 +248,7 @@ Creates an async thunk instead of an action creator.
 
 To avoid pulling `createAsyncThunk` into the bundle size of `createSlice` by default, some extra setup is required to use `create.asyncThunk`.
 
-The version of `createSlice` exported from RTK will throw an error if `create.asyncThunk` is called.
+The version of `createSlice` exported from RTK will not include an `asyncThunk` property on the `create` object.
 
 Instead, import `buildCreateSlice` and `asyncThunkCreator`, and create your own version of `createSlice`:
 
@@ -676,7 +676,7 @@ See the [common applications](#common-applications) section for some examples of
 
 #### `handle`
 
-The `handle` callback for a creator will be called with any reducer definitions with a matching `_reducerDefinitionType` property.
+The `handle` callback of a creator will be called for any reducer definitions with a matching `_reducerDefinitionType` property.
 
 :::note
 A creator only needs a `handle` callback if it expects to be called with reducer definitions. If it only calls other creators (see [multiple definitions](#multiple-definitions)), it can omit the `handle`.
