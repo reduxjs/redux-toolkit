@@ -1418,9 +1418,7 @@ declare module '@reduxjs/toolkit' {
       caseReducers: {}
     }
     [fetchCreatorType]: {
-      create(this: ReducerCreators<State, {}>): State extends FetchState<
-        infer Data
-      >
+      create(this: ReducerCreators<State>): State extends FetchState<infer Data>
         ? {
             start: CaseReducerDefinition<State, PayloadAction>
             success: CaseReducerDefinition<State, PayloadAction<Data>>
@@ -1430,7 +1428,7 @@ declare module '@reduxjs/toolkit' {
       caseReducers: {}
     }
     [paginationCreatorType]: {
-      create(this: ReducerCreators<State, {}>): State extends PaginationState
+      create(this: ReducerCreators<State>): State extends PaginationState
         ? {
             nextPage: CaseReducerDefinition<State, PayloadAction>
             previousPage: CaseReducerDefinition<State, PayloadAction>
@@ -1441,9 +1439,7 @@ declare module '@reduxjs/toolkit' {
       caseReducers: {}
     }
     [historyMethodsCreatorType]: {
-      create(
-        this: ReducerCreators<State, {}>
-      ): State extends HistoryState<unknown>
+      create(this: ReducerCreators<State>): State extends HistoryState<unknown>
         ? {
             undo: CaseReducerDefinition<State, PayloadAction>
             redo: CaseReducerDefinition<State, PayloadAction>
@@ -1474,7 +1470,7 @@ declare module '@reduxjs/toolkit' {
     [undoableCreatorType]: {
       create: {
         <A extends Action & { meta?: UndoableOptions }>(
-          this: ReducerCreators<State, {}>,
+          this: ReducerCreators<State>,
           reducer: CaseReducer<
             State extends HistoryState<infer Data> ? Data : never,
             NoInfer<A>

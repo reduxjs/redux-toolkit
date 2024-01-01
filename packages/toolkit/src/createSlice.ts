@@ -152,7 +152,7 @@ export interface SliceReducerCreators<
 
 export type ReducerCreators<
   State,
-  CreatorMap extends Record<string, RegisteredReducerType>
+  CreatorMap extends Record<string, RegisteredReducerType> = {}
 > = {
   reducer: SliceReducerCreators<State>[ReducerType.reducer]['create']
   preparedReducer: SliceReducerCreators<State>[ReducerType.reducerWithPrepare]['create']

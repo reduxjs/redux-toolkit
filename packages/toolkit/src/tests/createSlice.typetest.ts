@@ -822,7 +822,7 @@ const value = actionCreators.anyKey
   }: {
     name: string
     initialState: GenericState<T>
-    reducers: (create: ReducerCreators<GenericState<T>, {}>) => Reducers
+    reducers: (create: ReducerCreators<GenericState<T>>) => Reducers
   }) => {
     return createSlice({
       name,
