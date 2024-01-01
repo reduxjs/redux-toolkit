@@ -264,7 +264,7 @@ type ReducerDefinitionsForType<Type extends RegisteredReducerType> = {
 
 export type ReducerCreator<Type extends RegisteredReducerType> = {
   type: Type
-  define: SliceReducerCreators[Type]['create']
+  create: SliceReducerCreators[Type]['create']
 } & (ReducerDefinitionsForType<Type> extends never
   ? {}
   : {
@@ -782,7 +782,7 @@ function getType(slice: string, actionKey: string): string {
 
 export const reducerCreator: ReducerCreator<ReducerType.reducer> = {
   type: ReducerType.reducer,
-  define(caseReducer: CaseReducer<any, any>) {
+  create(caseReducer: CaseReducer<any, any>) {
     return Object.assign(
       {
         // hack so the wrapping function has the same name as the original
@@ -807,7 +807,7 @@ export const reducerCreator: ReducerCreator<ReducerType.reducer> = {
 export const preparedReducerCreator: ReducerCreator<ReducerType.reducerWithPrepare> =
   {
     type: ReducerType.reducerWithPrepare,
-    define(prepare, reducer) {
+    create(prepare, reducer) {
       return {
         _reducerDefinitionType: ReducerType.reducerWithPrepare,
         prepare,
@@ -824,7 +824,7 @@ export const preparedReducerCreator: ReducerCreator<ReducerType.reducerWithPrepa
 
 export const asyncThunkCreator: ReducerCreator<ReducerType.asyncThunk> = {
   type: ReducerType.asyncThunk,
-  define: /* @__PURE__ */ (() => {
+  create: /* @__PURE__ */ (() => {
     function asyncThunk(
       payloadCreator: AsyncThunkPayloadCreator<any, any>,
       config: AsyncThunkSliceReducerConfig<any, any>
@@ -887,10 +887,10 @@ export function buildCreateSlice<
 }: BuildCreateSliceConfig<CreatorMap> = {}) {
   const creators: Record<
     string,
-    ReducerCreator<RegisteredReducerType>['define']
+    ReducerCreator<RegisteredReducerType>['create']
   > = {
-    reducer: reducerCreator.define,
-    preparedReducer: preparedReducerCreator.define,
+    reducer: reducerCreator.create,
+    preparedReducer: preparedReducerCreator.create,
   }
   const handlers: Partial<
     Record<
@@ -914,7 +914,7 @@ export function buildCreateSlice<
     ) {
       throw new Error('Cannot use reserved creator type: ' + creator.type)
     }
-    creators[name] = creator.define
+    creators[name] = creator.create
     if ('handle' in creator) {
       handlers[creator.type] = creator.handle
     }

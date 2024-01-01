@@ -874,7 +874,7 @@ describe('createSlice', () => {
   describe('custom slice reducer creators', () => {
     const loaderCreator: ReducerCreator<typeof loaderCreatorType> = {
       type: loaderCreatorType,
-      define(reducers) {
+      create(reducers) {
         return {
           _reducerDefinitionType: loaderCreatorType,
           ...reducers,
@@ -969,7 +969,7 @@ describe('createSlice', () => {
 
     const conditionCreator: ReducerCreator<typeof conditionCreatorType> = {
       type: conditionCreatorType,
-      define(makePredicate) {
+      create(makePredicate) {
         return { _reducerDefinitionType: conditionCreatorType, makePredicate }
       },
       handle({ reducerName, type }, { makePredicate }, context) {
@@ -1075,7 +1075,7 @@ describe('createSlice', () => {
     describe('creators can return multiple definitions to be spread', () => {
       const fetchCreator: ReducerCreator<typeof fetchCreatorType> = {
         type: fetchCreatorType,
-        define() {
+        create() {
           return {
             start: this.reducer((state: FetchState<unknown>) => {
               state.status = 'loading'
@@ -1113,7 +1113,7 @@ describe('createSlice', () => {
         const paginationCreator: ReducerCreator<typeof paginationCreatorType> =
           {
             type: paginationCreatorType,
-            define() {
+            create() {
               return {
                 nextPage: this.reducer((state: PaginationState) => {
                   state.page++
@@ -1175,7 +1175,7 @@ describe('createSlice', () => {
           typeof historyMethodsCreatorType
         > = {
           type: historyMethodsCreatorType,
-          define() {
+          create() {
             return {
               undo: this.reducer((state: HistoryState<unknown>) => {
                 const historyEntry = state.past.pop()
@@ -1235,7 +1235,7 @@ describe('createSlice', () => {
             }
             return finalState
           }
-        } as ReducerCreator<typeof undoableCreatorType>['define']
+        } as ReducerCreator<typeof undoableCreatorType>['create']
 
         makeUndoable.withoutPayload = () => (options) => ({
           payload: undefined,
@@ -1249,7 +1249,7 @@ describe('createSlice', () => {
 
         const undoableCreator: ReducerCreator<typeof undoableCreatorType> = {
           type: undoableCreatorType,
-          define: makeUndoable,
+          create: makeUndoable,
         }
 
         const createHistorySlice = buildCreateSlice({
@@ -1313,7 +1313,7 @@ describe('createSlice', () => {
       test('batchable', () => {
         const batchedCreator: ReducerCreator<typeof batchedCreatorType> = {
           type: batchedCreatorType,
-          define(this: ReducerCreators<any>, reducer: CaseReducer<any, any>) {
+          create(this: ReducerCreators<any>, reducer: CaseReducer<any, any>) {
             return this.preparedReducer(prepareAutoBatched(), reducer) as any
           },
         }
