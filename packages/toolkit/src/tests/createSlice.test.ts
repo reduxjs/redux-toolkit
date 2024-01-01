@@ -11,6 +11,7 @@ import type {
   ReducerCreator,
   ReducerCreators,
   ReducerDefinition,
+  ReducerNamesOfType,
   SliceActionType,
   SliceCaseReducers,
   ThunkAction,
@@ -1364,9 +1365,10 @@ declare module '@reduxjs/toolkit' {
         reducers: Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>
       ): LoaderReducerDefinition<State>
       actions: {
-        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends LoaderReducerDefinition<State>
-          ? ReducerName
-          : never]: (() => ThunkAction<
+        [ReducerName in ReducerNamesOfType<
+          CaseReducers,
+          typeof loaderCreatorType
+        >]: (() => ThunkAction<
           { loaderId: string; end: () => void },
           unknown,
           unknown,
@@ -1383,11 +1385,10 @@ declare module '@reduxjs/toolkit' {
         }
       }
       caseReducers: {
-        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends LoaderReducerDefinition<State>
-          ? ReducerName
-          : never]: Required<
-          Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>
-        >
+        [ReducerName in ReducerNamesOfType<
+          CaseReducers,
+          typeof loaderCreatorType
+        >]: Required<Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>>
       }
     }
     [conditionCreatorType]: {
@@ -1397,11 +1398,10 @@ declare module '@reduxjs/toolkit' {
         makePredicate: (...args: Args) => AnyListenerPredicate<unknown>
       }
       actions: {
-        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends ReducerDefinition<
+        [ReducerName in ReducerNamesOfType<
+          CaseReducers,
           typeof conditionCreatorType
-        >
-          ? ReducerName
-          : never]: CaseReducers[ReducerName] extends {
+        >]: CaseReducers[ReducerName] extends {
           makePredicate: (...args: infer Args) => AnyListenerPredicate<unknown>
         }
           ? (
@@ -1449,20 +1449,18 @@ declare module '@reduxjs/toolkit' {
           }
         : never
       actions: {
-        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends ReducerDefinition<
+        [ReducerName in ReducerNamesOfType<
+          CaseReducers,
           typeof historyMethodsCreatorType
-        >
-          ? ReducerName
-          : never]: CaseReducers[ReducerName] extends { type: 'reset' }
+        >]: CaseReducers[ReducerName] extends { type: 'reset' }
           ? PayloadActionCreator<void, SliceActionType<Name, ReducerName>>
           : never
       }
       caseReducers: {
-        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends ReducerDefinition<
+        [ReducerName in ReducerNamesOfType<
+          CaseReducers,
           typeof historyMethodsCreatorType
-        >
-          ? ReducerName
-          : never]: CaseReducers[ReducerName] extends { type: 'reset' }
+        >]: CaseReducers[ReducerName] extends { type: 'reset' }
           ? CaseReducer<State, PayloadAction>
           : never
       }

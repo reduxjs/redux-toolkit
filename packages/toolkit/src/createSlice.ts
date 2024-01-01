@@ -126,14 +126,10 @@ export interface SliceReducerCreators<
         : never
     }
     caseReducers: {
-      [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
-        State,
-        any,
-        any,
-        any
-      >
-        ? ReducerName
-        : never]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
+      [ReducerName in ReducerNamesOfType<
+        CaseReducers,
+        ReducerType.asyncThunk
+      >]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
         State,
         any,
         any,
@@ -282,6 +278,15 @@ export type ReducerCreator<Type extends RegisteredReducerType> = {
         context: ReducerHandlingContextMethods<State>
       ): void
     })
+
+export type ReducerNamesOfType<
+  CaseReducers extends SliceCaseReducers<any>,
+  Type extends RegisteredReducerType
+> = {
+  [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<Type>
+    ? ReducerName
+    : never
+}[keyof CaseReducers]
 
 interface InjectIntoConfig<NewReducerPath extends string> extends InjectConfig {
   reducerPath?: NewReducerPath
