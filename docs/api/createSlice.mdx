@@ -600,6 +600,73 @@ const { selectValue } = counterSlice.getSelectors(
 
 :::
 
+## Examples
+
+```ts
+import { createSlice, createAction, configureStore } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
+import { combineReducers } from 'redux'
+
+const incrementBy = createAction<number>('incrementBy')
+const decrementBy = createAction<number>('decrementBy')
+
+const counter = createSlice({
+  name: 'counter',
+  initialState: 0 as number,
+  reducers: {
+    increment: (state) => state + 1,
+    decrement: (state) => state - 1,
+    multiply: {
+      reducer: (state, action: PayloadAction<number>) => state * action.payload,
+      prepare: (value?: number) => ({ payload: value || 2 }), // fallback if the payload is a falsy value
+    },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(incrementBy, (state, action) => {
+      return state + action.payload
+    })
+    builder.addCase(decrementBy, (state, action) => {
+      return state - action.payload
+    })
+  },
+})
+
+const user = createSlice({
+  name: 'user',
+  initialState: { name: '', age: 20 },
+  reducers: {
+    setUserName: (state, action) => {
+      state.name = action.payload // mutate the state all you want with immer
+    },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(counter.actions.increment, (state, action) => {
+      state.age += 1
+    })
+  },
+})
+
+const store = configureStore({
+  reducer: {
+    counter: counter.reducer,
+    user: user.reducer,
+  },
+})
+
+store.dispatch(counter.actions.increment())
+// -> { counter: 1, user: {name : '', age: 21} }
+store.dispatch(counter.actions.increment())
+// -> { counter: 2, user: {name: '', age: 22} }
+store.dispatch(counter.actions.multiply(3))
+// -> { counter: 6, user: {name: '', age: 22} }
+store.dispatch(counter.actions.multiply())
+// -> { counter: 12, user: {name: '', age: 22} }
+console.log(counter.actions.decrement.type)
+// -> "counter/decrement"
+store.dispatch(user.actions.setUserName('eric'))
+// -> { counter: 12, user: { name: 'eric', age: 22} }
+```
+
 ## Custom creators
 
 TODO: a blurb introducing the idea of custom creators
@@ -653,9 +720,10 @@ const reducerCreator: ReducerCreator<typeof reducerCreatorType> = {
     }
   },
   handle({ reducerName, type }, definition, context) {
+    const { reducer } = definition
     const actionCreator = createAction(type)
     context
-      .addCase(actionCreator, definition.reducer)
+      .addCase(actionCreator, reducer)
       .exposeAction(reducerName, actionCreator)
       .exposeCaseReducer(reducerName, reducer)
   },
@@ -670,7 +738,7 @@ Typically, it'll be a function (meaning the `this` value will be the final `crea
 
 The actual name the creator will be nested under is taken from the `buildCreateSlice` call. For example, `buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })` results in the creator being available as `create.asyncThunk`.
 
-See the [common applications](#common-applications) section for some examples of these.
+See the [Further examples](#further-examples) section for some examples of these.
 
 #### `handle`
 
@@ -773,7 +841,7 @@ The type of the `create` property of the creator definition. Typically a functio
 
 :::tip Using `this` to access other creators
 
-Assuming the creator is called as `create.yourCreator()`, the `this` value for the function is the create object - meaning you can call other creators on the same object.
+Assuming the creator is called as `create.yourCreator()`, the `this` value for the function is the `create` object - meaning you can call other creators on the same object.
 
 However, this should be specifically included in the function signature, so Typescript can warn if called with an incorrect context (for example, if the user destructures from the `create` value).
 
@@ -787,15 +855,14 @@ declare module '@reduxjs/toolkit' {
     Name extends string = string
   > {
     [batchedCreatorType]: {
-      // highlight-start
       create<Payload>(
+        // highlight-next-line
         this: ReducerCreators<State, {}>,
         reducer: CaseReducer<State, PayloadAction<Payload>>
       ): PreparedCaseReducerDefinition<
         State,
         (payload: Payload) => { payload: Payload; meta: unknown }
       >
-      // highlight-end
       actions: {}
       caseReducers: {}
     }
@@ -903,77 +970,165 @@ declare module '@reduxjs/toolkit' {
 }
 ```
 
-### Common applications
+### Further examples
+
+TODO: blurb
 
 #### Single definitions
+
+Commonly, a creator will return a single reducer definition, to be handled by either itself or another creator.
+
+One example would be reusable toast logic; you could have a reducer creator that makes a thunk creator. That thunk would dispatch an "show" action immediately when called, and then dispatch a second "hide" action after a given amount of time.
+
+```ts no-transpile
+// create the unique type
+const toastCreatorType = Symbol()
+
+interface Toast {
+  message: string
+}
+
+interface ToastReducerConfig<State> {
+  shown?: CaseReducer<State, PayloadAction<Toast, string, { id: string }>>
+  hidden?: CaseReducer<State, PayloadAction<undefined, string, { id: string }>>
+}
+
+interface ToastThunkCreator<
+  SliceName extends string,
+  ReducerName extends string
+> {
+  (toast: Toast, timeout?: number): ThunkAction<
+    { hide(): void },
+    unknown,
+    unknown,
+    UnknownAction
+  >
+  shown: PayloadActionCreator<
+    Toast,
+    `${SliceActionType<SliceName, ReducerName>}/shown`,
+    (toast: Toast, id: string) => { payload: Toast; meta: { id: string } }
+  >
+  hidden: PayloadActionCreator<
+    void,
+    `${SliceActionType<SliceName, ReducerName>}/hidden`,
+    (id: string) => { payload: undefined; meta: { id: string } }
+  >
+}
+
+// register the creator types
+declare module '@reduxjs/toolkit' {
+  export interface SliceReducerCreators<
+    State = any,
+    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    Name extends string = string
+  > {
+    [toastCreatorType]: {
+      create(
+        config: ToastReducerConfig<State>
+      ): ToastReducerConfig<State> & ReducerDefinition<typeof toastCreatorType>
+      actions: {
+        [ReducerName in ReducerNamesOfType<
+          typeof toastCreatorType
+        >]: ToastThunkCreator<Name, ReducerName>
+      }
+      caseReducers: {
+        [ReducerName in ReducerNamesOfType<typeof toastCreatorType>]: Required<
+          ToastReducerConfig<State>
+        >
+      }
+    }
+  }
+}
+
+// define the creator
+const toastCreator: ReducerCreator<typeof toastCreatorType> = {
+  type: toastCreatorType,
+  // return the reducer definition
+  create(config) {
+    return {
+      _reducerDefinitionType: toastCreatorType,
+      ...config,
+    }
+  },
+  // handle the reducer definition
+  handle({ reducerName, type }, definition, context) {
+    // make the action creators
+    const shown = createAction(type + '/shown', (toast: Toast, id: string) => ({
+      payload: toast,
+      meta: { id },
+    }))
+    const hidden = createAction(type + '/hidden', (id: string) => ({
+      payload: undefined,
+      meta: { id },
+    }))
+    // make the thunk creator
+    function thunkCreator(
+      toast: Toast,
+      timeout = 300
+    ): ThunkAction<{ hide(): void }, unknown, unknown, UnknownAction> {
+      return (dispatch, getState) => {
+        const id = nanoid()
+        dispatch(shown(toast, id))
+        const timeout = setTimeout(() => dispatch(hidden(id)), 300)
+        return {
+          hide() {
+            clearTimeout(timeout)
+            dispatch(hidden(id))
+          },
+        }
+      }
+    }
+    // attach the action creators to the thunk creator
+    Object.assign(thunkCreator, { shown, hidden })
+
+    // add any case reducers passed in the config
+    if (definition.shown) {
+      context.addCase(shown, definition.shown)
+    }
+    if (definition.hidden) {
+      context.addCase(hidden, definition.hidden)
+    }
+
+    // expose the thunk creator as `slice.actions[reducerName]` and the case reducers as `slice.caseReducers[reducerName]["shown" | "hidden"]`
+    context
+      .exposeAction(reducerName, thunkCreator)
+      .exposeCaseReducer(reducerName, {
+        shown: definition.shown || noop,
+        hidden: definition.hidden || noop,
+      })
+  },
+}
+
+function noop() {}
+
+// build the `createSlice` function
+const createToastSlice = buildCreateSlice({
+  creators: { toaster: toastCreator },
+})
+
+const toastSlice = createToastSlice({
+  name: 'toast',
+  initialState: {} as Record<string, Toast>,
+  reducers: (create) => ({
+    // call creator to get definition, and save it to a key
+    showToast: create.toaster({
+      shown(state, action) {
+        state[action.meta.id] = action.payload
+      },
+      hidden(state, action) {
+        delete state[action.meta.id]
+      },
+    }),
+  }),
+})
+
+// showToast is the thunk creator from above
+const { showToast } = toastSlice.actions
+
+// case reducers and action creators are available where we put them
+toastSlice.caseReducers.showToast.hidden({}, showToast.hidden('id'))
+```
 
 #### Multiple definitions
 
 #### Other
-
-## Examples
-
-```ts
-import { createSlice, createAction, configureStore } from '@reduxjs/toolkit'
-import type { PayloadAction } from '@reduxjs/toolkit'
-import { combineReducers } from 'redux'
-
-const incrementBy = createAction<number>('incrementBy')
-const decrementBy = createAction<number>('decrementBy')
-
-const counter = createSlice({
-  name: 'counter',
-  initialState: 0 as number,
-  reducers: {
-    increment: (state) => state + 1,
-    decrement: (state) => state - 1,
-    multiply: {
-      reducer: (state, action: PayloadAction<number>) => state * action.payload,
-      prepare: (value?: number) => ({ payload: value || 2 }), // fallback if the payload is a falsy value
-    },
-  },
-  extraReducers: (builder) => {
-    builder.addCase(incrementBy, (state, action) => {
-      return state + action.payload
-    })
-    builder.addCase(decrementBy, (state, action) => {
-      return state - action.payload
-    })
-  },
-})
-
-const user = createSlice({
-  name: 'user',
-  initialState: { name: '', age: 20 },
-  reducers: {
-    setUserName: (state, action) => {
-      state.name = action.payload // mutate the state all you want with immer
-    },
-  },
-  extraReducers: (builder) => {
-    builder.addCase(counter.actions.increment, (state, action) => {
-      state.age += 1
-    })
-  },
-})
-
-const store = configureStore({
-  reducer: {
-    counter: counter.reducer,
-    user: user.reducer,
-  },
-})
-
-store.dispatch(counter.actions.increment())
-// -> { counter: 1, user: {name : '', age: 21} }
-store.dispatch(counter.actions.increment())
-// -> { counter: 2, user: {name: '', age: 22} }
-store.dispatch(counter.actions.multiply(3))
-// -> { counter: 6, user: {name: '', age: 22} }
-store.dispatch(counter.actions.multiply())
-// -> { counter: 12, user: {name: '', age: 22} }
-console.log(counter.actions.decrement.type)
-// -> "counter/decrement"
-store.dispatch(user.actions.setUserName('eric'))
-// -> { counter: 12, user: { name: 'eric', age: 22} }
-```
