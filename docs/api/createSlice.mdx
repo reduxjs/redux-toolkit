@@ -1131,7 +1131,7 @@ toastSlice.caseReducers.showToast.hidden({}, showToast.hidden('id'))
 
 #### Multiple definitions
 
-A creator could also return multiple definitions, which would then be spread into the final definitions object. This is a more composable alternative to the [wrapping createSlice](usage/usage-with-typescript#wrapping-createslice) approach, as you could call multiple creators as needed.
+A creator could also return multiple definitions, which would then be spread into the final definitions object. This is a more composable alternative to the [wrapping `createSlice`](usage/usage-with-typescript#wrapping-createslice) approach, as you could call multiple creators as needed.
 
 One example could be returning some pagination related reducers.
 
@@ -1198,4 +1198,220 @@ const paginationSlice = createPaginationSlice({
 const { prevPage, nextPage, goToPage, toggleLoading } = paginationSlice.actions
 ```
 
+A creator could return a mix of reducer definitions for itself and other creators to handle:
+
+```ts no-transpile
+const historyCreatorType = Symbol()
+
+interface PatchesState {
+  undo: Patch[]
+  redo: Patch[]
+}
+
+interface HistoryState<T> {
+  past: PatchesState[]
+  present: T
+  future: PatchesState[]
+}
+
+declare module '@reduxjs/toolkit' {
+  export interface SliceReducerCreators<
+    State = any,
+    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    Name extends string = string
+  > {
+    [paginationCreatorType]: {
+      // make sure the creator is only called when state is compatible
+      create(this: ReducerCreators<State>): State extends HistoryState<unknown>
+        ? {
+            undo: CaseReducerDefinition<State, PayloadAction>
+            redo: CaseReducerDefinition<State, PayloadAction>
+            reset: ReducerDefinition<typeof paginationCreatorType> & {
+              type: 'reset'
+            }
+          }
+        : never
+      actions: {
+        [ReducerName in ReducerNamesOfType<
+          CaseReducers,
+          typeof historyMethodsCreatorType
+        >]: CaseReducers[ReducerName] extends { type: 'reset' }
+          ? PayloadActionCreator<void, SliceActionType<Name, ReducerName>>
+          : never
+      }
+      caseReducers: {
+        [ReducerName in ReducerNamesOfType<
+          CaseReducers,
+          typeof historyMethodsCreatorType
+        >]: CaseReducers[ReducerName] extends { type: 'reset' }
+          ? CaseReducer<State, PayloadAction>
+          : never
+      }
+    }
+  }
+}
+
+const historyCreator: ReducerCreator<typeof historyCreatorType> = {
+  type: historyCreatorType,
+  create() {
+    return {
+      undo: this.reducer((state: HistoryState<unknown>) => {
+        const historyEntry = state.past.pop()
+        if (historyEntry) {
+          applyPatches(state, historyEntry.undo)
+          state.future.unshift(historyEntry)
+        }
+      }),
+      redo: this.reducer((state: HistoryState<unknown>) => {
+        const historyEntry = state.future.shift()
+        if (historyEntry) {
+          applyPatches(state, historyEntry.redo)
+          state.past.push(historyEntry)
+        }
+      }),
+      reset: {
+        _reducerDefinitionType: historyCreatorType,
+        type: 'reset',
+      },
+    }
+  },
+  handle(details, definition, context) {
+    if (definition.type !== 'reset') {
+      throw new Error('Unrecognised definition type: ' + definition.type)
+    }
+    // use the normal reducer creator to create a case reducer and action creator
+    const resetReducer = () => context.getInitialState()
+    reducerCreator.handle(details, reducerCreator.create(resetReducer), context)
+  },
+}
+
+const createHistorySlice = buildCreateSlice({
+  creators: { historyMethods: historyCreator },
+})
+
+function getInitialHistoryState<T>(initialState: HistoryState<T>) {
+  return {
+    past: [],
+    present: initialState,
+    future: [],
+  }
+}
+
+const postSliceWithHistory = createHistorySlice({
+  name: 'post',
+  initialState: getInitialHistoryState({ title: '' }),
+  reducers: (create) => ({
+    ...create.historyMethods(),
+  }),
+})
+
+const { undo, redo, reset } = postSliceWithHistory.actions
+```
+
 #### Other
+
+A creator doesn't have to return any reducer definitions, it could be any sort of utility for defining reducers.
+
+Following on from the `HistoryState` example above, it would be useful to make some sort of `undoable` utility to wrap reducers in logic which automatically updates the history of the slice.
+
+Fortunately, this is possible with a creator:
+
+```ts no-transpile
+const undoableCreatorType = Symbol()
+
+interface UndoableMeta {
+  undoable?: boolean
+}
+
+declare module '@reduxjs/toolkit' {
+  export interface SliceReducerCreators<
+    State = any,
+    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    Name extends string = string
+  > {
+    [undoableCreatorType]: {
+      create: State extends HistoryState<infer Data>
+        ? {
+            reducer<A extends Action & { meta?: UndoableMeta }>(
+              reducer: CaseReducer<Data, A>
+            ): CaseReducer<State, A>
+            withoutPayload(options?: UndoableMeta): {
+              payload: undefined
+              meta: UndoableMeta | undefined
+            }
+            withPayload<Payload>(
+              payload: Payload,
+              options?: UndoableMeta
+            ): { payload: Payload; meta: UndoableMeta | undefined }
+          }
+        : never
+      actions: {}
+      caseReducers: {}
+    }
+  }
+}
+
+const undoableCreator: ReducerCreator<typeof undoableCreatorType> = {
+  type: undoableCreatorType,
+  create: {
+    reducer(reducer) {
+      return function wrappedReducer(state: HistoryState<unknown>, action) {
+        const [nextState, redoPatch, undoPatch] = produceWithPatches(
+          state,
+          (draft) => {
+            const result = reducer(draft.present, action)
+            if (typeof result !== 'undefined') {
+              draft.present = result
+            }
+          }
+        )
+        let finalState = nextState
+        const undoable = action.meta?.undoable ?? true
+        if (undoable) {
+          finalState = createNextState(finalState, (draft) => {
+            draft.past.push({
+              undo: undoPatch,
+              redo: redoPatch,
+            })
+            draft.future = []
+          })
+        }
+        return finalState
+      }
+    },
+    withoutPayload(options) {
+      return { payload: undefined, meta: options }
+    },
+    withPayload(payload, options) {
+      return { payload, meta: options }
+    },
+  },
+}
+
+const createHistorySlice = buildCreateSlice({
+  creators: { historyMethods: historyCreator, undoable: undoableCreator },
+})
+
+const postSliceWithHistory = createHistorySlice({
+  name: 'post',
+  initialState: getInitialHistoryState({ title: '', pinned: false }),
+  reducers: (create) => ({
+    ...create.historyMethods(),
+    updateTitle: create.preparedReducer(
+      create.undoable.withPayload<string>(),
+      create.undoable.reducer((state, action) => {
+        state.title = action.payload
+      })
+    ),
+    togglePinned: create.preparedReducer(
+      create.undoable.withoutPayload(),
+      create.undoable.reducer((state, action) => {
+        state.pinned = !state.pinned
+      })
+    ),
+  }),
+})
+
+const { undo, redo, reset, updateTitle, togglePinned } =
+  postSliceWithHistory.actions
+```

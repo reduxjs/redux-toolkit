@@ -1203,9 +1203,7 @@ describe('createSlice', () => {
             }
             reducerCreator.handle(
               details,
-              Object.assign(() => context.getInitialState(), {
-                _reducerDefinitionType: ReducerType.reducer as const,
-              }),
+              reducerCreator.create(() => context.getInitialState()),
               context
             )
           },
