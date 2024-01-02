@@ -1069,10 +1069,10 @@ const toastCreator: ReducerCreator<typeof toastCreatorType> = {
       return (dispatch, getState) => {
         const id = nanoid()
         dispatch(shown(toast, id))
-        const timeout = setTimeout(() => dispatch(hidden(id)), 300)
+        const timeoutId = setTimeout(() => dispatch(hidden(id)), timeout)
         return {
           hide() {
-            clearTimeout(timeout)
+            clearTimeout(timeoutId)
             dispatch(hidden(id))
           },
         }
@@ -1130,5 +1130,72 @@ toastSlice.caseReducers.showToast.hidden({}, showToast.hidden('id'))
 ```
 
 #### Multiple definitions
+
+A creator could also return multiple definitions, which would then be spread into the final definitions object. This is a more composable alternative to the [wrapping createSlice](usage/usage-with-typescript#wrapping-createslice) approach, as you could call multiple creators as needed.
+
+One example could be returning some pagination related reducers.
+
+```ts no-transpile
+const paginationCreatorType = Symbol()
+
+interface PaginationState {
+  page: number
+}
+
+declare module '@reduxjs/toolkit' {
+  export interface SliceReducerCreators<
+    State = any,
+    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    Name extends string = string
+  > {
+    [paginationCreatorType]: {
+      // make sure the creator is only called when state is compatible
+      create(this: ReducerCreators<State>): State extends PaginationState
+        ? {
+            prevPage: CaseReducerDefinition<State, PayloadAction>
+            nextPage: CaseReducerDefinition<State, PayloadAction>
+            goToPage: CaseReducerDefinition<State, PayloadAction<number>>
+          }
+        : never
+      actions: {}
+      caseReducers: {}
+    }
+  }
+}
+
+const paginationCreator: ReducerCreator<typeof paginationCreatorType> = {
+  type: paginationCreatorType,
+  create() {
+    return {
+      prevPage: this.reducer((state: PaginationState) => {
+        state.page--
+      }),
+      nextPage: this.reducer((state: PaginationState) => {
+        state.page++
+      }),
+      goToPage: this.reducer<number>((state: PaginationState, action) => {
+        state.page = action.payload
+      }),
+    }
+  },
+}
+
+const createPaginationSlice = buildCreateSlice({
+  creators: { paginationReducers: paginationCreator },
+})
+
+const paginationSlice = createPaginationSlice({
+  name: 'pagination',
+  initialState: { page: 0, loading: false },
+  reducers: (create) => ({
+    ...create.paginationReducers(),
+    toggleLoading: create.reducer((state) => {
+      state.loading = !state.loading
+    }),
+  }),
+})
+
+const { prevPage, nextPage, goToPage, toggleLoading } = paginationSlice.actions
+```
 
 #### Other
