@@ -1,6 +1,6 @@
 {
   "name": "@reduxjs/rtk-codemods",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "scripts": {
     "lint": "eslint --cache .",
     "test": "vitest",
