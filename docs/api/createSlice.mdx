@@ -704,7 +704,7 @@ Typically a creator will return a [single reducer definition](#single-definition
 
 ### Creator definitions
 
-A creator definition is an object with a `type` property, a `create` property, and an optional `handle` method.
+A creator definition is an object with a `type` property, a `create` method, and an optional `handle` method.
 
 The `type` property should be the same constant used for reducer definitions to be handled by this creator. To avoid collision, we recommend using Symbols for this. It's also used for defining/retrieving types - see [Typescript](#typescript).
 
@@ -1289,7 +1289,7 @@ const createHistorySlice = buildCreateSlice({
   creators: { historyMethods: historyCreator },
 })
 
-function getInitialHistoryState<T>(initialState: HistoryState<T>) {
+function getInitialHistoryState<T>(initialState: T): HistoryState<T> {
   return {
     past: [],
     present: initialState,
