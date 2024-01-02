@@ -1209,45 +1209,54 @@ describe('createSlice', () => {
           },
         }
 
-        const makeUndoable = function makeUndoable(reducer) {
-          return function wrappedReducer(state: HistoryState<any>, action) {
-            const [nextState, redoPatch, undoPatch] = produceWithPatches(
-              state,
-              (draft) => {
-                const result = reducer(draft.present, action)
-                if (typeof result !== 'undefined') {
-                  draft.present = result
-                }
-              }
-            )
-            let finalState = nextState
-            const undoable = action.meta?.undoable ?? true
-            if (undoable) {
-              finalState = createNextState(finalState, (draft) => {
-                draft.past.push({
-                  undo: undoPatch,
-                  redo: redoPatch,
-                })
-                draft.future = []
-              })
-            }
-            return finalState
-          }
-        } as ReducerCreator<typeof undoableCreatorType>['create']
-
-        makeUndoable.withoutPayload = () => (options) => ({
-          payload: undefined,
-          meta: options,
-        })
-        makeUndoable.withPayload = (() =>
-          (payload: unknown, options?: UndoableOptions) => ({
-            payload,
-            meta: options,
-          })) as any
-
         const undoableCreator: ReducerCreator<typeof undoableCreatorType> = {
           type: undoableCreatorType,
-          create: makeUndoable,
+          create: Object.assign(
+            function makeUndoable<
+              A extends Action & { meta?: UndoableOptions }
+            >(reducer: CaseReducer<any, A>): CaseReducer<HistoryState<any>, A> {
+              return (state, action) => {
+                const [nextState, redoPatch, undoPatch] = produceWithPatches(
+                  state,
+                  (draft) => {
+                    const result = reducer(draft.present, action)
+                    if (typeof result !== 'undefined') {
+                      draft.present = result
+                    }
+                  }
+                )
+                let finalState = nextState
+                const undoable = action.meta?.undoable ?? true
+                if (undoable) {
+                  finalState = createNextState(finalState, (draft) => {
+                    draft.past.push({
+                      undo: undoPatch,
+                      redo: redoPatch,
+                    })
+                    draft.future = []
+                  })
+                }
+                return finalState
+              }
+            },
+            {
+              withoutPayload() {
+                return (options?: UndoableOptions) => ({
+                  payload: undefined,
+                  meta: options,
+                })
+              },
+              withPayload<P>() {
+                return (
+                  ...[payload, options]: IfMaybeUndefined<
+                    P,
+                    [payload?: P, options?: UndoableOptions],
+                    [payload: P, options?: UndoableOptions]
+                  >
+                ) => ({ payload: payload as P, meta: options })
+              },
+            }
+          ),
         }
 
         const createHistorySlice = buildCreateSlice({

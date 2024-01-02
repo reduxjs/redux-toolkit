@@ -732,9 +732,9 @@ const reducerCreator: ReducerCreator<typeof reducerCreatorType> = {
 
 #### `create`
 
-The `create` property is the value that will be attached to the `create` object, before it's passed to the `reducers` callback.
+The `create` method is the function that will be attached to the `create` object, before it's passed to the `reducers` callback.
 
-Typically, it'll be a function (meaning the `this` value will be the final `create` object when called), but it could be anything - and the function could have additional methods attached.
+Because it's a function, the `this` value will be the final `create` object when called (assuming a `create.creator()` call). It also could have additional methods attached.
 
 The actual name the creator will be nested under is taken from the `buildCreateSlice` call. For example, `buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })` results in the creator being available as `create.asyncThunk`.
 
@@ -837,7 +837,7 @@ All three keys must be provided, even if the creator only returns definitions fo
 
 #### `create`
 
-The type of the `create` property of the creator definition. Typically a function signature, but this isn't required.
+The signature of the `create` method of the creator definition.
 
 :::tip Using `this` to access other creators
 
@@ -1332,7 +1332,7 @@ declare module '@reduxjs/toolkit' {
     [undoableCreatorType]: {
       create: State extends HistoryState<infer Data>
         ? {
-            reducer<A extends Action & { meta?: UndoableMeta }>(
+            <A extends Action & { meta?: UndoableMeta }>(
               reducer: CaseReducer<Data, A>
             ): CaseReducer<State, A>
             withoutPayload(options?: UndoableMeta): {
@@ -1353,9 +1353,11 @@ declare module '@reduxjs/toolkit' {
 
 const undoableCreator: ReducerCreator<typeof undoableCreatorType> = {
   type: undoableCreatorType,
-  create: {
-    reducer(reducer) {
-      return function wrappedReducer(state: HistoryState<unknown>, action) {
+  create: Object.assign(
+    function makeUndoable<A extends Action & { meta?: UndoableOptions }>(
+      reducer: CaseReducer<any, A>
+    ): CaseReducer<HistoryState<any>, A> {
+      return (state, action) => {
         const [nextState, redoPatch, undoPatch] = produceWithPatches(
           state,
           (draft) => {
@@ -1379,13 +1381,24 @@ const undoableCreator: ReducerCreator<typeof undoableCreatorType> = {
         return finalState
       }
     },
-    withoutPayload(options) {
-      return { payload: undefined, meta: options }
-    },
-    withPayload(payload, options) {
-      return { payload, meta: options }
-    },
-  },
+    {
+      withoutPayload() {
+        return (options?: UndoableOptions) => ({
+          payload: undefined,
+          meta: options,
+        })
+      },
+      withPayload<P>() {
+        return (
+          ...[payload, options]: IfMaybeUndefined<
+            P,
+            [payload?: P, options?: UndoableOptions],
+            [payload: P, options?: UndoableOptions]
+          >
+        ) => ({ payload: payload as P, meta: options })
+      },
+    }
+  ),
 }
 
 const createHistorySlice = buildCreateSlice({
@@ -1399,13 +1412,13 @@ const postSliceWithHistory = createHistorySlice({
     ...create.historyMethods(),
     updateTitle: create.preparedReducer(
       create.undoable.withPayload<string>(),
-      create.undoable.reducer((state, action) => {
+      create.undoable((state, action) => {
         state.title = action.payload
       })
     ),
     togglePinned: create.preparedReducer(
       create.undoable.withoutPayload(),
-      create.undoable.reducer((state, action) => {
+      create.undoable((state, action) => {
         state.pinned = !state.pinned
       })
     ),
