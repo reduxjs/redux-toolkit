@@ -1482,13 +1482,11 @@ declare module '@reduxjs/toolkit' {
         : never
     >
     [paginationCreatorType]: ReducerCreatorEntry<
-      State extends PaginationState
-        ? (this: ReducerCreators<State>) => {
-            nextPage: CaseReducerDefinition<State, PayloadAction>
-            previousPage: CaseReducerDefinition<State, PayloadAction>
-            goToPage: CaseReducerDefinition<State, PayloadAction<number>>
-          }
-        : never
+      (this: ReducerCreators<State>) => {
+        nextPage: CaseReducerDefinition<PaginationState, PayloadAction>
+        previousPage: CaseReducerDefinition<PaginationState, PayloadAction>
+        goToPage: CaseReducerDefinition<PaginationState, PayloadAction<number>>
+      }
     >
     [historyMethodsCreatorType]: ReducerCreatorEntry<
       State extends HistoryState<unknown>

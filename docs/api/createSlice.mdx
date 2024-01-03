@@ -872,6 +872,57 @@ The second argument to the `ReducerCreators` type is a map from creator names to
 
 :::
 
+:::note Ensuring compatible state
+
+Sometimes it's useful to have a reducer creator that only works with a specific state shape. You can ensure the creator is only callable if the state matches, using a conditional type:
+
+```ts no-transpile
+const loaderCreatorType = Symbol()
+
+declare module '@reduxjs/toolkit' {
+  export interface SliceReducerCreators<
+    State = any,
+    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    Name extends string = string
+  > {
+    [loaderCreatorType]: ReducerCreatorEntry<
+      // highlight-next-line
+      State extends { loading: boolean }
+        ? () => {
+            start: CaseReducerDefinition<State, PayloadAction>
+            end: CaseReducerDefinition<State, PayloadAction>
+          }
+        : never
+    >
+  }
+}
+```
+
+Any creators that evaluate to the `never` type are omitted from the final `create` object.
+
+An alternative would be just using that required type _as_ the `State` type for the reducer definitions, so Typescript then complains when the creator is used.
+
+```ts no-transpile
+const loaderCreatorType = Symbol()
+
+declare module '@reduxjs/toolkit' {
+  export interface SliceReducerCreators<
+    State = any,
+    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    Name extends string = string
+  > {
+    [loaderCreatorType]: ReducerCreatorEntry<
+      () => {
+        start: CaseReducerDefinition<{ loading: boolean }, PayloadAction>
+        end: CaseReducerDefinition<{ loading: boolean }, PayloadAction>
+      }
+    >
+  }
+}
+```
+
+:::
+
 #### `Exposes`
 
 The second type parameter for `ReducerCreatorEntry` is optional, but should be used if the creator will handle some reducer definitions itself. It indicates what actions and case reducers will be attached to the slice, and is used to determine the final types of `slice.actions` and `slice.caseReducers`.
