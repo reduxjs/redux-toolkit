@@ -809,7 +809,7 @@ context
 
 The Typescript system for custom slice creators uses a "creator registry" system similar to the module system for [RTK Query](/rtk-query/usage/customizing-create-api#creating-your-own-module).
 
-Creators are registered by using module augmentation to add a new key (their unique `type`) to the `SliceReducerCreators` interface. The interface receives three type parameters (`State`, `CaseReducers` and `Name`), and each entry should have three keys (`create`, `actions`, and `caseReducers`).
+Creators are registered by using module augmentation to add a new key (their unique `type`) to the `SliceReducerCreators` interface. The interface receives three type parameters (`State`, `CaseReducers` and `Name`), and each entry should have use the `ReducerCreatorEntry` type utility.
 
 ```ts no-transpile
 const reducerCreatorType = Symbol()
@@ -820,22 +820,16 @@ declare module '@reduxjs/toolkit' {
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
     Name extends string = string
   > {
-    [reducerCreatorType]: {
-      create(): ReducerDefinition<typeof reducerCreatorType>
-      actions: {}
-      caseReducers: {}
-    }
+    [reducerCreatorType]: ReducerCreatorEntry<
+      () => ReducerDefinition<typeof reducerCreatorType>
+    >
   }
 }
 ```
 
-:::danger
+The `ReducerCreatorEntry<Create, Exposes>` utility has two type parameters:
 
-All three keys must be provided, even if the creator only returns definitions for other creators. If the creator doesn't expose any actions/case reducers itself, leave those keys as `{}`.
-
-:::
-
-#### `create`
+#### `Create`
 
 The signature of the `create` method of the creator definition.
 
@@ -854,18 +848,16 @@ declare module '@reduxjs/toolkit' {
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
     Name extends string = string
   > {
-    [batchedCreatorType]: {
-      create<Payload>(
+    [batchedCreatorType]: ReducerCreatorEntry<
+      <Payload>(
         // highlight-next-line
         this: ReducerCreators<State, {}>,
         reducer: CaseReducer<State, PayloadAction<Payload>>
-      ): PreparedCaseReducerDefinition<
+      ) => PreparedCaseReducerDefinition<
         State,
         (payload: Payload) => { payload: Payload; meta: unknown }
       >
-      actions: {}
-      caseReducers: {}
-    }
+    >
   }
 }
 
@@ -881,7 +873,13 @@ The second argument to the `ReducerCreators` type is a map from creator names to
 
 :::
 
-#### `actions`
+#### `Exposes`
+
+The second type parameter for `ReducerCreatorEntry` is optional, but should be used if the creator will handle some reducer definitions itself. It indicates what actions and case reducers will be attached to the slice, and is used to determine the final types of `slice.actions` and `slice.caseReducers`.
+
+It should be an object with some of the following properties:
+
+##### `actions`
 
 The actions property will typically be a [mapped type](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html) over the `CaseReducers` type parameter, returning what the creator's `handle` would expose when given that definition.
 
@@ -898,33 +896,32 @@ declare module '@reduxjs/toolkit' {
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
     Name extends string = string
   > {
-    [asyncThunkCreatorType]: {
-      create<ThunkArg, Returned>(
+    [asyncThunkCreatorType]: ReducerCreatorEntry<
+      <ThunkArg, Returned>(
         payloadCreator: AsyncThunkPayloadCreator<ThunkArg, Returned>
-      ): AsyncThunkReducerDefinition<State, ThunkArg, Returned>
-      // highlight-start
-      actions: {
-        [ReducerName in ReducerNamesOfType<
-          CaseReducers,
-          typeof asyncThunkCreatorType
-        >]: CaseReducers[ReducerName] extends AsyncThunkReducerDefinition<
-          State,
-          infer ThunkArg,
-          infer Returned
-        >
-          ? AsyncThunk<ThunkArg, Returned>
-          : never
+      ) => AsyncThunkReducerDefinition<State, ThunkArg, Returned>,
+      {
+        // highlight-start
+        actions: {
+          [ReducerName in ReducerNamesOfType<
+            CaseReducers,
+            typeof asyncThunkCreatorType
+          >]: CaseReducers[ReducerName] extends AsyncThunkReducerDefinition<
+            State,
+            infer ThunkArg,
+            infer Returned
+          >
+            ? AsyncThunk<ThunkArg, Returned>
+            : never
+        }
+        // highlight-end
       }
-      // highlight-end
-      caseReducers: {}
-    }
+    >
   }
 }
 ```
 
-The `actions` returned from all the creators when passed the `CaseReducers` definitions are all intersected to create the final type for `slice.actions`.
-
-#### `caseReducers`
+##### `caseReducers`
 
 Similar to `actions`, except for `slice.caseReducers`.
 
@@ -939,33 +936,35 @@ declare module '@reduxjs/toolkit' {
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
     Name extends string = string
   > {
-    [preparedReducerType]: {
-      create<Prepare extends PrepareAction<any>>(
+    [preparedReducerType]: ReducerCreatorEntry<
+      <Prepare extends PrepareAction<any>>(
         prepare: Prepare,
         caseReducer: CaseReducer<State, ActionForPrepare<Prepare>>
-      ): PreparedCaseReducerDefinition<State, Prepare>
-      actions: {
-        [ReducerName in ReducerNamesOfType<
-          CaseReducers,
-          typeof preparedReducerType
-        >]: CaseReducers[ReducerName] extends { prepare: any }
-          ? ActionCreatorForCaseReducerWithPrepare<
-              CaseReducers[ReducerName],
-              SliceActionType<Name, ReducerName>
-            >
-          : never
+      ) => PreparedCaseReducerDefinition<State, Prepare>,
+      {
+        actions: {
+          [ReducerName in ReducerNamesOfType<
+            CaseReducers,
+            typeof preparedReducerType
+          >]: CaseReducers[ReducerName] extends { prepare: any }
+            ? ActionCreatorForCaseReducerWithPrepare<
+                CaseReducers[ReducerName],
+                SliceActionType<Name, ReducerName>
+              >
+            : never
+        }
+        // highlight-start
+        caseReducers: {
+          [ReducerName in ReducerNamesOfType<
+            CaseReducers,
+            typeof preparedReducerType
+          >]: CaseReducers[ReducerName] extends { reducer: infer Reducer }
+            ? Reducer
+            : never
+        }
+        // highlight-end
       }
-      // highlight-start
-      caseReducers: {
-        [ReducerName in ReducerNamesOfType<
-          CaseReducers,
-          typeof preparedReducerType
-        >]: CaseReducers[ReducerName] extends { reducer: infer Reducer }
-          ? Reducer
-          : never
-      }
-      // highlight-end
-    }
+    >
   }
 }
 ```
@@ -1022,21 +1021,24 @@ declare module '@reduxjs/toolkit' {
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
     Name extends string = string
   > {
-    [toastCreatorType]: {
-      create(
+    [toastCreatorType]: ReducerCreatorEntry<
+      (
         config: ToastReducerConfig<State>
-      ): ToastReducerConfig<State> & ReducerDefinition<typeof toastCreatorType>
-      actions: {
-        [ReducerName in ReducerNamesOfType<
-          typeof toastCreatorType
-        >]: ToastThunkCreator<Name, ReducerName>
+      ) => ToastReducerConfig<State> &
+        ReducerDefinition<typeof toastCreatorType>,
+      {
+        actions: {
+          [ReducerName in ReducerNamesOfType<
+            typeof toastCreatorType
+          >]: ToastThunkCreator<Name, ReducerName>
+        }
+        caseReducers: {
+          [ReducerName in ReducerNamesOfType<
+            typeof toastCreatorType
+          >]: Required<ToastReducerConfig<State>>
+        }
       }
-      caseReducers: {
-        [ReducerName in ReducerNamesOfType<typeof toastCreatorType>]: Required<
-          ToastReducerConfig<State>
-        >
-      }
-    }
+    >
   }
 }
 
@@ -1148,18 +1150,16 @@ declare module '@reduxjs/toolkit' {
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
     Name extends string = string
   > {
-    [paginationCreatorType]: {
+    [paginationCreatorType]: ReducerCreatorEntry<
       // make sure the creator is only called when state is compatible
-      create(this: ReducerCreators<State>): State extends PaginationState
-        ? {
+      State extends PaginationState
+        ? (this: ReducerCreators<State>) => {
             prevPage: CaseReducerDefinition<State, PayloadAction>
             nextPage: CaseReducerDefinition<State, PayloadAction>
             goToPage: CaseReducerDefinition<State, PayloadAction<number>>
           }
         : never
-      actions: {}
-      caseReducers: {}
-    }
+    >
   }
 }
 
@@ -1220,17 +1220,17 @@ declare module '@reduxjs/toolkit' {
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
     Name extends string = string
   > {
-    [paginationCreatorType]: {
-      // make sure the creator is only called when state is compatible
-      create(this: ReducerCreators<State>): State extends HistoryState<unknown>
-        ? {
+    [paginationCreatorType]: ReducerCreatorEntry<
+      // make sure the creator is only called when state is compatibleState extends HistoryState<unknown>
+        ?
+      (this: ReducerCreators<State>) => {
             undo: CaseReducerDefinition<State, PayloadAction>
             redo: CaseReducerDefinition<State, PayloadAction>
             reset: ReducerDefinition<typeof paginationCreatorType> & {
               type: 'reset'
             }
           }
-        : never
+        : never, {
       actions: {
         [ReducerName in ReducerNamesOfType<
           CaseReducers,
@@ -1247,7 +1247,7 @@ declare module '@reduxjs/toolkit' {
           ? CaseReducer<State, PayloadAction>
           : never
       }
-    }
+    }>
   }
 }
 
@@ -1329,8 +1329,8 @@ declare module '@reduxjs/toolkit' {
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
     Name extends string = string
   > {
-    [undoableCreatorType]: {
-      create: State extends HistoryState<infer Data>
+    [undoableCreatorType]: ReducerCreatorEntry<
+      State extends HistoryState<infer Data>
         ? {
             <A extends Action & { meta?: UndoableMeta }>(
               reducer: CaseReducer<Data, A>
@@ -1345,9 +1345,7 @@ declare module '@reduxjs/toolkit' {
             ): { payload: Payload; meta: UndoableMeta | undefined }
           }
         : never
-      actions: {}
-      caseReducers: {}
-    }
+    >
   }
 }
 
