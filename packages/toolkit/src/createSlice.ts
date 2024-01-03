@@ -285,11 +285,19 @@ type RecursiveExtractDefinition<
         }[keyof Definitions]
       : never)
 
-type ReducerDefinitionsForType<Type extends RegisteredReducerType> = {
-  [CreatorType in keyof SliceReducerCreators]: RecursiveExtractDefinition<
-    ReturnType<SliceReducerCreators[CreatorType]['create']>,
-    Type
-  >
+export type ReducerDefinitionsForType<Type extends RegisteredReducerType> = {
+  [CreatorType in keyof SliceReducerCreators]:
+    | RecursiveExtractDefinition<
+        ReturnType<SliceReducerCreators[CreatorType]['create']>,
+        Type
+      >
+    | {
+        [K in keyof SliceReducerCreators[CreatorType]['create']]: SliceReducerCreators[CreatorType]['create'][K] extends (
+          ...args: any[]
+        ) => infer Definitions
+          ? RecursiveExtractDefinition<Definitions, Type>
+          : never
+      }[keyof SliceReducerCreators[CreatorType]['create']]
 }[keyof SliceReducerCreators]
 
 export type ReducerCreator<Type extends RegisteredReducerType> = {
