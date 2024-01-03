@@ -10,6 +10,7 @@ import type {
   PayloadActionCreator,
   PreparedCaseReducerDefinition,
   ReducerCreator,
+  ReducerCreatorEntry,
   ReducerCreators,
   ReducerDefinition,
   ReducerNamesOfType,
@@ -1397,144 +1398,146 @@ declare module '@reduxjs/toolkit' {
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
     Name extends string = string
   > {
-    [loaderCreatorType]: {
-      create(
+    [loaderCreatorType]: ReducerCreatorEntry<
+      (
         reducers: Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>
-      ): LoaderReducerDefinition<State>
-      actions: {
-        [ReducerName in ReducerNamesOfType<
-          CaseReducers,
-          typeof loaderCreatorType
-        >]: (() => ThunkAction<
-          { loaderId: string; end: () => void },
-          unknown,
-          unknown,
-          Action
-        >) & {
-          started: PayloadActionCreator<
-            string,
-            `${SliceActionType<Name, ReducerName>}/started`
-          >
-          ended: PayloadActionCreator<
-            string,
-            `${SliceActionType<Name, ReducerName>}/ended`
-          >
-        }
-      }
-      caseReducers: {
-        [ReducerName in ReducerNamesOfType<
-          CaseReducers,
-          typeof loaderCreatorType
-        >]: Required<Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>>
-      }
-    }
-    [conditionCreatorType]: {
-      create<Args extends any[]>(
-        makePredicate: (...args: Args) => AnyListenerPredicate<unknown>
-      ): ReducerDefinition<typeof conditionCreatorType> & {
-        makePredicate: (...args: Args) => AnyListenerPredicate<unknown>
-      }
-      actions: {
-        [ReducerName in ReducerNamesOfType<
-          CaseReducers,
-          typeof conditionCreatorType
-        >]: CaseReducers[ReducerName] extends {
-          makePredicate: (...args: infer Args) => AnyListenerPredicate<unknown>
-        }
-          ? (
-              timeout?: number,
-              ...args: Args
-            ) => ThunkAction<
-              Promise<boolean> & { unsubscribe?: UnsubscribeListener },
-              unknown,
-              unknown,
-              UnknownAction
+      ) => LoaderReducerDefinition<State>,
+      {
+        actions: {
+          [ReducerName in ReducerNamesOfType<
+            CaseReducers,
+            typeof loaderCreatorType
+          >]: (() => ThunkAction<
+            { loaderId: string; end: () => void },
+            unknown,
+            unknown,
+            Action
+          >) & {
+            started: PayloadActionCreator<
+              string,
+              `${SliceActionType<Name, ReducerName>}/started`
             >
-          : never
+            ended: PayloadActionCreator<
+              string,
+              `${SliceActionType<Name, ReducerName>}/ended`
+            >
+          }
+        }
+        caseReducers: {
+          [ReducerName in ReducerNamesOfType<
+            CaseReducers,
+            typeof loaderCreatorType
+          >]: Required<
+            Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>
+          >
+        }
       }
-      caseReducers: {}
-    }
-    [fetchCreatorType]: {
-      create(this: ReducerCreators<State>): State extends FetchState<infer Data>
-        ? {
+    >
+    [conditionCreatorType]: ReducerCreatorEntry<
+      <Args extends any[]>(
+        makePredicate: (...args: Args) => AnyListenerPredicate<unknown>
+      ) => ReducerDefinition<typeof conditionCreatorType> & {
+        makePredicate: (...args: Args) => AnyListenerPredicate<unknown>
+      },
+      {
+        actions: {
+          [ReducerName in ReducerNamesOfType<
+            CaseReducers,
+            typeof conditionCreatorType
+          >]: CaseReducers[ReducerName] extends {
+            makePredicate: (
+              ...args: infer Args
+            ) => AnyListenerPredicate<unknown>
+          }
+            ? (
+                timeout?: number,
+                ...args: Args
+              ) => ThunkAction<
+                Promise<boolean> & { unsubscribe?: UnsubscribeListener },
+                unknown,
+                unknown,
+                UnknownAction
+              >
+            : never
+        }
+      }
+    >
+    [fetchCreatorType]: ReducerCreatorEntry<
+      State extends FetchState<infer Data>
+        ? (this: ReducerCreators<State>) => {
             start: CaseReducerDefinition<State, PayloadAction>
             success: CaseReducerDefinition<State, PayloadAction<Data>>
           }
         : never
-      actions: {}
-      caseReducers: {}
-    }
-    [paginationCreatorType]: {
-      create(this: ReducerCreators<State>): State extends PaginationState
-        ? {
+    >
+    [paginationCreatorType]: ReducerCreatorEntry<
+      State extends PaginationState
+        ? (this: ReducerCreators<State>) => {
             nextPage: CaseReducerDefinition<State, PayloadAction>
             previousPage: CaseReducerDefinition<State, PayloadAction>
             goToPage: CaseReducerDefinition<State, PayloadAction<number>>
           }
         : never
-      actions: {}
-      caseReducers: {}
-    }
-    [historyMethodsCreatorType]: {
-      create(this: ReducerCreators<State>): State extends HistoryState<unknown>
-        ? {
+    >
+    [historyMethodsCreatorType]: ReducerCreatorEntry<
+      State extends HistoryState<unknown>
+        ? (this: ReducerCreators<State>) => {
             undo: CaseReducerDefinition<State, PayloadAction>
             redo: CaseReducerDefinition<State, PayloadAction>
             reset: ReducerDefinition<typeof historyMethodsCreatorType> & {
               type: 'reset'
             }
           }
-        : never
-      actions: {
-        [ReducerName in ReducerNamesOfType<
-          CaseReducers,
-          typeof historyMethodsCreatorType
-        >]: CaseReducers[ReducerName] extends { type: 'reset' }
-          ? PayloadActionCreator<void, SliceActionType<Name, ReducerName>>
-          : never
-      }
-      caseReducers: {
-        [ReducerName in ReducerNamesOfType<
-          CaseReducers,
-          typeof historyMethodsCreatorType
-        >]: CaseReducers[ReducerName] extends { type: 'reset' }
-          ? CaseReducer<State, PayloadAction>
-          : never
-      }
-    }
-    [undoableCreatorType]: {
-      create: {
-        <A extends Action & { meta?: UndoableOptions }>(
-          this: ReducerCreators<State>,
-          reducer: CaseReducer<
-            State extends HistoryState<infer Data> ? Data : never,
-            NoInfer<A>
-          >
-        ): CaseReducer<State, A>
-        withoutPayload(): (options?: UndoableOptions) => {
-          payload: undefined
-          meta: UndoableOptions | undefined
+        : never,
+      {
+        actions: {
+          [ReducerName in ReducerNamesOfType<
+            CaseReducers,
+            typeof historyMethodsCreatorType
+          >]: CaseReducers[ReducerName] extends { type: 'reset' }
+            ? PayloadActionCreator<void, SliceActionType<Name, ReducerName>>
+            : never
         }
-        withPayload<P>(): (
-          ...args: IfMaybeUndefined<
-            P,
-            [payload?: P, options?: UndoableOptions],
-            [payload: P, options?: UndoableOptions]
-          >
-        ) => { payload: P; meta: UndoableOptions | undefined }
+        caseReducers: {
+          [ReducerName in ReducerNamesOfType<
+            CaseReducers,
+            typeof historyMethodsCreatorType
+          >]: CaseReducers[ReducerName] extends { type: 'reset' }
+            ? CaseReducer<State, PayloadAction>
+            : never
+        }
       }
-      actions: {}
-      caseReducers: {}
-    }
-    [batchedCreatorType]: {
-      create(
+    >
+    [undoableCreatorType]: ReducerCreatorEntry<
+      State extends HistoryState<infer Data>
+        ? {
+            <A extends Action & { meta?: UndoableOptions }>(
+              this: ReducerCreators<State>,
+              reducer: CaseReducer<Data, NoInfer<A>>
+            ): CaseReducer<State, A>
+            withoutPayload(): (options?: UndoableOptions) => {
+              payload: undefined
+              meta: UndoableOptions | undefined
+            }
+            withPayload<P>(): (
+              ...args: IfMaybeUndefined<
+                P,
+                [payload?: P, options?: UndoableOptions],
+                [payload: P, options?: UndoableOptions]
+              >
+            ) => { payload: P; meta: UndoableOptions | undefined }
+          }
+        : never
+    >
+    [batchedCreatorType]: ReducerCreatorEntry<{
+      (
         this: ReducerCreators<State>,
         reducer: CaseReducer<State, PayloadAction>
       ): PreparedCaseReducerDefinition<
         State,
         () => { payload: undefined; meta: unknown }
       >
-      create<Payload>(
+      <Payload>(
         this: ReducerCreators<State>,
         reducer: CaseReducer<State, PayloadAction<Payload>>
       ): PreparedCaseReducerDefinition<
@@ -1545,8 +1548,6 @@ declare module '@reduxjs/toolkit' {
           (payload: Payload) => { payload: Payload; meta: unknown }
         >
       >
-      actions: {}
-      caseReducers: {}
-    }
+    }>
   }
 }

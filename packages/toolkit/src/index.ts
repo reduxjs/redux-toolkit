@@ -84,6 +84,7 @@ export type {
   SliceReducerCreators,
   ReducerDefinition,
   ReducerNamesOfType,
+  ReducerCreatorEntry,
   ReducerCreator,
   SliceActionType,
   CaseReducerDefinition,
