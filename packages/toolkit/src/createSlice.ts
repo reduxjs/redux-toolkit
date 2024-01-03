@@ -52,7 +52,7 @@ export type ReducerCreatorEntry<
   Exposes extends {
     actions?: Record<string, unknown>
     caseReducers?: Record<string, unknown>
-  } = { actions: {}; caseReducers: {} }
+  } = {}
 > = {
   create: Create
   actions: IfMaybeUndefined<Exposes['actions'], {}, Exposes['actions']>
