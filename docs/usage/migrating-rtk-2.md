@@ -657,11 +657,11 @@ In practice, we hope these are reasonable tradeoffs. Creating thunks inside of `
 Here's what the new callback syntax looks like:
 
 ```ts
-const createSliceWithThunks = buildCreateSlice({
+const createAppSlice = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 })
 
-const todosSlice = createSliceWithThunks({
+const todosSlice = createAppSlice({
   name: 'todos',
   initialState: {
     loading: false,
