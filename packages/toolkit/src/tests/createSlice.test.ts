@@ -1364,7 +1364,7 @@ describe('createSlice', () => {
           name: 'counter',
           initialState: { value: 0 },
           reducers: (create) => ({
-            // @ts-expect-error
+            // @ts-expect-error incompatible state
             ...create.fetchReducers(),
           }),
         })

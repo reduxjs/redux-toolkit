@@ -179,7 +179,9 @@ export type ReducerCreators<
   reducer: SliceReducerCreators<State>[ReducerType.reducer]['create']
   preparedReducer: SliceReducerCreators<State>[ReducerType.reducerWithPrepare]['create']
 } & {
-  [Name in keyof CreatorMap]: SliceReducerCreators<State>[CreatorMap[Name]]['create']
+  [Name in keyof CreatorMap as SliceReducerCreators<State>[CreatorMap[Name]]['create'] extends never
+    ? never
+    : Name]: SliceReducerCreators<State>[CreatorMap[Name]]['create']
 }
 
 interface ReducerHandlingContext<State> {
