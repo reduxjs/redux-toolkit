@@ -972,6 +972,25 @@ declare module '@reduxjs/toolkit' {
 
 TODO: blurb
 
+:::note `buildCreateSlice` usage
+
+For the sake of a complete example, most of the snippets below will include a `buildCreateSlice` call.
+
+In practicality, we expect that most apps will only call `buildCreateSlice` _once_, with as many creators as needed in that app.
+
+```ts no-transpile
+export const createAppSlice = buildCreateSlice({
+  creators: {
+    toaster: toastCreator,
+    paginationMethods: paginationCreator,
+    historyMethods: historyCreator,
+    undoable: undoableCreator,
+  },
+})
+```
+
+:::
+
 #### Single definitions
 
 Commonly, a creator will return a single reducer definition, to be handled by either itself or another creator.
@@ -1103,11 +1122,11 @@ const toastCreator: ReducerCreator<typeof toastCreatorType> = {
 function noop() {}
 
 // build the `createSlice` function
-const createToastSlice = buildCreateSlice({
+const createAppSlice = buildCreateSlice({
   creators: { toaster: toastCreator },
 })
 
-const toastSlice = createToastSlice({
+const toastSlice = createAppSlice({
   name: 'toast',
   initialState: {} as Record<string, Toast>,
   reducers: (create) => ({
@@ -1179,15 +1198,15 @@ const paginationCreator: ReducerCreator<typeof paginationCreatorType> = {
   },
 }
 
-const createPaginationSlice = buildCreateSlice({
-  creators: { paginationReducers: paginationCreator },
+const createAppSlice = buildCreateSlice({
+  creators: { paginationMethods: paginationCreator },
 })
 
-const paginationSlice = createPaginationSlice({
+const paginationSlice = createAppSlice({
   name: 'pagination',
   initialState: { page: 0, loading: false },
   reducers: (create) => ({
-    ...create.paginationReducers(),
+    ...create.paginationMethods(),
     toggleLoading: create.reducer((state) => {
       state.loading = !state.loading
     }),
@@ -1284,7 +1303,7 @@ const historyCreator: ReducerCreator<typeof historyCreatorType> = {
   },
 }
 
-const createHistorySlice = buildCreateSlice({
+const createAppSlice = buildCreateSlice({
   creators: { historyMethods: historyCreator },
 })
 
@@ -1296,7 +1315,7 @@ function getInitialHistoryState<T>(initialState: T): HistoryState<T> {
   }
 }
 
-const postSliceWithHistory = createHistorySlice({
+const postSliceWithHistory = createAppSlice({
   name: 'post',
   initialState: getInitialHistoryState({ title: '' }),
   reducers: (create) => ({
@@ -1398,11 +1417,11 @@ const undoableCreator: ReducerCreator<typeof undoableCreatorType> = {
   ),
 }
 
-const createHistorySlice = buildCreateSlice({
+const createAppSlice = buildCreateSlice({
   creators: { historyMethods: historyCreator, undoable: undoableCreator },
 })
 
-const postSliceWithHistory = createHistorySlice({
+const postSliceWithHistory = createAppSlice({
   name: 'post',
   initialState: getInitialHistoryState({ title: '', pinned: false }),
   reducers: (create) => ({

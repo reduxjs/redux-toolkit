@@ -914,11 +914,11 @@ describe('createSlice', () => {
       },
     }
     test('allows passing custom reducer creators, which can add actions and case reducers', () => {
-      const createLoaderSlice = buildCreateSlice({
+      const createAppSlice = buildCreateSlice({
         creators: { loader: loaderCreator },
       })
 
-      const loaderSlice = createLoaderSlice({
+      const loaderSlice = createAppSlice({
         name: 'loader',
         initialState: {} as Partial<Record<string, true>>,
         reducers: (create) => ({
@@ -1024,11 +1024,11 @@ describe('createSlice', () => {
     }
 
     test('condition creator', async () => {
-      const createConditionSlice = buildCreateSlice({
+      const createAppSlice = buildCreateSlice({
         creators: { condition: conditionCreator },
       })
 
-      const counterSlice = createConditionSlice({
+      const counterSlice = createAppSlice({
         name: 'counter',
         initialState: { value: 0 },
         reducers: (create) => ({
@@ -1088,11 +1088,11 @@ describe('createSlice', () => {
         },
       }
       test('fetch slice', () => {
-        const createFetchSlice = buildCreateSlice({
+        const createAppSlice = buildCreateSlice({
           creators: { fetchReducers: fetchCreator },
         })
 
-        const fetchSlice = createFetchSlice({
+        const fetchSlice = createAppSlice({
           name: 'fetch',
           initialState: { status: 'loading' } as FetchState<string>,
           reducers: (create) => ({
@@ -1129,11 +1129,11 @@ describe('createSlice', () => {
               }
             },
           }
-        const createPaginationSlice = buildCreateSlice({
+        const createAppSlice = buildCreateSlice({
           creators: { paginationReducers: paginationCreator },
         })
 
-        const paginationSlice = createPaginationSlice({
+        const paginationSlice = createAppSlice({
           name: 'pagination',
           initialState: {
             page: 1,
@@ -1259,14 +1259,14 @@ describe('createSlice', () => {
           ),
         }
 
-        const createHistorySlice = buildCreateSlice({
+        const createAppSlice = buildCreateSlice({
           creators: {
             historyMethods: historyMethodsCreator,
             undoable: undoableCreator,
           },
         })
 
-        const historySlice = createHistorySlice({
+        const historySlice = createAppSlice({
           name: 'history',
           initialState: getInitialHistoryState({ value: 1 }),
           reducers: (create) => ({
@@ -1336,10 +1336,10 @@ describe('createSlice', () => {
           handle() {},
         }
 
-        const createBatchSlice = buildCreateSlice({
+        const createAppSlice = buildCreateSlice({
           creators: { batchedReducer: batchedCreator },
         })
-        const counterSlice = createBatchSlice({
+        const counterSlice = createAppSlice({
           name: 'counter',
           initialState: { value: 0 },
           reducers: (create) => ({
@@ -1356,11 +1356,11 @@ describe('createSlice', () => {
         expect(incrementBy(1).meta).toEqual({ [SHOULD_AUTOBATCH]: true })
       })
       test.skip('creators can discourage their use if state is incompatible (types only)', () => {
-        const createFetchSlice = buildCreateSlice({
+        const createAppSlice = buildCreateSlice({
           creators: { fetchReducers: fetchCreator },
         })
 
-        const counterSlice = createFetchSlice({
+        const counterSlice = createAppSlice({
           name: 'counter',
           initialState: { value: 0 },
           reducers: (create) => ({
