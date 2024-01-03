@@ -809,7 +809,7 @@ context
 
 The Typescript system for custom slice creators uses a "creator registry" system similar to the module system for [RTK Query](/rtk-query/usage/customizing-create-api#creating-your-own-module).
 
-Creators are registered by using module augmentation to add a new key (their unique `type`) to the `SliceReducerCreators` interface. The interface receives three type parameters (`State`, `CaseReducers` and `Name`), and each entry should have use the `ReducerCreatorEntry` type utility.
+Creators are registered by using module augmentation to add a new key (their unique `type`) to the `SliceReducerCreators` interface. The interface receives three type parameters (`State`, `CaseReducers` and `Name`), and each entry should use the `ReducerCreatorEntry` type utility.
 
 ```ts no-transpile
 const reducerCreatorType = Symbol()
