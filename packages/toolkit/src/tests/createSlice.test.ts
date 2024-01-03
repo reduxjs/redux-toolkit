@@ -44,7 +44,6 @@ import {
   getLog,
 } from 'console-testing-library/pure'
 import type { IfMaybeUndefined, NoInfer } from '../tsHelpers'
-
 enablePatches()
 
 type CreateSlice = typeof createSlice
@@ -1321,10 +1320,22 @@ describe('createSlice', () => {
       test('batchable', () => {
         const batchedCreator: ReducerCreator<typeof batchedCreatorType> = {
           type: batchedCreatorType,
-          create(this: ReducerCreators<any>, reducer: CaseReducer<any, any>) {
-            return this.preparedReducer(prepareAutoBatched(), reducer) as any
-          },
+          create: Object.assign(
+            function (
+              this: ReducerCreators<any>,
+              reducer: CaseReducer<any, any>
+            ) {
+              return this.preparedReducer(prepareAutoBatched(), reducer) as any
+            },
+            {
+              test() {
+                return { _reducerDefinitionType: batchedCreatorType } as const
+              },
+            }
+          ),
+          handle() {},
         }
+
         const createBatchSlice = buildCreateSlice({
           creators: { batchedReducer: batchedCreator },
         })
@@ -1548,6 +1559,7 @@ declare module '@reduxjs/toolkit' {
           (payload: Payload) => { payload: Payload; meta: unknown }
         >
       >
+      test(): ReducerDefinition<typeof batchedCreatorType>
     }>
   }
 }

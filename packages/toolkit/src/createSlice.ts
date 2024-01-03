@@ -285,7 +285,7 @@ type RecursiveExtractDefinition<
         }[keyof Definitions]
       : never)
 
-export type ReducerDefinitionsForType<Type extends RegisteredReducerType> = {
+type ReducerDefinitionsForType<Type extends RegisteredReducerType> = {
   [CreatorType in keyof SliceReducerCreators]:
     | RecursiveExtractDefinition<
         ReturnType<SliceReducerCreators[CreatorType]['create']>,
