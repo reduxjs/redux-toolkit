@@ -1051,7 +1051,7 @@ export function buildCreateSlice<
         }
         const handler = handlers[type as RegisteredReducerType]
         if (!handler) {
-          throw new Error('Unsupported reducer type: ' + type)
+          throw new Error(`Unsupported reducer type: ${String(type)}`)
         }
         const reducerDetails: ReducerDetails = {
           reducerName,
