@@ -79,9 +79,17 @@ export interface CommonOptions {
    */
   mergeReadWriteOnly?: boolean;
   /**
+   *
    * HTTPResolverOptions object that is passed to the SwaggerParser bundle function.
    */
   httpResolverOptions?: SwaggerParser.HTTPResolverOptions;
+
+  /**
+   * defaults to undefined
+   * If present the given file will be used as prettier config when formatting the generated code. If undefined the default prettier config
+   * resolution mechanism will be used.
+   */
+  prettierConfigFile?: string;
 }
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];
