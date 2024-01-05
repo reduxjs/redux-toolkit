@@ -16,10 +16,14 @@ export async function generateEndpoints(options: GenerationOptions): Promise<str
     return generateApi(schemaAbsPath, options);
   });
   const outputFile = options.outputFile;
+  const prettierConfigFile = options.prettierConfigFile;
   if (outputFile) {
-    fs.writeFileSync(path.resolve(process.cwd(), outputFile), await prettify(outputFile, sourceCode));
+    fs.writeFileSync(
+      path.resolve(process.cwd(), outputFile),
+      await prettify(outputFile, sourceCode, prettierConfigFile)
+    );
   } else {
-    return await prettify(null, sourceCode);
+    return await prettify(null, sourceCode, prettierConfigFile);
   }
 }
 
