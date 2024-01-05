@@ -120,7 +120,10 @@ describe('buildCreateApi', () => {
     }
 
     expect(callBuildCreateApi).toThrowErrorMatchingInlineSnapshot(
-      `"When using custom hooks for context, all 3 hooks need to be provided: useDispatch, useSelector, useStore.\nHook useStore was either not provided or not a function."`
+      `
+      [Error: When using custom hooks for context, all 3 hooks need to be provided: useDispatch, useSelector, useStore.
+      Hook useStore was either not provided or not a function.]
+    `
     )
   })
 })

@@ -292,7 +292,7 @@ describe('createSlice', () => {
           })
           slice.reducer(undefined, { type: 'unrelated' })
         }).toThrowErrorMatchingInlineSnapshot(
-          '"`builder.addCase` cannot be called with two reducers for the same action type \'increment\'"'
+          `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`
         )
       })
 
@@ -627,9 +627,7 @@ describe('createSlice', () => {
           // @ts-expect-error asyncThunk not in creators
           reducers: (create) => ({ thunk: create.asyncThunk(() => {}) }),
         })
-      ).toThrowErrorMatchingInlineSnapshot(
-        '"create.asyncThunk is not a function"'
-      )
+      ).toThrowErrorMatchingInlineSnapshot(`[TypeError: create.asyncThunk is not a function]`)
     })
     const createAppSlice = buildCreateSlice({
       creators: { asyncThunk: asyncThunkCreator },
@@ -866,9 +864,7 @@ describe('createSlice', () => {
             },
           }),
         })
-      ).toThrowErrorMatchingInlineSnapshot(
-        '"Please use reducer creators passed to callback. Each reducer definition must have a `_reducerDefinitionType` property indicating which handler to use."'
-      )
+      ).toThrowErrorMatchingInlineSnapshot(`[Error: Please use reducer creators passed to callback. Each reducer definition must have a \`_reducerDefinitionType\` property indicating which handler to use.]`)
     })
   })
   describe('custom slice reducer creators', () => {
