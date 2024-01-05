@@ -10,12 +10,16 @@ import type {
 } from './tsHelpers'
 import { emplace } from './utils'
 
-type SliceLike<ReducerPath extends string, State> = {
+export type SliceLike<
+  ReducerPath extends string,
+  State,
+  PreloadedState = State
+> = {
   reducerPath: ReducerPath
-  reducer: Reducer<State>
+  reducer: Reducer<State, UnknownAction, PreloadedState>
 }
 
-type AnySliceLike = SliceLike<string, any>
+export type AnySliceLike = SliceLike<string, any>
 
 type SliceLikeReducerPath<A extends AnySliceLike> = A extends SliceLike<
   infer ReducerPath,
@@ -35,7 +39,7 @@ export type WithSlice<A extends AnySliceLike> = {
   [Path in SliceLikeReducerPath<A>]: SliceLikeState<A>
 }
 
-type ReducerMap = Record<string, Reducer>
+export type ReducerMap = Record<string, Reducer>
 
 type ExistingSliceLike<DeclaredState> = {
   [ReducerPath in keyof DeclaredState]: SliceLike<
@@ -300,7 +304,7 @@ export interface CombinedSliceReducer<
   }
 }
 
-type InitialState<Slices extends Array<AnySliceLike | ReducerMap>> =
+export type StateFromSlices<Slices extends Array<AnySliceLike | ReducerMap>> =
   UnionToIntersection<
     Slices[number] extends infer Slice
       ? Slice extends AnySliceLike
@@ -372,7 +376,7 @@ export function combineSlices<
     AnySliceLike | ReducerMap,
     ...Array<AnySliceLike | ReducerMap>
   ]
->(...slices: Slices): CombinedSliceReducer<Id<InitialState<Slices>>> {
+>(...slices: Slices): CombinedSliceReducer<Id<StateFromSlices<Slices>>> {
   const reducerMap = Object.fromEntries<Reducer>(getReducers(slices))
 
   const getReducer = () => combineReducers(reducerMap)

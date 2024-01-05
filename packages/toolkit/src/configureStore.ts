@@ -27,10 +27,13 @@ import type {
   ExtractStoreExtensions,
   ExtractStateExtensions,
   UnknownIfNonSpecific,
+  Id,
 } from './tsHelpers'
 import type { Tuple } from './utils'
 import type { GetDefaultEnhancers } from './getDefaultEnhancers'
 import { buildGetDefaultEnhancers } from './getDefaultEnhancers'
+import type { AnySliceLike, ReducerMap, StateFromSlices } from './combineSlices'
+import { combineSlices } from './combineSlices'
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
@@ -39,19 +42,12 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production'
  *
  * @public
  */
-export interface ConfigureStoreOptions<
+export interface CommonConfigureStoreOptions<
   S = any,
-  A extends Action = UnknownAction,
   M extends Tuple<Middlewares<S>> = Tuple<Middlewares<S>>,
   E extends Tuple<Enhancers> = Tuple<Enhancers>,
   P = S
 > {
-  /**
-   * A single reducer function that will be used as the root reducer, or an
-   * object of slice reducers that will be passed to `combineReducers()`.
-   */
-  reducer: Reducer<S, A, P> | ReducersMapObject<S, A, P>
-
   /**
    * An array of Redux middleware to install, or a callback receiving `getDefaultMiddleware` and returning a Tuple of middleware.
    * If not supplied, defaults to the set of middleware returned by `getDefaultMiddleware()`.
@@ -90,6 +86,35 @@ export interface ConfigureStoreOptions<
   enhancers?: (getDefaultEnhancers: GetDefaultEnhancers<M>) => E
 }
 
+export interface ConfigureStoreOptions<
+  S = any,
+  A extends Action = UnknownAction,
+  M extends Tuple<Middlewares<S>> = Tuple<Middlewares<S>>,
+  E extends Tuple<Enhancers> = Tuple<Enhancers>,
+  P = S
+> extends CommonConfigureStoreOptions<S, M, E, P> {
+  /**
+   * A single reducer function that will be used as the root reducer, or an
+   * object of slice reducers that will be passed to `combineReducers()`.
+   */
+  reducer: Reducer<S, A, P> | ReducersMapObject<S, A, P>
+}
+
+export interface ConfigureStoreOptionsWithSlices<
+  Slices extends Array<AnySliceLike | ReducerMap> = [],
+  M extends Tuple<Middlewares<StateFromSlices<Slices>>> = Tuple<
+    Middlewares<Id<StateFromSlices<Slices>>>
+  >,
+  E extends Tuple<Enhancers> = Tuple<Enhancers>
+> extends CommonConfigureStoreOptions<
+    StateFromSlices<Slices>,
+    M,
+    E,
+    Partial<StateFromSlices<Slices>>
+  > {
+  slices: Slices
+}
+
 export type Middlewares<S> = ReadonlyArray<Middleware<{}, S>>
 
 type Enhancers = ReadonlyArray<StoreEnhancer>
@@ -107,14 +132,20 @@ export type EnhancedStore<
 > = ExtractStoreExtensions<E> &
   Store<S, A, UnknownIfNonSpecific<ExtractStateExtensions<E>>>
 
-/**
- * A friendly abstraction over the standard Redux `createStore()` function.
- *
- * @param options The store configuration.
- * @returns A configured Redux store.
- *
- * @public
- */
+export function configureStore<
+  Slices extends [
+    AnySliceLike | ReducerMap,
+    ...Array<AnySliceLike | ReducerMap>
+  ],
+  M extends Tuple<Middlewares<StateFromSlices<Slices>>> = Tuple<
+    [ThunkMiddlewareFor<Id<StateFromSlices<Slices>>>]
+  >,
+  E extends Tuple<Enhancers> = Tuple<
+    [StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>, StoreEnhancer]
+  >
+>(
+  options: ConfigureStoreOptionsWithSlices<Slices, M, E>
+): EnhancedStore<Id<StateFromSlices<Slices>>, UnknownAction, E>
 export function configureStore<
   S = any,
   A extends Action = UnknownAction,
@@ -123,34 +154,51 @@ export function configureStore<
     [StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>, StoreEnhancer]
   >,
   P = S
->(options: ConfigureStoreOptions<S, A, M, E, P>): EnhancedStore<S, A, E> {
-  const getDefaultMiddleware = buildGetDefaultMiddleware<S>()
+>(options: ConfigureStoreOptions<S, A, M, E, P>): EnhancedStore<S, A, E>
+/**
+ * A friendly abstraction over the standard Redux `createStore()` function.
+ *
+ * @param options The store configuration.
+ * @returns A configured Redux store.
+ *
+ * @public
+ */
+export function configureStore(
+  options:
+    | ConfigureStoreOptions
+    | ConfigureStoreOptionsWithSlices<[AnySliceLike]>
+): EnhancedStore {
+  const getDefaultMiddleware = buildGetDefaultMiddleware()
 
   const {
-    reducer = undefined,
     middleware,
     devTools = true,
-    preloadedState = undefined,
-    enhancers = undefined,
+    preloadedState,
+    enhancers,
   } = options || {}
 
-  let rootReducer: Reducer<S, A, P>
+  let rootReducer: Reducer
 
-  if (typeof reducer === 'function') {
-    rootReducer = reducer
-  } else if (isPlainObject(reducer)) {
-    rootReducer = combineReducers(reducer) as unknown as Reducer<S, A, P>
+  if (options && 'slices' in options) {
+    rootReducer = combineSlices(...options.slices)
   } else {
-    throw new Error(
-      '`reducer` is a required argument, and must be a function or an object of functions that can be passed to combineReducers'
-    )
+    const { reducer } = options || {}
+    if (typeof reducer === 'function') {
+      rootReducer = reducer
+    } else if (isPlainObject(reducer)) {
+      rootReducer = combineReducers(reducer)
+    } else {
+      throw new Error(
+        '`reducer` is a required argument, and must be a function or an object of functions that can be passed to combineReducers'
+      )
+    }
   }
 
   if (!IS_PRODUCTION && middleware && typeof middleware !== 'function') {
     throw new Error('`middleware` field must be a callback')
   }
 
-  let finalMiddleware: Tuple<Middlewares<S>>
+  let finalMiddleware: Tuple<Middlewares<any>>
   if (typeof middleware === 'function') {
     finalMiddleware = middleware(getDefaultMiddleware)
 
@@ -183,7 +231,7 @@ export function configureStore<
 
   const middlewareEnhancer = applyMiddleware(...finalMiddleware)
 
-  const getDefaultEnhancers = buildGetDefaultEnhancers<M>(middlewareEnhancer)
+  const getDefaultEnhancers = buildGetDefaultEnhancers(middlewareEnhancer)
 
   if (!IS_PRODUCTION && enhancers && typeof enhancers !== 'function') {
     throw new Error('`enhancers` field must be a callback')
@@ -217,5 +265,5 @@ export function configureStore<
 
   const composedEnhancer: StoreEnhancer<any> = finalCompose(...storeEnhancers)
 
-  return createStore(rootReducer, preloadedState as P, composedEnhancer)
+  return createStore(rootReducer, preloadedState, composedEnhancer)
 }

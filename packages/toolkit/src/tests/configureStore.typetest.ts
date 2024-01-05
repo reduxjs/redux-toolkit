@@ -9,7 +9,11 @@ import type {
   StoreEnhancer,
 } from 'redux'
 import { applyMiddleware, combineReducers } from 'redux'
-import type { PayloadAction, ConfigureStoreOptions } from '@reduxjs/toolkit'
+import type {
+  PayloadAction,
+  ConfigureStoreOptions,
+  WithSlice,
+} from '@reduxjs/toolkit'
 import { configureStore, createSlice, Tuple } from '@reduxjs/toolkit'
 import type { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
 import { thunk } from 'redux-thunk'
@@ -131,8 +135,8 @@ const _anyMiddleware: any = () => () => () => {}
     preloadedState: 0,
   })
 
+  // @ts-expect-error
   configureStore({
-    // @ts-expect-error
     reducer: (_: number) => 0,
     preloadedState: 'non-matching state type',
   })
@@ -331,9 +335,9 @@ const _anyMiddleware: any = () => () => () => {}
    * Test: excess properties in preloaded state
    */
   {
+    // @ts-expect-error
     const store = configureStore({
       reducer: {
-        // @ts-expect-error
         counter1: counterReducer1,
         counter2: counterReducer2,
       },
@@ -351,9 +355,9 @@ const _anyMiddleware: any = () => () => () => {}
    * Test: mismatching properties in preloaded state
    */
   {
+    // @ts-expect-error
     const store = configureStore({
       reducer: {
-        // @ts-expect-error
         counter1: counterReducer1,
         counter2: counterReducer2,
       },
@@ -370,9 +374,9 @@ const _anyMiddleware: any = () => () => () => {}
    * Test: string preloaded state when expecting object
    */
   {
+    // @ts-expect-error
     const store = configureStore({
       reducer: {
-        // @ts-expect-error
         counter1: counterReducer1,
         counter2: counterReducer2,
       },
@@ -425,9 +429,9 @@ const _anyMiddleware: any = () => () => () => {}
     const group1Reducer: Reducer<GroupState> = (state = initialState) => state
     const group2Reducer: Reducer<GroupState> = (state = initialState) => state
 
+    // @ts-expect-error
     const store = configureStore({
       reducer: {
-        // @ts-expect-error
         group1: group1Reducer,
         group2: group2Reducer,
       },
@@ -830,4 +834,50 @@ const _anyMiddleware: any = () => () => () => {}
 
     expectType<Unsubscribe>(unsubscribe)
   }
+}
+
+/**
+ * Test: slices overload
+ */
+{
+  const counterSlice = createSlice({
+    name: 'counter',
+    initialState: { value: 0 },
+    reducers: {
+      increment(state) {
+        state.value += 1
+      },
+    },
+  })
+
+  const store = configureStore({
+    slices: [counterSlice, { number: () => 9 }],
+  })
+
+  expectType<WithSlice<typeof counterSlice> & { number: number }>(
+    store.getState()
+  )
+
+  configureStore({
+    slices: [counterSlice],
+    preloadedState: { counter: { value: 0 } },
+  })
+  configureStore({
+    // @ts-expect-error
+    slices: [],
+  })
+  // @ts-expect-error
+  configureStore({
+    slices: [counterSlice],
+    preloadedState: { counter: 1 },
+  })
+  // @ts-expect-error
+  configureStore({
+    slices: [counterSlice],
+    reducers: {},
+  })
+
+  store.dispatch((dispatch, getState) => {
+    expectType<WithSlice<typeof counterSlice> & { number: number }>(getState())
+  })
 }

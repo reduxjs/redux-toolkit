@@ -99,6 +99,22 @@ describe('configureStore', async () => {
     })
   })
 
+  describe('given an array of slice-like objects', () => {
+    it('calls createStore with the combined reducers', () => {
+      const slice = { reducerPath: 'foo' as const, reducer: () => 0 }
+      expect(configureStore({ slices: [slice] })).toBeInstanceOf(Object)
+      expect(redux.combineReducers).toHaveBeenCalledWith({
+        [slice.reducerPath]: slice.reducer,
+      })
+      expect(redux.applyMiddleware).toHaveBeenCalled()
+      expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line-line
+      expect(redux.createStore).toHaveBeenCalledWith(
+        expect.any(Function),
+        undefined,
+        expect.any(Function)
+      )
+    })
+  })
   describe('given no reducer', () => {
     it('throws', () => {
       expect(configureStore).toThrow(
