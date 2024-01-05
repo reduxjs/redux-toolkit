@@ -24,7 +24,7 @@ export default defineConfig({
 
       // this mapping is disabled as we want `dist` imports in the tests only to be used for "type-only" imports which don't play a role for jest
       //'^@reduxjs/toolkit/dist/(.*)$': '<rootDir>/src/*',
-      '@internal/': path.join(__dirname, './src/'),
+      '@internal': path.join(__dirname, './src'),
     },
     deps: {
       interopDefault: true,
