@@ -49,6 +49,7 @@ import type { ReferenceCacheLifecycle } from './buildMiddleware/cacheLifecycle'
 import type { ReferenceQueryLifecycle } from './buildMiddleware/queryLifecycle'
 import type { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
 import { enablePatches } from 'immer'
+import { createSelector as _createSelector } from './rtkImports'
 
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
@@ -431,6 +432,13 @@ export type ListenerActions = {
 
 export type InternalActions = SliceActions & ListenerActions
 
+export interface CoreModuleOptions {
+  /**
+   * A selector creator (usually from `reselect`, or matching the same signature)
+   */
+  createSelector?: typeof _createSelector
+}
+
 /**
  * Creates a module containing the basic redux logic for use with `buildCreateApi`.
  *
@@ -439,7 +447,9 @@ export type InternalActions = SliceActions & ListenerActions
  * const createBaseApi = buildCreateApi(coreModule());
  * ```
  */
-export const coreModule = (): Module<CoreModule> => ({
+export const coreModule = ({
+  createSelector = _createSelector,
+}: CoreModuleOptions = {}): Module<CoreModule> => ({
   name: coreModuleName,
   init(
     api,
@@ -548,6 +558,7 @@ export const coreModule = (): Module<CoreModule> => ({
     } = buildSelectors({
       serializeQueryArgs: serializeQueryArgs as any,
       reducerPath,
+      createSelector,
     })
 
     safeAssign(api.util, { selectInvalidatedBy, selectCachedArgsForQuery })
