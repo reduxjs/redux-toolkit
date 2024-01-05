@@ -55,12 +55,12 @@ export type ReducerCreatorEntry<
   } = {}
 > = {
   create: Create
-  actions: IfMaybeUndefined<Exposes['actions'], {}, Exposes['actions']>
-  caseReducers: IfMaybeUndefined<
-    Exposes['caseReducers'],
-    {},
-    Exposes['caseReducers']
-  >
+  actions: Exposes extends { actions: NonNullable<unknown> }
+    ? Exposes['actions']
+    : {}
+  caseReducers: Exposes extends { caseReducers: NonNullable<unknown> }
+    ? Exposes['caseReducers']
+    : {}
 }
 
 export interface SliceReducerCreators<
@@ -952,7 +952,7 @@ export function buildCreateSlice<
       creator.type === ReducerType.reducer ||
       creator.type === ReducerType.reducerWithPrepare
     ) {
-      throw new Error('Cannot use reserved creator type: ' + creator.type)
+      throw new Error(`Cannot use reserved creator type: ${creator.type}`)
     }
     creators[name] = creator.create
     if ('handle' in creator) {
