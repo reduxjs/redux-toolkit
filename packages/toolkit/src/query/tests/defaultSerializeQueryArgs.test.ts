@@ -10,7 +10,7 @@ test('string arg', () => {
       endpointName,
       queryArgs: 'arg',
     })
-  ).toMatchInlineSnapshot(`"test(\\"arg\\")"`)
+  ).toMatchInlineSnapshot(`"test("arg")"`)
 })
 
 test('number arg', () => {
@@ -30,7 +30,7 @@ test('simple object arg is sorted', () => {
       endpointName,
       queryArgs: { name: 'arg', age: 5 },
     })
-  ).toMatchInlineSnapshot(`"test({\\"age\\":5,\\"name\\":\\"arg\\"})"`)
+  ).toMatchInlineSnapshot(`"test({"age":5,"name":"arg"})"`)
 })
 
 test('nested object arg is sorted recursively', () => {
@@ -41,7 +41,7 @@ test('nested object arg is sorted recursively', () => {
       queryArgs: { name: { last: 'Split', first: 'Banana' }, age: 5 },
     })
   ).toMatchInlineSnapshot(
-    `"test({\\"age\\":5,\\"name\\":{\\"first\\":\\"Banana\\",\\"last\\":\\"Split\\"}})"`
+    `"test({"age":5,"name":{"first":"Banana","last":"Split"}})"`
   )
 })
 
@@ -70,7 +70,7 @@ test('Fully serializes a deeply nested object', () => {
     queryArgs: nestedObj,
   })
   expect(res).toMatchInlineSnapshot(
-    `"test({\\"a\\":{\\"a1\\":{\\"a11\\":{\\"a111\\":1}}},\\"b\\":{\\"b1\\":{\\"b11\\":2},\\"b2\\":{\\"b21\\":3}}})"`
+    `"test({"a":{"a1":{"a11":{"a111":1}}},"b":{"b1":{"b11":2},"b2":{"b21":3}}})"`
   )
 })
 
