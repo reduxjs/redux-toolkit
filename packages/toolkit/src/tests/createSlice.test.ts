@@ -252,7 +252,7 @@ describe('createSlice', () => {
           })
           slice.reducer(undefined, { type: 'unrelated' })
         }).toThrowErrorMatchingInlineSnapshot(
-          '"`builder.addCase` cannot be called with two reducers for the same action type \'increment\'"'
+          `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`
         )
       })
 
@@ -587,7 +587,7 @@ describe('createSlice', () => {
           reducers: (create) => ({ thunk: create.asyncThunk(() => {}) }),
         })
       ).toThrowErrorMatchingInlineSnapshot(
-        '"Cannot use `create.asyncThunk` in the built-in `createSlice`. Use `buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })` to create a customised version of `createSlice`."'
+        `[Error: Cannot use \`create.asyncThunk\` in the built-in \`createSlice\`. Use \`buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })\` to create a customised version of \`createSlice\`.]`
       )
     })
     const createAppSlice = buildCreateSlice({
@@ -826,7 +826,7 @@ describe('createSlice', () => {
           }),
         })
       ).toThrowErrorMatchingInlineSnapshot(
-        `"Please use the \`create.preparedReducer\` notation for prepared action creators with the \`create\` notation."`
+        `[Error: Please use the \`create.preparedReducer\` notation for prepared action creators with the \`create\` notation.]`
       )
     })
   })
