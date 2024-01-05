@@ -952,7 +952,9 @@ export function buildCreateSlice<
       creator.type === ReducerType.reducer ||
       creator.type === ReducerType.reducerWithPrepare
     ) {
-      throw new Error(`Cannot use reserved creator type: ${creator.type}`)
+      throw new Error(
+        `Cannot use reserved creator type: ${String(creator.type)}`
+      )
     }
     creators[name] = creator.create
     if ('handle' in creator) {
