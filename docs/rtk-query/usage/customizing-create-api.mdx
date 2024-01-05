@@ -35,7 +35,7 @@ import {
   reactHooksModule,
 } from '@reduxjs/toolkit/query/react'
 
-const MyContext = React.createContext<ReactReduxContextValue | null>(null)
+const MyContext = React.createContext<ReactReduxContextValue>(null as any)
 const customCreateApi = buildCreateApi(
   coreModule(),
   reactHooksModule({
