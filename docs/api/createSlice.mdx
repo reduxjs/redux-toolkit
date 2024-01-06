@@ -303,7 +303,7 @@ create.asyncThunk(
 
 :::note
 
-Typing for the `create.asyncThunk` works in the same way as [`createAsyncThunk`](../usage/usage-with-typescript#createasyncthunk), with one key difference.
+Typing for `create.asyncThunk` works in the same way as [`createAsyncThunk`](../usage/usage-with-typescript#createasyncthunk), with one key difference.
 
 A type for `state` and/or `dispatch` _cannot_ be provided as part of the `ThunkApiConfig`, as this would cause circular types.
 
@@ -668,7 +668,45 @@ store.dispatch(user.actions.setUserName('eric'))
 
 ## Custom creators
 
-TODO: a blurb introducing the idea of custom creators
+With the introduction of the [reducer "creator callback" syntax](#the-reducers-creator-callback-notation), the potential was there to allow other, more "custom", `create` methods.
+
+These "creators" would have the capability to:
+
+- Encapsulate reusable logic
+- Define multiple reducers at the same time
+- Modify slice behaviour by adding case/matcher reducers
+- Expose custom actions (thunks, for example) and case reducers
+
+```ts no-transpile
+const createAppSlice = buildCreateSlice({
+  creators: { historyMethods: historyCreator, undoable: undoableCreator },
+})
+
+const postSliceWithHistory = createAppSlice({
+  name: 'post',
+  initialState: getInitialHistoryState({ title: '', pinned: false }),
+  reducers: (create) => ({
+    ...create.historyMethods(),
+    updateTitle: create.preparedReducer(
+      create.undoable.withPayload<string>(),
+      create.undoable((state, action) => {
+        state.title = action.payload
+      })
+    ),
+    togglePinned: create.preparedReducer(
+      create.undoable.withoutPayload(),
+      create.undoable((state, action) => {
+        state.pinned = !state.pinned
+      })
+    ),
+  }),
+})
+
+const { undo, redo, reset, updateTitle, togglePinned } =
+  postSliceWithHistory.actions
+```
+
+In version TODO, this functionality was added. The below section will cover how to properly define and use these creators, and possible applications.
 
 ### Reducer definitions
 
@@ -1021,7 +1059,9 @@ declare module '@reduxjs/toolkit' {
 
 ### Further examples
 
-TODO: blurb
+This section will cover in depth examples, for potential applications with hopefully applicable lessons to other use cases.
+
+If you come up with a novel use for reducer creators, we'd love to hear it! It should even be possible to publish packages with creators for others to use.
 
 :::note `buildCreateSlice` usage
 
