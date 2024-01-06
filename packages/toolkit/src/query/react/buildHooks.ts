@@ -4,7 +4,6 @@ import type {
   ThunkAction,
   ThunkDispatch,
 } from '@reduxjs/toolkit'
-import { createSelector } from '@reduxjs/toolkit'
 import type { DependencyList } from 'react'
 import {
   useCallback,
