@@ -9,12 +9,13 @@ const __dirname = path.dirname(__filename)
 
 export default defineConfig({
   test: {
+    typecheck: { only: true, tsconfig: './src/tests/tsconfig.typetests.json' },
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.js'],
     include: ['./src/**/*.(spec|test).[jt]s?(x)'],
     alias: {
-      '@reduxjs/toolkit/query/react': path.join(__dirname,'./src/query/react/index.ts'), // @remap-prod-remove-line
+      '@reduxjs/toolkit/query/react': path.join(__dirname, './src/query/react/index.ts'), // @remap-prod-remove-line
       '@reduxjs/toolkit/query': path.join(__dirname, './src/query/index.ts'), // @remap-prod-remove-line
       '@reduxjs/toolkit/react': path.join(__dirname, './src/index.ts'), // @remap-prod-remove-line
       '@reduxjs/toolkit': path.join(__dirname, './src/index.ts'), // @remap-prod-remove-line
