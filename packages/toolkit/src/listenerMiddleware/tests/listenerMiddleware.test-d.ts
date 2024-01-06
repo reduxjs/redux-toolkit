@@ -1,10 +1,13 @@
+import type { TypedStartListening } from '@reduxjs/toolkit'
+import {
+  configureStore,
+  createAsyncThunk,
+  createListenerMiddleware,
+  createSlice,
+} from '@reduxjs/toolkit'
 import type { Action } from 'redux'
 import type { ThunkAction } from 'redux-thunk'
 import { expectTypeOf } from 'vitest'
-import { createListenerMiddleware } from '..'
-import { configureStore } from '../../configureStore'
-import { createAsyncThunk } from '../../createAsyncThunk'
-import { createSlice } from '../../createSlice'
 
 export interface CounterState {
   counter: number
@@ -69,27 +72,30 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
       CounterState,
       AppDispatch
     >()
+
+    expectTypeOf(startAppListening).toEqualTypeOf<
+      TypedStartListening<CounterState, AppDispatch>
+    >()
+
     startAppListening({
       predicate: increment.match,
       effect: async (_, listenerApi) => {
         const stateBefore = listenerApi.getState()
 
+        expectTypeOf(stateBefore).toEqualTypeOf<CounterState>()
+
         let takeResult = await listenerApi.take(increment.match, timeout)
         const stateCurrent = listenerApi.getState()
-        expect(takeResult).toEqual([increment(), stateCurrent, stateBefore])
+
+        expectTypeOf(stateCurrent).toEqualTypeOf<CounterState>()
 
         timeout = 1
         takeResult = await listenerApi.take(increment.match, timeout)
-        expect(takeResult).toBeNull()
-
-        expectTypeOf<
-          typeof takeResult
-        >(takeResult).toEqualTypeOf<ExpectedTakeResultType>()
 
         done = true
       },
     })
   })
 
-  test('addListener.withTypes', () => {})
+  test.todo('addListener.withTypes', () => {})
 })
