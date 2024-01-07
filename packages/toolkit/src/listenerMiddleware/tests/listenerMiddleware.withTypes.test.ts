@@ -71,41 +71,45 @@ const addAppListener = addListener.withTypes<RootState, AppDispatch>()
 
 const removeAppListener = removeListener.withTypes<RootState, AppDispatch>()
 
-describe(startAppListening.withTypes, () => {
+describe('startAppListening.withTypes', () => {
   test('should return startListening', () => {
-    expect(startAppListening.withTypes).to.be.a('function')
+    expect(startAppListening.withTypes).toEqual(expect.any(Function))
 
-    expect(startAppListening.withTypes().withTypes).to.be.a('function')
+    expect(startAppListening.withTypes().withTypes).toEqual(
+      expect.any(Function)
+    )
 
     expect(startAppListening).toBe(listenerMiddleware.startListening)
   })
 })
 
-describe(stopAppListening.withTypes, () => {
+describe('stopAppListening.withTypes', () => {
   test('should return stopListening', () => {
-    expect(stopAppListening.withTypes).to.be.a('function')
+    expect(stopAppListening.withTypes).toEqual(expect.any(Function))
 
-    expect(stopAppListening.withTypes().withTypes).to.be.a('function')
+    expect(stopAppListening.withTypes().withTypes).toEqual(expect.any(Function))
 
     expect(stopAppListening).toBe(listenerMiddleware.stopListening)
   })
 })
 
-describe(addAppListener.withTypes, () => {
+describe('addAppListener.withTypes', () => {
   test('should return addListener', () => {
-    expect(addAppListener.withTypes).to.be.a('function')
+    expect(addAppListener.withTypes).toEqual(expect.any(Function))
 
-    expect(addAppListener.withTypes().withTypes).to.be.a('function')
+    expect(addAppListener.withTypes().withTypes).toEqual(expect.any(Function))
 
     expect(addAppListener).toBe(addListener)
   })
 })
 
-describe(removeAppListener.withTypes, () => {
+describe('removeAppListener.withTypes', () => {
   test('should return removeListener', () => {
-    expect(removeAppListener.withTypes).to.be.a('function')
+    expect(removeAppListener.withTypes).toEqual(expect.any(Function))
 
-    expect(removeAppListener.withTypes().withTypes).to.be.a('function')
+    expect(removeAppListener.withTypes().withTypes).toEqual(
+      expect.any(Function)
+    )
 
     expect(removeAppListener).toBe(removeListener)
   })

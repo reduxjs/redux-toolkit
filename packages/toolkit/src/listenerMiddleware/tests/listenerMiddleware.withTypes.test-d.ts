@@ -14,7 +14,7 @@ import {
   createSlice,
   removeListener,
 } from '@reduxjs/toolkit'
-import { expectTypeOf } from 'vitest'
+import { describe, expectTypeOf, test } from 'vitest'
 
 export interface CounterState {
   counter: number
@@ -140,7 +140,10 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
   })
 
   test('stopListening.withTypes', () => {
-    const stopAppListening = listenerMiddleware.stopListening.withTypes<RootState, AppDispatch>()
+    const stopAppListening = listenerMiddleware.stopListening.withTypes<
+      RootState,
+      AppDispatch
+    >()
 
     expectTypeOf(stopAppListening).toEqualTypeOf<
       TypedStopListening<RootState, AppDispatch>

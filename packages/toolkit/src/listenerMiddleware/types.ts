@@ -531,8 +531,10 @@ export interface RemoveListenerAction<
 }
 
 /**
+ * A "pre-typed" version of `addListenerAction`, so the listener args are well-typed
+ *
  * @public
- * A "pre-typed" version of `addListenerAction`, so the listener args are well-typed */
+ */
 export type TypedAddListener<
   StateType,
   DispatchType extends ReduxDispatch = ThunkDispatch<
@@ -550,15 +552,42 @@ export type TypedAddListener<
     DispatchType,
     ExtraArgument
   > & {
+    /**
+     * Creates a "pre-typed" version of `addListener`
+     * where the `state` and `dispatch` types are predefined.
+     *
+     * This allows you to set the `state` and `dispatch` types once,
+     * eliminating the need to specify them with every `addListener` call.
+     *
+     * @returns A pre-typed `addListener` with the state and dispatch types already defined.
+     *
+     * @example
+     * ```ts
+     * import { addListener } from '@reduxjs/toolkit'
+     *
+     * export const addAppListener = addListener.withTypes<RootState, AppDispatch>()
+     * ```
+     *
+     * @template OverrideStateType - The specific type of state the middleware listener operates on.
+     * @template OverrideDispatchType - The specific type of the dispatch function.
+     *
+     * @since 2.1.0
+     */
     withTypes: <
       OverrideStateType extends StateType,
-      OverrideDispatchType extends DispatchType
+      OverrideDispatchType extends ReduxDispatch = ThunkDispatch<
+        OverrideStateType,
+        unknown,
+        UnknownAction
+      >
     >() => TypedAddListener<OverrideStateType, OverrideDispatchType>
   }
 
 /**
+ * A "pre-typed" version of `removeListenerAction`, so the listener args are well-typed
+ *
  * @public
- * A "pre-typed" version of `removeListenerAction`, so the listener args are well-typed */
+ */
 export type TypedRemoveListener<
   StateType,
   DispatchType extends ReduxDispatch = ThunkDispatch<
@@ -568,22 +597,50 @@ export type TypedRemoveListener<
   >,
   Payload = ListenerEntry<StateType, DispatchType>,
   T extends string = 'listenerMiddleware/remove'
-> = BaseActionCreator<Payload, T> & {
-  withTypes: <
-    OverrideStateType extends StateType,
-    OverrideDispatchType extends DispatchType
-  >() => TypedRemoveListener<OverrideStateType, OverrideDispatchType>
-} & AddListenerOverloads<
+> = BaseActionCreator<Payload, T> &
+  AddListenerOverloads<
     PayloadAction<Payload, T>,
     StateType,
     DispatchType,
     any,
     UnsubscribeListenerOptions
-  >
+  > & {
+    /**
+     * Creates a "pre-typed" version of `removeListener`
+     * where the `state` and `dispatch` types are predefined.
+     *
+     * This allows you to set the `state` and `dispatch` types once,
+     * eliminating the need to specify them with every `removeListener` call.
+     *
+     * @returns A pre-typed `removeListener` with the state and dispatch types already defined.
+     *
+     * @example
+     * ```ts
+     * import { removeListener } from '@reduxjs/toolkit'
+     *
+     * export const removeAppListener = removeListener.withTypes<RootState, AppDispatch>()
+     * ```
+     *
+     * @template OverrideStateType - The specific type of state the middleware listener operates on.
+     * @template OverrideDispatchType - The specific type of the dispatch function.
+     *
+     * @since 2.1.0
+     */
+    withTypes: <
+      OverrideStateType extends StateType,
+      OverrideDispatchType extends ReduxDispatch = ThunkDispatch<
+        OverrideStateType,
+        unknown,
+        UnknownAction
+      >
+    >() => TypedRemoveListener<OverrideStateType, OverrideDispatchType>
+  }
 
 /**
+ * A "pre-typed" version of `middleware.startListening`, so the listener args are well-typed
+ *
  * @public
- * A "pre-typed" version of `middleware.startListening`, so the listener args are well-typed */
+ */
 export type TypedStartListening<
   StateType,
   DispatchType extends ReduxDispatch = ThunkDispatch<
@@ -598,14 +655,49 @@ export type TypedStartListening<
   DispatchType,
   ExtraArgument
 > & {
+  /**
+   * Creates a "pre-typed" version of
+   * {@linkcode ListenerMiddlewareInstance.startListening startListening}
+   * where the `state` and `dispatch` types are predefined.
+   *
+   * This allows you to set the `state` and `dispatch` types once,
+   * eliminating the need to specify them with every
+   * {@linkcode ListenerMiddlewareInstance.startListening startListening} call.
+   *
+   * @returns A pre-typed `startListening` with the state and dispatch types already defined.
+   *
+   * @example
+   * ```ts
+   * import { createListenerMiddleware } from '@reduxjs/toolkit'
+   *
+   * const listenerMiddleware = createListenerMiddleware()
+   *
+   * export const startAppListening = listenerMiddleware.startListening.withTypes<
+   *   RootState,
+   *   AppDispatch
+   * >()
+   * ```
+   *
+   * @template OverrideStateType - The specific type of state the middleware listener operates on.
+   * @template OverrideDispatchType - The specific type of the dispatch function.
+   *
+   * @since 2.1.0
+   */
   withTypes: <
     OverrideStateType extends StateType,
-    OverrideDispatchType extends DispatchType
+    OverrideDispatchType extends ReduxDispatch = ThunkDispatch<
+      OverrideStateType,
+      unknown,
+      UnknownAction
+    >
   >() => TypedStartListening<OverrideStateType, OverrideDispatchType>
 }
 
-/** @public
- * A "pre-typed" version of `middleware.stopListening`, so the listener args are well-typed */
+/**
+ * A "pre-typed" version of `middleware.stopListening`, so the listener args are well-typed
+ *
+ * @public
+ */
 export type TypedStopListening<
   StateType,
   DispatchType extends ReduxDispatch = ThunkDispatch<
@@ -614,14 +706,49 @@ export type TypedStopListening<
     UnknownAction
   >
 > = RemoveListenerOverloads<StateType, DispatchType> & {
+  /**
+   * Creates a "pre-typed" version of
+   * {@linkcode ListenerMiddlewareInstance.stopListening stopListening}
+   * where the `state` and `dispatch` types are predefined.
+   *
+   * This allows you to set the `state` and `dispatch` types once,
+   * eliminating the need to specify them with every
+   * {@linkcode ListenerMiddlewareInstance.stopListening stopListening} call.
+   *
+   * @returns A pre-typed `stopListening` with the state and dispatch types already defined.
+   *
+   * @example
+   * ```ts
+   * import { createListenerMiddleware } from '@reduxjs/toolkit'
+   *
+   * const listenerMiddleware = createListenerMiddleware()
+   *
+   * export const stopAppListening = listenerMiddleware.stopListening.withTypes<
+   *   RootState,
+   *   AppDispatch
+   * >()
+   * ```
+   *
+   * @template OverrideStateType - The specific type of state the middleware listener operates on.
+   * @template OverrideDispatchType - The specific type of the dispatch function.
+   *
+   * @since 2.1.0
+   */
   withTypes: <
     OverrideStateType extends StateType,
-    OverrideDispatchType extends DispatchType
+    OverrideDispatchType extends ReduxDispatch = ThunkDispatch<
+      OverrideStateType,
+      unknown,
+      UnknownAction
+    >
   >() => TypedStopListening<OverrideStateType, OverrideDispatchType>
 }
 
-/** @public
- * A "pre-typed" version of `createListenerEntry`, so the listener args are well-typed */
+/**
+ * A "pre-typed" version of `createListenerEntry`, so the listener args are well-typed
+ *
+ * @public
+ */
 export type TypedCreateListenerEntry<
   StateType,
   DispatchType extends ReduxDispatch = ThunkDispatch<
@@ -634,9 +761,37 @@ export type TypedCreateListenerEntry<
   StateType,
   DispatchType
 > & {
+  /**
+   * Creates a "pre-typed" version of `createListenerEntry`
+   * where the `state` and `dispatch` types are predefined.
+   *
+   * This allows you to set the `state` and `dispatch` types once, eliminating
+   * the need to specify them with every `createListenerEntry` call.
+   *
+   * @returns A pre-typed `createListenerEntry` with the state and dispatch types already defined.
+   *
+   * @example
+   * ```ts
+   * import { createListenerEntry } from '@reduxjs/toolkit'
+   *
+   * export const createAppListenerEntry = createListenerEntry.withTypes<
+   *   RootState,
+   *   AppDispatch
+   * >()
+   * ```
+   *
+   * @template OverrideStateType - The specific type of state the middleware listener operates on.
+   * @template OverrideDispatchType - The specific type of the dispatch function.
+   *
+   * @since 2.1.0
+   */
   withTypes: <
     OverrideStateType extends StateType,
-    OverrideDispatchType extends DispatchType
+    OverrideDispatchType extends ReduxDispatch = ThunkDispatch<
+      OverrideStateType,
+      unknown,
+      UnknownAction
+    >
   >() => TypedStopListening<OverrideStateType, OverrideDispatchType>
 }
 
