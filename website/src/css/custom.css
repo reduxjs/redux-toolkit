@@ -134,8 +134,9 @@ a.contents__link > code {
   color: inherit;
 }
 
-a.contents__link.contents__link--active {
-  font-weight: 600;
+.table-of-contents__link--active {
+  font-weight: 500;
+  text-decoration: underline;
 }
 
 .table-of-contents__link:hover > code,
