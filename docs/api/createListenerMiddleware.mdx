@@ -486,21 +486,16 @@ To fix this, the middleware provides types for defining "pre-typed" versions of 
 ```ts no-transpile
 // listenerMiddleware.ts
 import { createListenerMiddleware, addListener } from '@reduxjs/toolkit'
-import type { TypedStartListening, TypedAddListener } from '@reduxjs/toolkit'
-
 import type { RootState, AppDispatch } from './store'
 
 export const listenerMiddleware = createListenerMiddleware()
 
-export type AppStartListening = TypedStartListening<RootState, AppDispatch>
-
-export const startAppListening =
-  listenerMiddleware.startListening as AppStartListening
-
-export const addAppListener = addListener as TypedAddListener<
+export const startAppListening = listenerMiddleware.startListening.withTypes<
   RootState,
   AppDispatch
->
+>()
+
+export const addAppListener = addListener.withTypes<RootState, AppDispatch>()
 ```
 
 Then import and use those pre-typed methods in your components.
