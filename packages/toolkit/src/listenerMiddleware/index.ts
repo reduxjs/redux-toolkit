@@ -281,9 +281,9 @@ const safelyNotifyError = (
 /**
  * @public
  */
-export const addListener = createAction(
-  `${alm}/add`
-) as TypedAddListener<unknown>
+export const addListener = Object.assign(createAction(`${alm}/add`), {
+  withTypes: () => addListener,
+}) as unknown as TypedAddListener<unknown>
 
 /**
  * @public
@@ -293,9 +293,9 @@ export const clearAllListeners = createAction(`${alm}/removeAll`)
 /**
  * @public
  */
-export const removeListener = createAction(
-  `${alm}/remove`
-) as TypedRemoveListener<unknown>
+export const removeListener = Object.assign(createAction(`${alm}/remove`), {
+  withTypes: () => removeListener,
+}) as unknown as TypedRemoveListener<unknown>
 
 const defaultErrorHandler: ListenerErrorHandler = (...args: unknown[]) => {
   console.error(`${alm}/error`, ...args)
@@ -372,6 +372,10 @@ export const createListenerMiddleware = <
 
     return !!entry
   }
+
+  Object.assign(stopListening, {
+    withTypes: () => stopListening,
+  })
 
   const notifyListener = async (
     entry: ListenerEntry<unknown, Dispatch<UnknownAction>>,

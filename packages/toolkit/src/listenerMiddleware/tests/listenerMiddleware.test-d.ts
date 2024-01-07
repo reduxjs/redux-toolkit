@@ -1,12 +1,19 @@
-import type { TypedStartListening } from '@reduxjs/toolkit'
+import type {
+  Action,
+  ThunkAction,
+  TypedAddListener,
+  TypedRemoveListener,
+  TypedStartListening,
+  TypedStopListening,
+} from '@reduxjs/toolkit'
 import {
+  addListener,
   configureStore,
   createAsyncThunk,
   createListenerMiddleware,
   createSlice,
+  removeListener,
 } from '@reduxjs/toolkit'
-import type { Action } from 'redux'
-import type { ThunkAction } from 'redux-thunk'
 import { expectTypeOf } from 'vitest'
 
 export interface CounterState {
@@ -44,13 +51,13 @@ export const incrementAsync = createAsyncThunk(
 
 const { increment } = counterSlice.actions
 
-const counterStore = configureStore({
+const store = configureStore({
   reducer: counterSlice.reducer,
 })
 
-type AppStore = typeof counterStore
-type AppDispatch = typeof counterStore.dispatch
-type RootState = ReturnType<typeof counterStore.getState>
+type AppStore = typeof store
+type AppDispatch = typeof store.dispatch
+type RootState = ReturnType<typeof store.getState>
 type AppThunk<ThunkReturnType = void> = ThunkAction<
   ThunkReturnType,
   RootState,
@@ -64,30 +71,36 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
   let done = false
 
   type ExpectedTakeResultType =
-    | readonly [ReturnType<typeof increment>, CounterState, CounterState]
+    | [ReturnType<typeof increment>, RootState, RootState]
     | null
 
   test('startListening.withTypes', () => {
     const startAppListening = listenerMiddleware.startListening.withTypes<
-      CounterState,
+      RootState,
       AppDispatch
     >()
 
     expectTypeOf(startAppListening).toEqualTypeOf<
-      TypedStartListening<CounterState, AppDispatch>
+      TypedStartListening<RootState, AppDispatch>
     >()
 
     startAppListening({
       predicate: increment.match,
-      effect: async (_, listenerApi) => {
+      effect: async (action, listenerApi) => {
         const stateBefore = listenerApi.getState()
 
-        expectTypeOf(stateBefore).toEqualTypeOf<CounterState>()
+        expectTypeOf(increment).returns.toEqualTypeOf(action)
+
+        expectTypeOf(listenerApi.dispatch).toEqualTypeOf<AppDispatch>()
+
+        expectTypeOf(stateBefore).toEqualTypeOf<RootState>()
 
         let takeResult = await listenerApi.take(increment.match, timeout)
         const stateCurrent = listenerApi.getState()
 
-        expectTypeOf(stateCurrent).toEqualTypeOf<CounterState>()
+        expectTypeOf(takeResult).toEqualTypeOf<ExpectedTakeResultType>()
+
+        expectTypeOf(stateCurrent).toEqualTypeOf<RootState>()
 
         timeout = 1
         takeResult = await listenerApi.take(increment.match, timeout)
@@ -97,5 +110,40 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
     })
   })
 
-  test.todo('addListener.withTypes', () => {})
+  test('addListener.withTypes', () => {
+    const addAppListener = addListener.withTypes<RootState, AppDispatch>()
+
+    expectTypeOf(addAppListener).toEqualTypeOf<
+      TypedAddListener<RootState, AppDispatch>
+    >()
+
+    store.dispatch(
+      addAppListener({
+        matcher: increment.match,
+        effect: (action, listenerApi) => {
+          const state = listenerApi.getState()
+
+          expectTypeOf(state).toEqualTypeOf<RootState>()
+
+          expectTypeOf(listenerApi.dispatch).toEqualTypeOf<AppDispatch>()
+        },
+      })
+    )
+  })
+
+  test('removeListener.withTypes', () => {
+    const removeAppListener = removeListener.withTypes<RootState, AppDispatch>()
+
+    expectTypeOf(removeAppListener).toEqualTypeOf<
+      TypedRemoveListener<RootState, AppDispatch>
+    >()
+  })
+
+  test('stopListening.withTypes', () => {
+    const stopAppListening = listenerMiddleware.stopListening.withTypes<RootState, AppDispatch>()
+
+    expectTypeOf(stopAppListening).toEqualTypeOf<
+      TypedStopListening<RootState, AppDispatch>
+    >()
+  })
 })

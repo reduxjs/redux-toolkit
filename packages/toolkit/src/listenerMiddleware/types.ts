@@ -336,13 +336,18 @@ export interface ListenerMiddlewareInstance<
   ExtraArgument = unknown
 > {
   middleware: ListenerMiddleware<StateType, DispatchType, ExtraArgument>
+
   startListening: AddListenerOverloads<
     UnsubscribeListener,
     StateType,
     DispatchType,
     ExtraArgument
-  >
-  stopListening: RemoveListenerOverloads<StateType, DispatchType>
+  > &
+    TypedStartListening<StateType, DispatchType, ExtraArgument>
+
+  stopListening: RemoveListenerOverloads<StateType, DispatchType> &
+    TypedStopListening<StateType, DispatchType>
+
   /**
    * Unsubscribes all listeners, cancels running listeners and tasks.
    */
@@ -494,11 +499,6 @@ export interface AddListenerOverloads<
       >
     } & AdditionalOptions
   ): Return
-
-  withTypes: <
-    OverrideStateType extends StateType,
-    OverrideDispatchType extends DispatchType
-  >() => TypedStartListening<OverrideStateType, OverrideDispatchType>
 }
 
 /** @public */
@@ -515,12 +515,7 @@ export type RemoveListenerOverloads<
   DispatchType,
   any,
   UnsubscribeListenerOptions
-> & {
-  withTypes: <
-    OverrideStateType extends StateType,
-    OverrideDispatchType extends DispatchType
-  >() => TypedRemoveListener<OverrideStateType, OverrideDispatchType>
-}
+>
 
 /** @public */
 export interface RemoveListenerAction<
@@ -566,46 +561,84 @@ export type TypedAddListener<
  * A "pre-typed" version of `removeListenerAction`, so the listener args are well-typed */
 export type TypedRemoveListener<
   StateType,
-  DispatchType extends ReduxDispatch = ThunkDispatch<StateType, unknown, UnknownAction>,
+  DispatchType extends ReduxDispatch = ThunkDispatch<
+    StateType,
+    unknown,
+    UnknownAction
+  >,
   Payload = ListenerEntry<StateType, DispatchType>,
   T extends string = 'listenerMiddleware/remove'
-> = BaseActionCreator<Payload, T> &
-  AddListenerOverloads<
+> = BaseActionCreator<Payload, T> & {
+  withTypes: <
+    OverrideStateType extends StateType,
+    OverrideDispatchType extends DispatchType
+  >() => TypedRemoveListener<OverrideStateType, OverrideDispatchType>
+} & AddListenerOverloads<
     PayloadAction<Payload, T>,
     StateType,
     DispatchType,
     any,
     UnsubscribeListenerOptions
   >
-  // & {
-  //   withTypes: <
-  //   OverrideStateType extends StateType,
-  //   OverrideDispatchType extends DispatchType
-  // >() => TypedRemoveListener<>
-  // }
 
 /**
  * @public
  * A "pre-typed" version of `middleware.startListening`, so the listener args are well-typed */
 export type TypedStartListening<
-  State,
-  Dispatch extends ReduxDispatch = ThunkDispatch<State, unknown, UnknownAction>,
+  StateType,
+  DispatchType extends ReduxDispatch = ThunkDispatch<
+    StateType,
+    unknown,
+    UnknownAction
+  >,
   ExtraArgument = unknown
-> = AddListenerOverloads<UnsubscribeListener, State, Dispatch, ExtraArgument>
+> = AddListenerOverloads<
+  UnsubscribeListener,
+  StateType,
+  DispatchType,
+  ExtraArgument
+> & {
+  withTypes: <
+    OverrideStateType extends StateType,
+    OverrideDispatchType extends DispatchType
+  >() => TypedStartListening<OverrideStateType, OverrideDispatchType>
+}
 
 /** @public
  * A "pre-typed" version of `middleware.stopListening`, so the listener args are well-typed */
 export type TypedStopListening<
-  State,
-  Dispatch extends ReduxDispatch = ThunkDispatch<State, unknown, UnknownAction>
-> = RemoveListenerOverloads<State, Dispatch>
+  StateType,
+  DispatchType extends ReduxDispatch = ThunkDispatch<
+    StateType,
+    unknown,
+    UnknownAction
+  >
+> = RemoveListenerOverloads<StateType, DispatchType> & {
+  withTypes: <
+    OverrideStateType extends StateType,
+    OverrideDispatchType extends DispatchType
+  >() => TypedStopListening<OverrideStateType, OverrideDispatchType>
+}
 
 /** @public
  * A "pre-typed" version of `createListenerEntry`, so the listener args are well-typed */
 export type TypedCreateListenerEntry<
-  State,
-  Dispatch extends ReduxDispatch = ThunkDispatch<State, unknown, UnknownAction>
-> = AddListenerOverloads<ListenerEntry<State, Dispatch>, State, Dispatch>
+  StateType,
+  DispatchType extends ReduxDispatch = ThunkDispatch<
+    StateType,
+    unknown,
+    UnknownAction
+  >
+> = AddListenerOverloads<
+  ListenerEntry<StateType, DispatchType>,
+  StateType,
+  DispatchType
+> & {
+  withTypes: <
+    OverrideStateType extends StateType,
+    OverrideDispatchType extends DispatchType
+  >() => TypedStopListening<OverrideStateType, OverrideDispatchType>
+}
 
 /**
  * Internal Types
