@@ -138,6 +138,11 @@ a.contents__link.contents__link--active {
   font-weight: 600;
 }
 
+.table-of-contents__link:hover > code,
+.table-of-contents__link:hover {
+    color: var(--ifm-color-primary-lightest);
+}
+
 a:visited {
   color: var(--ifm-color-primary);
 }
