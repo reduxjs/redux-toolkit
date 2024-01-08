@@ -3,12 +3,10 @@ import type { Patch } from 'immer'
 import { applyPatches, enablePatches, produceWithPatches } from 'immer'
 import type {
   Action,
-  AnyListenerPredicate,
   CaseReducer,
   CaseReducerDefinition,
   PayloadAction,
   PayloadActionCreator,
-  PreparedCaseReducerDefinition,
   ReducerCreator,
   ReducerCreatorEntry,
   ReducerCreators,
@@ -17,8 +15,6 @@ import type {
   SliceActionType,
   SliceCaseReducers,
   ThunkAction,
-  UnknownAction,
-  UnsubscribeListener,
   WithSlice,
 } from '@reduxjs/toolkit'
 import {
@@ -30,13 +26,8 @@ import {
   createAction,
   isAnyOf,
   nanoid,
-  addListener,
-  createListenerMiddleware,
   createNextState,
   reducerCreator,
-  ReducerType,
-  prepareAutoBatched,
-  SHOULD_AUTOBATCH,
 } from '@reduxjs/toolkit'
 import {
   mockConsole,
@@ -49,12 +40,8 @@ enablePatches()
 type CreateSlice = typeof createSlice
 
 const loaderCreatorType = Symbol()
-const conditionCreatorType = Symbol()
-const fetchCreatorType = Symbol()
-const paginationCreatorType = Symbol()
 const historyMethodsCreatorType = Symbol()
 const undoableCreatorType = Symbol()
-const batchedCreatorType = Symbol()
 
 describe('createSlice', () => {
   let restore: () => void
@@ -627,7 +614,9 @@ describe('createSlice', () => {
           // @ts-expect-error asyncThunk not in creators
           reducers: (create) => ({ thunk: create.asyncThunk(() => {}) }),
         })
-      ).toThrowErrorMatchingInlineSnapshot(`[TypeError: create.asyncThunk is not a function]`)
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[TypeError: create.asyncThunk is not a function]`
+      )
     })
     const createAppSlice = buildCreateSlice({
       creators: { asyncThunk: asyncThunkCreator },
@@ -864,7 +853,9 @@ describe('createSlice', () => {
             },
           }),
         })
-      ).toThrowErrorMatchingInlineSnapshot(`[Error: Please use reducer creators passed to callback. Each reducer definition must have a \`_reducerDefinitionType\` property indicating which handler to use.]`)
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: Please use reducer creators passed to callback. Each reducer definition must have a \`_reducerDefinitionType\` property indicating which handler to use.]`
+      )
     })
   })
   describe('custom slice reducer creators', () => {
@@ -963,305 +954,109 @@ describe('createSlice', () => {
       ])
     })
 
-    const conditionCreator: ReducerCreator<typeof conditionCreatorType> = {
-      type: conditionCreatorType,
-      create(makePredicate) {
-        return { _reducerDefinitionType: conditionCreatorType, makePredicate }
-      },
-      handle({ reducerName, type }, { makePredicate }, context) {
-        const trigger = createAction(type, (id: string, args: unknown[]) => ({
-          payload: id,
-          meta: { args },
-        }))
-        function thunkCreator(
-          timeout?: number,
-          ...args: any[]
-        ): ThunkAction<
-          Promise<boolean> & { unsubscribe?: UnsubscribeListener },
-          unknown,
-          unknown,
-          UnknownAction
-        > {
-          const predicate = makePredicate(...args)
-          return (dispatch) => {
-            const listenerId = nanoid()
-            let unsubscribe: UnsubscribeListener | undefined = undefined
-            const promise = new Promise<boolean>((resolve, reject) => {
-              unsubscribe = dispatch(
-                addListener({
-                  predicate: (action) =>
-                    trigger.match(action) && action.payload === listenerId,
-                  effect: (_, { condition, unsubscribe, signal }) => {
-                    signal.addEventListener('abort', () => reject(false))
-                    return condition(predicate, timeout)
-                      .then(resolve)
-                      .catch(reject)
-                      .finally(unsubscribe)
-                  },
-                })
-              ) as any
-              dispatch(trigger(listenerId, args))
-            })
-            return Object.assign(promise, { unsubscribe })
-          }
+    describe('creators can return multiple definitions to be spread, or something else entirely', () => {
+      function getInitialHistoryState<T>(initialState: T): HistoryState<T> {
+        return {
+          past: [],
+          present: initialState,
+          future: [],
         }
-        context.exposeAction(reducerName, thunkCreator)
-      },
-    }
-    function withStatus<P extends PromiseLike<any>>(promiseLike: P) {
-      const assigned = Object.assign(promiseLike, {
-        status: 'pending' as 'pending' | 'fulfilled' | 'rejected',
-      })
-      promiseLike.then(
-        () => (assigned.status = 'fulfilled'),
-        () => (assigned.status = 'rejected')
-      )
-      return assigned
-    }
-
-    test('condition creator', async () => {
-      const createAppSlice = buildCreateSlice({
-        creators: { condition: conditionCreator },
-      })
-
-      const counterSlice = createAppSlice({
-        name: 'counter',
-        initialState: { value: 0 },
-        reducers: (create) => ({
-          increment: create.reducer((state) => void state.value++),
-          waitUntilValue: create.condition(
-            (value: number) =>
-              (_action, state): boolean =>
-                counterSlice.selectors.selectValue(state as any) === value
-          ),
-        }),
-        selectors: {
-          selectValue: (state) => state.value,
-        },
-      })
-
-      const {
-        actions: { increment, waitUntilValue },
-        selectors: { selectValue },
-      } = counterSlice
-
-      const listener = createListenerMiddleware()
-
-      const reducer = combineSlices(counterSlice)
-
-      const store = configureStore({
-        reducer,
-        middleware: (gDM) => gDM().concat(listener.middleware),
-      })
-
-      const promise = withStatus(store.dispatch(waitUntilValue(undefined, 5)))
-      expect(promise).toEqual(expect.any(Promise))
-      expect(promise.unsubscribe).toEqual(expect.any(Function))
-
-      for (let i = 1; i <= 4; i++) {
-        store.dispatch(increment())
-        expect(selectValue(store.getState())).toBe(i)
-        expect(promise.status).toBe('pending')
       }
-      store.dispatch(increment())
-      expect(selectValue(store.getState())).toBe(5)
-      await expect(promise).resolves.toBe(true)
-      expect(promise.status).toBe('fulfilled')
-    })
-    describe('creators can return multiple definitions to be spread', () => {
-      const fetchCreator: ReducerCreator<typeof fetchCreatorType> = {
-        type: fetchCreatorType,
+      const historyMethodsCreator: ReducerCreator<
+        typeof historyMethodsCreatorType
+      > = {
+        type: historyMethodsCreatorType,
         create() {
           return {
-            start: this.reducer((state: FetchState<unknown>) => {
-              state.status = 'loading'
+            undo: this.reducer((state: HistoryState<unknown>) => {
+              const historyEntry = state.past.pop()
+              if (historyEntry) {
+                applyPatches(state, historyEntry.undo)
+                state.future.unshift(historyEntry)
+              }
             }),
-            success: this.reducer<any>((state: FetchState<unknown>, action) => {
-              state.data = action.payload
-              state.status = 'finished'
+            redo: this.reducer((state: HistoryState<unknown>) => {
+              const historyEntry = state.future.shift()
+              if (historyEntry) {
+                applyPatches(state, historyEntry.redo)
+                state.past.push(historyEntry)
+              }
             }),
+            reset: {
+              _reducerDefinitionType: historyMethodsCreatorType,
+              type: 'reset',
+            },
           }
         },
+        handle(details, definition, context) {
+          if (definition.type !== 'reset') {
+            throw new Error('unrecognised definition')
+          }
+          reducerCreator.handle(
+            details,
+            reducerCreator.create(() => context.getInitialState()),
+            context
+          )
+        },
       }
-      test('fetch slice', () => {
-        const createAppSlice = buildCreateSlice({
-          creators: { fetchReducers: fetchCreator },
-        })
 
-        const fetchSlice = createAppSlice({
-          name: 'fetch',
-          initialState: { status: 'loading' } as FetchState<string>,
-          reducers: (create) => ({
-            ...create.fetchReducers(),
-            magic: create.reducer((state) => {
-              state.status = 'finished'
-              state.data = 'hocus pocus'
-            }),
-          }),
-        })
-
-        const { start, success, magic } = fetchSlice.actions
-
-        expect(start).toEqual(expect.any(Function))
-        expect(start.type).toBe('fetch/start')
-      })
-      test('pagination slice', () => {
-        const paginationCreator: ReducerCreator<typeof paginationCreatorType> =
-          {
-            type: paginationCreatorType,
-            create() {
-              return {
-                nextPage: this.reducer((state: PaginationState) => {
-                  state.page++
-                }),
-                previousPage: this.reducer((state: PaginationState) => {
-                  state.page = Math.max(0, state.page - 1)
-                }),
-                goToPage: this.reducer<number>(
-                  (state: PaginationState, action) => {
-                    state.page = action.payload
+      const undoableCreator: ReducerCreator<typeof undoableCreatorType> = {
+        type: undoableCreatorType,
+        create: Object.assign(
+          function makeUndoable<A extends Action & { meta?: UndoableOptions }>(
+            reducer: CaseReducer<any, A>
+          ): CaseReducer<HistoryState<any>, A> {
+            return (state, action) => {
+              const [nextState, redoPatch, undoPatch] = produceWithPatches(
+                state,
+                (draft) => {
+                  const result = reducer(draft.present, action)
+                  if (typeof result !== 'undefined') {
+                    draft.present = result
                   }
-                ),
+                }
+              )
+              let finalState = nextState
+              const undoable = action.meta?.undoable ?? true
+              if (undoable) {
+                finalState = createNextState(finalState, (draft) => {
+                  draft.past.push({
+                    undo: undoPatch,
+                    redo: redoPatch,
+                  })
+                  draft.future = []
+                })
               }
+              return finalState
+            }
+          },
+          {
+            withoutPayload() {
+              return (options?: UndoableOptions) => ({
+                payload: undefined,
+                meta: options,
+              })
+            },
+            withPayload<P>() {
+              return (
+                ...[payload, options]: IfMaybeUndefined<
+                  P,
+                  [payload?: P, options?: UndoableOptions],
+                  [payload: P, options?: UndoableOptions]
+                >
+              ) => ({ payload: payload as P, meta: options })
             },
           }
-        const createAppSlice = buildCreateSlice({
-          creators: { paginationReducers: paginationCreator },
-        })
+        ),
+      }
 
-        const paginationSlice = createAppSlice({
-          name: 'pagination',
-          initialState: {
-            page: 1,
-            hasMoreData: true,
-          },
-          reducers: (create) => ({
-            ...create.paginationReducers(),
-            noMoreData: create.reducer((state) => {
-              state.hasMoreData = false
-            }),
-          }),
-          selectors: {
-            selectPage: (state) => state.page,
-            selectHasMoreData: (state) => state.hasMoreData,
-          },
-        })
-        const { nextPage, previousPage, goToPage } = paginationSlice.actions
-        const { selectHasMoreData, selectPage } = paginationSlice.selectors
-
-        const store = configureStore({
-          reducer: { [paginationSlice.reducerPath]: paginationSlice.reducer },
-        })
-
-        expect(selectPage(store.getState())).toBe(1)
-
-        store.dispatch(nextPage())
-
-        expect(selectPage(store.getState())).toBe(2)
+      const createAppSlice = buildCreateSlice({
+        creators: {
+          historyMethods: historyMethodsCreator,
+          undoable: undoableCreator,
+        },
       })
       test('history slice', () => {
-        function getInitialHistoryState<T>(initialState: T): HistoryState<T> {
-          return {
-            past: [],
-            present: initialState,
-            future: [],
-          }
-        }
-        const historyMethodsCreator: ReducerCreator<
-          typeof historyMethodsCreatorType
-        > = {
-          type: historyMethodsCreatorType,
-          create() {
-            return {
-              undo: this.reducer((state: HistoryState<unknown>) => {
-                const historyEntry = state.past.pop()
-                if (historyEntry) {
-                  applyPatches(state, historyEntry.undo)
-                  state.future.unshift(historyEntry)
-                }
-              }),
-              redo: this.reducer((state: HistoryState<unknown>) => {
-                const historyEntry = state.future.shift()
-                if (historyEntry) {
-                  applyPatches(state, historyEntry.redo)
-                  state.past.push(historyEntry)
-                }
-              }),
-              reset: {
-                _reducerDefinitionType: historyMethodsCreatorType,
-                type: 'reset',
-              },
-            }
-          },
-          handle(details, definition, context) {
-            if (definition.type !== 'reset') {
-              throw new Error('unrecognised definition')
-            }
-            reducerCreator.handle(
-              details,
-              reducerCreator.create(() => context.getInitialState()),
-              context
-            )
-          },
-        }
-
-        const undoableCreator: ReducerCreator<typeof undoableCreatorType> = {
-          type: undoableCreatorType,
-          create: Object.assign(
-            function makeUndoable<
-              A extends Action & { meta?: UndoableOptions }
-            >(reducer: CaseReducer<any, A>): CaseReducer<HistoryState<any>, A> {
-              return (state, action) => {
-                const [nextState, redoPatch, undoPatch] = produceWithPatches(
-                  state,
-                  (draft) => {
-                    const result = reducer(draft.present, action)
-                    if (typeof result !== 'undefined') {
-                      draft.present = result
-                    }
-                  }
-                )
-                let finalState = nextState
-                const undoable = action.meta?.undoable ?? true
-                if (undoable) {
-                  finalState = createNextState(finalState, (draft) => {
-                    draft.past.push({
-                      undo: undoPatch,
-                      redo: redoPatch,
-                    })
-                    draft.future = []
-                  })
-                }
-                return finalState
-              }
-            },
-            {
-              withoutPayload() {
-                return (options?: UndoableOptions) => ({
-                  payload: undefined,
-                  meta: options,
-                })
-              },
-              withPayload<P>() {
-                return (
-                  ...[payload, options]: IfMaybeUndefined<
-                    P,
-                    [payload?: P, options?: UndoableOptions],
-                    [payload: P, options?: UndoableOptions]
-                  >
-                ) => ({ payload: payload as P, meta: options })
-              },
-            }
-          ),
-        }
-
-        const createAppSlice = buildCreateSlice({
-          creators: {
-            historyMethods: historyMethodsCreator,
-            undoable: undoableCreator,
-          },
-        })
-
         const historySlice = createAppSlice({
           name: 'history',
           initialState: getInitialHistoryState({ value: 1 }),
@@ -1313,55 +1108,13 @@ describe('createSlice', () => {
         store.dispatch(reset())
         expect(selectValue(store.getState())).toBe(1)
       })
-      test('batchable', () => {
-        const batchedCreator: ReducerCreator<typeof batchedCreatorType> = {
-          type: batchedCreatorType,
-          create: Object.assign(
-            function (
-              this: ReducerCreators<any>,
-              reducer: CaseReducer<any, any>
-            ) {
-              return this.preparedReducer(prepareAutoBatched(), reducer) as any
-            },
-            {
-              test() {
-                return { _reducerDefinitionType: batchedCreatorType } as const
-              },
-            }
-          ),
-          handle() {},
-        }
-
-        const createAppSlice = buildCreateSlice({
-          creators: { batchedReducer: batchedCreator },
-        })
-        const counterSlice = createAppSlice({
-          name: 'counter',
-          initialState: { value: 0 },
-          reducers: (create) => ({
-            increment: create.batchedReducer((state) => {
-              state.value++
-            }),
-            incrementBy: create.batchedReducer<number>((state, { payload }) => {
-              state.value += payload
-            }),
-          }),
-        })
-        const { increment, incrementBy } = counterSlice.actions
-        expect(increment().meta).toEqual({ [SHOULD_AUTOBATCH]: true })
-        expect(incrementBy(1).meta).toEqual({ [SHOULD_AUTOBATCH]: true })
-      })
       test.skip('creators can discourage their use if state is incompatible (types only)', () => {
-        const createAppSlice = buildCreateSlice({
-          creators: { fetchReducers: fetchCreator },
-        })
-
         const counterSlice = createAppSlice({
           name: 'counter',
           initialState: { value: 0 },
           reducers: (create) => ({
             // @ts-expect-error incompatible state
-            ...create.fetchReducers(),
+            ...create.historyMethods(),
           }),
         })
       })
@@ -1373,15 +1126,6 @@ interface LoaderReducerDefinition<State>
   extends ReducerDefinition<typeof loaderCreatorType> {
   started?: CaseReducer<State, PayloadAction<string>>
   ended?: CaseReducer<State, PayloadAction<string>>
-}
-
-interface FetchState<T> {
-  data?: T
-  status: 'loading' | 'finished' | 'error'
-}
-
-interface PaginationState {
-  page: number
 }
 
 interface PatchesState {
@@ -1440,50 +1184,6 @@ declare module '@reduxjs/toolkit' {
         }
       }
     >
-    [conditionCreatorType]: ReducerCreatorEntry<
-      <Args extends any[]>(
-        makePredicate: (...args: Args) => AnyListenerPredicate<unknown>
-      ) => ReducerDefinition<typeof conditionCreatorType> & {
-        makePredicate: (...args: Args) => AnyListenerPredicate<unknown>
-      },
-      {
-        actions: {
-          [ReducerName in ReducerNamesOfType<
-            CaseReducers,
-            typeof conditionCreatorType
-          >]: CaseReducers[ReducerName] extends {
-            makePredicate: (
-              ...args: infer Args
-            ) => AnyListenerPredicate<unknown>
-          }
-            ? (
-                timeout?: number,
-                ...args: Args
-              ) => ThunkAction<
-                Promise<boolean> & { unsubscribe?: UnsubscribeListener },
-                unknown,
-                unknown,
-                UnknownAction
-              >
-            : never
-        }
-      }
-    >
-    [fetchCreatorType]: ReducerCreatorEntry<
-      State extends FetchState<infer Data>
-        ? (this: ReducerCreators<State>) => {
-            start: CaseReducerDefinition<State, PayloadAction>
-            success: CaseReducerDefinition<State, PayloadAction<Data>>
-          }
-        : never
-    >
-    [paginationCreatorType]: ReducerCreatorEntry<
-      (this: ReducerCreators<State>) => {
-        nextPage: CaseReducerDefinition<PaginationState, PayloadAction>
-        previousPage: CaseReducerDefinition<PaginationState, PayloadAction>
-        goToPage: CaseReducerDefinition<PaginationState, PayloadAction<number>>
-      }
-    >
     [historyMethodsCreatorType]: ReducerCreatorEntry<
       State extends HistoryState<unknown>
         ? (this: ReducerCreators<State>) => {
@@ -1534,26 +1234,5 @@ declare module '@reduxjs/toolkit' {
           }
         : never
     >
-    [batchedCreatorType]: ReducerCreatorEntry<{
-      (
-        this: ReducerCreators<State>,
-        reducer: CaseReducer<State, PayloadAction>
-      ): PreparedCaseReducerDefinition<
-        State,
-        () => { payload: undefined; meta: unknown }
-      >
-      <Payload>(
-        this: ReducerCreators<State>,
-        reducer: CaseReducer<State, PayloadAction<Payload>>
-      ): PreparedCaseReducerDefinition<
-        State,
-        IfMaybeUndefined<
-          Payload,
-          (payload?: Payload) => { payload: Payload; meta: unknown },
-          (payload: Payload) => { payload: Payload; meta: unknown }
-        >
-      >
-      test(): ReducerDefinition<typeof batchedCreatorType>
-    }>
   }
 }
