@@ -53,35 +53,38 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     { queryCacheKey }: QuerySubstateIdentifier,
     api: SubMiddlewareApi
   ) {
-    const state = api.getState()[reducerPath]
-    const querySubState = state.queries[queryCacheKey]
-    const subscriptions = internalState.currentSubscriptions[queryCacheKey]
+    const state = api.getState()[reducerPath];
+    const querySubState = state.queries[queryCacheKey];
+    const subscriptions = internalState.currentSubscriptions[queryCacheKey];
 
     if (!querySubState || querySubState.status === QueryStatus.uninitialized)
-      return
+      return;
 
-    const lowestPollingInterval = findLowestPollingInterval(subscriptions)
-    if (!Number.isFinite(lowestPollingInterval)) return
+    const { lowestPollingInterval, skipPollOnFocusLost } = findLowestPollingInterval(subscriptions);
+    if (!Number.isFinite(lowestPollingInterval)) return;
 
-    const currentPoll = currentPolls[queryCacheKey]
+    const currentPoll = currentPolls[queryCacheKey];
 
     if (currentPoll?.timeout) {
-      clearTimeout(currentPoll.timeout)
-      currentPoll.timeout = undefined
+      clearTimeout(currentPoll.timeout);
+      currentPoll.timeout = undefined;
     }
 
-    const nextPollTimestamp = Date.now() + lowestPollingInterval
+    const nextPollTimestamp = Date.now() + lowestPollingInterval;
 
-    const currentInterval: typeof currentPolls[number] = (currentPolls[
-      queryCacheKey
-    ] = {
+    // Always update the polling interval
+    currentPolls[queryCacheKey] = {
       nextPollTimestamp,
       pollingInterval: lowestPollingInterval,
       timeout: setTimeout(() => {
-        currentInterval!.timeout = undefined
-        api.dispatch(refetchQuery(querySubState, queryCacheKey))
+        // Conditionally dispatch the query
+        if (document.hasFocus() || !skipPollOnFocusLost) {
+          api.dispatch(refetchQuery(querySubState, queryCacheKey));
+        }
+        // Regardless of dispatch, set up the next poll
+        startNextPoll({ queryCacheKey }, api);
       }, lowestPollingInterval),
-    })
+    };
   }
 
   function updatePollingInterval(
@@ -96,7 +99,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       return
     }
 
-    const lowestPollingInterval = findLowestPollingInterval(subscriptions)
+    const { lowestPollingInterval } = findLowestPollingInterval(subscriptions)
 
     if (!Number.isFinite(lowestPollingInterval)) {
       cleanupPollForKey(queryCacheKey)
@@ -126,6 +129,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   }
 
   function findLowestPollingInterval(subscribers: Subscribers = {}) {
+    let skipPollOnFocusLost: boolean | undefined = false
     let lowestPollingInterval = Number.POSITIVE_INFINITY
     for (let key in subscribers) {
       if (!!subscribers[key].pollingInterval) {
@@ -133,10 +137,15 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
           subscribers[key].pollingInterval!,
           lowestPollingInterval
         )
+        skipPollOnFocusLost = subscribers[key].skipPollOnFocusLost
       }
     }
 
-    return lowestPollingInterval
+    return {
+      lowestPollingInterval,
+      skipPollOnFocusLost,
+    }
   }
+
   return handler
 }
