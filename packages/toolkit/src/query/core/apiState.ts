@@ -84,6 +84,12 @@ export type SubscriptionOptions = {
    */
   pollingInterval?: number
   /**
+   *  Defaults to 'false'. This setting allows you to control whether RTK Query will continue polling if the window is not focused.
+   *
+   *  If pollingInterval is not set or set to 0, this **will not be evaluated** until pollingInterval is greater than 0.
+   */
+  skipPollOnFocusLost?: boolean
+  /**
    * Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after regaining a network connection.
    *
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
