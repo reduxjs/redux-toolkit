@@ -523,10 +523,20 @@ describe('createSlice', () => {
       expect(injectedSlice.selectSlice(uninjectedState)).toBe(
         slice.getInitialState()
       )
+      expect(injectedSlice.selectors.selectMultiple({}, 1)).toBe(
+        slice.getInitialState()
+      )
+      expect(injectedSlice.getSelectors().selectMultiple(undefined, 1)).toBe(
+        slice.getInitialState()
+      )
 
       const injectedState = combinedReducer(undefined, increment())
 
       expect(injectedSlice.selectSlice(injectedState)).toBe(
+        slice.getInitialState() + 1
+      )
+
+      expect(injectedSlice.selectors.selectMultiple(injectedState, 1)).toBe(
         slice.getInitialState() + 1
       )
     })
@@ -555,7 +565,18 @@ describe('createSlice', () => {
 
       const injected = slice.injectInto(combinedReducer)
 
+      expect(injected.selectors.selectMultiple({}, 1)).toBe(
+        slice.getInitialState()
+      )
+      expect(injected.getSelectors().selectMultiple(undefined, 1)).toBe(
+        slice.getInitialState()
+      )
+
       const injectedState = combinedReducer(undefined, increment())
+
+      expect(injected.selectors.selectMultiple(injectedState, 1)).toBe(
+        slice.getInitialState() + 1
+      )
 
       expect(injected.selectSlice(injectedState)).toBe(
         slice.getInitialState() + 1

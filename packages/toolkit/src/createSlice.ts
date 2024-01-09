@@ -810,6 +810,9 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
         return {
           ...this,
           reducerPath,
+          get selectors() {
+            return this.getSelectors(this.selectSlice)
+          },
         } as any
       },
     }
