@@ -53,38 +53,36 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     { queryCacheKey }: QuerySubstateIdentifier,
     api: SubMiddlewareApi
   ) {
-    const state = api.getState()[reducerPath];
-    const querySubState = state.queries[queryCacheKey];
-    const subscriptions = internalState.currentSubscriptions[queryCacheKey];
+    const state = api.getState()[reducerPath]
+    const querySubState = state.queries[queryCacheKey]
+    const subscriptions = internalState.currentSubscriptions[queryCacheKey]
 
     if (!querySubState || querySubState.status === QueryStatus.uninitialized)
-      return;
+      return
 
-    const { lowestPollingInterval, skipPollOnFocusLost } = findLowestPollingInterval(subscriptions);
-    if (!Number.isFinite(lowestPollingInterval)) return;
+    const { lowestPollingInterval, skipPollOnFocusLost } =
+      findLowestPollingInterval(subscriptions)
+    if (!Number.isFinite(lowestPollingInterval)) return
 
-    const currentPoll = currentPolls[queryCacheKey];
+    const currentPoll = currentPolls[queryCacheKey]
 
     if (currentPoll?.timeout) {
-      clearTimeout(currentPoll.timeout);
-      currentPoll.timeout = undefined;
+      clearTimeout(currentPoll.timeout)
+      currentPoll.timeout = undefined
     }
 
-    const nextPollTimestamp = Date.now() + lowestPollingInterval;
+    const nextPollTimestamp = Date.now() + lowestPollingInterval
 
-    // Always update the polling interval
     currentPolls[queryCacheKey] = {
       nextPollTimestamp,
       pollingInterval: lowestPollingInterval,
       timeout: setTimeout(() => {
-        // Conditionally dispatch the query
         if (document.hasFocus() || !skipPollOnFocusLost) {
-          api.dispatch(refetchQuery(querySubState, queryCacheKey));
+          api.dispatch(refetchQuery(querySubState, queryCacheKey))
         }
-        // Regardless of dispatch, set up the next poll
-        startNextPoll({ queryCacheKey }, api);
+        startNextPoll({ queryCacheKey }, api)
       }, lowestPollingInterval),
-    };
+    }
   }
 
   function updatePollingInterval(
