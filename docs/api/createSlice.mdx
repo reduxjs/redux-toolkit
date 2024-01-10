@@ -250,7 +250,7 @@ To avoid pulling `createAsyncThunk` into the bundle size of `createSlice` by def
 
 The version of `createSlice` exported from RTK will not include an `asyncThunk` property on the `create` object.
 
-Instead, import `buildCreateSlice` and `asyncThunkCreator`, and create your own version of `createSlice`:
+Instead, import [`buildCreateSlice`](#buildcreateslice) and `asyncThunkCreator`, and create your own version of `createSlice`:
 
 ```ts
 import { buildCreateSlice, asyncThunkCreator } from '@reduxjs/toolkit'
@@ -599,6 +599,25 @@ const { selectValue } = counterSlice.getSelectors(
 
 :::
 
+## `buildCreateSlice`
+
+`buildCreateSlice` allows you to create a custom version of `createSlice` with some configuration.
+
+Currently, this is only used for [custom creators](#custom-creators).
+
+### Parameters
+
+`buildCreateSlice` accepts a single configuration object parameter, with the following options:
+
+```ts no-transpile
+function buildCreateSlice({
+  // An map of creators to names. The names will used when constructing the `create` object passed to `reducers`.
+  creators?: Record<string, ReducerCreator>
+})
+```
+
+It returns an instance of [`createSlice`](#).
+
 ## Examples
 
 ```ts
@@ -743,7 +762,29 @@ Typically a creator will return a [single reducer definition](#single-definition
 
 A creator definition is an object with a `type` property, a `create` method, and an optional `handle` method.
 
-The `type` property should be the same constant used for reducer definitions to be handled by this creator. To avoid collision, we recommend using Symbols for this. It's also used for defining/retrieving types - see [Typescript](#typescript).
+It's passed to [`buildCreateSlice`](#buildcreateslice) as part of the `creators` object, and the name the creator is nested under in the `create` object is taken from the `buildCreateSlice` call.
+
+```ts no-transpile
+import { buildCreateSlice } from '@reduxjs/toolkit'
+
+const createAppSlice = buildCreateSlice({
+  // highlight-next-line
+  creators: { batchable: batchableCreator },
+})
+
+const todoSlice = createSlice({
+  name: 'todos',
+  initialState: [] as Todo[],
+  reducers: (create) => ({
+    // highlight-next-line
+    addTodo: create.batchable<Todo>((state, action) => {
+      state.push(action.payload)
+    }),
+  }),
+})
+```
+
+The `type` property of the definition should be the same constant used for reducer definitions to be handled by this creator. To avoid collision, we recommend using Symbols for this. It's also used for defining/retrieving types - see [Typescript](#typescript).
 
 ```ts no-transpile
 const reducerCreatorType = Symbol()
@@ -772,8 +813,6 @@ const reducerCreator: ReducerCreator<typeof reducerCreatorType> = {
 The `create` method is the function that will be attached to the `create` object, before it's passed to the `reducers` callback.
 
 Because it's a function, the `this` value will be the final `create` object when called (assuming a `create.creator()` call). It also could have additional methods attached.
-
-The actual name the creator will be nested under is taken from the `buildCreateSlice` call. For example, `buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })` results in the creator being available as `create.asyncThunk`.
 
 See the [Further examples](#further-examples) section for some examples of these.
 
