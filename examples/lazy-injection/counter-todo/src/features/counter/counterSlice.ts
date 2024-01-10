@@ -1,7 +1,8 @@
-import type { PayloadAction } from "@reduxjs/toolkit"
+import type { PayloadAction, WithSlice } from "@reduxjs/toolkit"
 import { createAppSlice } from "../../app/createAppSlice"
 import type { AppThunk } from "../../app/store"
 import { fetchCount } from "./counterAPI"
+import { rootReducer } from "../../app/reducer"
 
 export interface CounterSliceState {
   value: number
@@ -73,8 +74,14 @@ export const counterSlice = createAppSlice({
 export const { decrement, increment, incrementByAmount, incrementAsync } =
   counterSlice.actions
 
+const injectedCounterSlice = counterSlice.injectInto(rootReducer)
+
+declare module "../../app/reducer" {
+  export interface LazyLoadedSlices extends WithSlice<typeof counterSlice> {}
+}
+
 // Selectors returned by `slice.selectors` take the root state as their first argument.
-export const { selectCount, selectStatus } = counterSlice.selectors
+export const { selectCount, selectStatus } = injectedCounterSlice.selectors
 
 // We can also write thunks by hand, which may contain both sync and async logic.
 // Here's an example of conditionally dispatching actions based on current state.

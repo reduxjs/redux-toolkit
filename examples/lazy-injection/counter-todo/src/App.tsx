@@ -1,18 +1,38 @@
+import { Suspense, lazy, useReducer, useTransition } from "react"
 import "./App.css"
-import { Counter } from "./features/counter/Counter"
-import { Quotes } from "./features/quotes/Quotes"
 import logo from "./logo.svg"
 
+const Counter = lazy(() =>
+  import("./features/counter/Counter").then(m => ({ default: m.Counter })),
+)
+
+const Quotes = lazy(() =>
+  import("./features/quotes/Quotes").then(m => ({ default: m.Quotes })),
+)
+
 const App = () => {
+  const [counterOpen, toggleCounter] = useReducer(b => !b, false)
+  const [quotesOpen, toggleQuotes] = useReducer(b => !b, false)
+  const [, startTransition] = useTransition()
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <Counter />
+        <details open={counterOpen}>
+          <summary onClick={() => startTransition(toggleCounter)}>
+            Counter example
+          </summary>
+          <Suspense>{counterOpen && <Counter />}</Suspense>
+        </details>
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
         </p>
-        <Quotes />
+        <details open={quotesOpen}>
+          <summary onClick={() => startTransition(toggleQuotes)}>
+            Quotes example
+          </summary>
+          <Suspense>{quotesOpen && <Quotes />}</Suspense>
+        </details>
         <span>
           <span>Learn </span>
           <a
