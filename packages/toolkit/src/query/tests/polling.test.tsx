@@ -185,7 +185,10 @@ describe('polling tests', () => {
     const { requestId, queryCacheKey, ...subscription } =
       storeRef.store.dispatch(
         getPosts.initiate(1, {
-          subscriptionOptions: { pollingInterval: 10, skipPollOnFocusLost: false },
+          subscriptionOptions: {
+            pollingInterval: 10,
+            skipPollOnFocusLost: false,
+          },
           subscribe: true,
         })
       )
