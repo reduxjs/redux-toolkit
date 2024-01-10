@@ -122,4 +122,85 @@ describe('polling tests', () => {
 
     expect(mockBaseQuery.mock.calls.length).toBeGreaterThanOrEqual(2)
   })
+
+  it('respects skipPollOnFocusLost', async () => {
+    storeRef.store.dispatch(
+      getPosts.initiate(1, {
+        subscriptionOptions: { pollingInterval: 10, skipPollOnFocusLost: true },
+        subscribe: true,
+      })
+    )
+
+    await delay(20)
+    const callsWithSkip = mockBaseQuery.mock.calls.length
+
+    storeRef.store.dispatch(
+      getPosts.initiate(1, {
+        subscriptionOptions: {
+          pollingInterval: 10,
+          skipPollOnFocusLost: false,
+        },
+        subscribe: true,
+      })
+    )
+
+    await delay(30)
+    const callsWithoutSkip = mockBaseQuery.mock.calls.length
+
+    expect(callsWithSkip).toBe(1)
+    expect(callsWithoutSkip).toBeGreaterThan(2)
+  })
+
+  it('replaces skipPollOnFocusLost with most recent mount', async () => {
+    storeRef.store.dispatch(
+      getPosts.initiate(1, {
+        subscriptionOptions: {
+          pollingInterval: 10,
+          skipPollOnFocusLost: false,
+        },
+        subscribe: true,
+      })
+    )
+
+    await delay(50)
+    const callsWithSkip = mockBaseQuery.mock.calls.length
+
+    storeRef.store.dispatch(
+      getPosts.initiate(1, {
+        subscriptionOptions: { pollingInterval: 15, skipPollOnFocusLost: true },
+        subscribe: true,
+      })
+    )
+
+    await delay(50)
+    const callsWithoutSkip = mockBaseQuery.mock.calls.length
+
+    expect(callsWithSkip).toBeGreaterThan(2)
+    expect(callsWithoutSkip).toBe(callsWithSkip + 1)
+  })
+
+  it('replaces skipPollOnFocusLost when the subscription options are updated', async () => {
+    const { requestId, queryCacheKey, ...subscription } =
+      storeRef.store.dispatch(
+        getPosts.initiate(1, {
+          subscriptionOptions: { pollingInterval: 10 },
+          subscribe: true,
+        })
+      )
+
+    const getSubs = createSubscriptionGetter(queryCacheKey)
+
+    await delay(1)
+    expect(Object.keys(getSubs())).toHaveLength(1)
+    expect(getSubs()[requestId].skipPollOnFocusLost).toBe(false)
+
+    subscription.updateSubscriptionOptions({
+      pollingInterval: 20,
+      skipPollOnFocusLost: true,
+    })
+
+    await delay(1)
+    expect(Object.keys(getSubs())).toHaveLength(1)
+    expect(getSubs()[requestId].skipPollOnFocusLost).toBe(true)
+  })
 })
