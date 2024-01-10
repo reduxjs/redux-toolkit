@@ -666,8 +666,8 @@ const value = actionCreators.anyKey
           }
         ),
         testExplicitType: create.asyncThunk<
-          TestArg,
           TestReturned,
+          TestArg,
           {
             rejectValue: TestReject
           }
