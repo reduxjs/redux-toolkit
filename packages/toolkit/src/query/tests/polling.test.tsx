@@ -124,6 +124,7 @@ describe('polling tests', () => {
   })
 
   it('respects skipPollOnFocusLost', async () => {
+    mockBaseQuery.mockClear()
     storeRef.store.dispatch(
       getPosts.initiate(1, {
         subscriptionOptions: { pollingInterval: 10, skipPollOnFocusLost: true },
@@ -146,6 +147,7 @@ describe('polling tests', () => {
 
     await delay(30)
     const callsWithoutSkip = mockBaseQuery.mock.calls.length
+    console.log(callsWithSkip, callsWithoutSkip)
 
     expect(callsWithSkip).toBe(1)
     expect(callsWithoutSkip).toBeGreaterThan(2)
@@ -183,7 +185,7 @@ describe('polling tests', () => {
     const { requestId, queryCacheKey, ...subscription } =
       storeRef.store.dispatch(
         getPosts.initiate(1, {
-          subscriptionOptions: { pollingInterval: 10 },
+          subscriptionOptions: { pollingInterval: 10, skipPollOnFocusLost: false },
           subscribe: true,
         })
       )
