@@ -20,7 +20,7 @@ const App = () => {
         <img src={logo} className="App-logo" alt="logo" />
         <details open={counterOpen}>
           <summary onClick={() => startTransition(toggleCounter)}>
-            Counter example
+            Counter example (lazy)
           </summary>
           <Suspense>{counterOpen && <Counter />}</Suspense>
         </details>
@@ -29,7 +29,7 @@ const App = () => {
         </p>
         <details open={quotesOpen}>
           <summary onClick={() => startTransition(toggleQuotes)}>
-            Quotes example
+            Quotes example (lazy)
           </summary>
           <Suspense>{quotesOpen && <Quotes />}</Suspense>
         </details>

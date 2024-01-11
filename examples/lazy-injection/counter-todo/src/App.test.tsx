@@ -1,12 +1,21 @@
 import { screen, waitFor } from "@testing-library/react"
 import App from "./App"
 import { renderWithProviders } from "./utils/test-utils"
+import userEvent from "@testing-library/user-event"
 
-test("App should have correct initial render", () => {
+async function ensureCounterLoaded() {
+  await userEvent.click(screen.getByText("Counter example (lazy)"))
+
+  await waitFor(() => expect(screen.queryByTestId("count")).toBeInTheDocument())
+}
+
+test("App should have correct initial render", async () => {
   renderWithProviders(<App />)
 
   // The app should be rendered correctly
   expect(screen.getByText(/learn/i)).toBeInTheDocument()
+
+  await ensureCounterLoaded()
 
   // Initial state: count should be 0, incrementValue should be 2
   expect(screen.getByTestId("count")).toHaveTextContent("0")
@@ -15,6 +24,8 @@ test("App should have correct initial render", () => {
 
 test("Increment value and Decrement value should work as expected", async () => {
   const { user } = renderWithProviders(<App />)
+
+  await ensureCounterLoaded()
 
   // Click on "+" => Count should be 1
   await user.click(screen.getByLabelText("Increment value"))
@@ -27,6 +38,8 @@ test("Increment value and Decrement value should work as expected", async () => 
 
 test("Add Amount should work as expected", async () => {
   const { user } = renderWithProviders(<App />)
+
+  await ensureCounterLoaded()
 
   // "Add Amount" button is clicked => Count should be 2
   await user.click(screen.getByText("Add Amount"))
@@ -48,6 +61,8 @@ test("Add Amount should work as expected", async () => {
 
 it("Add Async should work as expected", async () => {
   const { user } = renderWithProviders(<App />)
+
+  await ensureCounterLoaded()
 
   // "Add Async" button is clicked => Count should be 2
   await user.click(screen.getByText("Add Async"))
@@ -77,6 +92,8 @@ it("Add Async should work as expected", async () => {
 
 test("Add If Odd should work as expected", async () => {
   const { user } = renderWithProviders(<App />)
+
+  await ensureCounterLoaded()
 
   // "Add If Odd" button is clicked => Count should stay 0
   await user.click(screen.getByText("Add If Odd"))
