@@ -1,15 +1,12 @@
-import { Suspense, lazy, useReducer, useTransition } from "react"
+import { Suspense, useReducer, useTransition } from "react"
 import "./App.css"
 import logo from "./logo.svg"
 import { Todos } from "./features/todos/Todos"
+import { lazily } from "react-lazily"
 
-const Counter = lazy(() =>
-  import("./features/counter/Counter").then(m => ({ default: m.Counter })),
-)
+const { Counter } = lazily(() => import("./features/counter/Counter"))
 
-const Quotes = lazy(() =>
-  import("./features/quotes/Quotes").then(m => ({ default: m.Quotes })),
-)
+const { Quotes } = lazily(() => import("./features/quotes/Quotes"))
 
 const App = () => {
   const [counterOpen, toggleCounter] = useReducer(b => !b, false)
