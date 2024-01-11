@@ -1,6 +1,5 @@
 import { useState } from "react"
-
-import { useAppDispatch, useAppSelector } from "../../app/hooks"
+import { useAppSelector } from "../../app/hooks"
 import styles from "./Counter.module.css"
 import {
   decrement,
@@ -11,9 +10,14 @@ import {
   selectCount,
   selectStatus,
 } from "./counterSlice"
+import { createAppDispatchWithMiddlewareHook } from "../../app/middleware"
+import { counterMiddleware, getCount } from "./counterMiddleware"
+
+const useCounterDispatch =
+  createAppDispatchWithMiddlewareHook(counterMiddleware)
 
 export const Counter = () => {
-  const dispatch = useAppDispatch()
+  const dispatch = useCounterDispatch()
   const count = useAppSelector(selectCount)
   const status = useAppSelector(selectStatus)
   const [incrementAmount, setIncrementAmount] = useState("2")
@@ -36,7 +40,11 @@ export const Counter = () => {
         <button
           className={styles.button}
           aria-label="Increment value"
-          onClick={() => dispatch(increment())}
+          onClick={() => {
+            dispatch(increment())
+            const result = dispatch(getCount())
+            console.log("Incremented, result:", result)
+          }}
         >
           +
         </button>
