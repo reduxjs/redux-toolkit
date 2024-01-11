@@ -3,6 +3,7 @@ import { useAppSelector } from "../../app/hooks"
 import styles from "./Counter.module.css"
 import {
   decrement,
+  getCount,
   increment,
   incrementAsync,
   incrementByAmount,
@@ -11,7 +12,7 @@ import {
   selectStatus,
 } from "./counterSlice"
 import { createAppDispatchWithMiddlewareHook } from "../../app/middleware"
-import { counterMiddleware, getCount } from "./counterMiddleware"
+import { counterMiddleware } from "./counterMiddleware"
 
 const useCounterDispatch =
   createAppDispatchWithMiddlewareHook(counterMiddleware)
