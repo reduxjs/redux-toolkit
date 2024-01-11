@@ -1,7 +1,5 @@
-import { Middleware, createAction } from "@reduxjs/toolkit"
-import { selectCount } from "./counterSlice"
-
-export const getCount = createAction("counter/getCount")
+import { Middleware } from "@reduxjs/toolkit"
+import { getCount, selectCount } from "./counterSlice"
 
 export const counterMiddleware: Middleware<{
   (action: ReturnType<typeof getCount>): number
