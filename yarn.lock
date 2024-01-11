@@ -4907,6 +4907,7 @@ __metadata:
     prettier: ^3.1.1
     react: ^18.2.0
     react-dom: ^18.2.0
+    react-lazily: ^0.9.2
     react-redux: ^9.0.4
     typescript: ^5.3.3
     vite: ^5.0.10
@@ -25964,6 +25965,22 @@ fsevents@^1.2.7:
     react: ^17.0.0 || ^16.3.0 || ^15.5.4
     react-dom: ^17.0.0 || ^16.3.0 || ^15.5.4
   checksum: 5718bcd9210ad5b06eb9469cf8b9b44be9498845a7702e621343618e8251f26357e6e1c865532cf170db6165df1cb30202787e057309d8848c220bc600ec0d1a
+  languageName: node
+  linkType: hard
+
+"react-lazily@npm:^0.9.2":
+  version: 0.9.2
+  resolution: "react-lazily@npm:0.9.2"
+  peerDependencies:
+    react: ">=16.8"
+    react-dom: "*"
+    react-native: "*"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+  checksum: ee620e01dab0e77ed65ab5092d41cedbfe1c026f6eabe47838bcce8bffc788f239aa38b1d2b016bae4482c1ba1907fa73bece7077327f676d96610959438803e
   languageName: node
   linkType: hard
 
