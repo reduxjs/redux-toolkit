@@ -21,6 +21,9 @@ export const counterSlice = createAppSlice({
   initialState,
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: create => ({
+    getCount: create.reducer(() => {
+      // dummy for middleware
+    }),
     increment: create.reducer(state => {
       // Redux Toolkit allows us to write "mutating" logic in reducers. It
       // doesn't actually mutate the state because it uses the Immer library,
@@ -71,8 +74,13 @@ export const counterSlice = createAppSlice({
 })
 
 // Action creators are generated for each case reducer function.
-export const { decrement, increment, incrementByAmount, incrementAsync } =
-  counterSlice.actions
+export const {
+  getCount,
+  decrement,
+  increment,
+  incrementByAmount,
+  incrementAsync,
+} = counterSlice.actions
 
 const injectedCounterSlice = counterSlice.injectInto(rootReducer)
 
