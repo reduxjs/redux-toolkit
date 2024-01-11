@@ -82,6 +82,7 @@ export const {
   incrementAsync,
 } = counterSlice.actions
 
+// we can call both inject and injectInto, because the reducer reference is the same - injection only happens once regardless
 const withCounterSlice = rootReducer.inject(counterSlice)
 const injectedCounterSlice = counterSlice.injectInto(rootReducer)
 
