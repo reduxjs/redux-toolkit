@@ -44,7 +44,7 @@ declare module "../../app/reducer" {
   export interface LazyLoadedSlices extends WithSlice<typeof quotesApiSlice> {}
 }
 
-rootReducer.inject(quotesApiSlice)
+const withQuotesApi = rootReducer.inject(quotesApiSlice)
 
 // middleware typing mismatch here
 // the API middleware needs a guarantee that the reducer has already been injected
