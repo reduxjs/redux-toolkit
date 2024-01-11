@@ -46,4 +46,8 @@ declare module "../../app/reducer" {
 
 rootReducer.inject(quotesApiSlice)
 
+// middleware typing mismatch here
+// the API middleware needs a guarantee that the reducer has already been injected
+// addAppMiddleware can't confirm this, but we can (the injection happens above)
+// sooo... we'll just cast it to any
 addAppMiddleware(quotesApiSlice.middleware as any)
