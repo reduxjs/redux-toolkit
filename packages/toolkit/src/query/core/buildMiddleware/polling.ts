@@ -77,7 +77,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       nextPollTimestamp,
       pollingInterval: lowestPollingInterval,
       timeout: setTimeout(() => {
-        if (document.hasFocus() || !skipPollOnFocusLost) {
+        if (state.config.focused || !skipPollOnFocusLost) {
           api.dispatch(refetchQuery(querySubState, queryCacheKey))
         }
         startNextPoll({ queryCacheKey }, api)
@@ -135,7 +135,9 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
           subscribers[key].pollingInterval!,
           lowestPollingInterval
         )
-        skipPollOnFocusLost = subscribers[key].skipPollOnFocusLost
+        // if (!skipPollOnFocusLost) {
+          skipPollOnFocusLost = subscribers[key].skipPollOnFocusLost
+        // }
       }
     }
 

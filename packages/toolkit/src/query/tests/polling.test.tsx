@@ -2,6 +2,8 @@ import { createApi } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
 import { setupApiStore } from './helpers'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
+import { createListenerMiddleware } from '@reduxjs/toolkit'
+
 
 const mockBaseQuery = vi
   .fn()
@@ -125,18 +127,27 @@ describe('polling tests', () => {
 
   it('respects skipPollOnFocusLost', async () => {
     mockBaseQuery.mockClear()
-    storeRef.store.dispatch(
-      getPosts.initiate(1, {
+    const listenerMiddleware = createListenerMiddleware()
+    const storeListenerRef = setupApiStore(api, undefined, {
+      middleware: {
+        concat: [listenerMiddleware.middleware],
+      },
+      withoutTestLifecycles: true,
+    })
+
+    storeListenerRef.store.dispatch(
+      getPosts.initiate(2, {
         subscriptionOptions: { pollingInterval: 10, skipPollOnFocusLost: true },
         subscribe: true,
       })
     )
+    storeListenerRef.store.dispatch(api.internalActions?.onFocusLost())
 
-    await delay(20)
+    await delay(50)
     const callsWithSkip = mockBaseQuery.mock.calls.length
 
-    storeRef.store.dispatch(
-      getPosts.initiate(1, {
+    storeListenerRef.store.dispatch(
+      getPosts.initiate(2, {
         subscriptionOptions: {
           pollingInterval: 10,
           skipPollOnFocusLost: false,
@@ -145,17 +156,28 @@ describe('polling tests', () => {
       })
     )
 
-    await delay(30)
+    storeListenerRef.store.dispatch(api.internalActions?.onFocus())
+
+    await delay(50)
     const callsWithoutSkip = mockBaseQuery.mock.calls.length
-    console.log(callsWithSkip, callsWithoutSkip)
 
     expect(callsWithSkip).toBe(1)
     expect(callsWithoutSkip).toBeGreaterThan(2)
+
+    storeListenerRef.store.dispatch(api.util.resetApiState())
   })
 
-  it('replaces skipPollOnFocusLost with most recent mount', async () => {
-    storeRef.store.dispatch(
-      getPosts.initiate(1, {
+  it('respects skipPollOnFocusLost if any subscription is true', async () => {
+    const listenerMiddleware = createListenerMiddleware()
+    const storeListenerRef = setupApiStore(api, undefined, {
+      middleware: {
+        concat: [listenerMiddleware.middleware],
+      },
+      withoutTestLifecycles: true,
+    })
+
+    storeListenerRef.store.dispatch(
+      getPosts.initiate(3, {
         subscriptionOptions: {
           pollingInterval: 10,
           skipPollOnFocusLost: false,
@@ -167,12 +189,14 @@ describe('polling tests', () => {
     await delay(50)
     const callsWithSkip = mockBaseQuery.mock.calls.length
 
-    storeRef.store.dispatch(
-      getPosts.initiate(1, {
+    storeListenerRef.store.dispatch(
+      getPosts.initiate(3, {
         subscriptionOptions: { pollingInterval: 15, skipPollOnFocusLost: true },
         subscribe: true,
       })
     )
+
+    storeListenerRef.store.dispatch(api.internalActions?.onFocusLost())
 
     await delay(50)
     const callsWithoutSkip = mockBaseQuery.mock.calls.length

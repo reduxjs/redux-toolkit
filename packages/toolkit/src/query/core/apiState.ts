@@ -87,6 +87,8 @@ export type SubscriptionOptions = {
    *  Defaults to 'false'. This setting allows you to control whether RTK Query will continue polling if the window is not focused.
    *
    *  If pollingInterval is not set or set to 0, this **will not be evaluated** until pollingInterval is greater than 0.
+   *
+   *  Note: requires [`setupListeners`](./setupListeners) to have been called.
    */
   skipPollOnFocusLost?: boolean
   /**
