@@ -5,10 +5,13 @@ export const getCount = createAction("counter/getCount")
 
 export const counterMiddleware: Middleware<{
   (action: ReturnType<typeof getCount>): number
-}> = api => next => action => {
-  const result = next(action)
-  if (getCount.match(action)) {
-    return selectCount(api.getState())
+}> = api => {
+  console.log("counter middleware initialised!")
+  return next => action => {
+    const result = next(action)
+    if (getCount.match(action)) {
+      return selectCount(api.getState())
+    }
+    return result
   }
-  return result
 }
