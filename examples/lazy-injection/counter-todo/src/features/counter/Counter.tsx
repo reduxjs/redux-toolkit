@@ -9,6 +9,7 @@ import {
   incrementByAmount,
   incrementIfOdd,
   selectCount,
+  selectDouble,
   selectStatus,
 } from "./counterSlice"
 import { createAppDispatchWithMiddlewareHook } from "../../app/middleware"
@@ -20,6 +21,7 @@ const useCounterDispatch =
 export const Counter = () => {
   const dispatch = useCounterDispatch()
   const count = useAppSelector(selectCount)
+  const double = useAppSelector(selectDouble)
   const status = useAppSelector(selectStatus)
   const [incrementAmount, setIncrementAmount] = useState("2")
 
@@ -81,6 +83,11 @@ export const Counter = () => {
         >
           Add If Odd
         </button>
+      </div>
+      <div className={styles.row}>
+        <span className={styles.value} data-testid="double">
+          {double}
+        </span>
       </div>
     </div>
   )

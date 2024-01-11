@@ -82,6 +82,7 @@ export const {
   incrementAsync,
 } = counterSlice.actions
 
+const withCounterSlice = rootReducer.inject(counterSlice)
 const injectedCounterSlice = counterSlice.injectInto(rootReducer)
 
 declare module "../../app/reducer" {
@@ -102,3 +103,7 @@ export const incrementIfOdd =
       dispatch(incrementByAmount(amount))
     }
   }
+
+export const selectDouble = withCounterSlice.selector(
+  state => selectCount(state) * 2,
+)
