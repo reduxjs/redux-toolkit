@@ -9,6 +9,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:watch": "vitest watch",
     "format": "prettier --write .",
     "lint": "eslint .",
     "type-check": "tsc"
