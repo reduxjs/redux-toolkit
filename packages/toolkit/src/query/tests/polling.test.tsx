@@ -4,7 +4,6 @@ import { setupApiStore } from './helpers'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 import { createListenerMiddleware } from '@reduxjs/toolkit'
 
-
 const mockBaseQuery = vi
   .fn()
   .mockImplementation((args: any) => ({ data: args }))
@@ -167,7 +166,7 @@ describe('polling tests', () => {
     storeListenerRef.store.dispatch(api.util.resetApiState())
   })
 
-  it('respects skipPollOnFocusLost if any subscription is true', async () => {
+  it('respects skipPollOnFocusLost of the most recent mounted subscription', async () => {
     const listenerMiddleware = createListenerMiddleware()
     const storeListenerRef = setupApiStore(api, undefined, {
       middleware: {
