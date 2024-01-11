@@ -1,6 +1,7 @@
 import { Suspense, lazy, useReducer, useTransition } from "react"
 import "./App.css"
 import logo from "./logo.svg"
+import { Todos } from "./features/todos/Todos"
 
 const Counter = lazy(() =>
   import("./features/counter/Counter").then(m => ({ default: m.Counter })),
@@ -18,6 +19,7 @@ const App = () => {
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
+        <Todos />
         <details open={counterOpen}>
           <summary onClick={() => startTransition(toggleCounter)}>
             Counter example (lazy)
