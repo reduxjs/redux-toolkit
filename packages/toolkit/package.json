@@ -57,7 +57,7 @@
     "@testing-library/user-event": "^13.1.5",
     "@types/json-stringify-safe": "^5.0.0",
     "@types/nanoid": "^2.1.0",
-    "@types/node": "^10.14.4",
+    "@types/node": "^20.11.0",
     "@types/query-string": "^6.3.0",
     "@types/react": "^18.0.12",
     "@types/react-dom": "^18.0.5",
