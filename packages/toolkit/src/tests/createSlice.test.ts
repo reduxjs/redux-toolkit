@@ -493,6 +493,16 @@ describe('createSlice', () => {
     it('allows accessing properties on the selector', () => {
       expect(slice.selectors.selectMultiple.unwrapped.test).toBe(0)
     })
+    it('has selectSlice attached to slice, which can go without this', () => {
+      const slice = createSlice({
+        name: 'counter',
+        initialState: 42,
+        reducers: {},
+      })
+      const { selectSlice } = slice
+      expect(() => selectSlice({ counter: 42 })).not.toThrow()
+      expect(selectSlice({ counter: 42 })).toBe(42)
+    })
   })
   describe('slice injections', () => {
     it('uses injectInto to inject slice into combined reducer', () => {
