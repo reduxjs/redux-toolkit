@@ -9,7 +9,7 @@
     "/examples/lazy-injection/counter-todo",
     "/examples/publish-ci/cra5"
   ],
-  "node": "16",
+  "node": "18",
   "buildCommand": "build:packages",
   "packages": [
     "packages/toolkit",
