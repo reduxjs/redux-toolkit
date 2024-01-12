@@ -67,7 +67,7 @@ describe('ApiProvider', () => {
         </Provider>
       )
     ).toThrowErrorMatchingInlineSnapshot(
-      '"Existing Redux context detected. If you already have a store set up, please use the traditional Redux setup."'
+      `[Error: Existing Redux context detected. If you already have a store set up, please use the traditional Redux setup.]`
     )
   })
 })

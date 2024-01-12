@@ -251,13 +251,12 @@ Instead, import `buildCreateSlice` and `asyncThunkCreator`, and create your own 
 ```ts
 import { buildCreateSlice, asyncThunkCreator } from '@reduxjs/toolkit'
 
-// name is up to you
-export const createSliceWithThunks = buildCreateSlice({
+export const createAppSlice = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 })
 ```
 
-Then import this `createSlice` as needed instead of the exported version from RTK.
+Then import this `createAppSlice` as needed instead of the exported version from RTK.
 
 :::
 

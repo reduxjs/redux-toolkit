@@ -252,7 +252,7 @@ describe('createSlice', () => {
           })
           slice.reducer(undefined, { type: 'unrelated' })
         }).toThrowErrorMatchingInlineSnapshot(
-          '"`builder.addCase` cannot be called with two reducers for the same action type \'increment\'"'
+          `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`
         )
       })
 
@@ -587,10 +587,10 @@ describe('createSlice', () => {
           reducers: (create) => ({ thunk: create.asyncThunk(() => {}) }),
         })
       ).toThrowErrorMatchingInlineSnapshot(
-        '"Cannot use `create.asyncThunk` in the built-in `createSlice`. Use `buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })` to create a customised version of `createSlice`."'
+        `[Error: Cannot use \`create.asyncThunk\` in the built-in \`createSlice\`. Use \`buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })\` to create a customised version of \`createSlice\`.]`
       )
     })
-    const createThunkSlice = buildCreateSlice({
+    const createAppSlice = buildCreateSlice({
       creators: { asyncThunk: asyncThunkCreator },
     })
     function pending(state: any[], action: any) {
@@ -607,7 +607,7 @@ describe('createSlice', () => {
     }
 
     test('successful thunk', async () => {
-      const slice = createThunkSlice({
+      const slice = createAppSlice({
         name: 'test',
         initialState: [] as any[],
         reducers: (create) => ({
@@ -650,7 +650,7 @@ describe('createSlice', () => {
     })
 
     test('rejected thunk', async () => {
-      const slice = createThunkSlice({
+      const slice = createAppSlice({
         name: 'test',
         initialState: [] as any[],
         reducers: (create) => ({
@@ -694,7 +694,7 @@ describe('createSlice', () => {
     })
 
     test('with options', async () => {
-      const slice = createThunkSlice({
+      const slice = createAppSlice({
         name: 'test',
         initialState: [] as any[],
         reducers: (create) => ({
@@ -743,7 +743,7 @@ describe('createSlice', () => {
     })
 
     test('has caseReducers for the asyncThunk', async () => {
-      const slice = createThunkSlice({
+      const slice = createAppSlice({
         name: 'test',
         initialState: [],
         reducers: (create) => ({
@@ -826,7 +826,7 @@ describe('createSlice', () => {
           }),
         })
       ).toThrowErrorMatchingInlineSnapshot(
-        `"Please use the \`create.preparedReducer\` notation for prepared action creators with the \`create\` notation."`
+        `[Error: Please use the \`create.preparedReducer\` notation for prepared action creators with the \`create\` notation.]`
       )
     })
   })

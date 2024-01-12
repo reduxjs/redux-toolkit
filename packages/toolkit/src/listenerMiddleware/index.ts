@@ -4,27 +4,42 @@ import type { ThunkDispatch } from 'redux-thunk'
 import { createAction } from '../createAction'
 import { nanoid } from '../nanoid'
 
+import { find } from '../utils'
+import {
+  TaskAbortError,
+  listenerCancelled,
+  listenerCompleted,
+  taskCancelled,
+  taskCompleted,
+} from './exceptions'
+import {
+  createDelay,
+  createPause,
+  raceWithSignal,
+  runTask,
+  validateActive,
+} from './task'
 import type {
-  ListenerMiddleware,
-  ListenerMiddlewareInstance,
+  AbortSignalWithReason,
   AddListenerOverloads,
   AnyListenerPredicate,
   CreateListenerMiddlewareOptions,
-  TypedAddListener,
-  TypedCreateListenerEntry,
   FallbackAddListenerOptions,
+  ForkOptions,
+  ForkedTask,
+  ForkedTaskExecutor,
   ListenerEntry,
   ListenerErrorHandler,
-  UnsubscribeListener,
-  TakePattern,
   ListenerErrorInfo,
-  ForkedTaskExecutor,
-  ForkedTask,
-  TypedRemoveListener,
+  ListenerMiddleware,
+  ListenerMiddlewareInstance,
+  TakePattern,
   TaskResult,
-  AbortSignalWithReason,
+  TypedAddListener,
+  TypedCreateListenerEntry,
+  TypedRemoveListener,
+  UnsubscribeListener,
   UnsubscribeListenerOptions,
-  ForkOptions,
 } from './types'
 import {
   abortControllerWithReason,
@@ -32,44 +47,29 @@ import {
   assertFunction,
   catchRejection,
 } from './utils'
-import {
-  listenerCancelled,
-  listenerCompleted,
-  TaskAbortError,
-  taskCancelled,
-  taskCompleted,
-} from './exceptions'
-import {
-  runTask,
-  validateActive,
-  createPause,
-  createDelay,
-  raceWithSignal,
-} from './task'
-import { find } from '../utils'
 export { TaskAbortError } from './exceptions'
 export type {
-  ListenerEffect,
-  ListenerMiddleware,
-  ListenerEffectAPI,
-  ListenerMiddlewareInstance,
+  AsyncTaskExecutor,
   CreateListenerMiddlewareOptions,
-  ListenerErrorHandler,
-  TypedStartListening,
-  TypedAddListener,
-  TypedStopListening,
-  TypedRemoveListener,
-  UnsubscribeListener,
-  UnsubscribeListenerOptions,
-  ForkedTaskExecutor,
   ForkedTask,
   ForkedTaskAPI,
-  AsyncTaskExecutor,
+  ForkedTaskExecutor,
+  ListenerEffect,
+  ListenerEffectAPI,
+  ListenerErrorHandler,
+  ListenerMiddleware,
+  ListenerMiddlewareInstance,
   SyncTaskExecutor,
   TaskCancelled,
   TaskRejected,
   TaskResolved,
   TaskResult,
+  TypedAddListener,
+  TypedRemoveListener,
+  TypedStartListening,
+  TypedStopListening,
+  UnsubscribeListener,
+  UnsubscribeListenerOptions,
 } from './types'
 
 //Overly-aggressive byte-shaving
@@ -215,25 +215,27 @@ const getListenerEntryPropsFrom = (options: FallbackAddListenerOptions) => {
 }
 
 /** Accepts the possible options for creating a listener, and returns a formatted listener entry */
-export const createListenerEntry: TypedCreateListenerEntry<unknown> = (
-  options: FallbackAddListenerOptions
-) => {
-  const { type, predicate, effect } = getListenerEntryPropsFrom(options)
+export const createListenerEntry: TypedCreateListenerEntry<unknown> =
+  Object.assign(
+    (options: FallbackAddListenerOptions) => {
+      const { type, predicate, effect } = getListenerEntryPropsFrom(options)
 
-  const id = nanoid()
-  const entry: ListenerEntry<unknown> = {
-    id,
-    effect,
-    type,
-    predicate,
-    pending: new Set<AbortController>(),
-    unsubscribe: () => {
-      throw new Error('Unsubscribe not initialized')
+      const id = nanoid()
+      const entry: ListenerEntry<unknown> = {
+        id,
+        effect,
+        type,
+        predicate,
+        pending: new Set<AbortController>(),
+        unsubscribe: () => {
+          throw new Error('Unsubscribe not initialized')
+        },
+      }
+
+      return entry
     },
-  }
-
-  return entry
-}
+    { withTypes: () => createListenerEntry }
+  ) as unknown as TypedCreateListenerEntry<unknown>
 
 const cancelActiveListeners = (
   entry: ListenerEntry<unknown, Dispatch<UnknownAction>>
@@ -279,9 +281,9 @@ const safelyNotifyError = (
 /**
  * @public
  */
-export const addListener = createAction(
-  `${alm}/add`
-) as TypedAddListener<unknown>
+export const addListener = Object.assign(createAction(`${alm}/add`), {
+  withTypes: () => addListener,
+}) as unknown as TypedAddListener<unknown>
 
 /**
  * @public
@@ -291,9 +293,9 @@ export const clearAllListeners = createAction(`${alm}/removeAll`)
 /**
  * @public
  */
-export const removeListener = createAction(
-  `${alm}/remove`
-) as TypedRemoveListener<unknown>
+export const removeListener = Object.assign(createAction(`${alm}/remove`), {
+  withTypes: () => removeListener,
+}) as unknown as TypedRemoveListener<unknown>
 
 const defaultErrorHandler: ListenerErrorHandler = (...args: unknown[]) => {
   console.error(`${alm}/error`, ...args)
@@ -302,11 +304,17 @@ const defaultErrorHandler: ListenerErrorHandler = (...args: unknown[]) => {
 /**
  * @public
  */
-export function createListenerMiddleware<
-  S = unknown,
-  D extends Dispatch<Action> = ThunkDispatch<S, unknown, UnknownAction>,
+export const createListenerMiddleware = <
+  StateType = unknown,
+  DispatchType extends Dispatch<Action> = ThunkDispatch<
+    StateType,
+    unknown,
+    UnknownAction
+  >,
   ExtraArgument = unknown
->(middlewareOptions: CreateListenerMiddlewareOptions<ExtraArgument> = {}) {
+>(
+  middlewareOptions: CreateListenerMiddlewareOptions<ExtraArgument> = {}
+) => {
   const listenerMap = new Map<string, ListenerEntry>()
   const { extra, onError = defaultErrorHandler } = middlewareOptions
 
@@ -324,7 +332,7 @@ export function createListenerMiddleware<
     }
   }
 
-  const startListening = (options: FallbackAddListenerOptions) => {
+  const startListening = ((options: FallbackAddListenerOptions) => {
     let entry = find(
       Array.from(listenerMap.values()),
       (existingEntry) => existingEntry.effect === options.effect
@@ -335,7 +343,11 @@ export function createListenerMiddleware<
     }
 
     return insertEntry(entry)
-  }
+  }) as AddListenerOverloads<any>
+
+  Object.assign(startListening, {
+    withTypes: () => startListening,
+  })
 
   const stopListening = (
     options: FallbackAddListenerOptions & UnsubscribeListenerOptions
@@ -361,15 +373,19 @@ export function createListenerMiddleware<
     return !!entry
   }
 
+  Object.assign(stopListening, {
+    withTypes: () => stopListening,
+  })
+
   const notifyListener = async (
     entry: ListenerEntry<unknown, Dispatch<UnknownAction>>,
     action: unknown,
     api: MiddlewareAPI,
-    getOriginalState: () => S
+    getOriginalState: () => StateType
   ) => {
     const internalTaskController = new AbortController()
     const take = createTakePattern(
-      startListening,
+      startListening as AddListenerOverloads<any>,
       internalTaskController.signal
     )
     const autoJoinPromises: Promise<any>[] = []
@@ -433,7 +449,7 @@ export function createListenerMiddleware<
 
   const clearListenerMiddleware = createClearListenerMiddleware(listenerMap)
 
-  const middleware: ListenerMiddleware<S, D, ExtraArgument> =
+  const middleware: ListenerMiddleware<StateType, DispatchType, ExtraArgument> =
     (api) => (next) => (action) => {
       if (!isAction(action)) {
         // we only want to notify listeners for action objects
@@ -441,7 +457,7 @@ export function createListenerMiddleware<
       }
 
       if (addListener.match(action)) {
-        return startListening(action.payload)
+        return startListening(action.payload as any)
       }
 
       if (clearAllListeners.match(action)) {
@@ -454,18 +470,18 @@ export function createListenerMiddleware<
       }
 
       // Need to get this state _before_ the reducer processes the action
-      let originalState: S | typeof INTERNAL_NIL_TOKEN = api.getState()
+      let originalState: StateType | typeof INTERNAL_NIL_TOKEN = api.getState()
 
       // `getOriginalState` can only be called synchronously.
       // @see https://github.com/reduxjs/redux-toolkit/discussions/1648#discussioncomment-1932820
-      const getOriginalState = (): S => {
+      const getOriginalState = (): StateType => {
         if (originalState === INTERNAL_NIL_TOKEN) {
           throw new Error(
             `${alm}: getOriginalState can only be called synchronously`
           )
         }
 
-        return originalState as S
+        return originalState as StateType
       }
 
       let result: unknown
@@ -475,10 +491,10 @@ export function createListenerMiddleware<
         result = next(action)
 
         if (listenerMap.size > 0) {
-          let currentState = api.getState()
+          const currentState = api.getState()
           // Work around ESBuild+TS transpilation issue
           const listenerEntries = Array.from(listenerMap.values())
-          for (let entry of listenerEntries) {
+          for (const entry of listenerEntries) {
             let runListener = false
 
             try {
@@ -511,5 +527,5 @@ export function createListenerMiddleware<
     startListening,
     stopListening,
     clearListeners: clearListenerMiddleware,
-  } as ListenerMiddlewareInstance<S, D, ExtraArgument>
+  } as ListenerMiddlewareInstance<StateType, DispatchType, ExtraArgument>
 }

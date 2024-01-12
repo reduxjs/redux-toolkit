@@ -350,7 +350,7 @@ interface AsyncThunkCreator<
   State,
   CurriedThunkApiConfig extends PreventCircular<AsyncThunkConfig> = PreventCircular<AsyncThunkConfig>
 > {
-  <ThunkArg extends any, Returned = unknown>(
+  <Returned, ThunkArg = void>(
     payloadCreator: AsyncThunkPayloadCreator<
       Returned,
       ThunkArg,
@@ -369,8 +369,8 @@ interface AsyncThunkCreator<
     CurriedThunkApiConfig
   >
   <
-    ThunkArg extends any,
-    Returned = unknown,
+    Returned,
+    ThunkArg,
     ThunkApiConfig extends PreventCircular<AsyncThunkConfig> = {}
   >(
     payloadCreator: AsyncThunkPayloadCreator<
