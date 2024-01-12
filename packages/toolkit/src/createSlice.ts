@@ -795,7 +795,7 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
               options.selectors ?? {}
             )) {
               map[name] = wrapSelector(
-                { getInitialState },
+                getInitialState,
                 selector,
                 selectState,
                 injected
@@ -836,7 +836,7 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
 }
 
 function wrapSelector<State, NewState, S extends Selector<State>>(
-  slice: { getInitialState(): State },
+  getInitialState: () => State,
   selector: S,
   selectState: Selector<NewState, State>,
   injected?: boolean
@@ -845,7 +845,7 @@ function wrapSelector<State, NewState, S extends Selector<State>>(
     let sliceState = selectState(rootState)
     if (typeof sliceState === 'undefined') {
       if (injected) {
-        sliceState = slice.getInitialState()
+        sliceState = getInitialState()
       } else if (process.env.NODE_ENV !== 'production') {
         throw new Error(
           'selectState returned undefined for an uninjected slice reducer'
