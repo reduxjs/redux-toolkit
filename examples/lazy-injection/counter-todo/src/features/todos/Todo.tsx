@@ -11,7 +11,7 @@ export function Todo({ id }: { id: string }) {
       <p>{todo.title}</p>
       <button
         className={styles.button}
-        onClick={() => dispatch(deleteTodo(todo.id))}
+        onClick={() => dispatch(deleteTodo(id))}
       >
         Delete
       </button>
