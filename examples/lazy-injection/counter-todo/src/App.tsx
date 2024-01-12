@@ -4,6 +4,8 @@ import logo from "./logo.svg"
 import { Todos } from "./features/todos/Todos"
 import { lazily } from "react-lazily"
 
+// equivalent to
+// const Counter = lazy(() => import("./features/counter/Counter").then(m => ({ default: m.Counter }))
 const { Counter } = lazily(() => import("./features/counter/Counter"))
 
 const { Quotes } = lazily(() => import("./features/quotes/Quotes"))
