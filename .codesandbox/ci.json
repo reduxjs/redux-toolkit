@@ -6,6 +6,7 @@
     "/examples/query/react/basic",
     "/examples/query/react/advanced",
     "/examples/action-listener/counter",
+    "/examples/lazy-injection/counter-todo",
     "/examples/publish-ci/cra5"
   ],
   "node": "16",
