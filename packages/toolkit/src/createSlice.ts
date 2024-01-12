@@ -795,9 +795,9 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
               options.selectors ?? {}
             )) {
               map[name] = wrapSelector(
-                getInitialState,
                 selector,
                 selectState,
+                getInitialState,
                 injected
               )
             }
@@ -836,9 +836,9 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
 }
 
 function wrapSelector<State, NewState, S extends Selector<State>>(
-  getInitialState: () => State,
   selector: S,
   selectState: Selector<NewState, State>,
+  getInitialState: () => State,
   injected?: boolean
 ) {
   function wrapper(rootState: NewState, ...args: any[]) {
