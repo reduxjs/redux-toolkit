@@ -1,13 +1,13 @@
-import type { FC, PropsWithChildren } from 'react';
-import { StyleSheet, Text, View, useColorScheme } from 'react-native';
-import { TypedColors } from '../constants/TypedColors';
+import type { PropsWithChildren } from "react"
+import { StyleSheet, Text, View, useColorScheme } from "react-native"
+import { TypedColors } from "../constants/TypedColors"
 
 type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+  title: string
+}>
 
-export const Section: FC<SectionProps> = ({ children, title }) => {
-  const isDarkMode = useColorScheme() === 'dark';
+export const Section = ({ children, title }: SectionProps) => {
+  const isDarkMode = useColorScheme() === "dark"
 
   return (
     <View style={styles.sectionContainer}>
@@ -15,19 +15,21 @@ export const Section: FC<SectionProps> = ({ children, title }) => {
         style={[
           styles.sectionTitle,
           { color: isDarkMode ? TypedColors.white : TypedColors.black },
-        ]}>
+        ]}
+      >
         {title}
       </Text>
       <Text
         style={[
           styles.sectionDescription,
           { color: isDarkMode ? TypedColors.light : TypedColors.dark },
-        ]}>
+        ]}
+      >
         {children}
       </Text>
     </View>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   sectionContainer: {
@@ -36,11 +38,11 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   sectionDescription: {
     marginTop: 8,
     fontSize: 18,
-    fontWeight: '400',
+    fontWeight: "400",
   },
-});
+})

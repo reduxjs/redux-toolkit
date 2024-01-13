@@ -1,8 +1,10 @@
 /** @type {import('@react-native-community/cli-types').UserConfig } */
-module.exports = {
+const config = {
   project: {
     ios: {
       automaticPodsInstallation: true,
     },
   },
-};
+}
+
+export default config

@@ -1,53 +1,57 @@
-import type { FC } from 'react';
-import React from 'react';
+import { Fragment } from "react"
 import {
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
   useColorScheme,
-} from 'react-native';
-import openURLInBrowser from 'react-native/Libraries/Core/Devtools/openURLInBrowser';
-import { TypedColors } from '../constants/TypedColors';
+} from "react-native"
+import openURLInBrowser from "react-native/Libraries/Core/Devtools/openURLInBrowser"
+import { TypedColors } from "../constants/TypedColors"
 
 interface Link {
-  title: string;
-  link: string;
-  description: string;
+  title: string
+  link: string
+  description: string
 }
 
 const links: Link[] = [
   {
-    title: 'React',
-    link: 'https://reactjs.org/',
-    description: 'JavaScript library for building user interfaces',
+    title: "React",
+    link: "https://reactjs.org",
+    description: "JavaScript library for building user interfaces",
   },
   {
-    title: 'Redux',
-    link: 'https://redux.js.org/',
-    description: 'A Predictable State Container for JS Apps',
+    title: "Redux",
+    link: "https://redux.js.org",
+    description: "A Predictable State Container for JS Apps",
   },
   {
-    title: 'Redux Toolkit',
-    link: 'https://redux-toolkit.js.org/',
+    title: "Redux Toolkit",
+    link: "https://redux-toolkit.js.org",
     description:
-      'The official, opinionated, batteries-included toolset for efficient Redux development',
+      "The official, opinionated, batteries-included toolset for efficient Redux development",
   },
   {
-    title: 'React Redux',
-    link: 'https://react-redux.js.org',
-    description: 'Official React bindings for Redux',
+    title: "React Redux",
+    link: "https://react-redux.js.org",
+    description: "Official React bindings for Redux",
   },
-];
+  {
+    title: "Reselect",
+    link: "https://reselect.js.org",
+    description: "A memoized selector library for Redux",
+  },
+]
 
-export const LearnReduxLinks: FC = () => {
-  const isDarkMode = useColorScheme() === 'dark';
+export const LearnReduxLinks = () => {
+  const isDarkMode = useColorScheme() === "dark"
 
   return (
     <View style={styles.container}>
       {links.map((item, index) => {
         return (
-          <React.Fragment key={index}>
+          <Fragment key={index}>
             <View
               style={[
                 styles.separator,
@@ -59,26 +63,28 @@ export const LearnReduxLinks: FC = () => {
               ]}
             />
             <TouchableOpacity
-              accessibilityRole={'button'}
+              accessibilityRole={"button"}
               onPress={() => {
-                openURLInBrowser(item.link);
+                openURLInBrowser(item.link)
               }}
-              style={styles.linkContainer}>
+              style={styles.linkContainer}
+            >
               <Text style={styles.link}>{item.title}</Text>
               <Text
                 style={[
                   styles.description,
                   { color: isDarkMode ? TypedColors.light : TypedColors.dark },
-                ]}>
+                ]}
+              >
                 {item.description}
               </Text>
             </TouchableOpacity>
-          </React.Fragment>
-        );
+          </Fragment>
+        )
       })}
     </View>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -86,25 +92,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   linkContainer: {
-    flexWrap: 'wrap',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexWrap: "wrap",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 8,
   },
   link: {
     flex: 2,
     fontSize: 18,
-    fontWeight: '400',
+    fontWeight: "400",
     color: TypedColors.primary,
   },
   description: {
     flex: 3,
     paddingVertical: 16,
-    fontWeight: '400',
+    fontWeight: "400",
     fontSize: 18,
   },
   separator: {
     height: 1,
   },
-});
+})
