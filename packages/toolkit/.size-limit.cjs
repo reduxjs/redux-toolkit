@@ -1,9 +1,13 @@
 const webpack = require('webpack')
 let { join } = require('path')
 
-const suffixes = ['cjs.production.min.js', 'esm.js']
+const esmSuffixes = ['modern.mjs', 'browser.mjs', 'legacy-esm.js']
+const cjsSuffixes = ['development.cjs', 'production.min.cjs']
 
-function withRtkPath(suffix) {
+function withRtkPath(suffix, cjs = false) {
+  /**
+   * @param {webpack.Configuration} config
+   */
   return (config) => {
     config.plugins.push(
       new webpack.NormalModuleReplacementPlugin(
@@ -15,6 +19,10 @@ function withRtkPath(suffix) {
         join(__dirname, `query`)
       ),
       new webpack.NormalModuleReplacementPlugin(
+        /@reduxjs\/toolkit\/react/,
+        join(__dirname, 'react')
+      ),
+      new webpack.NormalModuleReplacementPlugin(
         /@reduxjs\/toolkit/,
         join(__dirname)
       ),
@@ -24,7 +32,7 @@ function withRtkPath(suffix) {
           const old = r.request
           r.request = r.request.replace(
             /rtk-query-react.modern.js$/,
-            `rtk-query-react.${suffix}`
+            `${cjs ? 'cjs/' : ''}rtk-query-react.${suffix}`
           )
           // console.log(old, '=>', r.request)
         }
@@ -33,26 +41,37 @@ function withRtkPath(suffix) {
         const old = r.request
         r.request = r.request.replace(
           /rtk-query.modern.js$/,
-          `rtk-query.${suffix}`
+          `${cjs ? 'cjs/' : ''}rtk-query.${suffix}`
         )
         // console.log(old, '=>', r.request)
       }),
+      new webpack.NormalModuleReplacementPlugin(
+        /redux-toolkit-react.modern.js$/,
+        (r) => {
+          const old = r.request
+          r.request = r.request.replace(
+            /redux-toolkit-react.modern.js$/,
+            `${cjs ? 'cjs/' : ''}redux-toolkit-react.${suffix}`
+          )
+          // console.log(old, '=>', r.request)
+        }
+      ),
       new webpack.NormalModuleReplacementPlugin(
         /redux-toolkit.modern.js$/,
         (r) => {
           const old = r.request
           r.request = r.request.replace(
             /redux-toolkit.modern.js$/,
-            `redux-toolkit.${suffix}`
+            `${cjs ? 'cjs/' : ''}redux-toolkit.${suffix}`
           )
           // console.log(old, '=>', r.request)
         }
       )
     )
-    if (suffix === 'cjs.production.min.js') {
-      config.resolve.mainFields = ['main', 'module']
+    if (suffix === 'production.min.cjs') {
+      ;(config.resolve ??= {}).mainFields = ['main', 'module']
     }
-    config.optimization.nodeEnv = 'production'
+    ;(config.optimization ??= {}).nodeEnv = 'production'
     return config
   }
 }
@@ -66,41 +85,61 @@ const ignoreAll = [
   'redux-thunk',
 ]
 
-module.exports = [
+const entryPoints = [
   {
     name: `1. entry point: @reduxjs/toolkit`,
-    path: 'dist/redux-toolkit.modern.js',
+    path: 'dist/redux-toolkit.modern.mjs',
+  },
+  {
+    name: `1. entry point: @reduxjs/toolkit/react`,
+    path: 'dist/react/redux-toolkit-react.modern.mjs',
   },
   {
     name: `1. entry point: @reduxjs/toolkit/query`,
-    path: 'dist/query/rtk-query.modern.js',
+    path: 'dist/query/rtk-query.modern.mjs',
   },
   {
     name: `1. entry point: @reduxjs/toolkit/query/react`,
-    path: 'dist/query/react/rtk-query-react.modern.js',
+    path: 'dist/query/react/rtk-query-react.modern.mjs',
   },
   {
     name: `2. entry point: @reduxjs/toolkit (without dependencies)`,
-    path: 'dist/redux-toolkit.modern.js',
+    path: 'dist/redux-toolkit.modern.mjs',
+    ignore: ignoreAll,
+  },
+  {
+    name: `2. entry point: @reduxjs/toolkit/react (without dependencies)`,
+    path: 'dist/react/redux-toolkit-react.modern.mjs',
     ignore: ignoreAll,
   },
   {
     name: `2. entry point: @reduxjs/toolkit/query (without dependencies)`,
-    path: 'dist/query/rtk-query.modern.js',
+    path: 'dist/query/rtk-query.modern.mjs',
     ignore: ignoreAll,
   },
   {
     name: `2. entry point: @reduxjs/toolkit/query/react (without dependencies)`,
-    path: 'dist/query/react/rtk-query-react.modern.js',
+    path: 'dist/query/react/rtk-query-react.modern.mjs',
     ignore: ignoreAll,
   },
 ]
+
+module.exports = entryPoints
   .flatMap((e) =>
-    suffixes.map((suffix) => ({
+    esmSuffixes.map((suffix) => ({
       ...e,
       name: e.name + ` (${suffix})`,
       modifyWebpackConfig: withRtkPath(suffix),
     }))
+  )
+  .concat(
+    entryPoints.flatMap((e) =>
+      cjsSuffixes.map((suffix) => ({
+        ...e,
+        name: e.name + ` (cjs, ${suffix})`,
+        modifyWebpackConfig: withRtkPath(suffix, true),
+      }))
+    )
   )
   .concat(
     ...[
@@ -138,7 +177,7 @@ module.exports = [
       },
     ].map((e) => ({
       ...e,
-      name: e.name + ` (esm.js)`,
-      modifyWebpackConfig: withRtkPath('esm.js'),
+      name: e.name + ` (.modern.mjs)`,
+      modifyWebpackConfig: withRtkPath('.modern.mjs'),
     }))
   )
