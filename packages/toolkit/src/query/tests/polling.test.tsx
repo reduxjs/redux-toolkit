@@ -2,7 +2,6 @@ import { createApi } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
 import { setupApiStore } from './helpers'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
-import { createListenerMiddleware } from '@reduxjs/toolkit'
 
 const mockBaseQuery = vi
   .fn()
@@ -126,26 +125,18 @@ describe('polling tests', () => {
 
   it('respects skipPollOnFocusLost', async () => {
     mockBaseQuery.mockClear()
-    const listenerMiddleware = createListenerMiddleware()
-    const storeListenerRef = setupApiStore(api, undefined, {
-      middleware: {
-        concat: [listenerMiddleware.middleware],
-      },
-      withoutTestLifecycles: true,
-    })
-
-    storeListenerRef.store.dispatch(
+    storeRef.store.dispatch(
       getPosts.initiate(2, {
         subscriptionOptions: { pollingInterval: 10, skipPollOnFocusLost: true },
         subscribe: true,
       })
     )
-    storeListenerRef.store.dispatch(api.internalActions?.onFocusLost())
+    storeRef.store.dispatch(api.internalActions?.onFocusLost())
 
     await delay(50)
     const callsWithSkip = mockBaseQuery.mock.calls.length
 
-    storeListenerRef.store.dispatch(
+    storeRef.store.dispatch(
       getPosts.initiate(2, {
         subscriptionOptions: {
           pollingInterval: 10,
@@ -155,7 +146,7 @@ describe('polling tests', () => {
       })
     )
 
-    storeListenerRef.store.dispatch(api.internalActions?.onFocus())
+    storeRef.store.dispatch(api.internalActions?.onFocus())
 
     await delay(50)
     const callsWithoutSkip = mockBaseQuery.mock.calls.length
@@ -163,19 +154,11 @@ describe('polling tests', () => {
     expect(callsWithSkip).toBe(1)
     expect(callsWithoutSkip).toBeGreaterThan(2)
 
-    storeListenerRef.store.dispatch(api.util.resetApiState())
+    storeRef.store.dispatch(api.util.resetApiState())
   })
 
   it('respects skipPollOnFocusLost of the most recent mounted subscription', async () => {
-    const listenerMiddleware = createListenerMiddleware()
-    const storeListenerRef = setupApiStore(api, undefined, {
-      middleware: {
-        concat: [listenerMiddleware.middleware],
-      },
-      withoutTestLifecycles: true,
-    })
-
-    storeListenerRef.store.dispatch(
+    storeRef.store.dispatch(
       getPosts.initiate(3, {
         subscriptionOptions: {
           pollingInterval: 10,
@@ -188,14 +171,14 @@ describe('polling tests', () => {
     await delay(50)
     const callsWithSkip = mockBaseQuery.mock.calls.length
 
-    storeListenerRef.store.dispatch(
+    storeRef.store.dispatch(
       getPosts.initiate(3, {
         subscriptionOptions: { pollingInterval: 15, skipPollOnFocusLost: true },
         subscribe: true,
       })
     )
 
-    storeListenerRef.store.dispatch(api.internalActions?.onFocusLost())
+    storeRef.store.dispatch(api.internalActions?.onFocusLost())
 
     await delay(50)
     const callsWithoutSkip = mockBaseQuery.mock.calls.length
