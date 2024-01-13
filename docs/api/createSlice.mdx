@@ -599,25 +599,6 @@ const { selectValue } = counterSlice.getSelectors(
 
 :::
 
-## `buildCreateSlice`
-
-`buildCreateSlice` allows you to create a custom version of `createSlice` with some configuration.
-
-Currently, this is only used for [custom creators](#custom-creators).
-
-### Parameters
-
-`buildCreateSlice` accepts a single configuration object parameter, with the following options:
-
-```ts no-transpile
-function buildCreateSlice({
-  // An map of creators to names. The names will used when constructing the `create` object passed to `reducers`.
-  creators?: Record<string, ReducerCreator>
-})
-```
-
-It returns an instance of [`createSlice`](#).
-
 ## Examples
 
 ```ts
@@ -684,6 +665,25 @@ console.log(counter.actions.decrement.type)
 store.dispatch(user.actions.setUserName('eric'))
 // -> { counter: 12, user: { name: 'eric', age: 22} }
 ```
+
+## `buildCreateSlice`
+
+`buildCreateSlice` allows you to create a custom version of `createSlice` with some configuration.
+
+Currently, this is only used for [custom creators](#custom-creators).
+
+### Parameters
+
+`buildCreateSlice` accepts a single configuration object parameter, with the following options:
+
+```ts no-transpile
+function buildCreateSlice({
+  // An map of creators to names. The names will used when constructing the `create` object passed to `reducers`.
+  creators?: Record<string, ReducerCreator>
+})
+```
+
+It returns an instance of [`createSlice`](#).
 
 ## Custom creators
 
