@@ -8,12 +8,12 @@ export function Todos() {
   const todoIds = useAppSelector(selectTodoIds)
   return (
     <div className={styles.todos}>
+      <AddTodo />
       <div className={styles.todosList}>
         {todoIds.map(id => (
           <Todo key={id} id={id} />
         ))}
       </div>
-      <AddTodo />
     </div>
   )
 }
