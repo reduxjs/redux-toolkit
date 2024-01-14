@@ -1,5 +1,5 @@
 import { createDynamicMiddleware } from "@reduxjs/toolkit/react"
-import { AppDispatch, RootState } from "./store"
+import type { AppDispatch, RootState } from "./store"
 
 const dynamicInstance = createDynamicMiddleware()
 

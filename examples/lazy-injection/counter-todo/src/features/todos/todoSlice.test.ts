@@ -1,8 +1,8 @@
 import { nanoid } from "@reduxjs/toolkit"
 import type { AppStore } from "../../app/store"
 import { makeStore } from "../../app/store"
+import type { Todo } from "./todoSlice"
 import {
-  Todo,
   addTodo,
   deleteTodo,
   selectAllTodos,

@@ -1,4 +1,4 @@
-import { Middleware } from "@reduxjs/toolkit"
+import type { Middleware } from "@reduxjs/toolkit"
 import { getCount, selectCount } from "./counterSlice"
 
 export const counterMiddleware: Middleware<{
