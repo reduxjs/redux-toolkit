@@ -12,7 +12,8 @@ import {
 } from "./commentSlice"
 import type { AppStore } from "../../app/store"
 import { makeStore } from "../../app/store"
-import { todoAdapter, type Todo, deleteTodo } from "./todoSlice"
+import type { Todo } from "./todoSlice"
+import { todoAdapter, deleteTodo } from "./todoSlice"
 
 interface LocalTestContext {
   store: AppStore
