@@ -1,7 +1,7 @@
 // Need to use the React-specific entry point to import `createApi`
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 import { addAppMiddleware } from "../../app/middleware"
-import { WithSlice } from "@reduxjs/toolkit"
+import type { WithSlice } from "@reduxjs/toolkit"
 import { rootReducer } from "../../app/reducer"
 
 interface Quote {

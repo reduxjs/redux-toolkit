@@ -1,6 +1,6 @@
 import { createEntityAdapter, nanoid } from "@reduxjs/toolkit"
 import { createAppSlice } from "../../app/createAppSlice"
-import { RootState } from "../../app/store"
+import type { RootState } from "../../app/store"
 
 export interface Todo {
   id: string
