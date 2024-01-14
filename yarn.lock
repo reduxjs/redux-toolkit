@@ -4887,9 +4887,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@examples-lazy-injection/counter-todo@workspace:examples/lazy-injection/counter-todo":
+"@examples-lazy-injection/kitchen-sink@workspace:examples/lazy-injection/kitchen-sink":
   version: 0.0.0-use.local
-  resolution: "@examples-lazy-injection/counter-todo@workspace:examples/lazy-injection/counter-todo"
+  resolution: "@examples-lazy-injection/kitchen-sink@workspace:examples/lazy-injection/kitchen-sink"
   dependencies:
     "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/4fe0b237/@reduxjs/toolkit/_pkg.tgz"
     "@testing-library/dom": ^9.3.3
