@@ -9,7 +9,7 @@ export interface Comment {
   message: string
 }
 
-const commentAdapter = createEntityAdapter<Comment>()
+export const commentAdapter = createEntityAdapter<Comment>()
 
 const localisedSelectors = commentAdapter.getSelectors()
 
