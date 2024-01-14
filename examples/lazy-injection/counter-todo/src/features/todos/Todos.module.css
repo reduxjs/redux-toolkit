@@ -13,15 +13,33 @@
 
 .todo {
   display: flex;
+  flex-direction: column;
   border: 1px solid black;
   padding: 12px;
   gap: 12px;
-  align-items: center;
 }
 
 .todo p {
   margin: 0;
   flex: 1;
+  text-align: start;
+}
+
+.todoHeader {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+}
+
+.todo hr {
+  width: 100%;
+}
+
+.comment {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 .button {
