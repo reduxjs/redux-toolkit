@@ -1,21 +1,71 @@
-const slice1 = createSlice({
-  name: "a",
-  initialState,
-  extraReducers: {
-    [todoAdded1a]: (state: SliceState, action: PayloadAction<string>) => {
-      // stuff
-    },
-    [todoAdded1b]: someFunc,
-    todoAdded1c: adapter.someFunc,
-  }
-});
+import type { PayloadAction } from '@reduxjs/toolkit'
+import {
+  createAsyncThunk,
+  createEntityAdapter,
+  createSlice
+} from '@reduxjs/toolkit'
 
-const slice2 = createSlice({
-  name: "b",
-  initialState,
+export interface Todo {
+  id: string
+  title: string
+}
+
+export const todoAdapter = createEntityAdapter<Todo>()
+
+const todoInitialState = todoAdapter.getInitialState()
+
+export type TodoSliceState = typeof todoInitialState
+
+const fetchCount = (amount = 1) => {
+  return new Promise<{ data: number }>((resolve) =>
+    setTimeout(() => resolve({ data: amount }), 500)
+  )
+}
+
+export const incrementAsync = createAsyncThunk(
+  'counter/fetchCount',
+  async (amount: number) => {
+    const response = await fetchCount(amount)
+    return response.data
+  }
+)
+
+const todoSlice = createSlice({
+  name: 'todo',
+  initialState: todoInitialState,
+  reducers: {
+    deleteTodo: todoAdapter.removeOne
+  },
   extraReducers: {
-    [todoAdded](state: SliceState, action: PayloadAction<string>) {
+    [incrementAsync.pending]: (
+      state: TodoSliceState,
+      action: PayloadAction<string>
+    ) => {
       // stuff
     },
+    [incrementAsync.rejected]: todoAdapter.removeAll,
+    todoAdded: todoAdapter.addOne
   }
-});
+})
+
+export const { deleteTodo } = todoSlice.actions
+
+export interface CounterSliceState {
+  value: number
+  status: 'idle' | 'loading' | 'failed'
+}
+
+const counterInitialState: CounterSliceState = {
+  value: 0,
+  status: 'idle'
+}
+
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: counterInitialState,
+  extraReducers: {
+    [deleteTodo](state: CounterSliceState, action: PayloadAction<string>) {
+      // stuff
+    }
+  }
+})
