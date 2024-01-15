@@ -48,6 +48,27 @@ const customCreateApi = buildCreateApi(
 )
 ```
 
+## Customizing `createSelector` for RTKQ
+
+Both `coreModule` and `reactHooksModule` accept a `createSelector` option which should be a selector creator instance from Reselect or with an equivalent signature.
+
+```ts
+import * as React from 'react'
+import { createSelectorCreator, lruMemoize } from '@reduxjs/toolkit'
+import {
+  buildCreateApi,
+  coreModule,
+  reactHooksModule,
+} from '@reduxjs/toolkit/query/react'
+
+const createLruSelector = createSelectorCreator(lruMemoize)
+
+const customCreateApi = buildCreateApi(
+  coreModule({ createSelector: createLruSelector }),
+  reactHooksModule({ createSelector: createLruSelector })
+)
+```
+
 ## Creating your own module
 
 If you want to create your own module, you should review [the react-hooks module](https://github.com/reduxjs/redux-toolkit/blob/b74a52935a5840bebca5acdc8e2265e3b6497afa/src/query/react/module.ts) to see what an implementation would look like.

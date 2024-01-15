@@ -23,6 +23,7 @@ import {
 import type { QueryKeys } from '../core/apiState'
 import type { PrefetchOptions } from '../core/module'
 import { countObjectKeys } from '../utils/countObjectKeys'
+import { createSelector as _createSelector } from 'reselect'
 
 export const reactHooksModuleName = /* @__PURE__ */ Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName
@@ -111,6 +112,10 @@ export interface ReactHooksModuleOptions {
    * ```
    */
   unstable__sideEffectsInRender?: boolean
+  /**
+   * A selector creator (usually from `reselect`, or matching the same signature)
+   */
+  createSelector?: typeof _createSelector
 }
 
 /**
@@ -140,6 +145,7 @@ export const reactHooksModule = ({
     useSelector: rrUseSelector,
     useStore: rrUseStore,
   },
+  createSelector = _createSelector,
   unstable__sideEffectsInRender = false,
   ...rest
 }: ReactHooksModuleOptions = {}): Module<ReactHooksModule> => {
@@ -191,6 +197,7 @@ export const reactHooksModule = ({
           batch,
           hooks,
           unstable__sideEffectsInRender,
+          createSelector,
         },
         serializeQueryArgs,
         context,
