@@ -1,23 +1,34 @@
-const aSlice = createSlice({
-  name: 'name',
-  initialState: todoAdapter.getInitialState(),
+import { createEntityAdapter, createSlice, nanoid } from '@reduxjs/toolkit'
 
-  reducers: (create) => ({
-    property: create.reducer(() => {}),
+function withPayload() {
+    throw new Error('Function not implemented.')
+}
 
-    method: create.reducer((state, action) => {
-      todoAdapter.setMany(state, action);
-    }),
+export const todoAdapter = createEntityAdapter()
 
-    identifier: create.reducer(todoAdapter.removeOne),
-    preparedProperty: create.preparedReducer((todo) => ({ payload: { id: nanoid(), ...todo } }), () => {}),
+const todoSlice = createSlice({
+    name: 'todo',
+    initialState: todoAdapter.getInitialState(),
 
-    preparedMethod: create.preparedReducer((todo) => {
-      return { payload: { id: nanoid(), ...todo } }
-    }, (state, action) => {
-      todoAdapter.setMany(state, action);
-    }),
+    reducers: (create) => ({
+        property: create.reducer(() => { }),
 
-    preparedIdentifier: create.preparedReducer(withPayload(), todoAdapter.setMany)
-  })
+        method: create.reducer((state, action) => {
+            todoAdapter.addOne(state, action)
+        }),
+
+        identifier: create.reducer(todoAdapter.removeOne),
+
+        preparedProperty: create.preparedReducer((todo) => ({
+            payload: { id: nanoid(), ...todo }
+        }), () => { }),
+
+        preparedMethod: create.preparedReducer((todo) => {
+            return { payload: { id: nanoid(), ...todo } }
+        }, (state, action) => {
+            todoAdapter.addOne(state, action)
+        }),
+
+        preparedIdentifier: create.preparedReducer(withPayload(), todoAdapter.setMany)
+    })
 })
