@@ -1,6 +1,8 @@
+import type { WithSlice } from "@reduxjs/toolkit"
 import { createEntityAdapter, createSelector, nanoid } from "@reduxjs/toolkit"
 import { createAppSlice } from "../../app/createAppSlice"
 import { deleteTodo } from "./todoSlice"
+import { rootReducer } from "../../app/reducer"
 
 export interface Comment {
   id: string
@@ -49,6 +51,12 @@ export const commentSlice = createAppSlice({
 
 export const { addComment, deleteComment } = commentSlice.actions
 
+declare module "../../app/reducer" {
+  interface LazyLoadedSlices extends WithSlice<typeof commentSlice> {}
+}
+
+const injectedCommentSlice = commentSlice.injectInto(rootReducer)
+
 export const {
   selectAll: selectAllComments,
   selectById: selectCommentById,
@@ -56,4 +64,4 @@ export const {
   selectIds: selectCommentIds,
   selectTotal: selectCommentTotal,
   selectCommentsByTodoId,
-} = commentSlice.selectors
+} = injectedCommentSlice.selectors
