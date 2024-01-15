@@ -2,7 +2,7 @@
   "name": "@reduxjs/rtk-codemods",
   "version": "0.1.0",
   "scripts": {
-    "lint": "eslint --cache .",
+    "lint": "eslint .",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "update-docs": "codemod-cli update-docs"
