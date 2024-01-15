@@ -20,9 +20,6 @@ describe('fixedCacheKey', () => {
     endpoints: (build) => ({
       send: build.mutation<string, string | Promise<string>>({
         query: (arg) => arg,
-        onCacheEntryAdded: (arg) => {
-          onNewCacheEntry(arg)
-        },
       }),
     }),
   })
@@ -362,6 +359,14 @@ describe('fixedCacheKey', () => {
   })
 
   test('using fixedCacheKey should create a new cache entry', async () => {
+    api.enhanceEndpoints({
+      endpoints: {
+        send: {
+          onCacheEntryAdded: (arg) => onNewCacheEntry(arg),
+        },
+      },
+    })
+
     render(<Component name="C1" fixedCacheKey={'testKey'} />, {
       wrapper: storeRef.wrapper,
     })
@@ -377,5 +382,13 @@ describe('fixedCacheKey', () => {
     })
 
     expect(onNewCacheEntry).toHaveBeenCalledWith('C1')
+
+    api.enhanceEndpoints({
+      endpoints: {
+        send: {
+          onCacheEntryAdded: undefined,
+        },
+      },
+    })
   })
 })
