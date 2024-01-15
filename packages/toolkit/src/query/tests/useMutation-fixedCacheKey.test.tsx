@@ -364,14 +364,14 @@ describe('fixedCacheKey', () => {
       endpoints: (build) => ({
         send: build.mutation<string, string | Promise<string>>({
           query: (arg) => arg,
-          onCacheEntryAdded(arg, { }) {
+          onCacheEntryAdded(arg, {}) {
             onNewCacheEntry(arg)
           },
         }),
       }),
     })
 
-    render(<Component name="C1" fixedCacheKey={"testKey"} />, {
+    render(<Component name="C1" fixedCacheKey={'testKey'} />, {
       wrapper: storeRef.wrapper,
     })
 
