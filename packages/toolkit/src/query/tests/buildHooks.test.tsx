@@ -35,7 +35,11 @@ import { server } from './mocks/server'
 import type { UnknownAction } from 'redux'
 import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
 import type { SerializedError } from '@reduxjs/toolkit'
-import { createListenerMiddleware, configureStore, createSlice } from '@reduxjs/toolkit'
+import {
+  createListenerMiddleware,
+  configureStore,
+  createSlice,
+} from '@reduxjs/toolkit'
 import { delay } from '../../utils'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 import { countObjectKeys } from '../utils/countObjectKeys'
@@ -1479,7 +1483,7 @@ describe('hooks tests', () => {
 
       userEvent.hover(screen.getByTestId('highPriority'))
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())
       ).toEqual({
         data: { name: 'Timmy' },
         endpointName: 'getUser',
@@ -1500,7 +1504,7 @@ describe('hooks tests', () => {
       )
 
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())
       ).toEqual({
         data: { name: 'Timmy' },
         endpointName: 'getUser',
@@ -1548,7 +1552,7 @@ describe('hooks tests', () => {
       userEvent.hover(screen.getByTestId('lowPriority'))
 
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())
       ).toEqual({
         data: { name: 'Timmy' },
         endpointName: 'getUser',
@@ -1566,7 +1570,7 @@ describe('hooks tests', () => {
       await waitMs()
 
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())
       ).toEqual({
         data: { name: 'Timmy' },
         endpointName: 'getUser',
@@ -1616,7 +1620,7 @@ describe('hooks tests', () => {
       // This should run the query being that we're past the threshold
       userEvent.hover(screen.getByTestId('lowPriority'))
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())
       ).toEqual({
         data: { name: 'Timmy' },
         endpointName: 'getUser',
@@ -1636,7 +1640,7 @@ describe('hooks tests', () => {
       )
 
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())
       ).toEqual({
         data: { name: 'Timmy' },
         endpointName: 'getUser',
@@ -1683,13 +1687,13 @@ describe('hooks tests', () => {
 
       // Get a snapshot of the last result
       const latestQueryData = api.endpoints.getUser.select(USER_ID)(
-        storeRef.store.getState() as any
+        storeRef.store.getState()
       )
 
       userEvent.hover(screen.getByTestId('lowPriority'))
       //  Serve up the result from the cache being that the condition wasn't met
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())
       ).toEqual(latestQueryData)
     })
 
@@ -1717,7 +1721,7 @@ describe('hooks tests', () => {
       userEvent.hover(screen.getByTestId('lowPriority'))
 
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState())
       ).toEqual({
         endpointName: 'getUser',
         isError: false,
@@ -2053,13 +2057,13 @@ describe('hooks with createApi defaults set', () => {
     })
 
     const counterSlice = createSlice({
-      name: "counter",
+      name: 'counter',
       initialState: { count: 0 },
       reducers: {
         increment(state) {
           state.count++
-        }
-      }
+        },
+      },
     })
 
     const storeRef = setupApiStore(api, {
@@ -2353,7 +2357,9 @@ describe('hooks with createApi defaults set', () => {
         return (
           <div
             data-testid="incrementButton"
-            onClick={() => storeRef.store.dispatch(counterSlice.actions.increment())}
+            onClick={() =>
+              storeRef.store.dispatch(counterSlice.actions.increment())
+            }
           >
             Increment Count
           </div>
