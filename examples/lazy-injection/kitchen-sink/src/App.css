@@ -14,12 +14,13 @@
 }
 
 .App-header {
-  min-height: 100vh;
+  min-height: 50vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
+  margin-bottom: 10px;
 }
 
 .App-link {
@@ -36,4 +37,12 @@
   100% {
     transform: translateY(0px);
   }
+}
+
+.tabs {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
 }
