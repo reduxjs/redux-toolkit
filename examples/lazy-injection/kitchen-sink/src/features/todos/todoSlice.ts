@@ -1,4 +1,4 @@
-import { createEntityAdapter, createSelector, nanoid } from "@reduxjs/toolkit"
+import { createEntityAdapter, nanoid } from "@reduxjs/toolkit"
 import { createAppSlice } from "../../app/createAppSlice"
 import type { RootState } from "../../app/store"
 
