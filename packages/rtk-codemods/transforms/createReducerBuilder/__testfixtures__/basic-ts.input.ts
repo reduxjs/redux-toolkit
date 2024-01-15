@@ -1,13 +1,27 @@
-createReducer(initialState, {
-  [todoAdded1a]: (state: SliceState, action: PayloadAction<string>) => {
-    // stuff
-  },
-  [todoAdded1b]: someFunc,
-  todoAdded1c: adapter.someFunc,
-});
+import type { PayloadAction } from '@reduxjs/toolkit'
+import { createEntityAdapter, createReducer } from '@reduxjs/toolkit'
 
-createReducer(initialState, {
-  [todoAdded](state: SliceState, action: PayloadAction<string>) {
+export interface Todo {
+  id: string
+  title: string
+}
+
+export const todoAdapter = createEntityAdapter<Todo>()
+
+const todoInitialState = todoAdapter.getInitialState()
+
+export type TodoSliceState = typeof todoInitialState
+
+createReducer(todoInitialState, {
+  [todoAdded1a]: (state: TodoSliceState, action: PayloadAction<string>) => {
     // stuff
   },
-});
+  [todoRemoved]: todoAdapter.removeOne,
+  todoAdded: todoAdapter.addOne
+})
+
+createReducer(todoInitialState, {
+  [todoAdded](state: TodoSliceState, action: PayloadAction<string>) {
+    // stuff
+  }
+})

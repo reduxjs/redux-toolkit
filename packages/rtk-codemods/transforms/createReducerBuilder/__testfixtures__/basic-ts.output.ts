@@ -1,14 +1,28 @@
-createReducer(initialState, (builder) => {
-  builder.addCase(todoAdded1a, (state: SliceState, action: PayloadAction<string>) => {
+import type { PayloadAction } from '@reduxjs/toolkit'
+import { createEntityAdapter, createReducer } from '@reduxjs/toolkit'
+
+export interface Todo {
+  id: string
+  title: string
+}
+
+export const todoAdapter = createEntityAdapter<Todo>()
+
+const todoInitialState = todoAdapter.getInitialState()
+
+export type TodoSliceState = typeof todoInitialState
+
+createReducer(todoInitialState, (builder) => {
+  builder.addCase(todoAdded1a, (state: TodoSliceState, action: PayloadAction<string>) => {
     // stuff
   });
 
-  builder.addCase(todoAdded1b, someFunc);
-  builder.addCase(todoAdded1c, adapter.someFunc);
-});
+  builder.addCase(todoRemoved, todoAdapter.removeOne);
+  builder.addCase(todoAdded, todoAdapter.addOne);
+})
 
-createReducer(initialState, (builder) => {
-  builder.addCase(todoAdded, (state: SliceState, action: PayloadAction<string>) => {
+createReducer(todoInitialState, (builder) => {
+  builder.addCase(todoAdded, (state: TodoSliceState, action: PayloadAction<string>) => {
     // stuff
   });
-});
+})
