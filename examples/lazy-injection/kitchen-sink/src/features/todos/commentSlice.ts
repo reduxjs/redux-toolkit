@@ -1,4 +1,3 @@
-import type { EntityState } from "@reduxjs/toolkit"
 import { createEntityAdapter, createSelector, nanoid } from "@reduxjs/toolkit"
 import { createAppSlice } from "../../app/createAppSlice"
 import { deleteTodo } from "./todoSlice"
@@ -13,9 +12,14 @@ export const commentAdapter = createEntityAdapter<Comment>()
 
 const localisedSelectors = commentAdapter.getSelectors()
 
+const initialState = commentAdapter.getInitialState()
+
+const createCommentSliceSelector =
+  createSelector.withTypes<typeof initialState>()
+
 export const commentSlice = createAppSlice({
   name: "comments",
-  initialState: commentAdapter.getInitialState(),
+  initialState,
   reducers: {
     addComment: {
       reducer: commentAdapter.setOne,
@@ -29,7 +33,7 @@ export const commentSlice = createAppSlice({
     builder.addCase(deleteTodo, (state, action) => {
       commentAdapter.removeMany(
         state,
-        state.ids.filter(id => state.entities[id]?.todoId === action.payload),
+        state.ids.filter(id => state.entities[id]?.todoId === action.payload)
       )
     })
   },
@@ -39,11 +43,10 @@ export const commentSlice = createAppSlice({
     selectCommentEntities: localisedSelectors.selectEntities,
     selectCommentIds: localisedSelectors.selectIds,
     selectCommentTotal: localisedSelectors.selectTotal,
-    selectCommentsByTodoId: createSelector(
-      localisedSelectors.selectAll,
-      (_state: EntityState<Comment, string>, todoId: string) => todoId,
+    selectCommentsByTodoId: createCommentSliceSelector(
+      [localisedSelectors.selectAll, (_state, todoId: string) => todoId],
       (comments, todoId) =>
-        comments.filter(comment => comment.todoId === todoId),
+        comments.filter(comment => comment.todoId === todoId)
     ),
   },
 })
