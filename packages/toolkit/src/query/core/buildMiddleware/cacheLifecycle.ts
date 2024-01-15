@@ -251,10 +251,10 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     }
   }
 
-    function getCacheKey(action: any) {
+  function getCacheKey(action: any) {
     if (isQueryThunk(action)) return action.meta.arg.queryCacheKey
     if (isMutationThunk(action)) {
-      return action.meta.arg.fixedCacheKey ?? action.meta.requestId;
+      return action.meta.arg.fixedCacheKey ?? action.meta.requestId
     }
     if (api.internalActions.removeQueryResult.match(action))
       return action.payload.queryCacheKey
