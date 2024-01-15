@@ -33,20 +33,16 @@ export const commentSlice = createAppSlice({
     builder.addCase(deleteTodo, (state, action) => {
       commentAdapter.removeMany(
         state,
-        state.ids.filter(id => state.entities[id]?.todoId === action.payload)
+        state.ids.filter(id => state.entities[id]?.todoId === action.payload),
       )
     })
   },
   selectors: {
-    selectAllComments: localisedSelectors.selectAll,
-    selectCommentById: localisedSelectors.selectById,
-    selectCommentEntities: localisedSelectors.selectEntities,
-    selectCommentIds: localisedSelectors.selectIds,
-    selectCommentTotal: localisedSelectors.selectTotal,
+    ...localisedSelectors,
     selectCommentsByTodoId: createCommentSliceSelector(
       [localisedSelectors.selectAll, (_state, todoId: string) => todoId],
       (comments, todoId) =>
-        comments.filter(comment => comment.todoId === todoId)
+        comments.filter(comment => comment.todoId === todoId),
     ),
   },
 })
@@ -54,10 +50,10 @@ export const commentSlice = createAppSlice({
 export const { addComment, deleteComment } = commentSlice.actions
 
 export const {
-  selectAllComments,
-  selectCommentById,
-  selectCommentEntities,
-  selectCommentIds,
-  selectCommentTotal,
+  selectAll: selectAllComments,
+  selectById: selectCommentById,
+  selectEntities: selectCommentEntities,
+  selectIds: selectCommentIds,
+  selectTotal: selectCommentTotal,
   selectCommentsByTodoId,
 } = commentSlice.selectors

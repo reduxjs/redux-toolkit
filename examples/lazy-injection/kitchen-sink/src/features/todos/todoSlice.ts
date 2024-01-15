@@ -1,6 +1,5 @@
 import { createEntityAdapter, nanoid } from "@reduxjs/toolkit"
 import { createAppSlice } from "../../app/createAppSlice"
-import type { RootState } from "../../app/store"
 
 export interface Todo {
   id: string
@@ -21,6 +20,9 @@ export const todoSlice = createAppSlice({
     },
     deleteTodo: todoAdapter.removeOne,
   },
+  selectors: {
+    ...todoAdapter.getSelectors(),
+  },
 })
 
 export const { addTodo, deleteTodo } = todoSlice.actions
@@ -31,4 +33,4 @@ export const {
   selectEntities: selectTodoEntities,
   selectIds: selectTodoIds,
   selectTotal: selectTodoTotal,
-} = todoAdapter.getSelectors((state: RootState) => todoSlice.selectSlice(state))
+} = todoSlice.selectors
