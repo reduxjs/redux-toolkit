@@ -23,7 +23,9 @@ const App = () => {
           <summary onClick={() => startTransition(toggleCounter)}>
             Counter example (lazy)
           </summary>
-          <Suspense>{counterOpen && <Counter />}</Suspense>
+          <Suspense fallback="Loading counter">
+            {counterOpen && <Counter />}
+          </Suspense>
         </details>
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
@@ -32,7 +34,9 @@ const App = () => {
           <summary onClick={() => startTransition(toggleQuotes)}>
             Quotes example (lazy)
           </summary>
-          <Suspense>{quotesOpen && <Quotes />}</Suspense>
+          <Suspense fallback="Loading quotes">
+            {quotesOpen && <Quotes />}
+          </Suspense>
         </details>
         <span>
           <span>Learn </span>
