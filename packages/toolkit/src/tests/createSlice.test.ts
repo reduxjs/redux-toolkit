@@ -596,6 +596,36 @@ describe('createSlice', () => {
         (slice.getInitialState() + 1) * 2
       )
     })
+    it('avoids incorrectly caching selectors', () => {
+      const slice = createSlice({
+        name: 'counter',
+        reducerPath: 'injected',
+        initialState: 42,
+        reducers: {
+          increment: (state) => ++state,
+        },
+        selectors: {
+          selectMultiple: (state, multiplier: number) => state * multiplier,
+        },
+      })
+      expect(slice.getSelectors()).toBe(slice.getSelectors())
+      const combinedReducer = combineSlices({
+        static: slice.reducer,
+      }).withLazyLoadedSlices<WithSlice<typeof slice>>()
+
+      const injected = slice.injectInto(combinedReducer)
+
+      expect(injected.getSelectors()).not.toBe(slice.getSelectors())
+
+      expect(injected.getSelectors().selectMultiple(undefined, 1)).toBe(42)
+
+      expect(() =>
+        // @ts-expect-error
+        slice.getSelectors().selectMultiple(undefined, 1)
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: selectState returned undefined for an uninjected slice reducer]`
+      )
+    })
   })
   describe('reducers definition with asyncThunks', () => {
     it('is disabled by default', () => {

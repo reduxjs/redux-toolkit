@@ -740,7 +740,7 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
     const selectSelf = (state: State) => state
 
     const injectedSelectorCache = new Map<
-      string,
+      boolean,
       WeakMap<
         (rootState: any) => State | undefined,
         Record<string, (rootState: any) => any>
@@ -784,7 +784,7 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
       function getSelectors(
         selectState: (rootState: any) => State = selectSelf
       ) {
-        const selectorCache = emplace(injectedSelectorCache, reducerPath, {
+        const selectorCache = emplace(injectedSelectorCache, injected, {
           insert: () => new WeakMap(),
         })
 
