@@ -1,4 +1,4 @@
 {
-  "semi": false,
-  "arrowParens": "avoid"
+  "arrowParens": "avoid",
+  "semi": false
 }
