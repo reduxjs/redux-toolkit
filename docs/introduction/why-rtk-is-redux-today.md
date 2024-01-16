@@ -29,7 +29,7 @@ See these pages to learn how to use "modern Redux" with Redux Toolkit:
 
 :::
 
-## How Redux Toolkit Is Different Than the Redux Core
+## How Redux Toolkit Is Different From the Redux Core
 
 ### What Is "Redux"?
 
