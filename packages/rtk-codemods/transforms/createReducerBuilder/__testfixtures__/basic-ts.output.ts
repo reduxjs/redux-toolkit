@@ -17,12 +17,44 @@ createReducer(todoInitialState, (builder) => {
     // stuff
   });
 
-  builder.addCase(todoRemoved, todoAdapter.removeOne);
-  builder.addCase(todoAdded, todoAdapter.addOne);
+  builder.addCase(
+    todoAdded1b,
+    (state: TodoSliceState, action: PayloadAction<string>) => action.payload
+  );
+
+  builder.addCase(
+    todoAdded1c + 'test',
+    (state:TodoSliceState, action: PayloadAction<string>) => {
+      // stuff
+    }
+  );
+
+  builder.addCase(todoAdded1d, (state: TodoSliceState, action: PayloadAction<string>) => {
+    // stuff
+  });
+
+  builder.addCase(todoAdded1e, (state: TodoSliceState, action: PayloadAction<string>) => {
+    // stuff
+  });
+
+  builder.addCase(todoAdded1f, (state: TodoSliceState, action: PayloadAction<string>) => {
+    //stuff
+  });
+
+  builder.addCase(todoAdded1g, someFunc);
+  builder.addCase(todoAdded1h, todoAdapter.removeOne);
 })
 
 createReducer(todoInitialState, (builder) => {
-  builder.addCase(todoAdded, (state: TodoSliceState, action: PayloadAction<string>) => {
+  builder.addCase(todoAdded2a, (state: TodoSliceState, action: PayloadAction<string>) => {
+    // stuff
+  });
+
+  builder.addCase(todoAdded2b, (state: TodoSliceState, action: PayloadAction<string>) => {
+    // stuff
+  });
+
+  builder.addCase(todoAdded2c, (state: TodoSliceState, action: PayloadAction<string>) => {
     // stuff
   });
 })
