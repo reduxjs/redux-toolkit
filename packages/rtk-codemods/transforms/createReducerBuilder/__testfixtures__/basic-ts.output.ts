@@ -12,6 +12,8 @@ const todoInitialState = todoAdapter.getInitialState()
 
 export type TodoSliceState = typeof todoInitialState
 
+const { addOne } = todoAdapter
+
 createReducer(todoInitialState, (builder) => {
   builder.addCase(todoAdded1a, (state: TodoSliceState, action: PayloadAction<string>) => {
     // stuff
@@ -41,8 +43,8 @@ createReducer(todoInitialState, (builder) => {
     //stuff
   });
 
-  builder.addCase(todoAdded1g, someFunc);
-  builder.addCase(todoAdded1h, todoAdapter.removeOne);
+  builder.addCase(todoAdded1g, addOne);
+  builder.addCase(todoAdded1h, todoAdapter.addOne);
 })
 
 createReducer(todoInitialState, (builder) => {

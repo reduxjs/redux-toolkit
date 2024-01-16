@@ -12,6 +12,8 @@ const todoInitialState = todoAdapter.getInitialState()
 
 export type TodoSliceState = typeof todoInitialState
 
+const { addOne } = todoAdapter
+
 createReducer(todoInitialState, {
   [todoAdded1a]: (state: TodoSliceState, action: PayloadAction<string>) => {
     // stuff
@@ -29,8 +31,8 @@ createReducer(todoInitialState, {
   todoAdded1f: (state: TodoSliceState, action: PayloadAction<string>) => {
     //stuff
   },
-  [todoAdded1g]: someFunc,
-  todoAdded1h: todoAdapter.removeOne,
+  [todoAdded1g]: addOne,
+  todoAdded1h: todoAdapter.addOne,
 })
 
 createReducer(todoInitialState, {

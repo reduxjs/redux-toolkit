@@ -13,6 +13,8 @@ export const incrementAsync = createAsyncThunk('counter/fetchCount', async (amou
     return response.data;
 });
 
+const { addOne } = todoAdapter;
+
 const todoSlice = createSlice({
     name: 'todo',
     initialState: todoInitialState,
@@ -24,7 +26,29 @@ const todoSlice = createSlice({
             // stuff
         },
         [incrementAsync.rejected]: todoAdapter.removeAll,
-        todoAdded: todoAdapter.addOne
+        [incrementAsync.fulfilled](state, action) {
+            // stuff
+        },
+        todoAdded: todoAdapter.addOne,
+
+        [todoAdded1a]: (state, action) => {
+            // stuff
+        },
+        [todoAdded1b]: (state, action) => action.payload,
+        [todoAdded1c + 'test']: (state, action) => {
+            // stuff
+        },
+        [todoAdded1d](state, action) {
+            // stuff
+        },
+        [todoAdded1e]: function (state, action) {
+            // stuff
+        },
+        todoAdded1f: (state, action) => {
+            //stuff
+        },
+        [todoAdded1g]: addOne,
+        todoAdded1h: todoAdapter.addOne,
     }
 });
 

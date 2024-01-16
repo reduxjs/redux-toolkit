@@ -1,9 +1,9 @@
-import type { PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit';
 import {
   createAsyncThunk,
   createEntityAdapter,
   createSlice
-} from '@reduxjs/toolkit'
+} from '@reduxjs/toolkit';
 
 export interface Todo {
   id: string
@@ -30,6 +30,8 @@ export const incrementAsync = createAsyncThunk(
   }
 )
 
+const { addOne } = todoAdapter
+
 const todoSlice = createSlice({
   name: 'todo',
   initialState: todoInitialState,
@@ -47,7 +49,46 @@ const todoSlice = createSlice({
     );
 
     builder.addCase(incrementAsync.rejected, todoAdapter.removeAll);
+
+    builder.addCase(
+      incrementAsync.fulfilled,
+      (state: TodoSliceState, action: PayloadAction<string>) => {
+        // stuff
+      }
+    );
+
     builder.addCase(todoAdded, todoAdapter.addOne);
+
+    builder.addCase(todoAdded1a, (state: TodoSliceState, action: PayloadAction<string>) => {
+      // stuff
+    });
+
+    builder.addCase(
+      todoAdded1b,
+      (state: TodoSliceState, action: PayloadAction<string>) => action.payload
+    );
+
+    builder.addCase(
+      todoAdded1c + 'test',
+      (state:TodoSliceState, action: PayloadAction<string>) => {
+        // stuff
+      }
+    );
+
+    builder.addCase(todoAdded1d, (state: TodoSliceState, action: PayloadAction<string>) => {
+      // stuff
+    });
+
+    builder.addCase(todoAdded1e, (state: TodoSliceState, action: PayloadAction<string>) => {
+      // stuff
+    });
+
+    builder.addCase(todoAdded1f, (state: TodoSliceState, action: PayloadAction<string>) => {
+      //stuff
+    });
+
+    builder.addCase(todoAdded1g, addOne);
+    builder.addCase(todoAdded1h, todoAdapter.addOne);
   }
 })
 

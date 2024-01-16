@@ -13,6 +13,8 @@ export const incrementAsync = createAsyncThunk('counter/fetchCount', async (amou
     return response.data;
 });
 
+const { addOne } = todoAdapter;
+
 const todoSlice = createSlice({
     name: 'todo',
     initialState: todoInitialState,
@@ -27,7 +29,37 @@ const todoSlice = createSlice({
         });
 
         builder.addCase(incrementAsync.rejected, todoAdapter.removeAll);
+
+        builder.addCase(incrementAsync.fulfilled, (state, action) => {
+            // stuff
+        });
+
         builder.addCase(todoAdded, todoAdapter.addOne);
+
+        builder.addCase(todoAdded1a, (state, action) => {
+            // stuff
+        });
+
+        builder.addCase(todoAdded1b, (state, action) => action.payload);
+
+        builder.addCase(todoAdded1c + 'test', (state, action) => {
+            // stuff
+        });
+
+        builder.addCase(todoAdded1d, (state, action) => {
+            // stuff
+        });
+
+        builder.addCase(todoAdded1e, (state, action) => {
+            // stuff
+        });
+
+        builder.addCase(todoAdded1f, (state, action) => {
+            //stuff
+        });
+
+        builder.addCase(todoAdded1g, addOne);
+        builder.addCase(todoAdded1h, todoAdapter.addOne);
     }
 });
 

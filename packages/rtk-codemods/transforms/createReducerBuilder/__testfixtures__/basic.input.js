@@ -4,6 +4,8 @@ export const todoAdapter = createEntityAdapter();
 
 const todoInitialState = todoAdapter.getInitialState();
 
+const { addOne } = todoAdapter;
+
 createReducer(todoInitialState, {
     [todoAdded1a]: (state, action) => {
         // stuff
@@ -21,8 +23,8 @@ createReducer(todoInitialState, {
     todoAdded1f: (state, action) => {
         //stuff
     },
-    [todoAdded1g]: someFunc,
-    todoAdded1h: todoAdapter.removeOne,
+    [todoAdded1g]: addOne,
+    todoAdded1h: todoAdapter.addOne,
 });
 
 createReducer(todoInitialState, {
