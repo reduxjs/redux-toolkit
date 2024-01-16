@@ -625,6 +625,15 @@ describe('createSlice', () => {
       ).toThrowErrorMatchingInlineSnapshot(
         `[Error: selectState returned undefined for an uninjected slice reducer]`
       )
+
+      const injected2 = slice.injectInto(combinedReducer, {
+        reducerPath: 'other',
+      })
+
+      // can use same cache for localised selectors
+      expect(injected.getSelectors()).toBe(injected2.getSelectors())
+      // these should be different
+      expect(injected.selectors).not.toBe(injected2.selectors)
     })
   })
   describe('reducers definition with asyncThunks', () => {
