@@ -4,8 +4,7 @@
   "scripts": {
     "lint": "eslint .",
     "test": "vitest",
-    "test:coverage": "vitest --coverage",
-    "update-docs": "codemod-cli update-docs"
+    "test:coverage": "vitest --coverage"
   },
   "bin": "./bin/cli.js",
   "files": [
