@@ -566,7 +566,7 @@ import { api } from './fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     getUsersById: build.query<GetUsersByIdApiResponse, GetUsersByIdApiArg>({
-      query: (queryArg) => ({ url: \`/users/\${queryArg.pathId}\` }),
+      query: (queryArg) => ({ url: \`/users/\${queryArg.id}\` }),
     }),
   }),
   overrideExisting: false,
@@ -574,7 +574,7 @@ const injectedRtkApi = api.injectEndpoints({
 export { injectedRtkApi as enhancedApi };
 export type GetUsersByIdApiResponse = unknown;
 export type GetUsersByIdApiArg = {
-  pathId: number;
+  id: number;
 };
 
 `;
