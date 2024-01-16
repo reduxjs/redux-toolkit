@@ -761,14 +761,14 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
       return _reducer.getInitialState()
     }
 
-    function makeSelectorProps(
-      reducerPath: ReducerPath,
+    function makeSelectorProps<CurrentReducerPath extends string = ReducerPath>(
+      reducerPath: CurrentReducerPath,
       injected = false
     ): Pick<
-      Slice<State, CaseReducers, Name, ReducerPath, Selectors>,
+      Slice<State, CaseReducers, Name, CurrentReducerPath, Selectors>,
       'getSelectors' | 'selectors' | 'selectSlice' | 'reducerPath'
     > {
-      function selectSlice(state: { [K in ReducerPath]: State }) {
+      function selectSlice(state: { [K in CurrentReducerPath]: State }) {
         let sliceState = state[reducerPath]
         if (typeof sliceState === 'undefined') {
           if (injected) {
@@ -827,7 +827,7 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
         injectable.inject({ reducerPath: newReducerPath, reducer }, config)
         return {
           ...slice,
-          ...makeSelectorProps(newReducerPath as any, true),
+          ...makeSelectorProps(newReducerPath, true),
         } as any
       },
     }
