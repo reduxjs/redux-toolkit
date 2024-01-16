@@ -46,6 +46,7 @@ import {
   addAbortSignalListener,
   assertFunction,
   catchRejection,
+  noop,
 } from './utils'
 export { TaskAbortError } from './exceptions'
 export type {
@@ -115,7 +116,7 @@ const createFork = (
     )
 
     if (opts?.autoJoin) {
-      parentBlockingPromises.push(result)
+      parentBlockingPromises.push(result.catch(noop))
     }
 
     return {
@@ -440,7 +441,7 @@ export const createListenerMiddleware = <
         })
       }
     } finally {
-      await Promise.allSettled(autoJoinPromises)
+      await Promise.all(autoJoinPromises)
 
       abortControllerWithReason(internalTaskController, listenerCompleted) // Notify that the task has completed
       entry.pending.delete(internalTaskController)

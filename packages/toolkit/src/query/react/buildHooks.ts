@@ -4,7 +4,6 @@ import type {
   ThunkAction,
   ThunkDispatch,
 } from '@reduxjs/toolkit'
-import { createSelector } from '@reduxjs/toolkit'
 import type { DependencyList } from 'react'
 import {
   useCallback,
@@ -53,10 +52,7 @@ import { UNINITIALIZED_VALUE } from './constants'
 import { useShallowStableValue } from './useShallowStableValue'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import {
-  InternalMiddlewareState,
-  SubscriptionSelectors,
-} from '../core/buildMiddleware/types'
+import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
 // Copy-pasted from React-Redux
 export const useIsomorphicLayoutEffect =
@@ -582,6 +578,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     batch,
     hooks: { useDispatch, useSelector, useStore },
     unstable__sideEffectsInRender,
+    createSelector,
   },
   serializeQueryArgs,
   context,
