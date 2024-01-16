@@ -1,4 +1,12 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# React Native Template Redux TypeScript
+
+The official Redux+TS template for React Native.
+
+## :arrow_forward: Usage
+
+```sh
+npx react-native init MyApp --template react-native-template-redux-typescript
+```
 
 # Getting Started
 
@@ -13,7 +21,9 @@ To start Metro, run the following command from the _root_ of your React Native p
 ```bash
 # using npm
 npm start
+```
 
+```bash
 # OR using Yarn
 yarn start
 ```
@@ -27,7 +37,9 @@ Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _roo
 ```bash
 # using npm
 npm run android
+```
 
+```bash
 # OR using Yarn
 yarn android
 ```
@@ -37,7 +49,9 @@ yarn android
 ```bash
 # using npm
 npm run ios
+```
 
+```bash
 # OR using Yarn
 yarn ios
 ```
@@ -76,4 +90,4 @@ To learn more about React Native, take a look at the following resources:
 - [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
 - [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
 - [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native. -->
