@@ -379,7 +379,19 @@ describe('openapi spec', () => {
       unionUndefined: true,
       schemaFile: './fixtures/readOnlyWriteOnly.yaml',
       apiFile: './fixtures/emptyApi.ts',
-      mergeReadWriteOnly: true
+      mergeReadWriteOnly: true,
+    });
+    expect(api).toMatchSnapshot();
+  });
+});
+
+describe('query parameters', () => {
+  it('parameters overrided in swagger should also be overrided in the code', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      schemaFile: './fixtures/parameterOverride.yaml',
+      apiFile: './fixtures/emptyApi.ts',
+      mergeReadWriteOnly: true,
     });
     expect(api).toMatchSnapshot();
   });
