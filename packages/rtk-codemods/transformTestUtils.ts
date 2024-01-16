@@ -15,9 +15,10 @@ export const runTransformTest = (
   describe(name, () => {
     globbySync('**/*.input.*', {
       cwd: fixturePath,
-      absolute: true
+      absolute: true,
+      objectMode: true
     })
-      .map((entry) => entry.slice(fixturePath.length))
+      .map((entry) => entry.name)
       .forEach((filename) => {
         const extension = path.extname(filename)
         const testName = filename.replace(`.input${extension}`, '')
@@ -31,16 +32,20 @@ export const runTransformTest = (
           `${testName}.output${extension}`
         )
 
-        describe(testName, () => {
+        const inputFileContent = fs.readFileSync(inputPath, 'utf8')
+
+        const expectedOutput = fs.readFileSync(outputPath, 'utf8')
+
+        describe(`${testName}${extension}`, () => {
           it('transforms correctly', () => {
             runInlineTest(
               transform,
               {},
               {
                 path: testInputPath,
-                source: fs.readFileSync(inputPath, 'utf8')
+                source: inputFileContent
               },
-              fs.readFileSync(outputPath, 'utf8'),
+              expectedOutput,
               { parser }
             )
           })
@@ -51,9 +56,9 @@ export const runTransformTest = (
               {},
               {
                 path: testInputPath,
-                source: fs.readFileSync(outputPath, 'utf8')
+                source: inputFileContent
               },
-              fs.readFileSync(outputPath, 'utf8'),
+              expectedOutput,
               { parser }
             )
           })
