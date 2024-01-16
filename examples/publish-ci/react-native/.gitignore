@@ -65,3 +65,6 @@ yarn-error.log
 
 # testing
 /coverage
+
+#IDE
+.vscode
