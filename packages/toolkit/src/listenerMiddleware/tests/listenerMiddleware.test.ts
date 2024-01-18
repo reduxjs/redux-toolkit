@@ -564,7 +564,7 @@ describe('createListenerMiddleware', () => {
           typeof store.getState,
           typeof store.dispatch
         >,
-        'effect'
+        'effect' | 'withTypes'
       >
     ][] = [
       ['predicate', { predicate: () => true }],
@@ -1760,3 +1760,4 @@ describe('createListenerMiddleware', () => {
     })
   })
 })
+

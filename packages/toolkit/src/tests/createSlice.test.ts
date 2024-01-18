@@ -252,7 +252,7 @@ describe('createSlice', () => {
           })
           slice.reducer(undefined, { type: 'unrelated' })
         }).toThrowErrorMatchingInlineSnapshot(
-          '"`builder.addCase` cannot be called with two reducers for the same action type \'increment\'"'
+          `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`
         )
       })
 
@@ -493,6 +493,16 @@ describe('createSlice', () => {
     it('allows accessing properties on the selector', () => {
       expect(slice.selectors.selectMultiple.unwrapped.test).toBe(0)
     })
+    it('has selectSlice attached to slice, which can go without this', () => {
+      const slice = createSlice({
+        name: 'counter',
+        initialState: 42,
+        reducers: {},
+      })
+      const { selectSlice } = slice
+      expect(() => selectSlice({ counter: 42 })).not.toThrow()
+      expect(selectSlice({ counter: 42 })).toBe(42)
+    })
   })
   describe('slice injections', () => {
     it('uses injectInto to inject slice into combined reducer', () => {
@@ -523,10 +533,19 @@ describe('createSlice', () => {
       expect(injectedSlice.selectSlice(uninjectedState)).toBe(
         slice.getInitialState()
       )
+      expect(injectedSlice.selectors.selectMultiple({}, 1)).toBe(
+        slice.getInitialState()
+      )
+      expect(injectedSlice.getSelectors().selectMultiple(undefined, 1)).toBe(
+        slice.getInitialState()
+      )
 
       const injectedState = combinedReducer(undefined, increment())
 
       expect(injectedSlice.selectSlice(injectedState)).toBe(
+        slice.getInitialState() + 1
+      )
+      expect(injectedSlice.selectors.selectMultiple(injectedState, 1)).toBe(
         slice.getInitialState() + 1
       )
     })
@@ -577,6 +596,45 @@ describe('createSlice', () => {
         (slice.getInitialState() + 1) * 2
       )
     })
+    it('avoids incorrectly caching selectors', () => {
+      const slice = createSlice({
+        name: 'counter',
+        reducerPath: 'injected',
+        initialState: 42,
+        reducers: {
+          increment: (state) => ++state,
+        },
+        selectors: {
+          selectMultiple: (state, multiplier: number) => state * multiplier,
+        },
+      })
+      expect(slice.getSelectors()).toBe(slice.getSelectors())
+      const combinedReducer = combineSlices({
+        static: slice.reducer,
+      }).withLazyLoadedSlices<WithSlice<typeof slice>>()
+
+      const injected = slice.injectInto(combinedReducer)
+
+      expect(injected.getSelectors()).not.toBe(slice.getSelectors())
+
+      expect(injected.getSelectors().selectMultiple(undefined, 1)).toBe(42)
+
+      expect(() =>
+        // @ts-expect-error
+        slice.getSelectors().selectMultiple(undefined, 1)
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: selectState returned undefined for an uninjected slice reducer]`
+      )
+
+      const injected2 = slice.injectInto(combinedReducer, {
+        reducerPath: 'other',
+      })
+
+      // can use same cache for localised selectors
+      expect(injected.getSelectors()).toBe(injected2.getSelectors())
+      // these should be different
+      expect(injected.selectors).not.toBe(injected2.selectors)
+    })
   })
   describe('reducers definition with asyncThunks', () => {
     it('is disabled by default', () => {
@@ -587,7 +645,7 @@ describe('createSlice', () => {
           reducers: (create) => ({ thunk: create.asyncThunk(() => {}) }),
         })
       ).toThrowErrorMatchingInlineSnapshot(
-        '"Cannot use `create.asyncThunk` in the built-in `createSlice`. Use `buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })` to create a customised version of `createSlice`."'
+        `[Error: Cannot use \`create.asyncThunk\` in the built-in \`createSlice\`. Use \`buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })\` to create a customised version of \`createSlice\`.]`
       )
     })
     const createAppSlice = buildCreateSlice({
@@ -826,7 +884,7 @@ describe('createSlice', () => {
           }),
         })
       ).toThrowErrorMatchingInlineSnapshot(
-        `"Please use the \`create.preparedReducer\` notation for prepared action creators with the \`create\` notation."`
+        `[Error: Please use the \`create.preparedReducer\` notation for prepared action creators with the \`create\` notation.]`
       )
     })
   })

@@ -88,14 +88,13 @@ export interface Slice<
   /**
    * Get localised slice selectors (expects to be called with *just* the slice's state as the first parameter)
    */
-  getSelectors(this: this): Id<SliceDefinedSelectors<State, Selectors, State>>
+  getSelectors(): Id<SliceDefinedSelectors<State, Selectors, State>>
 
   /**
    * Get globalised slice selectors (`selectState` callback is expected to receive first parameter and return slice state)
    */
   getSelectors<RootState>(
-    this: this,
-    selectState: (this: this, rootState: RootState) => State
+    selectState: (rootState: RootState) => State
   ): Id<SliceDefinedSelectors<State, Selectors, RootState>>
 
   /**
@@ -103,7 +102,7 @@ export interface Slice<
    *
    * Equivalent to `slice.getSelectors((state: RootState) => state[slice.reducerPath])`.
    */
-  selectors: Id<
+  get selectors(): Id<
     SliceDefinedSelectors<State, Selectors, { [K in ReducerPath]: State }>
   >
 
@@ -126,7 +125,7 @@ export interface Slice<
    *
    * Will throw an error if slice is not found.
    */
-  selectSlice(this: this, state: { [K in ReducerPath]: State }): State
+  selectSlice(state: { [K in ReducerPath]: State }): State
 }
 
 /**
@@ -153,7 +152,7 @@ interface InjectedSlice<
    * Get globalised slice selectors (`selectState` callback is expected to receive first parameter and return slice state)
    */
   getSelectors<RootState>(
-    selectState: (this: this, rootState: RootState) => State | undefined
+    selectState: (rootState: RootState) => State | undefined
   ): Id<SliceDefinedSelectors<State, Selectors, RootState>>
 
   /**
@@ -161,7 +160,7 @@ interface InjectedSlice<
    *
    * Equivalent to `slice.getSelectors((state: RootState) => state[slice.name])`.
    */
-  selectors: Id<
+  get selectors(): Id<
     SliceDefinedSelectors<
       State,
       Selectors,
@@ -350,7 +349,7 @@ interface AsyncThunkCreator<
   State,
   CurriedThunkApiConfig extends PreventCircular<AsyncThunkConfig> = PreventCircular<AsyncThunkConfig>
 > {
-  <ThunkArg extends any, Returned = unknown>(
+  <Returned, ThunkArg = void>(
     payloadCreator: AsyncThunkPayloadCreator<
       Returned,
       ThunkArg,
@@ -369,8 +368,8 @@ interface AsyncThunkCreator<
     CurriedThunkApiConfig
   >
   <
-    ThunkArg extends any,
-    Returned = unknown,
+    Returned,
+    ThunkArg,
     ThunkApiConfig extends PreventCircular<AsyncThunkConfig> = {}
   >(
     payloadCreator: AsyncThunkPayloadCreator<
@@ -740,8 +739,8 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
 
     const selectSelf = (state: State) => state
 
-    const injectedSelectorCache = new WeakMap<
-      Slice<State, CaseReducers, Name, ReducerPath, Selectors>,
+    const injectedSelectorCache = new Map<
+      boolean,
       WeakMap<
         (rootState: any) => State | undefined,
         Record<string, (rootState: any) => any>
@@ -750,23 +749,42 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
 
     let _reducer: ReducerWithInitialState<State>
 
-    const slice: Slice<State, CaseReducers, Name, ReducerPath, Selectors> = {
-      name,
-      reducerPath,
-      reducer(state, action) {
-        if (!_reducer) _reducer = buildReducer()
+    function reducer(state: State | undefined, action: UnknownAction) {
+      if (!_reducer) _reducer = buildReducer()
 
-        return _reducer(state, action)
-      },
-      actions: context.actionCreators as any,
-      caseReducers: context.sliceCaseReducersByName as any,
-      getInitialState() {
-        if (!_reducer) _reducer = buildReducer()
+      return _reducer(state, action)
+    }
 
-        return _reducer.getInitialState()
-      },
-      getSelectors(selectState: (rootState: any) => State = selectSelf) {
-        const selectorCache = emplace(injectedSelectorCache, this, {
+    function getInitialState() {
+      if (!_reducer) _reducer = buildReducer()
+
+      return _reducer.getInitialState()
+    }
+
+    function makeSelectorProps<CurrentReducerPath extends string = ReducerPath>(
+      reducerPath: CurrentReducerPath,
+      injected = false
+    ): Pick<
+      Slice<State, CaseReducers, Name, CurrentReducerPath, Selectors>,
+      'getSelectors' | 'selectors' | 'selectSlice' | 'reducerPath'
+    > {
+      function selectSlice(state: { [K in CurrentReducerPath]: State }) {
+        let sliceState = state[reducerPath]
+        if (typeof sliceState === 'undefined') {
+          if (injected) {
+            sliceState = getInitialState()
+          } else if (process.env.NODE_ENV !== 'production') {
+            throw new Error(
+              'selectSlice returned undefined for an uninjected slice reducer'
+            )
+          }
+        }
+        return sliceState
+      }
+      function getSelectors(
+        selectState: (rootState: any) => State = selectSelf
+      ) {
+        const selectorCache = emplace(injectedSelectorCache, injected, {
           insert: () => new WeakMap(),
         })
 
@@ -777,39 +795,39 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
               options.selectors ?? {}
             )) {
               map[name] = wrapSelector(
-                this,
                 selector,
                 selectState,
-                this !== slice
+                getInitialState,
+                injected
               )
             }
             return map
           },
         }) as any
-      },
-      selectSlice(state) {
-        let sliceState = state[this.reducerPath]
-        if (typeof sliceState === 'undefined') {
-          // check if injectInto has been called
-          if (this !== slice) {
-            sliceState = this.getInitialState()
-          } else if (process.env.NODE_ENV !== 'production') {
-            throw new Error(
-              'selectSlice returned undefined for an uninjected slice reducer'
-            )
-          }
-        }
-        return sliceState
-      },
-      get selectors() {
-        return this.getSelectors(this.selectSlice)
-      },
+      }
+      return {
+        reducerPath,
+        getSelectors,
+        get selectors() {
+          return getSelectors(selectSlice)
+        },
+        selectSlice,
+      }
+    }
+
+    const slice: Slice<State, CaseReducers, Name, ReducerPath, Selectors> = {
+      name,
+      reducer,
+      actions: context.actionCreators as any,
+      caseReducers: context.sliceCaseReducersByName as any,
+      getInitialState,
+      ...makeSelectorProps(reducerPath),
       injectInto(injectable, { reducerPath: pathOpt, ...config } = {}) {
-        const reducerPath = pathOpt ?? this.reducerPath
-        injectable.inject({ reducerPath, reducer: this.reducer }, config)
+        const newReducerPath = pathOpt ?? reducerPath
+        injectable.inject({ reducerPath: newReducerPath, reducer }, config)
         return {
-          ...this,
-          reducerPath,
+          ...slice,
+          ...makeSelectorProps(newReducerPath, true),
         } as any
       },
     }
@@ -818,16 +836,16 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
 }
 
 function wrapSelector<State, NewState, S extends Selector<State>>(
-  slice: Slice,
   selector: S,
   selectState: Selector<NewState, State>,
+  getInitialState: () => State,
   injected?: boolean
 ) {
   function wrapper(rootState: NewState, ...args: any[]) {
-    let sliceState = selectState.call(slice, rootState)
+    let sliceState = selectState(rootState)
     if (typeof sliceState === 'undefined') {
       if (injected) {
-        sliceState = slice.getInitialState()
+        sliceState = getInitialState()
       } else if (process.env.NODE_ENV !== 'production') {
         throw new Error(
           'selectState returned undefined for an uninjected slice reducer'
