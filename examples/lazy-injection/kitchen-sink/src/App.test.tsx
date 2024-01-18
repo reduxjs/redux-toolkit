@@ -1,10 +1,10 @@
 import { screen, waitFor } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import App from "./App"
 import { renderWithProviders } from "./utils/test-utils"
-import userEvent from "@testing-library/user-event"
 
 async function ensureCounterLoaded() {
-  await userEvent.click(screen.getByText("Counter example (lazy)"))
+  await userEvent.click(screen.getByText("Counter"))
 
   await waitFor(() => expect(screen.queryByTestId("count")).toBeInTheDocument())
 }
