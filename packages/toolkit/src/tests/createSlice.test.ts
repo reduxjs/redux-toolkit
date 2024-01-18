@@ -709,7 +709,7 @@ describe('createSlice', () => {
       const store = configureStore({
         reducer: slice.reducer,
       })
-      await store.dispatch(slice.actions.thunkReducers('test'))
+      await store.dispatch(slice.actions.thunkReducers())
       expect(store.getState()).toMatchObject([
         [
           'pendingReducer',
@@ -753,7 +753,7 @@ describe('createSlice', () => {
       const store = configureStore({
         reducer: slice.reducer,
       })
-      await store.dispatch(slice.actions.thunkReducers('test'))
+      await store.dispatch(slice.actions.thunkReducers())
       expect(store.getState()).toMatchObject([
         [
           'pendingReducer',
@@ -807,7 +807,7 @@ describe('createSlice', () => {
       const store = configureStore({
         reducer: slice.reducer,
       })
-      await store.dispatch(slice.actions.thunkReducers('test'))
+      await store.dispatch(slice.actions.thunkReducers())
       expect(store.getState()).toMatchObject([
         [
           'rejectedReducer',
@@ -852,8 +852,7 @@ describe('createSlice', () => {
           [],
           slice.actions.thunkReducers.rejected(
             new Error('test'),
-            'fakeRequestId',
-            {}
+            'fakeRequestId'
           )
         )
       ).not.toThrow()
