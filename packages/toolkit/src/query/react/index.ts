@@ -9,7 +9,7 @@ export { ApiProvider } from './ApiProvider'
 
 const createApi = /* @__PURE__ */ buildCreateApi(
   coreModule(),
-  // @ts-expect-error
+  // @ts-ignore
   reactHooksModule()
 )
 
