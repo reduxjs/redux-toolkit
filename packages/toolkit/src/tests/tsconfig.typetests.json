@@ -1,8 +1,7 @@
 {
   "extends": "../../tsconfig.test.json",
   "compilerOptions": {
-    "skipLibCheck": true,
-    "rootDir": "../../src"
+    "skipLibCheck": true
   },
-  "include": ["../dynamicMiddleware", "../entities", "../listenerMiddleware"]
+  "include": ["../**/*.ts*"]
 }
