@@ -1,5 +1,5 @@
 {
-  "extends": "../toolkit/tsconfig.base.json",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -11,7 +11,9 @@
     "target": "es2018",
     "jsx": "react",
     "baseUrl": ".",
+    "rootDir": ".",
     "skipLibCheck": false,
     "noImplicitReturns": false
-  }
+  },
+  "exclude": ["dist", "**/*.typetest.ts*", "**/*.test-d.ts*"]
 }
