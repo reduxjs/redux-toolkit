@@ -528,11 +528,10 @@ It returns an instance of [`createSlice`](#).
 
 ## Slice creators
 
-With the introduction of the [reducer "creator callback" syntax](#the-reducers-creator-callback-notation), the potential was there to allow other, more "custom", `create` methods.
+Redux Toolkit 2.0 introduces the concept of "slice creators", which allow you to define reusable logic for creating slices.
 
-These "creators" would have the capability to:
+These "creators" have the capability to:
 
-- Encapsulate reusable logic
 - Define multiple reducers at the same time
 - Modify slice behaviour by adding case/matcher reducers
 - Expose custom actions (thunks, for example) and case reducers
@@ -566,11 +565,9 @@ const { undo, redo, reset, updateTitle, togglePinned } =
   postSliceWithHistory.actions
 ```
 
-In version TODO, this functionality was added. The below section will cover how to properly define and use these creators, and possible applications.
-
 ### The `reducers` "creator callback" notation
 
-In order to use slice creators, `reducers` should be a callback function. This callback will receive a `create` object, which contains the creators passed to [`buildCreateSlice`](#buildcreateslice), along with a couple of inbuilt creators.
+In order to use slice creators, `reducers` becomes a callback, which receives a `create` object. This `create` object contains a couple of [inbuilt creators](#rtk-creators), along with any creators passed to [`buildCreateSlice`](#buildcreateslice).
 
 ```ts title="Creator callback for reducers"
 import { buildCreateSlice, asyncThunkCreator, nanoid } from '@reduxjs/toolkit'
@@ -635,9 +632,11 @@ export const { addTodo, deleteTodo, fetchTodo } = todosSlice.actions
 
 #### RTK Creators
 
+These creators come built into RTK, and `reducer` and `preparedReducer` are always available on the `create` object passed to the `reducers` callback.
+
 ##### `create.reducer`
 
-A standard slice case reducer.
+A standard slice case reducer. Creates an action creator with the same name as the reducer.
 
 **Parameters**
 
@@ -649,9 +648,15 @@ create.reducer<Todo>((state, action) => {
 })
 ```
 
+:::tip
+
+The [creator definition](#creator-definitions) for `create.reducer` is exported from RTK as `reducerCreator`.
+
+:::
+
 ##### `create.preparedReducer`
 
-A [prepared](#customizing-generated-action-creators) reducer, to customize the action creator.
+A [prepared](#customizing-generated-action-creators) reducer, to customize the action creator. Creates a prepared action creator with the same name as the reducer.
 
 **Parameters**
 
@@ -672,9 +677,15 @@ create.preparedReducer(
 )
 ```
 
+:::tip
+
+The [creator definition](#creator-definitions) for `create.preparedReducer` is exported from RTK as `preparedReducerCreator`.
+
+:::
+
 ##### `create.asyncThunk`
 
-Creates an async thunk instead of an action creator.
+Creates an async thunk and adds any provided case reducers for lifecycle actions.
 
 :::warning Setup
 
@@ -787,6 +798,10 @@ reducers: (create) => {
 :::
 
 ### Writing your own creators
+
+In version v2.2.0 (TODO), we introduced a system for including your own creators.
+
+The below documentation will cover how to write your own creators, and how to use them with `createSlice`.
 
 #### Reducer definitions
 
