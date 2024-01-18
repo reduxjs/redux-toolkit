@@ -1,4 +1,5 @@
-import { createNextState, createSelector } from './rtkImports'
+import type { createSelector as _createSelector } from './rtkImports'
+import { createNextState } from './rtkImports'
 import type {
   MutationSubState,
   QuerySubState,
@@ -123,9 +124,11 @@ export function buildSelectors<
 >({
   serializeQueryArgs,
   reducerPath,
+  createSelector,
 }: {
   serializeQueryArgs: InternalSerializeQueryArgs
   reducerPath: ReducerPath
+  createSelector: typeof _createSelector
 }) {
   type RootState = _RootState<Definitions, string, string>
 

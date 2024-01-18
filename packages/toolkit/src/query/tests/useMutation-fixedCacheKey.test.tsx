@@ -8,8 +8,11 @@ import {
   waitFor,
   act,
 } from '@testing-library/react'
+import { vi } from 'vitest'
 
 describe('fixedCacheKey', () => {
+  const onNewCacheEntry = vi.fn()
+
   const api = createApi({
     async baseQuery(arg: string | Promise<string>) {
       return { data: await arg }
@@ -353,5 +356,39 @@ describe('fixedCacheKey', () => {
 
     expect(getByTestId(c1, 'status').textContent).toBe('fulfilled')
     expect(getByTestId(c1, 'data').textContent).toBe('this should be visible')
+  })
+
+  test('using fixedCacheKey should create a new cache entry', async () => {
+    api.enhanceEndpoints({
+      endpoints: {
+        send: {
+          onCacheEntryAdded: (arg) => onNewCacheEntry(arg),
+        },
+      },
+    })
+
+    render(<Component name="C1" fixedCacheKey={'testKey'} />, {
+      wrapper: storeRef.wrapper,
+    })
+
+    let c1 = screen.getByTestId('C1')
+
+    expect(getByTestId(c1, 'status').textContent).toBe('uninitialized')
+    expect(getByTestId(c1, 'originalArgs').textContent).toBe('undefined')
+
+    await act(async () => {
+      getByTestId(c1, 'trigger').click()
+      await Promise.resolve()
+    })
+
+    expect(onNewCacheEntry).toHaveBeenCalledWith('C1')
+
+    api.enhanceEndpoints({
+      endpoints: {
+        send: {
+          onCacheEntryAdded: undefined,
+        },
+      },
+    })
   })
 })
