@@ -35,7 +35,12 @@ import { server } from './mocks/server'
 import type { UnknownAction } from 'redux'
 import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
 import type { SerializedError } from '@reduxjs/toolkit'
-import { createListenerMiddleware, configureStore } from '@reduxjs/toolkit'
+import {
+  createListenerMiddleware,
+  configureStore,
+  lruMemoize,
+  createSelectorCreator,
+} from '@reduxjs/toolkit'
 import { delay } from '../../utils'
 
 const MyContext = React.createContext<ReactReduxContextValue>(null as any)
@@ -125,5 +130,66 @@ describe('buildCreateApi', () => {
       Hook useStore was either not provided or not a function.]
     `
     )
+  })
+  test('allows passing createSelector instance', async () => {
+    const memoize = vi.fn(lruMemoize)
+    const createSelector = createSelectorCreator(memoize)
+    const createApi = buildCreateApi(
+      coreModule({ createSelector }),
+      reactHooksModule({ createSelector })
+    )
+    const api = createApi({
+      baseQuery: async (arg: any) => {
+        await waitMs()
+
+        return {
+          data: arg?.body ? { ...arg.body } : {},
+        }
+      },
+      endpoints: (build) => ({
+        getUser: build.query<{ name: string }, number>({
+          query: () => ({
+            body: { name: 'Timmy' },
+          }),
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, {}, { withoutTestLifecycles: true })
+
+    await storeRef.store.dispatch(api.endpoints.getUser.initiate(1))
+
+    const selectUser = api.endpoints.getUser.select(1)
+
+    expect(selectUser(storeRef.store.getState()).data).toEqual({
+      name: 'Timmy',
+    })
+
+    expect(memoize).toHaveBeenCalledTimes(4)
+
+    memoize.mockClear()
+
+    function User() {
+      const { isFetching } = api.endpoints.getUser.useQuery(1)
+
+      return (
+        <div>
+          <div data-testid="isFetching">{String(isFetching)}</div>
+        </div>
+      )
+    }
+
+    function Wrapper({ children }: any) {
+      return <Provider store={storeRef.store}>{children}</Provider>
+    }
+
+    render(<User />, { wrapper: Wrapper })
+
+    await waitFor(() =>
+      expect(screen.getByTestId('isFetching').textContent).toBe('false')
+    )
+
+    // select() + selectFromResult
+    expect(memoize).toHaveBeenCalledTimes(8)
   })
 })
