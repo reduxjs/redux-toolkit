@@ -148,7 +148,8 @@ export const reactHooksModule = ({
   createSelector = _createSelector,
   unstable__sideEffectsInRender = false,
   ...rest
-}: ReactHooksModuleOptions = {}): Module<ReactHooksModule> => {
+}: // @ts-expect-error
+ReactHooksModuleOptions = {}): Module<ReactHooksModule> => {
   if (process.env.NODE_ENV !== 'production') {
     const hookNames = ['useDispatch', 'useSelector', 'useStore'] as const
     let warned = false
@@ -191,19 +192,17 @@ export const reactHooksModule = ({
         string,
         any
       > & { endpoints: any }
-      const { buildQueryHooks, buildMutationHook, usePrefetch } = buildHooks(
-        {
-          api,
-          moduleOptions: {
-            batch,
-            hooks,
-            unstable__sideEffectsInRender,
-            createSelector,
-          },
-          serializeQueryArgs,
-          context,
-        } as any
-      )
+      const { buildQueryHooks, buildMutationHook, usePrefetch } = buildHooks({
+        api,
+        moduleOptions: {
+          batch,
+          hooks,
+          unstable__sideEffectsInRender,
+          createSelector,
+        },
+        serializeQueryArgs,
+        context,
+      } as any)
       safeAssign(anyApi, { usePrefetch })
       safeAssign(context, { batch })
 
