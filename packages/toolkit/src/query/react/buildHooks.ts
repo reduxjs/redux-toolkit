@@ -1,10 +1,37 @@
 import type {
-  UnknownAction,
   Selector,
   ThunkAction,
   ThunkDispatch,
-} from '@reduxjs/toolkit'
-import type { DependencyList } from 'react'
+  UnknownAction,
+} from '@reduxjs/toolkit';
+import type {
+  Api,
+  ApiContext,
+  ApiEndpointMutation,
+  ApiEndpointQuery,
+  CoreModule,
+  EndpointDefinitions,
+  MutationActionCreatorResult,
+  MutationDefinition,
+  MutationResultSelectorResult,
+  PrefetchOptions,
+  QueryActionCreatorResult,
+  QueryArgFrom,
+  QueryDefinition,
+  QueryKeys,
+  QueryResultSelectorResult,
+  QuerySubState,
+  ResultTypeFrom,
+  RootState,
+  SerializeQueryArgs,
+  SkipToken,
+  SubscriptionOptions,
+  TSHelpersId,
+  TSHelpersNoInfer,
+  TSHelpersOverride,
+} from '@reduxjs/toolkit/query';
+import { QueryStatus, skipToken } from '@reduxjs/toolkit/query';
+import type { DependencyList } from 'react';
 import {
   useCallback,
   useDebugValue,
@@ -13,46 +40,17 @@ import {
   useMemo,
   useRef,
   useState,
-} from 'react'
-import { QueryStatus, skipToken } from '@reduxjs/toolkit/query'
-import type {
-  QuerySubState,
-  SubscriptionOptions,
-  QueryKeys,
-  RootState,
-} from '@reduxjs/toolkit/query'
-import type {
-  EndpointDefinitions,
-  MutationDefinition,
-  QueryDefinition,
-  QueryArgFrom,
-  ResultTypeFrom,
-  QueryResultSelectorResult,
-  MutationResultSelectorResult,
-  SkipToken,
-  QueryActionCreatorResult,
-  MutationActionCreatorResult,
-  SerializeQueryArgs,
-  Api,
-  ApiContext,
-  TSHelpersId,
-  TSHelpersNoInfer,
-  TSHelpersOverride,
-  ApiEndpointMutation,
-  ApiEndpointQuery,
-  CoreModule,
-  PrefetchOptions,
-} from '@reduxjs/toolkit/query'
+} from 'react';
 
-import { shallowEqual } from 'react-redux'
-import type { ReactHooksModuleOptions } from './module'
-import { useStableQueryArgs } from './useSerializedStableValue'
-import type { UninitializedValue } from './constants'
-import { UNINITIALIZED_VALUE } from './constants'
-import { useShallowStableValue } from './useShallowStableValue'
-import type { BaseQueryFn } from '../baseQueryTypes'
-import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
+import { shallowEqual } from 'react-redux';
+import type { BaseQueryFn } from '../baseQueryTypes';
+import type { SubscriptionSelectors } from '../core/buildMiddleware/types';
+import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs';
+import type { UninitializedValue } from './constants';
+import { UNINITIALIZED_VALUE } from './constants';
+import type { ReactHooksModuleOptions } from './module';
+import { useStableQueryArgs } from './useSerializedStableValue';
+import { useShallowStableValue } from './useShallowStableValue';
 
 // Copy-pasted from React-Redux
 export const useIsomorphicLayoutEffect =
@@ -990,6 +988,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   }
 
   function buildMutationHook(name: string): UseMutation<any> {
+    // @ts-ignore
     return ({ selectFromResult, fixedCacheKey } = {}) => {
       const { select, initiate } = api.endpoints[name] as ApiEndpointMutation<
         MutationDefinition<any, any, any, any, any>,
