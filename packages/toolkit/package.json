@@ -95,13 +95,13 @@
   },
   "scripts": {
     "run-build": "tsup",
-    "build": "yarn rimraf dist && echo Compiling TS... &&  yarn tsc && yarn run-build",
+    "build": "yarn rimraf dist && echo Compiling TS... &&  yarn tsc -p tsconfig.build.json && yarn run-build",
     "build-only": "yarn rimraf dist && yarn run-build",
     "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
     "lint": "eslint src examples",
     "test": "vitest",
-    "type-tests": "yarn tsc -p src/tests/tsconfig.typetests.json && yarn tsc -p src/query/tests/tsconfig.typetests.json",
+    "type-tests": "yarn tsc -p ./tsconfig.typetests.json",
     "prepack": "yarn build"
   },
   "files": [
