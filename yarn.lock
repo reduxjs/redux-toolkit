@@ -26063,9 +26063,9 @@ fsevents@^1.2.7:
   linkType: hard
 
 "reselect@npm:^5.0.1":
-  version: 5.0.1
-  resolution: "reselect@npm:5.0.1"
-  checksum: 7663b4c28a0e908e74dc25262e1d813d028b9c2ee96160cb0f40a16f09c5ac632fa16af6bafede7eb0ff16ab2d5bea2cd8814d9a9488e0262b8317fef90b1dc0
+  version: 5.1.0
+  resolution: "reselect@npm:5.1.0"
+  checksum: 5bc9c5d03d7caea00d0c0e24330bf23d91801227346fec1cef6a60988ab8d3dd7cee76e6994ca0915bc1c20845bb2bd929b95753763e0a9db74c0f9dff5cb845
   languageName: node
   linkType: hard
 
