@@ -68,8 +68,7 @@
     "type-fest": "2.19.0",
     "console-testing-library@0.6.1": "patch:console-testing-library@npm%3A0.6.1#./.yarn/patches/console-testing-library-npm-0.6.1-4d9957d402.patch",
     "@typescript-eslint/eslint-plugin": "6.12.0",
-    "@typescript-eslint/parser": "6.12.0",
-    "typescript": "5.2.2"
+    "@typescript-eslint/parser": "6.12.0"
   },
   "scripts": {
     "build": "yarn build:packages",
