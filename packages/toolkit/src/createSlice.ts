@@ -942,8 +942,8 @@ export function buildCreateSlice<
   }
 
   for (const [name, creator] of Object.entries<
-    ReducerCreator<CreatorMap[string]>
-  >(creatorMap)) {
+    ReducerCreator<RegisteredReducerType>
+  >(creatorMap as any)) {
     if (name === 'reducer' || name === 'preparedReducer') {
       throw new Error('Cannot use reserved creator name: ' + name)
     }
