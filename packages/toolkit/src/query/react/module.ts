@@ -1,29 +1,29 @@
-import type { MutationHooks, QueryHooks } from './buildHooks'
-import { buildHooks } from './buildHooks'
-import { isQueryDefinition, isMutationDefinition } from '../endpointDefinitions'
 import type {
+  BaseQueryFn,
   EndpointDefinitions,
-  QueryDefinition,
   MutationDefinition,
   QueryArgFrom,
+  QueryDefinition,
 } from '@reduxjs/toolkit/query'
 import type { Api, Module } from '../apiTypes'
-import { capitalize } from '../utils'
+import { isMutationDefinition, isQueryDefinition } from '../endpointDefinitions'
 import { safeAssign } from '../tsHelpers'
-import type { BaseQueryFn } from '@reduxjs/toolkit/query'
+import { capitalize } from '../utils'
+import type { MutationHooks, QueryHooks } from './buildHooks'
+import { buildHooks } from './buildHooks'
 
 import type { HooksWithUniqueNames } from './namedHooks'
 
 import {
+  batch as rrBatch,
   useDispatch as rrUseDispatch,
   useSelector as rrUseSelector,
   useStore as rrUseStore,
-  batch as rrBatch,
 } from 'react-redux'
+import { createSelector as _createSelector } from 'reselect'
 import type { QueryKeys } from '../core/apiState'
 import type { PrefetchOptions } from '../core/module'
 import { countObjectKeys } from '../utils/countObjectKeys'
-import { createSelector as _createSelector } from 'reselect'
 
 export const reactHooksModuleName = /* @__PURE__ */ Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName
@@ -184,24 +184,26 @@ export const reactHooksModule = ({
   return {
     name: reactHooksModuleName,
     init(api, { serializeQueryArgs }, context) {
-      const anyApi = api as any as Api<
+      const anyApi = api as Api<
         any,
-        Record<string, any>,
+        EndpointDefinitions,
         string,
         string,
-        ReactHooksModule
-      >
-      const { buildQueryHooks, buildMutationHook, usePrefetch } = buildHooks({
-        api,
-        moduleOptions: {
-          batch,
-          hooks,
-          unstable__sideEffectsInRender,
-          createSelector,
-        },
-        serializeQueryArgs,
-        context,
-      })
+        any
+      > & { endpoints: any }
+      const { buildQueryHooks, buildMutationHook, usePrefetch } = buildHooks(
+        {
+          api,
+          moduleOptions: {
+            batch,
+            hooks,
+            unstable__sideEffectsInRender,
+            createSelector,
+          },
+          serializeQueryArgs,
+          context,
+        } as any
+      )
       safeAssign(anyApi, { usePrefetch })
       safeAssign(context, { batch })
 
