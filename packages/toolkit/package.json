@@ -101,7 +101,7 @@
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
     "lint": "eslint src examples",
     "test": "vitest",
-    "type-tests": "yarn tsc -p ./tsconfig.typetests.json",
+    "type-tests": "yarn tsc -p ./tsconfig.json",
     "prepack": "yarn build"
   },
   "files": [
