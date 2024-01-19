@@ -3,7 +3,7 @@ import type {
   ThunkAction,
   ThunkDispatch,
   UnknownAction,
-} from '@reduxjs/toolkit';
+} from '@reduxjs/toolkit'
 import type {
   Api,
   ApiContext,
@@ -29,9 +29,9 @@ import type {
   TSHelpersId,
   TSHelpersNoInfer,
   TSHelpersOverride,
-} from '@reduxjs/toolkit/query';
-import { QueryStatus, skipToken } from '@reduxjs/toolkit/query';
-import type { DependencyList } from 'react';
+} from '@reduxjs/toolkit/query'
+import { QueryStatus, skipToken } from '@reduxjs/toolkit/query'
+import type { DependencyList } from 'react'
 import {
   useCallback,
   useDebugValue,
@@ -40,17 +40,17 @@ import {
   useMemo,
   useRef,
   useState,
-} from 'react';
+} from 'react'
 
-import { shallowEqual } from 'react-redux';
-import type { BaseQueryFn } from '../baseQueryTypes';
-import type { SubscriptionSelectors } from '../core/buildMiddleware/types';
-import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs';
-import type { UninitializedValue } from './constants';
-import { UNINITIALIZED_VALUE } from './constants';
-import type { ReactHooksModuleOptions } from './module';
-import { useStableQueryArgs } from './useSerializedStableValue';
-import { useShallowStableValue } from './useShallowStableValue';
+import { shallowEqual } from 'react-redux'
+import type { BaseQueryFn } from '../baseQueryTypes'
+import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
+import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type { UninitializedValue } from './constants'
+import { UNINITIALIZED_VALUE } from './constants'
+import type { ReactHooksModuleOptions } from './module'
+import { useStableQueryArgs } from './useSerializedStableValue'
+import { useShallowStableValue } from './useShallowStableValue'
 
 // Copy-pasted from React-Redux
 export const useIsomorphicLayoutEffect =
@@ -1028,6 +1028,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         [selectFromResult, selectDefaultResult]
       )
 
+      // @ts-ignore
       const currentState = useSelector(mutationSelector, shallowEqual)
       const originalArgs =
         fixedCacheKey == null ? promise?.arg.originalArgs : undefined
