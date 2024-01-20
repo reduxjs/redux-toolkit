@@ -217,7 +217,7 @@ export type SafePromise<T> = Promise<T> & {
 }
 
 /**
- * Properly wraps a Promise as a @link {SafePromise} with .catch(fallback).
+ * Properly wraps a Promise as a {@link SafePromise} with .catch(fallback).
  */
 export function asSafePromise<Resolved, Rejected>(
   promise: Promise<Resolved>,
