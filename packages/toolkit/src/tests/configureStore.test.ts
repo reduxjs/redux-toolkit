@@ -2,7 +2,6 @@ import * as DevTools from '@internal/devtoolsExtension'
 import type { StoreEnhancer } from '@reduxjs/toolkit'
 import { Tuple } from '@reduxjs/toolkit'
 import type * as Redux from 'redux'
-import type { MockInstance } from 'vitest'
 import { vi } from 'vitest'
 
 vi.doMock('redux', async (importOriginal) => {
@@ -16,19 +15,8 @@ vi.doMock('redux', async (importOriginal) => {
   return redux
 })
 
-declare global {
-  interface Window {
-    __REDUX_DEVTOOLS_EXTENSION_COMPOSE__: MockInstance<
-      Parameters<typeof DevTools.composeWithDevTools>,
-      ReturnType<typeof DevTools.composeWithDevTools>
-    >
-  }
-}
-
 describe('configureStore', async () => {
   const composeWithDevToolsSpy = vi.spyOn(DevTools, 'composeWithDevTools')
-
-  window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ = composeWithDevToolsSpy
 
   const redux = await import('redux')
 
