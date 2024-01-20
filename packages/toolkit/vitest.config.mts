@@ -26,7 +26,6 @@ export default defineConfig({
       '@internal': path.join(__dirname, './src'),
     },
     deps: {
-      interopDefault: true,
       inline: ['redux', '@reduxjs/toolkit'],
     },
   },
