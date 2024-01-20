@@ -1,13 +1,11 @@
-import { fileURLToPath } from 'url'
-import path from 'path'
-import fs from 'fs'
-import type { BuildOptions as ESBuildOptions, Plugin } from 'esbuild'
+import * as babel from '@babel/core'
+import type { Plugin } from 'esbuild'
+import { getBuildExtensions } from 'esbuild-extra'
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { Options as TsupOptions } from 'tsup'
 import { defineConfig } from 'tsup'
-import * as babel from '@babel/core'
-import { getBuildExtensions } from 'esbuild-extra'
-
-import { delay } from './src/utils'
 
 // No __dirname under Node ESM
 const __filename = fileURLToPath(import.meta.url)
@@ -155,6 +153,8 @@ const mangleErrorsTransform: Plugin = {
   },
 }
 
+const tsconfig = path.join(__dirname, './tsconfig.build.json') satisfies TsupOptions['tsconfig']
+
 export default defineConfig((options) => {
   const configs = entryPoints
     .map((entryPointConfig) => {
@@ -188,6 +188,7 @@ export default defineConfig((options) => {
             [outputFilename]: entryPoint,
           },
           format,
+          tsconfig,
           outDir: outputFolder,
           target,
           outExtension: () => ({ js: extension }),

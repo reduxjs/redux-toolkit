@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ESnext",
-    "module": "esnext",
-    "lib": ["dom", "esnext"],
+    "module": "ESnext",
+    "lib": ["DOM", "ESNext"],
     "importHelpers": true,
     // output .d.ts declaration files for consumers
     "declaration": true,
@@ -17,7 +17,7 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     // use Node's module resolution algorithm, instead of the legacy TS one
-    "moduleResolution": "node",
+    "moduleResolution": "Node",
     // transpile JSX to React.createElement
     "jsx": "react",
     // interop between ESM and CJS modules. Recommended by TS
