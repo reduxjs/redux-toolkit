@@ -213,7 +213,7 @@ export type UnknownIfNonSpecific<T> = {} extends T ? unknown : T
  * @see https://github.com/reduxjs/redux-toolkit/issues/4101
  */
 export type SafePromise<T> = Promise<T> & {
-  __safetyBrand: 'SafePromise'
+  __linterBrands: 'SafePromise'
 }
 
 /**
