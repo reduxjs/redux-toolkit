@@ -12,7 +12,7 @@ export default defineConfig({
     typecheck: { only: true },
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./vitest.setup.js'],
+    setupFiles: ['./vitest.setup.ts'],
     include: ['./src/**/*.(spec|test).[jt]s?(x)'],
     alias: {
       // prettier-ignore
