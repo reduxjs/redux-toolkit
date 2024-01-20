@@ -207,3 +207,11 @@ export type Tail<T extends any[]> = T extends [any, ...infer Tail]
   : never
 
 export type UnknownIfNonSpecific<T> = {} extends T ? unknown : T
+
+/**
+ * A Promise that will never reject.
+ * @see https://github.com/reduxjs/redux-toolkit/issues/4101
+ */
+export type SafePromise<T> = Promise<T> & {
+  __brand: 'SafePromise'
+}
