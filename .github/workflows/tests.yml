@@ -133,7 +133,7 @@ jobs:
       - name: Show installed RTK versions
         run: yarn info @reduxjs/toolkit
 
-      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.ts ./src/tests/*.* ./src/query/tests/*.*
+      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.mts ./src/tests/*.* ./src/query/tests/*.*
 
       - name: Test types
         run: |
