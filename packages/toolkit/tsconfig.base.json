@@ -17,7 +17,7 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     // use Node's module resolution algorithm, instead of the legacy TS one
-    "moduleResolution": "Node10",
+    "moduleResolution": "Node",
     // transpile JSX to React.createElement
     "jsx": "react",
     // interop between ESM and CJS modules. Recommended by TS
