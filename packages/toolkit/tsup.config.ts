@@ -153,6 +153,7 @@ const mangleErrorsTransform: Plugin = {
   },
 }
 
+// @ts-ignore: The `satisfies` operator does not work with TS versions prior to 4.9.
 const tsconfig = path.join(__dirname, './tsconfig.build.json') satisfies TsupOptions['tsconfig']
 
 export default defineConfig((options) => {
