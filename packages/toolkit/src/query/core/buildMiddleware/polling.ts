@@ -135,7 +135,8 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
           subscribers[key].pollingInterval!,
           lowestPollingInterval
         )
-        skipPollOnFocusLost = subscribers[key].skipPollOnFocusLost
+        skipPollOnFocusLost =
+          subscribers[key].skipPollOnFocusLost || skipPollOnFocusLost
       }
     }
 

@@ -157,7 +157,7 @@ describe('polling tests', () => {
     storeRef.store.dispatch(api.util.resetApiState())
   })
 
-  it('respects skipPollOnFocusLost of the most recent mounted subscription', async () => {
+  it('respects skipPollOnFocusLost if at least one subscription has it', async () => {
     storeRef.store.dispatch(
       getPosts.initiate(3, {
         subscriptionOptions: {
@@ -169,7 +169,7 @@ describe('polling tests', () => {
     )
 
     await delay(50)
-    const callsWithSkip = mockBaseQuery.mock.calls.length
+    const callsWithoutSkip = mockBaseQuery.mock.calls.length
 
     storeRef.store.dispatch(
       getPosts.initiate(3, {
@@ -178,13 +178,23 @@ describe('polling tests', () => {
       })
     )
 
+    storeRef.store.dispatch(
+      getPosts.initiate(3, {
+        subscriptionOptions: {
+          pollingInterval: 20,
+          skipPollOnFocusLost: false,
+        },
+        subscribe: true,
+      })
+    )
+
     storeRef.store.dispatch(api.internalActions?.onFocusLost())
 
     await delay(50)
-    const callsWithoutSkip = mockBaseQuery.mock.calls.length
+    const callsWithSkip = mockBaseQuery.mock.calls.length
 
-    expect(callsWithSkip).toBeGreaterThan(2)
-    expect(callsWithoutSkip).toBe(callsWithSkip + 1)
+    expect(callsWithoutSkip).toBeGreaterThan(2)
+    expect(callsWithSkip).toBe(callsWithoutSkip + 1)
   })
 
   it('replaces skipPollOnFocusLost when the subscription options are updated', async () => {
