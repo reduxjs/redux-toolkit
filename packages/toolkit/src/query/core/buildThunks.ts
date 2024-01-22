@@ -714,6 +714,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     updateQueryData,
     upsertQueryData,
     patchQueryData,
+    patchQueriesData,
     buildMatchThunkActions,
   }
 }

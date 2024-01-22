@@ -3,6 +3,7 @@
  */
 import type {
   PatchQueryDataThunk,
+  PatchQueriesDataThunk,
   UpdateQueryDataThunk,
   UpsertQueryDataThunk,
 } from './buildThunks'
@@ -303,6 +304,11 @@ declare module '../apiTypes' {
           RootState<Definitions, string, ReducerPath>
         >
 
+        patchQueriesData: PatchQueriesDataThunk<
+          Definitions,
+          RootState<Definitions, string, ReducerPath>
+        >
+
         /**
          * A Redux action creator that can be dispatched to manually reset the api state completely. This will immediately remove all existing cache entries, and all queries will be considered 'uninitialized'.
          *
@@ -500,6 +506,7 @@ export const coreModule = ({
       queryThunk,
       mutationThunk,
       patchQueryData,
+      patchQueriesData,
       updateQueryData,
       upsertQueryData,
       prefetch,
@@ -531,6 +538,7 @@ export const coreModule = ({
 
     safeAssign(api.util, {
       patchQueryData,
+      patchQueriesData,
       updateQueryData,
       upsertQueryData,
       prefetch,
