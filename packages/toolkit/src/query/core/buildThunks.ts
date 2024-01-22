@@ -260,7 +260,7 @@ export function buildThunks<
         | {
             args: any
             patches: readonly Patch[]
-            updateProvided?: boolean | undefined
+            updateProvided?: boolean
           }[]
         | undefined
       >(patchesByEndpointName)
