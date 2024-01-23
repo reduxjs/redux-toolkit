@@ -1,8 +1,6 @@
-import { createApi, setupListeners } from '@reduxjs/toolkit/query/react'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { delay } from 'msw'
-import * as React from 'react'
-import { setupApiStore } from '../../tests/utils/helpers'
+import { createApi, setupListeners } from '@reduxjs/toolkit/query/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { setupApiStore, waitMs } from '../../tests/utils/helpers';
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -11,7 +9,7 @@ let amount = 0
 
 const defaultApi = createApi({
   baseQuery: async (arg: any) => {
-    await delay(150)
+    await waitMs()
     if ('amount' in arg?.body) {
       amount += 1
     }
@@ -76,7 +74,7 @@ describe('refetchOnFocus tests', () => {
       fireEvent.focus(window)
     })
 
-    await delay(150)
+    await waitMs()
 
     await waitFor(() =>
       expect(screen.getByTestId('amount').textContent).toBe('2')
@@ -116,7 +114,7 @@ describe('refetchOnFocus tests', () => {
       fireEvent.focus(window)
     })
 
-    await delay(150)
+    await waitMs()
 
     await waitFor(() =>
       expect(screen.getByTestId('amount').textContent).toBe('1')
@@ -218,7 +216,7 @@ describe('refetchOnFocus tests', () => {
       fireEvent.focus(window)
     })
 
-    await delay(1)
+    await waitMs(1)
     expect(getIncrementedAmountState()).toBeUndefined()
   })
 })
@@ -393,7 +391,7 @@ describe('customListenersHandler', () => {
       }
     )
 
-    await delay(150)
+    await waitMs()
 
     let data, isLoading, isFetching
 
