@@ -387,6 +387,10 @@ export function buildThunks<
       >(recipesByEndpointName)
       for (const [endpointName, recipes] of arrayified) {
         if (!recipes) continue
+        const endpointPatches = (patchesByEndpointName[
+          endpointName as keyof typeof patchesByEndpointName
+        ] ??= [])
+        const endpointCollections = (ret[endpointName] ??= [])
         for (const [
           idx,
           { args, updateRecipe, updateProvided = defaultUpdateProvided },
@@ -457,10 +461,8 @@ export function buildThunks<
             })
           }
 
-          ;(ret[endpointName] ??= [])[idx] = patchCollection
-          ;(patchesByEndpointName[
-            endpointName as keyof typeof patchesByEndpointName
-          ] ??= []).push({
+          endpointCollections[idx] = patchCollection
+          endpointPatches.push({
             args,
             patches: patchCollection.patches,
             updateProvided,
