@@ -428,7 +428,7 @@ export function buildThunks<
           }
 
           if (currentState.status === QueryStatus.uninitialized) {
-            ;(ret[endpointName] ??= [])[idx] = patchCollection
+            endpointCollections[idx] = patchCollection
             continue
           }
 
