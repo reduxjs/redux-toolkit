@@ -7313,7 +7313,7 @@ __metadata:
   resolution: "@reduxjs/rtk-codemods@workspace:packages/rtk-codemods"
   dependencies:
     "@types/jscodeshift": ^0.11.11
-    "@typescript-eslint/parser": ^6.19.0
+    "@typescript-eslint/parser": ^6.19.1
     eslint: ^8.56.0
     eslint-config-prettier: ^9.1.0
     eslint-plugin-node: ^11.1.0
