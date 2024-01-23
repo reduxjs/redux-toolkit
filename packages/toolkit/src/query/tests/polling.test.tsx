@@ -1,6 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query'
-import { delay } from 'msw'
-import { setupApiStore } from '../../tests/utils/helpers'
+import { setupApiStore, waitMs } from '../../tests/utils/helpers'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
 const mockBaseQuery = vi
@@ -49,7 +48,7 @@ describe('polling tests', () => {
 
     storeRef.store.dispatch(api.util.resetApiState())
 
-    await delay(30)
+    await waitMs(30)
 
     expect(mockBaseQuery).toHaveBeenCalledTimes(1)
   })
@@ -65,13 +64,13 @@ describe('polling tests', () => {
 
     const getSubs = createSubscriptionGetter(queryCacheKey)
 
-    await delay(1)
+    await waitMs(1)
     expect(Object.keys(getSubs())).toHaveLength(1)
     expect(getSubs()[requestId].pollingInterval).toBe(10)
 
     subscription.updateSubscriptionOptions({ pollingInterval: 20 })
 
-    await delay(1)
+    await waitMs(1)
     expect(Object.keys(getSubs())).toHaveLength(1)
     expect(getSubs()[requestId].pollingInterval).toBe(20)
   })
@@ -91,7 +90,7 @@ describe('polling tests', () => {
       })
     )
 
-    await delay(10)
+    await waitMs(10)
 
     const getSubs = createSubscriptionGetter(subscriptionOne.queryCacheKey)
 
@@ -99,7 +98,7 @@ describe('polling tests', () => {
 
     subscriptionOne.unsubscribe()
 
-    await delay(1)
+    await waitMs(1)
     expect(Object.keys(getSubs())).toHaveLength(1)
   })
 
@@ -118,7 +117,7 @@ describe('polling tests', () => {
       })
     )
 
-    await delay(20)
+    await waitMs(20)
 
     expect(mockBaseQuery.mock.calls.length).toBeGreaterThanOrEqual(2)
   })
