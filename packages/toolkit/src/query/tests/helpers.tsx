@@ -23,7 +23,7 @@ export const ANY = 0 as any
 export const DEFAULT_DELAY_MS = 150
 
 export const getSerializedHeaders = (headers: Headers = new Headers()) => {
-  let result: Record<string, string> = {}
+  const result: Record<string, string> = {}
   headers.forEach((val, key) => {
     result[key] = val
   })
@@ -98,14 +98,6 @@ export const useRenderCounter = () => {
   return useCallback(() => countRef.current, [])
 }
 
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toMatchSequence(...matchers: Array<(arg: any) => boolean>): R
-    }
-  }
-}
-
 expect.extend({
   toMatchSequence(
     _actions: UnknownAction[],
@@ -132,14 +124,6 @@ ${actions.map((a) => a.type).join('\n')}`,
   },
 })
 
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toHaveConsoleOutput(expectedOutput: string): Promise<R>
-    }
-  }
-}
-
 function normalize(str: string) {
   return str
     .normalize()
@@ -154,7 +138,7 @@ expect.extend({
   ) {
     const restore = mockConsole(createConsole())
     await fn()
-    const log = getLog().log
+    const { log } = getLog()
     restore()
 
     if (normalize(log) === normalize(expectedOutput))
