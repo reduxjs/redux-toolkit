@@ -32,7 +32,7 @@
     "allowSyntheticDefaultImports": true,
     "emitDeclarationOnly": true,
     "baseUrl": ".",
-    "types": ["vitest/globals", "vitest/importMeta", "vitest"],
+    "types": ["vitest/globals", "vitest/importMeta"],
     "paths": {
       "@reduxjs/toolkit": ["src/index.ts"], // @remap-prod-remove-line
       "@reduxjs/toolkit/react": ["src/react/index.ts"], // @remap-prod-remove-line

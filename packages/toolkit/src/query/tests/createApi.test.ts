@@ -19,14 +19,14 @@ import {
   ANY,
   getSerializedHeaders,
   setupApiStore,
+  waitMs,
 } from '../../tests/utils/helpers'
 import { expectExactType, expectType } from '../../tests/utils/typeTestHelpers'
-import { delay } from '../../utils'
 import type {
   DefinitionsFromApi,
   OverrideResultType,
   TagTypesFromApi,
-} from '../endpointDefinitions'
+} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
 import { server } from './mocks/server'
 
 beforeAll(() => {
@@ -186,7 +186,7 @@ describe('wrong tagTypes log errors', () => {
     store.dispatch(api.endpoints[endpoint].initiate())
     let result: { status: string }
     do {
-      await delay(5)
+      await waitMs(5)
       // @ts-ignore
       result = api.endpoints[endpoint].select()(store.getState())
     } while (result.status === 'pending')
@@ -461,11 +461,11 @@ describe('endpoint definition typings', () => {
       })
 
       storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
-      await delay(1)
+      await waitMs(1)
       expect(spy).not.toHaveBeenCalled()
 
       storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
-      await delay(1)
+      await waitMs(1)
       expect(spy).toHaveBeenCalledWith(
         "Tag type 'missing' was used, but not specified in `tagTypes`!"
       )
@@ -805,7 +805,7 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
     const failAttempt = storeRef.store.dispatch(api.endpoints.query.initiate())
     expect(storeRef.store.getState().testReducer.count).toBe(0)
     await failAttempt
-    await delay(10)
+    await waitMs(10)
     expect(storeRef.store.getState().testReducer.count).toBe(-1)
 
     const successAttempt = storeRef.store.dispatch(
@@ -813,7 +813,7 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
     )
     expect(storeRef.store.getState().testReducer.count).toBe(0)
     await successAttempt
-    await delay(10)
+    await waitMs(10)
     expect(storeRef.store.getState().testReducer.count).toBe(1)
   })
 
