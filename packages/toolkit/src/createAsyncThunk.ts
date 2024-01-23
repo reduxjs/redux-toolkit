@@ -11,6 +11,7 @@ import type {
   Id,
   IsAny,
   IsUnknown,
+  SafePromise,
   TypeGuard,
 } from './tsHelpers'
 import { nanoid } from './nanoid'
@@ -242,7 +243,7 @@ export type AsyncThunkAction<
   dispatch: GetDispatch<ThunkApiConfig>,
   getState: () => GetState<ThunkApiConfig>,
   extra: GetExtra<ThunkApiConfig>
-) => Promise<
+) => SafePromise<
   | ReturnType<AsyncThunkFulfilledActionCreator<Returned, ThunkArg>>
   | ReturnType<AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>>
 > & {
@@ -676,7 +677,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
           }
           return finalAction
         })()
-        return Object.assign(promise as Promise<any>, {
+        return Object.assign(promise as SafePromise<any>, {
           abort,
           requestId,
           arg,
