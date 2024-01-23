@@ -101,8 +101,7 @@
     "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
     "lint": "eslint src examples",
-    "test": "vitest --run",
-    "test:watch": "vitest --watch",
+    "test": "vitest",
     "type-tests": "yarn tsc -p tsconfig.json",
     "prepack": "yarn build"
   },
