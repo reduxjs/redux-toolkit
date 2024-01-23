@@ -1,11 +1,6 @@
 import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
 import type { BaseQueryFn } from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { rest } from 'msw'
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
-import axios from 'axios'
-import { expectExactType, hookWaitFor, setupApiStore } from './helpers'
-import { server } from './mocks/server'
 import {
   act,
   fireEvent,
@@ -16,7 +11,7 @@ import {
 } from '@testing-library/react'
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
 import axios from 'axios'
-import { HttpResponse, http } from 'msw'
+import { rest } from 'msw'
 import * as React from 'react'
 import { useDispatch } from 'react-redux'
 import { hookWaitFor, setupApiStore } from '../../tests/utils/helpers'
