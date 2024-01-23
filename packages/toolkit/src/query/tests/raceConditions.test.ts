@@ -1,6 +1,5 @@
 import { createApi, QueryStatus } from '@reduxjs/toolkit/query'
-import { delay } from 'msw'
-import { actionsReducer, setupApiStore } from '../../tests/utils/helpers'
+import { actionsReducer, setupApiStore, waitMs } from '../../tests/utils/helpers'
 
 // We need to be able to control when which query resolves to simulate race
 // conditions properly, that's the purpose of this factory.
@@ -59,7 +58,7 @@ it('invalidates a query after a corresponding mutation', async () => {
   const getQueryState = () =>
     storeRef.store.getState().api.queries[query.queryCacheKey]
   getEatenBananaPromises.resolveOldest()
-  await delay(2)
+  await waitMs(2)
 
   expect(getQueryState()?.data).toBe(0)
   expect(getQueryState()?.status).toBe(QueryStatus.fulfilled)
@@ -68,14 +67,14 @@ it('invalidates a query after a corresponding mutation', async () => {
   const getMutationState = () =>
     storeRef.store.getState().api.mutations[mutation.requestId]
   eatBananaPromises.resolveOldest()
-  await delay(2)
+  await waitMs(2)
 
   expect(getMutationState()?.status).toBe(QueryStatus.fulfilled)
   expect(getQueryState()?.data).toBe(0)
   expect(getQueryState()?.status).toBe(QueryStatus.pending)
 
   getEatenBananaPromises.resolveOldest()
-  await delay(2)
+  await waitMs(2)
 
   expect(getQueryState()?.data).toBe(1)
   expect(getQueryState()?.status).toBe(QueryStatus.fulfilled)
@@ -92,17 +91,17 @@ it('invalidates a query whose corresponding mutation finished while the query wa
   const getMutationState = () =>
     storeRef.store.getState().api.mutations[mutation.requestId]
   eatBananaPromises.resolveOldest()
-  await delay(2)
+  await waitMs(2)
   expect(getMutationState()?.status).toBe(QueryStatus.fulfilled)
 
   getEatenBananaPromises.resolveOldest()
-  await delay(2)
+  await waitMs(2)
   expect(getQueryState()?.data).toBe(0)
   expect(getQueryState()?.status).toBe(QueryStatus.pending)
 
   // should already be refetching
   getEatenBananaPromises.resolveOldest()
-  await delay(2)
+  await waitMs(2)
 
   expect(getQueryState()?.status).toBe(QueryStatus.fulfilled)
   expect(getQueryState()?.data).toBe(1)
