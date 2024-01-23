@@ -25,6 +25,13 @@ export default defineConfig({
       //'^@reduxjs/toolkit/dist/(.*)$': '<rootDir>/src/*',
       '@internal': path.join(__dirname, './src'),
     },
+<<<<<<< HEAD:packages/toolkit/vitest.config.ts
     server: { deps: { inline: ['redux', '@reduxjs/toolkit'] } },
+=======
+    deps: {
+      interopDefault: true,
+      inline: ['redux', '@reduxjs/toolkit'],
+    },
+>>>>>>> parent of d5db2953 (Remove `interopDefault` from `vitest.config.mts` as it is enabled by default):packages/toolkit/vitest.config.mts
   },
 })
