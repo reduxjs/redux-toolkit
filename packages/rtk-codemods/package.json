@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "scripts": {
     "lint": "eslint .",
-    "test": "vitest",
+    "test": "vitest --run",
+    "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage"
   },
   "bin": "./bin/cli.js",
