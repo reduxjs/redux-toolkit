@@ -6,6 +6,7 @@ import {
   setupApiStore,
   waitMs,
 } from '../../tests/utils/helpers'
+import { delay } from '../../utils'
 
 interface Post {
   id: string
@@ -52,7 +53,7 @@ const api = createApi({
     }),
     post2: build.query<Post, string>({
       queryFn: async (id) => {
-        await waitMs(20)
+        await delay(20)
         return {
           data: {
             id,
@@ -276,7 +277,7 @@ describe('upsertQueryData', () => {
       title: 'All about cheese.',
       contents: 'Yummy',
     }
-    baseQuery.mockImplementation(() => waitMs(20).then(() => fetchedData))
+    baseQuery.mockImplementation(() => delay(20).then(() => fetchedData))
     const upsertedData = {
       id: '3',
       title: 'Data from a SSR Render',
@@ -299,7 +300,7 @@ describe('upsertQueryData', () => {
   })
   test('upsert while a normal query is running (rejected)', async () => {
     baseQuery.mockImplementationOnce(async () => {
-      await waitMs(20)
+      await delay(20)
       // eslint-disable-next-line no-throw-literal
       throw 'Error!'
     })
