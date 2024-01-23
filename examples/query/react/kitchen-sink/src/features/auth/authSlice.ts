@@ -24,6 +24,7 @@ const slice = createSlice({
         console.log('fulfilled', action)
         state.user = action.payload.user
         state.token = action.payload.token
+        state.isAuthenticated = true
       })
       .addMatcher(postsApi.endpoints.login.matchRejected, (state, action) => {
         console.log('rejected', action)

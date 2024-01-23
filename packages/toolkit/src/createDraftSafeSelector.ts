@@ -5,13 +5,17 @@ export const createDraftSafeSelectorCreator: typeof createSelectorCreator = (
   ...args: unknown[]
 ) => {
   const createSelector = (createSelectorCreator as any)(...args)
-  return (...args: unknown[]) => {
-    const selector = createSelector(...args)
-    const wrappedSelector = (value: unknown, ...rest: unknown[]) =>
-      selector(isDraft(value) ? current(value) : value, ...rest)
-    Object.assign(wrappedSelector, selector)
-    return wrappedSelector as any
-  }
+  const createDraftSafeSelector = Object.assign(
+    (...args: unknown[]) => {
+      const selector = createSelector(...args)
+      const wrappedSelector = (value: unknown, ...rest: unknown[]) =>
+        selector(isDraft(value) ? current(value) : value, ...rest)
+      Object.assign(wrappedSelector, selector)
+      return wrappedSelector as any
+    },
+    { withTypes: () => createDraftSafeSelector }
+  )
+  return createDraftSafeSelector
 }
 
 /**
