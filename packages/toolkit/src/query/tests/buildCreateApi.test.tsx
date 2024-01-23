@@ -5,15 +5,16 @@ import {
   reactHooksModule,
 } from '@reduxjs/toolkit/query/react'
 import { render, screen, waitFor } from '@testing-library/react'
+import { delay } from 'msw'
 import * as React from 'react'
 import type { ReactReduxContextValue } from 'react-redux'
 import {
+  Provider,
   createDispatchHook,
   createSelectorHook,
   createStoreHook,
-  Provider,
 } from 'react-redux'
-import { setupApiStore, useRenderCounter, waitMs } from './helpers'
+import { setupApiStore, useRenderCounter } from './helpers'
 
 const MyContext = React.createContext<ReactReduxContextValue>(null as any)
 
@@ -32,7 +33,7 @@ describe('buildCreateApi', () => {
 
     const api = customCreateApi({
       baseQuery: async (arg: any) => {
-        await waitMs()
+        await delay(150)
 
         return {
           data: arg?.body ? { ...arg.body } : {},
@@ -112,7 +113,7 @@ describe('buildCreateApi', () => {
     )
     const api = createApi({
       baseQuery: async (arg: any) => {
-        await waitMs()
+        await delay(150)
 
         return {
           data: arg?.body ? { ...arg.body } : {},
