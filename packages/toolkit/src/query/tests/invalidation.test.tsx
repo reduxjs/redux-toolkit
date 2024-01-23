@@ -1,7 +1,8 @@
-import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
-import { setupApiStore, waitMs } from './helpers'
 import type { TagDescription } from '@reduxjs/toolkit/dist/query/endpointDefinitions'
+import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
 import { waitFor } from '@testing-library/react'
+import { delay } from 'msw'
+import { setupApiStore } from '../../tests/utils/helpers'
 
 const tagTypes = [
   'apple',
@@ -135,7 +136,7 @@ test.each(caseMatrix)(
 
     store.dispatch(invalidating.initiate())
     expect(queryCount).toBe(1)
-    await waitMs(2)
+    await delay(2)
     expect(queryCount).toBe(shouldInvalidate ? 2 : 1)
   }
 )

@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import nodeFetch from 'node-fetch'
-import { setupApiStore } from './helpers'
+import { setupApiStore } from '../../tests/utils/helpers'
 import { server } from './mocks/server'
 
 import { headersToObject } from 'headers-polyfill'

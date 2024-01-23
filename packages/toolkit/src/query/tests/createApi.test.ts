@@ -10,32 +10,31 @@ import type {
   QueryDefinition,
 } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import type { SpyInstance } from 'vitest'
-import { vi } from 'vitest'
+import type { MockInstance } from 'vitest'
 
 import type {
   DefinitionsFromApi,
   OverrideResultType,
   TagTypesFromApi,
 } from '@reduxjs/toolkit/dist/query/endpointDefinitions'
-import { HttpResponse, http } from 'msw'
+import { HttpResponse, delay, http } from 'msw'
 import nodeFetch from 'node-fetch'
-import type { SerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import {
   ANY,
-  expectExactType,
-  expectType,
   getSerializedHeaders,
   setupApiStore,
-  waitMs,
-} from './helpers'
+} from '../../tests/utils/helpers'
+import { expectExactType, expectType } from '../../tests/utils/typeTestHelpers'
+import type { SerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import { server } from './mocks/server'
 
-const originalEnv = process.env.NODE_ENV
-beforeAll(() => void ((process.env as any).NODE_ENV = 'development'))
-afterAll(() => void ((process.env as any).NODE_ENV = originalEnv))
+beforeAll(() => {
+  vi.stubEnv('NODE_ENV', 'development')
 
-let spy: SpyInstance
+  return vi.unstubAllEnvs
+})
+
+let spy: MockInstance
 beforeAll(() => {
   spy = vi.spyOn(console, 'error').mockImplementation(() => {})
 })
@@ -185,7 +184,7 @@ describe('wrong tagTypes log errors', () => {
     store.dispatch(api.endpoints[endpoint].initiate())
     let result: { status: string }
     do {
-      await waitMs(5)
+      await delay(5)
       // @ts-ignore
       result = api.endpoints[endpoint].select()(store.getState())
     } while (result.status === 'pending')
@@ -460,11 +459,11 @@ describe('endpoint definition typings', () => {
       })
 
       storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
-      await waitMs(1)
+      await delay(1)
       expect(spy).not.toHaveBeenCalled()
 
       storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
-      await waitMs(1)
+      await delay(1)
       expect(spy).toHaveBeenCalledWith(
         "Tag type 'missing' was used, but not specified in `tagTypes`!"
       )
@@ -805,7 +804,7 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
     const failAttempt = storeRef.store.dispatch(api.endpoints.query.initiate())
     expect(storeRef.store.getState().testReducer.count).toBe(0)
     await failAttempt
-    await waitMs(10)
+    await delay(10)
     expect(storeRef.store.getState().testReducer.count).toBe(-1)
 
     const successAttempt = storeRef.store.dispatch(
@@ -813,7 +812,7 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
     )
     expect(storeRef.store.getState().testReducer.count).toBe(0)
     await successAttempt
-    await waitMs(10)
+    await delay(10)
     expect(storeRef.store.getState().testReducer.count).toBe(1)
   })
 

@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { createApi } from '@reduxjs/toolkit/query'
-import { setupApiStore } from './helpers'
-import { delay } from '../../utils'
+import { delay } from 'msw'
+import { setupApiStore } from '../../tests/utils/helpers'
 
 let shouldApiResponseSuccess = true
 

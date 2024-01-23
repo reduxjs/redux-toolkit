@@ -2,7 +2,7 @@
 import type { Reducer, Slice, WithSlice } from '@reduxjs/toolkit'
 import { combineSlices } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { expectExactType, expectType } from './helpers'
+import { expectExactType, expectType } from './utils/typeTestHelpers'
 
 declare const stringSlice: Slice<string, {}, 'string'>
 

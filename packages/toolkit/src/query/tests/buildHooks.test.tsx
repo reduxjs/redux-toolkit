@@ -1,43 +1,43 @@
-import * as React from 'react'
-import type { SpyInstance } from 'vitest'
-import { vi } from 'vitest'
+import type { SerializedError } from '@reduxjs/toolkit'
+import {
+  configureStore,
+  createListenerMiddleware,
+  createSlice,
+} from '@reduxjs/toolkit'
+import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
 import type {
   UseMutation,
   UseQuery,
 } from '@reduxjs/toolkit/dist/query/react/buildHooks'
 import {
+  QueryStatus,
   createApi,
   fetchBaseQuery,
-  QueryStatus,
   skipToken,
 } from '@reduxjs/toolkit/query/react'
 import {
   act,
   fireEvent,
   render,
+  renderHook,
   screen,
   waitFor,
-  renderHook,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { http, HttpResponse } from 'msw'
+import { HttpResponse, delay, http } from 'msw'
+import * as React from 'react'
+import type { UnknownAction } from 'redux'
+import type { MockInstance } from 'vitest'
 import {
   actionsReducer,
-  expectExactType,
-  expectType,
   setupApiStore,
-  withProvider,
   useRenderCounter,
-  waitMs,
-} from './helpers'
-import { server } from './mocks/server'
-import type { UnknownAction } from 'redux'
-import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
-import type { SerializedError } from '@reduxjs/toolkit'
-import { createListenerMiddleware, configureStore, createSlice } from '@reduxjs/toolkit'
-import { delay } from '../../utils'
+  withProvider,
+} from '../../tests/utils/helpers'
+import { expectExactType, expectType } from '../../tests/utils/typeTestHelpers'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 import { countObjectKeys } from '../utils/countObjectKeys'
+import { server } from './mocks/server'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -51,7 +51,7 @@ interface Item {
 
 const api = createApi({
   baseQuery: async (arg: any) => {
-    await waitMs()
+    await delay(150)
     if (arg?.body && 'amount' in arg.body) {
       amount += 1
     }
@@ -491,7 +491,7 @@ describe('hooks tests', () => {
       unmount()
 
       // Wait to make sure we've passed the `refetchOnMountOrArgChange` value
-      await waitMs(510)
+      await delay(510)
 
       render(<User />, { wrapper: storeRef.wrapper })
       // Let's make sure we actually fetch, and we increment
@@ -594,7 +594,7 @@ describe('hooks tests', () => {
 
       unmount()
 
-      await waitMs(100)
+      await delay(100)
 
       // This will pull from the cache as the time criteria is not met.
       ;({ unmount } = render(<User />, {
@@ -612,7 +612,7 @@ describe('hooks tests', () => {
 
       unmount()
 
-      await waitMs(500)
+      await delay(500)
       ;({ unmount } = render(<User />, {
         wrapper: storeRef.wrapper,
       }))
@@ -817,7 +817,7 @@ describe('hooks tests', () => {
     })
 
     describe('Hook middleware requirements', () => {
-      let mock: SpyInstance
+      let mock: MockInstance
 
       beforeEach(() => {
         mock = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -1562,7 +1562,7 @@ describe('hooks tests', () => {
         status: QueryStatus.fulfilled,
       })
 
-      await waitMs()
+      await delay()
 
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
@@ -1610,7 +1610,7 @@ describe('hooks tests', () => {
       )
 
       // Wait 400ms, making it respect ifOlderThan
-      await waitMs(400)
+      await delay(400)
 
       // This should run the query being that we're past the threshold
       userEvent.hover(screen.getByTestId('lowPriority'))
@@ -1678,7 +1678,7 @@ describe('hooks tests', () => {
       await waitFor(() =>
         expect(screen.getByTestId('isFetching').textContent).toBe('false')
       )
-      await waitMs()
+      await delay()
 
       // Get a snapshot of the last result
       const latestQueryData = api.endpoints.getUser.select(USER_ID)(
@@ -1751,14 +1751,18 @@ describe('hooks tests', () => {
     test('initially failed useQueries that provide an tag will refetch after a mutation invalidates it', async () => {
       const checkSessionData = { name: 'matt' }
       server.use(
-        http.get('https://example.com/me', () => {
+        http.get(
+          'https://example.com/me',
+          () => {
             return HttpResponse.json(null, { status: 500 })
-        }, { once: true }),
+          },
+          { once: true }
+        ),
         http.get('https://example.com/me', () => {
-            return HttpResponse.json(checkSessionData)
+          return HttpResponse.json(checkSessionData)
         }),
         http.post('https://example.com/login', () => {
-            return HttpResponse.json(null, { status: 200 })
+          return HttpResponse.json(null, { status: 200 })
         })
       )
       let data, isLoading, isError
@@ -1827,7 +1831,7 @@ describe('hooks tests', () => {
 describe('hooks with createApi defaults set', () => {
   const defaultApi = createApi({
     baseQuery: async (arg: any) => {
-      await waitMs()
+      await delay()
       if ('amount' in arg?.body) {
         amount += 1
       }
@@ -1977,12 +1981,12 @@ describe('hooks with createApi defaults set', () => {
 
       const handlers = [
         http.get('https://example.com/posts', () => {
-            return HttpResponse.json(posts)
+          return HttpResponse.json(posts)
         }),
         http.put<Post, Partial<Post>>(
           'https://example.com/post/:id',
           async ({ request, params }) => {
-              const body = await request.json();
+            const body = await request.json()
             const id = Number(params.id)
             const idx = posts.findIndex((post) => post.id === id)
 
@@ -1998,20 +2002,23 @@ describe('hooks with createApi defaults set', () => {
             )
             posts = [...newPosts]
 
-              return HttpResponse.json(posts)
+            return HttpResponse.json(posts)
           }
         ),
-        http.post<any, Omit<Post, 'id'>>('https://example.com/post', async ({ request }) => {
-            const body = await request.json();
-          let post = body
-          startingId += 1
-          posts.concat({
-            ...post,
-            fetched_at: new Date().toISOString(),
-            id: startingId,
-          })
+        http.post<any, Omit<Post, 'id'>>(
+          'https://example.com/post',
+          async ({ request }) => {
+            const body = await request.json()
+            let post = body
+            startingId += 1
+            posts.concat({
+              ...post,
+              fetched_at: new Date().toISOString(),
+              id: startingId,
+            })
             return HttpResponse.json(posts)
-        }),
+          }
+        ),
       ]
 
       server.use(...handlers)
@@ -2054,13 +2061,13 @@ describe('hooks with createApi defaults set', () => {
     })
 
     const counterSlice = createSlice({
-      name: "counter",
+      name: 'counter',
       initialState: { count: 0 },
       reducers: {
         increment(state) {
           state.count++
-        }
-      }
+        },
+      },
     })
 
     const storeRef = setupApiStore(api, {
@@ -2092,7 +2099,7 @@ describe('hooks with createApi defaults set', () => {
       function SelectedPost() {
         const { post } = api.endpoints.getPosts.useQueryState(undefined, {
           selectFromResult: ({ data }) => ({
-            post: data?.find((post) => post.id === 1 as any),
+            post: data?.find((post) => post.id === (1 as any)),
           }),
         })
         getRenderCount = useRenderCounter()
@@ -2171,7 +2178,7 @@ describe('hooks with createApi defaults set', () => {
             isSuccess,
             isError,
           }) => ({
-            post: data?.find((post) => post.id === 1 as any),
+            post: data?.find((post) => post.id === (1 as any)),
             isUninitialized,
             isLoading,
             isFetching,
@@ -2228,7 +2235,7 @@ describe('hooks with createApi defaults set', () => {
         getRenderCount = useRenderCounter()
         const { post } = api.endpoints.getPosts.useQuery(undefined, {
           selectFromResult: ({ data }) => ({
-            post: data?.find((post) => post.id === 1 as any),
+            post: data?.find((post) => post.id === (1 as any)),
           }),
         })
 
@@ -2288,7 +2295,7 @@ describe('hooks with createApi defaults set', () => {
       function SelectedPost() {
         const { post } = api.endpoints.getPosts.useQuery(undefined, {
           selectFromResult: ({ data }) => ({
-            post: data?.find((post) => post.id === 1 as any),
+            post: data?.find((post) => post.id === (1 as any)),
           }),
         })
         getRenderCount = useRenderCounter()
@@ -2354,7 +2361,9 @@ describe('hooks with createApi defaults set', () => {
         return (
           <div
             data-testid="incrementButton"
-            onClick={() => storeRef.store.dispatch(counterSlice.actions.increment())}
+            onClick={() =>
+              storeRef.store.dispatch(counterSlice.actions.increment())
+            }
           >
             Increment Count
           </div>
@@ -2378,7 +2387,6 @@ describe('hooks with createApi defaults set', () => {
 
     test('useQuery with selectFromResult option has a type error if the result is not an object', async () => {
       function SelectedPost() {
-
         const res2 = api.endpoints.getPosts.useQuery(undefined, {
           // selectFromResult must always return an object
           selectFromResult: ({ data }) => ({ size: data?.length ?? 0 }),
@@ -2405,7 +2413,7 @@ describe('hooks with createApi defaults set', () => {
   describe('selectFromResult (mutation) behavior', () => {
     const api = createApi({
       baseQuery: async (arg: any) => {
-        await waitMs()
+        await delay()
         if ('amount' in arg?.body) {
           amount += 1
         }
@@ -2454,11 +2462,11 @@ describe('hooks with createApi defaults set', () => {
       expect(getRenderCount()).toBe(1)
 
       fireEvent.click(screen.getByTestId('incrementButton'))
-      await waitMs(200) // give our baseQuery a chance to return
+      await delay(200) // give our baseQuery a chance to return
       expect(getRenderCount()).toBe(2)
 
       fireEvent.click(screen.getByTestId('incrementButton'))
-      await waitMs(200)
+      await delay(200)
       expect(getRenderCount()).toBe(3)
 
       const { increment } = api.endpoints

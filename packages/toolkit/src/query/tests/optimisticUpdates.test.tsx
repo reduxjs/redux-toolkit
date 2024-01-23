@@ -1,7 +1,11 @@
-import { vi } from 'vitest'
 import { createApi } from '@reduxjs/toolkit/query/react'
-import { actionsReducer, hookWaitFor, setupApiStore, waitMs } from './helpers'
-import { renderHook, act } from '@testing-library/react'
+import { act, renderHook } from '@testing-library/react'
+import { delay } from 'msw'
+import {
+  actionsReducer,
+  hookWaitFor,
+  setupApiStore,
+} from '../../tests/utils/helpers'
 import type { InvalidationState } from '../core/apiState'
 
 interface Post {
@@ -11,7 +15,9 @@ interface Post {
 }
 
 const baseQuery = vi.fn()
-beforeEach(() => baseQuery.mockReset())
+beforeEach(() => {
+  baseQuery.mockReset()
+})
 
 const api = createApi({
   baseQuery: (...args: any[]) => {
@@ -105,7 +111,7 @@ describe('basic lifecycle', () => {
 
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).not.toHaveBeenCalled()
-    await act(() => waitMs(5))
+    await act(() => delay(5))
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).toHaveBeenCalledWith({ data: 'success', meta: 'meta' })
   })
@@ -127,7 +133,7 @@ describe('basic lifecycle', () => {
     expect(baseQuery).toHaveBeenCalledWith('arg', expect.any(Object), undefined)
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).not.toHaveBeenCalled()
-    await act(() => waitMs(5))
+    await act(() => delay(5))
     expect(onError).toHaveBeenCalledWith({
       error: 'error',
       isUnhandledError: false,
@@ -212,7 +218,7 @@ describe('updateQueryData', () => {
       provided = storeRef.store.getState().api.provided
     })
 
-    const provided3 = provided['Post']['3']
+    const provided3 = provided.Post['3']
 
     let returnValue!: ReturnType<ReturnType<typeof api.util.updateQueryData>>
     act(() => {
@@ -236,7 +242,7 @@ describe('updateQueryData', () => {
       provided = storeRef.store.getState().api.provided
     })
 
-    const provided4 = provided['Post']['4']
+    const provided4 = provided.Post['4']
 
     expect(provided4).toEqual(provided3)
 
@@ -248,12 +254,12 @@ describe('updateQueryData', () => {
       provided = storeRef.store.getState().api.provided
     })
 
-    const provided4Next = provided['Post']['4']
+    const provided4Next = provided.Post['4']
 
     expect(provided4Next).toEqual([])
   })
 
-  test('updates (list) cache values excluding provided tags, undos that', async () => {
+  test('updates (list) cache values excluding provided tags, undoes that', async () => {
     baseQuery
       .mockResolvedValueOnce([
         {
@@ -295,7 +301,7 @@ describe('updateQueryData', () => {
       provided = storeRef.store.getState().api.provided
     })
 
-    const provided4 = provided['Post']['4']
+    const provided4 = provided.Post['4']
 
     expect(provided4).toEqual(undefined)
 
@@ -307,7 +313,7 @@ describe('updateQueryData', () => {
       provided = storeRef.store.getState().api.provided
     })
 
-    const provided4Next = provided['Post']['4']
+    const provided4Next = provided.Post['4']
 
     expect(provided4Next).toEqual(undefined)
   })

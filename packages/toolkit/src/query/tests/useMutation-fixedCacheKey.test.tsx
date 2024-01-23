@@ -1,14 +1,15 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
-import { setupApiStore, waitMs } from './helpers'
-import React from 'react'
 import {
+  act,
+  getByTestId,
   render,
   screen,
-  getByTestId,
   waitFor,
-  act,
 } from '@testing-library/react'
+import { delay } from 'msw'
+import React from 'react'
 import { vi } from 'vitest'
+import { setupApiStore } from '../../tests/utils/helpers'
 
 describe('fixedCacheKey', () => {
   const onNewCacheEntry = vi.fn()
@@ -342,7 +343,7 @@ describe('fixedCacheKey', () => {
       await Promise.resolve()
     })
 
-    await waitMs()
+    await delay(150)
 
     expect(getByTestId(c1, 'status').textContent).toBe('pending')
     expect(getByTestId(c1, 'data').textContent).toBe('')
@@ -352,7 +353,7 @@ describe('fixedCacheKey', () => {
       await Promise.resolve()
     })
 
-    await waitMs()
+    await delay(150)
 
     expect(getByTestId(c1, 'status').textContent).toBe('fulfilled')
     expect(getByTestId(c1, 'data').textContent).toBe('this should be visible')
