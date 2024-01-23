@@ -4,6 +4,7 @@
     "emitDeclarationOnly": false,
     "noEmit": true,
     "rootDir": ".",
+    "jsx": "react-jsx",
     "skipLibCheck": false,
     "noImplicitReturns": false
   },
