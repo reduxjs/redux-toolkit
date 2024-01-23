@@ -1,3 +1,4 @@
+// @ts-ignore
 import nodeFetch, { Headers, Request } from 'node-fetch'
 import { server } from './src/query/tests/mocks/server'
 

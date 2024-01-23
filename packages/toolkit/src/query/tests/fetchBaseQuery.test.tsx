@@ -1,7 +1,7 @@
-import { vi } from 'vitest'
 import { createSlice } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { setupApiStore, waitMs } from './helpers'
+import { vi } from 'vitest'
+import { setupApiStore, waitMs } from '../../tests/utils/helpers'
 import { server } from './mocks/server'
 // @ts-ignore
 import nodeFetch from 'node-fetch'
@@ -966,6 +966,10 @@ describe('fetchBaseQuery', () => {
     })
 
     test('Global timeout', async () => {
+      let reject: () => void
+      const donePromise = new Promise((resolve, _reject) => {
+        reject = _reject
+      })
       server.use(
         rest.get('https://example.com/empty1', async (req, res, ctx) => {
           await Promise.race([waitMs(3000), donePromise])
@@ -988,6 +992,7 @@ describe('fetchBaseQuery', () => {
         status: 'TIMEOUT_ERROR',
         error: 'AbortError: The user aborted a request.',
       })
+      reject!()
     })
   })
 })
@@ -1077,6 +1082,10 @@ describe('still throws on completely unexpected errors', () => {
 
 describe('timeout', () => {
   test('throws a timeout error when a request takes longer than specified timeout duration', async () => {
+    let reject: () => void
+    const donePromise = new Promise((resolve, _reject) => {
+      reject = _reject
+    })
     server.use(
       rest.get('https://example.com/empty2', async (req, res, ctx) => {
         await Promise.race([waitMs(3000), donePromise])
@@ -1094,5 +1103,6 @@ describe('timeout', () => {
       status: 'TIMEOUT_ERROR',
       error: 'AbortError: The user aborted a request.',
     })
+    reject!()
   })
 })
