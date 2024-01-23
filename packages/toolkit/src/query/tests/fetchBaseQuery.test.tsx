@@ -970,23 +970,25 @@ describe('fetchBaseQuery', () => {
     })
 
     test('Global timeout', async () => {
-      let reject: () => void
-      const donePromise = new Promise((resolve, _reject) => {
-        reject = _reject
-      })
       server.use(
         http.get(
           'https://example.com/empty1',
-          async ({ request, params, cookies, requestId }) => {
-            await Promise.race([waitMs(2000), donePromise])
+          async ({ request, cookies, params, requestId }) => {
+            await delay(300)
+
             return HttpResponse.json({
               ...request,
+              cookies,
+              params,
+              requestId,
+              url: new URL(request.url),
               headers: headersToObject(request.headers),
             })
           },
           { once: true }
         )
       )
+
       const globalizedBaseQuery = fetchBaseQuery({
         baseUrl,
         fetchFn: fetchFn as any,
@@ -1003,7 +1005,6 @@ describe('fetchBaseQuery', () => {
         status: 'TIMEOUT_ERROR',
         error: 'AbortError: The operation was aborted.',
       })
-      reject!()
     })
   })
 })
@@ -1089,33 +1090,34 @@ describe('still throws on completely unexpected errors', () => {
 
 describe('timeout', () => {
   test('throws a timeout error when a request takes longer than specified timeout duration', async () => {
-    let reject: () => void
-    const donePromise = new Promise((resolve, _reject) => {
-      reject = _reject
-    })
-
     server.use(
       http.get(
         'https://example.com/empty2',
-        async ({ request }) => {
-          await Promise.race([waitMs(3000), donePromise])
+        async ({ request, cookies, params, requestId }) => {
+          await delay(300)
+
           return HttpResponse.json({
             ...request,
+            url: new URL(request.url),
+            cookies,
+            params,
+            requestId,
             headers: headersToObject(request.headers),
           })
         },
         { once: true }
       )
     )
+
     const result = await baseQuery(
       { url: '/empty2', timeout: 200 },
       commonBaseQueryApi,
       {}
     )
+
     expect(result?.error).toEqual({
       status: 'TIMEOUT_ERROR',
       error: 'AbortError: The operation was aborted.',
     })
-    reject!()
   })
 })
