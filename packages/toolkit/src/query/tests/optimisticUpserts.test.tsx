@@ -1,7 +1,11 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
-import { actionsReducer, hookWaitFor, setupApiStore } from '../../tests/utils/helpers'
-import { renderHook, act, waitFor } from '@testing-library/react'
-import { delay } from "msw";
+import { act, renderHook, waitFor } from '@testing-library/react'
+import {
+  actionsReducer,
+  hookWaitFor,
+  setupApiStore,
+  waitMs,
+} from '../../tests/utils/helpers'
 
 interface Post {
   id: string
@@ -48,7 +52,7 @@ const api = createApi({
     }),
     post2: build.query<Post, string>({
       queryFn: async (id) => {
-        await delay(20)
+        await waitMs(20)
         return {
           data: {
             id,
@@ -147,7 +151,7 @@ describe('basic lifecycle', () => {
 
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).not.toHaveBeenCalled()
-    await act(() => delay(5))
+    await act(() => waitMs(5))
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).toHaveBeenCalledWith({ data: 'success', meta: 'meta' })
   })
@@ -170,7 +174,7 @@ describe('basic lifecycle', () => {
 
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).not.toHaveBeenCalled()
-    await act(() => delay(5))
+    await act(() => waitMs(5))
     expect(onError).toHaveBeenCalledWith({
       error: 'error',
       isUnhandledError: false,
@@ -272,7 +276,7 @@ describe('upsertQueryData', () => {
       title: 'All about cheese.',
       contents: 'Yummy',
     }
-    baseQuery.mockImplementation(() => delay(20).then(() => fetchedData))
+    baseQuery.mockImplementation(() => waitMs(20).then(() => fetchedData))
     const upsertedData = {
       id: '3',
       title: 'Data from a SSR Render',
@@ -295,7 +299,7 @@ describe('upsertQueryData', () => {
   })
   test('upsert while a normal query is running (rejected)', async () => {
     baseQuery.mockImplementationOnce(async () => {
-      await delay(20)
+      await waitMs(20)
       // eslint-disable-next-line no-throw-literal
       throw 'Error!'
     })
