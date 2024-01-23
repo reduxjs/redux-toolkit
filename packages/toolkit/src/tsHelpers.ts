@@ -207,3 +207,21 @@ export type Tail<T extends any[]> = T extends [any, ...infer Tail]
   : never
 
 export type UnknownIfNonSpecific<T> = {} extends T ? unknown : T
+
+/**
+ * A Promise that will never reject.
+ * @see https://github.com/reduxjs/redux-toolkit/issues/4101
+ */
+export type SafePromise<T> = Promise<T> & {
+  __linterBrands: 'SafePromise'
+}
+
+/**
+ * Properly wraps a Promise as a {@link SafePromise} with .catch(fallback).
+ */
+export function asSafePromise<Resolved, Rejected>(
+  promise: Promise<Resolved>,
+  fallback: (error: unknown) => Rejected
+) {
+  return promise.catch(fallback) as SafePromise<Resolved | Rejected>
+}

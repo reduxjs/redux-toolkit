@@ -21,6 +21,8 @@ import type { QueryResultSelectorResult } from './buildSelectors'
 import type { Dispatch } from 'redux'
 import { isNotNullish } from '../utils/isNotNullish'
 import { countObjectKeys } from '../utils/countObjectKeys'
+import type { SafePromise } from '../../tsHelpers'
+import { asSafePromise } from '../../tsHelpers'
 
 declare module './module' {
   export interface ApiEndpointQuery<
@@ -60,7 +62,7 @@ type StartQueryActionCreator<
 
 export type QueryActionCreatorResult<
   D extends QueryDefinition<any, any, any, any>
-> = Promise<QueryResultSelectorResult<D>> & {
+> = SafePromise<QueryResultSelectorResult<D>> & {
   arg: QueryArgFrom<D>
   requestId: string
   subscriptionOptions: SubscriptionOptions | undefined
@@ -90,7 +92,7 @@ type StartMutationActionCreator<
 
 export type MutationActionCreatorResult<
   D extends MutationDefinition<any, any, any, any>
-> = Promise<
+> = SafePromise<
   | { data: ResultTypeFrom<D> }
   | {
       error:
@@ -335,7 +337,7 @@ You must add the middleware for RTK-Query to function correctly!`
         const selectFromState = () => selector(getState())
 
         const statePromise: QueryActionCreatorResult<any> = Object.assign(
-          forceQueryFn
+          (forceQueryFn
             ? // a query has been forced (upsertQueryData)
               // -> we want to resolve it once data has been written with the data that will be written
               thunkResult.then(selectFromState)
@@ -345,7 +347,9 @@ You must add the middleware for RTK-Query to function correctly!`
               Promise.resolve(stateAfter)
             : // query just started or one is already in flight
               // -> wait for the running query, then resolve with data from after that
-              Promise.all([runningQuery, thunkResult]).then(selectFromState),
+              Promise.all([runningQuery, thunkResult]).then(
+                selectFromState
+              )) as SafePromise<any>,
           {
             arg,
             requestId,
@@ -421,10 +425,10 @@ You must add the middleware for RTK-Query to function correctly!`
         const thunkResult = dispatch(thunk)
         middlewareWarning(dispatch)
         const { requestId, abort, unwrap } = thunkResult
-        const returnValuePromise = thunkResult
-          .unwrap()
-          .then((data) => ({ data }))
-          .catch((error) => ({ error }))
+        const returnValuePromise = asSafePromise(
+          thunkResult.unwrap().then((data) => ({ data })),
+          (error) => ({ error })
+        )
 
         const reset = () => {
           dispatch(removeMutationResult({ requestId, fixedCacheKey }))
