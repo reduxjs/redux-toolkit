@@ -103,7 +103,7 @@
     "lint": "eslint src examples",
     "test": "vitest --run --typecheck",
     "test:watch": "vitest --watch",
-    "type-tests": "yarn tsc -p tsconfig.json",
+    "type-tests": "yarn tsc -p tsconfig.test.json --noEmit",
     "prepack": "yarn build"
   },
   "files": [
