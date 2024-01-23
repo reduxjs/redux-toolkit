@@ -1,20 +1,20 @@
-import type { SerializedError } from '@reduxjs/toolkit'
+import type { SerializedError, UnknownAction } from '@reduxjs/toolkit';
 import {
   configureStore,
   createListenerMiddleware,
   createSlice,
-} from '@reduxjs/toolkit'
-import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
+} from '@reduxjs/toolkit';
+import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState';
 import type {
   UseMutation,
   UseQuery,
-} from '@reduxjs/toolkit/dist/query/react/buildHooks'
+} from '@reduxjs/toolkit/dist/query/react/buildHooks';
 import {
   QueryStatus,
   createApi,
   fetchBaseQuery,
   skipToken,
-} from '@reduxjs/toolkit/query/react'
+} from '@reduxjs/toolkit/query/react';
 import {
   act,
   fireEvent,
@@ -22,23 +22,22 @@ import {
   renderHook,
   screen,
   waitFor,
-} from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { rest } from 'msw'
+} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { rest } from 'msw';
+import React from "react";
+import type { MockInstance } from "vitest";
 import {
   actionsReducer,
-  ANY,
-  expectExactType,
-  expectType,
   setupApiStore,
   useRenderCounter,
   waitMs,
   withProvider,
-} from '../../tests/utils/helpers'
-import { expectExactType, expectType } from '../../tests/utils/typeTestHelpers'
-import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
-import { countObjectKeys } from '../utils/countObjectKeys'
-import { server } from './mocks/server'
+} from '../../tests/utils/helpers';
+import { expectExactType, expectType } from '../../tests/utils/typeTestHelpers';
+import type { SubscriptionSelectors } from '../core/buildMiddleware/types';
+import { countObjectKeys } from '../utils/countObjectKeys';
+import { server } from './mocks/server';
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
