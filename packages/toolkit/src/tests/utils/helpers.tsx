@@ -1,10 +1,9 @@
-import React, { useCallback } from 'react'
 import type {
-  UnknownAction,
   EnhancedStore,
   Middleware,
-  Store,
   Reducer,
+  Store,
+  UnknownAction,
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
@@ -13,11 +12,13 @@ import { useCallback, useEffect, useRef } from 'react'
 import { Provider } from 'react-redux'
 
 import {
-  mockConsole,
   createConsole,
   getLog,
+  mockConsole,
 } from 'console-testing-library/pure'
 
+import { cleanup } from '@testing-library/react'
+import { act } from 'react-dom/test-utils'
 import type { Assertion, AsymmetricMatchersContaining } from 'vitest'
 
 interface CustomMatchers<R = unknown> {
