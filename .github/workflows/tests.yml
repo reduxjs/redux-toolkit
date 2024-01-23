@@ -91,7 +91,7 @@ jobs:
       - name: Install build artifact
         run: yarn workspace @reduxjs/toolkit add $(pwd)/package.tgz
 
-      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.mts ./src/tests/*.* ./src/query/tests/*.*
+      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.ts ./src/tests/*.* ./src/query/tests/*.*
 
       - name: Run tests, against dist
         run: yarn test
