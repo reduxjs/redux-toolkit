@@ -24,7 +24,7 @@ import {
   waitFor,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { HttpResponse, delay, http } from 'msw'
+import { HttpResponse, http } from 'msw'
 import * as React from 'react'
 import type { UnknownAction } from 'redux'
 import type { MockInstance } from 'vitest'
@@ -32,6 +32,7 @@ import {
   actionsReducer,
   setupApiStore,
   useRenderCounter,
+  waitMs,
   withProvider,
 } from '../../tests/utils/helpers'
 import { expectExactType, expectType } from '../../tests/utils/typeTestHelpers'
@@ -51,7 +52,7 @@ interface Item {
 
 const api = createApi({
   baseQuery: async (arg: any) => {
-    await delay(150)
+    await waitMs(150)
     if (arg?.body && 'amount' in arg.body) {
       amount += 1
     }
@@ -491,7 +492,7 @@ describe('hooks tests', () => {
       unmount()
 
       // Wait to make sure we've passed the `refetchOnMountOrArgChange` value
-      await delay(510)
+      await waitMs(510)
 
       render(<User />, { wrapper: storeRef.wrapper })
       // Let's make sure we actually fetch, and we increment
@@ -594,7 +595,7 @@ describe('hooks tests', () => {
 
       unmount()
 
-      await delay(100)
+      await waitMs(100)
 
       // This will pull from the cache as the time criteria is not met.
       ;({ unmount } = render(<User />, {
@@ -612,7 +613,7 @@ describe('hooks tests', () => {
 
       unmount()
 
-      await delay(500)
+      await waitMs(500)
       ;({ unmount } = render(<User />, {
         wrapper: storeRef.wrapper,
       }))
@@ -767,7 +768,7 @@ describe('hooks tests', () => {
       )
 
       await act(async () => {
-        await delay(1)
+        await waitMs(1)
       })
 
       // 2) Set the current subscription to `{skip: true}
@@ -796,13 +797,13 @@ describe('hooks tests', () => {
       checkNumSubscriptions('b', 1)
 
       await act(async () => {
-        await delay(1)
+        await waitMs(1)
       })
 
       unmount()
 
       await act(async () => {
-        await delay(1)
+        await waitMs(1)
       })
 
       // There should be no subscription entries left over after changing
@@ -811,7 +812,7 @@ describe('hooks tests', () => {
 
       const finalSubscriptions = getSubscriptions()
 
-      for (let cacheKeyEntry of Object.values(finalSubscriptions)) {
+      for (const cacheKeyEntry of Object.values(finalSubscriptions)) {
         expect(Object.values(cacheKeyEntry!).length).toBe(0)
       }
     })
@@ -1562,7 +1563,7 @@ describe('hooks tests', () => {
         status: QueryStatus.fulfilled,
       })
 
-      await delay()
+      await waitMs()
 
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any)
@@ -1610,7 +1611,7 @@ describe('hooks tests', () => {
       )
 
       // Wait 400ms, making it respect ifOlderThan
-      await delay(400)
+      await waitMs(400)
 
       // This should run the query being that we're past the threshold
       userEvent.hover(screen.getByTestId('lowPriority'))
@@ -1678,7 +1679,7 @@ describe('hooks tests', () => {
       await waitFor(() =>
         expect(screen.getByTestId('isFetching').textContent).toBe('false')
       )
-      await delay()
+      await waitMs()
 
       // Get a snapshot of the last result
       const latestQueryData = api.endpoints.getUser.select(USER_ID)(
@@ -1831,7 +1832,7 @@ describe('hooks tests', () => {
 describe('hooks with createApi defaults set', () => {
   const defaultApi = createApi({
     baseQuery: async (arg: any) => {
-      await delay()
+      await waitMs()
       if ('amount' in arg?.body) {
         amount += 1
       }
@@ -2413,7 +2414,7 @@ describe('hooks with createApi defaults set', () => {
   describe('selectFromResult (mutation) behavior', () => {
     const api = createApi({
       baseQuery: async (arg: any) => {
-        await delay()
+        await waitMs()
         if ('amount' in arg?.body) {
           amount += 1
         }
@@ -2462,11 +2463,11 @@ describe('hooks with createApi defaults set', () => {
       expect(getRenderCount()).toBe(1)
 
       fireEvent.click(screen.getByTestId('incrementButton'))
-      await delay(200) // give our baseQuery a chance to return
+      await waitMs(200) // give our baseQuery a chance to return
       expect(getRenderCount()).toBe(2)
 
       fireEvent.click(screen.getByTestId('incrementButton'))
-      await delay(200)
+      await waitMs(200)
       expect(getRenderCount()).toBe(3)
 
       const { increment } = api.endpoints
@@ -2607,14 +2608,14 @@ describe('skip behaviour', () => {
     )
 
     expect(result.current).toEqual(uninitialized)
-    await delay(1)
+    await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(0)
 
     await act(async () => {
       rerender([1])
     })
     expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
-    await delay(1)
+    await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
 
     await act(async () => {
@@ -2625,7 +2626,7 @@ describe('skip behaviour', () => {
       currentData: undefined,
       data: { name: 'Timmy' },
     })
-    await delay(1)
+    await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(0)
   })
 
@@ -2640,7 +2641,7 @@ describe('skip behaviour', () => {
     )
 
     expect(result.current).toEqual(uninitialized)
-    await delay(1)
+    await waitMs(1)
 
     expect(getSubscriptionCount('getUser(1)')).toBe(0)
     // also no subscription on `getUser(skipToken)` or similar:
@@ -2650,7 +2651,7 @@ describe('skip behaviour', () => {
       rerender([1])
     })
     expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
-    await delay(1)
+    await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
     expect(getSubscriptions()).not.toEqual({})
 
@@ -2662,7 +2663,7 @@ describe('skip behaviour', () => {
       currentData: undefined,
       data: { name: 'Timmy' },
     })
-    await delay(1)
+    await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(0)
   })
 
@@ -2677,7 +2678,7 @@ describe('skip behaviour', () => {
     )
 
     await act(async () => {
-      await delay(1)
+      await waitMs(1)
     })
 
     // Normal fulfilled result, with both `data` and `currentData`
@@ -2690,7 +2691,7 @@ describe('skip behaviour', () => {
 
     await act(async () => {
       rerender([1, { skip: true }])
-      await delay(1)
+      await waitMs(1)
     })
 
     // After skipping, the query is "uninitialized", but still retains the last fetched `data`

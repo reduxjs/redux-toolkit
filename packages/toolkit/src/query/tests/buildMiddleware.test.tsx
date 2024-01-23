@@ -44,7 +44,7 @@ it('invalidates the specified tags', async () => {
   await storeRef.store.dispatch(api.util.invalidateTags(['Banana', 'Bread']))
 
   // Slight pause to let the middleware run and such
-  delay(20)
+  await delay(20)
 
   const firstSequence = [
     api.internalActions.middlewareRegistered.match,
@@ -59,7 +59,7 @@ it('invalidates the specified tags', async () => {
   await storeRef.store.dispatch(getBread.initiate(1))
   await storeRef.store.dispatch(api.util.invalidateTags([{ type: 'Bread' }]))
 
-  delay(20)
+  await delay(20)
 
   expect(storeRef.store.getState().actions).toMatchSequence(
     ...firstSequence,
