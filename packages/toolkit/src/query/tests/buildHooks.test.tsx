@@ -1979,7 +1979,7 @@ describe('hooks with createApi defaults set', () => {
         http.get('https://example.com/posts', () => {
             return HttpResponse.json(posts)
         }),
-        http.put<Post, Partial<Post>>(
+        http.put<{ id: string }, Partial<Post>>(
           'https://example.com/post/:id',
           async ({ request, params }) => {
               const body = await request.json();
@@ -2018,7 +2018,7 @@ describe('hooks with createApi defaults set', () => {
     })
 
     interface Post {
-      id: string
+      id: number
       name: string
       fetched_at: string
     }
@@ -2092,7 +2092,7 @@ describe('hooks with createApi defaults set', () => {
       function SelectedPost() {
         const { post } = api.endpoints.getPosts.useQueryState(undefined, {
           selectFromResult: ({ data }) => ({
-            post: data?.find((post) => post.id === 1 as any),
+            post: data?.find((post) => post.id === 1),
           }),
         })
         getRenderCount = useRenderCounter()
@@ -2171,7 +2171,7 @@ describe('hooks with createApi defaults set', () => {
             isSuccess,
             isError,
           }) => ({
-            post: data?.find((post) => post.id === 1 as any),
+            post: data?.find((post) => post.id === 1),
             isUninitialized,
             isLoading,
             isFetching,
@@ -2228,7 +2228,7 @@ describe('hooks with createApi defaults set', () => {
         getRenderCount = useRenderCounter()
         const { post } = api.endpoints.getPosts.useQuery(undefined, {
           selectFromResult: ({ data }) => ({
-            post: data?.find((post) => post.id === 1 as any),
+            post: data?.find((post) => post.id === 1),
           }),
         })
 
@@ -2277,7 +2277,7 @@ describe('hooks with createApi defaults set', () => {
             </button>
             <button
               data-testid="updatePost"
-              onClick={() => updatePost({ id: 1, name: 'supercoooll!' } as any)}
+              onClick={() => updatePost({ id: 1, name: 'supercoooll!' })}
             >
               Update post
             </button>
@@ -2288,7 +2288,7 @@ describe('hooks with createApi defaults set', () => {
       function SelectedPost() {
         const { post } = api.endpoints.getPosts.useQuery(undefined, {
           selectFromResult: ({ data }) => ({
-            post: data?.find((post) => post.id === 1 as any),
+            post: data?.find((post) => post.id === 1),
           }),
         })
         getRenderCount = useRenderCounter()
