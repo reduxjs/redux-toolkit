@@ -1,6 +1,11 @@
 import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
 import type { BaseQueryFn } from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { rest } from 'msw'
+import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
+import axios from 'axios'
+import { expectExactType, hookWaitFor, setupApiStore } from './helpers'
+import { server } from './mocks/server'
 import {
   act,
   fireEvent,
@@ -35,10 +40,8 @@ const api = createApi({
 
 const storeRef = setupApiStore(api)
 
-const failQueryOnce = http.get(
-  '/query',
-  () => HttpResponse.json({ value: 'failed' }, { status: 500 }),
-  { once: true }
+const failQueryOnce = rest.get('/query', (_, req, ctx) =>
+  req.once(ctx.status(500), ctx.json({ value: 'failed' }))
 )
 
 describe('fetchBaseQuery', () => {
@@ -88,8 +91,8 @@ describe('fetchBaseQuery', () => {
 describe('query error handling', () => {
   test('success', async () => {
     server.use(
-      http.get('https://example.com/query', () =>
-        HttpResponse.json({ value: 'success' })
+      rest.get('https://example.com/query', (_, res, ctx) =>
+        res(ctx.json({ value: 'success' }))
       )
     )
     const { result } = renderHook(() => api.endpoints.query.useQuery({}), {
@@ -109,8 +112,8 @@ describe('query error handling', () => {
 
   test('error', async () => {
     server.use(
-      http.get('https://example.com/query', () =>
-        HttpResponse.json({ value: 'error' }, { status: 500 })
+      rest.get('https://example.com/query', (_, res, ctx) =>
+        res(ctx.status(500), ctx.json({ value: 'error' }))
       )
     )
     const { result } = renderHook(() => api.endpoints.query.useQuery({}), {
@@ -133,8 +136,8 @@ describe('query error handling', () => {
 
   test('success -> error', async () => {
     server.use(
-      http.get('https://example.com/query', () =>
-        HttpResponse.json({ value: 'success' })
+      rest.get('https://example.com/query', (_, res, ctx) =>
+        res(ctx.json({ value: 'success' }))
       )
     )
     const { result } = renderHook(() => api.endpoints.query.useQuery({}), {
@@ -152,10 +155,8 @@ describe('query error handling', () => {
     )
 
     server.use(
-      http.get(
-        'https://example.com/query',
-        () => HttpResponse.json({ value: 'error' }, { status: 500 }),
-        { once: true }
+      rest.get('https://example.com/query', (_, res, ctx) =>
+        res.once(ctx.status(500), ctx.json({ value: 'error' }))
       )
     )
 
@@ -179,15 +180,13 @@ describe('query error handling', () => {
 
   test('error -> success', async () => {
     server.use(
-      http.get('https://example.com/query', () =>
-        HttpResponse.json({ value: 'success' })
+      rest.get('https://example.com/query', (_, res, ctx) =>
+        res(ctx.json({ value: 'success' }))
       )
     )
     server.use(
-      http.get(
-        'https://example.com/query',
-        () => HttpResponse.json({ value: 'error' }, { status: 500 }),
-        { once: true }
+      rest.get('https://example.com/query', (_, res, ctx) =>
+        res.once(ctx.status(500), ctx.json({ value: 'error' }))
       )
     )
     const { result } = renderHook(() => api.endpoints.query.useQuery({}), {
@@ -224,8 +223,8 @@ describe('query error handling', () => {
 describe('mutation error handling', () => {
   test('success', async () => {
     server.use(
-      http.post('https://example.com/mutation', () =>
-        HttpResponse.json({ value: 'success' })
+      rest.post('https://example.com/mutation', (_, res, ctx) =>
+        res(ctx.json({ value: 'success' }))
       )
     )
     const { result } = renderHook(() => api.endpoints.mutation.useMutation(), {
@@ -249,8 +248,8 @@ describe('mutation error handling', () => {
 
   test('error', async () => {
     server.use(
-      http.post('https://example.com/mutation', () =>
-        HttpResponse.json({ value: 'error' }, { status: 500 })
+      rest.post('https://example.com/mutation', (_, res, ctx) =>
+        res(ctx.status(500), ctx.json({ value: 'error' }))
       )
     )
     const { result } = renderHook(() => api.endpoints.mutation.useMutation(), {
@@ -277,8 +276,8 @@ describe('mutation error handling', () => {
 
   test('success -> error', async () => {
     server.use(
-      http.post('https://example.com/mutation', () =>
-        HttpResponse.json({ value: 'success' })
+      rest.post('https://example.com/mutation', (_, res, ctx) =>
+        res(ctx.json({ value: 'success' }))
       )
     )
     const { result } = renderHook(() => api.endpoints.mutation.useMutation(), {
@@ -302,10 +301,8 @@ describe('mutation error handling', () => {
     }
 
     server.use(
-      http.post(
-        'https://example.com/mutation',
-        () => HttpResponse.json({ value: 'error' }, { status: 500 }),
-        { once: true }
+      rest.post('https://example.com/mutation', (_, res, ctx) =>
+        res.once(ctx.status(500), ctx.json({ value: 'error' }))
       )
     )
 
@@ -332,15 +329,13 @@ describe('mutation error handling', () => {
 
   test('error -> success', async () => {
     server.use(
-      http.post('https://example.com/mutation', () =>
-        HttpResponse.json({ value: 'success' })
+      rest.post('https://example.com/mutation', (_, res, ctx) =>
+        res(ctx.json({ value: 'success' }))
       )
     )
     server.use(
-      http.post(
-        'https://example.com/mutation',
-        () => HttpResponse.json({ value: 'error' }, { status: 500 }),
-        { once: true }
+      rest.post('https://example.com/mutation', (_, res, ctx) =>
+        res.once(ctx.status(500), ctx.json({ value: 'error' }))
       )
     )
 
@@ -453,8 +448,8 @@ describe('custom axios baseQuery', () => {
 
   test('axios errors behave as expected', async () => {
     server.use(
-      http.get('https://example.com/success', () =>
-        HttpResponse.json({ value: 'error' }, { status: 500 })
+      rest.get('https://example.com/success', (_, res, ctx) =>
+        res(ctx.status(500), ctx.json({ value: 'error' }))
       )
     )
     const { result } = renderHook(() => api.endpoints.query.useQuery(), {
@@ -492,10 +487,8 @@ describe('error handling in a component', () => {
 
   test('a mutation is unwrappable and has the correct types', async () => {
     server.use(
-      http.get(
-        'https://example.com/success',
-        () => HttpResponse.json(mockErrorResponse, { status: 500 }),
-        { once: true }
+      rest.get('https://example.com/success', (_, res, ctx) =>
+        res.once(ctx.status(500), ctx.json(mockErrorResponse))
       )
     )
 

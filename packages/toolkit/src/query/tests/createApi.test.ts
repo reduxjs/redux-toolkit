@@ -1,40 +1,33 @@
 import type { SerializedError } from '@reduxjs/toolkit'
 import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
-import type {
-  FetchBaseQueryError,
-  FetchBaseQueryMeta,
-} from '@reduxjs/toolkit/dist/query/fetchBaseQuery'
+import type { SpyInstance } from 'vitest'
+import { vi } from 'vitest'
 import type {
   Api,
   MutationDefinition,
   QueryDefinition,
 } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import type { MockInstance } from 'vitest'
-
 import type {
-  DefinitionsFromApi,
-  OverrideResultType,
-  TagTypesFromApi,
-} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
-import { HttpResponse, delay, http } from 'msw'
-import nodeFetch from 'node-fetch'
+  FetchBaseQueryError,
+  FetchBaseQueryMeta,
+} from '@reduxjs/toolkit/dist/query/fetchBaseQuery'
+
 import {
   ANY,
-  getSerializedHeaders,
+  expectType,
+  expectExactType,
   setupApiStore,
-} from '../../tests/utils/helpers'
-import { expectExactType, expectType } from '../../tests/utils/typeTestHelpers'
-import type { SerializeQueryArgs } from '../defaultSerializeQueryArgs'
+  waitMs,
+  getSerializedHeaders,
+} from './helpers'
 import { server } from './mocks/server'
 
-beforeAll(() => {
-  vi.stubEnv('NODE_ENV', 'development')
+const originalEnv = process.env.NODE_ENV
+beforeAll(() => void ((process.env as any).NODE_ENV = 'development'))
+afterAll(() => void ((process.env as any).NODE_ENV = originalEnv))
 
-  return vi.unstubAllEnvs
-})
-
-let spy: MockInstance
+let spy: SpyInstance
 beforeAll(() => {
   spy = vi.spyOn(console, 'error').mockImplementation(() => {})
 })
@@ -650,12 +643,11 @@ describe('additional transformResponse behaviors', () => {
       query: build.query<SuccessResponse & EchoResponseData, void>({
         query: () => '/success',
         transformResponse: async (response: SuccessResponse) => {
-          const res: any = await nodeFetch('https://example.com/echo', {
+          const res = await fetch('https://example.com/echo', {
             method: 'POST',
             body: JSON.stringify({ banana: 'bread' }),
           }).then((res) => res.json())
-
-          const additionalData = res.body as EchoResponseData
+          const additionalData = JSON.parse(res.body) as EchoResponseData
           return { ...response, ...additionalData }
         },
       }),
@@ -716,6 +708,7 @@ describe('additional transformResponse behaviors', () => {
         response: {
           headers: {
             'content-type': 'application/json',
+            'x-powered-by': 'msw',
           },
         },
       },
@@ -736,6 +729,7 @@ describe('additional transformResponse behaviors', () => {
         response: {
           headers: {
             'content-type': 'application/json',
+            'x-powered-by': 'msw',
           },
         },
       },
@@ -793,10 +787,8 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
   test('query lifecycle events fire properly', async () => {
     // We intentionally fail the first request so we can test all lifecycles
     server.use(
-      http.get(
-        'https://example.com/success',
-        () => HttpResponse.json({ value: 'failed' }, { status: 500 }),
-        { once: true }
+      rest.get('https://example.com/success', (_, res, ctx) =>
+        res.once(ctx.status(500), ctx.json({ value: 'failed' }))
       )
     )
 
@@ -819,10 +811,8 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
   test('mutation lifecycle events fire properly', async () => {
     // We intentionally fail the first request so we can test all lifecycles
     server.use(
-      http.post(
-        'https://example.com/success',
-        () => HttpResponse.json({ value: 'failed' }, { status: 500 }),
-        { once: true }
+      rest.post('https://example.com/success', (_, res, ctx) =>
+        res.once(ctx.status(500), ctx.json({ value: 'failed' }))
       )
     )
 
@@ -946,7 +936,7 @@ describe('custom serializeQueryArgs per endpoint', () => {
   }
 
   const dummyClient: MyApiClient = {
-    async fetchPost() {
+    async fetchPost(id) {
       return { value: 'success' }
     },
   }
@@ -1107,13 +1097,12 @@ describe('custom serializeQueryArgs per endpoint', () => {
     const PAGE_SIZE = 3
 
     server.use(
-      http.get('https://example.com/listItems', ({ request }) => {
-        const url = new URL(request.url)
-        const pageString = url.searchParams.get('page')
+      rest.get('https://example.com/listItems', (req, res, ctx) => {
+        const pageString = req.url.searchParams.get('page')
         const pageNum = parseInt(pageString || '0')
 
         const results = paginate(allItems, PAGE_SIZE, pageNum)
-        return HttpResponse.json(results)
+        return res(ctx.json(results))
       })
     )
 
@@ -1136,13 +1125,12 @@ describe('custom serializeQueryArgs per endpoint', () => {
     const PAGE_SIZE = 3
 
     server.use(
-      http.get('https://example.com/listItems2', ({ request }) => {
-        const url = new URL(request.url)
-        const pageString = url.searchParams.get('page')
+      rest.get('https://example.com/listItems2', (req, res, ctx) => {
+        const pageString = req.url.searchParams.get('page')
         const pageNum = parseInt(pageString || '0')
 
         const results = paginate(allItems, PAGE_SIZE, pageNum)
-        return HttpResponse.json(results)
+        return res(ctx.json(results))
       })
     )
 
