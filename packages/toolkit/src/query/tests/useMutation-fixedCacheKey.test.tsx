@@ -6,10 +6,9 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react'
-import { delay } from 'msw'
 import React from 'react'
 import { vi } from 'vitest'
-import { setupApiStore } from '../../tests/utils/helpers'
+import { setupApiStore, waitMs } from '../../tests/utils/helpers'
 
 describe('fixedCacheKey', () => {
   const onNewCacheEntry = vi.fn()
@@ -343,7 +342,7 @@ describe('fixedCacheKey', () => {
       await Promise.resolve()
     })
 
-    await delay(150)
+    await waitMs()
 
     expect(getByTestId(c1, 'status').textContent).toBe('pending')
     expect(getByTestId(c1, 'data').textContent).toBe('')
@@ -353,7 +352,7 @@ describe('fixedCacheKey', () => {
       await Promise.resolve()
     })
 
-    await delay(150)
+    await waitMs()
 
     expect(getByTestId(c1, 'status').textContent).toBe('fulfilled')
     expect(getByTestId(c1, 'data').textContent).toBe('this should be visible')
