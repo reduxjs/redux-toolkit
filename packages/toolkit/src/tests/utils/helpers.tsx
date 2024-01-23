@@ -30,6 +30,12 @@ declare module 'vitest' {
   interface AsymmetricMatchersContaining extends CustomMatchers {}
 }
 
+declare global {
+  namespace jest {
+    interface Matchers<R> extends CustomMatchers<R> {}
+  }
+}
+
 export const ANY = 0 as any
 
 export const DEFAULT_DELAY_MS = 150
