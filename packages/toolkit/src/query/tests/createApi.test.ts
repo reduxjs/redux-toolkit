@@ -681,7 +681,6 @@ describe('additional transformResponse behaviors', () => {
 
   test('transformResponse handles an async transformation and returns the merged data (query)', async () => {
     const result = await storeRef.store.dispatch(api.endpoints.query.initiate())
-    console.log(result)
 
     expect(result.data).toEqual({ value: 'success', banana: 'bread' })
   })
@@ -718,7 +717,6 @@ describe('additional transformResponse behaviors', () => {
         response: {
           headers: {
             'content-type': 'application/json',
-            // 'x-powered-by': 'msw',
           },
         },
       },
@@ -739,7 +737,6 @@ describe('additional transformResponse behaviors', () => {
         response: {
           headers: {
             'content-type': 'application/json',
-            // 'x-powered-by': 'msw',
           },
         },
       },
