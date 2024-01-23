@@ -8,7 +8,7 @@ import type {
 import { fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { expectType, setupApiStore } from './helpers'
 import { server } from './mocks/server'
-import { rest } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
@@ -398,9 +398,9 @@ test('query: updateCachedData', async () => {
   // request 2: error
   expect(onError).not.toHaveBeenCalled()
   server.use(
-    rest.get('https://example.com/success', (_, req, ctx) =>
-      req.once(ctx.status(500), ctx.json({ value: 'failed' }))
-    )
+    http.get('https://example.com/success', () => {
+      return HttpResponse.json({ value: 'failed' }, {status: 500})
+    }, {once: true}),
   )
   storeRef.store.dispatch(
     extended.endpoints.injected.initiate('arg', { forceRefetch: true })

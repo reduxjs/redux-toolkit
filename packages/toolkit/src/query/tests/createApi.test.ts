@@ -1,35 +1,35 @@
 import type { SerializedError } from '@reduxjs/toolkit'
 import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
-import type { SpyInstance } from 'vitest'
-import { vi } from 'vitest'
+import type {
+  FetchBaseQueryError,
+  FetchBaseQueryMeta,
+} from '@reduxjs/toolkit/dist/query/fetchBaseQuery'
 import type {
   Api,
   MutationDefinition,
   QueryDefinition,
 } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import type {
-  FetchBaseQueryError,
-  FetchBaseQueryMeta,
-} from '@reduxjs/toolkit/dist/query/fetchBaseQuery'
+import type { SpyInstance } from 'vitest'
+import { vi } from 'vitest'
 
-import {
-  ANY,
-  expectType,
-  expectExactType,
-  setupApiStore,
-  waitMs,
-  getSerializedHeaders,
-} from './helpers'
-import { server } from './mocks/server'
-import { rest } from 'msw'
-import type { SerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import { string } from 'yargs'
 import type {
   DefinitionsFromApi,
   OverrideResultType,
   TagTypesFromApi,
 } from '@reduxjs/toolkit/dist/query/endpointDefinitions'
+import { HttpResponse, http } from 'msw'
+import nodeFetch from 'node-fetch'
+import type { SerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import {
+  ANY,
+  expectExactType,
+  expectType,
+  getSerializedHeaders,
+  setupApiStore,
+  waitMs,
+} from './helpers'
+import { server } from './mocks/server'
 
 const originalEnv = process.env.NODE_ENV
 beforeAll(() => void ((process.env as any).NODE_ENV = 'development'))
@@ -651,11 +651,12 @@ describe('additional transformResponse behaviors', () => {
       query: build.query<SuccessResponse & EchoResponseData, void>({
         query: () => '/success',
         transformResponse: async (response: SuccessResponse) => {
-          const res = await fetch('https://example.com/echo', {
+          const res: any = await nodeFetch('https://example.com/echo', {
             method: 'POST',
             body: JSON.stringify({ banana: 'bread' }),
           }).then((res) => res.json())
-          const additionalData = JSON.parse(res.body) as EchoResponseData
+
+          const additionalData = res.body as EchoResponseData
           return { ...response, ...additionalData }
         },
       }),
@@ -680,6 +681,7 @@ describe('additional transformResponse behaviors', () => {
 
   test('transformResponse handles an async transformation and returns the merged data (query)', async () => {
     const result = await storeRef.store.dispatch(api.endpoints.query.initiate())
+    console.log(result)
 
     expect(result.data).toEqual({ value: 'success', banana: 'bread' })
   })
@@ -716,7 +718,7 @@ describe('additional transformResponse behaviors', () => {
         response: {
           headers: {
             'content-type': 'application/json',
-            'x-powered-by': 'msw',
+            // 'x-powered-by': 'msw',
           },
         },
       },
@@ -737,7 +739,7 @@ describe('additional transformResponse behaviors', () => {
         response: {
           headers: {
             'content-type': 'application/json',
-            'x-powered-by': 'msw',
+            // 'x-powered-by': 'msw',
           },
         },
       },
@@ -795,8 +797,10 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
   test('query lifecycle events fire properly', async () => {
     // We intentionally fail the first request so we can test all lifecycles
     server.use(
-      rest.get('https://example.com/success', (_, res, ctx) =>
-        res.once(ctx.status(500), ctx.json({ value: 'failed' }))
+      http.get(
+        'https://example.com/success',
+        () => HttpResponse.json({ value: 'failed' }, { status: 500 }),
+        { once: true }
       )
     )
 
@@ -819,8 +823,10 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
   test('mutation lifecycle events fire properly', async () => {
     // We intentionally fail the first request so we can test all lifecycles
     server.use(
-      rest.post('https://example.com/success', (_, res, ctx) =>
-        res.once(ctx.status(500), ctx.json({ value: 'failed' }))
+      http.post(
+        'https://example.com/success',
+        () => HttpResponse.json({ value: 'failed' }, { status: 500 }),
+        { once: true }
       )
     )
 
@@ -944,7 +950,7 @@ describe('custom serializeQueryArgs per endpoint', () => {
   }
 
   const dummyClient: MyApiClient = {
-    async fetchPost(id) {
+    async fetchPost() {
       return { value: 'success' }
     },
   }
@@ -1105,12 +1111,13 @@ describe('custom serializeQueryArgs per endpoint', () => {
     const PAGE_SIZE = 3
 
     server.use(
-      rest.get('https://example.com/listItems', (req, res, ctx) => {
-        const pageString = req.url.searchParams.get('page')
+      http.get('https://example.com/listItems', ({ request }) => {
+        const url = new URL(request.url)
+        const pageString = url.searchParams.get('page')
         const pageNum = parseInt(pageString || '0')
 
         const results = paginate(allItems, PAGE_SIZE, pageNum)
-        return res(ctx.json(results))
+        return HttpResponse.json(results)
       })
     )
 
@@ -1133,12 +1140,13 @@ describe('custom serializeQueryArgs per endpoint', () => {
     const PAGE_SIZE = 3
 
     server.use(
-      rest.get('https://example.com/listItems2', (req, res, ctx) => {
-        const pageString = req.url.searchParams.get('page')
+      http.get('https://example.com/listItems2', ({ request }) => {
+        const url = new URL(request.url)
+        const pageString = url.searchParams.get('page')
         const pageNum = parseInt(pageString || '0')
 
         const results = paginate(allItems, PAGE_SIZE, pageNum)
-        return res(ctx.json(results))
+        return HttpResponse.json(results)
       })
     )
 

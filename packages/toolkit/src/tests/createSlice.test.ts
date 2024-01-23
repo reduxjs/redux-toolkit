@@ -56,6 +56,13 @@ describe('createSlice', () => {
   })
 
   describe('when initial state is undefined', () => {
+    beforeEach(() => {
+
+      vi.stubEnv('NODE_ENV', 'development')
+
+      return vi.unstubAllEnvs
+    })
+
     it('should throw an error', () => {
       createSlice({
         name: 'test',
