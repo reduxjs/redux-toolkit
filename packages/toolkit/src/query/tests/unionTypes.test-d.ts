@@ -1,15 +1,15 @@
 import type { SerializedError } from '@reduxjs/toolkit'
 import type {
   FetchBaseQueryError,
+  TypedUseMutationResult,
   TypedUseQueryHookResult,
   TypedUseQueryStateResult,
   TypedUseQuerySubscriptionResult,
-  TypedUseMutationResult,
 } from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { expectExactType, expectType } from './helpers'
 
 const baseQuery = fetchBaseQuery()
+
 const api = createApi({
   baseQuery,
   endpoints: (build) => ({
@@ -18,47 +18,66 @@ const api = createApi({
   }),
 })
 
-describe.skip('TS only tests', () => {
+describe('union types', () => {
   test('query selector union', () => {
     const result = api.endpoints.test.select()({} as any)
 
     if (result.isUninitialized) {
-      expectExactType(undefined)(result.data)
-      expectExactType(undefined)(result.error)
+      expectTypeOf(result.data).toBeUndefined()
 
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
+      expectTypeOf(result.error).toBeUndefined()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
     }
+
     if (result.isLoading) {
-      expectExactType('' as string | undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectTypeOf(result.data).toBeNullable()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
+      expectTypeOf(result.data).toEqualTypeOf<string | undefined>()
+
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError | undefined
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
     }
+
     if (result.isError) {
-      expectExactType('' as string | undefined)(result.data)
-      expectExactType({} as SerializedError | FetchBaseQueryError)(result.error)
+      expectTypeOf(result.data).toEqualTypeOf<string | undefined>()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isSuccess)
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
     }
+
     if (result.isSuccess) {
-      expectExactType('' as string)(result.data)
-      expectExactType(undefined)(result.error)
+      expectTypeOf(result.data).toBeString()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
+      expectTypeOf(result.error).toBeUndefined()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
     }
 
-    // @ts-expect-error
-    expectType<never>(result)
+    expectTypeOf(result).not.toBeNever()
+
     // is always one of those four
     if (
       !result.isUninitialized &&
@@ -66,78 +85,103 @@ describe.skip('TS only tests', () => {
       !result.isError &&
       !result.isSuccess
     ) {
-      expectType<never>(result)
+      expectTypeOf(result).toBeNever()
     }
   })
   test('useQuery union', () => {
     const result = api.endpoints.test.useQuery()
 
     if (result.isUninitialized) {
-      expectExactType(undefined)(result.data)
-      expectExactType(undefined)(result.error)
+      expectTypeOf(result.data).toBeUndefined()
 
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as false)(result.isFetching)
+      expectTypeOf(result.error).toBeUndefined()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isFetching).toEqualTypeOf<false>()
     }
+
     if (result.isLoading) {
-      expectExactType(undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectTypeOf(result.data).toBeUndefined()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as boolean)(result.isFetching)
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError | undefined
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isFetching).toBeBoolean()
     }
-    if (result.isError) {
-      expectExactType('' as string | undefined)(result.data)
-      expectExactType({} as SerializedError | FetchBaseQueryError)(result.error)
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as false)(result.isFetching)
+    if (result.isError) {
+      expectTypeOf(result.data).toEqualTypeOf<string | undefined>()
+
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isFetching).toEqualTypeOf<false>()
     }
     if (result.isSuccess) {
-      expectExactType('' as string)(result.data)
-      expectExactType(undefined)(result.error)
+      expectTypeOf(result.data).toBeString()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as boolean)(result.isFetching)
+      expectTypeOf(result.error).toBeUndefined()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isFetching).toBeBoolean()
     }
+
     if (result.isFetching) {
-      expectExactType('' as string | undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectTypeOf(result.data).toEqualTypeOf<string | undefined>()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as boolean)(result.isLoading)
-      expectExactType(false as boolean)(result.isSuccess)
-      expectExactType(false as false)(result.isError)
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError | undefined
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toBeBoolean()
+
+      expectTypeOf(result.isSuccess).toBeBoolean()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
     }
 
-    expectExactType('' as string | undefined)(result.currentData)
-    // @ts-expect-error
-    expectExactType('' as string)(result.currentData)
+    expectTypeOf(result.currentData).toEqualTypeOf<string | undefined>()
+
+    expectTypeOf(result.currentData).not.toBeString()
 
     if (result.isSuccess) {
       if (!result.isFetching) {
-        expectExactType('' as string)(result.currentData)
+        expectTypeOf(result.currentData).toBeString()
       } else {
-        expectExactType('' as string | undefined)(result.currentData)
-        // @ts-expect-error
-        expectExactType('' as string)(result.currentData)
+        expectTypeOf(result.currentData).toEqualTypeOf<string | undefined>()
+
+        expectTypeOf(result.currentData).not.toBeString()
       }
     }
 
-    // @ts-expect-error
-    expectType<never>(result)
+    expectTypeOf(result).not.toBeNever()
+
     // is always one of those four
     if (
       !result.isUninitialized &&
@@ -145,64 +189,90 @@ describe.skip('TS only tests', () => {
       !result.isError &&
       !result.isSuccess
     ) {
-      expectType<never>(result)
+      expectTypeOf(result).toBeNever()
     }
   })
   test('useQuery TS4.1 union', () => {
     const result = api.useTestQuery()
 
     if (result.isUninitialized) {
-      expectExactType(undefined)(result.data)
-      expectExactType(undefined)(result.error)
+      expectTypeOf(result.data).toBeUndefined()
 
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as false)(result.isFetching)
+      expectTypeOf(result.error).toBeUndefined()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isFetching).toEqualTypeOf<false>()
     }
+
     if (result.isLoading) {
-      expectExactType(undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectTypeOf(result.data).toBeUndefined()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as boolean)(result.isFetching)
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError | undefined
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isFetching).toBeBoolean()
     }
+
     if (result.isError) {
-      expectExactType('' as string | undefined)(result.data)
-      expectExactType({} as SerializedError | FetchBaseQueryError)(result.error)
+      expectTypeOf(result.data).toEqualTypeOf<string | undefined>()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as false)(result.isFetching)
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isFetching).toEqualTypeOf<false>()
     }
+
     if (result.isSuccess) {
-      expectExactType('' as string)(result.data)
-      expectExactType(undefined)(result.error)
+      expectTypeOf(result.data).toBeString()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as boolean)(result.isFetching)
+      expectTypeOf(result.error).toBeUndefined()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isFetching).toBeBoolean()
     }
+
     if (result.isFetching) {
-      expectExactType('' as string | undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectTypeOf(result.data).toEqualTypeOf<string | undefined>()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as boolean)(result.isLoading)
-      expectExactType(false as boolean)(result.isSuccess)
-      expectExactType(false as false)(result.isError)
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError | undefined
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toBeBoolean()
+
+      expectTypeOf(result.isSuccess).toBeBoolean()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
     }
 
-    // @ts-expect-error
-    expectType<never>(result)
+    expectTypeOf(result).not.toBeNever()
+
     // is always one of those four
     if (
       !result.isUninitialized &&
@@ -210,7 +280,7 @@ describe.skip('TS only tests', () => {
       !result.isError &&
       !result.isSuccess
     ) {
-      expectType<never>(result)
+      expectTypeOf(result).toBeNever()
     }
   })
 
@@ -218,57 +288,82 @@ describe.skip('TS only tests', () => {
     const [_trigger, result] = api.endpoints.test.useLazyQuery()
 
     if (result.isUninitialized) {
-      expectExactType(undefined)(result.data)
-      expectExactType(undefined)(result.error)
+      expectTypeOf(result.data).toBeUndefined()
 
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as false)(result.isFetching)
+      expectTypeOf(result.error).toBeUndefined()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isFetching).toEqualTypeOf<false>()
     }
     if (result.isLoading) {
-      expectExactType(undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectTypeOf(result.data).toBeUndefined()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as boolean)(result.isFetching)
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError | undefined
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isFetching).toBeBoolean()
     }
+
     if (result.isError) {
-      expectExactType('' as string | undefined)(result.data)
-      expectExactType({} as SerializedError | FetchBaseQueryError)(result.error)
+      expectTypeOf(result.data).toEqualTypeOf<string | undefined>()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as false)(result.isFetching)
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isFetching).toEqualTypeOf<false>()
     }
+
     if (result.isSuccess) {
-      expectExactType('' as string)(result.data)
-      expectExactType(undefined)(result.error)
+      expectTypeOf(result.data).toBeString()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as boolean)(result.isFetching)
+      expectTypeOf(result.error).toBeUndefined()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isFetching).toBeBoolean()
     }
+
     if (result.isFetching) {
-      expectExactType('' as string | undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectTypeOf(result.data).toEqualTypeOf<string | undefined>()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as boolean)(result.isLoading)
-      expectExactType(false as boolean)(result.isSuccess)
-      expectExactType(false as false)(result.isError)
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError | undefined
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toBeBoolean()
+
+      expectTypeOf(result.isSuccess).toBeBoolean()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
     }
 
-    // @ts-expect-error
-    expectType<never>(result)
+    expectTypeOf(result).not.toBeNever()
+
     // is always one of those four
     if (
       !result.isUninitialized &&
@@ -276,7 +371,7 @@ describe.skip('TS only tests', () => {
       !result.isError &&
       !result.isSuccess
     ) {
-      expectType<never>(result)
+      expectTypeOf(result).toBeNever()
     }
   })
 
@@ -284,57 +379,83 @@ describe.skip('TS only tests', () => {
     const [_trigger, result] = api.useLazyTestQuery()
 
     if (result.isUninitialized) {
-      expectExactType(undefined)(result.data)
-      expectExactType(undefined)(result.error)
+      expectTypeOf(result.data).toBeUndefined()
 
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as false)(result.isFetching)
+      expectTypeOf(result.error).toBeUndefined()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isFetching).toEqualTypeOf<false>()
     }
+
     if (result.isLoading) {
-      expectExactType(undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectTypeOf(result.data).toBeUndefined()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as boolean)(result.isFetching)
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError | undefined
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isFetching).toBeBoolean()
     }
+
     if (result.isError) {
-      expectExactType('' as string | undefined)(result.data)
-      expectExactType({} as SerializedError | FetchBaseQueryError)(result.error)
+      expectTypeOf(result.data).toEqualTypeOf<string | undefined>()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isSuccess)
-      expectExactType(false as false)(result.isFetching)
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isFetching).toEqualTypeOf<false>()
     }
+
     if (result.isSuccess) {
-      expectExactType('' as string)(result.data)
-      expectExactType(undefined)(result.error)
+      expectTypeOf(result.data).toBeString()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as boolean)(result.isFetching)
+      expectTypeOf(result.error).toBeUndefined()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isFetching).toBeBoolean()
     }
+
     if (result.isFetching) {
-      expectExactType('' as string | undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectTypeOf(result.data).toEqualTypeOf<string | undefined>()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as boolean)(result.isLoading)
-      expectExactType(false as boolean)(result.isSuccess)
-      expectExactType(false as false)(result.isError)
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError | undefined
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toBeBoolean()
+
+      expectTypeOf(result.isSuccess).toBeBoolean()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
     }
 
-    // @ts-expect-error
-    expectType<never>(result)
+    expectTypeOf(result).not.toBeNever()
+
     // is always one of those four
     if (
       !result.isUninitialized &&
@@ -342,7 +463,7 @@ describe.skip('TS only tests', () => {
       !result.isError &&
       !result.isSuccess
     ) {
-      expectType<never>(result)
+      expectTypeOf(result).toBeNever()
     }
   })
 
@@ -357,14 +478,24 @@ describe.skip('TS only tests', () => {
     )
 
     const { refetch, ...useQueryResultWithoutMethods } = useQueryResult
-    expectExactType(useQueryStateResult)(useQueryResultWithoutMethods)
-    expectExactType(useQueryStateWithSelectFromResult)(
-      // @ts-expect-error
+
+    assertType<typeof useQueryResultWithoutMethods>(useQueryStateResult)
+
+    expectTypeOf(useQueryStateResult).toMatchTypeOf(
       useQueryResultWithoutMethods
     )
-    expectType<ReturnType<ReturnType<typeof api.endpoints.test.select>>>(
-      await refetch()
+
+    expectTypeOf(useQueryStateResult).not.toEqualTypeOf(
+      useQueryResultWithoutMethods
     )
+
+    expectTypeOf(useQueryStateWithSelectFromResult)
+      .parameter(0)
+      .not.toEqualTypeOf(useQueryResultWithoutMethods)
+
+    expectTypeOf(api.endpoints.test.select).returns.returns.toEqualTypeOf<
+      Awaited<ReturnType<typeof refetch>>
+    >()
   })
 
   test('useQueryState (with selectFromResult)', () => {
@@ -387,14 +518,15 @@ describe.skip('TS only tests', () => {
         }
       },
     })
-    expectExactType({
+
+    expectTypeOf({
       data: '' as string | number,
       isUninitialized: false,
       isLoading: true,
       isFetching: true,
       isSuccess: false,
       isError: false,
-    })(result)
+    }).toEqualTypeOf(result)
   })
 
   test('useQuery (with selectFromResult)', async () => {
@@ -417,60 +549,78 @@ describe.skip('TS only tests', () => {
         }
       },
     })
-    expectExactType({
+
+    expectTypeOf({
       data: '' as string | number,
       isUninitialized: false,
       isLoading: true,
       isFetching: true,
       isSuccess: false,
       isError: false,
-    })(result)
+    }).toEqualTypeOf(result)
 
-    expectType<ReturnType<ReturnType<typeof api.endpoints.test.select>>>(
-      await refetch()
-    )
+    expectTypeOf(api.endpoints.test.select).returns.returns.toEqualTypeOf<
+      Awaited<ReturnType<typeof refetch>>
+    >()
   })
 
   test('useMutation union', () => {
     const [_trigger, result] = api.endpoints.mutation.useMutation()
 
     if (result.isUninitialized) {
-      expectExactType(undefined)(result.data)
-      expectExactType(undefined)(result.error)
+      expectTypeOf(result.data).toBeUndefined()
 
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
+      expectTypeOf(result.error).toBeUndefined()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
     }
+
     if (result.isLoading) {
-      expectExactType(undefined as undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectTypeOf(result.data).toBeUndefined()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError | undefined
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
     }
+
     if (result.isError) {
-      expectExactType('' as string | undefined)(result.data)
-      expectExactType({} as SerializedError | FetchBaseQueryError)(result.error)
+      expectTypeOf(result.data).toEqualTypeOf<string | undefined>()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isSuccess)
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
     }
+
     if (result.isSuccess) {
-      expectExactType('' as string)(result.data)
-      expectExactType(undefined)(result.error)
+      expectTypeOf(result.data).toBeString()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
+      expectTypeOf(result.error).toBeUndefined()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
     }
 
-    // @ts-expect-error
-    expectType<never>(result)
+    expectTypeOf(result).not.toBeNever()
+
     // is always one of those four
     if (
       !result.isUninitialized &&
@@ -478,7 +628,7 @@ describe.skip('TS only tests', () => {
       !result.isError &&
       !result.isSuccess
     ) {
-      expectType<never>(result)
+      expectTypeOf(result).toBeNever()
     }
   })
 
@@ -500,56 +650,74 @@ describe.skip('TS only tests', () => {
         }
       },
     })
-    expectExactType({
+
+    expectTypeOf({
       data: '' as string,
       isUninitialized: false,
       isLoading: true,
       isSuccess: false,
       isError: false,
       reset: () => {},
-    })(result)
+    }).toMatchTypeOf(result)
   })
 
   test('useMutation TS4.1 union', () => {
     const [_trigger, result] = api.useMutationMutation()
 
     if (result.isUninitialized) {
-      expectExactType(undefined)(result.data)
-      expectExactType(undefined)(result.error)
+      expectTypeOf(result.data).toBeUndefined()
 
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
+      expectTypeOf(result.error).toBeUndefined()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
     }
+
     if (result.isLoading) {
-      expectExactType(undefined as undefined)(result.data)
-      expectExactType(
-        undefined as SerializedError | FetchBaseQueryError | undefined
-      )(result.error)
+      expectTypeOf(result.data).toBeUndefined()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isError)
-      expectExactType(false as false)(result.isSuccess)
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError | undefined
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
     }
+
     if (result.isError) {
-      expectExactType('' as string | undefined)(result.data)
-      expectExactType({} as SerializedError | FetchBaseQueryError)(result.error)
+      expectTypeOf(result.data).toEqualTypeOf<string | undefined>()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isSuccess)
+      expectTypeOf(result.error).toEqualTypeOf<
+        SerializedError | FetchBaseQueryError
+      >()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isSuccess).toEqualTypeOf<false>()
     }
+
     if (result.isSuccess) {
-      expectExactType('' as string)(result.data)
-      expectExactType(undefined)(result.error)
+      expectTypeOf(result.data).toBeString()
 
-      expectExactType(false as false)(result.isUninitialized)
-      expectExactType(false as false)(result.isLoading)
-      expectExactType(false as false)(result.isError)
+      expectTypeOf(result.error).toBeUndefined()
+
+      expectTypeOf(result.isUninitialized).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isLoading).toEqualTypeOf<false>()
+
+      expectTypeOf(result.isError).toEqualTypeOf<false>()
     }
 
-    // @ts-expect-error
-    expectType<never>(result)
+    expectTypeOf(result).not.toBeNever()
+
     // is always one of those four
     if (
       !result.isUninitialized &&
@@ -557,55 +725,68 @@ describe.skip('TS only tests', () => {
       !result.isError &&
       !result.isSuccess
     ) {
-      expectType<never>(result)
+      expectTypeOf(result).toBeNever()
     }
   })
+})
 
-  test('"Typed" helper types', () => {
-    // useQuery
-    {
-      const result = api.endpoints.test.useQuery()
-      expectType<TypedUseQueryHookResult<string, void, typeof baseQuery>>(
-        result
-      )
-    }
-    // useQuery with selectFromResult
-    {
-      const result = api.endpoints.test.useQuery(undefined, {
-        selectFromResult: () => ({ x: true }),
-      })
-      expectType<
-        TypedUseQueryHookResult<string, void, typeof baseQuery, { x: boolean }>
-      >(result)
-    }
-    // useQueryState
-    {
-      const result = api.endpoints.test.useQueryState()
-      expectType<TypedUseQueryStateResult<string, void, typeof baseQuery>>(
-        result
-      )
-    }
-    // useQueryState with selectFromResult
-    {
-      const result = api.endpoints.test.useQueryState(undefined, {
-        selectFromResult: () => ({ x: true }),
-      })
-      expectType<
-        TypedUseQueryStateResult<string, void, typeof baseQuery, { x: boolean }>
-      >(result)
-    }
-    // useQuerySubscription
-    {
-      const result = api.endpoints.test.useQuerySubscription()
-      expectType<
-        TypedUseQuerySubscriptionResult<string, void, typeof baseQuery>
-      >(result)
-    }
+describe('"Typed" helper types', () => {
+  test('useQuery', () => {
+    const result = api.endpoints.test.useQuery()
 
-    // useMutation
-    {
-      const [trigger, result] = api.endpoints.mutation.useMutation()
-      expectType<TypedUseMutationResult<string, void, typeof baseQuery>>(result)
-    }
+    expectTypeOf<
+      TypedUseQueryHookResult<string, void, typeof baseQuery>
+    >().toEqualTypeOf(result)
+  })
+
+  test('useQuery with selectFromResult', () => {
+    const result = api.endpoints.test.useQuery(undefined, {
+      selectFromResult: () => ({ x: true }),
+    })
+
+    expectTypeOf<
+      TypedUseQueryHookResult<string, void, typeof baseQuery, { x: boolean }>
+    >().toEqualTypeOf(result)
+  })
+
+  test('useQueryState', () => {
+    const result = api.endpoints.test.useQueryState()
+
+    expectTypeOf<
+      TypedUseQueryStateResult<string, void, typeof baseQuery>
+    >().toEqualTypeOf(result)
+  })
+
+  test('useQueryState with selectFromResult', () => {
+    const result = api.endpoints.test.useQueryState(undefined, {
+      selectFromResult: () => ({ x: true }),
+    })
+
+    expectTypeOf<
+      TypedUseQueryStateResult<string, void, typeof baseQuery, { x: boolean }>
+    >().toEqualTypeOf(result)
+  })
+
+  test('useQuerySubscription', () => {
+    const result = api.endpoints.test.useQuerySubscription()
+
+    expectTypeOf<
+      TypedUseQuerySubscriptionResult<string, void, typeof baseQuery>
+    >().toEqualTypeOf(result)
+  })
+
+  test('useMutation', () => {
+    const [trigger, result] = api.endpoints.mutation.useMutation()
+
+    expectTypeOf<
+      TypedUseMutationResult<string, void, typeof baseQuery>
+    >().toMatchTypeOf(result)
+
+    // TODO: `TypedUseMutationResult` might need a closer look since here the result is assignable to it but they are not of equal types
+    expectTypeOf<
+      TypedUseMutationResult<string, void, typeof baseQuery>
+    >().not.toEqualTypeOf(result)
+
+    assertType<TypedUseMutationResult<string, void, typeof baseQuery>>(result)
   })
 })
