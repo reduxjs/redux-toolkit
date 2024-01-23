@@ -1,11 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import nodeFetch from 'node-fetch'
-import { setupApiStore, waitMs } from './helpers'
+import { setupApiStore } from './helpers'
 import { server } from './mocks/server'
 
 import { headersToObject } from 'headers-polyfill'
-import { HttpResponse, http } from 'msw'
+import { HttpResponse, delay, http } from 'msw'
 import queryString from 'query-string'
 import type { BaseQueryApi } from '../baseQueryTypes'
 
@@ -1050,9 +1050,11 @@ describe('fetchFn', () => {
 })
 
 describe('FormData', () => {
-  test.skip('sets the right headers when sending FormData', async () => {
+  test('sets the right headers when sending FormData', async () => {
     const body = new FormData()
+
     body.append('username', 'test')
+
     body.append(
       'file',
       new Blob([JSON.stringify({ hello: 'there' }, null, 2)], {
@@ -1065,7 +1067,9 @@ describe('FormData', () => {
       commonBaseQueryApi,
       {}
     )
+
     const request: any = res.data
+
     expect(request.headers['content-type']).not.toContain('application/json')
   })
 })

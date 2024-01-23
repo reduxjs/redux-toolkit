@@ -15,48 +15,47 @@ export const handlers = [
   http.get(
     'https://example.com/echo',
     async ({ request, params, cookies, requestId }) => {
-      return HttpResponse.json(
-        {
-          ...request,
-          params,
-          cookies,
-          requestId,
-          url: new URL(request.url),
-          headers: headersToObject(request.headers),
-        },
-        { headers: request.headers }
-      )
+      return HttpResponse.json({
+        ...request,
+        params,
+        cookies,
+        requestId,
+        url: new URL(request.url),
+        headers: headersToObject(request.headers),
+      })
     }
   ),
   http.post(
     'https://example.com/echo',
     async ({ request, cookies, params, requestId }) => {
-      const body = headersToObject(request.headers)['content-type'] === 'text/html'
-      ? await request.text()
-      : await request.json()
+      let body
 
-      return HttpResponse.json(
-        {
-          ...request,
-          cookies,
-          params,
-          requestId,
-          body,
-          url: new URL(request.url),
-          headers: request?.headers
-            ? headersToObject(request.headers)
-            : request?.headers,
-        },
-        { headers: request.headers }
-      )
+      try {
+        body =
+          headersToObject(request.headers)['content-type'] === 'text/html'
+            ? await request.text()
+            : await request.json()
+      } catch (err) {
+        body = request.body
+      }
+
+      return HttpResponse.json({
+        ...request,
+        cookies,
+        params,
+        requestId,
+        body,
+        url: new URL(request.url),
+        headers: headersToObject(request.headers),
+      })
     }
   ),
-  http.get('https://example.com/success', () => {
-    return HttpResponse.json({ value: 'success' })
-  }),
-  http.post('https://example.com/success', ({ request }) => {
-    return HttpResponse.json({ value: 'success' })
-  }),
+  http.get('https://example.com/success', () =>
+    HttpResponse.json({ value: 'success' })
+  ),
+  http.post('https://example.com/success', () =>
+    HttpResponse.json({ value: 'success' })
+  ),
   http.get('https://example.com/empty', () => new HttpResponse('')),
   http.get('https://example.com/error', () =>
     HttpResponse.json({ value: 'error' }, { status: 500 })
