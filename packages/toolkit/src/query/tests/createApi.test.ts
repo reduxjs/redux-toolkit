@@ -1,33 +1,42 @@
 import type { SerializedError } from '@reduxjs/toolkit'
 import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
-import type { SpyInstance } from 'vitest'
-import { vi } from 'vitest'
-import type {
-  Api,
-  MutationDefinition,
-  QueryDefinition,
-} from '@reduxjs/toolkit/query'
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import type {
   FetchBaseQueryError,
   FetchBaseQueryMeta,
 } from '@reduxjs/toolkit/dist/query/fetchBaseQuery'
+import type {
+  Api,
+  MutationDefinition,
+  QueryDefinition,
+  SerializeQueryArgs,
+} from '@reduxjs/toolkit/query'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import type { MockInstance } from 'vitest'
+import { vi } from 'vitest'
 
+import { rest } from 'msw'
 import {
   ANY,
-  expectType,
-  expectExactType,
-  setupApiStore,
-  waitMs,
   getSerializedHeaders,
-} from './helpers'
+  setupApiStore,
+} from '../../tests/utils/helpers'
+import { expectExactType, expectType } from '../../tests/utils/typeTestHelpers'
+import { delay } from '../../utils'
+import type {
+  DefinitionsFromApi,
+  OverrideResultType,
+  TagTypesFromApi,
+} from '../endpointDefinitions'
 import { server } from './mocks/server'
 
-const originalEnv = process.env.NODE_ENV
-beforeAll(() => void ((process.env as any).NODE_ENV = 'development'))
-afterAll(() => void ((process.env as any).NODE_ENV = originalEnv))
+beforeAll(() => {
+  vi.stubEnv('NODE_ENV', 'development')
 
-let spy: SpyInstance
+  return vi.unstubAllEnvs
+})
+
+let spy: MockInstance
+
 beforeAll(() => {
   spy = vi.spyOn(console, 'error').mockImplementation(() => {})
 })
