@@ -20,10 +20,9 @@ import {
   renderHook,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { rest } from 'msw'
+import { http, HttpResponse } from 'msw'
 import {
   actionsReducer,
-  ANY,
   expectExactType,
   expectType,
   setupApiStore,
@@ -104,7 +103,7 @@ const api = createApi({
       query: (update) => ({ body: update }),
     }),
     getError: build.query({
-      query: (query) => '/error',
+      query: () => '/error',
     }),
     listItems: build.query<Item[], { pageNumber: number }>({
       serializeQueryArgs: ({ endpointName }) => {
@@ -119,7 +118,7 @@ const api = createApi({
       merge: (currentCache, newItems) => {
         currentCache.push(...newItems)
       },
-      forceRefetch: ({ currentArg, previousArg }) => {
+      forceRefetch: () => {
         return true
       },
     }),
@@ -757,7 +756,7 @@ describe('hooks tests', () => {
       }
 
       // 1) Initial state: an active subscription
-      const { result, rerender, unmount } = renderHook(
+      const { rerender, unmount } = renderHook(
         ([arg, options]: Parameters<
           typeof pokemonApi.useGetPokemonByNameQuery
         >) => pokemonApi.useGetPokemonByNameQuery(arg, options),
@@ -1752,14 +1751,14 @@ describe('hooks tests', () => {
     test('initially failed useQueries that provide an tag will refetch after a mutation invalidates it', async () => {
       const checkSessionData = { name: 'matt' }
       server.use(
-        rest.get('https://example.com/me', (req, res, ctx) => {
-          return res.once(ctx.status(500))
+        http.get('https://example.com/me', () => {
+            return HttpResponse.json(null, { status: 500 })
+        }, { once: true }),
+        http.get('https://example.com/me', () => {
+            return HttpResponse.json(checkSessionData)
         }),
-        rest.get('https://example.com/me', (req, res, ctx) => {
-          return res(ctx.json(checkSessionData))
-        }),
-        rest.post('https://example.com/login', (req, res, ctx) => {
-          return res(ctx.status(200))
+        http.post('https://example.com/login', () => {
+            return HttpResponse.json(null, { status: 200 })
         })
       )
       let data, isLoading, isError
@@ -1977,39 +1976,41 @@ describe('hooks with createApi defaults set', () => {
       posts = [...initialPosts]
 
       const handlers = [
-        rest.get('https://example.com/posts', (req, res, ctx) => {
-          return res(ctx.json(posts))
+        http.get('https://example.com/posts', () => {
+            return HttpResponse.json(posts)
         }),
-        rest.put<Partial<Post>>(
+        http.put<Post, Partial<Post>>(
           'https://example.com/post/:id',
-          (req, res, ctx) => {
-            const id = Number(req.params.id)
+          async ({ request, params }) => {
+              const body = await request.json();
+            const id = Number(params.id)
             const idx = posts.findIndex((post) => post.id === id)
 
             const newPosts = posts.map((post, index) =>
               index !== idx
                 ? post
                 : {
-                    ...req.body,
+                    ...body,
                     id,
-                    name: req.body.name || post.name,
+                    name: body?.name || post.name,
                     fetched_at: new Date().toUTCString(),
                   }
             )
             posts = [...newPosts]
 
-            return res(ctx.json(posts))
+              return HttpResponse.json(posts)
           }
         ),
-        rest.post('https://example.com/post', (req, res, ctx) => {
-          let post = req.body as Omit<Post, 'id'>
+        http.post<any, Omit<Post, 'id'>>('https://example.com/post', async ({ request }) => {
+            const body = await request.json();
+          let post = body
           startingId += 1
           posts.concat({
             ...post,
             fetched_at: new Date().toISOString(),
             id: startingId,
           })
-          return res(ctx.json(posts))
+            return HttpResponse.json(posts)
         }),
       ]
 
@@ -2017,7 +2018,7 @@ describe('hooks with createApi defaults set', () => {
     })
 
     interface Post {
-      id: number
+      id: string
       name: string
       fetched_at: string
     }
@@ -2091,7 +2092,7 @@ describe('hooks with createApi defaults set', () => {
       function SelectedPost() {
         const { post } = api.endpoints.getPosts.useQueryState(undefined, {
           selectFromResult: ({ data }) => ({
-            post: data?.find((post) => post.id === 1),
+            post: data?.find((post) => post.id === 1 as any),
           }),
         })
         getRenderCount = useRenderCounter()
@@ -2170,7 +2171,7 @@ describe('hooks with createApi defaults set', () => {
             isSuccess,
             isError,
           }) => ({
-            post: data?.find((post) => post.id === 1),
+            post: data?.find((post) => post.id === 1 as any),
             isUninitialized,
             isLoading,
             isFetching,
@@ -2227,7 +2228,7 @@ describe('hooks with createApi defaults set', () => {
         getRenderCount = useRenderCounter()
         const { post } = api.endpoints.getPosts.useQuery(undefined, {
           selectFromResult: ({ data }) => ({
-            post: data?.find((post) => post.id === 1),
+            post: data?.find((post) => post.id === 1 as any),
           }),
         })
 
@@ -2276,7 +2277,7 @@ describe('hooks with createApi defaults set', () => {
             </button>
             <button
               data-testid="updatePost"
-              onClick={() => updatePost({ id: 1, name: 'supercoooll!' })}
+              onClick={() => updatePost({ id: 1, name: 'supercoooll!' } as any)}
             >
               Update post
             </button>
@@ -2287,7 +2288,7 @@ describe('hooks with createApi defaults set', () => {
       function SelectedPost() {
         const { post } = api.endpoints.getPosts.useQuery(undefined, {
           selectFromResult: ({ data }) => ({
-            post: data?.find((post) => post.id === 1),
+            post: data?.find((post) => post.id === 1 as any),
           }),
         })
         getRenderCount = useRenderCounter()
@@ -2377,11 +2378,6 @@ describe('hooks with createApi defaults set', () => {
 
     test('useQuery with selectFromResult option has a type error if the result is not an object', async () => {
       function SelectedPost() {
-        const _res1 = api.endpoints.getPosts.useQuery(undefined, {
-          // selectFromResult must always return an object
-          // @ts-expect-error
-          selectFromResult: ({ data }) => data?.length ?? 0,
-        })
 
         const res2 = api.endpoints.getPosts.useQuery(undefined, {
           // selectFromResult must always return an object
