@@ -6,6 +6,11 @@ export interface Todo {
   title: string
 }
 
+// This only included to make sure the codemod does not
+// throw a runtime error when faced with TS 4.7+ syntax such as
+// the `satisfies` operator and instantiation expressions
+const someString = 'someString' satisfies string
+
 export const todoAdapter = createEntityAdapter<Todo>()
 
 const todoInitialState = todoAdapter.getInitialState()
@@ -26,7 +31,7 @@ createReducer(todoInitialState, (builder) => {
 
   builder.addCase(
     todoAdded1c + 'test',
-    (state:TodoSliceState, action: PayloadAction<string>) => {
+    (state: TodoSliceState, action: PayloadAction<string>) => {
       // stuff
     }
   );
