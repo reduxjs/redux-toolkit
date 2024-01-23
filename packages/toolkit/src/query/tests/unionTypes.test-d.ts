@@ -13,14 +13,14 @@ const baseQuery = fetchBaseQuery()
 const api = createApi({
   baseQuery,
   endpoints: (build) => ({
-    test: build.query<string, void>({ query: () => '' }),
+    getTest: build.query<string, void>({ query: () => '' }),
     mutation: build.mutation<string, void>({ query: () => '' }),
   }),
 })
 
 describe('union types', () => {
   test('query selector union', () => {
-    const result = api.endpoints.test.select()({} as any)
+    const result = api.endpoints.getTest.select()({} as any)
 
     if (result.isUninitialized) {
       expectTypeOf(result.data).toBeUndefined()
@@ -89,7 +89,7 @@ describe('union types', () => {
     }
   })
   test('useQuery union', () => {
-    const result = api.endpoints.test.useQuery()
+    const result = api.endpoints.getTest.useQuery()
 
     if (result.isUninitialized) {
       expectTypeOf(result.data).toBeUndefined()
@@ -193,7 +193,7 @@ describe('union types', () => {
     }
   })
   test('useQuery TS4.1 union', () => {
-    const result = api.useTestQuery()
+    const result = api.useGetTestQuery()
 
     if (result.isUninitialized) {
       expectTypeOf(result.data).toBeUndefined()
@@ -285,7 +285,7 @@ describe('union types', () => {
   })
 
   test('useLazyQuery union', () => {
-    const [_trigger, result] = api.endpoints.test.useLazyQuery()
+    const [_trigger, result] = api.endpoints.getTest.useLazyQuery()
 
     if (result.isUninitialized) {
       expectTypeOf(result.data).toBeUndefined()
@@ -376,7 +376,7 @@ describe('union types', () => {
   })
 
   test('useLazyQuery TS4.1 union', () => {
-    const [_trigger, result] = api.useLazyTestQuery()
+    const [_trigger, result] = api.useLazyGetTestQuery()
 
     if (result.isUninitialized) {
       expectTypeOf(result.data).toBeUndefined()
@@ -468,9 +468,9 @@ describe('union types', () => {
   })
 
   test('queryHookResult (without selector) union', async () => {
-    const useQueryStateResult = api.endpoints.test.useQueryState()
-    const useQueryResult = api.endpoints.test.useQuery()
-    const useQueryStateWithSelectFromResult = api.endpoints.test.useQueryState(
+    const useQueryStateResult = api.endpoints.getTest.useQueryState()
+    const useQueryResult = api.endpoints.getTest.useQuery()
+    const useQueryStateWithSelectFromResult = api.endpoints.getTest.useQueryState(
       undefined,
       {
         selectFromResult: () => ({ x: true }),
@@ -493,13 +493,14 @@ describe('union types', () => {
       .parameter(0)
       .not.toEqualTypeOf(useQueryResultWithoutMethods)
 
-    expectTypeOf(api.endpoints.test.select).returns.returns.toEqualTypeOf<
+    expectTypeOf(api.endpoints.getTest.select).returns.returns.toEqualTypeOf<
       Awaited<ReturnType<typeof refetch>>
     >()
   })
 
   test('useQueryState (with selectFromResult)', () => {
-    const result = api.endpoints.test.useQueryState(undefined, {
+
+    const result = api.endpoints.getTest.useQueryState(undefined, {
       selectFromResult({
         data,
         isLoading,
@@ -530,7 +531,7 @@ describe('union types', () => {
   })
 
   test('useQuery (with selectFromResult)', async () => {
-    const { refetch, ...result } = api.endpoints.test.useQuery(undefined, {
+    const { refetch, ...result } = api.endpoints.getTest.useQuery(undefined, {
       selectFromResult({
         data,
         isLoading,
@@ -559,7 +560,7 @@ describe('union types', () => {
       isError: false,
     }).toEqualTypeOf(result)
 
-    expectTypeOf(api.endpoints.test.select).returns.returns.toEqualTypeOf<
+    expectTypeOf(api.endpoints.getTest.select).returns.returns.toEqualTypeOf<
       Awaited<ReturnType<typeof refetch>>
     >()
   })
@@ -732,7 +733,7 @@ describe('union types', () => {
 
 describe('"Typed" helper types', () => {
   test('useQuery', () => {
-    const result = api.endpoints.test.useQuery()
+    const result = api.endpoints.getTest.useQuery()
 
     expectTypeOf<
       TypedUseQueryHookResult<string, void, typeof baseQuery>
@@ -740,7 +741,7 @@ describe('"Typed" helper types', () => {
   })
 
   test('useQuery with selectFromResult', () => {
-    const result = api.endpoints.test.useQuery(undefined, {
+    const result = api.endpoints.getTest.useQuery(undefined, {
       selectFromResult: () => ({ x: true }),
     })
 
@@ -750,7 +751,7 @@ describe('"Typed" helper types', () => {
   })
 
   test('useQueryState', () => {
-    const result = api.endpoints.test.useQueryState()
+    const result = api.endpoints.getTest.useQueryState()
 
     expectTypeOf<
       TypedUseQueryStateResult<string, void, typeof baseQuery>
@@ -758,7 +759,7 @@ describe('"Typed" helper types', () => {
   })
 
   test('useQueryState with selectFromResult', () => {
-    const result = api.endpoints.test.useQueryState(undefined, {
+    const result = api.endpoints.getTest.useQueryState(undefined, {
       selectFromResult: () => ({ x: true }),
     })
 
@@ -768,7 +769,7 @@ describe('"Typed" helper types', () => {
   })
 
   test('useQuerySubscription', () => {
-    const result = api.endpoints.test.useQuerySubscription()
+    const result = api.endpoints.getTest.useQuerySubscription()
 
     expectTypeOf<
       TypedUseQuerySubscriptionResult<string, void, typeof baseQuery>
