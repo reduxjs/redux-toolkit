@@ -1,11 +1,10 @@
 import type { SerializedError } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
-import type { QuerySubState } from '@reduxjs/toolkit/dist/query/core/apiState'
 import type { BaseQueryFn, FetchBaseQueryError } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import type { Post } from './mocks/server'
 import { posts } from './mocks/server'
-import { actionsReducer, setupApiStore } from './helpers'
+import { actionsReducer, setupApiStore } from '../../tests/utils/helpers'
 import type { QuerySubState } from '@reduxjs/toolkit/dist/query/core/apiState'
 
 describe('queryFn base implementation tests', () => {
