@@ -374,7 +374,7 @@ export function buildThunks<
     (recipesByEndpointName, defaultUpdateProvided) => (dispatch, getState) => {
       const ret: Record<string, Array<PatchCollection>> = {}
       const patchesByEndpointName: Parameters<
-        typeof api.util.patchQueriesData
+        PatchQueriesDataThunk<Definitions, State>
       >[0] = {}
       const stateCache = new Map<QueryCacheKey, any>()
       const arrayified = Object.entries<
@@ -387,9 +387,12 @@ export function buildThunks<
       >(recipesByEndpointName)
       for (const [endpointName, recipes] of arrayified) {
         if (!recipes) continue
-        const endpointPatches = (patchesByEndpointName[
-          endpointName as keyof typeof patchesByEndpointName
-        ] ??= [])
+        const endpointPatches: Array<{
+          args: any
+          patches: readonly Patch[]
+          updateProvided?: boolean
+        }> = (patchesByEndpointName[endpointName as QueryKeys<Definitions>] ??=
+          [])
         const endpointCollections = (ret[endpointName] ??= [])
         for (const [
           idx,
