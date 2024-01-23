@@ -6,6 +6,7 @@ import type {
   PatchQueriesDataThunk,
   UpdateQueryDataThunk,
   UpsertQueryDataThunk,
+  UpdateQueriesDataThunk,
 } from './buildThunks'
 import { buildThunks } from './buildThunks'
 import type {
@@ -246,6 +247,11 @@ declare module '../apiTypes' {
          * ```
          */
         updateQueryData: UpdateQueryDataThunk<
+          Definitions,
+          RootState<Definitions, string, ReducerPath>
+        >
+
+        updateQueriesData: UpdateQueriesDataThunk<
           Definitions,
           RootState<Definitions, string, ReducerPath>
         >
@@ -508,6 +514,7 @@ export const coreModule = ({
       patchQueryData,
       patchQueriesData,
       updateQueryData,
+      updateQueriesData,
       upsertQueryData,
       prefetch,
       buildMatchThunkActions,
@@ -540,6 +547,7 @@ export const coreModule = ({
       patchQueryData,
       patchQueriesData,
       updateQueryData,
+      updateQueriesData,
       upsertQueryData,
       prefetch,
       resetApiState: sliceActions.resetApiState,
