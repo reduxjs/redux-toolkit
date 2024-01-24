@@ -122,4 +122,112 @@ describe('polling tests', () => {
 
     expect(mockBaseQuery.mock.calls.length).toBeGreaterThanOrEqual(2)
   })
+
+  it('respects skipPollingIfUnfocused', async () => {
+    mockBaseQuery.mockClear()
+    storeRef.store.dispatch(
+      getPosts.initiate(2, {
+        subscriptionOptions: {
+          pollingInterval: 10,
+          skipPollingIfUnfocused: true,
+        },
+        subscribe: true,
+      })
+    )
+    storeRef.store.dispatch(api.internalActions?.onFocusLost())
+
+    await delay(50)
+    const callsWithSkip = mockBaseQuery.mock.calls.length
+
+    storeRef.store.dispatch(
+      getPosts.initiate(2, {
+        subscriptionOptions: {
+          pollingInterval: 10,
+          skipPollingIfUnfocused: false,
+        },
+        subscribe: true,
+      })
+    )
+
+    storeRef.store.dispatch(api.internalActions?.onFocus())
+
+    await delay(50)
+    const callsWithoutSkip = mockBaseQuery.mock.calls.length
+
+    expect(callsWithSkip).toBe(1)
+    expect(callsWithoutSkip).toBeGreaterThan(2)
+
+    storeRef.store.dispatch(api.util.resetApiState())
+  })
+
+  it('respects skipPollingIfUnfocused if at least one subscription has it', async () => {
+    storeRef.store.dispatch(
+      getPosts.initiate(3, {
+        subscriptionOptions: {
+          pollingInterval: 10,
+          skipPollingIfUnfocused: false,
+        },
+        subscribe: true,
+      })
+    )
+
+    await delay(50)
+    const callsWithoutSkip = mockBaseQuery.mock.calls.length
+
+    storeRef.store.dispatch(
+      getPosts.initiate(3, {
+        subscriptionOptions: {
+          pollingInterval: 15,
+          skipPollingIfUnfocused: true,
+        },
+        subscribe: true,
+      })
+    )
+
+    storeRef.store.dispatch(
+      getPosts.initiate(3, {
+        subscriptionOptions: {
+          pollingInterval: 20,
+          skipPollingIfUnfocused: false,
+        },
+        subscribe: true,
+      })
+    )
+
+    storeRef.store.dispatch(api.internalActions?.onFocusLost())
+
+    await delay(50)
+    const callsWithSkip = mockBaseQuery.mock.calls.length
+
+    expect(callsWithoutSkip).toBeGreaterThan(2)
+    expect(callsWithSkip).toBe(callsWithoutSkip + 1)
+  })
+
+  it('replaces skipPollingIfUnfocused when the subscription options are updated', async () => {
+    const { requestId, queryCacheKey, ...subscription } =
+      storeRef.store.dispatch(
+        getPosts.initiate(1, {
+          subscriptionOptions: {
+            pollingInterval: 10,
+            skipPollingIfUnfocused: false,
+          },
+          subscribe: true,
+        })
+      )
+
+    const getSubs = createSubscriptionGetter(queryCacheKey)
+
+    await delay(1)
+    expect(Object.keys(getSubs())).toHaveLength(1)
+    expect(getSubs()[requestId].skipPollingIfUnfocused).toBe(false)
+
+    subscription.updateSubscriptionOptions({
+      pollingInterval: 20,
+      skipPollingIfUnfocused: true,
+    })
+
+    await delay(1)
+    expect(Object.keys(getSubs())).toHaveLength(1)
+    expect(getSubs()[requestId].skipPollingIfUnfocused).toBe(true)
+  })
 })
