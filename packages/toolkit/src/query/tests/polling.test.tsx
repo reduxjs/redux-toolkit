@@ -1,7 +1,6 @@
-import { vi } from 'vitest'
 import { createApi } from '@reduxjs/toolkit/query'
-import { setupApiStore, waitMs } from './helpers'
-import { delay } from '../../utils'
+import { delay } from 'msw'
+import { setupApiStore } from './helpers'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
 const mockBaseQuery = vi
@@ -50,7 +49,7 @@ describe('polling tests', () => {
 
     storeRef.store.dispatch(api.util.resetApiState())
 
-    await waitMs(30)
+    await delay(30)
 
     expect(mockBaseQuery).toHaveBeenCalledTimes(1)
   })
@@ -119,7 +118,7 @@ describe('polling tests', () => {
       })
     )
 
-    await waitMs(20)
+    await delay(20)
 
     expect(mockBaseQuery.mock.calls.length).toBeGreaterThanOrEqual(2)
   })
