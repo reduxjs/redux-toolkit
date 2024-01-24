@@ -11,6 +11,7 @@ import type {
   Id,
   IsAny,
   IsUnknown,
+  SafePromise,
   TypeGuard,
 } from './tsHelpers'
 import { nanoid } from './nanoid'
@@ -242,7 +243,7 @@ export type AsyncThunkAction<
   dispatch: GetDispatch<ThunkApiConfig>,
   getState: () => GetState<ThunkApiConfig>,
   extra: GetExtra<ThunkApiConfig>
-) => Promise<
+) => SafePromise<
   | ReturnType<AsyncThunkFulfilledActionCreator<Returned, ThunkArg>>
   | ReturnType<AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>>
 > & {
@@ -577,6 +578,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
           : nanoid()
 
         const abortController = new AbortController()
+        let abortHandler: (() => void) | undefined
         let abortReason: string | undefined
 
         function abort(reason?: string) {
@@ -600,14 +602,15 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
               }
             }
 
-            const abortedPromise = new Promise<never>((_, reject) =>
-              abortController.signal.addEventListener('abort', () =>
+            const abortedPromise = new Promise<never>((_, reject) => {
+              abortHandler = () => {
                 reject({
                   name: 'AbortError',
                   message: abortReason || 'Aborted',
                 })
-              )
-            )
+              }
+              abortController.signal.addEventListener('abort', abortHandler)
+            })
             dispatch(
               pending(
                 requestId,
@@ -653,6 +656,10 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
               err instanceof RejectWithValue
                 ? rejected(null, requestId, arg, err.payload, err.meta)
                 : rejected(err as any, requestId, arg)
+          } finally {
+            if (abortHandler) {
+              abortController.signal.removeEventListener('abort', abortHandler)
+            }
           }
           // We dispatch the result action _after_ the catch, to avoid having any errors
           // here get swallowed by the try/catch block,
@@ -670,7 +677,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
           }
           return finalAction
         })()
-        return Object.assign(promise as Promise<any>, {
+        return Object.assign(promise as SafePromise<any>, {
           abort,
           requestId,
           arg,

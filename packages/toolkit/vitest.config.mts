@@ -12,7 +12,7 @@ export default defineConfig({
     typecheck: { only: true, tsconfig: './src/tests/tsconfig.typetests.json' },
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./vitest.setup.js'],
+    setupFiles: ['./vitest.setup.ts'],
     include: ['./src/**/*.(spec|test).[jt]s?(x)'],
     alias: {
       // prettier-ignore
@@ -25,9 +25,6 @@ export default defineConfig({
       //'^@reduxjs/toolkit/dist/(.*)$': '<rootDir>/src/*',
       '@internal': path.join(__dirname, './src'),
     },
-    deps: {
-      interopDefault: true,
-      inline: ['redux', '@reduxjs/toolkit'],
-    },
+    server: { deps: { inline: ['redux', '@reduxjs/toolkit'] } },
   },
 })
