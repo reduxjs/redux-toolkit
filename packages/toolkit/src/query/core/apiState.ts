@@ -90,7 +90,7 @@ export type SubscriptionOptions = {
    *
    *  Note: requires [`setupListeners`](./setupListeners) to have been called.
    */
-  skipPollOnFocusLost?: boolean
+  skipPollingIfUnfocused?: boolean
   /**
    * Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after regaining a network connection.
    *

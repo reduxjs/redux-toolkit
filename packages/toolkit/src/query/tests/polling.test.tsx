@@ -123,11 +123,14 @@ describe('polling tests', () => {
     expect(mockBaseQuery.mock.calls.length).toBeGreaterThanOrEqual(2)
   })
 
-  it('respects skipPollOnFocusLost', async () => {
+  it('respects skipPollingIfUnfocused', async () => {
     mockBaseQuery.mockClear()
     storeRef.store.dispatch(
       getPosts.initiate(2, {
-        subscriptionOptions: { pollingInterval: 10, skipPollOnFocusLost: true },
+        subscriptionOptions: {
+          pollingInterval: 10,
+          skipPollingIfUnfocused: true,
+        },
         subscribe: true,
       })
     )
@@ -140,7 +143,7 @@ describe('polling tests', () => {
       getPosts.initiate(2, {
         subscriptionOptions: {
           pollingInterval: 10,
-          skipPollOnFocusLost: false,
+          skipPollingIfUnfocused: false,
         },
         subscribe: true,
       })
@@ -157,12 +160,12 @@ describe('polling tests', () => {
     storeRef.store.dispatch(api.util.resetApiState())
   })
 
-  it('respects skipPollOnFocusLost if at least one subscription has it', async () => {
+  it('respects skipPollingIfUnfocused if at least one subscription has it', async () => {
     storeRef.store.dispatch(
       getPosts.initiate(3, {
         subscriptionOptions: {
           pollingInterval: 10,
-          skipPollOnFocusLost: false,
+          skipPollingIfUnfocused: false,
         },
         subscribe: true,
       })
@@ -173,7 +176,10 @@ describe('polling tests', () => {
 
     storeRef.store.dispatch(
       getPosts.initiate(3, {
-        subscriptionOptions: { pollingInterval: 15, skipPollOnFocusLost: true },
+        subscriptionOptions: {
+          pollingInterval: 15,
+          skipPollingIfUnfocused: true,
+        },
         subscribe: true,
       })
     )
@@ -182,7 +188,7 @@ describe('polling tests', () => {
       getPosts.initiate(3, {
         subscriptionOptions: {
           pollingInterval: 20,
-          skipPollOnFocusLost: false,
+          skipPollingIfUnfocused: false,
         },
         subscribe: true,
       })
@@ -197,13 +203,13 @@ describe('polling tests', () => {
     expect(callsWithSkip).toBe(callsWithoutSkip + 1)
   })
 
-  it('replaces skipPollOnFocusLost when the subscription options are updated', async () => {
+  it('replaces skipPollingIfUnfocused when the subscription options are updated', async () => {
     const { requestId, queryCacheKey, ...subscription } =
       storeRef.store.dispatch(
         getPosts.initiate(1, {
           subscriptionOptions: {
             pollingInterval: 10,
-            skipPollOnFocusLost: false,
+            skipPollingIfUnfocused: false,
           },
           subscribe: true,
         })
@@ -213,15 +219,15 @@ describe('polling tests', () => {
 
     await delay(1)
     expect(Object.keys(getSubs())).toHaveLength(1)
-    expect(getSubs()[requestId].skipPollOnFocusLost).toBe(false)
+    expect(getSubs()[requestId].skipPollingIfUnfocused).toBe(false)
 
     subscription.updateSubscriptionOptions({
       pollingInterval: 20,
-      skipPollOnFocusLost: true,
+      skipPollingIfUnfocused: true,
     })
 
     await delay(1)
     expect(Object.keys(getSubs())).toHaveLength(1)
-    expect(getSubs()[requestId].skipPollOnFocusLost).toBe(true)
+    expect(getSubs()[requestId].skipPollingIfUnfocused).toBe(true)
   })
 })

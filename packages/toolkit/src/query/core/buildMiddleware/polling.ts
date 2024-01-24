@@ -60,7 +60,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     if (!querySubState || querySubState.status === QueryStatus.uninitialized)
       return
 
-    const { lowestPollingInterval, skipPollOnFocusLost } =
+    const { lowestPollingInterval, skipPollingIfUnfocused } =
       findLowestPollingInterval(subscriptions)
     if (!Number.isFinite(lowestPollingInterval)) return
 
@@ -77,7 +77,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       nextPollTimestamp,
       pollingInterval: lowestPollingInterval,
       timeout: setTimeout(() => {
-        if (state.config.focused || !skipPollOnFocusLost) {
+        if (state.config.focused || !skipPollingIfUnfocused) {
           api.dispatch(refetchQuery(querySubState, queryCacheKey))
         }
         startNextPoll({ queryCacheKey }, api)
@@ -127,7 +127,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   }
 
   function findLowestPollingInterval(subscribers: Subscribers = {}) {
-    let skipPollOnFocusLost: boolean | undefined = false
+    let skipPollingIfUnfocused: boolean | undefined = false
     let lowestPollingInterval = Number.POSITIVE_INFINITY
     for (let key in subscribers) {
       if (!!subscribers[key].pollingInterval) {
@@ -135,14 +135,14 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
           subscribers[key].pollingInterval!,
           lowestPollingInterval
         )
-        skipPollOnFocusLost =
-          subscribers[key].skipPollOnFocusLost || skipPollOnFocusLost
+        skipPollingIfUnfocused =
+          subscribers[key].skipPollingIfUnfocused || skipPollingIfUnfocused
       }
     }
 
     return {
       lowestPollingInterval,
-      skipPollOnFocusLost,
+      skipPollingIfUnfocused,
     }
   }
 
