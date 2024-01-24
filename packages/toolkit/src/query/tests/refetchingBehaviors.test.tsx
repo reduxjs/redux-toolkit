@@ -36,7 +36,7 @@ const defaultApi = createApi({
 
 const storeRef = setupApiStore(defaultApi)
 
-let getIncrementedAmountState = () =>
+const getIncrementedAmountState = () =>
   storeRef.store.getState().api.queries['getIncrementedAmount(undefined)']
 
 afterEach(() => {
@@ -217,7 +217,7 @@ describe('refetchOnFocus tests', () => {
       fireEvent.focus(window)
     })
 
-    await waitMs(1)
+    await delay(1)
     expect(getIncrementedAmountState()).toBeUndefined()
   })
 })

@@ -15,7 +15,6 @@ import {
   createStoreHook,
 } from 'react-redux'
 import { setupApiStore, useRenderCounter } from '../../tests/utils/helpers'
-import { delay } from '../../utils'
 
 const MyContext = React.createContext<ReactReduxContextValue>(null as any)
 

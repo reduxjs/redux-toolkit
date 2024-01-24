@@ -154,7 +154,7 @@ expect.extend({
   ) {
     const restore = mockConsole(createConsole())
     await fn()
-    const log = getLog().log
+    const { log } = getLog()
     restore()
 
     if (normalize(log) === normalize(expectedOutput))

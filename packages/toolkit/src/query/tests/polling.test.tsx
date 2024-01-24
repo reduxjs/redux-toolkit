@@ -65,13 +65,13 @@ describe('polling tests', () => {
 
     const getSubs = createSubscriptionGetter(queryCacheKey)
 
-    await waitMs(1)
+    await delay(1)
     expect(Object.keys(getSubs())).toHaveLength(1)
     expect(getSubs()[requestId].pollingInterval).toBe(10)
 
     subscription.updateSubscriptionOptions({ pollingInterval: 20 })
 
-    await waitMs(1)
+    await delay(1)
     expect(Object.keys(getSubs())).toHaveLength(1)
     expect(getSubs()[requestId].pollingInterval).toBe(20)
   })
@@ -91,7 +91,7 @@ describe('polling tests', () => {
       })
     )
 
-    await waitMs(10)
+    await delay(10)
 
     const getSubs = createSubscriptionGetter(subscriptionOne.queryCacheKey)
 
@@ -99,7 +99,7 @@ describe('polling tests', () => {
 
     subscriptionOne.unsubscribe()
 
-    await waitMs(1)
+    await delay(1)
     expect(Object.keys(getSubs())).toHaveLength(1)
   })
 
