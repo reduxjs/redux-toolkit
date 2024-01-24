@@ -91,7 +91,7 @@ jobs:
       - name: Install build artifact
         run: yarn workspace @reduxjs/toolkit add $(pwd)/package.tgz
 
-      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.ts ./src/tests/*.* ./src/query/tests/*.*
+      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.mts ./src/tests/*.* ./src/query/tests/*.*
 
       - name: Run tests, against dist
         run: yarn test
@@ -133,7 +133,7 @@ jobs:
       - name: Show installed RTK versions
         run: yarn info @reduxjs/toolkit
 
-      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.ts ./src/tests/*.* ./src/query/tests/*.*
+      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.mts ./src/tests/*.* ./src/query/tests/*.*
 
       - name: Test types
         run: |
@@ -149,7 +149,7 @@ jobs:
       fail-fast: false
       matrix:
         node: ['18.x']
-        example: ['cra4', 'cra5', 'next', 'vite', 'node-standard', 'node-esm', 'expo']
+        example: ['cra4', 'cra5', 'next', 'vite', 'node-standard', 'node-esm', 'react-native', 'expo']
     defaults:
       run:
         working-directory: ./examples/publish-ci/${{ matrix.example }}

@@ -1,47 +1,20 @@
-import * as React from 'react'
-import type { ReactReduxContextValue } from 'react-redux'
-import {
-  createDispatchHook,
-  createSelectorHook,
-  createStoreHook,
-  Provider,
-} from 'react-redux'
+import { createSelectorCreator, lruMemoize } from '@reduxjs/toolkit'
 import {
   buildCreateApi,
   coreModule,
   reactHooksModule,
 } from '@reduxjs/toolkit/query/react'
+import { render, screen, waitFor } from '@testing-library/react'
+import { delay } from 'msw'
+import * as React from 'react'
+import type { ReactReduxContextValue } from 'react-redux'
 import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  renderHook,
-} from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { rest } from 'msw'
-import {
-  actionsReducer,
-  ANY,
-  expectExactType,
-  expectType,
-  setupApiStore,
-  withProvider,
-  useRenderCounter,
-  waitMs,
-} from './helpers'
-import { server } from './mocks/server'
-import type { UnknownAction } from 'redux'
-import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
-import type { SerializedError } from '@reduxjs/toolkit'
-import {
-  createListenerMiddleware,
-  configureStore,
-  lruMemoize,
-  createSelectorCreator,
-} from '@reduxjs/toolkit'
-import { delay } from '../../utils'
+  Provider,
+  createDispatchHook,
+  createSelectorHook,
+  createStoreHook,
+} from 'react-redux'
+import { setupApiStore, useRenderCounter } from './helpers'
 
 const MyContext = React.createContext<ReactReduxContextValue>(null as any)
 
@@ -60,7 +33,7 @@ describe('buildCreateApi', () => {
 
     const api = customCreateApi({
       baseQuery: async (arg: any) => {
-        await waitMs()
+        await delay(150)
 
         return {
           data: arg?.body ? { ...arg.body } : {},
@@ -140,7 +113,7 @@ describe('buildCreateApi', () => {
     )
     const api = createApi({
       baseQuery: async (arg: any) => {
-        await waitMs()
+        await delay(150)
 
         return {
           data: arg?.body ? { ...arg.body } : {},

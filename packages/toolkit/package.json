@@ -1,6 +1,6 @@
 {
   "name": "@reduxjs/toolkit",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "The official, opinionated, batteries-included toolset for efficient Redux development",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
@@ -80,8 +80,8 @@
     "invariant": "^2.2.4",
     "jsdom": "^21.0.0",
     "json-stringify-safe": "^5.0.1",
-    "msw": "^0.40.2",
-    "node-fetch": "^2.6.1",
+    "msw": "^2.1.4",
+    "node-fetch": "^3.3.2",
     "prettier": "^2.2.1",
     "query-string": "^7.0.1",
     "rimraf": "^3.0.2",
@@ -100,7 +100,8 @@
     "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
     "lint": "eslint src examples",
-    "test": "vitest",
+    "test": "vitest --run",
+    "test:watch": "vitest --watch",
     "type-tests": "yarn tsc -p src/tests/tsconfig.typetests.json && yarn tsc -p src/query/tests/tsconfig.typetests.json",
     "prepack": "yarn build"
   },
