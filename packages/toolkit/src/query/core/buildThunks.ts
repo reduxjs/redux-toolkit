@@ -371,7 +371,8 @@ export function buildThunks<
   ) => patchQueriesData({ [endpointName]: [{ args, patches, updateProvided }] })
 
   const updateQueriesData: UpdateQueriesDataThunk<Definitions, State> =
-    (recipesByEndpointName, defaultUpdateProvided) => (dispatch, getState) => {
+    (recipesByEndpointName, defaultUpdateProvided = true) =>
+    (dispatch, getState) => {
       const ret: Record<string, Array<PatchCollection>> = {}
       const patchesByEndpointName: Parameters<
         PatchQueriesDataThunk<Definitions, State>
