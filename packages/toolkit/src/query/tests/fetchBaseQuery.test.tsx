@@ -5,8 +5,11 @@ import { setupApiStore, waitMs } from '../../tests/utils/helpers'
 import { server } from './mocks/server'
 // @ts-ignore
 import nodeFetch from 'node-fetch'
+import { setupApiStore } from './helpers'
+import { server } from './mocks/server'
 
-import { rest } from 'msw'
+import { headersToObject } from 'headers-polyfill'
+import { HttpResponse, delay, http } from 'msw'
 import queryString from 'query-string'
 import type { BaseQueryApi } from '../baseQueryTypes'
 
@@ -19,7 +22,7 @@ const defaultHeaders: Record<string, string> = {
 const baseUrl = 'https://example.com'
 
 // @ts-ignore
-const fetchFn = vi.fn<Promise<any>, any[]>(global.fetch)
+const fetchFn = vi.fn<Promise<any>, any[]>(nodeFetch)
 
 const baseQuery = fetchBaseQuery({
   baseUrl,
@@ -108,6 +111,7 @@ describe('fetchBaseQuery', () => {
       expect(res).toBeInstanceOf(Object)
       expect(res.meta?.request).toBeInstanceOf(Request)
       expect(res.meta?.response).toBeInstanceOf(Object)
+
       expect(res.data).toBeNull()
     })
 
@@ -143,8 +147,10 @@ describe('fetchBaseQuery', () => {
   describe('non-JSON-body', () => {
     it('success: should return data ("text" responseHandler)', async () => {
       server.use(
-        rest.get('https://example.com/success', (_, res, ctx) =>
-          res.once(ctx.text(`this is not json!`))
+        http.get(
+          'https://example.com/success',
+          () => HttpResponse.text(`this is not json!`),
+          { once: true }
         )
       )
 
@@ -163,8 +169,10 @@ describe('fetchBaseQuery', () => {
 
     it('success: should fail gracefully (default="json" responseHandler)', async () => {
       server.use(
-        rest.get('https://example.com/success', (_, res, ctx) =>
-          res.once(ctx.text(`this is not json!`))
+        http.get(
+          'https://example.com/success',
+          () => HttpResponse.text(`this is not json!`),
+          { once: true }
         )
       )
 
@@ -184,11 +192,10 @@ describe('fetchBaseQuery', () => {
 
     it('success: parse text without error ("content-type" responseHandler)', async () => {
       server.use(
-        rest.get('https://example.com/success', (_, res, ctx) =>
-          res.once(
-            ctx.text(`this is not json!`)
-            // NOTE: MSW sets content-type header as text automatically
-          )
+        http.get(
+          'https://example.com/success',
+          () => HttpResponse.text(`this is not json!`),
+          { once: true }
         )
       )
 
@@ -213,11 +220,10 @@ describe('fetchBaseQuery', () => {
 
     it('success: parse json without error ("content-type" responseHandler)', async () => {
       server.use(
-        rest.get('https://example.com/success', (_, res, ctx) =>
-          res.once(
-            ctx.json(`this will become json!`)
-            // NOTE: MSW sets content-type header as json automatically
-          )
+        http.get(
+          'https://example.com/success',
+          () => HttpResponse.json(`this will become json!`),
+          { once: true }
         )
       )
 
@@ -242,8 +248,8 @@ describe('fetchBaseQuery', () => {
 
     it('server error: should fail normally with a 500 status ("text" responseHandler)', async () => {
       server.use(
-        rest.get('https://example.com/error', (_, res, ctx) =>
-          res(ctx.status(500), ctx.text(`this is not json!`))
+        http.get('https://example.com/error', () =>
+          HttpResponse.text(`this is not json!`, { status: 500 })
         )
       )
 
@@ -266,8 +272,8 @@ describe('fetchBaseQuery', () => {
     it('server error: should fail normally with a 500 status as text ("content-type" responseHandler)', async () => {
       const serverResponse = 'Internal Server Error'
       server.use(
-        rest.get('https://example.com/error', (_, res, ctx) =>
-          res(ctx.status(500), ctx.text(serverResponse))
+        http.get('https://example.com/error', () =>
+          HttpResponse.text(serverResponse, { status: 500 })
         )
       )
 
@@ -295,8 +301,8 @@ describe('fetchBaseQuery', () => {
         errors: { field1: "Password cannot be 'password'" },
       }
       server.use(
-        rest.get('https://example.com/error', (_, res, ctx) =>
-          res(ctx.status(500), ctx.json(serverResponse))
+        http.get('https://example.com/error', () =>
+          HttpResponse.json(serverResponse, { status: 500 })
         )
       )
 
@@ -321,8 +327,8 @@ describe('fetchBaseQuery', () => {
 
     it('server error: should fail gracefully (default="json" responseHandler)', async () => {
       server.use(
-        rest.get('https://example.com/error', (_, res, ctx) =>
-          res(ctx.status(500), ctx.text(`this is not json!`))
+        http.get('https://example.com/error', () =>
+          HttpResponse.text(`this is not json!`, { status: 500 })
         )
       )
 
@@ -914,8 +920,10 @@ describe('fetchBaseQuery', () => {
   describe('Accepts global arguments', () => {
     test('Global responseHandler', async () => {
       server.use(
-        rest.get('https://example.com/success', (_, res, ctx) =>
-          res.once(ctx.text(`this is not json!`))
+        http.get(
+          'https://example.com/success',
+          () => HttpResponse.text(`this is not json!`),
+          { once: true }
         )
       )
 
@@ -966,15 +974,23 @@ describe('fetchBaseQuery', () => {
     })
 
     test('Global timeout', async () => {
-      let reject: () => void
-      const donePromise = new Promise((resolve, _reject) => {
-        reject = _reject
-      })
       server.use(
-        rest.get('https://example.com/empty1', async (req, res, ctx) => {
-          await Promise.race([waitMs(3000), donePromise])
-          return res.once(ctx.json({ ...req, headers: req.headers.all() }))
-        })
+        http.get(
+          'https://example.com/empty1',
+          async ({ request, cookies, params, requestId }) => {
+            await delay(300)
+
+            return HttpResponse.json({
+              ...request,
+              cookies,
+              params,
+              requestId,
+              url: new URL(request.url),
+              headers: headersToObject(request.headers),
+            })
+          },
+          { once: true }
+        )
       )
 
       const globalizedBaseQuery = fetchBaseQuery({
@@ -988,11 +1004,11 @@ describe('fetchBaseQuery', () => {
         commonBaseQueryApi,
         {}
       )
+
       expect(result?.error).toEqual({
         status: 'TIMEOUT_ERROR',
-        error: 'AbortError: The user aborted a request.',
+        error: 'AbortError: The operation was aborted.',
       })
-      reject!()
     })
   })
 })
@@ -1082,15 +1098,23 @@ describe('still throws on completely unexpected errors', () => {
 
 describe('timeout', () => {
   test('throws a timeout error when a request takes longer than specified timeout duration', async () => {
-    let reject: () => void
-    const donePromise = new Promise((resolve, _reject) => {
-      reject = _reject
-    })
     server.use(
-      rest.get('https://example.com/empty2', async (req, res, ctx) => {
-        await Promise.race([waitMs(3000), donePromise])
-        return res.once(ctx.json({ ...req, headers: req.headers.all() }))
-      })
+      http.get(
+        'https://example.com/empty2',
+        async ({ request, cookies, params, requestId }) => {
+          await delay(300)
+
+          return HttpResponse.json({
+            ...request,
+            url: new URL(request.url),
+            cookies,
+            params,
+            requestId,
+            headers: headersToObject(request.headers),
+          })
+        },
+        { once: true }
+      )
     )
 
     const result = await baseQuery(
@@ -1101,8 +1125,7 @@ describe('timeout', () => {
 
     expect(result?.error).toEqual({
       status: 'TIMEOUT_ERROR',
-      error: 'AbortError: The user aborted a request.',
+      error: 'AbortError: The operation was aborted.',
     })
-    reject!()
   })
 })

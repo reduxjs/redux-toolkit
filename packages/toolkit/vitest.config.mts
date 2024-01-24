@@ -24,9 +24,6 @@ export default defineConfig({
       //'^@reduxjs/toolkit/dist/(.*)$': '<rootDir>/src/*',
       '@internal': path.join(__dirname, './src'),
     },
-    deps: {
-      interopDefault: true,
-      inline: ['redux', '@reduxjs/toolkit'],
-    },
+    server: { deps: { inline: ['redux', '@reduxjs/toolkit'] } },
   },
 })

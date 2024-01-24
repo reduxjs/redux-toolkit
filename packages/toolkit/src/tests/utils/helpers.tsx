@@ -1,48 +1,29 @@
+import React, { useCallback } from 'react'
 import type {
+  UnknownAction,
   EnhancedStore,
   Middleware,
-  Reducer,
   Store,
-  UnknownAction,
+  Reducer,
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
-import { useCallback, useEffect, useRef } from 'react'
 
 import { Provider } from 'react-redux'
 
 import {
+  mockConsole,
   createConsole,
   getLog,
-  mockConsole,
 } from 'console-testing-library/pure'
-
-import { cleanup } from '@testing-library/react'
-import { act } from 'react-dom/test-utils'
-import type { Assertion, AsymmetricMatchersContaining } from 'vitest'
-
-interface CustomMatchers<R = unknown> {
-  toMatchSequence(...matchers: Array<(arg: any) => boolean>): R
-  toHaveConsoleOutput(expectedOutput: string): Promise<R>
-}
-
-declare module 'vitest' {
-  interface Assertion<T = any> extends CustomMatchers<T> {}
-  interface AsymmetricMatchersContaining extends CustomMatchers {}
-}
-
-declare global {
-  namespace jest {
-    interface Matchers<R> extends CustomMatchers<R> {}
-  }
-}
+import { cleanup, act } from '@testing-library/react'
 
 export const ANY = 0 as any
 
 export const DEFAULT_DELAY_MS = 150
 
 export const getSerializedHeaders = (headers: Headers = new Headers()) => {
-  const result: Record<string, string> = {}
+  let result: Record<string, string> = {}
   headers.forEach((val, key) => {
     result[key] = val
   })
@@ -102,19 +83,27 @@ export const fakeTimerWaitFor = async (cb: () => void, time = 2000) => {
 }
 
 export const useRenderCounter = () => {
-  const countRef = useRef(0)
+  const countRef = React.useRef(0)
 
-  useEffect(() => {
+  React.useEffect(() => {
     countRef.current += 1
   })
 
-  useEffect(() => {
+  React.useEffect(() => {
     return () => {
       countRef.current = 0
     }
   }, [])
 
   return useCallback(() => countRef.current, [])
+}
+
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toMatchSequence(...matchers: Array<(arg: any) => boolean>): R
+    }
+  }
 }
 
 expect.extend({
@@ -143,6 +132,14 @@ ${actions.map((a) => a.type).join('\n')}`,
   },
 })
 
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toHaveConsoleOutput(expectedOutput: string): Promise<R>
+    }
+  }
+}
+
 function normalize(str: string) {
   return str
     .normalize()
@@ -157,7 +154,7 @@ expect.extend({
   ) {
     const restore = mockConsole(createConsole())
     await fn()
-    const { log } = getLog()
+    const log = getLog().log
     restore()
 
     if (normalize(log) === normalize(expectedOutput))
@@ -279,3 +276,62 @@ export function setupApiStore<
 
   return refObj
 }
+
+// type test helpers
+
+export declare type IsAny<T, True, False = never> = true | false extends (
+  T extends never ? true : false
+)
+  ? True
+  : False
+
+export declare type IsUnknown<T, True, False = never> = unknown extends T
+  ? IsAny<T, False, True>
+  : False
+
+export function expectType<T>(t: T): T {
+  return t
+}
+
+type Equals<T, U> = IsAny<
+  T,
+  never,
+  IsAny<U, never, [T] extends [U] ? ([U] extends [T] ? any : never) : never>
+>
+export function expectExactType<T>(t: T) {
+  return <U extends Equals<T, U>>(u: U) => {}
+}
+
+type EnsureUnknown<T extends any> = IsUnknown<T, any, never>
+export function expectUnknown<T extends EnsureUnknown<T>>(t: T) {
+  return t
+}
+
+type EnsureAny<T extends any> = IsAny<T, any, never>
+export function expectExactAny<T extends EnsureAny<T>>(t: T) {
+  return t
+}
+
+type IsNotAny<T> = IsAny<T, never, any>
+export function expectNotAny<T extends IsNotAny<T>>(t: T): T {
+  return t
+}
+
+expectType<string>('5' as string)
+expectType<string>('5' as const)
+expectType<string>('5' as any)
+expectExactType('5' as const)('5' as const)
+// @ts-expect-error
+expectExactType('5' as string)('5' as const)
+// @ts-expect-error
+expectExactType('5' as any)('5' as const)
+expectUnknown('5' as unknown)
+// @ts-expect-error
+expectUnknown('5' as const)
+// @ts-expect-error
+expectUnknown('5' as any)
+expectExactAny('5' as any)
+// @ts-expect-error
+expectExactAny('5' as const)
+// @ts-expect-error
+expectExactAny('5' as unknown)

@@ -1,10 +1,10 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { act, renderHook } from '@testing-library/react'
+import { delay } from 'msw'
 import {
   actionsReducer,
   hookWaitFor,
   setupApiStore,
-  waitMs,
 } from '../../tests/utils/helpers'
 import type { InvalidationState } from '../core/apiState'
 
@@ -111,7 +111,7 @@ describe('basic lifecycle', () => {
 
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).not.toHaveBeenCalled()
-    await act(() => waitMs(5))
+    await act(() => delay(5))
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).toHaveBeenCalledWith({ data: 'success', meta: 'meta' })
   })
@@ -133,7 +133,7 @@ describe('basic lifecycle', () => {
     expect(baseQuery).toHaveBeenCalledWith('arg', expect.any(Object), undefined)
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).not.toHaveBeenCalled()
-    await act(() => waitMs(5))
+    await act(() => delay(5))
     expect(onError).toHaveBeenCalledWith({
       error: 'error',
       isUnhandledError: false,

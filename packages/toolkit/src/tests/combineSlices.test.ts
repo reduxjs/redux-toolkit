@@ -66,6 +66,7 @@ describe('combineSlices', () => {
   })
   describe('injects', () => {
     beforeEach(() => {
+
       vi.stubEnv('NODE_ENV', 'development')
 
       return vi.unstubAllEnvs

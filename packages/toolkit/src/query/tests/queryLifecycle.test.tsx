@@ -3,12 +3,12 @@ import type {
   FetchBaseQueryMeta,
 } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { HttpResponse, http } from 'msw'
 import { waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { setupApiStore } from '../../tests/utils/helpers'
 import { expectType } from '../../tests/utils/typeTestHelpers'
 import { server } from './mocks/server'
-import { rest } from 'msw'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
@@ -398,8 +398,12 @@ test('query: updateCachedData', async () => {
   // request 2: error
   expect(onError).not.toHaveBeenCalled()
   server.use(
-    rest.get('https://example.com/success', (_, req, ctx) =>
-      req.once(ctx.status(500), ctx.json({ value: 'failed' }))
+    http.get(
+      'https://example.com/success',
+      () => {
+        return HttpResponse.json({ value: 'failed' }, { status: 500 })
+      },
+      { once: true }
     )
   )
   storeRef.store.dispatch(
