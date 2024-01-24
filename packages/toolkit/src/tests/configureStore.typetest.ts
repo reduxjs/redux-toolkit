@@ -862,10 +862,8 @@ const _anyMiddleware: any = () => () => () => {}
     slices: [counterSlice],
     preloadedState: { counter: { value: 0 } },
   })
-  configureStore({
-    // @ts-expect-error
-    slices: [],
-  })
+  // @ts-expect-error
+  configureStore({ slices: [] })
   // @ts-expect-error
   configureStore({
     slices: [counterSlice],
