@@ -4,6 +4,8 @@ import type {
   MutationDefinition,
   QueryArgFrom,
   QueryDefinition,
+  Api,
+  Module,
 } from '@reduxjs/toolkit/query'
 import type { Api, Module } from '@reduxjs/toolkit/query'
 import { isMutationDefinition, isQueryDefinition } from '../endpointDefinitions'
@@ -187,8 +189,8 @@ export const reactHooksModule = ({
       const anyApi = api as any as Api<
         any,
         Record<string, any>,
-        string,
-        string,
+        any,
+        any,
         ReactHooksModule
       >
       const { buildQueryHooks, buildMutationHook, usePrefetch } = buildHooks({
