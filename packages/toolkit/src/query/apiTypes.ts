@@ -28,7 +28,7 @@ export interface ApiModules<
 
 export type ModuleName = keyof ApiModules<any, any, any, any>
 
-export type Module<Name extends ModuleName> = {
+export type Module<Name> = {
   name: Name
   init<
     BaseQuery extends BaseQueryFn,
