@@ -10,7 +10,7 @@ type Equals<T, U> = IsAny<
   IsAny<U, never, [T] extends [U] ? ([U] extends [T] ? any : never) : never>
 >
 export function expectExactType<T>(t: T) {
-  return <U extends Equals<T, U>>(u: U) => {}
+  return <U extends T>(u: U & Equals<T, U>) => {}
 }
 
 type EnsureUnknown<T extends any> = IsUnknown<T, any, never>
