@@ -992,7 +992,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   }
 
   function buildMutationHook(name: string): UseMutation<any> {
-    // @ts-ignore
     return ({ selectFromResult, fixedCacheKey } = {}) => {
       const { select, initiate } = api.endpoints[name] as ApiEndpointMutation<
         MutationDefinition<any, any, any, any, any>,
@@ -1025,7 +1024,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         [fixedCacheKey, promise, select]
       )
       const mutationSelector = useMemo(
-        () =>
+        (): Selector<RootState<Definitions, any, any>, any> =>
           selectFromResult
             ? createSelector([selectDefaultResult], selectFromResult)
             : selectDefaultResult,

@@ -184,13 +184,13 @@ export const reactHooksModule = ({
   return {
     name: reactHooksModuleName,
     init(api, { serializeQueryArgs }, context) {
-      const anyApi = api as Api<
+      const anyApi = api as any as Api<
         any,
-        EndpointDefinitions,
+        Record<string, any>,
         string,
         string,
-        any
-      > & { endpoints: any }
+        ReactHooksModule
+      >
       const { buildQueryHooks, buildMutationHook, usePrefetch } = buildHooks({
         api,
         moduleOptions: {
@@ -201,7 +201,7 @@ export const reactHooksModule = ({
         },
         serializeQueryArgs,
         context,
-      } as any)
+      })
       safeAssign(anyApi, { usePrefetch })
       safeAssign(context, { batch })
 
