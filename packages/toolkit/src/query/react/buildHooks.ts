@@ -670,6 +670,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         refetchOnMountOrArgChange,
         skip = false,
         pollingInterval = 0,
+        skipPollingIfUnfocused = false,
       } = {}
     ) => {
       const { initiate } = api.endpoints[name] as ApiEndpointQuery<
@@ -713,6 +714,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         refetchOnReconnect,
         refetchOnFocus,
         pollingInterval,
+        skipPollingIfUnfocused,
       })
 
       const lastRenderHadSubscription = useRef(false)
@@ -813,6 +815,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       refetchOnReconnect,
       refetchOnFocus,
       pollingInterval = 0,
+      skipPollingIfUnfocused = false,
     } = {}) => {
       const { initiate } = api.endpoints[name] as ApiEndpointQuery<
         QueryDefinition<any, any, any, any, any>,
@@ -827,6 +830,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         refetchOnReconnect,
         refetchOnFocus,
         pollingInterval,
+        skipPollingIfUnfocused,
       })
 
       usePossiblyImmediateEffect(() => {
