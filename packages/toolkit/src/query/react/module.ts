@@ -5,7 +5,7 @@ import type {
   QueryArgFrom,
   QueryDefinition,
 } from '@reduxjs/toolkit/query'
-import type { Api, Module } from '../apiTypes'
+import type { Api, Module } from '@reduxjs/toolkit/query'
 import { isMutationDefinition, isQueryDefinition } from '../endpointDefinitions'
 import { safeAssign } from '../tsHelpers'
 import { capitalize } from '../utils'
