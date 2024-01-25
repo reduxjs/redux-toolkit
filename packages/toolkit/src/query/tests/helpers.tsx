@@ -1,22 +1,22 @@
-import React, { useCallback } from 'react'
 import type {
-  UnknownAction,
   EnhancedStore,
   Middleware,
-  Store,
   Reducer,
+  Store,
+  UnknownAction,
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
+import React, { useCallback } from 'react'
 
 import { Provider } from 'react-redux'
 
+import { act, cleanup } from '@testing-library/react'
 import {
-  mockConsole,
   createConsole,
   getLog,
+  mockConsole,
 } from 'console-testing-library/pure'
-import { cleanup, act } from '@testing-library/react'
 
 export const ANY = 0 as any
 
@@ -159,7 +159,7 @@ expect.extend({
 
     if (normalize(log) === normalize(expectedOutput))
       return {
-        message: () => `Console output matches 
+        message: () => `Console output matches
 ===
 ${expectedOutput}
 ===`,
@@ -167,11 +167,11 @@ ${expectedOutput}
       }
     else
       return {
-        message: () => `Console output 
+        message: () => `Console output
 ===
 ${log}
-=== 
-does not match 
+===
+does not match
 ===
 ${expectedOutput}
 ===`,

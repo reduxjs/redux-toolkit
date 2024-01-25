@@ -1,11 +1,11 @@
-import { vi } from 'vitest'
+import * as DevTools from '@internal/devtoolsExtension'
 import type { StoreEnhancer } from '@reduxjs/toolkit'
 import { Tuple } from '@reduxjs/toolkit'
 import type * as Redux from 'redux'
-import type * as DevTools from '@internal/devtoolsExtension'
+import { vi } from 'vitest'
 
-vi.doMock('redux', async () => {
-  const redux: any = await vi.importActual('redux')
+vi.doMock('redux', async (importOriginal) => {
+  const redux = await importOriginal<typeof import('redux')>()
 
   vi.spyOn(redux, 'applyMiddleware')
   vi.spyOn(redux, 'combineReducers')
@@ -15,45 +15,8 @@ vi.doMock('redux', async () => {
   return redux
 })
 
-vi.doMock('@internal/devtoolsExtension', async () => {
-  const devtools: typeof DevTools = await vi.importActual(
-    '@internal/devtoolsExtension'
-  )
-  vi.spyOn(devtools, 'composeWithDevTools') // @remap-prod-remove-line
-  return devtools
-})
-
-function originalReduxCompose(...funcs: Function[]) {
-  if (funcs.length === 0) {
-    // infer the argument type so it is usable in inference down the line
-    return <T>(arg: T) => arg
-  }
-
-  if (funcs.length === 1) {
-    return funcs[0]
-  }
-
-  return funcs.reduce(
-    (a, b) =>
-      (...args: any) =>
-        a(b(...args))
-  )
-}
-
-function originalComposeWithDevtools() {
-  if (arguments.length === 0) return undefined
-  if (typeof arguments[0] === 'object') return originalReduxCompose
-  return originalReduxCompose.apply(null, arguments as any as Function[])
-}
-
 describe('configureStore', async () => {
-  // RTK's internal `composeWithDevtools` function isn't publicly exported,
-  // so we can't mock it. However, it _does_ try to access the global extension method
-  // attached to `window`. So, if we mock _that_, we'll know if the enhancer ran.
-  const mockDevtoolsCompose = vi
-    .fn()
-    .mockImplementation(originalComposeWithDevtools)
-  ;(window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ = mockDevtoolsCompose
+  const composeWithDevToolsSpy = vi.spyOn(DevTools, 'composeWithDevTools')
 
   const redux = await import('redux')
 
@@ -76,7 +39,7 @@ describe('configureStore', async () => {
         expect.any(Function)
       )
       expect(redux.applyMiddleware).toHaveBeenCalled()
-      expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line
+      expect(composeWithDevToolsSpy).toHaveBeenCalled() // @remap-prod-remove-line
     })
   })
 
@@ -90,7 +53,7 @@ describe('configureStore', async () => {
       expect(configureStore({ reducer })).toBeInstanceOf(Object)
       expect(redux.combineReducers).toHaveBeenCalledWith(reducer)
       expect(redux.applyMiddleware).toHaveBeenCalled()
-      expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line-line
+      expect(composeWithDevToolsSpy).toHaveBeenCalled() // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
         expect.any(Function),
         undefined,
@@ -113,7 +76,7 @@ describe('configureStore', async () => {
         configureStore({ middleware: () => new Tuple(), reducer })
       ).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalledWith()
-      expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line-line
+      expect(composeWithDevToolsSpy).toHaveBeenCalled() // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
@@ -142,7 +105,7 @@ describe('configureStore', async () => {
         expect.any(Function), // serializableCheck
         expect.any(Function) // actionCreatorCheck
       )
-      expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line-line
+      expect(composeWithDevToolsSpy).toHaveBeenCalled() // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
@@ -179,7 +142,7 @@ describe('configureStore', async () => {
         configureStore({ middleware: () => new Tuple(thank), reducer })
       ).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalledWith(thank)
-      expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line-line
+      expect(composeWithDevToolsSpy).toHaveBeenCalled() // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
@@ -234,7 +197,7 @@ describe('configureStore', async () => {
         Object
       )
       expect(redux.applyMiddleware).toHaveBeenCalled()
-      expect(mockDevtoolsCompose).toHaveBeenCalledWith(options) // @remap-prod-remove-line
+      expect(composeWithDevToolsSpy).toHaveBeenCalledWith(options) // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
@@ -247,7 +210,7 @@ describe('configureStore', async () => {
     it('calls createStore with preloadedState', () => {
       expect(configureStore({ reducer })).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalled()
-      expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line
+      expect(composeWithDevToolsSpy).toHaveBeenCalled() // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
@@ -278,7 +241,7 @@ describe('configureStore', async () => {
         })
       ).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalled()
-      expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line
+      expect(composeWithDevToolsSpy).toHaveBeenCalled() // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,

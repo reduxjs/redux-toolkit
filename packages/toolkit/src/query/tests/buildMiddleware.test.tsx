@@ -1,5 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query'
-import { actionsReducer, setupApiStore, waitMs } from './helpers'
+import { delay } from 'msw'
+import { actionsReducer, setupApiStore } from './helpers'
 
 const baseQuery = (args?: any) => ({ data: args })
 const api = createApi({
@@ -43,7 +44,7 @@ it('invalidates the specified tags', async () => {
   await storeRef.store.dispatch(api.util.invalidateTags(['Banana', 'Bread']))
 
   // Slight pause to let the middleware run and such
-  await waitMs(20)
+  await delay(20)
 
   const firstSequence = [
     api.internalActions.middlewareRegistered.match,
@@ -58,7 +59,7 @@ it('invalidates the specified tags', async () => {
   await storeRef.store.dispatch(getBread.initiate(1))
   await storeRef.store.dispatch(api.util.invalidateTags([{ type: 'Bread' }]))
 
-  await waitMs(20)
+  await delay(20)
 
   expect(storeRef.store.getState().actions).toMatchSequence(
     ...firstSequence,

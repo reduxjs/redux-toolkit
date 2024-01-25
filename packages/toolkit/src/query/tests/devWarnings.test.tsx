@@ -270,7 +270,7 @@ If you have multiple apis, you *have* to specify the reducerPath option when usi
    * It would be great to support this case as well, but for now:
    * "It is what it is."
    */
-  test.skip('common: two apis, only second middleware', async () => {
+  test.todo('common: two apis, only second middleware', async () => {
     const store = configureStore({
       reducer: {
         // @ts-ignore

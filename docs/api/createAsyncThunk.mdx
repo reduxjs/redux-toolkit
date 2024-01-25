@@ -527,7 +527,7 @@ If a thunk was cancelled, the result of the promise will be a `rejected` action 
 So if you wanted to test that a thunk was cancelled before executing, you can do the following:
 
 ```ts no-transpile
-import { createAsyncThunk, isRejected } from '@reduxjs/toolkit'
+import { createAsyncThunk } from '@reduxjs/toolkit'
 
 test('this thunk should always be skipped', async () => {
   const thunk = createAsyncThunk(

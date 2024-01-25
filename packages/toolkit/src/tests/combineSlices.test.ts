@@ -65,6 +65,13 @@ describe('combineSlices', () => {
     })
   })
   describe('injects', () => {
+    beforeEach(() => {
+
+      vi.stubEnv('NODE_ENV', 'development')
+
+      return vi.unstubAllEnvs
+    })
+
     it('injects slice', () => {
       const combinedReducer =
         combineSlices(stringSlice).withLazyLoadedSlices<

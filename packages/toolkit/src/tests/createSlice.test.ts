@@ -1,17 +1,16 @@
-import { vi } from 'vitest'
 import type { PayloadAction, WithSlice } from '@reduxjs/toolkit'
 import {
   asyncThunkCreator,
   buildCreateSlice,
-  configureStore,
   combineSlices,
-  createSlice,
+  configureStore,
   createAction,
+  createSlice,
 } from '@reduxjs/toolkit'
 import {
-  mockConsole,
   createConsole,
   getLog,
+  mockConsole,
 } from 'console-testing-library/pure'
 
 type CreateSlice = typeof createSlice
@@ -56,6 +55,12 @@ describe('createSlice', () => {
   })
 
   describe('when initial state is undefined', () => {
+    beforeEach(() => {
+      vi.stubEnv('NODE_ENV', 'development')
+
+      return vi.unstubAllEnvs
+    })
+
     it('should throw an error', () => {
       createSlice({
         name: 'test',
@@ -438,11 +443,12 @@ describe('createSlice', () => {
     })
 
     // TODO Determine final production behavior here
-    it.skip('Crashes in production', () => {
-      process.env.NODE_ENV = 'production'
+    it.todo('Crashes in production', () => {
+      vi.stubEnv('NODE_ENV', 'production')
+
       const { createSlice } = require('../createSlice')
 
-      let dummySlice = (createSlice as CreateSlice)({
+      const dummySlice = (createSlice as CreateSlice)({
         name: 'dummy',
         initialState: [],
         reducers: {},
@@ -450,13 +456,15 @@ describe('createSlice', () => {
         extraReducers: {},
       })
       const wrapper = () => {
-        let reducer = dummySlice.reducer
+        const { reducer } = dummySlice
         reducer(undefined, { type: 'dummy' })
       }
 
       expect(wrapper).toThrowError(
         /The object notation for `createSlice.extraReducers` has been removed/
       )
+
+      vi.unstubAllEnvs()
     })
   })
   describe('slice selectors', () => {
