@@ -1032,7 +1032,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         [selectFromResult, selectDefaultResult]
       )
 
-      // @ts-ignore
       const currentState = useSelector(mutationSelector, shallowEqual)
       const originalArgs =
         fixedCacheKey == null ? promise?.arg.originalArgs : undefined

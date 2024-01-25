@@ -10,7 +10,6 @@ export { ApiProvider } from './ApiProvider'
 
 const createApi = /* @__PURE__ */ buildCreateApi(
   coreModule(),
-  // @ts-ignore
   reactHooksModule()
 )
 

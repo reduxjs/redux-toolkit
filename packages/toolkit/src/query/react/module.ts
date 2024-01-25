@@ -148,8 +148,7 @@ export const reactHooksModule = ({
   createSelector = _createSelector,
   unstable__sideEffectsInRender = false,
   ...rest
-}: // @ts-ignore
-ReactHooksModuleOptions = {}): Module<ReactHooksModule> => {
+}: ReactHooksModuleOptions = {}): Module<ReactHooksModule> => {
   if (process.env.NODE_ENV !== 'production') {
     const hookNames = ['useDispatch', 'useSelector', 'useStore'] as const
     let warned = false
