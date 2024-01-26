@@ -7423,7 +7423,7 @@ __metadata:
     msw: ^0.40.2
     oazapfts: ^4.8.0
     openapi-types: ^9.1.0
-    prettier: ^2.2.1
+    prettier: ^3.2.4
     pretty-quick: ^3.1.0
     semver: ^7.3.5
     swagger2openapi: ^7.0.4
@@ -31150,6 +31150,7 @@ fsevents@^1.2.7:
     "@docusaurus/preset-classic": 2.1.0
     classnames: ^2.2.6
     netlify-plugin-cache: ^1.0.3
+    prettier: ^3.2.4
     react: ^18.1.0
     react-dom: ^18.1.0
     react-lite-youtube-embed: ^2.0.3
