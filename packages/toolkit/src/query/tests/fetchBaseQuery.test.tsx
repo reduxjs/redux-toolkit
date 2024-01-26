@@ -1,13 +1,13 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import nodeFetch from 'node-fetch'
-import { setupApiStore } from './helpers'
-import { server } from './mocks/server'
-
 import { headersToObject } from 'headers-polyfill'
 import { HttpResponse, delay, http } from 'msw'
+import nodeFetch from 'node-fetch'
 import queryString from 'query-string'
+import { vi } from 'vitest'
+import { setupApiStore } from '../../tests/utils/helpers'
 import type { BaseQueryApi } from '../baseQueryTypes'
+import { server } from './mocks/server'
 
 const defaultHeaders: Record<string, string> = {
   fake: 'header',
@@ -24,7 +24,7 @@ const baseQuery = fetchBaseQuery({
   baseUrl,
   fetchFn: fetchFn as any,
   prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as RootState).auth.token
+    const { token } = (getState() as RootState).auth
 
     // If we have a token set in state, let's assume that we should be passing it.
     if (token) {

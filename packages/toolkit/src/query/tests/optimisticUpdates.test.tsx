@@ -5,7 +5,7 @@ import {
   actionsReducer,
   hookWaitFor,
   setupApiStore,
-} from './helpers'
+} from '../../tests/utils/helpers'
 import type { InvalidationState } from '../core/apiState'
 
 interface Post {

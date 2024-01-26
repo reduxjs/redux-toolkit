@@ -1,8 +1,7 @@
 import { createApi, setupListeners } from '@reduxjs/toolkit/query/react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { delay } from 'msw'
-import * as React from 'react'
-import { setupApiStore } from './helpers'
+import { setupApiStore } from '../../tests/utils/helpers'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -37,7 +36,7 @@ const defaultApi = createApi({
 
 const storeRef = setupApiStore(defaultApi)
 
-let getIncrementedAmountState = () =>
+const getIncrementedAmountState = () =>
   storeRef.store.getState().api.queries['getIncrementedAmount(undefined)']
 
 afterEach(() => {

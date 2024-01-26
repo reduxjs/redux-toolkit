@@ -1,27 +1,27 @@
 /* eslint-disable no-lone-blocks */
 import type {
-  UnknownAction,
-  SerializedError,
   AsyncThunk,
+  SerializedError,
+  UnknownAction,
 } from '@reduxjs/toolkit'
 import {
+  configureStore,
   createAsyncThunk,
   createReducer,
-  unwrapResult,
   createSlice,
-  configureStore,
+  unwrapResult,
 } from '@reduxjs/toolkit'
 import type { ThunkDispatch } from 'redux-thunk'
 
-import type { AxiosError } from 'axios'
-import apiRequest from 'axios'
-import type { IsAny, IsUnknown } from '@internal/tsHelpers'
-import { expectExactType, expectType } from './helpers'
 import type {
   AsyncThunkFulfilledActionCreator,
   AsyncThunkRejectedActionCreator,
 } from '@internal/createAsyncThunk'
+import type { IsAny, IsUnknown } from '@internal/tsHelpers'
 import type { TSVersion } from '@phryneas/ts-version'
+import type { AxiosError } from 'axios'
+import apiRequest from 'axios'
+import { expectExactType, expectType } from './utils/typeTestHelpers'
 
 const ANY = {} as any
 const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, UnknownAction>
