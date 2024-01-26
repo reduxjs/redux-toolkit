@@ -80,12 +80,16 @@ describe('type tests', () => {
       typedInstance.withMiddleware(addedMiddleware)
     )
 
+    // standard
     expectTypeOf(dispatch({ type: 'foo' })).toEqualTypeOf<Action<string>>()
 
+    // thunk
     expectTypeOf(dispatch(() => 'foo')).toEqualTypeOf<string>()
 
+    // static
     expectTypeOf(dispatch(1)).toEqualTypeOf<1>()
 
+    // added
     expectTypeOf(dispatch(2)).toEqualTypeOf<2>()
   })
 })
