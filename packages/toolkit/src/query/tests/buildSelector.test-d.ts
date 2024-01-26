@@ -49,7 +49,7 @@ describe('buildSelector', () => {
 
     // This only compiles if we carried the types through
     const upperTitle = todoTitle.toUpperCase()
-    expectTypeOf(upperTitle).toEqualTypeOf<string>()
+    expectTypeOf(upperTitle).toBeString()
   })
 
   test('selectCachedArgsForQuery type test', () => {

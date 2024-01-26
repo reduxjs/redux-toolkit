@@ -80,18 +80,14 @@ describe('type tests', () => {
 
     const withNumber = rootReducer.inject(numberSlice)
 
-    expectTypeOf(
-      withNumber(undefined, { type: '' }).number
-    ).toEqualTypeOf<number>()
+    expectTypeOf(withNumber(undefined, { type: '' }).number).toBeNumber()
 
     const withBool = rootReducer.inject({
       reducerPath: 'boolean' as const,
       reducer: booleanReducer,
     })
 
-    expectTypeOf(
-      withBool(undefined, { type: '' }).boolean
-    ).toEqualTypeOf<boolean>()
+    expectTypeOf(withBool(undefined, { type: '' }).boolean).toBeBoolean()
 
     const withApi = rootReducer.inject(exampleApi)
 
@@ -121,7 +117,7 @@ describe('type tests', () => {
 
     expectTypeOf(
       withInjection(rootReducer(undefined, { type: '' }))
-    ).toEqualTypeOf<number>()
+    ).toBeNumber()
   })
 
   test('selector() passes arguments through', () => {
@@ -166,7 +162,7 @@ describe('type tests', () => {
 
     expectTypeOf(
       innerSelector(outerReducer(undefined, { type: '' }))
-    ).toEqualTypeOf<number>()
+    ).toBeNumber()
   })
 
   test('selector errors if selectorFn and selectState are mismatched', () => {

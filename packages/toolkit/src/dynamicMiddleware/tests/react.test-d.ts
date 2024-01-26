@@ -70,7 +70,7 @@ describe('type tests', () => {
     expectTypeOf(dispatch({ type: 'foo' })).toEqualTypeOf<Action<string>>()
 
     // thunk
-    expectTypeOf(dispatch(() => 'foo')).toEqualTypeOf<string>()
+    expectTypeOf(dispatch(() => 'foo')).toBeString()
 
     // static
     expectTypeOf(dispatch(1)).toEqualTypeOf<1>()
