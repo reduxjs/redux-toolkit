@@ -4,7 +4,7 @@ import type { ReactReduxContextValue } from 'react-redux'
 import type { Action, UnknownAction, Middleware } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import { createDynamicMiddleware } from '../react'
-import { expectExactType, expectType } from '../../tests/helpers'
+import { expectExactType, expectType } from '../../tests/utils/typeTestHelpers'
 /* eslint-disable no-lone-blocks */
 
 interface AppDispatch extends ThunkDispatch<number, undefined, UnknownAction> {

@@ -1,14 +1,12 @@
-import { createApi } from '@reduxjs/toolkit/query'
 import type { FetchBaseQueryMeta } from '@reduxjs/toolkit/query'
-import { vi } from 'vitest'
-import { fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import {
-  expectType,
+  DEFAULT_DELAY_MS,
   fakeTimerWaitFor,
   setupApiStore,
-  DEFAULT_DELAY_MS,
-} from './helpers'
-import { QueryActionCreatorResult } from '../core/buildInitiate'
+} from '../../tests/utils/helpers'
+import { expectType } from '../../tests/utils/typeTestHelpers'
+import type { QueryActionCreatorResult } from '../core/buildInitiate'
 
 beforeAll(() => {
   vi.useFakeTimers()

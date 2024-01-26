@@ -1,10 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
-import { createSelector, configureStore } from '@reduxjs/toolkit'
-import { expectExactType } from './helpers'
+import { configureStore, createSelector } from '@reduxjs/toolkit'
 
 describe('buildSelector', () => {
-  test.skip('buildSelector typetest', () => {
+  test('buildSelector type test', () => {
     interface Todo {
       userId: number
       id: number
@@ -50,9 +49,10 @@ describe('buildSelector', () => {
 
     // This only compiles if we carried the types through
     const upperTitle = todoTitle.toUpperCase()
-    expectExactType<string>(upperTitle)
+    expectTypeOf(upperTitle).toEqualTypeOf<string>()
   })
-  test.skip('selectCachedArgsForQuery typetest', () => {
+
+  test('selectCachedArgsForQuery type test', () => {
     interface Todo {
       userId: number
       id: number
@@ -81,8 +81,8 @@ describe('buildSelector', () => {
       },
     })
 
-    expectExactType<string[]>(
+    expectTypeOf(
       exampleApi.util.selectCachedArgsForQuery(store.getState(), 'getTodos')
-    )
+    ).toEqualTypeOf<string[]>()
   })
 })

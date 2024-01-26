@@ -8,6 +8,7 @@ import type {
   Api,
   MutationDefinition,
   QueryDefinition,
+  SerializeQueryArgs,
 } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import type { MockInstance } from 'vitest'
@@ -23,10 +24,8 @@ import {
   ANY,
   getSerializedHeaders,
   setupApiStore,
-  expectExactType,
-  expectType,
-} from './helpers'
-import type { SerializeQueryArgs } from '../defaultSerializeQueryArgs'
+} from '../../tests/utils/helpers'
+import { expectExactType, expectType } from '../../tests/utils/typeTestHelpers'
 import { server } from './mocks/server'
 
 beforeAll(() => {
@@ -36,6 +35,7 @@ beforeAll(() => {
 })
 
 let spy: MockInstance
+
 beforeAll(() => {
   spy = vi.spyOn(console, 'error').mockImplementation(() => {})
 })

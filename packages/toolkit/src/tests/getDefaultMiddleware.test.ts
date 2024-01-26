@@ -1,17 +1,17 @@
-import { vi } from 'vitest'
 import type {
-  UnknownAction,
+  Action,
+  Dispatch,
   Middleware,
   ThunkAction,
-  Action,
   ThunkDispatch,
-  Dispatch,
+  UnknownAction,
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
-import { thunk } from 'redux-thunk'
 import type { ThunkMiddleware } from 'redux-thunk'
+import { thunk } from 'redux-thunk'
+import { vi } from 'vitest'
 
-import { expectType } from './helpers'
+import { expectType } from './utils/typeTestHelpers'
 
 import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
 import { Tuple } from '@internal/utils'
