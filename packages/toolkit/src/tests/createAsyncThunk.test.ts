@@ -1,20 +1,20 @@
-import { vi } from 'vitest'
+import { miniSerializeError } from '@internal/createAsyncThunk'
 import type { UnknownAction } from '@reduxjs/toolkit'
 import {
-  createAsyncThunk,
-  unwrapResult,
   configureStore,
+  createAsyncThunk,
   createReducer,
+  unwrapResult,
 } from '@reduxjs/toolkit'
-import { miniSerializeError } from '@internal/createAsyncThunk'
+import { vi } from 'vitest'
 
 import {
-  mockConsole,
   createConsole,
   getLog,
+  mockConsole,
 } from 'console-testing-library/pure'
-import { expectType } from './helpers'
 import { delay } from '../utils'
+import { expectType } from './utils/typeTestHelpers'
 
 declare global {
   interface Window {

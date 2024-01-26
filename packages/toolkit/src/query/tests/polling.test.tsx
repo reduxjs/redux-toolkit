@@ -1,6 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
-import { setupApiStore } from './helpers'
+import { setupApiStore } from '../../tests/utils/helpers'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
 const mockBaseQuery = vi

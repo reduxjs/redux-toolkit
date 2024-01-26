@@ -3,7 +3,7 @@ import { createAsyncThunk } from '@internal/createAsyncThunk'
 import { executeReducerBuilderCallback } from '@internal/mapBuilders'
 import type { UnknownAction } from '@reduxjs/toolkit'
 import { createAction } from '@reduxjs/toolkit'
-import { expectExactType, expectType } from './helpers'
+import { expectExactType, expectType } from './utils/typeTestHelpers'
 
 /** Test:  builder callback for actionMap */
 {

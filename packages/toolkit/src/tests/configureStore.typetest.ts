@@ -1,19 +1,23 @@
 /* eslint-disable no-lone-blocks */
+import type { ConfigureStoreOptions, PayloadAction } from '@reduxjs/toolkit'
+import { Tuple, configureStore, createSlice } from '@reduxjs/toolkit'
 import type {
+  Action,
   Dispatch,
-  UnknownAction,
   Middleware,
   Reducer,
   Store,
-  Action,
   StoreEnhancer,
+  UnknownAction,
 } from 'redux'
 import { applyMiddleware, combineReducers } from 'redux'
-import type { PayloadAction, ConfigureStoreOptions } from '@reduxjs/toolkit'
-import { configureStore, createSlice, Tuple } from '@reduxjs/toolkit'
-import type { ThunkMiddleware, ThunkAction, ThunkDispatch } from 'redux-thunk'
+import type { ThunkAction, ThunkDispatch, ThunkMiddleware } from 'redux-thunk'
 import { thunk } from 'redux-thunk'
-import { expectExactType, expectNotAny, expectType } from './helpers'
+import {
+  expectExactType,
+  expectNotAny,
+  expectType,
+} from './utils/typeTestHelpers'
 
 const _anyMiddleware: any = () => () => () => {}
 
