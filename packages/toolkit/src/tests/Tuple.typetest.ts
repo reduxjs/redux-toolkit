@@ -1,5 +1,5 @@
 import { Tuple } from '@reduxjs/toolkit'
-import { expectType } from './helpers'
+import { expectType } from "./utils/typeTestHelpers"
 
 /**
  * Test: compatibility is checked between described types

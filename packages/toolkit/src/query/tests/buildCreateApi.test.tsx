@@ -14,7 +14,7 @@ import {
   createSelectorHook,
   createStoreHook,
 } from 'react-redux'
-import { setupApiStore, useRenderCounter } from './helpers'
+import { setupApiStore, useRenderCounter } from '../../tests/utils/helpers'
 
 const MyContext = React.createContext<ReactReduxContextValue>(null as any)
 

@@ -3,10 +3,11 @@ import type {
   FetchBaseQueryMeta,
 } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { waitFor } from '@testing-library/react'
 import { HttpResponse, http } from 'msw'
+import { waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
-import { expectType, setupApiStore } from './helpers'
+import { setupApiStore } from '../../tests/utils/helpers'
+import { expectType } from '../../tests/utils/typeTestHelpers'
 import { server } from './mocks/server'
 
 const api = createApi({

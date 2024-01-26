@@ -1,10 +1,9 @@
-import type { Action, UnknownAction, Reducer } from 'redux'
 import type {
   ActionCreatorWithNonInferrablePayload,
   ActionCreatorWithOptionalPayload,
-  ActionCreatorWithoutPayload,
   ActionCreatorWithPayload,
   ActionCreatorWithPreparedPayload,
+  ActionCreatorWithoutPayload,
   ActionReducerMapBuilder,
   AsyncThunk,
   CaseReducer,
@@ -19,16 +18,21 @@ import type {
   ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit'
 import {
-  configureStore,
-  isRejected,
-  createAction,
-  createSlice,
-  buildCreateSlice,
   asyncThunkCreator,
+  buildCreateSlice,
+  configureStore,
+  createAction,
   createAsyncThunk,
+  createSlice,
+  isRejected,
 } from '@reduxjs/toolkit'
-import { expectExactType, expectType, expectUnknown } from './helpers'
 import { castDraft } from 'immer'
+import type { Action, Reducer, UnknownAction } from 'redux'
+import {
+  expectExactType,
+  expectType,
+  expectUnknown,
+} from './utils/typeTestHelpers'
 
 /*
  * Test: Slice name is strongly typed.

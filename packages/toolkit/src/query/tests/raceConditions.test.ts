@@ -1,6 +1,6 @@
 import { createApi, QueryStatus } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
-import { actionsReducer, setupApiStore } from './helpers'
+import { actionsReducer, setupApiStore } from '../../tests/utils/helpers'
 
 // We need to be able to control when which query resolves to simulate race
 // conditions properly, that's the purpose of this factory.

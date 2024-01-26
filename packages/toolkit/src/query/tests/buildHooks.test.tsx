@@ -1,43 +1,43 @@
-import * as React from 'react'
-import type { SpyInstance } from 'vitest'
-import { vi } from 'vitest'
+import type { SerializedError, UnknownAction } from '@reduxjs/toolkit'
+import {
+  configureStore,
+  createListenerMiddleware,
+  createSlice,
+} from '@reduxjs/toolkit'
+import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
 import type {
   UseMutation,
   UseQuery,
 } from '@reduxjs/toolkit/dist/query/react/buildHooks'
 import {
+  QueryStatus,
   createApi,
   fetchBaseQuery,
-  QueryStatus,
   skipToken,
 } from '@reduxjs/toolkit/query/react'
 import {
   act,
   fireEvent,
   render,
+  renderHook,
   screen,
   waitFor,
-  renderHook,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { http, HttpResponse } from 'msw'
+import { HttpResponse, http } from 'msw'
+import { useEffect, useState } from 'react'
+import type { MockInstance } from 'vitest'
 import {
   actionsReducer,
-  expectExactType,
-  expectType,
   setupApiStore,
-  withProvider,
   useRenderCounter,
   waitMs,
-} from './helpers'
-import { server } from './mocks/server'
-import type { UnknownAction } from 'redux'
-import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
-import type { SerializedError } from '@reduxjs/toolkit'
-import { createListenerMiddleware, configureStore, createSlice } from '@reduxjs/toolkit'
-import { delay } from '../../utils'
+  withProvider,
+} from '../../tests/utils/helpers'
+import { expectExactType, expectType } from '../../tests/utils/typeTestHelpers'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 import { countObjectKeys } from '../utils/countObjectKeys'
+import { server } from './mocks/server'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -51,7 +51,7 @@ interface Item {
 
 const api = createApi({
   baseQuery: async (arg: any) => {
-    await waitMs()
+    await waitMs(150)
     if (arg?.body && 'amount' in arg.body) {
       amount += 1
     }
@@ -189,7 +189,7 @@ describe('hooks tests', () => {
 
     test('useQuery hook sets isFetching=true whenever a request is in flight', async () => {
       function User() {
-        const [value, setValue] = React.useState(0)
+        const [value, setValue] = useState(0)
 
         const { isFetching } = api.endpoints.getUser.useQuery(1, {
           skip: value < 1,
@@ -230,7 +230,7 @@ describe('hooks tests', () => {
     test('useQuery hook sets isLoading=true only on initial request', async () => {
       let refetch: any, isLoading: boolean, isFetching: boolean
       function User() {
-        const [value, setValue] = React.useState(0)
+        const [value, setValue] = useState(0)
 
         ;({ isLoading, isFetching, refetch } = api.endpoints.getUser.useQuery(
           2,
@@ -279,7 +279,7 @@ describe('hooks tests', () => {
     test('useQuery hook sets isLoading and isFetching to the correct states', async () => {
       let refetchMe: () => void = () => {}
       function User() {
-        const [value, setValue] = React.useState(0)
+        const [value, setValue] = useState(0)
         getRenderCount = useRenderCounter()
 
         const { isLoading, isFetching, refetch } =
@@ -345,10 +345,10 @@ describe('hooks tests', () => {
         const { isLoading, isFetching, status } =
           api.endpoints.getUser.useQuery(id)
 
-        React.useEffect(() => {
+        useEffect(() => {
           loadingHist.push(isLoading)
         }, [isLoading])
-        React.useEffect(() => {
+        useEffect(() => {
           fetchingHist.push(isFetching)
         }, [isFetching])
         return (
@@ -510,7 +510,7 @@ describe('hooks tests', () => {
     test('refetchOnMountOrArgChange works as expected when changing skip from false->true', async () => {
       let data, isLoading, isFetching
       function User() {
-        const [skip, setSkip] = React.useState(true)
+        const [skip, setSkip] = useState(true)
         ;({ data, isLoading, isFetching } =
           api.endpoints.getIncrementedAmount.useQuery(undefined, {
             refetchOnMountOrArgChange: 0.5,
@@ -556,7 +556,7 @@ describe('hooks tests', () => {
 
       let data, isLoading, isFetching
       function User() {
-        const [skip, setSkip] = React.useState(true)
+        const [skip, setSkip] = useState(true)
         ;({ data, isLoading, isFetching } =
           api.endpoints.getIncrementedAmount.useQuery(undefined, {
             skip,
@@ -634,7 +634,7 @@ describe('hooks tests', () => {
 
     test(`useQuery refetches when query args object changes even if serialized args don't change`, async () => {
       function ItemList() {
-        const [pageNumber, setPageNumber] = React.useState(0)
+        const [pageNumber, setPageNumber] = useState(0)
         const { data = [] } = api.useListItemsQuery({ pageNumber })
 
         const renderedItems = data.map((item) => (
@@ -767,7 +767,7 @@ describe('hooks tests', () => {
       )
 
       await act(async () => {
-        await delay(1)
+        await waitMs(1)
       })
 
       // 2) Set the current subscription to `{skip: true}
@@ -796,13 +796,13 @@ describe('hooks tests', () => {
       checkNumSubscriptions('b', 1)
 
       await act(async () => {
-        await delay(1)
+        await waitMs(1)
       })
 
       unmount()
 
       await act(async () => {
-        await delay(1)
+        await waitMs(1)
       })
 
       // There should be no subscription entries left over after changing
@@ -811,13 +811,13 @@ describe('hooks tests', () => {
 
       const finalSubscriptions = getSubscriptions()
 
-      for (let cacheKeyEntry of Object.values(finalSubscriptions)) {
+      for (const cacheKeyEntry of Object.values(finalSubscriptions)) {
         expect(Object.values(cacheKeyEntry!).length).toBe(0)
       }
     })
 
     describe('Hook middleware requirements', () => {
-      let mock: SpyInstance
+      let mock: MockInstance
 
       beforeEach(() => {
         mock = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -909,7 +909,7 @@ describe('hooks tests', () => {
     test('useLazyQuery accepts updated subscription options and only dispatches updateSubscriptionOptions when values are updated', async () => {
       let interval = 1000
       function User() {
-        const [options, setOptions] = React.useState<SubscriptionOptions>()
+        const [options, setOptions] = useState<SubscriptionOptions>()
         const [fetchUser, { data: hookData, isFetching, isUninitialized }] =
           api.endpoints.getUser.useLazyQuery(options)
         getRenderCount = useRenderCounter()
@@ -1067,7 +1067,7 @@ describe('hooks tests', () => {
     test('useLazyQuery hook callback returns various properties to handle the result', async () => {
       function User() {
         const [getUser] = api.endpoints.getUser.useLazyQuery()
-        const [{ successMsg, errMsg, isAborted }, setValues] = React.useState({
+        const [{ successMsg, errMsg, isAborted }, setValues] = useState({
           successMsg: '',
           errMsg: '',
           isAborted: false,
@@ -1161,7 +1161,7 @@ describe('hooks tests', () => {
         const [getUser, { data, error }] =
           api.endpoints.getUserAndForceError.useLazyQuery()
 
-        const [unwrappedError, setUnwrappedError] = React.useState<any>()
+        const [unwrappedError, setUnwrappedError] = useState<any>()
 
         const handleClick = async () => {
           const res = getUser(1)
@@ -1214,7 +1214,7 @@ describe('hooks tests', () => {
       function User() {
         const [getUser, { data, error }] = api.endpoints.getUser.useLazyQuery()
 
-        const [unwrappedResult, setUnwrappedResult] = React.useState<
+        const [unwrappedResult, setUnwrappedResult] = useState<
           undefined | { name: string }
         >()
 
@@ -1321,9 +1321,9 @@ describe('hooks tests', () => {
     test('useMutation hook callback returns various properties to handle the result', async () => {
       function User() {
         const [updateUser] = api.endpoints.updateUser.useMutation()
-        const [successMsg, setSuccessMsg] = React.useState('')
-        const [errMsg, setErrMsg] = React.useState('')
-        const [isAborted, setIsAborted] = React.useState(false)
+        const [successMsg, setSuccessMsg] = useState('')
+        const [errMsg, setErrMsg] = useState('')
+        const [isAborted, setIsAborted] = useState(false)
 
         const handleClick = async () => {
           const res = updateUser({ name: 'Banana' })
@@ -1751,14 +1751,18 @@ describe('hooks tests', () => {
     test('initially failed useQueries that provide an tag will refetch after a mutation invalidates it', async () => {
       const checkSessionData = { name: 'matt' }
       server.use(
-        http.get('https://example.com/me', () => {
+        http.get(
+          'https://example.com/me',
+          () => {
             return HttpResponse.json(null, { status: 500 })
-        }, { once: true }),
+          },
+          { once: true }
+        ),
         http.get('https://example.com/me', () => {
-            return HttpResponse.json(checkSessionData)
+          return HttpResponse.json(checkSessionData)
         }),
         http.post('https://example.com/login', () => {
-            return HttpResponse.json(null, { status: 200 })
+          return HttpResponse.json(null, { status: 200 })
         })
       )
       let data, isLoading, isError
@@ -1977,12 +1981,12 @@ describe('hooks with createApi defaults set', () => {
 
       const handlers = [
         http.get('https://example.com/posts', () => {
-            return HttpResponse.json(posts)
+          return HttpResponse.json(posts)
         }),
         http.put<{ id: string }, Partial<Post>>(
           'https://example.com/post/:id',
           async ({ request, params }) => {
-              const body = await request.json();
+            const body = await request.json()
             const id = Number(params.id)
             const idx = posts.findIndex((post) => post.id === id)
 
@@ -1998,20 +2002,23 @@ describe('hooks with createApi defaults set', () => {
             )
             posts = [...newPosts]
 
-              return HttpResponse.json(posts)
+            return HttpResponse.json(posts)
           }
         ),
-        http.post<any, Omit<Post, 'id'>>('https://example.com/post', async ({ request }) => {
-            const body = await request.json();
-          let post = body
-          startingId += 1
-          posts.concat({
-            ...post,
-            fetched_at: new Date().toISOString(),
-            id: startingId,
-          })
+        http.post<any, Omit<Post, 'id'>>(
+          'https://example.com/post',
+          async ({ request }) => {
+            const body = await request.json()
+            let post = body
+            startingId += 1
+            posts.concat({
+              ...post,
+              fetched_at: new Date().toISOString(),
+              id: startingId,
+            })
             return HttpResponse.json(posts)
-        }),
+          }
+        ),
       ]
 
       server.use(...handlers)
@@ -2054,13 +2061,13 @@ describe('hooks with createApi defaults set', () => {
     })
 
     const counterSlice = createSlice({
-      name: "counter",
+      name: 'counter',
       initialState: { count: 0 },
       reducers: {
         increment(state) {
           state.count++
-        }
-      }
+        },
+      },
     })
 
     const storeRef = setupApiStore(api, {
@@ -2293,7 +2300,7 @@ describe('hooks with createApi defaults set', () => {
         })
         getRenderCount = useRenderCounter()
 
-        React.useEffect(() => {
+        useEffect(() => {
           expectablePost = post
         }, [post])
 
@@ -2354,7 +2361,9 @@ describe('hooks with createApi defaults set', () => {
         return (
           <div
             data-testid="incrementButton"
-            onClick={() => storeRef.store.dispatch(counterSlice.actions.increment())}
+            onClick={() =>
+              storeRef.store.dispatch(counterSlice.actions.increment())
+            }
           >
             Increment Count
           </div>
@@ -2378,7 +2387,6 @@ describe('hooks with createApi defaults set', () => {
 
     test('useQuery with selectFromResult option has a type error if the result is not an object', async () => {
       function SelectedPost() {
-
         const res2 = api.endpoints.getPosts.useQuery(undefined, {
           // selectFromResult must always return an object
           selectFromResult: ({ data }) => ({ size: data?.length ?? 0 }),
@@ -2599,14 +2607,14 @@ describe('skip behaviour', () => {
     )
 
     expect(result.current).toEqual(uninitialized)
-    await delay(1)
+    await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(0)
 
     await act(async () => {
       rerender([1])
     })
     expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
-    await delay(1)
+    await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
 
     await act(async () => {
@@ -2617,7 +2625,7 @@ describe('skip behaviour', () => {
       currentData: undefined,
       data: { name: 'Timmy' },
     })
-    await delay(1)
+    await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(0)
   })
 
@@ -2632,7 +2640,7 @@ describe('skip behaviour', () => {
     )
 
     expect(result.current).toEqual(uninitialized)
-    await delay(1)
+    await waitMs(1)
 
     expect(getSubscriptionCount('getUser(1)')).toBe(0)
     // also no subscription on `getUser(skipToken)` or similar:
@@ -2642,7 +2650,7 @@ describe('skip behaviour', () => {
       rerender([1])
     })
     expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
-    await delay(1)
+    await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
     expect(getSubscriptions()).not.toEqual({})
 
@@ -2654,7 +2662,7 @@ describe('skip behaviour', () => {
       currentData: undefined,
       data: { name: 'Timmy' },
     })
-    await delay(1)
+    await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(0)
   })
 
@@ -2669,7 +2677,7 @@ describe('skip behaviour', () => {
     )
 
     await act(async () => {
-      await delay(1)
+      await waitMs(1)
     })
 
     // Normal fulfilled result, with both `data` and `currentData`
@@ -2682,7 +2690,7 @@ describe('skip behaviour', () => {
 
     await act(async () => {
       rerender([1, { skip: true }])
-      await delay(1)
+      await waitMs(1)
     })
 
     // After skipping, the query is "uninitialized", but still retains the last fetched `data`

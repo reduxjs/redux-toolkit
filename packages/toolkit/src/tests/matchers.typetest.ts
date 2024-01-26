@@ -1,4 +1,4 @@
-import { expectExactType, expectUnknown } from './helpers'
+import { expectExactType, expectUnknown } from './utils/typeTestHelpers'
 import type { UnknownAction } from 'redux'
 import type { SerializedError } from '../../src'
 import {

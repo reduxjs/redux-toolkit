@@ -1,13 +1,13 @@
 import type {
-  EntityAdapter,
   ActionCreatorWithPayload,
   ActionCreatorWithoutPayload,
-  EntityStateAdapter,
+  EntityAdapter,
   EntityId,
+  EntityStateAdapter,
   Update,
 } from '@reduxjs/toolkit'
-import { createSlice, createEntityAdapter } from '@reduxjs/toolkit'
-import { expectType } from './helpers'
+import { createEntityAdapter, createSlice } from '@reduxjs/toolkit'
+import { expectType } from './utils/typeTestHelpers'
 
 function extractReducers<T, Id extends EntityId>(
   adapter: EntityAdapter<T, Id>

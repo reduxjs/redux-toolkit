@@ -1,9 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit'
-import { vi } from 'vitest'
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { renderHook, waitFor } from '@testing-library/react'
+import { withProvider } from '../../tests/utils/helpers'
 import type { BaseQueryApi } from '../baseQueryTypes'
-import { withProvider } from './helpers'
 
 test('handles a non-async baseQuery without error', async () => {
   const baseQuery = (args?: any) => ({ data: args })

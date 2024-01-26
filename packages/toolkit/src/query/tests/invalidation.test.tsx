@@ -2,7 +2,7 @@ import type { TagDescription } from '@reduxjs/toolkit/dist/query/endpointDefinit
 import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
 import { waitFor } from '@testing-library/react'
 import { delay } from 'msw'
-import { setupApiStore } from './helpers'
+import { setupApiStore } from '../../tests/utils/helpers'
 
 const tagTypes = [
   'apple',

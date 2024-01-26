@@ -7,9 +7,8 @@ import {
   waitFor,
 } from '@testing-library/react'
 import { delay } from 'msw'
-import React from 'react'
 import { vi } from 'vitest'
-import { setupApiStore } from './helpers'
+import { setupApiStore } from '../../tests/utils/helpers'
 
 describe('fixedCacheKey', () => {
   const onNewCacheEntry = vi.fn()

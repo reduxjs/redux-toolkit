@@ -1,7 +1,7 @@
+import { setupApiStore } from '../../tests/utils/helpers'
 import { createApi } from '../core'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 import { fakeBaseQuery } from '../fakeBaseQuery'
-import { setupApiStore } from './helpers'
 
 let calls = 0
 const api = createApi({

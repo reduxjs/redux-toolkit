@@ -3,7 +3,7 @@ import type { Action, UnknownAction, Middleware } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import { createDynamicMiddleware } from '../index'
 import { configureStore } from '../../configureStore'
-import { expectExactType, expectType } from '../../tests/helpers'
+import { expectExactType, expectType } from '../../tests/utils/typeTestHelpers'
 
 const untypedInstance = createDynamicMiddleware()
 

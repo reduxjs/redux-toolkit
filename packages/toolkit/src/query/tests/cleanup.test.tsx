@@ -1,12 +1,11 @@
 // tests for "cleanup-after-unsubscribe" behaviour
-import { vi } from 'vitest'
 import React from 'react'
 
 import { createListenerMiddleware } from '@reduxjs/toolkit'
 import { createApi, QueryStatus } from '@reduxjs/toolkit/query/react'
-import { render, waitFor, act, screen } from '@testing-library/react'
-import { setupApiStore } from './helpers'
-import { SubscriptionSelectors } from '../core/buildMiddleware/types'
+import { act, render, screen, waitFor } from '@testing-library/react'
+import { setupApiStore } from '../../tests/utils/helpers'
+import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
 const tick = () => new Promise((res) => setImmediate(res))
 
@@ -21,8 +20,8 @@ const api = createApi({
 })
 const storeRef = setupApiStore(api)
 
-let getSubStateA = () => storeRef.store.getState().api.queries['a(undefined)']
-let getSubStateB = () => storeRef.store.getState().api.queries['b(undefined)']
+const getSubStateA = () => storeRef.store.getState().api.queries['a(undefined)']
+const getSubStateB = () => storeRef.store.getState().api.queries['b(undefined)']
 
 function UsingA() {
   const { data } = api.endpoints.a.useQuery()
@@ -55,7 +54,7 @@ test('data stays in store when component stays rendered', async () => {
     expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
   )
 
-  vi.advanceTimersByTime(120000)
+  vi.advanceTimersByTime(120_000)
 
   expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
 })
@@ -70,7 +69,7 @@ test('data is removed from store after 60 seconds', async () => {
 
   unmount()
 
-  vi.advanceTimersByTime(59000)
+  vi.advanceTimersByTime(59_000)
 
   expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
 
@@ -98,16 +97,12 @@ test('data stays in store when component stays rendered while data for another c
   const statusA = getSubStateA()
 
   await act(async () => {
-    rerender(
-      <>
-        <UsingA />
-      </>
-    )
+    rerender(<UsingA />)
 
     vi.advanceTimersByTime(10)
   })
 
-  vi.advanceTimersByTime(120000)
+  vi.advanceTimersByTime(120_000)
 
   expect(getSubStateA()).toEqual(statusA)
   expect(getSubStateB()).toBeUndefined()
@@ -133,11 +128,7 @@ test('data stays in store when one component requiring the data stays in the sto
   const statusB = getSubStateB()
 
   await act(async () => {
-    rerender(
-      <>
-        <UsingAB key="ab" />
-      </>
-    )
+    rerender(<UsingAB key="ab" />)
     vi.advanceTimersByTime(10)
     vi.runAllTimers()
   })
@@ -160,7 +151,7 @@ test('Minimizes the number of subscription dispatches when multiple components a
     withoutTestLifecycles: true,
   })
 
-  let actionTypes: unknown[] = []
+  const actionTypes: unknown[] = []
 
   listenerMiddleware.startListening({
     predicate: () => true,
@@ -210,4 +201,4 @@ test('Minimizes the number of subscription dispatches when multiple components a
     'api/executeQuery/pending',
     'api/executeQuery/fulfilled',
   ])
-}, 25000)
+}, 25_000)
