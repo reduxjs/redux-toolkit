@@ -45,7 +45,9 @@ declare module '@reduxjs/toolkit/query' {
     TagTypes extends string,
   > {
     [lazyReactHooksModuleName]: {
-      buildHooks(): ApiModules<
+      buildHooks(
+        options?: ReactHooksModuleOptions,
+      ): ApiModules<
         BaseQuery,
         Definitions,
         ReducerPath,
@@ -170,6 +172,17 @@ function buildInjectEndpoint(
   }
 }
 
+const defaultOptions: Required<ReactHooksModuleOptions> = {
+  batch: rrBatch,
+  hooks: {
+    useDispatch: rrUseDispatch,
+    useSelector: rrUseSelector,
+    useStore: rrUseStore,
+  },
+  createSelector: _createSelector,
+  unstable__sideEffectsInRender: false,
+}
+
 /**
  * Creates a module that generates react hooks from endpoints, for use with `buildCreateApi`.
  *
@@ -190,17 +203,16 @@ function buildInjectEndpoint(
  *
  * @returns A module for use with `buildCreateApi`
  */
-export const reactHooksModule = ({
-  batch = rrBatch,
-  hooks = {
-    useDispatch: rrUseDispatch,
-    useSelector: rrUseSelector,
-    useStore: rrUseStore,
-  },
-  createSelector = _createSelector,
-  unstable__sideEffectsInRender = false,
-  ...rest
-}: ReactHooksModuleOptions = {}): Module<ReactHooksModule> => {
+export const reactHooksModule = (
+  moduleOptions?: ReactHooksModuleOptions,
+): Module<ReactHooksModule> => {
+  const {
+    batch,
+    hooks,
+    createSelector,
+    unstable__sideEffectsInRender,
+    ...rest
+  } = { ...defaultOptions, ...moduleOptions }
   if (process.env.NODE_ENV !== 'production') {
     const hookNames = ['useDispatch', 'useSelector', 'useStore'] as const
     let warned = false
@@ -268,16 +280,9 @@ export const reactHooksModule = ({
   }
 }
 
-export const lazyReactHooksModule = ({
-  batch = rrBatch,
-  hooks = {
-    useDispatch: rrUseDispatch,
-    useSelector: rrUseSelector,
-    useStore: rrUseStore,
-  },
-  createSelector = _createSelector,
-  unstable__sideEffectsInRender = false,
-}: ReactHooksModuleOptions = {}): Module<LazyReactHooksModule> => ({
+export const lazyReactHooksModule = (
+  moduleOptions?: ReactHooksModuleOptions,
+): Module<LazyReactHooksModule> => ({
   name: lazyReactHooksModuleName,
   init(api, { serializeQueryArgs }, context) {
     const anyApi = api as any as Api<
@@ -288,7 +293,12 @@ export const lazyReactHooksModule = ({
       LazyReactHooksModule
     >
 
-    function buildEndpointHooks() {
+    function buildEndpointHooks(options?: ReactHooksModuleOptions) {
+      const { batch, hooks, unstable__sideEffectsInRender, createSelector } = {
+        ...defaultOptions,
+        ...moduleOptions,
+        ...options,
+      }
       const { buildQueryHooks, buildMutationHook, usePrefetch } = buildHooks({
         api,
         moduleOptions: {
