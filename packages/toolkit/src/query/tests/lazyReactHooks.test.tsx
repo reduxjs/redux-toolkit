@@ -1,9 +1,6 @@
 import { delay } from 'msw'
-import { coreModule } from '../core'
-import { buildCreateApi } from '../createApi'
-import { fakeBaseQuery, lazyReactHooksModule } from '../react'
-
-const createApi = buildCreateApi(coreModule(), lazyReactHooksModule())
+import { buildHooksForApi, fakeBaseQuery } from '../react'
+import { createApi } from '../core'
 
 interface Post {
   id: number
@@ -42,7 +39,7 @@ describe('lazy react hooks', () => {
     expect(api.endpoints.deletePost).not.toHaveProperty('useMutation')
     expect(api).not.toHaveProperty('useDeletePostMutation')
 
-    const hooks = api.buildHooks()
+    const hooks = buildHooksForApi(api)
 
     expect(hooks.endpoints.getPost).toEqual({
       useLazyQuery: expect.any(Function),

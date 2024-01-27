@@ -1,4 +1,10 @@
-import type { Api, ApiContext, Module, ModuleName } from './apiTypes'
+import type {
+  Api,
+  ApiContext,
+  DefaultedOptions,
+  Module,
+  ModuleName,
+} from './apiTypes'
 import type { CombinedState } from './core/apiState'
 import type { BaseQueryArg, BaseQueryFn } from './baseQueryTypes'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
@@ -10,14 +16,14 @@ import type {
 import { DefinitionType, isQueryDefinition } from './endpointDefinitions'
 import { nanoid } from './core/rtkImports'
 import type { UnknownAction } from '@reduxjs/toolkit'
-import type { NoInfer } from './tsHelpers'
+import type { NoInfer, WithRequiredProp } from './tsHelpers'
 import { weakMapMemoize } from 'reselect'
 
 export interface CreateApiOptions<
   BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string = 'api',
-  TagTypes extends string = never
+  TagTypes extends string = never,
 > {
   /**
    * The base query used by each endpoint if no `queryFn` option is specified. RTK Query exports a utility called [fetchBaseQuery](./fetchBaseQuery) as a lightweight wrapper around `fetch` for common use-cases. See [Customizing Queries](../../rtk-query/usage/customizing-queries) if `fetchBaseQuery` does not handle your requirements.
@@ -97,7 +103,7 @@ export interface CreateApiOptions<
    * Endpoints are just a set of operations that you want to perform against your server. You define them as an object using the builder syntax. There are two basic endpoint types: [`query`](../../rtk-query/usage/queries) and [`mutation`](../../rtk-query/usage/mutations).
    */
   endpoints(
-    build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
+    build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>,
   ): Definitions
   /**
    * Defaults to `60` _(this value is in seconds)_. This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.
@@ -200,7 +206,7 @@ export interface CreateApiOptions<
       reducerPath,
     }: {
       reducerPath: ReducerPath
-    }
+    },
   ) =>
     | undefined
     | CombinedState<
@@ -220,9 +226,9 @@ export type CreateApi<Modules extends ModuleName> = {
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
     ReducerPath extends string = 'api',
-    TagTypes extends string = never
+    TagTypes extends string = never,
   >(
-    options: CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>
+    options: CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>,
   ): Api<BaseQuery, Definitions, ReducerPath, TagTypes, Modules>
 }
 
@@ -256,10 +262,13 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
     const extractRehydrationInfo = weakMapMemoize((action: UnknownAction) =>
       options.extractRehydrationInfo?.(action, {
         reducerPath: (options.reducerPath ?? 'api') as any,
-      })
+      }),
     )
 
-    const optionsWithDefaults: CreateApiOptions<any, any, any, any> = {
+    const optionsWithDefaults: WithRequiredProp<
+      CreateApiOptions<any, any, any, any>,
+      DefaultedOptions
+    > = {
       reducerPath: 'api',
       keepUnusedDataFor: 60,
       refetchOnMountOrArgChange: false,
@@ -305,7 +314,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       apiUid: nanoid(),
       extractRehydrationInfo,
       hasRehydrationInfo: weakMapMemoize(
-        (action) => extractRehydrationInfo(action) != null
+        (action) => extractRehydrationInfo(action) != null,
       ),
     }
 
@@ -321,36 +330,40 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
         }
         if (endpoints) {
           for (const [endpointName, partialDefinition] of Object.entries(
-            endpoints
+            endpoints,
           )) {
             if (typeof partialDefinition === 'function') {
               partialDefinition(context.endpointDefinitions[endpointName])
             } else {
               Object.assign(
                 context.endpointDefinitions[endpointName] || {},
-                partialDefinition
+                partialDefinition,
               )
             }
           }
         }
         return api
       },
+      internal: {
+        options: optionsWithDefaults,
+        endpoints: context.endpointDefinitions,
+      },
     } as Api<BaseQueryFn, {}, string, string, Modules[number]['name']>
 
     const initializedModules = modules.map((m) =>
-      m.init(api as any, optionsWithDefaults as any, context)
+      m.init(api as any, optionsWithDefaults, context),
     )
 
     function injectEndpoints(
-      inject: Parameters<typeof api.injectEndpoints>[0]
+      inject: Parameters<typeof api.injectEndpoints>[0],
     ) {
       const evaluatedEndpoints = inject.endpoints({
-        query: (x) => ({ ...x, type: DefinitionType.query } as any),
-        mutation: (x) => ({ ...x, type: DefinitionType.mutation } as any),
+        query: (x) => ({ ...x, type: DefinitionType.query }) as any,
+        mutation: (x) => ({ ...x, type: DefinitionType.mutation }) as any,
       })
 
       for (const [endpointName, definition] of Object.entries(
-        evaluatedEndpoints
+        evaluatedEndpoints,
       )) {
         if (
           !inject.overrideExisting &&
@@ -361,7 +374,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
             process.env.NODE_ENV === 'development'
           ) {
             console.error(
-              `called \`injectEndpoints\` to override already-existing endpointName ${endpointName} without specifying \`overrideExisting: true\``
+              `called \`injectEndpoints\` to override already-existing endpointName ${endpointName} without specifying \`overrideExisting: true\``,
             )
           }
 

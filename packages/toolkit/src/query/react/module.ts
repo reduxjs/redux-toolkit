@@ -1,12 +1,13 @@
-import type {
-  Api,
-  ApiModules,
-  BaseQueryFn,
-  EndpointDefinitions,
-  Module,
-  MutationDefinition,
-  QueryArgFrom,
-  QueryDefinition,
+import {
+  type Api,
+  type ApiModules,
+  type BaseQueryFn,
+  type EndpointDefinitions,
+  type Module,
+  type MutationDefinition,
+  type QueryArgFrom,
+  type QueryDefinition,
+  type CoreModule,
 } from '@reduxjs/toolkit/query'
 import { isMutationDefinition, isQueryDefinition } from '../endpointDefinitions'
 import { safeAssign } from '../tsHelpers'
@@ -26,13 +27,9 @@ import { createSelector as _createSelector } from 'reselect'
 import type { QueryKeys } from '../core/apiState'
 import type { PrefetchOptions } from '../core/module'
 import { countObjectKeys } from '../utils/countObjectKeys'
-import { t } from 'vitest/dist/reporters-qc5Smpt5'
 
 export const reactHooksModuleName = /* @__PURE__ */ Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName
-
-export const lazyReactHooksModuleName = /* @__PURE__ */ Symbol()
-export type LazyReactHooksModule = typeof lazyReactHooksModuleName
 
 declare module '@reduxjs/toolkit/query' {
   export interface ApiModules<
@@ -44,16 +41,6 @@ declare module '@reduxjs/toolkit/query' {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     TagTypes extends string,
   > {
-    [lazyReactHooksModuleName]: {
-      buildHooks(
-        options?: ReactHooksModuleOptions,
-      ): ApiModules<
-        BaseQuery,
-        Definitions,
-        ReducerPath,
-        TagTypes
-      >[ReactHooksModule]
-    }
     [reactHooksModuleName]: {
       /**
        *  Endpoints based on the input endpoints provided to `createApi`, containing `select`, `hooks` and `action matchers`.
@@ -135,7 +122,10 @@ export interface ReactHooksModuleOptions {
 }
 
 function buildInjectEndpoint(
-  target: ApiModules<any, Record<string, any>, any, any>[ReactHooksModule],
+  target: Omit<
+    ApiModules<any, Record<string, any>, any, any>[ReactHooksModule],
+    'usePrefetch'
+  >,
   {
     buildMutationHook,
     buildQueryHooks,
@@ -264,7 +254,7 @@ export const reactHooksModule = (
           createSelector,
         },
         serializeQueryArgs,
-        context,
+        endpointDefinitions: context.endpointDefinitions,
       })
 
       safeAssign(anyApi, { usePrefetch })
@@ -280,63 +270,55 @@ export const reactHooksModule = (
   }
 }
 
-export const lazyReactHooksModule = (
-  moduleOptions?: ReactHooksModuleOptions,
-): Module<LazyReactHooksModule> => ({
-  name: lazyReactHooksModuleName,
-  init(api, { serializeQueryArgs }, context) {
-    const anyApi = api as any as Api<
-      any,
-      Record<string, any>,
-      any,
-      any,
-      LazyReactHooksModule
-    >
+export const buildHooksForApi = <
+  BaseQuery extends BaseQueryFn,
+  Definitions extends EndpointDefinitions,
+  ReducerPath extends string,
+  TagTypes extends string,
+>(
+  api: Api<BaseQuery, Definitions, ReducerPath, TagTypes, CoreModule>,
+  options?: ReactHooksModuleOptions,
+): ApiModules<
+  BaseQuery,
+  Definitions,
+  ReducerPath,
+  TagTypes
+>[ReactHooksModule] => {
+  const { batch, hooks, unstable__sideEffectsInRender, createSelector } = {
+    ...defaultOptions,
+    ...options,
+  }
 
-    function buildEndpointHooks(options?: ReactHooksModuleOptions) {
-      const { batch, hooks, unstable__sideEffectsInRender, createSelector } = {
-        ...defaultOptions,
-        ...moduleOptions,
-        ...options,
-      }
-      const { buildQueryHooks, buildMutationHook, usePrefetch } = buildHooks({
-        api,
-        moduleOptions: {
-          batch,
-          hooks,
-          unstable__sideEffectsInRender,
-          createSelector,
-        },
-        serializeQueryArgs,
-        context,
-      })
+  const { buildQueryHooks, buildMutationHook, usePrefetch } = buildHooks({
+    api,
+    moduleOptions: {
+      batch,
+      hooks,
+      unstable__sideEffectsInRender,
+      createSelector,
+    },
+    serializeQueryArgs: api.internal.options.serializeQueryArgs,
+    endpointDefinitions: api.internal.endpoints,
+  })
 
-      const result: {
-        endpoints: Record<string, QueryHooks<any> | MutationHooks<any>>
-        usePrefetch: typeof usePrefetch
-      } = {
-        endpoints: {},
-        usePrefetch,
-      }
+  const result: {
+    endpoints: Record<string, QueryHooks<any> | MutationHooks<any>>
+    usePrefetch: typeof usePrefetch
+  } = {
+    endpoints: {},
+    usePrefetch,
+  }
 
-      const injectEndpoint = buildInjectEndpoint(result, {
-        buildMutationHook,
-        buildQueryHooks,
-      })
+  const injectEndpoint = buildInjectEndpoint(result, {
+    buildMutationHook,
+    buildQueryHooks,
+  })
 
-      for (const [endpointName, definition] of Object.entries(
-        context.endpointDefinitions,
-      )) {
-        result.endpoints[endpointName] = {} as any
-        injectEndpoint(endpointName, definition)
-      }
-      return result
-    }
-
-    safeAssign(anyApi, { buildHooks: buildEndpointHooks })
-
-    return {
-      injectEndpoint() {},
-    }
-  },
-})
+  for (const [endpointName, definition] of Object.entries(
+    api.internal.endpoints,
+  )) {
+    result.endpoints[endpointName] = {} as any
+    injectEndpoint(endpointName, definition)
+  }
+  return result as any
+}

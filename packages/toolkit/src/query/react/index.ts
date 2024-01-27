@@ -6,8 +6,7 @@ import { buildCreateApi, coreModule } from '@reduxjs/toolkit/query'
 import {
   reactHooksModule,
   reactHooksModuleName,
-  lazyReactHooksModule,
-  lazyReactHooksModuleName,
+  buildHooksForApi,
 } from './module'
 
 export * from '@reduxjs/toolkit/query'
@@ -24,10 +23,4 @@ export type {
   TypedUseQueryStateResult,
   TypedUseQuerySubscriptionResult,
 } from './buildHooks'
-export {
-  createApi,
-  reactHooksModule,
-  reactHooksModuleName,
-  lazyReactHooksModule,
-  lazyReactHooksModuleName,
-}
+export { createApi, reactHooksModule, reactHooksModuleName, buildHooksForApi }
