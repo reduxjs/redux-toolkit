@@ -1,5 +1,6 @@
 import type {
   Api,
+  ApiModules,
   BaseQueryFn,
   EndpointDefinitions,
   Module,
@@ -25,6 +26,7 @@ import { createSelector as _createSelector } from 'reselect'
 import type { QueryKeys } from '../core/apiState'
 import type { PrefetchOptions } from '../core/module'
 import { countObjectKeys } from '../utils/countObjectKeys'
+import { t } from 'vitest/dist/reporters-qc5Smpt5'
 
 export const reactHooksModuleName = /* @__PURE__ */ Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName
@@ -43,32 +45,12 @@ declare module '@reduxjs/toolkit/query' {
     TagTypes extends string,
   > {
     [lazyReactHooksModuleName]: {
-      buildHooks(): {
-        endpoints: {
-          [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
-            any,
-            any,
-            any,
-            any,
-            any
-          >
-            ? QueryHooks<Definitions[K]>
-            : Definitions[K] extends MutationDefinition<any, any, any, any, any>
-              ? MutationHooks<Definitions[K]>
-              : never
-        }
-
-        /**
-         * A hook that accepts a string endpoint name, and provides a callback that when called, pre-fetches the data for that endpoint.
-         */
-        usePrefetch<EndpointName extends QueryKeys<Definitions>>(
-          endpointName: EndpointName,
-          options?: PrefetchOptions,
-        ): (
-          arg: QueryArgFrom<Definitions[EndpointName]>,
-          options?: PrefetchOptions,
-        ) => void
-      } & HooksWithUniqueNames<Definitions>
+      buildHooks(): ApiModules<
+        BaseQuery,
+        Definitions,
+        ReducerPath,
+        TagTypes
+      >[ReactHooksModule]
     }
     [reactHooksModuleName]: {
       /**
@@ -148,6 +130,44 @@ export interface ReactHooksModuleOptions {
    * A selector creator (usually from `reselect`, or matching the same signature)
    */
   createSelector?: typeof _createSelector
+}
+
+function buildInjectEndpoint(
+  target: ApiModules<any, Record<string, any>, any, any>[ReactHooksModule],
+  {
+    buildMutationHook,
+    buildQueryHooks,
+  }: Pick<
+    ReturnType<typeof buildHooks>,
+    'buildQueryHooks' | 'buildMutationHook'
+  >,
+): ReturnType<Module<ReactHooksModule>['init']>['injectEndpoint'] {
+  return function injectEndpoint(endpointName, definition) {
+    if (isQueryDefinition(definition)) {
+      const {
+        useQuery,
+        useLazyQuery,
+        useLazyQuerySubscription,
+        useQueryState,
+        useQuerySubscription,
+      } = buildQueryHooks(endpointName)
+      safeAssign(target.endpoints[endpointName], {
+        useQuery,
+        useLazyQuery,
+        useLazyQuerySubscription,
+        useQueryState,
+        useQuerySubscription,
+      })
+      ;(target as any)[`use${capitalize(endpointName)}Query`] = useQuery
+      ;(target as any)[`useLazy${capitalize(endpointName)}Query`] = useLazyQuery
+    } else if (isMutationDefinition(definition)) {
+      const useMutation = buildMutationHook(endpointName)
+      safeAssign(target.endpoints[endpointName], {
+        useMutation,
+      })
+      ;(target as any)[`use${capitalize(endpointName)}Mutation`] = useMutation
+    }
+  }
 }
 
 /**
@@ -239,34 +259,10 @@ export const reactHooksModule = ({
       safeAssign(context, { batch })
 
       return {
-        injectEndpoint(endpointName, definition) {
-          if (isQueryDefinition(definition)) {
-            const {
-              useQuery,
-              useLazyQuery,
-              useLazyQuerySubscription,
-              useQueryState,
-              useQuerySubscription,
-            } = buildQueryHooks(endpointName)
-            safeAssign(anyApi.endpoints[endpointName], {
-              useQuery,
-              useLazyQuery,
-              useLazyQuerySubscription,
-              useQueryState,
-              useQuerySubscription,
-            })
-            ;(api as any)[`use${capitalize(endpointName)}Query`] = useQuery
-            ;(api as any)[`useLazy${capitalize(endpointName)}Query`] =
-              useLazyQuery
-          } else if (isMutationDefinition(definition)) {
-            const useMutation = buildMutationHook(endpointName)
-            safeAssign(anyApi.endpoints[endpointName], {
-              useMutation,
-            })
-            ;(api as any)[`use${capitalize(endpointName)}Mutation`] =
-              useMutation
-          }
-        },
+        injectEndpoint: buildInjectEndpoint(anyApi, {
+          buildMutationHook,
+          buildQueryHooks,
+        }),
       }
     },
   }
@@ -312,35 +308,17 @@ export const lazyReactHooksModule = ({
         endpoints: {},
         usePrefetch,
       }
+
+      const injectEndpoint = buildInjectEndpoint(result, {
+        buildMutationHook,
+        buildQueryHooks,
+      })
+
       for (const [endpointName, definition] of Object.entries(
         context.endpointDefinitions,
       )) {
-        if (isQueryDefinition(definition)) {
-          const {
-            useQuery,
-            useLazyQuery,
-            useLazyQuerySubscription,
-            useQueryState,
-            useQuerySubscription,
-          } = buildQueryHooks(endpointName)
-          result.endpoints[endpointName] = {
-            useQuery,
-            useLazyQuery,
-            useLazyQuerySubscription,
-            useQueryState,
-            useQuerySubscription,
-          }
-          ;(result as any)[`use${capitalize(endpointName)}Query`] = useQuery
-          ;(result as any)[`useLazy${capitalize(endpointName)}Query`] =
-            useLazyQuery
-        } else if (isMutationDefinition(definition)) {
-          const useMutation = buildMutationHook(endpointName)
-          result.endpoints[endpointName] = { useMutation }
-          ;(result as any)[`use${capitalize(endpointName)}Mutation`] =
-            useMutation
-        } else {
-          throw new Error(`Invalid endpoint definition for ${endpointName}`)
-        }
+        result.endpoints[endpointName] = {} as any
+        injectEndpoint(endpointName, definition)
       }
       return result
     }
