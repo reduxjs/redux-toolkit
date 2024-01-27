@@ -296,7 +296,7 @@ export function expectType<T>(t: T): T {
 type Equals<T, U> = IsAny<
   T,
   never,
-  IsAny<U, never, [T] extends [U] ? ([U] extends [T] ? any : never) : never>
+  IsAny<U, never, [T] extends [U] ? ([U] extends [T] ? unknown : never) : never>
 >
 export function expectExactType<T>(t: T) {
   return <U extends T>(u: U & Equals<T, U>) => {}

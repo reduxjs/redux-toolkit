@@ -1,10 +1,10 @@
 import type { SerializedError } from '@reduxjs/toolkit'
 import type {
   FetchBaseQueryError,
+  TypedUseMutationResult,
   TypedUseQueryHookResult,
   TypedUseQueryStateResult,
   TypedUseQuerySubscriptionResult,
-  TypedUseMutationResult,
 } from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { expectExactType, expectType } from './helpers'
@@ -123,6 +123,7 @@ describe.skip('TS only tests', () => {
     }
 
     expectExactType('' as string | undefined)(result.currentData)
+    // @ts-expect-error
     expectExactType('' as string)(result.currentData)
 
     if (result.isSuccess) {
@@ -130,6 +131,7 @@ describe.skip('TS only tests', () => {
         expectExactType('' as string)(result.currentData)
       } else {
         expectExactType('' as string | undefined)(result.currentData)
+        // @ts-expect-error
         expectExactType('' as string)(result.currentData)
       }
     }
@@ -357,6 +359,7 @@ describe.skip('TS only tests', () => {
     const { refetch, ...useQueryResultWithoutMethods } = useQueryResult
     expectExactType(useQueryStateResult)(useQueryResultWithoutMethods)
     expectExactType(useQueryStateWithSelectFromResult)(
+      // @ts-expect-error
       useQueryResultWithoutMethods
     )
     expectType<ReturnType<ReturnType<typeof api.endpoints.test.select>>>(
