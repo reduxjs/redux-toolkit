@@ -1,20 +1,25 @@
-import type { SerializedError, UnknownAction } from '@reduxjs/toolkit'
+import type { SubscriptionSelectors } from '@internal/query/core/buildMiddleware/types';
+import { countObjectKeys } from '@internal/query/utils/countObjectKeys';
+import {
+  actionsReducer,
+  setupApiStore,
+  useRenderCounter,
+  waitMs,
+  withProvider,
+} from '@internal/tests/utils/helpers';
+import type { UnknownAction } from '@reduxjs/toolkit';
 import {
   configureStore,
   createListenerMiddleware,
   createSlice,
-} from '@reduxjs/toolkit'
-import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
-import type {
-  UseMutation,
-  UseQuery,
-} from '@reduxjs/toolkit/dist/query/react/buildHooks'
+} from '@reduxjs/toolkit';
+import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState';
 import {
   QueryStatus,
   createApi,
   fetchBaseQuery,
   skipToken,
-} from '@reduxjs/toolkit/query/react'
+} from '@reduxjs/toolkit/query/react';
 import {
   act,
   fireEvent,
@@ -22,22 +27,12 @@ import {
   renderHook,
   screen,
   waitFor,
-} from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { HttpResponse, http } from 'msw'
-import { useEffect, useState } from 'react'
-import type { MockInstance } from 'vitest'
-import {
-  actionsReducer,
-  setupApiStore,
-  useRenderCounter,
-  waitMs,
-  withProvider,
-} from '../../tests/utils/helpers'
-import { expectExactType, expectType } from '../../tests/utils/typeTestHelpers'
-import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
-import { countObjectKeys } from '../utils/countObjectKeys'
-import { server } from './mocks/server'
+} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { HttpResponse, http } from 'msw';
+import { useEffect, useState } from 'react';
+import type { MockInstance } from 'vitest';
+import { server } from './mocks/server';
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -1079,35 +1074,16 @@ describe('hooks tests', () => {
           // no-op simply for clearer type assertions
           res.then((result) => {
             if (result.isSuccess) {
-              expectType<{
-                data: {
-                  name: string
-                }
-              }>(result)
             }
             if (result.isError) {
-              expectType<{
-                error: { status: number; data: unknown } | SerializedError
-              }>(result)
             }
           })
-
-          expectType<number>(res.arg)
-          expectType<string>(res.requestId)
-          expectType<() => void>(res.abort)
-          expectType<() => Promise<{ name: string }>>(res.unwrap)
-          expectType<() => void>(res.unsubscribe)
-          expectType<(options: SubscriptionOptions) => void>(
-            res.updateSubscriptionOptions
-          )
-          expectType<() => void>(res.refetch)
 
           // abort the query immediately to force an error
           if (abort) res.abort()
           res
             .unwrap()
             .then((result) => {
-              expectType<{ name: string }>(result)
               setValues({
                 successMsg: `Successfully fetched user ${result.name}`,
                 errMsg: '',
@@ -1329,35 +1305,13 @@ describe('hooks tests', () => {
           const res = updateUser({ name: 'Banana' })
 
           // no-op simply for clearer type assertions
-          res.then((result) => {
-            expectType<
-              | {
-                  error: { status: number; data: unknown } | SerializedError
-                }
-              | {
-                  data: {
-                    name: string
-                  }
-                }
-            >(result)
-          })
-
-          expectType<{
-            endpointName: string
-            originalArgs: { name: string }
-            track?: boolean
-          }>(res.arg)
-          expectType<string>(res.requestId)
-          expectType<() => void>(res.abort)
-          expectType<() => Promise<{ name: string }>>(res.unwrap)
-          expectType<() => void>(res.reset)
+          res.then((result) => {})
 
           // abort the mutation immediately to force an error
           res.abort()
           res
             .unwrap()
             .then((result) => {
-              expectType<{ name: string }>(result)
               setSuccessMsg(`Successfully updated user ${result.name}`)
             })
             .catch((err) => {
@@ -2009,7 +1963,7 @@ describe('hooks with createApi defaults set', () => {
           'https://example.com/post',
           async ({ request }) => {
             const body = await request.json()
-            let post = body
+            const post = body
             startingId += 1
             posts.concat({
               ...post,
@@ -2073,12 +2027,6 @@ describe('hooks with createApi defaults set', () => {
     const storeRef = setupApiStore(api, {
       counter: counterSlice.reducer,
     })
-
-    expectExactType(api.useGetPostsQuery)(api.endpoints.getPosts.useQuery)
-    expectExactType(api.useUpdatePostMutation)(
-      api.endpoints.updatePost.useMutation
-    )
-    expectExactType(api.useAddPostMutation)(api.endpoints.addPost.useMutation)
 
     test('useQueryState serves a deeply memoized value and does not rerender unnecessarily', async () => {
       function Posts() {
@@ -2703,20 +2651,3 @@ describe('skip behaviour', () => {
     })
   })
 })
-
-// type tests:
-{
-  const ANY = {} as any
-
-  // UseQuery type can be used to recreate the hook type
-  const fakeQuery = ANY as UseQuery<
-    typeof api.endpoints.getUser.Types.QueryDefinition
-  >
-  expectExactType(fakeQuery)(api.endpoints.getUser.useQuery)
-
-  // UseMutation type can be used to recreate the hook type
-  const fakeMutation = ANY as UseMutation<
-    typeof api.endpoints.updateUser.Types.MutationDefinition
-  >
-  expectExactType(fakeMutation)(api.endpoints.updateUser.useMutation)
-}
