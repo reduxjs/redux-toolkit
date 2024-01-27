@@ -1,8 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
 import type { Middleware } from 'redux'
 
-declare const expectType: <T>(t: T) => T
-
 declare const middleware1: Middleware<{
   (_: string): number
 }>
@@ -14,105 +12,105 @@ declare const middleware2: Middleware<{
 type ThunkReturn = Promise<'thunk'>
 declare const thunkCreator: () => () => ThunkReturn
 
-{
-  // prepend single element
-  {
+describe('type tests', () => {
+  test('prepend single element', () => {
     const store = configureStore({
       reducer: () => 0,
       middleware: (gDM) => gDM().prepend(middleware1),
     })
-    expectType<number>(store.dispatch('foo'))
-    expectType<ThunkReturn>(store.dispatch(thunkCreator()))
 
-    // @ts-expect-error
-    expectType<string>(store.dispatch('foo'))
-  }
+    expectTypeOf(store.dispatch('foo')).toBeNumber()
 
-  // prepend multiple (rest)
-  {
+    expectTypeOf(store.dispatch(thunkCreator())).toEqualTypeOf<ThunkReturn>()
+
+    expectTypeOf(store.dispatch('foo')).not.toBeString()
+  })
+
+  test('prepend multiple (rest)', () => {
     const store = configureStore({
       reducer: () => 0,
       middleware: (gDM) => gDM().prepend(middleware1, middleware2),
     })
-    expectType<number>(store.dispatch('foo'))
-    expectType<string>(store.dispatch(5))
-    expectType<ThunkReturn>(store.dispatch(thunkCreator()))
 
-    // @ts-expect-error
-    expectType<string>(store.dispatch('foo'))
-  }
+    expectTypeOf(store.dispatch('foo')).toBeNumber()
 
-  // prepend multiple (array notation)
-  {
+    expectTypeOf(store.dispatch(5)).toBeString()
+
+    expectTypeOf(store.dispatch(thunkCreator())).toEqualTypeOf<ThunkReturn>()
+
+    expectTypeOf(store.dispatch('foo')).not.toBeString()
+  })
+
+  test('prepend multiple (array notation)', () => {
     const store = configureStore({
       reducer: () => 0,
       middleware: (gDM) => gDM().prepend([middleware1, middleware2] as const),
     })
 
-    expectType<number>(store.dispatch('foo'))
-    expectType<string>(store.dispatch(5))
-    expectType<ThunkReturn>(store.dispatch(thunkCreator()))
+    expectTypeOf(store.dispatch('foo')).toBeNumber()
 
-    // @ts-expect-error
-    expectType<string>(store.dispatch('foo'))
-  }
+    expectTypeOf(store.dispatch(5)).toBeString()
 
-  // concat single element
-  {
+    expectTypeOf(store.dispatch(thunkCreator())).toEqualTypeOf<ThunkReturn>()
+
+    expectTypeOf(store.dispatch('foo')).not.toBeString()
+  })
+
+  test('concat single element', () => {
     const store = configureStore({
       reducer: () => 0,
       middleware: (gDM) => gDM().concat(middleware1),
     })
 
-    expectType<number>(store.dispatch('foo'))
-    expectType<ThunkReturn>(store.dispatch(thunkCreator()))
+    expectTypeOf(store.dispatch('foo')).toBeNumber()
 
-    // @ts-expect-error
-    expectType<string>(store.dispatch('foo'))
-  }
+    expectTypeOf(store.dispatch(thunkCreator())).toEqualTypeOf<ThunkReturn>()
 
-  // prepend multiple (rest)
-  {
+    expectTypeOf(store.dispatch('foo')).not.toBeString()
+  })
+
+  test('prepend multiple (rest)', () => {
     const store = configureStore({
       reducer: () => 0,
       middleware: (gDM) => gDM().concat(middleware1, middleware2),
     })
 
-    expectType<number>(store.dispatch('foo'))
-    expectType<string>(store.dispatch(5))
-    expectType<ThunkReturn>(store.dispatch(thunkCreator()))
+    expectTypeOf(store.dispatch('foo')).toBeNumber()
 
-    // @ts-expect-error
-    expectType<string>(store.dispatch('foo'))
-  }
+    expectTypeOf(store.dispatch(5)).toBeString()
 
-  // concat multiple (array notation)
-  {
+    expectTypeOf(store.dispatch(thunkCreator())).toEqualTypeOf<ThunkReturn>()
+
+    expectTypeOf(store.dispatch('foo')).not.toBeString()
+  })
+
+  test('concat multiple (array notation)', () => {
     const store = configureStore({
       reducer: () => 0,
       middleware: (gDM) => gDM().concat([middleware1, middleware2] as const),
     })
 
-    expectType<number>(store.dispatch('foo'))
-    expectType<string>(store.dispatch(5))
-    expectType<ThunkReturn>(store.dispatch(thunkCreator()))
+    expectTypeOf(store.dispatch('foo')).toBeNumber()
 
-    // @ts-expect-error
-    expectType<string>(store.dispatch('foo'))
-  }
+    expectTypeOf(store.dispatch(5)).toBeString()
 
-  // concat and prepend
-  {
+    expectTypeOf(store.dispatch(thunkCreator())).toEqualTypeOf<ThunkReturn>()
+
+    expectTypeOf(store.dispatch('foo')).not.toBeString()
+  })
+
+  test('concat and prepend', () => {
     const store = configureStore({
       reducer: () => 0,
       middleware: (gDM) => gDM().concat(middleware1).prepend(middleware2),
     })
 
-    expectType<number>(store.dispatch('foo'))
-    expectType<string>(store.dispatch(5))
-    expectType<ThunkReturn>(store.dispatch(thunkCreator()))
+    expectTypeOf(store.dispatch('foo')).toBeNumber()
 
-    // @ts-expect-error
-    expectType<string>(store.dispatch('foo'))
-  }
-}
+    expectTypeOf(store.dispatch(5)).toBeString()
+
+    expectTypeOf(store.dispatch(thunkCreator())).toEqualTypeOf<ThunkReturn>()
+
+    expectTypeOf(store.dispatch('foo')).not.toBeString()
+  })
+})
