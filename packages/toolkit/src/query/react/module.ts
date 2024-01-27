@@ -1,13 +1,12 @@
-import {
-  type Api,
-  type ApiModules,
-  type BaseQueryFn,
-  type EndpointDefinitions,
-  type Module,
-  type MutationDefinition,
-  type QueryArgFrom,
-  type QueryDefinition,
-  type CoreModule,
+import type {
+  Api,
+  ApiModules,
+  BaseQueryFn,
+  EndpointDefinitions,
+  Module,
+  MutationDefinition,
+  QueryArgFrom,
+  QueryDefinition,
 } from '@reduxjs/toolkit/query'
 import { isMutationDefinition, isQueryDefinition } from '../endpointDefinitions'
 import { safeAssign } from '../tsHelpers'
@@ -276,7 +275,7 @@ export const buildHooksForApi = <
   ReducerPath extends string,
   TagTypes extends string,
 >(
-  api: Api<BaseQuery, Definitions, ReducerPath, TagTypes, CoreModule>,
+  api: Api<BaseQuery, Definitions, ReducerPath, TagTypes>,
   options?: ReactHooksModuleOptions,
 ): ApiModules<
   BaseQuery,
