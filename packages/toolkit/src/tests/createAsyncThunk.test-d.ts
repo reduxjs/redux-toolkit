@@ -401,6 +401,7 @@ describe('type tests', () => {
 
       expectTypeOf(asyncThunk).parameter(0).not.toBeUndefined()
 
+      // @ts-ignore This fails in TS 4.7 only.
       expectTypeOf(asyncThunk).parameter(0).toBeNullable()
 
       expectTypeOf(asyncThunk).parameter(0).not.toBeVoid()
@@ -441,6 +442,7 @@ describe('type tests', () => {
 
       expectTypeOf(asyncThunk).parameter(0).not.toBeNull()
 
+      // @ts-ignore This fails in TS 4.7 only.
       expectTypeOf(asyncThunk).parameter(0).toBeNullable()
 
       expectTypeOf(asyncThunk).parameter(0).not.toBeVoid()
@@ -605,6 +607,7 @@ describe('type tests', () => {
 
       expectTypeOf(asyncThunk).parameter(0).not.toBeNull()
 
+      // @ts-ignore This fails in TS 4.7 only.
       expectTypeOf(asyncThunk).parameter(0).toBeNullable()
 
       expectTypeOf(asyncThunk).parameter(0).not.toBeVoid()
