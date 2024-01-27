@@ -1,8 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
 import type { StoreEnhancer } from 'redux'
 
-declare const expectType: <T>(t: T) => T
-
 declare const enhancer1: StoreEnhancer<
   {
     has1: true
@@ -17,119 +15,129 @@ declare const enhancer2: StoreEnhancer<
   { stateHas2: true }
 >
 
-{
-  // prepend single element
-  {
+describe('type tests', () => {
+  test('prepend single element', () => {
     const store = configureStore({
       reducer: () => 0,
       enhancers: (gDE) => gDE().prepend(enhancer1),
     })
-    expectType<true>(store.has1)
-    expectType<true>(store.getState().stateHas1)
 
-    // @ts-expect-error
-    expectType<true>(store.has2)
-    // @ts-expect-error
-    expectType<true>(store.getState().stateHas2)
-  }
+    expectTypeOf(store.has1).toEqualTypeOf<true>()
 
-  // prepend multiple (rest)
-  {
+    expectTypeOf(store.getState().stateHas1).toEqualTypeOf<true>()
+
+    expectTypeOf(store).not.toHaveProperty('has2')
+
+    expectTypeOf(store.getState()).not.toHaveProperty('stateHas2')
+  })
+
+  test('prepend multiple (rest)', () => {
     const store = configureStore({
       reducer: () => 0,
       enhancers: (gDE) => gDE().prepend(enhancer1, enhancer2),
     })
-    expectType<true>(store.has1)
-    expectType<true>(store.getState().stateHas1)
-    expectType<true>(store.has2)
-    expectType<true>(store.getState().stateHas2)
 
-    // @ts-expect-error
-    expectType<true>(store.has3)
-    // @ts-expect-error
-    expectType<true>(store.getState().stateHas3)
-  }
+    expectTypeOf(store.has1).toEqualTypeOf<true>()
 
-  // prepend multiple (array notation)
-  {
+    expectTypeOf(store.getState().stateHas1).toEqualTypeOf<true>()
+
+    expectTypeOf(store.has2).toEqualTypeOf<true>()
+
+    expectTypeOf(store.getState().stateHas2).toEqualTypeOf<true>()
+
+    expectTypeOf(store).not.toHaveProperty('has3')
+
+    expectTypeOf(store.getState()).not.toHaveProperty('stateHas3')
+  })
+
+  test('prepend multiple (array notation)', () => {
     const store = configureStore({
       reducer: () => 0,
       enhancers: (gDE) => gDE().prepend([enhancer1, enhancer2] as const),
     })
-    expectType<true>(store.has1)
-    expectType<true>(store.getState().stateHas1)
-    expectType<true>(store.has2)
-    expectType<true>(store.getState().stateHas2)
 
-    // @ts-expect-error
-    expectType<true>(store.has3)
-    // @ts-expect-error
-    expectType<true>(store.getState().stateHas3)
-  }
+    expectTypeOf(store.has1).toEqualTypeOf<true>()
 
-  // concat single element
-  {
+    expectTypeOf(store.getState().stateHas1).toEqualTypeOf<true>()
+
+    expectTypeOf(store.has2).toEqualTypeOf<true>()
+
+    expectTypeOf(store.getState().stateHas2).toEqualTypeOf<true>()
+
+    expectTypeOf(store).not.toHaveProperty('has3')
+
+    expectTypeOf(store.getState()).not.toHaveProperty('stateHas3')
+  })
+
+  test('concat single element', () => {
     const store = configureStore({
       reducer: () => 0,
       enhancers: (gDE) => gDE().concat(enhancer1),
     })
-    expectType<true>(store.has1)
-    expectType<true>(store.getState().stateHas1)
 
-    // @ts-expect-error
-    expectType<true>(store.has2)
-    // @ts-expect-error
-    expectType<true>(store.getState().stateHas2)
-  }
+    expectTypeOf(store.has1).toEqualTypeOf<true>()
 
-  // prepend multiple (rest)
-  {
+    expectTypeOf(store.getState().stateHas1).toEqualTypeOf<true>()
+
+    expectTypeOf(store).not.toHaveProperty('has2')
+
+    expectTypeOf(store.getState()).not.toHaveProperty('stateHas2')
+  })
+
+  test('prepend multiple (rest)', () => {
     const store = configureStore({
       reducer: () => 0,
       enhancers: (gDE) => gDE().concat(enhancer1, enhancer2),
     })
-    expectType<true>(store.has1)
-    expectType<true>(store.getState().stateHas1)
-    expectType<true>(store.has2)
-    expectType<true>(store.getState().stateHas2)
 
-    // @ts-expect-error
-    expectType<true>(store.has3)
-    // @ts-expect-error
-    expectType<true>(store.getState().stateHas3)
-  }
+    expectTypeOf(store.has1).toEqualTypeOf<true>()
 
-  // concat multiple (array notation)
-  {
+    expectTypeOf(store.getState().stateHas1).toEqualTypeOf<true>()
+
+    expectTypeOf(store.has2).toEqualTypeOf<true>()
+
+    expectTypeOf(store.getState().stateHas2).toEqualTypeOf<true>()
+
+    expectTypeOf(store).not.toHaveProperty('has3')
+
+    expectTypeOf(store.getState()).not.toHaveProperty('stateHas3')
+  })
+
+  test('concat multiple (array notation)', () => {
     const store = configureStore({
       reducer: () => 0,
       enhancers: (gDE) => gDE().concat([enhancer1, enhancer2] as const),
     })
-    expectType<true>(store.has1)
-    expectType<true>(store.getState().stateHas1)
-    expectType<true>(store.has2)
-    expectType<true>(store.getState().stateHas2)
 
-    // @ts-expect-error
-    expectType<true>(store.has3)
-    // @ts-expect-error
-    expectType<true>(store.getState().stateHas3)
-  }
+    expectTypeOf(store.has1).toEqualTypeOf<true>()
 
-  // concat and prepend
-  {
+    expectTypeOf(store.getState().stateHas1).toEqualTypeOf<true>()
+
+    expectTypeOf(store.has2).toEqualTypeOf<true>()
+
+    expectTypeOf(store.getState().stateHas2).toEqualTypeOf<true>()
+
+    expectTypeOf(store).not.toHaveProperty('has3')
+
+    expectTypeOf(store.getState()).not.toHaveProperty('stateHas3')
+  })
+
+  test('concat and prepend', () => {
     const store = configureStore({
       reducer: () => 0,
       enhancers: (gDE) => gDE().concat(enhancer1).prepend(enhancer2),
     })
-    expectType<true>(store.has1)
-    expectType<true>(store.getState().stateHas1)
-    expectType<true>(store.has2)
-    expectType<true>(store.getState().stateHas2)
 
-    // @ts-expect-error
-    expectType<true>(store.has3)
-    // @ts-expect-error
-    expectType<true>(store.getState().stateHas3)
-  }
-}
+    expectTypeOf(store.has1).toEqualTypeOf<true>()
+
+    expectTypeOf(store.getState().stateHas1).toEqualTypeOf<true>()
+
+    expectTypeOf(store.has2).toEqualTypeOf<true>()
+
+    expectTypeOf(store.getState().stateHas2).toEqualTypeOf<true>()
+
+    expectTypeOf(store).not.toHaveProperty('has3')
+
+    expectTypeOf(store.getState()).not.toHaveProperty('stateHas3')
+  })
+})
