@@ -747,23 +747,13 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         }
       }, [subscriptionRemoved])
 
-      usePossiblyImmediateEffect((): void | undefined => {
+      const initiateQueryIfNeeded = useCallback(() => {
         const lastPromise = promiseRef.current
-        if (
-          typeof process !== 'undefined' &&
-          process.env.NODE_ENV === 'removeMeOnCompilation'
-        ) {
-          // this is only present to enforce the rule of hooks to keep `isSubscribed` in the dependency array
-          console.log(subscriptionRemoved)
-        }
-
         if (stableArg === skipToken) {
           lastPromise?.unsubscribe()
           promiseRef.current = undefined
           return
         }
-
-        const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions
 
         if (!lastPromise || lastPromise.arg !== stableArg) {
           lastPromise?.unsubscribe()
@@ -775,14 +765,37 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           )
 
           promiseRef.current = promise
-        } else if (stableSubscriptionOptions !== lastSubscriptionOptions) {
-          lastPromise.updateSubscriptionOptions(stableSubscriptionOptions)
         }
       }, [
         dispatch,
         initiate,
         refetchOnMountOrArgChange,
         stableArg,
+        stableSubscriptionOptions,
+      ])
+
+      usePossiblyImmediateEffect((): void | undefined => {
+        if (
+          typeof process !== 'undefined' &&
+          process.env.NODE_ENV === 'removeMeOnCompilation'
+        ) {
+          // this is only present to enforce the rule of hooks to keep `subscriptionRemoved` in the dependency array
+          // and will be removed on compilation
+          console.log(subscriptionRemoved)
+        }
+
+        initiateQueryIfNeeded()
+
+        if (
+          promiseRef.current &&
+          stableSubscriptionOptions !== promiseRef.current?.subscriptionOptions
+        ) {
+          promiseRef.current.updateSubscriptionOptions(
+            stableSubscriptionOptions
+          )
+        }
+      }, [
+        initiateQueryIfNeeded,
         stableSubscriptionOptions,
         subscriptionRemoved,
       ])
@@ -794,21 +807,34 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         }
       }, [])
 
-      return useMemo(
-        () => ({
-          /**
-           * A method to manually refetch data for the query
-           */
-          refetch: () => {
-            if (!promiseRef.current)
-              throw new Error(
-                'Cannot refetch a query that has not been started yet.'
-              )
-            return promiseRef.current?.refetch()
+      return {
+        /**
+         * A method to manually refetch data for the query
+         */
+        refetch: useCallback(() => {
+          if (!promiseRef.current)
+            throw new Error(
+              'Cannot refetch a query that has not been started yet.'
+            )
+          return promiseRef.current?.refetch()
+        }, []),
+        /**
+         * a `.then` method that allows the return value to be used with the `use` hook like
+         * `const result = use(useSomeQuery(args))`
+         */
+        then: useCallback<Promise<unknown>['then']>(
+          (onfulfilled, onrejected) => {
+            initiateQueryIfNeeded()
+
+            return (
+              promiseRef.current?.unwrap() ||
+              // skipToken handling
+              Promise.resolve(undefined)
+            ).then(onfulfilled, onrejected)
           },
-        }),
-        []
-      )
+          [initiateQueryIfNeeded]
+        ),
+      }
     }
 
     const useLazyQuerySubscription: UseLazyQuerySubscription<any> = ({
