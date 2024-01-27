@@ -1,81 +1,105 @@
 import { Tuple } from '@reduxjs/toolkit'
-import { expectType } from "./utils/typeTestHelpers"
 
-/**
- * Test: compatibility is checked between described types
- */
-{
-  const stringTuple = new Tuple('')
+describe('type tests', () => {
+  test('compatibility is checked between described types', () => {
+    const stringTuple = new Tuple('')
 
-  expectType<Tuple<[string]>>(stringTuple)
+    expectTypeOf(stringTuple).toEqualTypeOf<Tuple<[string]>>()
 
-  expectType<Tuple<string[]>>(stringTuple)
+    expectTypeOf(stringTuple).toMatchTypeOf<Tuple<string[]>>()
 
-  // @ts-expect-error
-  expectType<Tuple<[string, string]>>(stringTuple)
+    expectTypeOf(stringTuple).not.toEqualTypeOf<Tuple<string[]>>()
 
-  const numberTuple = new Tuple(0, 1)
-  // @ts-expect-error
-  expectType<Tuple<string[]>>(numberTuple)
-}
+    expectTypeOf(stringTuple).not.toEqualTypeOf<Tuple<[string, string]>>()
 
-/**
- * Test: concat is inferred properly
- */
-{
-  const singleString = new Tuple('')
+    const numberTuple = new Tuple(0, 1)
 
-  expectType<Tuple<[string]>>(singleString)
+    expectTypeOf(numberTuple).not.toEqualTypeOf<Tuple<string[]>>()
+  })
 
-  expectType<Tuple<[string, string]>>(singleString.concat(''))
+  test('concat is inferred properly', () => {
+    const singleString = new Tuple('')
 
-  expectType<Tuple<[string, string]>>(singleString.concat(['']))
-}
+    expectTypeOf(singleString).toEqualTypeOf<Tuple<[string]>>()
 
-/**
- * Test: prepend is inferred properly
- */
-{
-  const singleString = new Tuple('')
+    expectTypeOf(singleString.concat('')).toEqualTypeOf<
+      Tuple<[string, string]>
+    >()
 
-  expectType<Tuple<[string]>>(singleString)
+    expectTypeOf(singleString.concat([''])).not.toMatchTypeOf<
+      Tuple<[string, string]>
+    >()
 
-  expectType<Tuple<[string, string]>>(singleString.prepend(''))
+    assertType<Tuple<[string, string]>>(singleString.concat(['']))
 
-  expectType<Tuple<[string, string]>>(singleString.prepend(['']))
-}
+    expectTypeOf(singleString.concat([''])).not.toEqualTypeOf<
+      Tuple<[string, string]>
+    >()
+  })
 
-/**
- * Test: push must match existing items
- */
-{
-  const stringTuple = new Tuple('')
+  test('prepend is inferred properly', () => {
+    const singleString = new Tuple('')
 
-  stringTuple.push('')
+    expectTypeOf(singleString).toEqualTypeOf<Tuple<[string]>>()
 
-  // @ts-expect-error
-  stringTuple.push(0)
-}
+    expectTypeOf(singleString.prepend('')).toEqualTypeOf<
+      Tuple<[string, string]>
+    >()
 
-/**
- * Test: Tuples can be combined
- */
-{
-  const stringTuple = new Tuple('')
+    expectTypeOf(singleString.prepend([''])).not.toMatchTypeOf<
+      Tuple<[string, string]>
+    >()
 
-  const numberTuple = new Tuple(0, 1)
+    assertType<Tuple<[string, string]>>(singleString.prepend(['']))
 
-  expectType<Tuple<[string, number, number]>>(stringTuple.concat(numberTuple))
+    expectTypeOf(singleString.prepend([''])).not.toEqualTypeOf<
+      Tuple<[string, string]>
+    >()
+  })
 
-  expectType<Tuple<[number, number, string]>>(stringTuple.prepend(numberTuple))
+  test('push must match existing items', () => {
+    const stringTuple = new Tuple('')
 
-  expectType<Tuple<[number, number, string]>>(numberTuple.concat(stringTuple))
+    expectTypeOf(stringTuple.push).toBeCallableWith('')
 
-  expectType<Tuple<[string, number, number]>>(numberTuple.prepend(stringTuple))
+    expectTypeOf(stringTuple.push).parameter(0).not.toBeNumber()
+  })
 
-  // @ts-expect-error
-  expectType<Tuple<[string, number, number]>>(stringTuple.prepend(numberTuple))
+  test('Tuples can be combined', () => {
+    const stringTuple = new Tuple('')
 
-  // @ts-expect-error
-  expectType<Tuple<[number, number, string]>>(stringTuple.concat(numberTuple))
-}
+    const numberTuple = new Tuple(0, 1)
+
+    expectTypeOf(stringTuple.concat(numberTuple)).toEqualTypeOf<
+      Tuple<[string, number, number]>
+    >()
+
+    expectTypeOf(stringTuple.prepend(numberTuple)).toEqualTypeOf<
+      Tuple<[number, number, string]>
+    >()
+
+    expectTypeOf(numberTuple.concat(stringTuple)).toEqualTypeOf<
+      Tuple<[number, number, string]>
+    >()
+
+    expectTypeOf(numberTuple.prepend(stringTuple)).toEqualTypeOf<
+      Tuple<[string, number, number]>
+    >()
+
+    expectTypeOf(stringTuple.prepend(numberTuple)).not.toEqualTypeOf<
+      Tuple<[string, number, number]>
+    >()
+
+    expectTypeOf(stringTuple.prepend(numberTuple)).not.toMatchTypeOf<
+      Tuple<[string, number, number]>
+    >()
+
+    expectTypeOf(stringTuple.concat(numberTuple)).not.toMatchTypeOf<
+      Tuple<[number, number, string]>
+    >()
+
+    expectTypeOf(stringTuple.concat(numberTuple)).not.toEqualTypeOf<
+      Tuple<[number, number, string]>
+    >()
+  })
+})
