@@ -17,7 +17,7 @@ export interface CreateApiOptions<
   BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string = 'api',
-  TagTypes extends string = never,
+  TagTypes extends string = never
 > {
   /**
    * The base query used by each endpoint if no `queryFn` option is specified. RTK Query exports a utility called [fetchBaseQuery](./fetchBaseQuery) as a lightweight wrapper around `fetch` for common use-cases. See [Customizing Queries](../../rtk-query/usage/customizing-queries) if `fetchBaseQuery` does not handle your requirements.
@@ -97,7 +97,7 @@ export interface CreateApiOptions<
    * Endpoints are just a set of operations that you want to perform against your server. You define them as an object using the builder syntax. There are two basic endpoint types: [`query`](../../rtk-query/usage/queries) and [`mutation`](../../rtk-query/usage/mutations).
    */
   endpoints(
-    build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>,
+    build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
   ): Definitions
   /**
    * Defaults to `60` _(this value is in seconds)_. This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.
@@ -200,7 +200,7 @@ export interface CreateApiOptions<
       reducerPath,
     }: {
       reducerPath: ReducerPath
-    },
+    }
   ) =>
     | undefined
     | CombinedState<
@@ -220,9 +220,9 @@ export type CreateApi<Modules extends ModuleName> = {
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
     ReducerPath extends string = 'api',
-    TagTypes extends string = never,
+    TagTypes extends string = never
   >(
-    options: CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>,
+    options: CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>
   ): Api<BaseQuery, Definitions, ReducerPath, TagTypes, Modules>
 }
 
@@ -249,14 +249,14 @@ export type CreateApi<Modules extends ModuleName> = {
  * @param modules - A variable number of modules that customize how the `createApi` method handles endpoints
  * @returns A `createApi` method using the provided `modules`.
  */
-export function buildCreateApi<Modules extends [any, ...any[]]>(
-  ...modules: [...{ [K in keyof Modules]: Module<Modules[K]> }]
-): CreateApi<Modules[number]> {
+export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
+  ...modules: Modules
+): CreateApi<Modules[number]['name']> {
   return function baseCreateApi(options) {
     const extractRehydrationInfo = weakMapMemoize((action: UnknownAction) =>
       options.extractRehydrationInfo?.(action, {
         reducerPath: (options.reducerPath ?? 'api') as any,
-      }),
+      })
     )
 
     const optionsWithDefaults: CreateApiOptions<any, any, any, any> = {
@@ -305,7 +305,7 @@ export function buildCreateApi<Modules extends [any, ...any[]]>(
       apiUid: nanoid(),
       extractRehydrationInfo,
       hasRehydrationInfo: weakMapMemoize(
-        (action) => extractRehydrationInfo(action) != null,
+        (action) => extractRehydrationInfo(action) != null
       ),
     }
 
@@ -321,14 +321,14 @@ export function buildCreateApi<Modules extends [any, ...any[]]>(
         }
         if (endpoints) {
           for (const [endpointName, partialDefinition] of Object.entries(
-            endpoints,
+            endpoints
           )) {
             if (typeof partialDefinition === 'function') {
               partialDefinition(context.endpointDefinitions[endpointName])
             } else {
               Object.assign(
                 context.endpointDefinitions[endpointName] || {},
-                partialDefinition,
+                partialDefinition
               )
             }
           }
@@ -338,19 +338,19 @@ export function buildCreateApi<Modules extends [any, ...any[]]>(
     } as Api<BaseQueryFn, {}, string, string, Modules[number]['name']>
 
     const initializedModules = modules.map((m) =>
-      m.init(api as any, optionsWithDefaults as any, context),
+      m.init(api as any, optionsWithDefaults as any, context)
     )
 
     function injectEndpoints(
-      inject: Parameters<typeof api.injectEndpoints>[0],
+      inject: Parameters<typeof api.injectEndpoints>[0]
     ) {
       const evaluatedEndpoints = inject.endpoints({
-        query: (x) => ({ ...x, type: DefinitionType.query }) as any,
-        mutation: (x) => ({ ...x, type: DefinitionType.mutation }) as any,
+        query: (x) => ({ ...x, type: DefinitionType.query } as any),
+        mutation: (x) => ({ ...x, type: DefinitionType.mutation } as any),
       })
 
       for (const [endpointName, definition] of Object.entries(
-        evaluatedEndpoints,
+        evaluatedEndpoints
       )) {
         if (
           !inject.overrideExisting &&
@@ -361,7 +361,7 @@ export function buildCreateApi<Modules extends [any, ...any[]]>(
             process.env.NODE_ENV === 'development'
           ) {
             console.error(
-              `called \`injectEndpoints\` to override already-existing endpointName ${endpointName} without specifying \`overrideExisting: true\``,
+              `called \`injectEndpoints\` to override already-existing endpointName ${endpointName} without specifying \`overrideExisting: true\``
             )
           }
 
