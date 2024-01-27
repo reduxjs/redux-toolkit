@@ -1,6 +1,6 @@
 import { delay } from 'msw'
-import { buildHooksForApi, fakeBaseQuery } from '../react'
-import { createApi } from '../core'
+import { createApi } from '@reduxjs/toolkit/query'
+import { buildHooksForApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react'
 
 interface Post {
   id: number
