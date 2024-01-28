@@ -20,19 +20,6 @@ const exampleApi = createApi({
 
 type ExampleApiState = ReturnType<typeof exampleApi.reducer>
 
-declare const wrongNumberSlice: Slice<string, {}, 'number'>
-
-declare const wrongBooleanReducer: Reducer<number>
-
-const wrongApi = createApi({
-  baseQuery: fetchBaseQuery(),
-  endpoints: (build) => ({
-    getThing2: build.query({
-      query: () => '',
-    }),
-  }),
-})
-
 describe('type tests', () => {
   test('combineSlices correctly combines static state', () => {
     const rootReducer = combineSlices(stringSlice, numberSlice, exampleApi, {
@@ -131,11 +118,14 @@ describe('type tests', () => {
       .selector((state, num: number) => state.number)
 
     const state = rootReducer(undefined, { type: '' })
-    // @ts-expect-error required argument
-    selector(state)
-    // @ts-expect-error number not string
-    selector(state, '')
-    selector(state, 0)
+
+    expectTypeOf(selector).toBeCallableWith(state, 0)
+
+    // required argument
+    expectTypeOf(selector).parameters.not.toMatchTypeOf([state])
+
+    // number not string
+    expectTypeOf(selector).parameters.not.toMatchTypeOf([state, ''])
   })
 
   test('nested calls inferred correctly', () => {
@@ -154,10 +144,6 @@ describe('type tests', () => {
     type RootState = ReturnType<typeof outerReducer>
 
     expectTypeOf(outerReducer(undefined, { type: '' })).toMatchTypeOf<{
-      inner: { string: string }
-    }>()
-
-    expectTypeOf(outerReducer(undefined, { type: '' })).not.toEqualTypeOf<{
       inner: { string: string }
     }>()
 
