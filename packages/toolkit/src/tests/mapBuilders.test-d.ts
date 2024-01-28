@@ -3,7 +3,6 @@ import { createAsyncThunk } from '@internal/createAsyncThunk'
 import { executeReducerBuilderCallback } from '@internal/mapBuilders'
 import type { UnknownAction } from '@reduxjs/toolkit'
 import { createAction } from '@reduxjs/toolkit'
-import { expectType } from './utils/typeTestHelpers'
 
 describe('type tests', () => {
   test('builder callback for actionMap', () => {
@@ -70,7 +69,7 @@ describe('type tests', () => {
 
       // action type is inferred
       builder.addMatcher(increment.match, (state, action) => {
-        expectType<ReturnType<typeof increment>>(action)
+        expectTypeOf(action).toEqualTypeOf<ReturnType<typeof increment>>()
       })
 
       test('action type is inferred when type predicate lacks `type` property', () => {
@@ -176,18 +175,18 @@ describe('type tests', () => {
             return 'ret' as const
           })
           builder.addCase(thunk.pending, (_, action) => {
-            expectType<{
+            expectTypeOf(action).toMatchTypeOf<{
               payload: undefined
               meta: {
                 arg: void
                 requestId: string
                 requestStatus: 'pending'
               }
-            }>(action)
+            }>()
           })
 
           builder.addCase(thunk.rejected, (_, action) => {
-            expectType<{
+            expectTypeOf(action).toMatchTypeOf<{
               payload: unknown
               error: SerializedError
               meta: {
@@ -198,17 +197,17 @@ describe('type tests', () => {
                 condition: boolean
                 rejectedWithValue: boolean
               }
-            }>(action)
+            }>()
           })
           builder.addCase(thunk.fulfilled, (_, action) => {
-            expectType<{
+            expectTypeOf(action).toMatchTypeOf<{
               payload: 'ret'
               meta: {
                 arg: void
                 requestId: string
                 requestStatus: 'fulfilled'
               }
-            }>(action)
+            }>()
           })
         })
       })
@@ -243,7 +242,7 @@ describe('type tests', () => {
         )
 
         builder.addCase(thunk.pending, (_, action) => {
-          expectType<{
+          expectTypeOf(action).toMatchTypeOf<{
             payload: undefined
             meta: {
               arg: void
@@ -251,11 +250,11 @@ describe('type tests', () => {
               requestStatus: 'pending'
               startedTimeStamp: number
             }
-          }>(action)
+          }>()
         })
 
         builder.addCase(thunk.rejected, (_, action) => {
-          expectType<{
+          expectTypeOf(action).toMatchTypeOf<{
             payload: unknown
             error: SerializedError
             meta: {
@@ -267,13 +266,14 @@ describe('type tests', () => {
               rejectedWithValue: boolean
               baseQueryMeta?: 'meta!'
             }
-          }>(action)
+          }>()
+
           if (action.meta.rejectedWithValue) {
-            expectType<'meta!'>(action.meta.baseQueryMeta)
+            expectTypeOf(action.meta.baseQueryMeta).toEqualTypeOf<'meta!'>()
           }
         })
         builder.addCase(thunk.fulfilled, (_, action) => {
-          expectType<{
+          expectTypeOf(action).toMatchTypeOf<{
             payload: 'ret'
             meta: {
               arg: void
@@ -281,7 +281,7 @@ describe('type tests', () => {
               requestStatus: 'fulfilled'
               baseQueryMeta: 'meta!'
             }
-          }>(action)
+          }>()
         })
       })
     })
