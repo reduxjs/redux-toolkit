@@ -1,10 +1,10 @@
-import { miniSerializeError } from '@internal/createAsyncThunk'
 import type { UnknownAction } from '@reduxjs/toolkit'
 import {
   configureStore,
   createAsyncThunk,
   createReducer,
   unwrapResult,
+  miniSerializeError
 } from '@reduxjs/toolkit'
 import { vi } from 'vitest'
 
@@ -13,8 +13,7 @@ import {
   getLog,
   mockConsole,
 } from 'console-testing-library/pure'
-import { delay } from '../utils'
-import { expectType } from './utils/typeTestHelpers'
+import { delay } from '@internal/utils'
 
 declare global {
   interface Window {
@@ -683,7 +682,7 @@ describe('conditional skipping of asyncThunks', () => {
         },
         meta: {
           aborted: false,
-          arg: arg,
+          arg,
           rejectedWithValue: false,
           condition: true,
           requestId: expect.stringContaining(''),
@@ -896,7 +895,7 @@ describe('meta', () => {
         return [...actions, action]
       },
     })
-  let store = getNewStore()
+  const store = getNewStore()
 
   beforeEach(() => {
     const store = getNewStore()
@@ -970,7 +969,6 @@ describe('meta', () => {
     })
 
     if (ret.meta.requestStatus === 'rejected' && ret.meta.rejectedWithValue) {
-      expectType<string>(ret.meta.extraProp)
     } else {
       // could be caused by a `throw`, `abort()` or `condition` - no `rejectedMeta` in that case
       // @ts-expect-error

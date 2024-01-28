@@ -23,20 +23,20 @@ describe('type tests', () => {
   test('basic usage', () => {
     ;(async function () {
       const async = createAsyncThunk('test', (id: number) =>
-        Promise.resolve(id * 2)
+        Promise.resolve(id * 2),
       )
 
       const reducer = createReducer({}, (builder) =>
         builder
           .addCase(async.pending, (_, action) => {
             expectTypeOf(action).toEqualTypeOf<
-              ReturnType<typeof async['pending']>
+              ReturnType<(typeof async)['pending']>
             >()
           })
 
           .addCase(async.fulfilled, (_, action) => {
             expectTypeOf(action).toEqualTypeOf<
-              ReturnType<typeof async['fulfilled']>
+              ReturnType<(typeof async)['fulfilled']>
             >()
 
             expectTypeOf(action.payload).toBeNumber()
@@ -44,7 +44,7 @@ describe('type tests', () => {
 
           .addCase(async.rejected, (_, action) => {
             expectTypeOf(action).toEqualTypeOf<
-              ReturnType<typeof async['rejected']>
+              ReturnType<(typeof async)['rejected']>
             >()
 
             expectTypeOf(action.error).toMatchTypeOf<
@@ -56,7 +56,7 @@ describe('type tests', () => {
             expectTypeOf(action.error).not.toEqualTypeOf<
               Partial<Error> | undefined
             >()
-          })
+          }),
       )
 
       const promise = defaultDispatch(async(3))
@@ -71,19 +71,19 @@ describe('type tests', () => {
 
       if (async.fulfilled.match(result)) {
         expectTypeOf(result).toEqualTypeOf<
-          ReturnType<typeof async['fulfilled']>
+          ReturnType<(typeof async)['fulfilled']>
         >()
 
         expectTypeOf(result).not.toEqualTypeOf<
-          ReturnType<typeof async['rejected']>
+          ReturnType<(typeof async)['rejected']>
         >()
       } else {
         expectTypeOf(result).toEqualTypeOf<
-          ReturnType<typeof async['rejected']>
+          ReturnType<(typeof async)['rejected']>
         >()
 
         expectTypeOf(result).not.toEqualTypeOf<
-          ReturnType<typeof async['fulfilled']>
+          ReturnType<(typeof async)['fulfilled']>
         >()
       }
 
@@ -141,7 +141,7 @@ describe('type tests', () => {
           expectTypeOf(extra).toEqualTypeOf<{ userAPI: Function }>()
 
           return fakeBooks
-        }
+        },
       )
 
       correctDispatch(fetchBooksTAC(1))
@@ -207,7 +207,7 @@ describe('type tests', () => {
       createReducer({}, (builder) =>
         builder.addCase(thunk.fulfilled, (s, action) => {
           expectTypeOf(action.payload).toEqualTypeOf<ResultType>()
-        })
+        }),
       )
     })()
   })
@@ -234,7 +234,7 @@ describe('type tests', () => {
     >('calls/fetchLiveCalls', async (organizationId, { rejectWithValue }) => {
       try {
         const result = await apiRequest.get<CallsResponse>(
-          `organizations/${organizationId}/calls/live/iwill404`
+          `organizations/${organizationId}/calls/live/iwill404`,
         )
         return result.data.data
       } catch (err) {
@@ -251,13 +251,13 @@ describe('type tests', () => {
       if (fetchLiveCallsError.fulfilled.match(result)) {
         //success
         expectTypeOf(result).toEqualTypeOf<
-          ReturnType<typeof fetchLiveCallsError['fulfilled']>
+          ReturnType<(typeof fetchLiveCallsError)['fulfilled']>
         >()
 
         expectTypeOf(result.payload).toEqualTypeOf<Item[]>()
       } else {
         expectTypeOf(result).toEqualTypeOf<
-          ReturnType<typeof fetchLiveCallsError['rejected']>
+          ReturnType<(typeof fetchLiveCallsError)['rejected']>
         >()
 
         if (result.payload) {
@@ -286,7 +286,7 @@ describe('type tests', () => {
 
           expectTypeOf(
             // @ts-expect-error
-            unwrapResult(unwrapped)
+            unwrapResult(unwrapped),
           ).not.toEqualTypeOf<ErrorFromServer>()
         })
     })
@@ -364,7 +364,7 @@ describe('type tests', () => {
       // in that case, we have to forbid this behaviour or it will make arguments optional everywhere
       const asyncThunk = createAsyncThunk(
         'test',
-        (arg: number | undefined) => 0
+        (arg: number | undefined) => 0,
       )
 
       expectTypeOf(asyncThunk).toMatchTypeOf<(arg?: number) => any>()
@@ -481,7 +481,7 @@ describe('type tests', () => {
     test('two arguments, first specified as undefined: asyncThunk has no argument', () => {
       const asyncThunk = createAsyncThunk(
         'test',
-        (arg: undefined, thunkApi) => 0
+        (arg: undefined, thunkApi) => 0,
       )
 
       expectTypeOf(asyncThunk).toMatchTypeOf<() => any>()
@@ -537,7 +537,7 @@ describe('type tests', () => {
       // in that case, we have to forbid this behaviour or it will make arguments optional everywhere
       const asyncThunk = createAsyncThunk(
         'test',
-        (arg: number | undefined, thunkApi) => 0
+        (arg: number | undefined, thunkApi) => 0,
       )
 
       expectTypeOf(asyncThunk).toMatchTypeOf<(arg?: number) => any>()
@@ -558,7 +558,7 @@ describe('type tests', () => {
     test('two arguments, first specified as number|void: asyncThunk has optional number argument', () => {
       const asyncThunk = createAsyncThunk(
         'test',
-        (arg: number | void, thunkApi) => 0
+        (arg: number | void, thunkApi) => 0,
       )
 
       expectTypeOf(asyncThunk).toMatchTypeOf<(arg?: number) => any>()
@@ -671,14 +671,14 @@ describe('type tests', () => {
         } catch (e) {
           return rejectWithValue(e)
         }
-      }
+      },
     )
 
     defaultDispatch(asyncThunk())
       .then((result) => {
         if (asyncThunk.fulfilled.match(result)) {
           expectTypeOf(result).toEqualTypeOf<
-            ReturnType<typeof asyncThunk['fulfilled']>
+            ReturnType<(typeof asyncThunk)['fulfilled']>
           >()
 
           expectTypeOf(result.payload).toBeBoolean()
@@ -686,7 +686,7 @@ describe('type tests', () => {
           expectTypeOf(result).not.toHaveProperty('error')
         } else {
           expectTypeOf(result).toEqualTypeOf<
-            ReturnType<typeof asyncThunk['rejected']>
+            ReturnType<(typeof asyncThunk)['rejected']>
           >()
 
           expectTypeOf(result.error).toEqualTypeOf<SerializedError>()
@@ -749,7 +749,7 @@ describe('type tests', () => {
       (arg: string) => {},
       {
         idGenerator: returnsStrWithStringArg,
-      }
+      },
     )
 
     const returnsStrWithoutArgs = () => 'foo'
@@ -774,7 +774,7 @@ describe('type tests', () => {
         } catch (rejected: any) {
           return rejectWithValue(rejected?.response?.error || rejected)
         }
-      }
+      },
     )
 
     createSlice({
@@ -794,38 +794,38 @@ describe('type tests', () => {
     createAsyncThunk<'ret', void, {}>('test', (_, api) => 'ret' as const)
     createAsyncThunk<'ret', void, {}>('test', async (_, api) => 'ret' as const)
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>('test', (_, api) =>
-      api.fulfillWithValue('ret' as const, '')
+      api.fulfillWithValue('ret' as const, ''),
     )
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
       'test',
-      async (_, api) => api.fulfillWithValue('ret' as const, '')
-    )
-    createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
-      'test',
-      // @ts-expect-error has to be a fulfilledWithValue call
-      (_, api) => 'ret' as const
+      async (_, api) => api.fulfillWithValue('ret' as const, ''),
     )
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
       'test',
       // @ts-expect-error has to be a fulfilledWithValue call
-      async (_, api) => 'ret' as const
+      (_, api) => 'ret' as const,
+    )
+    createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
+      'test',
+      // @ts-expect-error has to be a fulfilledWithValue call
+      async (_, api) => 'ret' as const,
     )
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
       'test', // @ts-expect-error should only allow returning with 'test'
-      (_, api) => api.fulfillWithValue(5, '')
+      (_, api) => api.fulfillWithValue(5, ''),
     )
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
       'test', // @ts-expect-error should only allow returning with 'test'
-      async (_, api) => api.fulfillWithValue(5, '')
+      async (_, api) => api.fulfillWithValue(5, ''),
     )
 
     // reject values
     createAsyncThunk<'ret', void, { rejectValue: string }>('test', (_, api) =>
-      api.rejectWithValue('ret')
+      api.rejectWithValue('ret'),
     )
     createAsyncThunk<'ret', void, { rejectValue: string }>(
       'test',
-      async (_, api) => api.rejectWithValue('ret')
+      async (_, api) => api.rejectWithValue('ret'),
     )
     createAsyncThunk<
       'ret',
@@ -849,7 +849,7 @@ describe('type tests', () => {
     >(
       'test',
       // @ts-expect-error wrong rejectedMeta type
-      (_, api) => api.rejectWithValue('ret', '')
+      (_, api) => api.rejectWithValue('ret', ''),
     )
     createAsyncThunk<
       'ret',
@@ -858,7 +858,7 @@ describe('type tests', () => {
     >(
       'test',
       // @ts-expect-error wrong rejectedMeta type
-      async (_, api) => api.rejectWithValue('ret', '')
+      async (_, api) => api.rejectWithValue('ret', ''),
     )
     createAsyncThunk<
       'ret',
@@ -867,7 +867,7 @@ describe('type tests', () => {
     >(
       'test',
       // @ts-expect-error wrong rejectValue type
-      (_, api) => api.rejectWithValue(5, '')
+      (_, api) => api.rejectWithValue(5, ''),
     )
     createAsyncThunk<
       'ret',
@@ -876,7 +876,7 @@ describe('type tests', () => {
     >(
       'test',
       // @ts-expect-error wrong rejectValue type
-      async (_, api) => api.rejectWithValue(5, '')
+      async (_, api) => api.rejectWithValue(5, ''),
     )
   })
 
@@ -984,7 +984,7 @@ describe('type tests', () => {
         expectTypeOf(api.rejectWithValue).parameters.toEqualTypeOf<[number]>()
 
         return api.rejectWithValue(5)
-      }
+      },
     )
 
     const slice = createSlice({
@@ -1022,5 +1022,35 @@ describe('type tests', () => {
 
     type RootState = ReturnType<typeof store.getState>
     type AppDispatch = typeof store.dispatch
+  })
+
+  test('rejectedMeta', async () => {
+    const getNewStore = () =>
+      configureStore({
+        reducer(actions = [], action) {
+          return [...actions, action]
+        },
+      })
+
+    const store = getNewStore()
+
+    const fulfilledThunk = createAsyncThunk<
+      string,
+      string,
+      { rejectedMeta: { extraProp: string } }
+    >('test', (arg: string, { rejectWithValue }) => {
+      return rejectWithValue('damn!', { extraProp: 'baz' })
+    })
+
+    const promise = store.dispatch(fulfilledThunk('testArg'))
+
+    const ret = await promise
+
+    if (ret.meta.requestStatus === 'rejected' && ret.meta.rejectedWithValue) {
+      expectTypeOf(ret.meta.extraProp).toBeString()
+    } else {
+      // could be caused by a `throw`, `abort()` or `condition` - no `rejectedMeta` in that case
+      expectTypeOf(ret.meta).not.toHaveProperty('extraProp')
+    }
   })
 })
