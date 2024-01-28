@@ -2,7 +2,7 @@ import type {
   DefinitionsFromApi,
   OverrideResultType,
   TagTypesFromApi,
-} from '@internal/query/endpointDefinitions'
+} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
 import { ANY, setupApiStore } from '@internal/tests/utils/helpers'
 import type { SerializedError } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
@@ -29,6 +29,7 @@ describe('type tests', () => {
         }),
       }),
     })
+
     configureStore({
       reducer: {
         [api.reducerPath]: api.reducer,
@@ -38,9 +39,8 @@ describe('type tests', () => {
 
     expectTypeOf(api.reducerPath).toEqualTypeOf<'api'>()
 
-    type TagTypes = typeof api extends Api<any, any, any, infer E>
-      ? E
-      : 'no match'
+    type TagTypes =
+      typeof api extends Api<any, any, any, infer E> ? E : 'no match'
 
     assertType<TagTypes>(ANY as never)
 
@@ -55,6 +55,7 @@ describe('type tests', () => {
       endpoints: () => ({}),
       tagTypes: ['typeA', 'typeB'],
     })
+
     test('query: query & transformResponse types', () => {
       api.injectEndpoints({
         endpoints: (build) => ({
@@ -121,6 +122,7 @@ describe('type tests', () => {
         }),
       })
     })
+
     test('mutation: query & transformResponse types', () => {
       api.injectEndpoints({
         endpoints: (build) => ({
@@ -190,6 +192,7 @@ describe('type tests', () => {
 
     describe('enhancing endpoint definitions', () => {
       const baseQuery = (x: string) => ({ data: 'success' })
+
       function getNewApi() {
         return createApi({
           baseQuery,
@@ -206,15 +209,17 @@ describe('type tests', () => {
           }),
         })
       }
-      const api = getNewApi()
+
+      const api1 = getNewApi()
 
       test('warn on wrong tagType', () => {
-        const storeRef = setupApiStore(api, undefined, {
+        const storeRef = setupApiStore(api1, undefined, {
           withoutTestLifecycles: true,
         })
+
         // only type-test this part
         if (2 > 1) {
-          api.enhanceEndpoints({
+          api1.enhanceEndpoints({
             endpoints: {
               query1: {
                 // @ts-expect-error
@@ -228,7 +233,7 @@ describe('type tests', () => {
           })
         }
 
-        const enhanced = api.enhanceEndpoints({
+        const enhanced = api1.enhanceEndpoints({
           addTagTypes: ['new'],
           endpoints: {
             query1: {
@@ -241,9 +246,9 @@ describe('type tests', () => {
           },
         })
 
-        storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
+        storeRef.store.dispatch(api1.endpoints.query1.initiate('in1'))
 
-        storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
+        storeRef.store.dispatch(api1.endpoints.query2.initiate('in2'))
 
         // only type-test this part
         if (2 > 1) {
@@ -263,10 +268,11 @@ describe('type tests', () => {
       })
 
       test('modify', () => {
-        const storeRef = setupApiStore(api, undefined, {
+        const storeRef = setupApiStore(api1, undefined, {
           withoutTestLifecycles: true,
         })
-        api.enhanceEndpoints({
+
+        api1.enhanceEndpoints({
           endpoints: {
             query1: {
               query: (x) => {
@@ -301,10 +307,10 @@ describe('type tests', () => {
           },
         })
 
-        storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
-        storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
-        storeRef.store.dispatch(api.endpoints.mutation1.initiate('in1'))
-        storeRef.store.dispatch(api.endpoints.mutation2.initiate('in2'))
+        storeRef.store.dispatch(api1.endpoints.query1.initiate('in1'))
+        storeRef.store.dispatch(api1.endpoints.query2.initiate('in2'))
+        storeRef.store.dispatch(api1.endpoints.mutation1.initiate('in1'))
+        storeRef.store.dispatch(api1.endpoints.mutation2.initiate('in2'))
       })
 
       test('updated transform response types', async () => {
@@ -319,13 +325,15 @@ describe('type tests', () => {
 
         type Transformed = { value: string }
 
-        type Definitions = DefinitionsFromApi<typeof api>
-        type TagTypes = TagTypesFromApi<typeof api>
+        type Definitions = DefinitionsFromApi<typeof api1>
+
+        type TagTypes = TagTypesFromApi<typeof api1>
 
         type Q1Definition = OverrideResultType<
           Definitions['query1'],
           Transformed
         >
+
         type M1Definition = OverrideResultType<
           Definitions['mutation1'],
           Transformed
@@ -359,7 +367,7 @@ describe('type tests', () => {
         })
 
         const queryResponse = await storeRef.store.dispatch(
-          enhancedApi.endpoints.query1.initiate()
+          enhancedApi.endpoints.query1.initiate(),
         )
 
         expectTypeOf(queryResponse.data).toMatchTypeOf<
@@ -367,7 +375,7 @@ describe('type tests', () => {
         >()
 
         const mutationResponse = await storeRef.store.dispatch(
-          enhancedApi.endpoints.mutation1.initiate()
+          enhancedApi.endpoints.mutation1.initiate(),
         )
 
         expectTypeOf(mutationResponse).toMatchTypeOf<
