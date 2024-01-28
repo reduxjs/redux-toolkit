@@ -90,7 +90,7 @@ describe('type tests', () => {
       addListener({
         actionCreator: testAction1,
         effect: () => {},
-      })
+      }),
     )
 
     expectTypeOf(unsubscribe).toEqualTypeOf<UnsubscribeListener>()
@@ -135,7 +135,7 @@ describe('type tests', () => {
       predicate: (
         action,
         currentState,
-        previousState
+        previousState,
       ): action is UnknownAction => {
         expectTypeOf(currentState).toBeUnknown()
 
@@ -160,7 +160,7 @@ describe('type tests', () => {
       predicate: (
         action,
         currentState,
-        previousState
+        previousState,
       ): action is UnknownAction => {
         expectTypeOf(currentState).toBeUnknown()
 
@@ -191,7 +191,7 @@ describe('type tests', () => {
         predicate: (
           action,
           currentState,
-          previousState
+          previousState,
         ): action is UnknownAction => {
           expectTypeOf(currentState).toBeUnknown()
 
@@ -210,7 +210,7 @@ describe('type tests', () => {
             expectTypeOf(thunkState).toBeUnknown()
           })
         },
-      })
+      }),
     )
 
     store.dispatch(
@@ -221,14 +221,13 @@ describe('type tests', () => {
 
           expectTypeOf(listenerState).toBeUnknown()
 
-          // TODO Can't get the thunk dispatch types to carry through
           listenerApi.dispatch((dispatch, getState) => {
             const thunkState = getState()
 
             expectTypeOf(thunkState).toBeUnknown()
           })
         },
-      })
+      }),
     )
   })
 
@@ -258,7 +257,7 @@ describe('type tests', () => {
       predicate: (
         action,
         currentState,
-        previousState
+        previousState,
       ): action is PayloadAction<number> => {
         return (
           isFluxStandardAction(action) && typeof action.payload === 'boolean'
@@ -286,7 +285,7 @@ describe('type tests', () => {
         effect: (action, listenerApi) => {
           expectTypeOf(action).toEqualTypeOf<{ type: 'abcd' }>()
         },
-      })
+      }),
     )
 
     store.dispatch(
@@ -295,7 +294,7 @@ describe('type tests', () => {
         effect: (action, listenerApi) => {
           expectTypeOf(action).toMatchTypeOf<PayloadAction<number>>()
         },
-      })
+      }),
     )
 
     store.dispatch(
@@ -304,7 +303,7 @@ describe('type tests', () => {
         effect: (action, listenerApi) => {
           expectTypeOf(action).toMatchTypeOf<PayloadAction<number>>()
         },
-      })
+      }),
     )
   })
 
@@ -315,7 +314,7 @@ describe('type tests', () => {
       predicate: (
         action,
         currentState,
-        previousState
+        previousState,
       ): action is UnknownAction => {
         expectTypeOf(currentState).not.toBeAny()
 
@@ -342,11 +341,7 @@ describe('type tests', () => {
 
     // Can pass a predicate function with fewer args
     typedMiddleware.startListening({
-      // TODO Why won't this infer the listener's `action` with implicit argument types?
-      predicate: (
-        action: UnknownAction,
-        currentState: CounterState
-      ): action is PayloadAction<number> => {
+      predicate: (action, currentState): action is PayloadAction<number> => {
         expectTypeOf(currentState).not.toBeAny()
 
         expectTypeOf(currentState).toEqualTypeOf<CounterState>()
@@ -388,7 +383,7 @@ describe('type tests', () => {
         predicate: (
           action,
           currentState,
-          previousState
+          previousState,
         ): action is ReturnType<typeof incrementByAmount> => {
           expectTypeOf(currentState).not.toBeAny()
 
@@ -411,7 +406,7 @@ describe('type tests', () => {
             expectTypeOf(thunkState).toEqualTypeOf<CounterState>()
           })
         },
-      })
+      }),
     )
 
     store.dispatch(
@@ -419,7 +414,7 @@ describe('type tests', () => {
         predicate: (
           action,
           currentState,
-          previousState
+          previousState,
         ): action is UnknownAction => {
           expectTypeOf(currentState).not.toBeAny()
 
@@ -442,7 +437,7 @@ describe('type tests', () => {
             expectTypeOf(thunkState).toEqualTypeOf<CounterState>()
           })
         },
-      })
+      }),
     )
   })
 
@@ -454,7 +449,7 @@ describe('type tests', () => {
       predicate: (
         action,
         currentState,
-        previousState
+        previousState,
       ): action is UnknownAction => {
         expectTypeOf(currentState).not.toBeAny()
 
@@ -471,7 +466,6 @@ describe('type tests', () => {
 
         expectTypeOf(listenerState).toEqualTypeOf<CounterState>()
 
-        // TODO Can't get the thunk dispatch types to carry through
         listenerApi.dispatch((dispatch, getState) => {
           const thunkState = listenerApi.getState()
 
@@ -487,7 +481,6 @@ describe('type tests', () => {
 
         expectTypeOf(listenerState).toEqualTypeOf<CounterState>()
 
-        // TODO Can't get the thunk dispatch types to carry through
         listenerApi.dispatch((dispatch, getState) => {
           const thunkState = listenerApi.getState()
 
@@ -501,7 +494,7 @@ describe('type tests', () => {
         predicate: (
           action,
           currentState,
-          previousState
+          previousState,
         ): action is UnknownAction => {
           expectTypeOf(currentState).not.toBeAny()
 
@@ -524,7 +517,7 @@ describe('type tests', () => {
             expectTypeOf(thunkState).toEqualTypeOf<CounterState>()
           })
         },
-      })
+      }),
     )
 
     store.dispatch(
@@ -541,7 +534,7 @@ describe('type tests', () => {
             expectTypeOf(thunkState).toEqualTypeOf<CounterState>()
           })
         },
-      })
+      }),
     )
   })
 })
