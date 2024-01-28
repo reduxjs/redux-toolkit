@@ -1,5 +1,6 @@
 import type { Reducer, Slice, WithSlice } from '@reduxjs/toolkit'
-import { combineSlices } from '@reduxjs/toolkit'
+import { combineSlices, createReducer } from '@reduxjs/toolkit'
+import type { CombinedState } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
 declare const stringSlice: Slice<string, {}, 'string'>
@@ -92,7 +93,7 @@ describe('type tests', () => {
     const withApi = rootReducer.inject(exampleApi)
 
     expectTypeOf(
-      withApi(undefined, { type: '' }).api
+      withApi(undefined, { type: '' }).api,
     ).toEqualTypeOf<ExampleApiState>()
   })
 
@@ -104,11 +105,11 @@ describe('type tests', () => {
     type RootState = ReturnType<typeof rootReducer>
 
     const withoutInjection = rootReducer.selector(
-      (state: RootState) => state.number
+      (state: RootState) => state.number,
     )
 
     expectTypeOf(
-      withoutInjection(rootReducer(undefined, { type: '' }))
+      withoutInjection(rootReducer(undefined, { type: '' })),
     ).toEqualTypeOf<number | undefined>()
 
     const withInjection = rootReducer
@@ -116,7 +117,7 @@ describe('type tests', () => {
       .selector((state) => state.number)
 
     expectTypeOf(
-      withInjection(rootReducer(undefined, { type: '' }))
+      withInjection(rootReducer(undefined, { type: '' })),
     ).toBeNumber()
   })
 
@@ -145,7 +146,7 @@ describe('type tests', () => {
 
     const innerSelector = innerReducer.inject(numberSlice).selector(
       (state) => state.number,
-      (rootState: RootState) => rootState.inner
+      (rootState: RootState) => rootState.inner,
     )
 
     const outerReducer = combineSlices({ inner: innerReducer })
@@ -161,7 +162,7 @@ describe('type tests', () => {
     }>()
 
     expectTypeOf(
-      innerSelector(outerReducer(undefined, { type: '' }))
+      innerSelector(outerReducer(undefined, { type: '' })),
     ).toBeNumber()
   })
 
@@ -178,18 +179,18 @@ describe('type tests', () => {
     combinedReducer.selector(
       (state) => state.number,
       // @ts-expect-error wrong state returned
-      (rootState: RootState) => rootState.inner.number
+      (rootState: RootState) => rootState.inner.number,
     )
 
     combinedReducer.selector(
       (state, num: number) => state.number,
       // @ts-expect-error wrong arguments
-      (rootState: RootState, str: string) => rootState.inner
+      (rootState: RootState, str: string) => rootState.inner,
     )
 
     combinedReducer.selector(
       (state, num: number) => state.number,
-      (rootState: RootState) => rootState.inner
+      (rootState: RootState) => rootState.inner,
     )
 
     // TODO: see if there's a way of making this work
@@ -197,7 +198,33 @@ describe('type tests', () => {
     combinedReducer.selector(
       (state) => state.number,
       // @ts-ignore
-      (rootState: RootState, num: number) => rootState.inner
+      (rootState: RootState, num: number) => rootState.inner,
     )
+  })
+
+  test('CombinedState', () => {
+    const api = {
+      reducerPath: 'api' as const,
+      reducer: createReducer(
+        assertType<CombinedState<{}, never, 'api'>>({
+          queries: {},
+          mutations: {},
+          provided: {},
+          subscriptions: {},
+          config: {
+            reducerPath: 'api',
+            invalidationBehavior: 'delayed',
+            online: false,
+            focused: false,
+            keepUnusedDataFor: 60,
+            middlewareRegistered: false,
+            refetchOnMountOrArgChange: false,
+            refetchOnReconnect: false,
+            refetchOnFocus: false,
+          },
+        }),
+        () => {},
+      ),
+    }
   })
 })
