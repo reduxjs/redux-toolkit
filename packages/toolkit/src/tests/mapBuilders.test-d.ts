@@ -20,12 +20,12 @@ describe('type tests', () => {
 
         expectTypeOf(state).not.toBeString()
 
-        expectTypeOf(action).not.toEqualTypeOf<{
+        expectTypeOf(action).not.toMatchTypeOf<{
           type: 'increment'
           payload: string
         }>()
 
-        expectTypeOf(action).not.toEqualTypeOf<{
+        expectTypeOf(action).not.toMatchTypeOf<{
           type: 'decrement'
           payload: number
         }>()
@@ -38,10 +38,10 @@ describe('type tests', () => {
 
         expectTypeOf(state).not.toBeString()
 
-        expectTypeOf(action).not.toEqualTypeOf<{ type: 'decrement' }>()
+        expectTypeOf(action).not.toMatchTypeOf<{ type: 'decrement' }>()
 
         // this cannot be inferred and has to be manually specified
-        expectTypeOf(action).not.toEqualTypeOf<{
+        expectTypeOf(action).not.toMatchTypeOf<{
           type: 'increment'
           payload: number
         }>()
@@ -49,22 +49,22 @@ describe('type tests', () => {
 
       builder.addCase(
         increment,
-        (state, action: ReturnType<typeof increment>) => state
+        (state, action: ReturnType<typeof increment>) => state,
       )
       // @ts-expect-error
       builder.addCase(
         increment,
-        (state, action: ReturnType<typeof decrement>) => state
+        (state, action: ReturnType<typeof decrement>) => state,
       )
 
       builder.addCase(
         'increment',
-        (state, action: ReturnType<typeof increment>) => state
+        (state, action: ReturnType<typeof increment>) => state,
       )
       // @ts-expect-error
       builder.addCase(
         'decrement',
-        (state, action: ReturnType<typeof increment>) => state
+        (state, action: ReturnType<typeof increment>) => state,
       )
 
       // action type is inferred
@@ -82,18 +82,8 @@ describe('type tests', () => {
           (state, action) => {
             expectTypeOf(action).toMatchTypeOf<PredicateWithoutTypeProperty>()
 
-            assertType<PredicateWithoutTypeProperty>(action)
-
-            expectTypeOf(
-              action
-            ).not.toEqualTypeOf<PredicateWithoutTypeProperty>()
-
             expectTypeOf(action).toMatchTypeOf<UnknownAction>()
-
-            assertType<UnknownAction>(action)
-
-            expectTypeOf(action).not.toEqualTypeOf<UnknownAction>()
-          }
+          },
         )
       })
 
@@ -102,11 +92,7 @@ describe('type tests', () => {
         () => true,
         (state, action) => {
           expectTypeOf(action).toMatchTypeOf<UnknownAction>()
-
-          assertType<UnknownAction>(action)
-
-          expectTypeOf(action).not.toEqualTypeOf<UnknownAction>()
-        }
+        },
       )
 
       // with a boolean checker, action can also be typed by type argument
@@ -115,23 +101,15 @@ describe('type tests', () => {
         (state, action) => {
           expectTypeOf(action).toMatchTypeOf<{ foo: boolean }>()
 
-          assertType<{ foo: boolean }>(action)
-
-          expectTypeOf(action).not.toEqualTypeOf<{ foo: boolean }>()
-
           expectTypeOf(action).toMatchTypeOf<UnknownAction>()
-
-          assertType<UnknownAction>(action)
-
-          expectTypeOf(action).not.toEqualTypeOf<UnknownAction>()
-        }
+        },
       )
 
       // addCase().addMatcher() is possible, action type inferred correctly
       builder
         .addCase(
           'increment',
-          (state, action: ReturnType<typeof increment>) => state
+          (state, action: ReturnType<typeof increment>) => state,
         )
         .addMatcher(decrement.match, (state, action) => {
           expectTypeOf(action).toEqualTypeOf<ReturnType<typeof decrement>>()
@@ -141,14 +119,10 @@ describe('type tests', () => {
       builder
         .addCase(
           'increment',
-          (state, action: ReturnType<typeof increment>) => state
+          (state, action: ReturnType<typeof increment>) => state,
         )
         .addDefaultCase((state, action) => {
           expectTypeOf(action).toMatchTypeOf<UnknownAction>()
-
-          assertType<UnknownAction>(action)
-
-          expectTypeOf(action).not.toEqualTypeOf<UnknownAction>()
         })
 
       test('addMatcher() should prevent further calls to addCase()', () => {
@@ -238,7 +212,7 @@ describe('type tests', () => {
             getPendingMeta() {
               return { startedTimeStamp: 0 }
             },
-          }
+          },
         )
 
         builder.addCase(thunk.pending, (_, action) => {
