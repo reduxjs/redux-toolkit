@@ -1,5 +1,14 @@
+import type {
+  Action,
+  ThunkAction,
+  ThunkDispatch,
+  ThunkMiddleware,
+  Tuple,
+  UnknownAction,
+} from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
-import type { Middleware } from 'redux'
+import type { Dispatch, Middleware } from 'redux'
+import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
 
 declare const middleware1: Middleware<{
   (_: string): number
@@ -11,6 +20,8 @@ declare const middleware2: Middleware<{
 
 type ThunkReturn = Promise<'thunk'>
 declare const thunkCreator: () => () => ThunkReturn
+
+const getDefaultMiddleware = buildGetDefaultMiddleware()
 
 describe('type tests', () => {
   test('prepend single element', () => {
@@ -112,5 +123,76 @@ describe('type tests', () => {
     expectTypeOf(store.dispatch(thunkCreator())).toEqualTypeOf<ThunkReturn>()
 
     expectTypeOf(store.dispatch('foo')).not.toBeString()
+  })
+
+  test('allows passing options to thunk', () => {
+    const extraArgument = 42 as const
+
+    const m2 = getDefaultMiddleware({
+      thunk: false,
+    })
+
+    expectTypeOf(m2).toEqualTypeOf<Tuple<[]>>()
+
+    const dummyMiddleware: Middleware<
+      {
+        (action: Action<'actionListenerMiddleware/add'>): () => void
+      },
+      { counter: number }
+    > = (storeApi) => (next) => (action) => {
+      return next(action)
+    }
+
+    const dummyMiddleware2: Middleware<{}, { counter: number }> =
+      (storeApi) => (next) => (action) => {}
+
+    const testThunk: ThunkAction<
+      void,
+      { counter: number },
+      number,
+      UnknownAction
+    > = (dispatch, getState, extraArg) => {
+      expect(extraArg).toBe(extraArgument)
+    }
+
+    const reducer = () => ({ counter: 123 })
+
+    const store = configureStore({
+      reducer,
+      middleware: (gDM) => {
+        const middleware = gDM({
+          thunk: { extraArgument },
+          immutableCheck: false,
+          serializableCheck: false,
+          actionCreatorCheck: false,
+        })
+
+        const m3 = middleware.concat(dummyMiddleware, dummyMiddleware2)
+
+        expectTypeOf(m3).toMatchTypeOf<
+          Tuple<
+            [
+              ThunkMiddleware<any, UnknownAction, 42>,
+              Middleware<
+                (action: Action<'actionListenerMiddleware/add'>) => () => void,
+                {
+                  counter: number
+                },
+                Dispatch<UnknownAction>
+              >,
+              Middleware<{}, any, Dispatch<UnknownAction>>,
+            ]
+          >
+        >()
+
+        return m3
+      },
+    })
+
+    expectTypeOf(store.dispatch).toMatchTypeOf<
+      ThunkDispatch<any, 42, UnknownAction> & Dispatch<UnknownAction>
+    >()
+
+    store.dispatch(testThunk)
   })
 })
