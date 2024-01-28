@@ -78,7 +78,10 @@ describe('type tests', () => {
         }),
         { type: 'action' },
       ) as PayloadActionCreator
-      const actionCreator: ActionCreator<UnknownAction> = payloadActionCreator
+
+      expectTypeOf(payloadActionCreator).toMatchTypeOf<
+        ActionCreator<UnknownAction>
+      >()
 
       const payloadActionCreator2 = Object.assign(
         (payload?: number) => ({
@@ -88,8 +91,9 @@ describe('type tests', () => {
         { type: 'action' },
       ) as PayloadActionCreator<number>
 
-      const actionCreator2: ActionCreator<PayloadAction<number>> =
-        payloadActionCreator2
+      expectTypeOf(payloadActionCreator2).toMatchTypeOf<
+        ActionCreator<PayloadAction<number>>
+      >()
     })
   })
 
@@ -104,6 +108,7 @@ describe('type tests', () => {
 
     test('createAction() type parameter is required, not inferred (defaults to `void`).', () => {
       const increment = createAction('increment')
+
       expectTypeOf(increment).parameter(0).not.toBeNumber()
 
       expectTypeOf(increment().payload).not.toBeNumber()
@@ -279,10 +284,6 @@ describe('type tests', () => {
         expectTypeOf(x.filter(actionCreator.match)).toEqualTypeOf<
           PayloadAction<string, 'test'>[]
         >()
-
-        expectTypeOf(x.filter(actionCreator.match)).not.toEqualTypeOf<
-          PayloadAction<number, 'test'>[]
-        >()
       })
     })
   })
@@ -319,6 +320,7 @@ describe('type tests', () => {
 
   test("Verify action creators should not be passed directly as arguments to React event handlers if there shouldn't be a payload", () => {
     const emptyAction = createAction<void>('empty/action')
+
     function TestComponent() {
       // This typically leads to an error like:
       //  // A non-serializable value was detected in an action, in the path: `payload`.
