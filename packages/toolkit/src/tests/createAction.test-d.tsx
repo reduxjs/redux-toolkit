@@ -97,194 +97,189 @@ describe('type tests', () => {
     })
   })
 
-  describe('createAction()', () => {
-    test('createAction() has type parameter for the action payload.', () => {
-      const increment = createAction<number, 'increment'>('increment')
+  test('createAction() has type parameter for the action payload.', () => {
+    const increment = createAction<number, 'increment'>('increment')
 
-      expectTypeOf(increment).parameter(0).toBeNumber()
+    expectTypeOf(increment).parameter(0).toBeNumber()
 
-      expectTypeOf(increment).parameter(0).not.toBeString()
+    expectTypeOf(increment).parameter(0).not.toBeString()
+  })
+
+  test('createAction() type parameter is required, not inferred (defaults to `void`).', () => {
+    const increment = createAction('increment')
+
+    expectTypeOf(increment).parameter(0).not.toBeNumber()
+
+    expectTypeOf(increment().payload).not.toBeNumber()
+  })
+
+  test('createAction().type is a string literal.', () => {
+    const increment = createAction<number, 'increment'>('increment')
+
+    expectTypeOf(increment(1).type).toBeString()
+
+    expectTypeOf(increment(1).type).toEqualTypeOf<'increment'>()
+
+    expectTypeOf(increment(1).type).not.toMatchTypeOf<'other'>()
+
+    expectTypeOf(increment(1).type).not.toBeNumber()
+  })
+
+  test('type still present when using prepareAction', () => {
+    const strLenAction = createAction('strLen', (payload: string) => ({
+      payload: payload.length,
+    }))
+
+    expectTypeOf(strLenAction('test').type).toBeString()
+  })
+
+  test('changing payload type with prepareAction', () => {
+    const strLenAction = createAction('strLen', (payload: string) => ({
+      payload: payload.length,
+    }))
+
+    expectTypeOf(strLenAction('test').payload).toBeNumber()
+
+    expectTypeOf(strLenAction('test').payload).not.toBeString()
+
+    expectTypeOf(strLenAction('test')).not.toHaveProperty('error')
+  })
+
+  test('adding metadata with prepareAction', () => {
+    const strLenMetaAction = createAction('strLenMeta', (payload: string) => ({
+      payload,
+      meta: payload.length,
+    }))
+
+    expectTypeOf(strLenMetaAction('test').meta).toBeNumber()
+
+    expectTypeOf(strLenMetaAction('test').meta).not.toBeString()
+
+    expectTypeOf(strLenMetaAction('test')).not.toHaveProperty('error')
+  })
+
+  test('adding boolean error with prepareAction', () => {
+    const boolErrorAction = createAction('boolError', (payload: string) => ({
+      payload,
+      error: true,
+    }))
+
+    expectTypeOf(boolErrorAction('test').error).toBeBoolean()
+
+    expectTypeOf(boolErrorAction('test').error).not.toBeString()
+  })
+
+  test('adding string error with prepareAction', () => {
+    const strErrorAction = createAction('strError', (payload: string) => ({
+      payload,
+      error: 'this is an error',
+    }))
+
+    expectTypeOf(strErrorAction('test').error).toBeString()
+
+    expectTypeOf(strErrorAction('test').error).not.toBeBoolean()
+  })
+
+  test('regression test for https://github.com/reduxjs/redux-toolkit/issues/214', () => {
+    const action = createAction<{ input?: string }>('ACTION')
+
+    expectTypeOf(action({ input: '' }).payload.input).toEqualTypeOf<
+      string | undefined
+    >()
+
+    expectTypeOf(action({ input: '' }).payload.input).not.toBeNumber()
+
+    expectTypeOf(action).parameter(0).not.toMatchTypeOf({ input: 3 })
+  })
+
+  test('regression test for https://github.com/reduxjs/redux-toolkit/issues/224', () => {
+    const oops = createAction('oops', (x: any) => ({
+      payload: x,
+      error: x,
+      meta: x,
+    }))
+
+    expectTypeOf(oops('').payload).toBeAny()
+
+    expectTypeOf(oops('').error).toBeAny()
+
+    expectTypeOf(oops('').meta).toBeAny()
+  })
+
+  describe('createAction.match()', () => {
+    test('simple use case', () => {
+      const actionCreator = createAction<string, 'test'>('test')
+
+      const x: Action<string> = {} as any
+
+      if (actionCreator.match(x)) {
+        expectTypeOf(x.type).toEqualTypeOf<'test'>()
+
+        expectTypeOf(x.payload).toBeString()
+      } else {
+        expectTypeOf(x.type).not.toMatchTypeOf<'test'>()
+
+        expectTypeOf(x).not.toHaveProperty('payload')
+      }
     })
 
-    test('createAction() type parameter is required, not inferred (defaults to `void`).', () => {
-      const increment = createAction('increment')
+    test('special case: optional argument', () => {
+      const actionCreator = createAction<string | undefined, 'test'>('test')
 
-      expectTypeOf(increment).parameter(0).not.toBeNumber()
+      const x: Action<string> = {} as any
 
-      expectTypeOf(increment().payload).not.toBeNumber()
+      if (actionCreator.match(x)) {
+        expectTypeOf(x.type).toEqualTypeOf<'test'>()
+
+        expectTypeOf(x.payload).toEqualTypeOf<string | undefined>()
+      }
     })
 
-    test('createAction().type is a string literal.', () => {
-      const increment = createAction<number, 'increment'>('increment')
+    test('special case: without argument', () => {
+      const actionCreator = createAction('test')
 
-      expectTypeOf(increment(1).type).toBeString()
+      const x: Action<string> = {} as any
 
-      expectTypeOf(increment(1).type).toEqualTypeOf<'increment'>()
+      if (actionCreator.match(x)) {
+        expectTypeOf(x.type).toEqualTypeOf<'test'>()
 
-      expectTypeOf(increment(1).type).not.toMatchTypeOf<'other'>()
-
-      expectTypeOf(increment(1).type).not.toBeNumber()
+        expectTypeOf(x.payload).not.toMatchTypeOf<{}>()
+      }
     })
 
-    test('type still present when using prepareAction', () => {
-      const strLenAction = createAction('strLen', (payload: string) => ({
-        payload: payload.length,
+    test('special case: with prepareAction', () => {
+      const actionCreator = createAction('test', () => ({
+        payload: '',
+        meta: '',
+        error: false,
       }))
 
-      expectTypeOf(strLenAction('test').type).toBeString()
+      const x: Action<string> = {} as any
+
+      if (actionCreator.match(x)) {
+        expectTypeOf(x.type).toEqualTypeOf<'test'>()
+
+        expectTypeOf(x.payload).toBeString()
+
+        expectTypeOf(x.meta).toBeString()
+
+        expectTypeOf(x.error).toBeBoolean()
+
+        expectTypeOf(x.payload).not.toBeNumber()
+
+        expectTypeOf(x.meta).not.toBeNumber()
+
+        expectTypeOf(x.error).not.toBeNumber()
+      }
     })
+    test('potential use: as array filter', () => {
+      const actionCreator = createAction<string, 'test'>('test')
 
-    test('changing payload type with prepareAction', () => {
-      const strLenAction = createAction('strLen', (payload: string) => ({
-        payload: payload.length,
-      }))
+      const x: Action<string>[] = []
 
-      expectTypeOf(strLenAction('test').payload).toBeNumber()
-
-      expectTypeOf(strLenAction('test').payload).not.toBeString()
-
-      expectTypeOf(strLenAction('test')).not.toHaveProperty('error')
-    })
-
-    test('adding metadata with prepareAction', () => {
-      const strLenMetaAction = createAction(
-        'strLenMeta',
-        (payload: string) => ({
-          payload,
-          meta: payload.length,
-        }),
-      )
-
-      expectTypeOf(strLenMetaAction('test').meta).toBeNumber()
-
-      expectTypeOf(strLenMetaAction('test').meta).not.toBeString()
-
-      expectTypeOf(strLenMetaAction('test')).not.toHaveProperty('error')
-    })
-
-    test('adding boolean error with prepareAction', () => {
-      const boolErrorAction = createAction('boolError', (payload: string) => ({
-        payload,
-        error: true,
-      }))
-
-      expectTypeOf(boolErrorAction('test').error).toBeBoolean()
-
-      expectTypeOf(boolErrorAction('test').error).not.toBeString()
-    })
-
-    test('adding string error with prepareAction', () => {
-      const strErrorAction = createAction('strError', (payload: string) => ({
-        payload,
-        error: 'this is an error',
-      }))
-
-      expectTypeOf(strErrorAction('test').error).toBeString()
-
-      expectTypeOf(strErrorAction('test').error).not.toBeBoolean()
-    })
-
-    test('regression test for https://github.com/reduxjs/redux-toolkit/issues/214', () => {
-      const action = createAction<{ input?: string }>('ACTION')
-
-      expectTypeOf(action({ input: '' }).payload.input).toEqualTypeOf<
-        string | undefined
+      expectTypeOf(x.filter(actionCreator.match)).toEqualTypeOf<
+        PayloadAction<string, 'test'>[]
       >()
-
-      expectTypeOf(action({ input: '' }).payload.input).not.toBeNumber()
-
-      expectTypeOf(action).parameter(0).not.toMatchTypeOf({ input: 3 })
-    })
-
-    test('regression test for https://github.com/reduxjs/redux-toolkit/issues/224', () => {
-      const oops = createAction('oops', (x: any) => ({
-        payload: x,
-        error: x,
-        meta: x,
-      }))
-
-      expectTypeOf(oops('').payload).toBeAny()
-
-      expectTypeOf(oops('').error).toBeAny()
-
-      expectTypeOf(oops('').meta).toBeAny()
-    })
-
-    describe('createAction.match()', () => {
-      test('simple use case', () => {
-        const actionCreator = createAction<string, 'test'>('test')
-
-        const x: Action<string> = {} as any
-
-        if (actionCreator.match(x)) {
-          expectTypeOf(x.type).toEqualTypeOf<'test'>()
-
-          expectTypeOf(x.payload).toBeString()
-        } else {
-          expectTypeOf(x.type).not.toMatchTypeOf<'test'>()
-
-          expectTypeOf(x).not.toHaveProperty('payload')
-        }
-      })
-
-      test('special case: optional argument', () => {
-        const actionCreator = createAction<string | undefined, 'test'>('test')
-
-        const x: Action<string> = {} as any
-
-        if (actionCreator.match(x)) {
-          expectTypeOf(x.type).toEqualTypeOf<'test'>()
-
-          expectTypeOf(x.payload).toEqualTypeOf<string | undefined>()
-        }
-      })
-
-      test('special case: without argument', () => {
-        const actionCreator = createAction('test')
-
-        const x: Action<string> = {} as any
-
-        if (actionCreator.match(x)) {
-          expectTypeOf(x.type).toEqualTypeOf<'test'>()
-
-          expectTypeOf(x.payload).not.toMatchTypeOf<{}>()
-        }
-      })
-
-      test('special case: with prepareAction', () => {
-        const actionCreator = createAction('test', () => ({
-          payload: '',
-          meta: '',
-          error: false,
-        }))
-
-        const x: Action<string> = {} as any
-
-        if (actionCreator.match(x)) {
-          expectTypeOf(x.type).toEqualTypeOf<'test'>()
-
-          expectTypeOf(x.payload).toBeString()
-
-          expectTypeOf(x.meta).toBeString()
-
-          expectTypeOf(x.error).toBeBoolean()
-
-          expectTypeOf(x.payload).not.toBeNumber()
-
-          expectTypeOf(x.meta).not.toBeNumber()
-
-          expectTypeOf(x.error).not.toBeNumber()
-        }
-      })
-      test('potential use: as array filter', () => {
-        const actionCreator = createAction<string, 'test'>('test')
-
-        const x: Action<string>[] = []
-
-        expectTypeOf(x.filter(actionCreator.match)).toEqualTypeOf<
-          PayloadAction<string, 'test'>[]
-        >()
-      })
     })
   })
 
