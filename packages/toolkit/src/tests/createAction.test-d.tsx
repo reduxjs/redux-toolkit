@@ -1,5 +1,6 @@
-import type { IsAny } from '@internal/tsHelpers'
 import type {
+  Action,
+  ActionCreator,
   ActionCreatorWithNonInferrablePayload,
   ActionCreatorWithOptionalPayload,
   ActionCreatorWithPayload,
@@ -7,352 +8,322 @@ import type {
   ActionCreatorWithoutPayload,
   PayloadAction,
   PayloadActionCreator,
+  UnknownAction,
 } from '@reduxjs/toolkit'
 import { createAction } from '@reduxjs/toolkit'
-import type { Action, ActionCreator, UnknownAction } from 'redux'
-import { expectType } from './utils/typeTestHelpers'
 
-/* PayloadAction */
+describe('type tests', () => {
+  describe('PayloadAction', () => {
+    test('PayloadAction has type parameter for the payload.', () => {
+      const action: PayloadAction<number> = { type: '', payload: 5 }
 
-/*
- * Test: PayloadAction has type parameter for the payload.
- */
-{
-  const action: PayloadAction<number> = { type: '', payload: 5 }
-  const numberPayload: number = action.payload
+      expectTypeOf(action.payload).toBeNumber()
 
-  // @ts-expect-error
-  const stringPayload: string = action.payload
-}
+      expectTypeOf(action.payload).not.toBeString()
+    })
 
-/*
- * Test: PayloadAction type parameter is required.
- */
-{
-  // @ts-expect-error
-  const action: PayloadAction = { type: '', payload: 5 }
-  // @ts-expect-error
-  const numberPayload: number = action.payload
-  // @ts-expect-error
-  const stringPayload: string = action.payload
-}
+    test('PayloadAction type parameter is required.', () => {
+      expectTypeOf({ type: '', payload: 5 }).not.toMatchTypeOf<PayloadAction>()
+    })
 
-/*
- * Test: PayloadAction has a string type tag.
- */
-{
-  const action: PayloadAction<number> = { type: '', payload: 5 }
+    test('PayloadAction has a string type tag.', () => {
+      expectTypeOf({ type: '', payload: 5 }).toEqualTypeOf<
+        PayloadAction<number>
+      >()
 
-  // @ts-expect-error
-  const action2: PayloadAction = { type: 1, payload: 5 }
-}
+      expectTypeOf({ type: 1, payload: 5 }).not.toMatchTypeOf<PayloadAction>()
+    })
 
-/*
- * Test: PayloadAction is compatible with Action<string>
- */
-{
-  const action: PayloadAction<number> = { type: '', payload: 5 }
-  const stringAction: Action<string> = action
-}
+    test('PayloadAction is compatible with Action<string>', () => {
+      const action: PayloadAction<number> = { type: '', payload: 5 }
 
-/* PayloadActionCreator */
+      expectTypeOf(action).toMatchTypeOf<Action<string>>()
+    })
+  })
 
-/*
- * Test: PayloadActionCreator returns correctly typed PayloadAction depending
- * on whether a payload is passed.
- */
-{
-  const actionCreator = Object.assign(
-    (payload?: number) => ({
-      type: 'action',
-      payload,
-    }),
-    { type: 'action' }
-  ) as PayloadActionCreator<number | undefined>
+  describe('PayloadActionCreator', () => {
+    test('PayloadActionCreator returns correctly typed PayloadAction depending on whether a payload is passed.', () => {
+      const actionCreator = Object.assign(
+        (payload?: number) => ({
+          type: 'action',
+          payload,
+        }),
+        { type: 'action' },
+      ) as PayloadActionCreator<number | undefined>
 
-  expectType<PayloadAction<number | undefined>>(actionCreator(1))
-  expectType<PayloadAction<number | undefined>>(actionCreator())
-  expectType<PayloadAction<number | undefined>>(actionCreator(undefined))
+      expectTypeOf(actionCreator(1)).toEqualTypeOf<
+        PayloadAction<number | undefined>
+      >()
 
-  // @ts-expect-error
-  expectType<PayloadAction<number>>(actionCreator())
-  // @ts-expect-error
-  expectType<PayloadAction<undefined>>(actionCreator(1))
-}
+      expectTypeOf(actionCreator()).toEqualTypeOf<
+        PayloadAction<number | undefined>
+      >()
 
-/*
- * Test: PayloadActionCreator is compatible with ActionCreator.
- */
-{
-  const payloadActionCreator = Object.assign(
-    (payload?: number) => ({
-      type: 'action',
-      payload,
-    }),
-    { type: 'action' }
-  ) as PayloadActionCreator
-  const actionCreator: ActionCreator<UnknownAction> = payloadActionCreator
+      expectTypeOf(actionCreator(undefined)).toEqualTypeOf<
+        PayloadAction<number | undefined>
+      >()
 
-  const payloadActionCreator2 = Object.assign(
-    (payload?: number) => ({
-      type: 'action',
-      payload: payload || 1,
-    }),
-    { type: 'action' }
-  ) as PayloadActionCreator<number>
+      expectTypeOf(actionCreator()).not.toMatchTypeOf<PayloadAction<number>>()
 
-  const actionCreator2: ActionCreator<PayloadAction<number>> =
-    payloadActionCreator2
-}
+      expectTypeOf(actionCreator(1)).not.toMatchTypeOf<
+        PayloadAction<undefined>
+      >()
+    })
 
-/* createAction() */
+    test('PayloadActionCreator is compatible with ActionCreator.', () => {
+      const payloadActionCreator = Object.assign(
+        (payload?: number) => ({
+          type: 'action',
+          payload,
+        }),
+        { type: 'action' },
+      ) as PayloadActionCreator
+      const actionCreator: ActionCreator<UnknownAction> = payloadActionCreator
 
-/*
- * Test: createAction() has type parameter for the action payload.
- */
-{
-  const increment = createAction<number, 'increment'>('increment')
-  const n: number = increment(1).payload
+      const payloadActionCreator2 = Object.assign(
+        (payload?: number) => ({
+          type: 'action',
+          payload: payload || 1,
+        }),
+        { type: 'action' },
+      ) as PayloadActionCreator<number>
 
-  // @ts-expect-error
-  increment('').payload
-}
+      const actionCreator2: ActionCreator<PayloadAction<number>> =
+        payloadActionCreator2
+    })
+  })
 
-/*
- * Test: createAction() type parameter is required, not inferred (defaults to `void`).
- */
-{
-  const increment = createAction('increment')
-  // @ts-expect-error
-  const n: number = increment(1).payload
-}
-/*
- * Test: createAction().type is a string literal.
- */
-{
-  const increment = createAction<number, 'increment'>('increment')
-  const n: string = increment(1).type
-  const s: 'increment' = increment(1).type
+  describe('createAction()', () => {
+    test('createAction() has type parameter for the action payload.', () => {
+      const increment = createAction<number, 'increment'>('increment')
 
-  // @ts-expect-error
-  const r: 'other' = increment(1).type
-  // @ts-expect-error
-  const q: number = increment(1).type
-}
+      expectTypeOf(increment).parameter(0).toBeNumber()
 
-/*
- * Test: type still present when using prepareAction
- */
-{
-  const strLenAction = createAction('strLen', (payload: string) => ({
-    payload: payload.length,
-  }))
+      expectTypeOf(increment).parameter(0).not.toBeString()
+    })
 
-  expectType<string>(strLenAction('test').type)
-}
+    test('createAction() type parameter is required, not inferred (defaults to `void`).', () => {
+      const increment = createAction('increment')
+      expectTypeOf(increment).parameter(0).not.toBeNumber()
 
-/*
- * Test: changing payload type with prepareAction
- */
-{
-  const strLenAction = createAction('strLen', (payload: string) => ({
-    payload: payload.length,
-  }))
-  expectType<number>(strLenAction('test').payload)
+      expectTypeOf(increment().payload).not.toBeNumber()
+    })
 
-  // @ts-expect-error
-  expectType<string>(strLenAction('test').payload)
-  // @ts-expect-error
-  const error: any = strLenAction('test').error
-}
+    test('createAction().type is a string literal.', () => {
+      const increment = createAction<number, 'increment'>('increment')
 
-/*
- * Test: adding metadata with prepareAction
- */
-{
-  const strLenMetaAction = createAction('strLenMeta', (payload: string) => ({
-    payload,
-    meta: payload.length,
-  }))
+      expectTypeOf(increment(1).type).toBeString()
 
-  expectType<number>(strLenMetaAction('test').meta)
+      expectTypeOf(increment(1).type).toEqualTypeOf<'increment'>()
 
-  // @ts-expect-error
-  expectType<string>(strLenMetaAction('test').meta)
-  // @ts-expect-error
-  const error: any = strLenMetaAction('test').error
-}
+      expectTypeOf(increment(1).type).not.toMatchTypeOf<'other'>()
 
-/*
- * Test: adding boolean error with prepareAction
- */
-{
-  const boolErrorAction = createAction('boolError', (payload: string) => ({
-    payload,
-    error: true,
-  }))
+      expectTypeOf(increment(1).type).not.toBeNumber()
+    })
 
-  expectType<boolean>(boolErrorAction('test').error)
+    test('type still present when using prepareAction', () => {
+      const strLenAction = createAction('strLen', (payload: string) => ({
+        payload: payload.length,
+      }))
 
-  // @ts-expect-error
-  expectType<string>(boolErrorAction('test').error)
-}
+      expectTypeOf(strLenAction('test').type).toBeString()
+    })
 
-/*
- * Test: adding string error with prepareAction
- */
-{
-  const strErrorAction = createAction('strError', (payload: string) => ({
-    payload,
-    error: 'this is an error',
-  }))
+    test('changing payload type with prepareAction', () => {
+      const strLenAction = createAction('strLen', (payload: string) => ({
+        payload: payload.length,
+      }))
 
-  expectType<string>(strErrorAction('test').error)
+      expectTypeOf(strLenAction('test').payload).toBeNumber()
 
-  // @ts-expect-error
-  expectType<boolean>(strErrorAction('test').error)
-}
+      expectTypeOf(strLenAction('test').payload).not.toBeString()
 
-/*
- * regression test for https://github.com/reduxjs/redux-toolkit/issues/214
- */
-{
-  const action = createAction<{ input?: string }>('ACTION')
-  const t: string | undefined = action({ input: '' }).payload.input
+      expectTypeOf(strLenAction('test')).not.toHaveProperty('error')
+    })
 
-  // @ts-expect-error
-  const u: number = action({ input: '' }).payload.input
-  // @ts-expect-error
-  const v: number = action({ input: 3 }).payload.input
-}
+    test('adding metadata with prepareAction', () => {
+      const strLenMetaAction = createAction(
+        'strLenMeta',
+        (payload: string) => ({
+          payload,
+          meta: payload.length,
+        }),
+      )
 
-/*
- * regression test for https://github.com/reduxjs/redux-toolkit/issues/224
- */
-{
-  const oops = createAction('oops', (x: any) => ({
-    payload: x,
-    error: x,
-    meta: x,
-  }))
+      expectTypeOf(strLenMetaAction('test').meta).toBeNumber()
 
-  type Ret = ReturnType<typeof oops>
+      expectTypeOf(strLenMetaAction('test').meta).not.toBeString()
 
-  const payload: IsAny<Ret['payload'], true, false> = true
-  const error: IsAny<Ret['error'], true, false> = true
-  const meta: IsAny<Ret['meta'], true, false> = true
+      expectTypeOf(strLenMetaAction('test')).not.toHaveProperty('error')
+    })
 
-  // @ts-expect-error
-  const payloadNotAny: IsAny<Ret['payload'], true, false> = false
-  // @ts-expect-error
-  const errorNotAny: IsAny<Ret['error'], true, false> = false
-  // @ts-expect-error
-  const metaNotAny: IsAny<Ret['meta'], true, false> = false
-}
+    test('adding boolean error with prepareAction', () => {
+      const boolErrorAction = createAction('boolError', (payload: string) => ({
+        payload,
+        error: true,
+      }))
 
-/**
- * Test: createAction.match()
- */
-{
-  // simple use case
-  {
-    const actionCreator = createAction<string, 'test'>('test')
-    const x: Action<string> = {} as any
-    if (actionCreator.match(x)) {
-      expectType<'test'>(x.type)
-      expectType<string>(x.payload)
-    } else {
-      // @ts-expect-error
-      expectType<'test'>(x.type)
-      // @ts-expect-error
-      expectType<any>(x.payload)
+      expectTypeOf(boolErrorAction('test').error).toBeBoolean()
+
+      expectTypeOf(boolErrorAction('test').error).not.toBeString()
+    })
+
+    test('adding string error with prepareAction', () => {
+      const strErrorAction = createAction('strError', (payload: string) => ({
+        payload,
+        error: 'this is an error',
+      }))
+
+      expectTypeOf(strErrorAction('test').error).toBeString()
+
+      expectTypeOf(strErrorAction('test').error).not.toBeBoolean()
+    })
+
+    test('regression test for https://github.com/reduxjs/redux-toolkit/issues/214', () => {
+      const action = createAction<{ input?: string }>('ACTION')
+
+      expectTypeOf(action({ input: '' }).payload.input).toEqualTypeOf<
+        string | undefined
+      >()
+
+      expectTypeOf(action({ input: '' }).payload.input).not.toBeNumber()
+
+      expectTypeOf(action).parameter(0).not.toMatchTypeOf({ input: 3 })
+    })
+
+    test('regression test for https://github.com/reduxjs/redux-toolkit/issues/224', () => {
+      const oops = createAction('oops', (x: any) => ({
+        payload: x,
+        error: x,
+        meta: x,
+      }))
+
+      expectTypeOf(oops('').payload).toBeAny()
+
+      expectTypeOf(oops('').error).toBeAny()
+
+      expectTypeOf(oops('').meta).toBeAny()
+    })
+
+    describe('createAction.match()', () => {
+      test('simple use case', () => {
+        const actionCreator = createAction<string, 'test'>('test')
+
+        const x: Action<string> = {} as any
+
+        if (actionCreator.match(x)) {
+          expectTypeOf(x.type).toEqualTypeOf<'test'>()
+
+          expectTypeOf(x.payload).toBeString()
+        } else {
+          expectTypeOf(x.type).not.toMatchTypeOf<'test'>()
+
+          expectTypeOf(x).not.toHaveProperty('payload')
+        }
+      })
+
+      test('special case: optional argument', () => {
+        const actionCreator = createAction<string | undefined, 'test'>('test')
+
+        const x: Action<string> = {} as any
+
+        if (actionCreator.match(x)) {
+          expectTypeOf(x.type).toEqualTypeOf<'test'>()
+
+          expectTypeOf(x.payload).toEqualTypeOf<string | undefined>()
+        }
+      })
+
+      test('special case: without argument', () => {
+        const actionCreator = createAction('test')
+
+        const x: Action<string> = {} as any
+
+        if (actionCreator.match(x)) {
+          expectTypeOf(x.type).toEqualTypeOf<'test'>()
+
+          expectTypeOf(x.payload).not.toMatchTypeOf<{}>()
+        }
+      })
+
+      test('special case: with prepareAction', () => {
+        const actionCreator = createAction('test', () => ({
+          payload: '',
+          meta: '',
+          error: false,
+        }))
+
+        const x: Action<string> = {} as any
+
+        if (actionCreator.match(x)) {
+          expectTypeOf(x.type).toEqualTypeOf<'test'>()
+
+          expectTypeOf(x.payload).toBeString()
+
+          expectTypeOf(x.meta).toBeString()
+
+          expectTypeOf(x.error).toBeBoolean()
+
+          expectTypeOf(x.payload).not.toBeNumber()
+
+          expectTypeOf(x.meta).not.toBeNumber()
+
+          expectTypeOf(x.error).not.toBeNumber()
+        }
+      })
+      test('potential use: as array filter', () => {
+        const actionCreator = createAction<string, 'test'>('test')
+
+        const x: Action<string>[] = []
+
+        expectTypeOf(x.filter(actionCreator.match)).toEqualTypeOf<
+          PayloadAction<string, 'test'>[]
+        >()
+
+        expectTypeOf(x.filter(actionCreator.match)).not.toEqualTypeOf<
+          PayloadAction<number, 'test'>[]
+        >()
+      })
+    })
+  })
+
+  test('ActionCreatorWithOptionalPayload', () => {
+    expectTypeOf(createAction<string | undefined>('')).toEqualTypeOf<
+      ActionCreatorWithOptionalPayload<string | undefined>
+    >()
+
+    expectTypeOf(
+      createAction<void>(''),
+    ).toEqualTypeOf<ActionCreatorWithoutPayload>()
+
+    assertType<ActionCreatorWithNonInferrablePayload>(createAction(''))
+
+    expectTypeOf(createAction<string>('')).toEqualTypeOf<
+      ActionCreatorWithPayload<string>
+    >()
+
+    expectTypeOf(
+      createAction('', (_: 0) => ({
+        payload: 1 as 1,
+        error: 2 as 2,
+        meta: 3 as 3,
+      })),
+    ).toEqualTypeOf<ActionCreatorWithPreparedPayload<[0], 1, '', 2, 3>>()
+
+    const anyCreator = createAction<any>('')
+
+    expectTypeOf(anyCreator).toEqualTypeOf<ActionCreatorWithPayload<any>>()
+
+    expectTypeOf(anyCreator({}).payload).toBeAny()
+  })
+
+  test("Verify action creators should not be passed directly as arguments to React event handlers if there shouldn't be a payload", () => {
+    const emptyAction = createAction<void>('empty/action')
+    function TestComponent() {
+      // This typically leads to an error like:
+      //  // A non-serializable value was detected in an action, in the path: `payload`.
+      // @ts-expect-error Should error because `void` and `MouseEvent` aren't compatible
+      return <button onClick={emptyAction}>+</button>
     }
-  }
-
-  // special case: optional argument
-  {
-    const actionCreator = createAction<string | undefined, 'test'>('test')
-    const x: Action<string> = {} as any
-    if (actionCreator.match(x)) {
-      expectType<'test'>(x.type)
-      expectType<string | undefined>(x.payload)
-    }
-  }
-
-  // special case: without argument
-  {
-    const actionCreator = createAction('test')
-    const x: Action<string> = {} as any
-    if (actionCreator.match(x)) {
-      expectType<'test'>(x.type)
-      // @ts-expect-error
-      expectType<{}>(x.payload)
-    }
-  }
-
-  // special case: with prepareAction
-  {
-    const actionCreator = createAction('test', () => ({
-      payload: '',
-      meta: '',
-      error: false,
-    }))
-    const x: Action<string> = {} as any
-    if (actionCreator.match(x)) {
-      expectType<'test'>(x.type)
-      expectType<string>(x.payload)
-      expectType<string>(x.meta)
-      expectType<boolean>(x.error)
-      // @ts-expect-error
-      expectType<number>(x.payload)
-      // @ts-expect-error
-      expectType<number>(x.meta)
-      // @ts-expect-error
-      expectType<number>(x.error)
-    }
-  }
-  // potential use: as array filter
-  {
-    const actionCreator = createAction<string, 'test'>('test')
-    const x: Array<Action<string>> = []
-    expectType<Array<PayloadAction<string, 'test'>>>(
-      x.filter(actionCreator.match)
-    )
-
-    expectType<Array<PayloadAction<number, 'test'>>>(
-      // @ts-expect-error
-      x.filter(actionCreator.match)
-    )
-  }
-}
-{
-  expectType<ActionCreatorWithOptionalPayload<string | undefined>>(
-    createAction<string | undefined>('')
-  )
-  expectType<ActionCreatorWithoutPayload>(createAction<void>(''))
-  expectType<ActionCreatorWithNonInferrablePayload>(createAction(''))
-  expectType<ActionCreatorWithPayload<string>>(createAction<string>(''))
-  expectType<ActionCreatorWithPreparedPayload<[0], 1, '', 2, 3>>(
-    createAction('', (_: 0) => ({
-      payload: 1 as 1,
-      error: 2 as 2,
-      meta: 3 as 3,
-    }))
-  )
-  const anyCreator = createAction<any>('')
-  expectType<ActionCreatorWithPayload<any>>(anyCreator)
-  type AnyPayload = ReturnType<typeof anyCreator>['payload']
-  expectType<IsAny<AnyPayload, true, false>>(true)
-}
-
-// Verify action creators should not be passed directly as arguments
-// to React event handlers if there shouldn't be a payload
-{
-  const emptyAction = createAction<void>('empty/action')
-  function TestComponent() {
-    // This typically leads to an error like:
-    //  // A non-serializable value was detected in an action, in the path: `payload`.
-    // @ts-expect-error Should error because `void` and `MouseEvent` aren't compatible
-    return <button onClick={emptyAction}>+</button>
-  }
-}
+  })
+})
