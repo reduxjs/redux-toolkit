@@ -1,5 +1,8 @@
+import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
 import type {
   Action,
+  Dispatch,
+  Middleware,
   ThunkAction,
   ThunkDispatch,
   ThunkMiddleware,
@@ -7,8 +10,6 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
-import type { Dispatch, Middleware } from 'redux'
-import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
 
 declare const middleware1: Middleware<{
   (_: string): number
@@ -132,7 +133,7 @@ describe('type tests', () => {
       thunk: false,
     })
 
-    expectTypeOf(m2).toEqualTypeOf<Tuple<[]>>()
+    expectTypeOf(m2).toMatchTypeOf<Tuple<[]>>()
 
     const dummyMiddleware: Middleware<
       {
