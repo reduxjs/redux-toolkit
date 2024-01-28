@@ -14,18 +14,21 @@ description: 'RTK Query > Usage > Polling: re-fetching data on a timer'
 
 Polling gives you the ability to have a 'real-time' effect by causing a query to run at a specified interval. To enable polling for a query, pass a `pollingInterval` to the `useQuery` hook or action creator with an interval in milliseconds:
 
+:::tip
 Polling additionally has the ability to skip sending requests while the window is out of focus. To enable this behavior, pass `skipPollingIfUnfocused: true` to the `useQuery` hook or action creator.
 
-_Note: `skipPollingIfUnfocused` requires [`setupListeners`](../api/setupListeners.mdx) to have been called_
+_Note: `skipPollingIfUnfocused` requires [`setupListeners`](../api/setupListeners.mdx) to have been called and is disabled by default_
+:::
 
 ```tsx no-transpile title="src/Pokemon.tsx" no-transpile
 import * as React from 'react'
 import { useGetPokemonByNameQuery } from './services/pokemon'
 
 export const Pokemon = ({ name }: { name: string }) => {
-  // Automatically refetch every 3s
+  // Automatically refetch every 3s unless the window is out of focus
   const { data, status, error, refetch } = useGetPokemonByNameQuery(name, {
     pollingInterval: 3000,
+    skipPollingIfUnfocused: true,
   })
 
   return <div>{data}</div>
