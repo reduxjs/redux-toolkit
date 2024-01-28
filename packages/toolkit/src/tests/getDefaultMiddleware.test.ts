@@ -1,10 +1,11 @@
+import { Tuple } from '@internal/utils'
 import type {
   Action,
   Middleware,
   ThunkAction,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import { Tuple, configureStore } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
 import { thunk } from 'redux-thunk'
 import { vi } from 'vitest'
 
