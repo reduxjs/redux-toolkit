@@ -1,5 +1,5 @@
+import type { StoreEnhancer } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
-import type { StoreEnhancer } from 'redux'
 
 declare const enhancer1: StoreEnhancer<
   {

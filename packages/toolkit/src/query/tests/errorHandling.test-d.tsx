@@ -19,6 +19,7 @@ describe('type tests', () => {
   test('a mutation is unwrappable and has the correct types', () => {
     function User() {
       const [manualError, setManualError] = useState<any>()
+
       const [update, { isLoading, data, error }] =
         api.endpoints.update.useMutation()
 

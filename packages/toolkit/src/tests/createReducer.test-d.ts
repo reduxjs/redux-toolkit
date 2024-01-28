@@ -1,16 +1,16 @@
-import type { ActionReducerMapBuilder } from '@reduxjs/toolkit'
+import type { ActionReducerMapBuilder, Reducer } from '@reduxjs/toolkit'
 import { createAction, createReducer } from '@reduxjs/toolkit'
-import type { Reducer } from 'redux'
 
 describe('type tests', () => {
   test('createReducer() infers type of returned reducer.', () => {
     const incrementHandler = (
       state: number,
-      action: { type: 'increment'; payload: number }
+      action: { type: 'increment'; payload: number },
     ) => state + 1
+
     const decrementHandler = (
       state: number,
-      action: { type: 'decrement'; payload: number }
+      action: { type: 'decrement'; payload: number },
     ) => state - 1
 
     const reducer = createReducer(0 as number, (builder) => {
@@ -19,21 +19,20 @@ describe('type tests', () => {
         .addCase('decrement', decrementHandler)
     })
 
-    const numberReducer: Reducer<number> = reducer
+    expectTypeOf(reducer).toMatchTypeOf<Reducer<number>>()
 
-    // @ts-expect-error
-    const stringReducer: Reducer<string> = reducer
+    expectTypeOf(reducer).not.toMatchTypeOf<Reducer<string>>()
   })
 
-  test('createReducer() state type can be specified expliclity.', () => {
+  test('createReducer() state type can be specified explicitly.', () => {
     const incrementHandler = (
       state: number,
-      action: { type: 'increment'; payload: number }
+      action: { type: 'increment'; payload: number },
     ) => state + action.payload
 
     const decrementHandler = (
       state: number,
-      action: { type: 'decrement'; payload: number }
+      action: { type: 'decrement'; payload: number },
     ) => state - action.payload
 
     createReducer(0 as number, (builder) => {
@@ -65,7 +64,7 @@ describe('type tests', () => {
     const increment = createAction<number, 'increment'>('increment')
 
     const reducer = createReducer(0, (builder) =>
-      expectTypeOf(builder).toEqualTypeOf<ActionReducerMapBuilder<number>>()
+      expectTypeOf(builder).toEqualTypeOf<ActionReducerMapBuilder<number>>(),
     )
 
     expectTypeOf(reducer(0, increment(5))).toBeNumber()
