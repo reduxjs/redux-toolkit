@@ -8,13 +8,11 @@ describe('type tests', () => {
 
     expectTypeOf(stringTuple).toMatchTypeOf<Tuple<string[]>>()
 
-    expectTypeOf(stringTuple).not.toEqualTypeOf<Tuple<string[]>>()
-
-    expectTypeOf(stringTuple).not.toEqualTypeOf<Tuple<[string, string]>>()
+    expectTypeOf(stringTuple).not.toMatchTypeOf<Tuple<[string, string]>>()
 
     const numberTuple = new Tuple(0, 1)
 
-    expectTypeOf(numberTuple).not.toEqualTypeOf<Tuple<string[]>>()
+    expectTypeOf(numberTuple).not.toMatchTypeOf<Tuple<string[]>>()
   })
 
   test('concat is inferred properly', () => {
@@ -26,13 +24,7 @@ describe('type tests', () => {
       Tuple<[string, string]>
     >()
 
-    expectTypeOf(singleString.concat([''])).not.toMatchTypeOf<
-      Tuple<[string, string]>
-    >()
-
-    assertType<Tuple<[string, string]>>(singleString.concat(['']))
-
-    expectTypeOf(singleString.concat([''])).not.toEqualTypeOf<
+    expectTypeOf(singleString.concat([''] as const)).toMatchTypeOf<
       Tuple<[string, string]>
     >()
   })
@@ -46,13 +38,7 @@ describe('type tests', () => {
       Tuple<[string, string]>
     >()
 
-    expectTypeOf(singleString.prepend([''])).not.toMatchTypeOf<
-      Tuple<[string, string]>
-    >()
-
-    assertType<Tuple<[string, string]>>(singleString.prepend(['']))
-
-    expectTypeOf(singleString.prepend([''])).not.toEqualTypeOf<
+    expectTypeOf(singleString.prepend([''] as const)).toMatchTypeOf<
       Tuple<[string, string]>
     >()
   })
@@ -86,19 +72,11 @@ describe('type tests', () => {
       Tuple<[string, number, number]>
     >()
 
-    expectTypeOf(stringTuple.prepend(numberTuple)).not.toEqualTypeOf<
-      Tuple<[string, number, number]>
-    >()
-
     expectTypeOf(stringTuple.prepend(numberTuple)).not.toMatchTypeOf<
       Tuple<[string, number, number]>
     >()
 
     expectTypeOf(stringTuple.concat(numberTuple)).not.toMatchTypeOf<
-      Tuple<[number, number, string]>
-    >()
-
-    expectTypeOf(stringTuple.concat(numberTuple)).not.toEqualTypeOf<
       Tuple<[number, number, string]>
     >()
   })
