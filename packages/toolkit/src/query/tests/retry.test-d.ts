@@ -1,10 +1,12 @@
-describe('RetryOptions type tests', () => {
+import type { RetryOptions } from '@internal/query/retry'
+
+describe('type tests', () => {
   test('RetryOptions only accepts one of maxRetries or retryCondition', () => {
-    // @ts-expect-error Should complain if both exist at once
-    const ro: RetryOptions = {
+    // Should complain if both `maxRetries` and `retryCondition` exist at once
+    expectTypeOf<RetryOptions>().not.toMatchTypeOf({
       maxRetries: 5,
       retryCondition: () => false,
-    }
+    })
   })
 })
 
