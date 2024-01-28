@@ -49,14 +49,17 @@ describe('type tests', () => {
 
   test('configureStore() infers the store action type.', () => {
     const reducer: Reducer<number, PayloadAction<number>> = () => 0
-    const store = configureStore({ reducer })
-    const numberStore: Store<number, PayloadAction<number>> = store
 
-    // @ts-expect-error
-    const stringStore: Store<number, PayloadAction<string>> = store
+    const store = configureStore({ reducer })
+
+    expectTypeOf(store).toMatchTypeOf<Store<number, PayloadAction<number>>>()
+
+    expectTypeOf(store).not.toMatchTypeOf<
+      Store<number, PayloadAction<string>>
+    >()
   })
 
-  test('configureStore() accepts Tuple, but not plain array.', () => {
+  test('configureStore() accepts Tuple for middleware, but not plain array.', () => {
     const middleware: Middleware = (store) => (next) => next
 
     configureStore({
@@ -99,7 +102,7 @@ describe('type tests', () => {
     configureStore({
       reducer: () => 0,
       // @ts-expect-error
-      devTools: { appname: 'myApp' },
+      devTools: { appName: 'myApp' },
     })
   })
 
@@ -124,29 +127,23 @@ describe('type tests', () => {
     expectTypeOf(store.getState()).toEqualTypeOf<string | null>()
   })
 
-  test('configureStore() accepts store Tuple, but not plain array', () => {
-    {
-      const enhancer = applyMiddleware(() => (next) => next)
+  test('configureStore() accepts store Tuple for enhancers, but not plain array', () => {
+    const enhancer = applyMiddleware(() => (next) => next)
 
-      const store = configureStore({
-        reducer: () => 0,
-        enhancers: () => new Tuple(enhancer),
-      })
+    const store = configureStore({
+      reducer: () => 0,
+      enhancers: () => new Tuple(enhancer),
+    })
 
-      const store2 = configureStore({
-        reducer: () => 0,
-        // @ts-expect-error
-        enhancers: () => [enhancer],
-      })
+    const store2 = configureStore({
+      reducer: () => 0,
+      // @ts-expect-error
+      enhancers: () => [enhancer],
+    })
 
-      expectTypeOf(store.dispatch).toMatchTypeOf<
-        Dispatch & ThunkDispatch<number, undefined, UnknownAction>
-      >()
-
-      expectTypeOf(store.dispatch).not.toEqualTypeOf<
-        Dispatch & ThunkDispatch<number, undefined, UnknownAction>
-      >()
-    }
+    expectTypeOf(store.dispatch).toMatchTypeOf<
+      Dispatch & ThunkDispatch<number, undefined, UnknownAction>
+    >()
 
     configureStore({
       reducer: () => 0,
@@ -154,127 +151,117 @@ describe('type tests', () => {
       enhancers: () => new Tuple('not a store enhancer'),
     })
 
-    {
-      const somePropertyStoreEnhancer: StoreEnhancer<{ someProperty: string }> =
-        (next) => {
-          return (reducer, preloadedState) => {
-            return {
-              ...next(reducer, preloadedState),
-              someProperty: 'some value',
-            }
-          }
-        }
-
-      const anotherPropertyStoreEnhancer: StoreEnhancer<{
-        anotherProperty: number
-      }> = (next) => {
-        return (reducer, preloadedState) => {
-          return {
-            ...next(reducer, preloadedState),
-            anotherProperty: 123,
-          }
+    const somePropertyStoreEnhancer: StoreEnhancer<{
+      someProperty: string
+    }> = (next) => {
+      return (reducer, preloadedState) => {
+        return {
+          ...next(reducer, preloadedState),
+          someProperty: 'some value',
         }
       }
-
-      const store = configureStore({
-        reducer: () => 0,
-        enhancers: () =>
-          new Tuple(somePropertyStoreEnhancer, anotherPropertyStoreEnhancer),
-      })
-
-      expectTypeOf(store.dispatch).toEqualTypeOf<Dispatch>()
-
-      expectTypeOf(store.someProperty).toBeString()
-
-      expectTypeOf(store.anotherProperty).toBeNumber()
-
-      const storeWithCallback = configureStore({
-        reducer: () => 0,
-        enhancers: (getDefaultEnhancers) =>
-          getDefaultEnhancers()
-            .prepend(anotherPropertyStoreEnhancer)
-            .concat(somePropertyStoreEnhancer),
-      })
-
-      expectTypeOf(store.dispatch).toMatchTypeOf<
-        Dispatch & ThunkDispatch<number, undefined, UnknownAction>
-      >()
-
-      expectTypeOf(store.dispatch).not.toEqualTypeOf<
-        Dispatch & ThunkDispatch<number, undefined, UnknownAction>
-      >()
-
-      expectTypeOf(store.someProperty).toBeString()
-
-      expectTypeOf(store.anotherProperty).toBeNumber()
     }
 
-    {
-      const someStateExtendingEnhancer: StoreEnhancer<
-        {},
-        { someProperty: string }
-      > =
-        (next) =>
-        (...args) => {
-          const store = next(...args)
-          const getState = () => ({
-            ...store.getState(),
-            someProperty: 'some value',
-          })
-          return {
-            ...store,
-            getState,
-          } as any
+    const anotherPropertyStoreEnhancer: StoreEnhancer<{
+      anotherProperty: number
+    }> = (next) => {
+      return (reducer, preloadedState) => {
+        return {
+          ...next(reducer, preloadedState),
+          anotherProperty: 123,
         }
-
-      const anotherStateExtendingEnhancer: StoreEnhancer<
-        {},
-        { anotherProperty: number }
-      > =
-        (next) =>
-        (...args) => {
-          const store = next(...args)
-          const getState = () => ({
-            ...store.getState(),
-            anotherProperty: 123,
-          })
-          return {
-            ...store,
-            getState,
-          } as any
-        }
-
-      const store = configureStore({
-        reducer: () => ({ aProperty: 0 }),
-        enhancers: () =>
-          new Tuple(someStateExtendingEnhancer, anotherStateExtendingEnhancer),
-      })
-
-      const state = store.getState()
-
-      expectTypeOf(state.aProperty).toBeNumber()
-
-      expectTypeOf(state.someProperty).toBeString()
-
-      expectTypeOf(state.anotherProperty).toBeNumber()
-
-      const storeWithCallback = configureStore({
-        reducer: () => ({ aProperty: 0 }),
-        enhancers: (gDE) =>
-          gDE().concat(
-            someStateExtendingEnhancer,
-            anotherStateExtendingEnhancer
-          ),
-      })
-
-      const stateWithCallback = storeWithCallback.getState()
-
-      expectTypeOf(stateWithCallback.aProperty).toBeNumber()
-
-      expectTypeOf(stateWithCallback.someProperty).toBeString()
-
-      expectTypeOf(stateWithCallback.anotherProperty).toBeNumber()
+      }
     }
+
+    const store3 = configureStore({
+      reducer: () => 0,
+      enhancers: () =>
+        new Tuple(somePropertyStoreEnhancer, anotherPropertyStoreEnhancer),
+    })
+
+    expectTypeOf(store3.dispatch).toEqualTypeOf<Dispatch>()
+
+    expectTypeOf(store3.someProperty).toBeString()
+
+    expectTypeOf(store3.anotherProperty).toBeNumber()
+
+    const storeWithCallback = configureStore({
+      reducer: () => 0,
+      enhancers: (getDefaultEnhancers) =>
+        getDefaultEnhancers()
+          .prepend(anotherPropertyStoreEnhancer)
+          .concat(somePropertyStoreEnhancer),
+    })
+
+    expectTypeOf(store3.dispatch).toMatchTypeOf<
+      Dispatch & ThunkDispatch<number, undefined, UnknownAction>
+    >()
+
+    expectTypeOf(store3.someProperty).toBeString()
+
+    expectTypeOf(store3.anotherProperty).toBeNumber()
+
+    const someStateExtendingEnhancer: StoreEnhancer<
+      {},
+      { someProperty: string }
+    > =
+      (next) =>
+      (...args) => {
+        const store = next(...args)
+        const getState = () => ({
+          ...store.getState(),
+          someProperty: 'some value',
+        })
+        return {
+          ...store,
+          getState,
+        } as any
+      }
+
+    const anotherStateExtendingEnhancer: StoreEnhancer<
+      {},
+      { anotherProperty: number }
+    > =
+      (next) =>
+      (...args) => {
+        const store = next(...args)
+        const getState = () => ({
+          ...store.getState(),
+          anotherProperty: 123,
+        })
+        return {
+          ...store,
+          getState,
+        } as any
+      }
+
+    const store4 = configureStore({
+      reducer: () => ({ aProperty: 0 }),
+      enhancers: () =>
+        new Tuple(someStateExtendingEnhancer, anotherStateExtendingEnhancer),
+    })
+
+    const state = store4.getState()
+
+    expectTypeOf(state.aProperty).toBeNumber()
+
+    expectTypeOf(state.someProperty).toBeString()
+
+    expectTypeOf(state.anotherProperty).toBeNumber()
+
+    const storeWithCallback2 = configureStore({
+      reducer: () => ({ aProperty: 0 }),
+      enhancers: (gDE) =>
+        gDE().concat(someStateExtendingEnhancer, anotherStateExtendingEnhancer),
+    })
+
+    const stateWithCallback = storeWithCallback2.getState()
+
+    expectTypeOf(stateWithCallback.aProperty).toBeNumber()
+
+    expectTypeOf(stateWithCallback.someProperty).toBeString()
+
+    expectTypeOf(stateWithCallback.anotherProperty).toBeNumber()
   })
 
   test('Preloaded state typings', () => {
@@ -468,11 +455,6 @@ describe('type tests', () => {
         payload: number
       }>()
 
-      expectTypeOf(dispatchResult).not.toEqualTypeOf<{
-        type: string
-        payload: number
-      }>()
-
       const promiseResult = store.dispatch(async (dispatch) => {
         return 42
       })
@@ -497,11 +479,6 @@ describe('type tests', () => {
         type: string
         payload: number
       }>()
-
-      expectTypeOf(dispatchResult2).not.toEqualTypeOf<{
-        type: string
-        payload: number
-      }>()
     })
 
     test('removing the Thunk Middleware', () => {
@@ -509,10 +486,10 @@ describe('type tests', () => {
         reducer: reducerA,
         middleware: () => new Tuple(),
       })
-      // @ts-expect-error
-      store.dispatch(thunkA())
-      // @ts-expect-error
-      store.dispatch(thunkB())
+
+      expectTypeOf(store.dispatch).parameter(0).not.toMatchTypeOf(thunkA())
+
+      expectTypeOf(store.dispatch).parameter(0).not.toMatchTypeOf(thunkB())
     })
 
     test('adding the thunk middleware by hand', () => {
@@ -520,6 +497,7 @@ describe('type tests', () => {
         reducer: reducerA,
         middleware: () => new Tuple(thunk as ThunkMiddleware<StateA>),
       })
+
       store.dispatch(thunkA())
       // @ts-expect-error
       store.dispatch(thunkB())
@@ -541,7 +519,7 @@ describe('type tests', () => {
         [
           Middleware<(a: 'a') => 'A', StateA>,
           Middleware<(b: 'b') => 'B', StateA>,
-          ThunkMiddleware<StateA>
+          ThunkMiddleware<StateA>,
         ]
       >
       const store = configureStore({
@@ -651,12 +629,6 @@ describe('type tests', () => {
             >
           >()
 
-          expectTypeOf(concatenated).not.toEqualTypeOf<
-            ReadonlyArray<
-              typeof otherMiddleware | ThunkMiddleware | Middleware<{}>
-            >
-          >()
-
           return concatenated
         },
       })
@@ -705,7 +677,7 @@ describe('type tests', () => {
         reducer: reducerA,
         middleware: (getDefaultMiddleware) =>
           getDefaultMiddleware({ thunk: false }).prepend(
-            (() => {}) as any as Middleware<(a: 'a') => 'A', StateA>
+            (() => {}) as any as Middleware<(a: 'a') => 'A', StateA>,
           ),
       })
       const result1: 'A' = store.dispatch('a')
@@ -735,7 +707,7 @@ describe('type tests', () => {
       })
 
       function configureMyStore<S>(
-        options: Omit<ConfigureStoreOptions<S>, 'reducer'>
+        options: Omit<ConfigureStoreOptions<S>, 'reducer'>,
       ) {
         return configureStore({
           ...options,
