@@ -1,16 +1,24 @@
-import type { ConfigureStoreOptions, PayloadAction } from '@reduxjs/toolkit'
-import { Tuple, configureStore, createSlice } from '@reduxjs/toolkit'
 import type {
   Action,
+  ConfigureStoreOptions,
   Dispatch,
   Middleware,
+  PayloadAction,
   Reducer,
   Store,
   StoreEnhancer,
+  ThunkAction,
+  ThunkDispatch,
+  ThunkMiddleware,
   UnknownAction,
-} from 'redux'
-import { applyMiddleware, combineReducers } from 'redux'
-import type { ThunkAction, ThunkDispatch, ThunkMiddleware } from 'redux-thunk'
+} from '@reduxjs/toolkit'
+import {
+  Tuple,
+  applyMiddleware,
+  combineReducers,
+  configureStore,
+  createSlice,
+} from '@reduxjs/toolkit'
 import { thunk } from 'redux-thunk'
 
 const _anyMiddleware: any = () => () => () => {}
@@ -40,11 +48,12 @@ describe('type tests', () => {
 
   test('configureStore() infers the store state type.', () => {
     const reducer: Reducer<number> = () => 0
-    const store = configureStore({ reducer })
-    const numberStore: Store<number, UnknownAction> = store
 
-    // @ts-expect-error
-    const stringStore: Store<string, UnknownAction> = store
+    const store = configureStore({ reducer })
+
+    expectTypeOf(store).toMatchTypeOf<Store<number, UnknownAction>>()
+
+    expectTypeOf(store).not.toMatchTypeOf<Store<string, UnknownAction>>()
   })
 
   test('configureStore() infers the store action type.', () => {
@@ -402,7 +411,7 @@ describe('type tests', () => {
   test('Dispatch typings', () => {
     type StateA = number
     const reducerA = () => 0
-    function thunkA() {
+    const thunkA = () => {
       return (() => {}) as any as ThunkAction<Promise<'A'>, StateA, any, any>
     }
 
@@ -599,12 +608,6 @@ describe('type tests', () => {
             >
           >()
 
-          expectTypeOf(concatenated).not.toEqualTypeOf<
-            ReadonlyArray<
-              typeof otherMiddleware | ThunkMiddleware | Middleware<{}>
-            >
-          >()
-
           return concatenated
         },
       })
@@ -720,57 +723,55 @@ describe('type tests', () => {
       expectTypeOf(store.dispatch).toBeFunction()
     })
 
-    {
-      interface CounterState {
-        value: number
-      }
-
-      const counterSlice = createSlice({
-        name: 'counter',
-        initialState: { value: 0 } as CounterState,
-        reducers: {
-          increment(state) {
-            state.value += 1
-          },
-          decrement(state) {
-            state.value -= 1
-          },
-          // Use the PayloadAction type to declare the contents of `action.payload`
-          incrementByAmount: (state, action: PayloadAction<number>) => {
-            state.value += action.payload
-          },
-        },
-      })
-
-      type Unsubscribe = () => void
-
-      // A fake middleware that tells TS that an unsubscribe callback is being returned for a given action
-      // This is the same signature that the "listener" middleware uses
-      const dummyMiddleware: Middleware<
-        {
-          (action: Action<'actionListenerMiddleware/add'>): Unsubscribe
-        },
-        CounterState
-      > = (storeApi) => (next) => (action) => {}
-
-      const store = configureStore({
-        reducer: counterSlice.reducer,
-        middleware: (gDM) => gDM().prepend(dummyMiddleware),
-      })
-
-      // Order matters here! We need the listener type to come first, otherwise
-      // the thunk middleware type kicks in and TS thinks a plain action is being returned
-      expectTypeOf(store.dispatch).toEqualTypeOf<
-        ((action: Action<'actionListenerMiddleware/add'>) => Unsubscribe) &
-          ThunkDispatch<CounterState, undefined, UnknownAction> &
-          Dispatch<UnknownAction>
-      >()
-
-      const unsubscribe = store.dispatch({
-        type: 'actionListenerMiddleware/add',
-      } as const)
-
-      expectTypeOf(unsubscribe).toEqualTypeOf<Unsubscribe>()
+    interface CounterState {
+      value: number
     }
+
+    const counterSlice = createSlice({
+      name: 'counter',
+      initialState: { value: 0 } as CounterState,
+      reducers: {
+        increment(state) {
+          state.value += 1
+        },
+        decrement(state) {
+          state.value -= 1
+        },
+        // Use the PayloadAction type to declare the contents of `action.payload`
+        incrementByAmount: (state, action: PayloadAction<number>) => {
+          state.value += action.payload
+        },
+      },
+    })
+
+    type Unsubscribe = () => void
+
+    // A fake middleware that tells TS that an unsubscribe callback is being returned for a given action
+    // This is the same signature that the "listener" middleware uses
+    const dummyMiddleware: Middleware<
+      {
+        (action: Action<'actionListenerMiddleware/add'>): Unsubscribe
+      },
+      CounterState
+    > = (storeApi) => (next) => (action) => {}
+
+    const store = configureStore({
+      reducer: counterSlice.reducer,
+      middleware: (gDM) => gDM().prepend(dummyMiddleware),
+    })
+
+    // Order matters here! We need the listener type to come first, otherwise
+    // the thunk middleware type kicks in and TS thinks a plain action is being returned
+    expectTypeOf(store.dispatch).toEqualTypeOf<
+      ((action: Action<'actionListenerMiddleware/add'>) => Unsubscribe) &
+        ThunkDispatch<CounterState, undefined, UnknownAction> &
+        Dispatch<UnknownAction>
+    >()
+
+    const unsubscribe = store.dispatch({
+      type: 'actionListenerMiddleware/add',
+    } as const)
+
+    expectTypeOf(unsubscribe).toEqualTypeOf<Unsubscribe>()
   })
 })
