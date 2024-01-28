@@ -1,5 +1,5 @@
 import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
-import type { BaseQueryFn } from '@reduxjs/toolkit/query/react'
+import type { BaseQueryFn, BaseQueryApi } from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import {
   act,
@@ -14,10 +14,8 @@ import axios from 'axios'
 import { HttpResponse, http } from 'msw'
 import * as React from 'react'
 import { useDispatch } from 'react-redux'
-import { hookWaitFor, setupApiStore } from '../../tests/utils/helpers'
-import { expectExactType } from '../../tests/utils/typeTestHelpers'
-import type { BaseQueryApi } from '../baseQueryTypes'
-import { server } from './mocks/server'
+import { hookWaitFor, setupApiStore } from '@internal/tests/utils/helpers'
+import { server } from '@internal/query/tests/mocks/server'
 
 const baseQuery = fetchBaseQuery({ baseUrl: 'https://example.com' })
 
@@ -409,7 +407,7 @@ describe('custom axios baseQuery', () => {
           meta: { request: config, response: result },
         }
       } catch (axiosError) {
-        let err = axiosError as AxiosError
+        const err = axiosError as AxiosError
         return {
           error: {
             status: err.response?.status,
@@ -517,7 +515,6 @@ describe('error handling in a component', () => {
               update({ name: 'hello' })
                 .unwrap()
                 .then((result) => {
-                  expectExactType(mockSuccessResponse)(result)
                   setManualError(undefined)
                 })
                 .catch((error) => act(() => setManualError(error)))
