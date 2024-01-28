@@ -10,7 +10,7 @@ import type {
   DefinitionsFromApi,
   OverrideResultType,
   TagTypesFromApi,
-} from '@internal/query/endpointDefinitions'
+} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
 import { server } from '@internal/query/tests/mocks/server'
 import {
   getSerializedHeaders,
