@@ -288,8 +288,9 @@ describe('type tests', () => {
         },
       })
 
-      const counter1: number = store.getState().counter1
-      const counter2: number = store.getState().counter2
+      expectTypeOf(store.getState().counter1).toBeNumber()
+
+      expectTypeOf(store.getState().counter2).toBeNumber()
     })
 
     test('empty preloaded state', () => {
@@ -301,8 +302,9 @@ describe('type tests', () => {
         preloadedState: {},
       })
 
-      const counter1: number = store.getState().counter1
-      const counter2: number = store.getState().counter2
+      expectTypeOf(store.getState().counter1).toBeNumber()
+
+      expectTypeOf(store.getState().counter2).toBeNumber()
     })
 
     test('excess properties in preloaded state', () => {
@@ -318,8 +320,9 @@ describe('type tests', () => {
         },
       })
 
-      const counter1: number = store.getState().counter1
-      const counter2: number = store.getState().counter2
+      expectTypeOf(store.getState().counter1).toBeNumber()
+
+      expectTypeOf(store.getState().counter2).toBeNumber()
     })
 
     test('mismatching properties in preloaded state', () => {
@@ -334,8 +337,9 @@ describe('type tests', () => {
         },
       })
 
-      const counter1: number = store.getState().counter1
-      const counter2: number = store.getState().counter2
+      expectTypeOf(store.getState().counter1).toBeNumber()
+
+      expectTypeOf(store.getState().counter2).toBeNumber()
     })
 
     test('string preloaded state when expecting object', () => {
@@ -348,8 +352,9 @@ describe('type tests', () => {
         preloadedState: 'test',
       })
 
-      const counter1: number = store.getState().counter1
-      const counter2: number = store.getState().counter2
+      expectTypeOf(store.getState().counter1).toBeNumber()
+
+      expectTypeOf(store.getState().counter2).toBeNumber()
     })
 
     test('nested combineReducers allows partial', () => {
@@ -371,10 +376,13 @@ describe('type tests', () => {
         },
       })
 
-      const group1counter1: number = store.getState().group1.counter1
-      const group1counter2: number = store.getState().group1.counter2
-      const group2counter1: number = store.getState().group2.counter1
-      const group2counter2: number = store.getState().group2.counter2
+      expectTypeOf(store.getState().group1.counter1).toBeNumber()
+
+      expectTypeOf(store.getState().group1.counter2).toBeNumber()
+
+      expectTypeOf(store.getState().group2.counter1).toBeNumber()
+
+      expectTypeOf(store.getState().group2.counter2).toBeNumber()
     })
 
     test('non-nested combineReducers does not allow partial', () => {
@@ -401,10 +409,13 @@ describe('type tests', () => {
         },
       })
 
-      const group1counter1: number = store.getState().group1.counter1
-      const group1counter2: number = store.getState().group1.counter2
-      const group2counter1: number = store.getState().group2.counter1
-      const group2counter2: number = store.getState().group2.counter2
+      expectTypeOf(store.getState().group1.counter1).toBeNumber()
+
+      expectTypeOf(store.getState().group1.counter2).toBeNumber()
+
+      expectTypeOf(store.getState().group2.counter1).toBeNumber()
+
+      expectTypeOf(store.getState().group2.counter2).toBeNumber()
     })
   })
 
@@ -416,7 +427,7 @@ describe('type tests', () => {
     }
 
     type StateB = string
-    function thunkB() {
+    const thunkB = () => {
       return (dispatch: Dispatch, getState: () => StateB) => {}
     }
 
@@ -518,9 +529,10 @@ describe('type tests', () => {
         middleware: () =>
           new Tuple(0 as unknown as Middleware<(a: StateA) => boolean, StateA>),
       })
-      const result: boolean = store.dispatch(5)
-      // @ts-expect-error
-      const result2: string = store.dispatch(5)
+
+      expectTypeOf(store.dispatch(5)).toBeBoolean()
+
+      expectTypeOf(store.dispatch(5)).not.toBeString()
     })
 
     test('multiple custom middleware', () => {
@@ -531,14 +543,17 @@ describe('type tests', () => {
           ThunkMiddleware<StateA>,
         ]
       >
+
       const store = configureStore({
         reducer: reducerA,
         middleware: () => middleware,
       })
 
-      const result: 'A' = store.dispatch('a')
-      const result2: 'B' = store.dispatch('b')
-      const result3: Promise<'A'> = store.dispatch(thunkA())
+      expectTypeOf(store.dispatch('a')).toEqualTypeOf<'A'>()
+
+      expectTypeOf(store.dispatch('b')).toEqualTypeOf<'B'>()
+
+      expectTypeOf(store.dispatch(thunkA())).toEqualTypeOf<Promise<'A'>>()
     })
 
     test('Accepts thunk with `unknown`, `undefined` or `null` ThunkAction extraArgument per default', () => {
@@ -587,10 +602,11 @@ describe('type tests', () => {
           >),
       })
 
-      const result1: 'A' = store.dispatch('a')
-      const result2: Promise<'A'> = store.dispatch(thunkA())
-      // @ts-expect-error
-      store.dispatch(thunkB())
+      expectTypeOf(store.dispatch('a')).toEqualTypeOf<'A'>()
+
+      expectTypeOf(store.dispatch(thunkA())).toEqualTypeOf<Promise<'A'>>()
+
+      expectTypeOf(store.dispatch).parameter(0).not.toMatchTypeOf(thunkB())
     })
 
     test('custom middleware and getDefaultMiddleware, using prepend', () => {
@@ -611,10 +627,12 @@ describe('type tests', () => {
           return concatenated
         },
       })
-      const result1: 'A' = store.dispatch('a')
-      const result2: Promise<'A'> = store.dispatch(thunkA())
-      // @ts-expect-error
-      store.dispatch(thunkB())
+
+      expectTypeOf(store.dispatch('a')).toEqualTypeOf<'A'>()
+
+      expectTypeOf(store.dispatch(thunkA())).toEqualTypeOf<Promise<'A'>>()
+
+      expectTypeOf(store.dispatch).parameter(0).not.toMatchTypeOf(thunkB())
     })
 
     test('custom middleware and getDefaultMiddleware, using concat', () => {
@@ -635,10 +653,12 @@ describe('type tests', () => {
           return concatenated
         },
       })
-      const result1: 'A' = store.dispatch('a')
-      const result2: Promise<'A'> = store.dispatch(thunkA())
-      // @ts-expect-error
-      store.dispatch(thunkB())
+
+      expectTypeOf(store.dispatch('a')).toEqualTypeOf<'A'>()
+
+      expectTypeOf(store.dispatch(thunkA())).toEqualTypeOf<Promise<'A'>>()
+
+      expectTypeOf(store.dispatch).parameter(0).not.toMatchTypeOf(thunkB())
     })
 
     test('middlewareBuilder notation, getDefaultMiddleware (unconfigured)', () => {
@@ -650,17 +670,21 @@ describe('type tests', () => {
             StateA
           >),
       })
-      const result1: 'A' = store.dispatch('a')
-      const result2: Promise<'A'> = store.dispatch(thunkA())
-      // @ts-expect-error
-      store.dispatch(thunkB())
+
+      expectTypeOf(store.dispatch('a')).toEqualTypeOf<'A'>()
+
+      expectTypeOf(store.dispatch(thunkA())).toEqualTypeOf<Promise<'A'>>()
+
+      expectTypeOf(store.dispatch).parameter(0).not.toMatchTypeOf(thunkB())
     })
 
     test('middlewareBuilder notation, getDefaultMiddleware, concat & prepend', () => {
       const otherMiddleware: Middleware<(a: 'a') => 'A', StateA> =
         _anyMiddleware
+
       const otherMiddleware2: Middleware<(a: 'b') => 'B', StateA> =
         _anyMiddleware
+
       const store = configureStore({
         reducer: reducerA,
         middleware: (getDefaultMiddleware) =>
@@ -668,11 +692,14 @@ describe('type tests', () => {
             .concat(otherMiddleware)
             .prepend(otherMiddleware2),
       })
-      const result1: 'A' = store.dispatch('a')
-      const result2: Promise<'A'> = store.dispatch(thunkA())
-      const result3: 'B' = store.dispatch('b')
-      // @ts-expect-error
-      store.dispatch(thunkB())
+
+      expectTypeOf(store.dispatch('a')).toEqualTypeOf<'A'>()
+
+      expectTypeOf(store.dispatch(thunkA())).toEqualTypeOf<Promise<'A'>>()
+
+      expectTypeOf(store.dispatch('b')).toEqualTypeOf<'B'>()
+
+      expectTypeOf(store.dispatch).parameter(0).not.toMatchTypeOf(thunkB())
     })
 
     test('middlewareBuilder notation, getDefaultMiddleware (thunk: false)', () => {
@@ -683,9 +710,10 @@ describe('type tests', () => {
             (() => {}) as any as Middleware<(a: 'a') => 'A', StateA>,
           ),
       })
-      const result1: 'A' = store.dispatch('a')
-      // @ts-expect-error
-      store.dispatch(thunkA())
+
+      expectTypeOf(store.dispatch('a')).toEqualTypeOf<'A'>()
+
+      expectTypeOf(store.dispatch).parameter(0).not.toMatchTypeOf(thunkA())
     })
 
     test("badly typed middleware won't make `dispatch` `any`", () => {
