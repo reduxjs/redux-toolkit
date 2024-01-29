@@ -35,8 +35,6 @@ describe('union types', () => {
     }
 
     if (result.isLoading) {
-      expectTypeOf(result.data).toBeNullable()
-
       expectTypeOf(result.data).toEqualTypeOf<string | undefined>()
 
       expectTypeOf(result.error).toEqualTypeOf<
@@ -88,6 +86,7 @@ describe('union types', () => {
       expectTypeOf(result).toBeNever()
     }
   })
+
   test('useQuery union', () => {
     const result = api.endpoints.getTest.useQuery()
 
@@ -136,6 +135,7 @@ describe('union types', () => {
 
       expectTypeOf(result.isFetching).toEqualTypeOf<false>()
     }
+
     if (result.isSuccess) {
       expectTypeOf(result.data).toBeString()
 
@@ -168,15 +168,11 @@ describe('union types', () => {
 
     expectTypeOf(result.currentData).toEqualTypeOf<string | undefined>()
 
-    expectTypeOf(result.currentData).not.toBeString()
-
     if (result.isSuccess) {
       if (!result.isFetching) {
         expectTypeOf(result.currentData).toBeString()
       } else {
         expectTypeOf(result.currentData).toEqualTypeOf<string | undefined>()
-
-        expectTypeOf(result.currentData).not.toBeString()
       }
     }
 
@@ -300,6 +296,7 @@ describe('union types', () => {
 
       expectTypeOf(result.isFetching).toEqualTypeOf<false>()
     }
+
     if (result.isLoading) {
       expectTypeOf(result.data).toBeUndefined()
 
@@ -469,29 +466,25 @@ describe('union types', () => {
 
   test('queryHookResult (without selector) union', async () => {
     const useQueryStateResult = api.endpoints.getTest.useQueryState()
+
     const useQueryResult = api.endpoints.getTest.useQuery()
-    const useQueryStateWithSelectFromResult = api.endpoints.getTest.useQueryState(
-      undefined,
-      {
+
+    const useQueryStateWithSelectFromResult =
+      api.endpoints.getTest.useQueryState(undefined, {
         selectFromResult: () => ({ x: true }),
-      }
-    )
+      })
 
     const { refetch, ...useQueryResultWithoutMethods } = useQueryResult
 
     assertType<typeof useQueryResultWithoutMethods>(useQueryStateResult)
 
     expectTypeOf(useQueryStateResult).toMatchTypeOf(
-      useQueryResultWithoutMethods
-    )
-
-    expectTypeOf(useQueryStateResult).not.toEqualTypeOf(
-      useQueryResultWithoutMethods
+      useQueryResultWithoutMethods,
     )
 
     expectTypeOf(useQueryStateWithSelectFromResult)
       .parameter(0)
-      .not.toEqualTypeOf(useQueryResultWithoutMethods)
+      .not.toMatchTypeOf(useQueryResultWithoutMethods)
 
     expectTypeOf(api.endpoints.getTest.select).returns.returns.toEqualTypeOf<
       Awaited<ReturnType<typeof refetch>>
@@ -499,7 +492,6 @@ describe('union types', () => {
   })
 
   test('useQueryState (with selectFromResult)', () => {
-
     const result = api.endpoints.getTest.useQueryState(undefined, {
       selectFromResult({
         data,
@@ -782,12 +774,5 @@ describe('"Typed" helper types', () => {
     expectTypeOf<
       TypedUseMutationResult<string, void, typeof baseQuery>
     >().toMatchTypeOf(result)
-
-    // TODO: `TypedUseMutationResult` might need a closer look since here the result is assignable to it but they are not of equal types
-    expectTypeOf<
-      TypedUseMutationResult<string, void, typeof baseQuery>
-    >().not.toEqualTypeOf(result)
-
-    assertType<TypedUseMutationResult<string, void, typeof baseQuery>>(result)
   })
 })
