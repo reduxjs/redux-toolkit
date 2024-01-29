@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "CommonJS",
+    "module": "ESNext",
     "declaration": true,
     "sourceMap": true,
     "outDir": "lib",
@@ -9,7 +9,7 @@
     "strict": true,
     "noUnusedLocals": false,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
+    "moduleResolution": "Node",
     "types": ["vitest/globals", "vitest/importMeta"],
     "esModuleInterop": true,
     "skipLibCheck": true,
