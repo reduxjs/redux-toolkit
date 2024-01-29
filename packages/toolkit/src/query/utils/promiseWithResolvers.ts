@@ -1,4 +1,4 @@
-import { safeAssign } from "../tsHelpers";
+import { safeAssign } from '../tsHelpers'
 
 export interface PromiseConstructorWithKnownReason {
   /**
@@ -10,8 +10,8 @@ export interface PromiseConstructorWithKnownReason {
   new <T, R>(
     executor: (
       resolve: (value: T | PromiseLike<T>) => void,
-      reject: (reason: R) => void
-    ) => void
+      reject: (reason: R) => void,
+    ) => void,
   ): PromiseWithKnownReason<T, R>
 }
 
@@ -31,7 +31,7 @@ export interface PromiseWithKnownReason<T, R>
     onrejected?:
       | ((reason: R) => TResult2 | PromiseLike<TResult2>)
       | undefined
-      | null
+      | null,
   ): Promise<TResult1 | TResult2>
 
   /**
@@ -43,25 +43,30 @@ export interface PromiseWithKnownReason<T, R>
     onrejected?:
       | ((reason: R) => TResult | PromiseLike<TResult>)
       | undefined
-      | null
+      | null,
   ): Promise<T | TResult>
 }
 
-export const PromiseWithKnownReason = Promise as PromiseConstructorWithKnownReason
+export const PromiseWithKnownReason =
+  Promise as PromiseConstructorWithKnownReason
 
-
-type PromiseExecutor<T, R> = ConstructorParameters<typeof PromiseWithKnownReason<T, R>>[0];
+type PromiseExecutor<T, R> = ConstructorParameters<
+  typeof PromiseWithKnownReason<T, R>
+>[0]
 
 export type PromiseWithResolvers<T, R> = {
-  promise: PromiseWithKnownReason<T, R>;
-  resolve: Parameters<PromiseExecutor<T, R>>[0];
-  reject: Parameters<PromiseExecutor<T, R>>[1];
-};
+  promise: PromiseWithKnownReason<T, R>
+  resolve: Parameters<PromiseExecutor<T, R>>[0]
+  reject: Parameters<PromiseExecutor<T, R>>[1]
+}
 
-export const promiseWithResolvers = <T, R = unknown>(): PromiseWithResolvers<T, R> => {
-  const result = {} as PromiseWithResolvers<T, R>;
+export const promiseWithResolvers = <T, R = unknown>(): PromiseWithResolvers<
+  T,
+  R
+> => {
+  const result = {} as PromiseWithResolvers<T, R>
   result.promise = new PromiseWithKnownReason<T, R>((resolve, reject) => {
-    safeAssign(result, { reject, resolve });
-  });
-  return result;
-};
+    safeAssign(result, { reject, resolve })
+  })
+  return result
+}
