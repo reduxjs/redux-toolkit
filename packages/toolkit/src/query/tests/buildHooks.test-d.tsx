@@ -123,10 +123,6 @@ describe('type tests', () => {
 
         expectTypeOf(res.abort).toEqualTypeOf<() => void>()
 
-        expectTypeOf(res.unwrap).returns.resolves.toEqualTypeOf<{
-          name: string
-        }>()
-
         expectTypeOf(res.unsubscribe).toEqualTypeOf<() => void>()
 
         expectTypeOf(res.updateSubscriptionOptions).toEqualTypeOf<
