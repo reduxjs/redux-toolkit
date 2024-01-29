@@ -379,7 +379,7 @@ describe('openapi spec', () => {
       unionUndefined: true,
       schemaFile: './fixtures/readOnlyWriteOnly.yaml',
       apiFile: './fixtures/emptyApi.ts',
-      mergeReadWriteOnly: true
+      mergeReadWriteOnly: true,
     });
     expect(api).toMatchSnapshot();
   });

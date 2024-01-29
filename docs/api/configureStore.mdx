@@ -46,6 +46,10 @@ interface ConfigureStoreOptions<
   P = S
 > {
   /**
+   * A single reducer function that will be used as the root reducer, or an
+   * object of slice reducers that will be passed to `combineReducers()`.
+   */
+  reducer: Reducer<S, A, P> | ReducersMapObject<S, A, P>
 
   /**
    * An array of Redux middleware to install. If not supplied, defaults to

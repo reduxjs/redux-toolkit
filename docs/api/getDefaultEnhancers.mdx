@@ -109,6 +109,6 @@ interface GetDefaultEnhancersOptions {
 }
 
 function getDefaultEnhancers<M extends Middlewares<any>>(
-  options: GetDefaultEnhancersOptions = {}
+  options: GetDefaultEnhancersOptions = {},
 ): EnhancerArray<[StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>]>
 ```

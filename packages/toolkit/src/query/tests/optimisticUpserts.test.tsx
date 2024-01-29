@@ -1,9 +1,11 @@
-import { vi } from 'vitest'
 import { createApi } from '@reduxjs/toolkit/query/react'
-import { actionsReducer, hookWaitFor, setupApiStore, waitMs } from './helpers'
-import { skipToken } from '../core/buildSelectors'
+import {
+  actionsReducer,
+  hookWaitFor,
+  setupApiStore,
+} from '../../tests/utils/helpers'
 import { renderHook, act, waitFor } from '@testing-library/react'
-import { delay } from '../../utils'
+import { delay } from 'msw'
 
 interface Post {
   id: string
@@ -42,7 +44,7 @@ const api = createApi({
             api.util.upsertQueryData('post', arg.id, {
               ...currentItem.data,
               ...arg,
-            })
+            }),
           )
         }
       },
@@ -103,7 +105,7 @@ describe('basic lifecycle', () => {
       title: 'Inserted title',
     }
     const insertPromise = storeRef.store.dispatch(
-      api.util.upsertQueryData('post', newPost.id, newPost)
+      api.util.upsertQueryData('post', newPost.id, newPost),
     )
 
     await insertPromise
@@ -120,7 +122,7 @@ describe('basic lifecycle', () => {
     }
 
     const updatePromise = storeRef.store.dispatch(
-      api.util.upsertQueryData('post', updatedPost.id, updatedPost)
+      api.util.upsertQueryData('post', updatedPost.id, updatedPost),
     )
 
     await updatePromise
@@ -136,7 +138,7 @@ describe('basic lifecycle', () => {
       () => extendedApi.endpoints.test.useMutation(),
       {
         wrapper: storeRef.wrapper,
-      }
+      },
     )
 
     baseQuery.mockResolvedValue('success')
@@ -149,7 +151,7 @@ describe('basic lifecycle', () => {
 
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).not.toHaveBeenCalled()
-    await act(() => waitMs(5))
+    await act(() => delay(5))
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).toHaveBeenCalledWith({ data: 'success', meta: 'meta' })
   })
@@ -159,7 +161,7 @@ describe('basic lifecycle', () => {
       () => extendedApi.endpoints.test.useMutation(),
       {
         wrapper: storeRef.wrapper,
-      }
+      },
     )
 
     baseQuery.mockRejectedValueOnce('error')
@@ -172,7 +174,7 @@ describe('basic lifecycle', () => {
 
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).not.toHaveBeenCalled()
-    await act(() => waitMs(5))
+    await act(() => delay(5))
     expect(onError).toHaveBeenCalledWith({
       error: 'error',
       isUnhandledError: false,
@@ -212,7 +214,7 @@ describe('upsertQueryData', () => {
           id: '3',
           title: 'All about cheese.',
           contents: 'I love cheese!',
-        })
+        }),
       )
     })
 
@@ -240,7 +242,7 @@ describe('upsertQueryData', () => {
       () => api.endpoints.post.useQuery('4'),
       {
         wrapper: storeRef.wrapper,
-      }
+      },
     )
     await hookWaitFor(() => expect(result.current.isError).toBeTruthy())
 
@@ -251,7 +253,7 @@ describe('upsertQueryData', () => {
           id: '4',
           title: 'All about cheese',
           contents: 'I love cheese!',
-        })
+        }),
       )
     })
 
@@ -284,7 +286,7 @@ describe('upsertQueryData', () => {
     const selector = api.endpoints.post.select('3')
     const fetchRes = storeRef.store.dispatch(api.endpoints.post.initiate('3'))
     const upsertRes = storeRef.store.dispatch(
-      api.util.upsertQueryData('post', '3', upsertedData)
+      api.util.upsertQueryData('post', '3', upsertedData),
     )
 
     await upsertRes
@@ -310,7 +312,7 @@ describe('upsertQueryData', () => {
     const selector = api.endpoints.post.select('3')
     const fetchRes = storeRef.store.dispatch(api.endpoints.post.initiate('3'))
     const upsertRes = storeRef.store.dispatch(
-      api.util.upsertQueryData('post', '3', upsertedData)
+      api.util.upsertQueryData('post', '3', upsertedData),
     )
 
     await upsertRes
@@ -351,7 +353,7 @@ describe('full integration', () => {
       }),
       {
         wrapper: storeRef.wrapper,
-      }
+      },
     )
     await hookWaitFor(() => expect(result.current.query.isSuccess).toBeTruthy())
 
@@ -379,7 +381,7 @@ describe('full integration', () => {
         id: '3',
         title: 'Meanwhile, this changed server-side.',
         contents: 'Delicious cheese!',
-      })
+      }),
     )
   })
 
@@ -405,7 +407,7 @@ describe('full integration', () => {
       }),
       {
         wrapper: storeRef.wrapper,
-      }
+      },
     )
     await hookWaitFor(() => expect(result.current.query.isSuccess).toBeTruthy())
 
@@ -438,8 +440,8 @@ describe('full integration', () => {
             title: 'Meanwhile, this changed server-side.',
             contents: 'TODO',
           }),
-        50
-      )
+        50,
+      ),
     ).rejects.toBeTruthy()
 
     act(() => void result.current.query.refetch())
@@ -452,14 +454,14 @@ describe('full integration', () => {
           title: 'Meanwhile, this changed server-side.',
           contents: 'TODO',
         }),
-      50
+      50,
     )
   })
 
   test('Interop with in-flight requests', async () => {
     await act(async () => {
       const fetchRes = storeRef.store.dispatch(
-        api.endpoints.post2.initiate('3')
+        api.endpoints.post2.initiate('3'),
       )
 
       const upsertRes = storeRef.store.dispatch(
@@ -467,7 +469,7 @@ describe('full integration', () => {
           id: '3',
           title: 'Upserted title',
           contents: 'Upserted contents',
-        })
+        }),
       )
 
       const selectEntry = api.endpoints.post2.select('3')
@@ -480,7 +482,7 @@ describe('full integration', () => {
             contents: 'Upserted contents',
           })
         },
-        { interval: 1, timeout: 15 }
+        { interval: 1, timeout: 15 },
       )
       await waitFor(
         () => {
@@ -491,7 +493,7 @@ describe('full integration', () => {
             contents: 'TODO',
           })
         },
-        { interval: 1 }
+        { interval: 1 },
       )
     })
   })

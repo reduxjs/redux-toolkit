@@ -11,7 +11,7 @@ import { ApiProvider } from '@reduxjs/toolkit/query/react'
 // Initialize the msw worker, wait for the service worker registration to resolve, then mount
 worker.start({ quiet: true }).then(() => {
   return ReactDOM.createRoot(
-    document.getElementById('root') as HTMLElement
+    document.getElementById('root') as HTMLElement,
   ).render(
     <React.StrictMode>
       <ApiProvider api={api}>
@@ -21,6 +21,6 @@ worker.start({ quiet: true }).then(() => {
           </BrowserRouter>
         </ChakraProvider>
       </ApiProvider>
-    </React.StrictMode>
+    </React.StrictMode>,
   )
 })

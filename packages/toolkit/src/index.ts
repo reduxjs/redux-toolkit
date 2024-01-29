@@ -203,6 +203,9 @@ export { combineSlices } from './combineSlices'
 
 export type { WithSlice } from './combineSlices'
 
-export type { ExtractDispatchExtensions as TSHelpersExtractDispatchExtensions } from './tsHelpers'
+export type {
+  ExtractDispatchExtensions as TSHelpersExtractDispatchExtensions,
+  SafePromise,
+} from './tsHelpers'
 
 export { formatProdErrorMessage } from './formatProdErrorMessage'

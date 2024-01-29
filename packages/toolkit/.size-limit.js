@@ -8,15 +8,15 @@ function withRtkPath(suffix) {
     config.plugins.push(
       new webpack.NormalModuleReplacementPlugin(
         /@reduxjs\/toolkit\/query\/react/,
-        join(__dirname, `query/react`)
+        join(__dirname, `query/react`),
       ),
       new webpack.NormalModuleReplacementPlugin(
         /@reduxjs\/toolkit\/query/,
-        join(__dirname, `query`)
+        join(__dirname, `query`),
       ),
       new webpack.NormalModuleReplacementPlugin(
         /@reduxjs\/toolkit/,
-        join(__dirname)
+        join(__dirname),
       ),
       new webpack.NormalModuleReplacementPlugin(
         /rtk-query-react.modern.js/,
@@ -24,16 +24,16 @@ function withRtkPath(suffix) {
           const old = r.request
           r.request = r.request.replace(
             /rtk-query-react.modern.js$/,
-            `rtk-query-react.${suffix}`
+            `rtk-query-react.${suffix}`,
           )
           // console.log(old, '=>', r.request)
-        }
+        },
       ),
       new webpack.NormalModuleReplacementPlugin(/rtk-query.modern.js/, (r) => {
         const old = r.request
         r.request = r.request.replace(
           /rtk-query.modern.js$/,
-          `rtk-query.${suffix}`
+          `rtk-query.${suffix}`,
         )
         // console.log(old, '=>', r.request)
       }),
@@ -43,11 +43,11 @@ function withRtkPath(suffix) {
           const old = r.request
           r.request = r.request.replace(
             /redux-toolkit.modern.js$/,
-            `redux-toolkit.${suffix}`
+            `redux-toolkit.${suffix}`,
           )
           // console.log(old, '=>', r.request)
-        }
-      )
+        },
+      ),
     )
     if (suffix === 'cjs.production.min.js') {
       config.resolve.mainFields = ['main', 'module']
@@ -100,7 +100,7 @@ module.exports = [
       ...e,
       name: e.name + ` (${suffix})`,
       modifyWebpackConfig: withRtkPath(suffix),
-    }))
+    })),
   )
   .concat(
     ...[
@@ -140,5 +140,5 @@ module.exports = [
       ...e,
       name: e.name + ` (esm.js)`,
       modifyWebpackConfig: withRtkPath('esm.js'),
-    }))
+    })),
   )

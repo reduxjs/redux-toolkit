@@ -1,13 +1,11 @@
-import type { SerializedError } from '@reduxjs/toolkit'
-import { createSlice } from '@reduxjs/toolkit'
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { renderHook, act } from '@testing-library/react'
 import {
   actionsReducer,
-  expectExactType,
   hookWaitFor,
   setupApiStore,
-} from './helpers'
+} from '@internal/tests/utils/helpers'
+import { createSlice } from '@reduxjs/toolkit'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { act, renderHook } from '@testing-library/react'
 
 interface ResultType {
   result: 'complex'
@@ -65,23 +63,23 @@ test('matches query pending & fulfilled actions for the given endpoint', async (
   expect(storeRef.store.getState().actions).toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
-    endpoint.matchFulfilled
+    endpoint.matchFulfilled,
   )
   expect(storeRef.store.getState().actions).not.toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     otherEndpoint.matchPending,
-    otherEndpoint.matchFulfilled
+    otherEndpoint.matchFulfilled,
   )
   expect(storeRef.store.getState().actions).not.toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchFulfilled,
     api.endpoints.mutationSuccess.matchFulfilled,
-    endpoint.matchRejected
+    endpoint.matchRejected,
   )
   expect(storeRef.store.getState().actions).not.toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
-    endpoint.matchRejected
+    endpoint.matchRejected,
   )
 })
 test('matches query pending & rejected actions for the given endpoint', async () => {
@@ -93,17 +91,17 @@ test('matches query pending & rejected actions for the given endpoint', async ()
   expect(storeRef.store.getState().actions).toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
-    endpoint.matchRejected
+    endpoint.matchRejected,
   )
   expect(storeRef.store.getState().actions).not.toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchFulfilled,
-    endpoint.matchRejected
+    endpoint.matchRejected,
   )
   expect(storeRef.store.getState().actions).not.toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
-    endpoint.matchFulfilled
+    endpoint.matchFulfilled,
   )
 })
 
@@ -118,18 +116,18 @@ test('matches lazy query pending & fulfilled actions for given endpoint', async 
   expect(storeRef.store.getState().actions).toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
-    endpoint.matchFulfilled
+    endpoint.matchFulfilled,
   )
   expect(storeRef.store.getState().actions).not.toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchFulfilled,
-    endpoint.matchRejected
+    endpoint.matchRejected,
   )
 
   expect(storeRef.store.getState().actions).not.toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
-    endpoint.matchRejected
+    endpoint.matchRejected,
   )
 })
 
@@ -144,17 +142,17 @@ test('matches lazy query pending & rejected actions for given endpoint', async (
   expect(storeRef.store.getState().actions).toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
-    endpoint.matchRejected
+    endpoint.matchRejected,
   )
   expect(storeRef.store.getState().actions).not.toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchFulfilled,
-    endpoint.matchRejected
+    endpoint.matchRejected,
   )
   expect(storeRef.store.getState().actions).not.toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
-    endpoint.matchFulfilled
+    endpoint.matchFulfilled,
   )
 })
 
@@ -170,22 +168,22 @@ test('matches mutation pending & fulfilled actions for the given endpoint', asyn
   expect(storeRef.store.getState().actions).toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
-    endpoint.matchFulfilled
+    endpoint.matchFulfilled,
   )
   expect(storeRef.store.getState().actions).not.toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     otherEndpoint.matchPending,
-    otherEndpoint.matchFulfilled
+    otherEndpoint.matchFulfilled,
   )
   expect(storeRef.store.getState().actions).not.toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchFulfilled,
-    endpoint.matchRejected
+    endpoint.matchRejected,
   )
   expect(storeRef.store.getState().actions).not.toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
-    endpoint.matchRejected
+    endpoint.matchRejected,
   )
 })
 test('matches mutation pending & rejected actions for the given endpoint', async () => {
@@ -199,17 +197,17 @@ test('matches mutation pending & rejected actions for the given endpoint', async
   expect(storeRef.store.getState().actions).toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
-    endpoint.matchRejected
+    endpoint.matchRejected,
   )
   expect(storeRef.store.getState().actions).not.toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchFulfilled,
-    endpoint.matchRejected
+    endpoint.matchRejected,
   )
   expect(storeRef.store.getState().actions).not.toMatchSequence(
     api.internalActions.middlewareRegistered.match,
     endpoint.matchPending,
-    endpoint.matchFulfilled
+    endpoint.matchFulfilled,
   )
 })
 
@@ -223,28 +221,20 @@ test('inferred types', () => {
         .addMatcher(
           api.endpoints.querySuccess.matchPending,
           (state, action) => {
-            expectExactType(undefined)(action.payload)
             // @ts-expect-error
             console.log(action.error)
-            expectExactType({} as ArgType)(action.meta.arg.originalArgs)
-          }
+          },
         )
         .addMatcher(
           api.endpoints.querySuccess.matchFulfilled,
           (state, action) => {
-            expectExactType({} as ResultType)(action.payload)
-            expectExactType(0 as number)(action.meta.fulfilledTimeStamp)
             // @ts-expect-error
             console.log(action.error)
-            expectExactType({} as ArgType)(action.meta.arg.originalArgs)
-          }
+          },
         )
         .addMatcher(
           api.endpoints.querySuccess.matchRejected,
-          (state, action) => {
-            expectExactType({} as SerializedError)(action.error)
-            expectExactType({} as ArgType)(action.meta.arg.originalArgs)
-          }
+          (state, action) => {},
         )
     },
   })

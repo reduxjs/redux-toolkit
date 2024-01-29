@@ -10,7 +10,7 @@ import type {
 } from './GraphqlBaseQueryTypes'
 
 export const graphqlRequestBaseQuery = <E = ErrorResponse>(
-  options: GraphqlRequestBaseQueryArgs<E>
+  options: GraphqlRequestBaseQueryArgs<E>,
 ): BaseQueryFn<
   { document: string | DocumentNode; variables?: any },
   unknown,
@@ -24,7 +24,7 @@ export const graphqlRequestBaseQuery = <E = ErrorResponse>(
 
   return async (
     { document, variables },
-    { getState, endpoint, forced, type, signal, extra }
+    { getState, endpoint, forced, type, signal, extra },
   ) => {
     try {
       const prepareHeaders: PrepareHeaders =

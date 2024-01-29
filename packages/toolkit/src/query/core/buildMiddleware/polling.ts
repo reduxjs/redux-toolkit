@@ -51,7 +51,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
 
   function startNextPoll(
     { queryCacheKey }: QuerySubstateIdentifier,
-    api: SubMiddlewareApi
+    api: SubMiddlewareApi,
   ) {
     const state = api.getState()[reducerPath]
     const querySubState = state.queries[queryCacheKey]
@@ -60,7 +60,8 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     if (!querySubState || querySubState.status === QueryStatus.uninitialized)
       return
 
-    const lowestPollingInterval = findLowestPollingInterval(subscriptions)
+    const { lowestPollingInterval, skipPollingIfUnfocused } =
+      findLowestPollingInterval(subscriptions)
     if (!Number.isFinite(lowestPollingInterval)) return
 
     const currentPoll = currentPolls[queryCacheKey]
@@ -72,21 +73,21 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
 
     const nextPollTimestamp = Date.now() + lowestPollingInterval
 
-    const currentInterval: typeof currentPolls[number] = (currentPolls[
-      queryCacheKey
-    ] = {
+    currentPolls[queryCacheKey] = {
       nextPollTimestamp,
       pollingInterval: lowestPollingInterval,
       timeout: setTimeout(() => {
-        currentInterval!.timeout = undefined
-        api.dispatch(refetchQuery(querySubState, queryCacheKey))
+        if (state.config.focused || !skipPollingIfUnfocused) {
+          api.dispatch(refetchQuery(querySubState, queryCacheKey))
+        }
+        startNextPoll({ queryCacheKey }, api)
       }, lowestPollingInterval),
-    })
+    }
   }
 
   function updatePollingInterval(
     { queryCacheKey }: QuerySubstateIdentifier,
-    api: SubMiddlewareApi
+    api: SubMiddlewareApi,
   ) {
     const state = api.getState()[reducerPath]
     const querySubState = state.queries[queryCacheKey]
@@ -96,7 +97,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       return
     }
 
-    const lowestPollingInterval = findLowestPollingInterval(subscriptions)
+    const { lowestPollingInterval } = findLowestPollingInterval(subscriptions)
 
     if (!Number.isFinite(lowestPollingInterval)) {
       cleanupPollForKey(queryCacheKey)
@@ -126,17 +127,24 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   }
 
   function findLowestPollingInterval(subscribers: Subscribers = {}) {
+    let skipPollingIfUnfocused: boolean | undefined = false
     let lowestPollingInterval = Number.POSITIVE_INFINITY
     for (let key in subscribers) {
       if (!!subscribers[key].pollingInterval) {
         lowestPollingInterval = Math.min(
           subscribers[key].pollingInterval!,
-          lowestPollingInterval
+          lowestPollingInterval,
         )
+        skipPollingIfUnfocused =
+          subscribers[key].skipPollingIfUnfocused || skipPollingIfUnfocused
       }
     }
 
-    return lowestPollingInterval
+    return {
+      lowestPollingInterval,
+      skipPollingIfUnfocused,
+    }
   }
+
   return handler
 }

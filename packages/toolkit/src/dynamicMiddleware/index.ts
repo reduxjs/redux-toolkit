@@ -18,9 +18,9 @@ import type {
 
 const createMiddlewareEntry = <
   State = any,
-  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
 >(
-  middleware: Middleware<any, State, Dispatch>
+  middleware: Middleware<any, State, Dispatch>,
 ): MiddlewareEntry<State, Dispatch> => ({
   id: nanoid(),
   middleware,
@@ -34,7 +34,7 @@ const matchInstance =
 
 export const createDynamicMiddleware = <
   State = any,
-  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
 >(): DynamicMiddlewareInstance<State, Dispatch> => {
   const instanceId = nanoid()
   const middlewareMap = new Map<string, MiddlewareEntry<State, Dispatch>>()
@@ -47,9 +47,9 @@ export const createDynamicMiddleware = <
         meta: {
           instanceId,
         },
-      })
+      }),
     ),
-    { withTypes: () => withMiddleware }
+    { withTypes: () => withMiddleware },
   ) as WithMiddleware<State, Dispatch>
 
   const addMiddleware = Object.assign(
@@ -57,7 +57,7 @@ export const createDynamicMiddleware = <
       middlewares.forEach((middleware) => {
         let entry = find(
           Array.from(middlewareMap.values()),
-          (entry) => entry.middleware === middleware
+          (entry) => entry.middleware === middleware,
         )
         if (!entry) {
           entry = createMiddlewareEntry(middleware)
@@ -65,12 +65,12 @@ export const createDynamicMiddleware = <
         middlewareMap.set(entry.id, entry)
       })
     },
-    { withTypes: () => addMiddleware }
+    { withTypes: () => addMiddleware },
   ) as AddMiddleware<State, Dispatch>
 
   const getFinalMiddleware: Middleware<{}, State, Dispatch> = (api) => {
     const appliedMiddleware = Array.from(middlewareMap.values()).map((entry) =>
-      emplace(entry.applied, api, { insert: () => entry.middleware(api) })
+      emplace(entry.applied, api, { insert: () => entry.middleware(api) }),
     )
     return compose(...appliedMiddleware)
   }

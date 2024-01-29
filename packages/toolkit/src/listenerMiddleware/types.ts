@@ -30,14 +30,14 @@ export interface TypedActionCreator<Type extends string> {
 export type AnyListenerPredicate<State> = (
   action: UnknownAction,
   currentState: State,
-  originalState: State
+  originalState: State,
 ) => boolean
 
 /** @public */
 export type ListenerPredicate<Action extends ReduxAction, State> = (
   action: UnknownAction,
   currentState: State,
-  originalState: State
+  originalState: State,
 ) => action is Action
 
 /** @public */
@@ -144,7 +144,7 @@ export interface ForkOptions {
 export interface ListenerEffectAPI<
   State,
   Dispatch extends ReduxDispatch,
-  ExtraArgument = unknown
+  ExtraArgument = unknown,
 > extends MiddlewareAPI<Dispatch, State> {
   /**
    * Returns the store state as it existed when the action was originally dispatched, _before_ the reducers ran.
@@ -272,10 +272,10 @@ export type ListenerEffect<
   Action extends ReduxAction,
   State,
   Dispatch extends ReduxDispatch,
-  ExtraArgument = unknown
+  ExtraArgument = unknown,
 > = (
   action: Action,
-  api: ListenerEffectAPI<State, Dispatch, ExtraArgument>
+  api: ListenerEffectAPI<State, Dispatch, ExtraArgument>,
 ) => void | Promise<void>
 
 /**
@@ -316,7 +316,7 @@ export type ListenerMiddleware<
     unknown,
     UnknownAction
   >,
-  ExtraArgument = unknown
+  ExtraArgument = unknown,
 > = Middleware<
   {
     (action: ReduxAction<'listenerMiddleware/add'>): UnsubscribeListener
@@ -333,7 +333,7 @@ export interface ListenerMiddlewareInstance<
     unknown,
     ReduxAction
   > = ThunkDispatch<StateType, unknown, UnknownAction>,
-  ExtraArgument = unknown
+  ExtraArgument = unknown,
 > {
   middleware: ListenerMiddleware<StateType, DispatchType, ExtraArgument>
 
@@ -361,31 +361,33 @@ export interface ListenerMiddlewareInstance<
 /** @public */
 export type TakePatternOutputWithoutTimeout<
   State,
-  Predicate extends AnyListenerPredicate<State>
-> = Predicate extends MatchFunction<infer Action>
-  ? Promise<[Action, State, State]>
-  : Promise<[UnknownAction, State, State]>
+  Predicate extends AnyListenerPredicate<State>,
+> =
+  Predicate extends MatchFunction<infer Action>
+    ? Promise<[Action, State, State]>
+    : Promise<[UnknownAction, State, State]>
 
 /** @public */
 export type TakePatternOutputWithTimeout<
   State,
-  Predicate extends AnyListenerPredicate<State>
-> = Predicate extends MatchFunction<infer Action>
-  ? Promise<[Action, State, State] | null>
-  : Promise<[UnknownAction, State, State] | null>
+  Predicate extends AnyListenerPredicate<State>,
+> =
+  Predicate extends MatchFunction<infer Action>
+    ? Promise<[Action, State, State] | null>
+    : Promise<[UnknownAction, State, State] | null>
 
 /** @public */
 export interface TakePattern<State> {
   <Predicate extends AnyListenerPredicate<State>>(
-    predicate: Predicate
+    predicate: Predicate,
   ): TakePatternOutputWithoutTimeout<State, Predicate>
   <Predicate extends AnyListenerPredicate<State>>(
     predicate: Predicate,
-    timeout: number
+    timeout: number,
   ): TakePatternOutputWithTimeout<State, Predicate>
   <Predicate extends AnyListenerPredicate<State>>(
     predicate: Predicate,
-    timeout?: number | undefined
+    timeout?: number | undefined,
   ): TakePatternOutputWithTimeout<State, Predicate>
 }
 
@@ -396,7 +398,7 @@ export interface UnsubscribeListenerOptions {
 
 /** @public */
 export type UnsubscribeListener = (
-  unsubscribeOptions?: UnsubscribeListenerOptions
+  unsubscribeOptions?: UnsubscribeListenerOptions,
 ) => void
 
 /**
@@ -412,7 +414,7 @@ export interface AddListenerOverloads<
     UnknownAction
   >,
   ExtraArgument = unknown,
-  AdditionalOptions = unknown
+  AdditionalOptions = unknown,
 > {
   /** Accepts a "listener predicate" that is also a TS type predicate for the action*/
   <
@@ -420,7 +422,7 @@ export interface AddListenerOverloads<
     ListenerPredicateType extends ListenerPredicate<
       MiddlewareActionType,
       StateType
-    >
+    >,
   >(
     options: {
       actionCreator?: never
@@ -433,7 +435,7 @@ export interface AddListenerOverloads<
         DispatchType,
         ExtraArgument
       >
-    } & AdditionalOptions
+    } & AdditionalOptions,
   ): Return
 
   /** Accepts an RTK action creator, like `incrementByAmount` */
@@ -449,7 +451,7 @@ export interface AddListenerOverloads<
         DispatchType,
         ExtraArgument
       >
-    } & AdditionalOptions
+    } & AdditionalOptions,
   ): Return
 
   /** Accepts a specific action type string */
@@ -465,7 +467,7 @@ export interface AddListenerOverloads<
         DispatchType,
         ExtraArgument
       >
-    } & AdditionalOptions
+    } & AdditionalOptions,
   ): Return
 
   /** Accepts an RTK matcher function, such as `incrementByAmount.match` */
@@ -481,7 +483,7 @@ export interface AddListenerOverloads<
         DispatchType,
         ExtraArgument
       >
-    } & AdditionalOptions
+    } & AdditionalOptions,
   ): Return
 
   /** Accepts a "listener predicate" that just returns a boolean, no type assertion */
@@ -497,7 +499,7 @@ export interface AddListenerOverloads<
         DispatchType,
         ExtraArgument
       >
-    } & AdditionalOptions
+    } & AdditionalOptions,
   ): Return
 }
 
@@ -508,7 +510,7 @@ export type RemoveListenerOverloads<
     StateType,
     unknown,
     UnknownAction
-  >
+  >,
 > = AddListenerOverloads<
   boolean,
   StateType,
@@ -521,7 +523,7 @@ export type RemoveListenerOverloads<
 export interface RemoveListenerAction<
   Action extends UnknownAction,
   State,
-  Dispatch extends ReduxDispatch
+  Dispatch extends ReduxDispatch,
 > {
   type: 'listenerMiddleware/remove'
   payload: {
@@ -544,7 +546,7 @@ export type TypedAddListener<
   >,
   ExtraArgument = unknown,
   Payload = ListenerEntry<StateType, DispatchType>,
-  T extends string = 'listenerMiddleware/add'
+  T extends string = 'listenerMiddleware/add',
 > = BaseActionCreator<Payload, T> &
   AddListenerOverloads<
     PayloadAction<Payload, T>,
@@ -579,7 +581,7 @@ export type TypedAddListener<
         OverrideStateType,
         unknown,
         UnknownAction
-      >
+      >,
     >() => TypedAddListener<OverrideStateType, OverrideDispatchType>
   }
 
@@ -596,7 +598,7 @@ export type TypedRemoveListener<
     UnknownAction
   >,
   Payload = ListenerEntry<StateType, DispatchType>,
-  T extends string = 'listenerMiddleware/remove'
+  T extends string = 'listenerMiddleware/remove',
 > = BaseActionCreator<Payload, T> &
   AddListenerOverloads<
     PayloadAction<Payload, T>,
@@ -632,7 +634,7 @@ export type TypedRemoveListener<
         OverrideStateType,
         unknown,
         UnknownAction
-      >
+      >,
     >() => TypedRemoveListener<OverrideStateType, OverrideDispatchType>
   }
 
@@ -648,7 +650,7 @@ export type TypedStartListening<
     unknown,
     UnknownAction
   >,
-  ExtraArgument = unknown
+  ExtraArgument = unknown,
 > = AddListenerOverloads<
   UnsubscribeListener,
   StateType,
@@ -689,7 +691,7 @@ export type TypedStartListening<
       OverrideStateType,
       unknown,
       UnknownAction
-    >
+    >,
   >() => TypedStartListening<OverrideStateType, OverrideDispatchType>
 }
 
@@ -704,7 +706,7 @@ export type TypedStopListening<
     StateType,
     unknown,
     UnknownAction
-  >
+  >,
 > = RemoveListenerOverloads<StateType, DispatchType> & {
   /**
    * Creates a "pre-typed" version of
@@ -740,7 +742,7 @@ export type TypedStopListening<
       OverrideStateType,
       unknown,
       UnknownAction
-    >
+    >,
   >() => TypedStopListening<OverrideStateType, OverrideDispatchType>
 }
 
@@ -755,7 +757,7 @@ export type TypedCreateListenerEntry<
     StateType,
     unknown,
     UnknownAction
-  >
+  >,
 > = AddListenerOverloads<
   ListenerEntry<StateType, DispatchType>,
   StateType,
@@ -791,7 +793,7 @@ export type TypedCreateListenerEntry<
       OverrideStateType,
       unknown,
       UnknownAction
-    >
+    >,
   >() => TypedStopListening<OverrideStateType, OverrideDispatchType>
 }
 
@@ -802,7 +804,7 @@ export type TypedCreateListenerEntry<
 /** @internal An single listener entry */
 export type ListenerEntry<
   State = unknown,
-  Dispatch extends ReduxDispatch = ReduxDispatch
+  Dispatch extends ReduxDispatch = ReduxDispatch,
 > = {
   id: string
   effect: ListenerEffect<any, State, Dispatch>
@@ -833,9 +835,5 @@ export type GuardedType<T> = T extends (x: any, ...args: any[]) => x is infer T
   : never
 
 /** @public */
-export type ListenerPredicateGuardedActionType<T> = T extends ListenerPredicate<
-  infer Action,
-  any
->
-  ? Action
-  : never
+export type ListenerPredicateGuardedActionType<T> =
+  T extends ListenerPredicate<infer Action, any> ? Action : never

@@ -87,7 +87,7 @@ describe('Saga-style Effects Scenarios', () => {
         ;(this.events[event] = this.events[event] || []).push(cb)
         return () =>
           (this.events[event] = (this.events[event] || []).filter(
-            (l: any) => l !== cb
+            (l: any) => l !== cb,
           ))
       },
     })
