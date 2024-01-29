@@ -114,8 +114,8 @@ export type BaseApiMethods<
    */
   enhanceEndpoint<
     QueryName extends QueryKeys<Definitions>,
-    QueryArg = QueryArgFrom<Definitions[QueryName]>,
     ResultType = ResultTypeFrom<Definitions[QueryName]>,
+    QueryArg = QueryArgFrom<Definitions[QueryName]>,
   >(
     queryName: QueryName,
     partialDefinition:
