@@ -214,7 +214,7 @@ export function createReducer<S extends NotFunction<any>>(
 }
 
 export function makeGetInitialState<S extends NotFunction<any>>(
-  initialState: S | (() => S)
+  initialState: S | (() => S),
 ) {
   // Ensure the initial state gets frozen either way (if draftable)
   let getInitialState: () => S
