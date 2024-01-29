@@ -351,7 +351,7 @@ describe('type tests', () => {
     test('one argument, specified as any: asyncThunk has required any argument', () => {
       const asyncThunk = createAsyncThunk('test', (arg: any) => 0)
 
-      expectTypeOf(asyncThunk).parameters.items.toBeAny()
+      expectTypeOf(asyncThunk).parameter(0).toBeAny()
 
       expectTypeOf(asyncThunk).toBeCallableWith(5)
 
