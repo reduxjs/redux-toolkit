@@ -15,7 +15,7 @@
     "jsx": "react",
     "baseUrl": "..",
     "resolveJsonModule": true,
-    "types": ["node", "jest"],
+    "types": ["vitest/globals", "vitest/importMeta"],
     "allowJs": true,
     "checkJs": true
   }
