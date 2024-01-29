@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "ESNext",
+    "module": "CommonJS",
     "declaration": true,
     "sourceMap": true,
     "outDir": "lib",
-    "rootDir": ".",
+    "rootDir": "src",
     "strict": true,
     "noUnusedLocals": false,
     "resolveJsonModule": true,
@@ -15,5 +15,5 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "exclude": ["test", "lib"]
+  "exclude": ["test", "lib", "vitest.config.mts"]
 }
