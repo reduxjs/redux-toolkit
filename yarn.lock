@@ -7393,6 +7393,14 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@reduxjs/prettier-config@workspace:packages/configs/prettier":
+  version: 0.0.0-use.local
+  resolution: "@reduxjs/prettier-config@workspace:packages/configs/prettier"
+  dependencies:
+    prettier: ^3.2.4
+  languageName: unknown
+  linkType: soft
+
 "@reduxjs/rtk-codemods@workspace:packages/rtk-codemods":
   version: 0.0.0-use.local
   resolution: "@reduxjs/rtk-codemods@workspace:packages/rtk-codemods"

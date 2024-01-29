@@ -1,0 +1,23 @@
+{
+  "name": "@reduxjs/prettier-config",
+  "version": "0.0.1",
+  "description": "Prettier configuration for Redux projects",
+  "keywords": [
+    "prettier",
+    "config",
+    "prettier-config",
+    "reduxjs",
+    "redux-toolkit"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reduxjs/redux-toolkit.git"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.4"
+  },
+  "prettier": "./prettier.config.mjs"
+}
