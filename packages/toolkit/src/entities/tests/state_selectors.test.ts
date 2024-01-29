@@ -132,7 +132,7 @@ describe('Entity State Selectors', () => {
     it('should use the custom createSelector function if provided', () => {
       const memoizeSpy = vi.fn(
         // test that we're allowed to pass memoizers with different options, as long as they're optional
-        <F extends (...args: any[]) => any>(fn: F, param?: boolean) => fn
+        <F extends (...args: any[]) => any>(fn: F, param?: boolean) => fn,
       )
       const createCustomSelector = createDraftSafeSelectorCreator(memoizeSpy)
 

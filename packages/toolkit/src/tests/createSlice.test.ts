@@ -61,7 +61,7 @@ describe('createSlice', () => {
               state * action.payload,
           },
           initialState: 0,
-        })
+        }),
       ).toThrowError()
     })
   })
@@ -77,7 +77,7 @@ describe('createSlice', () => {
               state * action.payload,
           },
           initialState: 0,
-        })
+        }),
       ).toThrowError()
     })
   })
@@ -97,7 +97,7 @@ describe('createSlice', () => {
       })
 
       expect(getLog().log).toBe(
-        'You must provide an `initialState` value that is not `undefined`. You may have misspelled `initialState`'
+        'You must provide an `initialState` value that is not `undefined`. You may have misspelled `initialState`',
       )
     })
   })
@@ -149,7 +149,7 @@ describe('createSlice', () => {
           name: 'params',
           initialState: new URLSearchParams(),
           reducers: {},
-        })
+        }),
       ).not.toThrowError()
     })
   })
@@ -190,7 +190,7 @@ describe('createSlice', () => {
           name: 'params',
           initialState: () => new URLSearchParams(),
           reducers: {},
-        })
+        }),
       ).not.toThrowError()
     })
   })
@@ -227,7 +227,7 @@ describe('createSlice', () => {
       extraReducers: (builder) => {
         builder.addCase(
           addMore,
-          (state, action) => state + action.payload.amount
+          (state, action) => state + action.payload.amount,
         )
       },
 
@@ -251,7 +251,7 @@ describe('createSlice', () => {
           extraReducers: (builder) =>
             builder.addCase(
               increment,
-              (state, action) => state + action.payload
+              (state, action) => state + action.payload,
             ),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
@@ -266,7 +266,7 @@ describe('createSlice', () => {
             builder.addCase(
               'increment',
               (state, action: { type: 'increment'; payload: number }) =>
-                state + action.payload
+                state + action.payload,
             ),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
@@ -285,7 +285,7 @@ describe('createSlice', () => {
           })
           slice.reducer(undefined, { type: 'unrelated' })
         }).toThrowErrorMatchingInlineSnapshot(
-          `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`
+          `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`,
         )
       })
 
@@ -298,7 +298,7 @@ describe('createSlice', () => {
             builder.addMatcher(
               increment.match,
               (state, action: { type: 'increment'; payload: number }) =>
-                state + action.payload
+                state + action.payload,
             ),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
@@ -312,7 +312,7 @@ describe('createSlice', () => {
           extraReducers: (builder) =>
             builder.addDefaultCase(
               (state, action) =>
-                state + (action as PayloadAction<number>).payload
+                state + (action as PayloadAction<number>).payload,
             ),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
@@ -361,7 +361,7 @@ describe('createSlice', () => {
       testSlice.reducer(0, testSlice.actions.testReducer('testPayload'))
       expect(reducer).toHaveBeenCalledWith(
         0,
-        expect.objectContaining({ payload: 'testPayload' })
+        expect.objectContaining({ payload: 'testPayload' }),
       )
     })
   })
@@ -399,23 +399,23 @@ describe('createSlice', () => {
       })
 
       expect(first.reducer(undefined, { type: 'unrelated' })).toBe(
-        'firstInitial'
+        'firstInitial',
       )
       expect(first.reducer(undefined, first.actions.something())).toBe(
-        'firstSomething'
+        'firstSomething',
       )
       expect(first.reducer(undefined, second.actions.other())).toBe(
-        'firstOther'
+        'firstOther',
       )
 
       expect(second.reducer(undefined, { type: 'unrelated' })).toBe(
-        'secondInitial'
+        'secondInitial',
       )
       expect(second.reducer(undefined, first.actions.something())).toBe(
-        'secondSomething'
+        'secondSomething',
       )
       expect(second.reducer(undefined, second.actions.other())).toBe(
-        'secondOther'
+        'secondOther',
       )
     })
   })
@@ -453,7 +453,7 @@ describe('createSlice', () => {
       }
 
       expect(wrapper).toThrowError(
-        /The object notation for `createSlice.extraReducers` has been removed/
+        /The object notation for `createSlice.extraReducers` has been removed/,
       )
 
       dummySlice = (createSlice as CreateSlice)({
@@ -466,7 +466,7 @@ describe('createSlice', () => {
         },
       })
       expect(wrapper).toThrowError(
-        /The object notation for `createSlice.extraReducers` has been removed/
+        /The object notation for `createSlice.extraReducers` has been removed/,
       )
     })
 
@@ -489,7 +489,7 @@ describe('createSlice', () => {
       }
 
       expect(wrapper).toThrowError(
-        /The object notation for `createSlice.extraReducers` has been removed/
+        /The object notation for `createSlice.extraReducers` has been removed/,
       )
 
       vi.unstubAllEnvs()
@@ -504,7 +504,7 @@ describe('createSlice', () => {
         selectSlice: (state) => state,
         selectMultiple: Object.assign(
           (state: number, multiplier: number) => state * multiplier,
-          { test: 0 }
+          { test: 0 },
         ),
       },
     })
@@ -521,7 +521,7 @@ describe('createSlice', () => {
         number: slice.getInitialState(),
       }
       const { selectSlice, selectMultiple } = slice.getSelectors(
-        (state: typeof customState) => state.number
+        (state: typeof customState) => state.number,
       )
       expect(selectSlice(customState)).toBe(slice.getInitialState())
       expect(selectMultiple(customState, 2)).toBe(slice.getInitialState() * 2)
@@ -567,22 +567,22 @@ describe('createSlice', () => {
 
       // selector returns initial state if undefined in real state
       expect(injectedSlice.selectSlice(uninjectedState)).toBe(
-        slice.getInitialState()
+        slice.getInitialState(),
       )
       expect(injectedSlice.selectors.selectMultiple({}, 1)).toBe(
-        slice.getInitialState()
+        slice.getInitialState(),
       )
       expect(injectedSlice.getSelectors().selectMultiple(undefined, 1)).toBe(
-        slice.getInitialState()
+        slice.getInitialState(),
       )
 
       const injectedState = combinedReducer(undefined, increment())
 
       expect(injectedSlice.selectSlice(injectedState)).toBe(
-        slice.getInitialState() + 1
+        slice.getInitialState() + 1,
       )
       expect(injectedSlice.selectors.selectMultiple(injectedState, 1)).toBe(
-        slice.getInitialState() + 1
+        slice.getInitialState() + 1,
       )
     })
     it('allows providing a custom name to inject under', () => {
@@ -613,10 +613,10 @@ describe('createSlice', () => {
       const injectedState = combinedReducer(undefined, increment())
 
       expect(injected.selectSlice(injectedState)).toBe(
-        slice.getInitialState() + 1
+        slice.getInitialState() + 1,
       )
       expect(injected.selectors.selectMultiple(injectedState, 2)).toBe(
-        (slice.getInitialState() + 1) * 2
+        (slice.getInitialState() + 1) * 2,
       )
 
       const injected2 = slice.injectInto(combinedReducer, {
@@ -626,10 +626,10 @@ describe('createSlice', () => {
       const injected2State = combinedReducer(undefined, increment())
 
       expect(injected2.selectSlice(injected2State)).toBe(
-        slice.getInitialState() + 1
+        slice.getInitialState() + 1,
       )
       expect(injected2.selectors.selectMultiple(injected2State, 2)).toBe(
-        (slice.getInitialState() + 1) * 2
+        (slice.getInitialState() + 1) * 2,
       )
     })
     it('avoids incorrectly caching selectors', () => {
@@ -657,9 +657,9 @@ describe('createSlice', () => {
 
       expect(() =>
         // @ts-expect-error
-        slice.getSelectors().selectMultiple(undefined, 1)
+        slice.getSelectors().selectMultiple(undefined, 1),
       ).toThrowErrorMatchingInlineSnapshot(
-        `[Error: selectState returned undefined for an uninjected slice reducer]`
+        `[Error: selectState returned undefined for an uninjected slice reducer]`,
       )
 
       const injected2 = slice.injectInto(combinedReducer, {
@@ -680,9 +680,9 @@ describe('createSlice', () => {
           initialState: [] as any[],
           // @ts-expect-error asyncThunk not in creators
           reducers: (create) => ({ thunk: create.asyncThunk(() => {}) }),
-        })
+        }),
       ).toThrowErrorMatchingInlineSnapshot(
-        `[TypeError: create.asyncThunk is not a function]`
+        `[TypeError: create.asyncThunk is not a function]`,
       )
     })
     const createAppSlice = buildCreateSlice({
@@ -710,7 +710,7 @@ describe('createSlice', () => {
             function payloadCreator(arg, api) {
               return Promise.resolve('resolved payload')
             },
-            { pending, fulfilled, rejected, settled }
+            { pending, fulfilled, rejected, settled },
           ),
         }),
       })
@@ -754,7 +754,7 @@ describe('createSlice', () => {
             function payloadCreator(arg, api): any {
               throw new Error('')
             },
-            { pending, fulfilled, rejected, settled }
+            { pending, fulfilled, rejected, settled },
           ),
         }),
       })
@@ -808,7 +808,7 @@ describe('createSlice', () => {
               fulfilled,
               rejected,
               settled,
-            }
+            },
           ),
         }),
       })
@@ -846,7 +846,7 @@ describe('createSlice', () => {
             function payloadCreator(arg, api) {
               return Promise.resolve('resolved payload')
             },
-            { pending, fulfilled, settled }
+            { pending, fulfilled, settled },
           ),
         }),
       })
@@ -861,9 +861,9 @@ describe('createSlice', () => {
           [],
           slice.actions.thunkReducers.rejected(
             new Error('test'),
-            'fakeRequestId'
-          )
-        )
+            'fakeRequestId',
+          ),
+        ),
       ).not.toThrow()
     })
 
@@ -880,13 +880,16 @@ describe('createSlice', () => {
             }),
             (state, action) => {
               state.push(action)
-            }
+            },
           ),
         }),
       })
 
       expect(
-        slice.reducer([], slice.actions.prepared('test', 1, { message: 'err' }))
+        slice.reducer(
+          [],
+          slice.actions.prepared('test', 1, { message: 'err' }),
+        ),
       ).toMatchInlineSnapshot(`
         [
           {
@@ -918,9 +921,9 @@ describe('createSlice', () => {
               },
             },
           }),
-        })
+        }),
       ).toThrowErrorMatchingInlineSnapshot(
-        `[Error: Please use reducer creators passed to callback. Each reducer definition must have a \`_reducerDefinitionType\` property indicating which handler to use.]`
+        `[Error: Please use reducer creators passed to callback. Each reducer definition must have a \`_reducerDefinitionType\` property indicating which handler to use.]`,
       )
     })
   })
@@ -1061,7 +1064,7 @@ describe('createSlice', () => {
           reducerCreator.handle(
             details,
             reducerCreator.create(() => context.getInitialState()),
-            context
+            context,
           )
         },
       }
@@ -1070,7 +1073,7 @@ describe('createSlice', () => {
         type: undoableCreatorType,
         create: Object.assign(
           function makeUndoable<A extends Action & { meta?: UndoableOptions }>(
-            reducer: CaseReducer<any, A>
+            reducer: CaseReducer<any, A>,
           ): CaseReducer<HistoryState<any>, A> {
             return (state, action) => {
               const [nextState, redoPatch, undoPatch] = produceWithPatches(
@@ -1080,7 +1083,7 @@ describe('createSlice', () => {
                   if (typeof result !== 'undefined') {
                     draft.present = result
                   }
-                }
+                },
               )
               let finalState = nextState
               const undoable = action.meta?.undoable ?? true
@@ -1112,7 +1115,7 @@ describe('createSlice', () => {
                 >
               ) => ({ payload: payload as P, meta: options })
             },
-          }
+          },
         ),
       }
 
@@ -1132,13 +1135,13 @@ describe('createSlice', () => {
               create.undoable.withoutPayload(),
               create.undoable((state) => {
                 state.value++
-              })
+              }),
             ),
             incrementBy: create.preparedReducer(
               create.undoable.withPayload<number>(),
               create.undoable((state, action) => {
                 state.value += action.payload
-              })
+              }),
             ),
           }),
           selectors: {
@@ -1213,11 +1216,11 @@ declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-    Name extends string = string
+    Name extends string = string,
   > {
     [loaderCreatorType]: ReducerCreatorEntry<
       (
-        reducers: Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>
+        reducers: Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>,
       ) => LoaderReducerDefinition<State>,
       {
         actions: {
@@ -1284,7 +1287,7 @@ declare module '@reduxjs/toolkit' {
         ? {
             <A extends Action & { meta?: UndoableOptions }>(
               this: ReducerCreators<State>,
-              reducer: CaseReducer<Data, NoInfer<A>>
+              reducer: CaseReducer<Data, NoInfer<A>>,
             ): CaseReducer<State, A>
             withoutPayload(): (options?: UndoableOptions) => {
               payload: undefined

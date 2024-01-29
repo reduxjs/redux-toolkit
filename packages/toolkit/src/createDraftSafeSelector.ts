@@ -13,7 +13,7 @@ export const createDraftSafeSelectorCreator: typeof createSelectorCreator = (
       Object.assign(wrappedSelector, selector)
       return wrappedSelector as any
     },
-    { withTypes: () => createDraftSafeSelector }
+    { withTypes: () => createDraftSafeSelector },
   )
   return createDraftSafeSelector
 }

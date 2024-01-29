@@ -23,7 +23,7 @@ export interface ApiModules<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ReducerPath extends string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  TagTypes extends string
+  TagTypes extends string,
 > {}
 
 export type ModuleName = keyof ApiModules<any, any, any, any>
@@ -34,7 +34,7 @@ export type Module<Name extends ModuleName> = {
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
     ReducerPath extends string,
-    TagTypes extends string
+    TagTypes extends string,
   >(
     api: Api<BaseQuery, EndpointDefinitions, ReducerPath, TagTypes, ModuleName>,
     options: WithRequiredProp<
@@ -48,11 +48,11 @@ export type Module<Name extends ModuleName> = {
       | 'invalidationBehavior'
       | 'tagTypes'
     >,
-    context: ApiContext<Definitions>
+    context: ApiContext<Definitions>,
   ): {
     injectEndpoint(
       endpointName: string,
-      definition: EndpointDefinition<any, any, any, any>
+      definition: EndpointDefinition<any, any, any, any>,
     ): void
   }
 }
@@ -62,7 +62,7 @@ export interface ApiContext<Definitions extends EndpointDefinitions> {
   endpointDefinitions: Definitions
   batch(cb: () => void): void
   extractRehydrationInfo: (
-    action: UnknownAction
+    action: UnknownAction,
   ) => CombinedState<any, any, any> | undefined
   hasRehydrationInfo: (action: UnknownAction) => boolean
 }
@@ -72,7 +72,7 @@ export type Api<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
   TagTypes extends string,
-  Enhancers extends ModuleName = CoreModule
+  Enhancers extends ModuleName = CoreModule,
 > = UnionToIntersection<
   ApiModules<BaseQuery, Definitions, ReducerPath, TagTypes>[Enhancers]
 > & {
@@ -81,7 +81,7 @@ export type Api<
    */
   injectEndpoints<NewDefinitions extends EndpointDefinitions>(_: {
     endpoints: (
-      build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
+      build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>,
     ) => NewDefinitions
     overrideExisting?: boolean
   }): Api<
@@ -96,7 +96,7 @@ export type Api<
    */
   enhanceEndpoints<
     NewTagTypes extends string = never,
-    NewDefinitions extends EndpointDefinitions = never
+    NewDefinitions extends EndpointDefinitions = never,
   >(_: {
     addTagTypes?: readonly NewTagTypes[]
     endpoints?: UpdateDefinitions<

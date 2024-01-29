@@ -80,7 +80,7 @@ The "dynamic middleware instance" returned from `createDynamicMiddleware` is an 
 ```ts no-transpile
 export type DynamicMiddlewareInstance<
   State = unknown,
-  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
 > = {
   middleware: DynamicMiddleware<State, Dispatch>
   addMiddleware: AddMiddleware<State, Dispatch>
@@ -116,7 +116,7 @@ Accepts a set of middleware, and creates an action. When dispatched, it injects 
 
 ```ts no-transpile
 const listenerDispatch = store.dispatch(
-  withMiddleware(listenerMiddleware.middleware)
+  withMiddleware(listenerMiddleware.middleware),
 )
 
 const unsubscribe = listenerDispatch(addListener({ type, effect }))
@@ -131,7 +131,7 @@ _These depend on having `react-redux` installed._
 ```ts no-transpile
 interface ReactDynamicMiddlewareInstance<
   State = any,
-  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
 > extends DynamicMiddlewareInstance<State, Dispatch> {
   createDispatchWithMiddlewareHook: CreateDispatchWithMiddlewareHook<
     State,
@@ -140,7 +140,7 @@ interface ReactDynamicMiddlewareInstance<
   createDispatchWithMiddlewareHookFactory: (
     context?: Context<
       ReactReduxContextValue<State, ActionFromDispatch<Dispatch>>
-    >
+    >,
   ) => CreateDispatchWithMiddlewareHook<State, Dispatch>
 }
 ```
@@ -151,7 +151,7 @@ Accepts a set of middleware, and returns a [`useDispatch`](https://react-redux.j
 
 ```ts no-transpile
 const useListenerDispatch = createDispatchWithMiddlewareHook(
-  listenerInstance.middleware
+  listenerInstance.middleware,
 )
 
 const Component = () => {

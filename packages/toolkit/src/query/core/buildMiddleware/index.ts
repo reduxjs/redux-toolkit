@@ -29,7 +29,7 @@ import { buildBatchedActionsHandler } from './batchActions'
 export function buildMiddleware<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
-  TagTypes extends string
+  TagTypes extends string,
 >(input: BuildMiddlewareInput<Definitions, ReducerPath, TagTypes>) {
   const { reducerPath, queryThunk, api, context } = input
   const { apiUid } = context
@@ -136,7 +136,7 @@ export function buildMiddleware<
       { status: QueryStatus.uninitialized }
     >,
     queryCacheKey: string,
-    override: Partial<QueryThunkArg> = {}
+    override: Partial<QueryThunkArg> = {},
   ) {
     return queryThunk({
       type: 'query',

@@ -151,7 +151,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
     try {
       dispatch({ type: 'SOME_ACTION' })
       expect(getLog().log).toMatch(
-        /^ImmutableStateInvariantMiddleware took \d*ms, which is more than the warning threshold of 4ms./
+        /^ImmutableStateInvariantMiddleware took \d*ms, which is more than the warning threshold of 4ms./,
       )
     } finally {
       restore()

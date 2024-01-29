@@ -148,6 +148,6 @@ export const epic = (actions$: Observable<Action>) =>
     map((action) => {
       // action.payload can be safely used as number here (and will also be correctly inferred by TypeScript)
       // ...
-    })
+    }),
   )
 ```

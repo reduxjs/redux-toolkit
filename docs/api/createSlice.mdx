@@ -185,7 +185,7 @@ const todosSlice = createAppSlice({
         options: {
           idGenerator: () => nanoid(30),
         },
-      }
+      },
     ),
   }),
 })
@@ -277,7 +277,7 @@ const counterSlice = createSlice({
   reducers: (create) => ({
     getCountData: create.asyncThunk(async (_arg, { getState }) => {
       const currentCount = counterSlice.selectors.selectValue(
-        getState() as RootState
+        getState() as RootState,
       )
       // highlight-start
       // this would cause a circular type, but the type annotation breaks the circle
@@ -393,7 +393,7 @@ const counterSlice = createSlice({
   selectors: {
     selectDouble: createSelector(
       (sliceState: CounterState) => sliceState.value,
-      (value) => value * 2
+      (value) => value * 2,
     ),
   },
 })
@@ -413,7 +413,7 @@ console.log(selectDouble.unwrapped.recomputations) // 2
 
 ```ts no-transpile
 const { selectValue } = counterSlice.getSelectors(
-  (rootState: RootState) => rootState.aCounter
+  (rootState: RootState) => rootState.aCounter,
 )
 
 console.log(selectValue({ aCounter: { value: 2 } })) // 2
@@ -434,7 +434,7 @@ The [`slice.selectors`](#selectors-2) object is the equivalent of calling
 const { selectValue } = counterSlice.getSelectors(counterSlice.selectSlice)
 // or
 const { selectValue } = counterSlice.getSelectors(
-  (state: RootState) => state[counterSlice.reducerPath]
+  (state: RootState) => state[counterSlice.reducerPath],
 )
 ```
 
@@ -550,13 +550,13 @@ const postSliceWithHistory = createAppSlice({
       create.undoable.withPayload<string>(),
       create.undoable((state, action) => {
         state.title = action.payload
-      })
+      }),
     ),
     togglePinned: create.preparedReducer(
       create.undoable.withoutPayload(),
       create.undoable((state, action) => {
         state.pinned = !state.pinned
-      })
+      }),
     ),
   }),
 })
@@ -604,7 +604,7 @@ const todosSlice = createAppSlice({
       // action type is inferred from prepare callback
       (state, action) => {
         state.todos.push(action.payload)
-      }
+      },
     ),
     fetchTodo: create.asyncThunk(
       async (id: string, thunkApi) => {
@@ -622,7 +622,7 @@ const todosSlice = createAppSlice({
           state.loading = false
           state.todos.push(action.payload)
         },
-      }
+      },
     ),
   }),
 })
@@ -673,7 +673,7 @@ create.preparedReducer(
   },
   (state, action) => {
     state.todos.push(action.payload)
-  }
+  },
 )
 ```
 
@@ -769,7 +769,7 @@ create.asyncThunk<Todo, string, { rejectValue: { error: string } }>(
         error: 'Oh no!',
       })
     }
-  }
+  },
 )
 ```
 
@@ -777,8 +777,9 @@ For common thunk API configuration options, a [`withTypes` helper](../usage/usag
 
 ```ts no-transpile
 reducers: (create) => {
-  const createAThunk =
-    create.asyncThunk.withTypes<{ rejectValue: { error: string } }>()
+  const createAThunk = create.asyncThunk.withTypes<{
+    rejectValue: { error: string }
+  }>()
 
   return {
     fetchTodo: createAThunk<Todo, string>(async (id, thunkApi) => {
@@ -817,7 +818,7 @@ reducers: (create) => ({
     (todo) => ({ payload: { id: nanoid(), ...todo } }),
     (state, action) => {
       state.push(action.payload)
-    }
+    },
   ),
 })
 // becomes
@@ -986,7 +987,7 @@ declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-    Name extends string = string
+    Name extends string = string,
   > {
     [reducerCreatorType]: ReducerCreatorEntry<
       () => ReducerDefinition<typeof reducerCreatorType>
@@ -1014,13 +1015,13 @@ declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-    Name extends string = string
+    Name extends string = string,
   > {
     [batchedCreatorType]: ReducerCreatorEntry<
       <Payload>(
         // highlight-next-line
         this: ReducerCreators<State, {}>,
-        reducer: CaseReducer<State, PayloadAction<Payload>>
+        reducer: CaseReducer<State, PayloadAction<Payload>>,
       ) => PreparedCaseReducerDefinition<
         State,
         (payload: Payload) => { payload: Payload; meta: unknown }
@@ -1052,7 +1053,7 @@ declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-    Name extends string = string
+    Name extends string = string,
   > {
     [loaderCreatorType]: ReducerCreatorEntry<
       // highlight-next-line
@@ -1078,7 +1079,7 @@ declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-    Name extends string = string
+    Name extends string = string,
   > {
     [loaderCreatorType]: ReducerCreatorEntry<
       () => {
@@ -1113,11 +1114,11 @@ declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-    Name extends string = string
+    Name extends string = string,
   > {
     [asyncThunkCreatorType]: ReducerCreatorEntry<
       <ThunkArg, Returned>(
-        payloadCreator: AsyncThunkPayloadCreator<ThunkArg, Returned>
+        payloadCreator: AsyncThunkPayloadCreator<ThunkArg, Returned>,
       ) => AsyncThunkReducerDefinition<State, ThunkArg, Returned>,
       {
         // highlight-start
@@ -1153,12 +1154,12 @@ declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-    Name extends string = string
+    Name extends string = string,
   > {
     [preparedReducerType]: ReducerCreatorEntry<
       <Prepare extends PrepareAction<any>>(
         prepare: Prepare,
-        caseReducer: CaseReducer<State, ActionForPrepare<Prepare>>
+        caseReducer: CaseReducer<State, ActionForPrepare<Prepare>>,
       ) => PreparedCaseReducerDefinition<State, Prepare>,
       {
         actions: {
@@ -1234,14 +1235,12 @@ interface ToastReducerConfig<State> {
 
 interface ToastThunkCreator<
   SliceName extends string,
-  ReducerName extends string
+  ReducerName extends string,
 > {
-  (toast: Toast, timeout?: number): ThunkAction<
-    { hide(): void },
-    unknown,
-    unknown,
-    UnknownAction
-  >
+  (
+    toast: Toast,
+    timeout?: number,
+  ): ThunkAction<{ hide(): void }, unknown, unknown, UnknownAction>
   shown: PayloadActionCreator<
     Toast,
     `${SliceActionType<SliceName, ReducerName>}/shown`,
@@ -1259,11 +1258,11 @@ declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-    Name extends string = string
+    Name extends string = string,
   > {
     [toastCreatorType]: ReducerCreatorEntry<
       (
-        config: ToastReducerConfig<State>
+        config: ToastReducerConfig<State>,
       ) => ToastReducerConfig<State> &
         ReducerDefinition<typeof toastCreatorType>,
       {
@@ -1306,7 +1305,7 @@ const toastCreator: ReducerCreator<typeof toastCreatorType> = {
     // make the thunk creator
     function thunkCreator(
       toast: Toast,
-      timeout = 300
+      timeout = 300,
     ): ThunkAction<{ hide(): void }, unknown, unknown, UnknownAction> {
       return (dispatch, getState) => {
         const id = nanoid()
@@ -1388,7 +1387,7 @@ declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-    Name extends string = string
+    Name extends string = string,
   > {
     [paginationCreatorType]: ReducerCreatorEntry<
       // make sure the creator is only called when state is compatible
@@ -1567,13 +1566,13 @@ declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-    Name extends string = string
+    Name extends string = string,
   > {
     [undoableCreatorType]: ReducerCreatorEntry<
       State extends HistoryState<infer Data>
         ? {
             <A extends Action & { meta?: UndoableMeta }>(
-              reducer: CaseReducer<Data, A>
+              reducer: CaseReducer<Data, A>,
             ): CaseReducer<State, A>
             withoutPayload(options?: UndoableMeta): {
               payload: undefined
@@ -1581,7 +1580,7 @@ declare module '@reduxjs/toolkit' {
             }
             withPayload<Payload>(
               payload: Payload,
-              options?: UndoableMeta
+              options?: UndoableMeta,
             ): { payload: Payload; meta: UndoableMeta | undefined }
           }
         : never
@@ -1593,7 +1592,7 @@ const undoableCreator: ReducerCreator<typeof undoableCreatorType> = {
   type: undoableCreatorType,
   create: Object.assign(
     function makeUndoable<A extends Action & { meta?: UndoableOptions }>(
-      reducer: CaseReducer<any, A>
+      reducer: CaseReducer<any, A>,
     ): CaseReducer<HistoryState<any>, A> {
       return (state, action) => {
         const [nextState, redoPatch, undoPatch] = produceWithPatches(
@@ -1603,7 +1602,7 @@ const undoableCreator: ReducerCreator<typeof undoableCreatorType> = {
             if (typeof result !== 'undefined') {
               draft.present = result
             }
-          }
+          },
         )
         let finalState = nextState
         const undoable = action.meta?.undoable ?? true
@@ -1635,7 +1634,7 @@ const undoableCreator: ReducerCreator<typeof undoableCreatorType> = {
           >
         ) => ({ payload: payload as P, meta: options })
       },
-    }
+    },
   ),
 }
 
@@ -1652,13 +1651,13 @@ const postSliceWithHistory = createAppSlice({
       create.undoable.withPayload<string>(),
       create.undoable((state, action) => {
         state.title = action.payload
-      })
+      }),
     ),
     togglePinned: create.preparedReducer(
       create.undoable.withoutPayload(),
       create.undoable((state, action) => {
         state.pinned = !state.pinned
-      })
+      }),
     ),
   }),
 })

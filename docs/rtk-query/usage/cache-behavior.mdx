@@ -138,8 +138,8 @@ const Component = () => {
     dispatch(
       api.endpoints.getPosts.initiate(
         { count: 5 },
-        { subscribe: false, forceRefetch: true }
-      )
+        { subscribe: false, forceRefetch: true },
+      ),
     )
   }
 
@@ -206,7 +206,7 @@ const Component = () => {
     // highlight-start
     // this overrules the api definition setting,
     // forcing the query to always fetch when this component is mounted
-    { refetchOnMountOrArgChange: true }
+    { refetchOnMountOrArgChange: true },
     // highlight-end
   )
 

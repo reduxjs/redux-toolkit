@@ -44,7 +44,7 @@ const customCreateApi = buildCreateApi(
       useSelector: createSelectorHook(MyContext),
       useStore: createStoreHook(MyContext),
     },
-  })
+  }),
 )
 ```
 
@@ -65,7 +65,7 @@ const createLruSelector = createSelectorCreator(lruMemoize)
 
 const customCreateApi = buildCreateApi(
   coreModule({ createSelector: createLruSelector }),
-  reactHooksModule({ createSelector: createLruSelector })
+  reactHooksModule({ createSelector: createLruSelector }),
 )
 ```
 
@@ -94,7 +94,7 @@ declare module '../apiTypes' {
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
     ReducerPath extends string,
-    TagTypes extends string
+    TagTypes extends string,
   > {
     [customModuleName]: {
       endpoints: {

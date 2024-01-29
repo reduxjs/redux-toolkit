@@ -6,7 +6,7 @@ export function useStableQueryArgs<T>(
   queryArgs: T,
   serialize: SerializeQueryArgs<any>,
   endpointDefinition: EndpointDefinition<any, any, any, any>,
-  endpointName: string
+  endpointName: string,
 ) {
   const incoming = useMemo(
     () => ({
@@ -16,7 +16,7 @@ export function useStableQueryArgs<T>(
           ? serialize({ queryArgs, endpointDefinition, endpointName })
           : queryArgs,
     }),
-    [queryArgs, serialize, endpointDefinition, endpointName]
+    [queryArgs, serialize, endpointDefinition, endpointName],
   )
   const cache = useRef(incoming)
   useEffect(() => {

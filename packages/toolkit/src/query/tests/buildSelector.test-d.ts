@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
 import { configureStore, createSelector } from '@reduxjs/toolkit'
 
-describe('buildSelector', () => {
+describe('type tests', () => {
   test('buildSelector type test', () => {
     interface Todo {
       userId: number
@@ -31,11 +31,12 @@ describe('buildSelector', () => {
       [exampleQuerySelector],
       (queryState) => {
         return queryState?.data?.[0] ?? ({} as Todo)
-      }
+      },
     )
+
     const firstTodoTitleSelector = createSelector(
       [todosSelector],
-      (todo) => todo?.title
+      (todo) => todo?.title,
     )
 
     const store = configureStore({
@@ -49,7 +50,8 @@ describe('buildSelector', () => {
 
     // This only compiles if we carried the types through
     const upperTitle = todoTitle.toUpperCase()
-    expectTypeOf(upperTitle).toEqualTypeOf<string>()
+
+    expectTypeOf(upperTitle).toBeString()
   })
 
   test('selectCachedArgsForQuery type test', () => {
@@ -82,7 +84,7 @@ describe('buildSelector', () => {
     })
 
     expectTypeOf(
-      exampleApi.util.selectCachedArgsForQuery(store.getState(), 'getTodos')
+      exampleApi.util.selectCachedArgsForQuery(store.getState(), 'getTodos'),
     ).toEqualTypeOf<string[]>()
   })
 })

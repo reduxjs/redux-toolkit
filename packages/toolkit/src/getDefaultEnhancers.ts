@@ -10,11 +10,11 @@ type GetDefaultEnhancersOptions = {
 }
 
 export type GetDefaultEnhancers<M extends Middlewares<any>> = (
-  options?: GetDefaultEnhancersOptions
+  options?: GetDefaultEnhancersOptions,
 ) => Tuple<[StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>]>
 
 export const buildGetDefaultEnhancers = <M extends Middlewares<any>>(
-  middlewareEnhancer: StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>
+  middlewareEnhancer: StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>,
 ): GetDefaultEnhancers<M> =>
   function getDefaultEnhancers(options) {
     const { autoBatch = true } = options ?? {}
@@ -22,7 +22,9 @@ export const buildGetDefaultEnhancers = <M extends Middlewares<any>>(
     let enhancerArray = new Tuple<StoreEnhancer[]>(middlewareEnhancer)
     if (autoBatch) {
       enhancerArray.push(
-        autoBatchEnhancer(typeof autoBatch === 'object' ? autoBatch : undefined)
+        autoBatchEnhancer(
+          typeof autoBatch === 'object' ? autoBatch : undefined,
+        ),
       )
     }
     return enhancerArray as any

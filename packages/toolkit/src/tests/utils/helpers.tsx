@@ -142,7 +142,7 @@ function normalize(str: string) {
 expect.extend({
   async toHaveConsoleOutput(
     fn: () => void | Promise<void>,
-    expectedOutput: string
+    expectedOutput: string,
   ) {
     const restore = mockConsole(createConsole())
     await fn()
@@ -190,7 +190,7 @@ export function setupApiStore<
     middleware: Middleware
     util: { resetApiState(): any }
   },
-  R extends Record<string, Reducer<any, any>> = Record<never, never>
+  R extends Record<string, Reducer<any, any>> = Record<never, never>,
 >(
   api: A,
   extraReducers?: R,
@@ -201,7 +201,7 @@ export function setupApiStore<
       prepend?: Middleware[]
       concat?: Middleware[]
     }
-  } = {}
+  } = {},
 ) {
   const { middleware } = options
   const getStore = () =>

@@ -95,7 +95,7 @@ describe('re-triggering behavior on arg change', () => {
       {
         wrapper: withProvider(store),
         initialProps: 5,
-      }
+      },
     )
 
     await waitFor(() => {
@@ -127,7 +127,7 @@ describe('re-triggering behavior on arg change', () => {
       {
         wrapper: withProvider(store),
         initialProps: { name: 'Bob', likes: 'iceCream' },
-      }
+      },
     )
 
     await waitFor(() => {
@@ -160,7 +160,7 @@ describe('re-triggering behavior on arg change', () => {
       {
         wrapper: withProvider(store),
         initialProps: { person: { name } },
-      }
+      },
     )
 
     await waitFor(() => {
@@ -183,7 +183,7 @@ describe('re-triggering behavior on arg change', () => {
       {
         wrapper: withProvider(store),
         initialProps: { name: 'Tim', likes: 'Bananas' },
-      }
+      },
     )
 
     await waitFor(() => {

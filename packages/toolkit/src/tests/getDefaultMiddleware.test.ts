@@ -1,20 +1,15 @@
+import { Tuple } from '@internal/utils'
 import type {
   Action,
-  Dispatch,
   Middleware,
   ThunkAction,
-  ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
-import type { ThunkMiddleware } from 'redux-thunk'
 import { thunk } from 'redux-thunk'
 import { vi } from 'vitest'
 
-import { expectType } from './utils/typeTestHelpers'
-
 import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
-import { Tuple } from '@internal/utils'
 
 const getDefaultMiddleware = buildGetDefaultMiddleware()
 
@@ -80,8 +75,6 @@ describe('getDefaultMiddleware', () => {
       thunk: false,
     })
 
-    expectType<Tuple<[]>>(m2)
-
     const dummyMiddleware: Middleware<
       {
         (action: Action<'actionListenerMiddleware/add'>): () => void
@@ -117,29 +110,9 @@ describe('getDefaultMiddleware', () => {
 
         const m3 = middleware.concat(dummyMiddleware, dummyMiddleware2)
 
-        expectType<
-          Tuple<
-            [
-              ThunkMiddleware<any, UnknownAction, 42>,
-              Middleware<
-                (action: Action<'actionListenerMiddleware/add'>) => () => void,
-                {
-                  counter: number
-                },
-                Dispatch<UnknownAction>
-              >,
-              Middleware<{}, any, Dispatch<UnknownAction>>
-            ]
-          >
-        >(m3)
-
         return m3
       },
     })
-
-    expectType<ThunkDispatch<any, 42, UnknownAction> & Dispatch<UnknownAction>>(
-      store.dispatch
-    )
 
     store.dispatch(testThunk)
   })
