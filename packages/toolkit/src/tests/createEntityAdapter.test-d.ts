@@ -10,7 +10,7 @@ import { createEntityAdapter, createSlice } from '@reduxjs/toolkit'
 
 function extractReducers<T, Id extends EntityId>(
   adapter: EntityAdapter<T, Id>,
-): Omit<EntityStateAdapter<T, Id>, 'map'> {
+): EntityStateAdapter<T, Id> {
   const { selectId, sortComparer, getInitialState, getSelectors, ...rest } =
     adapter
   return rest
