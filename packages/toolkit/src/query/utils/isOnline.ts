@@ -7,6 +7,6 @@ export function isOnline() {
   return typeof navigator === 'undefined'
     ? true
     : navigator.onLine === undefined
-    ? true
-    : navigator.onLine
+      ? true
+      : navigator.onLine
 }

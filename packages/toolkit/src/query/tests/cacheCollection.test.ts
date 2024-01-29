@@ -27,7 +27,7 @@ test(`query: await cleanup, defaults`, async () => {
           query: () => '/success',
         }),
       }),
-    })
+    }),
   )
 
   const promise = store.dispatch(api.endpoints.query.initiate('arg'))
@@ -49,7 +49,7 @@ test(`query: await cleanup, keepUnusedDataFor set`, async () => {
         }),
       }),
       keepUnusedDataFor: 29,
-    })
+    }),
   )
 
   const promise = store.dispatch(api.endpoints.query.initiate('arg'))
@@ -71,7 +71,7 @@ test(`query: handles large keepUnuseDataFor values over 32-bit ms`, async () => 
         }),
       }),
       keepUnusedDataFor: THIRTY_TWO_BIT_MAX_TIMER_SECONDS - 10,
-    })
+    }),
   )
 
   const promise = store.dispatch(api.endpoints.query.initiate('arg'))
@@ -113,7 +113,7 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
         }),
       }),
       keepUnusedDataFor: 29,
-    })
+    }),
   )
 
   test('global keepUnusedDataFor', async () => {
@@ -162,13 +162,13 @@ function storeForApi<
     reducer: Reducer<any, any>
     middleware: Middleware
     util: { resetApiState(): any }
-  }
+  },
 >(api: A) {
   const store = configureStore({
     reducer: { api: api.reducer },
     middleware: (gdm) =>
       gdm({ serializableCheck: false, immutableCheck: false }).concat(
-        api.middleware
+        api.middleware,
       ),
     enhancers: (gde) =>
       gde({

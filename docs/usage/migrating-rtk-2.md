@@ -145,7 +145,7 @@ First, the `Reducer` type now has a `PreloadedState` possible generic:
 ```ts
 type Reducer<S, A extends Action, PreloadedState = S> = (
   state: S | PreloadedState | undefined,
-  action: A
+  action: A,
 ) => S
 ```
 
@@ -319,7 +319,7 @@ const customCreateApi = buildCreateApi(
     useDispatch: createDispatchHook(MyContext),
     useSelector: createSelectorHook(MyContext),
     useStore: createStoreHook(MyContext),
-  })
+  }),
 )
 
 // now
@@ -331,7 +331,7 @@ const customCreateApi = buildCreateApi(
       useSelector: createSelectorHook(MyContext),
       useStore: createStoreHook(MyContext),
     },
-  })
+  }),
 )
 ```
 
@@ -406,7 +406,7 @@ const addNumbers = createSelector(
   // this input selector will always return a new reference when run
   // so cache will never be used
   (a, b) => ({ a, b }),
-  ({ a, b }) => ({ total: a + b })
+  ({ a, b }) => ({ total: a + b }),
 )
 // instead, you should have an input selector for each stable piece of data
 const addNumbersStable = createSelector(
@@ -414,7 +414,7 @@ const addNumbersStable = createSelector(
   (a, b) => b,
   (a, b) => ({
     total: a + b,
-  })
+  }),
 )
 ```
 
@@ -537,7 +537,7 @@ const combinedReducer = combineSlices(
     num: numberSlice.reducer,
     boolean: booleanReducer,
   },
-  api
+  api,
 )
 expect(combinedReducer(undefined, dummyAction())).toEqual({
   string: stringSlice.getInitialState(),
@@ -564,12 +564,12 @@ const injectedReducer = combinedReducer.inject(numberSlice)
 
 // `state.number` now exists, and injectedReducer's type no longer marks it as optional
 expect(injectedReducer(undefined, dummyAction()).number).toBe(
-  numberSlice.getInitialState()
+  numberSlice.getInitialState(),
 )
 
 // original reducer has also been changed (type is still optional)
 expect(combinedReducer(undefined, dummyAction()).number).toBe(
-  numberSlice.getInitialState()
+  numberSlice.getInitialState(),
 )
 ```
 
@@ -603,7 +603,7 @@ const customState = {
   number: slice.getInitialState(),
 }
 const { selectSlice, selectMultiple } = slice.getSelectors(
-  (state: typeof customState) => state.number
+  (state: typeof customState) => state.number,
 )
 expect(selectSlice(customState)).toBe(slice.getInitialState())
 expect(selectMultiple(customState, 2)).toBe(slice.getInitialState() * 2)
@@ -620,7 +620,7 @@ const fetchUserById = createAsyncThunk(
   async (userId: number, thunkAPI) => {
     const response = await userAPI.fetchById(userId)
     return response.data
-  }
+  },
 )
 
 const usersSlice = createSlice({
@@ -682,7 +682,7 @@ const todosSlice = createAppSlice({
       // action type is inferred from prepare callback
       (state, action) => {
         state.todos.push(action.payload)
-      }
+      },
     ),
     // An async thunk
     fetchTodo: create.asyncThunk(
@@ -706,7 +706,7 @@ const todosSlice = createAppSlice({
         settled: (state, action) => {
           state.loading = false
         },
-      }
+      },
     ),
   }),
 })
@@ -872,7 +872,7 @@ For example, with `redux-observable`:
 const epic = (action$: Observable<Action>) =>
   action$.pipe(
     ofType(todoAdded),
-    map((action) => action)
+    map((action) => action),
     //   ^? still Action<any>
   )
 
@@ -880,7 +880,7 @@ const epic = (action$: Observable<Action>) =>
 const epic = (action$: Observable<Action>) =>
   action$.pipe(
     filter(todoAdded.match),
-    map((action) => action)
+    map((action) => action),
     //   ^? now PayloadAction<Todo>
   )
 ```
@@ -931,7 +931,7 @@ const asyncThunkCreator = {
     // the definition from define()
     definition,
     // methods to modify slice
-    context
+    context,
   ) {
     const { payloadCreator, options, pending, fulfilled, rejected, settled } =
       definition
@@ -976,7 +976,7 @@ const todoSlice = createSlice({
     selectTodosByAuthor = createSelector(
       (state: TodoState) => state.todos,
       (state: TodoState, author: string) => author,
-      (todos, author) => todos.filter((todo) => todo.author === author)
+      (todos, author) => todos.filter((todo) => todo.author === author),
     ),
   },
 })
@@ -991,7 +991,7 @@ export const makeSelectTodosByAuthor = () =>
   createSelector(
     (state: RootState) => state.todos.todos,
     (state: RootState, author: string) => author,
-    (todos, author) => todos.filter((todo) => todo.author === author)
+    (todos, author) => todos.filter((todo) => todo.author === author),
   )
 
 function AuthorTodos({ author }: { author: string }) {

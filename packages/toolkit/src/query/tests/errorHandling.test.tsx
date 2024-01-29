@@ -36,7 +36,7 @@ const storeRef = setupApiStore(api)
 const failQueryOnce = http.get(
   '/query',
   () => HttpResponse.json({ value: 'failed' }, { status: 500 }),
-  { once: true }
+  { once: true },
 )
 
 describe('fetchBaseQuery', () => {
@@ -57,7 +57,7 @@ describe('fetchBaseQuery', () => {
   })
   test('success', async () => {
     await expect(
-      baseQuery('/success', commonBaseQueryApiArgs, {})
+      baseQuery('/success', commonBaseQueryApiArgs, {}),
     ).resolves.toEqual({
       data: { value: 'success' },
       meta: {
@@ -69,7 +69,7 @@ describe('fetchBaseQuery', () => {
   test('error', async () => {
     server.use(failQueryOnce)
     await expect(
-      baseQuery('/error', commonBaseQueryApiArgs, {})
+      baseQuery('/error', commonBaseQueryApiArgs, {}),
     ).resolves.toEqual({
       error: {
         data: { value: 'error' },
@@ -87,8 +87,8 @@ describe('query error handling', () => {
   test('success', async () => {
     server.use(
       http.get('https://example.com/query', () =>
-        HttpResponse.json({ value: 'success' })
-      )
+        HttpResponse.json({ value: 'success' }),
+      ),
     )
     const { result } = renderHook(() => api.endpoints.query.useQuery({}), {
       wrapper: storeRef.wrapper,
@@ -101,15 +101,15 @@ describe('query error handling', () => {
         isError: false,
         isSuccess: true,
         data: { value: 'success' },
-      })
+      }),
     )
   })
 
   test('error', async () => {
     server.use(
       http.get('https://example.com/query', () =>
-        HttpResponse.json({ value: 'error' }, { status: 500 })
-      )
+        HttpResponse.json({ value: 'error' }, { status: 500 }),
+      ),
     )
     const { result } = renderHook(() => api.endpoints.query.useQuery({}), {
       wrapper: storeRef.wrapper,
@@ -125,15 +125,15 @@ describe('query error handling', () => {
           status: 500,
           data: { value: 'error' },
         },
-      })
+      }),
     )
   })
 
   test('success -> error', async () => {
     server.use(
       http.get('https://example.com/query', () =>
-        HttpResponse.json({ value: 'success' })
-      )
+        HttpResponse.json({ value: 'success' }),
+      ),
     )
     const { result } = renderHook(() => api.endpoints.query.useQuery({}), {
       wrapper: storeRef.wrapper,
@@ -146,15 +146,15 @@ describe('query error handling', () => {
         isError: false,
         isSuccess: true,
         data: { value: 'success' },
-      })
+      }),
     )
 
     server.use(
       http.get(
         'https://example.com/query',
         () => HttpResponse.json({ value: 'error' }, { status: 500 }),
-        { once: true }
-      )
+        { once: true },
+      ),
     )
 
     act(() => void result.current.refetch())
@@ -171,22 +171,22 @@ describe('query error handling', () => {
         },
         // last data will stay available
         data: { value: 'success' },
-      })
+      }),
     )
   })
 
   test('error -> success', async () => {
     server.use(
       http.get('https://example.com/query', () =>
-        HttpResponse.json({ value: 'success' })
-      )
+        HttpResponse.json({ value: 'success' }),
+      ),
     )
     server.use(
       http.get(
         'https://example.com/query',
         () => HttpResponse.json({ value: 'error' }, { status: 500 }),
-        { once: true }
-      )
+        { once: true },
+      ),
     )
     const { result } = renderHook(() => api.endpoints.query.useQuery({}), {
       wrapper: storeRef.wrapper,
@@ -202,7 +202,7 @@ describe('query error handling', () => {
           status: 500,
           data: { value: 'error' },
         },
-      })
+      }),
     )
 
     act(() => void result.current.refetch())
@@ -214,7 +214,7 @@ describe('query error handling', () => {
         isError: false,
         isSuccess: true,
         data: { value: 'success' },
-      })
+      }),
     )
   })
 })
@@ -223,8 +223,8 @@ describe('mutation error handling', () => {
   test('success', async () => {
     server.use(
       http.post('https://example.com/mutation', () =>
-        HttpResponse.json({ value: 'success' })
-      )
+        HttpResponse.json({ value: 'success' }),
+      ),
     )
     const { result } = renderHook(() => api.endpoints.mutation.useMutation(), {
       wrapper: storeRef.wrapper,
@@ -241,15 +241,15 @@ describe('mutation error handling', () => {
         isError: false,
         isSuccess: true,
         data: { value: 'success' },
-      })
+      }),
     )
   })
 
   test('error', async () => {
     server.use(
       http.post('https://example.com/mutation', () =>
-        HttpResponse.json({ value: 'error' }, { status: 500 })
-      )
+        HttpResponse.json({ value: 'error' }, { status: 500 }),
+      ),
     )
     const { result } = renderHook(() => api.endpoints.mutation.useMutation(), {
       wrapper: storeRef.wrapper,
@@ -269,15 +269,15 @@ describe('mutation error handling', () => {
           status: 500,
           data: { value: 'error' },
         },
-      })
+      }),
     )
   })
 
   test('success -> error', async () => {
     server.use(
       http.post('https://example.com/mutation', () =>
-        HttpResponse.json({ value: 'success' })
-      )
+        HttpResponse.json({ value: 'success' }),
+      ),
     )
     const { result } = renderHook(() => api.endpoints.mutation.useMutation(), {
       wrapper: storeRef.wrapper,
@@ -295,7 +295,7 @@ describe('mutation error handling', () => {
           isError: false,
           isSuccess: true,
           data: { value: 'success' },
-        })
+        }),
       )
     }
 
@@ -303,8 +303,8 @@ describe('mutation error handling', () => {
       http.post(
         'https://example.com/mutation',
         () => HttpResponse.json({ value: 'error' }, { status: 500 }),
-        { once: true }
-      )
+        { once: true },
+      ),
     )
 
     {
@@ -322,7 +322,7 @@ describe('mutation error handling', () => {
             status: 500,
             data: { value: 'error' },
           },
-        })
+        }),
       )
       expect(result.current[1].data).toBeUndefined()
     }
@@ -331,15 +331,15 @@ describe('mutation error handling', () => {
   test('error -> success', async () => {
     server.use(
       http.post('https://example.com/mutation', () =>
-        HttpResponse.json({ value: 'success' })
-      )
+        HttpResponse.json({ value: 'success' }),
+      ),
     )
     server.use(
       http.post(
         'https://example.com/mutation',
         () => HttpResponse.json({ value: 'error' }, { status: 500 }),
-        { once: true }
-      )
+        { once: true },
+      ),
     )
 
     const { result } = renderHook(() => api.endpoints.mutation.useMutation(), {
@@ -361,7 +361,7 @@ describe('mutation error handling', () => {
             status: 500,
             data: { value: 'error' },
           },
-        })
+        }),
       )
     }
 
@@ -376,7 +376,7 @@ describe('mutation error handling', () => {
           isLoading: false,
           isError: false,
           isSuccess: true,
-        })
+        }),
       )
       expect(result.current[1].error).toBeUndefined()
     }
@@ -386,7 +386,7 @@ describe('mutation error handling', () => {
 describe('custom axios baseQuery', () => {
   const axiosBaseQuery =
     (
-      { baseUrl }: { baseUrl: string } = { baseUrl: '' }
+      { baseUrl }: { baseUrl: string } = { baseUrl: '' },
     ): BaseQueryFn<
       {
         url: string
@@ -452,8 +452,8 @@ describe('custom axios baseQuery', () => {
   test('axios errors behave as expected', async () => {
     server.use(
       http.get('https://example.com/success', () =>
-        HttpResponse.json({ value: 'error' }, { status: 500 })
-      )
+        HttpResponse.json({ value: 'error' }, { status: 500 }),
+      ),
     )
     const { result } = renderHook(() => api.endpoints.query.useQuery(), {
       wrapper: storeRef.wrapper,
@@ -466,7 +466,7 @@ describe('custom axios baseQuery', () => {
         isError: true,
         isSuccess: false,
         error: { status: 500, data: { value: 'error' } },
-      })
+      }),
     )
   })
 })
@@ -493,8 +493,8 @@ describe('error handling in a component', () => {
       http.get(
         'https://example.com/success',
         () => HttpResponse.json(mockErrorResponse, { status: 500 }),
-        { once: true }
-      )
+        { once: true },
+      ),
     )
 
     function User() {
@@ -529,36 +529,36 @@ describe('error handling in a component', () => {
     render(<User />, { wrapper: storeRef.wrapper })
 
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('false')
+      expect(screen.getByTestId('isLoading').textContent).toBe('false'),
     )
     fireEvent.click(screen.getByText('Update User'))
     expect(screen.getByTestId('isLoading').textContent).toBe('true')
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('false')
+      expect(screen.getByTestId('isLoading').textContent).toBe('false'),
     )
 
     // Make sure the hook and the unwrapped action return the same things in an error state
     await waitFor(() =>
       expect(screen.getByTestId('error').textContent).toEqual(
-        screen.getByTestId('manuallySetError').textContent
-      )
+        screen.getByTestId('manuallySetError').textContent,
+      ),
     )
 
     fireEvent.click(screen.getByText('Update User'))
     expect(screen.getByTestId('isLoading').textContent).toBe('true')
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('false')
+      expect(screen.getByTestId('isLoading').textContent).toBe('false'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('error').textContent).toBeFalsy()
+      expect(screen.getByTestId('error').textContent).toBeFalsy(),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('manuallySetError').textContent).toBeFalsy()
+      expect(screen.getByTestId('manuallySetError').textContent).toBeFalsy(),
     )
     await waitFor(() =>
       expect(screen.getByTestId('data').textContent).toEqual(
-        JSON.stringify(mockSuccessResponse)
-      )
+        JSON.stringify(mockSuccessResponse),
+      ),
     )
   })
 
@@ -576,7 +576,7 @@ describe('error handling in a component', () => {
       >
       act(() => {
         mutationqueryFulfilled = dispatch(
-          api.endpoints.update.initiate({}, { track })
+          api.endpoints.update.initiate({}, { track }),
         )
       })
       const result = await mutationqueryFulfilled!
@@ -598,7 +598,7 @@ describe('error handling in a component', () => {
       >
       act(() => {
         mutationqueryFulfilled = dispatch(
-          api.endpoints.failedUpdate.initiate({}, { track })
+          api.endpoints.failedUpdate.initiate({}, { track }),
         )
       })
       const result = await mutationqueryFulfilled!
@@ -622,7 +622,7 @@ describe('error handling in a component', () => {
       >
       act(() => {
         mutationqueryFulfilled = dispatch(
-          api.endpoints.update.initiate({}, { track })
+          api.endpoints.update.initiate({}, { track }),
         )
       })
       const result = await mutationqueryFulfilled!.unwrap()
@@ -644,7 +644,7 @@ describe('error handling in a component', () => {
       >
       act(() => {
         mutationqueryFulfilled = dispatch(
-          api.endpoints.failedUpdate.initiate({}, { track })
+          api.endpoints.failedUpdate.initiate({}, { track }),
         )
       })
       const unwrappedPromise = mutationqueryFulfilled!.unwrap()

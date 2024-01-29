@@ -18,8 +18,8 @@ export function ChangeThemeForm() {
   const handleChange = (evt: ChangeEvent<HTMLInputElement>) => {
     appDispatch(
       themeActions.changeColorScheme(
-        theme.colorScheme === 'light' ? 'dark' : 'light'
-      )
+        theme.colorScheme === 'light' ? 'dark' : 'light',
+      ),
     )
   }
 

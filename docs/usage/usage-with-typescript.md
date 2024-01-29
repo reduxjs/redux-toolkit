@@ -122,7 +122,7 @@ const store = configureStore({
         untypedMiddleware as Middleware<
           (action: Action<'specialAction'>) => number,
           RootState
-        >
+        >,
       )
       // prepend and concat calls can be chained
       .concat(logger),
@@ -213,7 +213,7 @@ createReducer(0, (builder) =>
     })
     .addCase(decrement, (state, action: PayloadAction<string>) => {
       // this would error out
-    })
+    }),
 )
 ```
 
@@ -311,7 +311,7 @@ const blogSlice = createSlice({
     receivedAll: {
       reducer(
         state,
-        action: PayloadAction<Page[], string, { currentPage: number }>
+        action: PayloadAction<Page[], string, { currentPage: number }>,
       ) {
         state.all = action.payload
         state.meta = action.meta
@@ -364,7 +364,7 @@ const fetchUserById = createAsyncThunk(
   async (userId: number) => {
     const response = await fetch(`https://reqres.in/api/users/${userId}`)
     return (await response.json()) as Returned
-  }
+  },
 )
 
 interface UsersState {
@@ -438,7 +438,7 @@ create.asyncThunk<Todo, string, { rejectValue: { error: string } }>(
         error: 'Oh no!',
       })
     }
-  }
+  },
 )
 ```
 
@@ -446,8 +446,9 @@ For common thunk API configuration options, a [`withTypes` helper](../usage/usag
 
 ```ts no-transpile
 reducers: (create) => {
-  const createAThunk =
-    create.asyncThunk.withTypes<{ rejectValue: { error: string } }>()
+  const createAThunk = create.asyncThunk.withTypes<{
+    rejectValue: { error: string }
+  }>()
 
   return {
     fetchTodo: createAThunk<Todo, string>(async (id, thunkApi) => {
@@ -478,7 +479,7 @@ interface GenericState<T> {
 
 const createGenericSlice = <
   T,
-  Reducers extends SliceCaseReducers<GenericState<T>>
+  Reducers extends SliceCaseReducers<GenericState<T>>,
 >({
   name = '',
   initialState,
@@ -547,7 +548,7 @@ const fetchUserById = createAsyncThunk(
     // Inferred return type: Promise<MyData>
     // highlight-next-line
     return (await response.json()) as MyData
-  }
+  },
 )
 
 // the parameter of `fetchUserById` is automatically inferred to `number` here
@@ -791,7 +792,7 @@ export const fetchArticle = createAsyncThunk(
       }
     >(data, articleEntity)
     return normalized.entities
-  }
+  },
 )
 
 export const slice = createSlice({

@@ -123,7 +123,7 @@ if (process.env.NODE_ENV === 'production') {
   module.exports = require('./${prefix}.production.min.cjs')
 } else {
   module.exports = require('./${prefix}.development.cjs')
-}`
+}`,
   )
 }
 
@@ -155,7 +155,7 @@ const mangleErrorsTransform: Plugin = {
 
 const tsconfig: NonNullable<TsupOptions['tsconfig']> = path.join(
   __dirname,
-  './tsconfig.build.json'
+  './tsconfig.build.json',
 )
 
 export default defineConfig((options) => {
@@ -218,7 +218,7 @@ export default defineConfig((options) => {
 
                 fs.copyFileSync(
                   'src/uncheckedindexed.ts',
-                  path.join(outputFolder, 'uncheckedindexed.ts')
+                  path.join(outputFolder, 'uncheckedindexed.ts'),
                 )
               }
               // TODO Copy/generate `.d.mts` files?

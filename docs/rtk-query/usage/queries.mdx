@@ -65,7 +65,7 @@ const api = createApi({
       transformErrorResponse: (
         response: { status: string | number },
         meta,
-        arg
+        arg,
       ) => response.status,
       providesTags: (result, error, id) => [{ type: 'Post', id }],
       // The 2nd parameter is the destructured `QueryLifecycleApi`
@@ -79,7 +79,7 @@ const api = createApi({
           queryFulfilled,
           getCacheEntry,
           updateCachedData,
-        }
+        },
       ) {},
       // The 2nd parameter is the destructured `QueryCacheLifecycleApi`
       async onCacheEntryAdded(
@@ -93,7 +93,7 @@ const api = createApi({
           cacheDataLoaded,
           getCacheEntry,
           updateCachedData,
-        }
+        },
       ) {},
       // highlight-end
     }),
@@ -287,9 +287,7 @@ function PostsList() {
 
   return (
     <ul>
-      {posts?.data?.map((post) => (
-        <PostById key={post.id} id={post.id} />
-      ))}
+      {posts?.data?.map((post) => <PostById key={post.id} id={post.id} />)}
     </ul>
   )
 }
@@ -346,7 +344,7 @@ If you're not using React Hooks, you can access `refetch` like this:
 
 ```ts no-transpile
 const { status, data, error, refetch } = dispatch(
-  pokemonApi.endpoints.getPokemon.initiate('bulbasaur')
+  pokemonApi.endpoints.getPokemon.initiate('bulbasaur'),
 )
 ```
 

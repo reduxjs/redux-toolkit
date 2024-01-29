@@ -36,7 +36,7 @@ describe('configureStore', async () => {
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       )
       expect(redux.applyMiddleware).toHaveBeenCalled()
       expect(composeWithDevToolsSpy).toHaveBeenCalled() // @remap-prod-remove-line
@@ -57,7 +57,7 @@ describe('configureStore', async () => {
       expect(redux.createStore).toHaveBeenCalledWith(
         expect.any(Function),
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       )
     })
   })
@@ -65,7 +65,7 @@ describe('configureStore', async () => {
   describe('given no reducer', () => {
     it('throws', () => {
       expect(configureStore).toThrow(
-        '`reducer` is a required argument, and must be a function or an object of functions that can be passed to combineReducers'
+        '`reducer` is a required argument, and must be a function or an object of functions that can be passed to combineReducers',
       )
     })
   })
@@ -73,14 +73,14 @@ describe('configureStore', async () => {
   describe('given no middleware', () => {
     it('calls createStore without any middleware', () => {
       expect(
-        configureStore({ middleware: () => new Tuple(), reducer })
+        configureStore({ middleware: () => new Tuple(), reducer }),
       ).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalledWith()
       expect(composeWithDevToolsSpy).toHaveBeenCalled() // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       )
     })
   })
@@ -89,7 +89,7 @@ describe('configureStore', async () => {
     it('throws an error requiring a callback', () => {
       // @ts-expect-error
       expect(() => configureStore({ middleware: [], reducer })).toThrow(
-        '`middleware` field must be a callback'
+        '`middleware` field must be a callback',
       )
     })
   })
@@ -97,19 +97,19 @@ describe('configureStore', async () => {
   describe('given undefined middleware', () => {
     it('calls createStore with default middleware', () => {
       expect(configureStore({ middleware: undefined, reducer })).toBeInstanceOf(
-        Object
+        Object,
       )
       expect(redux.applyMiddleware).toHaveBeenCalledWith(
         expect.any(Function), // immutableCheck
         expect.any(Function), // thunk
         expect.any(Function), // serializableCheck
-        expect.any(Function) // actionCreatorCheck
+        expect.any(Function), // actionCreatorCheck
       )
       expect(composeWithDevToolsSpy).toHaveBeenCalled() // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       )
     })
   })
@@ -118,9 +118,9 @@ describe('configureStore', async () => {
     it('throws an error', () => {
       const invalidBuilder = vi.fn((getDefaultMiddleware) => undefined as any)
       expect(() =>
-        configureStore({ middleware: invalidBuilder, reducer })
+        configureStore({ middleware: invalidBuilder, reducer }),
       ).toThrow(
-        'when using a middleware builder function, an array of middleware must be returned'
+        'when using a middleware builder function, an array of middleware must be returned',
       )
     })
   })
@@ -129,7 +129,7 @@ describe('configureStore', async () => {
     it('throws an error', () => {
       const invalidBuilder = vi.fn((getDefaultMiddleware) => [true] as any)
       expect(() =>
-        configureStore({ middleware: invalidBuilder, reducer })
+        configureStore({ middleware: invalidBuilder, reducer }),
       ).toThrow('each middleware provided to configureStore must be a function')
     })
   })
@@ -139,14 +139,14 @@ describe('configureStore', async () => {
       const thank: Redux.Middleware = (_store) => (next) => (action) =>
         next(action)
       expect(
-        configureStore({ middleware: () => new Tuple(thank), reducer })
+        configureStore({ middleware: () => new Tuple(thank), reducer }),
       ).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalledWith(thank)
       expect(composeWithDevToolsSpy).toHaveBeenCalled() // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       )
     })
   })
@@ -154,7 +154,7 @@ describe('configureStore', async () => {
   describe('middleware builder notation', () => {
     it('calls builder, passes getDefaultMiddleware and uses returned middlewares', () => {
       const thank = vi.fn(
-        ((_store) => (next) => (action) => 'foobar') as Redux.Middleware
+        ((_store) => (next) => (action) => 'foobar') as Redux.Middleware,
       )
 
       const builder = vi.fn((getDefaultMiddleware) => {
@@ -175,14 +175,14 @@ describe('configureStore', async () => {
   describe('with devTools disabled', () => {
     it('calls createStore without devTools enhancer', () => {
       expect(configureStore({ devTools: false, reducer })).toBeInstanceOf(
-        Object
+        Object,
       )
       expect(redux.applyMiddleware).toHaveBeenCalled()
       expect(redux.compose).toHaveBeenCalled()
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       )
     })
   })
@@ -194,14 +194,14 @@ describe('configureStore', async () => {
         trace: true,
       }
       expect(configureStore({ devTools: options, reducer })).toBeInstanceOf(
-        Object
+        Object,
       )
       expect(redux.applyMiddleware).toHaveBeenCalled()
       expect(composeWithDevToolsSpy).toHaveBeenCalledWith(options) // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       )
     })
   })
@@ -214,7 +214,7 @@ describe('configureStore', async () => {
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       )
     })
   })
@@ -238,14 +238,14 @@ describe('configureStore', async () => {
         configureStore({
           enhancers: (gDE) => gDE().concat(dummyEnhancer),
           reducer,
-        })
+        }),
       ).toBeInstanceOf(Object)
       expect(redux.applyMiddleware).toHaveBeenCalled()
       expect(composeWithDevToolsSpy).toHaveBeenCalled() // @remap-prod-remove-line
       expect(redux.createStore).toHaveBeenCalledWith(
         reducer,
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       )
 
       expect(dummyEnhancerCalled).toBe(true)
@@ -254,19 +254,19 @@ describe('configureStore', async () => {
     describe('invalid arguments', () => {
       test('enhancers is not a callback', () => {
         expect(() => configureStore({ reducer, enhancers: [] as any })).toThrow(
-          '`enhancers` field must be a callback'
+          '`enhancers` field must be a callback',
         )
       })
 
       test('callback fails to return array', () => {
         expect(() =>
-          configureStore({ reducer, enhancers: (() => {}) as any })
+          configureStore({ reducer, enhancers: (() => {}) as any }),
         ).toThrow('`enhancers` callback must return an array')
       })
 
       test('array contains non-function', () => {
         expect(() =>
-          configureStore({ reducer, enhancers: (() => ['']) as any })
+          configureStore({ reducer, enhancers: (() => ['']) as any }),
         ).toThrow('each enhancer provided to configureStore must be a function')
       })
     })
@@ -288,7 +288,7 @@ describe('configureStore', async () => {
       expect(dummyEnhancerCalled).toBe(true)
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        'middlewares were provided, but middleware enhancer was not included in final enhancers - make sure to call `getDefaultEnhancers`'
+        'middlewares were provided, but middleware enhancer was not included in final enhancers - make sure to call `getDefaultEnhancers`',
       )
     })
     it("doesn't warn when middleware enhancer is excluded if no middlewares provided", () => {
