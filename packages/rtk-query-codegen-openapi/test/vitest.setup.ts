@@ -1,7 +1,8 @@
-// @ts-ignore
-global.fetch = require('node-fetch');
-const { format } = require('prettier');
-const { server } = require('./mocks/server');
+import nodeFetch from 'node-fetch';
+import { format } from 'prettier';
+import { server } from './mocks/server';
+
+vi.stubGlobal('fetch', nodeFetch);
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => server.resetHandlers());
