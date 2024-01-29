@@ -51,7 +51,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
 
   function startNextPoll(
     { queryCacheKey }: QuerySubstateIdentifier,
-    api: SubMiddlewareApi
+    api: SubMiddlewareApi,
   ) {
     const state = api.getState()[reducerPath]
     const querySubState = state.queries[queryCacheKey]
@@ -87,7 +87,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
 
   function updatePollingInterval(
     { queryCacheKey }: QuerySubstateIdentifier,
-    api: SubMiddlewareApi
+    api: SubMiddlewareApi,
   ) {
     const state = api.getState()[reducerPath]
     const querySubState = state.queries[queryCacheKey]
@@ -133,7 +133,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       if (!!subscribers[key].pollingInterval) {
         lowestPollingInterval = Math.min(
           subscribers[key].pollingInterval!,
-          lowestPollingInterval
+          lowestPollingInterval,
         )
         skipPollingIfUnfocused =
           subscribers[key].skipPollingIfUnfocused || skipPollingIfUnfocused

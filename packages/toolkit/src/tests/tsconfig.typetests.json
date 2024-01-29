@@ -1,8 +1,0 @@
-{
-  "extends": "../../tsconfig.test.json",
-  "compilerOptions": {
-    "skipLibCheck": true,
-  },
-  "include": ["../**/*.ts*"],
-  "exclude": ["../query"]
-}

@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { createApi } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
-import { setupApiStore } from './helpers'
+import { setupApiStore } from '../../tests/utils/helpers'
 
 let shouldApiResponseSuccess = true
 
@@ -44,7 +44,7 @@ describe('buildSlice', () => {
     const initialState = storeRef.store.getState()
 
     await storeRef.store.dispatch(
-      getUser.initiate(1, { subscriptionOptions: { pollingInterval: 10 } })
+      getUser.initiate(1, { subscriptionOptions: { pollingInterval: 10 } }),
     )
 
     const initialQueryState = {
@@ -95,10 +95,10 @@ describe('buildSlice', () => {
     await storeRef.store.dispatch(getUser.initiate(1))
 
     expect(
-      api.util.selectInvalidatedBy(storeRef.store.getState(), ['SUCCEED'])
+      api.util.selectInvalidatedBy(storeRef.store.getState(), ['SUCCEED']),
     ).toHaveLength(1)
     expect(
-      api.util.selectInvalidatedBy(storeRef.store.getState(), ['FAILED'])
+      api.util.selectInvalidatedBy(storeRef.store.getState(), ['FAILED']),
     ).toHaveLength(0)
 
     shouldApiResponseSuccess = false
@@ -108,10 +108,10 @@ describe('buildSlice', () => {
     await delay(10)
 
     expect(
-      api.util.selectInvalidatedBy(storeRef.store.getState(), ['SUCCEED'])
+      api.util.selectInvalidatedBy(storeRef.store.getState(), ['SUCCEED']),
     ).toHaveLength(0)
     expect(
-      api.util.selectInvalidatedBy(storeRef.store.getState(), ['FAILED'])
+      api.util.selectInvalidatedBy(storeRef.store.getState(), ['FAILED']),
     ).toHaveLength(1)
   })
 })

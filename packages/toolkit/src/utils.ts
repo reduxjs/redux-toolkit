@@ -29,7 +29,7 @@ export function delay(ms: number) {
 
 export function find<T>(
   iterable: Iterable<T>,
-  comparator: (item: T) => boolean
+  comparator: (item: T) => boolean,
 ): T | undefined {
   for (const entry of iterable) {
     if (comparator(entry)) {
@@ -55,10 +55,10 @@ export class Tuple<Items extends ReadonlyArray<unknown> = []> extends Array<
   }
 
   concat<AdditionalItems extends ReadonlyArray<unknown>>(
-    items: Tuple<AdditionalItems>
+    items: Tuple<AdditionalItems>,
   ): Tuple<[...Items, ...AdditionalItems]>
   concat<AdditionalItems extends ReadonlyArray<unknown>>(
-    items: AdditionalItems
+    items: AdditionalItems,
   ): Tuple<[...Items, ...AdditionalItems]>
   concat<AdditionalItems extends ReadonlyArray<unknown>>(
     ...items: AdditionalItems
@@ -68,10 +68,10 @@ export class Tuple<Items extends ReadonlyArray<unknown> = []> extends Array<
   }
 
   prepend<AdditionalItems extends ReadonlyArray<unknown>>(
-    items: Tuple<AdditionalItems>
+    items: Tuple<AdditionalItems>,
   ): Tuple<[...AdditionalItems, ...Items]>
   prepend<AdditionalItems extends ReadonlyArray<unknown>>(
-    items: AdditionalItems
+    items: AdditionalItems,
   ): Tuple<[...AdditionalItems, ...Items]>
   prepend<AdditionalItems extends ReadonlyArray<unknown>>(
     ...items: AdditionalItems
@@ -113,12 +113,12 @@ interface MapEmplaceHandler<K, V> {
 export function emplace<K, V>(
   map: Map<K, V>,
   key: K,
-  handler: MapEmplaceHandler<K, V>
+  handler: MapEmplaceHandler<K, V>,
 ): V
 export function emplace<K extends object, V>(
   map: WeakMap<K, V>,
   key: K,
-  handler: WeakMapEmplaceHandler<K, V>
+  handler: WeakMapEmplaceHandler<K, V>,
 ): V
 /**
  * Allow inserting a new value, or updating an existing one
@@ -150,7 +150,7 @@ export function emplace<K extends object, V>(
 export function emplace<K extends object, V>(
   map: WeakMap<K, V>,
   key: K,
-  handler: WeakMapEmplaceHandler<K, V>
+  handler: WeakMapEmplaceHandler<K, V>,
 ): V {
   if (map.has(key)) {
     let value = map.get(key) as V

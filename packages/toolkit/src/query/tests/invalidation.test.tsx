@@ -1,8 +1,8 @@
-import type { TagDescription } from '@reduxjs/toolkit/dist/query/endpointDefinitions'
+import type { TagDescription } from '@reduxjs/toolkit/query'
 import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
 import { waitFor } from '@testing-library/react'
 import { delay } from 'msw'
-import { setupApiStore } from './helpers'
+import { setupApiStore } from '../../tests/utils/helpers'
 
 const tagTypes = [
   'apple',
@@ -13,7 +13,7 @@ const tagTypes = [
   'dog',
   'giraffe',
 ] as const
-type TagTypes = typeof tagTypes[number]
+type TagTypes = (typeof tagTypes)[number]
 type Tags = TagDescription<TagTypes>[]
 
 /** providesTags, invalidatesTags, shouldInvalidate */
@@ -103,7 +103,7 @@ test.each(caseMatrix)(
         }),
       }),
       undefined,
-      { withoutTestLifecycles: true }
+      { withoutTestLifecycles: true },
     )
 
     store.dispatch(providing.initiate())
@@ -111,15 +111,15 @@ test.each(caseMatrix)(
     expect(queryCount).toBe(1)
     await waitFor(() => {
       expect(api.endpoints.providing.select()(store.getState()).status).toBe(
-        'fulfilled'
+        'fulfilled',
       )
       expect(api.endpoints.unrelated.select()(store.getState()).status).toBe(
-        'fulfilled'
+        'fulfilled',
       )
     })
     const toInvalidate = api.util.selectInvalidatedBy(
       store.getState(),
-      invalidatesTags
+      invalidatesTags,
     )
 
     if (shouldInvalidate) {
@@ -138,5 +138,5 @@ test.each(caseMatrix)(
     expect(queryCount).toBe(1)
     await delay(2)
     expect(queryCount).toBe(shouldInvalidate ? 2 : 1)
-  }
+  },
 )

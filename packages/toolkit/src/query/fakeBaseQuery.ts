@@ -15,7 +15,7 @@ export function fakeBaseQuery<ErrorType>(): BaseQueryFn<
 > {
   return function () {
     throw new Error(
-      'When using `fakeBaseQuery`, all queries & mutations must use the `queryFn` definition syntax.'
+      'When using `fakeBaseQuery`, all queries & mutations must use the `queryFn` definition syntax.',
     )
   }
 }

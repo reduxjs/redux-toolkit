@@ -1,7 +1,7 @@
-import * as React from 'react';
+import * as React from 'react'
 
-import { Post } from '.';
-import { postsApi } from '../../app/services/posts';
+import { Post } from '.'
+import { postsApi } from '../../app/services/posts'
 
 const PostsList = () => {
   /**
@@ -13,8 +13,8 @@ const PostsList = () => {
    * injected though.
    */
 
-  const { data, error } = postsApi.endpoints.getPosts.useQuery();
-  const [selected, select] = React.useState<number | undefined>();
+  const { data, error } = postsApi.endpoints.getPosts.useQuery()
+  const [selected, select] = React.useState<number | undefined>()
   return error ? (
     <>there was an error</>
   ) : !data ? (
@@ -30,6 +30,6 @@ const PostsList = () => {
         ))}
       </ul>
     </>
-  );
-};
-export default PostsList;
+  )
+}
+export default PostsList

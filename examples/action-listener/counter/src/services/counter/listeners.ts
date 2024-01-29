@@ -12,7 +12,7 @@ function shouldStopAsyncTasksOf(id: string) {
   return isAllOf(
     isAnyOf(counterActions.cancelAsyncUpdates, counterActions.removeCounter),
     (action: UnknownAction): action is PayloadAction<string> =>
-      action?.payload === id
+      action?.payload === id,
   )
 }
 
@@ -20,7 +20,7 @@ async function onUpdateByPeriodically(
   {
     payload: { id, delta },
   }: ReturnType<typeof counterActions.updateByPeriodically>,
-  { dispatch, getState, getOriginalState, condition }: AppListenerEffectAPI
+  { dispatch, getState, getOriginalState, condition }: AppListenerEffectAPI,
 ) {
   const counter = counterSelectors.selectById(getState(), id)
 
@@ -50,7 +50,7 @@ async function onUpdateAsync(
   {
     payload: { id, delta, delayMs },
   }: ReturnType<typeof counterActions.updateByAsync>,
-  { condition, dispatch, getState }: AppListenerEffectAPI
+  { condition, dispatch, getState }: AppListenerEffectAPI,
 ) {
   const counter = counterSelectors.selectById(getState(), id)
 
@@ -77,7 +77,7 @@ async function onUpdateAsync(
  * ```
  */
 export function setupCounterListeners(
-  startListening: AppStartListening
+  startListening: AppStartListening,
 ): Unsubscribe {
   const subscriptions = [
     startListening({

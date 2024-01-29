@@ -1,6 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
-import { setupApiStore } from './helpers'
+import { setupApiStore } from '../../tests/utils/helpers'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
 const mockBaseQuery = vi
@@ -27,7 +27,7 @@ let getSubscriptions: SubscriptionSelectors['getSubscriptions']
 
 beforeEach(() => {
   ;({ getSubscriptions } = storeRef.store.dispatch(
-    api.internalActions.internal_getRTKQSubscriptions()
+    api.internalActions.internal_getRTKQSubscriptions(),
   ) as unknown as SubscriptionSelectors)
 })
 
@@ -42,7 +42,7 @@ describe('polling tests', () => {
       getPosts.initiate(1, {
         subscriptionOptions: { pollingInterval: 10 },
         subscribe: true,
-      })
+      }),
     )
 
     expect(mockBaseQuery).toHaveBeenCalledTimes(1)
@@ -60,7 +60,7 @@ describe('polling tests', () => {
         getPosts.initiate(1, {
           subscriptionOptions: { pollingInterval: 10 },
           subscribe: true,
-        })
+        }),
       )
 
     const getSubs = createSubscriptionGetter(queryCacheKey)
@@ -81,14 +81,14 @@ describe('polling tests', () => {
       getPosts.initiate(1, {
         subscriptionOptions: { pollingInterval: 10 },
         subscribe: true,
-      })
+      }),
     )
 
     storeRef.store.dispatch(
       getPosts.initiate(1, {
         subscriptionOptions: { pollingInterval: 10 },
         subscribe: true,
-      })
+      }),
     )
 
     await delay(10)
@@ -108,14 +108,14 @@ describe('polling tests', () => {
       getPosts.initiate(1, {
         subscriptionOptions: { pollingInterval: 30000 },
         subscribe: true,
-      })
+      }),
     )
 
     storeRef.store.dispatch(
       getPosts.initiate(1, {
         subscriptionOptions: { pollingInterval: 10 },
         subscribe: true,
-      })
+      }),
     )
 
     await delay(20)
@@ -132,7 +132,7 @@ describe('polling tests', () => {
           skipPollingIfUnfocused: true,
         },
         subscribe: true,
-      })
+      }),
     )
     storeRef.store.dispatch(api.internalActions?.onFocusLost())
 
@@ -146,7 +146,7 @@ describe('polling tests', () => {
           skipPollingIfUnfocused: false,
         },
         subscribe: true,
-      })
+      }),
     )
 
     storeRef.store.dispatch(api.internalActions?.onFocus())
@@ -168,7 +168,7 @@ describe('polling tests', () => {
           skipPollingIfUnfocused: false,
         },
         subscribe: true,
-      })
+      }),
     )
 
     await delay(50)
@@ -181,7 +181,7 @@ describe('polling tests', () => {
           skipPollingIfUnfocused: true,
         },
         subscribe: true,
-      })
+      }),
     )
 
     storeRef.store.dispatch(
@@ -191,7 +191,7 @@ describe('polling tests', () => {
           skipPollingIfUnfocused: false,
         },
         subscribe: true,
-      })
+      }),
     )
 
     storeRef.store.dispatch(api.internalActions?.onFocusLost())
@@ -212,7 +212,7 @@ describe('polling tests', () => {
             skipPollingIfUnfocused: false,
           },
           subscribe: true,
-        })
+        }),
       )
 
     const getSubs = createSubscriptionGetter(queryCacheKey)

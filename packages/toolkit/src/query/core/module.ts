@@ -81,7 +81,7 @@ declare module '../apiTypes' {
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
     ReducerPath extends string,
-    TagTypes extends string
+    TagTypes extends string,
   > {
     [coreModuleName]: {
       /**
@@ -153,7 +153,7 @@ declare module '../apiTypes' {
          */
         getRunningQueryThunk<EndpointName extends QueryKeys<Definitions>>(
           endpointName: EndpointName,
-          args: QueryArgFrom<Definitions[EndpointName]>
+          args: QueryArgFrom<Definitions[EndpointName]>,
         ): ThunkWithReturnValue<
           | QueryActionCreatorResult<
               Definitions[EndpointName] & { type: 'query' }
@@ -173,7 +173,7 @@ declare module '../apiTypes' {
          */
         getRunningMutationThunk<EndpointName extends MutationKeys<Definitions>>(
           endpointName: EndpointName,
-          fixedCacheKeyOrRequestId: string
+          fixedCacheKeyOrRequestId: string,
         ): ThunkWithReturnValue<
           | MutationActionCreatorResult<
               Definitions[EndpointName] & { type: 'mutation' }
@@ -221,7 +221,7 @@ declare module '../apiTypes' {
         prefetch<EndpointName extends QueryKeys<Definitions>>(
           endpointName: EndpointName,
           arg: QueryArgFrom<Definitions[EndpointName]>,
-          options: PrefetchOptions
+          options: PrefetchOptions,
         ): ThunkAction<void, any, any, UnknownAction>
         /**
          * A Redux thunk action creator that, when dispatched, creates and applies a set of JSON diff/patch objects to the current state. This immediately updates the Redux state with those changes.
@@ -351,7 +351,7 @@ declare module '../apiTypes' {
          */
         selectInvalidatedBy: (
           state: RootState<Definitions, string, ReducerPath>,
-          tags: ReadonlyArray<TagDescription<TagTypes>>
+          tags: ReadonlyArray<TagDescription<TagTypes>>,
         ) => Array<{
           endpointName: string
           originalArgs: any
@@ -365,7 +365,7 @@ declare module '../apiTypes' {
          */
         selectCachedArgsForQuery: <QueryName extends QueryKeys<Definitions>>(
           state: RootState<Definitions, string, ReducerPath>,
-          queryName: QueryName
+          queryName: QueryName,
         ) => Array<QueryArgFrom<Definitions[QueryName]>>
       }
       /**
@@ -381,8 +381,8 @@ declare module '../apiTypes' {
         >
           ? ApiEndpointQuery<Definitions[K], Definitions>
           : Definitions[K] extends MutationDefinition<any, any, any, any, any>
-          ? ApiEndpointMutation<Definitions[K], Definitions>
-          : never
+            ? ApiEndpointMutation<Definitions[K], Definitions>
+            : never
       }
     }
   }
@@ -392,7 +392,7 @@ export interface ApiEndpointQuery<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definition extends QueryDefinition<any, any, any, any, any>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Definitions extends EndpointDefinitions
+  Definitions extends EndpointDefinitions,
 > {
   name: string
   /**
@@ -406,7 +406,7 @@ export interface ApiEndpointMutation<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definition extends MutationDefinition<any, any, any, any, any>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Definitions extends EndpointDefinitions
+  Definitions extends EndpointDefinitions,
 > {
   name: string
   /**
@@ -464,7 +464,7 @@ export const coreModule = ({
       refetchOnReconnect,
       invalidationBehavior,
     },
-    context
+    context,
   ) {
     enablePatches()
 
@@ -477,7 +477,7 @@ export const coreModule = ({
       ) {
         if (!tagTypes.includes(tag.type as any)) {
           console.error(
-            `Tag type '${tag.type}' was used, but not specified in \`tagTypes\`!`
+            `Tag type '${tag.type}' was used, but not specified in \`tagTypes\`!`,
           )
         }
       }
@@ -604,7 +604,7 @@ export const coreModule = ({
               select: buildQuerySelector(endpointName, definition),
               initiate: buildInitiateQuery(endpointName, definition),
             },
-            buildMatchThunkActions(queryThunk, endpointName)
+            buildMatchThunkActions(queryThunk, endpointName),
           )
         } else if (isMutationDefinition(definition)) {
           safeAssign(
@@ -614,7 +614,7 @@ export const coreModule = ({
               select: buildMutationSelector(),
               initiate: buildInitiateMutation(endpointName),
             },
-            buildMatchThunkActions(mutationThunk, endpointName)
+            buildMatchThunkActions(mutationThunk, endpointName),
           )
         }
       },

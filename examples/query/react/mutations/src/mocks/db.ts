@@ -26,7 +26,7 @@ export const handlers = [
       return res(
         ctx.json({ error: 'Oh no, there was an error, try again.' }),
         ctx.status(500),
-        ctx.delay(300)
+        ctx.delay(300),
       )
     }
 
@@ -44,7 +44,7 @@ export const handlers = [
       return res(
         ctx.json({ error: 'Oh no, there was an error, try again.' }),
         ctx.status(500),
-        ctx.delay(300)
+        ctx.delay(300),
       )
     }
 

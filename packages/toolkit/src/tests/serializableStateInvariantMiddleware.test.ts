@@ -362,7 +362,7 @@ describe('serializableStateInvariantMiddleware', () => {
           new Tuple(
             createSerializableStateInvariantMiddleware({
               ignoredActionPaths: [],
-            })
+            }),
           ),
       }).dispatch({ type: 'test', meta: { arg: nonSerializableValue } })
 
@@ -386,7 +386,7 @@ describe('serializableStateInvariantMiddleware', () => {
           new Tuple(
             createSerializableStateInvariantMiddleware({
               ignoredActionPaths: ['payload', 'meta.arg'],
-            })
+            }),
           ),
       }).dispatch({
         type: 'test',
@@ -404,7 +404,7 @@ describe('serializableStateInvariantMiddleware', () => {
           new Tuple(
             createSerializableStateInvariantMiddleware({
               ignoredActionPaths: [/^payload\..*$/],
-            })
+            }),
           ),
       }).dispatch({
         type: 'test',
@@ -519,7 +519,7 @@ describe('serializableStateInvariantMiddleware', () => {
               return true
             },
             ignoreState: true,
-          })
+          }),
         ),
     })
 
@@ -548,7 +548,7 @@ describe('serializableStateInvariantMiddleware', () => {
             },
             ignoreState: true,
             ignoreActions: true,
-          })
+          }),
         ),
     })
 
@@ -580,7 +580,7 @@ describe('serializableStateInvariantMiddleware', () => {
       payload: new Array(10000).fill({ value: 'more' }),
     })
     expect(getLog().log).toMatch(
-      /^SerializableStateInvariantMiddleware took \d*ms, which is more than the warning threshold of 4ms./
+      /^SerializableStateInvariantMiddleware took \d*ms, which is more than the warning threshold of 4ms./,
     )
   })
 
@@ -626,7 +626,7 @@ describe('serializableStateInvariantMiddleware', () => {
     })
 
     const state = createNextState([], () =>
-      new Array(50).fill(0).map((x, i) => ({ i }))
+      new Array(50).fill(0).map((x, i) => ({ i })),
     )
     expect(isNestedFrozen(state)).toBe(true)
 

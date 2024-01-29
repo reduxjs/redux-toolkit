@@ -28,7 +28,7 @@ declare module '../../endpointDefinitions' {
     ResultType,
     QueryArg,
     BaseQuery extends BaseQueryFn,
-    ReducerPath extends string = string
+    ReducerPath extends string = string,
   > {
     /**
      * Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only. _(This value is in seconds.)_
@@ -64,7 +64,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   const handler: ApiMiddlewareInternalHandler = (
     action,
     mwApi,
-    internalState
+    internalState,
   ) => {
     if (unsubscribeQueryResult.match(action)) {
       const state = mwApi.getState()[reducerPath]
@@ -74,7 +74,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
         queryCacheKey,
         state.queries[queryCacheKey]?.endpointName,
         mwApi,
-        state.config
+        state.config,
       )
     }
 
@@ -96,7 +96,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
           queryCacheKey as QueryCacheKey,
           queryState?.endpointName,
           mwApi,
-          state.config
+          state.config,
         )
       }
     }
@@ -106,7 +106,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     queryCacheKey: QueryCacheKey,
     endpointName: string | undefined,
     api: SubMiddlewareApi,
-    config: ConfigState<string>
+    config: ConfigState<string>,
   ) {
     const endpointDefinition = context.endpointDefinitions[
       endpointName!
@@ -124,7 +124,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     // Also avoid negative values too.
     const finalKeepUnusedDataFor = Math.max(
       0,
-      Math.min(keepUnusedDataFor, THIRTY_TWO_BIT_MAX_TIMER_SECONDS)
+      Math.min(keepUnusedDataFor, THIRTY_TWO_BIT_MAX_TIMER_SECONDS),
     )
 
     if (!anySubscriptionsRemainingForKey(queryCacheKey)) {

@@ -30,3 +30,5 @@ typesversions
 !.yarn/versions
 .pnp.*
 *.tgz
+
+tsconfig.vitest-temp.json

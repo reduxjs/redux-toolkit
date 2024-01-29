@@ -110,7 +110,7 @@ describe('missing middleware', () => {
     }
     expect(doDispatch1).toThrowError(reMatchMissingMiddlewareError)
     expect(doDispatch2).toThrowError(
-      /Warning: Middleware for RTK-Query API at reducerPath "api2" has not been added to the store/
+      /Warning: Middleware for RTK-Query API at reducerPath "api2" has not been added to the store/,
     )
   })
 })
@@ -141,7 +141,7 @@ describe('missing reducer', () => {
       expect(getLog().log).toBe(
         shouldWarn
           ? 'Error: No data found at `state.api`. Did you forget to add the reducer to the store?'
-          : ''
+          : '',
       )
     })
   })
@@ -166,7 +166,7 @@ describe('missing reducer', () => {
     // @ts-expect-error
     api1.endpoints.q1.select(undefined)(store.getState())
     expect(getLog().log).toBe(
-      'Error: No data found at `state.api`. Did you forget to add the reducer to the store?'
+      'Error: No data found at `state.api`. Did you forget to add the reducer to the store?',
     )
   })
 
@@ -181,7 +181,7 @@ describe('missing reducer', () => {
     // @ts-expect-error
     api2.endpoints.q1.select(undefined)(store.getState())
     expect(getLog().log).toBe(
-      'Error: No data found at `state.api`. Did you forget to add the reducer to the store?\nError: No data found at `state.api2`. Did you forget to add the reducer to the store?'
+      'Error: No data found at `state.api`. Did you forget to add the reducer to the store?\nError: No data found at `state.api2`. Did you forget to add the reducer to the store?',
     )
   })
 })
@@ -197,7 +197,7 @@ test('warns for reducer and also throws error if everything is missing', async (
   }
   expect(doDispatch).toThrowError(reMatchMissingMiddlewareError)
   expect(getLog().log).toBe(
-    'Error: No data found at `state.api`. Did you forget to add the reducer to the store?'
+    'Error: No data found at `state.api`. Did you forget to add the reducer to the store?',
   )
 })
 
@@ -218,7 +218,7 @@ describe('warns on multiple apis using the same `reducerPath`', () => {
     expect(getLog().log).toBe(
       `There is a mismatch between slice and middleware for the reducerPath "api".
 You can only have one api per reducer path, this will lead to crashes in various situations!
-If you have multiple apis, you *have* to specify the reducerPath option when using createApi!`
+If you have multiple apis, you *have* to specify the reducerPath option when using createApi!`,
     )
   })
 
@@ -240,7 +240,7 @@ You can only have one api per reducer path, this will lead to crashes in various
 If you have multiple apis, you *have* to specify the reducerPath option when using createApi!
 There is a mismatch between slice and middleware for the reducerPath "api".
 You can only have one api per reducer path, this will lead to crashes in various situations!
-If you have multiple apis, you *have* to specify the reducerPath option when using createApi!`
+If you have multiple apis, you *have* to specify the reducerPath option when using createApi!`,
     )
   })
 
@@ -259,7 +259,7 @@ If you have multiple apis, you *have* to specify the reducerPath option when usi
     expect(getLog().log).toBe(
       `There is a mismatch between slice and middleware for the reducerPath "api".
 You can only have one api per reducer path, this will lead to crashes in various situations!
-If you have multiple apis, you *have* to specify the reducerPath option when using createApi!`
+If you have multiple apis, you *have* to specify the reducerPath option when using createApi!`,
     )
   })
 
@@ -285,7 +285,7 @@ If you have multiple apis, you *have* to specify the reducerPath option when usi
     expect(getLog().log).toBe(
       `There is a mismatch between slice and middleware for the reducerPath "api".
 You can only have one api per reducer path, this will lead to crashes in various situations!
-If you have multiple apis, you *have* to specify the reducerPath option when using createApi!`
+If you have multiple apis, you *have* to specify the reducerPath option when using createApi!`,
     )
   })
 })

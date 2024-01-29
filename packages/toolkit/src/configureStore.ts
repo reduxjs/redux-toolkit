@@ -46,7 +46,7 @@ export interface CommonConfigureStoreOptions<
   S = any,
   M extends Tuple<Middlewares<S>> = Tuple<Middlewares<S>>,
   E extends Tuple<Enhancers> = Tuple<Enhancers>,
-  P = S
+  P = S,
 > {
   /**
    * An array of Redux middleware to install, or a callback receiving `getDefaultMiddleware` and returning a Tuple of middleware.
@@ -91,7 +91,7 @@ export interface ConfigureStoreOptions<
   A extends Action = UnknownAction,
   M extends Tuple<Middlewares<S>> = Tuple<Middlewares<S>>,
   E extends Tuple<Enhancers> = Tuple<Enhancers>,
-  P = S
+  P = S,
 > extends CommonConfigureStoreOptions<S, M, E, P> {
   /**
    * A single reducer function that will be used as the root reducer, or an
@@ -105,7 +105,7 @@ export interface ConfigureStoreOptionsWithSlices<
   M extends Tuple<Middlewares<StateFromSlices<Slices>>> = Tuple<
     Middlewares<Id<StateFromSlices<Slices>>>
   >,
-  E extends Tuple<Enhancers> = Tuple<Enhancers>
+  E extends Tuple<Enhancers> = Tuple<Enhancers>,
 > extends CommonConfigureStoreOptions<
     StateFromSlices<Slices>,
     M,
@@ -128,23 +128,23 @@ type Enhancers = ReadonlyArray<StoreEnhancer>
 export type EnhancedStore<
   S = any,
   A extends Action = UnknownAction,
-  E extends Enhancers = Enhancers
+  E extends Enhancers = Enhancers,
 > = ExtractStoreExtensions<E> &
   Store<S, A, UnknownIfNonSpecific<ExtractStateExtensions<E>>>
 
 export function configureStore<
   Slices extends [
     AnySliceLike | ReducerMap,
-    ...Array<AnySliceLike | ReducerMap>
+    ...Array<AnySliceLike | ReducerMap>,
   ],
   M extends Tuple<Middlewares<StateFromSlices<Slices>>> = Tuple<
     [ThunkMiddlewareFor<Id<StateFromSlices<Slices>>>]
   >,
   E extends Tuple<Enhancers> = Tuple<
     [StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>, StoreEnhancer]
-  >
+  >,
 >(
-  options: ConfigureStoreOptionsWithSlices<Slices, M, E>
+  options: ConfigureStoreOptionsWithSlices<Slices, M, E>,
 ): EnhancedStore<Id<StateFromSlices<Slices>>, UnknownAction, E>
 export function configureStore<
   S = any,
@@ -153,7 +153,7 @@ export function configureStore<
   E extends Tuple<Enhancers> = Tuple<
     [StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>, StoreEnhancer]
   >,
-  P = S
+  P = S,
 >(options: ConfigureStoreOptions<S, A, M, E, P>): EnhancedStore<S, A, E>
 /**
  * A friendly abstraction over the standard Redux `createStore()` function.
@@ -166,7 +166,7 @@ export function configureStore<
 export function configureStore(
   options:
     | ConfigureStoreOptions
-    | ConfigureStoreOptionsWithSlices<[AnySliceLike]>
+    | ConfigureStoreOptionsWithSlices<[AnySliceLike]>,
 ): EnhancedStore {
   const getDefaultMiddleware = buildGetDefaultMiddleware()
 
@@ -189,7 +189,7 @@ export function configureStore(
       rootReducer = combineReducers(reducer)
     } else {
       throw new Error(
-        '`reducer` is a required argument, and must be a function or an object of functions that can be passed to combineReducers'
+        '`reducer` is a required argument, and must be a function or an object of functions that can be passed to combineReducers',
       )
     }
   }
@@ -204,7 +204,7 @@ export function configureStore(
 
     if (!IS_PRODUCTION && !Array.isArray(finalMiddleware)) {
       throw new Error(
-        'when using a middleware builder function, an array of middleware must be returned'
+        'when using a middleware builder function, an array of middleware must be returned',
       )
     }
   } else {
@@ -215,7 +215,7 @@ export function configureStore(
     finalMiddleware.some((item: any) => typeof item !== 'function')
   ) {
     throw new Error(
-      'each middleware provided to configureStore must be a function'
+      'each middleware provided to configureStore must be a function',
     )
   }
 
@@ -250,7 +250,7 @@ export function configureStore(
     storeEnhancers.some((item: any) => typeof item !== 'function')
   ) {
     throw new Error(
-      'each enhancer provided to configureStore must be a function'
+      'each enhancer provided to configureStore must be a function',
     )
   }
   if (
@@ -259,7 +259,7 @@ export function configureStore(
     !storeEnhancers.includes(middlewareEnhancer)
   ) {
     console.error(
-      'middlewares were provided, but middleware enhancer was not included in final enhancers - make sure to call `getDefaultEnhancers`'
+      'middlewares were provided, but middleware enhancer was not included in final enhancers - make sure to call `getDefaultEnhancers`',
     )
   }
 

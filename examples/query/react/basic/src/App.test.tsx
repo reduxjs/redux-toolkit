@@ -18,7 +18,7 @@ describe('App', () => {
     }) as HTMLImageElement
 
     expect(img.src).toBe(
-      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/1.png'
+      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/1.png',
     )
   })
 
@@ -29,8 +29,8 @@ describe('App', () => {
         'https://pokeapi.co/api/v2/pokemon/bulbasaur',
         (req, res, ctx) => {
           return res(ctx.status(500))
-        }
-      )
+        },
+      ),
     )
 
     renderWithProviders(<App />)

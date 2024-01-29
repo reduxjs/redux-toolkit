@@ -42,18 +42,18 @@ describe('ApiProvider', () => {
     const { getByText, getByTestId } = render(
       <ApiProvider api={api}>
         <User />
-      </ApiProvider>
+      </ApiProvider>,
     )
 
     await waitFor(() =>
-      expect(getByTestId('isFetching').textContent).toBe('false')
+      expect(getByTestId('isFetching').textContent).toBe('false'),
     )
     fireEvent.click(getByText('Increment value'))
     await waitFor(() =>
-      expect(getByTestId('isFetching').textContent).toBe('true')
+      expect(getByTestId('isFetching').textContent).toBe('true'),
     )
     await waitFor(() =>
-      expect(getByTestId('isFetching').textContent).toBe('false')
+      expect(getByTestId('isFetching').textContent).toBe('false'),
     )
     fireEvent.click(getByText('Increment value'))
     // Being that nothing has changed in the args, this should never fire.
@@ -64,10 +64,10 @@ describe('ApiProvider', () => {
       render(
         <Provider store={configureStore({ reducer: () => null })}>
           <ApiProvider api={api}>child</ApiProvider>
-        </Provider>
-      )
+        </Provider>,
+      ),
     ).toThrowErrorMatchingInlineSnapshot(
-      `[Error: Existing Redux context detected. If you already have a store set up, please use the traditional Redux setup.]`
+      `[Error: Existing Redux context detected. If you already have a store set up, please use the traditional Redux setup.]`,
     )
   })
 })

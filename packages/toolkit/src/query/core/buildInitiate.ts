@@ -28,7 +28,7 @@ declare module './module' {
   export interface ApiEndpointQuery<
     Definition extends QueryDefinition<any, any, any, any, any>,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    Definitions extends EndpointDefinitions
+    Definitions extends EndpointDefinitions,
   > {
     initiate: StartQueryActionCreator<Definition>
   }
@@ -36,7 +36,7 @@ declare module './module' {
   export interface ApiEndpointMutation<
     Definition extends MutationDefinition<any, any, any, any, any>,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    Definitions extends EndpointDefinitions
+    Definitions extends EndpointDefinitions,
   > {
     initiate: StartMutationActionCreator<Definition>
   }
@@ -54,14 +54,14 @@ export interface StartQueryActionCreatorOptions {
 }
 
 type StartQueryActionCreator<
-  D extends QueryDefinition<any, any, any, any, any>
+  D extends QueryDefinition<any, any, any, any, any>,
 > = (
   arg: QueryArgFrom<D>,
-  options?: StartQueryActionCreatorOptions
+  options?: StartQueryActionCreatorOptions,
 ) => ThunkAction<QueryActionCreatorResult<D>, any, any, UnknownAction>
 
 export type QueryActionCreatorResult<
-  D extends QueryDefinition<any, any, any, any>
+  D extends QueryDefinition<any, any, any, any>,
 > = SafePromise<QueryResultSelectorResult<D>> & {
   arg: QueryArgFrom<D>
   requestId: string
@@ -75,7 +75,7 @@ export type QueryActionCreatorResult<
 }
 
 type StartMutationActionCreator<
-  D extends MutationDefinition<any, any, any, any>
+  D extends MutationDefinition<any, any, any, any>,
 > = (
   arg: QueryArgFrom<D>,
   options?: {
@@ -87,11 +87,11 @@ type StartMutationActionCreator<
      */
     track?: boolean
     fixedCacheKey?: string
-  }
+  },
 ) => ThunkAction<MutationActionCreatorResult<D>, any, any, UnknownAction>
 
 export type MutationActionCreatorResult<
-  D extends MutationDefinition<any, any, any, any>
+  D extends MutationDefinition<any, any, any, any>,
 > = SafePromise<
   | { data: ResultTypeFrom<D> }
   | {
@@ -246,7 +246,7 @@ export function buildInitiate({
      * we could use it to validate the result, but it's probably not necessary
      */
     _endpointName: string,
-    fixedCacheKeyOrRequestId: string
+    fixedCacheKeyOrRequestId: string,
   ) {
     return (dispatch: Dispatch) => {
       return runningMutations.get(dispatch)?.[fixedCacheKeyOrRequestId] as
@@ -269,7 +269,7 @@ export function buildInitiate({
     if (process.env.NODE_ENV !== 'production') {
       if ((middlewareWarning as any).triggered) return
       const returnedValue = dispatch(
-        api.internalActions.internal_getRTKQSubscriptions()
+        api.internalActions.internal_getRTKQSubscriptions(),
       )
 
       ;(middlewareWarning as any).triggered = true
@@ -283,7 +283,7 @@ export function buildInitiate({
         // Otherwise, must not have been added
         throw new Error(
           `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
-You must add the middleware for RTK-Query to function correctly!`
+You must add the middleware for RTK-Query to function correctly!`,
         )
       }
     }
@@ -291,7 +291,7 @@ You must add the middleware for RTK-Query to function correctly!`
 
   function buildInitiateQuery(
     endpointName: string,
-    endpointDefinition: QueryDefinition<any, any, any, any>
+    endpointDefinition: QueryDefinition<any, any, any, any>,
   ) {
     const queryAction: StartQueryActionCreator<any> =
       (
@@ -301,7 +301,7 @@ You must add the middleware for RTK-Query to function correctly!`
           forceRefetch,
           subscriptionOptions,
           [forceQueryFnSymbol]: forceQueryFn,
-        } = {}
+        } = {},
       ) =>
       (dispatch, getState) => {
         const queryCacheKey = serializeQueryArgs({
@@ -342,14 +342,14 @@ You must add the middleware for RTK-Query to function correctly!`
               // -> we want to resolve it once data has been written with the data that will be written
               thunkResult.then(selectFromState)
             : skippedSynchronously && !runningQuery
-            ? // a query has been skipped due to a condition and we do not have any currently running query
-              // -> we want to resolve it immediately with the current data
-              Promise.resolve(stateAfter)
-            : // query just started or one is already in flight
-              // -> wait for the running query, then resolve with data from after that
-              Promise.all([runningQuery, thunkResult]).then(
-                selectFromState
-              )) as SafePromise<any>,
+              ? // a query has been skipped due to a condition and we do not have any currently running query
+                // -> we want to resolve it immediately with the current data
+                Promise.resolve(stateAfter)
+              : // query just started or one is already in flight
+                // -> wait for the running query, then resolve with data from after that
+                Promise.all([runningQuery, thunkResult]).then(
+                  selectFromState,
+                )) as SafePromise<any>,
           {
             arg,
             requestId,
@@ -367,7 +367,7 @@ You must add the middleware for RTK-Query to function correctly!`
             },
             refetch: () =>
               dispatch(
-                queryAction(arg, { subscribe: false, forceRefetch: true })
+                queryAction(arg, { subscribe: false, forceRefetch: true }),
               ),
             unsubscribe() {
               if (subscribe)
@@ -375,7 +375,7 @@ You must add the middleware for RTK-Query to function correctly!`
                   unsubscribeQueryResult({
                     queryCacheKey,
                     requestId,
-                  })
+                  }),
                 )
             },
             updateSubscriptionOptions(options: SubscriptionOptions) {
@@ -386,10 +386,10 @@ You must add the middleware for RTK-Query to function correctly!`
                   requestId,
                   queryCacheKey,
                   options,
-                })
+                }),
               )
             },
-          }
+          },
         )
 
         if (!runningQuery && !skippedSynchronously && !forceQueryFn) {
@@ -411,7 +411,7 @@ You must add the middleware for RTK-Query to function correctly!`
   }
 
   function buildInitiateMutation(
-    endpointName: string
+    endpointName: string,
   ): StartMutationActionCreator<any> {
     return (arg, { track = true, fixedCacheKey } = {}) =>
       (dispatch, getState) => {
@@ -427,7 +427,7 @@ You must add the middleware for RTK-Query to function correctly!`
         const { requestId, abort, unwrap } = thunkResult
         const returnValuePromise = asSafePromise(
           thunkResult.unwrap().then((data) => ({ data })),
-          (error) => ({ error })
+          (error) => ({ error }),
         )
 
         const reset = () => {

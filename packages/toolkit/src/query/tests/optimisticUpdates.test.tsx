@@ -5,7 +5,7 @@ import {
   actionsReducer,
   hookWaitFor,
   setupApiStore,
-} from './helpers'
+} from '../../tests/utils/helpers'
 import type { InvalidationState } from '../core/apiState'
 
 interface Post {
@@ -51,7 +51,7 @@ const api = createApi({
         const { undo } = dispatch(
           api.util.updateQueryData('post', id, (draft) => {
             Object.assign(draft, patch)
-          })
+          }),
         )
         queryFulfilled.catch(undo)
       },
@@ -98,7 +98,7 @@ describe('basic lifecycle', () => {
       () => extendedApi.endpoints.test.useMutation(),
       {
         wrapper: storeRef.wrapper,
-      }
+      },
     )
 
     baseQuery.mockResolvedValue('success')
@@ -121,7 +121,7 @@ describe('basic lifecycle', () => {
       () => extendedApi.endpoints.test.useMutation(),
       {
         wrapper: storeRef.wrapper,
-      }
+      },
     )
 
     baseQuery.mockRejectedValueOnce('error')
@@ -172,7 +172,7 @@ describe('updateQueryData', () => {
       returnValue = storeRef.store.dispatch(
         api.util.updateQueryData('post', '3', (draft) => {
           draft.contents = 'I love cheese!'
-        })
+        }),
       )
     })
 
@@ -191,7 +191,7 @@ describe('updateQueryData', () => {
 
     act(() => {
       storeRef.store.dispatch(
-        api.util.patchQueryData('post', '3', returnValue.inversePatches)
+        api.util.patchQueryData('post', '3', returnValue.inversePatches),
       )
     })
 
@@ -233,8 +233,8 @@ describe('updateQueryData', () => {
               contents: 'TODO',
             })
           },
-          true
-        )
+          true,
+        ),
       )
     })
 
@@ -292,8 +292,8 @@ describe('updateQueryData', () => {
               contents: 'TODO',
             })
           },
-          false
-        )
+          false,
+        ),
       )
     })
 
@@ -344,7 +344,7 @@ describe('updateQueryData', () => {
       returnValue = storeRef.store.dispatch(
         api.util.updateQueryData('post', '4', (draft) => {
           draft.contents = 'I love cheese!'
-        })
+        }),
       )
     })
 
@@ -384,7 +384,7 @@ describe('full integration', () => {
       }),
       {
         wrapper: storeRef.wrapper,
-      }
+      },
     )
     await hookWaitFor(() => expect(result.current.query.isSuccess).toBeTruthy())
 
@@ -409,7 +409,7 @@ describe('full integration', () => {
         id: '3',
         title: 'Meanwhile, this changed server-side.',
         contents: 'Delicious cheese!',
-      })
+      }),
     )
   })
 
@@ -435,7 +435,7 @@ describe('full integration', () => {
       }),
       {
         wrapper: storeRef.wrapper,
-      }
+      },
     )
     await hookWaitFor(() => expect(result.current.query.isSuccess).toBeTruthy())
 
@@ -462,7 +462,7 @@ describe('full integration', () => {
         id: '3',
         title: 'All about cheese.',
         contents: 'TODO',
-      })
+      }),
     )
 
     // mutation failed - will not invalidate query and not refetch data from the server
@@ -474,8 +474,8 @@ describe('full integration', () => {
             title: 'Meanwhile, this changed server-side.',
             contents: 'TODO',
           }),
-        50
-      )
+        50,
+      ),
     ).rejects.toBeTruthy()
 
     act(() => void result.current.query.refetch())
@@ -488,7 +488,7 @@ describe('full integration', () => {
           title: 'Meanwhile, this changed server-side.',
           contents: 'TODO',
         }),
-      50
+      50,
     )
   })
 })

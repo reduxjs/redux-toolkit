@@ -34,14 +34,14 @@ describe(createDraftSafeSelector.withTypes, () => {
     expect(createTypedDraftSafeSelector.withTypes).toEqual(expect.any(Function))
 
     expect(createTypedDraftSafeSelector.withTypes().withTypes).toEqual(
-      expect.any(Function)
+      expect.any(Function),
     )
 
     expect(createTypedDraftSafeSelector).toBe(createDraftSafeSelector)
 
     const selectTodoIds = createTypedDraftSafeSelector(
       [(state) => state.todos],
-      (todos) => todos.map(({ id }) => id)
+      (todos) => todos.map(({ id }) => id),
     )
 
     expect(selectTodoIds(rootState)).to.be.an('array').that.is.not.empty

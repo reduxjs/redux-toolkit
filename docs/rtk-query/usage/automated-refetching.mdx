@@ -809,8 +809,8 @@ const api = createApi({
         result
           ? [{ type: 'Post', id }]
           : error?.status === 401
-          ? ['UNAUTHORIZED']
-          : ['UNKNOWN_ERROR'],
+            ? ['UNAUTHORIZED']
+            : ['UNKNOWN_ERROR'],
     }),
     login: build.mutation<LoginResponse, void>({
       query: () => '/login',
@@ -908,7 +908,7 @@ import type { Post, User } from './types'
 // highlight-start
 function providesList<R extends { id: string | number }[], T extends string>(
   resultsWithIds: R | undefined,
-  tagType: T
+  tagType: T,
 ) {
   return resultsWithIds
     ? [

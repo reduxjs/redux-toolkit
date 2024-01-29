@@ -22,7 +22,7 @@ const evalToString = (ast) => {
       return ast.quasis.reduce(
         (concatenatedValue, templateElement) =>
           concatenatedValue + templateElement.value.raw,
-        ''
+        '',
       )
     case 'Identifier':
       return ast.name
@@ -114,20 +114,20 @@ module.exports = (babel) => {
             path,
             'formatProdErrorMessage',
             '@reduxjs/toolkit',
-            { nameHint: 'formatProdErrorMessage' }
+            { nameHint: 'formatProdErrorMessage' },
           )
 
           // Creates a function call to output the message to the error code page on the website
           const prodMessage = t.callExpression(
             formatProdErrorMessageIdentifier,
-            [t.numericLiteral(errorIndex)]
+            [t.numericLiteral(errorIndex)],
           )
 
           if (minify) {
             path.replaceWith(
               t.throwStatement(
-                t.newExpression(t.identifier('Error'), [prodMessage])
-              )
+                t.newExpression(t.identifier('Error'), [prodMessage]),
+              ),
             )
           } else {
             path.replaceWith(
@@ -137,13 +137,13 @@ module.exports = (babel) => {
                     t.binaryExpression(
                       '===',
                       t.identifier('process.env.NODE_ENV'),
-                      t.stringLiteral('production')
+                      t.stringLiteral('production'),
                     ),
                     prodMessage,
-                    path.node.argument.arguments[0]
+                    path.node.argument.arguments[0],
                   ),
-                ])
-              )
+                ]),
+              ),
             )
           }
         }

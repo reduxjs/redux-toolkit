@@ -46,7 +46,7 @@ import { isUpsertQuery } from './buildInitiate'
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
   queryCacheKey: QueryCacheKey,
-  update: (substate: QuerySubState<any>) => void
+  update: (substate: QuerySubState<any>) => void,
 ) {
   const substate = state[queryCacheKey]
   if (substate) {
@@ -57,7 +57,7 @@ function updateQuerySubstateIfExists(
 export function getMutationCacheKey(
   id:
     | MutationSubstateIdentifier
-    | { requestId: string; arg: { fixedCacheKey?: string | undefined } }
+    | { requestId: string; arg: { fixedCacheKey?: string | undefined } },
 ): string
 export function getMutationCacheKey(id: {
   fixedCacheKey?: string
@@ -68,7 +68,7 @@ export function getMutationCacheKey(
   id:
     | { fixedCacheKey?: string; requestId?: string }
     | MutationSubstateIdentifier
-    | { requestId: string; arg: { fixedCacheKey?: string | undefined } }
+    | { requestId: string; arg: { fixedCacheKey?: string | undefined } },
 ): string | undefined {
   return ('arg' in id ? id.arg.fixedCacheKey : id.fixedCacheKey) ?? id.requestId
 }
@@ -78,7 +78,7 @@ function updateMutationSubstateIfExists(
   id:
     | MutationSubstateIdentifier
     | { requestId: string; arg: { fixedCacheKey?: string | undefined } },
-  update: (substate: MutationSubState<any>) => void
+  update: (substate: MutationSubState<any>) => void,
 ) {
   const substate = state[getMutationCacheKey(id)]
   if (substate) {
@@ -119,7 +119,9 @@ export function buildSlice({
       removeQueryResult: {
         reducer(
           draft,
-          { payload: { queryCacheKey } }: PayloadAction<QuerySubstateIdentifier>
+          {
+            payload: { queryCacheKey },
+          }: PayloadAction<QuerySubstateIdentifier>,
         ) {
           delete draft[queryCacheKey]
         },
@@ -132,7 +134,7 @@ export function buildSlice({
             payload: { queryCacheKey, patches },
           }: PayloadAction<
             QuerySubstateIdentifier & { patches: readonly Patch[] }
-          >
+          >,
         ) {
           updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
             substate.data = applyPatches(substate.data as any, patches.concat())
@@ -200,7 +202,7 @@ export function buildSlice({
                         fulfilledTimeStamp,
                         requestId,
                       })
-                    }
+                    },
                   )
                   substate.data = newData
                 } else {
@@ -215,14 +217,14 @@ export function buildSlice({
                         isDraft(substate.data)
                           ? original(substate.data)
                           : substate.data,
-                        payload
+                        payload,
                       )
                     : payload
               }
 
               delete substate.error
               substate.fulfilledTimeStamp = meta.fulfilledTimeStamp
-            }
+            },
           )
         })
         .addCase(
@@ -240,9 +242,9 @@ export function buildSlice({
                   substate.status = QueryStatus.rejected
                   substate.error = (payload ?? error) as any
                 }
-              }
+              },
             )
-          }
+          },
         )
         .addMatcher(hasRehydrationInfo, (draft, action) => {
           const { queries } = extractRehydrationInfo(action)!
@@ -285,7 +287,7 @@ export function buildSlice({
               endpointName: arg.endpointName,
               startedTimeStamp,
             }
-          }
+          },
         )
         .addCase(mutationThunk.fulfilled, (draft, { payload, meta }) => {
           if (!meta.arg.track) return
@@ -334,7 +336,7 @@ export function buildSlice({
           action: PayloadAction<{
             queryCacheKey: QueryCacheKey
             providedTags: readonly FullTagDescription<string>[]
-          }>
+          }>,
         ) {
           const { queryCacheKey, providedTags } = action.payload
 
@@ -370,7 +372,7 @@ export function buildSlice({
           (draft, { payload: { queryCacheKey } }) => {
             for (const tagTypeSubscriptions of Object.values(draft)) {
               for (const idSubscriptions of Object.values(
-                tagTypeSubscriptions
+                tagTypeSubscriptions,
               )) {
                 const foundAt = idSubscriptions.indexOf(queryCacheKey)
                 if (foundAt !== -1) {
@@ -378,7 +380,7 @@ export function buildSlice({
                 }
               }
             }
-          }
+          },
         )
         .addMatcher(hasRehydrationInfo, (draft, action) => {
           const { provided } = extractRehydrationInfo(action)!
@@ -404,7 +406,7 @@ export function buildSlice({
               action,
               'providesTags',
               definitions,
-              assertTagType
+              assertTagType,
             )
             const { queryCacheKey } = action.meta.arg
 
@@ -413,9 +415,9 @@ export function buildSlice({
               invalidationSlice.actions.updateProvidedBy({
                 queryCacheKey,
                 providedTags,
-              })
+              }),
             )
-          }
+          },
         )
     },
   })
@@ -433,13 +435,13 @@ export function buildSlice({
             requestId: string
             options: Subscribers[number]
           } & QuerySubstateIdentifier
-        >
+        >,
       ) {
         // Dummy
       },
       unsubscribeQueryResult(
         d,
-        a: PayloadAction<{ requestId: string } & QuerySubstateIdentifier>
+        a: PayloadAction<{ requestId: string } & QuerySubstateIdentifier>,
       ) {
         // Dummy
       },
