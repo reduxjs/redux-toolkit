@@ -2,7 +2,7 @@ import React from 'react'
 
 export const DetailedExplanation = ({
   children,
-  title = 'Detailed Explanation'
+  title = 'Detailed Explanation',
 }) => {
   return (
     <details className="detailed-explanation">

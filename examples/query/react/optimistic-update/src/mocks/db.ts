@@ -19,7 +19,7 @@ export const handlers = [
       return res(
         ctx.json({ error: 'Oh no, there was an error' }),
         ctx.status(500),
-        ctx.delay(400)
+        ctx.delay(400),
       )
     }
 

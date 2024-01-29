@@ -24,7 +24,7 @@ export const setupTests = () => {
   }
   function renderWithProvider(
     children: React.ReactChild,
-    { route, path }: RenderOptions = { route: '/', path: '' }
+    { route, path }: RenderOptions = { route: '/', path: '' },
   ) {
     const history = createMemoryHistory()
     history.push(route)
@@ -39,7 +39,7 @@ export const setupTests = () => {
             children
           )}
         </HistoryRouter>
-      </Provider>
+      </Provider>,
     )
   }
 

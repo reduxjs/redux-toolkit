@@ -5,7 +5,7 @@ import polling from '../features/polling/pollingSlice'
 import auth from '../features/auth/authSlice'
 
 export const createStore = (
-  options?: ConfigureStoreOptions['preloadedState'] | undefined
+  options?: ConfigureStoreOptions['preloadedState'] | undefined,
 ) =>
   configureStore({
     reducer: {

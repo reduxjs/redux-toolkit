@@ -12,7 +12,7 @@ worker
   .start({ quiet: true })
   .then(() => {
     const rootNode = ReactDOM.createRoot(
-      document.getElementById('root') as HTMLElement
+      document.getElementById('root') as HTMLElement,
     )
 
     return rootNode.render(
@@ -24,7 +24,7 @@ worker
             </BrowserRouter>
           </ChakraProvider>
         </Provider>
-      </React.StrictMode>
+      </React.StrictMode>,
     )
   })
   .catch(console.error)

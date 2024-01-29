@@ -1,10 +1,13 @@
-import * as React from 'react';
-import { nanoid } from '@reduxjs/toolkit';
-import { useEffect } from 'react';
-import { useGetTimeQuery, usePrefetchTime } from '../../app/services/times';
-import { Container } from '../common/Container';
-import { useTypedSelector } from '../../app/store';
-import { selectGlobalPollingEnabled, selectPollingConfigByApp } from '../polling/pollingSlice';
+import * as React from 'react'
+import { nanoid } from '@reduxjs/toolkit'
+import { useEffect } from 'react'
+import { useGetTimeQuery, usePrefetchTime } from '../../app/services/times'
+import { Container } from '../common/Container'
+import { useTypedSelector } from '../../app/store'
+import {
+  selectGlobalPollingEnabled,
+  selectPollingConfigByApp,
+} from '../polling/pollingSlice'
 
 const timezones: Record<string, string> = {
   '-12:00': '(GMT -12:00) Eniwetok, Kwajalein',
@@ -47,9 +50,13 @@ const timezones: Record<string, string> = {
   '+12:75': '(GMT +12:45) Chatham Islands',
   '+13:00': '(GMT +13:00) Apia, Nukualofa',
   '+14:00': '(GMT +14:00) Line Islands, Tokelau',
-};
+}
 
-const TimeZoneSelector = ({ onChange }: { onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void }) => {
+const TimeZoneSelector = ({
+  onChange,
+}: {
+  onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void
+}) => {
   return (
     <select name="timezone_offset" id="timezone-offset" onChange={onChange}>
       <option value="">Select one...</option>
@@ -59,8 +66,8 @@ const TimeZoneSelector = ({ onChange }: { onChange: (event: React.ChangeEvent<HT
         </option>
       ))}
     </select>
-  );
-};
+  )
+}
 
 const intervalOptions = [
   { label: '0 - Off', value: 0 },
@@ -69,18 +76,20 @@ const intervalOptions = [
   { label: '5s', value: 5000 },
   { label: '10s', value: 10000 },
   { label: '1m', value: 60000 },
-];
+]
 
 const TimeDisplay = ({ offset, label }: { offset: string; label: string }) => {
-  const globalPolling = useTypedSelector(selectGlobalPollingEnabled);
-  const { enabled: timesPolling } = useTypedSelector((state) => selectPollingConfigByApp(state, 'times'));
+  const globalPolling = useTypedSelector(selectGlobalPollingEnabled)
+  const { enabled: timesPolling } = useTypedSelector((state) =>
+    selectPollingConfigByApp(state, 'times'),
+  )
 
-  const canPoll = globalPolling && timesPolling;
+  const canPoll = globalPolling && timesPolling
 
-  const [pollingInterval, setPollingInterval] = React.useState(0);
+  const [pollingInterval, setPollingInterval] = React.useState(0)
   const { data, refetch, isFetching } = useGetTimeQuery(offset, {
     pollingInterval: canPoll ? pollingInterval : 0,
-  });
+  })
 
   return (
     <div style={{ ...(isFetching ? { background: '#e6ffe8' } : {}) }}>
@@ -89,7 +98,12 @@ const TimeDisplay = ({ offset, label }: { offset: string; label: string }) => {
       </p>
       <p>
         <button onClick={refetch}>refetch manually</button> Polling Interval:{' '}
-        <select value={pollingInterval} onChange={({ target: { value } }) => setPollingInterval(Number(value))}>
+        <select
+          value={pollingInterval}
+          onChange={({ target: { value } }) =>
+            setPollingInterval(Number(value))
+          }
+        >
           {intervalOptions.map(({ label, value }) => (
             <option key={value} value={value}>
               {label}
@@ -98,39 +112,53 @@ const TimeDisplay = ({ offset, label }: { offset: string; label: string }) => {
         </select>
       </p>
     </div>
-  );
-};
+  )
+}
 
 export const TimeList = () => {
   const [times, setTimes] = React.useState<{ [key: string]: string }>({
     [nanoid()]: '-08:00',
-  });
-  const [selectedValue, setSelectedValue] = React.useState<string>('');
+  })
+  const [selectedValue, setSelectedValue] = React.useState<string>('')
 
-  const prefetch = usePrefetchTime('getTime');
+  const prefetch = usePrefetchTime('getTime')
 
   useEffect(() => {
     setTimeout(() => {
-      setTimes((prev) => ({ ...prev, [nanoid()]: '+00:00' }));
-    }, 1000);
-  }, []);
+      setTimes((prev) => ({ ...prev, [nanoid()]: '+00:00' }))
+    }, 1000)
+  }, [])
 
   return (
     <Container>
-      <h3>Add some times, even duplicates, and watch them automatically refetch in sync!</h3>
+      <h3>
+        Add some times, even duplicates, and watch them automatically refetch in
+        sync!
+      </h3>
       <p>
-        Notes: shared queries (aka multiple entries of the same time zone) will share the lowest polling interval
-        between them that is greater than 0. If all entries are set to 0, it will stop polling. If you have two entries
-        with a polling time of 5s and one with 0 - off, it will continue at 5s until they are removed or 0'd out.
+        Notes: shared queries (aka multiple entries of the same time zone) will
+        share the lowest polling interval between them that is greater than 0.
+        If all entries are set to 0, it will stop polling. If you have two
+        entries with a polling time of 5s and one with 0 - off, it will continue
+        at 5s until they are removed or 0'd out.
         <br />
-        Any new poll starts after the last request has either finished or failed to prevent slow-running requests to
-        immediately double-trigger.
+        Any new poll starts after the last request has either finished or failed
+        to prevent slow-running requests to immediately double-trigger.
         <br />
         <strong>* Background flashes green when query is running</strong>
-        <button onMouseEnter={() => prefetch('+02:00', { force: true })}>Prefetch</button>
+        <button onMouseEnter={() => prefetch('+02:00', { force: true })}>
+          Prefetch
+        </button>
       </p>
-      <TimeZoneSelector onChange={({ target: { value } }) => setSelectedValue(value)} />
-      <button onClick={() => setTimes((prev) => ({ ...prev, [nanoid()]: selectedValue }))} disabled={!selectedValue}>
+      <TimeZoneSelector
+        onChange={({ target: { value } }) => setSelectedValue(value)}
+      />
+      <button
+        onClick={() =>
+          setTimes((prev) => ({ ...prev, [nanoid()]: selectedValue }))
+        }
+        disabled={!selectedValue}
+      >
         Track time
       </button>
       <hr />
@@ -138,5 +166,5 @@ export const TimeList = () => {
         <TimeDisplay key={key} offset={tz} label={timezones[tz]} />
       ))}
     </Container>
-  );
-};
+  )
+}

@@ -9,7 +9,7 @@ interface Post {
   title: string
   author: string
   content: string
-  status: typeof postStatuses[number]
+  status: (typeof postStatuses)[number]
   created_at: string
   updated_at: string
 }

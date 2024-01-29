@@ -12,7 +12,7 @@ async function render() {
   await worker.start()
 
   const rootNode = ReactDOM.createRoot(
-    document.getElementById('root') as HTMLElement
+    document.getElementById('root') as HTMLElement,
   )
 
   rootNode.render(
@@ -20,7 +20,7 @@ async function render() {
       <Provider store={store}>
         <App />
       </Provider>
-    </React.StrictMode>
+    </React.StrictMode>,
   )
 }
 
