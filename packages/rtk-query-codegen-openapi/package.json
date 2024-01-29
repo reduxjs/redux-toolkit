@@ -17,8 +17,7 @@
     "rtk-query-codegen-openapi": "lib/bin/cli.js"
   },
   "scripts": {
-    "build": "tsc && chmod +x lib/bin/cli.js",
-    "prepare": "npm run build && chmod +x ./lib/bin/cli.js",
+    "prepare": "yarn build && chmod +x lib/bin/cli.js",
     "format": "prettier --write \"src/**/*.ts\"",
     "test:update": "vitest --run --update",
     "test:update:enum": "lib/bin/cli.js test/config.example.enum.ts",
