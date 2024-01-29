@@ -217,21 +217,18 @@ describe('type tests', () => {
           withoutTestLifecycles: true,
         })
 
-        // only type-test this part
-        if (2 > 1) {
-          api1.enhanceEndpoints({
-            endpoints: {
-              query1: {
-                // @ts-expect-error
-                providesTags: ['new'],
-              },
-              query2: {
-                // @ts-expect-error
-                providesTags: ['missing'],
-              },
+        api1.enhanceEndpoints({
+          endpoints: {
+            query1: {
+              // @ts-expect-error
+              providesTags: ['new'],
             },
-          })
-        }
+            query2: {
+              // @ts-expect-error
+              providesTags: ['missing'],
+            },
+          },
+        })
 
         const enhanced = api1.enhanceEndpoints({
           addTagTypes: ['new'],
@@ -250,21 +247,18 @@ describe('type tests', () => {
 
         storeRef.store.dispatch(api1.endpoints.query2.initiate('in2'))
 
-        // only type-test this part
-        if (2 > 1) {
-          enhanced.enhanceEndpoints({
-            endpoints: {
-              query1: {
-                // returned `enhanced` api contains "new" entityType
-                providesTags: ['new'],
-              },
-              query2: {
-                // @ts-expect-error
-                providesTags: ['missing'],
-              },
+        enhanced.enhanceEndpoints({
+          endpoints: {
+            query1: {
+              // returned `enhanced` api contains "new" entityType
+              providesTags: ['new'],
             },
-          })
-        }
+            query2: {
+              // @ts-expect-error
+              providesTags: ['missing'],
+            },
+          },
+        })
       })
 
       test('modify', () => {
