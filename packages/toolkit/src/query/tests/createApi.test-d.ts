@@ -1,16 +1,16 @@
+import { setupApiStore } from '@internal/tests/utils/helpers'
+import type { SerializedError } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
 import type {
   DefinitionsFromApi,
   OverrideResultType,
   TagTypesFromApi,
 } from '@reduxjs/toolkit/dist/query/endpointDefinitions'
-import { ANY, setupApiStore } from '@internal/tests/utils/helpers'
-import type { SerializedError } from '@reduxjs/toolkit'
-import { configureStore } from '@reduxjs/toolkit'
 import type {
-  Api,
   FetchBaseQueryError,
   MutationDefinition,
   QueryDefinition,
+  TagDescription,
 } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
@@ -39,12 +39,9 @@ describe('type tests', () => {
 
     expectTypeOf(api.reducerPath).toEqualTypeOf<'api'>()
 
-    type TagTypes =
-      typeof api extends Api<any, any, any, infer E> ? E : 'no match'
-
-    assertType<TagTypes>(ANY as never)
-
-    expectTypeOf(0).not.toMatchTypeOf<TagTypes>()
+    expectTypeOf(api.util.invalidateTags)
+      .parameter(0)
+      .toEqualTypeOf<TagDescription<never>[]>()
   })
 
   describe('endpoint definition typings', () => {
