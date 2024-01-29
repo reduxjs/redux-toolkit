@@ -34,7 +34,7 @@ In an action creator without React Hooks:
 const { data, status, error, refetch } = store.dispatch(
   endpoints.getCountById.initiate(id, {
     subscriptionOptions: { pollingInterval: 3000 },
-  })
+  }),
 )
 ```
 

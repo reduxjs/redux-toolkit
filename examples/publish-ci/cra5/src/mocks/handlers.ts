@@ -29,7 +29,7 @@ export const handlers = [
     const target = localDate + localOffset + 3600000 * formattedOffset
     return res(
       ctx.json({ time: new Date(target).toUTCString() }),
-      ctx.delay(400)
+      ctx.delay(400),
     )
   }),
 

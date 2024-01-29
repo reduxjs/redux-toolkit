@@ -35,12 +35,12 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   const { removeQueryResult } = api.internalActions
   const isThunkActionWithTags = isAnyOf(
     isFulfilled(mutationThunk),
-    isRejectedWithValue(mutationThunk)
+    isRejectedWithValue(mutationThunk),
   )
 
   const isQueryEnd = isAnyOf(
     isFulfilled(mutationThunk, queryThunk),
-    isRejected(mutationThunk, queryThunk)
+    isRejected(mutationThunk, queryThunk),
   )
 
   let pendingTagInvalidations: FullTagDescription<string>[] = []
@@ -52,9 +52,9 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
           action,
           'invalidatesTags',
           endpointDefinitions,
-          assertTagType
+          assertTagType,
         ),
-        mwApi
+        mwApi,
       )
     } else if (isQueryEnd(action)) {
       invalidateTags([], mwApi)
@@ -66,33 +66,38 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
           undefined,
           undefined,
           undefined,
-          assertTagType
+          assertTagType,
         ),
-        mwApi
+        mwApi,
       )
     }
   }
 
-  function hasPendingRequests(state: CombinedState<EndpointDefinitions, string, string>) {
+  function hasPendingRequests(
+    state: CombinedState<EndpointDefinitions, string, string>,
+  ) {
     for (const key in state.queries) {
-      if (state.queries[key]?.status === QueryStatus.pending) return true;
+      if (state.queries[key]?.status === QueryStatus.pending) return true
     }
     for (const key in state.mutations) {
-      if (state.mutations[key]?.status === QueryStatus.pending) return true;
+      if (state.mutations[key]?.status === QueryStatus.pending) return true
     }
-    return false;
+    return false
   }
 
   function invalidateTags(
     newTags: readonly FullTagDescription<string>[],
-    mwApi: SubMiddlewareApi
+    mwApi: SubMiddlewareApi,
   ) {
     const rootState = mwApi.getState()
     const state = rootState[reducerPath]
 
     pendingTagInvalidations.push(...newTags)
 
-    if (state.config.invalidationBehavior === 'delayed' && hasPendingRequests(state)) {
+    if (
+      state.config.invalidationBehavior === 'delayed' &&
+      hasPendingRequests(state)
+    ) {
       return
     }
 
@@ -114,7 +119,7 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
             mwApi.dispatch(
               removeQueryResult({
                 queryCacheKey: queryCacheKey as QueryCacheKey,
-              })
+              }),
             )
           } else if (querySubState.status !== QueryStatus.uninitialized) {
             mwApi.dispatch(refetchQuery(querySubState, queryCacheKey))

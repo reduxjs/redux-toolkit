@@ -218,16 +218,16 @@ describe('createListenerMiddleware', () => {
           removeTypedListenerAction({
             actionCreator: testAction2,
             effect,
-          })
-        )
+          }),
+        ),
       ).toBe(false)
       expect(
         store.dispatch(
           removeTypedListenerAction({
             actionCreator: testAction1,
             effect,
-          })
-        )
+          }),
+        ),
       ).toBe(true)
     })
 
@@ -238,7 +238,7 @@ describe('createListenerMiddleware', () => {
         addListener({
           type: testAction2.type,
           effect,
-        })
+        }),
       )
 
       store.dispatch(testAction2('b'))
@@ -383,7 +383,7 @@ describe('createListenerMiddleware', () => {
         addListener({
           actionCreator: testAction1,
           effect,
-        })
+        }),
       )
 
       store.dispatch(testAction1('a'))
@@ -403,7 +403,7 @@ describe('createListenerMiddleware', () => {
         addListener({
           actionCreator: testAction1,
           effect,
-        })
+        }),
       )
 
       store.dispatch(testAction1('a'))
@@ -504,7 +504,7 @@ describe('createListenerMiddleware', () => {
           actionCreator: testAction1,
           effect,
           cancelActive: true,
-        })
+        }),
       )
       expect(wasCancelled).toBe(false)
       await delay(10)
@@ -520,7 +520,7 @@ describe('createListenerMiddleware', () => {
           typeof store.dispatch
         >,
         'effect' | 'withTypes'
-      >
+      >,
     ][] = [
       ['predicate', { predicate: () => true }],
       ['actionCreator', { actionCreator: testAction1 }],
@@ -546,7 +546,7 @@ describe('createListenerMiddleware', () => {
 
         store.dispatch(testAction1('b'))
         expect(effect).toBeCalledTimes(1)
-      }
+      },
     )
 
     const unforwardedActions: [string, UnknownAction][] = [
@@ -572,7 +572,7 @@ describe('createListenerMiddleware', () => {
           [{}, testAction1('a')],
           [{}, testAction2('b')],
         ])
-      }
+      },
     )
 
     test('listenerApi.signal has correct reason when listener is cancelled or completes', async () => {
@@ -586,7 +586,7 @@ describe('createListenerMiddleware', () => {
             () => {
               payload.resolve((signal as AbortSignalWithReason<string>).reason)
             },
-            { once: true }
+            { once: true },
           )
 
           cancelActiveListeners()
@@ -595,10 +595,10 @@ describe('createListenerMiddleware', () => {
       })
 
       const deferredCancelledSignalReason = store.dispatch(
-        notifyDeferred(deferred<string>())
+        notifyDeferred(deferred<string>()),
       ).payload
       const deferredCompletedSignalReason = store.dispatch(
-        notifyDeferred(deferred<string>())
+        notifyDeferred(deferred<string>()),
       ).payload
 
       expect(await deferredCancelledSignalReason).toBe(listenerCancelled)
@@ -616,7 +616,7 @@ describe('createListenerMiddleware', () => {
             () => {
               payload.resolve((signal as AbortSignalWithReason<string>).reason)
             },
-            { once: true }
+            { once: true },
           )
 
           cancel()
@@ -624,7 +624,7 @@ describe('createListenerMiddleware', () => {
       })
 
       const deferredCancelledSignalReason = store.dispatch(
-        notifyDeferred(deferred<string>())
+        notifyDeferred(deferred<string>()),
       ).payload
 
       expect(await deferredCancelledSignalReason).toBe(listenerCancelled)
@@ -672,7 +672,7 @@ describe('createListenerMiddleware', () => {
       expect(listenerCompleted).toBe(false)
       expect(listenerCancelled).toBe(true)
       expect((error as any)?.message).toBe(
-        'task cancelled (reason: listener-cancelled)'
+        'task cancelled (reason: listener-cancelled)',
       )
     })
 
@@ -682,7 +682,7 @@ describe('createListenerMiddleware', () => {
           if (action.payload === 'b') {
             api.unsubscribe()
           }
-        }
+        },
       )
 
       startListening({
@@ -745,7 +745,7 @@ describe('createListenerMiddleware', () => {
           listenerApi.signal.addEventListener(
             'abort',
             () => listener1Test.resolve(listener1Calls),
-            { once: true }
+            { once: true },
           )
           await listenerApi.condition(() => true)
           listener1Test.reject(new Error('unreachable: listener1Test'))
@@ -788,7 +788,7 @@ describe('createListenerMiddleware', () => {
           listenerApi.signal.addEventListener(
             'abort',
             () => listener1Test.resolve(listener1Calls),
-            { once: true }
+            { once: true },
           )
           await listenerApi.condition(() => true)
           listener1Test.reject(new Error('unreachable: listener1Test'))
@@ -895,8 +895,8 @@ describe('createListenerMiddleware', () => {
           const runIncrementBy = () => {
             listenerApi.dispatch(
               counterSlice.actions.incrementByAmount(
-                listenerApi.getOriginalState().value + 2
-              )
+                listenerApi.getOriginalState().value + 2,
+              ),
             )
           }
 
@@ -918,9 +918,9 @@ describe('createListenerMiddleware', () => {
 
       expect(onError).toBeCalledWith(
         new Error(
-          'listenerMiddleware: getOriginalState can only be called synchronously'
+          'listenerMiddleware: getOriginalState can only be called synchronously',
         ),
-        { raisedBy: 'effect' }
+        { raisedBy: 'effect' },
       )
       expect(store.getState()).toEqual({ value: 3 })
     })
@@ -954,7 +954,7 @@ describe('createListenerMiddleware', () => {
           listenerApi.signal.addEventListener(
             'abort',
             deferredCompletedEvt.resolve,
-            { once: true }
+            { once: true },
           )
           listenerApi.delay(100) // missing await
         },
@@ -967,7 +967,7 @@ describe('createListenerMiddleware', () => {
           listenerApi.signal.addEventListener(
             'abort',
             deferredCancelledEvt.resolve,
-            { once: true }
+            { once: true },
           )
           listenerApi.delay(100) // missing await
           listenerApi.pause(godotPauseTrigger)
@@ -1286,7 +1286,7 @@ describe('createListenerMiddleware', () => {
           listenerApi.unsubscribe() // run once
           listenerApi.signal.addEventListener(
             'abort',
-            deferredCompletedEvt.resolve
+            deferredCompletedEvt.resolve,
           )
           listenerApi.take(() => true) // missing await
         },
@@ -1298,7 +1298,7 @@ describe('createListenerMiddleware', () => {
           listenerApi.cancelActiveListeners()
           listenerApi.signal.addEventListener(
             'abort',
-            deferredCancelledEvt.resolve
+            deferredCancelledEvt.resolve,
           )
           listenerApi.take(() => true) // missing await
           await listenerApi.pause(godotPauseTrigger)

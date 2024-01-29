@@ -1,13 +1,8 @@
 import { useGetPokemonByNameQuery } from './services/pokemon'
 
 export const Pokemon = ({ name }: { name: string }) => {
-  const {
-    data,
-    error,
-    isLoading,
-    isFetching,
-    refetch,
-  } = useGetPokemonByNameQuery(name)
+  const { data, error, isLoading, isFetching, refetch } =
+    useGetPokemonByNameQuery(name)
 
   return (
     <div style={{ float: 'left', textAlign: 'center' }}>

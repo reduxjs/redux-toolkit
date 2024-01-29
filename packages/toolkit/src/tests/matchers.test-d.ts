@@ -55,7 +55,7 @@ describe('type tests', () => {
             prop1: 1,
             prop3: 3,
           }
-        }
+        },
       )
 
       const asyncThunk2 = createAsyncThunk<{ prop1: number; prop2: number }>(
@@ -66,7 +66,7 @@ describe('type tests', () => {
             prop1: 1,
             prop2: 2,
           }
-        }
+        },
       )
 
       if (isAnyOf(asyncThunk1.fulfilled, asyncThunk2.fulfilled)(action)) {
@@ -158,7 +158,7 @@ describe('type tests', () => {
             prop1: 1,
             prop3: 3,
           }
-        }
+        },
       )
 
       if (isAllOf(asyncThunk1.fulfilled, isSpecialAction)(action)) {
@@ -288,10 +288,10 @@ describe('type tests', () => {
     const thunk2 = createAsyncThunk('b', () => 'b')
     const interestingThunks = [thunk1, thunk2]
     const interestingPendingThunks = interestingThunks.map(
-      (thunk) => thunk.pending
+      (thunk) => thunk.pending,
     )
     const interestingFulfilledThunks = interestingThunks.map(
-      (thunk) => thunk.fulfilled
+      (thunk) => thunk.fulfilled,
     )
 
     const isLoading = isAnyOf(...interestingPendingThunks)

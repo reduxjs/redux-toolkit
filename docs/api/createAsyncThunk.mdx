@@ -35,7 +35,7 @@ const fetchUserById = createAsyncThunk(
   async (userId: number, thunkAPI) => {
     const response = await userAPI.fetchById(userId)
     return response.data
-  }
+  },
 )
 
 interface UsersState {
@@ -190,23 +190,23 @@ interface RejectedWithValueAction<ThunkArg, RejectedValue> {
 
 type Pending = <ThunkArg>(
   requestId: string,
-  arg: ThunkArg
+  arg: ThunkArg,
 ) => PendingAction<ThunkArg>
 
 type Fulfilled = <ThunkArg, PromiseResult>(
   payload: PromiseResult,
   requestId: string,
-  arg: ThunkArg
+  arg: ThunkArg,
 ) => FulfilledAction<ThunkArg, PromiseResult>
 
 type Rejected = <ThunkArg>(
   requestId: string,
-  arg: ThunkArg
+  arg: ThunkArg,
 ) => RejectedAction<ThunkArg>
 
 type RejectedWithValue = <ThunkArg, RejectedValue>(
   requestId: string,
-  arg: ThunkArg
+  arg: ThunkArg,
 ) => RejectedWithValueAction<ThunkArg, RejectedValue>
 ```
 
@@ -365,7 +365,7 @@ const updateUser = createAsyncThunk(
       // by explicitly returning it using the `rejectWithValue()` utility
       return rejectWithValue(err.response.data)
     }
-  }
+  },
 )
 ```
 
@@ -391,7 +391,7 @@ const fetchUserById = createAsyncThunk(
         return false
       }
     },
-  }
+  },
 )
 ```
 
@@ -419,7 +419,7 @@ export const fetchUserById = createAsyncThunk(
   'fetchUserById',
   (userId: string) => {
     /* ... */
-  }
+  },
 )
 
 // file: MyComponent.ts
@@ -456,7 +456,7 @@ const fetchUserById = createAsyncThunk(
       signal: thunkAPI.signal,
     })
     return await response.json()
-  }
+  },
 )
 ```
 
@@ -486,7 +486,7 @@ const readStream = createAsyncThunk(
       done = read.done
     }
     return result
-  }
+  },
 )
 ```
 
@@ -510,7 +510,7 @@ const fetchUserById = createAsyncThunk(
       cancelToken: source.token,
     })
     return response.data
-  }
+  },
 )
 ```
 
@@ -749,7 +749,7 @@ const UsersComponent = (props: { id: string }) => {
   // This is an example of an onSubmit handler using Formik meant to demonstrate accessing the payload of the rejected action
   const handleUpdateUser = async (
     values: FormValues,
-    formikHelpers: FormikHelpers<FormValues>
+    formikHelpers: FormikHelpers<FormValues>,
   ) => {
     const resultAction = await dispatch(updateUser({ id: props.id, ...values }))
     if (updateUser.fulfilled.match(resultAction)) {

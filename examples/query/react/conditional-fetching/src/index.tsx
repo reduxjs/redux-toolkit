@@ -5,10 +5,10 @@ import App from './App'
 import { store } from './store'
 
 const reactRoot = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
+  document.getElementById('root') as HTMLElement,
 )
 reactRoot.render(
   <Provider store={store}>
     <App />
-  </Provider>
+  </Provider>,
 )

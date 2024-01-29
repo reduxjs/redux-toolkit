@@ -21,7 +21,7 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
   // This is done to speed up perf when loading many components
   const actuallyMutateSubscriptions = (
     mutableState: SubscriptionState,
-    action: Action
+    action: Action,
   ) => {
     if (updateSubscriptionOptions.match(action)) {
       const { queryCacheKey, requestId, options } = action.payload
@@ -99,15 +99,15 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
 
   return (
     action,
-    mwApi
+    mwApi,
   ): [
     actionShouldContinue: boolean,
-    result: SubscriptionSelectors | boolean
+    result: SubscriptionSelectors | boolean,
   ] => {
     if (!previousSubscriptions) {
       // Initialize it the first time this handler runs
       previousSubscriptions = JSON.parse(
-        JSON.stringify(internalState.currentSubscriptions)
+        JSON.stringify(internalState.currentSubscriptions),
       )
     }
 
@@ -128,7 +128,7 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     // Update subscription data based on this action
     const didMutate = actuallyMutateSubscriptions(
       internalState.currentSubscriptions,
-      action
+      action,
     )
 
     let actionShouldContinue = true
@@ -143,12 +143,12 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
         updateSyncTimer = setTimeout(() => {
           // Deep clone the current subscription data
           const newSubscriptions: SubscriptionState = JSON.parse(
-            JSON.stringify(internalState.currentSubscriptions)
+            JSON.stringify(internalState.currentSubscriptions),
           )
           // Figure out a smaller diff between original and current
           const [, patches] = produceWithPatches(
             previousSubscriptions,
-            () => newSubscriptions
+            () => newSubscriptions,
           )
 
           // Sync the store state for visibility

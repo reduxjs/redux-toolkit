@@ -21,7 +21,7 @@ export const counterSlice = createSlice({
   reducers: {
     addCounter(
       state,
-      { payload: { initialValue } }: PayloadAction<{ initialValue: number }>
+      { payload: { initialValue } }: PayloadAction<{ initialValue: number }>,
     ) {
       counterEntity.addOne(state.counters, {
         value: initialValue,
@@ -36,7 +36,7 @@ export const counterSlice = createSlice({
     },
     updateBy(
       state,
-      { payload: { id, delta } }: PayloadAction<{ id: string; delta: number }>
+      { payload: { id, delta } }: PayloadAction<{ id: string; delta: number }>,
     ) {
       const previousValue = state.counters.entities[id]?.value
 
@@ -51,7 +51,7 @@ export const counterSlice = createSlice({
       state,
       {
         payload: { id, intervalMs },
-      }: PayloadAction<{ id: string; delta: number; intervalMs: number }>
+      }: PayloadAction<{ id: string; delta: number; intervalMs: number }>,
     ) {
       const previousValue = state.counters.entities[id]?.value
       const previousIntervalMs = state.counters.entities[id]?.intervalMs
@@ -69,7 +69,7 @@ export const counterSlice = createSlice({
     },
     updateByAsync(
       _,
-      action: PayloadAction<{ id: string; delta: number; delayMs: number }>
+      action: PayloadAction<{ id: string; delta: number; delayMs: number }>,
     ) {},
     cancelAsyncUpdates(state, { payload }: PayloadAction<string>) {
       delete state.counters.entities[payload]?.intervalMs
@@ -80,9 +80,9 @@ export const counterSlice = createSlice({
 export const counterActions = counterSlice.actions
 
 export type CounterSlice = {
-  [counterSlice.name]: ReturnType<typeof counterSlice['reducer']>
+  [counterSlice.name]: ReturnType<(typeof counterSlice)['reducer']>
 }
 
 export const counterSelectors = counterEntity.getSelectors<CounterSlice>(
-  (state) => state[counterSlice.name].counters
+  (state) => state[counterSlice.name].counters,
 )

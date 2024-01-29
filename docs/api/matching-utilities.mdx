@@ -126,7 +126,7 @@ import { requestThunk1, requestThunk2 } from '@virtual/matchers'
 
 const isARejectedWithValueAction = isRejectedWithValue(
   requestThunk1,
-  requestThunk2
+  requestThunk2,
 )
 
 function handleRejectedWithValueAction(action: UnknownAction) {
@@ -162,13 +162,13 @@ interface Interesting extends Data {
 }
 
 function isSpecial(
-  action: PayloadAction<Data>
+  action: PayloadAction<Data>,
 ): action is PayloadAction<Special> {
   return action.payload.isSpecial
 }
 
 function isInteresting(
-  action: PayloadAction<Data>
+  action: PayloadAction<Data>,
 ): action is PayloadAction<Interesting> {
   return action.payload.isInteresting
 }
@@ -190,7 +190,7 @@ export const isSpecialAndInterestingThunk = createAsyncThunk(
       isSpecial: true,
       isInteresting: true,
     }
-  }
+  },
 )
 
 // This has unnecessary complexity
@@ -224,13 +224,13 @@ const loadingReducer = createReducer(initialState, (builder) => {
       isAllOf(isSpecialAndInterestingThunk.fulfilled, isSpecial),
       (state, action) => {
         state.isSpecial = true
-      }
+      },
     )
     .addMatcher(
       isAllOf(isSpecialAndInterestingThunk.fulfilled, isInteresting),
       (state, action) => {
         state.isInteresting = true
-      }
+      },
     )
 })
 ```
