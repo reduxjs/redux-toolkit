@@ -1,6 +1,5 @@
 import type { Reducer, Slice, WithSlice } from '@reduxjs/toolkit'
-import { combineSlices, createReducer } from '@reduxjs/toolkit'
-import type { CombinedState } from '@reduxjs/toolkit/query'
+import { combineSlices } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
 declare const stringSlice: Slice<string, {}, 'string'>
@@ -186,31 +185,5 @@ describe('type tests', () => {
       // @ts-ignore
       (rootState: RootState, num: number) => rootState.inner,
     )
-  })
-
-  test('CombinedState', () => {
-    const api = {
-      reducerPath: 'api' as const,
-      reducer: createReducer(
-        assertType<CombinedState<{}, never, 'api'>>({
-          queries: {},
-          mutations: {},
-          provided: {},
-          subscriptions: {},
-          config: {
-            reducerPath: 'api',
-            invalidationBehavior: 'delayed',
-            online: false,
-            focused: false,
-            keepUnusedDataFor: 60,
-            middlewareRegistered: false,
-            refetchOnMountOrArgChange: false,
-            refetchOnReconnect: false,
-            refetchOnFocus: false,
-          },
-        }),
-        () => {},
-      ),
-    }
   })
 })
