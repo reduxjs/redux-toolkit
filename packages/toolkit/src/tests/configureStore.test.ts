@@ -74,7 +74,7 @@ describe('configureStore', async () => {
       expect(redux.createStore).toHaveBeenCalledWith(
         expect.any(Function),
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       )
     })
   })
