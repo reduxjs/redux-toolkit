@@ -1,0 +1,26 @@
+{
+  "name": "@reduxjs/tsconfig",
+  "version": "0.0.1",
+  "description": "TypeScript configuration for Redux projects",
+  "main": "tsconfig.json",
+  "type": "module",
+  "files": [
+    "tsconfig*.json"
+  ],
+  "keywords": [
+    "config",
+    "reduxjs",
+    "redux-toolkit",
+    "tsconfig",
+    "typescript",
+    "ts",
+    "configuration"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reduxjs/redux-toolkit.git"
+  }
+}

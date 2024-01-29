@@ -1,0 +1,19 @@
+{
+  // For runtime and type tests during CI.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "emitDeclarationOnly": false,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "noImplicitReturns": false
+  },
+  "exclude": ["dist"],
+  "include": [
+    "./**/*.test.ts*",
+    "./**/*.test-d.ts*",
+    "./**/*.spec.ts*",
+    "./**/tests/**/*",
+    "./**/*.typetest.ts*"
+  ]
+}
