@@ -28,6 +28,9 @@ export type {
   QueryArgFrom,
   ResultTypeFrom,
   DefinitionType,
+  DefinitionsFromApi,
+  OverrideResultType,
+  TagTypesFromApi,
 } from './endpointDefinitions'
 export { fetchBaseQuery } from './fetchBaseQuery'
 export type {
