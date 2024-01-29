@@ -1,23 +1,20 @@
-import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
-import type {
-  FetchBaseQueryMeta,
-  SerializeQueryArgs,
-} from '@reduxjs/toolkit/query'
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import type { MockInstance } from 'vitest'
-
-import type {
-  DefinitionsFromApi,
-  OverrideResultType,
-  TagTypesFromApi,
-} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
 import { server } from '@internal/query/tests/mocks/server'
 import {
   getSerializedHeaders,
   setupApiStore,
 } from '@internal/tests/utils/helpers'
+import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
+import type {
+  DefinitionsFromApi,
+  FetchBaseQueryMeta,
+  OverrideResultType,
+  SerializeQueryArgs,
+  TagTypesFromApi,
+} from '@reduxjs/toolkit/query'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { HttpResponse, delay, http } from 'msw'
 import nodeFetch from 'node-fetch'
+import type { MockInstance } from 'vitest'
 
 beforeAll(() => {
   vi.stubEnv('NODE_ENV', 'development')

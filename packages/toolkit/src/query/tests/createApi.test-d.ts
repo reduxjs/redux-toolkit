@@ -3,14 +3,12 @@ import type { SerializedError } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import type {
   DefinitionsFromApi,
-  OverrideResultType,
-  TagTypesFromApi,
-} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
-import type {
   FetchBaseQueryError,
   MutationDefinition,
+  OverrideResultType,
   QueryDefinition,
   TagDescription,
+  TagTypesFromApi,
 } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
