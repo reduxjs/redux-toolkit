@@ -28,7 +28,7 @@ export const buildWindowEventHandler: InternalHandlerBuilder = ({
 
   function refetchValidQueries(
     api: SubMiddlewareApi,
-    type: 'refetchOnFocus' | 'refetchOnReconnect'
+    type: 'refetchOnFocus' | 'refetchOnReconnect',
   ) {
     const state = api.getState()[reducerPath]
     const queries = state.queries
@@ -43,10 +43,10 @@ export const buildWindowEventHandler: InternalHandlerBuilder = ({
 
         const shouldRefetch =
           Object.values(subscriptionSubState).some(
-            (sub) => sub[type] === true
+            (sub) => sub[type] === true,
           ) ||
           (Object.values(subscriptionSubState).every(
-            (sub) => sub[type] === undefined
+            (sub) => sub[type] === undefined,
           ) &&
             state.config[type])
 
@@ -55,7 +55,7 @@ export const buildWindowEventHandler: InternalHandlerBuilder = ({
             api.dispatch(
               removeQueryResult({
                 queryCacheKey: queryCacheKey as QueryCacheKey,
-              })
+              }),
             )
           } else if (querySubState.status !== QueryStatus.uninitialized) {
             api.dispatch(refetchQuery(querySubState, queryCacheKey))

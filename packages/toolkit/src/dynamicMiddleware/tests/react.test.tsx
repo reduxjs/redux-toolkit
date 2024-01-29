@@ -24,7 +24,7 @@ describe('createReactDynamicMiddleware', () => {
       expect(store.dispatch(probeMiddleware(1))).toBe(1)
 
       const useDispatch = dynamicInstance.createDispatchWithMiddlewareHook(
-        makeProbeableMiddleware(2)
+        makeProbeableMiddleware(2),
       )
 
       // injected
@@ -40,7 +40,7 @@ describe('createReactDynamicMiddleware', () => {
       })
 
       const useDispatch = dynamicInstance.createDispatchWithMiddlewareHook(
-        makeProbeableMiddleware(2)
+        makeProbeableMiddleware(2),
       )
 
       let dispatch: Dispatch | undefined
@@ -77,7 +77,7 @@ describe('createReactDynamicMiddleware', () => {
         dynamicInstance.createDispatchWithMiddlewareHookFactory(context)
 
       const useDispatch = createDispatchWithMiddlewareHook(
-        makeProbeableMiddleware(2)
+        makeProbeableMiddleware(2),
       )
 
       let dispatch: Dispatch | undefined

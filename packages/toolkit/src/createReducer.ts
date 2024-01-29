@@ -47,7 +47,7 @@ export type ActionMatcherDescriptionCollection<S> = Array<
  */
 export type CaseReducer<S = any, A extends Action = UnknownAction> = (
   state: Draft<S>,
-  action: A
+  action: A,
 ) => NoInfer<S> | void | Draft<NoInfer<S>>
 
 /**
@@ -139,12 +139,12 @@ const reducer = createReducer(
  */
 export function createReducer<S extends NotFunction<any>>(
   initialState: S | (() => S),
-  mapOrBuilderCallback: (builder: ActionReducerMapBuilder<S>) => void
+  mapOrBuilderCallback: (builder: ActionReducerMapBuilder<S>) => void,
 ): ReducerWithInitialState<S> {
   if (process.env.NODE_ENV !== 'production') {
     if (typeof mapOrBuilderCallback === 'object') {
       throw new Error(
-        "The object notation for `createReducer` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createReducer"
+        "The object notation for `createReducer` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createReducer",
       )
     }
   }
@@ -196,7 +196,7 @@ export function createReducer<S extends NotFunction<any>>(
               return previousState
             }
             throw Error(
-              'A case reducer on a non-draftable value must not return undefined'
+              'A case reducer on a non-draftable value must not return undefined',
             )
           }
 

@@ -14,9 +14,8 @@ const api = createApi({
 })
 
 function Pokemon() {
-  const { data, refetch, isFetching } = api.useGetPokemonByNameQuery(
-    'bulbasaur'
-  )
+  const { data, refetch, isFetching } =
+    api.useGetPokemonByNameQuery('bulbasaur')
 
   return (
     <div>

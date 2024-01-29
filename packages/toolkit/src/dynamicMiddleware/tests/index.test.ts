@@ -20,7 +20,7 @@ const matchId =
     action.payload === id
 
 export const makeProbeableMiddleware = <Id extends number>(
-  id: Id
+  id: Id,
 ): Middleware<{
   (action: PayloadAction<Id, typeof probeType>): Id
 }> => {
@@ -65,7 +65,7 @@ describe('createDynamicMiddleware', () => {
     expect(store.dispatch(probeMiddleware(2))).toEqual(probeMiddleware(2))
 
     const dispatch = store.dispatch(
-      dynamicInstance.withMiddleware(makeProbeableMiddleware(2))
+      dynamicInstance.withMiddleware(makeProbeableMiddleware(2)),
     )
     expect(dispatch).toEqual(expect.any(Function))
 

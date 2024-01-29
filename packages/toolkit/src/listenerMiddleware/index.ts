@@ -46,6 +46,7 @@ import {
   addAbortSignalListener,
   assertFunction,
   catchRejection,
+  noop,
 } from './utils'
 export { TaskAbortError } from './exceptions'
 export type {
@@ -83,16 +84,16 @@ const alm = 'listenerMiddleware' as const
 
 const createFork = (
   parentAbortSignal: AbortSignalWithReason<unknown>,
-  parentBlockingPromises: Promise<any>[]
+  parentBlockingPromises: Promise<any>[],
 ) => {
   const linkControllers = (controller: AbortController) =>
     addAbortSignalListener(parentAbortSignal, () =>
-      abortControllerWithReason(controller, parentAbortSignal.reason)
+      abortControllerWithReason(controller, parentAbortSignal.reason),
     )
 
   return <T>(
     taskExecutor: ForkedTaskExecutor<T>,
-    opts?: ForkOptions
+    opts?: ForkOptions,
   ): ForkedTask<T> => {
     assertFunction(taskExecutor, 'taskExecutor')
     const childAbortController = new AbortController()
@@ -111,11 +112,11 @@ const createFork = (
         validateActive(childAbortController.signal)
         return result
       },
-      () => abortControllerWithReason(childAbortController, taskCompleted)
+      () => abortControllerWithReason(childAbortController, taskCompleted),
     )
 
     if (opts?.autoJoin) {
-      parentBlockingPromises.push(result)
+      parentBlockingPromises.push(result.catch(noop))
     }
 
     return {
@@ -129,7 +130,7 @@ const createFork = (
 
 const createTakePattern = <S>(
   startListening: AddListenerOverloads<UnsubscribeListener, S, Dispatch>,
-  signal: AbortSignal
+  signal: AbortSignal,
 ): TakePattern<S> => {
   /**
    * A function that takes a ListenerPredicate and an optional timeout,
@@ -140,7 +141,7 @@ const createTakePattern = <S>(
    */
   const take = async <P extends AnyListenerPredicate<S>>(
     predicate: P,
-    timeout: number | undefined
+    timeout: number | undefined,
   ) => {
     validateActive(signal)
 
@@ -172,7 +173,7 @@ const createTakePattern = <S>(
 
     if (timeout != null) {
       promises.push(
-        new Promise<null>((resolve) => setTimeout(resolve, timeout, null))
+        new Promise<null>((resolve) => setTimeout(resolve, timeout, null)),
       )
     }
 
@@ -205,7 +206,7 @@ const getListenerEntryPropsFrom = (options: FallbackAddListenerOptions) => {
     // pass
   } else {
     throw new Error(
-      'Creating or removing a listener requires one of the known fields for matching an action'
+      'Creating or removing a listener requires one of the known fields for matching an action',
     )
   }
 
@@ -234,11 +235,11 @@ export const createListenerEntry: TypedCreateListenerEntry<unknown> =
 
       return entry
     },
-    { withTypes: () => createListenerEntry }
+    { withTypes: () => createListenerEntry },
   ) as unknown as TypedCreateListenerEntry<unknown>
 
 const cancelActiveListeners = (
-  entry: ListenerEntry<unknown, Dispatch<UnknownAction>>
+  entry: ListenerEntry<unknown, Dispatch<UnknownAction>>,
 ) => {
   entry.pending.forEach((controller) => {
     abortControllerWithReason(controller, listenerCancelled)
@@ -246,7 +247,7 @@ const cancelActiveListeners = (
 }
 
 const createClearListenerMiddleware = (
-  listenerMap: Map<string, ListenerEntry>
+  listenerMap: Map<string, ListenerEntry>,
 ) => {
   return () => {
     listenerMap.forEach(cancelActiveListeners)
@@ -265,7 +266,7 @@ const createClearListenerMiddleware = (
 const safelyNotifyError = (
   errorHandler: ListenerErrorHandler,
   errorToNotify: unknown,
-  errorInfo: ListenerErrorInfo
+  errorInfo: ListenerErrorInfo,
 ): void => {
   try {
     errorHandler(errorToNotify, errorInfo)
@@ -311,9 +312,9 @@ export const createListenerMiddleware = <
     unknown,
     UnknownAction
   >,
-  ExtraArgument = unknown
+  ExtraArgument = unknown,
 >(
-  middlewareOptions: CreateListenerMiddlewareOptions<ExtraArgument> = {}
+  middlewareOptions: CreateListenerMiddlewareOptions<ExtraArgument> = {},
 ) => {
   const listenerMap = new Map<string, ListenerEntry>()
   const { extra, onError = defaultErrorHandler } = middlewareOptions
@@ -335,7 +336,7 @@ export const createListenerMiddleware = <
   const startListening = ((options: FallbackAddListenerOptions) => {
     let entry = find(
       Array.from(listenerMap.values()),
-      (existingEntry) => existingEntry.effect === options.effect
+      (existingEntry) => existingEntry.effect === options.effect,
     )
 
     if (!entry) {
@@ -350,7 +351,7 @@ export const createListenerMiddleware = <
   })
 
   const stopListening = (
-    options: FallbackAddListenerOptions & UnsubscribeListenerOptions
+    options: FallbackAddListenerOptions & UnsubscribeListenerOptions,
   ): boolean => {
     const { type, effect, predicate } = getListenerEntryPropsFrom(options)
 
@@ -381,12 +382,12 @@ export const createListenerMiddleware = <
     entry: ListenerEntry<unknown, Dispatch<UnknownAction>>,
     action: unknown,
     api: MiddlewareAPI,
-    getOriginalState: () => StateType
+    getOriginalState: () => StateType,
   ) => {
     const internalTaskController = new AbortController()
     const take = createTakePattern(
       startListening as AddListenerOverloads<any>,
-      internalTaskController.signal
+      internalTaskController.signal,
     )
     const autoJoinPromises: Promise<any>[] = []
 
@@ -400,7 +401,7 @@ export const createListenerMiddleware = <
             getOriginalState,
             condition: (
               predicate: AnyListenerPredicate<any>,
-              timeout?: number
+              timeout?: number,
             ) => take(predicate, timeout).then(Boolean),
             take,
             delay: createDelay(internalTaskController.signal),
@@ -423,15 +424,15 @@ export const createListenerMiddleware = <
             cancel: () => {
               abortControllerWithReason(
                 internalTaskController,
-                listenerCancelled
+                listenerCancelled,
               )
               entry.pending.delete(internalTaskController)
             },
             throwIfCancelled: () => {
               validateActive(internalTaskController.signal)
             },
-          })
-        )
+          }),
+        ),
       )
     } catch (listenerError) {
       if (!(listenerError instanceof TaskAbortError)) {
@@ -440,7 +441,7 @@ export const createListenerMiddleware = <
         })
       }
     } finally {
-      await Promise.allSettled(autoJoinPromises)
+      await Promise.all(autoJoinPromises)
 
       abortControllerWithReason(internalTaskController, listenerCompleted) // Notify that the task has completed
       entry.pending.delete(internalTaskController)
@@ -449,78 +450,81 @@ export const createListenerMiddleware = <
 
   const clearListenerMiddleware = createClearListenerMiddleware(listenerMap)
 
-  const middleware: ListenerMiddleware<StateType, DispatchType, ExtraArgument> =
-    (api) => (next) => (action) => {
-      if (!isAction(action)) {
-        // we only want to notify listeners for action objects
-        return next(action)
-      }
-
-      if (addListener.match(action)) {
-        return startListening(action.payload as any)
-      }
-
-      if (clearAllListeners.match(action)) {
-        clearListenerMiddleware()
-        return
-      }
-
-      if (removeListener.match(action)) {
-        return stopListening(action.payload)
-      }
-
-      // Need to get this state _before_ the reducer processes the action
-      let originalState: StateType | typeof INTERNAL_NIL_TOKEN = api.getState()
-
-      // `getOriginalState` can only be called synchronously.
-      // @see https://github.com/reduxjs/redux-toolkit/discussions/1648#discussioncomment-1932820
-      const getOriginalState = (): StateType => {
-        if (originalState === INTERNAL_NIL_TOKEN) {
-          throw new Error(
-            `${alm}: getOriginalState can only be called synchronously`
-          )
-        }
-
-        return originalState as StateType
-      }
-
-      let result: unknown
-
-      try {
-        // Actually forward the action to the reducer before we handle listeners
-        result = next(action)
-
-        if (listenerMap.size > 0) {
-          const currentState = api.getState()
-          // Work around ESBuild+TS transpilation issue
-          const listenerEntries = Array.from(listenerMap.values())
-          for (const entry of listenerEntries) {
-            let runListener = false
-
-            try {
-              runListener = entry.predicate(action, currentState, originalState)
-            } catch (predicateError) {
-              runListener = false
-
-              safelyNotifyError(onError, predicateError, {
-                raisedBy: 'predicate',
-              })
-            }
-
-            if (!runListener) {
-              continue
-            }
-
-            notifyListener(entry, action, api, getOriginalState)
-          }
-        }
-      } finally {
-        // Remove `originalState` store from this scope.
-        originalState = INTERNAL_NIL_TOKEN
-      }
-
-      return result
+  const middleware: ListenerMiddleware<
+    StateType,
+    DispatchType,
+    ExtraArgument
+  > = (api) => (next) => (action) => {
+    if (!isAction(action)) {
+      // we only want to notify listeners for action objects
+      return next(action)
     }
+
+    if (addListener.match(action)) {
+      return startListening(action.payload as any)
+    }
+
+    if (clearAllListeners.match(action)) {
+      clearListenerMiddleware()
+      return
+    }
+
+    if (removeListener.match(action)) {
+      return stopListening(action.payload)
+    }
+
+    // Need to get this state _before_ the reducer processes the action
+    let originalState: StateType | typeof INTERNAL_NIL_TOKEN = api.getState()
+
+    // `getOriginalState` can only be called synchronously.
+    // @see https://github.com/reduxjs/redux-toolkit/discussions/1648#discussioncomment-1932820
+    const getOriginalState = (): StateType => {
+      if (originalState === INTERNAL_NIL_TOKEN) {
+        throw new Error(
+          `${alm}: getOriginalState can only be called synchronously`,
+        )
+      }
+
+      return originalState as StateType
+    }
+
+    let result: unknown
+
+    try {
+      // Actually forward the action to the reducer before we handle listeners
+      result = next(action)
+
+      if (listenerMap.size > 0) {
+        const currentState = api.getState()
+        // Work around ESBuild+TS transpilation issue
+        const listenerEntries = Array.from(listenerMap.values())
+        for (const entry of listenerEntries) {
+          let runListener = false
+
+          try {
+            runListener = entry.predicate(action, currentState, originalState)
+          } catch (predicateError) {
+            runListener = false
+
+            safelyNotifyError(onError, predicateError, {
+              raisedBy: 'predicate',
+            })
+          }
+
+          if (!runListener) {
+            continue
+          }
+
+          notifyListener(entry, action, api, getOriginalState)
+        }
+      }
+    } finally {
+      // Remove `originalState` store from this scope.
+      originalState = INTERNAL_NIL_TOKEN
+    }
+
+    return result
+  }
 
   return {
     middleware,

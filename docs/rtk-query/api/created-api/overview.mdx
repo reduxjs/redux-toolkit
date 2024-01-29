@@ -55,7 +55,7 @@ type Api = {
     >
     selectInvalidatedBy: (
       state: FullState,
-      tags: Array<TagTypes | FullTagDescription<TagTypes>>
+      tags: Array<TagTypes | FullTagDescription<TagTypes>>,
     ) => Array<{
       endpointName: string
       originalArgs: any
@@ -63,16 +63,16 @@ type Api = {
     }>
     selectCachedArgsForQuery: (
       state: FullState,
-      endpointName: EndpointName
+      endpointName: EndpointName,
     ) => Array<QueryArg>
     resetApiState: ActionCreator<ResetAction>
     getRunningQueryThunk(
       endpointName: EndpointName,
-      args: QueryArg
+      args: QueryArg,
     ): ThunkWithReturnValue<QueryActionCreatorResult | undefined>
     getRunningMutationThunk(
       endpointName: EndpointName,
-      fixedCacheKeyOrRequestId: string
+      fixedCacheKeyOrRequestId: string,
     ): ThunkWithReturnValue<MutationActionCreatorResult | undefined>
     getRunningQueriesThunk(): ThunkWithReturnValue<
       Array<QueryActionCreatorResult<any>>

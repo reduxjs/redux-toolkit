@@ -36,8 +36,8 @@ export function setupListeners(
       onFocusLost: typeof onFocusLost
       onOnline: typeof onOnline
       onOffline: typeof onOffline
-    }
-  ) => () => void
+    },
+  ) => () => void,
 ) {
   function defaultHandler() {
     const handleFocus = () => dispatch(onFocus())
@@ -58,7 +58,7 @@ export function setupListeners(
         window.addEventListener(
           'visibilitychange',
           handleVisibilityChange,
-          false
+          false,
         )
         window.addEventListener('focus', handleFocus, false)
 

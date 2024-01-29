@@ -12,19 +12,19 @@ function withRtkPath(suffix, cjs = false) {
     config.plugins.push(
       new webpack.NormalModuleReplacementPlugin(
         /@reduxjs\/toolkit\/query\/react/,
-        join(__dirname, `query/react`)
+        join(__dirname, `query/react`),
       ),
       new webpack.NormalModuleReplacementPlugin(
         /@reduxjs\/toolkit\/query/,
-        join(__dirname, `query`)
+        join(__dirname, `query`),
       ),
       new webpack.NormalModuleReplacementPlugin(
         /@reduxjs\/toolkit\/react/,
-        join(__dirname, 'react')
+        join(__dirname, 'react'),
       ),
       new webpack.NormalModuleReplacementPlugin(
         /@reduxjs\/toolkit/,
-        join(__dirname)
+        join(__dirname),
       ),
       new webpack.NormalModuleReplacementPlugin(
         /rtk-query-react.modern.js/,
@@ -32,16 +32,16 @@ function withRtkPath(suffix, cjs = false) {
           const old = r.request
           r.request = r.request.replace(
             /rtk-query-react.modern.js$/,
-            `${cjs ? 'cjs/' : ''}rtk-query-react.${suffix}`
+            `${cjs ? 'cjs/' : ''}rtk-query-react.${suffix}`,
           )
           // console.log(old, '=>', r.request)
-        }
+        },
       ),
       new webpack.NormalModuleReplacementPlugin(/rtk-query.modern.js/, (r) => {
         const old = r.request
         r.request = r.request.replace(
           /rtk-query.modern.js$/,
-          `${cjs ? 'cjs/' : ''}rtk-query.${suffix}`
+          `${cjs ? 'cjs/' : ''}rtk-query.${suffix}`,
         )
         // console.log(old, '=>', r.request)
       }),
@@ -51,10 +51,10 @@ function withRtkPath(suffix, cjs = false) {
           const old = r.request
           r.request = r.request.replace(
             /redux-toolkit-react.modern.js$/,
-            `${cjs ? 'cjs/' : ''}redux-toolkit-react.${suffix}`
+            `${cjs ? 'cjs/' : ''}redux-toolkit-react.${suffix}`,
           )
           // console.log(old, '=>', r.request)
-        }
+        },
       ),
       new webpack.NormalModuleReplacementPlugin(
         /redux-toolkit.modern.js$/,
@@ -62,11 +62,11 @@ function withRtkPath(suffix, cjs = false) {
           const old = r.request
           r.request = r.request.replace(
             /redux-toolkit.modern.js$/,
-            `${cjs ? 'cjs/' : ''}redux-toolkit.${suffix}`
+            `${cjs ? 'cjs/' : ''}redux-toolkit.${suffix}`,
           )
           // console.log(old, '=>', r.request)
-        }
-      )
+        },
+      ),
     )
     if (suffix === 'production.min.cjs') {
       ;(config.resolve ??= {}).mainFields = ['main', 'module']
@@ -130,7 +130,7 @@ module.exports = entryPoints
       ...e,
       name: e.name + ` (${suffix})`,
       modifyWebpackConfig: withRtkPath(suffix),
-    }))
+    })),
   )
   .concat(
     entryPoints.flatMap((e) =>
@@ -138,8 +138,8 @@ module.exports = entryPoints
         ...e,
         name: e.name + ` (cjs, ${suffix})`,
         modifyWebpackConfig: withRtkPath(suffix, true),
-      }))
-    )
+      })),
+    ),
   )
   .concat(
     ...[
@@ -179,5 +179,5 @@ module.exports = entryPoints
       ...e,
       name: e.name + ` (.modern.mjs)`,
       modifyWebpackConfig: withRtkPath('.modern.mjs'),
-    }))
+    })),
   )

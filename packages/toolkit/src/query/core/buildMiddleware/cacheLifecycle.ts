@@ -24,7 +24,7 @@ declare module '../../endpointDefinitions' {
     QueryArg,
     BaseQuery extends BaseQueryFn,
     ResultType,
-    ReducerPath extends string = string
+    ReducerPath extends string = string,
   > extends LifecycleApi<ReducerPath> {
     /**
      * Gets the current value of this cache entry.
@@ -47,7 +47,7 @@ declare module '../../endpointDefinitions' {
     QueryArg,
     BaseQuery extends BaseQueryFn,
     ResultType,
-    ReducerPath extends string = string
+    ReducerPath extends string = string,
   > extends LifecycleApi<ReducerPath> {
     /**
      * Gets the current value of this cache entry.
@@ -82,7 +82,7 @@ declare module '../../endpointDefinitions' {
 
   export interface CacheLifecyclePromises<
     ResultType = unknown,
-    MetaType = unknown
+    MetaType = unknown,
   > {
     /**
      * Promise that will resolve with the first value for this cache key.
@@ -122,7 +122,7 @@ declare module '../../endpointDefinitions' {
     QueryArg,
     BaseQuery extends BaseQueryFn,
     ResultType,
-    ReducerPath extends string = string
+    ReducerPath extends string = string,
   > extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
       CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>> {}
 
@@ -130,7 +130,7 @@ declare module '../../endpointDefinitions' {
     QueryArg,
     BaseQuery extends BaseQueryFn,
     ResultType,
-    ReducerPath extends string = string
+    ReducerPath extends string = string,
   > extends MutationBaseLifecycleApi<
         QueryArg,
         BaseQuery,
@@ -144,11 +144,11 @@ declare module '../../endpointDefinitions' {
     ResultType,
     QueryArg,
     BaseQuery extends BaseQueryFn,
-    ReducerPath extends string = string
+    ReducerPath extends string = string,
   > {
     onCacheEntryAdded?(
       arg: QueryArg,
-      api: QueryCacheLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
+      api: QueryCacheLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
     ): Promise<void> | void
   }
 
@@ -157,7 +157,7 @@ declare module '../../endpointDefinitions' {
     ResultType,
     QueryArg,
     BaseQuery extends BaseQueryFn,
-    ReducerPath extends string = string
+    ReducerPath extends string = string,
   > {
     onCacheEntryAdded?(
       arg: QueryArg,
@@ -166,13 +166,13 @@ declare module '../../endpointDefinitions' {
         BaseQuery,
         ResultType,
         ReducerPath
-      >
+      >,
     ): Promise<void> | void
   }
 }
 
 const neverResolvedError = new Error(
-  'Promise never resolved before cacheEntryRemoved.'
+  'Promise never resolved before cacheEntryRemoved.',
 ) as Error & {
   message: 'Promise never resolved before cacheEntryRemoved.'
 }
@@ -198,7 +198,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
   const handler: ApiMiddlewareInternalHandler = (
     action,
     mwApi,
-    stateBefore
+    stateBefore,
   ) => {
     const cacheKey = getCacheKey(action)
 
@@ -211,7 +211,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
           action.meta.arg.originalArgs,
           cacheKey,
           mwApi,
-          action.meta.requestId
+          action.meta.requestId,
         )
       }
     } else if (mutationThunk.pending.match(action)) {
@@ -222,7 +222,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
           action.meta.arg.originalArgs,
           cacheKey,
           mwApi,
-          action.meta.requestId
+          action.meta.requestId,
         )
       }
     } else if (isFulfilledThunk(action)) {
@@ -253,7 +253,9 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
 
   function getCacheKey(action: any) {
     if (isQueryThunk(action)) return action.meta.arg.queryCacheKey
-    if (isMutationThunk(action)) return action.meta.requestId
+    if (isMutationThunk(action)) {
+      return action.meta.arg.fixedCacheKey ?? action.meta.requestId
+    }
     if (api.internalActions.removeQueryResult.match(action))
       return action.payload.queryCacheKey
     if (api.internalActions.removeMutationResult.match(action))
@@ -266,7 +268,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     originalArgs: any,
     queryCacheKey: string,
     mwApi: SubMiddlewareApi,
-    requestId: string
+    requestId: string,
   ) {
     const endpointDefinition = context.endpointDefinitions[endpointName]
     const onCacheEntryAdded = endpointDefinition?.onCacheEntryAdded
@@ -295,7 +297,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     const selector = (api.endpoints[endpointName] as any).select(
       endpointDefinition.type === DefinitionType.query
         ? originalArgs
-        : queryCacheKey
+        : queryCacheKey,
     )
 
     const extra = mwApi.dispatch((_, __, extra) => extra)
@@ -310,8 +312,8 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
               api.util.updateQueryData(
                 endpointName as never,
                 originalArgs,
-                updateRecipe
-              )
+                updateRecipe,
+              ),
             )
         : undefined) as any,
 
