@@ -4,9 +4,17 @@ import { server } from './mocks/server';
 
 vi.stubGlobal('fetch', nodeFetch);
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+beforeAll(() => {
+  server.listen({ onUnhandledRequest: 'error' });
+});
+
+afterEach(() => {
+  server.resetHandlers();
+});
+
+afterAll(() => {
+  server.close();
+});
 
 expect.addSnapshotSerializer({
   test: (val) => typeof val === 'string',
@@ -16,8 +24,8 @@ expect.addSnapshotSerializer({
 });
 
 expect.addSnapshotSerializer({
-  serialize(val) {
-    return format(val, {
+  async serialize(val) {
+    return await format(val, {
       parser: 'typescript',
       endOfLine: 'auto',
       printWidth: 120,
