@@ -1,1 +1,1 @@
-# prettier
+# Prettier Config

@@ -2,6 +2,8 @@
   "name": "@reduxjs/prettier-config",
   "version": "0.0.1",
   "description": "Prettier configuration for Redux projects",
+  "main": "prettier.config.mjs",
+  "type": "module",
   "keywords": [
     "prettier",
     "config",
