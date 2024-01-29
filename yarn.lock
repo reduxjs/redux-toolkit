@@ -7554,6 +7554,7 @@ __metadata:
     esbuild-runner: ^2.2.1
     husky: ^4.3.6
     msw: ^2.1.5
+    node-fetch: ^3.3.2
     oazapfts: ^4.8.0
     openapi-types: ^9.1.0
     prettier: ^3.2.4
