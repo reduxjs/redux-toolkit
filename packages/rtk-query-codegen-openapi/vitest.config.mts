@@ -3,6 +3,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
+    pool: 'typescript',
     globals: true,
     setupFiles: ['./test/vitest.setup.ts'],
     alias: {
