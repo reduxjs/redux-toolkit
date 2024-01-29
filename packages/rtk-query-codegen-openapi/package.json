@@ -38,7 +38,7 @@
     "@types/glob-to-regexp": "^0.4.0",
     "@types/jest": "^27",
     "@types/lodash": "^4.14.165",
-    "@types/node": "^14.14.12",
+    "@types/node": "^20.11.10",
     "@types/prettier": "^2.1.6",
     "@types/semver": "^7.3.9",
     "babel-jest": "^26.6.3",
@@ -52,17 +52,18 @@
     "openapi-types": "^9.1.0",
     "pretty-quick": "^3.1.0",
     "ts-jest": "^29",
-    "ts-node": "^10.4.0",
+    "ts-node": "^10.9.2",
+    "vitest": "^1.2.2",
     "yalc": "^1.0.0-pre.47"
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.0.2",
     "commander": "^6.2.0",
     "oazapfts": "^4.8.0",
-    "prettier": "^2.2.1",
+    "prettier": "^3.2.4",
     "semver": "^7.3.5",
     "swagger2openapi": "^7.0.4",
-    "typescript": "^5.0.0"
+    "typescript": "^5.3.3"
   },
   "husky": {
     "hooks": {
