@@ -1,15 +1,16 @@
 {
-  "name": "@reduxjs/prettier-config",
+  "name": "@reduxjs/vitest-config",
   "version": "0.0.1",
-  "description": "Prettier configuration for Redux projects",
-  "main": "prettier.config.mjs",
+  "description": "Vitest configuration for Redux projects",
+  "main": "vitest.config.mts",
   "type": "module",
   "keywords": [
-    "prettier",
     "config",
-    "prettier-config",
     "reduxjs",
     "redux-toolkit",
+    "vitest-config",
+    "vitest",
+    "vite",
     "configuration"
   ],
   "publishConfig": {
@@ -20,7 +21,6 @@
     "url": "git+https://github.com/reduxjs/redux-toolkit.git"
   },
   "devDependencies": {
-    "prettier": "^3.2.4"
-  },
-  "prettier": "./prettier.config.mjs"
+    "vitest": "^1.2.2"
+  }
 }

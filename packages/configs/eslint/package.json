@@ -9,7 +9,8 @@
     "config",
     "eslint-config",
     "reduxjs",
-    "redux-toolkit"
+    "redux-toolkit",
+    "configuration"
   ],
   "publishConfig": {
     "access": "public"
