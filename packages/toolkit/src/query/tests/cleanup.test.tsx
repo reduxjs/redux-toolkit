@@ -1,11 +1,11 @@
 // tests for "cleanup-after-unsubscribe" behaviour
-import { vi } from 'vitest'
-import React, { Profiler, ProfilerOnRenderCallback } from 'react'
+import React from 'react'
 
 import { createListenerMiddleware } from '@reduxjs/toolkit'
 import { createApi, QueryStatus } from '@reduxjs/toolkit/query/react'
-import { render, waitFor, act, screen } from '@testing-library/react'
-import { setupApiStore } from './helpers'
+import { act, render, screen, waitFor } from '@testing-library/react'
+import { setupApiStore } from '../../tests/utils/helpers'
+import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
 const tick = () => new Promise((res) => setImmediate(res))
 
@@ -20,8 +20,8 @@ const api = createApi({
 })
 const storeRef = setupApiStore(api)
 
-let getSubStateA = () => storeRef.store.getState().api.queries['a(undefined)']
-let getSubStateB = () => storeRef.store.getState().api.queries['b(undefined)']
+const getSubStateA = () => storeRef.store.getState().api.queries['a(undefined)']
+const getSubStateB = () => storeRef.store.getState().api.queries['b(undefined)']
 
 function UsingA() {
   const { data } = api.endpoints.a.useQuery()
@@ -51,10 +51,10 @@ test('data stays in store when component stays rendered', async () => {
 
   render(<UsingA />, { wrapper: storeRef.wrapper })
   await waitFor(() =>
-    expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
+    expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled),
   )
 
-  vi.advanceTimersByTime(120000)
+  vi.advanceTimersByTime(120_000)
 
   expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
 })
@@ -64,12 +64,12 @@ test('data is removed from store after 60 seconds', async () => {
 
   const { unmount } = render(<UsingA />, { wrapper: storeRef.wrapper })
   await waitFor(() =>
-    expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
+    expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled),
   )
 
   unmount()
 
-  vi.advanceTimersByTime(59000)
+  vi.advanceTimersByTime(59_000)
 
   expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
 
@@ -87,7 +87,7 @@ test('data stays in store when component stays rendered while data for another c
       <UsingA />
       <UsingB />
     </>,
-    { wrapper: storeRef.wrapper }
+    { wrapper: storeRef.wrapper },
   )
   await waitFor(() => {
     expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
@@ -97,16 +97,12 @@ test('data stays in store when component stays rendered while data for another c
   const statusA = getSubStateA()
 
   await act(async () => {
-    rerender(
-      <>
-        <UsingA />
-      </>
-    )
+    rerender(<UsingA />)
 
     vi.advanceTimersByTime(10)
   })
 
-  vi.advanceTimersByTime(120000)
+  vi.advanceTimersByTime(120_000)
 
   expect(getSubStateA()).toEqual(statusA)
   expect(getSubStateB()).toBeUndefined()
@@ -121,7 +117,7 @@ test('data stays in store when one component requiring the data stays in the sto
       <UsingA key="a" />
       <UsingAB key="ab" />
     </>,
-    { wrapper: storeRef.wrapper }
+    { wrapper: storeRef.wrapper },
   )
   await waitFor(() => {
     expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
@@ -132,11 +128,7 @@ test('data stays in store when one component requiring the data stays in the sto
   const statusB = getSubStateB()
 
   await act(async () => {
-    rerender(
-      <>
-        <UsingAB key="ab" />
-      </>
-    )
+    rerender(<UsingAB key="ab" />)
     vi.advanceTimersByTime(10)
     vi.runAllTimers()
   })
@@ -159,17 +151,25 @@ test('Minimizes the number of subscription dispatches when multiple components a
     withoutTestLifecycles: true,
   })
 
-  let getSubscriptionsA = () =>
-    storeRef.store.getState().api.subscriptions['a(undefined)']
-
-  let actionTypes: unknown[] = []
+  const actionTypes: unknown[] = []
 
   listenerMiddleware.startListening({
     predicate: () => true,
     effect: (action) => {
+      if (
+        action.type.includes('subscriptionsUpdated') ||
+        action.type.includes('internal_')
+      ) {
+        return
+      }
+
       actionTypes.push(action.type)
     },
   })
+
+  const { getSubscriptionCount } = storeRef.store.dispatch(
+    api.internalActions.internal_getRTKQSubscriptions(),
+  ) as unknown as SubscriptionSelectors
 
   const NUM_LIST_ITEMS = 1000
 
@@ -194,14 +194,11 @@ test('Minimizes the number of subscription dispatches when multiple components a
     return screen.getAllByText(/42/).length > 0
   })
 
-  const subscriptions = getSubscriptionsA()
-
-  expect(Object.keys(subscriptions!).length).toBe(NUM_LIST_ITEMS)
+  expect(getSubscriptionCount('a(undefined)')).toBe(NUM_LIST_ITEMS)
 
   expect(actionTypes).toEqual([
     'api/config/middlewareRegistered',
     'api/executeQuery/pending',
-    'api/internalSubscriptions/subscriptionsUpdated',
     'api/executeQuery/fulfilled',
   ])
-}, 25000)
+}, 25_000)

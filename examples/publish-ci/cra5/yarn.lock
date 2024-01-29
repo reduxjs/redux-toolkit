@@ -2253,23 +2253,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@reduxjs/toolkit@npm:^2.0.0-beta.2":
-  version: 2.0.0-beta.2
-  resolution: "@reduxjs/toolkit@npm:2.0.0-beta.2"
+"@reduxjs/toolkit@npm:^2.0.0-rc.3":
+  version: 2.0.0-rc.3
+  resolution: "@reduxjs/toolkit@npm:2.0.0-rc.3"
   dependencies:
-    immer: ^10.0.2
-    redux: ^5.0.0-beta.0
-    redux-thunk: ^3.0.0-beta.0
-    reselect: ^5.0.0-alpha.2
+    immer: ^10.0.3
+    redux: ^5.0.0-rc.1
+    redux-thunk: ^3.0.0-rc.0
+    reselect: ^5.0.0-rc.1
   peerDependencies:
     react: ^16.9.0 || ^17.0.0 || ^18
-    react-redux: ^7.2.1 || ^8.0.2 || ^9.0.0-alpha.1
+    react-redux: ^7.2.1 || ^8.1.3 || ^9.0.0-rc.0
   peerDependenciesMeta:
     react:
       optional: true
     react-redux:
       optional: true
-  checksum: 340b515190ba23785464aab85141e49e57a924cde8a335a8df789f1b212cb59fb35e7d8e241bbac9f6e27d17c5236d440aca6f7a7bb2fa36228e0c111c7ec768
+  checksum: 4ac1f1900e9d174e2736cd0378317c198129d9377d5d037323ad807972900fb1e5389b10ee78991cbf472fac7ce2c5b348d945e0fd35e689559b34b1f255edbd
   languageName: node
   linkType: hard
 
@@ -7327,10 +7327,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"immer@npm:^10.0.2":
-  version: 10.0.2
-  resolution: "immer@npm:10.0.2"
-  checksum: 525a3b14210d02ae420c3b9f6ca14f7e9bcf625611d1356e773e7739f14c7c8de50dac442e6c7de3a6e24a782f7b792b6b8666bc0b3f00269d21a95f8f68ca84
+"immer@npm:^10.0.3":
+  version: 10.0.3
+  resolution: "immer@npm:10.0.3"
+  checksum: 76acabe6f40e752028313762ba477a5d901e57b669f3b8fb406b87b9bb9b14e663a6fbbf5a6d1ab323737dd38f4b2494a4e28002045b88948da8dbf482309f28
   languageName: node
   linkType: hard
 
@@ -10896,12 +10896,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^2.8.4":
-  version: 2.8.4
-  resolution: "prettier@npm:2.8.4"
+"prettier@npm:^3.2.4":
+  version: 3.2.4
+  resolution: "prettier@npm:3.2.4"
   bin:
-    prettier: bin-prettier.js
-  checksum: c173064bf3df57b6d93d19aa98753b9b9dd7657212e33b41ada8e2e9f9884066bb9ca0b4005b89b3ab137efffdf8fbe0b462785aba20364798ff4303aadda57e
+    prettier: bin/prettier.cjs
+  checksum: 6ec9385a836e0b9bac549e585101c086d1521c31d7b882d5c8bb7d7646da0693da5f31f4fff6dc080710e5e2d34c85e6fb2f8766876b3645c8be2f33b9c3d1a3
   languageName: node
   linkType: hard
 
@@ -11222,12 +11222,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-redux@npm:^9.0.0-beta.0":
-  version: 9.0.0-beta.0
-  resolution: "react-redux@npm:9.0.0-beta.0"
+"react-redux@npm:^9.0.0-rc.0":
+  version: 9.0.0-rc.0
+  resolution: "react-redux@npm:9.0.0-rc.0"
   dependencies:
     "@types/use-sync-external-store": ^0.0.3
-    react-is: ^18.0.0
     use-sync-external-store: ^1.0.0
   peerDependencies:
     "@types/react": ^18.0
@@ -11235,7 +11234,7 @@ __metadata:
     react: ^18.0
     react-dom: ^18.0
     react-native: ">=0.71"
-    redux: ^5.0.0-beta.0
+    redux: ^5.0.0-rc.0
   peerDependenciesMeta:
     "@types/react":
       optional: true
@@ -11247,7 +11246,7 @@ __metadata:
       optional: true
     redux:
       optional: true
-  checksum: 4fc40fc4b2c03905f5d523b854516f4323d307c0ca33f2a14701f33315b53768d9e19f59511ebcad5448ccbd7c69a362edd0b68f0932669d4f9b2f517b7257b4
+  checksum: 7acc5760b7a4f6e43fb08d8e2ba4bf67638a604c15974e58c1597c37b0b55ee96db89c54bfc753c915a48081684f2051606fe430556cdf83204cceed3aaa64a3
   languageName: node
   linkType: hard
 
@@ -11397,19 +11396,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"redux-thunk@npm:^3.0.0-beta.0":
-  version: 3.0.0-beta.0
-  resolution: "redux-thunk@npm:3.0.0-beta.0"
+"redux-thunk@npm:^3.0.0-rc.0":
+  version: 3.0.0-rc.0
+  resolution: "redux-thunk@npm:3.0.0-rc.0"
   peerDependencies:
-    redux: ^4 || ^5.0.0-beta.0
-  checksum: 1609e18a9fb56ab7403d760999996b50e136fcf7411ec9d809e9a4afa4187bf0ab545652c05ffbfca2e0397e59e6baf2ae0d35631a30bf8ba20af1205e98e0fe
+    redux: ^5.0.0-rc.0
+  checksum: d56a4bb700c742294496699366090bad22d13112cacc16b4858321cb6d88e05dcbab3c0f0d3b34848bbfedf4a04cdcc1b999e6cfdf7a9af713018fe35a35016e
   languageName: node
   linkType: hard
 
-"redux@npm:^5.0.0-beta.0":
-  version: 5.0.0-beta.0
-  resolution: "redux@npm:5.0.0-beta.0"
-  checksum: 11df373e219f2f515ee1bda1a19a1ba5de02d8d5c874800ec353179dcd106eddd54432946fd0ab37c47f99f8fe53f820a6404c14da7f039a46022187e9469d2d
+"redux@npm:^5.0.0-rc.1":
+  version: 5.0.0-rc.1
+  resolution: "redux@npm:5.0.0-rc.1"
+  checksum: e3a26c5df84fb5705c82e17ca59c19374e3da3e87e5582201ca9b727e2569671bc1f01d738044f34bf38baaa296646a42714207a3dbc83d92ddf186ee0fc21c8
   languageName: node
   linkType: hard
 
@@ -11555,10 +11554,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"reselect@npm:^5.0.0-alpha.2":
-  version: 5.0.0-alpha.2
-  resolution: "reselect@npm:5.0.0-alpha.2"
-  checksum: c47b66999800e1297721cbc4b2464b520fade9823c598d578759c9fba3eb6be03b184e13c20f30820cc18fe2688fc9fb4475f83e59d8f2347aa0d591e465637d
+"reselect@npm:^5.0.0-rc.1":
+  version: 5.0.0-rc.1
+  resolution: "reselect@npm:5.0.0-rc.1"
+  checksum: 214254264b576dbf2558e66e43f8a97773e9d30f92911ec095feefd915cec82d0109a69a3cbbd5e38eb020e2819a2039c3eea7b2498c4933f438bfcade122165
   languageName: node
   linkType: hard
 
@@ -11740,7 +11739,7 @@ __metadata:
   resolution: "rtk-esm-cra@workspace:."
   dependencies:
     "@playwright/test": ^1.31.1
-    "@reduxjs/toolkit": ^2.0.0-beta.2
+    "@reduxjs/toolkit": ^2.0.0-rc.3
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^13.4.0
     "@testing-library/user-event": ^14.4.3
@@ -11750,10 +11749,10 @@ __metadata:
     "@types/react-dom": ^18.0.10
     msw: ^1.3.2
     playwright: ^1.31.1
-    prettier: ^2.8.4
+    prettier: ^3.2.4
     react: ^18.2.0
     react-dom: ^18.2.0
-    react-redux: ^9.0.0-beta.0
+    react-redux: ^9.0.0-rc.0
     react-scripts: 5
     serve: ^14.2.0
     typescript: ^4.9.4

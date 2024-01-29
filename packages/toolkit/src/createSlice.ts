@@ -1,4 +1,5 @@
 import type { Action, UnknownAction, Reducer } from 'redux'
+import type { Selector } from 'reselect'
 import type {
   ActionCreatorWithoutPayload,
   PayloadAction,
@@ -7,11 +8,15 @@ import type {
   _ActionCreatorWithPreparedPayload,
 } from './createAction'
 import { createAction } from './createAction'
-import type { CaseReducer, ReducerWithInitialState } from './createReducer'
+import type {
+  ActionMatcherDescriptionCollection,
+  CaseReducer,
+  ReducerWithInitialState,
+} from './createReducer'
 import { createReducer } from './createReducer'
-import type { ActionReducerMapBuilder } from './mapBuilders'
+import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { Id, Tail } from './tsHelpers'
+import type { Id, Tail, TypeGuard } from './tsHelpers'
 import type { InjectConfig } from './combineSlices'
 import type {
   AsyncThunk,
@@ -20,7 +25,16 @@ import type {
   AsyncThunkPayloadCreator,
   OverrideThunkApiConfigs,
 } from './createAsyncThunk'
-import { createAsyncThunk } from './createAsyncThunk'
+import { createAsyncThunk as _createAsyncThunk } from './createAsyncThunk'
+import { emplace } from './utils'
+
+const asyncThunkSymbol = Symbol.for('rtk-slice-createasyncthunk')
+// type is annotated because it's too long to infer
+export const asyncThunkCreator: {
+  [asyncThunkSymbol]: typeof _createAsyncThunk
+} = {
+  [asyncThunkSymbol]: _createAsyncThunk,
+}
 
 interface InjectIntoConfig<NewReducerPath extends string> extends InjectConfig {
   reducerPath?: NewReducerPath
@@ -36,7 +50,7 @@ export interface Slice<
   CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
   Name extends string = string,
   ReducerPath extends string = Name,
-  Selectors extends SliceSelectors<State> = SliceSelectors<State>
+  Selectors extends SliceSelectors<State> = SliceSelectors<State>,
 > {
   /**
    * The slice name.
@@ -80,7 +94,7 @@ export interface Slice<
    * Get globalised slice selectors (`selectState` callback is expected to receive first parameter and return slice state)
    */
   getSelectors<RootState>(
-    selectState: (rootState: RootState) => State
+    selectState: (rootState: RootState) => State,
   ): Id<SliceDefinedSelectors<State, Selectors, RootState>>
 
   /**
@@ -88,7 +102,7 @@ export interface Slice<
    *
    * Equivalent to `slice.getSelectors((state: RootState) => state[slice.reducerPath])`.
    */
-  selectors: Id<
+  get selectors(): Id<
     SliceDefinedSelectors<State, Selectors, { [K in ReducerPath]: State }>
   >
 
@@ -96,14 +110,22 @@ export interface Slice<
    * Inject slice into provided reducer (return value from `combineSlices`), and return injected slice.
    */
   injectInto<NewReducerPath extends string = ReducerPath>(
+    this: this,
     injectable: {
       inject: (
         slice: { reducerPath: string; reducer: Reducer },
-        config?: InjectConfig
+        config?: InjectConfig,
       ) => void
     },
-    config?: InjectIntoConfig<NewReducerPath>
+    config?: InjectIntoConfig<NewReducerPath>,
   ): InjectedSlice<State, CaseReducers, Name, NewReducerPath, Selectors>
+
+  /**
+   * Select the slice state, using the slice's current reducerPath.
+   *
+   * Will throw an error if slice is not found.
+   */
+  selectSlice(state: { [K in ReducerPath]: State }): State
 }
 
 /**
@@ -116,7 +138,7 @@ interface InjectedSlice<
   CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
   Name extends string = string,
   ReducerPath extends string = Name,
-  Selectors extends SliceSelectors<State> = SliceSelectors<State>
+  Selectors extends SliceSelectors<State> = SliceSelectors<State>,
 > extends Omit<
     Slice<State, CaseReducers, Name, ReducerPath, Selectors>,
     'getSelectors' | 'selectors'
@@ -130,7 +152,7 @@ interface InjectedSlice<
    * Get globalised slice selectors (`selectState` callback is expected to receive first parameter and return slice state)
    */
   getSelectors<RootState>(
-    selectState: (rootState: RootState) => State | undefined
+    selectState: (rootState: RootState) => State | undefined,
   ): Id<SliceDefinedSelectors<State, Selectors, RootState>>
 
   /**
@@ -138,13 +160,20 @@ interface InjectedSlice<
    *
    * Equivalent to `slice.getSelectors((state: RootState) => state[slice.name])`.
    */
-  selectors: Id<
+  get selectors(): Id<
     SliceDefinedSelectors<
       State,
       Selectors,
       { [K in ReducerPath]?: State | undefined }
     >
   >
+
+  /**
+   * Select the slice state, using the slice's current reducerPath.
+   *
+   * Returns initial state if slice is not found.
+   */
+  selectSlice(state: { [K in ReducerPath]?: State | undefined }): State
 }
 
 /**
@@ -157,7 +186,7 @@ export interface CreateSliceOptions<
   CR extends SliceCaseReducers<State> = SliceCaseReducers<State>,
   Name extends string = string,
   ReducerPath extends string = Name,
-  Selectors extends SliceSelectors<State> = SliceSelectors<State>
+  Selectors extends SliceSelectors<State> = SliceSelectors<State>,
 > {
   /**
    * The slice's name. Used to namespace the generated action types.
@@ -245,7 +274,7 @@ interface ReducerDefinition<T extends ReducerType = ReducerType> {
 
 export interface CaseReducerDefinition<
   S = any,
-  A extends Action = UnknownAction
+  A extends Action = UnknownAction,
 > extends CaseReducer<S, A>,
     ReducerDefinition<ReducerType.reducer> {}
 
@@ -261,7 +290,7 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
 
 export interface CaseReducerWithPrepareDefinition<
   State,
-  Action extends PayloadAction
+  Action extends PayloadAction,
 > extends CaseReducerWithPrepare<State, Action>,
     ReducerDefinition<ReducerType.reducerWithPrepare> {}
 
@@ -269,7 +298,7 @@ export interface AsyncThunkSliceReducerConfig<
   State,
   ThunkArg extends any,
   Returned = unknown,
-  ThunkApiConfig extends AsyncThunkConfig = {}
+  ThunkApiConfig extends AsyncThunkConfig = {},
 > {
   pending?: CaseReducer<
     State,
@@ -283,6 +312,12 @@ export interface AsyncThunkSliceReducerConfig<
     State,
     ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['fulfilled']>
   >
+  settled?: CaseReducer<
+    State,
+    ReturnType<
+      AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['rejected' | 'fulfilled']
+    >
+  >
   options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
 }
 
@@ -290,7 +325,7 @@ export interface AsyncThunkSliceReducerDefinition<
   State,
   ThunkArg extends any,
   Returned = unknown,
-  ThunkApiConfig extends AsyncThunkConfig = {}
+  ThunkApiConfig extends AsyncThunkConfig = {},
 > extends AsyncThunkSliceReducerConfig<
       State,
       ThunkArg,
@@ -312,9 +347,10 @@ type PreventCircular<ThunkApiConfig> = {
 
 interface AsyncThunkCreator<
   State,
-  CurriedThunkApiConfig extends PreventCircular<AsyncThunkConfig> = PreventCircular<AsyncThunkConfig>
+  CurriedThunkApiConfig extends
+    PreventCircular<AsyncThunkConfig> = PreventCircular<AsyncThunkConfig>,
 > {
-  <ThunkArg extends any, Returned = unknown>(
+  <Returned, ThunkArg = void>(
     payloadCreator: AsyncThunkPayloadCreator<
       Returned,
       ThunkArg,
@@ -325,7 +361,7 @@ interface AsyncThunkCreator<
       ThunkArg,
       Returned,
       CurriedThunkApiConfig
-    >
+    >,
   ): AsyncThunkSliceReducerDefinition<
     State,
     ThunkArg,
@@ -333,9 +369,9 @@ interface AsyncThunkCreator<
     CurriedThunkApiConfig
   >
   <
-    ThunkArg extends any,
-    Returned = unknown,
-    ThunkApiConfig extends PreventCircular<AsyncThunkConfig> = {}
+    Returned,
+    ThunkArg,
+    ThunkApiConfig extends PreventCircular<AsyncThunkConfig> = {},
   >(
     payloadCreator: AsyncThunkPayloadCreator<
       Returned,
@@ -347,10 +383,10 @@ interface AsyncThunkCreator<
       ThunkArg,
       Returned,
       ThunkApiConfig
-    >
+    >,
   ): AsyncThunkSliceReducerDefinition<State, ThunkArg, Returned, ThunkApiConfig>
   withTypes<
-    ThunkApiConfig extends PreventCircular<AsyncThunkConfig>
+    ThunkApiConfig extends PreventCircular<AsyncThunkConfig>,
   >(): AsyncThunkCreator<
     State,
     OverrideThunkApiConfigs<CurriedThunkApiConfig, ThunkApiConfig>
@@ -359,10 +395,10 @@ interface AsyncThunkCreator<
 
 export interface ReducerCreators<State> {
   reducer(
-    caseReducer: CaseReducer<State, PayloadAction>
+    caseReducer: CaseReducer<State, PayloadAction>,
   ): CaseReducerDefinition<State, PayloadAction>
   reducer<Payload>(
-    caseReducer: CaseReducer<State, PayloadAction<Payload>>
+    caseReducer: CaseReducer<State, PayloadAction<Payload>>,
   ): CaseReducerDefinition<State, PayloadAction<Payload>>
 
   asyncThunk: AsyncThunkCreator<State>
@@ -372,7 +408,7 @@ export interface ReducerCreators<State> {
     reducer: CaseReducer<
       State,
       ReturnType<_ActionCreatorWithPreparedPayload<Prepare>>
-    >
+    >,
   ): {
     _reducerDefinitionType: ReducerType.reducerWithPrepare
     prepare: Prepare
@@ -413,7 +449,7 @@ export type SliceSelectors<State> = {
 
 type SliceActionType<
   SliceName extends string,
-  ActionName extends keyof any
+  ActionName extends keyof any,
 > = ActionName extends string | number ? `${SliceName}/${ActionName}` : string
 
 /**
@@ -423,7 +459,7 @@ type SliceActionType<
  */
 export type CaseReducerActions<
   CaseReducers extends SliceCaseReducers<any>,
-  SliceName extends string
+  SliceName extends string,
 > = {
   [Type in keyof CaseReducers]: CaseReducers[Type] extends infer Definition
     ? Definition extends { prepare: any }
@@ -432,21 +468,21 @@ export type CaseReducerActions<
           SliceActionType<SliceName, Type>
         >
       : Definition extends AsyncThunkSliceReducerDefinition<
-          any,
-          infer ThunkArg,
-          infer Returned,
-          infer ThunkApiConfig
-        >
-      ? AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
-      : Definition extends { reducer: any }
-      ? ActionCreatorForCaseReducer<
-          Definition['reducer'],
-          SliceActionType<SliceName, Type>
-        >
-      : ActionCreatorForCaseReducer<
-          Definition,
-          SliceActionType<SliceName, Type>
-        >
+            any,
+            infer ThunkArg,
+            infer Returned,
+            infer ThunkApiConfig
+          >
+        ? AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
+        : Definition extends { reducer: any }
+          ? ActionCreatorForCaseReducer<
+              Definition['reducer'],
+              SliceActionType<SliceName, Type>
+            >
+          : ActionCreatorForCaseReducer<
+              Definition,
+              SliceActionType<SliceName, Type>
+            >
     : never
 }
 
@@ -457,7 +493,7 @@ export type CaseReducerActions<
  */
 type ActionCreatorForCaseReducerWithPrepare<
   CR extends { prepare: any },
-  Type extends string
+  Type extends string,
 > = _ActionCreatorWithPreparedPayload<CR['prepare'], Type>
 
 /**
@@ -467,7 +503,7 @@ type ActionCreatorForCaseReducerWithPrepare<
  */
 type ActionCreatorForCaseReducer<CR, Type extends string> = CR extends (
   state: any,
-  action: infer Action
+  action: infer Action,
 ) => any
   ? Action extends { payload: infer P }
     ? PayloadActionCreator<P, Type>
@@ -483,14 +519,24 @@ type ActionCreatorForCaseReducer<CR, Type extends string> = CR extends (
 type SliceDefinedCaseReducers<CaseReducers extends SliceCaseReducers<any>> = {
   [Type in keyof CaseReducers]: CaseReducers[Type] extends infer Definition
     ? Definition extends AsyncThunkSliceReducerDefinition<any, any, any, any>
-      ? Id<Pick<Required<Definition>, 'fulfilled' | 'rejected' | 'pending'>>
+      ? Id<
+          Pick<
+            Required<Definition>,
+            'fulfilled' | 'rejected' | 'pending' | 'settled'
+          >
+        >
       : Definition extends {
-          reducer: infer Reducer
-        }
-      ? Reducer
-      : Definition
+            reducer: infer Reducer
+          }
+        ? Reducer
+        : Definition
     : never
 }
+
+type RemappedSelector<S extends Selector, NewState> =
+  S extends Selector<any, infer R, infer P>
+    ? Selector<NewState, R, P> & { unwrapped: S }
+    : never
 
 /**
  * Extracts the final selector type from the `selectors` object.
@@ -500,12 +546,12 @@ type SliceDefinedCaseReducers<CaseReducers extends SliceCaseReducers<any>> = {
 type SliceDefinedSelectors<
   State,
   Selectors extends SliceSelectors<State>,
-  RootState
+  RootState,
 > = {
-  [K in keyof Selectors as string extends K ? never : K]: (
-    rootState: RootState,
-    ...args: Tail<Parameters<Selectors[K]>>
-  ) => ReturnType<Selectors[K]>
+  [K in keyof Selectors as string extends K ? never : K]: RemappedSelector<
+    Selectors[K],
+    RootState
+  >
 }
 
 /**
@@ -522,20 +568,291 @@ type SliceDefinedSelectors<
  */
 export type ValidateSliceCaseReducers<
   S,
-  ACR extends SliceCaseReducers<S>
-> = ACR &
-  {
-    [T in keyof ACR]: ACR[T] extends {
-      reducer(s: S, action?: infer A): any
-    }
-      ? {
-          prepare(...a: never[]): Omit<A, 'type'>
-        }
-      : {}
+  ACR extends SliceCaseReducers<S>,
+> = ACR & {
+  [T in keyof ACR]: ACR[T] extends {
+    reducer(s: S, action?: infer A): any
   }
+    ? {
+        prepare(...a: never[]): Omit<A, 'type'>
+      }
+    : {}
+}
 
 function getType(slice: string, actionKey: string): string {
   return `${slice}/${actionKey}`
+}
+
+interface BuildCreateSliceConfig {
+  creators?: {
+    asyncThunk?: typeof asyncThunkCreator
+  }
+}
+
+export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
+  const cAT = creators?.asyncThunk?.[asyncThunkSymbol]
+  return function createSlice<
+    State,
+    CaseReducers extends SliceCaseReducers<State>,
+    Name extends string,
+    Selectors extends SliceSelectors<State>,
+    ReducerPath extends string = Name,
+  >(
+    options: CreateSliceOptions<
+      State,
+      CaseReducers,
+      Name,
+      ReducerPath,
+      Selectors
+    >,
+  ): Slice<State, CaseReducers, Name, ReducerPath, Selectors> {
+    const { name, reducerPath = name as unknown as ReducerPath } = options
+    if (!name) {
+      throw new Error('`name` is a required option for createSlice')
+    }
+
+    if (
+      typeof process !== 'undefined' &&
+      process.env.NODE_ENV === 'development'
+    ) {
+      if (options.initialState === undefined) {
+        console.error(
+          'You must provide an `initialState` value that is not `undefined`. You may have misspelled `initialState`',
+        )
+      }
+    }
+
+    const reducers =
+      (typeof options.reducers === 'function'
+        ? options.reducers(buildReducerCreators<State>())
+        : options.reducers) || {}
+
+    const reducerNames = Object.keys(reducers)
+
+    const context: ReducerHandlingContext<State> = {
+      sliceCaseReducersByName: {},
+      sliceCaseReducersByType: {},
+      actionCreators: {},
+      sliceMatchers: [],
+    }
+
+    const contextMethods: ReducerHandlingContextMethods<State> = {
+      addCase(
+        typeOrActionCreator: string | TypedActionCreator<any>,
+        reducer: CaseReducer<State>,
+      ) {
+        const type =
+          typeof typeOrActionCreator === 'string'
+            ? typeOrActionCreator
+            : typeOrActionCreator.type
+        if (!type) {
+          throw new Error(
+            '`context.addCase` cannot be called with an empty action type',
+          )
+        }
+        if (type in context.sliceCaseReducersByType) {
+          throw new Error(
+            '`context.addCase` cannot be called with two reducers for the same action type: ' +
+              type,
+          )
+        }
+        context.sliceCaseReducersByType[type] = reducer
+        return contextMethods
+      },
+      addMatcher(matcher, reducer) {
+        context.sliceMatchers.push({ matcher, reducer })
+        return contextMethods
+      },
+      exposeAction(name, actionCreator) {
+        context.actionCreators[name] = actionCreator
+        return contextMethods
+      },
+      exposeCaseReducer(name, reducer) {
+        context.sliceCaseReducersByName[name] = reducer
+        return contextMethods
+      },
+    }
+
+    reducerNames.forEach((reducerName) => {
+      const reducerDefinition = reducers[reducerName]
+      const reducerDetails: ReducerDetails = {
+        reducerName,
+        type: getType(name, reducerName),
+        createNotation: typeof options.reducers === 'function',
+      }
+      if (isAsyncThunkSliceReducerDefinition<State>(reducerDefinition)) {
+        handleThunkCaseReducerDefinition(
+          reducerDetails,
+          reducerDefinition,
+          contextMethods,
+          cAT,
+        )
+      } else {
+        handleNormalReducerDefinition<State>(
+          reducerDetails,
+          reducerDefinition,
+          contextMethods,
+        )
+      }
+    })
+
+    function buildReducer() {
+      if (process.env.NODE_ENV !== 'production') {
+        if (typeof options.extraReducers === 'object') {
+          throw new Error(
+            "The object notation for `createSlice.extraReducers` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createSlice",
+          )
+        }
+      }
+      const [
+        extraReducers = {},
+        actionMatchers = [],
+        defaultCaseReducer = undefined,
+      ] =
+        typeof options.extraReducers === 'function'
+          ? executeReducerBuilderCallback(options.extraReducers)
+          : [options.extraReducers]
+
+      const finalCaseReducers = {
+        ...extraReducers,
+        ...context.sliceCaseReducersByType,
+      }
+
+      return createReducer(options.initialState, (builder) => {
+        for (let key in finalCaseReducers) {
+          builder.addCase(key, finalCaseReducers[key] as CaseReducer<any>)
+        }
+        for (let sM of context.sliceMatchers) {
+          builder.addMatcher(sM.matcher, sM.reducer)
+        }
+        for (let m of actionMatchers) {
+          builder.addMatcher(m.matcher, m.reducer)
+        }
+        if (defaultCaseReducer) {
+          builder.addDefaultCase(defaultCaseReducer)
+        }
+      })
+    }
+
+    const selectSelf = (state: State) => state
+
+    const injectedSelectorCache = new Map<
+      boolean,
+      WeakMap<
+        (rootState: any) => State | undefined,
+        Record<string, (rootState: any) => any>
+      >
+    >()
+
+    let _reducer: ReducerWithInitialState<State>
+
+    function reducer(state: State | undefined, action: UnknownAction) {
+      if (!_reducer) _reducer = buildReducer()
+
+      return _reducer(state, action)
+    }
+
+    function getInitialState() {
+      if (!_reducer) _reducer = buildReducer()
+
+      return _reducer.getInitialState()
+    }
+
+    function makeSelectorProps<CurrentReducerPath extends string = ReducerPath>(
+      reducerPath: CurrentReducerPath,
+      injected = false,
+    ): Pick<
+      Slice<State, CaseReducers, Name, CurrentReducerPath, Selectors>,
+      'getSelectors' | 'selectors' | 'selectSlice' | 'reducerPath'
+    > {
+      function selectSlice(state: { [K in CurrentReducerPath]: State }) {
+        let sliceState = state[reducerPath]
+        if (typeof sliceState === 'undefined') {
+          if (injected) {
+            sliceState = getInitialState()
+          } else if (process.env.NODE_ENV !== 'production') {
+            throw new Error(
+              'selectSlice returned undefined for an uninjected slice reducer',
+            )
+          }
+        }
+        return sliceState
+      }
+      function getSelectors(
+        selectState: (rootState: any) => State = selectSelf,
+      ) {
+        const selectorCache = emplace(injectedSelectorCache, injected, {
+          insert: () => new WeakMap(),
+        })
+
+        return emplace(selectorCache, selectState, {
+          insert: () => {
+            const map: Record<string, Selector<any, any>> = {}
+            for (const [name, selector] of Object.entries(
+              options.selectors ?? {},
+            )) {
+              map[name] = wrapSelector(
+                selector,
+                selectState,
+                getInitialState,
+                injected,
+              )
+            }
+            return map
+          },
+        }) as any
+      }
+      return {
+        reducerPath,
+        getSelectors,
+        get selectors() {
+          return getSelectors(selectSlice)
+        },
+        selectSlice,
+      }
+    }
+
+    const slice: Slice<State, CaseReducers, Name, ReducerPath, Selectors> = {
+      name,
+      reducer,
+      actions: context.actionCreators as any,
+      caseReducers: context.sliceCaseReducersByName as any,
+      getInitialState,
+      ...makeSelectorProps(reducerPath),
+      injectInto(injectable, { reducerPath: pathOpt, ...config } = {}) {
+        const newReducerPath = pathOpt ?? reducerPath
+        injectable.inject({ reducerPath: newReducerPath, reducer }, config)
+        return {
+          ...slice,
+          ...makeSelectorProps(newReducerPath, true),
+        } as any
+      },
+    }
+    return slice
+  }
+}
+
+function wrapSelector<State, NewState, S extends Selector<State>>(
+  selector: S,
+  selectState: Selector<NewState, State>,
+  getInitialState: () => State,
+  injected?: boolean,
+) {
+  function wrapper(rootState: NewState, ...args: any[]) {
+    let sliceState = selectState(rootState)
+    if (typeof sliceState === 'undefined') {
+      if (injected) {
+        sliceState = getInitialState()
+      } else if (process.env.NODE_ENV !== 'production') {
+        throw new Error(
+          'selectState returned undefined for an uninjected slice reducer',
+        )
+      }
+    }
+    return selector(sliceState, ...args)
+  }
+  wrapper.unwrapped = selector
+  return wrapper as RemappedSelector<S, NewState>
 }
 
 /**
@@ -546,181 +863,7 @@ function getType(slice: string, actionKey: string): string {
  *
  * @public
  */
-export function createSlice<
-  State,
-  CaseReducers extends SliceCaseReducers<State>,
-  Name extends string,
-  Selectors extends SliceSelectors<State>,
-  ReducerPath extends string = Name
->(
-  options: CreateSliceOptions<State, CaseReducers, Name, ReducerPath, Selectors>
-): Slice<State, CaseReducers, Name, ReducerPath, Selectors> {
-  const { name, reducerPath = name as unknown as ReducerPath } = options
-  if (!name) {
-    throw new Error('`name` is a required option for createSlice')
-  }
-
-  if (
-    typeof process !== 'undefined' &&
-    process.env.NODE_ENV === 'development'
-  ) {
-    if (options.initialState === undefined) {
-      console.error(
-        'You must provide an `initialState` value that is not `undefined`. You may have misspelled `initialState`'
-      )
-    }
-  }
-
-  const reducers =
-    (typeof options.reducers === 'function'
-      ? options.reducers(buildReducerCreators<State>())
-      : options.reducers) || {}
-
-  const reducerNames = Object.keys(reducers)
-
-  const context: ReducerHandlingContext<State> = {
-    sliceCaseReducersByName: {},
-    sliceCaseReducersByType: {},
-    actionCreators: {},
-  }
-
-  reducerNames.forEach((reducerName) => {
-    const reducerDefinition = reducers[reducerName]
-    const reducerDetails: ReducerDetails = {
-      reducerName,
-      type: getType(name, reducerName),
-      createNotation: typeof options.reducers === 'function',
-    }
-    if (isAsyncThunkSliceReducerDefinition<State>(reducerDefinition)) {
-      handleThunkCaseReducerDefinition(
-        reducerDetails,
-        reducerDefinition,
-        context
-      )
-    } else {
-      handleNormalReducerDefinition<State>(
-        reducerDetails,
-        reducerDefinition,
-        context
-      )
-    }
-  })
-
-  function buildReducer() {
-    if (process.env.NODE_ENV !== 'production') {
-      if (typeof options.extraReducers === 'object') {
-        throw new Error(
-          "The object notation for `createSlice.extraReducers` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createSlice"
-        )
-      }
-    }
-    const [
-      extraReducers = {},
-      actionMatchers = [],
-      defaultCaseReducer = undefined,
-    ] =
-      typeof options.extraReducers === 'function'
-        ? executeReducerBuilderCallback(options.extraReducers)
-        : [options.extraReducers]
-
-    const finalCaseReducers = {
-      ...extraReducers,
-      ...context.sliceCaseReducersByType,
-    }
-
-    return createReducer(options.initialState, (builder) => {
-      for (let key in finalCaseReducers) {
-        builder.addCase(key, finalCaseReducers[key] as CaseReducer<any>)
-      }
-      for (let m of actionMatchers) {
-        builder.addMatcher(m.matcher, m.reducer)
-      }
-      if (defaultCaseReducer) {
-        builder.addDefaultCase(defaultCaseReducer)
-      }
-    })
-  }
-
-  const defaultSelectSlice = (
-    rootState: { [K in ReducerPath]: State }
-  ): State => rootState[reducerPath]
-
-  const selectSelf = (state: State) => state
-
-  const injectedSelectorCache = new WeakMap<
-    Slice<State, CaseReducers, Name, ReducerPath, Selectors>,
-    WeakMap<
-      (rootState: any) => State | undefined,
-      Record<string, (rootState: any) => any>
-    >
-  >()
-
-  let _reducer: ReducerWithInitialState<State>
-
-  const slice: Slice<State, CaseReducers, Name, ReducerPath, Selectors> = {
-    name,
-    reducerPath,
-    reducer(state, action) {
-      if (!_reducer) _reducer = buildReducer()
-
-      return _reducer(state, action)
-    },
-    actions: context.actionCreators as any,
-    caseReducers: context.sliceCaseReducersByName as any,
-    getInitialState() {
-      if (!_reducer) _reducer = buildReducer()
-
-      return _reducer.getInitialState()
-    },
-    getSelectors(selectState: (rootState: any) => State = selectSelf) {
-      let selectorCache = injectedSelectorCache.get(this)
-      if (!selectorCache) {
-        selectorCache = new WeakMap()
-        injectedSelectorCache.set(this, selectorCache)
-      }
-      let cached = selectorCache.get(selectState)
-      if (!cached) {
-        cached = {}
-        for (const [name, selector] of Object.entries(
-          options.selectors ?? {}
-        )) {
-          cached[name] = (rootState: any, ...args: any[]) => {
-            let sliceState = selectState(rootState)
-            if (typeof sliceState === 'undefined') {
-              // check if injectInto has been called
-              if (this !== slice) {
-                sliceState = this.getInitialState()
-              } else if (process.env.NODE_ENV !== 'production') {
-                throw new Error(
-                  'selectState returned undefined for an uninjected slice reducer'
-                )
-              }
-            }
-            return selector(sliceState, ...args)
-          }
-        }
-        selectorCache.set(selectState, cached)
-      }
-      return cached as any
-    },
-    get selectors() {
-      return this.getSelectors(defaultSelectSlice)
-    },
-    injectInto(injectable, { reducerPath: pathOpt, ...config } = {}) {
-      const reducerPath = pathOpt ?? this.reducerPath
-      injectable.inject({ reducerPath, reducer: this.reducer }, config)
-      const selectSlice = (state: any) => state[reducerPath]
-      return {
-        ...this,
-        reducerPath,
-        get selectors() {
-          return this.getSelectors(selectSlice)
-        },
-      } as any
-    },
-  }
-  return slice
-}
+export const createSlice = buildCreateSlice()
 
 interface ReducerHandlingContext<State> {
   sliceCaseReducersByName: Record<
@@ -728,23 +871,99 @@ interface ReducerHandlingContext<State> {
     | CaseReducer<State, any>
     | Pick<
         AsyncThunkSliceReducerDefinition<State, any, any, any>,
-        'fulfilled' | 'rejected' | 'pending'
+        'fulfilled' | 'rejected' | 'pending' | 'settled'
       >
   >
   sliceCaseReducersByType: Record<string, CaseReducer<State, any>>
+  sliceMatchers: ActionMatcherDescriptionCollection<State>
   actionCreators: Record<string, Function>
 }
 
+interface ReducerHandlingContextMethods<State> {
+  /**
+   * Adds a case reducer to handle a single action type.
+   * @param actionCreator - Either a plain action type string, or an action creator generated by [`createAction`](./createAction) that can be used to determine the action type.
+   * @param reducer - The actual case reducer function.
+   */
+  addCase<ActionCreator extends TypedActionCreator<string>>(
+    actionCreator: ActionCreator,
+    reducer: CaseReducer<State, ReturnType<ActionCreator>>,
+  ): ReducerHandlingContextMethods<State>
+  /**
+   * Adds a case reducer to handle a single action type.
+   * @param actionCreator - Either a plain action type string, or an action creator generated by [`createAction`](./createAction) that can be used to determine the action type.
+   * @param reducer - The actual case reducer function.
+   */
+  addCase<Type extends string, A extends Action<Type>>(
+    type: Type,
+    reducer: CaseReducer<State, A>,
+  ): ReducerHandlingContextMethods<State>
+
+  /**
+   * Allows you to match incoming actions against your own filter function instead of only the `action.type` property.
+   * @remarks
+   * If multiple matcher reducers match, all of them will be executed in the order
+   * they were defined in - even if a case reducer already matched.
+   * All calls to `builder.addMatcher` must come after any calls to `builder.addCase` and before any calls to `builder.addDefaultCase`.
+   * @param matcher - A matcher function. In TypeScript, this should be a [type predicate](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)
+   *   function
+   * @param reducer - The actual case reducer function.
+   *
+   */
+  addMatcher<A>(
+    matcher: TypeGuard<A>,
+    reducer: CaseReducer<State, A extends Action ? A : A & Action>,
+  ): ReducerHandlingContextMethods<State>
+  /**
+   * Add an action to be exposed under the final `slice.actions` key.
+   * @param name The key to be exposed as.
+   * @param actionCreator The action to expose.
+   * @example
+   * context.exposeAction("addPost", createAction<Post>("addPost"));
+   *
+   * export const { addPost } = slice.actions
+   *
+   * dispatch(addPost(post))
+   */
+  exposeAction(
+    name: string,
+    actionCreator: Function,
+  ): ReducerHandlingContextMethods<State>
+  /**
+   * Add a case reducer to be exposed under the final `slice.caseReducers` key.
+   * @param name The key to be exposed as.
+   * @param reducer The reducer to expose.
+   * @example
+   * context.exposeCaseReducer("addPost", (state, action: PayloadAction<Post>) => {
+   *   state.push(action.payload)
+   * })
+   *
+   * slice.caseReducers.addPost([], addPost(post))
+   */
+  exposeCaseReducer(
+    name: string,
+    reducer:
+      | CaseReducer<State, any>
+      | Pick<
+          AsyncThunkSliceReducerDefinition<State, any, any, any>,
+          'fulfilled' | 'rejected' | 'pending' | 'settled'
+        >,
+  ): ReducerHandlingContextMethods<State>
+}
+
 interface ReducerDetails {
+  /** The key the reducer was defined under */
   reducerName: string
+  /** The predefined action type, i.e. `${slice.name}/${reducerName}` */
   type: string
+  /** Whether create. notation was used when defining reducers */
   createNotation: boolean
 }
 
 function buildReducerCreators<State>(): ReducerCreators<State> {
   function asyncThunk(
     payloadCreator: AsyncThunkPayloadCreator<any, any>,
-    config: AsyncThunkSliceReducerConfig<State, any>
+    config: AsyncThunkSliceReducerConfig<State, any>,
   ): AsyncThunkSliceReducerDefinition<State, any> {
     return {
       _reducerDefinitionType: ReducerType.asyncThunk,
@@ -765,7 +984,7 @@ function buildReducerCreators<State>(): ReducerCreators<State> {
         }[caseReducer.name],
         {
           _reducerDefinitionType: ReducerType.reducer,
-        } as const
+        } as const,
       )
     },
     preparedReducer(prepare, reducer) {
@@ -784,7 +1003,7 @@ function handleNormalReducerDefinition<State>(
   maybeReducerWithPrepare:
     | CaseReducer<State, { payload: any; type: string }>
     | CaseReducerWithPrepare<State, PayloadAction<any, string, any, any>>,
-  context: ReducerHandlingContext<State>
+  context: ReducerHandlingContextMethods<State>,
 ) {
   let caseReducer: CaseReducer<State, any>
   let prepareCallback: PrepareAction<any> | undefined
@@ -794,7 +1013,7 @@ function handleNormalReducerDefinition<State>(
       !isCaseReducerWithPrepareDefinition(maybeReducerWithPrepare)
     ) {
       throw new Error(
-        'Please use the `create.preparedReducer` notation for prepared action creators with the `create` notation.'
+        'Please use the `create.preparedReducer` notation for prepared action creators with the `create` notation.',
       )
     }
     caseReducer = maybeReducerWithPrepare.reducer
@@ -802,21 +1021,25 @@ function handleNormalReducerDefinition<State>(
   } else {
     caseReducer = maybeReducerWithPrepare
   }
-  context.sliceCaseReducersByName[reducerName] = caseReducer
-  context.sliceCaseReducersByType[type] = caseReducer
-  context.actionCreators[reducerName] = prepareCallback
-    ? createAction(type, prepareCallback)
-    : createAction(type)
+  context
+    .addCase(type, caseReducer)
+    .exposeCaseReducer(reducerName, caseReducer)
+    .exposeAction(
+      reducerName,
+      prepareCallback
+        ? createAction(type, prepareCallback)
+        : createAction(type),
+    )
 }
 
 function isAsyncThunkSliceReducerDefinition<State>(
-  reducerDefinition: any
+  reducerDefinition: any,
 ): reducerDefinition is AsyncThunkSliceReducerDefinition<State, any, any, any> {
   return reducerDefinition._reducerDefinitionType === ReducerType.asyncThunk
 }
 
 function isCaseReducerWithPrepareDefinition<State>(
-  reducerDefinition: any
+  reducerDefinition: any,
 ): reducerDefinition is CaseReducerWithPrepareDefinition<State, any> {
   return (
     reducerDefinition._reducerDefinitionType === ReducerType.reducerWithPrepare
@@ -826,28 +1049,39 @@ function isCaseReducerWithPrepareDefinition<State>(
 function handleThunkCaseReducerDefinition<State>(
   { type, reducerName }: ReducerDetails,
   reducerDefinition: AsyncThunkSliceReducerDefinition<State, any, any, any>,
-  context: ReducerHandlingContext<State>
+  context: ReducerHandlingContextMethods<State>,
+  cAT: typeof _createAsyncThunk | undefined,
 ) {
-  const { payloadCreator, fulfilled, pending, rejected, options } =
+  if (!cAT) {
+    throw new Error(
+      'Cannot use `create.asyncThunk` in the built-in `createSlice`. ' +
+        'Use `buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })` to create a customised version of `createSlice`.',
+    )
+  }
+  const { payloadCreator, fulfilled, pending, rejected, settled, options } =
     reducerDefinition
-  const thunk = createAsyncThunk(type, payloadCreator, options as any)
-  context.actionCreators[reducerName] = thunk
+  const thunk = cAT(type, payloadCreator, options as any)
+  context.exposeAction(reducerName, thunk)
 
   if (fulfilled) {
-    context.sliceCaseReducersByType[thunk.fulfilled.type] = fulfilled
+    context.addCase(thunk.fulfilled, fulfilled)
   }
   if (pending) {
-    context.sliceCaseReducersByType[thunk.pending.type] = pending
+    context.addCase(thunk.pending, pending)
   }
   if (rejected) {
-    context.sliceCaseReducersByType[thunk.rejected.type] = rejected
+    context.addCase(thunk.rejected, rejected)
+  }
+  if (settled) {
+    context.addMatcher(thunk.settled, settled)
   }
 
-  context.sliceCaseReducersByName[reducerName] = {
+  context.exposeCaseReducer(reducerName, {
     fulfilled: fulfilled || noop,
     pending: pending || noop,
     rejected: rejected || noop,
-  }
+    settled: settled || noop,
+  })
 }
 
 function noop() {}

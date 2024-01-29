@@ -1,12 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit'
 import type { Context } from 'react'
+import { useContext } from 'react'
 import { useEffect } from 'react'
 import React from 'react'
 import type { ReactReduxContextValue } from 'react-redux'
-import { Provider } from 'react-redux'
-import type { ApiModules } from '@reduxjs/toolkit/query'
+import { Provider, ReactReduxContext } from 'react-redux'
 import { setupListeners } from '@reduxjs/toolkit/query'
-import type { CoreModule } from '@reduxjs/toolkit/query'
+import type { ApiModules, CoreModule } from '@reduxjs/toolkit/query'
 
 /**
  * Can be used as a `Provider` if you **do not already have a Redux store**.
@@ -38,13 +38,20 @@ export function ApiProvider(props: {
   setupListeners?: Parameters<typeof setupListeners>[1] | false
   context?: Context<ReactReduxContextValue>
 }) {
+  const context = props.context || ReactReduxContext
+  const existingContext = useContext(context)
+  if (existingContext) {
+    throw new Error(
+      'Existing Redux context detected. If you already have a store set up, please use the traditional Redux setup.',
+    )
+  }
   const [store] = React.useState(() =>
     configureStore({
       reducer: {
         [props.api.reducerPath]: props.api.reducer,
       },
       middleware: (gDM) => gDM().concat(props.api.middleware),
-    })
+    }),
   )
   // Adds the event listeners for online/offline/focus/etc
   useEffect(
@@ -52,11 +59,11 @@ export function ApiProvider(props: {
       props.setupListeners === false
         ? undefined
         : setupListeners(store.dispatch, props.setupListeners),
-    [props.setupListeners, store.dispatch]
+    [props.setupListeners, store.dispatch],
   )
 
   return (
-    <Provider store={store} context={props.context}>
+    <Provider store={store} context={context}>
       {props.children}
     </Provider>
   )

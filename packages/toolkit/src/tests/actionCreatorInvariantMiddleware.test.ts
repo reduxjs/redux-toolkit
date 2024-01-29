@@ -19,7 +19,7 @@ describe('createActionCreatorInvariantMiddleware', () => {
   it('sends the action through the middleware chain', () => {
     const next = vi.fn()
     const dispatch = createActionCreatorInvariantMiddleware()(
-      {} as MiddlewareAPI
+      {} as MiddlewareAPI,
     )(next)
     dispatch({ type: 'SOME_ACTION' })
 
@@ -29,10 +29,10 @@ describe('createActionCreatorInvariantMiddleware', () => {
   })
 
   const makeActionTester = (
-    options?: ActionCreatorInvariantMiddlewareOptions
+    options?: ActionCreatorInvariantMiddlewareOptions,
   ) =>
     createActionCreatorInvariantMiddleware(options)({} as MiddlewareAPI)(
-      (action) => action
+      (action) => action,
     )
 
   it('logs a warning to console if an action creator is mistakenly dispatched', () => {

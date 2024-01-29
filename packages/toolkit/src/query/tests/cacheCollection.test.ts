@@ -6,6 +6,7 @@ import {
   THIRTY_TWO_BIT_MAX_INT,
   THIRTY_TWO_BIT_MAX_TIMER_SECONDS,
 } from '../core/buildMiddleware/cacheCollection'
+import { countObjectKeys } from '../utils/countObjectKeys'
 
 beforeAll(() => {
   vi.useFakeTimers()
@@ -26,10 +27,12 @@ test(`query: await cleanup, defaults`, async () => {
           query: () => '/success',
         }),
       }),
-    })
+    }),
   )
 
-  store.dispatch(api.endpoints.query.initiate('arg')).unsubscribe()
+  const promise = store.dispatch(api.endpoints.query.initiate('arg'))
+  await promise
+  promise.unsubscribe()
   vi.advanceTimersByTime(59000)
   expect(onCleanup).not.toHaveBeenCalled()
   vi.advanceTimersByTime(2000)
@@ -46,10 +49,12 @@ test(`query: await cleanup, keepUnusedDataFor set`, async () => {
         }),
       }),
       keepUnusedDataFor: 29,
-    })
+    }),
   )
 
-  store.dispatch(api.endpoints.query.initiate('arg')).unsubscribe()
+  const promise = store.dispatch(api.endpoints.query.initiate('arg'))
+  await promise
+  promise.unsubscribe()
   vi.advanceTimersByTime(28000)
   expect(onCleanup).not.toHaveBeenCalled()
   vi.advanceTimersByTime(2000)
@@ -66,10 +71,12 @@ test(`query: handles large keepUnuseDataFor values over 32-bit ms`, async () => 
         }),
       }),
       keepUnusedDataFor: THIRTY_TWO_BIT_MAX_TIMER_SECONDS - 10,
-    })
+    }),
   )
 
-  store.dispatch(api.endpoints.query.initiate('arg')).unsubscribe()
+  const promise = store.dispatch(api.endpoints.query.initiate('arg'))
+  await promise
+  promise.unsubscribe()
 
   // Shouldn't have been called right away
   vi.advanceTimersByTime(1000)
@@ -106,11 +113,13 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
         }),
       }),
       keepUnusedDataFor: 29,
-    })
+    }),
   )
 
   test('global keepUnusedDataFor', async () => {
-    store.dispatch(api.endpoints.query.initiate('arg')).unsubscribe()
+    const promise = store.dispatch(api.endpoints.query.initiate('arg'))
+    await promise
+    promise.unsubscribe()
     vi.advanceTimersByTime(28000)
     expect(onCleanup).not.toHaveBeenCalled()
     vi.advanceTimersByTime(2000)
@@ -118,7 +127,10 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
   })
 
   test('endpoint keepUnusedDataFor', async () => {
-    store.dispatch(api.endpoints.query2.initiate('arg')).unsubscribe()
+    const promise = store.dispatch(api.endpoints.query2.initiate('arg'))
+    await promise
+    promise.unsubscribe()
+
     vi.advanceTimersByTime(34000)
     expect(onCleanup).not.toHaveBeenCalled()
     vi.advanceTimersByTime(2000)
@@ -127,7 +139,9 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
 
   test('endpoint keepUnusedDataFor: 0 ', async () => {
     expect(onCleanup).not.toHaveBeenCalled()
-    store.dispatch(api.endpoints.query3.initiate('arg')).unsubscribe()
+    const promise = store.dispatch(api.endpoints.query3.initiate('arg'))
+    await promise
+    promise.unsubscribe()
     expect(onCleanup).not.toHaveBeenCalled()
     vi.advanceTimersByTime(1)
     expect(onCleanup).toHaveBeenCalled()
@@ -148,13 +162,13 @@ function storeForApi<
     reducer: Reducer<any, any>
     middleware: Middleware
     util: { resetApiState(): any }
-  }
+  },
 >(api: A) {
   const store = configureStore({
     reducer: { api: api.reducer },
     middleware: (gdm) =>
       gdm({ serializableCheck: false, immutableCheck: false }).concat(
-        api.middleware
+        api.middleware,
       ),
     enhancers: (gde) =>
       gde({
@@ -164,10 +178,10 @@ function storeForApi<
   let hadQueries = false
   store.subscribe(() => {
     const queryState = store.getState().api.queries
-    if (hadQueries && Object.keys(queryState).length === 0) {
+    if (hadQueries && countObjectKeys(queryState) === 0) {
       onCleanup()
     }
-    hadQueries = hadQueries || Object.keys(queryState).length > 0
+    hadQueries = hadQueries || countObjectKeys(queryState) > 0
   })
   return { api, store }
 }

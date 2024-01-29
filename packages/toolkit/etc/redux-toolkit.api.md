@@ -31,7 +31,7 @@ import type { ThunkMiddleware } from 'redux-thunk'
 
 // @public
 export interface ActionCreatorWithNonInferrablePayload<
-  T extends string = string
+  T extends string = string,
 > extends BaseActionCreator<unknown, T> {
   <PT extends unknown>(payload: PT): PayloadAction<PT, T>
 }
@@ -60,35 +60,35 @@ export interface ActionCreatorWithPreparedPayload<
   P,
   T extends string = string,
   E = never,
-  M = never
+  M = never,
 > extends BaseActionCreator<P, T, M, E> {
   (...args: Args): PayloadAction<P, T, M, E>
 }
 
 // @public (undocumented)
 export type ActionMatchingAllOf<
-  Matchers extends [Matcher<any>, ...Matcher<any>[]]
+  Matchers extends [Matcher<any>, ...Matcher<any>[]],
 > = UnionToIntersection<ActionMatchingAnyOf<Matchers>>
 
 // @public (undocumented)
 export type ActionMatchingAnyOf<
-  Matchers extends [Matcher<any>, ...Matcher<any>[]]
+  Matchers extends [Matcher<any>, ...Matcher<any>[]],
 > = ActionFromMatcher<Matchers[number]>
 
 // @public
 export interface ActionReducerMapBuilder<State> {
   addCase<ActionCreator extends TypedActionCreator<string>>(
     actionCreator: ActionCreator,
-    reducer: CaseReducer<State, ReturnType<ActionCreator>>
+    reducer: CaseReducer<State, ReturnType<ActionCreator>>,
   ): ActionReducerMapBuilder<State>
   addCase<Type extends string, A extends Action<Type>>(
     type: Type,
-    reducer: CaseReducer<State, A>
+    reducer: CaseReducer<State, A>,
   ): ActionReducerMapBuilder<State>
   addDefaultCase(reducer: CaseReducer<State, UnknownAction>): {}
   addMatcher<A>(
     matcher: TypeGuard<A> | ((action: any) => boolean),
-    reducer: CaseReducer<State, A extends Action ? A : A & Action>
+    reducer: CaseReducer<State, A extends Action ? A : A & Action>,
   ): Omit<ActionReducerMapBuilder<State>, 'addCase'>
 }
 
@@ -99,7 +99,7 @@ export type Actions<T extends keyof any = string> = Record<T, Action>
 export type AsyncThunk<
   Returned,
   ThunkArg,
-  ThunkApiConfig extends AsyncThunkConfig
+  ThunkApiConfig extends AsyncThunkConfig,
 > = AsyncThunkActionCreator<Returned, ThunkArg, ThunkApiConfig> & {
   pending: AsyncThunkPendingActionCreator<ThunkArg, ThunkApiConfig>
   rejected: AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>
@@ -115,11 +115,11 @@ export type AsyncThunk<
 export type AsyncThunkAction<
   Returned,
   ThunkArg,
-  ThunkApiConfig extends AsyncThunkConfig
+  ThunkApiConfig extends AsyncThunkConfig,
 > = (
   dispatch: GetDispatch<ThunkApiConfig>,
   getState: () => GetState<ThunkApiConfig>,
-  extra: GetExtra<ThunkApiConfig>
+  extra: GetExtra<ThunkApiConfig>,
 ) => Promise<
   | ReturnType<AsyncThunkFulfilledActionCreator<Returned, ThunkArg>>
   | ReturnType<AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>>
@@ -133,11 +133,11 @@ export type AsyncThunkAction<
 // @public
 export type AsyncThunkOptions<
   ThunkArg = void,
-  ThunkApiConfig extends AsyncThunkConfig = {}
+  ThunkApiConfig extends AsyncThunkConfig = {},
 > = {
   condition?(
     arg: ThunkArg,
-    api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>
+    api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>,
   ): MaybePromise<boolean | undefined>
   dispatchConditionRejection?: boolean
   serializeError?: (x: unknown) => GetSerializedErrorType<ThunkApiConfig>
@@ -150,7 +150,7 @@ export type AsyncThunkOptions<
         arg: ThunkArg
         requestId: string
       },
-      api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>
+      api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>,
     ): GetPendingMeta<ThunkApiConfig>
   },
   {
@@ -159,7 +159,7 @@ export type AsyncThunkOptions<
         arg: ThunkArg
         requestId: string
       },
-      api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>
+      api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>,
     ): GetPendingMeta<ThunkApiConfig>
   }
 >
@@ -168,16 +168,16 @@ export type AsyncThunkOptions<
 export type AsyncThunkPayloadCreator<
   Returned,
   ThunkArg = void,
-  ThunkApiConfig extends AsyncThunkConfig = {}
+  ThunkApiConfig extends AsyncThunkConfig = {},
 > = (
   arg: ThunkArg,
-  thunkAPI: GetThunkAPI<ThunkApiConfig>
+  thunkAPI: GetThunkAPI<ThunkApiConfig>,
 ) => AsyncThunkPayloadCreatorReturnValue<Returned, ThunkApiConfig>
 
 // @public
 export type AsyncThunkPayloadCreatorReturnValue<
   Returned,
-  ThunkApiConfig extends AsyncThunkConfig
+  ThunkApiConfig extends AsyncThunkConfig,
 > = MaybePromise<
   | IsUnknown<
       GetFulfilledMeta<ThunkApiConfig>,
@@ -193,7 +193,7 @@ export type AsyncThunkPayloadCreatorReturnValue<
 // @public
 export type CaseReducer<S = any, A extends Action = UnknownAction> = (
   state: Draft<S>,
-  action: A
+  action: A,
 ) => S | void | Draft<S>
 
 // @public
@@ -221,21 +221,21 @@ export type Comparer<T> = (a: T, b: T) => number
 
 // @public
 export type ConfigureEnhancersCallback = (
-  defaultEnhancers: readonly StoreEnhancer[]
+  defaultEnhancers: readonly StoreEnhancer[],
 ) => StoreEnhancer[]
 
 // @public
 export function configureStore<
   S = any,
   A extends Action = UnknownAction,
-  M extends Middlewares<S> = [ThunkMiddlewareFor<S>]
+  M extends Middlewares<S> = [ThunkMiddlewareFor<S>],
 >(options: ConfigureStoreOptions<S, A, M>): EnhancedStore<S, A, M>
 
 // @public
 export interface ConfigureStoreOptions<
   S = any,
   A extends Action = UnknownAction,
-  M extends Middlewares<S> = Middlewares<S>
+  M extends Middlewares<S> = Middlewares<S>,
 > {
   devTools?: boolean | EnhancerOptions
   enhancers?: StoreEnhancer[] | ConfigureEnhancersCallback
@@ -246,34 +246,34 @@ export interface ConfigureStoreOptions<
 
 // @public
 export function createAction<P = void, T extends string = string>(
-  type: T
+  type: T,
 ): PayloadActionCreator<P, T>
 
 // @public
 export function createAction<
   PA extends PrepareAction<any>,
-  T extends string = string
+  T extends string = string,
 >(
   type: T,
-  prepareAction: PA
+  prepareAction: PA,
 ): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>
 
 // @public (undocumented)
 export function createAsyncThunk<Returned, ThunkArg = void>(
   typePrefix: string,
   payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, {}>,
-  options?: AsyncThunkOptions<ThunkArg, {}>
+  options?: AsyncThunkOptions<ThunkArg, {}>,
 ): AsyncThunk<Returned, ThunkArg, {}>
 
 // @public (undocumented)
 export function createAsyncThunk<
   Returned,
   ThunkArg,
-  ThunkApiConfig extends AsyncThunkConfig
+  ThunkApiConfig extends AsyncThunkConfig,
 >(
   typePrefix: string,
   payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>,
-  options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
+  options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>,
 ): AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
 
 // @public
@@ -287,7 +287,7 @@ export function createEntityAdapter<T>(options?: {
 
 // @public
 export function createImmutableStateInvariantMiddleware(
-  options?: ImmutableStateInvariantMiddlewareOptions
+  options?: ImmutableStateInvariantMiddlewareOptions,
 ): Middleware
 
 export { createNextState }
@@ -295,41 +295,41 @@ export { createNextState }
 // @public
 export function createReducer<S extends NotFunction<any>>(
   initialState: S | (() => S),
-  builderCallback: (builder: ActionReducerMapBuilder<S>) => void
+  builderCallback: (builder: ActionReducerMapBuilder<S>) => void,
 ): ReducerWithInitialState<S>
 
 // @public
 export function createReducer<
   S extends NotFunction<any>,
-  CR extends CaseReducers<S, any> = CaseReducers<S, any>
+  CR extends CaseReducers<S, any> = CaseReducers<S, any>,
 >(
   initialState: S | (() => S),
   actionsMap: CR,
   actionMatchers?: ActionMatcherDescriptionCollection<S>,
-  defaultCaseReducer?: CaseReducer<S>
+  defaultCaseReducer?: CaseReducer<S>,
 ): ReducerWithInitialState<S>
 
 export { createSelector }
 
 // @public
 export function createSerializableStateInvariantMiddleware(
-  options?: SerializableStateInvariantMiddlewareOptions
+  options?: SerializableStateInvariantMiddlewareOptions,
 ): Middleware
 
 // @public
 export function createSlice<
   State,
   CaseReducers extends SliceCaseReducers<State>,
-  Name extends string = string
+  Name extends string = string,
 >(
-  options: CreateSliceOptions<State, CaseReducers, Name>
+  options: CreateSliceOptions<State, CaseReducers, Name>,
 ): Slice<State, CaseReducers, Name>
 
 // @public
 export interface CreateSliceOptions<
   State = any,
   CR extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-  Name extends string = string
+  Name extends string = string,
 > {
   extraReducers?:
     | CaseReducers<NoInfer<State>, any>
@@ -353,7 +353,7 @@ export { Draft }
 export interface EnhancedStore<
   S = any,
   A extends Action = UnknownAction,
-  M extends Middlewares<S> = Middlewares<S>
+  M extends Middlewares<S> = Middlewares<S>,
 > extends Store<S, A> {
   dispatch: Dispatch<A> & DispatchForMiddlewares<M>
 }
@@ -368,7 +368,7 @@ export interface EntityAdapter<T> extends EntityStateAdapter<T> {
   getSelectors(): EntitySelectors<T, EntityState<T>>
   // (undocumented)
   getSelectors<V>(
-    selectState: (state: V) => EntityState<T>
+    selectState: (state: V) => EntityState<T>,
   ): EntitySelectors<T, V>
   // (undocumented)
   selectId: IdSelector<T>
@@ -406,102 +406,102 @@ export interface EntityStateAdapter<T> {
   // (undocumented)
   addMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: readonly T[] | Record<EntityId, T>
+    entities: readonly T[] | Record<EntityId, T>,
   ): S
   // (undocumented)
   addMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: PayloadAction<readonly T[] | Record<EntityId, T>>
+    entities: PayloadAction<readonly T[] | Record<EntityId, T>>,
   ): S
   // (undocumented)
   addOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
   // (undocumented)
   addOne<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    action: PayloadAction<T>
+    action: PayloadAction<T>,
   ): S
   // (undocumented)
   removeAll<S extends EntityState<T>>(state: PreventAny<S, T>): S
   // (undocumented)
   removeMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    keys: readonly EntityId[]
+    keys: readonly EntityId[],
   ): S
   // (undocumented)
   removeMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    keys: PayloadAction<readonly EntityId[]>
+    keys: PayloadAction<readonly EntityId[]>,
   ): S
   // (undocumented)
   removeOne<S extends EntityState<T>>(state: PreventAny<S, T>, key: EntityId): S
   // (undocumented)
   removeOne<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    key: PayloadAction<EntityId>
+    key: PayloadAction<EntityId>,
   ): S
   // (undocumented)
   setAll<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: readonly T[] | Record<EntityId, T>
+    entities: readonly T[] | Record<EntityId, T>,
   ): S
   // (undocumented)
   setAll<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: PayloadAction<readonly T[] | Record<EntityId, T>>
+    entities: PayloadAction<readonly T[] | Record<EntityId, T>>,
   ): S
   // (undocumented)
   setMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: readonly T[] | Record<EntityId, T>
+    entities: readonly T[] | Record<EntityId, T>,
   ): S
   // (undocumented)
   setMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: PayloadAction<readonly T[] | Record<EntityId, T>>
+    entities: PayloadAction<readonly T[] | Record<EntityId, T>>,
   ): S
   // (undocumented)
   setOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
   // (undocumented)
   setOne<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    action: PayloadAction<T>
+    action: PayloadAction<T>,
   ): S
   // (undocumented)
   updateMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    updates: ReadonlyArray<Update<T>>
+    updates: ReadonlyArray<Update<T>>,
   ): S
   // (undocumented)
   updateMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    updates: PayloadAction<ReadonlyArray<Update<T>>>
+    updates: PayloadAction<ReadonlyArray<Update<T>>>,
   ): S
   // (undocumented)
   updateOne<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    update: Update<T>
+    update: Update<T>,
   ): S
   // (undocumented)
   updateOne<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    update: PayloadAction<Update<T>>
+    update: PayloadAction<Update<T>>,
   ): S
   // (undocumented)
   upsertMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: readonly T[] | Record<EntityId, T>
+    entities: readonly T[] | Record<EntityId, T>,
   ): S
   // (undocumented)
   upsertMany<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entities: PayloadAction<readonly T[] | Record<EntityId, T>>
+    entities: PayloadAction<readonly T[] | Record<EntityId, T>>,
   ): S
   // (undocumented)
   upsertOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
   // (undocumented)
   upsertOne<S extends EntityState<T>>(
     state: PreventAny<S, T>,
-    entity: PayloadAction<T>
+    entity: PayloadAction<T>,
   ): S
 }
 
@@ -511,7 +511,7 @@ export function findNonSerializableValue(
   path?: string,
   isSerializable?: (value: unknown) => boolean,
   getEntries?: (value: unknown) => [string, any][],
-  ignoredPaths?: readonly (string | RegExp)[]
+  ignoredPaths?: readonly (string | RegExp)[],
 ): NonSerializableValue | false
 
 export { freeze }
@@ -523,12 +523,12 @@ export function getDefaultMiddleware<
     thunk: true
     immutableCheck: true
     serializableCheck: true
-  }
+  },
 >(options?: O): MiddlewareArray<Middleware<{}, S> | ThunkMiddlewareFor<S, O>>
 
 // @public
 export function getType<T extends string>(
-  actionCreator: PayloadActionCreator<any, T>
+  actionCreator: PayloadActionCreator<any, T>,
 ): T
 
 // @public (undocumented)
@@ -547,7 +547,7 @@ export interface ImmutableStateInvariantMiddlewareOptions {
 export function isAllOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]>(
   ...matchers: Matchers
 ): (
-  action: any
+  action: any,
 ) => action is UnionToIntersection<ActionFromMatcher<Matchers[number]>>
 
 // @public
@@ -557,38 +557,38 @@ export function isAnyOf<Matchers extends [Matcher<any>, ...Matcher<any>[]]>(
 
 // @public
 export function isAsyncThunkAction(): (
-  action: any
+  action: any,
 ) => action is UnknownAsyncThunkAction
 
 // @public
 export function isAsyncThunkAction<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]],
 >(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is ActionsFromAsyncThunk<AsyncThunks[number]>
 
 // @public
 export function isAsyncThunkAction(
-  action: any
+  action: any,
 ): action is UnknownAsyncThunkAction
 
 export { isDraft }
 
 // @public
 export function isFulfilled(): (
-  action: any
+  action: any,
 ) => action is UnknownAsyncThunkFulfilledAction
 
 // @public
 export function isFulfilled<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]],
 >(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is FulfilledActionFromAsyncThunk<AsyncThunks[number]>
 
 // @public
 export function isFulfilled(
-  action: any
+  action: any,
 ): action is UnknownAsyncThunkFulfilledAction
 
 // @public
@@ -596,12 +596,12 @@ export function isImmutableDefault(value: unknown): boolean
 
 // @public
 export function isPending(): (
-  action: any
+  action: any,
 ) => action is UnknownAsyncThunkPendingAction
 
 // @public
 export function isPending<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]],
 >(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is PendingActionFromAsyncThunk<AsyncThunks[number]>
@@ -617,43 +617,43 @@ export function isPlainObject(value: unknown): value is object
 
 // @public
 export function isRejected(): (
-  action: any
+  action: any,
 ) => action is UnknownAsyncThunkRejectedAction
 
 // @public
 export function isRejected<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]],
 >(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is RejectedActionFromAsyncThunk<AsyncThunks[number]>
 
 // @public
 export function isRejected(
-  action: any
+  action: any,
 ): action is UnknownAsyncThunkRejectedAction
 
 // @public
 export function isRejectedWithValue(): (
-  action: any
+  action: any,
 ) => action is UnknownAsyncThunkRejectedAction
 
 // @public
 export function isRejectedWithValue<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]],
 >(
   ...asyncThunks: AsyncThunks
 ): (
-  action: any
+  action: any,
 ) => action is RejectedWithValueActionFromAsyncThunk<AsyncThunks[number]>
 
 // @public
 export function isRejectedWithValue(
-  action: any
+  action: any,
 ): action is UnknownAsyncThunkRejectedAction
 
 // @public (undocumented)
 export class MiddlewareArray<
-  Middlewares extends Middleware<any, any>
+  Middlewares extends Middleware<any, any>,
 > extends Array<Middlewares> {
   // (undocumented)
   static get [Symbol.species](): any
@@ -661,7 +661,7 @@ export class MiddlewareArray<
   constructor(...items: Middlewares[])
   // (undocumented)
   concat<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
-    items: AdditionalMiddlewares
+    items: AdditionalMiddlewares,
   ): MiddlewareArray<Middlewares | AdditionalMiddlewares[number]>
   // (undocumented)
   concat<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
@@ -669,7 +669,7 @@ export class MiddlewareArray<
   ): MiddlewareArray<Middlewares | AdditionalMiddlewares[number]>
   // (undocumented)
   prepend<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
-    items: AdditionalMiddlewares
+    items: AdditionalMiddlewares,
   ): MiddlewareArray<AdditionalMiddlewares[number] | Middlewares>
   // (undocumented)
   prepend<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
@@ -696,7 +696,7 @@ export type PayloadAction<
   P = void,
   T extends string = string,
   M = never,
-  E = never
+  E = never,
 > = {
   payload: P
   type: T
@@ -715,7 +715,7 @@ export type PayloadAction<
 export type PayloadActionCreator<
   P = void,
   T extends string = string,
-  PA extends PrepareAction<P> | void = void
+  PA extends PrepareAction<P> | void = void,
 > = IfPrepareActionMethodProvided<
   PA,
   _ActionCreatorWithPreparedPayload<PA, T>,
@@ -786,7 +786,7 @@ export interface SerializedError {
 export interface Slice<
   State = any,
   CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-  Name extends string = string
+  Name extends string = string,
 > {
   actions: CaseReducerActions<CaseReducers>
   caseReducers: SliceDefinedCaseReducers<CaseReducers>
@@ -811,7 +811,7 @@ export { ThunkDispatch }
 
 // @public (undocumented)
 export function unwrapResult<R extends UnwrappableAction>(
-  action: R
+  action: R,
 ): UnwrappedActionPayload<R>
 
 // @public (undocumented)
@@ -823,17 +823,16 @@ export type Update<T> = {
 // @public
 export type ValidateSliceCaseReducers<
   S,
-  ACR extends SliceCaseReducers<S>
-> = ACR &
-  {
-    [T in keyof ACR]: ACR[T] extends {
-      reducer(s: S, action?: infer A): any
-    }
-      ? {
-          prepare(...a: never[]): Omit<A, 'type'>
-        }
-      : {}
+  ACR extends SliceCaseReducers<S>,
+> = ACR & {
+  [T in keyof ACR]: ACR[T] extends {
+    reducer(s: S, action?: infer A): any
   }
+    ? {
+        prepare(...a: never[]): Omit<A, 'type'>
+      }
+    : {}
+}
 
 export * from 'redux'
 

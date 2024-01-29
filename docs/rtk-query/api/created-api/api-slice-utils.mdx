@@ -30,13 +30,13 @@ const updateQueryData = (
   endpointName: string,
   args: any,
   updateRecipe: (draft: Draft<CachedState>) => void,
-  updateProvided?: boolean
-) => ThunkAction<PatchCollection, PartialState, any, AnyAction>;
+  updateProvided?: boolean,
+) => ThunkAction<PatchCollection, PartialState, any, AnyAction>
 
 interface PatchCollection {
-  patches: Patch[];
-  inversePatches: Patch[];
-  undo: () => void;
+  patches: Patch[]
+  inversePatches: Patch[]
+  undo: () => void
 }
 ```
 
@@ -64,7 +64,7 @@ Note that the first two arguments (`endpointName` and `args`) are used to determ
 const patchCollection = dispatch(
   api.util.updateQueryData('getPosts', undefined, (draftPosts) => {
     draftPosts.push({ id: 1, name: 'Teddy' })
-  })
+  }),
 )
 ```
 
@@ -91,7 +91,7 @@ dispatch(api.endpoints.getPosts.initiate(undefined, { ...options }))
 const patchCollection = dispatch(
   api.util.updateQueryData('getPostById', 1, (draftPost) => {
     draftPost.name = 'Lilly'
-  })
+  }),
 )
 ```
 
@@ -117,11 +117,8 @@ dispatch(api.endpoints.getPostById.initiate(1, { ...options }))
 #### Signature
 
 ```ts no-transpile
-const upsertQueryData = <T>(
-  endpointName: string,
-  args: any,
-  newEntryData: T
-) => ThunkAction<Promise<CacheEntry<T>>, PartialState, any, UnknownAction>;
+const upsertQueryData = <T>(endpointName: string, args: any, newEntryData: T) =>
+  ThunkAction<Promise<CacheEntry<T>>, PartialState, any, UnknownAction>
 ```
 
 - **Parameters**
@@ -145,7 +142,7 @@ If dispatched while an actual request is in progress, both the upsert and reques
 
 ```ts no-transpile
 await dispatch(
-  api.util.upsertQueryData('getPost', { id: 1 }, { id: 1, text: 'Hello!' })
+  api.util.upsertQueryData('getPost', { id: 1 }, { id: 1, text: 'Hello!' }),
 )
 ```
 
@@ -184,12 +181,16 @@ In cases where it is desired to simply revert the previous changes, it may be pr
 const patchCollection = dispatch(
   api.util.updateQueryData('getPosts', undefined, (draftPosts) => {
     draftPosts.push({ id: 1, name: 'Teddy' })
-  })
+  }),
 )
 
 // later
 dispatch(
-  api.util.patchQueryData('getPosts', undefined, patchCollection.inversePatches)
+  api.util.patchQueryData(
+    'getPosts',
+    undefined,
+    patchCollection.inversePatches,
+  ),
 )
 
 // or
@@ -201,13 +202,10 @@ patchCollection.undo()
 #### Signature
 
 ```ts no-transpile
-type PrefetchOptions = { ifOlderThan?: false | number } | { force?: boolean };
+type PrefetchOptions = { ifOlderThan?: false | number } | { force?: boolean }
 
-const prefetch = (
-  endpointName: string,
-  arg: any,
-  options: PrefetchOptions
-) => ThunkAction<void, any, any, UnknownAction>;
+const prefetch = (endpointName: string, arg: any, options: PrefetchOptions) =>
+  ThunkAction<void, any, any, UnknownAction>
 ```
 
 - **Parameters**
@@ -239,7 +237,7 @@ dispatch(api.util.prefetch('getPosts', undefined, { force: true }))
 ```ts no-transpile
 function selectInvalidatedBy(
   state: RootState,
-  tags: ReadonlyArray<TagDescription<string>>
+  tags: ReadonlyArray<TagDescription<string>>,
 ): Array<{
   endpointName: string
   originalArgs: any
@@ -259,21 +257,11 @@ function selectInvalidatedBy(
 A function that can select query parameters to be invalidated.
 
 The function accepts two arguments
-<<<<<<< HEAD
-
-=======
-
-> > > > > > > master
 
 - the root state and
 - the cache tags to be invalidated.
 
 It returns an array that contains
-<<<<<<< HEAD
-
-=======
-
-> > > > > > > master
 
 - the endpoint name,
 - the original args and
@@ -296,7 +284,7 @@ const entries = api.util.selectInvalidatedBy(state, [
 
 ```ts no-transpile
 const invalidateTags = (
-  tags: Array<TagTypes | FullTagDescription<TagTypes>>
+  tags: Array<TagTypes | FullTagDescription<TagTypes>>,
 ) => ({
   type: string,
   payload: tags,
@@ -326,7 +314,7 @@ dispatch(
   api.util.invalidateTags([
     { type: 'Post', id: 1 },
     { type: 'Post', id: 'LIST' },
-  ])
+  ]),
 )
 ```
 
@@ -337,7 +325,7 @@ dispatch(
 ```ts no-transpile
 function selectCachedArgsForQuery(
   state: RootState,
-  queryName: QueryName
+  queryName: QueryName,
 ): Array<QueryArg>
 ```
 

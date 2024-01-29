@@ -11,8 +11,8 @@ import {
 import { createNextState } from '../..'
 
 describe('Sorted State Adapter', () => {
-  let adapter: EntityAdapter<string, BookModel>
-  let state: EntityState<string, BookModel>
+  let adapter: EntityAdapter<BookModel, string>
+  let state: EntityState<BookModel, string>
 
   beforeAll(() => {
     //eslint-disable-next-line
@@ -349,7 +349,7 @@ describe('Sorted State Adapter', () => {
       order: number
       ts: number
     }
-    const sortedItemsAdapter = createEntityAdapter<string, OrderedEntity>({
+    const sortedItemsAdapter = createEntityAdapter<OrderedEntity>({
       sortComparer: (a, b) => a.order - b.order,
     })
     const withInitialItems = sortedItemsAdapter.setAll(
@@ -360,7 +360,7 @@ describe('Sorted State Adapter', () => {
         { id: 'C', order: 3, ts: 0 },
         { id: 'D', order: 3, ts: 0 },
         { id: 'E', order: 3, ts: 0 },
-      ]
+      ],
     )
 
     const updated = sortedItemsAdapter.updateOne(withInitialItems, {

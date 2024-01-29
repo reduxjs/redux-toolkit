@@ -31,6 +31,8 @@ The [**Redux Toolkit Quick Start tutorial**](./quick-start.mdx) briefly shows ho
 
 We also have a [**TypeScript Quick Start tutorial**](./typescript.md) that briefly shows how to set up and use TypeScript with Redux Toolkit and React-Redux.
 
+If you are using Next.js we have a tutorial specific to using Redux Toolkit with Next.js [**Next.js tutorial**](../usage/nextjs.mdx).
+
 ## Redux Essentials: A Real-World Example
 
 The [**Redux Essentials tutorial**](https://redux.js.org/tutorials/essentials/part-1-overview-concepts) teaches you "how to use Redux the right way", using Redux Toolkit as the standard approach for writing Redux logic.
@@ -61,6 +63,20 @@ See [the "Learn Modern Redux" show notes page](https://www.learnwithjason.dev/le
 The RTK [**Usage Guide** docs page](../usage/usage-guide.md) explains the standard usage patterns for each of RTK's APIs. The [API Reference](../api/configureStore.mdx) section describes each API function and has additional usage examples.
 
 The [Redux Essentials tutorial](https://redux.js.org/tutorials/essentials/part-1-overview-concepts) also shows how to use each of the APIs while building an application.
+
+## RTK Query Video Course
+
+If you prefer a video course, you can [watch this RTK Query video course by Lenz Weber-Tronic, the creator of RTK Query, for free at Egghead](https://egghead.io/courses/rtk-query-basics-query-endpoints-data-flow-and-typescript-57ea3c43?af=7pnhj6) or take a look at the first lesson right here:
+
+<div style={{position:"relative",paddingTop:"56.25%"}}>
+  <iframe 
+    src="https://app.egghead.io/lessons/redux-course-introduction-and-application-walk-through-for-rtk-query-basics/embed?af=7pnhj6" 
+    title="RTK Query Video course at Egghead: Course Introduction and Application Walk through for RTK Query Basics"
+    frameborder="0" 
+    allowfullscreen
+    style={{position:"absolute",top:0,left:0,width:"100%",height:"100%"}}
+  ></iframe>
+</div>
 
 ## Migrating Vanilla Redux to Redux Toolkit
 

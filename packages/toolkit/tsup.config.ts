@@ -1,13 +1,11 @@
-import { fileURLToPath } from 'url'
-import path from 'path'
-import fs from 'fs'
-import type { BuildOptions as ESBuildOptions, Plugin } from 'esbuild'
+import * as babel from '@babel/core'
+import type { Plugin } from 'esbuild'
+import { getBuildExtensions } from 'esbuild-extra'
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { Options as TsupOptions } from 'tsup'
 import { defineConfig } from 'tsup'
-import * as babel from '@babel/core'
-import { getBuildExtensions } from 'esbuild-extra'
-
-import { delay } from './src/utils'
 
 // No __dirname under Node ESM
 const __filename = fileURLToPath(import.meta.url)
@@ -16,14 +14,13 @@ const __dirname = path.dirname(__filename)
 const outputDir = path.join(__dirname, 'dist')
 
 export interface BuildOptions {
-  format: 'cjs' | 'umd' | 'esm'
+  format: 'cjs' | 'esm'
   name:
     | 'development'
     | 'production.min'
     | 'legacy-esm'
     | 'modern'
-    | 'modern.development'
-    | 'modern.production.min'
+    | 'browser'
     | 'umd'
     | 'umd.min'
   minify: boolean
@@ -78,18 +75,10 @@ const buildTargets: BuildOptions[] = [
     minify: false,
     env: '',
   },
-  // ESM, pre-compiled "dev": browser development
-  {
-    format: 'esm',
-    name: 'modern.development',
-    target: 'esnext',
-    minify: false,
-    env: 'development',
-  },
   // ESM, pre-compiled "prod": browser prod
   {
     format: 'esm',
-    name: 'modern.production.min',
+    name: 'browser',
     target: 'esnext',
     minify: true,
     env: 'production',
@@ -134,7 +123,7 @@ if (process.env.NODE_ENV === 'production') {
   module.exports = require('./${prefix}.production.min.cjs')
 } else {
   module.exports = require('./${prefix}.development.cjs')
-}`
+}`,
   )
 }
 
@@ -163,6 +152,11 @@ const mangleErrorsTransform: Plugin = {
     })
   },
 }
+
+const tsconfig: NonNullable<TsupOptions['tsconfig']> = path.join(
+  __dirname,
+  './tsconfig.build.json',
+)
 
 export default defineConfig((options) => {
   const configs = entryPoints
@@ -197,6 +191,7 @@ export default defineConfig((options) => {
             [outputFilename]: entryPoint,
           },
           format,
+          tsconfig,
           outDir: outputFolder,
           target,
           outExtension: () => ({ js: extension }),
@@ -223,7 +218,7 @@ export default defineConfig((options) => {
 
                 fs.copyFileSync(
                   'src/uncheckedindexed.ts',
-                  path.join(outputFolder, 'uncheckedindexed.ts')
+                  path.join(outputFolder, 'uncheckedindexed.ts'),
                 )
               }
               // TODO Copy/generate `.d.mts` files?

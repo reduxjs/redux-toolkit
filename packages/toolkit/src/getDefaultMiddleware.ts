@@ -30,14 +30,14 @@ interface GetDefaultMiddlewareOptions {
 
 export type ThunkMiddlewareFor<
   S,
-  O extends GetDefaultMiddlewareOptions = {}
+  O extends GetDefaultMiddlewareOptions = {},
 > = O extends {
   thunk: false
 }
   ? never
   : O extends { thunk: { extraArgument: infer E } }
-  ? ThunkMiddleware<S, UnknownAction, E>
-  : ThunkMiddleware<S, UnknownAction>
+    ? ThunkMiddleware<S, UnknownAction, E>
+    : ThunkMiddleware<S, UnknownAction>
 
 export type GetDefaultMiddleware<S = any> = <
   O extends GetDefaultMiddlewareOptions = {
@@ -45,9 +45,9 @@ export type GetDefaultMiddleware<S = any> = <
     immutableCheck: true
     serializableCheck: true
     actionCreatorCheck: true
-  }
+  },
 >(
-  options?: O
+  options?: O,
 ) => Tuple<ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>>
 
 export const buildGetDefaultMiddleware = <S = any>(): GetDefaultMiddleware<S> =>
@@ -79,7 +79,7 @@ export const buildGetDefaultMiddleware = <S = any>(): GetDefaultMiddleware<S> =>
         }
 
         middlewareArray.unshift(
-          createImmutableStateInvariantMiddleware(immutableOptions)
+          createImmutableStateInvariantMiddleware(immutableOptions),
         )
         /* PROD_STOP_REMOVE_UMD */
       }
@@ -93,7 +93,7 @@ export const buildGetDefaultMiddleware = <S = any>(): GetDefaultMiddleware<S> =>
         }
 
         middlewareArray.push(
-          createSerializableStateInvariantMiddleware(serializableOptions)
+          createSerializableStateInvariantMiddleware(serializableOptions),
         )
       }
       if (actionCreatorCheck) {
@@ -104,7 +104,7 @@ export const buildGetDefaultMiddleware = <S = any>(): GetDefaultMiddleware<S> =>
         }
 
         middlewareArray.unshift(
-          createActionCreatorInvariantMiddleware(actionCreatorOptions)
+          createActionCreatorInvariantMiddleware(actionCreatorOptions),
         )
       }
     }

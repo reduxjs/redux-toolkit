@@ -13,7 +13,6 @@ Redux Toolkit exports several type-safe action matching utilities that you can l
 
 ### General Purpose
 
-- [`isAction`](#isaction) - returns true if a passed value is a standard action object, with a type string
 - [`isAllOf`](#isallof) - returns true when **all** conditions are met
 - [`isAnyOf`](#isanyof) - returns true when **at least one of** the conditions are met
 
@@ -26,16 +25,6 @@ All these matchers can either be called with one or more thunks as arguments, in
 - [`isFulfilled`](#isfulfilled) - accepts one or more action creators and returns true when all match
 - [`isRejected`](#isrejected) - accepts one or more action creators and returns true when all match
 - [`isRejectedWithValue`](#isrejectedwithvalue) - accepts one or more action creators and returns true when all match
-
-## `isAction`
-
-A type guard that takes an unknown variable, and returns `true` if it's a standard Redux action with a string `type` property.
-
-:::caution
-
-As of Redux 5.0, action types are _required_ to be a string.
-
-:::
 
 ## `isAllOf`
 
@@ -137,7 +126,7 @@ import { requestThunk1, requestThunk2 } from '@virtual/matchers'
 
 const isARejectedWithValueAction = isRejectedWithValue(
   requestThunk1,
-  requestThunk2
+  requestThunk2,
 )
 
 function handleRejectedWithValueAction(action: UnknownAction) {
@@ -173,13 +162,13 @@ interface Interesting extends Data {
 }
 
 function isSpecial(
-  action: PayloadAction<Data>
+  action: PayloadAction<Data>,
 ): action is PayloadAction<Special> {
   return action.payload.isSpecial
 }
 
 function isInteresting(
-  action: PayloadAction<Data>
+  action: PayloadAction<Data>,
 ): action is PayloadAction<Interesting> {
   return action.payload.isInteresting
 }
@@ -201,7 +190,7 @@ export const isSpecialAndInterestingThunk = createAsyncThunk(
       isSpecial: true,
       isInteresting: true,
     }
-  }
+  },
 )
 
 // This has unnecessary complexity
@@ -235,13 +224,13 @@ const loadingReducer = createReducer(initialState, (builder) => {
       isAllOf(isSpecialAndInterestingThunk.fulfilled, isSpecial),
       (state, action) => {
         state.isSpecial = true
-      }
+      },
     )
     .addMatcher(
       isAllOf(isSpecialAndInterestingThunk.fulfilled, isInteresting),
       (state, action) => {
         state.isInteresting = true
-      }
+      },
     )
 })
 ```

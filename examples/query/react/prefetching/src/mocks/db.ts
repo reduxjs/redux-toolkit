@@ -50,7 +50,7 @@ export const handlers = [
         page,
         total_pages: Math.ceil(db.post.count() / per_page),
         total: db.post.count(),
-      })
+      }),
     )
   }),
   ...db.post.toHandlers('rest'),

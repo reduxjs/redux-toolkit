@@ -8,7 +8,7 @@ export const Pokemon = ({ name }: { name: PokemonName }) => {
     name,
     {
       skip,
-    }
+    },
   )
 
   const SkipToggle = () => (

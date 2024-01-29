@@ -1,5 +1,5 @@
-import ts from 'typescript';
 import { factory } from './utils/factory';
+import ts from 'typescript';
 
 const defaultEndpointBuilder = factory.createIdentifier('build');
 
@@ -12,7 +12,6 @@ export function generateObjectProperties(obj: ObjectPropertyDefinitions) {
 
 export function generateImportNode(pkg: string, namedImports: Record<string, string>, defaultImportName?: string) {
   return factory.createImportDeclaration(
-    undefined,
     undefined,
     factory.createImportClause(
       false,
@@ -44,17 +43,7 @@ export function generateCreateApiCall({
       endpoints: factory.createArrowFunction(
         undefined,
         undefined,
-        [
-          factory.createParameterDeclaration(
-            undefined,
-            undefined,
-            undefined,
-            endpointBuilder,
-            undefined,
-            undefined,
-            undefined
-          ),
-        ],
+        [factory.createParameterDeclaration(undefined, undefined, endpointBuilder, undefined, undefined, undefined)],
         undefined,
         factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
         factory.createParenthesizedExpression(endpointDefinitions)

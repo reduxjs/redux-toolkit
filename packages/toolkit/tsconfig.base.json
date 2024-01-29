@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ESnext",
-    "module": "esnext",
-    "lib": ["dom", "esnext"],
+    "module": "ESnext",
+    "lib": ["DOM", "ESNext"],
     "importHelpers": true,
     // output .d.ts declaration files for consumers
     "declaration": true,
@@ -17,7 +17,7 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     // use Node's module resolution algorithm, instead of the legacy TS one
-    "moduleResolution": "node",
+    "moduleResolution": "Node",
     // transpile JSX to React.createElement
     "jsx": "react",
     // interop between ESM and CJS modules. Recommended by TS
@@ -32,7 +32,7 @@
     "allowSyntheticDefaultImports": true,
     "emitDeclarationOnly": true,
     "baseUrl": ".",
-    "types": ["vitest/globals"],
+    "types": ["vitest/globals", "vitest/importMeta"],
     "paths": {
       "@reduxjs/toolkit": ["src/index.ts"], // @remap-prod-remove-line
       "@reduxjs/toolkit/react": ["src/react/index.ts"], // @remap-prod-remove-line
@@ -43,7 +43,8 @@
       // for type imports in tests only
       "@reduxjs/toolkit/dist/query/*": ["src/query/*"], // @remap-prod-remove-line
       // internal imports in tests only
-      "@internal/*": ["src/*"]
+      "@internal/*": ["src/*"],
+      "react": ["node_modules/react"]
     }
   }
 }

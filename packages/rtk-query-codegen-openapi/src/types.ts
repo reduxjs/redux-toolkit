@@ -2,7 +2,7 @@ import type { OpenAPIV3 } from 'openapi-types';
 
 export type OperationDefinition = {
   path: string;
-  verb: typeof operationKeys[number];
+  verb: (typeof operationKeys)[number];
   pathItem: OpenAPIV3.PathItemObject;
   operation: OpenAPIV3.OperationObject;
 };
@@ -67,6 +67,11 @@ export interface CommonOptions {
    * `true` will "flatten" the arg so that you can do things like `useGetEntityById(1)` instead of `useGetEntityById({ entityId: 1 })`
    */
   flattenArg?: boolean;
+  /**
+   * default to false
+   * `true` will not generate separate types for read-only and write-only properties.
+   */
+  mergeReadWriteOnly?: boolean;
 }
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];
@@ -79,6 +84,11 @@ export interface OutputFileOptions extends Partial<CommonOptions> {
   outputFile: string;
   filterEndpoints?: EndpointMatcher;
   endpointOverrides?: EndpointOverrides[];
+  /**
+   * defaults to false
+   * If passed as true it will generate TS enums instead of union of strings
+   */
+  useEnumType?: boolean;
 }
 
 export interface EndpointOverrides {

@@ -21,12 +21,16 @@ export type {
 export type {
   EndpointDefinitions,
   EndpointDefinition,
+  EndpointBuilder,
   QueryDefinition,
   MutationDefinition,
   TagDescription,
   QueryArgFrom,
   ResultTypeFrom,
   DefinitionType,
+  DefinitionsFromApi,
+  OverrideResultType,
+  TagTypesFromApi,
 } from './endpointDefinitions'
 export { fetchBaseQuery } from './fetchBaseQuery'
 export type {

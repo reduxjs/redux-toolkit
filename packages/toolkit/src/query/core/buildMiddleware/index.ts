@@ -29,7 +29,7 @@ import { buildBatchedActionsHandler } from './batchActions'
 export function buildMiddleware<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
-  TagTypes extends string
+  TagTypes extends string,
 >(input: BuildMiddlewareInput<Definitions, ReducerPath, TagTypes>) {
   const { reducerPath, queryThunk, api, context } = input
   const { apiUid } = context
@@ -71,6 +71,7 @@ export function buildMiddleware<
       >),
       internalState,
       refetchQuery,
+      isThisApiSliceAction,
     }
 
     const handlers = handlerBuilders.map((build) => build(builderArgs))
@@ -93,18 +94,15 @@ export function buildMiddleware<
 
         const stateBefore = mwApi.getState()
 
-        const [actionShouldContinue, hasSubscription] = batchedActionsHandler(
-          action,
-          mwApiWithNext,
-          stateBefore
-        )
+        const [actionShouldContinue, internalProbeResult] =
+          batchedActionsHandler(action, mwApiWithNext, stateBefore)
 
         let res: any
 
         if (actionShouldContinue) {
           res = next(action)
         } else {
-          res = hasSubscription
+          res = internalProbeResult
         }
 
         if (!!mwApi.getState()[reducerPath]) {
@@ -138,7 +136,7 @@ export function buildMiddleware<
       { status: QueryStatus.uninitialized }
     >,
     queryCacheKey: string,
-    override: Partial<QueryThunkArg> = {}
+    override: Partial<QueryThunkArg> = {},
   ) {
     return queryThunk({
       type: 'query',

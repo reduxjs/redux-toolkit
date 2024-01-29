@@ -1,20 +1,19 @@
-import { vi } from 'vitest'
 import type { UnknownAction } from '@reduxjs/toolkit'
 import {
-  createAsyncThunk,
-  unwrapResult,
   configureStore,
+  createAsyncThunk,
   createReducer,
+  unwrapResult,
+  miniSerializeError,
 } from '@reduxjs/toolkit'
-import { miniSerializeError } from '@internal/createAsyncThunk'
+import { vi } from 'vitest'
 
 import {
-  mockConsole,
   createConsole,
   getLog,
+  mockConsole,
 } from 'console-testing-library/pure'
-import { expectType } from './helpers'
-import { delay } from '../utils'
+import { delay } from '@internal/utils'
 
 declare global {
   interface Window {
@@ -35,6 +34,20 @@ describe('createAsyncThunk', () => {
     const thunkActionCreator = createAsyncThunk('testType', async () => 42)
 
     expect(thunkActionCreator.typePrefix).toBe('testType')
+  })
+
+  it('includes a settled matcher', () => {
+    const thunkActionCreator = createAsyncThunk('testType', async () => 42)
+    expect(thunkActionCreator.settled).toEqual(expect.any(Function))
+    expect(thunkActionCreator.settled(thunkActionCreator.pending(''))).toBe(
+      false,
+    )
+    expect(
+      thunkActionCreator.settled(thunkActionCreator.rejected(null, '')),
+    ).toBe(true)
+    expect(
+      thunkActionCreator.settled(thunkActionCreator.fulfilled(42, '')),
+    ).toBe(true)
   })
 
   it('works without passing arguments to the payload creator', async () => {
@@ -73,7 +86,7 @@ describe('createAsyncThunk', () => {
         passedArg = arg
         generatedRequestId = requestId
         return result
-      }
+      },
     )
 
     const thunkFunction = thunkActionCreator(args)
@@ -89,12 +102,12 @@ describe('createAsyncThunk', () => {
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      thunkActionCreator.pending(generatedRequestId, args)
+      thunkActionCreator.pending(generatedRequestId, args),
     )
 
     expect(dispatch).toHaveBeenNthCalledWith(
       2,
-      thunkActionCreator.fulfilled(result, generatedRequestId, args)
+      thunkActionCreator.fulfilled(result, generatedRequestId, args),
     )
   })
 
@@ -111,7 +124,7 @@ describe('createAsyncThunk', () => {
       async (args: number, { requestId }) => {
         generatedRequestId = requestId
         throw error
-      }
+      },
     )
 
     const thunkFunction = thunkActionCreator(args)
@@ -122,7 +135,7 @@ describe('createAsyncThunk', () => {
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      thunkActionCreator.pending(generatedRequestId, args)
+      thunkActionCreator.pending(generatedRequestId, args),
     )
 
     expect(dispatch).toHaveBeenCalledTimes(2)
@@ -147,7 +160,7 @@ describe('createAsyncThunk', () => {
       async (args: number, { requestId }) => {
         generatedRequestId = requestId
         throw errorObject
-      }
+      },
     )
 
     const thunkFunction = thunkActionCreator(args)
@@ -158,7 +171,7 @@ describe('createAsyncThunk', () => {
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      thunkActionCreator.pending(generatedRequestId, args)
+      thunkActionCreator.pending(generatedRequestId, args),
     )
 
     expect(dispatch).toHaveBeenCalledTimes(2)
@@ -186,7 +199,7 @@ describe('createAsyncThunk', () => {
       async (args: number, { requestId }) => {
         generatedRequestId = requestId
         throw errorObject
-      }
+      },
     )
 
     const thunkFunction = thunkActionCreator(args)
@@ -197,7 +210,7 @@ describe('createAsyncThunk', () => {
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      thunkActionCreator.pending(generatedRequestId, args)
+      thunkActionCreator.pending(generatedRequestId, args),
     )
 
     expect(dispatch).toHaveBeenCalledTimes(2)
@@ -231,7 +244,7 @@ describe('createAsyncThunk', () => {
         generatedRequestId = requestId
 
         return rejectWithValue(errorPayload)
-      }
+      },
     )
 
     const thunkFunction = thunkActionCreator(args)
@@ -242,7 +255,7 @@ describe('createAsyncThunk', () => {
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      thunkActionCreator.pending(generatedRequestId, args)
+      thunkActionCreator.pending(generatedRequestId, args),
     )
 
     expect(dispatch).toHaveBeenCalledTimes(2)
@@ -276,7 +289,7 @@ describe('createAsyncThunk', () => {
         generatedRequestId = requestId
 
         throw rejectWithValue(errorPayload)
-      }
+      },
     )
 
     const thunkFunction = thunkActionCreator(args)
@@ -287,7 +300,7 @@ describe('createAsyncThunk', () => {
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      thunkActionCreator.pending(generatedRequestId, args)
+      thunkActionCreator.pending(generatedRequestId, args),
     )
 
     expect(dispatch).toHaveBeenCalledTimes(2)
@@ -330,7 +343,7 @@ describe('createAsyncThunk', () => {
           }
           return rejectWithValue(errorPayload)
         }
-      }
+      },
     )
 
     const thunkFunction = thunkActionCreator(args)
@@ -341,7 +354,7 @@ describe('createAsyncThunk', () => {
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      thunkActionCreator.pending(generatedRequestId, args)
+      thunkActionCreator.pending(generatedRequestId, args),
     )
 
     expect(dispatch).toHaveBeenCalledTimes(2)
@@ -364,8 +377,8 @@ describe('createAsyncThunk with abortController', () => {
           reject(
             new DOMException(
               'This should never be reached as it should already be handled.',
-              'AbortError'
-            )
+              'AbortError',
+            ),
           )
         }
         signal.addEventListener('abort', () => {
@@ -373,7 +386,7 @@ describe('createAsyncThunk with abortController', () => {
         })
         setTimeout(resolve, 100)
       })
-    }
+    },
   )
 
   let store = configureStore({
@@ -424,7 +437,7 @@ describe('createAsyncThunk with abortController', () => {
 
     // calling unwrapResult on the returned object re-throws the error from the abortablePayloadCreator
     expect(() => unwrapResult(result)).toThrowError(
-      expect.objectContaining(expectedAbortedAction.error)
+      expect.objectContaining(expectedAbortedAction.error),
     )
   })
 
@@ -458,7 +471,7 @@ describe('createAsyncThunk with abortController', () => {
 
     // calling unwrapResult on the returned object re-throws the error from the abortablePayloadCreator
     expect(() => unwrapResult(result)).toThrowError(
-      expect.objectContaining(expectedAbortedAction.error)
+      expect.objectContaining(expectedAbortedAction.error),
     )
   })
 
@@ -483,7 +496,7 @@ describe('createAsyncThunk with abortController', () => {
   })
 
   describe('behaviour with missing AbortController', () => {
-    let keepAbortController: typeof window['AbortController']
+    let keepAbortController: (typeof window)['AbortController']
     let freshlyLoadedModule: typeof import('../createAsyncThunk')
     let restore: () => void = () => {}
     let nodeEnv: string
@@ -510,10 +523,10 @@ describe('createAsyncThunk with abortController', () => {
         'longRunning',
         async () => {
           await new Promise((resolve) => setTimeout(resolve, 30000))
-        }
+        },
       )
 
-      expect(longRunningAsyncThunk()).toThrow("AbortController is not defined")
+      expect(longRunningAsyncThunk()).toThrow('AbortController is not defined')
     })
   })
 })
@@ -586,7 +599,7 @@ describe('conditional skipping of asyncThunks', () => {
     expect(condition).toHaveBeenCalledTimes(1)
     expect(condition).toHaveBeenLastCalledWith(
       arg,
-      expect.objectContaining({ getState, extra })
+      expect.objectContaining({ getState, extra }),
     )
   })
 
@@ -612,7 +625,7 @@ describe('conditional skipping of asyncThunks', () => {
     await asyncThunk(arg)(dispatch, getState, extra)
     expect(dispatch).toHaveBeenCalledTimes(1)
     expect(dispatch).toHaveBeenLastCalledWith(
-      expect.objectContaining({ type: 'test/rejected' })
+      expect.objectContaining({ type: 'test/rejected' }),
     )
   })
 
@@ -649,7 +662,7 @@ describe('conditional skipping of asyncThunks', () => {
     })
     const promise = asyncThunk(arg)(dispatch, getState, extra)
     promise.abort(
-      `If the promise was 1. somehow canceled, 2. in a 'started' state and 3. we attempted to abort, this would crash the tests`
+      `If the promise was 1. somehow canceled, 2. in a 'started' state and 3. we attempted to abort, this would crash the tests`,
     )
   })
 
@@ -669,7 +682,7 @@ describe('conditional skipping of asyncThunks', () => {
         },
         meta: {
           aborted: false,
-          arg: arg,
+          arg,
           rejectedWithValue: false,
           condition: true,
           requestId: expect.stringContaining(''),
@@ -677,7 +690,7 @@ describe('conditional skipping of asyncThunks', () => {
         },
         payload: undefined,
         type: 'test/rejected',
-      })
+      }),
     )
   })
 })
@@ -723,7 +736,7 @@ describe('unwrapResult', () => {
     })
 
     const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
-      unwrapResult
+      unwrapResult,
     )
 
     await expect(unwrapPromise).resolves.toBe('fulfilled!')
@@ -739,14 +752,14 @@ describe('unwrapResult', () => {
     })
 
     const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
-      unwrapResult
+      unwrapResult,
     )
 
     await expect(unwrapPromise).rejects.toEqual(miniSerializeError(error))
 
     const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
     await expect(unwrapPromise2.unwrap()).rejects.toEqual(
-      miniSerializeError(error)
+      miniSerializeError(error),
     )
   })
   test('rejectWithValue case', async () => {
@@ -755,7 +768,7 @@ describe('unwrapResult', () => {
     })
 
     const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
-      unwrapResult
+      unwrapResult,
     )
 
     await expect(unwrapPromise).rejects.toBe('rejectWithValue!')
@@ -787,7 +800,7 @@ describe('idGenerator option', () => {
       async (args: void, { requestId }) => {
         generatedRequestId = requestId
       },
-      { idGenerator }
+      { idGenerator },
     )
 
     // dispatching the thunks should be using the custom id generator
@@ -811,7 +824,7 @@ describe('idGenerator option', () => {
       'test',
       async (args: void, { requestId }) => {
         generatedRequestId = requestId
-      }
+      },
     )
     // dispatching the default options thunk should still generate an id,
     // but not using the custom id generator
@@ -819,10 +832,10 @@ describe('idGenerator option', () => {
     expect(generatedRequestId).toEqual(promise3.requestId)
     expect(promise3.requestId).not.toEqual('')
     expect(promise3.requestId).not.toEqual(
-      expect.stringContaining('fake-random-id')
+      expect.stringContaining('fake-random-id'),
     )
     expect((await promise3).meta.requestId).not.toEqual(
-      expect.stringContaining('fake-fandom-id')
+      expect.stringContaining('fake-fandom-id'),
     )
   })
 
@@ -834,7 +847,7 @@ describe('idGenerator option', () => {
       async (args: any, { requestId }) => {
         generatedRequestId = requestId
       },
-      { idGenerator: customIdGenerator }
+      { idGenerator: customIdGenerator },
     )
 
     const thunkArg = 1
@@ -882,7 +895,7 @@ describe('meta', () => {
         return [...actions, action]
       },
     })
-  let store = getNewStore()
+  const store = getNewStore()
 
   beforeEach(() => {
     const store = getNewStore()
@@ -956,7 +969,6 @@ describe('meta', () => {
     })
 
     if (ret.meta.requestStatus === 'rejected' && ret.meta.rejectedWithValue) {
-      expectType<string>(ret.meta.extraProp)
     } else {
       // could be caused by a `throw`, `abort()` or `condition` - no `rejectedMeta` in that case
       // @ts-expect-error
@@ -975,6 +987,7 @@ describe('meta', () => {
     expect(thunk.fulfilled).toEqual(expectFunction)
     expect(thunk.pending).toEqual(expectFunction)
     expect(thunk.rejected).toEqual(expectFunction)
+    expect(thunk.settled).toEqual(expectFunction)
     expect(thunk.fulfilled.type).toBe('a/fulfilled')
   })
 })

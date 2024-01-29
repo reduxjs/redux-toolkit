@@ -1,34 +1,36 @@
 import { produce as createNextState, isDraft } from 'immer'
-import type {  Draft } from 'immer'
+import type { Draft } from 'immer'
 import type { EntityId, DraftableEntityState, PreventAny } from './models'
 import type { PayloadAction } from '../createAction'
 import { isFSA } from '../createAction'
 
-export const isDraftTyped = isDraft as <T>(value: T | Draft<T>) => value is Draft<T>
+export const isDraftTyped = isDraft as <T>(
+  value: T | Draft<T>,
+) => value is Draft<T>
 
 export function createSingleArgumentStateOperator<T, Id extends EntityId>(
-  mutator: (state: DraftableEntityState<T, Id>) => void
+  mutator: (state: DraftableEntityState<T, Id>) => void,
 ) {
   const operator = createStateOperator(
-    (_: undefined, state: DraftableEntityState<T, Id>) => mutator(state)
+    (_: undefined, state: DraftableEntityState<T, Id>) => mutator(state),
   )
 
   return function operation<S extends DraftableEntityState<T, Id>>(
-    state: PreventAny<S, T, Id>
+    state: PreventAny<S, T, Id>,
   ): S {
     return operator(state as S, undefined)
   }
 }
 
 export function createStateOperator<T, Id extends EntityId, R>(
-  mutator: (arg: R, state: DraftableEntityState<T, Id>) => void
+  mutator: (arg: R, state: DraftableEntityState<T, Id>) => void,
 ) {
   return function operation<S extends DraftableEntityState<T, Id>>(
     state: S,
-    arg: R | PayloadAction<R>
+    arg: R | PayloadAction<R>,
   ): S {
     function isPayloadActionArgument(
-      arg: R | PayloadAction<R>
+      arg: R | PayloadAction<R>,
     ): arg is PayloadAction<R> {
       return isFSA(arg)
     }
@@ -50,7 +52,7 @@ export function createStateOperator<T, Id extends EntityId, R>(
       // since it's a draft, we'll just return it
       return state
     }
-    
+
     return createNextState(state, runMutator)
   }
 }

@@ -26,7 +26,7 @@ export interface ActionReducerMapBuilder<State> {
    */
   addCase<ActionCreator extends TypedActionCreator<string>>(
     actionCreator: ActionCreator,
-    reducer: CaseReducer<State, ReturnType<ActionCreator>>
+    reducer: CaseReducer<State, ReturnType<ActionCreator>>,
   ): ActionReducerMapBuilder<State>
   /**
    * Adds a case reducer to handle a single exact action type.
@@ -37,7 +37,7 @@ export interface ActionReducerMapBuilder<State> {
    */
   addCase<Type extends string, A extends Action<Type>>(
     type: Type,
-    reducer: CaseReducer<State, A>
+    reducer: CaseReducer<State, A>,
   ): ActionReducerMapBuilder<State>
 
   /**
@@ -98,7 +98,7 @@ const reducer = createReducer(initialState, (builder) => {
    */
   addMatcher<A>(
     matcher: TypeGuard<A> | ((action: any) => boolean),
-    reducer: CaseReducer<State, A extends Action ? A : A & Action>
+    reducer: CaseReducer<State, A extends Action ? A : A & Action>,
   ): Omit<ActionReducerMapBuilder<State>, 'addCase'>
 
   /**
@@ -124,11 +124,11 @@ const reducer = createReducer(initialState, builder => {
 }
 
 export function executeReducerBuilderCallback<S>(
-  builderCallback: (builder: ActionReducerMapBuilder<S>) => void
+  builderCallback: (builder: ActionReducerMapBuilder<S>) => void,
 ): [
   CaseReducers<S, any>,
   ActionMatcherDescriptionCollection<S>,
-  CaseReducer<S, Action> | undefined
+  CaseReducer<S, Action> | undefined,
 ] {
   const actionsMap: CaseReducers<S, any> = {}
   const actionMatchers: ActionMatcherDescriptionCollection<S> = []
@@ -136,7 +136,7 @@ export function executeReducerBuilderCallback<S>(
   const builder = {
     addCase(
       typeOrActionCreator: string | TypedActionCreator<any>,
-      reducer: CaseReducer<S>
+      reducer: CaseReducer<S>,
     ) {
       if (process.env.NODE_ENV !== 'production') {
         /*
@@ -146,12 +146,12 @@ export function executeReducerBuilderCallback<S>(
          */
         if (actionMatchers.length > 0) {
           throw new Error(
-            '`builder.addCase` should only be called before calling `builder.addMatcher`'
+            '`builder.addCase` should only be called before calling `builder.addMatcher`',
           )
         }
         if (defaultCaseReducer) {
           throw new Error(
-            '`builder.addCase` should only be called before calling `builder.addDefaultCase`'
+            '`builder.addCase` should only be called before calling `builder.addDefaultCase`',
           )
         }
       }
@@ -161,12 +161,13 @@ export function executeReducerBuilderCallback<S>(
           : typeOrActionCreator.type
       if (!type) {
         throw new Error(
-          '`builder.addCase` cannot be called with an empty action type'
+          '`builder.addCase` cannot be called with an empty action type',
         )
       }
       if (type in actionsMap) {
         throw new Error(
-          '`builder.addCase` cannot be called with two reducers for the same action type'
+          '`builder.addCase` cannot be called with two reducers for the same action type ' +
+            `'${type}'`,
         )
       }
       actionsMap[type] = reducer
@@ -174,12 +175,12 @@ export function executeReducerBuilderCallback<S>(
     },
     addMatcher<A>(
       matcher: TypeGuard<A>,
-      reducer: CaseReducer<S, A extends Action ? A : A & Action>
+      reducer: CaseReducer<S, A extends Action ? A : A & Action>,
     ) {
       if (process.env.NODE_ENV !== 'production') {
         if (defaultCaseReducer) {
           throw new Error(
-            '`builder.addMatcher` should only be called before calling `builder.addDefaultCase`'
+            '`builder.addMatcher` should only be called before calling `builder.addDefaultCase`',
           )
         }
       }

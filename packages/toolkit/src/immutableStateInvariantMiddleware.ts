@@ -3,28 +3,6 @@ import { getTimeMeasureUtils } from './utils'
 
 type EntryProcessor = (key: string, value: any) => any
 
-const isProduction: boolean = process.env.NODE_ENV === 'production'
-const prefix: string = 'Invariant failed'
-
-// Throw an error if the condition fails
-// Strip out error messages for production
-// > Not providing an inline default argument for message as the result is smaller
-function invariant(condition: any, message?: string) {
-  if (condition) {
-    return
-  }
-  // Condition not passed
-
-  // In production we strip the message but still throw
-  if (isProduction) {
-    throw new Error(prefix)
-  }
-
-  // When not in production we allow the message to pass through
-  // *This block will be removed in production builds*
-  throw new Error(`${prefix}: ${message || ''}`)
-}
-
 /**
  * The default `isImmutable` function.
  *
@@ -37,7 +15,7 @@ export function isImmutableDefault(value: unknown): boolean {
 export function trackForMutations(
   isImmutable: IsImmutableFunc,
   ignorePaths: IgnorePaths | undefined,
-  obj: any
+  obj: any,
 ) {
   const trackedProperties = trackProperties(isImmutable, ignorePaths, obj)
   return {
@@ -57,12 +35,12 @@ function trackProperties(
   ignorePaths: IgnorePaths = [],
   obj: Record<string, any>,
   path: string = '',
-  checkedObjects: Set<Record<string, any>> = new Set()
+  checkedObjects: Set<Record<string, any>> = new Set(),
 ) {
   const tracked: Partial<TrackedProperty> = { value: obj }
 
   if (!isImmutable(obj) && !checkedObjects.has(obj)) {
-    checkedObjects.add(obj);
+    checkedObjects.add(obj)
     tracked.children = {}
 
     for (const key in obj) {
@@ -75,7 +53,7 @@ function trackProperties(
         isImmutable,
         ignorePaths,
         obj[key],
-        childPath
+        childPath,
       )
     }
   }
@@ -90,7 +68,7 @@ function detectMutations(
   trackedProperty: TrackedProperty,
   obj: any,
   sameParentRef: boolean = false,
-  path: string = ''
+  path: string = '',
 ): { wasMutated: boolean; path?: string } {
   const prevObj = trackedProperty ? trackedProperty.value : undefined
 
@@ -136,7 +114,7 @@ function detectMutations(
       trackedProperty.children[key],
       obj[key],
       sameRef,
-      nestedPath
+      nestedPath,
     )
 
     if (result.wasMutated) {
@@ -181,7 +159,7 @@ export interface ImmutableStateInvariantMiddlewareOptions {
  * @public
  */
 export function createImmutableStateInvariantMiddleware(
-  options: ImmutableStateInvariantMiddlewareOptions = {}
+  options: ImmutableStateInvariantMiddlewareOptions = {},
 ): Middleware {
   if (process.env.NODE_ENV === 'production') {
     return () => (next) => (action) => next(action)
@@ -190,14 +168,14 @@ export function createImmutableStateInvariantMiddleware(
       obj: any,
       serializer?: EntryProcessor,
       indent?: string | number,
-      decycler?: EntryProcessor
+      decycler?: EntryProcessor,
     ): string {
       return JSON.stringify(obj, getSerialize(serializer, decycler), indent)
     }
 
     function getSerialize(
       serializer?: EntryProcessor,
-      decycler?: EntryProcessor
+      decycler?: EntryProcessor,
     ): EntryProcessor {
       let stack: any[] = [],
         keys: any[] = []
@@ -238,7 +216,7 @@ export function createImmutableStateInvariantMiddleware(
       return (next) => (action) => {
         const measureUtils = getTimeMeasureUtils(
           warnAfter,
-          'ImmutableStateInvariantMiddleware'
+          'ImmutableStateInvariantMiddleware',
         )
 
         measureUtils.measureTime(() => {
@@ -248,12 +226,13 @@ export function createImmutableStateInvariantMiddleware(
           // Track before potentially not meeting the invariant
           tracker = track(state)
 
-          invariant(
-            !result.wasMutated,
-            `A state mutation was detected between dispatches, in the path '${
-              result.path || ''
-            }'.  This may cause incorrect behavior. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`
-          )
+          if (result.wasMutated) {
+            throw new Error(
+              `A state mutation was detected between dispatches, in the path '${
+                result.path || ''
+              }'.  This may cause incorrect behavior. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`,
+            )
+          }
         })
 
         const dispatchedAction = next(action)
@@ -265,15 +244,15 @@ export function createImmutableStateInvariantMiddleware(
           // Track before potentially not meeting the invariant
           tracker = track(state)
 
-          result.wasMutated &&
-            invariant(
-              !result.wasMutated,
+          if (result.wasMutated) {
+            throw new Error(
               `A state mutation was detected inside a dispatch, in the path: ${
                 result.path || ''
               }. Take a look at the reducer(s) handling the action ${stringify(
-                action
-              )}. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`
+                action,
+              )}. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`,
             )
+          }
         })
 
         measureUtils.warnIfExceeded()

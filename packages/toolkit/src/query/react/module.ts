@@ -1,27 +1,30 @@
-import type { MutationHooks, QueryHooks } from './buildHooks'
-import { buildHooks } from './buildHooks'
-import { isQueryDefinition, isMutationDefinition } from '../endpointDefinitions'
 import type {
+  Api,
+  BaseQueryFn,
   EndpointDefinitions,
-  QueryDefinition,
+  Module,
   MutationDefinition,
   QueryArgFrom,
+  QueryDefinition,
 } from '@reduxjs/toolkit/query'
-import type { Api, Module } from '../apiTypes'
-import { capitalize } from '../utils'
+import { isMutationDefinition, isQueryDefinition } from '../endpointDefinitions'
 import { safeAssign } from '../tsHelpers'
-import type { BaseQueryFn } from '@reduxjs/toolkit/query'
+import { capitalize } from '../utils'
+import type { MutationHooks, QueryHooks } from './buildHooks'
+import { buildHooks } from './buildHooks'
 
 import type { HooksWithUniqueNames } from './namedHooks'
 
 import {
+  batch as rrBatch,
   useDispatch as rrUseDispatch,
   useSelector as rrUseSelector,
   useStore as rrUseStore,
-  batch as rrBatch,
 } from 'react-redux'
+import { createSelector as _createSelector } from 'reselect'
 import type { QueryKeys } from '../core/apiState'
 import type { PrefetchOptions } from '../core/module'
+import { countObjectKeys } from '../utils/countObjectKeys'
 
 export const reactHooksModuleName = /* @__PURE__ */ Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName
@@ -34,7 +37,7 @@ declare module '@reduxjs/toolkit/query' {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ReducerPath extends string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    TagTypes extends string
+    TagTypes extends string,
   > {
     [reactHooksModuleName]: {
       /**
@@ -50,18 +53,18 @@ declare module '@reduxjs/toolkit/query' {
         >
           ? QueryHooks<Definitions[K]>
           : Definitions[K] extends MutationDefinition<any, any, any, any, any>
-          ? MutationHooks<Definitions[K]>
-          : never
+            ? MutationHooks<Definitions[K]>
+            : never
       }
       /**
        * A hook that accepts a string endpoint name, and provides a callback that when called, pre-fetches the data for that endpoint.
        */
       usePrefetch<EndpointName extends QueryKeys<Definitions>>(
         endpointName: EndpointName,
-        options?: PrefetchOptions
+        options?: PrefetchOptions,
       ): (
         arg: QueryArgFrom<Definitions[EndpointName]>,
-        options?: PrefetchOptions
+        options?: PrefetchOptions,
       ) => void
     } & HooksWithUniqueNames<Definitions>
   }
@@ -110,6 +113,10 @@ export interface ReactHooksModuleOptions {
    * ```
    */
   unstable__sideEffectsInRender?: boolean
+  /**
+   * A selector creator (usually from `reselect`, or matching the same signature)
+   */
+  createSelector?: typeof _createSelector
 }
 
 /**
@@ -139,6 +146,7 @@ export const reactHooksModule = ({
     useSelector: rrUseSelector,
     useStore: rrUseStore,
   },
+  createSelector = _createSelector,
   unstable__sideEffectsInRender = false,
   ...rest
 }: ReactHooksModuleOptions = {}): Module<ReactHooksModule> => {
@@ -147,12 +155,12 @@ export const reactHooksModule = ({
     let warned = false
     for (const hookName of hookNames) {
       // warn for old hook options
-      if (Object.keys(rest).length > 0) {
+      if (countObjectKeys(rest) > 0) {
         if ((rest as Partial<typeof hooks>)[hookName]) {
           if (!warned) {
             console.warn(
               'As of RTK 2.0, the hooks now need to be specified as one object, provided under a `hooks` key:' +
-                '\n`reactHooksModule({ hooks: { useDispatch, useSelector, useStore } })`'
+                '\n`reactHooksModule({ hooks: { useDispatch, useSelector, useStore } })`',
             )
             warned = true
           }
@@ -167,8 +175,8 @@ export const reactHooksModule = ({
           `When using custom hooks for context, all ${
             hookNames.length
           } hooks need to be provided: ${hookNames.join(
-            ', '
-          )}.\nHook ${hookName} was either not provided or not a function.`
+            ', ',
+          )}.\nHook ${hookName} was either not provided or not a function.`,
         )
       }
     }
@@ -180,8 +188,8 @@ export const reactHooksModule = ({
       const anyApi = api as any as Api<
         any,
         Record<string, any>,
-        string,
-        string,
+        any,
+        any,
         ReactHooksModule
       >
       const { buildQueryHooks, buildMutationHook, usePrefetch } = buildHooks({
@@ -190,6 +198,7 @@ export const reactHooksModule = ({
           batch,
           hooks,
           unstable__sideEffectsInRender,
+          createSelector,
         },
         serializeQueryArgs,
         context,

@@ -19,7 +19,7 @@ export type ReferenceQueryLifecycle = never
 declare module '../../endpointDefinitions' {
   export interface QueryLifecyclePromises<
     ResultType,
-    BaseQuery extends BaseQueryFn
+    BaseQuery extends BaseQueryFn,
   > {
     /**
      * Promise that will resolve with the (transformed) query result.
@@ -72,7 +72,7 @@ declare module '../../endpointDefinitions' {
     ResultType,
     QueryArg,
     BaseQuery extends BaseQueryFn,
-    ReducerPath extends string = string
+    ReducerPath extends string = string,
   > {
     /**
      * A function that is called when the individual query is started. The function is called with a lifecycle api object containing properties such as `queryFulfilled`, allowing code to be run when a query is started, when it succeeds, and when it fails (i.e. throughout the lifecycle of an individual query/mutation call).
@@ -114,7 +114,7 @@ declare module '../../endpointDefinitions' {
      */
     onQueryStarted?(
       arg: QueryArg,
-      api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
+      api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
     ): Promise<void> | void
   }
 
@@ -123,7 +123,7 @@ declare module '../../endpointDefinitions' {
     ResultType,
     QueryArg,
     BaseQuery extends BaseQueryFn,
-    ReducerPath extends string = string
+    ReducerPath extends string = string,
   > {
     /**
      * A function that is called when the individual mutation is started. The function is called with a lifecycle api object containing properties such as `queryFulfilled`, allowing code to be run when a query is started, when it succeeds, and when it fails (i.e. throughout the lifecycle of an individual query/mutation call).
@@ -175,7 +175,7 @@ declare module '../../endpointDefinitions' {
      */
     onQueryStarted?(
       arg: QueryArg,
-      api: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
+      api: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
     ): Promise<void> | void
   }
 
@@ -183,7 +183,7 @@ declare module '../../endpointDefinitions' {
     QueryArg,
     BaseQuery extends BaseQueryFn,
     ResultType,
-    ReducerPath extends string = string
+    ReducerPath extends string = string,
   > extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
       QueryLifecyclePromises<ResultType, BaseQuery> {}
 
@@ -191,7 +191,7 @@ declare module '../../endpointDefinitions' {
     QueryArg,
     BaseQuery extends BaseQueryFn,
     ResultType,
-    ReducerPath extends string = string
+    ReducerPath extends string = string,
   > extends MutationBaseLifecycleApi<
         QueryArg,
         BaseQuery,
@@ -241,7 +241,7 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
         const selector = (api.endpoints[endpointName] as any).select(
           endpointDefinition.type === DefinitionType.query
             ? originalArgs
-            : requestId
+            : requestId,
         )
 
         const extra = mwApi.dispatch((_, __, extra) => extra)
@@ -256,8 +256,8 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
                   api.util.updateQueryData(
                     endpointName as never,
                     originalArgs,
-                    updateRecipe
-                  )
+                    updateRecipe,
+                  ),
                 )
             : undefined) as any,
           queryFulfilled,

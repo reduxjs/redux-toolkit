@@ -2,12 +2,12 @@ import type {
   Middleware,
   Dispatch as ReduxDispatch,
   UnknownAction,
-  MiddlewareAPI,
 } from 'redux'
 import { compose } from 'redux'
-import { createAction, isAction } from '../createAction'
+import { createAction } from '../createAction'
+import { isAllOf } from '../matchers'
 import { nanoid } from '../nanoid'
-import { find } from '../utils'
+import { emplace, find } from '../utils'
 import type {
   WithMiddleware,
   AddMiddleware,
@@ -18,81 +18,68 @@ import type {
 
 const createMiddlewareEntry = <
   State = any,
-  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
 >(
-  middleware: Middleware<any, State, Dispatch>
+  middleware: Middleware<any, State, Dispatch>,
 ): MiddlewareEntry<State, Dispatch> => ({
   id: nanoid(),
   middleware,
   applied: new Map(),
 })
 
+const matchInstance =
+  (instanceId: string) =>
+  (action: any): action is { meta: { instanceId: string } } =>
+    action?.meta?.instanceId === instanceId
+
 export const createDynamicMiddleware = <
   State = any,
-  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
 >(): DynamicMiddlewareInstance<State, Dispatch> => {
   const instanceId = nanoid()
   const middlewareMap = new Map<string, MiddlewareEntry<State, Dispatch>>()
 
-  const insertEntry = (entry: MiddlewareEntry<State, Dispatch>) => {
-    middlewareMap.set(entry.id, entry)
-  }
-
-  const withMiddleware = (() => {
-    const withMiddleware = createAction(
+  const withMiddleware = Object.assign(
+    createAction(
       'dynamicMiddleware/add',
       (...middlewares: Middleware<any, State, Dispatch>[]) => ({
         payload: middlewares,
         meta: {
           instanceId,
         },
-      })
-    )
-    // @ts-ignore
-    withMiddleware.withTypes = () => withMiddleware
-    return withMiddleware as WithMiddleware<State, Dispatch>
-  })()
+      }),
+    ),
+    { withTypes: () => withMiddleware },
+  ) as WithMiddleware<State, Dispatch>
 
-  const addMiddleware = (() => {
+  const addMiddleware = Object.assign(
     function addMiddleware(...middlewares: Middleware<any, State, Dispatch>[]) {
       middlewares.forEach((middleware) => {
         let entry = find(
           Array.from(middlewareMap.values()),
-          (entry) => entry.middleware === middleware
+          (entry) => entry.middleware === middleware,
         )
         if (!entry) {
           entry = createMiddlewareEntry(middleware)
         }
-        insertEntry(entry)
+        middlewareMap.set(entry.id, entry)
       })
-    }
-    addMiddleware.withTypes = () => addMiddleware
-    return addMiddleware as AddMiddleware<State, Dispatch>
-  })()
+    },
+    { withTypes: () => addMiddleware },
+  ) as AddMiddleware<State, Dispatch>
 
-  const getFinalMiddleware = (
-    api: MiddlewareAPI<Dispatch, State>
-  ): ReturnType<Middleware<any, State, Dispatch>> => {
-    const appliedMiddleware = Array.from(middlewareMap.values()).map(
-      (entry) => {
-        let applied = entry.applied.get(api)
-        if (!applied) {
-          applied = entry.middleware(api)
-          entry.applied.set(api, applied)
-        }
-        return applied
-      }
+  const getFinalMiddleware: Middleware<{}, State, Dispatch> = (api) => {
+    const appliedMiddleware = Array.from(middlewareMap.values()).map((entry) =>
+      emplace(entry.applied, api, { insert: () => entry.middleware(api) }),
     )
     return compose(...appliedMiddleware)
   }
 
+  const isWithMiddleware = isAllOf(withMiddleware, matchInstance(instanceId))
+
   const middleware: DynamicMiddleware<State, Dispatch> =
     (api) => (next) => (action) => {
-      if (
-        isAction(action) &&
-        withMiddleware.match(action) &&
-        action.meta.instanceId === instanceId
-      ) {
+      if (isWithMiddleware(action)) {
         addMiddleware(...action.payload)
         return api.dispatch
       }
@@ -103,5 +90,6 @@ export const createDynamicMiddleware = <
     middleware,
     addMiddleware,
     withMiddleware,
+    instanceId,
   }
 }

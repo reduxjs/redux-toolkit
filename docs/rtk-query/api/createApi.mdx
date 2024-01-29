@@ -101,11 +101,11 @@ export type BaseQueryFn<
   Result = unknown,
   Error = unknown,
   DefinitionExtraOptions = {},
-  Meta = {}
+  Meta = {},
 > = (
   args: Args,
   api: BaseQueryApi,
-  extraOptions: DefinitionExtraOptions
+  extraOptions: DefinitionExtraOptions,
 ) => MaybePromise<QueryReturnValue<Result, Error, Meta>>
 
 export interface BaseQueryApi {
@@ -148,7 +148,7 @@ export type QueryDefinition<
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ResultType,
-  ReducerPath extends string = string
+  ReducerPath extends string = string,
 > = {
   query(arg: QueryArg): BaseQueryArg<BaseQuery>
 
@@ -157,21 +157,21 @@ export type QueryDefinition<
     arg: QueryArg,
     api: BaseQueryApi,
     extraOptions: BaseQueryExtraOptions<BaseQuery>,
-    baseQuery: (arg: Parameters<BaseQuery>[0]) => ReturnType<BaseQuery>
+    baseQuery: (arg: Parameters<BaseQuery>[0]) => ReturnType<BaseQuery>,
   ): MaybePromise<QueryReturnValue<ResultType, BaseQueryError<BaseQuery>>>
 
   /* transformResponse only available with `query`, not `queryFn` */
   transformResponse?(
     baseQueryReturnValue: BaseQueryResult<BaseQuery>,
     meta: BaseQueryMeta<BaseQuery>,
-    arg: QueryArg
+    arg: QueryArg,
   ): ResultType | Promise<ResultType>
 
   /* transformErrorResponse only available with `query`, not `queryFn` */
   transformErrorResponse?(
     baseQueryReturnValue: BaseQueryError<BaseQuery>,
     meta: BaseQueryMeta<BaseQuery>,
-    arg: QueryArg
+    arg: QueryArg,
   ): unknown
 
   extraOptions?: BaseQueryExtraOptions<BaseQuery>
@@ -195,7 +195,7 @@ export type QueryDefinition<
       queryFulfilled,
       getCacheEntry,
       updateCachedData, // available for query endpoints only
-    }: QueryLifecycleApi
+    }: QueryLifecycleApi,
   ): Promise<void>
 
   onCacheEntryAdded?(
@@ -209,7 +209,7 @@ export type QueryDefinition<
       cacheDataLoaded,
       getCacheEntry,
       updateCachedData, // available for query endpoints only
-    }: QueryCacheLifecycleApi
+    }: QueryCacheLifecycleApi,
   ): Promise<void>
 }
 ```
@@ -223,7 +223,7 @@ export type MutationDefinition<
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
-  Context = Record<string, any>
+  Context = Record<string, any>,
 > = {
   query(arg: QueryArg): BaseQueryArg<BaseQuery>
 
@@ -232,21 +232,21 @@ export type MutationDefinition<
     arg: QueryArg,
     api: BaseQueryApi,
     extraOptions: BaseQueryExtraOptions<BaseQuery>,
-    baseQuery: (arg: Parameters<BaseQuery>[0]) => ReturnType<BaseQuery>
+    baseQuery: (arg: Parameters<BaseQuery>[0]) => ReturnType<BaseQuery>,
   ): MaybePromise<QueryReturnValue<ResultType, BaseQueryError<BaseQuery>>>
 
   /* transformResponse only available with `query`, not `queryFn` */
   transformResponse?(
     baseQueryReturnValue: BaseQueryResult<BaseQuery>,
     meta: BaseQueryMeta<BaseQuery>,
-    arg: QueryArg
+    arg: QueryArg,
   ): ResultType | Promise<ResultType>
 
   /* transformErrorResponse only available with `query`, not `queryFn` */
   transformErrorResponse?(
     baseQueryReturnValue: BaseQueryError<BaseQuery>,
     meta: BaseQueryMeta<BaseQuery>,
-    arg: QueryArg
+    arg: QueryArg,
   ): unknown
 
   extraOptions?: BaseQueryExtraOptions<BaseQuery>
@@ -262,7 +262,7 @@ export type MutationDefinition<
       requestId,
       queryFulfilled,
       getCacheEntry,
-    }: MutationLifecycleApi
+    }: MutationLifecycleApi,
   ): Promise<void>
 
   onCacheEntryAdded?(
@@ -275,7 +275,7 @@ export type MutationDefinition<
       cacheEntryRemoved,
       cacheDataLoaded,
       getCacheEntry,
-    }: MutationCacheLifecycleApi
+    }: MutationCacheLifecycleApi,
   ): Promise<void>
 }
 ```
@@ -391,7 +391,7 @@ _(required if no `queryFn` provided)_
 
 ```ts title="query signature" no-transpile
 export type query = <QueryArg>(
-  arg: QueryArg
+  arg: QueryArg,
 ) => string | Record<string, unknown>
 
 // with `fetchBaseQuery`
@@ -579,7 +579,7 @@ async function onQueryStarted(
     requestId,
     queryFulfilled,
     getCacheEntry,
-  }: MutationLifecycleApi
+  }: MutationLifecycleApi,
 ): Promise<void>
 ```
 
@@ -594,7 +594,7 @@ async function onQueryStarted(
     queryFulfilled,
     getCacheEntry,
     updateCachedData, // available for query endpoints only
-  }: QueryLifecycleApi
+  }: QueryLifecycleApi,
 ): Promise<void>
 ```
 
@@ -671,7 +671,7 @@ async function onCacheEntryAdded(
     cacheEntryRemoved,
     cacheDataLoaded,
     getCacheEntry,
-  }: MutationCacheLifecycleApi
+  }: MutationCacheLifecycleApi,
 ): Promise<void>
 ```
 
@@ -687,7 +687,7 @@ async function onCacheEntryAdded(
     cacheDataLoaded,
     getCacheEntry,
     updateCachedData, // available for query endpoints only
-  }: QueryCacheLifecycleApi
+  }: QueryCacheLifecycleApi,
 ): Promise<void>
 ```
 

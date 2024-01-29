@@ -1,41 +1,48 @@
-createReducer(initialState, (builder) => {
-  builder.addCase(todoAdded1a, (state, action) => {
-    // stuff
-  });
+import { createEntityAdapter, createReducer } from '@reduxjs/toolkit';
 
-  builder.addCase(todoAdded1b, (state, action) => action.payload);
+export const todoAdapter = createEntityAdapter();
 
-  builder.addCase(todoAdded1c + "test", (state, action) => {
-    // stuff
-  });
+const todoInitialState = todoAdapter.getInitialState();
 
-  builder.addCase(todoAdded1d, (state, action) => {
-    // stuff
-  });
+const { addOne } = todoAdapter;
 
-  builder.addCase(todoAdded1e, (state, action) => {
-    // stuff
-  });
+createReducer(todoInitialState, (builder) => {
+    builder.addCase(todoAdded1a, (state, action) => {
+        // stuff
+    });
 
-  builder.addCase(todoAdded1f, (state, action) => {
-    //stuff
-  });
+    builder.addCase(todoAdded1b, (state, action) => action.payload);
 
-  builder.addCase(todoAdded1g, someFunc);
-  builder.addCase(todoAdded1h, adapter.someFunc);
+    builder.addCase(todoAdded1c + 'test', (state, action) => {
+        // stuff
+    });
+
+    builder.addCase(todoAdded1d, (state, action) => {
+        // stuff
+    });
+
+    builder.addCase(todoAdded1e, (state, action) => {
+        // stuff
+    });
+
+    builder.addCase(todoAdded1f, (state, action) => {
+        //stuff
+    });
+
+    builder.addCase(todoAdded1g, addOne);
+    builder.addCase(todoAdded1h, todoAdapter.addOne);
 });
 
+createReducer(todoInitialState, (builder) => {
+    builder.addCase(todoAdded2a, (state, action) => {
+        // stuff
+    });
 
-createReducer(initialState, (builder) => {
-  builder.addCase(todoAdded2a, (state, action) => {
-    // stuff
-  });
+    builder.addCase(todoAdded2b, (state, action) => {
+        // stuff
+    });
 
-  builder.addCase(todoAdded2b, (state, action) => {
-    // stuff
-  });
-
-  builder.addCase(todoAdded2c, (state, action) => {
-    // stuff
-  });
+    builder.addCase(todoAdded2c, (state, action) => {
+        // stuff
+    });
 });

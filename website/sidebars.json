@@ -4,8 +4,12 @@
       "type": "category",
       "label": "Introduction",
       "collapsed": false,
-      "items": ["introduction/getting-started"]
+      "items": [
+        "introduction/getting-started",
+        "introduction/why-rtk-is-redux-today"
+      ]
     },
+
     {
       "type": "category",
       "label": "Tutorials",
@@ -22,9 +26,15 @@
       "label": "Using Redux Toolkit",
       "collapsed": false,
       "items": [
+        {
+          "type": "category",
+          "label": "Migrations",
+          "items": ["usage/migrating-to-modern-redux", "usage/migrating-rtk-2"]
+        },
         "usage/usage-guide",
         "usage/usage-with-typescript",
-        "usage/immer-reducers"
+        "usage/immer-reducers",
+        "usage/nextjs"
       ]
     },
     {
@@ -69,7 +79,8 @@
             "api/createSelector",
             "api/matching-utilities",
             "api/other-exports",
-            "api/codemods"
+            "api/codemods",
+            { "type": "link", "label": "Error Messages", "href": "/errors" }
           ]
         }
       ]

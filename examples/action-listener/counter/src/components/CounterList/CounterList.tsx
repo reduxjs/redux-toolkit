@@ -5,7 +5,7 @@ import styles from './counter.module.css'
 
 export function CounterList() {
   const counterIds = useAppSelector((state) =>
-    counterSelectors.selectIds(state)
+    counterSelectors.selectIds(state),
   )
 
   return (

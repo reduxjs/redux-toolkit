@@ -1,7 +1,6 @@
-import isPlainObject from './isPlainObject'
 import type { Middleware } from 'redux'
+import { isAction, isPlainObject } from 'redux'
 import { getTimeMeasureUtils } from './utils'
-import { isAction } from './createAction'
 
 /**
  * Returns true if the passed value is "plain", i.e. a value that is either
@@ -40,7 +39,7 @@ export function findNonSerializableValue(
   isSerializable: (value: unknown) => boolean = isPlain,
   getEntries?: (value: unknown) => [string, any][],
   ignoredPaths: IgnorePaths = [],
-  cache?: WeakSet<object>
+  cache?: WeakSet<object>,
 ): NonSerializableValue | false {
   let foundNestedSerializable: NonSerializableValue | false
 
@@ -90,7 +89,7 @@ export function findNonSerializableValue(
         isSerializable,
         getEntries,
         ignoredPaths,
-        cache
+        cache,
       )
 
       if (foundNestedSerializable) {
@@ -187,7 +186,7 @@ export interface SerializableStateInvariantMiddlewareOptions {
  * @public
  */
 export function createSerializableStateInvariantMiddleware(
-  options: SerializableStateInvariantMiddlewareOptions = {}
+  options: SerializableStateInvariantMiddlewareOptions = {},
 ): Middleware {
   if (process.env.NODE_ENV === 'production') {
     return () => (next) => (action) => next(action)
@@ -216,7 +215,7 @@ export function createSerializableStateInvariantMiddleware(
 
       const measureUtils = getTimeMeasureUtils(
         warnAfter,
-        'SerializableStateInvariantMiddleware'
+        'SerializableStateInvariantMiddleware',
       )
 
       if (
@@ -233,7 +232,7 @@ export function createSerializableStateInvariantMiddleware(
             isSerializable,
             getEntries,
             ignoredActionPaths,
-            cache
+            cache,
           )
 
           if (foundActionNonSerializableValue) {
@@ -245,7 +244,7 @@ export function createSerializableStateInvariantMiddleware(
               '\nTake a look at the logic that dispatched this action: ',
               action,
               '\n(See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)',
-              '\n(To allow non-serializable values see: https://redux-toolkit.js.org/usage/usage-guide#working-with-non-serializable-data)'
+              '\n(To allow non-serializable values see: https://redux-toolkit.js.org/usage/usage-guide#working-with-non-serializable-data)',
             )
           }
         })
@@ -261,7 +260,7 @@ export function createSerializableStateInvariantMiddleware(
             isSerializable,
             getEntries,
             ignoredPaths,
-            cache
+            cache,
           )
 
           if (foundStateNonSerializableValue) {
@@ -272,7 +271,7 @@ export function createSerializableStateInvariantMiddleware(
               value,
               `
 Take a look at the reducer(s) handling this action type: ${action.type}.
-(See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)`
+(See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)`,
             )
           }
         })

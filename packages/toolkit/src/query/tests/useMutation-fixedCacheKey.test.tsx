@@ -1,15 +1,18 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
-import { setupApiStore, waitMs } from './helpers'
-import React from 'react'
 import {
+  act,
+  getByTestId,
   render,
   screen,
-  getByTestId,
   waitFor,
-  act,
 } from '@testing-library/react'
+import { delay } from 'msw'
+import { vi } from 'vitest'
+import { setupApiStore } from '../../tests/utils/helpers'
 
 describe('fixedCacheKey', () => {
+  const onNewCacheEntry = vi.fn()
+
   const api = createApi({
     async baseQuery(arg: string | Promise<string>) {
       return { data: await arg }
@@ -54,7 +57,7 @@ describe('fixedCacheKey', () => {
         <Component name="C1" />
         <Component name="C2" />
       </>,
-      { wrapper: storeRef.wrapper }
+      { wrapper: storeRef.wrapper },
     )
     const c1 = screen.getByTestId('C1')
     const c2 = screen.getByTestId('C2')
@@ -66,7 +69,7 @@ describe('fixedCacheKey', () => {
     })
 
     await waitFor(() =>
-      expect(getByTestId(c1, 'status').textContent).toBe('fulfilled')
+      expect(getByTestId(c1, 'status').textContent).toBe('fulfilled'),
     )
     expect(getByTestId(c1, 'data').textContent).toBe('C1')
     expect(getByTestId(c2, 'status').textContent).toBe('uninitialized')
@@ -78,7 +81,7 @@ describe('fixedCacheKey', () => {
         <Component name="C1" fixedCacheKey="test" />
         <Component name="C2" fixedCacheKey="test" />
       </>,
-      { wrapper: storeRef.wrapper }
+      { wrapper: storeRef.wrapper },
     )
     const c1 = screen.getByTestId('C1')
     const c2 = screen.getByTestId('C2')
@@ -116,7 +119,7 @@ describe('fixedCacheKey', () => {
         <Component name="C3" fixedCacheKey="test-B" />
         <Component name="C4" fixedCacheKey="test-B" />
       </>,
-      { wrapper: storeRef.wrapper }
+      { wrapper: storeRef.wrapper },
     )
     const c1 = screen.getByTestId('C1')
     const c2 = screen.getByTestId('C2')
@@ -134,7 +137,7 @@ describe('fixedCacheKey', () => {
     })
 
     await waitFor(() =>
-      expect(getByTestId(c1, 'status').textContent).toBe('fulfilled')
+      expect(getByTestId(c1, 'status').textContent).toBe('fulfilled'),
     )
 
     // the components with the first cache key should be affected
@@ -156,7 +159,7 @@ describe('fixedCacheKey', () => {
     })
 
     await waitFor(() =>
-      expect(getByTestId(c3, 'status').textContent).toBe('fulfilled')
+      expect(getByTestId(c3, 'status').textContent).toBe('fulfilled'),
     )
 
     // the components with the first cache key should be unaffected
@@ -200,7 +203,7 @@ describe('fixedCacheKey', () => {
         <Component name="C1" fixedCacheKey="test" />
         <Component name="C2" fixedCacheKey="toast" />
       </>,
-      { wrapper: storeRef.wrapper }
+      { wrapper: storeRef.wrapper },
     )
     const c1 = screen.getByTestId('C1')
     const c2 = screen.getByTestId('C2')
@@ -212,7 +215,7 @@ describe('fixedCacheKey', () => {
     })
 
     await waitFor(() =>
-      expect(getByTestId(c1, 'status').textContent).toBe('fulfilled')
+      expect(getByTestId(c1, 'status').textContent).toBe('fulfilled'),
     )
     expect(getByTestId(c1, 'data').textContent).toBe('C1')
     expect(getByTestId(c2, 'status').textContent).toBe('uninitialized')
@@ -230,7 +233,7 @@ describe('fixedCacheKey', () => {
     })
 
     await waitFor(() =>
-      expect(getByTestId(c1, 'status').textContent).toBe('fulfilled')
+      expect(getByTestId(c1, 'status').textContent).toBe('fulfilled'),
     )
     expect(getByTestId(c1, 'data').textContent).toBe('C1')
 
@@ -249,7 +252,7 @@ describe('fixedCacheKey', () => {
         <Component name="C1" fixedCacheKey="test" />
         <Component name="C2" fixedCacheKey="test" />
       </>,
-      { wrapper: storeRef.wrapper }
+      { wrapper: storeRef.wrapper },
     )
     const c1 = screen.getByTestId('C1')
     const c2 = screen.getByTestId('C2')
@@ -261,7 +264,7 @@ describe('fixedCacheKey', () => {
     })
 
     await waitFor(() =>
-      expect(getByTestId(c1, 'status').textContent).toBe('fulfilled')
+      expect(getByTestId(c1, 'status').textContent).toBe('fulfilled'),
     )
     expect(getByTestId(c1, 'data').textContent).toBe('C1')
     expect(getByTestId(c2, 'status').textContent).toBe('fulfilled')
@@ -312,7 +315,7 @@ describe('fixedCacheKey', () => {
         <Component name="C1" fixedCacheKey="test" value={p1} />
         <Component name="C2" fixedCacheKey="test" value={p2} />
       </>,
-      { wrapper: storeRef.wrapper }
+      { wrapper: storeRef.wrapper },
     )
     const c1 = screen.getByTestId('C1')
     const c2 = screen.getByTestId('C2')
@@ -339,7 +342,7 @@ describe('fixedCacheKey', () => {
       await Promise.resolve()
     })
 
-    await waitMs()
+    await delay(150)
 
     expect(getByTestId(c1, 'status').textContent).toBe('pending')
     expect(getByTestId(c1, 'data').textContent).toBe('')
@@ -349,9 +352,43 @@ describe('fixedCacheKey', () => {
       await Promise.resolve()
     })
 
-    await waitMs()
+    await delay(150)
 
     expect(getByTestId(c1, 'status').textContent).toBe('fulfilled')
     expect(getByTestId(c1, 'data').textContent).toBe('this should be visible')
+  })
+
+  test('using fixedCacheKey should create a new cache entry', async () => {
+    api.enhanceEndpoints({
+      endpoints: {
+        send: {
+          onCacheEntryAdded: (arg) => onNewCacheEntry(arg),
+        },
+      },
+    })
+
+    render(<Component name="C1" fixedCacheKey={'testKey'} />, {
+      wrapper: storeRef.wrapper,
+    })
+
+    let c1 = screen.getByTestId('C1')
+
+    expect(getByTestId(c1, 'status').textContent).toBe('uninitialized')
+    expect(getByTestId(c1, 'originalArgs').textContent).toBe('undefined')
+
+    await act(async () => {
+      getByTestId(c1, 'trigger').click()
+      await Promise.resolve()
+    })
+
+    expect(onNewCacheEntry).toHaveBeenCalledWith('C1')
+
+    api.enhanceEndpoints({
+      endpoints: {
+        send: {
+          onCacheEntryAdded: undefined,
+        },
+      },
+    })
   })
 })

@@ -8,6 +8,7 @@ import type {
   UnionToIntersection,
   WithOptionalProp,
 } from './tsHelpers'
+import { emplace } from './utils'
 
 type SliceLike<ReducerPath extends string, State> = {
   reducerPath: ReducerPath
@@ -16,19 +17,11 @@ type SliceLike<ReducerPath extends string, State> = {
 
 type AnySliceLike = SliceLike<string, any>
 
-type SliceLikeReducerPath<A extends AnySliceLike> = A extends SliceLike<
-  infer ReducerPath,
-  any
->
-  ? ReducerPath
-  : never
+type SliceLikeReducerPath<A extends AnySliceLike> =
+  A extends SliceLike<infer ReducerPath, any> ? ReducerPath : never
 
-type SliceLikeState<A extends AnySliceLike> = A extends SliceLike<
-  any,
-  infer State
->
-  ? State
-  : never
+type SliceLikeState<A extends AnySliceLike> =
+  A extends SliceLike<any, infer State> ? State : never
 
 export type WithSlice<A extends AnySliceLike> = {
   [Path in SliceLikeReducerPath<A>]: SliceLikeState<A>
@@ -55,7 +48,7 @@ export type InjectConfig = {
  */
 export interface CombinedSliceReducer<
   InitialState,
-  DeclaredState = InitialState
+  DeclaredState = InitialState,
 > extends Reducer<DeclaredState, UnknownAction, Partial<DeclaredState>> {
   /**
    * Provide a type for slices that will be injected lazily.
@@ -105,7 +98,7 @@ export interface CombinedSliceReducer<
    */
   inject<Sl extends Id<ExistingSliceLike<DeclaredState>>>(
     slice: Sl,
-    config?: InjectConfig
+    config?: InjectConfig,
   ): CombinedSliceReducer<InitialState, Id<DeclaredState & WithSlice<Sl>>>
 
   /**
@@ -125,7 +118,7 @@ export interface CombinedSliceReducer<
       ReducerPath,
       State & (ReducerPath extends keyof DeclaredState ? never : State)
     >,
-    config?: InjectConfig
+    config?: InjectConfig,
   ): CombinedSliceReducer<
     InitialState,
     Id<DeclaredState & WithSlice<SliceLike<ReducerPath, String>>>
@@ -211,7 +204,7 @@ export interface CombinedSliceReducer<
      * ```
      */
     <Selector extends (state: DeclaredState, ...args: any[]) => unknown>(
-      selectorFn: Selector
+      selectorFn: Selector,
     ): (
       state: WithOptionalProp<
         Parameters<Selector>[0],
@@ -275,7 +268,7 @@ export interface CombinedSliceReducer<
      */
     <
       Selector extends (state: DeclaredState, ...args: any[]) => unknown,
-      RootState
+      RootState,
     >(
       selectorFn: Selector,
       selectState: (
@@ -284,7 +277,7 @@ export interface CombinedSliceReducer<
       ) => WithOptionalProp<
         Parameters<Selector>[0],
         Exclude<keyof DeclaredState, keyof InitialState>
-      >
+      >,
     ): (
       state: RootState,
       ...args: Tail<Parameters<Selector>>
@@ -309,7 +302,7 @@ type InitialState<Slices extends Array<AnySliceLike | ReducerMap>> =
   >
 
 const isSliceLike = (
-  maybeSliceLike: AnySliceLike | ReducerMap
+  maybeSliceLike: AnySliceLike | ReducerMap,
 ): maybeSliceLike is AnySliceLike =>
   'reducerPath' in maybeSliceLike &&
   typeof maybeSliceLike.reducerPath === 'string'
@@ -318,7 +311,7 @@ const getReducers = (slices: Array<AnySliceLike | ReducerMap>) =>
   slices.flatMap((sliceOrMap) =>
     isSliceLike(sliceOrMap)
       ? [[sliceOrMap.reducerPath, sliceOrMap.reducer] as const]
-      : Object.entries(sliceOrMap)
+      : Object.entries(sliceOrMap),
   )
 
 const ORIGINAL_STATE = Symbol.for('rtk-state-proxy-original')
@@ -329,38 +322,35 @@ const stateProxyMap = new WeakMap<object, object>()
 
 const createStateProxy = <State extends object>(
   state: State,
-  reducerMap: Partial<Record<string, Reducer>>
-) => {
-  let proxy = stateProxyMap.get(state)
-  if (!proxy) {
-    proxy = new Proxy(state, {
-      get: (target, prop, receiver) => {
-        if (prop === ORIGINAL_STATE) return target
-        const result = Reflect.get(target, prop, receiver)
-        if (typeof result === 'undefined') {
-          const reducer = reducerMap[prop.toString()]
-          if (reducer) {
-            // ensure action type is random, to prevent reducer treating it differently
-            const reducerResult = reducer(undefined, { type: nanoid() })
-            if (typeof reducerResult === 'undefined') {
-              throw new Error(
-                `The slice reducer for key "${prop.toString()}" returned undefined when called for selector(). ` +
-                  `If the state passed to the reducer is undefined, you must ` +
-                  `explicitly return the initial state. The initial state may ` +
-                  `not be undefined. If you don't want to set a value for this reducer, ` +
-                  `you can use null instead of undefined.`
-              )
+  reducerMap: Partial<Record<string, Reducer>>,
+) =>
+  emplace(stateProxyMap, state, {
+    insert: () =>
+      new Proxy(state, {
+        get: (target, prop, receiver) => {
+          if (prop === ORIGINAL_STATE) return target
+          const result = Reflect.get(target, prop, receiver)
+          if (typeof result === 'undefined') {
+            const reducer = reducerMap[prop.toString()]
+            if (reducer) {
+              // ensure action type is random, to prevent reducer treating it differently
+              const reducerResult = reducer(undefined, { type: nanoid() })
+              if (typeof reducerResult === 'undefined') {
+                throw new Error(
+                  `The slice reducer for key "${prop.toString()}" returned undefined when called for selector(). ` +
+                    `If the state passed to the reducer is undefined, you must ` +
+                    `explicitly return the initial state. The initial state may ` +
+                    `not be undefined. If you don't want to set a value for this reducer, ` +
+                    `you can use null instead of undefined.`,
+                )
+              }
+              return reducerResult
             }
-            return reducerResult
           }
-        }
-        return result
-      },
-    })
-    stateProxyMap.set(state, proxy)
-  }
-  return proxy as State
-}
+          return result
+        },
+      }),
+  }) as State
 
 const original = (state: any) => {
   if (!isStateProxy(state)) {
@@ -372,8 +362,8 @@ const original = (state: any) => {
 export function combineSlices<
   Slices extends [
     AnySliceLike | ReducerMap,
-    ...Array<AnySliceLike | ReducerMap>
-  ]
+    ...Array<AnySliceLike | ReducerMap>,
+  ],
 >(...slices: Slices): CombinedSliceReducer<Id<InitialState<Slices>>> {
   const reducerMap = Object.fromEntries<Reducer>(getReducers(slices))
 
@@ -383,7 +373,7 @@ export function combineSlices<
 
   function combinedReducer(
     state: Record<string, unknown>,
-    action: UnknownAction
+    action: UnknownAction,
   ) {
     return reducer(state, action)
   }
@@ -392,7 +382,7 @@ export function combineSlices<
 
   const inject = (
     slice: AnySliceLike,
-    config: InjectConfig = {}
+    config: InjectConfig = {},
   ): typeof combinedReducer => {
     const { reducerPath, reducer: reducerToInject } = slice
 
@@ -407,7 +397,7 @@ export function combineSlices<
         process.env.NODE_ENV === 'development'
       ) {
         console.error(
-          `called \`inject\` to override already-existing reducer ${reducerPath} without specifying \`overrideExisting: true\``
+          `called \`inject\` to override already-existing reducer ${reducerPath} without specifying \`overrideExisting: true\``,
         )
       }
 
@@ -424,19 +414,19 @@ export function combineSlices<
   const selector = Object.assign(
     function makeSelector<State extends object, RootState, Args extends any[]>(
       selectorFn: (state: State, ...args: Args) => any,
-      selectState?: (rootState: RootState, ...args: Args) => State
+      selectState?: (rootState: RootState, ...args: Args) => State,
     ) {
       return function selector(state: State, ...args: Args) {
         return selectorFn(
           createStateProxy(
             selectState ? selectState(state as any, ...args) : state,
-            reducerMap
+            reducerMap,
           ),
-          ...args
+          ...args,
         )
       }
     },
-    { original }
+    { original },
   )
 
   return Object.assign(combinedReducer, { inject, selector }) as any

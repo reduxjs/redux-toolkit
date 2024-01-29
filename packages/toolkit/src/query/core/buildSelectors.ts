@@ -1,4 +1,5 @@
-import { createNextState, createSelector } from './rtkImports'
+import type { createSelector as _createSelector } from './rtkImports'
+import { createNextState } from './rtkImports'
 import type {
   MutationSubState,
   QuerySubState,
@@ -51,7 +52,7 @@ export const skipToken = /* @__PURE__ */ Symbol.for('RTKQ/skipToken')
 declare module './module' {
   export interface ApiEndpointQuery<
     Definition extends QueryDefinition<any, any, any, any, any>,
-    Definitions extends EndpointDefinitions
+    Definitions extends EndpointDefinitions,
   > {
     select: QueryResultSelectorFactory<
       Definition,
@@ -65,7 +66,7 @@ declare module './module' {
 
   export interface ApiEndpointMutation<
     Definition extends MutationDefinition<any, any, any, any, any>,
-    Definitions extends EndpointDefinitions
+    Definitions extends EndpointDefinitions,
   > {
     select: MutationResultSelectorFactory<
       Definition,
@@ -80,27 +81,27 @@ declare module './module' {
 
 type QueryResultSelectorFactory<
   Definition extends QueryDefinition<any, any, any, any>,
-  RootState
+  RootState,
 > = (
-  queryArg: QueryArgFrom<Definition> | SkipToken
+  queryArg: QueryArgFrom<Definition> | SkipToken,
 ) => (state: RootState) => QueryResultSelectorResult<Definition>
 
 export type QueryResultSelectorResult<
-  Definition extends QueryDefinition<any, any, any, any>
+  Definition extends QueryDefinition<any, any, any, any>,
 > = QuerySubState<Definition> & RequestStatusFlags
 
 type MutationResultSelectorFactory<
   Definition extends MutationDefinition<any, any, any, any>,
-  RootState
+  RootState,
 > = (
   requestId:
     | string
     | { requestId: string | undefined; fixedCacheKey: string | undefined }
-    | SkipToken
+    | SkipToken,
 ) => (state: RootState) => MutationResultSelectorResult<Definition>
 
 export type MutationResultSelectorResult<
-  Definition extends MutationDefinition<any, any, any, any>
+  Definition extends MutationDefinition<any, any, any, any>,
 > = MutationSubState<Definition> & RequestStatusFlags
 
 const initialSubState: QuerySubState<any> = {
@@ -110,22 +111,24 @@ const initialSubState: QuerySubState<any> = {
 // abuse immer to freeze default states
 const defaultQuerySubState = /* @__PURE__ */ createNextState(
   initialSubState,
-  () => {}
+  () => {},
 )
 const defaultMutationSubState = /* @__PURE__ */ createNextState(
   initialSubState as MutationSubState<any>,
-  () => {}
+  () => {},
 )
 
 export function buildSelectors<
   Definitions extends EndpointDefinitions,
-  ReducerPath extends string
+  ReducerPath extends string,
 >({
   serializeQueryArgs,
   reducerPath,
+  createSelector,
 }: {
   serializeQueryArgs: InternalSerializeQueryArgs
   reducerPath: ReducerPath
+  createSelector: typeof _createSelector
 }) {
   type RootState = _RootState<Definitions, string, string>
 
@@ -140,7 +143,7 @@ export function buildSelectors<
   }
 
   function withRequestFlags<T extends { status: QueryStatus }>(
-    substate: T
+    substate: T,
   ): T & RequestStatusFlags {
     return {
       ...substate,
@@ -155,7 +158,7 @@ export function buildSelectors<
         if ((selectInternalState as any).triggered) return state
         ;(selectInternalState as any).triggered = true
         console.error(
-          `Error: No data found at \`state.${reducerPath}\`. Did you forget to add the reducer to the store?`
+          `Error: No data found at \`state.${reducerPath}\`. Did you forget to add the reducer to the store?`,
         )
       }
     }
@@ -164,7 +167,7 @@ export function buildSelectors<
 
   function buildQuerySelector(
     endpointName: string,
-    endpointDefinition: QueryDefinition<any, any, any, any>
+    endpointDefinition: QueryDefinition<any, any, any, any>,
   ) {
     return ((queryArgs: any) => {
       const serializedArgs = serializeQueryArgs({
@@ -204,7 +207,7 @@ export function buildSelectors<
 
   function selectInvalidatedBy(
     state: RootState,
-    tags: ReadonlyArray<TagDescription<string>>
+    tags: ReadonlyArray<TagDescription<string>>,
   ): Array<{
     endpointName: string
     originalArgs: any
@@ -242,24 +245,24 @@ export function buildSelectors<
               },
             ]
           : []
-      })
+      }),
     )
   }
 
   function selectCachedArgsForQuery<QueryName extends QueryKeys<Definitions>>(
     state: RootState,
-    queryName: QueryName
+    queryName: QueryName,
   ): Array<QueryArgFrom<Definitions[QueryName]>> {
     return Object.values(state[reducerPath].queries as QueryState<any>)
       .filter(
         (
-          entry
+          entry,
         ): entry is Exclude<
           QuerySubState<Definitions[QueryName]>,
           { status: QueryStatus.uninitialized }
         > =>
           entry?.endpointName === queryName &&
-          entry.status !== QueryStatus.uninitialized
+          entry.status !== QueryStatus.uninitialized,
       )
       .map((entry) => entry.originalArgs)
   }

@@ -19,7 +19,7 @@ Make sure you're calling the action creator before dispatching, i.e. \`dispatch(
 }
 
 export function createActionCreatorInvariantMiddleware(
-  options: ActionCreatorInvariantMiddlewareOptions = {}
+  options: ActionCreatorInvariantMiddlewareOptions = {},
 ): Middleware {
   if (process.env.NODE_ENV === 'production') {
     return () => (next) => (action) => next(action)

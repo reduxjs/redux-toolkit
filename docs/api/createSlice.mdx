@@ -138,7 +138,7 @@ const todosSlice = createSlice({
 
 Alternatively, the `reducers` field can be a callback which receives a "create" object.
 
-The main benefit of this is that you can create [async thunks](./createAsyncThunk) as part of your slice. Types are also slightly simplified for prepared reducers.
+The main benefit of this is that you can create [async thunks](./createAsyncThunk) as part of your slice (though for bundle size reasons, you [need a bit of setup for this](#createasyncthunk)). Types are also slightly simplified for prepared reducers.
 
 ```ts title="Creator callback for reducers"
 import { createSlice, nanoid } from '@reduxjs/toolkit'
@@ -171,7 +171,7 @@ const todosSlice = createSlice({
       // action type is inferred from prepare callback
       (state, action) => {
         state.todos.push(action.payload)
-      }
+      },
     ),
     fetchTodo: create.asyncThunk(
       async (id: string, thunkApi) => {
@@ -189,7 +189,7 @@ const todosSlice = createSlice({
           state.loading = false
           state.todos.push(action.payload)
         },
-      }
+      },
     ),
   }),
 })
@@ -232,7 +232,7 @@ create.preparedReducer(
   },
   (state, action) => {
     state.todos.push(action.payload)
-  }
+  },
 )
 ```
 
@@ -240,12 +240,32 @@ create.preparedReducer(
 
 Creates an async thunk instead of an action creator.
 
+:::warning Setup
+
+To avoid pulling `createAsyncThunk` into the bundle size of `createSlice` by default, some extra setup is required to use `create.asyncThunk`.
+
+The version of `createSlice` exported from RTK will throw an error if `create.asyncThunk` is called.
+
+Instead, import `buildCreateSlice` and `asyncThunkCreator`, and create your own version of `createSlice`:
+
+```ts
+import { buildCreateSlice, asyncThunkCreator } from '@reduxjs/toolkit'
+
+export const createAppSlice = buildCreateSlice({
+  creators: { asyncThunk: asyncThunkCreator },
+})
+```
+
+Then import this `createAppSlice` as needed instead of the exported version from RTK.
+
+:::
+
 **Parameters**
 
 - **payloadCreator** The thunk [payload creator](./createAsyncThunk#payloadcreator).
 - **config** The configuration object. (optional)
 
-The configuration object can contain case reducers for each of the [lifecycle actions](./createAsyncThunk#promise-lifecycle-actions) (`pending`, `fulfilled`, and `rejected`).
+The configuration object can contain case reducers for each of the [lifecycle actions](./createAsyncThunk#promise-lifecycle-actions) (`pending`, `fulfilled`, and `rejected`), as well as a `settled` reducer that will run for both fulfilled and rejected actions (note that this will run _after_ any provided `fulfilled`/`rejected` reducers. Conceptually it can be thought of like a `finally` block.).
 
 Each case reducer will be attached to the slice's `caseReducers` object, e.g. `slice.caseReducers.fetchTodo.fulfilled`.
 
@@ -262,12 +282,14 @@ create.asyncThunk(
       state.loading = true
     },
     rejected: (state, action) => {
-      state.loading = false
+      state.error = action.payload ?? action.error
     },
     fulfilled: (state, action) => {
-      state.loading = false
       state.todos.push(action.payload)
     },
+    settled: (state, action) => {
+      state.loading = false
+    }
     options: {
       idGenerator: uuid,
     },
@@ -277,30 +299,40 @@ create.asyncThunk(
 
 :::note
 
-Typing for the `create.asyncThunk` works in the same way as [`createAsyncThunk`](usage/usage-with-typescript#createasyncthunk), with one key difference.
+Typing for the `create.asyncThunk` works in the same way as [`createAsyncThunk`](../usage/usage-with-typescript#createasyncthunk), with one key difference.
 
 A type for `state` and/or `dispatch` _cannot_ be provided as part of the `ThunkApiConfig`, as this would cause circular types.
 
-Instead, it is necessary to assert the type when needed.
+Instead, it is necessary to assert the type when needed - `getState() as RootState`. You may also include an explicit return type for the payload function as well, in order to break the circular type inference cycle.
 
 ```ts no-transpile
 create.asyncThunk<Todo, string, { rejectValue: { error: string } }>(
-  async (id, thunkApi) => {
+  // highlight-start
+  // may need to include an explicit return type
+  async (id: string, thunkApi): Promise<Todo> => {
+    // Cast types for `getState` and `dispatch` manually
     const state = thunkApi.getState() as RootState
     const dispatch = thunkApi.dispatch as AppDispatch
-    throw thunkApi.rejectWithValue({
-      error: 'Oh no!',
-    })
-  }
+    // highlight-end
+    try {
+      const todo = await fetchTodo()
+      return todo
+    } catch (e) {
+      throw thunkApi.rejectWithValue({
+        error: 'Oh no!',
+      })
+    }
+  },
 )
 ```
 
-For common thunk API configuration options, a [`withTypes` helper](usage/usage-with-typescript#defining-a-pre-typed-createasyncthunk) is provided:
+For common thunk API configuration options, a [`withTypes` helper](../usage/usage-with-typescript#defining-a-pre-typed-createasyncthunk) is provided:
 
 ```ts no-transpile
 reducers: (create) => {
-  const createAThunk =
-    create.asyncThunk.withTypes<{ rejectValue: { error: string } }>()
+  const createAThunk = create.asyncThunk.withTypes<{
+    rejectValue: { error: string }
+  }>()
 
   return {
     fetchTodo: createAThunk<Todo, string>(async (id, thunkApi) => {
@@ -373,7 +405,6 @@ const counterSlice = createSlice({
 })
 ```
 
-<<<<<<< HEAD
 This cycle can be fixed by providing an explicit return type for the selector:
 
 ```ts no-transpile
@@ -402,7 +433,7 @@ const counterSlice = createSlice({
   reducers: (create) => ({
     getCountData: create.asyncThunk(async (_arg, { getState }) => {
       const currentCount = counterSlice.selectors.selectValue(
-        getState() as RootState
+        getState() as RootState,
       )
       // highlight-start
       // this would cause a circular type, but the type annotation breaks the circle
@@ -419,10 +450,6 @@ const counterSlice = createSlice({
 
 :::
 
-=======
-
-> > > > > > > master
-
 ## Return Value
 
 `createSlice` will return an object that looks like:
@@ -435,6 +462,7 @@ const counterSlice = createSlice({
     caseReducers: Record<string, CaseReducer>.
     getInitialState: () => State,
     reducerPath: string,
+    selectSlice: Selector;
     selectors: Record<string, Selector>,
     getSelectors: (selectState: (rootState: RootState) => State) => Record<string, Selector>
     injectInto: (injectable: Injectable, config?: InjectConfig & { reducerPath?: string }) => InjectedSlice
@@ -472,7 +500,9 @@ As a result, there are two ways of getting final selectors:
 
 Most commonly, the slice is reliably mounted under its [`reducerPath`](#reducerPath).
 
-Following this, the slice has a `selectors` object attached, which creates selectors with the assumption that the slice is located under `rootState[slice.reducerPath]`.
+Following this, the slice has a `selectSlice` selector attached, which assumes that the slice is located under `rootState[slice.reducerPath]`.
+
+`slice.selectors` then uses this selector to wrap each of the selectors provided.
 
 ```ts
 import { createSlice } from '@reduxjs/toolkit'
@@ -492,10 +522,46 @@ const counterSlice = createSlice({
   },
 })
 
+console.log(counterSlice.selectSlice({ counter: { value: 2 } })) // { value: 2 }
+
 const { selectValue } = counterSlice.selectors
 
 console.log(selectValue({ counter: { value: 2 } })) // 2
 ```
+
+:::note
+
+The original selector passed is attached to the wrapped selector as `.unwrapped`. For example:
+
+```ts
+import { createSlice, createSelector } from '@reduxjs/toolkit'
+
+interface CounterState {
+  value: number
+}
+
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 } as CounterState,
+  reducers: {
+    // omitted
+  },
+  selectors: {
+    selectDouble: createSelector(
+      (sliceState: CounterState) => sliceState.value,
+      (value) => value * 2,
+    ),
+  },
+})
+
+const { selectDouble } = counterSlice.selectors
+
+console.log(selectDouble({ counter: { value: 2 } })) // 4
+console.log(selectDouble({ counter: { value: 3 } })) // 6
+console.log(selectDouble.unwrapped.recomputations) // 2
+```
+
+:::
 
 #### `getSelectors`
 
@@ -503,7 +569,7 @@ console.log(selectValue({ counter: { value: 2 } })) // 2
 
 ```ts no-transpile
 const { selectValue } = counterSlice.getSelectors(
-  (rootState: RootState) => rootState.aCounter
+  (rootState: RootState) => rootState.aCounter,
 )
 
 console.log(selectValue({ aCounter: { value: 2 } })) // 2
@@ -521,8 +587,10 @@ console.log(selectValue({ value: 2 })) // 2
 The [`slice.selectors`](#selectors-2) object is the equivalent of calling
 
 ```ts no-transpile
+const { selectValue } = counterSlice.getSelectors(counterSlice.selectSlice)
+// or
 const { selectValue } = counterSlice.getSelectors(
-  (rootState: RootState) => rootState[counterSlice.reducerPath]
+  (state: RootState) => state[counterSlice.reducerPath],
 )
 ```
 
@@ -531,9 +599,9 @@ const { selectValue } = counterSlice.getSelectors(
 ## Examples
 
 ```ts
-import { createSlice, createAction } from '@reduxjs/toolkit'
+import { createSlice, createAction, configureStore } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
-import { createStore, combineReducers } from 'redux'
+import { combineReducers } from 'redux'
 
 const incrementBy = createAction<number>('incrementBy')
 const decrementBy = createAction<number>('decrementBy')
@@ -574,12 +642,12 @@ const user = createSlice({
   },
 })
 
-const reducer = combineReducers({
-  [counter.reducerPath]: counter.reducer,
-  [user.reducerPath]: user.reducer,
+const store = configureStore({
+  reducer: {
+    counter: counter.reducer,
+    user: user.reducer,
+  },
 })
-
-const store = createStore(reducer)
 
 store.dispatch(counter.actions.increment())
 // -> { counter: 1, user: {name : '', age: 21} }

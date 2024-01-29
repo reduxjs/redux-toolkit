@@ -16,7 +16,7 @@ import type {
   WithRequiredProp,
   Id,
 } from './tsHelpers'
-import type { CoreModule } from './core/module'
+import type { CoreModule } from '@reduxjs/toolkit/query'
 import type { CreateApiOptions } from './createApi'
 import type { BaseQueryFn } from './baseQueryTypes'
 import type { CombinedState, MutationKeys, QueryKeys } from './core/apiState'
@@ -30,7 +30,7 @@ export interface ApiModules<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ReducerPath extends string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  TagTypes extends string
+  TagTypes extends string,
 > {}
 
 export type ModuleName = keyof ApiModules<any, any, any, any>
@@ -41,7 +41,7 @@ export type Module<Name extends ModuleName> = {
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
     ReducerPath extends string,
-    TagTypes extends string
+    TagTypes extends string,
   >(
     api: Api<BaseQuery, EndpointDefinitions, ReducerPath, TagTypes, ModuleName>,
     options: WithRequiredProp<
@@ -52,13 +52,14 @@ export type Module<Name extends ModuleName> = {
       | 'refetchOnMountOrArgChange'
       | 'refetchOnFocus'
       | 'refetchOnReconnect'
+      | 'invalidationBehavior'
       | 'tagTypes'
     >,
-    context: ApiContext<Definitions>
+    context: ApiContext<Definitions>,
   ): {
     injectEndpoint(
       endpointName: string,
-      definition: EndpointDefinition<any, any, any, any>
+      definition: EndpointDefinition<any, any, any, any>,
     ): void
   }
 }
@@ -68,7 +69,7 @@ export interface ApiContext<Definitions extends EndpointDefinitions> {
   endpointDefinitions: Definitions
   batch(cb: () => void): void
   extractRehydrationInfo: (
-    action: UnknownAction
+    action: UnknownAction,
   ) => CombinedState<any, any, any> | undefined
   hasRehydrationInfo: (action: UnknownAction) => boolean
 }
@@ -78,14 +79,14 @@ export type BaseApiMethods<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
   TagTypes extends string,
-  Enhancers extends ModuleName = CoreModule
+  Enhancers extends ModuleName = CoreModule,
 > = {
   /**
    * A function to inject the endpoints into the original API, but also give you that same API with correct types for these endpoints back. Useful with code-splitting.
    */
   injectEndpoints<NewDefinitions extends EndpointDefinitions>(_: {
     endpoints: (
-      build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
+      build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>,
     ) => NewDefinitions
     overrideExisting?: boolean
   }): Api<
@@ -114,7 +115,7 @@ export type BaseApiMethods<
   enhanceEndpoint<
     QueryName extends QueryKeys<Definitions>,
     QueryArg = QueryArgFrom<Definitions[QueryName]>,
-    ResultType = ResultTypeFrom<Definitions[QueryName]>
+    ResultType = ResultTypeFrom<Definitions[QueryName]>,
   >(
     queryName: QueryName,
     partialDefinition:
@@ -134,8 +135,8 @@ export type BaseApiMethods<
             TagTypes,
             ResultType,
             ReducerPath
-          >
-        ) => void)
+          >,
+        ) => void),
   ): Api<
     BaseQuery,
     Id<
@@ -156,7 +157,7 @@ export type BaseApiMethods<
   enhanceEndpoint<
     MutationName extends MutationKeys<Definitions>,
     ResultType = ResultTypeFrom<Definitions[MutationName]>,
-    QueryArg = QueryArgFrom<Definitions[MutationName]>
+    QueryArg = QueryArgFrom<Definitions[MutationName]>,
   >(
     mutationName: MutationName,
     partialDefinition:
@@ -176,8 +177,8 @@ export type BaseApiMethods<
             TagTypes,
             ResultType,
             ReducerPath
-          >
-        ) => void)
+          >,
+        ) => void),
   ): Api<
     BaseQuery,
     Id<
@@ -198,7 +199,7 @@ export type Api<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
   TagTypes extends string,
-  Enhancers extends ModuleName = CoreModule
+  Enhancers extends ModuleName = CoreModule,
 > = UnionToIntersection<
   ApiModules<BaseQuery, Definitions, ReducerPath, TagTypes>[Enhancers]
 > &
