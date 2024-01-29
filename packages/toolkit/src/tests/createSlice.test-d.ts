@@ -87,8 +87,6 @@ describe('type tests', () => {
       expectTypeOf(slice.reducer).not.toMatchTypeOf<
         Reducer<string, PayloadAction>
       >()
-
-      expectTypeOf().not.toMatchTypeOf<Reducer<string, UnknownAction>>()
     })
 
     test('Actions', () => {
@@ -161,7 +159,7 @@ describe('type tests', () => {
     >()
   })
 
-  test('Slice action creator types properties are "string"', () => {
+  test('Slice action creator types properties are strongly typed', () => {
     const counter = createSlice({
       name: 'counter',
       initialState: 0,
