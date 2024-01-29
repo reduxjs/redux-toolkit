@@ -37,7 +37,7 @@ declare module '@reduxjs/toolkit/query' {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ReducerPath extends string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    TagTypes extends string
+    TagTypes extends string,
   > {
     [reactHooksModuleName]: {
       /**
@@ -53,18 +53,18 @@ declare module '@reduxjs/toolkit/query' {
         >
           ? QueryHooks<Definitions[K]>
           : Definitions[K] extends MutationDefinition<any, any, any, any, any>
-          ? MutationHooks<Definitions[K]>
-          : never
+            ? MutationHooks<Definitions[K]>
+            : never
       }
       /**
        * A hook that accepts a string endpoint name, and provides a callback that when called, pre-fetches the data for that endpoint.
        */
       usePrefetch<EndpointName extends QueryKeys<Definitions>>(
         endpointName: EndpointName,
-        options?: PrefetchOptions
+        options?: PrefetchOptions,
       ): (
         arg: QueryArgFrom<Definitions[EndpointName]>,
-        options?: PrefetchOptions
+        options?: PrefetchOptions,
       ) => void
     } & HooksWithUniqueNames<Definitions>
   }
@@ -160,7 +160,7 @@ export const reactHooksModule = ({
           if (!warned) {
             console.warn(
               'As of RTK 2.0, the hooks now need to be specified as one object, provided under a `hooks` key:' +
-                '\n`reactHooksModule({ hooks: { useDispatch, useSelector, useStore } })`'
+                '\n`reactHooksModule({ hooks: { useDispatch, useSelector, useStore } })`',
             )
             warned = true
           }
@@ -175,8 +175,8 @@ export const reactHooksModule = ({
           `When using custom hooks for context, all ${
             hookNames.length
           } hooks need to be provided: ${hookNames.join(
-            ', '
-          )}.\nHook ${hookName} was either not provided or not a function.`
+            ', ',
+          )}.\nHook ${hookName} was either not provided or not a function.`,
         )
       }
     }

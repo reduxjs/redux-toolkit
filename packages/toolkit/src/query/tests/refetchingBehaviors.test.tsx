@@ -62,13 +62,13 @@ describe('refetchOnFocus tests', () => {
     render(<User />, { wrapper: storeRef.wrapper })
 
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('true')
+      expect(screen.getByTestId('isLoading').textContent).toBe('true'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('false')
+      expect(screen.getByTestId('isLoading').textContent).toBe('false'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('amount').textContent).toBe('1')
+      expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
 
     await act(async () => {
@@ -78,7 +78,7 @@ describe('refetchOnFocus tests', () => {
     await delay(150)
 
     await waitFor(() =>
-      expect(screen.getByTestId('amount').textContent).toBe('2')
+      expect(screen.getByTestId('amount').textContent).toBe('2'),
     )
   })
 
@@ -102,13 +102,13 @@ describe('refetchOnFocus tests', () => {
     render(<User />, { wrapper: storeRef.wrapper })
 
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('true')
+      expect(screen.getByTestId('isLoading').textContent).toBe('true'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('false')
+      expect(screen.getByTestId('isLoading').textContent).toBe('false'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('amount').textContent).toBe('1')
+      expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
 
     act(() => {
@@ -118,7 +118,7 @@ describe('refetchOnFocus tests', () => {
     await delay(150)
 
     await waitFor(() =>
-      expect(screen.getByTestId('amount').textContent).toBe('1')
+      expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
   })
 
@@ -152,17 +152,17 @@ describe('refetchOnFocus tests', () => {
         <User />
         <UserWithRefetchTrue />
       </div>,
-      { wrapper: storeRef.wrapper }
+      { wrapper: storeRef.wrapper },
     )
 
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('true')
+      expect(screen.getByTestId('isLoading').textContent).toBe('true'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('false')
+      expect(screen.getByTestId('isLoading').textContent).toBe('false'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('amount').textContent).toBe('1')
+      expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
 
     act(() => {
@@ -170,13 +170,13 @@ describe('refetchOnFocus tests', () => {
     })
     expect(screen.getByTestId('isLoading').textContent).toBe('false')
     await waitFor(() =>
-      expect(screen.getByTestId('isFetching').textContent).toBe('true')
+      expect(screen.getByTestId('isFetching').textContent).toBe('true'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      expect(screen.getByTestId('isFetching').textContent).toBe('false'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('amount').textContent).toBe('2')
+      expect(screen.getByTestId('amount').textContent).toBe('2'),
     )
   })
 
@@ -200,13 +200,13 @@ describe('refetchOnFocus tests', () => {
     const { unmount } = render(<User />, { wrapper: storeRef.wrapper })
 
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('true')
+      expect(screen.getByTestId('isLoading').textContent).toBe('true'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('false')
+      expect(screen.getByTestId('isLoading').textContent).toBe('false'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('amount').textContent).toBe('1')
+      expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
 
     unmount()
@@ -241,13 +241,13 @@ describe('refetchOnReconnect tests', () => {
     render(<User />, { wrapper: storeRef.wrapper })
 
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('true')
+      expect(screen.getByTestId('isLoading').textContent).toBe('true'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('false')
+      expect(screen.getByTestId('isLoading').textContent).toBe('false'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('amount').textContent).toBe('1')
+      expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
 
     act(() => {
@@ -256,13 +256,13 @@ describe('refetchOnReconnect tests', () => {
     })
 
     await waitFor(() =>
-      expect(screen.getByTestId('isFetching').textContent).toBe('true')
+      expect(screen.getByTestId('isFetching').textContent).toBe('true'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      expect(screen.getByTestId('isFetching').textContent).toBe('false'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('amount').textContent).toBe('2')
+      expect(screen.getByTestId('amount').textContent).toBe('2'),
     )
   })
 
@@ -286,13 +286,13 @@ describe('refetchOnReconnect tests', () => {
     render(<User />, { wrapper: storeRef.wrapper })
 
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('true')
+      expect(screen.getByTestId('isLoading').textContent).toBe('true'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('false')
+      expect(screen.getByTestId('isLoading').textContent).toBe('false'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('amount').textContent).toBe('1')
+      expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
 
     act(() => {
@@ -301,7 +301,7 @@ describe('refetchOnReconnect tests', () => {
     })
     expect(screen.getByTestId('isFetching').textContent).toBe('false')
     await waitFor(() =>
-      expect(screen.getByTestId('amount').textContent).toBe('1')
+      expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
   })
 
@@ -335,17 +335,17 @@ describe('refetchOnReconnect tests', () => {
         <User />
         <UserWithRefetchTrue />
       </div>,
-      { wrapper: storeRef.wrapper }
+      { wrapper: storeRef.wrapper },
     )
 
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('true')
+      expect(screen.getByTestId('isLoading').textContent).toBe('true'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('false')
+      expect(screen.getByTestId('isLoading').textContent).toBe('false'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('amount').textContent).toBe('1')
+      expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
 
     act(() => {
@@ -354,13 +354,13 @@ describe('refetchOnReconnect tests', () => {
     })
 
     await waitFor(() =>
-      expect(screen.getByTestId('isFetching').textContent).toBe('true')
+      expect(screen.getByTestId('isFetching').textContent).toBe('true'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      expect(screen.getByTestId('isFetching').textContent).toBe('false'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('amount').textContent).toBe('2')
+      expect(screen.getByTestId('amount').textContent).toBe('2'),
     )
   })
 })
@@ -389,7 +389,7 @@ describe('customListenersHandler', () => {
           window.removeEventListener('online', handleOnline)
           console.log('cleanup!')
         }
-      }
+      },
     )
 
     await delay(150)
@@ -415,13 +415,13 @@ describe('customListenersHandler', () => {
     expect(consoleSpy).toHaveBeenCalledWith('setup!')
 
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('true')
+      expect(screen.getByTestId('isLoading').textContent).toBe('true'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('isLoading').textContent).toBe('false')
+      expect(screen.getByTestId('isLoading').textContent).toBe('false'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('amount').textContent).toBe('1')
+      expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
 
     act(() => {
@@ -439,18 +439,18 @@ describe('customListenersHandler', () => {
 
     expect(
       defaultApi.internalActions.onOnline.match(
-        mockCallsWithoutInternals[1][0] as any
-      )
+        mockCallsWithoutInternals[1][0] as any,
+      ),
     ).toBe(true)
 
     await waitFor(() =>
-      expect(screen.getByTestId('isFetching').textContent).toBe('true')
+      expect(screen.getByTestId('isFetching').textContent).toBe('true'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      expect(screen.getByTestId('isFetching').textContent).toBe('false'),
     )
     await waitFor(() =>
-      expect(screen.getByTestId('amount').textContent).toBe('2')
+      expect(screen.getByTestId('amount').textContent).toBe('2'),
     )
 
     unsubscribe()

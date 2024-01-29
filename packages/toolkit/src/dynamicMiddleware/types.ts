@@ -32,7 +32,7 @@ export type GetDispatch<MiddlewareApiConfig> = MiddlewareApiConfig extends {
 
 export type AddMiddleware<
   State = any,
-  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
 > = {
   (...middlewares: Middleware<any, State, Dispatch>[]): void
   withTypes<MiddlewareConfig extends MiddlewareApiConfig>(): AddMiddleware<
@@ -43,7 +43,7 @@ export type AddMiddleware<
 
 export interface WithMiddleware<
   State = any,
-  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
 > extends BaseActionCreator<
     Middleware<any, State, Dispatch>[],
     'dynamicMiddleware/add',
@@ -61,13 +61,13 @@ export interface WithMiddleware<
 export interface DynamicDispatch {
   // return a version of dispatch that knows about middleware
   <Middlewares extends Middleware<any>[]>(
-    action: PayloadAction<Middlewares, 'dynamicMiddleware/add'>
+    action: PayloadAction<Middlewares, 'dynamicMiddleware/add'>,
   ): ExtractDispatchExtensions<Middlewares> & this
 }
 
 export type MiddlewareEntry<
   State = unknown,
-  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
 > = {
   id: string
   middleware: Middleware<any, State, Dispatch>
@@ -79,12 +79,12 @@ export type MiddlewareEntry<
 
 export type DynamicMiddleware<
   State = unknown,
-  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
 > = Middleware<DynamicDispatch, State, Dispatch>
 
 export type DynamicMiddlewareInstance<
   State = unknown,
-  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>
+  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
 > = {
   middleware: DynamicMiddleware<State, Dispatch>
   addMiddleware: AddMiddleware<State, Dispatch>

@@ -24,7 +24,7 @@ describe('type tests', () => {
     const useDispatch = typedInstance.createDispatchWithMiddlewareHook(
       compatibleMiddleware,
       // @ts-expect-error
-      incompatibleMiddleware
+      incompatibleMiddleware,
     )
 
     const createDispatchWithMiddlewareHook =
@@ -32,7 +32,7 @@ describe('type tests', () => {
     const useDispatchWithContext = createDispatchWithMiddlewareHook(
       compatibleMiddleware,
       // @ts-expect-error
-      incompatibleMiddleware
+      incompatibleMiddleware,
     )
   })
 
@@ -45,7 +45,7 @@ describe('type tests', () => {
     const useDispatch = createDispatchWithMiddlewareHook(
       compatibleMiddleware,
       // @ts-expect-error
-      incompatibleMiddleware
+      incompatibleMiddleware,
     )
 
     const createCustomDispatchWithMiddlewareHook = untypedInstance
@@ -57,7 +57,7 @@ describe('type tests', () => {
     const useCustomDispatch = createCustomDispatchWithMiddlewareHook(
       compatibleMiddleware,
       // @ts-expect-error
-      incompatibleMiddleware
+      incompatibleMiddleware,
     )
   })
 

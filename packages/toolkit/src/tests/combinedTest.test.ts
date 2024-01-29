@@ -48,7 +48,7 @@ describe('Combined entity slice', () => {
       async (arg, { getState, dispatch, extra, requestId, signal }) => {
         const state = getState()
         return fakeBooks
-      }
+      },
     )
 
     const booksSlice = createSlice({

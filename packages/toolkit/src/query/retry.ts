@@ -26,7 +26,7 @@ async function defaultBackoff(attempt: number = 0, maxRetries: number = 5) {
 
   const timeout = ~~((Math.random() + 0.4) * (300 << attempts)) // Force a positive int in the case we make this an option
   await new Promise((resolve) =>
-    setTimeout((res: any) => resolve(res), timeout)
+    setTimeout((res: any) => resolve(res), timeout),
   )
 }
 
@@ -37,7 +37,7 @@ type RetryConditionFunction = (
     attempt: number
     baseQueryApi: BaseQueryApi
     extraOptions: BaseQueryExtraOptions<BaseQueryFn> & RetryOptions
-  }
+  },
 ) => boolean
 
 export type RetryOptions = {

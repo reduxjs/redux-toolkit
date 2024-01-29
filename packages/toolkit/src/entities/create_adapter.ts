@@ -34,7 +34,7 @@ export function createEntityAdapter<T>(
   options: {
     selectId?: IdSelector<T, EntityId>
     sortComparer?: false | Comparer<T>
-  } = {}
+  } = {},
 ): EntityAdapter<T, EntityId> {
   const { selectId, sortComparer }: EntityDefinition<T, EntityId> = {
     sortComparer: false,

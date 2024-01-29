@@ -66,10 +66,10 @@ export const autoBatchEnhancer =
       options.type === 'tick'
         ? queueMicrotask
         : options.type === 'raf'
-        ? rAF
-        : options.type === 'callback'
-        ? options.queueNotification
-        : createQueueWithTimer(options.timeout)
+          ? rAF
+          : options.type === 'callback'
+            ? options.queueNotification
+            : createQueueWithTimer(options.timeout)
 
     const notifyListeners = () => {
       // We're running at the end of the event loop tick.

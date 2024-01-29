@@ -28,7 +28,7 @@ describe('buildCreateApi', () => {
           useSelector: createSelectorHook(MyContext),
           useStore: createStoreHook(MyContext),
         },
-      })
+      }),
     )
 
     const api = customCreateApi({
@@ -78,7 +78,7 @@ describe('buildCreateApi', () => {
     expect(getRenderCount()).toBe(2)
 
     await waitFor(() =>
-      expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      expect(screen.getByTestId('isFetching').textContent).toBe('false'),
     )
     expect(getRenderCount()).toBe(3)
   })
@@ -93,7 +93,7 @@ describe('buildCreateApi', () => {
             useDispatch: createDispatchHook(MyContext),
             useSelector: createSelectorHook(MyContext),
           },
-        })
+        }),
       )
     }
 
@@ -101,7 +101,7 @@ describe('buildCreateApi', () => {
       `
       [Error: When using custom hooks for context, all 3 hooks need to be provided: useDispatch, useSelector, useStore.
       Hook useStore was either not provided or not a function.]
-    `
+    `,
     )
   })
   test('allows passing createSelector instance', async () => {
@@ -109,7 +109,7 @@ describe('buildCreateApi', () => {
     const createSelector = createSelectorCreator(memoize)
     const createApi = buildCreateApi(
       coreModule({ createSelector }),
-      reactHooksModule({ createSelector })
+      reactHooksModule({ createSelector }),
     )
     const api = createApi({
       baseQuery: async (arg: any) => {
@@ -159,7 +159,7 @@ describe('buildCreateApi', () => {
     render(<User />, { wrapper: Wrapper })
 
     await waitFor(() =>
-      expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      expect(screen.getByTestId('isFetching').textContent).toBe('false'),
     )
 
     // select() + selectFromResult

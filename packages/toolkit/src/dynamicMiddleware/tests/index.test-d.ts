@@ -37,15 +37,15 @@ describe('type tests', () => {
     typedInstance.addMiddleware(
       compatibleMiddleware,
       // @ts-expect-error
-      incompatibleMiddleware
+      incompatibleMiddleware,
     )
 
     const dispatch = store.dispatch(
       typedInstance.withMiddleware(
         compatibleMiddleware,
         // @ts-expect-error
-        incompatibleMiddleware
-      )
+        incompatibleMiddleware,
+      ),
     )
   })
 
@@ -58,7 +58,7 @@ describe('type tests', () => {
     addMiddleware(
       compatibleMiddleware,
       // @ts-expect-error
-      incompatibleMiddleware
+      incompatibleMiddleware,
     )
 
     const withMiddleware = untypedInstance.withMiddleware.withTypes<{
@@ -70,14 +70,14 @@ describe('type tests', () => {
       withMiddleware(
         compatibleMiddleware,
         // @ts-expect-error
-        incompatibleMiddleware
-      )
+        incompatibleMiddleware,
+      ),
     )
   })
 
   test('withMiddleware returns typed dispatch, with any applicable extensions', () => {
     const dispatch = store.dispatch(
-      typedInstance.withMiddleware(addedMiddleware)
+      typedInstance.withMiddleware(addedMiddleware),
     )
 
     // standard

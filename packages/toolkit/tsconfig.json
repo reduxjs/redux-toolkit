@@ -5,7 +5,7 @@
   "extends": "./tsconfig.test.json",
   "compilerOptions": {
     "skipLibCheck": true,
-    "rootDir": "."
+    "rootDir": ".",
   },
-  "include": ["."]
+  "include": ["."],
 }
