@@ -11,7 +11,7 @@ function checkFunctionName(fn, name, category) {
   console.log(`Checking ${category} '${name}' === '${fn.name}'`)
   assert(
     fn.name === name,
-    `${category} \`${name}\` did not import correctly (name: '${fn.name}')`
+    `${category} \`${name}\` did not import correctly (name: '${fn.name}')`,
   )
 }
 

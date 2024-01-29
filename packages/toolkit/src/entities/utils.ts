@@ -1,8 +1,13 @@
-import type { IdSelector, Update, EntityId, DraftableEntityState } from './models'
+import type {
+  IdSelector,
+  Update,
+  EntityId,
+  DraftableEntityState,
+} from './models'
 
 export function selectIdValue<T, Id extends EntityId>(
   entity: T,
-  selectId: IdSelector<T, Id>
+  selectId: IdSelector<T, Id>,
 ) {
   const key = selectId(entity)
 
@@ -13,7 +18,7 @@ export function selectIdValue<T, Id extends EntityId>(
       'The entity that was passed:',
       entity,
       'The `selectId` implementation:',
-      selectId.toString()
+      selectId.toString(),
     )
   }
 
@@ -21,7 +26,7 @@ export function selectIdValue<T, Id extends EntityId>(
 }
 
 export function ensureEntitiesArray<T, Id extends EntityId>(
-  entities: readonly T[] | Record<Id, T>
+  entities: readonly T[] | Record<Id, T>,
 ): readonly T[] {
   if (!Array.isArray(entities)) {
     entities = Object.values(entities)
@@ -33,7 +38,7 @@ export function ensureEntitiesArray<T, Id extends EntityId>(
 export function splitAddedUpdatedEntities<T, Id extends EntityId>(
   newEntities: readonly T[] | Record<Id, T>,
   selectId: IdSelector<T, Id>,
-  state: DraftableEntityState<T, Id>
+  state: DraftableEntityState<T, Id>,
 ): [T[], Update<T, Id>[]] {
   newEntities = ensureEntitiesArray(newEntities)
 

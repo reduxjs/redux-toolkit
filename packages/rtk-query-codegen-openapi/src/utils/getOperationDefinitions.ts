@@ -7,7 +7,7 @@ export function getOperationDefinitions(v3Doc: OpenAPIV3.Document): OperationDef
     !pathItem
       ? []
       : Object.entries(pathItem)
-          .filter((arg): arg is [typeof operationKeys[number], OpenAPIV3.OperationObject] =>
+          .filter((arg): arg is [(typeof operationKeys)[number], OpenAPIV3.OperationObject] =>
             operationKeys.includes(arg[0] as any)
           )
           .map(([verb, operation]) => ({

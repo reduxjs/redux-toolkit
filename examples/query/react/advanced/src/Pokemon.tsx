@@ -11,7 +11,7 @@ export const Pokemon = ({
     name,
     {
       pollingInterval,
-    }
+    },
   )
 
   return (

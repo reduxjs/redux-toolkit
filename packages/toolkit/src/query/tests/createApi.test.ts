@@ -1,41 +1,29 @@
-import type { SerializedError } from '@reduxjs/toolkit'
-import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
-import type { SpyInstance } from 'vitest'
-import { vi } from 'vitest'
-import type {
-  Api,
-  MutationDefinition,
-  QueryDefinition,
-} from '@reduxjs/toolkit/query'
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import type {
-  FetchBaseQueryError,
-  FetchBaseQueryMeta,
-} from '@reduxjs/toolkit/dist/query/fetchBaseQuery'
-
+import { server } from '@internal/query/tests/mocks/server'
 import {
-  ANY,
-  expectType,
-  expectExactType,
-  setupApiStore,
-  waitMs,
   getSerializedHeaders,
-} from './helpers'
-import { server } from './mocks/server'
-import { rest } from 'msw'
-import type { SerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import { string } from 'yargs'
+  setupApiStore,
+} from '@internal/tests/utils/helpers'
+import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
 import type {
   DefinitionsFromApi,
+  FetchBaseQueryMeta,
   OverrideResultType,
+  SerializeQueryArgs,
   TagTypesFromApi,
-} from '@reduxjs/toolkit/dist/query/endpointDefinitions'
+} from '@reduxjs/toolkit/query'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { HttpResponse, delay, http } from 'msw'
+import nodeFetch from 'node-fetch'
+import type { MockInstance } from 'vitest'
 
-const originalEnv = process.env.NODE_ENV
-beforeAll(() => void ((process.env as any).NODE_ENV = 'development'))
-afterAll(() => void ((process.env as any).NODE_ENV = originalEnv))
+beforeAll(() => {
+  vi.stubEnv('NODE_ENV', 'development')
 
-let spy: SpyInstance
+  return vi.unstubAllEnvs
+})
+
+let spy: MockInstance
+
 beforeAll(() => {
   spy = vi.spyOn(console, 'error').mockImplementation(() => {})
 })
@@ -72,14 +60,6 @@ test('sensible defaults', () => {
     middleware: (gDM) => gDM().concat(api.middleware),
   })
   expect(api.reducerPath).toBe('api')
-
-  expectType<'api'>(api.reducerPath)
-  type TagTypes = typeof api extends Api<any, any, any, infer E>
-    ? E
-    : 'no match'
-  expectType<TagTypes>(ANY as never)
-  // @ts-expect-error
-  expectType<TagTypes>(0)
 
   expect(api.endpoints.getUser.name).toBe('getUser')
   expect(api.endpoints.updateUser.name).toBe('updateUser')
@@ -185,14 +165,14 @@ describe('wrong tagTypes log errors', () => {
     store.dispatch(api.endpoints[endpoint].initiate())
     let result: { status: string }
     do {
-      await waitMs(5)
+      await delay(5)
       // @ts-ignore
       result = api.endpoints[endpoint].select()(store.getState())
     } while (result.status === 'pending')
 
     if (shouldError) {
       expect(spy).toHaveBeenCalledWith(
-        "Tag type 'Users' was used, but not specified in `tagTypes`!"
+        "Tag type 'Users' was used, but not specified in `tagTypes`!",
       )
     } else {
       expect(spy).not.toHaveBeenCalled()
@@ -247,11 +227,9 @@ describe('endpoint definition typings', () => {
         }),
         queryInference1: build.query<'RetVal', 'Arg'>({
           query: (x) => {
-            expectType<'Arg'>(x)
             return 'From'
           },
           transformResponse(r) {
-            expectType<'To'>(r)
             return 'RetVal'
           },
         }),
@@ -262,7 +240,6 @@ describe('endpoint definition typings', () => {
               return 'RetVal' as const
             },
           })
-          expectType<QueryDefinition<'Arg', any, any, 'RetVal'>>(query)
           return query
         })(),
       }),
@@ -307,11 +284,9 @@ describe('endpoint definition typings', () => {
         }),
         mutationInference1: build.mutation<'RetVal', 'Arg'>({
           query: (x) => {
-            expectType<'Arg'>(x)
             return 'From'
           },
           transformResponse(r) {
-            expectType<'To'>(r)
             return 'RetVal'
           },
         }),
@@ -322,7 +297,6 @@ describe('endpoint definition typings', () => {
               return 'RetVal' as const
             },
           })
-          expectType<MutationDefinition<'Arg', any, any, 'RetVal'>>(query)
           return query
         })(),
       }),
@@ -460,13 +434,13 @@ describe('endpoint definition typings', () => {
       })
 
       storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
-      await waitMs(1)
+      await delay(1)
       expect(spy).not.toHaveBeenCalled()
 
       storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
-      await waitMs(1)
+      await delay(1)
       expect(spy).toHaveBeenCalledWith(
-        "Tag type 'missing' was used, but not specified in `tagTypes`!"
+        "Tag type 'missing' was used, but not specified in `tagTypes`!",
       )
 
       // only type-test this part
@@ -494,25 +468,21 @@ describe('endpoint definition typings', () => {
         endpoints: {
           query1: {
             query: (x) => {
-              expectExactType('in1' as const)(x)
               return 'modified1'
             },
           },
           query2(definition) {
             definition.query = (x) => {
-              expectExactType('in2' as const)(x)
               return 'modified2'
             }
           },
           mutation1: {
             query: (x) => {
-              expectExactType('in1' as const)(x)
               return 'modified1'
             },
           },
           mutation2(definition) {
             definition.query = (x) => {
-              expectExactType('in2' as const)(x)
               return 'modified2'
             }
           },
@@ -580,17 +550,13 @@ describe('endpoint definition typings', () => {
       })
 
       const queryResponse = await storeRef.store.dispatch(
-        enhancedApi.endpoints.query1.initiate()
+        enhancedApi.endpoints.query1.initiate(),
       )
       expect(queryResponse.data).toEqual({ value: 'transformed' })
-      expectType<Transformed | undefined>(queryResponse.data)
 
       const mutationResponse = await storeRef.store.dispatch(
-        enhancedApi.endpoints.mutation1.initiate()
+        enhancedApi.endpoints.mutation1.initiate(),
       )
-      expectType<
-        { data: Transformed } | { error: FetchBaseQueryError | SerializedError }
-      >(mutationResponse)
       expect('data' in mutationResponse && mutationResponse.data).toEqual({
         value: 'transformed',
       })
@@ -635,7 +601,7 @@ describe('additional transformResponse behaviors', () => {
         }),
         transformResponse: (
           response: { body: { nested: EchoResponseData } },
-          meta
+          meta,
         ) => {
           return {
             ...response.body.nested,
@@ -651,11 +617,12 @@ describe('additional transformResponse behaviors', () => {
       query: build.query<SuccessResponse & EchoResponseData, void>({
         query: () => '/success',
         transformResponse: async (response: SuccessResponse) => {
-          const res = await fetch('https://example.com/echo', {
+          const res: any = await nodeFetch('https://example.com/echo', {
             method: 'POST',
             body: JSON.stringify({ banana: 'bread' }),
           }).then((res) => res.json())
-          const additionalData = JSON.parse(res.body) as EchoResponseData
+
+          const additionalData = res.body as EchoResponseData
           return { ...response, ...additionalData }
         },
       }),
@@ -686,7 +653,7 @@ describe('additional transformResponse behaviors', () => {
 
   test('transformResponse transforms a response from a mutation', async () => {
     const result = await storeRef.store.dispatch(
-      api.endpoints.mutation.initiate({})
+      api.endpoints.mutation.initiate({}),
     )
 
     expect('data' in result && result.data).toEqual({ banana: 'bread' })
@@ -694,7 +661,7 @@ describe('additional transformResponse behaviors', () => {
 
   test('transformResponse transforms a response from a mutation with an error', async () => {
     const result = await storeRef.store.dispatch(
-      api.endpoints.mutationWithError.initiate({})
+      api.endpoints.mutationWithError.initiate({}),
     )
 
     expect('error' in result && result.error).toEqual('error')
@@ -702,7 +669,7 @@ describe('additional transformResponse behaviors', () => {
 
   test('transformResponse can inject baseQuery meta into the end result from a mutation', async () => {
     const result = await storeRef.store.dispatch(
-      api.endpoints.mutationWithMeta.initiate({})
+      api.endpoints.mutationWithMeta.initiate({}),
     )
 
     expect('data' in result && result.data).toEqual({
@@ -716,7 +683,6 @@ describe('additional transformResponse behaviors', () => {
         response: {
           headers: {
             'content-type': 'application/json',
-            'x-powered-by': 'msw',
           },
         },
       },
@@ -725,7 +691,7 @@ describe('additional transformResponse behaviors', () => {
 
   test('transformResponse can inject baseQuery meta into the end result from a query', async () => {
     const result = await storeRef.store.dispatch(
-      api.endpoints.queryWithMeta.initiate()
+      api.endpoints.queryWithMeta.initiate(),
     )
 
     expect(result.data).toEqual({
@@ -737,7 +703,6 @@ describe('additional transformResponse behaviors', () => {
         response: {
           headers: {
             'content-type': 'application/json',
-            'x-powered-by': 'msw',
           },
         },
       },
@@ -795,45 +760,49 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
   test('query lifecycle events fire properly', async () => {
     // We intentionally fail the first request so we can test all lifecycles
     server.use(
-      rest.get('https://example.com/success', (_, res, ctx) =>
-        res.once(ctx.status(500), ctx.json({ value: 'failed' }))
-      )
+      http.get(
+        'https://example.com/success',
+        () => HttpResponse.json({ value: 'failed' }, { status: 500 }),
+        { once: true },
+      ),
     )
 
     expect(storeRef.store.getState().testReducer.count).toBe(null)
     const failAttempt = storeRef.store.dispatch(api.endpoints.query.initiate())
     expect(storeRef.store.getState().testReducer.count).toBe(0)
     await failAttempt
-    await waitMs(10)
+    await delay(10)
     expect(storeRef.store.getState().testReducer.count).toBe(-1)
 
     const successAttempt = storeRef.store.dispatch(
-      api.endpoints.query.initiate()
+      api.endpoints.query.initiate(),
     )
     expect(storeRef.store.getState().testReducer.count).toBe(0)
     await successAttempt
-    await waitMs(10)
+    await delay(10)
     expect(storeRef.store.getState().testReducer.count).toBe(1)
   })
 
   test('mutation lifecycle events fire properly', async () => {
     // We intentionally fail the first request so we can test all lifecycles
     server.use(
-      rest.post('https://example.com/success', (_, res, ctx) =>
-        res.once(ctx.status(500), ctx.json({ value: 'failed' }))
-      )
+      http.post(
+        'https://example.com/success',
+        () => HttpResponse.json({ value: 'failed' }, { status: 500 }),
+        { once: true },
+      ),
     )
 
     expect(storeRef.store.getState().testReducer.count).toBe(null)
     const failAttempt = storeRef.store.dispatch(
-      api.endpoints.mutation.initiate()
+      api.endpoints.mutation.initiate(),
     )
     expect(storeRef.store.getState().testReducer.count).toBe(0)
     await failAttempt
     expect(storeRef.store.getState().testReducer.count).toBe(-1)
 
     const successAttempt = storeRef.store.dispatch(
-      api.endpoints.mutation.initiate()
+      api.endpoints.mutation.initiate(),
     )
     expect(storeRef.store.getState().testReducer.count).toBe(0)
     await successAttempt
@@ -905,7 +874,7 @@ describe('structuralSharing flag behaviors', () => {
     const firstRef = api.endpoints.enabled.select()(storeRef.store.getState())
 
     await storeRef.store.dispatch(
-      api.endpoints.enabled.initiate(undefined, { forceRefetch: true })
+      api.endpoints.enabled.initiate(undefined, { forceRefetch: true }),
     )
 
     const secondRef = api.endpoints.enabled.select()(storeRef.store.getState())
@@ -919,7 +888,7 @@ describe('structuralSharing flag behaviors', () => {
     const firstRef = api.endpoints.disabled.select()(storeRef.store.getState())
 
     await storeRef.store.dispatch(
-      api.endpoints.disabled.initiate(undefined, { forceRefetch: true })
+      api.endpoints.disabled.initiate(undefined, { forceRefetch: true }),
     )
 
     const secondRef = api.endpoints.disabled.select()(storeRef.store.getState())
@@ -944,7 +913,7 @@ describe('custom serializeQueryArgs per endpoint', () => {
   }
 
   const dummyClient: MyApiClient = {
-    async fetchPost(id) {
+    async fetchPost() {
       return { value: 'success' }
     },
   }
@@ -1024,23 +993,23 @@ describe('custom serializeQueryArgs per endpoint', () => {
 
   it('Works via createApi', async () => {
     await storeRef.store.dispatch(
-      api.endpoints.queryWithNoSerializer.initiate(99)
+      api.endpoints.queryWithNoSerializer.initiate(99),
     )
 
     expect(serializer1).toHaveBeenCalledTimes(0)
 
     await storeRef.store.dispatch(
-      api.endpoints.queryWithCustomSerializer.initiate(42)
+      api.endpoints.queryWithCustomSerializer.initiate(42),
     )
 
     expect(serializer1).toHaveBeenCalled()
 
     expect(
-      storeRef.store.getState().api.queries['base-queryWithNoSerializer-99']
+      storeRef.store.getState().api.queries['base-queryWithNoSerializer-99'],
     ).toBeTruthy()
 
     expect(
-      storeRef.store.getState().api.queries['queryWithCustomSerializer-42']
+      storeRef.store.getState().api.queries['queryWithCustomSerializer-42'],
     ).toBeTruthy()
   })
 
@@ -1059,14 +1028,14 @@ describe('custom serializeQueryArgs per endpoint', () => {
     expect(serializer2).toHaveBeenCalledTimes(0)
 
     await storeRef.store.dispatch(
-      injectedApi.endpoints.injectedQueryWithCustomSerializer.initiate(5)
+      injectedApi.endpoints.injectedQueryWithCustomSerializer.initiate(5),
     )
 
     expect(serializer2).toHaveBeenCalled()
     expect(
       storeRef.store.getState().api.queries[
         'injectedQueryWithCustomSerializer-5'
-      ]
+      ],
     ).toBeTruthy()
   })
 
@@ -1075,13 +1044,13 @@ describe('custom serializeQueryArgs per endpoint', () => {
       api.endpoints.queryWithCustomObjectSerializer.initiate({
         id: 42,
         client: dummyClient,
-      })
+      }),
     )
 
     expect(
       storeRef.store.getState().api.queries[
         'queryWithCustomObjectSerializer({"id":42})'
-      ]
+      ],
     ).toBeTruthy()
   })
 
@@ -1090,13 +1059,13 @@ describe('custom serializeQueryArgs per endpoint', () => {
       api.endpoints.queryWithCustomNumberSerializer.initiate({
         id: 42,
         client: dummyClient,
-      })
+      }),
     )
 
     expect(
       storeRef.store.getState().api.queries[
         'queryWithCustomNumberSerializer(42)'
-      ]
+      ],
     ).toBeTruthy()
   })
 
@@ -1105,13 +1074,14 @@ describe('custom serializeQueryArgs per endpoint', () => {
     const PAGE_SIZE = 3
 
     server.use(
-      rest.get('https://example.com/listItems', (req, res, ctx) => {
-        const pageString = req.url.searchParams.get('page')
+      http.get('https://example.com/listItems', ({ request }) => {
+        const url = new URL(request.url)
+        const pageString = url.searchParams.get('page')
         const pageNum = parseInt(pageString || '0')
 
         const results = paginate(allItems, PAGE_SIZE, pageNum)
-        return res(ctx.json(results))
-      })
+        return HttpResponse.json(results)
+      }),
     )
 
     // Page number shouldn't matter here, because the cache key ignores that.
@@ -1133,13 +1103,14 @@ describe('custom serializeQueryArgs per endpoint', () => {
     const PAGE_SIZE = 3
 
     server.use(
-      rest.get('https://example.com/listItems2', (req, res, ctx) => {
-        const pageString = req.url.searchParams.get('page')
+      http.get('https://example.com/listItems2', ({ request }) => {
+        const url = new URL(request.url)
+        const pageString = url.searchParams.get('page')
         const pageNum = parseInt(pageString || '0')
 
         const results = paginate(allItems, PAGE_SIZE, pageNum)
-        return res(ctx.json(results))
-      })
+        return HttpResponse.json(results)
+      }),
     )
 
     const selectListItems = api.endpoints.listItems2.select(0)

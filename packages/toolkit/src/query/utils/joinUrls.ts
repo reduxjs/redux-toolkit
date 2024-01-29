@@ -5,7 +5,7 @@ const withoutLeadingSlash = (url: string) => url.replace(/^\//, '')
 
 export function joinUrls(
   base: string | undefined,
-  url: string | undefined
+  url: string | undefined,
 ): string {
   if (!base) {
     return url!

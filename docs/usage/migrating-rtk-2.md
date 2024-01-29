@@ -134,7 +134,7 @@ We've changed `next` to be `(action: unknown) => unknown` (which is accurate, we
 
 In order to safely interact with values or access fields inside of the `action` argument, you must first do a type guard check to narrow the type, such as `isAction(action)` or `someActionCreator.match(action)`.
 
-This new type is incompatible with the v4 `Middleware` type, so if a package's middleware is saying it's incompatible, check which version of Redux it's getting its types from!
+This new type is incompatible with the v4 `Middleware` type, so if a package's middleware is saying it's incompatible, check which version of Redux it's getting its types from! (See [overriding dependencies](#overriding-dependencies) later in this page.)
 
 #### `PreloadedState` type removed in favour of `Reducer` generic
 
@@ -145,7 +145,7 @@ First, the `Reducer` type now has a `PreloadedState` possible generic:
 ```ts
 type Reducer<S, A extends Action, PreloadedState = S> = (
   state: S | PreloadedState | undefined,
-  action: A
+  action: A,
 ) => S
 ```
 
@@ -319,7 +319,7 @@ const customCreateApi = buildCreateApi(
     useDispatch: createDispatchHook(MyContext),
     useSelector: createSelectorHook(MyContext),
     useStore: createStoreHook(MyContext),
-  })
+  }),
 )
 
 // now
@@ -331,7 +331,7 @@ const customCreateApi = buildCreateApi(
       useSelector: createSelectorHook(MyContext),
       useStore: createStoreHook(MyContext),
     },
-  })
+  }),
 )
 ```
 
@@ -406,7 +406,7 @@ const addNumbers = createSelector(
   // this input selector will always return a new reference when run
   // so cache will never be used
   (a, b) => ({ a, b }),
-  ({ a, b }) => ({ total: a + b })
+  ({ a, b }) => ({ total: a + b }),
 )
 // instead, you should have an input selector for each stable piece of data
 const addNumbersStable = createSelector(
@@ -414,7 +414,7 @@ const addNumbersStable = createSelector(
   (a, b) => b,
   (a, b) => ({
     total: a + b,
-  })
+  }),
 )
 ```
 
@@ -437,6 +437,58 @@ The `ParametricSelector` and `OutputParametricSelector` types have been removed.
 React-Redux v7 and v8 worked with all versions of React that supported hooks (16.8+, 17, and 18). v8 switched from internal subscription management to React's new `useSyncExternalStore` hook, but used the "shim" implementation to provide support for React 16.8 and 17, which did not have that hook built in.
 
 **React-Redux v9 switches to _requiring_ React 18, and does _not_ support React 16 or 17**. This allows us to drop the shim and save a small bit of bundle size.
+
+<div class="typescript-only">
+
+#### Custom context typing
+
+React Redux supports creating `hooks` (and `connect`) with a [custom context](https://react-redux.js.org/api/hooks#custom-context), but typing this has been fairly non-standard. The pre-v9 types required `Context<ReactReduxContextValue>`, but the context default value was usually initialised with `null` (as the hooks use this to make sure they actually have a provided context). This, in "best" cases, would result in something like the below:
+
+```ts title="Pre-v9 custom context"
+import { createContext } from 'react'
+import {
+  ReactReduxContextValue,
+  TypedUseSelectorHook,
+  createDispatchHook,
+  createSelectorHook,
+  createStoreHook,
+} from 'react-redux'
+import { AppStore, RootState, AppDispatch } from './store'
+
+// highlight-next-line
+const context = createContext<ReactReduxContextValue>(null as any)
+
+export const useStore: () => AppStore = createStoreHook(context)
+export const useDispatch: () => AppDispatch = createDispatchHook(context)
+export const useSelector: TypedUseSelectorHook<RootState> =
+  createSelectorHook(context)
+```
+
+In v9, the types now match the runtime behaviour. The context is typed to hold `ReactReduxContextValue | null`, and the hooks know that if they receive `null` they'll throw an error so it doesn't affect the return type.
+
+The above example now becomes:
+
+```ts title="v9+ custom context"
+import { createContext } from 'react'
+import {
+  ReactReduxContextValue,
+  TypedUseSelectorHook,
+  createDispatchHook,
+  createSelectorHook,
+  createStoreHook,
+} from 'react-redux'
+import { AppStore, RootState, AppDispatch } from './store'
+
+// highlight-next-line
+const context = createContext<ReactReduxContextValue | null>(null)
+
+export const useStore: () => AppStore = createStoreHook(context)
+export const useDispatch: () => AppDispatch = createDispatchHook(context)
+export const useSelector: TypedUseSelectorHook<RootState> =
+  createSelectorHook(context)
+```
+
+</div>
 
 ### Redux Thunk
 
@@ -485,7 +537,7 @@ const combinedReducer = combineSlices(
     num: numberSlice.reducer,
     boolean: booleanReducer,
   },
-  api
+  api,
 )
 expect(combinedReducer(undefined, dummyAction())).toEqual({
   string: stringSlice.getInitialState(),
@@ -512,12 +564,12 @@ const injectedReducer = combinedReducer.inject(numberSlice)
 
 // `state.number` now exists, and injectedReducer's type no longer marks it as optional
 expect(injectedReducer(undefined, dummyAction()).number).toBe(
-  numberSlice.getInitialState()
+  numberSlice.getInitialState(),
 )
 
 // original reducer has also been changed (type is still optional)
 expect(combinedReducer(undefined, dummyAction()).number).toBe(
-  numberSlice.getInitialState()
+  numberSlice.getInitialState(),
 )
 ```
 
@@ -551,7 +603,7 @@ const customState = {
   number: slice.getInitialState(),
 }
 const { selectSlice, selectMultiple } = slice.getSelectors(
-  (state: typeof customState) => state.number
+  (state: typeof customState) => state.number,
 )
 expect(selectSlice(customState)).toBe(slice.getInitialState())
 expect(selectMultiple(customState, 2)).toBe(slice.getInitialState() * 2)
@@ -568,7 +620,7 @@ const fetchUserById = createAsyncThunk(
   async (userId: number, thunkAPI) => {
     const response = await userAPI.fetchById(userId)
     return response.data
-  }
+  },
 )
 
 const usersSlice = createSlice({
@@ -605,11 +657,11 @@ In practice, we hope these are reasonable tradeoffs. Creating thunks inside of `
 Here's what the new callback syntax looks like:
 
 ```ts
-const createSliceWithThunks = buildCreateSlice({
+const createAppSlice = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 })
 
-const todosSlice = createSliceWithThunks({
+const todosSlice = createAppSlice({
   name: 'todos',
   initialState: {
     loading: false,
@@ -630,7 +682,7 @@ const todosSlice = createSliceWithThunks({
       // action type is inferred from prepare callback
       (state, action) => {
         state.todos.push(action.payload)
-      }
+      },
     ),
     // An async thunk
     fetchTodo: create.asyncThunk(
@@ -654,7 +706,7 @@ const todosSlice = createSliceWithThunks({
         settled: (state, action) => {
           state.loading = false
         },
-      }
+      },
     ),
   }),
 })
@@ -723,6 +775,56 @@ We now have a docs page that covers [how to set up Redux properly with Next.js](
 
 (At this time, the Next.js `with-redux` example is still showing outdated patterns - we're going to file a PR shortly to update that to match our docs guide.)
 
+## Overriding dependencies
+
+It will take a while for packages to update their peer dependencies to allow for Redux core 5.0, and in the meantime changes like the [Middleware type](#middleware-type-changed---middleware-action-and-next-are-typed-as-unknown) will result in perceived incompatibilities.
+
+It's likely that most libraries will not actually have any practices that are incompatible with 5.0, but due to the peer dependency on 4.0 they end up pulling in old type declarations.
+
+This can be solved by manually overriding the dependency resolution, which is supported by both `npm` and `yarn`.
+
+### `npm` - `overrides`
+
+NPM supports this through an [`overrides`](https://docs.npmjs.com/cli/v9/configuring-npm/package-json#overrides) field in your `package.json`. You can override the dependency for a specific package, or make sure that every package that pulls in Redux receives the same version.
+
+```json title="Individual override - redux-persist"
+{
+  "overrides": {
+    "redux-persist": {
+      "redux": "^5.0.0"
+    }
+  }
+}
+```
+
+```json title="Blanket override"
+{
+  "overrides": {
+    "redux": "^5.0.0"
+  }
+}
+```
+
+### `yarn` - `resolutions`
+
+Yarn supports this through a [`resolutions`](https://classic.yarnpkg.com/lang/en/docs/selective-version-resolutions/) field in your `package.json`. Just like with NPM, you can override the dependency for a specific package, or make sure that every package that pulls in Redux receives the same version.
+
+```json title="Individual override - redux-persist"
+{
+  "resolutions": {
+    "redux-persist/redux": "^5.0.0"
+  }
+}
+```
+
+```json title="Blanket override"
+{
+  "resolutions": {
+    "redux": "^5.0.0"
+  }
+}
+```
+
 ## Recommendations
 
 Based on changes in 2.0 and previous versions, there have been some shifts in thinking that are good to know about, if non-essential.
@@ -770,7 +872,7 @@ For example, with `redux-observable`:
 const epic = (action$: Observable<Action>) =>
   action$.pipe(
     ofType(todoAdded),
-    map((action) => action)
+    map((action) => action),
     //   ^? still Action<any>
   )
 
@@ -778,7 +880,7 @@ const epic = (action$: Observable<Action>) =>
 const epic = (action$: Observable<Action>) =>
   action$.pipe(
     filter(todoAdded.match),
-    map((action) => action)
+    map((action) => action),
     //   ^? now PayloadAction<Todo>
   )
 ```
@@ -829,7 +931,7 @@ const asyncThunkCreator = {
     // the definition from define()
     definition,
     // methods to modify slice
-    context
+    context,
   ) {
     const { payloadCreator, options, pending, fulfilled, rejected, settled } =
       definition
@@ -874,7 +976,7 @@ const todoSlice = createSlice({
     selectTodosByAuthor = createSelector(
       (state: TodoState) => state.todos,
       (state: TodoState, author: string) => author,
-      (todos, author) => todos.filter((todo) => todo.author === author)
+      (todos, author) => todos.filter((todo) => todo.author === author),
     ),
   },
 })
@@ -889,7 +991,7 @@ export const makeSelectTodosByAuthor = () =>
   createSelector(
     (state: RootState) => state.todos.todos,
     (state: RootState, author: string) => author,
-    (todos, author) => todos.filter((todo) => todo.author === author)
+    (todos, author) => todos.filter((todo) => todo.author === author),
   )
 
 function AuthorTodos({ author }: { author: string }) {

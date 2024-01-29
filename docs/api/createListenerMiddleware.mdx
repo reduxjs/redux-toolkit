@@ -100,7 +100,7 @@ interface CreateListenerMiddlewareOptions<ExtraArgument = unknown> {
 
 type ListenerErrorHandler = (
   error: unknown,
-  errorInfo: ListenerErrorInfo
+  errorInfo: ListenerErrorInfo,
 ) => void
 
 interface ListenerErrorInfo {
@@ -125,12 +125,12 @@ interface ListenerMiddlewareInstance<
     unknown,
     UnknownAction
   >,
-  ExtraArgument = unknown
+  ExtraArgument = unknown,
 > {
   middleware: ListenerMiddleware<State, Dispatch, ExtraArgument>
   startListening: (options: AddListenerOptions) => Unsubscribe
   stopListening: (
-    options: AddListenerOptions & UnsubscribeListenerOptions
+    options: AddListenerOptions & UnsubscribeListenerOptions,
   ) => boolean
   clearListeners: () => void
 }
@@ -184,11 +184,11 @@ interface AddListenerOptions {
 type ListenerPredicate<Action extends ReduxAction, State> = (
   action: Action,
   currentState?: State,
-  originalState?: State
+  originalState?: State,
 ) => boolean
 
 type UnsubscribeListener = (
-  unsubscribeOptions?: UnsubscribeListenerOptions
+  unsubscribeOptions?: UnsubscribeListenerOptions,
 ) => void
 
 interface UnsubscribeListenerOptions {
@@ -241,7 +241,7 @@ By default, this does _not_ cancel any active running instances. However, you ma
 
 ```ts no-transpile
 const stopListening = (
-  options: AddListenerOptions & UnsubscribeListenerOptions
+  options: AddListenerOptions & UnsubscribeListenerOptions,
 ) => boolean
 
 interface UnsubscribeListenerOptions {
@@ -302,7 +302,7 @@ Returns `true` if the listener entry has been removed, `false` if no subscriptio
 
 ```js
 const wasRemoved = store.dispatch(
-  removeListener({ predicate, effect, cancelActive: true })
+  removeListener({ predicate, effect, cancelActive: true }),
 )
 ```
 
@@ -322,7 +322,7 @@ The `listenerApi` object is the second argument to each listener callback. It co
 export interface ListenerEffectAPI<
   State,
   Dispatch extends ReduxDispatch<UnknownAction>,
-  ExtraArgument = unknown
+  ExtraArgument = unknown,
 > extends MiddlewareAPI<Dispatch, State> {
   // NOTE: MiddlewareAPI contains `dispatch` and `getState` already
 
@@ -486,21 +486,16 @@ To fix this, the middleware provides types for defining "pre-typed" versions of 
 ```ts no-transpile
 // listenerMiddleware.ts
 import { createListenerMiddleware, addListener } from '@reduxjs/toolkit'
-import type { TypedStartListening, TypedAddListener } from '@reduxjs/toolkit'
-
 import type { RootState, AppDispatch } from './store'
 
 export const listenerMiddleware = createListenerMiddleware()
 
-export type AppStartListening = TypedStartListening<RootState, AppDispatch>
-
-export const startAppListening =
-  listenerMiddleware.startListening as AppStartListening
-
-export const addAppListener = addListener as TypedAddListener<
+export const startAppListening = listenerMiddleware.startListening.withTypes<
   RootState,
   AppDispatch
->
+>()
+
+export const addAppListener = addListener.withTypes<RootState, AppDispatch>()
 ```
 
 Then import and use those pre-typed methods in your components.
@@ -584,12 +579,12 @@ The signatures are:
 ```ts no-transpile
 type ConditionFunction<Action extends ReduxAction, State> = (
   predicate: ListenerPredicate<Action, State> | (() => boolean),
-  timeout?: number
+  timeout?: number,
 ) => Promise<boolean>
 
 type TakeFunction<Action extends ReduxAction, State> = (
   predicate: ListenerPredicate<Action, State> | (() => boolean),
-  timeout?: number
+  timeout?: number,
 ) => Promise<[Action, State, State] | null>
 ```
 
@@ -617,7 +612,7 @@ test('condition method resolves promise when there is a timeout', async () => {
         (action, currentState: CounterState) => {
           return currentState.value === 3
         },
-        50
+        50,
       )
 
       // In this test, we expect the timeout to happen first
@@ -823,7 +818,7 @@ useEffect(() => {
       effect: (action, listenerApi) => {
         // do some useful logic here
       },
-    })
+    }),
   )
   return unsubscribe
 }, [])

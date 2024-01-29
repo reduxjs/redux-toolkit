@@ -38,7 +38,7 @@ describe('counter - listeners', () => {
     store = setupTestStore() // resets store state
 
     setupCounterListeners(
-      listenerMiddlewareInstance.startListening as AppStartListening
+      listenerMiddlewareInstance.startListening as AppStartListening,
     )
   })
 
@@ -55,13 +55,13 @@ describe('counter - listeners', () => {
       store.dispatch(counterActions.updateByAsync({ id, delayMs, delta }))
 
       expect(counterSelectors.selectById(store.getState(), id)?.value).toBe(
-        initialValue
+        initialValue,
       )
 
       await delay(delayMs)
 
       expect(counterSelectors.selectById(store.getState(), id)?.value).toBe(
-        initialValue + delta
+        initialValue + delta,
       )
     })
 
@@ -73,7 +73,7 @@ describe('counter - listeners', () => {
       store.dispatch(counterActions.updateByAsync({ id, delayMs, delta }))
 
       expect(counterSelectors.selectById(store.getState(), id)?.value).toBe(
-        initialValue
+        initialValue,
       )
 
       store.dispatch(counterActions.cancelAsyncUpdates(id))
@@ -81,7 +81,7 @@ describe('counter - listeners', () => {
       await delay(delayMs)
 
       expect(counterSelectors.selectById(store.getState(), id)?.value).toBe(
-        initialValue
+        initialValue,
       )
     })
   })
@@ -97,18 +97,18 @@ describe('counter - listeners', () => {
       const { id } = counterSelectors.selectAll(store.getState())[0]
 
       store.dispatch(
-        counterActions.updateByPeriodically({ id, intervalMs, delta })
+        counterActions.updateByPeriodically({ id, intervalMs, delta }),
       )
 
       for (let i = 0; i < 2; i++) {
         expect(counterSelectors.selectById(store.getState(), id)?.value).toBe(
-          initialValue + i * delta
+          initialValue + i * delta,
         )
 
         await delay(intervalMs)
 
         expect(counterSelectors.selectById(store.getState(), id)?.value).toBe(
-          initialValue + (i + 1) * delta
+          initialValue + (i + 1) * delta,
         )
       }
     })
@@ -119,12 +119,12 @@ describe('counter - listeners', () => {
       const { id } = counterSelectors.selectAll(store.getState())[0]
 
       store.dispatch(
-        counterActions.updateByPeriodically({ id, intervalMs, delta })
+        counterActions.updateByPeriodically({ id, intervalMs, delta }),
       )
 
       await delay(intervalMs)
       expect(counterSelectors.selectById(store.getState(), id)?.value).toBe(
-        initialValue + delta
+        initialValue + delta,
       )
 
       store.dispatch(counterActions.cancelAsyncUpdates(id))
@@ -132,7 +132,7 @@ describe('counter - listeners', () => {
       await delay(intervalMs)
 
       expect(counterSelectors.selectById(store.getState(), id)?.value).toBe(
-        initialValue + delta
+        initialValue + delta,
       )
     })
   })

@@ -1,12 +1,39 @@
 #!/usr/bin/env node
-const path = require('path');
+import { execaSync } from 'execa'
+import { globbySync } from 'globby'
+import { createRequire } from 'node:module'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-require('ts-node').register({
-  project: path.join(__dirname, './tsconfig.json'),
-});
+const require = createRequire(import.meta.url)
 
-require('codemod-cli').runTransform(
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+const transformerDirectory = path.join(
   __dirname,
-  process.argv[2] /* transform name */,
-  process.argv.slice(3) /* paths or globs */
-);
+  '..',
+  'transforms',
+  `${process.argv[2]}/index.ts`
+)
+
+const jscodeshiftExecutable = require.resolve('.bin/jscodeshift')
+
+const extensions = 'ts,js,tsx,jsx'
+
+execaSync(
+  jscodeshiftExecutable,
+  [
+    '-t',
+    transformerDirectory,
+    '--extensions',
+    extensions,
+    ...(process.argv.slice(3).length === 1
+      ? globbySync(process.argv[3])
+      : globbySync(process.argv.slice(3)))
+  ],
+  {
+    stdio: 'inherit',
+    stripFinalNewline: false
+  }
+)

@@ -246,7 +246,7 @@ const useQueryResult = api.useGetPostsQuery(arg, options)
 ```ts no-transpile
 type UseQuery = (
   arg: any | SkipToken,
-  options?: UseQueryOptions
+  options?: UseQueryOptions,
 ) => UseQueryResult
 
 type UseQueryOptions = {
@@ -309,7 +309,7 @@ const useMutationResult = api.useUpdatePostMutation(options)
 
 ```ts no-transpile
 type UseMutation = (
-  options?: UseMutationStateOptions
+  options?: UseMutationStateOptions,
 ) => [UseMutationTrigger, UseMutationResult | SelectedUseMutationResult]
 
 type UseMutationStateOptions = {
@@ -387,7 +387,7 @@ const useQueryStateResult = api.endpoints.getPosts.useQueryState(arg, options)
 ```ts no-transpile
 type UseQueryState = (
   arg: any | SkipToken,
-  options?: UseQueryStateOptions
+  options?: UseQueryStateOptions,
 ) => UseQueryStateResult | SelectedQueryStateResult
 
 type UseQueryStateOptions = {
@@ -438,7 +438,7 @@ const { refetch } = api.endpoints.getPosts.useQuerySubscription(arg, options)
 ```ts no-transpile
 type UseQuerySubscription = (
   arg: any | SkipToken,
-  options?: UseQuerySubscriptionOptions
+  options?: UseQuerySubscriptionOptions,
 ) => UseQuerySubscriptionResult
 
 type UseQuerySubscriptionOptions = {
@@ -550,7 +550,7 @@ const [trigger, lastArg] =
 
 ```ts no-transpile
 type UseLazyQuerySubscription = (
-  options?: UseLazyQuerySubscriptionOptions
+  options?: UseLazyQuerySubscriptionOptions,
 ) => [UseLazyQuerySubscriptionTrigger, LastArg]
 
 type UseLazyQuerySubscriptionOptions = {
@@ -561,7 +561,7 @@ type UseLazyQuerySubscriptionOptions = {
 
 type UseLazyQuerySubscriptionTrigger = (
   arg: any,
-  preferCacheValue?: boolean
+  preferCacheValue?: boolean,
 ) => void
 ```
 
@@ -588,7 +588,7 @@ const prefetchCallback = api.usePrefetch(endpointName, options)
 ```ts no-transpile
 type UsePrefetch = (
   endpointName: string,
-  options?: UsePrefetchOptions
+  options?: UsePrefetchOptions,
 ) => PrefetchCallback
 
 type UsePrefetchOptions =

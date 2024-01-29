@@ -34,7 +34,7 @@ export const postsApi = api.injectEndpoints({
     getPosts: build.query<PostsResponse, void>({
       query: () => ({ url: 'posts' }),
       providesTags: (result = []) => [
-        ...result.map(({ id }) => ({ type: 'Posts', id } as const)),
+        ...result.map(({ id }) => ({ type: 'Posts', id }) as const),
         { type: 'Posts' as const, id: 'LIST' },
       ],
     }),

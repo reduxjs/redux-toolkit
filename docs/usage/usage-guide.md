@@ -651,7 +651,7 @@ const fetchUserById = createAsyncThunk(
   async (userId, thunkAPI) => {
     const response = await userAPI.fetchById(userId)
     return response.data
-  }
+  },
 )
 
 // Then, handle actions in your reducers:
@@ -1084,7 +1084,7 @@ ReactDOM.render(
       <App />
     </PersistGate>
   </Provider>,
-  document.getElementById('root')
+  document.getElementById('root'),
 )
 ```
 
@@ -1137,10 +1137,10 @@ const store = configureStore({
         ignoredActions: [
           // just ignore every redux-firebase and react-redux-firebase action type
           ...Object.keys(rfConstants.actionTypes).map(
-            (type) => `${rfConstants.actionsPrefix}/${type}`
+            (type) => `${rfConstants.actionsPrefix}/${type}`,
           ),
           ...Object.keys(rrfActionTypes).map(
-            (type) => `@@reactReduxFirebase/${type}`
+            (type) => `@@reactReduxFirebase/${type}`,
           ),
         ],
         ignoredPaths: ['firebase', 'firestore'],

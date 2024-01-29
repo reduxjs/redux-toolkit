@@ -1,9 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit'
-import { vi } from 'vitest'
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { renderHook, waitFor } from '@testing-library/react'
+import { withProvider } from '../../tests/utils/helpers'
 import type { BaseQueryApi } from '../baseQueryTypes'
-import { withProvider } from './helpers'
 
 test('handles a non-async baseQuery without error', async () => {
   const baseQuery = (args?: any) => ({ data: args })
@@ -96,7 +95,7 @@ describe('re-triggering behavior on arg change', () => {
       {
         wrapper: withProvider(store),
         initialProps: 5,
-      }
+      },
     )
 
     await waitFor(() => {
@@ -128,7 +127,7 @@ describe('re-triggering behavior on arg change', () => {
       {
         wrapper: withProvider(store),
         initialProps: { name: 'Bob', likes: 'iceCream' },
-      }
+      },
     )
 
     await waitFor(() => {
@@ -161,7 +160,7 @@ describe('re-triggering behavior on arg change', () => {
       {
         wrapper: withProvider(store),
         initialProps: { person: { name } },
-      }
+      },
     )
 
     await waitFor(() => {
@@ -184,7 +183,7 @@ describe('re-triggering behavior on arg change', () => {
       {
         wrapper: withProvider(store),
         initialProps: { name: 'Tim', likes: 'Bananas' },
-      }
+      },
     )
 
     await waitFor(() => {

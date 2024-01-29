@@ -43,7 +43,7 @@ export const api = createApi({
         const patchResult = dispatch(
           api.util.updateQueryData('getPost', id, (draft) => {
             Object.assign(draft, patch)
-          })
+          }),
         )
         try {
           await queryFulfilled
