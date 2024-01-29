@@ -20,182 +20,170 @@ const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, UnknownAction>
 const unknownAction = { type: 'foo' } as UnknownAction
 
 describe('type tests', () => {
-  test('basic usage', () => {
-    ;(async function () {
-      const asyncThunk = createAsyncThunk('test', (id: number) =>
-        Promise.resolve(id * 2),
-      )
+  test('basic usage', async () => {
+    const asyncThunk = createAsyncThunk('test', (id: number) =>
+      Promise.resolve(id * 2),
+    )
 
-      const reducer = createReducer({}, (builder) =>
-        builder
-          .addCase(asyncThunk.pending, (_, action) => {
-            expectTypeOf(action).toEqualTypeOf<
-              ReturnType<(typeof asyncThunk)['pending']>
-            >()
-          })
-
-          .addCase(asyncThunk.fulfilled, (_, action) => {
-            expectTypeOf(action).toEqualTypeOf<
-              ReturnType<(typeof asyncThunk)['fulfilled']>
-            >()
-
-            expectTypeOf(action.payload).toBeNumber()
-          })
-
-          .addCase(asyncThunk.rejected, (_, action) => {
-            expectTypeOf(action).toEqualTypeOf<
-              ReturnType<(typeof asyncThunk)['rejected']>
-            >()
-
-            expectTypeOf(action.error).toMatchTypeOf<
-              Partial<Error> | undefined
-            >()
-          }),
-      )
-
-      const promise = defaultDispatch(asyncThunk(3))
-
-      expectTypeOf(promise.requestId).toBeString()
-
-      expectTypeOf(promise.arg).toBeNumber()
-
-      expectTypeOf(promise.abort).toEqualTypeOf<(reason?: string) => void>()
-
-      const result = await promise
-
-      if (asyncThunk.fulfilled.match(result)) {
-        expectTypeOf(result).toEqualTypeOf<
-          ReturnType<(typeof asyncThunk)['fulfilled']>
-        >()
-      } else {
-        expectTypeOf(result).toEqualTypeOf<
-          ReturnType<(typeof asyncThunk)['rejected']>
-        >()
-      }
-
-      promise
-        .then(unwrapResult)
-        .then((result) => {
-          expectTypeOf(result).toBeNumber()
-
-          expectTypeOf(result).not.toMatchTypeOf<Error>()
+    const reducer = createReducer({}, (builder) =>
+      builder
+        .addCase(asyncThunk.pending, (_, action) => {
+          expectTypeOf(action).toEqualTypeOf<
+            ReturnType<(typeof asyncThunk)['pending']>
+          >()
         })
-        .catch((error) => {
-          // catch is always any-typed, nothing we can do here
-          expectTypeOf(error).toBeAny()
+
+        .addCase(asyncThunk.fulfilled, (_, action) => {
+          expectTypeOf(action).toEqualTypeOf<
+            ReturnType<(typeof asyncThunk)['fulfilled']>
+          >()
+
+          expectTypeOf(action.payload).toBeNumber()
         })
-    })()
+
+        .addCase(asyncThunk.rejected, (_, action) => {
+          expectTypeOf(action).toEqualTypeOf<
+            ReturnType<(typeof asyncThunk)['rejected']>
+          >()
+
+          expectTypeOf(action.error).toMatchTypeOf<Partial<Error> | undefined>()
+        }),
+    )
+
+    const promise = defaultDispatch(asyncThunk(3))
+
+    expectTypeOf(promise.requestId).toBeString()
+
+    expectTypeOf(promise.arg).toBeNumber()
+
+    expectTypeOf(promise.abort).toEqualTypeOf<(reason?: string) => void>()
+
+    const result = await promise
+
+    if (asyncThunk.fulfilled.match(result)) {
+      expectTypeOf(result).toEqualTypeOf<
+        ReturnType<(typeof asyncThunk)['fulfilled']>
+      >()
+    } else {
+      expectTypeOf(result).toEqualTypeOf<
+        ReturnType<(typeof asyncThunk)['rejected']>
+      >()
+    }
+
+    promise
+      .then(unwrapResult)
+      .then((result) => {
+        expectTypeOf(result).toBeNumber()
+
+        expectTypeOf(result).not.toMatchTypeOf<Error>()
+      })
+      .catch((error) => {
+        // catch is always any-typed, nothing we can do here
+        expectTypeOf(error).toBeAny()
+      })
   })
 
   test('More complex usage of thunk args', () => {
-    ;(async function () {
-      interface BookModel {
-        id: string
-        title: string
+    interface BookModel {
+      id: string
+      title: string
+    }
+
+    type BooksState = BookModel[]
+
+    const fakeBooks: BookModel[] = [
+      { id: 'b', title: 'Second' },
+      { id: 'a', title: 'First' },
+    ]
+
+    const correctDispatch = (() => {}) as ThunkDispatch<
+      BookModel[],
+      { userAPI: Function },
+      UnknownAction
+    >
+
+    // Verify that the the first type args to createAsyncThunk line up right
+    const fetchBooksTAC = createAsyncThunk<
+      BookModel[],
+      number,
+      {
+        state: BooksState
+        extra: { userAPI: Function }
       }
+    >(
+      'books/fetch',
+      async (arg, { getState, dispatch, extra, requestId, signal }) => {
+        const state = getState()
 
-      type BooksState = BookModel[]
+        expectTypeOf(arg).toBeNumber()
 
-      const fakeBooks: BookModel[] = [
-        { id: 'b', title: 'Second' },
-        { id: 'a', title: 'First' },
-      ]
+        expectTypeOf(state).toEqualTypeOf<BookModel[]>()
 
-      const correctDispatch = (() => {}) as ThunkDispatch<
-        BookModel[],
-        { userAPI: Function },
-        UnknownAction
-      >
+        expectTypeOf(extra).toEqualTypeOf<{ userAPI: Function }>()
 
-      // Verify that the the first type args to createAsyncThunk line up right
-      const fetchBooksTAC = createAsyncThunk<
-        BookModel[],
-        number,
-        {
-          state: BooksState
-          extra: { userAPI: Function }
-        }
-      >(
-        'books/fetch',
-        async (arg, { getState, dispatch, extra, requestId, signal }) => {
-          const state = getState()
+        return fakeBooks
+      },
+    )
 
-          expectTypeOf(arg).toBeNumber()
-
-          expectTypeOf(state).toEqualTypeOf<BookModel[]>()
-
-          expectTypeOf(extra).toEqualTypeOf<{ userAPI: Function }>()
-
-          return fakeBooks
-        },
-      )
-
-      correctDispatch(fetchBooksTAC(1))
-      // @ts-expect-error
-      defaultDispatch(fetchBooksTAC(1))
-    })()
+    correctDispatch(fetchBooksTAC(1))
+    // @ts-expect-error
+    defaultDispatch(fetchBooksTAC(1))
   })
 
-  test('returning a rejected action from the promise creator is possible', () => {
-    ;(async () => {
-      type ReturnValue = { data: 'success' }
-      type RejectValue = { data: 'error' }
+  test('returning a rejected action from the promise creator is possible', async () => {
+    type ReturnValue = { data: 'success' }
+    type RejectValue = { data: 'error' }
 
-      const fetchBooksTAC = createAsyncThunk<
-        ReturnValue,
-        number,
-        {
-          rejectValue: RejectValue
-        }
-      >('books/fetch', async (arg, { rejectWithValue }) => {
-        return rejectWithValue({ data: 'error' })
-      })
-
-      const returned = await defaultDispatch(fetchBooksTAC(1))
-      if (fetchBooksTAC.rejected.match(returned)) {
-        expectTypeOf(returned.payload).toEqualTypeOf<undefined | RejectValue>()
-
-        expectTypeOf(returned.payload).toBeNullable()
-      } else {
-        expectTypeOf(returned.payload).toEqualTypeOf<ReturnValue>()
+    const fetchBooksTAC = createAsyncThunk<
+      ReturnValue,
+      number,
+      {
+        rejectValue: RejectValue
       }
+    >('books/fetch', async (arg, { rejectWithValue }) => {
+      return rejectWithValue({ data: 'error' })
+    })
 
-      expectTypeOf(unwrapResult(returned)).toEqualTypeOf<ReturnValue>()
+    const returned = await defaultDispatch(fetchBooksTAC(1))
+    if (fetchBooksTAC.rejected.match(returned)) {
+      expectTypeOf(returned.payload).toEqualTypeOf<undefined | RejectValue>()
 
-      expectTypeOf(unwrapResult(returned)).not.toMatchTypeOf<RejectValue>()
-    })()
+      expectTypeOf(returned.payload).toBeNullable()
+    } else {
+      expectTypeOf(returned.payload).toEqualTypeOf<ReturnValue>()
+    }
+
+    expectTypeOf(unwrapResult(returned)).toEqualTypeOf<ReturnValue>()
+
+    expectTypeOf(unwrapResult(returned)).not.toMatchTypeOf<RejectValue>()
   })
 
   test('regression #1156: union return values fall back to allowing only single member', () => {
-    ;(async () => {
-      const fn = createAsyncThunk('session/isAdmin', async () => {
-        const response: boolean = false
-        return response
-      })
-    })()
+    const fn = createAsyncThunk('session/isAdmin', async () => {
+      const response: boolean = false
+      return response
+    })
   })
 
   test('Should handle reject with value within a try catch block. Note: this is a sample code taken from #1605', () => {
-    ;(async () => {
-      type ResultType = {
-        text: string
+    type ResultType = {
+      text: string
+    }
+    const demoPromise = async (): Promise<ResultType> =>
+      new Promise((resolve, _) => resolve({ text: '' }))
+    const thunk = createAsyncThunk('thunk', async (args, thunkAPI) => {
+      try {
+        const result = await demoPromise()
+        return result
+      } catch (error) {
+        return thunkAPI.rejectWithValue(error)
       }
-      const demoPromise = async (): Promise<ResultType> =>
-        new Promise((resolve, _) => resolve({ text: '' }))
-      const thunk = createAsyncThunk('thunk', async (args, thunkAPI) => {
-        try {
-          const result = await demoPromise()
-          return result
-        } catch (error) {
-          return thunkAPI.rejectWithValue(error)
-        }
-      })
-      createReducer({}, (builder) =>
-        builder.addCase(thunk.fulfilled, (s, action) => {
-          expectTypeOf(action.payload).toEqualTypeOf<ResultType>()
-        }),
-      )
-    })()
+    })
+    createReducer({}, (builder) =>
+      builder.addCase(thunk.fulfilled, (s, action) => {
+        expectTypeOf(action.payload).toEqualTypeOf<ResultType>()
+      }),
+    )
   })
 
   test('reject with value', () => {
