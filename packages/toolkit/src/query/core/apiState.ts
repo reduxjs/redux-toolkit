@@ -229,7 +229,7 @@ export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
 export type CombinedState<
   D extends EndpointDefinitions,
   E extends string,
-  ReducerPath extends string
+  ReducerPath extends string,
 > = {
   queries: QueryState<D>
   mutations: MutationState<D>
@@ -272,7 +272,7 @@ export type MutationState<D extends EndpointDefinitions> = {
 export type RootState<
   Definitions extends EndpointDefinitions,
   TagTypes extends string,
-  ReducerPath extends string
+  ReducerPath extends string,
 > = {
   [P in ReducerPath]: CombinedState<Definitions, TagTypes, P>
 }

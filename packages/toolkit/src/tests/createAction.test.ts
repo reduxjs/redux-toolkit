@@ -98,7 +98,7 @@ describe('createAction', () => {
         'A_TYPE',
         (a: string, b: string, c: string) => ({
           payload: a + b + c,
-        })
+        }),
       )
       expect(actionCreator('1', '2', '3').payload).toBe('123')
     })

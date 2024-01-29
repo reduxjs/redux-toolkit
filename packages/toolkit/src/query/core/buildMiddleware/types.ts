@@ -41,7 +41,7 @@ export interface SubscriptionSelectors {
 export interface BuildMiddlewareInput<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
-  TagTypes extends string
+  TagTypes extends string,
 > {
   reducerPath: ReducerPath
   context: ApiContext<Definitions>
@@ -65,13 +65,13 @@ export interface BuildSubMiddlewareInput
       { status: QueryStatus.uninitialized }
     >,
     queryCacheKey: string,
-    override?: Partial<QueryThunkArg>
+    override?: Partial<QueryThunkArg>,
   ): AsyncThunkAction<ThunkResult, QueryThunkArg, {}>
   isThisApiSliceAction: (action: Action) => boolean
 }
 
 export type SubMiddlewareBuilder = (
-  input: BuildSubMiddlewareInput
+  input: BuildSubMiddlewareInput,
 ) => Middleware<
   {},
   RootState<EndpointDefinitions, string, string>,
@@ -83,11 +83,11 @@ type MwNext = Parameters<ReturnType<Middleware>>[0]
 export type ApiMiddlewareInternalHandler<Return = void> = (
   action: Action,
   mwApi: SubMiddlewareApi & { next: MwNext },
-  prevState: RootState<EndpointDefinitions, string, string>
+  prevState: RootState<EndpointDefinitions, string, string>,
 ) => Return
 
 export type InternalHandlerBuilder<ReturnType = void> = (
-  input: BuildSubMiddlewareInput
+  input: BuildSubMiddlewareInput,
 ) => ApiMiddlewareInternalHandler<ReturnType>
 
 export interface PromiseConstructorWithKnownReason {
@@ -100,8 +100,8 @@ export interface PromiseConstructorWithKnownReason {
   new <T, R>(
     executor: (
       resolve: (value: T | PromiseLike<T>) => void,
-      reject: (reason?: R) => void
-    ) => void
+      reject: (reason?: R) => void,
+    ) => void,
   ): PromiseWithKnownReason<T, R>
 }
 
@@ -121,7 +121,7 @@ export interface PromiseWithKnownReason<T, R>
     onrejected?:
       | ((reason: R) => TResult2 | PromiseLike<TResult2>)
       | undefined
-      | null
+      | null,
   ): Promise<TResult1 | TResult2>
 
   /**
@@ -133,6 +133,6 @@ export interface PromiseWithKnownReason<T, R>
     onrejected?:
       | ((reason: R) => TResult | PromiseLike<TResult>)
       | undefined
-      | null
+      | null,
   ): Promise<T | TResult>
 }

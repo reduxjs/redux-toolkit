@@ -42,7 +42,7 @@ export function ApiProvider<A extends Api<any, {}, any, any>>(props: {
   const existingContext = useContext(context)
   if (existingContext) {
     throw new Error(
-      'Existing Redux context detected. If you already have a store set up, please use the traditional Redux setup.'
+      'Existing Redux context detected. If you already have a store set up, please use the traditional Redux setup.',
     )
   }
   const [store] = React.useState(() =>
@@ -51,7 +51,7 @@ export function ApiProvider<A extends Api<any, {}, any, any>>(props: {
         [props.api.reducerPath]: props.api.reducer,
       },
       middleware: (gDM) => gDM().concat(props.api.middleware),
-    })
+    }),
   )
   // Adds the event listeners for online/offline/focus/etc
   useEffect(
@@ -59,7 +59,7 @@ export function ApiProvider<A extends Api<any, {}, any, any>>(props: {
       props.setupListeners === false
         ? undefined
         : setupListeners(store.dispatch, props.setupListeners),
-    [props.setupListeners, store.dispatch]
+    [props.setupListeners, store.dispatch],
   )
 
   return (

@@ -30,7 +30,7 @@ let isRequestSubscribed: SubscriptionSelectors['isRequestSubscribed']
 
 beforeEach(() => {
   ;({ getSubscriptions, isRequestSubscribed } = storeRef.store.dispatch(
-    api.internalActions.internal_getRTKQSubscriptions()
+    api.internalActions.internal_getRTKQSubscriptions(),
   ) as unknown as SubscriptionSelectors)
 })
 
@@ -45,7 +45,7 @@ test('multiple synchonrous initiate calls with pre-existing cache entry', async 
   const secondValuePromise = store.dispatch(api.endpoints.increment.initiate())
   // and one with a forced refresh
   const thirdValuePromise = store.dispatch(
-    api.endpoints.increment.initiate(undefined, { forceRefetch: true })
+    api.endpoints.increment.initiate(undefined, { forceRefetch: true }),
   )
   // and another increment
   const fourthValuePromise = store.dispatch(api.endpoints.increment.initiate())
@@ -74,16 +74,16 @@ describe('calling initiate without a cache entry, with subscribe: false still re
     const { store, api } = storeRef
     calls = 0
     const promise = store.dispatch(
-      api.endpoints.increment.initiate(undefined, { subscribe: false })
+      api.endpoints.increment.initiate(undefined, { subscribe: false }),
     )
     expect(isRequestSubscribed('increment(undefined)', promise.requestId)).toBe(
-      false
+      false,
     )
     expect(
       isRequestSubscribed(
         'increment(undefined)',
-        `${promise.requestId}_running`
-      )
+        `${promise.requestId}_running`,
+      ),
     ).toBe(true)
 
     await expect(promise).resolves.toMatchObject({
@@ -93,8 +93,8 @@ describe('calling initiate without a cache entry, with subscribe: false still re
     expect(
       isRequestSubscribed(
         'increment(undefined)',
-        `${promise.requestId}_running`
-      )
+        `${promise.requestId}_running`,
+      ),
     ).toBe(false)
   })
 
@@ -102,20 +102,20 @@ describe('calling initiate without a cache entry, with subscribe: false still re
     const { store, api } = storeRef
     calls = 0
     const promise = store.dispatch(
-      api.endpoints.failing.initiate(undefined, { subscribe: false })
+      api.endpoints.failing.initiate(undefined, { subscribe: false }),
     )
     expect(isRequestSubscribed('failing(undefined)', promise.requestId)).toBe(
-      false
+      false,
     )
     expect(
-      isRequestSubscribed('failing(undefined)', `${promise.requestId}_running`)
+      isRequestSubscribed('failing(undefined)', `${promise.requestId}_running`),
     ).toBe(true)
 
     await expect(promise).resolves.toMatchObject({
       status: 'rejected',
     })
     expect(
-      isRequestSubscribed('failing(undefined)', `${promise.requestId}_running`)
+      isRequestSubscribed('failing(undefined)', `${promise.requestId}_running`),
     ).toBe(false)
   })
 })

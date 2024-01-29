@@ -1,10 +1,10 @@
-import type { WithSlice } from '../combineSlices'
-import { combineSlices } from '../combineSlices'
-import { createAction } from '../createAction'
-import { createReducer } from '../createReducer'
-import { createSlice } from '../createSlice'
-import type { CombinedState } from '../query/core/apiState'
-import { expectType } from './utils/typeTestHelpers'
+import type { WithSlice } from '@reduxjs/toolkit'
+import {
+  combineSlices,
+  createAction,
+  createReducer,
+  createSlice,
+} from '@reduxjs/toolkit'
 
 const dummyAction = createAction<void>('dummy')
 
@@ -26,7 +26,7 @@ const booleanReducer = createReducer(false, () => {})
 const api = {
   reducerPath: 'api' as const,
   reducer: createReducer(
-    expectType<CombinedState<{}, never, 'api'>>({
+    {
       queries: {},
       mutations: {},
       provided: {},
@@ -42,8 +42,8 @@ const api = {
         refetchOnReconnect: false,
         refetchOnFocus: false,
       },
-    }),
-    () => {}
+    },
+    () => {},
   ),
 }
 
@@ -55,7 +55,7 @@ describe('combineSlices', () => {
         num: numberSlice.reducer,
         boolean: booleanReducer,
       },
-      api
+      api,
     )
     expect(combinedReducer(undefined, dummyAction())).toEqual({
       string: stringSlice.getInitialState(),
@@ -66,7 +66,6 @@ describe('combineSlices', () => {
   })
   describe('injects', () => {
     beforeEach(() => {
-
       vi.stubEnv('NODE_ENV', 'development')
 
       return vi.unstubAllEnvs
@@ -83,13 +82,14 @@ describe('combineSlices', () => {
       const injectedReducer = combinedReducer.inject(numberSlice)
 
       expect(injectedReducer(undefined, dummyAction()).number).toBe(
-        numberSlice.getInitialState()
+        numberSlice.getInitialState(),
       )
     })
     it('logs error when same name is used for different reducers', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-      const combinedReducer =
-        combineSlices(stringSlice).withLazyLoadedSlices<{ boolean: boolean }>()
+      const combinedReducer = combineSlices(stringSlice).withLazyLoadedSlices<{
+        boolean: boolean
+      }>()
 
       combinedReducer.inject({
         reducerPath: 'boolean' as const,
@@ -110,7 +110,7 @@ describe('combineSlices', () => {
       })
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        `called \`inject\` to override already-existing reducer boolean without specifying \`overrideExisting: true\``
+        `called \`inject\` to override already-existing reducer boolean without specifying \`overrideExisting: true\``,
       )
       consoleSpy.mockRestore()
     })
@@ -125,15 +125,16 @@ describe('combineSlices', () => {
 
       combinedReducer.inject(
         { reducerPath: 'number' as const, reducer: () => 0 },
-        { overrideExisting: true }
+        { overrideExisting: true },
       )
 
       expect(consoleSpy).not.toHaveBeenCalled()
     })
   })
   describe('selector', () => {
-    const combinedReducer =
-      combineSlices(stringSlice).withLazyLoadedSlices<{ boolean: boolean }>()
+    const combinedReducer = combineSlices(stringSlice).withLazyLoadedSlices<{
+      boolean: boolean
+    }>()
 
     const uninjectedState = combinedReducer(undefined, dummyAction())
 
@@ -148,18 +149,18 @@ describe('combineSlices', () => {
       const selectBoolean = injectedReducer.selector((state) => state.boolean)
 
       expect(selectBoolean(uninjectedState)).toBe(
-        booleanReducer.getInitialState()
+        booleanReducer.getInitialState(),
       )
     })
     it('exposes original to allow for logging', () => {
       const selectBoolean = injectedReducer.selector(
-        (state) => injectedReducer.selector.original(state).boolean
+        (state) => injectedReducer.selector.original(state).boolean,
       )
       expect(selectBoolean(uninjectedState)).toBe(undefined)
     })
     it('throws if original is called on something other than state proxy', () => {
       expect(() => injectedReducer.selector.original({} as any)).toThrow(
-        'original must be used on state Proxy'
+        'original must be used on state Proxy',
       )
     })
     it('allows passing a selectState selector, to handle nested state', () => {
@@ -171,11 +172,11 @@ describe('combineSlices', () => {
 
       const selector = injectedReducer.selector(
         (state) => state.boolean,
-        (rootState: RootState) => rootState.inner
+        (rootState: RootState) => rootState.inner,
       )
 
       expect(selector(wrappedReducer(undefined, dummyAction()))).toBe(
-        booleanReducer.getInitialState()
+        booleanReducer.getInitialState(),
       )
     })
   })

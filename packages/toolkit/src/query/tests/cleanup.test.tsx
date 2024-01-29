@@ -51,7 +51,7 @@ test('data stays in store when component stays rendered', async () => {
 
   render(<UsingA />, { wrapper: storeRef.wrapper })
   await waitFor(() =>
-    expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
+    expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled),
   )
 
   vi.advanceTimersByTime(120_000)
@@ -64,7 +64,7 @@ test('data is removed from store after 60 seconds', async () => {
 
   const { unmount } = render(<UsingA />, { wrapper: storeRef.wrapper })
   await waitFor(() =>
-    expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
+    expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled),
   )
 
   unmount()
@@ -87,7 +87,7 @@ test('data stays in store when component stays rendered while data for another c
       <UsingA />
       <UsingB />
     </>,
-    { wrapper: storeRef.wrapper }
+    { wrapper: storeRef.wrapper },
   )
   await waitFor(() => {
     expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
@@ -117,7 +117,7 @@ test('data stays in store when one component requiring the data stays in the sto
       <UsingA key="a" />
       <UsingAB key="ab" />
     </>,
-    { wrapper: storeRef.wrapper }
+    { wrapper: storeRef.wrapper },
   )
   await waitFor(() => {
     expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
@@ -168,7 +168,7 @@ test('Minimizes the number of subscription dispatches when multiple components a
   })
 
   const { getSubscriptionCount } = storeRef.store.dispatch(
-    api.internalActions.internal_getRTKQSubscriptions()
+    api.internalActions.internal_getRTKQSubscriptions(),
   ) as unknown as SubscriptionSelectors
 
   const NUM_LIST_ITEMS = 1000

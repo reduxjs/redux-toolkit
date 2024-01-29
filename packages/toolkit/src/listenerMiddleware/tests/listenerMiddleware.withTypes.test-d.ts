@@ -36,7 +36,7 @@ export const counterSlice = createSlice({
 
 export function fetchCount(amount = 1) {
   return new Promise<{ data: number }>((resolve) =>
-    setTimeout(() => resolve({ data: amount }), 500)
+    setTimeout(() => resolve({ data: amount }), 500),
   )
 }
 
@@ -46,7 +46,7 @@ export const incrementAsync = createAsyncThunk(
     const response = await fetchCount(amount)
     // The value we return becomes the `fulfilled` action payload
     return response.data
-  }
+  },
 )
 
 const { increment } = counterSlice.actions
@@ -127,7 +127,7 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
 
           expectTypeOf(listenerApi.dispatch).toEqualTypeOf<AppDispatch>()
         },
-      })
+      }),
     )
   })
 

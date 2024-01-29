@@ -50,11 +50,11 @@ export const pokemonApi = createApi({
 
 ```ts title="fetchBaseQuery signature" no-transpile
 type FetchBaseQuery = (
-  args: FetchBaseQueryArgs
+  args: FetchBaseQueryArgs,
 ) => (
   args: string | FetchArgs,
   api: BaseQueryApi,
-  extraOptions: ExtraOptions
+  extraOptions: ExtraOptions,
 ) => FetchBaseQueryResult
 
 type FetchBaseQueryArgs = {
@@ -64,11 +64,11 @@ type FetchBaseQueryArgs = {
     api: Pick<
       BaseQueryApi,
       'getState' | 'extra' | 'endpoint' | 'type' | 'forced'
-    >
+    >,
   ) => MaybePromise<Headers | void>
   fetchFn?: (
     input: RequestInfo,
-    init?: RequestInit | undefined
+    init?: RequestInit | undefined,
   ) => Promise<Response>
   paramsSerializer?: (params: Record<string, any>) => string
   isJsonContentType?: (headers: Headers) => boolean
@@ -118,7 +118,7 @@ type prepareHeaders = (
     endpoint: string
     type: 'query' | 'mutation'
     forced: boolean | undefined
-  }
+  },
 ) => Headers | void
 ```
 

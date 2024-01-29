@@ -2,7 +2,7 @@ import type { OpenAPIV3 } from 'openapi-types';
 
 export type OperationDefinition = {
   path: string;
-  verb: typeof operationKeys[number];
+  verb: (typeof operationKeys)[number];
   pathItem: OpenAPIV3.PathItemObject;
   operation: OpenAPIV3.OperationObject;
 };

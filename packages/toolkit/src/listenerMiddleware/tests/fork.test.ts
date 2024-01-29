@@ -123,7 +123,7 @@ describe('fork', () => {
           })
           .result.then(
             deferredForkedTaskError.resolve,
-            deferredForkedTaskError.resolve
+            deferredForkedTaskError.resolve,
           )
       },
     })
@@ -132,7 +132,7 @@ describe('fork', () => {
     store.dispatch(increment())
 
     expect(await deferredForkedTaskError).toEqual(
-      new TaskAbortError(listenerCancelled)
+      new TaskAbortError(listenerCancelled),
     )
   })
 
@@ -346,7 +346,7 @@ describe('fork', () => {
 
       store.dispatch(increment())
       expect(await deferredResult).toEqual(
-        new TaskAbortError(listenerCancelled)
+        new TaskAbortError(listenerCancelled),
       )
     })
 
@@ -383,13 +383,13 @@ describe('fork', () => {
               async (forkApi) => {
                 forkApi.signal.addEventListener('abort', () => {
                   deferredResult.resolve(
-                    (forkApi.signal as AbortSignalWithReason<unknown>).reason
+                    (forkApi.signal as AbortSignalWithReason<unknown>).reason,
                   )
                 })
 
                 await forkApi.delay(10)
               },
-              { autoJoin }
+              { autoJoin },
             )
           },
         })
@@ -402,7 +402,7 @@ describe('fork', () => {
         if (cancelListener) unsubscribe({ cancelActive: true })
 
         expect(await deferredResult).toBe(expectedAbortReason)
-      }
+      },
     )
 
     test('fork.delay does not trigger unhandledRejections for completed or cancelled tasks', async () => {
@@ -418,7 +418,7 @@ describe('fork', () => {
             forkApi.signal.addEventListener(
               'abort',
               deferredCompletedEvt.resolve,
-              { once: true }
+              { once: true },
             )
             forkApi.delay(100) // missing await
 
@@ -433,7 +433,7 @@ describe('fork', () => {
             forkApi.signal.addEventListener(
               'abort',
               deferredCompletedEvt.resolve,
-              { once: true }
+              { once: true },
             )
             forkApi.delay(1_000) // missing await
             await forkApi.pause(godotPauseTrigger)

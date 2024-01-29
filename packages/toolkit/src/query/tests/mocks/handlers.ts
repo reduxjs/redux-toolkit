@@ -23,7 +23,7 @@ export const handlers = [
         url: new URL(request.url),
         headers: headersToObject(request.headers),
       })
-    }
+    },
   ),
 
   http.post(
@@ -49,25 +49,25 @@ export const handlers = [
         url: new URL(request.url),
         headers: headersToObject(request.headers),
       })
-    }
+    },
   ),
 
   http.get('https://example.com/success', () =>
-    HttpResponse.json({ value: 'success' })
+    HttpResponse.json({ value: 'success' }),
   ),
 
   http.post('https://example.com/success', () =>
-    HttpResponse.json({ value: 'success' })
+    HttpResponse.json({ value: 'success' }),
   ),
 
   http.get('https://example.com/empty', () => new HttpResponse('')),
 
   http.get('https://example.com/error', () =>
-    HttpResponse.json({ value: 'error' }, { status: 500 })
+    HttpResponse.json({ value: 'error' }, { status: 500 }),
   ),
 
   http.post('https://example.com/error', () =>
-    HttpResponse.json({ value: 'error' }, { status: 500 })
+    HttpResponse.json({ value: 'error' }, { status: 500 }),
   ),
 
   http.get('https://example.com/nonstandard-error', () =>
@@ -76,16 +76,16 @@ export const handlers = [
         success: false,
         message: 'This returns a 200 but is really an error',
       },
-      { status: 200 }
-    )
+      { status: 200 },
+    ),
   ),
 
   http.get('https://example.com/mirror', ({ params }) =>
-    HttpResponse.json(params)
+    HttpResponse.json(params),
   ),
 
   http.post('https://example.com/mirror', ({ params }) =>
-    HttpResponse.json(params)
+    HttpResponse.json(params),
   ),
 
   http.get('https://example.com/posts/random', () => {
@@ -96,6 +96,6 @@ export const handlers = [
 
   http.get<{ id: string }, any, Pick<Post, 'id'>>(
     'https://example.com/post/:id',
-    ({ params }) => HttpResponse.json(posts[params.id])
+    ({ params }) => HttpResponse.json(posts[params.id]),
   ),
 ]

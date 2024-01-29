@@ -37,20 +37,20 @@ export type BaseQueryFn<
   Result = unknown,
   Error = unknown,
   DefinitionExtraOptions = {},
-  Meta = {}
+  Meta = {},
 > = (
   args: Args,
   api: BaseQueryApi,
-  extraOptions: DefinitionExtraOptions
+  extraOptions: DefinitionExtraOptions,
 ) => MaybePromise<QueryReturnValue<Result, Error, Meta>>
 
 export type BaseQueryEnhancer<
   AdditionalArgs = unknown,
   AdditionalDefinitionExtraOptions = unknown,
-  Config = void
+  Config = void,
 > = <BaseQuery extends BaseQueryFn>(
   baseQuery: BaseQuery,
-  config: Config
+  config: Config,
 ) => BaseQueryFn<
   BaseQueryArg<BaseQuery> & AdditionalArgs,
   BaseQueryResult<BaseQuery>,
@@ -59,13 +59,12 @@ export type BaseQueryEnhancer<
   NonNullable<BaseQueryMeta<BaseQuery>>
 >
 
-export type BaseQueryResult<BaseQuery extends BaseQueryFn> = UnwrapPromise<
-  ReturnType<BaseQuery>
-> extends infer Unwrapped
-  ? Unwrapped extends { data: any }
-    ? Unwrapped['data']
+export type BaseQueryResult<BaseQuery extends BaseQueryFn> =
+  UnwrapPromise<ReturnType<BaseQuery>> extends infer Unwrapped
+    ? Unwrapped extends { data: any }
+      ? Unwrapped['data']
+      : never
     : never
-  : never
 
 export type BaseQueryMeta<BaseQuery extends BaseQueryFn> = UnwrapPromise<
   ReturnType<BaseQuery>

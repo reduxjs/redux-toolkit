@@ -360,7 +360,7 @@ describe('Sorted State Adapter', () => {
         { id: 'C', order: 3, ts: 0 },
         { id: 'D', order: 3, ts: 0 },
         { id: 'E', order: 3, ts: 0 },
-      ]
+      ],
     )
 
     const updated = sortedItemsAdapter.updateOne(withInitialItems, {

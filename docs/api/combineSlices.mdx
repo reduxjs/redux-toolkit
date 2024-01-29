@@ -235,7 +235,7 @@ declare module '.' {
 
 const withInjected = rootReducer.inject(
   { reducerPath: 'removable', reducer: removableReducer },
-  { overrideExisting: true }
+  { overrideExisting: true },
 )
 
 const emptyReducer = () => null
@@ -243,7 +243,7 @@ const emptyReducer = () => null
 const removeReducer = () =>
   rootReducer.inject(
     { reducerPath: 'removable', reducer: emptyReducer },
-    { overrideExisting: true }
+    { overrideExisting: true },
   )
 ```
 
@@ -273,14 +273,14 @@ const withCounter = rootReducer.inject(counterSlice)
 const selectCounterValue = (rootState: RootState) => rootState.counter?.value // number | undefined
 
 const wrappedSelectCounterValue = withCounter.selector(
-  (rootState) => rootState.counter.value // number
+  (rootState) => rootState.counter.value, // number
 )
 
 console.log(
   selectCounterValue({}), // undefined
   selectCounterValue({ counter: { value: 2 } }), // 2
   wrappedSelectCounterValue({}), // 0
-  wrappedSelectCounterValue({ counter: { value: 2 } }) // 2
+  wrappedSelectCounterValue({ counter: { value: 2 } }), // 2
 )
 ```
 
@@ -303,7 +303,7 @@ interface RootState {
 
 const selectCounterValue = withCounter.selector(
   (combinedState) => combinedState.counter.value,
-  (rootState: RootState) => rootState.innerCombined
+  (rootState: RootState) => rootState.innerCombined,
 )
 
 console.log(
@@ -316,7 +316,7 @@ console.log(
         value: 2,
       },
     },
-  }) // 2
+  }), // 2
 )
 ```
 
@@ -365,6 +365,6 @@ If the slice state is undefined in the store state passed, the selector will ins
 console.log(
   injectedCounterSlice.selectors.selectValue({}), // 0
   injectedCounterSlice.selectors.selectValue({ counter: { value: 2 } }), // 2
-  aCounterSlice.selectors.selectValue({ aCounter: { value: 2 } }) // 2
+  aCounterSlice.selectors.selectValue({ aCounter: { value: 2 } }), // 2
 )
 ```
