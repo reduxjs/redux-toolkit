@@ -20,6 +20,6 @@ worker.start({ quiet: true }).then(() =>
           </BrowserRouter>
         </ChakraProvider>
       </Provider>
-    </React.StrictMode>
-  )
+    </React.StrictMode>,
+  ),
 )

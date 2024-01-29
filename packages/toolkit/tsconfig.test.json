@@ -1,17 +1,20 @@
 {
-  "extends": "../toolkit/tsconfig.base.json",
+  // For runtime and type tests during CI.
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
     "emitDeclarationOnly": false,
-    "strict": true,
     "noEmit": true,
-    "target": "es2018",
-    "jsx": "react",
-    "baseUrl": ".",
-    "skipLibCheck": false,
+    "rootDir": "./src",
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
     "noImplicitReturns": false
-  }
+  },
+  "exclude": ["dist"],
+  "include": [
+    "src/**/*.test.ts*",
+    "src/**/*.test-d.ts*",
+    "src/**/*.spec.ts*",
+    "src/**/tests/**/*",
+    "src/**/*.typetest.ts*"
+  ]
 }

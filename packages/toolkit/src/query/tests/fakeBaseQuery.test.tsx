@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
-import './helpers'
+import '../../tests/utils/helpers'
 
 type CustomErrorType = { type: 'Custom' }
 
@@ -128,7 +128,7 @@ test('fakeBaseQuery throws when invoking query', async () => {
     result = await store.dispatch(thunk)
   }).toHaveConsoleOutput(
     `An unhandled error occurred processing a request for the endpoint "withQuery".
-    In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: When using \`fakeBaseQuery\`, all queries & mutations must use the \`queryFn\` definition syntax.]`
+    In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: When using \`fakeBaseQuery\`, all queries & mutations must use the \`queryFn\` definition syntax.]`,
   )
 
   expect(result!.error).toEqual({

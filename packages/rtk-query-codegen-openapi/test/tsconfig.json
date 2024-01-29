@@ -3,7 +3,7 @@
     "lib": ["es2019"],
     "paths": {
       "@/*": ["./test/fixtures/*"],
-      "@rtk-query/codegen-openapi": ["./src"]
+      "@rtk-query/codegen-openapi": ["./src"],
     },
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -17,6 +17,6 @@
     "resolveJsonModule": true,
     "types": ["node", "jest"],
     "allowJs": true,
-    "checkJs": true
-  }
+    "checkJs": true,
+  },
 }

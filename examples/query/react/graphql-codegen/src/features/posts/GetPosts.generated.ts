@@ -9,24 +9,24 @@
  * for this file to be re-created
  */
 
-import * as Types from '../../app/services/types.generated';
+import * as Types from '../../app/services/types.generated'
 
-import { api } from 'app/services/baseApi';
-module.hot?.accept();
+import { api } from 'app/services/baseApi'
+module.hot?.accept()
 export type GetPostsQueryVariables = Types.Exact<{
-  skip?: Types.Maybe<Types.Scalars['Int']>;
-  take?: Types.Maybe<Types.Scalars['Int']>;
-}>;
+  skip?: Types.Maybe<Types.Scalars['Int']>
+  take?: Types.Maybe<Types.Scalars['Int']>
+}>
 
-
-export type GetPostsQuery = (
-  { __typename?: 'Query' }
-  & { posts?: Types.Maybe<Array<Types.Maybe<(
-    { __typename?: 'Post' }
-    & Pick<Types.Post, 'id' | 'title' | 'status'>
-  )>>> }
-);
-
+export type GetPostsQuery = { __typename?: 'Query' } & {
+  posts?: Types.Maybe<
+    Array<
+      Types.Maybe<
+        { __typename?: 'Post' } & Pick<Types.Post, 'id' | 'title' | 'status'>
+      >
+    >
+  >
+}
 
 export const GetPostsDocument = `
     query GetPosts($skip: Int = 0, $take: Int = 10) {
@@ -36,17 +36,16 @@ export const GetPostsDocument = `
     status
   }
 }
-    `;
+    `
 
 const injectedRtkApi = api.injectEndpoints({
-  overrideExisting: module.hot?.status() === "apply",
+  overrideExisting: module.hot?.status() === 'apply',
   endpoints: (build) => ({
     GetPosts: build.query<GetPostsQuery, GetPostsQueryVariables | void>({
-      query: (variables) => ({ document: GetPostsDocument, variables })
+      query: (variables) => ({ document: GetPostsDocument, variables }),
     }),
   }),
-});
+})
 
-export { injectedRtkApi as api };
-export const { useGetPostsQuery, useLazyGetPostsQuery } = injectedRtkApi;
-
+export { injectedRtkApi as api }
+export const { useGetPostsQuery, useLazyGetPostsQuery } = injectedRtkApi

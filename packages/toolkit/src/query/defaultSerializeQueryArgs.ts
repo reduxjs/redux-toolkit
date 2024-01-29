@@ -25,7 +25,7 @@ export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
               acc[key] = (value as any)[key]
               return acc
             }, {})
-        : value
+        : value,
     )
     if (isPlainObject(queryArgs)) {
       cache?.set(queryArgs, stringified)

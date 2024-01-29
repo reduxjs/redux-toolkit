@@ -44,7 +44,7 @@ const selectSelf = (state: State) => state
 const unsafeSelector = createSelector(selectSelf, (state) => state.value)
 const draftSafeSelector = createDraftSafeSelector(
   selectSelf,
-  (state) => state.value
+  (state) => state.value,
 )
 
 // in your reducer:
@@ -81,7 +81,7 @@ const createWeakMapDraftSafeSelector =
 const selectSelf = (state: State) => state
 const draftSafeSelector = createWeakMapDraftSafeSelector(
   selectSelf,
-  (state) => state.value
+  (state) => state.value,
 )
 ```
 

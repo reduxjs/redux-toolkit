@@ -16,10 +16,7 @@ const Post = ({ id }: { id: number }) => {
    * This missing would be a programming error that you should
    * catch early anyways.
    */
-  assert(
-    postApi.endpoints.getPost?.useQuery,
-    'Endpoint `getPost` not loaded!'
-  )
+  assert(postApi.endpoints.getPost?.useQuery, 'Endpoint `getPost` not loaded!')
   const { data, error } = postApi.endpoints.getPost.useQuery(id)
   return error ? (
     <>there was an error</>

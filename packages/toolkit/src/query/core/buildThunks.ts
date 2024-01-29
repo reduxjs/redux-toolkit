@@ -57,54 +57,55 @@ declare module './module' {
   export interface ApiEndpointQuery<
     Definition extends QueryDefinition<any, any, any, any, any>,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    Definitions extends EndpointDefinitions
+    Definitions extends EndpointDefinitions,
   > extends Matchers<QueryThunk, Definition> {}
 
   export interface ApiEndpointMutation<
     Definition extends MutationDefinition<any, any, any, any, any>,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    Definitions extends EndpointDefinitions
+    Definitions extends EndpointDefinitions,
   > extends Matchers<MutationThunk, Definition> {}
 }
 
 type EndpointThunk<
   Thunk extends QueryThunk | MutationThunk,
-  Definition extends EndpointDefinition<any, any, any, any>
-> = Definition extends EndpointDefinition<
-  infer QueryArg,
-  infer BaseQueryFn,
-  any,
-  infer ResultType
->
-  ? Thunk extends AsyncThunk<unknown, infer ATArg, infer ATConfig>
-    ? AsyncThunk<
-        ResultType,
-        ATArg & { originalArgs: QueryArg },
-        ATConfig & { rejectValue: BaseQueryError<BaseQueryFn> }
-      >
+  Definition extends EndpointDefinition<any, any, any, any>,
+> =
+  Definition extends EndpointDefinition<
+    infer QueryArg,
+    infer BaseQueryFn,
+    any,
+    infer ResultType
+  >
+    ? Thunk extends AsyncThunk<unknown, infer ATArg, infer ATConfig>
+      ? AsyncThunk<
+          ResultType,
+          ATArg & { originalArgs: QueryArg },
+          ATConfig & { rejectValue: BaseQueryError<BaseQueryFn> }
+        >
+      : never
     : never
-  : never
 
 export type PendingAction<
   Thunk extends QueryThunk | MutationThunk,
-  Definition extends EndpointDefinition<any, any, any, any>
+  Definition extends EndpointDefinition<any, any, any, any>,
 > = ReturnType<EndpointThunk<Thunk, Definition>['pending']>
 
 export type FulfilledAction<
   Thunk extends QueryThunk | MutationThunk,
-  Definition extends EndpointDefinition<any, any, any, any>
+  Definition extends EndpointDefinition<any, any, any, any>,
 > = ReturnType<EndpointThunk<Thunk, Definition>['fulfilled']>
 
 export type RejectedAction<
   Thunk extends QueryThunk | MutationThunk,
-  Definition extends EndpointDefinition<any, any, any, any>
+  Definition extends EndpointDefinition<any, any, any, any>,
 > = ReturnType<EndpointThunk<Thunk, Definition>['rejected']>
 
 export type Matcher<M> = (value: any) => value is M
 
 export interface Matchers<
   Thunk extends QueryThunk | MutationThunk,
-  Definition extends EndpointDefinition<any, any, any, any>
+  Definition extends EndpointDefinition<any, any, any, any>,
 > {
   matchPending: Matcher<PendingAction<Thunk, Definition>>
   matchFulfilled: Matcher<FulfilledAction<Thunk, Definition>>
@@ -162,22 +163,22 @@ function defaultTransformResponse(baseQueryReturnValue: unknown) {
 export type MaybeDrafted<T> = T | Draft<T>
 export type Recipe<T> = (data: MaybeDrafted<T>) => void | MaybeDrafted<T>
 export type UpsertRecipe<T> = (
-  data: MaybeDrafted<T> | undefined
+  data: MaybeDrafted<T> | undefined,
 ) => void | MaybeDrafted<T>
 
 export type PatchQueryDataThunk<
   Definitions extends EndpointDefinitions,
-  PartialState
+  PartialState,
 > = <EndpointName extends QueryKeys<Definitions>>(
   endpointName: EndpointName,
   args: QueryArgFrom<Definitions[EndpointName]>,
   patches: readonly Patch[],
-  updateProvided?: boolean
+  updateProvided?: boolean,
 ) => ThunkAction<void, PartialState, any, UnknownAction>
 
 export type PatchQueriesDataThunk<
   Definitions extends EndpointDefinitions,
-  PartialState
+  PartialState,
 > = (
   patchesByEndpointName: {
     [EndpointName in QueryKeys<Definitions>]?: Array<{
@@ -186,17 +187,17 @@ export type PatchQueriesDataThunk<
       updateProvided?: boolean
     }>
   },
-  defaultUpdateProvided?: boolean
+  defaultUpdateProvided?: boolean,
 ) => ThunkAction<void, PartialState, any, UnknownAction>
 
 export type UpdateQueryDataThunk<
   Definitions extends EndpointDefinitions,
-  PartialState
+  PartialState,
 > = <EndpointName extends QueryKeys<Definitions>>(
   endpointName: EndpointName,
   args: QueryArgFrom<Definitions[EndpointName]>,
   updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>,
-  updateProvided?: boolean
+  updateProvided?: boolean,
 ) => ThunkAction<PatchCollection, PartialState, any, UnknownAction>
 
 type PatchCollectionArray<InputArray extends any[] = any[]> = {
@@ -205,7 +206,7 @@ type PatchCollectionArray<InputArray extends any[] = any[]> = {
 
 export type UpdateQueriesDataThunk<
   Definitions extends EndpointDefinitions,
-  PartialState
+  PartialState,
 > = <
   EndpointMap extends {
     [EndpointName in QueryKeys<Definitions>]?: Array<{
@@ -213,10 +214,10 @@ export type UpdateQueriesDataThunk<
       updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>
       updateProvided?: boolean
     }>
-  }
+  },
 >(
   recipesByEndpointName: EndpointMap,
-  defaultUpdateProvided?: boolean
+  defaultUpdateProvided?: boolean,
 ) => ThunkAction<
   {
     [EndpointName in keyof EndpointMap]: EndpointMap[EndpointName] extends any[]
@@ -230,11 +231,11 @@ export type UpdateQueriesDataThunk<
 
 export type UpsertQueryDataThunk<
   Definitions extends EndpointDefinitions,
-  PartialState
+  PartialState,
 > = <EndpointName extends QueryKeys<Definitions>>(
   endpointName: EndpointName,
   args: QueryArgFrom<Definitions[EndpointName]>,
-  value: ResultTypeFrom<Definitions[EndpointName]>
+  value: ResultTypeFrom<Definitions[EndpointName]>,
 ) => ThunkAction<
   QueryActionCreatorResult<
     Definitions[EndpointName] extends QueryDefinition<any, any, any, any>
@@ -267,7 +268,7 @@ export type PatchCollection = {
 export function buildThunks<
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string,
-  Definitions extends EndpointDefinitions
+  Definitions extends EndpointDefinitions,
 >({
   reducerPath,
   baseQuery,
@@ -343,7 +344,7 @@ export function buildThunks<
 
           const newValue = api.endpoints[endpointName].select(args)(
             // Work around TS 4.1 mismatch
-            getState() as RootState<any, any, any>
+            getState() as RootState<any, any, any>,
           )
 
           const providedTags = calculateProvidedBy(
@@ -352,7 +353,7 @@ export function buildThunks<
             undefined,
             args,
             {},
-            assertTagType
+            assertTagType,
           )
 
           providedPatches.push({ queryCacheKey, providedTags })
@@ -367,7 +368,7 @@ export function buildThunks<
     endpointName,
     args,
     patches,
-    updateProvided
+    updateProvided,
   ) => patchQueriesData({ [endpointName]: [{ args, patches, updateProvided }] })
 
   const updateQueriesData: UpdateQueriesDataThunk<Definitions, State> =
@@ -413,7 +414,7 @@ export function buildThunks<
               insert: () =>
                 endpoint.select(args)(
                   // Work around TS 4.1 mismatch
-                  getState() as RootState<any, any, any>
+                  getState() as RootState<any, any, any>,
                 ),
             })
 
@@ -426,8 +427,8 @@ export function buildThunks<
                   endpointName as QueryKeys<Definitions>,
                   args,
                   patchCollection.inversePatches,
-                  updateProvided
-                )
+                  updateProvided,
+                ),
               ),
           }
 
@@ -441,7 +442,7 @@ export function buildThunks<
             if (isDraftable(currentState.data)) {
               const [value, patches, inversePatches] = produceWithPatches(
                 currentState.data,
-                updateRecipe
+                updateRecipe,
               )
               patchCollection.patches.push(...patches)
               patchCollection.inversePatches.push(...inversePatches)
@@ -475,7 +476,7 @@ export function buildThunks<
       }
 
       dispatch(
-        api.util.patchQueriesData(patchesByEndpointName, defaultUpdateProvided)
+        api.util.patchQueriesData(patchesByEndpointName, defaultUpdateProvided),
       )
 
       return ret as any
@@ -487,7 +488,7 @@ export function buildThunks<
       dispatch(
         updateQueriesData({
           [endpointName]: [{ args, updateRecipe, updateProvided }],
-        })
+        }),
       )[endpointName][0]
 
   const upsertQueryData: UpsertQueryDataThunk<Definitions, State> =
@@ -504,7 +505,7 @@ export function buildThunks<
           [forceQueryFnSymbol]: () => ({
             data: value,
           }),
-        })
+        }),
       )
     }
 
@@ -522,7 +523,7 @@ export function buildThunks<
       dispatch,
       getState,
       extra,
-    }
+    },
   ) => {
     const endpointDefinition = endpointDefinitions[arg.endpointName]
 
@@ -530,7 +531,7 @@ export function buildThunks<
       let transformResponse: (
         baseQueryReturnValue: any,
         meta: any,
-        arg: any
+        arg: any,
       ) => any = defaultTransformResponse
       let result: QueryReturnValue
       const baseQueryApi = {
@@ -553,7 +554,7 @@ export function buildThunks<
         result = await baseQuery(
           endpointDefinition.query(arg.originalArgs),
           baseQueryApi,
-          endpointDefinition.extraOptions as any
+          endpointDefinition.extraOptions as any,
         )
 
         if (endpointDefinition.transformResponse) {
@@ -565,7 +566,11 @@ export function buildThunks<
           baseQueryApi,
           endpointDefinition.extraOptions as any,
           (arg) =>
-            baseQuery(arg, baseQueryApi, endpointDefinition.extraOptions as any)
+            baseQuery(
+              arg,
+              baseQueryApi,
+              endpointDefinition.extraOptions as any,
+            ),
         )
       }
       if (
@@ -596,7 +601,7 @@ export function buildThunks<
               ${err}
               It needs to return an object with either the shape \`{ data: <value> }\` or \`{ error: <value> }\` that may contain an optional \`meta\` property.
               Object returned was:`,
-            result
+            result,
           )
         }
       }
@@ -609,7 +614,7 @@ export function buildThunks<
           fulfilledTimeStamp: Date.now(),
           baseQueryMeta: result.meta,
           [SHOULD_AUTOBATCH]: true,
-        }
+        },
       )
     } catch (error) {
       let catchedError = error
@@ -617,7 +622,7 @@ export function buildThunks<
         let transformErrorResponse: (
           baseQueryReturnValue: any,
           meta: any,
-          arg: any
+          arg: any,
         ) => any = defaultTransformResponse
 
         if (
@@ -631,9 +636,9 @@ export function buildThunks<
             await transformErrorResponse(
               catchedError.value,
               catchedError.meta,
-              arg.originalArgs
+              arg.originalArgs,
             ),
-            { baseQueryMeta: catchedError.meta, [SHOULD_AUTOBATCH]: true }
+            { baseQueryMeta: catchedError.meta, [SHOULD_AUTOBATCH]: true },
           )
         } catch (e) {
           catchedError = e
@@ -646,7 +651,7 @@ export function buildThunks<
         console.error(
           `An unhandled error occurred processing a request for the endpoint "${arg.endpointName}".
 In the case of an unhandled error, no tags will be "provided" or "invalidated".`,
-          catchedError
+          catchedError,
         )
       } else {
         console.error(catchedError)
@@ -657,7 +662,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
 
   function isForcedQuery(
     arg: QueryThunkArg,
-    state: RootState<any, string, ReducerPath>
+    state: RootState<any, string, ReducerPath>,
   ) {
     const requestState = state[reducerPath]?.queries?.[arg.queryCacheKey]
     const baseFetchOnMountOrArgChange =
@@ -749,14 +754,14 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   const hasTheForce = (options: any): options is { force: boolean } =>
     'force' in options
   const hasMaxAge = (
-    options: any
+    options: any,
   ): options is { ifOlderThan: false | number } => 'ifOlderThan' in options
 
   const prefetch =
     <EndpointName extends QueryKeys<Definitions>>(
       endpointName: EndpointName,
       arg: any,
-      options: PrefetchOptions
+      options: PrefetchOptions,
     ): ThunkAction<void, any, any, UnknownAction> =>
     (dispatch: ThunkDispatch<any, any, any>, getState: () => any) => {
       const force = hasTheForce(options) && options.force
@@ -765,7 +770,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       const queryAction = (force: boolean = true) =>
         (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).initiate(
           arg,
-          { forceRefetch: force }
+          { forceRefetch: force },
         )
       const latestStateValue = (
         api.endpoints[endpointName] as ApiEndpointQuery<any, any>
@@ -799,13 +804,13 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   function buildMatchThunkActions<
     Thunk extends
       | AsyncThunk<any, QueryThunkArg, ThunkApiMetaConfig>
-      | AsyncThunk<any, MutationThunkArg, ThunkApiMetaConfig>
+      | AsyncThunk<any, MutationThunkArg, ThunkApiMetaConfig>,
   >(thunk: Thunk, endpointName: string) {
     return {
       matchPending: isAllOf(isPending(thunk), matchesEndpoint(endpointName)),
       matchFulfilled: isAllOf(
         isFulfilled(thunk),
-        matchesEndpoint(endpointName)
+        matchesEndpoint(endpointName),
       ),
       matchRejected: isAllOf(isRejected(thunk), matchesEndpoint(endpointName)),
     } as Matchers<Thunk, any>
@@ -830,7 +835,7 @@ export function calculateProvidedByThunk(
   >,
   type: 'providesTags' | 'invalidatesTags',
   endpointDefinitions: EndpointDefinitions,
-  assertTagType: AssertTagTypes
+  assertTagType: AssertTagTypes,
 ) {
   return calculateProvidedBy(
     endpointDefinitions[action.meta.arg.endpointName][type],
@@ -838,6 +843,6 @@ export function calculateProvidedByThunk(
     isRejectedWithValue(action) ? action.payload : undefined,
     action.meta.arg.originalArgs,
     'baseQueryMeta' in action.meta ? action.meta.baseQueryMeta : undefined,
-    assertTagType
+    assertTagType,
   )
 }

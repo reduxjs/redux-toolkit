@@ -1,17 +1,16 @@
-import { vi } from 'vitest'
 import type { PayloadAction, WithSlice } from '@reduxjs/toolkit'
 import {
   asyncThunkCreator,
   buildCreateSlice,
-  configureStore,
   combineSlices,
-  createSlice,
+  configureStore,
   createAction,
+  createSlice,
 } from '@reduxjs/toolkit'
 import {
-  mockConsole,
   createConsole,
   getLog,
+  mockConsole,
 } from 'console-testing-library/pure'
 
 type CreateSlice = typeof createSlice
@@ -34,7 +33,7 @@ describe('createSlice', () => {
               state * action.payload,
           },
           initialState: 0,
-        })
+        }),
       ).toThrowError()
     })
   })
@@ -50,12 +49,18 @@ describe('createSlice', () => {
               state * action.payload,
           },
           initialState: 0,
-        })
+        }),
       ).toThrowError()
     })
   })
 
   describe('when initial state is undefined', () => {
+    beforeEach(() => {
+      vi.stubEnv('NODE_ENV', 'development')
+
+      return vi.unstubAllEnvs
+    })
+
     it('should throw an error', () => {
       createSlice({
         name: 'test',
@@ -64,7 +69,7 @@ describe('createSlice', () => {
       })
 
       expect(getLog().log).toBe(
-        'You must provide an `initialState` value that is not `undefined`. You may have misspelled `initialState`'
+        'You must provide an `initialState` value that is not `undefined`. You may have misspelled `initialState`',
       )
     })
   })
@@ -116,7 +121,7 @@ describe('createSlice', () => {
           name: 'params',
           initialState: new URLSearchParams(),
           reducers: {},
-        })
+        }),
       ).not.toThrowError()
     })
   })
@@ -157,7 +162,7 @@ describe('createSlice', () => {
           name: 'params',
           initialState: () => new URLSearchParams(),
           reducers: {},
-        })
+        }),
       ).not.toThrowError()
     })
   })
@@ -194,7 +199,7 @@ describe('createSlice', () => {
       extraReducers: (builder) => {
         builder.addCase(
           addMore,
-          (state, action) => state + action.payload.amount
+          (state, action) => state + action.payload.amount,
         )
       },
 
@@ -218,7 +223,7 @@ describe('createSlice', () => {
           extraReducers: (builder) =>
             builder.addCase(
               increment,
-              (state, action) => state + action.payload
+              (state, action) => state + action.payload,
             ),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
@@ -233,7 +238,7 @@ describe('createSlice', () => {
             builder.addCase(
               'increment',
               (state, action: { type: 'increment'; payload: number }) =>
-                state + action.payload
+                state + action.payload,
             ),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
@@ -252,7 +257,7 @@ describe('createSlice', () => {
           })
           slice.reducer(undefined, { type: 'unrelated' })
         }).toThrowErrorMatchingInlineSnapshot(
-          `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`
+          `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`,
         )
       })
 
@@ -265,7 +270,7 @@ describe('createSlice', () => {
             builder.addMatcher(
               increment.match,
               (state, action: { type: 'increment'; payload: number }) =>
-                state + action.payload
+                state + action.payload,
             ),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
@@ -279,7 +284,7 @@ describe('createSlice', () => {
           extraReducers: (builder) =>
             builder.addDefaultCase(
               (state, action) =>
-                state + (action as PayloadAction<number>).payload
+                state + (action as PayloadAction<number>).payload,
             ),
         })
         expect(slice.reducer(0, increment(5))).toBe(5)
@@ -328,7 +333,7 @@ describe('createSlice', () => {
       testSlice.reducer(0, testSlice.actions.testReducer('testPayload'))
       expect(reducer).toHaveBeenCalledWith(
         0,
-        expect.objectContaining({ payload: 'testPayload' })
+        expect.objectContaining({ payload: 'testPayload' }),
       )
     })
   })
@@ -366,23 +371,23 @@ describe('createSlice', () => {
       })
 
       expect(first.reducer(undefined, { type: 'unrelated' })).toBe(
-        'firstInitial'
+        'firstInitial',
       )
       expect(first.reducer(undefined, first.actions.something())).toBe(
-        'firstSomething'
+        'firstSomething',
       )
       expect(first.reducer(undefined, second.actions.other())).toBe(
-        'firstOther'
+        'firstOther',
       )
 
       expect(second.reducer(undefined, { type: 'unrelated' })).toBe(
-        'secondInitial'
+        'secondInitial',
       )
       expect(second.reducer(undefined, first.actions.something())).toBe(
-        'secondSomething'
+        'secondSomething',
       )
       expect(second.reducer(undefined, second.actions.other())).toBe(
-        'secondOther'
+        'secondOther',
       )
     })
   })
@@ -420,7 +425,7 @@ describe('createSlice', () => {
       }
 
       expect(wrapper).toThrowError(
-        /The object notation for `createSlice.extraReducers` has been removed/
+        /The object notation for `createSlice.extraReducers` has been removed/,
       )
 
       dummySlice = (createSlice as CreateSlice)({
@@ -433,16 +438,17 @@ describe('createSlice', () => {
         },
       })
       expect(wrapper).toThrowError(
-        /The object notation for `createSlice.extraReducers` has been removed/
+        /The object notation for `createSlice.extraReducers` has been removed/,
       )
     })
 
     // TODO Determine final production behavior here
-    it.skip('Crashes in production', () => {
-      process.env.NODE_ENV = 'production'
+    it.todo('Crashes in production', () => {
+      vi.stubEnv('NODE_ENV', 'production')
+
       const { createSlice } = require('../createSlice')
 
-      let dummySlice = (createSlice as CreateSlice)({
+      const dummySlice = (createSlice as CreateSlice)({
         name: 'dummy',
         initialState: [],
         reducers: {},
@@ -450,13 +456,15 @@ describe('createSlice', () => {
         extraReducers: {},
       })
       const wrapper = () => {
-        let reducer = dummySlice.reducer
+        const { reducer } = dummySlice
         reducer(undefined, { type: 'dummy' })
       }
 
       expect(wrapper).toThrowError(
-        /The object notation for `createSlice.extraReducers` has been removed/
+        /The object notation for `createSlice.extraReducers` has been removed/,
       )
+
+      vi.unstubAllEnvs()
     })
   })
   describe('slice selectors', () => {
@@ -468,7 +476,7 @@ describe('createSlice', () => {
         selectSlice: (state) => state,
         selectMultiple: Object.assign(
           (state: number, multiplier: number) => state * multiplier,
-          { test: 0 }
+          { test: 0 },
         ),
       },
     })
@@ -485,7 +493,7 @@ describe('createSlice', () => {
         number: slice.getInitialState(),
       }
       const { selectSlice, selectMultiple } = slice.getSelectors(
-        (state: typeof customState) => state.number
+        (state: typeof customState) => state.number,
       )
       expect(selectSlice(customState)).toBe(slice.getInitialState())
       expect(selectMultiple(customState, 2)).toBe(slice.getInitialState() * 2)
@@ -531,22 +539,22 @@ describe('createSlice', () => {
 
       // selector returns initial state if undefined in real state
       expect(injectedSlice.selectSlice(uninjectedState)).toBe(
-        slice.getInitialState()
+        slice.getInitialState(),
       )
       expect(injectedSlice.selectors.selectMultiple({}, 1)).toBe(
-        slice.getInitialState()
+        slice.getInitialState(),
       )
       expect(injectedSlice.getSelectors().selectMultiple(undefined, 1)).toBe(
-        slice.getInitialState()
+        slice.getInitialState(),
       )
 
       const injectedState = combinedReducer(undefined, increment())
 
       expect(injectedSlice.selectSlice(injectedState)).toBe(
-        slice.getInitialState() + 1
+        slice.getInitialState() + 1,
       )
       expect(injectedSlice.selectors.selectMultiple(injectedState, 1)).toBe(
-        slice.getInitialState() + 1
+        slice.getInitialState() + 1,
       )
     })
     it('allows providing a custom name to inject under', () => {
@@ -577,10 +585,10 @@ describe('createSlice', () => {
       const injectedState = combinedReducer(undefined, increment())
 
       expect(injected.selectSlice(injectedState)).toBe(
-        slice.getInitialState() + 1
+        slice.getInitialState() + 1,
       )
       expect(injected.selectors.selectMultiple(injectedState, 2)).toBe(
-        (slice.getInitialState() + 1) * 2
+        (slice.getInitialState() + 1) * 2,
       )
 
       const injected2 = slice.injectInto(combinedReducer, {
@@ -590,10 +598,10 @@ describe('createSlice', () => {
       const injected2State = combinedReducer(undefined, increment())
 
       expect(injected2.selectSlice(injected2State)).toBe(
-        slice.getInitialState() + 1
+        slice.getInitialState() + 1,
       )
       expect(injected2.selectors.selectMultiple(injected2State, 2)).toBe(
-        (slice.getInitialState() + 1) * 2
+        (slice.getInitialState() + 1) * 2,
       )
     })
     it('avoids incorrectly caching selectors', () => {
@@ -621,9 +629,9 @@ describe('createSlice', () => {
 
       expect(() =>
         // @ts-expect-error
-        slice.getSelectors().selectMultiple(undefined, 1)
+        slice.getSelectors().selectMultiple(undefined, 1),
       ).toThrowErrorMatchingInlineSnapshot(
-        `[Error: selectState returned undefined for an uninjected slice reducer]`
+        `[Error: selectState returned undefined for an uninjected slice reducer]`,
       )
 
       const injected2 = slice.injectInto(combinedReducer, {
@@ -643,9 +651,9 @@ describe('createSlice', () => {
           name: 'test',
           initialState: [] as any[],
           reducers: (create) => ({ thunk: create.asyncThunk(() => {}) }),
-        })
+        }),
       ).toThrowErrorMatchingInlineSnapshot(
-        `[Error: Cannot use \`create.asyncThunk\` in the built-in \`createSlice\`. Use \`buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })\` to create a customised version of \`createSlice\`.]`
+        `[Error: Cannot use \`create.asyncThunk\` in the built-in \`createSlice\`. Use \`buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })\` to create a customised version of \`createSlice\`.]`,
       )
     })
     const createAppSlice = buildCreateSlice({
@@ -673,7 +681,7 @@ describe('createSlice', () => {
             function payloadCreator(arg, api) {
               return Promise.resolve('resolved payload')
             },
-            { pending, fulfilled, rejected, settled }
+            { pending, fulfilled, rejected, settled },
           ),
         }),
       })
@@ -717,7 +725,7 @@ describe('createSlice', () => {
             function payloadCreator(arg, api): any {
               throw new Error('')
             },
-            { pending, fulfilled, rejected, settled }
+            { pending, fulfilled, rejected, settled },
           ),
         }),
       })
@@ -771,7 +779,7 @@ describe('createSlice', () => {
               fulfilled,
               rejected,
               settled,
-            }
+            },
           ),
         }),
       })
@@ -809,7 +817,7 @@ describe('createSlice', () => {
             function payloadCreator(arg, api) {
               return Promise.resolve('resolved payload')
             },
-            { pending, fulfilled, settled }
+            { pending, fulfilled, settled },
           ),
         }),
       })
@@ -825,9 +833,9 @@ describe('createSlice', () => {
           slice.actions.thunkReducers.rejected(
             new Error('test'),
             'fakeRequestId',
-            {}
-          )
-        )
+            {},
+          ),
+        ),
       ).not.toThrow()
     })
 
@@ -844,13 +852,16 @@ describe('createSlice', () => {
             }),
             (state, action) => {
               state.push(action)
-            }
+            },
           ),
         }),
       })
 
       expect(
-        slice.reducer([], slice.actions.prepared('test', 1, { message: 'err' }))
+        slice.reducer(
+          [],
+          slice.actions.prepared('test', 1, { message: 'err' }),
+        ),
       ).toMatchInlineSnapshot(`
         [
           {
@@ -882,9 +893,9 @@ describe('createSlice', () => {
               },
             },
           }),
-        })
+        }),
       ).toThrowErrorMatchingInlineSnapshot(
-        `[Error: Please use the \`create.preparedReducer\` notation for prepared action creators with the \`create\` notation.]`
+        `[Error: Please use the \`create.preparedReducer\` notation for prepared action creators with the \`create\` notation.]`,
       )
     })
   })
