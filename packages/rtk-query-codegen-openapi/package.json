@@ -22,7 +22,7 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "test:update": "jest --runInBand --updateSnapshot",
     "test:update:enum": "lib/bin/cli.js test/config.example.enum.ts",
-    "test": "jest --runInBand",
+    "test": "vitest --run",
     "cli": "esr src/bin/cli.ts"
   },
   "files": [
