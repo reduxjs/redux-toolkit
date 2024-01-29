@@ -70,7 +70,7 @@ describe('configureStore', async () => {
         [slice.reducerPath]: slice.reducer,
       })
       expect(redux.applyMiddleware).toHaveBeenCalled()
-      expect(mockDevtoolsCompose).toHaveBeenCalled() // @remap-prod-remove-line-line
+      expect(composeWithDevToolsSpy).toHaveBeenCalled() // @remap-prod-remove-line-line
       expect(redux.createStore).toHaveBeenCalledWith(
         expect.any(Function),
         undefined,
