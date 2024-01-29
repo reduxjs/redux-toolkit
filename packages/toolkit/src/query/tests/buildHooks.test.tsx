@@ -1,4 +1,6 @@
+import type { SubscriptionOptions } from '@internal/query/core/apiState'
 import type { SubscriptionSelectors } from '@internal/query/core/buildMiddleware/types'
+import { server } from '@internal/query/tests/mocks/server'
 import { countObjectKeys } from '@internal/query/utils/countObjectKeys'
 import {
   actionsReducer,
@@ -13,7 +15,6 @@ import {
   createListenerMiddleware,
   createSlice,
 } from '@reduxjs/toolkit'
-import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
 import {
   QueryStatus,
   createApi,
@@ -32,7 +33,6 @@ import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { useEffect, useState } from 'react'
 import type { MockInstance } from 'vitest'
-import { server } from './mocks/server'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
