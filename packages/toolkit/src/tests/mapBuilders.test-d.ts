@@ -7,6 +7,7 @@ import { createAction } from '@reduxjs/toolkit'
 describe('type tests', () => {
   test('builder callback for actionMap', () => {
     const increment = createAction<number, 'increment'>('increment')
+
     const decrement = createAction<number, 'decrement'>('decrement')
 
     executeReducerBuilderCallback<number>((builder) => {
@@ -51,6 +52,7 @@ describe('type tests', () => {
         increment,
         (state, action: ReturnType<typeof increment>) => state,
       )
+
       // @ts-expect-error
       builder.addCase(
         increment,
@@ -61,6 +63,7 @@ describe('type tests', () => {
         'increment',
         (state, action: ReturnType<typeof increment>) => state,
       )
+
       // @ts-expect-error
       builder.addCase(
         'decrement',
@@ -127,20 +130,22 @@ describe('type tests', () => {
 
       test('addMatcher() should prevent further calls to addCase()', () => {
         const b = builder.addMatcher(increment.match, () => {})
-        // @ts-expect-error
-        b.addCase(increment, () => {})
-        b.addMatcher(increment.match, () => {})
-        b.addDefaultCase(() => {})
+
+        expectTypeOf(b).not.toHaveProperty('addCase')
+
+        expectTypeOf(b.addMatcher).toBeCallableWith(increment.match, () => {})
+
+        expectTypeOf(b.addDefaultCase).toBeCallableWith(() => {})
       })
 
       test('addDefaultCase() should prevent further calls to addCase(), addMatcher() and addDefaultCase', () => {
         const b = builder.addDefaultCase(() => {})
-        // @ts-expect-error
-        b.addCase(increment, () => {})
-        // @ts-expect-error
-        b.addMatcher(increment.match, () => {})
-        // @ts-expect-error
-        b.addDefaultCase(() => {})
+
+        expectTypeOf(b).not.toHaveProperty('addCase')
+
+        expectTypeOf(b).not.toHaveProperty('addMatcher')
+
+        expectTypeOf(b).not.toHaveProperty('addDefaultCase')
       })
 
       describe('`createAsyncThunk` actions work with `mapBuilder`', () => {
