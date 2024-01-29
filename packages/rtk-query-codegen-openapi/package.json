@@ -23,6 +23,7 @@
     "test:update": "jest --runInBand --updateSnapshot",
     "test:update:enum": "lib/bin/cli.js test/config.example.enum.ts",
     "test": "vitest --run",
+    "test:watch": "vitest --watch",
     "cli": "esr src/bin/cli.ts"
   },
   "files": [
