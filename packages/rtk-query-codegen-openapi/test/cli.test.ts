@@ -1,11 +1,11 @@
-import type { ExecException } from 'child_process';
-import { exec } from 'child_process';
-import * as fs from 'fs';
-import path from 'path';
 import del from 'del';
+import type { ExecException } from 'node:child_process';
+import { exec } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
 
 function cli(args: string[], cwd: string): Promise<{ error: ExecException | null; stdout: string; stderr: string }> {
-  const pwd = (process.env && process.env.PWD) || '.';
+  const pwd = process.env?.PWD || '.';
   const cmd = `${require.resolve('ts-node/dist/bin')} -T -P ${path.resolve(pwd, 'tsconfig.json')} ${path.resolve(
     pwd,
     'src/bin/cli.ts'
@@ -44,7 +44,7 @@ Done
     });
 
     expect(fs.readFileSync(path.resolve(tmpDir, 'example.ts'), 'utf-8')).toMatchSnapshot();
-  }, 25000);
+  }, 25_000);
 
   test('paths are relative to configfile, not to cwd', async () => {
     const out = await cli([`../test/config.example.js`], path.resolve(__dirname, '../src'));
@@ -58,7 +58,7 @@ Done
     });
 
     expect(fs.readFileSync(path.resolve(tmpDir, 'example.ts'), 'utf-8')).toMatchSnapshot();
-  }, 25000);
+  }, 25_000);
 
   test('ts, js and json all work the same', async () => {
     await cli([`./config.example.js`], __dirname);
@@ -70,10 +70,10 @@ Done
 
     expect(fromTs).toEqual(fromJs);
     expect(fromJson).toEqual(fromJs);
-  }, 120000);
+  }, 120_000);
 
   test('missing parameters doesnt fail', async () => {
     const out = await cli([`./config.invalid-example.json`], __dirname);
     expect(out.stderr).toContain("Error: path parameter petId does not seem to be defined in '/pet/{petId}'!");
-  }, 25000);
+  }, 25_000);
 });

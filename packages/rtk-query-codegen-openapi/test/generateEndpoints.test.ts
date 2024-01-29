@@ -1,6 +1,6 @@
 import del from 'del';
-import fs from 'fs';
-import path, { resolve } from 'path';
+import fs from 'node:fs';
+import path, { resolve } from 'node:path';
 import { generateEndpoints } from '../src';
 
 const tmpDir = path.resolve(__dirname, 'tmp');
@@ -379,7 +379,7 @@ describe('openapi spec', () => {
       unionUndefined: true,
       schemaFile: './fixtures/readOnlyWriteOnly.yaml',
       apiFile: './fixtures/emptyApi.ts',
-      mergeReadWriteOnly: true
+      mergeReadWriteOnly: true,
     });
     expect(api).toMatchSnapshot();
   });
