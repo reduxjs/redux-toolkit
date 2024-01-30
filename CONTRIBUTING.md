@@ -36,6 +36,8 @@ Please open an [issue](https://github.com/reduxjs/redux-toolkit/issues) with a p
 
 Please use the GitHub UI to [fork this repository](https://github.com/reduxjs/redux-toolkit) (_read more about [Forking a repository](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo)_). Redux Toolkit has forked builds enabled in the CI, so you will see the build status of your fork's branch.
 
+![Fork Button](https://docs.github.com/assets/cb-40742/mw-1440/images/help/repository/fork-button.webp)
+
 Fork, then clone the repo:
 
 ```sh
