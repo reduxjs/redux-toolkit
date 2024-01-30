@@ -48,6 +48,10 @@ The Redux Toolkit docs are available at **https://redux-toolkit.js.org**, includ
 
 The Redux core docs at https://redux.js.org includes the full Redux tutorials, as well usage guides on general Redux patterns.
 
+## Contributing
+
+Pls refer to our [contributing guide](/CONTRIBUTING.md) to learn about our development process, how to propose bugfixes and improvements, and how to build and test your changes to Redux-toolkit.
+
 ## Purpose
 
 The **Redux Toolkit** package is intended to be the standard way to write Redux logic. It was originally created to help address three common concerns about Redux:
