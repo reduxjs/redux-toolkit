@@ -8,7 +8,6 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   test: {
-    pool: 'typescript',
     globals: true,
     setupFiles: ['./test/vitest.setup.ts'],
     alias: {
