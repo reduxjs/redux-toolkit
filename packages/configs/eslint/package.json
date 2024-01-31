@@ -2,8 +2,12 @@
   "name": "@reduxjs/eslint-config",
   "version": "0.0.1",
   "description": "ESLint configuration for Redux projects",
-  "main": "eslint.config.js",
-  "type": "module",
+  "main": "./dist/eslint.config.js",
+  "types": "./dist/eslint.config.d.ts",
+  "scripts": {
+    "build": "yarn clean && tsc",
+    "clean": "rimraf dist"
+  },
   "keywords": [
     "eslint",
     "config",
@@ -23,6 +27,8 @@
     "@typescript-eslint/eslint-plugin": "^6.20.0",
     "@typescript-eslint/parser": "^6.20.0",
     "eslint": "^8.56.0",
-    "eslint-config-prettier": "^9.1.0"
+    "eslint-config-prettier": "^9.1.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3"
   }
 }

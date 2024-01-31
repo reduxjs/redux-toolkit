@@ -67,7 +67,7 @@
     "axios": "^0.19.2",
     "console-testing-library": "0.6.1",
     "esbuild-extra": "^0.3.1",
-    "eslint": "^7.25.0",
+    "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-flowtype": "^5.7.2",
@@ -100,7 +100,7 @@
     "build-only": "yarn clean && yarn run-build",
     "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
-    "lint": "eslint src examples",
+    "lint": "eslint .",
     "test": "vitest --run --typecheck",
     "test:watch": "vitest --watch",
     "type-tests": "yarn tsc -p tsconfig.test.json --noEmit",
@@ -113,7 +113,6 @@
     "react"
   ],
   "dependencies": {
-    "@reduxjs/vitest-config": "file:.yalc/@reduxjs/vitest-config",
     "immer": "^10.0.3",
     "redux": "^5.0.1",
     "redux-thunk": "^3.1.0",
