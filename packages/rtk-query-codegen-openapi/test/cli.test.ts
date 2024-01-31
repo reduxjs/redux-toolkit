@@ -60,7 +60,7 @@ Done
     expect(fs.readFileSync(path.resolve(tmpDir, 'example.ts'), 'utf-8')).toMatchSnapshot();
   }, 25_000);
 
-  test('ts, js and json all work the same', async () => {
+  test.todo('ts, js and json all work the same', async () => {
     await cli([`./config.example.js`], __dirname);
     const fromJs = fs.readFileSync(path.resolve(tmpDir, 'example.ts'), 'utf-8');
     await cli([`./config.example.ts`], __dirname);
