@@ -50,7 +50,7 @@ The Redux core docs at https://redux.js.org includes the full Redux tutorials, a
 
 ## Contributing
 
-Pls refer to our [contributing guide](/CONTRIBUTING.md) to learn about our development process, how to propose bugfixes and improvements, and how to build and test your changes to Redux-toolkit.
+Please refer to our [contributing guide](/CONTRIBUTING.md) to learn about our development process, how to propose bugfixes and improvements, and how to build and test your changes to Redux Toolkit.
 
 ## Purpose
 

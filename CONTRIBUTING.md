@@ -10,13 +10,11 @@ Please ask any general and implementation specific questions on [Stack Overflow 
 
 We ask you to do this because StackOverflow has a much better job at keeping popular questions visible. Unfortunately good answers get lost and outdated on GitHub.
 
-Some questions take a long time to get an answer. If your question gets closed or you don't get a reply on StackOverflow for longer than a few days, we encourage you to post an issue linking to your question. We will close your issue but this will give people watching the repo an opportunity to see your question and reply to it on StackOverflow if they know the answer.
-
-Please be considerate when doing this as this is not the primary purpose of the issue tracker.
+If your question gets closed or you don't get a reply after a few days, consider opening a [discussion](https://github.com/reduxjs/redux-toolkit/discussions) or joining the [Reactiflux](https://discord.gg/reactiflux) discord server and asking in the #redux channel.
 
 ### Help Us Help You
 
-On both websites, it is a good idea to structure your code and question in a way that is easy to read to entice people to answer it. For example, we encourage you to use syntax highlighting, indentation, and split text in paragraphs.
+On both websites, it is a good idea to structure your code and question in a way that is easy to read to help people to answer it. For example, we encourage you to use syntax highlighting, indentation, and split text in paragraphs.
 
 Please keep in mind that people spend their free time trying to help you. You can make it easier for them if you provide versions of the relevant libraries and a runnable small project reproducing your issue. You can put your code on [JSBin](https://jsbin.com) or, for bigger projects, on GitHub. Make sure all the necessary dependencies are declared in `package.json` so anyone can run `npm install && npm start` and reproduce your issue.
 
@@ -26,7 +24,7 @@ Visit the [Issue tracker](https://github.com/reduxjs/redux-toolkit/issues) to fi
 
 ### Bugs and Improvements
 
-We use the [Issue tracker](https://github.com/reduxjs/redux-toolkit/issues) to keep track of bugs and improvements to redux-toolkit itself, its examples, and the documentation. We encourage you to open issues to discuss improvements, architecture, theory, internal implementation, etc. If a topic has been discussed before, we will ask you to join the previous discussion.
+We use the [Issue tracker](https://github.com/reduxjs/redux-toolkit/issues) to keep track of bugs and improvements to Redux Toolkit itself, its examples, and the documentation. We encourage you to open issues to discuss improvements, architecture, theory, internal implementation, etc. If a topic has been discussed before, we will ask you to join the previous discussion.
 
 ### New Features
 
