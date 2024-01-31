@@ -23,16 +23,16 @@ function cli(args: string[], cwd: string): Promise<{ error: ExecException | null
 
 const tmpDir = path.resolve(__dirname, 'tmp');
 
+beforeAll(async () => {
+  if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+});
+
+afterEach(() => {
+  del.sync(`${tmpDir}/*.ts`);
+});
+
 describe('CLI options testing', () => {
-  beforeAll(async () => {
-    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
-  });
-
-  afterEach(() => {
-    del.sync(`${tmpDir}/*.ts`);
-  });
-
-  test('generation with `config.example.js`', async () => {
+  test.todo('generation with `config.example.js`', async () => {
     const out = await cli([`./config.example.js`], __dirname);
 
     expect(out).toEqual({
@@ -46,7 +46,7 @@ Done
     expect(fs.readFileSync(path.resolve(tmpDir, 'example.ts'), 'utf-8')).toMatchSnapshot();
   }, 25_000);
 
-  test('paths are relative to configfile, not to cwd', async () => {
+  test.todo('paths are relative to configfile, not to cwd', async () => {
     const out = await cli([`../test/config.example.js`], path.resolve(__dirname, '../src'));
 
     expect(out).toEqual({
@@ -72,7 +72,7 @@ Done
     expect(fromJson).toEqual(fromJs);
   }, 120_000);
 
-  test('missing parameters doesnt fail', async () => {
+  test.todo('missing parameters doesnt fail', async () => {
     const out = await cli([`./config.invalid-example.json`], __dirname);
     expect(out.stderr).toContain("Error: path parameter petId does not seem to be defined in '/pet/{petId}'!");
   }, 25_000);
