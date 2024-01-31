@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`calling without \`outputFile\` returns the generated api 1`] = `
-import { api } from "./fixtures/emptyApi";
+"import { api } from "./fixtures/emptyApi";
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     getHealthcheck: build.query<
@@ -283,11 +283,11 @@ export type User = {
   phone?: string | undefined;
   userStatus?: number | undefined;
 };
-
+"
 `;
 
 exports[`duplicate parameter names must be prefixed with a path or query prefix 1`] = `
-import { api } from "./fixtures/emptyApi";
+"import { api } from "./fixtures/emptyApi";
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     patchApiV1ListByItemId: build.mutation<
@@ -324,11 +324,11 @@ export type PatchApiV2BySomeNameApiArg = {
   pathSomeName: string;
   querySomeName: string;
 };
-
+"
 `;
 
 exports[`endpoint filtering > should only have endpoints loginUser, placeOrder, getOrderById, deleteOrder 1`] = `
-import { api } from "./fixtures/emptyApi";
+"import { api } from "./fixtures/emptyApi";
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     placeOrder: build.mutation<PlaceOrderApiResponse, PlaceOrderApiArg>({
@@ -389,11 +389,11 @@ export type Order = {
   status?: ("placed" | "approved" | "delivered") | undefined;
   complete?: boolean | undefined;
 };
-
+"
 `;
 
 exports[`endpoint overrides > loginUser should be a mutation 1`] = `
-import { api } from "./fixtures/emptyApi";
+"import { api } from "./fixtures/emptyApi";
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     loginUser: build.mutation<LoginUserApiResponse, LoginUserApiArg>({
@@ -415,11 +415,11 @@ export type LoginUserApiArg = {
   /** The password for login in clear text */
   password?: string;
 };
-
+"
 `;
 
 exports[`falls back to the \`title\` parameter for the body parameter name when no other name is available 1`] = `
-import { api } from "fixtures/emptyApi";
+"import { api } from "fixtures/emptyApi";
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     postV1Export: build.mutation<PostV1ExportApiResponse, PostV1ExportApiArg>({
@@ -449,11 +449,11 @@ export type PostV1ImportApiArg = {
   rawData: string;
 };
 export type IdList = number[];
-
+"
 `;
 
 exports[`hooks generation > should generate an \`useGetPetByIdQuery\` query hook and an \`useAddPetMutation\` mutation hook 1`] = `
-import { api } from "./fixtures/emptyApi";
+"import { api } from "./fixtures/emptyApi";
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     addPet: build.mutation<AddPetApiResponse, AddPetApiArg>({
@@ -497,11 +497,11 @@ export type Pet = {
   status?: ("available" | "pending" | "sold") | undefined;
 };
 export const { useAddPetMutation, useGetPetByIdQuery } = injectedRtkApi;
-
+"
 `;
 
 exports[`hooks generation uses overrides > should generate an \`useLoginMutation\` mutation hook 1`] = `
-import { api } from "./fixtures/emptyApi";
+"import { api } from "./fixtures/emptyApi";
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     loginUser: build.mutation<LoginUserApiResponse, LoginUserApiArg>({
@@ -524,11 +524,11 @@ export type LoginUserApiArg = {
   password?: string;
 };
 export const { useLoginUserMutation } = injectedRtkApi;
-
+"
 `;
 
 exports[`openapi spec > readOnly / writeOnly are merged 1`] = `
-import { api } from "./fixtures/emptyApi";
+"import { api } from "./fixtures/emptyApi";
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     getExample: build.query<GetExampleApiResponse, GetExampleApiArg>({
@@ -556,11 +556,11 @@ export type ExampleSchema = {
   read_only_prop: string;
   write_only_prop: string;
 };
-
+"
 `;
 
 exports[`openapi spec > readOnly / writeOnly are respected 1`] = `
-import { api } from "./fixtures/emptyApi";
+"import { api } from "./fixtures/emptyApi";
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     getExample: build.query<GetExampleApiResponse, GetExampleApiArg>({
@@ -594,11 +594,11 @@ export type ExampleSchemaWrite = {
   always_present: string;
   write_only_prop: string;
 };
-
+"
 `;
 
 exports[`should use brackets in a querystring urls arg, when the arg contains full stops 1`] = `
-import { api } from "./fixtures/emptyApi";
+"import { api } from "./fixtures/emptyApi";
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     patchApiV1ListByItemId: build.mutation<
@@ -635,11 +635,11 @@ export type PatchApiV2BySomeNameApiArg = {
   pathSomeName: string;
   querySomeName: string;
 };
-
+"
 `;
 
 exports[`supports granular hooks generation that includes all query types 1`] = `
-import { api } from "./fixtures/emptyApi";
+"import { api } from "./fixtures/emptyApi";
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     addPet: build.mutation<AddPetApiResponse, AddPetApiArg>({
@@ -684,11 +684,11 @@ export type Pet = {
 };
 export const { useAddPetMutation, useGetPetByIdQuery, useLazyGetPetByIdQuery } =
   injectedRtkApi;
-
+"
 `;
 
 exports[`supports granular hooks generation with only lazy queries 1`] = `
-import { api } from "./fixtures/emptyApi";
+"import { api } from "./fixtures/emptyApi";
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     addPet: build.mutation<AddPetApiResponse, AddPetApiArg>({
@@ -732,11 +732,11 @@ export type Pet = {
   status?: "available" | "pending" | "sold";
 };
 export const { useLazyGetPetByIdQuery } = injectedRtkApi;
-
+"
 `;
 
 exports[`supports granular hooks generation with only mutations 1`] = `
-import { api } from "./fixtures/emptyApi";
+"import { api } from "./fixtures/emptyApi";
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     addPet: build.mutation<AddPetApiResponse, AddPetApiArg>({
@@ -780,11 +780,11 @@ export type Pet = {
   status?: "available" | "pending" | "sold";
 };
 export const { useAddPetMutation } = injectedRtkApi;
-
+"
 `;
 
 exports[`supports granular hooks generation with only queries 1`] = `
-import { api } from "./fixtures/emptyApi";
+"import { api } from "./fixtures/emptyApi";
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     addPet: build.mutation<AddPetApiResponse, AddPetApiArg>({
@@ -828,11 +828,11 @@ export type Pet = {
   status?: "available" | "pending" | "sold";
 };
 export const { useGetPetByIdQuery } = injectedRtkApi;
-
+"
 `;
 
 exports[`tests from issues > issue #2002: should be able to generate proper intersection types 1`] = `
-import { api } from "./tmp/emptyApi";
+"import { api } from "./tmp/emptyApi";
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     getApiV1Animals: build.query<
@@ -872,11 +872,11 @@ export type Cat = {
     catUniqueProp?: string | null;
   };
 export const { useGetApiV1AnimalsQuery } = injectedRtkApi;
-
+"
 `;
 
 exports[`yaml parsing > should be able to use read a yaml file 1`] = `
-import { api } from "./tmp/emptyApi";
+"import { api } from "./tmp/emptyApi";
 export const addTagTypes = ["pet", "store", "user"] as const;
 const injectedRtkApi = api
   .enhanceEndpoints({
@@ -1199,11 +1199,11 @@ export const {
   useUpdateUserMutation,
   useDeleteUserMutation,
 } = injectedRtkApi;
-
+"
 `;
 
 exports[`yaml parsing > should generate params with non quoted keys if they don't contain special characters 1`] = `
-import { api } from "./tmp/emptyApi";
+"import { api } from "./tmp/emptyApi";
 export const addTagTypes = ["StructureDefinition"] as const;
 const injectedRtkApi = api
   .enhanceEndpoints({
@@ -1256,11 +1256,11 @@ export type GetStructureDefinitionApiArg = {
 };
 export type FhirJsonResource = object;
 export const { useGetStructureDefinitionQuery } = injectedRtkApi;
-
+"
 `;
 
 exports[`yaml parsing > should parse a yaml schema from a URL 1`] = `
-import { api } from "./tmp/emptyApi";
+"import { api } from "./tmp/emptyApi";
 export const addTagTypes = ["pet", "store", "user"] as const;
 const injectedRtkApi = api
   .enhanceEndpoints({
@@ -1583,5 +1583,5 @@ export const {
   useUpdateUserMutation,
   useDeleteUserMutation,
 } = injectedRtkApi;
-
+"
 `;

@@ -134,7 +134,7 @@ export async function generateApi(
     if (apiFile.startsWith('.')) {
       apiFile = path.relative(path.dirname(outputFile), apiFile);
       apiFile = apiFile.replace(/\\/g, '/');
-      if (!apiFile.startsWith('.')) apiFile = './' + apiFile;
+      if (!apiFile.startsWith('.')) apiFile = `./${apiFile}`;
     }
   }
   apiFile = apiFile.replace(/\.[jt]sx?$/, '');
@@ -189,7 +189,7 @@ export async function generateApi(
   );
 
   function extractAllTagTypes({ operationDefinitions }: { operationDefinitions: OperationDefinition[] }) {
-    let allTagTypes = new Set<string>();
+    const allTagTypes = new Set<string>();
 
     for (const operationDefinition of operationDefinitions) {
       const { verb, pathItem } = operationDefinition;
@@ -278,7 +278,7 @@ export async function generateApi(
       }
       // if there are still any naming conflicts, prepend with underscore
       while (name in queryArg) {
-        name = '_' + name;
+        name = `_${name}`;
       }
       return name;
     }

@@ -1,7 +1,7 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`CLI options testing generation with \`config.example.js\` 1`] = `
-import { api } from '../fixtures/emptyApi';
+exports[`CLI options testing > generation with \`config.example.js\` 1`] = `
+"import { api } from '../fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
@@ -192,7 +192,7 @@ export type Pet = {
   category?: Category;
   photoUrls: string[];
   tags?: Tag[];
-  status?: 'available' | 'pending' | 'sold';
+  status?: Status;
 };
 export type ApiResponse = {
   code?: number;
@@ -204,7 +204,7 @@ export type Order = {
   petId?: number;
   quantity?: number;
   shipDate?: string;
-  status?: 'placed' | 'approved' | 'delivered';
+  status?: Status2;
   complete?: boolean;
 };
 export type User = {
@@ -217,11 +217,21 @@ export type User = {
   phone?: string;
   userStatus?: number;
 };
-
+export enum Status {
+  Available = 'available',
+  Pending = 'pending',
+  Sold = 'sold',
+}
+export enum Status2 {
+  Placed = 'placed',
+  Approved = 'approved',
+  Delivered = 'delivered',
+}
+"
 `;
 
-exports[`CLI options testing paths are relative to configfile, not to cwd 1`] = `
-import { api } from '../fixtures/emptyApi';
+exports[`CLI options testing > paths are relative to configfile, not to cwd 1`] = `
+"import { api } from '../fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
@@ -412,7 +422,7 @@ export type Pet = {
   category?: Category;
   photoUrls: string[];
   tags?: Tag[];
-  status?: 'available' | 'pending' | 'sold';
+  status?: Status;
 };
 export type ApiResponse = {
   code?: number;
@@ -424,7 +434,7 @@ export type Order = {
   petId?: number;
   quantity?: number;
   shipDate?: string;
-  status?: 'placed' | 'approved' | 'delivered';
+  status?: Status2;
   complete?: boolean;
 };
 export type User = {
@@ -437,5 +447,15 @@ export type User = {
   phone?: string;
   userStatus?: number;
 };
-
+export enum Status {
+  Available = 'available',
+  Pending = 'pending',
+  Sold = 'sold',
+}
+export enum Status2 {
+  Placed = 'placed',
+  Approved = 'approved',
+  Delivered = 'delivered',
+}
+"
 `;

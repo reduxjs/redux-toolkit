@@ -23,15 +23,15 @@ function cli(args: string[], cwd: string): Promise<{ error: ExecException | null
 
 const tmpDir = path.resolve(__dirname, 'tmp');
 
-beforeAll(async () => {
-  if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
-});
-
-afterEach(() => {
-  del.sync(`${tmpDir}/*.ts`);
-});
-
 describe('CLI options testing', () => {
+  beforeAll(async () => {
+    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    del.sync(`${tmpDir}/*.ts`);
+  });
+
   test('generation with `config.example.js`', async () => {
     const out = await cli([`./config.example.js`], __dirname);
 

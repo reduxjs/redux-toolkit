@@ -264,34 +264,34 @@ test('apiImport builds correct `import` statement', async () => {
 
 describe('import paths', () => {
   test('should create paths relative to `outFile` when `apiFile` is relative (different folder)', async () => {
-    process.chdir(__dirname);
     await generateEndpoints({
       unionUndefined: true,
       apiFile: './fixtures/emptyApi.ts',
-      outputFile: './tmp/out.ts',
+      outputFile: './test/tmp/out.ts',
       schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
       filterEndpoints: [],
       hooks: true,
       tag: true,
     });
-    expect(await fs.promises.readFile('./tmp/out.ts', 'utf8')).toContain("import { api } from '../fixtures/emptyApi'");
+    expect(await fs.promises.readFile('./test/tmp/out.ts', 'utf8')).toContain("import { api } from '../../fixtures/emptyApi'");
   });
 
   test('should create paths relative to `outFile` when `apiFile` is relative (same folder)', async () => {
-    process.chdir(__dirname);
-
-    await fs.promises.writeFile('./tmp/emptyApi.ts', await fs.promises.readFile('./fixtures/emptyApi.ts'));
+    await fs.promises.writeFile(
+      './test/tmp/emptyApi.ts',
+      await fs.promises.readFile('./test/fixtures/emptyApi.ts')
+    );
 
     await generateEndpoints({
       unionUndefined: true,
-      apiFile: './tmp/emptyApi.ts',
-      outputFile: './tmp/out.ts',
+      apiFile: './test/tmp/emptyApi.ts',
+      outputFile: './test/tmp/out.ts',
       schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
       filterEndpoints: [],
       hooks: true,
       tag: true,
     });
-    expect(await fs.promises.readFile('./tmp/out.ts', 'utf8')).toContain("import { api } from './emptyApi'");
+    expect(await fs.promises.readFile('./test/tmp/out.ts', 'utf8')).toContain("import { api } from './emptyApi'");
   });
 });
 
@@ -300,7 +300,7 @@ describe('yaml parsing', () => {
     const result = await generateEndpoints({
       unionUndefined: true,
       apiFile: './tmp/emptyApi.ts',
-      schemaFile: `https://petstore3.swagger.io/api/v3/openapi.yaml`,
+      schemaFile: 'https://petstore3.swagger.io/api/v3/openapi.yaml',
       hooks: true,
       tag: true,
     });
@@ -311,7 +311,7 @@ describe('yaml parsing', () => {
     const result = await generateEndpoints({
       unionUndefined: true,
       apiFile: './tmp/emptyApi.ts',
-      schemaFile: `./fixtures/petstore.yaml`,
+      schemaFile: `./test/fixtures/petstore.yaml`,
       hooks: true,
       tag: true,
     });
@@ -322,7 +322,7 @@ describe('yaml parsing', () => {
     const output = await generateEndpoints({
       unionUndefined: true,
       apiFile: './tmp/emptyApi.ts',
-      schemaFile: `./fixtures/fhir.yaml`,
+      schemaFile: './test/fixtures/fhir.yaml',
       hooks: true,
       tag: true,
     });
@@ -341,7 +341,7 @@ describe('yaml parsing', () => {
     const output = await generateEndpoints({
       unionUndefined: true,
       apiFile: './tmp/emptyApi.ts',
-      schemaFile: `./fixtures/fhir.yaml`,
+      schemaFile: './test/fixtures/fhir.yaml',
       hooks: true,
       tag: true,
     });
@@ -355,7 +355,7 @@ describe('tests from issues', () => {
   it('issue #2002: should be able to generate proper intersection types', async () => {
     const result = await generateEndpoints({
       apiFile: './tmp/emptyApi.ts',
-      schemaFile: `./fixtures/issue-2002.json`,
+      schemaFile: './test/fixtures/issue-2002.json',
       hooks: true,
     });
     expect(result).toMatchSnapshot();
@@ -366,7 +366,7 @@ describe('openapi spec', () => {
   it('readOnly / writeOnly are respected', async () => {
     const api = await generateEndpoints({
       unionUndefined: true,
-      schemaFile: './fixtures/readOnlyWriteOnly.yaml',
+      schemaFile: './test/fixtures/readOnlyWriteOnly.yaml',
       apiFile: './fixtures/emptyApi.ts',
     });
     expect(api).toMatchSnapshot();
@@ -377,7 +377,7 @@ describe('openapi spec', () => {
   it('readOnly / writeOnly are merged', async () => {
     const api = await generateEndpoints({
       unionUndefined: true,
-      schemaFile: './fixtures/readOnlyWriteOnly.yaml',
+      schemaFile: './test/fixtures/readOnlyWriteOnly.yaml',
       apiFile: './fixtures/emptyApi.ts',
       mergeReadWriteOnly: true,
     });
