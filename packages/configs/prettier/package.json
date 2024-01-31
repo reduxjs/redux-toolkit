@@ -2,8 +2,13 @@
   "name": "@reduxjs/prettier-config",
   "version": "0.0.1",
   "description": "Prettier configuration for Redux projects",
-  "main": "prettier.config.mjs",
+  "main": "./dist/prettier.config.mjs",
+  "types": "./dist/prettier.config.d.mts",
   "type": "module",
+  "scripts": {
+    "build": "yarn clean && tsc",
+    "clean": "rimraf dist"
+  },
   "keywords": [
     "prettier",
     "config",
@@ -20,7 +25,9 @@
     "url": "git+https://github.com/reduxjs/redux-toolkit.git"
   },
   "devDependencies": {
-    "prettier": "^3.2.4"
+    "prettier": "^3.2.4",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3"
   },
-  "prettier": "./prettier.config.mjs"
+  "prettier": "./dist/prettier.config.mjs"
 }
