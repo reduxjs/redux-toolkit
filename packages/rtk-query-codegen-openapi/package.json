@@ -22,8 +22,8 @@
     "prepare": "yarn build && chmod +x lib/bin/cli.js",
     "format": "prettier --write \"src/**/*.ts\"",
     "test:update": "vitest --run --update",
-    "test:update:enum": "yarn cli test/config.example.enum.ts",
-    "test": "yarn test:update:enum && vitest --run",
+    "test:update:enum": "lib/bin/cli.js test/config.example.enum.ts",
+    "test": "vitest --run",
     "test:watch": "vitest --watch",
     "cli": "esr src/bin/cli.ts"
   },
