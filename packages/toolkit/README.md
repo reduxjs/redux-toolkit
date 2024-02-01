@@ -48,10 +48,6 @@ The Redux Toolkit docs are available at **https://redux-toolkit.js.org**, includ
 
 The Redux core docs at https://redux.js.org includes the full Redux tutorials, as well usage guides on general Redux patterns.
 
-## Contributing
-
-Please refer to our [contributing guide](/CONTRIBUTING.md) to learn about our development process, how to propose bugfixes and improvements, and how to build and test your changes to Redux Toolkit.
-
 ## Purpose
 
 The **Redux Toolkit** package is intended to be the standard way to write Redux logic. It was originally created to help address three common concerns about Redux:
@@ -108,3 +104,7 @@ RTK Query includes these APIs:
 - `setupListeners()`: A utility used to enable refetchOnMount and refetchOnReconnect behaviors.
 
 See the [**RTK Query Overview**](https://redux-toolkit.js.org/rtk-query/overview) page for more details on what RTK Query is, what problems it solves, and how to use it.
+
+## Contributing
+
+Please refer to our [contributing guide](/CONTRIBUTING.md) to learn about our development process, how to propose bugfixes and improvements, and how to build and test your changes to Redux Toolkit.
