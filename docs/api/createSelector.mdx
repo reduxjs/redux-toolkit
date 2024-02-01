@@ -9,6 +9,8 @@ hide_title: true
 
 # `createSelector`
 
+## Overview
+
 The `createSelector` utility from the [Reselect library](https://github.com/reduxjs/reselect), re-exported for ease of use.
 
 For more details on using `createSelector`, see:
@@ -24,7 +26,7 @@ allowed using string keypaths as input selectors. This was removed, as it ultima
 the string keypaths made static typing for selectors difficult.
 :::
 
-# `createDraftSafeSelector`
+## `createDraftSafeSelector`
 
 In general, we recommend against using selectors inside of reducers:
 
@@ -86,3 +88,14 @@ const draftSafeSelector = createWeakMapDraftSafeSelector(
 ```
 
 :::
+
+### Defining a Pre-Typed `createDraftSelector`
+
+As of RTK 2.1, you can define a "pre-typed" version of `createDraftSafeSelector` that can have the type for `state` built in. This lets you set up those types once, so you don't have to repeat them each time you call `createDraftSafeSelector`.
+
+```ts no-transpile
+const createTypedDraftSafeSelector = createDraftSafeSelector.withTypes<RootState>()
+```
+
+Import and use the pre-typed `createTypedDraftSafeSelector` function, and it will automatically know that the `state` argument is of type `RootState`.
+
