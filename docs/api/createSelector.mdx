@@ -99,7 +99,7 @@ const createTypedDraftSafeSelector = createDraftSafeSelector.withTypes<RootState
 
 Import and use the pre-typed `createTypedDraftSafeSelector` function, and it will automatically know that the `state` argument is of type `RootState`.
 
-:::warning
+:::warning Known Limitations
 Currently this approach only works if input selectors are provided as a single array.
 
 If you pass the input selectors as separate inline arguments, the parameter types of the result function will not be inferred. As a workaround you can either
