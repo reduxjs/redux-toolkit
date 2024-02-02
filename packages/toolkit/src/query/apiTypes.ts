@@ -16,11 +16,11 @@ import type {
   WithRequiredProp,
   Id,
 } from './tsHelpers'
-import type { CoreModule } from '@reduxjs/toolkit/query'
 import type { CreateApiOptions } from './createApi'
 import type { BaseQueryFn } from './baseQueryTypes'
 import type { CombinedState, MutationKeys, QueryKeys } from './core/apiState'
 import type { UnknownAction } from '@reduxjs/toolkit'
+import type { CoreModule } from './core/module'
 
 export interface ApiModules<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
