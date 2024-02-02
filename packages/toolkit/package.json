@@ -81,7 +81,7 @@
     "jsdom": "^21.0.0",
     "json-stringify-safe": "^5.0.1",
     "msw": "^2.1.4",
-    "node-fetch": "^3.3.2",
+    "node-fetch": "^2.7.0",
     "prettier": "^3.2.4",
     "query-string": "^7.0.1",
     "rimraf": "^3.0.2",
