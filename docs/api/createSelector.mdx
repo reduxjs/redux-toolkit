@@ -99,3 +99,39 @@ const createTypedDraftSafeSelector = createDraftSafeSelector.withTypes<RootState
 
 Import and use the pre-typed `createTypedDraftSafeSelector` function, and it will automatically know that the `state` argument is of type `RootState`.
 
+:::warning
+Currently this approach only works if input selectors are provided as a single array.
+
+If you pass the input selectors as separate inline arguments, the parameter types of the result function will not be inferred. As a workaround you can either
+
+1. Wrap your input selectors in a single array
+2. You can annotate the parameter types of the result function:
+
+```ts no-transpile
+import { createSelector } from 'reselect'
+
+interface Todo {
+  id: number
+  completed: boolean
+}
+
+interface Alert {
+  id: number
+  read: boolean
+}
+
+export interface RootState {
+  todos: Todo[]
+  alerts: Alert[]
+}
+
+export const createTypedDraftSafeSelector = createDraftSafeSelector.withTypes<RootState>()
+
+const selectTodoIds = createTypedDraftSafeSelector(
+  // Type of `state` is set to `RootState`, no need to manually set the type
+  state => state.todos,
+  // ❌ Known limitation: Parameter types are not inferred in this scenario
+  // so you will have to manually annotate them.
+  (todos: Todo[]) => todos.map(({ id }) => id)
+)
+```
