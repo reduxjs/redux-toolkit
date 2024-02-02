@@ -26,6 +26,9 @@ import ts from 'typescript';
 const generatedApiName = 'injectedRtkApi';
 
 function defaultIsDataResponse(code: string) {
+  if (code === "default") {
+    return true;
+  }
   const parsedCode = Number(code);
   return !Number.isNaN(parsedCode) && parsedCode >= 200 && parsedCode < 300;
 }
@@ -234,6 +237,7 @@ export async function generateApi(
             ] as const
         )
         .filter(([status, response]) => isDataResponse(status, apiGen.resolve(response), responses || {}))
+        .filter(([_1, _2, type]) => type !== keywordType.void)
         .map(([code, response, type]) =>
           ts.addSyntheticLeadingComment(
             { ...type },
@@ -241,8 +245,7 @@ export async function generateApi(
             `* status ${code} ${response.description} `,
             false
           )
-        )
-        .filter((type) => type !== keywordType.void);
+        );
       if (returnTypes.length > 0) {
         ResponseType = factory.createUnionTypeNode(returnTypes);
       }

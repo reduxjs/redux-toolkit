@@ -186,7 +186,7 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse = unknown;
+export type CreateUserApiResponse = /** status default successful operation */ User;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -1031,7 +1031,7 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse = unknown;
+export type CreateUserApiResponse = /** status default successful operation */ User;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -1389,7 +1389,7 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse = unknown;
+export type CreateUserApiResponse = /** status default successful operation */ User;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
