@@ -18,6 +18,10 @@ On both websites, it is a good idea to structure your code and question in a way
 
 Please keep in mind that people spend their free time trying to help you. You can make it easier for them if you provide versions of the relevant libraries and a runnable small project reproducing your issue. You can put your code on [JSBin](https://jsbin.com) or, for bigger projects, on GitHub. Make sure all the necessary dependencies are declared in `package.json` so anyone can run `npm install && npm start` and reproduce your issue.
 
+## Ways You Can Contribute
+
+There are several ways you can contribute to the repository. Instead of developing a feature or fixing a bug, you can also contribute by updating or writing [documentation](https://github.com/reduxjs/redux-toolkit/tree/master/docs) for a specific feature or implementation if you know you are good with documentation. Alternatively, you can add [examples](https://github.com/reduxjs/redux-toolkit/tree/master/examples) of any 3rd party implementation like GraphQL or React (just an example) that would help users to understand and easily integrate Redux Toolkit with that specific framework and library.
+
 ## Getting started
 
 Visit the [Issue tracker](https://github.com/reduxjs/redux-toolkit/issues) to find a list of open issues that need attention.
