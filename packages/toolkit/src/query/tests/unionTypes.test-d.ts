@@ -845,4 +845,44 @@ describe('"Typed" helper types', () => {
       TypedUseMutationResult<string, void, typeof baseQuery>
     >().toMatchTypeOf(result)
   })
+
+  test('useQuery - defining selectFromResult separately', () => {
+    const selectFromResult = (
+      result: TypedUseQueryStateResult<string, void, typeof baseQuery>,
+    ) => ({ x: true })
+
+    const result = api.endpoints.getTest.useQuery(undefined, {
+      selectFromResult,
+    })
+
+    expectTypeOf(result).toEqualTypeOf<
+      TypedUseQueryHookResult<
+        string,
+        void,
+        typeof baseQuery,
+        ReturnType<typeof selectFromResult>
+      >
+    >()
+  })
+
+  test('useMutation - defining selectFromResult separately', () => {
+    const selectFromResult = (
+      result: Omit<
+        TypedUseMutationResult<string, void, typeof baseQuery>,
+        'reset' | 'originalArgs'
+      >,
+    ) => ({ x: true })
+
+    const [trigger, result] = api.endpoints.mutation.useMutation({
+      selectFromResult,
+    })
+    expectTypeOf(result).toEqualTypeOf<
+      TypedUseMutationResult<
+        string,
+        void,
+        typeof baseQuery,
+        ReturnType<typeof selectFromResult>
+      >
+    >()
+  })
 })
