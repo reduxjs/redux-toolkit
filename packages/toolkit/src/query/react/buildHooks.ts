@@ -318,7 +318,7 @@ export type TypedUseLazyQueryStateResult<
   R
 >
 
-export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
+export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> =
   /**
    * Triggers a lazy query.
    *
@@ -342,8 +342,7 @@ export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
   (
     arg: QueryArgFrom<D>,
     preferCacheValue?: boolean,
-  ): QueryActionCreatorResult<D>
-}
+  ) => QueryActionCreatorResult<D>
 
 export type TypedLazyQueryTrigger<
   ResultType,
@@ -766,7 +765,7 @@ type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
 
 export type LazyInfiniteQueryTrigger<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
-> = {
+> =
   /**
    * Triggers a lazy query.
    *
@@ -790,8 +789,7 @@ export type LazyInfiniteQueryTrigger<
   (
     arg: QueryArgFrom<D>,
     direction: InfiniteQueryDirection,
-  ): InfiniteQueryActionCreatorResult<D>
-}
+  ) => InfiniteQueryActionCreatorResult<D>
 
 export type TypedLazyInfiniteQueryTrigger<
   ResultType,
@@ -1355,25 +1353,23 @@ export type TypedUseMutation<
 >
 
 export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> =
-  {
-    /**
-     * Triggers the mutation and returns a Promise.
-     * @remarks
-     * If you need to access the error or success payload immediately after a mutation, you can chain .unwrap().
-     *
-     * @example
-     * ```ts
-     * // codeblock-meta title="Using .unwrap with async await"
-     * try {
-     *   const payload = await addPost({ id: 1, name: 'Example' }).unwrap();
-     *   console.log('fulfilled', payload)
-     * } catch (error) {
-     *   console.error('rejected', error);
-     * }
-     * ```
-     */
-    (arg: QueryArgFrom<D>): MutationActionCreatorResult<D>
-  }
+  /**
+   * Triggers the mutation and returns a Promise.
+   * @remarks
+   * If you need to access the error or success payload immediately after a mutation, you can chain .unwrap().
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta title="Using .unwrap with async await"
+   * try {
+   *   const payload = await addPost({ id: 1, name: 'Example' }).unwrap();
+   *   console.log('fulfilled', payload)
+   * } catch (error) {
+   *   console.error('rejected', error);
+   * }
+   * ```
+   */
+  (arg: QueryArgFrom<D>) => MutationActionCreatorResult<D>
 
 export type TypedMutationTrigger<
   ResultType,
