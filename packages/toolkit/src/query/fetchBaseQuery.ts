@@ -1,4 +1,4 @@
-import type { AnyNonNullishValue } from '../tsHelpers'
+import type { AnyNonNullishValue, AnyObject } from '../tsHelpers'
 import type { BaseQueryApi, BaseQueryFn } from './baseQueryTypes'
 import { isPlainObject } from './core/rtkImports'
 import type { MaybePromise, Override } from './tsHelpers'
@@ -23,7 +23,7 @@ type CustomRequestInit = Override<
 
 export interface FetchArgs extends CustomRequestInit {
   url: string
-  params?: Record<string, any>
+  params?: AnyObject
   body?: any
   responseHandler?: ResponseHandler
   validateStatus?: (response: Response, body: any) => boolean
@@ -99,7 +99,7 @@ function stripUndefined(obj: any) {
   if (!isPlainObject(obj)) {
     return obj
   }
-  const copy: Record<string, any> = { ...obj }
+  const copy: AnyObject = { ...obj }
   for (const [k, v] of Object.entries(copy)) {
     if (v === undefined) delete copy[k]
   }
@@ -119,7 +119,7 @@ export type FetchBaseQueryArgs = {
     input: RequestInfo,
     init?: RequestInit | undefined,
   ) => Promise<Response>
-  paramsSerializer?: (params: Record<string, any>) => string
+  paramsSerializer?: (params: AnyObject) => string
   /**
    * By default, we only check for 'application/json' and 'application/vnd.api+json' as the content-types for json. If you need to support another format, you can pass
    * in a predicate function for your given api to get the same automatic stringifying behavior

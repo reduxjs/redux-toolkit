@@ -6,8 +6,7 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
-
-import type { AnyNonNullishValue } from '@reduxjs/toolkit/dist/tsHelpers'
+import type { AnyNonNullishValue, EmptyObject } from '../../../tsHelpers'
 import type { Api, ApiContext } from '../../apiTypes'
 import type {
   AssertTagTypes,
@@ -67,7 +66,7 @@ export interface BuildSubMiddlewareInput
     >,
     queryCacheKey: string,
     override?: Partial<QueryThunkArg>,
-  ): AsyncThunkAction<ThunkResult, QueryThunkArg, AnyNonNullishValue>
+  ): AsyncThunkAction<ThunkResult, QueryThunkArg, EmptyObject>
   isThisApiSliceAction: (action: Action) => boolean
 }
 

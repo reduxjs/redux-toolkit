@@ -9,6 +9,8 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
+import { enablePatches } from 'immer'
+import type { AnyNonNullishValue, AnyObject } from '../../tsHelpers'
 import type { Api, Module } from '../apiTypes'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
@@ -34,6 +36,9 @@ import type {
 } from './buildInitiate'
 import { buildInitiate } from './buildInitiate'
 import { buildMiddleware } from './buildMiddleware'
+import type { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
+import type { ReferenceCacheLifecycle } from './buildMiddleware/cacheLifecycle'
+import type { ReferenceQueryLifecycle } from './buildMiddleware/queryLifecycle'
 import { buildSelectors } from './buildSelectors'
 import type { SliceActions } from './buildSlice'
 import { buildSlice } from './buildSlice'
@@ -43,14 +48,8 @@ import type {
   UpsertQueryDataThunk,
 } from './buildThunks'
 import { buildThunks } from './buildThunks'
-import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
-
-import { enablePatches } from 'immer'
-import type { AnyNonNullishValue } from '../../tsHelpers'
-import type { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
-import type { ReferenceCacheLifecycle } from './buildMiddleware/cacheLifecycle'
-import type { ReferenceQueryLifecycle } from './buildMiddleware/queryLifecycle'
 import { createSelector as _createSelector } from './rtkImports'
+import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
@@ -591,7 +590,7 @@ export const coreModule = ({
       injectEndpoint(endpointName, definition) {
         const anyApi = api as any as Api<
           any,
-          Record<string, any>,
+          AnyObject,
           string,
           string,
           CoreModule

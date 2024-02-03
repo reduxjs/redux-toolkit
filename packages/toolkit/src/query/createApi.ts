@@ -1,6 +1,6 @@
 import type { UnknownAction } from '@reduxjs/toolkit'
 import { weakMapMemoize } from 'reselect'
-import type { AnyNonNullishValue } from '../tsHelpers'
+import type { AnyFunction, AnyObject } from '../tsHelpers'
 import type { Api, ApiContext, Module, ModuleName } from './apiTypes'
 import type { BaseQueryArg, BaseQueryFn } from './baseQueryTypes'
 import type { CombinedState } from './core/apiState'
@@ -250,9 +250,9 @@ export type CreateApi<Modules extends ModuleName> = {
  * @param modules - A variable number of modules that customize how the `createApi` method handles endpoints
  * @returns A `createApi` method using the provided `modules`.
  */
-export function buildCreateApi<Modules extends [Module<any>, ...Array<Module<any>>]>(
-  ...modules: Modules
-): CreateApi<Modules[number]['name']> {
+export function buildCreateApi<
+  Modules extends [Module<any>, ...Array<Module<any>>],
+>(...modules: Modules): CreateApi<Modules[number]['name']> {
   return function baseCreateApi(options) {
     const extractRehydrationInfo = weakMapMemoize((action: UnknownAction) =>
       options.extractRehydrationInfo?.(action, {
@@ -325,7 +325,9 @@ export function buildCreateApi<Modules extends [Module<any>, ...Array<Module<any
             endpoints,
           )) {
             if (typeof partialDefinition === 'function') {
-              partialDefinition(context.endpointDefinitions[endpointName])
+              ;(partialDefinition as AnyFunction)(
+                context.endpointDefinitions[endpointName],
+              )
             } else {
               Object.assign(
                 context.endpointDefinitions[endpointName] || {},
@@ -336,13 +338,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Array<Module<any
         }
         return api
       },
-    } as Api<
-      BaseQueryFn,
-      AnyNonNullishValue,
-      string,
-      string,
-      Modules[number]['name']
-    >
+    } as Api<BaseQueryFn, AnyObject, string, string, Modules[number]['name']>
 
     const initializedModules = modules.map((m) =>
       m.init(api as any, optionsWithDefaults as any, context),

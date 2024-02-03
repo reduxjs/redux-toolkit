@@ -1,19 +1,19 @@
+import type { UnknownAction } from '@reduxjs/toolkit'
+import type { BaseQueryFn } from './baseQueryTypes'
+import type { CombinedState } from './core/apiState'
+import type { CoreModule } from './core/module'
+import type { CreateApiOptions } from './createApi'
 import type {
-  EndpointDefinitions,
   EndpointBuilder,
   EndpointDefinition,
+  EndpointDefinitions,
   UpdateDefinitions,
 } from './endpointDefinitions'
 import type {
-  UnionToIntersection,
   NoInfer,
+  UnionToIntersection,
   WithRequiredProp,
 } from './tsHelpers'
-import type { CoreModule } from './core/module'
-import type { CreateApiOptions } from './createApi'
-import type { BaseQueryFn } from './baseQueryTypes'
-import type { CombinedState } from './core/apiState'
-import type { UnknownAction } from '@reduxjs/toolkit'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ApiModules<

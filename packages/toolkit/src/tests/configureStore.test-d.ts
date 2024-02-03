@@ -13,14 +13,14 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import {
-  Tuple,
   applyMiddleware,
   combineReducers,
   configureStore,
   createSlice,
+  Tuple,
 } from '@reduxjs/toolkit'
 import { thunk } from 'redux-thunk'
-import type { AnyNonNullishValue } from '../tsHelpers'
+import type { AnyNonNullishValue, EmptyObject } from '../tsHelpers'
 
 const _anyMiddleware: any = () => () => () => {}
 
@@ -212,7 +212,7 @@ describe('type tests', () => {
     expectTypeOf(store3.anotherProperty).toBeNumber()
 
     const someStateExtendingEnhancer: StoreEnhancer<
-      AnyNonNullishValue,
+      EmptyObject,
       { someProperty: string }
     > =
       (next) =>
@@ -229,7 +229,7 @@ describe('type tests', () => {
       }
 
     const anotherStateExtendingEnhancer: StoreEnhancer<
-      AnyNonNullishValue,
+      EmptyObject,
       { anotherProperty: number }
     > =
       (next) =>

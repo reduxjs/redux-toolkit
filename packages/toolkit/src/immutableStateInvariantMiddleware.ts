@@ -1,4 +1,5 @@
 import type { Middleware } from 'redux'
+import type { AnyObject } from './tsHelpers'
 import { getTimeMeasureUtils } from './utils'
 
 type EntryProcessor = (key: string, value: any) => any
@@ -27,15 +28,15 @@ export function trackForMutations(
 
 interface TrackedProperty {
   value: any
-  children: Record<string, any>
+  children: AnyObject
 }
 
 function trackProperties(
   isImmutable: IsImmutableFunc,
   ignorePaths: IgnorePaths = [],
-  obj: Record<string, any>,
+  obj: AnyObject,
   path: string = '',
-  checkedObjects: Set<Record<string, any>> = new Set(),
+  checkedObjects: Set<AnyObject> = new Set(),
 ) {
   const tracked: Partial<TrackedProperty> = { value: obj }
 
@@ -135,12 +136,12 @@ export interface ImmutableStateInvariantMiddlewareOptions {
   /**
     Callback function to check if a value is considered to be immutable.
     This function is applied recursively to every value contained in the state.
-    The default implementation will return true for primitive types 
+    The default implementation will return true for primitive types
     (like numbers, strings, booleans, null and undefined).
    */
   isImmutable?: IsImmutableFunc
-  /** 
-    An array of dot-separated path strings that match named nodes from 
+  /**
+    An array of dot-separated path strings that match named nodes from
     the root state to ignore when checking for immutability.
     Defaults to undefined
    */
@@ -190,7 +191,7 @@ export function createImmutableStateInvariantMiddleware(
 
       return function (this: any, key: string, value: any) {
         if (stack.length > 0) {
-          var thisPos = stack.indexOf(this)
+          const thisPos = stack.indexOf(this)
           ~thisPos ? stack.splice(thisPos + 1) : stack.push(this)
           ~thisPos ? keys.splice(thisPos, Infinity, key) : keys.push(key)
           if (~stack.indexOf(value)) value = decycler!.call(this, key, value)

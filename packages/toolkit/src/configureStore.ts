@@ -16,7 +16,6 @@ import {
 } from 'redux'
 import type { DevToolsEnhancerOptions as DevToolsOptions } from './devtoolsExtension'
 import { composeWithDevTools } from './devtoolsExtension'
-
 import type { GetDefaultEnhancers } from './getDefaultEnhancers'
 import { buildGetDefaultEnhancers } from './getDefaultEnhancers'
 import type {

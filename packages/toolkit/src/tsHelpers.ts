@@ -210,7 +210,7 @@ export type Tail<T extends any[]> = T extends [any, ...infer Tail]
   ? Tail
   : never
 
-export type UnknownIfNonSpecific<T> = AnyNonNullishValue extends T ? unknown : T
+export type UnknownIfNonSpecific<T> = EmptyObject extends T ? unknown : T
 
 /**
  * A Promise that will never reject.
@@ -252,3 +252,10 @@ export type AnyFunction = (...args: any[]) => any
  * @internal
  */
 export type EmptyObject = Record<string, never>
+
+/**
+ * Represents a generic object with `string` keys and values of `any` type.
+ *
+ * @internal
+ */
+export type AnyObject = Record<string, any>

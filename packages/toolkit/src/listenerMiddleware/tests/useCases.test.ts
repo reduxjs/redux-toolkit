@@ -1,16 +1,8 @@
-import {
-  configureStore,
-  createAction,
-  createSlice,
-  isAnyOf,
-} from '@reduxjs/toolkit'
-
 import type { PayloadAction } from '@reduxjs/toolkit'
-
-import { createListenerMiddleware } from '../index'
-
-import type { TypedAddListener } from '../index'
+import { configureStore, createAction, createSlice } from '@reduxjs/toolkit'
+import type { AnyObject } from '../../tsHelpers'
 import { TaskAbortError } from '../exceptions'
+import { createListenerMiddleware } from '../index'
 
 interface CounterState {
   value: number
@@ -79,7 +71,7 @@ describe('Saga-style Effects Scenarios', () => {
     // promise that is resolved the next time an event is emitted.
     // This is the tiniest event emitter I could find to copy-paste in here.
     const createNanoEvents = () => ({
-      events: {} as Record<string, any>,
+      events: {} as AnyObject,
       emit(event: string, ...args: any[]) {
         ;(this.events[event] || []).forEach((i: any) => i(...args))
       },

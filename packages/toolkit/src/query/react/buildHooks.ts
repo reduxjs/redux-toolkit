@@ -41,8 +41,8 @@ import {
   useRef,
   useState,
 } from 'react'
-
 import { shallowEqual } from 'react-redux'
+import type { AnyObject } from '../../tsHelpers'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs'
@@ -92,7 +92,7 @@ export interface MutationHooks<
  * - Re-renders as the request status changes and data becomes available
  */
 export type UseQuery<D extends QueryDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = UseQueryStateDefaultResult<D>,
+  R extends AnyObject = UseQueryStateDefaultResult<D>,
 >(
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseQuerySubscriptionOptions & UseQueryStateOptions<D, R>,
@@ -222,7 +222,7 @@ export type UseLazyQueryLastPromiseInfo<
  * When the trigger function returned from a LazyQuery is called, it always initiates a new request to the server even if there is cached data. Set `preferCacheValue`(the second argument to the function) as `true` if you want it to immediately return a cached value if one exists.
  */
 export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = UseQueryStateDefaultResult<D>,
+  R extends AnyObject = UseQueryStateDefaultResult<D>,
 >(
   options?: SubscriptionOptions & Omit<UseQueryStateOptions<D, R>, 'skip'>,
 ) => [
@@ -276,7 +276,7 @@ export type UseLazyQuerySubscription<
 ) => readonly [LazyQueryTrigger<D>, QueryArgFrom<D> | UninitializedValue]
 
 export type QueryStateSelector<
-  R extends Record<string, any>,
+  R extends AnyObject,
   D extends QueryDefinition<any, any, any, any>,
 > = (state: UseQueryStateDefaultResult<D>) => R
 
@@ -291,7 +291,7 @@ export type QueryStateSelector<
  * - Re-renders as the request status changes and data becomes available
  */
 export type UseQueryState<D extends QueryDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = UseQueryStateDefaultResult<D>,
+  R extends AnyObject = UseQueryStateDefaultResult<D>,
 >(
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseQueryStateOptions<D, R>,
@@ -299,7 +299,7 @@ export type UseQueryState<D extends QueryDefinition<any, any, any, any>> = <
 
 export type UseQueryStateOptions<
   D extends QueryDefinition<any, any, any, any>,
-  R extends Record<string, any>,
+  R extends AnyObject,
 > = {
   /**
    * Prevents a query from automatically running.
@@ -458,13 +458,13 @@ type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
   }
 
 export type MutationStateSelector<
-  R extends Record<string, any>,
+  R extends AnyObject,
   D extends MutationDefinition<any, any, any, any>,
 > = (state: MutationResultSelectorResult<D>) => R
 
 export type UseMutationStateOptions<
   D extends MutationDefinition<any, any, any, any>,
-  R extends Record<string, any>,
+  R extends AnyObject,
 > = {
   selectFromResult?: MutationStateSelector<R, D>
   fixedCacheKey?: string
@@ -509,7 +509,7 @@ export type TypedUseMutationResult<
  * - Re-renders as the request status changes and data becomes available
  */
 export type UseMutation<D extends MutationDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = MutationResultSelectorResult<D>,
+  R extends AnyObject = MutationResultSelectorResult<D>,
 >(
   options?: UseMutationStateOptions<D, R>,
 ) => readonly [MutationTrigger<D>, UseMutationStateResult<D, R>]

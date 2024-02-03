@@ -5,7 +5,7 @@ import type { Context } from 'react'
 import React, { useContext, useEffect } from 'react'
 import type { ReactReduxContextValue } from 'react-redux'
 import { Provider, ReactReduxContext } from 'react-redux'
-import type { AnyNonNullishValue } from '../../tsHelpers'
+import type { AnyNonNullishValue, AnyObject, EmptyObject } from '../../tsHelpers'
 
 /**
  * Can be used as a `Provider` if you **do not already have a Redux store**.
@@ -32,7 +32,7 @@ import type { AnyNonNullishValue } from '../../tsHelpers'
  * in that case.
  */
 export function ApiProvider<
-  A extends Api<any, AnyNonNullishValue, any, any>,
+  A extends Api<any, Record<never, never>, any, any>,
 >(props: {
   children: any
   api: A

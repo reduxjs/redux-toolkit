@@ -28,6 +28,7 @@ import { executeReducerBuilderCallback } from './mapBuilders'
 import type {
   AnyFunction,
   AnyNonNullishValue,
+  EmptyObject,
   Id,
   TypeGuard,
 } from './tsHelpers'
@@ -303,7 +304,7 @@ export interface AsyncThunkSliceReducerConfig<
   State,
   ThunkArg,
   Returned = unknown,
-  ThunkApiConfig extends AsyncThunkConfig = AnyNonNullishValue,
+  ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
 > {
   pending?: CaseReducer<
     State,
@@ -330,7 +331,7 @@ export interface AsyncThunkSliceReducerDefinition<
   State,
   ThunkArg,
   Returned = unknown,
-  ThunkApiConfig extends AsyncThunkConfig = AnyNonNullishValue,
+  ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
 > extends AsyncThunkSliceReducerConfig<
       State,
       ThunkArg,
@@ -376,8 +377,7 @@ interface AsyncThunkCreator<
   <
     Returned,
     ThunkArg,
-    ThunkApiConfig extends
-      PreventCircular<AsyncThunkConfig> = AnyNonNullishValue,
+    ThunkApiConfig extends PreventCircular<AsyncThunkConfig> = EmptyObject,
   >(
     payloadCreator: AsyncThunkPayloadCreator<
       Returned,
