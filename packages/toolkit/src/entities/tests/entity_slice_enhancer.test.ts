@@ -95,9 +95,9 @@ describe('entity slice creator', () => {
       undefined,
       bookSlice.actions.addOneBook(AClockworkOrange),
     )
-    expect(bookAdapter.getSelectors().selectById(withBook, '0')).toBe(
-      AClockworkOrange,
-    )
+    expect(
+      bookAdapter.getSelectors().selectById(withBook, AClockworkOrange.id),
+    ).toBe(AClockworkOrange)
 
     const withNestedBook = bookSlice.reducer(
       withBook,
@@ -108,7 +108,7 @@ describe('entity slice creator', () => {
         .getSelectors(
           (state: ReturnType<typeof bookSlice.reducer>) => state.nested,
         )
-        .selectById(withNestedBook, '0'),
+        .selectById(withNestedBook, AClockworkOrange.id),
     ).toBe(AClockworkOrange)
   })
 })
