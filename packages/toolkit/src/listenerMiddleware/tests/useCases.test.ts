@@ -28,7 +28,7 @@ const { increment, decrement, incrementByAmount } = counterSlice.actions
 
 describe('Saga-style Effects Scenarios', () => {
   let listenerMiddleware = createListenerMiddleware<CounterState>()
-  let { middleware, startListening, stopListening } = listenerMiddleware
+  let { middleware, startListening } = listenerMiddleware
 
   let store = configureStore({
     reducer: counterSlice.reducer,
@@ -114,7 +114,7 @@ describe('Saga-style Effects Scenarios', () => {
         const pollingTask = listenerApi.fork(async (forkApi) => {
           pollingTaskStarted = true
           try {
-            while (true) {
+            while (pollingTaskStarted) {
               // Cancelation-aware pause for a new server message
               const serverEvent = await forkApi.pause(pollForEvent())
               // Process the message. In this case, just count the times we've seen this message.
