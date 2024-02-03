@@ -353,7 +353,9 @@ describe('hooks tests', () => {
         )
       }
 
-      const { rerender } = render(<User id={1} />, { wrapper: storeRef.wrapper })
+      const { rerender } = render(<User id={1} />, {
+        wrapper: storeRef.wrapper,
+      })
 
       await waitFor(() =>
         expect(screen.getByTestId('status').textContent).toBe('1'),
@@ -1775,7 +1777,7 @@ describe('hooks with createApi defaults set', () => {
   const defaultApi = createApi({
     baseQuery: async (arg: any) => {
       await waitMs()
-      if ('amount' in arg?.body) {
+      if ('body' in arg && 'amount' in arg.body) {
         amount += 1
       }
       return {
@@ -2349,7 +2351,7 @@ describe('hooks with createApi defaults set', () => {
     const api = createApi({
       baseQuery: async (arg: any) => {
         await waitMs()
-        if ('amount' in arg?.body) {
+        if ('body' in arg && 'amount' in arg.body) {
           amount += 1
         }
         return {
