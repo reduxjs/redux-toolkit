@@ -1,8 +1,8 @@
 import type {
-  Store,
-  MiddlewareAPI,
   ImmutableStateInvariantMiddlewareOptions,
   Middleware,
+  MiddlewareAPI,
+  Store,
 } from '@reduxjs/toolkit'
 import {
   createImmutableStateInvariantMiddleware,
@@ -11,9 +11,9 @@ import {
 
 import { trackForMutations } from '@internal/immutableStateInvariantMiddleware'
 import {
-  mockConsole,
   createConsole,
   getLog,
+  mockConsole,
 } from 'console-testing-library/pure'
 
 type MWNext = Parameters<ReturnType<Middleware>>[0]
@@ -161,7 +161,9 @@ describe('createImmutableStateInvariantMiddleware', () => {
   it('Should not print a warning if "next" takes too long', () => {
     const next: MWNext = (action) => {
       const started = Date.now()
-      while (Date.now() - started < 8) {}
+      while (Date.now() - started < 8) {
+        /* empty */
+      }
       return action
     }
 
