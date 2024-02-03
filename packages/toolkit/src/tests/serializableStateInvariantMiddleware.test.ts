@@ -606,7 +606,9 @@ describe('serializableStateInvariantMiddleware', () => {
   it('Should not print a warning if "reducer" takes too long', () => {
     const reducer: Reducer = (state = 42, action) => {
       const started = Date.now()
-      while (Date.now() - started < 8) {}
+      while (Date.now() - started < 8) {
+        /** No-Op */
+      }
       return state
     }
 
