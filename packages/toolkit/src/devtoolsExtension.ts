@@ -223,10 +223,10 @@ export const composeWithDevTools: ComposeWithDevTools =
   typeof window !== 'undefined' &&
   (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
     ? (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
-    : function () {
-        if (arguments.length === 0) return undefined
-        if (typeof arguments[0] === 'object') return compose
-        return compose.apply(null, arguments as any as AnyFunction[])
+    : (...args: AnyFunction[]) => {
+        if (args.length === 0) return undefined
+        if (typeof args[0] === 'object') return compose
+        return compose(...args)
       }
 
 /**
