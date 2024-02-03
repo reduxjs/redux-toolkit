@@ -10,6 +10,7 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import { enablePatches } from 'immer'
+import type { AnyNonNullishValue } from '../../tsHelpers'
 import type { Api, Module } from '../apiTypes'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
@@ -140,7 +141,7 @@ export interface ApiModules<
      * ```
      */
     middleware: Middleware<
-      {},
+      AnyNonNullishValue,
       RootState<Definitions, string, ReducerPath>,
       ThunkDispatch<any, any, UnknownAction>
     >
