@@ -10,6 +10,7 @@ import { thunk } from 'redux-thunk'
 import { vi } from 'vitest'
 
 import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
+import type { AnyFunction, AnyNonNullishValue } from '../tsHelpers'
 
 const getDefaultMiddleware = buildGetDefaultMiddleware()
 
@@ -181,7 +182,7 @@ it('allows passing options to actionCreatorCheck', () => {
       immutableCheck: false,
       serializableCheck: false,
       actionCreatorCheck: {
-        isActionCreator: (action: unknown): action is Function => {
+        isActionCreator: (action: unknown): action is AnyFunction => {
           actionCreatorCheckWasCalled = true
           return false
         },
