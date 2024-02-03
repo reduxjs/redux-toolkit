@@ -3,12 +3,11 @@ import { isAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import { createAction } from '../createAction'
 import { nanoid } from '../nanoid'
-
 import { find } from '../utils'
 import {
-  TaskAbortError,
   listenerCancelled,
   listenerCompleted,
+  TaskAbortError,
   taskCancelled,
   taskCompleted,
 } from './exceptions'
@@ -25,9 +24,9 @@ import type {
   AnyListenerPredicate,
   CreateListenerMiddlewareOptions,
   FallbackAddListenerOptions,
-  ForkOptions,
   ForkedTask,
   ForkedTaskExecutor,
+  ForkOptions,
   ListenerEntry,
   ListenerErrorHandler,
   ListenerErrorInfo,
@@ -169,7 +168,9 @@ const createTakePattern = <S>(
       }
     })
 
-    const promises: Array<Promise<null> | Promise<[Action, S, S]>> = [tuplePromise]
+    const promises: Array<Promise<null> | Promise<[Action, S, S]>> = [
+      tuplePromise,
+    ]
 
     if (timeout != null) {
       promises.push(
@@ -193,7 +194,8 @@ const createTakePattern = <S>(
 }
 
 const getListenerEntryPropsFrom = (options: FallbackAddListenerOptions) => {
-  let { type, actionCreator, matcher, predicate, effect } = options
+  let { type, predicate } = options
+  const { actionCreator, matcher, effect } = options
 
   if (type) {
     predicate = createAction(type).match

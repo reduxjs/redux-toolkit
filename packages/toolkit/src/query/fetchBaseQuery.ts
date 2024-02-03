@@ -215,16 +215,19 @@ export function fetchBaseQuery({
   }
   return async (arg, api) => {
     const { signal, getState, extra, endpoint, forced, type } = api
-    let meta: FetchBaseQueryMeta | undefined
-    let {
-      url,
-      headers = new Headers(baseFetchOptions.headers),
+
+    const fetchArgs = typeof arg == 'string' ? { url: arg } : arg
+    let { url, headers = new Headers(baseFetchOptions.headers) } = fetchArgs
+
+    const {
+      url: _url,
+      headers: _headers,
       params = undefined,
       responseHandler = globalResponseHandler ?? ('json' as const),
       validateStatus = globalValidateStatus ?? defaultValidateStatus,
       timeout = defaultTimeout,
       ...rest
-    } = typeof arg == 'string' ? { url: arg } : arg
+    } = fetchArgs
     const config: RequestInit = {
       ...baseFetchOptions,
       signal,
@@ -268,16 +271,16 @@ export function fetchBaseQuery({
 
     const request = new Request(url, config)
     const requestClone = new Request(url, config)
-    meta = { request: requestClone }
+    const meta: FetchBaseQueryMeta = { request: requestClone }
 
-    let response,
-      timedOut = false,
-      timeoutId =
-        timeout &&
-        setTimeout(() => {
-          timedOut = true
-          api.abort()
-        }, timeout)
+    let response
+    let timedOut = false
+    const timeoutId =
+      timeout &&
+      setTimeout(() => {
+        timedOut = true
+        api.abort()
+      }, timeout)
     try {
       response = await fetchFn(request)
     } catch (e) {
