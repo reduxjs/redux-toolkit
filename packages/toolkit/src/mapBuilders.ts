@@ -4,7 +4,7 @@ import type {
   CaseReducer,
   CaseReducers,
 } from './createReducer'
-import type { TypeGuard } from './tsHelpers'
+import type { AnyNonNullishValue, TypeGuard } from './tsHelpers'
 
 export type TypedActionCreator<Type extends string> = {
   (...args: any[]): Action<Type>
@@ -120,7 +120,7 @@ const reducer = createReducer(initialState, builder => {
 })
 ```
    */
-  addDefaultCase(reducer: CaseReducer<State, Action>): {}
+  addDefaultCase(reducer: CaseReducer<State, Action>): AnyNonNullishValue
 }
 
 export function executeReducerBuilderCallback<S>(
