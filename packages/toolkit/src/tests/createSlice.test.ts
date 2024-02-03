@@ -497,10 +497,10 @@ describe('createSlice', () => {
     })
 
     // TODO Determine final production behavior here
-    it.todo('Crashes in production', () => {
+    it.todo('Crashes in production', async () => {
       vi.stubEnv('NODE_ENV', 'production')
 
-      const { createSlice } = require('../createSlice')
+      const { createSlice } = await import('../createSlice')
 
       const dummySlice = (createSlice as CreateSlice)({
         name: 'dummy',
