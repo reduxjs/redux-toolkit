@@ -44,7 +44,7 @@ export function withProvider(store: Store<any>) {
 export const hookWaitFor = async (cb: () => void, time = 2000) => {
   const startedAt = Date.now()
 
-  while (true) {
+  while (startedAt) {
     try {
       cb()
       return true
@@ -61,7 +61,7 @@ export const hookWaitFor = async (cb: () => void, time = 2000) => {
 export const fakeTimerWaitFor = async (cb: () => void, time = 2000) => {
   const startedAt = Date.now()
 
-  while (true) {
+  while (startedAt) {
     try {
       cb()
       return true

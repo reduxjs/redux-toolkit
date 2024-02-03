@@ -1,3 +1,4 @@
+import type { TSVersion } from '@phryneas/ts-version'
 import type {
   AsyncThunk,
   SerializedError,
@@ -11,8 +12,6 @@ import {
   createSlice,
   unwrapResult,
 } from '@reduxjs/toolkit'
-
-import type { TSVersion } from '@phryneas/ts-version'
 import type { AxiosError } from 'axios'
 import apiRequest from 'axios'
 import type { AsyncThunkDispatchConfig } from '@internal/createAsyncThunk'
@@ -753,10 +752,11 @@ describe('type tests', () => {
 
       expectTypeOf(n).toBeNumber()
 
-      if (1 < 2)
-        // @ts-expect-error
-        return api.rejectWithValue(5)
-      if (1 < 2) return api.rejectWithValue('test')
+      expectTypeOf(api.rejectWithValue).parameter(0).not.toBeNumber()
+
+      expectTypeOf(api.rejectWithValue).toBeCallableWith('test')
+
+      if (api) return api.rejectWithValue('test')
       return test1 + test2
     })
 
@@ -783,7 +783,7 @@ describe('type tests', () => {
 
       expectTypeOf(n).toBeNumber()
 
-      if (1 < 2) expectTypeOf(api.rejectWithValue).toBeCallableWith('test')
+      expectTypeOf(api.rejectWithValue).toBeCallableWith('test')
 
       expectTypeOf(api.rejectWithValue).parameter(0).not.toBeNumber()
 
@@ -819,8 +819,7 @@ describe('type tests', () => {
 
         expectTypeOf(n).toBeNumber()
 
-        if (1 < 2) return api.rejectWithValue(5)
-        if (1 < 2) expectTypeOf(api.rejectWithValue).toBeCallableWith(5)
+        expectTypeOf(api.rejectWithValue).toBeCallableWith(5)
 
         expectTypeOf(api.rejectWithValue).parameter(0).not.toBeString()
 
