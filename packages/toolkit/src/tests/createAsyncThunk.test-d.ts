@@ -1,3 +1,4 @@
+import type { AsyncThunkDispatchConfig } from '@internal/createAsyncThunk'
 import type { TSVersion } from '@phryneas/ts-version'
 import type {
   AsyncThunk,
@@ -14,9 +15,11 @@ import {
 } from '@reduxjs/toolkit'
 import type { AxiosError } from 'axios'
 import apiRequest from 'axios'
-import type { AsyncThunkDispatchConfig } from '@internal/createAsyncThunk'
+import type { AnyFunction, AnyNonNullishValue } from '../tsHelpers'
 
-const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, UnknownAction>
+const defaultDispatch = (() => {
+  /* No-Op */
+}) as ThunkDispatch<AnyNonNullishValue, any, UnknownAction>
 const unknownAction = { type: 'foo' } as UnknownAction
 
 describe('type tests', () => {
@@ -96,11 +99,9 @@ describe('type tests', () => {
       { id: 'a', title: 'First' },
     ]
 
-    const correctDispatch = (() => {}) as ThunkDispatch<
-      BookModel[],
-      { userAPI: Function },
-      UnknownAction
-    >
+    const correctDispatch = (() => {
+      /* No-Op */
+    }) as ThunkDispatch<BookModel[], { userAPI: AnyFunction }, UnknownAction>
 
     // Verify that the the first type args to createAsyncThunk line up right
     const fetchBooksTAC = createAsyncThunk<
@@ -108,7 +109,7 @@ describe('type tests', () => {
       number,
       {
         state: BooksState
-        extra: { userAPI: Function }
+        extra: { userAPI: AnyFunction }
       }
     >(
       'books/fetch',
@@ -119,7 +120,7 @@ describe('type tests', () => {
 
         expectTypeOf(state).toEqualTypeOf<BookModel[]>()
 
-        expectTypeOf(extra).toEqualTypeOf<{ userAPI: Function }>()
+        expectTypeOf(extra).toEqualTypeOf<{ userAPI: AnyFunction }>()
 
         return fakeBooks
       },
@@ -160,7 +161,7 @@ describe('type tests', () => {
 
   test('regression #1156: union return values fall back to allowing only single member', () => {
     const fn = createAsyncThunk('session/isAdmin', async () => {
-      const response: boolean = false
+      const response = false
       return response
     })
   })
@@ -493,7 +494,9 @@ describe('type tests', () => {
       return 'ret' as const
     })
 
-    expectTypeOf(thunk).toEqualTypeOf<AsyncThunk<'ret', void, {}>>()
+    expectTypeOf(thunk).toEqualTypeOf<
+      AsyncThunk<'ret', void, AnyNonNullishValue>
+    >()
   })
 
   test('createAsyncThunk without generics, accessing `api` does not break return type', () => {
@@ -501,7 +504,9 @@ describe('type tests', () => {
       return 'ret' as const
     })
 
-    expectTypeOf(thunk).toEqualTypeOf<AsyncThunk<'ret', void, {}>>()
+    expectTypeOf(thunk).toEqualTypeOf<
+      AsyncThunk<'ret', void, AnyNonNullishValue>
+    >()
   })
 
   test('createAsyncThunk rejectWithValue without generics: Expect correct return type', () => {
@@ -551,17 +556,26 @@ describe('type tests', () => {
     }
 
     // has to stay on one line or type tests fail in older TS versions
-    // prettier-ignore
-    // @ts-expect-error
-    const shouldFail = createAsyncThunk('without generics', () => {}, { serializeError: funkySerializeError })
+    const shouldFail = createAsyncThunk(
+      'without generics',
+      () => {
+        /* No-Op */
+      },
+      // @ts-expect-error
+      { serializeError: funkySerializeError },
+    )
 
     const shouldWork = createAsyncThunk<
       any,
       void,
       { serializedErrorType: Funky }
-    >('with generics', () => {}, {
-      serializeError: funkySerializeError,
-    })
+    >(
+      'with generics',
+      () => {
+        /* No-Op */
+      },
+      { serializeError: funkySerializeError },
+    )
 
     if (shouldWork.rejected.match(unknownAction)) {
       expectTypeOf(unknownAction.error).toEqualTypeOf<Funky>()
@@ -571,33 +585,54 @@ describe('type tests', () => {
   test('`idGenerator` option takes no arguments, and returns a string', () => {
     const returnsNumWithArgs = (foo: any) => 100
     // has to stay on one line or type tests fail in older TS versions
-    // prettier-ignore
-    // @ts-expect-error
-    const shouldFailNumWithArgs = createAsyncThunk('foo', () => {}, { idGenerator: returnsNumWithArgs })
+    const shouldFailNumWithArgs = createAsyncThunk(
+      'foo',
+      () => {
+        /* No-Op */
+      },
+      // @ts-expect-error
+      { idGenerator: returnsNumWithArgs },
+    )
 
     const returnsNumWithoutArgs = () => 100
-    // prettier-ignore
-    // @ts-expect-error
-    const shouldFailNumWithoutArgs = createAsyncThunk('foo', () => {}, { idGenerator: returnsNumWithoutArgs })
+    const shouldFailNumWithoutArgs = createAsyncThunk(
+      'foo',
+      () => {
+        /* No-Op */
+      },
+      // @ts-expect-error
+      { idGenerator: returnsNumWithoutArgs },
+    )
 
     const returnsStrWithNumberArg = (foo: number) => 'foo'
-    // prettier-ignore
-    // @ts-expect-error
-    const shouldFailWrongArgs = createAsyncThunk('foo', (arg: string) => {}, { idGenerator: returnsStrWithNumberArg })
+    const shouldFailWrongArgs = createAsyncThunk(
+      'foo',
+      (arg: string) => {
+        /* No-Op */
+      },
+      // @ts-expect-error
+      { idGenerator: returnsStrWithNumberArg },
+    )
 
     const returnsStrWithStringArg = (foo: string) => 'foo'
     const shoulducceedCorrectArgs = createAsyncThunk(
       'foo',
-      (arg: string) => {},
+      (arg: string) => {
+        /* No-Op */
+      },
       {
         idGenerator: returnsStrWithStringArg,
       },
     )
 
     const returnsStrWithoutArgs = () => 'foo'
-    const shouldSucceed = createAsyncThunk('foo', () => {}, {
-      idGenerator: returnsStrWithoutArgs,
-    })
+    const shouldSucceed = createAsyncThunk(
+      'foo',
+      () => {
+        /* No-Op */
+      },
+      { idGenerator: returnsStrWithoutArgs },
+    )
   })
 
   test('fulfillWithValue should infer return value', () => {
@@ -633,8 +668,14 @@ describe('type tests', () => {
 
   test('meta return values', () => {
     // return values
-    createAsyncThunk<'ret', void, {}>('test', (_, api) => 'ret' as const)
-    createAsyncThunk<'ret', void, {}>('test', async (_, api) => 'ret' as const)
+    createAsyncThunk<'ret', void, AnyNonNullishValue>(
+      'test',
+      (_, api) => 'ret' as const,
+    )
+    createAsyncThunk<'ret', void, AnyNonNullishValue>(
+      'test',
+      async (_, api) => 'ret' as const,
+    )
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>('test', (_, api) =>
       api.fulfillWithValue('ret' as const, ''),
     )
