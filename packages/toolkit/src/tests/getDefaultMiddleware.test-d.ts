@@ -10,6 +10,7 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
+import type { AnyNonNullishValue } from '../tsHelpers'
 
 declare const middleware1: Middleware<(_: string) => number>
 
@@ -179,7 +180,7 @@ describe('type tests', () => {
                 },
                 Dispatch<UnknownAction>
               >,
-              Middleware<{}, any, Dispatch<UnknownAction>>,
+              Middleware<AnyNonNullishValue, any, Dispatch<UnknownAction>>,
             ]
           >
         >()

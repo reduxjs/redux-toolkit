@@ -1,5 +1,5 @@
 import type { Api } from '@reduxjs/toolkit/query'
-import type { AnyFunction, AnyNonNullishValue } from '../tsHelpers'
+import type { AnyNonNullishValue } from '../tsHelpers'
 import type {
   BaseQueryApi,
   BaseQueryArg,
@@ -10,16 +10,7 @@ import type {
   BaseQueryResult,
   QueryReturnValue,
 } from './baseQueryTypes'
-import type { QuerySubState, RootState } from './core'
-import type { CacheCollectionQueryExtraOptions } from './core/buildMiddleware/cacheCollection'
-import type {
-  CacheLifecycleMutationExtraOptions,
-  CacheLifecycleQueryExtraOptions,
-} from './core/buildMiddleware/cacheLifecycle'
-import type {
-  QueryLifecycleMutationExtraOptions,
-  QueryLifecycleQueryExtraOptions,
-} from './core/buildMiddleware/queryLifecycle'
+import type { QuerySubState, RootState } from './core/apiState'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type { NEVER } from './fakeBaseQuery'
 import type {
@@ -194,7 +185,7 @@ export type BaseEndpointDefinition<
   BaseQuery extends BaseQueryFn,
   ResultType,
 > = (
-  | ([CastAny<BaseQueryResult<BaseQuery>, {}>] extends [NEVER]
+  | ([CastAny<BaseQueryResult<BaseQuery>, AnyNonNullishValue>] extends [NEVER]
       ? never
       : EndpointDefinitionWithQuery<QueryArg, BaseQuery, ResultType>)
   | EndpointDefinitionWithQueryFn<QueryArg, BaseQuery, ResultType>

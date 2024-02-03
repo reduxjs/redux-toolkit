@@ -4,12 +4,13 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
+import type { AnyNonNullishValue } from '../../../tsHelpers'
 import type {
   EndpointDefinitions,
   FullTagDescription,
 } from '../../endpointDefinitions'
 import type { QueryStatus, QuerySubState, RootState } from '../apiState'
-import type { QueryThunkArg } from '../buildThunks'
+import type { ApiEndpointQuery } from '../module'
 import { createAction, isAction } from '../rtkImports'
 import { buildBatchedActionsHandler } from './batchActions'
 import { buildCacheCollectionHandler } from './cacheCollection'
@@ -24,19 +25,6 @@ import type {
   InternalMiddlewareState,
 } from './types'
 import { buildWindowEventHandler } from './windowEventHandling'
-import type { ApiEndpointQuery } from '../module'
-export type { ReferenceCacheCollection } from './cacheCollection'
-export type {
-  MutationCacheLifecycleApi,
-  QueryCacheLifecycleApi,
-  ReferenceCacheLifecycle,
-} from './cacheLifecycle'
-export type {
-  MutationLifecycleApi,
-  QueryLifecycleApi,
-  ReferenceQueryLifecycle,
-} from './queryLifecycle'
-export type { SubscriptionSelectors } from './types'
 
 export function buildMiddleware<
   Definitions extends EndpointDefinitions,
@@ -47,9 +35,9 @@ export function buildMiddleware<
   const { apiUid } = context
 
   const actions = {
-    invalidateTags: createAction<
-      Array<TagTypes | FullTagDescription<TagTypes>>
-    >(`${reducerPath}/invalidateTags`),
+    invalidateTags: createAction<(TagTypes | FullTagDescription<TagTypes>)[]>(
+      `${reducerPath}/invalidateTags`,
+    ),
   }
 
   const isThisApiSliceAction = (action: Action) =>
@@ -65,7 +53,7 @@ export function buildMiddleware<
   ]
 
   const middleware: Middleware<
-    {},
+    AnyNonNullishValue,
     RootState<Definitions, string, ReducerPath>,
     ThunkDispatch<any, any, UnknownAction>
   > = (mwApi) => {
@@ -148,7 +136,12 @@ export function buildMiddleware<
       { status: QueryStatus.uninitialized }
     >,
   ) {
-    return (input.api.endpoints[querySubState.endpointName] as ApiEndpointQuery<any, any>).initiate(querySubState.originalArgs as any, {
+    return (
+      input.api.endpoints[querySubState.endpointName] as ApiEndpointQuery<
+        any,
+        any
+      >
+    ).initiate(querySubState.originalArgs as any, {
       subscribe: false,
       forceRefetch: true,
     })

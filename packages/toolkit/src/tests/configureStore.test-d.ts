@@ -1,5 +1,5 @@
 import { noop } from '@internal/tests/utils/helpers'
-import type { AnyNonNullishValue, EmptyObject } from '@internal/tsHelpers'
+import type { AnyNonNullishValue } from '@internal/tsHelpers'
 import type {
   Action,
   ConfigureStoreOptions,
@@ -213,7 +213,7 @@ describe('type tests', () => {
     expectTypeOf(store3.anotherProperty).toBeNumber()
 
     const someStateExtendingEnhancer: StoreEnhancer<
-      {},
+      AnyNonNullishValue,
       { someProperty: string }
     > =
       (next) =>
@@ -230,7 +230,7 @@ describe('type tests', () => {
       }
 
     const anotherStateExtendingEnhancer: StoreEnhancer<
-      {},
+      AnyNonNullishValue,
       { anotherProperty: number }
     > =
       (next) =>
@@ -609,7 +609,9 @@ describe('type tests', () => {
 
           expectTypeOf(concatenated).toMatchTypeOf<
             ReadonlyArray<
-              typeof otherMiddleware | ThunkMiddleware | Middleware<{}>
+              | typeof otherMiddleware
+              | ThunkMiddleware
+              | Middleware<AnyNonNullishValue>
             >
           >()
 
@@ -635,7 +637,9 @@ describe('type tests', () => {
 
           expectTypeOf(concatenated).toMatchTypeOf<
             ReadonlyArray<
-              typeof otherMiddleware | ThunkMiddleware | Middleware<{}>
+              | typeof otherMiddleware
+              | ThunkMiddleware
+              | Middleware<AnyNonNullishValue>
             >
           >()
 
