@@ -84,7 +84,7 @@ describe('createSlice', () => {
     })
 
     it('should create increment action', () => {
-      expect(actions.hasOwnProperty('increment')).toBe(true)
+      expect(Object.prototype.hasOwnProperty.call(actions, 'increment')).toBe(true)
     })
 
     it('should have the correct action for increment', () => {
