@@ -1,5 +1,5 @@
 import type { Api } from '@reduxjs/toolkit/query'
-import type { AnyFunction } from '../tsHelpers'
+import type { AnyFunction, AnyNonNullishValue } from '../tsHelpers'
 import type {
   BaseQueryApi,
   BaseQueryArg,
@@ -202,7 +202,7 @@ export type BaseEndpointDefinition<
   BaseQuery extends BaseQueryFn,
   ResultType,
 > = (
-  | ([CastAny<BaseQueryResult<BaseQuery>, {}>] extends [NEVER]
+  | ([CastAny<BaseQueryResult<BaseQuery>, AnyNonNullishValue>] extends [NEVER]
       ? never
       : EndpointDefinitionWithQuery<QueryArg, BaseQuery, ResultType>)
   | EndpointDefinitionWithQueryFn<QueryArg, BaseQuery, ResultType>
@@ -613,18 +613,18 @@ export interface InfiniteQueryExtraOptions<
    * `initialPageParam` may be specified when using the
    * endpoint, to override the default value.
    * `maxPages` and `getPreviousPageParam` are both optional.
-   * 
+   *
    * @example
-   * 
+   *
    * ```ts
    * // codeblock-meta title="infiniteQueryOptions example"
    * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
-   * 
+   *
    * type Pokemon = {
    *   id: string
    *   name: string
    * }
-   * 
+   *
    * const pokemonApi = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
    *   endpoints: (build) => ({
@@ -649,7 +649,7 @@ export interface InfiniteQueryExtraOptions<
    *     }),
    *   }),
    * })
-   
+
    * ```
    */
   infiniteQueryOptions: InfiniteQueryConfigOptions<ResultType, PageParam>
