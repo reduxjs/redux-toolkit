@@ -301,7 +301,7 @@ export interface CaseReducerWithPrepareDefinition<
 
 export interface AsyncThunkSliceReducerConfig<
   State,
-  ThunkArg extends any,
+  ThunkArg,
   Returned = unknown,
   ThunkApiConfig extends AsyncThunkConfig = AnyNonNullishValue,
 > {
@@ -328,7 +328,7 @@ export interface AsyncThunkSliceReducerConfig<
 
 export interface AsyncThunkSliceReducerDefinition<
   State,
-  ThunkArg extends any,
+  ThunkArg,
   Returned = unknown,
   ThunkApiConfig extends AsyncThunkConfig = AnyNonNullishValue,
 > extends AsyncThunkSliceReducerConfig<
