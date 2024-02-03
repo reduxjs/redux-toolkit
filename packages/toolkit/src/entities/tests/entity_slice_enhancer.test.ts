@@ -1,4 +1,4 @@
-import { createEntityAdapter, createSlice } from '../..'
+import { buildCreateSlice, createEntityAdapter, createSlice } from '../..'
 import type {
   PayloadAction,
   SliceCaseReducers,
@@ -6,7 +6,8 @@ import type {
   ValidateSliceCaseReducers,
 } from '../..'
 import type { EntityId, EntityState, IdSelector } from '../models'
-import type { BookModel } from './fixtures/book'
+import { entityMethodsCreator } from '../slice_creator'
+import { AClockworkOrange, type BookModel } from './fixtures/book'
 
 describe('Entity Slice Enhancer', () => {
   let slice: ReturnType<typeof entitySliceEnhancer<BookModel, string>>
@@ -19,14 +20,9 @@ describe('Entity Slice Enhancer', () => {
   })
 
   it('exposes oneAdded', () => {
-    const book = {
-      id: '0',
-      title: 'Der Steppenwolf',
-      author: 'Herman Hesse',
-    }
-    const action = slice.actions.oneAdded(book)
-    const oneAdded = slice.reducer(undefined, action as UnknownAction)
-    expect(oneAdded.entities['0']).toBe(book)
+    const action = slice.actions.oneAdded(AClockworkOrange)
+    const oneAdded = slice.reducer(undefined, action)
+    expect(oneAdded.entities['0']).toBe(AClockworkOrange)
   })
 })
 
@@ -60,3 +56,53 @@ function entitySliceEnhancer<
     },
   })
 }
+
+describe('entity slice creator', () => {
+  const createAppSlice = buildCreateSlice({
+    creators: { entityMethods: entityMethodsCreator },
+  })
+
+  const bookAdapter = createEntityAdapter<BookModel>()
+
+  const bookSlice = createAppSlice({
+    name: 'book',
+    initialState: bookAdapter.getInitialState({
+      nested: bookAdapter.getInitialState(),
+    }),
+    reducers: (create) => ({
+      ...create.entityMethods(bookAdapter, {
+        name: 'book',
+      }),
+      ...create.entityMethods(bookAdapter, {
+        selectEntityState: (state) => state.nested,
+        name: 'nestedBook',
+      }),
+    }),
+  })
+
+  it('should generate correct actions', () => {
+    expect(bookSlice.actions.addOneBook).toBeTypeOf('function')
+    expect(bookSlice.actions.addOneNestedBook).toBeTypeOf('function')
+  })
+  it('should handle actions', () => {
+    const withBook = bookSlice.reducer(
+      undefined,
+      bookSlice.actions.addOneBook(AClockworkOrange),
+    )
+    expect(bookAdapter.getSelectors().selectById(withBook, '0')).toBe(
+      AClockworkOrange,
+    )
+
+    const withNestedBook = bookSlice.reducer(
+      withBook,
+      bookSlice.actions.addOneNestedBook(AClockworkOrange),
+    )
+    expect(
+      bookAdapter
+        .getSelectors(
+          (state: ReturnType<typeof bookSlice.reducer>) => state.nested,
+        )
+        .selectById(withNestedBook, '0'),
+    ).toBe(AClockworkOrange)
+  })
+})

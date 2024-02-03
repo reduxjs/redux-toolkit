@@ -9,20 +9,20 @@ import { createInitialStateFactory } from './entity_state'
 import { createSelectorsFactory } from './state_selectors'
 import { createSortedStateAdapter } from './sorted_state_adapter'
 import { createUnsortedStateAdapter } from './unsorted_state_adapter'
+import type { WithRequiredProp } from '../tsHelpers'
 
 export interface EntityAdapterOptions<T, Id extends EntityId> {
   selectId?: IdSelector<T, Id>
   sortComparer?: false | Comparer<T>
 }
 
-export function createEntityAdapter<T, Id extends EntityId>(options: {
-  selectId: IdSelector<T, Id>
-  sortComparer?: false | Comparer<T>
-}): EntityAdapter<T, Id>
+export function createEntityAdapter<T, Id extends EntityId>(
+  options: WithRequiredProp<EntityAdapterOptions<T, Id>, 'selectId'>,
+): EntityAdapter<T, Id>
 
-export function createEntityAdapter<T extends { id: EntityId }>(options?: {
-  sortComparer?: false | Comparer<T>
-}): EntityAdapter<T, T['id']>
+export function createEntityAdapter<T extends { id: EntityId }>(
+  options?: Omit<EntityAdapterOptions<T, T['id']>, 'selectId'>,
+): EntityAdapter<T, T['id']>
 
 /**
  *

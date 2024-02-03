@@ -6,3 +6,4 @@ export type {
   IdSelector,
   Comparer,
 } from './models'
+export { entityMethodsCreator, entityMethodsCreatorType } from './slice_creator'
