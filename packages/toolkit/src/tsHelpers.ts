@@ -94,67 +94,73 @@ export type ExcludeFromTuple<T, E, Acc extends unknown[] = []> = T extends [
 
 type ExtractDispatchFromMiddlewareTuple<
   MiddlewareTuple extends readonly any[],
-  Acc extends {},
+  Acc extends AnyNonNullishValue,
 > = MiddlewareTuple extends [infer Head, ...infer Tail]
   ? ExtractDispatchFromMiddlewareTuple<
       Tail,
-      Acc & (Head extends Middleware<infer D> ? IsAny<D, {}, D> : {})
+      Acc &
+        (Head extends Middleware<infer D>
+          ? IsAny<D, AnyNonNullishValue, D>
+          : AnyNonNullishValue)
     >
   : Acc
 
 export type ExtractDispatchExtensions<M> =
   M extends Tuple<infer MiddlewareTuple>
-    ? ExtractDispatchFromMiddlewareTuple<MiddlewareTuple, {}>
+    ? ExtractDispatchFromMiddlewareTuple<MiddlewareTuple, AnyNonNullishValue>
     : M extends ReadonlyArray<Middleware>
-      ? ExtractDispatchFromMiddlewareTuple<[...M], {}>
+      ? ExtractDispatchFromMiddlewareTuple<[...M], AnyNonNullishValue>
       : never
 
 type ExtractStoreExtensionsFromEnhancerTuple<
   EnhancerTuple extends readonly any[],
-  Acc extends {},
+  Acc extends AnyNonNullishValue,
 > = EnhancerTuple extends [infer Head, ...infer Tail]
   ? ExtractStoreExtensionsFromEnhancerTuple<
       Tail,
-      Acc & (Head extends StoreEnhancer<infer Ext> ? IsAny<Ext, {}, Ext> : {})
+      Acc &
+        (Head extends StoreEnhancer<infer Ext>
+          ? IsAny<Ext, AnyNonNullishValue, Ext>
+          : AnyNonNullishValue)
     >
   : Acc
 
 export type ExtractStoreExtensions<E> =
   E extends Tuple<infer EnhancerTuple>
-    ? ExtractStoreExtensionsFromEnhancerTuple<EnhancerTuple, {}>
+    ? ExtractStoreExtensionsFromEnhancerTuple<EnhancerTuple, AnyNonNullishValue>
     : E extends ReadonlyArray<StoreEnhancer>
       ? UnionToIntersection<
           E[number] extends StoreEnhancer<infer Ext>
-            ? Ext extends {}
-              ? IsAny<Ext, {}, Ext>
-              : {}
-            : {}
+            ? Ext extends AnyNonNullishValue
+              ? IsAny<Ext, AnyNonNullishValue, Ext>
+              : AnyNonNullishValue
+            : AnyNonNullishValue
         >
       : never
 
 type ExtractStateExtensionsFromEnhancerTuple<
   EnhancerTuple extends readonly any[],
-  Acc extends {},
+  Acc extends AnyNonNullishValue,
 > = EnhancerTuple extends [infer Head, ...infer Tail]
   ? ExtractStateExtensionsFromEnhancerTuple<
       Tail,
       Acc &
         (Head extends StoreEnhancer<any, infer StateExt>
-          ? IsAny<StateExt, {}, StateExt>
-          : {})
+          ? IsAny<StateExt, AnyNonNullishValue, StateExt>
+          : AnyNonNullishValue)
     >
   : Acc
 
 export type ExtractStateExtensions<E> =
   E extends Tuple<infer EnhancerTuple>
-    ? ExtractStateExtensionsFromEnhancerTuple<EnhancerTuple, {}>
+    ? ExtractStateExtensionsFromEnhancerTuple<EnhancerTuple, AnyNonNullishValue>
     : E extends ReadonlyArray<StoreEnhancer>
       ? UnionToIntersection<
           E[number] extends StoreEnhancer<any, infer StateExt>
-            ? StateExt extends {}
-              ? IsAny<StateExt, {}, StateExt>
-              : {}
-            : {}
+            ? StateExt extends AnyNonNullishValue
+              ? IsAny<StateExt, AnyNonNullishValue, StateExt>
+              : AnyNonNullishValue
+            : AnyNonNullishValue
         >
       : never
 
@@ -194,13 +200,13 @@ export type Matcher<T> = HasMatchFunction<T> | TypeGuard<T>
 export type ActionFromMatcher<M extends Matcher<any>> =
   M extends Matcher<infer T> ? T : never
 
-export type Id<T> = { [K in keyof T]: T[K] } & {}
+export type Id<T> = { [K in keyof T]: T[K] } & AnyNonNullishValue
 
 export type Tail<T extends any[]> = T extends [any, ...infer Tail]
   ? Tail
   : never
 
-export type UnknownIfNonSpecific<T> = {} extends T ? unknown : T
+export type UnknownIfNonSpecific<T> = AnyNonNullishValue extends T ? unknown : T
 
 /**
  * A Promise that will never reject.

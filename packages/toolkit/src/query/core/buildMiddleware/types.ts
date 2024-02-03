@@ -1,6 +1,5 @@
 import type {
   Action,
-  AsyncThunkAction,
   Dispatch,
   Middleware,
   MiddlewareAPI,
@@ -8,6 +7,7 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
+import type { AnyNonNullishValue } from '../../../tsHelpers'
 import type { Api, ApiContext } from '../../apiTypes'
 import type {
   AssertTagTypes,
@@ -18,21 +18,18 @@ import type {
   QuerySubState,
   RootState,
   SubscriptionInternalState,
-  SubscriptionState,
 } from '../apiState'
-import type {
-  InfiniteQueryThunk,
-  MutationThunk,
-  QueryThunk,
-  QueryThunkArg,
-  ThunkResult,
-} from '../buildThunks'
 import type {
   InfiniteQueryActionCreatorResult,
   MutationActionCreatorResult,
   QueryActionCreatorResult,
 } from '../buildInitiate'
 import type { AllSelectors } from '../buildSelectors'
+import type {
+  InfiniteQueryThunk,
+  MutationThunk,
+  QueryThunk,
+} from '../buildThunks'
 
 export type QueryStateMeta<T> = Record<string, undefined | T>
 export type TimeoutId = ReturnType<typeof setTimeout>
@@ -106,7 +103,7 @@ export interface BuildSubMiddlewareInput
 export type SubMiddlewareBuilder = (
   input: BuildSubMiddlewareInput,
 ) => Middleware<
-  {},
+  AnyNonNullishValue,
   RootState<EndpointDefinitions, string, string>,
   ThunkDispatch<any, any, UnknownAction>
 >

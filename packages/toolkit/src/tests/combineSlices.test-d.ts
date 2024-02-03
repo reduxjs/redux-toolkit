@@ -1,10 +1,11 @@
 import type { Reducer, Slice, WithSlice } from '@reduxjs/toolkit'
 import { combineSlices } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import type { EmptyObject } from '../tsHelpers'
 
-declare const stringSlice: Slice<string, {}, 'string'>
+declare const stringSlice: Slice<string, EmptyObject, 'string'>
 
-declare const numberSlice: Slice<number, {}, 'number'>
+declare const numberSlice: Slice<number, EmptyObject, 'number'>
 
 declare const booleanReducer: Reducer<boolean>
 
@@ -36,7 +37,9 @@ describe('type tests', () => {
   test('combineSlices allows passing no initial reducers', () => {
     const rootReducer = combineSlices()
 
-    expectTypeOf(rootReducer(undefined, { type: '' })).toEqualTypeOf<{}>()
+    expectTypeOf(
+      rootReducer(undefined, { type: '' }),
+    ).toMatchTypeOf<EmptyObject>()
 
     const declaredLazy =
       combineSlices().withLazyLoadedSlices<WithSlice<typeof numberSlice>>()

@@ -4,7 +4,7 @@ import type {
   CaseReducer,
   CaseReducers,
 } from './createReducer'
-import type { TypeGuard } from './tsHelpers'
+import type { AnyNonNullishValue, TypeGuard } from './tsHelpers'
 import type { AsyncThunk, AsyncThunkConfig } from './createAsyncThunk'
 
 export type AsyncThunkReducers<
@@ -188,7 +188,7 @@ const reducer = createReducer(initialState, builder => {
 })
 ```
    */
-  addDefaultCase(reducer: CaseReducer<State, Action>): {}
+  addDefaultCase(reducer: CaseReducer<State, Action>): AnyNonNullishValue
 }
 
 export function executeReducerBuilderCallback<S>(

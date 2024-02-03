@@ -1,3 +1,4 @@
+import type { AnyNonNullishValue } from '../tsHelpers'
 import type { BaseQueryFn } from './baseQueryTypes'
 
 export const _NEVER = /* @__PURE__ */ Symbol()
@@ -11,7 +12,7 @@ export function fakeBaseQuery<ErrorType>(): BaseQueryFn<
   void,
   NEVER,
   ErrorType,
-  {}
+  AnyNonNullishValue
 > {
   return function () {
     throw new Error(

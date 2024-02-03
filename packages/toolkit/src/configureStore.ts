@@ -16,21 +16,21 @@ import {
 } from 'redux'
 import type { DevToolsEnhancerOptions as DevToolsOptions } from './devtoolsExtension'
 import { composeWithDevTools } from './devtoolsExtension'
-
+import type { GetDefaultEnhancers } from './getDefaultEnhancers'
+import { buildGetDefaultEnhancers } from './getDefaultEnhancers'
 import type {
   GetDefaultMiddleware,
   ThunkMiddlewareFor,
 } from './getDefaultMiddleware'
 import { buildGetDefaultMiddleware } from './getDefaultMiddleware'
 import type {
+  AnyNonNullishValue,
   ExtractDispatchExtensions,
   ExtractStateExtensions,
   ExtractStoreExtensions,
   UnknownIfNonSpecific,
 } from './tsHelpers'
 import type { Tuple } from './utils'
-import type { GetDefaultEnhancers } from './getDefaultEnhancers'
-import { buildGetDefaultEnhancers } from './getDefaultEnhancers'
 
 /**
  * Options for `configureStore()`.
@@ -93,7 +93,7 @@ export interface ConfigureStoreOptions<
   enhancers?: (getDefaultEnhancers: GetDefaultEnhancers<M>) => E
 }
 
-export type Middlewares<S> = ReadonlyArray<Middleware<{}, S>>
+export type Middlewares<S> = ReadonlyArray<Middleware<AnyNonNullishValue, S>>
 
 type Enhancers = ReadonlyArray<StoreEnhancer>
 

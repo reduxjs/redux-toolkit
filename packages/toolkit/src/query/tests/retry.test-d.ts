@@ -5,6 +5,7 @@ import type {
 import { fetchBaseQuery } from '@internal/query/fetchBaseQuery'
 import type { RetryOptions } from '@internal/query/retry'
 import { retry } from '@internal/query/retry'
+import type { AnyObject } from '@internal/tsHelpers.js'
 
 describe('type tests', () => {
   test('RetryOptions only accepts one of maxRetries or retryCondition', () => {
@@ -21,8 +22,8 @@ describe('type tests', () => {
     }).not.toMatchTypeOf<RetryOptions>()
   })
   test('fail can be pretyped to only accept correct error and meta', () => {
-    expectTypeOf(retry.fail).parameter(0).toEqualTypeOf<unknown>()
-    expectTypeOf(retry.fail).parameter(1).toEqualTypeOf<{} | undefined>()
+    expectTypeOf(retry.fail).parameter(0).toBeUnknown()
+    expectTypeOf(retry.fail).parameter(1).toEqualTypeOf<AnyObject | undefined>()
     expectTypeOf(retry.fail).toBeCallableWith('Literally anything', {})
 
     const myBaseQuery = fetchBaseQuery()
@@ -41,7 +42,7 @@ describe('type tests', () => {
       { request: new Request('http://localhost') },
     )
 
-    expectTypeOf(typedFail).parameter(0).not.toMatchTypeOf<string>()
-    expectTypeOf(typedFail).parameter(1).not.toMatchTypeOf<{}>()
+    expectTypeOf(typedFail).parameter(0).not.toBeString()
+    expectTypeOf(typedFail).parameter(1).not.toMatchTypeOf<AnyObject>()
   })
 })

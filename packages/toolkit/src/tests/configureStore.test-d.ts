@@ -1,5 +1,5 @@
 import { noop } from '@internal/listenerMiddleware/utils'
-import type { AnyNonNullishValue } from '@internal/tsHelpers'
+import type { AnyNonNullishValue, EmptyObject } from '@internal/tsHelpers'
 import type {
   Action,
   ConfigureStoreOptions,
@@ -213,7 +213,7 @@ describe('type tests', () => {
     expectTypeOf(store3.anotherProperty).toBeNumber()
 
     const someStateExtendingEnhancer: StoreEnhancer<
-      {},
+      EmptyObject,
       { someProperty: string }
     > =
       (next) =>
@@ -230,7 +230,7 @@ describe('type tests', () => {
       }
 
     const anotherStateExtendingEnhancer: StoreEnhancer<
-      {},
+      EmptyObject,
       { anotherProperty: number }
     > =
       (next) =>
@@ -608,9 +608,11 @@ describe('type tests', () => {
           const concatenated = gDM().prepend(otherMiddleware)
 
           expectTypeOf(concatenated).toMatchTypeOf<
-            ReadonlyArray<
-              typeof otherMiddleware | ThunkMiddleware | Middleware<{}>
-            >
+            readonly (
+              | typeof otherMiddleware
+              | ThunkMiddleware
+              | Middleware<AnyNonNullishValue>
+            )[]
           >()
 
           return concatenated
@@ -635,7 +637,9 @@ describe('type tests', () => {
 
           expectTypeOf(concatenated).toMatchTypeOf<
             ReadonlyArray<
-              typeof otherMiddleware | ThunkMiddleware | Middleware<{}>
+              | typeof otherMiddleware
+              | ThunkMiddleware
+              | Middleware<AnyNonNullishValue>
             >
           >()
 

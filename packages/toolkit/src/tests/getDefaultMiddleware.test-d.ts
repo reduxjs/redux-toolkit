@@ -180,7 +180,7 @@ describe('type tests', () => {
                 },
                 Dispatch<UnknownAction>
               >,
-              Middleware<{}, any, Dispatch<UnknownAction>>,
+              Middleware<AnyNonNullishValue, any, Dispatch<UnknownAction>>,
             ]
           >
         >()

@@ -1,3 +1,4 @@
+import type { AnyNonNullishValue } from '../tsHelpers'
 import type { BaseQueryApi, BaseQueryFn } from './baseQueryTypes'
 import { isPlainObject } from './core/rtkImports'
 import type { MaybePromise, Override } from './tsHelpers'
@@ -212,7 +213,7 @@ export function fetchBaseQuery({
   string | FetchArgs,
   unknown,
   FetchBaseQueryError,
-  {},
+  AnyNonNullishValue,
   FetchBaseQueryMeta
 > {
   if (typeof fetch === 'undefined' && fetchFn === defaultFetchFn) {
