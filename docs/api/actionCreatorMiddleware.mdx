@@ -54,7 +54,7 @@ import reducer from './reducer'
 // Augment middleware to consider all functions with a static type property to be action creators
 const isActionCreator = (
   action: unknown,
-): action is Function & { type: unknown } =>
+): action is (...args: any) => any & { type: unknown } =>
   typeof action === 'function' && 'type' in action
 
 const actionCreatorMiddleware = createActionCreatorInvariantMiddleware({

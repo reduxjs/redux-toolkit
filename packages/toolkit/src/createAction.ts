@@ -1,9 +1,10 @@
 import { isAction } from 'redux'
 import type {
-  IsUnknownOrNonInferrable,
+  AnyFunction,
   IfMaybeUndefined,
   IfVoid,
   IsAny,
+  IsUnknownOrNonInferrable,
 } from './tsHelpers'
 import { hasMatchFunction } from './tsHelpers'
 
@@ -257,7 +258,7 @@ export function createAction<
   prepareAction: PA,
 ): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>
 
-export function createAction(type: string, prepareAction?: Function): any {
+export function createAction(type: string, prepareAction?: AnyFunction): any {
   function actionCreator(...args: any[]) {
     if (prepareAction) {
       const prepared = prepareAction(...args)
@@ -290,7 +291,7 @@ export function createAction(type: string, prepareAction?: Function): any {
  */
 export function isActionCreator(
   action: unknown,
-): action is BaseActionCreator<unknown, string> & Function {
+): action is BaseActionCreator<unknown, string> & AnyFunction {
   return (
     typeof action === 'function' &&
     'type' in action &&
