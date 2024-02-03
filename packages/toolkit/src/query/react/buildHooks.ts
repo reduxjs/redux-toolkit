@@ -198,9 +198,9 @@ export type TypedUseQuerySubscriptionResult<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
 
-export type UseLazyQueryLastPromiseInfo<
+export interface UseLazyQueryLastPromiseInfo<
   D extends QueryDefinition<any, any, any, any>,
-> = {
+> {
   lastArg: QueryArgFrom<D>
 }
 
@@ -231,7 +231,7 @@ export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
   UseLazyQueryLastPromiseInfo<D>,
 ]
 
-export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
+export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> =
   /**
    * Triggers a lazy query.
    *
@@ -255,8 +255,7 @@ export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
   (
     arg: QueryArgFrom<D>,
     preferCacheValue?: boolean,
-  ): QueryActionCreatorResult<D>
-}
+  ) => QueryActionCreatorResult<D>
 
 /**
  * A React hook similar to [`useQuerySubscription`](#usequerysubscription), but with manual control over when the data fetching occurs.
@@ -297,10 +296,10 @@ export type UseQueryState<D extends QueryDefinition<any, any, any, any>> = <
   options?: UseQueryStateOptions<D, R>,
 ) => UseQueryStateResult<D, R>
 
-export type UseQueryStateOptions<
+export interface UseQueryStateOptions<
   D extends QueryDefinition<any, any, any, any>,
   R extends AnyObject,
-> = {
+> {
   /**
    * Prevents a query from automatically running.
    *
@@ -462,10 +461,10 @@ export type MutationStateSelector<
   D extends MutationDefinition<any, any, any, any>,
 > = (state: MutationResultSelectorResult<D>) => R
 
-export type UseMutationStateOptions<
+export interface UseMutationStateOptions<
   D extends MutationDefinition<any, any, any, any>,
   R extends AnyObject,
-> = {
+> {
   selectFromResult?: MutationStateSelector<R, D>
   fixedCacheKey?: string
 }
@@ -515,25 +514,23 @@ export type UseMutation<D extends MutationDefinition<any, any, any, any>> = <
 ) => readonly [MutationTrigger<D>, UseMutationStateResult<D, R>]
 
 export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> =
-  {
-    /**
-     * Triggers the mutation and returns a Promise.
-     * @remarks
-     * If you need to access the error or success payload immediately after a mutation, you can chain .unwrap().
-     *
-     * @example
-     * ```ts
-     * // codeblock-meta title="Using .unwrap with async await"
-     * try {
-     *   const payload = await addPost({ id: 1, name: 'Example' }).unwrap();
-     *   console.log('fulfilled', payload)
-     * } catch (error) {
-     *   console.error('rejected', error);
-     * }
-     * ```
-     */
-    (arg: QueryArgFrom<D>): MutationActionCreatorResult<D>
-  }
+  /**
+   * Triggers the mutation and returns a Promise.
+   * @remarks
+   * If you need to access the error or success payload immediately after a mutation, you can chain .unwrap().
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta title="Using .unwrap with async await"
+   * try {
+   *   const payload = await addPost({ id: 1, name: 'Example' }).unwrap();
+   *   console.log('fulfilled', payload)
+   * } catch (error) {
+   *   console.error('rejected', error);
+   * }
+   * ```
+   */
+  (arg: QueryArgFrom<D>) => MutationActionCreatorResult<D>
 
 /**
  * Wrapper around `defaultQueryStateSelector` to be used in `useQuery`.

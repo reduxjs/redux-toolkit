@@ -12,13 +12,9 @@ import type {
 import { configureStore } from '@reduxjs/toolkit'
 import type { AnyNonNullishValue } from '../tsHelpers'
 
-declare const middleware1: Middleware<{
-  (_: string): number
-}>
+declare const middleware1: Middleware<(_: string) => number>
 
-declare const middleware2: Middleware<{
-  (_: number): string
-}>
+declare const middleware2: Middleware<(_: number) => string>
 
 type ThunkReturn = Promise<'thunk'>
 declare const thunkCreator: () => () => ThunkReturn
@@ -137,9 +133,7 @@ describe('type tests', () => {
     expectTypeOf(m2).toMatchTypeOf<Tuple<[]>>()
 
     const dummyMiddleware: Middleware<
-      {
-        (action: Action<'actionListenerMiddleware/add'>): () => void
-      },
+      (action: Action<'actionListenerMiddleware/add'>) => () => void,
       { counter: number }
     > = (storeApi) => (next) => (action) => {
       return next(action)
