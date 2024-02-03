@@ -1,3 +1,4 @@
+import { E } from 'esbuild-extra/dist/types-9a0ea18a'
 import type { PayloadAction } from '../createAction'
 import type {
   SliceCaseReducers,
@@ -6,6 +7,7 @@ import type {
   ReducerCreator,
   ReducerCreators,
 } from '../createSlice'
+import type { WithRequiredProp } from '../tsHelpers'
 import type {
   EntityAdapter,
   EntityId,
@@ -38,7 +40,19 @@ type EntityReducers<
     : never
 }
 
-type entityMethodsCreator<State> =
+export interface EntityMethodsCreatorConfig<
+  T,
+  Id extends EntityId,
+  State,
+  Single extends string,
+  Plural extends string,
+> {
+  selectEntityState?: (state: State) => EntityState<T, Id>
+  name?: Single
+  pluralName?: Plural
+}
+
+type EntityMethodsCreator<State> =
   State extends EntityState<infer T, infer Id>
     ? {
         <
@@ -49,19 +63,18 @@ type entityMethodsCreator<State> =
         >(
           this: ReducerCreators<State>,
           adapter: EntityAdapter<T, Id>,
-          config: {
-            selectEntityState: (state: State) => EntityState<T, Id>
-            name?: Single
-            pluralName?: Plural
-          },
+          config: WithRequiredProp<
+            EntityMethodsCreatorConfig<T, Id, State, Single, Plural>,
+            'selectEntityState'
+          >,
         ): EntityReducers<T, Id, State, Single, Plural>
         <Single extends string = '', Plural extends string = `${Single}s`>(
           this: ReducerCreators<State>,
           adapter: EntityAdapter<T, Id>,
-          config?: {
-            name?: Single
-            pluralName?: Plural
-          },
+          config?: Omit<
+            EntityMethodsCreatorConfig<T, Id, State, Single, Plural>,
+            'selectEntityState'
+          >,
         ): EntityReducers<T, Id, State, Single, Plural>
       }
     : <
@@ -72,11 +85,10 @@ type entityMethodsCreator<State> =
       >(
         this: ReducerCreators<State>,
         adapter: EntityAdapter<T, Id>,
-        config: {
-          selectEntityState: (state: State) => EntityState<T, Id>
-          name?: Single
-          pluralName?: Plural
-        },
+        config: WithRequiredProp<
+          EntityMethodsCreatorConfig<T, Id, State, Single, Plural>,
+          'selectEntityState'
+        >,
       ) => EntityReducers<T, Id, State, Single, Plural>
 
 declare module '@reduxjs/toolkit' {
@@ -85,7 +97,7 @@ declare module '@reduxjs/toolkit' {
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
     Name extends string = string,
   > {
-    [entityMethodsCreatorType]: ReducerCreatorEntry<entityMethodsCreator<State>>
+    [entityMethodsCreatorType]: ReducerCreatorEntry<EntityMethodsCreator<State>>
   }
 }
 
@@ -99,11 +111,7 @@ export const entityMethodsCreator: ReducerCreator<
       selectEntityState = (state) => state,
       name = '',
       pluralName = '',
-    }: {
-      selectEntityState?: (state: any) => any
-      name?: '' // required for proper key checking
-      pluralName?: ''
-    } = {},
+    }: EntityMethodsCreatorConfig<any, any, any, '', ''> = {},
   ): EntityReducers<any, EntityId, any> {
     return {
       [`addOne${capitalize(name)}` as const]: this.reducer<any>(
