@@ -60,7 +60,7 @@ function trackProperties(
   return tracked as TrackedProperty
 }
 
-type IgnorePaths = readonly (string | RegExp)[]
+type IgnorePaths = ReadonlyArray<string | RegExp>
 
 function detectMutations(
   isImmutable: IsImmutableFunc,

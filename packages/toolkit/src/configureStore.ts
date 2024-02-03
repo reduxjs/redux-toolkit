@@ -93,7 +93,7 @@ export interface ConfigureStoreOptions<
 
 export type Middlewares<S> = ReadonlyArray<Middleware<AnyNonNullishValue, S>>
 
-type Enhancers = ReadonlyArray<StoreEnhancer>
+type Enhancers = readonly StoreEnhancer[]
 
 /**
  * A Redux store returned by `configureStore()`. Supports dispatching

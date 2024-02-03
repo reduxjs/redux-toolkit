@@ -34,7 +34,7 @@ export type AddMiddleware<
   State = any,
   Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
 > = {
-  (...middlewares: Middleware<any, State, Dispatch>[]): void
+  (...middlewares: Array<Middleware<any, State, Dispatch>>): void
   withTypes<MiddlewareConfig extends MiddlewareApiConfig>(): AddMiddleware<
     GetState<MiddlewareConfig>,
     GetDispatch<MiddlewareConfig>
@@ -45,11 +45,11 @@ export interface WithMiddleware<
   State = any,
   Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
 > extends BaseActionCreator<
-    Middleware<any, State, Dispatch>[],
+    Array<Middleware<any, State, Dispatch>>,
     'dynamicMiddleware/add',
     { instanceId: string }
   > {
-  <Middlewares extends Middleware<any, State, Dispatch>[]>(
+  <Middlewares extends Array<Middleware<any, State, Dispatch>>>(
     ...middlewares: Middlewares
   ): PayloadAction<Middlewares, 'dynamicMiddleware/add', { instanceId: string }>
   withTypes<MiddlewareConfig extends MiddlewareApiConfig>(): WithMiddleware<
@@ -60,7 +60,7 @@ export interface WithMiddleware<
 
 export interface DynamicDispatch {
   // return a version of dispatch that knows about middleware
-  <Middlewares extends Middleware<any>[]>(
+  <Middlewares extends Array<Middleware<any>>>(
     action: PayloadAction<Middlewares, 'dynamicMiddleware/add'>,
   ): ExtractDispatchExtensions<Middlewares> & this
 }

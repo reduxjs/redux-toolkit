@@ -21,7 +21,7 @@ import type {
 } from '@reduxjs/toolkit'
 
 export type UseDispatchWithMiddlewareHook<
-  Middlewares extends Middleware<any, State, Dispatch>[] = [],
+  Middlewares extends Array<Middleware<any, State, Dispatch>> = [],
   State = any,
   Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
 > = () => TSHelpersExtractDispatchExtensions<Middlewares> & Dispatch
@@ -33,7 +33,7 @@ export type CreateDispatchWithMiddlewareHook<
   <
     Middlewares extends [
       Middleware<any, State, Dispatch>,
-      ...Middleware<any, State, Dispatch>[],
+      ...Array<Middleware<any, State, Dispatch>>,
     ],
   >(
     ...middlewares: Middlewares
@@ -81,7 +81,7 @@ export const createDynamicMiddleware = <
         ? useDefaultDispatch
         : createDispatchHook(context)
     function createDispatchWithMiddlewareHook<
-      Middlewares extends Middleware<any, State, Dispatch>[],
+      Middlewares extends Array<Middleware<any, State, Dispatch>>,
     >(...middlewares: Middlewares) {
       instance.addMiddleware(...middlewares)
       return useDispatch

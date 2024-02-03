@@ -250,7 +250,7 @@ export type CreateApi<Modules extends ModuleName> = {
  * @param modules - A variable number of modules that customize how the `createApi` method handles endpoints
  * @returns A `createApi` method using the provided `modules`.
  */
-export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
+export function buildCreateApi<Modules extends [Module<any>, ...Array<Module<any>>]>(
   ...modules: Modules
 ): CreateApi<Modules[number]['name']> {
   return function baseCreateApi(options) {

@@ -335,7 +335,7 @@ export function buildSlice({
           draft,
           action: PayloadAction<{
             queryCacheKey: QueryCacheKey
-            providedTags: readonly FullTagDescription<string>[]
+            providedTags: ReadonlyArray<FullTagDescription<string>>
           }>,
         ) {
           const { queryCacheKey, providedTags } = action.payload
@@ -361,7 +361,7 @@ export function buildSlice({
         },
         prepare: prepareAutoBatched<{
           queryCacheKey: QueryCacheKey
-          providedTags: readonly FullTagDescription<string>[]
+          providedTags: ReadonlyArray<FullTagDescription<string>>
         }>(),
       },
     },

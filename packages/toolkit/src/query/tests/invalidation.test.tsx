@@ -14,10 +14,10 @@ const tagTypes = [
   'giraffe',
 ] as const
 type TagTypes = (typeof tagTypes)[number]
-type Tags = TagDescription<TagTypes>[]
+type Tags = Array<TagDescription<TagTypes>>
 
 /** providesTags, invalidatesTags, shouldInvalidate */
-const caseMatrix: [Tags, Tags, boolean][] = [
+const caseMatrix: Array<[Tags, Tags, boolean]> = [
   // *****************************
   // basic invalidation behaviour
   // *****************************

@@ -28,7 +28,7 @@ interface NonSerializableValue {
   value: unknown
 }
 
-type IgnorePaths = readonly (string | RegExp)[]
+type IgnorePaths = ReadonlyArray<string | RegExp>
 
 /**
  * @public
@@ -37,7 +37,7 @@ export function findNonSerializableValue(
   value: unknown,
   path: string = '',
   isSerializable: (value: unknown) => boolean = isPlain,
-  getEntries?: (value: unknown) => [string, any][],
+  getEntries?: (value: unknown) => Array<[string, any]>,
   ignoredPaths: IgnorePaths = [],
   cache?: WeakSet<object>,
 ): NonSerializableValue | false {
@@ -132,7 +132,7 @@ export interface SerializableStateInvariantMiddlewareOptions {
    * value.  If unspecified, `Object.entries` will be used. Defaults
    * to `undefined`.
    */
-  getEntries?: (value: any) => [string, any][]
+  getEntries?: (value: any) => Array<[string, any]>
 
   /**
    * An array of action types to ignore when checking for serializability.
@@ -145,13 +145,13 @@ export interface SerializableStateInvariantMiddlewareOptions {
    * when checking for serializability, Defaults to
    * ['meta.arg', 'meta.baseQueryMeta']
    */
-  ignoredActionPaths?: (string | RegExp)[]
+  ignoredActionPaths?: Array<string | RegExp>
 
   /**
    * An array of dot-separated path strings or regular expressions to ignore
    * when checking for serializability, Defaults to []
    */
-  ignoredPaths?: (string | RegExp)[]
+  ignoredPaths?: Array<string | RegExp>
   /**
    * Execution time warning threshold. If the middleware takes longer
    * than `warnAfter` ms, a warning will be displayed in the console.

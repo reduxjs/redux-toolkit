@@ -84,7 +84,7 @@ const alm = 'listenerMiddleware' as const
 
 const createFork = (
   parentAbortSignal: AbortSignalWithReason<unknown>,
-  parentBlockingPromises: Promise<any>[],
+  parentBlockingPromises: Array<Promise<any>>,
 ) => {
   const linkControllers = (controller: AbortController) =>
     addAbortSignalListener(parentAbortSignal, () =>
@@ -169,7 +169,7 @@ const createTakePattern = <S>(
       }
     })
 
-    const promises: (Promise<null> | Promise<[Action, S, S]>)[] = [tuplePromise]
+    const promises: Array<Promise<null> | Promise<[Action, S, S]>> = [tuplePromise]
 
     if (timeout != null) {
       promises.push(
@@ -389,7 +389,7 @@ export const createListenerMiddleware = <
       startListening as AddListenerOverloads<any>,
       internalTaskController.signal,
     )
-    const autoJoinPromises: Promise<any>[] = []
+    const autoJoinPromises: Array<Promise<any>> = []
 
     try {
       entry.pending.add(internalTaskController)

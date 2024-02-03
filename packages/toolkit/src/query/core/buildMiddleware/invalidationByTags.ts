@@ -43,7 +43,7 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
     isRejected(mutationThunk, queryThunk),
   )
 
-  let pendingTagInvalidations: FullTagDescription<string>[] = []
+  let pendingTagInvalidations: Array<FullTagDescription<string>> = []
 
   const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
     if (isThunkActionWithTags(action)) {
@@ -86,7 +86,7 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   }
 
   function invalidateTags(
-    newTags: readonly FullTagDescription<string>[],
+    newTags: ReadonlyArray<FullTagDescription<string>>,
     mwApi: SubMiddlewareApi,
   ) {
     const rootState = mwApi.getState()

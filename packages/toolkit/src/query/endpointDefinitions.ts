@@ -731,7 +731,7 @@ export function calculateProvidedBy<ResultType, QueryArg, ErrorType, MetaType>(
   queryArg: QueryArg,
   meta: MetaType | undefined,
   assertTagTypes: AssertTagTypes,
-): readonly FullTagDescription<string>[] {
+): ReadonlyArray<FullTagDescription<string>> {
   if (isFunction(description)) {
     return description(
       result as ResultType,

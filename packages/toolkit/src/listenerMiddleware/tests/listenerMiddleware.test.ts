@@ -511,7 +511,7 @@ describe('createListenerMiddleware', () => {
       expect(wasCancelled).toBe(true)
     })
 
-    const addListenerOptions: [
+    const addListenerOptions: Array<[
       string,
       Omit<
         AddListenerOverloads<
@@ -521,7 +521,7 @@ describe('createListenerMiddleware', () => {
         >,
         'effect' | 'withTypes'
       >,
-    ][] = [
+    ]> = [
       ['predicate', { predicate: () => true }],
       ['actionCreator', { actionCreator: testAction1 }],
       ['matcher', { matcher: isAnyOf(testAction1, testAction2) }],
@@ -549,7 +549,7 @@ describe('createListenerMiddleware', () => {
       },
     )
 
-    const unforwardedActions: [string, UnknownAction][] = [
+    const unforwardedActions: Array<[string, UnknownAction]> = [
       [
         'addListener',
         addListener({ actionCreator: testAction1, effect: noop }),

@@ -14,7 +14,7 @@ export interface DevToolsEnhancerOptions {
   /**
    * action creators functions to be available in the Dispatcher.
    */
-  actionCreators?: ActionCreator<any>[] | { [key: string]: ActionCreator<any> }
+  actionCreators?: Array<ActionCreator<any>> | { [key: string]: ActionCreator<any> }
   /**
    * if more than one action is dispatched in the indicated interval, all new actions will be collected and sent at once.
    * It is the joint between performance and speed. When set to `0`, all actions will be sent instantly.
@@ -210,7 +210,7 @@ type Compose = typeof compose
 interface ComposeWithDevTools {
   (options: DevToolsEnhancerOptions): Compose
   <StoreExt extends AnyNonNullishValue>(
-    ...funcs: StoreEnhancer<StoreExt>[]
+    ...funcs: Array<StoreEnhancer<StoreExt>>
   ): StoreEnhancer<StoreExt>
 }
 

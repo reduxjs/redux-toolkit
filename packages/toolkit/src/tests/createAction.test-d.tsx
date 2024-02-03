@@ -276,10 +276,10 @@ describe('type tests', () => {
     test('potential use: as array filter', () => {
       const actionCreator = createAction<string, 'test'>('test')
 
-      const x: Action<string>[] = []
+      const x: Array<Action<string>> = []
 
       expectTypeOf(x.filter(actionCreator.match)).toEqualTypeOf<
-        PayloadAction<string, 'test'>[]
+        Array<PayloadAction<string, 'test'>>
       >()
     })
   })

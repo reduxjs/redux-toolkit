@@ -165,7 +165,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const nestedSerializableObjectWithBadValue = {
       isSerializable: true,
-      entries: (): [string, any][] => [
+      entries: (): Array<[string, any]> => [
         ['good-string', 'Good!'],
         ['good-number', 1337],
         ['bad-map-instance', nonSerializableValue],
@@ -174,7 +174,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const serializableObject = {
       isSerializable: true,
-      entries: (): [string, any][] => [
+      entries: (): Array<[string, any]> => [
         ['first', 1],
         ['second', 'B!'],
         ['third', nestedSerializableObjectWithBadValue],
@@ -230,7 +230,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
       const isSerializable = (val: any): boolean =>
         val.isSerializable || isPlain(val)
-      const getEntries = (val: any): [string, any][] =>
+      const getEntries = (val: any): Array<[string, any]> =>
         val.isSerializable ? val.entries() : Object.entries(val)
 
       const reducer: Reducer = (state = initialState, action) => {
