@@ -3,7 +3,7 @@ import { produce as createNextState, isDraft, isDraftable } from 'immer'
 import type { Action, Reducer, UnknownAction } from 'redux'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { NoInfer, TypeGuard } from './tsHelpers'
+import type { AnyFunction, NoInfer, TypeGuard } from './tsHelpers'
 import { freezeDraftable } from './utils'
 
 /**
@@ -63,7 +63,7 @@ export type CaseReducers<S, AS extends Actions> = {
   [T in keyof AS]: AS[T] extends Action ? CaseReducer<S, AS[T]> : void
 }
 
-export type NotFunction<T> = T extends Function ? never : T
+export type NotFunction<T> = T extends AnyFunction ? never : T
 
 function isStateFunction<S>(x: unknown): x is () => S {
   return typeof x === 'function'

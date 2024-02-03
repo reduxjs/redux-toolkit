@@ -25,7 +25,12 @@ import type {
 import { createReducer } from './createReducer'
 import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { Id, TypeGuard } from './tsHelpers'
+import type {
+  AnyFunction,
+  AnyNonNullishValue,
+  Id,
+  TypeGuard,
+} from './tsHelpers'
 import { emplace } from './utils'
 
 const asyncThunkSymbol = /* @__PURE__ */ Symbol.for(
@@ -864,7 +869,7 @@ interface ReducerHandlingContext<State> {
   >
   sliceCaseReducersByType: Record<string, CaseReducer<State, any>>
   sliceMatchers: ActionMatcherDescriptionCollection<State>
-  actionCreators: Record<string, Function>
+  actionCreators: Record<string, AnyFunction>
 }
 
 interface ReducerHandlingContextMethods<State> {
@@ -915,7 +920,7 @@ interface ReducerHandlingContextMethods<State> {
    */
   exposeAction(
     name: string,
-    actionCreator: Function,
+    actionCreator: AnyFunction,
   ): ReducerHandlingContextMethods<State>
   /**
    * Add a case reducer to be exposed under the final `slice.caseReducers` key.

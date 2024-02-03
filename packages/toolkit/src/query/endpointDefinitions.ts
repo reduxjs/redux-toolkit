@@ -1,4 +1,5 @@
 import type { Api } from '@reduxjs/toolkit/query'
+import type { AnyFunction, AnyNonNullishValue } from '../tsHelpers'
 import type {
   BaseQueryApi,
   BaseQueryArg,
@@ -783,7 +784,7 @@ export function calculateProvidedBy<ResultType, QueryArg, ErrorType, MetaType>(
   return []
 }
 
-function isFunction<T>(t: T): t is Extract<T, Function> {
+function isFunction<T>(t: T): t is Extract<T, AnyFunction> {
   return typeof t === 'function'
 }
 
