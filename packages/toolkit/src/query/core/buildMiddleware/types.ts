@@ -7,6 +7,7 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 
+import type { AnyNonNullishValue } from '@reduxjs/toolkit/dist/tsHelpers'
 import type { Api, ApiContext } from '../../apiTypes'
 import type {
   AssertTagTypes,
@@ -66,14 +67,14 @@ export interface BuildSubMiddlewareInput
     >,
     queryCacheKey: string,
     override?: Partial<QueryThunkArg>,
-  ): AsyncThunkAction<ThunkResult, QueryThunkArg, {}>
+  ): AsyncThunkAction<ThunkResult, QueryThunkArg, AnyNonNullishValue>
   isThisApiSliceAction: (action: Action) => boolean
 }
 
 export type SubMiddlewareBuilder = (
   input: BuildSubMiddlewareInput,
 ) => Middleware<
-  {},
+  AnyNonNullishValue,
   RootState<EndpointDefinitions, string, string>,
   ThunkDispatch<any, any, UnknownAction>
 >

@@ -1,10 +1,11 @@
 import type { Reducer, Slice, WithSlice } from '@reduxjs/toolkit'
 import { combineSlices } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import type { AnyNonNullishValue } from '../tsHelpers'
 
-declare const stringSlice: Slice<string, {}, 'string'>
+declare const stringSlice: Slice<string, AnyNonNullishValue, 'string'>
 
-declare const numberSlice: Slice<number, {}, 'number'>
+declare const numberSlice: Slice<number, AnyNonNullishValue, 'number'>
 
 declare const booleanReducer: Reducer<boolean>
 

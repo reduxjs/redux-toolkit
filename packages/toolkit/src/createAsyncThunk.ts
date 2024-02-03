@@ -1,21 +1,20 @@
 import type { Dispatch, UnknownAction } from 'redux'
-import type {
-  PayloadAction,
-  ActionCreatorWithPreparedPayload,
-} from './createAction'
-import { createAction } from './createAction'
 import type { ThunkDispatch } from 'redux-thunk'
 import type {
-  ActionFromMatcher,
+  ActionCreatorWithPreparedPayload,
+  PayloadAction,
+} from './createAction'
+import { createAction } from './createAction'
+import { isAnyOf } from './matchers'
+import { nanoid } from './nanoid'
+import type {
+  AnyNonNullishValue,
   FallbackIfUnknown,
   Id,
   IsAny,
   IsUnknown,
   SafePromise,
-  TypeGuard,
 } from './tsHelpers'
-import { nanoid } from './nanoid'
-import { isAnyOf } from './matchers'
 
 // @ts-ignore we need the import of these types due to a bundling issue.
 type _Keep = PayloadAction | ActionCreatorWithPreparedPayload<any, unknown>
@@ -220,7 +219,7 @@ export type AsyncThunkPayloadCreatorReturnValue<
 export type AsyncThunkPayloadCreator<
   Returned,
   ThunkArg = void,
-  ThunkApiConfig extends AsyncThunkConfig = {},
+  ThunkApiConfig extends AsyncThunkConfig = AnyNonNullishValue,
 > = (
   arg: ThunkArg,
   thunkAPI: GetThunkAPI<ThunkApiConfig>,
@@ -293,7 +292,7 @@ type AsyncThunkActionCreator<
  */
 export type AsyncThunkOptions<
   ThunkArg = void,
-  ThunkApiConfig extends AsyncThunkConfig = {},
+  ThunkApiConfig extends AsyncThunkConfig = AnyNonNullishValue,
 > = {
   /**
    * A method to control whether the asyncThunk should be executed. Has access to the
@@ -355,7 +354,7 @@ export type AsyncThunkOptions<
 
 export type AsyncThunkPendingActionCreator<
   ThunkArg,
-  ThunkApiConfig = {},
+  ThunkApiConfig = AnyNonNullishValue,
 > = ActionCreatorWithPreparedPayload<
   [string, ThunkArg, GetPendingMeta<ThunkApiConfig>?],
   undefined,
@@ -370,7 +369,7 @@ export type AsyncThunkPendingActionCreator<
 
 export type AsyncThunkRejectedActionCreator<
   ThunkArg,
-  ThunkApiConfig = {},
+  ThunkApiConfig = AnyNonNullishValue,
 > = ActionCreatorWithPreparedPayload<
   [
     Error | null,
@@ -399,7 +398,7 @@ export type AsyncThunkRejectedActionCreator<
 export type AsyncThunkFulfilledActionCreator<
   Returned,
   ThunkArg,
-  ThunkApiConfig = {},
+  ThunkApiConfig = AnyNonNullishValue,
 > = ActionCreatorWithPreparedPayload<
   [Returned, string, ThunkArg, GetFulfilledMeta<ThunkApiConfig>?],
   Returned,

@@ -20,6 +20,7 @@ import {
   createSlice,
 } from '@reduxjs/toolkit'
 import { thunk } from 'redux-thunk'
+import type { AnyNonNullishValue } from '../tsHelpers'
 
 const _anyMiddleware: any = () => () => () => {}
 
@@ -211,7 +212,7 @@ describe('type tests', () => {
     expectTypeOf(store3.anotherProperty).toBeNumber()
 
     const someStateExtendingEnhancer: StoreEnhancer<
-      {},
+      AnyNonNullishValue,
       { someProperty: string }
     > =
       (next) =>
@@ -228,7 +229,7 @@ describe('type tests', () => {
       }
 
     const anotherStateExtendingEnhancer: StoreEnhancer<
-      {},
+      AnyNonNullishValue,
       { anotherProperty: number }
     > =
       (next) =>
@@ -561,7 +562,7 @@ describe('type tests', () => {
       // undefined is the default value for the ThunkMiddleware extraArgument
       store.dispatch(function () {} as ThunkAction<
         void,
-        {},
+        AnyNonNullishValue,
         undefined,
         UnknownAction
       >)
@@ -570,7 +571,7 @@ describe('type tests', () => {
       // @ts-expect-error
       store.dispatch(function () {} as ThunkAction<
         void,
-        {},
+        AnyNonNullishValue,
         null,
         UnknownAction
       >)
@@ -579,14 +580,14 @@ describe('type tests', () => {
       // ThunkMiddleware, no matter the actual extraArgument type
       store.dispatch(function () {} as ThunkAction<
         void,
-        {},
+        AnyNonNullishValue,
         unknown,
         UnknownAction
       >)
       // @ts-expect-error
       store.dispatch(function () {} as ThunkAction<
         void,
-        {},
+        AnyNonNullishValue,
         boolean,
         UnknownAction
       >)
@@ -620,7 +621,9 @@ describe('type tests', () => {
 
           expectTypeOf(concatenated).toMatchTypeOf<
             ReadonlyArray<
-              typeof otherMiddleware | ThunkMiddleware | Middleware<{}>
+              | typeof otherMiddleware
+              | ThunkMiddleware
+              | Middleware<AnyNonNullishValue>
             >
           >()
 
@@ -646,7 +649,9 @@ describe('type tests', () => {
 
           expectTypeOf(concatenated).toMatchTypeOf<
             ReadonlyArray<
-              typeof otherMiddleware | ThunkMiddleware | Middleware<{}>
+              | typeof otherMiddleware
+              | ThunkMiddleware
+              | Middleware<AnyNonNullishValue>
             >
           >()
 

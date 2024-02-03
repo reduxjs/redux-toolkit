@@ -1,7 +1,8 @@
-import { joinUrls } from './utils'
-import { isPlainObject } from './core/rtkImports'
+import type { AnyNonNullishValue } from '../tsHelpers'
 import type { BaseQueryApi, BaseQueryFn } from './baseQueryTypes'
+import { isPlainObject } from './core/rtkImports'
 import type { MaybePromise, Override } from './tsHelpers'
+import { joinUrls } from './utils'
 
 export type ResponseHandler =
   | 'content-type'
@@ -204,7 +205,7 @@ export function fetchBaseQuery({
   string | FetchArgs,
   unknown,
   FetchBaseQueryError,
-  {},
+  AnyNonNullishValue,
   FetchBaseQueryMeta
 > {
   if (typeof fetch === 'undefined' && fetchFn === defaultFetchFn) {

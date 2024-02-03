@@ -15,8 +15,13 @@ import {
 import type { TSVersion } from '@phryneas/ts-version'
 import type { AxiosError } from 'axios'
 import apiRequest from 'axios'
+import type { AnyNonNullishValue } from '../tsHelpers'
 
-const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, UnknownAction>
+const defaultDispatch = (() => {}) as ThunkDispatch<
+  AnyNonNullishValue,
+  any,
+  UnknownAction
+>
 const unknownAction = { type: 'foo' } as UnknownAction
 
 describe('type tests', () => {
@@ -486,7 +491,9 @@ describe('type tests', () => {
       return 'ret' as const
     })
 
-    expectTypeOf(thunk).toEqualTypeOf<AsyncThunk<'ret', void, {}>>()
+    expectTypeOf(thunk).toEqualTypeOf<
+      AsyncThunk<'ret', void, AnyNonNullishValue>
+    >()
   })
 
   test('createAsyncThunk without generics, accessing `api` does not break return type', () => {
@@ -494,7 +501,9 @@ describe('type tests', () => {
       return 'ret' as const
     })
 
-    expectTypeOf(thunk).toEqualTypeOf<AsyncThunk<'ret', void, {}>>()
+    expectTypeOf(thunk).toEqualTypeOf<
+      AsyncThunk<'ret', void, AnyNonNullishValue>
+    >()
   })
 
   test('createAsyncThunk rejectWithValue without generics: Expect correct return type', () => {
@@ -626,8 +635,14 @@ describe('type tests', () => {
 
   test('meta return values', () => {
     // return values
-    createAsyncThunk<'ret', void, {}>('test', (_, api) => 'ret' as const)
-    createAsyncThunk<'ret', void, {}>('test', async (_, api) => 'ret' as const)
+    createAsyncThunk<'ret', void, AnyNonNullishValue>(
+      'test',
+      (_, api) => 'ret' as const,
+    )
+    createAsyncThunk<'ret', void, AnyNonNullishValue>(
+      'test',
+      async (_, api) => 'ret' as const,
+    )
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>('test', (_, api) =>
       api.fulfillWithValue('ret' as const, ''),
     )

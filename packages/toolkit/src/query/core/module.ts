@@ -2,12 +2,6 @@
  * Note: this file should import all other files for type discovery and declaration merging
  */
 import type {
-  PatchQueryDataThunk,
-  UpdateQueryDataThunk,
-  UpsertQueryDataThunk,
-} from './buildThunks'
-import { buildThunks } from './buildThunks'
-import type {
   ActionCreatorWithPayload,
   Middleware,
   Reducer,
@@ -15,40 +9,47 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
+import type { Api, Module } from '../apiTypes'
+import type { BaseQueryFn } from '../baseQueryTypes'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
+  AssertTagTypes,
   EndpointDefinitions,
+  MutationDefinition,
   QueryArgFrom,
   QueryDefinition,
-  MutationDefinition,
-  AssertTagTypes,
   TagDescription,
 } from '../endpointDefinitions'
-import { isQueryDefinition, isMutationDefinition } from '../endpointDefinitions'
+import { isMutationDefinition, isQueryDefinition } from '../endpointDefinitions'
+import { assertCast, safeAssign } from '../tsHelpers'
 import type {
   CombinedState,
-  QueryKeys,
   MutationKeys,
+  QueryKeys,
   RootState,
 } from './apiState'
-import type { Api, Module } from '../apiTypes'
-import { onFocus, onFocusLost, onOnline, onOffline } from './setupListeners'
-import { buildSlice } from './buildSlice'
-import { buildMiddleware } from './buildMiddleware'
-import { buildSelectors } from './buildSelectors'
 import type {
   MutationActionCreatorResult,
   QueryActionCreatorResult,
 } from './buildInitiate'
 import { buildInitiate } from './buildInitiate'
-import { assertCast, safeAssign } from '../tsHelpers'
-import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import { buildMiddleware } from './buildMiddleware'
+import { buildSelectors } from './buildSelectors'
 import type { SliceActions } from './buildSlice'
-import type { BaseQueryFn } from '../baseQueryTypes'
+import { buildSlice } from './buildSlice'
+import type {
+  PatchQueryDataThunk,
+  UpdateQueryDataThunk,
+  UpsertQueryDataThunk,
+} from './buildThunks'
+import { buildThunks } from './buildThunks'
+import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 
+import { enablePatches } from 'immer'
+import type { AnyNonNullishValue } from '../../tsHelpers'
+import type { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
 import type { ReferenceCacheLifecycle } from './buildMiddleware/cacheLifecycle'
 import type { ReferenceQueryLifecycle } from './buildMiddleware/queryLifecycle'
-import type { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
-import { enablePatches } from 'immer'
 import { createSelector as _createSelector } from './rtkImports'
 
 /**
@@ -133,7 +134,7 @@ declare module '../apiTypes' {
        * ```
        */
       middleware: Middleware<
-        {},
+        AnyNonNullishValue,
         RootState<Definitions, string, ReducerPath>,
         ThunkDispatch<any, any, UnknownAction>
       >

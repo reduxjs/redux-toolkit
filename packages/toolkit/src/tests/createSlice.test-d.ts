@@ -15,7 +15,6 @@ import type {
   SerializedError,
   SliceCaseReducers,
   ThunkDispatch,
-  UnknownAction,
   ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit'
 import {
@@ -28,6 +27,7 @@ import {
   isRejected,
 } from '@reduxjs/toolkit'
 import { castDraft } from 'immer'
+import type { AnyNonNullishValue } from '../tsHelpers'
 
 describe('type tests', () => {
   const counterSlice = createSlice({
@@ -857,14 +857,14 @@ describe('type tests', () => {
     >()
 
     expectTypeOf(slice.actions.testInfer).toEqualTypeOf<
-      AsyncThunk<TestReturned, TestArg, {}>
+      AsyncThunk<TestReturned, TestArg, AnyNonNullishValue>
     >()
 
     expectTypeOf(slice.actions.testExplicitType).toEqualTypeOf<
       AsyncThunk<TestReturned, TestArg, { rejectValue: TestReject }>
     >()
 
-    type TestInferThunk = AsyncThunk<TestReturned, TestArg, {}>
+    type TestInferThunk = AsyncThunk<TestReturned, TestArg, AnyNonNullishValue>
 
     expectTypeOf(slice.caseReducers.testInfer.pending).toEqualTypeOf<
       CaseReducer<TestState, ReturnType<TestInferThunk['pending']>>
@@ -942,7 +942,9 @@ describe('type tests', () => {
 
     // We use `not.toEqualTypeOf` instead of `not.toMatchTypeOf`
     // because `toMatchTypeOf` allows missing properties
-    expectTypeOf(counterSlice.selectSlice).parameter(0).not.toEqualTypeOf<{}>()
+    expectTypeOf(counterSlice.selectSlice)
+      .parameter(0)
+      .not.toEqualTypeOf<AnyNonNullishValue>()
   })
 
   test('buildCreateSlice', () => {

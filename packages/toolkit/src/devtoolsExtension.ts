@@ -1,5 +1,6 @@
 import type { Action, ActionCreator, StoreEnhancer } from 'redux'
 import { compose } from 'redux'
+import type { AnyNonNullishValue } from './tsHelpers'
 
 /**
  * @public
@@ -208,7 +209,7 @@ type Compose = typeof compose
 
 interface ComposeWithDevTools {
   (options: DevToolsEnhancerOptions): Compose
-  <StoreExt extends {}>(
+  <StoreExt extends AnyNonNullishValue>(
     ...funcs: StoreEnhancer<StoreExt>[]
   ): StoreEnhancer<StoreExt>
 }

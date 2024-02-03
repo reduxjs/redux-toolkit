@@ -10,6 +10,7 @@ import { thunk } from 'redux-thunk'
 import { vi } from 'vitest'
 
 import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
+import type { AnyNonNullishValue } from '../tsHelpers'
 
 const getDefaultMiddleware = buildGetDefaultMiddleware()
 
@@ -84,8 +85,10 @@ describe('getDefaultMiddleware', () => {
       return next(action)
     }
 
-    const dummyMiddleware2: Middleware<{}, { counter: number }> =
-      (storeApi) => (next) => (action) => {}
+    const dummyMiddleware2: Middleware<
+      AnyNonNullishValue,
+      { counter: number }
+    > = (storeApi) => (next) => (action) => {}
 
     const testThunk: ThunkAction<
       void,

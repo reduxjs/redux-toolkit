@@ -10,6 +10,7 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
+import type { AnyNonNullishValue } from '../tsHelpers'
 
 declare const middleware1: Middleware<{
   (_: string): number
@@ -144,8 +145,10 @@ describe('type tests', () => {
       return next(action)
     }
 
-    const dummyMiddleware2: Middleware<{}, { counter: number }> =
-      (storeApi) => (next) => (action) => {}
+    const dummyMiddleware2: Middleware<
+      AnyNonNullishValue,
+      { counter: number }
+    > = (storeApi) => (next) => (action) => {}
 
     const testThunk: ThunkAction<
       void,
@@ -181,7 +184,7 @@ describe('type tests', () => {
                 },
                 Dispatch<UnknownAction>
               >,
-              Middleware<{}, any, Dispatch<UnknownAction>>,
+              Middleware<AnyNonNullishValue, any, Dispatch<UnknownAction>>,
             ]
           >
         >()

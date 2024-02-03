@@ -1,5 +1,6 @@
-import type { Action, UnknownAction, Reducer } from 'redux'
+import type { Action, Reducer, UnknownAction } from 'redux'
 import type { Selector } from 'reselect'
+import type { InjectConfig } from './combineSlices'
 import type {
   ActionCreatorWithoutPayload,
   PayloadAction,
@@ -9,16 +10,6 @@ import type {
 } from './createAction'
 import { createAction } from './createAction'
 import type {
-  ActionMatcherDescriptionCollection,
-  CaseReducer,
-  ReducerWithInitialState,
-} from './createReducer'
-import { createReducer } from './createReducer'
-import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
-import { executeReducerBuilderCallback } from './mapBuilders'
-import type { Id, Tail, TypeGuard } from './tsHelpers'
-import type { InjectConfig } from './combineSlices'
-import type {
   AsyncThunk,
   AsyncThunkConfig,
   AsyncThunkOptions,
@@ -26,6 +17,15 @@ import type {
   OverrideThunkApiConfigs,
 } from './createAsyncThunk'
 import { createAsyncThunk as _createAsyncThunk } from './createAsyncThunk'
+import type {
+  ActionMatcherDescriptionCollection,
+  CaseReducer,
+  ReducerWithInitialState,
+} from './createReducer'
+import { createReducer } from './createReducer'
+import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
+import { executeReducerBuilderCallback } from './mapBuilders'
+import type { AnyNonNullishValue, Id, TypeGuard } from './tsHelpers'
 import { emplace } from './utils'
 
 const asyncThunkSymbol = Symbol.for('rtk-slice-createasyncthunk')
@@ -215,8 +215,8 @@ export interface CreateSliceOptions<
   /**
    * A callback that receives a *builder* object to define
    * case reducers via calls to `builder.addCase(actionCreatorOrType, reducer)`.
-   * 
-   * 
+   *
+   *
    * @example
 ```ts
 import { createAction, createSlice, Action } from '@reduxjs/toolkit'
@@ -298,7 +298,7 @@ export interface AsyncThunkSliceReducerConfig<
   State,
   ThunkArg extends any,
   Returned = unknown,
-  ThunkApiConfig extends AsyncThunkConfig = {},
+  ThunkApiConfig extends AsyncThunkConfig = AnyNonNullishValue,
 > {
   pending?: CaseReducer<
     State,
@@ -325,7 +325,7 @@ export interface AsyncThunkSliceReducerDefinition<
   State,
   ThunkArg extends any,
   Returned = unknown,
-  ThunkApiConfig extends AsyncThunkConfig = {},
+  ThunkApiConfig extends AsyncThunkConfig = AnyNonNullishValue,
 > extends AsyncThunkSliceReducerConfig<
       State,
       ThunkArg,
@@ -371,7 +371,8 @@ interface AsyncThunkCreator<
   <
     Returned,
     ThunkArg,
-    ThunkApiConfig extends PreventCircular<AsyncThunkConfig> = {},
+    ThunkApiConfig extends
+      PreventCircular<AsyncThunkConfig> = AnyNonNullishValue,
   >(
     payloadCreator: AsyncThunkPayloadCreator<
       Returned,
@@ -576,7 +577,7 @@ export type ValidateSliceCaseReducers<
     ? {
         prepare(...a: never[]): Omit<A, 'type'>
       }
-    : {}
+    : AnyNonNullishValue
 }
 
 function getType(slice: string, actionKey: string): string {

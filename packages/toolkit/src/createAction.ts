@@ -1,9 +1,10 @@
 import { isAction } from 'redux'
 import type {
-  IsUnknownOrNonInferrable,
+  AnyNonNullishValue,
   IfMaybeUndefined,
   IfVoid,
   IsAny,
+  IsUnknownOrNonInferrable,
 } from './tsHelpers'
 import { hasMatchFunction } from './tsHelpers'
 
@@ -27,12 +28,12 @@ export type PayloadAction<
   payload: P
   type: T
 } & ([M] extends [never]
-  ? {}
+  ? AnyNonNullishValue
   : {
       meta: M
     }) &
   ([E] extends [never]
-    ? {}
+    ? AnyNonNullishValue
     : {
         error: E
       })
