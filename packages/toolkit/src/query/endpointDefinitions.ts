@@ -1,6 +1,6 @@
 import type { Api } from '@reduxjs/toolkit/query'
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { AnyFunction } from '../tsHelpers'
+import type { AnyFunction, AnyNonNullishValue } from '../tsHelpers'
 import type {
   BaseQueryApi,
   BaseQueryArg,
@@ -200,7 +200,7 @@ export type BaseEndpointDefinition<
   ResultType,
   RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > = (
-  | ([CastAny<BaseQueryResult<BaseQuery>, {}>] extends [NEVER]
+  | ([CastAny<BaseQueryResult<BaseQuery>, AnyNonNullishValue>] extends [NEVER]
       ? never
       : EndpointDefinitionWithQuery<
           QueryArg,
