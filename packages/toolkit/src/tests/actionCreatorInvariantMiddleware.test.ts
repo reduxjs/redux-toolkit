@@ -1,8 +1,11 @@
 import type { ActionCreatorInvariantMiddlewareOptions } from '@internal/actionCreatorInvariantMiddleware'
-import { getMessage } from '@internal/actionCreatorInvariantMiddleware'
-import { createActionCreatorInvariantMiddleware } from '@internal/actionCreatorInvariantMiddleware'
+import {
+  createActionCreatorInvariantMiddleware,
+  getMessage,
+} from '@internal/actionCreatorInvariantMiddleware'
 import type { MiddlewareAPI } from '@reduxjs/toolkit'
 import { createAction } from '@reduxjs/toolkit'
+import type { AnyFunction } from '../tsHelpers'
 
 describe('createActionCreatorInvariantMiddleware', () => {
   const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
@@ -50,7 +53,7 @@ describe('createActionCreatorInvariantMiddleware', () => {
   it('allows passing a custom predicate', () => {
     let predicateCalled = false
     const testAction = makeActionTester({
-      isActionCreator(action): action is Function {
+      isActionCreator(action): action is AnyFunction {
         predicateCalled = true
         return false
       },
