@@ -175,9 +175,7 @@ export type WithRequiredProp<T, K extends keyof T> = Omit<T, K> &
 export type WithOptionalProp<T, K extends keyof T> = Omit<T, K> &
   Partial<Pick<T, K>>
 
-export interface TypeGuard<T> {
-  (value: any): value is T
-}
+export type TypeGuard<T> = (value: any) => value is T
 
 export interface HasMatchFunction<T> {
   match: TypeGuard<T>

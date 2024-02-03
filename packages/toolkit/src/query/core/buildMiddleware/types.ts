@@ -123,7 +123,7 @@ export type InternalHandlerBuilder<ReturnType = void> = (
   input: BuildSubMiddlewareInput,
 ) => ApiMiddlewareInternalHandler<ReturnType>
 
-export interface PromiseConstructorWithKnownReason {
+export type PromiseConstructorWithKnownReason =
   /**
    * Creates a new Promise with a known rejection reason.
    * @param executor A callback used to initialize the promise. This callback is passed two arguments:
@@ -135,8 +135,7 @@ export interface PromiseConstructorWithKnownReason {
       resolve: (value: T | PromiseLike<T>) => void,
       reject: (reason?: R) => void,
     ) => void,
-  ): PromiseWithKnownReason<T, R>
-}
+  ) => PromiseWithKnownReason<T, R>
 
 export type PromiseWithKnownReason<T, R> = Omit<
   Promise<T>,

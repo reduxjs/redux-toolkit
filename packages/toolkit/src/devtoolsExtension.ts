@@ -14,7 +14,7 @@ export interface DevToolsEnhancerOptions {
   /**
    * action creators functions to be available in the Dispatcher.
    */
-  actionCreators?: ActionCreator<any>[] | { [key: string]: ActionCreator<any> }
+  actionCreators?: ActionCreator<any>[] | Record<string, ActionCreator<any>>
   /**
    * if more than one action is dispatched in the indicated interval, all new actions will be collected and sent at once.
    * It is the joint between performance and speed. When set to `0`, all actions will be sent instantly.
@@ -232,9 +232,9 @@ export const composeWithDevTools: ComposeWithDevTools =
 /**
  * @public
  */
-export const devToolsEnhancer: {
-  (options: DevToolsEnhancerOptions): StoreEnhancer<any>
-} =
+export const devToolsEnhancer: (
+  options: DevToolsEnhancerOptions,
+) => StoreEnhancer<any> =
   typeof window !== 'undefined' && (window as any).__REDUX_DEVTOOLS_EXTENSION__
     ? (window as any).__REDUX_DEVTOOLS_EXTENSION__
     : function () {

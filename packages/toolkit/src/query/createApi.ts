@@ -304,7 +304,7 @@ export interface CreateApiOptions<
   skipSchemaValidation?: boolean | SchemaType[]
 }
 
-export type CreateApi<Modules extends ModuleName> = {
+export type CreateApi<Modules extends ModuleName> =
   /**
    * Creates a service to use in your application. Contains only the basic redux logic (the core module).
    *
@@ -317,8 +317,7 @@ export type CreateApi<Modules extends ModuleName> = {
     TagTypes extends string = never,
   >(
     options: CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>,
-  ): Api<BaseQuery, Definitions, ReducerPath, TagTypes, Modules>
-}
+  ) => Api<BaseQuery, Definitions, ReducerPath, TagTypes, Modules>
 
 /**
  * Builds a `createApi` method based on the provided `modules`.
