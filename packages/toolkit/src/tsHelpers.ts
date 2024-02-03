@@ -98,7 +98,10 @@ type ExtractDispatchFromMiddlewareTuple<
 > = MiddlewareTuple extends [infer Head, ...infer Tail]
   ? ExtractDispatchFromMiddlewareTuple<
       Tail,
-      Acc & (Head extends Middleware<infer D> ? IsAny<D, AnyNonNullishValue, D> : AnyNonNullishValue)
+      Acc &
+        (Head extends Middleware<infer D>
+          ? IsAny<D, AnyNonNullishValue, D>
+          : AnyNonNullishValue)
     >
   : Acc
 
@@ -115,7 +118,10 @@ type ExtractStoreExtensionsFromEnhancerTuple<
 > = EnhancerTuple extends [infer Head, ...infer Tail]
   ? ExtractStoreExtensionsFromEnhancerTuple<
       Tail,
-      Acc & (Head extends StoreEnhancer<infer Ext> ? IsAny<Ext, AnyNonNullishValue, Ext> : AnyNonNullishValue)
+      Acc &
+        (Head extends StoreEnhancer<infer Ext>
+          ? IsAny<Ext, AnyNonNullishValue, Ext>
+          : AnyNonNullishValue)
     >
   : Acc
 
@@ -239,3 +245,10 @@ export type AnyNonNullishValue = NonNullable<unknown>
  * @internal
  */
 export type AnyFunction = (...args: any[]) => any
+
+/**
+ * Represents a strictly empty plain object, the `{}` value.
+ *
+ * @internal
+ */
+export type EmptyObject = Record<string, never>
