@@ -4,12 +4,13 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
+import type { AnyNonNullishValue } from '../../../tsHelpers'
 import type {
   EndpointDefinitions,
   FullTagDescription,
 } from '../../endpointDefinitions'
 import type { QueryStatus, QuerySubState, RootState } from '../apiState'
-import type { QueryThunkArg } from '../buildThunks'
+import type { ApiEndpointQuery } from '../module'
 import { createAction, isAction } from '../rtkImports'
 import { buildBatchedActionsHandler } from './batchActions'
 import { buildCacheCollectionHandler } from './cacheCollection'
@@ -24,7 +25,6 @@ import type {
   InternalMiddlewareState,
 } from './types'
 import { buildWindowEventHandler } from './windowEventHandling'
-import type { ApiEndpointQuery } from '../module'
 export type { ReferenceCacheCollection } from './cacheCollection'
 export type {
   MutationCacheLifecycleApi,
@@ -50,7 +50,7 @@ export function buildMiddleware<
 
   const actions = {
     invalidateTags: createAction<
-      Array<TagTypes | FullTagDescription<TagTypes> | null | undefined>
+      (TagTypes | FullTagDescription<TagTypes> | null | undefined)[]
     >(`${reducerPath}/invalidateTags`),
   }
 
@@ -67,7 +67,7 @@ export function buildMiddleware<
   ]
 
   const middleware: Middleware<
-    {},
+    AnyNonNullishValue,
     RootState<Definitions, string, ReducerPath>,
     ThunkDispatch<any, any, UnknownAction>
   > = (mwApi) => {
