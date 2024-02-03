@@ -65,7 +65,7 @@ module.exports = (babel) => {
   if (fs.existsSync(errorsPath)) {
     errorsFiles = fs.readFileSync(errorsPath).toString()
   }
-  let errors = Object.values(JSON.parse(errorsFiles || '{}'))
+  const errors = Object.values(JSON.parse(errorsFiles || '{}'))
   // This variable allows us to skip writing back to the file if the errors array hasn't changed
   let changeInArray = false
 

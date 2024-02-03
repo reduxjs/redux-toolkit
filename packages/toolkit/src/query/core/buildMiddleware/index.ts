@@ -60,7 +60,7 @@ export function buildMiddleware<
   > = (mwApi) => {
     let initialized = false
 
-    let internalState: InternalMiddlewareState = {
+    const internalState: InternalMiddlewareState = {
       currentSubscriptions: {},
     }
 
@@ -118,7 +118,7 @@ export function buildMiddleware<
           ) {
             // Only run these additional checks if the actions are part of the API slice,
             // or the action has hydration-related data
-            for (let handler of handlers) {
+            for (const handler of handlers) {
               handler(action, mwApiWithNext, stateBefore)
             }
           }

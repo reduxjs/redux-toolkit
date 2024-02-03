@@ -59,7 +59,7 @@ export const buildGetDefaultMiddleware = <S = any>(): GetDefaultMiddleware<S> =>
       actionCreatorCheck = true,
     } = options ?? {}
 
-    let middlewareArray = new Tuple<Middleware[]>()
+    const middlewareArray = new Tuple<Middleware[]>()
 
     if (thunk) {
       if (isBoolean(thunk)) {

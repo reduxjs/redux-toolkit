@@ -274,7 +274,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     const onCacheEntryAdded = endpointDefinition?.onCacheEntryAdded
     if (!onCacheEntryAdded) return
 
-    let lifecycle = {} as CacheLifecycle
+    const lifecycle = {} as CacheLifecycle
 
     const cacheEntryRemoved = new Promise<void>((resolve) => {
       lifecycle.cacheEntryRemoved = resolve

@@ -65,7 +65,7 @@ const storeRef = setupApiStore(api, {
 })
 
 describe('basic lifecycle', () => {
-  let onStart = vi.fn(),
+  const onStart = vi.fn(),
     onError = vi.fn(),
     onSuccess = vi.fn()
 

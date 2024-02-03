@@ -149,7 +149,7 @@ export function createReducer<S extends NotFunction<any>>(
     }
   }
 
-  let [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
+  const [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
     executeReducerBuilderCallback(mapOrBuilderCallback)
 
   // Ensure the initial state gets frozen either way (if draftable)

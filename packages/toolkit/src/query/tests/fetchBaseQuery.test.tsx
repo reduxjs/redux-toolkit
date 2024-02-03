@@ -76,7 +76,7 @@ type RootState = ReturnType<typeof storeRef.store.getState>
 
 let commonBaseQueryApi: BaseQueryApi = {} as any
 beforeEach(() => {
-  let abortController = new AbortController()
+  const abortController = new AbortController()
   commonBaseQueryApi = {
     signal: abortController.signal,
     abort: (reason) =>
