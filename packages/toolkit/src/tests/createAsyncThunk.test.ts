@@ -125,7 +125,9 @@ describe('createAsyncThunk', () => {
 
     try {
       await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -161,7 +163,9 @@ describe('createAsyncThunk', () => {
 
     try {
       await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -200,7 +204,9 @@ describe('createAsyncThunk', () => {
 
     try {
       await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -245,7 +251,9 @@ describe('createAsyncThunk', () => {
 
     try {
       await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -290,7 +298,9 @@ describe('createAsyncThunk', () => {
 
     try {
       await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -344,7 +354,9 @@ describe('createAsyncThunk', () => {
 
     try {
       await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -631,7 +643,9 @@ describe('conditional skipping of asyncThunks', () => {
       const thunkPromise = asyncThunk(arg)(dispatch, getState, extra)
       thunkPromise.abort()
       await thunkPromise
-    } catch (err) {}
+    } catch (err) {
+      /* empty */
+    }
     expect(dispatch).not.toHaveBeenCalled()
   })
 
@@ -961,6 +975,7 @@ describe('meta', () => {
     })
 
     if (ret.meta.requestStatus === 'rejected' && ret.meta.rejectedWithValue) {
+      /* empty */
     } else {
       // could be caused by a `throw`, `abort()` or `condition` - no `rejectedMeta` in that case
       // @ts-expect-error
