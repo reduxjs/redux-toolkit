@@ -103,6 +103,7 @@ const retryWithBackoff: BaseQueryEnhancer<
   }
   let retry = 0
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
       const result = await baseQuery(args, api, extraOptions)
