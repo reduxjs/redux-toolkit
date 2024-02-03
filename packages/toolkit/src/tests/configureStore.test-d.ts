@@ -777,9 +777,7 @@ describe('type tests', () => {
     // A fake middleware that tells TS that an unsubscribe callback is being returned for a given action
     // This is the same signature that the "listener" middleware uses
     const dummyMiddleware: Middleware<
-      {
-        (action: Action<'actionListenerMiddleware/add'>): Unsubscribe
-      },
+      (action: Action<'actionListenerMiddleware/add'>) => Unsubscribe,
       CounterState
     > = (storeApi) => (next) => (action) => {}
 

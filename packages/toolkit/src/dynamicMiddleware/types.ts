@@ -52,6 +52,7 @@ export interface DynamicDispatch {
   // return a version of dispatch that knows about middleware
   <Middlewares extends Middleware<any>[]>(
     action: PayloadAction<Middlewares, 'dynamicMiddleware/add'>,
+    // eslint-disable-next-line @typescript-eslint/prefer-function-type
   ): ExtractDispatchExtensions<Middlewares> & this
 }
 
