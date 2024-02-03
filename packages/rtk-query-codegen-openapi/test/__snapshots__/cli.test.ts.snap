@@ -192,7 +192,7 @@ export type Pet = {
   category?: Category;
   photoUrls: string[];
   tags?: Tag[];
-  status?: Status;
+  status?: 'available' | 'pending' | 'sold';
 };
 export type ApiResponse = {
   code?: number;
@@ -204,7 +204,7 @@ export type Order = {
   petId?: number;
   quantity?: number;
   shipDate?: string;
-  status?: Status2;
+  status?: 'placed' | 'approved' | 'delivered';
   complete?: boolean;
 };
 export type User = {
@@ -217,20 +217,10 @@ export type User = {
   phone?: string;
   userStatus?: number;
 };
-export enum Status {
-  Available = 'available',
-  Pending = 'pending',
-  Sold = 'sold',
-}
-export enum Status2 {
-  Placed = 'placed',
-  Approved = 'approved',
-  Delivered = 'delivered',
-}
 "
 `;
 
-exports[`CLI options testing > paths are relative to configfile, not to cwd 1`] = `
+exports[`CLI options testing > paths are relative to config file, not to cwd 1`] = `
 "import { api } from '../fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -422,7 +412,7 @@ export type Pet = {
   category?: Category;
   photoUrls: string[];
   tags?: Tag[];
-  status?: Status;
+  status?: 'available' | 'pending' | 'sold';
 };
 export type ApiResponse = {
   code?: number;
@@ -434,7 +424,7 @@ export type Order = {
   petId?: number;
   quantity?: number;
   shipDate?: string;
-  status?: Status2;
+  status?: 'placed' | 'approved' | 'delivered';
   complete?: boolean;
 };
 export type User = {
@@ -447,15 +437,5 @@ export type User = {
   phone?: string;
   userStatus?: number;
 };
-export enum Status {
-  Available = 'available',
-  Pending = 'pending',
-  Sold = 'sold',
-}
-export enum Status2 {
-  Placed = 'placed',
-  Approved = 'approved',
-  Delivered = 'delivered',
-}
 "
 `;
