@@ -14,6 +14,7 @@ import {
 } from '@reduxjs/toolkit'
 import type { AxiosError } from 'axios'
 import apiRequest from 'axios'
+import type { AnyFunction } from '../tsHelpers'
 
 const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, UnknownAction>
 const unknownAction = { type: 'foo' } as UnknownAction
@@ -97,7 +98,7 @@ describe('type tests', () => {
 
     const correctDispatch = (() => {}) as ThunkDispatch<
       BookModel[],
-      { userAPI: Function },
+      { userAPI: AnyFunction },
       UnknownAction
     >
 
@@ -107,7 +108,7 @@ describe('type tests', () => {
       number,
       {
         state: BooksState
-        extra: { userAPI: Function }
+        extra: { userAPI: AnyFunction }
       }
     >(
       'books/fetch',
@@ -118,7 +119,7 @@ describe('type tests', () => {
 
         expectTypeOf(state).toEqualTypeOf<BookModel[]>()
 
-        expectTypeOf(extra).toEqualTypeOf<{ userAPI: Function }>()
+        expectTypeOf(extra).toEqualTypeOf<{ userAPI: AnyFunction }>()
 
         return fakeBooks
       },
