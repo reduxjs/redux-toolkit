@@ -4,8 +4,6 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import { createAction, isAction } from '../rtkImports'
-
 import type { AnyNonNullishValue } from '@reduxjs/toolkit/dist/tsHelpers'
 import type {
   EndpointDefinitions,
@@ -13,6 +11,7 @@ import type {
 } from '../../endpointDefinitions'
 import type { QueryStatus, QuerySubState, RootState } from '../apiState'
 import type { QueryThunkArg } from '../buildThunks'
+import { createAction, isAction } from '../rtkImports'
 import { buildBatchedActionsHandler } from './batchActions'
 import { buildCacheCollectionHandler } from './cacheCollection'
 import { buildCacheLifecycleHandler } from './cacheLifecycle'
@@ -106,7 +105,7 @@ export function buildMiddleware<
           res = internalProbeResult
         }
 
-        if (!!mwApi.getState()[reducerPath]) {
+        if (mwApi.getState()[reducerPath]) {
           // Only run these checks if the middleware is registered okay
 
           // This looks for actions that aren't specific to the API slice
