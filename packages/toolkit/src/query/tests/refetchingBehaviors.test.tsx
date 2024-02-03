@@ -11,7 +11,7 @@ let amount = 0
 const defaultApi = createApi({
   baseQuery: async (arg: any) => {
     await delay(150)
-    if ('amount' in arg?.body) {
+    if ('body' in arg && 'amount' in arg.body) {
       amount += 1
     }
     return {
