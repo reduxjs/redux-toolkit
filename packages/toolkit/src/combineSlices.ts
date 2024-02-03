@@ -2,6 +2,7 @@ import type { Reducer, StateFromReducersMapObject, UnknownAction } from 'redux'
 import { combineReducers } from 'redux'
 import { nanoid } from './nanoid'
 import type {
+  AnyNonNullishValue,
   Id,
   NonUndefined,
   Tail,
@@ -79,7 +80,7 @@ export interface CombinedSliceReducer<
    * const withCustom = rootReducer.inject({ reducerPath: "customName", reducer: customSlice.reducer })
    * ```
    */
-  withLazyLoadedSlices<Lazy = {}>(): CombinedSliceReducer<
+  withLazyLoadedSlices<Lazy = AnyNonNullishValue>(): CombinedSliceReducer<
     InitialState,
     Id<DeclaredState & Partial<Lazy>>
   >
@@ -121,7 +122,7 @@ export interface CombinedSliceReducer<
     config?: InjectConfig,
   ): CombinedSliceReducer<
     InitialState,
-    Id<DeclaredState & WithSlice<SliceLike<ReducerPath, State>>>
+    Id<DeclaredState & WithSlice<SliceLike<ReducerPath, string>>>
   >
 
   /**

@@ -304,7 +304,7 @@ type AsyncThunkSliceReducerConfig<
   State,
   ThunkArg,
   Returned = unknown,
-  ThunkApiConfig extends AsyncThunkConfig = {},
+  ThunkApiConfig extends AsyncThunkConfig = AnyNonNullishValue,
 > = {
   pending?: CaseReducer<
     State,
@@ -331,7 +331,7 @@ type AsyncThunkSliceReducerDefinition<
   State,
   ThunkArg,
   Returned = unknown,
-  ThunkApiConfig extends AsyncThunkConfig = {},
+  ThunkApiConfig extends AsyncThunkConfig = AnyNonNullishValue,
 > = AsyncThunkSliceReducerConfig<State, ThunkArg, Returned, ThunkApiConfig> &
   ReducerDefinition<ReducerType.asyncThunk> & {
     payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>
@@ -372,7 +372,8 @@ interface AsyncThunkCreator<
   <
     Returned,
     ThunkArg,
-    ThunkApiConfig extends PreventCircular<AsyncThunkConfig> = {},
+    ThunkApiConfig extends
+      PreventCircular<AsyncThunkConfig> = AnyNonNullishValue,
   >(
     payloadCreator: AsyncThunkPayloadCreator<
       Returned,
@@ -569,7 +570,7 @@ export type ValidateSliceCaseReducers<
     ? {
         prepare(...a: never[]): Omit<A, 'type'>
       }
-    : {}
+    : AnyNonNullishValue
 }
 
 function getType(slice: string, actionKey: string): string {
