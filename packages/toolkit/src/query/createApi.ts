@@ -1,17 +1,18 @@
+import type { UnknownAction } from '@reduxjs/toolkit'
+import { weakMapMemoize } from 'reselect'
+import type { AnyNonNullishValue } from '../tsHelpers'
 import type { Api, ApiContext, Module, ModuleName } from './apiTypes'
-import type { CombinedState } from './core/apiState'
 import type { BaseQueryArg, BaseQueryFn } from './baseQueryTypes'
+import type { CombinedState } from './core/apiState'
+import { nanoid } from './core/rtkImports'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import { defaultSerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type {
   EndpointBuilder,
   EndpointDefinitions,
 } from './endpointDefinitions'
-import { DefinitionType, isQueryDefinition } from './endpointDefinitions'
-import { nanoid } from './core/rtkImports'
-import type { UnknownAction } from '@reduxjs/toolkit'
+import { DefinitionType } from './endpointDefinitions'
 import type { NoInfer } from './tsHelpers'
-import { weakMapMemoize } from 'reselect'
 
 export interface CreateApiOptions<
   BaseQuery extends BaseQueryFn,
@@ -334,7 +335,13 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
         }
         return api
       },
-    } as Api<BaseQueryFn, {}, string, string, Modules[number]['name']>
+    } as Api<
+      BaseQueryFn,
+      AnyNonNullishValue,
+      string,
+      string,
+      Modules[number]['name']
+    >
 
     const initializedModules = modules.map((m) =>
       m.init(api as any, optionsWithDefaults as any, context),
