@@ -2821,7 +2821,7 @@ describe('hooks with createApi defaults set', () => {
   const defaultApi = createApi({
     baseQuery: async (arg: any) => {
       await waitMs()
-      if ('amount' in arg?.body) {
+      if ('body' in arg && 'amount' in arg.body) {
         amount += 1
       }
       return {
@@ -3395,7 +3395,7 @@ describe('hooks with createApi defaults set', () => {
     const api = createApi({
       baseQuery: async (arg: any) => {
         await waitMs()
-        if ('amount' in arg?.body) {
+        if ('body' in arg && 'amount' in arg.body) {
           amount += 1
         }
         return {
