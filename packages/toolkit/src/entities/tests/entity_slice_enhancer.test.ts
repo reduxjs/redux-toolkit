@@ -76,6 +76,7 @@ describe('entity slice creator', () => {
       ...create.entityMethods(bookAdapter, {
         selectEntityState: (state) => state.nested,
         name: 'nestedBook',
+        pluralName: 'nestedBookies',
       }),
     }),
   })
@@ -83,6 +84,8 @@ describe('entity slice creator', () => {
   it('should generate correct actions', () => {
     expect(bookSlice.actions.addOneBook).toBeTypeOf('function')
     expect(bookSlice.actions.addOneNestedBook).toBeTypeOf('function')
+    expect(bookSlice.actions.addManyBooks).toBeTypeOf('function')
+    expect(bookSlice.actions.addManyNestedBookies).toBeTypeOf('function')
   })
   it('should handle actions', () => {
     const withBook = bookSlice.reducer(
