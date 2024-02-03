@@ -1,9 +1,9 @@
 import type { Middleware } from 'redux'
-import { createDynamicMiddleware } from '../index'
 import { configureStore } from '../../configureStore'
 import type { BaseActionCreator, PayloadAction } from '../../createAction'
 import { createAction } from '../../createAction'
 import { isAllOf } from '../../matchers'
+import { createDynamicMiddleware } from '../index'
 
 const probeType = 'probeableMW/probe'
 
@@ -21,9 +21,7 @@ const matchId =
 
 export const makeProbeableMiddleware = <Id extends number>(
   id: Id,
-): Middleware<{
-  (action: PayloadAction<Id, typeof probeType>): Id
-}> => {
+): Middleware<(action: PayloadAction<Id, typeof probeType>) => Id> => {
   const isMiddlewareAction = isAllOf(probeMiddleware, matchId(id))
   return (api) => (next) => (action) => {
     if (isMiddlewareAction(action)) {
