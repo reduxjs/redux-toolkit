@@ -1,3 +1,4 @@
+import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
 import { Tuple } from '@internal/utils'
 import type {
   Action,
@@ -7,9 +8,6 @@ import type {
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { thunk } from 'redux-thunk'
-import { vi } from 'vitest'
-
-import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
 import type { AnyFunction } from '../tsHelpers'
 
 const getDefaultMiddleware = buildGetDefaultMiddleware()
@@ -76,9 +74,7 @@ describe('getDefaultMiddleware', () => {
     })
 
     const dummyMiddleware: Middleware<
-      {
-        (action: Action<'actionListenerMiddleware/add'>): () => void
-      },
+      (action: Action<'actionListenerMiddleware/add'>) => () => void,
       { counter: number }
     > = (storeApi) => (next) => (action) => {
       return next(action)
