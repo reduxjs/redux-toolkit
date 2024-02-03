@@ -25,7 +25,7 @@ describe('Entity Slice Enhancer', () => {
   it('exposes oneAdded', () => {
     const action = slice.actions.oneAdded(AClockworkOrange)
     const oneAdded = slice.reducer(undefined, action)
-    expect(oneAdded.entities['0']).toBe(AClockworkOrange)
+    expect(oneAdded.entities[AClockworkOrange.id]).toBe(AClockworkOrange)
   })
 })
 

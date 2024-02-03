@@ -32,8 +32,8 @@ type EntityReducers<
     T,
     Id
   >[K] extends infer Method
-    ? Method extends (state: any, action: PayloadAction<void>) => any
-      ? CaseReducerDefinition<State, PayloadAction<void>>
+    ? Method extends (state: any, action: PayloadAction) => any
+      ? CaseReducerDefinition<State, PayloadAction>
       : Method extends (state: any, action: PayloadAction<infer Payload>) => any
         ? CaseReducerDefinition<State, PayloadAction<Payload>>
         : never
@@ -110,7 +110,7 @@ export const entityMethodsCreator: ReducerCreator<
     {
       selectEntityState = (state) => state,
       name = '',
-      pluralName = '',
+      pluralName = name ? `${name}s` : '',
     }: EntityMethodsCreatorConfig<any, any, any, '', ''> = {},
   ): EntityReducers<any, EntityId, any> {
     return {
