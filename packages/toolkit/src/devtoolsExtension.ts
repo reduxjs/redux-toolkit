@@ -1,6 +1,6 @@
 import type { Action, ActionCreator, StoreEnhancer } from 'redux'
 import { compose } from 'redux'
-import type { AnyNonNullishValue } from './tsHelpers'
+import type { AnyFunction, AnyNonNullishValue } from './tsHelpers'
 
 /**
  * @public
@@ -224,7 +224,7 @@ export const composeWithDevTools: ComposeWithDevTools =
     : function () {
         if (arguments.length === 0) return undefined
         if (typeof arguments[0] === 'object') return compose
-        return compose.apply(null, arguments as any as Function[])
+        return compose.apply(null, arguments as any as AnyFunction[])
       }
 
 /**

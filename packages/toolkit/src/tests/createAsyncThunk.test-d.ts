@@ -15,7 +15,7 @@ import {
 import type { TSVersion } from '@phryneas/ts-version'
 import type { AxiosError } from 'axios'
 import apiRequest from 'axios'
-import type { AnyNonNullishValue } from '../tsHelpers'
+import type { AnyFunction, AnyNonNullishValue } from '../tsHelpers'
 
 const defaultDispatch = (() => {}) as ThunkDispatch<
   AnyNonNullishValue,
@@ -103,7 +103,7 @@ describe('type tests', () => {
 
     const correctDispatch = (() => {}) as ThunkDispatch<
       BookModel[],
-      { userAPI: Function },
+      { userAPI: AnyFunction },
       UnknownAction
     >
 
@@ -113,7 +113,7 @@ describe('type tests', () => {
       number,
       {
         state: BooksState
-        extra: { userAPI: Function }
+        extra: { userAPI: AnyFunction }
       }
     >(
       'books/fetch',
@@ -124,7 +124,7 @@ describe('type tests', () => {
 
         expectTypeOf(state).toEqualTypeOf<BookModel[]>()
 
-        expectTypeOf(extra).toEqualTypeOf<{ userAPI: Function }>()
+        expectTypeOf(extra).toEqualTypeOf<{ userAPI: AnyFunction }>()
 
         return fakeBooks
       },
