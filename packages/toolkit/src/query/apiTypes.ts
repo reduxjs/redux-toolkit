@@ -15,6 +15,7 @@ import type { BaseQueryFn } from './baseQueryTypes'
 import type { CombinedState } from './core/apiState'
 import type { UnknownAction } from '@reduxjs/toolkit'
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ApiModules<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   BaseQuery extends BaseQueryFn,
