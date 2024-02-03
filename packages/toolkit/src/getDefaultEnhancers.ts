@@ -1,11 +1,11 @@
 import type { StoreEnhancer } from 'redux'
 import type { AutoBatchOptions } from './autoBatchEnhancer'
 import { autoBatchEnhancer } from './autoBatchEnhancer'
-import { Tuple } from './utils'
 import type { Middlewares } from './configureStore'
 import type { ExtractDispatchExtensions } from './tsHelpers'
+import { Tuple } from './utils'
 
-type GetDefaultEnhancersOptions = {
+interface GetDefaultEnhancersOptions {
   autoBatch?: boolean | AutoBatchOptions
 }
 

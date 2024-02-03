@@ -415,7 +415,7 @@ export interface ApiEndpointMutation<
   Types: NonNullable<Definition['Types']>
 }
 
-export type ListenerActions = {
+export interface ListenerActions {
   /**
    * Will cause the RTK Query middleware to trigger any refetchOnReconnect-related behavior
    * @link https://rtk-query-docs.netlify.app/api/setupListeners

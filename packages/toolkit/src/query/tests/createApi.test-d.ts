@@ -312,7 +312,9 @@ describe('type tests', () => {
           }),
         })
 
-        type Transformed = { value: string }
+        interface Transformed {
+          value: string
+        }
 
         type Definitions = DefinitionsFromApi<typeof api1>
 

@@ -483,7 +483,9 @@ describe('endpoint definition typings', () => {
         }),
       })
 
-      type Transformed = { value: string }
+      interface Transformed {
+        value: string
+      }
 
       type Definitions = DefinitionsFromApi<typeof api>
       type TagTypes = TagTypesFromApi<typeof api>
@@ -534,9 +536,15 @@ describe('endpoint definition typings', () => {
 })
 
 describe('additional transformResponse behaviors', () => {
-  type SuccessResponse = { value: 'success' }
-  type EchoResponseData = { banana: 'bread' }
-  type ErrorResponse = { value: 'error' }
+  interface SuccessResponse {
+    value: 'success'
+  }
+  interface EchoResponseData {
+    banana: 'bread'
+  }
+  interface ErrorResponse {
+    value: 'error'
+  }
   const api = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
     endpoints: (build) => ({
@@ -690,7 +698,9 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
     })
   })
 
-  type SuccessResponse = { value: 'success' }
+  interface SuccessResponse {
+    value: 'success'
+  }
   const api = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
     endpoints: (build) => ({
@@ -782,7 +792,9 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
 test('providesTags and invalidatesTags can use baseQueryMeta', async () => {
   let _meta: FetchBaseQueryMeta | undefined
 
-  type SuccessResponse = { value: 'success' }
+  interface SuccessResponse {
+    value: 'success'
+  }
 
   const api = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
@@ -820,7 +832,9 @@ test('providesTags and invalidatesTags can use baseQueryMeta', async () => {
 })
 
 describe('structuralSharing flag behaviors', () => {
-  type SuccessResponse = { value: 'success' }
+  interface SuccessResponse {
+    value: 'success'
+  }
 
   const api = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
@@ -873,7 +887,9 @@ describe('custom serializeQueryArgs per endpoint', () => {
     queryArgs,
   }) => `${endpointName}-${queryArgs}`
 
-  type SuccessResponse = { value: 'success' }
+  interface SuccessResponse {
+    value: 'success'
+  }
 
   const serializer1 = vi.fn(customArgsSerializer)
 

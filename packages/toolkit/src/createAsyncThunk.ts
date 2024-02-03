@@ -20,14 +20,14 @@ import type {
 // @ts-ignore we need the import of these types due to a bundling issue.
 type _Keep = PayloadAction | ActionCreatorWithPreparedPayload<any, unknown>
 
-export type BaseThunkAPI<
+export interface BaseThunkAPI<
   S,
   E,
   D extends Dispatch = Dispatch,
   RejectedValue = unknown,
   RejectedMeta = unknown,
   FulfilledMeta = unknown,
-> = {
+> {
   dispatch: D
   getState: () => S
   extra: E
@@ -114,7 +114,7 @@ export const miniSerializeError = (value: any): SerializedError => {
   return { message: String(value) }
 }
 
-export type AsyncThunkConfig = {
+export interface AsyncThunkConfig {
   state?: unknown
   dispatch?: Dispatch
   extra?: unknown
@@ -444,7 +444,7 @@ export type OverrideThunkApiConfigs<OldConfig, NewConfig> = Id<
   NewConfig & Omit<OldConfig, keyof NewConfig>
 >
 
-type CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> = {
+interface CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> {
   /**
    *
    * @param typePrefix

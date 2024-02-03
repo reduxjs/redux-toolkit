@@ -1,5 +1,5 @@
 import type { Draft } from 'immer'
-import { produce as createNextState, isDraft, isDraftable } from 'immer'
+import { isDraft, isDraftable, produce as createNextState } from 'immer'
 import type { Action, Reducer, UnknownAction } from 'redux'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
@@ -16,7 +16,7 @@ import { freezeDraftable } from './utils'
  */
 export type Actions<T extends keyof any = string> = Record<T, Action>
 
-export type ActionMatcherDescription<S, A extends Action> = {
+export interface ActionMatcherDescription<S, A extends Action> {
   matcher: TypeGuard<A>
   reducer: CaseReducer<S, NoInfer<A>>
 }

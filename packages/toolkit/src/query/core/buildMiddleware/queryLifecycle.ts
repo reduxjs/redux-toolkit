@@ -1,17 +1,17 @@
-import { isPending, isRejected, isFulfilled } from '../rtkImports'
 import type {
   BaseQueryError,
   BaseQueryFn,
   BaseQueryMeta,
 } from '../../baseQueryTypes'
-import { DefinitionType } from '../../endpointDefinitions'
 import type { QueryFulfilledRejectionReason } from '../../endpointDefinitions'
+import { DefinitionType } from '../../endpointDefinitions'
 import type { Recipe } from '../buildThunks'
+import { isFulfilled, isPending, isRejected } from '../rtkImports'
 import type {
-  PromiseWithKnownReason,
-  PromiseConstructorWithKnownReason,
-  InternalHandlerBuilder,
   ApiMiddlewareInternalHandler,
+  InternalHandlerBuilder,
+  PromiseConstructorWithKnownReason,
+  PromiseWithKnownReason,
 } from './types'
 
 export type ReferenceQueryLifecycle = never
@@ -211,7 +211,7 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
   const isRejectedThunk = isRejected(queryThunk, mutationThunk)
   const isFullfilledThunk = isFulfilled(queryThunk, mutationThunk)
 
-  type CacheLifecycle = {
+  interface CacheLifecycle {
     resolve(value: { data: unknown; meta: unknown }): unknown
     reject(value: QueryFulfilledRejectionReason<any>): unknown
   }

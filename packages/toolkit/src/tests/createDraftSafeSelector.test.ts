@@ -1,7 +1,9 @@
 import { createDraftSafeSelector, createSelector } from '@reduxjs/toolkit'
 import { produce } from 'immer'
 
-type State = { value: number }
+interface State {
+  value: number
+}
 const selectSelf = (state: State) => state
 
 test('handles normal values correctly', () => {

@@ -141,7 +141,10 @@ export type FetchBaseQueryArgs = {
 } & RequestInit &
   Pick<FetchArgs, 'responseHandler' | 'validateStatus' | 'timeout'>
 
-export type FetchBaseQueryMeta = { request: Request; response?: Response }
+export interface FetchBaseQueryMeta {
+  request: Request
+  response?: Response
+}
 
 /**
  * This is a very small wrapper around fetch that aims to simplify requests.
@@ -299,7 +302,7 @@ export function fetchBaseQuery({
     meta.response = responseClone
 
     let resultData: any
-    let responseText: string = ''
+    let responseText = ''
     try {
       let handleResponseError
       await Promise.all([

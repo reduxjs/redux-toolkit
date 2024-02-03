@@ -1,6 +1,6 @@
 import type {
-  ActionCreatorWithPayload,
   ActionCreatorWithoutPayload,
+  ActionCreatorWithPayload,
   EntityAdapter,
   EntityId,
   EntityStateAdapter,
@@ -19,7 +19,7 @@ function extractReducers<T, Id extends EntityId>(
 describe('type tests', () => {
   test('should be usable in a slice, with all the "reducer-like" functions', () => {
     type Id = string & { readonly __tag: unique symbol }
-    type Entity = {
+    interface Entity {
       id: Id
     }
     const adapter = createEntityAdapter<Entity>()
@@ -101,11 +101,11 @@ describe('type tests', () => {
   })
 
   test('should not be able to mix with a different EntityAdapter', () => {
-    type Entity = {
+    interface Entity {
       id: EntityId
       value: string
     }
-    type Entity2 = {
+    interface Entity2 {
       id: EntityId
       value2: string
     }
@@ -123,7 +123,10 @@ describe('type tests', () => {
   })
 
   test('should be usable in a slice with extra properties', () => {
-    type Entity = { id: EntityId; value: string }
+    interface Entity {
+      id: EntityId
+      value: string
+    }
     const adapter = createEntityAdapter<Entity>()
     createSlice({
       name: 'test',
@@ -135,7 +138,10 @@ describe('type tests', () => {
   })
 
   test('should not be usable in a slice with an unfitting state', () => {
-    type Entity = { id: EntityId; value: string }
+    interface Entity {
+      id: EntityId
+      value: string
+    }
     const adapter = createEntityAdapter<Entity>()
     createSlice({
       name: 'test',
@@ -148,7 +154,7 @@ describe('type tests', () => {
   })
 
   test('should not be able to create an adapter unless the type has an Id or an idSelector is provided', () => {
-    type Entity = {
+    interface Entity {
       value: string
     }
     // @ts-expect-error

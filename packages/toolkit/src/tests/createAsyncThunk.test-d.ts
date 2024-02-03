@@ -135,8 +135,12 @@ describe('type tests', () => {
   })
 
   test('returning a rejected action from the promise creator is possible', async () => {
-    type ReturnValue = { data: 'success' }
-    type RejectValue = { data: 'error' }
+    interface ReturnValue {
+      data: 'success'
+    }
+    interface RejectValue {
+      data: 'error'
+    }
 
     const fetchBooksTAC = createAsyncThunk<
       ReturnValue,
@@ -164,13 +168,13 @@ describe('type tests', () => {
 
   test('regression #1156: union return values fall back to allowing only single member', () => {
     const fn = createAsyncThunk('session/isAdmin', async () => {
-      const response: boolean = false
+      const response = false
       return response
     })
   })
 
   test('Should handle reject with value within a try catch block. Note: this is a sample code taken from #1605', () => {
-    type ResultType = {
+    interface ResultType {
       text: string
     }
     const demoPromise = async (): Promise<ResultType> =>
@@ -542,7 +546,9 @@ describe('type tests', () => {
   })
 
   test('createAsyncThunk with generics', () => {
-    type Funky = { somethingElse: 'Funky!' }
+    interface Funky {
+      somethingElse: 'Funky!'
+    }
     function funkySerializeError(err: any): Funky {
       return { somethingElse: 'Funky!' }
     }

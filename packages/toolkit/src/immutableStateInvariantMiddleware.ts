@@ -35,8 +35,8 @@ function trackProperties(
   isImmutable: IsImmutableFunc,
   ignorePaths: IgnorePaths = [],
   obj: AnyObject,
-  path: string = '',
-  checkedObjects: Set<AnyObject> = new Set(),
+  path = '',
+  checkedObjects = new Set<AnyObject>(),
 ) {
   const tracked: Partial<TrackedProperty> = { value: obj }
 
@@ -68,8 +68,8 @@ function detectMutations(
   ignoredPaths: IgnorePaths = [],
   trackedProperty: TrackedProperty,
   obj: any,
-  sameParentRef: boolean = false,
-  path: string = '',
+  sameParentRef = false,
+  path = '',
 ): { wasMutated: boolean; path?: string } {
   const prevObj = trackedProperty ? trackedProperty.value : undefined
 

@@ -35,7 +35,7 @@ type IgnorePaths = ReadonlyArray<string | RegExp>
  */
 export function findNonSerializableValue(
   value: unknown,
-  path: string = '',
+  path = '',
   isSerializable: (value: unknown) => boolean = isPlain,
   getEntries?: (value: unknown) => Array<[string, any]>,
   ignoredPaths: IgnorePaths = [],

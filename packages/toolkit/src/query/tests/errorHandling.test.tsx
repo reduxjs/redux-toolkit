@@ -1,5 +1,7 @@
+import { server } from '@internal/query/tests/mocks/server'
+import { hookWaitFor, setupApiStore } from '@internal/tests/utils/helpers'
 import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
-import type { BaseQueryFn, BaseQueryApi } from '@reduxjs/toolkit/query/react'
+import type { BaseQueryApi, BaseQueryFn } from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import {
   act,
@@ -11,11 +13,9 @@ import {
 } from '@testing-library/react'
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
 import axios from 'axios'
-import { HttpResponse, http } from 'msw'
+import { http, HttpResponse } from 'msw'
 import * as React from 'react'
 import { useDispatch } from 'react-redux'
-import { hookWaitFor, setupApiStore } from '@internal/tests/utils/helpers'
-import { server } from '@internal/query/tests/mocks/server'
 
 const baseQuery = fetchBaseQuery({ baseUrl: 'https://example.com' })
 
@@ -418,7 +418,9 @@ describe('custom axios baseQuery', () => {
       }
     }
 
-  type SuccessResponse = { value: 'success' }
+  interface SuccessResponse {
+    value: 'success'
+  }
   const api = createApi({
     baseQuery: axiosBaseQuery({
       baseUrl: 'https://example.com',

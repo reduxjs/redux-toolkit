@@ -1,15 +1,15 @@
 import type {
-  ActionFromMatcher,
-  Matcher,
-  UnionToIntersection,
-} from './tsHelpers'
-import { hasMatchFunction } from './tsHelpers'
-import type {
   AsyncThunk,
   AsyncThunkFulfilledActionCreator,
   AsyncThunkPendingActionCreator,
   AsyncThunkRejectedActionCreator,
 } from './createAsyncThunk'
+import type {
+  ActionFromMatcher,
+  Matcher,
+  UnionToIntersection,
+} from './tsHelpers'
+import { hasMatchFunction } from './tsHelpers'
 
 /** @public */
 export type ActionMatchingAnyOf<Matchers extends [...Array<Matcher<any>>]> =
@@ -352,7 +352,7 @@ export type UnknownAsyncThunkAction =
   | UnknownAsyncThunkRejectedAction
   | UnknownAsyncThunkFulfilledAction
 
-export type AnyAsyncThunk = {
+export interface AnyAsyncThunk {
   pending: { match: (action: any) => action is any }
   fulfilled: { match: (action: any) => action is any }
   rejected: { match: (action: any) => action is any }

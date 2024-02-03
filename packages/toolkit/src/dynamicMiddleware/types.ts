@@ -1,18 +1,18 @@
 import type {
-  Middleware,
   Dispatch as ReduxDispatch,
-  UnknownAction,
+  Middleware,
   MiddlewareAPI,
+  UnknownAction,
 } from 'redux'
+import type { BaseActionCreator, PayloadAction } from '../createAction'
 import type { ExtractDispatchExtensions, FallbackIfUnknown } from '../tsHelpers'
-import type { PayloadAction, BaseActionCreator } from '../createAction'
 
 export type GetMiddlewareApi<MiddlewareApiConfig> = MiddlewareAPI<
   GetDispatch<MiddlewareApiConfig>,
   GetState<MiddlewareApiConfig>
 >
 
-export type MiddlewareApiConfig = {
+export interface MiddlewareApiConfig {
   state?: unknown
   dispatch?: ReduxDispatch
 }
@@ -30,10 +30,10 @@ export type GetDispatch<MiddlewareApiConfig> = MiddlewareApiConfig extends {
   ? FallbackIfUnknown<Dispatch, ReduxDispatch>
   : ReduxDispatch
 
-export type AddMiddleware<
+export interface AddMiddleware<
   State = any,
   Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
-> = {
+> {
   (...middlewares: Array<Middleware<any, State, Dispatch>>): void
   withTypes<MiddlewareConfig extends MiddlewareApiConfig>(): AddMiddleware<
     GetState<MiddlewareConfig>,
@@ -62,13 +62,14 @@ export interface DynamicDispatch {
   // return a version of dispatch that knows about middleware
   <Middlewares extends Array<Middleware<any>>>(
     action: PayloadAction<Middlewares, 'dynamicMiddleware/add'>,
+    // eslint-disable-next-line @typescript-eslint/prefer-function-type
   ): ExtractDispatchExtensions<Middlewares> & this
 }
 
-export type MiddlewareEntry<
+export interface MiddlewareEntry<
   State = unknown,
   Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
-> = {
+> {
   id: string
   middleware: Middleware<any, State, Dispatch>
   applied: Map<
@@ -82,10 +83,10 @@ export type DynamicMiddleware<
   Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
 > = Middleware<DynamicDispatch, State, Dispatch>
 
-export type DynamicMiddlewareInstance<
+export interface DynamicMiddlewareInstance<
   State = unknown,
   Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
-> = {
+> {
   middleware: DynamicMiddleware<State, Dispatch>
   addMiddleware: AddMiddleware<State, Dispatch>
   withMiddleware: WithMiddleware<State, Dispatch>
