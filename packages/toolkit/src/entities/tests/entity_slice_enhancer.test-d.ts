@@ -1,7 +1,9 @@
 import type { PayloadActionCreator } from '../../createAction'
-import { buildCreateSlice } from '../../createSlice'
-import { createEntityAdapter } from '../create_adapter'
-import { entityMethodsCreator } from '../slice_creator'
+import {
+  buildCreateSlice,
+  createEntityAdapter,
+  entityMethodsCreator,
+} from '@reduxjs/toolkit'
 import type { BookModel } from './fixtures/book'
 
 describe('Entity Slice Enhancer', () => {

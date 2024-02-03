@@ -57,5 +57,5 @@ export function splitAddedUpdatedEntities<T, Id extends EntityId>(
 }
 
 export function capitalize<S extends string>(str: S) {
-  return str.replace(str[0], str[0].toUpperCase()) as Capitalize<S>
+  return str && (str.replace(str[0], str[0].toUpperCase()) as Capitalize<S>)
 }

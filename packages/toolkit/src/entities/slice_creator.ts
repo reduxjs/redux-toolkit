@@ -79,7 +79,7 @@ type entityMethodsCreator<State> =
         },
       ) => EntityReducers<T, Id, State, Single, Plural>
 
-declare module '../createSlice' {
+declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
     CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,

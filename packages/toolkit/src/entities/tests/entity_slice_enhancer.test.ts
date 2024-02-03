@@ -1,12 +1,15 @@
-import { buildCreateSlice, createEntityAdapter, createSlice } from '../..'
+import {
+  buildCreateSlice,
+  createEntityAdapter,
+  createSlice,
+  entityMethodsCreator,
+} from '@reduxjs/toolkit'
 import type {
   PayloadAction,
   SliceCaseReducers,
-  UnknownAction,
   ValidateSliceCaseReducers,
 } from '../..'
 import type { EntityId, EntityState, IdSelector } from '../models'
-import { entityMethodsCreator } from '../slice_creator'
 import { AClockworkOrange, type BookModel } from './fixtures/book'
 
 describe('Entity Slice Enhancer', () => {

@@ -833,7 +833,7 @@ export const reducerCreator: ReducerCreator<ReducerType.reducer> = {
   },
   handle({ type, reducerName }, reducer, context) {
     context
-      .addCase(type, reducer)
+      .addCase(type, reducer as any)
       .exposeCaseReducer(reducerName, reducer)
       .exposeAction(reducerName, createAction(type))
   },
