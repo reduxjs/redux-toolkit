@@ -251,6 +251,7 @@ type UseQuery = (
 
 type UseQueryOptions = {
   pollingInterval?: number
+  skipPollingIfUnfocused?: boolean
   refetchOnReconnect?: boolean
   refetchOnFocus?: boolean
   skip?: boolean
@@ -445,6 +446,7 @@ type UseQuerySubscriptionOptions = {
   skip?: boolean
   refetchOnMountOrArgChange?: boolean | number
   pollingInterval?: number
+  skipPollingIfUnfocused?: boolean
   refetchOnReconnect?: boolean
   refetchOnFocus?: boolean
 }
@@ -485,6 +487,7 @@ type UseLazyQuery = (
 
 type UseLazyQueryOptions = {
   pollingInterval?: number
+  skipPollingIfUnfocused?: boolean
   refetchOnReconnect?: boolean
   refetchOnFocus?: boolean
   selectFromResult?: (result: UseQueryStateDefaultResult) => any
@@ -555,6 +558,7 @@ type UseLazyQuerySubscription = (
 
 type UseLazyQuerySubscriptionOptions = {
   pollingInterval?: number
+  skipPollingIfUnfocused?: boolean
   refetchOnReconnect?: boolean
   refetchOnFocus?: boolean
 }
